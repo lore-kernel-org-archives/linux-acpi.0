@@ -1,57 +1,129 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v3 4/9] ACPI, x86: Extended error log driver for x86
- platform
-Date: Sun, 20 Oct 2013 10:21:48 +0200
-Message-ID: <20131020082148.GA3994@pd.tnic>
-References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com>
- <1382084624-10857-5-git-send-email-gong.chen@linux.intel.com>
- <52612BA4.2060906@linux.vnet.ibm.com>
- <20131020070615.GA30565@gchen.bj.intel.com>
+From: Vincent Blut <vincent.debian@free.fr>
+Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok
+ Prime UX31A
+Date: Mon, 21 Oct 2013 00:16:28 +0200
+Message-ID: <1382307388.4030.30.camel@lamella>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:47067 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751143Ab3JTIVv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Oct 2013 04:21:51 -0400
-Content-Disposition: inline
-In-Reply-To: <20131020070615.GA30565@gchen.bj.intel.com>
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:51518 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751835Ab3JTWRQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Oct 2013 18:17:16 -0400
+Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
+	by smtpfb2-g21.free.fr (Postfix) with ESMTP id A5432D1A92A
+	for <linux-acpi@vger.kernel.org>; Mon, 21 Oct 2013 00:17:12 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, tony.luck@intel.com, joe@perches.com, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: felipe.contreras@gmail.com, rafael.j.wysocki@intel.com
 
-Btw, your mailer is generating that Mail-Followup-To header which
-removes you from the To: list and puts everyone else on To: instead.
 
-And of course, the patches you've sent with git-send-email don't have
-that header and replying to all there is fine.
+> Since v3.7 the acpi backlight driver doesn't work at all on this mach=
+ine
+> because presumably the ACPI code contains stub code when Windows 8 OS=
+I is
+> reported.
+>=20
+> The commit ea45ea7 (in v3.11-rc2) tried to fix this problem by using =
+the intel
+> backlight driver, however, on this machine it turns the backlight com=
+pletely
+> off when it reaches level 0%, after which the user might have a lot t=
+rouble
+> trying to bring it back.
+>=20
+> This patch fixes both regressions by blacklisting the win8 OSI, so we=
+ are back
+> to v3.6 behavior, and it should remain that way until the intel backl=
+ight
+> driver is fixed.
+>=20
+> Since v3.7, users have been forced to fix the initial regression by m=
+odifying
+> the boot arguments [1].
+>=20
+> [1] https://wiki.archlinux.org/index.php/ASUS_Zenbook_Prime_UX31A
+>=20
+> Signed-off-by: Felipe Contreras <felipe.contreras@xxxxxxxxx>
+> ---
+>  drivers/acpi/blacklist.c | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+>=20
+> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+> index cb96296..a404127 100644
+> --- a/drivers/acpi/blacklist.c
+> +++ b/drivers/acpi/blacklist.c
+> @@ -192,6 +192,12 @@ static int __init dmi_disable_osi_win7(const str=
+uct dmi_system_id *d)
+>  	acpi_osi_setup("!Windows 2009");
+>  	return 0;
+>  }
+> +static int __init dmi_disable_osi_win8(const struct dmi_system_id *d=
+)
+> +{
+> +	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
+> +	acpi_osi_setup("!Windows 2012");
+> +	return 0;
+> +}
+> =20
+>  static struct dmi_system_id acpi_osi_dmi_table[] __initdata =3D {
+>  	{
+> @@ -267,6 +273,14 @@ static struct dmi_system_id acpi_osi_dmi_table[]=
+ __initdata =3D {
+>  		     DMI_MATCH(DMI_PRODUCT_NAME, "Satellite P305D"),
+>  		},
+>  	},
+> +	{
+> +	.callback =3D dmi_disable_osi_win8,
+> +	.ident =3D "ASUS Zenbook Prime UX31A",
+> +	.matches =3D {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+> +		     DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
+> +		},
+> +	},
+> =20
+>  	/*
+>  	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
+> --=20
+> 1.8.3.4
 
-And Tony's replies don't have it so replying to him is fine.
+=46elipe, Rafa=C3=ABl,
 
->From reading this here: http://cr.yp.to/proto/replyto.html your mail
-client seems to think you're subscribed to some list and thus drops your
-mail address from Mail-Followup-To.
+I wonder if this quirk is still needed=E2=80=BD I'm the owner of an Asu=
+s UX31A and of course,
+I used to set acpi_osi=3D"!Windows 2012" on the kernel command line in =
+order to change
+the backlight level. *However* since Linux 3.11, this kernel parameter =
+is not needed
+anymore to influence it. The following commit seems to be the one that =
+fixed (or at=20
+least inhibited) the issue:
 
-On Sun, Oct 20, 2013 at 03:06:15AM -0400, Chen Gong wrote:
-> Oh, yes it is. Furthermore, it reminds me where is the best place
-> to put cper.c from I write this patch series. CPER really doesn't
-> dpend on APEI even ACPI. Maybe lib/ ia an option. I can update this
-> patch and if it is OK, I can add another separate patch to change this
-> dependency. Make sense?
+commit	efaa14c7e981bdf8d3c8d39d3ed12bdc60faabb8
+ACPI / video: no automatic brightness changes by win8-compatible firmwa=
+re
 
-Yeah, for some reason it is part of the UEFI spec but APEI uses it too.
+Indeed, I reverted it on top of 3.11.6 and I can't change the backlight=
+ level anymore
+on this system!
 
-Well, I guess you can add it there as "default n" and have the rest of
-the code select it in Kconfig.
+Please see [1] for more information on what does that commit change in =
+the way to control
+the backlight level.
 
-> Sigh, it looks like I have m a little bit hurry.
+So, is this inherent to my system? thought?
 
-Yeah, why is that? :-)
+Cheers,
+Vincent
 
--- 
-Regards/Gruss,
-    Boris.
+[1]http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=3D702188
 
-Sent from a fat crate under my desk. Formatting is fine.
+
+
 --
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
