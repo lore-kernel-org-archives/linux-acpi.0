@@ -1,68 +1,45 @@
 From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Subject: Re: [PATCH v3 8/9] ACPI, APEI, CPER: Cleanup CPER memory error output
- format
-Date: Mon, 21 Oct 2013 21:52:43 +0530
-Message-ID: <526554D3.9050902@linux.vnet.ibm.com>
-References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com> <1382084624-10857-9-git-send-email-gong.chen@linux.intel.com> <52612311.2000303@linux.vnet.ibm.com> <20131019112658.GB16597@gchen.bj.intel.com>
+Subject: Re: [PATCH v3 4/9] ACPI, x86: Extended error log driver for x86 platform
+Date: Mon, 21 Oct 2013 21:57:11 +0530
+Message-ID: <526555DF.4010809@linux.vnet.ibm.com>
+References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com> <1382084624-10857-5-git-send-email-gong.chen@linux.intel.com> <52612BA4.2060906@linux.vnet.ibm.com> <20131020070615.GA30565@gchen.bj.intel.com> <20131020082148.GA3994@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e23smtp07.au.ibm.com ([202.81.31.140]:50272 "EHLO
-	e23smtp07.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751051Ab3JUQX0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Oct 2013 12:23:26 -0400
+Received: from e23smtp06.au.ibm.com ([202.81.31.148]:46852 "EHLO
+	e23smtp06.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751290Ab3JUQ1m (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Oct 2013 12:27:42 -0400
 Received: from /spool/local
-	by e23smtp07.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	by e23smtp06.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
 	for <linux-acpi@vger.kernel.org> from <naveen.n.rao@linux.vnet.ibm.com>;
-	Tue, 22 Oct 2013 02:23:24 +1000
-In-Reply-To: <20131019112658.GB16597@gchen.bj.intel.com>
+	Tue, 22 Oct 2013 02:27:40 +1000
+In-Reply-To: <20131020082148.GA3994@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tony.luck@intel.com, bp@alien8.de, joe@perches.com, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
+To: Borislav Petkov <bp@alien8.de>, Chen Gong <gong.chen@linux.intel.com>
+Cc: tony.luck@intel.com, joe@perches.com, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 10/19/2013 04:56 PM, Chen Gong wrote:
-> On Fri, Oct 18, 2013 at 05:31:21PM +0530, Naveen N. Rao wrote:
->> Date: Fri, 18 Oct 2013 17:31:21 +0530
->> From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
->> To: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com,
->>   bp@alien8.de, joe@perches.com, m.chehab@samsung.com
->> CC: arozansk@redhat.com, linux-acpi@vger.kernel.org,
->>   linux-kernel@vger.kernel.org
->> Subject: Re: [PATCH v3 8/9] ACPI, APEI, CPER: Cleanup CPER memory error
->>   output format
->> User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:24.0) Gecko/20100101
->>   Thunderbird/24.0
->>
-> [...]
->>>
->>> @@ -358,17 +349,21 @@ void cper_estatus_print(const char *pfx,
->>>   	struct acpi_generic_data *gdata;
->>>   	unsigned int data_len, gedata_len;
->>>   	int sec_no = 0;
->>> +	char newpfx[64];
->>>   	__u16 severity;
->>>
->>> -	printk("%s""Generic Hardware Error Status\n", pfx);
->>>   	severity = estatus->error_severity;
->>> -	printk("%s""severity: %d, %s\n", pfx, severity,
->>> -	       cper_severity_str(severity));
->>> +	if (severity != CPER_SEV_FATAL)
->>
->> Shouldn't this just be (severity == CPER_SEV_CORRECTED)?
->>
->> Thanks,
->> Naveen
->>
-> IMO, only fatal error can't be handlered gracefully in current
-> kernel plus H/W. Once it can be recovered by H/W and OS, we
-> can call it recovered.
+On 10/20/2013 01:51 PM, Borislav Petkov wrote:
+> On Sun, Oct 20, 2013 at 03:06:15AM -0400, Chen Gong wrote:
+>> Oh, yes it is. Furthermore, it reminds me where is the best place
+>> to put cper.c from I write this patch series. CPER really doesn't
+>> dpend on APEI even ACPI. Maybe lib/ ia an option. I can update this
+>> patch and if it is OK, I can add another separate patch to change this
+>> dependency. Make sense?
 >
+> Yeah, for some reason it is part of the UEFI spec but APEI uses it too.
+>
+> Well, I guess you can add it there as "default n" and have the rest of
+> the code select it in Kconfig.
 
-Sure, but we don't recover in all scenarios. So, calling it corrected 
-seems incorrect to me.
+Yup, I think that would be a good idea to just separate out the CPER 
+stuff from the APEI code, though I think your enhanced MCA logging code 
+will need to depend on both CPER and ACPI since you use the ACPI 
+structures as well.
 
 
-
-- Naveen
+Thanks,
+Naveen
 
