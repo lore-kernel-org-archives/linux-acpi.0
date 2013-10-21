@@ -1,142 +1,139 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime
- UX31A
-Date: Mon, 21 Oct 2013 09:53:10 +0800
-Message-ID: <52648906.4030203@intel.com>
-References: <1382307388.4030.30.camel@lamella>
+Subject: Re: [PATCH 1/3] ACPI: add module autoloading support for ACPI enumerated
+ devices
+Date: Mon, 21 Oct 2013 11:20:36 +0800
+Message-ID: <52649D84.9010306@intel.com>
+References: <1381741834-7334-1-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:46118 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:51655 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752101Ab3JUBwe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Oct 2013 21:52:34 -0400
-In-Reply-To: <1382307388.4030.30.camel@lamella>
+	id S1752267Ab3JUDUC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Oct 2013 23:20:02 -0400
+In-Reply-To: <1381741834-7334-1-git-send-email-rui.zhang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vincent Blut <vincent.debian@free.fr>, linux-acpi@vger.kernel.org
-Cc: felipe.contreras@gmail.com, rafael.j.wysocki@intel.com
+To: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, jarkko.nikula@linux.intel.com, mika.westerberg@linux.intel.com
 
-On 10/21/2013 06:16 AM, Vincent Blut wrote:
->=20
->> Since v3.7 the acpi backlight driver doesn't work at all on this mac=
-hine
->> because presumably the ACPI code contains stub code when Windows 8 O=
-SI is
->> reported.
->>
->> The commit ea45ea7 (in v3.11-rc2) tried to fix this problem by using=
- the intel
->> backlight driver, however, on this machine it turns the backlight co=
-mpletely
->> off when it reaches level 0%, after which the user might have a lot =
-trouble
->> trying to bring it back.
->>
->> This patch fixes both regressions by blacklisting the win8 OSI, so w=
-e are back
->> to v3.6 behavior, and it should remain that way until the intel back=
-light
->> driver is fixed.
->>
->> Since v3.7, users have been forced to fix the initial regression by =
-modifying
->> the boot arguments [1].
->>
->> [1] https://wiki.archlinux.org/index.php/ASUS_Zenbook_Prime_UX31A
->>
->> Signed-off-by: Felipe Contreras <felipe.contreras@xxxxxxxxx>
->> ---
->>  drivers/acpi/blacklist.c | 14 ++++++++++++++
->>  1 file changed, 14 insertions(+)
->>
->> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
->> index cb96296..a404127 100644
->> --- a/drivers/acpi/blacklist.c
->> +++ b/drivers/acpi/blacklist.c
->> @@ -192,6 +192,12 @@ static int __init dmi_disable_osi_win7(const st=
-ruct dmi_system_id *d)
->>  	acpi_osi_setup("!Windows 2009");
->>  	return 0;
->>  }
->> +static int __init dmi_disable_osi_win8(const struct dmi_system_id *=
-d)
->> +{
->> +	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
->> +	acpi_osi_setup("!Windows 2012");
->> +	return 0;
->> +}
->> =20
->>  static struct dmi_system_id acpi_osi_dmi_table[] __initdata =3D {
->>  	{
->> @@ -267,6 +273,14 @@ static struct dmi_system_id acpi_osi_dmi_table[=
-] __initdata =3D {
->>  		     DMI_MATCH(DMI_PRODUCT_NAME, "Satellite P305D"),
->>  		},
->>  	},
->> +	{
->> +	.callback =3D dmi_disable_osi_win8,
->> +	.ident =3D "ASUS Zenbook Prime UX31A",
->> +	.matches =3D {
->> +		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
->> +		     DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
->> +		},
->> +	},
->> =20
->>  	/*
->>  	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
->> --=20
->> 1.8.3.4
->=20
-> Felipe, Rafa=C3=ABl,
->=20
-> I wonder if this quirk is still needed=E2=80=BD I'm the owner of an A=
-sus UX31A and of course,
-> I used to set acpi_osi=3D"!Windows 2012" on the kernel command line i=
-n order to change
-> the backlight level. *However* since Linux 3.11, this kernel paramete=
-r is not needed
-> anymore to influence it. The following commit seems to be the one tha=
-t fixed (or at=20
-> least inhibited) the issue:
->=20
-> commit	efaa14c7e981bdf8d3c8d39d3ed12bdc60faabb8
-> ACPI / video: no automatic brightness changes by win8-compatible firm=
-ware
->=20
-> Indeed, I reverted it on top of 3.11.6 and I can't change the backlig=
-ht level anymore
-> on this system!
->=20
-> Please see [1] for more information on what does that commit change i=
-n the way to control
-> the backlight level.
->=20
-> So, is this inherent to my system? thought?
+On 10/14/2013 05:10 PM, Zhang Rui wrote:
+> An ACPI enumerated device may have its compatible id strings.
+> 
+> To support the compatible ACPI ids (acpi_device->pnp.ids),
+> we introduced acpi_driver_match_device() to match
+> the driver->acpi_match_table and acpi_device->pnp.ids.
+> 
+> For those drivers, MODULE_DEVICE_TABLE(acpi, xxx) is used to
+> exports the driver module alias in the format of
+> "acpi:device_compatible_ids".
+> But in the mean time, the current code does not export the
+> ACPI compatible strings as part of the module_alias for the
+> ACPI enumerated devices, which will break the module autoloading.
+> 
+> Take the following piece of code for example,
+> static const struct acpi_device_id xxx_acpi_match[] = {
+>         { "INTABCD", 0 },
+>         { }
+> };
+> MODULE_DEVICE_TABLE(acpi, xxx_acpi_match);
+> 
+> If this piece of code is used in a platform driver for
+> an ACPI enumerated platform device, the platform driver module_alias
+> is "acpi:INTABCD", but the uevent attribute of its platform device node
+> is "platform:INTABCD:00" (PREFIX:pdev->name).
+> If this piece of code is used in an i2c driver for an ACPI enumerated
+> i2c device, the i2c driver module_alias is "acpi:INTABCD", but
+> the uevent of its i2c device node is "i2c:INTABCD:00" (PREFIX:client->name).
+> 
+> The reason why the module autoloading is not broken for now is that
+> the uevent file of the ACPI device node is "acpi:INTABCD".
+> Thus it is the ACPI device node creation that loads the platform/i2c driver.
+> 
+> So this is a problem that will affect us the day when the ACPI bus
+> is removed from device model.
+> 
+> This patch introduces a new function to exporting ACPI ids as the
+> module_alias, for the ACPI enumerate devices.
+> 
+> For any drivers using MODULE_DEVICE_TALBE(acpi, blabla), the uevent file
+> of its associated device must be fixed by invoking this function.
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/acpi/scan.c  |   24 ++++++++++++++++++++++++
+>  include/linux/acpi.h |    8 ++++++++
+>  2 files changed, 32 insertions(+)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 407ad13..db6f879 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -111,6 +111,30 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
+>  	return len;
+>  }
+>  
+> +int acpi_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
+> +{
+> +	struct acpi_device *acpi_dev;
+> +	int result;
+> +	int len;
+> +
+> +	result = acpi_bus_get_device(ACPI_HANDLE(dev), &acpi_dev);
+> +	if (result)
+> +		return result;
+> +
+> +	if (list_empty(&acpi_dev->pnp.ids))
+> +		return 0;
+> +
+> +	if (add_uevent_var(env, "MODALIAS="))
+> +		return -ENOMEM;
+> +	len = create_modalias(acpi_dev, &env->buf[env->buflen - 1],
+> +				sizeof(env->buf) - env->buflen);
+> +	if (len >= (sizeof(env->buf) - env->buflen))
+> +		return -ENOMEM;
+> +	env->buflen += len;
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(acpi_device_uevent_modalias);
 
-I don't think ASUS UX31A needs that quirk anymore.
+Looks like this function shares a lot with the existing
+acpi_device_uevent, so perhaps worth making some resue of the exising
+code? e.g. seperate the common code into a function and then have the
+two functions call it.
 
-Thanks,
-Aaron
+-Aaron
 
->=20
-> Cheers,
-> Vincent
->=20
-> [1]http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=3D702188
->=20
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
+> +
+>  static ssize_t
+>  acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, char *buf) {
+>  	struct acpi_device *acpi_dev = to_acpi_device(dev);
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index a5db4ae..117fa26 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -401,6 +401,8 @@ static inline bool acpi_driver_match_device(struct device *dev,
+>  	return !!acpi_match_device(drv->acpi_match_table, dev);
+>  }
+>  
+> +int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
+> +
+>  #define ACPI_PTR(_ptr)	(_ptr)
+>  
+>  #else	/* !CONFIG_ACPI */
+> @@ -471,6 +473,12 @@ static inline bool acpi_driver_match_device(struct device *dev,
+>  	return false;
+>  }
+>  
+> +static inline int acpi_device_uevent_modalias(struct device *dev,
+> +				struct kobj_uevent_env *env)
+> +{
+> +	return -ENODEV;
+> +}
+> +
+>  #define ACPI_PTR(_ptr)	(NULL)
+>  
+>  #endif	/* !CONFIG_ACPI */
+> 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
