@@ -1,39 +1,65 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 5/5] gpiolib / ACPI: document the GPIO descriptor
- based interface
-Date: Mon, 21 Oct 2013 10:06:32 +0300
-Message-ID: <20131021070632.GY3521@intel.com>
-References: <1381392071-21407-1-git-send-email-mika.westerberg@linux.intel.com>
- <1381392071-21407-6-git-send-email-mika.westerberg@linux.intel.com>
- <CACRpkdaAgsoO=w6=LDqE4-JZaOY7Ooofa_L2tRL2Hnt6SNh70g@mail.gmail.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Subject: Re: [PATCH v4 20/28] x86, irq: More strict checking about registering
+ ioapic
+Date: Mon, 21 Oct 2013 18:54:44 +0800
+Message-ID: <526507F4.4090706@huawei.com>
+References: <1376189294-32022-1-git-send-email-yinghai@kernel.org> <1376189294-32022-21-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdaAgsoO=w6=LDqE4-JZaOY7Ooofa_L2tRL2Hnt6SNh70g@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Grant Likely <grant.likely@secretlab.ca>, Mathias Nyman <mathias.nyman@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Rob Landley <rob@landley.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1376189294-32022-21-git-send-email-yinghai@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Oct 19, 2013 at 11:35:39PM +0200, Linus Walleij wrote:
-> On Thu, Oct 10, 2013 at 10:01 AM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> 
-> > In addition to the existing ACPI specific GPIO interface, document the new
-> > descriptor based GPIO interface in Documentation/acpi/enumeration.txt, so
-> > it is clear that this new interface is preferred over the ACPI specific
-> > version.
-> >
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Reviewed-by: Alexandre Courbot <acourbot@nvidia.com>
-> 
-> I've applied the last 4 of these patches now as well, on top of
-> Alexandre's gpiod interface. If you can, please test the result
-> on my "devel" branch and let's see if the autobuilder likes it too...
+>  int mp_find_ioapic_pin(int ioapic, u32 gsi)
+>  {
+>  	struct mp_ioapic_gsi *gsi_cfg;
+> @@ -3888,6 +3894,11 @@ void __init mp_register_ioapic(int id, u32 address, u32 gsi_base)
+>  	if (bad_ioapic(address))
+>  		return;
+>  
+> +	/* already registered ? */
+> +	idx = __mp_find_ioapic(gsi_base);
+> +	if (idx >= 0)
+> +		return;
 
-Just tested using your devel branch and works fine with GPIOs from ACPI
-namespace.
+Hi Yinghai,
+   If you add whether ioapic was already registered check here, so we will fail to add ioapic into global ioapic_list.
+Then we also can not hot remove this ioapic.
+
+
+1. We will call mp_register_ioapic during analyze MADT first.
+2. We will try to add hotplug ioapic(which contain _GSB) to ioapic_list in acpi_pci_ioapic_add(), but will found this
+ioapic has been registered.
 
 Thanks!
+Yijing.
+
+
+> +
+>  	idx = find_first_zero_bit(ioapics_mask, MAX_IO_APICS);
+>  	if (idx >= MAX_IO_APICS) {
+>  		pr_warn("WARNING: Max # of I/O APICs (%d) exceeded, skipping\n",
+> @@ -3914,6 +3925,13 @@ void __init mp_register_ioapic(int id, u32 address, u32 gsi_base)
+>  	 * and to prevent reprogramming of IOAPIC pins (PCI GSIs).
+>  	 */
+>  	entries = io_apic_get_redir_entries(idx);
+> +
+> +	if (!entries || entries > MP_MAX_IOAPIC_PIN) {
+> +		clear_fixmap(FIX_IO_APIC_BASE_0 + idx);
+> +		memset(&ioapics[idx], 0, sizeof(struct ioapic));
+> +		return;
+> +	}
+> +
+>  	gsi_cfg = mp_ioapic_gsi_routing(idx);
+>  	gsi_cfg->gsi_base = gsi_base;
+>  	gsi_cfg->gsi_end = gsi_base + entries - 1;
+> 
+
+
+-- 
+Thanks!
+Yijing
