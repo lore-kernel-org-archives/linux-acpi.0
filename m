@@ -1,39 +1,52 @@
 From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v3 4/9] ACPI, x86: Extended error log driver for x86
- platform
-Date: Tue, 22 Oct 2013 10:37:02 +0200
-Message-ID: <20131022083702.GB10268@nazgul.tnic>
-References: <20131019095753.GA26338@pd.tnic>
- <52657a78162905670f@agluck-desk.sc.intel.com>
- <CA+8MBbLnxAiV-ccpn_HUiiP9Fp7qXWqy_i+RPu6mUTAxzV4uHA@mail.gmail.com>
+Subject: Re: [PATCH v3 8/9] ACPI, APEI, CPER: Cleanup CPER memory error
+ output format
+Date: Tue, 22 Oct 2013 10:42:19 +0200
+Message-ID: <20131022084219.GC10268@nazgul.tnic>
+References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com>
+ <1382084624-10857-9-git-send-email-gong.chen@linux.intel.com>
+ <52612311.2000303@linux.vnet.ibm.com>
+ <20131019112658.GB16597@gchen.bj.intel.com>
+ <526554D3.9050902@linux.vnet.ibm.com>
+ <3908561D78D1C84285E8C5FCA982C28F31D45B22@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:46739 "EHLO mail.skyhub.de"
+Received: from mail.skyhub.de ([78.46.96.112]:38695 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751000Ab3JVIhC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Oct 2013 04:37:02 -0400
+	id S1750988Ab3JVImT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Oct 2013 04:42:19 -0400
 Content-Disposition: inline
-In-Reply-To: <CA+8MBbLnxAiV-ccpn_HUiiP9Fp7qXWqy_i+RPu6mUTAxzV4uHA@mail.gmail.com>
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F31D45B22@ORSMSX106.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Luck <tony.luck@gmail.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "joe@perches.com" <joe@perches.com>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "arozansk@redhat.com" <arozansk@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "joe@perches.com" <joe@perches.com>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "arozansk@redhat.com" <arozansk@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Chen Gong <gong.chen@linux.intel.com>
 
-On Mon, Oct 21, 2013 at 03:39:20PM -0700, Tony Luck wrote:
-> I folded that back into the series. Also switched out the test on
-> whether to print the "No further action is required" message to only
-> do so for corrected errors. Cleaned up some of the commit messages,
+On Mon, Oct 21, 2013 at 05:14:05PM +0000, Luck, Tony wrote:
+> Even if we recovered from a UC error (which is by no means a sure
+> thing) ... I don't think the "requires no further action" message
+> applies.
 >
-> The result is sitting at:
-> git://git.kernel.org/pub/scm/linux/kernel/git/ras/ras.git eMCA
->
-> Anything we missed?
+> Soft single bit errors are common (well, common-ish ... they should
+> still be somewhat rare by most objective standard). Double bit errors
+> are much rarer ... and are very unlikely to be the result of two
+> single bit errors happening to be inside the same cache line. I'd
+> recommend further investigation of the source of a UC error (even one
+> that is "recovered" in software).
 
-Doesn't look so, at a first glance. But I agree with you - this stuff
-will be subject to change as we go along and we make up our mind about
-what exactly is sufficient and necessary to do proper decoding.
+Btw, do we even need to make this distinction? I mean, do we even reach
+this path on an error where we need to raise a #MC exception? In the
+initial design we were called from machine_check_poll which is not the
+exception path and now we're on the decode_chain which gets all errors.
 
-I like the idea of keeping an open mind about it. :-)
+Are we ready to handle all? And also, why do we even need to
+differentiate the error types on reporting? I mean, if it is, say, a
+contained UC error and we can start a recovery action from userspace
+like killing the process, we probably want to have that same detailed
+report too?
+
+ [ This is purely hypothetical, of course, as we do the poisoning game
+ and killing of processes from kernel space now but still... ]
 
 Thanks.
