@@ -1,139 +1,195 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime
- UX31A
-Date: Tue, 22 Oct 2013 10:16:58 +0800
-Message-ID: <5265E01A.9040302@intel.com>
-References: <1382307388.4030.30.camel@lamella> <52648906.4030203@intel.com> <52659AC2.4030909@free.fr>
+From: Naresh Bhat <naresh.bhat@linaro.org>
+Subject: Re: [RFC PATCH 0/3] ACPI: ARM AMBA bus connector resource
+Date: Tue, 22 Oct 2013 13:50:32 +0530
+Message-ID: <CAFoFrHY0vR5T0rX80UHQWcuAUPQdshz3TrQ5Eh3F7utrV9Yutg@mail.gmail.com>
+References: <1382402029-13381-1-git-send-email-brandon.anderson@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:15430 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752749Ab3JVCQR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Oct 2013 22:16:17 -0400
-In-Reply-To: <52659AC2.4030909@free.fr>
+Received: from mail-oa0-f44.google.com ([209.85.219.44]:36642 "EHLO
+	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753256Ab3JVIUd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Oct 2013 04:20:33 -0400
+Received: by mail-oa0-f44.google.com with SMTP id l20so6193846oag.31
+        for <linux-acpi@vger.kernel.org>; Tue, 22 Oct 2013 01:20:32 -0700 (PDT)
+In-Reply-To: <1382402029-13381-1-git-send-email-brandon.anderson@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vincent Blut <vincent.debian@free.fr>
-Cc: linux-acpi@vger.kernel.org, felipe.contreras@gmail.com, rafael.j.wysocki@intel.com
+To: "Anderson, Brandon" <brandon.anderson@amd.com>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, linux-acpi@vger.kernel.org, lenb@kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Hanjun Guo <hanjun.guo@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
 
-On 10/22/2013 05:21 AM, Vincent Blut wrote:
-> Le 21/10/2013 03:53, Aaron Lu a =C3=A9crit :
->> On 10/21/2013 06:16 AM, Vincent Blut wrote:
->>>
->>>> Since v3.7 the acpi backlight driver doesn't work at all on this m=
-achine
->>>> because presumably the ACPI code contains stub code when Windows 8=
- OSI is
->>>> reported.
->>>>
->>>> The commit ea45ea7 (in v3.11-rc2) tried to fix this problem by usi=
-ng the intel
->>>> backlight driver, however, on this machine it turns the backlight =
-completely
->>>> off when it reaches level 0%, after which the user might have a lo=
-t trouble
->>>> trying to bring it back.
->>>>
->>>> This patch fixes both regressions by blacklisting the win8 OSI, so=
- we are back
->>>> to v3.6 behavior, and it should remain that way until the intel ba=
-cklight
->>>> driver is fixed.
->>>>
->>>> Since v3.7, users have been forced to fix the initial regression b=
-y modifying
->>>> the boot arguments [1].
->>>>
->>>> [1] https://wiki.archlinux.org/index.php/ASUS_Zenbook_Prime_UX31A
->>>>
->>>> Signed-off-by: Felipe Contreras <felipe.contreras@xxxxxxxxx>
->>>> ---
->>>>  drivers/acpi/blacklist.c | 14 ++++++++++++++
->>>>  1 file changed, 14 insertions(+)
->>>>
->>>> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
->>>> index cb96296..a404127 100644
->>>> --- a/drivers/acpi/blacklist.c
->>>> +++ b/drivers/acpi/blacklist.c
->>>> @@ -192,6 +192,12 @@ static int __init dmi_disable_osi_win7(const =
-struct dmi_system_id *d)
->>>>  	acpi_osi_setup("!Windows 2009");
->>>>  	return 0;
->>>>  }
->>>> +static int __init dmi_disable_osi_win8(const struct dmi_system_id=
- *d)
->>>> +{
->>>> +	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
->>>> +	acpi_osi_setup("!Windows 2012");
->>>> +	return 0;
->>>> +}
->>>> =20
->>>>  static struct dmi_system_id acpi_osi_dmi_table[] __initdata =3D {
->>>>  	{
->>>> @@ -267,6 +273,14 @@ static struct dmi_system_id acpi_osi_dmi_tabl=
-e[] __initdata =3D {
->>>>  		     DMI_MATCH(DMI_PRODUCT_NAME, "Satellite P305D"),
->>>>  		},
->>>>  	},
->>>> +	{
->>>> +	.callback =3D dmi_disable_osi_win8,
->>>> +	.ident =3D "ASUS Zenbook Prime UX31A",
->>>> +	.matches =3D {
->>>> +		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
->>>> +		     DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
->>>> +		},
->>>> +	},
->>>> =20
->>>>  	/*
->>>>  	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
->>>> --=20
->>>> 1.8.3.4
->>>
->>> Felipe, Rafa=C3=ABl,
->>>
->>> I wonder if this quirk is still needed=E2=80=BD I'm the owner of an=
- Asus UX31A and of course,
->>> I used to set acpi_osi=3D"!Windows 2012" on the kernel command line=
- in order to change
->>> the backlight level. *However* since Linux 3.11, this kernel parame=
-ter is not needed
->>> anymore to influence it. The following commit seems to be the one t=
-hat fixed (or at=20
->>> least inhibited) the issue:
->>>
->>> commit	efaa14c7e981bdf8d3c8d39d3ed12bdc60faabb8
->>> ACPI / video: no automatic brightness changes by win8-compatible fi=
-rmware
->>>
->>> Indeed, I reverted it on top of 3.11.6 and I can't change the backl=
-ight level anymore
->>> on this system!
->>>
->>> Please see [1] for more information on what does that commit change=
- in the way to control
->>> the backlight level.
->>>
->>> So, is this inherent to my system? thought?
->>
->> I don't think ASUS UX31A needs that quirk anymore.
->=20
-> Hi Aaron,
->=20
-> Thanks for your answer. Btw I'd like to know if there is a reason tha=
-t
-> you didn't cc your patch (commit efaa14c7) to <stable@vger.kernel.org=
->,
-> however I didn't test if it'd apply cleanly!
+Hi Anderson,
 
-In addition to solve the backlight issue for some systems, that commit
-is also a behavior change regarding how backlight level should be
-handled when user plugs in/out the AC adapter, so I didn't specify the
-stable tag.
+The patches applied, compiled (except there was a conflict in the last
+patch "Hack clock names to get prototype running").  Can you please
+post the ASL code changes patch ? looks like ASL changes are different
+from what we have written originally.
 
-Thanks,
-Aaron
+-Naresh
+
+
+On 22 October 2013 06:03,  <brandon.anderson@amd.com> wrote:
+> From: Brandon Anderson <brandon.anderson@amd.com>
+>
+> This is a proposal for ACPI driver probing of the ARM AMBA devices cu=
+rrently listed under =91iofpga=92 in the RTSM dts file. The main additi=
+on is drivers/amba/acpi.c which fits the role of an AMBA bus =91connect=
+or resource=92 for ACPI using struct amba_device.
+>
+> I have not yet figured out the implementation details regarding clock=
+s (handled in the dts file with clock-names). However, I have included =
+a proposed ASL format for clock information in the DSDT example below. =
+With the last patch that hacks the clock info, this prototype will run =
+on the Foundation and RTSM models.
+>
+> These patches require Hanjun=92s fixed-clock patches to be applied fi=
+rst on top of a Linaro ACPI kernel: https://git.linaro.org/gitweb?p=3Da=
+rm/acpi/leg-kernel.git;a=3Dsummary
+>
+> Please comment on both the concept and the implementation.
+>
+> Brandon Anderson (3):
+>   Remove UART and KMI entries from DTS file
+>   Prototype of AMBA bus 'connector resource' for ACPI
+>   Hack clock names to get prototype running
+>
+>  arch/arm64/boot/dts/foundation-v8-acpi.dts        |   10 +-
+>  arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts       |    4 +
+>  arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi |    4 +
+>  drivers/acpi/acpi_platform.c                      |    2 +
+>  drivers/amba/Makefile                             |    2 +-
+>  drivers/amba/acpi.c                               |  172 +++++++++++=
+++++++++++
+>  drivers/clk/clk-fixed-rate.c                      |   15 +-
+>  7 files changed, 203 insertions(+), 6 deletions(-)
+>  create mode 100644 drivers/amba/acpi.c
+>
+> --
+> 1.7.9.5
+>
+>
+> ---
+>
+>                 Device (AMBA) {
+>                         Name (_HID, "AMBA0000") /* the parallel to "a=
+rm,primecell" in DTS */
+>                         Name (_UID, 0)
+>
+>                         /* Define 'apb_pclk' as a default clock sourc=
+e since it is
+>                            common with devices below */
+>                         Method(_DSM, 4, NotSerialized) {
+>                                 Store (Package (3)
+>                                 {
+>                                         "clock-name", "apb_pclk", "\\=
+_SB_.CLK0",
+>                                 }, Local0)
+>
+>                                 Return (Local0)
+>                         }
+>
+>                         Device (KMI0) {
+>                                 Name (_ADR,0x1c060000)
+>                                 Method (_CRS, 0x0, Serialized) {
+>                                         Name (RBUF, ResourceTemplate =
+() {
+>                                                 Memory32Fixed (ReadWr=
+ite, 0x1c060000, 0x00010000)
+>                                                 Interrupt (ResourceCo=
+nsumer, Edge, ActiveBoth,
+>                                                                 Exclu=
+sive, , , ) {44}
+>                                         })
+>                                         Return (RBUF)
+>                                 }
+>                         }
+>
+>                         Device (KMI1) {
+>                                 Name (_ADR,0x1c070000)
+>                                 Method (_CRS, 0x0, Serialized) {
+>                                         Name (RBUF, ResourceTemplate =
+() {
+>                                                 Memory32Fixed (ReadWr=
+ite, 0x1c070000, 0x00010000)
+>                                                 Interrupt (ResourceCo=
+nsumer, Edge, ActiveBoth,
+>                                                                 Exclu=
+sive, , , ) {45}
+>                                         })
+>                                         Return (RBUF)
+>                                 }
+>                         }
+>
+>                         Device (SER0) {
+>                                 Name (_ADR,0x1c090000)               =
+          // UART0
+>                                 Method (_CRS, 0x0, Serialized) {
+>                                         Name (RBUF, ResourceTemplate =
+() {
+>                                                 Memory32Fixed (ReadWr=
+ite, 0x1c090000, 0x00010000)
+>                                                 Interrupt (ResourceCo=
+nsumer, Edge, ActiveBoth,
+>                                                                 Exclu=
+sive, , , ) {37}
+>                                         })
+>                                         Return (RBUF)
+>                                 }
+>                         }
+>
+>                         Device (SER1) {
+>                                 Name (_ADR,0x1c0a0000)               =
+          // UART1
+>                                 Method (_CRS, 0x0, Serialized) {
+>                                         Name (RBUF, ResourceTemplate =
+() {
+>                                                 Memory32Fixed (ReadWr=
+ite, 0x1c0a0000, 0x00010000)
+>                                                 Interrupt (ResourceCo=
+nsumer, Edge, ActiveBoth,
+>                                                                 Exclu=
+sive, , , ) {38}
+>                                         })
+>                                         Return (RBUF)
+>                                 }
+>                         }
+>                         Device (SER2) {
+>                                 Name (_ADR,0x1c0b0000)               =
+          // UART2
+>                                 Method (_CRS, 0x0, Serialized) {
+>                                         Name (RBUF, ResourceTemplate =
+() {
+>                                                 Memory32Fixed (ReadWr=
+ite, 0x1c0b0000, 0x00010000)
+>                                                 Interrupt (ResourceCo=
+nsumer, Edge, ActiveBoth,
+>                                                                 Exclu=
+sive, , , ) {39}
+>                                         })
+>                                         Return (RBUF)
+>                                 }
+>                         }
+>
+>                         Device (SER3) {
+>                                 Name (_ADR,0x1c0c0000)               =
+          // UART3
+>                                 Method (_CRS, 0x0, Serialized) {
+>                                         Name (RBUF, ResourceTemplate =
+() {
+>                                                 Memory32Fixed (ReadWr=
+ite, 0x1c0c0000, 0x00010000)
+>                                                 Interrupt (ResourceCo=
+nsumer, Edge, ActiveBoth,
+>                                                                 Exclu=
+sive, , , ) {40}
+>                                         })
+>                                         Return (RBUF)
+>                                 }
+>                         }
+>                 }
+>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
