@@ -1,80 +1,71 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: ACPICA: Resource Mgr: Prevent infinite loops in resource walks
-Date: Tue, 22 Oct 2013 21:36:23 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37C78AA21@ORSMSX103.amr.corp.intel.com>
-References: <20131017122850.GA24755@longonot.mountain>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPICA: Invoke table unload handler after removing namespace objects
+Date: Wed, 23 Oct 2013 00:26:42 +0200
+Message-ID: <1423146.2PZnpW8Nea@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:56431 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753370Ab3JVVgZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Oct 2013 17:36:25 -0400
-In-Reply-To: <20131017122850.GA24755@longonot.mountain>
-Content-Language: en-US
+Received: from v094114.home.net.pl ([79.96.170.134]:52157 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753967Ab3JVWOo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Oct 2013 18:14:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-We'll take a look.
-Thanks,
-Bob
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
+At the point where acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD, ...)
+is called we don't really know what objects are going to be deleted as
+a result of the table unload, so it is difficult to do the cleanup from
+the handler in some cases (specifically, when some data items have been
+attached to the objects being deleted).
 
-> -----Original Message-----
-> From: Dan Carpenter [mailto:dan.carpenter@oracle.com]
-> Sent: Thursday, October 17, 2013 5:29 AM
-> To: Moore, Robert
-> Cc: linux-acpi@vger.kernel.org; devel@acpica.org
-> Subject: re: ACPICA: Resource Mgr: Prevent infinite loops in resource
-> walks
-> 
-> Hello Bob Moore,
-> 
-> The patch c13085e519e8: "ACPICA: Resource Mgr: Prevent infinite loops in
-> resource walks" from Mar 8, 2013 is not beautiful.  My static checker
-> complains about the loop because:
-> "drivers/acpi/acpica/rscalc.c:197 acpi_rs_get_aml_length()
-> 	 warn: 'resource' can't be NULL."
-> 
-> drivers/acpi/acpica/rscalc.c
->    195          /* Traverse entire list of internal resource descriptors
-> */
->    196
->    197          while (resource) {
->                        ^^^^^^^^
-> 
-> My static checker is wrong because we use the -fno-strict-overflow to
-> prevent GCC from optimizing this check away.  But we are looping over a
-> list of pointers until our pointer wraps to NULL.  In other words we loop
-> over all the 2**64 - 1 addresses until we wrap to NULL or we find
-> something with an invalid type or something with ->length zero.
-> 
-> I assume the last element in the list always has length zero?  If so then
-> we could replace "while (resource)" with "while (resource->length)"
-> 
->    198
->    199                  /* Validate the descriptor type */
->    200
->    201                  if (resource->type > ACPI_RESOURCE_TYPE_MAX) {
->    202
-> return_ACPI_STATUS(AE_AML_INVALID_RESOURCE_TYPE);
->    203                  }
->    204
->    205                  /* Sanity check the length. It must not be zero,
-> or we loop forever */
->    206
->    207                  if (!resource->length) {
->    208
-> return_ACPI_STATUS(AE_AML_BAD_RESOURCE_LENGTH);
->    209                  }
->    210
->    211                  /* Get the base size of the (external stream)
-> resource descriptor */
->    212
-> 
-> regards,
-> dan carpenter
+For this reason, call acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD, ...)
+after acpi_tb_delete_namespace_by_owner() has run so that it can do the
+cleanup properly.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpica/tbxfload.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+Index: linux-pm/drivers/acpi/acpica/tbxfload.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpica/tbxfload.c
++++ linux-pm/drivers/acpi/acpica/tbxfload.c
+@@ -352,15 +352,6 @@ acpi_status acpi_unload_parent_table(acp
+ 			break;
+ 		}
+ 
+-		/* Invoke table handler if present */
+-
+-		if (acpi_gbl_table_handler) {
+-			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
+-						     acpi_gbl_root_table_list.
+-						     tables[i].pointer,
+-						     acpi_gbl_table_handler_context);
+-		}
+-
+ 		/*
+ 		 * Delete all namespace objects owned by this table. Note that
+ 		 * these objects can appear anywhere in the namespace by virtue
+@@ -372,6 +363,15 @@ acpi_status acpi_unload_parent_table(acp
+ 			break;
+ 		}
+ 
++		/* Invoke table handler if present */
++
++		if (acpi_gbl_table_handler) {
++			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
++						     acpi_gbl_root_table_list.
++						     tables[i].pointer,
++						     acpi_gbl_table_handler_context);
++		}
++
+ 		status = acpi_tb_release_owner_id(i);
+ 		acpi_tb_set_table_loaded_flag(i, FALSE);
+ 		break;
 
