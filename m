@@ -1,56 +1,34 @@
-From: "Anderson, Brandon" <Brandon.Anderson@amd.com>
-Subject: RE: [RFC PATCH 0/3] ACPI: ARM AMBA bus connector resource
-Date: Wed, 23 Oct 2013 15:44:52 +0000
-Message-ID: <CE40542A5D952D47989966E71788B1840156EEAC@satlexdag05.amd.com>
-References: <1382402029-13381-1-git-send-email-brandon.anderson@amd.com>
- <CE40542A5D952D47989966E71788B1840156EDDB@satlexdag05.amd.com>
- <52677CCB.7090508@linaro.org>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [REGRESSION/PATCH] acpi: blacklist win8 OSI for ASUS Zenbok Prime UX31A
+Date: Wed, 23 Oct 2013 14:39:58 -0500
+Message-ID: <CAMP44s16AfMk4rCZ3E2WCmBcT_3aS0rhzhpvyCtFpjsBHnMutg@mail.gmail.com>
+References: <1382307388.4030.30.camel@lamella>
+	<CAMP44s1rNLVQ2Mh5MS+4jvnY3suE-PNGs12407uW+7GczsG5JA@mail.gmail.com>
+	<20131023153114.GA31944@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ch1ehsobe005.messaging.microsoft.com ([216.32.181.185]:26225
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751222Ab3JWPqe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Oct 2013 11:46:34 -0400
-In-Reply-To: <52677CCB.7090508@linaro.org>
-Content-Language: en-US
+Received: from mail-la0-f54.google.com ([209.85.215.54]:34646 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751447Ab3JWTj7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Oct 2013 15:39:59 -0400
+Received: by mail-la0-f54.google.com with SMTP id gx14so1086625lab.13
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Oct 2013 12:39:58 -0700 (PDT)
+In-Reply-To: <20131023153114.GA31944@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "naresh.bhat@linaro.org" <naresh.bhat@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Vincent Blut <vincent.debian@free.fr>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rafael.j.wysocki@intel.com
 
-VGhhbmsgeW91IGZvciBjb25maXJtaW5nIHRoZSBvcmlnaW5hbCBwcm9wb3NhbCBmb3IgdGhlIEFT
-TCBmb3JtYXQgLCBIYW5qdW4uDQoNCkkgd2lsbCByZWZpbmUgdGhpcyBwYXRjaHNldCwgaW1wbGVt
-ZW50IHRoZSBjbG9jayBkZWZpbml0aW9uLCBhbmQgdGhlbiByZXN1Ym1pdCB0byB0aGUgbGlzdCBm
-b3IgcmV2aWV3Lg0KDQpCcmFuZG9uDQoNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZy
-b206IEhhbmp1biBHdW8gW21haWx0bzpoYW5qdW4uZ3VvQGxpbmFyby5vcmddIA0KU2VudDogV2Vk
-bmVzZGF5LCBPY3RvYmVyIDIzLCAyMDEzIDI6MzggQU0NClRvOiBBbmRlcnNvbiwgQnJhbmRvbjsg
-bGluYXJvLWFjcGlAbGlzdHMubGluYXJvLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcN
-CkNjOiBsZW5iQGtlcm5lbC5vcmc7IHJqd0BzaXNrLnBsOyBuYXJlc2guYmhhdEBsaW5hcm8ub3Jn
-OyBncmFlbWUuZ3JlZ29yeUBsaW5hcm8ub3JnOyBTdXRoaWt1bHBhbml0LCBTdXJhdmVlDQpTdWJq
-ZWN0OiBSZTogW1JGQyBQQVRDSCAwLzNdIEFDUEk6IEFSTSBBTUJBIGJ1cyBjb25uZWN0b3IgcmVz
-b3VyY2UNCg0KT24gMjAxMy0xMC0yMyA4OjEzLCBBbmRlcnNvbiwgQnJhbmRvbiB3cm90ZToNCj4g
-SXMgdGhlIHByb3Bvc2VkIEFTTCBmb3JtYXQgYXBwcm9wcmlhdGU/IEkgcmVjb2duaXplIHRoYXQg
-dGhlIEFTTA0KDQpJdCBpcyBvayBmb3IgbWUuIGl0IHJlcHJlc2VudHMgdGhlIGRldmljZSB0b3Bv
-bG9neSB2ZXJ5IGNsZWFyIGFsc28uDQoNCj4gZGVmaW5pdGlvbnMgZm9yIHRoZXNlIGRldmljZXMg
-bXVzdCBiZSBzdGFuZGFyZGl6ZWQgYWNyb3NzIGFsbCBBUk0gQUNQSSANCj4gcGxhdGZvcm0gZGVm
-aW5pdGlvbnMgaWYgd2Ugd2FudCB0aGUgc29mdHdhcmUgdG8gd29yayBjb25zaXN0ZW50bHksIHNv
-IA0KPiB0aGlzIGlzIGFuIGltcG9ydGFudCBhc3BlY3QgdG8gYWdyZWUgdXBvbi4NCj4gDQo+IEhv
-dyBhYm91dCBjb250cmFzdGluZyBpdCB3aXRoIGFuIGFsdGVybmF0aXZlIHdoZXJlIGVhY2ggZGV2
-aWNlIGhhcyANCj4gX0hJRCBvZiAiQU1CQTAwMDAiIGFuZCB0aGVyZSdzIG5vIHRvcC1sZXZlbCAn
-RGV2aWNlIChBTUJBKSc/IFRoaXMgDQo+IHdvdWxkIG1lYW4gdGhhdCBhbGwgdGhlIGRldmljZXMg
-d291bGQgYmUgbGFiZWxlZCBieSBBQ1BJIHN1YnN5c3RlbSBhcyAiQU1CQTAwMDA6Tk4iDQo+IGlu
-c3RlYWQgb2YgImRldmljZTpOTiIuIEhvd2V2ZXIsIHdpdGggdGhpcyBzb2x1dGlvbiB0aGVyZSB3
-b3VsZCBiZSBubyANCj4gZWFzeSB3YXkgdG8gZGVmaW5lIGEgZGVmYXVsdCBjbG9jay4gU2VlIGV4
-YW1wbGUgYmVsb3cuDQoNCkkgdGhpbmsgYSB0b3AtbGV2ZWwgJ0RldmljZSAoQU1CQSknIGlzIG5l
-ZWRlZC4gdGhlcmUgaXMgYSBnb29kIGV4YW1wbGUgZm9yIFBDSSBob3N0IGJyaWRnZSwgaXRzIEhJ
-RCBpcyBQTlAwQTA4IG9yIFBOUDBBMDMsIGFuZCB0aGVyZSBhcmUgYSB0b3AgbGV2ZWwgZGV2aWNl
-IGZvciBQQ0kgaG9zdCBicmlkZ2UgYW5kIGNoaWxkIGRldmljZXMgd2l0aCBkaWZmZXJlbnQgSElE
-cy4NCg0KaWYgdGhlcmUncyBubyB0b3AtbGV2ZWwgJ0RldmljZSAoQU1CQSknLCBBTUJBMDAwMDpO
-TiB3aWxsIGNvbmZ1c2UgcGVvcGxlIGlmIHRoZXJlIGFyZSBtdWx0aSBBTUJBcyBpbiB0aGUgc3lz
-dGVtLCBwZW9wbGUgd2lsbCB0aGluayB0aGF0IEFNQkEwMDAwOjAxIGlzIHRoZSBzZWNvbmQgQU1C
-QSBidXMgaW4gdGhlIHN5c3RlbSBidXQgbm90IHNvbWUgZGV2aWNlcyB1bmRlciBBTUJBIGJ1cy4N
-Cg0KVGhhbmtzDQpIYW5qdW4NCg0KDQo=
+On Wed, Oct 23, 2013 at 10:31 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> On Mon, Oct 21, 2013 at 09:12:22PM -0500, Felipe Contreras wrote:
+>
+>> But yeah, it should work in v3.11, but when you set the level to 0,
+>> the backlight is turned off, isn't it?
+>
+> That's a valid thing for the backlight system to do.
 
+In your opinion.
+
+-- 
+Felipe Contreras
