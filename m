@@ -1,42 +1,192 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [Devel] ACPICA: Resource Mgr: Prevent infinite loops in resource
- walks
-Date: Wed, 23 Oct 2013 12:25:00 +0300
-Message-ID: <20131023092500.GE9378@mwanda>
-References: <20131017122850.GA24755@longonot.mountain>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37C78AA21@ORSMSX103.amr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E8802478147@SHSMSX101.ccr.corp.intel.com>
+From: Naresh Bhat <naresh.bhat@linaro.org>
+Subject: Re: [RFC PATCH 0/3] ACPI: ARM AMBA bus connector resource
+Date: Wed, 23 Oct 2013 15:14:50 +0530
+Message-ID: <CAFoFrHZoRdFt+71sWSTXVMGB9PMwsvBn_M4kctuSSb2PsEETUg@mail.gmail.com>
+References: <1382402029-13381-1-git-send-email-brandon.anderson@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:50932 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752363Ab3JWJZL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Oct 2013 05:25:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802478147@SHSMSX101.ccr.corp.intel.com>
+Received: from mail-oa0-f42.google.com ([209.85.219.42]:41521 "EHLO
+	mail-oa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751719Ab3JWJov convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Oct 2013 05:44:51 -0400
+Received: by mail-oa0-f42.google.com with SMTP id k14so537590oag.15
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Oct 2013 02:44:51 -0700 (PDT)
+In-Reply-To: <1382402029-13381-1-git-send-email-brandon.anderson@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: "Anderson, Brandon" <brandon.anderson@amd.com>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Hanjun Guo <hanjun.guo@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
 
-On Wed, Oct 23, 2013 at 06:06:46AM +0000, Zheng, Lv wrote:
-> The last resource should always be ACPI_RESOURCE_TYPE_END_TAG and we
-> have nsrepair mechanism to ensure that this entry is always there for
-> resource based properties (there are still 2 kinds of properties
-> haven't been fixed yet).
+Thanks.  I have applied on top of linaro acpi kernel and verified it
+on the foundation-v8 model.
+
+Acked-by: naresh.bhat@linaro.org
+
+On 22 October 2013 06:03,  <brandon.anderson@amd.com> wrote:
+> From: Brandon Anderson <brandon.anderson@amd.com>
 >
-> If we do not want to rely on this logic, then we may need to use
-> buffer->length and pass this one to the acpi_rs_get_aml_length to
-> avoid potential infinite loop.
-> I'll draft an ACPICA patch to achieve the latter.
-
-Actually couldn't we just change the loop to:
-
-	while (resource->type != ACPI_RESOURCE_TYPE_END_TAG) {
-
-That would be my preference (as an ignorant third party).
-
-regards,
-dan carpenter
-
+> This is a proposal for ACPI driver probing of the ARM AMBA devices cu=
+rrently listed under =91iofpga=92 in the RTSM dts file. The main additi=
+on is drivers/amba/acpi.c which fits the role of an AMBA bus =91connect=
+or resource=92 for ACPI using struct amba_device.
+>
+> I have not yet figured out the implementation details regarding clock=
+s (handled in the dts file with clock-names). However, I have included =
+a proposed ASL format for clock information in the DSDT example below. =
+With the last patch that hacks the clock info, this prototype will run =
+on the Foundation and RTSM models.
+>
+> These patches require Hanjun=92s fixed-clock patches to be applied fi=
+rst on top of a Linaro ACPI kernel: https://git.linaro.org/gitweb?p=3Da=
+rm/acpi/leg-kernel.git;a=3Dsummary
+>
+> Please comment on both the concept and the implementation.
+>
+> Brandon Anderson (3):
+>   Remove UART and KMI entries from DTS file
+>   Prototype of AMBA bus 'connector resource' for ACPI
+>   Hack clock names to get prototype running
+>
+>  arch/arm64/boot/dts/foundation-v8-acpi.dts        |   10 +-
+>  arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts       |    4 +
+>  arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi |    4 +
+>  drivers/acpi/acpi_platform.c                      |    2 +
+>  drivers/amba/Makefile                             |    2 +-
+>  drivers/amba/acpi.c                               |  172 +++++++++++=
+++++++++++
+>  drivers/clk/clk-fixed-rate.c                      |   15 +-
+>  7 files changed, 203 insertions(+), 6 deletions(-)
+>  create mode 100644 drivers/amba/acpi.c
+>
+> --
+> 1.7.9.5
+>
+>
+> ---
+>
+>                 Device (AMBA) {
+>                         Name (_HID, "AMBA0000") /* the parallel to "a=
+rm,primecell" in DTS */
+>                         Name (_UID, 0)
+>
+>                         /* Define 'apb_pclk' as a default clock sourc=
+e since it is
+>                            common with devices below */
+>                         Method(_DSM, 4, NotSerialized) {
+>                                 Store (Package (3)
+>                                 {
+>                                         "clock-name", "apb_pclk", "\\=
+_SB_.CLK0",
+>                                 }, Local0)
+>
+>                                 Return (Local0)
+>                         }
+>
+>                         Device (KMI0) {
+>                                 Name (_ADR,0x1c060000)
+>                                 Method (_CRS, 0x0, Serialized) {
+>                                         Name (RBUF, ResourceTemplate =
+() {
+>                                                 Memory32Fixed (ReadWr=
+ite, 0x1c060000, 0x00010000)
+>                                                 Interrupt (ResourceCo=
+nsumer, Edge, ActiveBoth,
+>                                                                 Exclu=
+sive, , , ) {44}
+>                                         })
+>                                         Return (RBUF)
+>                                 }
+>                         }
+>
+>                         Device (KMI1) {
+>                                 Name (_ADR,0x1c070000)
+>                                 Method (_CRS, 0x0, Serialized) {
+>                                         Name (RBUF, ResourceTemplate =
+() {
+>                                                 Memory32Fixed (ReadWr=
+ite, 0x1c070000, 0x00010000)
+>                                                 Interrupt (ResourceCo=
+nsumer, Edge, ActiveBoth,
+>                                                                 Exclu=
+sive, , , ) {45}
+>                                         })
+>                                         Return (RBUF)
+>                                 }
+>                         }
+>
+>                         Device (SER0) {
+>                                 Name (_ADR,0x1c090000)               =
+          // UART0
+>                                 Method (_CRS, 0x0, Serialized) {
+>                                         Name (RBUF, ResourceTemplate =
+() {
+>                                                 Memory32Fixed (ReadWr=
+ite, 0x1c090000, 0x00010000)
+>                                                 Interrupt (ResourceCo=
+nsumer, Edge, ActiveBoth,
+>                                                                 Exclu=
+sive, , , ) {37}
+>                                         })
+>                                         Return (RBUF)
+>                                 }
+>                         }
+>
+>                         Device (SER1) {
+>                                 Name (_ADR,0x1c0a0000)               =
+          // UART1
+>                                 Method (_CRS, 0x0, Serialized) {
+>                                         Name (RBUF, ResourceTemplate =
+() {
+>                                                 Memory32Fixed (ReadWr=
+ite, 0x1c0a0000, 0x00010000)
+>                                                 Interrupt (ResourceCo=
+nsumer, Edge, ActiveBoth,
+>                                                                 Exclu=
+sive, , , ) {38}
+>                                         })
+>                                         Return (RBUF)
+>                                 }
+>                         }
+>                         Device (SER2) {
+>                                 Name (_ADR,0x1c0b0000)               =
+          // UART2
+>                                 Method (_CRS, 0x0, Serialized) {
+>                                         Name (RBUF, ResourceTemplate =
+() {
+>                                                 Memory32Fixed (ReadWr=
+ite, 0x1c0b0000, 0x00010000)
+>                                                 Interrupt (ResourceCo=
+nsumer, Edge, ActiveBoth,
+>                                                                 Exclu=
+sive, , , ) {39}
+>                                         })
+>                                         Return (RBUF)
+>                                 }
+>                         }
+>
+>                         Device (SER3) {
+>                                 Name (_ADR,0x1c0c0000)               =
+          // UART3
+>                                 Method (_CRS, 0x0, Serialized) {
+>                                         Name (RBUF, ResourceTemplate =
+() {
+>                                                 Memory32Fixed (ReadWr=
+ite, 0x1c0c0000, 0x00010000)
+>                                                 Interrupt (ResourceCo=
+nsumer, Edge, ActiveBoth,
+>                                                                 Exclu=
+sive, , , ) {40}
+>                                         })
+>                                         Return (RBUF)
+>                                 }
+>                         }
+>                 }
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
