@@ -1,122 +1,100 @@
-From: "Anderson, Brandon" <Brandon.Anderson@amd.com>
-Subject: RE: [RFC PATCH 0/3] ACPI: ARM AMBA bus connector resource
-Date: Wed, 23 Oct 2013 00:13:23 +0000
-Message-ID: <CE40542A5D952D47989966E71788B1840156EDDB@satlexdag05.amd.com>
-References: <1382402029-13381-1-git-send-email-brandon.anderson@amd.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [Devel] ACPICA: Resource Mgr: Prevent infinite loops in
+	resource walks
+Date: Wed, 23 Oct 2013 06:06:46 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802478147@SHSMSX101.ccr.corp.intel.com>
+References: <20131017122850.GA24755@longonot.mountain>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37C78AA21@ORSMSX103.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from co1ehsobe003.messaging.microsoft.com ([216.32.180.186]:48488
-	"EHLO co1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753018Ab3JWAOj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Oct 2013 20:14:39 -0400
-In-Reply-To: <1382402029-13381-1-git-send-email-brandon.anderson@amd.com>
+Received: from mga11.intel.com ([192.55.52.93]:32098 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750974Ab3JWGGt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Oct 2013 02:06:49 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37C78AA21@ORSMSX103.amr.corp.intel.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "naresh.bhat@linaro.org" <naresh.bhat@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
+To: "Moore, Robert" <robert.moore@intel.com>, Dan Carpenter <dan.carpenter@oracle.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-SXMgdGhlIHByb3Bvc2VkIEFTTCBmb3JtYXQgYXBwcm9wcmlhdGU/IEkgcmVjb2duaXplIHRoYXQg
-dGhlIEFTTCBkZWZpbml0aW9ucyBmb3IgdGhlc2UgZGV2aWNlcyBtdXN0IGJlIHN0YW5kYXJkaXpl
-ZCBhY3Jvc3MgYWxsIEFSTSBBQ1BJIHBsYXRmb3JtIGRlZmluaXRpb25zIGlmIHdlIHdhbnQgdGhl
-IHNvZnR3YXJlIHRvIHdvcmsgY29uc2lzdGVudGx5LCBzbyB0aGlzIGlzIGFuIGltcG9ydGFudCBh
-c3BlY3QgdG8gYWdyZWUgdXBvbi4NCg0KSG93IGFib3V0IGNvbnRyYXN0aW5nIGl0IHdpdGggYW4g
-YWx0ZXJuYXRpdmUgd2hlcmUgZWFjaCBkZXZpY2UgaGFzIF9ISUQgb2YgIkFNQkEwMDAwIiBhbmQg
-dGhlcmUncyBubyB0b3AtbGV2ZWwgJ0RldmljZSAoQU1CQSknPyBUaGlzIHdvdWxkIG1lYW4gdGhh
-dCBhbGwgdGhlIGRldmljZXMgd291bGQgYmUgbGFiZWxlZCBieSBBQ1BJIHN1YnN5c3RlbSBhcyAi
-QU1CQTAwMDA6Tk4iIGluc3RlYWQgb2YgImRldmljZTpOTiIuIEhvd2V2ZXIsIHdpdGggdGhpcyBz
-b2x1dGlvbiB0aGVyZSB3b3VsZCBiZSBubyBlYXN5IHdheSB0byBkZWZpbmUgYSBkZWZhdWx0IGNs
-b2NrLiBTZWUgZXhhbXBsZSBiZWxvdy4NCg0KQnJhbmRvbg0KDQotLS0NCg0KQWx0ZXJuYXRpdmUg
-QVNMICMyOg0KDQoNCglEZXZpY2UgKEtNSTApIHsNCgkJTmFtZSAoX0hJRCwgIkFNQkEwMDAwIikN
-CgkJTmFtZSAoX1VJRCwgMCkNCgkJTmFtZSAoX0FEUiwweDFjMDYwMDAwKQ0KCQlNZXRob2QoX0NS
-UywgLi4uICkgew0KCQkJLi4uDQoJCX0NCgkJTWV0aG9kKF9EU00sIDQsIE5vdFNlcmlhbGl6ZWQp
-IHsNCgkJCVN0b3JlIChQYWNrYWdlICg2KQ0KCQkJew0KCQkJCSJjbG9jay1uYW1lIiwgIktNSVJF
-RkNMSyIsICJcXF9TQl8uQ0xLMCIsDQoJCQkJImNsb2NrLW5hbWUiLCAiYXBiX3BjbGsiLCAiXFxf
-U0JfLkNMSzAiLA0KCQkJfSwgTG9jYWwwKQ0KCQkJUmV0dXJuIChMb2NhbDApDQoJCX0NCgl9DQoJ
-DQoJLi4uDQoNCglEZXZpY2UgKFNFUjApIHsNCgkJTmFtZSAoX0hJRCwgIkFNQkEwMDAwIikNCgkJ
-TmFtZSAoX1VJRCwgMikNCgkJTmFtZSAoX0FEUiwweDFjMDkwMDAwKQ0KCQlNZXRob2QoX0NSUywg
-Li4uICkgew0KCQkJLi4uDQoJCX0NCgkJTWV0aG9kKF9EU00sIDQsIE5vdFNlcmlhbGl6ZWQpIHsN
-CgkJCVN0b3JlIChQYWNrYWdlICgzKQ0KCQkJew0KCQkJCSJjbG9jay1uYW1lIiwgImFwYl9wY2xr
-IiwgIlxcX1NCXy5DTEswIiwNCgkJCX0sIExvY2FsMCkNCgkJCVJldHVybiAoTG9jYWwwKQ0KCQl9
-DQoJfQ0KCQ0KDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBicmFuZG9uLmFu
-ZGVyc29uQGFtZC5jb20gW21haWx0bzpicmFuZG9uLmFuZGVyc29uQGFtZC5jb21dIA0KU2VudDog
-TW9uZGF5LCBPY3RvYmVyIDIxLCAyMDEzIDc6MzQgUE0NClRvOiBsaW5hcm8tYWNwaUBsaXN0cy5s
-aW5hcm8ub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZw0KQ2M6IGxlbmJAa2VybmVsLm9y
-Zzsgcmp3QHNpc2sucGw7IG5hcmVzaC5iaGF0QGxpbmFyby5vcmc7IGhhbmp1bi5ndW9AbGluYXJv
-Lm9yZzsgZ3JhZW1lLmdyZWdvcnlAbGluYXJvLm9yZzsgU3V0aGlrdWxwYW5pdCwgU3VyYXZlZTsg
-QW5kZXJzb24sIEJyYW5kb24NClN1YmplY3Q6IFtSRkMgUEFUQ0ggMC8zXSBBQ1BJOiBBUk0gQU1C
-QSBidXMgY29ubmVjdG9yIHJlc291cmNlDQoNCkZyb206IEJyYW5kb24gQW5kZXJzb24gPGJyYW5k
-b24uYW5kZXJzb25AYW1kLmNvbT4NCg0KVGhpcyBpcyBhIHByb3Bvc2FsIGZvciBBQ1BJIGRyaXZl
-ciBwcm9iaW5nIG9mIHRoZSBBUk0gQU1CQSBkZXZpY2VzIGN1cnJlbnRseSBsaXN0ZWQgdW5kZXIg
-4oCYaW9mcGdh4oCZIGluIHRoZSBSVFNNIGR0cyBmaWxlLiBUaGUgbWFpbiBhZGRpdGlvbiBpcyBk
-cml2ZXJzL2FtYmEvYWNwaS5jIHdoaWNoIGZpdHMgdGhlIHJvbGUgb2YgYW4gQU1CQSBidXMg4oCY
-Y29ubmVjdG9yIHJlc291cmNl4oCZIGZvciBBQ1BJIHVzaW5nIHN0cnVjdCBhbWJhX2RldmljZS4N
-Cg0KSSBoYXZlIG5vdCB5ZXQgZmlndXJlZCBvdXQgdGhlIGltcGxlbWVudGF0aW9uIGRldGFpbHMg
-cmVnYXJkaW5nIGNsb2NrcyAoaGFuZGxlZCBpbiB0aGUgZHRzIGZpbGUgd2l0aCBjbG9jay1uYW1l
-cykuIEhvd2V2ZXIsIEkgaGF2ZSBpbmNsdWRlZCBhIHByb3Bvc2VkIEFTTCBmb3JtYXQgZm9yIGNs
-b2NrIGluZm9ybWF0aW9uIGluIHRoZSBEU0RUIGV4YW1wbGUgYmVsb3cuIFdpdGggdGhlIGxhc3Qg
-cGF0Y2ggdGhhdCBoYWNrcyB0aGUgY2xvY2sgaW5mbywgdGhpcyBwcm90b3R5cGUgd2lsbCBydW4g
-b24gdGhlIEZvdW5kYXRpb24gYW5kIFJUU00gbW9kZWxzLg0KDQpUaGVzZSBwYXRjaGVzIHJlcXVp
-cmUgSGFuanVu4oCZcyBmaXhlZC1jbG9jayBwYXRjaGVzIHRvIGJlIGFwcGxpZWQgZmlyc3Qgb24g
-dG9wIG9mIGEgTGluYXJvIEFDUEkga2VybmVsOiBodHRwczovL2dpdC5saW5hcm8ub3JnL2dpdHdl
-Yj9wPWFybS9hY3BpL2xlZy1rZXJuZWwuZ2l0O2E9c3VtbWFyeQ0KDQpQbGVhc2UgY29tbWVudCBv
-biBib3RoIHRoZSBjb25jZXB0IGFuZCB0aGUgaW1wbGVtZW50YXRpb24uDQoNCkJyYW5kb24gQW5k
-ZXJzb24gKDMpOg0KICBSZW1vdmUgVUFSVCBhbmQgS01JIGVudHJpZXMgZnJvbSBEVFMgZmlsZQ0K
-ICBQcm90b3R5cGUgb2YgQU1CQSBidXMgJ2Nvbm5lY3RvciByZXNvdXJjZScgZm9yIEFDUEkNCiAg
-SGFjayBjbG9jayBuYW1lcyB0byBnZXQgcHJvdG90eXBlIHJ1bm5pbmcNCg0KIGFyY2gvYXJtNjQv
-Ym9vdC9kdHMvZm91bmRhdGlvbi12OC1hY3BpLmR0cyAgICAgICAgfCAgIDEwICstDQogYXJjaC9h
-cm02NC9ib290L2R0cy9ydHNtX3ZlLWFlbXY4YS1hY3BpLmR0cyAgICAgICB8ICAgIDQgKw0KIGFy
-Y2gvYXJtNjQvYm9vdC9kdHMvcnRzbV92ZS1tb3RoZXJib2FyZC1hY3BpLmR0c2kgfCAgICA0ICsN
-CiBkcml2ZXJzL2FjcGkvYWNwaV9wbGF0Zm9ybS5jICAgICAgICAgICAgICAgICAgICAgIHwgICAg
-MiArDQogZHJpdmVycy9hbWJhL01ha2VmaWxlICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8
-ICAgIDIgKy0NCiBkcml2ZXJzL2FtYmEvYWNwaS5jICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIHwgIDE3MiArKysrKysrKysrKysrKysrKysrKysNCiBkcml2ZXJzL2Nsay9jbGstZml4ZWQt
-cmF0ZS5jICAgICAgICAgICAgICAgICAgICAgIHwgICAxNSArLQ0KIDcgZmlsZXMgY2hhbmdlZCwg
-MjAzIGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJp
-dmVycy9hbWJhL2FjcGkuYw0KDQotLQ0KMS43LjkuNQ0KDQoNCi0tLQ0KDQoJCURldmljZSAoQU1C
-QSkgew0KCQkJTmFtZSAoX0hJRCwgIkFNQkEwMDAwIikgLyogdGhlIHBhcmFsbGVsIHRvICJhcm0s
-cHJpbWVjZWxsIiBpbiBEVFMgKi8NCgkJCU5hbWUgKF9VSUQsIDApDQoNCgkJCS8qIERlZmluZSAn
-YXBiX3BjbGsnIGFzIGEgZGVmYXVsdCBjbG9jayBzb3VyY2Ugc2luY2UgaXQgaXMNCgkJCSAgIGNv
-bW1vbiB3aXRoIGRldmljZXMgYmVsb3cgKi8NCgkJCU1ldGhvZChfRFNNLCA0LCBOb3RTZXJpYWxp
-emVkKSB7DQoJCQkJU3RvcmUgKFBhY2thZ2UgKDMpDQoJCQkJew0KCQkJCQkiY2xvY2stbmFtZSIs
-ICJhcGJfcGNsayIsICJcXF9TQl8uQ0xLMCIsDQoJCQkJfSwgTG9jYWwwKQ0KDQoJCQkJUmV0dXJu
-IChMb2NhbDApDQoJCQl9DQoNCgkJCURldmljZSAoS01JMCkgew0KCQkJCU5hbWUgKF9BRFIsMHgx
-YzA2MDAwMCkNCgkJCQlNZXRob2QgKF9DUlMsIDB4MCwgU2VyaWFsaXplZCkgew0KCQkJCQlOYW1l
-IChSQlVGLCBSZXNvdXJjZVRlbXBsYXRlICgpIHsNCgkJCQkJCU1lbW9yeTMyRml4ZWQgKFJlYWRX
-cml0ZSwgMHgxYzA2MDAwMCwgMHgwMDAxMDAwMCkNCgkJCQkJCUludGVycnVwdCAoUmVzb3VyY2VD
-b25zdW1lciwgRWRnZSwgQWN0aXZlQm90aCwNCgkJCQkJCQkJRXhjbHVzaXZlLCAsICwgKSB7NDR9
-DQoJCQkJCX0pDQoJCQkJCVJldHVybiAoUkJVRikNCgkJCQl9DQoJCQl9DQoNCgkJCURldmljZSAo
-S01JMSkgew0KCQkJCU5hbWUgKF9BRFIsMHgxYzA3MDAwMCkNCgkJCQlNZXRob2QgKF9DUlMsIDB4
-MCwgU2VyaWFsaXplZCkgew0KCQkJCQlOYW1lIChSQlVGLCBSZXNvdXJjZVRlbXBsYXRlICgpIHsN
-CgkJCQkJCU1lbW9yeTMyRml4ZWQgKFJlYWRXcml0ZSwgMHgxYzA3MDAwMCwgMHgwMDAxMDAwMCkN
-CgkJCQkJCUludGVycnVwdCAoUmVzb3VyY2VDb25zdW1lciwgRWRnZSwgQWN0aXZlQm90aCwNCgkJ
-CQkJCQkJRXhjbHVzaXZlLCAsICwgKSB7NDV9DQoJCQkJCX0pDQoJCQkJCVJldHVybiAoUkJVRikN
-CgkJCQl9DQoJCQl9DQoNCgkJCURldmljZSAoU0VSMCkgew0KCQkJCU5hbWUgKF9BRFIsMHgxYzA5
-MDAwMCkgICAgICAgICAgICAgICAgICAgICAgICAgLy8gVUFSVDANCgkJCQlNZXRob2QgKF9DUlMs
-IDB4MCwgU2VyaWFsaXplZCkgew0KCQkJCQlOYW1lIChSQlVGLCBSZXNvdXJjZVRlbXBsYXRlICgp
-IHsNCgkJCQkJCU1lbW9yeTMyRml4ZWQgKFJlYWRXcml0ZSwgMHgxYzA5MDAwMCwgMHgwMDAxMDAw
-MCkNCgkJCQkJCUludGVycnVwdCAoUmVzb3VyY2VDb25zdW1lciwgRWRnZSwgQWN0aXZlQm90aCwN
-CgkJCQkJCQkJRXhjbHVzaXZlLCAsICwgKSB7Mzd9DQoJCQkJCX0pDQoJCQkJCVJldHVybiAoUkJV
-RikNCgkJCQl9DQoJCQl9DQoNCgkJCURldmljZSAoU0VSMSkgew0KCQkJCU5hbWUgKF9BRFIsMHgx
-YzBhMDAwMCkgICAgICAgICAgICAgICAgICAgICAgICAgLy8gVUFSVDENCgkJCQlNZXRob2QgKF9D
-UlMsIDB4MCwgU2VyaWFsaXplZCkgew0KCQkJCQlOYW1lIChSQlVGLCBSZXNvdXJjZVRlbXBsYXRl
-ICgpIHsNCgkJCQkJCU1lbW9yeTMyRml4ZWQgKFJlYWRXcml0ZSwgMHgxYzBhMDAwMCwgMHgwMDAx
-MDAwMCkNCgkJCQkJCUludGVycnVwdCAoUmVzb3VyY2VDb25zdW1lciwgRWRnZSwgQWN0aXZlQm90
-aCwNCgkJCQkJCQkJRXhjbHVzaXZlLCAsICwgKSB7Mzh9DQoJCQkJCX0pDQoJCQkJCVJldHVybiAo
-UkJVRikNCgkJCQl9DQoJCQl9DQoJCQlEZXZpY2UgKFNFUjIpIHsNCgkJCQlOYW1lIChfQURSLDB4
-MWMwYjAwMDApICAgICAgICAgICAgICAgICAgICAgICAgIC8vIFVBUlQyDQoJCQkJTWV0aG9kIChf
-Q1JTLCAweDAsIFNlcmlhbGl6ZWQpIHsNCgkJCQkJTmFtZSAoUkJVRiwgUmVzb3VyY2VUZW1wbGF0
-ZSAoKSB7DQoJCQkJCQlNZW1vcnkzMkZpeGVkIChSZWFkV3JpdGUsIDB4MWMwYjAwMDAsIDB4MDAw
-MTAwMDApDQoJCQkJCQlJbnRlcnJ1cHQgKFJlc291cmNlQ29uc3VtZXIsIEVkZ2UsIEFjdGl2ZUJv
-dGgsDQoJCQkJCQkJCUV4Y2x1c2l2ZSwgLCAsICkgezM5fQ0KCQkJCQl9KQ0KCQkJCQlSZXR1cm4g
-KFJCVUYpDQoJCQkJfQ0KCQkJfQ0KDQoJCQlEZXZpY2UgKFNFUjMpIHsNCgkJCQlOYW1lIChfQURS
-LDB4MWMwYzAwMDApICAgICAgICAgICAgICAgICAgICAgICAgIC8vIFVBUlQzDQoJCQkJTWV0aG9k
-IChfQ1JTLCAweDAsIFNlcmlhbGl6ZWQpIHsNCgkJCQkJTmFtZSAoUkJVRiwgUmVzb3VyY2VUZW1w
-bGF0ZSAoKSB7DQoJCQkJCQlNZW1vcnkzMkZpeGVkIChSZWFkV3JpdGUsIDB4MWMwYzAwMDAsIDB4
-MDAwMTAwMDApDQoJCQkJCQlJbnRlcnJ1cHQgKFJlc291cmNlQ29uc3VtZXIsIEVkZ2UsIEFjdGl2
-ZUJvdGgsDQoJCQkJCQkJCUV4Y2x1c2l2ZSwgLCAsICkgezQwfQ0KCQkJCQl9KQ0KCQkJCQlSZXR1
-cm4gKFJCVUYpDQoJCQkJfQ0KCQkJfQ0KCQl9DQoNCg==
+The last resource should always be ACPI_RESOURCE_TYPE_END_TAG and we have nsrepair mechanism to ensure that this entry is always there for resource based properties (there are still 2 kinds of properties haven't been fixed yet).
+If we do not want to rely on this logic, then we may need to use buffer->length and pass this one to the acpi_rs_get_aml_length to avoid potential infinite loop.
+I'll draft an ACPICA patch to achieve the latter.
 
+Thanks and best regards
+-Lv
+
+> -----Original Message-----
+> From: devel-bounces@acpica.org [mailto:devel-bounces@acpica.org] On Behalf Of Moore, Robert
+> Sent: Wednesday, October 23, 2013 5:36 AM
+> To: Dan Carpenter
+> Cc: linux-acpi@vger.kernel.org; devel@acpica.org
+> Subject: Re: [Devel] ACPICA: Resource Mgr: Prevent infinite loops in resource walks
+> 
+> We'll take a look.
+> Thanks,
+> Bob
+> 
+> 
+> > -----Original Message-----
+> > From: Dan Carpenter [mailto:dan.carpenter@oracle.com]
+> > Sent: Thursday, October 17, 2013 5:29 AM
+> > To: Moore, Robert
+> > Cc: linux-acpi@vger.kernel.org; devel@acpica.org
+> > Subject: re: ACPICA: Resource Mgr: Prevent infinite loops in resource
+> > walks
+> >
+> > Hello Bob Moore,
+> >
+> > The patch c13085e519e8: "ACPICA: Resource Mgr: Prevent infinite loops in
+> > resource walks" from Mar 8, 2013 is not beautiful.  My static checker
+> > complains about the loop because:
+> > "drivers/acpi/acpica/rscalc.c:197 acpi_rs_get_aml_length()
+> > 	 warn: 'resource' can't be NULL."
+> >
+> > drivers/acpi/acpica/rscalc.c
+> >    195          /* Traverse entire list of internal resource descriptors
+> > */
+> >    196
+> >    197          while (resource) {
+> >                        ^^^^^^^^
+> >
+> > My static checker is wrong because we use the -fno-strict-overflow to
+> > prevent GCC from optimizing this check away.  But we are looping over a
+> > list of pointers until our pointer wraps to NULL.  In other words we loop
+> > over all the 2**64 - 1 addresses until we wrap to NULL or we find
+> > something with an invalid type or something with ->length zero.
+> >
+> > I assume the last element in the list always has length zero?  If so then
+> > we could replace "while (resource)" with "while (resource->length)"
+> >
+> >    198
+> >    199                  /* Validate the descriptor type */
+> >    200
+> >    201                  if (resource->type > ACPI_RESOURCE_TYPE_MAX) {
+> >    202
+> > return_ACPI_STATUS(AE_AML_INVALID_RESOURCE_TYPE);
+> >    203                  }
+> >    204
+> >    205                  /* Sanity check the length. It must not be zero,
+> > or we loop forever */
+> >    206
+> >    207                  if (!resource->length) {
+> >    208
+> > return_ACPI_STATUS(AE_AML_BAD_RESOURCE_LENGTH);
+> >    209                  }
+> >    210
+> >    211                  /* Get the base size of the (external stream)
+> > resource descriptor */
+> >    212
+> >
+> > regards,
+> > dan carpenter
+> 
+> _______________________________________________
+> Devel mailing list
+> Devel@acpica.org
+> https://lists.acpica.org/mailman/listinfo/devel
