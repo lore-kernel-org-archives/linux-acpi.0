@@ -1,83 +1,32 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC] ASoC: core: Allow DAI links to be specified
- by using ACPI names
-Date: Fri, 25 Oct 2013 11:06:18 +0100
-Message-ID: <20131025100618.GR18506@sirena.org.uk>
-References: <1380803636-24079-1-git-send-email-jarkko.nikula@linux.intel.com>
- <20131024095118.GH31415@sirena.org.uk>
- <526A1568.9010100@linux.intel.com>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: [RFC] ASoC: core: Allow DAI links to be specified by using ACPI
+ names
+Date: Fri, 25 Oct 2013 13:42:25 +0300
+Message-ID: <526A4B11.5000802@linux.intel.com>
+References: <1380803636-24079-1-git-send-email-jarkko.nikula@linux.intel.com> <20131024095118.GH31415@sirena.org.uk> <526A1568.9010100@linux.intel.com> <20131025100618.GR18506@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2167012130669932339=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <526A1568.9010100@linux.intel.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, alsa-devel@alsa-project.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>
-List-Id: linux-acpi@vger.kernel.org
-
-
---===============2167012130669932339==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1GSL5ZULXUIqbbH1"
-Content-Disposition: inline
-
-
---1GSL5ZULXUIqbbH1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Fri, Oct 25, 2013 at 09:53:28AM +0300, Jarkko Nikula wrote:
-> On 10/24/2013 12:51 PM, Mark Brown wrote:
-
-> >Did anything happen with the idea of making dev_name() use the ACPI
-> >name?
-
-> Well, looks like I manage to put it aside. I'll spin it again as
-> next merge window starts to be too near now.
-
-OK, I was asking because I was thinking of applying the patch for now;
-it's not that it's a bad idea it just seems like it's something that
-might might make sense solved at that level.  Equally well I don't know
-if these systems will work with v3.13 anyway so perhaps it's not so
-urgent.
-
---1GSL5ZULXUIqbbH1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSakKWAAoJELSic+t+oim9Tn0QAI0129o24pRL4QV4hZDAM7aP
-6oHdfMvrGh5+qAIoPiOCigWkmllx295DYSgzOzNODG6WYimYOx5BdIbSMYlagrJc
-QTS7pLXoTt3LBgoPB/NORo/1PeGifaUkzQ2hag5hW4XgN7EE7aqC/5aNKejwVeO5
-HJhwt4ZTGqaGsqn06azQeEBRTgW9XjXcT/KZ6FkIMSLwDr97HWQM5u2hXYPSnLMv
-foB1ak3L5ENn4WJhxoH59FCuhIBlgWGpG/aKqB/F9Aa+Uc2OvKx4WuwoFNGymWfM
-pcZEabAVhuTzBuKFcnWdhEThgzSLk8LNX/g2LYCJmJQDKE8zDOnmv7bH6UGfbwvL
-j9z5/jFYfxQnNYXXI6jDwVs+xEKM0W1aMpGee8pxiE1Gr+UsVcWCXLAJwUXhJE0e
-hEdJ7fMykxucaUFaOj8YKQNaNvGL2Swe/V5YNcI1oPY4nz0R5W73J1rzIYmEtDiV
-1nYwezGoFHS0QeHhSuUGYwbFEc3ql4zvTeebdjF1xg58Nsf5oayl0NXscjFWSEt1
-tZmQCLkn5E7LAbzAM1gxhcFIXmehVAxPveIWAn5rTEwb3DOxcvYhbcWcFAuZHJQJ
-Q7pl7zMcKud5L9WkQZrXC9A/zJXbUiVSQflAOo/wQsLQwGtsXvQQHxNg9ootVVJW
-KJ2OjP2X6amSRQvLplVH
-=QzXH
------END PGP SIGNATURE-----
-
---1GSL5ZULXUIqbbH1--
-
---===============2167012130669932339==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:44920 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752511Ab3JYKm2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Oct 2013 06:42:28 -0400
+In-Reply-To: <20131025100618.GR18506@sirena.org.uk>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
+On 10/25/2013 01:06 PM, Mark Brown wrote:
+> OK, I was asking because I was thinking of applying the patch for now; 
+> it's not that it's a bad idea it just seems like it's something that 
+> might might make sense solved at that level. Equally well I don't know 
+> if these systems will work with v3.13 anyway so perhaps it's not so 
+> urgent. 
+Yes, I don't see any urgent reason to push this hack in. Better to check 
+dev_name change first. What I'm going to propose there is "spix.y" to 
+"spi-INTABCD:xy" and "x-00yz" to "i2c-INTABCD:xy"
 
---===============2167012130669932339==--
+-- 
+Jarkko
