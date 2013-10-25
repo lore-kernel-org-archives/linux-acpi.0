@@ -1,40 +1,39 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH] x86/ACPI: Make Sony Vaio Z1 series to use "reboot=pci" default
-Date: Fri, 25 Oct 2013 13:54:24 +0100
-Message-ID: <CA+55aFzAyhdkN4t2YTTQd-_Yf6WA_FYRjP4JnpSCeSvqxzRRCA@mail.gmail.com>
-References: <1382597377-26797-1-git-send-email-tianyu.lan@intel.com>
-	<20131025105352.GA5419@gmail.com>
-	<20131025124402.GA7089@redhat.com>
-	<526A6898.8030806@zytor.com>
+From: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [RFC 1/2] i2c: Use stable dev_name for ACPI enumerated I2C slaves
+Date: Fri, 25 Oct 2013 15:55:29 +0300
+Message-ID: <526A6A41.6020909@linux.intel.com>
+References: <1382703540-3769-1-git-send-email-jarkko.nikula@linux.intel.com> <1382703540-3769-2-git-send-email-jarkko.nikula@linux.intel.com> <6032482.JJ4PNSSnIp@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vb0-f50.google.com ([209.85.212.50]:45316 "EHLO
-	mail-vb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752822Ab3JYMyZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Oct 2013 08:54:25 -0400
-In-Reply-To: <526A6898.8030806@zytor.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <6032482.JJ4PNSSnIp-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Dave Jones <davej@redhat.com>, Ingo Molnar <mingo@kernel.org>, Lan Tianyu <tianyu.lan@intel.com>, Matthew Garrett <mjg@redhat.com>, the arch/x86 maintainers <x86@kernel.org>, Robin Holt <holt@sgi.com>, davej@fedoraproject.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Adam Williamson <awilliam@redhat.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Thomas Gleixner <tglx@linutronix.de>
 
-On Fri, Oct 25, 2013 at 1:48 PM, H. Peter Anvin <hpa@zytor.com> wrote:
+Hi
+
+On 10/25/2013 03:52 PM, Rafael J. Wysocki wrote:
+>   
+> +static void i2c_dev_set_name(struct i2c_adapter *adap,
+> +			     struct i2c_client *client)
+> +{
+> +#if IS_ENABLED(CONFIG_ACPI)
+> +	if (ACPI_HANDLE(&client->dev)) {
+> ACPI_HANDLE() already contains an "is CONFIG_ACPI enabled?" check, so the #if
+> around the if (ACPI_HANDLE()) {} is redundant.
 >
-> The Dell problem I believe is understood... they are invoking the KBC as
-> their ACPI reboot port, and it is believed that that triggers an SMI
-> which invokes the BIOS, and the BIOS is broken if you behave like a
-> non-Windows system.
+> Similarly for the SPI patch.
+>
+Well, acpi_bus_get_device() is not available for non-ACPI builds and at 
+least the gcc I used for test build didn't optimize that block away.
 
-Well, that's presumably true of *all* the machines. Because I bet
-windows boots on it. The details may matter.
+-- 
+Jarkko
 
-The solution is to act more like Windows. There was some talk about
-one likely fundamental difference being in how we enable VT-d. Maybe
-we should just change that?
-
-Seriously, if the "fix" is potentially something as simple as
-disabling VT-d before reboots, let's just do it. Not add these quirks.
-We have people to test a patch, but what _is_ that patch?
-
-               Linus
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
