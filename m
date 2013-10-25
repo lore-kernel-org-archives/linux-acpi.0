@@ -1,100 +1,77 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH] x86/ACPI: Make Sony Vaio Z1 series to use "reboot=pci"
- default
-Date: Fri, 25 Oct 2013 12:53:52 +0200
-Message-ID: <20131025105352.GA5419@gmail.com>
-References: <1382597377-26797-1-git-send-email-tianyu.lan@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1382597377-26797-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tianyu.lan@intel.com, Matthew Garrett <mjg@redhat.com>
-Cc: hpa@zytor.com, x86@kernel.org, holt@sgi.com, davej@fedoraproject.org, lenb@kernel.org, rjw@rjwysocki.net, awilliam@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>
+From: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [RFC 1/2] i2c: Use stable dev_name for ACPI enumerated I2C slaves
+Date: Fri, 25 Oct 2013 15:18:59 +0300
+Message-ID: <1382703540-3769-2-git-send-email-jarkko.nikula@linux.intel.com>
+References: <1382703540-3769-1-git-send-email-jarkko.nikula@linux.intel.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1382703540-3769-1-git-send-email-jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Current I2C adapter id - client address "x-00yy" based device naming scheme
+is not always stable enough to be used in name based matching, for instance
+within ALSA SoC subsystem.
 
-* tianyu.lan@intel.com <tianyu.lan@intel.com> wrote:
+This is problematic in PC kind of platforms where I2C adapter numbers can
+change due variable amount of bus controllers, probe order, add-on cards or
+just because of BIOS settings.
 
-> From: Lan Tianyu <tianyu.lan@intel.com>
-> 
-> Sony Vaio Z1 series require "reboot=pci" for reboot and power off.
-> This patch is to add them machines to quirk table and set pci reboot
-> default.
-> 
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=61721
-> Reported-and-tested-by: Adam Williamson <awilliam@redhat.com>
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> ---
->  arch/x86/kernel/reboot.c |    8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
-> index 7e920bf..083ade7 100644
-> --- a/arch/x86/kernel/reboot.c
-> +++ b/arch/x86/kernel/reboot.c
-> @@ -382,6 +382,14 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
->  			DMI_MATCH(DMI_PRODUCT_NAME, "C6100"),
->  		},
->  	},
-> +	{	/* Handle problems with rebooting on Sony Vaio Z1 series*/
-> +		.callback = set_pci_reboot,
-> +		.ident = "Sony Vaio Z1",
-> +		.matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "VPCZ1"),
-> +		},
-> +	},
+This patch addresses the problem by using the ACPI device name with
+"i2c-" prefix for ACPI enumerated I2C slaves. For them device name
+"x-00yz" becomes "i2c-INTABCD:ij" after this patch.
 
-This is becoming somewhat endemic - do we know _why_ the ACPI reboot 
-method does not work?
+Signed-off-by: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+I'm not sure when would acpi_bus_get_device fail and how realistic is that here.
+I put minimalistic error handling here which just falls back to old
+adapter-addr naming scheme.
+---
+ drivers/i2c/i2c-core.c | 24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-We reworked the x86 reboot sequence 2.5 years agom, in:
-
- commit 660e34cebf0a11d54f2d5dd8838607452355f321
- Author: Matthew Garrett <mjg@redhat.com>
- Date:   Mon Apr 4 13:55:05 2011 -0400
-
-    x86: Reorder reboot method preferences
-    
-    We have a never ending stream of 'reboot quirks' for new boxes
-    that will not reboot properly under Linux (they will hang on
-    reboot).
-    
-    The reason is widespread 'Windows compatible' assumption of modern
-    x86 hardware, which expects the following reboot sequence:
-    
-     - hitting the ACPI reboot vector (if available)
-     - trying the keyboard controller
-     - hitting the ACPI reboot vector again
-     - then giving the keyboard controller one last go
-
-    This sequence expectation gets more and more embedded in modern
-    hardware, which often lacks a keyboard controller and may even
-    lock up if the legacy io ports are hit - and which hardware is
-    often not tested with Linux during development.
-    
-    The end result is that reboot works under Windows-alike OSs but not
-    under Linux.
-    
-    Rework our reboot process to meet this hardware externality a little
-    better and match this assumption of newer x86 hardware.
-    
-    In addition to the ACPI,kbd,ACPI,kbd sequence we'll still fall
-    through to attempting a legacy triple fault if nothing else
-    works - and keep trying that and the kbd reset.
-
-    [...]
-
-Do we know why reboot apparently works quickly enough on Windows on 
-this laptop, but not under Linux? Does Windows use the ACPI reboot 
-method? If yes, does it use a different pattern?
-
-Is it all perhaps virtualization or IRQ routing related?
-
-I.e. we really need a real analysis here, not just a quirk!
-
-Thanks,
-
-	Ingo
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 111b2c6..8d6f3e5 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -613,6 +613,25 @@ void i2c_unlock_adapter(struct i2c_adapter *adapter)
+ }
+ EXPORT_SYMBOL_GPL(i2c_unlock_adapter);
+ 
++static void i2c_dev_set_name(struct i2c_adapter *adap,
++			     struct i2c_client *client)
++{
++#if IS_ENABLED(CONFIG_ACPI)
++	if (ACPI_HANDLE(&client->dev)) {
++		struct acpi_device *adev;
++		if (!acpi_bus_get_device(ACPI_HANDLE(&client->dev), &adev)) {
++			dev_set_name(&client->dev, "i2c-%s",
++				     dev_name(&adev->dev));
++			return;
++		}
++	}
++#endif
++	/* For 10-bit clients, add an arbitrary offset to avoid collisions */
++	dev_set_name(&client->dev, "%d-%04x", i2c_adapter_id(adap),
++		     client->addr | ((client->flags & I2C_CLIENT_TEN)
++				     ? 0xa000 : 0));
++}
++
+ /**
+  * i2c_new_device - instantiate an i2c device
+  * @adap: the adapter managing the device
+@@ -671,10 +690,7 @@ i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
+ 	client->dev.of_node = info->of_node;
+ 	ACPI_HANDLE_SET(&client->dev, info->acpi_node.handle);
+ 
+-	/* For 10-bit clients, add an arbitrary offset to avoid collisions */
+-	dev_set_name(&client->dev, "%d-%04x", i2c_adapter_id(adap),
+-		     client->addr | ((client->flags & I2C_CLIENT_TEN)
+-				     ? 0xa000 : 0));
++	i2c_dev_set_name(adap, client);
+ 	status = device_register(&client->dev);
+ 	if (status)
+ 		goto out_err;
+-- 
+1.8.4.rc3
