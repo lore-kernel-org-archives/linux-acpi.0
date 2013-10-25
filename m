@@ -1,121 +1,83 @@
-From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Subject: [RFC PATCH][SeaBIOS] Add _PXM to CPU objects for NUMA hot-plug
-Date: Fri, 25 Oct 2013 11:32:10 +0200
-Message-ID: <1382693530-31137-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f47.google.com ([74.125.83.47]:58864 "EHLO
-	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752822Ab3JYJcV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Oct 2013 05:32:21 -0400
-Received: by mail-ee0-f47.google.com with SMTP id e49so1767639eek.20
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Oct 2013 02:32:20 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC] ASoC: core: Allow DAI links to be specified
+ by using ACPI names
+Date: Fri, 25 Oct 2013 11:06:18 +0100
+Message-ID: <20131025100618.GR18506@sirena.org.uk>
+References: <1380803636-24079-1-git-send-email-jarkko.nikula@linux.intel.com>
+ <20131024095118.GH31415@sirena.org.uk>
+ <526A1568.9010100@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============2167012130669932339=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <526A1568.9010100@linux.intel.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, alsa-devel@alsa-project.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: seabios@seabios.org, linux-acpi@vger.kernel.org
-Cc: kevin@koconnor.net, wency@cn.fujitsu.com, rjw@sisk.pl, thilo.fromm@profitbricks.com, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
 
-This patch adds a _PXM object to seabios CPU objects. The _PXM value is derived
-from CPU SRAT entries, so build_ssdt needs to be called after build_srat for
-this to work.
 
-The motivation for this patch is a CPU hot-unplug/hot-plug bug observed when
-using seabios and a 3.11 linux guest kernel on a multi-NUMA node qemu/kvm VM.
-The linux guest kernel parses the SRAT CPU entries at boot time and stores them
-in the array __apicid_to_node. When a CPU is hot-removed, the linux guest kernel
-resets the removed CPU's __apicid_to_node entry to NO_NUMA_NODE (kernel commit
-c4c60524). When the removed cpu is hot-added again, the linux kernel looks up
-the hot-added cpu object's _PXM  value instead of somehow re-using the SRAT
-entry info (acpi_map_cpu2node calls acpi_get_node which calls acpi_get_pxm). If
-the _PXM value is not found, the CPU is assumed to be on node 0, and it is
-hot-plugged in the wrong NUMA node.
+--===============2167012130669932339==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="1GSL5ZULXUIqbbH1"
+Content-Disposition: inline
 
-Which is the preferred OSPM way of looking up a CPU's proximity info at hotplug
-time? Is it the CPU object's _PXM value, or the already-parsed CPU SRAT entry?
-Or maybe both ways are valid?
 
-This issue may require a kernel fix alternatively or additionally to the seabios
-fix: The kernel can save the originally parsed SRAT entry info somewhere before
-it resets it at hot-remove time, and use that info on hot-plug time if the _PXM
-value is missing for the hot-plugged CPU BIOS object. This way CPU hot-plug
-works well against a BIOS with no CPU _PXM info.
+--1GSL5ZULXUIqbbH1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Any comments / thoughts are welcome.
----
- src/fw/acpi.c        |    8 +++++++-
- src/fw/ssdt-proc.dsl |    2 ++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+On Fri, Oct 25, 2013 at 09:53:28AM +0300, Jarkko Nikula wrote:
+> On 10/24/2013 12:51 PM, Mark Brown wrote:
 
-diff --git a/src/fw/acpi.c b/src/fw/acpi.c
-index 8de24c9..85c04fd 100644
---- a/src/fw/acpi.c
-+++ b/src/fw/acpi.c
-@@ -23,6 +23,7 @@
- #include "src/fw/acpi-dsdt.hex"
- 
- u32 acpi_pm1a_cnt VARFSEG;
-+struct srat_processor_affinity *cpu;
- 
- static void
- build_header(struct acpi_table_header *h, u32 sig, int len, u8 rev)
-@@ -244,6 +245,7 @@ encodeLen(u8 *ssdt_ptr, int length, int bytes)
- #define PROC_OFFSET_CPUHEX (*ssdt_proc_name - *ssdt_proc_start + 2)
- #define PROC_OFFSET_CPUID1 (*ssdt_proc_name - *ssdt_proc_start + 4)
- #define PROC_OFFSET_CPUID2 (*ssdt_proc_id - *ssdt_proc_start)
-+#define PROC_OFFSET_CPUPXM (*ssdt_proc_pxm - *ssdt_proc_start)
- #define PROC_SIZEOF (*ssdt_proc_end - *ssdt_proc_start)
- #define PROC_AML (ssdp_proc_aml + *ssdt_proc_start)
- 
-@@ -372,6 +374,7 @@ build_ssdt(void)
-     *(ssdt_ptr++) = '_';
- 
-     // build Processor object for each processor
-+    struct srat_processor_affinity *core = cpu;
-     int i;
-     for (i=0; i<acpi_cpus; i++) {
-         memcpy(ssdt_ptr, PROC_AML, PROC_SIZEOF);
-@@ -379,7 +382,9 @@ build_ssdt(void)
-         ssdt_ptr[PROC_OFFSET_CPUHEX+1] = getHex(i);
-         ssdt_ptr[PROC_OFFSET_CPUID1] = i;
-         ssdt_ptr[PROC_OFFSET_CPUID2] = i;
-+        ssdt_ptr[PROC_OFFSET_CPUPXM] = core->proximity_lo;
-         ssdt_ptr += PROC_SIZEOF;
-+        core++;
-     }
- 
-     // build "Method(NTFY, 2) {If (LEqual(Arg0, 0x00)) {Notify(CP00, Arg1)} ...}"
-@@ -497,6 +502,7 @@ build_srat(void)
-     int i;
-     u64 curnode;
- 
-+    cpu = core;
-     for (i = 0; i < max_cpu; ++i) {
-         core->type = SRAT_PROCESSOR;
-         core->length = sizeof(*core);
-@@ -620,10 +626,10 @@ acpi_setup(void)
- 
-     struct fadt_descriptor_rev1 *fadt = build_fadt(pci);
-     ACPI_INIT_TABLE(fadt);
--    ACPI_INIT_TABLE(build_ssdt());
-     ACPI_INIT_TABLE(build_madt());
-     ACPI_INIT_TABLE(build_hpet());
-     ACPI_INIT_TABLE(build_srat());
-+    ACPI_INIT_TABLE(build_ssdt());
-     if (pci->device == PCI_DEVICE_ID_INTEL_ICH9_LPC)
-         ACPI_INIT_TABLE(build_mcfg_q35());
- 
-diff --git a/src/fw/ssdt-proc.dsl b/src/fw/ssdt-proc.dsl
-index 407d61e..373cdd7 100644
---- a/src/fw/ssdt-proc.dsl
-+++ b/src/fw/ssdt-proc.dsl
-@@ -32,6 +32,8 @@ DefinitionBlock ("ssdt-proc.aml", "SSDT", 0x01, "BXPC", "BXSSDT", 0x1)
-  * also updating the C code.
-  */
-         Name(_HID, "ACPI0007")
-+        ACPI_EXTRACT_NAME_BYTE_CONST ssdt_proc_pxm
-+        Name(_PXM, 0xBB)
-         External(CPMA, MethodObj)
-         External(CPST, MethodObj)
-         External(CPEJ, MethodObj)
--- 
-1.7.10.4
+> >Did anything happen with the idea of making dev_name() use the ACPI
+> >name?
 
+> Well, looks like I manage to put it aside. I'll spin it again as
+> next merge window starts to be too near now.
+
+OK, I was asking because I was thinking of applying the patch for now;
+it's not that it's a bad idea it just seems like it's something that
+might might make sense solved at that level.  Equally well I don't know
+if these systems will work with v3.13 anyway so perhaps it's not so
+urgent.
+
+--1GSL5ZULXUIqbbH1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSakKWAAoJELSic+t+oim9Tn0QAI0129o24pRL4QV4hZDAM7aP
+6oHdfMvrGh5+qAIoPiOCigWkmllx295DYSgzOzNODG6WYimYOx5BdIbSMYlagrJc
+QTS7pLXoTt3LBgoPB/NORo/1PeGifaUkzQ2hag5hW4XgN7EE7aqC/5aNKejwVeO5
+HJhwt4ZTGqaGsqn06azQeEBRTgW9XjXcT/KZ6FkIMSLwDr97HWQM5u2hXYPSnLMv
+foB1ak3L5ENn4WJhxoH59FCuhIBlgWGpG/aKqB/F9Aa+Uc2OvKx4WuwoFNGymWfM
+pcZEabAVhuTzBuKFcnWdhEThgzSLk8LNX/g2LYCJmJQDKE8zDOnmv7bH6UGfbwvL
+j9z5/jFYfxQnNYXXI6jDwVs+xEKM0W1aMpGee8pxiE1Gr+UsVcWCXLAJwUXhJE0e
+hEdJ7fMykxucaUFaOj8YKQNaNvGL2Swe/V5YNcI1oPY4nz0R5W73J1rzIYmEtDiV
+1nYwezGoFHS0QeHhSuUGYwbFEc3ql4zvTeebdjF1xg58Nsf5oayl0NXscjFWSEt1
+tZmQCLkn5E7LAbzAM1gxhcFIXmehVAxPveIWAn5rTEwb3DOxcvYhbcWcFAuZHJQJ
+Q7pl7zMcKud5L9WkQZrXC9A/zJXbUiVSQflAOo/wQsLQwGtsXvQQHxNg9ootVVJW
+KJ2OjP2X6amSRQvLplVH
+=QzXH
+-----END PGP SIGNATURE-----
+
+--1GSL5ZULXUIqbbH1--
+
+--===============2167012130669932339==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============2167012130669932339==--
