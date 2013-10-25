@@ -1,32 +1,100 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [RFC] ASoC: core: Allow DAI links to be specified by using ACPI
- names
-Date: Fri, 25 Oct 2013 13:42:25 +0300
-Message-ID: <526A4B11.5000802@linux.intel.com>
-References: <1380803636-24079-1-git-send-email-jarkko.nikula@linux.intel.com> <20131024095118.GH31415@sirena.org.uk> <526A1568.9010100@linux.intel.com> <20131025100618.GR18506@sirena.org.uk>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH] x86/ACPI: Make Sony Vaio Z1 series to use "reboot=pci"
+ default
+Date: Fri, 25 Oct 2013 12:53:52 +0200
+Message-ID: <20131025105352.GA5419@gmail.com>
+References: <1382597377-26797-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:44920 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752511Ab3JYKm2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Oct 2013 06:42:28 -0400
-In-Reply-To: <20131025100618.GR18506@sirena.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1382597377-26797-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tianyu.lan@intel.com, Matthew Garrett <mjg@redhat.com>
+Cc: hpa@zytor.com, x86@kernel.org, holt@sgi.com, davej@fedoraproject.org, lenb@kernel.org, rjw@rjwysocki.net, awilliam@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On 10/25/2013 01:06 PM, Mark Brown wrote:
-> OK, I was asking because I was thinking of applying the patch for now; 
-> it's not that it's a bad idea it just seems like it's something that 
-> might might make sense solved at that level. Equally well I don't know 
-> if these systems will work with v3.13 anyway so perhaps it's not so 
-> urgent. 
-Yes, I don't see any urgent reason to push this hack in. Better to check 
-dev_name change first. What I'm going to propose there is "spix.y" to 
-"spi-INTABCD:xy" and "x-00yz" to "i2c-INTABCD:xy"
 
--- 
-Jarkko
+* tianyu.lan@intel.com <tianyu.lan@intel.com> wrote:
+
+> From: Lan Tianyu <tianyu.lan@intel.com>
+> 
+> Sony Vaio Z1 series require "reboot=pci" for reboot and power off.
+> This patch is to add them machines to quirk table and set pci reboot
+> default.
+> 
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=61721
+> Reported-and-tested-by: Adam Williamson <awilliam@redhat.com>
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> ---
+>  arch/x86/kernel/reboot.c |    8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
+> index 7e920bf..083ade7 100644
+> --- a/arch/x86/kernel/reboot.c
+> +++ b/arch/x86/kernel/reboot.c
+> @@ -382,6 +382,14 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
+>  			DMI_MATCH(DMI_PRODUCT_NAME, "C6100"),
+>  		},
+>  	},
+> +	{	/* Handle problems with rebooting on Sony Vaio Z1 series*/
+> +		.callback = set_pci_reboot,
+> +		.ident = "Sony Vaio Z1",
+> +		.matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "VPCZ1"),
+> +		},
+> +	},
+
+This is becoming somewhat endemic - do we know _why_ the ACPI reboot 
+method does not work?
+
+We reworked the x86 reboot sequence 2.5 years agom, in:
+
+ commit 660e34cebf0a11d54f2d5dd8838607452355f321
+ Author: Matthew Garrett <mjg@redhat.com>
+ Date:   Mon Apr 4 13:55:05 2011 -0400
+
+    x86: Reorder reboot method preferences
+    
+    We have a never ending stream of 'reboot quirks' for new boxes
+    that will not reboot properly under Linux (they will hang on
+    reboot).
+    
+    The reason is widespread 'Windows compatible' assumption of modern
+    x86 hardware, which expects the following reboot sequence:
+    
+     - hitting the ACPI reboot vector (if available)
+     - trying the keyboard controller
+     - hitting the ACPI reboot vector again
+     - then giving the keyboard controller one last go
+
+    This sequence expectation gets more and more embedded in modern
+    hardware, which often lacks a keyboard controller and may even
+    lock up if the legacy io ports are hit - and which hardware is
+    often not tested with Linux during development.
+    
+    The end result is that reboot works under Windows-alike OSs but not
+    under Linux.
+    
+    Rework our reboot process to meet this hardware externality a little
+    better and match this assumption of newer x86 hardware.
+    
+    In addition to the ACPI,kbd,ACPI,kbd sequence we'll still fall
+    through to attempting a legacy triple fault if nothing else
+    works - and keep trying that and the kbd reset.
+
+    [...]
+
+Do we know why reboot apparently works quickly enough on Windows on 
+this laptop, but not under Linux? Does Windows use the ACPI reboot 
+method? If yes, does it use a different pattern?
+
+Is it all perhaps virtualization or IRQ routing related?
+
+I.e. we really need a real analysis here, not just a quirk!
+
+Thanks,
+
+	Ingo
