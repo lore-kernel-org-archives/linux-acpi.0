@@ -1,63 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC 2/2] spi: Use stable dev_name for ACPI enumerated SPI slaves
-Date: Fri, 25 Oct 2013 16:09:47 +0200
-Message-ID: <1530227.7u44IdW1Bp@vostro.rjw.lan>
-References: <1382703540-3769-1-git-send-email-jarkko.nikula@linux.intel.com> <1382703540-3769-3-git-send-email-jarkko.nikula@linux.intel.com> <20131025125909.GA12932@sirena.org.uk>
+From: Adam Williamson <awilliam@redhat.com>
+Subject: Re: [PATCH] x86/ACPI: Make Sony Vaio Z1 series to use "reboot=pci"
+ default
+Date: Fri, 25 Oct 2013 09:47:32 -0700
+Message-ID: <1382719652.2445.1.camel@adam.happyassassin.net>
+References: <1382597377-26797-1-git-send-email-tianyu.lan@intel.com>
+	 <20131025105352.GA5419@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart3678682.1027DfbcGu"; micalg="pgp-sha256"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49443 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753434Ab3JYN5x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Oct 2013 09:57:53 -0400
-In-Reply-To: <20131025125909.GA12932@sirena.org.uk>
+Received: from mx1.redhat.com ([209.132.183.28]:13698 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751788Ab3JYQsK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Oct 2013 12:48:10 -0400
+In-Reply-To: <20131025105352.GA5419@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-i2c@vger.kernel.org, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: tianyu.lan@intel.com, Matthew Garrett <mjg@redhat.com>, hpa@zytor.com, x86@kernel.org, holt@sgi.com, davej@fedoraproject.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>
 
-
---nextPart3678682.1027DfbcGu
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="utf-8"
-
-On Friday, October 25, 2013 01:59:09 PM Mark Brown wrote:
-> On Fri, Oct 25, 2013 at 03:19:00PM +0300, Jarkko Nikula wrote:
-> > Current spi bus_num.chip_select "spix.y" based device naming scheme may not
-> > be stable enough to be used in name based matching, for instance within
-> > ALSA SoC subsystem.
+On Fri, 2013-10-25 at 12:53 +0200, Ingo Molnar wrote:
+> * tianyu.lan@intel.com <tianyu.lan@intel.com> wrote:
 > 
-> I'm happy with this from the SPI side modulo Raphael's comments - are
-> folks happy from the ACPI side?
+> > From: Lan Tianyu <tianyu.lan@intel.com>
+> > 
+> > Sony Vaio Z1 series require "reboot=pci" for reboot and power off.
+> > This patch is to add them machines to quirk table and set pci reboot
+> > default.
+> > 
+> > Reference: https://bugzilla.kernel.org/show_bug.cgi?id=61721
+> > Reported-and-tested-by: Adam Williamson <awilliam@redhat.com>
+> > Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> > ---
+> >  arch/x86/kernel/reboot.c |    8 ++++++++
+> >  1 file changed, 8 insertions(+)
+> > 
+> > diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
+> > index 7e920bf..083ade7 100644
+> > --- a/arch/x86/kernel/reboot.c
+> > +++ b/arch/x86/kernel/reboot.c
+> > @@ -382,6 +382,14 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
+> >  			DMI_MATCH(DMI_PRODUCT_NAME, "C6100"),
+> >  		},
+> >  	},
+> > +	{	/* Handle problems with rebooting on Sony Vaio Z1 series*/
+> > +		.callback = set_pci_reboot,
+> > +		.ident = "Sony Vaio Z1",
+> > +		.matches = {
+> > +		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+> > +		DMI_MATCH(DMI_PRODUCT_NAME, "VPCZ1"),
+> > +		},
+> > +	},
+> 
+> This is becoming somewhat endemic - do we know _why_ the ACPI reboot 
+> method does not work?
 
-I think yes in general, but I'd like to understand why the ACPI_HANDLE()
-thing doesn't work as expected.
+I don't, but one comment I could add is that reboot _used_ to work okay
+on the Z1. And I _think_ it's worked OK since the April 2011 commit you
+mention (so the introduction of that didn't break it), but I can't
+absolutely swear to it.
 
+(And yes, of course, reboot from stock-installed, fully-updated Windows
+- IIRC, Win7 - on the same system works OK.)
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---nextPart3678682.1027DfbcGu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAABCAAGBQJSanuxAAoJEILEb/54YlRx13sQAIma44w/ksmY8FRR94k0iG78
-VzAHCpXZhxd43ZjSRviAAyQINT+h6N4fFWT32ZjZqwEYNRkfDUjuy5RdR5MwD+iT
-becubgM7R8qS2dZsxu0N/1kKF5KjjFXpz3uynSz3yna5BYECRZo+NHgXlMynpOI1
-f0yz760d0RTu/KMvMzkdpPT6g5Cjg8E01adpW1xlCvqKi2Fp2M57uXJnlLZHv1d7
-82PgQasM2XD0lqOGhx7HqzQc6WF6SKnycJ/RoFjc7Z/97iWzKhgzDLrLsd8qL98D
-lPEkjnpmcwW2YckvALqrm8lVS9UCmIe2pL75ylJw4HyJjpJeYhbjo0fRshaQ9nTj
-qGwAydIyEFIze+5rqRizrNd2K1ckXTt2dQTxRPNOY7219n6I4x4kNvM/CdxcJ5Bx
-dBH0HhKp54tUzoeiTrRvyW71jV0vuqcPQr3r0ckGxDMEi5EumlycLWtg1CUHbGjl
-8Uq2bf8c2ZsyPicpQ9esJuY3HtjlD4iqDGuCImZwCGm5iyFeSo2GMMquSmuFlu0k
-v25VRYRvwD13lLF5+KggPgTtU5iRNxd/6i9chkeeubrT9g5euBNOuO3XQqcJlbYs
-oDDfRvqlln3Avan93hkRRuhE25g8BKQyo3NxIdVeOgxl65BIKdAc8mce/sMY3e/u
-rXuKs7sNSyQ82Z2sNGCf
-=0M2M
------END PGP SIGNATURE-----
-
---nextPart3678682.1027DfbcGu--
+Adam Williamson
+Fedora QA Community Monkey
+IRC: adamw | Twitter: AdamW_Fedora | XMPP: adamw AT happyassassin . net
+http://www.happyassassin.net
 
