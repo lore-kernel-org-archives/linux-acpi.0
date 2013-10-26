@@ -1,82 +1,105 @@
-From: Ingo Molnar <mingo@kernel.org>
+From: Lan Tianyu <tianyu.lan@intel.com>
 Subject: Re: [PATCH] x86/ACPI: Make Sony Vaio Z1 series to use "reboot=pci"
  default
-Date: Sat, 26 Oct 2013 11:15:01 +0200
-Message-ID: <20131026091501.GE14237@gmail.com>
-References: <1382597377-26797-1-git-send-email-tianyu.lan@intel.com>
- <20131025105352.GA5419@gmail.com>
- <1382719652.2445.1.camel@adam.happyassassin.net>
- <CA+55aFyZEZp3CSFEcxzKt0c_7Q9_juGWiqb7VH214Fjcs3wUkQ@mail.gmail.com>
- <1382750841.19471.72.camel@adam.happyassassin.net>
- <1382754015.19471.80.camel@adam.happyassassin.net>
- <20131026031759.GA8513@redhat.com>
- <1382772154.3604.1.camel@adam.happyassassin.net>
+Date: Sat, 26 Oct 2013 20:58:47 +0800
+Message-ID: <526BBC87.4000301@intel.com>
+References: <1382597377-26797-1-git-send-email-tianyu.lan@intel.com> <20131025105352.GA5419@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1382772154.3604.1.camel@adam.happyassassin.net>
+In-Reply-To: <20131025105352.GA5419@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adam Williamson <awilliam@redhat.com>, Joerg Roedel <joro@8bytes.org>, David Woodhouse <David.Woodhouse@intel.com>
-Cc: Dave Jones <davej@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Lan Tianyu <tianyu.lan@intel.com>, Matthew Garrett <mjg@redhat.com>, Peter Anvin <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Robin Holt <holt@sgi.com>, davej@fedoraproject.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Thomas Gleixner <tglx@linutronix.de>
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Matthew Garrett <mjg@redhat.com>, hpa@zytor.com, x86@kernel.org, holt@sgi.com, davej@fedoraproject.org, lenb@kernel.org, rjw@rjwysocki.net, awilliam@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
 
+On 10/25/2013 06:53 PM, Ingo Molnar wrote:
+>
+> * tianyu.lan@intel.com <tianyu.lan@intel.com> wrote:
+>
+>> From: Lan Tianyu <tianyu.lan@intel.com>
+>>
+>> Sony Vaio Z1 series require "reboot=pci" for reboot and power off.
+>> This patch is to add them machines to quirk table and set pci reboot
+>> default.
+>>
+>> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=61721
+>> Reported-and-tested-by: Adam Williamson <awilliam@redhat.com>
+>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+>> ---
+>>   arch/x86/kernel/reboot.c |    8 ++++++++
+>>   1 file changed, 8 insertions(+)
+>>
+>> diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
+>> index 7e920bf..083ade7 100644
+>> --- a/arch/x86/kernel/reboot.c
+>> +++ b/arch/x86/kernel/reboot.c
+>> @@ -382,6 +382,14 @@ static struct dmi_system_id __initdata reboot_dmi_table[] = {
+>>   			DMI_MATCH(DMI_PRODUCT_NAME, "C6100"),
+>>   		},
+>>   	},
+>> +	{	/* Handle problems with rebooting on Sony Vaio Z1 series*/
+>> +		.callback = set_pci_reboot,
+>> +		.ident = "Sony Vaio Z1",
+>> +		.matches = {
+>> +		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+>> +		DMI_MATCH(DMI_PRODUCT_NAME, "VPCZ1"),
+>> +		},
+>> +	},
+>
+> This is becoming somewhat endemic - do we know _why_ the ACPI reboot
+> method does not work?
+>
+> We reworked the x86 reboot sequence 2.5 years agom, in:
+>
+>   commit 660e34cebf0a11d54f2d5dd8838607452355f321
+>   Author: Matthew Garrett <mjg@redhat.com>
+>   Date:   Mon Apr 4 13:55:05 2011 -0400
+>
+>      x86: Reorder reboot method preferences
+>
+>      We have a never ending stream of 'reboot quirks' for new boxes
+>      that will not reboot properly under Linux (they will hang on
+>      reboot).
+>
+>      The reason is widespread 'Windows compatible' assumption of modern
+>      x86 hardware, which expects the following reboot sequence:
+>
+>       - hitting the ACPI reboot vector (if available)
+>       - trying the keyboard controller
+>       - hitting the ACPI reboot vector again
+>       - then giving the keyboard controller one last go
+>
+>      This sequence expectation gets more and more embedded in modern
+>      hardware, which often lacks a keyboard controller and may even
+>      lock up if the legacy io ports are hit - and which hardware is
+>      often not tested with Linux during development.
+>
+>      The end result is that reboot works under Windows-alike OSs but not
+>      under Linux.
+>
+>      Rework our reboot process to meet this hardware externality a little
+>      better and match this assumption of newer x86 hardware.
+>
+>      In addition to the ACPI,kbd,ACPI,kbd sequence we'll still fall
+>      through to attempting a legacy triple fault if nothing else
+>      works - and keep trying that and the kbd reset.
+>
+>      [...]
+>
+> Do we know why reboot apparently works quickly enough on Windows on
+> this laptop, but not under Linux? Does Windows use the ACPI reboot
+> method? If yes, does it use a different pattern?
+>
+> Is it all perhaps virtualization or IRQ routing related?
+>
+> I.e. we really need a real analysis here, not just a quirk!
 
-* Adam Williamson <awilliam@redhat.com> wrote:
+Sorry about this. Will do some analyses.
 
-> On Fri, 2013-10-25 at 23:17 -0400, Dave Jones wrote:
-> > On Fri, Oct 25, 2013 at 07:20:15PM -0700, Adam Williamson wrote:
-> >  > OK, so, findings: F16 and F17 live images reboot quickly. F18 is the
-> >  > first that reboots slowly.
-> > 
-> > wait, stop. what does "reboots slowly" mean ? 
-> > In every one of the failure I've seen, without a quirk it means reboot
-> > doesn't happen at all.
-> 
-> If you read the original report - on Z1s, if you leave the system alone,
-> it sits at the 'Restarting system.' message for about two minutes, then
-> finally reboots. If you pass 'reboot=pci', reboot is as fast as you'd
-> expect.
-> 
-> https://bugzilla.kernel.org/show_bug.cgi?id=61721
-
-So, the best range for the breakage we have is v3.3..v3.5.
-
-As a blind shot into the dark, that turns out to be a range when a 
-number of irq-remapping, vt-d changes went upstream:
-
-comet:~/tip> gll v3.3..v3.6 arch/x86 | grep -i remap
-399988eea194 irq_remap: Fix compiler warning with CONFIG_IRQ_REMAP=y
-79fec2c557cf Merge tag 'intr-remapping-ops-for-ingo' of git://git.kernel.org/pub/scm/linux/kernel/git/joro/iommu into core/iommu
-8a8f422d3b4f iommu: rename intr_remapping.[ch] to irq_remapping.[ch]
-95a02e976c39 iommu: rename intr_remapping references to irq_remapping
-263b5e8629c9 x86, iommu/vt-d: Clean up interfaces for interrupt remapping
-5e2b930b0784 iommu/vt-d: Convert MSI remapping setup to remap_ops
-9d619f657222 iommu/vt-d: Convert free_irte into a remap_ops callback
-4c1bad6a0af1 iommu/vt-d: Convert IR set_affinity function to remap_ops
-0c3f173a88c4 iommu/vt-d: Convert IR ioapic-setup to use remap_ops
-4f3d8b67ad30 iommu/vt-d: Convert missing apic.c intr-remapping call to remap_ops
-736baef4472d iommu/vt-d: Make intr-remapping initialization generic
-f7219a5300ba x86: Introduce CONFIG_X86_DMA_REMAP
-
-So if you are able to test current kernels, it might be an 
-additional data point to see whether the reboot delay (which appears 
-to be a reboot hang on other systems) is related to the following 
-kernel option:
-
-  CONFIG_IRQ_REMAP=y
-
-(CONFIG_X86_DMA_REMAP is off on Fedora.)
-
-IRQ_REMAP is somewhat of a dual personality feature, living half in 
-arch/x86/, half in drivers/iommu/. It should normally matter for 
-servers more than for laptops.
-
-Btw., regarding your encrypted partitions boot problem, do you have 
-any non-encrypted filesystem? If yes then you could copy /[s]bin and 
-/lib to it and boot via init=/bin/bash, you ought to get a minimal 
-shell and be able to run /sbin/reboot.
-
-Thanks,
-
-	Ingo
+>
+> Thanks,
+>
+> 	Ingo
+>
