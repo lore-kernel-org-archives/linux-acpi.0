@@ -1,70 +1,58 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [alsa-devel] [RFC] ASoC: core: Allow DAI links to be specified
- by using ACPI names
-Date: Mon, 28 Oct 2013 09:46:11 -0700
-Message-ID: <20131028164611.GL13643@sirena.org.uk>
-References: <1380803636-24079-1-git-send-email-jarkko.nikula@linux.intel.com>
- <20131024095118.GH31415@sirena.org.uk>
- <526A1568.9010100@linux.intel.com>
- <20131025100618.GR18506@sirena.org.uk>
- <526A4B11.5000802@linux.intel.com>
- <1382961194.2334.23.camel@loki>
- <20131028150639.GA10936@sirena.org.uk>
- <526E8181.2030208@linux.intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Resend PATCH 5/5] IA64/PCI/ACPI: Rework PCI root bridge ACPI
+ resource conversion
+Date: Mon, 28 Oct 2013 11:32:30 -0600
+Message-ID: <CAErSpo50_JQEhGOK6mcnaj36f6Fhgp3VcHKSmziC6JB_Ycu0Xg@mail.gmail.com>
+References: <1381493941-4650-1-git-send-email-tianyu.lan@intel.com>
+ <1381493941-4650-6-git-send-email-tianyu.lan@intel.com> <20131016235541.GD17866@google.com>
+ <525F7F0F.5010306@intel.com> <CAErSpo7P+n5c2uUoodT=LOjE3UH3LBcjifbj8reXzAeWydsoLA@mail.gmail.com>
+ <52612D1C.4070701@intel.com> <20131023223904.GA18454@google.com> <526BF37E.8040801@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WuT04sMzYDXq8et0"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:51967 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756786Ab3J1Qqm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Oct 2013 12:46:42 -0400
-Content-Disposition: inline
-In-Reply-To: <526E8181.2030208@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <526BF37E.8040801@intel.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Yoknis, Mike" <mike.yoknis@hp.com>, "Pearson, Greg" <greg.pearson@hp.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: Liam Girdwood <liam.r.girdwood@linux.intel.com>, linux-acpi@vger.kernel.org, alsa-devel@alsa-project.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>
 
+On Sat, Oct 26, 2013 at 10:53 AM, Lan Tianyu <tianyu.lan@intel.com> wrote:
+> On 10/24/2013 06:39 AM, Bjorn Helgaas wrote:
+>> On Fri, Oct 18, 2013 at 08:44:12PM +0800, Lan Tianyu wrote:
+>>>
+>>> On 10/18/2013 04:33 AM, Bjorn Helgaas wrote:
 
---WuT04sMzYDXq8et0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+>>>> I wonder if it would make sense to make
+>>>> acpi_dev_resource_address_space() ignore addr.translation_offset for
+>>>> IO resources.  Or maybe ignore it if the _TTP (type translation) bit
+>>>> is set?
+>>>
+>>>
+>>> I wonder why current code doesn't check _TTP? The code in the
+>>> add_io_space() seems to think _TTP is always set, right?
+>>
+>> I think it's an oversight, and you should fix it.  I suggest that you
+>> ignore the _TRA value when _TTP is set.  Obviously this only applies
+>> to I/O port resources, since _TTP is only defined in the I/O Resource
+>> Flag (Table 6-185 in ACPI 5.0 spec).
+>
+> _TTP is also defined in the Memory Resource flag, Please have a look at
+> Table 6-184 in the ACPI 5.0 Spec.
 
-On Mon, Oct 28, 2013 at 05:23:45PM +0200, Jarkko Nikula wrote:
-> On 10/28/2013 05:06 PM, Mark Brown wrote:
+Yes, you're right.  That would be for a host bridge that converts I/O
+on the primary (upstream) side of the bridge to memory on the PCI
+side.  I've never seen such a bridge, and I can't really imagine why
+anybody would do that.  But I guess you should be able to safely
+ignore _TRA when _TTP is set in either a MEM or IO descriptor, because
+the same reasoning should apply to both.
 
-> >Indeed.  The way I initially read the suggestion above the idea was to
-> >replace the bus number with the ACPI name for the device which seemed
-> >sensible but now I reread the bus number is still there.
+> I am not sure how to deal with _TTP unsetting io resource? _TTP unsetting
+> mean the resource is IO on the primary side and also IO on the secondary
+> side.
 
-> Sorry, my textual proposal above was confusing and should have used
-> different variables for ACPI name. What I meant was "spix.y" ->
-> "spi-INTABCD:ij" and "x-00yz" to "i2c-INTABCD:ij" where "INTABCD:ij"
-> was the ACPI device name which contains the device instance in "ij".
+If _TTP is not set, I guess you would apply _TRA.  That's what you
+already do for MEM descriptors, and think you should just do the same
+for IO descriptors.  I would guess that having _TTP = 0 and _TRA != 0
+is rare for IO descriptors, but I suppose it could happen.
 
-Ah, OK - it's actually what I read it as in the first place then!
-
---WuT04sMzYDXq8et0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSbpTQAAoJELSic+t+oim9c9wP/jooDse6OvPPV3l8W4Afoar+
-Prb0U9KwDPOzd1dhyo9mNd7vMgf5VF+uZy8W2IP4MxH6YzXbyawt10AyTfqTkUiA
-ss88QWpwxuu/eT5U43bUxQXkGESumyd36GV3T7QcioaxPT0B2EUIGHU2VGznY70C
-H3a8NWFfU97FTxCEeA9yXFh2Tr6NLw47dpiZBeKAvttnSDL8Z8Gc6CAFmFMYKuAc
-TJM6fO8rZ75SrsrpPwvw8KlUjBBz62ZbU/8lGi9FHBNmt2X/mBXpX6bk4Px0cUll
-lcEnSe7H2fQpRcCbrDlDIOOSw7dtXrd0fPN1b+WmwkzOV3JEM9KaUjtt0S+02NDi
-1oa2rMBEHkuEhWUmD3lrynCSnH49hirtAm6w1lAmPW268Xz8k+iC3T0OP/XBVSmE
-gJwSUUIBU32DKcfwVvz8orsakOc5uanamo6lYUSKGo3g4YsKUQ0mrnwpbXJWpBAw
-IhiVEz8HHo7AzfcOGENIzt3PPzwn/LL6oN8Rmzp5i/Mtc9HdgPWAo5sHvtOn1Aq4
-jnDTIlZkW1S/H8qBF9gzlyQI3KxeZTvOE3lKH1SBiSNtgt0ODgSv207UU/oiWreC
-205NuTc7b9dUUpror9Q7o45KFMsB29mpTQvcCl+i7W/Ymt6y2j24MYETgKlqEpZt
-GHC0DQiAG9PybI3jZuG5
-=Qt2a
------END PGP SIGNATURE-----
-
---WuT04sMzYDXq8et0--
+Bjorn
