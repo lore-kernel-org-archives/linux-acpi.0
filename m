@@ -1,47 +1,94 @@
-From: Adam Williamson <awilliam@redhat.com>
-Subject: Re: [PATCH] x86/ACPI: Make Sony Vaio Z1 series to use "reboot=pci"
- default
-Date: Sun, 27 Oct 2013 00:06:29 -0700
-Message-ID: <1382857589.2447.0.camel@adam.happyassassin.net>
-References: <1382597377-26797-1-git-send-email-tianyu.lan@intel.com>
-	 <20131025105352.GA5419@gmail.com>
-	 <1382719652.2445.1.camel@adam.happyassassin.net>
-	 <CA+55aFyZEZp3CSFEcxzKt0c_7Q9_juGWiqb7VH214Fjcs3wUkQ@mail.gmail.com>
-	 <1382750841.19471.72.camel@adam.happyassassin.net>
-	 <1382754015.19471.80.camel@adam.happyassassin.net>
-	 <20131026031759.GA8513@redhat.com>
-	 <1382772154.3604.1.camel@adam.happyassassin.net>
-	 <20131026091501.GE14237@gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / processor: Do not request ACPI cpufreq module directly
+Date: Mon, 28 Oct 2013 02:21 +0100
+Message-ID: <2252332.6pcuA4s7xa@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53338 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751245Ab3J0HGr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Oct 2013 03:06:47 -0400
-In-Reply-To: <20131026091501.GE14237@gmail.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:49230 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754546Ab3J1BIz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Oct 2013 21:08:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Joerg Roedel <joro@8bytes.org>, David Woodhouse <David.Woodhouse@intel.com>, Dave Jones <davej@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Lan Tianyu <tianyu.lan@intel.com>, Matthew Garrett <mjg@redhat.com>, Peter Anvin <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Robin Holt <holt@sgi.com>, davej@fedoraproject.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Thomas Gleixner <tglx@linutronix.de>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 
-On Sat, 2013-10-26 at 11:15 +0200, Ingo Molnar wrote:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> So if you are able to test current kernels, it might be an 
-> additional data point to see whether the reboot delay (which appears 
-> to be a reboot hang on other systems) is related to the following 
-> kernel option:
-> 
->   CONFIG_IRQ_REMAP=y
+Function acpi_processor_load_module() used by the ACPI processor
+driver can only really work if the acpi-cpufreq module is available
+when acpi_processor_start() is executed which usually is not the case
+for systems loading the processor driver module from an initramfs.
 
-Agh, sorry - I had this down in my mind as a boot time parameter, not a
-compile time option. I'm off on vacation for a week in the morning, and
-it's too late to wait around for a kernel compile tonight :/ So I'll
-have to check this one when I get back. Sorry again.
--- 
-Adam Williamson
-Fedora QA Community Monkey
-IRC: adamw | Twitter: AdamW_Fedora | XMPP: adamw AT happyassassin . net
-http://www.happyassassin.net
+Moreover, that used to be a hackish workaround for module autoloading
+issues, but udev loads acpi-cpufreq just fine nowadays, so that
+function isn't really necessary any more.  For this reason, drop
+acpi_processor_load_module() entirely.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/processor_driver.c  |    1 -
+ drivers/acpi/processor_perflib.c |   22 ----------------------
+ include/acpi/processor.h         |    1 -
+ 3 files changed, 24 deletions(-)
+
+Index: linux-pm/drivers/acpi/processor_driver.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/processor_driver.c
++++ linux-pm/drivers/acpi/processor_driver.c
+@@ -171,7 +171,6 @@ static int __acpi_processor_start(struct
+ 
+ #ifdef CONFIG_CPU_FREQ
+ 	acpi_processor_ppc_has_changed(pr, 0);
+-	acpi_processor_load_module(pr);
+ #endif
+ 	acpi_processor_get_throttling_info(pr);
+ 
+Index: linux-pm/drivers/acpi/processor_perflib.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/processor_perflib.c
++++ linux-pm/drivers/acpi/processor_perflib.c
+@@ -235,28 +235,6 @@ void acpi_processor_ppc_exit(void)
+ 	acpi_processor_ppc_status &= ~PPC_REGISTERED;
+ }
+ 
+-/*
+- * Do a quick check if the systems looks like it should use ACPI
+- * cpufreq. We look at a _PCT method being available, but don't
+- * do a whole lot of sanity checks.
+- */
+-void acpi_processor_load_module(struct acpi_processor *pr)
+-{
+-	static int requested;
+-	acpi_status status = 0;
+-	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-
+-	if (!arch_has_acpi_pdc() || requested)
+-		return;
+-	status = acpi_evaluate_object(pr->handle, "_PCT", NULL, &buffer);
+-	if (!ACPI_FAILURE(status)) {
+-		printk(KERN_INFO PREFIX "Requesting acpi_cpufreq\n");
+-		request_module_nowait("acpi_cpufreq");
+-		requested = 1;
+-	}
+-	kfree(buffer.pointer);
+-}
+-
+ static int acpi_processor_get_performance_control(struct acpi_processor *pr)
+ {
+ 	int result = 0;
+Index: linux-pm/include/acpi/processor.h
+===================================================================
+--- linux-pm.orig/include/acpi/processor.h
++++ linux-pm/include/acpi/processor.h
+@@ -225,7 +225,6 @@ struct acpi_processor_errata {
+ 	} piix4;
+ };
+ 
+-extern void acpi_processor_load_module(struct acpi_processor *pr);
+ extern int acpi_processor_preregister_performance(struct
+ 						  acpi_processor_performance
+ 						  __percpu *performance);
 
