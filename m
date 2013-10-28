@@ -1,40 +1,78 @@
-From: Liam Girdwood <liam.r.girdwood@linux.intel.com>
-Subject: Re: [alsa-devel] [RFC] ASoC: core: Allow DAI links to be specified
- by using ACPI names
-Date: Mon, 28 Oct 2013 11:53:14 +0000
-Message-ID: <1382961194.2334.23.camel@loki>
-References: <1380803636-24079-1-git-send-email-jarkko.nikula@linux.intel.com>
-	 <20131024095118.GH31415@sirena.org.uk> <526A1568.9010100@linux.intel.com>
-	 <20131025100618.GR18506@sirena.org.uk> <526A4B11.5000802@linux.intel.com>
+From: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [RFC 1/2] i2c: Use stable dev_name for ACPI enumerated I2C slaves
+Date: Mon, 28 Oct 2013 15:15:25 +0200
+Message-ID: <526E636D.3070005@linux.intel.com>
+References: <1382703540-3769-1-git-send-email-jarkko.nikula@linux.intel.com> <98785510.yWYAtabkbj@vostro.rjw.lan> <526A726F.1030407@linux.intel.com> <2889412.bEKBLJtgSW@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:62861 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755944Ab3J1LxS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Oct 2013 07:53:18 -0400
-In-Reply-To: <526A4B11.5000802@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2889412.bEKBLJtgSW-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org, alsa-devel@alsa-project.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>
 
-On Fri, 2013-10-25 at 13:42 +0300, Jarkko Nikula wrote:
-> On 10/25/2013 01:06 PM, Mark Brown wrote:
-> > OK, I was asking because I was thinking of applying the patch for now; 
-> > it's not that it's a bad idea it just seems like it's something that 
-> > might might make sense solved at that level. Equally well I don't know 
-> > if these systems will work with v3.13 anyway so perhaps it's not so 
-> > urgent. 
-> Yes, I don't see any urgent reason to push this hack in. Better to check 
-> dev_name change first. What I'm going to propose there is "spix.y" to 
-> "spi-INTABCD:xy" and "x-00yz" to "i2c-INTABCD:xy"
-> 
+Hi Rafael
 
-We probably need to be able to match on ACPI name alone as some BIOS
-settings can change the I2C bus number and break the name match used at
-bind time. e.g. on Haswell the codec can either be on I2C bus 0 or 7.
+On 10/25/2013 05:08 PM, Rafael J. Wysocki wrote:
+> On Friday, October 25, 2013  04:30:23 PM Jarkko Nikula wrote:
+ >>>
+ >> Hmm, not only. Referencing to dev field in struct acpi_device by
+ >> dev_name(&adev->dev) here will fail too.
+ >
+ > Well, something is not quite right here.
+ >
+ > One of the *reasons* for having ACPI_HANDLE() defined this way is to
+ > avoid using explicit CONFIG_ACPI checks, so if that doesn't work,
+ > then all of that becomes a bit pointless.
+ >
+One possible thing to do is to let structure definitions to be available 
+for non-ACPI builds. Then compiler won't fail on structure access which 
+will be anyway optimized away by later compiler stages.
 
-Liam
+With a quick test below vmlinux section sizes don't change for couple 
+non-ACPI build tests and allow to get rid off IS_ENABLED(CONFIG_ACPI) 
+test in this patch. It's very minimal as it only moves the CONFIG_ACPI 
+test just after the struct acpi_device definition and defines 
+acpi_bus_get_device for non-ACPI case.
 
+What I don't know how consistent it is as there are still couple 
+structure definitions under CONFIG_ACPI, doesn't touch other acpi 
+headers and requires to include acpi_bus.h in driver (or move acpi_bus.h 
+include in linux/acpi.h currently under CONFIG_ACPI).
+
+-- 
+Jarkko
+
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index d901982..7ab7870 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -66,8 +66,6 @@ bool acpi_ata_match(acpi_handle handle);
+  bool acpi_bay_match(acpi_handle handle);
+  bool acpi_dock_match(acpi_handle handle);
+
+-#ifdef CONFIG_ACPI
+-
+  #include <linux/proc_fs.h>
+
+  #define ACPI_BUS_FILE_ROOT    "acpi"
+@@ -314,6 +312,8 @@ struct acpi_device {
+      void (*remove)(struct acpi_device *);
+  };
+
++#if IS_ENABLED(CONFIG_ACPI)
++
+  static inline void *acpi_driver_data(struct acpi_device *d)
+  {
+      return d->driver_data;
+@@ -531,6 +531,8 @@ static inline bool acpi_device_can_poweroff(struct 
+acpi_device *adev)
+
+  static inline int register_acpi_bus_type(void *bus) { return 0; }
+  static inline int unregister_acpi_bus_type(void *bus) { return 0; }
++static inline int acpi_bus_get_device(acpi_handle handle,
++                      struct acpi_device **device) { return 0; }
+
+  #endif                /* CONFIG_ACPI */
