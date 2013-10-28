@@ -1,55 +1,54 @@
-From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Subject: Re: [PATCH] ACPI: remove unused ACPI_PROCFS Kconfig param
-Date: Mon, 28 Oct 2013 09:42:51 +0100
-Message-ID: <526E238B.2070900@free-electrons.com>
-References: <1382857012-2971-1-git-send-email-michael.opdenacker@free-electrons.com>	 <CAOLK0pxe0tsgo1+U8WT4-9cxTxS9MKaiGhLd2S-T-T7imPyd7A@mail.gmail.com>	 <526E0293.4080702@free-electrons.com> <1382948855.32195.9.camel@x220.thuisdomein>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/1] acpi: check return value of acpi_os_map_memory
+Date: Mon, 28 Oct 2013 12:01:46 +0100
+Message-ID: <3198340.cKCt9ZmSgp@vostro.rjw.lan>
+References: <1382940259-15183-1-git-send-email-rucsoftsec@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:60982 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751848Ab3J1Im4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Oct 2013 04:42:56 -0400
-In-Reply-To: <1382948855.32195.9.camel@x220.thuisdomein>
+Received: from v094114.home.net.pl ([79.96.170.134]:56362 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754133Ab3J1Ktk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Oct 2013 06:49:40 -0400
+In-Reply-To: <1382940259-15183-1-git-send-email-rucsoftsec@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Lan Tianyu <lantianyu1986@gmail.com>, Len Brown <lenb@kernel.org>, rjw@rjwysocki.net, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>
+To: RUC_SoftSec <rucsoftsec@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Paul,
+On Monday, October 28, 2013 02:04:19 PM RUC_SoftSec wrote:
+> Function acpi_os_map_memory() may return a NULL pointer, it should be validated non-NULL before used.
+> This bug is found by a static tool developed by RUC_SoftSec, supported by China.X.Orion.
+> 
+> Signed-off-by: RUC_SoftSec <rucsoftsec@gmail.com>
+> ---
+>  drivers/acpi/osl.c |    2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index e5f416c..bf8f93f 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -717,6 +717,8 @@ acpi_os_physical_table_override(struct acpi_table_header *existing_table,
+>  
+>  		table = acpi_os_map_memory(acpi_tables_addr + table_offset,
+>  					   ACPI_HEADER_SIZE);
+> +		if (table == NULL)
 
-On 10/28/2013 09:27 AM, Paul Bolle wrote:
-> On Mon, 2013-10-28 at 07:22 +0100, Michael Opdenacker wrote:
->> [...] CONFIG_ACPI_PROCFS is no longer used anywhere, neither in
->> Makefiles nor in the source code. ACPI_PROCFS isn't event used in
->> Kconfig files as an intermediate dependency.
->>
->> What I deduce from that is that even if you set CONFIG_ACPI_PROCFS=y in
->> the kernel configuration, this will have no impact at all.
-> About half a year ago I noticed that this Kconfig symbol is unused since
-> v2.6.38 [0]. As, apparently, nothing has changed it is currently unused
-> for over two and a half years.
->
-> I still don't really understand the purpose of this symbol. But whatever
-> it is, it might as well be dropped. If it's ever needed again it could
-> be re-added. Or, perhaps, an entirely different approach could be used
-> to accomplish what that symbol is supposed to do.
->
->
-> Paul Bolle
->
-> [0] http://marc.info/?l=linux-acpi&m=136398635322975
-Good to know that nobody has complained about this for two and half
-years :) This is then probably safe to remove this symbol for good.
+"if (!table)" perhaps?
 
-Thanks again,
+> +			return AE_OK;
 
-Michael.
+And why is it a good idea to return success then?
+
+>  
+>  		if (table_offset + table->length > all_tables_size) {
+>  			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
+> 
+
+Thanks!
 
 -- 
-Michael Opdenacker, CEO, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-+33 484 258 098
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
