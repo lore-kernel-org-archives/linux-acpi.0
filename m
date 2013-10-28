@@ -1,54 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/1] acpi: check return value of acpi_os_map_memory
-Date: Mon, 28 Oct 2013 12:01:46 +0100
-Message-ID: <3198340.cKCt9ZmSgp@vostro.rjw.lan>
-References: <1382940259-15183-1-git-send-email-rucsoftsec@gmail.com>
+From: Liam Girdwood <liam.r.girdwood@linux.intel.com>
+Subject: Re: [alsa-devel] [RFC] ASoC: core: Allow DAI links to be specified
+ by using ACPI names
+Date: Mon, 28 Oct 2013 11:53:14 +0000
+Message-ID: <1382961194.2334.23.camel@loki>
+References: <1380803636-24079-1-git-send-email-jarkko.nikula@linux.intel.com>
+	 <20131024095118.GH31415@sirena.org.uk> <526A1568.9010100@linux.intel.com>
+	 <20131025100618.GR18506@sirena.org.uk> <526A4B11.5000802@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56362 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754133Ab3J1Ktk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Oct 2013 06:49:40 -0400
-In-Reply-To: <1382940259-15183-1-git-send-email-rucsoftsec@gmail.com>
+Received: from mga02.intel.com ([134.134.136.20]:62861 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755944Ab3J1LxS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Oct 2013 07:53:18 -0400
+In-Reply-To: <526A4B11.5000802@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: RUC_SoftSec <rucsoftsec@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org, alsa-devel@alsa-project.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>
 
-On Monday, October 28, 2013 02:04:19 PM RUC_SoftSec wrote:
-> Function acpi_os_map_memory() may return a NULL pointer, it should be validated non-NULL before used.
-> This bug is found by a static tool developed by RUC_SoftSec, supported by China.X.Orion.
-> 
-> Signed-off-by: RUC_SoftSec <rucsoftsec@gmail.com>
-> ---
->  drivers/acpi/osl.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index e5f416c..bf8f93f 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -717,6 +717,8 @@ acpi_os_physical_table_override(struct acpi_table_header *existing_table,
->  
->  		table = acpi_os_map_memory(acpi_tables_addr + table_offset,
->  					   ACPI_HEADER_SIZE);
-> +		if (table == NULL)
-
-"if (!table)" perhaps?
-
-> +			return AE_OK;
-
-And why is it a good idea to return success then?
-
->  
->  		if (table_offset + table->length > all_tables_size) {
->  			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
+On Fri, 2013-10-25 at 13:42 +0300, Jarkko Nikula wrote:
+> On 10/25/2013 01:06 PM, Mark Brown wrote:
+> > OK, I was asking because I was thinking of applying the patch for now; 
+> > it's not that it's a bad idea it just seems like it's something that 
+> > might might make sense solved at that level. Equally well I don't know 
+> > if these systems will work with v3.13 anyway so perhaps it's not so 
+> > urgent. 
+> Yes, I don't see any urgent reason to push this hack in. Better to check 
+> dev_name change first. What I'm going to propose there is "spix.y" to 
+> "spi-INTABCD:xy" and "x-00yz" to "i2c-INTABCD:xy"
 > 
 
-Thanks!
+We probably need to be able to match on ACPI name alone as some BIOS
+settings can change the I2C bus number and break the name match used at
+bind time. e.g. on Haswell the codec can either be on I2C bus 0 or 7.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Liam
+
