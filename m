@@ -1,94 +1,126 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / processor: Do not request ACPI cpufreq module directly
-Date: Mon, 28 Oct 2013 02:21 +0100
-Message-ID: <2252332.6pcuA4s7xa@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v5 0/4] Fix Win8 backlight issue
+Date: Mon, 28 Oct 2013 10:45:43 +0800
+Message-ID: <526DCFD7.7060002@intel.com>
+References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>	
+	<2140073.U60XyxRqVZ@vostro.rjw.lan> <5268D6BB.3010207@intel.com>
+	<1382682925.3328.4.camel@ThinkPad-X230.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49230 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754546Ab3J1BIz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Oct 2013 21:08:55 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <1382682925.3328.4.camel@ThinkPad-X230.localdomain>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Cc: James Hogan <james@albanarts.com>, Mike Galbraith <bitbucket@online.de>, Felipe Contreras <felipe.contreras@gmail.com>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, linux-acpi@vger.kernel.org, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, Martin Steigerwald <Martin@lichtvoll.de>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?UTF-8?B?SsO2cmcgT3R0ZQ==?= <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Kevin Smith <thirdwiggin@gmail.com>, Peter Weber <bugs@ttyhoney.com>, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Lennart Poettering <lennart@poettering.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Theodore Tso <tytso@mit.edu>
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 10/25/2013 02:35 PM, Igor Gnatenko wrote:
+> Aaron, add this notebook to list. I've CC'ed owner.
+> And I've tested this patch on my TP X230 (add as Reported-and-Tested me
+> please)
+> +	{
+> +	 .callback = video_set_use_native_backlight,
+> +	 .ident = "Dell Inspiron 7520",
+> +	 .matches = {
+> +		 DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +		 DMI_MATCH(DMI_PRODUCT_VERSION, "Inspiron 7520"),
+> +		},
+> +	},
 
-Function acpi_processor_load_module() used by the ACPI processor
-driver can only really work if the acpi-cpufreq module is available
-when acpi_processor_start() is executed which usually is not the case
-for systems loading the processor driver module from an initramfs.
+Thanks Igor, updated patch follows:
 
-Moreover, that used to be a hackish workaround for module autoloading
-issues, but udev loads acpi-cpufreq just fine nowadays, so that
-function isn't really necessary any more.  For this reason, drop
-acpi_processor_load_module() entirely.
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] ACPI / video: Add systems that should favour native backlight
+ interface
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Some system's ACPI video backlight control interface is broken and the
+native backlight control interface should be used by default. This patch
+sets the use_native_backlight parameter to true for those systems so
+that video backlight control interface will not be created. To be
+specific, the ThinkPad T430s/X230, Lenovo Yoga 13 and Dell Inspiron 7520
+are added here.
+
+Thinkpad T430s:
+Reported-by: Theodore Tso <tytso@mit.edu>
+Reported-and-tested-by: Peter Weber <bugs@ttyhoney.com>
+Thinkpad X230:
+Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Lenovo Yoga 13:
+Reported-by: Lennart Poettering <lennart@poettering.net>
+Reported-and-tested-by: Kevin Smith <thirdwiggin@gmail.com>
+Dell Inspiron 7520:
+Reported-by: Renat Ibragimov <ibragimovrinat@mail.ru>
+
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 ---
- drivers/acpi/processor_driver.c  |    1 -
- drivers/acpi/processor_perflib.c |   22 ----------------------
- include/acpi/processor.h         |    1 -
- 3 files changed, 24 deletions(-)
+ drivers/acpi/video.c | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-Index: linux-pm/drivers/acpi/processor_driver.c
-===================================================================
---- linux-pm.orig/drivers/acpi/processor_driver.c
-+++ linux-pm/drivers/acpi/processor_driver.c
-@@ -171,7 +171,6 @@ static int __acpi_processor_start(struct
- 
- #ifdef CONFIG_CPU_FREQ
- 	acpi_processor_ppc_has_changed(pr, 0);
--	acpi_processor_load_module(pr);
- #endif
- 	acpi_processor_get_throttling_info(pr);
- 
-Index: linux-pm/drivers/acpi/processor_perflib.c
-===================================================================
---- linux-pm.orig/drivers/acpi/processor_perflib.c
-+++ linux-pm/drivers/acpi/processor_perflib.c
-@@ -235,28 +235,6 @@ void acpi_processor_ppc_exit(void)
- 	acpi_processor_ppc_status &= ~PPC_REGISTERED;
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index d020df5..0a1b030 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -412,6 +412,12 @@ static int video_ignore_initial_backlight(const struct dmi_system_id *d)
+ 	return 0;
  }
  
--/*
-- * Do a quick check if the systems looks like it should use ACPI
-- * cpufreq. We look at a _PCT method being available, but don't
-- * do a whole lot of sanity checks.
-- */
--void acpi_processor_load_module(struct acpi_processor *pr)
--{
--	static int requested;
--	acpi_status status = 0;
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--
--	if (!arch_has_acpi_pdc() || requested)
--		return;
--	status = acpi_evaluate_object(pr->handle, "_PCT", NULL, &buffer);
--	if (!ACPI_FAILURE(status)) {
--		printk(KERN_INFO PREFIX "Requesting acpi_cpufreq\n");
--		request_module_nowait("acpi_cpufreq");
--		requested = 1;
--	}
--	kfree(buffer.pointer);
--}
--
- static int acpi_processor_get_performance_control(struct acpi_processor *pr)
- {
- 	int result = 0;
-Index: linux-pm/include/acpi/processor.h
-===================================================================
---- linux-pm.orig/include/acpi/processor.h
-+++ linux-pm/include/acpi/processor.h
-@@ -225,7 +225,6 @@ struct acpi_processor_errata {
- 	} piix4;
++static int __init video_set_use_native_backlight(const struct dmi_system_id *d)
++{
++	use_native_backlight = true;
++	return 0;
++}
++
+ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 	/*
+ 	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
+@@ -504,6 +510,38 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion m4 Notebook PC"),
+ 		},
+ 	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "ThinkPad T430s",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
++		},
++	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "ThinkPad X230",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
++		},
++	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "Lenovo Yoga 13",
++	 .matches = {
++		 DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		 DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
++		},
++	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "Dell Inspiron 7520",
++	 .matches = {
++		 DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		 DMI_MATCH(DMI_PRODUCT_VERSION, "Inspiron 7520"),
++		},
++	},
+ 	{}
  };
  
--extern void acpi_processor_load_module(struct acpi_processor *pr);
- extern int acpi_processor_preregister_performance(struct
- 						  acpi_processor_performance
- 						  __percpu *performance);
-
+-- 
+1.8.4.39.ga0d3f10
