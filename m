@@ -1,87 +1,33 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] ACPI: video: Ignore BIOS initial backlight value for
- HP 250 G1
-Date: Mon, 28 Oct 2013 11:24:33 +0800
-Message-ID: <526DD8F1.9040801@intel.com>
-References: <100851382097404@web21g.yandex.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36168 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754935Ab3J1DX5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Oct 2013 23:23:57 -0400
-In-Reply-To: <100851382097404@web21g.yandex.ru>
-Sender: linux-acpi-owner@vger.kernel.org
+From: RUC_SoftSec <rucsoftsec@gmail.com>
+Subject: [PATCH 1/1] acpi: check return value of acpi_os_map_memory
+Date: Mon, 28 Oct 2013 14:04:19 +0800
+Message-ID: <1382940259-15183-1-git-send-email-rucsoftsec@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, RUC_SoftSec <rucsoftsec@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Kirill Tkhai <tkhai@yandex.ru>, linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, Jani Nikula <jani.nikula@linux.intel.com>
 
-On 10/18/2013 07:56 PM, Kirill Tkhai wrote:
-> On HP 250 G1 laptops, BIOS reports minimum backlight on boot and
-> causes backlight to dim completely. This ignores the initial backlight
-> values and set to max brightness.
-> 
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=63111
+Function acpi_os_map_memory() may return a NULL pointer, it should be validated non-NULL before used.
+This bug is found by a static tool developed by RUC_SoftSec, supported by China.X.Orion.
 
-According to the acpidump:
+Signed-off-by: RUC_SoftSec <rucsoftsec@gmail.com>
+---
+ drivers/acpi/osl.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-The ASL code initialize initial brightness level to 100, but only for OS
-that is pre-vista. Don't know why it does this...
-
-Method (_INI, 0, NotSerialized)  // _INI: Initialize
-{
-	If (LLess (OSYS, 0x07D6))
-	{
-		Store (0x64, BRTL)
-	}
-	... ...
-}
-
-Method (_BQC, 0, NotSerialized)  // _BQC: Brightness Query Current
-{
-	Return (BRTL)
-}
-
-Since it is not initialized in _INI(as we report to firmware we are
-'Windows 2012'), the video module was told by _BQC the initial brightness
-level is 0 and then set backlight level to 0 and leads to a black screen
-after boot up.
-
-> Signed-off-by: Kirill Tkhai <tkhai@yandex.ru>
-
-The patch looks good to me.
-Reviewed-by: Aaron Lu <aaron.lu@intel.com>
-
-Thanks,
-Aaron
-
-> ---
->  drivers/acpi/video.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 3270d3c..6456466 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -490,6 +490,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion m4 Notebook PC"),
->  		},
->  	},
-> +	{
-> +	 .callback = video_ignore_initial_backlight,
-> +	 .ident = "HP 250 G1",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "HP 250 G1 Notebook PC"),
-> +		},
-> +	},
->  	{}
->  };
->  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index e5f416c..bf8f93f 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -717,6 +717,8 @@ acpi_os_physical_table_override(struct acpi_table_header *existing_table,
+ 
+ 		table = acpi_os_map_memory(acpi_tables_addr + table_offset,
+ 					   ACPI_HEADER_SIZE);
++		if (table == NULL)
++			return AE_OK;
+ 
+ 		if (table_offset + table->length > all_tables_size) {
+ 			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
+-- 
+1.7.9.5
