@@ -1,55 +1,42 @@
-From: Levente Kurusa <levex@linux.com>
-Subject: [PATCH RESEND] ACPI: Add Toshiba NB100 to Vista _OSI blacklist
-Date: Tue, 29 Oct 2013 17:52:56 +0100
-Message-ID: <526FE7E8.80806@linux.com>
-Reply-To: levex@linux.com
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH RESEND] ACPI: Add Toshiba NB100 to Vista _OSI blacklist
+Date: Tue, 29 Oct 2013 23:44:50 +0100
+Message-ID: <2710175.xeuRHdVpyL@vostro.rjw.lan>
+References: <526FE7E8.80806@linux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:62830 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751243Ab3J2QxA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Oct 2013 12:53:00 -0400
+Received: from v094114.home.net.pl ([79.96.170.134]:65162 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752056Ab3J2Wcm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Oct 2013 18:32:42 -0400
+In-Reply-To: <526FE7E8.80806@linux.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Hancock <hancockrwd@gmail.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, ACPI List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: levex@linux.com
+Cc: Len Brown <lenb@kernel.org>, Robert Hancock <hancockrwd@gmail.com>, Aaron Lu <aaron.lu@intel.com>, ACPI List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-This patch adds Toshiba NB100 to the Vista _OSI blacklist.
+On Tuesday, October 29, 2013 05:52:56 PM Levente Kurusa wrote:
+> This patch adds Toshiba NB100 to the Vista _OSI blacklist.
+> 
+> The _OSI(Windows 2006) method is bugged on the netbook resulting in messed up
+> PCI IRQ Routing information. This was observed on a netbook,
+> whose SATA controller mode was set to Compatibility mode.
+> The driver would then register itself to IRQ#16, but the device
+> was in fact issuing interrupts to IRQ#20.
+> No side-effects were found during testing, everything is
+> working as it did before.
+> 
+> See thread:
+> http://marc.info/?t=137862230200001&r=1&w=2
+> http://www.spinics.net/lists/linux-ide/msg46173.html
+> 
+> 
+> Signed-off-by: Levente Kurusa <levex@linux.com>
+> Reviewed-by: Robert Hancock <hancockrwd@gmail.com>
 
-The _OSI(Windows 2006) method is bugged on the netbook resulting in messed up
-PCI IRQ Routing information. This was observed on a netbook,
-whose SATA controller mode was set to Compatibility mode.
-The driver would then register itself to IRQ#16, but the device
-was in fact issuing interrupts to IRQ#20.
-No side-effects were found during testing, everything is
-working as it did before.
+That should be in linux-pm/linux-next already, isn't it there?
 
-See thread:
-http://marc.info/?t=137862230200001&r=1&w=2
-http://www.spinics.net/lists/linux-ide/msg46173.html
+Rafael
 
-
-Signed-off-by: Levente Kurusa <levex@linux.com>
-Reviewed-by: Robert Hancock <hancockrwd@gmail.com>
----
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index cb96296..34d4d1a 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -267,6 +267,14 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "Satellite P305D"),
- 		},
- 	},
-+	{
-+	.callback = dmi_disable_osi_vista,
-+	.ident = "Toshiba NB100",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "NB100"),
-+		},
-+	},
-
- 	/*
- 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
