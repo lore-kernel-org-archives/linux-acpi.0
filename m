@@ -1,182 +1,119 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 14/20] ACPICA: Deploy ACPI_EXPORT_SYMBOL_INIT for main ACPICA initialization interfaces.
-Date: Tue, 29 Oct 2013 09:30:10 +0800
-Message-ID: <481a43b3fb2f83b2c0a4f64cab90b1b9308afd10.1383009405.git.lv.zheng@intel.com>
+Subject: [PATCH 15/20] ACPICA: Prevent possible build issues for use of ACPI_PRINTF_LIKE macro
+Date: Tue, 29 Oct 2013 09:30:16 +0800
+Message-ID: <57d26fce3fbeaf0f7a45e1e522dee2bd40447fba.1383009405.git.lv.zheng@intel.com>
 References: <cover.1383009405.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36920 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:1260 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755810Ab3J2BaT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Oct 2013 21:30:19 -0400
+	id S1755810Ab3J2BaZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Oct 2013 21:30:25 -0400
 In-Reply-To: <cover.1383009405.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
-This changes can reduce source code differences between Linux and ACPICA
-upstream to help improving the release automation.
+The following build error:
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   CC      arch/x86/kernel/setup.o
+ In file included from include/acpi/acpi.h:64:0,
+                  from include/linux/iscsi_ibft.h:24,
+                  from arch/x86/kernel/setup.c:43:
+ include/acpi/acpixf.h:543:1: error: expected ',' or ';' before '{' token
+ include/acpi/acpixf.h:540:1: warning: 'acpi_error' declared 'static' but never defined [-Wunused-function]
+ make[2]: *** [arch/x86/kernel/setup.o] Error 1
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+can be triggerred by the following stub function (if implemented):
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ static inline void ACPI_INTERNAL_VAR_XFACE
+ acpi_error(const char *module_name,
+ 	   u32 line_number, const char *format, ...) ACPI_PRINTF_LIKE(3)
+ {
+ }
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The side effect of applying this patch in Linux is:
-1. Some ACPICA initialization/termination APIs are no longer exported in
-   Linux, these include:
-    acpi_load_tables
-    acpi_initialize_subsystem
-    acpi_enable_subsystem
-    acpi_initialize_objects
-    acpi_terminate
-2. This patch does not affect the following APIs as they are currently not
-   marked with ACPI_EXPORT_SYMBOL in Linux:
-    acpi_reallocate_root_table
-    acpi_initialize_tables
-Such functions should not be exported as they are internal to ACPI
-subsystem in Linux, and will only be invoked inside of ACPI subsystem's
-initialization routines marked with __init and termination routines marked
-with __exit.  While on other OSPMs, such functions may still need to be
-exported.
-
-Thus this patch adds the configurability for ACPICA, so that it leaves
-OSPMs to determine if the __init/__exit marked functions should be exported
-or not.  Lv Zheng.
+This patch changes the position of ACPI_PRINTF_LIKE(x) to follow the
+style of __printf(x, x+1) used in Linux to prevent such issues from
+happening.  Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/tbxface.c  |    7 ++++++-
- drivers/acpi/acpica/tbxfload.c |    2 +-
- drivers/acpi/acpica/utxface.c  |    2 +-
- drivers/acpi/acpica/utxfinit.c |    9 ++++++---
- include/acpi/actypes.h         |   13 +++++++++++--
- 5 files changed, 25 insertions(+), 8 deletions(-)
+ include/acpi/acpixf.h |   29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-index bbaad5c..7e63090 100644
---- a/drivers/acpi/acpica/tbxface.c
-+++ b/drivers/acpi/acpica/tbxface.c
-@@ -148,6 +148,8 @@ acpi_initialize_tables(struct acpi_table_desc * initial_table_array,
- 	return_ACPI_STATUS(status);
- }
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index ddde61b..9759bd5 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -530,50 +530,53 @@ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+ /*
+  * Error/Warning output
+  */
++ACPI_PRINTF_LIKE(3)
+ void ACPI_INTERNAL_VAR_XFACE
+-acpi_error(const char *module_name,
+-	   u32 line_number, const char *format, ...) ACPI_PRINTF_LIKE(3);
++acpi_error(const char *module_name, u32 line_number, const char *format, ...);
  
-+ACPI_EXPORT_SYMBOL_INIT(acpi_initialize_tables)
-+
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_reallocate_root_table
-@@ -182,6 +184,8 @@ acpi_status acpi_reallocate_root_table(void)
- 	return_ACPI_STATUS(status);
- }
++ACPI_PRINTF_LIKE(4)
+ void ACPI_INTERNAL_VAR_XFACE
+ acpi_exception(const char *module_name,
+-	       u32 line_number,
+-	       acpi_status status, const char *format, ...) ACPI_PRINTF_LIKE(4);
++	       u32 line_number, acpi_status status, const char *format, ...);
  
-+ACPI_EXPORT_SYMBOL_INIT(acpi_reallocate_root_table)
-+
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_get_table_header
-@@ -357,6 +361,7 @@ acpi_get_table_with_size(char *signature,
++ACPI_PRINTF_LIKE(3)
+ void ACPI_INTERNAL_VAR_XFACE
+-acpi_warning(const char *module_name,
+-	     u32 line_number, const char *format, ...) ACPI_PRINTF_LIKE(3);
++acpi_warning(const char *module_name, u32 line_number, const char *format, ...);
  
- 	return (AE_NOT_FOUND);
- }
-+
- ACPI_EXPORT_SYMBOL(acpi_get_table_with_size)
++ACPI_PRINTF_LIKE(3)
+ void ACPI_INTERNAL_VAR_XFACE
+-acpi_info(const char *module_name,
+-	  u32 line_number, const char *format, ...) ACPI_PRINTF_LIKE(3);
++acpi_info(const char *module_name, u32 line_number, const char *format, ...);
  
- acpi_status
-@@ -368,6 +373,7 @@ acpi_get_table(char *signature,
- 	return acpi_get_table_with_size(signature,
- 		       instance, out_table, &tbl_size);
- }
-+
- ACPI_EXPORT_SYMBOL(acpi_get_table)
++ACPI_PRINTF_LIKE(3)
+ void ACPI_INTERNAL_VAR_XFACE
+ acpi_bios_error(const char *module_name,
+-		u32 line_number, const char *format, ...) ACPI_PRINTF_LIKE(3);
++		u32 line_number, const char *format, ...);
  
- /*******************************************************************************
-@@ -425,7 +431,6 @@ acpi_get_table_by_index(u32 table_index, struct acpi_table_header **table)
- 
- ACPI_EXPORT_SYMBOL(acpi_get_table_by_index)
- 
--
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_install_table_handler
-diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-index 5a22024..b1e1edd 100644
---- a/drivers/acpi/acpica/tbxfload.c
-+++ b/drivers/acpi/acpica/tbxfload.c
-@@ -83,7 +83,7 @@ acpi_status acpi_load_tables(void)
- 	return_ACPI_STATUS(status);
- }
- 
--ACPI_EXPORT_SYMBOL(acpi_load_tables)
-+ACPI_EXPORT_SYMBOL_INIT(acpi_load_tables)
- 
- /*******************************************************************************
-  *
-diff --git a/drivers/acpi/acpica/utxface.c b/drivers/acpi/acpica/utxface.c
-index 2178da8..891a37b 100644
---- a/drivers/acpi/acpica/utxface.c
-+++ b/drivers/acpi/acpica/utxface.c
-@@ -105,7 +105,7 @@ acpi_status acpi_terminate(void)
- 	return_ACPI_STATUS(status);
- }
- 
--ACPI_EXPORT_SYMBOL(acpi_terminate)
-+ACPI_EXPORT_SYMBOL_INIT(acpi_terminate)
- 
- #ifndef ACPI_ASL_COMPILER
- #ifdef ACPI_FUTURE_USAGE
-diff --git a/drivers/acpi/acpica/utxfinit.c b/drivers/acpi/acpica/utxfinit.c
-index dda18e6..ff6f4d1 100644
---- a/drivers/acpi/acpica/utxfinit.c
-+++ b/drivers/acpi/acpica/utxfinit.c
-@@ -125,7 +125,8 @@ acpi_status acpi_initialize_subsystem(void)
- 	ACPI_DEBUGGER_EXEC(status = acpi_db_initialize());
- 	return_ACPI_STATUS(status);
- }
--ACPI_EXPORT_SYMBOL(acpi_initialize_subsystem)
-+
-+ACPI_EXPORT_SYMBOL_INIT(acpi_initialize_subsystem)
- 
- /*******************************************************************************
-  *
-@@ -229,7 +230,8 @@ acpi_status acpi_enable_subsystem(u32 flags)
- 
- 	return_ACPI_STATUS(status);
- }
--ACPI_EXPORT_SYMBOL(acpi_enable_subsystem)
-+
-+ACPI_EXPORT_SYMBOL_INIT(acpi_enable_subsystem)
- 
- /*******************************************************************************
-  *
-@@ -315,4 +317,5 @@ acpi_status acpi_initialize_objects(u32 flags)
- 	acpi_gbl_startup_flags |= ACPI_INITIALIZED_OK;
- 	return_ACPI_STATUS(status);
- }
--ACPI_EXPORT_SYMBOL(acpi_initialize_objects)
-+
-+ACPI_EXPORT_SYMBOL_INIT(acpi_initialize_objects)
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 0bb23e6..8614bc1 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -299,9 +299,18 @@ typedef u32 acpi_physical_address;
- #endif
++ACPI_PRINTF_LIKE(3)
+ void ACPI_INTERNAL_VAR_XFACE
+ acpi_bios_warning(const char *module_name,
+-		  u32 line_number, const char *format, ...) ACPI_PRINTF_LIKE(3);
++		  u32 line_number, const char *format, ...);
  
  /*
-- * All ACPICA functions that are available to the rest of the kernel are
-- * tagged with this macro which can be defined as appropriate for the host.
-+ * All ACPICA external functions that are available to the rest of the kernel
-+ * are tagged with thes macros which can be defined as appropriate for the host.
-+ *
-+ * Notes:
-+ * ACPI_EXPORT_SYMBOL_INIT is used for initialization and termination
-+ * interfaces that may need special processing.
-+ * ACPI_EXPORT_SYMBOL is used for all other public external functions.
+  * Debug output
   */
-+#ifndef ACPI_EXPORT_SYMBOL_INIT
-+#define ACPI_EXPORT_SYMBOL_INIT(symbol)
-+#endif
-+
- #ifndef ACPI_EXPORT_SYMBOL
- #define ACPI_EXPORT_SYMBOL(symbol)
+ #ifdef ACPI_DEBUG_OUTPUT
+ 
++ACPI_PRINTF_LIKE(6)
+ void ACPI_INTERNAL_VAR_XFACE
+ acpi_debug_print(u32 requested_debug_level,
+ 		 u32 line_number,
+ 		 const char *function_name,
+ 		 const char *module_name,
+-		 u32 component_id, const char *format, ...) ACPI_PRINTF_LIKE(6);
++		 u32 component_id, const char *format, ...);
+ 
++ACPI_PRINTF_LIKE(6)
+ void ACPI_INTERNAL_VAR_XFACE
+ acpi_debug_print_raw(u32 requested_debug_level,
+ 		     u32 line_number,
+ 		     const char *function_name,
+ 		     const char *module_name,
+-		     u32 component_id,
+-		     const char *format, ...) ACPI_PRINTF_LIKE(6);
++		     u32 component_id, const char *format, ...);
  #endif
+ 
+ #endif				/* __ACXFACE_H__ */
 -- 
 1.7.10
 
