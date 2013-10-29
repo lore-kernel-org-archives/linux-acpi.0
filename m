@@ -1,58 +1,47 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Resend PATCH 5/5] IA64/PCI/ACPI: Rework PCI root bridge ACPI
- resource conversion
-Date: Mon, 28 Oct 2013 11:32:30 -0600
-Message-ID: <CAErSpo50_JQEhGOK6mcnaj36f6Fhgp3VcHKSmziC6JB_Ycu0Xg@mail.gmail.com>
-References: <1381493941-4650-1-git-send-email-tianyu.lan@intel.com>
- <1381493941-4650-6-git-send-email-tianyu.lan@intel.com> <20131016235541.GD17866@google.com>
- <525F7F0F.5010306@intel.com> <CAErSpo7P+n5c2uUoodT=LOjE3UH3LBcjifbj8reXzAeWydsoLA@mail.gmail.com>
- <52612D1C.4070701@intel.com> <20131023223904.GA18454@google.com> <526BF37E.8040801@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <526BF37E.8040801@intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Yoknis, Mike" <mike.yoknis@hp.com>, "Pearson, Greg" <greg.pearson@hp.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 01/20] ACPICA: Ensure that debug output is immediately disabled on termination.
+Date: Tue, 29 Oct 2013 09:28:49 +0800
+Message-ID: <c7f53383d5249baea33feac7db59623af0fe75ea.1383009405.git.lv.zheng@intel.com>
+References: <cover.1383009405.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:48166 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756441Ab3J2B27 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Oct 2013 21:28:59 -0400
+In-Reply-To: <cover.1383009405.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-On Sat, Oct 26, 2013 at 10:53 AM, Lan Tianyu <tianyu.lan@intel.com> wrote:
-> On 10/24/2013 06:39 AM, Bjorn Helgaas wrote:
->> On Fri, Oct 18, 2013 at 08:44:12PM +0800, Lan Tianyu wrote:
->>>
->>> On 10/18/2013 04:33 AM, Bjorn Helgaas wrote:
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
->>>> I wonder if it would make sense to make
->>>> acpi_dev_resource_address_space() ignore addr.translation_offset for
->>>> IO resources.  Or maybe ignore it if the _TTP (type translation) bit
->>>> is set?
->>>
->>>
->>> I wonder why current code doesn't check _TTP? The code in the
->>> add_io_space() seems to think _TTP is always set, right?
->>
->> I think it's an oversight, and you should fix it.  I suggest that you
->> ignore the _TRA value when _TTP is set.  Obviously this only applies
->> to I/O port resources, since _TTP is only defined in the I/O Resource
->> Flag (Table 6-185 in ACPI 5.0 spec).
->
-> _TTP is also defined in the Memory Resource flag, Please have a look at
-> Table 6-184 in the ACPI 5.0 Spec.
+Since the debugger is not shipped in the Linux kernel upstream, this
+change doesn't affect Linux kernel's behaviors.
 
-Yes, you're right.  That would be for a host bridge that converts I/O
-on the primary (upstream) side of the bridge to memory on the PCI
-side.  I've never seen such a bridge, and I can't really imagine why
-anybody would do that.  But I guess you should be able to safely
-ignore _TRA when _TTP is set in either a MEM or IO descriptor, because
-the same reasoning should apply to both.
+Set the global debug flag to "no output" when the debugger is shutdown.
+ACPICA BZ 1011. Tomasz Nowicki.
 
-> I am not sure how to deal with _TTP unsetting io resource? _TTP unsetting
-> mean the resource is IO on the primary side and also IO on the secondary
-> side.
+Buglink: https://bugs.acpica.org/show_bug.cgi?id=1011
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/aclocal.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-If _TTP is not set, I guess you would apply _TRA.  That's what you
-already do for MEM descriptors, and think you should just do the same
-for IO descriptors.  I would guess that having _TTP = 0 and _TRA != 0
-is rare for IO descriptors, but I suppose it could happen.
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index be9e30e..dafa0f6 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -1094,6 +1094,7 @@ struct acpi_integrity_info {
+ 	u32 objects;
+ };
+ 
++#define ACPI_DB_DISABLE_OUTPUT          0x00
+ #define ACPI_DB_REDIRECTABLE_OUTPUT     0x01
+ #define ACPI_DB_CONSOLE_OUTPUT          0x02
+ #define ACPI_DB_DUPLICATE_OUTPUT        0x03
+-- 
+1.7.10
 
-Bjorn
