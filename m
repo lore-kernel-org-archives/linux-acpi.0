@@ -1,42 +1,41 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH RESEND] ACPI: Add Toshiba NB100 to Vista _OSI blacklist
-Date: Tue, 29 Oct 2013 23:44:50 +0100
-Message-ID: <2710175.xeuRHdVpyL@vostro.rjw.lan>
-References: <526FE7E8.80806@linux.com>
+Subject: Re: [PATCH v5 0/4] Fix Win8 backlight issue
+Date: Wed, 30 Oct 2013 01:56:04 +0100
+Message-ID: <3079224.ztPUEhjm69@vostro.rjw.lan>
+References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
+	<2140073.U60XyxRqVZ@vostro.rjw.lan> <1383093613.20804.4.camel@x230>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:65162 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752056Ab3J2Wcm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Oct 2013 18:32:42 -0400
-In-Reply-To: <526FE7E8.80806@linux.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <1383093613.20804.4.camel@x230>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces@lists.freedesktop.org
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+To: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: "james@albanarts.com" <james@albanarts.com>, "bitbucket@online.de" <bitbucket@online.de>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "hmh@hmh.eng.br" <hmh@hmh.eng.br>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "kvalo@adurom.com" <kvalo@adurom.com>, "corsac@debian.org" <corsac@debian.org>, "Martin@lichtvoll.de" <Martin@lichtvoll.de>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "ben@bjencks.net" <ben@bjencks.net>, "jrg.otte@gmail.com" <jrg.otte@gmail.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "jplatte@naasa.net" <jplatte@naasa.net>, "seth.forshee@canonical.com" <seth.forshee@canonical.com>, "i.gnatenko.brain@gmail.com" <i.gnatenko.brain@gmail.com>, mik
 List-Id: linux-acpi@vger.kernel.org
-To: levex@linux.com
-Cc: Len Brown <lenb@kernel.org>, Robert Hancock <hancockrwd@gmail.com>, Aaron Lu <aaron.lu@intel.com>, ACPI List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Tuesday, October 29, 2013 05:52:56 PM Levente Kurusa wrote:
-> This patch adds Toshiba NB100 to the Vista _OSI blacklist.
+On Wednesday, October 30, 2013 12:40:13 AM Matthew Garrett wrote:
+> On Wed, 2013-10-16 at 01:33 +0200, Rafael J. Wysocki wrote:
 > 
-> The _OSI(Windows 2006) method is bugged on the netbook resulting in messed up
-> PCI IRQ Routing information. This was observed on a netbook,
-> whose SATA controller mode was set to Compatibility mode.
-> The driver would then register itself to IRQ#16, but the device
-> was in fact issuing interrupts to IRQ#20.
-> No side-effects were found during testing, everything is
-> working as it did before.
+> > Since the next step will be to introduce a list of systems that need
+> > video.use_native_backlight=1 *and* don't break in that configuration, I don't
+> > see much point adding another Kconfig option for the default.
 > 
-> See thread:
-> http://marc.info/?t=137862230200001&r=1&w=2
-> http://www.spinics.net/lists/linux-ide/msg46173.html
-> 
-> 
-> Signed-off-by: Levente Kurusa <levex@linux.com>
-> Reviewed-by: Robert Hancock <hancockrwd@gmail.com>
+> I'd still really prefer not to add such a list, because it almost
+> inevitably means that we'll never fix this problem properly.
 
-That should be in linux-pm/linux-next already, isn't it there?
+We have this list in blacklist.c anyway.
 
-Rafael
+Thanks!
 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
