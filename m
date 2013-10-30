@@ -1,54 +1,72 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / hotplug / PCI: Always rescan the slot for new devices
-Date: Wed, 30 Oct 2013 14:23:26 +0100
-Message-ID: <8539808.UlspWUkrvu@vostro.rjw.lan>
-References: <1383136836-15306-1-git-send-email-mika.westerberg@linux.intel.com> <1406112.LRdFoqkugQ@vostro.rjw.lan> <20131030130416.GF3521@intel.com>
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH] ACPI / hotplug / PCI: Always rescan the slot for new
+ devices
+Date: Wed, 30 Oct 2013 07:57:46 -0600
+Message-ID: <1383141466.4097.163.camel@ul30vt.home>
+References: <1383136836-15306-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20131030130416.GF3521@intel.com>
+In-Reply-To: <1383136836-15306-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-pci-owner@vger.kernel.org
 To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Alex Williamson <alex.williamson@redhat.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, October 30, 2013 03:04:16 PM Mika Westerberg wrote:
-> On Wed, Oct 30, 2013 at 02:01:40PM +0100, Rafael J. Wysocki wrote:
-> > On Wednesday, October 30, 2013 02:40:36 PM Mika Westerberg wrote:
-> > > Commit 2dc4128 (ACPI / hotplug / PCI: Avoid doing too much for spurious
-> > > notifies) changed the enable_slot() to check return value of pci_scan_slot()
-> > > and if it is zero return early from the function. It means that there were
-> > > no new devices in this particular slot.
-> > > 
-> > > However, if a device appeared deeper in the hierarchy the code now ignores
-> > > it causing things like Thunderbolt chaining fail to recognize new devices.
-> > > 
-> > > The problem with Alex Williamson's machine was solved with commit
-> > > a47d8c8 (ACPI / hotplug / PCI: Avoid parent bus rescans on spurious device
-> > > checks) and hence we should be able to restore the original functionality
-> > > that we always rescan on bus check notification.
-> > > 
-> > > On a device check notification we still check what acpiphp_rescan_slot()
-> > > returns and on zero bail out early.
-> > > 
-> > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > 
-> > So, this is a revert of commit a47d8c8, correct?
+On Wed, 2013-10-30 at 14:40 +0200, Mika Westerberg wrote:
+> Commit 2dc4128 (ACPI / hotplug / PCI: Avoid doing too much for spurious
+> notifies) changed the enable_slot() to check return value of pci_scan_slot()
+> and if it is zero return early from the function. It means that there were
+> no new devices in this particular slot.
 > 
-> Correct.
+> However, if a device appeared deeper in the hierarchy the code now ignores
+> it causing things like Thunderbolt chaining fail to recognize new devices.
 > 
-> Plain revert didn't work because the code has changed after that commit.
+> The problem with Alex Williamson's machine was solved with commit
+> a47d8c8 (ACPI / hotplug / PCI: Avoid parent bus rescans on spurious device
+> checks) and hence we should be able to restore the original functionality
+> that we always rescan on bus check notification.
+> 
+> On a device check notification we still check what acpiphp_rescan_slot()
+> returns and on zero bail out early.
+> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+> Alex,
+> 
+> Are you able to check if your machine still works and doesn't slow down
+> during boot after this patch is applied?
 
-Yeah.
+Looks ok to me, no new console output or boot delay.  Thanks,
 
-Well, it would be good to know if it affects the Alex' system, but anyway
-I added it to the 3.13 queue for now.  We may be able to get it into 3.12
-if Alex confirms that it works for him shortly, but if that doesn't happen
-we can just ask stable to pick it up later.
+Alex
 
-Thanks!
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+>  drivers/pci/hotplug/acpiphp_glue.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
+> 
+> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+> index be12fbf..1ea7523 100644
+> --- a/drivers/pci/hotplug/acpiphp_glue.c
+> +++ b/drivers/pci/hotplug/acpiphp_glue.c
+> @@ -552,9 +552,8 @@ static void __ref enable_slot(struct acpiphp_slot *slot)
+>  	struct acpiphp_func *func;
+>  	int max, pass;
+>  	LIST_HEAD(add_list);
+> -	int nr_found;
+>  
+> -	nr_found = acpiphp_rescan_slot(slot);
+> +	acpiphp_rescan_slot(slot);
+>  	max = acpiphp_max_busnr(bus);
+>  	for (pass = 0; pass < 2; pass++) {
+>  		list_for_each_entry(dev, &bus->devices, bus_list) {
+> @@ -574,9 +573,6 @@ static void __ref enable_slot(struct acpiphp_slot *slot)
+>  		}
+>  	}
+>  	__pci_bus_assign_resources(bus, &add_list, NULL);
+> -	/* Nothing more to do here if there are no new devices on this bus. */
+> -	if (!nr_found && (slot->flags & SLOT_ENABLED))
+> -		return;
+>  
+>  	acpiphp_sanitize_bus(bus);
+>  	acpiphp_set_hpp_values(bus);
