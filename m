@@ -1,37 +1,57 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: Re: [PATCH v5 0/4] Fix Win8 backlight issue
-Date: Wed, 30 Oct 2013 00:40:13 +0000
-Message-ID: <1383093613.20804.4.camel@x230>
-References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
-	<2140073.U60XyxRqVZ@vostro.rjw.lan>
+From: Levente Kurusa <levex@linux.com>
+Subject: Re: [PATCH RESEND] ACPI: Add Toshiba NB100 to Vista _OSI blacklist
+Date: Wed, 30 Oct 2013 07:11:59 +0100
+Message-ID: <5270A32F.5030909@linux.com>
+References: <526FE7E8.80806@linux.com> <2710175.xeuRHdVpyL@vostro.rjw.lan>
+Reply-To: levex@linux.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <2140073.U60XyxRqVZ@vostro.rjw.lan>
-Content-Language: en-US
-Content-ID: <B62BC12587A7764CAABE97D06955885E@namprd05.prod.outlook.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces@lists.freedesktop.org
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: "james@albanarts.com" <james@albanarts.com>, "bitbucket@online.de" <bitbucket@online.de>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "hmh@hmh.eng.br" <hmh@hmh.eng.br>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "kvalo@adurom.com" <kvalo@adurom.com>, "corsac@debian.org" <corsac@debian.org>, "Martin@lichtvoll.de" <Martin@lichtvoll.de>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "ben@bjencks.net" <ben@bjencks.net>, "jrg.otte@gmail.com" <jrg.otte@gmail.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "jplatte@naasa.net" <jplatte@naasa.net>, "seth.forshee@canonical.com" <seth.forshee@canonical.com>, "i.gnatenko.brain@gmail.com" <i.gnatenko.brain@gmail.com>, mik
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:56221 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751552Ab3J3GMD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Oct 2013 02:12:03 -0400
+In-Reply-To: <2710175.xeuRHdVpyL@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, Robert Hancock <hancockrwd@gmail.com>, Aaron Lu <aaron.lu@intel.com>, ACPI List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Wed, 2013-10-16 at 01:33 +0200, Rafael J. Wysocki wrote:
+2013-10-29 23:44 keltez=C3=A9ssel, Rafael J. Wysocki =C3=ADrta:
+> On Tuesday, October 29, 2013 05:52:56 PM Levente Kurusa wrote:
+>> This patch adds Toshiba NB100 to the Vista _OSI blacklist.
+>>
+>> The _OSI(Windows 2006) method is bugged on the netbook resulting in =
+messed up
+>> PCI IRQ Routing information. This was observed on a netbook,
+>> whose SATA controller mode was set to Compatibility mode.
+>> The driver would then register itself to IRQ#16, but the device
+>> was in fact issuing interrupts to IRQ#20.
+>> No side-effects were found during testing, everything is
+>> working as it did before.
+>>
+>> See thread:
+>> http://marc.info/?t=3D137862230200001&r=3D1&w=3D2
+>> http://www.spinics.net/lists/linux-ide/msg46173.html
+>>
+>>
+>> Signed-off-by: Levente Kurusa <levex@linux.com>
+>> Reviewed-by: Robert Hancock <hancockrwd@gmail.com>
+>=20
+> That should be in linux-pm/linux-next already, isn't it there?
 
-> Since the next step will be to introduce a list of systems that need
-> video.use_native_backlight=1 *and* don't break in that configuration, I don't
-> see much point adding another Kconfig option for the default.
+Hm, I didn't receive any reply back on the other mail, so I thought it =
+got
+lost somewhere. I see now that it has been applied, thanks and sorry fo=
+r
+the inconvenience.
 
-I'd still really prefer not to add such a list, because it almost
-inevitably means that we'll never fix this problem properly.
-
--- 
-Matthew Garrett <matthew.garrett@nebula.com>
+--=20
+Regards,
+Levente Kurusa
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
