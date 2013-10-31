@@ -1,54 +1,52 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 09/15] ACPICA: Cleanup useless memset invocations.
-Date: Thu, 31 Oct 2013 09:30:48 +0800
-Message-ID: <a05540c4178cf34d138d17c60a29eb7f1c983fca.1383182393.git.lv.zheng@intel.com>
+Subject: [PATCH 10/15] ACPICA: Remove dead AOPOBJ_INVALID check.
+Date: Thu, 31 Oct 2013 09:30:53 +0800
+Message-ID: <2ded4de275d723862117abb842a15030b9b2d700.1383182393.git.lv.zheng@intel.com>
 References: <cover.1383009405.git.lv.zheng@intel.com> <cover.1383182392.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:40467 "EHLO mga11.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:39786 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751742Ab3JaBbW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Oct 2013 21:31:22 -0400
+	id S1750727Ab3JaBb3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Oct 2013 21:31:29 -0400
 In-Reply-To: <cover.1383182392.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
-This patch decreases 22 lines of divergences.
+This patch decreases 16 lines of divergences.
 
-This patch cleans up some memset() invocations where kmem_cache_zalloc()
-is just invoked.
+The following reversion commit restored a piece of dead code related to an
+obselete AOPOBJ_INVALID flag.
+   Commit: 7cb7f45c7feef43c8f71f5cfedfc0b19be2142f7
+   Subject: Revert "ACPICA: Remove obsolete acpi_os_validate_address
+            interface"
+
+This patch fixes wrong release commit to reduce the source code differences
+between Linux and ACPICA upstream.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/utobject.c |    1 -
- drivers/acpi/acpica/utstate.c  |    1 -
- 2 files changed, 2 deletions(-)
+ drivers/acpi/acpica/exfldio.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/drivers/acpi/acpica/utobject.c b/drivers/acpi/acpica/utobject.c
-index d2a7b61..13e0450 100644
---- a/drivers/acpi/acpica/utobject.c
-+++ b/drivers/acpi/acpica/utobject.c
-@@ -396,7 +396,6 @@ void *acpi_ut_allocate_object_desc_dbg(const char *module_name,
- 
- 	/* Mark the descriptor type */
- 
--	memset(object, 0, sizeof(union acpi_operand_object));
- 	ACPI_SET_DESCRIPTOR_TYPE(object, ACPI_DESC_TYPE_OPERAND);
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS, "%p Size %X\n",
-diff --git a/drivers/acpi/acpica/utstate.c b/drivers/acpi/acpica/utstate.c
-index a6b729d..03c4c2f 100644
---- a/drivers/acpi/acpica/utstate.c
-+++ b/drivers/acpi/acpica/utstate.c
-@@ -161,7 +161,6 @@ union acpi_generic_state *acpi_ut_create_generic_state(void)
- 	if (state) {
- 
- 		/* Initialize */
--		memset(state, 0, sizeof(union acpi_generic_state));
- 		state->common.descriptor_type = ACPI_DESC_TYPE_STATE;
+diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
+index 8ab01b6..49fb742 100644
+--- a/drivers/acpi/acpica/exfldio.c
++++ b/drivers/acpi/acpica/exfldio.c
+@@ -123,12 +123,6 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
+ 		}
  	}
  
+-	/* Exit if Address/Length have been disallowed by the host OS */
+-
+-	if (rgn_desc->common.flags & AOPOBJ_INVALID) {
+-		return_ACPI_STATUS(AE_AML_ILLEGAL_ADDRESS);
+-	}
+-
+ 	/*
+ 	 * Exit now for SMBus, GSBus or IPMI address space, it has a non-linear
+ 	 * address space and the request cannot be directly validated
 -- 
 1.7.10
 
