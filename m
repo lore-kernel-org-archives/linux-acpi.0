@@ -1,134 +1,182 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 14/15] ACPICA: Cleanup asmlinkage for ACPICA APIs.
-Date: Thu, 31 Oct 2013 09:31:18 +0800
-Message-ID: <2e4e092289faff69952c85cdf5f650f1d12fa07e.1383182393.git.lv.zheng@intel.com>
-References: <cover.1383009405.git.lv.zheng@intel.com> <cover.1383182392.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:24423 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750732Ab3JaBcH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Oct 2013 21:32:07 -0400
-In-Reply-To: <cover.1383182392.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [Resend PATCH 5/5] IA64/PCI/ACPI: Rework PCI root bridge ACPI
+ resource conversion
+Date: Thu, 31 Oct 2013 10:26:03 +0800
+Message-ID: <5271BFBB.8040307@intel.com>
+References: <1381493941-4650-1-git-send-email-tianyu.lan@intel.com> <1381493941-4650-6-git-send-email-tianyu.lan@intel.com> <20131016235541.GD17866@google.com> <525F7F0F.5010306@intel.com> <CAErSpo7P+n5c2uUoodT=LOjE3UH3LBcjifbj8reXzAeWydsoLA@mail.gmail.com> <52612D1C.4070701@intel.com> <20131023223904.GA18454@google.com> <526BF37E.8040801@intel.com> <CAErSpo50_JQEhGOK6mcnaj36f6Fhgp3VcHKSmziC6JB_Ycu0Xg@mail.gmail.com> <5270C47C.5040206@intel.com> <CAErSpo5ye_Y=b7476cFuDi7-hW4bJzm+D99cTek+wNkWefs4DQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo5ye_Y=b7476cFuDi7-hW4bJzm+D99cTek+wNkWefs4DQ@mail.gmail.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Yoknis, Mike" <mike.yoknis@hp.com>, "Pearson, Greg" <greg.pearson@hp.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
-In order to ensure an asmlinkage function is called by assembly code rather
-than calling an ACPICA API that is likely be converted to a stub function
-when ACPI_REDUCED_HARDWARE is enabled, this patch cleans up asmlinkage
-invocations by introducing an asmlinkage wrapper.
+On 2013=E5=B9=B410=E6=9C=8831=E6=97=A5 00:23, Bjorn Helgaas wrote:
+> On Wed, Oct 30, 2013 at 2:34 AM, Lan Tianyu <tianyu.lan@intel.com> wr=
+ote:
+>> On 2013=E5=B9=B410=E6=9C=8829=E6=97=A5 01:32, Bjorn Helgaas wrote:
+>>>
+>>> On Sat, Oct 26, 2013 at 10:53 AM, Lan Tianyu <tianyu.lan@intel.com>=
+ wrote:
+>>>>
+>>>> On 10/24/2013 06:39 AM, Bjorn Helgaas wrote:
+>>>>>
+>>>>> On Fri, Oct 18, 2013 at 08:44:12PM +0800, Lan Tianyu wrote:
+>>>>>>
+>>>>>>
+>>>>>> On 10/18/2013 04:33 AM, Bjorn Helgaas wrote:
+>>>
+>>>
+>>>>>>> I wonder if it would make sense to make
+>>>>>>> acpi_dev_resource_address_space() ignore addr.translation_offse=
+t for
+>>>>>>> IO resources.  Or maybe ignore it if the _TTP (type translation=
+) bit
+>>>>>>> is set?
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> I wonder why current code doesn't check _TTP? The code in the
+>>>>>> add_io_space() seems to think _TTP is always set, right?
+>>>>>
+>>>>>
+>>>>> I think it's an oversight, and you should fix it.  I suggest that=
+ you
+>>>>> ignore the _TRA value when _TTP is set.  Obviously this only appl=
+ies
+>>>>> to I/O port resources, since _TTP is only defined in the I/O Reso=
+urce
+>>>>> Flag (Table 6-185 in ACPI 5.0 spec).
+>>>>
+>>>>
+>>>> _TTP is also defined in the Memory Resource flag, Please have a lo=
+ok at
+>>>> Table 6-184 in the ACPI 5.0 Spec.
+>>>
+>>>
+>>> Yes, you're right.  That would be for a host bridge that converts I=
+/O
+>>> on the primary (upstream) side of the bridge to memory on the PCI
+>>> side.  I've never seen such a bridge, and I can't really imagine wh=
+y
+>>> anybody would do that.  But I guess you should be able to safely
+>>> ignore _TRA when _TTP is set in either a MEM or IO descriptor, beca=
+use
+>>> the same reasoning should apply to both.
+>>>
+>>>> I am not sure how to deal with _TTP unsetting io resource? _TTP un=
+setting
+>>>> mean the resource is IO on the primary side and also IO on the sec=
+ondary
+>>>> side.
+>>>
+>>>
+>>> If _TTP is not set, I guess you would apply _TRA.  That's what you
+>>> already do for MEM descriptors, and think you should just do the sa=
+me
+>>> for IO descriptors.  I would guess that having _TTP =3D 0 and _TRA =
+!=3D 0
+>>> is rare for IO descriptors, but I suppose it could happen.
+>>
+>>
+>> Yes, my concern is for the IO resource case of _TTP=3D0 and _TRA !=3D=
+0. The
+>> only reason for this case I think of is that the IO resource offsets=
+ on
+>> the prime bus and second bus are different. In this case, we still n=
+eed
+>> to pass _TRA to new_space() and the finial resource->start still sho=
+uld be
+>> acpi_resource->min + offset returned by add_io_space(), right?
+>=20
+> No, I don't think so.  If the "phys_base" argument to new_space() is
+> non-zero, it is the base of an MMIO region that needs to be
+> ioremapped.  This is handling the _TTP=3D1 case, where the MMIO regio=
+n
+> is translated by the bridge into an IO region on PCI.
+>=20
+> If _TTP=3D0, the region is IO on both the upstream and downstream sid=
+es
+> of the host bridge, and we don't want to ioremap a new MMIO region fo=
+r
+> it.  It might be part of the "legacy I/O port space," but that's
+> already covered elsewhere.
+>=20
+> I don't think we need to add special handling for the _TTP=3D0 and _T=
+RA
+> !=3D 0 case because I don't think it exists in the field.  If and whe=
+n
+> it *does* exist, we'll know what to do.  In the meantime, it should
+> look just like the MEM path.
 
-As arch/x86/kernel/acpi/wakeup_xx.S is only compiled when CONFIG_ACPI=y and
-there is no users for ACPI_HARDWARE_REDUCED, currently this is in fact not
-an issue but a cleanup commit to reduce source code differences between
-Linux and ACPICA.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- arch/x86/kernel/acpi/sleep.c     |   10 ++++++++++
- arch/x86/kernel/acpi/sleep.h     |    2 ++
- arch/x86/kernel/acpi/wakeup_32.S |    2 +-
- arch/x86/kernel/acpi/wakeup_64.S |    2 +-
- drivers/acpi/acpica/hwxfsleep.c  |    4 ++--
- include/acpi/acpixf.h            |    4 ++--
- 6 files changed, 18 insertions(+), 6 deletions(-)
+OK. I get it. acpi_dev_resource_address_space() will only apply _TRA to
+resource ->start and ->end for both mem and io resource when _TTP=3D0. =
+In
+the add_window(), the offset returned by add_io_space() will be added
+directly to ->start and ->end.
 
-diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-index 3312010..f5b142e 100644
---- a/arch/x86/kernel/acpi/sleep.c
-+++ b/arch/x86/kernel/acpi/sleep.c
-@@ -26,6 +26,16 @@ static char temp_stack[4096];
- #endif
- 
- /**
-+ * x86_acpi_enter_sleep_state - enter sleep state
-+ *
-+ * Wrapper of acpi_enter_sleep_state() to be called by assmebly.
-+ */
-+acpi_status asmlinkage x86_acpi_enter_sleep_state(u8 state)
-+{
-+	return acpi_enter_sleep_state(state);
-+}
-+
-+/**
-  * x86_acpi_suspend_lowlevel - save kernel state
-  *
-  * Create an identity mapped page table and copy the wakeup routine to
-diff --git a/arch/x86/kernel/acpi/sleep.h b/arch/x86/kernel/acpi/sleep.h
-index c9c2c98..65c7b60 100644
---- a/arch/x86/kernel/acpi/sleep.h
-+++ b/arch/x86/kernel/acpi/sleep.h
-@@ -17,3 +17,5 @@ extern void wakeup_long64(void);
- extern void do_suspend_lowlevel(void);
- 
- extern int x86_acpi_suspend_lowlevel(void);
-+
-+acpi_status asmlinkage x86_acpi_enter_sleep_state(u8 state);
-diff --git a/arch/x86/kernel/acpi/wakeup_32.S b/arch/x86/kernel/acpi/wakeup_32.S
-index d1daa66..665c6b7 100644
---- a/arch/x86/kernel/acpi/wakeup_32.S
-+++ b/arch/x86/kernel/acpi/wakeup_32.S
-@@ -73,7 +73,7 @@ ENTRY(do_suspend_lowlevel)
- 	call	save_processor_state
- 	call	save_registers
- 	pushl	$3
--	call	acpi_enter_sleep_state
-+	call	x86_acpi_enter_sleep_state
- 	addl	$4, %esp
- 
- #	In case of S3 failure, we'll emerge here.  Jump
-diff --git a/arch/x86/kernel/acpi/wakeup_64.S b/arch/x86/kernel/acpi/wakeup_64.S
-index 8ea5164..ae693b5 100644
---- a/arch/x86/kernel/acpi/wakeup_64.S
-+++ b/arch/x86/kernel/acpi/wakeup_64.S
-@@ -73,7 +73,7 @@ ENTRY(do_suspend_lowlevel)
- 	addq	$8, %rsp
- 	movl	$3, %edi
- 	xorl	%eax, %eax
--	call	acpi_enter_sleep_state
-+	call	x86_acpi_enter_sleep_state
- 	/* in case something went wrong, restore the machine status and go on */
- 	jmp	resume_point
- 
-diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
-index 4895fca..15dddc1 100644
---- a/drivers/acpi/acpica/hwxfsleep.c
-+++ b/drivers/acpi/acpica/hwxfsleep.c
-@@ -167,7 +167,7 @@ ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector64)
-  *              THIS FUNCTION MUST BE CALLED WITH INTERRUPTS DISABLED
-  *
-  ******************************************************************************/
--acpi_status asmlinkage acpi_enter_sleep_state_s4bios(void)
-+acpi_status acpi_enter_sleep_state_s4bios(void)
- {
- 	u32 in_value;
- 	acpi_status status;
-@@ -361,7 +361,7 @@ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state_prep)
-  *              THIS FUNCTION MUST BE CALLED WITH INTERRUPTS DISABLED
-  *
-  ******************************************************************************/
--acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
-+acpi_status acpi_enter_sleep_state(u8 sleep_state)
- {
- 	acpi_status status;
- 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 7def8ca..00725f4 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -510,9 +510,9 @@ acpi_get_sleep_type_data(u8 sleep_state, u8 *slp_typ_a, u8 *slp_typ_b);
- 
- acpi_status acpi_enter_sleep_state_prep(u8 sleep_state);
- 
--acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state);
-+acpi_status acpi_enter_sleep_state(u8 sleep_state);
- 
--ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status asmlinkage acpi_enter_sleep_state_s4bios(void))
-+ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status acpi_enter_sleep_state_s4bios(void))
- 
- acpi_status acpi_leave_sleep_state_prep(u8 sleep_state);
- 
--- 
-1.7.10
+add_window() {
+	...
+	if (resource->flags & IORESOURCE_MEM) {
+		root =3D &iomem_resource;
+		offset =3D addr.translation_offset;
+	} else if (resource->flags & IORESOURCE_IO) {
+		root =3D &ioport_resource;
 
+		offset =3D add_io_space(info, &addr);
+		if (offset =3D=3D ~0)
+			return AE_OK;
+
+		resource->start +=3D offset;
+		resource->end +=3D offset;
+	} else
+		return AE_OK;
+
+	...
+}
+
+>=20
+>> If yes, I think _TRA can't be applied to IO resource in the
+>> acpi_dev_resource_address_space() regardless of the value of _TTP.
+>>
+>> BTW, Translation Sparse(_TRS) is only meaningful if _TTP is set.(Tab=
+le
+>> 6-185). The add_io_space() doesn't check _TTP when set sparse. So th=
+is
+>> should be corrected?
+>=20
+> Sure, I'm OK with this.  It's possible we could trip over a BIOS bug
+> where _TRS=3D1 but _TTP=3D0, but I think the risk is low because only
+> large ia64 boxes would use this, and there aren't very many of those.
+>=20
+
+Ok. I will add a check for _TTP before setting sparse. Something likes =
+this.
+
+add_io_space()
+{
+=2E..
+if (addr->info.io.translation =3D=3D ACPI_TYPE_TRANSLATION &&
+    addr->info.io.translation_type =3D=3D ACPI_SPARSE_TRANSLATION)
+	sparse =3D 1;
+=2E..
+}
+
+
+
+> Bjorn
+>=20
+
+
+--=20
+Best regards
+Tianyu Lan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-ia64" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
