@@ -1,126 +1,124 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Resend PATCH 5/5] IA64/PCI/ACPI: Rework PCI root bridge ACPI
- resource conversion
-Date: Wed, 30 Oct 2013 10:23:26 -0600
-Message-ID: <CAErSpo5ye_Y=b7476cFuDi7-hW4bJzm+D99cTek+wNkWefs4DQ@mail.gmail.com>
-References: <1381493941-4650-1-git-send-email-tianyu.lan@intel.com>
- <1381493941-4650-6-git-send-email-tianyu.lan@intel.com> <20131016235541.GD17866@google.com>
- <525F7F0F.5010306@intel.com> <CAErSpo7P+n5c2uUoodT=LOjE3UH3LBcjifbj8reXzAeWydsoLA@mail.gmail.com>
- <52612D1C.4070701@intel.com> <20131023223904.GA18454@google.com>
- <526BF37E.8040801@intel.com> <CAErSpo50_JQEhGOK6mcnaj36f6Fhgp3VcHKSmziC6JB_Ycu0Xg@mail.gmail.com>
- <5270C47C.5040206@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5270C47C.5040206@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Yoknis, Mike" <mike.yoknis@hp.com>, "Pearson, Greg" <greg.pearson@hp.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 00/15] ACPICA: Update ACPICA files to reduce source code differences between Linux and ACPICA.
+Date: Thu, 31 Oct 2013 09:29:23 +0800
+Message-ID: <cover.1383182392.git.lv.zheng@intel.com>
+References: <cover.1383009405.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:53917 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750715Ab3JaBaR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Oct 2013 21:30:17 -0400
+In-Reply-To: <cover.1383009405.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
-On Wed, Oct 30, 2013 at 2:34 AM, Lan Tianyu <tianyu.lan@intel.com> wrot=
-e:
-> On 2013=E5=B9=B410=E6=9C=8829=E6=97=A5 01:32, Bjorn Helgaas wrote:
->>
->> On Sat, Oct 26, 2013 at 10:53 AM, Lan Tianyu <tianyu.lan@intel.com> =
-wrote:
->>>
->>> On 10/24/2013 06:39 AM, Bjorn Helgaas wrote:
->>>>
->>>> On Fri, Oct 18, 2013 at 08:44:12PM +0800, Lan Tianyu wrote:
->>>>>
->>>>>
->>>>> On 10/18/2013 04:33 AM, Bjorn Helgaas wrote:
->>
->>
->>>>>> I wonder if it would make sense to make
->>>>>> acpi_dev_resource_address_space() ignore addr.translation_offset=
- for
->>>>>> IO resources.  Or maybe ignore it if the _TTP (type translation)=
- bit
->>>>>> is set?
->>>>>
->>>>>
->>>>>
->>>>> I wonder why current code doesn't check _TTP? The code in the
->>>>> add_io_space() seems to think _TTP is always set, right?
->>>>
->>>>
->>>> I think it's an oversight, and you should fix it.  I suggest that =
-you
->>>> ignore the _TRA value when _TTP is set.  Obviously this only appli=
-es
->>>> to I/O port resources, since _TTP is only defined in the I/O Resou=
-rce
->>>> Flag (Table 6-185 in ACPI 5.0 spec).
->>>
->>>
->>> _TTP is also defined in the Memory Resource flag, Please have a loo=
-k at
->>> Table 6-184 in the ACPI 5.0 Spec.
->>
->>
->> Yes, you're right.  That would be for a host bridge that converts I/=
-O
->> on the primary (upstream) side of the bridge to memory on the PCI
->> side.  I've never seen such a bridge, and I can't really imagine why
->> anybody would do that.  But I guess you should be able to safely
->> ignore _TRA when _TTP is set in either a MEM or IO descriptor, becau=
-se
->> the same reasoning should apply to both.
->>
->>> I am not sure how to deal with _TTP unsetting io resource? _TTP uns=
-etting
->>> mean the resource is IO on the primary side and also IO on the seco=
-ndary
->>> side.
->>
->>
->> If _TTP is not set, I guess you would apply _TRA.  That's what you
->> already do for MEM descriptors, and think you should just do the sam=
-e
->> for IO descriptors.  I would guess that having _TTP =3D 0 and _TRA !=
-=3D 0
->> is rare for IO descriptors, but I suppose it could happen.
->
->
-> Yes, my concern is for the IO resource case of _TTP=3D0 and _TRA !=3D=
-0. The
-> only reason for this case I think of is that the IO resource offsets =
-on
-> the prime bus and second bus are different. In this case, we still ne=
-ed
-> to pass _TRA to new_space() and the finial resource->start still shou=
-ld be
-> acpi_resource->min + offset returned by add_io_space(), right?
+This series is based on ACPICA 20130927 release.
 
-No, I don't think so.  If the "phys_base" argument to new_space() is
-non-zero, it is the base of an MMIO region that needs to be
-ioremapped.  This is handling the _TTP=3D1 case, where the MMIO region
-is translated by the bridge into an IO region on PCI.
+This series is to reduce the source code differences between Linux and
+ACPICA so that the release process can be easier with less human
+intervention and the known bugs can also be prevented.
 
-If _TTP=3D0, the region is IO on both the upstream and downstream sides
-of the host bridge, and we don't want to ioremap a new MMIO region for
-it.  It might be part of the "legacy I/O port space," but that's
-already covered elsewhere.
+This series includes only Linux part patches.
+Please also find another companion ACPICA patchset for references.
 
-I don't think we need to add special handling for the _TTP=3D0 and _TRA
-!=3D 0 case because I don't think it exists in the field.  If and when
-it *does* exist, we'll know what to do.  In the meantime, it should
-look just like the MEM path.
+The source code differences between Linux and ACPICA can be summarized as
+follows:
+1. 1516 Lines (53.2 Kbytes) before applying the patch set;
+2. 1001 Lines (35.3 Kbytes) after applying the patch set.
 
-> If yes, I think _TRA can't be applied to IO resource in the
-> acpi_dev_resource_address_space() regardless of the value of _TTP.
->
-> BTW, Translation Sparse(_TRS) is only meaningful if _TTP is set.(Tabl=
-e
-> 6-185). The add_io_space() doesn't check _TTP when set sparse. So thi=
-s
-> should be corrected?
+The rest of the divergences are now accountable:
+1.  (Internal) ACPI_FUTURE_USAGE
+2.  (Internal) Linux compiler.h related
+3.  (Internal) Bug report message
+4.  AcpiSrc bug
+5.  Some events related divergences
+6.  FADT 64bit/32bit favor
+7.  Boolean -> bool conversion
+8.  GPE masking mechanism
+9.  D3_cold implicity
+10. XSDT - introduced by table override and sgi-hotplug
+11. Xen sleep register hook
+12. Slow hardware support
+Where:
+Internal: divergences are committed and would not be fixed.
 
-Sure, I'm OK with this.  It's possible we could trip over a BIOS bug
-where _TRS=3D1 but _TTP=3D0, but I think the risk is low because only
-large ia64 boxes would use this, and there aren't very many of those.
+A QA process is executed to compare resulting binary files. Those patches
+which were not expected to change any text section indeed, changed no text.
+Sometimes line numbers changed due to line deletions and insertions, but
+that is expected.
 
-Bjorn
+The patch set has passed a build/boot test on the following machines:
+Dell Inspiron Mini 1010 (i386)
+HP Compaq 8200 Elite SFF PC (x86-64)
+With the following kernel configuration items enabled:
+  CONFIG_ACPI_AC
+  CONFIG_ACPI_BATTERY
+  CONFIG_ACPI_NUMA
+  CONFIG_ACPI_PROCESSOR
+  CONFIG_ACPI_THERMAL
+  CONFIG_ACPI_VIDEO
+  CONFIG_CPU_FREQ
+  CONFIG_I2C_SCMI
+  CONFIG_SENSORS_ACPI_POWER
+  CONFIG_PANASONIC_LAPTOP
+  CONFIG_XO15_EBOOK
+  CONFIG_DMAR_TABLE
+  CONFIG_INTEL_IOMMU
+  CONFIG_IRQ_REMAP
+
+Please review.
+
+Lv Zheng (15):
+  ACPICA: Update default space handlers.
+  ACPICA: Update ANOBJ_IS_EXTERNAL flag.
+  ACPICA: Update namespace dump code.
+  ACPICA: Update RSDP table definitions.
+  ACPICA: Update DMAR table definitions.
+  ACPICA: Add new statistics interface.
+  ACPICA: Fix wrong object length returned by
+    acpi_ut_get_simple_object_size().
+  ACPICA: Fix an ACPI_ALLOCATE_ZEROED() reversal.
+  ACPICA: Cleanup useless memset invocations.
+  ACPICA: Remove dead AOPOBJ_INVALID check.
+  ACPICA: Fix cached object deletion code.
+  ACPICA: Update compilation environment settings.
+  ACPICA: Update acpidump related header file changes.
+  ACPICA: Cleanup asmlinkage for ACPICA APIs.
+  ACPICA: Add __init for ACPICA initializers/finalizers.
+
+ arch/x86/kernel/acpi/sleep.c        |   10 +++++++++
+ arch/x86/kernel/acpi/sleep.h        |    2 ++
+ arch/x86/kernel/acpi/wakeup_32.S    |    2 +-
+ arch/x86/kernel/acpi/wakeup_64.S    |    2 +-
+ drivers/acpi/acpica/acglobal.h      |    2 ++
+ drivers/acpi/acpica/dsmethod.c      |    1 +
+ drivers/acpi/acpica/evsci.c         |    1 +
+ drivers/acpi/acpica/exfldio.c       |    6 ------
+ drivers/acpi/acpica/exregion.c      |    1 +
+ drivers/acpi/acpica/hwxfsleep.c     |    4 ++--
+ drivers/acpi/acpica/nsdumpdv.c      |    7 ++++--
+ drivers/acpi/acpica/nssearch.c      |    3 ++-
+ drivers/acpi/acpica/tbutils.c       |    3 +--
+ drivers/acpi/acpica/tbxface.c       |    2 +-
+ drivers/acpi/acpica/tbxfload.c      |    2 +-
+ drivers/acpi/acpica/tbxfroot.c      |    2 +-
+ drivers/acpi/acpica/utalloc.c       |    4 ++--
+ drivers/acpi/acpica/utglobal.c      |   12 +++++++++++
+ drivers/acpi/acpica/utobject.c      |   26 ++++++++++++-----------
+ drivers/acpi/acpica/utstate.c       |    1 -
+ drivers/acpi/acpica/utxface.c       |   40 ++++++++++++++++++++++++++++++++++-
+ drivers/acpi/acpica/utxfinit.c      |    6 +++---
+ drivers/iommu/dmar.c                |    4 ++--
+ drivers/iommu/intel_irq_remapping.c |    8 +++----
+ include/acpi/acpixf.h               |   20 ++++++++++--------
+ include/acpi/actbl.h                |   19 ++++++++++++++++-
+ include/acpi/actbl2.h               |    4 ++--
+ include/acpi/actypes.h              |   18 ++++++++++++++++
+ include/acpi/platform/acenv.h       |    8 +++++--
+ 29 files changed, 163 insertions(+), 57 deletions(-)
+
+-- 
+1.7.10
+
