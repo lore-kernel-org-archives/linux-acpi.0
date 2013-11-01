@@ -1,114 +1,71 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [RFC 1/2] i2c: Use stable dev_name for ACPI enumerated I2C slaves
-Date: Fri, 01 Nov 2013 01:26:30 +0100
-Message-ID: <3950709.TpLA3UW14U@vostro.rjw.lan>
-References: <1382703540-3769-1-git-send-email-jarkko.nikula@linux.intel.com> <526E636D.3070005@linux.intel.com> <1433914.mn8USodCgb@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 00/20] ACPICA: 20130927 Release
+Date: Fri, 1 Nov 2013 00:39:20 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880247A04C@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1383009405.git.lv.zheng@intel.com>
+ <5928487.YJ48OytAyJ@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433914.mn8USodCgb-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:13220 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752397Ab3KAAjY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 Oct 2013 20:39:24 -0400
+In-Reply-To: <5928487.YJ48OytAyJ@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Friday, November 01, 2013 01:08:47 AM Rafael J. Wysocki wrote:
-> On Monday, October 28, 2013 03:15:25 PM Jarkko Nikula wrote:
-> > Hi Rafael
-> > 
-> > On 10/25/2013 05:08 PM, Rafael J. Wysocki wrote:
-> > > On Friday, October 25, 2013  04:30:23 PM Jarkko Nikula wrote:
-> >  >>>
-> >  >> Hmm, not only. Referencing to dev field in struct acpi_device by
-> >  >> dev_name(&adev->dev) here will fail too.
-> >  >
-> >  > Well, something is not quite right here.
-> >  >
-> >  > One of the *reasons* for having ACPI_HANDLE() defined this way is to
-> >  > avoid using explicit CONFIG_ACPI checks, so if that doesn't work,
-> >  > then all of that becomes a bit pointless.
-> >  >
-> 
-> Can you please send patches inline instead of using inline attachments,
-> so that people don't have to paste your patches back to comment them?
-> 
-> > One possible thing to do is to let structure definitions to be available 
-> > for non-ACPI builds. Then compiler won't fail on structure access which 
-> > will be anyway optimized away by later compiler stages.
-> 
-> Yes, we can do that, but as I said that means we're giving up on the "why
-> ACPI_HANDLE() doesn't work as expected" front.  For now, I'd like to
-> understand what's up before making that change.  Moreover ->
-
-OK, so I *think* what happens is that the compiler checks if the particular
-symbols make sense before trying to optimize out the whole block.
-
-So the patch below modulo the return value of the acpi_bus_get_device() stub
-would be fine by me.
-
-Thanks!
-
-> > With a quick test below vmlinux section sizes don't change for couple 
-> > non-ACPI build tests and allow to get rid off IS_ENABLED(CONFIG_ACPI) 
-> > test in this patch. It's very minimal as it only moves the CONFIG_ACPI 
-> > test just after the struct acpi_device definition and defines 
-> > acpi_bus_get_device for non-ACPI case.
-> > 
-> > What I don't know how consistent it is as there are still couple 
-> > structure definitions under CONFIG_ACPI, doesn't touch other acpi 
-> > headers and requires to include acpi_bus.h in driver (or move acpi_bus.h 
-> > include in linux/acpi.h currently under CONFIG_ACPI).
-> >
-> > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> > index d901982..7ab7870 100644
-> > --- a/include/acpi/acpi_bus.h
-> > +++ b/include/acpi/acpi_bus.h
-> > @@ -66,8 +66,6 @@ bool acpi_ata_match(acpi_handle handle);
-> > 
-> >   bool acpi_bay_match(acpi_handle handle);
-> >   bool acpi_dock_match(acpi_handle handle);
-> > 
-> > -#ifdef CONFIG_ACPI
-> > -
-> > 
-> >   #include <linux/proc_fs.h>
-> >   
-> >   #define ACPI_BUS_FILE_ROOT    "acpi"
-> > 
-> > @@ -314,6 +312,8 @@ struct acpi_device {
-> > 
-> >       void (*remove)(struct acpi_device *);
-> >   
-> >   };
-> > 
-> > +#if IS_ENABLED(CONFIG_ACPI)
-> > +
-> > 
-> >   static inline void *acpi_driver_data(struct acpi_device *d)
-> >   {
-> >   
-> >       return d->driver_data;
-> > 
-> > @@ -531,6 +531,8 @@ static inline bool acpi_device_can_poweroff(struct
-> > acpi_device *adev)
-> > 
-> >   static inline int register_acpi_bus_type(void *bus) { return 0; }
-> >   static inline int unregister_acpi_bus_type(void *bus) { return 0; }
-> > 
-> > +static inline int acpi_bus_get_device(acpi_handle handle,
-> > +                      struct acpi_device **device) { return 0; }
-> 
-> This has to return an error code, because otherwise the caller can assume
-> *device to be a valid pointer after it returns which may not be the case.
-> 
-> > 
-> >   #endif                /* CONFIG_ACPI */
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFNlbnQ6IFRodXJzZGF5LCBPY3RvYmVyIDMxLCAyMDEzIDk6NTMgUE0NCj4g
+DQo+IE9uIFR1ZXNkYXksIE9jdG9iZXIgMjksIDIwMTMgMDk6Mjg6NDEgQU0gTHYgWmhlbmcgd3Jv
+dGU6DQo+ID4gVGhlIDIwMTMwOTI3IEFDUElDQSBrZXJuZWwgcmVzaWRlbnQgc3lzdGVtIHVwZGF0
+ZXMgaXMgbGludXhpemVkIGJhc2VkIG9uDQo+ID4gdGhlIHBtL2xpbnV4LW5leHQgYnJhbmNoLg0K
+PiA+DQo+ID4gVGhlIHBhdGNoIHNldCBoYXMgcGFzc2VkIGEgYnVpbGQvYm9vdCB0ZXN0IG9uIHRo
+ZSBmb2xsb3dpbmcgbWFjaGluZXM6DQo+ID4gRGVsbCBJbnNwaXJvbiBNaW5pIDEwMTAgKGkzODYp
+DQo+ID4gSFAgQ29tcGFxIDgyMDAgRWxpdGUgU0ZGIFBDICh4ODYtNjQpDQo+ID4gV2l0aCB0aGUg
+Zm9sbG93aW5nIGtlcm5lbCBjb25maWd1cmF0aW9uIGl0ZW1zIGVuYWJsZWQ6DQo+ID4gICBDT05G
+SUdfQUNQSV9BQw0KPiA+ICAgQ09ORklHX0FDUElfQkFUVEVSWQ0KPiA+ICAgQ09ORklHX0FDUElf
+TlVNQQ0KPiA+ICAgQ09ORklHX0FDUElfUFJPQ0VTU09SDQo+ID4gICBDT05GSUdfQUNQSV9USEVS
+TUFMDQo+ID4gICBDT05GSUdfQUNQSV9WSURFTw0KPiA+ICAgQ09ORklHX0NQVV9GUkVRDQo+ID4g
+ICBDT05GSUdfSTJDX1NDTUkNCj4gPiAgIENPTkZJR19TRU5TT1JTX0FDUElfUE9XRVINCj4gPiAg
+IENPTkZJR19QQU5BU09OSUNfTEFQVE9QDQo+ID4gICBDT05GSUdfWE8xNV9FQk9PSw0KPiA+ICAg
+Q09ORklHX0RNQVJfVEFCTEUNCj4gPiAgIENPTkZJR19JTlRFTF9JT01NVQ0KPiA+ICAgQ09ORklH
+X0lSUV9SRU1BUA0KPiA+DQo+ID4gU29tZSBkaXZlcmdlbmNlcyBhcmUgcmVkdWNlZCBieSB0aGUg
+bmV3IHNvZnR3YXJlIG1lY2hhbmlzbXMgaW50cm9kdWNlZCBpbg0KPiA+IHRoaXMgcmVsZWFzZSBj
+eWNsZS4gIFRoZSBkaXZlcmdlbmNlcyByZXN1bHQgaXMgYXMgZm9sbG93czoNCj4gPiAgIEJlZm9y
+ZSBhcHBseWluZzogNjguOCBLYnl0ZXMsIDE5ODQgTGluZXMNCj4gPiAgIEFmdGVyIGFwcGx5aW5n
+OiA1NC4xIEtieXRlcywgMTU1OCBMaW5lcw0KPiA+DQo+ID4gUGxlYXNlIHJldmlldy4NCj4gPg0K
+PiA+IEJvYiBNb29yZSAoMTApOg0KPiA+ICAgQUNQSUNBOiBUYWJsZSBwcmludCBoZWFkZXIgZnVu
+Y3Rpb246IEluY3JlYXNlIGRlZmF1bHQgd2lkdGggZm9yIHRhYmxlDQo+ID4gICAgIGxlbmd0aC4N
+Cj4gPiAgIEFDUElDQTogQWRkIGEgY2hlY2sgZm9yIGEgbnVsbCBub2RlIGR1cmluZyBuYW1lc3Bh
+Y2Ugd2Fsay4NCj4gPiAgIEFDUElDQTogQWRkIGhpc3RvcnkvbGluZS1lZGl0aW5nIGZvciBVbml4
+L0xpbnV4IHN5c3RlbXMuDQo+ID4gICBBQ1BJQ0E6IEZpeCBhIG1hY3JvIGZvciB0aGUgaGFyZHdh
+cmUtcmVkdWNlZCBjYXNlDQo+ID4gICBBQ1BJQ0E6IEFkZCBzYWZlIHZlcnNpb25zIG9mIGNvbW1v
+biBzdHJpbmcgZnVuY3Rpb25zLg0KPiA+ICAgQUNQSUNBOiBQcmVkZWZpbmUgbmFtZSBtYWNyb3M6
+IFNvcnQgbGlzdC4NCj4gPiAgIEFDUElDQTogSGFyZGNvZGUgYWNjZXNzIHdpZHRoIGZvciB0aGUg
+cmVzZXQgcmVnaXN0ZXIuDQo+ID4gICBBQ1BJQ0E6IFVwZGF0ZSBjb21tZW50OiBubyBmdW5jdGlv
+bmFsIGNoYW5nZS4NCj4gPiAgIEFDUElDQTogU2ltcGxpZnkgY29uZmlndXJhdGlvbiBvZiBnbG9i
+YWwgQUNQSV9SRURVQ0VEX0hBUkRXQVJFIG1hY3JvLg0KPiA+ICAgQUNQSUNBOiBVcGRhdGUgdmVy
+c2lvbiB0byAyMDEzMDkyNy4NCj4gPg0KPiA+IEx2IFpoZW5nICg5KToNCj4gPiAgIEFDUElDQTog
+Q2xlYW51cCBtZW1vcnkgYWxsb2NhdGlvbiBtYWNyb3MgYW5kIGNvbmZpZ3VyYWJpbGl0eS4NCj4g
+PiAgIEFDUElDQTogRml4IHBvc3NpYmxlIG1lbW9yeSBsZWFrcyBpbiB0aGUgR1BFIGhhbmRsaW5n
+Lg0KPiA+ICAgQUNQSUNBOiBBZGQgRVhQT1JUX0FDUElfSU5URVJGQUNFUyBtYWNybyB0byBleHRl
+cm5hbCBpbnRlcmZhY2UNCj4gPiAgICAgbW9kdWxlcy4NCj4gPiAgIEFDUElDQTogTGludXhpemU6
+IENoYW5nZSBpbmRlbnRhdGlvbiBvZiBDIGxhYmVscy4NCj4gPiAgIEFDUElDQTogRGVwbG95IEFD
+UElfRVhQT1JUX1NZTUJPTF9JTklUIGZvciBtYWluIEFDUElDQSBpbml0aWFsaXphdGlvbg0KPiA+
+ICAgICBpbnRlcmZhY2VzLg0KPiA+ICAgQUNQSUNBOiBQcmV2ZW50IHBvc3NpYmxlIGJ1aWxkIGlz
+c3VlcyBmb3IgdXNlIG9mIEFDUElfUFJJTlRGX0xJS0UNCj4gPiAgICAgbWFjcm8NCj4gPiAgIEFD
+UElDQTogQWNwaVNyYzogRml4IGluZGVudGF0aW9uIGlzc3VlcyBmb3IgbWFjcm8gaW52b2NhdGlv
+bnMuDQo+ID4gICBBQ1BJQ0E6IEFkZCBzdXBwb3J0IHRvIGFsbG93IGhvc3QgdG8gcmVkZWZpbmUg
+aW5kaXZpZHVhbCBPU0wNCj4gPiAgICAgcHJvdG90eXBlcy4NCj4gPiAgIEFDUElDQTogVXBkYXRl
+IGFjbGludXguaCBmb3IgbmV3IE9TTCBvdmVycmlkZSBtZWNoYW5pc20uDQo+ID4NCj4gPiBUb21h
+c3ogTm93aWNraSAoMSk6DQo+ID4gICBBQ1BJQ0E6IEVuc3VyZSB0aGF0IGRlYnVnIG91dHB1dCBp
+cyBpbW1lZGlhdGVseSBkaXNhYmxlZCBvbg0KPiA+ICAgICB0ZXJtaW5hdGlvbi4NCj4gDQo+IEkn
+dmUgcXVldWVkIHVwIHRoZSBzZXJpZXMgZm9yIDMuMTMsIHRoYW5rcyBMdiENCg0KWW91IGFyZSB3
+ZWxjb21lIQ0KDQpUaGFua3MsDQotTHYNCg0KPiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBt
+eXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNvY2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5
+IENlbnRlci4NCg==
