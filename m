@@ -1,99 +1,107 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 00/15] ACPICA: Update ACPICA files to reduce source code differences between Linux and ACPICA.
-Date: Thu, 31 Oct 2013 14:54:34 +0100
-Message-ID: <1616365.YVuAuunBk7@vostro.rjw.lan>
-References: <cover.1383009405.git.lv.zheng@intel.com> <cover.1383182392.git.lv.zheng@intel.com>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [RFC 1/2] i2c: Use stable dev_name for ACPI enumerated I2C slaves
+Date: Fri, 01 Nov 2013 01:08:47 +0100
+Message-ID: <1433914.mn8USodCgb@vostro.rjw.lan>
+References: <1382703540-3769-1-git-send-email-jarkko.nikula@linux.intel.com> <2889412.bEKBLJtgSW@vostro.rjw.lan> <526E636D.3070005@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64436 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753679Ab3JaNmY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Oct 2013 09:42:24 -0400
-In-Reply-To: <cover.1383182392.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <526E636D.3070005-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Thursday, October 31, 2013 09:29:23 AM Lv Zheng wrote:
-> This series is based on ACPICA 20130927 release.
+On Monday, October 28, 2013 03:15:25 PM Jarkko Nikula wrote:
+> Hi Rafael
 > 
-> This series is to reduce the source code differences between Linux and
-> ACPICA so that the release process can be easier with less human
-> intervention and the known bugs can also be prevented.
-> 
-> This series includes only Linux part patches.
-> Please also find another companion ACPICA patchset for references.
-> 
-> The source code differences between Linux and ACPICA can be summarized as
-> follows:
-> 1. 1516 Lines (53.2 Kbytes) before applying the patch set;
-> 2. 1001 Lines (35.3 Kbytes) after applying the patch set.
-> 
-> The rest of the divergences are now accountable:
-> 1.  (Internal) ACPI_FUTURE_USAGE
-> 2.  (Internal) Linux compiler.h related
-> 3.  (Internal) Bug report message
-> 4.  AcpiSrc bug
-> 5.  Some events related divergences
-> 6.  FADT 64bit/32bit favor
-> 7.  Boolean -> bool conversion
-> 8.  GPE masking mechanism
-> 9.  D3_cold implicity
-> 10. XSDT - introduced by table override and sgi-hotplug
-> 11. Xen sleep register hook
-> 12. Slow hardware support
-> Where:
-> Internal: divergences are committed and would not be fixed.
-> 
-> A QA process is executed to compare resulting binary files. Those patches
-> which were not expected to change any text section indeed, changed no text.
-> Sometimes line numbers changed due to line deletions and insertions, but
-> that is expected.
-> 
-> The patch set has passed a build/boot test on the following machines:
-> Dell Inspiron Mini 1010 (i386)
-> HP Compaq 8200 Elite SFF PC (x86-64)
-> With the following kernel configuration items enabled:
->   CONFIG_ACPI_AC
->   CONFIG_ACPI_BATTERY
->   CONFIG_ACPI_NUMA
->   CONFIG_ACPI_PROCESSOR
->   CONFIG_ACPI_THERMAL
->   CONFIG_ACPI_VIDEO
->   CONFIG_CPU_FREQ
->   CONFIG_I2C_SCMI
->   CONFIG_SENSORS_ACPI_POWER
->   CONFIG_PANASONIC_LAPTOP
->   CONFIG_XO15_EBOOK
->   CONFIG_DMAR_TABLE
->   CONFIG_INTEL_IOMMU
->   CONFIG_IRQ_REMAP
-> 
-> Please review.
-> 
-> Lv Zheng (15):
->   ACPICA: Update default space handlers.
->   ACPICA: Update ANOBJ_IS_EXTERNAL flag.
->   ACPICA: Update namespace dump code.
->   ACPICA: Update RSDP table definitions.
->   ACPICA: Update DMAR table definitions.
->   ACPICA: Add new statistics interface.
->   ACPICA: Fix wrong object length returned by
->     acpi_ut_get_simple_object_size().
->   ACPICA: Fix an ACPI_ALLOCATE_ZEROED() reversal.
->   ACPICA: Cleanup useless memset invocations.
->   ACPICA: Remove dead AOPOBJ_INVALID check.
->   ACPICA: Fix cached object deletion code.
->   ACPICA: Update compilation environment settings.
->   ACPICA: Update acpidump related header file changes.
->   ACPICA: Cleanup asmlinkage for ACPICA APIs.
->   ACPICA: Add __init for ACPICA initializers/finalizers.
+> On 10/25/2013 05:08 PM, Rafael J. Wysocki wrote:
+> > On Friday, October 25, 2013  04:30:23 PM Jarkko Nikula wrote:
+>  >>>
+>  >> Hmm, not only. Referencing to dev field in struct acpi_device by
+>  >> dev_name(&adev->dev) here will fail too.
+>  >
+>  > Well, something is not quite right here.
+>  >
+>  > One of the *reasons* for having ACPI_HANDLE() defined this way is to
+>  > avoid using explicit CONFIG_ACPI checks, so if that doesn't work,
+>  > then all of that becomes a bit pointless.
+>  >
 
-Queued up for 3.13 (with some changelog/subject modifications), thanks Lv!
+Can you please send patches inline instead of using inline attachments,
+so that people don't have to paste your patches back to comment them?
+
+> One possible thing to do is to let structure definitions to be available 
+> for non-ACPI builds. Then compiler won't fail on structure access which 
+> will be anyway optimized away by later compiler stages.
+
+Yes, we can do that, but as I said that means we're giving up on the "why
+ACPI_HANDLE() doesn't work as expected" front.  For now, I'd like to
+understand what's up before making that change.  Moreover ->
+
+> With a quick test below vmlinux section sizes don't change for couple 
+> non-ACPI build tests and allow to get rid off IS_ENABLED(CONFIG_ACPI) 
+> test in this patch. It's very minimal as it only moves the CONFIG_ACPI 
+> test just after the struct acpi_device definition and defines 
+> acpi_bus_get_device for non-ACPI case.
+> 
+> What I don't know how consistent it is as there are still couple 
+> structure definitions under CONFIG_ACPI, doesn't touch other acpi 
+> headers and requires to include acpi_bus.h in driver (or move acpi_bus.h 
+> include in linux/acpi.h currently under CONFIG_ACPI).
+>
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index d901982..7ab7870 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -66,8 +66,6 @@ bool acpi_ata_match(acpi_handle handle);
+> 
+>   bool acpi_bay_match(acpi_handle handle);
+>   bool acpi_dock_match(acpi_handle handle);
+> 
+> -#ifdef CONFIG_ACPI
+> -
+> 
+>   #include <linux/proc_fs.h>
+>   
+>   #define ACPI_BUS_FILE_ROOT    "acpi"
+> 
+> @@ -314,6 +312,8 @@ struct acpi_device {
+> 
+>       void (*remove)(struct acpi_device *);
+>   
+>   };
+> 
+> +#if IS_ENABLED(CONFIG_ACPI)
+> +
+> 
+>   static inline void *acpi_driver_data(struct acpi_device *d)
+>   {
+>   
+>       return d->driver_data;
+> 
+> @@ -531,6 +531,8 @@ static inline bool acpi_device_can_poweroff(struct
+> acpi_device *adev)
+> 
+>   static inline int register_acpi_bus_type(void *bus) { return 0; }
+>   static inline int unregister_acpi_bus_type(void *bus) { return 0; }
+> 
+> +static inline int acpi_bus_get_device(acpi_handle handle,
+> +                      struct acpi_device **device) { return 0; }
+
+This has to return an error code, because otherwise the caller can assume
+*device to be a valid pointer after it returns which may not be the case.
+
+> 
+>   #endif                /* CONFIG_ACPI */
+
+Thanks!
 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
