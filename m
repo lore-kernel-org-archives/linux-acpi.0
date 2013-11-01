@@ -1,37 +1,39 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [PATCHv2 0/3] I2C and SPI dev_name change for ACPI enumerated
- slaves
-Date: Fri, 01 Nov 2013 15:44:38 +0200
-Message-ID: <5273B046.1030204@linux.intel.com>
-References: <1382703540-3769-1-git-send-email-jarkko.nikula@linux.intel.com> <1383309356-25430-1-git-send-email-jarkko.nikula@linux.intel.com> <1601125.4tFOPicoTX@vostro.rjw.lan> <20131101132048.GD6734@katana>
+From: Joerg Roedel <joro@8bytes.org>
+Subject: Re: [PATCH] x86/ACPI: Make Sony Vaio Z1 series to use "reboot=pci"
+ default
+Date: Fri, 1 Nov 2013 15:02:23 +0100
+Message-ID: <20131101140223.GJ17455@8bytes.org>
+References: <1382597377-26797-1-git-send-email-tianyu.lan@intel.com>
+ <20131025105352.GA5419@gmail.com>
+ <1382719652.2445.1.camel@adam.happyassassin.net>
+ <CA+55aFyZEZp3CSFEcxzKt0c_7Q9_juGWiqb7VH214Fjcs3wUkQ@mail.gmail.com>
+ <1382750841.19471.72.camel@adam.happyassassin.net>
+ <1382754015.19471.80.camel@adam.happyassassin.net>
+ <20131026031759.GA8513@redhat.com>
+ <1382772154.3604.1.camel@adam.happyassassin.net>
+ <20131026091501.GE14237@gmail.com>
+ <1382857589.2447.0.camel@adam.happyassassin.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:51208 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753550Ab3KANoo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Nov 2013 09:44:44 -0400
-In-Reply-To: <20131101132048.GD6734@katana>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1382857589.2447.0.camel@adam.happyassassin.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adam Williamson <awilliam@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>, David Woodhouse <David.Woodhouse@intel.com>, Dave Jones <davej@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Lan Tianyu <tianyu.lan@intel.com>, Matthew Garrett <mjg@redhat.com>, Peter Anvin <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Robin Holt <holt@sgi.com>, davej@fedoraproject.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org, linux-i2c@vger.kernel.org, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org
 
-On 11/01/2013 03:20 PM, Wolfram Sang wrote:
-> On Fri, Nov 01, 2013 at 02:18:06PM +0100, Rafael J. Wysocki wrote:
->>
->> Looks good to me.  If there are no objections, I can merge these through my tree.
-> Which is basically fine with me. Do you want to have it in 3.13 already?
-> I mean renaming the devices could lead to regressions, so I'd rather be
-> conservative and aim for 3.14.
->
-Valid concern. Quick grep below doesn't reveal any obvious device name 
-matching outside of sound/soc/ but of course it doesn't prove it to be 
-impossible.
+On Sun, Oct 27, 2013 at 12:06:29AM -0700, Adam Williamson wrote:
+> On Sat, 2013-10-26 at 11:15 +0200, Ingo Molnar wrote:
+> >   CONFIG_IRQ_REMAP=y
+> 
+> Agh, sorry - I had this down in my mind as a boot time parameter, not a
+> compile time option. I'm off on vacation for a week in the morning, and
+> it's too late to wait around for a kernel compile tonight :/ So I'll
+> have to check this one when I get back. Sorry again.
 
-git grep '[0-9]\-00' |grep name
-git grep 'spi[0-9].[0-9]' |grep name
+Note, instead of recompiling the kernel, you can also pass 'intremap=off'
+on the kernel cmdline to disable interrupt remapping and test with that.
 
--- 
-Jarkko
+
+	Joerg
