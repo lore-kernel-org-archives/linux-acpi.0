@@ -1,80 +1,50 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 00/15] ACPICA: Update ACPICA files to reduce source code
- differences between Linux and ACPICA.
-Date: Fri, 1 Nov 2013 00:39:45 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880247A056@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1383009405.git.lv.zheng@intel.com>
- <cover.1383182392.git.lv.zheng@intel.com> <1616365.YVuAuunBk7@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: [PATCHv2 0/3] I2C and SPI dev_name change for ACPI enumerated slaves
+Date: Fri,  1 Nov 2013 14:35:53 +0200
+Message-ID: <1383309356-25430-1-git-send-email-jarkko.nikula@linux.intel.com>
+References: <1382703540-3769-1-git-send-email-jarkko.nikula@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:49551 "EHLO mga01.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:62658 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752397Ab3KAAju (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 Oct 2013 20:39:50 -0400
-In-Reply-To: <1616365.YVuAuunBk7@vostro.rjw.lan>
-Content-Language: en-US
+	id S1752106Ab3KAMgj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Nov 2013 08:36:39 -0400
+In-Reply-To: <1382703540-3769-1-git-send-email-jarkko.nikula@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-spi@vger.kernel.org, linux-i2c@vger.kernel.org, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IFRodXJzZGF5LCBPY3RvYmVyIDMxLCAyMDEzIDk6NTUgUE0NCj4g
-DQo+IE9uIFRodXJzZGF5LCBPY3RvYmVyIDMxLCAyMDEzIDA5OjI5OjIzIEFNIEx2IFpoZW5nIHdy
-b3RlOg0KPiA+IFRoaXMgc2VyaWVzIGlzIGJhc2VkIG9uIEFDUElDQSAyMDEzMDkyNyByZWxlYXNl
-Lg0KPiA+DQo+ID4gVGhpcyBzZXJpZXMgaXMgdG8gcmVkdWNlIHRoZSBzb3VyY2UgY29kZSBkaWZm
-ZXJlbmNlcyBiZXR3ZWVuIExpbnV4IGFuZA0KPiA+IEFDUElDQSBzbyB0aGF0IHRoZSByZWxlYXNl
-IHByb2Nlc3MgY2FuIGJlIGVhc2llciB3aXRoIGxlc3MgaHVtYW4NCj4gPiBpbnRlcnZlbnRpb24g
-YW5kIHRoZSBrbm93biBidWdzIGNhbiBhbHNvIGJlIHByZXZlbnRlZC4NCj4gPg0KPiA+IFRoaXMg
-c2VyaWVzIGluY2x1ZGVzIG9ubHkgTGludXggcGFydCBwYXRjaGVzLg0KPiA+IFBsZWFzZSBhbHNv
-IGZpbmQgYW5vdGhlciBjb21wYW5pb24gQUNQSUNBIHBhdGNoc2V0IGZvciByZWZlcmVuY2VzLg0K
-PiA+DQo+ID4gVGhlIHNvdXJjZSBjb2RlIGRpZmZlcmVuY2VzIGJldHdlZW4gTGludXggYW5kIEFD
-UElDQSBjYW4gYmUgc3VtbWFyaXplZCBhcw0KPiA+IGZvbGxvd3M6DQo+ID4gMS4gMTUxNiBMaW5l
-cyAoNTMuMiBLYnl0ZXMpIGJlZm9yZSBhcHBseWluZyB0aGUgcGF0Y2ggc2V0Ow0KPiA+IDIuIDEw
-MDEgTGluZXMgKDM1LjMgS2J5dGVzKSBhZnRlciBhcHBseWluZyB0aGUgcGF0Y2ggc2V0Lg0KPiA+
-DQo+ID4gVGhlIHJlc3Qgb2YgdGhlIGRpdmVyZ2VuY2VzIGFyZSBub3cgYWNjb3VudGFibGU6DQo+
-ID4gMS4gIChJbnRlcm5hbCkgQUNQSV9GVVRVUkVfVVNBR0UNCj4gPiAyLiAgKEludGVybmFsKSBM
-aW51eCBjb21waWxlci5oIHJlbGF0ZWQNCj4gPiAzLiAgKEludGVybmFsKSBCdWcgcmVwb3J0IG1l
-c3NhZ2UNCj4gPiA0LiAgQWNwaVNyYyBidWcNCj4gPiA1LiAgU29tZSBldmVudHMgcmVsYXRlZCBk
-aXZlcmdlbmNlcw0KPiA+IDYuICBGQURUIDY0Yml0LzMyYml0IGZhdm9yDQo+ID4gNy4gIEJvb2xl
-YW4gLT4gYm9vbCBjb252ZXJzaW9uDQo+ID4gOC4gIEdQRSBtYXNraW5nIG1lY2hhbmlzbQ0KPiA+
-IDkuICBEM19jb2xkIGltcGxpY2l0eQ0KPiA+IDEwLiBYU0RUIC0gaW50cm9kdWNlZCBieSB0YWJs
-ZSBvdmVycmlkZSBhbmQgc2dpLWhvdHBsdWcNCj4gPiAxMS4gWGVuIHNsZWVwIHJlZ2lzdGVyIGhv
-b2sNCj4gPiAxMi4gU2xvdyBoYXJkd2FyZSBzdXBwb3J0DQo+ID4gV2hlcmU6DQo+ID4gSW50ZXJu
-YWw6IGRpdmVyZ2VuY2VzIGFyZSBjb21taXR0ZWQgYW5kIHdvdWxkIG5vdCBiZSBmaXhlZC4NCj4g
-Pg0KPiA+IEEgUUEgcHJvY2VzcyBpcyBleGVjdXRlZCB0byBjb21wYXJlIHJlc3VsdGluZyBiaW5h
-cnkgZmlsZXMuIFRob3NlIHBhdGNoZXMNCj4gPiB3aGljaCB3ZXJlIG5vdCBleHBlY3RlZCB0byBj
-aGFuZ2UgYW55IHRleHQgc2VjdGlvbiBpbmRlZWQsIGNoYW5nZWQgbm8gdGV4dC4NCj4gPiBTb21l
-dGltZXMgbGluZSBudW1iZXJzIGNoYW5nZWQgZHVlIHRvIGxpbmUgZGVsZXRpb25zIGFuZCBpbnNl
-cnRpb25zLCBidXQNCj4gPiB0aGF0IGlzIGV4cGVjdGVkLg0KPiA+DQo+ID4gVGhlIHBhdGNoIHNl
-dCBoYXMgcGFzc2VkIGEgYnVpbGQvYm9vdCB0ZXN0IG9uIHRoZSBmb2xsb3dpbmcgbWFjaGluZXM6
-DQo+ID4gRGVsbCBJbnNwaXJvbiBNaW5pIDEwMTAgKGkzODYpDQo+ID4gSFAgQ29tcGFxIDgyMDAg
-RWxpdGUgU0ZGIFBDICh4ODYtNjQpDQo+ID4gV2l0aCB0aGUgZm9sbG93aW5nIGtlcm5lbCBjb25m
-aWd1cmF0aW9uIGl0ZW1zIGVuYWJsZWQ6DQo+ID4gICBDT05GSUdfQUNQSV9BQw0KPiA+ICAgQ09O
-RklHX0FDUElfQkFUVEVSWQ0KPiA+ICAgQ09ORklHX0FDUElfTlVNQQ0KPiA+ICAgQ09ORklHX0FD
-UElfUFJPQ0VTU09SDQo+ID4gICBDT05GSUdfQUNQSV9USEVSTUFMDQo+ID4gICBDT05GSUdfQUNQ
-SV9WSURFTw0KPiA+ICAgQ09ORklHX0NQVV9GUkVRDQo+ID4gICBDT05GSUdfSTJDX1NDTUkNCj4g
-PiAgIENPTkZJR19TRU5TT1JTX0FDUElfUE9XRVINCj4gPiAgIENPTkZJR19QQU5BU09OSUNfTEFQ
-VE9QDQo+ID4gICBDT05GSUdfWE8xNV9FQk9PSw0KPiA+ICAgQ09ORklHX0RNQVJfVEFCTEUNCj4g
-PiAgIENPTkZJR19JTlRFTF9JT01NVQ0KPiA+ICAgQ09ORklHX0lSUV9SRU1BUA0KPiA+DQo+ID4g
-UGxlYXNlIHJldmlldy4NCj4gPg0KPiA+IEx2IFpoZW5nICgxNSk6DQo+ID4gICBBQ1BJQ0E6IFVw
-ZGF0ZSBkZWZhdWx0IHNwYWNlIGhhbmRsZXJzLg0KPiA+ICAgQUNQSUNBOiBVcGRhdGUgQU5PQkpf
-SVNfRVhURVJOQUwgZmxhZy4NCj4gPiAgIEFDUElDQTogVXBkYXRlIG5hbWVzcGFjZSBkdW1wIGNv
-ZGUuDQo+ID4gICBBQ1BJQ0E6IFVwZGF0ZSBSU0RQIHRhYmxlIGRlZmluaXRpb25zLg0KPiA+ICAg
-QUNQSUNBOiBVcGRhdGUgRE1BUiB0YWJsZSBkZWZpbml0aW9ucy4NCj4gPiAgIEFDUElDQTogQWRk
-IG5ldyBzdGF0aXN0aWNzIGludGVyZmFjZS4NCj4gPiAgIEFDUElDQTogRml4IHdyb25nIG9iamVj
-dCBsZW5ndGggcmV0dXJuZWQgYnkNCj4gPiAgICAgYWNwaV91dF9nZXRfc2ltcGxlX29iamVjdF9z
-aXplKCkuDQo+ID4gICBBQ1BJQ0E6IEZpeCBhbiBBQ1BJX0FMTE9DQVRFX1pFUk9FRCgpIHJldmVy
-c2FsLg0KPiA+ICAgQUNQSUNBOiBDbGVhbnVwIHVzZWxlc3MgbWVtc2V0IGludm9jYXRpb25zLg0K
-PiA+ICAgQUNQSUNBOiBSZW1vdmUgZGVhZCBBT1BPQkpfSU5WQUxJRCBjaGVjay4NCj4gPiAgIEFD
-UElDQTogRml4IGNhY2hlZCBvYmplY3QgZGVsZXRpb24gY29kZS4NCj4gPiAgIEFDUElDQTogVXBk
-YXRlIGNvbXBpbGF0aW9uIGVudmlyb25tZW50IHNldHRpbmdzLg0KPiA+ICAgQUNQSUNBOiBVcGRh
-dGUgYWNwaWR1bXAgcmVsYXRlZCBoZWFkZXIgZmlsZSBjaGFuZ2VzLg0KPiA+ICAgQUNQSUNBOiBD
-bGVhbnVwIGFzbWxpbmthZ2UgZm9yIEFDUElDQSBBUElzLg0KPiA+ICAgQUNQSUNBOiBBZGQgX19p
-bml0IGZvciBBQ1BJQ0EgaW5pdGlhbGl6ZXJzL2ZpbmFsaXplcnMuDQo+IA0KPiBRdWV1ZWQgdXAg
-Zm9yIDMuMTMgKHdpdGggc29tZSBjaGFuZ2Vsb2cvc3ViamVjdCBtb2RpZmljYXRpb25zKSwgdGhh
-bmtzIEx2IQ0KDQpZb3UgYXJlIHdlbGNvbWUhDQoNClRoYW5rcw0KLUx2DQoNCj4gDQo+IC0tDQo+
-IEkgc3BlYWsgb25seSBmb3IgbXlzZWxmLg0KPiBSYWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3Bl
-biBTb3VyY2UgVGVjaG5vbG9neSBDZW50ZXIuDQo=
+Hi
+
+Second version of the set that changes I2C and SPI slave device names
+to be generated from stable ACPI device names on ACPI 5 based systems
+instead of using bus numbers which could change.
+
+Slave device name change goes as
+
+	"x-00yz" -> "i2c-INTABCD:ij"
+	"spix.y" -> "spi-INTABCD:ij"
+
+This version adds patch to include/acpi/acpi_bus.h that allow us to
+remove #if IS_ENABLED(CONFIG_ACPI) checks that were added in the
+first version.
+
+Set goes on top linux-pm/linux-next commit e56b4d2.
+
+First version here:
+http://mailman.alsa-project.org/pipermail/alsa-devel/2013-October/067737.html
+
+Jarkko Nikula (3):
+  ACPI: Expose struct acpi_device and acpi_bus_get_device() to non-ACPI
+    builds
+  i2c: Use stable dev_name for ACPI enumerated I2C slaves
+  spi: Use stable dev_name for ACPI enumerated SPI slaves
+
+ drivers/i2c/i2c-core.c  | 24 ++++++++++++++++++++----
+ drivers/spi/spi.c       | 20 +++++++++++++++++---
+ include/acpi/acpi_bus.h |  9 +++++++--
+ 3 files changed, 44 insertions(+), 9 deletions(-)
+
+-- 
+1.8.4.rc3
+
