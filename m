@@ -1,16 +1,16 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [Update][PATCH 6/6] ACPI / hotplug: Merge device hot-removal routines
-Date: Mon, 04 Nov 2013 14:36:58 +0100
-Message-ID: <7014358.W2jKmobrlg@vostro.rjw.lan>
+Subject: [Update][PATCH 5/6] ACPI / hotplug: Make acpi_bus_hot_remove_device() internal
+Date: Mon, 04 Nov 2013 14:36:49 +0100
+Message-ID: <3547159.OBIzEY7xch@vostro.rjw.lan>
 References: <5839747.7HXXGHmMBd@vostro.rjw.lan> <2970389.SeMGM45Qln@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52885 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:56132 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751807Ab3KDN0A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Nov 2013 08:26:00 -0500
+	with SMTP id S1752288Ab3KDN0B (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Nov 2013 08:26:01 -0500
 In-Reply-To: <2970389.SeMGM45Qln@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -19,163 +19,64 @@ Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, 
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-There is no real reasn why acpi_bus_device_eject() and
-acpi_bus_hot_remove_device() should work differently, so rework
-acpi_bus_device_eject() so that it can be called internally by
-both acpi_bus_hot_remove_device() and acpi_eject_store_work().
-Accordingly, rework acpi_hotplug_notify_cb() to queue up the
-execution of acpi_bus_hot_remove_device() through
-acpi_os_hotplug_execute() on eject request notifications.
+Notice that handle_root_bridge_removal() is the only user of
+acpi_bus_hot_remove_device(), so it doesn't have to be exported
+any more and can be made internal to the ACPI core.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/scan.c |   84 +++++++++++++++++++++++-----------------------------
- 1 file changed, 38 insertions(+), 46 deletions(-)
+ drivers/acpi/internal.h |    1 +
+ drivers/acpi/pci_root.c |    2 ++
+ drivers/acpi/scan.c     |    1 -
+ include/acpi/acpi_bus.h |    1 -
+ 4 files changed, 3 insertions(+), 2 deletions(-)
 
+Index: linux-pm/drivers/acpi/internal.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/internal.h
++++ linux-pm/drivers/acpi/internal.h
+@@ -92,6 +92,7 @@ void acpi_device_add_finalize(struct acp
+ void acpi_free_pnp_ids(struct acpi_device_pnp *pnp);
+ int acpi_bind_one(struct device *dev, acpi_handle handle);
+ int acpi_unbind_one(struct device *dev);
++void acpi_bus_hot_remove_device(void *context);
+ 
+ /* --------------------------------------------------------------------------
+                                   Power Resource
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -386,7 +386,6 @@ int acpi_scan_add_handler(struct acpi_sc
+ int acpi_bus_register_driver(struct acpi_driver *driver);
+ void acpi_bus_unregister_driver(struct acpi_driver *driver);
+ int acpi_bus_scan(acpi_handle handle);
+-void acpi_bus_hot_remove_device(void *context);
+ void acpi_bus_trim(struct acpi_device *start);
+ acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
+ int acpi_match_device_ids(struct acpi_device *device,
 Index: linux-pm/drivers/acpi/scan.c
 ===================================================================
 --- linux-pm.orig/drivers/acpi/scan.c
 +++ linux-pm/drivers/acpi/scan.c
-@@ -285,10 +285,9 @@ static int acpi_scan_hot_remove(struct a
- 	return 0;
- }
- 
--static void acpi_bus_device_eject(void *context)
-+static void acpi_bus_device_eject(struct acpi_device *device, u32 ost_src)
+@@ -467,7 +467,6 @@ void acpi_bus_hot_remove_device(void *co
  {
--	acpi_handle handle = context;
--	struct acpi_device *device = NULL;
-+	acpi_handle handle = device->handle;
- 	struct acpi_scan_handler *handler;
- 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
- 	int error;
-@@ -296,20 +295,19 @@ static void acpi_bus_device_eject(void *
- 	lock_device_hotplug();
- 	mutex_lock(&acpi_scan_lock);
- 
--	acpi_bus_get_device(handle, &device);
--	if (!device)
--		goto err_out;
--
- 	handler = device->handler;
--	if (!handler || !handler->hotplug.enabled)
-+	if (!handler || !handler->hotplug.enabled) {
-+		put_device(&device->dev);
- 		goto err_support;
-+	}
-+
-+	if (ost_src == ACPI_NOTIFY_EJECT_REQUEST)
-+		acpi_evaluate_hotplug_ost(handle, ACPI_NOTIFY_EJECT_REQUEST,
-+					  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
- 
--	acpi_evaluate_hotplug_ost(handle, ACPI_NOTIFY_EJECT_REQUEST,
--				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
- 	if (handler->hotplug.mode == AHM_CONTAINER)
- 		kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
- 
--	get_device(&device->dev);
- 	error = acpi_scan_hot_remove(device);
- 	if (error == -EPERM) {
- 		goto err_support;
-@@ -325,8 +323,7 @@ static void acpi_bus_device_eject(void *
-  err_support:
- 	ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-  err_out:
--	acpi_evaluate_hotplug_ost(handle, ACPI_NOTIFY_EJECT_REQUEST, ost_code,
--				  NULL);
-+	acpi_evaluate_hotplug_ost(handle, ost_src, ost_code, NULL);
- 	goto out;
+ 	__acpi_bus_hot_remove_device(context, ACPI_NOTIFY_EJECT_REQUEST);
  }
- 
-@@ -408,10 +405,20 @@ static void acpi_hotplug_unsupported(acp
- 	acpi_evaluate_hotplug_ost(handle, type, ost_status, NULL);
- }
- 
-+/**
-+ * acpi_bus_hot_remove_device: Hot-remove a device and its children.
-+ * @context: Address of the ACPI device object to hot-remove.
-+ */
-+void acpi_bus_hot_remove_device(void *context)
-+{
-+	acpi_bus_device_eject(context, ACPI_NOTIFY_EJECT_REQUEST);
-+}
-+
- static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *data)
- {
- 	acpi_osd_exec_callback callback;
- 	struct acpi_scan_handler *handler = data;
-+	struct acpi_device *adev;
- 	acpi_status status;
- 
- 	if (!handler->hotplug.enabled)
-@@ -428,44 +435,29 @@ static void acpi_hotplug_notify_cb(acpi_
- 		break;
- 	case ACPI_NOTIFY_EJECT_REQUEST:
- 		acpi_handle_debug(handle, "ACPI_NOTIFY_EJECT_REQUEST event\n");
--		callback = acpi_bus_device_eject;
--		break;
-+		status = acpi_bus_get_device(handle, &adev);
-+		if (ACPI_FAILURE(status))
-+			goto err_out;
-+
-+		get_device(&adev->dev);
-+		callback = acpi_bus_hot_remove_device;
-+		status = acpi_os_hotplug_execute(callback, adev);
-+		if (ACPI_SUCCESS(status))
-+			return;
-+
-+		put_device(&adev->dev);
-+		goto err_out;
- 	default:
- 		/* non-hotplug event; possibly handled by other handler */
- 		return;
- 	}
- 	status = acpi_os_hotplug_execute(callback, handle);
--	if (ACPI_FAILURE(status))
--		acpi_evaluate_hotplug_ost(handle, type,
--					  ACPI_OST_SC_NON_SPECIFIC_FAILURE,
--					  NULL);
--}
--
--void __acpi_bus_hot_remove_device(struct acpi_device *device, u32 ost_src)
--{
--	acpi_handle handle = device->handle;
--	int error;
--
--	lock_device_hotplug();
--	mutex_lock(&acpi_scan_lock);
--
--	error = acpi_scan_hot_remove(device);
--	if (error && handle)
--		acpi_evaluate_hotplug_ost(handle, ost_src,
--					  ACPI_OST_SC_NON_SPECIFIC_FAILURE,
--					  NULL);
--
--	mutex_unlock(&acpi_scan_lock);
--	unlock_device_hotplug();
--}
-+	if (ACPI_SUCCESS(status))
-+		return;
- 
--/**
-- * acpi_bus_hot_remove_device: Hot-remove a device and its children.
-- * @context: Address of the ACPI device object to hot-remove.
-- */
--void acpi_bus_hot_remove_device(void *context)
--{
--	__acpi_bus_hot_remove_device(context, ACPI_NOTIFY_EJECT_REQUEST);
-+ err_out:
-+	acpi_evaluate_hotplug_ost(handle, type,
-+				  ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
- }
+-EXPORT_SYMBOL(acpi_bus_hot_remove_device);
  
  static ssize_t real_power_state_show(struct device *dev,
-@@ -496,7 +488,7 @@ static DEVICE_ATTR(power_state, 0444, po
+ 				     struct device_attribute *attr, char *buf)
+Index: linux-pm/drivers/acpi/pci_root.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/pci_root.c
++++ linux-pm/drivers/acpi/pci_root.c
+@@ -39,6 +39,8 @@
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/apei.h>
  
- static void acpi_eject_store_work(void *context)
- {
--	__acpi_bus_hot_remove_device(context, ACPI_OST_EC_OSPM_EJECT);
-+	acpi_bus_device_eject(context, ACPI_OST_EC_OSPM_EJECT);
- }
++#include "internal.h"
++
+ #define PREFIX "ACPI: "
  
- static ssize_t
+ #define _COMPONENT		ACPI_PCI_COMPONENT
