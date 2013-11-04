@@ -1,96 +1,129 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCHv2 1/3] ACPI: Expose struct acpi_device and acpi_bus_get_device() to non-ACPI builds
-Date: Mon, 04 Nov 2013 02:00:45 +0100
-Message-ID: <5990097.jCz86Yqdpc@vostro.rjw.lan>
-References: <1382703540-3769-1-git-send-email-jarkko.nikula@linux.intel.com> <1383309356-25430-2-git-send-email-jarkko.nikula@linux.intel.com> <3858838.4tAO673dDi@vostro.rjw.lan>
+From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Subject: Re: [RFC PATCH][SeaBIOS] Add _PXM to CPU objects for NUMA hot-plug
+Date: Mon, 4 Nov 2013 11:51:49 +0100
+Message-ID: <20131104105149.GB30503@dhcp-192-168-178-175.profitbricks.localdomain>
+References: <1382693530-31137-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3858838.4tAO673dDi-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f45.google.com ([209.85.214.45]:36321 "EHLO
+	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750852Ab3KDKv4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Nov 2013 05:51:56 -0500
+Received: by mail-bk0-f45.google.com with SMTP id r7so2281511bkg.32
+        for <linux-acpi@vger.kernel.org>; Mon, 04 Nov 2013 02:51:54 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1382693530-31137-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: seabios@seabios.org, linux-acpi@vger.kernel.org, kevin@koconnor.net, rjw@sisk.pl, wency@cn.fujitsu.com
+Cc: thilo.fromm@profitbricks.com
 
-On Saturday, November 02, 2013 11:18:31 PM Rafael J. Wysocki wrote:
-> On Friday, November 01, 2013 02:35:54 PM Jarkko Nikula wrote:
-> > We may find use for struct acpi_device and acpi_bus_get_device() in generic
-> > code without wanting to add #if IS_ENABLED(CONFIG_ACPI) churn there.
-> > 
-> > Code can use ACPI_HANDLE() test to let compiler optimize out code blocks
-> > that are not used in !CONFIG_ACPI builds but structure definitions and
-> > function stubs must be available.
-> > 
-> > This patch moves CONFIG_ACPI test so that struct acpi_device definition
-> > is available for all builds that include acpi_bus.h and provides a stub for
-> > acpi_bus_get_device().
-> > 
-> > Signed-off-by: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Any comment on this?
+
+On Fri, Oct 25, 2013 at 11:32:10AM +0200, Vasilis Liaskovitis wrote:
+> This patch adds a _PXM object to seabios CPU objects. The _PXM value is derived
+> from CPU SRAT entries, so build_ssdt needs to be called after build_srat for
+> this to work.
 > 
-> This turns out the cause build problems to happen on some architectures.
+> The motivation for this patch is a CPU hot-unplug/hot-plug bug observed when
+> using seabios and a 3.11 linux guest kernel on a multi-NUMA node qemu/kvm VM.
+> The linux guest kernel parses the SRAT CPU entries at boot time and stores them
+> in the array __apicid_to_node. When a CPU is hot-removed, the linux guest kernel
+> resets the removed CPU's __apicid_to_node entry to NO_NUMA_NODE (kernel commit
+> c4c60524). When the removed cpu is hot-added again, the linux kernel looks up
+> the hot-added cpu object's _PXM  value instead of somehow re-using the SRAT
+> entry info (acpi_map_cpu2node calls acpi_get_node which calls acpi_get_pxm). If
+> the _PXM value is not found, the CPU is assumed to be on node 0, and it is
+> hot-plugged in the wrong NUMA node.
 > 
-> I guess it's sufficient to simply define a stub struct acpi_device as
+> Which is the preferred OSPM way of looking up a CPU's proximity info at hotplug
+> time? Is it the CPU object's _PXM value, or the already-parsed CPU SRAT entry?
+> Or maybe both ways are valid?
 > 
-> struct acpi_device {
-> 	struct device dev;
-> };
+> This issue may require a kernel fix alternatively or additionally to the seabios
+> fix: The kernel can save the originally parsed SRAT entry info somewhere before
+> it resets it at hot-remove time, and use that info on hot-plug time if the _PXM
+> value is missing for the hot-plugged CPU BIOS object. This way CPU hot-plug
+> works well against a BIOS with no CPU _PXM info.
 > 
-> for !CONFIG_ACPI instead.
-
-Generally, it is a bad idea to #include acpi_bus.h for !CONFIG_ACPI.
-
-The appended patch works for me, sorry for stealing part of your changelog.
-
-Thanks,
-Rafael
-
-
----
-From: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI: Define struct acpi_device for CONFIG_ACPI unset
-
-We may find use for struct acpi_device and acpi_bus_get_device() in
-generic code without wanting to add #if IS_ENABLED(CONFIG_ACPI) churn
-there.
-
-Code can use ACPI_HANDLE() test to let compiler optimize out code
-blocks that are not used in !CONFIG_ACPI builds but structure
-definitions and function stubs must be available.
-
-Define a stub struct acpi_device for CONFIG_ACPI unset containing dev
-as the only member and a stub acpi_bus_get_device() always returning
-an error code.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- include/linux/acpi.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-Index: linux-pm/include/linux/acpi.h
-===================================================================
---- linux-pm.orig/include/linux/acpi.h
-+++ linux-pm/include/linux/acpi.h
-@@ -472,7 +472,17 @@ static inline bool acpi_driver_match_dev
- }
- 
- #define ACPI_PTR(_ptr)	(NULL)
-+typedef void * acpi_handle;
- 
-+struct acpi_device {
-+	struct device dev;
-+};
-+
-+static inline int acpi_bus_get_device(acpi_handle handle,
-+				      struct acpi_device **device)
-+{
-+	return -ENODEV;
-+}
- #endif	/* !CONFIG_ACPI */
- 
- #ifdef CONFIG_ACPI
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Any comments / thoughts are welcome.
+> ---
+>  src/fw/acpi.c        |    8 +++++++-
+>  src/fw/ssdt-proc.dsl |    2 ++
+>  2 files changed, 9 insertions(+), 1 deletion(-)
+> 
+> diff --git a/src/fw/acpi.c b/src/fw/acpi.c
+> index 8de24c9..85c04fd 100644
+> --- a/src/fw/acpi.c
+> +++ b/src/fw/acpi.c
+> @@ -23,6 +23,7 @@
+>  #include "src/fw/acpi-dsdt.hex"
+>  
+>  u32 acpi_pm1a_cnt VARFSEG;
+> +struct srat_processor_affinity *cpu;
+>  
+>  static void
+>  build_header(struct acpi_table_header *h, u32 sig, int len, u8 rev)
+> @@ -244,6 +245,7 @@ encodeLen(u8 *ssdt_ptr, int length, int bytes)
+>  #define PROC_OFFSET_CPUHEX (*ssdt_proc_name - *ssdt_proc_start + 2)
+>  #define PROC_OFFSET_CPUID1 (*ssdt_proc_name - *ssdt_proc_start + 4)
+>  #define PROC_OFFSET_CPUID2 (*ssdt_proc_id - *ssdt_proc_start)
+> +#define PROC_OFFSET_CPUPXM (*ssdt_proc_pxm - *ssdt_proc_start)
+>  #define PROC_SIZEOF (*ssdt_proc_end - *ssdt_proc_start)
+>  #define PROC_AML (ssdp_proc_aml + *ssdt_proc_start)
+>  
+> @@ -372,6 +374,7 @@ build_ssdt(void)
+>      *(ssdt_ptr++) = '_';
+>  
+>      // build Processor object for each processor
+> +    struct srat_processor_affinity *core = cpu;
+>      int i;
+>      for (i=0; i<acpi_cpus; i++) {
+>          memcpy(ssdt_ptr, PROC_AML, PROC_SIZEOF);
+> @@ -379,7 +382,9 @@ build_ssdt(void)
+>          ssdt_ptr[PROC_OFFSET_CPUHEX+1] = getHex(i);
+>          ssdt_ptr[PROC_OFFSET_CPUID1] = i;
+>          ssdt_ptr[PROC_OFFSET_CPUID2] = i;
+> +        ssdt_ptr[PROC_OFFSET_CPUPXM] = core->proximity_lo;
+>          ssdt_ptr += PROC_SIZEOF;
+> +        core++;
+>      }
+>  
+>      // build "Method(NTFY, 2) {If (LEqual(Arg0, 0x00)) {Notify(CP00, Arg1)} ...}"
+> @@ -497,6 +502,7 @@ build_srat(void)
+>      int i;
+>      u64 curnode;
+>  
+> +    cpu = core;
+>      for (i = 0; i < max_cpu; ++i) {
+>          core->type = SRAT_PROCESSOR;
+>          core->length = sizeof(*core);
+> @@ -620,10 +626,10 @@ acpi_setup(void)
+>  
+>      struct fadt_descriptor_rev1 *fadt = build_fadt(pci);
+>      ACPI_INIT_TABLE(fadt);
+> -    ACPI_INIT_TABLE(build_ssdt());
+>      ACPI_INIT_TABLE(build_madt());
+>      ACPI_INIT_TABLE(build_hpet());
+>      ACPI_INIT_TABLE(build_srat());
+> +    ACPI_INIT_TABLE(build_ssdt());
+>      if (pci->device == PCI_DEVICE_ID_INTEL_ICH9_LPC)
+>          ACPI_INIT_TABLE(build_mcfg_q35());
+>  
+> diff --git a/src/fw/ssdt-proc.dsl b/src/fw/ssdt-proc.dsl
+> index 407d61e..373cdd7 100644
+> --- a/src/fw/ssdt-proc.dsl
+> +++ b/src/fw/ssdt-proc.dsl
+> @@ -32,6 +32,8 @@ DefinitionBlock ("ssdt-proc.aml", "SSDT", 0x01, "BXPC", "BXSSDT", 0x1)
+>   * also updating the C code.
+>   */
+>          Name(_HID, "ACPI0007")
+> +        ACPI_EXTRACT_NAME_BYTE_CONST ssdt_proc_pxm
+> +        Name(_PXM, 0xBB)
+>          External(CPMA, MethodObj)
+>          External(CPST, MethodObj)
+>          External(CPEJ, MethodObj)
+> -- 
+> 1.7.10.4
+> 
