@@ -1,61 +1,34 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [Update][PATCH 1/6] ACPI / scan: Start matching drivers after trying scan handlers
-Date: Mon, 04 Nov 2013 14:30:58 +0100
-Message-ID: <2151922.M630KK6nC3@vostro.rjw.lan>
-References: <5839747.7HXXGHmMBd@vostro.rjw.lan> <2970389.SeMGM45Qln@vostro.rjw.lan>
+Subject: [Update][PATCH 0/6] ACPI scan and hotplug fixes
+Date: Mon, 04 Nov 2013 14:29:56 +0100
+Message-ID: <2970389.SeMGM45Qln@vostro.rjw.lan>
+References: <5839747.7HXXGHmMBd@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2970389.SeMGM45Qln@vostro.rjw.lan>
+In-Reply-To: <5839747.7HXXGHmMBd@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Monday, November 04, 2013 01:17:12 AM Rafael J. Wysocki wrote:
+> Hi,
+> 
+> The following three patches fix some issues that we have in the common ACPI
+> hotplug infrastructure.
+> 
+> If anyone sees any problems with them, please let me know.
 
-ACPI scan handlers should always be attached to struct acpi_device
-objects before any ACPI drivers, but there is a window during which
-a driver may be attached to a struct acpi_device before checking if
-there is a matching scan handler.  Namely, that will happen if an
-ACPI driver module is loaded during acpi_bus_scan() right after
-the first namespace walk is complete and before the given device
-is processed by the second namespace walk.
+Well, the last patch from the last version didn't really do the right thing in
+my opinion, so new series follows.
 
-To prevent that from happening, set the match_driver flags of
-struct acpi_device objects right before running device_attach()
-for them in acpi_bus_device_attach().
+I actually would like to squeeze it into 3.13 if there are no objections, since
+at least patch [3/6] is kind of urgent.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/scan.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+Thanks!
 
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -1676,7 +1676,6 @@ void acpi_init_device_object(struct acpi
- 
- void acpi_device_add_finalize(struct acpi_device *device)
- {
--	device->flags.match_driver = true;
- 	dev_set_uevent_suppress(&device->dev, false);
- 	kobject_uevent(&device->dev.kobj, KOBJ_ADD);
- }
-@@ -1915,8 +1914,12 @@ static acpi_status acpi_bus_device_attac
- 		return AE_OK;
- 
- 	ret = acpi_scan_attach_handler(device);
--	if (ret)
--		return ret > 0 ? AE_OK : AE_CTRL_DEPTH;
-+	if (ret < 0)
-+		return AE_CTRL_DEPTH;
-+
-+	device->flags.match_driver = true;
-+	if (ret > 0)
-+		return AE_OK;
- 
- 	ret = device_attach(&device->dev);
- 	return ret >= 0 ? AE_OK : AE_CTRL_DEPTH;
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
