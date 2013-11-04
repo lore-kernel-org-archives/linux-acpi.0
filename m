@@ -1,178 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [Update][PATCH 4/6] ACPI / hotplug: Simplify device ejection routines
-Date: Mon, 04 Nov 2013 14:36:44 +0100
-Message-ID: <1602442.26cFiMyQkW@vostro.rjw.lan>
-References: <5839747.7HXXGHmMBd@vostro.rjw.lan> <2970389.SeMGM45Qln@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH][SeaBIOS] Add _PXM to CPU objects for NUMA hot-plug
+Date: Mon, 04 Nov 2013 13:26:14 -0700
+Message-ID: <1383596774.1847.12.camel@misato.fc.hp.com>
+References: <1382693530-31137-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+	 <20131104105149.GB30503@dhcp-192-168-178-175.profitbricks.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2970389.SeMGM45Qln@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:16689 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752948Ab3KDUag (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Nov 2013 15:30:36 -0500
+In-Reply-To: <20131104105149.GB30503@dhcp-192-168-178-175.profitbricks.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: seabios@seabios.org, linux-acpi@vger.kernel.org, kevin@koconnor.net, rjw@sisk.pl, wency@cn.fujitsu.com, thilo.fromm@profitbricks.com
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Mon, 2013-11-04 at 11:51 +0100, Vasilis Liaskovitis wrote:
+> Any comment on this?
+> 
+> On Fri, Oct 25, 2013 at 11:32:10AM +0200, Vasilis Liaskovitis wrote:
+> > This patch adds a _PXM object to seabios CPU objects. The _PXM value is derived
+> > from CPU SRAT entries, so build_ssdt needs to be called after build_srat for
+> > this to work.
+> > 
+> > The motivation for this patch is a CPU hot-unplug/hot-plug bug observed when
+> > using seabios and a 3.11 linux guest kernel on a multi-NUMA node qemu/kvm VM.
+> > The linux guest kernel parses the SRAT CPU entries at boot time and stores them
+> > in the array __apicid_to_node. When a CPU is hot-removed, the linux guest kernel
+> > resets the removed CPU's __apicid_to_node entry to NO_NUMA_NODE (kernel commit
+> > c4c60524). When the removed cpu is hot-added again, the linux kernel looks up
+> > the hot-added cpu object's _PXM  value instead of somehow re-using the SRAT
+> > entry info (acpi_map_cpu2node calls acpi_get_node which calls acpi_get_pxm). If
+> > the _PXM value is not found, the CPU is assumed to be on node 0, and it is
+> > hot-plugged in the wrong NUMA node.
+> > 
+> > Which is the preferred OSPM way of looking up a CPU's proximity info at hotplug
+> > time? Is it the CPU object's _PXM value, or the already-parsed CPU SRAT entry?
+> > Or maybe both ways are valid?
 
-Simplify handle_root_bridge_removal() and acpi_eject_store() by
-getting rid of struct acpi_eject_event and passing device objects
-directly to async routines executed via acpi_os_hotplug_execute().
+SRAT describes proximity values at boot-time.  During hotplug, the
+kernel is supposed to obtain the current proximity value from _PXM
+method.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/pci_root.c |   20 ++------------------
- drivers/acpi/scan.c     |   46 ++++++++++++++++++----------------------------
- include/acpi/acpi_bus.h |    5 -----
- 3 files changed, 20 insertions(+), 51 deletions(-)
+> > This issue may require a kernel fix alternatively or additionally to the seabios
+> > fix: The kernel can save the originally parsed SRAT entry info somewhere before
+> > it resets it at hot-remove time, and use that info on hot-plug time if the _PXM
+> > value is missing for the hot-plugged CPU BIOS object. This way CPU hot-plug
+> > works well against a BIOS with no CPU _PXM info.
 
-Index: linux-pm/drivers/acpi/pci_root.c
-===================================================================
---- linux-pm.orig/drivers/acpi/pci_root.c
-+++ linux-pm/drivers/acpi/pci_root.c
-@@ -593,27 +593,11 @@ static void handle_root_bridge_insertion
- static void handle_root_bridge_removal(struct acpi_device *device)
- {
- 	acpi_status status;
--	struct acpi_eject_event *ej_event;
--
--	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
--	if (!ej_event) {
--		/* Inform firmware the hot-remove operation has error */
--		(void) acpi_evaluate_hotplug_ost(device->handle,
--					ACPI_NOTIFY_EJECT_REQUEST,
--					ACPI_OST_SC_NON_SPECIFIC_FAILURE,
--					NULL);
--		return;
--	}
--
--	ej_event->device = device;
--	ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
- 
- 	get_device(&device->dev);
--	status = acpi_os_hotplug_execute(acpi_bus_hot_remove_device, ej_event);
--	if (ACPI_FAILURE(status)) {
-+	status = acpi_os_hotplug_execute(acpi_bus_hot_remove_device, device);
-+	if (ACPI_FAILURE(status))
- 		put_device(&device->dev);
--		kfree(ej_event);
--	}
- }
- 
- static void _handle_hotplug_event_root(struct work_struct *work)
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -441,18 +441,8 @@ static void acpi_hotplug_notify_cb(acpi_
- 					  NULL);
- }
- 
--/**
-- * acpi_bus_hot_remove_device: hot-remove a device and its children
-- * @context: struct acpi_eject_event pointer (freed in this func)
-- *
-- * Hot-remove a device and its children. This function frees up the
-- * memory space passed by arg context, so that the caller may call
-- * this function asynchronously through acpi_os_hotplug_execute().
-- */
--void acpi_bus_hot_remove_device(void *context)
-+void __acpi_bus_hot_remove_device(struct acpi_device *device, u32 ost_src)
- {
--	struct acpi_eject_event *ej_event = context;
--	struct acpi_device *device = ej_event->device;
- 	acpi_handle handle = device->handle;
- 	int error;
- 
-@@ -461,13 +451,21 @@ void acpi_bus_hot_remove_device(void *co
- 
- 	error = acpi_scan_hot_remove(device);
- 	if (error && handle)
--		acpi_evaluate_hotplug_ost(handle, ej_event->event,
-+		acpi_evaluate_hotplug_ost(handle, ost_src,
- 					  ACPI_OST_SC_NON_SPECIFIC_FAILURE,
- 					  NULL);
- 
- 	mutex_unlock(&acpi_scan_lock);
- 	unlock_device_hotplug();
--	kfree(context);
-+}
-+
-+/**
-+ * acpi_bus_hot_remove_device: Hot-remove a device and its children.
-+ * @context: Address of the ACPI device object to hot-remove.
-+ */
-+void acpi_bus_hot_remove_device(void *context)
-+{
-+	__acpi_bus_hot_remove_device(context, ACPI_NOTIFY_EJECT_REQUEST);
- }
- EXPORT_SYMBOL(acpi_bus_hot_remove_device);
- 
-@@ -497,15 +495,18 @@ static ssize_t power_state_show(struct d
- 
- static DEVICE_ATTR(power_state, 0444, power_state_show, NULL);
- 
-+static void acpi_eject_store_work(void *context)
-+{
-+	__acpi_bus_hot_remove_device(context, ACPI_OST_EC_OSPM_EJECT);
-+}
-+
- static ssize_t
- acpi_eject_store(struct device *d, struct device_attribute *attr,
- 		const char *buf, size_t count)
- {
- 	struct acpi_device *acpi_device = to_acpi_device(d);
--	struct acpi_eject_event *ej_event;
- 	acpi_object_type not_used;
- 	acpi_status status;
--	int ret;
- 
- 	if (!count || buf[0] != '1')
- 		return -EINVAL;
-@@ -518,28 +519,17 @@ acpi_eject_store(struct device *d, struc
- 	if (ACPI_FAILURE(status) || !acpi_device->flags.ejectable)
- 		return -ENODEV;
- 
--	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
--	if (!ej_event) {
--		ret = -ENOMEM;
--		goto err_out;
--	}
- 	acpi_evaluate_hotplug_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
- 				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
--	ej_event->device = acpi_device;
--	ej_event->event = ACPI_OST_EC_OSPM_EJECT;
- 	get_device(&acpi_device->dev);
--	status = acpi_os_hotplug_execute(acpi_bus_hot_remove_device, ej_event);
-+	status = acpi_os_hotplug_execute(acpi_eject_store_work, acpi_device);
- 	if (ACPI_SUCCESS(status))
- 		return count;
- 
- 	put_device(&acpi_device->dev);
--	kfree(ej_event);
--	ret = status == AE_NO_MEMORY ? -ENOMEM : -EAGAIN;
--
-- err_out:
- 	acpi_evaluate_hotplug_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
- 				  ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
--	return ret;
-+	return -EAGAIN;
- }
- 
- static DEVICE_ATTR(eject, 0200, NULL, acpi_eject_store);
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -339,11 +339,6 @@ struct acpi_bus_event {
- 	u32 data;
- };
- 
--struct acpi_eject_event {
--	struct acpi_device	*device;
--	u32		event;
--};
--
- struct acpi_hp_work {
- 	struct work_struct work;
- 	acpi_handle handle;
+To support CPU hotplug, seabios needs to implement _PXM to CPU or its
+parent device object when the system has multiple nodes.
+
+Thanks,
+-Toshi
+
+
+
+
