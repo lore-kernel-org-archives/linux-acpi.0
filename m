@@ -1,54 +1,41 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 2/3] ACPI / hotplug: Do not execute "insert in progress" _OST
-Date: Wed, 06 Nov 2013 00:36:22 +0100
-Message-ID: <3194498.3N0mOaLMuZ@vostro.rjw.lan>
-References: <5839747.7HXXGHmMBd@vostro.rjw.lan> <2970389.SeMGM45Qln@vostro.rjw.lan> <18462848.9zsetEL1Yy@vostro.rjw.lan>
+Subject: [PATCH 0/3] More ACPI hotplug updates (was: [Update][PATCH 0/6] ACPI scan and hotplug fixes)
+Date: Wed, 06 Nov 2013 00:32:12 +0100
+Message-ID: <18462848.9zsetEL1Yy@vostro.rjw.lan>
+References: <5839747.7HXXGHmMBd@vostro.rjw.lan> <2970389.SeMGM45Qln@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <18462848.9zsetEL1Yy@vostro.rjw.lan>
+In-Reply-To: <2970389.SeMGM45Qln@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Monday, November 04, 2013 02:29:56 PM Rafael J. Wysocki wrote:
+> On Monday, November 04, 2013 01:17:12 AM Rafael J. Wysocki wrote:
+> > Hi,
+> > 
+> > The following three patches fix some issues that we have in the common ACPI
+> > hotplug infrastructure.
+> > 
+> > If anyone sees any problems with them, please let me know.
+> 
+> Well, the last patch from the last version didn't really do the right thing in
+> my opinion, so new series follows.
+> 
+> I actually would like to squeeze it into 3.13 if there are no objections, since
+> at least patch [3/6] is kind of urgent.
 
-According to the ACPI spec (5.0, Section 6.3.5), the "Device
-insertion in progress (pending)" (0x80) _OST status code is
-reserved for the "Insertion Processing" (0x200) source event
-which is "a result of an OSPM action".  Specifically, it is not
-a notification, so that status code should not be used during
-notification processing, which unfortunately is done by
-acpi_scan_bus_device_check().
+Three more patches for 3.13 if people don't mind, on top of the previous series
+of six.  [2/3] actually is a fix, the other two are more like cleanups, but
+they are worth doing at this point if no one sees any problems with them.
 
-For this reason, drop the ACPI_OST_SC_INSERT_IN_PROGRESS _OST
-status evaluation from there (it was a mistake to put it in there
-in the first place).
+This is the last batch for 3.13, I promise.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+Thanks!
 
-Material for stable, in my opinion.
-
-Thanks,
-Rafael
-
----
- drivers/acpi/scan.c |    2 --
- 1 file changed, 2 deletions(-)
-
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -344,8 +344,6 @@ static void acpi_scan_bus_device_check(a
- 			goto out;
- 		}
- 	}
--	acpi_evaluate_hotplug_ost(handle, ost_source,
--				  ACPI_OST_SC_INSERT_IN_PROGRESS, NULL);
- 	error = acpi_bus_scan(handle);
- 	if (error) {
- 		acpi_handle_warn(handle, "Namespace scan failure\n");
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
