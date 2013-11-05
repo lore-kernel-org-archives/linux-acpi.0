@@ -1,45 +1,41 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [PATCHv2 1/3] ACPI: Expose struct acpi_device and
- acpi_bus_get_device() to non-ACPI builds
-Date: Mon, 4 Nov 2013 23:15:59 +0200
-Message-ID: <20131104211559.GA12144@mylly>
-References: <1382703540-3769-1-git-send-email-jarkko.nikula@linux.intel.com>
- <1383309356-25430-2-git-send-email-jarkko.nikula@linux.intel.com>
- <3858838.4tAO673dDi@vostro.rjw.lan>
- <5990097.jCz86Yqdpc@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH] acpi: blacklist: fix name of ThinkPad Edge E530
+Date: Tue,  5 Nov 2013 01:20:42 -0600
+Message-ID: <1383636042-15440-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:19723 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751936Ab3KDVQD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Nov 2013 16:16:03 -0500
-Content-Disposition: inline
-In-Reply-To: <5990097.jCz86Yqdpc@vostro.rjw.lan>
+Received: from mail-oa0-f44.google.com ([209.85.219.44]:54316 "EHLO
+	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752546Ab3KEH10 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Nov 2013 02:27:26 -0500
+Received: by mail-oa0-f44.google.com with SMTP id i7so185121oag.3
+        for <linux-acpi@vger.kernel.org>; Mon, 04 Nov 2013 23:27:25 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-i2c@vger.kernel.org, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Felipe Contreras <felipe.contreras@gmail.com>
 
-On Mon, Nov 04, 2013 at 02:00:45AM +0100, Rafael J. Wysocki wrote:
-> On Saturday, November 02, 2013 11:18:31 PM Rafael J. Wysocki wrote:
-> > This turns out the cause build problems to happen on some architectures.
-> > 
-> > I guess it's sufficient to simply define a stub struct acpi_device as
-> > 
-> > struct acpi_device {
-> > 	struct device dev;
-> > };
-> > 
-> > for !CONFIG_ACPI instead.
-> 
-> Generally, it is a bad idea to #include acpi_bus.h for !CONFIG_ACPI.
-> 
-Ouch, indeed.
+That is the advertised name.
 
-> The appended patch works for me, sorry for stealing part of your changelog.
-> 
-No problem. Thanks for fixing this up.
+http://shop.lenovo.com/us/en/laptops/thinkpad/edge-series/e530/
 
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ drivers/acpi/blacklist.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index b7fd1ae..fb84837 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -304,7 +304,7 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 	},
+ 	{
+ 	.callback = dmi_disable_osi_win8,
+-	.ident = "Lenovo ThinkPad Edge E530",
++	.ident = "ThinkPad Edge E530",
+ 	.matches = {
+ 		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+ 		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
 -- 
-Jarkko
+1.8.4.2+fc1
+
