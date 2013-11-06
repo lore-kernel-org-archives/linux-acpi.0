@@ -1,102 +1,82 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 2/2] ACPI / video: Quirk initial backlight level 0
-Date: Wed, 06 Nov 2013 09:18:16 +0800
-Message-ID: <527998D8.2030809@intel.com>
-References: <52799553.7020406@intel.com> <5279963E.8030109@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [fixup][PATCH 2/6] ACPI / hotplug: Refuse to hot-remove all objects with disabled hotplug
+Date: Wed, 06 Nov 2013 02:35:23 +0100
+Message-ID: <3139278.S6Gt6Dta9o@vostro.rjw.lan>
+References: <5839747.7HXXGHmMBd@vostro.rjw.lan> <5195965.AgE9G8aXP3@vostro.rjw.lan> <1383698367.1847.18.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:13369 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755582Ab3KFBRd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Nov 2013 20:17:33 -0500
-In-Reply-To: <5279963E.8030109@intel.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:55070 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755807Ab3KFBXG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Nov 2013 20:23:06 -0500
+In-Reply-To: <1383698367.1847.18.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Kirill Tkhai <tkhai@yandex.ru>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 
-On 11/06/2013 09:07 AM, Aaron Lu wrote:
-> Some firmware doesn't initialize initial backlight level to a proper
-> value and _BQC will return 0 on first time evaluation. We used to be
-> able to detect such incorrect value with our code logic, as value 0
-> normally isn't a valid value in _BCL. But with the introduction of Win8,
-> firmware begins to fill _BCL with values from 0 to 100, now 0 becomes
-> a valid value but that value will make user's screen black. This patch
-> test initial _BQC for value 0, if such a value is returned, do not use
-> it.
+On Tuesday, November 05, 2013 05:39:27 PM Toshi Kani wrote:
+> On Wed, 2013-11-06 at 00:27 +0100, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > In theory, an ACPI device object may be the parent of another
+> > device object whose hotplug is disabled by user space through its
+> > scan handler.  In that case, the eject operation targeting the
+> > parent should fail as though the parent's own hotplug was disabled,
+> > but currently this is not the case, because acpi_scan_hot_remove()
+> > doesn't check the disable/enable hotplug status of the children
+> > of the top-most object passed to it.
+> > 
+> > To fix this, modify acpi_bus_offline_companions() to return an
+> > error code if hotplug is disabled for the given device object.
+> > [Also change the name of the function to acpi_bus_offline(),
+> > because it is not only about companions any more, and change
+> > the name of acpi_bus_online_companions() accordingly.]  Make
+> > acpi_scan_hot_remove() propagate that error to its callers.
+> > 
+>  :
+> > +static acpi_status acpi_bus_online(acpi_handle handle, u32 lvl, void *data,
+> > +				   void **ret_p)
+> >  {
+> >  	struct acpi_device *device = NULL;
+> >  	struct acpi_device_physical_node *pn;
+> > @@ -214,26 +220,32 @@ static int acpi_scan_hot_remove(struct a
+> >  	 * If the first pass is successful, the second one isn't needed, though.
+> >  	 */
+> >  	errdev = NULL;
+> > -	acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+> > -			    NULL, acpi_bus_offline_companions,
+> > -			    (void *)false, (void **)&errdev);
+> > -	acpi_bus_offline_companions(handle, 0, (void *)false, (void **)&errdev);
+> > +	status = acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+> > +				     NULL, acpi_bus_offline, (void *)false,
+> > +				     (void **)&errdev);
+> > +	if (status == AE_SUPPORT) {
+> > +		dev_warn(errdev, "Offline disabled.\n");
+> > +		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+> > +				    acpi_bus_online, NULL, NULL, NULL);
+> > +		put_device(&device->dev);
+> > +		return -EPERM;
+> > +	}
+> > +	acpi_bus_offline(handle, 0, (void *)false, (void **)&errdev);
+> >  	if (errdev) {
 > 
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=64031
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=61231
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=63111
-> Reported-by: Qingshuai Tian <qingshuai.tian@intel.com>
-> Tested-by: Aaron Lu <aaron.lu@intel.com> on "Idealpad u330p"
-> Reported-and-tested-by: <erno@iki.fi> on "Acer Aspire V5-573G"
-> Reported-and-tested-by: Kirill Tkhai <tkhai@yandex.ru> on "HP 250 G1"
+> If the target object failed with AE_SUPPORT, shouldn't we skip the 2nd
+> pass and return with -EPERM after rollback?
 
-With this patch applied, we do not need commit e37f14a5fb85
-"ACPI / video: Ignore BIOS initial backlight value for HP 250 G1"
-any more.
+We've checked the target object already in acpi_hotplug_notify_cb() or in
+acpi_eject_store().
 
-So I made a revert patch on top of the two.
+Which is telling me that the previous version of the patch was better after
+all, because the hotplug.enabled thing takes precedence over
+acpi_force_hot_remove in the other places.  So this:
 
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH] Revert "ACPI / video: Ignore BIOS initial backlight value for
- HP 250 G1"
+https://patchwork.kernel.org/patch/3135841/
 
-This reverts commit e37f14a5fb85522f3bbf88ece6134c4e610ed598.
+is the right version.  Sorry for the confusion.
 
-It turned out other systems also share the same problem with bug 63111
-so I made a patch to catch initial brightness level 0 problem. With that
-patch applied, we do not need to place HP 250 G1 in DMI table.
-
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/acpi/video.c | 8 --------
- 1 file changed, 8 deletions(-)
-
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index a049fa9360d0..18dbdff4656e 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -504,14 +504,6 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion m4 Notebook PC"),
- 		},
- 	},
--	{
--	 .callback = video_ignore_initial_backlight,
--	 .ident = "HP 250 G1",
--	 .matches = {
--		DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "HP 250 G1 Notebook PC"),
--		},
--	},
- 	{}
- };
- 
--- 
-1.8.4.39.ga0d3f10
-
-
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Cc: stable <stable@vger.kernel.org>
-> ---
->  drivers/acpi/video.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index bf521b36c2f9..a049fa9360d0 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -858,7 +858,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
->  		for (i = 2; i < br->count; i++)
->  			if (level == br->levels[i])
->  				break;
-> -		if (i == br->count)
-> +		if (i == br->count || !level)
->  			level = max_level;
->  	}
->  
-> 
+Thanks,
+Rafael
 
