@@ -1,101 +1,43 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [fixup][PATCH 2/6] ACPI / hotplug: Refuse to hot-remove all
- objects with disabled hotplug
-Date: Tue, 05 Nov 2013 17:39:27 -0700
-Message-ID: <1383698367.1847.18.camel@misato.fc.hp.com>
-References: <5839747.7HXXGHmMBd@vostro.rjw.lan>
-	 <2970389.SeMGM45Qln@vostro.rjw.lan> <1842331.UHR0XPv1jo@vostro.rjw.lan>
-	 <5195965.AgE9G8aXP3@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH 1/2] ACPI / video: Fix initial level validity test
+Date: Wed, 06 Nov 2013 09:03:15 +0800
+Message-ID: <52799553.7020406@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:34821 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932082Ab3KFAns (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Nov 2013 19:43:48 -0500
-In-Reply-To: <5195965.AgE9G8aXP3@vostro.rjw.lan>
+Received: from mga09.intel.com ([134.134.136.24]:23980 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755605Ab3KFBCa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Nov 2013 20:02:30 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
+Cc: Danny Baumann <dannybaumann@web.de>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Wed, 2013-11-06 at 00:27 +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> In theory, an ACPI device object may be the parent of another
-> device object whose hotplug is disabled by user space through its
-> scan handler.  In that case, the eject operation targeting the
-> parent should fail as though the parent's own hotplug was disabled,
-> but currently this is not the case, because acpi_scan_hot_remove()
-> doesn't check the disable/enable hotplug status of the children
-> of the top-most object passed to it.
-> 
-> To fix this, modify acpi_bus_offline_companions() to return an
-> error code if hotplug is disabled for the given device object.
-> [Also change the name of the function to acpi_bus_offline(),
-> because it is not only about companions any more, and change
-> the name of acpi_bus_online_companions() accordingly.]  Make
-> acpi_scan_hot_remove() propagate that error to its callers.
-> 
- :
-> +static acpi_status acpi_bus_online(acpi_handle handle, u32 lvl, void *data,
-> +				   void **ret_p)
->  {
->  	struct acpi_device *device = NULL;
->  	struct acpi_device_physical_node *pn;
-> @@ -214,26 +220,32 @@ static int acpi_scan_hot_remove(struct a
->  	 * If the first pass is successful, the second one isn't needed, though.
->  	 */
->  	errdev = NULL;
-> -	acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> -			    NULL, acpi_bus_offline_companions,
-> -			    (void *)false, (void **)&errdev);
-> -	acpi_bus_offline_companions(handle, 0, (void *)false, (void **)&errdev);
-> +	status = acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> +				     NULL, acpi_bus_offline, (void *)false,
-> +				     (void **)&errdev);
-> +	if (status == AE_SUPPORT) {
-> +		dev_warn(errdev, "Offline disabled.\n");
-> +		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> +				    acpi_bus_online, NULL, NULL, NULL);
-> +		put_device(&device->dev);
-> +		return -EPERM;
-> +	}
-> +	acpi_bus_offline(handle, 0, (void *)false, (void **)&errdev);
->  	if (errdev) {
+When testing if the firmware's initial value is valid, we should use
+the corrected level value instead of the raw value returned from
+firmware.
 
-If the target object failed with AE_SUPPORT, shouldn't we skip the 2nd
-pass and return with -EPERM after rollback? 
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Cc: Danny Baumann <dannybaumann@web.de>
+Cc: stable <stable@kernel.org>
+---
+ drivers/acpi/video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
--Toshi
-
-
->  		errdev = NULL;
->  		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> -				    NULL, acpi_bus_offline_companions,
-> -				    (void *)true , (void **)&errdev);
-> +				    NULL, acpi_bus_offline, (void *)true,
-> +				    (void **)&errdev);
->  		if (!errdev || acpi_force_hot_remove)
-> -			acpi_bus_offline_companions(handle, 0, (void *)true,
-> -						    (void **)&errdev);
-> +			acpi_bus_offline(handle, 0, (void *)true,
-> +					 (void **)&errdev);
->  
->  		if (errdev && !acpi_force_hot_remove) {
->  			dev_warn(errdev, "Offline failed.\n");
-> -			acpi_bus_online_companions(handle, 0, NULL, NULL);
-> +			acpi_bus_online(handle, 0, NULL, NULL);
->  			acpi_walk_namespace(ACPI_TYPE_ANY, handle,
-> -					    ACPI_UINT32_MAX,
-> -					    acpi_bus_online_companions, NULL,
-> -					    NULL, NULL);
-> +					    ACPI_UINT32_MAX, acpi_bus_online,
-> +					    NULL, NULL, NULL);
->  			put_device(&device->dev);
->  			return -EBUSY;
->  		}
-
-
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 38c3a28d6392..bf521b36c2f9 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -856,7 +856,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+ 		 * or an index). Set the backlight to max_level in this case.
+ 		 */
+ 		for (i = 2; i < br->count; i++)
+-			if (level_old == br->levels[i])
++			if (level == br->levels[i])
+ 				break;
+ 		if (i == br->count)
+ 			level = max_level;
+-- 
+1.8.4.39.ga0d3f10
