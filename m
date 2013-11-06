@@ -1,62 +1,50 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/2] ACPI / video: Quirk initial backlight level 0
-Date: Wed, 06 Nov 2013 23:04:35 +0100
-Message-ID: <2064550.kjUmjAe1y9@vostro.rjw.lan>
-References: <52799553.7020406@intel.com> <5279963E.8030109@intel.com>
+Subject: Re: [patch 2/2] ACPI, extlog: remove unneeded NULL check
+Date: Wed, 06 Nov 2013 23:06:26 +0100
+Message-ID: <4572462.cKQzNDzG5Z@vostro.rjw.lan>
+References: <20131105202007.GB3949@elgon.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50224 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756366Ab3KFVwQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Nov 2013 16:52:16 -0500
-In-Reply-To: <5279963E.8030109@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20131105202007.GB3949@elgon.mountain>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Len Brown <lenb@kernel.org>, Chen@elgon.mountain, Gong <gong.chen@linux.intel.com>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Qingshuai Tian <qingshuai.tian@intel.com>, erno@iki.fi, Kirill Tkhai <tkhai@yandex.ru>, Shuduo Sang <sangshuduo@gmail.com>
 
-On Wednesday, November 06, 2013 09:07:10 AM Aaron Lu wrote:
-> Some firmware doesn't initialize initial backlight level to a proper
-> value and _BQC will return 0 on first time evaluation. We used to be
-> able to detect such incorrect value with our code logic, as value 0
-> normally isn't a valid value in _BCL. But with the introduction of Win8,
-> firmware begins to fill _BCL with values from 0 to 100, now 0 becomes
-> a valid value but that value will make user's screen black. This patch
-> test initial _BQC for value 0, if such a value is returned, do not use
-> it.
+On Tuesday, November 05, 2013 11:20:07 PM Dan Carpenter wrote:
+> We dereference extlog_l1_addr so the check is too late.  The
+> "extlog_l1_addr" pointer can never be NULL when this function is called
+> so I have removed the check.
 > 
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=64031
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=61231
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=63111
-> Reported-by: Qingshuai Tian <qingshuai.tian@intel.com>
-> Tested-by: Aaron Lu <aaron.lu@intel.com> on "Idealpad u330p"
-> Reported-and-tested-by: <erno@iki.fi> on "Acer Aspire V5-573G"
-> Reported-and-tested-by: Kirill Tkhai <tkhai@yandex.ru> on "HP 250 G1"
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Cc: stable <stable@vger.kernel.org>
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-All stable, or any particular series?
+I'm wondering what kernel you have checked, because drivers/acpi/acpi_extlog.c
+is not present in the mainline or even in linux-next?
 
-> ---
->  drivers/acpi/video.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+Rafael
+
+
 > 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index bf521b36c2f9..a049fa9360d0 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -858,7 +858,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
->  		for (i = 2; i < br->count; i++)
->  			if (level == br->levels[i])
->  				break;
-> -		if (i == br->count)
-> +		if (i == br->count || !level)
->  			level = max_level;
->  	}
->  
-> 
+> diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
+> index c4d5e59..d59e4bb 100644
+> --- a/drivers/acpi/acpi_extlog.c
+> +++ b/drivers/acpi/acpi_extlog.c
+> @@ -308,8 +308,7 @@ static void __exit extlog_exit(void)
+>  {
+>  	mce_unregister_decode_chain(&extlog_mce_dec);
+>  	((struct extlog_l1_head *)extlog_l1_addr)->flags &= ~FLAG_OS_OPTIN;
+> -	if (extlog_l1_addr)
+> -		acpi_os_unmap_memory(extlog_l1_addr, l1_size);
+> +	acpi_os_unmap_memory(extlog_l1_addr, l1_size);
+>  	if (elog_addr)
+>  		acpi_os_unmap_memory(elog_addr, elog_size);
+>  	release_mem_region(elog_base, elog_size);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
