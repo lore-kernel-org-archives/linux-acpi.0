@@ -1,26 +1,40 @@
-From: Tony Luck <tony.luck@gmail.com>
-Subject: Re: [patch 2/2] ACPI, extlog: remove unneeded NULL check
-Date: Wed, 6 Nov 2013 14:45:18 -0800
-Message-ID: <CA+8MBb+5-o=XoWb61q7FkbhGK-LWTbRyxgSVK+Rb0a1U20nAcw@mail.gmail.com>
-References: <20131105202007.GB3949@elgon.mountain>
-	<4572462.cKQzNDzG5Z@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [Update][PATCH 3/6] ACPI / hotplug: Fix
+ handle_root_bridge_removal()
+Date: Wed, 06 Nov 2013 16:21:10 -0700
+Message-ID: <1383780070.1847.45.camel@misato.fc.hp.com>
+References: <5839747.7HXXGHmMBd@vostro.rjw.lan>
+	 <2970389.SeMGM45Qln@vostro.rjw.lan> <6808835.gmCqHn1NaE@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ve0-f173.google.com ([209.85.128.173]:44783 "EHLO
-	mail-ve0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751053Ab3KFWpT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Nov 2013 17:45:19 -0500
-In-Reply-To: <4572462.cKQzNDzG5Z@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6808835.gmCqHn1NaE@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, Len Brown <lenb@kernel.org>, Gong <gong.chen@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 6, 2013 at 2:06 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> I'm wondering what kernel you have checked, because drivers/acpi/acpi_extlog.c
-> is not present in the mainline or even in linux-next?
+On Mon, 2013-11-04 at 14:33 +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> It is required to do get_device() on the struct acpi_device in
+> question before passing it to acpi_bus_hot_remove_device() through
+> acpi_os_hotplug_execute(), because acpi_bus_hot_remove_device()
+> calls acpi_scan_hot_remove() that does put_device() on that
+> object.
+> 
+> The ACPI PCI root removal routine, handle_root_bridge_removal(),
+> doesn't do that, which may lead to premature freeing of the
+> device object or to executing put_device() on an object that
+> has been freed already.
+> 
+> Fix this problem by making handle_root_bridge_removal() use
+> get_device() as appropriate.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-It's in the "tip" tree ... and seems to be in next-20131106
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 
--Tony
+Thanks,
+-Toshi
