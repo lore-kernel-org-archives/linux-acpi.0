@@ -1,40 +1,69 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [Update][PATCH 3/6] ACPI / hotplug: Fix
- handle_root_bridge_removal()
-Date: Wed, 06 Nov 2013 16:21:10 -0700
-Message-ID: <1383780070.1847.45.camel@misato.fc.hp.com>
+Subject: Re: [Update][PATCH 4/6] ACPI / hotplug: Simplify device ejection
+ routines
+Date: Wed, 06 Nov 2013 16:27:01 -0700
+Message-ID: <1383780421.1847.50.camel@misato.fc.hp.com>
 References: <5839747.7HXXGHmMBd@vostro.rjw.lan>
-	 <2970389.SeMGM45Qln@vostro.rjw.lan> <6808835.gmCqHn1NaE@vostro.rjw.lan>
+	 <2970389.SeMGM45Qln@vostro.rjw.lan> <1602442.26cFiMyQkW@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6808835.gmCqHn1NaE@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:35280 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752105Ab3KFXbZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Nov 2013 18:31:25 -0500
+In-Reply-To: <1602442.26cFiMyQkW@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
-List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2013-11-04 at 14:33 +0100, Rafael J. Wysocki wrote:
+On Mon, 2013-11-04 at 14:36 +0100, Rafael J. Wysocki wrote:
 > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> It is required to do get_device() on the struct acpi_device in
-> question before passing it to acpi_bus_hot_remove_device() through
-> acpi_os_hotplug_execute(), because acpi_bus_hot_remove_device()
-> calls acpi_scan_hot_remove() that does put_device() on that
-> object.
-> 
-> The ACPI PCI root removal routine, handle_root_bridge_removal(),
-> doesn't do that, which may lead to premature freeing of the
-> device object or to executing put_device() on an object that
-> has been freed already.
-> 
-> Fix this problem by making handle_root_bridge_removal() use
-> get_device() as appropriate.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Simplify handle_root_bridge_removal() and acpi_eject_store() by
+> getting rid of struct acpi_eject_event and passing device objects
+> directly to async routines executed via acpi_os_hotplug_execute().
+ :
+>  static ssize_t
+>  acpi_eject_store(struct device *d, struct device_attribute *attr,
+>  		const char *buf, size_t count)
+>  {
+>  	struct acpi_device *acpi_device = to_acpi_device(d);
+> -	struct acpi_eject_event *ej_event;
+>  	acpi_object_type not_used;
+>  	acpi_status status;
+> -	int ret;
+>  
+>  	if (!count || buf[0] != '1')
+>  		return -EINVAL;
+> @@ -518,28 +519,17 @@ acpi_eject_store(struct device *d, struc
+>  	if (ACPI_FAILURE(status) || !acpi_device->flags.ejectable)
+>  		return -ENODEV;
+>  
+> -	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
+> -	if (!ej_event) {
+> -		ret = -ENOMEM;
+> -		goto err_out;
+> -	}
+>  	acpi_evaluate_hotplug_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
+>  				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+> -	ej_event->device = acpi_device;
+> -	ej_event->event = ACPI_OST_EC_OSPM_EJECT;
+>  	get_device(&acpi_device->dev);
+> -	status = acpi_os_hotplug_execute(acpi_bus_hot_remove_device, ej_event);
+> +	status = acpi_os_hotplug_execute(acpi_eject_store_work, acpi_device);
+>  	if (ACPI_SUCCESS(status))
+>  		return count;
+>  
+>  	put_device(&acpi_device->dev);
+> -	kfree(ej_event);
+> -	ret = status == AE_NO_MEMORY ? -ENOMEM : -EAGAIN;
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+Why are you deleting the above line as part of this change?
 
 Thanks,
 -Toshi
+
+
