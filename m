@@ -1,88 +1,37 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [fixup][PATCH 2/6] ACPI / hotplug: Refuse to hot-remove all
- objects with disabled hotplug
-Date: Tue, 05 Nov 2013 18:32:13 -0700
-Message-ID: <1383701533.1847.20.camel@misato.fc.hp.com>
-References: <5839747.7HXXGHmMBd@vostro.rjw.lan>
-	 <5195965.AgE9G8aXP3@vostro.rjw.lan>
-	 <1383698367.1847.18.camel@misato.fc.hp.com>
-	 <3139278.S6Gt6Dta9o@vostro.rjw.lan>
+From: Kevin O'Connor <kevin@koconnor.net>
+Subject: Re: [RFC PATCH] Add _PXM to CPU objects for NUMA hot-plug
+Date: Tue, 5 Nov 2013 21:52:39 -0500
+Message-ID: <20131106025239.GA18207@morn.localdomain>
+References: <1382693530-31137-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+ <20131104105149.GB30503@dhcp-192-168-178-175.profitbricks.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <3139278.S6Gt6Dta9o@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
+Return-path: <seabios-bounces@seabios.org>
+Content-Disposition: inline
+In-Reply-To: <20131104105149.GB30503@dhcp-192-168-178-175.profitbricks.localdomain>
+List-Unsubscribe: <http://www.seabios.org/mailman/options/seabios>,
+ <mailto:seabios-request@seabios.org?subject=unsubscribe>
+List-Archive: <http://www.seabios.org/pipermail/seabios>
+List-Post: <mailto:seabios@seabios.org>
+List-Help: <mailto:seabios-request@seabios.org?subject=help>
+List-Subscribe: <http://www.seabios.org/mailman/listinfo/seabios>,
+ <mailto:seabios-request@seabios.org?subject=subscribe>
+Errors-To: seabios-bounces@seabios.org
+Sender: seabios-bounces@seabios.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: rjw@sisk.pl, linux-acpi@vger.kernel.org, thilo.fromm@profitbricks.com, seabios@seabios.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2013-11-06 at 02:35 +0100, Rafael J. Wysocki wrote:
-> On Tuesday, November 05, 2013 05:39:27 PM Toshi Kani wrote:
-> > On Wed, 2013-11-06 at 00:27 +0100, Rafael J. Wysocki wrote:
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > 
-> > > In theory, an ACPI device object may be the parent of another
-> > > device object whose hotplug is disabled by user space through its
-> > > scan handler.  In that case, the eject operation targeting the
-> > > parent should fail as though the parent's own hotplug was disabled,
-> > > but currently this is not the case, because acpi_scan_hot_remove()
-> > > doesn't check the disable/enable hotplug status of the children
-> > > of the top-most object passed to it.
-> > > 
-> > > To fix this, modify acpi_bus_offline_companions() to return an
-> > > error code if hotplug is disabled for the given device object.
-> > > [Also change the name of the function to acpi_bus_offline(),
-> > > because it is not only about companions any more, and change
-> > > the name of acpi_bus_online_companions() accordingly.]  Make
-> > > acpi_scan_hot_remove() propagate that error to its callers.
-> > > 
-> >  :
-> > > +static acpi_status acpi_bus_online(acpi_handle handle, u32 lvl, void *data,
-> > > +				   void **ret_p)
-> > >  {
-> > >  	struct acpi_device *device = NULL;
-> > >  	struct acpi_device_physical_node *pn;
-> > > @@ -214,26 +220,32 @@ static int acpi_scan_hot_remove(struct a
-> > >  	 * If the first pass is successful, the second one isn't needed, though.
-> > >  	 */
-> > >  	errdev = NULL;
-> > > -	acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> > > -			    NULL, acpi_bus_offline_companions,
-> > > -			    (void *)false, (void **)&errdev);
-> > > -	acpi_bus_offline_companions(handle, 0, (void *)false, (void **)&errdev);
-> > > +	status = acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> > > +				     NULL, acpi_bus_offline, (void *)false,
-> > > +				     (void **)&errdev);
-> > > +	if (status == AE_SUPPORT) {
-> > > +		dev_warn(errdev, "Offline disabled.\n");
-> > > +		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> > > +				    acpi_bus_online, NULL, NULL, NULL);
-> > > +		put_device(&device->dev);
-> > > +		return -EPERM;
-> > > +	}
-> > > +	acpi_bus_offline(handle, 0, (void *)false, (void **)&errdev);
-> > >  	if (errdev) {
-> > 
-> > If the target object failed with AE_SUPPORT, shouldn't we skip the 2nd
-> > pass and return with -EPERM after rollback?
+On Mon, Nov 04, 2013 at 11:51:49AM +0100, Vasilis Liaskovitis wrote:
+> Any comment on this?
 > 
-> We've checked the target object already in acpi_hotplug_notify_cb() or in
-> acpi_eject_store().
+> On Fri, Oct 25, 2013 at 11:32:10AM +0200, Vasilis Liaskovitis wrote:
+> > This patch adds a _PXM object to seabios CPU objects. The _PXM value is derived
+> > from CPU SRAT entries, so build_ssdt needs to be called after build_srat for
+> > this to work.
 
-Oh, I see.  Thanks for the clarification.
+I think ACPI changes should be done at QEMU.  Going forward, QEMU will
+pass the tables into SeaBIOS.
 
-> 
-> Which is telling me that the previous version of the patch was better after
-> all, because the hotplug.enabled thing takes precedence over
-> acpi_force_hot_remove in the other places.  So this:
-> 
-> https://patchwork.kernel.org/patch/3135841/
-> 
-> is the right version.  Sorry for the confusion.
-
-Agreed.
-
-Acked-by: Toshi Kani <toshi.kani@hp.com>
-
--Toshi
+-Kevin
