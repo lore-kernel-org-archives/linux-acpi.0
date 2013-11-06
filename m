@@ -1,50 +1,49 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [patch 2/2] ACPI, extlog: remove unneeded NULL check
-Date: Wed, 06 Nov 2013 23:06:26 +0100
-Message-ID: <4572462.cKQzNDzG5Z@vostro.rjw.lan>
-References: <20131105202007.GB3949@elgon.mountain>
+Subject: Re: [PATCH] acpi: blacklist: fix name of ThinkPad Edge E530
+Date: Wed, 06 Nov 2013 23:06:50 +0100
+Message-ID: <1895603.0MsctzP0MN@vostro.rjw.lan>
+References: <1383636042-15440-1-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20131105202007.GB3949@elgon.mountain>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Len Brown <lenb@kernel.org>, Chen@elgon.mountain, Gong <gong.chen@linux.intel.com>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:62815 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755020Ab3KFVyb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Nov 2013 16:54:31 -0500
+In-Reply-To: <1383636042-15440-1-git-send-email-felipe.contreras@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tuesday, November 05, 2013 11:20:07 PM Dan Carpenter wrote:
-> We dereference extlog_l1_addr so the check is too late.  The
-> "extlog_l1_addr" pointer can never be NULL when this function is called
-> so I have removed the check.
+On Tuesday, November 05, 2013 01:20:42 AM Felipe Contreras wrote:
+> That is the advertised name.
 > 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-I'm wondering what kernel you have checked, because drivers/acpi/acpi_extlog.c
-is not present in the mainline or even in linux-next?
-
-Rafael
-
-
+> http://shop.lenovo.com/us/en/laptops/thinkpad/edge-series/e530/
 > 
-> diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
-> index c4d5e59..d59e4bb 100644
-> --- a/drivers/acpi/acpi_extlog.c
-> +++ b/drivers/acpi/acpi_extlog.c
-> @@ -308,8 +308,7 @@ static void __exit extlog_exit(void)
->  {
->  	mce_unregister_decode_chain(&extlog_mce_dec);
->  	((struct extlog_l1_head *)extlog_l1_addr)->flags &= ~FLAG_OS_OPTIN;
-> -	if (extlog_l1_addr)
-> -		acpi_os_unmap_memory(extlog_l1_addr, l1_size);
-> +	acpi_os_unmap_memory(extlog_l1_addr, l1_size);
->  	if (elog_addr)
->  		acpi_os_unmap_memory(elog_addr, elog_size);
->  	release_mem_region(elog_base, elog_size);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+
+Applied, thanks!
+
+> ---
+>  drivers/acpi/blacklist.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+> index b7fd1ae..fb84837 100644
+> --- a/drivers/acpi/blacklist.c
+> +++ b/drivers/acpi/blacklist.c
+> @@ -304,7 +304,7 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+>  	},
+>  	{
+>  	.callback = dmi_disable_osi_win8,
+> -	.ident = "Lenovo ThinkPad Edge E530",
+> +	.ident = "ThinkPad Edge E530",
+>  	.matches = {
+>  		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+>  		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
