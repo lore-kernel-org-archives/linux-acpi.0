@@ -1,69 +1,26 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [Update][PATCH 4/6] ACPI / hotplug: Simplify device ejection
- routines
-Date: Wed, 06 Nov 2013 16:27:01 -0700
-Message-ID: <1383780421.1847.50.camel@misato.fc.hp.com>
-References: <5839747.7HXXGHmMBd@vostro.rjw.lan>
-	 <2970389.SeMGM45Qln@vostro.rjw.lan> <1602442.26cFiMyQkW@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [patch 2/2] ACPI, extlog: remove unneeded NULL check
+Date: Thu, 07 Nov 2013 01:09:38 +0100
+Message-ID: <1904928.e3mTdgXtnf@vostro.rjw.lan>
+References: <20131105202007.GB3949@elgon.mountain> <4572462.cKQzNDzG5Z@vostro.rjw.lan> <CA+8MBb+5-o=XoWb61q7FkbhGK-LWTbRyxgSVK+Rb0a1U20nAcw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:35280 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752105Ab3KFXbZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Nov 2013 18:31:25 -0500
-In-Reply-To: <1602442.26cFiMyQkW@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <CA+8MBb+5-o=XoWb61q7FkbhGK-LWTbRyxgSVK+Rb0a1U20nAcw@mail.gmail.com>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Tony Luck <tony.luck@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>, Len Brown <lenb@kernel.org>, Gong <gong.chen@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 
-On Mon, 2013-11-04 at 14:36 +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Wednesday, November 06, 2013 02:45:18 PM Tony Luck wrote:
+> On Wed, Nov 6, 2013 at 2:06 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > I'm wondering what kernel you have checked, because drivers/acpi/acpi_extlog.c
+> > is not present in the mainline or even in linux-next?
 > 
-> Simplify handle_root_bridge_removal() and acpi_eject_store() by
-> getting rid of struct acpi_eject_event and passing device objects
-> directly to async routines executed via acpi_os_hotplug_execute().
- :
->  static ssize_t
->  acpi_eject_store(struct device *d, struct device_attribute *attr,
->  		const char *buf, size_t count)
->  {
->  	struct acpi_device *acpi_device = to_acpi_device(d);
-> -	struct acpi_eject_event *ej_event;
->  	acpi_object_type not_used;
->  	acpi_status status;
-> -	int ret;
->  
->  	if (!count || buf[0] != '1')
->  		return -EINVAL;
-> @@ -518,28 +519,17 @@ acpi_eject_store(struct device *d, struc
->  	if (ACPI_FAILURE(status) || !acpi_device->flags.ejectable)
->  		return -ENODEV;
->  
-> -	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
-> -	if (!ej_event) {
-> -		ret = -ENOMEM;
-> -		goto err_out;
-> -	}
->  	acpi_evaluate_hotplug_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
->  				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
-> -	ej_event->device = acpi_device;
-> -	ej_event->event = ACPI_OST_EC_OSPM_EJECT;
->  	get_device(&acpi_device->dev);
-> -	status = acpi_os_hotplug_execute(acpi_bus_hot_remove_device, ej_event);
-> +	status = acpi_os_hotplug_execute(acpi_eject_store_work, acpi_device);
->  	if (ACPI_SUCCESS(status))
->  		return count;
->  
->  	put_device(&acpi_device->dev);
-> -	kfree(ej_event);
-> -	ret = status == AE_NO_MEMORY ? -ENOMEM : -EAGAIN;
+> It's in the "tip" tree ... and seems to be in next-20131106
 
-Why are you deleting the above line as part of this change?
+Well, OK.  Who's going to maintain this file?
 
-Thanks,
--Toshi
-
+Rafael
 
