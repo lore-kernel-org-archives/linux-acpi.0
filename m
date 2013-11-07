@@ -1,83 +1,122 @@
 From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [patch 2/2] ACPI, extlog: remove unneeded NULL check
-Date: Thu, 7 Nov 2013 02:22:30 -0500
-Message-ID: <20131107072230.GA32127@gchen.bj.intel.com>
-References: <20131105202007.GB3949@elgon.mountain>
- <4572462.cKQzNDzG5Z@vostro.rjw.lan>
- <CA+8MBb+5-o=XoWb61q7FkbhGK-LWTbRyxgSVK+Rb0a1U20nAcw@mail.gmail.com>
- <1904928.e3mTdgXtnf@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IJpNTDwzlM2Ie8A6"
+Subject: [PATCH] ACPI, APEI: Cleanup alignment related codes for APEI
+Date: Thu,  7 Nov 2013 03:11:13 -0500
+Message-ID: <1383811873-27654-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:41777 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:25040 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751315Ab3KGHic (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Nov 2013 02:38:32 -0500
-Content-Disposition: inline
-In-Reply-To: <1904928.e3mTdgXtnf@vostro.rjw.lan>
+	id S1751137Ab3KGI1S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Nov 2013 03:27:18 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Tony Luck <tony.luck@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, kernel-janitors@vger.kernel.org
+To: tony.luck@intel.com, bp@alien8.de
+Cc: linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
 
+We ever used *memcpy* to avoid access alignment issue between
+firmware and OS. Now we can use a better and standard way
+to avoid this issue. No functional changes.
 
---IJpNTDwzlM2Ie8A6
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+---
+ drivers/acpi/apei/apei-base.c |  4 ++--
+ drivers/acpi/apei/einj.c      | 19 +++++++++----------
+ drivers/acpi/apei/erst.c      |  2 +-
+ 3 files changed, 12 insertions(+), 13 deletions(-)
 
-On Thu, Nov 07, 2013 at 01:09:38AM +0100, Rafael J. Wysocki wrote:
-> Date: Thu, 07 Nov 2013 01:09:38 +0100
-> From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> To: Tony Luck <tony.luck@gmail.com>
-> Cc: Dan Carpenter <dan.carpenter@oracle.com>, Len Brown <lenb@kernel.org>,
->  Gong <gong.chen@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org=
->,
->  kernel-janitors@vger.kernel.org
-> Subject: Re: [patch 2/2] ACPI, extlog: remove unneeded NULL check
-> User-Agent: KMail/4.10.5 (Linux/3.12.0-rc6+; KDE/4.10.5; x86_64; ; )
->=20
-> On Wednesday, November 06, 2013 02:45:18 PM Tony Luck wrote:
-> > On Wed, Nov 6, 2013 at 2:06 PM, Rafael J. Wysocki <rjw@rjwysocki.net> w=
-rote:
-> > > I'm wondering what kernel you have checked, because drivers/acpi/acpi=
-_extlog.c
-> > > is not present in the mainline or even in linux-next?
-> >=20
-> > It's in the "tip" tree ... and seems to be in next-20131106
->=20
-> Well, OK.  Who's going to maintain this file?
->=20
-> Rafael
->=20
-It's me. I will maintain this file.
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index 46f80e2..c481adf 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -41,6 +41,7 @@
+ #include <linux/rculist.h>
+ #include <linux/interrupt.h>
+ #include <linux/debugfs.h>
++#include <asm/unaligned.h>
+ 
+ #include "apei-internal.h"
+ 
+@@ -567,8 +568,7 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
+ 	bit_offset = reg->bit_offset;
+ 	access_size_code = reg->access_width;
+ 	space_id = reg->space_id;
+-	/* Handle possible alignment issues */
+-	memcpy(paddr, &reg->address, sizeof(*paddr));
++	paddr = get_unaligned(&reg->address);
+ 	if (!*paddr) {
+ 		pr_warning(FW_BUG APEI_PFX
+ 			   "Invalid physical address in GAR [0x%llx/%u/%u/%u/%u]\n",
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index fb57d03..361177a 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -34,6 +34,7 @@
+ #include <linux/delay.h>
+ #include <linux/mm.h>
+ #include <acpi/acpi.h>
++#include <asm/unaligned.h>
+ 
+ #include "apei-internal.h"
+ 
+@@ -216,7 +217,7 @@ static void check_vendor_extension(u64 paddr,
+ static void *einj_get_parameter_address(void)
+ {
+ 	int i;
+-	u64 paddrv4 = 0, paddrv5 = 0;
++	u64 pa_v4 = 0, pa_v5 = 0;
+ 	struct acpi_whea_header *entry;
+ 
+ 	entry = EINJ_TAB_ENTRY(einj_tab);
+@@ -225,30 +226,28 @@ static void *einj_get_parameter_address(void)
+ 		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
+ 		    entry->register_region.space_id ==
+ 		    ACPI_ADR_SPACE_SYSTEM_MEMORY)
+-			memcpy(&paddrv4, &entry->register_region.address,
+-			       sizeof(paddrv4));
++			pa_v4 = get_unaligned(&entry->register_region.address);
+ 		if (entry->action == ACPI_EINJ_SET_ERROR_TYPE_WITH_ADDRESS &&
+ 		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
+ 		    entry->register_region.space_id ==
+ 		    ACPI_ADR_SPACE_SYSTEM_MEMORY)
+-			memcpy(&paddrv5, &entry->register_region.address,
+-			       sizeof(paddrv5));
++			pa_v5 = get_unaligned(&entry->register_region.address);
+ 		entry++;
+ 	}
+-	if (paddrv5) {
++	if (pa_v5) {
+ 		struct set_error_type_with_address *v5param;
+ 
+-		v5param = acpi_os_map_memory(paddrv5, sizeof(*v5param));
++		v5param = acpi_os_map_memory(pa_v5, sizeof(*v5param));
+ 		if (v5param) {
+ 			acpi5 = 1;
+-			check_vendor_extension(paddrv5, v5param);
++			check_vendor_extension(pa_v5, v5param);
+ 			return v5param;
+ 		}
+ 	}
+-	if (param_extension && paddrv4) {
++	if (param_extension && pa_v4) {
+ 		struct einj_parameter *v4param;
+ 
+-		v4param = acpi_os_map_memory(paddrv4, sizeof(*v4param));
++		v4param = acpi_os_map_memory(pa_v4, sizeof(*v4param));
+ 		if (!v4param)
+ 			return NULL;
+ 		if (v4param->reserved1 || v4param->reserved2) {
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index 26311f2..bf30a12 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -611,7 +611,7 @@ static void __erst_record_id_cache_compact(void)
+ 		if (entries[i] == APEI_ERST_INVALID_RECORD_ID)
+ 			continue;
+ 		if (wpos != i)
+-			memcpy(&entries[wpos], &entries[i], sizeof(entries[i]));
++			entries[wpos] = entries[i];
+ 		wpos++;
+ 	}
+ 	erst_record_id_cache.len = wpos;
+-- 
+1.8.4.rc3
 
-BTW, Dan
-
-According to your codes, I think elog_addr check can be removed, too.
-Can you send out a updated version?
-
---IJpNTDwzlM2Ie8A6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSez+2AAoJEI01n1+kOSLHlucP/057PRy404xYqHrOj3r9K2ds
-yMYCBnivw0DYK+3FmyaANoYF53oKFMz/LLZQtee1Pbi5o/Np01Ta+4dmKJlis0Wq
-MitMgP7ckdhTnBtFA9LsW/l2SXU5D3eOVMjY3I1wIjMAdwtND0ElYy6Ot0P6m6l6
-mi3uzvZKtx/Xr/zirVAD8nDf8yv+Tlj+XmMfDmwSCpzqNFpkKoEm/DhXkiQwcML+
-2oZLsCXYxZxHi96cyk8kO3ZUpOfSJrmk3nxgUyheN0796SQqkyef1EgByvb05OAL
-dOdup++zAKFXYdrRJgjpP+amzDtRUdO9kQmMhq1aGzupCXaTuExJR3Jw8H0PNkxV
-h2KuS9QFYx4fm/fxb+6iK1k88ZMFAbTVgU4CeYYBIqhal8oMxgu57cGGB7t6o1cR
-6YIvKbytxSu+/Q25LzHm/NVSDA3wbKhokvuCq4p6FRFdfHgpuRcEdtt556ub7pvW
-9UTzb5095kfo/zYZoquAvSLZwl78sB/81t1rndc5sA1l+XlN0/y5J18b0ltvxHKK
-MMXtwsLFkwmCslSkIC4dumSkZXnMi7VUHoz94Q/vUuBdExRi3TBLSc7TzHateKYV
-A87x+o+uqnvVBJ/47oZi4tukjsFrxK3bCQRl2NsT1AOOkPMO6IqHjuPIU0fUDk3J
-hOoBbRp5XGnL7Hy1KFpU
-=PR8M
------END PGP SIGNATURE-----
-
---IJpNTDwzlM2Ie8A6--
