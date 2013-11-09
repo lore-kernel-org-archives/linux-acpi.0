@@ -1,50 +1,119 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: [PATCH] ACPI, x86: Extended error log driver depends on CONFIG_X86_LOCAL_APIC
-Date: Fri, 08 Nov 2013 14:03:33 -0800
-Message-ID: <6be3afdcad7968f7fb7c0b681e547b3e872e44dd.1383947368.git.tony.luck@intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 1/1] ACPI: delete CONFIG_ACPI_BLACKLIST_YEAR
+Date: Sat,  9 Nov 2013 00:13:16 -0500
+Message-ID: <eb2dbc3278cded2b5386dee1a371025ba8590cfb.1383973958.git.len.brown@intel.com>
+Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:62819 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758278Ab3KHWEC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Nov 2013 17:04:02 -0500
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:55561 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750968Ab3KIFQH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Nov 2013 00:16:07 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Chen Gong <gong.chen@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: rjw@sisk.pl
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-Randconfig build by Fengguang's robot army reported:
+From: Len Brown <len.brown@intel.com>
 
-   drivers/built-in.o: In function `extlog_print':
->> acpi_extlog.c:(.text+0xcc719): undefined reference to `boot_cpu_physical_apicid'
+About 10 years ago, this option was created to help
+distros enable ACPI and not get distracted by ACPI
+BIOS issues in machines which were deemed old
+at that time, eg 1999 and earlier.
 
-The config had CONFIG_SMP=n so we picked up this defintion from <asm/cpu.h>:
-#define cpu_physical_id(cpu)                 boot_cpu_physical_apicid
+After a couple of years, the high volume distros
+stopped bothering to set this option, and instead
+simply ran in ACPI mode on all systems with an
+ACPI BIOS -- regardless of BIOS DMI year.
 
-But boot_cpu_physical_apicid is defined in arch/x86/kernel/apic/apic.c
-which is only built if CONFIG_X86_LOCAL_APIC=y
+Recently there have been some ACPI-enabled systems
+with no DMI, mandating that CONFIG_ACPI_BLACKLIST_YEAR=0.
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Tony Luck <tony.luck@intel.com>
+So it seems vanishingly unlikely that this option
+is helping anybody run a 2013 kernel on a 1998 system,
+and now more systems mandate this option be disabled,
+so we simplify by deleting it entirely.
+
+Signed-off-by: Len Brown <len.brown@intel.com>
 ---
-
-Ingo: This belongs on top of x86/mce branch
-
- drivers/acpi/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/Kconfig     | 11 -----------
+ drivers/acpi/blacklist.c | 35 -----------------------------------
+ 2 files changed, 46 deletions(-)
 
 diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 08eadb4a57cb..e11faae81ed9 100644
+index 22327e6..ce818e7 100644
 --- a/drivers/acpi/Kconfig
 +++ b/drivers/acpi/Kconfig
-@@ -374,7 +374,7 @@ source "drivers/acpi/apei/Kconfig"
+@@ -251,17 +251,6 @@ config ACPI_INITRD_TABLE_OVERRIDE
+ 	  initrd, therefore it's safe to say Y.
+ 	  See Documentation/acpi/initrd_table_override.txt for details
  
- config ACPI_EXTLOG
- 	tristate "Extended Error Log support"
--	depends on X86_MCE
-+	depends on X86_MCE && X86_LOCAL_APIC
- 	select EFI
- 	select UEFI_CPER
+-config ACPI_BLACKLIST_YEAR
+-	int "Disable ACPI for systems before Jan 1st this year" if X86_32
+-	default 0
+-	help
+-	  Enter a 4-digit year, e.g., 2001, to disable ACPI by default
+-	  on platforms with DMI BIOS date before January 1st that year.
+-	  "acpi=force" can be used to override this mechanism.
+-
+-	  Enter 0 to disable this mechanism and allow ACPI to
+-	  run by default no matter what the year.  (default)
+-
+ config ACPI_DEBUG
+ 	bool "Debug Statements"
  	default n
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 9515f18..a879588 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -75,39 +75,6 @@ static struct acpi_blacklist_item acpi_blacklist[] __initdata = {
+ 	{""}
+ };
+ 
+-#if	CONFIG_ACPI_BLACKLIST_YEAR
+-
+-static int __init blacklist_by_year(void)
+-{
+-	int year;
+-
+-	/* Doesn't exist? Likely an old system */
+-	if (!dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL)) {
+-		printk(KERN_ERR PREFIX "no DMI BIOS year, "
+-			"acpi=force is required to enable ACPI\n" );
+-		return 1;
+-	}
+-	/* 0? Likely a buggy new BIOS */
+-	if (year == 0) {
+-		printk(KERN_ERR PREFIX "DMI BIOS year==0, "
+-			"assuming ACPI-capable machine\n" );
+-		return 0;
+-	}
+-	if (year < CONFIG_ACPI_BLACKLIST_YEAR) {
+-		printk(KERN_ERR PREFIX "BIOS age (%d) fails cutoff (%d), "
+-		       "acpi=force is required to enable ACPI\n",
+-		       year, CONFIG_ACPI_BLACKLIST_YEAR);
+-		return 1;
+-	}
+-	return 0;
+-}
+-#else
+-static inline int blacklist_by_year(void)
+-{
+-	return 0;
+-}
+-#endif
+-
+ int __init acpi_blacklisted(void)
+ {
+ 	int i = 0;
+@@ -166,8 +133,6 @@ int __init acpi_blacklisted(void)
+ 		}
+ 	}
+ 
+-	blacklisted += blacklist_by_year();
+-
+ 	dmi_check_system(acpi_osi_dmi_table);
+ 
+ 	return blacklisted;
 -- 
-1.8.4.1
+1.8.4
 
