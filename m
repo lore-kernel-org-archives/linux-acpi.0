@@ -1,15 +1,15 @@
 From: al.stone@linaro.org
-Subject: [PATCH 10/12] ACPI: ACPI_FADT_C2_MP_SUPPORTED must be ignored in HW reduced mode
-Date: Sat,  9 Nov 2013 18:36:20 -0700
-Message-ID: <1384047382-20623-11-git-send-email-al.stone@linaro.org>
+Subject: [PATCH 12/12] ACPI: correct #ifdef so compilation without ACPI_REDUCED_HARDWARE works
+Date: Sat,  9 Nov 2013 18:36:22 -0700
+Message-ID: <1384047382-20623-13-git-send-email-al.stone@linaro.org>
 References: <1384047382-20623-1-git-send-email-al.stone@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:61786 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758584Ab3KJBgm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Nov 2013 20:36:42 -0500
-Received: by mail-ie0-f175.google.com with SMTP id u16so2367842iet.6
-        for <linux-acpi@vger.kernel.org>; Sat, 09 Nov 2013 17:36:42 -0800 (PST)
+Received: from mail-ie0-f182.google.com ([209.85.223.182]:43284 "EHLO
+	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758586Ab3KJBgp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Nov 2013 20:36:45 -0500
+Received: by mail-ie0-f182.google.com with SMTP id as1so5857616iec.13
+        for <linux-acpi@vger.kernel.org>; Sat, 09 Nov 2013 17:36:44 -0800 (PST)
 In-Reply-To: <1384047382-20623-1-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -20,43 +20,31 @@ From: Al Stone <ahs3@redhat.com>
 
 Signed-off-by: Al Stone <al.stone@linaro.org>
 ---
- drivers/acpi/processor_idle.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/acpi/bus.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index e2bd0bf..262b84b 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -290,7 +290,8 @@ static int acpi_processor_get_power_info_fadt(struct acpi_processor *pr)
- 	 * Check for P_LVL2_UP flag before entering C2 and above on
- 	 * an SMP system.
- 	 */
--	if ((num_online_cpus() > 1) &&
-+	if (!acpi_gbl_reduced_hardware &&
-+	    (num_online_cpus() > 1) &&
- 	    !(acpi_gbl_FADT.flags & ACPI_FADT_C2_MP_SUPPORTED))
- 		return -ENODEV;
- #endif
-@@ -965,7 +966,8 @@ static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
- 			continue;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index f41949a..e868de3 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -513,7 +513,7 @@ void __init acpi_early_init(void)
  
- #ifdef CONFIG_HOTPLUG_CPU
--		if ((cx->type != ACPI_STATE_C1) && (num_online_cpus() > 1) &&
-+		if (!acpi_gbl_reduced_hardware &&
-+		    (cx->type != ACPI_STATE_C1) && (num_online_cpus() > 1) &&
- 		    !pr->flags.has_cst &&
- 		    !(acpi_gbl_FADT.flags & ACPI_FADT_C2_MP_SUPPORTED))
- 			continue;
-@@ -1020,7 +1022,8 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
- 			continue;
+ 	acpi_gbl_permanent_mmap = 1;
  
- #ifdef CONFIG_HOTPLUG_CPU
--		if ((cx->type != ACPI_STATE_C1) && (num_online_cpus() > 1) &&
-+		if (!acpi_gbl_reduced_hardware &&
-+		    (cx->type != ACPI_STATE_C1) && (num_online_cpus() > 1) &&
- 		    !pr->flags.has_cst &&
- 		    !(acpi_gbl_FADT.flags & ACPI_FADT_C2_MP_SUPPORTED))
- 			continue;
+-#if !(CONFIG_ARM || CONFIG_ARM64)
++#if !(defined(CONFIG_ARM) || defined(CONFIG_ARM64))
+ 	/*
+ 	 * NB: ARM does not use DMI at present.
+ 	 *
+@@ -544,7 +544,7 @@ void __init acpi_early_init(void)
+ 		goto error0;
+ 	}
+ 
+-#if (!CONFIG_ACPI_REDUCED_HARDWARE)
++#if !(defined(CONFIG_ARM) || defined(CONFIG_ARM64)) && (!ACPI_REDUCED_HARDWARE)
+ 	/* NB: in HW reduced mode, FADT sci_interrupt has no meaning */
+ 	if (!acpi_ioapic) {
+ 		/* compatible (0) means level (3) */
 -- 
 1.8.3.1
 
