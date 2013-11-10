@@ -1,15 +1,15 @@
 From: al.stone@linaro.org
-Subject: [PATCH 05/12] ACPI: ARM: exclude calls on ARM platforms, not include them on x86
-Date: Sat,  9 Nov 2013 18:36:15 -0700
-Message-ID: <1384047382-20623-6-git-send-email-al.stone@linaro.org>
+Subject: [PATCH 06/12] ACPI: ensure several FADT fields are only used in HW reduced mode
+Date: Sat,  9 Nov 2013 18:36:16 -0700
+Message-ID: <1384047382-20623-7-git-send-email-al.stone@linaro.org>
 References: <1384047382-20623-1-git-send-email-al.stone@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:58481 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758576Ab3KJBgh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Nov 2013 20:36:37 -0500
-Received: by mail-ie0-f178.google.com with SMTP id aq17so511231iec.9
-        for <linux-acpi@vger.kernel.org>; Sat, 09 Nov 2013 17:36:36 -0800 (PST)
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:53853 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758611Ab3KJBgi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Nov 2013 20:36:38 -0500
+Received: by mail-ie0-f177.google.com with SMTP id e14so5560446iej.8
+        for <linux-acpi@vger.kernel.org>; Sat, 09 Nov 2013 17:36:37 -0800 (PST)
 In-Reply-To: <1384047382-20623-1-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -18,34 +18,35 @@ Cc: linaro-acpi@lists.linaro.org, Al Stone <ahs3@redhat.com>, Al Stone <al.stone
 
 From: Al Stone <ahs3@redhat.com>
 
-Corrected #ifdef so that DMI is not used on ARM platforms which are
-currently implementing reduced HW mode.
+In acpi_os_terminate(), it was assumed that several FADT entries were
+mapped into memory.  For HW reduced mode, that will not be the case.
 
 Signed-off-by: Al Stone <al.stone@linaro.org>
 ---
- drivers/acpi/bus.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/osl.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 6a54dd5..f41949a 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -513,11 +513,15 @@ void __init acpi_early_init(void)
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 017b85c..075545e 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1812,10 +1812,12 @@ acpi_status acpi_os_terminate(void)
+ 						 acpi_irq_handler);
+ 	}
  
- 	acpi_gbl_permanent_mmap = 1;
+-	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
+-	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
+-	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
+-	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
++	if (!acpi_gbl_reduced_hardware) {
++		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
++		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
++		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
++		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
++	}
  
-+#if !(CONFIG_ARM || CONFIG_ARM64)
- 	/*
-+	 * NB: ARM does not use DMI at present.
-+	 *
- 	 * If the machine falls into the DMI check table,
- 	 * DSDT will be copied to memory
- 	 */
- 	dmi_check_system(dsdt_dmi_table);
-+#endif
- 
- 	status = acpi_reallocate_root_table();
- 	if (ACPI_FAILURE(status)) {
+ 	destroy_workqueue(kacpid_wq);
+ 	destroy_workqueue(kacpi_notify_wq);
 -- 
 1.8.3.1
 
