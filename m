@@ -1,140 +1,131 @@
-From: Brandon Anderson <brandon.anderson@amd.com>
-Subject: [PATCH 4/4] ACPI/ARM: Remove sections of DTS definition
-Date: Mon, 11 Nov 2013 11:16:10 -0600
-Message-ID: <1384190170-8707-5-git-send-email-brandon.anderson@amd.com>
-References: <1384190170-8707-1-git-send-email-brandon.anderson@amd.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / driver core: Store a device pointer in struct acpi_dev_node
+Date: Mon, 11 Nov 2013 22:56:22 +0100
+Message-ID: <2685417.pyXg99Yvkt@vostro.rjw.lan>
+References: <3268437.YsusHvklcv@vostro.rjw.lan> <1683079.zjqzsOAjXB@vostro.rjw.lan> <20131111150318.GB16112@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-db9lp0248.outbound.messaging.microsoft.com ([213.199.154.248]:14373
-	"EHLO db9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753784Ab3KKRSO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Nov 2013 12:18:14 -0500
-In-Reply-To: <1384190170-8707-1-git-send-email-brandon.anderson@amd.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:61544 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751904Ab3KKVn4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Nov 2013 16:43:56 -0500
+In-Reply-To: <20131111150318.GB16112@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ssg.sos.patches@amd.com, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org
-Cc: Brandon Anderson <brandon.anderson@amd.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Luck, Tony" <tony.luck@intel.com>
 
-Use ACPI definition instead of DTS definition for devices that are supported
-by AMBA bus ACPI module. The replacement ACPI definition was provided in the
-related '0/4' email.
+On Monday, November 11, 2013 07:03:18 AM Greg Kroah-Hartman wrote:
+> On Mon, Nov 11, 2013 at 02:45:39PM +0100, Rafael J. Wysocki wrote:
+> > On Monday, November 11, 2013 09:21:40 AM Lan Tianyu wrote:
+> > > On 2013=E5=B9=B411=E6=9C=8810=E6=97=A5 08:58, Rafael J. Wysocki w=
+rote:
+> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > >=20
+> > > > Modify struct acpi_dev_node to contain a pointer to struct devi=
+ce
+> > > > ambedded in the struct acpi_device associated with the given de=
+vice
+> > > > object (that is, its ACPI companion device) instead of an ACPI =
+handle
+> > > > corresponding to that struct acpi_device.  Introduce two new ma=
+cros
+> > > > for manipulating that pointer in a CONFIG_ACPI-safe way,
+> > > > ACPI_COMPANION() and ACPI_COMPANION_SET(), and rework the
+> > > > ACPI_HANDLE() macro to take the above changes into account.
+> > > > Drop the ACPI_HANDLE_SET() macro entirely and rework its users =
+to
+> > > > use ACPI_COMPANION_SET() instead.  For some of them who used to
+> > > > pass the result of acpi_get_child() directly to ACPI_HANDLE_SET=
+()
+> > > > introduce a helper routine acpi_preset_companion() doing an
+> > > > equivalent thing.
+> > > >=20
+> > > > The rationale for using a struct device pointer instead of a
+> > > > struct acpi_device one as the member of struct acpi_dev_node is
+> > > > that it allows device.h to avoid including linux/acpi.h which w=
+ould
+> > > > introduce quite a bit of compilation overhead for stuff that do=
+esn't
+> > > > care about ACPI.
+> > > > In turn, moving the macros to linux/acpi.h forces
+> > > > the stuff that does care about ACPI to include that file as
+> > > > appropriate anyway.
+> > >=20
+> > > How about declaring "struct acpi_device" in the device.h? This ca=
+n help
+> > > to use struct acpi_device without including linux/acpi.h.
+> > >=20
+> > > struct iommu_ops and struct iommu_group have been used by the sam=
+e way
+> > > in the device.h.
+> >=20
+> > Yes, they are.  Well, that appears to work too.
+> >=20
+> > Updated patch is appended.  It also contains some fixes for problem=
+s reported
+> > by the auto build system and it's been tested on x86-64 now, so it =
+should be
+> > reasonably close to final.
+> >=20
+> > Thanks,
+> > Rafael
+> >=20
+> >=20
+> > ---
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Subject: ACPI / driver core: Store an ACPI device pointer in struct=
+ acpi_dev_node
+> >=20
+> > Modify struct acpi_dev_node to contain a pointer to struct acpi_dev=
+ice
+> > associated with the given device object (that is, its ACPI companio=
+n
+> > device) instead of an ACPI handle corresponding to it.  Introduce t=
+wo
+> > new macros for manipulating that pointer in a CONFIG_ACPI-safe way,
+> > ACPI_COMPANION() and ACPI_COMPANION_SET(), and rework the
+> > ACPI_HANDLE() macro to take the above changes into account.
+> > Drop the ACPI_HANDLE_SET() macro entirely and rework its users to
+> > use ACPI_COMPANION_SET() instead.  For some of them who used to
+> > pass the result of acpi_get_child() directly to ACPI_HANDLE_SET()
+> > introduce a helper routine acpi_preset_companion() doing an
+> > equivalent thing.
+> >=20
+> > The main motivation for doing this is that there are things
+> > represented by struct acpi_device objects that don't have valid
+> > ACPI handles (so called fixed ACPI hardware features, such as
+> > power and sleep buttons) and we would like to create platform
+> > device objects for them and "glue" them to their ACPI companions
+> > in the usual way (which currently is impossible due to the
+> > lack of valid ACPI handles).  However, there are more reasons
+> > why it may be useful.
+> >=20
+> > First, struct acpi_device pointers allow of much better type checki=
+ng
+> > than void pointers which are ACPI handles, so it should be more
+> > difficult to write buggy code using modified struct acpi_dev_node
+> > and the new macros.  Second, the change should help to reduce (over
+> > time) the number of places in which the result of ACPI_HANDLE() is
+> > passed to acpi_bus_get_device() in order to obtain a pointer to the
+> > struct acpi_device associated with the given "physical" device,
+> > because now that pointer is returned by ACPI_COMPANION() directly.
+> > Finally, the change should make it easier to write generic code tha=
+t
+> > will build both for CONFIG_ACPI set and unset without adding explic=
+it
+> > compiler directives to it.
+> >=20
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>=20
+> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-Note that MMCI is compatible with AMBA bus ACPI module, but is not ported
-due to complex relations with sysreg and voltage regulator.
+Thanks!
 
-
-Signed-off-by: Brandon Anderson <brandon.anderson@amd.com>
----
- arch/arm64/boot/dts/foundation-v8-acpi.dts        |   10 +++++++---
- arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts       |    4 ++++
- arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi |    8 ++++++++
- 3 files changed, 19 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm64/boot/dts/foundation-v8-acpi.dts b/arch/arm64/boot/dts/foundation-v8-acpi.dts
-index 7f57c53..f0671eb 100644
---- a/arch/arm64/boot/dts/foundation-v8-acpi.dts
-+++ b/arch/arm64/boot/dts/foundation-v8-acpi.dts
-@@ -15,12 +15,16 @@
- 
- 	chosen { };
- 
-+	/*
-+	 * Removed for ACPI
-+	 *
- 	aliases {
- 		serial0 = &v2m_serial0;
- 		serial1 = &v2m_serial1;
- 		serial2 = &v2m_serial2;
- 		serial3 = &v2m_serial3;
- 	};
-+	*/
- 
- 	cpus {
- 		#address-cells = <2>;
-@@ -196,6 +200,9 @@
- 				reg = <0x010000 0x1000>;
- 			};
- 
-+			/*
-+			 * Removed for ACPI
-+			 *
- 			v2m_serial0: uart@090000 {
- 				compatible = "arm,pl011", "arm,primecell";
- 				reg = <0x090000 0x1000>;
-@@ -227,9 +234,6 @@
- 				clocks = <&v2m_clk24mhz>, <&v2m_clk24mhz>;
- 				clock-names = "uartclk", "apb_pclk";
- 			};
--			/*
--			 * Removed for ACPI
--			 *
- 			virtio_block@0130000 {
- 				compatible = "virtio,mmio";
- 				reg = <0x130000 0x1000>;
-diff --git a/arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts b/arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts
-index 7f348eb..0953fd0 100644
---- a/arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts
-+++ b/arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts
-@@ -20,12 +20,16 @@
- 
- 	chosen { };
- 
-+	/*
-+	 * Removed for ACPI
-+	 *
- 	aliases {
- 		serial0 = &v2m_serial0;
- 		serial1 = &v2m_serial1;
- 		serial2 = &v2m_serial2;
- 		serial3 = &v2m_serial3;
- 	};
-+	*/
- 
- 	cpus {
- 		#address-cells = <2>;
-diff --git a/arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi b/arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi
-index bbaaa8e..f20af14 100644
---- a/arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi
-+++ b/arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi
-@@ -71,6 +71,9 @@
- 				#gpio-cells = <2>;
- 			};
- 
-+			/*
-+			 * Removed for ACPI
-+			 *
- 			v2m_sysctl: sysctl@020000 {
- 				compatible = "arm,sp810", "arm,primecell";
- 				reg = <0x020000 0x1000>;
-@@ -87,6 +90,7 @@
- 				clocks = <&v2m_clk24mhz>;
- 				clock-names = "apb_pclk";
- 			};
-+			*/
- 
- 			mmci@050000 {
- 				compatible = "arm,pl180", "arm,primecell";
-@@ -100,6 +104,9 @@
- 				clock-names = "mclk", "apb_pclk";
- 			};
- 
-+			/*
-+			 * Removed for ACPI
-+			 *
- 			kmi@060000 {
- 				compatible = "arm,pl050", "arm,primecell";
- 				reg = <0x060000 0x1000>;
-@@ -179,6 +186,7 @@
- 				clocks = <&v2m_clk24mhz>;
- 				clock-names = "apb_pclk";
- 			};
-+			*/
- 
- 			clcd@1f0000 {
- 				compatible = "arm,pl111", "arm,primecell";
--- 
-1.7.9.5
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
