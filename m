@@ -1,123 +1,319 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] ACPI / driver core: Store a device pointer in struct
- acpi_dev_node
-Date: Mon, 11 Nov 2013 07:03:18 -0800
-Message-ID: <20131111150318.GB16112@kroah.com>
-References: <3268437.YsusHvklcv@vostro.rjw.lan>
- <52803124.7000304@intel.com>
- <1683079.zjqzsOAjXB@vostro.rjw.lan>
+From: Brandon Anderson <brandon.anderson@amd.com>
+Subject: [PATCH 0/4] ACPI/ARM: AMBA bus ACPI module
+Date: Mon, 11 Nov 2013 11:16:06 -0600
+Message-ID: <1384190170-8707-1-git-send-email-brandon.anderson@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48982 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753312Ab3KKPAq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Nov 2013 10:00:46 -0500
-Content-Disposition: inline
-In-Reply-To: <1683079.zjqzsOAjXB@vostro.rjw.lan>
+Received: from tx2ehsobe002.messaging.microsoft.com ([65.55.88.12]:57198 "EHLO
+	tx2outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754516Ab3KKRRF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Nov 2013 12:17:05 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Luck, Tony" <tony.luck@intel.com>
+To: ssg.sos.patches@amd.com, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org
+Cc: Brandon Anderson <brandon.anderson@amd.com>
 
-On Mon, Nov 11, 2013 at 02:45:39PM +0100, Rafael J. Wysocki wrote:
-> On Monday, November 11, 2013 09:21:40 AM Lan Tianyu wrote:
-> > On 2013=E5=B9=B411=E6=9C=8810=E6=97=A5 08:58, Rafael J. Wysocki wro=
-te:
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > >=20
-> > > Modify struct acpi_dev_node to contain a pointer to struct device
-> > > ambedded in the struct acpi_device associated with the given devi=
-ce
-> > > object (that is, its ACPI companion device) instead of an ACPI ha=
-ndle
-> > > corresponding to that struct acpi_device.  Introduce two new macr=
-os
-> > > for manipulating that pointer in a CONFIG_ACPI-safe way,
-> > > ACPI_COMPANION() and ACPI_COMPANION_SET(), and rework the
-> > > ACPI_HANDLE() macro to take the above changes into account.
-> > > Drop the ACPI_HANDLE_SET() macro entirely and rework its users to
-> > > use ACPI_COMPANION_SET() instead.  For some of them who used to
-> > > pass the result of acpi_get_child() directly to ACPI_HANDLE_SET()
-> > > introduce a helper routine acpi_preset_companion() doing an
-> > > equivalent thing.
-> > >=20
-> > > The rationale for using a struct device pointer instead of a
-> > > struct acpi_device one as the member of struct acpi_dev_node is
-> > > that it allows device.h to avoid including linux/acpi.h which wou=
-ld
-> > > introduce quite a bit of compilation overhead for stuff that does=
-n't
-> > > care about ACPI.
-> > > In turn, moving the macros to linux/acpi.h forces
-> > > the stuff that does care about ACPI to include that file as
-> > > appropriate anyway.
-> >=20
-> > How about declaring "struct acpi_device" in the device.h? This can =
-help
-> > to use struct acpi_device without including linux/acpi.h.
-> >=20
-> > struct iommu_ops and struct iommu_group have been used by the same =
-way
-> > in the device.h.
->=20
-> Yes, they are.  Well, that appears to work too.
->=20
-> Updated patch is appended.  It also contains some fixes for problems =
-reported
-> by the auto build system and it's been tested on x86-64 now, so it sh=
-ould be
-> reasonably close to final.
->=20
-> Thanks,
-> Rafael
->=20
->=20
-> ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI / driver core: Store an ACPI device pointer in struct a=
-cpi_dev_node
->=20
-> Modify struct acpi_dev_node to contain a pointer to struct acpi_devic=
-e
-> associated with the given device object (that is, its ACPI companion
-> device) instead of an ACPI handle corresponding to it.  Introduce two
-> new macros for manipulating that pointer in a CONFIG_ACPI-safe way,
-> ACPI_COMPANION() and ACPI_COMPANION_SET(), and rework the
-> ACPI_HANDLE() macro to take the above changes into account.
-> Drop the ACPI_HANDLE_SET() macro entirely and rework its users to
-> use ACPI_COMPANION_SET() instead.  For some of them who used to
-> pass the result of acpi_get_child() directly to ACPI_HANDLE_SET()
-> introduce a helper routine acpi_preset_companion() doing an
-> equivalent thing.
->=20
-> The main motivation for doing this is that there are things
-> represented by struct acpi_device objects that don't have valid
-> ACPI handles (so called fixed ACPI hardware features, such as
-> power and sleep buttons) and we would like to create platform
-> device objects for them and "glue" them to their ACPI companions
-> in the usual way (which currently is impossible due to the
-> lack of valid ACPI handles).  However, there are more reasons
-> why it may be useful.
->=20
-> First, struct acpi_device pointers allow of much better type checking
-> than void pointers which are ACPI handles, so it should be more
-> difficult to write buggy code using modified struct acpi_dev_node
-> and the new macros.  Second, the change should help to reduce (over
-> time) the number of places in which the result of ACPI_HANDLE() is
-> passed to acpi_bus_get_device() in order to obtain a pointer to the
-> struct acpi_device associated with the given "physical" device,
-> because now that pointer is returned by ACPI_COMPANION() directly.
-> Finally, the change should make it easier to write generic code that
-> will build both for CONFIG_ACPI set and unset without adding explicit
-> compiler directives to it.
->=20
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+This patch series requires the fixed-clock patches from Hanjun Guo.
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Provides an ACPI module to probe ARM AMBA devices that have a
+hardware ID, which is used with struct amba_device to match up
+the appropriate driver.
+
+See required DSDT definition format below.
+
+
+Brandon Anderson (4):
+  early fixed-clock
+  AMBA bus ACPI implementation
+  Add ACPI to AMBA SPI driver
+  remove unneeded sections of DTS definition
+
+ arch/arm64/boot/dts/foundation-v8-acpi.dts        |   10 +-
+ arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts       |    4 +
+ arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi |    8 +
+ drivers/acpi/acpi_platform.c                      |    2 +
+ drivers/amba/Makefile                             |    2 +-
+ drivers/amba/acpi.c                               |  339 +++++++++++++++++++++
+ drivers/clk/clk-fixed-rate.c                      |    2 +-
+ drivers/spi/spi-pl022.c                           |   49 +++
+ include/linux/amba/acpi.h                         |   29 ++
+ 9 files changed, 440 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/amba/acpi.c
+ create mode 100644 include/linux/amba/acpi.h
+
+-- 
+1.7.9.5
+
+-----------
+
+diff --git a/platforms/rtsm_ve-aemv8a.acpi/dsdt.asl b/platforms/rtsm_ve-aemv8a.acpi/dsdt.asl
+index 0bcc94d..64e84a4 100644
+--- a/platforms/rtsm_ve-aemv8a.acpi/dsdt.asl
++++ b/platforms/rtsm_ve-aemv8a.acpi/dsdt.asl
+@@ -252,6 +252,33 @@ DefinitionBlock (
+ 			}
+ 		}
+ 
++		Device (CLK0) {
++			Name (_HID, "LINA0008")
++			Name (_UID, 0)
++
++			Method (FREQ, 0x0, NotSerialized) {
++				Return (24000000)
++			}
++		}
++
++		Device (CLK1) {
++			Name (_HID, "LINA0008")
++			Name (_UID, 1)
++
++			Method (FREQ, 0x0, NotSerialized) {
++				Return (1000000)
++			}
++		}
++
++		Device (CLK2) {
++			Name (_HID, "LINA0008")
++			Name (_UID, 2)
++
++			Method (FREQ, 0x0, NotSerialized) {
++				Return (32768)
++			}
++		}
++
+ 		Device (PMU0) {
+ 			Name (_HID, "LINA0007")
+ 			Name (_UID, 0)
+@@ -263,5 +290,229 @@ DefinitionBlock (
+ 				Return (RBUF)
+ 			}
+ 		}
++
++		Method (DTGP, 5, NotSerialized)
++		{
++			If (LEqual (Arg0, Buffer (0x10)
++					{
++					/* UUID:	a706b112-bf0b-48d2-9fa3-95591a3c4c06 */
++					  /* 0000 */	0xa7, 0x06, 0xb1, 0x12, 0xbf, 0x0b, 0x48, 0xd2,
++					  /* 0008 */	0x9f, 0xa3, 0x95, 0x59, 0x1a, 0x3c, 0x4c, 0x06
++					}))
++			{
++				If (LEqual (Arg1, 0x01))
++				{
++					If (LEqual (Arg2, 0x00))
++					{
++						Store (Buffer (0x01)
++						{
++							0x03
++						}, Arg4)
++						Return (0x01)
++					}
++
++					If (LEqual (Arg2, 0x01))
++					{
++						Return (0x01)
++					}
++				}
++			}
++
++			Store (Buffer (0x01)
++			{
++				0x00
++			}, Arg4)
++			Return (0x00)
++		}
++
++		Device (AMBA) {
++			Name (_HID, "AMBA0000") /* the parallel to "arm,primecell" in DTS */
++			Name (_UID, 0)
++
++			/* Define 'apb_pclk' as a default clock source since it is
++			   common with devices below */
++			Method(_DSM, 4, NotSerialized) {
++				Store (Package (2)
++				{
++					"clock-name", "apb_pclk \\_SB.CLK0",
++				}, Local0)
++
++				DTGP (Arg0, Arg1, Arg2, Arg3, RefOf (Local0))
++
++				Return (Local0)
++			}
++
++			Device (SCT0) {
++				Name (_ADR, 0x1c020000)						/* SYSCTL */
++				Method (_CRS, 0x0, Serialized) {
++					Name (RBUF, ResourceTemplate () {
++						Memory32Fixed (ReadWrite, 0x1c020000, 0x00001000)
++					})
++					Return (RBUF)
++				}
++				Method(_DSM, 4, Serialized) {
++					Store (Package (4)
++					{
++						"clock-name", "refclk \\_SB.CLK2",
++						"clock-name", "timclk \\_SB.CLK1",
++					}, Local0)
++
++					DTGP (Arg0, Arg1, Arg2, Arg3, RefOf (Local0))
++
++					Return (Local0)
++				}
++			}
++
++			Device (KMI0) {
++				Name (_ADR, 0x1c060000)
++				Method (_CRS, 0x0, Serialized) {
++					Name (RBUF, ResourceTemplate () {
++						Memory32Fixed (ReadWrite, 0x1c060000, 0x00001000)
++						Interrupt (ResourceConsumer, Edge, ActiveBoth,
++								Exclusive, , , ) {44}
++					})
++					Return (RBUF)
++				}
++				Method(_DSM, 4, Serialized) {
++					Store (Package (2)
++					{
++						"clock-name", "KMIREFCLK \\_SB.CLK0",
++					}, Local0)
++
++					DTGP (Arg0, Arg1, Arg2, Arg3, RefOf (Local0))
++
++					Return (Local0)
++				}
++			}
++
++			Device (KMI1) {
++				Name (_ADR, 0x1c070000)
++				Method (_CRS, 0x0, Serialized) {
++					Name (RBUF, ResourceTemplate () {
++						Memory32Fixed (ReadWrite, 0x1c070000, 0x00001000)
++						Interrupt (ResourceConsumer, Edge, ActiveBoth,
++								Exclusive, , , ) {45}
++					})
++					Return (RBUF)
++				}
++				Method(_DSM, 4, NotSerialized) {
++					Store (Package (2)
++					{
++						"clock-name", "KMIREFCLK \\_SB.CLK0",
++					}, Local0)
++
++					DTGP (Arg0, Arg1, Arg2, Arg3, RefOf (Local0))
++
++					Return (Local0)
++				}
++			}
++
++			Device (SER0) {
++				Name (_ADR, 0x1c090000)                         /* UART0 */
++				Method (_CRS, 0x0, Serialized) {
++					Name (RBUF, ResourceTemplate () {
++						Memory32Fixed (ReadWrite, 0x1c090000, 0x00001000)
++						Interrupt (ResourceConsumer, Edge, ActiveBoth,
++								Exclusive, , , ) {37}
++					})
++					Return (RBUF)
++				}
++			}
++
++			Device (SER1) {
++				Name (_ADR, 0x1c0a0000)                         /* UART1 */
++				Method (_CRS, 0x0, Serialized) {
++					Name (RBUF, ResourceTemplate () {
++						Memory32Fixed (ReadWrite, 0x1c0a0000, 0x00001000)
++						Interrupt (ResourceConsumer, Edge, ActiveBoth,
++								Exclusive, , , ) {38}
++					})
++					Return (RBUF)
++				}
++			}
++			Device (SER2) {
++				Name (_ADR, 0x1c0b0000)                         /* UART2 */
++				Method (_CRS, 0x0, Serialized) {
++					Name (RBUF, ResourceTemplate () {
++						Memory32Fixed (ReadWrite, 0x1c0b0000, 0x00001000)
++						Interrupt (ResourceConsumer, Edge, ActiveBoth,
++								Exclusive, , , ) {39}
++					})
++					Return (RBUF)
++				}
++			}
++
++			Device (SER3) {
++				Name (_ADR, 0x1c0c0000)                         /* UART3 */
++				Method (_CRS, 0x0, Serialized) {
++					Name (RBUF, ResourceTemplate () {
++						Memory32Fixed (ReadWrite, 0x1c0c0000, 0x00001000)
++						Interrupt (ResourceConsumer, Edge, ActiveBoth,
++								Exclusive, , , ) {40}
++					})
++					Return (RBUF)
++				}
++			}
++
++			Device (AAC0) {
++				Name (_ADR, 0x1c040000)						/* AACI */
++				Method (_CRS, 0x0, Serialized) {
++					Name (RBUF, ResourceTemplate () {
++						Memory32Fixed (ReadWrite, 0x1c040000, 0x00001000)
++						Interrupt (ResourceConsumer, Edge, ActiveBoth,
++								Exclusive, , , ) {43}
++					})
++					Return (RBUF)
++				}
++			}
++
++			Device (WDT0) {
++				Name (_ADR, 0x1c0f0000)						/* WDT */
++				Method (_CRS, 0x0, Serialized) {
++					Name (RBUF, ResourceTemplate () {
++						Memory32Fixed (ReadWrite, 0x1c0f0000, 0x00001000)
++						Interrupt (ResourceConsumer, Edge, ActiveBoth,
++								Exclusive, , , ) {32}
++					})
++					Return (RBUF)
++				}
++			}
++
++			Device (TIM0) {
++				Name (_ADR, 0x1c110000)						/* TIMER01 */
++				Method (_CRS, 0x0, Serialized) {
++					Name (RBUF, ResourceTemplate () {
++						Memory32Fixed (ReadWrite, 0x1c110000, 0x00001000)
++						Interrupt (ResourceConsumer, Edge, ActiveBoth,
++								Exclusive, , , ) {34}
++					})
++					Return (RBUF)
++				}
++			}
++
++			Device (TIM2) {
++				Name (_ADR, 0x1c120000)						/* TIMER23 */
++				Method (_CRS, 0x0, Serialized) {
++					Name (RBUF, ResourceTemplate () {
++						Memory32Fixed (ReadWrite, 0x1c120000, 0x00001000)
++						Interrupt (ResourceConsumer, Edge, ActiveBoth,
++								Exclusive, , , ) {35}
++					})
++					Return (RBUF)
++				}
++			}
++
++			Device (RTC0) {
++				Name (_ADR, 0x1c170000)						/* RTC */
++				Method (_CRS, 0x0, Serialized) {
++					Name (RBUF, ResourceTemplate () {
++						Memory32Fixed (ReadWrite, 0x1c170000, 0x00001000)
++						Interrupt (ResourceConsumer, Edge, ActiveBoth,
++								Exclusive, , , ) {36}
++					})
++					Return (RBUF)
++				}
++			}
++		}
+ 	}
+ }
+
