@@ -1,86 +1,105 @@
-From: Alex Hung <alex.hung@canonical.com>
-Subject: Re: [PATCH] ACPI video: ignore BIOS initial backlight value for HP 1000
-Date: Wed, 13 Nov 2013 01:04:34 +0800
-Message-ID: <CAJ=jqubGRRYuKF2yFsGYniKu5=PotL6OR3KYjhhz-Zsx5wT+iA@mail.gmail.com>
-References: <1367828623-22998-1-git-send-email-alex.hung@canonical.com>
-	<52818C87.8080606@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 3/4] ACPI/ARM: Add ACPI to AMBA SPI driver
+Date: Tue, 12 Nov 2013 21:14:45 +0200
+Message-ID: <20131112191445.GY22916@intel.com>
+References: <1384190170-8707-1-git-send-email-brandon.anderson@amd.com>
+ <1384190170-8707-4-git-send-email-brandon.anderson@amd.com>
+ <20131112104321.GQ22916@intel.com>
+ <CE40542A5D952D47989966E71788B1840157C119@satlexdag05.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f180.google.com ([209.85.214.180]:57823 "EHLO
-	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753728Ab3KLREf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Nov 2013 12:04:35 -0500
-Received: by mail-ob0-f180.google.com with SMTP id vb8so3358914obc.11
-        for <linux-acpi@vger.kernel.org>; Tue, 12 Nov 2013 09:04:34 -0800 (PST)
-In-Reply-To: <52818C87.8080606@intel.com>
+Received: from mga09.intel.com ([134.134.136.24]:40288 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756419Ab3KLTJS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Nov 2013 14:09:18 -0500
+Content-Disposition: inline
+In-Reply-To: <CE40542A5D952D47989966E71788B1840157C119@satlexdag05.amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+To: "Anderson, Brandon" <Brandon.Anderson@amd.com>
+Cc: "ssg.sos.patches" <ssg.sos.patches@amd.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
+On Tue, Nov 12, 2013 at 05:26:39PM +0000, Anderson, Brandon wrote:
+> 
+> 
+> -----Original Message-----
+> From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com] 
+> Sent: Tuesday, November 12, 2013 4:43 AM
+> To: Anderson, Brandon
+> Cc: ssg.sos.patches; linaro-acpi@lists.linaro.org; linux-acpi@vger.kernel.org
+> Subject: Re: [PATCH 3/4] ACPI/ARM: Add ACPI to AMBA SPI driver
+> 
+> On Mon, Nov 11, 2013 at 11:16:09AM -0600, Brandon Anderson wrote:
+> > +#ifdef CONFIG_ACPI
+> > +static struct pl022_ssp_controller *
+> > +acpi_pl022_get_platform_data(struct device *dev) {
+> > +	struct pl022_ssp_controller *pd, *ret;
+> > +	struct acpi_amba_dsm_entry entry;
+> > +
+> > +	pd = devm_kzalloc(dev, sizeof(struct pl022_ssp_controller), GFP_KERNEL);
+> > +	if (!pd) {
+> > +		dev_err(dev, "cannot allocate platform data memory\n");
+> > +		return NULL;
+> > +	}
+> > +	ret = pd;
+> > +
+> > +	pd->bus_id = -1;
+> > +	pd->enable_dma = 1;
+> > +	if (acpi_amba_dsm_lookup(ACPI_HANDLE(dev), "num-cs", 0, &entry) == 0) {
+> > +		if (kstrtou8(entry.value, 0, &pd->num_chipselect) != 0) {
+> > +			dev_err(dev, "invalid 'num-cs' in ACPI definition\n");
+> > +			ret = NULL;
+> > +		}
+> > +		kfree(entry.key);
+> > +		kfree(entry.value);
+> > +	}
+> > +	if (acpi_amba_dsm_lookup(ACPI_HANDLE(dev),
+> > +			"autosuspend-delay", 0, &entry) == 0) {
+> > +		if (kstrtoint(entry.value, 0, &pd->autosuspend_delay) != 0) {
+> > +			dev_err(dev, "invalid 'autosuspend-delay' in ACPI definition\n");
+> > +			ret = NULL;
+> > +		}
+> > +		kfree(entry.key);
+> > +		kfree(entry.value);
+> > +	}
+> > +	if (acpi_amba_dsm_lookup(ACPI_HANDLE(dev), "rt", 0, &entry) == 0) {
+> > +		pd->rt = (entry.value && strcmp(entry.value, "1") == 0);
+> > +		kfree(entry.key);
+> > +		kfree(entry.value);
+> > +	}
+> > +
+> > +	return ret;
+> > +}
+> > +#endif
+> 
+> If you add dummy stub acpi_pl022_get_platform_data() here in case of !CONFIG_ACPI...
+> 
+> > +
+> >  static int pl022_probe(struct amba_device *adev, const struct amba_id 
+> > *id)  {
+> >  	struct device *dev = &adev->dev;
+> > @@ -2081,6 +2125,11 @@ static int pl022_probe(struct amba_device 
+> > *adev, const struct amba_id *id)
+> >  
+> >  	dev_info(&adev->dev,
+> >  		 "ARM PL022 driver, device ID: 0x%08x\n", adev->periphid);
+> > +#ifdef CONFIG_ACPI
+> 
+> You don't need this ugly #ifdef here.
+> 
+> 
+> Ok, I understand the alternative. Is one way or the other required for
+> patch acceptance?
 
-It works as expected.
+I guess it is up to the maintainer to decide in the end.
 
-
-
-On Tue, Nov 12, 2013 at 10:03 AM, Aaron Lu <aaron.lu@intel.com> wrote:
-> On 05/06/2013 04:23 PM, Alex Hung wrote:
->> On HP 1000 lapops, BIOS reports minimum backlight on boot and
->> causes backlight to dim completely. This ignores the initial backlight
->> values and set to max brightness.
->>
->> Buglink: https://bugs.launchpad.net/bugs/1167760
->
-> I've checked the acpi dump from the bug page, it should be the same
-> firmware problem which the following patch is meant to solve:
-> http://www.spinics.net/lists/linux-acpi/msg47212.html
->
-> commit 2c62333a408f5badd2d2ffd7177f95deeccc5ca4
-> Author: Aaron Lu <aaron.lu@intel.com>
-> Date:   Wed Nov 6 09:07:10 2013 +0800
->
->     ACPI / video: Quirk initial backlight level 0
->
-> Possible to give it a test? It's in Rafael's linux-next branch:
-> http://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
->
-> If confirmed, we can save an entry in the DMI table.
->
-> Thanks,
-> Aaron
->
->>
->> Signed-off-by: Alex Hung <alex.hung@canonical.com>
->> ---
->>  drivers/acpi/video.c |    8 ++++++++
->>  1 file changed, 8 insertions(+)
->>
->> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
->> index c3932d0..5b32e15 100644
->> --- a/drivers/acpi/video.c
->> +++ b/drivers/acpi/video.c
->> @@ -456,6 +456,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->>               DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dm4 Notebook PC"),
->>               },
->>       },
->> +     {
->> +      .callback = video_ignore_initial_backlight,
->> +      .ident = "HP 1000 Notebook PC",
->> +      .matches = {
->> +             DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
->> +             DMI_MATCH(Drjw@sisk.plMI_PRODUCT_NAME, "HP 1000 Notebook PC"),
->> +             },
->> +     },
->>       {}
->>  };
->>
->>
->
-
-
-
--- 
-Cheers,
-Alex Hung
+> 
+> 
+> > +	if (!platform_info && ACPI_HANDLE(dev))
+> > +		platform_info = acpi_pl022_get_platform_data(dev);
+> > +	else
+> > +#endif
+> >  	if (!platform_info && IS_ENABLED(CONFIG_OF))
+> >  		platform_info = pl022_platform_data_dt_get(dev);
+> 
