@@ -1,66 +1,86 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / driver core: Store a device pointer in struct acpi_dev_node
-Date: Tue, 12 Nov 2013 15:20:37 +0100
-Message-ID: <3448237.NUtWjlv2Mb@vostro.rjw.lan>
-References: <3268437.YsusHvklcv@vostro.rjw.lan> <1683079.zjqzsOAjXB@vostro.rjw.lan> <20131112092402.GO22916@intel.com>
+From: Alex Hung <alex.hung@canonical.com>
+Subject: Re: [PATCH] ACPI video: ignore BIOS initial backlight value for HP 1000
+Date: Wed, 13 Nov 2013 01:04:34 +0800
+Message-ID: <CAJ=jqubGRRYuKF2yFsGYniKu5=PotL6OR3KYjhhz-Zsx5wT+iA@mail.gmail.com>
+References: <1367828623-22998-1-git-send-email-alex.hung@canonical.com>
+	<52818C87.8080606@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20131112092402.GO22916@intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Luck, Tony" <tony.luck@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f180.google.com ([209.85.214.180]:57823 "EHLO
+	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753728Ab3KLREf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Nov 2013 12:04:35 -0500
+Received: by mail-ob0-f180.google.com with SMTP id vb8so3358914obc.11
+        for <linux-acpi@vger.kernel.org>; Tue, 12 Nov 2013 09:04:34 -0800 (PST)
+In-Reply-To: <52818C87.8080606@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
-On Tuesday, November 12, 2013 11:24:02 AM Mika Westerberg wrote:
-> On Mon, Nov 11, 2013 at 02:45:39PM +0100, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Subject: ACPI / driver core: Store an ACPI device pointer in struct acpi_dev_node
-> > 
-> > Modify struct acpi_dev_node to contain a pointer to struct acpi_device
-> > associated with the given device object (that is, its ACPI companion
-> > device) instead of an ACPI handle corresponding to it.  Introduce two
-> > new macros for manipulating that pointer in a CONFIG_ACPI-safe way,
-> > ACPI_COMPANION() and ACPI_COMPANION_SET(), and rework the
-> > ACPI_HANDLE() macro to take the above changes into account.
-> > Drop the ACPI_HANDLE_SET() macro entirely and rework its users to
-> > use ACPI_COMPANION_SET() instead.  For some of them who used to
-> > pass the result of acpi_get_child() directly to ACPI_HANDLE_SET()
-> > introduce a helper routine acpi_preset_companion() doing an
-> > equivalent thing.
-> > 
-> > The main motivation for doing this is that there are things
-> > represented by struct acpi_device objects that don't have valid
-> > ACPI handles (so called fixed ACPI hardware features, such as
-> > power and sleep buttons) and we would like to create platform
-> > device objects for them and "glue" them to their ACPI companions
-> > in the usual way (which currently is impossible due to the
-> > lack of valid ACPI handles).  However, there are more reasons
-> > why it may be useful.
-> > 
-> > First, struct acpi_device pointers allow of much better type checking
-> > than void pointers which are ACPI handles, so it should be more
-> > difficult to write buggy code using modified struct acpi_dev_node
-> > and the new macros.  Second, the change should help to reduce (over
-> > time) the number of places in which the result of ACPI_HANDLE() is
-> > passed to acpi_bus_get_device() in order to obtain a pointer to the
-> > struct acpi_device associated with the given "physical" device,
-> > because now that pointer is returned by ACPI_COMPANION() directly.
-> > Finally, the change should make it easier to write generic code that
-> > will build both for CONFIG_ACPI set and unset without adding explicit
-> > compiler directives to it.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> I tested this on Haswell as well and it works fine with ACPI enumerated
-> platform, I2C and SPI devices.
-> 
-> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com> (on Haswell)
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Hi,
 
-Thanks!
+It works as expected.
+
+
+
+On Tue, Nov 12, 2013 at 10:03 AM, Aaron Lu <aaron.lu@intel.com> wrote:
+> On 05/06/2013 04:23 PM, Alex Hung wrote:
+>> On HP 1000 lapops, BIOS reports minimum backlight on boot and
+>> causes backlight to dim completely. This ignores the initial backlight
+>> values and set to max brightness.
+>>
+>> Buglink: https://bugs.launchpad.net/bugs/1167760
+>
+> I've checked the acpi dump from the bug page, it should be the same
+> firmware problem which the following patch is meant to solve:
+> http://www.spinics.net/lists/linux-acpi/msg47212.html
+>
+> commit 2c62333a408f5badd2d2ffd7177f95deeccc5ca4
+> Author: Aaron Lu <aaron.lu@intel.com>
+> Date:   Wed Nov 6 09:07:10 2013 +0800
+>
+>     ACPI / video: Quirk initial backlight level 0
+>
+> Possible to give it a test? It's in Rafael's linux-next branch:
+> http://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+>
+> If confirmed, we can save an entry in the DMI table.
+>
+> Thanks,
+> Aaron
+>
+>>
+>> Signed-off-by: Alex Hung <alex.hung@canonical.com>
+>> ---
+>>  drivers/acpi/video.c |    8 ++++++++
+>>  1 file changed, 8 insertions(+)
+>>
+>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>> index c3932d0..5b32e15 100644
+>> --- a/drivers/acpi/video.c
+>> +++ b/drivers/acpi/video.c
+>> @@ -456,6 +456,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>>               DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dm4 Notebook PC"),
+>>               },
+>>       },
+>> +     {
+>> +      .callback = video_ignore_initial_backlight,
+>> +      .ident = "HP 1000 Notebook PC",
+>> +      .matches = {
+>> +             DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
+>> +             DMI_MATCH(Drjw@sisk.plMI_PRODUCT_NAME, "HP 1000 Notebook PC"),
+>> +             },
+>> +     },
+>>       {}
+>>  };
+>>
+>>
+>
+
+
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Cheers,
+Alex Hung
