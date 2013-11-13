@@ -1,90 +1,111 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH] ACPI/AC: Remove the pointer of struct acpi_device in the struct acpi_ac
-Date: Wed, 13 Nov 2013 11:27:42 +0800
-Message-ID: <1384313262-20029-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:26624 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755444Ab3KMD1t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Nov 2013 22:27:49 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] ACPI / driver core: Store a device pointer in struct
+ acpi_dev_node
+Date: Wed, 13 Nov 2013 14:57:16 +0800
+Message-ID: <528322CC.2000508@intel.com>
+References: <3268437.YsusHvklcv@vostro.rjw.lan> <52803124.7000304@intel.com> <1683079.zjqzsOAjXB@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1683079.zjqzsOAjXB@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lan Tianyu <tianyu.lan@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Luck, Tony" <tony.luck@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rjw@rjwysocki.net, rui.zhang@intel.com
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Now the pointer of struct acpi_device can be got by
-ACPI_COMPANION(struct acpi_ac->pdev->dev). So the pointer
-is not necessary and remove it.
+On 11/11/2013 09:45 PM, Rafael J. Wysocki wrote:
+> On Monday, November 11, 2013 09:21:40 AM Lan Tianyu wrote:
+>> On 2013=E5=B9=B411=E6=9C=8810=E6=97=A5 08:58, Rafael J. Wysocki wrot=
+e:
+>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>
+>>> Modify struct acpi_dev_node to contain a pointer to struct device
+>>> ambedded in the struct acpi_device associated with the given device
+>>> object (that is, its ACPI companion device) instead of an ACPI hand=
+le
+>>> corresponding to that struct acpi_device.  Introduce two new macros
+>>> for manipulating that pointer in a CONFIG_ACPI-safe way,
+>>> ACPI_COMPANION() and ACPI_COMPANION_SET(), and rework the
+>>> ACPI_HANDLE() macro to take the above changes into account.
+>>> Drop the ACPI_HANDLE_SET() macro entirely and rework its users to
+>>> use ACPI_COMPANION_SET() instead.  For some of them who used to
+>>> pass the result of acpi_get_child() directly to ACPI_HANDLE_SET()
+>>> introduce a helper routine acpi_preset_companion() doing an
+>>> equivalent thing.
+>>>
+>>> The rationale for using a struct device pointer instead of a
+>>> struct acpi_device one as the member of struct acpi_dev_node is
+>>> that it allows device.h to avoid including linux/acpi.h which would
+>>> introduce quite a bit of compilation overhead for stuff that doesn'=
+t
+>>> care about ACPI.
+>>> In turn, moving the macros to linux/acpi.h forces
+>>> the stuff that does care about ACPI to include that file as
+>>> appropriate anyway.
+>>
+>> How about declaring "struct acpi_device" in the device.h? This can h=
+elp
+>> to use struct acpi_device without including linux/acpi.h.
+>>
+>> struct iommu_ops and struct iommu_group have been used by the same w=
+ay
+>> in the device.h.
+>=20
+> Yes, they are.  Well, that appears to work too.
+>=20
+> Updated patch is appended.  It also contains some fixes for problems =
+reported
+> by the auto build system and it's been tested on x86-64 now, so it sh=
+ould be
+> reasonably close to final.
+>=20
+> Thanks,
+> Rafael
+>=20
+>=20
+> ---
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: ACPI / driver core: Store an ACPI device pointer in struct a=
+cpi_dev_node
+>=20
+> Modify struct acpi_dev_node to contain a pointer to struct acpi_devic=
+e
+> associated with the given device object (that is, its ACPI companion
+> device) instead of an ACPI handle corresponding to it.  Introduce two
+> new macros for manipulating that pointer in a CONFIG_ACPI-safe way,
+> ACPI_COMPANION() and ACPI_COMPANION_SET(), and rework the
+> ACPI_HANDLE() macro to take the above changes into account.
+> Drop the ACPI_HANDLE_SET() macro entirely and rework its users to
+> use ACPI_COMPANION_SET() instead.  For some of them who used to
+> pass the result of acpi_get_child() directly to ACPI_HANDLE_SET()
+> introduce a helper routine acpi_preset_companion() doing an
+> equivalent thing.
+>=20
+> The main motivation for doing this is that there are things
+> represented by struct acpi_device objects that don't have valid
+> ACPI handles (so called fixed ACPI hardware features, such as
+> power and sleep buttons) and we would like to create platform
+> device objects for them and "glue" them to their ACPI companions
+> in the usual way (which currently is impossible due to the
+> lack of valid ACPI handles).  However, there are more reasons
+> why it may be useful.
+>=20
+> First, struct acpi_device pointers allow of much better type checking
+> than void pointers which are ACPI handles, so it should be more
+> difficult to write buggy code using modified struct acpi_dev_node
+> and the new macros.  Second, the change should help to reduce (over
+> time) the number of places in which the result of ACPI_HANDLE() is
+> passed to acpi_bus_get_device() in order to obtain a pointer to the
+> struct acpi_device associated with the given "physical" device,
+> because now that pointer is returned by ACPI_COMPANION() directly.
+> Finally, the change should make it easier to write generic code that
+> will build both for CONFIG_ACPI set and unset without adding explicit
+> compiler directives to it.
+>=20
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- drivers/acpi/ac.c | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+Reviewed-by: Aaron Lu <aaron.lu@intel.com> for ATA and SDIO part.
 
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index b9f0d5f..8711e37 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -56,7 +56,6 @@ static int ac_sleep_before_get_state_ms;
- 
- struct acpi_ac {
- 	struct power_supply charger;
--	struct acpi_device *adev;
- 	struct platform_device *pdev;
- 	unsigned long long state;
- };
-@@ -70,8 +69,9 @@ struct acpi_ac {
- static int acpi_ac_get_state(struct acpi_ac *ac)
- {
- 	acpi_status status;
-+	acpi_handle handle = ACPI_HANDLE(&ac->pdev->dev);
- 
--	status = acpi_evaluate_integer(ac->adev->handle, "_PSR", NULL,
-+	status = acpi_evaluate_integer(handle, "_PSR", NULL,
- 				       &ac->state);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status,
-@@ -119,6 +119,7 @@ static enum power_supply_property ac_props[] = {
- static void acpi_ac_notify_handler(acpi_handle handle, u32 event, void *data)
- {
- 	struct acpi_ac *ac = data;
-+	struct acpi_device *adev;
- 
- 	if (!ac)
- 		return;
-@@ -141,10 +142,11 @@ static void acpi_ac_notify_handler(acpi_handle handle, u32 event, void *data)
- 			msleep(ac_sleep_before_get_state_ms);
- 
- 		acpi_ac_get_state(ac);
--		acpi_bus_generate_netlink_event(ac->adev->pnp.device_class,
-+		adev = ACPI_COMPANION(&ac->pdev->dev);
-+		acpi_bus_generate_netlink_event(adev->pnp.device_class,
- 						dev_name(&ac->pdev->dev),
- 						event, (u32) ac->state);
--		acpi_notifier_call_chain(ac->adev, event, (u32) ac->state);
-+		acpi_notifier_call_chain(adev, event, (u32) ac->state);
- 		kobject_uevent(&ac->charger.dev->kobj, KOBJ_CHANGE);
- 	}
- 
-@@ -178,8 +180,8 @@ static int acpi_ac_probe(struct platform_device *pdev)
- 	if (!pdev)
- 		return -EINVAL;
- 
--	result = acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev);
--	if (result)
-+	adev = ACPI_COMPANION(&pdev->dev);
-+	if (!adev)
- 		return -ENODEV;
- 
- 	ac = kzalloc(sizeof(struct acpi_ac), GFP_KERNEL);
-@@ -188,7 +190,6 @@ static int acpi_ac_probe(struct platform_device *pdev)
- 
- 	strcpy(acpi_device_name(adev), ACPI_AC_DEVICE_NAME);
- 	strcpy(acpi_device_class(adev), ACPI_AC_CLASS);
--	ac->adev = adev;
- 	ac->pdev = pdev;
- 	platform_set_drvdata(pdev, ac);
- 
--- 
-1.8.2.1
-
+Thanks,
+Aaron
