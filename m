@@ -1,160 +1,49 @@
-From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Subject: Re: [PATCH part2 v2 0/8] Arrange hotpluggable memory as ZONE_MOVABLE
-Date: Wed, 13 Nov 2013 21:50:51 +0800
-Message-ID: <528383BB.6060901@gmail.com>
-References: <5258E560.5050506@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 3/3] ACPI / PCI root: Clear driver_data before failing enumeration
+Date: Thu, 14 Nov 2013 00:17:49 +0100
+Message-ID: <6884617.gWRuZsFG3E@vostro.rjw.lan>
+References: <2434673.zhjYZOTQ4A@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <5258E560.5050506@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>, Tejun Heo <tj@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, "lwoodman@redhat.com" <lwoodman@redhat.com>, Rik van Riel <riel@redhat.com>, jweiner@redhat.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:54380 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750843Ab3KMXFi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Nov 2013 18:05:38 -0500
+In-Reply-To: <2434673.zhjYZOTQ4A@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>
 
-Hello guys,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Could anyone help reviewing this part?
+If a PCI host bridge cannot be enumerated due to an error in
+pci_acpi_scan_root(), its ACPI device object's driver_data field
+has to be cleared by acpi_pci_root_add() before freeing the
+object pointed to by that field, or some later acpi_pci_find_root()
+checks that should fail may succeed and cause quite a bit of
+confusion to ensue.
 
-The first part has been merged into linus's tree. And I've tried to apply this part
-to today's linus tree:
+Fix acpi_pci_root_add() to clear device->driver_data before
+returning an error code as appropriate.
 
-commit 42a2d923cc349583ebf6fdd52a7d35e1c2f7e6bd
-Merge: 5cbb3d2 75ecab1
-Author: Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Wed Nov 13 17:40:34 2013 +0900
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/pci_root.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-    Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next
+Index: linux-pm/drivers/acpi/pci_root.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/pci_root.c
++++ linux-pm/drivers/acpi/pci_root.c
+@@ -525,6 +525,7 @@ static int acpi_pci_root_add(struct acpi
+ 		dev_err(&device->dev,
+ 			"Bus %04x:%02x not present in PCI namespace\n",
+ 			root->segment, (unsigned int)root->secondary.start);
++		device->driver_data = NULL;
+ 		result = -ENODEV;
+ 		goto end;
+ 	}
 
-No conflict, no compiling error and it works well.
-
-Tejun, any comments?
-
-On 10/12/2013 02:00 PM, Zhang Yanfei wrote:
-> Hello guys, this is the part2 of our memory hotplug work. This part
-> is based on the part1:
->     "x86, memblock: Allocate memory near kernel image before SRAT parsed"
-> which is base on 3.12-rc4.
-> 
-> You could refer part1 from: https://lkml.org/lkml/2013/10/10/644
-> 
-> Any comments are welcome! Thanks!
-> 
-> [Problem]
-> 
-> The current Linux cannot migrate pages used by the kerenl because
-> of the kernel direct mapping. In Linux kernel space, va = pa + PAGE_OFFSET.
-> When the pa is changed, we cannot simply update the pagetable and
-> keep the va unmodified. So the kernel pages are not migratable.
-> 
-> There are also some other issues will cause the kernel pages not migratable.
-> For example, the physical address may be cached somewhere and will be used.
-> It is not to update all the caches.
-> 
-> When doing memory hotplug in Linux, we first migrate all the pages in one
-> memory device somewhere else, and then remove the device. But if pages are
-> used by the kernel, they are not migratable. As a result, memory used by
-> the kernel cannot be hot-removed.
-> 
-> Modifying the kernel direct mapping mechanism is too difficult to do. And
-> it may cause the kernel performance down and unstable. So we use the following
-> way to do memory hotplug.
-> 
-> 
-> [What we are doing]
-> 
-> In Linux, memory in one numa node is divided into several zones. One of the
-> zones is ZONE_MOVABLE, which the kernel won't use.
-> 
-> In order to implement memory hotplug in Linux, we are going to arrange all
-> hotpluggable memory in ZONE_MOVABLE so that the kernel won't use these memory.
-> 
-> To do this, we need ACPI's help.
-> 
-> 
-> [How we do this]
-> 
-> In ACPI, SRAT(System Resource Affinity Table) contains NUMA info. The memory
-> affinities in SRAT record every memory range in the system, and also, flags
-> specifying if the memory range is hotpluggable.
-> (Please refer to ACPI spec 5.0 5.2.16)
-> 
-> With the help of SRAT, we have to do the following two things to achieve our
-> goal:
-> 
-> 1. When doing memory hot-add, allow the users arranging hotpluggable as
->    ZONE_MOVABLE.
->    (This has been done by the MOVABLE_NODE functionality in Linux.)
-> 
-> 2. when the system is booting, prevent bootmem allocator from allocating
->    hotpluggable memory for the kernel before the memory initialization
->    finishes.
->    (This is what we are going to do. See below.)
-> 
-> 
-> [About this patch-set]
-> 
-> In previous part's patches, we have made the kernel allocate memory near
-> kernel image before SRAT parsed to avoid allocating hotpluggable memory
-> for kernel. So this patch-set does the following things:
-> 
-> 1. Improve memblock to support flags, which are used to indicate different 
->    memory type.
-> 
-> 2. Mark all hotpluggable memory in memblock.memory[].
-> 
-> 3. Make the default memblock allocator skip hotpluggable memory.
-> 
-> 4. Improve "movable_node" boot option to have higher priority of movablecore
->    and kernelcore boot option.
-> 
-> Change log v1 -> v2:
-> 1. Rebase this part on the v7 version of part1
-> 2. Fix bug: If movable_node boot option not specified, memblock still
->    checks hotpluggable memory when allocating memory. 
-> 
-> Tang Chen (7):
->   memblock, numa: Introduce flag into memblock
->   memblock, mem_hotplug: Introduce MEMBLOCK_HOTPLUG flag to mark
->     hotpluggable regions
->   memblock: Make memblock_set_node() support different memblock_type
->   acpi, numa, mem_hotplug: Mark hotpluggable memory in memblock
->   acpi, numa, mem_hotplug: Mark all nodes the kernel resides
->     un-hotpluggable
->   memblock, mem_hotplug: Make memblock skip hotpluggable regions if
->     needed
->   x86, numa, acpi, memory-hotplug: Make movable_node have higher
->     priority
-> 
-> Yasuaki Ishimatsu (1):
->   x86: get pg_data_t's memory from other node
-> 
->  arch/metag/mm/init.c      |    3 +-
->  arch/metag/mm/numa.c      |    3 +-
->  arch/microblaze/mm/init.c |    3 +-
->  arch/powerpc/mm/mem.c     |    2 +-
->  arch/powerpc/mm/numa.c    |    8 ++-
->  arch/sh/kernel/setup.c    |    4 +-
->  arch/sparc/mm/init_64.c   |    5 +-
->  arch/x86/mm/init_32.c     |    2 +-
->  arch/x86/mm/init_64.c     |    2 +-
->  arch/x86/mm/numa.c        |   63 +++++++++++++++++++++--
->  arch/x86/mm/srat.c        |    5 ++
->  include/linux/memblock.h  |   39 ++++++++++++++-
->  mm/memblock.c             |  123 ++++++++++++++++++++++++++++++++++++++-------
->  mm/memory_hotplug.c       |    1 +
->  mm/page_alloc.c           |   28 ++++++++++-
->  15 files changed, 252 insertions(+), 39 deletions(-)
-> 
-
-
--- 
-Thanks.
-Zhang Yanfei
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
