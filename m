@@ -1,111 +1,90 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: More initial black screen system for removal from DMI table
-Date: Wed, 13 Nov 2013 10:07:42 +0800
-Message-ID: <5282DEEE.1040804@intel.com>
-References: <1367828623-22998-1-git-send-email-alex.hung@canonical.com>	<52818C87.8080606@intel.com> <CAJ=jqubGRRYuKF2yFsGYniKu5=PotL6OR3KYjhhz-Zsx5wT+iA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH] ACPI/AC: Remove the pointer of struct acpi_device in the struct acpi_ac
+Date: Wed, 13 Nov 2013 11:27:42 +0800
+Message-ID: <1384313262-20029-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:53335 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:26624 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755874Ab3KMCGz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Nov 2013 21:06:55 -0500
-In-Reply-To: <CAJ=jqubGRRYuKF2yFsGYniKu5=PotL6OR3KYjhhz-Zsx5wT+iA@mail.gmail.com>
+	id S1755444Ab3KMD1t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Nov 2013 22:27:49 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Hung <alex.hung@canonical.com>, Gustavo Maciel Dias Vieira <gustavo@sagui.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+To: lenb@kernel.org, rjw@rjwysocki.net, rui.zhang@intel.com
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 11/13/2013 01:04 AM, Alex Hung wrote:
-> Hi,
-> 
-> It works as expected.
+Now the pointer of struct acpi_device can be got by
+ACPI_COMPANION(struct acpi_ac->pdev->dev). So the pointer
+is not necessary and remove it.
 
-Thanks for the confirm!
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/acpi/ac.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-Now I look at the DMI table for initial backlight broken systems, in
-addition to the "HP Pavilion m4" and "HP 1000 Notebook PC", the following
-systems are also candidates for removal:
-HP Pavilion g6 Notebook PC - bug 56661
-HP Pavilion dm4 - no bug entry
-Fujitsu E753 - bug 60161
-HP Folio 13-2000 - bug 51141
-
-I've checked the acpidump of all the above laptops except HP dm4, which
-doesn't have a bug page, they all have the same problem we are
-talking about here. The HP dm4 is very suspicious according to its
-corresponding commit message and its brand.
-
-I've asked in the individual bug page for test, once confirmed, I'll
-remove them all.
-
-Hi Gustavo,
-Can you please test this? I've prepared a branch for you:
-https://github.com/aaronlu/linux acpi_video_dmi
-It is based on Rafael's linux-next branch, with only one patch
-on top: remove all the above systems from the DMI table.
-
-Thanks,
-Aaron
-
-> 
-> 
-> 
-> On Tue, Nov 12, 2013 at 10:03 AM, Aaron Lu <aaron.lu@intel.com> wrote:
->> On 05/06/2013 04:23 PM, Alex Hung wrote:
->>> On HP 1000 lapops, BIOS reports minimum backlight on boot and
->>> causes backlight to dim completely. This ignores the initial backlight
->>> values and set to max brightness.
->>>
->>> Buglink: https://bugs.launchpad.net/bugs/1167760
->>
->> I've checked the acpi dump from the bug page, it should be the same
->> firmware problem which the following patch is meant to solve:
->> http://www.spinics.net/lists/linux-acpi/msg47212.html
->>
->> commit 2c62333a408f5badd2d2ffd7177f95deeccc5ca4
->> Author: Aaron Lu <aaron.lu@intel.com>
->> Date:   Wed Nov 6 09:07:10 2013 +0800
->>
->>     ACPI / video: Quirk initial backlight level 0
->>
->> Possible to give it a test? It's in Rafael's linux-next branch:
->> http://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
->>
->> If confirmed, we can save an entry in the DMI table.
->>
->> Thanks,
->> Aaron
->>
->>>
->>> Signed-off-by: Alex Hung <alex.hung@canonical.com>
->>> ---
->>>  drivers/acpi/video.c |    8 ++++++++
->>>  1 file changed, 8 insertions(+)
->>>
->>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
->>> index c3932d0..5b32e15 100644
->>> --- a/drivers/acpi/video.c
->>> +++ b/drivers/acpi/video.c
->>> @@ -456,6 +456,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->>>               DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dm4 Notebook PC"),
->>>               },
->>>       },
->>> +     {
->>> +      .callback = video_ignore_initial_backlight,
->>> +      .ident = "HP 1000 Notebook PC",
->>> +      .matches = {
->>> +             DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
->>> +             DMI_MATCH(Drjw@sisk.plMI_PRODUCT_NAME, "HP 1000 Notebook PC"),
->>> +             },
->>> +     },
->>>       {}
->>>  };
->>>
->>>
->>
-> 
-> 
-> 
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index b9f0d5f..8711e37 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -56,7 +56,6 @@ static int ac_sleep_before_get_state_ms;
+ 
+ struct acpi_ac {
+ 	struct power_supply charger;
+-	struct acpi_device *adev;
+ 	struct platform_device *pdev;
+ 	unsigned long long state;
+ };
+@@ -70,8 +69,9 @@ struct acpi_ac {
+ static int acpi_ac_get_state(struct acpi_ac *ac)
+ {
+ 	acpi_status status;
++	acpi_handle handle = ACPI_HANDLE(&ac->pdev->dev);
+ 
+-	status = acpi_evaluate_integer(ac->adev->handle, "_PSR", NULL,
++	status = acpi_evaluate_integer(handle, "_PSR", NULL,
+ 				       &ac->state);
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_EXCEPTION((AE_INFO, status,
+@@ -119,6 +119,7 @@ static enum power_supply_property ac_props[] = {
+ static void acpi_ac_notify_handler(acpi_handle handle, u32 event, void *data)
+ {
+ 	struct acpi_ac *ac = data;
++	struct acpi_device *adev;
+ 
+ 	if (!ac)
+ 		return;
+@@ -141,10 +142,11 @@ static void acpi_ac_notify_handler(acpi_handle handle, u32 event, void *data)
+ 			msleep(ac_sleep_before_get_state_ms);
+ 
+ 		acpi_ac_get_state(ac);
+-		acpi_bus_generate_netlink_event(ac->adev->pnp.device_class,
++		adev = ACPI_COMPANION(&ac->pdev->dev);
++		acpi_bus_generate_netlink_event(adev->pnp.device_class,
+ 						dev_name(&ac->pdev->dev),
+ 						event, (u32) ac->state);
+-		acpi_notifier_call_chain(ac->adev, event, (u32) ac->state);
++		acpi_notifier_call_chain(adev, event, (u32) ac->state);
+ 		kobject_uevent(&ac->charger.dev->kobj, KOBJ_CHANGE);
+ 	}
+ 
+@@ -178,8 +180,8 @@ static int acpi_ac_probe(struct platform_device *pdev)
+ 	if (!pdev)
+ 		return -EINVAL;
+ 
+-	result = acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev);
+-	if (result)
++	adev = ACPI_COMPANION(&pdev->dev);
++	if (!adev)
+ 		return -ENODEV;
+ 
+ 	ac = kzalloc(sizeof(struct acpi_ac), GFP_KERNEL);
+@@ -188,7 +190,6 @@ static int acpi_ac_probe(struct platform_device *pdev)
+ 
+ 	strcpy(acpi_device_name(adev), ACPI_AC_DEVICE_NAME);
+ 	strcpy(acpi_device_class(adev), ACPI_AC_CLASS);
+-	ac->adev = adev;
+ 	ac->pdev = pdev;
+ 	platform_set_drvdata(pdev, ac);
+ 
+-- 
+1.8.2.1
 
