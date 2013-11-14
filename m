@@ -1,78 +1,73 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH V2] ACPI, APEI: Cleanup alignment related codes for APEI
-Date: Thu, 14 Nov 2013 13:29:56 +0100
-Message-ID: <20131114122956.GE13376@pd.tnic>
-References: <1384135666-1929-1-git-send-email-gong.chen@linux.intel.com>
- <20131114014924.GA17790@gchen.bj.intel.com>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCHv4 2/3] i2c: Use stable dev_name for ACPI enumerated I2C
+ slaves
+Date: Thu, 14 Nov 2013 18:22:48 +0100
+Message-ID: <20131114172248.GD11022@katana>
+References: <1384419661-28293-1-git-send-email-jarkko.nikula@linux.intel.com>
+ <1384430633-23426-1-git-send-email-jarkko.nikula@linux.intel.com>
+ <1384430633-23426-3-git-send-email-jarkko.nikula@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:32931 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753752Ab3KNMaX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Nov 2013 07:30:23 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="C+ts3FVlLX8+P6JN"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20131114014924.GA17790@gchen.bj.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1384430633-23426-3-git-send-email-jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Gong" <gong.chen@linux.intel.com>
-Cc: tony.luck@intel.com, linux-acpi@vger.kernel.org
 
-On Wed, Nov 13, 2013 at 08:49:24PM -0500, Chen, Gong wrote:
-> On Sun, Nov 10, 2013 at 09:07:46PM -0500, Chen, Gong wrote:
-> > Date: Sun, 10 Nov 2013 21:07:46 -0500
-> > From: "Chen, Gong" <gong.chen@linux.intel.com>
-> > To: tony.luck@intel.com, bp@alien8.de
-> > Cc: linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel=
-=2Ecom>
-> > Subject: [PATCH V2] ACPI, APEI: Cleanup alignment related codes for=
- APEI
-> > X-Mailer: git-send-email 1.8.4.rc3
-> >=20
-> > We ever used *memcpy* to avoid access alignment issue between
-> > firmware and OS. Now we can use a better and standard way
-> > to avoid this issue. In the meanwhile, simplify some variable names
-> > to avoid the limit of 80 characters per line and use structure
-> > assignment instead of unnecessary memcpy. No functional changes.
-> >=20
-> > v2->v1: Make description information clearer.
-> >=20
-> Any comments? Boris/Tony?
 
-I get this when building here:
+--C+ts3FVlLX8+P6JN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-drivers/acpi/apei/apei-base.c: In function =E2=80=98apei_check_gar=E2=80=
-=99:
-drivers/acpi/apei/apei-base.c:571:8: warning: assignment makes pointer =
-from integer without a cast [enabled by default]
-  paddr =3D get_unaligned(&reg->address);
-        ^
-drivers/acpi/apei/apei-base.c: In function =E2=80=98collect_res_callbac=
-k=E2=80=99:
-drivers/acpi/apei/apei-base.c:716:3: warning: =E2=80=98paddr=E2=80=99 m=
-ay be used uninitialized in this function [-Wmaybe-uninitialized]
-   return apei_res_add(&resources->iomem, paddr,
-   ^
-drivers/acpi/apei/apei-base.c: In function =E2=80=98apei_read=E2=80=99:
-drivers/acpi/apei/apei-base.c:645:10: warning: =E2=80=98address=E2=80=99=
- may be used uninitialized in this function [-Wmaybe-uninitialized]
-   status =3D acpi_os_read_memory((acpi_physical_address) address,
-          ^
-drivers/acpi/apei/apei-base.c: In function =E2=80=98apei_write=E2=80=99=
-:
-drivers/acpi/apei/apei-base.c:678:10: warning: =E2=80=98address=E2=80=99=
- may be used uninitialized in this function [-Wmaybe-uninitialized]
-   status =3D acpi_os_write_memory((acpi_physical_address) address,
+On Thu, Nov 14, 2013 at 02:03:52PM +0200, Jarkko Nikula wrote:
+> Current I2C adapter id - client address "x-00yy" based device naming sche=
+me
+> is not always stable enough to be used in name based matching, for instan=
+ce
+> within ALSA SoC subsystem.
+>=20
+> This is problematic in PC kind of platforms where I2C adapter numbers can
+> change due variable amount of bus controllers, probe order, add-on cards =
+or
+> just because of BIOS settings.
+>=20
+> This patch addresses the problem by using the ACPI device name with
+> "i2c-" prefix for ACPI enumerated I2C slaves. For them device name
+> "x-00yz" becomes "i2c-INTABCD:ij" after this patch.
+>=20
+> Signed-off-by: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
---=20
-Regards/Gruss,
-    Boris.
+Acked-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 
-Sent from a fat crate under my desk. Formatting is fine.
+
+--C+ts3FVlLX8+P6JN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBAgAGBQJShQboAAoJEBQN5MwUoCm29Q8P/AjYhiVSPIaUVG5QnJjFqj22
+IgFGUHSzXnqs9AiPrPkub1IxsuNL0EzXBOidS2C21GsX4PRXbuheaGYuEfPAbBBJ
+/jTogVmd7wwn7UtQ1IaJLr/hUCl0S5Db0kdVStPt7AuOqljfrK+9qEAYQ1oV2VDp
+rmPg9OKsKXGDethhnW1TKSRjCECXNm6ll+zof9pNAQnwPVpXtIzZofwmWq/x0s/c
+3amFA2Kb6PQ+KToXjOTNmSncCjaP8A4c/GtufiF5BfZU2RmaK5n+l40fmsWNGmuL
+9Kn0Y0givkxn6dURndq5y8WsyYgf6URkT1/mpfv4ccdY5aYMJboGMEM3OdI8JVNu
+1nOfjT8KzPzWCpA4c5+DXMj5xqxKSvBBlgFj2gJvrG4KxbqXdPmp6FC5FgZUUBeo
+yYZt+aPEamuwnZNixxFFc0EqkNKIWJ3idbZM1bmrvGPLVfD9T/V5JO/hccORZuVM
+gsvr6swKUALEu28xDPsfKn3gj1qSsGXt+01FQcPoAMF69NVxS8BC1WNr78JXhjZ9
+8StP4S4MJYnrzFhk3/bQBcHto36Lp+sJNzeb7CGa4hXR73NXdw5/lfOjSK+kf+OU
+OavPIeLYVOBtrd+GggkE8TrbO9TJiEJ9nFP0/NWocFrejvbAmP86Cj/rEZNRCL9S
+tH9JDHxOg2WviCE8zbRE
+=uH9z
+-----END PGP SIGNATURE-----
+
+--C+ts3FVlLX8+P6JN--
 --
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
