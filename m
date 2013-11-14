@@ -1,54 +1,44 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [alsa-devel] [PATCHv3 1/3] ACPI: Provide struct acpi_device stub
- for !CONFIG_ACPI builds
-Date: Thu, 14 Nov 2013 13:14:17 +0200
-Message-ID: <5284B089.1020209@linux.intel.com>
-References: <1383309356-25430-1-git-send-email-jarkko.nikula@linux.intel.com> <1384419661-28293-1-git-send-email-jarkko.nikula@linux.intel.com> <1384419661-28293-2-git-send-email-jarkko.nikula@linux.intel.com> <s5hvbzv9u6g.wl%tiwai@suse.de>
+From: Gustavo Maciel Dias Vieira <gustavo@sagui.org>
+Subject: Re: More initial black screen system for removal from DMI table
+Date: Thu, 14 Nov 2013 09:50:33 -0200
+Message-ID: <1384429833.4103.23.camel@oberon.sagui.org>
+References: <1367828623-22998-1-git-send-email-alex.hung@canonical.com>
+		<52818C87.8080606@intel.com>
+	 <CAJ=jqubGRRYuKF2yFsGYniKu5=PotL6OR3KYjhhz-Zsx5wT+iA@mail.gmail.com>
+	 <5282DEEE.1040804@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:10929 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752624Ab3KNLO2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Nov 2013 06:14:28 -0500
-In-Reply-To: <s5hvbzv9u6g.wl%tiwai@suse.de>
+Received: from horatio.sagui.org ([173.230.138.212]:40655 "EHLO
+	horatio.sagui.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753165Ab3KNL6U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Nov 2013 06:58:20 -0500
+In-Reply-To: <5282DEEE.1040804@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-acpi@vger.kernel.org, alsa-devel@alsa-project.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Alex Hung <alex.hung@canonical.com>, Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
-On 11/14/2013 12:03 PM, Takashi Iwai wrote:
-> At Thu, 14 Nov 2013 11:00:59 +0200,
-> Jarkko Nikula wrote:
->> We have a few cases where we want to access struct device dev field in
->> struct acpi_device from generic code that is build also without CONFIG_ACPI.
->>
->> Provide here a minimal struct acpi_device stub that allows to build such a
->> code without adding new #ifdef CONFIG_ACPI churn. This should not increase
->> section sizes if code is protected by ACPI_COMPANION() runtime checks as
->> those will be optimized out by later compiler stages in case CONFIG_ACPI is
->> not set.
->>
->> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
->> ---
->> Rafael, instead of this we could also have an accessor but adev->dev looked
->> better in actual code and size vmlinux didn't change for x86_64_defconfig
->> with CONFIG_ACPI is not set nor for omap2plus_defconfig.
-> This looks too hackish, IMO.  Defining a different dummy struct often
-> gives more headaches.  Thinking of the potential risk by misuses, it'd
-> be simpler and safer to define a macro like acpi_dev_name() instead.
->
-> BTW, is linux/device.h already included in !CONFIG_ACPI case?
->
-It is included unconditionally in include/linux/acpi.h.
+Em Qua, 2013-11-13 =C3=A0s 10:07 +0800, Aaron Lu escreveu:
+> Hi Gustavo,
+> Can you please test this? I've prepared a branch for you:
+> https://github.com/aaronlu/linux acpi_video_dmi
+> It is based on Rafael's linux-next branch, with only one patch
+> on top: remove all the above systems from the DMI table.
 
-Your acpi_dev_name() proposal may be good enough for now as adev->dev 
-access in generic code (now under CONFIG_ACPI) seems to be anyway around 
-dev_name, using only pointer to struct acpi_device or has more things 
-that prevents immediate #ifdef CONFIG_ACPI removal there.
+Aaron, thanks for setting the branch up. However, I will only be able t=
+o
+test it over the weekend.=20
 
-But one problem at time. I'll cook a version with acpi_dev_name.
+=46or completeness my instance of the bug was (wrongly) tracked here:
+https://bugs.freedesktop.org/show_bug.cgi?id=3D43577
 
--- 
-Jarkko
+Abra=C3=A7os,
+Gustavo
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
