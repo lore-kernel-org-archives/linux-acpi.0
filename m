@@ -1,76 +1,78 @@
-From: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCHv4 3/3] spi: Use stable dev_name for ACPI enumerated SPI slaves
-Date: Thu, 14 Nov 2013 14:03:53 +0200
-Message-ID: <1384430633-23426-4-git-send-email-jarkko.nikula@linux.intel.com>
-References: <1384419661-28293-1-git-send-email-jarkko.nikula@linux.intel.com>
- <1384430633-23426-1-git-send-email-jarkko.nikula@linux.intel.com>
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1384430633-23426-1-git-send-email-jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH V2] ACPI, APEI: Cleanup alignment related codes for APEI
+Date: Thu, 14 Nov 2013 13:29:56 +0100
+Message-ID: <20131114122956.GE13376@pd.tnic>
+References: <1384135666-1929-1-git-send-email-gong.chen@linux.intel.com>
+ <20131114014924.GA17790@gchen.bj.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:32931 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753752Ab3KNMaX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Nov 2013 07:30:23 -0500
+Content-Disposition: inline
+In-Reply-To: <20131114014924.GA17790@gchen.bj.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Chen, Gong" <gong.chen@linux.intel.com>
+Cc: tony.luck@intel.com, linux-acpi@vger.kernel.org
 
-Current spi bus_num.chip_select "spix.y" based device naming scheme may not
-be stable enough to be used in name based matching, for instance within
-ALSA SoC subsystem.
+On Wed, Nov 13, 2013 at 08:49:24PM -0500, Chen, Gong wrote:
+> On Sun, Nov 10, 2013 at 09:07:46PM -0500, Chen, Gong wrote:
+> > Date: Sun, 10 Nov 2013 21:07:46 -0500
+> > From: "Chen, Gong" <gong.chen@linux.intel.com>
+> > To: tony.luck@intel.com, bp@alien8.de
+> > Cc: linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel=
+=2Ecom>
+> > Subject: [PATCH V2] ACPI, APEI: Cleanup alignment related codes for=
+ APEI
+> > X-Mailer: git-send-email 1.8.4.rc3
+> >=20
+> > We ever used *memcpy* to avoid access alignment issue between
+> > firmware and OS. Now we can use a better and standard way
+> > to avoid this issue. In the meanwhile, simplify some variable names
+> > to avoid the limit of 80 characters per line and use structure
+> > assignment instead of unnecessary memcpy. No functional changes.
+> >=20
+> > v2->v1: Make description information clearer.
+> >=20
+> Any comments? Boris/Tony?
 
-This can be problem in PC kind of platforms if there are changes in SPI bus
-configuration, amount of busses or probe order.
+I get this when building here:
 
-This patch addresses the problem by using the ACPI device name with
-"spi-" prefix for ACPI enumerated SPI slave. For them device name
-"spix.y" becomes "spi-INTABCD:ij".
+drivers/acpi/apei/apei-base.c: In function =E2=80=98apei_check_gar=E2=80=
+=99:
+drivers/acpi/apei/apei-base.c:571:8: warning: assignment makes pointer =
+from integer without a cast [enabled by default]
+  paddr =3D get_unaligned(&reg->address);
+        ^
+drivers/acpi/apei/apei-base.c: In function =E2=80=98collect_res_callbac=
+k=E2=80=99:
+drivers/acpi/apei/apei-base.c:716:3: warning: =E2=80=98paddr=E2=80=99 m=
+ay be used uninitialized in this function [-Wmaybe-uninitialized]
+   return apei_res_add(&resources->iomem, paddr,
+   ^
+drivers/acpi/apei/apei-base.c: In function =E2=80=98apei_read=E2=80=99:
+drivers/acpi/apei/apei-base.c:645:10: warning: =E2=80=98address=E2=80=99=
+ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   status =3D acpi_os_read_memory((acpi_physical_address) address,
+          ^
+drivers/acpi/apei/apei-base.c: In function =E2=80=98apei_write=E2=80=99=
+:
+drivers/acpi/apei/apei-base.c:678:10: warning: =E2=80=98address=E2=80=99=
+ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   status =3D acpi_os_write_memory((acpi_physical_address) address,
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Acked-by: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
----
-Mark's ack added as diff between v3 and v4 is just:
--		dev_set_name(&spi->dev, "spi-%s", dev_name(&adev->dev));
-+		dev_set_name(&spi->dev, "spi-%s", acpi_dev_name(adev));
----
- drivers/spi/spi.c | 17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+--=20
+Regards/Gruss,
+    Boris.
 
-diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index af4f971..be619e0 100644
---- a/drivers/spi/spi.c
-+++ b/drivers/spi/spi.c
-@@ -352,6 +352,19 @@ struct spi_device *spi_alloc_device(struct spi_master *master)
- }
- EXPORT_SYMBOL_GPL(spi_alloc_device);
- 
-+static void spi_dev_set_name(struct spi_device *spi)
-+{
-+	struct acpi_device *adev = ACPI_COMPANION(&spi->dev);
-+
-+	if (adev) {
-+		dev_set_name(&spi->dev, "spi-%s", acpi_dev_name(adev));
-+		return;
-+	}
-+
-+	dev_set_name(&spi->dev, "%s.%u", dev_name(&spi->master->dev),
-+		     spi->chip_select);
-+}
-+
- /**
-  * spi_add_device - Add spi_device allocated with spi_alloc_device
-  * @spi: spi_device to register
-@@ -378,9 +391,7 @@ int spi_add_device(struct spi_device *spi)
- 	}
- 
- 	/* Set the bus ID string */
--	dev_set_name(&spi->dev, "%s.%u", dev_name(&spi->master->dev),
--			spi->chip_select);
--
-+	spi_dev_set_name(spi);
- 
- 	/* We need to make sure there's no other device with this
- 	 * chipselect **BEFORE** we call setup(), else we'll trash
--- 
-1.8.4.2
-
+Sent from a fat crate under my desk. Formatting is fine.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
