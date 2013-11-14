@@ -1,54 +1,54 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv3 3/3] spi: Use stable dev_name for ACPI enumerated SPI
- slaves
-Date: Thu, 14 Nov 2013 10:10:22 +0000
-Message-ID: <20131114101022.GD26614@sirena.org.uk>
-References: <1383309356-25430-1-git-send-email-jarkko.nikula@linux.intel.com>
- <1384419661-28293-1-git-send-email-jarkko.nikula@linux.intel.com>
- <1384419661-28293-4-git-send-email-jarkko.nikula@linux.intel.com>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: [alsa-devel] [PATCHv3 1/3] ACPI: Provide struct acpi_device stub
+ for !CONFIG_ACPI builds
+Date: Thu, 14 Nov 2013 13:14:17 +0200
+Message-ID: <5284B089.1020209@linux.intel.com>
+References: <1383309356-25430-1-git-send-email-jarkko.nikula@linux.intel.com> <1384419661-28293-1-git-send-email-jarkko.nikula@linux.intel.com> <1384419661-28293-2-git-send-email-jarkko.nikula@linux.intel.com> <s5hvbzv9u6g.wl%tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VV4b6MQE+OnNyhkM"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1384419661-28293-4-git-send-email-jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:10929 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752624Ab3KNLO2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Nov 2013 06:14:28 -0500
+In-Reply-To: <s5hvbzv9u6g.wl%tiwai@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Takashi Iwai <tiwai@suse.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-acpi@vger.kernel.org, alsa-devel@alsa-project.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org
 
+On 11/14/2013 12:03 PM, Takashi Iwai wrote:
+> At Thu, 14 Nov 2013 11:00:59 +0200,
+> Jarkko Nikula wrote:
+>> We have a few cases where we want to access struct device dev field in
+>> struct acpi_device from generic code that is build also without CONFIG_ACPI.
+>>
+>> Provide here a minimal struct acpi_device stub that allows to build such a
+>> code without adding new #ifdef CONFIG_ACPI churn. This should not increase
+>> section sizes if code is protected by ACPI_COMPANION() runtime checks as
+>> those will be optimized out by later compiler stages in case CONFIG_ACPI is
+>> not set.
+>>
+>> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+>> ---
+>> Rafael, instead of this we could also have an accessor but adev->dev looked
+>> better in actual code and size vmlinux didn't change for x86_64_defconfig
+>> with CONFIG_ACPI is not set nor for omap2plus_defconfig.
+> This looks too hackish, IMO.  Defining a different dummy struct often
+> gives more headaches.  Thinking of the potential risk by misuses, it'd
+> be simpler and safer to define a macro like acpi_dev_name() instead.
+>
+> BTW, is linux/device.h already included in !CONFIG_ACPI case?
+>
+It is included unconditionally in include/linux/acpi.h.
 
---VV4b6MQE+OnNyhkM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Your acpi_dev_name() proposal may be good enough for now as adev->dev 
+access in generic code (now under CONFIG_ACPI) seems to be anyway around 
+dev_name, using only pointer to struct acpi_device or has more things 
+that prevents immediate #ifdef CONFIG_ACPI removal there.
 
-On Thu, Nov 14, 2013 at 11:01:01AM +0200, Jarkko Nikula wrote:
-> Current spi bus_num.chip_select "spix.y" based device naming scheme may not
-> be stable enough to be used in name based matching, for instance within
-> ALSA SoC subsystem.
+But one problem at time. I'll cook a version with acpi_dev_name.
 
-Acked-by: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-
---VV4b6MQE+OnNyhkM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJShKGLAAoJELSic+t+oim9r/wP/0fwpqZAHy+j4Nc0mWkxxzvx
-bzNVcn2T55pxN5oRr6Dq2PIS/iEPq7Jnsjwp0HIUvser06Z9TyCpulNOC3JdBar7
-MP4ydZ++uTCQclTosY/Rp0yxFL34zZXTM9OBHfzTtyC0+rZMdRDe1TPSZGcng+Cx
-XkQpxLHhiGH3zreGtPFprkIGJvpY+ifEU+zMqOumw/Zwp6zlP/trDmZRY08WYqMV
-bd+PxVbx3+2nvi3Hw4pj2yfNpKaVd2ks7+fCi31/GuVJ06ys//0PFktAelQHwG+y
-/3ozto/11RIU+cfoXcwRFScv4pamzMgCHKeZ1j0ibysAG4leLyFQpE8RiX/86wiL
-XlFWs9uDW3qPVdGkxUMKI9f960TfjOaCTKmrwSf31P8yRb1f+pDIHPVPEqcgmf5X
-a4G36+zSJafbjLe3WgFvdToPcHW6uwrBDE6FHR3lNxsr+HyTfDUf6e162EVkKMVt
-QLxyJzwVM0eX1afvw8CM74JD5kiB4Gu23IkS/NFGWqGwafTlvZAsU0s4SXRz+yVo
-JS1Y3oMqxEwQgkAyr6mqXOAiSHafz+4B4CY1WxWZmJlWgPX5Pku8CS3AoWWrJEDd
-yOBe9LLhrLGpTsb/J3dXGQX0abr34pHuff6eSehL2eWsCkUSgUZqhd6cpaHu+6Ax
-WKmY1n5by9XDazWrHG4i
-=FLVO
------END PGP SIGNATURE-----
-
---VV4b6MQE+OnNyhkM--
+-- 
+Jarkko
