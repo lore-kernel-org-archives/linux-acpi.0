@@ -1,73 +1,49 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [PATCHv4 2/3] i2c: Use stable dev_name for ACPI enumerated I2C
- slaves
-Date: Thu, 14 Nov 2013 18:22:48 +0100
-Message-ID: <20131114172248.GD11022@katana>
-References: <1384419661-28293-1-git-send-email-jarkko.nikula@linux.intel.com>
- <1384430633-23426-1-git-send-email-jarkko.nikula@linux.intel.com>
- <1384430633-23426-3-git-send-email-jarkko.nikula@linux.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: More initial black screen system for removal from DMI table
+Date: Fri, 15 Nov 2013 08:42:38 +0800
+Message-ID: <52856DFE.3000003@intel.com>
+References: <1367828623-22998-1-git-send-email-alex.hung@canonical.com>		<52818C87.8080606@intel.com>	 <CAJ=jqubGRRYuKF2yFsGYniKu5=PotL6OR3KYjhhz-Zsx5wT+iA@mail.gmail.com>	 <5282DEEE.1040804@intel.com> <1384429833.4103.23.camel@oberon.sagui.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="C+ts3FVlLX8+P6JN"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1384430633-23426-3-git-send-email-jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:21340 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752865Ab3KOAlu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Nov 2013 19:41:50 -0500
+In-Reply-To: <1384429833.4103.23.camel@oberon.sagui.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Gustavo Maciel Dias Vieira <gustavo@sagui.org>
+Cc: Alex Hung <alex.hung@canonical.com>, Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
-
---C+ts3FVlLX8+P6JN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, Nov 14, 2013 at 02:03:52PM +0200, Jarkko Nikula wrote:
-> Current I2C adapter id - client address "x-00yy" based device naming sche=
-me
-> is not always stable enough to be used in name based matching, for instan=
-ce
-> within ALSA SoC subsystem.
+On 11/14/2013 07:50 PM, Gustavo Maciel Dias Vieira wrote:
+> Em Qua, 2013-11-13 =C3=A0s 10:07 +0800, Aaron Lu escreveu:
+>> Hi Gustavo,
+>> Can you please test this? I've prepared a branch for you:
+>> https://github.com/aaronlu/linux acpi_video_dmi
+>> It is based on Rafael's linux-next branch, with only one patch
+>> on top: remove all the above systems from the DMI table.
 >=20
-> This is problematic in PC kind of platforms where I2C adapter numbers can
-> change due variable amount of bus controllers, probe order, add-on cards =
-or
-> just because of BIOS settings.
+> Aaron, thanks for setting the branch up. However, I will only be able=
+ to
+> test it over the weekend.=20
+
+No problem :-)
+
 >=20
-> This patch addresses the problem by using the ACPI device name with
-> "i2c-" prefix for ACPI enumerated I2C slaves. For them device name
-> "x-00yz" becomes "i2c-INTABCD:ij" after this patch.
->=20
-> Signed-off-by: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> For completeness my instance of the bug was (wrongly) tracked here:
+> https://bugs.freedesktop.org/show_bug.cgi?id=3D43577
 
-Acked-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Thanks for the info. Unfortunately, there isn't acpidump either.
+Please attach the dump there when you have time, thanks.
 
+As root:
+# acpidump > acpidump.txt
 
---C+ts3FVlLX8+P6JN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBAgAGBQJShQboAAoJEBQN5MwUoCm29Q8P/AjYhiVSPIaUVG5QnJjFqj22
-IgFGUHSzXnqs9AiPrPkub1IxsuNL0EzXBOidS2C21GsX4PRXbuheaGYuEfPAbBBJ
-/jTogVmd7wwn7UtQ1IaJLr/hUCl0S5Db0kdVStPt7AuOqljfrK+9qEAYQ1oV2VDp
-rmPg9OKsKXGDethhnW1TKSRjCECXNm6ll+zof9pNAQnwPVpXtIzZofwmWq/x0s/c
-3amFA2Kb6PQ+KToXjOTNmSncCjaP8A4c/GtufiF5BfZU2RmaK5n+l40fmsWNGmuL
-9Kn0Y0givkxn6dURndq5y8WsyYgf6URkT1/mpfv4ccdY5aYMJboGMEM3OdI8JVNu
-1nOfjT8KzPzWCpA4c5+DXMj5xqxKSvBBlgFj2gJvrG4KxbqXdPmp6FC5FgZUUBeo
-yYZt+aPEamuwnZNixxFFc0EqkNKIWJ3idbZM1bmrvGPLVfD9T/V5JO/hccORZuVM
-gsvr6swKUALEu28xDPsfKn3gj1qSsGXt+01FQcPoAMF69NVxS8BC1WNr78JXhjZ9
-8StP4S4MJYnrzFhk3/bQBcHto36Lp+sJNzeb7CGa4hXR73NXdw5/lfOjSK+kf+OU
-OavPIeLYVOBtrd+GggkE8TrbO9TJiEJ9nFP0/NWocFrejvbAmP86Cj/rEZNRCL9S
-tH9JDHxOg2WviCE8zbRE
-=uH9z
------END PGP SIGNATURE-----
-
---C+ts3FVlLX8+P6JN--
+-Aaron
 --
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
