@@ -1,40 +1,56 @@
-From: Joseph Salisbury <joseph.salisbury@canonical.com>
-Subject: [v3.11][3.12][Regression]  ACPI / processor: Use common hotplug infrastructure
-Date: Fri, 15 Nov 2013 12:44:11 -0500
-Message-ID: <52865D6B.1080902@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Olof Johansson <olof@lixom.net>
+Subject: [PATCH] ACPI: Ensure lock is acquired before accessing ec struct members
+Date: Fri, 15 Nov 2013 11:41:29 -0800
+Message-ID: <1384544489-18098-1-git-send-email-olof@lixom.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:54469 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751808Ab3KORoS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Nov 2013 12:44:18 -0500
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:46758 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751252Ab3KOTlX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Nov 2013 14:41:23 -0500
+Received: by mail-pd0-f175.google.com with SMTP id w10so1780961pde.20
+        for <linux-acpi@vger.kernel.org>; Fri, 15 Nov 2013 11:41:22 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rafael.j.wysocki@intel.com
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Puneet Kumar <puneetster@chromium.org>, Olof Johansson <olof@lixom.net>, Feng Tang <feng.tang@intel.com>
 
-Hi Rafael,
+From: Puneet Kumar <puneetster@chromium.org>
 
-A kernel bug affecting several users was opened against Ubuntu[0]. 
-After a bisect, it was found the following commit introduced the regression:
+A bug was introduced by commit b76b51ba0cef ('ACPI / EC: Add more debug
+info and trivial code cleanup') that erroneously caused the struct member
+to be accessed before acquiring the required lock.  This change fixes
+it by ensuring the lock acquisition is done first.
 
-commit ac212b6980d8d5eda705864fc5a8ecddc6d6eacc
-Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Date: Fri May 3 00:26:22 2013 +0200
+Found by Aaron Durbin <adurbin@chromium.org>
 
-    ACPI / processor: Use common hotplug infrastructure
+Fixes: b76b51ba0cef ('ACPI / EC: Add more debug info and trivial code cleanup')
+References: http://crbug.com/319019
+Signed-off-by: Puneet Kumar <puneetster@chromium.org>
+Reviewed-by: Aaron Durbin <adurbin@chromium.org>
+[olof: Commit message reworded a bit]
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: <stable@vger.kernel.org> # 3.8+
+---
+ drivers/acpi/ec.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-The regression was introduced as of v3.11-rc1.
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index d5309fd..ba5b56d 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -173,9 +173,10 @@ static void start_transaction(struct acpi_ec *ec)
+ static void advance_transaction(struct acpi_ec *ec, u8 status)
+ {
+ 	unsigned long flags;
+-	struct transaction *t = ec->curr;
++	struct transaction *t;
+ 
+ 	spin_lock_irqsave(&ec->lock, flags);
++	t = ec->curr;
+ 	if (!t)
+ 		goto unlock;
+ 	if (t->wlen > t->wi) {
+-- 
+1.7.10.4
 
-This commit doesn't revert cleanly in 3.12, and requires the revert of
-other commits as well.  I wanted to get your feedback since you are the
-author.
-
-   
-Thanks,
-   
-Joe
-
-http://pad.lv/1237336
