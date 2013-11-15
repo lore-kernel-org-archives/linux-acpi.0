@@ -1,214 +1,160 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH v2] ACPI / video: Add systems that should favor
- native backlight interface
-Date: Fri, 15 Nov 2013 14:07:52 +0800
-Message-ID: <5285BA38.6080804@intel.com>
-References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
-	<2140073.U60XyxRqVZ@vostro.rjw.lan> <5268D6BB.3010207@intel.com>
-	<1382682925.3328.4.camel@ThinkPad-X230.localdomain>
-	<526DCFD7.7060002@intel.com> <87fvrl7r6g.fsf@intel.com>
-	<526F615D.2090602@intel.com>
+Subject: [PATCH v2] ACPI / video: clean up DMI table for initial black screen
+ problem
+Date: Fri, 15 Nov 2013 14:39:12 +0800
+Message-ID: <5285C190.8030000@intel.com>
+References: <1367828623-22998-1-git-send-email-alex.hung@canonical.com>				<52818C87.8080606@intel.com>			 <CAJ=jqubGRRYuKF2yFsGYniKu5=PotL6OR3KYjhhz-Zsx5wT+iA@mail.gmail.com>			 <5282DEEE.1040804@intel.com> <1384429833.4103.23.camel@oberon.sagui.org>		 <52856DFE.3000003@intel.com> <1384478234.9557.1.camel@oberon.sagui.org>	 <5285798C.70506@intel.com> <1384479197.9557.3.camel@oberon.sagui.org> <528593F5.2010901@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <526F615D.2090602@intel.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces@lists.freedesktop.org
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: James Hogan <james@albanarts.com>, Martin Steigerwald <Martin@lichtvoll.de>, Felipe Contreras <felipe.contreras@gmail.com>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, linux-acpi@vger.kernel.org, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, Mike Galbraith <bitbucket@online.de>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?UTF-8?B?SsO2cmcgT3R0ZQ==?= <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Kevin Smith <thirdwiggin@gmail.com>, Peter Weber <bugs@ttyhoney.com>, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Lennart Poettering <lennart@poettering.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Tso <tyts>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:19456 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751472Ab3KOGiY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Nov 2013 01:38:24 -0500
+In-Reply-To: <528593F5.2010901@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Gustavo Maciel Dias Vieira <gustavo@sagui.org>, Alex Hung <alex.hung@canonical.com>, Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Some system's ACPI video backlight control interface is broken and the
-native backlight control interface should be used by default. This patch
-sets the use_native_backlight parameter to true for those systems so
-that video backlight control interface will not be created. To be
-specific, the ThinkPad T430s/X230, Lenovo Yoga 13, Dell Inspiron 7520
-and Acer Aspire 5733Z are added here, if they appear in some other DMI
-table before, they are removed from there.
+With commit 2c62333a408f "ACPI / video: Quirk initial backlight level 0"
+we do not need to have the following systems in DMI table, so remove them.
+HP Pavilion m4, HP 1000 Notebook PC, HP Pavilion g6 Notebook PC,
+HP Pavilion dm4, Fujitsu E753, HP Folio 13-2000.
 
-Note that the user specified kernel cmdline option will always have the
-highest priority, i.e. if use_native_backlight=0 is specified and the
-system is in the DMI table, the video module will not skip registering
-backlight interface for it.
-
-Thinkpad T430s:
-Reported-by: Theodore Tso <tytso@mit.edu>
-Reported-and-tested-by: Peter Weber <bugs@ttyhoney.com>
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
-Thinkpad X230:
-Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
-Lenovo Yoga 13:
-Reported-by: Lennart Poettering <lennart@poettering.net>
-Reported-and-tested-by: Kevin Smith <thirdwiggin@gmail.com>
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=63811
-Dell Inspiron 7520:
-Reported-by: Rinat Ibragimov <ibragimovrinat@mail.ru>
-Acer Aspire 5733Z:
-Reported-by: <sov.info@mail.ru>
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=62941
+With this change, the use_bios_initial_backlight module parameter is no
+longer needed and thus removed.
 
 Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Tested-by: Alex Hung <alex.hung@canonical.com> # for HP 1000 Notebook PC
+Tested-by: Gustavo Maciel Dias Vieira <gustavo@sagui.org> # for HP Pavilion dm4
 ---
 v2:
-Add Acer Aspire 5733Z, see bug #62941;
-Remove Inspiron 7520 from acpi_osi_dmi_table and Yoga 13 from
-video_detect_dmi_table.
+Remove use_bios_initial_backlight parameter and related code.
 
-Based on top of Rafael's linux-next branch + the following patch:
-[PATCH] ACPI / video: clean up DMI table for initial black screen problem
-http://marc.info/?l=linux-acpi&m=138448583006432&w=2
+ drivers/acpi/video.c | 87 ++++++++--------------------------------------------
+ 1 file changed, 12 insertions(+), 75 deletions(-)
 
- drivers/acpi/blacklist.c    |  8 ------
- drivers/acpi/video.c        | 65 +++++++++++++++++++++++++++++++++++++++++----
- drivers/acpi/video_detect.c |  8 ------
- 3 files changed, 60 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index 078c4f7fe2dd..2b6a76b6d59a 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -261,14 +261,6 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 	},
- 	{
- 	.callback = dmi_disable_osi_win8,
--	.ident = "Dell Inspiron 15R SE",
--	.matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
--		     DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7520"),
--		},
--	},
--	{
--	.callback = dmi_disable_osi_win8,
- 	.ident = "ThinkPad Edge E530",
- 	.matches = {
- 		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
 diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 4ccb89e5c4ad..49abe0348b03 100644
+index 18dbdff4656e..995e91bcb97b 100644
 --- a/drivers/acpi/video.c
 +++ b/drivers/acpi/video.c
-@@ -89,11 +89,12 @@ static bool use_bios_initial_backlight = 1;
- module_param(use_bios_initial_backlight, bool, 0644);
+@@ -82,13 +82,6 @@ static bool allow_duplicates;
+ module_param(allow_duplicates, bool, 0644);
  
  /*
-- * For Windows 8 systems: if set ture and the GPU driver has
-- * registered a backlight interface, skip registering ACPI video's.
-+ * For Windows 8 systems: used to decide if video module
-+ * should skip registering backlight interface of its own.
+- * Some BIOSes claim they use minimum backlight at boot,
+- * and this may bring dimming screen after boot
+- */
+-static bool use_bios_initial_backlight = 1;
+-module_param(use_bios_initial_backlight, bool, 0644);
+-
+-/*
+  * For Windows 8 systems: if set ture and the GPU driver has
+  * registered a backlight interface, skip registering ACPI video's.
   */
--static bool use_native_backlight = false;
--module_param(use_native_backlight, bool, 0644);
-+static int use_native_backlight_param = -1;
-+module_param_named(use_native_backlight, use_native_backlight_param, int, 0444);
-+static bool use_native_backlight_dmi = false;
- 
- static int register_count;
- static struct mutex video_list_lock;
-@@ -239,9 +240,17 @@ static int acpi_video_get_next_level(struct acpi_video_device *device,
- static int acpi_video_switch_brightness(struct acpi_video_device *device,
- 					 int event);
- 
-+static bool acpi_video_use_native_backlight(void)
-+{
-+	if (use_native_backlight_param != -1)
-+		return !!use_native_backlight_param;
-+	else
-+		return use_native_backlight_dmi;
-+}
-+
- static bool acpi_video_verify_backlight_support(void)
- {
--	if (acpi_osi_is_win8() && use_native_backlight &&
-+	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
- 	    backlight_device_registered(BACKLIGHT_RAW))
- 		return false;
- 	return acpi_video_backlight_support();
-@@ -412,6 +421,12 @@ static int video_ignore_initial_backlight(const struct dmi_system_id *d)
+@@ -406,12 +399,6 @@ static int __init video_set_bqc_offset(const struct dmi_system_id *d)
  	return 0;
  }
  
-+static int __init video_set_use_native_backlight(const struct dmi_system_id *d)
-+{
-+	use_native_backlight_dmi = true;
-+	return 0;
-+}
-+
+-static int video_ignore_initial_backlight(const struct dmi_system_id *d)
+-{
+-	use_bios_initial_backlight = 0;
+-	return 0;
+-}
+-
  static struct dmi_system_id video_dmi_table[] __initdata = {
  	/*
  	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
-@@ -456,6 +471,46 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+@@ -456,54 +443,6 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
  		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 7720"),
  		},
  	},
-+	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "ThinkPad T430s",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
-+		},
-+	},
-+	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "ThinkPad X230",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
-+		},
-+	},
-+	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "Lenovo Yoga 13",
-+	 .matches = {
-+		 DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		 DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
-+		},
-+	},
-+	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "Dell Inspiron 7520",
-+	 .matches = {
-+		 DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		 DMI_MATCH(DMI_PRODUCT_VERSION, "Inspiron 7520"),
-+		},
-+	},
-+	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "Acer Aspire 5733Z",
-+	 .matches = {
-+		 DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+		 DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5733Z"),
-+		},
-+	},
+-	{
+-	 .callback = video_ignore_initial_backlight,
+-	 .ident = "HP Folio 13-2000",
+-	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP Folio 13 - 2000 Notebook PC"),
+-		},
+-	},
+-	{
+-	 .callback = video_ignore_initial_backlight,
+-	 .ident = "Fujitsu E753",
+-	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "FUJITSU"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "LIFEBOOK E753"),
+-		},
+-	},
+-	{
+-	 .callback = video_ignore_initial_backlight,
+-	 .ident = "HP Pavilion dm4",
+-	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dm4 Notebook PC"),
+-		},
+-	},
+-	{
+-	 .callback = video_ignore_initial_backlight,
+-	 .ident = "HP Pavilion g6 Notebook PC",
+-	 .matches = {
+-		 DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
+-		 DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion g6 Notebook PC"),
+-		},
+-	},
+-	{
+-	 .callback = video_ignore_initial_backlight,
+-	 .ident = "HP 1000 Notebook PC",
+-	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP 1000 Notebook PC"),
+-		},
+-	},
+-	{
+-	 .callback = video_ignore_initial_backlight,
+-	 .ident = "HP Pavilion m4",
+-	 .matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion m4 Notebook PC"),
+-		},
+-	},
  	{}
  };
  
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 84875fd4c74f..b6399343de51 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -168,14 +168,6 @@ static struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
- 		},
- 	},
--	{
--	.callback = video_detect_force_vendor,
--	.ident = "Lenovo Yoga 13",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
--		},
--	},
- 	{ },
- };
+@@ -839,20 +778,18 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+ 	if (!device->cap._BQC)
+ 		goto set_level;
  
+-	if (use_bios_initial_backlight) {
+-		level = acpi_video_bqc_value_to_level(device, level_old);
+-		/*
+-		 * On some buggy laptops, _BQC returns an uninitialized
+-		 * value when invoked for the first time, i.e.
+-		 * level_old is invalid (no matter whether it's a level
+-		 * or an index). Set the backlight to max_level in this case.
+-		 */
+-		for (i = 2; i < br->count; i++)
+-			if (level == br->levels[i])
+-				break;
+-		if (i == br->count || !level)
+-			level = max_level;
+-	}
++	level = acpi_video_bqc_value_to_level(device, level_old);
++	/*
++	 * On some buggy laptops, _BQC returns an uninitialized
++	 * value when invoked for the first time, i.e.
++	 * level_old is invalid (no matter whether it's a level
++	 * or an index). Set the backlight to max_level in this case.
++	 */
++	for (i = 2; i < br->count; i++)
++		if (level == br->levels[i])
++			break;
++	if (i == br->count || !level)
++		level = max_level;
+ 
+ set_level:
+ 	result = acpi_video_device_lcd_set_level(device, level);
 -- 
 1.8.3.1
+
