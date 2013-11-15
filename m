@@ -1,64 +1,48 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: Ensure lock is acquired before accessing ec struct members
-Date: Fri, 15 Nov 2013 23:42:43 +0100
-Message-ID: <5300176.cL70lB1Tyt@vostro.rjw.lan>
-References: <1384544489-18098-1-git-send-email-olof@lixom.net>
+Subject: Re: [v3.11][3.12][Regression]  ACPI / processor: Use common hotplug infrastructure
+Date: Fri, 15 Nov 2013 23:55:10 +0100
+Message-ID: <19794987.1PROc0XFg1@vostro.rjw.lan>
+References: <52865D6B.1080902@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54139 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:51797 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752979Ab3KOWaL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Nov 2013 17:30:11 -0500
-In-Reply-To: <1384544489-18098-1-git-send-email-olof@lixom.net>
+	with SMTP id S1752930Ab3KOWmh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Nov 2013 17:42:37 -0500
+In-Reply-To: <52865D6B.1080902@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Puneet Kumar <puneetster@chromium.org>, Feng Tang <feng.tang@intel.com>
+To: Joseph Salisbury <joseph.salisbury@canonical.com>
+Cc: rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On Friday, November 15, 2013 11:41:29 AM Olof Johansson wrote:
-> From: Puneet Kumar <puneetster@chromium.org>
+On Friday, November 15, 2013 12:44:11 PM Joseph Salisbury wrote:
+> Hi Rafael,
 > 
-> A bug was introduced by commit b76b51ba0cef ('ACPI / EC: Add more debug
-> info and trivial code cleanup') that erroneously caused the struct member
-> to be accessed before acquiring the required lock.  This change fixes
-> it by ensuring the lock acquisition is done first.
+> A kernel bug affecting several users was opened against Ubuntu[0]. 
+> After a bisect, it was found the following commit introduced the regression:
 > 
-> Found by Aaron Durbin <adurbin@chromium.org>
+> commit ac212b6980d8d5eda705864fc5a8ecddc6d6eacc
+> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Date: Fri May 3 00:26:22 2013 +0200
 > 
-> Fixes: b76b51ba0cef ('ACPI / EC: Add more debug info and trivial code cleanup')
-> References: http://crbug.com/319019
-> Signed-off-by: Puneet Kumar <puneetster@chromium.org>
-> Reviewed-by: Aaron Durbin <adurbin@chromium.org>
-> [olof: Commit message reworded a bit]
-> Signed-off-by: Olof Johansson <olof@lixom.net>
-> Cc: Feng Tang <feng.tang@intel.com>
-> Cc: <stable@vger.kernel.org> # 3.8+
+>     ACPI / processor: Use common hotplug infrastructure
+> 
+> The regression was introduced as of v3.11-rc1.
+> 
+> This commit doesn't revert cleanly in 3.12, and requires the revert of
+> other commits as well.  I wanted to get your feedback since you are the
+> author.
 
-Queued up for the next ACPI pull request, thanks guys!
+Well, that commit has nothing to do with PCMCIA, so I'm not sure how the
+breakage is related to it.
 
-> ---
->  drivers/acpi/ec.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index d5309fd..ba5b56d 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -173,9 +173,10 @@ static void start_transaction(struct acpi_ec *ec)
->  static void advance_transaction(struct acpi_ec *ec, u8 status)
->  {
->  	unsigned long flags;
-> -	struct transaction *t = ec->curr;
-> +	struct transaction *t;
->  
->  	spin_lock_irqsave(&ec->lock, flags);
-> +	t = ec->curr;
->  	if (!t)
->  		goto unlock;
->  	if (t->wlen > t->wi) {
-> 
+Moreover, comment #8 reports 3.11.0-11.17 as working and the change you're
+asking about should be in that kernel as well.
+
+Thanks!
+
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
