@@ -1,129 +1,214 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: [PATCH v3] ACPI, APEI: Cleanup alignment related codes for APEI
-Date: Fri, 15 Nov 2013 00:45:56 -0500
-Message-ID: <1384494356-4034-1-git-send-email-gong.chen@linux.intel.com>
-References: <20131114122956.GE13376@pd.tnic>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:1228 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751472Ab3KOGCc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Nov 2013 01:02:32 -0500
-In-Reply-To: <20131114122956.GE13376@pd.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH v2] ACPI / video: Add systems that should favor
+ native backlight interface
+Date: Fri, 15 Nov 2013 14:07:52 +0800
+Message-ID: <5285BA38.6080804@intel.com>
+References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
+	<2140073.U60XyxRqVZ@vostro.rjw.lan> <5268D6BB.3010207@intel.com>
+	<1382682925.3328.4.camel@ThinkPad-X230.localdomain>
+	<526DCFD7.7060002@intel.com> <87fvrl7r6g.fsf@intel.com>
+	<526F615D.2090602@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <526F615D.2090602@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces@lists.freedesktop.org
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: James Hogan <james@albanarts.com>, Martin Steigerwald <Martin@lichtvoll.de>, Felipe Contreras <felipe.contreras@gmail.com>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, linux-acpi@vger.kernel.org, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, Mike Galbraith <bitbucket@online.de>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?UTF-8?B?SsO2cmcgT3R0ZQ==?= <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Kevin Smith <thirdwiggin@gmail.com>, Peter Weber <bugs@ttyhoney.com>, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Lennart Poettering <lennart@poettering.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Tso <tyts>
 List-Id: linux-acpi@vger.kernel.org
-To: tony.luck@intel.com, bp@alien8.de
-Cc: linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
 
-We ever used *memcpy* to avoid access alignment issue between
-firmware and OS. Now we can use a better and standard way
-to avoid this issue. In the meanwhile, simplify some variable names
-to avoid the limit of 80 characters per line and use structure
-assignment instead of unnecessary memcpy. No functional changes.
+Some system's ACPI video backlight control interface is broken and the
+native backlight control interface should be used by default. This patch
+sets the use_native_backlight parameter to true for those systems so
+that video backlight control interface will not be created. To be
+specific, the ThinkPad T430s/X230, Lenovo Yoga 13, Dell Inspiron 7520
+and Acer Aspire 5733Z are added here, if they appear in some other DMI
+table before, they are removed from there.
 
-v3->v2: Fix an evaluation error.
-v2->v1: Make description information clearer.
+Note that the user specified kernel cmdline option will always have the
+highest priority, i.e. if use_native_backlight=0 is specified and the
+system is in the DMI table, the video module will not skip registering
+backlight interface for it.
 
-Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+Thinkpad T430s:
+Reported-by: Theodore Tso <tytso@mit.edu>
+Reported-and-tested-by: Peter Weber <bugs@ttyhoney.com>
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+Thinkpad X230:
+Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+Lenovo Yoga 13:
+Reported-by: Lennart Poettering <lennart@poettering.net>
+Reported-and-tested-by: Kevin Smith <thirdwiggin@gmail.com>
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=63811
+Dell Inspiron 7520:
+Reported-by: Rinat Ibragimov <ibragimovrinat@mail.ru>
+Acer Aspire 5733Z:
+Reported-by: <sov.info@mail.ru>
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=62941
+
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 ---
- drivers/acpi/apei/apei-base.c |  4 ++--
- drivers/acpi/apei/einj.c      | 19 +++++++++----------
- drivers/acpi/apei/erst.c      |  2 +-
- 3 files changed, 12 insertions(+), 13 deletions(-)
+v2:
+Add Acer Aspire 5733Z, see bug #62941;
+Remove Inspiron 7520 from acpi_osi_dmi_table and Yoga 13 from
+video_detect_dmi_table.
 
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index 6d2c49b..e55584a 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -41,6 +41,7 @@
- #include <linux/rculist.h>
- #include <linux/interrupt.h>
- #include <linux/debugfs.h>
-+#include <asm/unaligned.h>
+Based on top of Rafael's linux-next branch + the following patch:
+[PATCH] ACPI / video: clean up DMI table for initial black screen problem
+http://marc.info/?l=linux-acpi&m=138448583006432&w=2
+
+ drivers/acpi/blacklist.c    |  8 ------
+ drivers/acpi/video.c        | 65 +++++++++++++++++++++++++++++++++++++++++----
+ drivers/acpi/video_detect.c |  8 ------
+ 3 files changed, 60 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 078c4f7fe2dd..2b6a76b6d59a 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -261,14 +261,6 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 	},
+ 	{
+ 	.callback = dmi_disable_osi_win8,
+-	.ident = "Dell Inspiron 15R SE",
+-	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7520"),
+-		},
+-	},
+-	{
+-	.callback = dmi_disable_osi_win8,
+ 	.ident = "ThinkPad Edge E530",
+ 	.matches = {
+ 		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 4ccb89e5c4ad..49abe0348b03 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -89,11 +89,12 @@ static bool use_bios_initial_backlight = 1;
+ module_param(use_bios_initial_backlight, bool, 0644);
  
- #include "apei-internal.h"
+ /*
+- * For Windows 8 systems: if set ture and the GPU driver has
+- * registered a backlight interface, skip registering ACPI video's.
++ * For Windows 8 systems: used to decide if video module
++ * should skip registering backlight interface of its own.
+  */
+-static bool use_native_backlight = false;
+-module_param(use_native_backlight, bool, 0644);
++static int use_native_backlight_param = -1;
++module_param_named(use_native_backlight, use_native_backlight_param, int, 0444);
++static bool use_native_backlight_dmi = false;
  
-@@ -567,8 +568,7 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
- 	bit_offset = reg->bit_offset;
- 	access_size_code = reg->access_width;
- 	space_id = reg->space_id;
--	/* Handle possible alignment issues */
--	memcpy(paddr, &reg->address, sizeof(*paddr));
-+	*paddr = get_unaligned(&reg->address);
- 	if (!*paddr) {
- 		pr_warning(FW_BUG APEI_PFX
- 			   "Invalid physical address in GAR [0x%llx/%u/%u/%u/%u]\n",
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index fb57d03..361177a 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -34,6 +34,7 @@
- #include <linux/delay.h>
- #include <linux/mm.h>
- #include <acpi/acpi.h>
-+#include <asm/unaligned.h>
+ static int register_count;
+ static struct mutex video_list_lock;
+@@ -239,9 +240,17 @@ static int acpi_video_get_next_level(struct acpi_video_device *device,
+ static int acpi_video_switch_brightness(struct acpi_video_device *device,
+ 					 int event);
  
- #include "apei-internal.h"
- 
-@@ -216,7 +217,7 @@ static void check_vendor_extension(u64 paddr,
- static void *einj_get_parameter_address(void)
++static bool acpi_video_use_native_backlight(void)
++{
++	if (use_native_backlight_param != -1)
++		return !!use_native_backlight_param;
++	else
++		return use_native_backlight_dmi;
++}
++
+ static bool acpi_video_verify_backlight_support(void)
  {
- 	int i;
--	u64 paddrv4 = 0, paddrv5 = 0;
-+	u64 pa_v4 = 0, pa_v5 = 0;
- 	struct acpi_whea_header *entry;
+-	if (acpi_osi_is_win8() && use_native_backlight &&
++	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
+ 	    backlight_device_registered(BACKLIGHT_RAW))
+ 		return false;
+ 	return acpi_video_backlight_support();
+@@ -412,6 +421,12 @@ static int video_ignore_initial_backlight(const struct dmi_system_id *d)
+ 	return 0;
+ }
  
- 	entry = EINJ_TAB_ENTRY(einj_tab);
-@@ -225,30 +226,28 @@ static void *einj_get_parameter_address(void)
- 		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
- 		    entry->register_region.space_id ==
- 		    ACPI_ADR_SPACE_SYSTEM_MEMORY)
--			memcpy(&paddrv4, &entry->register_region.address,
--			       sizeof(paddrv4));
-+			pa_v4 = get_unaligned(&entry->register_region.address);
- 		if (entry->action == ACPI_EINJ_SET_ERROR_TYPE_WITH_ADDRESS &&
- 		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
- 		    entry->register_region.space_id ==
- 		    ACPI_ADR_SPACE_SYSTEM_MEMORY)
--			memcpy(&paddrv5, &entry->register_region.address,
--			       sizeof(paddrv5));
-+			pa_v5 = get_unaligned(&entry->register_region.address);
- 		entry++;
- 	}
--	if (paddrv5) {
-+	if (pa_v5) {
- 		struct set_error_type_with_address *v5param;
++static int __init video_set_use_native_backlight(const struct dmi_system_id *d)
++{
++	use_native_backlight_dmi = true;
++	return 0;
++}
++
+ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 	/*
+ 	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
+@@ -456,6 +471,46 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 7720"),
+ 		},
+ 	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "ThinkPad T430s",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
++		},
++	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "ThinkPad X230",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
++		},
++	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "Lenovo Yoga 13",
++	 .matches = {
++		 DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		 DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
++		},
++	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "Dell Inspiron 7520",
++	 .matches = {
++		 DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		 DMI_MATCH(DMI_PRODUCT_VERSION, "Inspiron 7520"),
++		},
++	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "Acer Aspire 5733Z",
++	 .matches = {
++		 DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++		 DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5733Z"),
++		},
++	},
+ 	{}
+ };
  
--		v5param = acpi_os_map_memory(paddrv5, sizeof(*v5param));
-+		v5param = acpi_os_map_memory(pa_v5, sizeof(*v5param));
- 		if (v5param) {
- 			acpi5 = 1;
--			check_vendor_extension(paddrv5, v5param);
-+			check_vendor_extension(pa_v5, v5param);
- 			return v5param;
- 		}
- 	}
--	if (param_extension && paddrv4) {
-+	if (param_extension && pa_v4) {
- 		struct einj_parameter *v4param;
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 84875fd4c74f..b6399343de51 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -168,14 +168,6 @@ static struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
+ 		},
+ 	},
+-	{
+-	.callback = video_detect_force_vendor,
+-	.ident = "Lenovo Yoga 13",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
+-		},
+-	},
+ 	{ },
+ };
  
--		v4param = acpi_os_map_memory(paddrv4, sizeof(*v4param));
-+		v4param = acpi_os_map_memory(pa_v4, sizeof(*v4param));
- 		if (!v4param)
- 			return NULL;
- 		if (v4param->reserved1 || v4param->reserved2) {
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index 26311f2..bf30a12 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -611,7 +611,7 @@ static void __erst_record_id_cache_compact(void)
- 		if (entries[i] == APEI_ERST_INVALID_RECORD_ID)
- 			continue;
- 		if (wpos != i)
--			memcpy(&entries[wpos], &entries[i], sizeof(entries[i]));
-+			entries[wpos] = entries[i];
- 		wpos++;
- 	}
- 	erst_record_id_cache.len = wpos;
 -- 
-1.8.4.rc3
-
+1.8.3.1
