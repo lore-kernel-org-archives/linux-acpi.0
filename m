@@ -1,67 +1,42 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [v3.11][3.12][Regression]  ACPI / processor: Use common hotplug infrastructure
-Date: Sat, 16 Nov 2013 00:23:54 +0100
-Message-ID: <1770440.aHQcEYdRzT@vostro.rjw.lan>
-References: <52865D6B.1080902@canonical.com> <7794021.qcx8jVI5m1@vostro.rjw.lan> <5014016.kNGQWXsIS0@vostro.rjw.lan>
+From: AnandK <anand.kori@gmail.com>
+Subject: =?utf-8?b?X0NQQw==?= info
+Date: Fri, 15 Nov 2013 23:03:42 +0000 (UTC)
+Message-ID: <loom.20131116T000311-462@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56510 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752610Ab3KOXLV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Nov 2013 18:11:21 -0500
-In-Reply-To: <5014016.kNGQWXsIS0@vostro.rjw.lan>
+Received: from plane.gmane.org ([80.91.229.3]:34614 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752476Ab3KOXUF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Nov 2013 18:20:05 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <glad-acpi-devel@m.gmane.org>)
+	id 1VhSgF-0003aI-6X
+	for linux-acpi@vger.kernel.org; Sat, 16 Nov 2013 00:20:03 +0100
+Received: from zcce02cs1743-db20.houston.hp.com ([15.203.233.77])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sat, 16 Nov 2013 00:20:03 +0100
+Received: from anand.kori by zcce02cs1743-db20.houston.hp.com with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sat, 16 Nov 2013 00:20:03 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joseph Salisbury <joseph.salisbury@canonical.com>
-Cc: rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Saturday, November 16, 2013 12:16:05 AM Rafael J. Wysocki wrote:
-> On Saturday, November 16, 2013 12:00:50 AM Rafael J. Wysocki wrote:
-> > On Friday, November 15, 2013 11:55:10 PM Rafael J. Wysocki wrote:
-> > > On Friday, November 15, 2013 12:44:11 PM Joseph Salisbury wrote:
-> > > > Hi Rafael,
-> > > > 
-> > > > A kernel bug affecting several users was opened against Ubuntu[0]. 
-> > > > After a bisect, it was found the following commit introduced the regression:
-> > > > 
-> > > > commit ac212b6980d8d5eda705864fc5a8ecddc6d6eacc
-> > > > Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > Date: Fri May 3 00:26:22 2013 +0200
-> > > > 
-> > > >     ACPI / processor: Use common hotplug infrastructure
-> > > > 
-> > > > The regression was introduced as of v3.11-rc1.
-> > > > 
-> > > > This commit doesn't revert cleanly in 3.12, and requires the revert of
-> > > > other commits as well.  I wanted to get your feedback since you are the
-> > > > author.
-> > > 
-> > > Well, that commit has nothing to do with PCMCIA, so I'm not sure how the
-> > > breakage is related to it.
-> > > 
-> > > Moreover, comment #8 reports 3.11.0-11.17 as working and the change you're
-> > > asking about should be in that kernel as well.
-> > 
-> > Ah, so that was bogus.
-> > 
-> > Well, I'm still not sure how the commit in question may affect PCMCIA.  I have
-> > a test machine with PCMCIA and it boots correctly with 3.11+.
-> 
-> The bisect could just trip over a different bug in that commit that was fixed
-> later.
-> 
-> Moreover, comment #70 indicates that 3.11.0-11-generic works correctly for
-> someone.
-> 
-> I'm also unsure what comment #43 means.
-> 
-> And I wonder if the reported who "bisected" this can boot without PCMCIA?
+Hi All, 
+I am try to write a driver for performance tuning. I am new to ACPI spec and 
+going through this I need to get the performance values from the PCC subspace 
+registers. I am trying to use acpi_read and by passing passing the info 
+through Generic Address Register. 
 
-One more thing.  Comment #32 says that the reporter could not reproduce the
-problem without "the -extras package which contains the PCMCIA drivers."  So
-I'm wondering why exactly the PCMCIA drivers are in that package?
+By doing this I get an error saying Unknown Subspace Id. I do feel it is not 
+the right way to get the register value and at the same point unable to 
+understand how to do this. 
 
-Rafael
+Could someone point me or give an idea how this should be made to work. 
+
+Thanks, 
+Anand
 
