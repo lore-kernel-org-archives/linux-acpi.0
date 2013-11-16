@@ -1,55 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / LPSS: add ACPI IDs for newer Intel PCHs
-Date: Sat, 16 Nov 2013 02:30:54 +0100
-Message-ID: <1515846.jF908LkdoS@vostro.rjw.lan>
-References: <1384249699-9493-1-git-send-email-mika.westerberg@linux.intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3] ACPI, APEI: Cleanup alignment related codes for APEI
+Date: Sat, 16 Nov 2013 12:48:03 +0100
+Message-ID: <20131116114803.GG18306@pd.tnic>
+References: <20131114122956.GE13376@pd.tnic>
+ <1384494356-4034-1-git-send-email-gong.chen@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56426 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753775Ab3KPBSV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Nov 2013 20:18:21 -0500
-In-Reply-To: <1384249699-9493-1-git-send-email-mika.westerberg@linux.intel.com>
+Received: from mail.skyhub.de ([78.46.96.112]:42332 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750942Ab3KPLsd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 16 Nov 2013 06:48:33 -0500
+Content-Disposition: inline
+In-Reply-To: <1384494356-4034-1-git-send-email-gong.chen@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Chen, Gong" <gong.chen@linux.intel.com>
+Cc: tony.luck@intel.com, linux-acpi@vger.kernel.org
 
-On Tuesday, November 12, 2013 11:48:19 AM Mika Westerberg wrote:
-> Some recent Intel PCHs with LPSS have different ACPI IDs for the LPSS
-> devices, so add these to the list as well.
+On Fri, Nov 15, 2013 at 12:45:56AM -0500, Chen, Gong wrote:
+> We ever used *memcpy* to avoid access alignment issue between
+> firmware and OS. Now we can use a better and standard way
+> to avoid this issue. In the meanwhile, simplify some variable names
+> to avoid the limit of 80 characters per line and use structure
+> assignment instead of unnecessary memcpy. No functional changes.
 > 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> v3->v2: Fix an evaluation error.
+> v2->v1: Make description information clearer.
+> 
+> Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
 
-Queued up for the next ACPI pull request, thanks!
+Acked-by: Borislav Petkov <bp@suse.de>
 
-> ---
->  drivers/acpi/acpi_lpss.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index fb78bb9ad8f6..242885715331 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -157,6 +157,15 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
->  	{ "80860F41", (unsigned long)&byt_i2c_dev_desc },
->  	{ "INT33B2", },
->  
-> +	{ "INT3430", (unsigned long)&lpt_dev_desc },
-> +	{ "INT3431", (unsigned long)&lpt_dev_desc },
-> +	{ "INT3432", (unsigned long)&lpt_dev_desc },
-> +	{ "INT3433", (unsigned long)&lpt_dev_desc },
-> +	{ "INT3434", (unsigned long)&lpt_uart_dev_desc },
-> +	{ "INT3435", (unsigned long)&lpt_uart_dev_desc },
-> +	{ "INT3436", (unsigned long)&lpt_sdio_dev_desc },
-> +	{ "INT3437", },
-> +
->  	{ }
->  };
->  
-> 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
