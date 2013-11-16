@@ -1,36 +1,52 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI / video: clean up DMI table for initial black screen problem
-Date: Sat, 16 Nov 2013 02:28:47 +0100
-Message-ID: <1811092.ouA97g8YiM@vostro.rjw.lan>
-References: <1367828623-22998-1-git-send-email-alex.hung@canonical.com> <528593F5.2010901@intel.com> <5285C190.8030000@intel.com>
+Subject: Re: [PATCHv4 0/3] I2C and SPI dev_name change for ACPI enumerated slaves
+Date: Sat, 16 Nov 2013 02:30:02 +0100
+Message-ID: <1555543.PnMRFYHnJ2@vostro.rjw.lan>
+References: <1384419661-28293-1-git-send-email-jarkko.nikula@linux.intel.com> <1384430633-23426-1-git-send-email-jarkko.nikula@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51237 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:55366 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751481Ab3KPBQP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Nov 2013 20:16:15 -0500
-In-Reply-To: <5285C190.8030000@intel.com>
+	with SMTP id S1751481Ab3KPBR3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Nov 2013 20:17:29 -0500
+In-Reply-To: <1384430633-23426-1-git-send-email-jarkko.nikula@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Gustavo Maciel Dias Vieira <gustavo@sagui.org>, Alex Hung <alex.hung@canonical.com>, Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-i2c@vger.kernel.org, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org
 
-On Friday, November 15, 2013 02:39:12 PM Aaron Lu wrote:
-> With commit 2c62333a408f "ACPI / video: Quirk initial backlight level 0"
-> we do not need to have the following systems in DMI table, so remove them.
-> HP Pavilion m4, HP 1000 Notebook PC, HP Pavilion g6 Notebook PC,
-> HP Pavilion dm4, Fujitsu E753, HP Folio 13-2000.
+On Thursday, November 14, 2013 02:03:50 PM Jarkko Nikula wrote:
+> v4:
+> This version adds and uses acpi_dev_name() accessor instead defining
+> struct acpi_device stub for !CONFIG_ACPI 
 > 
-> With this change, the use_bios_initial_backlight module parameter is no
-> longer needed and thus removed.
+> v3:
+> Third version of the set that changes I2C and SPI slave device names
+> to be generated from stable ACPI device names on ACPI 5 based systems
+> instead of using bus numbers which could change.
 > 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Tested-by: Alex Hung <alex.hung@canonical.com> # for HP 1000 Notebook PC
-> Tested-by: Gustavo Maciel Dias Vieira <gustavo@sagui.org> # for HP Pavilion dm4
+> Slave device name change goes as
+> 
+> 	"x-00yz" -> "i2c-INTABCD:ij"
+> 	"spix.y" -> "spi-INTABCD:ij"
+> 
+> This version is actually a bit cleaner thanks to Rafael's
+> "ACPI / driver core: Store an ACPI device pointer in struct acpi_dev_node"
+> in git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+> 
+> Set goes on top of linux-pm/linux-next due dependency to 1/3. As we are now
+> in merge-window I'm fine if 1/3 goes in first and I queue 2-3/3 later
+> to i2c and spi trees.
+> 
+> Jarkko Nikula (3):
+>   ACPI: Provide acpi_dev_name accessor for struct acpi_device device
+>     name
+>   i2c: Use stable dev_name for ACPI enumerated I2C slaves
+>   spi: Use stable dev_name for ACPI enumerated SPI slaves
 
-Queued up for the next ACPI pull request, thanks!
+All three queued up for the next ACPI pull request, thanks!
 
 -- 
 I speak only for myself.
