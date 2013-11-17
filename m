@@ -1,102 +1,74 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3/4] ACPI/ARM: Add ACPI to AMBA SPI driver
-Date: Sun, 17 Nov 2013 22:42:48 +0100
-Message-ID: <1912668.p3VZjfEjtH@vostro.rjw.lan>
-References: <1384190170-8707-1-git-send-email-brandon.anderson@amd.com> <CE40542A5D952D47989966E71788B1840157C119@satlexdag05.amd.com> <20131112191445.GY22916@intel.com>
+Subject: Re: [PATCH 00/12] Hardware Reduced Mode cleanup for ACPI
+Date: Sun, 17 Nov 2013 22:47:24 +0100
+Message-ID: <8247743.aZJaemC719@vostro.rjw.lan>
+References: <1384047382-20623-1-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62881 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:54443 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751324Ab3KQVaN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Nov 2013 16:30:13 -0500
-In-Reply-To: <20131112191445.GY22916@intel.com>
+	with SMTP id S1751300Ab3KQVet (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Nov 2013 16:34:49 -0500
+In-Reply-To: <1384047382-20623-1-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Anderson, Brandon" <Brandon.Anderson@amd.com>
-Cc: "ssg.sos.patches" <ssg.sos.patches@amd.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: al.stone@linaro.org
+Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <ahs3@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Tuesday, November 12, 2013 09:14:45 PM Mika Westerberg wrote:
-> On Tue, Nov 12, 2013 at 05:26:39PM +0000, Anderson, Brandon wrote:
-> > 
-> > 
-> > -----Original Message-----
-> > From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com] 
-> > Sent: Tuesday, November 12, 2013 4:43 AM
-> > To: Anderson, Brandon
-> > Cc: ssg.sos.patches; linaro-acpi@lists.linaro.org; linux-acpi@vger.kernel.org
-> > Subject: Re: [PATCH 3/4] ACPI/ARM: Add ACPI to AMBA SPI driver
-> > 
-> > On Mon, Nov 11, 2013 at 11:16:09AM -0600, Brandon Anderson wrote:
-> > > +#ifdef CONFIG_ACPI
-> > > +static struct pl022_ssp_controller *
-> > > +acpi_pl022_get_platform_data(struct device *dev) {
-> > > +	struct pl022_ssp_controller *pd, *ret;
-> > > +	struct acpi_amba_dsm_entry entry;
-> > > +
-> > > +	pd = devm_kzalloc(dev, sizeof(struct pl022_ssp_controller), GFP_KERNEL);
-> > > +	if (!pd) {
-> > > +		dev_err(dev, "cannot allocate platform data memory\n");
-> > > +		return NULL;
-> > > +	}
-> > > +	ret = pd;
-> > > +
-> > > +	pd->bus_id = -1;
-> > > +	pd->enable_dma = 1;
-> > > +	if (acpi_amba_dsm_lookup(ACPI_HANDLE(dev), "num-cs", 0, &entry) == 0) {
-> > > +		if (kstrtou8(entry.value, 0, &pd->num_chipselect) != 0) {
-> > > +			dev_err(dev, "invalid 'num-cs' in ACPI definition\n");
-> > > +			ret = NULL;
-> > > +		}
-> > > +		kfree(entry.key);
-> > > +		kfree(entry.value);
-> > > +	}
-> > > +	if (acpi_amba_dsm_lookup(ACPI_HANDLE(dev),
-> > > +			"autosuspend-delay", 0, &entry) == 0) {
-> > > +		if (kstrtoint(entry.value, 0, &pd->autosuspend_delay) != 0) {
-> > > +			dev_err(dev, "invalid 'autosuspend-delay' in ACPI definition\n");
-> > > +			ret = NULL;
-> > > +		}
-> > > +		kfree(entry.key);
-> > > +		kfree(entry.value);
-> > > +	}
-> > > +	if (acpi_amba_dsm_lookup(ACPI_HANDLE(dev), "rt", 0, &entry) == 0) {
-> > > +		pd->rt = (entry.value && strcmp(entry.value, "1") == 0);
-> > > +		kfree(entry.key);
-> > > +		kfree(entry.value);
-> > > +	}
-> > > +
-> > > +	return ret;
-> > > +}
-> > > +#endif
-> > 
-> > If you add dummy stub acpi_pl022_get_platform_data() here in case of !CONFIG_ACPI...
-> > 
-> > > +
-> > >  static int pl022_probe(struct amba_device *adev, const struct amba_id 
-> > > *id)  {
-> > >  	struct device *dev = &adev->dev;
-> > > @@ -2081,6 +2125,11 @@ static int pl022_probe(struct amba_device 
-> > > *adev, const struct amba_id *id)
-> > >  
-> > >  	dev_info(&adev->dev,
-> > >  		 "ARM PL022 driver, device ID: 0x%08x\n", adev->periphid);
-> > > +#ifdef CONFIG_ACPI
-> > 
-> > You don't need this ugly #ifdef here.
-> > 
-> > 
-> > Ok, I understand the alternative. Is one way or the other required for
-> > patch acceptance?
+On Saturday, November 09, 2013 06:36:10 PM al.stone@linaro.org wrote:
+> From: Al Stone <ahs3@redhat.com>
 > 
-> I guess it is up to the maintainer to decide in the end.
+> This series of patches starts with Hanjun's patch to create a kernel
+> config item for CONFIG_ACPI_REDUCED_HARDWARE [0].  Building on that, I
+> then reviewed all of the code that touched any of several fields in the
+> FADT that the OSPM is supposed to ignore when ACPI is in Hardware Reduced
+> mode [1].  Any time there was a use of one of the fields to be ignored,
+> I evaluated whether or not the code was implementing Hardware Reduced
+> mode correctly.  Similarly, for each the flags in the FADT flags field
+> that are to be ignored in Hardware Reduced mode, the kernel code was again
+> scanned for proper usage.  The remainder of the patches are to fix all of
+> the situations I could find where the kernel would not behave correctly
+> in this ACPI mode.
+> 
+> These seem to work just fine on the RTSM model for ARMv7, both with and
+> without ACPI enabled, and with and without ACPI_REDUCED_HARDWARE enabled;
+> similarly for the FVP model for ARMv8.  The patches for ACPI on ARM
+> hardware will be coming later but they presume that reduced HW mode is
+> functioning correctly.  In the meantime, there's no way I can think of
+> to test all possible scenarios so feedback would be greatly appreciated.
+> 
+> 
+> [0] List at https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI/AcpiReducedHw#Section_5:_ACPI_Software_Programming_Model
+> [1] Please see the ACPI Specification v5.0 for details on Hardware Reduced
+>     mode.
+> 
+> 
+> Al Stone (12):
+>   ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE to enable this ACPI mode
+>   ACPI: bus master reload not supported in reduced HW mode
+>   ACPI: clean up compiler warning about uninitialized field
+>   ACPI: HW reduced mode does not allow use of the FADT sci_interrupt
+>     field
+>   ACPI: ARM: exclude calls on ARM platforms, not include them on x86
+>   ACPI: ensure several FADT fields are only used in HW reduced mode
+>   ACPI: do not reserve memory regions for some FADT entries in HW
+>     reduced mode
+>   ACPI: in HW reduced mode, getting power latencies from FADT is not
+>     allowed
+>   ACPI: add clarifying comment about processor throttling in HW reduced
+>     mode
+>   ACPI: ACPI_FADT_C2_MP_SUPPORTED must be ignored in HW reduced mode
+>   ACPI: use of ACPI_FADT_32BIT_TIMER is not allowed in HW reduced mode
+>   ACPI: correct #ifdef so compilation without ACPI_REDUCED_HARDWARE
+>     works
 
-Well, if I were the maintainer in question, I'd ask that do be done the way
-Mika suggested.
+I have some comments that will be sent in replies to the individual patches.
 
-The same applies if my ACK under the patch is requisite (which I believe should
-be the case here).
+In addition to that my personal experience with the HW reduced mode is
+somewhat limited, so to speak, so I'll need to ask people with more experience
+in that field for opinions.
 
 Thanks!
 
