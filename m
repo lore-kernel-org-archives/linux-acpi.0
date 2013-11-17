@@ -1,110 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 7/10] ACPI / hotplug: Move container-specific code out of the core
-Date: Sun, 17 Nov 2013 17:36 +0100
-Message-ID: <2547688.l8Q1XKb3Ol@vostro.rjw.lan>
-References: <1421028.Rsfpmhnym3@vostro.rjw.lan>
+Subject: [PATCH 0/10] ACPI: Device objects for all namespace nodes and PCI root hotplug integration
+Date: Sun, 17 Nov 2013 17:29:41 +0100
+Message-ID: <1421028.Rsfpmhnym3@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1421028.Rsfpmhnym3@vostro.rjw.lan>
 Sender: linux-pci-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi,
 
-Move container-specific uevents from the core hotplug code to the
-container scan handler's .attach() and .detach() callbacks.
+This is 3.14 material, but I'm posting it today to let you know it is coming.
+Of course, if you see any immediate problems with the following patches, please
+let me know.
 
-This way the core will not have to special-case containers and
-the uevents will be guaranteed to happen every time a container
-is either scanned or trimmed as appropriate.
+Patch [1/10] is a place holder until we get an equivalent from ACPICA upstream,
+which should happen early after 3.13-rc1.  The remaining patches are:
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/container.c |   11 ++++++++---
- drivers/acpi/scan.c      |    8 +-------
- include/acpi/acpi_bus.h  |    7 -------
- 3 files changed, 9 insertions(+), 17 deletions(-)
+ [2/10] ACPI / scan: Define non-empty removal handler to passed to
+        acpi_attach_data() for struct acpi_device objects.
 
-Index: linux-pm/drivers/acpi/container.c
-===================================================================
---- linux-pm.orig/drivers/acpi/container.c
-+++ linux-pm/drivers/acpi/container.c
-@@ -44,19 +44,24 @@ static const struct acpi_device_id conta
- 	{"", 0},
- };
- 
--static int container_device_attach(struct acpi_device *device,
-+static int container_device_attach(struct acpi_device *adev,
- 				   const struct acpi_device_id *not_used)
- {
--	/* This is necessary for container hotplug to work. */
-+	kobject_uevent(&adev->dev.kobj, KOBJ_ONLINE);
- 	return 1;
- }
- 
-+static void container_device_detach(struct acpi_device *adev)
-+{
-+	kobject_uevent(&adev->dev.kobj, KOBJ_OFFLINE);
-+}
-+
- static struct acpi_scan_handler container_handler = {
- 	.ids = container_device_ids,
- 	.attach = container_device_attach,
-+	.detach = container_device_detach,
- 	.hotplug = {
- 		.enabled = true,
--		.mode = AHM_CONTAINER,
- 	},
- };
- 
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -206,9 +206,6 @@ static int acpi_scan_hot_remove(struct a
- 	acpi_status status;
- 	unsigned long long sta;
- 
--	if (device->handler && device->handler->hotplug.mode == AHM_CONTAINER)
--		kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
--
- 	/*
- 	 * Carry out two passes here and ignore errors in the first pass,
- 	 * because if the devices in question are memory blocks and
-@@ -288,10 +285,7 @@ static int acpi_scan_device_check(struct
- 		dev_warn(&adev->dev, "Namespace scan failure\n");
- 		return error;
- 	}
--	if (adev->handler) {
--		if (adev->handler->hotplug.mode == AHM_CONTAINER)
--			kobject_uevent(&adev->dev.kobj, KOBJ_ONLINE);
--	} else {
-+	if (!adev->handler) {
- 		dev_warn(&adev->dev, "Enumeration failure\n");
- 		return -ENODEV;
- 	}
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -91,16 +91,9 @@ struct acpi_device;
-  * -----------------
-  */
- 
--enum acpi_hotplug_mode {
--	AHM_GENERIC = 0,
--	AHM_CONTAINER,
--	AHM_COUNT
--};
--
- struct acpi_hotplug_profile {
- 	struct kobject kobj;
- 	bool enabled:1;
--	enum acpi_hotplug_mode mode;
- 	int (*scan_dependent)(struct acpi_device *adev);
- };
- 
+ [3/10] ACPI / scan: Create struct acpi_device objects for all device nodes in
+        the namespace regardless of the current result of _STA (the reasons are
+        explained in the changelog).
+
+ [4/10] ACPI / hotplug: Do not fail bus check and device check notifications
+        if hotplug is not enabled for the given group of devices via sysfs
+        (failing those notifications only skips device enumeration, but doesn't
+         prevent devices from being physically added to the system).
+
+ [5/10] ACPI / hotplug: Introduce common device hotplug function
+        acpi_device_hotplug() and reduce some code duplication.
+
+ [6/10] ACPI / hotplug: Make PCI host bridge hotplug use common code (instead
+        of defining its own notify handler).
+
+ [7/10] ACPI / hotplug: Move container-specific code out of the common code.
+
+ [8/10] ACPI / hotplug: Rework the common device hotplug code to cover surprise
+        removals of devices.
+
+ [9/10] ACPI / hotplug: Drop unfinished global hotplug notification handling
+        routines.
+
+[10/10] ACPI: Clean up some revoltingly ugly stuff.
+
+Thanks!
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
