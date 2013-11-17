@@ -1,58 +1,79 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 05/12] ACPI: ARM: exclude calls on ARM platforms, not include them on x86
-Date: Sun, 17 Nov 2013 23:08:26 +0100
-Message-ID: <17533512.3VVEMyRe92@vostro.rjw.lan>
-References: <1384047382-20623-1-git-send-email-al.stone@linaro.org> <1384047382-20623-6-git-send-email-al.stone@linaro.org>
+Subject: Re: [PATCH 07/12] ACPI: do not reserve memory regions for some FADT entries in HW reduced mode
+Date: Sun, 17 Nov 2013 23:15:19 +0100
+Message-ID: <3035370.UsTsGZpP6E@vostro.rjw.lan>
+References: <1384047382-20623-1-git-send-email-al.stone@linaro.org> <1384047382-20623-8-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54651 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:63567 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751680Ab3KQVzv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Nov 2013 16:55:51 -0500
-In-Reply-To: <1384047382-20623-6-git-send-email-al.stone@linaro.org>
+	with SMTP id S1751267Ab3KQWCo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Nov 2013 17:02:44 -0500
+In-Reply-To: <1384047382-20623-8-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: al.stone@linaro.org
 Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <ahs3@redhat.com>
 
-On Saturday, November 09, 2013 06:36:15 PM al.stone@linaro.org wrote:
+On Saturday, November 09, 2013 06:36:17 PM al.stone@linaro.org wrote:
 > From: Al Stone <ahs3@redhat.com>
 > 
-> Corrected #ifdef so that DMI is not used on ARM platforms which are
-> currently implementing reduced HW mode.
+> Since some of the FADT fields reserved are not to be used by the OSPM,
 
-Please define an empty dmi_check_system() stub for ARM/ARM64 then.
+"are not to be used by the OSPM in the HW reduced mode" would be clearer.
 
-Generally, please avoid adding compiler directives into function bodies if
-possible.
-
+> do not map in the memory areas that the FADT fields reference.
+>
 > Signed-off-by: Al Stone <al.stone@linaro.org>
 > ---
->  drivers/acpi/bus.c | 4 ++++
->  1 file changed, 4 insertions(+)
+>  drivers/acpi/osl.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 > 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 6a54dd5..f41949a 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -513,11 +513,15 @@ void __init acpi_early_init(void)
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 075545e..2750cb5 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -160,6 +160,9 @@ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
+>  	return supported;
+>  }
 >  
->  	acpi_gbl_permanent_mmap = 1;
+> +#ifdef CONFIG_ACPI_REDUCED_HARDWARE
+> +static int __init acpi_reserve_resources(void) { return 0; }
+> +#else
+>  static void __init acpi_request_region (struct acpi_generic_address *gas,
+>  	unsigned int length, char *desc)
+>  {
+> @@ -209,6 +212,7 @@ static int __init acpi_reserve_resources(void)
 >  
-> +#if !(CONFIG_ARM || CONFIG_ARM64)
->  	/*
-> +	 * NB: ARM does not use DMI at present.
-> +	 *
->  	 * If the machine falls into the DMI check table,
->  	 * DSDT will be copied to memory
->  	 */
->  	dmi_check_system(dsdt_dmi_table);
+>  	return 0;
+>  }
+> +#endif
+>  device_initcall(acpi_reserve_resources);
+
+Do we need the device_initcall() above at all if CONFIG_ACPI_REDUCED_HARDWARE
+is unset?
+
+>  void acpi_os_printf(const char *fmt, ...)
+> @@ -1782,6 +1786,9 @@ static int __init acpi_no_auto_ssdt_setup(char *s)
+>  
+>  __setup("acpi_no_auto_ssdt", acpi_no_auto_ssdt_setup);
+>  
+> +#ifdef CONFIG_ACPI_REDUCED_HARDWARE
+> +acpi_status __init acpi_os_initialize(void) { return AE_OK; }
+> +#else
+>  acpi_status __init acpi_os_initialize(void)
+>  {
+>  	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
+> @@ -1791,6 +1798,7 @@ acpi_status __init acpi_os_initialize(void)
+>  
+>  	return AE_OK;
+>  }
 > +#endif
 >  
->  	status = acpi_reallocate_root_table();
->  	if (ACPI_FAILURE(status)) {
+>  acpi_status __init acpi_os_initialize1(void)
+>  {
 > 
 -- 
 I speak only for myself.
