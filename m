@@ -1,41 +1,46 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 3/3] ACPI / PCI root: Clear driver_data before failing
- enumeration
-Date: Mon, 18 Nov 2013 11:10:38 -0700
-Message-ID: <1384798238.1791.15.camel@misato.fc.hp.com>
-References: <2434673.zhjYZOTQ4A@vostro.rjw.lan>
-	 <6884617.gWRuZsFG3E@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 2/3] ACPI / hotplug: Fix PCI host bridge hot removal
+Date: Mon, 18 Nov 2013 22:39:25 +0100
+Message-ID: <11362197.FWMPl6Gp0A@vostro.rjw.lan>
+References: <2434673.zhjYZOTQ4A@vostro.rjw.lan> <3206422.AfXMUDqMXZ@vostro.rjw.lan> <1384798205.1791.14.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:38214 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751461Ab3KRSPR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Nov 2013 13:15:17 -0500
-In-Reply-To: <6884617.gWRuZsFG3E@vostro.rjw.lan>
+Received: from v094114.home.net.pl ([79.96.170.134]:55271 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751286Ab3KRV0t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Nov 2013 16:26:49 -0500
+In-Reply-To: <1384798205.1791.14.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Toshi Kani <toshi.kani@hp.com>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 
-On Thu, 2013-11-14 at 00:17 +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Monday, November 18, 2013 11:10:05 AM Toshi Kani wrote:
+> On Thu, 2013-11-14 at 00:16 +0100, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > Since the PCI host bridge scan handler does not set hotplug.enabled,
+> > the check of it in acpi_bus_device_eject() effectively prevents the
+> > root bridge hot removal from working after commit a3b1b1ef78cd
+> > (ACPI / hotplug: Merge device hot-removal routines).  However, that
+> > check is not necessary, because the other acpi_bus_device_eject()
+> > users, acpi_hotplug_notify_cb and acpi_eject_store(), do the same
+> > check by themselves before executing that function.
+> > 
+> > For this reason, remove the scan handler check from
+> > acpi_bus_device_eject() to make PCI hot bridge hot removal work
+> > again.
 > 
-> If a PCI host bridge cannot be enumerated due to an error in
-> pci_acpi_scan_root(), its ACPI device object's driver_data field
-> has to be cleared by acpi_pci_root_add() before freeing the
-> object pointed to by that field, or some later acpi_pci_find_root()
-> checks that should fail may succeed and cause quite a bit of
-> confusion to ensue.
-> 
-> Fix acpi_pci_root_add() to clear device->driver_data before
-> returning an error code as appropriate.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> I am curious why the PCI host bridge scan handler does not set
+> hotplug.enabled.  Is this how it disables hotplug via sysfs eject but
+> enables via ACPI notification? 
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+It just doesn't register for hotplug at all.  I guess it could set that
+bit alone, but then it would be quite confusing and the check is not
+necessary anyway.
 
 Thanks,
--Toshi
+Rafael
 
