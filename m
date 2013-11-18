@@ -1,46 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+From: Toshi Kani <toshi.kani@hp.com>
 Subject: Re: [PATCH 2/3] ACPI / hotplug: Fix PCI host bridge hot removal
-Date: Mon, 18 Nov 2013 22:39:25 +0100
-Message-ID: <11362197.FWMPl6Gp0A@vostro.rjw.lan>
-References: <2434673.zhjYZOTQ4A@vostro.rjw.lan> <3206422.AfXMUDqMXZ@vostro.rjw.lan> <1384798205.1791.14.camel@misato.fc.hp.com>
+Date: Mon, 18 Nov 2013 16:13:27 -0700
+Message-ID: <1384816407.1791.19.camel@misato.fc.hp.com>
+References: <2434673.zhjYZOTQ4A@vostro.rjw.lan>
+	 <3206422.AfXMUDqMXZ@vostro.rjw.lan>
+	 <1384798205.1791.14.camel@misato.fc.hp.com>
+	 <11362197.FWMPl6Gp0A@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55271 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751286Ab3KRV0t (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Nov 2013 16:26:49 -0500
-In-Reply-To: <1384798205.1791.14.camel@misato.fc.hp.com>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:43437 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751377Ab3KRXSH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Nov 2013 18:18:07 -0500
+In-Reply-To: <11362197.FWMPl6Gp0A@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 
-On Monday, November 18, 2013 11:10:05 AM Toshi Kani wrote:
-> On Thu, 2013-11-14 at 00:16 +0100, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Mon, 2013-11-18 at 22:39 +0100, Rafael J. Wysocki wrote:
+> On Monday, November 18, 2013 11:10:05 AM Toshi Kani wrote:
+> > On Thu, 2013-11-14 at 00:16 +0100, Rafael J. Wysocki wrote:
+> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > 
+> > > Since the PCI host bridge scan handler does not set hotplug.enabled,
+> > > the check of it in acpi_bus_device_eject() effectively prevents the
+> > > root bridge hot removal from working after commit a3b1b1ef78cd
+> > > (ACPI / hotplug: Merge device hot-removal routines).  However, that
+> > > check is not necessary, because the other acpi_bus_device_eject()
+> > > users, acpi_hotplug_notify_cb and acpi_eject_store(), do the same
+> > > check by themselves before executing that function.
+> > > 
+> > > For this reason, remove the scan handler check from
+> > > acpi_bus_device_eject() to make PCI hot bridge hot removal work
+> > > again.
 > > 
-> > Since the PCI host bridge scan handler does not set hotplug.enabled,
-> > the check of it in acpi_bus_device_eject() effectively prevents the
-> > root bridge hot removal from working after commit a3b1b1ef78cd
-> > (ACPI / hotplug: Merge device hot-removal routines).  However, that
-> > check is not necessary, because the other acpi_bus_device_eject()
-> > users, acpi_hotplug_notify_cb and acpi_eject_store(), do the same
-> > check by themselves before executing that function.
-> > 
-> > For this reason, remove the scan handler check from
-> > acpi_bus_device_eject() to make PCI hot bridge hot removal work
-> > again.
+> > I am curious why the PCI host bridge scan handler does not set
+> > hotplug.enabled.  Is this how it disables hotplug via sysfs eject but
+> > enables via ACPI notification? 
 > 
-> I am curious why the PCI host bridge scan handler does not set
-> hotplug.enabled.  Is this how it disables hotplug via sysfs eject but
-> enables via ACPI notification? 
+> It just doesn't register for hotplug at all.  I guess it could set that
+> bit alone, but then it would be quite confusing and the check is not
+> necessary anyway.
 
-It just doesn't register for hotplug at all.  I guess it could set that
-bit alone, but then it would be quite confusing and the check is not
-necessary anyway.
+I see.  Given how the PCI host bridge scan handler is integrated today,
+the change looks reasonable to me.
+
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 
 Thanks,
-Rafael
+-Toshi
 
