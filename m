@@ -1,24 +1,20 @@
 From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [PATCH] x86, acpi, idle: Restructure the mwait idle routines
-Date: Tue, 19 Nov 2013 15:46:42 +0100
-Message-ID: <20131119144642.GJ10022@twins.programming.kicks-ass.net>
+Date: Tue, 19 Nov 2013 15:51:43 +0100
+Message-ID: <20131119145143.GK10022@twins.programming.kicks-ass.net>
 References: <20131119090019.GJ3866@twins.programming.kicks-ass.net>
  <20131119090859.GC3694@twins.programming.kicks-ass.net>
  <20131119113153.GD3694@twins.programming.kicks-ass.net>
  <528B7433.7020507@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:39989 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752725Ab3KSOq6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2013 09:46:58 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <528B7433.7020507@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Arjan van de Ven <arjan@linux.intel.com>
 Cc: lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, shaohua.li@intel.com, rui.zhang@intel.com, jacob.jun.pan@linux.intel.com, Mike Galbraith <bitbucket@online.de>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, hpa@zytor.com
+List-Id: linux-acpi@vger.kernel.org
 
 On Tue, Nov 19, 2013 at 06:22:43AM -0800, Arjan van de Ven wrote:
 > >diff --git a/drivers/thermal/intel_powerclamp.c b/drivers/thermal/intel_powerclamp.c
@@ -42,5 +38,7 @@ On Tue, Nov 19, 2013 at 06:22:43AM -0800, Arjan van de Ven wrote:
 > if so... powerclamp may not want to use that (the whole point is to NOT give the cpu
 > to tasks!)
 
-Of course, you're very much not getting something that wins from
-stop_machine or a fifo-99 task.
+That said, that drive is completely wrecked. It uses
+preempt_enable_no_resched() wrong too, it has uncommented barriers..
+
+Dude, wtf are you guys smoking?
