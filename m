@@ -1,76 +1,89 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 01/12] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE to
- enable this ACPI mode
-Date: Tue, 19 Nov 2013 15:32:57 +0800
-Message-ID: <528B1429.6050403@linaro.org>
-References: <1384047382-20623-1-git-send-email-al.stone@linaro.org> <2429527.tRrfhbW41X@vostro.rjw.lan> <CAGHbJ3DkXQ1-kQSdzXZ7=YSNhTstebGrdX4qXygBWmh2vYe0Bw@mail.gmail.com> <1431790.mopcNu4HUR@vostro.rjw.lan>
+From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Subject: [PATCH] sysfs, acpi, tables: Set file size for each ACPI table
+Date: Tue, 19 Nov 2013 17:54:47 +0900
+Message-ID: <528B2757.6010406@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:49812 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751186Ab3KSHcI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2013 02:32:08 -0500
-Received: by mail-pa0-f47.google.com with SMTP id kq14so3358422pab.6
-        for <linux-acpi@vger.kernel.org>; Mon, 18 Nov 2013 23:32:07 -0800 (PST)
-In-Reply-To: <1431790.mopcNu4HUR@vostro.rjw.lan>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:56113 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751186Ab3KSIzj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2013 03:55:39 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Al Stone <ahs3@redhat.com>, Robert Moore <robert.moore@intel.com>
+To: lenb@kernel.org, rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-+CC Robert Moore
+Currently, each of the ACPI tables exported from
+/sys/firmware/acpi/tables is of zero size:
 
-On 2013-11-18 21:37, Rafael J. Wysocki wrote:
-> On Monday, November 18, 2013 09:21:30 PM Hanjun Guo wrote:
-[...]
->>>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>>>> Signed-off-by: Al Stone <al.stone@linaro.org>
->>>>>> ---
->>>>>>  drivers/acpi/Kconfig            | 8 ++++++++
->>>>>>  include/acpi/platform/aclinux.h | 4 ++++
->>>>>>  2 files changed, 12 insertions(+)
->>>>>>
->>>>>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->>>>>> index 589da05..7bbd3b0 100644
->>>>>> --- a/drivers/acpi/Kconfig
->>>>>> +++ b/drivers/acpi/Kconfig
->>>>>> @@ -354,6 +354,14 @@ config ACPI_BGRT
->>>>>>         data from the firmware boot splash. It will appear under
->>>>>>         /sys/firmware/acpi/bgrt/ .
->>>>>>
->>>>>> +config ACPI_REDUCED_HARDWARE
->>>>>> +     bool "Hardware-reduced ACPI support"
->>>>>> +     depends on !(IA64 || X86)
->>>>>
->>>>> Why don't you use
->>>>>
->>>>>         depends on (ARM || ARM64)
->>>>>
->>>>> here instead?
->>>>>
->>>>
->>>> hardware-reduced is not restricted to ARM platforms, that's why
->>>>
->>>> I used depends on !(IA64 || X86) here.
->>>
->>> So what exactly are the other platforms using ACPI in the Linux kernel?
->>>
->>
->> To telling the truth, I didn't see any other platform using ACPI except
->> IA64, X86 and ARM/ARM64, I just used depends on !(IA64 || x86) for
->> future purpose.
-> 
-> However, if you used "depends on ARM || ARM64" (the parens are not needed BTW),
-> the subsequent patches wouldn't need to check CONFIG_ARM/CONFIG_ARM64 in
-> addition to CONFIG_ACPI_REDUCED_HARDWARE.  That would simplify stuff somewhat.
+$ LANG=C ls -ld /sys/firmware/acpi/tables/*
+-r-------- 1 root root 0 Nov 19 09:48 /sys/firmware/acpi/tables/APIC
+-r-------- 1 root root 0 Nov 19 09:48 /sys/firmware/acpi/tables/BOOT
+-r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/DSDT
+-r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/FACP
+-r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/FACS
+-r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/MCFG
+-r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/SRAT
+drwxr-xr-x 2 root root 0 Nov 19 09:48 /sys/firmware/acpi/tables/dynamic/
 
-Yes, you are right :)
-It is ok for me to use "depends on ARM || ARM64", but Robert Moore also
-suggested that hardware-reduced is not restricted to ARM platforms.
+due to which, user-land tools fail reading each table. For example:
 
-Robert, any comments on this?
+$ acpidump -f /sys/firmware/acpi/tables/SRAT
+Could not get input file size: /sys/firmware/acpi/tables/SRAT
 
-Thanks
-Hanjun
+To deal with the issue, this patch assigns size of each ACPI table to
+the corresponding sysfs file.
+
+$ LANG=C ls -hld /sys/firmware/acpi/tables/*
+-r-------- 1 root root  94 Nov 19 16:45 /sys/firmware/acpi/tables/APIC
+-r-------- 1 root root  40 Nov 19 16:45 /sys/firmware/acpi/tables/BOOT
+-r-------- 1 root root 58K Nov 19 16:55 /sys/firmware/acpi/tables/DSDT
+-r-------- 1 root root 244 Nov 19 16:55 /sys/firmware/acpi/tables/FACP
+-r-------- 1 root root  64 Nov 19 16:55 /sys/firmware/acpi/tables/FACS
+-r-------- 1 root root  60 Nov 19 16:55 /sys/firmware/acpi/tables/MCFG
+-r-------- 1 root root 168 Nov 19 16:45 /sys/firmware/acpi/tables/SRAT
+drwxr-xr-x 2 root root   0 Nov 19 16:55 /sys/firmware/acpi/tables/dynamic/
+
+Then, user-land tools work well like:
+
+$ acpidump -f /sys/firmware/acpi/tables/SRAT
+SRAT @ 0x0000000000000000
+  0000: 53 52 41 54 A8 00 00 00 02 65 56 4D 57 41 52 45  SRAT.....eVMWARE
+  0010: 4D 45 4D 50 4C 55 47 20 00 00 04 06 56 4D 57 20  MEMPLUG ....VMW
+  0020: 01 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00  ................
+  0030: 01 28 00 00 00 00 00 00 00 00 00 00 00 00 00 00  .(..............
+  0040: 00 00 0A 00 00 00 00 00 00 00 00 00 01 00 00 00  ................
+  0050: 00 00 00 00 00 00 00 00 01 28 00 00 00 00 00 00  .........(......
+  0060: 00 00 10 00 00 00 00 00 00 00 F0 BF 00 00 00 00  ................
+  0070: 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00  ................
+  0080: 01 28 00 00 00 00 00 00 00 00 00 00 01 00 00 00  .(..............
+  0090: 00 00 00 40 00 00 00 00 00 00 00 00 01 00 00 00  ...@............
+  00A0: 00 00 00 00 00 00 00 00                          ........
+
+Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+---
+ drivers/acpi/sysfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index 05306a5..095ff1f 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -309,7 +309,7 @@ static void acpi_table_attr_init(struct acpi_table_attr *table_attr,
+ 		sprintf(table_attr->name + ACPI_NAME_SIZE, "%d",
+ 			table_attr->instance);
+ 
+-	table_attr->attr.size = 0;
++	table_attr->attr.size = table_header->length;
+ 	table_attr->attr.read = acpi_table_show;
+ 	table_attr->attr.attr.name = table_attr->name;
+ 	table_attr->attr.attr.mode = 0400;
+-- 
+1.8.3.1
+
+-- 
+Thanks.
+HATAYAMA, Daisuke
+
