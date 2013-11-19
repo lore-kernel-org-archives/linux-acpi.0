@@ -1,79 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 01/12] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE to enable this ACPI mode
-Date: Tue, 19 Nov 2013 14:10:39 +0100
-Message-ID: <2999447.AHfmGpVCOl@vostro.rjw.lan>
-References: <1384047382-20623-1-git-send-email-al.stone@linaro.org> <1431790.mopcNu4HUR@vostro.rjw.lan> <528B1429.6050403@linaro.org>
+From: Mike Galbraith <bitbucket@online.de>
+Subject: Re: [PATCH] x86, acpi, idle: Restructure the mwait idle routines
+Date: Tue, 19 Nov 2013 14:21:12 +0100
+Message-ID: <1384867272.5344.28.camel@marge.simpson.net>
+References: <20131119090019.GJ3866@twins.programming.kicks-ass.net>
+	 <20131119090859.GC3694@twins.programming.kicks-ass.net>
+	 <20131119113153.GD3694@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63217 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751464Ab3KSM6C (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2013 07:58:02 -0500
-In-Reply-To: <528B1429.6050403@linaro.org>
+Received: from moutng.kundenserver.de ([212.227.126.171]:64896 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752103Ab3KSNXU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2013 08:23:20 -0500
+In-Reply-To: <20131119113153.GD3694@twins.programming.kicks-ass.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Al Stone <ahs3@redhat.com>, Robert Moore <robert.moore@intel.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, shaohua.li@intel.com, rui.zhang@intel.com, arjan@linux.intel.com, jacob.jun.pan@linux.intel.com, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, hpa@zytor.com
 
-On Tuesday, November 19, 2013 03:32:57 PM Hanjun Guo wrote:
-> +CC Robert Moore
+On Tue, 2013-11-19 at 12:31 +0100, Peter Zijlstra wrote: 
+> People seem to delight in writing wrong and broken mwait idle routines;
+> collapse the lot.
 > 
-> On 2013-11-18 21:37, Rafael J. Wysocki wrote:
-> > On Monday, November 18, 2013 09:21:30 PM Hanjun Guo wrote:
-> [...]
-> >>>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >>>>>> Signed-off-by: Al Stone <al.stone@linaro.org>
-> >>>>>> ---
-> >>>>>>  drivers/acpi/Kconfig            | 8 ++++++++
-> >>>>>>  include/acpi/platform/aclinux.h | 4 ++++
-> >>>>>>  2 files changed, 12 insertions(+)
-> >>>>>>
-> >>>>>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> >>>>>> index 589da05..7bbd3b0 100644
-> >>>>>> --- a/drivers/acpi/Kconfig
-> >>>>>> +++ b/drivers/acpi/Kconfig
-> >>>>>> @@ -354,6 +354,14 @@ config ACPI_BGRT
-> >>>>>>         data from the firmware boot splash. It will appear under
-> >>>>>>         /sys/firmware/acpi/bgrt/ .
-> >>>>>>
-> >>>>>> +config ACPI_REDUCED_HARDWARE
-> >>>>>> +     bool "Hardware-reduced ACPI support"
-> >>>>>> +     depends on !(IA64 || X86)
-> >>>>>
-> >>>>> Why don't you use
-> >>>>>
-> >>>>>         depends on (ARM || ARM64)
-> >>>>>
-> >>>>> here instead?
-> >>>>>
-> >>>>
-> >>>> hardware-reduced is not restricted to ARM platforms, that's why
-> >>>>
-> >>>> I used depends on !(IA64 || X86) here.
-> >>>
-> >>> So what exactly are the other platforms using ACPI in the Linux kernel?
-> >>>
-> >>
-> >> To telling the truth, I didn't see any other platform using ACPI except
-> >> IA64, X86 and ARM/ARM64, I just used depends on !(IA64 || x86) for
-> >> future purpose.
-> > 
-> > However, if you used "depends on ARM || ARM64" (the parens are not needed BTW),
-> > the subsequent patches wouldn't need to check CONFIG_ARM/CONFIG_ARM64 in
-> > addition to CONFIG_ACPI_REDUCED_HARDWARE.  That would simplify stuff somewhat.
+> This leaves mwait_play_dead() the sole remaining user of __mwait() and
+> new __mwait() users are probably doing it wrong.
 > 
-> Yes, you are right :)
-> It is ok for me to use "depends on ARM || ARM64", but Robert Moore also
-> suggested that hardware-reduced is not restricted to ARM platforms.
+> Also remove __sti_mwait() as its unused.
+> 
+> Signed-off-by: Peter Zijlstra <peterz@infradead.org>
+> ---
+> 
+> Mike, does this cure your core2?
 
->From the ACPICA's point of view, it isn't.
+Nope.  Maybe an acpi/bios thingy on this box since diags that fired on
+lappy during boot did not fire on desktop, and both are core2 booting
+same kernel.  I kinda suspect I'll either be stuck with default_idle or
+have to resurrect mwait_idle and carry it locally if I want the thing to
+work well.  Guess I'll find out if/when I have time to squabble with it.
 
-In the kernel, however, x86 and ia64 are the only users of ACPI in addition to ARM.
+Meanwhile, desktop box works fine modulo benchmarks, lappy works fine
+too, modulo max_cstate=1 scaring mwait_idle_with_hints away, which I
+don't care about much.  Neither box is wonderful at rt testing where I
+usually boot max_cstate=1, both just became a bit _less_ wonderful :)
 
-Thanks!
+-Mike
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
