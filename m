@@ -1,60 +1,138 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] PCI / hotplug / ACPI: Drop unused acpiphp_debug declaration
-Date: Tue, 19 Nov 2013 21:52:17 +0100
-Message-ID: <5115264.27yxWCajFa@vostro.rjw.lan>
-References: <1384870535-20532-1-git-send-email-mika.westerberg@linux.intel.com> <CAErSpo56wWzNpkcEmkRnaGR4uk=eHrDzt2k-4PiHk9Rb=qRr-w@mail.gmail.com>
+Subject: Re: [PATCH 2/3] ACPI / hotplug: Fix PCI host bridge hot removal
+Date: Tue, 19 Nov 2013 22:10:06 +0100
+Message-ID: <4037930.5v7ysfShLb@vostro.rjw.lan>
+References: <2434673.zhjYZOTQ4A@vostro.rjw.lan> <1384816407.1791.19.camel@misato.fc.hp.com> <1384883331.1791.23.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64401 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:52695 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752309Ab3KSUji (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2013 15:39:38 -0500
-In-Reply-To: <CAErSpo56wWzNpkcEmkRnaGR4uk=eHrDzt2k-4PiHk9Rb=qRr-w@mail.gmail.com>
+	with SMTP id S1751821Ab3KSU51 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2013 15:57:27 -0500
+In-Reply-To: <1384883331.1791.23.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 
-On Tuesday, November 19, 2013 10:23:57 AM Bjorn Helgaas wrote:
-> On Tue, Nov 19, 2013 at 7:15 AM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> > Commit bd950799d951 (PCI: acpiphp: Convert to dynamic debug) removed users
-> > of acpiphp_debug variable and the variable itself but the declaration was
-> > left in the header file. Drop this unused declaration.
-> >
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> On Tuesday, November 19, 2013 10:48:51 AM Toshi Kani wrote:
+> > On Mon, 2013-11-18 at 22:39 +0100, Rafael J. Wysocki wrote:
+> > > On Monday, November 18, 2013 11:10:05 AM Toshi Kani wrote:
+> > > > On Thu, 2013-11-14 at 00:16 +0100, Rafael J. Wysocki wrote:
+> > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > > > 
+> > > > > Since the PCI host bridge scan handler does not set hotplug.enabled,
+> > > > > the check of it in acpi_bus_device_eject() effectively prevents the
+> > > > > root bridge hot removal from working after commit a3b1b1ef78cd
+> > > > > (ACPI / hotplug: Merge device hot-removal routines).  However, that
+> > > > > check is not necessary, because the other acpi_bus_device_eject()
+> > > > > users, acpi_hotplug_notify_cb and acpi_eject_store(), do the same
+> > > > > check by themselves before executing that function.
+> > > > > 
+> > > > > For this reason, remove the scan handler check from
+> > > > > acpi_bus_device_eject() to make PCI hot bridge hot removal work
+> > > > > again.
+> > > > 
+> > > > I am curious why the PCI host bridge scan handler does not set
+> > > > hotplug.enabled.  Is this how it disables hotplug via sysfs eject but
+> > > > enables via ACPI notification?
+> > > 
+> > > It just doesn't register for hotplug at all.  I guess it could set that
+> > > bit alone, but then it would be quite confusing and the check is not
+> > > necessary anyway.
+> > 
+> > I see.  Given how the PCI host bridge scan handler is integrated today,
+> > the change looks reasonable to me.
 > 
-> Rafael, if it makes sense for you to apply this, you can add my:
+> Looking further, I noticed that there is one more issue to address.  The
+> patch below applies on top of your patchset.
+>
+> From: Toshi Kani <toshi.kani@hp.com>
+> Subject: [PATCH] ACPI / hotplug: Fix conflicted PCI bridge notify
+> handlers
 > 
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> The PCI host bridge scan handler installs its own notify handler,
+> handle_hotplug_event_root(), by itself.  Nevertheless, the ACPI
+> hotplug framework also installs the common notify handler,
+> acpi_hotplug_notify_cb(), for PCI root bridges.  This causes
+> acpi_hotplug_notify_cb() to call _OST method with unsupported
+> error as hotplug.enabled is not set.
 > 
-> Otherwise I can pick it up.
+> To address this issue, introduce hotplug.self_install flag, which
+> indicates that the scan handler installs its own notify handler by
+> itself.  The ACPI hotplug framework does not install the common
+> notify handler when this flag is set.
 
-Applied, thanks!
+Good catch!
 
-I'm going to send my next pull request tomorrow.
+Still, I don't think we need a new flag, because we know that that
+scan handler doesn't support hotplug, because its hotplug profile
+hasn't been registered (that actually applies to all scan handlers
+without hotplug support, not only the root host bridge).  Moreover,
+if it does support hotplug, but the hotplug profile hasn't been
+registered due to an error, we still should not install the notify
+handler I think.  So, I prefer the patch below.
 
-> > ---
-> >  drivers/pci/hotplug/acpiphp.h | 1 -
-> >  1 file changed, 1 deletion(-)
-> >
-> > diff --git a/drivers/pci/hotplug/acpiphp.h b/drivers/pci/hotplug/acpiphp.h
-> > index 26100f510b10..1592dbe4f904 100644
-> > --- a/drivers/pci/hotplug/acpiphp.h
-> > +++ b/drivers/pci/hotplug/acpiphp.h
-> > @@ -176,7 +176,6 @@ u8 acpiphp_get_latch_status(struct acpiphp_slot *slot);
-> >  u8 acpiphp_get_adapter_status(struct acpiphp_slot *slot);
-> >
-> >  /* variables */
-> > -extern bool acpiphp_debug;
-> >  extern bool acpiphp_disabled;
-> >
-> >  #endif /* _ACPIPHP_H */
-> > --
-> > 1.8.4.3
-> >
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+And this fix will remain useful after my recent series at
+http://marc.info/?l=linux-pci&m=138470560909690&w=4
+
+Thanks,
+Rafael
+
+
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / hotplug: Ignore notifications for scan handlers without hotplug
+
+If a scan handler's hotplug profile has not been registered, do not
+install acpi_hotplug_notify_cb() as a notify handler for devices
+with the given scan handler attached.
+
+This fixes a problem with the PCI host bridge scan handler that
+installs its own notify handler, handle_hotplug_event_root(), by
+itself and doesn't register its hotplug profile.  Toshi says
+
+"Nevertheless, the ACPI hotplug framework also installs the common
+ notify handler, acpi_hotplug_notify_cb(), for PCI root bridges.
+ This causes acpi_hotplug_notify_cb() to call _OST method with
+ unsupported error as hotplug.enabled is not set."
+
+Moreover, it is pointless to install acpi_hotplug_notify_cb() as
+a notify handler for device objects whose scan handlers don't
+support hotplug, because it will always fail for them.
+
+Reported-by: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: 3.9+ <stable@vger.kernel.org> # 3.9+
+---
+ drivers/acpi/scan.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -84,6 +84,11 @@ int acpi_scan_add_handler_with_hotplug(s
+ 	return 0;
+ }
+ 
++static bool acpi_scan_handler_with_hotplug(struct acpi_scan_handler *handler)
++{
++	return handler && handler->hotplug.kobj.state_in_sysfs;
++}
++
+ /*
+  * Creates hid/cid(s) string needed for modalias and uevent
+  * e.g. on a device with hid:IBM0001 and cid:ACPI0001 you get:
+@@ -1841,7 +1846,7 @@ static void acpi_scan_init_hotplug(acpi_
+ 	 */
+ 	list_for_each_entry(hwid, &pnp.ids, list) {
+ 		handler = acpi_scan_match_handler(hwid->id, NULL);
+-		if (handler) {
++		if (acpi_scan_handler_with_hotplug(handler)) {
+ 			acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
+ 					acpi_hotplug_notify_cb, handler);
+ 			break;
+
