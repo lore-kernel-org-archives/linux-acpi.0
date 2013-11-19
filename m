@@ -1,60 +1,165 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: acpi_pad mwait usage
-Date: Tue, 19 Nov 2013 10:08:59 +0100
-Message-ID: <20131119090859.GC3694@twins.programming.kicks-ass.net>
-References: <20131119090019.GJ3866@twins.programming.kicks-ass.net>
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: Re: [PATCH part2 v2 0/8] Arrange hotpluggable memory as ZONE_MOVABLE
+Date: Tue, 19 Nov 2013 17:56:43 +0800
+Message-ID: <528B35DB.9050209@cn.fujitsu.com>
+References: <5258E560.5050506@cn.fujitsu.com> <528383BB.6060901@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:60564 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751380Ab3KSJJE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2013 04:09:04 -0500
-Content-Disposition: inline
-In-Reply-To: <20131119090019.GJ3866@twins.programming.kicks-ass.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <528383BB.6060901@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J . Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Toshi Kani <toshi.kani@hp.com>, Wanpeng Li <liwanp@linux.vnet.ibm.com>, Thomas Renninger <trenn@suse.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Minchan Kim <minchan@kernel.org>, "mina86@mina86.com" <mina86@mina86.com>, "gong.chen@linux.intel.com" <gong.chen@linux.intel.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: shaohua.li@intel.com, rui.zhang@intel.com, arjan@linux.intel.com, jacob.jun.pan@linux.intel.com
 
-On Tue, Nov 19, 2013 at 10:00:19AM +0100, Peter Zijlstra wrote:
-> Hi Len, Rafeal,
-> 
-> I stumbled over acpi_pad (yuck! ;-), but noticed that you don't set the
-> task in polling mode while using mwait. This means we'll still happily
-> send an IPI to wake you up.
-> 
-> A little something like the below should do; you might even be able to
-> remove the smp_mb() but since it is completely undocumented (another
-> fail) I couldn't tell if the implied barrier in
-> current_set_polling_and_test() suffices to replace it, so I left it.
-> 
-> If it compiles and works; change it to a proper SOB:
-> 
-> Maybe-Signed-off-by: Peter Zijlstra <peterz@infradead.org>
+ping...
 
-Of course one such driver is insufficient and you lot needed a second;
-same issue:
+On 11/13/2013 09:50 PM, Zhang Yanfei wrote:
+> Hello guys,
+> 
+> Could anyone help reviewing this part?
+> 
+> The first part has been merged into linus's tree. And I've tried to apply this part
+> to today's linus tree:
+> 
+> commit 42a2d923cc349583ebf6fdd52a7d35e1c2f7e6bd
+> Merge: 5cbb3d2 75ecab1
+> Author: Linus Torvalds <torvalds@linux-foundation.org>
+> Date:   Wed Nov 13 17:40:34 2013 +0900
+> 
+>     Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next
+> 
+> No conflict, no compiling error and it works well.
+> 
+> Tejun, any comments?
+> 
+> On 10/12/2013 02:00 PM, Zhang Yanfei wrote:
+>> Hello guys, this is the part2 of our memory hotplug work. This part
+>> is based on the part1:
+>>     "x86, memblock: Allocate memory near kernel image before SRAT parsed"
+>> which is base on 3.12-rc4.
+>>
+>> You could refer part1 from: https://lkml.org/lkml/2013/10/10/644
+>>
+>> Any comments are welcome! Thanks!
+>>
+>> [Problem]
+>>
+>> The current Linux cannot migrate pages used by the kerenl because
+>> of the kernel direct mapping. In Linux kernel space, va = pa + PAGE_OFFSET.
+>> When the pa is changed, we cannot simply update the pagetable and
+>> keep the va unmodified. So the kernel pages are not migratable.
+>>
+>> There are also some other issues will cause the kernel pages not migratable.
+>> For example, the physical address may be cached somewhere and will be used.
+>> It is not to update all the caches.
+>>
+>> When doing memory hotplug in Linux, we first migrate all the pages in one
+>> memory device somewhere else, and then remove the device. But if pages are
+>> used by the kernel, they are not migratable. As a result, memory used by
+>> the kernel cannot be hot-removed.
+>>
+>> Modifying the kernel direct mapping mechanism is too difficult to do. And
+>> it may cause the kernel performance down and unstable. So we use the following
+>> way to do memory hotplug.
+>>
+>>
+>> [What we are doing]
+>>
+>> In Linux, memory in one numa node is divided into several zones. One of the
+>> zones is ZONE_MOVABLE, which the kernel won't use.
+>>
+>> In order to implement memory hotplug in Linux, we are going to arrange all
+>> hotpluggable memory in ZONE_MOVABLE so that the kernel won't use these memory.
+>>
+>> To do this, we need ACPI's help.
+>>
+>>
+>> [How we do this]
+>>
+>> In ACPI, SRAT(System Resource Affinity Table) contains NUMA info. The memory
+>> affinities in SRAT record every memory range in the system, and also, flags
+>> specifying if the memory range is hotpluggable.
+>> (Please refer to ACPI spec 5.0 5.2.16)
+>>
+>> With the help of SRAT, we have to do the following two things to achieve our
+>> goal:
+>>
+>> 1. When doing memory hot-add, allow the users arranging hotpluggable as
+>>    ZONE_MOVABLE.
+>>    (This has been done by the MOVABLE_NODE functionality in Linux.)
+>>
+>> 2. when the system is booting, prevent bootmem allocator from allocating
+>>    hotpluggable memory for the kernel before the memory initialization
+>>    finishes.
+>>    (This is what we are going to do. See below.)
+>>
+>>
+>> [About this patch-set]
+>>
+>> In previous part's patches, we have made the kernel allocate memory near
+>> kernel image before SRAT parsed to avoid allocating hotpluggable memory
+>> for kernel. So this patch-set does the following things:
+>>
+>> 1. Improve memblock to support flags, which are used to indicate different 
+>>    memory type.
+>>
+>> 2. Mark all hotpluggable memory in memblock.memory[].
+>>
+>> 3. Make the default memblock allocator skip hotpluggable memory.
+>>
+>> 4. Improve "movable_node" boot option to have higher priority of movablecore
+>>    and kernelcore boot option.
+>>
+>> Change log v1 -> v2:
+>> 1. Rebase this part on the v7 version of part1
+>> 2. Fix bug: If movable_node boot option not specified, memblock still
+>>    checks hotpluggable memory when allocating memory. 
+>>
+>> Tang Chen (7):
+>>   memblock, numa: Introduce flag into memblock
+>>   memblock, mem_hotplug: Introduce MEMBLOCK_HOTPLUG flag to mark
+>>     hotpluggable regions
+>>   memblock: Make memblock_set_node() support different memblock_type
+>>   acpi, numa, mem_hotplug: Mark hotpluggable memory in memblock
+>>   acpi, numa, mem_hotplug: Mark all nodes the kernel resides
+>>     un-hotpluggable
+>>   memblock, mem_hotplug: Make memblock skip hotpluggable regions if
+>>     needed
+>>   x86, numa, acpi, memory-hotplug: Make movable_node have higher
+>>     priority
+>>
+>> Yasuaki Ishimatsu (1):
+>>   x86: get pg_data_t's memory from other node
+>>
+>>  arch/metag/mm/init.c      |    3 +-
+>>  arch/metag/mm/numa.c      |    3 +-
+>>  arch/microblaze/mm/init.c |    3 +-
+>>  arch/powerpc/mm/mem.c     |    2 +-
+>>  arch/powerpc/mm/numa.c    |    8 ++-
+>>  arch/sh/kernel/setup.c    |    4 +-
+>>  arch/sparc/mm/init_64.c   |    5 +-
+>>  arch/x86/mm/init_32.c     |    2 +-
+>>  arch/x86/mm/init_64.c     |    2 +-
+>>  arch/x86/mm/numa.c        |   63 +++++++++++++++++++++--
+>>  arch/x86/mm/srat.c        |    5 ++
+>>  include/linux/memblock.h  |   39 ++++++++++++++-
+>>  mm/memblock.c             |  123 ++++++++++++++++++++++++++++++++++++++-------
+>>  mm/memory_hotplug.c       |    1 +
+>>  mm/page_alloc.c           |   28 ++++++++++-
+>>  15 files changed, 252 insertions(+), 39 deletions(-)
+>>
+> 
+> 
 
----
- drivers/thermal/intel_powerclamp.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/thermal/intel_powerclamp.c b/drivers/thermal/intel_powerclamp.c
-index 8f181b3f842b..d8111e1ac62e 100644
---- a/drivers/thermal/intel_powerclamp.c
-+++ b/drivers/thermal/intel_powerclamp.c
-@@ -439,8 +439,11 @@ static int clamp_thread(void *arg)
- 			local_touch_nmi();
- 			stop_critical_timings();
- 			__monitor((void *)&current_thread_info()->flags, 0, 0);
--			cpu_relax(); /* allow HT sibling to run */
--			__mwait(eax, ecx);
-+			if (!current_set_polling_and_test()) {
-+				cpu_relax(); /* allow HT sibling to run */
-+				__mwait(eax, ecx);
-+				__current_clr_polling();
-+			}
- 			start_critical_timings();
- 			atomic_inc(&idle_wakeup_counter);
- 		}
+-- 
+Thanks.
+Zhang Yanfei
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
