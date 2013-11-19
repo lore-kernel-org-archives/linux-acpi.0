@@ -1,36 +1,157 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 0/10] ACPI: Device objects for all namespace nodes and
- PCI root hotplug integration
-Date: Tue, 19 Nov 2013 23:05:13 +0200
-Message-ID: <20131119210512.GS2281@intel.com>
-References: <1421028.Rsfpmhnym3@vostro.rjw.lan>
- <20131119143046.GL2281@intel.com>
- <3736594.HRILCo6Ms2@vostro.rjw.lan>
+From: Jacob Pan <jacob.jun.pan@linux.intel.com>
+Subject: Re: [PATCH] x86, acpi, idle: Restructure the mwait idle routines
+Date: Tue, 19 Nov 2013 13:06:30 -0800
+Message-ID: <20131119130630.487da962@ultegra>
+References: <20131119090019.GJ3866@twins.programming.kicks-ass.net>
+	<20131119090859.GC3694@twins.programming.kicks-ass.net>
+	<20131119113153.GD3694@twins.programming.kicks-ass.net>
+	<528B7433.7020507@linux.intel.com>
+	<20131119145143.GK10022@twins.programming.kicks-ass.net>
+	<20131119151338.GF3694@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3736594.HRILCo6Ms2@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:1970 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753008Ab3KSVGt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Nov 2013 16:06:49 -0500
+In-Reply-To: <20131119151338.GF3694@twins.programming.kicks-ass.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Arjan van de Ven <arjan@linux.intel.com>, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, shaohua.li@intel.com, rui.zhang@intel.com, Mike Galbraith <bitbucket@online.de>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, hpa@zytor.com
 
-On Tue, Nov 19, 2013 at 09:51:19PM +0100, Rafael J. Wysocki wrote:
-> On Tuesday, November 19, 2013 04:30:46 PM Mika Westerberg wrote:
-> > On Sun, Nov 17, 2013 at 05:29:41PM +0100, Rafael J. Wysocki wrote:
-> > > This is 3.14 material, but I'm posting it today to let you know it is coming.
-> > > Of course, if you see any immediate problems with the following patches, please
-> > > let me know.
+On Tue, 19 Nov 2013 16:13:38 +0100
+Peter Zijlstra <peterz@infradead.org> wrote:
+
+> On Tue, Nov 19, 2013 at 03:51:43PM +0100, Peter Zijlstra wrote:
+> > That said, that drive is completely wrecked. It uses
+> > preempt_enable_no_resched() wrong too, it has uncommented barriers..
 > > 
-> > For what it's worth, I have tested this series on three different systems
-> > that have Thunderbolt and it still works fine after the series has been
-> > applied :)
+> > Dude, wtf are you guys smoking?
 > 
-> Awesome, thanks!
+I applied this patch on top of upstream kernel (801a760) and found out
+my machine completely failed to enter idle when nothing is running.
+turbostate shows 100% C0. ftrace shows kernel coming in and out of idle
+frequently.
+
+Both ACPI idle and intel_idle behaves the same way. I have to do the
+following change to allow entering C-states again.
+
+diff --git a/arch/x86/include/asm/mwait.h b/arch/x86/include/asm/mwait.h
+index 80014da..b51d1e1 100644
+--- a/arch/x86/include/asm/mwait.h
++++ b/arch/x86/include/asm/mwait.h
+@@ -49,10 +49,8 @@ static inline void mwait_idle_with_hints(unsigned
+long eax, unsigned long ecx) clflush((void
+*)&current_thread_info()->flags); 
+        __monitor((void *)&current_thread_info()->flags, 0, 0);
+-       if (!current_set_polling_and_test())
++        if (!need_resched())
+                __mwait(eax, ecx);
+-
+-       __current_clr_polling();
+ }
+ 
+ #endif /* _ASM_X86_MWAIT_H */
+
+Did i miss any other patches?
+
+Jacob
+
+> ---
+> Subject: sched: Take away preempt_enable_no_resched() and friends
+> from modules
 > 
-> I hope you won't mind if I add your Tested-by to the series. :-)
+> There is no way in hell modules are going to play preemption tricks
+> like this.
+> 
+> Cc: eliezer.tamir@linux.intel.com
+> Cc: arjan@linux.intel.com
+> Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+> Signed-off-by: Peter Zijlstra <peterz@infradead.org>
+> ---
+>  drivers/thermal/intel_powerclamp.c |  2 +-
+>  include/linux/preempt.h            |  8 +++++++-
+>  include/net/busy_poll.h            | 15 +++------------
+>  3 files changed, 11 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/thermal/intel_powerclamp.c
+> b/drivers/thermal/intel_powerclamp.c index 8f181b3f842b..0a12ddc2eb4c
+> 100644 --- a/drivers/thermal/intel_powerclamp.c
+> +++ b/drivers/thermal/intel_powerclamp.c
+> @@ -445,7 +445,7 @@ static int clamp_thread(void *arg)
+>  			atomic_inc(&idle_wakeup_counter);
+>  		}
+>  		tick_nohz_idle_exit();
+> -		preempt_enable_no_resched();
+> +		preempt_enable();
+>  	}
+>  	del_timer_sync(&wakeup_timer);
+>  	clear_bit(cpunr, cpu_clamping_mask);
+> diff --git a/include/linux/preempt.h b/include/linux/preempt.h
+> index a3d9dc8c2c00..3ed2b5335ab4 100644
+> --- a/include/linux/preempt.h
+> +++ b/include/linux/preempt.h
+> @@ -64,7 +64,7 @@ do { \
+>  } while (0)
+>  
+>  #else
+> -#define preempt_enable() preempt_enable_no_resched()
+> +#define preempt_enable() sched_preempt_enable_no_resched()
+>  #define preempt_check_resched() do { } while (0)
+>  #endif
+>  
+> @@ -116,6 +116,12 @@ do { \
+>  
+>  #endif /* CONFIG_PREEMPT_COUNT */
+>  
+> +#ifdef MODULE
+> +#undef preempt_enable_no_resched
+> +#undef preempt_enable_no_resched_notrace
+> +#undef preempt_check_resched
+> +#endif
+> +
+>  #ifdef CONFIG_PREEMPT_NOTIFIERS
+>  
+>  struct preempt_notifier;
+> diff --git a/include/net/busy_poll.h b/include/net/busy_poll.h
+> index 829627d7b846..756827a86c2d 100644
+> --- a/include/net/busy_poll.h
+> +++ b/include/net/busy_poll.h
+> @@ -42,27 +42,18 @@ static inline bool net_busy_loop_on(void)
+>  	return sysctl_net_busy_poll;
+>  }
+>  
+> -/* a wrapper to make debug_smp_processor_id() happy
+> - * we can use sched_clock() because we don't care much about
+> precision
+> - * we only care that the average is bounded
+> - */
+> -#ifdef CONFIG_DEBUG_PREEMPT
+>  static inline u64 busy_loop_us_clock(void)
+>  {
+>  	u64 rc;
+>  
+> +	/* XXX with interrupts enabled sched_clock() can return
+> utter garbage */ +
+>  	preempt_disable_notrace();
+>  	rc = sched_clock();
+> -	preempt_enable_no_resched_notrace();
+> +	preempt_enable_notrace();
+>  
+>  	return rc >> 10;
+>  }
+> -#else /* CONFIG_DEBUG_PREEMPT */
+> -static inline u64 busy_loop_us_clock(void)
+> -{
+> -	return sched_clock() >> 10;
+> -}
+> -#endif /* CONFIG_DEBUG_PREEMPT */
+>  
+>  static inline unsigned long sk_busy_loop_end_time(struct sock *sk)
+>  {
+> 
 
-Not at all,
-
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+[Jacob Pan]
