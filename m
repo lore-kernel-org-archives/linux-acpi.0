@@ -1,51 +1,60 @@
 From: Peter Zijlstra <peterz@infradead.org>
-Subject: acpi_pad mwait usage
-Date: Tue, 19 Nov 2013 10:00:19 +0100
-Message-ID: <20131119090019.GJ3866@twins.programming.kicks-ass.net>
+Subject: Re: acpi_pad mwait usage
+Date: Tue, 19 Nov 2013 10:08:59 +0100
+Message-ID: <20131119090859.GC3694@twins.programming.kicks-ass.net>
+References: <20131119090019.GJ3866@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:60478 "EHLO
+Received: from merlin.infradead.org ([205.233.59.134]:60564 "EHLO
 	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751186Ab3KSJA3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2013 04:00:29 -0500
+	with ESMTP id S1751380Ab3KSJJE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2013 04:09:04 -0500
 Content-Disposition: inline
+In-Reply-To: <20131119090019.GJ3866@twins.programming.kicks-ass.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: shaohua.li@intel.com
+Cc: shaohua.li@intel.com, rui.zhang@intel.com, arjan@linux.intel.com, jacob.jun.pan@linux.intel.com
 
-Hi Len, Rafeal,
+On Tue, Nov 19, 2013 at 10:00:19AM +0100, Peter Zijlstra wrote:
+> Hi Len, Rafeal,
+> 
+> I stumbled over acpi_pad (yuck! ;-), but noticed that you don't set the
+> task in polling mode while using mwait. This means we'll still happily
+> send an IPI to wake you up.
+> 
+> A little something like the below should do; you might even be able to
+> remove the smp_mb() but since it is completely undocumented (another
+> fail) I couldn't tell if the implied barrier in
+> current_set_polling_and_test() suffices to replace it, so I left it.
+> 
+> If it compiles and works; change it to a proper SOB:
+> 
+> Maybe-Signed-off-by: Peter Zijlstra <peterz@infradead.org>
 
-I stumbled over acpi_pad (yuck! ;-), but noticed that you don't set the
-task in polling mode while using mwait. This means we'll still happily
-send an IPI to wake you up.
+Of course one such driver is insufficient and you lot needed a second;
+same issue:
 
-A little something like the below should do; you might even be able to
-remove the smp_mb() but since it is completely undocumented (another
-fail) I couldn't tell if the implied barrier in
-current_set_polling_and_test() suffices to replace it, so I left it.
-
-If it compiles and works; change it to a proper SOB:
-
-Maybe-Signed-off-by: Peter Zijlstra <peterz@infradead.org>
 ---
- drivers/acpi/acpi_pad.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/thermal/intel_powerclamp.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-index fc6008fbce35..e9126efe7786 100644
---- a/drivers/acpi/acpi_pad.c
-+++ b/drivers/acpi/acpi_pad.c
-@@ -195,8 +195,10 @@ static int power_saving_thread(void *data)
- 
+diff --git a/drivers/thermal/intel_powerclamp.c b/drivers/thermal/intel_powerclamp.c
+index 8f181b3f842b..d8111e1ac62e 100644
+--- a/drivers/thermal/intel_powerclamp.c
++++ b/drivers/thermal/intel_powerclamp.c
+@@ -439,8 +439,11 @@ static int clamp_thread(void *arg)
+ 			local_touch_nmi();
+ 			stop_critical_timings();
  			__monitor((void *)&current_thread_info()->flags, 0, 0);
- 			smp_mb();
--			if (!need_resched())
+-			cpu_relax(); /* allow HT sibling to run */
+-			__mwait(eax, ecx);
 +			if (!current_set_polling_and_test()) {
- 				__mwait(power_saving_mwait_eax, 1);
++				cpu_relax(); /* allow HT sibling to run */
++				__mwait(eax, ecx);
 +				__current_clr_polling();
 +			}
- 
  			start_critical_timings();
- 			if (lapic_marked_unstable)
+ 			atomic_inc(&idle_wakeup_counter);
+ 		}
