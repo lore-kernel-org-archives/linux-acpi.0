@@ -1,220 +1,129 @@
-From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Subject: Re: [PATCH v2] ACPI / video: Add systems that should
- favor native backlight interface
-Date: Thu, 21 Nov 2013 00:56:22 +0400
-Message-ID: <1384980982.3487.3.camel@ThinkPad-X230.localdomain>
-References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
-	<2140073.U60XyxRqVZ@vostro.rjw.lan> <5268D6BB.3010207@intel.com>
-	<1382682925.3328.4.camel@ThinkPad-X230.localdomain>
-	<526DCFD7.7060002@intel.com> <87fvrl7r6g.fsf@intel.com>
-	<526F615D.2090602@intel.com> <5285BA38.6080804@intel.com>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [PATCH 02/12] ACPI: bus master reload not supported in reduced
+ HW mode
+Date: Wed, 20 Nov 2013 14:11:34 -0700
+Message-ID: <528D2586.7010503@linaro.org>
+References: <1384047382-20623-1-git-send-email-al.stone@linaro.org> <1384047382-20623-3-git-send-email-al.stone@linaro.org> <2902248.9mmxm8tccy@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <5285BA38.6080804@intel.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces@lists.freedesktop.org
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: James Hogan <james@albanarts.com>, Mike Galbraith <bitbucket@online.de>, Felipe Contreras <felipe.contreras@gmail.com>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, linux-acpi@vger.kernel.org, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, Martin Steigerwald <Martin@lichtvoll.de>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Kevin Smith <thirdwiggin@gmail.com>, Peter Weber <bugs@ttyhoney.com>, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Lennart Poettering <lennart@poettering.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Tso <tytso@mit.edu>, "Rafael J. Wysocki" <rjw@rjwysock>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:53143 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755144Ab3KTVLg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Nov 2013 16:11:36 -0500
+Received: by mail-ie0-f177.google.com with SMTP id tp5so7217565ieb.22
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Nov 2013 13:11:35 -0800 (PST)
+In-Reply-To: <2902248.9mmxm8tccy@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <ahs3@redhat.com>
 
-On Fri, 2013-11-15 at 14:07 +0800, Aaron Lu wrote:
-> Some system's ACPI video backlight control interface is broken and the
-> native backlight control interface should be used by default. This patch
-> sets the use_native_backlight parameter to true for those systems so
-> that video backlight control interface will not be created. To be
-> specific, the ThinkPad T430s/X230, Lenovo Yoga 13, Dell Inspiron 7520
-> and Acer Aspire 5733Z are added here, if they appear in some other DMI
-> table before, they are removed from there.
-> 
-> Note that the user specified kernel cmdline option will always have the
-> highest priority, i.e. if use_native_backlight=0 is specified and the
-> system is in the DMI table, the video module will not skip registering
-> backlight interface for it.
-> 
-> Thinkpad T430s:
-> Reported-by: Theodore Tso <tytso@mit.edu>
-> Reported-and-tested-by: Peter Weber <bugs@ttyhoney.com>
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
-> Thinkpad X230:
-> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
-> Lenovo Yoga 13:
-> Reported-by: Lennart Poettering <lennart@poettering.net>
-> Reported-and-tested-by: Kevin Smith <thirdwiggin@gmail.com>
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=63811
-> Dell Inspiron 7520:
-> Reported-by: Rinat Ibragimov <ibragimovrinat@mail.ru>
-> Acer Aspire 5733Z:
-> Reported-by: <sov.info@mail.ru>
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=62941
-> 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> ---
-> v2:
-> Add Acer Aspire 5733Z, see bug #62941;
-> Remove Inspiron 7520 from acpi_osi_dmi_table and Yoga 13 from
-> video_detect_dmi_table.
-> 
-> Based on top of Rafael's linux-next branch + the following patch:
-> [PATCH] ACPI / video: clean up DMI table for initial black screen problem
-> http://marc.info/?l=linux-acpi&m=138448583006432&w=2
-> 
->  drivers/acpi/blacklist.c    |  8 ------
->  drivers/acpi/video.c        | 65 +++++++++++++++++++++++++++++++++++++++++----
->  drivers/acpi/video_detect.c |  8 ------
->  3 files changed, 60 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-> index 078c4f7fe2dd..2b6a76b6d59a 100644
-> --- a/drivers/acpi/blacklist.c
-> +++ b/drivers/acpi/blacklist.c
-> @@ -261,14 +261,6 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
->  	},
->  	{
->  	.callback = dmi_disable_osi_win8,
-> -	.ident = "Dell Inspiron 15R SE",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> -		     DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7520"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
->  	.ident = "ThinkPad Edge E530",
->  	.matches = {
->  		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 4ccb89e5c4ad..49abe0348b03 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -89,11 +89,12 @@ static bool use_bios_initial_backlight = 1;
->  module_param(use_bios_initial_backlight, bool, 0644);
->  
->  /*
-> - * For Windows 8 systems: if set ture and the GPU driver has
-> - * registered a backlight interface, skip registering ACPI video's.
-> + * For Windows 8 systems: used to decide if video module
-> + * should skip registering backlight interface of its own.
->   */
-> -static bool use_native_backlight = false;
-> -module_param(use_native_backlight, bool, 0644);
-> +static int use_native_backlight_param = -1;
-> +module_param_named(use_native_backlight, use_native_backlight_param, int, 0444);
-> +static bool use_native_backlight_dmi = false;
->  
->  static int register_count;
->  static struct mutex video_list_lock;
-> @@ -239,9 +240,17 @@ static int acpi_video_get_next_level(struct acpi_video_device *device,
->  static int acpi_video_switch_brightness(struct acpi_video_device *device,
->  					 int event);
->  
-> +static bool acpi_video_use_native_backlight(void)
-> +{
-> +	if (use_native_backlight_param != -1)
-> +		return !!use_native_backlight_param;
-> +	else
-> +		return use_native_backlight_dmi;
-> +}
-> +
->  static bool acpi_video_verify_backlight_support(void)
->  {
-> -	if (acpi_osi_is_win8() && use_native_backlight &&
-> +	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
->  	    backlight_device_registered(BACKLIGHT_RAW))
->  		return false;
->  	return acpi_video_backlight_support();
-> @@ -412,6 +421,12 @@ static int video_ignore_initial_backlight(const struct dmi_system_id *d)
->  	return 0;
->  }
->  
-> +static int __init video_set_use_native_backlight(const struct dmi_system_id *d)
-> +{
-> +	use_native_backlight_dmi = true;
-> +	return 0;
-> +}
-> +
->  static struct dmi_system_id video_dmi_table[] __initdata = {
->  	/*
->  	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
-> @@ -456,6 +471,46 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 7720"),
->  		},
->  	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "ThinkPad T430s",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "ThinkPad X230",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "Lenovo Yoga 13",
-> +	 .matches = {
-> +		 DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		 DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "Dell Inspiron 7520",
-> +	 .matches = {
-> +		 DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> +		 DMI_MATCH(DMI_PRODUCT_VERSION, "Inspiron 7520"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "Acer Aspire 5733Z",
-> +	 .matches = {
-> +		 DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-> +		 DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5733Z"),
-> +		},
-> +	},
->  	{}
->  };
->  
-> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-> index 84875fd4c74f..b6399343de51 100644
-> --- a/drivers/acpi/video_detect.c
-> +++ b/drivers/acpi/video_detect.c
-> @@ -168,14 +168,6 @@ static struct dmi_system_id video_detect_dmi_table[] = {
->  		DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
->  		},
->  	},
-> -	{
-> -	.callback = video_detect_force_vendor,
-> -	.ident = "Lenovo Yoga 13",
-> -	.matches = {
-> -		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
-> -		},
-> -	},
->  	{ },
->  };
->  
+On 11/17/2013 02:56 PM, Rafael J. Wysocki wrote:
+> On Saturday, November 09, 2013 06:36:12 PM al.stone@linaro.org wrote:
+>> From: Al Stone <ahs3@redhat.com>
+>>
+>> Remove the saving and restoring of bus master reload registers in
+>> suspend/resume when in reduces HW mode; according to the spec, no
+>> such registers should exist
+>>
+>> Signed-off-by: Al Stone <al.stone@linaro.org>
+>> ---
+>>   drivers/acpi/processor_idle.c | 8 +++++++-
+>>   include/acpi/acpixf.h         | 6 ++++++
+>>   2 files changed, 13 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+>> index 35c8f2b..28079a6 100644
+>> --- a/drivers/acpi/processor_idle.c
+>> +++ b/drivers/acpi/processor_idle.c
+>> @@ -210,6 +210,7 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
+>>   #endif
+>>
+>>   #ifdef CONFIG_PM_SLEEP
+>> +#if (!ACPI_REDUCED_HARDWARE)
+>
+> Why don't you use #ifndef CONFIG_ACPI_REDUCED_HARDWARE here?
+>
+> And I believe we don't need acpi_processor_syscore_ops in that case at all?
+>
+> So why don't you put the whole section under
+>
+> #if (IS_ENABLED(CONFIG_PM_SLEEP) && !IS_ENABLED(CONFIG_ACPI_REDUCED_HARDWARE)) ?
 
-Any news here? If no - I think we need re-send patch as new..
+My original thinking was that ACPI_REDUCED_HARDWARE is the flag
+being used in the ACPICA code.  On re-thinking it (and I'll use
+your suggestion, if you don't mind), is it fair to say that there
+is essentially a policy of keeping the Linux acpi driver and the
+ACPICA code as separate as possible?  If so -- and I would think
+it makes sense -- then the ACPI_REDUCED_HARDWARE flag should not
+be used here, as suggested.
+
+Thanks.
+
+>>   static u32 saved_bm_rld;
+>>
+>>   static int acpi_processor_suspend(void)
+>> @@ -228,6 +229,11 @@ static void acpi_processor_resume(void)
+>>
+>>   	acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, saved_bm_rld);
+>>   }
+>> +#else
+>> +/* Bus master reload is not supported in reduced HW mode. */
+>> +static int acpi_processor_suspend(void) { return 0; }
+>> +static void acpi_processor_resume(void) { return; }
+>> +#endif /* (!ACPI_REDUCED_HARDWARE) */
+>>
+>>   static struct syscore_ops acpi_processor_syscore_ops = {
+>>   	.suspend = acpi_processor_suspend,
+>
+> I'm not sure why you think that the changes below belong to this patch?
+
+It doesn't.  My bad.  I'll remove this.
+
+>> @@ -605,7 +611,7 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
+>>   		case ACPI_STATE_C2:
+>>   			if (!cx->address)
+>>   				break;
+>> -			cx->valid = 1;
+>> +			cx->valid = 1;
+>>   			break;
+>>
+>>   		case ACPI_STATE_C3:
+>> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+>> index d8f9457..27ef69b 100644
+>> --- a/include/acpi/acpixf.h
+>> +++ b/include/acpi/acpixf.h
+>> @@ -99,6 +99,9 @@ extern u8 acpi_gbl_disable_ssdt_table_load;
+>>   #define ACPI_HW_DEPENDENT_RETURN_VOID(prototype) \
+>>   	prototype;
+>>
+>> +#define ACPI_HW_DEPENDENT_RETURN_INT(prototype) \
+>> +	prototype;
+>> +
+>>   #else
+>>   #define ACPI_HW_DEPENDENT_RETURN_STATUS(prototype) \
+>>   	static ACPI_INLINE prototype {return(AE_NOT_CONFIGURED);}
+>> @@ -109,6 +112,9 @@ extern u8 acpi_gbl_disable_ssdt_table_load;
+>>   #define ACPI_HW_DEPENDENT_RETURN_VOID(prototype) \
+>>   	static ACPI_INLINE prototype {return;}
+>>
+>> +#define ACPI_HW_DEPENDENT_RETURN_INT(prototype) \
+>> +	static ACPI_INLINE prototype {return 0;}
+>> +
+>>   #endif				/* !ACPI_REDUCED_HARDWARE */
+>>
+>>   /*
+>>
+
 
 -- 
-Igor Gnatenko
-Fedora release 20 (Heisenbug)
-Linux 3.11.8-300.fc20.x86_64
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
