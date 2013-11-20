@@ -1,284 +1,132 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH] x86, acpi, idle: Restructure the mwait idle routines
-Date: Wed, 20 Nov 2013 11:58:37 +0100
-Message-ID: <20131120105837.GH3694@twins.programming.kicks-ass.net>
-References: <20131119090019.GJ3866@twins.programming.kicks-ass.net>
- <20131119090859.GC3694@twins.programming.kicks-ass.net>
- <20131119113153.GD3694@twins.programming.kicks-ass.net>
- <528B7433.7020507@linux.intel.com>
- <20131119145143.GK10022@twins.programming.kicks-ass.net>
- <20131119151338.GF3694@twins.programming.kicks-ass.net>
- <20131119130630.487da962@ultegra>
- <20131120102803.GO10022@twins.programming.kicks-ass.net>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 2/3] ACPI / hotplug: Fix PCI host bridge hot removal
+Date: Wed, 20 Nov 2013 12:56:45 +0100
+Message-ID: <13221031.pZI6l8TTGT@vostro.rjw.lan>
+References: <2434673.zhjYZOTQ4A@vostro.rjw.lan> <2499259.JLRCUgMzrL@vostro.rjw.lan> <1384910527.1791.140.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:35459 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752975Ab3KTK6q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Nov 2013 05:58:46 -0500
-Content-Disposition: inline
-In-Reply-To: <20131120102803.GO10022@twins.programming.kicks-ass.net>
+Received: from v094114.home.net.pl ([79.96.170.134]:61811 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752456Ab3KTLoG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Nov 2013 06:44:06 -0500
+In-Reply-To: <1384910527.1791.140.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jacob Pan <jacob.jun.pan@linux.intel.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, shaohua.li@intel.com, rui.zhang@intel.com, Mike Galbraith <bitbucket@online.de>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, hpa@zytor.com
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
 
-On Wed, Nov 20, 2013 at 11:28:03AM +0100, Peter Zijlstra wrote:
-> On Tue, Nov 19, 2013 at 01:06:30PM -0800, Jacob Pan wrote:
-> > I applied this patch on top of upstream kernel (801a760) and found out
-> > my machine completely failed to enter idle when nothing is running.
-> > turbostate shows 100% C0. ftrace shows kernel coming in and out of idle
-> > frequently.
-> > 
-> > Both ACPI idle and intel_idle behaves the same way. I have to do the
-> > following change to allow entering C-states again.
-
-> That doesn't make any sense; current_set_polling_and_test() returns the
-> same thing need_resched() does.
+On Tuesday, November 19, 2013 06:22:07 PM Toshi Kani wrote:
+> On Wed, 2013-11-20 at 01:08 +0100, Rafael J. Wysocki wrote:
+> > On Wednesday, November 20, 2013 12:42:28 AM Rafael J. Wysocki wrote:
+> > > On Tuesday, November 19, 2013 02:58:40 PM Toshi Kani wrote:
+> > > > On Tue, 2013-11-19 at 22:10 +0100, Rafael J. Wysocki wrote:
+> > > > > > On Tuesday, November 19, 2013 10:48:51 AM Toshi Kani wrote:
+> > > > > > > On Mon, 2013-11-18 at 22:39 +0100, Rafael J. Wysocki wrote:
+> > > > > > > > On Monday, November 18, 2013 11:10:05 AM Toshi Kani wrote:
+> > > > > > > > > On Thu, 2013-11-14 at 00:16 +0100, Rafael J. Wysocki wrote:
+> > > > > > > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > > > > > > > > 
+> > > > > > > > > > Since the PCI host bridge scan handler does not set hotplug.enabled,
+> > > > > > > > > > the check of it in acpi_bus_device_eject() effectively prevents the
+> > > > > > > > > > root bridge hot removal from working after commit a3b1b1ef78cd
+> > > > > > > > > > (ACPI / hotplug: Merge device hot-removal routines).  However, that
+> > > > > > > > > > check is not necessary, because the other acpi_bus_device_eject()
+> > > > > > > > > > users, acpi_hotplug_notify_cb and acpi_eject_store(), do the same
+> > > > > > > > > > check by themselves before executing that function.
+> > > > > > > > > > 
+> > > > > > > > > > For this reason, remove the scan handler check from
+> > > > > > > > > > acpi_bus_device_eject() to make PCI hot bridge hot removal work
+> > > > > > > > > > again.
+> > > > > > > > > 
+> > > > > > > > > I am curious why the PCI host bridge scan handler does not set
+> > > > > > > > > hotplug.enabled.  Is this how it disables hotplug via sysfs eject but
+> > > > > > > > > enables via ACPI notification?
+> > > > > > > > 
+> > > > > > > > It just doesn't register for hotplug at all.  I guess it could set that
+> > > > > > > > bit alone, but then it would be quite confusing and the check is not
+> > > > > > > > necessary anyway.
+> > > > > > > 
+> > > > > > > I see.  Given how the PCI host bridge scan handler is integrated today,
+> > > > > > > the change looks reasonable to me.
+> > > > > > 
+> > > > > > Looking further, I noticed that there is one more issue to address.  The
+> > > > > > patch below applies on top of your patchset.
+> > > > > >
+> > > > > > From: Toshi Kani <toshi.kani@hp.com>
+> > > > > > Subject: [PATCH] ACPI / hotplug: Fix conflicted PCI bridge notify
+> > > > > > handlers
+> > > > > > 
+> > > > > > The PCI host bridge scan handler installs its own notify handler,
+> > > > > > handle_hotplug_event_root(), by itself.  Nevertheless, the ACPI
+> > > > > > hotplug framework also installs the common notify handler,
+> > > > > > acpi_hotplug_notify_cb(), for PCI root bridges.  This causes
+> > > > > > acpi_hotplug_notify_cb() to call _OST method with unsupported
+> > > > > > error as hotplug.enabled is not set.
+> > > > > > 
+> > > > > > To address this issue, introduce hotplug.self_install flag, which
+> > > > > > indicates that the scan handler installs its own notify handler by
+> > > > > > itself.  The ACPI hotplug framework does not install the common
+> > > > > > notify handler when this flag is set.
+> > > > > 
+> > > > > Good catch!
+> > > > > 
+> > > > > Still, I don't think we need a new flag, because we know that that
+> > > > > scan handler doesn't support hotplug, because its hotplug profile
+> > > > > hasn't been registered (that actually applies to all scan handlers
+> > > > > without hotplug support, not only the root host bridge).  
+> > > > 
+> > > > When a scan handler does not support hotplug at all, the common notify
+> > > > handler should be installed so that it can call _OST with an appropriate
+> > > > response.
+> > > 
+> > > That creates an arbitrary difference between devices that have scan handlers
+> > > and devices that don't have them (PCI, USB, SATA etc).  So if we want _OST
+> > > to be called for all devices for which hotplug is not supported, that
+> > > should be implemented in a different way and not necessarily in 3.13.
 > 
-> But you're right, intel_idle resides 100% in C0 and acpi_idle has 100%
-> C1 residency... most weird.
+> I do not think we have an immediate issue since it only matters when the
+> firmware supports ACPI hotplug with _OST.  Such device types are CPU,
+> memory, container, and PCI bridge, which uses scan handlers.  USB, SATA,
+> etc. do not use ACPI hotplug.  That said, ideally, we should be able to
+> call _OST for any device types.
+>  
+> > > > > Moreover,
+> > > > > if it does support hotplug, but the hotplug profile hasn't been
+> > > > > registered due to an error, we still should not install the notify
+> > > > > handler I think.  
+> > > > 
+> > > > This case, I think the common notify handler should be installed so that
+> > > > it can call _OST for error response as well.  The question is what to do
+> > > > when a scan handler has its own notify handler.
+> > 
+> > Actually, having considered this particular case a bit more I think that it
+> > is useful to install acpi_hotplug_notify_cb() for things whose scan handlers
+> > register hotplug support, but the registration fails (which should be treated
+> > as "permanently disabled").
+> >
+> > However, I still think that devices whose scan handlers don't support hotplug
+> > at all should be treated consistently with devices without scan handlers.
+> 
+> Basically, the kernel needs to be compliant with ACPI spec.  Once the
+> kernel tells firmware that it supports _OST, it needs to call _OST for
+> an ACPI hotplug event when _OST is implemented on the object.  Although
+> we cannot assure this behavior for the devices without scan handler, we
+> should do so for the devices with scan handlers.
+> 
+> > So, what about the slightly modified patch below?
+> 
+> Well, I do not think it is right.  The kernel is supposed to tell
+> firmware that it does not support hotplug when it doesn't... 
 
-So pretty silly actually; you cannot do a store (any store) in between
-monitor and mwait.
+OK, I see your point.
 
-The below version seems to work properly again with both acpi_idle and
-intel_idle.
+I'll apply your patch, then, but I'm going to rename the new flag to
+"ignore".
 
-Now to go make that preempt_disable_no_resched cleanup compile.. :-)
+Thanks!
 
----
-Subject: x86, acpi, idle: Restructure the mwait idle routines
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Tue, 19 Nov 2013 12:31:53 +0100
-
-People seem to delight in writing wrong and broken mwait idle routines;
-collapse the lot.
-
-This leaves mwait_play_dead() the sole remaining user of __mwait() and
-new __mwait() users are probably doing it wrong.
-
-Also remove __sti_mwait() as its unused.
-
-Cc: arjan@linux.intel.com
-Cc: jacob.jun.pan@linux.intel.com
-Cc: Mike Galbraith <bitbucket@online.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: hpa@zytor.com
-Cc: lenb@kernel.org
-Cc: shaohua.li@intel.com
-Cc: rui.zhang@intel.com
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Peter Zijlstra <peterz@infradead.org>
----
- arch/x86/include/asm/mwait.h       |   40 +++++++++++++++++++++++++++++++++++++
- arch/x86/include/asm/processor.h   |   23 ---------------------
- arch/x86/kernel/acpi/cstate.c      |   23 ---------------------
- drivers/acpi/acpi_pad.c            |    5 ----
- drivers/acpi/processor_idle.c      |   15 -------------
- drivers/idle/intel_idle.c          |    8 -------
- drivers/thermal/intel_powerclamp.c |    4 ---
- 7 files changed, 43 insertions(+), 75 deletions(-)
-
---- a/arch/x86/include/asm/mwait.h
-+++ b/arch/x86/include/asm/mwait.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_X86_MWAIT_H
- #define _ASM_X86_MWAIT_H
- 
-+#include <linux/sched.h>
-+
- #define MWAIT_SUBSTATE_MASK		0xf
- #define MWAIT_CSTATE_MASK		0xf
- #define MWAIT_SUBSTATE_SIZE		4
-@@ -13,4 +15,42 @@
- 
- #define MWAIT_ECX_INTERRUPT_BREAK	0x1
- 
-+static inline void __monitor(const void *eax, unsigned long ecx,
-+			     unsigned long edx)
-+{
-+	/* "monitor %eax, %ecx, %edx;" */
-+	asm volatile(".byte 0x0f, 0x01, 0xc8;"
-+		     :: "a" (eax), "c" (ecx), "d"(edx));
-+}
-+
-+static inline void __mwait(unsigned long eax, unsigned long ecx)
-+{
-+	/* "mwait %eax, %ecx;" */
-+	asm volatile(".byte 0x0f, 0x01, 0xc9;"
-+		     :: "a" (eax), "c" (ecx));
-+}
-+
-+/*
-+ * This uses new MONITOR/MWAIT instructions on P4 processors with PNI,
-+ * which can obviate IPI to trigger checking of need_resched.
-+ * We execute MONITOR against need_resched and enter optimized wait state
-+ * through MWAIT. Whenever someone changes need_resched, we would be woken
-+ * up from MWAIT (without an IPI).
-+ *
-+ * New with Core Duo processors, MWAIT can take some hints based on CPU
-+ * capability.
-+ */
-+static inline void mwait_idle_with_hints(unsigned long eax, unsigned long ecx)
-+{
-+	if (!current_set_polling_and_test()) {
-+		if (this_cpu_has(X86_FEATURE_CLFLUSH_MONITOR))
-+			clflush((void *)&current_thread_info()->flags);
-+
-+		__monitor((void *)&current_thread_info()->flags, 0, 0);
-+		if (!need_resched())
-+			__mwait(eax, ecx);
-+	}
-+	__current_clr_polling();
-+}
-+
- #endif /* _ASM_X86_MWAIT_H */
---- a/arch/x86/include/asm/processor.h
-+++ b/arch/x86/include/asm/processor.h
-@@ -700,29 +700,6 @@ static inline void sync_core(void)
- #endif
- }
- 
--static inline void __monitor(const void *eax, unsigned long ecx,
--			     unsigned long edx)
--{
--	/* "monitor %eax, %ecx, %edx;" */
--	asm volatile(".byte 0x0f, 0x01, 0xc8;"
--		     :: "a" (eax), "c" (ecx), "d"(edx));
--}
--
--static inline void __mwait(unsigned long eax, unsigned long ecx)
--{
--	/* "mwait %eax, %ecx;" */
--	asm volatile(".byte 0x0f, 0x01, 0xc9;"
--		     :: "a" (eax), "c" (ecx));
--}
--
--static inline void __sti_mwait(unsigned long eax, unsigned long ecx)
--{
--	trace_hardirqs_on();
--	/* "mwait %eax, %ecx;" */
--	asm volatile("sti; .byte 0x0f, 0x01, 0xc9;"
--		     :: "a" (eax), "c" (ecx));
--}
--
- extern void select_idle_routine(const struct cpuinfo_x86 *c);
- extern void init_amd_e400_c1e_mask(void);
- 
---- a/arch/x86/kernel/acpi/cstate.c
-+++ b/arch/x86/kernel/acpi/cstate.c
-@@ -150,29 +150,6 @@ int acpi_processor_ffh_cstate_probe(unsi
- }
- EXPORT_SYMBOL_GPL(acpi_processor_ffh_cstate_probe);
- 
--/*
-- * This uses new MONITOR/MWAIT instructions on P4 processors with PNI,
-- * which can obviate IPI to trigger checking of need_resched.
-- * We execute MONITOR against need_resched and enter optimized wait state
-- * through MWAIT. Whenever someone changes need_resched, we would be woken
-- * up from MWAIT (without an IPI).
-- *
-- * New with Core Duo processors, MWAIT can take some hints based on CPU
-- * capability.
-- */
--void mwait_idle_with_hints(unsigned long ax, unsigned long cx)
--{
--	if (!need_resched()) {
--		if (this_cpu_has(X86_FEATURE_CLFLUSH_MONITOR))
--			clflush((void *)&current_thread_info()->flags);
--
--		__monitor((void *)&current_thread_info()->flags, 0, 0);
--		smp_mb();
--		if (!need_resched())
--			__mwait(ax, cx);
--	}
--}
--
- void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx *cx)
- {
- 	unsigned int cpu = smp_processor_id();
---- a/drivers/acpi/acpi_pad.c
-+++ b/drivers/acpi/acpi_pad.c
-@@ -193,10 +193,7 @@ static int power_saving_thread(void *dat
- 					CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
- 			stop_critical_timings();
- 
--			__monitor((void *)&current_thread_info()->flags, 0, 0);
--			smp_mb();
--			if (!need_resched())
--				__mwait(power_saving_mwait_eax, 1);
-+			mwait_idle_with_hints(power_saving_mwait_eax, 1);
- 
- 			start_critical_timings();
- 			if (lapic_marked_unstable)
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -727,11 +727,6 @@ static int acpi_idle_enter_c1(struct cpu
- 	if (unlikely(!pr))
- 		return -EINVAL;
- 
--	if (cx->entry_method == ACPI_CSTATE_FFH) {
--		if (current_set_polling_and_test())
--			return -EINVAL;
--	}
--
- 	lapic_timer_state_broadcast(pr, cx, 1);
- 	acpi_idle_do_entry(cx);
- 
-@@ -785,11 +780,6 @@ static int acpi_idle_enter_simple(struct
- 	if (unlikely(!pr))
- 		return -EINVAL;
- 
--	if (cx->entry_method == ACPI_CSTATE_FFH) {
--		if (current_set_polling_and_test())
--			return -EINVAL;
--	}
--
- 	/*
- 	 * Must be done before busmaster disable as we might need to
- 	 * access HPET !
-@@ -841,11 +831,6 @@ static int acpi_idle_enter_bm(struct cpu
- 		}
- 	}
- 
--	if (cx->entry_method == ACPI_CSTATE_FFH) {
--		if (current_set_polling_and_test())
--			return -EINVAL;
--	}
--
- 	acpi_unlazy_tlb(smp_processor_id());
- 
- 	/* Tell the scheduler that we are going deep-idle: */
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -359,13 +359,7 @@ static int intel_idle(struct cpuidle_dev
- 	if (!(lapic_timer_reliable_states & (1 << (cstate))))
- 		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
- 
--	if (!current_set_polling_and_test()) {
--
--		__monitor((void *)&current_thread_info()->flags, 0, 0);
--		smp_mb();
--		if (!need_resched())
--			__mwait(eax, ecx);
--	}
-+	mwait_idle_with_hints(eax, ecx);
- 
- 	if (!(lapic_timer_reliable_states & (1 << (cstate))))
- 		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
---- a/drivers/thermal/intel_powerclamp.c
-+++ b/drivers/thermal/intel_powerclamp.c
-@@ -438,9 +438,7 @@ static int clamp_thread(void *arg)
- 			 */
- 			local_touch_nmi();
- 			stop_critical_timings();
--			__monitor((void *)&current_thread_info()->flags, 0, 0);
--			cpu_relax(); /* allow HT sibling to run */
--			__mwait(eax, ecx);
-+			mwait_idle_with_hints(eax, ecx);
- 			start_critical_timings();
- 			atomic_inc(&idle_wakeup_counter);
- 		}
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
