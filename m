@@ -1,132 +1,183 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/3] ACPI / hotplug: Fix PCI host bridge hot removal
-Date: Wed, 20 Nov 2013 12:56:45 +0100
-Message-ID: <13221031.pZI6l8TTGT@vostro.rjw.lan>
-References: <2434673.zhjYZOTQ4A@vostro.rjw.lan> <2499259.JLRCUgMzrL@vostro.rjw.lan> <1384910527.1791.140.camel@misato.fc.hp.com>
+Subject: [GIT PULL] More ACPI and power management updates for v3.13-rc1
+Date: Wed, 20 Nov 2013 14:31:47 +0100
+Message-ID: <6443152.L15yMEV5my@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61811 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:52176 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752456Ab3KTLoG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Nov 2013 06:44:06 -0500
-In-Reply-To: <1384910527.1791.140.camel@misato.fc.hp.com>
+	with SMTP id S1752077Ab3KTNTJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Nov 2013 08:19:09 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 
-On Tuesday, November 19, 2013 06:22:07 PM Toshi Kani wrote:
-> On Wed, 2013-11-20 at 01:08 +0100, Rafael J. Wysocki wrote:
-> > On Wednesday, November 20, 2013 12:42:28 AM Rafael J. Wysocki wrote:
-> > > On Tuesday, November 19, 2013 02:58:40 PM Toshi Kani wrote:
-> > > > On Tue, 2013-11-19 at 22:10 +0100, Rafael J. Wysocki wrote:
-> > > > > > On Tuesday, November 19, 2013 10:48:51 AM Toshi Kani wrote:
-> > > > > > > On Mon, 2013-11-18 at 22:39 +0100, Rafael J. Wysocki wrote:
-> > > > > > > > On Monday, November 18, 2013 11:10:05 AM Toshi Kani wrote:
-> > > > > > > > > On Thu, 2013-11-14 at 00:16 +0100, Rafael J. Wysocki wrote:
-> > > > > > > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > > > > > > 
-> > > > > > > > > > Since the PCI host bridge scan handler does not set hotplug.enabled,
-> > > > > > > > > > the check of it in acpi_bus_device_eject() effectively prevents the
-> > > > > > > > > > root bridge hot removal from working after commit a3b1b1ef78cd
-> > > > > > > > > > (ACPI / hotplug: Merge device hot-removal routines).  However, that
-> > > > > > > > > > check is not necessary, because the other acpi_bus_device_eject()
-> > > > > > > > > > users, acpi_hotplug_notify_cb and acpi_eject_store(), do the same
-> > > > > > > > > > check by themselves before executing that function.
-> > > > > > > > > > 
-> > > > > > > > > > For this reason, remove the scan handler check from
-> > > > > > > > > > acpi_bus_device_eject() to make PCI hot bridge hot removal work
-> > > > > > > > > > again.
-> > > > > > > > > 
-> > > > > > > > > I am curious why the PCI host bridge scan handler does not set
-> > > > > > > > > hotplug.enabled.  Is this how it disables hotplug via sysfs eject but
-> > > > > > > > > enables via ACPI notification?
-> > > > > > > > 
-> > > > > > > > It just doesn't register for hotplug at all.  I guess it could set that
-> > > > > > > > bit alone, but then it would be quite confusing and the check is not
-> > > > > > > > necessary anyway.
-> > > > > > > 
-> > > > > > > I see.  Given how the PCI host bridge scan handler is integrated today,
-> > > > > > > the change looks reasonable to me.
-> > > > > > 
-> > > > > > Looking further, I noticed that there is one more issue to address.  The
-> > > > > > patch below applies on top of your patchset.
-> > > > > >
-> > > > > > From: Toshi Kani <toshi.kani@hp.com>
-> > > > > > Subject: [PATCH] ACPI / hotplug: Fix conflicted PCI bridge notify
-> > > > > > handlers
-> > > > > > 
-> > > > > > The PCI host bridge scan handler installs its own notify handler,
-> > > > > > handle_hotplug_event_root(), by itself.  Nevertheless, the ACPI
-> > > > > > hotplug framework also installs the common notify handler,
-> > > > > > acpi_hotplug_notify_cb(), for PCI root bridges.  This causes
-> > > > > > acpi_hotplug_notify_cb() to call _OST method with unsupported
-> > > > > > error as hotplug.enabled is not set.
-> > > > > > 
-> > > > > > To address this issue, introduce hotplug.self_install flag, which
-> > > > > > indicates that the scan handler installs its own notify handler by
-> > > > > > itself.  The ACPI hotplug framework does not install the common
-> > > > > > notify handler when this flag is set.
-> > > > > 
-> > > > > Good catch!
-> > > > > 
-> > > > > Still, I don't think we need a new flag, because we know that that
-> > > > > scan handler doesn't support hotplug, because its hotplug profile
-> > > > > hasn't been registered (that actually applies to all scan handlers
-> > > > > without hotplug support, not only the root host bridge).  
-> > > > 
-> > > > When a scan handler does not support hotplug at all, the common notify
-> > > > handler should be installed so that it can call _OST with an appropriate
-> > > > response.
-> > > 
-> > > That creates an arbitrary difference between devices that have scan handlers
-> > > and devices that don't have them (PCI, USB, SATA etc).  So if we want _OST
-> > > to be called for all devices for which hotplug is not supported, that
-> > > should be implemented in a different way and not necessarily in 3.13.
-> 
-> I do not think we have an immediate issue since it only matters when the
-> firmware supports ACPI hotplug with _OST.  Such device types are CPU,
-> memory, container, and PCI bridge, which uses scan handlers.  USB, SATA,
-> etc. do not use ACPI hotplug.  That said, ideally, we should be able to
-> call _OST for any device types.
->  
-> > > > > Moreover,
-> > > > > if it does support hotplug, but the hotplug profile hasn't been
-> > > > > registered due to an error, we still should not install the notify
-> > > > > handler I think.  
-> > > > 
-> > > > This case, I think the common notify handler should be installed so that
-> > > > it can call _OST for error response as well.  The question is what to do
-> > > > when a scan handler has its own notify handler.
-> > 
-> > Actually, having considered this particular case a bit more I think that it
-> > is useful to install acpi_hotplug_notify_cb() for things whose scan handlers
-> > register hotplug support, but the registration fails (which should be treated
-> > as "permanently disabled").
-> >
-> > However, I still think that devices whose scan handlers don't support hotplug
-> > at all should be treated consistently with devices without scan handlers.
-> 
-> Basically, the kernel needs to be compliant with ACPI spec.  Once the
-> kernel tells firmware that it supports _OST, it needs to call _OST for
-> an ACPI hotplug event when _OST is implemented on the object.  Although
-> we cannot assure this behavior for the devices without scan handler, we
-> should do so for the devices with scan handlers.
-> 
-> > So, what about the slightly modified patch below?
-> 
-> Well, I do not think it is right.  The kernel is supposed to tell
-> firmware that it does not support hotplug when it doesn't... 
+Hi Linus,
 
-OK, I see your point.
+Please pull from the git repository at
 
-I'll apply your patch, then, but I'm going to rename the new flag to
-"ignore".
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-2-3.13-rc1
+
+to receive more ACPI and power management updates for v3.13-rc1
+with top-most commit ed6a82546d2e8f6b5902269541733814d4adacc2
+
+  Merge branch 'acpi-hotplug'
+
+on top of commit 2f466d33f5f60542d3d82c0477de5863b22c94b9
+
+  Merge tag 'pci-v3.13-changes' of git://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci
+
+These commits were produced after I had sent my previous pull request.
+A couple of them fix bugs introduced in that pull request, some fix issues
+that have been present for a longer time, some add support for new hardware
+and there is a series changing the way in which ACPI companion device objects
+are associated with struct device things representing actual devices.
+
+Specifics:
+
+- ACPI-based device hotplug fixes for issues introduced recently and
+  a fix for an older error code path bug in the ACPI PCI host bridge
+  driver.
+
+- Fix for recently broken OMAP cpufreq build from Viresh Kumar.
+
+- Fix for a recent hibernation regression related to s2disk.
+
+- Fix for a locking-related regression in the ACPI EC driver from
+  Puneet Kumar.
+
+- System suspend error code path fix related to runtime PM and
+  runtime PM documentation update from Ulf Hansson.
+
+- cpufreq's conservative governor fix from Xiaoguang Chen.
+
+- New processor IDs for intel_idle and turbostat and removal of
+  an obsolete Kconfig option from Len Brown.
+
+- New device IDs for the ACPI LPSS (Low-Power Subsystem) driver and
+  ACPI-based PCI hotplug (ACPIPHP) cleanup from Mika Westerberg.
+
+- Removal of several ACPI video DMI blacklist entries that are not
+  necessary any more from Aaron Lu.
+
+- Rework of the ACPI companion representation in struct device and
+  code cleanup related to that change from Rafael J Wysocki,
+  Lan Tianyu and Jarkko Nikula.
+
+- Fixes for assigning names to ACPI-enumerated I2C and SPI devices
+  from Jarkko Nikula.
 
 Thanks!
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+
+---------------
+
+Aaron Lu (1):
+      ACPI / video: clean up DMI table for initial black screen problem
+
+Jarkko Nikula (3):
+      ACPI: Provide acpi_dev_name accessor for struct acpi_device device name
+      i2c: Use stable dev_name for ACPI enumerated I2C slaves
+      spi: Use stable dev_name for ACPI enumerated SPI slaves
+
+Lan Tianyu (2):
+      ACPI / AC: Remove struct acpi_device pointer from struct acpi_ac
+      cpufreq: governor: Remove fossil comment in the cpufreq_governor_dbs()
+
+Len Brown (3):
+      ACPI: delete CONFIG_ACPI_BLACKLIST_YEAR
+      intel_idle: Support Intel Atom Processor C2000 Product Family
+      tools / power turbostat: Support Silvermont
+
+Mika Westerberg (2):
+      ACPI / LPSS: add ACPI IDs for newer Intel PCHs
+      PCI / hotplug / ACPI: Drop unused acpiphp_debug declaration
+
+Puneet Kumar (1):
+      ACPI / EC: Ensure lock is acquired before accessing ec struct members
+
+Rafael J. Wysocki (8):
+      ACPI / driver core: Store an ACPI device pointer in struct acpi_dev_node
+      ACPI: Eliminate the DEVICE_ACPI_HANDLE() macro
+      ACPI / bind: Use (put|get)_device() on ACPI device objects too
+      PM / Hibernate: Do not crash kernel in free_basic_memory_bitmaps()
+      ACPI / hotplug: Fix acpi_bus_get_device() return value check
+      ACPI / hotplug: Fix PCI host bridge hot removal
+      ACPI / PCI root: Clear driver_data before failing enumeration
+      ACPI / scan: Set flags.match_driver in acpi_bus_scan_fixed()
+
+Ulf Hansson (2):
+      PM / Runtime: Update documentation around probe|remove|suspend
+      PM / Runtime: Fix error path for prepare
+
+Xiaoguang Chen (1):
+      cpufreq: conservative: set requested_freq to policy max when it is over policy max
+
+Viresh Kumar (1):
+      cpufreq: OMAP: Fix compilation error 'r & ret undeclared'
+
+---------------
+
+ Documentation/power/runtime_pm.txt             |   14 +-
+ arch/ia64/hp/common/sba_iommu.c                |    2 +-
+ arch/ia64/include/asm/pci.h                    |    2 +-
+ arch/ia64/pci/pci.c                            |    6 +-
+ arch/ia64/sn/kernel/io_acpi_init.c             |    4 +-
+ arch/x86/include/asm/pci.h                     |    2 +-
+ arch/x86/include/uapi/asm/msr-index.h          |    2 +
+ arch/x86/pci/acpi.c                            |    4 +-
+ drivers/acpi/Kconfig                           |   11 --
+ drivers/acpi/ac.c                              |   15 +-
+ drivers/acpi/acpi_lpss.c                       |    9 ++
+ drivers/acpi/acpi_platform.c                   |    2 +-
+ drivers/acpi/blacklist.c                       |   35 -----
+ drivers/acpi/device_pm.c                       |   14 +-
+ drivers/acpi/ec.c                              |    3 +-
+ drivers/acpi/glue.c                            |   53 ++++---
+ drivers/acpi/pci_root.c                        |    1 +
+ drivers/acpi/scan.c                            |   14 +-
+ drivers/acpi/video.c                           |   87 ++---------
+ drivers/ata/libata-acpi.c                      |    4 +-
+ drivers/base/platform.c                        |    4 +-
+ drivers/base/power/main.c                      |    3 +
+ drivers/cpufreq/cpufreq_conservative.c         |    3 +
+ drivers/cpufreq/cpufreq_governor.c             |    4 -
+ drivers/cpufreq/omap-cpufreq.c                 |    1 +
+ drivers/gpio/gpiolib.c                         |    1 +
+ drivers/gpu/drm/i915/intel_acpi.c              |    2 +-
+ drivers/gpu/drm/i915/intel_opregion.c          |    2 +-
+ drivers/gpu/drm/nouveau/core/subdev/mxm/base.c |    2 +-
+ drivers/gpu/drm/nouveau/nouveau_acpi.c         |    6 +-
+ drivers/gpu/drm/radeon/radeon_acpi.c           |    8 +-
+ drivers/gpu/drm/radeon/radeon_atpx_handler.c   |    7 +-
+ drivers/gpu/drm/radeon/radeon_bios.c           |    2 +-
+ drivers/hid/i2c-hid/i2c-hid.c                  |    2 +-
+ drivers/i2c/i2c-core.c                         |   25 ++-
+ drivers/ide/ide-acpi.c                         |    5 +-
+ drivers/idle/intel_idle.c                      |   24 ++-
+ drivers/mmc/core/sdio_bus.c                    |    3 +-
+ drivers/pci/hotplug/acpi_pcihp.c               |    2 +-
+ drivers/pci/hotplug/acpiphp.h                  |    1 -
+ drivers/pci/hotplug/pciehp_acpi.c              |    4 +-
+ drivers/pci/hotplug/sgi_hotplug.c              |    8 +-
+ drivers/pci/ioapic.c                           |    2 +-
+ drivers/pci/pci-acpi.c                         |    6 +-
+ drivers/pci/pci-label.c                        |    6 +-
+ drivers/platform/x86/apple-gmux.c              |    2 +-
+ drivers/pnp/pnpacpi/core.c                     |   10 +-
+ drivers/spi/spi.c                              |   19 ++-
+ drivers/usb/core/hub.c                         |    2 +-
+ drivers/usb/core/usb-acpi.c                    |    4 +-
+ drivers/xen/pci.c                              |    6 +-
+ include/acpi/acpi_bus.h                        |    2 +-
+ include/linux/acpi.h                           |   23 +++
+ include/linux/device.h                         |   12 +-
+ include/linux/pci-acpi.h                       |    4 +-
+ kernel/power/snapshot.c                        |    3 +-
+ kernel/power/user.c                            |    1 +
+ tools/power/x86/turbostat/turbostat.c          |  197 +++++++++++++++++-------
+ 58 files changed, 374 insertions(+), 328 deletions(-)
+
