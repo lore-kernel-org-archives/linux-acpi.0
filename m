@@ -1,82 +1,67 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 01/12] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE to
- enable this ACPI mode
-Date: Wed, 20 Nov 2013 09:30:37 +0800
-Message-ID: <528C10BD.7050309@linaro.org>
-References: <1384047382-20623-1-git-send-email-al.stone@linaro.org> <1431790.mopcNu4HUR@vostro.rjw.lan> <528B1429.6050403@linaro.org> <2999447.AHfmGpVCOl@vostro.rjw.lan>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH] x86, acpi, idle: Restructure the mwait idle routines
+Date: Wed, 20 Nov 2013 11:28:03 +0100
+Message-ID: <20131120102803.GO10022@twins.programming.kicks-ass.net>
+References: <20131119090019.GJ3866@twins.programming.kicks-ass.net>
+ <20131119090859.GC3694@twins.programming.kicks-ass.net>
+ <20131119113153.GD3694@twins.programming.kicks-ass.net>
+ <528B7433.7020507@linux.intel.com>
+ <20131119145143.GK10022@twins.programming.kicks-ass.net>
+ <20131119151338.GF3694@twins.programming.kicks-ass.net>
+ <20131119130630.487da962@ultegra>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:34371 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753358Ab3KTB3p (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2013 20:29:45 -0500
-Received: by mail-pb0-f49.google.com with SMTP id jt11so4635887pbb.36
-        for <linux-acpi@vger.kernel.org>; Tue, 19 Nov 2013 17:29:45 -0800 (PST)
-In-Reply-To: <2999447.AHfmGpVCOl@vostro.rjw.lan>
+Received: from merlin.infradead.org ([205.233.59.134]:34938 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751312Ab3KTK2R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Nov 2013 05:28:17 -0500
+Content-Disposition: inline
+In-Reply-To: <20131119130630.487da962@ultegra>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Al Stone <ahs3@redhat.com>, Robert Moore <robert.moore@intel.com>
+To: Jacob Pan <jacob.jun.pan@linux.intel.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, shaohua.li@intel.com, rui.zhang@intel.com, Mike Galbraith <bitbucket@online.de>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, hpa@zytor.com
 
-On 2013-11-19 21:10, Rafael J. Wysocki wrote:
-> On Tuesday, November 19, 2013 03:32:57 PM Hanjun Guo wrote:
->> +CC Robert Moore
->>
->> On 2013-11-18 21:37, Rafael J. Wysocki wrote:
->>> On Monday, November 18, 2013 09:21:30 PM Hanjun Guo wrote:
->> [...]
->>>>>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>>>>>> Signed-off-by: Al Stone <al.stone@linaro.org>
->>>>>>>> ---
->>>>>>>>  drivers/acpi/Kconfig            | 8 ++++++++
->>>>>>>>  include/acpi/platform/aclinux.h | 4 ++++
->>>>>>>>  2 files changed, 12 insertions(+)
->>>>>>>>
->>>>>>>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->>>>>>>> index 589da05..7bbd3b0 100644
->>>>>>>> --- a/drivers/acpi/Kconfig
->>>>>>>> +++ b/drivers/acpi/Kconfig
->>>>>>>> @@ -354,6 +354,14 @@ config ACPI_BGRT
->>>>>>>>         data from the firmware boot splash. It will appear under
->>>>>>>>         /sys/firmware/acpi/bgrt/ .
->>>>>>>>
->>>>>>>> +config ACPI_REDUCED_HARDWARE
->>>>>>>> +     bool "Hardware-reduced ACPI support"
->>>>>>>> +     depends on !(IA64 || X86)
->>>>>>>
->>>>>>> Why don't you use
->>>>>>>
->>>>>>>         depends on (ARM || ARM64)
->>>>>>>
->>>>>>> here instead?
->>>>>>>
->>>>>>
->>>>>> hardware-reduced is not restricted to ARM platforms, that's why
->>>>>>
->>>>>> I used depends on !(IA64 || X86) here.
->>>>>
->>>>> So what exactly are the other platforms using ACPI in the Linux kernel?
->>>>>
->>>>
->>>> To telling the truth, I didn't see any other platform using ACPI except
->>>> IA64, X86 and ARM/ARM64, I just used depends on !(IA64 || x86) for
->>>> future purpose.
->>>
->>> However, if you used "depends on ARM || ARM64" (the parens are not needed BTW),
->>> the subsequent patches wouldn't need to check CONFIG_ARM/CONFIG_ARM64 in
->>> addition to CONFIG_ACPI_REDUCED_HARDWARE.  That would simplify stuff somewhat.
->>
->> Yes, you are right :)
->> It is ok for me to use "depends on ARM || ARM64", but Robert Moore also
->> suggested that hardware-reduced is not restricted to ARM platforms.
+On Tue, Nov 19, 2013 at 01:06:30PM -0800, Jacob Pan wrote:
+> On Tue, 19 Nov 2013 16:13:38 +0100
+> Peter Zijlstra <peterz@infradead.org> wrote:
 > 
-> From the ACPICA's point of view, it isn't.
+> > On Tue, Nov 19, 2013 at 03:51:43PM +0100, Peter Zijlstra wrote:
+> > > That said, that drive is completely wrecked. It uses
+> > > preempt_enable_no_resched() wrong too, it has uncommented barriers..
+> > > 
+> > > Dude, wtf are you guys smoking?
+> > 
+> I applied this patch on top of upstream kernel (801a760) and found out
+> my machine completely failed to enter idle when nothing is running.
+> turbostate shows 100% C0. ftrace shows kernel coming in and out of idle
+> frequently.
 > 
-> In the kernel, however, x86 and ia64 are the only users of ACPI in addition to ARM.
+> Both ACPI idle and intel_idle behaves the same way. I have to do the
+> following change to allow entering C-states again.
+> 
+> diff --git a/arch/x86/include/asm/mwait.h b/arch/x86/include/asm/mwait.h
+> index 80014da..b51d1e1 100644
+> --- a/arch/x86/include/asm/mwait.h
+> +++ b/arch/x86/include/asm/mwait.h
+> @@ -49,10 +49,8 @@ static inline void mwait_idle_with_hints(unsigned
+> long eax, unsigned long ecx) clflush((void
+> *)&current_thread_info()->flags); 
+>         __monitor((void *)&current_thread_info()->flags, 0, 0);
+> -       if (!current_set_polling_and_test())
+> +        if (!need_resched())
+>                 __mwait(eax, ecx);
+> -
+> -       __current_clr_polling();
+>  }
+>  
+>  #endif /* _ASM_X86_MWAIT_H */
 
-Ok, will update it in next version, thanks for the guidance.
+That doesn't make any sense; current_set_polling_and_test() returns the
+same thing need_resched() does.
 
-Hanjun
+But you're right, intel_idle resides 100% in C0 and acpi_idle has 100%
+C1 residency... most weird.
 
+/me goes prod at it
