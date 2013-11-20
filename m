@@ -1,126 +1,82 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 2/3] ACPI / hotplug: Fix PCI host bridge hot removal
-Date: Tue, 19 Nov 2013 18:22:07 -0700
-Message-ID: <1384910527.1791.140.camel@misato.fc.hp.com>
-References: <2434673.zhjYZOTQ4A@vostro.rjw.lan>
-	 <1384898320.1791.48.camel@misato.fc.hp.com>
-	 <3445730.IkUyvGUQQp@vostro.rjw.lan> <2499259.JLRCUgMzrL@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 01/12] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE to
+ enable this ACPI mode
+Date: Wed, 20 Nov 2013 09:30:37 +0800
+Message-ID: <528C10BD.7050309@linaro.org>
+References: <1384047382-20623-1-git-send-email-al.stone@linaro.org> <1431790.mopcNu4HUR@vostro.rjw.lan> <528B1429.6050403@linaro.org> <2999447.AHfmGpVCOl@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:27853 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752355Ab3KTB0s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2013 20:26:48 -0500
-In-Reply-To: <2499259.JLRCUgMzrL@vostro.rjw.lan>
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:34371 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753358Ab3KTB3p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Nov 2013 20:29:45 -0500
+Received: by mail-pb0-f49.google.com with SMTP id jt11so4635887pbb.36
+        for <linux-acpi@vger.kernel.org>; Tue, 19 Nov 2013 17:29:45 -0800 (PST)
+In-Reply-To: <2999447.AHfmGpVCOl@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
+Cc: Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Al Stone <ahs3@redhat.com>, Robert Moore <robert.moore@intel.com>
 
-On Wed, 2013-11-20 at 01:08 +0100, Rafael J. Wysocki wrote:
-> On Wednesday, November 20, 2013 12:42:28 AM Rafael J. Wysocki wrote:
-> > On Tuesday, November 19, 2013 02:58:40 PM Toshi Kani wrote:
-> > > On Tue, 2013-11-19 at 22:10 +0100, Rafael J. Wysocki wrote:
-> > > > > On Tuesday, November 19, 2013 10:48:51 AM Toshi Kani wrote:
-> > > > > > On Mon, 2013-11-18 at 22:39 +0100, Rafael J. Wysocki wrote:
-> > > > > > > On Monday, November 18, 2013 11:10:05 AM Toshi Kani wrote:
-> > > > > > > > On Thu, 2013-11-14 at 00:16 +0100, Rafael J. Wysocki wrote:
-> > > > > > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > > > > > 
-> > > > > > > > > Since the PCI host bridge scan handler does not set hotplug.enabled,
-> > > > > > > > > the check of it in acpi_bus_device_eject() effectively prevents the
-> > > > > > > > > root bridge hot removal from working after commit a3b1b1ef78cd
-> > > > > > > > > (ACPI / hotplug: Merge device hot-removal routines).  However, that
-> > > > > > > > > check is not necessary, because the other acpi_bus_device_eject()
-> > > > > > > > > users, acpi_hotplug_notify_cb and acpi_eject_store(), do the same
-> > > > > > > > > check by themselves before executing that function.
-> > > > > > > > > 
-> > > > > > > > > For this reason, remove the scan handler check from
-> > > > > > > > > acpi_bus_device_eject() to make PCI hot bridge hot removal work
-> > > > > > > > > again.
-> > > > > > > > 
-> > > > > > > > I am curious why the PCI host bridge scan handler does not set
-> > > > > > > > hotplug.enabled.  Is this how it disables hotplug via sysfs eject but
-> > > > > > > > enables via ACPI notification?
-> > > > > > > 
-> > > > > > > It just doesn't register for hotplug at all.  I guess it could set that
-> > > > > > > bit alone, but then it would be quite confusing and the check is not
-> > > > > > > necessary anyway.
-> > > > > > 
-> > > > > > I see.  Given how the PCI host bridge scan handler is integrated today,
-> > > > > > the change looks reasonable to me.
-> > > > > 
-> > > > > Looking further, I noticed that there is one more issue to address.  The
-> > > > > patch below applies on top of your patchset.
-> > > > >
-> > > > > From: Toshi Kani <toshi.kani@hp.com>
-> > > > > Subject: [PATCH] ACPI / hotplug: Fix conflicted PCI bridge notify
-> > > > > handlers
-> > > > > 
-> > > > > The PCI host bridge scan handler installs its own notify handler,
-> > > > > handle_hotplug_event_root(), by itself.  Nevertheless, the ACPI
-> > > > > hotplug framework also installs the common notify handler,
-> > > > > acpi_hotplug_notify_cb(), for PCI root bridges.  This causes
-> > > > > acpi_hotplug_notify_cb() to call _OST method with unsupported
-> > > > > error as hotplug.enabled is not set.
-> > > > > 
-> > > > > To address this issue, introduce hotplug.self_install flag, which
-> > > > > indicates that the scan handler installs its own notify handler by
-> > > > > itself.  The ACPI hotplug framework does not install the common
-> > > > > notify handler when this flag is set.
-> > > > 
-> > > > Good catch!
-> > > > 
-> > > > Still, I don't think we need a new flag, because we know that that
-> > > > scan handler doesn't support hotplug, because its hotplug profile
-> > > > hasn't been registered (that actually applies to all scan handlers
-> > > > without hotplug support, not only the root host bridge).  
-> > > 
-> > > When a scan handler does not support hotplug at all, the common notify
-> > > handler should be installed so that it can call _OST with an appropriate
-> > > response.
-> > 
-> > That creates an arbitrary difference between devices that have scan handlers
-> > and devices that don't have them (PCI, USB, SATA etc).  So if we want _OST
-> > to be called for all devices for which hotplug is not supported, that
-> > should be implemented in a different way and not necessarily in 3.13.
-
-I do not think we have an immediate issue since it only matters when the
-firmware supports ACPI hotplug with _OST.  Such device types are CPU,
-memory, container, and PCI bridge, which uses scan handlers.  USB, SATA,
-etc. do not use ACPI hotplug.  That said, ideally, we should be able to
-call _OST for any device types.
- 
-> > > > Moreover,
-> > > > if it does support hotplug, but the hotplug profile hasn't been
-> > > > registered due to an error, we still should not install the notify
-> > > > handler I think.  
-> > > 
-> > > This case, I think the common notify handler should be installed so that
-> > > it can call _OST for error response as well.  The question is what to do
-> > > when a scan handler has its own notify handler.
+On 2013-11-19 21:10, Rafael J. Wysocki wrote:
+> On Tuesday, November 19, 2013 03:32:57 PM Hanjun Guo wrote:
+>> +CC Robert Moore
+>>
+>> On 2013-11-18 21:37, Rafael J. Wysocki wrote:
+>>> On Monday, November 18, 2013 09:21:30 PM Hanjun Guo wrote:
+>> [...]
+>>>>>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>>>>> Signed-off-by: Al Stone <al.stone@linaro.org>
+>>>>>>>> ---
+>>>>>>>>  drivers/acpi/Kconfig            | 8 ++++++++
+>>>>>>>>  include/acpi/platform/aclinux.h | 4 ++++
+>>>>>>>>  2 files changed, 12 insertions(+)
+>>>>>>>>
+>>>>>>>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>>>>>>>> index 589da05..7bbd3b0 100644
+>>>>>>>> --- a/drivers/acpi/Kconfig
+>>>>>>>> +++ b/drivers/acpi/Kconfig
+>>>>>>>> @@ -354,6 +354,14 @@ config ACPI_BGRT
+>>>>>>>>         data from the firmware boot splash. It will appear under
+>>>>>>>>         /sys/firmware/acpi/bgrt/ .
+>>>>>>>>
+>>>>>>>> +config ACPI_REDUCED_HARDWARE
+>>>>>>>> +     bool "Hardware-reduced ACPI support"
+>>>>>>>> +     depends on !(IA64 || X86)
+>>>>>>>
+>>>>>>> Why don't you use
+>>>>>>>
+>>>>>>>         depends on (ARM || ARM64)
+>>>>>>>
+>>>>>>> here instead?
+>>>>>>>
+>>>>>>
+>>>>>> hardware-reduced is not restricted to ARM platforms, that's why
+>>>>>>
+>>>>>> I used depends on !(IA64 || X86) here.
+>>>>>
+>>>>> So what exactly are the other platforms using ACPI in the Linux kernel?
+>>>>>
+>>>>
+>>>> To telling the truth, I didn't see any other platform using ACPI except
+>>>> IA64, X86 and ARM/ARM64, I just used depends on !(IA64 || x86) for
+>>>> future purpose.
+>>>
+>>> However, if you used "depends on ARM || ARM64" (the parens are not needed BTW),
+>>> the subsequent patches wouldn't need to check CONFIG_ARM/CONFIG_ARM64 in
+>>> addition to CONFIG_ACPI_REDUCED_HARDWARE.  That would simplify stuff somewhat.
+>>
+>> Yes, you are right :)
+>> It is ok for me to use "depends on ARM || ARM64", but Robert Moore also
+>> suggested that hardware-reduced is not restricted to ARM platforms.
 > 
-> Actually, having considered this particular case a bit more I think that it
-> is useful to install acpi_hotplug_notify_cb() for things whose scan handlers
-> register hotplug support, but the registration fails (which should be treated
-> as "permanently disabled").
->
-> However, I still think that devices whose scan handlers don't support hotplug
-> at all should be treated consistently with devices without scan handlers.
+> From the ACPICA's point of view, it isn't.
+> 
+> In the kernel, however, x86 and ia64 are the only users of ACPI in addition to ARM.
 
-Basically, the kernel needs to be compliant with ACPI spec.  Once the
-kernel tells firmware that it supports _OST, it needs to call _OST for
-an ACPI hotplug event when _OST is implemented on the object.  Although
-we cannot assure this behavior for the devices without scan handler, we
-should do so for the devices with scan handlers.
+Ok, will update it in next version, thanks for the guidance.
 
-> So, what about the slightly modified patch below?
-
-Well, I do not think it is right.  The kernel is supposed to tell
-firmware that it does not support hotplug when it doesn't... 
-
-Thanks,
--Toshi
+Hanjun
 
