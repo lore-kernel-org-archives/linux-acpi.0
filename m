@@ -1,79 +1,51 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] sysfs, acpi, tables: Set file size for each ACPI table
-Date: Thu, 21 Nov 2013 01:32:33 +0100
-Message-ID: <1579156.ZV84FQEURS@vostro.rjw.lan>
-References: <528B2757.6010406@jp.fujitsu.com> <1384987135.1791.153.camel@misato.fc.hp.com>
+Subject: Re: [PATCH] ACPI: clean up compiler warning about uninitialized field
+Date: Thu, 21 Nov 2013 01:34:37 +0100
+Message-ID: <4847936.0VUS4BmLTm@vostro.rjw.lan>
+References: <1384987551-13154-1-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54116 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:64453 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751558Ab3KUATx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Nov 2013 19:19:53 -0500
-In-Reply-To: <1384987135.1791.153.camel@misato.fc.hp.com>
+	with SMTP id S1755176Ab3KUAV5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Nov 2013 19:21:57 -0500
+In-Reply-To: <1384987551-13154-1-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: al.stone@linaro.org
+Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@lists.linaro.org, Al Stone <ahs3@redhat.com>
 
-On Wednesday, November 20, 2013 03:38:55 PM Toshi Kani wrote:
-> On Tue, 2013-11-19 at 17:54 +0900, HATAYAMA Daisuke wrote:
-> > Currently, each of the ACPI tables exported from
-> > /sys/firmware/acpi/tables is of zero size:
-> > 
-> > $ LANG=C ls -ld /sys/firmware/acpi/tables/*
-> > -r-------- 1 root root 0 Nov 19 09:48 /sys/firmware/acpi/tables/APIC
-> > -r-------- 1 root root 0 Nov 19 09:48 /sys/firmware/acpi/tables/BOOT
-> > -r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/DSDT
-> > -r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/FACP
-> > -r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/FACS
-> > -r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/MCFG
-> > -r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/SRAT
-> > drwxr-xr-x 2 root root 0 Nov 19 09:48 /sys/firmware/acpi/tables/dynamic/
-> > 
-> > due to which, user-land tools fail reading each table. For example:
-> > 
-> > $ acpidump -f /sys/firmware/acpi/tables/SRAT
-> > Could not get input file size: /sys/firmware/acpi/tables/SRAT
-> > 
-> > To deal with the issue, this patch assigns size of each ACPI table to
-> > the corresponding sysfs file.
-> > 
-> > $ LANG=C ls -hld /sys/firmware/acpi/tables/*
-> > -r-------- 1 root root  94 Nov 19 16:45 /sys/firmware/acpi/tables/APIC
-> > -r-------- 1 root root  40 Nov 19 16:45 /sys/firmware/acpi/tables/BOOT
-> > -r-------- 1 root root 58K Nov 19 16:55 /sys/firmware/acpi/tables/DSDT
-> > -r-------- 1 root root 244 Nov 19 16:55 /sys/firmware/acpi/tables/FACP
-> > -r-------- 1 root root  64 Nov 19 16:55 /sys/firmware/acpi/tables/FACS
-> > -r-------- 1 root root  60 Nov 19 16:55 /sys/firmware/acpi/tables/MCFG
-> > -r-------- 1 root root 168 Nov 19 16:45 /sys/firmware/acpi/tables/SRAT
-> > drwxr-xr-x 2 root root   0 Nov 19 16:55 /sys/firmware/acpi/tables/dynamic/
-> > 
-> > Then, user-land tools work well like:
-> > 
-> > $ acpidump -f /sys/firmware/acpi/tables/SRAT
-> > SRAT @ 0x0000000000000000
-> >   0000: 53 52 41 54 A8 00 00 00 02 65 56 4D 57 41 52 45  SRAT.....eVMWARE
-> >   0010: 4D 45 4D 50 4C 55 47 20 00 00 04 06 56 4D 57 20  MEMPLUG ....VMW
-> >   0020: 01 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00  ................
-> >   0030: 01 28 00 00 00 00 00 00 00 00 00 00 00 00 00 00  .(..............
-> >   0040: 00 00 0A 00 00 00 00 00 00 00 00 00 01 00 00 00  ................
-> >   0050: 00 00 00 00 00 00 00 00 01 28 00 00 00 00 00 00  .........(......
-> >   0060: 00 00 10 00 00 00 00 00 00 00 F0 BF 00 00 00 00  ................
-> >   0070: 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00  ................
-> >   0080: 01 28 00 00 00 00 00 00 00 00 00 00 01 00 00 00  .(..............
-> >   0090: 00 00 00 40 00 00 00 00 00 00 00 00 01 00 00 00  ...@............
-> >   00A0: 00 00 00 00 00 00 00 00                          ........
-> > 
-> > Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+On Wednesday, November 20, 2013 03:45:51 PM al.stone@linaro.org wrote:
+> From: Al Stone <ahs3@redhat.com>
 > 
-> Acked-by: Toshi Kani <toshi.kani@hp.com>
+> Initialize pwr_btn_status as disabled which (a) makes sure it is
+> in a proper state to start, and (b) cleans up a compiler warning
+> about an uninitialized variable.
+> 
+> Signed-off-by: Al Stone <al.stone@linaro.org>
 
-Thanks!
+Queued up for the next ACPI pull request, thanks!
 
-I've queued up the patch for the next ACPI pull request.
-
+> ---
+>  drivers/acpi/sleep.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 14df305..721e949 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -525,7 +525,7 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
+>  	 * generate wakeup events.
+>  	 */
+>  	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3)) {
+> -		acpi_event_status pwr_btn_status;
+> +		acpi_event_status pwr_btn_status = ACPI_EVENT_FLAG_DISABLED;
+>  
+>  		acpi_get_event_status(ACPI_EVENT_POWER_BUTTON, &pwr_btn_status);
+>  
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
