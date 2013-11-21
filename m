@@ -1,79 +1,222 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 09/12] ACPI: add clarifying comment about processor throttling in HW reduced mode
-Date: Thu, 21 Nov 2013 01:14:28 +0100
-Message-ID: <4444379.hCFxGeZRVi@vostro.rjw.lan>
-References: <1384047382-20623-1-git-send-email-al.stone@linaro.org> <4621090.bSNFRSzQnY@vostro.rjw.lan> <528D2F98.6050601@linaro.org>
+Subject: Re: [PATCH 04/12] ACPI: HW reduced mode does not allow use of the FADT sci_interrupt field
+Date: Thu, 21 Nov 2013 01:27:41 +0100
+Message-ID: <6632063.kaWI72d4Ef@vostro.rjw.lan>
+References: <1384047382-20623-1-git-send-email-al.stone@linaro.org> <6357288.C9cEqtMB8J@vostro.rjw.lan> <528D288D.9060902@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58197 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:61160 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754916Ab3KUABt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Nov 2013 19:01:49 -0500
-In-Reply-To: <528D2F98.6050601@linaro.org>
+	with SMTP id S1751364Ab3KUAPC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Nov 2013 19:15:02 -0500
+In-Reply-To: <528D288D.9060902@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Al Stone <al.stone@linaro.org>
 Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <ahs3@redhat.com>
 
-On Wednesday, November 20, 2013 02:54:32 PM Al Stone wrote:
-> On 11/17/2013 03:20 PM, Rafael J. Wysocki wrote:
-> > On Saturday, November 09, 2013 06:36:19 PM al.stone@linaro.org wrote:
+On Wednesday, November 20, 2013 02:24:29 PM Al Stone wrote:
+> On 11/17/2013 03:06 PM, Rafael J. Wysocki wrote:
+> > On Saturday, November 09, 2013 06:36:14 PM al.stone@linaro.org wrote:
 > >> From: Al Stone <ahs3@redhat.com>
-> >>
+> >
+> > -ENOCHANGELOG
+> 
+> Yup.  Will be added.
+> 
 > >> Signed-off-by: Al Stone <al.stone@linaro.org>
 > >> ---
-> >>   drivers/acpi/processor_throttling.c | 8 ++++++++
-> >>   1 file changed, 8 insertions(+)
+> >>   drivers/acpi/bus.c      |  3 ++-
+> >>   drivers/acpi/osl.c      | 10 ++++++----
+> >>   drivers/acpi/pci_link.c | 14 ++++++++------
+> >>   3 files changed, 16 insertions(+), 11 deletions(-)
 > >>
-> >> diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-> >> index e7dd2c1..200738e 100644
-> >> --- a/drivers/acpi/processor_throttling.c
-> >> +++ b/drivers/acpi/processor_throttling.c
-> >> @@ -942,6 +942,10 @@ static int acpi_processor_get_fadt_info(struct acpi_processor *pr)
-> >>   		return -EINVAL;
+> >> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> >> index b587ec8..6a54dd5 100644
+> >> --- a/drivers/acpi/bus.c
+> >> +++ b/drivers/acpi/bus.c
+> >> @@ -540,7 +540,8 @@ void __init acpi_early_init(void)
+> >>   		goto error0;
 > >>   	}
 > >>
-> >> +	/*
-> >> +	 * NB: in HW reduced mode, duty_width is always zero
-> >> +	 * so this count may not be what is wanted.
-> >> +	 */
-> >>   	pr->throttling.state_count = 1 << acpi_gbl_FADT.duty_width;
+> >> -#ifdef CONFIG_X86
+> >> +#if (!CONFIG_ACPI_REDUCED_HARDWARE)
+> >
+> > Why don't you use #ifndef here?
+> 
+> No particular reason; I'll change it.
+> 
+> >> +	/* NB: in HW reduced mode, FADT sci_interrupt has no meaning */
+> >
+> > I'm not sure what the "NB" stands for, but it looks like that's what "NOTE:" is
+> > used for elsewhere.
+> 
+> Ah.  Whups.  "NB" == "Nota Bene" -- Latin for "note well" and a
+> personal habit when writing.  Yes, it should be "NOTE:".
+> 
+> >>   	if (!acpi_ioapic) {
+> >>   		/* compatible (0) means level (3) */
+> >>   		if (!(acpi_sci_flags & ACPI_MADT_TRIGGER_MASK)) {
+> >> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> >> index 54a20ff..017b85c 100644
+> >> --- a/drivers/acpi/osl.c
+> >> +++ b/drivers/acpi/osl.c
+> >> @@ -84,6 +84,7 @@ static int (*__acpi_os_prepare_extended_sleep)(u8 sleep_state, u32 val_a,
+> >>
+> >>   static acpi_osd_handler acpi_irq_handler;
+> >>   static void *acpi_irq_context;
+> >> +static u32 acpi_irq_number;
+> >>   static struct workqueue_struct *kacpid_wq;
+> >>   static struct workqueue_struct *kacpi_notify_wq;
+> >>   static struct workqueue_struct *kacpi_hotplug_wq;
+> >> @@ -797,9 +798,9 @@ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler,
 > >>
 > >>   	/*
-> >> @@ -991,6 +995,10 @@ static int acpi_processor_set_throttling_fadt(struct acpi_processor *pr,
-> >>   		/* Used to clear all duty_value bits */
-> >>   		duty_mask = pr->throttling.state_count - 1;
+> >>   	 * ACPI interrupts different from the SCI in our copy of the FADT are
+> >> -	 * not supported.
+> >> +	 * not supported, except in HW reduced mode.
+> >>   	 */
+> >> -	if (gsi != acpi_gbl_FADT.sci_interrupt)
+> >> +	if (!acpi_gbl_reduced_hardware && (gsi != acpi_gbl_FADT.sci_interrupt))
+> >
+> > The inner parens are not necessary.
+> 
+> Ack.
+> 
+> > Also it seems that we may need to support gsi != acpi_gbl_FADT.sci_interrupt
+> > generically, because there may be GPE device objects with interrupts different
+> > from the SCI.
+> 
+> In reduced HW mode, there are no GPE blocks defined; all
+> interrupts of that nature are required to use GPIO interrupts
+> instead, afaict.
+
+Well, I'm not sure about that.  The GPE0/1 blocks in FADT are not supposed to
+be present, but does that apply to GPE block devices (Section 9.10 of ACPI 5.0)?
+
+> The spec unfortunately has this info scattered
+> through out -- the earlier parts of the spec discussing the
+> reduced HW mode and the discussion around the FADT go into
+> some of the details.
+
+Any more precise pointers?
+
+Anyway, the point was that we may need to support interrupts different from
+acpi_gbl_FADT.sci_interrupt even if the HW reduced mode is *not* used, so
+making that depend on acpi_gbl_reduced_hardware doesn't seem quite right.
+
+> >>   		return AE_BAD_PARAMETER;
 > >>
-> >> +		/*
-> >> +		 * NB: in HW reduced mode, duty_offset is always zero
-> >> +		 * so this mask may not be what is wanted.
-> >> +		 */
-> >>   		duty_mask <<= acpi_gbl_FADT.duty_offset;
-> >>   		duty_mask = ~duty_mask;
+> >>   	if (acpi_irq_handler)
+> >> @@ -818,13 +819,14 @@ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler,
+> >>   		acpi_irq_handler = NULL;
+> >>   		return AE_NOT_ACQUIRED;
+> >>   	}
+> >> +	acpi_irq_number = irq;
+> >>
+> >>   	return AE_OK;
+> >>   }
+> >>
+> >>   acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
+> >>   {
+> >> -	if (irq != acpi_gbl_FADT.sci_interrupt)
+> >> +	if (!acpi_gbl_reduced_hardware && (irq != acpi_gbl_FADT.sci_interrupt))
+> >
+> > The inner parens are not necessary.
+> 
+> Ack.
+> 
+> >>   		return AE_BAD_PARAMETER;
+> >>
+> >>   	free_irq(irq, acpi_irq);
+> >> @@ -1806,7 +1808,7 @@ acpi_status __init acpi_os_initialize1(void)
+> >>   acpi_status acpi_os_terminate(void)
+> >>   {
+> >>   	if (acpi_irq_handler) {
+> >> -		acpi_os_remove_interrupt_handler(acpi_gbl_FADT.sci_interrupt,
+> >> +		acpi_os_remove_interrupt_handler(acpi_irq_number,
+> >>   						 acpi_irq_handler);
+> >
+> > It looks like this could be one line now?
+> 
+> Yup.  Will fix.
+> 
+> >>   	}
+> >>
+> >> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> >> index 2652a61..c0ab28a 100644
+> >> --- a/drivers/acpi/pci_link.c
+> >> +++ b/drivers/acpi/pci_link.c
+> >
+> > I'm not sure how the comment changes below belong to this patch.
+> 
+> Sigh.  They don't.  Will omit.
+> 
+> >> @@ -23,7 +23,7 @@
+> >>    *
+> >>    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> >>    *
+> >> - * TBD:
+> >> + * TBD:
+> >>    *      1. Support more than one IRQ resource entry per link device (index).
+> >>    *	2. Implement start/stop mechanism and use ACPI Bus Driver facilities
+> >>    *	   for IRQ management (e.g. start()->_SRS).
+> >> @@ -268,8 +268,8 @@ static int acpi_pci_link_get_current(struct acpi_pci_link *link)
+> >>   		}
+> >>   	}
+> >>
+> >> -	/*
+> >> -	 * Query and parse _CRS to get the current IRQ assignment.
+> >> +	/*
+> >> +	 * Query and parse _CRS to get the current IRQ assignment.
+> >>   	 */
+> >>
+> >>   	status = acpi_walk_resources(link->device->handle, METHOD_NAME__CRS,
+> >> @@ -415,7 +415,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+> >>   /*
+> >>    * "acpi_irq_balance" (default in APIC mode) enables ACPI to use PIC Interrupt
+> >>    * Link Devices to move the PIRQs around to minimize sharing.
+> >> - *
+> >> + *
+> >>    * "acpi_irq_nobalance" (default in PIC mode) tells ACPI not to move any PIC IRQs
+> >>    * that the BIOS has already set to active.  This is necessary because
+> >>    * ACPI has no automatic means of knowing what ISA IRQs are used.  Note that
+> >> @@ -433,7 +433,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+> >>    *
+> >>    * Note that PCI IRQ routers have a list of possible IRQs,
+> >>    * which may not include the IRQs this table says are available.
+> >> - *
+> >> + *
+> >>    * Since this heuristic can't tell the difference between a link
+> >>    * that no device will attach to, vs. a link which may be shared
+> >>    * by multiple active devices -- it is not optimal.
+> >> @@ -505,7 +505,9 @@ int __init acpi_irq_penalty_init(void)
+> >>   		}
 > >>   	}
 > >
-> > I'm not sure how these comments help to be honest.  It looks like
-> > pr->throttling.state_count should be 0 in HW reduced mode, shouldn't it?
+> > Why don't you simply put
 > >
+> > 	if (acpi_gbl_reduced_hardware)
+> > 		return 0;
+> >
+> > here?
 > 
-> It should.  The comments clarified things for me but perhaps
-> they should just note that these values are always zero in
-> reduced HW mode.  The other option would be to not add any
-> comments, of course.  Hopefully someone working with reduced
-> HW mode would be aware of these changes to the FADT values.
+> Aha.  Much more obvious.  Thanks.  Will fix.
 > 
-> I can go either way; what's the preference?
-
-I would just avoid making changes until we figure out what to do ultimately
-here.  That depends on what pr->throttling.state_count is used for and that
-part should be hardened against pr->throttling.state_count == 0.  Having
-done that, we can simply set pr->throttling.state_count = 0 in the HW reduced
-mode without adding any comments at all.
-
-Thanks!
-
+> >>   	/* Add a penalty for the SCI */
+> >> -	acpi_irq_penalty[acpi_gbl_FADT.sci_interrupt] += PIRQ_PENALTY_PCI_USING;
+> >> +	if (!acpi_gbl_reduced_hardware)
+> >> +		acpi_irq_penalty[acpi_gbl_FADT.sci_interrupt] +=
+> >> +			PIRQ_PENALTY_PCI_USING;
+> >>   	return 0;
+> >>   }
+> >>
+> >>
+> 
+> 
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
