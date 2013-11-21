@@ -1,56 +1,109 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 0/5] gpio / ACPI: convert users to gpiod_* and drop acpi_gpio.h
-Date: Thu, 21 Nov 2013 16:45:48 +0200
-Message-ID: <1385045153-25160-1-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH 2/5] mmc: sdhci-acpi: covert to use GPIO descriptor API
+Date: Thu, 21 Nov 2013 16:45:50 +0200
+Message-ID: <1385045153-25160-3-git-send-email-mika.westerberg@linux.intel.com>
+References: <1385045153-25160-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:38249 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754122Ab3KUOqA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Nov 2013 09:46:00 -0500
+	id S1754203Ab3KUOp6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Nov 2013 09:45:58 -0500
+In-Reply-To: <1385045153-25160-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi all,
+The new descriptor based GPIO interface is now the recommend and more safer
+way of using GPIOs from device drivers. Convert the ACPI SDHCI driver to
+use that interface.
 
-Now that the mainline kernel has full ACPI support for the GPIO descriptor
-interface we can get rid of ACPI specific GPIO functions in favor of GPIO
-descriptor (gpiod_*) interfaces.
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/mmc/host/sdhci-acpi.c | 26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
 
-This series first converts the existing two users to this interface and
-then modifies gpiolib and gpiolib-acpi so that the ACPI functions are only
-called internally in drivers/gpio. We then remove the acpi_gpio.h and
-require all users to user gpiod_* interfaces.
-
-I suppose it would make sense to merge the whole series via GPIO or ACPI
-trees because there's a dependency that the first two patches need to be
-applied before last three. Otherwise the drivers in question fail to
-compile.
-
-Thanks.
-
-Heikki Krogerus (1):
-  net: rfkill: gpio: convert to descriptor-based GPIO interface
-
-Mika Westerberg (4):
-  mmc: sdhci-acpi: covert to use GPIO descriptor API
-  gpio / ACPI: register to ACPI events automatically
-  gpio / ACPI: get rid of acpi_gpio.h
-  Documentation / ACPI: update to GPIO descriptor API
-
- Documentation/acpi/enumeration.txt |  36 +++----------
- drivers/gpio/gpiolib-acpi.c        |  20 +++++--
- drivers/gpio/gpiolib.c             |   5 +-
- drivers/gpio/gpiolib.h             |  46 ++++++++++++++++
- drivers/mmc/host/sdhci-acpi.c      |  26 ++++-----
- drivers/pinctrl/pinctrl-baytrail.c |   4 --
- include/linux/acpi_gpio.h          |  51 ------------------
- net/rfkill/rfkill-gpio.c           | 108 +++++++++++++++++++++++--------------
- 8 files changed, 150 insertions(+), 146 deletions(-)
- create mode 100644 drivers/gpio/gpiolib.h
- delete mode 100644 include/linux/acpi_gpio.h
-
+diff --git a/drivers/mmc/host/sdhci-acpi.c b/drivers/mmc/host/sdhci-acpi.c
+index ef19874fcd1f..379ddfe14bc7 100644
+--- a/drivers/mmc/host/sdhci-acpi.c
++++ b/drivers/mmc/host/sdhci-acpi.c
+@@ -31,10 +31,9 @@
+ #include <linux/bitops.h>
+ #include <linux/types.h>
+ #include <linux/err.h>
+-#include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/interrupt.h>
+ #include <linux/acpi.h>
+-#include <linux/acpi_gpio.h>
+ #include <linux/pm.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/delay.h>
+@@ -199,22 +198,19 @@ static irqreturn_t sdhci_acpi_sd_cd(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int sdhci_acpi_add_own_cd(struct device *dev, int gpio,
+-				 struct mmc_host *mmc)
++static int sdhci_acpi_add_own_cd(struct device *dev, struct mmc_host *mmc)
+ {
++	struct gpio_desc *desc;
+ 	unsigned long flags;
+ 	int err, irq;
+ 
+-	if (gpio < 0) {
+-		err = gpio;
++	desc = devm_gpiod_get_index(dev, NULL, 0);
++	if (IS_ERR(desc)) {
++		err = PTR_ERR(desc);
+ 		goto out;
+ 	}
+ 
+-	err = devm_gpio_request_one(dev, gpio, GPIOF_DIR_IN, "sd_cd");
+-	if (err)
+-		goto out;
+-
+-	irq = gpio_to_irq(gpio);
++	irq = gpiod_to_irq(desc);
+ 	if (irq < 0) {
+ 		err = irq;
+ 		goto out_free;
+@@ -228,7 +224,7 @@ static int sdhci_acpi_add_own_cd(struct device *dev, int gpio,
+ 	return 0;
+ 
+ out_free:
+-	devm_gpio_free(dev, gpio);
++	devm_gpiod_put(dev, desc);
+ out:
+ 	dev_warn(dev, "failed to setup card detect wake up\n");
+ 	return err;
+@@ -254,7 +250,7 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
+ 	struct resource *iomem;
+ 	resource_size_t len;
+ 	const char *hid;
+-	int err, gpio;
++	int err;
+ 
+ 	if (acpi_bus_get_device(handle, &device))
+ 		return -ENODEV;
+@@ -279,8 +275,6 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
+ 	if (IS_ERR(host))
+ 		return PTR_ERR(host);
+ 
+-	gpio = acpi_get_gpio_by_index(dev, 0, NULL);
+-
+ 	c = sdhci_priv(host);
+ 	c->host = host;
+ 	c->slot = sdhci_acpi_get_slot(handle, hid);
+@@ -338,7 +332,7 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
+ 		goto err_free;
+ 
+ 	if (sdhci_acpi_flag(c, SDHCI_ACPI_SD_CD)) {
+-		if (sdhci_acpi_add_own_cd(dev, gpio, host->mmc))
++		if (sdhci_acpi_add_own_cd(dev, host->mmc))
+ 			c->use_runtime_pm = false;
+ 	}
+ 
 -- 
 1.8.4.3
 
