@@ -1,83 +1,99 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 1/5] net: rfkill: gpio: convert to descriptor-based GPIO interface
-Date: Thu, 21 Nov 2013 17:32:28 +0200
-Message-ID: <CAHp75VeEEWCVXz4X1qazfVKZBDBgP6NPfPnuS-b7qEiT4m7f=g@mail.gmail.com>
-References: <1385045153-25160-1-git-send-email-mika.westerberg@linux.intel.com>
-	<1385045153-25160-2-git-send-email-mika.westerberg@linux.intel.com>
+From: Rhyland Klein <rklein@nvidia.com>
+Subject: Re: [PATCH 1/5] net: rfkill: gpio: convert to descriptor-based GPIO
+ interface
+Date: Thu, 21 Nov 2013 12:05:34 -0500
+Message-ID: <528E3D5E.20907@nvidia.com>
+References: <1385045153-25160-1-git-send-email-mika.westerberg@linux.intel.com> <1385045153-25160-2-git-send-email-mika.westerberg@linux.intel.com> <20131121152425.GA5557@xps8300>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f49.google.com ([209.85.219.49]:63650 "EHLO
-	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750827Ab3KUPc3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Nov 2013 10:32:29 -0500
-In-Reply-To: <1385045153-25160-2-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20131121152425.GA5557@xps8300>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Adrian Hunter <adrian.hunter@intel.com>, Alex Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-gpio@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Nov 21, 2013 at 4:45 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
->
-> Convert to the safer gpiod_* family of API functions.
-
-Few comments below.
-
-> --- a/net/rfkill/rfkill-gpio.c
-> +++ b/net/rfkill/rfkill-gpio.c
-
-> +static int rfkill_gpio_convert_to_desc(struct platform_device *pdev,
-> +                                      struct rfkill_gpio_data *rfkill)
-> +{
-> +       struct rfkill_gpio_platform_data *pdata = pdev->dev.platform_data;
-> +       int ret = 0;
-
-Unneeded assignment.
-
+On 11/21/2013 10:24 AM, Heikki Krogerus wrote:
+> Hi Rhyland,
+> 
+> On Thu, Nov 21, 2013 at 04:45:49PM +0200, Mika Westerberg wrote:
+>> +static int rfkill_gpio_convert_to_desc(struct platform_device *pdev,
+>> +				       struct rfkill_gpio_data *rfkill)
+>> +{
+>> +	struct rfkill_gpio_platform_data *pdata = pdev->dev.platform_data;
+>> +	int ret = 0;
+>> +
+>> +	if (gpio_is_valid(pdata->reset_gpio)) {
+>> +		ret = devm_gpio_request_one(&pdev->dev, pdata->reset_gpio,
+>> +					    0, rfkill->reset_name);
+>> +		if (ret) {
+>> +			pr_warn("%s: failed to get reset gpio.\n", __func__);
+>> +			return ret;
+>> +		}
+>> +		rfkill->reset_gpio = gpio_to_desc(pdata->reset_gpio);
+>> +	}
+>> +
+>> +	if (gpio_is_valid(pdata->shutdown_gpio)) {
+>> +		ret = devm_gpio_request_one(&pdev->dev, pdata->shutdown_gpio,
+>> +					    0, rfkill->shutdown_name);
+>> +		if (ret) {
+>> +			pr_warn("%s: failed to get shutdown gpio.\n", __func__);
+>> +			return ret;
+>> +		}
+>> +		rfkill->shutdown_gpio = gpio_to_desc(pdata->shutdown_gpio);
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+> 
+> We could drop this conversion if you guys added gpiod_lookup table to
+> your platform code. I think something like this is enough. Please note
+> that I have not even tried compile it but you get the idea from it.
+> 
+> diff --git a/arch/arm/mach-tegra/board-paz00.c b/arch/arm/mach-tegra/board-paz00.c
+> index 06f0240..19bce88 100644
+> --- a/arch/arm/mach-tegra/board-paz00.c
+> +++ b/arch/arm/mach-tegra/board-paz00.c
+> @@ -18,13 +18,12 @@
+>   */
+>  
+>  #include <linux/platform_device.h>
+> +#include <linux/gpio/driver.h>
+>  #include <linux/rfkill-gpio.h>
+>  #include "board.h"
+>  
+>  static struct rfkill_gpio_platform_data wifi_rfkill_platform_data = {
+>         .name           = "wifi_rfkill",
+> -       .reset_gpio     = 25, /* PD1 */
+> -       .shutdown_gpio  = 85, /* PK5 */
+>         .type   = RFKILL_TYPE_WLAN,
+>  };
+>  
+> @@ -36,7 +35,13 @@ static struct platform_device wifi_rfkill_device = {
+>         },
+>  };
+>  
+> +static struct gpiod_lookup wifi_gpio_lookup[] = {
+> +       GPIO_LOOKUP_IDX("tegra-gpio", 25, "rfkill_gpio", NULL, 0, NULL),
+> +       GPIO_LOOKUP_IDX("tegra-gpio", 85, "rfkill_gpio", NULL, 1, NULL),
+> +};
 > +
-> +       if (gpio_is_valid(pdata->reset_gpio)) {
-> +               ret = devm_gpio_request_one(&pdev->dev, pdata->reset_gpio,
-> +                                           0, rfkill->reset_name);
-> +               if (ret) {
-> +                       pr_warn("%s: failed to get reset gpio.\n", __func__);
-> +                       return ret;
-> +               }
-> +               rfkill->reset_gpio = gpio_to_desc(pdata->reset_gpio);
-> +       }
-> +
-> +       if (gpio_is_valid(pdata->shutdown_gpio)) {
-> +               ret = devm_gpio_request_one(&pdev->dev, pdata->shutdown_gpio,
-> +                                           0, rfkill->shutdown_name);
-> +               if (ret) {
-> +                       pr_warn("%s: failed to get shutdown gpio.\n", __func__);
-> +                       return ret;
-> +               }
-> +               rfkill->shutdown_gpio = gpio_to_desc(pdata->shutdown_gpio);
-> +       }
-> +
-> +       return 0;
-> +}
+>  void __init tegra_paz00_wifikill_init(void)
+>  {
+> +       gpiod_add_table(wifi_lookup, ARRAY_SIZE(wifi_gpio_lookup));
+>         platform_device_register(&wifi_rfkill_device);
+>  }
+> 
+> 
 
-[]
+This seems like a reasonable patch, and likely a good way to go. I don't
+have a AC100 to test this with though, so I can't verify this
+personally. Also, would the paz00 patch become a dependency of this
+patchset? Mika, maybe you can therefore include a patch for paz00 in
+your patchset?
 
-> +       /* Make sure at-least one of the GPIO is defined and that
-> +        * a name is specified for this instance
-> +        */
-> +       if ((!rfkill->reset_gpio && !rfkill->shutdown_gpio) || !rfkill->name) {
-> +               pr_warn("%s: invalid platform data\n", __func__);
-> +               return -EINVAL;
-> +       }
-> +
-> +       if (pdata && pdata->gpio_runtime_setup) {
-> +               ret = pdata->gpio_runtime_setup(pdev);
->                 if (ret) {
-> -                       pr_warn("%s: failed to get shutdown gpio.\n", __func__);
-> +                       pr_warn("%s: can't set up gpio\n", __func__);
-
-Could you use dev_* family of functions to print messages?
+-rhyland
 
 -- 
-With Best Regards,
-Andy Shevchenko
+nvpublic
