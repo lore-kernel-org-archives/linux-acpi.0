@@ -1,41 +1,99 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: Incorrect ACPI tables walk in acpi_tables_sysfs_init
-Date: Thu, 21 Nov 2013 14:27:22 +0100
-Message-ID: <10117757.kh27mk2tn6@vostro.rjw.lan>
-References: <87bo1e839w.fsf@tldlab276.tl.intel.com>
+Subject: Re: [PATCH 0/6] ACPICA: 20131115 Release
+Date: Thu, 21 Nov 2013 14:30:34 +0100
+Message-ID: <2072117.i6uSfJDjnh@vostro.rjw.lan>
+References: <cover.1384747396.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87bo1e839w.fsf@tldlab276.tl.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Compostella <jeremy.compostella@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jeremy Compostella <jeremy.compostella@gmail.com>, "Gross, Mark" <mark.gross@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:58035 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751225Ab3KUNRy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Nov 2013 08:17:54 -0500
+In-Reply-To: <cover.1384747396.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Thursday, November 21, 2013 11:20:27 AM Jeremy Compostella wrote:
-> Date: Thu, 21 Nov 2013 11:20:23 +0100
-> Message-ID: <87d2lu83a0.fsf@tldlab276.tl.intel.com>
-> MIME-Version: 1.0
-> Content-Type: text/plain
-> --text follows this line--
-> Hi,
+On Thursday, November 21, 2013 12:17:03 PM Lv Zheng wrote:
+> The 20131115 ACPICA kernel resident system updates is linuxized based on
+> the pm/linux-next branch.
 > 
-> When executing on a ACPI Hardware reduced hardware, all the ACPI tables are not
-> exposed in sysfs due to the fact that FACS is silently ignored by the kernel in
-> ACPI hardware reduced and, moreover, the acpi_tables_sysfs_init ACPI table walk
-> is buggy and stop too soon.
+> The patch set has passed a build/boot test on the following machines:
+> Dell Inspiron Mini 1010 (i386)
+> HP Compaq 8200 Elite SFF PC (x86-64)
+> With the following kernel configuration items enabled:
+>   CONFIG_ACPI
+>   CONFIG_SFI
+>   CONFIG_ACPI_AC
+>   CONFIG_ACPI_BATTERY
+>   CONFIG_ACPI_BUTTON
+>   CONFIG_ACPI_VIDEO
+>   CONFIG_ACPI_FAN
+>   CONFIG_ACPI_DOCK
+>   CONFIG_ACPI_PROCESSOR
+>   CONFIG_ACPI_PROCESSOR_AGGREGATOR
+>   CONFIG_ACPI_IPMI
+>   CONFIG_ACPI_THERMAL
+>   CONFIG_ACPI_CONTAINER
+>   CONFIG_ACPI_SBS
+>   CONFIG_ACPI_NUMA
+>   CONFIG_ACPI_HED
+>   CONFIG_ACPI_APEI
+>   CONFIG_ACPI_APEI_GHES
+>   CONFIG_ACPI_APEI_EINJ
+>   CONFIG_ACPI_APEI_ERST_DEBUG
+>   CONFIG_X86_PM_TIMER
+>   CONFIG_CPU_FREQ
+>   CONFIG_I2C_SCMI
+>   CONFIG_DMAR_TABLE
+>   CONFIG_INTEL_IOMMU
+>   CONFIG_IRQ_REMAP
+>   CONFIG_BLK_DEV_IDEACPI
+>   CONFIG_DRM_I915
+>   CONFIG_DRM_RADEON
+>   CONFIG_DRM_NOUVEAU
+>   CONFIG_SENSORS_ACPI_POWER
+>   CONFIG_SENSORS_ATK0110
+>   CONFIG_INPUT_ATLAS_BTNS
+>   CONFIG_TCG_TPM
+>   All devices under CONFIG_X86_PLATFORM_DEVICES
 > 
-> The acpi_tables_sysfs_init function should to rely on the appropriate
-> acpi_status return values to decide or not to stop the iteration.  This way,
-> when running on a ACPI Reduced Harware environment where the FACS table is
-> silently ignored by the kernel or some ACPI table are not correctly memory
-> mapped or have a bad checksum it would not stop the iteration.
+> Please review.
 > 
-> Signed-off-by: Jeremy Compostella <jeremy.compostella@intel.com>
+> Bob Moore (3):
+>   ACPICA: Debug output: Do not emit function nesting level for kernel
+>     build.
+>   ACPICA: Add support to delete all objects attached to the root
+>     namespace node.
+>   ACPICA: Update version to 20131115.
+> 
+> Lv Zheng (2):
+>   ACPICA: Tests: Add CHECKSUM_ABORT protection for test utilities.
+>   ACPICA: Resources: Fix loop termination for the get AML length
+>     function.
+> 
+> Tomasz Nowicki (1):
+>   ACPICA: Delete all attached data objects during namespace node
+>     deletion.
+> 
+>  drivers/acpi/acpica/acresrc.h  |    6 +++---
+>  drivers/acpi/acpica/nsalloc.c  |   18 ++++++++++++++----
+>  drivers/acpi/acpica/nsutils.c  |   18 ++++++++++--------
+>  drivers/acpi/acpica/rscalc.c   |    9 +++++++--
+>  drivers/acpi/acpica/rscreate.c |   36 +++++++++++++++++-------------------
+>  drivers/acpi/acpica/rsutils.c  |    2 +-
+>  drivers/acpi/acpica/utdebug.c  |   31 ++++++++++++++++++++++++-------
+>  include/acpi/acconfig.h        |    2 ++
+>  include/acpi/acpixf.h          |    2 +-
+>  9 files changed, 79 insertions(+), 45 deletions(-)
 
-Since this is a fix, I've modified the subject and changelog slightly and
-queued up the patch for the next ACPI pull request (next week).
+Since these are mostly fixes, I've queued up this series for the next ACPI pull
+request for 3.13 (next week most likely).
+
+I've fixed up the two changelogs that used unconverted function names.
 
 Thanks!
 
