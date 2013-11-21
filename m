@@ -1,68 +1,78 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 02/12] ACPI: bus master reload not supported in reduced HW mode
-Date: Thu, 21 Nov 2013 01:31:51 +0100
-Message-ID: <8554645.8Wdocqjnq9@vostro.rjw.lan>
-References: <1384047382-20623-1-git-send-email-al.stone@linaro.org> <2902248.9mmxm8tccy@vostro.rjw.lan> <528D2586.7010503@linaro.org>
+Subject: Re: [PATCH] sysfs, acpi, tables: Set file size for each ACPI table
+Date: Thu, 21 Nov 2013 01:32:33 +0100
+Message-ID: <1579156.ZV84FQEURS@vostro.rjw.lan>
+References: <528B2757.6010406@jp.fujitsu.com> <1384987135.1791.153.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52879 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:54116 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751558Ab3KUATM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Nov 2013 19:19:12 -0500
-In-Reply-To: <528D2586.7010503@linaro.org>
+	with SMTP id S1751558Ab3KUATx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Nov 2013 19:19:53 -0500
+In-Reply-To: <1384987135.1791.153.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <ahs3@redhat.com>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wednesday, November 20, 2013 02:11:34 PM Al Stone wrote:
-> On 11/17/2013 02:56 PM, Rafael J. Wysocki wrote:
-> > On Saturday, November 09, 2013 06:36:12 PM al.stone@linaro.org wrote:
-> >> From: Al Stone <ahs3@redhat.com>
-> >>
-> >> Remove the saving and restoring of bus master reload registers in
-> >> suspend/resume when in reduces HW mode; according to the spec, no
-> >> such registers should exist
-> >>
-> >> Signed-off-by: Al Stone <al.stone@linaro.org>
-> >> ---
-> >>   drivers/acpi/processor_idle.c | 8 +++++++-
-> >>   include/acpi/acpixf.h         | 6 ++++++
-> >>   2 files changed, 13 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> >> index 35c8f2b..28079a6 100644
-> >> --- a/drivers/acpi/processor_idle.c
-> >> +++ b/drivers/acpi/processor_idle.c
-> >> @@ -210,6 +210,7 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
-> >>   #endif
-> >>
-> >>   #ifdef CONFIG_PM_SLEEP
-> >> +#if (!ACPI_REDUCED_HARDWARE)
-> >
-> > Why don't you use #ifndef CONFIG_ACPI_REDUCED_HARDWARE here?
-> >
-> > And I believe we don't need acpi_processor_syscore_ops in that case at all?
-> >
-> > So why don't you put the whole section under
-> >
-> > #if (IS_ENABLED(CONFIG_PM_SLEEP) && !IS_ENABLED(CONFIG_ACPI_REDUCED_HARDWARE)) ?
+On Wednesday, November 20, 2013 03:38:55 PM Toshi Kani wrote:
+> On Tue, 2013-11-19 at 17:54 +0900, HATAYAMA Daisuke wrote:
+> > Currently, each of the ACPI tables exported from
+> > /sys/firmware/acpi/tables is of zero size:
+> > 
+> > $ LANG=C ls -ld /sys/firmware/acpi/tables/*
+> > -r-------- 1 root root 0 Nov 19 09:48 /sys/firmware/acpi/tables/APIC
+> > -r-------- 1 root root 0 Nov 19 09:48 /sys/firmware/acpi/tables/BOOT
+> > -r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/DSDT
+> > -r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/FACP
+> > -r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/FACS
+> > -r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/MCFG
+> > -r-------- 1 root root 0 Nov 19 14:25 /sys/firmware/acpi/tables/SRAT
+> > drwxr-xr-x 2 root root 0 Nov 19 09:48 /sys/firmware/acpi/tables/dynamic/
+> > 
+> > due to which, user-land tools fail reading each table. For example:
+> > 
+> > $ acpidump -f /sys/firmware/acpi/tables/SRAT
+> > Could not get input file size: /sys/firmware/acpi/tables/SRAT
+> > 
+> > To deal with the issue, this patch assigns size of each ACPI table to
+> > the corresponding sysfs file.
+> > 
+> > $ LANG=C ls -hld /sys/firmware/acpi/tables/*
+> > -r-------- 1 root root  94 Nov 19 16:45 /sys/firmware/acpi/tables/APIC
+> > -r-------- 1 root root  40 Nov 19 16:45 /sys/firmware/acpi/tables/BOOT
+> > -r-------- 1 root root 58K Nov 19 16:55 /sys/firmware/acpi/tables/DSDT
+> > -r-------- 1 root root 244 Nov 19 16:55 /sys/firmware/acpi/tables/FACP
+> > -r-------- 1 root root  64 Nov 19 16:55 /sys/firmware/acpi/tables/FACS
+> > -r-------- 1 root root  60 Nov 19 16:55 /sys/firmware/acpi/tables/MCFG
+> > -r-------- 1 root root 168 Nov 19 16:45 /sys/firmware/acpi/tables/SRAT
+> > drwxr-xr-x 2 root root   0 Nov 19 16:55 /sys/firmware/acpi/tables/dynamic/
+> > 
+> > Then, user-land tools work well like:
+> > 
+> > $ acpidump -f /sys/firmware/acpi/tables/SRAT
+> > SRAT @ 0x0000000000000000
+> >   0000: 53 52 41 54 A8 00 00 00 02 65 56 4D 57 41 52 45  SRAT.....eVMWARE
+> >   0010: 4D 45 4D 50 4C 55 47 20 00 00 04 06 56 4D 57 20  MEMPLUG ....VMW
+> >   0020: 01 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00  ................
+> >   0030: 01 28 00 00 00 00 00 00 00 00 00 00 00 00 00 00  .(..............
+> >   0040: 00 00 0A 00 00 00 00 00 00 00 00 00 01 00 00 00  ................
+> >   0050: 00 00 00 00 00 00 00 00 01 28 00 00 00 00 00 00  .........(......
+> >   0060: 00 00 10 00 00 00 00 00 00 00 F0 BF 00 00 00 00  ................
+> >   0070: 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00  ................
+> >   0080: 01 28 00 00 00 00 00 00 00 00 00 00 01 00 00 00  .(..............
+> >   0090: 00 00 00 40 00 00 00 00 00 00 00 00 01 00 00 00  ...@............
+> >   00A0: 00 00 00 00 00 00 00 00                          ........
+> > 
+> > Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
 > 
-> My original thinking was that ACPI_REDUCED_HARDWARE is the flag
-> being used in the ACPICA code.  On re-thinking it (and I'll use
-> your suggestion, if you don't mind), is it fair to say that there
-> is essentially a policy of keeping the Linux acpi driver and the
-> ACPICA code as separate as possible?
-
-We generally avoid mixing the code bases so that ACPICA upstream can make
-changes without worrying (too much) about breaking Linux inadvertently.
-
-In any case it is better to use Linux' symbols rather than ACPICA's symbols
-wherever possible.
+> Acked-by: Toshi Kani <toshi.kani@hp.com>
 
 Thanks!
+
+I've queued up the patch for the next ACPI pull request.
 
 -- 
 I speak only for myself.
