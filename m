@@ -1,102 +1,157 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/6] ACPICA: 20131115 Release
-Date: Thu, 21 Nov 2013 14:30:34 +0100
-Message-ID: <2072117.i6uSfJDjnh@vostro.rjw.lan>
-References: <cover.1384747396.git.lv.zheng@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH 4/5] gpio / ACPI: get rid of acpi_gpio.h
+Date: Thu, 21 Nov 2013 16:45:52 +0200
+Message-ID: <1385045153-25160-5-git-send-email-mika.westerberg@linux.intel.com>
+References: <1385045153-25160-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58035 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751225Ab3KUNRy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Nov 2013 08:17:54 -0500
-In-Reply-To: <cover.1384747396.git.lv.zheng@intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:51229 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753936Ab3KUOp7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Nov 2013 09:45:59 -0500
+In-Reply-To: <1385045153-25160-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, November 21, 2013 12:17:03 PM Lv Zheng wrote:
-> The 20131115 ACPICA kernel resident system updates is linuxized based on
-> the pm/linux-next branch.
-> 
-> The patch set has passed a build/boot test on the following machines:
-> Dell Inspiron Mini 1010 (i386)
-> HP Compaq 8200 Elite SFF PC (x86-64)
-> With the following kernel configuration items enabled:
->   CONFIG_ACPI
->   CONFIG_SFI
->   CONFIG_ACPI_AC
->   CONFIG_ACPI_BATTERY
->   CONFIG_ACPI_BUTTON
->   CONFIG_ACPI_VIDEO
->   CONFIG_ACPI_FAN
->   CONFIG_ACPI_DOCK
->   CONFIG_ACPI_PROCESSOR
->   CONFIG_ACPI_PROCESSOR_AGGREGATOR
->   CONFIG_ACPI_IPMI
->   CONFIG_ACPI_THERMAL
->   CONFIG_ACPI_CONTAINER
->   CONFIG_ACPI_SBS
->   CONFIG_ACPI_NUMA
->   CONFIG_ACPI_HED
->   CONFIG_ACPI_APEI
->   CONFIG_ACPI_APEI_GHES
->   CONFIG_ACPI_APEI_EINJ
->   CONFIG_ACPI_APEI_ERST_DEBUG
->   CONFIG_X86_PM_TIMER
->   CONFIG_CPU_FREQ
->   CONFIG_I2C_SCMI
->   CONFIG_DMAR_TABLE
->   CONFIG_INTEL_IOMMU
->   CONFIG_IRQ_REMAP
->   CONFIG_BLK_DEV_IDEACPI
->   CONFIG_DRM_I915
->   CONFIG_DRM_RADEON
->   CONFIG_DRM_NOUVEAU
->   CONFIG_SENSORS_ACPI_POWER
->   CONFIG_SENSORS_ATK0110
->   CONFIG_INPUT_ATLAS_BTNS
->   CONFIG_TCG_TPM
->   All devices under CONFIG_X86_PLATFORM_DEVICES
-> 
-> Please review.
-> 
-> Bob Moore (3):
->   ACPICA: Debug output: Do not emit function nesting level for kernel
->     build.
->   ACPICA: Add support to delete all objects attached to the root
->     namespace node.
->   ACPICA: Update version to 20131115.
-> 
-> Lv Zheng (2):
->   ACPICA: Tests: Add CHECKSUM_ABORT protection for test utilities.
->   ACPICA: Resources: Fix loop termination for the get AML length
->     function.
-> 
-> Tomasz Nowicki (1):
->   ACPICA: Delete all attached data objects during namespace node
->     deletion.
-> 
->  drivers/acpi/acpica/acresrc.h  |    6 +++---
->  drivers/acpi/acpica/nsalloc.c  |   18 ++++++++++++++----
->  drivers/acpi/acpica/nsutils.c  |   18 ++++++++++--------
->  drivers/acpi/acpica/rscalc.c   |    9 +++++++--
->  drivers/acpi/acpica/rscreate.c |   36 +++++++++++++++++-------------------
->  drivers/acpi/acpica/rsutils.c  |    2 +-
->  drivers/acpi/acpica/utdebug.c  |   31 ++++++++++++++++++++++++-------
->  include/acpi/acconfig.h        |    2 ++
->  include/acpi/acpixf.h          |    2 +-
->  9 files changed, 79 insertions(+), 45 deletions(-)
+Now that all users of acpi_gpio.h have been moved to user either the GPIO
+descriptor interface or to the internal gpiolib.h we can get rid of
+acpi_gpio.h entirely.
 
-Since these are mostly fixes, I've queued up this series for the next ACPI pull
-request for 3.13 (next week most likely).
+Once this is done the only interface to get GPIOs to drivers enumerated
+from ACPI namespace is the descriptor based interface.
 
-I've fixed up the two changelogs that used unconverted function names.
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/gpio/gpiolib-acpi.c |  4 +++-
+ drivers/gpio/gpiolib.c      |  1 -
+ drivers/gpio/gpiolib.h      | 23 +++++++++++++++++++++++
+ include/linux/acpi_gpio.h   | 45 ---------------------------------------------
+ 4 files changed, 26 insertions(+), 47 deletions(-)
+ delete mode 100644 include/linux/acpi_gpio.h
 
-Thanks!
-
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index cb2da66fbbfe..6c158d9a6efa 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -12,11 +12,13 @@
+ 
+ #include <linux/errno.h>
+ #include <linux/gpio/consumer.h>
++#include <linux/gpio/driver.h>
+ #include <linux/export.h>
+-#include <linux/acpi_gpio.h>
+ #include <linux/acpi.h>
+ #include <linux/interrupt.h>
+ 
++#include "gpiolib.h"
++
+ struct acpi_gpio_evt_pin {
+ 	struct list_head node;
+ 	acpi_handle *evt_handle;
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 70abccf0d144..a6b82413c290 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -10,7 +10,6 @@
+ #include <linux/seq_file.h>
+ #include <linux/gpio.h>
+ #include <linux/of_gpio.h>
+-#include <linux/acpi_gpio.h>
+ #include <linux/idr.h>
+ #include <linux/slab.h>
+ #include <linux/acpi.h>
+diff --git a/drivers/gpio/gpiolib.h b/drivers/gpio/gpiolib.h
+index 2ed23ab8298c..82be586c1f90 100644
+--- a/drivers/gpio/gpiolib.h
++++ b/drivers/gpio/gpiolib.h
+@@ -12,12 +12,35 @@
+ #ifndef GPIOLIB_H
+ #define GPIOLIB_H
+ 
++#include <linux/err.h>
++#include <linux/device.h>
++
++/**
++ * struct acpi_gpio_info - ACPI GPIO specific information
++ * @gpioint: if %true this GPIO is of type GpioInt otherwise type is GpioIo
++ * @active_low: in case of @gpioint, the pin is active low
++ */
++struct acpi_gpio_info {
++	bool gpioint;
++	bool active_low;
++};
++
+ #ifdef CONFIG_ACPI
+ void acpi_gpiochip_add(struct gpio_chip *chip);
+ void acpi_gpiochip_remove(struct gpio_chip *chip);
++
++struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
++					  struct acpi_gpio_info *info);
+ #else
+ static inline void acpi_gpiochip_add(struct gpio_chip *chip) { }
+ static inline void acpi_gpiochip_remove(struct gpio_chip *chip) { }
++
++static inline struct gpio_desc *
++acpi_get_gpiod_by_index(struct device *dev, int index,
++			struct acpi_gpio_info *info)
++{
++	return ERR_PTR(-ENOSYS);
++}
+ #endif
+ 
+ #endif /* GPIOLIB_H */
+diff --git a/include/linux/acpi_gpio.h b/include/linux/acpi_gpio.h
+deleted file mode 100644
+index af96a0d452f6..000000000000
+--- a/include/linux/acpi_gpio.h
++++ /dev/null
+@@ -1,45 +0,0 @@
+-#ifndef _LINUX_ACPI_GPIO_H_
+-#define _LINUX_ACPI_GPIO_H_
+-
+-#include <linux/device.h>
+-#include <linux/err.h>
+-#include <linux/errno.h>
+-#include <linux/gpio.h>
+-#include <linux/gpio/consumer.h>
+-
+-/**
+- * struct acpi_gpio_info - ACPI GPIO specific information
+- * @gpioint: if %true this GPIO is of type GpioInt otherwise type is GpioIo
+- * @active_low: in case of @gpioint, the pin is active low
+- */
+-struct acpi_gpio_info {
+-	bool gpioint;
+-	bool active_low;
+-};
+-
+-#ifdef CONFIG_GPIO_ACPI
+-
+-struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
+-					  struct acpi_gpio_info *info);
+-#else /* CONFIG_GPIO_ACPI */
+-
+-static inline struct gpio_desc *
+-acpi_get_gpiod_by_index(struct device *dev, int index,
+-			struct acpi_gpio_info *info)
+-{
+-	return ERR_PTR(-ENOSYS);
+-}
+-
+-#endif /* CONFIG_GPIO_ACPI */
+-
+-static inline int acpi_get_gpio_by_index(struct device *dev, int index,
+-					 struct acpi_gpio_info *info)
+-{
+-	struct gpio_desc *desc = acpi_get_gpiod_by_index(dev, index, info);
+-
+-	if (IS_ERR(desc))
+-		return PTR_ERR(desc);
+-	return desc_to_gpio(desc);
+-}
+-
+-#endif /* _LINUX_ACPI_GPIO_H_ */
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.8.4.3
+
