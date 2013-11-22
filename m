@@ -1,54 +1,60 @@
-From: "Anderson, Brandon" <Brandon.Anderson@amd.com>
-Subject: RE: [PATCH V2 0/4] ACPI/ARM: AMBA bus ACPI module
-Date: Fri, 22 Nov 2013 19:44:53 +0000
-Message-ID: <CE40542A5D952D47989966E71788B184037DE89A@satlexdag05.amd.com>
-References: <1385143964-22938-1-git-send-email-brandon.anderson@amd.com>
- <CAOesGMhA=Ne9HvPFGZF1ESaP7HP6s2=0YochkWrM3KtjxgP=Aw@mail.gmail.com>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH V2 4/4] ACPI/ARM: Remove sections of DTS definition
+Date: Fri, 22 Nov 2013 19:48:20 +0000
+Message-ID: <CACxGe6tYBZbZ5sURZXo1CvOUMt=vcCzknCPqc=woz4xSuGa39w@mail.gmail.com>
+References: <1385143964-22938-1-git-send-email-brandon.anderson@amd.com> <1385143964-22938-5-git-send-email-brandon.anderson@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tx2ehsobe001.messaging.microsoft.com ([65.55.88.11]:27576 "EHLO
-	tx2outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755723Ab3KVTpE convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Nov 2013 14:45:04 -0500
-In-Reply-To: <CAOesGMhA=Ne9HvPFGZF1ESaP7HP6s2=0YochkWrM3KtjxgP=Aw@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:55132 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755647Ab3KVTsl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 14:48:41 -0500
+Received: by mail-ie0-f172.google.com with SMTP id qd12so2971976ieb.3
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Nov 2013 11:48:40 -0800 (PST)
+In-Reply-To: <1385143964-22938-5-git-send-email-brandon.anderson@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Brandon Anderson <brandon.anderson@amd.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linaro-acpi <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-Olof,
-I apologize for posting confusing patches to the linux-acpi list.
+On Fri, Nov 22, 2013 at 6:12 PM, Brandon Anderson
+<brandon.anderson@amd.com> wrote:
+> Use ACPI definition instead of DTS definition for devices that are supported
+> by AMBA bus ACPI module. The replacement ACPI definition was provided in the
+> related '0/4' email.
+>
+> Note that MMCI is compatible with AMBA bus ACPI module, but is not ported
+> due to complex relations with sysreg and voltage regulator.
+>
+>
+> Signed-off-by: Brandon Anderson <brandon.anderson@amd.com>
+> ---
+>  arch/arm64/boot/dts/foundation-v8-acpi.dts        |   10 +++++++---
+>  arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts       |    4 ++++
+>  arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi |    8 ++++++++
+>  3 files changed, 19 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm64/boot/dts/foundation-v8-acpi.dts b/arch/arm64/boot/dts/foundation-v8-acpi.dts
+> index 7f57c53..f0671eb 100644
+> --- a/arch/arm64/boot/dts/foundation-v8-acpi.dts
+> +++ b/arch/arm64/boot/dts/foundation-v8-acpi.dts
+> @@ -15,12 +15,16 @@
+>
+>         chosen { };
+>
+> +       /*
+> +        * Removed for ACPI
+> +        *
+>         aliases {
+>                 serial0 = &v2m_serial0;
+>                 serial1 = &v2m_serial1;
+>                 serial2 = &v2m_serial2;
+>                 serial3 = &v2m_serial3;
+>         };
+> +       */
 
-These patches are on top of the Linaro ACPI work, http://git.linaro.org/git-ro/arm/acpi/leg-kernel.git
+There's no point in commenting the sections out. If you're removing
+them, remove the outright.
 
-Brandon
-
-
------Original Message-----
-From: Olof Johansson [mailto:olof@lixom.net] 
-Sent: Friday, November 22, 2013 1:04 PM
-To: Anderson, Brandon
-Cc: Russell King - ARM Linux; Rafael J. Wysocki; linaro-acpi@lists.linaro.org; linux-acpi@vger.kernel.org
-Subject: Re: [PATCH V2 0/4] ACPI/ARM: AMBA bus ACPI module
-
-Hi,
-
-On Fri, Nov 22, 2013 at 10:12 AM, Brandon Anderson <brandon.anderson@amd.com> wrote:
-> This patch series requires the fixed-clock patches from Hanjun Guo.
-
-I don't see them posted anywhere? Please don't post patches that don't apply to mainline (or to publicly posted dependencies).
-
->  arch/arm64/boot/dts/foundation-v8-acpi.dts        |   10 +-
->  arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts       |    4 +
->  arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi |    8 +
-
-These files don't exist in mainline, nor in linux-next.
-
-
--Olof
-
-
+g.
