@@ -1,89 +1,73 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: Re: [PATCH 11/12] ACPI: use of ACPI_FADT_32BIT_TIMER is not allowed
- in HW reduced mode
-Date: Thu, 21 Nov 2013 16:43:59 -0700
-Message-ID: <528E9ABF.1020003@linaro.org>
-References: <1384047382-20623-1-git-send-email-al.stone@linaro.org> <1384047382-20623-12-git-send-email-al.stone@linaro.org> <1401228.IWQJyQWsXM@vostro.rjw.lan> <528D3488.9080905@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: al.stone@linaro.org
+Subject: [PATCH v2 0/6] Hardware Reduced Mode cleanup for ACPI
+Date: Thu, 21 Nov 2013 17:41:49 -0700
+Message-ID: <1385080915-23430-1-git-send-email-al.stone@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:49038 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752079Ab3KUXoB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Nov 2013 18:44:01 -0500
-Received: by mail-ie0-f181.google.com with SMTP id e14so876131iej.40
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Nov 2013 15:44:00 -0800 (PST)
-In-Reply-To: <528D3488.9080905@linaro.org>
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:39849 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753041Ab3KVAmJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Nov 2013 19:42:09 -0500
+Received: by mail-pd0-f169.google.com with SMTP id v10so511749pde.0
+        for <linux-acpi@vger.kernel.org>; Thu, 21 Nov 2013 16:42:09 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <ahs3@redhat.com>
+To: linux-acpi@vger.kernel.org
+Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Al Stone <al.stone@linaro.org>
 
-On 11/20/2013 03:15 PM, Al Stone wrote:
-> On 11/17/2013 03:26 PM, Rafael J. Wysocki wrote:
->> On Saturday, November 09, 2013 06:36:21 PM al.stone@linaro.org wrote:
->>> From: Al Stone <ahs3@redhat.com>
->>
->> I'm reading the patch as "the timer resolution in HW reduced mode is
->> always
->> 32-bit".  Is my reading correct?
->
-> Whups, I see what I did.  You are reading the patch correctly.
->
-> However, what the code should ultimately do is ignore the
-> ACPI_FADT_32BIT_TIMER flag completely.  Let me look at where the
-> timer_resolution field is being used also since it is not immediately
-> clear what value it should have, or if it should even be used, when
-> in reduced HW mode.
+From: Al Stone <al.stone@linaro.org>
 
-On further investigation, I'll take this patch out of this set.
-I think this needs better handling in the ACPICA code so I'll work
-with them on that.
+This series of patches starts with Hanjun's patch to create a kernel
+config item for CONFIG_ACPI_REDUCED_HARDWARE [0].  Building on that, I
+then reviewed all of the code that touched any of several fields in the
+FADT that the OSPM is supposed to ignore when ACPI is in Hardware Reduced
+mode [1].  Any time there was a use of one of the fields to be ignored,
+I evaluated whether or not the code was implementing Hardware Reduced
+mode correctly.  Similarly, for each the flags in the FADT flags field
+that are to be ignored in Hardware Reduced mode, the kernel code was again
+scanned for proper usage.  The remainder of the patches are to fix all of
+the situations I could find where the kernel would not behave correctly
+in this ACPI mode.
 
-In the meantime, the spec seems to be completely mum on what the
-timer resolution should be in reduced HW mode.  What's more, it
-looks like acpi_get_system_info() never gets called in the first
-place, so this change would be irrelevant.  Further, it also looks
-like acpi_get_timer_resolution() (which returns the timer_resolution
-value) never gets called either, nor is the timer_resolution used
-outside of the ACPICA code in any way.
+These seem to work just fine on the RTSM model for ARMv7, both with and
+without ACPI enabled, and with and without ACPI_REDUCED_HARDWARE enabled;
+similarly for the FVP model for ARMv8.  The patches for ACPI on ARM
+hardware will be coming later but they presume that reduced HW mode is
+functioning correctly.  In the meantime, there's no way I can think of
+to test all possible scenarios so feedback would be greatly appreciated.
 
-So, whenever the right answer gets figured out in ACPICA, it will 
-eventually get pulled into Linux ACPI.
 
->>> Signed-off-by: Al Stone <al.stone@linaro.org>
->>> ---
->>>   drivers/acpi/acpica/utxface.c | 3 ++-
->>>   1 file changed, 2 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/acpi/acpica/utxface.c
->>> b/drivers/acpi/acpica/utxface.c
->>> index be322c8..fe94b3e 100644
->>> --- a/drivers/acpi/acpica/utxface.c
->>> +++ b/drivers/acpi/acpica/utxface.c
->>> @@ -187,7 +187,8 @@ acpi_status acpi_get_system_info(struct
->>> acpi_buffer * out_buffer)
->>>
->>>       /* Timer resolution - 24 or 32 bits  */
->>>
->>> -    if (acpi_gbl_FADT.flags & ACPI_FADT_32BIT_TIMER) {
->>> +    if (!acpi_gbl_reduced_hardware &&
->>> +        (acpi_gbl_FADT.flags & ACPI_FADT_32BIT_TIMER)) {
->>>           info_ptr->timer_resolution = 24;
->>>       } else {
->>>           info_ptr->timer_resolution = 32;
->>>
->
->
+[0] List at https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI/AcpiReducedHw#Section_5:_ACPI_Software_Programming_Model
+[1] Please see the ACPI Specification v5.0 for details on Hardware Reduced
+    mode.
 
+
+Changes for v2:
+   -- Remove patch that was outside of reduced HW mode changes
+   -- Simplify CONFIG_ACPI_REDUCED_HARDWARE in Kconfig
+   -- Simplify use of CONFIG_ACPI_REDUCED_HARDWARE in #ifdefs
+   -- Ensure changelogs are present
+   -- Combine and simplify previous patches 8 & 10
+
+
+Al Stone (6):
+  ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE to enable this ACPI mode
+  ACPI: bus master reload not supported in reduced HW mode
+  ACPI: HW reduced mode does not allow use of the FADT sci_interrupt
+    field
+  ACPI: ARM: exclude DMI calls
+  ACPI: do not reserve memory regions for some FADT entries in HW
+    reduced mode
+  ACPI: in HW reduced mode, using FADT PM information is not allowed.
+
+ drivers/acpi/Kconfig            |  8 ++++++++
+ drivers/acpi/bus.c              |  3 ++-
+ drivers/acpi/osl.c              | 24 ++++++++++++------------
+ drivers/acpi/pci_link.c         |  2 ++
+ drivers/acpi/processor_idle.c   | 16 ++++++++++++++--
+ include/acpi/platform/aclinux.h |  4 ++++
+ include/linux/dmi.h             |  2 +-
+ 7 files changed, 43 insertions(+), 16 deletions(-)
 
 -- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Linaro Enterprise Group
-al.stone@linaro.org
------------------------------------
+1.8.3.1
+
