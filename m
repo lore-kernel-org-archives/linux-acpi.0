@@ -1,67 +1,88 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 05/12] ACPI: ARM: exclude calls on ARM platforms, not
- include them on x86
-Date: Fri, 22 Nov 2013 06:19:06 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880248C975@SHSMSX101.ccr.corp.intel.com>
+Subject: RE: [PATCH 06/12] ACPI: ensure several FADT fields are only used in
+ HW reduced mode
+Date: Fri, 22 Nov 2013 06:26:54 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880248C99B@SHSMSX101.ccr.corp.intel.com>
 References: <1384047382-20623-1-git-send-email-al.stone@linaro.org>
- <1384047382-20623-6-git-send-email-al.stone@linaro.org>
+ <1384047382-20623-7-git-send-email-al.stone@linaro.org>
+ <1AE640813FDE7649BE1B193DEA596E880248C923@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:28593 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:12933 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750819Ab3KVGTM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 01:19:12 -0500
-In-Reply-To: <1384047382-20623-6-git-send-email-al.stone@linaro.org>
+	id S1750819Ab3KVG07 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 01:26:59 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880248C923@SHSMSX101.ccr.corp.intel.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "al.stone@linaro.org" <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>, "al.stone@linaro.org" <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Al Stone <ahs3@redhat.com>
 
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of al.stone@linaro.org
-> Sent: Sunday, November 10, 2013 9:36 AM
-> 
-> From: Al Stone <ahs3@redhat.com>
-> 
-> Corrected #ifdef so that DMI is not used on ARM platforms which are
-> currently implementing reduced HW mode.
-> 
-> Signed-off-by: Al Stone <al.stone@linaro.org>
-> ---
->  drivers/acpi/bus.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 6a54dd5..f41949a 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -513,11 +513,15 @@ void __init acpi_early_init(void)
-> 
->  	acpi_gbl_permanent_mmap = 1;
-> 
-> +#if !(CONFIG_ARM || CONFIG_ARM64)
->  	/*
-> +	 * NB: ARM does not use DMI at present.
-> +	 *
->  	 * If the machine falls into the DMI check table,
->  	 * DSDT will be copied to memory
->  	 */
->  	dmi_check_system(dsdt_dmi_table);
-> +#endif
-
-I can see dsdt_dmi_table is well protected in this file.  So is that possible to introduce dmi_check_system() stub for non DMI systems?
+Sorry, this is wrong.
+There are still generic addresses in HW_REDUCED mode, please ignore this.
 
 Thanks
 -Lv
 
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Zheng, Lv
+> Sent: Friday, November 22, 2013 2:06 PM
+> To: al.stone@linaro.org; linux-acpi@vger.kernel.org
+> Cc: linaro-acpi@lists.linaro.org; Al Stone
+> Subject: RE: [PATCH 06/12] ACPI: ensure several FADT fields are only used in HW reduced mode
 > 
->  	status = acpi_reallocate_root_table();
->  	if (ACPI_FAILURE(status)) {
-> --
-> 1.8.3.1
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of al.stone@linaro.org
+> > Sent: Sunday, November 10, 2013 9:36 AM
+> >
+> > From: Al Stone <ahs3@redhat.com>
+> >
+> > In acpi_os_terminate(), it was assumed that several FADT entries were
+> > mapped into memory.  For HW reduced mode, that will not be the case.
+> >
+> > Signed-off-by: Al Stone <al.stone@linaro.org>
+> > ---
+> >  drivers/acpi/osl.c | 10 ++++++----
+> >  1 file changed, 6 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> > index 017b85c..075545e 100644
+> > --- a/drivers/acpi/osl.c
+> > +++ b/drivers/acpi/osl.c
+> > @@ -1812,10 +1812,12 @@ acpi_status acpi_os_terminate(void)
+> >  						 acpi_irq_handler);
+> >  	}
+> >
+> > -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
+> > -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
+> > -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
+> > -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
+> > +	if (!acpi_gbl_reduced_hardware) {
+> > +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
+> > +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
+> > +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
+> > +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
+> > +	}
+> >
+> >  	destroy_workqueue(kacpid_wq);
+> >  	destroy_workqueue(kacpi_notify_wq);
 > 
+> Is that possible to make stubs for acpi_os_map_generic_address and acpi_os_unmap_generic_address when
+> CONFIG_ACPI_REDUCED_HARDWARE is enabled?
+> So that this patch and some logics in the PATCH 07 can be removed.
+> 
+> Thanks
+> -Lv
+> 
+> > --
+> > 1.8.3.1
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
