@@ -1,52 +1,65 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 11/12] ACPI: use of ACPI_FADT_32BIT_TIMER is not allowed in HW reduced mode
-Date: Fri, 22 Nov 2013 13:08:53 +0100
-Message-ID: <4190385.1cnkRW6cdN@vostro.rjw.lan>
-References: <1384047382-20623-1-git-send-email-al.stone@linaro.org> <528D3488.9080905@linaro.org> <528E9ABF.1020003@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 0/7] gpio / ACPI: convert users to gpiod_* and drop acpi_gpio.h
+Date: Fri, 22 Nov 2013 14:14:27 +0200
+Message-ID: <1385122474-14926-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50351 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753277Ab3KVL4L (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 06:56:11 -0500
-In-Reply-To: <528E9ABF.1020003@linaro.org>
+Received: from mga11.intel.com ([192.55.52.93]:54222 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754837Ab3KVMOj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Nov 2013 07:14:39 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <ahs3@redhat.com>
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, November 21, 2013 04:43:59 PM Al Stone wrote:
-> On 11/20/2013 03:15 PM, Al Stone wrote:
-> > On 11/17/2013 03:26 PM, Rafael J. Wysocki wrote:
-> >> On Saturday, November 09, 2013 06:36:21 PM al.stone@linaro.org wrote:
-> >>> From: Al Stone <ahs3@redhat.com>
-> >>
-> >> I'm reading the patch as "the timer resolution in HW reduced mode is
-> >> always
-> >> 32-bit".  Is my reading correct?
-> >
-> > Whups, I see what I did.  You are reading the patch correctly.
-> >
-> > However, what the code should ultimately do is ignore the
-> > ACPI_FADT_32BIT_TIMER flag completely.  Let me look at where the
-> > timer_resolution field is being used also since it is not immediately
-> > clear what value it should have, or if it should even be used, when
-> > in reduced HW mode.
-> 
-> On further investigation, I'll take this patch out of this set.
-> I think this needs better handling in the ACPICA code so I'll work
-> with them on that.
-> 
-> In the meantime, the spec seems to be completely mum on what the
-> timer resolution should be in reduced HW mode.
+Hi all,
 
-If that's about the ACPI PM timer, that's because it's not present
-at all in HW reduced mode.
+Now that the mainline kernel has full ACPI support for the GPIO descriptor
+interface we can get rid of ACPI specific GPIO functions in favor of GPIO
+descriptor (gpiod_*) interfaces.
 
-Thanks!
+This series first converts the existing two users to this interface and
+then modifies gpiolib and gpiolib-acpi so that the ACPI functions are only
+called internally in drivers/gpio. We then remove the acpi_gpio.h and
+require all users to user gpiod_* interfaces.
+
+This is second version of the series. Changes to the previous [1]:
+ * paz00 is passing the lookup table so that we don't need to have gpio
+   conversion function in rfkill-gpio.c anymore.
+ * Corrected sdhci-acpi.c to pass con_id and added call to
+   gpiod_direction_input().
+
+I suppose it would make sense to merge the whole series via GPIO or ACPI
+trees because there's a dependency that the first two patches need to be
+applied before last three. Otherwise the drivers in question fail to
+compile.
+
+[1] https://lkml.org/lkml/2013/11/21/317
+
+Heikki Krogerus (3):
+  net: rfkill: gpio: convert to descriptor-based GPIO interface
+  ARM: tegra: add gpiod_lookup table for paz00
+  net: rfkill: gpio: remove gpio conversion support
+
+Mika Westerberg (4):
+  mmc: sdhci-acpi: covert to use GPIO descriptor API
+  gpio / ACPI: register to ACPI events automatically
+  gpio / ACPI: get rid of acpi_gpio.h
+  Documentation / ACPI: update to GPIO descriptor API
+
+ Documentation/acpi/enumeration.txt | 36 ++++--------------
+ arch/arm/mach-tegra/board-paz00.c  |  9 ++++-
+ drivers/gpio/gpiolib-acpi.c        | 20 +++++++---
+ drivers/gpio/gpiolib.c             |  5 ++-
+ drivers/gpio/gpiolib.h             | 46 +++++++++++++++++++++++
+ drivers/mmc/host/sdhci-acpi.c      | 26 ++++++-------
+ drivers/pinctrl/pinctrl-baytrail.c |  4 --
+ include/linux/acpi_gpio.h          | 51 -------------------------
+ net/rfkill/rfkill-gpio.c           | 77 +++++++++++++++++---------------------
+ 9 files changed, 125 insertions(+), 149 deletions(-)
+ create mode 100644 drivers/gpio/gpiolib.h
+ delete mode 100644 include/linux/acpi_gpio.h
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.8.4.3
+
