@@ -1,64 +1,70 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 2/6] ACPI: bus master reload not supported in reduced
- HW mode
-Date: Fri, 22 Nov 2013 11:06:25 +0800
-Message-ID: <528ECA31.80101@linaro.org>
-References: <1385080915-23430-1-git-send-email-al.stone@linaro.org> <1385080915-23430-3-git-send-email-al.stone@linaro.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 06/12] ACPI: ensure several FADT fields are only used in
+ HW reduced mode
+Date: Fri, 22 Nov 2013 06:05:34 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880248C923@SHSMSX101.ccr.corp.intel.com>
+References: <1384047382-20623-1-git-send-email-al.stone@linaro.org>
+ <1384047382-20623-7-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:53189 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146Ab3KVDGT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Nov 2013 22:06:19 -0500
-Received: by mail-pa0-f52.google.com with SMTP id ld10so670987pab.39
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Nov 2013 19:06:18 -0800 (PST)
-In-Reply-To: <1385080915-23430-3-git-send-email-al.stone@linaro.org>
+Received: from mga02.intel.com ([134.134.136.20]:1335 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750887Ab3KVGFj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 01:05:39 -0500
+In-Reply-To: <1384047382-20623-7-git-send-email-al.stone@linaro.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: al.stone@linaro.org, linux-acpi@vger.kernel.org
-Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org
+To: "al.stone@linaro.org" <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Al Stone <ahs3@redhat.com>
 
-On 2013-11-22 8:41, al.stone@linaro.org wrote:
-> From: Al Stone <al.stone@linaro.org>
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of al.stone@linaro.org
+> Sent: Sunday, November 10, 2013 9:36 AM
 > 
-> Remove the saving and restoring of bus master reload registers in
-> suspend/resume when in reduced HW mode; according to the spec, no
-> such registers should exist
+> From: Al Stone <ahs3@redhat.com>
+> 
+> In acpi_os_terminate(), it was assumed that several FADT entries were
+> mapped into memory.  For HW reduced mode, that will not be the case.
 > 
 > Signed-off-by: Al Stone <al.stone@linaro.org>
 > ---
->  drivers/acpi/processor_idle.c | 8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
+>  drivers/acpi/osl.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index 597cdab..b18e7ab 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -202,7 +202,7 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
->  
->  #endif
->  
-> -#ifdef CONFIG_PM_SLEEP
-> +#if (IS_ENABLED(CONFIG_PM_SLEEP) && !IS_ENABLED(CONFIG_ACPI_REDUCED_HARDWARE))
->  static u32 saved_bm_rld;
->  
->  static int acpi_processor_suspend(void)
-> @@ -236,7 +236,11 @@ void acpi_processor_syscore_exit(void)
->  {
->  	unregister_syscore_ops(&acpi_processor_syscore_ops);
->  }
-> -#endif /* CONFIG_PM_SLEEP */
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 017b85c..075545e 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -1812,10 +1812,12 @@ acpi_status acpi_os_terminate(void)
+>  						 acpi_irq_handler);
+>  	}
+> 
+> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
+> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
+> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
+> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
+> +	if (!acpi_gbl_reduced_hardware) {
+> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
+> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
+> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
+> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
+> +	}
+> 
+>  	destroy_workqueue(kacpid_wq);
+>  	destroy_workqueue(kacpi_notify_wq);
 
-I think the code below is not needed, because acpi_processor_suspend/resume()
-are not used by anywhere else.
-
-> +#else
-> +/* Bus master reload is not supported in reduced HW mode. */
-> +static int acpi_processor_suspend(void) { return 0; }
-> +static void acpi_processor_resume(void) { return; }
-> +#endif
+Is that possible to make stubs for acpi_os_map_generic_address and acpi_os_unmap_generic_address when CONFIG_ACPI_REDUCED_HARDWARE is enabled?
+So that this patch and some logics in the PATCH 07 can be removed.
 
 Thanks
-Hanjun
+-Lv
+
+> --
+> 1.8.3.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
