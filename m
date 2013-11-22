@@ -1,70 +1,42 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 06/12] ACPI: ensure several FADT fields are only used in
- HW reduced mode
-Date: Fri, 22 Nov 2013 06:05:34 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880248C923@SHSMSX101.ccr.corp.intel.com>
-References: <1384047382-20623-1-git-send-email-al.stone@linaro.org>
- <1384047382-20623-7-git-send-email-al.stone@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: "David E. Box" <david.e.box@linux.intel.com>
+Subject: [PATCH 2/2] ACPI / platform: Add ACPI ID for Intel IOSF-SB
+Date: Thu, 21 Nov 2013 22:05:57 -0800
+Message-ID: <1385100357-5459-2-git-send-email-david.e.box@linux.intel.com>
+References: <1385100357-5459-1-git-send-email-david.e.box@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:1335 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:13428 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750887Ab3KVGFj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 01:05:39 -0500
-In-Reply-To: <1384047382-20623-7-git-send-email-al.stone@linaro.org>
-Content-Language: en-US
+	id S1750765Ab3KVGJR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Nov 2013 01:09:17 -0500
+In-Reply-To: <1385100357-5459-1-git-send-email-david.e.box@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "al.stone@linaro.org" <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Al Stone <ahs3@redhat.com>
+To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@sisk.pl
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "David E. Box" <david.e.box@linux.intel.com>
 
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of al.stone@linaro.org
-> Sent: Sunday, November 10, 2013 9:36 AM
-> 
-> From: Al Stone <ahs3@redhat.com>
-> 
-> In acpi_os_terminate(), it was assumed that several FADT entries were
-> mapped into memory.  For HW reduced mode, that will not be the case.
-> 
-> Signed-off-by: Al Stone <al.stone@linaro.org>
-> ---
->  drivers/acpi/osl.c | 10 ++++++----
->  1 file changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 017b85c..075545e 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -1812,10 +1812,12 @@ acpi_status acpi_os_terminate(void)
->  						 acpi_irq_handler);
->  	}
-> 
-> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
-> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
-> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
-> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
-> +	if (!acpi_gbl_reduced_hardware) {
-> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
-> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
-> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
-> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
-> +	}
-> 
->  	destroy_workqueue(kacpid_wq);
->  	destroy_workqueue(kacpi_notify_wq);
+From: "David E. Box" <david.e.box@linux.intel.com>
 
-Is that possible to make stubs for acpi_os_map_generic_address and acpi_os_unmap_generic_address when CONFIG_ACPI_REDUCED_HARDWARE is enabled?
-So that this patch and some logics in the PATCH 07 can be removed.
+Adds ACPI ID for Intel IOSF-SB MailBox device found in BayTrail platforms.
 
-Thanks
--Lv
+Signed-off-by: David E. Box <david.e.box@linux.intel.com>
+---
+ drivers/acpi/acpi_platform.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-> --
-> 1.8.3.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index 1bde127..12aa55c 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -29,7 +29,8 @@ ACPI_MODULE_NAME("platform");
+ static const struct acpi_device_id acpi_platform_device_ids[] = {
+ 
+ 	{ "PNP0D40" },
+-
++	/* Intel IOSF-SB Message Bus */
++	{ "INT33BD" },
+ 	{ }
+ };
+ 
+-- 
+1.7.10.4
+
