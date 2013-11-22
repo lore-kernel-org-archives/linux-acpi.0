@@ -1,87 +1,106 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: Re: [PATCH v2 0/6] Hardware Reduced Mode cleanup for ACPI
-Date: Fri, 22 Nov 2013 16:33:38 -0700
-Message-ID: <528FE9D2.4050806@linaro.org>
-References: <1385080915-23430-1-git-send-email-al.stone@linaro.org> <1706311.28Hh6vagbz@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Lv Zheng <zetalog@gmail.com>
+Subject: [PATCH 4/4] ACPI: Add support to force header inclusion rules for <linux/acpi.h>.
+Date: Sat, 23 Nov 2013 07:37:04 +0800
+Message-ID: <2930f1fabbb8319c11180c8db3d1693adc71aac1.1385163359.git.lv.zheng@intel.com>
+References: <cover.1385094640.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:61441 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756141Ab3KVXdk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 18:33:40 -0500
-Received: by mail-ie0-f178.google.com with SMTP id lx4so3282479iec.37
-        for <linux-acpi@vger.kernel.org>; Fri, 22 Nov 2013 15:33:40 -0800 (PST)
-In-Reply-To: <1706311.28Hh6vagbz@vostro.rjw.lan>
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:60145 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755614Ab3KVXhd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 18:37:33 -0500
+In-Reply-To: <cover.1385094640.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Olof Johansson <olof@lixom.net>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 11/22/2013 04:18 PM, Rafael J. Wysocki wrote:
-> On Thursday, November 21, 2013 05:41:49 PM al.stone@linaro.org wrote:
->> From: Al Stone <al.stone@linaro.org>
->>
->> This series of patches starts with Hanjun's patch to create a kernel
->> config item for CONFIG_ACPI_REDUCED_HARDWARE [0].  Building on that, I
->> then reviewed all of the code that touched any of several fields in the
->> FADT that the OSPM is supposed to ignore when ACPI is in Hardware Reduced
->> mode [1].  Any time there was a use of one of the fields to be ignored,
->> I evaluated whether or not the code was implementing Hardware Reduced
->> mode correctly.  Similarly, for each the flags in the FADT flags field
->> that are to be ignored in Hardware Reduced mode, the kernel code was again
->> scanned for proper usage.  The remainder of the patches are to fix all of
->> the situations I could find where the kernel would not behave correctly
->> in this ACPI mode.
->>
->> These seem to work just fine on the RTSM model for ARMv7, both with and
->> without ACPI enabled, and with and without ACPI_REDUCED_HARDWARE enabled;
->> similarly for the FVP model for ARMv8.  The patches for ACPI on ARM
->> hardware will be coming later but they presume that reduced HW mode is
->> functioning correctly.  In the meantime, there's no way I can think of
->> to test all possible scenarios so feedback would be greatly appreciated.
->>
->>
->> [0] List at https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI/AcpiReducedHw#Section_5:_ACPI_Software_Programming_Model
->> [1] Please see the ACPI Specification v5.0 for details on Hardware Reduced
->>      mode.
->>
->>
->> Changes for v2:
->>     -- Remove patch that was outside of reduced HW mode changes
->>     -- Simplify CONFIG_ACPI_REDUCED_HARDWARE in Kconfig
->>     -- Simplify use of CONFIG_ACPI_REDUCED_HARDWARE in #ifdefs
->>     -- Ensure changelogs are present
->>     -- Combine and simplify previous patches 8 & 10
->>
->>
->> Al Stone (6):
->>    ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE to enable this ACPI mode
->>    ACPI: bus master reload not supported in reduced HW mode
->>    ACPI: HW reduced mode does not allow use of the FADT sci_interrupt
->>      field
->>    ACPI: ARM: exclude DMI calls
->>    ACPI: do not reserve memory regions for some FADT entries in HW
->>      reduced mode
->>    ACPI: in HW reduced mode, using FADT PM information is not allowed.
->
-> As Olof noted in another thread, all ACPI patches related to ARM should be
-> CCed to linux-arm-kernel.
->
-> Can you please do that in the future?
->
-> Rafael
->
+From: Lv Zheng <lv.zheng@intel.com>
 
-Of course.
+As there is only CONFIG_ACPI=n processing in the <linux/acpi.h>, it is not
+safe to include <acpi/acpi.h>, <acpi/acpi_drivers.h> and <acpi/acpi_bus.h>
+directly for source out of Linux ACPI subsystems.
 
+This patch adds error messaging to warn developers of such wrong
+inclusions.
+
+In order not to be bisected and reverted as a wrong commit, warning
+messages are carefully split into a seperate patch other than the wrong
+inclusion cleanups.
+
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/Makefile    |    2 +-
+ include/acpi/acpi_bus.h         |    5 +++++
+ include/acpi/acpi_drivers.h     |    5 +++++
+ include/acpi/platform/aclinux.h |   10 ++++++++++
+ 4 files changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
+index 4383040..7738677 100644
+--- a/drivers/acpi/acpica/Makefile
++++ b/drivers/acpi/acpica/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for ACPICA Core interpreter
+ #
+ 
+-ccflags-y			:= -Os
++ccflags-y			:= -Os -DLINUXIZED_ACPICA
+ ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
+ 
+ # use acpi.o to put all files here into acpi.o modparam namespace
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 0af9667..0b1ea80 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -26,6 +26,11 @@
+ #ifndef __ACPI_BUS_H__
+ #define __ACPI_BUS_H__
+ 
++/* <acpi/acpi_bus.h> is not safe for CONFIG_ACPI=n environment */
++#ifndef _LINUX_ACPI_H
++#error "Please don't include <acpi/acpi_bus.h> direclty, including <linux/acpi.h> instead."
++#endif
++
+ #include <linux/device.h>
+ 
+ 
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index f3f1219..f5bed3a 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -26,6 +26,11 @@
+ #ifndef __ACPI_DRIVERS_H__
+ #define __ACPI_DRIVERS_H__
+ 
++/* <acpi/acpi_drivers.h> is not safe for CONFIG_ACPI=n environment */
++#ifndef _LINUX_ACPI_H
++#error "Please don't include <acpi/acpi_drivers.h> directly, including <linux/acpi.h> instead."
++#endif
++
+ 
+ #define ACPI_MAX_STRING			80
+ 
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 28f4f4d..0e05771 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -44,6 +44,16 @@
+ #ifndef __ACLINUX_H__
+ #define __ACLINUX_H__
+ 
++#ifdef __KERNEL__
++
++/* ACPICA external files should not include ACPICA headers directly. */
++
++#if !defined(LINUXIZED_ACPICA) && !defined(_LINUX_ACPI_H)
++#error "Please don't include <acpi/acpi.h> directly, including <linux/acpi.h> instead."
++#endif
++
++#endif
++
+ /* Common (in-kernel/user-space) ACPICA configuration */
+ 
+ #define ACPI_USE_SYSTEM_CLIBRARY
 -- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Linaro Enterprise Group
-al.stone@linaro.org
------------------------------------
+1.7.10
+
