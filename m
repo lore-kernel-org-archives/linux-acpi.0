@@ -1,46 +1,145 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / scan: User direct recurrence for device hierarchy walks
-Date: Sat, 23 Nov 2013 00:24:24 +0100
-Message-ID: <3969579.ZtCX3j95ox@vostro.rjw.lan>
-References: <1538742.Kb0j0zok76@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Lv Zheng <zetalog@gmail.com>
+Subject: [PATCH 0/4] ACPI: Cleanup header inclusions.
+Date: Sat, 23 Nov 2013 07:26:31 +0800
+Message-ID: <cover.1385094640.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56468 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755413Ab3KVXLl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 18:11:41 -0500
-In-Reply-To: <1538742.Kb0j0zok76@vostro.rjw.lan>
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:39822 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755338Ab3KVX1f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 18:27:35 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Aaron Lu <aaron.lu@intel.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Saturday, November 23, 2013 12:22:23 AM Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Rework acpi_bus_trim() and acpi_bus_device_attach(), which is
-> renamed as acpi_bus_attach(), to walk the list of each device
-> object's children directly and call themselves recursively for
-> each child instead of using acpi_walk_namespace().  This
-> simplifies the code quite a bit and avoids the overhead of
-> callbacks and the ACPICA's internal processing which are not
-> really necessary for these two routines.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
-> 
-> Hi,
-> 
-> This is on top of the linux-pm/bleeding-edge branch that contains the series
-> I posted previously: http://marc.info/?l=linux-pci&m=138470560909690&w=4
+From: Lv Zheng <lv.zheng@intel.com>
 
-The subject should be "ACPI / scan: Use direct recurrence for device hierarchy
-walks", sorry for the typo.
+ACPICA header files are lacking in stub protections.  This makes all ACPICA
+header files could only be included for CONFIG_ACPI=y environment.  This
+infects new ACPI prototypes, if such prototypes referenced ACPICA defined
+types, they must be incldued only in the CONFIG_ACPI=y environment.  The
+<acpi/acpi_bus.h> and <acpi/acpi_drivers.h> are the monstrosity infants
+born under this background, directly including them in the CONFIG_ACPI=n
+environment is not safe.  The infection spreads to whole kernel source tree
+that we can see "#ifdef CONFIG_ACPI" here and there.
 
-Thanks!
+This patchset tries to enforces <linux/acpi.h> inclusions instead of
+<acpi/acpi.h>, <acpi/acpi_bus.h> and <acpi/acpi_drivers.h> inclusions.
+
+Lv Zheng (4):
+  ACPICA: Linux: Cleanup wrong ACPICA inclusions.
+  ACPI: Cleanup <acpi/acpi_bus.h> and <acpi/acpi_drivers.h> inclusions.
+  ACPICA: Cleanup <acpi/acpi.h> inclusions.
+  ACPI: Add support to force header inclusion rules for <linux/acpi.h>.
+
+ arch/ia64/hp/common/aml_nfw.c                        |    3 +--
+ arch/x86/kernel/apic/apic_flat_64.c                  |    4 +---
+ arch/x86/kernel/apic/io_apic.c                       |    3 ---
+ arch/x86/pci/mmconfig_32.c                           |    1 -
+ arch/x86/platform/olpc/olpc-xo15-sci.c               |    3 +--
+ drivers/acpi/ac.c                                    |    3 +--
+ drivers/acpi/acpi_extlog.c                           |    1 -
+ drivers/acpi/acpi_pad.c                              |    3 +--
+ drivers/acpi/acpica/Makefile                         |    2 +-
+ drivers/acpi/apei/einj.c                             |    1 -
+ drivers/acpi/battery.c                               |    3 +--
+ drivers/acpi/blacklist.c                             |    1 -
+ drivers/acpi/bus.c                                   |    2 --
+ drivers/acpi/button.c                                |    3 +--
+ drivers/acpi/custom_method.c                         |    2 +-
+ drivers/acpi/debugfs.c                               |    2 +-
+ drivers/acpi/dock.c                                  |    2 --
+ drivers/acpi/ec.c                                    |    3 +--
+ drivers/acpi/event.c                                 |    2 +-
+ drivers/acpi/fan.c                                   |    3 +--
+ drivers/acpi/hed.c                                   |    2 --
+ drivers/acpi/numa.c                                  |    1 -
+ drivers/acpi/nvs.c                                   |    1 -
+ drivers/acpi/osl.c                                   |    2 --
+ drivers/acpi/pci_irq.c                               |    2 --
+ drivers/acpi/pci_link.c                              |    3 +--
+ drivers/acpi/pci_root.c                              |    2 --
+ drivers/acpi/power.c                                 |    3 +--
+ drivers/acpi/proc.c                                  |    3 +--
+ drivers/acpi/processor_core.c                        |    2 +-
+ drivers/acpi/processor_idle.c                        |    1 -
+ drivers/acpi/processor_perflib.c                     |    3 +--
+ drivers/acpi/processor_thermal.c                     |    3 +--
+ drivers/acpi/processor_throttling.c                  |    3 +--
+ drivers/acpi/sbshc.c                                 |    3 +--
+ drivers/acpi/scan.c                                  |    1 -
+ drivers/acpi/sleep.c                                 |    2 --
+ drivers/acpi/sysfs.c                                 |    2 +-
+ drivers/acpi/thermal.c                               |    3 +--
+ drivers/acpi/utils.c                                 |    2 --
+ drivers/acpi/video.c                                 |    3 +--
+ drivers/acpi/wakeup.c                                |    1 -
+ drivers/ata/libata-acpi.c                            |    1 -
+ drivers/ata/pata_acpi.c                              |    2 +-
+ drivers/char/hpet.c                                  |    1 -
+ drivers/char/tpm/tpm_acpi.c                          |    2 +-
+ drivers/char/tpm/tpm_ppi.c                           |    1 -
+ drivers/gpu/drm/i915/intel_acpi.c                    |    1 -
+ drivers/gpu/drm/nouveau/nouveau_acpi.c               |    3 ---
+ drivers/gpu/drm/radeon/radeon_acpi.c                 |    2 --
+ drivers/hv/vmbus_drv.c                               |    1 -
+ drivers/hwmon/acpi_power_meter.c                     |    3 +--
+ drivers/hwmon/asus_atk0110.c                         |    5 +----
+ drivers/ide/ide-acpi.c                               |    1 -
+ drivers/input/misc/atlas_btns.c                      |    2 +-
+ drivers/iommu/amd_iommu_init.c                       |    1 -
+ drivers/iommu/intel_irq_remapping.c                  |    2 +-
+ drivers/pci/hotplug/acpiphp_ibm.c                    |    1 -
+ drivers/pci/hotplug/pciehp.h                         |    2 --
+ drivers/pci/ioapic.c                                 |    1 -
+ drivers/pci/pci-acpi.c                               |    2 --
+ drivers/pci/pci-label.c                              |    1 -
+ drivers/platform/x86/acer-wmi.c                      |    1 -
+ drivers/platform/x86/asus-laptop.c                   |    3 +--
+ drivers/platform/x86/asus-wmi.c                      |    3 +--
+ drivers/platform/x86/classmate-laptop.c              |    2 +-
+ drivers/platform/x86/dell-wmi-aio.c                  |    1 -
+ drivers/platform/x86/dell-wmi.c                      |    1 -
+ drivers/platform/x86/eeepc-laptop.c                  |    3 +--
+ drivers/platform/x86/eeepc-wmi.c                     |    2 +-
+ drivers/platform/x86/hp_accel.c                      |    2 +-
+ drivers/platform/x86/ideapad-laptop.c                |    3 +--
+ drivers/platform/x86/intel-rst.c                     |    2 +-
+ drivers/platform/x86/intel-smartconnect.c            |    2 +-
+ drivers/platform/x86/intel_menlow.c                  |    3 +--
+ drivers/platform/x86/intel_oaktrail.c                |    2 --
+ drivers/platform/x86/mxm-wmi.c                       |    3 +--
+ drivers/platform/x86/panasonic-laptop.c              |    3 +--
+ drivers/platform/x86/pvpanic.c                       |    3 +--
+ drivers/platform/x86/samsung-q10.c                   |    2 +-
+ drivers/platform/x86/sony-laptop.c                   |    2 --
+ drivers/platform/x86/tc1100-wmi.c                    |    4 +---
+ drivers/platform/x86/thinkpad_acpi.c                 |    2 +-
+ drivers/platform/x86/toshiba_acpi.c                  |    2 +-
+ drivers/platform/x86/toshiba_bluetooth.c             |    3 +--
+ drivers/platform/x86/wmi.c                           |    2 --
+ drivers/platform/x86/xo15-ebook.c                    |    3 +--
+ drivers/pnp/pnpacpi/core.c                           |    1 -
+ drivers/pnp/pnpacpi/pnpacpi.h                        |    1 -
+ drivers/sfi/sfi_acpi.c                               |    2 +-
+ drivers/staging/quickstart/quickstart.c              |    2 +-
+ drivers/usb/core/usb-acpi.c                          |    1 -
+ drivers/xen/xen-acpi-cpuhotplug.c                    |    2 --
+ drivers/xen/xen-acpi-memhotplug.c                    |    1 -
+ drivers/xen/xen-acpi-pad.c                           |    3 +--
+ drivers/xen/xen-acpi-processor.c                     |    3 +--
+ include/acpi/acpi_bus.h                              |    6 +++++-
+ include/acpi/acpi_drivers.h                          |    7 +++++--
+ include/acpi/platform/aclinux.h                      |    6 ++++++
+ include/linux/acpi_io.h                              |    2 +-
+ include/linux/ide.h                                  |    3 ---
+ include/linux/iscsi_ibft.h                           |    2 +-
+ include/linux/pci_hotplug.h                          |    3 +--
+ include/linux/sfi_acpi.h                             |    2 +-
+ include/linux/tboot.h                                |    2 +-
+ tools/power/cpupower/debug/kernel/cpufreq-test_tsc.c |    3 +--
+ 106 files changed, 75 insertions(+), 166 deletions(-)
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.7.10
+
