@@ -1,127 +1,453 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH 2/5] mmc: sdhci-acpi: covert to use GPIO descriptor API
-Date: Fri, 22 Nov 2013 10:53:18 +0200
-Message-ID: <528F1B7E.7010601@intel.com>
-References: <1385045153-25160-1-git-send-email-mika.westerberg@linux.intel.com> <1385045153-25160-3-git-send-email-mika.westerberg@linux.intel.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 2/4] ACPI/ARM: Add AMBA bus ACPI module
+Date: Fri, 22 Nov 2013 10:35:50 +0100
+Message-ID: <528F2576.6090000@linaro.org>
+References: <1384190170-8707-1-git-send-email-brandon.anderson@amd.com> <1384190170-8707-3-git-send-email-brandon.anderson@amd.com> <528E2233.9010306@linaro.org> <CE40542A5D952D47989966E71788B184037DE61F@satlexdag05.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1385045153-25160-3-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:60441 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750808Ab3KVJgV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 04:36:21 -0500
+Received: by mail-wi0-f177.google.com with SMTP id cc10so920097wib.16
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Nov 2013 01:36:20 -0800 (PST)
+In-Reply-To: <CE40542A5D952D47989966E71788B184037DE61F@satlexdag05.amd.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Anderson, Brandon" <Brandon.Anderson@amd.com>, "ssg.sos.patches" <ssg.sos.patches@amd.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 21/11/13 16:45, Mika Westerberg wrote:
-> The new descriptor based GPIO interface is now the recommend and more safer
 
-"recommend and more safer" -> "recommended and safer"
 
-> way of using GPIOs from device drivers. Convert the ACPI SDHCI driver to
-> use that interface.
-> 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
->  drivers/mmc/host/sdhci-acpi.c | 26 ++++++++++----------------
->  1 file changed, 10 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/sdhci-acpi.c b/drivers/mmc/host/sdhci-acpi.c
-> index ef19874fcd1f..379ddfe14bc7 100644
-> --- a/drivers/mmc/host/sdhci-acpi.c
-> +++ b/drivers/mmc/host/sdhci-acpi.c
-> @@ -31,10 +31,9 @@
->  #include <linux/bitops.h>
->  #include <linux/types.h>
->  #include <linux/err.h>
-> -#include <linux/gpio.h>
-> +#include <linux/gpio/consumer.h>
->  #include <linux/interrupt.h>
->  #include <linux/acpi.h>
-> -#include <linux/acpi_gpio.h>
->  #include <linux/pm.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/delay.h>
-> @@ -199,22 +198,19 @@ static irqreturn_t sdhci_acpi_sd_cd(int irq, void *dev_id)
->  	return IRQ_HANDLED;
->  }
->  
-> -static int sdhci_acpi_add_own_cd(struct device *dev, int gpio,
-> -				 struct mmc_host *mmc)
-> +static int sdhci_acpi_add_own_cd(struct device *dev, struct mmc_host *mmc)
->  {
-> +	struct gpio_desc *desc;
->  	unsigned long flags;
->  	int err, irq;
->  
-> -	if (gpio < 0) {
-> -		err = gpio;
-> +	desc = devm_gpiod_get_index(dev, NULL, 0);
-
-I notice that:
-
-	devm_gpio_request_one(.., label)
-		-> gpio_request_one(..., label)
-			-> gpiod_request(..., label)
-
-but:
-
-	devm_gpiod_get_index(..., con_id, ...)
-		-> gpiod_get_index(..., con_id, ...)
-			-> gpiod_request(..., con_id)
-
-which suggests that 'con_id' is equivalent to 'label'.
-i.e. "sd_cd".  Is it?
-
-> +	if (IS_ERR(desc)) {
-> +		err = PTR_ERR(desc);
->  		goto out;
->  	}
->  
-> -	err = devm_gpio_request_one(dev, gpio, GPIOF_DIR_IN, "sd_cd");
-> -	if (err)
-> -		goto out;
-> -
-> -	irq = gpio_to_irq(gpio);
-> +	irq = gpiod_to_irq(desc);
->  	if (irq < 0) {
->  		err = irq;
->  		goto out_free;
-> @@ -228,7 +224,7 @@ static int sdhci_acpi_add_own_cd(struct device *dev, int gpio,
->  	return 0;
->  
->  out_free:
-> -	devm_gpio_free(dev, gpio);
-> +	devm_gpiod_put(dev, desc);
->  out:
->  	dev_warn(dev, "failed to setup card detect wake up\n");
->  	return err;
-> @@ -254,7 +250,7 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
->  	struct resource *iomem;
->  	resource_size_t len;
->  	const char *hid;
-> -	int err, gpio;
-> +	int err;
->  
->  	if (acpi_bus_get_device(handle, &device))
->  		return -ENODEV;
-> @@ -279,8 +275,6 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
->  	if (IS_ERR(host))
->  		return PTR_ERR(host);
->  
-> -	gpio = acpi_get_gpio_by_index(dev, 0, NULL);
-> -
->  	c = sdhci_priv(host);
->  	c->host = host;
->  	c->slot = sdhci_acpi_get_slot(handle, hid);
-> @@ -338,7 +332,7 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
->  		goto err_free;
->  
->  	if (sdhci_acpi_flag(c, SDHCI_ACPI_SD_CD)) {
-> -		if (sdhci_acpi_add_own_cd(dev, gpio, host->mmc))
-> +		if (sdhci_acpi_add_own_cd(dev, host->mmc))
->  			c->use_runtime_pm = false;
->  	}
->  
-> 
-
+On 21.11.2013 18:30, Anderson, Brandon wrote:
+>
+>
+> -----Original Message-----
+> From: Tomasz Nowicki [mailto:tomasz.nowicki@linaro.org]
+> Sent: Thursday, November 21, 2013 9:10 AM
+> To: Anderson, Brandon; ssg.sos.patches; linaro-acpi@lists.linaro.org; linux-acpi@vger.kernel.org
+> Subject: Re: [PATCH 2/4] ACPI/ARM: Add AMBA bus ACPI module
+>
+> On 11.11.2013 18:16, Brandon Anderson wrote:
+>> This AMBA bus ACPI module provides a generic handler for compatible
+>> devices. It depends on a DSDT definition as provided in the related
+>> '0/4' email.
+>>
+>> It uses the same common code as the device tree method to probe for a
+>> hardware ID and match up a driver for each device.
+>>
+>>
+>> Signed-off-by: Brandon Anderson <brandon.anderson@amd.com>
+>> ---
+>>    drivers/acpi/acpi_platform.c |    2 +
+>>    drivers/amba/Makefile        |    2 +-
+>>    drivers/amba/acpi.c          |  339 ++++++++++++++++++++++++++++++++++++++++++
+>>    include/linux/amba/acpi.h    |   29 ++++
+>>    4 files changed, 371 insertions(+), 1 deletion(-)
+>>    create mode 100644 drivers/amba/acpi.c
+>>    create mode 100644 include/linux/amba/acpi.h
+>>
+>> diff --git a/drivers/acpi/acpi_platform.c
+>> b/drivers/acpi/acpi_platform.c index 37b8af8..fdfa990 100644
+>> --- a/drivers/acpi/acpi_platform.c
+>> +++ b/drivers/acpi/acpi_platform.c
+>> @@ -36,6 +36,8 @@ static const struct acpi_device_id acpi_platform_device_ids[] = {
+>>    	{ "LINA0007" }, /* armv8 pmu */
+>>    	{ "LINA0008" }, /* Fixed clock */
+>>
+>> +	{ "AMBA0000" },
+>> +
+>>    	{ }
+>>    };
+>>
+>> diff --git a/drivers/amba/Makefile b/drivers/amba/Makefile index
+>> 66e81c2..6d088e7 100644
+>> --- a/drivers/amba/Makefile
+>> +++ b/drivers/amba/Makefile
+>> @@ -1,2 +1,2 @@
+>> -obj-$(CONFIG_ARM_AMBA)		+= bus.o
+>> +obj-$(CONFIG_ARM_AMBA)		+= bus.o acpi.o
+>>    obj-$(CONFIG_TEGRA_AHB)		+= tegra-ahb.o
+>> diff --git a/drivers/amba/acpi.c b/drivers/amba/acpi.c new file mode
+>> 100644 index 0000000..b8a9f57
+>> --- /dev/null
+>> +++ b/drivers/amba/acpi.c
+>> @@ -0,0 +1,339 @@
+>> +/*
+>> + * AMBA Connector Resource for ACPI
+>> + *
+>> + * Copyright (C) 2013 Advanced Micro Devices, Inc.
+>> + *
+>> + * Author: Brandon Anderson <brandon.anderson@amd.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> +modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +
+>> +#ifdef CONFIG_ACPI
+>> +
+>> +#include <linux/module.h>
+>> +#include <linux/amba/bus.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/acpi.h>
+>> +#include <linux/clkdev.h>
+>> +#include <linux/amba/acpi.h>
+>> +
+>> +struct acpi_amba_bus_info {
+>> +	struct platform_device *pdev;
+>> +	struct clk *clk;
+>> +	char *clk_name;
+>> +};
+>> +
+>> +/* UUID: a706b112-bf0b-48d2-9fa3-95591a3c4c06 (randomly generated) */
+>> +static const char acpi_amba_dsm_uuid[] = {
+>> +	0xa7, 0x06, 0xb1, 0x12, 0xbf, 0x0b, 0x48, 0xd2,
+>> +	0x9f, 0xa3, 0x95, 0x59, 0x1a, 0x3c, 0x4c, 0x06 };
+>> +
+>> +/* acpi_amba_dsm_lookup()
+>> + *
+>> + * Helper to parse through ACPI _DSM object for a device. Each entry
+>> + * has three fields.
+>> + */
+>> +int acpi_amba_dsm_lookup(acpi_handle handle,
+>> +		const char *tag, int index,
+>> +		struct acpi_amba_dsm_entry *entry)
+>> +{
+>> +	acpi_status status;
+>> +	struct acpi_object_list input;
+>> +	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
+>> +	union acpi_object params[4];
+>> +	union acpi_object *obj;
+>> +	int len, match_count, i;
+>> +
+>> +	/* invalidate output in case there's no entry to supply */
+>> +	entry->key = NULL;
+>> +	entry->value = NULL;
+>> +
+>> +	if (!acpi_has_method(handle, "_DSM"))
+>> +		return -ENOENT;
+>> +
+>> +	input.count = 4;
+>> +	params[0].type = ACPI_TYPE_BUFFER;		/* UUID */
+>> +	params[0].buffer.length = sizeof(acpi_amba_dsm_uuid);
+>> +	params[0].buffer.pointer = (char *)acpi_amba_dsm_uuid;
+>> +	params[1].type = ACPI_TYPE_INTEGER;		/* Revision */
+>> +	params[1].integer.value = 1;
+>> +	params[2].type = ACPI_TYPE_INTEGER;		/* Function # */
+>> +	params[2].integer.value = 1;
+>> +	params[3].type = ACPI_TYPE_PACKAGE;		/* Arguments */
+>> +	params[3].package.count = 0;
+>> +	params[3].package.elements = NULL;
+>> +	input.pointer = params;
+>> +
+>> +	status = acpi_evaluate_object_typed(handle, "_DSM",
+>> +			&input, &output, ACPI_TYPE_PACKAGE);
+>> +	if (ACPI_FAILURE(status)) {
+>> +		pr_err("failed to get _DSM package for this device\n");
+>> +		return -ENOENT;
+>> +	}
+>> +
+>> +	obj = (union acpi_object *)output.pointer;
+>> +
+>> +	/* parse 2 objects per entry */
+>> +	match_count = 0;
+>> +	for (i = 0; (i + 2) <= obj->package.count; i += 2) {
+>> +		/* key must be a string */
+>> +		len = obj->package.elements[i].string.length;
+>> +		if (len <= 0)
+>> +			continue;
+>> +
+>> +		/* check to see if this is the entry to return */
+>> +		if (strncmp(tag, obj->package.elements[i].string.pointer,
+>> +				len) != 0 ||
+>> +				match_count < index) {
+>> +			match_count++;
+>> +			continue;
+>> +		}
+>> +
+>> +		/* copy the key */
+>> +		entry->key = kmalloc(len + 1, GFP_KERNEL);
+>> +		strncpy(entry->key,
+>> +				obj->package.elements[i].string.pointer,
+>> +				len);
+>> +		entry->key[len] = '\0';
+>> +
+>> +		/* value is a string with space-delimited fields if necessary */
+>> +		len = obj->package.elements[i + 1].string.length;
+>> +		if (len > 0) {
+>> +			entry->value = kmalloc(len + 1, GFP_KERNEL);
+>> +			strncpy(entry->value,
+>> +				obj->package.elements[i+1].string.pointer,
+>> +				len);
+>> +			entry->value[len] = '\0';
+>> +		}
+>> +
+>> +		break;
+>> +	}
+> I am wondering, why you did not use function index arg of _DSM method
+> (params[2].integer.value) for different properties like others drivers do. IMHO, it would be easier to parse (only one value as return value) and more compliant with ACPI spec. Does it sound reasonable for you?
+>
+> Are you suggesting that we define and use an index for each key instead of an ascii string? Graeme mentioned that the key/value pair paradigm came from the Kernel Plumbers, do we need to change this? Obviously I'd prefer to go with what I've already implemented and tested.
+I see, since it is well discussed approach, that is fine with me.
+>
+> I have a V2 patch with minor changes ready to submit.
+>
+>> +
+>> +	kfree(output.pointer);
+>> +
+>> +	if (entry->key == NULL)
+>> +		return -ENOENT;
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(acpi_amba_dsm_lookup);
+>> +
+>> +static int acpi_amba_add_resource(struct acpi_resource *ares, void
+>> +*data) {
+>> +	struct amba_device *dev = data;
+>> +	struct resource r;
+>> +	int irq_idx;
+>> +
+>> +	switch (ares->type) {
+>> +	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+>> +		if (!acpi_dev_resource_memory(ares, &dev->res))
+>> +			pr_err("failed to map memory resource\n");
+>> +		break;
+>> +	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+>> +		for (irq_idx = 0; irq_idx < AMBA_NR_IRQS; irq_idx++) {
+>> +			if (acpi_dev_resource_interrupt(ares, irq_idx, &r))
+>> +				dev->irq[irq_idx] = r.start;
+>> +			else
+>> +				break;
+>> +		}
+>> +
+>> +		break;
+>> +	case ACPI_RESOURCE_TYPE_END_TAG:
+>> +		/* ignore the end tag */
+>> +		break;
+>> +	default:
+>> +		/* log an error, but proceed with driver probe */
+>> +		pr_err("unhandled acpi resource type= %d\n",
+>> +				ares->type);
+>> +		break;
+>> +	}
+>> +
+>> +	return 1; /* Tell ACPI core that this resource has been handled */ }
+>> +
+>> +static struct clk *acpi_amba_get_clk(acpi_handle handle, int index,
+>> +		char **clk_name)
+>> +{
+>> +	struct acpi_amba_dsm_entry entry;
+>> +	acpi_handle clk_handle;
+>> +	struct acpi_device *adev, *clk_adev;
+>> +	char *clk_path;
+>> +	struct clk *clk = NULL;
+>> +	int len;
+>> +
+>> +	if (acpi_bus_get_device(handle, &adev)) {
+>> +		pr_err("cannot get device from handle\n");
+>> +		return NULL;
+>> +	}
+>> +
+>> +	/* key=value format for clocks is:
+>> +	 *	"clock-name"="apb_pclk \\_SB.CLK0"
+>> +	 */
+>> +	if (acpi_amba_dsm_lookup(handle, "clock-name", index, &entry) != 0)
+>> +		return NULL;
+>> +
+>> +	/* look under the clock device for the clock that matches the entry */
+>> +	*clk_name = NULL;
+>> +	len = strcspn(entry.value, " ");
+>> +	if (len > 0 && (len + 1) < strlen(entry.value)) {
+>> +		clk_path = entry.value + len + 1;
+>> +		*clk_name = kmalloc(len + 1, GFP_KERNEL);
+>> +		strncpy(*clk_name, entry.value, len);
+>> +		(*clk_name)[len] = '\0';
+>> +		if (ACPI_FAILURE(
+>> +			acpi_get_handle(NULL, clk_path, &clk_handle)) == 0 &&
+>> +			acpi_bus_get_device(clk_handle, &clk_adev) == 0)
+>> +			clk = clk_get_sys(dev_name(&clk_adev->dev), *clk_name);
+>> +	} else
+>> +		pr_err("Invalid clock-name value format '%s' for %s\n",
+>> +				entry.value, dev_name(&adev->dev));
+>> +
+>> +	kfree(entry.key);
+>> +	kfree(entry.value);
+>> +
+>> +	return clk;
+>> +}
+>> +
+>> +static void acpi_amba_register_clocks(struct acpi_device *adev,
+>> +		struct clk *default_clk, const char *default_clk_name) {
+>> +	struct clk *clk;
+>> +	int i;
+>> +	char *clk_name;
+>> +
+>> +	if (default_clk) {
+>> +		/* for amba_get_enable_pclk() ... */
+>> +		clk_register_clkdev(default_clk, default_clk_name,
+>> +				dev_name(&adev->dev));
+>> +		/* for devm_clk_get() ... */
+>> +		clk_register_clkdev(default_clk, NULL, dev_name(&adev->dev));
+>> +	}
+>> +
+>> +	for (i = 0;; i++) {
+>> +		clk_name = NULL;
+>> +		clk = acpi_amba_get_clk(ACPI_HANDLE(&adev->dev), i, &clk_name);
+>> +		if (!clk)
+>> +			break;
+>> +
+>> +		clk_register_clkdev(clk, clk_name, dev_name(&adev->dev));
+>> +
+>> +		kfree(clk_name);
+>> +	}
+>> +}
+>> +
+>> +/* acpi_amba_add_device()
+>> + *
+>> + * ACPI equivalent to of_amba_device_create()  */ static acpi_status
+>> +acpi_amba_add_device(acpi_handle handle,
+>> +				u32 lvl_not_used, void *data, void **not_used) {
+>> +	struct list_head resource_list;
+>> +	struct acpi_device *adev;
+>> +	struct amba_device *dev;
+>> +	int ret;
+>> +	struct acpi_amba_bus_info *bus_info = data;
+>> +	struct platform_device *bus_pdev = bus_info->pdev;
+>> +
+>> +	if (acpi_bus_get_device(handle, &adev)) {
+>> +		pr_err("%s: acpi_bus_get_device failed\n", __func__);
+>> +		return AE_OK;
+>> +	}
+>> +
+>> +	pr_debug("Creating amba device %s\n", dev_name(&adev->dev));
+>> +
+>> +	dev = amba_device_alloc(NULL, 0, 0);
+>> +	if (!dev) {
+>> +		pr_err("%s(): amba_device_alloc() failed for %s\n",
+>> +		       __func__, dev_name(&adev->dev));
+>> +		return AE_CTRL_TERMINATE;
+>> +	}
+>> +
+>> +	/* setup generic device info */
+>> +	dev->dev.coherent_dma_mask = ~0;
+>> +	dev->dev.parent = &bus_pdev->dev;
+>> +	dev_set_name(&dev->dev, "%s", dev_name(&adev->dev));
+>> +
+>> +	/* setup amba-specific device info */
+>> +	dev->dma_mask = ~0;
+>> +
+>> +	ACPI_HANDLE_SET(&dev->dev, handle);
+>> +	ACPI_HANDLE_SET(&adev->dev, handle);
+>> +
+>> +	INIT_LIST_HEAD(&resource_list);
+>> +	acpi_dev_get_resources(adev, &resource_list,
+>> +				     acpi_amba_add_resource, dev);
+>> +	acpi_dev_free_resource_list(&resource_list);
+>> +
+>> +	/* Add clocks */
+>> +	acpi_amba_register_clocks(adev, bus_info->clk, bus_info->clk_name);
+>> +
+>> +	/* Read AMBA hardware ID and add device to system. If a driver matching
+>> +	 *	hardware ID has already been registered, bind this device to it.
+>> +	 *	Otherwise, the platform subsystem will match up the hardware ID
+>> +	 *	when the matching driver is registered.
+>> +	*/
+>> +	ret = amba_device_add(dev, &iomem_resource);
+>> +	if (ret) {
+>> +		pr_err("%s(): amba_device_add() failed (%d) for %s\n",
+>> +		       __func__, ret, dev_name(&adev->dev));
+>> +		goto err_free;
+>> +	}
+>> +
+>> +	return AE_OK;
+>> +
+>> +err_free:
+>> +	amba_device_put(dev);
+>> +
+>> +	return AE_OK; /* don't prevent other devices from being probed */ }
+>> +
+>> +static int acpi_amba_bus_probe(struct platform_device *pdev) {
+>> +	struct acpi_amba_bus_info bus_info;
+>> +	bus_info.clk_name = NULL;
+>> +
+>> +	/* see if there's a top-level clock to use as default for sub-devices */
+>> +	bus_info.clk = acpi_amba_get_clk(ACPI_HANDLE(&pdev->dev), 0,
+>> +			&bus_info.clk_name);
+>> +
+>> +	/* probe each device */
+>> +	bus_info.pdev = pdev;
+>> +	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_HANDLE(&pdev->dev), 1,
+>> +			acpi_amba_add_device, NULL, &bus_info, NULL);
+>> +
+>> +	kfree(bus_info.clk_name);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static const struct acpi_device_id amba_bus_acpi_match[] = {
+>> +	{ "AMBA0000", 0 },
+>> +	{ },
+>> +};
+>> +
+>> +static struct platform_driver amba_bus_acpi_driver = {
+>> +	.driver = {
+>> +		.name = "amba-acpi",
+>> +		.owner = THIS_MODULE,
+>> +		.acpi_match_table = ACPI_PTR(amba_bus_acpi_match),
+>> +	},
+>> +	.probe	= acpi_amba_bus_probe,
+>> +};
+>> +
+>> +static int __init acpi_amba_bus_init(void) {
+>> +	return platform_driver_register(&amba_bus_acpi_driver);
+>> +}
+>> +
+>> +postcore_initcall(acpi_amba_bus_init);
+>> +
+>> +MODULE_AUTHOR("Brandon Anderson <brandon.anderson@amd.com>");
+>> +MODULE_DESCRIPTION("ACPI Connector Resource for AMBA bus");
+>> +MODULE_LICENSE("GPLv2"); MODULE_ALIAS("platform:amba-acpi");
+>> +
+>> +#endif /* CONFIG_ACPI */
+>> diff --git a/include/linux/amba/acpi.h b/include/linux/amba/acpi.h new
+>> file mode 100644 index 0000000..40a72b2
+>> --- /dev/null
+>> +++ b/include/linux/amba/acpi.h
+>> @@ -0,0 +1,29 @@
+>> +/*
+>> + * AMBA bus ACPI helpers
+>> + *
+>> + * Copyright (C) 2013 Advanced Micro Devices, Inc.
+>> + *
+>> + * Author: Brandon Anderson <brandon.anderson@amd.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> +modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +#ifndef __ARM_AMBA_ACPI_H__
+>> +#define __ARM_AMBA_ACPI_H__
+>> +
+>> +#ifdef CONFIG_ACPI
+>> +#include <linux/acpi.h>
+>> +
+>> +struct acpi_amba_dsm_entry {
+>> +	char *key;
+>> +	char *value;
+>> +};
+>> +
+>> +int acpi_amba_dsm_lookup(acpi_handle handle,
+>> +		const char *tag, int index,
+>> +		struct acpi_amba_dsm_entry *entry);
+>> +
+>> +#endif
+>> +
+>> +#endif
+>>
+>
+>
