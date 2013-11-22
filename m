@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 3/7] net: rfkill: gpio: remove gpio conversion support
-Date: Fri, 22 Nov 2013 14:14:30 +0200
-Message-ID: <1385122474-14926-4-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 2/7] ARM: tegra: add gpiod_lookup table for paz00
+Date: Fri, 22 Nov 2013 14:14:29 +0200
+Message-ID: <1385122474-14926-3-git-send-email-mika.westerberg@linux.intel.com>
 References: <1385122474-14926-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1385122474-14926-1-git-send-email-mika.westerberg@linux.intel.com>
@@ -12,103 +12,47 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 
-All platforms using this driver are now converted to the new
-descriptor-based GPIO interface.
+This makes it possible to request the gpio descriptors in
+rfkill-gpio driver regardless of the platform.
 
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- net/rfkill/rfkill-gpio.c | 61 ++++++++++--------------------------------------
- 1 file changed, 12 insertions(+), 49 deletions(-)
+ arch/arm/mach-tegra/board-paz00.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/net/rfkill/rfkill-gpio.c b/net/rfkill/rfkill-gpio.c
-index 503432154616..bd2a5b90400c 100644
---- a/net/rfkill/rfkill-gpio.c
-+++ b/net/rfkill/rfkill-gpio.c
-@@ -68,35 +68,6 @@ static const struct rfkill_ops rfkill_gpio_ops = {
- 	.set_block = rfkill_gpio_set_power,
+diff --git a/arch/arm/mach-tegra/board-paz00.c b/arch/arm/mach-tegra/board-paz00.c
+index 06f024070dab..2e132589be78 100644
+--- a/arch/arm/mach-tegra/board-paz00.c
++++ b/arch/arm/mach-tegra/board-paz00.c
+@@ -18,13 +18,12 @@
+  */
+ 
+ #include <linux/platform_device.h>
++#include <linux/gpio/driver.h>
+ #include <linux/rfkill-gpio.h>
+ #include "board.h"
+ 
+ static struct rfkill_gpio_platform_data wifi_rfkill_platform_data = {
+ 	.name		= "wifi_rfkill",
+-	.reset_gpio	= 25, /* PD1 */
+-	.shutdown_gpio	= 85, /* PK5 */
+ 	.type	= RFKILL_TYPE_WLAN,
  };
  
--static int rfkill_gpio_convert_to_desc(struct platform_device *pdev,
--				       struct rfkill_gpio_data *rfkill)
--{
--	struct rfkill_gpio_platform_data *pdata = pdev->dev.platform_data;
--	int ret;
--
--	if (gpio_is_valid(pdata->reset_gpio)) {
--		ret = devm_gpio_request_one(&pdev->dev, pdata->reset_gpio,
--					    0, rfkill->reset_name);
--		if (ret) {
--			dev_err(&pdev->dev, "failed to get reset gpio.\n");
--			return ret;
--		}
--		rfkill->reset_gpio = gpio_to_desc(pdata->reset_gpio);
--	}
--
--	if (gpio_is_valid(pdata->shutdown_gpio)) {
--		ret = devm_gpio_request_one(&pdev->dev, pdata->shutdown_gpio,
--					    0, rfkill->shutdown_name);
--		if (ret) {
--			dev_err(&pdev->dev, "failed to get shutdown gpio.\n");
--			return ret;
--		}
--		rfkill->shutdown_gpio = gpio_to_desc(pdata->shutdown_gpio);
--	}
--
--	return 0;
--}
--
- static int rfkill_gpio_acpi_probe(struct device *dev,
- 				  struct rfkill_gpio_data *rfkill)
+@@ -36,7 +35,13 @@ static struct platform_device wifi_rfkill_device = {
+ 	},
+ };
+ 
++static struct gpiod_lookup wifi_gpio_lookup[] = {
++	GPIO_LOOKUP_IDX("tegra-gpio", 25, "rfkill_gpio", NULL, 0, 0),
++	GPIO_LOOKUP_IDX("tegra-gpio", 85, "rfkill_gpio", NULL, 1, 0),
++};
++
+ void __init tegra_paz00_wifikill_init(void)
  {
-@@ -117,6 +88,7 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
- 	struct rfkill_gpio_platform_data *pdata = pdev->dev.platform_data;
- 	struct rfkill_gpio_data *rfkill;
- 	const char *clk_name = NULL;
-+	struct gpio_desc *gpio;
- 	int ret;
- 	int len;
- 
-@@ -150,29 +122,20 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
- 
- 	rfkill->clk = devm_clk_get(&pdev->dev, clk_name);
- 
--	if (pdata && (pdata->reset_gpio || pdata->shutdown_gpio)) {
--		ret = rfkill_gpio_convert_to_desc(pdev, rfkill);
-+	gpio = devm_gpiod_get_index(&pdev->dev, rfkill->reset_name, 0);
-+	if (!IS_ERR(gpio)) {
-+		ret = gpiod_direction_output(gpio, 0);
- 		if (ret)
- 			return ret;
--	} else {
--		struct gpio_desc *gpio;
--
--		gpio = devm_gpiod_get_index(&pdev->dev, rfkill->reset_name, 0);
--		if (!IS_ERR(gpio)) {
--			ret = gpiod_direction_output(gpio, 0);
--			if (ret)
--				return ret;
--			rfkill->reset_gpio = gpio;
--		}
-+		rfkill->reset_gpio = gpio;
-+	}
- 
--		gpio = devm_gpiod_get_index(&pdev->dev,
--					    rfkill->shutdown_name, 1);
--		if (!IS_ERR(gpio)) {
--			ret = gpiod_direction_output(gpio, 0);
--			if (ret)
--				return ret;
--			rfkill->shutdown_gpio = gpio;
--		}
-+	gpio = devm_gpiod_get_index(&pdev->dev, rfkill->shutdown_name, 1);
-+	if (!IS_ERR(gpio)) {
-+		ret = gpiod_direction_output(gpio, 0);
-+		if (ret)
-+			return ret;
-+		rfkill->shutdown_gpio = gpio;
- 	}
- 
- 	/* Make sure at-least one of the GPIO is defined and that
++	gpiod_add_table(wifi_gpio_lookup, ARRAY_SIZE(wifi_gpio_lookup));
+ 	platform_device_register(&wifi_rfkill_device);
+ }
 -- 
 1.8.4.3
