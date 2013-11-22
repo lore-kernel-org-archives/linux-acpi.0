@@ -1,89 +1,127 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 06/12] ACPI: ensure several FADT fields are only used in
- HW reduced mode
-Date: Fri, 22 Nov 2013 06:26:54 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880248C99B@SHSMSX101.ccr.corp.intel.com>
-References: <1384047382-20623-1-git-send-email-al.stone@linaro.org>
- <1384047382-20623-7-git-send-email-al.stone@linaro.org>
- <1AE640813FDE7649BE1B193DEA596E880248C923@SHSMSX101.ccr.corp.intel.com>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH 2/5] mmc: sdhci-acpi: covert to use GPIO descriptor API
+Date: Fri, 22 Nov 2013 10:53:18 +0200
+Message-ID: <528F1B7E.7010601@intel.com>
+References: <1385045153-25160-1-git-send-email-mika.westerberg@linux.intel.com> <1385045153-25160-3-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:12933 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750819Ab3KVG07 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 01:26:59 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880248C923@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1385045153-25160-3-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "al.stone@linaro.org" <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Al Stone <ahs3@redhat.com>
 
-Sorry, this is wrong.
-There are still generic addresses in HW_REDUCED mode, please ignore this.
+On 21/11/13 16:45, Mika Westerberg wrote:
+> The new descriptor based GPIO interface is now the recommend and more safer
 
-Thanks
--Lv
+"recommend and more safer" -> "recommended and safer"
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Zheng, Lv
-> Sent: Friday, November 22, 2013 2:06 PM
-> To: al.stone@linaro.org; linux-acpi@vger.kernel.org
-> Cc: linaro-acpi@lists.linaro.org; Al Stone
-> Subject: RE: [PATCH 06/12] ACPI: ensure several FADT fields are only used in HW reduced mode
+> way of using GPIOs from device drivers. Convert the ACPI SDHCI driver to
+> use that interface.
 > 
-> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of al.stone@linaro.org
-> > Sent: Sunday, November 10, 2013 9:36 AM
-> >
-> > From: Al Stone <ahs3@redhat.com>
-> >
-> > In acpi_os_terminate(), it was assumed that several FADT entries were
-> > mapped into memory.  For HW reduced mode, that will not be the case.
-> >
-> > Signed-off-by: Al Stone <al.stone@linaro.org>
-> > ---
-> >  drivers/acpi/osl.c | 10 ++++++----
-> >  1 file changed, 6 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> > index 017b85c..075545e 100644
-> > --- a/drivers/acpi/osl.c
-> > +++ b/drivers/acpi/osl.c
-> > @@ -1812,10 +1812,12 @@ acpi_status acpi_os_terminate(void)
-> >  						 acpi_irq_handler);
-> >  	}
-> >
-> > -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
-> > -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
-> > -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
-> > -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
-> > +	if (!acpi_gbl_reduced_hardware) {
-> > +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
-> > +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
-> > +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
-> > +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
-> > +	}
-> >
-> >  	destroy_workqueue(kacpid_wq);
-> >  	destroy_workqueue(kacpi_notify_wq);
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+>  drivers/mmc/host/sdhci-acpi.c | 26 ++++++++++----------------
+>  1 file changed, 10 insertions(+), 16 deletions(-)
 > 
-> Is that possible to make stubs for acpi_os_map_generic_address and acpi_os_unmap_generic_address when
-> CONFIG_ACPI_REDUCED_HARDWARE is enabled?
-> So that this patch and some logics in the PATCH 07 can be removed.
+> diff --git a/drivers/mmc/host/sdhci-acpi.c b/drivers/mmc/host/sdhci-acpi.c
+> index ef19874fcd1f..379ddfe14bc7 100644
+> --- a/drivers/mmc/host/sdhci-acpi.c
+> +++ b/drivers/mmc/host/sdhci-acpi.c
+> @@ -31,10 +31,9 @@
+>  #include <linux/bitops.h>
+>  #include <linux/types.h>
+>  #include <linux/err.h>
+> -#include <linux/gpio.h>
+> +#include <linux/gpio/consumer.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/acpi.h>
+> -#include <linux/acpi_gpio.h>
+>  #include <linux/pm.h>
+>  #include <linux/pm_runtime.h>
+>  #include <linux/delay.h>
+> @@ -199,22 +198,19 @@ static irqreturn_t sdhci_acpi_sd_cd(int irq, void *dev_id)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> -static int sdhci_acpi_add_own_cd(struct device *dev, int gpio,
+> -				 struct mmc_host *mmc)
+> +static int sdhci_acpi_add_own_cd(struct device *dev, struct mmc_host *mmc)
+>  {
+> +	struct gpio_desc *desc;
+>  	unsigned long flags;
+>  	int err, irq;
+>  
+> -	if (gpio < 0) {
+> -		err = gpio;
+> +	desc = devm_gpiod_get_index(dev, NULL, 0);
+
+I notice that:
+
+	devm_gpio_request_one(.., label)
+		-> gpio_request_one(..., label)
+			-> gpiod_request(..., label)
+
+but:
+
+	devm_gpiod_get_index(..., con_id, ...)
+		-> gpiod_get_index(..., con_id, ...)
+			-> gpiod_request(..., con_id)
+
+which suggests that 'con_id' is equivalent to 'label'.
+i.e. "sd_cd".  Is it?
+
+> +	if (IS_ERR(desc)) {
+> +		err = PTR_ERR(desc);
+>  		goto out;
+>  	}
+>  
+> -	err = devm_gpio_request_one(dev, gpio, GPIOF_DIR_IN, "sd_cd");
+> -	if (err)
+> -		goto out;
+> -
+> -	irq = gpio_to_irq(gpio);
+> +	irq = gpiod_to_irq(desc);
+>  	if (irq < 0) {
+>  		err = irq;
+>  		goto out_free;
+> @@ -228,7 +224,7 @@ static int sdhci_acpi_add_own_cd(struct device *dev, int gpio,
+>  	return 0;
+>  
+>  out_free:
+> -	devm_gpio_free(dev, gpio);
+> +	devm_gpiod_put(dev, desc);
+>  out:
+>  	dev_warn(dev, "failed to setup card detect wake up\n");
+>  	return err;
+> @@ -254,7 +250,7 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
+>  	struct resource *iomem;
+>  	resource_size_t len;
+>  	const char *hid;
+> -	int err, gpio;
+> +	int err;
+>  
+>  	if (acpi_bus_get_device(handle, &device))
+>  		return -ENODEV;
+> @@ -279,8 +275,6 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
+>  	if (IS_ERR(host))
+>  		return PTR_ERR(host);
+>  
+> -	gpio = acpi_get_gpio_by_index(dev, 0, NULL);
+> -
+>  	c = sdhci_priv(host);
+>  	c->host = host;
+>  	c->slot = sdhci_acpi_get_slot(handle, hid);
+> @@ -338,7 +332,7 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
+>  		goto err_free;
+>  
+>  	if (sdhci_acpi_flag(c, SDHCI_ACPI_SD_CD)) {
+> -		if (sdhci_acpi_add_own_cd(dev, gpio, host->mmc))
+> +		if (sdhci_acpi_add_own_cd(dev, host->mmc))
+>  			c->use_runtime_pm = false;
+>  	}
+>  
 > 
-> Thanks
-> -Lv
-> 
-> > --
-> > 1.8.3.1
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
