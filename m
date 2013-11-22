@@ -1,32 +1,90 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/2] New Driver for IOSF-SB MBI access on Intel SOCs
-Date: Fri, 22 Nov 2013 18:18:27 +0000
-Message-ID: <20131122181827.GA16998@srcf.ucam.org>
-References: <1385100357-5459-1-git-send-email-david.e.box@linux.intel.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH v2 2/7] ARM: tegra: add gpiod_lookup table for paz00
+Date: Fri, 22 Nov 2013 11:40:09 -0700
+Message-ID: <528FA509.6080907@wwwdotorg.org>
+References: <1385122474-14926-1-git-send-email-mika.westerberg@linux.intel.com> <1385122474-14926-3-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:50664 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753756Ab3KVSSm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 13:18:42 -0500
-Content-Disposition: inline
-In-Reply-To: <1385100357-5459-1-git-send-email-david.e.box@linux.intel.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:58839 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755554Ab3KVSkO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 13:40:14 -0500
+In-Reply-To: <1385122474-14926-3-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "David E. Box" <david.e.box@linux.intel.com>
-Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@sisk.pl, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <acourbot@nvidia.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Thierry Reding <thierry.reding@gmail.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Nov 21, 2013 at 10:05:56PM -0800, David E. Box wrote:
+On 11/22/2013 05:14 AM, Mika Westerberg wrote:
+> From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+>=20
+> This makes it possible to request the gpio descriptors in
+> rfkill-gpio driver regardless of the platform.
 
-> +	bool "IOSF-SB MailBox Interface access support for Intel SOC's"
+Patches 1-3,
+Tested-by: Stephen Warren <swarren@nvidia.com>
 
-Any reason this can't be modular?
+All the testing I did was to "cat /sys/kernel/debug/gpios" to make sure
+those two GPIOs had been correctly acquired by the driver, and that the=
+y
+changed state as expected via the command-line "rfkill {un,}block" comm=
+ands.
 
-> diff --git a/arch/x86/kernel/iosf_mbi.c b/arch/x86/kernel/iosf_mbi.c
+However, please note that I had to apply a couple fixes to the gpiolib
+core to get this working:
 
-This is effectively a driver, so putting it under platform/driver/x86 
-might make more sense.
+1)
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+To solve the following build warning:
+
+> In file included from arch/arm/mach-tegra/board-paz00.c:21:0:
+> include/linux/gpio/driver.h:102:17: warning: =91struct of_phandle_arg=
+s=92 declared inside parameter list [enabled by default]
+> include/linux/gpio/driver.h:102:17: warning: its scope is only this d=
+efinition or declaration, which is probably not what you want [enabled =
+by default]
+
+I applied:
+
+
+> diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.=
+h
+> index 82eac610ce1a..5133cf29803a 100644
+> --- a/include/linux/gpio/driver.h
+> +++ b/include/linux/gpio/driver.h
+> @@ -5,6 +5,7 @@
+>
+>  struct device;
+>  struct gpio_desc;
+> +struct of_phandle_args;
+>  struct seq_file;
+>
+>  /**
+
+2)
+
+In order to get the GPIO lookups from the rfkill driver working, I appl=
+ied:
+
+> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+> index ac53a9593662..b73c39f99858 100644
+> --- a/drivers/gpio/gpiolib.c
+> +++ b/drivers/gpio/gpiolib.c
+> @@ -2368,7 +2368,7 @@ static struct gpio_desc *gpiod_find(struct devi=
+ce *dev, const char *con_id,
+>  				continue;
+>  			}
+> =20
+> -			if (chip->ngpio >=3D p->chip_hwnum) {
+> +			if (chip->ngpio <=3D p->chip_hwnum) {
+>  				dev_warn(dev, "GPIO chip %s has %d GPIOs\n",
+>  					 chip->label, chip->ngpio);
+>  				continue;
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
