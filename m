@@ -1,112 +1,139 @@
 From: Brandon Anderson <brandon.anderson@amd.com>
-Subject: [PATCH V2 3/4] ACPI/ARM: Add ACPI to AMBA SPI driver
-Date: Fri, 22 Nov 2013 12:12:43 -0600
-Message-ID: <1385143964-22938-4-git-send-email-brandon.anderson@amd.com>
+Subject: [PATCH V2 4/4] ACPI/ARM: Remove sections of DTS definition
+Date: Fri, 22 Nov 2013 12:12:44 -0600
+Message-ID: <1385143964-22938-5-git-send-email-brandon.anderson@amd.com>
 References: <1385143964-22938-1-git-send-email-brandon.anderson@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-db8lp0187.outbound.messaging.microsoft.com ([213.199.154.187]:6041
-	"EHLO db8outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755526Ab3KVSPh (ORCPT
+Received: from mail-db9lp0252.outbound.messaging.microsoft.com ([213.199.154.252]:35655
+	"EHLO db9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755526Ab3KVSPo (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Nov 2013 13:15:37 -0500
+	Fri, 22 Nov 2013 13:15:44 -0500
 In-Reply-To: <1385143964-22938-1-git-send-email-brandon.anderson@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux@arm.linux.org.uk, rjw@rjwysocki.net, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org
 Cc: Brandon Anderson <brandon.anderson@amd.com>
 
-Neither Foundation nor RTSM have a SPI device, but here are the necessary driver
-changes as an example of how to use acpi_amba_dsm_lookup() to get non-standard
-parameters from ACPI.
+Use ACPI definition instead of DTS definition for devices that are supported
+by AMBA bus ACPI module. The replacement ACPI definition was provided in the
+related '0/4' email.
 
-This was tested by wiring up a SPI device into an RTSM Fast Model.
+Note that MMCI is compatible with AMBA bus ACPI module, but is not ported
+due to complex relations with sysreg and voltage regulator.
 
 
 Signed-off-by: Brandon Anderson <brandon.anderson@amd.com>
 ---
- drivers/spi/spi-pl022.c |   53 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 53 insertions(+)
+ arch/arm64/boot/dts/foundation-v8-acpi.dts        |   10 +++++++---
+ arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts       |    4 ++++
+ arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi |    8 ++++++++
+ 3 files changed, 19 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/spi/spi-pl022.c b/drivers/spi/spi-pl022.c
-index 9c511a9..1d0a8ec 100644
---- a/drivers/spi/spi-pl022.c
-+++ b/drivers/spi/spi-pl022.c
-@@ -43,6 +43,7 @@
- #include <linux/gpio.h>
- #include <linux/of_gpio.h>
- #include <linux/pinctrl/consumer.h>
-+#include <linux/amba/acpi.h>
+diff --git a/arch/arm64/boot/dts/foundation-v8-acpi.dts b/arch/arm64/boot/dts/foundation-v8-acpi.dts
+index 7f57c53..f0671eb 100644
+--- a/arch/arm64/boot/dts/foundation-v8-acpi.dts
++++ b/arch/arm64/boot/dts/foundation-v8-acpi.dts
+@@ -15,12 +15,16 @@
  
- /*
-  * This macro is used to define some register default values.
-@@ -2069,6 +2070,55 @@ pl022_platform_data_dt_get(struct device *dev)
- 	return pd;
- }
+ 	chosen { };
  
-+#ifdef CONFIG_ACPI
-+static struct pl022_ssp_controller *
-+acpi_pl022_get_platform_data(struct device *dev)
-+{
-+	struct pl022_ssp_controller *pd, *ret;
-+	struct acpi_amba_dsm_entry entry;
-+
-+	pd = devm_kzalloc(dev, sizeof(struct pl022_ssp_controller), GFP_KERNEL);
-+	if (!pd) {
-+		dev_err(dev, "cannot allocate platform data memory\n");
-+		return NULL;
-+	}
-+	ret = pd;
-+
-+	pd->bus_id = -1;
-+	pd->enable_dma = 1;
-+	if (acpi_amba_dsm_lookup(ACPI_HANDLE(dev), "num-cs", 0, &entry) == 0) {
-+		if (kstrtou8(entry.value, 0, &pd->num_chipselect) != 0) {
-+			dev_err(dev, "invalid 'num-cs' in ACPI definition\n");
-+			ret = NULL;
-+		}
-+		kfree(entry.key);
-+		kfree(entry.value);
-+	}
-+	if (acpi_amba_dsm_lookup(ACPI_HANDLE(dev),
-+			"autosuspend-delay", 0, &entry) == 0) {
-+		if (kstrtoint(entry.value, 0, &pd->autosuspend_delay) != 0) {
-+			dev_err(dev, "invalid 'autosuspend-delay' in ACPI definition\n");
-+			ret = NULL;
-+		}
-+		kfree(entry.key);
-+		kfree(entry.value);
-+	}
-+	if (acpi_amba_dsm_lookup(ACPI_HANDLE(dev), "rt", 0, &entry) == 0) {
-+		pd->rt = (entry.value && strcmp(entry.value, "1") == 0);
-+		kfree(entry.key);
-+		kfree(entry.value);
-+	}
-+
-+	return ret;
-+}
-+#else
-+static struct pl022_ssp_controller *
-+acpi_pl022_get_platform_data(struct device *dev)
-+{
-+	return NULL;
-+}
-+#endif
-+
- static int pl022_probe(struct amba_device *adev, const struct amba_id *id)
- {
- 	struct device *dev = &adev->dev;
-@@ -2081,6 +2131,9 @@ static int pl022_probe(struct amba_device *adev, const struct amba_id *id)
++	/*
++	 * Removed for ACPI
++	 *
+ 	aliases {
+ 		serial0 = &v2m_serial0;
+ 		serial1 = &v2m_serial1;
+ 		serial2 = &v2m_serial2;
+ 		serial3 = &v2m_serial3;
+ 	};
++	*/
  
- 	dev_info(&adev->dev,
- 		 "ARM PL022 driver, device ID: 0x%08x\n", adev->periphid);
-+	if (!platform_info && ACPI_HANDLE(dev))
-+		platform_info = acpi_pl022_get_platform_data(dev);
-+	else
- 	if (!platform_info && IS_ENABLED(CONFIG_OF))
- 		platform_info = pl022_platform_data_dt_get(dev);
+ 	cpus {
+ 		#address-cells = <2>;
+@@ -196,6 +200,9 @@
+ 				reg = <0x010000 0x1000>;
+ 			};
  
++			/*
++			 * Removed for ACPI
++			 *
+ 			v2m_serial0: uart@090000 {
+ 				compatible = "arm,pl011", "arm,primecell";
+ 				reg = <0x090000 0x1000>;
+@@ -227,9 +234,6 @@
+ 				clocks = <&v2m_clk24mhz>, <&v2m_clk24mhz>;
+ 				clock-names = "uartclk", "apb_pclk";
+ 			};
+-			/*
+-			 * Removed for ACPI
+-			 *
+ 			virtio_block@0130000 {
+ 				compatible = "virtio,mmio";
+ 				reg = <0x130000 0x1000>;
+diff --git a/arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts b/arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts
+index 7f348eb..0953fd0 100644
+--- a/arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts
++++ b/arch/arm64/boot/dts/rtsm_ve-aemv8a-acpi.dts
+@@ -20,12 +20,16 @@
+ 
+ 	chosen { };
+ 
++	/*
++	 * Removed for ACPI
++	 *
+ 	aliases {
+ 		serial0 = &v2m_serial0;
+ 		serial1 = &v2m_serial1;
+ 		serial2 = &v2m_serial2;
+ 		serial3 = &v2m_serial3;
+ 	};
++	*/
+ 
+ 	cpus {
+ 		#address-cells = <2>;
+diff --git a/arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi b/arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi
+index bbaaa8e..f20af14 100644
+--- a/arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi
++++ b/arch/arm64/boot/dts/rtsm_ve-motherboard-acpi.dtsi
+@@ -71,6 +71,9 @@
+ 				#gpio-cells = <2>;
+ 			};
+ 
++			/*
++			 * Removed for ACPI
++			 *
+ 			v2m_sysctl: sysctl@020000 {
+ 				compatible = "arm,sp810", "arm,primecell";
+ 				reg = <0x020000 0x1000>;
+@@ -87,6 +90,7 @@
+ 				clocks = <&v2m_clk24mhz>;
+ 				clock-names = "apb_pclk";
+ 			};
++			*/
+ 
+ 			mmci@050000 {
+ 				compatible = "arm,pl180", "arm,primecell";
+@@ -100,6 +104,9 @@
+ 				clock-names = "mclk", "apb_pclk";
+ 			};
+ 
++			/*
++			 * Removed for ACPI
++			 *
+ 			kmi@060000 {
+ 				compatible = "arm,pl050", "arm,primecell";
+ 				reg = <0x060000 0x1000>;
+@@ -179,6 +186,7 @@
+ 				clocks = <&v2m_clk24mhz>;
+ 				clock-names = "apb_pclk";
+ 			};
++			*/
+ 
+ 			clcd@1f0000 {
+ 				compatible = "arm,pl111", "arm,primecell";
 -- 
 1.7.9.5
 
