@@ -1,77 +1,197 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 7/7] Documentation / ACPI: update to GPIO descriptor API
-Date: Fri, 22 Nov 2013 14:14:34 +0200
-Message-ID: <1385122474-14926-8-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 5/7] gpio / ACPI: register to ACPI events automatically
+Date: Fri, 22 Nov 2013 14:14:32 +0200
+Message-ID: <1385122474-14926-6-git-send-email-mika.westerberg@linux.intel.com>
 References: <1385122474-14926-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:54222 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754837Ab3KVMOo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Nov 2013 07:14:44 -0500
 In-Reply-To: <1385122474-14926-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-Update the documentation also to reflect the fact that there are no ACPI
-specific GPIO interfaces anymore but drivers should instead use the
-descriptor based GPIO APIs.
+Instead of asking each driver to register to ACPI events we can just call
+acpi_gpiochip_register_interrupts() for each chip that has an ACPI handle.
+The function checks chip->to_irq and if it is set to NULL (a GPIO driver
+that doesn't do interrupts) the function does nothing.
+
+We also add the a new header drivers/gpio/gpiolib.h that is used for
+functions internal to gpiolib and add ACPI GPIO chip registering functions
+to that header.
+
+Once that is done we can remove call to acpi_gpiochip_register_interrupts()
+from its only user, pinctrl-baytrail.c
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- Documentation/acpi/enumeration.txt | 36 +++++++-----------------------------
- 1 file changed, 7 insertions(+), 29 deletions(-)
+ drivers/gpio/gpiolib-acpi.c        | 16 ++++++++++++----
+ drivers/gpio/gpiolib.c             |  4 ++++
+ drivers/gpio/gpiolib.h             | 23 +++++++++++++++++++++++
+ drivers/pinctrl/pinctrl-baytrail.c |  4 ----
+ include/linux/acpi_gpio.h          |  6 ------
+ 5 files changed, 39 insertions(+), 14 deletions(-)
+ create mode 100644 drivers/gpio/gpiolib.h
 
-diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
-index b994bcb32b92..2a1519b87177 100644
---- a/Documentation/acpi/enumeration.txt
-+++ b/Documentation/acpi/enumeration.txt
-@@ -293,36 +293,13 @@ the device to the driver. For example:
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index ae0ffdce8bd5..cb2da66fbbfe 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -94,7 +94,7 @@ static void acpi_gpio_evt_dh(acpi_handle handle, void *data)
+  * gpio pins have acpi event methods and assigns interrupt handlers that calls
+  * the acpi event methods for those pins.
+  */
+-void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
++static void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
+ {
+ 	struct acpi_buffer buf = {ACPI_ALLOCATE_BUFFER, NULL};
+ 	struct acpi_resource *res;
+@@ -192,7 +192,6 @@ void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
+ 				irq);
+ 	}
+ }
+-EXPORT_SYMBOL(acpi_gpiochip_request_interrupts);
  
- These GPIO numbers are controller relative and path "\\_SB.PCI0.GPI0"
- specifies the path to the controller. In order to use these GPIOs in Linux
--we need to translate them to the Linux GPIO numbers.
-+we need to translate them to the corresponding Linux GPIO descriptors.
+ /**
+  * acpi_gpiochip_free_interrupts() - Free GPIO _EVT ACPI event interrupts.
+@@ -203,7 +202,7 @@ EXPORT_SYMBOL(acpi_gpiochip_request_interrupts);
+  * The remaining ACPI event interrupts associated with the chip are freed
+  * automatically.
+  */
+-void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
++static void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
+ {
+ 	acpi_handle handle;
+ 	acpi_status status;
+@@ -230,7 +229,6 @@ void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
+ 	acpi_detach_data(handle, acpi_gpio_evt_dh);
+ 	kfree(evt_pins);
+ }
+-EXPORT_SYMBOL(acpi_gpiochip_free_interrupts);
  
--In a simple case of just getting the Linux GPIO number from device
--resources one can use acpi_get_gpio_by_index() helper function. It takes
--pointer to the device and index of the GpioIo/GpioInt descriptor in the
--device resources list. For example:
-+There is a standard GPIO API for that and is documented in
-+Documentation/gpio.txt.
+ struct acpi_gpio_lookup {
+ 	struct acpi_gpio_info info;
+@@ -310,3 +308,13 @@ struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
+ 	return lookup.desc ? lookup.desc : ERR_PTR(-ENODEV);
+ }
+ EXPORT_SYMBOL_GPL(acpi_get_gpiod_by_index);
++
++void acpi_gpiochip_add(struct gpio_chip *chip)
++{
++	acpi_gpiochip_request_interrupts(chip);
++}
++
++void acpi_gpiochip_remove(struct gpio_chip *chip)
++{
++	acpi_gpiochip_free_interrupts(chip);
++}
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 4e10b10d3ddd..70abccf0d144 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -15,6 +15,8 @@
+ #include <linux/slab.h>
+ #include <linux/acpi.h>
  
--	int gpio_irq, gpio_power;
--	int ret;
--
--	gpio_irq = acpi_get_gpio_by_index(dev, 1, NULL);
--	if (gpio_irq < 0)
--		/* handle error */
--
--	gpio_power = acpi_get_gpio_by_index(dev, 0, NULL);
--	if (gpio_power < 0)
--		/* handle error */
--
--	/* Now we can use the GPIO numbers */
--
--Other GpioIo parameters must be converted first by the driver to be
--suitable to the gpiolib before passing them.
--
--In case of GpioInt resource an additional call to gpio_to_irq() must be
--done before calling request_irq().
--
--Note that the above API is ACPI specific and not recommended for drivers
--that need to support non-ACPI systems. The recommended way is to use
--the descriptor based GPIO interfaces. The above example looks like this
--when converted to the GPIO desc:
-+In the above example we can get the corresponding two GPIO descriptors with
-+a code like this:
++#include "gpiolib.h"
++
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/gpio.h>
  
- 	#include <linux/gpio/consumer.h>
- 	...
-@@ -339,4 +316,5 @@ when converted to the GPIO desc:
+@@ -1212,6 +1214,7 @@ int gpiochip_add(struct gpio_chip *chip)
+ #endif
  
- 	/* Now we can use the GPIO descriptors */
+ 	of_gpiochip_add(chip);
++	acpi_gpiochip_add(chip);
  
--See also Documentation/gpio.txt.
-+There are also devm_* versions of these functions which release the
-+descriptors once the device is released.
+ 	if (status)
+ 		goto fail;
+@@ -1253,6 +1256,7 @@ int gpiochip_remove(struct gpio_chip *chip)
+ 
+ 	gpiochip_remove_pin_ranges(chip);
+ 	of_gpiochip_remove(chip);
++	acpi_gpiochip_remove(chip);
+ 
+ 	for (id = 0; id < chip->ngpio; id++) {
+ 		if (test_bit(FLAG_REQUESTED, &chip->desc[id].flags)) {
+diff --git a/drivers/gpio/gpiolib.h b/drivers/gpio/gpiolib.h
+new file mode 100644
+index 000000000000..2ed23ab8298c
+--- /dev/null
++++ b/drivers/gpio/gpiolib.h
+@@ -0,0 +1,23 @@
++/*
++ * Internal GPIO functions.
++ *
++ * Copyright (C) 2013, Intel Corporation
++ * Author: Mika Westerberg <mika.westerberg@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef GPIOLIB_H
++#define GPIOLIB_H
++
++#ifdef CONFIG_ACPI
++void acpi_gpiochip_add(struct gpio_chip *chip);
++void acpi_gpiochip_remove(struct gpio_chip *chip);
++#else
++static inline void acpi_gpiochip_add(struct gpio_chip *chip) { }
++static inline void acpi_gpiochip_remove(struct gpio_chip *chip) { }
++#endif
++
++#endif /* GPIOLIB_H */
+diff --git a/drivers/pinctrl/pinctrl-baytrail.c b/drivers/pinctrl/pinctrl-baytrail.c
+index 2832576d8b12..98b87a59df2d 100644
+--- a/drivers/pinctrl/pinctrl-baytrail.c
++++ b/drivers/pinctrl/pinctrl-baytrail.c
+@@ -29,7 +29,6 @@
+ #include <linux/gpio.h>
+ #include <linux/irqdomain.h>
+ #include <linux/acpi.h>
+-#include <linux/acpi_gpio.h>
+ #include <linux/platform_device.h>
+ #include <linux/seq_file.h>
+ #include <linux/io.h>
+@@ -485,9 +484,6 @@ static int byt_gpio_probe(struct platform_device *pdev)
+ 
+ 		irq_set_handler_data(hwirq, vg);
+ 		irq_set_chained_handler(hwirq, byt_gpio_irq_handler);
+-
+-		/* Register interrupt handlers for gpio signaled acpi events */
+-		acpi_gpiochip_request_interrupts(gc);
+ 	}
+ 
+ 	pm_runtime_enable(dev);
+diff --git a/include/linux/acpi_gpio.h b/include/linux/acpi_gpio.h
+index d875bc3dba3c..af96a0d452f6 100644
+--- a/include/linux/acpi_gpio.h
++++ b/include/linux/acpi_gpio.h
+@@ -21,9 +21,6 @@ struct acpi_gpio_info {
+ 
+ struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
+ 					  struct acpi_gpio_info *info);
+-void acpi_gpiochip_request_interrupts(struct gpio_chip *chip);
+-void acpi_gpiochip_free_interrupts(struct gpio_chip *chip);
+-
+ #else /* CONFIG_GPIO_ACPI */
+ 
+ static inline struct gpio_desc *
+@@ -33,9 +30,6 @@ acpi_get_gpiod_by_index(struct device *dev, int index,
+ 	return ERR_PTR(-ENOSYS);
+ }
+ 
+-static inline void acpi_gpiochip_request_interrupts(struct gpio_chip *chip) { }
+-static inline void acpi_gpiochip_free_interrupts(struct gpio_chip *chip) { }
+-
+ #endif /* CONFIG_GPIO_ACPI */
+ 
+ static inline int acpi_get_gpio_by_index(struct device *dev, int index,
 -- 
 1.8.4.3
 
