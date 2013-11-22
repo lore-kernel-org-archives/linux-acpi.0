@@ -1,85 +1,41 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 2/5] mmc: sdhci-acpi: covert to use GPIO descriptor API
-Date: Fri, 22 Nov 2013 12:18:03 +0200
-Message-ID: <20131122101803.GG2281@intel.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 1/5] net: rfkill: gpio: convert to descriptor-based GPIO
+ interface
+Date: Fri, 22 Nov 2013 12:50:16 +0200
+Message-ID: <20131122105016.GA8670@xps8300>
 References: <1385045153-25160-1-git-send-email-mika.westerberg@linux.intel.com>
- <1385045153-25160-3-git-send-email-mika.westerberg@linux.intel.com>
- <528F1B7E.7010601@intel.com>
+ <1385045153-25160-2-git-send-email-mika.westerberg@linux.intel.com>
+ <CAHp75VeEEWCVXz4X1qazfVKZBDBgP6NPfPnuS-b7qEiT4m7f=g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <528F1B7E.7010601@intel.com>
+In-Reply-To: <CAHp75VeEEWCVXz4X1qazfVKZBDBgP6NPfPnuS-b7qEiT4m7f=g@mail.gmail.com>
 Sender: linux-gpio-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, linux-gpio@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 22, 2013 at 10:53:18AM +0200, Adrian Hunter wrote:
-> On 21/11/13 16:45, Mika Westerberg wrote:
-> > The new descriptor based GPIO interface is now the recommend and more safer
-> 
-> "recommend and more safer" -> "recommended and safer"
+Hi Andy,
 
-OK.
+On Thu, Nov 21, 2013 at 05:32:28PM +0200, Andy Shevchenko wrote:
+> > +       /* Make sure at-least one of the GPIO is defined and that
+> > +        * a name is specified for this instance
+> > +        */
+> > +       if ((!rfkill->reset_gpio && !rfkill->shutdown_gpio) || !rfkill->name) {
+> > +               pr_warn("%s: invalid platform data\n", __func__);
+> > +               return -EINVAL;
+> > +       }
+> > +
+> > +       if (pdata && pdata->gpio_runtime_setup) {
+> > +               ret = pdata->gpio_runtime_setup(pdev);
+> >                 if (ret) {
+> > -                       pr_warn("%s: failed to get shutdown gpio.\n", __func__);
+> > +                       pr_warn("%s: can't set up gpio\n", __func__);
+> 
+> Could you use dev_* family of functions to print messages?
 
-> 
-> > way of using GPIOs from device drivers. Convert the ACPI SDHCI driver to
-> > use that interface.
-> > 
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > ---
-> >  drivers/mmc/host/sdhci-acpi.c | 26 ++++++++++----------------
-> >  1 file changed, 10 insertions(+), 16 deletions(-)
-> > 
-> > diff --git a/drivers/mmc/host/sdhci-acpi.c b/drivers/mmc/host/sdhci-acpi.c
-> > index ef19874fcd1f..379ddfe14bc7 100644
-> > --- a/drivers/mmc/host/sdhci-acpi.c
-> > +++ b/drivers/mmc/host/sdhci-acpi.c
-> > @@ -31,10 +31,9 @@
-> >  #include <linux/bitops.h>
-> >  #include <linux/types.h>
-> >  #include <linux/err.h>
-> > -#include <linux/gpio.h>
-> > +#include <linux/gpio/consumer.h>
-> >  #include <linux/interrupt.h>
-> >  #include <linux/acpi.h>
-> > -#include <linux/acpi_gpio.h>
-> >  #include <linux/pm.h>
-> >  #include <linux/pm_runtime.h>
-> >  #include <linux/delay.h>
-> > @@ -199,22 +198,19 @@ static irqreturn_t sdhci_acpi_sd_cd(int irq, void *dev_id)
-> >  	return IRQ_HANDLED;
-> >  }
-> >  
-> > -static int sdhci_acpi_add_own_cd(struct device *dev, int gpio,
-> > -				 struct mmc_host *mmc)
-> > +static int sdhci_acpi_add_own_cd(struct device *dev, struct mmc_host *mmc)
-> >  {
-> > +	struct gpio_desc *desc;
-> >  	unsigned long flags;
-> >  	int err, irq;
-> >  
-> > -	if (gpio < 0) {
-> > -		err = gpio;
-> > +	desc = devm_gpiod_get_index(dev, NULL, 0);
-> 
-> I notice that:
-> 
-> 	devm_gpio_request_one(.., label)
-> 		-> gpio_request_one(..., label)
-> 			-> gpiod_request(..., label)
-> 
-> but:
-> 
-> 	devm_gpiod_get_index(..., con_id, ...)
-> 		-> gpiod_get_index(..., con_id, ...)
-> 			-> gpiod_request(..., con_id)
-> 
-> which suggests that 'con_id' is equivalent to 'label'.
-> i.e. "sd_cd".  Is it?
+OK, I'll change them. Thanks!
 
-Indeed, it is. Even though ACPI doesn't use con_id for lookup gpiolib uses
-it as a label once the GPIO descriptor is found.
-
-I'll change that from NULL to "sd_cd".
+-- 
+heikki
