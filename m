@@ -1,98 +1,132 @@
 From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: [PATCH v2 2/7] ARM: tegra: add gpiod_lookup table for paz00
-Date: Sat, 23 Nov 2013 14:36:36 +0900
-Message-ID: <CAAVeFuKBAJS8LyDJ=99ZTWH6j=Z+H-KPAjA0SEWJ9oC5BSbe7w@mail.gmail.com>
+Subject: Re: [PATCH v2 3/7] net: rfkill: gpio: remove gpio conversion support
+Date: Sat, 23 Nov 2013 17:59:30 +0900
+Message-ID: <CAAVeFuKm=AHf4Az+ZZXwWLtft2_zmCqy2Wscw25cWNCbn2T+dQ@mail.gmail.com>
 References: <1385122474-14926-1-git-send-email-mika.westerberg@linux.intel.com>
- <1385122474-14926-3-git-send-email-mika.westerberg@linux.intel.com> <528FA509.6080907@wwwdotorg.org>
+ <1385122474-14926-4-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <528FA509.6080907@wwwdotorg.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <acourbot@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:45986 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750774Ab3KWI7w (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Nov 2013 03:59:52 -0500
+In-Reply-To: <1385122474-14926-4-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Sat, Nov 23, 2013 at 3:40 AM, Stephen Warren <swarren@wwwdotorg.org>=
- wrote:
-> On 11/22/2013 05:14 AM, Mika Westerberg wrote:
->> From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
->>
->> This makes it possible to request the gpio descriptors in
->> rfkill-gpio driver regardless of the platform.
+On Fri, Nov 22, 2013 at 9:14 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 >
-> Patches 1-3,
-> Tested-by: Stephen Warren <swarren@nvidia.com>
+> All platforms using this driver are now converted to the new
+> descriptor-based GPIO interface.
 >
-> All the testing I did was to "cat /sys/kernel/debug/gpios" to make su=
-re
-> those two GPIOs had been correctly acquired by the driver, and that t=
-hey
-> changed state as expected via the command-line "rfkill {un,}block" co=
-mmands.
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+>  net/rfkill/rfkill-gpio.c | 61 ++++++++++--------------------------------------
+>  1 file changed, 12 insertions(+), 49 deletions(-)
 >
-> However, please note that I had to apply a couple fixes to the gpioli=
-b
-> core to get this working:
+> diff --git a/net/rfkill/rfkill-gpio.c b/net/rfkill/rfkill-gpio.c
+> index 503432154616..bd2a5b90400c 100644
+> --- a/net/rfkill/rfkill-gpio.c
+> +++ b/net/rfkill/rfkill-gpio.c
+> @@ -68,35 +68,6 @@ static const struct rfkill_ops rfkill_gpio_ops = {
+>         .set_block = rfkill_gpio_set_power,
+>  };
 >
-> 1)
+> -static int rfkill_gpio_convert_to_desc(struct platform_device *pdev,
+> -                                      struct rfkill_gpio_data *rfkill)
+> -{
+> -       struct rfkill_gpio_platform_data *pdata = pdev->dev.platform_data;
+> -       int ret;
+> -
+> -       if (gpio_is_valid(pdata->reset_gpio)) {
+> -               ret = devm_gpio_request_one(&pdev->dev, pdata->reset_gpio,
+> -                                           0, rfkill->reset_name);
+> -               if (ret) {
+> -                       dev_err(&pdev->dev, "failed to get reset gpio.\n");
+> -                       return ret;
+> -               }
+> -               rfkill->reset_gpio = gpio_to_desc(pdata->reset_gpio);
+> -       }
+> -
+> -       if (gpio_is_valid(pdata->shutdown_gpio)) {
+> -               ret = devm_gpio_request_one(&pdev->dev, pdata->shutdown_gpio,
+> -                                           0, rfkill->shutdown_name);
+> -               if (ret) {
+> -                       dev_err(&pdev->dev, "failed to get shutdown gpio.\n");
+> -                       return ret;
+> -               }
+> -               rfkill->shutdown_gpio = gpio_to_desc(pdata->shutdown_gpio);
+> -       }
+> -
+> -       return 0;
+> -}
+> -
+>  static int rfkill_gpio_acpi_probe(struct device *dev,
+>                                   struct rfkill_gpio_data *rfkill)
+>  {
+> @@ -117,6 +88,7 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
+>         struct rfkill_gpio_platform_data *pdata = pdev->dev.platform_data;
+>         struct rfkill_gpio_data *rfkill;
+>         const char *clk_name = NULL;
+> +       struct gpio_desc *gpio;
+>         int ret;
+>         int len;
 >
-> To solve the following build warning:
+> @@ -150,29 +122,20 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
 >
->> In file included from arch/arm/mach-tegra/board-paz00.c:21:0:
->> include/linux/gpio/driver.h:102:17: warning: =E2=80=98struct of_phan=
-dle_args=E2=80=99 declared inside parameter list [enabled by default]
->> include/linux/gpio/driver.h:102:17: warning: its scope is only this =
-definition or declaration, which is probably not what you want [enabled=
- by default]
+>         rfkill->clk = devm_clk_get(&pdev->dev, clk_name);
 >
-> I applied:
+> -       if (pdata && (pdata->reset_gpio || pdata->shutdown_gpio)) {
+> -               ret = rfkill_gpio_convert_to_desc(pdev, rfkill);
+> +       gpio = devm_gpiod_get_index(&pdev->dev, rfkill->reset_name, 0);
+> +       if (!IS_ERR(gpio)) {
+> +               ret = gpiod_direction_output(gpio, 0);
+>                 if (ret)
+>                         return ret;
+> -       } else {
+> -               struct gpio_desc *gpio;
+> -
+> -               gpio = devm_gpiod_get_index(&pdev->dev, rfkill->reset_name, 0);
+> -               if (!IS_ERR(gpio)) {
+> -                       ret = gpiod_direction_output(gpio, 0);
+> -                       if (ret)
+> -                               return ret;
+> -                       rfkill->reset_gpio = gpio;
+> -               }
+> +               rfkill->reset_gpio = gpio;
+> +       }
 >
+> -               gpio = devm_gpiod_get_index(&pdev->dev,
+> -                                           rfkill->shutdown_name, 1);
+> -               if (!IS_ERR(gpio)) {
+> -                       ret = gpiod_direction_output(gpio, 0);
+> -                       if (ret)
+> -                               return ret;
+> -                       rfkill->shutdown_gpio = gpio;
+> -               }
+> +       gpio = devm_gpiod_get_index(&pdev->dev, rfkill->shutdown_name, 1);
+> +       if (!IS_ERR(gpio)) {
+> +               ret = gpiod_direction_output(gpio, 0);
+> +               if (ret)
+> +                       return ret;
+> +               rfkill->shutdown_gpio = gpio;
+>         }
 >
->> diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver=
-=2Eh
->> index 82eac610ce1a..5133cf29803a 100644
->> --- a/include/linux/gpio/driver.h
->> +++ b/include/linux/gpio/driver.h
->> @@ -5,6 +5,7 @@
->>
->>  struct device;
->>  struct gpio_desc;
->> +struct of_phandle_args;
->>  struct seq_file;
->>
->>  /**
->
-> 2)
->
-> In order to get the GPIO lookups from the rfkill driver working, I ap=
-plied:
->
->> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
->> index ac53a9593662..b73c39f99858 100644
->> --- a/drivers/gpio/gpiolib.c
->> +++ b/drivers/gpio/gpiolib.c
->> @@ -2368,7 +2368,7 @@ static struct gpio_desc *gpiod_find(struct dev=
-ice *dev, const char *con_id,
->>                               continue;
->>                       }
->>
->> -                     if (chip->ngpio >=3D p->chip_hwnum) {
->> +                     if (chip->ngpio <=3D p->chip_hwnum) {
->>                               dev_warn(dev, "GPIO chip %s has %d GPI=
-Os\n",
->>                                        chip->label, chip->ngpio);
->>                               continue;
+>         /* Make sure at-least one of the GPIO is defined and that
 
-Mmm. I guess should be blamed for this one. I haven't tested GPIO
-platform lookup in a while and this seems to have slipped in at some
-point. :( I will send fixup patches to Linus for both issues, thanks
-for pointing them out.
+Wouldn't it be possible (and simpler) to move patch 2 of your series
+to first position, and then to merge patch 1 and 3 together in second
+position? It seems to me that you are basically undoing much of the
+work of your first patch here (notably by removing
+rfkill_gpio_convert_to_desc() which ends up having a very short life)
+and that this could be avoided if you defined the platform lookup
+tables first.
 
-Alex.
---
-To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Doing so would avoid prevent you from using gpio_to_desc() which you
+should never ever use anyway. :P
