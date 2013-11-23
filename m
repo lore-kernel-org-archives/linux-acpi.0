@@ -1,106 +1,81 @@
-From: Lv Zheng <zetalog@gmail.com>
-Subject: [PATCH 4/4] ACPI: Add support to force header inclusion rules for <linux/acpi.h>.
-Date: Sat, 23 Nov 2013 07:37:04 +0800
-Message-ID: <2930f1fabbb8319c11180c8db3d1693adc71aac1.1385163359.git.lv.zheng@intel.com>
-References: <cover.1385094640.git.lv.zheng@intel.com>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [PATCH v2 4/6] ACPI: ARM: exclude DMI calls
+Date: Fri, 22 Nov 2013 17:05:48 -0700
+Message-ID: <528FF15C.4060300@linaro.org>
+References: <1385080915-23430-1-git-send-email-al.stone@linaro.org> <528F9C65.7010302@linaro.org> <CAOesGMgFBRjO++JSP0ddKKQ2RfG8V4fb97Hd+Oqwixi_Tt7Qwg@mail.gmail.com> <4285284.l8TssFvumi@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:60145 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755614Ab3KVXhd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 18:37:33 -0500
-In-Reply-To: <cover.1385094640.git.lv.zheng@intel.com>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:37382 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755467Ab3KWAFu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Nov 2013 19:05:50 -0500
+Received: by mail-ie0-f177.google.com with SMTP id tp5so3240434ieb.22
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Nov 2013 16:05:50 -0800 (PST)
+In-Reply-To: <4285284.l8TssFvumi@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>
+Cc: Rob Herring <robherring2@gmail.com>, linux-acpi@vger.kernel.org, Linaro Patches <patches@linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, linaro-acpi@lists.linaro.org
 
-From: Lv Zheng <lv.zheng@intel.com>
+On 11/22/2013 04:15 PM, Rafael J. Wysocki wrote:
+> On Friday, November 22, 2013 10:53:09 AM Olof Johansson wrote:
+>> On Fri, Nov 22, 2013 at 10:03 AM, Al Stone <al.stone@linaro.org> wrote:
+>>> On 11/22/2013 06:25 AM, Rob Herring wrote:
+>>>>
+>>>> On Thu, Nov 21, 2013 at 6:41 PM,  <al.stone@linaro.org> wrote:
+>>>>>
+>>>>> From: Al Stone <al.stone@linaro.org>
+>>>>>
+>>>>> Modified #ifdef so that DMI is not used on ARM platforms which
+>>>>> are currently implementing ACPI reduced HW mode.
+>>>>
+>>>>
+>>>> It is really not allowed or is optional? There are various people that
+>>>> want DMI tables on ARM.
+>>>>
+>>>> Rob
+>>>
+>>>
+>>> True.  DMI is optional.  I see it as orthogonal to
+>>> reduced HW mode; I have to hope that when DMI patches
+>>> are forthcoming they'll do the right thing here.
+>>>
+>>> Is there a better way to do this in the #if ?
+>>
+>>
+>> Doing all of these things at compile time seems odd, shouldn't it be
+>> handled at runtime? What happens when someone wants to build a kernel
+>> that boots both on the reduced hw mode platforms and regular ones?
+>
+> I agree.
+>
+> My suggestion would be to harden dmi_check_system() so that it works
+> if DMI is not present (if it doesn't already).
+>
+> Thanks!
+>
 
-As there is only CONFIG_ACPI=n processing in the <linux/acpi.h>, it is not
-safe to include <acpi/acpi.h>, <acpi/acpi_drivers.h> and <acpi/acpi_bus.h>
-directly for source out of Linux ACPI subsystems.
+I agree -- runtime would be better.  For dmi_check_system(), that
+can be done and I'll look into that.  I'll also go double check the
+rest of my #ifdefs and see if I can remove any more of them from the
+Linux side of the ACPI code.
 
-This patch adds error messaging to warn developers of such wrong
-inclusions.
+For reduced hardware mode, however, I have to rely on the underlying
+ACPICA reference implementation to behave properly.  Right now, ACPICA
+relies on compile time changes to implement either reduced HW mode or
+legacy mode so I have to follow suit.  When I looked at making ACPICA
+change behavior at runtime, the changes became more and more invasive.
+Since x86/ia64 depend on ACPICA to behave also, that seemed a far more 
+dangerous approach to me.
 
-In order not to be bisected and reverted as a wrong commit, warning
-messages are carefully split into a seperate patch other than the wrong
-inclusion cleanups.
-
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/Makefile    |    2 +-
- include/acpi/acpi_bus.h         |    5 +++++
- include/acpi/acpi_drivers.h     |    5 +++++
- include/acpi/platform/aclinux.h |   10 ++++++++++
- 4 files changed, 21 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
-index 4383040..7738677 100644
---- a/drivers/acpi/acpica/Makefile
-+++ b/drivers/acpi/acpica/Makefile
-@@ -2,7 +2,7 @@
- # Makefile for ACPICA Core interpreter
- #
- 
--ccflags-y			:= -Os
-+ccflags-y			:= -Os -DLINUXIZED_ACPICA
- ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
- 
- # use acpi.o to put all files here into acpi.o modparam namespace
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 0af9667..0b1ea80 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -26,6 +26,11 @@
- #ifndef __ACPI_BUS_H__
- #define __ACPI_BUS_H__
- 
-+/* <acpi/acpi_bus.h> is not safe for CONFIG_ACPI=n environment */
-+#ifndef _LINUX_ACPI_H
-+#error "Please don't include <acpi/acpi_bus.h> direclty, including <linux/acpi.h> instead."
-+#endif
-+
- #include <linux/device.h>
- 
- 
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index f3f1219..f5bed3a 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -26,6 +26,11 @@
- #ifndef __ACPI_DRIVERS_H__
- #define __ACPI_DRIVERS_H__
- 
-+/* <acpi/acpi_drivers.h> is not safe for CONFIG_ACPI=n environment */
-+#ifndef _LINUX_ACPI_H
-+#error "Please don't include <acpi/acpi_drivers.h> directly, including <linux/acpi.h> instead."
-+#endif
-+
- 
- #define ACPI_MAX_STRING			80
- 
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 28f4f4d..0e05771 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -44,6 +44,16 @@
- #ifndef __ACLINUX_H__
- #define __ACLINUX_H__
- 
-+#ifdef __KERNEL__
-+
-+/* ACPICA external files should not include ACPICA headers directly. */
-+
-+#if !defined(LINUXIZED_ACPICA) && !defined(_LINUX_ACPI_H)
-+#error "Please don't include <acpi/acpi.h> directly, including <linux/acpi.h> instead."
-+#endif
-+
-+#endif
-+
- /* Common (in-kernel/user-space) ACPICA configuration */
- 
- #define ACPI_USE_SYSTEM_CLIBRARY
 -- 
-1.7.10
-
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
