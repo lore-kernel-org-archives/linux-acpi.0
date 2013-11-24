@@ -1,41 +1,33 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH v2 4/6] ACPI: ARM: exclude DMI calls
-Date: Sat, 23 Nov 2013 16:38:54 +0000
-Message-ID: <20131123163854.GA1817@srcf.ucam.org>
-References: <1385080915-23430-1-git-send-email-al.stone@linaro.org>
- <528F9C65.7010302@linaro.org>
- <CAOesGMgFBRjO++JSP0ddKKQ2RfG8V4fb97Hd+Oqwixi_Tt7Qwg@mail.gmail.com>
- <4285284.l8TssFvumi@vostro.rjw.lan>
- <528FF15C.4060300@linaro.org>
+From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH 1/2] New Driver for IOSF-SB MBI access on Intel SOCs
+Date: Sun, 24 Nov 2013 00:41:32 +0000
+Message-ID: <20131124004132.6ca1c0e1@alan.etchedpixels.co.uk>
+References: <1385100357-5459-1-git-send-email-david.e.box@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:59840 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754401Ab3KWQjD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Nov 2013 11:39:03 -0500
-Content-Disposition: inline
-In-Reply-To: <528FF15C.4060300@linaro.org>
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:41093 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755609Ab3KXAoW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Nov 2013 19:44:22 -0500
+In-Reply-To: <1385100357-5459-1-git-send-email-david.e.box@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Rob Herring <robherring2@gmail.com>, linux-acpi@vger.kernel.org, Linaro Patches <patches@linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, linaro-acpi@lists.linaro.org
+To: "David E. Box" <david.e.box@linux.intel.com>
+Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@sisk.pl, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, Nov 22, 2013 at 05:05:48PM -0700, Al Stone wrote:
+On Thu, 21 Nov 2013 22:05:56 -0800
+"David E. Box" <david.e.box@linux.intel.com> wrote:
 
-> For reduced hardware mode, however, I have to rely on the underlying
-> ACPICA reference implementation to behave properly.  Right now, ACPICA
-> relies on compile time changes to implement either reduced HW mode or
-> legacy mode so I have to follow suit.  When I looked at making ACPICA
-> change behavior at runtime, the changes became more and more invasive.
-> Since x86/ia64 depend on ACPICA to behave also, that seemed a far
-> more dangerous approach to me.
+> +static int iosf_mbi_probe(struct platform_device *pdev)
+> +{
+> +	struct resource *mem;
+> +
+> +	/* Get and map MBI address space */
+> +	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	iosf_mbi_data.addr = devm_ioremap_resource(&pdev->dev, mem);
 
-Ugh. Really? People have been fairly careful about making sure that the 
-x86 SoC code is selected correctly at runtime, and losing that because 
-ACPICA is broken would be a shame. I think this is something that needs 
-to support runtime switching even if there's also support for building 
-kernels that only implement the reduced hardware profile.
+Purely "defensive driv(er)ing" but platform_get_resource can return NULL
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Alan
