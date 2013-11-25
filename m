@@ -1,112 +1,52 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: [PATCH] acpi, add region addresses to conflict output [v2]
-Date: Mon, 25 Nov 2013 13:25:50 -0500
-Message-ID: <1385403950-11297-1-git-send-email-prarit@redhat.com>
+From: Paul Drews <paul.drews@intel.com>
+Subject: [PATCH] acpi: Add BayTrail SoC GPIO and LPSS ACPI IDs
+Date: Mon, 25 Nov 2013 14:15:55 -0800
+Message-ID: <1385417755-21776-1-git-send-email-paul.drews@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21208 "EHLO mx1.redhat.com"
+Received: from mga09.intel.com ([134.134.136.24]:41107 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753758Ab3KYS0E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Nov 2013 13:26:04 -0500
+	id S1751005Ab3KYWQX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Nov 2013 17:16:23 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Prarit Bhargava <prarit@redhat.com>, Myron Stowe <mstowe@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, mjg59@srcf.ucam.org
+To: lenb@kernel.org, rjw@rjwysocki.net, linus.walleij@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Paul Drews <paul.drews@intel.com>
 
-Currently the kernel does
+This adds the new ACPI ID (INT33FC) for the BayTrail GPIO
+banks as seen on a BayTrail M System-On-Chip platform.  This
+ACPI ID is used by the BayTrail GPIO (pinctrl) driver to
+manage the Low Power Subsystem (LPSS).
 
- ACPI Warning: 0x0000000000000428-0x000000000000042f SystemIO conflicts
- with Region \PMIO 1 (20130517/utaddress-251)
-
-This patch outputs the region address so that we now see
-
-ACPI Warning: 0x0000000000000428-0x000000000000042f SystemIO conflicts
-with Region 0x0000000000000400-0x000000000000047f \PMIO 1
-(20130927/utaddress-252)
-
-which is a lot more useful for debugging.
-
-Also fix some simple comment linewrapping issues in this function.
-
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Cc: Myron Stowe <mstowe@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: mjg59@srcf.ucam.org
-
-[v2]: minor change to comments
+Signed-off-by: Paul Drews <paul.drews@intel.com>
 ---
- drivers/acpi/acpica/utaddress.c |   53 +++++++++++++++++++++------------------
- 1 file changed, 29 insertions(+), 24 deletions(-)
+ drivers/acpi/acpi_lpss.c           | 1 +
+ drivers/pinctrl/pinctrl-baytrail.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/acpica/utaddress.c b/drivers/acpi/acpica/utaddress.c
-index e0a2e27..eb4f28d 100644
---- a/drivers/acpi/acpica/utaddress.c
-+++ b/drivers/acpi/acpica/utaddress.c
-@@ -224,35 +224,40 @@ acpi_ut_check_address_range(acpi_adr_space_type space_id,
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 6745fe1..e603905 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -162,6 +162,7 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+ 	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
+ 	{ "80860F41", (unsigned long)&byt_i2c_dev_desc },
+ 	{ "INT33B2", },
++	{ "INT33FC", },
  
- 	while (range_info) {
- 		/*
--		 * Check if the requested Address/Length overlaps this address_range.
--		 * Four cases to consider:
-+		 * Check if the requested Address/Length overlaps this
-+		 * address_range.  Four cases to consider:
- 		 *
--		 * 1) Input address/length is contained completely in the address range
-+		 * 1) Input address/length is contained completely in the
-+		 *    address range
- 		 * 2) Input address/length overlaps range at the range start
- 		 * 3) Input address/length overlaps range at the range end
- 		 * 4) Input address/length completely encompasses the range
- 		 */
--		if ((address <= range_info->end_address) &&
--		    (end_address >= range_info->start_address)) {
--
--			/* Found an address range overlap */
--
--			overlap_count++;
--			if (warn) {	/* Optional warning message */
--				pathname =
--				    acpi_ns_get_external_pathname(range_info->
--								  region_node);
--
--				ACPI_WARNING((AE_INFO,
--					      "0x%p-0x%p %s conflicts with Region %s %d",
--					      ACPI_CAST_PTR(void, address),
--					      ACPI_CAST_PTR(void, end_address),
--					      acpi_ut_get_region_name(space_id),
--					      pathname, overlap_count));
--				ACPI_FREE(pathname);
--			}
--		}
--
-+		if ((address > range_info->end_address) &&
-+		    (end_address < range_info->start_address))
-+			goto next_range;
-+
-+		/* Found an address range overlap */
-+		overlap_count++;
-+
-+		if (!warn)
-+			goto next_range;
-+
-+		/* Optional warning message */
-+		pathname =
-+			 acpi_ns_get_external_pathname(range_info->region_node);
-+
-+		ACPI_WARNING((AE_INFO,
-+			      "0x%p-0x%p %s conflicts with Region 0x%p-0x%p %s %d",
-+			      ACPI_CAST_PTR(void, address),
-+			      ACPI_CAST_PTR(void, end_address),
-+			      acpi_ut_get_region_name(space_id),
-+			      ACPI_CAST_PTR(void, range_info->start_address),
-+			      ACPI_CAST_PTR(void, range_info->end_address),
-+			      pathname, overlap_count));
-+		ACPI_FREE(pathname);
-+
-+next_range:
- 		range_info = range_info->next;
- 	}
+ 	{ "INT3430", (unsigned long)&lpt_dev_desc },
+ 	{ "INT3431", (unsigned long)&lpt_dev_desc },
+diff --git a/drivers/pinctrl/pinctrl-baytrail.c b/drivers/pinctrl/pinctrl-baytrail.c
+index 2832576..114f5ef 100644
+--- a/drivers/pinctrl/pinctrl-baytrail.c
++++ b/drivers/pinctrl/pinctrl-baytrail.c
+@@ -512,6 +512,7 @@ static const struct dev_pm_ops byt_gpio_pm_ops = {
  
+ static const struct acpi_device_id byt_gpio_acpi_match[] = {
+ 	{ "INT33B2", 0 },
++	{ "INT33FC", 0 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(acpi, byt_gpio_acpi_match);
 -- 
-1.7.9.3
+1.7.11.7
 
