@@ -1,36 +1,38 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Subject: Re: [PATCH v2 3/7] net: rfkill: gpio: remove gpio conversion support
-Date: Mon, 25 Nov 2013 10:35:59 +0200
-Message-ID: <20131125083559.GA21001@xps8300>
+Date: Mon, 25 Nov 2013 10:41:27 +0200
+Message-ID: <20131125084127.GB21001@xps8300>
 References: <1385122474-14926-1-git-send-email-mika.westerberg@linux.intel.com>
  <1385122474-14926-4-git-send-email-mika.westerberg@linux.intel.com>
- <528FA520.7080501@wwwdotorg.org>
- <20131122205640.GA21895@xps8300>
- <528FC60A.80308@wwwdotorg.org>
+ <CAAVeFuKm=AHf4Az+ZZXwWLtft2_zmCqy2Wscw25cWNCbn2T+dQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <528FC60A.80308@wwwdotorg.org>
+In-Reply-To: <CAAVeFuKm=AHf4Az+ZZXwWLtft2_zmCqy2Wscw25cWNCbn2T+dQ@mail.gmail.com>
 Sender: linux-gpio-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Thierry Reding <thierry.reding@gmail.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alexandre Courbot <gnurou@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 22, 2013 at 02:00:58PM -0700, Stephen Warren wrote:
-> On 11/22/2013 01:56 PM, Heikki Krogerus wrote:
-> > I have prepared a separate patch where I remove those and some other
-> > unused fields from the pdata structure (attachment). Would it be OK to
-> > add that to this patch set? Or should this patch simply be updated?
+On Sat, Nov 23, 2013 at 05:59:30PM +0900, Alexandre Courbot wrote:
+> Wouldn't it be possible (and simpler) to move patch 2 of your series
+> to first position, and then to merge patch 1 and 3 together in second
+> position? It seems to me that you are basically undoing much of the
+> work of your first patch here (notably by removing
+> rfkill_gpio_convert_to_desc() which ends up having a very short life)
+> and that this could be avoided if you defined the platform lookup
+> tables first.
 > 
-> I would suggest killing off the two GPIO fields in this patch, since
-> it's logically part of this change. I think the balance of the patch is
-> unrelated to gpiod conversion, so should probably be sent separately,
-> although watch out for dependencies.
+> Doing so would avoid prevent you from using gpio_to_desc() which you
+> should never ever use anyway. :P
 
-Yes, we'll do it like that.
+Adding the lookup table in first patch and then changing the driver in
+the second creates a point to the history where this driver stops
+working on this platform, which is something I'm not willing to do.
 
-Thanks,
+But, we can make one patch out of all three if everybody is OK with
+that.
 
 -- 
 heikki
