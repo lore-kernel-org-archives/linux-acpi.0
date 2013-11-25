@@ -1,42 +1,35 @@
-From: Alex Courbot <acourbot@nvidia.com>
-Subject: Re: [PATCH v2 3/7] net: rfkill: gpio: remove gpio conversion support
-Date: Mon, 25 Nov 2013 18:05:31 +0900
-Message-ID: <529312DB.6070301@nvidia.com>
-References: <1385122474-14926-1-git-send-email-mika.westerberg@linux.intel.com> <1385122474-14926-4-git-send-email-mika.westerberg@linux.intel.com> <CAAVeFuKm=AHf4Az+ZZXwWLtft2_zmCqy2Wscw25cWNCbn2T+dQ@mail.gmail.com> <20131125084127.GB21001@xps8300> <52930EAA.7030208@nvidia.com> <20131125090218.GC21001@xps8300>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 6/7] gpio / ACPI: get rid of acpi_gpio.h
+Date: Mon, 25 Nov 2013 12:18:25 +0200
+Message-ID: <20131125101825.GT2281@intel.com>
+References: <1385122474-14926-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1385122474-14926-7-git-send-email-mika.westerberg@linux.intel.com>
+ <CAAVeFuK_76Rnqa8E0DpME8Eyc3vh63HmyHx=zbeyaKz7aXm=rA@mail.gmail.com>
+ <20131125085454.GN2281@intel.com>
+ <52930F74.7060808@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20131125090218.GC21001@xps8300>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:10816 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750965Ab3KYKMP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Nov 2013 05:12:15 -0500
+Content-Disposition: inline
+In-Reply-To: <52930F74.7060808@nvidia.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alex Courbot <acourbot@nvidia.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 11/25/2013 06:02 PM, Heikki Krogerus wrote:
-> On Mon, Nov 25, 2013 at 05:47:38PM +0900, Alex Courbot wrote:
->> On 11/25/2013 05:41 PM, Heikki Krogerus wrote:
->>> Adding the lookup table in first patch and then changing the driver in
->>> the second creates a point to the history where this driver stops
->>> working on this platform, which is something I'm not willing to do.
->>
->> Does it? If you just add a lookup table and keep using the
->> integer-based GPIO interface, then your lookup table will not be
->> used by anyone and will basically be a no-op. Then you can switch to
->> the GPIO descriptor interface and take advantage of the lookup
->> table. Unless I missed something there should not be any point that
->> breaks in the git history.
->>
->> (to be clear: the first patch should *only* contain the lookup
->> table, and the second be a merge of the current patches 1 and 3 of
->> this series.)
->
-> OK, I agree. If I don't remove the old gpio numbers in in the first
-> patch, there is no problem. We can do this with the two patches.
+On Mon, Nov 25, 2013 at 05:51:00PM +0900, Alex Courbot wrote:
+> I just wondered if these headers should not be split by GPIO
+> providers, but if you prefer it that way I'm fine with it too. We
+> can move stuff later if needed.
+> 
+> Acked-by: Alexandre Courbot <acourbot@nvidia.com>
 
-Yep, that's what I meant. :) It would make the series considerably 
-easier to understand by removing its temporary code.
+Thanks!
 
-Thanks,
-Alex.
-
+BTW, I noticed that I missed removing EXPORT_SYMBOL_GPL() from
+acpi_get_gpiod_by_index(). I'm folding that change to this patch for the
+next version if nobody objects.
