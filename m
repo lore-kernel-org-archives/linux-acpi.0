@@ -1,135 +1,44 @@
-From: Alex Courbot <acourbot@nvidia.com>
-Subject: Re: [PATCH v2 6/7] gpio / ACPI: get rid of acpi_gpio.h
-Date: Mon, 25 Nov 2013 17:51:00 +0900
-Message-ID: <52930F74.7060808@nvidia.com>
-References: <1385122474-14926-1-git-send-email-mika.westerberg@linux.intel.com> <1385122474-14926-7-git-send-email-mika.westerberg@linux.intel.com> <CAAVeFuK_76Rnqa8E0DpME8Eyc3vh63HmyHx=zbeyaKz7aXm=rA@mail.gmail.com> <20131125085454.GN2281@intel.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH v2 3/7] net: rfkill: gpio: remove gpio conversion support
+Date: Mon, 25 Nov 2013 11:02:19 +0200
+Message-ID: <20131125090218.GC21001@xps8300>
+References: <1385122474-14926-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1385122474-14926-4-git-send-email-mika.westerberg@linux.intel.com>
+ <CAAVeFuKm=AHf4Az+ZZXwWLtft2_zmCqy2Wscw25cWNCbn2T+dQ@mail.gmail.com>
+ <20131125084127.GB21001@xps8300>
+ <52930EAA.7030208@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hqemgate14.nvidia.com ([216.228.121.143]:1679 "EHLO
-	hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752853Ab3KYIvG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Nov 2013 03:51:06 -0500
-In-Reply-To: <20131125085454.GN2281@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <52930EAA.7030208@nvidia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alex Courbot <acourbot@nvidia.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Alexandre Courbot <gnurou@gmail.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 11/25/2013 05:54 PM, Mika Westerberg wrote:
-> On Sat, Nov 23, 2013 at 06:21:03PM +0900, Alexandre Courbot wrote:
->> On Fri, Nov 22, 2013 at 9:14 PM, Mika Westerberg
->> <mika.westerberg@linux.intel.com> wrote:
->>> Now that all users of acpi_gpio.h have been moved to user either the GPIO
->>
->> s/user/use
->
-> OK.
->
->>
->>> descriptor interface or to the internal gpiolib.h we can get rid of
->>
->> gpiolib.h will also need to be renamed if you follow my suggestion below.
->>
->>> acpi_gpio.h entirely.
->>>
->>> Once this is done the only interface to get GPIOs to drivers enumerated
->>> from ACPI namespace is the descriptor based interface.
->>
->> Oh, do I like this. :)
->>
->>>
->>> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->>> ---
->>>   drivers/gpio/gpiolib-acpi.c |  4 +++-
->>>   drivers/gpio/gpiolib.c      |  1 -
->>>   drivers/gpio/gpiolib.h      | 23 +++++++++++++++++++++++
->>>   include/linux/acpi_gpio.h   | 45 ---------------------------------------------
->>>   4 files changed, 26 insertions(+), 47 deletions(-)
->>>   delete mode 100644 include/linux/acpi_gpio.h
->>>
->>> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
->>> index cb2da66fbbfe..6c158d9a6efa 100644
->>> --- a/drivers/gpio/gpiolib-acpi.c
->>> +++ b/drivers/gpio/gpiolib-acpi.c
->>> @@ -12,11 +12,13 @@
->>>
->>>   #include <linux/errno.h>
->>>   #include <linux/gpio/consumer.h>
->>> +#include <linux/gpio/driver.h>
->>>   #include <linux/export.h>
->>> -#include <linux/acpi_gpio.h>
->>>   #include <linux/acpi.h>
->>>   #include <linux/interrupt.h>
->>>
->>> +#include "gpiolib.h"
->>> +
->>>   struct acpi_gpio_evt_pin {
->>>          struct list_head node;
->>>          acpi_handle *evt_handle;
->>> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
->>> index 70abccf0d144..a6b82413c290 100644
->>> --- a/drivers/gpio/gpiolib.c
->>> +++ b/drivers/gpio/gpiolib.c
->>> @@ -10,7 +10,6 @@
->>>   #include <linux/seq_file.h>
->>>   #include <linux/gpio.h>
->>>   #include <linux/of_gpio.h>
->>> -#include <linux/acpi_gpio.h>
->>>   #include <linux/idr.h>
->>>   #include <linux/slab.h>
->>>   #include <linux/acpi.h>
->>> diff --git a/drivers/gpio/gpiolib.h b/drivers/gpio/gpiolib.h
->>> index 2ed23ab8298c..82be586c1f90 100644
->>> --- a/drivers/gpio/gpiolib.h
->>> +++ b/drivers/gpio/gpiolib.h
->>> @@ -12,12 +12,35 @@
->>>   #ifndef GPIOLIB_H
->>>   #define GPIOLIB_H
->>>
->>> +#include <linux/err.h>
->>> +#include <linux/device.h>
->>> +
->>> +/**
->>> + * struct acpi_gpio_info - ACPI GPIO specific information
->>> + * @gpioint: if %true this GPIO is of type GpioInt otherwise type is GpioIo
->>> + * @active_low: in case of @gpioint, the pin is active low
->>> + */
->>> +struct acpi_gpio_info {
->>> +       bool gpioint;
->>> +       bool active_low;
->>> +};
->>> +
->>>   #ifdef CONFIG_ACPI
->>>   void acpi_gpiochip_add(struct gpio_chip *chip);
->>>   void acpi_gpiochip_remove(struct gpio_chip *chip);
->>> +
->>> +struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
->>> +                                         struct acpi_gpio_info *info);
->>>   #else
->>>   static inline void acpi_gpiochip_add(struct gpio_chip *chip) { }
->>>   static inline void acpi_gpiochip_remove(struct gpio_chip *chip) { }
->>> +
->>> +static inline struct gpio_desc *
->>> +acpi_get_gpiod_by_index(struct device *dev, int index,
->>> +                       struct acpi_gpio_info *info)
->>> +{
->>> +       return ERR_PTR(-ENOSYS);
->>> +}
->>>   #endif
->>
->> Since this header contains purely ACPI-related declarations so far, I wonder
->> if it should not be renamed acpi.h?
->
-> Well, for now it contains only ACPI related stuff but once you guys start
-> tearing DT interfaces away from drivers, this header is expected to grow :)
->
-> So idea is to have gpiolib internal/private header where we can add stuff
-> taht is not going to be exported to drivers.
+On Mon, Nov 25, 2013 at 05:47:38PM +0900, Alex Courbot wrote:
+> On 11/25/2013 05:41 PM, Heikki Krogerus wrote:
+> >Adding the lookup table in first patch and then changing the driver in
+> >the second creates a point to the history where this driver stops
+> >working on this platform, which is something I'm not willing to do.
+> 
+> Does it? If you just add a lookup table and keep using the
+> integer-based GPIO interface, then your lookup table will not be
+> used by anyone and will basically be a no-op. Then you can switch to
+> the GPIO descriptor interface and take advantage of the lookup
+> table. Unless I missed something there should not be any point that
+> breaks in the git history.
+> 
+> (to be clear: the first patch should *only* contain the lookup
+> table, and the second be a merge of the current patches 1 and 3 of
+> this series.)
 
-I just wondered if these headers should not be split by GPIO providers, 
-but if you prefer it that way I'm fine with it too. We can move stuff 
-later if needed.
+OK, I agree. If I don't remove the old gpio numbers in in the first
+patch, there is no problem. We can do this with the two patches.
 
-Acked-by: Alexandre Courbot <acourbot@nvidia.com>
+Thanks,
+
+
+-- 
+heikki
