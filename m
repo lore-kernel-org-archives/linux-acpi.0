@@ -1,120 +1,77 @@
 From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 1/2] ACPI, APEI, GHES: Remove strict check for memory
+Subject: Re: [PATCH 2/2] ACPI, APEI, GHES: Cleanup ghes codes for memory
  error handling
-Date: Mon, 25 Nov 2013 01:26:06 -0500
-Message-ID: <20131125062606.GA15621@gchen.bj.intel.com>
+Date: Mon, 25 Nov 2013 02:09:30 -0500
+Message-ID: <20131125070930.GB15621@gchen.bj.intel.com>
 References: <1385099825-31765-1-git-send-email-gong.chen@linux.intel.com>
- <20131125060823.GA2233@naverao1-tp.in.ibm.com>
+ <1385099825-31765-2-git-send-email-gong.chen@linux.intel.com>
+ <20131125061209.GB2233@naverao1-tp.in.ibm.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
+	protocol="application/pgp-signature"; boundary="i9LlY+UWpKt15+FH"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:19139 "EHLO mga02.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:36133 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750793Ab3KYGnf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Nov 2013 01:43:35 -0500
+	id S1750972Ab3KYH0c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Nov 2013 02:26:32 -0500
 Content-Disposition: inline
-In-Reply-To: <20131125060823.GA2233@naverao1-tp.in.ibm.com>
+In-Reply-To: <20131125061209.GB2233@naverao1-tp.in.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
 Cc: tony.luck@intel.com, bp@alien8.de, linux-acpi@vger.kernel.org
 
 
---sdtB3X0nJg68CQEu
+--i9LlY+UWpKt15+FH
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 25, 2013 at 11:38:23AM +0530, Naveen N. Rao wrote:
-> Date: Mon, 25 Nov 2013 11:38:23 +0530
-> From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-> To: "Chen, Gong" <gong.chen@linux.intel.com>
-> Cc: tony.luck@intel.com, bp@alien8.de, linux-acpi@vger.kernel.org
-> Subject: Re: [PATCH 1/2] ACPI, APEI, GHES: Remove strict check for memory
->  error handling
-> User-Agent: Mutt/1.5.21 (2010-09-15)
+On Mon, Nov 25, 2013 at 11:42:09AM +0530, Naveen N. Rao wrote:
+> > +
+> > +	/* ensure iff events by strictly check can be handled */
 >=20
-> On 2013/11/22 12:57AM, Chen Gong wrote:
-> > Usually SCI is employed to handle corrected error, especially
-> > for memory corrected error but in fact SCI still can be used
-> > to handle any error like memory uncorrected error if BIOS
-> > enable it. For this situation, memory uncorrected error
-> > should be logged as corrected error does, too.
-> >=20
-> > Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
-> > ---
-> >  arch/x86/include/asm/mce.h            | 3 +--
-> >  arch/x86/kernel/cpu/mcheck/mce-apei.c | 6 ++----
-> >  drivers/acpi/apei/ghes.c              | 3 +--
-> >  3 files changed, 4 insertions(+), 8 deletions(-)
-> >=20
-> > diff --git a/arch/x86/include/asm/mce.h b/arch/x86/include/asm/mce.h
-> > index cbe6b9e..94b263f 100644
-> > --- a/arch/x86/include/asm/mce.h
-> > +++ b/arch/x86/include/asm/mce.h
-> > @@ -244,7 +244,6 @@ static inline void mcheck_intel_therm_init(void) { }
-> >   */
-> > =20
-> >  struct cper_sec_mem_err;
-> > -extern void apei_mce_report_mem_error(int corrected,
-> > -				      struct cper_sec_mem_err *mem_err);
-> > +extern void apei_mce_report_mem_error(struct cper_sec_mem_err *mem_err=
-);
-> > =20
-> >  #endif /* _ASM_X86_MCE_H */
-> > diff --git a/arch/x86/kernel/cpu/mcheck/mce-apei.c b/arch/x86/kernel/cp=
-u/mcheck/mce-apei.c
-> > index cd8b166..f09da48 100644
-> > --- a/arch/x86/kernel/cpu/mcheck/mce-apei.c
-> > +++ b/arch/x86/kernel/cpu/mcheck/mce-apei.c
-> > @@ -37,13 +37,11 @@
-> > =20
-> >  #include "mce-internal.h"
-> > =20
-> > -void apei_mce_report_mem_error(int corrected, struct cper_sec_mem_err =
-*mem_err)
-> > +void apei_mce_report_mem_error(struct cper_sec_mem_err *mem_err)
-> >  {
-> >  	struct mce m;
-> > =20
-> > -	/* Only corrected MC is reported */
-> > -	if (!corrected || !(mem_err->validation_bits &
-> > -				CPER_MEM_VALID_PHYSICAL_ADDRESS))
-> > +	if (!(mem_err->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS))
-> >  		return;
->=20
-> This won't be enough. Further down, you'll see that all memory errors
-> get logged as corrected errors due to the hardcoded MCE status. A lot
-> more work will be needed if we have to log GHES errors through mcelog
-> properly.
->=20
-> - Naveen
->=20
-Sure. In fact, the most valuable information from CPER is physical
-address and most other data are faked or only little values. But
-at least we can make it more precisely.
+> Comment can probably be removed - not sure it conveys anything useful.
+>
+I think comments are always meaningful only if it is correct. BTW, this
+comment is used to tell only following two scenarios can be handled
+properly.
 
---sdtB3X0nJg68CQEu
+> > +	if (sec_sev =3D=3D GHES_SEV_CORRECTED &&
+> > +	    (gdata->flags & CPER_SEC_ERROR_THRESHOLD_EXCEEDED))
+> > +		flags =3D MF_SOFT_OFFLINE;
+> > +	if (sev =3D=3D GHES_SEV_RECOVERABLE && sec_sev =3D=3D GHES_SEV_RECOVE=
+RABLE)
+> > +		flags =3D 0;
+> > +
+> > +	if (flag !=3D -1)
+>=20
+> Wonder if this even compiles! That should be 'flags'.
+>=20
+
+I'm sorry for that. I must forget to select CONFIG_ACPI_APEI_MEMORY_FAILURE.
+Thanks for your careful observation.
+
+--i9LlY+UWpKt15+FH
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSku1+AAoJEI01n1+kOSLHuu4QAIEKaYRVntLygn4r6DkqqXXQ
-ONaDoHvZJSRUaEN/K8/Mt+9MaRq64CoRx9SWQzR3hpVP+TBjK77vWxG54PzFXIVa
-mrKEdpefv23gqXJnpzRznRmYiLIqk7gK2FCetMZwkBHeQ9olspAFfuwKRL3sL6rP
-tEeZI3sjWDQ3ddjqaOWO5N+8xWGSZ4ZpYq/sCd1HD5No29UyrU0VRZ/fxhI2M7HV
-y8duLs5YsM5MOkJQdI7Vwfebg/QAVhesMADuIFvevtzN4GHVKTu2W5ccn9YJx46c
-zIV9U6zF5I8D/83JqfYDxbH9y3jtDNEGTnhx1UB6D03XCspDOQfCpwM+FDqgom5O
-3rjRGYZx6vYbzXODi64cMakLkK3i74M/CnXAi/+xxo+qSOdu8mMLzNc46ztajKaY
-y+6tVxPHss6p/lOayE3Q8uweByfcVrL5vgknHLGQFrZK3/yLp8TxY4MRBN1ihBfT
-2TFdb54tggNzn8JsLsjFB6T4vG12owRukYiEsArT/+NwjAJ10LQXlBkTw5X9GQZb
-Gzmx7EnWQFQvMF9IREQIGtQlqbvj2/bCNOH3x8QeyXCF13WfydjxA8ChHyJwWGO7
-gEvH/E99rCH4XANaCwxgVlLCjEJ9yDzsy3WDEJhnt7WR4fwPADo5ccsx3EUObnPl
-S9tbaziFIcbz34mqU1/u
-=O/hM
+iQIcBAEBAgAGBQJSkveqAAoJEI01n1+kOSLHnDsQAKUiyhTF7cgnThcqOZjPBZmS
+iF+UZgL4/SuhfuEvgIhLtX44jWQhhvDcsq9CW+UR4TajtzXONdQxQmRK3w21296t
+vssAjJ6itNQSMtAUp0944MhZKWkPOgw18vn32W45WfNGkUU25JhL0PWuTHfVrk06
+kHLdFUa3pHVuIvT1uhrDfEQDtIM5u4w5C0ffJNRuxgDiPbTa3NZ4HvxCah0NX1Yc
+ZT+l/UDprfqrLFGg9YbemKmD+D0c2O+bdlFQMluOwtUL81pO23dKCPUAI9Wut890
+UmYBc9/YdJ37r7bWzJ0luhVZR1KmO+ZCGB80yVzA9wuPt0eCHQT1IUEQ8ZK4oW98
+eVMPSEitnCec34AkEiyjylz4gjUgavmxBVygYoMKquBI1o6BFXwUjt/+LPZfIAy6
+/tcGtJtHmRPYtqasZsO0Ix/u/cLfIZJx89lV8axF5ZQZLpEIKA2fwpqJTsnP30AI
+7txY9QLPhr8Uptb2GSjiPnZaqeSDwadS29+yoe6TVQ9JjNr2voP9g/1Y+5VpN55v
+8coLK4pTWuo8TPvHehYxyJgQJf+ysdXjLc735ajyfbtuPxIf0I/bx2WAkSJtDr0D
+9RO9op3peIFYaXv3oaPH//ai2n1jr64AL9Ua0+ShV4VTwpTzEvLpx0YxGJRM88kb
+lTH5d9XwRjM1UZDDmDmi
+=lMdW
 -----END PGP SIGNATURE-----
 
---sdtB3X0nJg68CQEu--
+--i9LlY+UWpKt15+FH--
