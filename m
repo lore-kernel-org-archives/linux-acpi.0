@@ -1,71 +1,85 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: Add BayTrail SoC GPIO and LPSS ACPI IDs
-Date: Mon, 25 Nov 2013 23:59:06 +0100
-Message-ID: <5357493.LYF5vMpIOb@vostro.rjw.lan>
-References: <1385417755-21776-1-git-send-email-paul.drews@intel.com>
+Subject: Re: [PATCH 1/4] ACPICA: Linux: Cleanup wrong ACPICA inclusions.
+Date: Tue, 26 Nov 2013 00:54:48 +0100
+Message-ID: <1917414.3HEB6fNOeG@vostro.rjw.lan>
+References: <cover.1385094640.git.lv.zheng@intel.com> <e57ce3b292120293cafccb055af9754a1713ae6b.1385094641.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63597 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:49346 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751986Ab3KYWqT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Nov 2013 17:46:19 -0500
-In-Reply-To: <1385417755-21776-1-git-send-email-paul.drews@intel.com>
+	with SMTP id S1752741Ab3KYXmC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Nov 2013 18:42:02 -0500
+In-Reply-To: <e57ce3b292120293cafccb055af9754a1713ae6b.1385094641.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Drews <paul.drews@intel.com>
-Cc: lenb@kernel.org, linus.walleij@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lv Zheng <zetalog@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Monday, November 25, 2013 02:15:55 PM Paul Drews wrote:
-> This adds the new ACPI ID (INT33FC) for the BayTrail GPIO
-> banks as seen on a BayTrail M System-On-Chip platform.  This
-> ACPI ID is used by the BayTrail GPIO (pinctrl) driver to
-> manage the Low Power Subsystem (LPSS).
+On Saturday, November 23, 2013 07:27:27 AM Lv Zheng wrote:
+> From: Lv Zheng <lv.zheng@intel.com>
 > 
-> Signed-off-by: Paul Drews <paul.drews@intel.com>
+> The header file <acpi/acpi.h> is the top level header for other kernel
+> subsystems to include.  It contains environemnt settings and architecture
+> specific implementation that should be included before including other
+> ACPICA headers in order to keep a consistent build environment for ACPICA
+> users.  All following internal ACPICA header files thus should be included
+> from <acpi/acpi.h> and not included by other kernel files:
+>   <acpi/acnames.h>
+>   <acpi/actypes.h>
+>   <acpi/acexcep.h>
+>   <acpi/acexcep.h>
+>   <acpi/acoutput.h>
+>   <acpi/acrestyp.h>
+>   <acpi/acpiosxf.h>
+>   <acpi/acpixf.h>
+>   <acpi/acconfig.h>: included by <acpi/acpixf.h>
+>   <acpi/acconfig.h>
+>   <acpi/actbl.h>
+>   <acpi/actbl1.h>: included by <acpi/actbl.h>
+>   <acpi/actbl2.h>: included by <acpi/actbl.h>
+>   <acpi/actbl3.h>: included by <acpi/actbl.h>
+>   <acpi/platform/acenv.h>
+>   <acpi/platform/aclinux.h>: included by <acpi/platform/acenv.h>
+> This patch cleans up inclusions of above files from non ACPICA source
+> files.
+> 
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 
-Am I supposed to take this (in which case I need an ACK from the pinctrl
-maintainer)?
-
-Or is it supposed to go through the pinctrl subsystem?  In which case feel free
-to add
-
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com> # for the ACPI part
-
-to the patch.
+Applied with slightly modified subject/changelog.
 
 Thanks!
 
 > ---
->  drivers/acpi/acpi_lpss.c           | 1 +
->  drivers/pinctrl/pinctrl-baytrail.c | 1 +
->  2 files changed, 2 insertions(+)
+>  drivers/acpi/nvs.c           |    1 -
+>  drivers/hwmon/asus_atk0110.c |    1 -
+>  2 files changed, 2 deletions(-)
 > 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 6745fe1..e603905 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -162,6 +162,7 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
->  	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
->  	{ "80860F41", (unsigned long)&byt_i2c_dev_desc },
->  	{ "INT33B2", },
-> +	{ "INT33FC", },
+> diff --git a/drivers/acpi/nvs.c b/drivers/acpi/nvs.c
+> index 266bc58..386a9fe 100644
+> --- a/drivers/acpi/nvs.c
+> +++ b/drivers/acpi/nvs.c
+> @@ -13,7 +13,6 @@
+>  #include <linux/slab.h>
+>  #include <linux/acpi.h>
+>  #include <linux/acpi_io.h>
+> -#include <acpi/acpiosxf.h>
 >  
->  	{ "INT3430", (unsigned long)&lpt_dev_desc },
->  	{ "INT3431", (unsigned long)&lpt_dev_desc },
-> diff --git a/drivers/pinctrl/pinctrl-baytrail.c b/drivers/pinctrl/pinctrl-baytrail.c
-> index 2832576..114f5ef 100644
-> --- a/drivers/pinctrl/pinctrl-baytrail.c
-> +++ b/drivers/pinctrl/pinctrl-baytrail.c
-> @@ -512,6 +512,7 @@ static const struct dev_pm_ops byt_gpio_pm_ops = {
+>  /* ACPI NVS regions, APEI may use it */
 >  
->  static const struct acpi_device_id byt_gpio_acpi_match[] = {
->  	{ "INT33B2", 0 },
-> +	{ "INT33FC", 0 },
->  	{ }
->  };
->  MODULE_DEVICE_TABLE(acpi, byt_gpio_acpi_match);
+> diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
+> index 1d7ff46..dafc63c 100644
+> --- a/drivers/hwmon/asus_atk0110.c
+> +++ b/drivers/hwmon/asus_atk0110.c
+> @@ -18,7 +18,6 @@
+>  #include <linux/err.h>
+>  
+>  #include <acpi/acpi.h>
+> -#include <acpi/acpixf.h>
+>  #include <acpi/acpi_drivers.h>
+>  #include <acpi/acpi_bus.h>
+>  
 > 
 -- 
 I speak only for myself.
