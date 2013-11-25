@@ -1,35 +1,50 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 6/7] gpio / ACPI: get rid of acpi_gpio.h
-Date: Mon, 25 Nov 2013 12:18:25 +0200
-Message-ID: <20131125101825.GT2281@intel.com>
-References: <1385122474-14926-1-git-send-email-mika.westerberg@linux.intel.com>
- <1385122474-14926-7-git-send-email-mika.westerberg@linux.intel.com>
- <CAAVeFuK_76Rnqa8E0DpME8Eyc3vh63HmyHx=zbeyaKz7aXm=rA@mail.gmail.com>
- <20131125085454.GN2281@intel.com>
- <52930F74.7060808@nvidia.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH v2 4/6] ACPI: ARM: exclude DMI calls
+Date: Mon, 25 Nov 2013 15:30:16 +0000
+Message-ID: <20131125153016.GA3243@srcf.ucam.org>
+References: <1385080915-23430-1-git-send-email-al.stone@linaro.org>
+ <528F9C65.7010302@linaro.org>
+ <CAOesGMgFBRjO++JSP0ddKKQ2RfG8V4fb97Hd+Oqwixi_Tt7Qwg@mail.gmail.com>
+ <4285284.l8TssFvumi@vostro.rjw.lan>
+ <528FF15C.4060300@linaro.org>
+ <20131123163854.GA1817@srcf.ucam.org>
+ <1AE640813FDE7649BE1B193DEA596E880248D1A8@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:10816 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750965Ab3KYKMP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Nov 2013 05:12:15 -0500
+Received: from cavan.codon.org.uk ([93.93.128.6]:54543 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754313Ab3KYPac (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Nov 2013 10:30:32 -0500
 Content-Disposition: inline
-In-Reply-To: <52930F74.7060808@nvidia.com>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880248D1A8@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Courbot <acourbot@nvidia.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Al Stone <al.stone@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Rob Herring <robherring2@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linaro Patches <patches@linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Mon, Nov 25, 2013 at 05:51:00PM +0900, Alex Courbot wrote:
-> I just wondered if these headers should not be split by GPIO
-> providers, but if you prefer it that way I'm fine with it too. We
-> can move stuff later if needed.
+On Mon, Nov 25, 2013 at 05:10:46AM +0000, Zheng, Lv wrote:
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Matthew Garrett
+> > Ugh. Really? People have been fairly careful about making sure that the
+> > x86 SoC code is selected correctly at runtime, and losing that because
+> > ACPICA is broken would be a shame. I think this is something that needs
+> > to support runtime switching even if there's also support for building
+> > kernels that only implement the reduced hardware profile.
 > 
-> Acked-by: Alexandre Courbot <acourbot@nvidia.com>
+> If my reading is correct, do you mean x86 SoCs should have already tested the code.
 
-Thanks!
+I don't know if anyone has deployed x86 SoCs with reduced hardware yet, 
+but it seems like something that might happen.
 
-BTW, I noticed that I missed removing EXPORT_SYMBOL_GPL() from
-acpi_get_gpiod_by_index(). I'm folding that change to this patch for the
-next version if nobody objects.
+> So if ARM need ACPI_REDUCED_HARDWARE to be defined, the <include/acpi/platform/aclinux.h> should have lines like:
+> #ifdef CONFIG_ARCH_IS_ACPI_REDUCED_HARDWARE
+> #define ACPI_REDUCED_HARDWARE TRUE
+> #endif
+> And ARCH_IS_ACPI_REDUCED_HARDWARE should only be selected by CONFIG_ARM.
+
+Is ACPI_REDUCED_HARDWARE supposed to indicate support for the reduced 
+hardware profile, or that the platform *only* implements the reduced 
+hardware profile?
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
