@@ -1,70 +1,30 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [UPDATE PATCH 4/4] ACPI: Add support to force header inclusion
- rules for <linux/acpi.h>.
-Date: Tue, 26 Nov 2013 00:32:12 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880248D7FE@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1385094640.git.lv.zheng@intel.com>
- <2930f1fabbb8319c11180c8db3d1693adc71aac1.1385163359.git.lv.zheng@intel.com>
- <5998708.qlCSNdGapO@vostro.rjw.lan>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] acpi: Add BayTrail SoC GPIO and LPSS ACPI IDs
+Date: Tue, 26 Nov 2013 01:03:48 +0000
+Message-ID: <20131126010348.GA29198@srcf.ucam.org>
+References: <1385417755-21776-1-git-send-email-paul.drews@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5998708.qlCSNdGapO@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <zetalog@gmail.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:35044 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752054Ab3KZBEE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Nov 2013 20:04:04 -0500
+Content-Disposition: inline
+In-Reply-To: <1385417755-21776-1-git-send-email-paul.drews@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Paul Drews <paul.drews@intel.com>
+Cc: lenb@kernel.org, rjw@rjwysocki.net, linus.walleij@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IFR1ZXNkYXksIE5vdmVtYmVyIDI2LCAyMDEzIDg6MTAgQU0NCj4g
-VG86IEx2IFpoZW5nDQo+IENjOiBXeXNvY2tpLCBSYWZhZWwgSjsgQnJvd24sIExlbjsgWmhlbmcs
-IEx2OyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVs
-Lm9yZw0KPiBTdWJqZWN0OiBSZTogW1VQREFURSBQQVRDSCA0LzRdIEFDUEk6IEFkZCBzdXBwb3J0
-IHRvIGZvcmNlIGhlYWRlciBpbmNsdXNpb24gcnVsZXMgZm9yIDxsaW51eC9hY3BpLmg+Lg0KPiAN
-Cj4gT24gU2F0dXJkYXksIE5vdmVtYmVyIDIzLCAyMDEzIDA3OjU0OjE4IEFNIEx2IFpoZW5nIHdy
-b3RlOg0KPiA+IEZyb206IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4NCj4gPiAo
-VXBkYXRlIGR1ZSB0byBzb21lIHR5cG8gZml4ZXMuKQ0KPiA+DQo+ID4gQXMgdGhlcmUgaXMgb25s
-eSBDT05GSUdfQUNQST1uIHByb2Nlc3NpbmcgaW4gdGhlIDxsaW51eC9hY3BpLmg+LCBpdCBpcyBu
-b3QNCj4gPiBzYWZlIHRvIGluY2x1ZGUgPGFjcGkvYWNwaS5oPiwgPGFjcGkvYWNwaV9kcml2ZXJz
-Lmg+IGFuZCA8YWNwaS9hY3BpX2J1cy5oPg0KPiA+IGRpcmVjdGx5IGZvciBzb3VyY2Ugb3V0IG9m
-IExpbnV4IEFDUEkgc3Vic3lzdGVtcy4NCj4gPg0KPiA+IFRoaXMgcGF0Y2ggYWRkcyBlcnJvciBt
-ZXNzYWdpbmcgdG8gd2FybiBkZXZlbG9wZXJzIG9mIHN1Y2ggd3JvbmcNCj4gPiBpbmNsdXNpb25z
-Lg0KPiA+DQo+ID4gSW4gb3JkZXIgbm90IHRvIGJlIGJpc2VjdGVkIGFuZCByZXZlcnRlZCBhcyBh
-IHdyb25nIGNvbW1pdCwgd2FybmluZw0KPiA+IG1lc3NhZ2VzIGFyZSBjYXJlZnVsbHkgc3BsaXQg
-aW50byBhIHNlcGVyYXRlIHBhdGNoIG90aGVyIHRoYW4gdGhlIHdyb25nDQo+ID4gaW5jbHVzaW9u
-IGNsZWFudXBzLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGlu
-dGVsLmNvbT4NCj4gDQo+IEkgZG9uJ3QgbGlrZSB0aGlzIG9uZSB0byBiZSBob25lc3QuDQoNCkkg
-Z2VuZXJhdGUgdGhpcyB0byBwcmV2ZW50IGRldmljZSBkcml2ZXIgd3JpdGVycyB0byBkbyBzdHVw
-aWQgdGhpbmdzIGJlZm9yZSB3ZSBjYW4gc29ydCA8YWNwaS9hY3BpX2J1cy5oPiBhbmQgPGFjcGkv
-YWNwaV9kcml2ZXJzLmg+IG91dC4NCg0KPiANCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9hY3BpL2Fj
-cGljYS9NYWtlZmlsZSAgICB8ICAgIDIgKy0NCj4gPiAgaW5jbHVkZS9hY3BpL2FjcGlfYnVzLmgg
-ICAgICAgICB8ICAgIDUgKysrKysNCj4gPiAgaW5jbHVkZS9hY3BpL2FjcGlfZHJpdmVycy5oICAg
-ICB8ICAgIDUgKysrKysNCj4gPiAgaW5jbHVkZS9hY3BpL3BsYXRmb3JtL2FjbGludXguaCB8ICAg
-MTAgKysrKysrKysrKw0KPiA+ICA0IGZpbGVzIGNoYW5nZWQsIDIxIGluc2VydGlvbnMoKyksIDEg
-ZGVsZXRpb24oLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaWNhL01h
-a2VmaWxlIGIvZHJpdmVycy9hY3BpL2FjcGljYS9NYWtlZmlsZQ0KPiA+IGluZGV4IDQzODMwNDAu
-Ljc3Mzg2NzcgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2FjcGljYS9NYWtlZmlsZQ0K
-PiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvTWFrZWZpbGUNCj4gPiBAQCAtMiw3ICsyLDcg
-QEANCj4gPiAgIyBNYWtlZmlsZSBmb3IgQUNQSUNBIENvcmUgaW50ZXJwcmV0ZXINCj4gPiAgIw0K
-PiA+DQo+ID4gLWNjZmxhZ3MteQkJCTo9IC1Pcw0KPiA+ICtjY2ZsYWdzLXkJCQk6PSAtT3MgLURM
-SU5VWElaRURfQUNQSUNBDQo+IA0KPiBJIGRvbid0IGxpa2UgdGhpcyAodGhlIG5hbWluZyBhbmQg
-dGhlIHdheSBpdCBpcyBkb25lKS4NCj4gDQo+ID4gIGNjZmxhZ3MtJChDT05GSUdfQUNQSV9ERUJV
-RykJKz0gLURBQ1BJX0RFQlVHX09VVFBVVA0KPiA+DQo+ID4gICMgdXNlIGFjcGkubyB0byBwdXQg
-YWxsIGZpbGVzIGhlcmUgaW50byBhY3BpLm8gbW9kcGFyYW0gbmFtZXNwYWNlDQo+ID4gZGlmZiAt
-LWdpdCBhL2luY2x1ZGUvYWNwaS9hY3BpX2J1cy5oIGIvaW5jbHVkZS9hY3BpL2FjcGlfYnVzLmgN
-Cj4gPiBpbmRleCAwYWY5NjY3Li4wYjFlYTgwIDEwMDY0NA0KPiA+IC0tLSBhL2luY2x1ZGUvYWNw
-aS9hY3BpX2J1cy5oDQo+ID4gKysrIGIvaW5jbHVkZS9hY3BpL2FjcGlfYnVzLmgNCj4gPiBAQCAt
-MjYsNiArMjYsMTEgQEANCj4gPiAgI2lmbmRlZiBfX0FDUElfQlVTX0hfXw0KPiA+ICAjZGVmaW5l
-IF9fQUNQSV9CVVNfSF9fDQo+ID4NCj4gPiArLyogPGFjcGkvYWNwaV9idXMuaD4gaXMgbm90IHNh
-ZmUgZm9yIENPTkZJR19BQ1BJPW4gZW52aXJvbm1lbnQgKi8NCj4gPiArI2lmbmRlZiBfTElOVVhf
-QUNQSV9IDQo+ID4gKyNlcnJvciAiUGxlYXNlIGRvbid0IGluY2x1ZGUgPGFjcGkvYWNwaV9idXMu
-aD4gZGlyZWN0bHksIGluY2x1ZGUgPGxpbnV4L2FjcGkuaD4gaW5zdGVhZC4iDQo+ID4gKyNlbmRp
-Zg0KPiANCj4gQW5kIHRoaXMgc2hvdWxkIGVpdGhlciBnbyBpbnRvIGFsbCBvZiB0aGUgPGFjcGkv
-Ki5oPiBmaWxlcywgbm90IG9ubHkgdG8gdGhlIHR3bw0KPiBvZiB0aGVtIHlvdSBjaG9zZSwgb3Ig
-dG8gbm9uZSBvZiB0aGVtLiAgSSBwcmVmZXIgbm9uZS4NCg0KT0ssIGxldCBpdCBiZSBkb25lIGZv
-ciBub3cuICBTbyB3ZSBuZWVkIHRvIG9wZW4gZXllcyBvbiBuZXcgQUNQSSBjb21taXRzLiA6LSkN
-Cg0KSSdsbCBtZXJnZSBwYXRjaCAyIGFuZCAzIGFuZCBzZW5kIGl0IHdpdGggeW91ciBjb21tZW50
-cyBhZGRyZXNzZWQgYW5kIHJlLWJhc2VkLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2
-DQoNCj4gDQo+IFRoYW5rcywNCj4gUmFmYWVsDQoNCg==
+On Mon, Nov 25, 2013 at 02:15:55PM -0800, Paul Drews wrote:
+> This adds the new ACPI ID (INT33FC) for the BayTrail GPIO
+> banks as seen on a BayTrail M System-On-Chip platform.  This
+> ACPI ID is used by the BayTrail GPIO (pinctrl) driver to
+> manage the Low Power Subsystem (LPSS).
+
+Not that we can do anything about this now, but if they have the same 
+programming model why isn't there a CID that covers them?
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
