@@ -1,172 +1,69 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v3 2/6] net: rfkill: gpio: convert to descriptor-based GPIO interface
-Date: Tue, 26 Nov 2013 12:05:46 +0200
-Message-ID: <1385460350-17543-3-git-send-email-mika.westerberg@linux.intel.com>
-References: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH v3 0/6] gpio / ACPI: convert users to gpiod_* and drop acpi_gpio.h
+Date: Tue, 26 Nov 2013 12:05:44 +0200
+Message-ID: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga11.intel.com ([192.55.52.93]:50778 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755067Ab3KZKF6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Nov 2013 05:05:58 -0500
-In-Reply-To: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com>
+	id S1755122Ab3KZKF7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Nov 2013 05:05:59 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Hi all,
 
-Convert to the safer gpiod_* family of API functions.
+Now that the mainline kernel has full ACPI support for the GPIO descriptor
+interface we can get rid of ACPI specific GPIO functions in favor of GPIO
+descriptor (gpiod_*) interfaces.
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Tested-by: Stephen Warren <swarren@nvidia.com>
----
- net/rfkill/rfkill-gpio.c | 77 +++++++++++++++++++++---------------------------
- 1 file changed, 34 insertions(+), 43 deletions(-)
+This series first converts the existing two users to this interface and
+then modifies gpiolib and gpiolib-acpi so that the ACPI functions are only
+called internally in drivers/gpio. We then remove the acpi_gpio.h and
+require all users to use gpiod_* interfaces.
 
-diff --git a/net/rfkill/rfkill-gpio.c b/net/rfkill/rfkill-gpio.c
-index 5620d3c07479..bd2a5b90400c 100644
---- a/net/rfkill/rfkill-gpio.c
-+++ b/net/rfkill/rfkill-gpio.c
-@@ -25,15 +25,15 @@
- #include <linux/clk.h>
- #include <linux/slab.h>
- #include <linux/acpi.h>
--#include <linux/acpi_gpio.h>
-+#include <linux/gpio/consumer.h>
- 
- #include <linux/rfkill-gpio.h>
- 
- struct rfkill_gpio_data {
- 	const char		*name;
- 	enum rfkill_type	type;
--	int			reset_gpio;
--	int			shutdown_gpio;
-+	struct gpio_desc	*reset_gpio;
-+	struct gpio_desc	*shutdown_gpio;
- 
- 	struct rfkill		*rfkill_dev;
- 	char			*reset_name;
-@@ -48,19 +48,15 @@ static int rfkill_gpio_set_power(void *data, bool blocked)
- 	struct rfkill_gpio_data *rfkill = data;
- 
- 	if (blocked) {
--		if (gpio_is_valid(rfkill->shutdown_gpio))
--			gpio_set_value(rfkill->shutdown_gpio, 0);
--		if (gpio_is_valid(rfkill->reset_gpio))
--			gpio_set_value(rfkill->reset_gpio, 0);
-+		gpiod_set_value(rfkill->shutdown_gpio, 0);
-+		gpiod_set_value(rfkill->reset_gpio, 0);
- 		if (!IS_ERR(rfkill->clk) && rfkill->clk_enabled)
- 			clk_disable(rfkill->clk);
- 	} else {
- 		if (!IS_ERR(rfkill->clk) && !rfkill->clk_enabled)
- 			clk_enable(rfkill->clk);
--		if (gpio_is_valid(rfkill->reset_gpio))
--			gpio_set_value(rfkill->reset_gpio, 1);
--		if (gpio_is_valid(rfkill->shutdown_gpio))
--			gpio_set_value(rfkill->shutdown_gpio, 1);
-+		gpiod_set_value(rfkill->reset_gpio, 1);
-+		gpiod_set_value(rfkill->shutdown_gpio, 1);
- 	}
- 
- 	rfkill->clk_enabled = blocked;
-@@ -83,8 +79,6 @@ static int rfkill_gpio_acpi_probe(struct device *dev,
- 
- 	rfkill->name = dev_name(dev);
- 	rfkill->type = (unsigned)id->driver_data;
--	rfkill->reset_gpio = acpi_get_gpio_by_index(dev, 0, NULL);
--	rfkill->shutdown_gpio = acpi_get_gpio_by_index(dev, 1, NULL);
- 
- 	return 0;
- }
-@@ -94,8 +88,9 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
- 	struct rfkill_gpio_platform_data *pdata = pdev->dev.platform_data;
- 	struct rfkill_gpio_data *rfkill;
- 	const char *clk_name = NULL;
--	int ret = 0;
--	int len = 0;
-+	struct gpio_desc *gpio;
-+	int ret;
-+	int len;
- 
- 	rfkill = devm_kzalloc(&pdev->dev, sizeof(*rfkill), GFP_KERNEL);
- 	if (!rfkill)
-@@ -109,28 +104,10 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
- 		clk_name = pdata->power_clk_name;
- 		rfkill->name = pdata->name;
- 		rfkill->type = pdata->type;
--		rfkill->reset_gpio = pdata->reset_gpio;
--		rfkill->shutdown_gpio = pdata->shutdown_gpio;
- 	} else {
- 		return -ENODEV;
- 	}
- 
--	/* make sure at-least one of the GPIO is defined and that
--	 * a name is specified for this instance */
--	if ((!gpio_is_valid(rfkill->reset_gpio) &&
--	     !gpio_is_valid(rfkill->shutdown_gpio)) || !rfkill->name) {
--		pr_warn("%s: invalid platform data\n", __func__);
--		return -EINVAL;
--	}
--
--	if (pdata && pdata->gpio_runtime_setup) {
--		ret = pdata->gpio_runtime_setup(pdev);
--		if (ret) {
--			pr_warn("%s: can't set up gpio\n", __func__);
--			return ret;
--		}
--	}
--
- 	len = strlen(rfkill->name);
- 	rfkill->reset_name = devm_kzalloc(&pdev->dev, len + 7, GFP_KERNEL);
- 	if (!rfkill->reset_name)
-@@ -145,20 +122,34 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
- 
- 	rfkill->clk = devm_clk_get(&pdev->dev, clk_name);
- 
--	if (gpio_is_valid(rfkill->reset_gpio)) {
--		ret = devm_gpio_request_one(&pdev->dev, rfkill->reset_gpio,
--					    0, rfkill->reset_name);
--		if (ret) {
--			pr_warn("%s: failed to get reset gpio.\n", __func__);
-+	gpio = devm_gpiod_get_index(&pdev->dev, rfkill->reset_name, 0);
-+	if (!IS_ERR(gpio)) {
-+		ret = gpiod_direction_output(gpio, 0);
-+		if (ret)
- 			return ret;
--		}
-+		rfkill->reset_gpio = gpio;
-+	}
-+
-+	gpio = devm_gpiod_get_index(&pdev->dev, rfkill->shutdown_name, 1);
-+	if (!IS_ERR(gpio)) {
-+		ret = gpiod_direction_output(gpio, 0);
-+		if (ret)
-+			return ret;
-+		rfkill->shutdown_gpio = gpio;
- 	}
- 
--	if (gpio_is_valid(rfkill->shutdown_gpio)) {
--		ret = devm_gpio_request_one(&pdev->dev, rfkill->shutdown_gpio,
--					    0, rfkill->shutdown_name);
-+	/* Make sure at-least one of the GPIO is defined and that
-+	 * a name is specified for this instance
-+	 */
-+	if ((!rfkill->reset_gpio && !rfkill->shutdown_gpio) || !rfkill->name) {
-+		dev_err(&pdev->dev, "invalid platform data\n");
-+		return -EINVAL;
-+	}
-+
-+	if (pdata && pdata->gpio_runtime_setup) {
-+		ret = pdata->gpio_runtime_setup(pdev);
- 		if (ret) {
--			pr_warn("%s: failed to get shutdown gpio.\n", __func__);
-+			dev_err(&pdev->dev, "can't set up gpio\n");
- 			return ret;
- 		}
- 	}
+This is third version of the series. Changes to the previous version [1]:
+
+ * Instead of adding temporary conversion from GPIO descriptors to numbers
+   in rfkill-gpio.c we now first introduce a lookup table for paz00 and
+   in the next patch convert the driver to use only GPIO descriptors.
+
+ * Corrected a typo in subject of patch [3/6] "covert" -> "convert".
+
+ * Corrected a typo in changelog of patch [5/6] "user" -> "use".
+
+ * Dropped EXPORT_SYMBOL_GPL(acpi_get_gpiod_by_index) from patch [5/6] that
+   was left there accidentally.
+
+Since the patches in the series depend on each other I would propose this
+to be merged via GPIO tree.
+
+[1] http://www.spinics.net/lists/linux-acpi/msg47472.html (v2 of the series)
+
+Heikki Krogerus (2):
+  ARM: tegra: add gpiod_lookup table for paz00
+  net: rfkill: gpio: convert to descriptor-based GPIO interface
+
+Mika Westerberg (4):
+  mmc: sdhci-acpi: convert to use GPIO descriptor API
+  gpio / ACPI: register to ACPI events automatically
+  gpio / ACPI: get rid of acpi_gpio.h
+  Documentation / ACPI: update to GPIO descriptor API
+
+ Documentation/acpi/enumeration.txt | 36 ++++--------------
+ arch/arm/mach-tegra/board-paz00.c  |  7 ++++
+ drivers/gpio/gpiolib-acpi.c        | 21 ++++++++---
+ drivers/gpio/gpiolib.c             |  5 ++-
+ drivers/gpio/gpiolib.h             | 46 +++++++++++++++++++++++
+ drivers/mmc/host/sdhci-acpi.c      | 26 ++++++-------
+ drivers/pinctrl/pinctrl-baytrail.c |  4 --
+ include/linux/acpi_gpio.h          | 51 -------------------------
+ net/rfkill/rfkill-gpio.c           | 77 +++++++++++++++++---------------------
+ 9 files changed, 125 insertions(+), 148 deletions(-)
+ create mode 100644 drivers/gpio/gpiolib.h
+ delete mode 100644 include/linux/acpi_gpio.h
+
 -- 
 1.8.4.3
 
