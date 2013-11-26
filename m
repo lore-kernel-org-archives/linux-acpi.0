@@ -1,32 +1,54 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH v3 1/6] ARM: tegra: add gpiod_lookup table for paz00
-Date: Tue, 26 Nov 2013 13:33:09 -0700
-Message-ID: <52950585.2080802@wwwdotorg.org>
-References: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com> <1385460350-17543-2-git-send-email-mika.westerberg@linux.intel.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v2] ACPI: Cleanup <acpi/acpi.h>, <acpi/acpi_bus.h> and
+ <acpi/acpi_drivers.h> inclusions.
+Date: Tue, 26 Nov 2013 12:54:09 -0800
+Message-ID: <20131126205409.GA2899@kroah.com>
+References: <cover.1385094640.git.lv.zheng@intel.com>
+ <3c5e408cd7791ef746f462c79ce28f67734817d9.1385434808.git.lv.zheng@intel.com>
+ <2011704.hD86fZ2Qk5@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1385460350-17543-2-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Thierry Reding <thierry.reding@gmail.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36479 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752003Ab3KZUyL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Nov 2013 15:54:11 -0500
+Content-Disposition: inline
+In-Reply-To: <2011704.hD86fZ2Qk5@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lv Zheng <lv.zheng@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Luck, Tony" <tony.luck@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On 11/26/2013 03:05 AM, Mika Westerberg wrote:
-> From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+On Tue, Nov 26, 2013 at 09:29:33PM +0100, Rafael J. Wysocki wrote:
+> On Tuesday, November 26, 2013 01:21:15 PM Lv Zheng wrote:
+> > Replace direct inclusions of <acpi/acpi.h>, <acpi/acpi_bus.h> and
+> > <acpi/acpi_drivers.h>, which are incorrect, with <linux/acpi.h> inclusions.
+> > 
+> > First of all, <acpi/acpi.h>, <acpi/acpi_bus.h> and <acpi/acpi_drivers.h>
+> > should not be included directly from any files that are built for
+> > CONFIG_ACPI unset, because that generally leads to build warnings about
+> > undefined symbols in !CONFIG_ACPI builds.  For CONFIG_ACPI set,
+> > <linux/acpi.h> includes those files and for !CONFIG_ACPI it provides stub
+> > ACPI symbols to be used in that case.
+> > 
+> > Second, there are ordering dependencies between those files that always
+> > have to be met.  Namely, it is required that <acpi/acpi_bus.h> be included
+> > prior to <acpi/acpi_drivers.h> so that the acpi_pci_root declarations the
+> > latter depends on are always there.  And <acpi/acpi.h> which provides
+> > basic ACPICA type declarations should always be included prior to any other
+> > ACPI headers in CONFIG_ACPI builds.  That also is taken care of including
+> > <linux/acpi.h> as appropriate.
+> > 
+> > This patch also includes necessary cleanups in the affected files where
+> > other ACPI headers is also included but not referenced.
+> >
 > 
-> This makes it possible to request the gpio descriptors in
-> rfkill_gpio driver regardless of the platform.
+> This looks OK to me, but it touches several other subsystems.  It's better to
+> CC such things to linux-kernel at least.
+> 
+> Peter, Matthew, Tony, Konrad, Greg, Bjorn, do you have any objections against this?
 
-V2 of the series did the following:
+None from me, nice cleanups.
 
- static struct rfkill_gpio_platform_data wifi_rfkill_platform_data = {
- 	.name		= "wifi_rfkill",
--	.reset_gpio	= 25, /* PD1 */
--	.shutdown_gpio	= 85, /* PK5 */
- 	.type	= RFKILL_TYPE_WLAN,
- };
-
-I assume that will happen sometime, along with removing those two fields
-from the struct definition.
+greg k-h
