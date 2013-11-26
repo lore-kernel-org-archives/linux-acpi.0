@@ -1,82 +1,53 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v3 6/6] Documentation / ACPI: update to GPIO descriptor API
-Date: Tue, 26 Nov 2013 12:05:50 +0200
-Message-ID: <1385460350-17543-7-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH v3 1/6] ARM: tegra: add gpiod_lookup table for paz00
+Date: Tue, 26 Nov 2013 12:05:45 +0200
+Message-ID: <1385460350-17543-2-git-send-email-mika.westerberg@linux.intel.com>
 References: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:16473 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755343Ab3KZKGT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Nov 2013 05:06:19 -0500
+Return-path: <linux-gpio-owner@vger.kernel.org>
 In-Reply-To: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-gpio-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Update the documentation also to reflect the fact that there are no ACPI
-specific GPIO interfaces anymore but drivers should instead use the
-descriptor based GPIO APIs.
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 
+This makes it possible to request the gpio descriptors in
+rfkill_gpio driver regardless of the platform.
+
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Tested-by: Stephen Warren <swarren@nvidia.com>
 ---
- Documentation/acpi/enumeration.txt | 36 +++++++-----------------------------
- 1 file changed, 7 insertions(+), 29 deletions(-)
+ arch/arm/mach-tegra/board-paz00.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
-index b994bcb32b92..2a1519b87177 100644
---- a/Documentation/acpi/enumeration.txt
-+++ b/Documentation/acpi/enumeration.txt
-@@ -293,36 +293,13 @@ the device to the driver. For example:
+diff --git a/arch/arm/mach-tegra/board-paz00.c b/arch/arm/mach-tegra/board-paz00.c
+index 06f024070dab..a309795da665 100644
+--- a/arch/arm/mach-tegra/board-paz00.c
++++ b/arch/arm/mach-tegra/board-paz00.c
+@@ -18,6 +18,7 @@
+  */
  
- These GPIO numbers are controller relative and path "\\_SB.PCI0.GPI0"
- specifies the path to the controller. In order to use these GPIOs in Linux
--we need to translate them to the Linux GPIO numbers.
-+we need to translate them to the corresponding Linux GPIO descriptors.
+ #include <linux/platform_device.h>
++#include <linux/gpio/driver.h>
+ #include <linux/rfkill-gpio.h>
+ #include "board.h"
  
--In a simple case of just getting the Linux GPIO number from device
--resources one can use acpi_get_gpio_by_index() helper function. It takes
--pointer to the device and index of the GpioIo/GpioInt descriptor in the
--device resources list. For example:
-+There is a standard GPIO API for that and is documented in
-+Documentation/gpio.txt.
+@@ -36,7 +37,13 @@ static struct platform_device wifi_rfkill_device = {
+ 	},
+ };
  
--	int gpio_irq, gpio_power;
--	int ret;
--
--	gpio_irq = acpi_get_gpio_by_index(dev, 1, NULL);
--	if (gpio_irq < 0)
--		/* handle error */
--
--	gpio_power = acpi_get_gpio_by_index(dev, 0, NULL);
--	if (gpio_power < 0)
--		/* handle error */
--
--	/* Now we can use the GPIO numbers */
--
--Other GpioIo parameters must be converted first by the driver to be
--suitable to the gpiolib before passing them.
--
--In case of GpioInt resource an additional call to gpio_to_irq() must be
--done before calling request_irq().
--
--Note that the above API is ACPI specific and not recommended for drivers
--that need to support non-ACPI systems. The recommended way is to use
--the descriptor based GPIO interfaces. The above example looks like this
--when converted to the GPIO desc:
-+In the above example we can get the corresponding two GPIO descriptors with
-+a code like this:
- 
- 	#include <linux/gpio/consumer.h>
- 	...
-@@ -339,4 +316,5 @@ when converted to the GPIO desc:
- 
- 	/* Now we can use the GPIO descriptors */
- 
--See also Documentation/gpio.txt.
-+There are also devm_* versions of these functions which release the
-+descriptors once the device is released.
++static struct gpiod_lookup wifi_gpio_lookup[] = {
++	GPIO_LOOKUP_IDX("tegra-gpio", 25, "rfkill_gpio", NULL, 0, 0),
++	GPIO_LOOKUP_IDX("tegra-gpio", 85, "rfkill_gpio", NULL, 1, 0),
++};
++
+ void __init tegra_paz00_wifikill_init(void)
+ {
++	gpiod_add_table(wifi_gpio_lookup, ARRAY_SIZE(wifi_gpio_lookup));
+ 	platform_device_register(&wifi_rfkill_device);
+ }
 -- 
 1.8.4.3
 
