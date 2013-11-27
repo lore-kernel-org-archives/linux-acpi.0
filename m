@@ -1,123 +1,83 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [GIT PULL] ACPI and power management fixes for v3.13-rc2
-Date: Wed, 27 Nov 2013 15:35:22 +0100
-Message-ID: <1656039.n8p00yR1CA@vostro.rjw.lan>
+From: Rhyland Klein <rklein@nvidia.com>
+Subject: Re: [PATCH v3 1/6] ARM: tegra: add gpiod_lookup table for paz00
+Date: Wed, 27 Nov 2013 11:47:16 -0500
+Message-ID: <52962214.9030203@nvidia.com>
+References: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com> <1385460350-17543-2-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hqemgate15.nvidia.com ([216.228.121.64]:13741 "EHLO
+	hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757016Ab3K0QrU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Nov 2013 11:47:20 -0500
+In-Reply-To: <1385460350-17543-2-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Adrian Hunter <adrian.hunter@intel.com>, Alex Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+On 11/26/2013 5:05 AM, Mika Westerberg wrote:
+> From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> 
+> This makes it possible to request the gpio descriptors in
+> rfkill_gpio driver regardless of the platform.
+> 
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Tested-by: Stephen Warren <swarren@nvidia.com>
+> ---
+>  arch/arm/mach-tegra/board-paz00.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/arch/arm/mach-tegra/board-paz00.c b/arch/arm/mach-tegra/board-paz00.c
+> index 06f024070dab..a309795da665 100644
+> --- a/arch/arm/mach-tegra/board-paz00.c
+> +++ b/arch/arm/mach-tegra/board-paz00.c
+> @@ -18,6 +18,7 @@
+>   */
+>  
+>  #include <linux/platform_device.h>
+> +#include <linux/gpio/driver.h>
+>  #include <linux/rfkill-gpio.h>
+>  #include "board.h"
+>  
+> @@ -36,7 +37,13 @@ static struct platform_device wifi_rfkill_device = {
+>  	},
+>  };
+>  
+> +static struct gpiod_lookup wifi_gpio_lookup[] = {
+> +	GPIO_LOOKUP_IDX("tegra-gpio", 25, "rfkill_gpio", NULL, 0, 0),
+> +	GPIO_LOOKUP_IDX("tegra-gpio", 85, "rfkill_gpio", NULL, 1, 0),
+> +};
 
-Please pull from the git repository at
+I wouldn't think this table would match for the gpios as the driver
+currently is. From what I see, the driver calls into gpiod_get_index,
+which will try 1 of 3 ways of getting the gpios:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.13-rc2
+of-enabled: of_find_gpio
+	- which I believe wouldn't work for paz00, since rfkill
+	  doesn't support dt?
+acpi: acpi_find_gpio
+	- I assume this does work, but I didn't dive into it
+gpiod lookup table: gpiod_find
+	- I think this is the path we expect to be taken, given the addition of
+the lookup table here, but I don't think it would actually match.
+Looking at the code for gpiod_find, it seems like it would try to match
+the con_id, but would fail. Patch 2/6 is passing the reset_name and
+shutdown_name for the con_ids, which isn't what is registered in this
+table.
 
-to receive ACPI and power management fixes for v3.13-rc2 with
-top-most commit b90f7b8af985739facce48d64050a023e7df3858
+Shouldn't it look more like this?
 
-  Merge branch 'pm-tools'
++static struct gpiod_lookup wifi_gpio_lookup[] = {
++	GPIO_LOOKUP_IDX("tegra-gpio", 25, "rfkill_gpio_reset", NULL, 0, 0),
++	GPIO_LOOKUP_IDX("tegra-gpio", 85, "rfkill_gpio_shutdown", NULL, 1, 0),
++};
 
-on top of commit 6ce4eac1f600b34f2f7f58f9cd8f0503d79e42ae
+Sorry if I am missing something...
 
-  Linux Linux 3.13-rc1
+-rhyland
 
-These commits fix one cpufreq bug introduced recently and a few bugs all over
-(ACPI mostly) that have been around for quite some time.  They also clean up
-a couple of things.
-
-If you don't like the octopus merge, please let me know. :-)
-
-Specifics:
-
- - Fix for a recent regression in the Tegra cpufreq driver causing
-   excess error messages to be printed from Stephen Warren.
-
- - ACPI-based device hotplug fix to prevent conflicting notify handlers
-   from being installed for PCI host bridge objects.  From Toshi Kani.
-
- - ACPICA update to upstream version 20131115.  This contains bug fixes
-   mostly (loop termination fix for the get AML length function, fixes
-   related to namespace node removal and debug output).  From Bob Moore,
-   Tomasz Nowicki and Lv Zheng.
-
- - Removal of incorrect inclusions of internal ACPICA header files by
-   non-ACPICA code from Lv Zheng.
-
- - Fixes for the ACPI sysfs interface exposing tables to user space
-   from Daisuke Hatayama and Jeremy Compostella.
-
- - Assorted ACPI and cpufreq cleanups from Sachin Kamat and Al Stone.
-
- - cpupower tool fix and man page from Thomas Renninger.
-
-Thanks!
-
-
----------------
-
-Al Stone (1):
-      ACPI / sleep: clean up compiler warning about uninitialized field
-
-Bob Moore (3):
-      ACPICA: Debug output: Do not emit function nesting level for kernel build.
-      ACPICA: Add support to delete all objects attached to the root namespace node.
-      ACPICA: Update version to 20131115.
-
-Daisuke HATAYAMA (1):
-      ACPI / sysfs: Set file size for each exposed ACPI table
-
-Jeremy Compostella (1):
-      ACPI / sysfs: Fix incorrect ACPI tables walk in acpi_tables_sysfs_init()
-
-Lv Zheng (3):
-      ACPICA: Tests: Add CHECKSUM_ABORT protection for test utilities.
-      ACPICA: Resources: Fix loop termination for the get AML length function.
-      ACPI: Clean up incorrect inclusions of ACPICA headers
-
-Sachin Kamat (1):
-      cpufreq: exynos: Remove unwanted EXPORT_SYMBOL
-
-Stephen Warren (1):
-      cpufreq: tegra: don't error target() when suspended
-
-Thomas Renninger (2):
-      tools: cpupower: Add cpupower-idle-set(1) manpage
-      tools: cpupower: fix wrong err msg not supported vs not available
-
-Tomasz Nowicki (1):
-      ACPICA: Delete all attached data objects during namespace node deletion.
-
-Toshi Kani (1):
-      ACPI / hotplug: Fix conflicted PCI bridge notify handlers
-
----------------
-
- drivers/acpi/acpica/acresrc.h                 |    6 +--
- drivers/acpi/acpica/nsalloc.c                 |   18 +++++--
- drivers/acpi/acpica/nsutils.c                 |   18 ++++---
- drivers/acpi/acpica/rscalc.c                  |    9 +++-
- drivers/acpi/acpica/rscreate.c                |   36 ++++++-------
- drivers/acpi/acpica/rsutils.c                 |    2 +-
- drivers/acpi/acpica/utdebug.c                 |   31 ++++++++---
- drivers/acpi/nvs.c                            |    1 -
- drivers/acpi/pci_root.c                       |    3 ++
- drivers/acpi/scan.c                           |    2 +-
- drivers/acpi/sleep.c                          |    2 +-
- drivers/acpi/sysfs.c                          |   54 ++++++++++---------
- drivers/cpufreq/exynos4210-cpufreq.c          |    1 -
- drivers/cpufreq/exynos4x12-cpufreq.c          |    1 -
- drivers/cpufreq/exynos5250-cpufreq.c          |    1 -
- drivers/cpufreq/tegra-cpufreq.c               |    4 +-
- drivers/hwmon/asus_atk0110.c                  |    1 -
- include/acpi/acconfig.h                       |    2 +
- include/acpi/acpi_bus.h                       |    1 +
- include/acpi/acpixf.h                         |    2 +-
- tools/power/cpupower/man/cpupower-idle-info.1 |    3 +-
- tools/power/cpupower/man/cpupower-idle-set.1  |   71 +++++++++++++++++++++++++
- tools/power/cpupower/utils/helpers/sysfs.c    |    4 +-
- 23 files changed, 189 insertions(+), 84 deletions(-)
+-- 
+nvpublic
