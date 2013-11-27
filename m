@@ -1,59 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI: Cleanup <acpi/acpi.h>, <acpi/acpi_bus.h> and <acpi/acpi_drivers.h> inclusions.
-Date: Wed, 27 Nov 2013 01:29:20 +0100
-Message-ID: <3542568.jpR4FU4Yha@vostro.rjw.lan>
-References: <cover.1385094640.git.lv.zheng@intel.com> <2011704.hD86fZ2Qk5@vostro.rjw.lan> <20131126202905.GA12889@phenom.dumpdata.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 0/4] ACPI / bind: Simplify child devices lookup
+Date: Tue, 26 Nov 2013 17:33:28 -0700
+Message-ID: <1385512408.1791.196.camel@misato.fc.hp.com>
+References: <2610478.KxPMyuOMok@vostro.rjw.lan>
+	 <1385510442.1791.195.camel@misato.fc.hp.com>
+	 <3773077.bfZR2z09sY@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50208 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751813Ab3K0AQc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Nov 2013 19:16:32 -0500
-In-Reply-To: <20131126202905.GA12889@phenom.dumpdata.com>
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:22458 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751118Ab3K0AiO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Nov 2013 19:38:14 -0500
+In-Reply-To: <3773077.bfZR2z09sY@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: boris.ostrovsky@oracle.com, david.vrabel@citrix.com, Lv Zheng <lv.zheng@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Luck, Tony" <tony.luck@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>
 
-On Tuesday, November 26, 2013 03:29:05 PM Konrad Rzeszutek Wilk wrote:
-> On Tue, Nov 26, 2013 at 09:29:33PM +0100, Rafael J. Wysocki wrote:
-> > On Tuesday, November 26, 2013 01:21:15 PM Lv Zheng wrote:
-> > > Replace direct inclusions of <acpi/acpi.h>, <acpi/acpi_bus.h> and
-> > > <acpi/acpi_drivers.h>, which are incorrect, with <linux/acpi.h> inclusions.
+On Wed, 2013-11-27 at 01:27 +0100, Rafael J. Wysocki wrote:
+> On Tuesday, November 26, 2013 05:00:42 PM Toshi Kani wrote:
+> > On Mon, 2013-11-25 at 01:09 +0100, Rafael J. Wysocki wrote:
+> > > Hi,
 > > > 
-> > > First of all, <acpi/acpi.h>, <acpi/acpi_bus.h> and <acpi/acpi_drivers.h>
-> > > should not be included directly from any files that are built for
-> > > CONFIG_ACPI unset, because that generally leads to build warnings about
-> > > undefined symbols in !CONFIG_ACPI builds.  For CONFIG_ACPI set,
-> > > <linux/acpi.h> includes those files and for !CONFIG_ACPI it provides stub
-> > > ACPI symbols to be used in that case.
+> > > The following series of four patches (on top of current linux-pm.git/bleeding-edge)
+> > > rework child device lookup in drivers/acpi/glue.c and related things:
 > > > 
-> > > Second, there are ordering dependencies between those files that always
-> > > have to be met.  Namely, it is required that <acpi/acpi_bus.h> be included
-> > > prior to <acpi/acpi_drivers.h> so that the acpi_pci_root declarations the
-> > > latter depends on are always there.  And <acpi/acpi.h> which provides
-> > > basic ACPICA type declarations should always be included prior to any other
-> > > ACPI headers in CONFIG_ACPI builds.  That also is taken care of including
-> > > <linux/acpi.h> as appropriate.
-> > > 
-> > > This patch also includes necessary cleanups in the affected files where
-> > > other ACPI headers is also included but not referenced.
-> > >
+> > > [1/4] ACPI / bind: Simplify child device lookup
+> > > [2/4] PCI/ ACPI: Use acpi_find_child_device() for child device lookup
+> > > [3/4] ACPI / bind: Redefine acpi_get_child()
+> > > [4/4] ACPI / bind: Redefine acpi_preset_companion()
 > > 
-> > This looks OK to me, but it touches several other subsystems.  It's better to
-> > CC such things to linux-kernel at least.
+> > This patchset caused the attached panic during boot on a system.
+> > acpi_pci_find_device() called acpi_find_child_device() with
+> > ACPI_COMPANION(dev->parent) being a NULL pointer when scanning bus 0xf.
 > > 
-> > Peter, Matthew, Tony, Konrad, Greg, Bjorn, do you have any objections against this?
+> > This bus 0xf seems to be a chipset internal bus, which is not intended
+> > for the OS to use.  Therefore, ACPI does not list its PCI bridge device.
+> > 
+> > # lspci -tv
+> >    :
+> >  +-[0000:0f]-+-08.0  Intel Corporation Ivytown QPI Link 0
+> >  |           +-08.2  Intel Corporation Ivytown QPI Link 0
+> >    :
+> > 
+> > However, pcibios_fixup_peer_bridges(), called from pci_subsys_init(),
+> > finds this bus as it scans all the buses from 0 to pcibios_last_bus.
+> > Hence, this dev->parent does not have an associated ACPI device object. 
 > 
-> CC-ing Boris and David here.
+> Thanks for the report!
 > 
-> I presume the proper compilation tests to make sure they do compile properly
-> has been done.
+> I've dropped the patches from bleeding-edge for now.
+> 
+> Does "[1/4] ACPI / bind: Simplify child device lookup" alone work on that
+> system?
 
-Yes and we're going to run it through the auto build machinery anyway.
+Yes, the system boots fine with 1/4 alone.
 
 Thanks,
-Rafael
+-Toshi
 
