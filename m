@@ -1,52 +1,34 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI: Cleanup <acpi/acpi.h>, <acpi/acpi_bus.h> and <acpi/acpi_drivers.h> inclusions.
-Date: Thu, 28 Nov 2013 15:18:54 +0100
-Message-ID: <77005542.rPYLivMWph@vostro.rjw.lan>
-References: <cover.1385094640.git.lv.zheng@intel.com> <3c5e408cd7791ef746f462c79ce28f67734817d9.1385434808.git.lv.zheng@intel.com> <2011704.hD86fZ2Qk5@vostro.rjw.lan>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v3 0/6] gpio / ACPI: convert users to gpiod_* and drop acpi_gpio.h
+Date: Thu, 28 Nov 2013 15:36:40 +0100
+Message-ID: <CACRpkdbJsQOjJ5QLVL9WutN9c04-AfRKe-hCYZ0fxDKsfCZS6Q@mail.gmail.com>
+References: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2011704.hD86fZ2Qk5@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Luck, Tony" <tony.luck@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:60941 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751712Ab3K1Ogl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Nov 2013 09:36:41 -0500
+Received: by mail-oa0-f47.google.com with SMTP id k1so9263364oag.34
+        for <linux-acpi@vger.kernel.org>; Thu, 28 Nov 2013 06:36:41 -0800 (PST)
+In-Reply-To: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tuesday, November 26, 2013 09:29:33 PM Rafael J. Wysocki wrote:
-> On Tuesday, November 26, 2013 01:21:15 PM Lv Zheng wrote:
-> > Replace direct inclusions of <acpi/acpi.h>, <acpi/acpi_bus.h> and
-> > <acpi/acpi_drivers.h>, which are incorrect, with <linux/acpi.h> inclusions.
-> > 
-> > First of all, <acpi/acpi.h>, <acpi/acpi_bus.h> and <acpi/acpi_drivers.h>
-> > should not be included directly from any files that are built for
-> > CONFIG_ACPI unset, because that generally leads to build warnings about
-> > undefined symbols in !CONFIG_ACPI builds.  For CONFIG_ACPI set,
-> > <linux/acpi.h> includes those files and for !CONFIG_ACPI it provides stub
-> > ACPI symbols to be used in that case.
-> > 
-> > Second, there are ordering dependencies between those files that always
-> > have to be met.  Namely, it is required that <acpi/acpi_bus.h> be included
-> > prior to <acpi/acpi_drivers.h> so that the acpi_pci_root declarations the
-> > latter depends on are always there.  And <acpi/acpi.h> which provides
-> > basic ACPICA type declarations should always be included prior to any other
-> > ACPI headers in CONFIG_ACPI builds.  That also is taken care of including
-> > <linux/acpi.h> as appropriate.
-> > 
-> > This patch also includes necessary cleanups in the affected files where
-> > other ACPI headers is also included but not referenced.
-> >
-> 
-> This looks OK to me, but it touches several other subsystems.  It's better to
-> CC such things to linux-kernel at least.
-> 
-> Peter, Matthew, Tony, Konrad, Greg, Bjorn, do you have any objections against this?
+On Tue, Nov 26, 2013 at 11:05 AM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
 
-Since no one seems to have problems with this, I've queued it up for the next ACPI
-pull request, if there are no problems with auto builds.
+> Since the patches in the series depend on each other I would propose this
+> to be merged via GPIO tree.
 
-Thanks!
+Sure! Can you hunt the net/mmc/Tegra subsystem maintainers
+for ACKs please?
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+(Haven't looked close at v3 yet, bear with me if you already have
+some ACKs...)
+
+Yours,
+Linus Walleij
