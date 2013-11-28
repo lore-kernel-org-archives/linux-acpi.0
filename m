@@ -1,66 +1,58 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: Add BayTrail SoC GPIO and LPSS ACPI IDs
-Date: Thu, 28 Nov 2013 14:29:53 +0100
-Message-ID: <1595199.2xkkMsZdTD@vostro.rjw.lan>
-References: <1385417755-21776-1-git-send-email-paul.drews@intel.com>
+Subject: Re: [PATCH] ACPI / PCI / hotplug: Avoid warning when _ADR not present
+Date: Thu, 28 Nov 2013 15:15:45 +0100
+Message-ID: <2967007.tqmdbM4ZBo@vostro.rjw.lan>
+References: <1385584389-22461-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64691 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751148Ab3K1NRD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Nov 2013 08:17:03 -0500
-In-Reply-To: <1385417755-21776-1-git-send-email-paul.drews@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1385584389-22461-1-git-send-email-toshi.kani@hp.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Drews <paul.drews@intel.com>, linus.walleij@linaro.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday, November 25, 2013 02:15:55 PM Paul Drews wrote:
-> This adds the new ACPI ID (INT33FC) for the BayTrail GPIO
-> banks as seen on a BayTrail M System-On-Chip platform.  This
-> ACPI ID is used by the BayTrail GPIO (pinctrl) driver to
-> manage the Low Power Subsystem (LPSS).
+On Wednesday, November 27, 2013 01:33:09 PM Toshi Kani wrote:
+> acpiphp_enumerate_slots() walks ACPI namenamespace under
+> a PCI host bridge with callback register_slot().
+> register_slot() evaluates _ADR for all the device objects
+> and emits a warning message for any error.  Some platforms
+> have _HID device objects (such as HPET and IPMI), which
+> trigger unnecessary warning messages.
 > 
-> Signed-off-by: Paul Drews <paul.drews@intel.com>
+> This patch avoids emitting a warning message when a target
+> device object does not have _ADR.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> ---
+> Patch is based on Linus's tree (3.13-rc1).
 
-Linus, any objections to this?  If not, I'll take it for 3.14.
-
-Thanks,
-Rafael
-
+Queued up as a fix for 3.13, thanks!
 
 > ---
->  drivers/acpi/acpi_lpss.c           | 1 +
->  drivers/pinctrl/pinctrl-baytrail.c | 1 +
->  2 files changed, 2 insertions(+)
+>  drivers/pci/hotplug/acpiphp_glue.c |    4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 6745fe1..e603905 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -162,6 +162,7 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
->  	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
->  	{ "80860F41", (unsigned long)&byt_i2c_dev_desc },
->  	{ "INT33B2", },
-> +	{ "INT33FC", },
+> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+> index 1cf605f..438a4d0 100644
+> --- a/drivers/pci/hotplug/acpiphp_glue.c
+> +++ b/drivers/pci/hotplug/acpiphp_glue.c
+> @@ -279,7 +279,9 @@ static acpi_status register_slot(acpi_handle handle, u32 lvl, void *data,
 >  
->  	{ "INT3430", (unsigned long)&lpt_dev_desc },
->  	{ "INT3431", (unsigned long)&lpt_dev_desc },
-> diff --git a/drivers/pinctrl/pinctrl-baytrail.c b/drivers/pinctrl/pinctrl-baytrail.c
-> index 2832576..114f5ef 100644
-> --- a/drivers/pinctrl/pinctrl-baytrail.c
-> +++ b/drivers/pinctrl/pinctrl-baytrail.c
-> @@ -512,6 +512,7 @@ static const struct dev_pm_ops byt_gpio_pm_ops = {
+>  	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
+>  	if (ACPI_FAILURE(status)) {
+> -		acpi_handle_warn(handle, "can't evaluate _ADR (%#x)\n", status);
+> +		if (status != AE_NOT_FOUND)
+> +			acpi_handle_warn(handle,
+> +				"can't evaluate _ADR (%#x)\n", status);
+>  		return AE_OK;
+>  	}
 >  
->  static const struct acpi_device_id byt_gpio_acpi_match[] = {
->  	{ "INT33B2", 0 },
-> +	{ "INT33FC", 0 },
->  	{ }
->  };
->  MODULE_DEVICE_TABLE(acpi, byt_gpio_acpi_match);
-> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
