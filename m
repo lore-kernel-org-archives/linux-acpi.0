@@ -1,127 +1,66 @@
-From: Marc Dietrich <marvin24@gmx.de>
-Subject: Re: [PATCH v3 1/6] ARM: tegra: add gpiod_lookup table for paz00
-Date: Thu, 28 Nov 2013 13:54:10 +0100
-Message-ID: <1441981.OvF23sGttd@fb07-iapwap2>
-References: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com> <1752117.77jQLaML2y@fb07-iapwap2> <20131128110636.GA22818@ulmo.nvidia.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi: Add BayTrail SoC GPIO and LPSS ACPI IDs
+Date: Thu, 28 Nov 2013 14:29:53 +0100
+Message-ID: <1595199.2xkkMsZdTD@vostro.rjw.lan>
+References: <1385417755-21776-1-git-send-email-paul.drews@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:50997 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754031Ab3K1MyP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Nov 2013 07:54:15 -0500
-Received: from fb07-iapwap2.localnet ([134.176.19.122]) by mail.gmx.com
- (mrgmx001) with ESMTPSA (Nemesis) id 0LyEJp-1VXaqH0bQL-015W4o for
- <linux-acpi@vger.kernel.org>; Thu, 28 Nov 2013 13:54:14 +0100
-In-Reply-To: <20131128110636.GA22818@ulmo.nvidia.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:64691 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751148Ab3K1NRD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Nov 2013 08:17:03 -0500
+In-Reply-To: <1385417755-21776-1-git-send-email-paul.drews@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Rhyland Klein <rklein@nvidia.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Adrian Hunter <adrian.hunter@intel.com>, Alex Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Devicetree List <devicetree@vger.kernel.org>
+To: Paul Drews <paul.drews@intel.com>, linus.walleij@linaro.org
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Am Donnerstag, 28. November 2013, 12:06:37 schrieb Thierry Reding:
-> On Thu, Nov 28, 2013 at 11:20:19AM +0100, Marc Dietrich wrote:
-> > Am Donnerstag, 28. November 2013, 10:32:41 schrieb Thierry Reding:
-> > > On Thu, Nov 28, 2013 at 10:09:14AM +0100, Marc Dietrich wrote:
-> > > > The real problem with the rfkill driver is that it does not support
-> > > > DT. A
-> > > > naive attempt to convert it was made some year ago, but got rejected
-> > > > because rfkill wasn't seen as isolated device which can be represented
-> > > > in
-> > > > the device- tree. Also it can not be added under some existing device
-> > > > node (e.g. the wifi driver) because those devices sit normally on an
-> > > > "enumeratable" bus (e.g. usb, pci), which is not listed in the device
-> > > > tree at all. This is why it still requires a board file and
-> > > > platform_data. I wish we could find a solution for this.
-> > > 
-> > > There is a solution at least for PCI. You can list PCI devices within
-> > > the device tree, which is really handy (required even) if for instance
-> > > one of the PCI devices is an SPI or I2C controller, each providing a bus
-> > > that cannot be probed. What you usually do is describe the PCI hierarchy
-> > > at least up to the controller and then list slaves as child nodes.
-> > > 
-> > > I'm not aware of anything similar for USB, but it should certainly be
-> > > possible to come up with a standard binding for the USB bus. It has a
-> > > topology that's similar enough to that of PCI so that the same general
-> > > rules could be applied.
-> > > 
-> > > If that's really the only thing that keeps rfkill from gaining DT
-> > > support then it's something worth tackling in my opinion.
-> > 
-> > it's not so simple I fear. The wifi driver needs to learn about the rfkill
-> > "device".
+On Monday, November 25, 2013 02:15:55 PM Paul Drews wrote:
+> This adds the new ACPI ID (INT33FC) for the BayTrail GPIO
+> banks as seen on a BayTrail M System-On-Chip platform.  This
+> ACPI ID is used by the BayTrail GPIO (pinctrl) driver to
+> manage the Low Power Subsystem (LPSS).
 > 
-> Why does the WiFi driver need to know about it? You say below that the
-> WiFi driver polls a separate set of GPIO lines (internal to the WiFi
-> module I assume?). In that case rfkill is merely a way to export control
-> of that functionality so that it can be used from some other part of the
-> kernel or from userspace.
+> Signed-off-by: Paul Drews <paul.drews@intel.com>
 
-You are right. We just need some device to bind this driver to. It doesn't 
-need to be the wifi driver.
+Linus, any objections to this?  If not, I'll take it for 3.14.
 
-> That's very similar to things such as backlight control or fan control.
-> Still we manage to describe those in DT as well.
+Thanks,
+Rafael
 
-Yes, rfkill is just an interface for userspace to able to control the gpio. 
-E.g. backlight of medcom-wide seems to be related to the pwm controller, but 
-is not a subnode of it. Instead it is a device of its own without parent. 
-Hence, we may include rfkill in a similar, "free-standing" node. But this 
-approch was rejected in the past. Maybe this changed now.
 
-> > As mentioned above, it's not really a device so the question is what
-> > needs to be added and where? The wifi driver just polls his own gpio lines
-> > to check the status of rfkill. Be we want to modify the "other side", so
-> > maybe this isn't related to the wifi driver at all. It's more a "virtual
-> > rfkill device". No idea if something like this exists already in device
-> > tree.
-> But it's a part of some other device. Or rather, it's always associated
-> with another device, right? So I don't see anything particularily wrong
-> with something like this:
+> ---
+>  drivers/acpi/acpi_lpss.c           | 1 +
+>  drivers/pinctrl/pinctrl-baytrail.c | 1 +
+>  2 files changed, 2 insertions(+)
 > 
-> 	usb-controller {
-> 		/* USB hub */
-> 		usb@0,0 {
-> 			...
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index 6745fe1..e603905 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -162,6 +162,7 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+>  	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
+>  	{ "80860F41", (unsigned long)&byt_i2c_dev_desc },
+>  	{ "INT33B2", },
+> +	{ "INT33FC", },
+>  
+>  	{ "INT3430", (unsigned long)&lpt_dev_desc },
+>  	{ "INT3431", (unsigned long)&lpt_dev_desc },
+> diff --git a/drivers/pinctrl/pinctrl-baytrail.c b/drivers/pinctrl/pinctrl-baytrail.c
+> index 2832576..114f5ef 100644
+> --- a/drivers/pinctrl/pinctrl-baytrail.c
+> +++ b/drivers/pinctrl/pinctrl-baytrail.c
+> @@ -512,6 +512,7 @@ static const struct dev_pm_ops byt_gpio_pm_ops = {
+>  
+>  static const struct acpi_device_id byt_gpio_acpi_match[] = {
+>  	{ "INT33B2", 0 },
+> +	{ "INT33FC", 0 },
+>  	{ }
+>  };
+>  MODULE_DEVICE_TABLE(acpi, byt_gpio_acpi_match);
 > 
-> 			/* USB device */
-> 			usb@1,0 {
-> 				...
-> 
-> 				rfkill {
-> 					shutdown-gpio = <&gpio ...>;
-> 					reset-gpio = <&gpio ...>;
-> 				};
-> 
-> 				...
-> 			};
-> 
-> 			...
-> 		};
-> 	};
-> 
-> You said that the main objection was that it needed to be represented as
-> a "subdevice" of whatever device it controls. If the only reason is that
-> we have no means to represent those devices because they are on a bus
-> that can be enumerated and therefore can't be listed in DT, then my
-> suggestion is to fix things so that we can describe those devices in DT.
->
-> The goal is to get rid of board files, right? board-paz00.c is the only
-> one left for Tegra, and rfkill is an actual hardware component, so there
-> is no reason why it can't be described in DT.
-
-Thinking a bit more about it, rfkill is neither a hw block nor a function of 
-the wifi driver, so I guess it cannot be added to the usb controller (or a usb 
-device).
-
-Anyway, I think this discussion deserves a new mail thread, but I don't have 
-enough background information to start one. We can bring this topic back when 
-all turkeys who deserve it, are dead.
-
-Marc
-
-
-
-
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
