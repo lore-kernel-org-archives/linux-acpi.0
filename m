@@ -1,158 +1,91 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH 7/10] ACPI / hotplug: Move container-specific code out
- of the core
-Date: Fri, 29 Nov 2013 11:36:55 +0900
-Message-ID: <5297FDC7.6000007@jp.fujitsu.com>
-References: <1421028.Rsfpmhnym3@vostro.rjw.lan> <2547688.l8Q1XKb3Ol@vostro.rjw.lan>
+From: Thomas Mitterfellner <thomas.mitterfellner@gmail.com>
+Subject: How can a critical temperature be set?
+Date: Fri, 29 Nov 2013 10:06:12 +0100
+Message-ID: <CAKDaYSF8+mcaFAegNQReeRXYZfM1TRXGskrAXyZHRkrVzhCsPQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <2547688.l8Q1XKb3Ol@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vc0-f170.google.com ([209.85.220.170]:40406 "EHLO
+	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753821Ab3K2JGO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Nov 2013 04:06:14 -0500
+Received: by mail-vc0-f170.google.com with SMTP id ht10so6617485vcb.29
+        for <linux-acpi@vger.kernel.org>; Fri, 29 Nov 2013 01:06:12 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+Hello!
 
-Replying to this mail may be wrong.
+How can I set a thermal trip point for the critical temperature as
+shown by acpi -V? (My laptop, Toshiba Satellite Pro l770-116, intel
+HM65 chipset, shuts down frequently under high CPU load and I suspect
+too low a critical temperature setting, namely 84=B0C, to be the
+culprit, as I read that 91+=B0C are not uncommon for my system under
+heavy load)
 
-Do you remember following your patch?
-http://lkml.org/lkml/2013/2/23/97
+I asked at the lm-sensors mailing list and I was advised to ask here.
+I was told that I might have to edit the DSDT tables to accomplish
+this. Is there possibly some simpler way or can someone give me a hint
+on how to do this?
+What I want to accomplish is: I want to set (increase) the temperature
+temp_crit1 shown in the output of sensors -u for the virtual device
+acpitz-virtual-0.
 
-I want to add autoeject variable in acpi_hotplug_profile structure and
-set autoecjet of container device "false".
+Thank you for your help,
 
-Currently, I have a problem on ejecting container device. Since linux-3.12,
-container device is removed by acpi_scan_hot_remove.
+Thomas
 
-I think this has two problems.
 
-   1. easily fail
-      My container device has CPU device and Memory device, and maximum size of
-      memory is 3Tbyte. In my environment, hot removing container device fails
-      on offlining memory if memory is used by application.
-      I think if offlininig memory, we must retly to offline memory several
-      times.
-   2. cannot work with userland's application
-      Hot removing CPU and memory on container device, we need take care of
-      userland application. Before linux-3.12, container device just notifies
-      KOBJ_OFFLINE to udev. So by using udev, if application binds to removed
-      CPU or node, applications can change them before hot removing container
-      device.
-      Currently, KOBJ_OFFLINE is notified to udev. But acpi_scan_hot_remove
-      also runs simultaneously for hot removing container device. So when
-      applications runs for corresponding to the deletion of the devices,
-      the devices may have been deleted.
+=46or reference, I attached the output of acpi -V and sensors -u comman=
+ds.
 
-I don't know what devices are on hotpluggable conatainer device of other
-vendors. At least, my container device cannot be hot removed correctly.
-Then I want to add autoeject variable in acpi_hotplug_profile so that user
-can change the parameter to "true" or "false".
+# acpi -V
+[=85]
+Thermal 0: ok, 57.0 degrees C
+Thermal 0: trip point 0 switches to mode critical at temperature 84.0
+degrees C
+Thermal 0: trip point 1 switches to mode passive at temperature 105.0
+degrees CThermal 0: ok, 57.0 degrees C
+Thermal 0: trip point 0 switches to mode critical at temperature 84.0
+degrees C
+Thermal 0: trip point 1 switches to mode passive at temperature 105.0
+degrees C:
+[=85]
 
-Thanks,
-Yasuaki Ishimatsu
+# sensors -u
 
-(2013/11/18 1:36), Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Move container-specific uevents from the core hotplug code to the
-> container scan handler's .attach() and .detach() callbacks.
->
-> This way the core will not have to special-case containers and
-> the uevents will be guaranteed to happen every time a container
-> is either scanned or trimmed as appropriate.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->   drivers/acpi/container.c |   11 ++++++++---
->   drivers/acpi/scan.c      |    8 +-------
->   include/acpi/acpi_bus.h  |    7 -------
->   3 files changed, 9 insertions(+), 17 deletions(-)
->
-> Index: linux-pm/drivers/acpi/container.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/container.c
-> +++ linux-pm/drivers/acpi/container.c
-> @@ -44,19 +44,24 @@ static const struct acpi_device_id conta
->   	{"", 0},
->   };
->
-> -static int container_device_attach(struct acpi_device *device,
-> +static int container_device_attach(struct acpi_device *adev,
->   				   const struct acpi_device_id *not_used)
->   {
-> -	/* This is necessary for container hotplug to work. */
-> +	kobject_uevent(&adev->dev.kobj, KOBJ_ONLINE);
->   	return 1;
->   }
->
-> +static void container_device_detach(struct acpi_device *adev)
-> +{
-> +	kobject_uevent(&adev->dev.kobj, KOBJ_OFFLINE);
-> +}
-> +
->   static struct acpi_scan_handler container_handler = {
->   	.ids = container_device_ids,
->   	.attach = container_device_attach,
-> +	.detach = container_device_detach,
->   	.hotplug = {
->   		.enabled = true,
-> -		.mode = AHM_CONTAINER,
->   	},
->   };
->
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -206,9 +206,6 @@ static int acpi_scan_hot_remove(struct a
->   	acpi_status status;
->   	unsigned long long sta;
->
-> -	if (device->handler && device->handler->hotplug.mode == AHM_CONTAINER)
-> -		kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
-> -
->   	/*
->   	 * Carry out two passes here and ignore errors in the first pass,
->   	 * because if the devices in question are memory blocks and
-> @@ -288,10 +285,7 @@ static int acpi_scan_device_check(struct
->   		dev_warn(&adev->dev, "Namespace scan failure\n");
->   		return error;
->   	}
-> -	if (adev->handler) {
-> -		if (adev->handler->hotplug.mode == AHM_CONTAINER)
-> -			kobject_uevent(&adev->dev.kobj, KOBJ_ONLINE);
-> -	} else {
-> +	if (!adev->handler) {
->   		dev_warn(&adev->dev, "Enumeration failure\n");
->   		return -ENODEV;
->   	}
-> Index: linux-pm/include/acpi/acpi_bus.h
-> ===================================================================
-> --- linux-pm.orig/include/acpi/acpi_bus.h
-> +++ linux-pm/include/acpi/acpi_bus.h
-> @@ -91,16 +91,9 @@ struct acpi_device;
->    * -----------------
->    */
->
-> -enum acpi_hotplug_mode {
-> -	AHM_GENERIC = 0,
-> -	AHM_CONTAINER,
-> -	AHM_COUNT
-> -};
-> -
->   struct acpi_hotplug_profile {
->   	struct kobject kobj;
->   	bool enabled:1;
-> -	enum acpi_hotplug_mode mode;
->   	int (*scan_dependent)(struct acpi_device *adev);
->   };
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+acpitz-virtual-0
+Adapter: Virtual device
+temp1:
+  temp1_input: 73.000
+  temp1_crit: 84.000
+
+coretemp-isa-0000
+Adapter: ISA adapter
+Physical id 0:
+  temp1_input: 71.000
+  temp1_max: 86.000
+  temp1_crit: 100.000
+  temp1_crit_alarm: 0.000
+Core 0:
+  temp2_input: 71.000
+  temp2_max: 86.000
+  temp2_crit: 100.000
+  temp2_crit_alarm: 0.000
+Core 1:
+  temp3_input: 71.000
+  temp3_max: 86.000
+  temp3_crit: 100.000
+  temp3_crit_alarm: 0.000
+
+pkg-temp-0-virtual-0
+Adapter: Virtual device
+temp1:
+  temp1_input: 71.000
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
