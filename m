@@ -1,91 +1,79 @@
-From: Thomas Mitterfellner <thomas.mitterfellner@gmail.com>
-Subject: How can a critical temperature be set?
-Date: Fri, 29 Nov 2013 10:06:12 +0100
-Message-ID: <CAKDaYSF8+mcaFAegNQReeRXYZfM1TRXGskrAXyZHRkrVzhCsPQ@mail.gmail.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH v3 1/6] ARM: tegra: add gpiod_lookup table for paz00
+Date: Fri, 29 Nov 2013 12:03:40 +0100
+Message-ID: <20131129110339.GK22771@ulmo.nvidia.com>
+References: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1752117.77jQLaML2y@fb07-iapwap2>
+ <20131128110636.GA22818@ulmo.nvidia.com>
+ <1441981.OvF23sGttd@fb07-iapwap2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f170.google.com ([209.85.220.170]:40406 "EHLO
-	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753821Ab3K2JGO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Nov 2013 04:06:14 -0500
-Received: by mail-vc0-f170.google.com with SMTP id ht10so6617485vcb.29
-        for <linux-acpi@vger.kernel.org>; Fri, 29 Nov 2013 01:06:12 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Qo8f1a4rgWw9S/zY"
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1441981.OvF23sGttd@fb07-iapwap2>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Marc Dietrich <marvin24@gmx.de>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Rhyland Klein <rklein@nvidia.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Adrian Hunter <adrian.hunter@intel.com>, Alex Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Devicetree List <devicetree@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-Hello!
-
-How can I set a thermal trip point for the critical temperature as
-shown by acpi -V? (My laptop, Toshiba Satellite Pro l770-116, intel
-HM65 chipset, shuts down frequently under high CPU load and I suspect
-too low a critical temperature setting, namely 84=B0C, to be the
-culprit, as I read that 91+=B0C are not uncommon for my system under
-heavy load)
-
-I asked at the lm-sensors mailing list and I was advised to ask here.
-I was told that I might have to edit the DSDT tables to accomplish
-this. Is there possibly some simpler way or can someone give me a hint
-on how to do this?
-What I want to accomplish is: I want to set (increase) the temperature
-temp_crit1 shown in the output of sensors -u for the virtual device
-acpitz-virtual-0.
-
-Thank you for your help,
-
-Thomas
 
 
-=46or reference, I attached the output of acpi -V and sensors -u comman=
-ds.
+--Qo8f1a4rgWw9S/zY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-# acpi -V
-[=85]
-Thermal 0: ok, 57.0 degrees C
-Thermal 0: trip point 0 switches to mode critical at temperature 84.0
-degrees C
-Thermal 0: trip point 1 switches to mode passive at temperature 105.0
-degrees CThermal 0: ok, 57.0 degrees C
-Thermal 0: trip point 0 switches to mode critical at temperature 84.0
-degrees C
-Thermal 0: trip point 1 switches to mode passive at temperature 105.0
-degrees C:
-[=85]
+On Thu, Nov 28, 2013 at 01:54:10PM +0100, Marc Dietrich wrote:
+[...]
+> Yes, rfkill is just an interface for userspace to able to control the gpi=
+o.=20
+> E.g. backlight of medcom-wide seems to be related to the pwm controller, =
+but=20
+> is not a subnode of it. Instead it is a device of its own without parent.=
+=20
+> Hence, we may include rfkill in a similar, "free-standing" node. But this=
+=20
+> approch was rejected in the past. Maybe this changed now.
 
-# sensors -u
+Indeed. I think we really do need ways to represent this kind of device.
+If we can't then how are we supposed to get rid of board files?
 
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:
-  temp1_input: 73.000
-  temp1_crit: 84.000
+> Thinking a bit more about it, rfkill is neither a hw block nor a function=
+ of=20
+> the wifi driver, so I guess it cannot be added to the usb controller (or =
+a usb=20
+> device).
 
-coretemp-isa-0000
-Adapter: ISA adapter
-Physical id 0:
-  temp1_input: 71.000
-  temp1_max: 86.000
-  temp1_crit: 100.000
-  temp1_crit_alarm: 0.000
-Core 0:
-  temp2_input: 71.000
-  temp2_max: 86.000
-  temp2_crit: 100.000
-  temp2_crit_alarm: 0.000
-Core 1:
-  temp3_input: 71.000
-  temp3_max: 86.000
-  temp3_crit: 100.000
-  temp3_crit_alarm: 0.000
+I guess it depends a bit. Some rfkill-type devices may control more than
+just WiFi (bluetooth, NFC, ...). If it really only controls WiFi, I
+think it would still be reasonable to represent it as a child of the
+WiFi device. It is, after all, a mechanism to control the WiFi hardware.
 
-pkg-temp-0-virtual-0
-Adapter: Virtual device
-temp1:
-  temp1_input: 71.000
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Alternatively I suppose we wouldn't really need to have an explicit
+node. The WiFi driver could simply instantiate an rfkill device based on
+its own properties.
+
+Thierry
+
+--Qo8f1a4rgWw9S/zY
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSmHSLAAoJEN0jrNd/PrOhLYkP/iKC6LI2LuPV2l8HKpb66GZX
+6Z1jL3BdUR+cDxHLIzUEEbdEtpYxj3bkL8pyYxBKI8UCs2xnIowjjU/YAf+I/pt2
+ZgdrG5z9gDM1TRTVSfIgYAa57KZG31TIVdZSZbrJ/r38UbohkdIrxAYkBbqmAkIZ
+W4FDvgkaUm6+SMfZVlIiRDmMx5lM9VqOTfJMs34cqRUZm9QN3yk77mIFqDc1F2Yb
+u7ac634AmvxmUabZsZ91FyOQB+ne5NLwV1hjIwHUr0qwBd/ZIqy9fLgOYMNtCUN6
+p0uVddGuVJf8ViBZgY5M796rOaxHTRJRZFACvS5kU+wvW1dglB6baCfa+4dPclkX
+N1/qEJM7LA9RHTkMOF07vYVSiC0BBYWhzRl1jXhlmDv0pmzxMv+we6iPBbGUNv1M
+kUFbrVK6ubsiaaA3nfQB//N/2DW8QO2cj3ZzRZ+B0hQtHdQZY6RmiioZX/hy5zF5
+apRjLFnfw+jUglD2qrzgAqdRadk/xYFRQW/J/ZVZ89nbau5FkrRtEJZ//ELOlhDX
+XfRBqMBXy0JEFHFTlKmw+SfNnK4EuAYwnBIlkUG1jjNAbTIj74KJz59fq21QvA14
+JVD1Bnp43cF+zqxfw9c0dkyPZYMT7WCKEfl+butSo16LUz3wlRtTgNVrO1Ey4cGG
+RbxiybMrNI3YFCNjli2n
+=cEez
+-----END PGP SIGNATURE-----
+
+--Qo8f1a4rgWw9S/zY--
