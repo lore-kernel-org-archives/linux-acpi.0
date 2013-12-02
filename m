@@ -1,87 +1,73 @@
-From: Lan Tianyu <lantianyu1986@gmail.com>
-Subject: Re: How can a critical temperature be set?
-Date: Sat, 30 Nov 2013 20:01:45 +0800
-Message-ID: <CAOLK0pxC8vKN18x2zXifXZFjOaOypVnzRm-SFQEaQHHVZRYQNg@mail.gmail.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: How can a critical temperature be set?
+Date: Mon, 2 Dec 2013 01:52:31 +0000
+Message-ID: <744357E9AAD1214791ACBA4B0B909263011AE8DB@SHSMSX101.ccr.corp.intel.com>
 References: <CAKDaYSF8+mcaFAegNQReeRXYZfM1TRXGskrAXyZHRkrVzhCsPQ@mail.gmail.com>
-	<CAOLK0pwQX5qjggp=cD11sxyeV_Ap3+FGfDqbOu9yxLJ0VOk58w@mail.gmail.com>
-	<5299CC8F.6050406@gmail.com>
+ <5973936.aJ38W1h68Q@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:56977 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851Ab3K3MBp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 30 Nov 2013 07:01:45 -0500
-Received: by mail-ie0-f181.google.com with SMTP id e14so18057775iej.12
-        for <linux-acpi@vger.kernel.org>; Sat, 30 Nov 2013 04:01:45 -0800 (PST)
-In-Reply-To: <5299CC8F.6050406@gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:32812 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752250Ab3LBBwf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 1 Dec 2013 20:52:35 -0500
+In-Reply-To: <5973936.aJ38W1h68Q@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Mitterfellner <thomas.mitterfellner@gmail.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Mitterfellner <thomas.mitterfellner@gmail.com>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-2013/11/30 Thomas Mitterfellner <thomas.mitterfellner@gmail.com>:
->
->>> How can I set a thermal trip point for the critical temperature as
->>> shown by acpi -V?
->>
->> Please try adding kernel param "thermal.crt=91".
->
-> Yes! That works! Is there a special reason why you suggested the value
-> 91? Because I added thermal.crt=99 as I saw it on some occasion on my
-> system.
-
-No, just give an example.
-
->
-> Now I get:
->
-> # acpi -V
-> Thermal 0: ok, 64.0 degrees C
-> Thermal 0: trip point 0 switches to mode critical at temperature 99.0
-> degrees C
-> Thermal 0: trip point 1 switches to mode passive at temperature 105.0
-> degrees C
->
-> and
->
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:
->   temp1_input: 66.000
->   temp1_crit: 99.000
->
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Physical id 0:
->   temp1_input: 66.000
->   temp1_max: 86.000
->   temp1_crit: 100.000
->   temp1_crit_alarm: 0.000
-> Core 0:
->   temp2_input: 63.000
->   temp2_max: 86.000
->   temp2_crit: 100.000
->   temp2_crit_alarm: 0.000
-> Core 1:
->   temp3_input: 66.000
->   temp3_max: 86.000
->   temp3_crit: 100.000
->   temp3_crit_alarm: 0.000
->
-> pkg-temp-0-virtual-0
-> Adapter: Virtual device
-> temp1:
->   temp1_input: 67.000
->
->
->
-> Thank you for your kind help,
->
-> Thomas
-
-You are welcome.
-
--- 
-Best regards
-Tianyu Lan
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
+a2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gU2VudDogRnJpZGF5LCBOb3ZlbWJlciAy
+OSwgMjAxMyA4OjI2IFBNDQo+IFRvOiBUaG9tYXMgTWl0dGVyZmVsbG5lcg0KPiBDYzogbGludXgt
+YWNwaUB2Z2VyLmtlcm5lbC5vcmc7IFpoYW5nLCBSdWkNCj4gU3ViamVjdDogUmU6IEhvdyBjYW4g
+YSBjcml0aWNhbCB0ZW1wZXJhdHVyZSBiZSBzZXQ/DQo+IEltcG9ydGFuY2U6IEhpZ2gNCj4gDQo+
+IENjOiBSdWkNCj4gDQo+IE9uIEZyaWRheSwgTm92ZW1iZXIgMjksIDIwMTMgMTA6MDY6MTIgQU0g
+VGhvbWFzIE1pdHRlcmZlbGxuZXIgd3JvdGU6DQo+ID4gSGVsbG8hDQo+ID4NCj4gPiBIb3cgY2Fu
+IEkgc2V0IGEgdGhlcm1hbCB0cmlwIHBvaW50IGZvciB0aGUgY3JpdGljYWwgdGVtcGVyYXR1cmUg
+YXMNCj4gPiBzaG93biBieSBhY3BpIC1WPyAoTXkgbGFwdG9wLCBUb3NoaWJhIFNhdGVsbGl0ZSBQ
+cm8gbDc3MC0xMTYsIGludGVsDQo+ID4gSE02NSBjaGlwc2V0LCBzaHV0cyBkb3duIGZyZXF1ZW50
+bHkgdW5kZXIgaGlnaCBDUFUgbG9hZCBhbmQgSSBzdXNwZWN0DQo+ID4gdG9vIGxvdyBhIGNyaXRp
+Y2FsIHRlbXBlcmF0dXJlIHNldHRpbmcsIG5hbWVseSA4NMKwQywgdG8gYmUgdGhlDQo+ID4gY3Vs
+cHJpdCwgYXMgSSByZWFkIHRoYXQgOTErwrBDIGFyZSBub3QgdW5jb21tb24gZm9yIG15IHN5c3Rl
+bSB1bmRlcg0KPiA+IGhlYXZ5IGxvYWQpDQo+ID4NCj4gPiBJIGFza2VkIGF0IHRoZSBsbS1zZW5z
+b3JzIG1haWxpbmcgbGlzdCBhbmQgSSB3YXMgYWR2aXNlZCB0byBhc2sgaGVyZS4NCj4gPiBJIHdh
+cyB0b2xkIHRoYXQgSSBtaWdodCBoYXZlIHRvIGVkaXQgdGhlIERTRFQgdGFibGVzIHRvIGFjY29t
+cGxpc2gNCj4gPiB0aGlzLiBJcyB0aGVyZSBwb3NzaWJseSBzb21lIHNpbXBsZXIgd2F5IG9yIGNh
+biBzb21lb25lIGdpdmUgbWUgYQ0KPiBoaW50DQo+ID4gb24gaG93IHRvIGRvIHRoaXM/DQo+ID4g
+V2hhdCBJIHdhbnQgdG8gYWNjb21wbGlzaCBpczogSSB3YW50IHRvIHNldCAoaW5jcmVhc2UpIHRo
+ZQ0KPiB0ZW1wZXJhdHVyZQ0KPiA+IHRlbXBfY3JpdDEgc2hvd24gaW4gdGhlIG91dHB1dCBvZiBz
+ZW5zb3JzIC11IGZvciB0aGUgdmlydHVhbCBkZXZpY2UNCj4gPiBhY3BpdHotdmlydHVhbC0wLg0K
+PiA+DQoNClllcywgdGhlcmUgaXMgYSBtb2R1bGUgcGFyYW1ldGVyICJ0aGVybWFsLmNydD0iIGZv
+ciB0aGlzLg0KU2F5LCB5b3UgY2FuIHJlc2V0IHRoZSBjcml0aWNhbCB0ZW1wZXJhdHVyZSB0byAx
+MTBDIHZpYSB0aGVybWFsLmNydD0xMTAuDQoNClRoYW5rcywNClJ1aQ0KDQo+ID4gVGhhbmsgeW91
+IGZvciB5b3VyIGhlbHAsDQo+ID4NCj4gPiBUaG9tYXMNCj4gPg0KPiA+DQo+ID4gRm9yIHJlZmVy
+ZW5jZSwgSSBhdHRhY2hlZCB0aGUgb3V0cHV0IG9mIGFjcGkgLVYgYW5kIHNlbnNvcnMgLXUNCj4g
+Y29tbWFuZHMuDQo+ID4NCj4gPiAjIGFjcGkgLVYNCj4gPiBb4oCmXQ0KPiA+IFRoZXJtYWwgMDog
+b2ssIDU3LjAgZGVncmVlcyBDDQo+ID4gVGhlcm1hbCAwOiB0cmlwIHBvaW50IDAgc3dpdGNoZXMg
+dG8gbW9kZSBjcml0aWNhbCBhdCB0ZW1wZXJhdHVyZSA4NC4wDQo+ID4gZGVncmVlcyBDIFRoZXJt
+YWwgMDogdHJpcCBwb2ludCAxIHN3aXRjaGVzIHRvIG1vZGUgcGFzc2l2ZSBhdA0KPiA+IHRlbXBl
+cmF0dXJlIDEwNS4wIGRlZ3JlZXMgQ1RoZXJtYWwgMDogb2ssIDU3LjAgZGVncmVlcyBDIFRoZXJt
+YWwgMDoNCj4gPiB0cmlwIHBvaW50IDAgc3dpdGNoZXMgdG8gbW9kZSBjcml0aWNhbCBhdCB0ZW1w
+ZXJhdHVyZSA4NC4wIGRlZ3JlZXMgQw0KPiA+IFRoZXJtYWwgMDogdHJpcCBwb2ludCAxIHN3aXRj
+aGVzIHRvIG1vZGUgcGFzc2l2ZSBhdCB0ZW1wZXJhdHVyZSAxMDUuMA0KPiA+IGRlZ3JlZXMgQzoN
+Cj4gPiBb4oCmXQ0KPiA+DQo+ID4gIyBzZW5zb3JzIC11DQo+ID4NCj4gPiBhY3BpdHotdmlydHVh
+bC0wDQo+ID4gQWRhcHRlcjogVmlydHVhbCBkZXZpY2UNCj4gPiB0ZW1wMToNCj4gPiAgIHRlbXAx
+X2lucHV0OiA3My4wMDANCj4gPiAgIHRlbXAxX2NyaXQ6IDg0LjAwMA0KPiA+DQo+ID4gY29yZXRl
+bXAtaXNhLTAwMDANCj4gPiBBZGFwdGVyOiBJU0EgYWRhcHRlcg0KPiA+IFBoeXNpY2FsIGlkIDA6
+DQo+ID4gICB0ZW1wMV9pbnB1dDogNzEuMDAwDQo+ID4gICB0ZW1wMV9tYXg6IDg2LjAwMA0KPiA+
+ICAgdGVtcDFfY3JpdDogMTAwLjAwMA0KPiA+ICAgdGVtcDFfY3JpdF9hbGFybTogMC4wMDANCj4g
+PiBDb3JlIDA6DQo+ID4gICB0ZW1wMl9pbnB1dDogNzEuMDAwDQo+ID4gICB0ZW1wMl9tYXg6IDg2
+LjAwMA0KPiA+ICAgdGVtcDJfY3JpdDogMTAwLjAwMA0KPiA+ICAgdGVtcDJfY3JpdF9hbGFybTog
+MC4wMDANCj4gPiBDb3JlIDE6DQo+ID4gICB0ZW1wM19pbnB1dDogNzEuMDAwDQo+ID4gICB0ZW1w
+M19tYXg6IDg2LjAwMA0KPiA+ICAgdGVtcDNfY3JpdDogMTAwLjAwMA0KPiA+ICAgdGVtcDNfY3Jp
+dF9hbGFybTogMC4wMDANCj4gPg0KPiA+IHBrZy10ZW1wLTAtdmlydHVhbC0wDQo+ID4gQWRhcHRl
+cjogVmlydHVhbCBkZXZpY2UNCj4gPiB0ZW1wMToNCj4gPiAgIHRlbXAxX2lucHV0OiA3MS4wMDAN
+Cj4gPiAtLQ0KPiA+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5l
+ICJ1bnN1YnNjcmliZSBsaW51eC1hY3BpIg0KPiA+IGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0
+byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vDQo+ID4gaW5mbyBhdCAg
+aHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo+IC0tDQo+IEkgc3Bl
+YWsgb25seSBmb3IgbXlzZWxmLg0KPiBSYWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3Vy
+Y2UgVGVjaG5vbG9neSBDZW50ZXIuDQo=
