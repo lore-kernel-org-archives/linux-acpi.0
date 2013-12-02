@@ -1,170 +1,60 @@
-From: rui wang <ruiv.wang@gmail.com>
-Subject: Re: [PATCH v10 1/3] aerdrv: Trace Event for AER
-Date: Mon, 2 Dec 2013 13:05:16 +0800
-Message-ID: <CANVTcTaP18CiGOSEcX5Ch_wPw9mEhkgokfp+d+ZOMFD+Ce4juA@mail.gmail.com>
-References: <20130116235102.16015.77379.stgit@grignak.americas.hpqcorp.net>
+From: Thomas Mitterfellner <thomas.mitterfellner@gmail.com>
+Subject: Re: How can a critical temperature be set?
+Date: Mon, 2 Dec 2013 09:18:02 +0100
+Message-ID: <CAKDaYSEioaSPJKsGsuBGfCLC=BE3M6bMiaSqyvSWKbhvr9FPjQ@mail.gmail.com>
+References: <CAKDaYSF8+mcaFAegNQReeRXYZfM1TRXGskrAXyZHRkrVzhCsPQ@mail.gmail.com>
+	<5973936.aJ38W1h68Q@vostro.rjw.lan>
+	<744357E9AAD1214791ACBA4B0B909263011AE8DB@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20130116235102.16015.77379.stgit@grignak.americas.hpqcorp.net>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@intel.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, gong.chen@intel.com
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ve0-f175.google.com ([209.85.128.175]:64353 "EHLO
+	mail-ve0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751049Ab3LBISD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Dec 2013 03:18:03 -0500
+Received: by mail-ve0-f175.google.com with SMTP id jx11so8408691veb.20
+        for <linux-acpi@vger.kernel.org>; Mon, 02 Dec 2013 00:18:02 -0800 (PST)
+In-Reply-To: <744357E9AAD1214791ACBA4B0B909263011AE8DB@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 1/17/13, Lance Ortiz <lance.ortiz@hp.com> wrote:
-> This header file will define a new trace event that will be triggered when
-> a AER event occurs.  The following data will be provided to the trace
-> event.
->
-> char * dev_name - The name of the slot where the device resides
->                   ([domain:]bus:device.function).
->
-> u32 status - Either the correctable or uncorrectable register
->              indicating what error or errors have been see.
->
-> u8 severity - error severity 0:NONFATAL 1:FATAL 2:CORRECTED
->
-> The trace event will also provide a trace string that may look like:
->
-> "0000:05:00.0 PCIe Bus Error:severity=Uncorrected (Non-Fatal), Poisoned
-> TLP"
->
-> v1-v2 Move header from include/ras/aer_event.h to
-> include/trace/events/ras.h
-> v3-v4 Cleaned up comments and commit header
-> v4-v5 More cleanup remove () from if statement in print.
->       Renamed string define to be more specific.
-> v5-v6 change TRACE_SYSTEM define to be ras and not aer.
->
-> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
-> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Acked-by: Tony Luck <tony.luck@intel.com>
-> ---
->
->  include/trace/events/ras.h |   77
-> ++++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 77 insertions(+), 0 deletions(-)
->  create mode 100644 include/trace/events/ras.h
->
-> diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
-> new file mode 100644
-> index 0000000..88b8783
-> --- /dev/null
-> +++ b/include/trace/events/ras.h
-> @@ -0,0 +1,77 @@
-> +#undef TRACE_SYSTEM
-> +#define TRACE_SYSTEM ras
-> +
-> +#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
-> +#define _TRACE_AER_H
-> +
-> +#include <linux/tracepoint.h>
-> +#include <linux/edac.h>
-> +
-> +
-> +/*
-> + * PCIe AER Trace event
-> + *
-> + * These events are generated when hardware detects a corrected or
-> + * uncorrected event on a PCIe device. The event report has
-> + * the following structure:
-> + *
-> + * char * dev_name -	The name of the slot where the device resides
-> + *			([domain:]bus:device.function).
-> + * u32 status -		Either the correctable or uncorrectable register
-> + *			indicating what error or errors have been seen
-> + * u8 severity -	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
-> + */
-> +
-> +#define aer_correctable_errors		\
-> +	{BIT(0),	"Receiver Error"},		\
-> +	{BIT(6),	"Bad TLP"},			\
-> +	{BIT(7),	"Bad DLLP"},			\
-> +	{BIT(8),	"RELAY_NUM Rollover"},		\
-> +	{BIT(12),	"Replay Timer Timeout"},	\
-> +	{BIT(13),	"Advisory Non-Fatal"}
-> +
-> +#define aer_uncorrectable_errors		\
-> +	{BIT(4),	"Data Link Protocol"},		\
-> +	{BIT(12),	"Poisoned TLP"},		\
-> +	{BIT(13),	"Flow Control Protocol"},	\
-> +	{BIT(14),	"Completion Timeout"},		\
-> +	{BIT(15),	"Completer Abort"},		\
-> +	{BIT(16),	"Unexpected Completion"},	\
-> +	{BIT(17),	"Receiver Overflow"},		\
-> +	{BIT(18),	"Malformed TLP"},		\
-> +	{BIT(19),	"ECRC"},			\
-> +	{BIT(20),	"Unsupported Request"}
-> +
-> +TRACE_EVENT(aer_event,
-> +	TP_PROTO(const char *dev_name,
-> +		 const u32 status,
-> +		 const u8 severity),
-> +
-> +	TP_ARGS(dev_name, status, severity),
-> +
-> +	TP_STRUCT__entry(
-> +		__string(	dev_name,	dev_name	)
-> +		__field(	u32,		status		)
-> +		__field(	u8,		severity	)
-> +	),
-> +
-> +	TP_fast_assign(
-> +		__assign_str(dev_name, dev_name);
-> +		__entry->status		= status;
-> +		__entry->severity	= severity;
-> +	),
-> +
-> +	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
-> +		__get_str(dev_name),
-> +		__entry->severity == HW_EVENT_ERR_CORRECTED ? "Corrected" :
-> +			__entry->severity == HW_EVENT_ERR_FATAL ?
-> +			"Fatal" : "Uncorrected",
-> +		__entry->severity == HW_EVENT_ERR_CORRECTED ?
-> +		__print_flags(__entry->status, "|", aer_correctable_errors) :
-> +		__print_flags(__entry->status, "|", aer_uncorrectable_errors))
-> +);
+> Yes, there is a module parameter "thermal.crt=3D" for this.
+> Say, you can reset the critical temperature to 110C via thermal.crt=3D=
+110.
 
-This causes inconsistency between dmesg and the trace event output.
-When dmesg says "severity=Corrected", the trace event says
-"severity=Fatal". What happens is that HW_EVENT_ERR_CORRECTED is
-defined in edac.h:
+I was able to alleviate the problem with premature shutdown using this
+parameter, but now I encounter the behavior that I saw described in
+some documentation:
 
-enum hw_event_mc_err_type {
-        HW_EVENT_ERR_CORRECTED,
-        HW_EVENT_ERR_UNCORRECTED,
-        HW_EVENT_ERR_FATAL,
-        HW_EVENT_ERR_INFO,
-};
+When a certain temperature is hit (I think it is ~84=B0C), the fan
+switches to its maximum state, consequently, the temperature drops
+rapidly (~5-7=B0C) and the fan's speed decreases immediately, causing
+the temperature to rise again above that threshold etc. This cycle
+repeats again and again in ~2-5 s intervals.
 
-while aer_print_error() uses aer_error_severity_string[] defined as:
+I also read in some documentation (of the thermal module IIRC) that
+there is some mechanism to avoid just that unwanted behavior by some
+hysteresis parameter which should provide that the fan does not switch
+off until the processor is cooled down more thoroughly.
+However, I could not find any way how to do that on my system (intel
+HM65 chipset), as the virtual device does not seem to offer setting
+such a parameter. I could also not find a cooling device of type 'fan'
+in my /sys directory, only four virtual cooling devices of type
+'processor' and one of type 'LCD' (so I do not quite understand how
+the system even controls the different fan levels).
 
-static const char *aer_error_severity_string[] = {
-        "Uncorrected (Non-Fatal)",
-        "Uncorrected (Fatal)",
-        "Corrected"
-};
+Can someone give me a hint (or reference to some documentation/how-to)
+on how to achieve a sane cooling strategy for my laptop? Is it
+possible anyway?
 
-In this case dmesg is correct because info->severity is assigned in
-aer_isr_one_error() using the definitions in include/linux/ras.h:
-#define AER_NONFATAL                    0
-#define AER_FATAL                       1
-#define AER_CORRECTABLE                 2
+Thank you very much,
 
-So which one is the standard? Is there a plan to unify all these names?
-
-Thanks
-Rui Wang
-> +
-> +#endif /* _TRACE_AER_H */
-> +
-> +/* This part must be outside protection */
-> +#include <trace/define_trace.h>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+Thomas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
