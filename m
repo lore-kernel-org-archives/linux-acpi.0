@@ -1,190 +1,58 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [RFC part2 PATCH 9/9] ACPI / GIC: Initialize GIC using the information
- in MADT
-Date: Tue, 03 Dec 2013 17:26:27 +0000
-Message-ID: <529E1443.9040509@arm.com>
-References: <1386088753-2850-1-git-send-email-hanjun.guo@linaro.org> <1386088753-2850-10-git-send-email-hanjun.guo@linaro.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC part1 PATCH 2/7] ARM64 : Add dummy asm/cpu.h
+Date: Tue, 3 Dec 2013 17:59:08 +0000
+Message-ID: <20131203175908.GH27568@sirena.org.uk>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
+ <1386088611-2801-3-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="pn37QocMfltEWxia"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:55617 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752853Ab3LCR0c convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Dec 2013 12:26:32 -0500
-In-Reply-To: <1386088753-2850-10-git-send-email-hanjun.guo@linaro.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:50411 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754683Ab3LCR7Z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Dec 2013 12:59:25 -0500
+Content-Disposition: inline
+In-Reply-To: <1386088611-2801-3-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Olof Johansson <olof@lixom.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Jon Masters <jonathan@jonmasters.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.or
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, Graeme Gregory <graeme.gregory@linaro.org>, patches@linaro.org, Olof Johansson <olof@lixom.net>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org
 
-Hi Hanjun,
 
-On 03/12/13 16:39, Hanjun Guo wrote:
-> In MADT table, there are GIC cpu interface base address and
-> GIC distributor base address, use them to convert GIC to ACPI.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/arm64/kernel/irq.c      |    5 ++++
->  drivers/acpi/plat/arm-core.c |   66 ++++++++++++++++++++++++++++++++++++------
->  include/linux/acpi.h         |    6 ++++
->  3 files changed, 68 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/arm64/kernel/irq.c b/arch/arm64/kernel/irq.c
-> index 473e5db..a9e68bf 100644
-> --- a/arch/arm64/kernel/irq.c
-> +++ b/arch/arm64/kernel/irq.c
-> @@ -25,6 +25,7 @@
->  #include <linux/irq.h>
->  #include <linux/smp.h>
->  #include <linux/init.h>
-> +#include <linux/acpi.h>
->  #include <linux/irqchip.h>
->  #include <linux/seq_file.h>
->  #include <linux/ratelimit.h>
-> @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(struct pt_regs *))
->  void __init init_IRQ(void)
->  {
->  	irqchip_init();
-> +
-> +	if (!handle_arch_irq)
-> +		acpi_gic_init();
-> +
+--pn37QocMfltEWxia
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Why is the GIC hardcoded? How are you going to support other interrupt
-controllers?
+On Wed, Dec 04, 2013 at 12:36:46AM +0800, Hanjun Guo wrote:
+> ACPI requires a cpu.h, add a dummy one copied from arm. This will need
+> updated or replaced as ACPI based cpu hotplug for armv8 is worked out.
 
->  	if (!handle_arch_irq)
->  		panic("No interrupt controller found.");
->  }
-> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-core.c
-> index 17c99e1..509b847 100644
-> --- a/drivers/acpi/plat/arm-core.c
-> +++ b/drivers/acpi/plat/arm-core.c
-> @@ -29,6 +29,7 @@
->  #include <linux/module.h>
->  #include <linux/irq.h>
->  #include <linux/irqdomain.h>
-> +#include <linux/irqchip/arm-gic.h>
->  #include <linux/slab.h>
->  #include <linux/bootmem.h>
->  #include <linux/ioport.h>
-> @@ -211,11 +212,21 @@ acpi_parse_gic(struct acpi_subtable_header *header, const unsigned long end)
->  	return 0;
->  }
->  
-> +#ifdef CONFIG_ARM_GIC
-> +/*
-> + * Hard code here, we can not get memory size from MADT (but FDT does),
-> + * this size is described in ARMv8 foudation model's User Guide
-> + */
-> +#define GIC_DISTRIBUTOR_MEMORY_SIZE (SZ_8K)
-> +#define GIC_CPU_INTERFACE_MEMORY_SIZE (SZ_4K)
+We're going to need the same thing for CPU topology, I've got a similar
+addition as part of a series to introduce that (which is going to want
+an ACPI back end at some point I guess) at which point it'll stop being
+a dummy.  I should be posting this week all being well.
 
-Aside from the incorrect sizes, how do you plan to address the other
-regions that the GICv2 specification describes?
+--pn37QocMfltEWxia
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
->  static int __init
->  acpi_parse_gic_distributor(struct acpi_subtable_header *header,
->  				const unsigned long end)
->  {
->  	struct acpi_madt_generic_distributor *distributor = NULL;
-> +	void __iomem *dist_base = NULL;
-> +	void __iomem *cpu_base = NULL;
->  
->  	distributor = (struct acpi_madt_generic_distributor *)header;
->  
-> @@ -224,8 +235,43 @@ acpi_parse_gic_distributor(struct acpi_subtable_header *header,
->  
->  	acpi_table_print_madt_entry(header);
->  
-> +	/* GIC is initialised after page_init(), no need for early_ioremap */
-> +	dist_base = ioremap(distributor->base_address,
-> +				GIC_CPU_INTERFACE_MEMORY_SIZE);
-> +	if (!dist_base) {
-> +		pr_warn(PREFIX "unable to map gic dist registers\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	/*
-> +	 * acpi_lapic_addr is stored in acpi_parse_madt(),
-> +	 * so we can use it here for GIC init
-> +	 */
-> +	if (acpi_lapic_addr) {
-> +		iounmap(dist_base);
-> +		pr_warn(PREFIX "Invalid GIC cpu interface base address\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	cpu_base = ioremap(acpi_lapic_addr, GIC_CPU_INTERFACE_MEMORY_SIZE);
-> +	if (!cpu_base) {
-> +		iounmap(dist_base);
-> +		pr_warn(PREFIX "unable to map gic cpu registers\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	gic_init(distributor->gic_id, -1, dist_base, cpu_base);
-> +
->  	return 0;
->  }
-> +#else
-> +static int __init
-> +acpi_parse_gic_distributor(struct acpi_subtable_header *header,
-> +				const unsigned long end)
-> +{
-> +	return -ENODEV;
-> +}
-> +#endif /* CONFIG_ARM_GIC */
->  
->  /*
->   * Parse GIC cpu interface related entries in MADT
-> @@ -234,7 +280,7 @@ acpi_parse_gic_distributor(struct acpi_subtable_header *header,
->  static int __init acpi_parse_madt_gic_entries(void)
->  {
->  	int count;
-> -
-> + 
->  	/*
->  	 * do a partial walk of MADT to determine how many CPUs
->  	 * we have including disabled CPUs
-> @@ -468,19 +514,21 @@ static void __init acpi_process_madt(void)
->  		 * Parse MADT GIC cpu interface entries
->  		 */
->  		error = acpi_parse_madt_gic_entries();
-> -		if (!error) {
-> -			/*
-> -			 * Parse MADT GIC distributor entries
-> -			 */
-> -			acpi_parse_madt_gic_distributor_entries();
-> -		}
-> +		if (!error)
-> +			pr_info("Using ACPI for processor (GIC) configuration information\n");
->  	}
->  
-> -	pr_info("Using ACPI for processor (GIC) configuration information\n");
-> -
->  	return;
->  }
->  
-> +int __init acpi_gic_init(void)
-> +{
-> +	/*
-> +	 * Parse MADT GIC distributor entries
-> +	 */
-> +	return acpi_parse_madt_gic_distributor_entries();
-> +}
-> +
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-Why can't you do the GIC init in the GIC code? We've tried hard to make
-interrupt controllers discoverable and self contained. What are you
-going to do when ACPI adds GICv3 to the mix? I don't really think this
-model (shoving everything into the core ACPI code) is sustainable in the
-long run...
+iQIcBAEBAgAGBQJSnhvpAAoJELSic+t+oim9XrwP/27B9eW5D6QqKsmBzm5lQmm9
+H18D4MTDoFBz1xzNA5nU4vNZN+MUQ7dHL1Kbk9RETceGt9BBCV/hhJvv52vJNZnJ
+Dc4lC4I5Gb31fleohVehC3hK2yDzm3/m9+PyAf1N3jr9mftmJzpwh7p+XjvZujmq
+DQSElx/GWNTbLEBjXKQhfjP1Z0AlD7VgDI4kxY3VAc7oymurfCOCvcJUESBYoukx
+SCF4cxESaMVsSCLXHCaN478bf6xwapnAO7pv2vmy6q6UzVl0900UlHxrDoxPixZy
+ynzrknTyQSuc3uMEeN5w+vEP8Shkja3jLnnRX49VDmL4kPFx3Hz/94s6ZRgvlK+C
+qnRhuaSrBR1Cuo5j/M5QgoCRT+oDHRMoru+4u9gqDjCU37C1GG48glCPU4fEAViO
+ktdVOLbSIo5e3tp61K22z7ObVi32fqop7yzQem4yaYUherbp2cO51LeYXZpLLC8f
+E6eqUl3Z9nLpjM9ipyp/CaEKv2geAV9u6O0DjwCNycH6QfEf44XieikQSIZ/cH9X
+ew7VM+HYORICYH1pCMiA/HYqt5b+dPQ+NOVSeGzb5aK7/y7+6g72vjXZC65C0Krq
+KcG/hKB98XJvXy4dLO8H8C+uXE3qw3OzAQiAW7OAJha1GDn+d3fs4WOg/HQZW01d
+m1XYhz/WN173z4vfw8cN
+=U12+
+-----END PGP SIGNATURE-----
 
-Cheers,
-
-	M.
--- 
-Jazz is not dead. It just smells funny...
-
+--pn37QocMfltEWxia--
