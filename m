@@ -1,58 +1,80 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC part1 PATCH 2/7] ARM64 : Add dummy asm/cpu.h
-Date: Tue, 3 Dec 2013 17:59:08 +0000
-Message-ID: <20131203175908.GH27568@sirena.org.uk>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [RFC part1 PATCH 5/7] ARM64 / ACPI: Introduce arm_core.c and
+ its related head file
+Date: Tue, 3 Dec 2013 18:03:00 +0000
+Message-ID: <20131203180300.GD16025@e106331-lin.cambridge.arm.com>
 References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
- <1386088611-2801-3-git-send-email-hanjun.guo@linaro.org>
+ <1386088611-2801-6-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pn37QocMfltEWxia"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:50411 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754683Ab3LCR7Z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Dec 2013 12:59:25 -0500
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:54102 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753015Ab3LCSDC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Dec 2013 13:03:02 -0500
 Content-Disposition: inline
-In-Reply-To: <1386088611-2801-3-git-send-email-hanjun.guo@linaro.org>
+In-Reply-To: <1386088611-2801-6-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, Graeme Gregory <graeme.gregory@linaro.org>, patches@linaro.org, Olof Johansson <olof@lixom.net>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Jon Masters <jonathan@jonmasters.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro>
 
+On Tue, Dec 03, 2013 at 04:36:49PM +0000, Hanjun Guo wrote:
+> introduce arm_core.c and its related head file, after this patch,
+> we can get ACPI tables from BIOS on ARM64 now.
+> 
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  arch/arm64/include/asm/acpi.h |   57 +++++++++++
+>  arch/arm64/kernel/setup.c     |    8 ++
+>  drivers/acpi/Makefile         |    2 +
+>  drivers/acpi/plat/Makefile    |    1 +
+>  drivers/acpi/plat/arm-core.c  |  219 +++++++++++++++++++++++++++++++++++++++++
+>  5 files changed, 287 insertions(+)
+>  create mode 100644 drivers/acpi/plat/Makefile
+>  create mode 100644 drivers/acpi/plat/arm-core.c
+> 
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index c186f5b..e9444e4 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -19,6 +19,43 @@
+>  #ifndef _ASM_ARM_ACPI_H
+>  #define _ASM_ARM_ACPI_H
+>  
+> +#include <asm/cacheflush.h>
+> +
+> +#include <linux/init.h>
+> +
+> +#define COMPILER_DEPENDENT_INT64	long long
+> +#define COMPILER_DEPENDENT_UINT64	unsigned long long
 
---pn37QocMfltEWxia
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Given we've already pulled in linux/init.h, which has pulled in
+linux/types.h, is there any reason we can't use s64 and u64 here?
 
-On Wed, Dec 04, 2013 at 12:36:46AM +0800, Hanjun Guo wrote:
-> ACPI requires a cpu.h, add a dummy one copied from arm. This will need
-> updated or replaced as ACPI based cpu hotplug for armv8 is worked out.
+If we can, then why don't we unify this further up so each arch doesn't
+have to define this redundantly?
 
-We're going to need the same thing for CPU topology, I've got a similar
-addition as part of a series to introduce that (which is going to want
-an ACPI back end at some point I guess) at which point it'll stop being
-a dummy.  I should be posting this week all being well.
+> +
+> +/*
+> + * Calling conventions:
+> + *
+> + * ACPI_SYSTEM_XFACE        - Interfaces to host OS (handlers, threads)
+> + * ACPI_EXTERNAL_XFACE      - External ACPI interfaces
+> + * ACPI_INTERNAL_XFACE      - Internal ACPI interfaces
+> + * ACPI_INTERNAL_VAR_XFACE  - Internal variable-parameter list interfaces
+> + */
+> +#define ACPI_SYSTEM_XFACE
+> +#define ACPI_EXTERNAL_XFACE
+> +#define ACPI_INTERNAL_XFACE
+> +#define ACPI_INTERNAL_VAR_XFACE
+> +
+> +/* Asm macros */
+> +#define ACPI_FLUSH_CPU_CACHE() flush_cache_all()
 
---pn37QocMfltEWxia
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Can you elaborate on when ACPI needs to use this? 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSnhvpAAoJELSic+t+oim9XrwP/27B9eW5D6QqKsmBzm5lQmm9
-H18D4MTDoFBz1xzNA5nU4vNZN+MUQ7dHL1Kbk9RETceGt9BBCV/hhJvv52vJNZnJ
-Dc4lC4I5Gb31fleohVehC3hK2yDzm3/m9+PyAf1N3jr9mftmJzpwh7p+XjvZujmq
-DQSElx/GWNTbLEBjXKQhfjP1Z0AlD7VgDI4kxY3VAc7oymurfCOCvcJUESBYoukx
-SCF4cxESaMVsSCLXHCaN478bf6xwapnAO7pv2vmy6q6UzVl0900UlHxrDoxPixZy
-ynzrknTyQSuc3uMEeN5w+vEP8Shkja3jLnnRX49VDmL4kPFx3Hz/94s6ZRgvlK+C
-qnRhuaSrBR1Cuo5j/M5QgoCRT+oDHRMoru+4u9gqDjCU37C1GG48glCPU4fEAViO
-ktdVOLbSIo5e3tp61K22z7ObVi32fqop7yzQem4yaYUherbp2cO51LeYXZpLLC8f
-E6eqUl3Z9nLpjM9ipyp/CaEKv2geAV9u6O0DjwCNycH6QfEf44XieikQSIZ/cH9X
-ew7VM+HYORICYH1pCMiA/HYqt5b+dPQ+NOVSeGzb5aK7/y7+6g72vjXZC65C0Krq
-KcG/hKB98XJvXy4dLO8H8C+uXE3qw3OzAQiAW7OAJha1GDn+d3fs4WOg/HQZW01d
-m1XYhz/WN173z4vfw8cN
-=U12+
------END PGP SIGNATURE-----
-
---pn37QocMfltEWxia--
+Thanks,
+Mark.
