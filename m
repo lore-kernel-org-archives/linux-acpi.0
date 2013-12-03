@@ -1,55 +1,39 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
+From: Linus Walleij <linus.walleij@linaro.org>
 Subject: Re: [RFC part3 PATCH 2/2] ARM64 / clocksource: Use arch_timer_acpi_init()
-Date: Tue, 03 Dec 2013 21:52:30 +0800
-Message-ID: <529DE21E.4080707@linaro.org>
-References: <1386069328-22502-1-git-send-email-hanjun.guo@linaro.org> <1386069328-22502-3-git-send-email-hanjun.guo@linaro.org> <CACRpkdYeMOMQzDn5=XpDg7X9L_zMZczGg-5SBA8q_WvwFPnH7A@mail.gmail.com>
+Date: Tue, 3 Dec 2013 15:13:49 +0100
+Message-ID: <CACRpkdZWELp1u=O=gSGZhaxQ2oTMu_jXuJb43snrr-tdYW9XAA@mail.gmail.com>
+References: <1386069328-22502-1-git-send-email-hanjun.guo@linaro.org>
+	<1386069328-22502-3-git-send-email-hanjun.guo@linaro.org>
+	<CACRpkdYeMOMQzDn5=XpDg7X9L_zMZczGg-5SBA8q_WvwFPnH7A@mail.gmail.com>
+	<529DE21E.4080707@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:52933 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752542Ab3LCNww (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Dec 2013 08:52:52 -0500
-Received: by mail-pd0-f179.google.com with SMTP id r10so20090832pdi.38
-        for <linux-acpi@vger.kernel.org>; Tue, 03 Dec 2013 05:52:52 -0800 (PST)
-In-Reply-To: <CACRpkdYeMOMQzDn5=XpDg7X9L_zMZczGg-5SBA8q_WvwFPnH7A@mail.gmail.com>
+Received: from mail-ob0-f175.google.com ([209.85.214.175]:50895 "EHLO
+	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753417Ab3LCONt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Dec 2013 09:13:49 -0500
+Received: by mail-ob0-f175.google.com with SMTP id uz6so14525516obc.34
+        for <linux-acpi@vger.kernel.org>; Tue, 03 Dec 2013 06:13:49 -0800 (PST)
+In-Reply-To: <529DE21E.4080707@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>
 Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <rob.herring@calxeda.com>, Mark Rutland <mark.rutland@arm.com>, Jon Masters <jonathan@jonmasters.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Patch Tracking <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-kernel <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On 2013=E5=B9=B412=E6=9C=8803=E6=97=A5 20:27, Linus Walleij wrote:
-> On Tue, Dec 3, 2013 at 12:15 PM, Hanjun Guo <hanjun.guo@linaro.org> w=
-rote:
+On Tue, Dec 3, 2013 at 2:52 PM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+
+> I will introduce has_arch_timer_node() as you said and use
+> it as follows:
 >
->> +       /* if can't be initialised from DT, try ACPI way */
->> +       if (!arch_timer_get_rate())
->> +               arch_timer_acpi_init();
->> +
->>          arch_timer_rate =3D arch_timer_get_rate();
-> This looks a bit fragile. Having a call like arch_timer_get_rate()
-> to check whether there is a DT node for the timer doesn't seem
-> right, can you refactor the code to provide some
-> has_arch_timer_node() or similar call instead, so it's a bit easier
-> to understand & maintain at least?
+> if (has_arch_timer_node())
+> clocksource_of_init();
+> esle
+> arch_timer_acpi_init(); /* try ACPI way */
+>
+> Is this make sense to you?
 
-Good point, thanks for the guidance.
-I will introduce has_arch_timer_node() as you said and use
-it as follows:
+Sure, go head.
 
-if (has_arch_timer_node())
-clocksource_of_init();
-esle
-arch_timer_acpi_init(); /* try ACPI way */
-
-Is this make sense to you?
-
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Linus Walleij
