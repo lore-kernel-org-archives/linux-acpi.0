@@ -1,64 +1,42 @@
-From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Subject: Re: [RFC part2 PATCH 2/9] ARM64 / ACPI: Prefill cpu
- possible/present maps and map logical cpu id to APIC id
-Date: Tue, 3 Dec 2013 16:57:55 +0000
-Message-ID: <20131203165755.37b07796@alan.etchedpixels.co.uk>
-References: <1386088753-2850-1-git-send-email-hanjun.guo@linaro.org>
- <1386088753-2850-3-git-send-email-hanjun.guo@linaro.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [RFC part1 PATCH 3/7] ACPI / processor_core: Rework _PDC
+ related stuff to make it more arch-independent
+Date: Tue, 3 Dec 2013 17:02:23 +0000
+Message-ID: <20131203170223.GA14624@srcf.ucam.org>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
+ <1386088611-2801-4-git-send-email-hanjun.guo@linaro.org>
+ <20131203165140.24a05540@alan.etchedpixels.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1386088753-2850-3-git-send-email-hanjun.guo@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, patches@linaro.org, Olof Johansson <olof@lixom.net>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@linaro.org>, Jon Masters <jonathan@jonmasters.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:34107 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752853Ab3LCRCg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Dec 2013 12:02:36 -0500
+Content-Disposition: inline
+In-Reply-To: <20131203165140.24a05540@alan.etchedpixels.co.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <mark.rutland@arm.com>, linaro-kernel@lists.linaro.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, patches@linaro.org, Olof Johansson <olof@lixom.net>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@linaro.org>, Jon Masters <jonathan@jonmasters.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org
 
+On Tue, Dec 03, 2013 at 04:51:40PM +0000, One Thousand Gnomes wrote:
+> On Wed,  4 Dec 2013 00:36:47 +0800
+> Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> 
+> > _PDC related stuff in processor_core.c is little bit X86/IA64 dependent,
+> > rework the code to make it more arch-independent.
+> > 
+> > The return value of acpi_processor_eval_pdc() should be 'acpi_status' but
+> > defined as 'int', fix it too.
+> 
+> Why not just define boot_options_idle_override as well. Then you can
+> leave the code unchanged. Also more importantly you can have override
+> values for ARM when it turns out you need those too and the logic will be
+> the same for both processor families
 
-> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-core.c
-> index 45ff625..8527ecc 100644
-> --- a/drivers/acpi/plat/arm-core.c
-> +++ b/drivers/acpi/plat/arm-core.c
-> @@ -58,6 +58,13 @@ EXPORT_SYMBOL(acpi_pci_disabled);
->   */
->  static u64 acpi_lapic_addr __initdata;
->  
-> +/* available_cpus here means enabled cpu in MADT */
-> +int available_cpus;
-> +
-> +/* Map logic cpu id to physical GIC id. */
-> +int arm_cpu_to_apicid[NR_CPUS] = { [0 ... NR_CPUS-1] = -1 };
-> +int boot_cpu_apic_id = -1;
-> +
+The arguments to _PDC are architecture specific, so there do need to be 
+code changes here.
 
-static ?
-
-Really shouldn't be leaking names like "available_cpus" out of ACPI into
-the global namespace
-
-
-> +#ifdef CONFIG_SMP
-> +	if (available_cpus == 0) {
-> +		pr_info(PREFIX "Found 0 CPUs; assuming 1\n");
-> +		/* FIXME: should be the real GIC id read from hardware */
-> +		arm_cpu_to_apicid[available_cpus] = 0;
-> +		available_cpus = 1;	/* We've got at least one of these */
-> +	}
-> +#endif
-
-Isn't this true uniprocessor (by definition in fact)
-
-
-> + */
-> +void __init prefill_possible_map(void)
-
-leaking more unprefixed names into the global namespace
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
