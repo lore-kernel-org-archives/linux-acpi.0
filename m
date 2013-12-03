@@ -1,372 +1,130 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: randconfig build error with next-20131202, in arch/x86/pci
-Date: Tue, 03 Dec 2013 14:08:26 +0100
-Message-ID: <3737409.hAs7519lnE@vostro.rjw.lan>
-References: <CA+r1ZhiKj_0HXb7s1oDc-Pgm6n63rYNpxzqXfxKDgdKZU27LcQ@mail.gmail.com> <CAErSpo4a2CcEpt6okjTS-wyGCgc7JsHWnGPn7FXrhRfwXqj=oA@mail.gmail.com>
+Subject: Re: [PATCH 7/10] ACPI / hotplug: Move container-specific code out of the core
+Date: Tue, 03 Dec 2013 14:15:47 +0100
+Message-ID: <81535269.SKoBMiGyoU@vostro.rjw.lan>
+References: <1421028.Rsfpmhnym3@vostro.rjw.lan> <1554480.uCR6qUxJk9@vostro.rjw.lan> <529D4600.6040601@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo4a2CcEpt6okjTS-wyGCgc7JsHWnGPn7FXrhRfwXqj=oA@mail.gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jim Davis <jim.epost@gmail.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next list <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Lv Zheng <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:61604 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752827Ab3LCNCu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Dec 2013 08:02:50 -0500
+In-Reply-To: <529D4600.6040601@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-On Monday, December 02, 2013 04:14:32 PM Bjorn Helgaas wrote:
-> [+cc Lv, Rafael, linux-acpi]
->=20
-> Is this fallout related to "ACPI: Cleanup <acpi/acpi.h>,
-> <acpi/acpi_bus.h> and <acpi/acpi_drivers.h> inclusions"?
-
-We have a new version of that patch that should avoid at least some of =
-these
-errors.  I'm going to replace the one in my tree with it shortly.
-
-> On Mon, Dec 2, 2013 at 7:57 AM, Jim Davis <jim.epost@gmail.com> wrote=
-:
-> > Building with the attached random configuration file,
+On Tuesday, December 03, 2013 11:46:24 AM Yasuaki Ishimatsu wrote:
+> (2013/11/29 22:08), Rafael J. Wysocki wrote:
+> > On Friday, November 29, 2013 11:36:55 AM Yasuaki Ishimatsu wrote:
+> >> Hi Rafael,
 > >
-> > arch/x86/pci/mmconfig-shared.c:373:1: error: unknown type name =E2=80=
-=98acpi_status=E2=80=99
-> >  static acpi_status check_mcfg_resource(struct acpi_resource *res, =
-void *data)
-> >  ^
-> > arch/x86/pci/mmconfig-shared.c:373:47: warning: =E2=80=98struct acp=
-i_resource=E2=80=99
-> > declared inside parameter list [enabled by default]
-> >  static acpi_status check_mcfg_resource(struct acpi_resource *res, =
-void *data)
-> >                                                ^
-> > arch/x86/pci/mmconfig-shared.c:373:47: warning: its scope is only t=
-his
-> > definition or declaration, which is probably not what you want
-> > [enabled by default]
-> > arch/x86/pci/mmconfig-shared.c: In function =E2=80=98check_mcfg_res=
-ource=E2=80=99:
-> > arch/x86/pci/mmconfig-shared.c:376:33: error: storage size of
-> > =E2=80=98address=E2=80=99 isn=E2=80=99t known
-> >   struct acpi_resource_address64 address;
-> >                                  ^
-> > arch/x86/pci/mmconfig-shared.c:377:2: error: unknown type name =E2=80=
-=98acpi_status=E2=80=99
-> >   acpi_status status;
-> >   ^
-> > arch/x86/pci/mmconfig-shared.c:379:9: error: dereferencing pointer =
-to
-> > incomplete type
-> >   if (res->type =3D=3D ACPI_RESOURCE_TYPE_FIXED_MEMORY32) {
-> >          ^
-> > arch/x86/pci/mmconfig-shared.c:379:19: error:
-> > =E2=80=98ACPI_RESOURCE_TYPE_FIXED_MEMORY32=E2=80=99 undeclared (fir=
-st use in this
-> > function)
-> >   if (res->type =3D=3D ACPI_RESOURCE_TYPE_FIXED_MEMORY32) {
-> >                    ^
-> > arch/x86/pci/mmconfig-shared.c:379:19: note: each undeclared
-> > identifier is reported only once for each function it appears in
-> > arch/x86/pci/mmconfig-shared.c:381:8: error: dereferencing pointer =
-to
-> > incomplete type
-> >     &res->data.fixed_memory32;
-> >         ^
-> > arch/x86/pci/mmconfig-shared.c:383:11: error: =E2=80=98AE_OK=E2=80=99=
- undeclared
-> > (first use in this function)
-> >     return AE_OK;
-> >            ^
-> > arch/x86/pci/mmconfig-shared.c:384:35: error: dereferencing pointer=
- to
-> > incomplete type
-> >    if ((mcfg_res->start >=3D fixmem32->address) &&
-> >                                    ^
-> > arch/x86/pci/mmconfig-shared.c:385:33: error: dereferencing pointer=
- to
-> > incomplete type
-> >        (mcfg_res->end < (fixmem32->address +
-> >                                  ^
-> > arch/x86/pci/mmconfig-shared.c:386:19: error: dereferencing pointer=
- to
-> > incomplete type
-> >            fixmem32->address_length))) {
-> >                    ^
-> > arch/x86/pci/mmconfig-shared.c:388:11: error: =E2=80=98AE_CTRL_TERM=
-INATE=E2=80=99
-> > undeclared (first use in this function)
-> >     return AE_CTRL_TERMINATE;
-> >            ^
-> > arch/x86/pci/mmconfig-shared.c:391:10: error: dereferencing pointer=
- to
-> > incomplete type
-> >   if ((res->type !=3D ACPI_RESOURCE_TYPE_ADDRESS32) &&
-> >           ^
-> > arch/x86/pci/mmconfig-shared.c:391:20: error:
-> > =E2=80=98ACPI_RESOURCE_TYPE_ADDRESS32=E2=80=99 undeclared (first us=
-e in this function)
-> >   if ((res->type !=3D ACPI_RESOURCE_TYPE_ADDRESS32) &&
-> >                     ^
-> > arch/x86/pci/mmconfig-shared.c:392:10: error: dereferencing pointer=
- to
-> > incomplete type
-> >       (res->type !=3D ACPI_RESOURCE_TYPE_ADDRESS64))
-> >           ^
-> > arch/x86/pci/mmconfig-shared.c:392:20: error:
-> > =E2=80=98ACPI_RESOURCE_TYPE_ADDRESS64=E2=80=99 undeclared (first us=
-e in this function)
-> >       (res->type !=3D ACPI_RESOURCE_TYPE_ADDRESS64))
-> >                     ^
-> > arch/x86/pci/mmconfig-shared.c:395:2: error: implicit declaration o=
-f
-> > function =E2=80=98acpi_resource_to_address64=E2=80=99
-> > [-Werror=3Dimplicit-function-declaration]
-> >   status =3D acpi_resource_to_address64(res, &address);
-> >   ^
-> > arch/x86/pci/mmconfig-shared.c:396:2: error: implicit declaration o=
-f
-> > function =E2=80=98ACPI_FAILURE=E2=80=99 [-Werror=3Dimplicit-functio=
-n-declaration]
-> >   if (ACPI_FAILURE(status) ||
-> >   ^
-> > arch/x86/pci/mmconfig-shared.c:398:31: error: =E2=80=98ACPI_MEMORY_=
-RANGE=E2=80=99
-> > undeclared (first use in this function)
-> >      (address.resource_type !=3D ACPI_MEMORY_RANGE))
-> >                                ^
-> > arch/x86/pci/mmconfig-shared.c:376:33: warning: unused variable
-> > =E2=80=98address=E2=80=99 [-Wunused-variable]
-> >   struct acpi_resource_address64 address;
-> >                                  ^
-> > arch/x86/pci/mmconfig-shared.c: At top level:
-> > arch/x86/pci/mmconfig-shared.c:409:1: error: unknown type name =E2=80=
-=98acpi_status=E2=80=99
-> >  static acpi_status find_mboard_resource(acpi_handle handle, u32 lv=
-l,
-> >  ^
-> > arch/x86/pci/mmconfig-shared.c:409:41: error: unknown type name =E2=
-=80=98acpi_handle=E2=80=99
-> >  static acpi_status find_mboard_resource(acpi_handle handle, u32 lv=
-l,
-> >                                          ^
-> > arch/x86/pci/mmconfig-shared.c: In function =E2=80=98is_acpi_reserv=
-ed=E2=80=99:
-> > arch/x86/pci/mmconfig-shared.c:431:2: error: implicit declaration o=
-f
-> > function =E2=80=98acpi_get_devices=E2=80=99 [-Werror=3Dimplicit-fun=
-ction-declaration]
-> >   acpi_get_devices("PNP0C01", find_mboard_resource, &mcfg_res, NULL=
-);
-> >   ^
-> > arch/x86/pci/mmconfig-shared.c:431:30: error: =E2=80=98find_mboard_=
-resource=E2=80=99
-> > undeclared            ^
-> > jim@krebstar:~$ more errs
-> > jim@krebstar:~$ cat errs
-> > arch/x86/pci/mmconfig-shared.c:373:1: error: unknown type name =E2=80=
-=98acpi_status=E2=80=99
-> >  static acpi_status check_mcfg_resource(struct acpi_resource *res, =
-void *data)
-> >  ^
-> > arch/x86/pci/mmconfig-shared.c:373:47: warning: =E2=80=98struct acp=
-i_resource=E2=80=99
-> > declared inside parameter list [enabled by default]
-> >  static acpi_status check_mcfg_resource(struct acpi_resource *res, =
-void *data)
-> >                                                ^
-> > arch/x86/pci/mmconfig-shared.c:373:47: warning: its scope is only t=
-his
-> > definition or declaration, which is probably not what you want
-> > [enabled by default]
-> > arch/x86/pci/mmconfig-shared.c: In function =E2=80=98check_mcfg_res=
-ource=E2=80=99:
-> > arch/x86/pci/mmconfig-shared.c:376:33: error: storage size of
-> > =E2=80=98address=E2=80=99 isn=E2=80=99t known
-> >   struct acpi_resource_address64 address;
-> >                                  ^
-> > arch/x86/pci/mmconfig-shared.c:377:2: error: unknown type name =E2=80=
-=98acpi_status=E2=80=99
-> >   acpi_status status;
-> >   ^
-> > arch/x86/pci/mmconfig-shared.c:379:9: error: dereferencing pointer =
-to
-> > incomplete type
-> >   if (res->type =3D=3D ACPI_RESOURCE_TYPE_FIXED_MEMORY32) {
-> >          ^
-> > arch/x86/pci/mmconfig-shared.c:379:19: error:
-> > =E2=80=98ACPI_RESOURCE_TYPE_FIXED_MEMORY32=E2=80=99 undeclared (fir=
-st use in this
-> > function)
-> >   if (res->type =3D=3D ACPI_RESOURCE_TYPE_FIXED_MEMORY32) {
-> >                    ^
-> > arch/x86/pci/mmconfig-shared.c:379:19: note: each undeclared
-> > identifier is reported only once for each function it appears in
-> > arch/x86/pci/mmconfig-shared.c:381:8: error: dereferencing pointer =
-to
-> > incomplete type
-> >     &res->data.fixed_memory32;
-> >         ^
-> > arch/x86/pci/mmconfig-shared.c:383:11: error: =E2=80=98AE_OK=E2=80=99=
- undeclared
-> > (first use in this function)
-> >     return AE_OK;
-> >            ^
-> > arch/x86/pci/mmconfig-shared.c:384:35: error: dereferencing pointer=
- to
-> > incomplete type
-> >    if ((mcfg_res->start >=3D fixmem32->address) &&
-> >                                    ^
-> > arch/x86/pci/mmconfig-shared.c:385:33: error: dereferencing pointer=
- to
-> > incomplete type
-> >        (mcfg_res->end < (fixmem32->address +
-> >                                  ^
-> > arch/x86/pci/mmconfig-shared.c:386:19: error: dereferencing pointer=
- to
-> > incomplete type
-> >            fixmem32->address_length))) {
-> >                    ^
-> > arch/x86/pci/mmconfig-shared.c:388:11: error: =E2=80=98AE_CTRL_TERM=
-INATE=E2=80=99
-> > undeclared (first use in this function)
-> >     return AE_CTRL_TERMINATE;
-> >            ^
-> > arch/x86/pci/mmconfig-shared.c:391:10: error: dereferencing pointer=
- to
-> > incomplete type
-> >   if ((res->type !=3D ACPI_RESOURCE_TYPE_ADDRESS32) &&
-> >           ^
-> > arch/x86/pci/mmconfig-shared.c:391:20: error:
-> > =E2=80=98ACPI_RESOURCE_TYPE_ADDRESS32=E2=80=99 undeclared (first us=
-e in this function)
-> >   if ((res->type !=3D ACPI_RESOURCE_TYPE_ADDRESS32) &&
-> >                     ^
-> > arch/x86/pci/mmconfig-shared.c:392:10: error: dereferencing pointer=
- to
-> > incomplete type
-> >       (res->type !=3D ACPI_RESOURCE_TYPE_ADDRESS64))
-> >           ^
-> > arch/x86/pci/mmconfig-shared.c:392:20: error:
-> > =E2=80=98ACPI_RESOURCE_TYPE_ADDRESS64=E2=80=99 undeclared (first us=
-e in this function)
-> >       (res->type !=3D ACPI_RESOURCE_TYPE_ADDRESS64))
-> >                     ^
-> > arch/x86/pci/mmconfig-shared.c:395:2: error: implicit declaration o=
-f
-> > function =E2=80=98acpi_resource_to_address64=E2=80=99
-> > [-Werror=3Dimplicit-function-declaration]
-> >   status =3D acpi_resource_to_address64(res, &address);
-> >   ^
-> > arch/x86/pci/mmconfig-shared.c:396:2: error: implicit declaration o=
-f
-> > function =E2=80=98ACPI_FAILURE=E2=80=99 [-Werror=3Dimplicit-functio=
-n-declaration]
-> >   if (ACPI_FAILURE(status) ||
-> >   ^
-> > arch/x86/pci/mmconfig-shared.c:398:31: error: =E2=80=98ACPI_MEMORY_=
-RANGE=E2=80=99
-> > undeclared (first use in this function)
-> >      (address.resource_type !=3D ACPI_MEMORY_RANGE))
-> >                                ^
-> > arch/x86/pci/mmconfig-shared.c:376:33: warning: unused variable
-> > =E2=80=98address=E2=80=99 [-Wunused-variable]
-> >   struct acpi_resource_address64 address;
-> >                                  ^
-> > arch/x86/pci/mmconfig-shared.c: At top level:
-> > arch/x86/pci/mmconfig-shared.c:409:1: error: unknown type name =E2=80=
-=98acpi_status=E2=80=99
-> >  static acpi_status find_mboard_resource(acpi_handle handle, u32 lv=
-l,
-> >  ^
-> > arch/x86/pci/mmconfig-shared.c:409:41: error: unknown type name =E2=
-=80=98acpi_handle=E2=80=99
-> >  static acpi_status find_mboard_resource(acpi_handle handle, u32 lv=
-l,
-> >                                          ^
-> > arch/x86/pci/mmconfig-shared.c: In function =E2=80=98is_acpi_reserv=
-ed=E2=80=99:
-> > arch/x86/pci/mmconfig-shared.c:431:2: error: implicit declaration o=
-f
-> > function =E2=80=98acpi_get_devices=E2=80=99 [-Werror=3Dimplicit-fun=
-ction-declaration]
-> >   acpi_get_devices("PNP0C01", find_mboard_resource, &mcfg_res, NULL=
-);
-> >   ^
-> > arch/x86/pci/mmconfig-shared.c:431:30: error: =E2=80=98find_mboard_=
-resource=E2=80=99
-> > undeclared (first use in this function)
-> >   acpi_get_devices("PNP0C01", find_mboard_resource, &mcfg_res, NULL=
-);
-> >                               ^
-> > arch/x86/pci/mmconfig-shared.c: At top level:
-> > arch/x86/pci/mmconfig-shared.c:544:13: warning: =E2=80=98struct
-> > acpi_mcfg_allocation=E2=80=99 declared inside parameter list [enabl=
-ed by
-> > default]
-> >       struct acpi_mcfg_allocation *cfg)
-> >              ^
-> > arch/x86/pci/mmconfig-shared.c:544:13: warning: =E2=80=98struct
-> > acpi_table_mcfg=E2=80=99 declared inside parameter list [enabled by=
- default]
-> > arch/x86/pci/mmconfig-shared.c: In function =E2=80=98acpi_mcfg_chec=
-k_entry=E2=80=99:
-> > arch/x86/pci/mmconfig-shared.c:548:9: error: dereferencing pointer =
-to
-> > incomplete type
-> >   if (cfg->address < 0xFFFFFFFF)
-> >          ^
-> > arch/x86/pci/mmconfig-shared.c:551:19: error: dereferencing pointer=
- to
-> > incomplete type
-> >   if (!strncmp(mcfg->header.oem_id, "SGI", 3))
-> >                    ^
-> > arch/x86/pci/mmconfig-shared.c:554:10: error: dereferencing pointer=
- to
-> > incomplete type
-> >   if (mcfg->header.revision >=3D 1) {
-> >           ^
-> > In file included from include/linux/kernel.h:13:0,
-> >                  from include/linux/kernfs.h:10,
-> >                  from include/linux/sysfs.h:15,
-> >                  from include/linux/kobject.h:21,
-> >                  from include/linux/pci.h:28,
-> >                  from arch/x86/pci/mmconfig-shared.c:13:
-> > arch/x86/pci/mmconfig-shared.c:561:39: error: dereferencing pointer=
- to
-> > incomplete type
-> >          "is above 4GB, ignored\n", cfg->pci_segment,
-> >                                        ^
-> > include/linux/printk.h:217:33: note: in definition of macro =E2=80=98=
-pr_err=E2=80=99
-> >   printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
-> >                                  ^
-> >            ^
-> > arch/x86/pci/mmconfig-shared.c:600:32: error: dereferencing pointer=
- to
-> > incomplete type
-> >         cfg->end_bus_number, cfg->address) =3D=3D NULL) {
-> >                                 ^
-> > arch/x86/pci/mmconfig-shared.c: In function =E2=80=98pci_mmcfg_earl=
-y_init=E2=80=99:
-> > arch/x86/pci/mmconfig-shared.c:642:25: error: =E2=80=98ACPI_SIG_MCF=
-G=E2=80=99
-> > undeclared (first use in this function)
-> >     acpi_sfi_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
-> >                          ^
-> > arch/x86/pci/mmconfig-shared.c: In function =E2=80=98pci_mmcfg_late=
-_init=E2=80=99:
-> > arch/x86/pci/mmconfig-shared.c:658:24: error: =E2=80=98ACPI_SIG_MCF=
-G=E2=80=99
-> > undeclared (first use in this function)
-> >    acpi_sfi_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
-> >                         ^
-> > arch/x86/pci/mmconfig-shared.c: At top level:
-> > arch/x86/pci/mmconfig-shared.c:373:20: warning: =E2=80=98check_mcfg=
-_resource=E2=80=99
-> > defined but not used [-Wunused-function]
-> >  static acpi_status check_mcfg_resource(struct acpi_resource *res, =
-void *data)
-> >                     ^
-> > cc1: some warnings being treated as errors
-> > make[1]: *** [arch/x86/pci/mmconfig-shared.o] Error 1
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> > Hi,
+> >
+> >> Replying to this mail may be wrong.
+> >
+> > OK, so this particular patch doesn't break things any more?
+> 
+> Yes.
+> 
+> >
+> >> Do you remember following your patch?
+> >> http://lkml.org/lkml/2013/2/23/97
+> >>
+> >> I want to add autoeject variable in acpi_hotplug_profile structure and
+> >> set autoecjet of container device "false".
+> >
+> > Then after the series the $subject patch belongs to it will work almost the
+> > same way as /sys/firmware/acpi/container/enabled (hot add will still work after
+> > patch [4/10] if "enabled" is 0), but only for containers.
+> >
+> >> Currently, I have a problem on ejecting container device. Since linux-3.12,
+> >> container device is removed by acpi_scan_hot_remove.
+> >>
+> >> I think this has two problems.
+> >>
+> >>     1. easily fail
+> >>        My container device has CPU device and Memory device, and maximum size of
+> >>        memory is 3Tbyte. In my environment, hot removing container device fails
+> >>        on offlining memory if memory is used by application.
+> >>        I think if offlininig memory, we must retly to offline memory several
+> >>        times.
+> >
+> > Yes, that's correct.  But then you can try to offline the memory upfront
+> > and only remove the container after that has been successful.
+> >
+> >>     2. cannot work with userland's application
+> >>        Hot removing CPU and memory on container device, we need take care of
+> >>        userland application. Before linux-3.12, container device just notifies
+> >>        KOBJ_OFFLINE to udev. So by using udev, if application binds to removed
+> >>        CPU or node, applications can change them before hot removing container
+> >>        device.
+> >>        Currently, KOBJ_OFFLINE is notified to udev. But acpi_scan_hot_remove
+> >>        also runs simultaneously for hot removing container device. So when
+> >>        applications runs for corresponding to the deletion of the devices,
+> >>        the devices may have been deleted.
+> >
+> 
+> > So the expectation is that the container will refuse to offline, but instead
+> > it will emit KOBJ_OFFLINE so that user space can do some cleanup and offline
+> > it through the "eject" attribute, right?
+> 
+> Yes, that's right.
+> 
+> >
+> >> I don't know what devices are on hotpluggable conatainer device of other
+> >> vendors. At least, my container device cannot be hot removed correctly.
+> >> Then I want to add autoeject variable in acpi_hotplug_profile so that user
+> >> can change the parameter to "true" or "false".
+> >
+> > I have a different idea.
+> >
+> > Why don't we create a bus type for containers in analogy with CPUs and memory
+> > and make it support offline.  Then, the container scan handler will create a
+> > "physical" container device under that bus type and the new bus type code will
+> > implement the logic you need (that is, it will have a sysfs flag that will
+> > cause the offline to fail emitting a uevent of some sort if set and will allow
+> > the offline to happen when unset).  That "physical" container device will go
+> > away (again, via the container scan handler) during container removal.
+> >
+> 
+> > The eject work flow can be:
+> >    (1) an eject event occurs,
+> >    (2) the container "physical" device fails offline in acpi_scan_hot_remove()
+> >        emmitting, say, KOBJ_CHANGE for the "physical" device,
+> >    (3) user space notices the KOBJ_CHANGE and does the cleanup as needed,
+> >    (4) user space changes the "physical" container device flag controlling
+> >        offline to 0,
+> >    (5) user space uses the sysfs "eject" attribute of the ACPI container object
+> >        to finally eject the container,
+> >    (6) the offline in acpi_scan_hot_remove() is now successful, because the
+> >        flag controlling it has been set to 0 in step (4),
+> >    (7) the "physical" container device goes away before executing _EJ0,
+> >    (8) the container is ejected.
+> >
+> > Of course, if the flag controlling container offline is 0 to start with, step
+> > (6) will now occur directly after (1), so whoever wants containers to be
+> > hot-removed automatically may just clear that flag for all of them on boot.
+> >
+> > How does that sound?
+> 
+> 
+> The above ideas are almost O.K. I want kernel to notify user space of KOBJ_OFFLINE.
+> Even if user space catches "KOBJ_CHANGE", user doesn't know whether the notification
+> is offline or not.
+
+It is easy to figure out, though.  Since the KOBJ_CHANGE will be emitted for
+container devices only in that situation, user space can see that (1) it is
+from a container and (2) it is KOBJ_CHANGE, so it must mean "container offline
+has been attempted".
+
+My concern with using KOBJ_OFFLINE for that is that device_offline() emits it
+too on success and it may be easily confused with the one emitted on failure
+for containers.
+
+Thanks,
+Rafael
+
