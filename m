@@ -1,142 +1,50 @@
 From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [RFC part3 PATCH 1/2] clocksource / arch_timer: Use ACPI GTDT
- table to initialize arch timer
-Date: Tue, 3 Dec 2013 17:04:07 +0000
-Message-ID: <20131203170407.GA16025@e106331-lin.cambridge.arm.com>
+Subject: Re: [RFC part3 PATCH 2/2] ARM64 / clocksource: Use
+ arch_timer_acpi_init()
+Date: Tue, 3 Dec 2013 17:08:15 +0000
+Message-ID: <20131203170815.GB16025@e106331-lin.cambridge.arm.com>
 References: <1386088891-2917-1-git-send-email-hanjun.guo@linaro.org>
- <1386088891-2917-2-git-send-email-hanjun.guo@linaro.org>
+ <1386088891-2917-3-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:52758 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752535Ab3LCREJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Dec 2013 12:04:09 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1386088891-2917-2-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <1386088891-2917-3-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Jon Masters <jonathan@jonmasters.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro>
+List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 03, 2013 at 04:41:30PM +0000, Hanjun Guo wrote:
-> ACPI GTDT (Generic Timer Description Table) contains information for
-> arch timer initialization, this patch use this table to probe arm timer.
+On Tue, Dec 03, 2013 at 04:41:31PM +0000, Hanjun Guo wrote:
+> Use arch_timer_acpi_init() on ARM64 to initialise arch timer
+> in ACPI way when DT is not available.
 > 
-> GTDT table is used for ARM/ARM64 only, please refer to chapter 5.2.24
-> of ACPI 5.0 spec for detailed inforamtion
-> 
-> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
 > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 > ---
->  drivers/clocksource/arm_arch_timer.c |  129 ++++++++++++++++++++++++++++++----
->  include/clocksource/arm_arch_timer.h |    7 +-
->  2 files changed, 120 insertions(+), 16 deletions(-)
- 
-[...]
-
-> +#ifdef CONFIG_ACPI
-> +void __init arch_timer_acpi_init(void)
-> +{
-> +	struct acpi_table_gtdt *gtdt;
-> +	acpi_size tbl_size;
-> +	int trigger, polarity;
-> +	void __iomem *base = NULL;
+>  arch/arm64/kernel/time.c |    4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
+> index 29c39d5..fb009da 100644
+> --- a/arch/arm64/kernel/time.c
+> +++ b/arch/arm64/kernel/time.c
+> @@ -67,6 +67,10 @@ void __init time_init(void)
+>  
+>  	clocksource_of_init();
+>  
+> +	/* if can't be initialised from DT, try ACPI way */
+> +	if (!arch_timer_get_rate())
+> +		arch_timer_acpi_init();
 > +
-> +	if (acpi_disabled)
-> +		return;
-> +
-> +	if (arch_timers_present & ARCH_CP15_TIMER) {
-> +		pr_warn("arch_timer: already initialized, skipping\n");
-> +		return;
-> +	}
-> +
-> +	if (ACPI_FAILURE(acpi_get_table_with_size(ACPI_SIG_GTDT, 0,
-> +			(struct acpi_table_header **)&gtdt, &tbl_size))) {
-> +		pr_err("arch_timer: GTDT table not defined\n");
-> +		return;
-> +	}
-> +
-> +	arch_timers_present |= ARCH_CP15_TIMER;
-> +
-> +	/*
-> +	 * Get the timer frequency. Since there is no frequency info
-> +	 * in the GTDT table, so we should read it from CNTFREG register
-> +	 * or hard code here to wait for the new ACPI spec available.
-> +	 */
 
-If the core's CNTFRQ register does not hold the correct value, that is a
-horrendous firmware bug. The clock-frequency property in the DT is a
-horrific workaround for buggy firmware.
+As mentioned on the previous patch, I think for the timebeing we should
+rely on CNTFREQ.
 
-We should not duplicate it in ACPI; people should be strongly encouraged
-to fix their firmware to do what it is supposed to do.
+Additionally, if you need to do this we should have an analagous
+mechanism to clocksource_of_init() that performs this initialisation for
+ACPI, and here we can call a clocksource_*_init function that does the
+right thing.
 
-Rely on CNTFRQ only. If it is wrong, then bail out. Let's not create a
-fertile environment for buggy firmware.
+There's no need for this file to know anything about ACPI.
 
-> +	if (!gtdt->address) {
-> +		arch_timer_rate = arch_timer_get_cntfrq();
-> +	} else {
-> +		base = ioremap(gtdt->address, CNTFRQ);
-> +		if (!base) {
-> +			pr_warn("arch_timer: unable to map arch timer base address\n");
-> +			return;
-> +		}
-> +
-> +		arch_timer_rate = readl_relaxed(base + CNTFRQ);
-> +		iounmap(base);
-> +	}
-> +
-> +	if (!arch_timer_rate) {
-> +		/* Hard code here to set frequence ? */
-> +		pr_warn("arch_timer: Could not get frequency from GTDT table or CNTFREG\n");
-> +	}
-> +
-> +	if (gtdt->secure_pl1_interrupt) {
-> +		trigger = (gtdt->secure_pl1_flags & ACPI_GTDT_INTERRUPT_MODE) ?
-> +			ACPI_EDGE_SENSITIVE : ACPI_LEVEL_SENSITIVE;
-> +		polarity =
-> +			(gtdt->secure_pl1_flags & ACPI_GTDT_INTERRUPT_POLARITY)
-> +			? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
-> +		arch_timer_ppi[0] = acpi_register_gsi(NULL,
-> +				gtdt->secure_pl1_interrupt, trigger, polarity);
-> +	}
-
-This pattern looks like it can be factored out. I don't see why the
-driver needs to have such intimate knowledge of the interrrupt.
-
-> +	if (gtdt->non_secure_pl1_interrupt) {
-> +		trigger =
-> +			(gtdt->non_secure_pl1_flags & ACPI_GTDT_INTERRUPT_MODE)
-> +			? ACPI_EDGE_SENSITIVE : ACPI_LEVEL_SENSITIVE;
-> +		polarity =
-> +		(gtdt->non_secure_pl1_flags & ACPI_GTDT_INTERRUPT_POLARITY)
-> +			? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
-> +		arch_timer_ppi[1] = acpi_register_gsi(NULL,
-> +			gtdt->non_secure_pl1_interrupt, trigger, polarity);
-> +	}
-> +	if (gtdt->virtual_timer_interrupt) {
-> +		trigger = (gtdt->virtual_timer_flags & ACPI_GTDT_INTERRUPT_MODE)
-> +			? ACPI_EDGE_SENSITIVE : ACPI_LEVEL_SENSITIVE;
-> +		polarity =
-> +		(gtdt->virtual_timer_flags & ACPI_GTDT_INTERRUPT_POLARITY)
-> +			? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
-> +		arch_timer_ppi[2] = acpi_register_gsi(NULL,
-> +			gtdt->virtual_timer_interrupt, trigger, polarity);
-> +	}
-> +	if (gtdt->non_secure_pl2_interrupt) {
-> +		trigger =
-> +			(gtdt->non_secure_pl2_flags & ACPI_GTDT_INTERRUPT_MODE)
-> +			? ACPI_EDGE_SENSITIVE : ACPI_LEVEL_SENSITIVE;
-> +		polarity =
-> +		(gtdt->non_secure_pl2_flags & ACPI_GTDT_INTERRUPT_POLARITY)
-> +			? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
-> +		arch_timer_ppi[3] = acpi_register_gsi(NULL,
-> +			gtdt->non_secure_pl2_interrupt, trigger, polarity);
-> +	}
-
-Please factor out the interrupt parsing.
-
-Thanks,
 Mark.
