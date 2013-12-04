@@ -1,68 +1,67 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v10 1/3] aerdrv: Trace Event for AER
-Date: Wed, 4 Dec 2013 21:38:38 +0100
-Message-ID: <20131204203837.GA7517@pd.tnic>
-References: <20130116235102.16015.77379.stgit@grignak.americas.hpqcorp.net>
- <CANVTcTaP18CiGOSEcX5Ch_wPw9mEhkgokfp+d+ZOMFD+Ce4juA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCHv2 2/2] ACPI/platform: Add ACPI ID for Intel MBI device
+Date: Wed, 04 Dec 2013 22:34:45 +0100
+Message-ID: <16922953.M8X8XT9eUD@vostro.rjw.lan>
+References: <1385100357-5459-1-git-send-email-david.e.box@linux.intel.com> <20131204024452.GB8282@linux.intel.com> <20131204025407.GA26448@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CANVTcTaP18CiGOSEcX5Ch_wPw9mEhkgokfp+d+ZOMFD+Ce4juA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: rui wang <ruiv.wang@gmail.com>
-Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@intel.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, gong.chen@intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20131204025407.GA26448@srcf.ucam.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "David E. Box" <david.e.box@linux.intel.com>, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 02, 2013 at 01:05:16PM +0800, rui wang wrote:
-> > +	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
-> > +		__get_str(dev_name),
-> > +		__entry->severity == HW_EVENT_ERR_CORRECTED ? "Corrected" :
-> > +			__entry->severity == HW_EVENT_ERR_FATAL ?
-> > +			"Fatal" : "Uncorrected",
-> > +		__entry->severity == HW_EVENT_ERR_CORRECTED ?
-> > +		__print_flags(__entry->status, "|", aer_correctable_errors) :
-> > +		__print_flags(__entry->status, "|", aer_uncorrectable_errors))
-> > +);
-> 
-> This causes inconsistency between dmesg and the trace event output.
-> When dmesg says "severity=Corrected", the trace event says
-> "severity=Fatal". What happens is that HW_EVENT_ERR_CORRECTED is
-> defined in edac.h:
-> 
-> enum hw_event_mc_err_type {
->         HW_EVENT_ERR_CORRECTED,
->         HW_EVENT_ERR_UNCORRECTED,
->         HW_EVENT_ERR_FATAL,
->         HW_EVENT_ERR_INFO,
-> };
-> 
-> while aer_print_error() uses aer_error_severity_string[] defined as:
-> 
-> static const char *aer_error_severity_string[] = {
->         "Uncorrected (Non-Fatal)",
->         "Uncorrected (Fatal)",
->         "Corrected"
-> };
-> 
-> In this case dmesg is correct because info->severity is assigned in
-> aer_isr_one_error() using the definitions in include/linux/ras.h:
-> #define AER_NONFATAL                    0
-> #define AER_FATAL                       1
-> #define AER_CORRECTABLE                 2
-> 
-> So which one is the standard? Is there a plan to unify all these names?
+On Wednesday, December 04, 2013 02:54:07 AM Matthew Garrett wrote:
+> On Tue, Dec 03, 2013 at 06:44:52PM -0800, David E. Box wrote:
+> > On Wed, Dec 04, 2013 at 02:21:30AM +0000, Matthew Garrett wrote:
+> > > Well sure, but why do you need to be a platform device at all? This 
+> > > functionality was intended for cases where we already have a driver for 
+> > > the part that enumerated it via some other mechanism. If the driver's 
+> > > only intended for ACPI systems then why not just be an ACPI device?
 
-Yes, the AER tracepoint above should use the AER_* defines and not the
-HW_EVENT_ERR_* ones which are for memory errors.
+Because struct acpi_device things are firmawre objects that shouldn't be
+treated as devices.
 
-Wanna send a fix?
+> > 
+> > It was my understanding that with ACPI 5.0 it was becoming more common to use
+> > ACPI ID's exclusively for device enumeration. I originally wrote this as an
+> > acpi_bus driver but Rafeal advised me that the model is being phased out and
+> > suggeted the platform model instead.
+> 
+> If you're not adding ACPI support to an existing platform driver, you 
+> shouldn't be adding entries to acpi_platform.c. I'm not actually happy 
+> that I merged the ideapad-laptop patch that did the same thing - I'm 
+> inclined to revert it, because this really is an ugly way to do things.
+> 
+> Rafael, why did we convert the AC driver this way? It means we have to 
+> keep track of ACPI IDs in multiple places,
 
-Thanks.
+Yes, in two places to be precise.
 
--- 
-Regards/Gruss,
-    Boris.
+> which is worth it when it avoids having to write a pile of new code (such as
+> the sdhci case) but doesn't seem to provide benefits otherwise.
 
-Sent from a fat crate under my desk. Formatting is fine.
---
+Well, I thought we discussed that, but perhaps we didn't.
+
+There's some confusion about what a struct acpi_device is, because sometimes it
+is treated as a "companion" of a physical device and sometimes it is treated as
+a physical device itself.  This leads to incorrect code as well sometimes,
+because ACPI drivers may attempt to bind to things that already have physical
+comapnions, for example.
+
+The approach to this I thought we could use, and that we've been using to some
+extent already, is to create "physical" companions for all struct acpi_device
+objects.  In this particular this "physical companion" is a platform device, so
+it needs to be added to the list in acpi_platform.c.  [Otherwise the ACPI PNP
+core would create a PNP device for it (unless an ACPI driver is bound to that
+struct acpi_device before, but that makes the correctness of the thing depend
+on the ordering of driver probing, which is not awesome).]
+
+In this approach device drivers bind to the "physical" devices (platform devices
+etc.) instead of struct acpi_device themselves and at least everything is
+consistent.
+
+Thanks,
+Rafael
