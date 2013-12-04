@@ -1,135 +1,421 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH 7/10] ACPI / hotplug: Move container-specific code out
- of the core
-Date: Wed, 4 Dec 2013 14:43:24 +0900
-Message-ID: <529EC0FC.1010400@jp.fujitsu.com>
-References: <1421028.Rsfpmhnym3@vostro.rjw.lan> <1554480.uCR6qUxJk9@vostro.rjw.lan> <529D4600.6040601@jp.fujitsu.com> <81535269.SKoBMiGyoU@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC part1 PATCH 5/7] ARM64 / ACPI: Introduce arm_core.c and
+ its related head file
+Date: Wed, 4 Dec 2013 05:46:20 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88024941A4@SHSMSX101.ccr.corp.intel.com>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
+ <1386088611-2801-6-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <81535269.SKoBMiGyoU@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:18022 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753373Ab3LDFqY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 00:46:24 -0500
+In-Reply-To: <1386088611-2801-6-git-send-email-hanjun.guo@linaro.org>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <rob.herring@calxeda.com>, Mark Rutland <mark.rutland@arm.com>, Jon Masters <jonathan@jonmasters.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Al Stone <al.stone@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>
 
-(2013/12/03 22:15), Rafael J. Wysocki wrote:
-> On Tuesday, December 03, 2013 11:46:24 AM Yasuaki Ishimatsu wrote:
->> (2013/11/29 22:08), Rafael J. Wysocki wrote:
->>> On Friday, November 29, 2013 11:36:55 AM Yasuaki Ishimatsu wrote:
->>>> Hi Rafael,
->>>
->>> Hi,
->>>
->>>> Replying to this mail may be wrong.
->>>
->>> OK, so this particular patch doesn't break things any more?
->>
->> Yes.
->>
->>>
->>>> Do you remember following your patch?
->>>> http://lkml.org/lkml/2013/2/23/97
->>>>
->>>> I want to add autoeject variable in acpi_hotplug_profile structure and
->>>> set autoecjet of container device "false".
->>>
->>> Then after the series the $subject patch belongs to it will work almost the
->>> same way as /sys/firmware/acpi/container/enabled (hot add will still work after
->>> patch [4/10] if "enabled" is 0), but only for containers.
->>>
->>>> Currently, I have a problem on ejecting container device. Since linux-3.12,
->>>> container device is removed by acpi_scan_hot_remove.
->>>>
->>>> I think this has two problems.
->>>>
->>>>      1. easily fail
->>>>         My container device has CPU device and Memory device, and maximum size of
->>>>         memory is 3Tbyte. In my environment, hot removing container device fails
->>>>         on offlining memory if memory is used by application.
->>>>         I think if offlininig memory, we must retly to offline memory several
->>>>         times.
->>>
->>> Yes, that's correct.  But then you can try to offline the memory upfront
->>> and only remove the container after that has been successful.
->>>
->>>>      2. cannot work with userland's application
->>>>         Hot removing CPU and memory on container device, we need take care of
->>>>         userland application. Before linux-3.12, container device just notifies
->>>>         KOBJ_OFFLINE to udev. So by using udev, if application binds to removed
->>>>         CPU or node, applications can change them before hot removing container
->>>>         device.
->>>>         Currently, KOBJ_OFFLINE is notified to udev. But acpi_scan_hot_remove
->>>>         also runs simultaneously for hot removing container device. So when
->>>>         applications runs for corresponding to the deletion of the devices,
->>>>         the devices may have been deleted.
->>>
->>
->>> So the expectation is that the container will refuse to offline, but instead
->>> it will emit KOBJ_OFFLINE so that user space can do some cleanup and offline
->>> it through the "eject" attribute, right?
->>
->> Yes, that's right.
->>
->>>
->>>> I don't know what devices are on hotpluggable conatainer device of other
->>>> vendors. At least, my container device cannot be hot removed correctly.
->>>> Then I want to add autoeject variable in acpi_hotplug_profile so that user
->>>> can change the parameter to "true" or "false".
->>>
->>> I have a different idea.
->>>
->>> Why don't we create a bus type for containers in analogy with CPUs and memory
->>> and make it support offline.  Then, the container scan handler will create a
->>> "physical" container device under that bus type and the new bus type code will
->>> implement the logic you need (that is, it will have a sysfs flag that will
->>> cause the offline to fail emitting a uevent of some sort if set and will allow
->>> the offline to happen when unset).  That "physical" container device will go
->>> away (again, via the container scan handler) during container removal.
->>>
->>
->>> The eject work flow can be:
->>>     (1) an eject event occurs,
->>>     (2) the container "physical" device fails offline in acpi_scan_hot_remove()
->>>         emmitting, say, KOBJ_CHANGE for the "physical" device,
->>>     (3) user space notices the KOBJ_CHANGE and does the cleanup as needed,
->>>     (4) user space changes the "physical" container device flag controlling
->>>         offline to 0,
->>>     (5) user space uses the sysfs "eject" attribute of the ACPI container object
->>>         to finally eject the container,
->>>     (6) the offline in acpi_scan_hot_remove() is now successful, because the
->>>         flag controlling it has been set to 0 in step (4),
->>>     (7) the "physical" container device goes away before executing _EJ0,
->>>     (8) the container is ejected.
->>>
->>> Of course, if the flag controlling container offline is 0 to start with, step
->>> (6) will now occur directly after (1), so whoever wants containers to be
->>> hot-removed automatically may just clear that flag for all of them on boot.
->>>
->>> How does that sound?
->>
->>
->> The above ideas are almost O.K. I want kernel to notify user space of KOBJ_OFFLINE.
->> Even if user space catches "KOBJ_CHANGE", user doesn't know whether the notification
->> is offline or not.
->
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Hanjun Guo
+> Sent: Wednesday, December 04, 2013 12:37 AM
+> 
+> introduce arm_core.c and its related head file, after this patch,
+> we can get ACPI tables from BIOS on ARM64 now.
+> 
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  arch/arm64/include/asm/acpi.h |   57 +++++++++++
+>  arch/arm64/kernel/setup.c     |    8 ++
+>  drivers/acpi/Makefile         |    2 +
+>  drivers/acpi/plat/Makefile    |    1 +
+>  drivers/acpi/plat/arm-core.c  |  219 +++++++++++++++++++++++++++++++++++++++++
+>  5 files changed, 287 insertions(+)
+>  create mode 100644 drivers/acpi/plat/Makefile
+>  create mode 100644 drivers/acpi/plat/arm-core.c
+> 
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index c186f5b..e9444e4 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -19,6 +19,43 @@
+>  #ifndef _ASM_ARM_ACPI_H
+>  #define _ASM_ARM_ACPI_H
+> 
+> +#include <asm/cacheflush.h>
+> +
+> +#include <linux/init.h>
+> +
+> +#define COMPILER_DEPENDENT_INT64	long long
+> +#define COMPILER_DEPENDENT_UINT64	unsigned long long
+> +
+> +/*
+> + * Calling conventions:
+> + *
+> + * ACPI_SYSTEM_XFACE        - Interfaces to host OS (handlers, threads)
+> + * ACPI_EXTERNAL_XFACE      - External ACPI interfaces
+> + * ACPI_INTERNAL_XFACE      - Internal ACPI interfaces
+> + * ACPI_INTERNAL_VAR_XFACE  - Internal variable-parameter list interfaces
+> + */
+> +#define ACPI_SYSTEM_XFACE
+> +#define ACPI_EXTERNAL_XFACE
+> +#define ACPI_INTERNAL_XFACE
+> +#define ACPI_INTERNAL_VAR_XFACE
+> +
+> +/* Asm macros */
+> +#define ACPI_FLUSH_CPU_CACHE() flush_cache_all()
 
-> It is easy to figure out, though.  Since the KOBJ_CHANGE will be emitted for
-> container devices only in that situation, user space can see that (1) it is
-> from a container and (2) it is KOBJ_CHANGE, so it must mean "container offline
-> has been attempted".
->
-> My concern with using KOBJ_OFFLINE for that is that device_offline() emits it
-> too on success and it may be easily confused with the one emitted on failure
-> for containers.
+Well, you may need to check the following environments defined in <acpi/platform/aclinux.h> is sufficient for ARM targets:
+49 #define ACPI_USE_SYSTEM_CLIBRARY
+50 #define ACPI_USE_DO_WHILE_0
+51 #define ACPI_MUTEX_TYPE             ACPI_BINARY_SEMAPHORE
 
-I have no objection.
+70 #define ACPI_MACHINE_WIDTH          BITS_PER_LONG
+Will this zap IO addresses on ARM32 platforms?
 
-Thanks,
-Yasuaki Ishimatsu
+And following default settings in <acpi/platform/acenv.h> and <acpi/acxxx.h> is sufficient for ARM targets:
+179 #if defined (__IA64__) || defined (__ia64__)
+180 #define ACPI_MISALIGNMENT_NOT_SUPPORTED
+181 #endif
+Will this cause any exceptions on ARM by executing ACPICA name functions?
 
->
-> Thanks,
-> Rafael
->
+444 #if ACPI_MACHINE_WIDTH == 64
+445 #define ACPI_USE_NATIVE_DIVIDE  /* Use compiler native 64-bit divide */
+446 #endif
+I think you may see build breakage on ARM32 as you haven't implemented the following ACPICA macros for ARM:
+67 #define ACPI_DIV_64_BY_32(n_hi, n_lo, d32, q32, r32)
+74 #define ACPI_SHIFT_RIGHT_64(n_hi, n_lo)
+Have you tested this yet?
+
+I'm not sure if all global lock code blocks are not referenced by ACPI_REDUCED_HARDWARE and I'm not sure what mechanism is implemented on ARM ACPI platforms to offer the synchronization mechanism between firmware and OSPM.  So you may need to implement the following synchronization protocol in <asm/acpi.h>:
+58 #define ACPI_ACQUIRE_GLOBAL_LOCK(facs, Acq)
+61 #define ACPI_RELEASE_GLOBAL_LOCK(facs, Acq)
+
+I only reviewed the ACPICA stuffs in <asm/acpi.h>, I didn't take a look at your Linux ACPI stuff in <asm/acpi.h>.  You may need more instructions on the porting issues from Linux ACPI guys.
+
+Thanks and best regards
+-Lv
+
+> +
+> +/* Basic configuration for ACPI */
+> +#ifdef	CONFIG_ACPI
+> +extern int acpi_disabled;
+> +extern int acpi_noirq;
+> +extern int acpi_pci_disabled;
+> +extern int acpi_strict;
+> +
+> +static inline void disable_acpi(void)
+> +{
+> +	acpi_disabled = 1;
+> +	acpi_pci_disabled = 1;
+> +	acpi_noirq = 1;
+> +}
+> +
+>  static inline bool arch_has_acpi_pdc(void)
+>  {
+>  	return false;	/* always false for now */
+> @@ -29,4 +66,24 @@ static inline void arch_acpi_set_pdc_bits(u32 *buf)
+>  	return;
+>  }
+> 
+> +static inline void acpi_noirq_set(void) { acpi_noirq = 1; }
+> +static inline void acpi_disable_pci(void)
+> +{
+> +	acpi_pci_disabled = 1;
+> +	acpi_noirq_set();
+> +}
+> +
+> +/* FIXME: this function should be moved to topology.h when it's ready */
+> +void arch_fix_phys_package_id(int num, u32 slot);
+> +
+> +/* temperally define -1 to make acpi core compilerable */
+> +#define cpu_physical_id(cpu) -1
+> +
+> +#else	/* !CONFIG_ACPI */
+> +#define acpi_disabled 1		/* ACPI sometimes enabled on ARM */
+> +#define acpi_noirq 1		/* ACPI sometimes enabled on ARM */
+> +#define acpi_pci_disabled 1	/* ACPI PCI sometimes enabled on ARM */
+> +#define acpi_strict 1		/* no ACPI spec workarounds on ARM */
+> +#endif
+> +
+>  #endif /*_ASM_ARM_ACPI_H*/
+> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+> index bd9bbd0..8199360 100644
+> --- a/arch/arm64/kernel/setup.c
+> +++ b/arch/arm64/kernel/setup.c
+> @@ -41,6 +41,7 @@
+>  #include <linux/memblock.h>
+>  #include <linux/of_fdt.h>
+>  #include <linux/of_platform.h>
+> +#include <linux/acpi.h>
+> 
+>  #include <asm/cputype.h>
+>  #include <asm/elf.h>
+> @@ -225,6 +226,13 @@ void __init setup_arch(char **cmdline_p)
+> 
+>  	arm64_memblock_init();
+> 
+> +	/*
+> +	 * Parse the ACPI tables for possible boot-time configuration
+> +	 */
+> +	acpi_boot_table_init();
+> +	early_acpi_boot_init();
+> +	acpi_boot_init();
+> +
+>  	paging_init();
+>  	request_standard_resources();
+> 
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index d8cebe3..9fbba50 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -83,3 +83,5 @@ obj-$(CONFIG_ACPI_PROCESSOR_AGGREGATOR) += acpi_pad.o
+>  obj-$(CONFIG_ACPI_APEI)		+= apei/
+> 
+>  obj-$(CONFIG_ACPI_EXTLOG)	+= acpi_extlog.o
+> +
+> +obj-y				+= plat/
+> diff --git a/drivers/acpi/plat/Makefile b/drivers/acpi/plat/Makefile
+> new file mode 100644
+> index 0000000..46bc65e
+> --- /dev/null
+> +++ b/drivers/acpi/plat/Makefile
+> @@ -0,0 +1 @@
+> +obj-$(CONFIG_ARM64)	+= arm-core.o
+> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-core.c
+> new file mode 100644
+> index 0000000..7b8e64a
+> --- /dev/null
+> +++ b/drivers/acpi/plat/arm-core.c
+> @@ -0,0 +1,219 @@
+> +/*
+> + *  ARM/ARM64 Specific Low-Level ACPI Boot Support
+> + *
+> + *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+> + *  Copyright (C) 2001 Jun Nakajima <jun.nakajima@intel.com>
+> + *  Copyright (C) 2013, Al Stone <al.stone@linaro.org> (ARM version)
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License as published by
+> + *  the Free Software Foundation; either version 2 of the License, or
+> + *  (at your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + */
+> +
+> +#include <linux/init.h>
+> +#include <linux/acpi.h>
+> +#include <linux/acpi_pmtmr.h>
+> +#include <linux/efi.h>
+> +#include <linux/cpumask.h>
+> +#include <linux/memblock.h>
+> +#include <linux/module.h>
+> +#include <linux/irq.h>
+> +#include <linux/irqdomain.h>
+> +#include <linux/slab.h>
+> +#include <linux/bootmem.h>
+> +#include <linux/ioport.h>
+> +#include <linux/pci.h>
+> +
+> +#include <asm/pgtable.h>
+> +#include <asm/io.h>
+> +#include <asm/smp.h>
+> +
+> +/*
+> + * We never plan to use RSDT on arm/arm64 as its deprecated in spec but this
+> + * variable is still required by the ACPI core
+> + */
+> +u32 acpi_rsdt_forced;
+> +
+> +int acpi_noirq;			/* skip ACPI IRQ initialization */
+> +int acpi_strict;
+> +int acpi_disabled;
+> +EXPORT_SYMBOL(acpi_disabled);
+> +
+> +int acpi_pci_disabled;		/* skip ACPI PCI scan and IRQ initialization */
+> +EXPORT_SYMBOL(acpi_pci_disabled);
+> +
+> +#define PREFIX			"ACPI: "
+> +
+> +/* FIXME: this function should be moved to topology.c when it is ready */
+> +void arch_fix_phys_package_id(int num, u32 slot)
+> +{
+> +	return;
+> +}
+> +EXPORT_SYMBOL_GPL(arch_fix_phys_package_id);
+> +
+> +/*
+> + * Boot-time Configuration
+> + */
+> +
+> +enum acpi_irq_model_id acpi_irq_model = ACPI_IRQ_MODEL_PLATFORM;
+> +
+> +static unsigned int gsi_to_irq(unsigned int gsi)
+> +{
+> +	int irq = irq_create_mapping(NULL, gsi);
+> +
+> +	return irq;
+> +}
+> +
+> +/*
+> + * __acpi_map_table() will be called before page_init(), so early_ioremap()
+> + * or early_memremap() should be called here.
+> + *
+> + * FIXME: early_io/memremap()/early_iounmap() are not upstream yet on ARM64,
+> + * just wait for Mark Salter's patchset accepted by mainline
+> + */
+> +char *__init __acpi_map_table(unsigned long phys, unsigned long size)
+> +{
+> +	if (!phys || !size)
+> +		return NULL;
+> +
+> +	/*
+> +	 * temporarily use phys_to_virt(),
+> +	 * should be early_memremap(phys, size) here
+> +	 */
+> +	return phys_to_virt(phys);
+> +}
+> +
+> +void __init __acpi_unmap_table(char *map, unsigned long size)
+> +{
+> +	if (!map || !size)
+> +		return;
+> +
+> +	/* should be early_iounmap(map, size); */
+> +	return;
+> +}
+> +
+> +int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+> +{
+> +	*irq = gsi_to_irq(gsi);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+> +
+> +/*
+> + * success: return IRQ number (>=0)
+> + * failure: return < 0
+> + */
+> +int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
+> +{
+> +	return -1;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_register_gsi);
+> +
+> +void acpi_unregister_gsi(u32 gsi)
+> +{
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+> +
+> +static int __init acpi_parse_fadt(struct acpi_table_header *table)
+> +{
+> +	return 0;
+> +}
+> +
+> +static void __init early_acpi_process_madt(void)
+> +{
+> +	return;
+> +}
+> +
+> +static void __init acpi_process_madt(void)
+> +{
+> +	return;
+> +}
+> +
+> +/*
+> + * acpi_boot_table_init() and acpi_boot_init()
+> + *  called from setup_arch(), always.
+> + *	1. checksums all tables
+> + *	2. enumerates lapics
+> + *	3. enumerates io-apics
+> + *
+> + * acpi_table_init() is separated to allow reading SRAT without
+> + * other side effects.
+> + */
+> +void __init acpi_boot_table_init(void)
+> +{
+> +	/*
+> +	 * If acpi_disabled, bail out
+> +	 */
+> +	if (acpi_disabled)
+> +		return;
+> +
+> +	/*
+> +	 * Initialize the ACPI boot-time table parser.
+> +	 */
+> +	if (acpi_table_init()) {
+> +		disable_acpi();
+> +		return;
+> +	}
+> +}
+> +
+> +int __init early_acpi_boot_init(void)
+> +{
+> +	/*
+> +	 * If acpi_disabled, bail out
+> +	 */
+> +	if (acpi_disabled)
+> +		return 1;
+> +
+> +	/*
+> +	 * Process the Multiple APIC Description Table (MADT), if present
+> +	 */
+> +	early_acpi_process_madt();
+> +
+> +	return 0;
+> +}
+> +
+> +int __init acpi_boot_init(void)
+> +{
+> +	/*
+> +	 * If acpi_disabled, bail out
+> +	 */
+> +	if (acpi_disabled)
+> +		return 1;
+> +
+> +	acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt);
+> +
+> +	/*
+> +	 * Process the Multiple APIC Description Table (MADT), if present
+> +	 */
+> +	acpi_process_madt();
+> +
+> +	return 0;
+> +}
+> +
+> +static int __init parse_acpi(char *arg)
+> +{
+> +	if (!arg)
+> +		return -EINVAL;
+> +
+> +	/* "acpi=off" disables both ACPI table parsing and interpreter */
+> +	if (strcmp(arg, "off") == 0) {
+> +		disable_acpi();
+> +	}
+> +	/* acpi=strict disables out-of-spec workarounds */
+> +	else if (strcmp(arg, "strict") == 0) {
+> +		acpi_strict = 1;
+> +	}
+> +	return 0;
+> +}
+> +early_param("acpi", parse_acpi);
+> --
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
