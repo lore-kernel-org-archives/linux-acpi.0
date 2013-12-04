@@ -1,103 +1,47 @@
-From: Graeme Gregory <graeme.gregory@linaro.org>
-Subject: Re: [RFC part1 PATCH 7/7] ARM64 / ACPI: Enable ARM64 in Kconfig
-Date: Wed, 4 Dec 2013 10:10:50 +0000
-Message-ID: <20131204101050.GQ2395@xora-haswell.xora.org.uk>
-References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
- <1386088611-2801-8-git-send-email-hanjun.guo@linaro.org>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] gpio: add GPIO support for SMSC SCH311x
+Date: Wed, 4 Dec 2013 13:33:58 +0100
+Message-ID: <CACRpkdYvLj0WquLAFCp6dzVOFCgNZmY1V7Ti93XP1Sc8oAJArQ@mail.gmail.com>
+References: <1385597895-26418-1-git-send-email-br1@einfach.org>
+	<CACRpkdaXO+tYRq=uyQiAopRDPwKv1_F4yZwCWr4-JL1xnio4Wg@mail.gmail.com>
+	<20131129203747.GL16823@kw.sim.vm.gnt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1386088611-2801-8-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <rob.herring@calxeda.com>, Mark Rutland <mark.rutland@arm.com>, Jon Masters <jonathan@jonmasters.org>, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20131129203747.GL16823@kw.sim.vm.gnt>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Simon Guinot <simon.guinot@sequanux.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@linux.intel.com>, Grant Likely <grant.likely@linaro.org>
+Cc: Bruno Randolf <br1@einfach.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, David Cohen <david.a.cohen@intel.com>, Wim Van Sebroeck <wim@iguana.be>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 04, 2013 at 12:36:51AM +0800, Hanjun Guo wrote:
-> Add Kconfigs to build ACPI on ARM64, and make ACPI runable on ARM64.
-> 
-> acpi_idle driver is x86/IA64 dependent now, so make CONFIG_ACPI_PROCESSOR
-> depends on X86 || IA64, and implement it on ARM in the furture.
-> 
-> In order to make arm-core.c can both run on ARM and ARM64, introduce
-> CONFIG_ACPI_ARM to support it.
-> 
-> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> Signed-off-by: Al Stone <al.stone@linaro.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/arm64/Kconfig         |    2 ++
->  drivers/acpi/Kconfig       |   12 +++++++++---
->  drivers/acpi/plat/Makefile |    2 +-
->  3 files changed, 12 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 88c8b6c1..a37795f 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -280,6 +280,8 @@ source "net/Kconfig"
->  
->  source "drivers/Kconfig"
->  
-> +source "drivers/acpi/Kconfig"
-> +
->  source "fs/Kconfig"
->  
->  source "arch/arm64/kvm/Kconfig"
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 53f0f16..f43485e 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -2,13 +2,17 @@
->  # ACPI Configuration
->  #
->  
-> +config ACPI_ARM
-> +	bool
-> +	select ACPI_REDUCED_HARDWARE
-> +
->  menuconfig ACPI
->  	bool "ACPI (Advanced Configuration and Power Interface) Support"
->  	depends on !IA64_HP_SIM
-> -	depends on IA64 || X86
-> -	depends on PCI
-> +	depends on ((IA64 || X86) && PCI) || ARM64
->  	select PNP
-> -	default y
-> +	select ACPI_ARM if (ARM || ARM64)
-> +	default y if !(ARM || ARM64)
+On Fri, Nov 29, 2013 at 9:37 PM, Simon Guinot <simon.guinot@sequanux.org> wrote:
+> On Fri, Nov 29, 2013 at 03:40:01PM +0100, Linus Walleij wrote:
+>> Maybe this leads to another interesting discussion on why
+>> ACPI is not used for configuring the board...
+>
+> Hi Linus,
+>
+> I am currently working on the next Seagate NAS boards (x86-based) and
+> again a Super-I/O will be used to provide some GPIO lines :) The device
+> should be an IT8732, which may be supported by the driver gpio-it8761e.
+>
+> Based on our previous experience, I am currently pushing the board
+> manufacturer (which also provides the BIOS) to get an get entry for
+> the Super-I/O device in the ACPI tables.
+>
+> Let me say it is not a easy task and I am still not sure to succeed...
+> Clearly the guys don't understand why they have to do that because the
+> other OS are used to identify the device via the I/O registers.
 
-Should only be ARM64 here with the current files in this series, I think
-this is causing others confusion looking for arm 32bit support in patches
-where there is none yet!
+OK so I report this to linux-acpi, HPA and Grant and hope that they
+will get them for this "we like port I/O-probing" attitude... there is
+only so much we can do.
 
->  	help
->  	  Advanced Configuration and Power Interface (ACPI) support for 
->  	  Linux requires an ACPI-compliant platform (hardware/firmware),
-> @@ -149,6 +153,7 @@ config ACPI_PROCESSOR
->  	tristate "Processor"
->  	select THERMAL
->  	select CPU_IDLE
-> +	depends on X86 || IA64
->  	default y
->  	help
->  	  This driver installs ACPI as the idle handler for Linux and uses
-> @@ -250,6 +255,7 @@ config ACPI_DEBUG
->  config ACPI_PCI_SLOT
->  	bool "PCI slot detection driver"
->  	depends on SYSFS
-> +	depends on PCI
->  	default n
->  	help
->  	  This driver creates entries in /sys/bus/pci/slots/ for all PCI
-> diff --git a/drivers/acpi/plat/Makefile b/drivers/acpi/plat/Makefile
-> index 46bc65e..3a61176 100644
-> --- a/drivers/acpi/plat/Makefile
-> +++ b/drivers/acpi/plat/Makefile
-> @@ -1 +1 @@
-> -obj-$(CONFIG_ARM64)	+= arm-core.o
-> +obj-$(CONFIG_ACPI_ARM)	+= arm-core.o
-> -- 
-> 1.7.9.5
-> 
+Basically the (embedded?) x86 vendors need to get
+their act together around ACPI just like the ARM vendors did with
+device tree.
+
+Only handwaving from my side, sorry... best I can do.
+
+Yours,
+Linus Walleij
