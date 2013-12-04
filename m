@@ -1,74 +1,108 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [UPDTE PATCH 0/3] ACPI: Cleanup direct ACPICA inclusions.
-Date: Wed,  4 Dec 2013 08:41:52 +0800
-Message-ID: <cover.1386116927.git.lv.zheng@intel.com>
-References: <cover.1385094640.git.lv.zheng@intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: 8086:2a42 [Asus UL80VT] Backlight control does not work with
+ Intel integrated card, but there are entries in /sys/class/backlight
+Date: Wed, 04 Dec 2013 09:16:42 +0800
+Message-ID: <529E827A.7030803@intel.com>
+References: <529CBB15.7000904@crans.org> <529D5D36.3000101@intel.com> <529DAE1C.1060501@crans.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:31153 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:6128 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754548Ab3LDAok (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Dec 2013 19:44:40 -0500
-In-Reply-To: <cover.1385094640.git.lv.zheng@intel.com>
+	id S1754129Ab3LDBQm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Dec 2013 20:16:42 -0500
+In-Reply-To: <529DAE1C.1060501@crans.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Guillaume Millet <gmillet@crans.org>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-(Updated due to commit details attached.)
+On 12/03/2013 06:10 PM, Guillaume Millet wrote:
+> Le 03/12/2013 05:25, Aaron Lu a =C3=A9crit :
+>> On 12/03/2013 12:53 AM, Guillaume Millet wrote:
+>>> Hello, I report an issue, in attempting to follow the instructions =
+at
+>>> https://wiki.ubuntu.com/Bugs/Upstream/kernel#KernelTeam.2BAC8-Kerne=
+lTeamBugPolicies.Overview_on_Reporting_Bugs_Upstream
+>>>
+>>> [1.] 8086:2a42 [Asus UL80VT] Backlight control does not work with I=
+ntel
+>>> integrated card, but there are entries in /sys/class/backlight
+>>>
+>>> [2.] The screen brightness control has apparently never worked
+>>> off-the-shelf on this laptop, Asus UL80VT-A1, which is an NVIDIA Op=
+timus
+>>> laptop (2 graphic cards). The use of the discrete Nvidia card is ma=
+naged
+>>> by Bumblebee (https://wiki.ubuntu.com/Bumblebee). It used to work w=
+ith
+>>> the workaround suggested at
+>>> http://wiki.daviddarts.com/Ubuntu_Maverick_on_the_Asus_UL30VT#Scree=
+n_Brightness =20
+>>> which modifies asus-brn-down.sh to use the "setpci" method.
+>>> Hotkeys are detected, showkey -s returns 0xe0 0x4c 0xe0 0xcc for Fn=
++F5
+>>> and 0xe0 0x54 0xe0 0xd4 for Fn+F6.
+>>> When the hotkeys are triggered, there is no brightness change but t=
+he
+>>> KDE notification pops up with 3 or 4 levels.
+>>>
+>>> [X.] Other notes
+>>> $ ls /sys/class/backlight/
+>>> acpi_video0  acpi_video1  intel_backlight
+>>>
+>>> $ cat /sys/class/backlight/intel_backlight/max_brightness
+>>> 2583660
+>>>
+>>> $ cat /sys/class/backlight/intel_backlight/brightness
+>>> 121584
+>> With v3.12, does the intel_backlight interface work?
+>> You can verify this by echoing some value to the brightness file and=
+ see
+>> if it has any effect. The value can be echoed is 0 - max_brightness.=
+ Be
+>> careful with very small values, it will black your screen.
+>>
+>> If it works, you can specify intel_backlight as the control interfac=
+e
+>> for X by creating a xorg.conf file like this:
+>> $ cat /etc/Xorg/Xorg.conf
+>> Section "Device"
+>>          Option     "Backlight"	"intel_backlight"
+>> 	Identifier  "Card0"
+>> 	Driver      "intel"
+>> 	BusID       "PCI:0:2:0"
+>> EndSection
+>=20
+> The intel_backlight interface does work, by echoing a value between 0=
+=20
+> and 2583660.
+> The control interface for X also works with that addition in=20
+> /etc/X11/xorg.conf (Kubuntu).
+>=20
+> Wow, the issue was immediately solved by posting here. Thanks Aaron L=
+u!
+> After, (out of curiosity) what should be modified so that X=20
+> automatically detect the correct control interface, in case of a new=20
+> installation for example ?
 
-The patch in the linux-pm/linux-next queue is used as an experiment to
-catch wrong ACPICA dependencies and inclusions:
+Please file a bug to https://bugzilla.kernel.org, choose
+ACPI-Power/Video category.
 
- Commit: 4e8fb7987f7d0390a2e74622c7c1cbb6760c6516
- From: Lv Zheng <lv.zheng@intel.com>
- Date: Tue, 3 Dec 2013 08:49:16 +0800
- Subject: [PATCH] ACPI: Clean up inclusions of ACPI header files
- Replace direct inclusions of <acpi/acpi.h>, <acpi/acpi_bus.h> and
- <acpi/acpi_drivers.h>, which are incorrect, with <linux/acpi.h>
- inclusions and remove some inclusions of those files that aren't
- necessary.
+Please provide these information when filing the bug:
+1 attach dmesg.
+2 attach acpidump output.
+3 attach dmidecode output.
+4 of those backlight control interfaces, which works and which don't.
+5 attach /var/log/Xorg.0.log when you do not use the customized xorg.co=
+nf,
+  I want to know which interface is picked up by X driver by default.
 
-Now we got build errors triggered for them. Such errors include:
-1. "ACPI IGD OpRegion" support in i915 DRM driver.  It can be modified to
-   be CONFIG_ACPI dependent.
-2. "_CRS based MCFG checker" support, original configurability of this
-   piece of code relies on link stage optimization.  This patchset
-   corrects it by making the configurability to be dependent on compile
-   stage references.
-3. "iSCSI IBFT finder" support.  IBFT can only appear on ACPI platforms
-   while IBFT locating mechanism doesn't rely on ACPI table constructions.
-   It is currently not dependent on CONFIG_ACPI.  IMO, this behavior is
-   This patchset corrects it by making it dependent on CONFIG_ACPI.  This
-   patch need to be discussed, thus marked as RFC.
-4. "SFI/ACPI wrapper" support.  This error is not fixed in this patchset.
-   Its solution is still under discussion.  It need to be synchronized
-   with SFI users.
-
-Lv Zheng (3):
-  ACPI/i915: Fix wrong <acpi/acpi.h> inclusion in i915 opregion module.
-  ACPI/SFI: Fix wrong <acpi/acpi.h> inclusion in SFI/ACPI wrapper -
-    acpi_disabled linkage.
-  ACPI/IBFT: Fix wrong <acpi/acpi.h> inclusion in iSCSI boot firmware
-    module.
-
- arch/x86/pci/mmconfig-shared.c    |    7 +++++++
- drivers/acpi/apei/apei-base.c     |    1 -
- drivers/acpi/apei/apei-internal.h |    1 -
- drivers/acpi/apei/ghes.c          |    1 -
- drivers/acpi/nvs.c                |    1 -
- drivers/acpi/osl.c                |    1 -
- drivers/firmware/Kconfig          |    2 +-
- drivers/gpu/drm/gma500/opregion.c |    1 -
- drivers/gpu/drm/i915/Makefile     |    3 +--
- drivers/gpu/drm/i915/i915_drv.h   |    3 ++-
- include/acpi/acpi_io.h            |   17 +++++++++++++++++
- include/linux/acpi.h              |    1 +
- include/linux/acpi_io.h           |   18 ------------------
- include/linux/iscsi_ibft.h        |    2 +-
- 14 files changed, 30 insertions(+), 29 deletions(-)
- create mode 100644 include/acpi/acpi_io.h
- delete mode 100644 include/linux/acpi_io.h
-
--- 
-1.7.10
-
+Thanks,
+Aaron
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
