@@ -1,47 +1,44 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] gpio: add GPIO support for SMSC SCH311x
-Date: Wed, 4 Dec 2013 13:33:58 +0100
-Message-ID: <CACRpkdYvLj0WquLAFCp6dzVOFCgNZmY1V7Ti93XP1Sc8oAJArQ@mail.gmail.com>
-References: <1385597895-26418-1-git-send-email-br1@einfach.org>
-	<CACRpkdaXO+tYRq=uyQiAopRDPwKv1_F4yZwCWr4-JL1xnio4Wg@mail.gmail.com>
-	<20131129203747.GL16823@kw.sim.vm.gnt>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC part1 PATCH 1/7] ACPI: Make ACPI core running without PCI
+ on ARM64
+Date: Wed, 04 Dec 2013 22:08:47 +0800
+Message-ID: <529F376F.8050005@linaro.org>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org> <1386088611-2801-2-git-send-email-hanjun.guo@linaro.org> <20131203164111.GA13447@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20131129203747.GL16823@kw.sim.vm.gnt>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Simon Guinot <simon.guinot@sequanux.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@linux.intel.com>, Grant Likely <grant.likely@linaro.org>
-Cc: Bruno Randolf <br1@einfach.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, David Cohen <david.a.cohen@intel.com>, Wim Van Sebroeck <wim@iguana.be>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:40344 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932320Ab3LDOJB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 09:09:01 -0500
+Received: by mail-pd0-f178.google.com with SMTP id y10so22536597pdj.9
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Dec 2013 06:09:00 -0800 (PST)
+In-Reply-To: <20131203164111.GA13447@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <rob.herring@calxeda.com>, Mark Rutland <mark.rutland@arm.com>, Jon Masters <jonathan@jonmasters.org>, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>
 
-On Fri, Nov 29, 2013 at 9:37 PM, Simon Guinot <simon.guinot@sequanux.org> wrote:
-> On Fri, Nov 29, 2013 at 03:40:01PM +0100, Linus Walleij wrote:
->> Maybe this leads to another interesting discussion on why
->> ACPI is not used for configuring the board...
+On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 00:41, Matthew Garrett wrote:
+> Given the number of #ifdefs you're adding, wouldn't it make more sens=
+e
+> to just add stub functions to include/linux/pci.h?
+
+Thanks for the suggestion :)
+
+I can add stub functions in include/linux/pci.h for raw_pci_read()/
+raw_pci_write(), then can remove #ifdefs for acpi_os_read/write_pci_con=
+figuration().
+
+Thanks
+Hanjun
+
 >
-> Hi Linus,
->
-> I am currently working on the next Seagate NAS boards (x86-based) and
-> again a Super-I/O will be used to provide some GPIO lines :) The device
-> should be an IT8732, which may be supported by the driver gpio-it8761e.
->
-> Based on our previous experience, I am currently pushing the board
-> manufacturer (which also provides the BIOS) to get an get entry for
-> the Super-I/O device in the ACPI tables.
->
-> Let me say it is not a easy task and I am still not sure to succeed...
-> Clearly the guys don't understand why they have to do that because the
-> other OS are used to identify the device via the I/O registers.
 
-OK so I report this to linux-acpi, HPA and Grant and hope that they
-will get them for this "we like port I/O-probing" attitude... there is
-only so much we can do.
-
-Basically the (embedded?) x86 vendors need to get
-their act together around ACPI just like the ARM vendors did with
-device tree.
-
-Only handwaving from my side, sorry... best I can do.
-
-Yours,
-Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
