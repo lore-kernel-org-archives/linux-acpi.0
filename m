@@ -1,201 +1,91 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC part2 PATCH 9/9] ACPI / GIC: Initialize GIC using the information
- in MADT
-Date: Wed, 04 Dec 2013 22:58:19 +0800
-Message-ID: <529F430B.10609@linaro.org>
-References: <1386088753-2850-1-git-send-email-hanjun.guo@linaro.org> <1386088753-2850-10-git-send-email-hanjun.guo@linaro.org> <CAL_Jsq+XWn5ns850mV6Jvm0W4+TPh8c0aWANZPAqSPmmsDMWoQ@mail.gmail.com>
+Subject: Re: [RFC part1 PATCH 2/7] ARM64 : Add dummy asm/cpu.h
+Date: Wed, 04 Dec 2013 23:00:46 +0800
+Message-ID: <529F439E.6070101@linaro.org>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org> <1386088611-2801-3-git-send-email-hanjun.guo@linaro.org> <20131203171345.GC16025@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAL_Jsq+XWn5ns850mV6Jvm0W4+TPh8c0aWANZPAqSPmmsDMWoQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Linaro Patches <patches@linaro.org>, Olof Johansson <olof@lixom.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:52113 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932257Ab3LDPBA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 10:01:00 -0500
+Received: by mail-pb0-f50.google.com with SMTP id rr13so23766656pbb.9
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Dec 2013 07:00:58 -0800 (PST)
+In-Reply-To: <20131203171345.GC16025@e106331-lin.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Jon Masters <jonathan@jonmasters.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro>
 
-On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 01:09, Rob Herring wrote:
-> On Tue, Dec 3, 2013 at 10:39 AM, Hanjun Guo <hanjun.guo@linaro.org> w=
-rote:
->> In MADT table, there are GIC cpu interface base address and
->> GIC distributor base address, use them to convert GIC to ACPI.
->>
+On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 01:13, Mark Rutland wrote:
+> On Tue, Dec 03, 2013 at 04:36:46PM +0000, Hanjun Guo wrote:
+>> ACPI requires a cpu.h, add a dummy one copied from arm. This will ne=
+ed
+>> updated or replaced as ACPI based cpu hotplug for armv8 is worked ou=
+t.
+> What exactly requires cpu.h, and why?
+
+CPI core will include this file and can not be compiled without it.
+
+ACPI based CPU hotplug needs some functions below:
+#ifdef CONFIG_HOTPLUG_CPU
+extern int arch_register_cpu(int num);
+extern void arch_unregister_cpu(int);
+#endif
+
+>
+> Why copy the file verbatim rather than factoring it out?
+
+ACPI based cpu hotplug is not implemented in this patch
+set and will send out as drivers, so will factoring it
+out at that time.
+ =20
+
+>> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 >> ---
->>   arch/arm64/kernel/irq.c      |    5 ++++
->>   drivers/acpi/plat/arm-core.c |   66 ++++++++++++++++++++++++++++++=
-++++++------
->>   include/linux/acpi.h         |    6 ++++
->>   3 files changed, 68 insertions(+), 9 deletions(-)
+>>   arch/arm64/include/asm/cpu.h |   25 +++++++++++++++++++++++++
+>>   1 file changed, 25 insertions(+)
+>>   create mode 100644 arch/arm64/include/asm/cpu.h
 >>
->> diff --git a/arch/arm64/kernel/irq.c b/arch/arm64/kernel/irq.c
->> index 473e5db..a9e68bf 100644
->> --- a/arch/arm64/kernel/irq.c
->> +++ b/arch/arm64/kernel/irq.c
->> @@ -25,6 +25,7 @@
->>   #include <linux/irq.h>
->>   #include <linux/smp.h>
->>   #include <linux/init.h>
->> +#include <linux/acpi.h>
->>   #include <linux/irqchip.h>
->>   #include <linux/seq_file.h>
->>   #include <linux/ratelimit.h>
->> @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(str=
-uct pt_regs *))
->>   void __init init_IRQ(void)
->>   {
->>          irqchip_init();
->> +
->> +       if (!handle_arch_irq)
->> +               acpi_gic_init();
->> +
->>          if (!handle_arch_irq)
->>                  panic("No interrupt controller found.");
->>   }
->> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-co=
-re.c
->> index 17c99e1..509b847 100644
->> --- a/drivers/acpi/plat/arm-core.c
->> +++ b/drivers/acpi/plat/arm-core.c
->> @@ -29,6 +29,7 @@
->>   #include <linux/module.h>
->>   #include <linux/irq.h>
->>   #include <linux/irqdomain.h>
->> +#include <linux/irqchip/arm-gic.h>
->>   #include <linux/slab.h>
->>   #include <linux/bootmem.h>
->>   #include <linux/ioport.h>
->> @@ -211,11 +212,21 @@ acpi_parse_gic(struct acpi_subtable_header *he=
-ader, const unsigned long end)
->>          return 0;
->>   }
->>
->> +#ifdef CONFIG_ARM_GIC
-> Perhaps this should go in the GIC code? This is more of a general
-> question of where init/probing code goes. For DT, this as been with
-> the driver code.
-
-I'm ok with your suggestion, how about move the code to
-drivers/irqchip/irq-gic.c ? is this make sense to you?
-
+>> diff --git a/arch/arm64/include/asm/cpu.h b/arch/arm64/include/asm/c=
+pu.h
+>> new file mode 100644
+>> index 0000000..dbeb98d
+>> --- /dev/null
+>> +++ b/arch/arm64/include/asm/cpu.h
+>> @@ -0,0 +1,25 @@
 >> +/*
->> + * Hard code here, we can not get memory size from MADT (but FDT do=
-es),
->> + * this size is described in ARMv8 foudation model's User Guide
+>> + *  Copyright (C) 2004-2005 ARM Ltd.
+>> + *
+>> + * This program is free software; you can redistribute it and/or mo=
+dify
+>> + * it under the terms of the GNU General Public License version 2 a=
+s
+>> + * published by the Free Software Foundation.
 >> + */
->> +#define GIC_DISTRIBUTOR_MEMORY_SIZE (SZ_8K)
->> +#define GIC_CPU_INTERFACE_MEMORY_SIZE (SZ_4K)
-> You have the sizes swapped. The cpu interface has the DIR register at=
- 0x1000.
-
-I will figure out the right size in next version.
-
+>> +#ifndef __ASM_ARM_CPU_H
+>> +#define __ASM_ARM_CPU_H
 >> +
->>   static int __init
->>   acpi_parse_gic_distributor(struct acpi_subtable_header *header,
->>                                  const unsigned long end)
->>   {
->>          struct acpi_madt_generic_distributor *distributor =3D NULL;
->> +       void __iomem *dist_base =3D NULL;
->> +       void __iomem *cpu_base =3D NULL;
-> Initialization here is unnecessary.
-
-ok, will update in next version.
-
->>          distributor =3D (struct acpi_madt_generic_distributor *)hea=
-der;
->>
->> @@ -224,8 +235,43 @@ acpi_parse_gic_distributor(struct acpi_subtable=
-_header *header,
->>
->>          acpi_table_print_madt_entry(header);
->>
->> +       /* GIC is initialised after page_init(), no need for early_i=
-oremap */
->> +       dist_base =3D ioremap(distributor->base_address,
->> +                               GIC_CPU_INTERFACE_MEMORY_SIZE);
-> Should be GIC_DISTRIBUTOR_MEMORY_SIZE.
-
-Good catch
-
->> +       if (!dist_base) {
->> +               pr_warn(PREFIX "unable to map gic dist registers\n")=
-;
->> +               return -ENOMEM;
->> +       }
+>> +#include <linux/percpu.h>
+>> +#include <linux/cpu.h>
+>> +#include <linux/topology.h>
 >> +
->> +       /*
->> +        * acpi_lapic_addr is stored in acpi_parse_madt(),
->> +        * so we can use it here for GIC init
->> +        */
->> +       if (acpi_lapic_addr) {
-> Checking this first would be cleaner.
+>> +struct cpuinfo_arm {
+>> +	struct cpu	cpu;
+>> +	u32		cpuid;
+> We use a u64 elsewhere for the mpidr_el1 in arm64.
 
-Agreed, thank you for the advice, will update it in next version.
-
->> +               iounmap(dist_base);
->> +               pr_warn(PREFIX "Invalid GIC cpu interface base addre=
-ss\n");
->> +               return -EINVAL;
->> +       }
->> +
->> +       cpu_base =3D ioremap(acpi_lapic_addr, GIC_CPU_INTERFACE_MEMO=
-RY_SIZE);
-> How are gic's with different cpu address per core going to be handled=
-?
-
-do you mean some GIC without banked registers?
-if yes, ACPI can handle that, in the GIC (GIC cpu interface) structure,=
- there is
-"Physical Base Address" per core, we can use it to handle gic's with di=
-fferent
-cpu address per core.
-
-This part of code is not implemented yet, if needed, will send out in n=
-ext version.
-
-
->> +       if (!cpu_base) {
->> +               iounmap(dist_base);
->> +               pr_warn(PREFIX "unable to map gic cpu registers\n");
-> All the printks are a bit verbose for my tastes. I think a single
-> error print would suffice.
-
-do you mean if meet some error, then got to a single error printk?
-
->> +               return -ENOMEM;
->> +       }
->> +
->> +       gic_init(distributor->gic_id, -1, dist_base, cpu_base);
->> +
->>          return 0;
->>   }
->> +#else
->> +static int __init
->> +acpi_parse_gic_distributor(struct acpi_subtable_header *header,
->> +                               const unsigned long end)
->> +{
->> +       return -ENODEV;
->> +}
->> +#endif /* CONFIG_ARM_GIC */
-> A "if (!IS_ENABLED(CONFIG_ARM_GIC)) return;" in the above function
-> would eliminate this ifdef.
-
-Thanks for the suggestion, will do it
-
->>   /*
->>    * Parse GIC cpu interface related entries in MADT
->> @@ -234,7 +280,7 @@ acpi_parse_gic_distributor(struct acpi_subtable_=
-header *header,
->>   static int __init acpi_parse_madt_gic_entries(void)
->>   {
->>          int count;
->> -
->> +
-> Unnecessary whitespace change.
-
-will update it :)
+Good catch, will fix it
 
 Thanks
 Hanjun
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
