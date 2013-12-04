@@ -1,235 +1,207 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC part2 PATCH 9/9] ACPI / GIC: Initialize GIC using the information
- in MADT
-Date: Wed, 04 Dec 2013 23:32:58 +0800
-Message-ID: <529F4B2A.6060508@linaro.org>
-References: <1386088753-2850-1-git-send-email-hanjun.guo@linaro.org> <1386088753-2850-10-git-send-email-hanjun.guo@linaro.org> <529E1443.9040509@arm.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [RFC part3 PATCH 1/2] clocksource / arch_timer: Use ACPI GTDT
+ table to initialize arch timer
+Date: Wed, 4 Dec 2013 09:33:35 -0600
+Message-ID: <CAL_JsqJYUasvVDZjkuFwEiMxWhXNEzhhSP2ni1KKDeQQjmnzjg@mail.gmail.com>
+References: <1386069328-22502-1-git-send-email-hanjun.guo@linaro.org>
+	<1386069328-22502-2-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:59486 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932528Ab3LDPdL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 10:33:11 -0500
-Received: by mail-pb0-f54.google.com with SMTP id un15so23594397pbc.41
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Dec 2013 07:33:10 -0800 (PST)
-In-Reply-To: <529E1443.9040509@arm.com>
+Received: from mail-ve0-f175.google.com ([209.85.128.175]:64914 "EHLO
+	mail-ve0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932580Ab3LDPdg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 10:33:36 -0500
+In-Reply-To: <1386069328-22502-2-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Olof Johansson <olof@lixom.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Jon Masters <jonathan@jonmasters.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.or
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, linux-acpi@vger.kernel.org, Linaro Patches <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, linaro-acpi@lists.linaro.org, Olof Johansson <olof@lixom.net>, Amit Daniel Kachhap <amit.daniel@samsung.com>, Grant Likely <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 01:26, Marc Zyngier wrote:
-> Hi Hanjun,
+On Tue, Dec 3, 2013 at 5:15 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> ACPI GTDT (Generic Timer Description Table) contains information for
+> arch timer initialization, this patch use this table to probe arm timer.
 >
-> On 03/12/13 16:39, Hanjun Guo wrote:
->> In MADT table, there are GIC cpu interface base address and
->> GIC distributor base address, use them to convert GIC to ACPI.
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>   arch/arm64/kernel/irq.c      |    5 ++++
->>   drivers/acpi/plat/arm-core.c |   66 ++++++++++++++++++++++++++++++=
-++++++------
->>   include/linux/acpi.h         |    6 ++++
->>   3 files changed, 68 insertions(+), 9 deletions(-)
->>
->> diff --git a/arch/arm64/kernel/irq.c b/arch/arm64/kernel/irq.c
->> index 473e5db..a9e68bf 100644
->> --- a/arch/arm64/kernel/irq.c
->> +++ b/arch/arm64/kernel/irq.c
->> @@ -25,6 +25,7 @@
->>   #include <linux/irq.h>
->>   #include <linux/smp.h>
->>   #include <linux/init.h>
->> +#include <linux/acpi.h>
->>   #include <linux/irqchip.h>
->>   #include <linux/seq_file.h>
->>   #include <linux/ratelimit.h>
->> @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(str=
-uct pt_regs *))
->>   void __init init_IRQ(void)
->>   {
->>   	irqchip_init();
->> +
->> +	if (!handle_arch_irq)
->> +		acpi_gic_init();
->> +
-> Why is the GIC hardcoded?
+> GTDT table is used for ARM/ARM64 only, please refer to chapter 5.2.24
+> of ACPI 5.0 spec for detailed inforamtion
+>
+> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  drivers/clocksource/arm_arch_timer.c |  129 ++++++++++++++++++++++++++++++----
+>  include/clocksource/arm_arch_timer.h |    7 +-
+>  2 files changed, 120 insertions(+), 16 deletions(-)
+>
+> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+> index 95fb944..c968041 100644
+> --- a/drivers/clocksource/arm_arch_timer.c
+> +++ b/drivers/clocksource/arm_arch_timer.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/io.h>
+>  #include <linux/slab.h>
+>  #include <linux/sched_clock.h>
+> +#include <linux/acpi.h>
+>
+>  #include <asm/arch_timer.h>
+>  #include <asm/virt.h>
+> @@ -632,20 +633,8 @@ static void __init arch_timer_common_init(void)
+>         arch_timer_arch_init();
+>  }
+>
+> -static void __init arch_timer_init(struct device_node *np)
+> +static void __init arch_timer_init(void)
+>  {
+> -       int i;
+> -
+> -       if (arch_timers_present & ARCH_CP15_TIMER) {
+> -               pr_warn("arch_timer: multiple nodes in dt, skipping\n");
+> -               return;
+> -       }
+> -
+> -       arch_timers_present |= ARCH_CP15_TIMER;
+> -       for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
+> -               arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
+> -       arch_timer_detect_rate(NULL, np);
+> -
+>         /*
+>          * If HYP mode is available, we know that the physical timer
+>          * has been configured to be accessible from PL1. Use it, so
+> @@ -667,8 +656,118 @@ static void __init arch_timer_init(struct device_node *np)
+>         arch_timer_register();
+>         arch_timer_common_init();
+>  }
+> -CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_init);
+> -CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_init);
+> +
+> +static void __init arch_timer_of_init(struct device_node *np)
+> +{
+> +       int i;
+> +
+> +       if (arch_timers_present & ARCH_CP15_TIMER) {
+> +               pr_warn("arch_timer: multiple nodes in dt, skipping\n");
+> +               return;
+> +       }
+> +
+> +       arch_timers_present |= ARCH_CP15_TIMER;
+> +       for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
+> +               arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
+> +       arch_timer_detect_rate(NULL, np);
+> +
+> +       arch_timer_init();
+> +}
+> +CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
+> +CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_of_init);
+> +
+> +#ifdef CONFIG_ACPI
+> +void __init arch_timer_acpi_init(void)
+> +{
+> +       struct acpi_table_gtdt *gtdt;
+> +       acpi_size tbl_size;
+> +       int trigger, polarity;
+> +       void __iomem *base = NULL;
+> +
+> +       if (acpi_disabled)
 
-Very good question, thanks. I considered GIC only in my patch set.
-I have no idea how to handle the GIC hardcoded problem here for
-now, but I will figure it out later.
+Wouldn't the core ACPI code never call this function if ACPI is disabled?
 
-If any suggestion, I will appreciate a lot.
+> +               return;
+> +
+> +       if (arch_timers_present & ARCH_CP15_TIMER) {
+> +               pr_warn("arch_timer: already initialized, skipping\n");
+> +               return;
+> +       }
+> +
+> +       if (ACPI_FAILURE(acpi_get_table_with_size(ACPI_SIG_GTDT, 0,
+> +                       (struct acpi_table_header **)&gtdt, &tbl_size))) {
+> +               pr_err("arch_timer: GTDT table not defined\n");
+> +               return;
+> +       }
+> +
+> +       arch_timers_present |= ARCH_CP15_TIMER;
 
-> How are you going to support other interrupt
-> controllers?
+So you have marked the timer as initialized, but then may fail on
+error later on here.
 
-ACPI 5.0 supports GICv2 only for now, if we want to
-support other interrupt controller, we should introduce
-some OEM table and parsing it, and it will not covered
-by this patch set.
+> +
+> +       /*
+> +        * Get the timer frequency. Since there is no frequency info
+> +        * in the GTDT table, so we should read it from CNTFREG register
+> +        * or hard code here to wait for the new ACPI spec available.
+> +        */
+> +       if (!gtdt->address) {
+> +               arch_timer_rate = arch_timer_get_cntfrq();
+> +       } else {
+> +               base = ioremap(gtdt->address, CNTFRQ);
+> +               if (!base) {
+> +                       pr_warn("arch_timer: unable to map arch timer base address\n");
+> +                       return;
+> +               }
+> +
+> +               arch_timer_rate = readl_relaxed(base + CNTFRQ);
+> +               iounmap(base);
 
->>   	if (!handle_arch_irq)
->>   		panic("No interrupt controller found.");
->>   }
->> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-co=
-re.c
->> index 17c99e1..509b847 100644
->> --- a/drivers/acpi/plat/arm-core.c
->> +++ b/drivers/acpi/plat/arm-core.c
->> @@ -29,6 +29,7 @@
->>   #include <linux/module.h>
->>   #include <linux/irq.h>
->>   #include <linux/irqdomain.h>
->> +#include <linux/irqchip/arm-gic.h>
->>   #include <linux/slab.h>
->>   #include <linux/bootmem.h>
->>   #include <linux/ioport.h>
->> @@ -211,11 +212,21 @@ acpi_parse_gic(struct acpi_subtable_header *he=
-ader, const unsigned long end)
->>   	return 0;
->>   }
->>  =20
->> +#ifdef CONFIG_ARM_GIC
->> +/*
->> + * Hard code here, we can not get memory size from MADT (but FDT do=
-es),
->> + * this size is described in ARMv8 foudation model's User Guide
->> + */
->> +#define GIC_DISTRIBUTOR_MEMORY_SIZE (SZ_8K)
->> +#define GIC_CPU_INTERFACE_MEMORY_SIZE (SZ_4K)
-> Aside from the incorrect sizes, how do you plan to address the other
-> regions that the GICv2 specification describes?
+This is for memory mapped timer? If so, then isn't setting
+ARCH_CP15_TIMER the wrong thing to do?
 
-Did these regions have the same base address? I mean the same
-as GIC distributor base address and GIC cpu interface base address.
+> +       }
+> +
+> +       if (!arch_timer_rate) {
+> +               /* Hard code here to set frequence ? */
+> +               pr_warn("arch_timer: Could not get frequency from GTDT table or CNTFREG\n");
+> +       }
+> +
+> +       if (gtdt->secure_pl1_interrupt) {
 
-if yes, since the base address is stored in gic_init(), it can be for=20
-furture
-use. if I misunderstood your question, please let me know.
+Really, I think the kernel should just ignore the secure interrupt.
+The DT code has the same issue, but that doesn't affect the code size.
 
->>   static int __init
->>   acpi_parse_gic_distributor(struct acpi_subtable_header *header,
->>   				const unsigned long end)
->>   {
->>   	struct acpi_madt_generic_distributor *distributor =3D NULL;
->> +	void __iomem *dist_base =3D NULL;
->> +	void __iomem *cpu_base =3D NULL;
->>  =20
->>   	distributor =3D (struct acpi_madt_generic_distributor *)header;
->>  =20
->> @@ -224,8 +235,43 @@ acpi_parse_gic_distributor(struct acpi_subtable=
-_header *header,
->>  =20
->>   	acpi_table_print_madt_entry(header);
->>  =20
->> +	/* GIC is initialised after page_init(), no need for early_ioremap=
- */
->> +	dist_base =3D ioremap(distributor->base_address,
->> +				GIC_CPU_INTERFACE_MEMORY_SIZE);
->> +	if (!dist_base) {
->> +		pr_warn(PREFIX "unable to map gic dist registers\n");
->> +		return -ENOMEM;
->> +	}
->> +
->> +	/*
->> +	 * acpi_lapic_addr is stored in acpi_parse_madt(),
->> +	 * so we can use it here for GIC init
->> +	 */
->> +	if (acpi_lapic_addr) {
->> +		iounmap(dist_base);
->> +		pr_warn(PREFIX "Invalid GIC cpu interface base address\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	cpu_base =3D ioremap(acpi_lapic_addr, GIC_CPU_INTERFACE_MEMORY_SIZ=
-E);
->> +	if (!cpu_base) {
->> +		iounmap(dist_base);
->> +		pr_warn(PREFIX "unable to map gic cpu registers\n");
->> +		return -ENOMEM;
->> +	}
->> +
->> +	gic_init(distributor->gic_id, -1, dist_base, cpu_base);
->> +
->>   	return 0;
->>   }
->> +#else
->> +static int __init
->> +acpi_parse_gic_distributor(struct acpi_subtable_header *header,
->> +				const unsigned long end)
->> +{
->> +	return -ENODEV;
->> +}
->> +#endif /* CONFIG_ARM_GIC */
->>  =20
->>   /*
->>    * Parse GIC cpu interface related entries in MADT
->> @@ -234,7 +280,7 @@ acpi_parse_gic_distributor(struct acpi_subtable_=
-header *header,
->>   static int __init acpi_parse_madt_gic_entries(void)
->>   {
->>   	int count;
->> -
->> +
->>   	/*
->>   	 * do a partial walk of MADT to determine how many CPUs
->>   	 * we have including disabled CPUs
->> @@ -468,19 +514,21 @@ static void __init acpi_process_madt(void)
->>   		 * Parse MADT GIC cpu interface entries
->>   		 */
->>   		error =3D acpi_parse_madt_gic_entries();
->> -		if (!error) {
->> -			/*
->> -			 * Parse MADT GIC distributor entries
->> -			 */
->> -			acpi_parse_madt_gic_distributor_entries();
->> -		}
->> +		if (!error)
->> +			pr_info("Using ACPI for processor (GIC) configuration informatio=
-n\n");
->>   	}
->>  =20
->> -	pr_info("Using ACPI for processor (GIC) configuration information\=
-n");
->> -
->>   	return;
->>   }
->>  =20
->> +int __init acpi_gic_init(void)
->> +{
->> +	/*
->> +	 * Parse MADT GIC distributor entries
->> +	 */
->> +	return acpi_parse_madt_gic_distributor_entries();
->> +}
->> +
-> Why can't you do the GIC init in the GIC code? We've tried hard to ma=
-ke
-> interrupt controllers discoverable and self contained.
+> +               trigger = (gtdt->secure_pl1_flags & ACPI_GTDT_INTERRUPT_MODE) ?
+> +                       ACPI_EDGE_SENSITIVE : ACPI_LEVEL_SENSITIVE;
 
-thanks for your suggestion, Rob also had the same suggestion,
-will try to update it in next version.
+Why not use the already defined linux irq trigger types here and make
+acpi_register_gsi use them?
 
-> What are you
-> going to do when ACPI adds GICv3 to the mix? I don't really think thi=
-s
-> model (shoving everything into the core ACPI code) is sustainable in =
-the
-> long run...
+> +               polarity =
+> +                       (gtdt->secure_pl1_flags & ACPI_GTDT_INTERRUPT_POLARITY)
+> +                       ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
+> +               arch_timer_ppi[0] = acpi_register_gsi(NULL,
+> +                               gtdt->secure_pl1_interrupt, trigger, polarity);
+> +       }
+> +       if (gtdt->non_secure_pl1_interrupt) {
+> +               trigger =
+> +                       (gtdt->non_secure_pl1_flags & ACPI_GTDT_INTERRUPT_MODE)
+> +                       ? ACPI_EDGE_SENSITIVE : ACPI_LEVEL_SENSITIVE;
+> +               polarity =
+> +               (gtdt->non_secure_pl1_flags & ACPI_GTDT_INTERRUPT_POLARITY)
+> +                       ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
+> +               arch_timer_ppi[1] = acpi_register_gsi(NULL,
+> +                       gtdt->non_secure_pl1_interrupt, trigger, polarity);
+> +       }
+> +       if (gtdt->virtual_timer_interrupt) {
+> +               trigger = (gtdt->virtual_timer_flags & ACPI_GTDT_INTERRUPT_MODE)
+> +                       ? ACPI_EDGE_SENSITIVE : ACPI_LEVEL_SENSITIVE;
+> +               polarity =
+> +               (gtdt->virtual_timer_flags & ACPI_GTDT_INTERRUPT_POLARITY)
+> +                       ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
+> +               arch_timer_ppi[2] = acpi_register_gsi(NULL,
+> +                       gtdt->virtual_timer_interrupt, trigger, polarity);
+> +       }
+> +       if (gtdt->non_secure_pl2_interrupt) {
+> +               trigger =
+> +                       (gtdt->non_secure_pl2_flags & ACPI_GTDT_INTERRUPT_MODE)
+> +                       ? ACPI_EDGE_SENSITIVE : ACPI_LEVEL_SENSITIVE;
+> +               polarity =
+> +               (gtdt->non_secure_pl2_flags & ACPI_GTDT_INTERRUPT_POLARITY)
+> +                       ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
+> +               arch_timer_ppi[3] = acpi_register_gsi(NULL,
+> +                       gtdt->non_secure_pl2_interrupt, trigger, polarity);
+> +       }
+> +
+> +       early_acpi_os_unmap_memory(gtdt, tbl_size);
 
-Since GICv3 related ACPI proposal is not public and not goes into ACPI
-spec, my suggestion is that we implement GICv2 only for now and post
-another patches for GICv3 when the new ACPI spec is available.
+Who did the mapping? acpi_get_table_with_size? I think the core code
+should handle the mapping and unmapping of ACPI tables. We don't want
+to have to duplicate this in every initialization function. This seems
+error prone.
 
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rob
