@@ -1,101 +1,79 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC part2 PATCH 7/9] irqdomain: Add a new API irq_create_acpi_mapping()
-Date: Wed, 04 Dec 2013 23:38:56 +0800
-Message-ID: <529F4C90.4070402@linaro.org>
-References: <1386088753-2850-1-git-send-email-hanjun.guo@linaro.org> <1386088753-2850-8-git-send-email-hanjun.guo@linaro.org> <CAL_JsqK93mJbFu+GaK_5L14jKnMgctUNdEBqS6K5zKer16Sm3Q@mail.gmail.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [RFC part2 PATCH 2/9] ARM64 / ACPI: Prefill cpu possible/present
+ maps and map logical cpu id to APIC id
+Date: Wed, 4 Dec 2013 09:40:04 -0600
+Message-ID: <CAL_JsqLGkxS13NAGJfqExFii-RcF3xRsvucjQbFoHeP5zoRkxA@mail.gmail.com>
+References: <1386088753-2850-1-git-send-email-hanjun.guo@linaro.org>
+	<1386088753-2850-3-git-send-email-hanjun.guo@linaro.org>
+	<20131203165755.37b07796@alan.etchedpixels.co.uk>
+	<529F3A57.7010306@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f48.google.com ([209.85.160.48]:56415 "EHLO
-	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932392Ab3LDPjK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 10:39:10 -0500
-Received: by mail-pb0-f48.google.com with SMTP id md12so23471650pbc.7
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Dec 2013 07:39:10 -0800 (PST)
-In-Reply-To: <CAL_JsqK93mJbFu+GaK_5L14jKnMgctUNdEBqS6K5zKer16Sm3Q@mail.gmail.com>
+Received: from mail-vc0-f169.google.com ([209.85.220.169]:34534 "EHLO
+	mail-vc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932528Ab3LDPkF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 10:40:05 -0500
+In-Reply-To: <529F3A57.7010306@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Linaro Patches <patches@linaro.org>, Olof Johansson <olof@lixom.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Amit Daniel Kachhap <amit.daniel@samsung.com>, Grant Likely <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linaro Patches <patches@linaro.org>, Olof Johansson <olof@lixom.net>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 01:25, Rob Herring wrote:
-> On Tue, Dec 3, 2013 at 10:39 AM, Hanjun Guo <hanjun.guo@linaro.org> w=
-rote:
->> From: Amit Daniel Kachhap <amit.daniel@samsung.com>
+On Wed, Dec 4, 2013 at 8:21 AM, Hanjun Guo <hanjun.guo@linaro.org> wrot=
+e:
+> On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 00:57, One Thousand Gnomes wro=
+te:
+>>>
+>>> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-c=
+ore.c
+>>> index 45ff625..8527ecc 100644
+>>> --- a/drivers/acpi/plat/arm-core.c
+>>> +++ b/drivers/acpi/plat/arm-core.c
+>>> @@ -58,6 +58,13 @@ EXPORT_SYMBOL(acpi_pci_disabled);
+>>>    */
+>>>   static u64 acpi_lapic_addr __initdata;
+>>>   +/* available_cpus here means enabled cpu in MADT */
+>>> +int available_cpus;
+>>> +
+>>> +/* Map logic cpu id to physical GIC id. */
+>>> +int arm_cpu_to_apicid[NR_CPUS] =3D { [0 ... NR_CPUS-1] =3D -1 };
+>>> +int boot_cpu_apic_id =3D -1;
+>>> +
 >>
->> This patch introduces a new API for acpi based irq mapping.
+>> static ?
 >>
->> [hanjun: Rework this patch to delete the reference to
->> gic_irq_domain_xlate() which can simplify the code a lot.]
+>> Really shouldn't be leaking names like "available_cpus" out of ACPI =
+into
+>> the global namespace
+>
+>
+> Ok, will update in next version.
+>
+>
+>
+>>> +#ifdef CONFIG_SMP
+>>> +       if (available_cpus =3D=3D 0) {
+>>> +               pr_info(PREFIX "Found 0 CPUs; assuming 1\n");
+>>> +               /* FIXME: should be the real GIC id read from hardw=
+are */
+>>> +               arm_cpu_to_apicid[available_cpus] =3D 0;
+>>> +               available_cpus =3D 1;     /* We've got at least one=
+ of
+>>> these */
+>>> +       }
+>>> +#endif
 >>
->> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>   include/linux/acpi.h   |    2 ++
->>   kernel/irq/irqdomain.c |   27 +++++++++++++++++++++++++++
->>   2 files changed, 29 insertions(+)
->>
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index 1e6a0ac..edd5806 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -141,6 +141,8 @@ int acpi_map_lsapic(acpi_handle handle, int phys=
-id, int *pcpu);
->>   int acpi_unmap_lsapic(int cpu);
->>   #endif /* CONFIG_ACPI_HOTPLUG_CPU */
->>
->> +unsigned int irq_create_acpi_mapping(irq_hw_number_t hwirq,
->> +                                        unsigned int type);
->>   int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gs=
-i_base);
->>   int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base);
->>   void acpi_irq_stats_init(void);
->> diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
->> index cf68bb3..c661552 100644
->> --- a/kernel/irq/irqdomain.c
->> +++ b/kernel/irq/irqdomain.c
->> @@ -501,6 +501,33 @@ unsigned int irq_create_of_mapping(struct of_ph=
-andle_args *irq_data)
->>   }
->>   EXPORT_SYMBOL_GPL(irq_create_of_mapping);
->>
->> +#ifdef CONFIG_ACPI
->> +unsigned int irq_create_acpi_mapping(irq_hw_number_t hwirq,
->> +                                       unsigned int type)
->> +{
->> +       struct irq_domain *domain;
->> +       unsigned int virq;
->> +
->> +       domain =3D irq_default_domain;
->> +       if (!domain) {
->> +               pr_warn("no irq domain found !\n");
->> +               return 0;
->> +       }
->> +
->> +       /* Create mapping */
->> +       virq =3D irq_create_mapping(domain, hwirq);
->> +       if (!virq)
->> +               return virq;
->> +
->> +       /* Set type if specified and different than the current one =
-*/
->> +       if (type !=3D IRQ_TYPE_NONE &&
->> +           type !=3D irq_get_trigger_type(virq))
->> +               irq_set_irq_type(virq, type);
->> +       return virq;
->> +}
->> +EXPORT_SYMBOL_GPL(irq_create_acpi_mapping);
-> There is nothing ACPI specific about this function. This is simply
-> irq_create_of_mapping w/o translating of_phandle_args to a hwirq and
-> type. So I expect the code to be re-factored here to mirror that.
+>> Isn't this true uniprocessor (by definition in fact)
+>
+>
+> This code is intend to handle some buggy firmware I think.
 
-Sorry for my bad english, do you mean create a OF free function
-and call that from the OF function ?
+Really? We have production firmware already that we need to
+work-around? That's impressive given there is no production h/w.
 
-Thanks
-Hanjun
+Rob
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
