@@ -1,74 +1,58 @@
-From: al.stone@linaro.org
-Subject: [PATCH v3 5/5] ACPI: do not map/unmap memory regions for FADT entries in reduced HW mode
-Date: Wed,  4 Dec 2013 14:22:07 -0700
-Message-ID: <1386192127-28564-6-git-send-email-al.stone@linaro.org>
-References: <1386192127-28564-1-git-send-email-al.stone@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/4] Convert ACPI fan driver to platform driver
+Date: Thu, 05 Dec 2013 00:07:31 +0100
+Message-ID: <1654759.afJtadVnDQ@vostro.rjw.lan>
+References: <1386059312-2990-1-git-send-email-aaron.lu@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:63618 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755434Ab3LDVW0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 16:22:26 -0500
-Received: by mail-ie0-f178.google.com with SMTP id lx4so27177431iec.23
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Dec 2013 13:22:26 -0800 (PST)
-In-Reply-To: <1386192127-28564-1-git-send-email-al.stone@linaro.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:58584 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755146Ab3LDWyd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 17:54:33 -0500
+In-Reply-To: <1386059312-2990-1-git-send-email-aaron.lu@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Al Stone <al.stone@linaro.org>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Al Stone <al.stone@linaro.org>
+On Tuesday, December 03, 2013 04:28:28 PM Aaron Lu wrote:
+> This patchset converts ACPI fan driver to platform driver. Patch 1-3 are
+> cleanups for existing fan driver and patch 4 does the convertion.
+> 
+> Tested on harris beach.
+> Apply on top of Rafael's linux-next branch.
+> 
+> Aaron Lu (4):
+>   ACPI / fan: remove unused macro for debug
+>   ACPI / fan: remove no need check for device pointer
+>   ACPI / fan: use acpi_device_xxx_power instead of acpi_bus equivelant
+>   ACPI / fan: convert to platform driver
+> 
+>  drivers/acpi/acpi_platform.c |  3 ++
+>  drivers/acpi/device_pm.c     |  1 +
+>  drivers/acpi/fan.c           | 88 ++++++++++++++++----------------------------
+>  drivers/acpi/internal.h      |  2 -
+>  include/acpi/acpi_bus.h      |  1 +
+>  5 files changed, 36 insertions(+), 59 deletions(-)
 
-Several of the FADT fields are normally kept in specific memory
-regions.  Since these fields are to be ignored in hardware reduced
-ACPI mode, do not map those addresses when in that mode, and of
-course do not release the mappings that have not been made.
+Unfortunately, we need to postpone these conversions, because Matthew Garrett
+has problems with adding more entries to acpi_platform_device_ids[].  He seems
+to be concerned that that list will grow indefinitely and will become difficult
+to maintain eventually.
 
-The function acpi_os_initialize() could become a stub in the header
-file but is left here in case it can be of further use.
+For this reason, he would prefer it if we did the following:
+- Figure out the list of ACPI device IDs we need to create PNP devices for
+  via ACPI PNP.
+- Make ACPI PNP create PNP devices for these IDs only and make the ACPI core create
+  platform devices for all "unassigned" ACPI device objects by default.
+- Do the conversions at that point.
 
-Signed-off-by: Al Stone <al.stone@linaro.org>
----
- drivers/acpi/osl.c | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+I'm slightly worried that we'll encounter ordering issues while doing that, but
+this is the only way forward I can see without going straight against the
+Matthew's objections, which I'd prefer to avoid.
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 613e4a1..3a0bb92 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1776,10 +1776,12 @@ __setup("acpi_no_auto_ssdt", acpi_no_auto_ssdt_setup);
- 
- acpi_status __init acpi_os_initialize(void)
- {
--	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
--	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
--	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
--	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
-+	if (!acpi_gbl_reduced_hardware) {
-+		acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
-+		acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
-+		acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
-+		acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
-+	}
- 
- 	return AE_OK;
- }
-@@ -1804,10 +1806,12 @@ acpi_status acpi_os_terminate(void)
- 						 acpi_irq_handler);
- 	}
- 
--	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
--	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
--	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
--	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
-+	if (!acpi_gbl_reduced_hardware) {
-+		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
-+		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
-+		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
-+		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
-+	}
- 
- 	destroy_workqueue(kacpid_wq);
- 	destroy_workqueue(kacpi_notify_wq);
--- 
-1.8.3.1
+Thanks,
+Rafael
 
