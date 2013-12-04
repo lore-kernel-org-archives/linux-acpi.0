@@ -1,67 +1,80 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCHv2 2/2] ACPI/platform: Add ACPI ID for Intel MBI device
-Date: Wed, 04 Dec 2013 22:34:45 +0100
-Message-ID: <16922953.M8X8XT9eUD@vostro.rjw.lan>
-References: <1385100357-5459-1-git-send-email-david.e.box@linux.intel.com> <20131204024452.GB8282@linux.intel.com> <20131204025407.GA26448@srcf.ucam.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20131204025407.GA26448@srcf.ucam.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "David E. Box" <david.e.box@linux.intel.com>, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
+From: al.stone@linaro.org
+Subject: [PATCH v3 0/5] Hardware Reduced Mode Cleanup for ACPI
+Date: Wed,  4 Dec 2013 14:22:02 -0700
+Message-ID: <1386192127-28564-1-git-send-email-al.stone@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:50756 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754438Ab3LDVWT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 16:22:19 -0500
+Received: by mail-ie0-f172.google.com with SMTP id qd12so28175010ieb.17
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Dec 2013 13:22:17 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Al Stone <al.stone@linaro.org>
 
-On Wednesday, December 04, 2013 02:54:07 AM Matthew Garrett wrote:
-> On Tue, Dec 03, 2013 at 06:44:52PM -0800, David E. Box wrote:
-> > On Wed, Dec 04, 2013 at 02:21:30AM +0000, Matthew Garrett wrote:
-> > > Well sure, but why do you need to be a platform device at all? This 
-> > > functionality was intended for cases where we already have a driver for 
-> > > the part that enumerated it via some other mechanism. If the driver's 
-> > > only intended for ACPI systems then why not just be an ACPI device?
+From: Al Stone <al.stone@linaro.org>
 
-Because struct acpi_device things are firmawre objects that shouldn't be
-treated as devices.
+This series of patches starts with Hanjun's patch to create a kernel
+config item for CONFIG_ACPI_REDUCED_HARDWARE [0].  Building on that, I
+then reviewed all of the code that touched any of several fields in the
+FADT that the OSPM is supposed to ignore when ACPI is in Hardware Reduced
+mode [1].  Any time there was a use of one of the fields to be ignored,
+I evaluated whether or not the code was implementing Hardware Reduced
+mode correctly.  Similarly, for each the flags in the FADT flags field
+that are to be ignored in Hardware Reduced mode, the kernel code was again
+scanned for proper usage.  The remainder of the patches are to fix all of
+the situations I could find where the kernel would not behave correctly
+in this ACPI mode.
 
-> > 
-> > It was my understanding that with ACPI 5.0 it was becoming more common to use
-> > ACPI ID's exclusively for device enumeration. I originally wrote this as an
-> > acpi_bus driver but Rafeal advised me that the model is being phased out and
-> > suggeted the platform model instead.
-> 
-> If you're not adding ACPI support to an existing platform driver, you 
-> shouldn't be adding entries to acpi_platform.c. I'm not actually happy 
-> that I merged the ideapad-laptop patch that did the same thing - I'm 
-> inclined to revert it, because this really is an ugly way to do things.
-> 
-> Rafael, why did we convert the AC driver this way? It means we have to 
-> keep track of ACPI IDs in multiple places,
+These seem to work just fine on the RTSM model for ARMv7, both with and
+without ACPI enabled, and with and without ACPI_REDUCED_HARDWARE enabled;
+similarly for the FVP model for ARMv8.  The patches for ACPI on ARM
+hardware have been submitted elsewhere but they presume that reduced HW
+mode is functioning correctly.  In the meantime, there's no way I can think
+of to test all possible scenarios so feedback would be greatly appreciated.
 
-Yes, in two places to be precise.
 
-> which is worth it when it avoids having to write a pile of new code (such as
-> the sdhci case) but doesn't seem to provide benefits otherwise.
+[0] List at https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI/AcpiReducedHw#Section_5:_ACPI_Software_Programming_Model
+[1] Please see the ACPI Specification v5.0 for details on Hardware Reduced
+    mode (sections 3.11.1, 4.1, 5.2.9, at a minimum).
 
-Well, I thought we discussed that, but perhaps we didn't.
 
-There's some confusion about what a struct acpi_device is, because sometimes it
-is treated as a "companion" of a physical device and sometimes it is treated as
-a physical device itself.  This leads to incorrect code as well sometimes,
-because ACPI drivers may attempt to bind to things that already have physical
-comapnions, for example.
+Changes for v3:
+   -- Modified enabling ACPI_REDUCED_HARDWARE in ACPICA when using
+      kernel config item CONFIG_ACPI_REDUCED_HARDWARE; now consistent
+      with ACPICA code base where needed
+   -- Enable X86 for CONFIG_ACPI_REDUCED_HARDWARE
+   -- Minimize bus master reload patching
+   -- Remove unneeded patch for dmi_check_system() (was 4/6)
+   -- Correct the patch for removing unneeded map/unmap of FADT fields
 
-The approach to this I thought we could use, and that we've been using to some
-extent already, is to create "physical" companions for all struct acpi_device
-objects.  In this particular this "physical companion" is a platform device, so
-it needs to be added to the list in acpi_platform.c.  [Otherwise the ACPI PNP
-core would create a PNP device for it (unless an ACPI driver is bound to that
-struct acpi_device before, but that makes the correctness of the thing depend
-on the ordering of driver probing, which is not awesome).]
+Changes for v2:
+   -- Remove patch that was outside of reduced HW mode changes
+   -- Simplify CONFIG_ACPI_REDUCED_HARDWARE in Kconfig
+   -- Simplify use of CONFIG_ACPI_REDUCED_HARDWARE in #ifdefs
+   -- Ensure changelogs are present
+   -- Combine and simplify previous patches 8 & 10
 
-In this approach device drivers bind to the "physical" devices (platform devices
-etc.) instead of struct acpi_device themselves and at least everything is
-consistent.
 
-Thanks,
-Rafael
+Al Stone (5):
+  ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE to enable this ACPI mode
+  ACPI: bus master reload not supported in reduced HW mode
+  ACPI: HW reduced mode does not allow use of the FADT sci_interrupt
+    field
+  ACPI: in HW reduced mode, using FADT PM information is not allowed.
+  ACPI: do not map/unmap memory regions for FADT entries in reduced HW
+    mode
+
+ drivers/acpi/Kconfig            |  8 ++++++++
+ drivers/acpi/bus.c              |  3 ++-
+ drivers/acpi/osl.c              | 36 +++++++++++++++++-------------------
+ drivers/acpi/pci_link.c         |  2 ++
+ drivers/acpi/processor_idle.c   | 15 +++++++++++++--
+ include/acpi/platform/aclinux.h |  6 ++++++
+ 6 files changed, 48 insertions(+), 22 deletions(-)
+
+-- 
+1.8.3.1
+
