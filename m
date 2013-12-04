@@ -1,59 +1,46 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH v2 4/6] ACPI: ARM: exclude DMI calls
-Date: Wed, 4 Dec 2013 01:34:30 +0000
-Message-ID: <20131204013430.GA25154@srcf.ucam.org>
-References: <CAOesGMgFBRjO++JSP0ddKKQ2RfG8V4fb97Hd+Oqwixi_Tt7Qwg@mail.gmail.com>
- <4285284.l8TssFvumi@vostro.rjw.lan>
- <528FF15C.4060300@linaro.org>
- <20131123163854.GA1817@srcf.ucam.org>
- <1AE640813FDE7649BE1B193DEA596E880248D1A8@SHSMSX101.ccr.corp.intel.com>
- <20131125153016.GA3243@srcf.ucam.org>
- <52938C3F.20905@linaro.org>
- <20131125174552.GA7417@srcf.ucam.org>
- <52939064.6090803@linaro.org>
- <529E85C8.5050805@linaro.org>
+From: "David E. Box" <david.e.box@linux.intel.com>
+Subject: Re: [PATCHv2 2/2] ACPI/platform: Add ACPI ID for Intel MBI device
+Date: Tue, 3 Dec 2013 18:17:03 -0800
+Message-ID: <20131204021703.GA8282@linux.intel.com>
+References: <1385100357-5459-1-git-send-email-david.e.box@linux.intel.com>
+ <1386115178-7559-1-git-send-email-david.e.box@linux.intel.com>
+ <1386115178-7559-3-git-send-email-david.e.box@linux.intel.com>
+ <20131204013001.GA25037@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:41022 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755237Ab3LDBel (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Dec 2013 20:34:41 -0500
+Received: from mga02.intel.com ([134.134.136.20]:16733 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753505Ab3LDCS3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Dec 2013 21:18:29 -0500
 Content-Disposition: inline
-In-Reply-To: <529E85C8.5050805@linaro.org>
+In-Reply-To: <20131204013001.GA25037@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Rob Herring <robherring2@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linaro Patches <patches@linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: rjw@rjwysocki.net, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Dec 03, 2013 at 06:30:48PM -0700, Al Stone wrote:
+On Wed, Dec 04, 2013 at 01:30:01AM +0000, Matthew Garrett wrote:
+> On Tue, Dec 03, 2013 at 03:59:38PM -0800, David E. Box wrote:
+> > From: "David E. Box" <david.e.box@linux.intel.com>
+> > 
+> > Adds ACPI ID for Intel IOSF-SB MailBox device found in BayTrail platforms.
+> 
+> Little bit confused here. This is a new driver and only declares 
+> modaliases for the ACPI IDs - why does it need to be added here?
+> 
 
-> I thought I could get this to work, but I am going to have to defer
-> to the ACPICA upstream folks.  For the time being, I think that all
-> of the architectures that want to use ACPI in either legacy mode or
-> in stripped down reduced HW mode will have to use different kernels,
-> one for each mode.  I thought there might be enough safety checks to
-> allow the kernel to boot in legacy mode and switch into reduced HW at
-> boot, but there are not, in my opinion.  I don't see a way to make the
-> switch *and* maintain conformance with the spec without significant
-> change to ACPICA itself.
+This is per the requirement in Documentation/acpi/enumeration.txt:
 
-Ugh. That needs fixing. There's been a huge amount of work done to 
-ensure that x86 only needs a single kernel image for 64-bit, it really 
-needs to be runtime. We shouldn't have merged it in this state.
+"Currently the kernel is not able to automatically determine from which ACPI
+device it should make the corresponding platform device so we need to add
+the ACPI device explicitly to acpi_platform_device_ids list defined in
+drivers/acpi/acpi_platform.c"
 
-> For example, enforcing that various functions are not allowed while
-> in reduced HW mode could be done by a check of the reduced HW flag on
-> entry.  If it is set, return the value the function would have returned
-> had it been stubbed out for reduced HW mode.  This is simple enough but
-> to do so would require modifying at least 29 functions in ACPICA, by my
-> count, not something upstream is particularly keen on -- nor am I.  I'd
-> rather step back and work with ACPICA over the longer term and see if
-> there's some way to get this functionality implemented properly instead
-> of trying to bolt it on somehow.
+Without adding the device here it would not be discovered and probe would not be
+called during init.
 
-How many of those are calls that we'll actually execute in the HW 
-reduced case?
+David Box
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> -- 
+> Matthew Garrett | mjg59@srcf.ucam.org
