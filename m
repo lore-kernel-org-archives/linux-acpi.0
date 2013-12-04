@@ -1,262 +1,235 @@
-From: Ethan Zhao <ethan.kernel@gmail.com>
-Subject: Re: [BUG] Re: [PATCH v10 1/3] aerdrv: Trace Event for AER
-Date: Wed, 4 Dec 2013 23:28:12 +0800
-Message-ID: <CABawtvP3m_dAKaOLxNqHXQobsgk92ysh6H881i3eDASLi+-WAg@mail.gmail.com>
-References: <20130116235102.16015.77379.stgit@grignak.americas.hpqcorp.net>
-	<CANVTcTabw2pxUP0iinepviavSLHT7AAyaQvA7e-mv2simbX7ow@mail.gmail.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC part2 PATCH 9/9] ACPI / GIC: Initialize GIC using the information
+ in MADT
+Date: Wed, 04 Dec 2013 23:32:58 +0800
+Message-ID: <529F4B2A.6060508@linaro.org>
+References: <1386088753-2850-1-git-send-email-hanjun.guo@linaro.org> <1386088753-2850-10-git-send-email-hanjun.guo@linaro.org> <529E1443.9040509@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CANVTcTabw2pxUP0iinepviavSLHT7AAyaQvA7e-mv2simbX7ow@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: rui wang <ruiv.wang@gmail.com>
-Cc: Lance Ortiz <lance.ortiz@hp.com>, Bjorn Helgaas <bhelgaas@google.com>, lance_ortiz@hotmail.com, jiang.liu@intel.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, m.chehab@samsung.com, linux-acpi@vger.kernel.org, linux-pci <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, gong.chen@linux.intel.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:59486 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932528Ab3LDPdL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 10:33:11 -0500
+Received: by mail-pb0-f54.google.com with SMTP id un15so23594397pbc.41
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Dec 2013 07:33:10 -0800 (PST)
+In-Reply-To: <529E1443.9040509@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Olof Johansson <olof@lixom.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Jon Masters <jonathan@jonmasters.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.or
 
-Rui,
-   Agree with that, there are really many such confusing error type def=
-inition
-need to be standardized or unified, some of them are
-ambiguous=E3=80=81inconsistent, some of them violates ACPI/PCI spec.
-
-  According to the ACPI spec, the 'FATAL' in fact, is a sub-category
-of 'UNCORRECTABLE' , the another one is 'NON-FATAL', then how to
-understand the bebow 'UNCORRECTABLE's ?  mean  uncorrectable-non-fatal
-? just guess, confusing.
-
-acpi\actbl1.h
-
-#define ACPI_EINJ_PROCESSOR_CORRECTABLE     (1)
-#define ACPI_EINJ_PROCESSOR_UNCORRECTABLE   (1<<1)
-#define ACPI_EINJ_PROCESSOR_FATAL           (1<<2)
-#define ACPI_EINJ_MEMORY_CORRECTABLE        (1<<3)
-#define ACPI_EINJ_MEMORY_UNCORRECTABLE      (1<<4)
-#define ACPI_EINJ_MEMORY_FATAL              (1<<5)
-#define ACPI_EINJ_PCIX_CORRECTABLE          (1<<6)
-#define ACPI_EINJ_PCIX_UNCORRECTABLE        (1<<7)
-#define ACPI_EINJ_PCIX_FATAL                (1<<8)
-#define ACPI_EINJ_PLATFORM_CORRECTABLE      (1<<9)
-#define ACPI_EINJ_PLATFORM_UNCORRECTABLE    (1<<10)
-#define ACPI_EINJ_PLATFORM_FATAL            (1<<11)
-
-edac.h
-
-enum hw_event_mc_err_type {
-HW_EVENT_ERR_CORRECTED,
-HW_EVENT_ERR_UNCORRECTED,
-HW_EVENT_ERR_FATAL,
-HW_EVENT_ERR_INFO,
-};
-
-ghes.h
-enum {
-GHES_SEV_NO =3D 0x0,
-GHES_SEV_CORRECTED =3D 0x1,
-GHES_SEV_RECOVERABLE =3D 0x2,
-GHES_SEV_PANIC =3D 0x3,
-};
-
-What's the meaning of GHES_SEV_PANIC ? Why not 'FATAL' , just as
-described in ACPI spec section 18.3.2.6.1,
-"
-Error Severity 4 16 Identifies the error severity of the reported error=
-:
-0 =E2=80=93 Recoverable=EF=80=A0
-1 =E2=80=93 Fatal=EF=80=A0
-2 =E2=80=93 Corrected=EF=80=A0
-3 =E2=80=93 None
-"
-If there is other intension, but could be seen translated into 'FATAL' =
-later:
-
-case GHES_SEV_PANIC:
-  type =3D HW_EVENT_ERR_FATAL;
-
-And these looks reasonable,
-aer.h
-
-#define AER_NONFATAL 0
-#define AER_FATAL 1
-#define AER_CORRECTABLE 2
-
-
-Thanks,
-Ethan
-
-On Wed, Dec 4, 2013 at 11:10 AM, rui wang <ruiv.wang@gmail.com> wrote:
-> Resending adding Mauro's new Email address...
+On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 01:26, Marc Zyngier wrote:
+> Hi Hanjun,
 >
->
-> On 1/17/13, Lance Ortiz <lance.ortiz@hp.com> wrote:
->> This header file will define a new trace event that will be triggere=
-d when
->> a AER event occurs.  The following data will be provided to the trac=
-e
->> event.
+> On 03/12/13 16:39, Hanjun Guo wrote:
+>> In MADT table, there are GIC cpu interface base address and
+>> GIC distributor base address, use them to convert GIC to ACPI.
 >>
->> char * dev_name - The name of the slot where the device resides
->>                   ([domain:]bus:device.function).
->>
->> u32 status - Either the correctable or uncorrectable register
->>              indicating what error or errors have been see.
->>
->> u8 severity - error severity 0:NONFATAL 1:FATAL 2:CORRECTED
->>
->> The trace event will also provide a trace string that may look like:
->>
->> "0000:05:00.0 PCIe Bus Error:severity=3DUncorrected (Non-Fatal), Poi=
-soned
->> TLP"
->>
->> v1-v2 Move header from include/ras/aer_event.h to
->> include/trace/events/ras.h
->> v3-v4 Cleaned up comments and commit header
->> v4-v5 More cleanup remove () from if statement in print.
->>       Renamed string define to be more specific.
->> v5-v6 change TRACE_SYSTEM define to be ras and not aer.
->>
->> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
->> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->> Acked-by: Tony Luck <tony.luck@intel.com>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 >> ---
+>>   arch/arm64/kernel/irq.c      |    5 ++++
+>>   drivers/acpi/plat/arm-core.c |   66 ++++++++++++++++++++++++++++++=
+++++++------
+>>   include/linux/acpi.h         |    6 ++++
+>>   3 files changed, 68 insertions(+), 9 deletions(-)
 >>
->>  include/trace/events/ras.h |   77
->> ++++++++++++++++++++++++++++++++++++++++++++
->>  1 files changed, 77 insertions(+), 0 deletions(-)
->>  create mode 100644 include/trace/events/ras.h
->>
->> diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
->> new file mode 100644
->> index 0000000..88b8783
->> --- /dev/null
->> +++ b/include/trace/events/ras.h
->> @@ -0,0 +1,77 @@
->> +#undef TRACE_SYSTEM
->> +#define TRACE_SYSTEM ras
+>> diff --git a/arch/arm64/kernel/irq.c b/arch/arm64/kernel/irq.c
+>> index 473e5db..a9e68bf 100644
+>> --- a/arch/arm64/kernel/irq.c
+>> +++ b/arch/arm64/kernel/irq.c
+>> @@ -25,6 +25,7 @@
+>>   #include <linux/irq.h>
+>>   #include <linux/smp.h>
+>>   #include <linux/init.h>
+>> +#include <linux/acpi.h>
+>>   #include <linux/irqchip.h>
+>>   #include <linux/seq_file.h>
+>>   #include <linux/ratelimit.h>
+>> @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(str=
+uct pt_regs *))
+>>   void __init init_IRQ(void)
+>>   {
+>>   	irqchip_init();
 >> +
->> +#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
->> +#define _TRACE_AER_H
+>> +	if (!handle_arch_irq)
+>> +		acpi_gic_init();
 >> +
->> +#include <linux/tracepoint.h>
->> +#include <linux/edac.h>
->> +
->> +
+> Why is the GIC hardcoded?
+
+Very good question, thanks. I considered GIC only in my patch set.
+I have no idea how to handle the GIC hardcoded problem here for
+now, but I will figure it out later.
+
+If any suggestion, I will appreciate a lot.
+
+> How are you going to support other interrupt
+> controllers?
+
+ACPI 5.0 supports GICv2 only for now, if we want to
+support other interrupt controller, we should introduce
+some OEM table and parsing it, and it will not covered
+by this patch set.
+
+>>   	if (!handle_arch_irq)
+>>   		panic("No interrupt controller found.");
+>>   }
+>> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-co=
+re.c
+>> index 17c99e1..509b847 100644
+>> --- a/drivers/acpi/plat/arm-core.c
+>> +++ b/drivers/acpi/plat/arm-core.c
+>> @@ -29,6 +29,7 @@
+>>   #include <linux/module.h>
+>>   #include <linux/irq.h>
+>>   #include <linux/irqdomain.h>
+>> +#include <linux/irqchip/arm-gic.h>
+>>   #include <linux/slab.h>
+>>   #include <linux/bootmem.h>
+>>   #include <linux/ioport.h>
+>> @@ -211,11 +212,21 @@ acpi_parse_gic(struct acpi_subtable_header *he=
+ader, const unsigned long end)
+>>   	return 0;
+>>   }
+>>  =20
+>> +#ifdef CONFIG_ARM_GIC
 >> +/*
->> + * PCIe AER Trace event
->> + *
->> + * These events are generated when hardware detects a corrected or
->> + * uncorrected event on a PCIe device. The event report has
->> + * the following structure:
->> + *
->> + * char * dev_name - The name of the slot where the device resides
->> + *                   ([domain:]bus:device.function).
->> + * u32 status -              Either the correctable or uncorrectabl=
-e register
->> + *                   indicating what error or errors have been seen
->> + * u8 severity -     error severity 0:NONFATAL 1:FATAL 2:CORRECTED
+>> + * Hard code here, we can not get memory size from MADT (but FDT do=
+es),
+>> + * this size is described in ARMv8 foudation model's User Guide
 >> + */
+>> +#define GIC_DISTRIBUTOR_MEMORY_SIZE (SZ_8K)
+>> +#define GIC_CPU_INTERFACE_MEMORY_SIZE (SZ_4K)
+> Aside from the incorrect sizes, how do you plan to address the other
+> regions that the GICv2 specification describes?
+
+Did these regions have the same base address? I mean the same
+as GIC distributor base address and GIC cpu interface base address.
+
+if yes, since the base address is stored in gic_init(), it can be for=20
+furture
+use. if I misunderstood your question, please let me know.
+
+>>   static int __init
+>>   acpi_parse_gic_distributor(struct acpi_subtable_header *header,
+>>   				const unsigned long end)
+>>   {
+>>   	struct acpi_madt_generic_distributor *distributor =3D NULL;
+>> +	void __iomem *dist_base =3D NULL;
+>> +	void __iomem *cpu_base =3D NULL;
+>>  =20
+>>   	distributor =3D (struct acpi_madt_generic_distributor *)header;
+>>  =20
+>> @@ -224,8 +235,43 @@ acpi_parse_gic_distributor(struct acpi_subtable=
+_header *header,
+>>  =20
+>>   	acpi_table_print_madt_entry(header);
+>>  =20
+>> +	/* GIC is initialised after page_init(), no need for early_ioremap=
+ */
+>> +	dist_base =3D ioremap(distributor->base_address,
+>> +				GIC_CPU_INTERFACE_MEMORY_SIZE);
+>> +	if (!dist_base) {
+>> +		pr_warn(PREFIX "unable to map gic dist registers\n");
+>> +		return -ENOMEM;
+>> +	}
 >> +
->> +#define aer_correctable_errors               \
->> +     {BIT(0),        "Receiver Error"},              \
->> +     {BIT(6),        "Bad TLP"},                     \
->> +     {BIT(7),        "Bad DLLP"},                    \
->> +     {BIT(8),        "RELAY_NUM Rollover"},          \
->> +     {BIT(12),       "Replay Timer Timeout"},        \
->> +     {BIT(13),       "Advisory Non-Fatal"}
+>> +	/*
+>> +	 * acpi_lapic_addr is stored in acpi_parse_madt(),
+>> +	 * so we can use it here for GIC init
+>> +	 */
+>> +	if (acpi_lapic_addr) {
+>> +		iounmap(dist_base);
+>> +		pr_warn(PREFIX "Invalid GIC cpu interface base address\n");
+>> +		return -EINVAL;
+>> +	}
 >> +
->> +#define aer_uncorrectable_errors             \
->> +     {BIT(4),        "Data Link Protocol"},          \
->> +     {BIT(12),       "Poisoned TLP"},                \
->> +     {BIT(13),       "Flow Control Protocol"},       \
->> +     {BIT(14),       "Completion Timeout"},          \
->> +     {BIT(15),       "Completer Abort"},             \
->> +     {BIT(16),       "Unexpected Completion"},       \
->> +     {BIT(17),       "Receiver Overflow"},           \
->> +     {BIT(18),       "Malformed TLP"},               \
->> +     {BIT(19),       "ECRC"},                        \
->> +     {BIT(20),       "Unsupported Request"}
+>> +	cpu_base =3D ioremap(acpi_lapic_addr, GIC_CPU_INTERFACE_MEMORY_SIZ=
+E);
+>> +	if (!cpu_base) {
+>> +		iounmap(dist_base);
+>> +		pr_warn(PREFIX "unable to map gic cpu registers\n");
+>> +		return -ENOMEM;
+>> +	}
 >> +
->> +TRACE_EVENT(aer_event,
->> +     TP_PROTO(const char *dev_name,
->> +              const u32 status,
->> +              const u8 severity),
+>> +	gic_init(distributor->gic_id, -1, dist_base, cpu_base);
 >> +
->> +     TP_ARGS(dev_name, status, severity),
+>>   	return 0;
+>>   }
+>> +#else
+>> +static int __init
+>> +acpi_parse_gic_distributor(struct acpi_subtable_header *header,
+>> +				const unsigned long end)
+>> +{
+>> +	return -ENODEV;
+>> +}
+>> +#endif /* CONFIG_ARM_GIC */
+>>  =20
+>>   /*
+>>    * Parse GIC cpu interface related entries in MADT
+>> @@ -234,7 +280,7 @@ acpi_parse_gic_distributor(struct acpi_subtable_=
+header *header,
+>>   static int __init acpi_parse_madt_gic_entries(void)
+>>   {
+>>   	int count;
+>> -
 >> +
->> +     TP_STRUCT__entry(
->> +             __string(       dev_name,       dev_name        )
->> +             __field(        u32,            status          )
->> +             __field(        u8,             severity        )
->> +     ),
+>>   	/*
+>>   	 * do a partial walk of MADT to determine how many CPUs
+>>   	 * we have including disabled CPUs
+>> @@ -468,19 +514,21 @@ static void __init acpi_process_madt(void)
+>>   		 * Parse MADT GIC cpu interface entries
+>>   		 */
+>>   		error =3D acpi_parse_madt_gic_entries();
+>> -		if (!error) {
+>> -			/*
+>> -			 * Parse MADT GIC distributor entries
+>> -			 */
+>> -			acpi_parse_madt_gic_distributor_entries();
+>> -		}
+>> +		if (!error)
+>> +			pr_info("Using ACPI for processor (GIC) configuration informatio=
+n\n");
+>>   	}
+>>  =20
+>> -	pr_info("Using ACPI for processor (GIC) configuration information\=
+n");
+>> -
+>>   	return;
+>>   }
+>>  =20
+>> +int __init acpi_gic_init(void)
+>> +{
+>> +	/*
+>> +	 * Parse MADT GIC distributor entries
+>> +	 */
+>> +	return acpi_parse_madt_gic_distributor_entries();
+>> +}
 >> +
->> +     TP_fast_assign(
->> +             __assign_str(dev_name, dev_name);
->> +             __entry->status         =3D status;
->> +             __entry->severity       =3D severity;
->> +     ),
->> +
->> +     TP_printk("%s PCIe Bus Error: severity=3D%s, %s\n",
->> +             __get_str(dev_name),
->> +             __entry->severity =3D=3D HW_EVENT_ERR_CORRECTED ? "Cor=
-rected" :
->> +                     __entry->severity =3D=3D HW_EVENT_ERR_FATAL ?
->> +                     "Fatal" : "Uncorrected",
->> +             __entry->severity =3D=3D HW_EVENT_ERR_CORRECTED ?
->> +             __print_flags(__entry->status, "|", aer_correctable_er=
-rors) :
->> +             __print_flags(__entry->status, "|", aer_uncorrectable_=
-errors))
->> +);
->
-> Here's a bug causing inconsistency between dmesg and the trace event =
-output.
-> When dmesg says "severity=3DCorrected", the trace event says
-> "severity=3DFatal". What happens is that HW_EVENT_ERR_CORRECTED is
-> defined in edac.h:
->
-> enum hw_event_mc_err_type {
->         HW_EVENT_ERR_CORRECTED,
->         HW_EVENT_ERR_UNCORRECTED,
->         HW_EVENT_ERR_FATAL,
->         HW_EVENT_ERR_INFO,
-> };
->
-> while aer_print_error() uses aer_error_severity_string[] defined as:
->
-> static const char *aer_error_severity_string[] =3D {
->         "Uncorrected (Non-Fatal)",
->         "Uncorrected (Fatal)",
->         "Corrected"
-> };
->
-> In this case dmesg is correct because info->severity is assigned in
-> aer_isr_one_error() using the definitions in include/linux/ras.h:
-> #define AER_NONFATAL                    0
-> #define AER_FATAL                       1
-> #define AER_CORRECTABLE                 2
->
-> So which one is the standard? Is there a plan to unify all these name=
-s?
->
-> Thanks
-> Rui Wang
->
->> +
->> +#endif /* _TRACE_AER_H */
->> +
->> +/* This part must be outside protection */
->> +#include <trace/define_trace.h>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kern=
-el" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" =
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Why can't you do the GIC init in the GIC code? We've tried hard to ma=
+ke
+> interrupt controllers discoverable and self contained.
+
+thanks for your suggestion, Rob also had the same suggestion,
+will try to update it in next version.
+
+> What are you
+> going to do when ACPI adds GICv3 to the mix? I don't really think thi=
+s
+> model (shoving everything into the core ACPI code) is sustainable in =
+the
+> long run...
+
+Since GICv3 related ACPI proposal is not public and not goes into ACPI
+spec, my suggestion is that we implement GICv2 only for now and post
+another patches for GICv3 when the new ACPI spec is available.
+
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
