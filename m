@@ -1,55 +1,68 @@
-From: al.stone@linaro.org
-Subject: [PATCH] ACPI: remove trailing whitespace
-Date: Wed,  4 Dec 2013 12:59:11 -0700
-Message-ID: <1386187151-27250-1-git-send-email-al.stone@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:60208 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933010Ab3LDT7X (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 14:59:23 -0500
-Received: by mail-pd0-f173.google.com with SMTP id p10so23045700pdj.4
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Dec 2013 11:59:23 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v10 1/3] aerdrv: Trace Event for AER
+Date: Wed, 4 Dec 2013 21:38:38 +0100
+Message-ID: <20131204203837.GA7517@pd.tnic>
+References: <20130116235102.16015.77379.stgit@grignak.americas.hpqcorp.net>
+ <CANVTcTaP18CiGOSEcX5Ch_wPw9mEhkgokfp+d+ZOMFD+Ce4juA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CANVTcTaP18CiGOSEcX5Ch_wPw9mEhkgokfp+d+ZOMFD+Ce4juA@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: rui wang <ruiv.wang@gmail.com>
+Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@intel.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, gong.chen@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Al Stone <al.stone@linaro.org>
 
-From: Al Stone <al.stone@linaro.org>
+On Mon, Dec 02, 2013 at 01:05:16PM +0800, rui wang wrote:
+> > +	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
+> > +		__get_str(dev_name),
+> > +		__entry->severity == HW_EVENT_ERR_CORRECTED ? "Corrected" :
+> > +			__entry->severity == HW_EVENT_ERR_FATAL ?
+> > +			"Fatal" : "Uncorrected",
+> > +		__entry->severity == HW_EVENT_ERR_CORRECTED ?
+> > +		__print_flags(__entry->status, "|", aer_correctable_errors) :
+> > +		__print_flags(__entry->status, "|", aer_uncorrectable_errors))
+> > +);
+> 
+> This causes inconsistency between dmesg and the trace event output.
+> When dmesg says "severity=Corrected", the trace event says
+> "severity=Fatal". What happens is that HW_EVENT_ERR_CORRECTED is
+> defined in edac.h:
+> 
+> enum hw_event_mc_err_type {
+>         HW_EVENT_ERR_CORRECTED,
+>         HW_EVENT_ERR_UNCORRECTED,
+>         HW_EVENT_ERR_FATAL,
+>         HW_EVENT_ERR_INFO,
+> };
+> 
+> while aer_print_error() uses aer_error_severity_string[] defined as:
+> 
+> static const char *aer_error_severity_string[] = {
+>         "Uncorrected (Non-Fatal)",
+>         "Uncorrected (Fatal)",
+>         "Corrected"
+> };
+> 
+> In this case dmesg is correct because info->severity is assigned in
+> aer_isr_one_error() using the definitions in include/linux/ras.h:
+> #define AER_NONFATAL                    0
+> #define AER_FATAL                       1
+> #define AER_CORRECTABLE                 2
+> 
+> So which one is the standard? Is there a plan to unify all these names?
 
-Minor cleanup: remove some extra trailing white space.
+Yes, the AER tracepoint above should use the AER_* defines and not the
+HW_EVENT_ERR_* ones which are for memory errors.
 
-Signed-off-by: Al Stone <al.stone@linaro.org>
----
- drivers/acpi/osl.c            | 2 +-
- drivers/acpi/processor_idle.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Wanna send a fix?
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 54a20ff..44c07eb 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1282,7 +1282,7 @@ acpi_status acpi_os_wait_semaphore(acpi_handle handle, u32 units, u16 timeout)
- 		jiffies = MAX_SCHEDULE_TIMEOUT;
- 	else
- 		jiffies = msecs_to_jiffies(timeout);
--	
-+
- 	ret = down_timeout(sem, jiffies);
- 	if (ret)
- 		status = AE_TIME;
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 644516d..597cdab 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -598,7 +598,7 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
- 		case ACPI_STATE_C2:
- 			if (!cx->address)
- 				break;
--			cx->valid = 1; 
-+			cx->valid = 1;
- 			break;
- 
- 		case ACPI_STATE_C3:
+Thanks.
+
 -- 
-1.8.3.1
+Regards/Gruss,
+    Boris.
 
+Sent from a fat crate under my desk. Formatting is fine.
+--
