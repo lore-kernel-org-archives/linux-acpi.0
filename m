@@ -1,90 +1,112 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC part1 PATCH 7/7] ARM64 / ACPI: Enable ARM64 in Kconfig
-Date: Wed, 04 Dec 2013 23:55:45 +0800
-Message-ID: <529F5081.3070403@linaro.org>
-References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org> <1386088611-2801-8-git-send-email-hanjun.guo@linaro.org> <20131204101050.GQ2395@xora-haswell.xora.org.uk>
+From: Guillaume Millet <gmillet@crans.org>
+Subject: Re: 8086:2a42 [Asus UL80VT] Backlight control does not work with
+ Intel integrated card, but there are entries in /sys/class/backlight
+Date: Wed, 04 Dec 2013 18:12:00 +0100
+Message-ID: <529F6260.1080100@crans.org>
+References: <529CBB15.7000904@crans.org> <529D5D36.3000101@intel.com> <529DAE1C.1060501@crans.org> <529E827A.7030803@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:52279 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932642Ab3LDP5D (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 10:57:03 -0500
-Received: by mail-pd0-f181.google.com with SMTP id p10so22419863pdj.26
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Dec 2013 07:57:01 -0800 (PST)
-In-Reply-To: <20131204101050.GQ2395@xora-haswell.xora.org.uk>
+Received: from redisdead.crans.org ([138.231.136.39]:45269 "EHLO
+	redisdead.crans.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932766Ab3LDRMI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 12:12:08 -0500
+In-Reply-To: <529E827A.7030803@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Graeme Gregory <graeme.gregory@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <rob.herring@calxeda.com>, Mark Rutland <mark.rutland@arm.com>, Jon Masters <jonathan@jonmasters.org>, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 18:10, Graeme Gregory wrote:
-> On Wed, Dec 04, 2013 at 12:36:51AM +0800, Hanjun Guo wrote:
->> Add Kconfigs to build ACPI on ARM64, and make ACPI runable on ARM64.
->>
->> acpi_idle driver is x86/IA64 dependent now, so make CONFIG_ACPI_PROC=
-ESSOR
->> depends on X86 || IA64, and implement it on ARM in the furture.
->>
->> In order to make arm-core.c can both run on ARM and ARM64, introduce
->> CONFIG_ACPI_ARM to support it.
->>
->> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
->> Signed-off-by: Al Stone <al.stone@linaro.org>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>   arch/arm64/Kconfig         |    2 ++
->>   drivers/acpi/Kconfig       |   12 +++++++++---
->>   drivers/acpi/plat/Makefile |    2 +-
->>   3 files changed, 12 insertions(+), 4 deletions(-)
->>
->> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->> index 88c8b6c1..a37795f 100644
->> --- a/arch/arm64/Kconfig
->> +++ b/arch/arm64/Kconfig
->> @@ -280,6 +280,8 @@ source "net/Kconfig"
->>  =20
->>   source "drivers/Kconfig"
->>  =20
->> +source "drivers/acpi/Kconfig"
->> +
->>   source "fs/Kconfig"
->>  =20
->>   source "arch/arm64/kvm/Kconfig"
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index 53f0f16..f43485e 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -2,13 +2,17 @@
->>   # ACPI Configuration
->>   #
->>  =20
->> +config ACPI_ARM
->> +	bool
->> +	select ACPI_REDUCED_HARDWARE
->> +
->>   menuconfig ACPI
->>   	bool "ACPI (Advanced Configuration and Power Interface) Support"
->>   	depends on !IA64_HP_SIM
->> -	depends on IA64 || X86
->> -	depends on PCI
->> +	depends on ((IA64 || X86) && PCI) || ARM64
->>   	select PNP
->> -	default y
->> +	select ACPI_ARM if (ARM || ARM64)
->> +	default y if !(ARM || ARM64)
-> Should only be ARM64 here with the current files in this series, I th=
-ink
-> this is causing others confusion looking for arm 32bit support in pat=
-ches
-> where there is none yet!
+https://bugzilla.kernel.org/show_bug.cgi?id=3D66501
 
-ah, yes, my bad, will update it in next version.
-
-Thanks
-Hanjun
+Le 04/12/2013 02:16, Aaron Lu a =C3=A9crit :
+> On 12/03/2013 06:10 PM, Guillaume Millet wrote:
+>> Le 03/12/2013 05:25, Aaron Lu a =C3=A9crit :
+>>> On 12/03/2013 12:53 AM, Guillaume Millet wrote:
+>>>> Hello, I report an issue, in attempting to follow the instructions=
+ at
+>>>> https://wiki.ubuntu.com/Bugs/Upstream/kernel#KernelTeam.2BAC8-Kern=
+elTeamBugPolicies.Overview_on_Reporting_Bugs_Upstream
+>>>>
+>>>> [1.] 8086:2a42 [Asus UL80VT] Backlight control does not work with =
+Intel
+>>>> integrated card, but there are entries in /sys/class/backlight
+>>>>
+>>>> [2.] The screen brightness control has apparently never worked
+>>>> off-the-shelf on this laptop, Asus UL80VT-A1, which is an NVIDIA O=
+ptimus
+>>>> laptop (2 graphic cards). The use of the discrete Nvidia card is m=
+anaged
+>>>> by Bumblebee (https://wiki.ubuntu.com/Bumblebee). It used to work =
+with
+>>>> the workaround suggested at
+>>>> http://wiki.daviddarts.com/Ubuntu_Maverick_on_the_Asus_UL30VT#Scre=
+en_Brightness
+>>>> which modifies asus-brn-down.sh to use the "setpci" method.
+>>>> Hotkeys are detected, showkey -s returns 0xe0 0x4c 0xe0 0xcc for F=
+n+F5
+>>>> and 0xe0 0x54 0xe0 0xd4 for Fn+F6.
+>>>> When the hotkeys are triggered, there is no brightness change but =
+the
+>>>> KDE notification pops up with 3 or 4 levels.
+>>>>
+>>>> [X.] Other notes
+>>>> $ ls /sys/class/backlight/
+>>>> acpi_video0  acpi_video1  intel_backlight
+>>>>
+>>>> $ cat /sys/class/backlight/intel_backlight/max_brightness
+>>>> 2583660
+>>>>
+>>>> $ cat /sys/class/backlight/intel_backlight/brightness
+>>>> 121584
+>>> With v3.12, does the intel_backlight interface work?
+>>> You can verify this by echoing some value to the brightness file an=
+d see
+>>> if it has any effect. The value can be echoed is 0 - max_brightness=
+=2E Be
+>>> careful with very small values, it will black your screen.
+>>>
+>>> If it works, you can specify intel_backlight as the control interfa=
+ce
+>>> for X by creating a xorg.conf file like this:
+>>> $ cat /etc/Xorg/Xorg.conf
+>>> Section "Device"
+>>>           Option     "Backlight"	"intel_backlight"
+>>> 	Identifier  "Card0"
+>>> 	Driver      "intel"
+>>> 	BusID       "PCI:0:2:0"
+>>> EndSection
+>>
+>> The intel_backlight interface does work, by echoing a value between =
+0
+>> and 2583660.
+>> The control interface for X also works with that addition in
+>> /etc/X11/xorg.conf (Kubuntu).
+>>
+>> Wow, the issue was immediately solved by posting here. Thanks Aaron =
+Lu!
+>> After, (out of curiosity) what should be modified so that X
+>> automatically detect the correct control interface, in case of a new
+>> installation for example ?
+>
+> Please file a bug to https://bugzilla.kernel.org, choose
+> ACPI-Power/Video category.
+>
+> Please provide these information when filing the bug:
+> 1 attach dmesg.
+> 2 attach acpidump output.
+> 3 attach dmidecode output.
+> 4 of those backlight control interfaces, which works and which don't.
+> 5 attach /var/log/Xorg.0.log when you do not use the customized xorg.=
+conf,
+>    I want to know which interface is picked up by X driver by default=
+=2E
+>
+> Thanks,
+> Aaron
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
