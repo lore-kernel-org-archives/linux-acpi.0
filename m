@@ -1,112 +1,86 @@
-From: Guillaume Millet <gmillet@crans.org>
-Subject: Re: 8086:2a42 [Asus UL80VT] Backlight control does not work with
- Intel integrated card, but there are entries in /sys/class/backlight
-Date: Wed, 04 Dec 2013 18:12:00 +0100
-Message-ID: <529F6260.1080100@crans.org>
-References: <529CBB15.7000904@crans.org> <529D5D36.3000101@intel.com> <529DAE1C.1060501@crans.org> <529E827A.7030803@intel.com>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [RFC part1 PATCH 5/7] ARM64 / ACPI: Introduce arm_core.c and
+ its related head file
+Date: Wed, 04 Dec 2013 12:47:54 -0700
+Message-ID: <529F86EA.4010805@linaro.org>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org> <1386088611-2801-6-git-send-email-hanjun.guo@linaro.org> <1AE640813FDE7649BE1B193DEA596E88024941A4@SHSMSX101.ccr.corp.intel.com> <529F5013.4050502@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from redisdead.crans.org ([138.231.136.39]:45269 "EHLO
-	redisdead.crans.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932766Ab3LDRMI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 12:12:08 -0500
-In-Reply-To: <529E827A.7030803@intel.com>
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:53516 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933010Ab3LDTr6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 14:47:58 -0500
+Received: by mail-pb0-f45.google.com with SMTP id rp16so24169265pbb.18
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Dec 2013 11:47:57 -0800 (PST)
+In-Reply-To: <529F5013.4050502@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <rob.herring@calxeda.com>, Mark Rutland <mark.rutland@arm.com>, Jon Masters <jonathan@jonmasters.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@l>
 
-https://bugzilla.kernel.org/show_bug.cgi?id=3D66501
-
-Le 04/12/2013 02:16, Aaron Lu a =C3=A9crit :
-> On 12/03/2013 06:10 PM, Guillaume Millet wrote:
->> Le 03/12/2013 05:25, Aaron Lu a =C3=A9crit :
->>> On 12/03/2013 12:53 AM, Guillaume Millet wrote:
->>>> Hello, I report an issue, in attempting to follow the instructions=
- at
->>>> https://wiki.ubuntu.com/Bugs/Upstream/kernel#KernelTeam.2BAC8-Kern=
-elTeamBugPolicies.Overview_on_Reporting_Bugs_Upstream
->>>>
->>>> [1.] 8086:2a42 [Asus UL80VT] Backlight control does not work with =
-Intel
->>>> integrated card, but there are entries in /sys/class/backlight
->>>>
->>>> [2.] The screen brightness control has apparently never worked
->>>> off-the-shelf on this laptop, Asus UL80VT-A1, which is an NVIDIA O=
-ptimus
->>>> laptop (2 graphic cards). The use of the discrete Nvidia card is m=
-anaged
->>>> by Bumblebee (https://wiki.ubuntu.com/Bumblebee). It used to work =
-with
->>>> the workaround suggested at
->>>> http://wiki.daviddarts.com/Ubuntu_Maverick_on_the_Asus_UL30VT#Scre=
-en_Brightness
->>>> which modifies asus-brn-down.sh to use the "setpci" method.
->>>> Hotkeys are detected, showkey -s returns 0xe0 0x4c 0xe0 0xcc for F=
-n+F5
->>>> and 0xe0 0x54 0xe0 0xd4 for Fn+F6.
->>>> When the hotkeys are triggered, there is no brightness change but =
-the
->>>> KDE notification pops up with 3 or 4 levels.
->>>>
->>>> [X.] Other notes
->>>> $ ls /sys/class/backlight/
->>>> acpi_video0  acpi_video1  intel_backlight
->>>>
->>>> $ cat /sys/class/backlight/intel_backlight/max_brightness
->>>> 2583660
->>>>
->>>> $ cat /sys/class/backlight/intel_backlight/brightness
->>>> 121584
->>> With v3.12, does the intel_backlight interface work?
->>> You can verify this by echoing some value to the brightness file an=
-d see
->>> if it has any effect. The value can be echoed is 0 - max_brightness=
-=2E Be
->>> careful with very small values, it will black your screen.
+On 12/04/2013 08:53 AM, Hanjun Guo wrote:
+> On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 13:46, Zheng, Lv wrote:
+>>> From: linux-acpi-owner@vger.kernel.org
+>>> [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Hanjun Guo
+>>> Sent: Wednesday, December 04, 2013 12:37 AM
 >>>
->>> If it works, you can specify intel_backlight as the control interfa=
-ce
->>> for X by creating a xorg.conf file like this:
->>> $ cat /etc/Xorg/Xorg.conf
->>> Section "Device"
->>>           Option     "Backlight"	"intel_backlight"
->>> 	Identifier  "Card0"
->>> 	Driver      "intel"
->>> 	BusID       "PCI:0:2:0"
->>> EndSection
+>>> introduce arm_core.c and its related head file, after this patch,
+>>> we can get ACPI tables from BIOS on ARM64 now.
+>>>
+>>> Signed-off-by: Al Stone <al.stone@linaro.org>
+>>> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>> ---
+>>>   arch/arm64/include/asm/acpi.h |   57 +++++++++++
+>>>   arch/arm64/kernel/setup.c     |    8 ++
+>>>   drivers/acpi/Makefile         |    2 +
+>>>   drivers/acpi/plat/Makefile    |    1 +
+>>>   drivers/acpi/plat/arm-core.c  |  219
+>>> +++++++++++++++++++++++++++++++++++++++++
+>>>   5 files changed, 287 insertions(+)
+>>>   create mode 100644 drivers/acpi/plat/Makefile
+>>>   create mode 100644 drivers/acpi/plat/arm-core.c
+>>>
+
+[...]
+
 >>
->> The intel_backlight interface does work, by echoing a value between =
-0
->> and 2583660.
->> The control interface for X also works with that addition in
->> /etc/X11/xorg.conf (Kubuntu).
->>
->> Wow, the issue was immediately solved by posting here. Thanks Aaron =
-Lu!
->> After, (out of curiosity) what should be modified so that X
->> automatically detect the correct control interface, in case of a new
->> installation for example ?
+>> I'm not sure if all global lock code blocks are not referenced by
+>> ACPI_REDUCED_HARDWARE and I'm not sure what mechanism is implemented
+>> on ARM ACPI platforms to offer the synchronization mechanism between
+>> firmware and OSPM.  So you may need to implement the following
+>> synchronization protocol in <asm/acpi.h>:
+>> 58 #define ACPI_ACQUIRE_GLOBAL_LOCK(facs, Acq)
+>> 61 #define ACPI_RELEASE_GLOBAL_LOCK(facs, Acq)
 >
-> Please file a bug to https://bugzilla.kernel.org, choose
-> ACPI-Power/Video category.
+> In reduced hardware mode, No hardware resource sharing between
+> OSPM and other asynchronous operating environments, such as
+> UEFI Runtime Services or System Management Mode. (The Global Lock
+> is not supported)
 >
-> Please provide these information when filing the bug:
-> 1 attach dmesg.
-> 2 attach acpidump output.
-> 3 attach dmidecode output.
-> 4 of those backlight control interfaces, which works and which don't.
-> 5 attach /var/log/Xorg.0.log when you do not use the customized xorg.=
-conf,
->    I want to know which interface is picked up by X driver by default=
-=2E
->
-> Thanks,
-> Aaron
->
+> please refer to chapter 3.11.1 of ACPI 5.0.
+
+I agree with Hanjun; the spec clearly states that the ACPI global lock
+is not supported in reduced HW mode.  The only similar lock I recall
+from the spec is for ECs (Embedded Controllers, section 12) but is very
+specific to controlling the interaction with the EC.
+
+If the intent is to use SMI, again, in reduced HW mode, 3.11.1 does
+not allow SMI_CMD, and 5.2.9 indicates SMI_CMD is to be ignored.
+
+
+--=20
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
