@@ -1,40 +1,68 @@
-From: Andreas Noever <andreas.noever@gmail.com>
-Subject: Options for handling a broken dsdt.
-Date: Thu, 5 Dec 2013 22:29:14 +0100
-Message-ID: <CAMxnaaX6HOtDDXTmz2wwStMDKh=7v4hUkhpw55XrQL=dFCKdmQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/4] Convert ACPI fan driver to platform driver
+Date: Thu, 05 Dec 2013 23:02:04 +0100
+Message-ID: <33836071.xLhUScjhOz@vostro.rjw.lan>
+References: <1386059312-2990-1-git-send-email-aaron.lu@intel.com> <1654759.afJtadVnDQ@vostro.rjw.lan> <20131205074734.GA4432@localhost.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:52812 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753028Ab3LEV3g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 16:29:36 -0500
-Received: by mail-wi0-f180.google.com with SMTP id hn9so323624wib.13
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Dec 2013 13:29:34 -0800 (PST)
+Received: from v094114.home.net.pl ([79.96.170.134]:56784 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750877Ab3LEVtF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 16:49:05 -0500
+In-Reply-To: <20131205074734.GA4432@localhost.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-Hi,
+On Thursday, December 05, 2013 03:47:35 PM Aaron Lu wrote:
+> On Thu, Dec 05, 2013 at 12:07:31AM +0100, Rafael J. Wysocki wrote:
+> > On Tuesday, December 03, 2013 04:28:28 PM Aaron Lu wrote:
+> > > This patchset converts ACPI fan driver to platform driver. Patch 1-3 are
+> > > cleanups for existing fan driver and patch 4 does the convertion.
+> > > 
+> > > Tested on harris beach.
+> > > Apply on top of Rafael's linux-next branch.
+> > > 
+> > > Aaron Lu (4):
+> > >   ACPI / fan: remove unused macro for debug
+> > >   ACPI / fan: remove no need check for device pointer
+> > >   ACPI / fan: use acpi_device_xxx_power instead of acpi_bus equivelant
+> > >   ACPI / fan: convert to platform driver
+> > > 
+> > >  drivers/acpi/acpi_platform.c |  3 ++
+> > >  drivers/acpi/device_pm.c     |  1 +
+> > >  drivers/acpi/fan.c           | 88 ++++++++++++++++----------------------------
+> > >  drivers/acpi/internal.h      |  2 -
+> > >  include/acpi/acpi_bus.h      |  1 +
+> > >  5 files changed, 36 insertions(+), 59 deletions(-)
+> > 
+> > Unfortunately, we need to postpone these conversions, because Matthew Garrett
+> > has problems with adding more entries to acpi_platform_device_ids[].  He seems
+> > to be concerned that that list will grow indefinitely and will become difficult
+> > to maintain eventually.
+> > 
+> > For this reason, he would prefer it if we did the following:
+> > - Figure out the list of ACPI device IDs we need to create PNP devices for
+> >   via ACPI PNP.
+> 
+> I'm not sure how to tell this, is it that as long as the ACPI node has a
+> PNPxxxx ID we will need to create a PNP device for it? And in this case,
+> do we only check the _HID or both _HID and _CID?
 
-I am working on a thunderbolt driver for Mac Books (see [1] if you are
-interested). I have got basic hotplug working but I am still
-struggling with suspend issues. The problem is that ACPI will cut
-power to the controller during startup/suspend/resume whenever it does
-not detect Darwin. Furthermore the ACPI method which could be used to
-re enable power is inactive if Darwin is not detected.
+Just check the existing PNP drivers and see what device IDs they use.
 
-I have tried to use acpi_osi to make the firmware believe that it is
-running Darwin. This does work but breaks other stuff (the firmware
-contains a lot of OS specific code paths, for example _OSC breaks...).
+> > - Make ACPI PNP create PNP devices for these IDs only and make the ACPI core create
+> >   platform devices for all "unassigned" ACPI device objects by default.
+> 
+> Does "unassigned" mean (all ACPI devices) - (ACPI devices that have a
+> PNP device created already)?
 
-My question would then be whether there exists a more user friendly
-alternative to a custom DSDT? My plan is to somehow exchange/modify a
-few ACPI methods from within my driver. Would a driver which does this
-be accepted or is that a complete no-go? Is there any infrastructure
-in place to help me with this? Am I missing some alternatives?
+(all ACPI devices nodes) - (nodes taken care of by scan handlers + PNP)
+(and I *think* we can turn the PNP ACPI driver into a scan handler).
 
 Thanks,
-Andreas
+Rafael
 
-[1] https://lkml.org/lkml/2013/11/28/492
