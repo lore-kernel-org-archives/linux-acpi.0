@@ -1,48 +1,83 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC part1 PATCH 1/7] ACPI: Make ACPI core running without PCI on ARM64
-Date: Thu, 5 Dec 2013 23:04:22 +0100
-Message-ID: <201312052304.22302.arnd@arndb.de>
-References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org> <20131203164111.GA13447@srcf.ucam.org> <529F376F.8050005@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] SFI: fix compilation warnings
+Date: Thu, 05 Dec 2013 23:36:37 +0100
+Message-ID: <4771886.zcelg2hCiB@vostro.rjw.lan>
+References: <1386264397-27319-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:60565 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751025Ab3LEWFZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 17:05:25 -0500
-In-Reply-To: <529F376F.8050005@linaro.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:52919 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752144Ab3LEWXg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 17:23:36 -0500
+In-Reply-To: <1386264397-27319-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Mark Rutland <mark.rutland@arm.com>, linaro-kernel@lists.linaro.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Al Stone <al.stone@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, patches@linaro.org, Olof Johansson <olof@lixom.net>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@linaro.org>, Jon Masters <jonathan@jonmasters.org>, Bjorn Helgaas <bhelgaas@google.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On Wednesday 04 December 2013, Hanjun Guo wrote:
-> On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 00:41, Matthew Garrett wrote:
-> > Given the number of #ifdefs you're adding, wouldn't it make more se=
-nse
-> > to just add stub functions to include/linux/pci.h?
+On Thursday, December 05, 2013 07:26:37 PM Andy Shevchenko wrote:
+> When build kernel with make W=3D1 we get the following compiler error=
+=2E
 >=20
-> Thanks for the suggestion :)
+> In file included from drivers/sfi/sfi_acpi.c:66:0:
+> include/linux/sfi_acpi.h: In function =E2=80=98acpi_sfi_table_parse=E2=
+=80=99:
+> include/linux/sfi_acpi.h:72:2: error: implicit declaration of functio=
+n =E2=80=98acpi_table_parse=E2=80=99 [-Werror=3Dimplicit-function-decla=
+ration]
+>   if (!acpi_table_parse(signature, handler))
+>   ^
+>   cc1: some warnings being treated as errors
 >=20
-> I can add stub functions in include/linux/pci.h for raw_pci_read()/
-> raw_pci_write(), then can remove #ifdefs for acpi_os_read/write_pci_c=
-onfiguration().
+> The patch changes acpi/acpi.h inclusion to linux/acpi.h.
+>=20
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Actually I wonder about the usefulness of this patch in either form: Si=
-nce ACPI
-on ARM64 is only for servers, I would very much expect them to always c=
-ome with
-PCI, either physical host bridges with attached devices, or logical PCI=
- functions
-used to describe the on-SoC I/O devices. Even in case of virtual machin=
-es, you'd
-normally use PCI as the method to communicate data about the virtio cha=
-nnels.
+OK
 
-Can you name a realistic use-case where you'd want ACPI but not PCI?
+Lv, I'm dropping your patch cleaning up the inclusions, please sort tha=
+t thing
+out entirely for the next cycle.
 
-	Arnd
+Thanks!
+
+> ---
+>  drivers/sfi/sfi_acpi.c   | 2 +-
+>  include/linux/sfi_acpi.h | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/sfi/sfi_acpi.c b/drivers/sfi/sfi_acpi.c
+> index 0c9f419..d4dfcbe 100644
+> --- a/drivers/sfi/sfi_acpi.c
+> +++ b/drivers/sfi/sfi_acpi.c
+> @@ -60,7 +60,7 @@
+>  #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
+> =20
+>  #include <linux/kernel.h>
+> -#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
+> +#include <linux/acpi.h>
+> =20
+>  #include <linux/sfi.h>
+>  #include <linux/sfi_acpi.h>
+> diff --git a/include/linux/sfi_acpi.h b/include/linux/sfi_acpi.h
+> index 2cfcb79..c9cab82 100644
+> --- a/include/linux/sfi_acpi.h
+> +++ b/include/linux/sfi_acpi.h
+> @@ -60,7 +60,7 @@
+>  #define _LINUX_SFI_ACPI_H
+> =20
+>  #ifdef CONFIG_SFI
+> -#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
+> +#include <linux/acpi.h>
+> =20
+>  extern int sfi_acpi_table_parse(char *signature, char *oem_id,
+>  				char *oem_table_id,
+>=20
+--=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
