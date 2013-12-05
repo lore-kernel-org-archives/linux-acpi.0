@@ -1,92 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] SFI: fix compilation warnings
-Date: Thu, 05 Dec 2013 23:40:57 +0100
-Message-ID: <2894493.n5DTvIrPJs@vostro.rjw.lan>
-References: <1386264397-27319-1-git-send-email-andriy.shevchenko@linux.intel.com> <4771886.zcelg2hCiB@vostro.rjw.lan>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC part2 PATCH 2/9] ARM64 / ACPI: Prefill cpu possible/present maps and map logical cpu id to APIC id
+Date: Fri, 6 Dec 2013 00:09:54 +0100
+Message-ID: <201312060009.54801.arnd@arndb.de>
+References: <1386088753-2850-1-git-send-email-hanjun.guo@linaro.org> <1386088753-2850-3-git-send-email-hanjun.guo@linaro.org> <CAL_JsqKF-_GCRR1d5Hs0F6pCMfLxUYkXAAp9hY7Ywuu1C+aZ0A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56408 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751252Ab3LEW15 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 17:27:57 -0500
-In-Reply-To: <4771886.zcelg2hCiB@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAL_JsqKF-_GCRR1d5Hs0F6pCMfLxUYkXAAp9hY7Ywuu1C+aZ0A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Rob Herring <robherring2@gmail.com>, Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linaro Patches <patches@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>, Grant Likely <grant.likely@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On Thursday, December 05, 2013 11:36:37 PM Rafael J. Wysocki wrote:
-> On Thursday, December 05, 2013 07:26:37 PM Andy Shevchenko wrote:
-> > When build kernel with make W=3D1 we get the following compiler err=
-or.
-> >=20
-> > In file included from drivers/sfi/sfi_acpi.c:66:0:
-> > include/linux/sfi_acpi.h: In function =E2=80=98acpi_sfi_table_parse=
-=E2=80=99:
-> > include/linux/sfi_acpi.h:72:2: error: implicit declaration of funct=
-ion =E2=80=98acpi_table_parse=E2=80=99 [-Werror=3Dimplicit-function-dec=
-laration]
-> >   if (!acpi_table_parse(signature, handler))
-> >   ^
-> >   cc1: some warnings being treated as errors
-> >=20
-> > The patch changes acpi/acpi.h inclusion to linux/acpi.h.
-> >=20
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->=20
-> OK
->=20
-> Lv, I'm dropping your patch cleaning up the inclusions, please sort t=
-hat thing
-> out entirely for the next cycle.
+On Wednesday 04 December 2013, Rob Herring wrote:
+> > index a0c2ca6..1428024 100644
+> > --- a/arch/arm64/kernel/smp.c
+> > +++ b/arch/arm64/kernel/smp.c
+> > @@ -420,7 +420,9 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
+> >                 if (err)
+> >                         continue;
+> >
+> > +#ifndef CONFIG_ACPI
+> >                 set_cpu_present(cpu, true);
+> > +#endif
+> 
+> Should this be moved to DT cpu topology related code?
 
-Or rather I'll keep it in bleeding-edge and wait for follow-up patches =
-to
-fix build problems like this one (then we can merge it into 3.14 hopefu=
-lly).
+More importantly, the #ifndef is certainly wrong here: It is important that you can
+turn CONFIG_ACPI on or off without impacting the run-time code path for non-ACPI
+systems. The snippet above breaks this because we no longer set the
+cpu mask when ACPI is turned on but not used.
 
-Thanks!
-
-> > ---
-> >  drivers/sfi/sfi_acpi.c   | 2 +-
-> >  include/linux/sfi_acpi.h | 2 +-
-> >  2 files changed, 2 insertions(+), 2 deletions(-)
-> >=20
-> > diff --git a/drivers/sfi/sfi_acpi.c b/drivers/sfi/sfi_acpi.c
-> > index 0c9f419..d4dfcbe 100644
-> > --- a/drivers/sfi/sfi_acpi.c
-> > +++ b/drivers/sfi/sfi_acpi.c
-> > @@ -60,7 +60,7 @@
-> >  #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
-> > =20
-> >  #include <linux/kernel.h>
-> > -#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
-> > +#include <linux/acpi.h>
-> > =20
-> >  #include <linux/sfi.h>
-> >  #include <linux/sfi_acpi.h>
-> > diff --git a/include/linux/sfi_acpi.h b/include/linux/sfi_acpi.h
-> > index 2cfcb79..c9cab82 100644
-> > --- a/include/linux/sfi_acpi.h
-> > +++ b/include/linux/sfi_acpi.h
-> > @@ -60,7 +60,7 @@
-> >  #define _LINUX_SFI_ACPI_H
-> > =20
-> >  #ifdef CONFIG_SFI
-> > -#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
-> > +#include <linux/acpi.h>
-> > =20
-> >  extern int sfi_acpi_table_parse(char *signature, char *oem_id,
-> >  				char *oem_table_id,
-> >=20
->=20
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
