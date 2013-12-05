@@ -1,15 +1,16 @@
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: [PATCH] ACPI / video: Use native backlight control
-	interface by default
-Date: Thu, 5 Dec 2013 08:50:21 +0100
-Message-ID: <CAKMK7uG14CK+PO4RDzh+GKXotNuSead7-sN83SujK826jgt5iw@mail.gmail.com>
-References: <1386209037-31349-1-git-send-email-acelan.kao@canonical.com>
-	<20131205023237.GA23671@srcf.ucam.org>
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: [PATCH 1/3] ACPI/i915: Fix wrong <acpi/acpi.h>
+	inclusion in i915 opregion module.
+Date: Thu, 05 Dec 2013 15:04:16 +0200
+Message-ID: <87haanqwj3.fsf@intel.com>
+References: <cover.1385094640.git.lv.zheng@intel.com>
+	<cover.1386116927.git.lv.zheng@intel.com>
+	<58025298b10c01a76adeed0f27e12d4b764ad99c.1386116927.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20131205023237.GA23671@srcf.ucam.org>
+In-Reply-To: <58025298b10c01a76adeed0f27e12d4b764ad99c.1386116927.git.lv.zheng@intel.com>
 List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
 	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
@@ -19,57 +20,62 @@ List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
 	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
 Sender: intel-gfx-bounces@lists.freedesktop.org
 Errors-To: intel-gfx-bounces@lists.freedesktop.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, AceLan Kao <acelan.kao@canonical.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Dec 5, 2013 at 3:32 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> We had problems with the Intel backlight driver the last time we tried
-> this, so let's push this through their tree for testing first? Cc:ed
-> intel-gfx and Daniel Vetter.
+On Wed, 04 Dec 2013, Lv Zheng <lv.zheng@intel.com> wrote:
+> diff --git a/drivers/gpu/drm/i915/Makefile b/drivers/gpu/drm/i915/Makefile
+> index 41838ea..d4ae48b 100644
+> --- a/drivers/gpu/drm/i915/Makefile
+> +++ b/drivers/gpu/drm/i915/Makefile
+> @@ -38,7 +38,6 @@ i915-y := i915_drv.o i915_dma.o i915_irq.o \
+>  	  intel_ringbuffer.o \
+>  	  intel_overlay.o \
+>  	  intel_sprite.o \
+> -	  intel_opregion.o \
+>  	  intel_sideband.o \
+>  	  intel_uncore.o \
+>  	  dvo_ch7xxx.o \
+> @@ -51,7 +50,7 @@ i915-y := i915_drv.o i915_dma.o i915_irq.o \
+>  
+>  i915-$(CONFIG_COMPAT)   += i915_ioc32.o
+>  
+> -i915-$(CONFIG_ACPI)	+= intel_acpi.o
+> +i915-$(CONFIG_ACPI)	+= intel_acpi.o intel_opregion.o
+>  
+>  i915-$(CONFIG_DRM_I915_FBDEV) += intel_fbdev.o
+>  
+> diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+> index ccdbecc..7f37b83 100644
+> --- a/drivers/gpu/drm/i915/i915_drv.h
+> +++ b/drivers/gpu/drm/i915/i915_drv.h
+> @@ -2336,8 +2336,8 @@ extern void intel_i2c_reset(struct drm_device *dev);
+>  
+>  /* intel_opregion.c */
+>  struct intel_encoder;
+> -extern int intel_opregion_setup(struct drm_device *dev);
+>  #ifdef CONFIG_ACPI
+> +extern int intel_opregion_setup(struct drm_device *dev);
+>  extern void intel_opregion_init(struct drm_device *dev);
+>  extern void intel_opregion_fini(struct drm_device *dev);
+>  extern void intel_opregion_asle_intr(struct drm_device *dev);
+> @@ -2346,6 +2346,7 @@ extern int intel_opregion_notify_encoder(struct intel_encoder *intel_encoder,
+>  extern int intel_opregion_notify_adapter(struct drm_device *dev,
+>  					 pci_power_t state);
+>  #else
+> +static inline int intel_opregion_setup(struct drm_device *dev) { return 0; }
+>  static inline void intel_opregion_init(struct drm_device *dev) { return; }
+>  static inline void intel_opregion_fini(struct drm_device *dev) { return; }
+>  static inline void intel_opregion_asle_intr(struct drm_device *dev) { return; }
 
-Makes sense imo. Or if I just get a branch with just those patches (it
-can rebase, I don't really care) I could  pull it into our
-drm-intel-nightly integration tree, which is what everyone is testing
-anyway.
--Daniel
+FWIW, the above i915 specific hunks are
 
->
->
-> On Thu, Dec 05, 2013 at 10:03:57AM +0800, AceLan Kao wrote:
->> The native/vendor backlight control interface is hardly fail to control the
->> brightness, and we had encountered many backlight issues result from the broken
->> ACPI backlight interface, so I think we should promote the native backlight
->> control interface and use it by default.
->>
->> Signed-off-by: AceLan Kao <acelan.kao@canonical.com>
->> ---
->>  drivers/acpi/video.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
->> index 995e91b..b3032f8 100644
->> --- a/drivers/acpi/video.c
->> +++ b/drivers/acpi/video.c
->> @@ -85,7 +85,7 @@ module_param(allow_duplicates, bool, 0644);
->>   * For Windows 8 systems: if set ture and the GPU driver has
->>   * registered a backlight interface, skip registering ACPI video's.
->>   */
->> -static bool use_native_backlight = false;
->> +static bool use_native_backlight = true;
->>  module_param(use_native_backlight, bool, 0644);
->>
->>  static int register_count;
->> --
->> 1.8.3.2
->>
->>
-> --
-> Matthew Garrett | mjg59@srcf.ucam.org
+Reviewed-by: Jani Nikula <jani.nikula@intel.com>
 
+Nuking the CONFIG_ACPI conditional build within intel_opregion.c is an
+obvious follow-up patch later on.
 
 
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Jani Nikula, Intel Open Source Technology Center
