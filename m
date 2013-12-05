@@ -1,81 +1,76 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: [PATCH 1/3] ACPI/i915: Fix wrong <acpi/acpi.h>
-	inclusion in i915 opregion module.
-Date: Thu, 05 Dec 2013 15:04:16 +0200
-Message-ID: <87haanqwj3.fsf@intel.com>
-References: <cover.1385094640.git.lv.zheng@intel.com>
-	<cover.1386116927.git.lv.zheng@intel.com>
-	<58025298b10c01a76adeed0f27e12d4b764ad99c.1386116927.git.lv.zheng@intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC part3 PATCH 2/2] ARM64 / clocksource: Use arch_timer_acpi_init()
+Date: Thu, 05 Dec 2013 21:09:29 +0800
+Message-ID: <52A07B09.9010007@linaro.org>
+References: <1386088891-2917-1-git-send-email-hanjun.guo@linaro.org> <1386088891-2917-3-git-send-email-hanjun.guo@linaro.org> <20131203170815.GB16025@e106331-lin.cambridge.arm.com> <529F3BCA.1020908@linaro.org> <20131204150709.GF29200@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <58025298b10c01a76adeed0f27e12d4b764ad99c.1386116927.git.lv.zheng@intel.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces@lists.freedesktop.org
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:62122 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756604Ab3LENJt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 08:09:49 -0500
+Received: by mail-pd0-f177.google.com with SMTP id q10so24564440pdj.36
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Dec 2013 05:09:49 -0800 (PST)
+In-Reply-To: <20131204150709.GF29200@e106331-lin.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Jon Masters <jonathan@jonmasters.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro>
 
-On Wed, 04 Dec 2013, Lv Zheng <lv.zheng@intel.com> wrote:
-> diff --git a/drivers/gpu/drm/i915/Makefile b/drivers/gpu/drm/i915/Makefile
-> index 41838ea..d4ae48b 100644
-> --- a/drivers/gpu/drm/i915/Makefile
-> +++ b/drivers/gpu/drm/i915/Makefile
-> @@ -38,7 +38,6 @@ i915-y := i915_drv.o i915_dma.o i915_irq.o \
->  	  intel_ringbuffer.o \
->  	  intel_overlay.o \
->  	  intel_sprite.o \
-> -	  intel_opregion.o \
->  	  intel_sideband.o \
->  	  intel_uncore.o \
->  	  dvo_ch7xxx.o \
-> @@ -51,7 +50,7 @@ i915-y := i915_drv.o i915_dma.o i915_irq.o \
->  
->  i915-$(CONFIG_COMPAT)   += i915_ioc32.o
->  
-> -i915-$(CONFIG_ACPI)	+= intel_acpi.o
-> +i915-$(CONFIG_ACPI)	+= intel_acpi.o intel_opregion.o
->  
->  i915-$(CONFIG_DRM_I915_FBDEV) += intel_fbdev.o
->  
-> diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
-> index ccdbecc..7f37b83 100644
-> --- a/drivers/gpu/drm/i915/i915_drv.h
-> +++ b/drivers/gpu/drm/i915/i915_drv.h
-> @@ -2336,8 +2336,8 @@ extern void intel_i2c_reset(struct drm_device *dev);
->  
->  /* intel_opregion.c */
->  struct intel_encoder;
-> -extern int intel_opregion_setup(struct drm_device *dev);
->  #ifdef CONFIG_ACPI
-> +extern int intel_opregion_setup(struct drm_device *dev);
->  extern void intel_opregion_init(struct drm_device *dev);
->  extern void intel_opregion_fini(struct drm_device *dev);
->  extern void intel_opregion_asle_intr(struct drm_device *dev);
-> @@ -2346,6 +2346,7 @@ extern int intel_opregion_notify_encoder(struct intel_encoder *intel_encoder,
->  extern int intel_opregion_notify_adapter(struct drm_device *dev,
->  					 pci_power_t state);
->  #else
-> +static inline int intel_opregion_setup(struct drm_device *dev) { return 0; }
->  static inline void intel_opregion_init(struct drm_device *dev) { return; }
->  static inline void intel_opregion_fini(struct drm_device *dev) { return; }
->  static inline void intel_opregion_asle_intr(struct drm_device *dev) { return; }
+On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 23:07, Mark Rutland wrote:
+> On Wed, Dec 04, 2013 at 02:27:22PM +0000, Hanjun Guo wrote:
+>> On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 01:08, Mark Rutland wrote:
+>>> On Tue, Dec 03, 2013 at 04:41:31PM +0000, Hanjun Guo wrote:
+>>>> Use arch_timer_acpi_init() on ARM64 to initialise arch timer
+>>>> in ACPI way when DT is not available.
+>>>>
+>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>> ---
+>>>>    arch/arm64/kernel/time.c |    4 ++++
+>>>>    1 file changed, 4 insertions(+)
+>>>>
+>>>> diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
+>>>> index 29c39d5..fb009da 100644
+>>>> --- a/arch/arm64/kernel/time.c
+>>>> +++ b/arch/arm64/kernel/time.c
+>>>> @@ -67,6 +67,10 @@ void __init time_init(void)
+>>>>   =20
+>>>>    	clocksource_of_init();
+>>>>   =20
+>>>> +	/* if can't be initialised from DT, try ACPI way */
+>>>> +	if (!arch_timer_get_rate())
+>>>> +		arch_timer_acpi_init();
+>>>> +
+>>> As mentioned on the previous patch, I think for the timebeing we sh=
+ould
+>>> rely on CNTFREQ.
+>>>
+>>> Additionally, if you need to do this we should have an analagous
+>>> mechanism to clocksource_of_init() that performs this initialisatio=
+n for
+>>> ACPI, and here we can call a clocksource_*_init function that does =
+the
+>>> right thing.
+>>>
+>>> There's no need for this file to know anything about ACPI.
+>> Oh, Amit already have some patches to introduce clocksource_acpi_ini=
+t()
+>> like clocksource_of_init() did, please refer to the link below.
+>>
+>> http://marc.info/?l=3Dlinaro-acpi&m=3D138131929721943&w=3D2
+>>
+>> is this the idea you mentioned in your comments?
+> Something along those lines is far better than hardcoding
+> arch_timer_acpi_init here.
 
-FWIW, the above i915 specific hunks are
+Thanks for the suggestion, will update it.
 
-Reviewed-by: Jani Nikula <jani.nikula@intel.com>
-
-Nuking the CONFIG_ACPI conditional build within intel_opregion.c is an
-obvious follow-up patch later on.
-
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
