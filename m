@@ -1,158 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/4] Convert ACPI fan driver to platform driver
-Date: Thu, 05 Dec 2013 23:14:22 +0100
-Message-ID: <3293874.qx5zUXCHqJ@vostro.rjw.lan>
-References: <1386059312-2990-1-git-send-email-aaron.lu@intel.com> <1539785.BAHHmmHfI6@vostro.rjw.lan> <744357E9AAD1214791ACBA4B0B909263011B057A@SHSMSX101.ccr.corp.intel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC part1 PATCH 1/7] ACPI: Make ACPI core running without PCI on ARM64
+Date: Thu, 5 Dec 2013 23:04:22 +0100
+Message-ID: <201312052304.22302.arnd@arndb.de>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org> <20131203164111.GA13447@srcf.ucam.org> <529F376F.8050005@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55145 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750877Ab3LEWBW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 17:01:22 -0500
-In-Reply-To: <744357E9AAD1214791ACBA4B0B909263011B057A@SHSMSX101.ccr.corp.intel.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:60565 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751025Ab3LEWFZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 17:05:25 -0500
+In-Reply-To: <529F376F.8050005@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "Lu, Aaron" <aaron.lu@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lan, Tianyu" <tianyu.lan@intel.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Mark Rutland <mark.rutland@arm.com>, linaro-kernel@lists.linaro.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Al Stone <al.stone@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, patches@linaro.org, Olof Johansson <olof@lixom.net>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@linaro.org>, Jon Masters <jonathan@jonmasters.org>, Bjorn Helgaas <bhelgaas@google.com>
 
-On Thursday, December 05, 2013 01:56:24 PM Zhang, Rui wrote:
-> 
-> > -----Original Message-----
-> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > Sent: Thursday, December 05, 2013 7:10 AM
-> > To: Lu, Aaron
-> > Cc: Zhang, Rui; linux-acpi@vger.kernel.org; linux-
-> > kernel@vger.kernel.org; Lan, Tianyu; Brown, Len; Matthew Garrett
-> > Subject: Re: [PATCH 0/4] Convert ACPI fan driver to platform driver
-> > Importance: High
-> > 
-> > Cc: +Matthew (sorry, omitted by mistake previously)
-> > 
-> > On Thursday, December 05, 2013 12:07:31 AM Rafael J. Wysocki wrote:
-> > > On Tuesday, December 03, 2013 04:28:28 PM Aaron Lu wrote:
-> > > > This patchset converts ACPI fan driver to platform driver. Patch 1-
-> > 3
-> > > > are cleanups for existing fan driver and patch 4 does the
-> > convertion.
-> > > >
-> > > > Tested on harris beach.
-> > > > Apply on top of Rafael's linux-next branch.
-> > > >
-> > > > Aaron Lu (4):
-> > > >   ACPI / fan: remove unused macro for debug
-> > > >   ACPI / fan: remove no need check for device pointer
-> > > >   ACPI / fan: use acpi_device_xxx_power instead of acpi_bus
-> > equivelant
-> > > >   ACPI / fan: convert to platform driver
-> > > >
-> > > >  drivers/acpi/acpi_platform.c |  3 ++
-> > > >  drivers/acpi/device_pm.c     |  1 +
-> > > >  drivers/acpi/fan.c           | 88 ++++++++++++++++----------------
-> > ------------
-> > > >  drivers/acpi/internal.h      |  2 -
-> > > >  include/acpi/acpi_bus.h      |  1 +
-> > > >  5 files changed, 36 insertions(+), 59 deletions(-)
-> > >
-> > > Unfortunately, we need to postpone these conversions, because Matthew
-> > > Garrett has problems with adding more entries to
-> > > acpi_platform_device_ids[].  He seems to be concerned that that list
-> > > will grow indefinitely and will become difficult to maintain
-> > eventually.
-> > >
-> > > For this reason, he would prefer it if we did the following:
-> > > - Figure out the list of ACPI device IDs we need to create PNP
-> > devices for
-> > >   via ACPI PNP.
-> 
-> Agreed.
-> I'd also prefer a whitelist for pnpacpi instead of a backlist.
-> And this is helpful for us to clean up the ACPI code in PNP bus,
-> Including pnpacpi code and PNP drivers that actually bind to
-> ACPI enumerated PNP devices.
-> 
-> Question is how to get this white list?
-> Can we just collect the pnp_device_id in all the PNP drivers as the first step?
+On Wednesday 04 December 2013, Hanjun Guo wrote:
+> On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 00:41, Matthew Garrett wrote:
+> > Given the number of #ifdefs you're adding, wouldn't it make more se=
+nse
+> > to just add stub functions to include/linux/pci.h?
+>=20
+> Thanks for the suggestion :)
+>=20
+> I can add stub functions in include/linux/pci.h for raw_pci_read()/
+> raw_pci_write(), then can remove #ifdefs for acpi_os_read/write_pci_c=
+onfiguration().
 
-Yes, we can.
+Actually I wonder about the usefulness of this patch in either form: Si=
+nce ACPI
+on ARM64 is only for servers, I would very much expect them to always c=
+ome with
+PCI, either physical host bridges with attached devices, or logical PCI=
+ functions
+used to describe the on-SoC I/O devices. Even in case of virtual machin=
+es, you'd
+normally use PCI as the method to communicate data about the virtio cha=
+nnels.
 
-> > > - Make ACPI PNP create PNP devices for these IDs only and make the
-> > ACPI core create
-> > >   platform devices for all "unassigned" ACPI device objects by
-> > default.
-> 
-> So the above statement means that an ACPI device will be enumerated
-> to either PNP bus or platform bus, right?
+Can you name a realistic use-case where you'd want ACPI but not PCI?
 
-No.  Processors, memory, containers etc will have their own device
-representations.
-
-> Then I'm wondering how to handle the following cases,
-> 1. an ACPI device may have both _HID and _CID, if its _CID is in the
->    PNP whitelist, does this mean the device will always be enumerated
->    to PNP bus?
-
-No.  We need to check _HID first as per the spec.
-
-> 2. is it possible to see the following ASL code?
->    Device (ABCDEFG) /* should be enumerated to platform bus */
->    {
->      Device (PNPABCD) /* should be enumerated to PNP bus */
->      {
->      }
->    }
->    If yes, it seems that we will introduce some ugly parent/child
->    relationship in driver core?
-
-There's no rule that PNP devices cannot be children of platform devices as long
-as we handle resources assignments correctly.
-
-> > > - Do the conversions at that point.
-> > >
-> > > I'm slightly worried that we'll encounter ordering issues while doing
-> > > that, but this is the only way forward I can see without going
-> > > straight against the Matthew's objections, which I'd prefer to avoid.
-> > >
-> Maybe a stupid question, why can't we enumerate all ACPI devices to
-> platform bus?
-
-First of all, as I said, processors, memory modules and such will have their
-own device representations anyway.
-
-Second, if the question why we need *both* platform and PNP, my answer is that
-we probably don't need them both in the long run, but we need to carry out
-the conversion "nicely".  That is, keep PNP devices used by the existing PNP
-drivers for the time being and convert them gradually over time.
-
-> Here are some of my thoughts,
-> 1. enumerate all ACPI devices to platform bus, thus our ACPI -> platform bus
->    conversion work can continue.
-
-The objection is against adding more entries to the list of IDs in
-acpi_platform.c.  To avoid that we need to create platform devices for
-ACPI device nodes by default (that is, if they have no scan handlers attached
-etc.).  And for that we need to stop creating PNP devices for them by default
-(which we do today).  And for that we need a list of ACPI device IDs for which
-we need corresponding PNP devices, because the existing drivers use them (and
-we need to continue to create PNP devices for them until we convert the PNP
-drivers into platform drivers - if we can do that).
-
-> 2. workout a white list for PNPACPI (by collecting all the pnp_device_ids)
-> 3. cleanup the PNP drivers.
->    If a PNP driver is supposed to bind to ACPI enumerated PNP devices,
->    convert it to a platform driver.
->    If a PNP driver can probe device enumerated from either PNPBIOS or PNPACPI,
->    make it a dual-head driver that can probe both PNP and platform devices.
->    If a PNP driver is supposed to bind to PNPBIOS enumerated PNP devices,
->    leave it as it is.
->    Note: every time we have done the cleanup for a driver,
->          we can delete one entry in the PNPACPI whitelist in step 2.
-> 4. after cleanup all the PNP drivers, the whitelist is empty
->    and we can remove all the PNPACPI code.
-
-Yes, something like that.
-
-Thanks,
-Rafael
-
+	Arnd
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
