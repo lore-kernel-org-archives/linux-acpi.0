@@ -1,37 +1,68 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC part2 PATCH 8/9] ACPI / ARM64: Update acpi_register_gsi to register with the core IRQ subsystem
-Date: Thu, 5 Dec 2013 04:48:09 +0100
-Message-ID: <201312050448.10312.arnd@arndb.de>
-References: <1386088753-2850-1-git-send-email-hanjun.guo@linaro.org> <1386088753-2850-9-git-send-email-hanjun.guo@linaro.org>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 0/4] Convert ACPI fan driver to platform driver
+Date: Thu, 5 Dec 2013 15:47:35 +0800
+Message-ID: <20131205074734.GA4432@localhost.sh.intel.com>
+References: <1386059312-2990-1-git-send-email-aaron.lu@intel.com>
+ <1654759.afJtadVnDQ@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:56677 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620Ab3LEDsy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 22:48:54 -0500
-In-Reply-To: <1386088753-2850-9-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1654759.afJtadVnDQ@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, patches@linaro.org, Linus Walleij <linus.walleij@linaro.org>, Olof Johansson <olof@lixom.net>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Amit Daniel Kachhap <amit.daniel@samsung.com>, Jon Masters <jonathan@jonmasters.org>, Grant Likely <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>
 
-On Tuesday 03 December 2013, Hanjun Guo wrote:
-> +       /*
-> +        * ACPI have no bindings to indicate SPI or PPI, so we
-> +        * use different mappings from DT in ACPI.
-> +        *
-> +        * For FDT
-> +        * PPI interrupt: in the range [0, 15];
-> +        * SPI interrupt: in the range [0, 987];
-> +        *
-> +        * For ACPI, using identity mapping for hwirq:
-> +        * PPI interrupt: in the range [16, 31];
-> +        * SPI interrupt: in the range [32, 1019];
+On Thu, Dec 05, 2013 at 12:07:31AM +0100, Rafael J. Wysocki wrote:
+> On Tuesday, December 03, 2013 04:28:28 PM Aaron Lu wrote:
+> > This patchset converts ACPI fan driver to platform driver. Patch 1-3 are
+> > cleanups for existing fan driver and patch 4 does the convertion.
+> > 
+> > Tested on harris beach.
+> > Apply on top of Rafael's linux-next branch.
+> > 
+> > Aaron Lu (4):
+> >   ACPI / fan: remove unused macro for debug
+> >   ACPI / fan: remove no need check for device pointer
+> >   ACPI / fan: use acpi_device_xxx_power instead of acpi_bus equivelant
+> >   ACPI / fan: convert to platform driver
+> > 
+> >  drivers/acpi/acpi_platform.c |  3 ++
+> >  drivers/acpi/device_pm.c     |  1 +
+> >  drivers/acpi/fan.c           | 88 ++++++++++++++++----------------------------
+> >  drivers/acpi/internal.h      |  2 -
+> >  include/acpi/acpi_bus.h      |  1 +
+> >  5 files changed, 36 insertions(+), 59 deletions(-)
+> 
+> Unfortunately, we need to postpone these conversions, because Matthew Garrett
+> has problems with adding more entries to acpi_platform_device_ids[].  He seems
+> to be concerned that that list will grow indefinitely and will become difficult
+> to maintain eventually.
+> 
+> For this reason, he would prefer it if we did the following:
+> - Figure out the list of ACPI device IDs we need to create PNP devices for
+>   via ACPI PNP.
 
-This difference might cause endless confusion. Can't you register PPI and SPI as
-separate IRQ controllers to have the same number space that we normally have?
+I'm not sure how to tell this, is it that as long as the ACPI node has a
+PNPxxxx ID we will need to create a PNP device for it? And in this case,
+do we only check the _HID or both _HID and _CID?
 
-	Arnd
+> - Make ACPI PNP create PNP devices for these IDs only and make the ACPI core create
+>   platform devices for all "unassigned" ACPI device objects by default.
+
+Does "unassigned" mean (all ACPI devices) - (ACPI devices that have a
+PNP device created already)?
+
+Thanks,
+Aaron
+
+> - Do the conversions at that point.
+> 
+> I'm slightly worried that we'll encounter ordering issues while doing that, but
+> this is the only way forward I can see without going straight against the
+> Matthew's objections, which I'd prefer to avoid.
+> 
+> Thanks,
+> Rafael
+> 
