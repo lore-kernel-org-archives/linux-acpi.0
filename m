@@ -1,69 +1,41 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/4] Convert ACPI fan driver to platform driver
-Date: Thu, 05 Dec 2013 00:09:33 +0100
-Message-ID: <1539785.BAHHmmHfI6@vostro.rjw.lan>
-References: <1386059312-2990-1-git-send-email-aaron.lu@intel.com> <1654759.afJtadVnDQ@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: AceLan Kao <acelan.kao@canonical.com>
+Subject: [PATCH] ACPI / video: Use native backlight control interface by default
+Date: Thu,  5 Dec 2013 10:03:57 +0800
+Message-ID: <1386209037-31349-1-git-send-email-acelan.kao@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60395 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754906Ab3LDW4e (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 17:56:34 -0500
-In-Reply-To: <1654759.afJtadVnDQ@vostro.rjw.lan>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:63989 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756261Ab3LECEE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Dec 2013 21:04:04 -0500
+Received: by mail-pb0-f42.google.com with SMTP id uo5so24816575pbc.15
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Dec 2013 18:04:03 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Cc: +Matthew (sorry, omitted by mistake previously)
+The native/vendor backlight control interface is hardly fail to control the
+brightness, and we had encountered many backlight issues result from the broken
+ACPI backlight interface, so I think we should promote the native backlight
+control interface and use it by default.
 
-On Thursday, December 05, 2013 12:07:31 AM Rafael J. Wysocki wrote:
-> On Tuesday, December 03, 2013 04:28:28 PM Aaron Lu wrote:
-> > This patchset converts ACPI fan driver to platform driver. Patch 1-3 are
-> > cleanups for existing fan driver and patch 4 does the convertion.
-> > 
-> > Tested on harris beach.
-> > Apply on top of Rafael's linux-next branch.
-> > 
-> > Aaron Lu (4):
-> >   ACPI / fan: remove unused macro for debug
-> >   ACPI / fan: remove no need check for device pointer
-> >   ACPI / fan: use acpi_device_xxx_power instead of acpi_bus equivelant
-> >   ACPI / fan: convert to platform driver
-> > 
-> >  drivers/acpi/acpi_platform.c |  3 ++
-> >  drivers/acpi/device_pm.c     |  1 +
-> >  drivers/acpi/fan.c           | 88 ++++++++++++++++----------------------------
-> >  drivers/acpi/internal.h      |  2 -
-> >  include/acpi/acpi_bus.h      |  1 +
-> >  5 files changed, 36 insertions(+), 59 deletions(-)
-> 
-> Unfortunately, we need to postpone these conversions, because Matthew Garrett
-> has problems with adding more entries to acpi_platform_device_ids[].  He seems
-> to be concerned that that list will grow indefinitely and will become difficult
-> to maintain eventually.
-> 
-> For this reason, he would prefer it if we did the following:
-> - Figure out the list of ACPI device IDs we need to create PNP devices for
->   via ACPI PNP.
-> - Make ACPI PNP create PNP devices for these IDs only and make the ACPI core create
->   platform devices for all "unassigned" ACPI device objects by default.
-> - Do the conversions at that point.
-> 
-> I'm slightly worried that we'll encounter ordering issues while doing that, but
-> this is the only way forward I can see without going straight against the
-> Matthew's objections, which I'd prefer to avoid.
-> 
-> Thanks,
-> Rafael
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Signed-off-by: AceLan Kao <acelan.kao@canonical.com>
+---
+ drivers/acpi/video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 995e91b..b3032f8 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -85,7 +85,7 @@ module_param(allow_duplicates, bool, 0644);
+  * For Windows 8 systems: if set ture and the GPU driver has
+  * registered a backlight interface, skip registering ACPI video's.
+  */
+-static bool use_native_backlight = false;
++static bool use_native_backlight = true;
+ module_param(use_native_backlight, bool, 0644);
+ 
+ static int register_count;
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.8.3.2
+
