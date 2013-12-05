@@ -1,85 +1,58 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] SFI: fix compilation warnings
-Date: Thu, 05 Dec 2013 23:36:37 +0100
-Message-ID: <4771886.zcelg2hCiB@vostro.rjw.lan>
-References: <1386264397-27319-1-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC part1 PATCH 0/7] Make ACPI core running on ARM64
+Date: Thu, 5 Dec 2013 23:25:02 +0100
+Message-ID: <201312052325.02603.arnd@arndb.de>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52919 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752144Ab3LEWXg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 17:23:36 -0500
-In-Reply-To: <1386264397-27319-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:52342 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750920Ab3LEWZ2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 17:25:28 -0500
+In-Reply-To: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, patches@linaro.org, Linus Walleij <linus.walleij@linaro.org>, Olof Johansson <olof@lixom.net>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Jon Masters <jonathan@jonmasters.org>, Grant Likely <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>
 
-On Thursday, December 05, 2013 07:26:37 PM Andy Shevchenko wrote:
-> When build kernel with make W=3D1 we get the following compiler error=
-=2E
->=20
-> In file included from drivers/sfi/sfi_acpi.c:66:0:
-> include/linux/sfi_acpi.h: In function =E2=80=98acpi_sfi_table_parse=E2=
-=80=99:
-> include/linux/sfi_acpi.h:72:2: error: implicit declaration of functio=
-n =E2=80=98acpi_table_parse=E2=80=99 [-Werror=3Dimplicit-function-decla=
-ration]
->   if (!acpi_table_parse(signature, handler))
->   ^
->   cc1: some warnings being treated as errors
->=20
-> The patch changes acpi/acpi.h inclusion to linux/acpi.h.
->=20
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On Tuesday 03 December 2013, Hanjun Guo wrote:
+> This is the first part of making ACPI core running on ARM.
+> 
+> PCI is optional on ARM64 but ACPI is dependent on PCI now, so
+> in the first patch we try to make ACPI can be running without
+> PCI.
+> 
+> _PDC is requred for ACPI processor_core.c, but its related code
+> is a little bit x86/ia64 dependent, so I rework _PDC related staff
+> to make it more arch independent, and then introduce the skeleton
+> of _PDC related for ARM64, it should be fully implemented after
+> ACPI spec is ready for processor idle control.
+> 
+> After that, arm-core.c is introduced so we can get ACPI table from
+> UEFI, then we can parsed for SMP initialisation, GIC initialisation
+> and for ACPI drivers.
+> 
+> This patch set is based on:
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+> 
+> origin/linux-next branch and plus Al Stone's v2 reduced hardware profile
+> patch.
 
-OK
+As a meta-comment, I looked over all your patches and none of this looks
+scary. It's definitely good that you're doing this work to put the patches
+out here for discussion and to get the get the details of this sorted out.
+It already looks much better than the earlier snapshots I had looked at
+in git trees in the past.
 
-Lv, I'm dropping your patch cleaning up the inclusions, please sort tha=
-t thing
-out entirely for the next cycle.
+However, as I mentioned before I am much more worried about the parts that
+are not done (or not posted) yet and that will be required to actually
+have working support for a real server system. Until we know more about
+where this is heading, I think we should not merge any of the ARM specific
+parts of your patches. Any patches that are reasonable cleanups and bug
+fixes for the ACPI subsystem should of course get merged once they are
+reviewed.
 
-Thanks!
-
-> ---
->  drivers/sfi/sfi_acpi.c   | 2 +-
->  include/linux/sfi_acpi.h | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/sfi/sfi_acpi.c b/drivers/sfi/sfi_acpi.c
-> index 0c9f419..d4dfcbe 100644
-> --- a/drivers/sfi/sfi_acpi.c
-> +++ b/drivers/sfi/sfi_acpi.c
-> @@ -60,7 +60,7 @@
->  #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
-> =20
->  #include <linux/kernel.h>
-> -#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
-> +#include <linux/acpi.h>
-> =20
->  #include <linux/sfi.h>
->  #include <linux/sfi_acpi.h>
-> diff --git a/include/linux/sfi_acpi.h b/include/linux/sfi_acpi.h
-> index 2cfcb79..c9cab82 100644
-> --- a/include/linux/sfi_acpi.h
-> +++ b/include/linux/sfi_acpi.h
-> @@ -60,7 +60,7 @@
->  #define _LINUX_SFI_ACPI_H
-> =20
->  #ifdef CONFIG_SFI
-> -#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
-> +#include <linux/acpi.h>
-> =20
->  extern int sfi_acpi_table_parse(char *signature, char *oem_id,
->  				char *oem_table_id,
->=20
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
