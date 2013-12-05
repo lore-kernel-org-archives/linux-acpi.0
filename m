@@ -1,402 +1,294 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [RFC part1 PATCH 5/7] ARM64 / ACPI: Introduce arm_core.c and its
- related head file
-Date: Thu, 5 Dec 2013 08:09:17 -0600
-Message-ID: <CAL_Jsq+8O13+hVKVEVGg_Mu4hkRLi6afBhoeduVAWW7g=5B8bQ@mail.gmail.com>
-References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
-	<1386088611-2801-6-git-send-email-hanjun.guo@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Lv Zheng <zetalog@gmail.com>
+Subject: [PATCH v2] ACPI/i915: Fix wrong <acpi/acpi.h> inclusion in i915 opregion module.
+Date: Thu,  5 Dec 2013 22:25:39 +0800
+Message-ID: <239568bf8e41fd4987b03f0ece3570d4b7f7b08e.1386241253.git.lv.zheng@intel.com>
+References: <cover.1385094640.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ve0-f176.google.com ([209.85.128.176]:58393 "EHLO
-	mail-ve0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750998Ab3LEOJT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 09:09:19 -0500
-In-Reply-To: <1386088611-2801-6-git-send-email-hanjun.guo@linaro.org>
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:52434 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751084Ab3LEOZ7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 09:25:59 -0500
+In-Reply-To: <cover.1385094640.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Linaro Patches <patches@linaro.org>, Olof Johansson <olof@lixom.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org
 
-On Tue, Dec 3, 2013 at 10:36 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> introduce arm_core.c and its related head file, after this patch,
-> we can get ACPI tables from BIOS on ARM64 now.
->
-> Signed-off-by: Al Stone <al.stone@linaro.org>
-> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/arm64/include/asm/acpi.h |   57 +++++++++++
->  arch/arm64/kernel/setup.c     |    8 ++
->  drivers/acpi/Makefile         |    2 +
->  drivers/acpi/plat/Makefile    |    1 +
->  drivers/acpi/plat/arm-core.c  |  219 +++++++++++++++++++++++++++++++++++++++++
->  5 files changed, 287 insertions(+)
->  create mode 100644 drivers/acpi/plat/Makefile
->  create mode 100644 drivers/acpi/plat/arm-core.c
->
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index c186f5b..e9444e4 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -19,6 +19,43 @@
->  #ifndef _ASM_ARM_ACPI_H
->  #define _ASM_ARM_ACPI_H
->
-> +#include <asm/cacheflush.h>
-> +
-> +#include <linux/init.h>
-> +
-> +#define COMPILER_DEPENDENT_INT64       long long
-> +#define COMPILER_DEPENDENT_UINT64      unsigned long long
-> +
-> +/*
-> + * Calling conventions:
-> + *
-> + * ACPI_SYSTEM_XFACE        - Interfaces to host OS (handlers, threads)
-> + * ACPI_EXTERNAL_XFACE      - External ACPI interfaces
-> + * ACPI_INTERNAL_XFACE      - Internal ACPI interfaces
-> + * ACPI_INTERNAL_VAR_XFACE  - Internal variable-parameter list interfaces
-> + */
-> +#define ACPI_SYSTEM_XFACE
-> +#define ACPI_EXTERNAL_XFACE
-> +#define ACPI_INTERNAL_XFACE
-> +#define ACPI_INTERNAL_VAR_XFACE
-> +
-> +/* Asm macros */
-> +#define ACPI_FLUSH_CPU_CACHE() flush_cache_all()
-> +
-> +/* Basic configuration for ACPI */
-> +#ifdef CONFIG_ACPI
-> +extern int acpi_disabled;
-> +extern int acpi_noirq;
-> +extern int acpi_pci_disabled;
-> +extern int acpi_strict;
-> +
-> +static inline void disable_acpi(void)
-> +{
-> +       acpi_disabled = 1;
-> +       acpi_pci_disabled = 1;
-> +       acpi_noirq = 1;
-> +}
-> +
->  static inline bool arch_has_acpi_pdc(void)
->  {
->         return false;   /* always false for now */
-> @@ -29,4 +66,24 @@ static inline void arch_acpi_set_pdc_bits(u32 *buf)
->         return;
->  }
->
-> +static inline void acpi_noirq_set(void) { acpi_noirq = 1; }
-> +static inline void acpi_disable_pci(void)
-> +{
-> +       acpi_pci_disabled = 1;
-> +       acpi_noirq_set();
-> +}
-> +
-> +/* FIXME: this function should be moved to topology.h when it's ready */
-> +void arch_fix_phys_package_id(int num, u32 slot);
-> +
-> +/* temperally define -1 to make acpi core compilerable */
-> +#define cpu_physical_id(cpu) -1
-> +
-> +#else  /* !CONFIG_ACPI */
-> +#define acpi_disabled 1                /* ACPI sometimes enabled on ARM */
-> +#define acpi_noirq 1           /* ACPI sometimes enabled on ARM */
-> +#define acpi_pci_disabled 1    /* ACPI PCI sometimes enabled on ARM */
-> +#define acpi_strict 1          /* no ACPI spec workarounds on ARM */
-> +#endif
-> +
->  #endif /*_ASM_ARM_ACPI_H*/
-> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-> index bd9bbd0..8199360 100644
-> --- a/arch/arm64/kernel/setup.c
-> +++ b/arch/arm64/kernel/setup.c
-> @@ -41,6 +41,7 @@
->  #include <linux/memblock.h>
->  #include <linux/of_fdt.h>
->  #include <linux/of_platform.h>
-> +#include <linux/acpi.h>
->
->  #include <asm/cputype.h>
->  #include <asm/elf.h>
-> @@ -225,6 +226,13 @@ void __init setup_arch(char **cmdline_p)
->
->         arm64_memblock_init();
->
-> +       /*
-> +        * Parse the ACPI tables for possible boot-time configuration
-> +        */
-> +       acpi_boot_table_init();
-> +       early_acpi_boot_init();
-> +       acpi_boot_init();
-> +
+From: Lv Zheng <lv.zheng@intel.com>
 
-How about a single function here. Perhaps called acpi_early_init. That
-would save checking acpi_disabled 3 times.
+In Linux kernel, ACPICA is wrapped and safely exported by CONFIG_ACPI.  So
+all external modules should depend on CONFIG_ACPI rather than using ACPICA
+header directly for stubbing.  But if we moves <acpi/acpi.h> inclusions
+into "#ifdef CONFIG_ACPI", build breakge can help to detect wrong ACPICA
+dependent modules.
 
->         paging_init();
->         request_standard_resources();
->
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index d8cebe3..9fbba50 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -83,3 +83,5 @@ obj-$(CONFIG_ACPI_PROCESSOR_AGGREGATOR) += acpi_pad.o
->  obj-$(CONFIG_ACPI_APEI)                += apei/
->
->  obj-$(CONFIG_ACPI_EXTLOG)      += acpi_extlog.o
-> +
-> +obj-y                          += plat/
-> diff --git a/drivers/acpi/plat/Makefile b/drivers/acpi/plat/Makefile
-> new file mode 100644
-> index 0000000..46bc65e
-> --- /dev/null
-> +++ b/drivers/acpi/plat/Makefile
-> @@ -0,0 +1 @@
-> +obj-$(CONFIG_ARM64)    += arm-core.o
-> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-core.c
-> new file mode 100644
-> index 0000000..7b8e64a
-> --- /dev/null
-> +++ b/drivers/acpi/plat/arm-core.c
-> @@ -0,0 +1,219 @@
-> +/*
-> + *  ARM/ARM64 Specific Low-Level ACPI Boot Support
-> + *
-> + *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-> + *  Copyright (C) 2001 Jun Nakajima <jun.nakajima@intel.com>
-> + *  Copyright (C) 2013, Al Stone <al.stone@linaro.org> (ARM version)
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License as published by
-> + *  the Free Software Foundation; either version 2 of the License, or
-> + *  (at your option) any later version.
-> + *
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> + */
-> +
-> +#include <linux/init.h>
-> +#include <linux/acpi.h>
-> +#include <linux/acpi_pmtmr.h>
-> +#include <linux/efi.h>
-> +#include <linux/cpumask.h>
-> +#include <linux/memblock.h>
-> +#include <linux/module.h>
-> +#include <linux/irq.h>
-> +#include <linux/irqdomain.h>
-> +#include <linux/slab.h>
-> +#include <linux/bootmem.h>
-> +#include <linux/ioport.h>
-> +#include <linux/pci.h>
-> +
-> +#include <asm/pgtable.h>
-> +#include <asm/io.h>
+One of the build breakage is:
+include/linux/acpi_io.h:7:45: error: unknown type name 'acpi_physical_address'
+include/linux/acpi_io.h:8:10: error: unknown type name 'acpi_size'
+include/linux/acpi_io.h:13:33: error: unknown type name 'acpi_physical_address'
+include/linux/acpi_io.h:15:40: warning: 'struct acpi_generic_address' declared inside parameter list [enabled by default]
+include/linux/acpi_io.h:15:40: warning: its scope is only this definition or declaration, which is probably not what you want [enabled by default]
+include/linux/acpi_io.h:16:43: warning: 'struct acpi_generic_address' declared inside parameter list [enabled by default]
+drivers/gpu/drm/i915/intel_opregion.c: In function 'intel_opregion_setup':
+drivers/gpu/drm/i915/intel_opregion.c:883:2: error: implicit declaration of function 'acpi_os_ioremap' [-Werror=implicit-function-declaration]
+drivers/gpu/drm/i915/intel_opregion.c:883:7: warning: assignment makes pointer from integer without a cast [enabled by default]
 
-linux/io.h although I can't see where it is even needed.
+The root causes of this breakage are:
+1. The <linux/acpi_io.h> depends on CONFIG_ACPI=y as most of the prototypes
+   exported by it are implemented in drivers/acpi/osl.c.
+2. CONFIG_DRM_I915 uses the only "inline" function acpi_os_ioremap() to
+   implement stubs but it shouldn't.
 
-> +#include <asm/smp.h>
+Since ACPI IGD OpRegion is an ACPI-based mechanism, (please refer to the
+Doclink below), this patch fixes this issue by making
+drivers/gpu/drm/i915/intel_opregion.c dependent on CONFIG_ACPI.  This is
+identical to other Intel DRM drivers' OpRegion support (e.x.,
+drivers/gpu/drm/gma500/opregion.c).
 
-linux/smp.h ...
+Since acpi_io.h is not safe for CONFIG_ACPI=y environment, this patch also
+moves it to include/acpi, includes it in <linux/acpi.h> for CONFIG_ACPI=y
+build environment and cleans up its inclusions by converting them into
+<linux/acpi.h> inclusions.
 
-Seems like you have a lot of unnecessary headers here. efi.h, slab.h,
-pci.h, etc.
+After that, since all <acpi/acpi_io.h> inclusions are CONFIG_ACPI
+dependent, the FIXME marked <acpi/acpi.h> inclusion in <acpi/acpi_io.h> is
+also deleted in this patch.
 
-> +
-> +/*
-> + * We never plan to use RSDT on arm/arm64 as its deprecated in spec but this
-> + * variable is still required by the ACPI core
-> + */
-> +u32 acpi_rsdt_forced;
-> +
-> +int acpi_noirq;                        /* skip ACPI IRQ initialization */
-> +int acpi_strict;
-> +int acpi_disabled;
-> +EXPORT_SYMBOL(acpi_disabled);
-> +
-> +int acpi_pci_disabled;         /* skip ACPI PCI scan and IRQ initialization */
-> +EXPORT_SYMBOL(acpi_pci_disabled);
-> +
-> +#define PREFIX                 "ACPI: "
-> +
-> +/* FIXME: this function should be moved to topology.c when it is ready */
-> +void arch_fix_phys_package_id(int num, u32 slot)
-> +{
-> +       return;
-> +}
-> +EXPORT_SYMBOL_GPL(arch_fix_phys_package_id);
-> +
-> +/*
-> + * Boot-time Configuration
-> + */
-> +
+Doclink: https://01.org/linuxgraphics/sites/default/files/documentation/acpi_igd_opregion_spec.pdf
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: intel-gfx@lists.freedesktop.org
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ Updated due to:
+ 1. Patch descripition is changed, "FIXME deletion" notes is added;
+ 2. A mistake is fixed in the original patch.  The change in the
+    drivers/gpu/drm/i915/intel_opregion.c is not added to the quilt.  It's
+    lost as a process issues in my tests.
+    This update fixes this issue by deleting linux/acpi_io.h inclusion from
+    drivers/gpu/drm/i915/intel_opregion.c.
+    Recursive build test environment is set up as follows:
+    Following CONFIGs are enabled by default:
+     CONFIG_DRM_I915=y
+     CONFIG_DRM_GMA500=y
+     CONFIG_ACPI_APEI=y
+     CONFIG_ACPI_APEI_GHES=y
+     CONFIG_ACPI_APEI_EINJ=y
+     CONFIG_ACPI_APEI_ERST_DEBUG=y
+    Following special CONFIG tests are enabled:
+     CONFIG_ACPI=n
+    Following special object tests are enabled:
+     drivers/acpi/apei/erst.o
+     drivers/acpi/apei/hest.o
+     drivers/acpi/apei/ghes.o
+     drivers/acpi/apei/einj.o
+     drivers/acpi/apei/erst-dbg.o
+     drivers/gpu/drm/i915/intel_opregion.o
+     drivers/gpu/drm/gma500/opregion.o
+    It is done after merging the patch and before signing-off the patch.
+---
+ drivers/acpi/apei/apei-base.c         |    1 -
+ drivers/acpi/apei/apei-internal.h     |    1 -
+ drivers/acpi/apei/ghes.c              |    1 -
+ drivers/acpi/nvs.c                    |    1 -
+ drivers/acpi/osl.c                    |    1 -
+ drivers/gpu/drm/gma500/opregion.c     |    1 -
+ drivers/gpu/drm/i915/Makefile         |    3 +--
+ drivers/gpu/drm/i915/i915_drv.h       |    3 ++-
+ drivers/gpu/drm/i915/intel_opregion.c |    1 -
+ include/acpi/acpi_io.h                |   17 +++++++++++++++++
+ include/linux/acpi.h                  |    1 +
+ include/linux/acpi_io.h               |   18 ------------------
+ 12 files changed, 21 insertions(+), 28 deletions(-)
+ create mode 100644 include/acpi/acpi_io.h
+ delete mode 100644 include/linux/acpi_io.h
 
-It is not really clear what this comment applies to.
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index 6d2c49b..0760b75 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -34,7 +34,6 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/acpi.h>
+-#include <linux/acpi_io.h>
+ #include <linux/slab.h>
+ #include <linux/io.h>
+ #include <linux/kref.h>
+diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
+index 21ba34a..e5bcd91 100644
+--- a/drivers/acpi/apei/apei-internal.h
++++ b/drivers/acpi/apei/apei-internal.h
+@@ -8,7 +8,6 @@
+ 
+ #include <linux/cper.h>
+ #include <linux/acpi.h>
+-#include <linux/acpi_io.h>
+ 
+ struct apei_exec_context;
+ 
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index a30bc31..694c486 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -33,7 +33,6 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/acpi.h>
+-#include <linux/acpi_io.h>
+ #include <linux/io.h>
+ #include <linux/interrupt.h>
+ #include <linux/timer.h>
+diff --git a/drivers/acpi/nvs.c b/drivers/acpi/nvs.c
+index 386a9fe..ef28613 100644
+--- a/drivers/acpi/nvs.c
++++ b/drivers/acpi/nvs.c
+@@ -12,7 +12,6 @@
+ #include <linux/mm.h>
+ #include <linux/slab.h>
+ #include <linux/acpi.h>
+-#include <linux/acpi_io.h>
+ 
+ /* ACPI NVS regions, APEI may use it */
+ 
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 7e2d814..63251b6 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -39,7 +39,6 @@
+ #include <linux/workqueue.h>
+ #include <linux/nmi.h>
+ #include <linux/acpi.h>
+-#include <linux/acpi_io.h>
+ #include <linux/efi.h>
+ #include <linux/ioport.h>
+ #include <linux/list.h>
+diff --git a/drivers/gpu/drm/gma500/opregion.c b/drivers/gpu/drm/gma500/opregion.c
+index ad0d6de..13ec628 100644
+--- a/drivers/gpu/drm/gma500/opregion.c
++++ b/drivers/gpu/drm/gma500/opregion.c
+@@ -22,7 +22,6 @@
+  *
+  */
+ #include <linux/acpi.h>
+-#include <linux/acpi_io.h>
+ #include "psb_drv.h"
+ #include "psb_intel_reg.h"
+ 
+diff --git a/drivers/gpu/drm/i915/Makefile b/drivers/gpu/drm/i915/Makefile
+index 41838ea..d4ae48b 100644
+--- a/drivers/gpu/drm/i915/Makefile
++++ b/drivers/gpu/drm/i915/Makefile
+@@ -38,7 +38,6 @@ i915-y := i915_drv.o i915_dma.o i915_irq.o \
+ 	  intel_ringbuffer.o \
+ 	  intel_overlay.o \
+ 	  intel_sprite.o \
+-	  intel_opregion.o \
+ 	  intel_sideband.o \
+ 	  intel_uncore.o \
+ 	  dvo_ch7xxx.o \
+@@ -51,7 +50,7 @@ i915-y := i915_drv.o i915_dma.o i915_irq.o \
+ 
+ i915-$(CONFIG_COMPAT)   += i915_ioc32.o
+ 
+-i915-$(CONFIG_ACPI)	+= intel_acpi.o
++i915-$(CONFIG_ACPI)	+= intel_acpi.o intel_opregion.o
+ 
+ i915-$(CONFIG_DRM_I915_FBDEV) += intel_fbdev.o
+ 
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index ccdbecc..7f37b83 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -2336,8 +2336,8 @@ extern void intel_i2c_reset(struct drm_device *dev);
+ 
+ /* intel_opregion.c */
+ struct intel_encoder;
+-extern int intel_opregion_setup(struct drm_device *dev);
+ #ifdef CONFIG_ACPI
++extern int intel_opregion_setup(struct drm_device *dev);
+ extern void intel_opregion_init(struct drm_device *dev);
+ extern void intel_opregion_fini(struct drm_device *dev);
+ extern void intel_opregion_asle_intr(struct drm_device *dev);
+@@ -2346,6 +2346,7 @@ extern int intel_opregion_notify_encoder(struct intel_encoder *intel_encoder,
+ extern int intel_opregion_notify_adapter(struct drm_device *dev,
+ 					 pci_power_t state);
+ #else
++static inline int intel_opregion_setup(struct drm_device *dev) { return 0; }
+ static inline void intel_opregion_init(struct drm_device *dev) { return; }
+ static inline void intel_opregion_fini(struct drm_device *dev) { return; }
+ static inline void intel_opregion_asle_intr(struct drm_device *dev) { return; }
+diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+index 6d69a9b..9a8804b 100644
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
+@@ -28,7 +28,6 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/acpi.h>
+-#include <linux/acpi_io.h>
+ #include <acpi/video.h>
+ 
+ #include <drm/drmP.h>
+diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
+new file mode 100644
+index 0000000..2be8580
+--- /dev/null
++++ b/include/acpi/acpi_io.h
+@@ -0,0 +1,17 @@
++#ifndef _ACPI_IO_H_
++#define _ACPI_IO_H_
++
++#include <linux/io.h>
++
++static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
++					    acpi_size size)
++{
++       return ioremap_cache(phys, size);
++}
++
++void __iomem *acpi_os_get_iomem(acpi_physical_address phys, unsigned int size);
++
++int acpi_os_map_generic_address(struct acpi_generic_address *addr);
++void acpi_os_unmap_generic_address(struct acpi_generic_address *addr);
++
++#endif
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 115c610..72c88f4 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -42,6 +42,7 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acpi_numa.h>
++#include <acpi/acpi_io.h>
+ #include <asm/acpi.h>
+ 
+ static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
+diff --git a/include/linux/acpi_io.h b/include/linux/acpi_io.h
+deleted file mode 100644
+index 2a5a139..0000000
+--- a/include/linux/acpi_io.h
++++ /dev/null
+@@ -1,18 +0,0 @@
+-#ifndef _ACPI_IO_H_
+-#define _ACPI_IO_H_
+-
+-#include <linux/io.h>
+-#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
+-
+-static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
+-					    acpi_size size)
+-{
+-       return ioremap_cache(phys, size);
+-}
+-
+-void __iomem *acpi_os_get_iomem(acpi_physical_address phys, unsigned int size);
+-
+-int acpi_os_map_generic_address(struct acpi_generic_address *addr);
+-void acpi_os_unmap_generic_address(struct acpi_generic_address *addr);
+-
+-#endif
+-- 
+1.7.10
 
-> +enum acpi_irq_model_id acpi_irq_model = ACPI_IRQ_MODEL_PLATFORM;
-> +
-> +static unsigned int gsi_to_irq(unsigned int gsi)
-> +{
-> +       int irq = irq_create_mapping(NULL, gsi);
-> +
-> +       return irq;
-> +}
-> +
-> +/*
-> + * __acpi_map_table() will be called before page_init(), so early_ioremap()
-> + * or early_memremap() should be called here.
-> + *
-> + * FIXME: early_io/memremap()/early_iounmap() are not upstream yet on ARM64,
-> + * just wait for Mark Salter's patchset accepted by mainline
-> + */
-> +char *__init __acpi_map_table(unsigned long phys, unsigned long size)
-> +{
-> +       if (!phys || !size)
-> +               return NULL;
-> +
-> +       /*
-> +        * temporarily use phys_to_virt(),
-> +        * should be early_memremap(phys, size) here
-> +        */
-> +       return phys_to_virt(phys);
-> +}
-> +
-> +void __init __acpi_unmap_table(char *map, unsigned long size)
-> +{
-> +       if (!map || !size)
-> +               return;
-> +
-> +       /* should be early_iounmap(map, size); */
-> +       return;
-> +}
-> +
-> +int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
-> +{
-> +       *irq = gsi_to_irq(gsi);
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
-> +
-> +/*
-> + * success: return IRQ number (>=0)
-
-'> 0' for interrupts is what normally means success in the kernel. 0
-is for no irq.
-
-> + * failure: return < 0
-> + */
-> +int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
-> +{
-> +       return -1;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_register_gsi);
-> +
-> +void acpi_unregister_gsi(u32 gsi)
-> +{
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
-> +
-> +static int __init acpi_parse_fadt(struct acpi_table_header *table)
-> +{
-> +       return 0;
-> +}
-> +
-> +static void __init early_acpi_process_madt(void)
-> +{
-> +       return;
-> +}
-> +
-> +static void __init acpi_process_madt(void)
-> +{
-> +       return;
-> +}
-> +
-> +/*
-> + * acpi_boot_table_init() and acpi_boot_init()
-> + *  called from setup_arch(), always.
-> + *     1. checksums all tables
-> + *     2. enumerates lapics
-> + *     3. enumerates io-apics
-> + *
-> + * acpi_table_init() is separated to allow reading SRAT without
-> + * other side effects.
-> + */
-> +void __init acpi_boot_table_init(void)
-> +{
-> +       /*
-> +        * If acpi_disabled, bail out
-> +        */
-> +       if (acpi_disabled)
-> +               return;
-> +
-> +       /*
-> +        * Initialize the ACPI boot-time table parser.
-> +        */
-> +       if (acpi_table_init()) {
-> +               disable_acpi();
-> +               return;
-> +       }
-> +}
-> +
-> +int __init early_acpi_boot_init(void)
-> +{
-> +       /*
-> +        * If acpi_disabled, bail out
-> +        */
-> +       if (acpi_disabled)
-> +               return 1;
-> +
-> +       /*
-> +        * Process the Multiple APIC Description Table (MADT), if present
-> +        */
-> +       early_acpi_process_madt();
-> +
-> +       return 0;
-> +}
-> +
-> +int __init acpi_boot_init(void)
-> +{
-> +       /*
-> +        * If acpi_disabled, bail out
-> +        */
-> +       if (acpi_disabled)
-> +               return 1;
-> +
-> +       acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt);
-> +
-> +       /*
-> +        * Process the Multiple APIC Description Table (MADT), if present
-> +        */
-> +       acpi_process_madt();
-> +
-> +       return 0;
-> +}
-> +
-> +static int __init parse_acpi(char *arg)
-> +{
-> +       if (!arg)
-> +               return -EINVAL;
-> +
-> +       /* "acpi=off" disables both ACPI table parsing and interpreter */
-> +       if (strcmp(arg, "off") == 0) {
-> +               disable_acpi();
-> +       }
-> +       /* acpi=strict disables out-of-spec workarounds */
-> +       else if (strcmp(arg, "strict") == 0) {
-> +               acpi_strict = 1;
-> +       }
-> +       return 0;
-> +}
-> +early_param("acpi", parse_acpi);
-
-These aren't common options across architectures?
-
-Rob
