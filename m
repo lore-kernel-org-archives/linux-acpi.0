@@ -1,76 +1,64 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC part3 PATCH 2/2] ARM64 / clocksource: Use arch_timer_acpi_init()
-Date: Thu, 05 Dec 2013 21:09:29 +0800
-Message-ID: <52A07B09.9010007@linaro.org>
-References: <1386088891-2917-1-git-send-email-hanjun.guo@linaro.org> <1386088891-2917-3-git-send-email-hanjun.guo@linaro.org> <20131203170815.GB16025@e106331-lin.cambridge.arm.com> <529F3BCA.1020908@linaro.org> <20131204150709.GF29200@e106331-lin.cambridge.arm.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC part2 PATCH 2/9] ARM64 / ACPI: Prefill cpu possible/present
+ maps and map logical cpu id to APIC id
+Date: Thu, 5 Dec 2013 13:24:41 +0000
+Message-ID: <20131205132441.GR29268@sirena.org.uk>
+References: <1386088753-2850-1-git-send-email-hanjun.guo@linaro.org>
+ <1386088753-2850-3-git-send-email-hanjun.guo@linaro.org>
+ <CAL_JsqKF-_GCRR1d5Hs0F6pCMfLxUYkXAAp9hY7Ywuu1C+aZ0A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="W1G4cAX3lNqeBRc9"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:62122 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756604Ab3LENJt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 08:09:49 -0500
-Received: by mail-pd0-f177.google.com with SMTP id q10so24564440pdj.36
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Dec 2013 05:09:49 -0800 (PST)
-In-Reply-To: <20131204150709.GF29200@e106331-lin.cambridge.arm.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:43695 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751696Ab3LENYy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 08:24:54 -0500
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqKF-_GCRR1d5Hs0F6pCMfLxUYkXAAp9hY7Ywuu1C+aZ0A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Jon Masters <jonathan@jonmasters.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro>
+To: Rob Herring <robherring2@gmail.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linaro Patches <patches@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@linaro.org>
 
-On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 23:07, Mark Rutland wrote:
-> On Wed, Dec 04, 2013 at 02:27:22PM +0000, Hanjun Guo wrote:
->> On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 01:08, Mark Rutland wrote:
->>> On Tue, Dec 03, 2013 at 04:41:31PM +0000, Hanjun Guo wrote:
->>>> Use arch_timer_acpi_init() on ARM64 to initialise arch timer
->>>> in ACPI way when DT is not available.
->>>>
->>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>> ---
->>>>    arch/arm64/kernel/time.c |    4 ++++
->>>>    1 file changed, 4 insertions(+)
->>>>
->>>> diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
->>>> index 29c39d5..fb009da 100644
->>>> --- a/arch/arm64/kernel/time.c
->>>> +++ b/arch/arm64/kernel/time.c
->>>> @@ -67,6 +67,10 @@ void __init time_init(void)
->>>>   =20
->>>>    	clocksource_of_init();
->>>>   =20
->>>> +	/* if can't be initialised from DT, try ACPI way */
->>>> +	if (!arch_timer_get_rate())
->>>> +		arch_timer_acpi_init();
->>>> +
->>> As mentioned on the previous patch, I think for the timebeing we sh=
-ould
->>> rely on CNTFREQ.
->>>
->>> Additionally, if you need to do this we should have an analagous
->>> mechanism to clocksource_of_init() that performs this initialisatio=
-n for
->>> ACPI, and here we can call a clocksource_*_init function that does =
-the
->>> right thing.
->>>
->>> There's no need for this file to know anything about ACPI.
->> Oh, Amit already have some patches to introduce clocksource_acpi_ini=
-t()
->> like clocksource_of_init() did, please refer to the link below.
->>
->> http://marc.info/?l=3Dlinaro-acpi&m=3D138131929721943&w=3D2
->>
->> is this the idea you mentioned in your comments?
-> Something along those lines is far better than hardcoding
-> arch_timer_acpi_init here.
 
-Thanks for the suggestion, will update it.
+--W1G4cAX3lNqeBRc9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, Dec 04, 2013 at 09:47:49AM -0600, Rob Herring wrote:
+> On Tue, Dec 3, 2013 at 10:39 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+
+> > +#ifndef CONFIG_ACPI
+> >                 set_cpu_present(cpu, true);
+> > +#endif
+
+> Should this be moved to DT cpu topology related code?
+
+Part of the trick there being that there isn't any CPU topology code for
+ARMv8 in mainline yet, DT or otherwise - I'm working with some patches
+for doing that with DT which I'm hoping to get out soon.
+
+--W1G4cAX3lNqeBRc9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSoH6WAAoJELSic+t+oim9nJsP/jc9176AkYvZDjck2LzwXX1Y
+qNrW1L8s5tTBF6DI0Gnmjlui/DOItNWlNr635pV/HsB1UVBVpZyeALEPYS4um7Rn
+DYrTxwKIxUJgAXDI6htD9uDIxN8D/f4xz3FhiGub+x5sqbTk1u/bA7NAQzGXM4B0
+rrzC3XBpb3q+/SXyNNBsKxl3Ywc5YbhRUo2BSRH+5wFS1vrzkpLyEpwV/AF5V2GS
+Wrxgpaxc5OOBj4JYy41Vv3N0Uwa6wCRbY/uo/V3Hb4O+WR9g1n6+XhEj7v9UzJFX
+RiWAdUEcCp9vmMIJFtC3NOdbPxXr5lxS8HksVu7kcX7X8EFbPOsKKKQt2JZn/rsu
+CIXJM/nvAtj4Amr48zMuYnOwyd5d5Vk8Hcjic2i5qF2Ep2Z6iwtVHGqXoqaD4D+8
+xvmYzKSZp0MSGHM6vkEIhiPXL+da8YWeY4PEBPDEYI9GUcEasYWpCKNUsFuuomtS
+Tc2SsmcEphVdhrJR/Pv2giDovLZBU4T+SG6gnLfSY9xi8CtbjfdGyg+9WioqatVY
+tYWOa8zqbHDnid+pn5DOt+NJITZbg/ksgf9AQESUrt5Hi4Q+lRbfXCwwAaYhKxhk
+xFcgVusClPkLvyLyC3rcQL41ywZlZjNv7v0sVGcNEd9rOoefcxmf0T9EP3neobu3
+EJuzqaL01O1QOGfsaswf
+=9uVy
+-----END PGP SIGNATURE-----
+
+--W1G4cAX3lNqeBRc9--
