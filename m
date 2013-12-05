@@ -1,103 +1,53 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: [PATCH 0/4] Convert ACPI fan driver to platform driver
-Date: Thu, 5 Dec 2013 13:56:24 +0000
-Message-ID: <744357E9AAD1214791ACBA4B0B909263011B057A@SHSMSX101.ccr.corp.intel.com>
-References: <1386059312-2990-1-git-send-email-aaron.lu@intel.com>
- <1654759.afJtadVnDQ@vostro.rjw.lan> <1539785.BAHHmmHfI6@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC part2 PATCH 8/9] ACPI / ARM64: Update acpi_register_gsi
+ to register with the core IRQ subsystem
+Date: Thu, 05 Dec 2013 22:01:28 +0800
+Message-ID: <52A08738.8060701@linaro.org>
+References: <1386088753-2850-1-git-send-email-hanjun.guo@linaro.org> <1386088753-2850-9-git-send-email-hanjun.guo@linaro.org> <201312050448.10312.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:10305 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751699Ab3LEN4u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 Dec 2013 08:56:50 -0500
-In-Reply-To: <1539785.BAHHmmHfI6@vostro.rjw.lan>
-Content-Language: en-US
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:60779 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751699Ab3LEOBv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 09:01:51 -0500
+Received: by mail-pd0-f180.google.com with SMTP id q10so24641721pdj.39
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Dec 2013 06:01:50 -0800 (PST)
+In-Reply-To: <201312050448.10312.arnd@arndb.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Lu, Aaron" <aaron.lu@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lan, Tianyu" <tianyu.lan@intel.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, patches@linaro.org, Linus Walleij <linus.walleij@linaro.org>, Olof Johansson <olof@lixom.net>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Amit Daniel Kachhap <amit.daniel@samsung.com>, Jon Masters <jonathan@jonmasters.org>, Grant Likely <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
-a2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gU2VudDogVGh1cnNkYXksIERlY2VtYmVy
-IDA1LCAyMDEzIDc6MTAgQU0NCj4gVG86IEx1LCBBYXJvbg0KPiBDYzogWmhhbmcsIFJ1aTsgbGlu
-dXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBrZXJuZWxAdmdlci5rZXJuZWwub3Jn
-OyBMYW4sIFRpYW55dTsgQnJvd24sIExlbjsgTWF0dGhldyBHYXJyZXR0DQo+IFN1YmplY3Q6IFJl
-OiBbUEFUQ0ggMC80XSBDb252ZXJ0IEFDUEkgZmFuIGRyaXZlciB0byBwbGF0Zm9ybSBkcml2ZXIN
-Cj4gSW1wb3J0YW5jZTogSGlnaA0KPiANCj4gQ2M6ICtNYXR0aGV3IChzb3JyeSwgb21pdHRlZCBi
-eSBtaXN0YWtlIHByZXZpb3VzbHkpDQo+IA0KPiBPbiBUaHVyc2RheSwgRGVjZW1iZXIgMDUsIDIw
-MTMgMTI6MDc6MzEgQU0gUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6DQo+ID4gT24gVHVlc2RheSwg
-RGVjZW1iZXIgMDMsIDIwMTMgMDQ6Mjg6MjggUE0gQWFyb24gTHUgd3JvdGU6DQo+ID4gPiBUaGlz
-IHBhdGNoc2V0IGNvbnZlcnRzIEFDUEkgZmFuIGRyaXZlciB0byBwbGF0Zm9ybSBkcml2ZXIuIFBh
-dGNoIDEtDQo+IDMNCj4gPiA+IGFyZSBjbGVhbnVwcyBmb3IgZXhpc3RpbmcgZmFuIGRyaXZlciBh
-bmQgcGF0Y2ggNCBkb2VzIHRoZQ0KPiBjb252ZXJ0aW9uLg0KPiA+ID4NCj4gPiA+IFRlc3RlZCBv
-biBoYXJyaXMgYmVhY2guDQo+ID4gPiBBcHBseSBvbiB0b3Agb2YgUmFmYWVsJ3MgbGludXgtbmV4
-dCBicmFuY2guDQo+ID4gPg0KPiA+ID4gQWFyb24gTHUgKDQpOg0KPiA+ID4gICBBQ1BJIC8gZmFu
-OiByZW1vdmUgdW51c2VkIG1hY3JvIGZvciBkZWJ1Zw0KPiA+ID4gICBBQ1BJIC8gZmFuOiByZW1v
-dmUgbm8gbmVlZCBjaGVjayBmb3IgZGV2aWNlIHBvaW50ZXINCj4gPiA+ICAgQUNQSSAvIGZhbjog
-dXNlIGFjcGlfZGV2aWNlX3h4eF9wb3dlciBpbnN0ZWFkIG9mIGFjcGlfYnVzDQo+IGVxdWl2ZWxh
-bnQNCj4gPiA+ICAgQUNQSSAvIGZhbjogY29udmVydCB0byBwbGF0Zm9ybSBkcml2ZXINCj4gPiA+
-DQo+ID4gPiAgZHJpdmVycy9hY3BpL2FjcGlfcGxhdGZvcm0uYyB8ICAzICsrDQo+ID4gPiAgZHJp
-dmVycy9hY3BpL2RldmljZV9wbS5jICAgICB8ICAxICsNCj4gPiA+ICBkcml2ZXJzL2FjcGkvZmFu
-LmMgICAgICAgICAgIHwgODggKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0NCj4gLS0t
-LS0tLS0tLS0tDQo+ID4gPiAgZHJpdmVycy9hY3BpL2ludGVybmFsLmggICAgICB8ICAyIC0NCj4g
-PiA+ICBpbmNsdWRlL2FjcGkvYWNwaV9idXMuaCAgICAgIHwgIDEgKw0KPiA+ID4gIDUgZmlsZXMg
-Y2hhbmdlZCwgMzYgaW5zZXJ0aW9ucygrKSwgNTkgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBVbmZv
-cnR1bmF0ZWx5LCB3ZSBuZWVkIHRvIHBvc3Rwb25lIHRoZXNlIGNvbnZlcnNpb25zLCBiZWNhdXNl
-IE1hdHRoZXcNCj4gPiBHYXJyZXR0IGhhcyBwcm9ibGVtcyB3aXRoIGFkZGluZyBtb3JlIGVudHJp
-ZXMgdG8NCj4gPiBhY3BpX3BsYXRmb3JtX2RldmljZV9pZHNbXS4gIEhlIHNlZW1zIHRvIGJlIGNv
-bmNlcm5lZCB0aGF0IHRoYXQgbGlzdA0KPiA+IHdpbGwgZ3JvdyBpbmRlZmluaXRlbHkgYW5kIHdp
-bGwgYmVjb21lIGRpZmZpY3VsdCB0byBtYWludGFpbg0KPiBldmVudHVhbGx5Lg0KPiA+DQo+ID4g
-Rm9yIHRoaXMgcmVhc29uLCBoZSB3b3VsZCBwcmVmZXIgaXQgaWYgd2UgZGlkIHRoZSBmb2xsb3dp
-bmc6DQo+ID4gLSBGaWd1cmUgb3V0IHRoZSBsaXN0IG9mIEFDUEkgZGV2aWNlIElEcyB3ZSBuZWVk
-IHRvIGNyZWF0ZSBQTlANCj4gZGV2aWNlcyBmb3INCj4gPiAgIHZpYSBBQ1BJIFBOUC4NCg0KQWdy
-ZWVkLg0KSSdkIGFsc28gcHJlZmVyIGEgd2hpdGVsaXN0IGZvciBwbnBhY3BpIGluc3RlYWQgb2Yg
-YSBiYWNrbGlzdC4NCkFuZCB0aGlzIGlzIGhlbHBmdWwgZm9yIHVzIHRvIGNsZWFuIHVwIHRoZSBB
-Q1BJIGNvZGUgaW4gUE5QIGJ1cywNCkluY2x1ZGluZyBwbnBhY3BpIGNvZGUgYW5kIFBOUCBkcml2
-ZXJzIHRoYXQgYWN0dWFsbHkgYmluZCB0bw0KQUNQSSBlbnVtZXJhdGVkIFBOUCBkZXZpY2VzLg0K
-DQpRdWVzdGlvbiBpcyBob3cgdG8gZ2V0IHRoaXMgd2hpdGUgbGlzdD8NCkNhbiB3ZSBqdXN0IGNv
-bGxlY3QgdGhlIHBucF9kZXZpY2VfaWQgaW4gYWxsIHRoZSBQTlAgZHJpdmVycyBhcyB0aGUgZmly
-c3Qgc3RlcD8NCg0KPiA+IC0gTWFrZSBBQ1BJIFBOUCBjcmVhdGUgUE5QIGRldmljZXMgZm9yIHRo
-ZXNlIElEcyBvbmx5IGFuZCBtYWtlIHRoZQ0KPiBBQ1BJIGNvcmUgY3JlYXRlDQo+ID4gICBwbGF0
-Zm9ybSBkZXZpY2VzIGZvciBhbGwgInVuYXNzaWduZWQiIEFDUEkgZGV2aWNlIG9iamVjdHMgYnkN
-Cj4gZGVmYXVsdC4NCg0KU28gdGhlIGFib3ZlIHN0YXRlbWVudCBtZWFucyB0aGF0IGFuIEFDUEkg
-ZGV2aWNlIHdpbGwgYmUgZW51bWVyYXRlZA0KdG8gZWl0aGVyIFBOUCBidXMgb3IgcGxhdGZvcm0g
-YnVzLCByaWdodD8NClRoZW4gSSdtIHdvbmRlcmluZyBob3cgdG8gaGFuZGxlIHRoZSBmb2xsb3dp
-bmcgY2FzZXMsDQoxLiBhbiBBQ1BJIGRldmljZSBtYXkgaGF2ZSBib3RoIF9ISUQgYW5kIF9DSUQs
-IGlmIGl0cyBfQ0lEIGlzIGluIHRoZQ0KICAgUE5QIHdoaXRlbGlzdCwgZG9lcyB0aGlzIG1lYW4g
-dGhlIGRldmljZSB3aWxsIGFsd2F5cyBiZSBlbnVtZXJhdGVkDQogICB0byBQTlAgYnVzPw0KMi4g
-aXMgaXQgcG9zc2libGUgdG8gc2VlIHRoZSBmb2xsb3dpbmcgQVNMIGNvZGU/DQogICBEZXZpY2Ug
-KEFCQ0RFRkcpIC8qIHNob3VsZCBiZSBlbnVtZXJhdGVkIHRvIHBsYXRmb3JtIGJ1cyAqLw0KICAg
-ew0KICAgICBEZXZpY2UgKFBOUEFCQ0QpIC8qIHNob3VsZCBiZSBlbnVtZXJhdGVkIHRvIFBOUCBi
-dXMgKi8NCiAgICAgew0KICAgICB9DQogICB9DQogICBJZiB5ZXMsIGl0IHNlZW1zIHRoYXQgd2Ug
-d2lsbCBpbnRyb2R1Y2Ugc29tZSB1Z2x5IHBhcmVudC9jaGlsZA0KICAgcmVsYXRpb25zaGlwIGlu
-IGRyaXZlciBjb3JlPw0KDQo+ID4gLSBEbyB0aGUgY29udmVyc2lvbnMgYXQgdGhhdCBwb2ludC4N
-Cj4gPg0KPiA+IEknbSBzbGlnaHRseSB3b3JyaWVkIHRoYXQgd2UnbGwgZW5jb3VudGVyIG9yZGVy
-aW5nIGlzc3VlcyB3aGlsZSBkb2luZw0KPiA+IHRoYXQsIGJ1dCB0aGlzIGlzIHRoZSBvbmx5IHdh
-eSBmb3J3YXJkIEkgY2FuIHNlZSB3aXRob3V0IGdvaW5nDQo+ID4gc3RyYWlnaHQgYWdhaW5zdCB0
-aGUgTWF0dGhldydzIG9iamVjdGlvbnMsIHdoaWNoIEknZCBwcmVmZXIgdG8gYXZvaWQuDQo+ID4N
-Ck1heWJlIGEgc3R1cGlkIHF1ZXN0aW9uLCB3aHkgY2FuJ3Qgd2UgZW51bWVyYXRlIGFsbCBBQ1BJ
-IGRldmljZXMgdG8NCnBsYXRmb3JtIGJ1cz8gSGVyZSBhcmUgc29tZSBvZiBteSB0aG91Z2h0cywN
-CjEuIGVudW1lcmF0ZSBhbGwgQUNQSSBkZXZpY2VzIHRvIHBsYXRmb3JtIGJ1cywgdGh1cyBvdXIg
-QUNQSSAtPiBwbGF0Zm9ybSBidXMNCiAgIGNvbnZlcnNpb24gd29yayBjYW4gY29udGludWUuDQoy
-LiB3b3Jrb3V0IGEgd2hpdGUgbGlzdCBmb3IgUE5QQUNQSSAoYnkgY29sbGVjdGluZyBhbGwgdGhl
-IHBucF9kZXZpY2VfaWRzKQ0KMy4gY2xlYW51cCB0aGUgUE5QIGRyaXZlcnMuDQogICBJZiBhIFBO
-UCBkcml2ZXIgaXMgc3VwcG9zZWQgdG8gYmluZCB0byBBQ1BJIGVudW1lcmF0ZWQgUE5QIGRldmlj
-ZXMsDQogICBjb252ZXJ0IGl0IHRvIGEgcGxhdGZvcm0gZHJpdmVyLg0KICAgSWYgYSBQTlAgZHJp
-dmVyIGNhbiBwcm9iZSBkZXZpY2UgZW51bWVyYXRlZCBmcm9tIGVpdGhlciBQTlBCSU9TIG9yIFBO
-UEFDUEksDQogICBtYWtlIGl0IGEgZHVhbC1oZWFkIGRyaXZlciB0aGF0IGNhbiBwcm9iZSBib3Ro
-IFBOUCBhbmQgcGxhdGZvcm0gZGV2aWNlcy4NCiAgIElmIGEgUE5QIGRyaXZlciBpcyBzdXBwb3Nl
-ZCB0byBiaW5kIHRvIFBOUEJJT1MgZW51bWVyYXRlZCBQTlAgZGV2aWNlcywNCiAgIGxlYXZlIGl0
-IGFzIGl0IGlzLg0KICAgTm90ZTogZXZlcnkgdGltZSB3ZSBoYXZlIGRvbmUgdGhlIGNsZWFudXAg
-Zm9yIGEgZHJpdmVyLA0KICAgICAgICAgd2UgY2FuIGRlbGV0ZSBvbmUgZW50cnkgaW4gdGhlIFBO
-UEFDUEkgd2hpdGVsaXN0IGluIHN0ZXAgMi4NCjQuIGFmdGVyIGNsZWFudXAgYWxsIHRoZSBQTlAg
-ZHJpdmVycywgdGhlIHdoaXRlbGlzdCBpcyBlbXB0eQ0KICAgYW5kIHdlIGNhbiByZW1vdmUgYWxs
-IHRoZSBQTlBBQ1BJIGNvZGUuDQoNClRoYW5rcywNCnJ1aQ0KPiA+IFRoYW5rcywNCj4gPiBSYWZh
-ZWwNCj4gPg0KPiA+IC0tDQo+ID4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQg
-dGhlIGxpbmUgInVuc3Vic2NyaWJlDQo+ID4gbGludXgta2VybmVsIiBpbiB0aGUgYm9keSBvZiBh
-IG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiA+IE1vcmUgbWFqb3Jkb21v
-IGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0KPiA+
-IFBsZWFzZSByZWFkIHRoZSBGQVEgYXQgIGh0dHA6Ly93d3cudHV4Lm9yZy9sa21sLw0KPiAtLQ0K
-PiBJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9w
-ZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLg0K
+On 2013=E5=B9=B412=E6=9C=8805=E6=97=A5 11:48, Arnd Bergmann wrote:
+> On Tuesday 03 December 2013, Hanjun Guo wrote:
+>> +       /*
+>> +        * ACPI have no bindings to indicate SPI or PPI, so we
+>> +        * use different mappings from DT in ACPI.
+>> +        *
+>> +        * For FDT
+>> +        * PPI interrupt: in the range [0, 15];
+>> +        * SPI interrupt: in the range [0, 987];
+>> +        *
+>> +        * For ACPI, using identity mapping for hwirq:
+>> +        * PPI interrupt: in the range [16, 31];
+>> +        * SPI interrupt: in the range [32, 1019];
+> This difference might cause endless confusion. Can't you register PPI=
+ and SPI as
+> separate IRQ controllers to have the same number space that we normal=
+ly have?
+
+In ACPI, they used a conception named GSI (Global System Interrupts)
+for irq, GSI number can not be the same even if there are muti GICs,
+so I use the identity mapping for hwirq for ACPI.
+
+Thanks you very much for your comments :)
+
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
