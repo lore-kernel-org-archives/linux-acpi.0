@@ -1,86 +1,52 @@
-From: Betty Dall <betty.dall@hp.com>
-Subject: [PATCH] PCI/ACPI: Use PCIe segment in the ACPI HEST AER error sources
-Date: Thu,  5 Dec 2013 08:08:24 -0700
-Message-ID: <1386256104-20624-1-git-send-email-betty.dall@hp.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH] ACPI / table: Replace '1' with specific error in return value
+Date: Thu,  5 Dec 2013 23:42:38 +0800
+Message-ID: <1386258158-10056-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t1383g.austin.hp.com ([15.217.136.92]:17135 "EHLO
-	g2t1383g.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752352Ab3LEPRs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 10:17:48 -0500
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:35560 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932726Ab3LEPmw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 10:42:52 -0500
+Received: by mail-pd0-f178.google.com with SMTP id y10so24859467pdj.37
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Dec 2013 07:42:51 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rjw@rjwysocki.net, bhelgaas@google.com, robert.moore@intel.com, lv.zheng@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, devel@acpica.org, Betty Dall <betty.dall@hp.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, patches@linaro.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-In the discussion for this set of patches: https://lkml.org/lkml/2013/6/6/517,
-Bjorn Helgaas pointed out that the ACPI HEST AER error sources do not have the
-PCIe segment number associated with the bus. I worked with the ACPI spec and
-got this change to definition of the "Bus" field into the recently released
-ACPI Spec 5.0a section 18.3.2.3-5:
+In commit 7f8f97c3cc (ACPI: acpi_table_parse() now returns success/fail,
+not count), it return '1' when no table found, replace -ENODEV here
+to make it more resonable.
 
-"Identifies the PCI Bus and Segment of the device. The Bus is
-encoded in bits 0-7. For systems that expose multiple PCI
-segment groups, the segment number is encoded in bits 8-23
-and bits 24-31 must be zero. For systems that do not expose
-multiple PCI segment groups, bits 8-31 must be zero. If the
-GLOBAL flag is specified, this field is ignored."
+Fix the same problem in acpi_table_init() too.
 
-This patch makes use of the new definition in the only place in the kernel
-that uses the acpi_hest_aer_common's bus field.
-
-Signed-off-by: Betty Dall <betty.dall@hp.com>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
+ drivers/acpi/tables.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
- drivers/pci/pcie/aer/aerdrv_acpi.c |    8 ++++----
- include/acpi/actbl1.h              |   11 ++++++++++-
- 2 files changed, 14 insertions(+), 5 deletions(-)
-
-
-diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
-index cf611ab..93f852b 100644
---- a/drivers/pci/pcie/aer/aerdrv_acpi.c
-+++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
-@@ -23,10 +23,10 @@
- static inline int hest_match_pci(struct acpi_hest_aer_common *p,
- 				 struct pci_dev *pci)
- {
--	return	(0           == pci_domain_nr(pci->bus) &&
--		 p->bus      == pci->bus->number &&
--		 p->device   == PCI_SLOT(pci->devfn) &&
--		 p->function == PCI_FUNC(pci->devfn));
-+	return   ACPI_HEST_SEGMENT(p->bus) == pci_domain_nr(pci->bus) &&
-+		 ACPI_HEST_BUS(p->bus)     == pci->bus->number &&
-+		 p->device                 == PCI_SLOT(pci->devfn) &&
-+		 p->function               == PCI_FUNC(pci->devfn);
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index d67a1fe..4ec4425 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -306,7 +306,7 @@ int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
+ 		early_acpi_os_unmap_memory(table, tbl_size);
+ 		return 0;
+ 	} else
+-		return 1;
++		return -ENODEV;
  }
  
- static inline bool hest_match_type(struct acpi_hest_header *hest_hdr,
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 556c83ee..0c7428b 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -457,7 +457,7 @@ struct acpi_hest_aer_common {
- 	u8 enabled;
- 	u32 records_to_preallocate;
- 	u32 max_sections_per_record;
--	u32 bus;
-+	u32 bus;		/* bus: bits 0-7; segment: bits 8-23 */
- 	u16 device;
- 	u16 function;
- 	u16 device_control;
-@@ -473,6 +473,15 @@ struct acpi_hest_aer_common {
- #define ACPI_HEST_FIRMWARE_FIRST        (1)
- #define ACPI_HEST_GLOBAL                (1<<1)
+ /* 
+@@ -351,7 +351,7 @@ int __init acpi_table_init(void)
  
-+/*
-+ * The segment/bus of the PCIe device is encoded in the bus field
-+ * of the acpi_hest_aer_common structure as follows:
-+ *      23:8 = segment
-+ *      7:0 = bus
-+ */
-+#define ACPI_HEST_SEGMENT(bus)		(((bus) >> 8) & 0xFFFF)
-+#define ACPI_HEST_BUS(bus)	        ((bus) & 0xFF)
-+
- /* Hardware Error Notification */
+ 	status = acpi_initialize_tables(initial_tables, ACPI_MAX_TABLES, 0);
+ 	if (ACPI_FAILURE(status))
+-		return 1;
++		return -EINVAL;
  
- struct acpi_hest_notify {
+ 	check_multiple_madt();
+ 	return 0;
+-- 
+1.7.9.5
+
