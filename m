@@ -1,78 +1,68 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 6/6] ACPI/IBFT: Fix wrong <acpi/acpi.h> inclusion in iSCSI boot firmware module.
-Date: Fri,  6 Dec 2013 16:52:19 +0800
-Message-ID: <7d10180ca652b4a20a07517946fc0fed6a591650.1386316208.git.lv.zheng@intel.com>
-References: <cover.1385094640.git.lv.zheng@intel.com> <cover.1386316208.git.lv.zheng@intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [Update PATCH] ACPI/Button: Fix enable Button GPEs twice
+Date: Fri, 06 Dec 2013 16:59:03 +0800
+Message-ID: <52A191D7.9010106@intel.com>
+References: <1386318760-5887-1-git-send-email-tianyu.lan@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23825 "EHLO mga02.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:18600 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753967Ab3LFIxY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Dec 2013 03:53:24 -0500
-In-Reply-To: <cover.1386316208.git.lv.zheng@intel.com>
+	id S1751543Ab3LFI7X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Dec 2013 03:59:23 -0500
+In-Reply-To: <1386318760-5887-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Konrad Rzeszutek Wilk <konrad@kernel.org>, Peter Jones <pjones@redhat.com>
+To: Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-In Linux kernel, ACPICA is wrapped and safely exported by CONFIG_ACPI.  So
-all external modules should depend on CONFIG_ACPI rather than using ACPICA
-header directly for stubbing.  But if we moves <acpi/acpi.h> inclusions
-into "#ifdef CONFIG_ACPI", build breakge can help to detect wrong ACPICA
-dependent modules.
+On 12/06/2013 04:32 PM, Lan Tianyu wrote:
+> Button GPEs have been enabled in the acpi_wake_device_init() during
+> boot and Button driver enables these GPEs second time. This causes
+> disabling these gpes via sysfs interface requires twice "echo disable
+>> /sys/firmware/acpi/interrupts/gpeXXX". This patch is to remove
+> related code in the Button driver.
+> 
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> ---
+> Update:
+> 	fix a typo, sorry for noise.
+> 
+>  drivers/acpi/button.c | 12 +++---------
+>  1 file changed, 3 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index 9e3a6cb..6643f2d 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -406,15 +406,9 @@ static int acpi_button_add(struct acpi_device *device)
+>  		lid_device = device;
+>  	}
+>  
+> -	if (device->wakeup.flags.valid) {
+> -		/* Button's GPE is run-wake GPE */
+> -		acpi_enable_gpe(device->wakeup.gpe_device,
+> -				device->wakeup.gpe_number);
+> -		if (!device_may_wakeup(&device->dev)) {
+> -			device_set_wakeup_enable(&device->dev, true);
+> -			button->wakeup_enabled = true;
+> -		}
+> -	}
+> +	/* Button GPEs have been enabled in the acpi_wakeup_device_list()*/
+> +	if (device->wakeup.flags.valid)
+> +		button->wakeup_enabled = true;
 
-One of the build breakage is:
-drivers/firmware/iscsi_ibft_find.c: In function 'find_ibft_region':
-drivers/firmware/iscsi_ibft_find.c:106:12: error: dereferencing pointer to incomplete type
-drivers/firmware/iscsi_ibft_find.c:106:12: error: dereferencing pointer to incomplete type
-drivers/firmware/iscsi_ibft_find.c:106:12: error: dereferencing pointer to incomplete type
+It doesn't seem we need this wakeup_enabled flag anymore, since we want
+button/lid's GPE to be always enabled no matter if button driver is in
+use or not and we have already taken care of this in
+acpi_wakeup_device_init function, we can drop it from button driver.
 
-The root cause of this breakage is:
-1. iBFT locating is implemented by looking up it in the memory.  This is
-   based on the specification.  Specification doesn't mention if it can
-   appear on a non-ACPI platforms but mentions it is defined in ACPI 3.0b.
-   The current CONFIG_ISCSI_IBFT_FIND doesn't use ACPI table APIs to locate
-   the table, thus it doesn't rely on CONFIG_ACPI.
+Thanks,
+Aaron
 
-Since ACPI iSCSI Boot Firmware is an ACPI-based mechanism (please refer to
-the Doclink below), we can make CONFIG_ISCSI_IBFT_FIND dependent on
-CONFIG_ACPI though the locating mechanism can be implemented without using
-ACPI table APIs.  But please let me know if this is wrong.
-
-Doclink: http://www.microsoft.com/whdc/system/platform/firmware/ibft.mspx
-Cc: Konrad Rzeszutek Wilk <konrad@kernel.org>
-Cc: Peter Jones <pjones@redhat.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/firmware/Kconfig   |    2 +-
- include/linux/iscsi_ibft.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
-index 0747872..a6ef6ac 100644
---- a/drivers/firmware/Kconfig
-+++ b/drivers/firmware/Kconfig
-@@ -110,7 +110,7 @@ config DMI_SYSFS
- 
- config ISCSI_IBFT_FIND
- 	bool "iSCSI Boot Firmware Table Attributes"
--	depends on X86
-+	depends on X86 && ACPI
- 	default n
- 	help
- 	  This option enables the kernel to find the region of memory
-diff --git a/include/linux/iscsi_ibft.h b/include/linux/iscsi_ibft.h
-index 82f9673..605cc5c 100644
---- a/include/linux/iscsi_ibft.h
-+++ b/include/linux/iscsi_ibft.h
-@@ -21,7 +21,7 @@
- #ifndef ISCSI_IBFT_H
- #define ISCSI_IBFT_H
- 
--#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
-+#include <linux/acpi.h>
- 
- /*
-  * Logical location of iSCSI Boot Format Table.
--- 
-1.7.10
+>  
+>  	printk(KERN_INFO PREFIX "%s [%s]\n", name, acpi_device_bid(device));
+>  	return 0;
+> 
 
