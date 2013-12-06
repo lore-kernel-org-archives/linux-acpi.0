@@ -1,79 +1,57 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 3/6] SFI: Fix warnings reported by W=1 builds.
-Date: Fri,  6 Dec 2013 16:51:59 +0800
-Message-ID: <a173e089c58a7c861d5da203773078b760b5777b.1386316208.git.lv.zheng@intel.com>
+Subject: [PATCH v3 1/6] ACPI: Clean up incorrect inclusions of ACPICA headers
+Date: Fri,  6 Dec 2013 16:51:46 +0800
+Message-ID: <91be0998578a1001db1382012676ee0a69d5cee3.1386317385.git.lv.zheng@intel.com>
 References: <cover.1385094640.git.lv.zheng@intel.com> <cover.1386316208.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1386316208.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Feng Tang <feng.tang@intel.com>, sfi-devel@simplefirmware.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The following warnings can be seen for W=1 builds.  This is because
-original sfi_acpi.[ch] header inclusions are wrong.
+Header file <acpi/acpi.h> contains environemnt settings and architecture
+specific implementation that should be included before any other ACPICA
+headers in order to keep a consistent build environment for ACPICA users.
+The following internal ACPICA header files should be included from
+<acpi/acpi.h> and should not be included by other kernel files:
+  <acpi/acpiosxf.h>
+  <acpi/acpixf.h>
 
-include/linux/sfi_acpi.h:72:2: error: implicit declaration of function 'acpi_table_parse' [-Werror=implicit-function-declaration]
-drivers/sfi/sfi_acpi.c:154:5: warning: no previous prototype for 'sfi_acpi_table_parse' [-Wmissing-prototypes]
+Clean up incorrect inclusions of these files from non-ACPICA source
+files.
 
-This patch fixes this existing issue.  It is on top of the following
-commit which doesn't take care about existing issues:
- Commit: 4e8fb7987f7d0390a2e74622c7c1cbb6760c6516
- From: Lv Zheng <lv.zheng@intel.com>
- Date: Tue, 3 Dec 2013 08:49:16 +0800
- Subject: [PATCH] ACPI: Clean up inclusions of ACPI header files
-
-Reported-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+[rjw: Subject and changelog]
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: sfi-devel@simplefirmware.org
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- arch/x86/pci/mmconfig-shared.c |    1 -
- drivers/sfi/sfi_acpi.c         |    4 +---
- include/linux/sfi_acpi.h       |    3 +++
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/nvs.c           |    1 -
+ drivers/hwmon/asus_atk0110.c |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
-index 082e881..248642f 100644
---- a/arch/x86/pci/mmconfig-shared.c
-+++ b/arch/x86/pci/mmconfig-shared.c
-@@ -12,7 +12,6 @@
+diff --git a/drivers/acpi/nvs.c b/drivers/acpi/nvs.c
+index 266bc58..386a9fe 100644
+--- a/drivers/acpi/nvs.c
++++ b/drivers/acpi/nvs.c
+@@ -13,7 +13,6 @@
+ #include <linux/slab.h>
+ #include <linux/acpi.h>
+ #include <linux/acpi_io.h>
+-#include <acpi/acpiosxf.h>
  
- #include <linux/pci.h>
- #include <linux/init.h>
--#include <linux/acpi.h>
- #include <linux/sfi_acpi.h>
- #include <linux/bitmap.h>
- #include <linux/dmi.h>
-diff --git a/drivers/sfi/sfi_acpi.c b/drivers/sfi/sfi_acpi.c
-index 5e753d7..d277b36 100644
---- a/drivers/sfi/sfi_acpi.c
-+++ b/drivers/sfi/sfi_acpi.c
-@@ -60,9 +60,7 @@
- #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
+ /* ACPI NVS regions, APEI may use it */
  
- #include <linux/kernel.h>
--#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
--
--#include <linux/sfi.h>
-+#include <linux/sfi_acpi.h>
- #include "sfi_core.h"
+diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
+index b25c643..05fd83e 100644
+--- a/drivers/hwmon/asus_atk0110.c
++++ b/drivers/hwmon/asus_atk0110.c
+@@ -18,7 +18,6 @@
+ #include <linux/err.h>
  
- /*
-diff --git a/include/linux/sfi_acpi.h b/include/linux/sfi_acpi.h
-index 2cfcb79..4723bbf 100644
---- a/include/linux/sfi_acpi.h
-+++ b/include/linux/sfi_acpi.h
-@@ -59,6 +59,9 @@
- #ifndef _LINUX_SFI_ACPI_H
- #define _LINUX_SFI_ACPI_H
- 
-+#include <linux/acpi.h>
-+#include <linux/sfi.h>
-+
- #ifdef CONFIG_SFI
- #include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
+ #include <acpi/acpi.h>
+-#include <acpi/acpixf.h>
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acpi_bus.h>
  
 -- 
 1.7.10
