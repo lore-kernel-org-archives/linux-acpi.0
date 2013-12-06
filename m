@@ -1,63 +1,75 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] SFI: fix compilation warnings
-Date: Fri, 6 Dec 2013 01:08:45 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802494B32@SHSMSX101.ccr.corp.intel.com>
-References: <1386264397-27319-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <4771886.zcelg2hCiB@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] SFI: fix compilation warnings
+Date: Fri, 06 Dec 2013 02:25:33 +0100
+Message-ID: <1419818.3DzaCCe02K@vostro.rjw.lan>
+References: <1386264397-27319-1-git-send-email-andriy.shevchenko@linux.intel.com> <4771886.zcelg2hCiB@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E8802494B32@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:18515 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751010Ab3LFBIt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 Dec 2013 20:08:49 -0500
-In-Reply-To: <4771886.zcelg2hCiB@vostro.rjw.lan>
-Content-Language: en-US
+Received: from v094114.home.net.pl ([79.96.170.134]:59958 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751601Ab3LFBMd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 20:12:33 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802494B32@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-PiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0Byand5c29ja2kubmV0XQ0KPiBT
-ZW50OiBGcmlkYXksIERlY2VtYmVyIDA2LCAyMDEzIDY6MzcgQU0NCj4gDQo+IE9uIFRodXJzZGF5
-LCBEZWNlbWJlciAwNSwgMjAxMyAwNzoyNjozNyBQTSBBbmR5IFNoZXZjaGVua28gd3JvdGU6DQo+
-ID4gV2hlbiBidWlsZCBrZXJuZWwgd2l0aCBtYWtlIFc9MSB3ZSBnZXQgdGhlIGZvbGxvd2luZyBj
-b21waWxlciBlcnJvci4NCj4gPg0KPiA+IEluIGZpbGUgaW5jbHVkZWQgZnJvbSBkcml2ZXJzL3Nm
-aS9zZmlfYWNwaS5jOjY2OjA6DQo+ID4gaW5jbHVkZS9saW51eC9zZmlfYWNwaS5oOiBJbiBmdW5j
-dGlvbiDigJhhY3BpX3NmaV90YWJsZV9wYXJzZeKAmToNCj4gPiBpbmNsdWRlL2xpbnV4L3NmaV9h
-Y3BpLmg6NzI6MjogZXJyb3I6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uIOKAmGFj
-cGlfdGFibGVfcGFyc2XigJkgWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25d
-DQo+ID4gICBpZiAoIWFjcGlfdGFibGVfcGFyc2Uoc2lnbmF0dXJlLCBoYW5kbGVyKSkNCj4gPiAg
-IF4NCj4gPiAgIGNjMTogc29tZSB3YXJuaW5ncyBiZWluZyB0cmVhdGVkIGFzIGVycm9ycw0KPiA+
-DQo+ID4gVGhlIHBhdGNoIGNoYW5nZXMgYWNwaS9hY3BpLmggaW5jbHVzaW9uIHRvIGxpbnV4L2Fj
-cGkuaC4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IEFuZHkgU2hldmNoZW5rbyA8YW5kcml5LnNo
-ZXZjaGVua29AbGludXguaW50ZWwuY29tPg0KPiANCj4gT0sNCj4gDQo+IEx2LCBJJ20gZHJvcHBp
-bmcgeW91ciBwYXRjaCBjbGVhbmluZyB1cCB0aGUgaW5jbHVzaW9ucywgcGxlYXNlIHNvcnQgdGhh
-dCB0aGluZw0KPiBvdXQgZW50aXJlbHkgZm9yIHRoZSBuZXh0IGN5Y2xlLg0KDQpObywgSSB0aGlu
-ayBBbmR5J3MgcGF0Y2ggaXMgd3JvbmcuDQpUaGlzIHdhcm5pbmcgaXMgZXhpc3RpbmcgYmVmb3Jl
-IG1lcmdpbmcgbXkgZml4ZXMuDQoNCkVpdGhlciB3ZSBmaXggdGhpcyB3YXJuaW5nIG9yIGxlYXZl
-IGl0IGFzIGlzLg0KDQpUbyBmaXggaXQsIHlvdSBuZWVkIHRvIGFkZCAxIGxpbmUgaW4gc2ZpX2Fj
-cGkuaCByYXRoZXIgdGhhbiBjaGFuZ2UgdGhlIGxpbmUuDQpMZXQgbWUgcG9zdCBhIGZpeCBmb3Ig
-dGhpcy4NCg0KVGhhbmtzDQotTHYNCg0KPiANCj4gVGhhbmtzIQ0KPiANCj4gPiAtLS0NCj4gPiAg
-ZHJpdmVycy9zZmkvc2ZpX2FjcGkuYyAgIHwgMiArLQ0KPiA+ICBpbmNsdWRlL2xpbnV4L3NmaV9h
-Y3BpLmggfCAyICstDQo+ID4gIDIgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRl
-bGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvc2ZpL3NmaV9hY3BpLmMg
-Yi9kcml2ZXJzL3NmaS9zZmlfYWNwaS5jDQo+ID4gaW5kZXggMGM5ZjQxOS4uZDRkZmNiZSAxMDA2
-NDQNCj4gPiAtLS0gYS9kcml2ZXJzL3NmaS9zZmlfYWNwaS5jDQo+ID4gKysrIGIvZHJpdmVycy9z
-Zmkvc2ZpX2FjcGkuYw0KPiA+IEBAIC02MCw3ICs2MCw3IEBADQo+ID4gICNkZWZpbmUgcHJfZm10
-KGZtdCkgS01TR19DT01QT05FTlQgIjogIiBmbXQNCj4gPg0KPiA+ICAjaW5jbHVkZSA8bGludXgv
-a2VybmVsLmg+DQo+ID4gLSNpbmNsdWRlIDxhY3BpL2FjcGkuaD4JLyogRklYTUU6IGluY2x1c2lv
-biBzaG91bGQgYmUgcmVtb3ZlZCAqLw0KPiA+ICsjaW5jbHVkZSA8bGludXgvYWNwaS5oPg0KPiA+
-DQo+ID4gICNpbmNsdWRlIDxsaW51eC9zZmkuaD4NCj4gPiAgI2luY2x1ZGUgPGxpbnV4L3NmaV9h
-Y3BpLmg+DQo+ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvc2ZpX2FjcGkuaCBiL2luY2x1
-ZGUvbGludXgvc2ZpX2FjcGkuaA0KPiA+IGluZGV4IDJjZmNiNzkuLmM5Y2FiODIgMTAwNjQ0DQo+
-ID4gLS0tIGEvaW5jbHVkZS9saW51eC9zZmlfYWNwaS5oDQo+ID4gKysrIGIvaW5jbHVkZS9saW51
-eC9zZmlfYWNwaS5oDQo+ID4gQEAgLTYwLDcgKzYwLDcgQEANCj4gPiAgI2RlZmluZSBfTElOVVhf
-U0ZJX0FDUElfSA0KPiA+DQo+ID4gICNpZmRlZiBDT05GSUdfU0ZJDQo+ID4gLSNpbmNsdWRlIDxh
-Y3BpL2FjcGkuaD4JLyogRklYTUU6IGluY2x1c2lvbiBzaG91bGQgYmUgcmVtb3ZlZCAqLw0KPiA+
-ICsjaW5jbHVkZSA8bGludXgvYWNwaS5oPg0KPiA+DQo+ID4gIGV4dGVybiBpbnQgc2ZpX2FjcGlf
-dGFibGVfcGFyc2UoY2hhciAqc2lnbmF0dXJlLCBjaGFyICpvZW1faWQsDQo+ID4gIAkJCQljaGFy
-ICpvZW1fdGFibGVfaWQsDQo+ID4NCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+
-IFJhZmFlbCBKLiBXeXNvY2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4N
-Cg==
+On Friday, December 06, 2013 01:08:45 AM Zheng, Lv wrote:
+> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > Sent: Friday, December 06, 2013 6:37 AM
+> >=20
+> > On Thursday, December 05, 2013 07:26:37 PM Andy Shevchenko wrote:
+> > > When build kernel with make W=3D1 we get the following compiler e=
+rror.
+> > >
+> > > In file included from drivers/sfi/sfi_acpi.c:66:0:
+> > > include/linux/sfi_acpi.h: In function =E2=80=98acpi_sfi_table_par=
+se=E2=80=99:
+> > > include/linux/sfi_acpi.h:72:2: error: implicit declaration of fun=
+ction =E2=80=98acpi_table_parse=E2=80=99 [-Werror=3Dimplicit-function-d=
+eclaration]
+> > >   if (!acpi_table_parse(signature, handler))
+> > >   ^
+> > >   cc1: some warnings being treated as errors
+> > >
+> > > The patch changes acpi/acpi.h inclusion to linux/acpi.h.
+> > >
+> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com=
+>
+> >=20
+> > OK
+> >=20
+> > Lv, I'm dropping your patch cleaning up the inclusions, please sort=
+ that thing
+> > out entirely for the next cycle.
+>=20
+> No, I think Andy's patch is wrong.
+
+His patch may be wrong, but the warning in his changelog surely is real=
+=2E :-)
+
+> This warning is existing before merging my fixes.
+>=20
+> Either we fix this warning or leave it as is.
+>=20
+> To fix it, you need to add 1 line in sfi_acpi.h rather than change th=
+e line.
+> Let me post a fix for this.
+
+Please do.  And I'm putting all ACPI header cleanups on hold until all =
+warnings
+of this kind have been fixed by them.  Otherwise doing those cleanups m=
+akes a
+little sense in my opinion.
+
+Thanks,
+Rafael
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
