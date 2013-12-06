@@ -1,67 +1,86 @@
-From: rui wang <ruiv.wang@gmail.com>
-Subject: Re: [PATCH v10 1/3] aerdrv: Trace Event for AER
-Date: Fri, 6 Dec 2013 17:06:10 +0800
-Message-ID: <CANVTcTYJS3eAUA4bHVCrKgz=7rQpJZHCiBcw3JM=j0FbCsgQJw@mail.gmail.com>
-References: <20130116235102.16015.77379.stgit@grignak.americas.hpqcorp.net>
-	<CANVTcTaP18CiGOSEcX5Ch_wPw9mEhkgokfp+d+ZOMFD+Ce4juA@mail.gmail.com>
-	<20131204203837.GA7517@pd.tnic>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC part1 PATCH 0/7] Make ACPI core running on ARM64
+Date: Fri, 6 Dec 2013 13:58:25 +0000
+Message-ID: <20131206135825.GG29268@sirena.org.uk>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
+ <201312052325.02603.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131204203837.GA7517@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@intel.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, gong.chen@intel.com
+Content-Type: multipart/mixed; boundary="===============9056985622669344600=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201312052325.02603.arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, patches@linaro.org, Olof Johansson <olof@lixom.net>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Jon Masters <jonathan@jonmasters.org>, Rob Herring <rob.herring@calxeda.com>, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/5/13, Borislav Petkov <bp@alien8.de> wrote:
 
-> Yes, the AER tracepoint above should use the AER_* defines and not the
-> HW_EVENT_ERR_* ones which are for memory errors.
->
-> Wanna send a fix?
->
-
-Yes. Does it translate into something like this?
-
-From: Rui Wang <rui.y.wang@intel.com>
-Date: Fri, 6 Dec 2013 16:47:46 +0800
-Subject: [PATCH] Fix severity usage in aer trace event
-
-Signed-off-by: Rui Wang <rui.y.wang@intel.com>
----
- include/trace/events/ras.h |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
-index 88b8783..e2a17d8 100644
---- a/include/trace/events/ras.h
-+++ b/include/trace/events/ras.h
-@@ -5,7 +5,7 @@
- #define _TRACE_AER_H
-
- #include <linux/tracepoint.h>
--#include <linux/edac.h>
-+#include <linux/aer.h>
+--===============9056985622669344600==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+zeCMqFCsETNqUaq"
+Content-Disposition: inline
 
 
- /*
-@@ -63,10 +63,10 @@ TRACE_EVENT(aer_event,
+--+zeCMqFCsETNqUaq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-        TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
-                __get_str(dev_name),
--               __entry->severity == HW_EVENT_ERR_CORRECTED ? "Corrected" :
--                       __entry->severity == HW_EVENT_ERR_FATAL ?
-+               __entry->severity == AER_CORRECTABLE ? "Corrected" :
-+                       __entry->severity == AER_FATAL ?
-                        "Fatal" : "Uncorrected",
--               __entry->severity == HW_EVENT_ERR_CORRECTED ?
-+               __entry->severity == AER_CORRECTABLE ?
-                __print_flags(__entry->status, "|", aer_correctable_errors) :
-                __print_flags(__entry->status, "|", aer_uncorrectable_errors))
- );
--- 
-1.7.5.4
+On Thu, Dec 05, 2013 at 11:25:02PM +0100, Arnd Bergmann wrote:
 
-Regards,
-Rui
+> However, as I mentioned before I am much more worried about the parts that
+> are not done (or not posted) yet and that will be required to actually
+> have working support for a real server system. Until we know more about
+> where this is heading, I think we should not merge any of the ARM specific
+> parts of your patches. Any patches that are reasonable cleanups and bug
+> fixes for the ACPI subsystem should of course get merged once they are
+> reviewed.
+
+OTOH if it's well encapsulated, is going to be required for any kind of
+ACPI use and gets to the point where people are OK with it by itself
+then I'm not sure what we'd gain by keeping it out of tree - it'd make
+the real system patch sets bigger and harder to review.
+
+--+zeCMqFCsETNqUaq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSodf+AAoJELSic+t+oim9qgEP/iRplnHmJFMJSO2Q6KWQVpc5
+qNmfHc5VNI6fAKZWzkPiIQHnOzTWc9ml7j6Luh9RxvTAgYXStv3r7xi0X2t+Q4Ey
+sD84Y21ZKvJU9cqL6usiCDnTtsbWhroT6RIwW0c20z1e84+58KSpdfuDotHkRQ9D
+lTgvfdOkNI3CC8TnZKryAT+a7vkDwL66wqa38v2LNYfA9sdNqCeKy0Id8m0D6cU0
+hjlS/kvF2eyzj8F0URIOUc+e+LpNIa8hsLRr0aduNlJzjh1O35MxfsEawN/zPPSZ
+3mjLRstqCcdLx2SSU0TapD16BG3Nnxa+/i7b2JKLIAfVWro1Hbu7/nUdNNV3imVb
+do81y04Oia9T23tjwgLSNzI0ArEXIjy9Gblmap5eUERyS0yDbkvk92iemJhuvaNe
+lbmssaAB72gyE1tAR6P5kfBedjSsibPCFNq1Ar0Sw1d+TyyHSPEIOvzlC2Rkl7Lm
+K2tx263IFkgxpkCtB2M+eZ9H7WCAn4Rqwto+T8OdqQKzDpLCte1UFSpXuoDYQql+
+K8gJ4nE4mKIpUwc1uOCxGmyTRSax/5x0fQCCAwmfR2G6pJW2yW6fgZDLNEduuVXN
+NdzKnnvSvkdDzYSIXTM8Wg/rFBdiLNPKco9E7/DvTnFgXHTJZf+FMxFFmoQfZgG9
+2dq5fwliLomvW5dxIUKt
+=PlnU
+-----END PGP SIGNATURE-----
+
+--+zeCMqFCsETNqUaq--
+
+
+--===============9056985622669344600==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============9056985622669344600==--
