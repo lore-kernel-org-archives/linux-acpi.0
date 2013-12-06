@@ -1,68 +1,67 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [Update PATCH] ACPI/Button: Fix enable Button GPEs twice
-Date: Fri, 06 Dec 2013 16:59:03 +0800
-Message-ID: <52A191D7.9010106@intel.com>
-References: <1386318760-5887-1-git-send-email-tianyu.lan@intel.com>
+From: rui wang <ruiv.wang@gmail.com>
+Subject: Re: [PATCH v10 1/3] aerdrv: Trace Event for AER
+Date: Fri, 6 Dec 2013 17:06:10 +0800
+Message-ID: <CANVTcTYJS3eAUA4bHVCrKgz=7rQpJZHCiBcw3JM=j0FbCsgQJw@mail.gmail.com>
+References: <20130116235102.16015.77379.stgit@grignak.americas.hpqcorp.net>
+	<CANVTcTaP18CiGOSEcX5Ch_wPw9mEhkgokfp+d+ZOMFD+Ce4juA@mail.gmail.com>
+	<20131204203837.GA7517@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:18600 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751543Ab3LFI7X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Dec 2013 03:59:23 -0500
-In-Reply-To: <1386318760-5887-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131204203837.GA7517@pd.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@intel.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, gong.chen@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, rjw@rjwysocki.net
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 12/06/2013 04:32 PM, Lan Tianyu wrote:
-> Button GPEs have been enabled in the acpi_wake_device_init() during
-> boot and Button driver enables these GPEs second time. This causes
-> disabling these gpes via sysfs interface requires twice "echo disable
->> /sys/firmware/acpi/interrupts/gpeXXX". This patch is to remove
-> related code in the Button driver.
-> 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> ---
-> Update:
-> 	fix a typo, sorry for noise.
-> 
->  drivers/acpi/button.c | 12 +++---------
->  1 file changed, 3 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index 9e3a6cb..6643f2d 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -406,15 +406,9 @@ static int acpi_button_add(struct acpi_device *device)
->  		lid_device = device;
->  	}
->  
-> -	if (device->wakeup.flags.valid) {
-> -		/* Button's GPE is run-wake GPE */
-> -		acpi_enable_gpe(device->wakeup.gpe_device,
-> -				device->wakeup.gpe_number);
-> -		if (!device_may_wakeup(&device->dev)) {
-> -			device_set_wakeup_enable(&device->dev, true);
-> -			button->wakeup_enabled = true;
-> -		}
-> -	}
-> +	/* Button GPEs have been enabled in the acpi_wakeup_device_list()*/
-> +	if (device->wakeup.flags.valid)
-> +		button->wakeup_enabled = true;
+On 12/5/13, Borislav Petkov <bp@alien8.de> wrote:
 
-It doesn't seem we need this wakeup_enabled flag anymore, since we want
-button/lid's GPE to be always enabled no matter if button driver is in
-use or not and we have already taken care of this in
-acpi_wakeup_device_init function, we can drop it from button driver.
+> Yes, the AER tracepoint above should use the AER_* defines and not the
+> HW_EVENT_ERR_* ones which are for memory errors.
+>
+> Wanna send a fix?
+>
 
-Thanks,
-Aaron
+Yes. Does it translate into something like this?
 
->  
->  	printk(KERN_INFO PREFIX "%s [%s]\n", name, acpi_device_bid(device));
->  	return 0;
-> 
+From: Rui Wang <rui.y.wang@intel.com>
+Date: Fri, 6 Dec 2013 16:47:46 +0800
+Subject: [PATCH] Fix severity usage in aer trace event
 
+Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+---
+ include/trace/events/ras.h |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
+index 88b8783..e2a17d8 100644
+--- a/include/trace/events/ras.h
++++ b/include/trace/events/ras.h
+@@ -5,7 +5,7 @@
+ #define _TRACE_AER_H
+
+ #include <linux/tracepoint.h>
+-#include <linux/edac.h>
++#include <linux/aer.h>
+
+
+ /*
+@@ -63,10 +63,10 @@ TRACE_EVENT(aer_event,
+
+        TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
+                __get_str(dev_name),
+-               __entry->severity == HW_EVENT_ERR_CORRECTED ? "Corrected" :
+-                       __entry->severity == HW_EVENT_ERR_FATAL ?
++               __entry->severity == AER_CORRECTABLE ? "Corrected" :
++                       __entry->severity == AER_FATAL ?
+                        "Fatal" : "Uncorrected",
+-               __entry->severity == HW_EVENT_ERR_CORRECTED ?
++               __entry->severity == AER_CORRECTABLE ?
+                __print_flags(__entry->status, "|", aer_correctable_errors) :
+                __print_flags(__entry->status, "|", aer_uncorrectable_errors))
+ );
+-- 
+1.7.5.4
+
+Regards,
+Rui
