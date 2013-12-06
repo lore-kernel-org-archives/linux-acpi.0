@@ -1,27 +1,28 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v3 5/6] ACPI/SFI: Fix wrong <acpi/acpi.h> inclusion in
- SFI/ACPI wrapper - acpi_disabled linkage.
-Date: Fri, 6 Dec 2013 14:53:00 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88024950DB@SHSMSX101.ccr.corp.intel.com>
+Subject: RE: [PATCH v3 6/6] ACPI/IBFT: Fix wrong <acpi/acpi.h> inclusion in
+ iSCSI boot firmware module.
+Date: Fri, 6 Dec 2013 15:01:06 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88024950FD@SHSMSX101.ccr.corp.intel.com>
 References: <cover.1385094640.git.lv.zheng@intel.com>
  <cover.1386316208.git.lv.zheng@intel.com>
- <ba1e799968e59a07964a7e693d623b41e6d62110.1386316208.git.lv.zheng@intel.com>
+ <7d10180ca652b4a20a07517946fc0fed6a591650.1386316208.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <ba1e799968e59a07964a7e693d623b41e6d62110.1386316208.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:25208 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753037Ab3LFPBg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Dec 2013 10:01:36 -0500
+In-Reply-To: <7d10180ca652b4a20a07517946fc0fed6a591650.1386316208.git.lv.zheng@intel.com>
 Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, "Tang, Feng" <feng.tang@intel.com>, "sfi-devel@simplefirmware.org" <sfi-devel@simplefirmware.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-Hi,
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Konrad Rzeszutek Wilk <konrad@kernel.org>, Peter Jones <pjones@redhat.com>
 
 > From: Zheng, Lv
 > Sent: Friday, December 06, 2013 4:52 PM
-> To: Wysocki, Rafael J; Brown, Len
 > 
 > In Linux kernel, ACPICA is wrapped and safely exported by CONFIG_ACPI.  So
 > all external modules should depend on CONFIG_ACPI rather than using ACPICA
@@ -30,106 +31,66 @@ Hi,
 > dependent modules.
 > 
 > One of the build breakage is:
-> arch/x86/pci/mmconfig-shared.c:389:1: error: unknown type name 'acpi_status'
-> arch/x86/pci/mmconfig-shared.c:389:47: warning: 'struct acpi_resource' declared inside parameter list [enabled by default]
-> arch/x86/pci/mmconfig-shared.c:389:47: warning: its scope is only this definition or declaration, which is probably not what you want
-> [enabled by default]
-> arch/x86/pci/mmconfig-shared.c: In function 'check_mcfg_resource':
-> arch/x86/pci/mmconfig-shared.c:392:33: error: storage size of 'address' isn't known
-> arch/x86/pci/mmconfig-shared.c:393:2: error: unknown type name 'acpi_status'
-> arch/x86/pci/mmconfig-shared.c:395:9: error: dereferencing pointer to incomplete type
-> arch/x86/pci/mmconfig-shared.c:395:19: error: 'ACPI_RESOURCE_TYPE_FIXED_MEMORY32' undeclared (first use in this function)
-> arch/x86/pci/mmconfig-shared.c:395:19: note: each undeclared identifier is reported only once for each function it appears in
-> arch/x86/pci/mmconfig-shared.c:397:8: error: dereferencing pointer to incomplete type
-> arch/x86/pci/mmconfig-shared.c:399:11: error: 'AE_OK' undeclared (first use in this function)
-> arch/x86/pci/mmconfig-shared.c:400:35: error: dereferencing pointer to incomplete type
-> arch/x86/pci/mmconfig-shared.c:401:33: error: dereferencing pointer to incomplete type
-> arch/x86/pci/mmconfig-shared.c:402:19: error: dereferencing pointer to incomplete type
-> arch/x86/pci/mmconfig-shared.c:404:11: error: 'AE_CTRL_TERMINATE' undeclared (first use in this function)
-> arch/x86/pci/mmconfig-shared.c:407:10: error: dereferencing pointer to incomplete type
-> arch/x86/pci/mmconfig-shared.c:407:20: error: 'ACPI_RESOURCE_TYPE_ADDRESS32' undeclared (first use in this function)
-> arch/x86/pci/mmconfig-shared.c:408:10: error: dereferencing pointer to incomplete type
-> arch/x86/pci/mmconfig-shared.c:408:20: error: 'ACPI_RESOURCE_TYPE_ADDRESS64' undeclared (first use in this function)
-> arch/x86/pci/mmconfig-shared.c:411:2: error: implicit declaration of function 'acpi_resource_to_address64' [-Werror=implicit-
-> function-declaration]
-> arch/x86/pci/mmconfig-shared.c:412:2: error: implicit declaration of function 'ACPI_FAILURE' [-Werror=implicit-function-declaration]
-> arch/x86/pci/mmconfig-shared.c:414:31: error: 'ACPI_MEMORY_RANGE' undeclared (first use in this function)
-> arch/x86/pci/mmconfig-shared.c:392:33: warning: unused variable 'address' [-Wunused-variable]
-> arch/x86/pci/mmconfig-shared.c: At top level:
-> arch/x86/pci/mmconfig-shared.c:425:1: error: unknown type name 'acpi_status'
-> arch/x86/pci/mmconfig-shared.c:425:41: error: unknown type name 'acpi_handle'
-> arch/x86/pci/mmconfig-shared.c: In function 'is_acpi_reserved':
-> arch/x86/pci/mmconfig-shared.c:447:2: error: implicit declaration of function 'acpi_get_devices' [-Werror=implicit-function-
-> declaration]
-> arch/x86/pci/mmconfig-shared.c:447:30: error: 'find_mboard_resource' undeclared (first use in this function)
-> arch/x86/pci/mmconfig-shared.c: At top level:
-> arch/x86/pci/mmconfig-shared.c:389:20: warning: 'check_mcfg_resource' defined but not used [-Wunused-function]
+> drivers/firmware/iscsi_ibft_find.c: In function 'find_ibft_region':
+> drivers/firmware/iscsi_ibft_find.c:106:12: error: dereferencing pointer to incomplete type
+> drivers/firmware/iscsi_ibft_find.c:106:12: error: dereferencing pointer to incomplete type
+> drivers/firmware/iscsi_ibft_find.c:106:12: error: dereferencing pointer to incomplete type
+> 
+> The root cause of this breakage is:
+> 1. iBFT locating is implemented by looking up it in the memory.  This is
+>    based on the specification.  Specification doesn't mention if it can
+>    appear on a non-ACPI platforms but mentions it is defined in ACPI 3.0b.
+>    The current CONFIG_ISCSI_IBFT_FIND doesn't use ACPI table APIs to locate
+>    the table, thus it doesn't rely on CONFIG_ACPI.
+> 
+> Since ACPI iSCSI Boot Firmware is an ACPI-based mechanism (please refer to
+> the Doclink below), we can make CONFIG_ISCSI_IBFT_FIND dependent on
+> CONFIG_ACPI though the locating mechanism can be implemented without using
+> ACPI table APIs.  But please let me know if this is wrong.
 
-Let me say something about this error messages.  Someone may face difficulties to reproduce it.
-Currently, this message cannot be seen in any kernel build.
-This is because this patch series doesn't include a fix to remove <acpi/acpi.h> inclusion from linux/sfi_acpi.h.
-To achieve this, I have offered 2 options:
-1. Redefining ACPICA table stuff for CONFIG_ACPI=n environment, or
-2. Implementing stubs for all ACPICA functions/globals/macros and introducing <linux/acpica.h> (where acpi/acpi.h is included) as a top level header.
-3. Other solutions...
-
-If we choose solution 1, then this issue is exposed by a build test where CONFIG_ACPI=n and CONFIG_SFI=y.
-Since we haven't decided what to do for the table structures and it is really not a good approach to achieve the build safety for mmconfig-share.c by relying on link-stage optimization rather than compile-stage referencing.  IMO, we need to sort it out, thus I make it a part of this patchset.
-
-Well, if we choose solution 2, this patch can only help to reduce the size of the kernel image.
+Ping Konrad or Peter, will this fix mess up some situations?
+Originally, this patch is marked as RFC.
+But since I can see it in linux-pm/bleeding-edge branch and this patchset refreshes what have been accepted, I took the "RFC" off.
 
 Thanks and best regards
 -Lv
 
 > 
-> The root cause of this breakage is:
-> 1. The following commit doesn't protect ACPICA functions like
->    acpi_get_devices()/acpi_walk_resources()/acpi_resource_to_address64() in
->    CONFIG_SFI=y and CONFIG_ACPI=n environment:
->     Commit: 5f0db7a2fb78895a197f64e548333b3bbd433996
->     Author: Feng Tang <feng.tang@intel.com>
->     Subject: SFI: Hook PCI MMCONFIG
->     First check ACPI, and if that fails, ask SFI to find the MCFG.
->    So it actually depends on the logic that in !CONFIG_ACPI builds, code
->    blocks under "if (!acpi_disabled)" will not be linked in.
-> 
-> This patch fixes this issue by introducing a stub for MCFG entry checker
-> is_acpi_reserved() in !CONFIG_ACPI builds.
-> 
+> Doclink: http://www.microsoft.com/whdc/system/platform/firmware/ibft.mspx
+> Cc: Konrad Rzeszutek Wilk <konrad@kernel.org>
+> Cc: Peter Jones <pjones@redhat.com>
 > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Feng Tang <feng.tang@intel.com>
-> Cc: sfi-devel@simplefirmware.org
-> Cc: linux-pci@vger.kernel.org
 > ---
->  arch/x86/pci/mmconfig-shared.c |    7 +++++++
->  1 file changed, 7 insertions(+)
+>  drivers/firmware/Kconfig   |    2 +-
+>  include/linux/iscsi_ibft.h |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
-> index 248642f..2c04b22 100644
-> --- a/arch/x86/pci/mmconfig-shared.c
-> +++ b/arch/x86/pci/mmconfig-shared.c
-> @@ -369,6 +369,7 @@ static int __init pci_mmcfg_check_hostbridge(void)
->  	return !list_empty(&pci_mmcfg_list);
->  }
+> diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
+> index 0747872..a6ef6ac 100644
+> --- a/drivers/firmware/Kconfig
+> +++ b/drivers/firmware/Kconfig
+> @@ -110,7 +110,7 @@ config DMI_SYSFS
 > 
-> +#ifdef CONFIG_ACPI
->  static acpi_status check_mcfg_resource(struct acpi_resource *res, void *data)
->  {
->  	struct resource *mcfg_res = data;
-> @@ -435,6 +436,12 @@ static int is_acpi_reserved(u64 start, u64 end, unsigned not_used)
+>  config ISCSI_IBFT_FIND
+>  	bool "iSCSI Boot Firmware Table Attributes"
+> -	depends on X86
+> +	depends on X86 && ACPI
+>  	default n
+>  	help
+>  	  This option enables the kernel to find the region of memory
+> diff --git a/include/linux/iscsi_ibft.h b/include/linux/iscsi_ibft.h
+> index 82f9673..605cc5c 100644
+> --- a/include/linux/iscsi_ibft.h
+> +++ b/include/linux/iscsi_ibft.h
+> @@ -21,7 +21,7 @@
+>  #ifndef ISCSI_IBFT_H
+>  #define ISCSI_IBFT_H
 > 
->  	return mcfg_res.flags;
->  }
-> +#else
-> +static inline int is_acpi_reserved(u64 start, u64 end, unsigned not_used)
-> +{
-> +	return 0;
-> +}
-> +#endif
+> -#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
+> +#include <linux/acpi.h>
 > 
->  typedef int (*check_reserved_t)(u64 start, u64 end, unsigned type);
-> 
+>  /*
+>   * Logical location of iSCSI Boot Format Table.
 > --
 > 1.7.10
+
