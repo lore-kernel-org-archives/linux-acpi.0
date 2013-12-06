@@ -1,96 +1,51 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v3 6/6] ACPI/IBFT: Fix wrong <acpi/acpi.h> inclusion in
- iSCSI boot firmware module.
-Date: Fri, 6 Dec 2013 15:01:06 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88024950FD@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1385094640.git.lv.zheng@intel.com>
- <cover.1386316208.git.lv.zheng@intel.com>
- <7d10180ca652b4a20a07517946fc0fed6a591650.1386316208.git.lv.zheng@intel.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [Linaro-acpi] [RFC part1 PATCH 1/7] ACPI: Make ACPI core running
+ without PCI on ARM64
+Date: Fri, 06 Dec 2013 16:04:52 +0100
+Message-ID: <52A1E794.1040008@linaro.org>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org> <20131203164111.GA13447@srcf.ucam.org> <529F376F.8050005@linaro.org> <201312052304.22302.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:25208 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753037Ab3LFPBg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Dec 2013 10:01:36 -0500
-In-Reply-To: <7d10180ca652b4a20a07517946fc0fed6a591650.1386316208.git.lv.zheng@intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201312052304.22302.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>, linaro-kernel@lists.linaro.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, patches@linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Olof Johansson <olof@lixom.net>, Rob Herring <rob.herring@calxeda.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Konrad Rzeszutek Wilk <konrad@kernel.org>, Peter Jones <pjones@redhat.com>
 
-> From: Zheng, Lv
-> Sent: Friday, December 06, 2013 4:52 PM
-> 
-> In Linux kernel, ACPICA is wrapped and safely exported by CONFIG_ACPI.  So
-> all external modules should depend on CONFIG_ACPI rather than using ACPICA
-> header directly for stubbing.  But if we moves <acpi/acpi.h> inclusions
-> into "#ifdef CONFIG_ACPI", build breakge can help to detect wrong ACPICA
-> dependent modules.
-> 
-> One of the build breakage is:
-> drivers/firmware/iscsi_ibft_find.c: In function 'find_ibft_region':
-> drivers/firmware/iscsi_ibft_find.c:106:12: error: dereferencing pointer to incomplete type
-> drivers/firmware/iscsi_ibft_find.c:106:12: error: dereferencing pointer to incomplete type
-> drivers/firmware/iscsi_ibft_find.c:106:12: error: dereferencing pointer to incomplete type
-> 
-> The root cause of this breakage is:
-> 1. iBFT locating is implemented by looking up it in the memory.  This is
->    based on the specification.  Specification doesn't mention if it can
->    appear on a non-ACPI platforms but mentions it is defined in ACPI 3.0b.
->    The current CONFIG_ISCSI_IBFT_FIND doesn't use ACPI table APIs to locate
->    the table, thus it doesn't rely on CONFIG_ACPI.
-> 
-> Since ACPI iSCSI Boot Firmware is an ACPI-based mechanism (please refer to
-> the Doclink below), we can make CONFIG_ISCSI_IBFT_FIND dependent on
-> CONFIG_ACPI though the locating mechanism can be implemented without using
-> ACPI table APIs.  But please let me know if this is wrong.
+On 05.12.2013 23:04, Arnd Bergmann wrote:
+> On Wednesday 04 December 2013, Hanjun Guo wrote:
+>> On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 00:41, Matthew Garrett wrote:
+>>> Given the number of #ifdefs you're adding, wouldn't it make more se=
+nse
+>>> to just add stub functions to include/linux/pci.h?
+>>
+>> Thanks for the suggestion :)
+>>
+>> I can add stub functions in include/linux/pci.h for raw_pci_read()/
+>> raw_pci_write(), then can remove #ifdefs for acpi_os_read/write_pci_=
+configuration().
+>
+> Actually I wonder about the usefulness of this patch in either form: =
+Since ACPI
+> on ARM64 is only for servers, I would very much expect them to always=
+ come with
+> PCI, either physical host bridges with attached devices, or logical P=
+CI functions
+> used to describe the on-SoC I/O devices. Even in case of virtual mach=
+ines, you'd
+> normally use PCI as the method to communicate data about the virtio c=
+hannels.
+>
+> Can you name a realistic use-case where you'd want ACPI but not PCI?
 
-Ping Konrad or Peter, will this fix mess up some situations?
-Originally, this patch is marked as RFC.
-But since I can see it in linux-pm/bleeding-edge branch and this patchset refreshes what have been accepted, I took the "RFC" off.
+Yes you can describe SoC I/O devices using logical PCI functions only i=
+f=20
+they are on PCI, correct me if I am wrong. Also, devices can be placed=20
+only on IOMEM (like for ARM SoC) and it is hard to predict which way=20
+vendors chose. So way don't let it be configurable? ACPI spec says=20
+nothing like PCI is needed for ACPI, AFAIK.
 
-Thanks and best regards
--Lv
-
-> 
-> Doclink: http://www.microsoft.com/whdc/system/platform/firmware/ibft.mspx
-> Cc: Konrad Rzeszutek Wilk <konrad@kernel.org>
-> Cc: Peter Jones <pjones@redhat.com>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> ---
->  drivers/firmware/Kconfig   |    2 +-
->  include/linux/iscsi_ibft.h |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
-> index 0747872..a6ef6ac 100644
-> --- a/drivers/firmware/Kconfig
-> +++ b/drivers/firmware/Kconfig
-> @@ -110,7 +110,7 @@ config DMI_SYSFS
-> 
->  config ISCSI_IBFT_FIND
->  	bool "iSCSI Boot Firmware Table Attributes"
-> -	depends on X86
-> +	depends on X86 && ACPI
->  	default n
->  	help
->  	  This option enables the kernel to find the region of memory
-> diff --git a/include/linux/iscsi_ibft.h b/include/linux/iscsi_ibft.h
-> index 82f9673..605cc5c 100644
-> --- a/include/linux/iscsi_ibft.h
-> +++ b/include/linux/iscsi_ibft.h
-> @@ -21,7 +21,7 @@
->  #ifndef ISCSI_IBFT_H
->  #define ISCSI_IBFT_H
-> 
-> -#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
-> +#include <linux/acpi.h>
-> 
->  /*
->   * Logical location of iSCSI Boot Format Table.
-> --
-> 1.7.10
-
+Tomasz
