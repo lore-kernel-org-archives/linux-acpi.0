@@ -1,54 +1,88 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [Update PATCH] ACPI/Button: Fix enable Button GPEs twice
-Date: Fri,  6 Dec 2013 16:32:40 +0800
-Message-ID: <1386318760-5887-1-git-send-email-tianyu.lan@intel.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v3 0/6] ACPI: Cleanup header inclusions.
+Date: Fri,  6 Dec 2013 16:51:10 +0800
+Message-ID: <cover.1386316208.git.lv.zheng@intel.com>
+References: <cover.1385094640.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:3378 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:17728 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751624Ab3LFIdC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Dec 2013 03:33:02 -0500
+	id S1756745Ab3LFIvm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Dec 2013 03:51:42 -0500
+In-Reply-To: <cover.1385094640.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rjw@rjwysocki.net
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Button GPEs have been enabled in the acpi_wake_device_init() during
-boot and Button driver enables these GPEs second time. This causes
-disabling these gpes via sysfs interface requires twice "echo disable
-> /sys/firmware/acpi/interrupts/gpeXXX". This patch is to remove
-related code in the Button driver.
+This patchset includes 2 patches already merged in linux-pm/linux-next
+branch.  It is included as the following mailing list thread contains two
+patchsets of the ACPICA header cleanups.
+1. Cleanup header inclusions.
+   http://www.spinics.net/lists/linux-acpi/msg47510.html
+2. Cleanup direct ACPICA inclusions.
+   http://www.spinics.net/lists/linux-acpi/msg47703.html
+It is vague for the thread monitors.
+This patchset collects all patches in this thread together to form a single
+v3 patchset.
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
-Update:
-	fix a typo, sorry for noise.
+ACPICA header files are lacking in stub protections.  This makes all ACPICA
+header files could only be included for CONFIG_ACPI=y environment.  This
+infects new ACPI prototypes, if such prototypes referenced ACPICA defined
+types, they must be incldued only in the CONFIG_ACPI=y environment.  The
+<acpi/acpi_bus.h> and <acpi/acpi_drivers.h> are the monstrosity infants
+born under this background, directly including them in the CONFIG_ACPI=n
+environment is not safe.  The infection spreads to whole kernel source tree
+that we can see "#ifdef CONFIG_ACPI" here and there.
 
- drivers/acpi/button.c | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+This patchset tries to enforces <linux/acpi.h> inclusions instead of
+<acpi/acpi.h>, <acpi/acpi_bus.h> and <acpi/acpi_drivers.h> inclusions.
 
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 9e3a6cb..6643f2d 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -406,15 +406,9 @@ static int acpi_button_add(struct acpi_device *device)
- 		lid_device = device;
- 	}
- 
--	if (device->wakeup.flags.valid) {
--		/* Button's GPE is run-wake GPE */
--		acpi_enable_gpe(device->wakeup.gpe_device,
--				device->wakeup.gpe_number);
--		if (!device_may_wakeup(&device->dev)) {
--			device_set_wakeup_enable(&device->dev, true);
--			button->wakeup_enabled = true;
--		}
--	}
-+	/* Button GPEs have been enabled in the acpi_wakeup_device_list()*/
-+	if (device->wakeup.flags.valid)
-+		button->wakeup_enabled = true;
- 
- 	printk(KERN_INFO PREFIX "%s [%s]\n", name, acpi_device_bid(device));
- 	return 0;
+For <acpi/acpi_bus.h> and <acpi/acpi_drivers.h> inclusion cleanups, as all
+users are CONFIG_ACPI dependent, we don't have any issues raised.
+
+For <acpi/acpi.h> inclusion cleanups, we have following 4 cases specially
+handled:
+1. "ACPI IGD OpRegion" support in i915 DRM driver.  It can be modified to
+   be CONFIG_ACPI dependent.
+2. "_CRS based MCFG checker" support, original configurability of this
+   piece of code relies on link stage optimization.  This patchset
+   corrects it by making the configurability to be dependent on compile
+   stage references.
+3. "iSCSI IBFT finder" support.  IBFT can only appear on ACPI platforms
+   while IBFT locating mechanism doesn't rely on ACPI table constructions.
+   It is currently not dependent on CONFIG_ACPI.  IMO, this behavior is
+   This patchset corrects it by making it dependent on CONFIG_ACPI.  This
+   patch need to be discussed, thus marked as RFC.
+4. "SFI/ACPI wrapper" support.  This error is not fixed in this patchset.
+   Its solution is still under discussion.  It need to be synchronized
+   with SFI users.
+
+During the fixes, <linux/acpi_io.h> is also detected as an ACPICA dependent
+header, it thus be converted into <acpi/acpi_io.h> and included from
+<linux/acpi.h> for CONFIG_ACPI builds.
+
+NOTE that the first 2 commits in this series are already in the
+linux-pm/linux-next branch.
+ 1. Commit: 91be0998578a1001db1382012676ee0a69d5cee3
+    Subject: [PATCH] ACPI: Clean up incorrect inclusions of ACPICA headers
+ 2. Commit: 4e8fb7987f7d0390a2e74622c7c1cbb6760c6516
+    Subject: [PATCH] ACPI: Clean up inclusions of ACPI header files
+The reset 4 commits are rebased on top of this branch thus can be applied
+to the branch directly.
+
+Lv Zheng (6):
+  ACPI: Clean up incorrect inclusions of ACPICA headers
+  ACPI: Clean up inclusions of ACPI header files
+  SFI: Fix warnings reported by W=1 builds.
+  ACPI/i915: Fix wrong <acpi/acpi.h> inclusion in i915 opregion module.
+  ACPI/SFI: Fix wrong <acpi/acpi.h> inclusion in SFI/ACPI wrapper -
+    acpi_disabled linkage.
+  ACPI/IBFT: Fix wrong <acpi/acpi.h> inclusion in iSCSI boot firmware
+    module.
+
+NOTE that this cover-letter is manually editted,  so file summary is
+useless and thus gets deleted.
+
 -- 
-1.8.2.1
+1.7.10
 
