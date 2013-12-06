@@ -1,85 +1,66 @@
-From: Ethan Zhao <ethan.kernel@gmail.com>
-Subject: Re: [PATCH v10 1/3] aerdrv: Trace Event for AER
-Date: Fri, 6 Dec 2013 23:11:07 +0800
-Message-ID: <CABawtvPz5sZxhFnQru8Uc6UwF-O8HyGred_RWqBBeT615Qj8sQ@mail.gmail.com>
-References: <20130116235102.16015.77379.stgit@grignak.americas.hpqcorp.net>
-	<CANVTcTaP18CiGOSEcX5Ch_wPw9mEhkgokfp+d+ZOMFD+Ce4juA@mail.gmail.com>
-	<20131204203837.GA7517@pd.tnic>
-	<CANVTcTYJS3eAUA4bHVCrKgz=7rQpJZHCiBcw3JM=j0FbCsgQJw@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [RFC part1 PATCH 1/7] ACPI: Make ACPI core running
+ without PCI on ARM64
+Date: Fri, 6 Dec 2013 18:23:26 +0100
+Message-ID: <201312061823.26481.arnd@arndb.de>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
+ <201312052304.22302.arnd@arndb.de> <52A1E794.1040008@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f178.google.com ([209.85.220.178]:57631 "EHLO
-	mail-vc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569Ab3LFPLJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Dec 2013 10:11:09 -0500
-In-Reply-To: <CANVTcTYJS3eAUA4bHVCrKgz=7rQpJZHCiBcw3JM=j0FbCsgQJw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <52A1E794.1040008@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, patches@linaro.org, Olof Johansson <olof@lixom.net>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: rui wang <ruiv.wang@gmail.com>
-Cc: Borislav Petkov <bp@alien8.de>, Lance Ortiz <lance.ortiz@hp.com>, Bjorn Helgaas <bhelgaas@google.com>, lance_ortiz@hotmail.com, jiang.liu@intel.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, gong.chen@intel.com
 
-On Fri, Dec 6, 2013 at 5:06 PM, rui wang <ruiv.wang@gmail.com> wrote:
-> On 12/5/13, Borislav Petkov <bp@alien8.de> wrote:
->
->> Yes, the AER tracepoint above should use the AER_* defines and not the
->> HW_EVENT_ERR_* ones which are for memory errors.
->>
->> Wanna send a fix?
->>
->
-> Yes. Does it translate into something like this?
->
-> From: Rui Wang <rui.y.wang@intel.com>
-> Date: Fri, 6 Dec 2013 16:47:46 +0800
-> Subject: [PATCH] Fix severity usage in aer trace event
->
-> Signed-off-by: Rui Wang <rui.y.wang@intel.com>
-> ---
->  include/trace/events/ras.h |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
-> index 88b8783..e2a17d8 100644
-> --- a/include/trace/events/ras.h
-> +++ b/include/trace/events/ras.h
-> @@ -5,7 +5,7 @@
->  #define _TRACE_AER_H
->
->  #include <linux/tracepoint.h>
-> -#include <linux/edac.h>
-> +#include <linux/aer.h>
->
->
->  /*
-> @@ -63,10 +63,10 @@ TRACE_EVENT(aer_event,
->
->         TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
->                 __get_str(dev_name),
-> -               __entry->severity == HW_EVENT_ERR_CORRECTED ? "Corrected" :
-> -                       __entry->severity == HW_EVENT_ERR_FATAL ?
-> +               __entry->severity == AER_CORRECTABLE ? "Corrected" :
-> +                       __entry->severity == AER_FATAL ?
->                         "Fatal" : "Uncorrected",
-
-Why not             "Fatal" : "Non-fatal",   ?  per the PCIe spec,
-'Fatal' and 'Non-fatal' are sub-category of "
-Uncorrected". But here "Uncorrected" means "Non-fatal".
-
-Thanks,
-Ethan
-
-> -               __entry->severity == HW_EVENT_ERR_CORRECTED ?
-> +               __entry->severity == AER_CORRECTABLE ?
->                 __print_flags(__entry->status, "|", aer_correctable_errors) :
->                 __print_flags(__entry->status, "|", aer_uncorrectable_errors))
->  );
-> --
-> 1.7.5.4
->
-> Regards,
-> Rui
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gRnJpZGF5IDA2IERlY2VtYmVyIDIwMTMsIFRvbWFzeiBOb3dpY2tpIHdyb3RlOgo+IE9uIDA1
+LjEyLjIwMTMgMjM6MDQsIEFybmQgQmVyZ21hbm4gd3JvdGU6Cj4gPiBPbiBXZWRuZXNkYXkgMDQg
+RGVjZW1iZXIgMjAxMywgSGFuanVuIEd1byB3cm90ZToKPiA+PiBPbiAyMDEz5bm0MTLmnIgwNOaX
+pSAwMDo0MSwgTWF0dGhldyBHYXJyZXR0IHdyb3RlOgo+ID4+PiBHaXZlbiB0aGUgbnVtYmVyIG9m
+ICNpZmRlZnMgeW91J3JlIGFkZGluZywgd291bGRuJ3QgaXQgbWFrZSBtb3JlIHNlbnNlCj4gPj4+
+IHRvIGp1c3QgYWRkIHN0dWIgZnVuY3Rpb25zIHRvIGluY2x1ZGUvbGludXgvcGNpLmg/Cj4gPj4K
+PiA+PiBUaGFua3MgZm9yIHRoZSBzdWdnZXN0aW9uIDopCj4gPj4KPiA+PiBJIGNhbiBhZGQgc3R1
+YiBmdW5jdGlvbnMgaW4gaW5jbHVkZS9saW51eC9wY2kuaCBmb3IgcmF3X3BjaV9yZWFkKCkvCj4g
+Pj4gcmF3X3BjaV93cml0ZSgpLCB0aGVuIGNhbiByZW1vdmUgI2lmZGVmcyBmb3IgYWNwaV9vc19y
+ZWFkL3dyaXRlX3BjaV9jb25maWd1cmF0aW9uKCkuCj4gPgo+ID4gQWN0dWFsbHkgSSB3b25kZXIg
+YWJvdXQgdGhlIHVzZWZ1bG5lc3Mgb2YgdGhpcyBwYXRjaCBpbiBlaXRoZXIgZm9ybTogU2luY2Ug
+QUNQSQo+ID4gb24gQVJNNjQgaXMgb25seSBmb3Igc2VydmVycywgSSB3b3VsZCB2ZXJ5IG11Y2gg
+ZXhwZWN0IHRoZW0gdG8gYWx3YXlzIGNvbWUgd2l0aAo+ID4gUENJLCBlaXRoZXIgcGh5c2ljYWwg
+aG9zdCBicmlkZ2VzIHdpdGggYXR0YWNoZWQgZGV2aWNlcywgb3IgbG9naWNhbCBQQ0kgZnVuY3Rp
+b25zCj4gPiB1c2VkIHRvIGRlc2NyaWJlIHRoZSBvbi1Tb0MgSS9PIGRldmljZXMuIEV2ZW4gaW4g
+Y2FzZSBvZiB2aXJ0dWFsIG1hY2hpbmVzLCB5b3UnZAo+ID4gbm9ybWFsbHkgdXNlIFBDSSBhcyB0
+aGUgbWV0aG9kIHRvIGNvbW11bmljYXRlIGRhdGEgYWJvdXQgdGhlIHZpcnRpbyBjaGFubmVscy4K
+PiA+Cj4gPiBDYW4geW91IG5hbWUgYSByZWFsaXN0aWMgdXNlLWNhc2Ugd2hlcmUgeW91J2Qgd2Fu
+dCBBQ1BJIGJ1dCBub3QgUENJPwo+IAo+IFllcyB5b3UgY2FuIGRlc2NyaWJlIFNvQyBJL08gZGV2
+aWNlcyB1c2luZyBsb2dpY2FsIFBDSSBmdW5jdGlvbnMgb25seSBpZiAKPiB0aGV5IGFyZSBvbiBQ
+Q0ksIGNvcnJlY3QgbWUgaWYgSSBhbSB3cm9uZy4gQWxzbywgZGV2aWNlcyBjYW4gYmUgcGxhY2Vk
+IAo+IG9ubHkgb24gSU9NRU0gKGxpa2UgZm9yIEFSTSBTb0MpIGFuZCBpdCBpcyBoYXJkIHRvIHBy
+ZWRpY3Qgd2hpY2ggd2F5IAo+IHZlbmRvcnMgY2hvc2UuIFNvIHdheSBkb24ndCBsZXQgaXQgYmUg
+Y29uZmlndXJhYmxlPyBBQ1BJIHNwZWMgc2F5cyAKPiBub3RoaW5nIGxpa2UgUENJIGlzIG5lZWRl
+ZCBmb3IgQUNQSSwgQUZBSUsuCgpZb3UgYXJlIHJpZ2h0IHRoYXQgdG9kYXkncyBBUk0gU29DcyBi
+YXNpY2FsbHkgbmV2ZXIgdXNlIFBDSSB0byBkZXNjcmliZQppbnRlcm5hbCBkZXZpY2VzIChJSVJD
+IFZJQSBWVDg1MDAgaXMgYW4gZXhjZXB0aW9uLCBidXQgdGhlaXIgUENJIHdhcwpqdXN0IGEgc29m
+dHdhcmUgZmFicmljYXRpb24pLgoKSG93ZXZlciwgd2hlbiB3ZSdyZSB0YWxraW5nIGFib3V0IEFD
+UEkgb24gQVJNNjQsIHRoYXQgaXMgbm90aGluZyBsaWtlIGNsYXNzaWMKQVJNIFNvQ3M6IEFzIEpv
+biBNYXN0ZXJzIG1lbnRpb25lZCwgdGhpcyBpcyBhYm91dCBuZXcgc2VydmVyIGhhcmR3YXJlIGZv
+bGxvd2luZwphIChzdGlsbCBzZWNyZXQsIGJ1dCBob3BlZnVsbHkgbm90IG11Y2ggbG9uZ2VyKSBo
+YXJkd2FyZSBzcGVjaWZpY2F0aW9uIHRoYXQgaXMKZXhwbGljaXRseSBkZXNpZ25lZCB0byBhbGxv
+dyBpbnRlcm9wZXJhYmlsaXR5IGJldHdlZW4gdmVuZG9ycywgc28gdGhleQptdXN0IGhhdmUgcHV0
+IHNvbWUgdGhvdWdodCBpbnRvIGhvdyB0byBtYWtlIHRoZSBoYXJkd2FyZSBkaXNjb3ZlcmFibGUu
+IEl0CnNlZW1zIHRoYXQgdGhleSBhcmUgbW9kZWxpbmcgdGhpbmdzIGFmdGVyIGhvdyBpdCdzIGRv
+bmUgb24geDg2LCBhbmQgdGhlCm9ubHkgc2Vuc2libGUgd2F5IHRvIGhhdmUgZGlzY292ZXJhYmxl
+IGhhcmR3YXJlIHRoZXJlIGlzIFBDSS4gVGhpcyBpcwphbHNvIHdoYXQgYWxsIHg4NiBTb0NzIGRv
+LgoKCUFybmQKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
+cmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
+bnV4LWFybS1rZXJuZWwK
