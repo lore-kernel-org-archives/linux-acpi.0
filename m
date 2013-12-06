@@ -1,75 +1,54 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] SFI: fix compilation warnings
-Date: Fri, 06 Dec 2013 02:25:33 +0100
-Message-ID: <1419818.3DzaCCe02K@vostro.rjw.lan>
-References: <1386264397-27319-1-git-send-email-andriy.shevchenko@linux.intel.com> <4771886.zcelg2hCiB@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E8802494B32@SHSMSX101.ccr.corp.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] SFI: fix compilation warnings
+Date: Fri, 6 Dec 2013 01:26:07 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802494B65@SHSMSX101.ccr.corp.intel.com>
+References: <1386264397-27319-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <4771886.zcelg2hCiB@vostro.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E8802494B32@SHSMSX101.ccr.corp.intel.com>
+ <1419818.3DzaCCe02K@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59958 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751601Ab3LFBMd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Dec 2013 20:12:33 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802494B32@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1419818.3DzaCCe02K@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Friday, December 06, 2013 01:08:45 AM Zheng, Lv wrote:
-> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > Sent: Friday, December 06, 2013 6:37 AM
-> >=20
-> > On Thursday, December 05, 2013 07:26:37 PM Andy Shevchenko wrote:
-> > > When build kernel with make W=3D1 we get the following compiler e=
-rror.
-> > >
-> > > In file included from drivers/sfi/sfi_acpi.c:66:0:
-> > > include/linux/sfi_acpi.h: In function =E2=80=98acpi_sfi_table_par=
-se=E2=80=99:
-> > > include/linux/sfi_acpi.h:72:2: error: implicit declaration of fun=
-ction =E2=80=98acpi_table_parse=E2=80=99 [-Werror=3Dimplicit-function-d=
-eclaration]
-> > >   if (!acpi_table_parse(signature, handler))
-> > >   ^
-> > >   cc1: some warnings being treated as errors
-> > >
-> > > The patch changes acpi/acpi.h inclusion to linux/acpi.h.
-> > >
-> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com=
->
-> >=20
-> > OK
-> >=20
-> > Lv, I'm dropping your patch cleaning up the inclusions, please sort=
- that thing
-> > out entirely for the next cycle.
->=20
-> No, I think Andy's patch is wrong.
-
-His patch may be wrong, but the warning in his changelog surely is real=
-=2E :-)
-
-> This warning is existing before merging my fixes.
->=20
-> Either we fix this warning or leave it as is.
->=20
-> To fix it, you need to add 1 line in sfi_acpi.h rather than change th=
-e line.
-> Let me post a fix for this.
-
-Please do.  And I'm putting all ACPI header cleanups on hold until all =
-warnings
-of this kind have been fixed by them.  Otherwise doing those cleanups m=
-akes a
-little sense in my opinion.
-
-Thanks,
-Rafael
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0Byand5c29ja2kubmV0XQ0KPiBT
+ZW50OiBGcmlkYXksIERlY2VtYmVyIDA2LCAyMDEzIDk6MjYgQU0NCj4gDQo+IE9uIEZyaWRheSwg
+RGVjZW1iZXIgMDYsIDIwMTMgMDE6MDg6NDUgQU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+ID4gRnJv
+bTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gPiA+IFNl
+bnQ6IEZyaWRheSwgRGVjZW1iZXIgMDYsIDIwMTMgNjozNyBBTQ0KPiA+ID4NCj4gPiA+IE9uIFRo
+dXJzZGF5LCBEZWNlbWJlciAwNSwgMjAxMyAwNzoyNjozNyBQTSBBbmR5IFNoZXZjaGVua28gd3Jv
+dGU6DQo+ID4gPiA+IFdoZW4gYnVpbGQga2VybmVsIHdpdGggbWFrZSBXPTEgd2UgZ2V0IHRoZSBm
+b2xsb3dpbmcgY29tcGlsZXIgZXJyb3IuDQo+ID4gPiA+DQo+ID4gPiA+IEluIGZpbGUgaW5jbHVk
+ZWQgZnJvbSBkcml2ZXJzL3NmaS9zZmlfYWNwaS5jOjY2OjA6DQo+ID4gPiA+IGluY2x1ZGUvbGlu
+dXgvc2ZpX2FjcGkuaDogSW4gZnVuY3Rpb24g4oCYYWNwaV9zZmlfdGFibGVfcGFyc2XigJk6DQo+
+ID4gPiA+IGluY2x1ZGUvbGludXgvc2ZpX2FjcGkuaDo3MjoyOiBlcnJvcjogaW1wbGljaXQgZGVj
+bGFyYXRpb24gb2YgZnVuY3Rpb24g4oCYYWNwaV90YWJsZV9wYXJzZeKAmSBbLVdlcnJvcj1pbXBs
+aWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0NCj4gPiA+ID4gICBpZiAoIWFjcGlfdGFibGVfcGFy
+c2Uoc2lnbmF0dXJlLCBoYW5kbGVyKSkNCj4gPiA+ID4gICBeDQo+ID4gPiA+ICAgY2MxOiBzb21l
+IHdhcm5pbmdzIGJlaW5nIHRyZWF0ZWQgYXMgZXJyb3JzDQo+ID4gPiA+DQo+ID4gPiA+IFRoZSBw
+YXRjaCBjaGFuZ2VzIGFjcGkvYWNwaS5oIGluY2x1c2lvbiB0byBsaW51eC9hY3BpLmguDQo+ID4g
+PiA+DQo+ID4gPiA+IFNpZ25lZC1vZmYtYnk6IEFuZHkgU2hldmNoZW5rbyA8YW5kcml5LnNoZXZj
+aGVua29AbGludXguaW50ZWwuY29tPg0KPiA+ID4NCj4gPiA+IE9LDQo+ID4gPg0KPiA+ID4gTHYs
+IEknbSBkcm9wcGluZyB5b3VyIHBhdGNoIGNsZWFuaW5nIHVwIHRoZSBpbmNsdXNpb25zLCBwbGVh
+c2Ugc29ydCB0aGF0IHRoaW5nDQo+ID4gPiBvdXQgZW50aXJlbHkgZm9yIHRoZSBuZXh0IGN5Y2xl
+Lg0KPiA+DQo+ID4gTm8sIEkgdGhpbmsgQW5keSdzIHBhdGNoIGlzIHdyb25nLg0KPiANCj4gSGlz
+IHBhdGNoIG1heSBiZSB3cm9uZywgYnV0IHRoZSB3YXJuaW5nIGluIGhpcyBjaGFuZ2Vsb2cgc3Vy
+ZWx5IGlzIHJlYWwuIDotKQ0KPiANCj4gPiBUaGlzIHdhcm5pbmcgaXMgZXhpc3RpbmcgYmVmb3Jl
+IG1lcmdpbmcgbXkgZml4ZXMuDQo+ID4NCj4gPiBFaXRoZXIgd2UgZml4IHRoaXMgd2FybmluZyBv
+ciBsZWF2ZSBpdCBhcyBpcy4NCj4gPg0KPiA+IFRvIGZpeCBpdCwgeW91IG5lZWQgdG8gYWRkIDEg
+bGluZSBpbiBzZmlfYWNwaS5oIHJhdGhlciB0aGFuIGNoYW5nZSB0aGUgbGluZS4NCj4gPiBMZXQg
+bWUgcG9zdCBhIGZpeCBmb3IgdGhpcy4NCj4gDQo+IFBsZWFzZSBkby4gIEFuZCBJJ20gcHV0dGlu
+ZyBhbGwgQUNQSSBoZWFkZXIgY2xlYW51cHMgb24gaG9sZCB1bnRpbCBhbGwgd2FybmluZ3MNCj4g
+b2YgdGhpcyBraW5kIGhhdmUgYmVlbiBmaXhlZCBieSB0aGVtLiAgT3RoZXJ3aXNlIGRvaW5nIHRo
+b3NlIGNsZWFudXBzIG1ha2VzIGENCj4gbGl0dGxlIHNlbnNlIGluIG15IG9waW5pb24uDQoNCk9L
+LCBub3Qgb25seSB0aGlzIHdhcm5pbmcsIHRoZXJlIGlzIGFub3RoZXIgd2FybmluZyBpbiBzZmlf
+YWNwaS5jLg0KSSBkb3VidCB3aGV0aGVyIHRoZXkgYXJlIHN0cmljdGx5IHRlc3RlZCBiZWZvcmUg
+dXBzdHJlYW1lZC4uLg0KVGhleSBhcmUgYWxsIGV4aXN0aW5nIHdhcm5pbmdzLg0KWW91IGNhbiBh
+cHBseSBteSBuZXcgcGF0Y2ggYmVmb3JlIHRoZSBjbGVhbnVwIHNlcmllcy4NCg0KVGhhbmtzDQot
+THYNCg0KPiANCj4gVGhhbmtzLA0KPiBSYWZhZWwNCg0K
