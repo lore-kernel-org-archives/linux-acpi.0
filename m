@@ -1,74 +1,70 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] SFI: fix compilation warnings
-Date: Fri, 6 Dec 2013 01:51:08 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802494B99@SHSMSX101.ccr.corp.intel.com>
-References: <1386264397-27319-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1419818.3DzaCCe02K@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E8802494B65@SHSMSX101.ccr.corp.intel.com>
- <1790293.cpW4sKD6m8@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] ACPI / blacklist: disable Win8 mode for ThinkPad X201 and
+ Latitude E6230
+Date: Fri, 06 Dec 2013 13:24:02 +0800
+Message-ID: <52A15F72.1050408@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36687 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:25124 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751191Ab3LFBvL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 Dec 2013 20:51:11 -0500
-In-Reply-To: <1790293.cpW4sKD6m8@vostro.rjw.lan>
-Content-Language: en-US
+	id S1750752Ab3LFFYA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Dec 2013 00:24:00 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Jeffery To <jeffery.to@gmail.com>, Wouter Depypere <wouter.depypere@ugent.be>
 
-PiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LWFj
-cGktb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgUmFmYWVsIEouIFd5c29ja2kN
-Cj4gU2VudDogRnJpZGF5LCBEZWNlbWJlciAwNiwgMjAxMyAxMDowMSBBTQ0KPiBUbzogWmhlbmcs
-IEx2DQo+IENjOiBBbmR5IFNoZXZjaGVua287IFd5c29ja2ksIFJhZmFlbCBKOyBsaW51eC1hY3Bp
-QHZnZXIua2VybmVsLm9yZzsgTEtNTA0KPiBTdWJqZWN0OiBSZTogW1BBVENIXSBTRkk6IGZpeCBj
-b21waWxhdGlvbiB3YXJuaW5ncw0KPiANCj4gT24gRnJpZGF5LCBEZWNlbWJlciAwNiwgMjAxMyAw
-MToyNjowNyBBTSBaaGVuZywgTHYgd3JvdGU6DQo+ID4gPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2Nr
-aSBbbWFpbHRvOnJqd0Byand5c29ja2kubmV0XQ0KPiA+ID4gU2VudDogRnJpZGF5LCBEZWNlbWJl
-ciAwNiwgMjAxMyA5OjI2IEFNDQo+ID4gPg0KPiA+ID4gT24gRnJpZGF5LCBEZWNlbWJlciAwNiwg
-MjAxMyAwMTowODo0NSBBTSBaaGVuZywgTHYgd3JvdGU6DQo+ID4gPiA+ID4gRnJvbTogUmFmYWVs
-IEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gPiA+ID4gPiBTZW50OiBG
-cmlkYXksIERlY2VtYmVyIDA2LCAyMDEzIDY6MzcgQU0NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IE9u
-IFRodXJzZGF5LCBEZWNlbWJlciAwNSwgMjAxMyAwNzoyNjozNyBQTSBBbmR5IFNoZXZjaGVua28g
-d3JvdGU6DQo+ID4gPiA+ID4gPiBXaGVuIGJ1aWxkIGtlcm5lbCB3aXRoIG1ha2UgVz0xIHdlIGdl
-dCB0aGUgZm9sbG93aW5nIGNvbXBpbGVyIGVycm9yLg0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+
-IEluIGZpbGUgaW5jbHVkZWQgZnJvbSBkcml2ZXJzL3NmaS9zZmlfYWNwaS5jOjY2OjA6DQo+ID4g
-PiA+ID4gPiBpbmNsdWRlL2xpbnV4L3NmaV9hY3BpLmg6IEluIGZ1bmN0aW9uIOKAmGFjcGlfc2Zp
-X3RhYmxlX3BhcnNl4oCZOg0KPiA+ID4gPiA+ID4gaW5jbHVkZS9saW51eC9zZmlfYWNwaS5oOjcy
-OjI6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiDigJhhY3BpX3RhYmxl
-X3BhcnNl4oCZIFstV2Vycm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQ0KPiA+ID4g
-PiA+ID4gICBpZiAoIWFjcGlfdGFibGVfcGFyc2Uoc2lnbmF0dXJlLCBoYW5kbGVyKSkNCj4gPiA+
-ID4gPiA+ICAgXg0KPiA+ID4gPiA+ID4gICBjYzE6IHNvbWUgd2FybmluZ3MgYmVpbmcgdHJlYXRl
-ZCBhcyBlcnJvcnMNCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiBUaGUgcGF0Y2ggY2hhbmdlcyBh
-Y3BpL2FjcGkuaCBpbmNsdXNpb24gdG8gbGludXgvYWNwaS5oLg0KPiA+ID4gPiA+ID4NCj4gPiA+
-ID4gPiA+IFNpZ25lZC1vZmYtYnk6IEFuZHkgU2hldmNoZW5rbyA8YW5kcml5LnNoZXZjaGVua29A
-bGludXguaW50ZWwuY29tPg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gT0sNCj4gPiA+ID4gPg0KPiA+
-ID4gPiA+IEx2LCBJJ20gZHJvcHBpbmcgeW91ciBwYXRjaCBjbGVhbmluZyB1cCB0aGUgaW5jbHVz
-aW9ucywgcGxlYXNlIHNvcnQgdGhhdCB0aGluZw0KPiA+ID4gPiA+IG91dCBlbnRpcmVseSBmb3Ig
-dGhlIG5leHQgY3ljbGUuDQo+ID4gPiA+DQo+ID4gPiA+IE5vLCBJIHRoaW5rIEFuZHkncyBwYXRj
-aCBpcyB3cm9uZy4NCj4gPiA+DQo+ID4gPiBIaXMgcGF0Y2ggbWF5IGJlIHdyb25nLCBidXQgdGhl
-IHdhcm5pbmcgaW4gaGlzIGNoYW5nZWxvZyBzdXJlbHkgaXMgcmVhbC4gOi0pDQo+ID4gPg0KPiA+
-ID4gPiBUaGlzIHdhcm5pbmcgaXMgZXhpc3RpbmcgYmVmb3JlIG1lcmdpbmcgbXkgZml4ZXMuDQo+
-ID4gPiA+DQo+ID4gPiA+IEVpdGhlciB3ZSBmaXggdGhpcyB3YXJuaW5nIG9yIGxlYXZlIGl0IGFz
-IGlzLg0KPiA+ID4gPg0KPiA+ID4gPiBUbyBmaXggaXQsIHlvdSBuZWVkIHRvIGFkZCAxIGxpbmUg
-aW4gc2ZpX2FjcGkuaCByYXRoZXIgdGhhbiBjaGFuZ2UgdGhlIGxpbmUuDQo+ID4gPiA+IExldCBt
-ZSBwb3N0IGEgZml4IGZvciB0aGlzLg0KPiA+ID4NCj4gPiA+IFBsZWFzZSBkby4gIEFuZCBJJ20g
-cHV0dGluZyBhbGwgQUNQSSBoZWFkZXIgY2xlYW51cHMgb24gaG9sZCB1bnRpbCBhbGwgd2Fybmlu
-Z3MNCj4gPiA+IG9mIHRoaXMga2luZCBoYXZlIGJlZW4gZml4ZWQgYnkgdGhlbS4gIE90aGVyd2lz
-ZSBkb2luZyB0aG9zZSBjbGVhbnVwcyBtYWtlcyBhDQo+ID4gPiBsaXR0bGUgc2Vuc2UgaW4gbXkg
-b3Bpbmlvbi4NCj4gPg0KPiA+IE9LLCBub3Qgb25seSB0aGlzIHdhcm5pbmcsIHRoZXJlIGlzIGFu
-b3RoZXIgd2FybmluZyBpbiBzZmlfYWNwaS5jLg0KPiA+IEkgZG91YnQgd2hldGhlciB0aGV5IGFy
-ZSBzdHJpY3RseSB0ZXN0ZWQgYmVmb3JlIHVwc3RyZWFtZWQuLi4NCj4gPiBUaGV5IGFyZSBhbGwg
-ZXhpc3Rpbmcgd2FybmluZ3MuDQo+ID4gWW91IGNhbiBhcHBseSBteSBuZXcgcGF0Y2ggYmVmb3Jl
-IHRoZSBjbGVhbnVwIHNlcmllcy4NCj4gDQo+IFNvcnJ5LCBJJ20gYWxyZWFkeSBsb3N0IGluIHRo
-ZSB0aGljayBvZiBwYXRjaGVzLiA6LSkNCj4gDQo+IFBsZWFzZSByZXNlbmQgdGhlbSBhbGwgYXMg
-YSBzaW5nbGUgc2VyaWVzLg0KDQpPSywgSSdsbCBzb3J0IHRoZW0gYWdhaW4uDQoNClRoYW5rcw0K
-LUx2DQoNCj4gDQo+IFRoYW5rcywNCj4gUmFmYWVsDQo+IA0KPiAtLQ0KPiBUbyB1bnN1YnNjcmli
-ZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtYWNwaSIg
-aW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcN
-Cj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRv
-bW8taW5mby5odG1sDQo=
+Both ThinkPad X201 and Latitude E6230 have problems under Win8 mode,
+so blacklist Win8 mode for them.
+
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=60697
+Reported-and-tested-by: Jeffery To <jeffery.to@gmail.com>
+Reported-and-tested-by: Wouter Depypere <wouter.depypere@ugent.be>
+Cc: 3.8 and above <stable@vger.kernel.org>
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+ drivers/acpi/blacklist.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 05ee8f61bfb5..97a8e395f72e 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -324,6 +324,32 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 	},
+ 
+ 	/*
++	 * The bluetooth functionality is unconditionally enabled
++	 * after a S3 cycle on Thinkpad X201 under Win8 mode.
++	 */
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "ThinkPad X201",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X201"),
++		},
++	},
++
++	/*
++	 * The hardware switch for enable/disable wifi on
++	 * Dell Latitude E6230 is broken under Win8 mode.
++	 */
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "Dell Latitude E6230",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "Latitude E6230"),
++		},
++	},
++
++	/*
+ 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
+ 	 * Linux ignores it, except for the machines enumerated below.
+ 	 */
+-- 
+1.8.3.1
+
