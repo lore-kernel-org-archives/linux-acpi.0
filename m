@@ -1,52 +1,23 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v10 1/3] aerdrv: Trace Event for AER
-Date: Sat, 7 Dec 2013 18:45:42 +0100
-Message-ID: <20131207174542.GB4183@pd.tnic>
-References: <CANVTcTYJS3eAUA4bHVCrKgz=7rQpJZHCiBcw3JM=j0FbCsgQJw@mail.gmail.com>
- <CABawtvPz5sZxhFnQru8Uc6UwF-O8HyGred_RWqBBeT615Qj8sQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Slow response notice
+Date: Sun, 08 Dec 2013 02:10:11 +0100
+Message-ID: <11012275.kSPsiksb3j@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CABawtvPz5sZxhFnQru8Uc6UwF-O8HyGred_RWqBBeT615Qj8sQ@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Ethan Zhao <ethan.kernel@gmail.com>
-Cc: rui wang <ruiv.wang@gmail.com>, Lance Ortiz <lance.ortiz@hp.com>, Bjorn Helgaas <bhelgaas@google.com>, lance_ortiz@hotmail.com, jiang.liu@intel.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, gong.chen@intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 06, 2013 at 11:11:07PM +0800, Ethan Zhao wrote:
-> > @@ -63,10 +63,10 @@ TRACE_EVENT(aer_event,
-> >
-> >         TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
-> >                 __get_str(dev_name),
-> > -               __entry->severity == HW_EVENT_ERR_CORRECTED ? "Corrected" :
-> > -                       __entry->severity == HW_EVENT_ERR_FATAL ?
-> > +               __entry->severity == AER_CORRECTABLE ? "Corrected" :
-> > +                       __entry->severity == AER_FATAL ?
-> >                         "Fatal" : "Uncorrected",
-> 
-> Why not             "Fatal" : "Non-fatal",   ?  per the PCIe spec,
-> 'Fatal' and 'Non-fatal' are sub-category of "
-> Uncorrected". But here "Uncorrected" means "Non-fatal".
+Hi,
 
-... and just to denote that, it'll probably be best to say:
+I'll be traveling during the next several days and e-mail responses from me
+may be *very* slow.  Sorry in advance for any inconveniences related to that.
 
-		__entry->severity == AER_CORRECTABLE ? "Corrected" :
-			__entry->severity == AER_FATAL ?
-			   "Fatal" : "Uncorrected, non-fatal"
-
-right?
-
-Btw, Rui, you patch is whitespace-damaged so next time please try
-sending from a real mail client which doesn't mangle whitespace and not
-from the gmail web interface. Sending the patch to yourself and trying
-to apply it is always a good test for that.
-
-Thanks.
+Thanks!
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
