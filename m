@@ -1,111 +1,97 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC part1 PATCH 0/7] Make ACPI core running on ARM64
-Date: Sun, 8 Dec 2013 19:40:40 +0000
-Message-ID: <20131208194040.GN29268@sirena.org.uk>
-References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
- <201312052325.02603.arnd@arndb.de>
- <20131206135825.GG29268@sirena.org.uk>
- <201312080344.56317.arnd@arndb.de>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [Linaro-acpi] [RFC part1 PATCH 1/7] ACPI: Make ACPI core running
+ without PCI on ARM64
+Date: Mon, 09 Dec 2013 12:12:24 +0800
+Message-ID: <52A54328.3000709@linaro.org>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org> <201312052304.22302.arnd@arndb.de> <52A1E794.1040008@linaro.org> <201312061823.26481.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1097733504947585587=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201312080344.56317.arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, patches@linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Olof Johansson <olof@lixom.net>, Jon Masters <jonathan@jonmasters.org>, Bjorn Helgaas <bhelgaas@google.com>, Grant Likely <grant.likely@linaro.org>, linux-arm-kernel@lists.infradead.org, Rob Herring <rob.herring@calxeda.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:43089 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760547Ab3LIENE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Dec 2013 23:13:04 -0500
+Received: by mail-pd0-f174.google.com with SMTP id y13so4444435pdi.33
+        for <linux-acpi@vger.kernel.org>; Sun, 08 Dec 2013 20:13:03 -0800 (PST)
+In-Reply-To: <201312061823.26481.arnd@arndb.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, patches@linaro.org, Olof Johansson <olof@lixom.net>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org
 
+On 2013-12-7 1:23, Arnd Bergmann wrote:
+> On Friday 06 December 2013, Tomasz Nowicki wrote:
+>> On 05.12.2013 23:04, Arnd Bergmann wrote:
+>>> On Wednesday 04 December 2013, Hanjun Guo wrote:
+>>>> On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 00:41, Matthew Garrett wrot=
+e:
+>>>>> Given the number of #ifdefs you're adding, wouldn't it make more =
+sense
+>>>>> to just add stub functions to include/linux/pci.h?
+>>>>
+>>>> Thanks for the suggestion :)
+>>>>
+>>>> I can add stub functions in include/linux/pci.h for raw_pci_read()=
+/
+>>>> raw_pci_write(), then can remove #ifdefs for acpi_os_read/write_pc=
+i_configuration().
+>>>
+>>> Actually I wonder about the usefulness of this patch in either form=
+: Since ACPI
+>>> on ARM64 is only for servers, I would very much expect them to alwa=
+ys come with
+>>> PCI, either physical host bridges with attached devices, or logical=
+ PCI functions
+>>> used to describe the on-SoC I/O devices. Even in case of virtual ma=
+chines, you'd
+>>> normally use PCI as the method to communicate data about the virtio=
+ channels.
+>>>
+>>> Can you name a realistic use-case where you'd want ACPI but not PCI=
+?
+>>
+>> Yes you can describe SoC I/O devices using logical PCI functions onl=
+y if=20
+>> they are on PCI, correct me if I am wrong. Also, devices can be plac=
+ed=20
+>> only on IOMEM (like for ARM SoC) and it is hard to predict which way=
+=20
+>> vendors chose. So way don't let it be configurable? ACPI spec says=20
+>> nothing like PCI is needed for ACPI, AFAIK.
+>=20
+> You are right that today's ARM SoCs basically never use PCI to descri=
+be
+> internal devices (IIRC VIA VT8500 is an exception, but their PCI was
+> just a software fabrication).
+>=20
+> However, when we're talking about ACPI on ARM64, that is nothing like=
+ classic
+> ARM SoCs: As Jon Masters mentioned, this is about new server hardware=
+ following
+> a (still secret, but hopefully not much longer) hardware specificatio=
+n that is
+> explicitly designed to allow interoperability between vendors, so the=
+y
+> must have put some thought into how to make the hardware discoverable=
+=2E It
+> seems that they are modeling things after how it's done on x86, and t=
+he
+> only sensible way to have discoverable hardware there is PCI. This is
+> also what all x86 SoCs do.
 
---===============1097733504947585587==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PEFDyIIeORe/70g6"
-Content-Disposition: inline
+I think the concern here is that ACPI is only for server platform or no=
+t.
 
+Since ACPI has lots of content related to power management, I think ACP=
+I
+can be used for mobile devices and other platform too, not only for ARM
+servers, and with this patch, we can support both requirement.
 
---PEFDyIIeORe/70g6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, Dec 08, 2013 at 03:44:56AM +0100, Arnd Bergmann wrote:
-> On Friday 06 December 2013, Mark Brown wrote:
-
-> > OTOH if it's well encapsulated, is going to be required for any kind of
-> > ACPI use and gets to the point where people are OK with it by itself
-> > then I'm not sure what we'd gain by keeping it out of tree - it'd make
-> > the real system patch sets bigger and harder to review.
-
-> I'd agree as soon as someone can convince me that we actually want ACPI
-> support in the kernel for ARM64 servers. As far as I'm concerned it's qui=
-te
-> possible that the people who have worked on this for the past couple of
-> years behind closed doors know what they are doing and it will all be
-> good, but it's also possible that it turns into a huge trainwreck once
-> we see multiple implementations that have fundamentally incompatible
-> requirements regarding what they want from ACPI and we end up not doing
-> it at all. I just don't have enough information at this point to know whi=
-ch
-> of the two is true and I'd like to ensure that accepting the patches
-> that meet your criteria above would not be seen as an endorsement to do
-> crazy stuff later.
-
-I do share all your concerns about the closed door stuff, and I'm also
-not convinced that they'll be able to control the things people try to
-do with it if it does become at all successful. =20
-
-That said I don't think anyone could be in any reasonable doubt as to
-the concerns that people have at this point and I do worry that keeping
-everything out of tree will both increase reviwer fatigue if it does end
-up getting merged and increase the chances that we end up with a
-deployed fiat accomplait being submitted.  We can always add dire
-warnings and so on to the code and Kconfig to try to remind people but
-so long as it's neither getting in the way of anything else nor making
-any real decisions (as opposed to basics for the core spec) I'm not sure
-how much we gain, if it never goes anywhere it can just sit and rot
-quietly in a corner until it gets in the way.
-
---PEFDyIIeORe/70g6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSpMs1AAoJELSic+t+oim9c7oP/jzTkeve1eLG+2mPnFcqXN8M
-mc5vM6s2PIC3HfLAe1UilKSy+73FFlZ8mXcwE+8Xv+xQrzhnTlTiLj9rwez+CH3l
-SQ2fqZS3+Xuwg++Mp5tVPMlYBS94z908lvvjdvdG9pq63jrK25Sq9KgaspFPsRa/
-BX7EGp21V20z0WjCuo+AY4kNqOVL2ZhcKlpdsJZk0Ls/niaL45mk4As5+Sv+j5OE
-rSTs90o1Pg5fMq3WOQjuaItN2/u29Wz8onhy5N5pi2AboJoVvw40ZlAKLOE2e25X
-kdW6c93sAdvi8NMhnmdidLt78EtrXgmwf2GkVU81Lfukx6eSFiEuCnfFT/Apf0J1
-Oo2X22OJnS9kR70nRDLZ7U/ntL2H2fhqJQN/aQVclAxkmk3IbpBDMgZb7TasPV+C
-zVnBNGmAo1RVCPYNDrlGiJHB1dGZyJNqCGkz9FcE9T0HGFc/MsZ/4FfoFFBW1t8d
-tGZYTUDFrfEVvcXZA0V3E9gS+cP4JZIzN9yEZRizkXI1v5BzBzlafOPJh7pHQaJi
-+lxZE9OL9RQ9sS7Nw/d3sY0cStGhH1GDIgSaUy9BQjXLrNiBk0oqIDoHrj49POlO
-T9gt2klIAndLloCCPBARiI72KCTG5Kf1vdlRrknMFZkB15P7EDHOs0Pw2u88wbch
-8UWhPdVWfjk9Ciz6xgdG
-=F/wQ
------END PGP SIGNATURE-----
-
---PEFDyIIeORe/70g6--
-
-
---===============1097733504947585587==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1097733504947585587==--
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
