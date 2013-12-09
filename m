@@ -1,284 +1,47 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [RFC part2 PATCH 9/9] ACPI / GIC: Initialize GIC using the
- information in MADT
-Date: Mon, 9 Dec 2013 10:54:29 -0800
-Message-ID: <20131209185429.GB27562@quad.lixom.net>
-References: <1386088753-2850-1-git-send-email-hanjun.guo@linaro.org>
- <1386088753-2850-10-git-send-email-hanjun.guo@linaro.org>
- <529E1443.9040509@arm.com>
- <529F4B2A.6060508@linaro.org>
- <529F4F39.9090001@arm.com>
+From: =?UTF-8?B?SmFuIFbEjWVsw6Fr?= <jan.vcelak@nic.cz>
+Subject: Re: [PATCH] ACPI: full battery charge cannot exceed current one
+Date: Mon, 09 Dec 2013 23:25:15 +0100
+Message-ID: <52A6434B.9040100@nic.cz>
+References: <1386419801-10091-1-git-send-email-jan.vcelak@nic.cz> <20131209170214.GB30717@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:47869 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932179Ab3LIS4o (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Dec 2013 13:56:44 -0500
-Received: by mail-pd0-f179.google.com with SMTP id r10so5695643pdi.38
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Dec 2013 10:56:43 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <529F4F39.9090001@arm.com>
+Received: from mail.nic.cz ([217.31.204.67]:46105 "EHLO mail.nic.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753214Ab3LIWZU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Dec 2013 17:25:20 -0500
+In-Reply-To: <20131209170214.GB30717@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Jon Masters <jonathan@jonmasters.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Dec 04, 2013 at 03:50:17PM +0000, Marc Zyngier wrote:
-> On 04/12/13 15:32, Hanjun Guo wrote:
-> > On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 01:26, Marc Zyngier wrote:
-> >> Hi Hanjun,
-> >>
-> >> On 03/12/13 16:39, Hanjun Guo wrote:
-> >>> In MADT table, there are GIC cpu interface base address and
-> >>> GIC distributor base address, use them to convert GIC to ACPI.
-> >>>
-> >>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >>> ---
-> >>>   arch/arm64/kernel/irq.c      |    5 ++++
-> >>>   drivers/acpi/plat/arm-core.c |   66 +++++++++++++++++++++++++++=
-+++++++++------
-> >>>   include/linux/acpi.h         |    6 ++++
-> >>>   3 files changed, 68 insertions(+), 9 deletions(-)
-> >>>
-> >>> diff --git a/arch/arm64/kernel/irq.c b/arch/arm64/kernel/irq.c
-> >>> index 473e5db..a9e68bf 100644
-> >>> --- a/arch/arm64/kernel/irq.c
-> >>> +++ b/arch/arm64/kernel/irq.c
-> >>> @@ -25,6 +25,7 @@
-> >>>   #include <linux/irq.h>
-> >>>   #include <linux/smp.h>
-> >>>   #include <linux/init.h>
-> >>> +#include <linux/acpi.h>
-> >>>   #include <linux/irqchip.h>
-> >>>   #include <linux/seq_file.h>
-> >>>   #include <linux/ratelimit.h>
-> >>> @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(=
-struct pt_regs *))
-> >>>   void __init init_IRQ(void)
-> >>>   {
-> >>>   	irqchip_init();
-> >>> +
-> >>> +	if (!handle_arch_irq)
-> >>> +		acpi_gic_init();
-> >>> +
-> >> Why is the GIC hardcoded?
-> >=20
-> > Very good question, thanks. I considered GIC only in my patch set.
-> > I have no idea how to handle the GIC hardcoded problem here for
-> > now, but I will figure it out later.
-> >=20
-> > If any suggestion, I will appreciate a lot.
-> >=20
-> >> How are you going to support other interrupt
-> >> controllers?
-> >=20
-> > ACPI 5.0 supports GICv2 only for now, if we want to
-> > support other interrupt controller, we should introduce
-> > some OEM table and parsing it, and it will not covered
-> > by this patch set.
-> >=20
-> >>>   	if (!handle_arch_irq)
-> >>>   		panic("No interrupt controller found.");
-> >>>   }
-> >>> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm=
--core.c
-> >>> index 17c99e1..509b847 100644
-> >>> --- a/drivers/acpi/plat/arm-core.c
-> >>> +++ b/drivers/acpi/plat/arm-core.c
-> >>> @@ -29,6 +29,7 @@
-> >>>   #include <linux/module.h>
-> >>>   #include <linux/irq.h>
-> >>>   #include <linux/irqdomain.h>
-> >>> +#include <linux/irqchip/arm-gic.h>
-> >>>   #include <linux/slab.h>
-> >>>   #include <linux/bootmem.h>
-> >>>   #include <linux/ioport.h>
-> >>> @@ -211,11 +212,21 @@ acpi_parse_gic(struct acpi_subtable_header =
-*header, const unsigned long end)
-> >>>   	return 0;
-> >>>   }
-> >>>  =20
-> >>> +#ifdef CONFIG_ARM_GIC
-> >>> +/*
-> >>> + * Hard code here, we can not get memory size from MADT (but FDT=
- does),
-> >>> + * this size is described in ARMv8 foudation model's User Guide
-> >>> + */
-> >>> +#define GIC_DISTRIBUTOR_MEMORY_SIZE (SZ_8K)
-> >>> +#define GIC_CPU_INTERFACE_MEMORY_SIZE (SZ_4K)
-> >> Aside from the incorrect sizes, how do you plan to address the oth=
-er
-> >> regions that the GICv2 specification describes?
-> >=20
-> > Did these regions have the same base address? I mean the same
-> > as GIC distributor base address and GIC cpu interface base address.
-> >=20
-> > if yes, since the base address is stored in gic_init(), it can be f=
-or=20
-> > furture
-> > use. if I misunderstood your question, please let me know.
->=20
-> Look at the VGIC implementation for KVM in virt/kvm/arm. It does its =
-own
-> probing of the additional regions used for virtualization.
->=20
-> The GIC and VGIC code are completely separate, and you'll need to fin=
-d
-> an acceptable solution for that too.
->=20
-> >>>   static int __init
-> >>>   acpi_parse_gic_distributor(struct acpi_subtable_header *header,
-> >>>   				const unsigned long end)
-> >>>   {
-> >>>   	struct acpi_madt_generic_distributor *distributor =3D NULL;
-> >>> +	void __iomem *dist_base =3D NULL;
-> >>> +	void __iomem *cpu_base =3D NULL;
-> >>>  =20
-> >>>   	distributor =3D (struct acpi_madt_generic_distributor *)header=
-;
-> >>>  =20
-> >>> @@ -224,8 +235,43 @@ acpi_parse_gic_distributor(struct acpi_subta=
-ble_header *header,
-> >>>  =20
-> >>>   	acpi_table_print_madt_entry(header);
-> >>>  =20
-> >>> +	/* GIC is initialised after page_init(), no need for early_iore=
-map */
-> >>> +	dist_base =3D ioremap(distributor->base_address,
-> >>> +				GIC_CPU_INTERFACE_MEMORY_SIZE);
-> >>> +	if (!dist_base) {
-> >>> +		pr_warn(PREFIX "unable to map gic dist registers\n");
-> >>> +		return -ENOMEM;
-> >>> +	}
-> >>> +
-> >>> +	/*
-> >>> +	 * acpi_lapic_addr is stored in acpi_parse_madt(),
-> >>> +	 * so we can use it here for GIC init
-> >>> +	 */
-> >>> +	if (acpi_lapic_addr) {
-> >>> +		iounmap(dist_base);
-> >>> +		pr_warn(PREFIX "Invalid GIC cpu interface base address\n");
-> >>> +		return -EINVAL;
-> >>> +	}
-> >>> +
-> >>> +	cpu_base =3D ioremap(acpi_lapic_addr, GIC_CPU_INTERFACE_MEMORY_=
-SIZE);
-> >>> +	if (!cpu_base) {
-> >>> +		iounmap(dist_base);
-> >>> +		pr_warn(PREFIX "unable to map gic cpu registers\n");
-> >>> +		return -ENOMEM;
-> >>> +	}
-> >>> +
-> >>> +	gic_init(distributor->gic_id, -1, dist_base, cpu_base);
-> >>> +
-> >>>   	return 0;
-> >>>   }
-> >>> +#else
-> >>> +static int __init
-> >>> +acpi_parse_gic_distributor(struct acpi_subtable_header *header,
-> >>> +				const unsigned long end)
-> >>> +{
-> >>> +	return -ENODEV;
-> >>> +}
-> >>> +#endif /* CONFIG_ARM_GIC */
-> >>>  =20
-> >>>   /*
-> >>>    * Parse GIC cpu interface related entries in MADT
-> >>> @@ -234,7 +280,7 @@ acpi_parse_gic_distributor(struct acpi_subtab=
-le_header *header,
-> >>>   static int __init acpi_parse_madt_gic_entries(void)
-> >>>   {
-> >>>   	int count;
-> >>> -
-> >>> +
-> >>>   	/*
-> >>>   	 * do a partial walk of MADT to determine how many CPUs
-> >>>   	 * we have including disabled CPUs
-> >>> @@ -468,19 +514,21 @@ static void __init acpi_process_madt(void)
-> >>>   		 * Parse MADT GIC cpu interface entries
-> >>>   		 */
-> >>>   		error =3D acpi_parse_madt_gic_entries();
-> >>> -		if (!error) {
-> >>> -			/*
-> >>> -			 * Parse MADT GIC distributor entries
-> >>> -			 */
-> >>> -			acpi_parse_madt_gic_distributor_entries();
-> >>> -		}
-> >>> +		if (!error)
-> >>> +			pr_info("Using ACPI for processor (GIC) configuration informa=
-tion\n");
-> >>>   	}
-> >>>  =20
-> >>> -	pr_info("Using ACPI for processor (GIC) configuration informati=
-on\n");
-> >>> -
-> >>>   	return;
-> >>>   }
-> >>>  =20
-> >>> +int __init acpi_gic_init(void)
-> >>> +{
-> >>> +	/*
-> >>> +	 * Parse MADT GIC distributor entries
-> >>> +	 */
-> >>> +	return acpi_parse_madt_gic_distributor_entries();
-> >>> +}
-> >>> +
-> >> Why can't you do the GIC init in the GIC code? We've tried hard to=
- make
-> >> interrupt controllers discoverable and self contained.
-> >=20
-> > thanks for your suggestion, Rob also had the same suggestion,
-> > will try to update it in next version.
-> >=20
-> >> What are you
-> >> going to do when ACPI adds GICv3 to the mix? I don't really think =
-this
-> >> model (shoving everything into the core ACPI code) is sustainable =
-in the
-> >> long run...
-> >=20
-> > Since GICv3 related ACPI proposal is not public and not goes into A=
-CPI
-> > spec, my suggestion is that we implement GICv2 only for now and pos=
-t
-> > another patches for GICv3 when the new ACPI spec is available.
->=20
-> Certainly. But I think you should aim for a scalable solution right
-> away, instead of starting with something that we already know won't w=
-ork
-> for stuff that is already around the corner (which is what I infer fr=
-om
-> your "non public" statement).
+>> Some degraded batteries report maximal capacity to be smaller than
+>> current charge of the battery. This can confuse some user space
+>> applications (like upower).
+> 
+> Can't we just fix upower?
 
-Again, I wonder if we might be better off converting GIC info (since
-it's likely to be there on all systems) in the EFI boot wrapper into
-=46DT data when ACPI is provided.
+It looks like upower already resolved that:
 
-Essentially, if we can describe:
-* Memory
-* Console uart (if one exists) for debug
-* Timers
-* Interrupts
-(Possibly PCI host controllers too but I'm less sure that can be done
-generically)
+http://cgit.freedesktop.org/upower/tree/src/linux/up-device-supply.c#n652
 
-in the FDT stub, then we can keep a lot of the lowlevel init code commo=
-n
-instead of diverging. We can also get away from having to update both A=
-CPI and
-DT for GICv3, etc, reducing boilerplate code in the kernel to handle bo=
-th.
+If the purpose of sysfs is to provide raw values retrieved from battery,
+then I agree that this should not be handled in kernel.
+Otherwise I would expect semantically correct data there.
 
-If we have to add some properties to bring across some ACPI information=
- we can
-of course do so, hopefully it'll be a small amount.
+>> +	/* Some degraded batteries report lower full charge than current one. */
+>> +	if (battery->capacity_now > battery->full_charge_capacity)
+>> +		battery->full_charge_capacity = battery->capacity_now;
+>> +
+> 
+> Does upower read *_full on every read of the value? How do we guarantee 
+> that it won't read energy_now without updating energy_full and still 
+> come up with an incorrect calculation?
 
+That's a good point. I'm not sure about other applications, but upower
+always refreshes all values. Function up_device_supply_refresh_battery
+seems to be the only place where 'charge_now' is being read:
 
--Olof
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://cgit.freedesktop.org/upower/tree/src/linux/up-device-supply.c#n485
