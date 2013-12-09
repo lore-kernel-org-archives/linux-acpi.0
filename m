@@ -1,56 +1,65 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [RFC part1 PATCH 1/7] ACPI: Make ACPI core running without PCI on ARM64
-Date: Mon, 9 Dec 2013 17:34:49 -0600
-Message-ID: <CAL_JsqKKKh7d61hJuSc8mGMCmeYB1hshHGS5ML4eRXWHmjZrgA@mail.gmail.com>
-References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
-	<20131203164111.GA13447@srcf.ucam.org>
-	<529F376F.8050005@linaro.org>
-	<201312052304.22302.arnd@arndb.de>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] aerdrv: Fix severity usage in aer trace event
+Date: Mon, 9 Dec 2013 16:41:18 -0700
+Message-ID: <CAErSpo7M=d0qMUCV2CCjkkbMX7h-xQcp0tuST89G_HefTQVoyg@mail.gmail.com>
+References: <1386476273-2418-1-git-send-email-rui.y.wang@intel.com>
+ <20131208144312.GC4338@pd.tnic> <20131208150904.GD4338@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f48.google.com ([209.85.219.48]:45364 "EHLO
-	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699Ab3LIXeu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Dec 2013 18:34:50 -0500
-In-Reply-To: <201312052304.22302.arnd@arndb.de>
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:47918 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750823Ab3LIXli (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Dec 2013 18:41:38 -0500
+Received: by mail-ie0-f171.google.com with SMTP id ar20so7495430iec.30
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Dec 2013 15:41:38 -0800 (PST)
+In-Reply-To: <20131208150904.GD4338@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Linaro Patches <patches@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Olof Johansson <olof@lixom.net>, Jon Masters <jonathan@jonmasters.org>, Rob Herring <rob.h>
+To: Borislav Petkov <bp@alien8.de>
+Cc: Rui Wang <ruiv.wang@gmail.com>, Lance Ortiz <lance.ortiz@hp.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, jiang.liu@intel.com, Tony Luck <tony.luck@intel.com>, Steven Rostedt <rostedt@goodmis.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Chen Gong <gong.chen@linux.intel.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Rui Wang <rui.y.wang@intel.com>, Joe Perches <joe@perches.com>
 
-On Thu, Dec 5, 2013 at 4:04 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Wednesday 04 December 2013, Hanjun Guo wrote:
->> On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 00:41, Matthew Garrett wrote:
->> > Given the number of #ifdefs you're adding, wouldn't it make more s=
-ense
->> > to just add stub functions to include/linux/pci.h?
+[+cc Joe]
+
+On Sun, Dec 8, 2013 at 8:09 AM, Borislav Petkov <bp@alien8.de> wrote:
+> On Sun, Dec 08, 2013 at 03:43:12PM +0100, Borislav Petkov wrote:
+>> On Sun, Dec 08, 2013 at 12:17:53PM +0800, Rui Wang wrote:
+>> > There's inconsistency between dmesg and the trace event output.
+>> > When dmesg says "severity=Corrected", the trace event says
+>> > "severity=Fatal". What happens is that HW_EVENT_ERR_CORRECTED is
+>> > defined in edac.h:
+>> >
+>> > enum hw_event_mc_err_type {
+>> >         HW_EVENT_ERR_CORRECTED,
+>> >         HW_EVENT_ERR_UNCORRECTED,
+>> >         HW_EVENT_ERR_FATAL,
+>> >         HW_EVENT_ERR_INFO,
+>> > };
+>> >
+>> > while aer_print_error() uses aer_error_severity_string[] defined as:
+>> >
+>> > static const char *aer_error_severity_string[] = {
+>> >         "Uncorrected (Non-Fatal)",
+>> >         "Uncorrected (Fatal)",
+>> >         "Corrected"
+>> > };
+>> >
+>> > In this case dmesg is correct because info->severity is assigned in
+>> > aer_isr_one_error() using the definitions in include/linux/ras.h:
+>> >
+>> > Signed-off-by: Rui Wang <rui.y.wang@intel.com>
 >>
->> Thanks for the suggestion :)
->>
->> I can add stub functions in include/linux/pci.h for raw_pci_read()/
->> raw_pci_write(), then can remove #ifdefs for acpi_os_read/write_pci_=
-configuration().
+>> Applied, thanks.
 >
-> Actually I wonder about the usefulness of this patch in either form: =
-Since ACPI
-> on ARM64 is only for servers, I would very much expect them to always=
- come with
-> PCI, either physical host bridges with attached devices, or logical P=
-CI functions
-> used to describe the on-SoC I/O devices. Even in case of virtual mach=
-ines, you'd
-> normally use PCI as the method to communicate data about the virtio c=
-hannels.
+> I said "Applied" but this is Bjorn's area: Bjorn, wanna take this one or
+> are you fine with it going over the RAS tree?
 >
-> Can you name a realistic use-case where you'd want ACPI but not PCI?
+> Btw, I have a 2 trivial cleanups for aerdrv_errprint.c which are
+> following...
 
-Calxeda h/w. Yes, we do have PCI, but it is optional.
+I think it's worthwhile to keep all three patches together, and I'd be
+happy to merge them via PCI.  It looks like Joe had some good
+questions, so once you resolve them, I can merge them, or ack them and
+you can take them.  I think either way will be fine.
 
-Rob
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bjorn
