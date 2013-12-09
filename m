@@ -1,56 +1,70 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [Linaro-acpi] [RFC part1 PATCH 1/7] ACPI: Make ACPI core
- running without PCI on ARM64
-Date: Mon, 9 Dec 2013 18:01:55 +0000
-Message-ID: <20131209180155.GG19163@arm.com>
-References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
- <201312091735.05014.arnd@arndb.de>
- <20131209165548.GE19163@arm.com>
- <201312091820.23006.arnd@arndb.de>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [RFC part3 PATCH 2/2] ARM64 / clocksource: Use
+ arch_timer_acpi_init()
+Date: Mon, 9 Dec 2013 10:37:43 -0800
+Message-ID: <20131209183743.GA27562@quad.lixom.net>
+References: <1386069328-22502-1-git-send-email-hanjun.guo@linaro.org>
+ <1386069328-22502-3-git-send-email-hanjun.guo@linaro.org>
+ <CACRpkdYeMOMQzDn5=XpDg7X9L_zMZczGg-5SBA8q_WvwFPnH7A@mail.gmail.com>
+ <529DE21E.4080707@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:37021 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761302Ab3LISj6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Dec 2013 13:39:58 -0500
+Received: by mail-pd0-f175.google.com with SMTP id w10so5618348pde.6
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Dec 2013 10:39:58 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <201312091820.23006.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "patches@linaro.org" <patches@linaro.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <529DE21E.4080707@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <rob.herring@calxeda.com>, Mark Rutland <mark.rutland@arm.com>, Jon Masters <jonathan@jonmasters.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Patch Tracking <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-kernel <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Mon, Dec 09, 2013 at 05:20:22PM +0000, Arnd Bergmann wrote:
-> On Monday 09 December 2013, Catalin Marinas wrote:
-> > CONFIG_PCI does not exist on arm64 yet (we have some internal patches
-> > but may not be ready to be posted before the holidays; they try to share
-> > code with other archs, so more discussions before merging). We could add
-> > CONFIG_PCI and some dummy functions on arm64 for development (not to be
-> > upstreamed) or Hanjun could continue to use the current patch before we
-> > get PCI working. In the order of priorities, we'll have to merge PCI
-> > before ACPI anyway.
-> 
-> Well, lack of PCI support on ARM64 is a much better reason for accepting
-> the patch than potential use on non-server platforms of course.
+On Tue, Dec 03, 2013 at 09:52:30PM +0800, Hanjun Guo wrote:
+> On 2013=E5=B9=B412=E6=9C=8803=E6=97=A5 20:27, Linus Walleij wrote:
+> >On Tue, Dec 3, 2013 at 12:15 PM, Hanjun Guo <hanjun.guo@linaro.org> =
+wrote:
+> >
+> >>+       /* if can't be initialised from DT, try ACPI way */
+> >>+       if (!arch_timer_get_rate())
+> >>+               arch_timer_acpi_init();
+> >>+
+> >>         arch_timer_rate =3D arch_timer_get_rate();
+> >This looks a bit fragile. Having a call like arch_timer_get_rate()
+> >to check whether there is a DT node for the timer doesn't seem
+> >right, can you refactor the code to provide some
+> >has_arch_timer_node() or similar call instead, so it's a bit easier
+> >to understand & maintain at least?
+>=20
+> Good point, thanks for the guidance.
+> I will introduce has_arch_timer_node() as you said and use
+> it as follows:
+>=20
+> if (has_arch_timer_node())
+> clocksource_of_init();
+> esle
+> arch_timer_acpi_init(); /* try ACPI way */
+>=20
+> Is this make sense to you?
 
-As I said above about priorities, we are not in a hurry to merge ACPI
-for arm64 before PCI is supported.
+Even when we boot with ACPI, the boot stub will still create a minimal
+DTB. We should just make sure that the clocksource (which will be
+architectured timers anyway, I believe?) is described in that stub.
 
-> What is the status of the PCI work though? I suspect it won't be all
-> that hard to add minimal PCI support for a simple mmconfig plus
-> fixed I/O space based host of the kind that qemu can easily provide.
+I would rather do that than have dual-path booting in the lowlevel setu=
+p, it
+increases test requirements and makes it hard for someone without ACPI =
+hardware
+to check for regressions in this code, etc.
 
-Liviu (ARM engineer) has been working on generalising the microblaze
-code (which is very similar to powerpc) and enable it on arm64. The
-patches will be posted soon (though may slip into the new year) but
-there will be many discussions on how to do this best, so I don't expect
-a quick merge.
 
-In parallel, Will is looking at getting PCI to work with kvmtool and
-that's something we could merge sooner (but again, in the new year).
-
-> The hard part that we want to share code with other architectures is
-> supporting pluggable host controllers, and I think we can defer that
-> a bit.
-
-Indeed, this would take time.
-
--- 
-Catalin
+-Olof
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
