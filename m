@@ -1,65 +1,279 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [RFC part3 PATCH 2/2] ARM64 / clocksource: Use
- arch_timer_acpi_init()
-Date: Mon, 9 Dec 2013 10:37:43 -0800
-Message-ID: <20131209183743.GA27562@quad.lixom.net>
-References: <1386069328-22502-1-git-send-email-hanjun.guo@linaro.org>
- <1386069328-22502-3-git-send-email-hanjun.guo@linaro.org>
- <CACRpkdYeMOMQzDn5=XpDg7X9L_zMZczGg-5SBA8q_WvwFPnH7A@mail.gmail.com>
- <529DE21E.4080707@linaro.org>
+Subject: Re: [RFC part2 PATCH 9/9] ACPI / GIC: Initialize GIC using the
+ information in MADT
+Date: Mon, 9 Dec 2013 10:54:29 -0800
+Message-ID: <20131209185429.GB27562@quad.lixom.net>
+References: <1386088753-2850-1-git-send-email-hanjun.guo@linaro.org>
+ <1386088753-2850-10-git-send-email-hanjun.guo@linaro.org>
+ <529E1443.9040509@arm.com>
+ <529F4B2A.6060508@linaro.org>
+ <529F4F39.9090001@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:37021 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761302Ab3LISj6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Dec 2013 13:39:58 -0500
-Received: by mail-pd0-f175.google.com with SMTP id w10so5618348pde.6
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Dec 2013 10:39:58 -0800 (PST)
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:47869 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932179Ab3LIS4o (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Dec 2013 13:56:44 -0500
+Received: by mail-pd0-f179.google.com with SMTP id r10so5695643pdi.38
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Dec 2013 10:56:43 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <529DE21E.4080707@linaro.org>
+In-Reply-To: <529F4F39.9090001@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <rob.herring@calxeda.com>, Mark Rutland <mark.rutland@arm.com>, Jon Masters <jonathan@jonmasters.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Patch Tracking <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-kernel <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Jon Masters <jonathan@jonmasters.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead
 
-On Tue, Dec 03, 2013 at 09:52:30PM +0800, Hanjun Guo wrote:
-> On 2013=E5=B9=B412=E6=9C=8803=E6=97=A5 20:27, Linus Walleij wrote:
-> >On Tue, Dec 3, 2013 at 12:15 PM, Hanjun Guo <hanjun.guo@linaro.org> =
-wrote:
-> >
-> >>+       /* if can't be initialised from DT, try ACPI way */
-> >>+       if (!arch_timer_get_rate())
-> >>+               arch_timer_acpi_init();
-> >>+
-> >>         arch_timer_rate =3D arch_timer_get_rate();
-> >This looks a bit fragile. Having a call like arch_timer_get_rate()
-> >to check whether there is a DT node for the timer doesn't seem
-> >right, can you refactor the code to provide some
-> >has_arch_timer_node() or similar call instead, so it's a bit easier
-> >to understand & maintain at least?
+On Wed, Dec 04, 2013 at 03:50:17PM +0000, Marc Zyngier wrote:
+> On 04/12/13 15:32, Hanjun Guo wrote:
+> > On 2013=E5=B9=B412=E6=9C=8804=E6=97=A5 01:26, Marc Zyngier wrote:
+> >> Hi Hanjun,
+> >>
+> >> On 03/12/13 16:39, Hanjun Guo wrote:
+> >>> In MADT table, there are GIC cpu interface base address and
+> >>> GIC distributor base address, use them to convert GIC to ACPI.
+> >>>
+> >>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >>> ---
+> >>>   arch/arm64/kernel/irq.c      |    5 ++++
+> >>>   drivers/acpi/plat/arm-core.c |   66 +++++++++++++++++++++++++++=
++++++++++------
+> >>>   include/linux/acpi.h         |    6 ++++
+> >>>   3 files changed, 68 insertions(+), 9 deletions(-)
+> >>>
+> >>> diff --git a/arch/arm64/kernel/irq.c b/arch/arm64/kernel/irq.c
+> >>> index 473e5db..a9e68bf 100644
+> >>> --- a/arch/arm64/kernel/irq.c
+> >>> +++ b/arch/arm64/kernel/irq.c
+> >>> @@ -25,6 +25,7 @@
+> >>>   #include <linux/irq.h>
+> >>>   #include <linux/smp.h>
+> >>>   #include <linux/init.h>
+> >>> +#include <linux/acpi.h>
+> >>>   #include <linux/irqchip.h>
+> >>>   #include <linux/seq_file.h>
+> >>>   #include <linux/ratelimit.h>
+> >>> @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(=
+struct pt_regs *))
+> >>>   void __init init_IRQ(void)
+> >>>   {
+> >>>   	irqchip_init();
+> >>> +
+> >>> +	if (!handle_arch_irq)
+> >>> +		acpi_gic_init();
+> >>> +
+> >> Why is the GIC hardcoded?
+> >=20
+> > Very good question, thanks. I considered GIC only in my patch set.
+> > I have no idea how to handle the GIC hardcoded problem here for
+> > now, but I will figure it out later.
+> >=20
+> > If any suggestion, I will appreciate a lot.
+> >=20
+> >> How are you going to support other interrupt
+> >> controllers?
+> >=20
+> > ACPI 5.0 supports GICv2 only for now, if we want to
+> > support other interrupt controller, we should introduce
+> > some OEM table and parsing it, and it will not covered
+> > by this patch set.
+> >=20
+> >>>   	if (!handle_arch_irq)
+> >>>   		panic("No interrupt controller found.");
+> >>>   }
+> >>> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm=
+-core.c
+> >>> index 17c99e1..509b847 100644
+> >>> --- a/drivers/acpi/plat/arm-core.c
+> >>> +++ b/drivers/acpi/plat/arm-core.c
+> >>> @@ -29,6 +29,7 @@
+> >>>   #include <linux/module.h>
+> >>>   #include <linux/irq.h>
+> >>>   #include <linux/irqdomain.h>
+> >>> +#include <linux/irqchip/arm-gic.h>
+> >>>   #include <linux/slab.h>
+> >>>   #include <linux/bootmem.h>
+> >>>   #include <linux/ioport.h>
+> >>> @@ -211,11 +212,21 @@ acpi_parse_gic(struct acpi_subtable_header =
+*header, const unsigned long end)
+> >>>   	return 0;
+> >>>   }
+> >>>  =20
+> >>> +#ifdef CONFIG_ARM_GIC
+> >>> +/*
+> >>> + * Hard code here, we can not get memory size from MADT (but FDT=
+ does),
+> >>> + * this size is described in ARMv8 foudation model's User Guide
+> >>> + */
+> >>> +#define GIC_DISTRIBUTOR_MEMORY_SIZE (SZ_8K)
+> >>> +#define GIC_CPU_INTERFACE_MEMORY_SIZE (SZ_4K)
+> >> Aside from the incorrect sizes, how do you plan to address the oth=
+er
+> >> regions that the GICv2 specification describes?
+> >=20
+> > Did these regions have the same base address? I mean the same
+> > as GIC distributor base address and GIC cpu interface base address.
+> >=20
+> > if yes, since the base address is stored in gic_init(), it can be f=
+or=20
+> > furture
+> > use. if I misunderstood your question, please let me know.
 >=20
-> Good point, thanks for the guidance.
-> I will introduce has_arch_timer_node() as you said and use
-> it as follows:
+> Look at the VGIC implementation for KVM in virt/kvm/arm. It does its =
+own
+> probing of the additional regions used for virtualization.
 >=20
-> if (has_arch_timer_node())
-> clocksource_of_init();
-> esle
-> arch_timer_acpi_init(); /* try ACPI way */
+> The GIC and VGIC code are completely separate, and you'll need to fin=
+d
+> an acceptable solution for that too.
 >=20
-> Is this make sense to you?
+> >>>   static int __init
+> >>>   acpi_parse_gic_distributor(struct acpi_subtable_header *header,
+> >>>   				const unsigned long end)
+> >>>   {
+> >>>   	struct acpi_madt_generic_distributor *distributor =3D NULL;
+> >>> +	void __iomem *dist_base =3D NULL;
+> >>> +	void __iomem *cpu_base =3D NULL;
+> >>>  =20
+> >>>   	distributor =3D (struct acpi_madt_generic_distributor *)header=
+;
+> >>>  =20
+> >>> @@ -224,8 +235,43 @@ acpi_parse_gic_distributor(struct acpi_subta=
+ble_header *header,
+> >>>  =20
+> >>>   	acpi_table_print_madt_entry(header);
+> >>>  =20
+> >>> +	/* GIC is initialised after page_init(), no need for early_iore=
+map */
+> >>> +	dist_base =3D ioremap(distributor->base_address,
+> >>> +				GIC_CPU_INTERFACE_MEMORY_SIZE);
+> >>> +	if (!dist_base) {
+> >>> +		pr_warn(PREFIX "unable to map gic dist registers\n");
+> >>> +		return -ENOMEM;
+> >>> +	}
+> >>> +
+> >>> +	/*
+> >>> +	 * acpi_lapic_addr is stored in acpi_parse_madt(),
+> >>> +	 * so we can use it here for GIC init
+> >>> +	 */
+> >>> +	if (acpi_lapic_addr) {
+> >>> +		iounmap(dist_base);
+> >>> +		pr_warn(PREFIX "Invalid GIC cpu interface base address\n");
+> >>> +		return -EINVAL;
+> >>> +	}
+> >>> +
+> >>> +	cpu_base =3D ioremap(acpi_lapic_addr, GIC_CPU_INTERFACE_MEMORY_=
+SIZE);
+> >>> +	if (!cpu_base) {
+> >>> +		iounmap(dist_base);
+> >>> +		pr_warn(PREFIX "unable to map gic cpu registers\n");
+> >>> +		return -ENOMEM;
+> >>> +	}
+> >>> +
+> >>> +	gic_init(distributor->gic_id, -1, dist_base, cpu_base);
+> >>> +
+> >>>   	return 0;
+> >>>   }
+> >>> +#else
+> >>> +static int __init
+> >>> +acpi_parse_gic_distributor(struct acpi_subtable_header *header,
+> >>> +				const unsigned long end)
+> >>> +{
+> >>> +	return -ENODEV;
+> >>> +}
+> >>> +#endif /* CONFIG_ARM_GIC */
+> >>>  =20
+> >>>   /*
+> >>>    * Parse GIC cpu interface related entries in MADT
+> >>> @@ -234,7 +280,7 @@ acpi_parse_gic_distributor(struct acpi_subtab=
+le_header *header,
+> >>>   static int __init acpi_parse_madt_gic_entries(void)
+> >>>   {
+> >>>   	int count;
+> >>> -
+> >>> +
+> >>>   	/*
+> >>>   	 * do a partial walk of MADT to determine how many CPUs
+> >>>   	 * we have including disabled CPUs
+> >>> @@ -468,19 +514,21 @@ static void __init acpi_process_madt(void)
+> >>>   		 * Parse MADT GIC cpu interface entries
+> >>>   		 */
+> >>>   		error =3D acpi_parse_madt_gic_entries();
+> >>> -		if (!error) {
+> >>> -			/*
+> >>> -			 * Parse MADT GIC distributor entries
+> >>> -			 */
+> >>> -			acpi_parse_madt_gic_distributor_entries();
+> >>> -		}
+> >>> +		if (!error)
+> >>> +			pr_info("Using ACPI for processor (GIC) configuration informa=
+tion\n");
+> >>>   	}
+> >>>  =20
+> >>> -	pr_info("Using ACPI for processor (GIC) configuration informati=
+on\n");
+> >>> -
+> >>>   	return;
+> >>>   }
+> >>>  =20
+> >>> +int __init acpi_gic_init(void)
+> >>> +{
+> >>> +	/*
+> >>> +	 * Parse MADT GIC distributor entries
+> >>> +	 */
+> >>> +	return acpi_parse_madt_gic_distributor_entries();
+> >>> +}
+> >>> +
+> >> Why can't you do the GIC init in the GIC code? We've tried hard to=
+ make
+> >> interrupt controllers discoverable and self contained.
+> >=20
+> > thanks for your suggestion, Rob also had the same suggestion,
+> > will try to update it in next version.
+> >=20
+> >> What are you
+> >> going to do when ACPI adds GICv3 to the mix? I don't really think =
+this
+> >> model (shoving everything into the core ACPI code) is sustainable =
+in the
+> >> long run...
+> >=20
+> > Since GICv3 related ACPI proposal is not public and not goes into A=
+CPI
+> > spec, my suggestion is that we implement GICv2 only for now and pos=
+t
+> > another patches for GICv3 when the new ACPI spec is available.
+>=20
+> Certainly. But I think you should aim for a scalable solution right
+> away, instead of starting with something that we already know won't w=
+ork
+> for stuff that is already around the corner (which is what I infer fr=
+om
+> your "non public" statement).
 
-Even when we boot with ACPI, the boot stub will still create a minimal
-DTB. We should just make sure that the clocksource (which will be
-architectured timers anyway, I believe?) is described in that stub.
+Again, I wonder if we might be better off converting GIC info (since
+it's likely to be there on all systems) in the EFI boot wrapper into
+=46DT data when ACPI is provided.
 
-I would rather do that than have dual-path booting in the lowlevel setu=
-p, it
-increases test requirements and makes it hard for someone without ACPI =
-hardware
-to check for regressions in this code, etc.
+Essentially, if we can describe:
+* Memory
+* Console uart (if one exists) for debug
+* Timers
+* Interrupts
+(Possibly PCI host controllers too but I'm less sure that can be done
+generically)
+
+in the FDT stub, then we can keep a lot of the lowlevel init code commo=
+n
+instead of diverging. We can also get away from having to update both A=
+CPI and
+DT for GICv3, etc, reducing boilerplate code in the kernel to handle bo=
+th.
+
+If we have to add some properties to bring across some ACPI information=
+ we can
+of course do so, hopefully it'll be a small amount.
 
 
 -Olof
