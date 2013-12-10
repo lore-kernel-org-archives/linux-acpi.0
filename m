@@ -1,66 +1,30 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2] SFI: fix compilation warnings
-Date: Tue, 10 Dec 2013 01:30:58 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88024969FB@SHSMSX101.ccr.corp.intel.com>
-References: <1386580161-27718-1-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [Linaro-acpi] [RFC part1 PATCH 1/7] ACPI: Make ACPI core running
+ without PCI on ARM64
+Date: Tue, 10 Dec 2013 09:52:13 +0800
+Message-ID: <52A673CD.6010405@linaro.org>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org> <20131209115050.GA19163@arm.com> <52A5C024.5050702@linaro.org> <201312091735.05014.arnd@arndb.de> <20131209170617.GC30717@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:35625 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750992Ab3LJBbH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Dec 2013 20:31:07 -0500
-In-Reply-To: <1386580161-27718-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131209170617.GC30717@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "patches@linaro.org" <patches@linaro.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi @ vger . kernel . org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-SGksIEFuZHkNCg0KSU1POg0KMS4gc2ZpX2FjcGkuaCBzaG91bGQgaW5jbHVkZSBib3RoIDxsaW51
-eC9hY3BpLmg+IGFuZCA8bGludXgvc2ZpLmg+IGFuZCBpdCBzaG91bGQgaW5jbHVkZSA8YWNwaS9h
-Y3BpLmg+IGZvciAhQ09ORklHX0FDUEkgYnVpbGRzLg0KMi4gdGhlbiB3ZSBzaG91bGQgaW5jbHVk
-ZSBzZmlfYWNwaS5oIGluc3RlYWQgb2YgPGxpbnV4L2FjcGkuaD4sIDxsaW51eC9zZmkuaD4gYW5k
-IDxhY3BpL2FjcGkuaD4gZm9yIGFsbCBvZiBpdHMgdXNlcnMuDQoNCkkgdGhpbmsgdGhlIHBhdGNo
-IGluIHRoZSBsaW51eC1wbS9ibGVlZGluZy1lZGdlIHF1ZXVlIGNhbiBmaXggdGhlIGlzc3VlIHlv
-dSd2ZSByZXBvcnRlZDoNCmh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvY2dpdC9saW51eC9rZXJuZWwv
-Z2l0L3JhZmFlbC9saW51eC1wbS5naXQvY29tbWl0Lz9oPWJsZWVkaW5nLWVkZ2UmaWQ9YzA5OWVh
-Y2JjYWVjNDQ3NTkzNmZiZjczZTQ5OTUwNzcyOGNlNDdlMQ0KDQpJIG1hZGUgaXQgYSBwYXJ0IG9m
-IG15IGhlYWRlciBjbGVhbnVwIHNlcmllcy4NClRoZSBzdG9yeSBjYW4gYmUgZm91bmQgaW4gdGhp
-cyBtYWlsaW5nIGxpc3QgdGhyZWFkOg0KaHR0cDovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9saW51
-eC1hY3BpL21zZzQ3NTEwLmh0bWwNCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQoN
-Cj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5keSBTaGV2Y2hlbmtvIFtt
-YWlsdG86YW5kcml5LnNoZXZjaGVua29AbGludXguaW50ZWwuY29tXQ0KPiBTZW50OiBNb25kYXks
-IERlY2VtYmVyIDA5LCAyMDEzIDU6MDkgUE0NCj4gVG86IFd5c29ja2ksIFJhZmFlbCBKOyBsaW51
-eC1hY3BpIEAgdmdlciAuIGtlcm5lbCAuIG9yZzsgTEtNTDsgWmhlbmcsIEx2DQo+IENjOiBBbmR5
-IFNoZXZjaGVua28NCj4gU3ViamVjdDogW1BBVENIIHYyXSBTRkk6IGZpeCBjb21waWxhdGlvbiB3
-YXJuaW5ncw0KPiANCj4gV2hlbiBidWlsZCBrZXJuZWwgd2l0aCBtYWtlIFc9MSB3ZSBnZXQgdGhl
-IGZvbGxvd2luZyBjb21waWxlciBlcnJvci4NCj4gDQo+IEluIGZpbGUgaW5jbHVkZWQgZnJvbSBk
-cml2ZXJzL3NmaS9zZmlfYWNwaS5jOjY2OjA6DQo+IGluY2x1ZGUvbGludXgvc2ZpX2FjcGkuaDog
-SW4gZnVuY3Rpb24g4oCYYWNwaV9zZmlfdGFibGVfcGFyc2XigJk6DQo+IGluY2x1ZGUvbGludXgv
-c2ZpX2FjcGkuaDo3MjoyOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24g
-4oCYYWNwaV90YWJsZV9wYXJzZeKAmSBbLVdlcnJvcj1pbXBsaWNpdC1mdW5jdGlvbi1kZWNsYXJh
-dGlvbl0NCj4gICBpZiAoIWFjcGlfdGFibGVfcGFyc2Uoc2lnbmF0dXJlLCBoYW5kbGVyKSkNCj4g
-ICBeDQo+ICAgY2MxOiBzb21lIHdhcm5pbmdzIGJlaW5nIHRyZWF0ZWQgYXMgZXJyb3JzDQo+IA0K
-PiBUaGUgcGF0Y2ggYWRkIGxpbnV4L2FjcGkuaCB0byB0aGUgdG9wIG9mIGZpbGUuDQo+IA0KPiBT
-aWduZWQtb2ZmLWJ5OiBBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4Lmlu
-dGVsLmNvbT4NCj4gLS0tDQo+IENoYW5nZXMgdG8gdjI6DQo+IC0gZml4IGZvciBidWlsZCB3aGVu
-IEFDUEk9biwgU0ZJPXkNCj4gIGRyaXZlcnMvc2ZpL3NmaV9hY3BpLmMgICB8IDIgKy0NCj4gIGlu
-Y2x1ZGUvbGludXgvc2ZpX2FjcGkuaCB8IDQgKysrLQ0KPiAgMiBmaWxlcyBjaGFuZ2VkLCA0IGlu
-c2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9z
-Zmkvc2ZpX2FjcGkuYyBiL2RyaXZlcnMvc2ZpL3NmaV9hY3BpLmMNCj4gaW5kZXggNWU3NTNkNy4u
-NTU4OWVjNSAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9zZmkvc2ZpX2FjcGkuYw0KPiArKysgYi9k
-cml2ZXJzL3NmaS9zZmlfYWNwaS5jDQo+IEBAIC02MCw3ICs2MCw3IEBADQo+ICAjZGVmaW5lIHBy
-X2ZtdChmbXQpIEtNU0dfQ09NUE9ORU5UICI6ICIgZm10DQo+IA0KPiAgI2luY2x1ZGUgPGxpbnV4
-L2tlcm5lbC5oPg0KPiAtI2luY2x1ZGUgPGFjcGkvYWNwaS5oPgkvKiBGSVhNRTogaW5jbHVzaW9u
-IHNob3VsZCBiZSByZW1vdmVkICovDQo+ICsjaW5jbHVkZSA8bGludXgvYWNwaS5oPg0KPiANCj4g
-ICNpbmNsdWRlIDxsaW51eC9zZmkuaD4NCj4gICNpbmNsdWRlICJzZmlfY29yZS5oIg0KPiBkaWZm
-IC0tZ2l0IGEvaW5jbHVkZS9saW51eC9zZmlfYWNwaS5oIGIvaW5jbHVkZS9saW51eC9zZmlfYWNw
-aS5oDQo+IGluZGV4IDJjZmNiNzkuLmVjYzIzNDQgMTAwNjQ0DQo+IC0tLSBhL2luY2x1ZGUvbGlu
-dXgvc2ZpX2FjcGkuaA0KPiArKysgYi9pbmNsdWRlL2xpbnV4L3NmaV9hY3BpLmgNCj4gQEAgLTYw
-LDcgKzYwLDkgQEANCj4gICNkZWZpbmUgX0xJTlVYX1NGSV9BQ1BJX0gNCj4gDQo+ICAjaWZkZWYg
-Q09ORklHX1NGSQ0KPiAtI2luY2x1ZGUgPGFjcGkvYWNwaS5oPgkvKiBGSVhNRTogaW5jbHVzaW9u
-IHNob3VsZCBiZSByZW1vdmVkICovDQo+ICsNCj4gKyNpbmNsdWRlIDxhY3BpL2FjcGkuaD4NCj4g
-KyNpbmNsdWRlIDxsaW51eC9hY3BpLmg+DQo+IA0KPiAgZXh0ZXJuIGludCBzZmlfYWNwaV90YWJs
-ZV9wYXJzZShjaGFyICpzaWduYXR1cmUsIGNoYXIgKm9lbV9pZCwNCj4gIAkJCQljaGFyICpvZW1f
-dGFibGVfaWQsDQo+IC0tDQo+IDEuOC40LjQNCg0K
+On 2013-12-10 1:06, Matthew Garrett wrote:
+> On Mon, Dec 09, 2013 at 05:35:04PM +0100, Arnd Bergmann wrote:
+> 
+>> Exactly. In particular we don't want people to get the wrong idea about
+>> where we are heading, so making it possible to use this code on embedded
+>> systems for me is a reason *not* to take the patch.
+> 
+> People are trying to deploy ACPI-based embedded x86, and most of the 
+> ACPI/DT integration discussion seems to have been based on the idea that 
+> this is a worthwhile thing to support. If we're not interested in doing 
+> so then we should probably make that a whole kernel decision rather than 
+> a per architecture one.
+
+I agree, thanks for this information.
