@@ -1,64 +1,61 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] ACPI / blacklist: disable Win8 mode for ThinkPad X201
- and Latitude E6230
-Date: Tue, 10 Dec 2013 11:05:21 +0800
-Message-ID: <52A684F1.7070502@intel.com>
-References: <52A15F72.1050408@intel.com> <20131209165817.GA30717@srcf.ucam.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [RFC part1 PATCH 1/7] ACPI: Make ACPI core running
+ without PCI on ARM64
+Date: Tue, 10 Dec 2013 04:28:52 +0100
+Message-ID: <201312100428.52588.arnd@arndb.de>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
+ <201312091735.05014.arnd@arndb.de> <20131209170617.GC30717@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:3493 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752054Ab3LJDFm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Dec 2013 22:05:42 -0500
-In-Reply-To: <20131209165817.GA30717@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131209170617.GC30717@srcf.ucam.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Jeffery To <jeffery.to@gmail.com>, Wouter Depypere <wouter.depypere@ugent.be>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "patches@linaro.org" <patches@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Olof Johansson <olof@lixom.net>, Will Deacon <Will.Deacon@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On 12/10/2013 12:58 AM, Matthew Garrett wrote:
-> On Fri, Dec 06, 2013 at 01:24:02PM +0800, Aaron Lu wrote:
->>  	/*
->> +	 * The bluetooth functionality is unconditionally enabled
->> +	 * after a S3 cycle on Thinkpad X201 under Win8 mode.
->> +	 */
+On Monday 09 December 2013, Matthew Garrett wrote:
 > 
-> Can you describe this in a little more detail? Does the thinkpad-acpi 
-> rfkill code just not work?
-
-Yes it works, the problem is, even the bluetooth is disabled before
-hibernate, it will be enabled after resume.
-
-As Jeffery has put in comment #14:
-"
-With thinkpad_acpi blacklisted, Bluetooth is enabled on boot. I can't
-turn it off unless I run "modprobe thinkpad_acpi" beforehand. After
-turning Bluetooth off, I ran "rmmod thinkpad_acpi" before hibernating.
-I verified that thinkpad_acpi isn't loaded (with lsmod) before hibernating
-and after resuming. Bluetooth is enabled on resume.
-
-I tried this same test with the acpi_osi="!Windows 2012" kernel
-parameter (and thinkpad_acpi blacklisted). Bluetooth is disabled on boot.
-I verified that thinkpad_acpi isn't loaded (with lsmod) before
-hibernating and after resuming. Bluetooth is disabled on resume.
-"
-
-But I made a mistake in the comment, it's a S4 cycle, not a S3.
-
+> On Mon, Dec 09, 2013 at 05:35:04PM +0100, Arnd Bergmann wrote:
 > 
->> +	/*
->> +	 * The hardware switch for enable/disable wifi on
->> +	 * Dell Latitude E6230 is broken under Win8 mode.
->> +	 */
+> > Exactly. In particular we don't want people to get the wrong idea about
+> > where we are heading, so making it possible to use this code on embedded
+> > systems for me is a reason not to take the patch.
 > 
-> Can you define "broken"? Do you see the same behaviour under Windows 8?
+> People are trying to deploy ACPI-based embedded x86, and most of the 
+> ACPI/DT integration discussion seems to have been based on the idea that 
+> this is a worthwhile thing to support. If we're not interested in doing 
+> so then we should probably make that a whole kernel decision rather than 
+> a per architecture one.
 
-As Wouter has put in comment #12:
-"
-I also have trouble with this commit, it disables my hardware switch for
-enable/disable wifi. See [1] for full explanation.
+Well, except it's not an architecture independent decision. An embedded
+x86 SoC will still be very much like a PC, just with a few things added
+in and some other bits left out, and you can already describe it mostly
+with plain ACPI-5.0. Also, there are only a couple of different non-PC style
+devices that Intel is integrating into their SoCs, so we're talking
+about a few dozen device drivers here.
 
-When I add acpi_osi="!Windows 2012" it fixes my issue.
-"
+The embedded ARM SoCs we have are very much unlike a PC in lots of ways
+and there are orders of magnitude more SoCs and on-chip devices that
+are potentially impacted by this, so it's definitely not the same thing.
+
+ARM developers are still licking the wounds from a painful migration
+from board files to DT, and we will probably spend at least one or
+two more years tying up the loose ends from that before we can actually
+call that done. We are not ready to go through the same process (or worse)
+again any time soon just because x86 does it, and the only reason we're
+talking about this for servers is the promise that this is contained to
+server-class systems with hardware and firmware people that know what
+they are doing and that can make this work as easy as x86 servers
+without adding a whole lot of complexity into the kernel.
+
+	Arnd
