@@ -1,15 +1,15 @@
 From: Grant Likely <grant.likely@secretlab.ca>
 Subject: Re: [Linaro-acpi] [PATCH v3 1/5] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE to enable this ACPI mode
-Date: Tue, 10 Dec 2013 12:35:19 +0000
-Message-ID: <20131210123519.B5F91C40A27@trevor.secretlab.ca>
+Date: Tue, 10 Dec 2013 12:37:17 +0000
+Message-ID: <20131210123717.59493C40A27@trevor.secretlab.ca>
 References: <1386192127-28564-1-git-send-email-al.stone@linaro.org> < 1386192127-28564-2-git-send-email-al.stone@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:35679 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751442Ab3LJMfY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2013 07:35:24 -0500
-Received: by mail-wi0-f173.google.com with SMTP id hn9so5321005wib.12
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Dec 2013 04:35:23 -0800 (PST)
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:46484 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751010Ab3LJMhW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2013 07:37:22 -0500
+Received: by mail-wi0-f182.google.com with SMTP id en1so5234506wid.15
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Dec 2013 04:37:21 -0800 (PST)
 In-Reply-To: <1386192127-28564-2-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -59,9 +59,6 @@ On Wed,  4 Dec 2013 14:22:03 -0700, al.stone@linaro.org wrote:
 > +config ACPI_REDUCED_HARDWARE
 > +	bool "Hardware-reduced ACPI support"
 > +	depends on X86 || ARM || ARM64
-
-Why wouldn't this simply depend on ACPI?
-
 > +	help
 > +	This config adds support for Hardware-reduced ACPI. When this option
 > +	is selected, will generate a specialized version of ACPICA that ONLY
@@ -83,16 +80,10 @@ Why wouldn't this simply depend on ACPI?
 > +#ifdef CONFIG_ACPI_REDUCED_HARDWARE
 > +#define ACPI_REDUCED_HARDWARE 1
 > +#endif
-> +
->  #include <linux/string.h>
->  #include <linux/kernel.h>
->  #include <linux/ctype.h>
-> -- 
-> 1.8.3.1
-> 
-> 
-> _______________________________________________
-> Linaro-acpi mailing list
-> Linaro-acpi@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-acpi
+
+Will this change the way ACPICA is compiled? Will it disable
+non-hardware-reduced mode? If so, then this is a big problem. Enabling
+the hardware reduced feature should *not* break normal ACPI usage.
+
+g.
 
