@@ -1,58 +1,42 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [Linaro-acpi] [PATCH v3 5/5] ACPI: do not map/unmap memory regions for FADT entries in reduced HW mode
-Date: Tue, 10 Dec 2013 12:40:19 +0000
-Message-ID: <20131210124019.C14A5C40A27@trevor.secretlab.ca>
-References: <1386192127-28564-1-git-send-email-al.stone@linaro.org> < 1386192127-28564-6-git-send-email-al.stone@linaro.org>
+Subject: Re: [PATCH v2 4/6] ACPI: ARM: exclude DMI calls
+Date: Tue, 10 Dec 2013 12:45:58 +0000
+Message-ID: <20131210124558.5E3F9C40A27@trevor.secretlab.ca>
+References: <1385080915-23430-1-git-send-email-al.stone@linaro.org> < 528F9C65.7010302@linaro.org> < CAOesGMgFBRjO++JSP0ddKKQ2RfG8V4fb97Hd+Oqwixi_Tt7Qwg@mail.gmail.com> < 4285284.l8TssFvumi@vostro.rjw.lan> <528FF15C.4060300@linaro.org> < 20131123163854.GA1817@srcf.ucam.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:37073 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752196Ab3LJMkY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2013 07:40:24 -0500
-Received: by mail-wi0-f176.google.com with SMTP id hq4so5323450wib.9
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Dec 2013 04:40:23 -0800 (PST)
-In-Reply-To: <1386192127-28564-6-git-send-email-al.stone@linaro.org>
+Received: from mail-we0-f182.google.com ([74.125.82.182]:41757 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751010Ab3LJMqD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2013 07:46:03 -0500
+Received: by mail-we0-f182.google.com with SMTP id q59so4843458wes.41
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Dec 2013 04:46:01 -0800 (PST)
+In-Reply-To: <20131123163854.GA1817@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: al.stone@linaro.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: patches@linaro.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>, Al Stone <al.stone@linaro.org>
+Cc: "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Linaro Patches <patches@linaro.org>, linaro-acpi@lists.linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Olof Johansson <olof@lixom.net>
 
-On Wed,  4 Dec 2013 14:22:07 -0700, al.stone@linaro.org wrote:
-> From: Al Stone <al.stone@linaro.org>
+On Sat, 23 Nov 2013 16:38:54 +0000, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> On Fri, Nov 22, 2013 at 05:05:48PM -0700, Al Stone wrote:
 > 
-> Several of the FADT fields are normally kept in specific memory
-> regions.  Since these fields are to be ignored in hardware reduced
-> ACPI mode, do not map those addresses when in that mode, and of
-> course do not release the mappings that have not been made.
+> > For reduced hardware mode, however, I have to rely on the underlying
+> > ACPICA reference implementation to behave properly.  Right now, ACPICA
+> > relies on compile time changes to implement either reduced HW mode or
+> > legacy mode so I have to follow suit.  When I looked at making ACPICA
+> > change behavior at runtime, the changes became more and more invasive.
+> > Since x86/ia64 depend on ACPICA to behave also, that seemed a far
+> > more dangerous approach to me.
 > 
-> The function acpi_os_initialize() could become a stub in the header
-> file but is left here in case it can be of further use.
-> 
-> Signed-off-by: Al Stone <al.stone@linaro.org>
-> ---
->  drivers/acpi/osl.c | 20 ++++++++++++--------
->  1 file changed, 12 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 613e4a1..3a0bb92 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -1776,10 +1776,12 @@ __setup("acpi_no_auto_ssdt", acpi_no_auto_ssdt_setup);
->  
->  acpi_status __init acpi_os_initialize(void)
->  {
-> -	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
-> -	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
-> -	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
-> -	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
-> +	if (!acpi_gbl_reduced_hardware) {
-> +		acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
-> +		acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
-> +		acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
-> +		acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
-> +	}
+> Ugh. Really? People have been fairly careful about making sure that the 
+> x86 SoC code is selected correctly at runtime, and losing that because 
+> ACPICA is broken would be a shame. I think this is something that needs 
+> to support runtime switching even if there's also support for building 
+> kernels that only implement the reduced hardware profile.
 
-So, I'm confused. This patch is making the hardware reduced decision at
-runtime (which is good), but the other patches are using #ifdef blocks
-to take the code right out. Why the discrepancy?
+Yeah, that is a really big problem. At the very least push the hacks
+back into ACPICA and make that project sort it out (add stub functions
+if needed). I don't like seeing the kernel having #ifdef blocks to stub
+out normal ACPI paths.
 
 g.
+
