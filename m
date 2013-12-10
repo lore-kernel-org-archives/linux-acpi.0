@@ -1,42 +1,119 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v2 4/6] ACPI: ARM: exclude DMI calls
-Date: Tue, 10 Dec 2013 12:45:58 +0000
-Message-ID: <20131210124558.5E3F9C40A27@trevor.secretlab.ca>
-References: <1385080915-23430-1-git-send-email-al.stone@linaro.org> < 528F9C65.7010302@linaro.org> < CAOesGMgFBRjO++JSP0ddKKQ2RfG8V4fb97Hd+Oqwixi_Tt7Qwg@mail.gmail.com> < 4285284.l8TssFvumi@vostro.rjw.lan> <528FF15C.4060300@linaro.org> < 20131123163854.GA1817@srcf.ucam.org>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v2] SFI: fix compilation warnings
+Date: Tue, 10 Dec 2013 14:45:38 +0200
+Message-ID: <1386679538.1871.156.camel@smile>
+References: <1386580161-27718-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1AE640813FDE7649BE1B193DEA596E88024969FB@SHSMSX101.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f182.google.com ([74.125.82.182]:41757 "EHLO
-	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751010Ab3LJMqD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2013 07:46:03 -0500
-Received: by mail-we0-f182.google.com with SMTP id q59so4843458wes.41
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Dec 2013 04:46:01 -0800 (PST)
-In-Reply-To: <20131123163854.GA1817@srcf.ucam.org>
+Received: from mga02.intel.com ([134.134.136.20]:33461 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751010Ab3LJMqJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Dec 2013 07:46:09 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88024969FB@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, Al Stone <al.stone@linaro.org>
-Cc: "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Linaro Patches <patches@linaro.org>, linaro-acpi@lists.linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Olof Johansson <olof@lixom.net>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi @ vger . kernel . org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Sat, 23 Nov 2013 16:38:54 +0000, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> On Fri, Nov 22, 2013 at 05:05:48PM -0700, Al Stone wrote:
-> 
-> > For reduced hardware mode, however, I have to rely on the underlying
-> > ACPICA reference implementation to behave properly.  Right now, ACPICA
-> > relies on compile time changes to implement either reduced HW mode or
-> > legacy mode so I have to follow suit.  When I looked at making ACPICA
-> > change behavior at runtime, the changes became more and more invasive.
-> > Since x86/ia64 depend on ACPICA to behave also, that seemed a far
-> > more dangerous approach to me.
-> 
-> Ugh. Really? People have been fairly careful about making sure that the 
-> x86 SoC code is selected correctly at runtime, and losing that because 
-> ACPICA is broken would be a shame. I think this is something that needs 
-> to support runtime switching even if there's also support for building 
-> kernels that only implement the reduced hardware profile.
+On Tue, 2013-12-10 at 01:30 +0000, Zheng, Lv wrote:
+> Hi, Andy
+>=20
+> IMO:
+> 1. sfi_acpi.h should include both <linux/acpi.h> and <linux/sfi.h> an=
+d it should include <acpi/acpi.h> for !CONFIG_ACPI builds.
+> 2. then we should include sfi_acpi.h instead of <linux/acpi.h>, <linu=
+x/sfi.h> and <acpi/acpi.h> for all of its users.
+>=20
+> I think the patch in the linux-pm/bleeding-edge queue can fix the iss=
+ue you've reported:
+> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/comm=
+it/?h=3Dbleeding-edge&id=3Dc099eacbcaec4475936fbf73e499507728ce47e1
 
-Yeah, that is a really big problem. At the very least push the hacks
-back into ACPICA and make that project sort it out (add stub functions
-if needed). I don't like seeing the kernel having #ifdef blocks to stub
-out normal ACPI paths.
+Seems okay for me:
 
-g.
+Tested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
+>=20
+> I made it a part of my header cleanup series.
+> The story can be found in this mailing list thread:
+> http://www.spinics.net/lists/linux-acpi/msg47510.html
+>=20
+> Thanks and best regards
+> -Lv
+>=20
+>=20
+> > -----Original Message-----
+> > From: Andy Shevchenko [mailto:andriy.shevchenko@linux.intel.com]
+> > Sent: Monday, December 09, 2013 5:09 PM
+> > To: Wysocki, Rafael J; linux-acpi @ vger . kernel . org; LKML; Zhen=
+g, Lv
+> > Cc: Andy Shevchenko
+> > Subject: [PATCH v2] SFI: fix compilation warnings
+> >=20
+> > When build kernel with make W=3D1 we get the following compiler err=
+or.
+> >=20
+> > In file included from drivers/sfi/sfi_acpi.c:66:0:
+> > include/linux/sfi_acpi.h: In function =E2=80=98acpi_sfi_table_parse=
+=E2=80=99:
+> > include/linux/sfi_acpi.h:72:2: error: implicit declaration of funct=
+ion =E2=80=98acpi_table_parse=E2=80=99 [-Werror=3Dimplicit-function-dec=
+laration]
+> >   if (!acpi_table_parse(signature, handler))
+> >   ^
+> >   cc1: some warnings being treated as errors
+> >=20
+> > The patch add linux/acpi.h to the top of file.
+> >=20
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > ---
+> > Changes to v2:
+> > - fix for build when ACPI=3Dn, SFI=3Dy
+> >  drivers/sfi/sfi_acpi.c   | 2 +-
+> >  include/linux/sfi_acpi.h | 4 +++-
+> >  2 files changed, 4 insertions(+), 2 deletions(-)
+> >=20
+> > diff --git a/drivers/sfi/sfi_acpi.c b/drivers/sfi/sfi_acpi.c
+> > index 5e753d7..5589ec5 100644
+> > --- a/drivers/sfi/sfi_acpi.c
+> > +++ b/drivers/sfi/sfi_acpi.c
+> > @@ -60,7 +60,7 @@
+> >  #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
+> >=20
+> >  #include <linux/kernel.h>
+> > -#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
+> > +#include <linux/acpi.h>
+> >=20
+> >  #include <linux/sfi.h>
+> >  #include "sfi_core.h"
+> > diff --git a/include/linux/sfi_acpi.h b/include/linux/sfi_acpi.h
+> > index 2cfcb79..ecc2344 100644
+> > --- a/include/linux/sfi_acpi.h
+> > +++ b/include/linux/sfi_acpi.h
+> > @@ -60,7 +60,9 @@
+> >  #define _LINUX_SFI_ACPI_H
+> >=20
+> >  #ifdef CONFIG_SFI
+> > -#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
+> > +
+> > +#include <acpi/acpi.h>
+> > +#include <linux/acpi.h>
+> >=20
+> >  extern int sfi_acpi_table_parse(char *signature, char *oem_id,
+> >  				char *oem_table_id,
+> > --
+> > 1.8.4.4
+>=20
+
+--=20
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
