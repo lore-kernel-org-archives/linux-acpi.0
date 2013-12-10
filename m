@@ -1,97 +1,129 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [RFC part2 PATCH 8/9] ACPI / ARM64: Update acpi_register_gsi to register with the core IRQ subsystem
-Date: Tue, 10 Dec 2013 13:05:21 +0000
-Message-ID: <20131210130521.3FE89C40A27@trevor.secretlab.ca>
-References: <1385999094-3152-1-git-send-email-hanjun.guo@linaro.org> < 1385999094-3152-9-git-send-email-hanjun.guo@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH v3 1/5] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE
+ to enable this ACPI mode
+Date: Tue, 10 Dec 2013 23:05:03 +0800
+Message-ID: <52A72D9F.1070004@linaro.org>
+References: <1386192127-28564-1-git-send-email-al.stone@linaro.org> < 1386192127-28564-2-git-send-email-al.stone@linaro.org> <20131210123717.59493C40A27@trevor.secretlab.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:49746 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751734Ab3LJNF3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2013 08:05:29 -0500
-Received: by mail-wi0-f178.google.com with SMTP id bz8so5185412wib.17
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Dec 2013 05:05:27 -0800 (PST)
-In-Reply-To: <1385999094-3152-9-git-send-email-hanjun.guo@linaro.org>
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:41908 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753822Ab3LJPFP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2013 10:05:15 -0500
+Received: by mail-pb0-f43.google.com with SMTP id rq2so7816486pbb.30
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Dec 2013 07:05:14 -0800 (PST)
+In-Reply-To: <20131210123717.59493C40A27@trevor.secretlab.ca>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, linux-acpi@vger.kernel.org, patches@linaro.org, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linaro-acpi@lists.linaro.org, Olof Johansson <olof@lixom.net>, Amit Daniel Kachhap <amit.daniel@samsung.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: al.stone@linaro.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org
 
-On Mon,  2 Dec 2013 23:44:53 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> This API is similar to DT based irq_of_parse_and_map but does link
-> parent/child IRQ controllers. This is tested for primary GIC PPI and GIC SPI
-> interrupts and not for secondary child irq controllers.
-> 
-> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/acpi/plat/arm-core.c |   36 ++++++++++++++++++++++++++++++++++--
->  1 file changed, 34 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-core.c
-> index 9cc0208..17c99e1 100644
-> --- a/drivers/acpi/plat/arm-core.c
-> +++ b/drivers/acpi/plat/arm-core.c
-> @@ -90,7 +90,7 @@ enum acpi_irq_model_id acpi_irq_model = ACPI_IRQ_MODEL_GIC;
->  
->  static unsigned int gsi_to_irq(unsigned int gsi)
->  {
-> -	int irq = irq_create_mapping(NULL, gsi);
-> +	int irq = irq_find_mapping(NULL, gsi);
+On 2013=E5=B9=B412=E6=9C=8810=E6=97=A5 20:37, Grant Likely wrote:
+> On Wed,  4 Dec 2013 14:22:03 -0700, al.stone@linaro.org wrote:
+>> From: Al Stone <al.stone@linaro.org>
+>>
+>> To enable the hardware reduced mode of ACPI on some platforms (such =
+as
+>> ARM), we need to modify the kernel code and set ACPI_REDUCED_HARDWAR=
+E
+>> to TRUE in the ACPICA source.
+>>
+>> This can be done more resonably by introducing a kernel config item
+>> to enable/disable ACPI_REDUCED_HARDWARE.  We can then change the ker=
+nel
+>> config instead of having to modify the kernel source directly to ena=
+ble
+>> the reduced hardware mode of ACPI.
+>>
+>> Lv Zheng suggested that this configuration item does not belong in A=
+CPICA,
+>> the upstream source for much of the ACPI internals, but rather to th=
+e
+>> Linux kernel itself.  Hence, we introduce this flag so that we can m=
+ake
+>> ACPI_REDUCED_HARDWARE configurable.  For the details of the discussi=
+on,
+>> please refer to: http://www.spinics.net/lists/linux-acpi/msg46369.ht=
+ml
+>>
+>> Support for X86 in hardware reduced mode is also provided to make it
+>> simpler to debug this mode, and to provide for probable use in such
+>> products.  Hardware reduced mode, despite the name, exists primarily
+>> to allow newer platforms to use a much simpler form of ACPI that doe=
+s
+>> not require supporting the legacy of previous versions of the specif=
+ication,
+>> and is likely to be used more often in the near future as a result.
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Signed-off-by: Al Stone <al.stone@linaro.org>
+>> ---
+>>   drivers/acpi/Kconfig            | 8 ++++++++
+>>   include/acpi/platform/aclinux.h | 6 ++++++
+>>   2 files changed, 14 insertions(+)
+>>
+>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>> index 5d92485..66e6bb2 100644
+>> --- a/drivers/acpi/Kconfig
+>> +++ b/drivers/acpi/Kconfig
+>> @@ -343,6 +343,14 @@ config ACPI_BGRT
+>>   	  data from the firmware boot splash. It will appear under
+>>   	  /sys/firmware/acpi/bgrt/ .
+>>  =20
+>> +config ACPI_REDUCED_HARDWARE
+>> +	bool "Hardware-reduced ACPI support"
+>> +	depends on X86 || ARM || ARM64
+>> +	help
+>> +	This config adds support for Hardware-reduced ACPI. When this opti=
+on
+>> +	is selected, will generate a specialized version of ACPICA that ON=
+LY
+>> +	supports the ACPI "reduced hardware".
+>> +
+>>   source "drivers/acpi/apei/Kconfig"
+>>  =20
+>>   config ACPI_EXTLOG
+>> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform=
+/aclinux.h
+>> index 28f4f4d..a33f502 100644
+>> --- a/include/acpi/platform/aclinux.h
+>> +++ b/include/acpi/platform/aclinux.h
+>> @@ -52,6 +52,12 @@
+>>  =20
+>>   #ifdef __KERNEL__
+>>  =20
+>> +/* Compile for reduced hardware mode if requested for this kernel c=
+onfig */
+>> +
+>> +#ifdef CONFIG_ACPI_REDUCED_HARDWARE
+>> +#define ACPI_REDUCED_HARDWARE 1
+>> +#endif
+> Will this change the way ACPICA is compiled? Will it disable
+> non-hardware-reduced mode?
 
-I suspect this will break FDT users that depend on the old behaviour.
+Both yes. ACPICA supports reduced hardware mode when
+ACPI_REDUCED_HARWARE is TRUE at compile time. There is
+no way to support both normal ACPI and hardware reduced
+ACPI with single binary image for now.
 
-g.
+> If so, then this is a big problem. Enabling
+> the hardware reduced feature should *not* break normal ACPI usage.
 
->  
->  	return irq;
->  }
-> @@ -407,7 +407,39 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
->   */
->  int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
->  {
-> -	return -1;
-> +	unsigned int irq;
-> +	unsigned int irq_type;
-> + 
-> +	/*
-> +	 * ACPI have no bindings to indicate SPI or PPI, so we
-> +	 * use different mappings from DT in ACPI.
-> +	 *
-> +	 * For FDT
-> +	 * PPI interrupt: in the range [0, 15];
-> +	 * SPI interrupt: in the range [0, 987];
-> +	 *
-> +	 * For ACPI, using identity mapping for hwirq:
-> +	 * PPI interrupt: in the range [16, 31];
-> +	 * SPI interrupt: in the range [32, 1019];
-> +	 */
-> +
-> +	if (trigger == ACPI_EDGE_SENSITIVE &&
-> +				polarity == ACPI_ACTIVE_LOW)
-> +		irq_type = IRQ_TYPE_EDGE_FALLING;
-> +	else if (trigger == ACPI_EDGE_SENSITIVE &&
-> +				polarity == ACPI_ACTIVE_HIGH)
-> +		irq_type = IRQ_TYPE_EDGE_RISING;
-> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
-> +				polarity == ACPI_ACTIVE_LOW)
-> +		irq_type = IRQ_TYPE_LEVEL_LOW;
-> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
-> +				polarity == ACPI_ACTIVE_HIGH)
-> +		irq_type = IRQ_TYPE_LEVEL_HIGH;
-> +	else
-> +		irq_type = IRQ_TYPE_NONE;
-> +
-> +	irq = irq_create_acpi_mapping(gsi, irq_type);
-> + 	return irq; 
->  }
->  EXPORT_SYMBOL_GPL(acpi_register_gsi);
->  
-> -- 
-> 1.7.9.5
-> 
-> 
-> _______________________________________________
-> linaro-kernel mailing list
-> linaro-kernel@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-kernel
+It will break normal ACPI usage but it is ok I think. Since
+lots of features are not supported in the hardware in hardware
+reduced mode, and normal ACPI will not run probably such as
+leading kernel panic when refer to some registers which are not
+exist on reduced hardware, we should introduce this kernel
+config and modify the ACPI drivers to avoid such failures.
 
+Thanks
+Hanjun
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
