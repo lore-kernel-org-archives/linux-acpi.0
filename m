@@ -1,51 +1,36 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [RFC part1 PATCH 1/7] ACPI: Make ACPI core running
- without PCI on ARM64
-Date: Wed, 11 Dec 2013 04:07:27 +0100
-Message-ID: <201312110407.27848.arnd@arndb.de>
-References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
- <201312102100.20570.arnd@arndb.de> <20131210202323.GJ11468@sirena.org.uk>
+Subject: Re: [RFC part2 PATCH 8/9] ACPI / ARM64: Update acpi_register_gsi to register with the core IRQ subsystem
+Date: Wed, 11 Dec 2013 06:23:04 +0100
+Message-ID: <201312110623.04341.arnd@arndb.de>
+References: <1385999094-3152-1-git-send-email-hanjun.guo@linaro.org> < 1385999094-3152-9-git-send-email-hanjun.guo@linaro.org> <20131210130521.3FE89C40A27@trevor.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131210202323.GJ11468@sirena.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "patches@linaro.org" <patches@linaro.org>, Olof Johansson <olof@lixom.net>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Will Deacon <Will.Deacon@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, rob.herring@calxeda.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.9]:55536 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750719Ab3LKFXg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Dec 2013 00:23:36 -0500
+In-Reply-To: <20131210130521.3FE89C40A27@trevor.secretlab.ca>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Grant Likely <grant.likely@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, patches@linaro.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linux-acpi@vger.kernel.org, Amit Daniel Kachhap <amit.daniel@samsung.com>, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>
 
-On Tuesday 10 December 2013, Mark Brown wrote:
-> On Tue, Dec 10, 2013 at 09:00:20PM +0100, Arnd Bergmann wrote:
-> > On Tuesday 10 December 2013, Mark Brown wrote:
+On Tuesday 10 December 2013, Grant Likely wrote:
+> > --- a/drivers/acpi/plat/arm-core.c
+> > +++ b/drivers/acpi/plat/arm-core.c
+> > @@ -90,7 +90,7 @@ enum acpi_irq_model_id acpi_irq_model = ACPI_IRQ_MODEL_GIC;
+> >  
+> >  static unsigned int gsi_to_irq(unsigned int gsi)
+> >  {
+> > -     int irq = irq_create_mapping(NULL, gsi);
+> > +     int irq = irq_find_mapping(NULL, gsi);
 > 
-> > > It's not just the SoC, it's also the rest of the board.  The patches the
-> > > Intel guys are submitting at the minute are mainly for the off-SoC
-> > > devices at least as far as I noticed.  This'll impact anyone who ends up
-> > > using ACPI, we need to at least pay attention to what's going on there.
-> 
-> > Yes, but I'm not that worried about off-soc stuff, which tends to be
-> > off the much simpler variety: a few MMIO or PIO registers, IRQs,
-> > GPIOs or (with ACPI-5.0) devices on i2c and spi buses.
-> 
-> That's not my experience especially once you get into phone type
-> hardware - there's not much complexity difference when gluing things
-> into the system and the fact that it's connected by the board increases
-> the amount of flexibility that has to be coped with.
+> I suspect this will break FDT users that depend on the old behaviour.
 
-Yes, that is probably right. The only argument that one can make about
-the mobile phone case is that these devices are so complex that nobody
-even bothers any more running upstream kernels on them on any CPU
-architecture. If the kernel code is kept out of the mainline tree,
-it doesn't matter to us what they use, and the developers don't gain
-much by following any of the available firmware models either.
+I think not, given this is only in drivers/acpi and gets added in one
+of the prior patches of the same series.
 
 	Arnd
