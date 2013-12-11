@@ -1,107 +1,47 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC part2 PATCH 4/9] ARM64 / ACPI: Use Parked Address in GIC
- structure for spin table SMP initialisation
-Date: Wed, 11 Dec 2013 15:02:45 +0800
-Message-ID: <52A80E15.50404@linaro.org>
-References: <1385999094-3152-1-git-send-email-hanjun.guo@linaro.org> < 1385999094-3152-5-git-send-email-hanjun.guo@linaro.org> <20131210130330.65087C40A27@trevor.secretlab.ca>
+From: Graeme Gregory <graeme.gregory@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH v3 1/5] ACPI: introduce
+ CONFIG_ACPI_REDUCED_HARDWARE to enable this ACPI mode
+Date: Wed, 11 Dec 2013 08:33:58 +0000
+Message-ID: <20131211083358.GQ2817@xora-haswell.xora.org.uk>
+References: <1386192127-28564-1-git-send-email-al.stone@linaro.org>
+ <52A72D9F.1070004@linaro.org>
+ <20131210224912.996FCC40CE1@trevor.secretlab.ca>
+ <CAL_JsqK1EJbNud2Pxojso=Vjo9ePEuwi3OUcwoCiwCpKH24LgA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:45061 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751268Ab3LKHDL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Dec 2013 02:03:11 -0500
-Received: by mail-pb0-f45.google.com with SMTP id rp16so9337253pbb.4
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Dec 2013 23:03:11 -0800 (PST)
-In-Reply-To: <20131210130330.65087C40A27@trevor.secretlab.ca>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:39087 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750791Ab3LKIlj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Dec 2013 03:41:39 -0500
+Received: by mail-wi0-f169.google.com with SMTP id hn6so6514950wib.4
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Dec 2013 00:41:38 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqK1EJbNud2Pxojso=Vjo9ePEuwi3OUcwoCiwCpKH24LgA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, linux-acpi@vger.kernel.org, patches@linaro.org, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linaro-acpi@lists.linaro.org, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Hanjun Guo <hanjun.guo@linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Al Stone <al.stone@linaro.org>, linaro-acpi@lists.linaro.org, Linaro Patches <patches@linaro.org>, linux-acpi@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 2013-12-10 21:03, Grant Likely wrote:
-[...]
->> +/* Parked Address in ACPI GIC structure can be used as cpu release addr */
->> +int acpi_get_parked_address_with_gic_id(u32 gic_id, u64 *parked_address)
->> +{
->> +	struct acpi_table_header *table_header = NULL;
->> +	struct acpi_subtable_header *entry;
->> +	int err = 0;
->> +	unsigned long table_end;
->> +	acpi_size tbl_size;
->> +	struct acpi_madt_generic_interrupt *processor = NULL;
->> +
->> +	if (!parked_address)
->> +		return -EINVAL;
->> +
->> +	acpi_get_table_with_size(ACPI_SIG_MADT, 0, &table_header, &tbl_size);
->> +	if (!table_header) {
->> +		pr_warn(PREFIX "MADT table not present\n");
->> +		return -ENODEV;
->> +	}
->> +
->> +	table_end = (unsigned long)table_header + table_header->length;
->> +
->> +	/* Parse all entries looking for a match. */
->> +	entry = (struct acpi_subtable_header *)
->> +	    ((unsigned long)table_header + sizeof(struct acpi_table_madt));
->> +
->> +	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
->> +	       table_end) {
->> +		if (entry->type != ACPI_MADT_TYPE_GENERIC_INTERRUPT
->> +			|| BAD_MADT_ENTRY(entry, table_end))
->> +			continue;
->> +
->> +		processor = (struct acpi_madt_generic_interrupt *)entry;
->> +
->> +		if (processor->gic_id == gic_id) {
->> +			*parked_address = processor->parked_address;
->> +			goto out;
->> +		}
->> +
->> +		entry = (struct acpi_subtable_header *)
->> +		    ((unsigned long)entry + entry->length);
+On Tue, Dec 10, 2013 at 08:06:08PM -0600, Rob Herring wrote:
+> On Tue, Dec 10, 2013 at 4:49 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
+> > Hi Hanjun,
+> >
+> > Okay, so after talking with Al and Graeme on IRC, I think I understand
+> > what is going on. The fact that ACPICA doesn't allow for both normal and
+> > hardware reduced support in the same build is a very big problem.
+> > However, it isn't a problem for ARM since we'll never support
+> > non-hardware reduced mode. The x86 folks need to work that out when/if
+> > they ever add support for hardware reduced mode.
 > 
-> All of the casting in this table looks suspicious. If you have to resort
-> to casting, then the variable types are very likely wrong.
+> I believe SMBIOS/DMI tables are only part of full ACPI, so there is a
+> need on ARM for more than hardware reduced mode.
 > 
-> In the case immediately above, it seems that the entry size doesn't
-> necessarily equal the acpi_subtable_header size, in which case you
-> should cast the values to a void* instead of an unsigned long. That
-> would mean you can do this:
-> 
-> 	entry = ((void*)entry) + entry->length;
-> 
-> In fact, if I were writing the code, I would have two variables; the
-> iterator pointer as a void* and a header pointer as a struct
-> acpi_subtable_header*. Like so:
-> 
-> 	void *entry, *table_end;
-> 	struct acpi_subtable_header *header;
-> 
-> 	entry = ((void*)table_header) + sizeof(struct acpi_table_madt);
-> 	table_end = ((void*)table_header) + table_header->length;
-> 	while (entry + sizeof(*header)) < table_end) {
-> 		header = entry;
-> 
-> 		if (header->type != ACPI_MADT_TYPE_GENERIC_INTERRUPT ||
-> 			BAD_MADT_ENTRY(entry, table_end))
-> 			continue;
-> 		processor = entry;
-> 
-> 		if (processor->gic_id == gic_id) {
-> 			*parked_address = processor->parked_address;
-> 			goto out;
-> 		}
-> 
-> 		entry += header->length;
-> 	}
-> 
-> See? Much cleaner code.
+You seem to be crossing the streams here, SMBIOS/DMI are not part of ACPI.
 
-Aha, much much cleaner, thanks for the guidance, will rework my patch
-and test it.
+The only mention I can even find of them in the spec is you can cross reference
+memory to its SMBIOS handle. Which is optional. It even says OSPM will not
+use this value.
 
-Hanjun
+Graeme
 
