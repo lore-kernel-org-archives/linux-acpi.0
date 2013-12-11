@@ -1,36 +1,107 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC part2 PATCH 8/9] ACPI / ARM64: Update acpi_register_gsi to register with the core IRQ subsystem
-Date: Wed, 11 Dec 2013 06:23:04 +0100
-Message-ID: <201312110623.04341.arnd@arndb.de>
-References: <1385999094-3152-1-git-send-email-hanjun.guo@linaro.org> < 1385999094-3152-9-git-send-email-hanjun.guo@linaro.org> <20131210130521.3FE89C40A27@trevor.secretlab.ca>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC part2 PATCH 4/9] ARM64 / ACPI: Use Parked Address in GIC
+ structure for spin table SMP initialisation
+Date: Wed, 11 Dec 2013 15:02:45 +0800
+Message-ID: <52A80E15.50404@linaro.org>
+References: <1385999094-3152-1-git-send-email-hanjun.guo@linaro.org> < 1385999094-3152-5-git-send-email-hanjun.guo@linaro.org> <20131210130330.65087C40A27@trevor.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:55536 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750719Ab3LKFXg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Dec 2013 00:23:36 -0500
-In-Reply-To: <20131210130521.3FE89C40A27@trevor.secretlab.ca>
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:45061 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751268Ab3LKHDL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Dec 2013 02:03:11 -0500
+Received: by mail-pb0-f45.google.com with SMTP id rp16so9337253pbb.4
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Dec 2013 23:03:11 -0800 (PST)
+In-Reply-To: <20131210130330.65087C40A27@trevor.secretlab.ca>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Grant Likely <grant.likely@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, patches@linaro.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linux-acpi@vger.kernel.org, Amit Daniel Kachhap <amit.daniel@samsung.com>, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>
+To: Grant Likely <grant.likely@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linaro-kernel@lists.linaro.org, linux-acpi@vger.kernel.org, patches@linaro.org, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linaro-acpi@lists.linaro.org, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 10 December 2013, Grant Likely wrote:
-> > --- a/drivers/acpi/plat/arm-core.c
-> > +++ b/drivers/acpi/plat/arm-core.c
-> > @@ -90,7 +90,7 @@ enum acpi_irq_model_id acpi_irq_model = ACPI_IRQ_MODEL_GIC;
-> >  
-> >  static unsigned int gsi_to_irq(unsigned int gsi)
-> >  {
-> > -     int irq = irq_create_mapping(NULL, gsi);
-> > +     int irq = irq_find_mapping(NULL, gsi);
+On 2013-12-10 21:03, Grant Likely wrote:
+[...]
+>> +/* Parked Address in ACPI GIC structure can be used as cpu release addr */
+>> +int acpi_get_parked_address_with_gic_id(u32 gic_id, u64 *parked_address)
+>> +{
+>> +	struct acpi_table_header *table_header = NULL;
+>> +	struct acpi_subtable_header *entry;
+>> +	int err = 0;
+>> +	unsigned long table_end;
+>> +	acpi_size tbl_size;
+>> +	struct acpi_madt_generic_interrupt *processor = NULL;
+>> +
+>> +	if (!parked_address)
+>> +		return -EINVAL;
+>> +
+>> +	acpi_get_table_with_size(ACPI_SIG_MADT, 0, &table_header, &tbl_size);
+>> +	if (!table_header) {
+>> +		pr_warn(PREFIX "MADT table not present\n");
+>> +		return -ENODEV;
+>> +	}
+>> +
+>> +	table_end = (unsigned long)table_header + table_header->length;
+>> +
+>> +	/* Parse all entries looking for a match. */
+>> +	entry = (struct acpi_subtable_header *)
+>> +	    ((unsigned long)table_header + sizeof(struct acpi_table_madt));
+>> +
+>> +	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
+>> +	       table_end) {
+>> +		if (entry->type != ACPI_MADT_TYPE_GENERIC_INTERRUPT
+>> +			|| BAD_MADT_ENTRY(entry, table_end))
+>> +			continue;
+>> +
+>> +		processor = (struct acpi_madt_generic_interrupt *)entry;
+>> +
+>> +		if (processor->gic_id == gic_id) {
+>> +			*parked_address = processor->parked_address;
+>> +			goto out;
+>> +		}
+>> +
+>> +		entry = (struct acpi_subtable_header *)
+>> +		    ((unsigned long)entry + entry->length);
 > 
-> I suspect this will break FDT users that depend on the old behaviour.
+> All of the casting in this table looks suspicious. If you have to resort
+> to casting, then the variable types are very likely wrong.
+> 
+> In the case immediately above, it seems that the entry size doesn't
+> necessarily equal the acpi_subtable_header size, in which case you
+> should cast the values to a void* instead of an unsigned long. That
+> would mean you can do this:
+> 
+> 	entry = ((void*)entry) + entry->length;
+> 
+> In fact, if I were writing the code, I would have two variables; the
+> iterator pointer as a void* and a header pointer as a struct
+> acpi_subtable_header*. Like so:
+> 
+> 	void *entry, *table_end;
+> 	struct acpi_subtable_header *header;
+> 
+> 	entry = ((void*)table_header) + sizeof(struct acpi_table_madt);
+> 	table_end = ((void*)table_header) + table_header->length;
+> 	while (entry + sizeof(*header)) < table_end) {
+> 		header = entry;
+> 
+> 		if (header->type != ACPI_MADT_TYPE_GENERIC_INTERRUPT ||
+> 			BAD_MADT_ENTRY(entry, table_end))
+> 			continue;
+> 		processor = entry;
+> 
+> 		if (processor->gic_id == gic_id) {
+> 			*parked_address = processor->parked_address;
+> 			goto out;
+> 		}
+> 
+> 		entry += header->length;
+> 	}
+> 
+> See? Much cleaner code.
 
-I think not, given this is only in drivers/acpi and gets added in one
-of the prior patches of the same series.
+Aha, much much cleaner, thanks for the guidance, will rework my patch
+and test it.
 
-	Arnd
+Hanjun
+
