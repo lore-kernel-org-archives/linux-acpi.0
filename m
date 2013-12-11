@@ -1,59 +1,37 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] ACPI / blacklist: disable Win8 mode for ThinkPad X201
- and Latitude E6230
-Date: Wed, 11 Dec 2013 08:26:27 +0800
-Message-ID: <52A7B133.3080809@intel.com>
-References: <52A15F72.1050408@intel.com> <20131209165817.GA30717@srcf.ucam.org> <52A684F1.7070502@intel.com> <20131210170124.GA26978@srcf.ucam.org>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [Linaro-acpi] [PATCH v3 1/5] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE
+ to enable this ACPI mode
+Date: Tue, 10 Dec 2013 20:06:08 -0600
+Message-ID: <CAL_JsqK1EJbNud2Pxojso=Vjo9ePEuwi3OUcwoCiwCpKH24LgA@mail.gmail.com>
+References: <1386192127-28564-1-git-send-email-al.stone@linaro.org>
+	<52A72D9F.1070004@linaro.org>
+	<20131210224912.996FCC40CE1@trevor.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:59478 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751157Ab3LKA0Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Dec 2013 19:26:24 -0500
-In-Reply-To: <20131210170124.GA26978@srcf.ucam.org>
+Received: from mail-ve0-f178.google.com ([209.85.128.178]:49307 "EHLO
+	mail-ve0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751552Ab3LKCGJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2013 21:06:09 -0500
+Received: by mail-ve0-f178.google.com with SMTP id c14so5489535vea.37
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Dec 2013 18:06:09 -0800 (PST)
+In-Reply-To: <20131210224912.996FCC40CE1@trevor.secretlab.ca>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Jeffery To <jeffery.to@gmail.com>, Wouter Depypere <wouter.depypere@ugent.be>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Al Stone <al.stone@linaro.org>, linaro-acpi@lists.linaro.org, Linaro Patches <patches@linaro.org>, linux-acpi@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 12/11/2013 01:01 AM, Matthew Garrett wrote:
-> On Tue, Dec 10, 2013 at 11:05:21AM +0800, Aaron Lu wrote:
->> On 12/10/2013 12:58 AM, Matthew Garrett wrote:
->>> On Fri, Dec 06, 2013 at 01:24:02PM +0800, Aaron Lu wrote:
->>>>  	/*
->>>> +	 * The bluetooth functionality is unconditionally enabled
->>>> +	 * after a S3 cycle on Thinkpad X201 under Win8 mode.
->>>> +	 */
->>>
->>> Can you describe this in a little more detail? Does the thinkpad-acpi 
->>> rfkill code just not work?
->>
->> Yes it works, the problem is, even the bluetooth is disabled before
->> hibernate, it will be enabled after resume.
-> 
-> Ok. thinkpad_acpi should be ensuring that the state is the same before 
-> and after resume. I don't think it's worth working around this in the 
-> core.
-> 
->>>> +	/*
->>>> +	 * The hardware switch for enable/disable wifi on
->>>> +	 * Dell Latitude E6230 is broken under Win8 mode.
->>>> +	 */
->>>
->>> Can you define "broken"? Do you see the same behaviour under Windows 8?
->>
->> As Wouter has put in comment #12:
->> "
->> I also have trouble with this commit, it disables my hardware switch for
->> enable/disable wifi. See [1] for full explanation.
->>
->> When I add acpi_osi="!Windows 2012" it fixes my issue.
->> "
-> 
-> I'd like to be able to dig into this rather than just going straight to 
-> blacklisting.
+On Tue, Dec 10, 2013 at 4:49 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
+> Hi Hanjun,
+>
+> Okay, so after talking with Al and Graeme on IRC, I think I understand
+> what is going on. The fact that ACPICA doesn't allow for both normal and
+> hardware reduced support in the same build is a very big problem.
+> However, it isn't a problem for ARM since we'll never support
+> non-hardware reduced mode. The x86 folks need to work that out when/if
+> they ever add support for hardware reduced mode.
 
-Sure, I'll re-assign that bug to Drivers/Platform then, thanks for
-helping.
+I believe SMBIOS/DMI tables are only part of full ACPI, so there is a
+need on ARM for more than hardware reduced mode.
+
+Rob
