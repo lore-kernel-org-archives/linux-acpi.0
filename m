@@ -1,47 +1,73 @@
-From: Graeme Gregory <graeme.gregory@linaro.org>
-Subject: Re: [Linaro-acpi] [PATCH v3 1/5] ACPI: introduce
- CONFIG_ACPI_REDUCED_HARDWARE to enable this ACPI mode
-Date: Wed, 11 Dec 2013 08:33:58 +0000
-Message-ID: <20131211083358.GQ2817@xora-haswell.xora.org.uk>
-References: <1386192127-28564-1-git-send-email-al.stone@linaro.org>
- <52A72D9F.1070004@linaro.org>
- <20131210224912.996FCC40CE1@trevor.secretlab.ca>
- <CAL_JsqK1EJbNud2Pxojso=Vjo9ePEuwi3OUcwoCiwCpKH24LgA@mail.gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [Linaro-acpi] [RFC part1 PATCH 1/7] ACPI: Make ACPI core running
+ without PCI on ARM64
+Date: Wed, 11 Dec 2013 11:02:43 +0000
+Message-ID: <20131211110243.GM11468@sirena.org.uk>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
+ <201312102100.20570.arnd@arndb.de>
+ <20131210202323.GJ11468@sirena.org.uk>
+ <201312110407.27848.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4ybNbZnZ8tziJ7D6"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:39087 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750791Ab3LKIlj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Dec 2013 03:41:39 -0500
-Received: by mail-wi0-f169.google.com with SMTP id hn6so6514950wib.4
-        for <linux-acpi@vger.kernel.org>; Wed, 11 Dec 2013 00:41:38 -0800 (PST)
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:42433 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751400Ab3LKLDV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Dec 2013 06:03:21 -0500
 Content-Disposition: inline
-In-Reply-To: <CAL_JsqK1EJbNud2Pxojso=Vjo9ePEuwi3OUcwoCiwCpKH24LgA@mail.gmail.com>
+In-Reply-To: <201312110407.27848.arnd@arndb.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Hanjun Guo <hanjun.guo@linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Al Stone <al.stone@linaro.org>, linaro-acpi@lists.linaro.org, Linaro Patches <patches@linaro.org>, linux-acpi@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Mark Rutland <Mark.Rutland@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "patches@linaro.org" <patches@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Olof Johansson <olof@lixom.net>, Will Deacon <Will.Deacon@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, rob.herring@calxeda
 
-On Tue, Dec 10, 2013 at 08:06:08PM -0600, Rob Herring wrote:
-> On Tue, Dec 10, 2013 at 4:49 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
-> > Hi Hanjun,
-> >
-> > Okay, so after talking with Al and Graeme on IRC, I think I understand
-> > what is going on. The fact that ACPICA doesn't allow for both normal and
-> > hardware reduced support in the same build is a very big problem.
-> > However, it isn't a problem for ARM since we'll never support
-> > non-hardware reduced mode. The x86 folks need to work that out when/if
-> > they ever add support for hardware reduced mode.
-> 
-> I believe SMBIOS/DMI tables are only part of full ACPI, so there is a
-> need on ARM for more than hardware reduced mode.
-> 
-You seem to be crossing the streams here, SMBIOS/DMI are not part of ACPI.
 
-The only mention I can even find of them in the spec is you can cross reference
-memory to its SMBIOS handle. Which is optional. It even says OSPM will not
-use this value.
+--4ybNbZnZ8tziJ7D6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Graeme
+On Wed, Dec 11, 2013 at 04:07:27AM +0100, Arnd Bergmann wrote:
+> On Tuesday 10 December 2013, Mark Brown wrote:
 
+> > That's not my experience especially once you get into phone type
+> > hardware - there's not much complexity difference when gluing things
+> > into the system and the fact that it's connected by the board increases
+> > the amount of flexibility that has to be coped with.
+
+> Yes, that is probably right. The only argument that one can make about
+> the mobile phone case is that these devices are so complex that nobody
+> even bothers any more running upstream kernels on them on any CPU
+> architecture. If the kernel code is kept out of the mainline tree,
+> it doesn't matter to us what they use, and the developers don't gain
+> much by following any of the available firmware models either.
+
+It's more of a commercial thing than a complexity thing (complexity adds
+a barrier but it's not fundamental) - the designs for phones aren't
+meaningfully different to those for tablets, and looking at both things
+like the ARM Chromeboos and what the low power Haswell stuff is doing
+laptops are looking an awful lot like tablets these days.
+
+--4ybNbZnZ8tziJ7D6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSqEZPAAoJELSic+t+oim9yEUP/3/W0aed0+9LYMaM+dC8WIbR
+v32IXLlniBXID/6jPm+O0vBihCzLkiKYSMzwUpmaotXJpL0WwBwjI1zxsertcdVd
++juC71igWk0FA4MC7q3srEz5TMfsJMU/1M2NHtgHlvYPNURvOpo6QyvzLly9ZK6u
+Wu5hWg7bVkRU1nxaVK0H2Dt8cpWlvmzWLK3XOMjsaVI1r1QOyupboQh/gNuR0c48
+jZpGh+68t2HR9wFGC4OOWNq6e8caMaii3z0nLxsoSXPZv+Am3bEFn2sSmvnu3rHf
+anmuhoW1UVJRBxg0DrcRHIbqGrzWqw4u19iqLCJ83kc8lDzs+naiNapU6hp7RCYW
+r0jAuBImwkXBOsDkqpDqUO/1v7IPHc9TJb9jsJean+N7ari3IajfKLzxMYuhH3vf
+JpCyDQ+TQKR49YVxeu8JWX5BuEIIwJipcMTWRYo35qHifnhL4sCzQO7ln8rzJwh3
+aIFyPP46OJlLNaamWb1tgXvgpeLYdy0lCfgvUZJsXN67FBtEk5DAjmzVdKGUeNik
+Y3fSxrEI+efodwk4NOHbEfX2rKXXfz3/p+GZC5q6+pQTfRS2jz3CyAEJNIDVpbbn
+RrUA2epPtB6QxI19v9alkUStiZde1tXt3R8s/7FkvV9ji2dP2qjhzvv7QmlrjbwX
+AuF/LSEAmsehKvp/U3LU
+=dVe8
+-----END PGP SIGNATURE-----
+
+--4ybNbZnZ8tziJ7D6--
