@@ -1,102 +1,59 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2] SFI: fix compilation warnings
-Date: Wed, 11 Dec 2013 00:22:32 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802496E89@SHSMSX101.ccr.corp.intel.com>
-References: <1386580161-27718-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1AE640813FDE7649BE1B193DEA596E88024969FB@SHSMSX101.ccr.corp.intel.com>
- <1386677252.1871.142.camel@smile>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] ACPI / blacklist: disable Win8 mode for ThinkPad X201
+ and Latitude E6230
+Date: Wed, 11 Dec 2013 08:26:27 +0800
+Message-ID: <52A7B133.3080809@intel.com>
+References: <52A15F72.1050408@intel.com> <20131209165817.GA30717@srcf.ucam.org> <52A684F1.7070502@intel.com> <20131210170124.GA26978@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:20026 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:59478 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750980Ab3LKAZX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Dec 2013 19:25:23 -0500
-In-Reply-To: <1386677252.1871.142.camel@smile>
-Content-Language: en-US
+	id S1751157Ab3LKA0Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Dec 2013 19:26:24 -0500
+In-Reply-To: <20131210170124.GA26978@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi @ vger . kernel . org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Jeffery To <jeffery.to@gmail.com>, Wouter Depypere <wouter.depypere@ugent.be>
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEFuZHkgU2hldmNo
-ZW5rbw0KPiBTZW50OiBUdWVzZGF5LCBEZWNlbWJlciAxMCwgMjAxMyA4OjA4IFBNDQo+IA0KPiBP
-biBUdWUsIDIwMTMtMTItMTAgYXQgMDE6MzAgKzAwMDAsIFpoZW5nLCBMdiB3cm90ZToNCj4gPiBI
-aSwgQW5keQ0KPiA+DQo+ID4gSU1POg0KPiA+IDEuIHNmaV9hY3BpLmggc2hvdWxkIGluY2x1ZGUg
-Ym90aCA8bGludXgvYWNwaS5oPiBhbmQgPGxpbnV4L3NmaS5oPiBhbmQgaXQgc2hvdWxkIGluY2x1
-ZGUgPGFjcGkvYWNwaS5oPiBmb3IgIUNPTkZJR19BQ1BJIGJ1aWxkcy4NCj4gPiAyLiB0aGVuIHdl
-IHNob3VsZCBpbmNsdWRlIHNmaV9hY3BpLmggaW5zdGVhZCBvZiA8bGludXgvYWNwaS5oPiwgPGxp
-bnV4L3NmaS5oPiBhbmQgPGFjcGkvYWNwaS5oPiBmb3IgYWxsIG9mIGl0cyB1c2Vycy4NCj4gPg0K
-PiA+IEkgdGhpbmsgdGhlIHBhdGNoIGluIHRoZSBsaW51eC1wbS9ibGVlZGluZy1lZGdlIHF1ZXVl
-IGNhbiBmaXggdGhlIGlzc3VlIHlvdSd2ZSByZXBvcnRlZDoNCj4gPiBodHRwczovL2dpdC5rZXJu
-ZWwub3JnL2NnaXQvbGludXgva2VybmVsL2dpdC9yYWZhZWwvbGludXgtcG0uZ2l0L2NvbW1pdC8/
-aD1ibGVlZGluZy0NCj4gZWRnZSZpZD1jMDk5ZWFjYmNhZWM0NDc1OTM2ZmJmNzNlNDk5NTA3NzI4
-Y2U0N2UxDQo+IA0KPiBJIHRoaW5rIHNvLCBJJ2xsIHRlc3QgdGhpcyBsYXRlci4NCj4gDQo+IE9u
-bHkgb25lIHRoaW5nIEkgZG9uJ3QgbGlrZSBpcyB0aGUgRklYTUUgc3R1ZmYgaW4gdGhlIHNmaV9h
-Y3BpLmguDQo+IENvdWxkIGl0IGJlIGZpeGVkIGFzIHdlbGw/DQoNCkl0IGlzIGp1c3QgYSByZW1p
-bmRlciB0byB0ZWxsIHBlb3BsZSA8YWNwaS9hY3BpLmg+IGluY2x1c2lvbiBoZXJlIGNhbm5vdCBi
-ZSBhIHJlZmVyZW5jZSBmb3IgdGhvc2Ugd2hvIHdhbnQgdG8gaW5jbHVkZSBpdCBkaXJlY3RseS4N
-Cg0KSSBoYXZlIG9mZmVyZWQgMiBzb2x1dGlvbnMgdG8gcmVtb3ZlIHRoaXMgRklYTUU6DQoxLiBJ
-bXBsZW1lbnRpbmcgc3R1YnMgZm9yIDxhY3BpL2FjcGkuaD4sIHRoZW4gd2UgY2FuIG1vdmUgPGFj
-cGkvYWNwaS5oPiBpbmNsdXNpb24gb3V0IG9mIHRoZSAiI2lmZGVmIENPTkZJR19BQ1BJIiBibG9j
-ay4gIFRvIGFjaGlldmUgdGhpcywgSSBkcmFmdGVkIG1vcmUgdGhhbiAxMCBjb21taXRzLiAgU29t
-ZW9uZSBtaWdodCB0aGluayBpdCB3YXMgdG9vIGNvbXBsaWNhdGVkIHRvIGFkZHJlc3Mgc3VjaCBh
-biBpc3N1ZSwgYnV0IHdlIG1pZ2h0IHV0aWxpemUgdGhpcyB0byBraWxsIG1vcmUgIiNpZmRlZiBD
-T05GSUdfQUNQSSIgYmxvY2tzIGluIHRoZSBlbnRpcmUga2VybmVsIHNvdXJjZSB0cmVlLg0KMi4g
-UmUtZGVmaW5pbmcgbmVjZXNzYXJ5IHRhYmxlIHN0cnVjdHVyZXMgZm9yICFDT05GSUdfQUNQSSBi
-dWlsZHMuIDEgY29tbWl0IHdhcyByZWFkeSBmb3IgdGhpcy4gIEJ1dCBoYXZpbmcgdGhpbmdzIGRl
-ZmluZWQgdHdpY2UgbG9va3MgdWdseS4NClRoZXkgYXJlIHN0aWxsIHVuZGVyIGRpc2N1c3Npb24u
-DQoNCklmIHRoZSBkZWNpc2lvbiB3YXMgZGV0ZXJtaW5lZCwgeW91IG1pZ2h0IHNlZSBmdXJ0aGVy
-IHBhdGNoZXMgc2VudCBmcm9tIG1lIHRvIHRoZSBhYm92ZSBtZW50aW9uZWQgdGhyZWFkIG9yIGR1
-cmluZyB0aGUgQUNQSUNBIHJlbGVhc2UgcHJvY2VzcyB0byByZW1vdmUgaXQuDQoNClRoYW5rcyBh
-bmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gDQo+ID4NCj4gPiBJIG1hZGUgaXQgYSBwYXJ0
-IG9mIG15IGhlYWRlciBjbGVhbnVwIHNlcmllcy4NCj4gPiBUaGUgc3RvcnkgY2FuIGJlIGZvdW5k
-IGluIHRoaXMgbWFpbGluZyBsaXN0IHRocmVhZDoNCj4gPiBodHRwOi8vd3d3LnNwaW5pY3MubmV0
-L2xpc3RzL2xpbnV4LWFjcGkvbXNnNDc1MTAuaHRtbA0KPiA+DQo+ID4gVGhhbmtzIGFuZCBiZXN0
-IHJlZ2FyZHMNCj4gPiAtTHYNCj4gPg0KPiA+DQo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
-LS0tLQ0KPiA+ID4gRnJvbTogQW5keSBTaGV2Y2hlbmtvIFttYWlsdG86YW5kcml5LnNoZXZjaGVu
-a29AbGludXguaW50ZWwuY29tXQ0KPiA+ID4gU2VudDogTW9uZGF5LCBEZWNlbWJlciAwOSwgMjAx
-MyA1OjA5IFBNDQo+ID4gPiBUbzogV3lzb2NraSwgUmFmYWVsIEo7IGxpbnV4LWFjcGkgQCB2Z2Vy
-IC4ga2VybmVsIC4gb3JnOyBMS01MOyBaaGVuZywgTHYNCj4gPiA+IENjOiBBbmR5IFNoZXZjaGVu
-a28NCj4gPiA+IFN1YmplY3Q6IFtQQVRDSCB2Ml0gU0ZJOiBmaXggY29tcGlsYXRpb24gd2Fybmlu
-Z3MNCj4gPiA+DQo+ID4gPiBXaGVuIGJ1aWxkIGtlcm5lbCB3aXRoIG1ha2UgVz0xIHdlIGdldCB0
-aGUgZm9sbG93aW5nIGNvbXBpbGVyIGVycm9yLg0KPiA+ID4NCj4gPiA+IEluIGZpbGUgaW5jbHVk
-ZWQgZnJvbSBkcml2ZXJzL3NmaS9zZmlfYWNwaS5jOjY2OjA6DQo+ID4gPiBpbmNsdWRlL2xpbnV4
-L3NmaV9hY3BpLmg6IEluIGZ1bmN0aW9uIOKAmGFjcGlfc2ZpX3RhYmxlX3BhcnNl4oCZOg0KPiA+
-ID4gaW5jbHVkZS9saW51eC9zZmlfYWNwaS5oOjcyOjI6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJh
-dGlvbiBvZiBmdW5jdGlvbiDigJhhY3BpX3RhYmxlX3BhcnNl4oCZIFstV2Vycm9yPWltcGxpY2l0
-LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQ0KPiA+ID4gICBpZiAoIWFjcGlfdGFibGVfcGFyc2Uoc2ln
-bmF0dXJlLCBoYW5kbGVyKSkNCj4gPiA+ICAgXg0KPiA+ID4gICBjYzE6IHNvbWUgd2FybmluZ3Mg
-YmVpbmcgdHJlYXRlZCBhcyBlcnJvcnMNCj4gPiA+DQo+ID4gPiBUaGUgcGF0Y2ggYWRkIGxpbnV4
-L2FjcGkuaCB0byB0aGUgdG9wIG9mIGZpbGUuDQo+ID4gPg0KPiA+ID4gU2lnbmVkLW9mZi1ieTog
-QW5keSBTaGV2Y2hlbmtvIDxhbmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb20+DQo+ID4g
-PiAtLS0NCj4gPiA+IENoYW5nZXMgdG8gdjI6DQo+ID4gPiAtIGZpeCBmb3IgYnVpbGQgd2hlbiBB
-Q1BJPW4sIFNGST15DQo+ID4gPiAgZHJpdmVycy9zZmkvc2ZpX2FjcGkuYyAgIHwgMiArLQ0KPiA+
-ID4gIGluY2x1ZGUvbGludXgvc2ZpX2FjcGkuaCB8IDQgKysrLQ0KPiA+ID4gIDIgZmlsZXMgY2hh
-bmdlZCwgNCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiA+ID4NCj4gPiA+IGRpZmYg
-LS1naXQgYS9kcml2ZXJzL3NmaS9zZmlfYWNwaS5jIGIvZHJpdmVycy9zZmkvc2ZpX2FjcGkuYw0K
-PiA+ID4gaW5kZXggNWU3NTNkNy4uNTU4OWVjNSAxMDA2NDQNCj4gPiA+IC0tLSBhL2RyaXZlcnMv
-c2ZpL3NmaV9hY3BpLmMNCj4gPiA+ICsrKyBiL2RyaXZlcnMvc2ZpL3NmaV9hY3BpLmMNCj4gPiA+
-IEBAIC02MCw3ICs2MCw3IEBADQo+ID4gPiAgI2RlZmluZSBwcl9mbXQoZm10KSBLTVNHX0NPTVBP
-TkVOVCAiOiAiIGZtdA0KPiA+ID4NCj4gPiA+ICAjaW5jbHVkZSA8bGludXgva2VybmVsLmg+DQo+
-ID4gPiAtI2luY2x1ZGUgPGFjcGkvYWNwaS5oPgkvKiBGSVhNRTogaW5jbHVzaW9uIHNob3VsZCBi
-ZSByZW1vdmVkICovDQo+ID4gPiArI2luY2x1ZGUgPGxpbnV4L2FjcGkuaD4NCj4gPiA+DQo+ID4g
-PiAgI2luY2x1ZGUgPGxpbnV4L3NmaS5oPg0KPiA+ID4gICNpbmNsdWRlICJzZmlfY29yZS5oIg0K
-PiA+ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvc2ZpX2FjcGkuaCBiL2luY2x1ZGUvbGlu
-dXgvc2ZpX2FjcGkuaA0KPiA+ID4gaW5kZXggMmNmY2I3OS4uZWNjMjM0NCAxMDA2NDQNCj4gPiA+
-IC0tLSBhL2luY2x1ZGUvbGludXgvc2ZpX2FjcGkuaA0KPiA+ID4gKysrIGIvaW5jbHVkZS9saW51
-eC9zZmlfYWNwaS5oDQo+ID4gPiBAQCAtNjAsNyArNjAsOSBAQA0KPiA+ID4gICNkZWZpbmUgX0xJ
-TlVYX1NGSV9BQ1BJX0gNCj4gPiA+DQo+ID4gPiAgI2lmZGVmIENPTkZJR19TRkkNCj4gPiA+IC0j
-aW5jbHVkZSA8YWNwaS9hY3BpLmg+CS8qIEZJWE1FOiBpbmNsdXNpb24gc2hvdWxkIGJlIHJlbW92
-ZWQgKi8NCj4gPiA+ICsNCj4gPiA+ICsjaW5jbHVkZSA8YWNwaS9hY3BpLmg+DQo+ID4gPiArI2lu
-Y2x1ZGUgPGxpbnV4L2FjcGkuaD4NCj4gPiA+DQo+ID4gPiAgZXh0ZXJuIGludCBzZmlfYWNwaV90
-YWJsZV9wYXJzZShjaGFyICpzaWduYXR1cmUsIGNoYXIgKm9lbV9pZCwNCj4gPiA+ICAJCQkJY2hh
-ciAqb2VtX3RhYmxlX2lkLA0KPiA+ID4gLS0NCj4gPiA+IDEuOC40LjQNCj4gPg0KPiANCj4gLS0N
-Cj4gQW5keSBTaGV2Y2hlbmtvIDxhbmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb20+DQo+
-IEludGVsIEZpbmxhbmQgT3kNCj4gDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBs
-aXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1hY3BpIiBpbg0KPiB0aGUgYm9k
-eSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9y
-ZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwN
-Cg==
+On 12/11/2013 01:01 AM, Matthew Garrett wrote:
+> On Tue, Dec 10, 2013 at 11:05:21AM +0800, Aaron Lu wrote:
+>> On 12/10/2013 12:58 AM, Matthew Garrett wrote:
+>>> On Fri, Dec 06, 2013 at 01:24:02PM +0800, Aaron Lu wrote:
+>>>>  	/*
+>>>> +	 * The bluetooth functionality is unconditionally enabled
+>>>> +	 * after a S3 cycle on Thinkpad X201 under Win8 mode.
+>>>> +	 */
+>>>
+>>> Can you describe this in a little more detail? Does the thinkpad-acpi 
+>>> rfkill code just not work?
+>>
+>> Yes it works, the problem is, even the bluetooth is disabled before
+>> hibernate, it will be enabled after resume.
+> 
+> Ok. thinkpad_acpi should be ensuring that the state is the same before 
+> and after resume. I don't think it's worth working around this in the 
+> core.
+> 
+>>>> +	/*
+>>>> +	 * The hardware switch for enable/disable wifi on
+>>>> +	 * Dell Latitude E6230 is broken under Win8 mode.
+>>>> +	 */
+>>>
+>>> Can you define "broken"? Do you see the same behaviour under Windows 8?
+>>
+>> As Wouter has put in comment #12:
+>> "
+>> I also have trouble with this commit, it disables my hardware switch for
+>> enable/disable wifi. See [1] for full explanation.
+>>
+>> When I add acpi_osi="!Windows 2012" it fixes my issue.
+>> "
+> 
+> I'd like to be able to dig into this rather than just going straight to 
+> blacklisting.
+
+Sure, I'll re-assign that bug to Drivers/Platform then, thanks for
+helping.
