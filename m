@@ -1,37 +1,51 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [Linaro-acpi] [PATCH v3 1/5] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE
- to enable this ACPI mode
-Date: Tue, 10 Dec 2013 20:06:08 -0600
-Message-ID: <CAL_JsqK1EJbNud2Pxojso=Vjo9ePEuwi3OUcwoCiwCpKH24LgA@mail.gmail.com>
-References: <1386192127-28564-1-git-send-email-al.stone@linaro.org>
-	<52A72D9F.1070004@linaro.org>
-	<20131210224912.996FCC40CE1@trevor.secretlab.ca>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [RFC part1 PATCH 1/7] ACPI: Make ACPI core running
+ without PCI on ARM64
+Date: Wed, 11 Dec 2013 04:07:27 +0100
+Message-ID: <201312110407.27848.arnd@arndb.de>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
+ <201312102100.20570.arnd@arndb.de> <20131210202323.GJ11468@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ve0-f178.google.com ([209.85.128.178]:49307 "EHLO
-	mail-ve0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751552Ab3LKCGJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2013 21:06:09 -0500
-Received: by mail-ve0-f178.google.com with SMTP id c14so5489535vea.37
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Dec 2013 18:06:09 -0800 (PST)
-In-Reply-To: <20131210224912.996FCC40CE1@trevor.secretlab.ca>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131210202323.GJ11468@sirena.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "patches@linaro.org" <patches@linaro.org>, Olof Johansson <olof@lixom.net>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Will Deacon <Will.Deacon@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, rob.herring@calxeda.com
 List-Id: linux-acpi@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Al Stone <al.stone@linaro.org>, linaro-acpi@lists.linaro.org, Linaro Patches <patches@linaro.org>, linux-acpi@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Dec 10, 2013 at 4:49 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
-> Hi Hanjun,
->
-> Okay, so after talking with Al and Graeme on IRC, I think I understand
-> what is going on. The fact that ACPICA doesn't allow for both normal and
-> hardware reduced support in the same build is a very big problem.
-> However, it isn't a problem for ARM since we'll never support
-> non-hardware reduced mode. The x86 folks need to work that out when/if
-> they ever add support for hardware reduced mode.
+On Tuesday 10 December 2013, Mark Brown wrote:
+> On Tue, Dec 10, 2013 at 09:00:20PM +0100, Arnd Bergmann wrote:
+> > On Tuesday 10 December 2013, Mark Brown wrote:
+> 
+> > > It's not just the SoC, it's also the rest of the board.  The patches the
+> > > Intel guys are submitting at the minute are mainly for the off-SoC
+> > > devices at least as far as I noticed.  This'll impact anyone who ends up
+> > > using ACPI, we need to at least pay attention to what's going on there.
+> 
+> > Yes, but I'm not that worried about off-soc stuff, which tends to be
+> > off the much simpler variety: a few MMIO or PIO registers, IRQs,
+> > GPIOs or (with ACPI-5.0) devices on i2c and spi buses.
+> 
+> That's not my experience especially once you get into phone type
+> hardware - there's not much complexity difference when gluing things
+> into the system and the fact that it's connected by the board increases
+> the amount of flexibility that has to be coped with.
 
-I believe SMBIOS/DMI tables are only part of full ACPI, so there is a
-need on ARM for more than hardware reduced mode.
+Yes, that is probably right. The only argument that one can make about
+the mobile phone case is that these devices are so complex that nobody
+even bothers any more running upstream kernels on them on any CPU
+architecture. If the kernel code is kept out of the mainline tree,
+it doesn't matter to us what they use, and the developers don't gain
+much by following any of the available firmware models either.
 
-Rob
+	Arnd
