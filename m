@@ -1,152 +1,102 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [Linaro-acpi] [PATCH v3 1/5] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE to enable this ACPI mode
-Date: Tue, 10 Dec 2013 22:49:12 +0000
-Message-ID: <20131210224912.996FCC40CE1@trevor.secretlab.ca>
-References: <1386192127-28564-1-git-send-email-al.stone@linaro.org> < 1386192127-28564-2-git-send-email-al.stone@linaro.org> <20131210123717. 59493C40A27@trevor.secretlab.ca> <52A72D9F.1070004@linaro.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2] SFI: fix compilation warnings
+Date: Wed, 11 Dec 2013 00:22:32 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802496E89@SHSMSX101.ccr.corp.intel.com>
+References: <1386580161-27718-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1AE640813FDE7649BE1B193DEA596E88024969FB@SHSMSX101.ccr.corp.intel.com>
+ <1386677252.1871.142.camel@smile>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:60509 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751429Ab3LJWtR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Dec 2013 17:49:17 -0500
-Received: by mail-we0-f180.google.com with SMTP id t61so5755089wes.11
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Dec 2013 14:49:15 -0800 (PST)
-In-Reply-To: <52A72D9F.1070004@linaro.org>
+Received: from mga11.intel.com ([192.55.52.93]:20026 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750980Ab3LKAZX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Dec 2013 19:25:23 -0500
+In-Reply-To: <1386677252.1871.142.camel@smile>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: al.stone@linaro.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi @ vger . kernel . org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Hanjun,
-
-Okay, so after talking with Al and Graeme on IRC, I think I understand
-what is going on. The fact that ACPICA doesn't allow for both normal an=
-d
-hardware reduced support in the same build is a very big problem.
-However, it isn't a problem for ARM since we'll never support
-non-hardware reduced mode. The x86 folks need to work that out when/if
-they ever add support for hardware reduced mode.
-
-So I would say the thing to do is only allow hardware reduced mode to b=
-e
-enabled on ARM, and make it ultra clear in the config text that it
-cannot be supported on x86 before ACPICA is fixed.
-
-g.
-
-On Tue, 10 Dec 2013 23:05:03 +0800, Hanjun Guo <hanjun.guo@linaro.org> =
-wrote:
-> On 2013=E5=B9=B412=E6=9C=8810=E6=97=A5 20:37, Grant Likely wrote:
-> > On Wed,  4 Dec 2013 14:22:03 -0700, al.stone@linaro.org wrote:
-> >> From: Al Stone <al.stone@linaro.org>
-> >>
-> >> To enable the hardware reduced mode of ACPI on some platforms (suc=
-h as
-> >> ARM), we need to modify the kernel code and set ACPI_REDUCED_HARDW=
-ARE
-> >> to TRUE in the ACPICA source.
-> >>
-> >> This can be done more resonably by introducing a kernel config ite=
-m
-> >> to enable/disable ACPI_REDUCED_HARDWARE.  We can then change the k=
-ernel
-> >> config instead of having to modify the kernel source directly to e=
-nable
-> >> the reduced hardware mode of ACPI.
-> >>
-> >> Lv Zheng suggested that this configuration item does not belong in=
- ACPICA,
-> >> the upstream source for much of the ACPI internals, but rather to =
-the
-> >> Linux kernel itself.  Hence, we introduce this flag so that we can=
- make
-> >> ACPI_REDUCED_HARDWARE configurable.  For the details of the discus=
-sion,
-> >> please refer to: http://www.spinics.net/lists/linux-acpi/msg46369.=
-html
-> >>
-> >> Support for X86 in hardware reduced mode is also provided to make =
-it
-> >> simpler to debug this mode, and to provide for probable use in suc=
-h
-> >> products.  Hardware reduced mode, despite the name, exists primari=
-ly
-> >> to allow newer platforms to use a much simpler form of ACPI that d=
-oes
-> >> not require supporting the legacy of previous versions of the spec=
-ification,
-> >> and is likely to be used more often in the near future as a result=
-=2E
-> >>
-> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >> Signed-off-by: Al Stone <al.stone@linaro.org>
-> >> ---
-> >>   drivers/acpi/Kconfig            | 8 ++++++++
-> >>   include/acpi/platform/aclinux.h | 6 ++++++
-> >>   2 files changed, 14 insertions(+)
-> >>
-> >> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> >> index 5d92485..66e6bb2 100644
-> >> --- a/drivers/acpi/Kconfig
-> >> +++ b/drivers/acpi/Kconfig
-> >> @@ -343,6 +343,14 @@ config ACPI_BGRT
-> >>   	  data from the firmware boot splash. It will appear under
-> >>   	  /sys/firmware/acpi/bgrt/ .
-> >>  =20
-> >> +config ACPI_REDUCED_HARDWARE
-> >> +	bool "Hardware-reduced ACPI support"
-> >> +	depends on X86 || ARM || ARM64
-> >> +	help
-> >> +	This config adds support for Hardware-reduced ACPI. When this op=
-tion
-> >> +	is selected, will generate a specialized version of ACPICA that =
-ONLY
-> >> +	supports the ACPI "reduced hardware".
-> >> +
-> >>   source "drivers/acpi/apei/Kconfig"
-> >>  =20
-> >>   config ACPI_EXTLOG
-> >> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platfo=
-rm/aclinux.h
-> >> index 28f4f4d..a33f502 100644
-> >> --- a/include/acpi/platform/aclinux.h
-> >> +++ b/include/acpi/platform/aclinux.h
-> >> @@ -52,6 +52,12 @@
-> >>  =20
-> >>   #ifdef __KERNEL__
-> >>  =20
-> >> +/* Compile for reduced hardware mode if requested for this kernel=
- config */
-> >> +
-> >> +#ifdef CONFIG_ACPI_REDUCED_HARDWARE
-> >> +#define ACPI_REDUCED_HARDWARE 1
-> >> +#endif
-> > Will this change the way ACPICA is compiled? Will it disable
-> > non-hardware-reduced mode?
->=20
-> Both yes. ACPICA supports reduced hardware mode when
-> ACPI_REDUCED_HARWARE is TRUE at compile time. There is
-> no way to support both normal ACPI and hardware reduced
-> ACPI with single binary image for now.
->=20
-> > If so, then this is a big problem. Enabling
-> > the hardware reduced feature should *not* break normal ACPI usage.
->=20
-> It will break normal ACPI usage but it is ok I think. Since
-> lots of features are not supported in the hardware in hardware
-> reduced mode, and normal ACPI will not run probably such as
-> leading kernel panic when refer to some registers which are not
-> exist on reduced hardware, we should introduce this kernel
-> config and modify the ACPI drivers to avoid such failures.
->=20
-> Thanks
-> Hanjun
->=20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
+aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEFuZHkgU2hldmNo
+ZW5rbw0KPiBTZW50OiBUdWVzZGF5LCBEZWNlbWJlciAxMCwgMjAxMyA4OjA4IFBNDQo+IA0KPiBP
+biBUdWUsIDIwMTMtMTItMTAgYXQgMDE6MzAgKzAwMDAsIFpoZW5nLCBMdiB3cm90ZToNCj4gPiBI
+aSwgQW5keQ0KPiA+DQo+ID4gSU1POg0KPiA+IDEuIHNmaV9hY3BpLmggc2hvdWxkIGluY2x1ZGUg
+Ym90aCA8bGludXgvYWNwaS5oPiBhbmQgPGxpbnV4L3NmaS5oPiBhbmQgaXQgc2hvdWxkIGluY2x1
+ZGUgPGFjcGkvYWNwaS5oPiBmb3IgIUNPTkZJR19BQ1BJIGJ1aWxkcy4NCj4gPiAyLiB0aGVuIHdl
+IHNob3VsZCBpbmNsdWRlIHNmaV9hY3BpLmggaW5zdGVhZCBvZiA8bGludXgvYWNwaS5oPiwgPGxp
+bnV4L3NmaS5oPiBhbmQgPGFjcGkvYWNwaS5oPiBmb3IgYWxsIG9mIGl0cyB1c2Vycy4NCj4gPg0K
+PiA+IEkgdGhpbmsgdGhlIHBhdGNoIGluIHRoZSBsaW51eC1wbS9ibGVlZGluZy1lZGdlIHF1ZXVl
+IGNhbiBmaXggdGhlIGlzc3VlIHlvdSd2ZSByZXBvcnRlZDoNCj4gPiBodHRwczovL2dpdC5rZXJu
+ZWwub3JnL2NnaXQvbGludXgva2VybmVsL2dpdC9yYWZhZWwvbGludXgtcG0uZ2l0L2NvbW1pdC8/
+aD1ibGVlZGluZy0NCj4gZWRnZSZpZD1jMDk5ZWFjYmNhZWM0NDc1OTM2ZmJmNzNlNDk5NTA3NzI4
+Y2U0N2UxDQo+IA0KPiBJIHRoaW5rIHNvLCBJJ2xsIHRlc3QgdGhpcyBsYXRlci4NCj4gDQo+IE9u
+bHkgb25lIHRoaW5nIEkgZG9uJ3QgbGlrZSBpcyB0aGUgRklYTUUgc3R1ZmYgaW4gdGhlIHNmaV9h
+Y3BpLmguDQo+IENvdWxkIGl0IGJlIGZpeGVkIGFzIHdlbGw/DQoNCkl0IGlzIGp1c3QgYSByZW1p
+bmRlciB0byB0ZWxsIHBlb3BsZSA8YWNwaS9hY3BpLmg+IGluY2x1c2lvbiBoZXJlIGNhbm5vdCBi
+ZSBhIHJlZmVyZW5jZSBmb3IgdGhvc2Ugd2hvIHdhbnQgdG8gaW5jbHVkZSBpdCBkaXJlY3RseS4N
+Cg0KSSBoYXZlIG9mZmVyZWQgMiBzb2x1dGlvbnMgdG8gcmVtb3ZlIHRoaXMgRklYTUU6DQoxLiBJ
+bXBsZW1lbnRpbmcgc3R1YnMgZm9yIDxhY3BpL2FjcGkuaD4sIHRoZW4gd2UgY2FuIG1vdmUgPGFj
+cGkvYWNwaS5oPiBpbmNsdXNpb24gb3V0IG9mIHRoZSAiI2lmZGVmIENPTkZJR19BQ1BJIiBibG9j
+ay4gIFRvIGFjaGlldmUgdGhpcywgSSBkcmFmdGVkIG1vcmUgdGhhbiAxMCBjb21taXRzLiAgU29t
+ZW9uZSBtaWdodCB0aGluayBpdCB3YXMgdG9vIGNvbXBsaWNhdGVkIHRvIGFkZHJlc3Mgc3VjaCBh
+biBpc3N1ZSwgYnV0IHdlIG1pZ2h0IHV0aWxpemUgdGhpcyB0byBraWxsIG1vcmUgIiNpZmRlZiBD
+T05GSUdfQUNQSSIgYmxvY2tzIGluIHRoZSBlbnRpcmUga2VybmVsIHNvdXJjZSB0cmVlLg0KMi4g
+UmUtZGVmaW5pbmcgbmVjZXNzYXJ5IHRhYmxlIHN0cnVjdHVyZXMgZm9yICFDT05GSUdfQUNQSSBi
+dWlsZHMuIDEgY29tbWl0IHdhcyByZWFkeSBmb3IgdGhpcy4gIEJ1dCBoYXZpbmcgdGhpbmdzIGRl
+ZmluZWQgdHdpY2UgbG9va3MgdWdseS4NClRoZXkgYXJlIHN0aWxsIHVuZGVyIGRpc2N1c3Npb24u
+DQoNCklmIHRoZSBkZWNpc2lvbiB3YXMgZGV0ZXJtaW5lZCwgeW91IG1pZ2h0IHNlZSBmdXJ0aGVy
+IHBhdGNoZXMgc2VudCBmcm9tIG1lIHRvIHRoZSBhYm92ZSBtZW50aW9uZWQgdGhyZWFkIG9yIGR1
+cmluZyB0aGUgQUNQSUNBIHJlbGVhc2UgcHJvY2VzcyB0byByZW1vdmUgaXQuDQoNClRoYW5rcyBh
+bmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gDQo+ID4NCj4gPiBJIG1hZGUgaXQgYSBwYXJ0
+IG9mIG15IGhlYWRlciBjbGVhbnVwIHNlcmllcy4NCj4gPiBUaGUgc3RvcnkgY2FuIGJlIGZvdW5k
+IGluIHRoaXMgbWFpbGluZyBsaXN0IHRocmVhZDoNCj4gPiBodHRwOi8vd3d3LnNwaW5pY3MubmV0
+L2xpc3RzL2xpbnV4LWFjcGkvbXNnNDc1MTAuaHRtbA0KPiA+DQo+ID4gVGhhbmtzIGFuZCBiZXN0
+IHJlZ2FyZHMNCj4gPiAtTHYNCj4gPg0KPiA+DQo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
+LS0tLQ0KPiA+ID4gRnJvbTogQW5keSBTaGV2Y2hlbmtvIFttYWlsdG86YW5kcml5LnNoZXZjaGVu
+a29AbGludXguaW50ZWwuY29tXQ0KPiA+ID4gU2VudDogTW9uZGF5LCBEZWNlbWJlciAwOSwgMjAx
+MyA1OjA5IFBNDQo+ID4gPiBUbzogV3lzb2NraSwgUmFmYWVsIEo7IGxpbnV4LWFjcGkgQCB2Z2Vy
+IC4ga2VybmVsIC4gb3JnOyBMS01MOyBaaGVuZywgTHYNCj4gPiA+IENjOiBBbmR5IFNoZXZjaGVu
+a28NCj4gPiA+IFN1YmplY3Q6IFtQQVRDSCB2Ml0gU0ZJOiBmaXggY29tcGlsYXRpb24gd2Fybmlu
+Z3MNCj4gPiA+DQo+ID4gPiBXaGVuIGJ1aWxkIGtlcm5lbCB3aXRoIG1ha2UgVz0xIHdlIGdldCB0
+aGUgZm9sbG93aW5nIGNvbXBpbGVyIGVycm9yLg0KPiA+ID4NCj4gPiA+IEluIGZpbGUgaW5jbHVk
+ZWQgZnJvbSBkcml2ZXJzL3NmaS9zZmlfYWNwaS5jOjY2OjA6DQo+ID4gPiBpbmNsdWRlL2xpbnV4
+L3NmaV9hY3BpLmg6IEluIGZ1bmN0aW9uIOKAmGFjcGlfc2ZpX3RhYmxlX3BhcnNl4oCZOg0KPiA+
+ID4gaW5jbHVkZS9saW51eC9zZmlfYWNwaS5oOjcyOjI6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJh
+dGlvbiBvZiBmdW5jdGlvbiDigJhhY3BpX3RhYmxlX3BhcnNl4oCZIFstV2Vycm9yPWltcGxpY2l0
+LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQ0KPiA+ID4gICBpZiAoIWFjcGlfdGFibGVfcGFyc2Uoc2ln
+bmF0dXJlLCBoYW5kbGVyKSkNCj4gPiA+ICAgXg0KPiA+ID4gICBjYzE6IHNvbWUgd2FybmluZ3Mg
+YmVpbmcgdHJlYXRlZCBhcyBlcnJvcnMNCj4gPiA+DQo+ID4gPiBUaGUgcGF0Y2ggYWRkIGxpbnV4
+L2FjcGkuaCB0byB0aGUgdG9wIG9mIGZpbGUuDQo+ID4gPg0KPiA+ID4gU2lnbmVkLW9mZi1ieTog
+QW5keSBTaGV2Y2hlbmtvIDxhbmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb20+DQo+ID4g
+PiAtLS0NCj4gPiA+IENoYW5nZXMgdG8gdjI6DQo+ID4gPiAtIGZpeCBmb3IgYnVpbGQgd2hlbiBB
+Q1BJPW4sIFNGST15DQo+ID4gPiAgZHJpdmVycy9zZmkvc2ZpX2FjcGkuYyAgIHwgMiArLQ0KPiA+
+ID4gIGluY2x1ZGUvbGludXgvc2ZpX2FjcGkuaCB8IDQgKysrLQ0KPiA+ID4gIDIgZmlsZXMgY2hh
+bmdlZCwgNCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiA+ID4NCj4gPiA+IGRpZmYg
+LS1naXQgYS9kcml2ZXJzL3NmaS9zZmlfYWNwaS5jIGIvZHJpdmVycy9zZmkvc2ZpX2FjcGkuYw0K
+PiA+ID4gaW5kZXggNWU3NTNkNy4uNTU4OWVjNSAxMDA2NDQNCj4gPiA+IC0tLSBhL2RyaXZlcnMv
+c2ZpL3NmaV9hY3BpLmMNCj4gPiA+ICsrKyBiL2RyaXZlcnMvc2ZpL3NmaV9hY3BpLmMNCj4gPiA+
+IEBAIC02MCw3ICs2MCw3IEBADQo+ID4gPiAgI2RlZmluZSBwcl9mbXQoZm10KSBLTVNHX0NPTVBP
+TkVOVCAiOiAiIGZtdA0KPiA+ID4NCj4gPiA+ICAjaW5jbHVkZSA8bGludXgva2VybmVsLmg+DQo+
+ID4gPiAtI2luY2x1ZGUgPGFjcGkvYWNwaS5oPgkvKiBGSVhNRTogaW5jbHVzaW9uIHNob3VsZCBi
+ZSByZW1vdmVkICovDQo+ID4gPiArI2luY2x1ZGUgPGxpbnV4L2FjcGkuaD4NCj4gPiA+DQo+ID4g
+PiAgI2luY2x1ZGUgPGxpbnV4L3NmaS5oPg0KPiA+ID4gICNpbmNsdWRlICJzZmlfY29yZS5oIg0K
+PiA+ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvc2ZpX2FjcGkuaCBiL2luY2x1ZGUvbGlu
+dXgvc2ZpX2FjcGkuaA0KPiA+ID4gaW5kZXggMmNmY2I3OS4uZWNjMjM0NCAxMDA2NDQNCj4gPiA+
+IC0tLSBhL2luY2x1ZGUvbGludXgvc2ZpX2FjcGkuaA0KPiA+ID4gKysrIGIvaW5jbHVkZS9saW51
+eC9zZmlfYWNwaS5oDQo+ID4gPiBAQCAtNjAsNyArNjAsOSBAQA0KPiA+ID4gICNkZWZpbmUgX0xJ
+TlVYX1NGSV9BQ1BJX0gNCj4gPiA+DQo+ID4gPiAgI2lmZGVmIENPTkZJR19TRkkNCj4gPiA+IC0j
+aW5jbHVkZSA8YWNwaS9hY3BpLmg+CS8qIEZJWE1FOiBpbmNsdXNpb24gc2hvdWxkIGJlIHJlbW92
+ZWQgKi8NCj4gPiA+ICsNCj4gPiA+ICsjaW5jbHVkZSA8YWNwaS9hY3BpLmg+DQo+ID4gPiArI2lu
+Y2x1ZGUgPGxpbnV4L2FjcGkuaD4NCj4gPiA+DQo+ID4gPiAgZXh0ZXJuIGludCBzZmlfYWNwaV90
+YWJsZV9wYXJzZShjaGFyICpzaWduYXR1cmUsIGNoYXIgKm9lbV9pZCwNCj4gPiA+ICAJCQkJY2hh
+ciAqb2VtX3RhYmxlX2lkLA0KPiA+ID4gLS0NCj4gPiA+IDEuOC40LjQNCj4gPg0KPiANCj4gLS0N
+Cj4gQW5keSBTaGV2Y2hlbmtvIDxhbmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb20+DQo+
+IEludGVsIEZpbmxhbmQgT3kNCj4gDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBs
+aXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1hY3BpIiBpbg0KPiB0aGUgYm9k
+eSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9y
+ZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwN
+Cg==
