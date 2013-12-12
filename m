@@ -1,87 +1,89 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: vunmap() on large regions may trigger soft lockup warnings
-Date: Wed, 11 Dec 2013 13:39:17 -0800
-Message-ID: <20131211133917.dd10cb2c4360dba65d8e6ce2@linux-foundation.org>
-References: <52A899AB.3010506@citrix.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 5/6] ACPI/SFI: Fix wrong <acpi/acpi.h> inclusion in SFI/ACPI wrapper - acpi_disabled linkage.
+Date: Thu, 12 Dec 2013 02:38:21 +0100
+Message-ID: <2140164.VX2WIofybX@vostro.rjw.lan>
+References: <cover.1385094640.git.lv.zheng@intel.com> <1AE640813FDE7649BE1B193DEA596E88024950DB@SHSMSX101.ccr.corp.intel.com> <20131209231515.GA4699@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49779 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750917Ab3LKVjT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Dec 2013 16:39:19 -0500
-In-Reply-To: <52A899AB.3010506@citrix.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131209231515.GA4699@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Tang, Feng" <feng.tang@intel.com>, "sfi-devel@simplefirmware.org" <sfi-devel@simplefirmware.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: David Vrabel <david.vrabel@citrix.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, xen-devel <xen-devel@lists.xenproject.org>, Dietmar Hahn <dietmar.hahn@ts.fujitsu.com>
 
-On Wed, 11 Dec 2013 16:58:19 +0000 David Vrabel <david.vrabel@citrix.com> wrote:
-
-> Andrew,
+On Monday, December 09, 2013 04:15:15 PM Bjorn Helgaas wrote:
+> On Fri, Dec 06, 2013 at 02:53:00PM +0000, Zheng, Lv wrote:
+> > Hi,
+> > 
+> > > From: Zheng, Lv
+> > > Sent: Friday, December 06, 2013 4:52 PM
+> > > To: Wysocki, Rafael J; Brown, Len
+> > > 
+> > > In Linux kernel, ACPICA is wrapped and safely exported by CONFIG_ACPI.  So
+> > > all external modules should depend on CONFIG_ACPI rather than using ACPICA
+> > > header directly for stubbing.  But if we moves <acpi/acpi.h> inclusions
+> > > into "#ifdef CONFIG_ACPI", build breakge can help to detect wrong ACPICA
+> > > dependent modules.
+> > > 
+> > > One of the build breakage is:
+> > > arch/x86/pci/mmconfig-shared.c:389:1: error: unknown type name 'acpi_status'
+> > > arch/x86/pci/mmconfig-shared.c:389:47: warning: 'struct acpi_resource' declared inside parameter list [enabled by default]
+> > > arch/x86/pci/mmconfig-shared.c:389:47: warning: its scope is only this definition or declaration, which is probably not what you want
+> > > [enabled by default]
+> > > arch/x86/pci/mmconfig-shared.c: In function 'check_mcfg_resource':
+> > > arch/x86/pci/mmconfig-shared.c:392:33: error: storage size of 'address' isn't known
+> > > arch/x86/pci/mmconfig-shared.c:393:2: error: unknown type name 'acpi_status'
+> > > arch/x86/pci/mmconfig-shared.c:395:9: error: dereferencing pointer to incomplete type
+> > > arch/x86/pci/mmconfig-shared.c:395:19: error: 'ACPI_RESOURCE_TYPE_FIXED_MEMORY32' undeclared (first use in this function)
+> > > arch/x86/pci/mmconfig-shared.c:395:19: note: each undeclared identifier is reported only once for each function it appears in
+> > > arch/x86/pci/mmconfig-shared.c:397:8: error: dereferencing pointer to incomplete type
+> > > arch/x86/pci/mmconfig-shared.c:399:11: error: 'AE_OK' undeclared (first use in this function)
+> > > arch/x86/pci/mmconfig-shared.c:400:35: error: dereferencing pointer to incomplete type
+> > > arch/x86/pci/mmconfig-shared.c:401:33: error: dereferencing pointer to incomplete type
+> > > arch/x86/pci/mmconfig-shared.c:402:19: error: dereferencing pointer to incomplete type
+> > > arch/x86/pci/mmconfig-shared.c:404:11: error: 'AE_CTRL_TERMINATE' undeclared (first use in this function)
+> > > arch/x86/pci/mmconfig-shared.c:407:10: error: dereferencing pointer to incomplete type
+> > > arch/x86/pci/mmconfig-shared.c:407:20: error: 'ACPI_RESOURCE_TYPE_ADDRESS32' undeclared (first use in this function)
+> > > arch/x86/pci/mmconfig-shared.c:408:10: error: dereferencing pointer to incomplete type
+> > > arch/x86/pci/mmconfig-shared.c:408:20: error: 'ACPI_RESOURCE_TYPE_ADDRESS64' undeclared (first use in this function)
+> > > arch/x86/pci/mmconfig-shared.c:411:2: error: implicit declaration of function 'acpi_resource_to_address64' [-Werror=implicit-
+> > > function-declaration]
+> > > arch/x86/pci/mmconfig-shared.c:412:2: error: implicit declaration of function 'ACPI_FAILURE' [-Werror=implicit-function-declaration]
+> > > arch/x86/pci/mmconfig-shared.c:414:31: error: 'ACPI_MEMORY_RANGE' undeclared (first use in this function)
+> > > arch/x86/pci/mmconfig-shared.c:392:33: warning: unused variable 'address' [-Wunused-variable]
+> > > arch/x86/pci/mmconfig-shared.c: At top level:
+> > > arch/x86/pci/mmconfig-shared.c:425:1: error: unknown type name 'acpi_status'
+> > > arch/x86/pci/mmconfig-shared.c:425:41: error: unknown type name 'acpi_handle'
+> > > arch/x86/pci/mmconfig-shared.c: In function 'is_acpi_reserved':
+> > > arch/x86/pci/mmconfig-shared.c:447:2: error: implicit declaration of function 'acpi_get_devices' [-Werror=implicit-function-
+> > > declaration]
+> > > arch/x86/pci/mmconfig-shared.c:447:30: error: 'find_mboard_resource' undeclared (first use in this function)
+> > > arch/x86/pci/mmconfig-shared.c: At top level:
+> > > arch/x86/pci/mmconfig-shared.c:389:20: warning: 'check_mcfg_resource' defined but not used [-Wunused-function]
+> > 
+> > Let me say something about this error messages.  Someone may face difficulties to reproduce it.
+> > Currently, this message cannot be seen in any kernel build.
+> > This is because this patch series doesn't include a fix to remove <acpi/acpi.h> inclusion from linux/sfi_acpi.h.
+> > To achieve this, I have offered 2 options:
+> > 1. Redefining ACPICA table stuff for CONFIG_ACPI=n environment, or
+> > 2. Implementing stubs for all ACPICA functions/globals/macros and introducing <linux/acpica.h> (where acpi/acpi.h is included) as a top level header.
+> > 3. Other solutions...
+> > 
+> > If we choose solution 1, then this issue is exposed by a build test where CONFIG_ACPI=n and CONFIG_SFI=y.
+> > Since we haven't decided what to do for the table structures and it is really not a good approach to achieve the build safety for mmconfig-share.c by relying on link-stage optimization rather than compile-stage referencing.  IMO, we need to sort it out, thus I make it a part of this patchset.
+> > 
+> > Well, if we choose solution 2, this patch can only help to reduce the size of the kernel image.
 > 
-> Dietmar Hahn reported an issue where calling vunmap() on a large (50 GB)
-> region would trigger soft lockup warnings.
-> 
-> The following patch would resolve this (by adding a cond_resched() call
-> to vunmap_pmd_range()). Almost calls of vunmap(), unmap_kernel_range()
-> are from process context (as far as I could tell) except for an ACPI
-> driver (drivers/acpi/apei/ghes.c) calls unmap_kernel_range_noflush()
-> from an interrupt and NMI contexts.
-> 
-> Can you advise on a preferred solution?
-> 
-> For example, an unmap_kernel_page() function (callable from atomic
-> context) could be provided since the GHES driver only maps/unmaps a
-> single page.
-> 
-> 8<-------------------------
-> mm/vmalloc: avoid soft lockup warnings when vunmap()'ing large ranges
-> 
-> From: David Vrabel <david.vrabel@citrix.com>
-> 
-> If vunmap() is used to unmap a large (e.g., 50 GB) region, it may take
-> sufficiently long that it triggers soft lockup warnings.
-> 
-> Add a cond_resched() into vunmap_pmd_range() so the calling task may
-> be resheduled after unmapping each PMD entry.  This is how
-> zap_pmd_range() fixes the same problem for userspace mappings.
-> 
-> ...
->
-> --- a/mm/vmalloc.c
-> +++ b/mm/vmalloc.c
-> @@ -75,6 +75,7 @@ static void vunmap_pmd_range(pud_t *pud, unsigned long
-> addr, unsigned long end)
->  		if (pmd_none_or_clear_bad(pmd))
->  			continue;
->  		vunmap_pte_range(pmd, addr, next);
-> +		cond_resched();
->  	} while (pmd++, addr = next, addr != end);
->  }
+> OK, I assume you will make sure one of these fixes gets merged before the
+> change that causes the breakage, so bisection continues to work.
+> Therefore, I think it's best if both changes are merged through the same
+> tree, and I won't apply this via the PCI tree.  Let me know if you need me
+> to do something.
 
-Well that's ugly.
+We're doing our best not to break compilation between the patches in this
+series.  And I'll take care of it. :-)
 
-We could redo unmap_kernel_range() so it takes an `atomic' flag then
-loops around unmapping N MB at a time, doing
-
-	if (!atomic)
-		cond_resched()
-
-each time.  But that would require difficult tuning of N.
-
-I suppose we could just do
-
-	if (!in_interrupt())
-		cond_resched();
-
-in vunmap_pmd_range(), but that's pretty specific to ghes.c and doesn't
-permit unmap-inside-spinlock.
-
-So I can't immediately think of a suitable fix apart from adding a new
-unmap_kernel_range_atomic().  Then add a `bool atomic' arg to
-vunmap_page_range() and pass that all the way down.
-
-
-
+Thanks,
+Rafael
