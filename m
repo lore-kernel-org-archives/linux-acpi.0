@@ -1,96 +1,102 @@
-From: David Vrabel <david.vrabel@citrix.com>
-Subject: Re: vunmap() on large regions may trigger soft lockup warnings
-Date: Thu, 12 Dec 2013 12:50:47 +0000
-Message-ID: <52A9B127.9010501@citrix.com>
-References: <52A899AB.3010506@citrix.com> <20131211133917.dd10cb2c4360dba65d8e6ce2@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Tony Camuso <tcamuso@redhat.com>
+Subject: [PATCH 1/1] acpi_pad: call schedule() when need_resched is true
+Date: Thu, 12 Dec 2013 10:50:15 -0500
+Message-ID: <1386863415-12790-1-git-send-email-tcamuso@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp02.citrix.com ([66.165.176.63]:16596 "EHLO
-	SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450Ab3LLMut (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Dec 2013 07:50:49 -0500
-In-Reply-To: <20131211133917.dd10cb2c4360dba65d8e6ce2@linux-foundation.org>
+Received: from mx1.redhat.com ([209.132.183.28]:31219 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751395Ab3LLPuW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Dec 2013 10:50:22 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, xen-devel <xen-devel@lists.xenproject.org>, Dietmar Hahn <dietmar.hahn@ts.fujitsu.com>
+To: lenb@kernel.org, rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org
 
-On 11/12/13 21:39, Andrew Morton wrote:
-> On Wed, 11 Dec 2013 16:58:19 +0000 David Vrabel <david.vrabel@citrix.com> wrote:
-> 
->> Andrew,
->>
->> Dietmar Hahn reported an issue where calling vunmap() on a large (50 GB)
->> region would trigger soft lockup warnings.
->>
->> The following patch would resolve this (by adding a cond_resched() call
->> to vunmap_pmd_range()). Almost calls of vunmap(), unmap_kernel_range()
->> are from process context (as far as I could tell) except for an ACPI
->> driver (drivers/acpi/apei/ghes.c) calls unmap_kernel_range_noflush()
->> from an interrupt and NMI contexts.
->>
->> Can you advise on a preferred solution?
->>
->> For example, an unmap_kernel_page() function (callable from atomic
->> context) could be provided since the GHES driver only maps/unmaps a
->> single page.
->>
->> 8<-------------------------
->> mm/vmalloc: avoid soft lockup warnings when vunmap()'ing large ranges
->>
->> From: David Vrabel <david.vrabel@citrix.com>
->>
->> If vunmap() is used to unmap a large (e.g., 50 GB) region, it may take
->> sufficiently long that it triggers soft lockup warnings.
->>
->> Add a cond_resched() into vunmap_pmd_range() so the calling task may
->> be resheduled after unmapping each PMD entry.  This is how
->> zap_pmd_range() fixes the same problem for userspace mappings.
->>
->> ...
->>
->> --- a/mm/vmalloc.c
->> +++ b/mm/vmalloc.c
->> @@ -75,6 +75,7 @@ static void vunmap_pmd_range(pud_t *pud, unsigned long
->> addr, unsigned long end)
->>  		if (pmd_none_or_clear_bad(pmd))
->>  			continue;
->>  		vunmap_pte_range(pmd, addr, next);
->> +		cond_resched();
->>  	} while (pmd++, addr = next, addr != end);
->>  }
-> 
-> Well that's ugly.
-> 
-> We could redo unmap_kernel_range() so it takes an `atomic' flag then
-> loops around unmapping N MB at a time, doing
-> 
-> 	if (!atomic)
-> 		cond_resched()
-> 
-> each time.  But that would require difficult tuning of N.
-> 
-> I suppose we could just do
-> 
-> 	if (!in_interrupt())
-> 		cond_resched();
-> 
-> in vunmap_pmd_range(), but that's pretty specific to ghes.c and doesn't
-> permit unmap-inside-spinlock.
-> 
-> So I can't immediately think of a suitable fix apart from adding a new
-> unmap_kernel_range_atomic().  Then add a `bool atomic' arg to
-> vunmap_page_range() and pass that all the way down.
+(Slightly rephrased from a bug report submitted by Stuart Hayes)
 
-That would work for the unmap, but looking at the GHES driver some more
-and it looks like it's call to ioremap_page_range() is already unsafe --
-it may need to allocate a new PTE page with a non-atomic alloc in
-pte_alloc_one_kernel().
+The purpose of the acpi_pad driver is to implement the "processor power
+aggregator" device as described in the ACPI 4.0 spec section 8.5. It
+takes requests from the BIOS (via ACPI) to put a specified number of
+CPUs into idle, in order to save power, until further notice.
 
-Perhaps what's needed here is a pair of ioremap_page_atomic() and
-iounmap_page_atomic() calls?  With some prep function to sure the PTE
-pages (etc.) are preallocated.
+It does this by creating high-priority threads that try to keep the CPUs
+in a high C-state (using the monitor/mwait CPU instructions). The
+mwait() call is in a loop that checks periodically if the thread should
+end and a few other things.
 
-David
+It was discovered through testing that the power_saving threads were
+causing the system to consume more power than the system was consuming
+before the threads were created. A counter in the main loop of
+power_saving_thread() revealed that it was spinning. The mwait()
+instruction was not keeping the CPU in a high C state very much if at
+all.
+
+Here is a simplification of the loop in function power_saving_thread() in
+drivers/acpi/acpi_pad.c
+
+    while (!kthread_should_stop()) {
+         :
+        try_to_freeze()
+         :
+        while (!need_resched()) {
+             :
+            if (!need_resched())
+                __mwait(power_saving_mwait_eax, 1);
+             :
+            if (jiffies > expire_time) {
+                do_sleep = 1;
+                break;
+            }
+        }
+    }
+
+If need_resched() returns true, then mwait() is not called. It was
+returning true because of things like timer interrupts, as in the
+following sequence.
+
+hrtimer_interrupt->__run_hrtimer->tick_sched_timer-> update_process_times->
+rcu_check_callbacks->rcu_pending->__rcu_pending->set_need_resched
+
+Kernels 3.5.0-rc2+ do not exhibit this problem, because a patch to
+try_to_freeze() in include/linux/freezer.h introduces a call to
+might_sleep(), which ultimately calls schedule() to clear the reschedule
+flag and allows the the loop to execute the call to mwait().
+
+However, the changes to try_to_freeze are unrelated to acpi_pad, and it
+does not seem like a good idea to rely on an unrelated patch in a
+function that could later be changed and reintroduce this bug.
+
+Therefore, it seems better to make an explicit call to schedule() in the
+outer loop when the need_resched flag is set.
+
+Reported-by: Stuart Hayes <stuart_hayes@dell.com>
+Tested-by: Stuart Hayes <stuart_hayes@dell.com>
+Signed-off-by: Tony Camuso <tcamuso@redhat.com>
+---
+ drivers/acpi/acpi_pad.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+index fc6008f..2c67e59 100644
+--- a/drivers/acpi/acpi_pad.c
++++ b/drivers/acpi/acpi_pad.c
+@@ -219,8 +219,15 @@ static int power_saving_thread(void *data)
+ 		 * borrow CPU time from this CPU and cause RT task use > 95%
+ 		 * CPU time. To make 'avoid starvation' work, takes a nap here.
+ 		 */
+-		if (do_sleep)
++		if (unlikely(do_sleep))
+ 			schedule_timeout_killable(HZ * idle_pct / 100);
++
++		/* If an external event has set the need_resched flag, then
++		 * we need to deal with it, or this loop will continue to
++		 * spin without calling __mwait().
++		 */
++		if (unlikely(need_resched()))
++			schedule();
+ 	}
+ 
+ 	exit_round_robin(tsk_index);
+-- 
+1.7.1
+
