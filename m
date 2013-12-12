@@ -1,45 +1,75 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] gpio / ACPI: return -ENOENT when no mapping exists
-Date: Thu, 12 Dec 2013 02:39:13 +0100
-Message-ID: <1818897.EILY1COPGZ@vostro.rjw.lan>
-References: <1386669627-31365-1-git-send-email-mika.westerberg@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1386669627-31365-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alex Courbot <acourbot@nvidia.com>, linux-gpio@vger.kernel.org, Mathias Nyman <mathias.nyman@linux.intel.com>, linux-acpi@vger.kernel.org
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH V2] ACPI/Button: Fix enable Button GPEs twice
+Date: Thu, 12 Dec 2013 18:08:17 +0800
+Message-ID: <1386842897-7954-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:37252 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751120Ab3LLKI1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Dec 2013 05:08:27 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, rjw@rjwysocki.net
+Cc: Lan Tianyu <tianyu.lan@intel.com>, aaron.lu@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, December 10, 2013 12:00:27 PM Mika Westerberg wrote:
-> Doing this allows drivers to distinguish between a real error case (if
-> there was an error when we tried to resolve the GPIO) and when the optional
-> GPIO line was not available.
-> 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Button GPEs have been enabled in the acpi_wake_device_init() during
+boot and Button driver enables these GPEs second time. This causes
+disabling these gpes via sysfs interface requires twice "echo disable
+> /sys/firmware/acpi/interrupts/gpeXXX". This patch is to remove
+related code in the Button driver.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+Change since V1:
+	Remove wakeup_enabled flag and disable gpe operation
+in the acpi_button_remove().
 
-> ---
->  drivers/gpio/gpiolib-acpi.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> index 8506e4ce41f7..716ee9843110 100644
-> --- a/drivers/gpio/gpiolib-acpi.c
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> @@ -307,7 +307,7 @@ struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
->  	if (lookup.desc && info)
->  		*info = lookup.info;
->  
-> -	return lookup.desc ? lookup.desc : ERR_PTR(-ENODEV);
-> +	return lookup.desc ? lookup.desc : ERR_PTR(-ENOENT);
->  }
->  
->  void acpi_gpiochip_add(struct gpio_chip *chip)
-> 
+ drivers/acpi/button.c | 18 ------------------
+ 1 file changed, 18 deletions(-)
+
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 9e3a6cb..11c11f6 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -100,7 +100,6 @@ struct acpi_button {
+ 	struct input_dev *input;
+ 	char phys[32];			/* for input device */
+ 	unsigned long pushed;
+-	bool wakeup_enabled;
+ };
+ 
+ static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
+@@ -406,16 +405,6 @@ static int acpi_button_add(struct acpi_device *device)
+ 		lid_device = device;
+ 	}
+ 
+-	if (device->wakeup.flags.valid) {
+-		/* Button's GPE is run-wake GPE */
+-		acpi_enable_gpe(device->wakeup.gpe_device,
+-				device->wakeup.gpe_number);
+-		if (!device_may_wakeup(&device->dev)) {
+-			device_set_wakeup_enable(&device->dev, true);
+-			button->wakeup_enabled = true;
+-		}
+-	}
+-
+ 	printk(KERN_INFO PREFIX "%s [%s]\n", name, acpi_device_bid(device));
+ 	return 0;
+ 
+@@ -432,13 +421,6 @@ static int acpi_button_remove(struct acpi_device *device)
+ {
+ 	struct acpi_button *button = acpi_driver_data(device);
+ 
+-	if (device->wakeup.flags.valid) {
+-		acpi_disable_gpe(device->wakeup.gpe_device,
+-				device->wakeup.gpe_number);
+-		if (button->wakeup_enabled)
+-			device_set_wakeup_enable(&device->dev, false);
+-	}
+-
+ 	acpi_button_remove_fs(device);
+ 	input_unregister_device(button->input);
+ 	kfree(button);
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.8.2.1
+
