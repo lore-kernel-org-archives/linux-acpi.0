@@ -1,132 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 7/10] ACPI / hotplug: Move container-specific code out of the core
-Date: Sat, 14 Dec 2013 06:07:06 +0100
-Message-ID: <3111545.W6MaeKuZVj@vostro.rjw.lan>
-References: <1421028.Rsfpmhnym3@vostro.rjw.lan> <4217831.DpCd0ng0jT@vostro.rjw.lan> <52AA986C.7050305@jp.fujitsu.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: vunmap() on large regions may trigger soft lockup warnings
+Date: Sat, 14 Dec 2013 00:32:08 -0800
+Message-ID: <20131214003208.f99bc37c.akpm@linux-foundation.org>
+References: <52A899AB.3010506@citrix.com>
+	<20131211133917.dd10cb2c4360dba65d8e6ce2@linux-foundation.org>
+	<52A9B127.9010501@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54724 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751962Ab3LNEx4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Dec 2013 23:53:56 -0500
-In-Reply-To: <52AA986C.7050305@jp.fujitsu.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55957 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751979Ab3LNIai (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Dec 2013 03:30:38 -0500
+In-Reply-To: <52A9B127.9010501@citrix.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Lv Zheng <lv.zheng@intel.com>
+To: David Vrabel <david.vrabel@citrix.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, xen-devel <xen-devel@lists.xenproject.org>, Dietmar Hahn <dietmar.hahn@ts.fujitsu.com>
 
-On Friday, December 13, 2013 02:17:32 PM Yasuaki Ishimatsu wrote:
-> (2013/12/13 13:56), Rafael J. Wysocki wrote:
-> > On Friday, December 13, 2013 11:56:32 AM Yasuaki Ishimatsu wrote:
-> >> Hi Rafael,
-> >
-> > Hi,
-> >
-> >> Please share your more detailed idea. I started to implement the following
-> >> idea. But the idea has one problem.
-> >>
-> >>>>> The eject work flow can be:
-> >>>>>      (1) an eject event occurs,
-> >>>>>      (2) the container "physical" device fails offline in acpi_scan_hot_remove()
-> >>>>>          emmitting, say, KOBJ_CHANGE for the "physical" device,
-> >>>>>      (3) user space notices the KOBJ_CHANGE and does the cleanup as needed,
-> >>>>>      (4) user space changes the "physical" container device flag controlling
-> >>>>>          offline to 0,
-> >>>>>      (5) user space uses the sysfs "eject" attribute of the ACPI container object
-> >>>>>          to finally eject the container,
-> >>>>>      (6) the offline in acpi_scan_hot_remove() is now successful, because the
-> >>>>>          flag controlling it has been set to 0 in step (4),
-> >>>>>      (7) the "physical" container device goes away before executing _EJ0,
-> >>>>>      (8) the container is ejected.
-> >>
-> >> I want to emit KOBJ_CHANGE before offlining devices on container device at (2).
-> >> But acpi_scan_hot_remove() offlines devices on container device at first.
-> >> So when offline container device, devices on container has been offlined.
-> >>
-> >> Thus the idea cannot fulfill my necessary feature.
-> >
-> > Well, in that case we need to treat containers in a special way at the ACPI
-> > level.  Which is a bit unfortunate so to speak.
-> >
-> > To that end I'd try to add a new flag to struct acpi_hotplug_profile, say
-> > .verify_offline, such that if set, it would cause acpi_scan_hot_remove() to
-> > check if all of the "physical" companions of the top-level device are offline
-> > to start with, and if not, it would just emit KOBJ_CHANGE for the companions
-> > that are not offline and bail out.
-> >
-> > So the above algorithm would become:
-> >
-> > (1) an eject event occurs,
-> > (2) acpi_scan_hot_remove() checks the verify_offline flag in the target device's
-> >      scan_handler structure,
-> > (3) if set (it would always be set for containers), acpi_scan_hot_remove()
-> >      checks the status of the target device's "physical" companions; if at least
-> >      one of them is offline, KOBJ_CHANGE is emitted for that "physical" device,
-> >      and acpi_scan_hot_remove() returns, [I guess we can just emit KOBJ_CHANGE
-> >      for the first companion that is not offline at this point.]
-> > (4) user space notices the KOBJ_CHANGE and does the cleanup as needed; in the
-> >      process it carries out the offline operation for the container's "physical"
-> >      companion (there's only one such companion for each container), [That
-> >      operation for the container itself is trivial, but to succeed it requires
-> >      all devices below the container to be taken offline in advance.]
-> > (5) user space uses the sysfs "eject" attribute of the ACPI container object
-> >      to finally eject the container,
-> > (6) acpi_scan_hot_remove() is now successful, because the container's "physical"
-> >      companion is now offline,
-> > (7) the "physical" container device goes away before executing _EJ0,
-> > (8) the container is ejected.
-> >
-> > I think that should work for you.
+On Thu, 12 Dec 2013 12:50:47 +0000 David Vrabel <david.vrabel@citrix.com> wrote:
+
+> > each time.  But that would require difficult tuning of N.
+> > 
+> > I suppose we could just do
+> > 
+> > 	if (!in_interrupt())
+> > 		cond_resched();
+> > 
+> > in vunmap_pmd_range(), but that's pretty specific to ghes.c and doesn't
+> > permit unmap-inside-spinlock.
+> > 
+> > So I can't immediately think of a suitable fix apart from adding a new
+> > unmap_kernel_range_atomic().  Then add a `bool atomic' arg to
+> > vunmap_page_range() and pass that all the way down.
 > 
-> This idea seems to same as your previous work.
-> http://lkml.org/lkml/2013/2/23/97
-
-No, it is not.  That one didn't involve physical device representations.
-
-> How about add autoremove flag into acpi_hotplug_profile and check it as follow:
-
-This is very similar to "enable" except that it generates the uevent and
-"enable" doesn't.  You might as well modify "enable" to trigger a uevent if
-eject is not enabled (note that with the latest patches in linux-next "enable"
-only applies to eject).
-
-That said I don't think we should generate any uevents for struct acpi_device
-objects, because they are not devices.
-
-> ---
->   drivers/acpi/scan.c | 5 +++++
->   1 file changed, 5 insertions(+)
+> That would work for the unmap, but looking at the GHES driver some more
+> and it looks like it's call to ioremap_page_range() is already unsafe --
+> it may need to allocate a new PTE page with a non-atomic alloc in
+> pte_alloc_one_kernel().
 > 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 5383c81..c43d110 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -409,6 +409,11 @@ static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *data)
->   			ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
->   			goto err_out;
->   		}
-> +		if (!handler->hotplug.autoremove) {
-> +			kobject_uevent(&device->dev.kobj, KOBJ_CHANGE);
-> +			ost_code = ACPI_OST_SC_EJECT_NON_SPECIFIC_FAILURE;
-> +			goto err_out;
-> +		}
->   		acpi_evaluate_hotplug_ost(handle, ACPI_NOTIFY_EJECT_REQUEST,
->   					  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
->   		break;
-> 
-> Adding the check into "acpi_hotplug_notify_cb()", user need not change the
-> flag for removing container device by "sysfs eject".
+> Perhaps what's needed here is a pair of ioremap_page_atomic() and
+> iounmap_page_atomic() calls?  With some prep function to sure the PTE
+> pages (etc.) are preallocated.
 
-Which is utterly confusing.  There is no reason whatsoever why the sysfs eject
-attribute should work differently from the event-triggered eject.  Quite the
-opposite is the case: it should work in the same way in my opinion so that it
-is possible to test the eject code path using that attribute.
+Is ghes.c the only problem source here?  If so then a suitable solution
+would be to declare that driver hopelessly busted and proceed as if it
+didn't exist :(
 
-I'm traveling now, but when I get back home (next week), I'll try to implement
-the thing I was talking about above.
-
-Thanks,
-Rafael
+Just from a quick look, the thing is doing ioremap() from NMI context! 
+ioremap has to do a bunch of memory allocations, takes spinlocks etc.
 
