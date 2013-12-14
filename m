@@ -1,179 +1,132 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] PCI AER: Handle non-AER HEST error sources in
- aer_hest_parse()
-Date: Fri, 13 Dec 2013 16:06:57 -0700
-Message-ID: <20131213230657.GD6746@google.com>
-References: <1386948196-9409-1-git-send-email-betty.dall@hp.com>
- <20131213221616.GC6746@google.com>
- <1386974853.10497.64.camel@ejdallLaptop>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 7/10] ACPI / hotplug: Move container-specific code out of the core
+Date: Sat, 14 Dec 2013 06:07:06 +0100
+Message-ID: <3111545.W6MaeKuZVj@vostro.rjw.lan>
+References: <1421028.Rsfpmhnym3@vostro.rjw.lan> <4217831.DpCd0ng0jT@vostro.rjw.lan> <52AA986C.7050305@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1386974853.10497.64.camel@ejdallLaptop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Betty Dall <betty.dall@hp.com>
-Cc: lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:54724 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751962Ab3LNEx4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Dec 2013 23:53:56 -0500
+In-Reply-To: <52AA986C.7050305@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-On Fri, Dec 13, 2013 at 03:47:33PM -0700, Betty Dall wrote:
-> Yes, that is more readable code. Thanks for revising it. I tested it on
-> my system that has non-AER error sources and it works fine. One nit is
-> that "Ignore" is misspelled in the subject line. 
+On Friday, December 13, 2013 02:17:32 PM Yasuaki Ishimatsu wrote:
+> (2013/12/13 13:56), Rafael J. Wysocki wrote:
+> > On Friday, December 13, 2013 11:56:32 AM Yasuaki Ishimatsu wrote:
+> >> Hi Rafael,
+> >
+> > Hi,
+> >
+> >> Please share your more detailed idea. I started to implement the following
+> >> idea. But the idea has one problem.
+> >>
+> >>>>> The eject work flow can be:
+> >>>>>      (1) an eject event occurs,
+> >>>>>      (2) the container "physical" device fails offline in acpi_scan_hot_remove()
+> >>>>>          emmitting, say, KOBJ_CHANGE for the "physical" device,
+> >>>>>      (3) user space notices the KOBJ_CHANGE and does the cleanup as needed,
+> >>>>>      (4) user space changes the "physical" container device flag controlling
+> >>>>>          offline to 0,
+> >>>>>      (5) user space uses the sysfs "eject" attribute of the ACPI container object
+> >>>>>          to finally eject the container,
+> >>>>>      (6) the offline in acpi_scan_hot_remove() is now successful, because the
+> >>>>>          flag controlling it has been set to 0 in step (4),
+> >>>>>      (7) the "physical" container device goes away before executing _EJ0,
+> >>>>>      (8) the container is ejected.
+> >>
+> >> I want to emit KOBJ_CHANGE before offlining devices on container device at (2).
+> >> But acpi_scan_hot_remove() offlines devices on container device at first.
+> >> So when offline container device, devices on container has been offlined.
+> >>
+> >> Thus the idea cannot fulfill my necessary feature.
+> >
+> > Well, in that case we need to treat containers in a special way at the ACPI
+> > level.  Which is a bit unfortunate so to speak.
+> >
+> > To that end I'd try to add a new flag to struct acpi_hotplug_profile, say
+> > .verify_offline, such that if set, it would cause acpi_scan_hot_remove() to
+> > check if all of the "physical" companions of the top-level device are offline
+> > to start with, and if not, it would just emit KOBJ_CHANGE for the companions
+> > that are not offline and bail out.
+> >
+> > So the above algorithm would become:
+> >
+> > (1) an eject event occurs,
+> > (2) acpi_scan_hot_remove() checks the verify_offline flag in the target device's
+> >      scan_handler structure,
+> > (3) if set (it would always be set for containers), acpi_scan_hot_remove()
+> >      checks the status of the target device's "physical" companions; if at least
+> >      one of them is offline, KOBJ_CHANGE is emitted for that "physical" device,
+> >      and acpi_scan_hot_remove() returns, [I guess we can just emit KOBJ_CHANGE
+> >      for the first companion that is not offline at this point.]
+> > (4) user space notices the KOBJ_CHANGE and does the cleanup as needed; in the
+> >      process it carries out the offline operation for the container's "physical"
+> >      companion (there's only one such companion for each container), [That
+> >      operation for the container itself is trivial, but to succeed it requires
+> >      all devices below the container to be taken offline in advance.]
+> > (5) user space uses the sysfs "eject" attribute of the ACPI container object
+> >      to finally eject the container,
+> > (6) acpi_scan_hot_remove() is now successful, because the container's "physical"
+> >      companion is now offline,
+> > (7) the "physical" container device goes away before executing _EJ0,
+> > (8) the container is ejected.
+> >
+> > I think that should work for you.
+> 
+> This idea seems to same as your previous work.
+> http://lkml.org/lkml/2013/2/23/97
 
-Thanks, fixed.
+No, it is not.  That one didn't involve physical device representations.
 
-I should have thought longer before hitting send.  I think it's worthwhile
-to use the same helper in aer_hest_parse_aff(), and once I did that, it
-became more obvious that aer_hest_parse() and aer_hest_parse_aff() are
-essentially similar, so I wonder if it's worth consolidating them, as
-below.  It doesn't reduce the number of lines of code, but maybe it's
-simpler for the reader?
+> How about add autoremove flag into acpi_hotplug_profile and check it as follow:
 
-Bjorn
+This is very similar to "enable" except that it generates the uevent and
+"enable" doesn't.  You might as well modify "enable" to trigger a uevent if
+eject is not enabled (note that with the latest patches in linux-next "enable"
+only applies to eject).
 
-commit 8e7f8d0b30d4e3e30007b10eb2916d970b5f8c93
-Author: Betty Dall <betty.dall@hp.com>
-Date:   Fri Dec 13 08:23:16 2013 -0700
+That said I don't think we should generate any uevents for struct acpi_device
+objects, because they are not devices.
 
-    PCI/AER: Ignore non-PCIe AER error sources in aer_hest_parse()
-    
-    aer_set_firmware_first() searches the HEST for an error source descriptor
-    matching the specified PCI device.  It uses the apei_hest_parse() iterator
-    to call aer_hest_parse() for every descriptor in the HEST.
-    
-    Previously, aer_hest_parse() incorrectly assumed every descriptor was for a
-    PCIe error source.  This patch adds a check to avoid that error.
-    
-    [bhelgaas: factor check into helper, use in aer_hest_parse_aff(), changelog]
-    Signed-off-by: Betty Dall <betty.dall@hp.com>
-    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> ---
+>   drivers/acpi/scan.c | 5 +++++
+>   1 file changed, 5 insertions(+)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 5383c81..c43d110 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -409,6 +409,11 @@ static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *data)
+>   			ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+>   			goto err_out;
+>   		}
+> +		if (!handler->hotplug.autoremove) {
+> +			kobject_uevent(&device->dev.kobj, KOBJ_CHANGE);
+> +			ost_code = ACPI_OST_SC_EJECT_NON_SPECIFIC_FAILURE;
+> +			goto err_out;
+> +		}
+>   		acpi_evaluate_hotplug_ost(handle, ACPI_NOTIFY_EJECT_REQUEST,
+>   					  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+>   		break;
+> 
+> Adding the check into "acpi_hotplug_notify_cb()", user need not change the
+> flag for removing container device by "sysfs eject".
 
-diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
-index cf611ab2193a..a23995749f1d 100644
---- a/drivers/pci/pcie/aer/aerdrv_acpi.c
-+++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
-@@ -50,12 +50,24 @@ struct aer_hest_parse_info {
- 	int firmware_first;
- };
- 
-+static int hest_source_is_pcie_aer(struct acpi_hest_header *hest_hdr)
-+{
-+	if (hest_hdr->type == ACPI_HEST_TYPE_AER_ROOT_PORT ||
-+	    hest_hdr->type == ACPI_HEST_TYPE_AER_ENDPOINT ||
-+	    hest_hdr->type == ACPI_HEST_TYPE_AER_BRIDGE)
-+		return 1;
-+	return 0;
-+}
-+
- static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
- {
- 	struct aer_hest_parse_info *info = data;
- 	struct acpi_hest_aer_common *p;
- 	int ff;
- 
-+	if (!hest_source_is_pcie_aer(hest_hdr))
-+		return 0;
-+
- 	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
- 	ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
- 	if (p->flags & ACPI_HEST_GLOBAL) {
-@@ -104,15 +116,12 @@ static int aer_hest_parse_aff(struct acpi_hest_header *hest_hdr, void *data)
- 	if (aer_firmware_first)
- 		return 0;
- 
--	switch (hest_hdr->type) {
--	case ACPI_HEST_TYPE_AER_ROOT_PORT:
--	case ACPI_HEST_TYPE_AER_ENDPOINT:
--	case ACPI_HEST_TYPE_AER_BRIDGE:
--		p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
--		aer_firmware_first = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
--	default:
-+	if (!hest_source_is_pcie_aer(hest_hdr))
- 		return 0;
--	}
-+
-+	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
-+	aer_firmware_first = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
-+	return 0;
- }
- 
- /**
-commit 01600a1b034f93dab6f855c81626b8030b85aec0
-Author: Bjorn Helgaas <bhelgaas@google.com>
-Date:   Fri Dec 13 15:42:53 2013 -0700
+Which is utterly confusing.  There is no reason whatsoever why the sysfs eject
+attribute should work differently from the event-triggered eject.  Quite the
+opposite is the case: it should work in the same way in my opinion so that it
+is possible to test the eject code path using that attribute.
 
-    PCI/AER: Consolidate HEST error source parsers
-    
-    aer_hest_parse() and aer_hest_parse_aff() are almost identical.
-    We use aer_hest_parse() to check the ACPI_HEST_FIRMWARE_FIRST flag for a
-    specific device, and we use aer_hest_parse_aff() to check to see if any
-    device sets the flag.
-    
-    This drops aer_hest_parse_aff() and enhances aer_hest_parse() so it
-    collects the union of the ACPI_HEST_FIRMWARE_FIRST flag setting when no
-    specific device is supplied.
-    
-    No functional change.
-    
-    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+I'm traveling now, but when I get back home (next week), I'll try to implement
+the thing I was talking about above.
 
-diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
-index a23995749f1d..4d6991794fa2 100644
---- a/drivers/pci/pcie/aer/aerdrv_acpi.c
-+++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
-@@ -70,6 +70,17 @@ static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
- 
- 	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
- 	ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
-+
-+	/*
-+	 * If no specific device is supplied, determine whether
-+	 * FIRMWARE_FIRST is set for *any* PCIe device.
-+	 */
-+	if (!info->pci_dev) {
-+		info->firmware_first |= ff;
-+		return 0;
-+	}
-+
-+	/* Otherwise, check the specific device */
- 	if (p->flags & ACPI_HEST_GLOBAL) {
- 		if (hest_match_type(hest_hdr, info->pci_dev))
- 			info->firmware_first = ff;
-@@ -109,30 +120,20 @@ int pcie_aer_get_firmware_first(struct pci_dev *dev)
- 
- static bool aer_firmware_first;
- 
--static int aer_hest_parse_aff(struct acpi_hest_header *hest_hdr, void *data)
--{
--	struct acpi_hest_aer_common *p;
--
--	if (aer_firmware_first)
--		return 0;
--
--	if (!hest_source_is_pcie_aer(hest_hdr))
--		return 0;
--
--	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
--	aer_firmware_first = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
--	return 0;
--}
--
- /**
-  * aer_acpi_firmware_first - Check if APEI should control AER.
-  */
- bool aer_acpi_firmware_first(void)
- {
- 	static bool parsed = false;
-+	struct aer_hest_parse_info info = {
-+		.pci_dev	= NULL,	/* Check all PCIe devices */
-+		.firmware_first	= 0,
-+	};
- 
- 	if (!parsed) {
--		apei_hest_parse(aer_hest_parse_aff, NULL);
-+		apei_hest_parse(aer_hest_parse, &info);
-+		aer_firmware_first = info.firmware_first;
- 		parsed = true;
- 	}
- 	return aer_firmware_first;
+Thanks,
+Rafael
+
