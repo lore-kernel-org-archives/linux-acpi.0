@@ -1,63 +1,52 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: [PATCH] PNPACPI: check return value of pnp_add_device()
-Date: Sun, 15 Dec 2013 04:10:11 -0800
-Message-ID: <20131215121008.GA436@core.coreip.homeip.net>
+From: David Vrabel <david.vrabel@citrix.com>
+Subject: Re: vunmap() on large regions may trigger soft lockup warnings
+Date: Mon, 16 Dec 2013 12:56:13 +0000
+Message-ID: <52AEF86D.808@citrix.com>
+References: <52A899AB.3010506@citrix.com>	<20131211133917.dd10cb2c4360dba65d8e6ce2@linux-foundation.org>	<52A9B127.9010501@citrix.com> <20131214003208.f99bc37c.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:50918 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753984Ab3LOMKQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Dec 2013 07:10:16 -0500
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131214003208.f99bc37c.akpm@linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, xen-devel <xen-devel@lists.xenproject.org>, Dietmar Hahn <dietmar.hahn@ts.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-pnp_add_device() may fail so we need to handle errors and avoid leaking
-memory. Also, do not use ACPI-specific return codes (AE_OK) but rather
-standard one (0).
+On 14/12/13 08:32, Andrew Morton wrote:
+> On Thu, 12 Dec 2013 12:50:47 +0000 David Vrabel <david.vrabel@citrix.com> wrote:
+> 
+>>> each time.  But that would require difficult tuning of N.
+>>>
+>>> I suppose we could just do
+>>>
+>>> 	if (!in_interrupt())
+>>> 		cond_resched();
+>>>
+>>> in vunmap_pmd_range(), but that's pretty specific to ghes.c and doesn't
+>>> permit unmap-inside-spinlock.
+>>>
+>>> So I can't immediately think of a suitable fix apart from adding a new
+>>> unmap_kernel_range_atomic().  Then add a `bool atomic' arg to
+>>> vunmap_page_range() and pass that all the way down.
+>>
+>> That would work for the unmap, but looking at the GHES driver some more
+>> and it looks like it's call to ioremap_page_range() is already unsafe --
+>> it may need to allocate a new PTE page with a non-atomic alloc in
+>> pte_alloc_one_kernel().
+>>
+>> Perhaps what's needed here is a pair of ioremap_page_atomic() and
+>> iounmap_page_atomic() calls?  With some prep function to sure the PTE
+>> pages (etc.) are preallocated.
+> 
+> Is ghes.c the only problem source here?  If so then a suitable solution
+> would be to declare that driver hopelessly busted and proceed as if it
+> didn't exist :(
 
-Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
----
- drivers/pnp/pnpacpi/core.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+All the other callers do so from non-atomic context.  ghes.c is the only
+broken caller.
 
-diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index 14655a0..4bd4c54 100644
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -242,6 +242,7 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
- 	struct pnp_dev *dev;
- 	char *pnpid;
- 	struct acpi_hardware_id *id;
-+	int error;
- 
- 	/* Skip devices that are already bound */
- 	if (device->physical_node_count)
-@@ -300,10 +301,16 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
- 	/* clear out the damaged flags */
- 	if (!dev->active)
- 		pnp_init_resources(dev);
--	pnp_add_device(dev);
-+
-+	error = pnp_add_device(dev);
-+	if (error) {
-+		put_device(&dev->dev);
-+		return error;
-+	}
-+
- 	num++;
- 
--	return AE_OK;
-+	return 0;
- }
- 
- static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
--- 
-1.8.3.1
+Shall I resend or are you happy to take the patch off the first email in
+this thread?
 
-
--- 
-Dmitry
+David
