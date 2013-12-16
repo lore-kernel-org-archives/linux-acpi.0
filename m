@@ -1,52 +1,49 @@
-From: David Vrabel <david.vrabel@citrix.com>
-Subject: Re: vunmap() on large regions may trigger soft lockup warnings
-Date: Mon, 16 Dec 2013 12:56:13 +0000
-Message-ID: <52AEF86D.808@citrix.com>
-References: <52A899AB.3010506@citrix.com>	<20131211133917.dd10cb2c4360dba65d8e6ce2@linux-foundation.org>	<52A9B127.9010501@citrix.com> <20131214003208.f99bc37c.akpm@linux-foundation.org>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3] ACPI, APEI: Cleanup alignment related codes for APEI
+Date: Mon, 16 Dec 2013 15:19:06 +0100
+Message-ID: <20131216141906.GC4922@pd.tnic>
+References: <20131114122956.GE13376@pd.tnic>
+ <1384494356-4034-1-git-send-email-gong.chen@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131214003208.f99bc37c.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, xen-devel <xen-devel@lists.xenproject.org>, Dietmar Hahn <dietmar.hahn@ts.fujitsu.com>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:58657 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753685Ab3LPOTI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Dec 2013 09:19:08 -0500
+Content-Disposition: inline
+In-Reply-To: <1384494356-4034-1-git-send-email-gong.chen@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Chen, Gong" <gong.chen@linux.intel.com>
+Cc: tony.luck@intel.com, linux-acpi@vger.kernel.org
 
-On 14/12/13 08:32, Andrew Morton wrote:
-> On Thu, 12 Dec 2013 12:50:47 +0000 David Vrabel <david.vrabel@citrix.com> wrote:
-> 
->>> each time.  But that would require difficult tuning of N.
->>>
->>> I suppose we could just do
->>>
->>> 	if (!in_interrupt())
->>> 		cond_resched();
->>>
->>> in vunmap_pmd_range(), but that's pretty specific to ghes.c and doesn't
->>> permit unmap-inside-spinlock.
->>>
->>> So I can't immediately think of a suitable fix apart from adding a new
->>> unmap_kernel_range_atomic().  Then add a `bool atomic' arg to
->>> vunmap_page_range() and pass that all the way down.
->>
->> That would work for the unmap, but looking at the GHES driver some more
->> and it looks like it's call to ioremap_page_range() is already unsafe --
->> it may need to allocate a new PTE page with a non-atomic alloc in
->> pte_alloc_one_kernel().
->>
->> Perhaps what's needed here is a pair of ioremap_page_atomic() and
->> iounmap_page_atomic() calls?  With some prep function to sure the PTE
->> pages (etc.) are preallocated.
-> 
-> Is ghes.c the only problem source here?  If so then a suitable solution
-> would be to declare that driver hopelessly busted and proceed as if it
-> didn't exist :(
+On Fri, Nov 15, 2013 at 12:45:56AM -0500, Chen, Gong wrote:
+> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+> index 26311f2..bf30a12 100644
+> --- a/drivers/acpi/apei/erst.c
+> +++ b/drivers/acpi/apei/erst.c
+> @@ -611,7 +611,7 @@ static void __erst_record_id_cache_compact(void)
+>  		if (entries[i] == APEI_ERST_INVALID_RECORD_ID)
+>  			continue;
+>  		if (wpos != i)
+> -			memcpy(&entries[wpos], &entries[i], sizeof(entries[i]));
+> +			entries[wpos] = entries[i];
 
-All the other callers do so from non-atomic context.  ghes.c is the only
-broken caller.
+Why is it ok to drop the memcpy here and do a normal access?
 
-Shall I resend or are you happy to take the patch off the first email in
-this thread?
+__erst_record_id_cache_add_one still has a memcpy-like access.
 
-David
+What is the difference with all those accesses to erst_record_id_cache
+and why doesn't it need the unaligned helpers?
+
+This all needs to be explained in detail in the commit message.
+
+Thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
