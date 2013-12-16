@@ -1,75 +1,67 @@
-From: Graeme Gregory <graeme.gregory@linaro.org>
-Subject: Re: [Linaro-acpi] [RFC part1 PATCH 1/7] ACPI: Make ACPI core running
- without PCI on ARM64
-Date: Mon, 16 Dec 2013 20:51:33 +0000
-Message-ID: <20131216205133.GI5617@xora-haswell.xora.org.uk>
-References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
- <201312091735.05014.arnd@arndb.de>
- <20131209165548.GE19163@arm.com>
- <201312091820.23006.arnd@arndb.de>
- <20131209180155.GG19163@arm.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: vunmap() on large regions may trigger soft lockup warnings
+Date: Mon, 16 Dec 2013 14:57:17 -0800
+Message-ID: <20131216145717.f6e2bca5adc8730fad523fb2@linux-foundation.org>
+References: <52A899AB.3010506@citrix.com>
+	<20131211133917.dd10cb2c4360dba65d8e6ce2@linux-foundation.org>
+	<52A9B127.9010501@citrix.com>
+	<20131214003208.f99bc37c.akpm@linux-foundation.org>
+	<52AEF86D.808@citrix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131209180155.GG19163@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "patches@linaro.org" <patches@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46474 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750935Ab3LPW5T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Dec 2013 17:57:19 -0500
+In-Reply-To: <52AEF86D.808@citrix.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: David Vrabel <david.vrabel@citrix.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, xen-devel <xen-devel@lists.xenproject.org>, Dietmar Hahn <dietmar.hahn@ts.fujitsu.com>, Huang Ying <ying.huang@intel.com>, Mauro Carvalho Chehab <mchehab@redhat.com>
 
-On Mon, Dec 09, 2013 at 06:01:55PM +0000, Catalin Marinas wrote:
-> On Mon, Dec 09, 2013 at 05:20:22PM +0000, Arnd Bergmann wrote:
-> > On Monday 09 December 2013, Catalin Marinas wrote:
-> > > CONFIG_PCI does not exist on arm64 yet (we have some internal patches
-> > > but may not be ready to be posted before the holidays; they try to share
-> > > code with other archs, so more discussions before merging). We could add
-> > > CONFIG_PCI and some dummy functions on arm64 for development (not to be
-> > > upstreamed) or Hanjun could continue to use the current patch before we
-> > > get PCI working. In the order of priorities, we'll have to merge PCI
-> > > before ACPI anyway.
+On Mon, 16 Dec 2013 12:56:13 +0000 David Vrabel <david.vrabel@citrix.com> wrote:
+
+> On 14/12/13 08:32, Andrew Morton wrote:
+> > On Thu, 12 Dec 2013 12:50:47 +0000 David Vrabel <david.vrabel@citrix.com> wrote:
 > > 
-> > Well, lack of PCI support on ARM64 is a much better reason for accepting
-> > the patch than potential use on non-server platforms of course.
+> >>> each time.  But that would require difficult tuning of N.
+> >>>
+> >>> I suppose we could just do
+> >>>
+> >>> 	if (!in_interrupt())
+> >>> 		cond_resched();
+> >>>
+> >>> in vunmap_pmd_range(), but that's pretty specific to ghes.c and doesn't
+> >>> permit unmap-inside-spinlock.
+> >>>
+> >>> So I can't immediately think of a suitable fix apart from adding a new
+> >>> unmap_kernel_range_atomic().  Then add a `bool atomic' arg to
+> >>> vunmap_page_range() and pass that all the way down.
+> >>
+> >> That would work for the unmap, but looking at the GHES driver some more
+> >> and it looks like it's call to ioremap_page_range() is already unsafe --
+> >> it may need to allocate a new PTE page with a non-atomic alloc in
+> >> pte_alloc_one_kernel().
+> >>
+> >> Perhaps what's needed here is a pair of ioremap_page_atomic() and
+> >> iounmap_page_atomic() calls?  With some prep function to sure the PTE
+> >> pages (etc.) are preallocated.
+> > 
+> > Is ghes.c the only problem source here?  If so then a suitable solution
+> > would be to declare that driver hopelessly busted and proceed as if it
+> > didn't exist :(
 > 
-> As I said above about priorities, we are not in a hurry to merge ACPI
-> for arm64 before PCI is supported.
+> All the other callers do so from non-atomic context.  ghes.c is the only
+> broken caller.
 > 
-> > What is the status of the PCI work though? I suspect it won't be all
-> > that hard to add minimal PCI support for a simple mmconfig plus
-> > fixed I/O space based host of the kind that qemu can easily provide.
-> 
-> Liviu (ARM engineer) has been working on generalising the microblaze
-> code (which is very similar to powerpc) and enable it on arm64. The
-> patches will be posted soon (though may slip into the new year) but
-> there will be many discussions on how to do this best, so I don't expect
-> a quick merge.
-> 
-> In parallel, Will is looking at getting PCI to work with kvmtool and
-> that's something we could merge sooner (but again, in the new year).
-> 
-> > The hard part that we want to share code with other architectures is
-> > supporting pluggable host controllers, and I think we can defer that
-> > a bit.
-> 
-> Indeed, this would take time.
-> 
-Hi Catalin,
+> Shall I resend or are you happy to take the patch off the first email in
+> this thread?
 
-So the real question now is how do we progress with these ACPI patches? After
-repeated incorrect accusations of developing behind closed doors I am loath
-to dissapear back into linaro with them for another few months.
+Well first we should attempt to wake up the ghes maintainers and tell
+them we're about to break their stuff. (Which I believe is already broken).
 
-Also as Mark Brown has already pointed out the bigger the patchset gets
-while developed in Linaro trees the more strain it is going to put on
-maintainers for review.
+The fix won't be easy - presumably ghes will need to punt all its IRQ-
+and NMI_context operations up into kernel thread context.
 
-We have worked to try and keep the patchset as self contained as possible
-and to affect arch/arm64 in a minimal way. It should not affect it at all
-in the !CONFIG_ACPI case.
-
-Currently Hanjun is busy preparing a v2 PATCH series which contains amendments
-for all the technical issues found in review so far. Should we continue with
-this process until all the neccessary Acks are in place?
-
-Graeme
