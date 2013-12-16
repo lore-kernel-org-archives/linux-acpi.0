@@ -1,41 +1,75 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] PCI AER: Handle non-AER HEST error sources in aer_hest_parse()
-Date: Mon, 16 Dec 2013 12:12:14 -0700
-Message-ID: <CAErSpo4rDNkqXTDvwD3masQUgy9vTxG97dBXMnLYzTdpEM5b9A@mail.gmail.com>
-References: <1386948196-9409-1-git-send-email-betty.dall@hp.com>
- <20131213221616.GC6746@google.com> <1386974853.10497.64.camel@ejdallLaptop>
- <20131213230657.GD6746@google.com> <1387206956.8071.14.camel@ejdallLaptop>
+From: Graeme Gregory <graeme.gregory@linaro.org>
+Subject: Re: [Linaro-acpi] [RFC part1 PATCH 1/7] ACPI: Make ACPI core running
+ without PCI on ARM64
+Date: Mon, 16 Dec 2013 20:51:33 +0000
+Message-ID: <20131216205133.GI5617@xora-haswell.xora.org.uk>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
+ <201312091735.05014.arnd@arndb.de>
+ <20131209165548.GE19163@arm.com>
+ <201312091820.23006.arnd@arndb.de>
+ <20131209180155.GG19163@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1387206956.8071.14.camel@ejdallLaptop>
-Sender: linux-pci-owner@vger.kernel.org
-To: Betty Dall <betty.dall@hp.com>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131209180155.GG19163@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "patches@linaro.org" <patches@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 16, 2013 at 8:15 AM, Betty Dall <betty.dall@hp.com> wrote:
-> On Fri, 2013-12-13 at 16:06 -0700, Bjorn Helgaas wrote:
->
->> I should have thought longer before hitting send.  I think it's worthwhile
->> to use the same helper in aer_hest_parse_aff(), and once I did that, it
->> became more obvious that aer_hest_parse() and aer_hest_parse_aff() are
->> essentially similar, so I wonder if it's worth consolidating them, as
->> below.  It doesn't reduce the number of lines of code, but maybe it's
->> simpler for the reader?
->
->
-> Hi Bjorn,
->
-> That is a nice cleanup. I tested it on my firmware first system.
->
-> Also, I double checked back through the ACPI spec, and there are
-> FIRMWARE_FIRST flags in the IA-32 Architecture Machine Check Exception
-> and IA-32 Architecture Corrected Machine Check error sources too. These
-> functions we are changing are specifically looking just for the AER
-> error sources. That is correct because AER firmware first is separate
-> from MCE/CMC firmware first. So, this patch looks good.
+On Mon, Dec 09, 2013 at 06:01:55PM +0000, Catalin Marinas wrote:
+> On Mon, Dec 09, 2013 at 05:20:22PM +0000, Arnd Bergmann wrote:
+> > On Monday 09 December 2013, Catalin Marinas wrote:
+> > > CONFIG_PCI does not exist on arm64 yet (we have some internal patches
+> > > but may not be ready to be posted before the holidays; they try to share
+> > > code with other archs, so more discussions before merging). We could add
+> > > CONFIG_PCI and some dummy functions on arm64 for development (not to be
+> > > upstreamed) or Hanjun could continue to use the current patch before we
+> > > get PCI working. In the order of priorities, we'll have to merge PCI
+> > > before ACPI anyway.
+> > 
+> > Well, lack of PCI support on ARM64 is a much better reason for accepting
+> > the patch than potential use on non-server platforms of course.
+> 
+> As I said above about priorities, we are not in a hurry to merge ACPI
+> for arm64 before PCI is supported.
+> 
+> > What is the status of the PCI work though? I suspect it won't be all
+> > that hard to add minimal PCI support for a simple mmconfig plus
+> > fixed I/O space based host of the kind that qemu can easily provide.
+> 
+> Liviu (ARM engineer) has been working on generalising the microblaze
+> code (which is very similar to powerpc) and enable it on arm64. The
+> patches will be posted soon (though may slip into the new year) but
+> there will be many discussions on how to do this best, so I don't expect
+> a quick merge.
+> 
+> In parallel, Will is looking at getting PCI to work with kvmtool and
+> that's something we could merge sooner (but again, in the new year).
+> 
+> > The hard part that we want to share code with other architectures is
+> > supporting pluggable host controllers, and I think we can defer that
+> > a bit.
+> 
+> Indeed, this would take time.
+> 
+Hi Catalin,
 
-Thanks, I added your "Reviewed-by".
+So the real question now is how do we progress with these ACPI patches? After
+repeated incorrect accusations of developing behind closed doors I am loath
+to dissapear back into linaro with them for another few months.
 
-Bjorn
+Also as Mark Brown has already pointed out the bigger the patchset gets
+while developed in Linaro trees the more strain it is going to put on
+maintainers for review.
+
+We have worked to try and keep the patchset as self contained as possible
+and to affect arch/arm64 in a minimal way. It should not affect it at all
+in the !CONFIG_ACPI case.
+
+Currently Hanjun is busy preparing a v2 PATCH series which contains amendments
+for all the technical issues found in review so far. Should we continue with
+this process until all the neccessary Acks are in place?
+
+Graeme
