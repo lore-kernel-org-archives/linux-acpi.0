@@ -1,79 +1,80 @@
-From: al.stone@linaro.org
-Subject: [PATCH v4 5/5] ACPI: do not map/unmap memory regions for FADT entries
- in reduced HW mode
-Date: Mon, 16 Dec 2013 17:16:41 -0700
-Message-ID: <1387239401-13918-6-git-send-email-al.stone@linaro.org>
-References: <1387239401-13918-1-git-send-email-al.stone@linaro.org>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [PATCH v3] ACPI, APEI: Cleanup alignment related codes for APEI
+Date: Tue, 17 Dec 2013 00:34:52 -0500
+Message-ID: <20131217053451.GB11278@gchen.bj.intel.com>
+References: <20131114122956.GE13376@pd.tnic>
+ <1384494356-4034-1-git-send-email-gong.chen@linux.intel.com>
+ <20131216141906.GC4922@pd.tnic>
+ <20131216143934.GB8397@gchen.bj.intel.com>
+ <20131216175551.GD9683@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1387239401-13918-1-git-send-email-al.stone@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: patches@linaro.org, Al Stone <al.stone@linaro.org>, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="MfFXiAuoTsnnDAfZ"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:29216 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751118Ab3LQFxQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Dec 2013 00:53:16 -0500
+Content-Disposition: inline
+In-Reply-To: <20131216175551.GD9683@pd.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: tony.luck@intel.com, linux-acpi@vger.kernel.org
 
-From: Al Stone <al.stone@linaro.org>
 
-Several of the FADT fields are normally kept in specific memory
-regions.  Since these fields are to be ignored in hardware reduced
-ACPI mode, do not map those addresses when in that mode, and of
-course do not release the mappings that have not been made.
+--MfFXiAuoTsnnDAfZ
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The function acpi_os_initialize() could become a stub in the header
-file but is left here in case it can be of further use.
+On Mon, Dec 16, 2013 at 06:55:51PM +0100, Borislav Petkov wrote:
+> Date: Mon, 16 Dec 2013 18:55:51 +0100
+> From: Borislav Petkov <bp@alien8.de>
+> To: tony.luck@intel.com, linux-acpi@vger.kernel.org, "Chen, Gong"
+>  <gong.chen@linux.intel.com>
+> Subject: Re: [PATCH v3] ACPI, APEI: Cleanup alignment related codes for A=
+PEI
+> User-Agent: Mutt/1.5.21 (2010-09-15)
+>=20
+> On Mon, Dec 16, 2013 at 09:39:34AM -0500, Chen, Gong wrote:
+> > erst record id cache is implemented in the memory to increase the
+> > access speed via caching ERST content, so it doesn't matter with
+> > firmware access.
+>=20
+> So what's with the memcpy in __erst_record_id_cache_add_one()?
+>=20
+I think you mean
+=2E..
+                memcpy(new_entries, entries,
+                       erst_record_id_cache.len *
+                       sizeof(entries[0]));
+=2E..                      =20
 
-Signed-off-by: Al Stone <al.stone@linaro.org>
----
- drivers/acpi/osl.c | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+It is a copy from one integer array to another one(from old ID array
+to new bigger ID array), so I can't use a simple evaluation to get this goa=
+l.
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index c946a3a..7822821 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1778,10 +1778,12 @@ __setup("acpi_no_auto_ssdt", acpi_no_auto_ssdt_setup);
- 
- acpi_status __init acpi_os_initialize(void)
- {
--	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
--	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
--	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
--	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
-+	if (!acpi_gbl_reduced_hardware) {
-+		acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
-+		acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
-+		acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
-+		acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
-+	}
- 
- 	return AE_OK;
- }
-@@ -1806,10 +1808,12 @@ acpi_status acpi_os_terminate(void)
- 						 acpi_irq_handler);
- 	}
- 
--	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
--	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
--	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
--	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
-+	if (!acpi_gbl_reduced_hardware) {
-+		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
-+		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
-+		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
-+		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
-+	}
- 
- 	destroy_workqueue(kacpid_wq);
- 	destroy_workqueue(kacpi_notify_wq);
--- 
-1.8.3.1
+--MfFXiAuoTsnnDAfZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSr+J7AAoJEI01n1+kOSLHij8QAKpDQQtghPG0lzI4hlgYBFt9
+oNsC/713xdso4FcnlaVUuICU69M8Y0/nHXxy+0lR1ucNXBhYD5RlA6l+SjZOtZdr
+O2nq2jprjmkZ+o3Tkwh6eslHOtUG4+dAoVKHPsdNWGla0wMtQxgZSEqBhs+hW5Zn
+Y6AfLVRbtKPoICYcssma++J+m3isusYjrMEgd4xRUPyG8RbnzfmZSzO/5eVWk1IV
+WCGlEj7BnU0K6l1qDlz6Mg+UEDA9viBRmZg5oiNlbsuZsN288C0YDd437trOquMv
+Apz35P51lknJTgaSlXi9FBfUQ/wSajrc4kNOZ44yhhsSwaRizUSkfVZCT1Us2zuq
+3pHNsW2fBXsIglZuvJsfhbKai6CQMDauoY+c9thK0ZwCjgWk35WEFww/yfLcMRTz
+XAPBitQUNyS5+7s4Ica4g8AuBMHYsauzumZ1pvst2YiW0zk7nKxtaJ9BYi3B8bLV
+W9njOOrbe3w7Rx/gosANVR47ntJYRS8VFbhOErWp/CwaD3tAwCGHt7TVdCZxhik/
+JlXFyLoMOwRWArNTIfRG86QJ/ragHeBbCoC6yEqbXg00YpOjN4knQtNcHe1OhM1j
+/hjJ6zcC01sXtCpXosZOeUefdFcMY2AOccR50+S8mpv/HJRWSFTFgrMU9tQX4UEx
+aCSNgrqxDUGLUONl3fFs
+=Zp+U
+-----END PGP SIGNATURE-----
+
+--MfFXiAuoTsnnDAfZ--
