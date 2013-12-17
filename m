@@ -1,120 +1,105 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 0/5] hooking udev to SW_TABLET_MODE changes
-Date: Tue, 17 Dec 2013 17:16:30 -0200
-Message-ID: <20131217191630.GA32623@khazad-dum.debian.net>
-References: <1387234814-17716-1-git-send-email-carlosg@gnome.org>
- <20131217000332.GA10466@khazad-dum.debian.net>
- <1387282004.15078.59.camel@sacarino>
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: Re: [PATCH 05/11] drivers: acpi: Include appropriate header file in
+ utstate.c
+Date: Tue, 17 Dec 2013 12:25:18 -0800
+Message-ID: <20131217202518.GA17790@jtriplet-mobl1>
+References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com>
+ <c8f6f6fbcd7de593a726d091f5d0f6a245f6e0f7.1387271324.git.rashika.kheria@gmail.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37C7B99F5@ORSMSX103.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:43233 "EHLO
-	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750866Ab3LQTQe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Dec 2013 14:16:34 -0500
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:59698 "EHLO
+	relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484Ab3LQUZ2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Dec 2013 15:25:28 -0500
 Content-Disposition: inline
-In-Reply-To: <1387282004.15078.59.camel@sacarino>
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37C7B99F5@ORSMSX103.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Garnacho <carlosg@gnome.org>
-Cc: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Rashika Kheria <rashika.kheria@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Tue, 17 Dec 2013, Carlos Garnacho wrote:
-> On lun, 2013-12-16 at 22:03 -0200, Henrique de Moraes Holschuh wrote:
-> > On Tue, 17 Dec 2013, Carlos Garnacho wrote:
-> > > The following patches make it possible to have udev/userspace notified when
-> > > SW_TABLET_MODE changes on the switch device, without having to resort to
-> > > poll()/select() for such sparse events. I've got udev patches locally to
-> > > complement this.
-> > 
-> > I don't like this.  We moved away from uevents for this kind of stuff (in
-> > the general sense) because they, to put it lightly, are NOT appropriate for
-> > input-event-like events.
-> 
-> I would like to know... not appropriate how? I can understand this rule
+On Tue, Dec 17, 2013 at 05:35:46PM +0000, Moore, Robert wrote:
+> I'm not sure what version of ACPICA you are looking at, but in the ma=
+ster git tree for ACPICA, the file accommon.h includes "acutils.h".
 
-uevents are: heavy-weight, slow, the wrong layer for this stuff (we ended up
-mixing important device infrastructure topology/configuration change events
-(what it was designed to be used for) with misc user-interface events, thus
-making everything more brittle since userspace has to handle it all in the
-same place).  They are not power-management-friendly, not scalable as
-implemented, not filterable kernel-side, and not versioned.  uevents also
-have closer ties to internal kernel models than necessary for
-non-device-infrastructure related events (sysfs has it much worse, but
-still).
+This is the version in the latest git tree for the Linux kernel.
 
-All of those issues are much better addressed by the input events layer,
-which was designed from the ground up to better deal with moderate-frequency
-user-interface/input events.
+- Josh Triplett
 
-> applies for too often events, as some input devices can get quite
-> chatty, but the frequency of these uevents is tremendously low. FWIW,
-
-All you need to do is to spin the tablet/laptop/mobile device.  We once
-thought backlight change events would be low-frequency too, and it is
-causing real problems...
-
-I don't think it is wise to be one sucessfull game away ("spintron, the new
-game where you take a photo of something/someone and spin your tablet to do
-funny things to it") from that much pain.  So, you need to add
-rate-limiters, and since it *is* input events we're talking about, these are
-low-latency, state-preserving rate-limiters (which must emit the first and
-last events in a chain without much extra latency or it will feel sluggish
-to the user, must break long chains, and preserve the effects of supressed
-events).
-
-> there is precedence of uevents on input devices in the asus-laptop
-> module [1], where the accelerometer reports uevents on "coarse
-> orientation changes".
-
-That doesn't make it a good idea.
-
-> > Moving any sort of input event back to uevents is something I do NOT want to
-> > support, ever.  Any userspace that wants it for backwards compatibility can,
-> > and DOES synthesize uevents from input events.
-> 
-> I'm not proposing "moving back", but "complementing", the device still
-> has to be poked. The problem I see with awaiting for input events in
-> userspace in this case is that there is no good place to have this done.
-
-You'd just have to deploy a proper generic input event handler that could
-map any sort of native X, native Linux input events, or native Wayland input
-events to actions.  Indeed, if there is no such beast already, you'd need to
-add it.
-
-> My first attempt time ago was doing this in UPower, because it is
-> already in the business of reading input events, but it was deemed too
-> unrelated [2]. The next option is having a dedicated daemon, listening
-> for an event that's very probably not doing to happen at all during
-> uptime... sounds pretty wasteful to me.
-
-Well, a dedicated daemon IS the unix way, and it is only wasteful if you
-want it to be.  You could make it the xinetd of input events (probably with
-builtin actions that generate DBUS events and other up-to-date desktopish
-stuff), and it would be of general use (and rather useful at that, IMHO).
-
-Or you could make it a very specialized small utility where the entire bloat
-comes from the fact that it is linked to glibc, and it will have a very
-small RSS... there are several like that already, I believe.
-
-> > So, can you make a very strong case for this uevent?
-> 
-> Well, the above. I could add that the accelerometer uevent I pointed out
-> is put in use in udev and the GNOME stack, I think it makes sense to
-> give tablet-mode changes a similar treatment, so establishing policies
-> and whatnot is saner. And I think most of the userspace that's
-> interested in these events would want that too, with maybe exotic
-> exceptions.
-
-The big deal here is that, if we do that, we will basically have to live
-with it for a decade or more... and we already know uevents are not a very
-suitable event delivery system for low-frequency user-interface/input
-events, and it is utterly unsuitable for high-frequency events regardless of
-type (you need to compress/supress them into low-frequency events).
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+> > -----Original Message-----
+> > From: Rashika Kheria [mailto:rashika.kheria@gmail.com]
+> > Sent: Tuesday, December 17, 2013 1:22 AM
+> > To: linux-kernel@vger.kernel.org
+> > Cc: Moore, Robert; Zheng, Lv; Wysocki, Rafael J; Len Brown; linux-
+> > acpi@vger.kernel.org; josh@joshtriplett.org; devel@acpica.org
+> > Subject: [PATCH 05/11] drivers: acpi: Include appropriate header fi=
+le in
+> > utstate.c
+> >=20
+> > Include appropriate header file acutils.h in acpica/utstate.c becau=
+se
+> > function acpi_ut_create_pkg_state_and_push() has its prototype decl=
+aration
+> > in acutils.h. Also, encloses the function in acpica/utstate.c in if=
+def
+> > condition of ACPI_FUTURE_USAGE.
+> >=20
+> > This eliminates the following warning in utstate.c:
+> > drivers/acpi/acpica/utstate.c:64:1: warning: no previous prototype =
+for
+> > =E2=80=98acpi_ut_create_pkg_state_and_push=E2=80=99 [-Wmissing-prot=
+otypes]
+> >=20
+> > Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
+> > Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+> > ---
+> >  drivers/acpi/acpica/utstate.c |    3 +++
+> >  1 file changed, 3 insertions(+)
+> >=20
+> > diff --git a/drivers/acpi/acpica/utstate.c b/drivers/acpi/acpica/ut=
+state.c
+> > index 03c4c2f..0920d23 100644
+> > --- a/drivers/acpi/acpica/utstate.c
+> > +++ b/drivers/acpi/acpica/utstate.c
+> > @@ -43,6 +43,7 @@
+> >=20
+> >  #include <acpi/acpi.h>
+> >  #include "accommon.h"
+> > +#include "acutils.h"
+> >=20
+> >  #define _COMPONENT          ACPI_UTILITIES
+> >  ACPI_MODULE_NAME("utstate")
+> > @@ -60,6 +61,7 @@ ACPI_MODULE_NAME("utstate")
+> >   * DESCRIPTION: Create a new state and push it
+> >   *
+> >=20
+> > *******************************************************************=
+*******
+> > ****/
+> > +#ifdef  ACPI_FUTURE_USAGE
+> >  acpi_status
+> >  acpi_ut_create_pkg_state_and_push(void *internal_object,
+> >  				  void *external_object,
+> > @@ -79,6 +81,7 @@ acpi_ut_create_pkg_state_and_push(void *internal_=
+object,
+> >  	acpi_ut_push_generic_state(state_list, state);
+> >  	return (AE_OK);
+> >  }
+> > +#endif
+> >=20
+> >=20
+> > /******************************************************************=
+*******
+> > ******
+> >   *
+> > --
+> > 1.7.9.5
+>=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
