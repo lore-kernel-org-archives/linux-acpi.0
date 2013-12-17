@@ -1,44 +1,85 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 0/5] hooking udev to SW_TABLET_MODE changes
-Date: Mon, 16 Dec 2013 22:03:32 -0200
-Message-ID: <20131217000332.GA10466@khazad-dum.debian.net>
-References: <1387234814-17716-1-git-send-email-carlosg@gnome.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: al.stone@linaro.org
+Subject: [PATCH v4 0/5] Hardware Reduced Mode Cleanup for ACPI
+Date: Mon, 16 Dec 2013 17:16:36 -0700
+Message-ID: <1387239401-13918-1-git-send-email-al.stone@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:36133 "EHLO
-	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751093Ab3LQADf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Dec 2013 19:03:35 -0500
-Received: from compute1.internal (compute1.nyi.mail.srv.osa [10.202.2.41])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 3928720E62
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Dec 2013 19:03:35 -0500 (EST)
-Content-Disposition: inline
-In-Reply-To: <1387234814-17716-1-git-send-email-carlosg@gnome.org>
+Received: from mail-ie0-f176.google.com ([209.85.223.176]:64612 "EHLO
+	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751884Ab3LQAQv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Dec 2013 19:16:51 -0500
+Received: by mail-ie0-f176.google.com with SMTP id at1so7279436iec.7
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Dec 2013 16:16:50 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Garnacho <carlosg@gnome.org>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Al Stone <al.stone@linaro.org>
 
-On Tue, 17 Dec 2013, Carlos Garnacho wrote:
-> The following patches make it possible to have udev/userspace notified when
-> SW_TABLET_MODE changes on the switch device, without having to resort to
-> poll()/select() for such sparse events. I've got udev patches locally to
-> complement this.
+From: Al Stone <al.stone@linaro.org>
 
-I don't like this.  We moved away from uevents for this kind of stuff (in
-the general sense) because they, to put it lightly, are NOT appropriate for
-input-event-like events.
+This series of patches starts with Hanjun's patch to create a kernel
+config item for CONFIG_ACPI_REDUCED_HARDWARE [0].  Building on that, I
+then reviewed all of the code that touched any of several fields in the
+FADT that the OSPM is supposed to ignore when ACPI is in Hardware Reduced
+mode [1].  Any time there was a use of one of the fields to be ignored,
+I evaluated whether or not the code was implementing Hardware Reduced
+mode correctly.  Similarly, for each the flags in the FADT flags field
+that are to be ignored in Hardware Reduced mode, the kernel code was again
+scanned for proper usage.  The remainder of the patches are to fix all of
+the situations I could find where the kernel would not behave correctly
+in this ACPI mode.
 
-Moving any sort of input event back to uevents is something I do NOT want to
-support, ever.  Any userspace that wants it for backwards compatibility can,
-and DOES synthesize uevents from input events.
+These seem to work just fine on the RTSM model for ARMv7, both with and
+without ACPI enabled, and with and without ACPI_REDUCED_HARDWARE enabled;
+similarly for the FVP model for ARMv8.  The patches for ACPI on ARM
+hardware have been submitted elsewhere but they presume that reduced HW
+mode is functioning correctly.  In the meantime, there's no way I can think
+of to test all possible scenarios so feedback would be greatly appreciated.
 
-So, can you make a very strong case for this uevent?
+
+[0] List at https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI/AcpiReducedHw#Section_5:_ACPI_Software_Programming_Model
+[1] Please see the ACPI Specification v5.0 for details on Hardware Reduced
+    mode (sections 3.11.1, 4.1, 5.2.9, at a minimum).
+
+Changes for v4:
+   -- Given the current state of ACPICA, disable CONFIG_ACPI_REDUCED_HARDWARE
+      for use on anything other than ARM.
+   -- Replaced #ifdefs with run-time checking for hardware reduced mode,
+      whenever possible
+
+Changes for v3:
+   -- Modified enabling ACPI_REDUCED_HARDWARE in ACPICA when using
+      kernel config item CONFIG_ACPI_REDUCED_HARDWARE; now consistent
+      with ACPICA code base where needed
+   -- Enable X86 for CONFIG_ACPI_REDUCED_HARDWARE
+   -- Minimize bus master reload patching
+   -- Remove unneeded patch for dmi_check_system() (was 4/6)
+   -- Correct the patch for removing unneeded map/unmap of FADT fields
+
+Changes for v2:
+   -- Remove patch that was outside of reduced HW mode changes
+   -- Simplify CONFIG_ACPI_REDUCED_HARDWARE in Kconfig
+   -- Simplify use of CONFIG_ACPI_REDUCED_HARDWARE in #ifdefs
+   -- Ensure changelogs are present
+   -- Combine and simplify previous patches 8 & 10
+
+
+Al Stone (5):
+  ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE to enable this ACPI mode
+  ACPI: bus master reload not supported in reduced HW mode
+  ACPI: HW reduced mode does not allow use of the FADT sci_interrupt
+    field
+  ACPI: in HW reduced mode, using FADT PM information is not allowed.
+  ACPI: do not map/unmap memory regions for FADT entries in reduced HW
+    mode
+
+ drivers/acpi/Kconfig            |  8 ++++++++
+ drivers/acpi/bus.c              | 30 ++++++++++++++++--------------
+ drivers/acpi/osl.c              | 38 +++++++++++++++++++-------------------
+ drivers/acpi/pci_link.c         |  2 ++
+ drivers/acpi/processor_idle.c   | 14 ++++++++++++--
+ include/acpi/platform/aclinux.h |  6 ++++++
+ 6 files changed, 63 insertions(+), 35 deletions(-)
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.8.3.1
+
