@@ -1,42 +1,44 @@
-From: al.stone@linaro.org
-Subject: [PATCH] ACPI: explicitly initialize a value to silence compiler warning
-Date: Mon, 16 Dec 2013 17:01:37 -0700
-Message-ID: <1387238497-13788-1-git-send-email-al.stone@linaro.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 0/5] hooking udev to SW_TABLET_MODE changes
+Date: Mon, 16 Dec 2013 22:03:32 -0200
+Message-ID: <20131217000332.GA10466@khazad-dum.debian.net>
+References: <1387234814-17716-1-git-send-email-carlosg@gnome.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f177.google.com ([209.85.223.177]:40106 "EHLO
-	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751866Ab3LQABs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Dec 2013 19:01:48 -0500
-Received: by mail-ie0-f177.google.com with SMTP id tp5so7481428ieb.22
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Dec 2013 16:01:48 -0800 (PST)
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:36133 "EHLO
+	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751093Ab3LQADf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Dec 2013 19:03:35 -0500
+Received: from compute1.internal (compute1.nyi.mail.srv.osa [10.202.2.41])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 3928720E62
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Dec 2013 19:03:35 -0500 (EST)
+Content-Disposition: inline
+In-Reply-To: <1387234814-17716-1-git-send-email-carlosg@gnome.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Al Stone <al.stone@linaro.org>
+To: Carlos Garnacho <carlosg@gnome.org>
+Cc: linux-acpi@vger.kernel.org
 
-From: Al Stone <al.stone@linaro.org>
+On Tue, 17 Dec 2013, Carlos Garnacho wrote:
+> The following patches make it possible to have udev/userspace notified when
+> SW_TABLET_MODE changes on the switch device, without having to resort to
+> poll()/select() for such sparse events. I've got udev patches locally to
+> complement this.
 
-In acpi_processor_resume(), the variable resumed_bm_rld is being
-used without being initialized, so initialize it.
+I don't like this.  We moved away from uevents for this kind of stuff (in
+the general sense) because they, to put it lightly, are NOT appropriate for
+input-event-like events.
 
-Signed-off-by: Al Stone <al.stone@linaro.org>
----
- drivers/acpi/processor_idle.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Moving any sort of input event back to uevents is something I do NOT want to
+support, ever.  Any userspace that wants it for backwards compatibility can,
+and DOES synthesize uevents from input events.
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 597cdab..86d11a6 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -213,7 +213,7 @@ static int acpi_processor_suspend(void)
- 
- static void acpi_processor_resume(void)
- {
--	u32 resumed_bm_rld;
-+	u32 resumed_bm_rld = 0;
- 
- 	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &resumed_bm_rld);
- 	if (resumed_bm_rld == saved_bm_rld)
+So, can you make a very strong case for this uevent?
+
 -- 
-1.8.3.1
-
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
