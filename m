@@ -1,16 +1,17 @@
 From: Rashika Kheria <rashika.kheria@gmail.com>
-Subject: [PATCH 02/11] drivers: acpi: Include appropriate header file in nvs.c
-Date: Tue, 17 Dec 2013 14:45:00 +0530
-Message-ID: <1e397a06259f56042ec90d55fbf7423fc3bdca92.1387271324.git.rashika.kheria@gmail.com>
+Subject: [PATCH 03/11] drivers: acpi: Mark the function acpi_ec_add_debugfs()
+ as static in ec_sys.c
+Date: Tue, 17 Dec 2013 14:46:41 +0530
+Message-ID: <7969d5aae5d243a48c5b99f55e7bf2d172791672.1387271324.git.rashika.kheria@gmail.com>
 References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:42277 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433Ab3LQJPP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Dec 2013 04:15:15 -0500
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:33465 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751019Ab3LQJQu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Dec 2013 04:16:50 -0500
 Content-Disposition: inline
 In-Reply-To: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -18,38 +19,35 @@ List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, josh@joshtriplett.org
 
-Include header file internal.h in nvs.c because functions
-suspend_nvs_free(), suspend_nvs_alloc(), suspend_nvs_save() and
-suspend_nvs_restore() have their prototype declaration in internal.h.
+Mark the function acpi_ec_add_debugfs() as static in
+ec_sys.c because it is not used outside this file.
 
-This eliminates the following warnings in nvs.c:
-drivers/acpi/nvs.c:128:6: warning: no previous prototype for =E2=80=98s=
-uspend_nvs_free=E2=80=99 [-Wmissing-prototypes]
-drivers/acpi/nvs.c:152:5: warning: no previous prototype for =E2=80=98s=
-uspend_nvs_alloc=E2=80=99 [-Wmissing-prototypes]
-drivers/acpi/nvs.c:169:5: warning: no previous prototype for =E2=80=98s=
-uspend_nvs_save=E2=80=99 [-Wmissing-prototypes]
-drivers/acpi/nvs.c:201:6: warning: no previous prototype for =E2=80=98s=
-uspend_nvs_restore=E2=80=99 [-Wmissing-prototypes]
+This eliminates the following warning in ec_sys.c:
+drivers/acpi/ec_sys.c:108:5: warning: no previous prototype for =E2=80=98=
+acpi_ec_add_debugfs=E2=80=99 [-Wmissing-prototypes]
 
 Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
 Reviewed-by: Josh Triplett <josh@joshtriplett.org>
 ---
- drivers/acpi/nvs.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/ec_sys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nvs.c b/drivers/acpi/nvs.c
-index 386a9fe..5841914 100644
---- a/drivers/acpi/nvs.c
-+++ b/drivers/acpi/nvs.c
-@@ -13,6 +13,7 @@
- #include <linux/slab.h>
- #include <linux/acpi.h>
- #include <linux/acpi_io.h>
-+#include "internal.h"
+diff --git a/drivers/acpi/ec_sys.c b/drivers/acpi/ec_sys.c
+index 4e7b798..b4c216b 100644
+--- a/drivers/acpi/ec_sys.c
++++ b/drivers/acpi/ec_sys.c
+@@ -105,7 +105,7 @@ static const struct file_operations acpi_ec_io_ops =
+=3D {
+ 	.llseek =3D default_llseek,
+ };
 =20
- /* ACPI NVS regions, APEI may use it */
-=20
+-int acpi_ec_add_debugfs(struct acpi_ec *ec, unsigned int ec_device_cou=
+nt)
++static int acpi_ec_add_debugfs(struct acpi_ec *ec, unsigned int ec_dev=
+ice_count)
+ {
+ 	struct dentry *dev_dir;
+ 	char name[64];
 --=20
 1.7.9.5
 
