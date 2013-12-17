@@ -1,45 +1,42 @@
-From: Carlos Garnacho <carlosg@gnome.org>
-Subject: [PATCH 5/5] fujitsu-tablet: Send uevent when SW_TABLET_MODE changes
-Date: Tue, 17 Dec 2013 00:00:14 +0100
-Message-ID: <1387234814-17716-6-git-send-email-carlosg@gnome.org>
-References: <1387234814-17716-1-git-send-email-carlosg@gnome.org>
+From: al.stone@linaro.org
+Subject: [PATCH] ACPI: explicitly initialize a value to silence compiler warning
+Date: Mon, 16 Dec 2013 17:01:37 -0700
+Message-ID: <1387238497-13788-1-git-send-email-al.stone@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:59653 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752173Ab3LPW77 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Dec 2013 17:59:59 -0500
-Received: by mail-ea0-f182.google.com with SMTP id a15so2554071eae.13
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Dec 2013 14:59:58 -0800 (PST)
-Received: from sacarino.redhat.com (5ED2AFE7.cm-7-3c.dynamic.ziggo.nl. [94.210.175.231])
-        by mx.google.com with ESMTPSA id e3sm47458159eeg.11.2013.12.16.14.59.57
-        for <linux-acpi@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Mon, 16 Dec 2013 14:59:58 -0800 (PST)
-In-Reply-To: <1387234814-17716-1-git-send-email-carlosg@gnome.org>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:40106 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751866Ab3LQABs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Dec 2013 19:01:48 -0500
+Received: by mail-ie0-f177.google.com with SMTP id tp5so7481428ieb.22
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Dec 2013 16:01:48 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Al Stone <al.stone@linaro.org>
 
-This enables udev and userspace to react to those events without
-having to explicitly poll()/select() on the device.
+From: Al Stone <al.stone@linaro.org>
 
-Signed-off-by: Carlos Garnacho <carlosg@gnome.org>
+In acpi_processor_resume(), the variable resumed_bm_rld is being
+used without being initialized, so initialize it.
+
+Signed-off-by: Al Stone <al.stone@linaro.org>
 ---
- drivers/platform/x86/fujitsu-tablet.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/processor_idle.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/fujitsu-tablet.c b/drivers/platform/x86/fujitsu-tablet.c
-index 570926c..935fb4e 100644
---- a/drivers/platform/x86/fujitsu-tablet.c
-+++ b/drivers/platform/x86/fujitsu-tablet.c
-@@ -178,6 +178,7 @@ static void fujitsu_send_state(void)
- 	input_report_switch(fujitsu.idev, SW_DOCK, dock);
- 	input_report_switch(fujitsu.idev, SW_TABLET_MODE, tablet_mode);
- 	input_sync(fujitsu.idev);
-+	kobject_uevent(&fujitsu.idev->dev.kobj, KOBJ_CHANGE);
- }
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 597cdab..86d11a6 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -213,7 +213,7 @@ static int acpi_processor_suspend(void)
  
- static void fujitsu_reset(void)
+ static void acpi_processor_resume(void)
+ {
+-	u32 resumed_bm_rld;
++	u32 resumed_bm_rld = 0;
+ 
+ 	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &resumed_bm_rld);
+ 	if (resumed_bm_rld == saved_bm_rld)
 -- 
-1.8.5.1
+1.8.3.1
 
