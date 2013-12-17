@@ -1,79 +1,78 @@
-From: Rashika Kheria <rashika.kheria@gmail.com>
-Subject: [PATCH 11/11] drivers: acpi: Include header file in debugfs.c and
- rectify prototype declaration in internal.h
-Date: Tue, 17 Dec 2013 15:06:54 +0530
-Message-ID: <37de640470c91e2e54ab68a158e19dde3938f18a.1387271324.git.rashika.kheria@gmail.com>
-References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [Linaro-acpi] [RFC part1 PATCH 1/7] ACPI: Make ACPI core
+ running without PCI on ARM64
+Date: Tue, 17 Dec 2013 11:29:14 +0000
+Message-ID: <20131217112914.GB32118@arm.com>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
+ <201312091735.05014.arnd@arndb.de>
+ <20131209165548.GE19163@arm.com>
+ <201312091820.23006.arnd@arndb.de>
+ <20131209180155.GG19163@arm.com>
+ <20131216205133.GI5617@xora-haswell.xora.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:42736 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751696Ab3LQJhE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Dec 2013 04:37:04 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20131216205133.GI5617@xora-haswell.xora.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Graeme Gregory <graeme.gregory@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "patches@linaro.org" <patches@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, josh@joshtriplett.org
 
-Include header file internal.h in debugfs.c and change the return
-value's type in header file internal.h.
+Hi Graeme,
 
-This eliminates the following warning in debugfs.c:
-drivers/acpi/debugfs.c:16:13: warning: no previous prototype for =E2=80=
-=98acpi_debugfs_init=E2=80=99 [-Wmissing-prototypes]
+On Mon, Dec 16, 2013 at 08:51:33PM +0000, Graeme Gregory wrote:
+> So the real question now is how do we progress with these ACPI patches? After
+> repeated incorrect accusations of developing behind closed doors I am loath
+> to dissapear back into linaro with them for another few months.
 
-Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
----
- drivers/acpi/debugfs.c  |    3 +++
- drivers/acpi/internal.h |    2 +-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+Well, just follow the Linux community process, no need to disappear
+back. There was feedback that needs to be addressed, work on getting
+acks from maintainers. The first version has only been posted two weeks
+ago, I don't see any reason to panic ;).
 
-diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
-index b55d6a2..96bcaf7 100644
---- a/drivers/acpi/debugfs.c
-+++ b/drivers/acpi/debugfs.c
-@@ -6,6 +6,7 @@
- #include <linux/init.h>
- #include <linux/debugfs.h>
- #include <acpi/acpi_drivers.h>
-+#include "internal.h"
-=20
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("debugfs");
-@@ -13,7 +14,9 @@ ACPI_MODULE_NAME("debugfs");
- struct dentry *acpi_debugfs_dir;
- EXPORT_SYMBOL_GPL(acpi_debugfs_dir);
-=20
-+#ifdef  CONFIG_DEBUG_FS
- void __init acpi_debugfs_init(void)
- {
- 	acpi_debugfs_dir =3D debugfs_create_dir("acpi", NULL);
- }
-+#endif
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 8ef9787..c2e35bd 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -63,7 +63,7 @@ void acpi_scan_hotplug_enabled(struct acpi_hotplug_pr=
-ofile *hotplug, bool val);
-=20
- #ifdef CONFIG_DEBUG_FS
- extern struct dentry *acpi_debugfs_dir;
--int acpi_debugfs_init(void);
-+void acpi_debugfs_init(void);
- #else
- static inline void acpi_debugfs_init(void) { return; }
- #endif
---=20
-1.7.9.5
+> Also as Mark Brown has already pointed out the bigger the patchset gets
+> while developed in Linaro trees the more strain it is going to put on
+> maintainers for review.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, that's correct, so just gather maintainer's acks in smaller steps.
+
+> We have worked to try and keep the patchset as self contained as possible
+> and to affect arch/arm64 in a minimal way. It should not affect it at all
+> in the !CONFIG_ACPI case.
+
+And this is great, I really don't have any complaints here.
+
+> Currently Hanjun is busy preparing a v2 PATCH series which contains amendments
+> for all the technical issues found in review so far. Should we continue with
+> this process until all the neccessary Acks are in place?
+
+Reviews/acks is the first step and you are on the right track here. The
+following step would be upstreaming with good arguments on why and when
+the code needs to be merged. Code quality on its own is not an argument
+for merging. Backlog in Linaro's trees is not an argument either. You
+could of course start upstreaming clean-up code that is necessary
+whether you have ACPI on arm64 or not.
+
+So while waiting to debate the good arguments for when to merge the code
+(once reviewed), I have several concerns which I want addressed before
+enabling ACPI for arm64:
+
+- Does anyone have a wider view of how ACPI on ARM looks like? There is
+  a lot of effort going into the next version of ACPI but for now I
+  don't see how we can enable a feature and hope we sort it out later.
+- Who is coordinating the non-standard ACPI descriptors being pushed to
+  various drivers in the kernel? Do we trust the hw vendors to do the
+  right thing (and also talk to each other)?
+- What if two hw vendors have different descriptors for the same device?
+- Have we agreed what we do about clocks, voltage regulators?
+- Do we actually have a real platform which requires ACPI at this point?
+
+Just to be clear, I'm not against ACPI for arm64 and I am aware of
+hardware vendors requiring this. But I'm looking forward to them being
+more open and explain what (rather than why) they need because I don't
+think ACPI solves anything for the ARM kernel community. It's rather a
+favour we do to them and OS distros.
+
+-- 
+Catalin
