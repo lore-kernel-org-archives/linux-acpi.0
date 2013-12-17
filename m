@@ -1,80 +1,53 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [PATCH v3] ACPI, APEI: Cleanup alignment related codes for APEI
-Date: Tue, 17 Dec 2013 00:34:52 -0500
-Message-ID: <20131217053451.GB11278@gchen.bj.intel.com>
-References: <20131114122956.GE13376@pd.tnic>
- <1384494356-4034-1-git-send-email-gong.chen@linux.intel.com>
- <20131216141906.GC4922@pd.tnic>
- <20131216143934.GB8397@gchen.bj.intel.com>
- <20131216175551.GD9683@pd.tnic>
+From: Rashika Kheria <rashika.kheria@gmail.com>
+Subject: [PATCH 01/11] drivers: acpi: Mark the function acpi_table_checksum()
+ as static in osl.c
+Date: Tue, 17 Dec 2013 14:43:05 +0530
+Message-ID: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria__40642.1559550383$1387271637$gmane$org@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MfFXiAuoTsnnDAfZ"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:29216 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751118Ab3LQFxQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Dec 2013 00:53:16 -0500
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:57729 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750950Ab3LQJNT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Dec 2013 04:13:19 -0500
 Content-Disposition: inline
-In-Reply-To: <20131216175551.GD9683@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: tony.luck@intel.com, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, josh@joshtriplett.org
 
+Marks the function acpi_table_checksum() as static in osl.c
+because it is not used outside this file.
 
---MfFXiAuoTsnnDAfZ
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This eliminates the following warning in osl.c:
+drivers/acpi/osl.c:547:11: warning: no previous prototype for
+=E2=80=98acpi_table_checksum=E2=80=99 [-Wmissing-prototypes]
 
-On Mon, Dec 16, 2013 at 06:55:51PM +0100, Borislav Petkov wrote:
-> Date: Mon, 16 Dec 2013 18:55:51 +0100
-> From: Borislav Petkov <bp@alien8.de>
-> To: tony.luck@intel.com, linux-acpi@vger.kernel.org, "Chen, Gong"
->  <gong.chen@linux.intel.com>
-> Subject: Re: [PATCH v3] ACPI, APEI: Cleanup alignment related codes for A=
-PEI
-> User-Agent: Mutt/1.5.21 (2010-09-15)
->=20
-> On Mon, Dec 16, 2013 at 09:39:34AM -0500, Chen, Gong wrote:
-> > erst record id cache is implemented in the memory to increase the
-> > access speed via caching ERST content, so it doesn't matter with
-> > firmware access.
->=20
-> So what's with the memcpy in __erst_record_id_cache_add_one()?
->=20
-I think you mean
-=2E..
-                memcpy(new_entries, entries,
-                       erst_record_id_cache.len *
-                       sizeof(entries[0]));
-=2E..                      =20
+Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+---
+ drivers/acpi/osl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-It is a copy from one integer array to another one(from old ID array
-to new bigger ID array), so I can't use a simple evaluation to get this goa=
-l.
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 54a20ff..1f4c104 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -544,7 +544,7 @@ static u64 acpi_tables_addr;
+ static int all_tables_size;
+=20
+ /* Copied from acpica/tbutils.c:acpi_tb_checksum() */
+-u8 __init acpi_table_checksum(u8 *buffer, u32 length)
++static u8 __init acpi_table_checksum(u8 *buffer, u32 length)
+ {
+ 	u8 sum =3D 0;
+ 	u8 *end =3D buffer + length;
+--=20
+1.7.9.5
 
---MfFXiAuoTsnnDAfZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSr+J7AAoJEI01n1+kOSLHij8QAKpDQQtghPG0lzI4hlgYBFt9
-oNsC/713xdso4FcnlaVUuICU69M8Y0/nHXxy+0lR1ucNXBhYD5RlA6l+SjZOtZdr
-O2nq2jprjmkZ+o3Tkwh6eslHOtUG4+dAoVKHPsdNWGla0wMtQxgZSEqBhs+hW5Zn
-Y6AfLVRbtKPoICYcssma++J+m3isusYjrMEgd4xRUPyG8RbnzfmZSzO/5eVWk1IV
-WCGlEj7BnU0K6l1qDlz6Mg+UEDA9viBRmZg5oiNlbsuZsN288C0YDd437trOquMv
-Apz35P51lknJTgaSlXi9FBfUQ/wSajrc4kNOZ44yhhsSwaRizUSkfVZCT1Us2zuq
-3pHNsW2fBXsIglZuvJsfhbKai6CQMDauoY+c9thK0ZwCjgWk35WEFww/yfLcMRTz
-XAPBitQUNyS5+7s4Ica4g8AuBMHYsauzumZ1pvst2YiW0zk7nKxtaJ9BYi3B8bLV
-W9njOOrbe3w7Rx/gosANVR47ntJYRS8VFbhOErWp/CwaD3tAwCGHt7TVdCZxhik/
-JlXFyLoMOwRWArNTIfRG86QJ/ragHeBbCoC6yEqbXg00YpOjN4knQtNcHe1OhM1j
-/hjJ6zcC01sXtCpXosZOeUefdFcMY2AOccR50+S8mpv/HJRWSFTFgrMU9tQX4UEx
-aCSNgrqxDUGLUONl3fFs
-=Zp+U
------END PGP SIGNATURE-----
-
---MfFXiAuoTsnnDAfZ--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
