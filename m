@@ -1,67 +1,61 @@
-From: Josh Boyer <jwboyer@fedoraproject.org>
-Subject: Re: Removal of EXPORT_SYMBOL(acpi_os_wait_events_complete) in 3.13
-Date: Tue, 17 Dec 2013 12:07:35 -0500
-Message-ID: <CA+5PVA72hyt3uX8MSia2NWuxOdi4SdjvCu3=DuQCqkmEnQA7vg@mail.gmail.com>
-References: <CA+5PVA7Kj0UAsGs6TzrMYYhPhOyMKzb3Qn9FHh8fMrLDTwToog@mail.gmail.com>
-	<52B082E8.8070009@intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 05/11] drivers: acpi: Include appropriate header file in
+ utstate.c
+Date: Tue, 17 Dec 2013 17:35:46 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37C7B99F5@ORSMSX103.amr.corp.intel.com>
+References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com>
+ <c8f6f6fbcd7de593a726d091f5d0f6a245f6e0f7.1387271324.git.rashika.kheria@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:36211 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752452Ab3LQRHg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Dec 2013 12:07:36 -0500
-Received: by mail-oa0-f41.google.com with SMTP id j17so6960339oag.28
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Dec 2013 09:07:36 -0800 (PST)
-In-Reply-To: <52B082E8.8070009@intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:20837 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753453Ab3LQRt4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Dec 2013 12:49:56 -0500
+In-Reply-To: <c8f6f6fbcd7de593a726d091f5d0f6a245f6e0f7.1387271324.git.rashika.kheria@gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Rashika Kheria <rashika.kheria@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "josh@joshtriplett.org" <josh@joshtriplett.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Tue, Dec 17, 2013 at 11:59 AM, Rafael J. Wysocki
-<rafael.j.wysocki@intel.com> wrote:
-> On 12/12/2013 9:50 PM, Josh Boyer wrote:
->>
->> Hi Rafael,
->
->
-> Hi,
->
->
->> We had a user report[1] their nvidia driver failing to load on 3.13
->> because acpi_os_wait_events_complete is no longer exported.  They
->> believe it was in error and I told them to contact you.  Just in case
->> they don't bother to do that,
->
->
-> Well, they haven't so far. :-)
->
->
->>   I thought I'd send you a quick email
->> about it.  The commit in question is:
->>
->> commit 7b98118aaa5d75644c48f41fc5d0cc181e478383
->> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> Date:   Thu Nov 7 01:45:40 2013 +0100
->>
->>      ACPI / hotplug: Consolidate deferred execution of ACPI hotplug
->> routines
->>
->>
->> and it doesn't mention anything about unexporting that symbol in the
->> changelog.
->
->
-> It doesn't, but removing the export was intentional, because that export is
-> not needed for any in-the-tree modules any more.
->
-> In principle I can add the export back, but this function is supposed to be
-> an internal ACPI interface and the NVidia driver is abusing it quite openly,
-> so I'm not sure.  I guess I'll just send a patch for broader discussion.
-
-Eh.  If it was an intentional then I personally wouldn't bother to put
-it back just to satisfy an out-of-tree user.  Particularly one where
-you have no idea what they're using it for.
-
-josh
+SSdtIG5vdCBzdXJlIHdoYXQgdmVyc2lvbiBvZiBBQ1BJQ0EgeW91IGFyZSBsb29raW5nIGF0LCBi
+dXQgaW4gdGhlIG1hc3RlciBnaXQgdHJlZSBmb3IgQUNQSUNBLCB0aGUgZmlsZSBhY2NvbW1vbi5o
+IGluY2x1ZGVzICJhY3V0aWxzLmgiLg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+
+IEZyb206IFJhc2hpa2EgS2hlcmlhIFttYWlsdG86cmFzaGlrYS5raGVyaWFAZ21haWwuY29tXQ0K
+PiBTZW50OiBUdWVzZGF5LCBEZWNlbWJlciAxNywgMjAxMyAxOjIyIEFNDQo+IFRvOiBsaW51eC1r
+ZXJuZWxAdmdlci5rZXJuZWwub3JnDQo+IENjOiBNb29yZSwgUm9iZXJ0OyBaaGVuZywgTHY7IFd5
+c29ja2ksIFJhZmFlbCBKOyBMZW4gQnJvd247IGxpbnV4LQ0KPiBhY3BpQHZnZXIua2VybmVsLm9y
+Zzsgam9zaEBqb3NodHJpcGxldHQub3JnOyBkZXZlbEBhY3BpY2Eub3JnDQo+IFN1YmplY3Q6IFtQ
+QVRDSCAwNS8xMV0gZHJpdmVyczogYWNwaTogSW5jbHVkZSBhcHByb3ByaWF0ZSBoZWFkZXIgZmls
+ZSBpbg0KPiB1dHN0YXRlLmMNCj4gDQo+IEluY2x1ZGUgYXBwcm9wcmlhdGUgaGVhZGVyIGZpbGUg
+YWN1dGlscy5oIGluIGFjcGljYS91dHN0YXRlLmMgYmVjYXVzZQ0KPiBmdW5jdGlvbiBhY3BpX3V0
+X2NyZWF0ZV9wa2dfc3RhdGVfYW5kX3B1c2goKSBoYXMgaXRzIHByb3RvdHlwZSBkZWNsYXJhdGlv
+bg0KPiBpbiBhY3V0aWxzLmguIEFsc28sIGVuY2xvc2VzIHRoZSBmdW5jdGlvbiBpbiBhY3BpY2Ev
+dXRzdGF0ZS5jIGluIGlmZGVmDQo+IGNvbmRpdGlvbiBvZiBBQ1BJX0ZVVFVSRV9VU0FHRS4NCj4g
+DQo+IFRoaXMgZWxpbWluYXRlcyB0aGUgZm9sbG93aW5nIHdhcm5pbmcgaW4gdXRzdGF0ZS5jOg0K
+PiBkcml2ZXJzL2FjcGkvYWNwaWNhL3V0c3RhdGUuYzo2NDoxOiB3YXJuaW5nOiBubyBwcmV2aW91
+cyBwcm90b3R5cGUgZm9yDQo+IOKAmGFjcGlfdXRfY3JlYXRlX3BrZ19zdGF0ZV9hbmRfcHVzaOKA
+mSBbLVdtaXNzaW5nLXByb3RvdHlwZXNdDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBSYXNoaWthIEto
+ZXJpYSA8cmFzaGlrYS5raGVyaWFAZ21haWwuY29tPg0KPiBSZXZpZXdlZC1ieTogSm9zaCBUcmlw
+bGV0dCA8am9zaEBqb3NodHJpcGxldHQub3JnPg0KPiAtLS0NCj4gIGRyaXZlcnMvYWNwaS9hY3Bp
+Y2EvdXRzdGF0ZS5jIHwgICAgMyArKysNCj4gIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMo
+KykNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaWNhL3V0c3RhdGUuYyBiL2Ry
+aXZlcnMvYWNwaS9hY3BpY2EvdXRzdGF0ZS5jDQo+IGluZGV4IDAzYzRjMmYuLjA5MjBkMjMgMTAw
+NjQ0DQo+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvdXRzdGF0ZS5jDQo+ICsrKyBiL2RyaXZl
+cnMvYWNwaS9hY3BpY2EvdXRzdGF0ZS5jDQo+IEBAIC00Myw2ICs0Myw3IEBADQo+IA0KPiAgI2lu
+Y2x1ZGUgPGFjcGkvYWNwaS5oPg0KPiAgI2luY2x1ZGUgImFjY29tbW9uLmgiDQo+ICsjaW5jbHVk
+ZSAiYWN1dGlscy5oIg0KPiANCj4gICNkZWZpbmUgX0NPTVBPTkVOVCAgICAgICAgICBBQ1BJX1VU
+SUxJVElFUw0KPiAgQUNQSV9NT0RVTEVfTkFNRSgidXRzdGF0ZSIpDQo+IEBAIC02MCw2ICs2MSw3
+IEBAIEFDUElfTU9EVUxFX05BTUUoInV0c3RhdGUiKQ0KPiAgICogREVTQ1JJUFRJT046IENyZWF0
+ZSBhIG5ldyBzdGF0ZSBhbmQgcHVzaCBpdA0KPiAgICoNCj4gDQo+ICoqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+DQo+ICoqKiovDQo+ICsjaWZkZWYgIEFDUElfRlVUVVJFX1VTQUdFDQo+ICBhY3BpX3N0YXR1cw0K
+PiAgYWNwaV91dF9jcmVhdGVfcGtnX3N0YXRlX2FuZF9wdXNoKHZvaWQgKmludGVybmFsX29iamVj
+dCwNCj4gIAkJCQkgIHZvaWQgKmV4dGVybmFsX29iamVjdCwNCj4gQEAgLTc5LDYgKzgxLDcgQEAg
+YWNwaV91dF9jcmVhdGVfcGtnX3N0YXRlX2FuZF9wdXNoKHZvaWQgKmludGVybmFsX29iamVjdCwN
+Cj4gIAlhY3BpX3V0X3B1c2hfZ2VuZXJpY19zdGF0ZShzdGF0ZV9saXN0LCBzdGF0ZSk7DQo+ICAJ
+cmV0dXJuIChBRV9PSyk7DQo+ICB9DQo+ICsjZW5kaWYNCj4gDQo+IA0KPiAvKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKg0KPiAqKioqKioNCj4gICAqDQo+IC0tDQo+IDEuNy45LjUNCg0K
