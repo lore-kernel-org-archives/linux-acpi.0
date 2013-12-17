@@ -1,61 +1,120 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 05/11] drivers: acpi: Include appropriate header file in
- utstate.c
-Date: Tue, 17 Dec 2013 17:35:46 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37C7B99F5@ORSMSX103.amr.corp.intel.com>
-References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com>
- <c8f6f6fbcd7de593a726d091f5d0f6a245f6e0f7.1387271324.git.rashika.kheria@gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 0/5] hooking udev to SW_TABLET_MODE changes
+Date: Tue, 17 Dec 2013 17:16:30 -0200
+Message-ID: <20131217191630.GA32623@khazad-dum.debian.net>
+References: <1387234814-17716-1-git-send-email-carlosg@gnome.org>
+ <20131217000332.GA10466@khazad-dum.debian.net>
+ <1387282004.15078.59.camel@sacarino>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:20837 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753453Ab3LQRt4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Dec 2013 12:49:56 -0500
-In-Reply-To: <c8f6f6fbcd7de593a726d091f5d0f6a245f6e0f7.1387271324.git.rashika.kheria@gmail.com>
-Content-Language: en-US
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:43233 "EHLO
+	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750866Ab3LQTQe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Dec 2013 14:16:34 -0500
+Content-Disposition: inline
+In-Reply-To: <1387282004.15078.59.camel@sacarino>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rashika Kheria <rashika.kheria@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "josh@joshtriplett.org" <josh@joshtriplett.org>, "devel@acpica.org" <devel@acpica.org>
+To: Carlos Garnacho <carlosg@gnome.org>
+Cc: linux-acpi@vger.kernel.org
 
-SSdtIG5vdCBzdXJlIHdoYXQgdmVyc2lvbiBvZiBBQ1BJQ0EgeW91IGFyZSBsb29raW5nIGF0LCBi
-dXQgaW4gdGhlIG1hc3RlciBnaXQgdHJlZSBmb3IgQUNQSUNBLCB0aGUgZmlsZSBhY2NvbW1vbi5o
-IGluY2x1ZGVzICJhY3V0aWxzLmgiLg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+
-IEZyb206IFJhc2hpa2EgS2hlcmlhIFttYWlsdG86cmFzaGlrYS5raGVyaWFAZ21haWwuY29tXQ0K
-PiBTZW50OiBUdWVzZGF5LCBEZWNlbWJlciAxNywgMjAxMyAxOjIyIEFNDQo+IFRvOiBsaW51eC1r
-ZXJuZWxAdmdlci5rZXJuZWwub3JnDQo+IENjOiBNb29yZSwgUm9iZXJ0OyBaaGVuZywgTHY7IFd5
-c29ja2ksIFJhZmFlbCBKOyBMZW4gQnJvd247IGxpbnV4LQ0KPiBhY3BpQHZnZXIua2VybmVsLm9y
-Zzsgam9zaEBqb3NodHJpcGxldHQub3JnOyBkZXZlbEBhY3BpY2Eub3JnDQo+IFN1YmplY3Q6IFtQ
-QVRDSCAwNS8xMV0gZHJpdmVyczogYWNwaTogSW5jbHVkZSBhcHByb3ByaWF0ZSBoZWFkZXIgZmls
-ZSBpbg0KPiB1dHN0YXRlLmMNCj4gDQo+IEluY2x1ZGUgYXBwcm9wcmlhdGUgaGVhZGVyIGZpbGUg
-YWN1dGlscy5oIGluIGFjcGljYS91dHN0YXRlLmMgYmVjYXVzZQ0KPiBmdW5jdGlvbiBhY3BpX3V0
-X2NyZWF0ZV9wa2dfc3RhdGVfYW5kX3B1c2goKSBoYXMgaXRzIHByb3RvdHlwZSBkZWNsYXJhdGlv
-bg0KPiBpbiBhY3V0aWxzLmguIEFsc28sIGVuY2xvc2VzIHRoZSBmdW5jdGlvbiBpbiBhY3BpY2Ev
-dXRzdGF0ZS5jIGluIGlmZGVmDQo+IGNvbmRpdGlvbiBvZiBBQ1BJX0ZVVFVSRV9VU0FHRS4NCj4g
-DQo+IFRoaXMgZWxpbWluYXRlcyB0aGUgZm9sbG93aW5nIHdhcm5pbmcgaW4gdXRzdGF0ZS5jOg0K
-PiBkcml2ZXJzL2FjcGkvYWNwaWNhL3V0c3RhdGUuYzo2NDoxOiB3YXJuaW5nOiBubyBwcmV2aW91
-cyBwcm90b3R5cGUgZm9yDQo+IOKAmGFjcGlfdXRfY3JlYXRlX3BrZ19zdGF0ZV9hbmRfcHVzaOKA
-mSBbLVdtaXNzaW5nLXByb3RvdHlwZXNdDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBSYXNoaWthIEto
-ZXJpYSA8cmFzaGlrYS5raGVyaWFAZ21haWwuY29tPg0KPiBSZXZpZXdlZC1ieTogSm9zaCBUcmlw
-bGV0dCA8am9zaEBqb3NodHJpcGxldHQub3JnPg0KPiAtLS0NCj4gIGRyaXZlcnMvYWNwaS9hY3Bp
-Y2EvdXRzdGF0ZS5jIHwgICAgMyArKysNCj4gIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMo
-KykNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaWNhL3V0c3RhdGUuYyBiL2Ry
-aXZlcnMvYWNwaS9hY3BpY2EvdXRzdGF0ZS5jDQo+IGluZGV4IDAzYzRjMmYuLjA5MjBkMjMgMTAw
-NjQ0DQo+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvdXRzdGF0ZS5jDQo+ICsrKyBiL2RyaXZl
-cnMvYWNwaS9hY3BpY2EvdXRzdGF0ZS5jDQo+IEBAIC00Myw2ICs0Myw3IEBADQo+IA0KPiAgI2lu
-Y2x1ZGUgPGFjcGkvYWNwaS5oPg0KPiAgI2luY2x1ZGUgImFjY29tbW9uLmgiDQo+ICsjaW5jbHVk
-ZSAiYWN1dGlscy5oIg0KPiANCj4gICNkZWZpbmUgX0NPTVBPTkVOVCAgICAgICAgICBBQ1BJX1VU
-SUxJVElFUw0KPiAgQUNQSV9NT0RVTEVfTkFNRSgidXRzdGF0ZSIpDQo+IEBAIC02MCw2ICs2MSw3
-IEBAIEFDUElfTU9EVUxFX05BTUUoInV0c3RhdGUiKQ0KPiAgICogREVTQ1JJUFRJT046IENyZWF0
-ZSBhIG5ldyBzdGF0ZSBhbmQgcHVzaCBpdA0KPiAgICoNCj4gDQo+ICoqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-DQo+ICoqKiovDQo+ICsjaWZkZWYgIEFDUElfRlVUVVJFX1VTQUdFDQo+ICBhY3BpX3N0YXR1cw0K
-PiAgYWNwaV91dF9jcmVhdGVfcGtnX3N0YXRlX2FuZF9wdXNoKHZvaWQgKmludGVybmFsX29iamVj
-dCwNCj4gIAkJCQkgIHZvaWQgKmV4dGVybmFsX29iamVjdCwNCj4gQEAgLTc5LDYgKzgxLDcgQEAg
-YWNwaV91dF9jcmVhdGVfcGtnX3N0YXRlX2FuZF9wdXNoKHZvaWQgKmludGVybmFsX29iamVjdCwN
-Cj4gIAlhY3BpX3V0X3B1c2hfZ2VuZXJpY19zdGF0ZShzdGF0ZV9saXN0LCBzdGF0ZSk7DQo+ICAJ
-cmV0dXJuIChBRV9PSyk7DQo+ICB9DQo+ICsjZW5kaWYNCj4gDQo+IA0KPiAvKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKg0KPiAqKioqKioNCj4gICAqDQo+IC0tDQo+IDEuNy45LjUNCg0K
+On Tue, 17 Dec 2013, Carlos Garnacho wrote:
+> On lun, 2013-12-16 at 22:03 -0200, Henrique de Moraes Holschuh wrote:
+> > On Tue, 17 Dec 2013, Carlos Garnacho wrote:
+> > > The following patches make it possible to have udev/userspace notified when
+> > > SW_TABLET_MODE changes on the switch device, without having to resort to
+> > > poll()/select() for such sparse events. I've got udev patches locally to
+> > > complement this.
+> > 
+> > I don't like this.  We moved away from uevents for this kind of stuff (in
+> > the general sense) because they, to put it lightly, are NOT appropriate for
+> > input-event-like events.
+> 
+> I would like to know... not appropriate how? I can understand this rule
+
+uevents are: heavy-weight, slow, the wrong layer for this stuff (we ended up
+mixing important device infrastructure topology/configuration change events
+(what it was designed to be used for) with misc user-interface events, thus
+making everything more brittle since userspace has to handle it all in the
+same place).  They are not power-management-friendly, not scalable as
+implemented, not filterable kernel-side, and not versioned.  uevents also
+have closer ties to internal kernel models than necessary for
+non-device-infrastructure related events (sysfs has it much worse, but
+still).
+
+All of those issues are much better addressed by the input events layer,
+which was designed from the ground up to better deal with moderate-frequency
+user-interface/input events.
+
+> applies for too often events, as some input devices can get quite
+> chatty, but the frequency of these uevents is tremendously low. FWIW,
+
+All you need to do is to spin the tablet/laptop/mobile device.  We once
+thought backlight change events would be low-frequency too, and it is
+causing real problems...
+
+I don't think it is wise to be one sucessfull game away ("spintron, the new
+game where you take a photo of something/someone and spin your tablet to do
+funny things to it") from that much pain.  So, you need to add
+rate-limiters, and since it *is* input events we're talking about, these are
+low-latency, state-preserving rate-limiters (which must emit the first and
+last events in a chain without much extra latency or it will feel sluggish
+to the user, must break long chains, and preserve the effects of supressed
+events).
+
+> there is precedence of uevents on input devices in the asus-laptop
+> module [1], where the accelerometer reports uevents on "coarse
+> orientation changes".
+
+That doesn't make it a good idea.
+
+> > Moving any sort of input event back to uevents is something I do NOT want to
+> > support, ever.  Any userspace that wants it for backwards compatibility can,
+> > and DOES synthesize uevents from input events.
+> 
+> I'm not proposing "moving back", but "complementing", the device still
+> has to be poked. The problem I see with awaiting for input events in
+> userspace in this case is that there is no good place to have this done.
+
+You'd just have to deploy a proper generic input event handler that could
+map any sort of native X, native Linux input events, or native Wayland input
+events to actions.  Indeed, if there is no such beast already, you'd need to
+add it.
+
+> My first attempt time ago was doing this in UPower, because it is
+> already in the business of reading input events, but it was deemed too
+> unrelated [2]. The next option is having a dedicated daemon, listening
+> for an event that's very probably not doing to happen at all during
+> uptime... sounds pretty wasteful to me.
+
+Well, a dedicated daemon IS the unix way, and it is only wasteful if you
+want it to be.  You could make it the xinetd of input events (probably with
+builtin actions that generate DBUS events and other up-to-date desktopish
+stuff), and it would be of general use (and rather useful at that, IMHO).
+
+Or you could make it a very specialized small utility where the entire bloat
+comes from the fact that it is linked to glibc, and it will have a very
+small RSS... there are several like that already, I believe.
+
+> > So, can you make a very strong case for this uevent?
+> 
+> Well, the above. I could add that the accelerometer uevent I pointed out
+> is put in use in udev and the GNOME stack, I think it makes sense to
+> give tablet-mode changes a similar treatment, so establishing policies
+> and whatnot is saner. And I think most of the userspace that's
+> interested in these events would want that too, with maybe exotic
+> exceptions.
+
+The big deal here is that, if we do that, we will basically have to live
+with it for a decade or more... and we already know uevents are not a very
+suitable event delivery system for low-frequency user-interface/input
+events, and it is utterly unsuitable for high-frequency events regardless of
+type (you need to compress/supress them into low-frequency events).
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
