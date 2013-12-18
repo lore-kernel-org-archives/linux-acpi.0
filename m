@@ -1,171 +1,131 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch v1 01/13] ACPI: introduce helper interfaces to support ACPI _DSM method
-Date: Wed, 18 Dec 2013 14:58:09 +0800
-Message-ID: <1387349901-3391-2-git-send-email-jiang.liu@linux.intel.com>
-References: <1387349901-3391-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1387349901-3391-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Leonidas Da Silva Barbosa <leosilva@linux.vnet.ibm.com>, Ashley Lai <ashley@ashleylai.com>, Peter Huewe <peterhuewe@gmx.de>, Rajiv Andrade <mail@srajiv.net>, Marcel Selhorst <tpmdd@selhorst.net>, Sirrix AG <tpmdd@sirrix.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jiri Kosina <jkosina@suse.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH 02/15] ACPICA: Linux: Add configurability for external globals.
+Date: Wed, 18 Dec 2013 17:06:03 +0800
+Message-ID: <210435d18043054a1e9976733a2dbe4086291af5.1387336613.git.lv.zheng@intel.com>
+References: <cover.1387336613.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:62189 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751411Ab3LRJGM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Dec 2013 04:06:12 -0500
+In-Reply-To: <cover.1387336613.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-There are several drivers making use of ACPI _DSM method to detect
-and invoke device specific methods. Currently every driver has
-implemented its private version to support ACPI _DSM method.
-So this patch introduces three helper functions to support ACPI _DSM
-method, which will be used to replace open-coded versions.
+OSPMs like Linux trend to include all header files but leave empty inline
+stub variables for a feature that is not configured during build.
 
-It helps to simplify code and improve code readability.
+This patch configures ACPICA external globals out and defines them into
+immediates when CONFIG_ACPI is not enabled.  Lv Zheng.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Known issues:
+1. No possible referencs by !CONFIG_ACPI code
+   We even don't need to define specific globals into immediates if it is
+   impossible that there are references for them in !CONFIG_ACPI code.
+   This patch just adds immediates for all of them from ACPICA's
+   perspectives.
+
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/utils.c    |   98 +++++++++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h |   26 +++++++++++++
- 2 files changed, 124 insertions(+)
+ include/acpi/acpixf.h           |   11 ++++++++
+ include/acpi/platform/aclinux.h |   53 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+)
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 6d408bf..9517b0a 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -574,3 +574,101 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 76df71d..2fc2094 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -74,13 +74,24 @@ extern u32 acpi_rsdt_forced;
  
- 	return status;
- }
+ #else
+ 
++#ifndef ACPI_EXTERN
+ #define ACPI_EXTERN extern
++#endif
 +
-+/**
-+ * acpi_evaluate_dsm: evaluate device's _DSM method
-+ * @handle: ACPI device handle
-+ * @uuid: UUID of requested functions, should be 16 bytes
-+ * @rev: revision number of requested function
-+ * @func: requested function number
-+ * @argv4: the function specific parameter
-+ *
-+ * Evaluate device's _DSM method with specified UUID, revision id and
-+ * function number. Caller needs to free the returned object.
-+ *
-+ * Though ACPI defines the fourth parameter for _DSM should be a package,
-+ * some old BIOSes do expect a buffer or an integer etc.
++#ifndef ACPI_GLOBAL
+ #define ACPI_GLOBAL(t,a) \
+ 	extern t a;
++#endif
++
++#ifndef ACPI_INIT_GLOBAL
+ #define ACPI_INIT_GLOBAL(t,a,b) \
+ 	extern t a;
++#endif
++
++#ifndef ACPI_GLOBAL_FADT
+ #define ACPI_GLOBAL_FADT \
+ 	extern struct acpi_table_fadt acpi_gbl_FADT;
++#endif
+ 
+ #endif
+ 
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 28f4f4d..68cda04 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -65,6 +65,59 @@
+ #endif
+ #include <asm/acpi.h>
+ 
++#ifdef CONFIG_ACPI
++
++/*
++ * External acpi_gbl_FADT users will use Revision and Flags to test
++ * features, such code may not well protected by CONFIG_ACPI.
 + */
-+union acpi_object *
-+acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, int rev, int func,
-+		  union acpi_object *argv4)
-+{
-+	acpi_status ret;
-+	struct acpi_buffer buf = {ACPI_ALLOCATE_BUFFER, NULL};
-+	union acpi_object params[4];
-+	struct acpi_object_list input = {
-+		.count = 4,
-+		.pointer = params,
-+	};
++#define acpi_get_fadt_revision()    (acpi_gbl_FADT.header.revision)
++#define acpi_test_fadt_flags(__flags) (acpi_gbl_FADT.flags & (__flags))
 +
-+	params[0].type = ACPI_TYPE_BUFFER;
-+	params[0].buffer.length = 16;
-+	params[0].buffer.pointer = (char *)uuid;
-+	params[1].type = ACPI_TYPE_INTEGER;
-+	params[1].integer.value = rev;
-+	params[2].type = ACPI_TYPE_INTEGER;
-+	params[2].integer.value = func;
-+	if (argv4) {
-+		params[3] = *argv4;
-+	} else {
-+		params[3].type = ACPI_TYPE_PACKAGE;
-+		params[3].package.count = 0;
-+		params[3].package.elements = NULL;
-+	}
++#else				/* CONFIG_ACPI */
 +
-+	ret = acpi_evaluate_object(handle, "_DSM", &input, &buf);
-+	if (ACPI_SUCCESS(ret))
-+		return (union acpi_object *)buf.pointer;
++/* Extarnal globals for __KERNEL__, stubs is needed */
 +
-+	if (ret != AE_NOT_FOUND)
-+		acpi_handle_warn(handle,
-+				"failed to evaluate _DSM method (0x%x)\n", ret);
++#define ACPI_EXTERN
++#define ACPI_GLOBAL(t,a)
++#define ACPI_INIT_GLOBAL(t,a,b)
++#define ACPI_GLOBAL_FADT
 +
-+	return NULL;
-+}
-+EXPORT_SYMBOL(acpi_evaluate_dsm);
++/* Immediates to protect global variables accesses */
 +
-+/**
-+ * acpi_check_dsm: check whether _DSM method under @handle supports
-+ *		   requested functions.
-+ * @handle: ACPI device handle
-+ * @uuid: UUID of requested functions, should be 16 bytes at least
-+ * @rev: revision number of requested functions
-+ * @funcs: bitmap of requested functions
-+ * @exclude: excluding special value, used to support i915 and nouveau
-+ *
-+ * Evaluate device's _DSM method to check whether it supports requested
-+ * functions. Currently only support 64 functions at maximum, should be
-+ * enough for now.
-+ */
-+bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
-+{
-+	int i;
-+	u64 mask = 0;
-+	union acpi_object *obj;
++#define acpi_current_gpe_count              0
++#define acpi_gbl_trace_flags                0
++#define acpi_gbl_trace_method_name          0
++#define acpi_gbl_system_awake_and_running   FALSE
++#define acpi_gbl_reduced_hardware           FALSE
++#define acpi_gbl_enable_interpreter_slack   FALSE
++#define acpi_gbl_all_methods_serialized     FALSE
++#define acpi_gbl_create_osi_method          TRUE
++#define acpi_gbl_use_default_register_widths TRUE
++#define acpi_gbl_enable_aml_debug_object    FALSE
++#define acpi_gbl_copy_dsdt_locally          FALSE
++#define acpi_gbl_truncate_io_addresses      FALSE
++#define acpi_gbl_disable_auto_repair        FALSE
++#define acpi_gbl_disable_ssdt_table_load    FALSE
++#define acpi_gbl_osi_data                   0
++#define acpi_dbg_level                      ACPI_DEBUG_DEFAULT
++#define acpi_dbg_layer                      ACPI_COMPONENT_DEFAULT
 +
-+	if (funcs == 0)
-+		return false;
++/* Helpers to protect acpi_gbl_FADT accesses */
 +
-+	obj = acpi_evaluate_dsm(handle, uuid, rev, 0, NULL);
-+	if (!obj)
-+		return false;
++#define acpi_get_fadt_revision()    0
++#define acpi_test_fadt_flags(__flags) 0
 +
-+	/* For compatibility, old BIOSes may return an integer */
-+	if (obj->type == ACPI_TYPE_INTEGER)
-+		mask = obj->integer.value;
-+	else if (obj->type == ACPI_TYPE_BUFFER)
-+		for (i = 0; i < obj->buffer.length && i < 8; i++)
-+			mask |= (((u8)obj->buffer.pointer[i]) << (i * 8));
-+	ACPI_FREE(obj);
++#endif				/* CONFIG_ACPI */
 +
-+	/*
-+	 * Bit 0 indicates whether there's support for any functions other than
-+	 * function 0 for the specified UUID and revision.
-+	 */
-+	if ((mask & 0x1) && (mask & funcs) == funcs)
-+		return true;
++#ifndef ACPI_DISASSEMBLER
 +
-+	return false;
-+}
-+EXPORT_SYMBOL(acpi_check_dsm);
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index c602c77..efccf39 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -66,6 +66,32 @@ bool acpi_ata_match(acpi_handle handle);
- bool acpi_bay_match(acpi_handle handle);
- bool acpi_dock_match(acpi_handle handle);
++/* Immediates to protect global variables accesses */
++
++#define acpi_gbl_no_resource_disassembly    FALSE
++#define acpi_gbl_ignore_noop_operator       FALSE
++#endif
++
+ /* Host-dependent types and defines for in-kernel ACPICA */
  
-+bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
-+union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
-+			int rev, int func, union acpi_object *argv4);
-+
-+static inline union acpi_object *
-+acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
-+			union acpi_object *argv4, acpi_object_type type)
-+{
-+	union acpi_object *obj;
-+
-+	obj = acpi_evaluate_dsm(handle, uuid, rev, func, argv4);
-+	if (obj && obj->type != type) {
-+		ACPI_FREE(obj);
-+		obj = NULL;
-+	}
-+
-+	return obj;
-+}
-+
-+#define	ACPI_INIT_DSM_ARGV4(cnt, eles)			\
-+	{						\
-+	  .type = ACPI_TYPE_PACKAGE,			\
-+	  .package.count = (cnt),			\
-+	  .package.elements = (eles)			\
-+	}
-+
- #ifdef CONFIG_ACPI
- 
- #include <linux/proc_fs.h>
+ #define ACPI_MACHINE_WIDTH          BITS_PER_LONG
 -- 
 1.7.10.4
+
