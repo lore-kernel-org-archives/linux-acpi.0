@@ -1,134 +1,89 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: [PATCH v4] ACPI, APEI: Cleanup alignment related codes for APEI
-Date: Wed, 18 Dec 2013 01:30:49 -0500
-Message-ID: <1387348249-20014-1-git-send-email-gong.chen@linux.intel.com>
-References: <20131217053451.GB11278@gchen.bj.intel.com>
+From: Rashika Kheria <rashika.kheria@gmail.com>
+Subject: [PATCH] drivers: firmware: Move prototype declartions to header file
+ cper.h
+Date: Wed, 18 Dec 2013 12:21:31 +0530
+Message-ID: <20131218064527.GA3353@rashika>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:43255 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751235Ab3LRGtH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Dec 2013 01:49:07 -0500
-In-Reply-To: <20131217053451.GB11278@gchen.bj.intel.com>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:35370 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750933Ab3LRGwA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Dec 2013 01:52:00 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bp@alien8.de
-Cc: tony.luck@intel.com, linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@suse.de>, "Chen, Gong" <gong.chen@linux.intel.com>, Rashika Kheria <rashika.kheria@gmail.com>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, linux-acpi@vger.kernel.org, josh@joshtriplett.org
 
-We ever used *memcpy* to avoid access alignment issue between
-firmware and OS. Now we can use a better and standard way
-to avoid this issue.
+Move prototype declarations of function cper_estatus_print(),
+cper_estatus_check_header() and cper_estatus_check() from file
+drivers/acpi/apei/apei-internal.h to header file include/linux/cper.h
+because these functions are used by both acpi driver and firmware
+driver.
+The header file include/linux/cper.h was chosen because it is included
+in both the drivers.
 
-Because ERST record id cache is implemented in the memory to
-increase the access speed via caching ERST content, so it
-doesn't matter with firmware access. BTW, simplify some
-variable names to avoid the limit of 80 characters per line.
+This eliminates the following warnings in efi/cper.c:
+drivers/firmware/efi/cper.c:346:6: warning: no previous prototype for =E2=
+=80=98cper_estatus_print=E2=80=99 [-Wmissing-prototypes]
+drivers/firmware/efi/cper.c:374:5: warning: no previous prototype for =E2=
+=80=98cper_estatus_check_header=E2=80=99 [-Wmissing-prototypes]
+drivers/firmware/efi/cper.c:387:5: warning: no previous prototype for =E2=
+=80=98cper_estatus_check=E2=80=99 [-Wmissing-prototypes]
 
-v4->v3: Add more detail description.
-v3->v2: Fix an evaluation error.
-v2->v1: Make description information clearer.
-
-Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
-Acked-by: Borislav Petkov <bp@suse.de>
+Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
 ---
- drivers/acpi/apei/apei-base.c |  4 ++--
- drivers/acpi/apei/einj.c      | 19 +++++++++----------
- drivers/acpi/apei/erst.c      |  2 +-
- 3 files changed, 12 insertions(+), 13 deletions(-)
+ drivers/acpi/apei/apei-internal.h |    5 -----
+ include/linux/cper.h              |    8 ++++++++
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index 6d2c49b..e55584a 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -41,6 +41,7 @@
- #include <linux/rculist.h>
- #include <linux/interrupt.h>
- #include <linux/debugfs.h>
-+#include <asm/unaligned.h>
- 
- #include "apei-internal.h"
- 
-@@ -567,8 +568,7 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
- 	bit_offset = reg->bit_offset;
- 	access_size_code = reg->access_width;
- 	space_id = reg->space_id;
--	/* Handle possible alignment issues */
--	memcpy(paddr, &reg->address, sizeof(*paddr));
-+	*paddr = get_unaligned(&reg->address);
- 	if (!*paddr) {
- 		pr_warning(FW_BUG APEI_PFX
- 			   "Invalid physical address in GAR [0x%llx/%u/%u/%u/%u]\n",
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index fb57d03..361177a 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -34,6 +34,7 @@
- #include <linux/delay.h>
- #include <linux/mm.h>
- #include <acpi/acpi.h>
-+#include <asm/unaligned.h>
- 
- #include "apei-internal.h"
- 
-@@ -216,7 +217,7 @@ static void check_vendor_extension(u64 paddr,
- static void *einj_get_parameter_address(void)
- {
- 	int i;
--	u64 paddrv4 = 0, paddrv5 = 0;
-+	u64 pa_v4 = 0, pa_v5 = 0;
- 	struct acpi_whea_header *entry;
- 
- 	entry = EINJ_TAB_ENTRY(einj_tab);
-@@ -225,30 +226,28 @@ static void *einj_get_parameter_address(void)
- 		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
- 		    entry->register_region.space_id ==
- 		    ACPI_ADR_SPACE_SYSTEM_MEMORY)
--			memcpy(&paddrv4, &entry->register_region.address,
--			       sizeof(paddrv4));
-+			pa_v4 = get_unaligned(&entry->register_region.address);
- 		if (entry->action == ACPI_EINJ_SET_ERROR_TYPE_WITH_ADDRESS &&
- 		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
- 		    entry->register_region.space_id ==
- 		    ACPI_ADR_SPACE_SYSTEM_MEMORY)
--			memcpy(&paddrv5, &entry->register_region.address,
--			       sizeof(paddrv5));
-+			pa_v5 = get_unaligned(&entry->register_region.address);
- 		entry++;
- 	}
--	if (paddrv5) {
-+	if (pa_v5) {
- 		struct set_error_type_with_address *v5param;
- 
--		v5param = acpi_os_map_memory(paddrv5, sizeof(*v5param));
-+		v5param = acpi_os_map_memory(pa_v5, sizeof(*v5param));
- 		if (v5param) {
- 			acpi5 = 1;
--			check_vendor_extension(paddrv5, v5param);
-+			check_vendor_extension(pa_v5, v5param);
- 			return v5param;
- 		}
- 	}
--	if (param_extension && paddrv4) {
-+	if (param_extension && pa_v4) {
- 		struct einj_parameter *v4param;
- 
--		v4param = acpi_os_map_memory(paddrv4, sizeof(*v4param));
-+		v4param = acpi_os_map_memory(pa_v4, sizeof(*v4param));
- 		if (!v4param)
- 			return NULL;
- 		if (v4param->reserved1 || v4param->reserved2) {
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index 26311f2..bf30a12 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -611,7 +611,7 @@ static void __erst_record_id_cache_compact(void)
- 		if (entries[i] == APEI_ERST_INVALID_RECORD_ID)
- 			continue;
- 		if (wpos != i)
--			memcpy(&entries[wpos], &entries[i], sizeof(entries[i]));
-+			entries[wpos] = entries[i];
- 		wpos++;
- 	}
- 	erst_record_id_cache.len = wpos;
--- 
-1.8.4.3
+diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei=
+-internal.h
+index 21ba34a..4ae847d 100644
+--- a/drivers/acpi/apei/apei-internal.h
++++ b/drivers/acpi/apei/apei-internal.h
+@@ -135,10 +135,5 @@ static inline u32 cper_estatus_len(struct acpi_gen=
+eric_status *estatus)
+ 		return sizeof(*estatus) + estatus->data_length;
+ }
+=20
+-void cper_estatus_print(const char *pfx,
+-			const struct acpi_generic_status *estatus);
+-int cper_estatus_check_header(const struct acpi_generic_status *estatu=
+s);
+-int cper_estatus_check(const struct acpi_generic_status *estatus);
+-
+ int apei_osc_setup(void);
+ #endif
+diff --git a/include/linux/cper.h b/include/linux/cper.h
+index 2fc0ec3..080f5f7 100644
+--- a/include/linux/cper.h
++++ b/include/linux/cper.h
+@@ -22,6 +22,14 @@
+ #define LINUX_CPER_H
+=20
+ #include <linux/uuid.h>
++#include <linux/acpi.h>
++
++/* Prototype declaration of functions common between acpi and firmware=
+ driver*/
++void cper_estatus_print(const char *pfx,
++		        const struct acpi_generic_status *estatus);
++int cper_estatus_check_header(const struct acpi_generic_status *estatu=
+s);
++int cper_estatus_check(const struct acpi_generic_status *estatus);
++
+=20
+ /* CPER record signature and the size */
+ #define CPER_SIG_RECORD				"CPER"
+--=20
+1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
