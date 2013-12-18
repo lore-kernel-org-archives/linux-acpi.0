@@ -1,85 +1,134 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 06/11] drivers: acpi: Add appropriate ifdef conditions
- in exdump.c
-Date: Wed, 18 Dec 2013 06:31:22 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802498846@SHSMSX101.ccr.corp.intel.com>
-References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com>
- <150a5858e78dc6eabfa11b5d52ce97998b807225.1387271324.git.rashika.kheria@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: [PATCH v4] ACPI, APEI: Cleanup alignment related codes for APEI
+Date: Wed, 18 Dec 2013 01:30:49 -0500
+Message-ID: <1387348249-20014-1-git-send-email-gong.chen@linux.intel.com>
+References: <20131217053451.GB11278@gchen.bj.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:33484 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:43255 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751014Ab3LRGbe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Dec 2013 01:31:34 -0500
-In-Reply-To: <150a5858e78dc6eabfa11b5d52ce97998b807225.1387271324.git.rashika.kheria@gmail.com>
-Content-Language: en-US
+	id S1751235Ab3LRGtH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Dec 2013 01:49:07 -0500
+In-Reply-To: <20131217053451.GB11278@gchen.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rashika Kheria <rashika.kheria@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "josh@joshtriplett.org" <josh@joshtriplett.org>
+To: bp@alien8.de
+Cc: tony.luck@intel.com, linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
 
-SGksDQoNCkkgdGhpbmsgdGhpcyBwYXRjaCBpcyB1c2VsZXNzLg0KSXQgaXMgcG9zc2libGUgdG8g
-aW5jbHVkZSBkdW1wIGNvZGUgaW50byBMaW51eCBrZXJuZWwgZm9yIGRlYnVnZ2luZyBwdXJwb3Nl
-cy4NClRodXMgd2Ugc2hvdWxkIGRvIGNsZWFudXAgaW4gZGlmZmVyZW50IHdheSBmb3IgdGhlbS4N
-Cg0KVGhhbmtzDQotTHYNCg0KPiBGcm9tOiBSYXNoaWthIEtoZXJpYSBbbWFpbHRvOnJhc2hpa2Eu
-a2hlcmlhQGdtYWlsLmNvbV0NCj4gU2VudDogVHVlc2RheSwgRGVjZW1iZXIgMTcsIDIwMTMgNToy
-NCBQTQ0KPiANCj4gRW5jbG9zZSBmdW5jdGlvbnMgYWNwaV9leF9kdW1wX25hbWVzcGFjZV9ub2Rl
-KCkgYW5kDQo+IGFjcGlfZXhfZHVtcF9vYmplY3RfZGVzY3JpcHRvcigpIGluIGFwcHJvcHJpYXRl
-IGlmZGVmIGNvbmRpdGlvbiBvZg0KPiBBQ1BJX0ZVVFVSRV9VU0FHRSBpbiBmaWxlIGFjcGljYS9l
-eGR1bXAuYy4NCj4gDQo+IFRoaXMgZWxpbWluYXRlcyB0aGUgZm9sbG93aW5nIHdhcm5pbmdzIGlu
-IGV4ZHVtcC5jOg0KPiBkcml2ZXJzL2FjcGkvYWNwaWNhL2V4ZHVtcC5jOjgwOTo2OiB3YXJuaW5n
-OiBubyBwcmV2aW91cyBwcm90b3R5cGUgZm9yIOKAmGFjcGlfZXhfZHVtcF9uYW1lc3BhY2Vfbm9k
-ZeKAmSBbLVdtaXNzaW5nLXByb3RvdHlwZXNdDQo+IGRyaXZlcnMvYWNwaS9hY3BpY2EvZXhkdW1w
-LmM6OTk1OjE6IHdhcm5pbmc6IG5vIHByZXZpb3VzIHByb3RvdHlwZSBmb3Ig4oCYYWNwaV9leF9k
-dW1wX29iamVjdF9kZXNjcmlwdG9y4oCZIFstV21pc3NpbmctcHJvdG90eXBlc10NCj4gDQo+IFNp
-Z25lZC1vZmYtYnk6IFJhc2hpa2EgS2hlcmlhIDxyYXNoaWthLmtoZXJpYUBnbWFpbC5jb20+DQo+
-IFJldmlld2VkLWJ5OiBKb3NoIFRyaXBsZXR0IDxqb3NoQGpvc2h0cmlwbGV0dC5vcmc+DQo+IC0t
-LQ0KPiAgZHJpdmVycy9hY3BpL2FjcGljYS9leGR1bXAuYyB8ICAgIDggKysrKysrKysNCj4gIDEg
-ZmlsZSBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKykNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJz
-L2FjcGkvYWNwaWNhL2V4ZHVtcC5jIGIvZHJpdmVycy9hY3BpL2FjcGljYS9leGR1bXAuYw0KPiBp
-bmRleCA0ZDA0NmZhLi4zY2QyODE3IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2FjcGkvYWNwaWNh
-L2V4ZHVtcC5jDQo+ICsrKyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvZXhkdW1wLmMNCj4gQEAgLTU0
-LDYgKzU0LDcgQEAgQUNQSV9NT0RVTEVfTkFNRSgiZXhkdW1wIikNCj4gICAqIFRoZSBmb2xsb3dp
-bmcgcm91dGluZXMgYXJlIHVzZWQgZm9yIGRlYnVnIG91dHB1dCBvbmx5DQo+ICAgKi8NCj4gICNp
-ZiBkZWZpbmVkKEFDUElfREVCVUdfT1VUUFVUKSB8fCBkZWZpbmVkKEFDUElfREVCVUdHRVIpDQo+
-ICsjaWZkZWYgIEFDUElfRlVUVVJFX1VTQUdFDQo+ICAvKiBMb2NhbCBwcm90b3R5cGVzICovDQo+
-ICBzdGF0aWMgdm9pZCBhY3BpX2V4X291dF9zdHJpbmcoY2hhciAqdGl0bGUsIGNoYXIgKnZhbHVl
-KTsNCj4gDQo+IEBAIC02OCw2ICs2OSw3IEBAIHN0YXRpYyB2b2lkIGFjcGlfZXhfZHVtcF9yZWZl
-cmVuY2Vfb2JqKHVuaW9uIGFjcGlfb3BlcmFuZF9vYmplY3QgKm9ial9kZXNjKTsNCj4gIHN0YXRp
-YyB2b2lkDQo+ICBhY3BpX2V4X2R1bXBfcGFja2FnZV9vYmoodW5pb24gYWNwaV9vcGVyYW5kX29i
-amVjdCAqb2JqX2Rlc2MsDQo+ICAJCQkgdTMyIGxldmVsLCB1MzIgaW5kZXgpOw0KPiArI2VuZGlm
-DQo+IA0KPiAgLyoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCj4gICAqDQo+IEBAIC0yMTAsNiArMjEy
-LDcgQEAgc3RhdGljIHN0cnVjdCBhY3BpX2V4ZHVtcF9pbmZvIGFjcGlfZXhfZHVtcF9iYW5rX2Zp
-ZWxkWzVdID0gew0KPiAgCXtBQ1BJX0VYRF9QT0lOVEVSLCBBQ1BJX0VYRF9PRkZTRVQoYmFua19m
-aWVsZC5iYW5rX29iaiksICJCYW5rIE9iamVjdCJ9DQo+ICB9Ow0KPiANCj4gKyNpZmRlZiAgQUNQ
-SV9GVVRVUkVfVVNBR0UNCj4gIHN0YXRpYyBzdHJ1Y3QgYWNwaV9leGR1bXBfaW5mbyBhY3BpX2V4
-X2R1bXBfaW5kZXhfZmllbGRbNV0gPSB7DQo+ICAJe0FDUElfRVhEX0lOSVQsIEFDUElfRVhEX1RB
-QkxFX1NJWkUoYWNwaV9leF9kdW1wX2JhbmtfZmllbGQpLCBOVUxMfSwNCj4gIAl7QUNQSV9FWERf
-RklFTEQsIDAsIE5VTEx9LA0KPiBAQCAtMjE4LDYgKzIyMSw3IEBAIHN0YXRpYyBzdHJ1Y3QgYWNw
-aV9leGR1bXBfaW5mbyBhY3BpX2V4X2R1bXBfaW5kZXhfZmllbGRbNV0gPSB7DQo+ICAJICJJbmRl
-eCBPYmplY3QifSwNCj4gIAl7QUNQSV9FWERfUE9JTlRFUiwgQUNQSV9FWERfT0ZGU0VUKGluZGV4
-X2ZpZWxkLmRhdGFfb2JqKSwgIkRhdGEgT2JqZWN0In0NCj4gIH07DQo+ICsjZW5kaWYNCj4gDQo+
-ICBzdGF0aWMgc3RydWN0IGFjcGlfZXhkdW1wX2luZm8gYWNwaV9leF9kdW1wX3JlZmVyZW5jZVs4
-XSA9IHsNCj4gIAl7QUNQSV9FWERfSU5JVCwgQUNQSV9FWERfVEFCTEVfU0laRShhY3BpX2V4X2R1
-bXBfcmVmZXJlbmNlKSwgTlVMTH0sDQo+IEBAIC0yODcsNiArMjkxLDcgQEAgc3RhdGljIHN0cnVj
-dCBhY3BpX2V4ZHVtcF9pbmZvIGFjcGlfZXhfZHVtcF9ub2RlWzVdID0gew0KPiANCj4gIC8qIERp
-c3BhdGNoIHRhYmxlLCBpbmRleGVkIGJ5IG9iamVjdCB0eXBlICovDQo+IA0KPiArI2lmZGVmICBB
-Q1BJX0ZVVFVSRV9VU0FHRQ0KPiAgc3RhdGljIHN0cnVjdCBhY3BpX2V4ZHVtcF9pbmZvICphY3Bp
-X2V4X2R1bXBfaW5mb1tdID0gew0KPiAgCU5VTEwsDQo+ICAJYWNwaV9leF9kdW1wX2ludGVnZXIs
-DQo+IEBAIC00NDQsNiArNDQ5LDcgQEAgYWNwaV9leF9kdW1wX29iamVjdCh1bmlvbiBhY3BpX29w
-ZXJhbmRfb2JqZWN0ICpvYmpfZGVzYywNCj4gIAkJY291bnQtLTsNCj4gIAl9DQo+ICB9DQo+ICsj
-ZW5kaWYNCj4gDQo+ICAvKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKg0KPiAgICoNCj4gQEAgLTc4NSw2
-ICs3OTEsNyBAQCBhY3BpX2V4X2R1bXBfb3BlcmFuZHModW5pb24gYWNwaV9vcGVyYW5kX29iamVj
-dCAqKm9wZXJhbmRzLA0KPiAgICoNCj4gICAqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiovDQo+IA0KPiAr
-I2lmZGVmICBBQ1BJX0ZVVFVSRV9VU0FHRQ0KPiAgc3RhdGljIHZvaWQgYWNwaV9leF9vdXRfc3Ry
-aW5nKGNoYXIgKnRpdGxlLCBjaGFyICp2YWx1ZSkNCj4gIHsNCj4gIAlhY3BpX29zX3ByaW50Zigi
-JTIwcyA6ICVzXG4iLCB0aXRsZSwgdmFsdWUpOw0KPiBAQCAtMTA0Miw1ICsxMDQ5LDYgQEAgYWNw
-aV9leF9kdW1wX29iamVjdF9kZXNjcmlwdG9yKHVuaW9uIGFjcGlfb3BlcmFuZF9vYmplY3QgKm9i
-al9kZXNjLCB1MzIgZmxhZ3MpDQo+ICAJYWNwaV9leF9kdW1wX29iamVjdChvYmpfZGVzYywgYWNw
-aV9leF9kdW1wX2luZm9bb2JqX2Rlc2MtPmNvbW1vbi50eXBlXSk7DQo+ICAJcmV0dXJuX1ZPSUQ7
-DQo+ICB9DQo+ICsjZW5kaWYNCj4gDQo+ICAjZW5kaWYNCj4gLS0NCj4gMS43LjkuNQ0KDQo=
+We ever used *memcpy* to avoid access alignment issue between
+firmware and OS. Now we can use a better and standard way
+to avoid this issue.
+
+Because ERST record id cache is implemented in the memory to
+increase the access speed via caching ERST content, so it
+doesn't matter with firmware access. BTW, simplify some
+variable names to avoid the limit of 80 characters per line.
+
+v4->v3: Add more detail description.
+v3->v2: Fix an evaluation error.
+v2->v1: Make description information clearer.
+
+Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+Acked-by: Borislav Petkov <bp@suse.de>
+---
+ drivers/acpi/apei/apei-base.c |  4 ++--
+ drivers/acpi/apei/einj.c      | 19 +++++++++----------
+ drivers/acpi/apei/erst.c      |  2 +-
+ 3 files changed, 12 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index 6d2c49b..e55584a 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -41,6 +41,7 @@
+ #include <linux/rculist.h>
+ #include <linux/interrupt.h>
+ #include <linux/debugfs.h>
++#include <asm/unaligned.h>
+ 
+ #include "apei-internal.h"
+ 
+@@ -567,8 +568,7 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
+ 	bit_offset = reg->bit_offset;
+ 	access_size_code = reg->access_width;
+ 	space_id = reg->space_id;
+-	/* Handle possible alignment issues */
+-	memcpy(paddr, &reg->address, sizeof(*paddr));
++	*paddr = get_unaligned(&reg->address);
+ 	if (!*paddr) {
+ 		pr_warning(FW_BUG APEI_PFX
+ 			   "Invalid physical address in GAR [0x%llx/%u/%u/%u/%u]\n",
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index fb57d03..361177a 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -34,6 +34,7 @@
+ #include <linux/delay.h>
+ #include <linux/mm.h>
+ #include <acpi/acpi.h>
++#include <asm/unaligned.h>
+ 
+ #include "apei-internal.h"
+ 
+@@ -216,7 +217,7 @@ static void check_vendor_extension(u64 paddr,
+ static void *einj_get_parameter_address(void)
+ {
+ 	int i;
+-	u64 paddrv4 = 0, paddrv5 = 0;
++	u64 pa_v4 = 0, pa_v5 = 0;
+ 	struct acpi_whea_header *entry;
+ 
+ 	entry = EINJ_TAB_ENTRY(einj_tab);
+@@ -225,30 +226,28 @@ static void *einj_get_parameter_address(void)
+ 		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
+ 		    entry->register_region.space_id ==
+ 		    ACPI_ADR_SPACE_SYSTEM_MEMORY)
+-			memcpy(&paddrv4, &entry->register_region.address,
+-			       sizeof(paddrv4));
++			pa_v4 = get_unaligned(&entry->register_region.address);
+ 		if (entry->action == ACPI_EINJ_SET_ERROR_TYPE_WITH_ADDRESS &&
+ 		    entry->instruction == ACPI_EINJ_WRITE_REGISTER &&
+ 		    entry->register_region.space_id ==
+ 		    ACPI_ADR_SPACE_SYSTEM_MEMORY)
+-			memcpy(&paddrv5, &entry->register_region.address,
+-			       sizeof(paddrv5));
++			pa_v5 = get_unaligned(&entry->register_region.address);
+ 		entry++;
+ 	}
+-	if (paddrv5) {
++	if (pa_v5) {
+ 		struct set_error_type_with_address *v5param;
+ 
+-		v5param = acpi_os_map_memory(paddrv5, sizeof(*v5param));
++		v5param = acpi_os_map_memory(pa_v5, sizeof(*v5param));
+ 		if (v5param) {
+ 			acpi5 = 1;
+-			check_vendor_extension(paddrv5, v5param);
++			check_vendor_extension(pa_v5, v5param);
+ 			return v5param;
+ 		}
+ 	}
+-	if (param_extension && paddrv4) {
++	if (param_extension && pa_v4) {
+ 		struct einj_parameter *v4param;
+ 
+-		v4param = acpi_os_map_memory(paddrv4, sizeof(*v4param));
++		v4param = acpi_os_map_memory(pa_v4, sizeof(*v4param));
+ 		if (!v4param)
+ 			return NULL;
+ 		if (v4param->reserved1 || v4param->reserved2) {
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index 26311f2..bf30a12 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -611,7 +611,7 @@ static void __erst_record_id_cache_compact(void)
+ 		if (entries[i] == APEI_ERST_INVALID_RECORD_ID)
+ 			continue;
+ 		if (wpos != i)
+-			memcpy(&entries[wpos], &entries[i], sizeof(entries[i]));
++			entries[wpos] = entries[i];
+ 		wpos++;
+ 	}
+ 	erst_record_id_cache.len = wpos;
+-- 
+1.8.4.3
+
