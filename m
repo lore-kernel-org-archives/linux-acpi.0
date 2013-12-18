@@ -1,118 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 05/11] drivers: acpi: Include appropriate header file in utstate.c
-Date: Wed, 18 Dec 2013 02:08:46 +0100
-Message-ID: <2756776.dGKMpKb0nz@vostro.rjw.lan>
-References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com> <94F2FBAB4432B54E8AACC7DFDE6C92E37C7B99F5@ORSMSX103.amr.corp.intel.com> <20131217202518.GA17790@jtriplet-mobl1>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 05/11] drivers: acpi: Include appropriate header file in
+ utstate.c
+Date: Wed, 18 Dec 2013 06:17:33 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88024987F6@SHSMSX101.ccr.corp.intel.com>
+References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com>
+ <c8f6f6fbcd7de593a726d091f5d0f6a245f6e0f7.1387271324.git.rashika.kheria@gmail.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37C7B99F5@ORSMSX103.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53282 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751001Ab3LRAz2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Dec 2013 19:55:28 -0500
-In-Reply-To: <20131217202518.GA17790@jtriplet-mobl1>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37C7B99F5@ORSMSX103.amr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>, Rashika Kheria <rashika.kheria@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "josh@joshtriplett.org" <josh@joshtriplett.org>, "devel@acpica.org" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Josh Triplett <josh@joshtriplett.org>, "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Rashika Kheria <rashika.kheria@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Tuesday, December 17, 2013 12:25:18 PM Josh Triplett wrote:
-> On Tue, Dec 17, 2013 at 05:35:46PM +0000, Moore, Robert wrote:
-> > I'm not sure what version of ACPICA you are looking at, but in the =
-master git tree for ACPICA, the file accommon.h includes "acutils.h".
->=20
-> This is the version in the latest git tree for the Linux kernel.
-
-Well, I guess that's something for Lv to look at, then.
-
-Lv, we seem to have a divergence here, can you please see if we can fix=
- it
-shortly?
-
-Rafael
-
-
-> > > -----Original Message-----
-> > > From: Rashika Kheria [mailto:rashika.kheria@gmail.com]
-> > > Sent: Tuesday, December 17, 2013 1:22 AM
-> > > To: linux-kernel@vger.kernel.org
-> > > Cc: Moore, Robert; Zheng, Lv; Wysocki, Rafael J; Len Brown; linux=
--
-> > > acpi@vger.kernel.org; josh@joshtriplett.org; devel@acpica.org
-> > > Subject: [PATCH 05/11] drivers: acpi: Include appropriate header =
-file in
-> > > utstate.c
-> > >=20
-> > > Include appropriate header file acutils.h in acpica/utstate.c bec=
-ause
-> > > function acpi_ut_create_pkg_state_and_push() has its prototype de=
-claration
-> > > in acutils.h. Also, encloses the function in acpica/utstate.c in =
-ifdef
-> > > condition of ACPI_FUTURE_USAGE.
-> > >=20
-> > > This eliminates the following warning in utstate.c:
-> > > drivers/acpi/acpica/utstate.c:64:1: warning: no previous prototyp=
-e for
-> > > =E2=80=98acpi_ut_create_pkg_state_and_push=E2=80=99 [-Wmissing-pr=
-ototypes]
-> > >=20
-> > > Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
-> > > Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-> > > ---
-> > >  drivers/acpi/acpica/utstate.c |    3 +++
-> > >  1 file changed, 3 insertions(+)
-> > >=20
-> > > diff --git a/drivers/acpi/acpica/utstate.c b/drivers/acpi/acpica/=
-utstate.c
-> > > index 03c4c2f..0920d23 100644
-> > > --- a/drivers/acpi/acpica/utstate.c
-> > > +++ b/drivers/acpi/acpica/utstate.c
-> > > @@ -43,6 +43,7 @@
-> > >=20
-> > >  #include <acpi/acpi.h>
-> > >  #include "accommon.h"
-> > > +#include "acutils.h"
-> > >=20
-> > >  #define _COMPONENT          ACPI_UTILITIES
-> > >  ACPI_MODULE_NAME("utstate")
-> > > @@ -60,6 +61,7 @@ ACPI_MODULE_NAME("utstate")
-> > >   * DESCRIPTION: Create a new state and push it
-> > >   *
-> > >=20
-> > > *****************************************************************=
-*********
-> > > ****/
-> > > +#ifdef  ACPI_FUTURE_USAGE
-> > >  acpi_status
-> > >  acpi_ut_create_pkg_state_and_push(void *internal_object,
-> > >  				  void *external_object,
-> > > @@ -79,6 +81,7 @@ acpi_ut_create_pkg_state_and_push(void *interna=
-l_object,
-> > >  	acpi_ut_push_generic_state(state_list, state);
-> > >  	return (AE_OK);
-> > >  }
-> > > +#endif
-> > >=20
-> > >=20
-> > > /****************************************************************=
-*********
-> > > ******
-> > >   *
-> > > --
-> > > 1.7.9.5
-> >=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGksDQoNCkN1cnJlbnRseSB3ZSBkaWRuJ3QgZG8gbXVjaCBvbiBhdXRvbWF0aWNhbGx5IG9wdGlt
+aXplZCBvdXQgQUNQSV9GVVRVUkVfVVNBR0UgZnVuY3Rpb25zIGFzIGxvbmcgYXMgdGhleSBkbyBu
+b3QgYWZmZWN0IHRoZSBnZW5lcmF0aW9uIG9mIHZtbGludXggYmluYXJ5Lg0KDQo+IEZyb206IE1v
+b3JlLCBSb2JlcnQNCj4gU2VudDogV2VkbmVzZGF5LCBEZWNlbWJlciAxOCwgMjAxMyAxOjM2IEFN
+DQo+IA0KPiBJJ20gbm90IHN1cmUgd2hhdCB2ZXJzaW9uIG9mIEFDUElDQSB5b3UgYXJlIGxvb2tp
+bmcgYXQsIGJ1dCBpbiB0aGUgbWFzdGVyIGdpdCB0cmVlIGZvciBBQ1BJQ0EsIHRoZSBmaWxlIGFj
+Y29tbW9uLmggaW5jbHVkZXMgImFjdXRpbHMuaCIuDQo+IA0KPiA+IC0tLS0tT3JpZ2luYWwgTWVz
+c2FnZS0tLS0tDQo+ID4gRnJvbTogUmFzaGlrYSBLaGVyaWEgW21haWx0bzpyYXNoaWthLmtoZXJp
+YUBnbWFpbC5jb21dDQo+ID4gU2VudDogVHVlc2RheSwgRGVjZW1iZXIgMTcsIDIwMTMgMToyMiBB
+TQ0KPiA+IFRvOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnDQo+ID4gQ2M6IE1vb3JlLCBS
+b2JlcnQ7IFpoZW5nLCBMdjsgV3lzb2NraSwgUmFmYWVsIEo7IExlbiBCcm93bjsgbGludXgtDQo+
+ID4gYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGpvc2hAam9zaHRyaXBsZXR0Lm9yZzsgZGV2ZWxAYWNw
+aWNhLm9yZw0KPiA+IFN1YmplY3Q6IFtQQVRDSCAwNS8xMV0gZHJpdmVyczogYWNwaTogSW5jbHVk
+ZSBhcHByb3ByaWF0ZSBoZWFkZXIgZmlsZSBpbg0KPiA+IHV0c3RhdGUuYw0KPiA+DQo+ID4gSW5j
+bHVkZSBhcHByb3ByaWF0ZSBoZWFkZXIgZmlsZSBhY3V0aWxzLmggaW4gYWNwaWNhL3V0c3RhdGUu
+YyBiZWNhdXNlDQo+ID4gZnVuY3Rpb24gYWNwaV91dF9jcmVhdGVfcGtnX3N0YXRlX2FuZF9wdXNo
+KCkgaGFzIGl0cyBwcm90b3R5cGUgZGVjbGFyYXRpb24NCj4gPiBpbiBhY3V0aWxzLmguIEFsc28s
+IGVuY2xvc2VzIHRoZSBmdW5jdGlvbiBpbiBhY3BpY2EvdXRzdGF0ZS5jIGluIGlmZGVmDQo+ID4g
+Y29uZGl0aW9uIG9mIEFDUElfRlVUVVJFX1VTQUdFLg0KPiA+DQo+ID4gVGhpcyBlbGltaW5hdGVz
+IHRoZSBmb2xsb3dpbmcgd2FybmluZyBpbiB1dHN0YXRlLmM6DQo+ID4gZHJpdmVycy9hY3BpL2Fj
+cGljYS91dHN0YXRlLmM6NjQ6MTogd2FybmluZzogbm8gcHJldmlvdXMgcHJvdG90eXBlIGZvcg0K
+PiA+IOKAmGFjcGlfdXRfY3JlYXRlX3BrZ19zdGF0ZV9hbmRfcHVzaOKAmSBbLVdtaXNzaW5nLXBy
+b3RvdHlwZXNdDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBSYXNoaWthIEtoZXJpYSA8cmFzaGlr
+YS5raGVyaWFAZ21haWwuY29tPg0KPiA+IFJldmlld2VkLWJ5OiBKb3NoIFRyaXBsZXR0IDxqb3No
+QGpvc2h0cmlwbGV0dC5vcmc+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvdXRz
+dGF0ZS5jIHwgICAgMyArKysNCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKQ0K
+PiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvdXRzdGF0ZS5jIGIvZHJp
+dmVycy9hY3BpL2FjcGljYS91dHN0YXRlLmMNCj4gPiBpbmRleCAwM2M0YzJmLi4wOTIwZDIzIDEw
+MDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvdXRzdGF0ZS5jDQo+ID4gKysrIGIv
+ZHJpdmVycy9hY3BpL2FjcGljYS91dHN0YXRlLmMNCj4gPiBAQCAtNDMsNiArNDMsNyBAQA0KPiA+
+DQo+ID4gICNpbmNsdWRlIDxhY3BpL2FjcGkuaD4NCj4gPiAgI2luY2x1ZGUgImFjY29tbW9uLmgi
+DQo+ID4gKyNpbmNsdWRlICJhY3V0aWxzLmgiDQoNCklNTywgdGhpcyBsaW5lIGlzIHVzZWxlc3Mu
+DQoNCj4gPg0KPiA+ICAjZGVmaW5lIF9DT01QT05FTlQgICAgICAgICAgQUNQSV9VVElMSVRJRVMN
+Cj4gPiAgQUNQSV9NT0RVTEVfTkFNRSgidXRzdGF0ZSIpDQo+ID4gQEAgLTYwLDYgKzYxLDcgQEAg
+QUNQSV9NT0RVTEVfTkFNRSgidXRzdGF0ZSIpDQo+ID4gICAqIERFU0NSSVBUSU9OOiBDcmVhdGUg
+YSBuZXcgc3RhdGUgYW5kIHB1c2ggaXQNCj4gPiAgICoNCj4gPg0KPiA+ICoqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqDQo+ID4gKioqKi8NCj4gPiArI2lmZGVmICBBQ1BJX0ZVVFVSRV9VU0FHRQ0KPiA+ICBhY3Bp
+X3N0YXR1cw0KPiA+ICBhY3BpX3V0X2NyZWF0ZV9wa2dfc3RhdGVfYW5kX3B1c2godm9pZCAqaW50
+ZXJuYWxfb2JqZWN0LA0KPiA+ICAJCQkJICB2b2lkICpleHRlcm5hbF9vYmplY3QsDQo+ID4gQEAg
+LTc5LDYgKzgxLDcgQEAgYWNwaV91dF9jcmVhdGVfcGtnX3N0YXRlX2FuZF9wdXNoKHZvaWQgKmlu
+dGVybmFsX29iamVjdCwNCj4gPiAgCWFjcGlfdXRfcHVzaF9nZW5lcmljX3N0YXRlKHN0YXRlX2xp
+c3QsIHN0YXRlKTsNCj4gPiAgCXJldHVybiAoQUVfT0spOw0KPiA+ICB9DQo+ID4gKyNlbmRpZg0K
+DQpJTU8sIHRoZXNlIGxpbmVzIGFyZSB1c2VmdWwuDQpJIGhhdmUgYSBwbGFuIHRvIGRvIGEgY2xl
+YW51cCBvbiBhbGwgQUNQSUNBIGJ1aWxkIHdhcm5pbmdzIHNvIHRoYXQgc3VjaCBpbmNvbnNpc3Rl
+bmNpZXMgY2FuIGJlIHNvcnRlZCBvdXQuDQpNYXliZSBpdCBpcyB0aW1lIHRvIGRvIGl0IHJpZ2h0
+IG5vdy4NCg0KVGhhbmtzDQotTHYNCg0KPiA+DQo+ID4NCj4gPiAvKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKg0K
+PiA+ICoqKioqKg0KPiA+ICAgKg0KPiA+IC0tDQo+ID4gMS43LjkuNQ0KDQo=
