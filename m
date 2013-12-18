@@ -1,89 +1,122 @@
-From: Rashika Kheria <rashika.kheria@gmail.com>
-Subject: [PATCH] drivers: firmware: Move prototype declartions to header file
- cper.h
-Date: Wed, 18 Dec 2013 12:21:31 +0530
-Message-ID: <20131218064527.GA3353@rashika>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:35370 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750933Ab3LRGwA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Dec 2013 01:52:00 -0500
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [RFC Patch v1 02/13] ACPI, extlog: replace open-coded _DSM specific code with helper functions
+Date: Wed, 18 Dec 2013 14:58:10 +0800
+Message-ID: <1387349901-3391-3-git-send-email-jiang.liu@linux.intel.com>
+References: <1387349901-3391-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1387349901-3391-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Leonidas Da Silva Barbosa <leosilva@linux.vnet.ibm.com>, Ashley Lai <ashley@ashleylai.com>, Peter Huewe <peterhuewe@gmx.de>, Rajiv Andrade <mail@srajiv.net>, Marcel Selhorst <tpmdd@selhorst.net>, Sirrix AG <tpmdd@sirrix.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jiri Kosina <jkosina@suse.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@suse.de>, "Chen, Gong" <gong.chen@linux.intel.com>, Rashika Kheria <rashika.kheria@gmail.com>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, linux-acpi@vger.kernel.org, josh@joshtriplett.org
 
-Move prototype declarations of function cper_estatus_print(),
-cper_estatus_check_header() and cper_estatus_check() from file
-drivers/acpi/apei/apei-internal.h to header file include/linux/cper.h
-because these functions are used by both acpi driver and firmware
-driver.
-The header file include/linux/cper.h was chosen because it is included
-in both the drivers.
+Use helper functions to simplify _DSM related code in acpi_extlog driver.
+Also mark initialization data and functions with __init and __initdata
+to reduce memory footprint.
 
-This eliminates the following warnings in efi/cper.c:
-drivers/firmware/efi/cper.c:346:6: warning: no previous prototype for =E2=
-=80=98cper_estatus_print=E2=80=99 [-Wmissing-prototypes]
-drivers/firmware/efi/cper.c:374:5: warning: no previous prototype for =E2=
-=80=98cper_estatus_check_header=E2=80=99 [-Wmissing-prototypes]
-drivers/firmware/efi/cper.c:387:5: warning: no previous prototype for =E2=
-=80=98cper_estatus_check=E2=80=99 [-Wmissing-prototypes]
-
-Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/apei/apei-internal.h |    5 -----
- include/linux/cper.h              |    8 ++++++++
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/acpi/acpi_extlog.c |   61 +++++++++-----------------------------------
+ 1 file changed, 12 insertions(+), 49 deletions(-)
 
-diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei=
--internal.h
-index 21ba34a..4ae847d 100644
---- a/drivers/acpi/apei/apei-internal.h
-+++ b/drivers/acpi/apei/apei-internal.h
-@@ -135,10 +135,5 @@ static inline u32 cper_estatus_len(struct acpi_gen=
-eric_status *estatus)
- 		return sizeof(*estatus) + estatus->data_length;
+diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
+index a6869e1..928c4db 100644
+--- a/drivers/acpi/acpi_extlog.c
++++ b/drivers/acpi/acpi_extlog.c
+@@ -20,11 +20,9 @@
+ #define EXT_ELOG_ENTRY_MASK	GENMASK_ULL(51, 0) /* elog entry address mask */
+ 
+ #define EXTLOG_DSM_REV		0x0
+-#define	EXTLOG_FN_QUERY		0x0
+ #define	EXTLOG_FN_ADDR		0x1
+ 
+ #define FLAG_OS_OPTIN		BIT(0)
+-#define EXTLOG_QUERY_L1_EXIST	BIT(1)
+ #define ELOG_ENTRY_VALID	(1ULL<<63)
+ #define ELOG_ENTRY_LEN		0x1000
+ 
+@@ -43,7 +41,7 @@ struct extlog_l1_head {
+ 	u8  rev1[12];
+ };
+ 
+-static u8 extlog_dsm_uuid[] = "663E35AF-CC10-41A4-88EA-5470AF055295";
++static u8 extlog_dsm_uuid[] __initdata = "663E35AF-CC10-41A4-88EA-5470AF055295";
+ 
+ /* L1 table related physical address */
+ static u64 elog_base;
+@@ -153,62 +151,27 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
+ 	return NOTIFY_DONE;
  }
-=20
--void cper_estatus_print(const char *pfx,
--			const struct acpi_generic_status *estatus);
--int cper_estatus_check_header(const struct acpi_generic_status *estatu=
-s);
--int cper_estatus_check(const struct acpi_generic_status *estatus);
+ 
+-static int extlog_get_dsm(acpi_handle handle, int rev, int func, u64 *ret)
++static bool __init extlog_get_l1addr(void)
+ {
+-	struct acpi_buffer buf = {ACPI_ALLOCATE_BUFFER, NULL};
+-	struct acpi_object_list input;
+-	union acpi_object params[4], *obj;
+ 	u8 uuid[16];
+-	int i;
++	acpi_handle handle;
++	union acpi_object *obj;
+ 
+ 	acpi_str_to_uuid(extlog_dsm_uuid, uuid);
+-	input.count = 4;
+-	input.pointer = params;
+-	params[0].type = ACPI_TYPE_BUFFER;
+-	params[0].buffer.length = 16;
+-	params[0].buffer.pointer = uuid;
+-	params[1].type = ACPI_TYPE_INTEGER;
+-	params[1].integer.value = rev;
+-	params[2].type = ACPI_TYPE_INTEGER;
+-	params[2].integer.value = func;
+-	params[3].type = ACPI_TYPE_PACKAGE;
+-	params[3].package.count = 0;
+-	params[3].package.elements = NULL;
 -
- int apei_osc_setup(void);
- #endif
-diff --git a/include/linux/cper.h b/include/linux/cper.h
-index 2fc0ec3..080f5f7 100644
---- a/include/linux/cper.h
-+++ b/include/linux/cper.h
-@@ -22,6 +22,14 @@
- #define LINUX_CPER_H
-=20
- #include <linux/uuid.h>
-+#include <linux/acpi.h>
-+
-+/* Prototype declaration of functions common between acpi and firmware=
- driver*/
-+void cper_estatus_print(const char *pfx,
-+		        const struct acpi_generic_status *estatus);
-+int cper_estatus_check_header(const struct acpi_generic_status *estatu=
-s);
-+int cper_estatus_check(const struct acpi_generic_status *estatus);
-+
-=20
- /* CPER record signature and the size */
- #define CPER_SIG_RECORD				"CPER"
---=20
-1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_DSM", &input, &buf)))
+-		return -1;
+-
+-	*ret = 0;
+-	obj = (union acpi_object *)buf.pointer;
+-	if (obj->type == ACPI_TYPE_INTEGER) {
+-		*ret = obj->integer.value;
+-	} else if (obj->type == ACPI_TYPE_BUFFER) {
+-		if (obj->buffer.length <= 8) {
+-			for (i = 0; i < obj->buffer.length; i++)
+-				*ret |= (obj->buffer.pointer[i] << (i * 8));
+-		}
+-	}
+-	kfree(buf.pointer);
+-
+-	return 0;
+-}
+-
+-static bool extlog_get_l1addr(void)
+-{
+-	acpi_handle handle;
+-	u64 ret;
+ 
+ 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
+ 		return false;
+-
+-	if (extlog_get_dsm(handle, EXTLOG_DSM_REV, EXTLOG_FN_QUERY, &ret) ||
+-	    !(ret & EXTLOG_QUERY_L1_EXIST))
++	if (!acpi_check_dsm(handle, uuid, EXTLOG_DSM_REV, 1 << EXTLOG_FN_ADDR))
+ 		return false;
+-
+-	if (extlog_get_dsm(handle, EXTLOG_DSM_REV, EXTLOG_FN_ADDR, &ret))
++	obj = acpi_evaluate_dsm_typed(handle, uuid, EXTLOG_DSM_REV,
++				      EXTLOG_FN_ADDR, NULL, ACPI_TYPE_INTEGER);
++	if (!obj) {
+ 		return false;
++	} else {
++		l1_dirbase = obj->integer.value;
++		ACPI_FREE(obj);
++	}
+ 
+-	l1_dirbase = ret;
+ 	/* Spec says L1 directory must be 4K aligned, bail out if it isn't */
+ 	if (l1_dirbase & ((1 << 12) - 1)) {
+ 		pr_warn(FW_BUG "L1 Directory is invalid at physical %llx\n",
+-- 
+1.7.10.4
