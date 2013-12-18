@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 11/15] ACPICA: Linux: Add stub implementation of ACPICA 64-bit mathematics.
-Date: Wed, 18 Dec 2013 17:06:57 +0800
-Message-ID: <e40a85582eb46ad8e10e49a5dc296af588e1965d.1387336613.git.lv.zheng@intel.com>
+Subject: [RFC PATCH 09/15] ACPICA: Linux: Add stub support for Linux specific variables and functions.
+Date: Wed, 18 Dec 2013 17:06:44 +0800
+Message-ID: <0f86540cd2b61cd4d6d5086849d6b619d76d9d1d.1387336613.git.lv.zheng@intel.com>
 References: <cover.1387336613.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1387336613.git.lv.zheng@intel.com>
@@ -10,91 +10,133 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds default 64-bit mathematics in aclinux.h using do_div.  As
-do_div can be used for all Linux architectures, this can also be used as
-stub macros for ACPICA 64-bit mathematics.
+There are global variables and functions not upstreamed to the ACPICA code
+base.  Such symbols still can referenced by external users as they are
+listed in the acpixf.h.  This patch uses ACPI_GLOBAL and
+ACPI_EXTERNAL_RETURN_STATUS mechanism to add stub support for such symbols.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- arch/ia64/include/asm/acenv.h   |    2 ++
- arch/x86/include/asm/acenv.h    |    4 ++++
- include/acpi/platform/aclinux.h |   29 +++++++++++++++++++++++++++++
- 3 files changed, 35 insertions(+)
+ arch/ia64/kernel/acpi.c         |    1 -
+ arch/x86/kernel/acpi/boot.c     |    1 -
+ drivers/acpi/bus.c              |    3 ---
+ include/acpi/acpixf.h           |   23 ++++++++++++++---------
+ include/acpi/platform/aclinux.h |    3 +++
+ 5 files changed, 17 insertions(+), 14 deletions(-)
 
-diff --git a/arch/ia64/include/asm/acenv.h b/arch/ia64/include/asm/acenv.h
-index eb13318..f142a9d 100644
---- a/arch/ia64/include/asm/acenv.h
-+++ b/arch/ia64/include/asm/acenv.h
-@@ -66,6 +66,8 @@ ia64_acpi_release_global_lock (unsigned int *lock)
- #define ACPI_RELEASE_GLOBAL_LOCK(facs, Acq)				\
- 	((Acq) = ia64_acpi_release_global_lock(&facs->global_lock))
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index 59d52e3..28dc6ba 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -61,7 +61,6 @@
  
-+#define ARCH_HAS_ACPI_GLOBAL_LOCK 1
-+
+ #define PREFIX			"ACPI: "
+ 
+-u32 acpi_rsdt_forced;
+ unsigned int acpi_cpei_override;
+ unsigned int acpi_cpei_phys_cpuid;
+ 
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 6c0b43b..c83a974 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -46,7 +46,6 @@
+ 
+ #include "sleep.h" /* To include x86_acpi_suspend_lowlevel */
+ static int __initdata acpi_force = 0;
+-u32 acpi_rsdt_forced;
+ int acpi_disabled;
+ EXPORT_SYMBOL(acpi_disabled);
+ 
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 2c38ae2..68d3e70 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -429,9 +429,6 @@ static int __init acpi_bus_init_irq(void)
+ 	return 0;
+ }
+ 
+-u8 acpi_gbl_permanent_mmap;
+-
+-
+ void __init acpi_early_init(void)
+ {
+ 	acpi_status status;
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 8f32dfe..1e93ef6 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -53,9 +53,6 @@
+ #include <acpi/actbl.h>
+ #include <acpi/acbuffer.h>
+ 
+-extern u8 acpi_gbl_permanent_mmap;
+-extern u32 acpi_rsdt_forced;
+-
+ /*
+  * Ensure that the globals are actually defined and initialized only once.
+  *
+@@ -235,6 +232,10 @@ ACPI_GLOBAL(u8, acpi_gbl_reduced_hardware)
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_no_resource_disassembly, FALSE)
+  ACPI_INIT_GLOBAL(u8, acpi_gbl_ignore_noop_operator, FALSE)
  #endif
- 
- #endif /* _ASM_IA64_ACENV_H */
-diff --git a/arch/x86/include/asm/acenv.h b/arch/x86/include/asm/acenv.h
-index 2359989..a85b478 100644
---- a/arch/x86/include/asm/acenv.h
-+++ b/arch/x86/include/asm/acenv.h
-@@ -45,6 +45,8 @@ int __acpi_release_global_lock(unsigned int *lock);
- #define ACPI_RELEASE_GLOBAL_LOCK(facs, Acq) \
- 	((Acq) = __acpi_release_global_lock(&facs->global_lock))
- 
-+#define ARCH_HAS_ACPI_GLOBAL_LOCK 1
++
++ACPI_GLOBAL(u8, acpi_gbl_permanent_mmap)
++ACPI_GLOBAL(u32, acpi_rsdt_forced)
 +
  /*
-  * Math helper asm macros
-  */
-@@ -61,6 +63,8 @@ int __acpi_release_global_lock(unsigned int *lock);
- 	    : "=r"(n_hi), "=r"(n_lo)	\
- 	    : "0"(n_hi), "1"(n_lo))
+  * Hardware-reduced prototypes. All interfaces that use these macros will
+  * be configured out of the ACPICA build if the ACPI_REDUCED_HARDWARE flag
+@@ -361,7 +362,7 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status __init acpi_reallocate_root_table(void))
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status __init
+ 			    acpi_find_root_pointer(acpi_size * rsdp_address))
  
-+#define ARCH_HAS_ACPI_MATH64_HELPER 1
-+
- #endif
+-acpi_status acpi_unload_table_id(acpi_owner_id id);
++ACPI_EXTERNAL_RETURN_STATUS(acpi_status acpi_unload_table_id(acpi_owner_id id))
  
- #endif /* _ASM_X86_ACENV_H */
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 			    acpi_get_table_header(acpi_string signature,
+@@ -369,10 +370,12 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 						  struct acpi_table_header
+ 						  *out_table_header))
+ 
+-acpi_status
+-acpi_get_table_with_size(acpi_string signature,
+-	       u32 instance, struct acpi_table_header **out_table,
+-	       acpi_size *tbl_size);
++ACPI_EXTERNAL_RETURN_STATUS(acpi_status
++			    acpi_get_table_with_size(acpi_string signature,
++						     u32 instance,
++						     struct acpi_table_header
++						     **out_table,
++						     acpi_size *tbl_size))
+ 
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 			     acpi_get_table(acpi_string signature, u32 instance,
+@@ -477,7 +480,9 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 			    acpi_get_type(acpi_handle object,
+ 					  acpi_object_type * out_type))
+ 
+-acpi_status acpi_get_id(acpi_handle object, acpi_owner_id * out_type);
++ACPI_EXTERNAL_RETURN_STATUS(acpi_status
++			    acpi_get_id(acpi_handle object,
++					acpi_owner_id * out_type))
+ 
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 			    acpi_get_parent(acpi_handle object,
 diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index e9e6374..8176181 100644
+index 12ef8be..b1ddf5c 100644
 --- a/include/acpi/platform/aclinux.h
 +++ b/include/acpi/platform/aclinux.h
-@@ -221,6 +221,35 @@
- #define acpi_spinlock                       spinlock_t *
- #define acpi_cpu_flags                      unsigned long
+@@ -133,6 +133,9 @@
+ #define acpi_dbg_level                      ACPI_DEBUG_DEFAULT
+ #define acpi_dbg_layer                      ACPI_COMPONENT_DEFAULT
  
-+#if ACPI_MACHINE_WIDTH == 64
++#define acpi_gbl_permanent_mmap             FALSE
++#define acpi_rsdt_forced                    FALSE
 +
-+#ifndef ARCH_HAS_ACPI_MATH64_HELPER
-+
-+/* Default to ACPI_USE_NATIVE_DIVIDE support */
-+
-+#define ARCH_HAS_ACPI_MATH64_HELPER
-+
-+#endif
-+
-+#endif
-+
-+#ifndef ARCH_HAS_ACPI_MATH64_HELPER
-+
-+#define ACPI_DIV_64_BY_32(n_hi, n_lo, d32, q32, r32) \
-+	do { \
-+		u64 __dividend = (((u64)(n_hi) << 32) | (n_lo)); \
-+		(r32) = do_div(__dividend, (d32)); \
-+		(q32) = (u32)__dividend; \
-+	} while (0)
-+
-+#define ACPI_SHIFT_RIGHT_64(n_hi, n_lo) \
-+	do { \
-+		(n_lo) = ((n_lo) >> 1) | (((n_hi) & 1) << 31); \
-+		(n_hi) >>= 1; \
-+	} while (0)
-+
-+#endif
-+
- #else				/* !__KERNEL__ */
+ /* Helpers to protect acpi_gbl_FADT accesses */
  
- #include <stdarg.h>
+ #define acpi_get_fadt_revision()    0
 -- 
 1.7.10.4
