@@ -1,131 +1,132 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 02/15] ACPICA: Linux: Add configurability for external globals.
-Date: Wed, 18 Dec 2013 17:06:03 +0800
-Message-ID: <210435d18043054a1e9976733a2dbe4086291af5.1387336613.git.lv.zheng@intel.com>
-References: <cover.1387336613.git.lv.zheng@intel.com>
+Subject: [RFC PATCH 00/15] ACPICA: Add CONFIG_ACPI=n build support for ACPICA header files.
+Date: Wed, 18 Dec 2013 17:05:32 +0800
+Message-ID: <cover.1387336613.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:62189 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:32860 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751411Ab3LRJGM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1751539Ab3LRJGM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Wed, 18 Dec 2013 04:06:12 -0500
-In-Reply-To: <cover.1387336613.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-OSPMs like Linux trend to include all header files but leave empty inline
-stub variables for a feature that is not configured during build.
+Currently, there are issues in the ACPI subsystem:
 
-This patch configures ACPICA external globals out and defines them into
-immediates when CONFIG_ACPI is not enabled.  Lv Zheng.
+1. ACPICA header files are lacking in stub protections.
+   This makes all ACPICA header files could only be included for
+   CONFIG_ACPI=y environment.  This infects new ACPI prototypes, if such
+   prototypes referenced ACPICA defined types, they must be incldued only
+   in the CONFIG_ACPI=y environment.  While CONFIG_SFI requires to include
+   ACPICA headers to find generic table definitions when CONFIG_ACPI is not
+   enabled.  This seems to be too complicated to achieve a cleaned SFI
+   header.  So please check if this solution is acceptable.  And this patch
+   set is thus marked as RFC.
+2. ACPICA layer is lacking in its own architecture specific layer.
+   The file <asm/acpi.h> now is used as architecture specific layer of both
+   in kernel ACPICA and Linux ACPI.  While Linux ACPI headers are always
+   need to include ACPICA top level header <acpi/acpi.h> to find ACPICA
+   defined types before including their own architecture specific layer.
+   The mis-order of header inclusion will potentially infect
+   arch/x86/include/asm folder, and defining prototypes using ACPICA types
+   in <asm/acpi.h> is not possible.
 
-Known issues:
-1. No possible referencs by !CONFIG_ACPI code
-   We even don't need to define specific globals into immediates if it is
-   impossible that there are references for them in !CONFIG_ACPI code.
-   This patch just adds immediates for all of them from ACPICA's
-   perspectives.
+This patchset solves above issues to make ACPICA a law-abiding resident in
+the Linux kernel.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- include/acpi/acpixf.h           |   11 ++++++++
- include/acpi/platform/aclinux.h |   53 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+)
+The benefits of merging this series are:
+1. We can sort all direct <acpi/acpi.h> inclusions from subsystems other
+   than ACPICA out from the entire kernel source tree.
+2. We are able to kill many "#ifdef CONFIG_ACPI" code from other kernel
+   subsystems.
+3. Using ACPICA types in <asm/acpi.h> is possible.
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 76df71d..2fc2094 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -74,13 +74,24 @@ extern u32 acpi_rsdt_forced;
- 
- #else
- 
-+#ifndef ACPI_EXTERN
- #define ACPI_EXTERN extern
-+#endif
-+
-+#ifndef ACPI_GLOBAL
- #define ACPI_GLOBAL(t,a) \
- 	extern t a;
-+#endif
-+
-+#ifndef ACPI_INIT_GLOBAL
- #define ACPI_INIT_GLOBAL(t,a,b) \
- 	extern t a;
-+#endif
-+
-+#ifndef ACPI_GLOBAL_FADT
- #define ACPI_GLOBAL_FADT \
- 	extern struct acpi_table_fadt acpi_gbl_FADT;
-+#endif
- 
- #endif
- 
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 28f4f4d..68cda04 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -65,6 +65,59 @@
- #endif
- #include <asm/acpi.h>
- 
-+#ifdef CONFIG_ACPI
-+
-+/*
-+ * External acpi_gbl_FADT users will use Revision and Flags to test
-+ * features, such code may not well protected by CONFIG_ACPI.
-+ */
-+#define acpi_get_fadt_revision()    (acpi_gbl_FADT.header.revision)
-+#define acpi_test_fadt_flags(__flags) (acpi_gbl_FADT.flags & (__flags))
-+
-+#else				/* CONFIG_ACPI */
-+
-+/* Extarnal globals for __KERNEL__, stubs is needed */
-+
-+#define ACPI_EXTERN
-+#define ACPI_GLOBAL(t,a)
-+#define ACPI_INIT_GLOBAL(t,a,b)
-+#define ACPI_GLOBAL_FADT
-+
-+/* Immediates to protect global variables accesses */
-+
-+#define acpi_current_gpe_count              0
-+#define acpi_gbl_trace_flags                0
-+#define acpi_gbl_trace_method_name          0
-+#define acpi_gbl_system_awake_and_running   FALSE
-+#define acpi_gbl_reduced_hardware           FALSE
-+#define acpi_gbl_enable_interpreter_slack   FALSE
-+#define acpi_gbl_all_methods_serialized     FALSE
-+#define acpi_gbl_create_osi_method          TRUE
-+#define acpi_gbl_use_default_register_widths TRUE
-+#define acpi_gbl_enable_aml_debug_object    FALSE
-+#define acpi_gbl_copy_dsdt_locally          FALSE
-+#define acpi_gbl_truncate_io_addresses      FALSE
-+#define acpi_gbl_disable_auto_repair        FALSE
-+#define acpi_gbl_disable_ssdt_table_load    FALSE
-+#define acpi_gbl_osi_data                   0
-+#define acpi_dbg_level                      ACPI_DEBUG_DEFAULT
-+#define acpi_dbg_layer                      ACPI_COMPONENT_DEFAULT
-+
-+/* Helpers to protect acpi_gbl_FADT accesses */
-+
-+#define acpi_get_fadt_revision()    0
-+#define acpi_test_fadt_flags(__flags) 0
-+
-+#endif				/* CONFIG_ACPI */
-+
-+#ifndef ACPI_DISASSEMBLER
-+
-+/* Immediates to protect global variables accesses */
-+
-+#define acpi_gbl_no_resource_disassembly    FALSE
-+#define acpi_gbl_ignore_noop_operator       FALSE
-+#endif
-+
- /* Host-dependent types and defines for in-kernel ACPICA */
- 
- #define ACPI_MACHINE_WIDTH          BITS_PER_LONG
+PATCH 01-13 add stub protections for ACPICA headers.
+      01-02 add stub support for ACPICA global variables
+      03    add stub support for ACPICA OSL prototypes
+      04    add stub support for ACPICA macros
+      05-09 add stub support for ACPICA external functions
+      10-13 remove <asm/acpi.h> inclusion from ACPICA headers.
+PATCH 14-15 remove wrong direct <acpi/acpi.h> inclusions.
+
+NOTE: PATCH 01-08 are linuxized ACPICA commits, it is better to merge them
+      into the ACPICA upstream first and integrate them into Linux during
+      ACPICA release process.  Or the divergences generated by this series
+      may hurt ACPICA release automation.
+
+The patch set has passed a build/boot test on the following machines:
+Dell Inspiron Mini 1010 (i386)
+HP Compaq 8200 Elite SFF PC (x86-64)
+With the following kernel configuration items enabled:
+  All drivers/acpi configurations
+  All platform drivers
+  All ACPI drivers
+  4 DRM drivers that implement ACPI opregion
+  All buses with ACPI bindings
+  All cpufreq configurations
+  All xen configurations
+  All ACPI table drivers
+They are tested twice with CONFIG_ACPI enabled/disabled.
+
+Also allyes/allno/allmod tests are done for ARCH=i386 and ARCH=x86_64.
+
+A boot test has been done to ARCH=x86_64 default configuration and it is
+confirmed that the ACPI devices are successfully created under
+/sys/bus/acpi/devices when CONFIG_ACPI is enabled.
+
+Another test is to compose a .c file invoking all ACPICA globals,
+functions, macros and built it with and without CONFIG_ACPI enabled.
+
+Lv Zheng (15):
+  ACPICA: OSL: Add configurability mechanism for global variables.
+  ACPICA: Linux: Add configurability for external globals.
+  ACPICA: Linux: Add configurability for OSL APIs.
+  ACPICA: OSL: Cleanup external macros and add stubs for macros.
+  ACPICA: OSL: Add configurability to error message functions.
+  ACPICA: OSL: Add configurability to debug output functions.
+  ACPICA: OSL: Add configurability mechanism for external APIs.
+  ACPICA: OSL: Updates ACPI_EXTERNAL_RETURN_x usages for external APIs.
+  ACPICA: Linux: Add stub support for Linux specific variables and
+    functions.
+  ACPICA: Linux: Add architecture specific ACPICA headers in Linux.
+  ACPICA: Linux: Add stub implementation of ACPICA 64-bit mathematics.
+  ACPICA: Linux: Add configuration item to indicate the architecture
+    specific support.
+  ACPICA: Linux: Remove <asm/acpi.h> inclusion from ACPICA headers.
+  ACPI/SFI: Fix wrong <acpi/acpi.h> inclusion in SFI/ACPI wrapper -
+    table definitions.
+  ACPI/thinkpad: Fix wrong <acpi/acpi.h> inclusion in Thinkpad ACPI
+    users.
+
+ arch/ia64/Kconfig                    |    1 +
+ arch/ia64/include/asm/acenv.h        |   73 ++++
+ arch/ia64/include/asm/acpi.h         |   50 ---
+ arch/ia64/kernel/acpi.c              |    1 -
+ arch/x86/Kconfig                     |    1 +
+ arch/x86/include/asm/acenv.h         |   70 +++
+ arch/x86/include/asm/acpi.h          |   45 --
+ arch/x86/kernel/acpi/boot.c          |    1 -
+ drivers/acpi/Kconfig                 |    4 +
+ drivers/acpi/acpica/acglobal.h       |  123 ------
+ drivers/acpi/acpica/utglobal.c       |    6 -
+ drivers/acpi/acpica/utxferror.c      |    2 +
+ drivers/acpi/bus.c                   |    3 -
+ drivers/platform/x86/thinkpad_acpi.c |    1 -
+ include/acpi/acpixf.h                |  782 +++++++++++++++++++++++-----------
+ include/acpi/actypes.h               |   21 +
+ include/acpi/platform/aclinux.h      |  182 +++++++-
+ include/linux/acpi.h                 |   13 +-
+ include/linux/acpica.h               |   22 +
+ include/linux/sfi_acpi.h             |    3 -
+ include/linux/thinkpad_acpi.h        |    2 +
+ sound/pci/hda/patch_conexant.c       |    1 -
+ sound/pci/hda/patch_realtek.c        |    1 -
+ 23 files changed, 910 insertions(+), 498 deletions(-)
+ create mode 100644 arch/ia64/include/asm/acenv.h
+ create mode 100644 arch/x86/include/asm/acenv.h
+ create mode 100644 include/linux/acpica.h
+
 -- 
 1.7.10.4
 
