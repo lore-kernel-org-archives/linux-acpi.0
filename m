@@ -1,122 +1,171 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch v1 02/13] ACPI, extlog: replace open-coded _DSM specific code with helper functions
-Date: Wed, 18 Dec 2013 14:58:10 +0800
-Message-ID: <1387349901-3391-3-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC Patch v1 01/13] ACPI: introduce helper interfaces to support ACPI _DSM method
+Date: Wed, 18 Dec 2013 14:58:09 +0800
+Message-ID: <1387349901-3391-2-git-send-email-jiang.liu@linux.intel.com>
 References: <1387349901-3391-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1387349901-3391-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Leonidas Da Silva Barbosa <leosilva@linux.vnet.ibm.com>, Ashley Lai <ashley@ashleylai.com>, Peter Huewe <peterhuewe@gmx.de>, Rajiv Andrade <mail@srajiv.net>, Marcel Selhorst <tpmdd@selhorst.net>, Sirrix AG <tpmdd@sirrix.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jiri Kosina <jkosina@suse.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Leonidas Da Silva Barbosa <leosilva@linux.vnet.ibm.com>, Ashley Lai <ashley@ashleylai.com>, Peter Huewe <peterhuewe@gmx.de>, Rajiv Andrade <mail@srajiv.net>, Marcel Selhorst <tpmdd@selhorst.net>, Sirrix AG <tpmdd@sirrix.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jiri Kosina <jkosina@suse.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Use helper functions to simplify _DSM related code in acpi_extlog driver.
-Also mark initialization data and functions with __init and __initdata
-to reduce memory footprint.
+There are several drivers making use of ACPI _DSM method to detect
+and invoke device specific methods. Currently every driver has
+implemented its private version to support ACPI _DSM method.
+So this patch introduces three helper functions to support ACPI _DSM
+method, which will be used to replace open-coded versions.
+
+It helps to simplify code and improve code readability.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/acpi_extlog.c |   61 +++++++++-----------------------------------
- 1 file changed, 12 insertions(+), 49 deletions(-)
+ drivers/acpi/utils.c    |   98 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |   26 +++++++++++++
+ 2 files changed, 124 insertions(+)
 
-diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
-index a6869e1..928c4db 100644
---- a/drivers/acpi/acpi_extlog.c
-+++ b/drivers/acpi/acpi_extlog.c
-@@ -20,11 +20,9 @@
- #define EXT_ELOG_ENTRY_MASK	GENMASK_ULL(51, 0) /* elog entry address mask */
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 6d408bf..9517b0a 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -574,3 +574,101 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
  
- #define EXTLOG_DSM_REV		0x0
--#define	EXTLOG_FN_QUERY		0x0
- #define	EXTLOG_FN_ADDR		0x1
- 
- #define FLAG_OS_OPTIN		BIT(0)
--#define EXTLOG_QUERY_L1_EXIST	BIT(1)
- #define ELOG_ENTRY_VALID	(1ULL<<63)
- #define ELOG_ENTRY_LEN		0x1000
- 
-@@ -43,7 +41,7 @@ struct extlog_l1_head {
- 	u8  rev1[12];
- };
- 
--static u8 extlog_dsm_uuid[] = "663E35AF-CC10-41A4-88EA-5470AF055295";
-+static u8 extlog_dsm_uuid[] __initdata = "663E35AF-CC10-41A4-88EA-5470AF055295";
- 
- /* L1 table related physical address */
- static u64 elog_base;
-@@ -153,62 +151,27 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
- 	return NOTIFY_DONE;
+ 	return status;
  }
- 
--static int extlog_get_dsm(acpi_handle handle, int rev, int func, u64 *ret)
-+static bool __init extlog_get_l1addr(void)
- {
--	struct acpi_buffer buf = {ACPI_ALLOCATE_BUFFER, NULL};
--	struct acpi_object_list input;
--	union acpi_object params[4], *obj;
- 	u8 uuid[16];
--	int i;
-+	acpi_handle handle;
-+	union acpi_object *obj;
- 
- 	acpi_str_to_uuid(extlog_dsm_uuid, uuid);
--	input.count = 4;
--	input.pointer = params;
--	params[0].type = ACPI_TYPE_BUFFER;
--	params[0].buffer.length = 16;
--	params[0].buffer.pointer = uuid;
--	params[1].type = ACPI_TYPE_INTEGER;
--	params[1].integer.value = rev;
--	params[2].type = ACPI_TYPE_INTEGER;
--	params[2].integer.value = func;
--	params[3].type = ACPI_TYPE_PACKAGE;
--	params[3].package.count = 0;
--	params[3].package.elements = NULL;
--
--	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_DSM", &input, &buf)))
--		return -1;
--
--	*ret = 0;
--	obj = (union acpi_object *)buf.pointer;
--	if (obj->type == ACPI_TYPE_INTEGER) {
--		*ret = obj->integer.value;
--	} else if (obj->type == ACPI_TYPE_BUFFER) {
--		if (obj->buffer.length <= 8) {
--			for (i = 0; i < obj->buffer.length; i++)
--				*ret |= (obj->buffer.pointer[i] << (i * 8));
--		}
--	}
--	kfree(buf.pointer);
--
--	return 0;
--}
--
--static bool extlog_get_l1addr(void)
--{
--	acpi_handle handle;
--	u64 ret;
- 
- 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
- 		return false;
--
--	if (extlog_get_dsm(handle, EXTLOG_DSM_REV, EXTLOG_FN_QUERY, &ret) ||
--	    !(ret & EXTLOG_QUERY_L1_EXIST))
-+	if (!acpi_check_dsm(handle, uuid, EXTLOG_DSM_REV, 1 << EXTLOG_FN_ADDR))
- 		return false;
--
--	if (extlog_get_dsm(handle, EXTLOG_DSM_REV, EXTLOG_FN_ADDR, &ret))
-+	obj = acpi_evaluate_dsm_typed(handle, uuid, EXTLOG_DSM_REV,
-+				      EXTLOG_FN_ADDR, NULL, ACPI_TYPE_INTEGER);
-+	if (!obj) {
- 		return false;
++
++/**
++ * acpi_evaluate_dsm: evaluate device's _DSM method
++ * @handle: ACPI device handle
++ * @uuid: UUID of requested functions, should be 16 bytes
++ * @rev: revision number of requested function
++ * @func: requested function number
++ * @argv4: the function specific parameter
++ *
++ * Evaluate device's _DSM method with specified UUID, revision id and
++ * function number. Caller needs to free the returned object.
++ *
++ * Though ACPI defines the fourth parameter for _DSM should be a package,
++ * some old BIOSes do expect a buffer or an integer etc.
++ */
++union acpi_object *
++acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, int rev, int func,
++		  union acpi_object *argv4)
++{
++	acpi_status ret;
++	struct acpi_buffer buf = {ACPI_ALLOCATE_BUFFER, NULL};
++	union acpi_object params[4];
++	struct acpi_object_list input = {
++		.count = 4,
++		.pointer = params,
++	};
++
++	params[0].type = ACPI_TYPE_BUFFER;
++	params[0].buffer.length = 16;
++	params[0].buffer.pointer = (char *)uuid;
++	params[1].type = ACPI_TYPE_INTEGER;
++	params[1].integer.value = rev;
++	params[2].type = ACPI_TYPE_INTEGER;
++	params[2].integer.value = func;
++	if (argv4) {
++		params[3] = *argv4;
 +	} else {
-+		l1_dirbase = obj->integer.value;
-+		ACPI_FREE(obj);
++		params[3].type = ACPI_TYPE_PACKAGE;
++		params[3].package.count = 0;
++		params[3].package.elements = NULL;
 +	}
++
++	ret = acpi_evaluate_object(handle, "_DSM", &input, &buf);
++	if (ACPI_SUCCESS(ret))
++		return (union acpi_object *)buf.pointer;
++
++	if (ret != AE_NOT_FOUND)
++		acpi_handle_warn(handle,
++				"failed to evaluate _DSM method (0x%x)\n", ret);
++
++	return NULL;
++}
++EXPORT_SYMBOL(acpi_evaluate_dsm);
++
++/**
++ * acpi_check_dsm: check whether _DSM method under @handle supports
++ *		   requested functions.
++ * @handle: ACPI device handle
++ * @uuid: UUID of requested functions, should be 16 bytes at least
++ * @rev: revision number of requested functions
++ * @funcs: bitmap of requested functions
++ * @exclude: excluding special value, used to support i915 and nouveau
++ *
++ * Evaluate device's _DSM method to check whether it supports requested
++ * functions. Currently only support 64 functions at maximum, should be
++ * enough for now.
++ */
++bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
++{
++	int i;
++	u64 mask = 0;
++	union acpi_object *obj;
++
++	if (funcs == 0)
++		return false;
++
++	obj = acpi_evaluate_dsm(handle, uuid, rev, 0, NULL);
++	if (!obj)
++		return false;
++
++	/* For compatibility, old BIOSes may return an integer */
++	if (obj->type == ACPI_TYPE_INTEGER)
++		mask = obj->integer.value;
++	else if (obj->type == ACPI_TYPE_BUFFER)
++		for (i = 0; i < obj->buffer.length && i < 8; i++)
++			mask |= (((u8)obj->buffer.pointer[i]) << (i * 8));
++	ACPI_FREE(obj);
++
++	/*
++	 * Bit 0 indicates whether there's support for any functions other than
++	 * function 0 for the specified UUID and revision.
++	 */
++	if ((mask & 0x1) && (mask & funcs) == funcs)
++		return true;
++
++	return false;
++}
++EXPORT_SYMBOL(acpi_check_dsm);
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index c602c77..efccf39 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -66,6 +66,32 @@ bool acpi_ata_match(acpi_handle handle);
+ bool acpi_bay_match(acpi_handle handle);
+ bool acpi_dock_match(acpi_handle handle);
  
--	l1_dirbase = ret;
- 	/* Spec says L1 directory must be 4K aligned, bail out if it isn't */
- 	if (l1_dirbase & ((1 << 12) - 1)) {
- 		pr_warn(FW_BUG "L1 Directory is invalid at physical %llx\n",
++bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
++union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
++			int rev, int func, union acpi_object *argv4);
++
++static inline union acpi_object *
++acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
++			union acpi_object *argv4, acpi_object_type type)
++{
++	union acpi_object *obj;
++
++	obj = acpi_evaluate_dsm(handle, uuid, rev, func, argv4);
++	if (obj && obj->type != type) {
++		ACPI_FREE(obj);
++		obj = NULL;
++	}
++
++	return obj;
++}
++
++#define	ACPI_INIT_DSM_ARGV4(cnt, eles)			\
++	{						\
++	  .type = ACPI_TYPE_PACKAGE,			\
++	  .package.count = (cnt),			\
++	  .package.elements = (eles)			\
++	}
++
+ #ifdef CONFIG_ACPI
+ 
+ #include <linux/proc_fs.h>
 -- 
 1.7.10.4
