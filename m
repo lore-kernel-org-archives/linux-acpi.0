@@ -1,121 +1,118 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 07/15] ACPICA: OSL: Add configurability mechanism for external APIs.
-Date: Wed, 18 Dec 2013 17:06:32 +0800
-Message-ID: <7a34a516c788198e290cad55e5904bb39c16590b.1387336613.git.lv.zheng@intel.com>
+Subject: [RFC PATCH 03/15] ACPICA: Linux: Add configurability for OSL APIs.
+Date: Wed, 18 Dec 2013 17:06:08 +0800
+Message-ID: <3166886ad901d20dcb161f385324586d2c83aea3.1387336613.git.lv.zheng@intel.com>
 References: <cover.1387336613.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:45788 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752172Ab3LRJGj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Dec 2013 04:06:39 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1387336613.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 OSPMs like Linux trend to include all header files but leave empty inline
-stub functions for a feature that is not configured during build.
-This patch adds wrappers mechanism to be used around ACPICA external
-interfaces to facilitate OSPM with such configurability.
-This patch doesn't include code for Linux to use this mechanism.
+stub variables for a feature that is not configured during build.
+This patch configures ACPICA internal OSL prototypes out when ACPI is
+disabled to facilitate Linux with such configurability.
 
-Note that in order to the reduce the difficulties caused by the source code
-differences between Linux and ACPICA upstream of maintaining large
-ACPI_EXTERNAL_RETURN_x macro updates, actual ACPI_EXTERNAL_RETURN_x macro
-usages are done and split into other commits.
-
-ACPICA commits will be linuxized by the scripts. If there were divergences
-in the middle of a diff block, the linuxized diff block should require
-human intervention to be performed to make it possible to apply the
-linuxized commit into Linux source tree.  Sometime such human intervention
-will be very difficult as the linuxized commits will be messed up in
-addition to the normal line offsettings by the patch/diff based utilities.
-Lv Zheng.
+Note that this patch is generated in the assumption that all ACPICA OSL
+APIs should only be used by ACPICA itself.  While the real world is there
+are some external ACPICA macros called ACPICA OSL APIs.  This patch
+doesn't include protections around the OSL APIs that are used by such
+ACPICA external macros.  Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/acpixf.h           |   33 ++++++++++++++++++++++++++++++---
- include/acpi/platform/aclinux.h |   13 +++++++++++++
- 2 files changed, 43 insertions(+), 3 deletions(-)
+ include/acpi/platform/aclinux.h |   63 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 63 insertions(+)
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 08a1fdb..ed6c53b 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -95,6 +95,33 @@ extern u32 acpi_rsdt_forced;
- 
- #endif
- 
-+/* ACPICA prototypes */
-+
-+#ifndef ACPI_EXTERNAL_RETURN_STATUS
-+#define ACPI_EXTERNAL_RETURN_STATUS(prototype) \
-+	prototype;
-+#endif
-+
-+#ifndef ACPI_EXTERNAL_RETURN_OK
-+#define ACPI_EXTERNAL_RETURN_OK(prototype) \
-+	prototype;
-+#endif
-+
-+#ifndef ACPI_EXTERNAL_RETURN_VOID
-+#define ACPI_EXTERNAL_RETURN_VOID(prototype) \
-+	prototype;
-+#endif
-+
-+#ifndef ACPI_EXTERNAL_RETURN_UINT32
-+#define ACPI_EXTERNAL_RETURN_UINT32(prototype) \
-+	prototype;
-+#endif
-+
-+#ifndef ACPI_EXTERNAL_RETURN_PTR
-+#define ACPI_EXTERNAL_RETURN_PTR(prototype) \
-+	prototype;
-+#endif
-+
- /* Public globals, available from outside ACPICA subsystem */
- 
- /*****************************************************************************
-@@ -215,11 +242,11 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_no_resource_disassembly, FALSE)
-  */
- #if (!ACPI_REDUCED_HARDWARE)
- #define ACPI_HW_DEPENDENT_RETURN_STATUS(prototype) \
--	prototype;
-+	ACPI_EXTERNAL_RETURN_STATUS(prototype)
- #define ACPI_HW_DEPENDENT_RETURN_OK(prototype) \
--	prototype;
-+	ACPI_EXTERNAL_RETURN_OK(prototype)
- #define ACPI_HW_DEPENDENT_RETURN_VOID(prototype) \
--	prototype;
-+	ACPI_EXTERNAL_RETURN_VOID(prototype)
- #else
- #define ACPI_HW_DEPENDENT_RETURN_STATUS(prototype) \
- 	static ACPI_INLINE prototype {return(AE_NOT_CONFIGURED);}
 diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 45df524..12ef8be 100644
+index 68cda04..5e5de9c 100644
 --- a/include/acpi/platform/aclinux.h
 +++ b/include/acpi/platform/aclinux.h
-@@ -100,6 +100,19 @@
- #define ACPI_INIT_GLOBAL(t,a,b)
- #define ACPI_GLOBAL_FADT
+@@ -108,6 +108,65 @@
+ #define acpi_get_fadt_revision()    0
+ #define acpi_test_fadt_flags(__flags) 0
  
-+/* External interface for __KERNEL__, stub is needed */
++/* OSL prototypes for __KERNEL__, hiding their declarations */
 +
-+#define ACPI_EXTERNAL_RETURN_STATUS(prototype) \
-+	static ACPI_INLINE prototype {return(AE_NOT_CONFIGURED);}
-+#define ACPI_EXTERNAL_RETURN_OK(prototype) \
-+	static ACPI_INLINE prototype {return(AE_OK);}
-+#define ACPI_EXTERNAL_RETURN_VOID(prototype) \
-+	static ACPI_INLINE prototype {return;}
-+#define ACPI_EXTERNAL_RETURN_UINT32(prototype) \
-+	static ACPI_INLINE prototype {return(0);}
-+#define ACPI_EXTERNAL_RETURN_PTR(prototype) \
-+	static ACPI_INLINE prototype {return(NULL);}
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_initialize
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_terminate
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_root_pointer
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_predefined_override
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_table_override
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_physical_table_override
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_create_lock
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_delete_lock
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_acquire_lock
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_release_lock
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_create_semaphore
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_delete_semaphore
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_wait_semaphore
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_signal_semaphore
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_create_mutex
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_delete_mutex
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_acquire_mutex
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_release_mutex
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_allocate
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_allocate_zeroed
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_free
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_map_memory
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_unmap_memory
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_physical_address
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_create_cache
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_delete_cache
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_purge_cache
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_acquire_object
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_release_object
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_install_interrupt_handler
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_remove_interrupt_handler
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_thread_id
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_execute
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_wait_events_complete
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_sleep
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_stall
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_read_port
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_write_port
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_read_memory
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_write_memory
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_read_pci_configuration
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_write_pci_configuration
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_readable
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_writable
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_timer
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_signal
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_printf
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_vprintf
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_redirect_output
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_line
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_table_by_name
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_table_by_index
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_table_by_address
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_open_directory
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_next_filename
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_close_directory
 +
- /* Immediates to protect global variables accesses */
+ #endif				/* CONFIG_ACPI */
  
- #define acpi_current_gpe_count              0
+ #ifndef ACPI_DISASSEMBLER
+@@ -164,6 +223,8 @@
+ 
+ #ifdef __KERNEL__
+ 
++#ifdef CONFIG_ACPI
++
+ /*
+  * FIXME: Inclusion of actypes.h
+  * Linux kernel need this before defining inline OSL interfaces as
+@@ -296,6 +357,8 @@ void acpi_os_gpe_count(u32 gpe_number);
+ 
+ void acpi_os_fixed_event_count(u32 fixed_event_number);
+ 
++#endif				/* CONFIG_ACPI */
++
+ #endif				/* __KERNEL__ */
+ 
+ #endif				/* __ACLINUX_H__ */
 -- 
 1.7.10.4
-
