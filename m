@@ -1,111 +1,69 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 09/13] ACPI, TPM: detecting PPI features by checking availability of _DSM functions
-Date: Thu, 19 Dec 2013 20:38:18 +0800
-Message-ID: <1387456702-4709-10-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v2 10/13] ACPI, i2c-hid: replace open-coded _DSM specific code with helper functions
+Date: Thu, 19 Dec 2013 20:38:19 +0800
+Message-ID: <1387456702-4709-11-git-send-email-jiang.liu@linux.intel.com>
 References: <1387456702-4709-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1387456702-4709-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Leonidas Da Silva Barbosa <leosilva@linux.vnet.ibm.com>, Ashley Lai <ashley@ashleylai.com>, Peter Huewe <peterhuewe@gmx.de>, Rajiv Andrade <mail@srajiv.net>, Marcel Selhorst <tpmdd@selhorst.net>, Sirrix AG <tpmdd@sirrix.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, tpmdd-devel@lists.sourceforge.net
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Jiri Kosina <jkosina@suse.cz>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Detecting physical presence interface features by checking availbility
-of corresponding ACPI _DSM functions, it should be more accurate than
-checking TPM version number.
+Use helper functions to simplify _DSM related code in i2c-hid driver.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/char/tpm/tpm_ppi.c |   45 +++++++++++++++++++-------------------------
- 1 file changed, 19 insertions(+), 26 deletions(-)
+ drivers/hid/i2c-hid/i2c-hid.c |   26 ++++++--------------------
+ 1 file changed, 6 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/char/tpm/tpm_ppi.c b/drivers/char/tpm/tpm_ppi.c
-index d542ac6..117fab6 100644
---- a/drivers/char/tpm/tpm_ppi.c
-+++ b/drivers/char/tpm/tpm_ppi.c
-@@ -23,39 +23,31 @@ static const u8 tpm_ppi_uuid[] = {
- 	0x8D, 0x10, 0x08, 0x9D, 0x16, 0x53
- };
- 
--static char *tpm_device_name = "TPM";
- static char tpm_ppi_version[PPI_VERSION_LEN + 1];
- static acpi_handle tpm_ppi_handle;
- 
- static acpi_status ppi_callback(acpi_handle handle, u32 level, void *context,
- 				void **return_value)
- {
--	acpi_status status = AE_OK;
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_object *obj;
- 
--	status = acpi_get_name(handle, ACPI_SINGLE_NAME, &buffer);
--	if (ACPI_FAILURE(status))
-+	if (!acpi_check_dsm(handle, tpm_ppi_uuid, TPM_PPI_REVISION_ID,
-+			    1 << TPM_PPI_FN_VERSION))
- 		return AE_OK;
- 
--	if (strstr(buffer.pointer, context) != NULL) {
--		union acpi_object *obj;
--
--		/* Cache version string */
--		obj = acpi_evaluate_dsm_typed(handle, tpm_ppi_uuid,
--				TPM_PPI_REVISION_ID, TPM_PPI_FN_VERSION,
--				NULL, ACPI_TYPE_STRING);
--		if (obj) {
--			strlcpy(tpm_ppi_version, obj->string.pointer,
--				PPI_VERSION_LEN + 1);
--			ACPI_FREE(obj);
--		}
--
--		*return_value = handle;
--		status = AE_CTRL_TERMINATE;
-+	/* Cache version string */
-+	obj = acpi_evaluate_dsm_typed(handle, tpm_ppi_uuid,
-+				      TPM_PPI_REVISION_ID, TPM_PPI_FN_VERSION,
-+				      NULL, ACPI_TYPE_STRING);
-+	if (obj) {
-+		strlcpy(tpm_ppi_version, obj->string.pointer,
-+			PPI_VERSION_LEN + 1);
-+		ACPI_FREE(obj);
- 	}
--	kfree(buffer.pointer);
- 
--	return status;
-+	*return_value = handle;
-+
-+	return AE_CTRL_TERMINATE;
- }
- 
- static inline union acpi_object *
-@@ -118,7 +110,8 @@ static ssize_t tpm_store_ppi_request(struct device *dev,
- 	 * is updated with function index from SUBREQ to SUBREQ2 since PPI
- 	 * version 1.1
- 	 */
--	if (strcmp(tpm_ppi_version, "1.1") >= 0)
-+	if (acpi_check_dsm(tpm_ppi_handle, tpm_ppi_uuid, TPM_PPI_REVISION_ID,
-+			   1 << TPM_PPI_FN_SUBREQ2))
- 		func = TPM_PPI_FN_SUBREQ2;
- 
- 	/*
-@@ -272,7 +265,8 @@ static ssize_t show_ppi_operations(char *buf, u32 start, u32 end)
- 		"User not required",
+diff --git a/drivers/hid/i2c-hid/i2c-hid.c b/drivers/hid/i2c-hid/i2c-hid.c
+index 5f7e55f..d22668f 100644
+--- a/drivers/hid/i2c-hid/i2c-hid.c
++++ b/drivers/hid/i2c-hid/i2c-hid.c
+@@ -850,37 +850,23 @@ static int i2c_hid_acpi_pdata(struct i2c_client *client,
+ 		0xF7, 0xF6, 0xDF, 0x3C, 0x67, 0x42, 0x55, 0x45,
+ 		0xAD, 0x05, 0xB3, 0x0A, 0x3D, 0x89, 0x38, 0xDE,
  	};
+-	union acpi_object params[4];
+-	struct acpi_object_list input;
++	union acpi_object *obj;
+ 	struct acpi_device *adev;
+-	unsigned long long value;
+ 	acpi_handle handle;
  
--	if (strcmp(tpm_ppi_version, "1.2") < 0)
-+	if (!acpi_check_dsm(tpm_ppi_handle, tpm_ppi_uuid, TPM_PPI_REVISION_ID,
-+			    1 << TPM_PPI_FN_GETOPR))
- 		return -EPERM;
- 
- 	tmp.integer.type = ACPI_TYPE_INTEGER;
-@@ -334,8 +328,7 @@ int tpm_add_ppi(struct kobject *parent)
- {
- 	/* Cache TPM ACPI handle and version string */
- 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT, ACPI_UINT32_MAX,
--			    ppi_callback, NULL,
--			    tpm_device_name, &tpm_ppi_handle);
-+			    ppi_callback, NULL, NULL, &tpm_ppi_handle);
- 	if (tpm_ppi_handle == NULL)
+ 	handle = ACPI_HANDLE(&client->dev);
+ 	if (!handle || acpi_bus_get_device(handle, &adev))
  		return -ENODEV;
  
+-	input.count = ARRAY_SIZE(params);
+-	input.pointer = params;
+-
+-	params[0].type = ACPI_TYPE_BUFFER;
+-	params[0].buffer.length = sizeof(i2c_hid_guid);
+-	params[0].buffer.pointer = i2c_hid_guid;
+-	params[1].type = ACPI_TYPE_INTEGER;
+-	params[1].integer.value = 1;
+-	params[2].type = ACPI_TYPE_INTEGER;
+-	params[2].integer.value = 1; /* HID function */
+-	params[3].type = ACPI_TYPE_PACKAGE;
+-	params[3].package.count = 0;
+-	params[3].package.elements = NULL;
+-
+-	if (ACPI_FAILURE(acpi_evaluate_integer(handle, "_DSM", &input,
+-								&value))) {
++	obj = acpi_evaluate_dsm_typed(handle, i2c_hid_guid, 1, 1, NULL,
++				      ACPI_TYPE_INTEGER);
++	if (!obj) {
+ 		dev_err(&client->dev, "device _DSM execution failed\n");
+ 		return -ENODEV;
+ 	}
+ 
+-	pdata->hid_descriptor_address = value;
++	pdata->hid_descriptor_address = obj->integer.value;
++	ACPI_FREE(obj);
+ 
+ 	return 0;
+ }
 -- 
 1.7.10.4
