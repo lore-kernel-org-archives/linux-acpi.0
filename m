@@ -1,32 +1,91 @@
-From: Masanari Iida <standby24x7@gmail.com>
-Subject: [PATCH] [trivial] acpi: Fix typo in video_detect.c
-Date: Fri, 20 Dec 2013 00:51:37 +0900
-Message-ID: <1387468297-10678-1-git-send-email-standby24x7@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: trivial@kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net
-Cc: linux-acpi@vger.kernel.org, Masanari Iida <standby24x7@gmail.com>
+From: Takashi Iwai <tiwai@suse.de>
+Subject: [PATCH] ACPI: Blacklist Win8 OSI for some HP laptop 2013 models
+Date: Thu, 19 Dec 2013 17:09:12 +0100
+Message-ID: <1387469352-23798-1-git-send-email-tiwai@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:59851 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752369Ab3LSQJN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Dec 2013 11:09:13 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-Correct "**retyurn_value" to "**return_value".
+The BIOS on recent HP laptops behaves differently with Win8 OSI,
+e.g. no backlight control and no rfkill are available.  List them in
+the blacklist as a workaround.
 
-Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+This patch tries to reduce the added items by matching "G1" suffix,
+e.g. machines are named like "HP ProBook 430 G1".
+
+Bugzilla: https://bugzilla.novell.com/show_bug.cgi?id=856294
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
 ---
- drivers/acpi/video_detect.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/blacklist.c | 50 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 84875fd..f0447d3 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -50,7 +50,7 @@ static bool acpi_video_caps_checked;
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 078c4f7fe2dd..40c91f5052ef 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -323,6 +323,56 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
+ 		},
+ 	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "HP ProBook 2013 models",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "HP ProBook "),
++		     DMI_MATCH(DMI_PRODUCT_NAME, " G1"),
++		},
++	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "HP EliteBook 2013 models",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook "),
++		     DMI_MATCH(DMI_PRODUCT_NAME, " G1"),
++		},
++	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "HP ZBook 14",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 14"),
++		},
++	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "HP ZBook 15",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 15"),
++		},
++	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "HP ZBook 17",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 17"),
++		},
++	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "HP EliteBook 8780w",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8780w"),
++		},
++	},
  
- static acpi_status
- acpi_backlight_cap_match(acpi_handle handle, u32 level, void *context,
--			  void **retyurn_value)
-+			  void **return_value)
- {
- 	long *cap = context;
- 
+ 	/*
+ 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
 -- 
-1.8.5.1.163.gd7aced9
+1.8.5
+
