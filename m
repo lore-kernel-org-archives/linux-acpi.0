@@ -1,85 +1,53 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 05/13] PCI, pci-label: treat PCI label with index 0 as valid label
-Date: Thu, 19 Dec 2013 20:38:14 +0800
-Message-ID: <1387456702-4709-6-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v2 06/13] ACPI, TPM: fix memory leak when walking ACPI namespace
+Date: Thu, 19 Dec 2013 20:38:15 +0800
+Message-ID: <1387456702-4709-7-git-send-email-jiang.liu@linux.intel.com>
 References: <1387456702-4709-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1387456702-4709-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Leonidas Da Silva Barbosa <leosilva@linux.vnet.ibm.com>, Ashley Lai <ashley@ashleylai.com>, Peter Huewe <peterhuewe@gmx.de>, Rajiv Andrade <mail@srajiv.net>, Marcel Selhorst <tpmdd@selhorst.net>, Sirrix AG <tpmdd@sirrix.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, tpmdd-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Current pci-label driver detects ACPI label by checking label index
-returned by ACPI _DSM method, and treat it as valid if label index
-is positive. According to ACPI Firmware specification 3.1, zero is
-also an valid label index. So change code to detect availability of
-ACPI slot label by checking availaiblity of ACPI _DSM function for
-PCI label.
+In function ppi_callback(), memory allocated by acpi_get_name() will get
+leaked when current device isn't the desired TPM device, so fix the
+memory leak.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: <stable@vger.kernel.org> # 3.6
 ---
- drivers/pci/pci-label.c |   34 ++++++++++++++++++----------------
- 1 file changed, 18 insertions(+), 16 deletions(-)
+ drivers/char/tpm/tpm_ppi.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
-index f12dcd1..0260b14 100644
---- a/drivers/pci/pci-label.c
-+++ b/drivers/pci/pci-label.c
-@@ -187,7 +187,6 @@ static const char device_label_dsm_uuid[] = {
- };
- 
- enum acpi_attr_enum {
--	ACPI_ATTR_NONE = 0,
- 	ACPI_ATTR_LABEL_SHOW,
- 	ACPI_ATTR_INDEX_SHOW,
- };
-@@ -222,20 +221,16 @@ dsm_get_label(struct device *dev, char *buf, enum acpi_attr_enum attr)
- 	if (obj->type == ACPI_TYPE_PACKAGE && obj->package.count == 2 &&
- 	    tmp[0].type == ACPI_TYPE_INTEGER &&
- 	    tmp[1].type == ACPI_TYPE_STRING) {
--		len = tmp[0].integer.value;
--		if (buf) {
--			/*
--			 * This second string element is optional even when
--			 * this _DSM is implemented; when not implemented,
--			 * this entry must return a null string.
--			 */
--			if (attr == ACPI_ATTR_INDEX_SHOW)
--				scnprintf(buf, PAGE_SIZE, "%llu\n",
--				tmp->integer.value);
--			else if (attr == ACPI_ATTR_LABEL_SHOW)
--				dsm_label_utf16s_to_utf8s(tmp + 1, buf);
--			len = strlen(buf) > 0 ? strlen(buf) : -1;
--		}
-+		/*
-+		 * The second string element is optional even when
-+		 * this _DSM is implemented; when not implemented,
-+		 * this entry must return a null string.
-+		 */
-+		if (attr == ACPI_ATTR_INDEX_SHOW)
-+			scnprintf(buf, PAGE_SIZE, "%llu\n", tmp->integer.value);
-+		else if (attr == ACPI_ATTR_LABEL_SHOW)
-+			dsm_label_utf16s_to_utf8s(tmp + 1, buf);
-+		len = strlen(buf) > 0 ? strlen(buf) : -1;
- 	}
- 
- 	ACPI_FREE(obj);
-@@ -246,7 +241,14 @@ dsm_get_label(struct device *dev, char *buf, enum acpi_attr_enum attr)
- static bool
- device_has_dsm(struct device *dev)
+diff --git a/drivers/char/tpm/tpm_ppi.c b/drivers/char/tpm/tpm_ppi.c
+index 8e562dc..e1f3337 100644
+--- a/drivers/char/tpm/tpm_ppi.c
++++ b/drivers/char/tpm/tpm_ppi.c
+@@ -27,15 +27,18 @@ static char *tpm_device_name = "TPM";
+ static acpi_status ppi_callback(acpi_handle handle, u32 level, void *context,
+ 				void **return_value)
  {
--	return dsm_get_label(dev, NULL, ACPI_ATTR_NONE) > 0;
-+	acpi_handle handle;
+-	acpi_status status;
++	acpi_status status = AE_OK;
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-	status = acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+-	if (strstr(buffer.pointer, context) != NULL) {
+-		*return_value = handle;
 +
-+	handle = ACPI_HANDLE(dev);
-+	if (!handle)
-+		return false;
++	if (ACPI_SUCCESS(acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer))) {
++		if (strstr(buffer.pointer, context) != NULL) {
++			*return_value = handle;
++			status = AE_CTRL_TERMINATE;
++		}
+ 		kfree(buffer.pointer);
+-		return AE_CTRL_TERMINATE;
+ 	}
+-	return AE_OK;
 +
-+	return !!acpi_check_dsm(handle, device_label_dsm_uuid, 0x2,
-+				1 << DEVICE_LABEL_DSM);
++	return status;
  }
  
- static umode_t
+ static inline void ppi_assign_params(union acpi_object params[4],
 -- 
 1.7.10.4
