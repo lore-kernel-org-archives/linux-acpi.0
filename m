@@ -1,69 +1,228 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 10/13] ACPI, i2c-hid: replace open-coded _DSM specific code with helper functions
-Date: Thu, 19 Dec 2013 20:38:19 +0800
-Message-ID: <1387456702-4709-11-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v2 11/13] ACPI,
+	i915: replace open-coded _DSM specific code with helper functions
+Date: Thu, 19 Dec 2013 20:38:20 +0800
+Message-ID: <1387456702-4709-12-git-send-email-jiang.liu@linux.intel.com>
 References: <1387456702-4709-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
 In-Reply-To: <1387456702-4709-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Jiri Kosina <jkosina@suse.cz>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces@lists.freedesktop.org
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>
+Cc: Tony Luck <tony.luck@intel.com>, intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Use helper functions to simplify _DSM related code in i2c-hid driver.
+Use helper functions to simplify _DSM related code in i915 driver.
 
+Function intel_dsm() is used to check functions supported by ACPI _DSM
+method, but it has strange check for special value 0x80000002. After
+digging into nouveau driver, I think the check is copied from nouveau
+driver and is useless for i915 driver, so remove it.
+
+Acked-by: Daniel Vetter <daniel@ffwll.ch>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/hid/i2c-hid/i2c-hid.c |   26 ++++++--------------------
- 1 file changed, 6 insertions(+), 20 deletions(-)
+ drivers/gpu/drm/i915/intel_acpi.c |  144 ++++++++-----------------------------
+ 1 file changed, 30 insertions(+), 114 deletions(-)
 
-diff --git a/drivers/hid/i2c-hid/i2c-hid.c b/drivers/hid/i2c-hid/i2c-hid.c
-index 5f7e55f..d22668f 100644
---- a/drivers/hid/i2c-hid/i2c-hid.c
-+++ b/drivers/hid/i2c-hid/i2c-hid.c
-@@ -850,37 +850,23 @@ static int i2c_hid_acpi_pdata(struct i2c_client *client,
- 		0xF7, 0xF6, 0xDF, 0x3C, 0x67, 0x42, 0x55, 0x45,
- 		0xAD, 0x05, 0xB3, 0x0A, 0x3D, 0x89, 0x38, 0xDE,
- 	};
--	union acpi_object params[4];
--	struct acpi_object_list input;
-+	union acpi_object *obj;
- 	struct acpi_device *adev;
--	unsigned long long value;
- 	acpi_handle handle;
+diff --git a/drivers/gpu/drm/i915/intel_acpi.c b/drivers/gpu/drm/i915/intel_acpi.c
+index dfff090..1bfac94 100644
+--- a/drivers/gpu/drm/i915/intel_acpi.c
++++ b/drivers/gpu/drm/i915/intel_acpi.c
+@@ -12,8 +12,6 @@
+ #include "i915_drv.h"
  
- 	handle = ACPI_HANDLE(&client->dev);
- 	if (!handle || acpi_bus_get_device(handle, &adev))
- 		return -ENODEV;
- 
--	input.count = ARRAY_SIZE(params);
--	input.pointer = params;
+ #define INTEL_DSM_REVISION_ID 1 /* For Calpella anyway... */
 -
+-#define INTEL_DSM_FN_SUPPORTED_FUNCTIONS 0 /* No args */
+ #define INTEL_DSM_FN_PLATFORM_MUX_INFO 1 /* No args */
+ 
+ static struct intel_dsm_priv {
+@@ -28,61 +26,6 @@ static const u8 intel_dsm_guid[] = {
+ 	0x0f, 0x13, 0x17, 0xb0, 0x1c, 0x2c
+ };
+ 
+-static int intel_dsm(acpi_handle handle, int func)
+-{
+-	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
+-	struct acpi_object_list input;
+-	union acpi_object params[4];
+-	union acpi_object *obj;
+-	u32 result;
+-	int ret = 0;
+-
+-	input.count = 4;
+-	input.pointer = params;
 -	params[0].type = ACPI_TYPE_BUFFER;
--	params[0].buffer.length = sizeof(i2c_hid_guid);
--	params[0].buffer.pointer = i2c_hid_guid;
+-	params[0].buffer.length = sizeof(intel_dsm_guid);
+-	params[0].buffer.pointer = (char *)intel_dsm_guid;
 -	params[1].type = ACPI_TYPE_INTEGER;
--	params[1].integer.value = 1;
+-	params[1].integer.value = INTEL_DSM_REVISION_ID;
 -	params[2].type = ACPI_TYPE_INTEGER;
--	params[2].integer.value = 1; /* HID function */
+-	params[2].integer.value = func;
 -	params[3].type = ACPI_TYPE_PACKAGE;
 -	params[3].package.count = 0;
 -	params[3].package.elements = NULL;
 -
--	if (ACPI_FAILURE(acpi_evaluate_integer(handle, "_DSM", &input,
--								&value))) {
-+	obj = acpi_evaluate_dsm_typed(handle, i2c_hid_guid, 1, 1, NULL,
-+				      ACPI_TYPE_INTEGER);
-+	if (!obj) {
- 		dev_err(&client->dev, "device _DSM execution failed\n");
- 		return -ENODEV;
+-	ret = acpi_evaluate_object(handle, "_DSM", &input, &output);
+-	if (ret) {
+-		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
+-		return ret;
+-	}
+-
+-	obj = (union acpi_object *)output.pointer;
+-
+-	result = 0;
+-	switch (obj->type) {
+-	case ACPI_TYPE_INTEGER:
+-		result = obj->integer.value;
+-		break;
+-
+-	case ACPI_TYPE_BUFFER:
+-		if (obj->buffer.length == 4) {
+-			result = (obj->buffer.pointer[0] |
+-				(obj->buffer.pointer[1] <<  8) |
+-				(obj->buffer.pointer[2] << 16) |
+-				(obj->buffer.pointer[3] << 24));
+-			break;
+-		}
+-	default:
+-		ret = -EINVAL;
+-		break;
+-	}
+-	if (result == 0x80000002)
+-		ret = -ENODEV;
+-
+-	kfree(output.pointer);
+-	return ret;
+-}
+-
+ static char *intel_dsm_port_name(u8 id)
+ {
+ 	switch (id) {
+@@ -137,83 +80,56 @@ static char *intel_dsm_mux_type(u8 type)
+ 
+ static void intel_dsm_platform_mux_info(void)
+ {
+-	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
+-	struct acpi_object_list input;
+-	union acpi_object params[4];
+-	union acpi_object *pkg;
+-	int i, ret;
+-
+-	input.count = 4;
+-	input.pointer = params;
+-	params[0].type = ACPI_TYPE_BUFFER;
+-	params[0].buffer.length = sizeof(intel_dsm_guid);
+-	params[0].buffer.pointer = (char *)intel_dsm_guid;
+-	params[1].type = ACPI_TYPE_INTEGER;
+-	params[1].integer.value = INTEL_DSM_REVISION_ID;
+-	params[2].type = ACPI_TYPE_INTEGER;
+-	params[2].integer.value = INTEL_DSM_FN_PLATFORM_MUX_INFO;
+-	params[3].type = ACPI_TYPE_PACKAGE;
+-	params[3].package.count = 0;
+-	params[3].package.elements = NULL;
+-
+-	ret = acpi_evaluate_object(intel_dsm_priv.dhandle, "_DSM", &input,
+-				   &output);
+-	if (ret) {
+-		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
+-		goto out;
++	int i;
++	union acpi_object *pkg, *connector_count;
++
++	pkg = acpi_evaluate_dsm_typed(intel_dsm_priv.dhandle, intel_dsm_guid,
++			INTEL_DSM_REVISION_ID, INTEL_DSM_FN_PLATFORM_MUX_INFO,
++			NULL, ACPI_TYPE_PACKAGE);
++	if (!pkg) {
++		DRM_DEBUG_DRIVER("failed to evaluate _DSM\n");
++		return;
  	}
  
--	pdata->hid_descriptor_address = value;
-+	pdata->hid_descriptor_address = obj->integer.value;
-+	ACPI_FREE(obj);
+-	pkg = (union acpi_object *)output.pointer;
+-
+-	if (pkg->type == ACPI_TYPE_PACKAGE) {
+-		union acpi_object *connector_count = &pkg->package.elements[0];
+-		DRM_DEBUG_DRIVER("MUX info connectors: %lld\n",
+-			  (unsigned long long)connector_count->integer.value);
+-		for (i = 1; i < pkg->package.count; i++) {
+-			union acpi_object *obj = &pkg->package.elements[i];
+-			union acpi_object *connector_id =
+-				&obj->package.elements[0];
+-			union acpi_object *info = &obj->package.elements[1];
+-			DRM_DEBUG_DRIVER("Connector id: 0x%016llx\n",
+-				  (unsigned long long)connector_id->integer.value);
+-			DRM_DEBUG_DRIVER("  port id: %s\n",
+-			       intel_dsm_port_name(info->buffer.pointer[0]));
+-			DRM_DEBUG_DRIVER("  display mux info: %s\n",
+-			       intel_dsm_mux_type(info->buffer.pointer[1]));
+-			DRM_DEBUG_DRIVER("  aux/dc mux info: %s\n",
+-			       intel_dsm_mux_type(info->buffer.pointer[2]));
+-			DRM_DEBUG_DRIVER("  hpd mux info: %s\n",
+-			       intel_dsm_mux_type(info->buffer.pointer[3]));
+-		}
++	connector_count = &pkg->package.elements[0];
++	DRM_DEBUG_DRIVER("MUX info connectors: %lld\n",
++		  (unsigned long long)connector_count->integer.value);
++	for (i = 1; i < pkg->package.count; i++) {
++		union acpi_object *obj = &pkg->package.elements[i];
++		union acpi_object *connector_id = &obj->package.elements[0];
++		union acpi_object *info = &obj->package.elements[1];
++		DRM_DEBUG_DRIVER("Connector id: 0x%016llx\n",
++			  (unsigned long long)connector_id->integer.value);
++		DRM_DEBUG_DRIVER("  port id: %s\n",
++		       intel_dsm_port_name(info->buffer.pointer[0]));
++		DRM_DEBUG_DRIVER("  display mux info: %s\n",
++		       intel_dsm_mux_type(info->buffer.pointer[1]));
++		DRM_DEBUG_DRIVER("  aux/dc mux info: %s\n",
++		       intel_dsm_mux_type(info->buffer.pointer[2]));
++		DRM_DEBUG_DRIVER("  hpd mux info: %s\n",
++		       intel_dsm_mux_type(info->buffer.pointer[3]));
+ 	}
  
- 	return 0;
+-out:
+-	kfree(output.pointer);
++	ACPI_FREE(pkg);
  }
+ 
+ static bool intel_dsm_pci_probe(struct pci_dev *pdev)
+ {
+ 	acpi_handle dhandle;
+-	int ret;
+ 
+ 	dhandle = ACPI_HANDLE(&pdev->dev);
+ 	if (!dhandle)
+ 		return false;
+ 
+-	if (!acpi_has_method(dhandle, "_DSM")) {
++	if (!acpi_check_dsm(dhandle, intel_dsm_guid, INTEL_DSM_REVISION_ID,
++			    1 << INTEL_DSM_FN_PLATFORM_MUX_INFO)) {
+ 		DRM_DEBUG_KMS("no _DSM method for intel device\n");
+ 		return false;
+ 	}
+ 
+-	ret = intel_dsm(dhandle, INTEL_DSM_FN_SUPPORTED_FUNCTIONS);
+-	if (ret < 0) {
+-		DRM_DEBUG_KMS("failed to get supported _DSM functions\n");
+-		return false;
+-	}
+-
+ 	intel_dsm_priv.dhandle = dhandle;
+-
+ 	intel_dsm_platform_mux_info();
++
+ 	return true;
+ }
+ 
 -- 
 1.7.10.4
