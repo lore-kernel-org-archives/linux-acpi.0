@@ -1,62 +1,84 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Patch v2 03/13] PCI, pci-label: release allocated ACPI object on
- error recovery path
-Date: Thu, 19 Dec 2013 11:22:22 -0700
-Message-ID: <CAErSpo4oKsJCKxUhxT8E745BkX+veOD-tMEeHULHOuH-3suMRA@mail.gmail.com>
-References: <1387456702-4709-1-git-send-email-jiang.liu@linux.intel.com> <1387456702-4709-4-git-send-email-jiang.liu@linux.intel.com>
+From: Fabian Wehning <fabian.wehning@googlemail.com>
+Subject: [Medion P8610] 13.10: Kernel panic - not syncing (on system start)
+Date: Thu, 19 Dec 2013 22:52:39 +0100
+Message-ID: <52B36AA7.2050705@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1387456702-4709-4-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ea0-f176.google.com ([209.85.215.176]:58086 "EHLO
+	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754228Ab3LSVxh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Dec 2013 16:53:37 -0500
+Received: by mail-ea0-f176.google.com with SMTP id h14so699523eaj.35
+        for <linux-acpi@vger.kernel.org>; Thu, 19 Dec 2013 13:53:36 -0800 (PST)
+Received: from [192.168.170.22] (ip-109-90-197-190.unitymediagroup.de. [109.90.197.190])
+        by mx.google.com with ESMTPSA id 44sm12993246eek.5.2013.12.19.13.53.33
+        for <linux-acpi@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Thu, 19 Dec 2013 13:53:34 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thu, Dec 19, 2013 at 5:38 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> Function dsm_get_label() leaks the returned ACPI object if
-> obj->package.count is not 2, so fix the possible memory leak.
->
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+[1.] One line summary of the problem:
+[Medion P8610] 13.10: Kernel panic - not syncing (on system start)
 
-Rafael, if you want to take these through your tree, feel free.  I'm
-guessing it probably makes sense to keep the whole series together.
+[2.] Full description of the problem/report:
+While booting linux crashes with the message "Kernel panic - not
+syncing: Attempt to kill init! exitcode=0x00000009". In a bisect (done
+by Joseph Salisbury [joseph.salisbury@canonical.com]) it was tested and
+this bug seems to be introduced either by
 
-> ---
->  drivers/pci/pci-label.c |   12 ++++--------
->  1 file changed, 4 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
-> index d51f45a..f6e01a5 100644
-> --- a/drivers/pci/pci-label.c
-> +++ b/drivers/pci/pci-label.c
-> @@ -233,11 +233,7 @@ dsm_get_label(acpi_handle handle, int func,
->                 return -1;
->
->         obj = (union acpi_object *)output->pointer;
-> -
-> -       switch (obj->type) {
-> -       case ACPI_TYPE_PACKAGE:
-> -               if (obj->package.count != 2)
-> -                       break;
-> +       if (obj->type == ACPI_TYPE_PACKAGE && obj->package.count == 2) {
->                 len = obj->package.elements[0].integer.value;
->                 if (buf) {
->                         if (attribute == ACPI_ATTR_INDEX_SHOW)
-> @@ -250,10 +246,10 @@ dsm_get_label(acpi_handle handle, int func,
->                 }
->                 kfree(output->pointer);
->                 return len;
-> -       break;
-> -       default:
-> -               kfree(output->pointer);
->         }
-> +
-> +       kfree(output->pointer);
-> +
->         return -1;
->  }
->
-> --
-> 1.7.10.4
->
+commit 76a6225bf0b64572251a8c27d33e84afac6af713
+Author: Bob Moore <robert.moore@intel.com>
+Date: Fri Mar 8 09:23:16 2013 +0000
+
+    ACPICA: Split object conversion functions to a new file
+
+or
+
+commit d5a36100f62fa6db5541344e08b361b34e9114c5
+Author: Bob Moore <robert.moore@intel.com>
+Date: Fri Mar 8 09:23:03 2013 +0000
+
+    ACPICA: Add mechanism for early object repairs on a per-name basis
+
+
+[3.] Keywords (i.e., modules, networking, kernel):
+kernel, Ubuntu, ACPICA
+
+[4.] Kernel version (from /proc/version):
+--> unable to boot therefore impossible to get
+
+[5.] No Oops.. message
+
+[6.] Beyond skill level
+
+[7.] Environment
+--> unable to boot therefore impossible to execute the command
+
+[7.1.] Software:
+--> unable to boot therefore impossible to get
+
+[7.2.] Processor information (from /proc/cpuinfo):
+--> unable to boot therefore impossible to get anything useful
+
+[7.3.] Module information (from /proc/modules):
+--> unable to boot therefore impossible to get anything useful
+
+[7.4.] Loaded driver and hardware information (/proc/ioports, /proc/iomem)
+--> unable to boot therefore impossible to get anything useful
+
+[7.5.] PCI information ('lspci -vvv' as root)
+--> unable to boot therefore impossible to get anything useful
+
+[7.6.] SCSI information (from /proc/scsi/scsi)
+--> unable to boot therefore impossible to get anything useful
+
+[7.7.] Other information that might be relevant to the problem (please
+look in /proc and include all information that you think to be relevant):
+--> unable to boot therefore impossible to get anything useful
+
+[X.] Other notes, patches, fixes, workarounds:
+https://bugs.launchpad.net/bugs/1242938
