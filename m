@@ -1,293 +1,121 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 13/13] ACPI, nouveau: replace open-coded _DSM specific code with helper functions
-Date: Thu, 19 Dec 2013 20:38:22 +0800
-Message-ID: <1387456702-4709-14-git-send-email-jiang.liu@linux.intel.com>
-References: <1387456702-4709-1-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v2 02/13] ACPI, extlog: replace open-coded _DSM specific code with helper functions
+Date: Thu, 19 Dec 2013 20:47:46 +0800
+Message-ID: <1387457266-4854-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1387456702-4709-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, David Airlie <airlied@linux.ie>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Use helper functions to simplify _DSM related code in nouveau driver.
-After analyzing the ACPI _DSM related code, I changed nouveau_optimus_dsm()
-to expect a buffer and nouveau_dsm() to expect an integer only.
+Use helper functions to simplify _DSM related code in acpi_extlog driver.
+Also mark initialization data and functions with __init and __initdata
+to reduce memory footprint.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>
 ---
- drivers/gpu/drm/nouveau/core/subdev/mxm/base.c |   48 +++-----
- drivers/gpu/drm/nouveau/nouveau_acpi.c         |  139 +++++++-----------------
- 2 files changed, 54 insertions(+), 133 deletions(-)
+ drivers/acpi/acpi_extlog.c |   61 +++++++++-----------------------------------
+ 1 file changed, 12 insertions(+), 49 deletions(-)
 
-diff --git a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
-index 1291204..13c5af8 100644
---- a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
-+++ b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
-@@ -87,55 +87,39 @@ mxm_shadow_dsm(struct nouveau_mxm *mxm, u8 version)
- 		0xB8, 0x9C, 0x79, 0xB6, 0x2F, 0xD5, 0x56, 0x65
- 	};
- 	u32 mxms_args[] = { 0x00000000 };
--	union acpi_object args[4] = {
--		/* _DSM MUID */
--		{ .buffer.type = 3,
--		  .buffer.length = sizeof(muid),
--		  .buffer.pointer = muid,
--		},
--		/* spec says this can be zero to mean "highest revision", but
--		 * of course there's at least one bios out there which fails
--		 * unless you pass in exactly the version it supports..
--		 */
--		{ .integer.type = ACPI_TYPE_INTEGER,
--		  .integer.value = (version & 0xf0) << 4 | (version & 0x0f),
--		},
--		/* MXMS function */
--		{ .integer.type = ACPI_TYPE_INTEGER,
--		  .integer.value = 0x00000010,
--		},
--		/* Pointer to MXMS arguments */
--		{ .buffer.type = ACPI_TYPE_BUFFER,
--		  .buffer.length = sizeof(mxms_args),
--		  .buffer.pointer = (char *)mxms_args,
--		},
-+	union acpi_object argv4 = {
-+		.buffer.type = ACPI_TYPE_BUFFER,
-+		.buffer.length = sizeof(mxms_args),
-+		.buffer.pointer = (char *)mxms_args,
- 	};
--	struct acpi_object_list list = { ARRAY_SIZE(args), args };
--	struct acpi_buffer retn = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *obj;
- 	acpi_handle handle;
--	int ret;
-+	int rev;
+diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
+index a6869e1..928c4db 100644
+--- a/drivers/acpi/acpi_extlog.c
++++ b/drivers/acpi/acpi_extlog.c
+@@ -20,11 +20,9 @@
+ #define EXT_ELOG_ENTRY_MASK	GENMASK_ULL(51, 0) /* elog entry address mask */
  
- 	handle = ACPI_HANDLE(&device->pdev->dev);
- 	if (!handle)
- 		return false;
+ #define EXTLOG_DSM_REV		0x0
+-#define	EXTLOG_FN_QUERY		0x0
+ #define	EXTLOG_FN_ADDR		0x1
  
--	ret = acpi_evaluate_object(handle, "_DSM", &list, &retn);
--	if (ret) {
--		nv_debug(mxm, "DSM MXMS failed: %d\n", ret);
-+	/*
-+	 * spec says this can be zero to mean "highest revision", but
-+	 * of course there's at least one bios out there which fails
-+	 * unless you pass in exactly the version it supports..
-+	 */
-+	rev = (version & 0xf0) << 4 | (version & 0x0f);
-+	obj = acpi_evaluate_dsm(handle, muid, rev, 0x00000010, &argv4);
-+	if (!obj) {
-+		nv_debug(mxm, "DSM MXMS failed\n");
- 		return false;
- 	}
+ #define FLAG_OS_OPTIN		BIT(0)
+-#define EXTLOG_QUERY_L1_EXIST	BIT(1)
+ #define ELOG_ENTRY_VALID	(1ULL<<63)
+ #define ELOG_ENTRY_LEN		0x1000
  
--	obj = retn.pointer;
- 	if (obj->type == ACPI_TYPE_BUFFER) {
- 		mxm->mxms = kmemdup(obj->buffer.pointer,
- 					 obj->buffer.length, GFP_KERNEL);
--	} else
+@@ -43,7 +41,7 @@ struct extlog_l1_head {
+ 	u8  rev1[12];
+ };
+ 
+-static u8 extlog_dsm_uuid[] = "663E35AF-CC10-41A4-88EA-5470AF055295";
++static u8 extlog_dsm_uuid[] __initdata = "663E35AF-CC10-41A4-88EA-5470AF055295";
+ 
+ /* L1 table related physical address */
+ static u64 elog_base;
+@@ -153,62 +151,27 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
+ 	return NOTIFY_DONE;
+ }
+ 
+-static int extlog_get_dsm(acpi_handle handle, int rev, int func, u64 *ret)
++static bool __init extlog_get_l1addr(void)
+ {
+-	struct acpi_buffer buf = {ACPI_ALLOCATE_BUFFER, NULL};
+-	struct acpi_object_list input;
+-	union acpi_object params[4], *obj;
+ 	u8 uuid[16];
+-	int i;
++	acpi_handle handle;
++	union acpi_object *obj;
+ 
+ 	acpi_str_to_uuid(extlog_dsm_uuid, uuid);
+-	input.count = 4;
+-	input.pointer = params;
+-	params[0].type = ACPI_TYPE_BUFFER;
+-	params[0].buffer.length = 16;
+-	params[0].buffer.pointer = uuid;
+-	params[1].type = ACPI_TYPE_INTEGER;
+-	params[1].integer.value = rev;
+-	params[2].type = ACPI_TYPE_INTEGER;
+-	params[2].integer.value = func;
+-	params[3].type = ACPI_TYPE_PACKAGE;
+-	params[3].package.count = 0;
+-	params[3].package.elements = NULL;
+-
+-	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_DSM", &input, &buf)))
+-		return -1;
+-
+-	*ret = 0;
+-	obj = (union acpi_object *)buf.pointer;
 -	if (obj->type == ACPI_TYPE_INTEGER) {
-+	} else if (obj->type == ACPI_TYPE_INTEGER) {
- 		nv_debug(mxm, "DSM MXMS returned 0x%llx\n", obj->integer.value);
- 	}
- 
--	kfree(obj);
-+	ACPI_FREE(obj);
- 	return mxm->mxms != NULL;
- }
- #endif
-diff --git a/drivers/gpu/drm/nouveau/nouveau_acpi.c b/drivers/gpu/drm/nouveau/nouveau_acpi.c
-index 03d4911..db64f25 100644
---- a/drivers/gpu/drm/nouveau/nouveau_acpi.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_acpi.c
-@@ -77,127 +77,66 @@ static const char nouveau_op_dsm_muid[] = {
- 
- static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
- {
--	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
--	struct acpi_object_list input;
--	union acpi_object params[4];
-+	int i;
- 	union acpi_object *obj;
--	int i, err;
- 	char args_buff[4];
-+	union acpi_object argv4 = {
-+		.buffer.type = ACPI_TYPE_BUFFER,
-+		.buffer.length = 4,
-+		.buffer.pointer = args_buff
-+	};
- 
--	input.count = 4;
--	input.pointer = params;
--	params[0].type = ACPI_TYPE_BUFFER;
--	params[0].buffer.length = sizeof(nouveau_op_dsm_muid);
--	params[0].buffer.pointer = (char *)nouveau_op_dsm_muid;
--	params[1].type = ACPI_TYPE_INTEGER;
--	params[1].integer.value = 0x00000100;
--	params[2].type = ACPI_TYPE_INTEGER;
--	params[2].integer.value = func;
--	params[3].type = ACPI_TYPE_BUFFER;
--	params[3].buffer.length = 4;
- 	/* ACPI is little endian, AABBCCDD becomes {DD,CC,BB,AA} */
- 	for (i = 0; i < 4; i++)
- 		args_buff[i] = (arg >> i * 8) & 0xFF;
--	params[3].buffer.pointer = args_buff;
- 
--	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
--	if (err) {
--		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
--		return err;
+-		*ret = obj->integer.value;
+-	} else if (obj->type == ACPI_TYPE_BUFFER) {
+-		if (obj->buffer.length <= 8) {
+-			for (i = 0; i < obj->buffer.length; i++)
+-				*ret |= (obj->buffer.pointer[i] << (i * 8));
+-		}
 -	}
+-	kfree(buf.pointer);
 -
--	obj = (union acpi_object *)output.pointer;
--
--	if (obj->type == ACPI_TYPE_INTEGER)
--		if (obj->integer.value == 0x80000002) {
--			kfree(output.pointer);
--			return -ENODEV;
--		}
--
--	if (obj->type == ACPI_TYPE_BUFFER) {
--		if (obj->buffer.length == 4 && result) {
--			*result = 0;
-+	*result = 0;
-+	obj = acpi_evaluate_dsm_typed(handle, nouveau_op_dsm_muid, 0x00000100,
-+				      func, &argv4, ACPI_TYPE_BUFFER);
-+	if (!obj) {
-+		acpi_handle_info(handle, "failed to evaluate _DSM\n");
-+		return AE_ERROR;
-+	} else {
-+		if (obj->buffer.length == 4) {
- 			*result |= obj->buffer.pointer[0];
- 			*result |= (obj->buffer.pointer[1] << 8);
- 			*result |= (obj->buffer.pointer[2] << 16);
- 			*result |= (obj->buffer.pointer[3] << 24);
- 		}
-+		ACPI_FREE(obj);
- 	}
- 
--	kfree(output.pointer);
- 	return 0;
- }
- 
--static int nouveau_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
-+static int nouveau_dsm(acpi_handle handle, int func, int arg)
- {
--	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
--	struct acpi_object_list input;
--	union acpi_object params[4];
-+	int ret = 0;
- 	union acpi_object *obj;
--	int err;
--
--	input.count = 4;
--	input.pointer = params;
--	params[0].type = ACPI_TYPE_BUFFER;
--	params[0].buffer.length = sizeof(nouveau_dsm_muid);
--	params[0].buffer.pointer = (char *)nouveau_dsm_muid;
--	params[1].type = ACPI_TYPE_INTEGER;
--	params[1].integer.value = 0x00000102;
--	params[2].type = ACPI_TYPE_INTEGER;
--	params[2].integer.value = func;
--	params[3].type = ACPI_TYPE_INTEGER;
--	params[3].integer.value = arg;
--
--	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
--	if (err) {
--		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
--		return err;
--	}
--
--	obj = (union acpi_object *)output.pointer;
--
--	if (obj->type == ACPI_TYPE_INTEGER)
--		if (obj->integer.value == 0x80000002) {
--			kfree(output.pointer);
--			return -ENODEV;
--		}
--
--	if (obj->type == ACPI_TYPE_BUFFER) {
--		if (obj->buffer.length == 4 && result) {
--			*result = 0;
--			*result |= obj->buffer.pointer[0];
--			*result |= (obj->buffer.pointer[1] << 8);
--			*result |= (obj->buffer.pointer[2] << 16);
--			*result |= (obj->buffer.pointer[3] << 24);
--		}
-+	union acpi_object argv4 = {
-+		.integer.type = ACPI_TYPE_INTEGER,
-+		.integer.value = arg,
-+	};
-+
-+	obj = acpi_evaluate_dsm_typed(handle, nouveau_dsm_muid, 0x00000102,
-+				      func, &argv4, ACPI_TYPE_INTEGER);
-+	if (!obj) {
-+		acpi_handle_info(handle, "failed to evaluate _DSM\n");
-+		return AE_ERROR;
-+	} else {
-+		if (obj->integer.value == 0x80000002)
-+			ret = -ENODEV;
-+		ACPI_FREE(obj);
- 	}
- 
--	kfree(output.pointer);
 -	return 0;
 -}
 -
--/* Returns 1 if a DSM function is usable and 0 otherwise */
--static int nouveau_test_dsm(acpi_handle test_handle,
--	int (*dsm_func)(acpi_handle, int, int, uint32_t *),
--	int sfnc)
+-static bool extlog_get_l1addr(void)
 -{
--	u32 result = 0;
--
--	/* Function 0 returns a Buffer containing available functions. The args
--	 * parameter is ignored for function 0, so just put 0 in it */
--	if (dsm_func(test_handle, 0, 0, &result))
--		return 0;
--
--	/* ACPI Spec v4 9.14.1: if bit 0 is zero, no function is supported. If
--	 * the n-th bit is enabled, function n is supported */
--	return result & 1 && result & (1 << sfnc);
-+	return ret;
- }
+-	acpi_handle handle;
+-	u64 ret;
  
- static int nouveau_dsm_switch_mux(acpi_handle handle, int mux_id)
- {
- 	mxm_wmi_call_mxmx(mux_id == NOUVEAU_DSM_LED_STAMINA ? MXM_MXDS_ADAPTER_IGD : MXM_MXDS_ADAPTER_0);
- 	mxm_wmi_call_mxds(mux_id == NOUVEAU_DSM_LED_STAMINA ? MXM_MXDS_ADAPTER_IGD : MXM_MXDS_ADAPTER_0);
--	return nouveau_dsm(handle, NOUVEAU_DSM_LED, mux_id, NULL);
-+	return nouveau_dsm(handle, NOUVEAU_DSM_LED, mux_id);
- }
- 
- static int nouveau_dsm_set_discrete_state(acpi_handle handle, enum vga_switcheroo_state state)
-@@ -207,7 +146,7 @@ static int nouveau_dsm_set_discrete_state(acpi_handle handle, enum vga_switchero
- 		arg = NOUVEAU_DSM_POWER_SPEED;
- 	else
- 		arg = NOUVEAU_DSM_POWER_STAMINA;
--	nouveau_dsm(handle, NOUVEAU_DSM_POWER, arg, NULL);
-+	nouveau_dsm(handle, NOUVEAU_DSM_POWER, arg);
- 	return 0;
- }
- 
-@@ -263,14 +202,12 @@ static int nouveau_dsm_pci_probe(struct pci_dev *pdev)
- 	if (!dhandle)
+ 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
  		return false;
- 
--	if (!acpi_has_method(dhandle, "_DSM"))
--		return false;
 -
--	if (nouveau_test_dsm(dhandle, nouveau_dsm, NOUVEAU_DSM_POWER))
-+	if (acpi_check_dsm(dhandle, nouveau_dsm_muid, 0x00000102,
-+			   1 << NOUVEAU_DSM_POWER))
- 		retval |= NOUVEAU_DSM_HAS_MUX;
+-	if (extlog_get_dsm(handle, EXTLOG_DSM_REV, EXTLOG_FN_QUERY, &ret) ||
+-	    !(ret & EXTLOG_QUERY_L1_EXIST))
++	if (!acpi_check_dsm(handle, uuid, EXTLOG_DSM_REV, 1 << EXTLOG_FN_ADDR))
+ 		return false;
+-
+-	if (extlog_get_dsm(handle, EXTLOG_DSM_REV, EXTLOG_FN_ADDR, &ret))
++	obj = acpi_evaluate_dsm_typed(handle, uuid, EXTLOG_DSM_REV,
++				      EXTLOG_FN_ADDR, NULL, ACPI_TYPE_INTEGER);
++	if (!obj) {
+ 		return false;
++	} else {
++		l1_dirbase = obj->integer.value;
++		ACPI_FREE(obj);
++	}
  
--	if (nouveau_test_dsm(dhandle, nouveau_optimus_dsm,
--		NOUVEAU_DSM_OPTIMUS_CAPS))
-+	if (acpi_check_dsm(dhandle, nouveau_op_dsm_muid, 0x00000100,
-+			   1 << NOUVEAU_DSM_OPTIMUS_CAPS))
- 		retval |= NOUVEAU_DSM_HAS_OPT;
- 
- 	if (retval & NOUVEAU_DSM_HAS_OPT) {
+-	l1_dirbase = ret;
+ 	/* Spec says L1 directory must be 4K aligned, bail out if it isn't */
+ 	if (l1_dirbase & ((1 << 12) - 1)) {
+ 		pr_warn(FW_BUG "L1 Directory is invalid at physical %llx\n",
 -- 
 1.7.10.4
