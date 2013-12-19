@@ -1,101 +1,85 @@
-From: joeyli <jlee-IBi9RG/b67k@public.gmane.org>
-Subject: Re: [PATCH 02/14] x86-64/efi: Use EFI to deal with platform wall
- clock (again)
-Date: Thu, 19 Dec 2013 21:32:19 +0800
-Message-ID: <1387459939.3539.4092.camel@linux-s257.site>
-References: <1387439515-8926-1-git-send-email-jlee@suse.com>
-	 <1387448416-11672-1-git-send-email-jlee@suse.com>
-	 <20131219104908.GE3145@console-pimps.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [RFC part1 PATCH 1/7] ACPI: Make ACPI core running
+ without PCI on ARM64
+Date: Thu, 19 Dec 2013 15:01:26 +0100
+Message-ID: <201312191501.26362.arnd@arndb.de>
+References: <1386088611-2801-1-git-send-email-hanjun.guo@linaro.org>
+ <20131217112914.GB32118@arm.com>
+ <20131219113051.GL2736@xora-haswell.xora.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131219104908.GE3145-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matt Fleming <matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>
-Cc: JBeulich-IBi9RG/b67k@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Zijlstra <a.p.zijlstra-/NLkJaSkS4VmR6Xm/wNWPw@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Matt Fleming <matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131219113051.GL2736@xora-haswell.xora.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Graeme Gregory <graeme.gregory@linaro.org>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "patches@linaro.org" <patches@linaro.org>, Olof Johansson <olof@lixom.net>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-=E6=96=BC =E5=9B=9B=EF=BC=8C2013-12-19 =E6=96=BC 10:49 +0000=EF=BC=8CMa=
-tt Fleming =E6=8F=90=E5=88=B0=EF=BC=9A
-> On Thu, 19 Dec, at 06:20:16PM, Lee, Chun-Yi wrote:
-> > From: Jan Beulich <JBeulich-IBi9RG/b67k@public.gmane.org>
-> >=20
-> > Other than ix86, x86-64 on EFI so far didn't set the
-> > {g,s}et_wallclock accessors to the EFI routines, thus
-> > incorrectly using raw RTC accesses instead.
-> >=20
-> > Simply removing the #ifdef around the respective code isn't
-> > enough, however: While so far early get-time calls were done in
-> > physical mode, this doesn't work properly for x86-64, as virtual
-> > addresses would still need to be set up for all runtime regions
-> > (which wasn't the case on the system I have access to), so
-> > instead the patch moves the call to efi_enter_virtual_mode()
-> > ahead (which in turn allows to drop all code related to calling
-> > efi-get-time in physical mode).
-> >=20
-> > Additionally the earlier calling of efi_set_executable()
-> > requires the CPA code to cope, i.e. during early boot it must be
-> > avoided to call cpa_flush_array(), as the first thing this
-> > function does is a BUG_ON(irqs_disabled()).
-> >=20
-> > Also make the two EFI functions in question here static -
-> > they're not being referenced elsewhere.
-> >=20
-> > History:
-> >=20
-> >     This commit was originally merged as bacef661acdb ("x86-64/efi:
-> >     Use EFI to deal with platform wall clock") but it resulted in s=
-ome
-> >     ASUS machines no longer booting due to a firmware bug, and so w=
-as
-> >     reverted in f026cfa82f62.
-> >=20
-> >     Then a pre-emptive fix for the buggy ASUS firmware was merged i=
-n
-> >     03a1c254975e ("x86, efi: 1:1 pagetable mapping for virtual EFI
-> >     calls") but it causes odd bootup problems on x86-64. So this pa=
-tch
-> >     revoked again by 11520e5e7c1.
-> >=20
-> >     Now Borislav Petkov's "EFI runtime services virtual mapping" is
-> >     merged to EFI 'next' branch. So this patch can be reapplied aga=
-in.
-> >=20
-> > Signed-off-by: Jan Beulich <jbeulich-IBi9RG/b67k@public.gmane.org>
-> > Tested-by: Matt Fleming <matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Acked-by: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > Cc: Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > Cc: Peter Zijlstra <a.p.zijlstra-/NLkJaSkS4VmR6Xm/wNWPw@public.gmane.org>
-> > Cc: H. Peter Anvin <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Matt Fleming <matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [added commit =
-history]
-> > Acked-by: Lee, Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>
-> > ---
-> >  arch/x86/mm/pageattr.c      |   10 ++++++----
-> >  arch/x86/platform/efi/efi.c |   35 +++++++++++--------------------=
-----
-> >  include/linux/efi.h         |    2 --
-> >  init/main.c                 |    8 ++++----
-> >  4 files changed, 21 insertions(+), 34 deletions(-)
->=20
-> Lee, you can't just simply resend this patch with all the tags - I
-> haven't tested this version with any recent changes and I'm pretty su=
-re
-> Matthew isn't going to Ack it.
+On Thursday 19 December 2013, Graeme Gregory wrote:
+> Hopefully the documenation of what real armv8 server architecture will look
+> like will come in the new year. Things like regulators and clocks I do not
+> have answers to yet as obviously in Intel world these things are hidden
+> from view, I do not know what the plan is for armv8 silicon/motherboards.
 
-I am very sorry for I didn't remove those tags before send it. I will
-remove it when send second version.
+The clocks and regulators (and a handful of other subsystems) are
+the key thing to work out IMHO. For all I know these are either completely
+static (turned on by firmware at boot time) on current servers, or they
+are done in a way that each device can manage itself using power states
+in the PCI configuration space. If you have on-chip devices that do not
+look like PCI devices to software, or that interact with other on-chip
+controllers at run-time as on typical arm32 embedded SoCs, you are in
+trouble to start with, and there are two possible ways to deal with this
+in theory:
 
->=20
-> Do you know if anyone has tested this patch with Borislav's recent
-> changes?
->=20
+a) Hide all the register-level setup behind AML code and make Linux only
+   aware of the possible device states that it can ask for, which would
+   make this look similar to today's servers.
 
-I tested Borislav's patch set on a issue BIOS and make sure it works,
-but I have no chance to test this patch with it. I will find a time to
-test it.
+b) Model all the soc-internal registers as devices and write OS-specific
+   SoC-specific device drivers for them, using yet-to-be-defined ACPI
+   extensions to describe the interactions between devices. This would
+   be modeled along the lines of what we do today with DT, and what Intel
+   wants to do on their embedded SoCs with ACPI in the future.
 
+I think anybody would agree that we should not try to mix the two models
+in a single system, as that would create an endless source of bugs when
+you have two drivers fighting over the same hardware. There is also a
+rough consensus that we really only want a) and not b) on ARM, but there
+have been indications that people are already working on b), which I
+think is a bit worrying. I would argue that anyone who wants b) on 
+ARM should not use ACPI at all but rather describe the hardware using
+DT as we do today. This could possibly change if someone shows that a)
+is actually not a realistic model at all, but I also think that doing b)
+properly will depend on doing a major ACPI-6.0 or ACPI-7.0 release
+to actually specify a standard model for the extra subsystems.
 
-Thanks a lot!
-Joey Lee
+> On the multiple venders same hardware issue I guess Intel guys must have
+> already seen this happen. We shall have to ask them what their solution was?
+
+There is basically only one SoC vendor on x86, which makes this a lot
+easier. Off-chip devices on the board are typically PCI based and
+don't need any special treatment because the PCI vendor/device ID
+pair is enought to identify the hardware. Anything that does not fall
+into these categories (e.g. vendor specific laptop extensions) is
+handled with drivers in drivers/platform/x86/. This works fine
+because that code is only needed for _optional_ features such as
+multimedia buttons or sensors, and the total amount of code for
+all the platforms is fairly contained.
+
+The main concern for ARM is that if we need to do the same, it ends up
+as a direct replacement for the "board files" that we just spent years
+on making obsolete. We can do this as a workaround for the oddball broken
+firmware in shipping products, but we should not go back to having to
+add platform-specific code that is only meant to interface with how
+a random vendor decided to expose standard hardware in their ACPI BIOS.
+
+	Arnd
