@@ -1,91 +1,35 @@
-From: Takashi Iwai <tiwai@suse.de>
-Subject: [PATCH] ACPI: Blacklist Win8 OSI for some HP laptop 2013 models
-Date: Thu, 19 Dec 2013 17:09:12 +0100
-Message-ID: <1387469352-23798-1-git-send-email-tiwai@suse.de>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:59851 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752369Ab3LSQJN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Dec 2013 11:09:13 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>
+Subject: Re: [RFC PATCH 00/14] Support timezone of ACPI TAD and EFI TIME
+Date: Thu, 19 Dec 2013 17:04:45 +0100
+Message-ID: <20131219170445.42b50a5b@linux.lan.towertech.it>
+References: <1387439053-8711-1-git-send-email-jlee@suse.com>
+	<52B309EB.90300@zytor.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <52B309EB.90300-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+Cc: "Lee, Chun-Yi" <joeyli.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Matt Fleming <matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>, Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>, Elliott-VXdhtT5mjnY@public.gmane.org, samer.el-haj-mahmoud-VXdhtT5mjnY@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, werner-IBi9RG/b67k@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Lee, Chun-Yi" <jlee-IBi9RG/b67k@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-The BIOS on recent HP laptops behaves differently with Win8 OSI,
-e.g. no backlight control and no rfkill are available.  List them in
-the blacklist as a workaround.
+On Thu, 19 Dec 2013 06:59:55 -0800
+"H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org> wrote:
 
-This patch tries to reduce the added items by matching "G1" suffix,
-e.g. machines are named like "HP ProBook 430 G1".
+> EFI time is something we used to support and ripped out, because it
+> doesn't work well, *at all*.
+> 
+> I am hyper-skeptical to reintroducing them, and *definitely* will veto
+> reintroducing them on a system which has PNP0B0x devices present.
 
-Bugzilla: https://bugzilla.novell.com/show_bug.cgi?id=856294
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
----
- drivers/acpi/blacklist.c | 50 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 50 insertions(+)
+ Definitely agree.
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index 078c4f7fe2dd..40c91f5052ef 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -323,6 +323,56 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
- 		},
- 	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "HP ProBook 2013 models",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "HP ProBook "),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, " G1"),
-+		},
-+	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "HP EliteBook 2013 models",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook "),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, " G1"),
-+		},
-+	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "HP ZBook 14",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 14"),
-+		},
-+	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "HP ZBook 15",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 15"),
-+		},
-+	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "HP ZBook 17",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 17"),
-+		},
-+	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "HP EliteBook 8780w",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8780w"),
-+		},
-+	},
- 
- 	/*
- 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
 -- 
-1.8.5
 
+ Best regards,
+
+ Alessandro Zummo,
+  Tower Technologies - Torino, Italy
+
+  http://www.towertech.it
