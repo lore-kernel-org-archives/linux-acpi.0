@@ -1,26 +1,98 @@
-From: Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC PATCH 00/14] Support timezone of ACPI TAD and EFI TIME
-Date: Fri, 20 Dec 2013 15:16:05 +0000
-Message-ID: <1387552565.17961.3.camel@x230>
-References: <1387439053-8711-1-git-send-email-jlee@suse.com>
-	 <52B309EB.90300@zytor.com> <1387512357.3539.4317.camel@linux-s257.site>
-	 <52B3C5F0.1060303@zytor.com>
+From: "Paul V. Gratz" <pgratz@gratz1.com>
+Subject: ACPI errors when pressing brightness hot keys on new HP Spectre 13 x2
+ laptop/tablet combo
+Date: Fri, 20 Dec 2013 10:30:35 -0600
+Message-ID: <CAEbBMJJSnrKYgJy83AFtkVo9oFTe31QJGmFsO4Mc=0sqq+tK4Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52B3C5F0.1060303-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <ADD3457D3BECB8438116E392D1A7B5BD-HX+pjaQZbrqcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Cc: "samer.el-haj-mahmoud-VXdhtT5mjnY@public.gmane.org" <samer.el-haj-mahmoud-VXdhtT5mjnY@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jlee-IBi9RG/b67k@public.gmane.org" <jlee-IBi9RG/b67k@public.gmane.org>, "bp-l3A5Bk7waGM@public.gmane.org" <bp-l3A5Bk7waGM@public.gmane.org>, "a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org" <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, "Elliott-VXdhtT5mjnY@public.gmane.org" <Elliott-VXdhtT5mjnY@public.gmane.org>, "werner-IBi9RG/b67k@public.gmane.org" <werner-IBi9RG/b67k@public.gmane.org>, "rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "oneukum-l3A5Bk7waGM@public.gmane.org" <oneukum-l3A5Bk7waGM@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "trenn-l3A5Bk7waGM@public.gmane.org" <trenn-l3A5Bk7waGM@public.gmane.org>, "JBeulich-IBi9RG/b67k@public.gmane.org" <JBeulich-IBi9RG/b67k@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org" <matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vc0-f177.google.com ([209.85.220.177]:54793 "EHLO
+	mail-vc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754040Ab3LTQa4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Dec 2013 11:30:56 -0500
+Received: by mail-vc0-f177.google.com with SMTP id hq11so1536772vcb.36
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Dec 2013 08:30:55 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-T24gVGh1LCAyMDEzLTEyLTE5IGF0IDIwOjIyIC0wODAwLCBILiBQZXRlciBBbnZpbiB3cm90ZToN
-Cj4gT24gMTIvMTkvMjAxMyAwODowNSBQTSwgam9leWxpIHdyb3RlOg0KPiA+IENhbiB3ZSB1c2Ug
-RUZJIHRpbWUgc2VydmljZXMgb24geDg2XzY0IGFmdGVyIEJvcmlzbGF2J3MgcGF0Y2hlcyBhY2Nl
-cHRlZA0KPiA+IHRvIG1haW5saW5lPw0KPiA+IA0KPiANCj4gTm8uDQoNCldlIHdpbGwgd2FudCB0
-byB1c2UgdGhlbSB0byAoYXQgbWluaW11bSkgb2J0YWluIHRoZSBjbG9jayB0aW1lem9uZS4NClVz
-aW5nIHRoZW0gZm9yIGdlbmVyYWwgUlRDIGFjY2VzcyBpcyBsZXNzIGF0dHJhY3RpdmUuDQoNCi0t
-IA0KTWF0dGhldyBHYXJyZXR0IDxtYXR0aGV3LmdhcnJldHRAbmVidWxhLmNvbT4NCg==
+I hope I'm not stepping on toes to post directly to this mailing list,
+the hp-wmi author suggested I email about this issue here.
+
+The issue is that on my new laptop when I press the brightness hot
+keys I get the following ACPI errors (and nothing else happens):
+
+[ 3324.617378]  ACPI Error: [^^^PEG0.PEGP.DD02] Namespace lookup
+failure, AE_NOT_FOUND (20130725/psargs-359)
+[ 3324.617386] ACPI Error: Method parse/execution failed
+[\_SB_.PCI0.LPCB.EC0_._Q1D] (Node ffff8801592fc730), AE_NOT_FOUND
+(20130725/psparse-536)
+[ 3325.604163] ACPI Error: [^^^PEG0.PEGP.DD02] Namespace lookup
+failure, AE_NOT_FOUND (20130725/psargs-359)
+[ 3325.604171] ACPI Error: Method parse/execution failed
+[\_SB_.PCI0.LPCB.EC0_._Q1C] (Node ffff8801592fc708), AE_NOT_FOUND
+(20130725/psparse-536)
+
+I'd love to get these keys working if possible.  I am on the a 3.12.5
+kernel with the latest version of my bios installed.  These keys do
+work properly in windows.
+
+Thanks!
+Paul
+
+
+On Fri, Dec 20, 2013 at 9:20 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+>
+> On Thu, Dec 19, 2013 at 01:57:44PM -0600, Paul V. Gratz wrote:
+> > Dear Matthew,
+> > I understand you are the maintainer of hp-wmi.c in the linux kernel.  I
+> > hope you don't mind me contacting you directly.  I worked with a couple
+> > people on the Ubuntuforums first and they suggested I elevate this at a
+> > kernel issue.   The issue is that I have a new HP Spectre 13 x2
+> > laptop/tablet hybrid and while the hp-wmi module does seem to catch most of
+> > my hot keys, the brightness keys are ignored.  When I hit them I see the
+> > following in my dmesg:
+>
+> Brightness keys should be handled by the ACPI video driver rather than
+> hp-wmi.
+>
+> > [ 3324.617378] ACPI Error: [^^^PEG0.PEGP.DD02] Namespace lookup failure,
+> > AE_NOT_FOUND (20130725/psargs-359)
+> > [ 3324.617386] ACPI Error: Method parse/execution failed
+> > [\_SB_.PCI0.LPCB.EC0_._Q1D] (Node ffff8801592fc730), AE_NOT_FOUND
+> > (20130725/psparse-536)
+> > [ 3325.604163] ACPI Error: [^^^PEG0.PEGP.DD02] Namespace lookup failure,
+> > AE_NOT_FOUND (20130725/psargs-359)
+> > [ 3325.604171] ACPI Error: Method parse/execution failed
+> > [\_SB_.PCI0.LPCB.EC0_._Q1C] (Node ffff8801592fc708), AE_NOT_FOUND
+> > (20130725/psparse-536)
+>
+> Yeah, something's going wrong here - your ACPI tables are referencing
+> a method that doesn't appear to exist. You'll probably need to take this
+> to linux-acpi@vger.kernel.org.
+>
+> --
+> Matthew Garrett | mjg59@srcf.ucam.org
+
+
+
+
+--
+-----------------------------------------
+Paul V. Gratz
+Assistant Professor
+ECE Dept, Texas A&M University
+Office: 333M WERC
+Phone: 979-488-4551
+http://cesg.tamu.edu/faculty/paul-gratz/
+
+
+
+--
+-----------------------------------------
+Paul V. Gratz
+Assistant Professor
+ECE Dept, Texas A&M University
+Office: 333M WERC
+Phone: 979-488-4551
+http://cesg.tamu.edu/faculty/paul-gratz/
