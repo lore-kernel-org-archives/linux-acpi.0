@@ -1,66 +1,103 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [Patch v2 02/13] ACPI, extlog: replace open-coded _DSM specific
- code with helper functions
-Date: Fri, 20 Dec 2013 02:03:07 -0500
-Message-ID: <20131220070306.GA4571@gchen.bj.intel.com>
-References: <1387457266-4854-1-git-send-email-jiang.liu@linux.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [Medion P8610] 13.10: Kernel panic - not syncing (on system
+ start)
+Date: Fri, 20 Dec 2013 08:05:44 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802499465@SHSMSX101.ccr.corp.intel.com>
+References: <52B36AA7.2050705@googlemail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Q68bSM7Ycu6FN28Q"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:64281 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:43069 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753841Ab3LTHVk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Dec 2013 02:21:40 -0500
-Content-Disposition: inline
-In-Reply-To: <1387457266-4854-1-git-send-email-jiang.liu@linux.intel.com>
+	id S1753055Ab3LTIF4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Dec 2013 03:05:56 -0500
+In-Reply-To: <52B36AA7.2050705@googlemail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Fabian Wehning <fabian.wehning@googlemail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
+Hi, Fabian
 
---Q68bSM7Ycu6FN28Q
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Could you offer an acpidump output of this machine.
+You can dump this using a booted system.
+And can you try to obtain the entire panic log through serial consoles?
+The last lines in the photo indicated that the kernel panic was caused by pci_assign_unassigned_resources. 
+We need to know the device ID and the control method name to reproduce the panic using acpidump.
 
-On Thu, Dec 19, 2013 at 08:47:46PM +0800, Jiang Liu wrote:
-> Subject: [Patch v2 02/13] ACPI, extlog: replace open-coded _DSM specific
->  code with helper functions
-> X-Mailer: git-send-email 1.7.10.4
->=20
-> Use helper functions to simplify _DSM related code in acpi_extlog driver.
-> Also mark initialization data and functions with __init and __initdata
-> to reduce memory footprint.
->=20
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> Cc: Chen Gong <gong.chen@linux.intel.com>
+Thanks and best regards
+-Lv
 
-Tested-by: Chen, Gong <gong.chen@linux.intel.com>
-Reviewed-by: Chen, Gong <gong.chen@linux.intel.com>
-
-
---Q68bSM7Ycu6FN28Q
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSs+uqAAoJEI01n1+kOSLHZrwP/A30PcgUeqVVRCU/mqLf6uab
-sqj9neiaegozcHZRJDCBsgHPewCk7FZBo8ZM6l86DLskjvIe9Ix4oMFOUTEq2h8i
-NoBmGWtMm5PA+U3qMAKmAHZNtExE9bhEFsLCj6sjA2agDAMQgx2+HAWPlyZ59/af
-gpzp5neGlC6aO0NRQpCTvGtEdHXaJYPHtWwy6IXFfAt6WU4oWdxbCJTYYIPfUU/k
-PK+drXimbreUxObcrhH6iS7GPzFIuZJKiUF722L4awHPbzRSCPski2+XcEg4HJfr
-p2cSlQ/BiZ6hRAEHP/UYJO9/olfgoevUH6JtHc0tlqcB+Fi1LxF+YAVHY15Vh1FH
-Fwm/gA4pUMFN6buqmf3UisNz62q295374TinNw4FVP9zsS3vrrMwm+XHozLJoJIA
-MKTeU57kpTOl+PQfeSNrN0Yz+Ta8Iz3rLq43CSSx2ClM6aXAuMRxcTLRKZOR/s9E
-WEzI3cmEcT2xOeCxooPVfkje1sIFWK1eleZtL1EH3zICtDYPldvXDnGyA2NevnUW
-bAQNhTnU+IeQiWL8xoY+QkGy9OgDluxlqrYphHej2/7ukgZzdEt6lWtR75JqoEeP
-wxa07j9R02rBZNdw9PvRquhtaRxCTsuUXC7deVbOveQpNBqpCaci+ICq9K0R/jvk
-hMXYUyauO771BhaUInkn
-=W8aY
------END PGP SIGNATURE-----
-
---Q68bSM7Ycu6FN28Q--
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Fabian Wehning
+> Sent: Friday, December 20, 2013 5:53 AM
+> To: linux-acpi@vger.kernel.org
+> Subject: [Medion P8610] 13.10: Kernel panic - not syncing (on system start)
+> 
+> [1.] One line summary of the problem:
+> [Medion P8610] 13.10: Kernel panic - not syncing (on system start)
+> 
+> [2.] Full description of the problem/report:
+> While booting linux crashes with the message "Kernel panic - not
+> syncing: Attempt to kill init! exitcode=0x00000009". In a bisect (done
+> by Joseph Salisbury [joseph.salisbury@canonical.com]) it was tested and
+> this bug seems to be introduced either by
+> 
+> commit 76a6225bf0b64572251a8c27d33e84afac6af713
+> Author: Bob Moore <robert.moore@intel.com>
+> Date: Fri Mar 8 09:23:16 2013 +0000
+> 
+>     ACPICA: Split object conversion functions to a new file
+> 
+> or
+> 
+> commit d5a36100f62fa6db5541344e08b361b34e9114c5
+> Author: Bob Moore <robert.moore@intel.com>
+> Date: Fri Mar 8 09:23:03 2013 +0000
+> 
+>     ACPICA: Add mechanism for early object repairs on a per-name basis
+> 
+> 
+> [3.] Keywords (i.e., modules, networking, kernel):
+> kernel, Ubuntu, ACPICA
+> 
+> [4.] Kernel version (from /proc/version):
+> --> unable to boot therefore impossible to get
+> 
+> [5.] No Oops.. message
+> 
+> [6.] Beyond skill level
+> 
+> [7.] Environment
+> --> unable to boot therefore impossible to execute the command
+> 
+> [7.1.] Software:
+> --> unable to boot therefore impossible to get
+> 
+> [7.2.] Processor information (from /proc/cpuinfo):
+> --> unable to boot therefore impossible to get anything useful
+> 
+> [7.3.] Module information (from /proc/modules):
+> --> unable to boot therefore impossible to get anything useful
+> 
+> [7.4.] Loaded driver and hardware information (/proc/ioports, /proc/iomem)
+> --> unable to boot therefore impossible to get anything useful
+> 
+> [7.5.] PCI information ('lspci -vvv' as root)
+> --> unable to boot therefore impossible to get anything useful
+> 
+> [7.6.] SCSI information (from /proc/scsi/scsi)
+> --> unable to boot therefore impossible to get anything useful
+> 
+> [7.7.] Other information that might be relevant to the problem (please
+> look in /proc and include all information that you think to be relevant):
+> --> unable to boot therefore impossible to get anything useful
+> 
+> [X.] Other notes, patches, fixes, workarounds:
+> https://bugs.launchpad.net/bugs/1242938
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
