@@ -1,17 +1,17 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
 Subject: RE: [Medion P8610] 13.10: Kernel panic - not syncing (on system
  start)
-Date: Fri, 20 Dec 2013 08:05:44 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802499465@SHSMSX101.ccr.corp.intel.com>
+Date: Fri, 20 Dec 2013 08:09:04 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802499488@SHSMSX101.ccr.corp.intel.com>
 References: <52B36AA7.2050705@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:43069 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:16813 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753055Ab3LTIF4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Dec 2013 03:05:56 -0500
+	id S1754506Ab3LTIJK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Dec 2013 03:09:10 -0500
 In-Reply-To: <52B36AA7.2050705@googlemail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
@@ -19,22 +19,15 @@ List-Id: linux-acpi@vger.kernel.org
 To: Fabian Wehning <fabian.wehning@googlemail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-Hi, Fabian
-
-Could you offer an acpidump output of this machine.
-You can dump this using a booted system.
-And can you try to obtain the entire panic log through serial consoles?
-The last lines in the photo indicated that the kernel panic was caused by pci_assign_unassigned_resources. 
-We need to know the device ID and the control method name to reproduce the panic using acpidump.
+Forgot to mention that you need to open an bug at:
+bugzilla.kernel.org
+with product set to ACPI and component set to ACPICA-core.
 
 Thanks and best regards
 -Lv
 
-> -----Original Message-----
 > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Fabian Wehning
 > Sent: Friday, December 20, 2013 5:53 AM
-> To: linux-acpi@vger.kernel.org
-> Subject: [Medion P8610] 13.10: Kernel panic - not syncing (on system start)
 > 
 > [1.] One line summary of the problem:
 > [Medion P8610] 13.10: Kernel panic - not syncing (on system start)
