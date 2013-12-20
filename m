@@ -1,75 +1,95 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Patch v2 03/13] PCI, pci-label: release allocated ACPI object on error recovery path
-Date: Fri, 20 Dec 2013 03:01:55 +0100
-Message-ID: <1896409.Ntvojm0Xli@vostro.rjw.lan>
-References: <1387456702-4709-1-git-send-email-jiang.liu@linux.intel.com> <1387456702-4709-4-git-send-email-jiang.liu@linux.intel.com> <CAErSpo4oKsJCKxUhxT8E745BkX+veOD-tMEeHULHOuH-3suMRA@mail.gmail.com>
+From: joeyli <jlee-IBi9RG/b67k@public.gmane.org>
+Subject: Re: [PATCH 03/14] rtc: block registration of rtc-cmos when CMOS
+ RTC Not Present
+Date: Fri, 20 Dec 2013 11:54:10 +0800
+Message-ID: <1387511650.3539.4294.camel@linux-s257.site>
+References: <1387439053-8711-1-git-send-email-jlee@suse.com>
+	 <1387439053-8711-4-git-send-email-jlee@suse.com>
+	 <6fc9a2f9-eae7-4588-a092-f338053ec96a@email.android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo4oKsJCKxUhxT8E745BkX+veOD-tMEeHULHOuH-3suMRA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <6fc9a2f9-eae7-4588-a092-f338053ec96a-2ueSQiBKiTY7tOexoI0I+QC/G2K4zDHf@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Matt Fleming <matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>, Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>, Elliott-VXdhtT5mjnY@public.gmane.org, samer.el-haj-mahmoud-VXdhtT5mjnY@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, werner-IBi9RG/b67k@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, December 19, 2013 11:22:22 AM Bjorn Helgaas wrote:
-> On Thu, Dec 19, 2013 at 5:38 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> > Function dsm_get_label() leaks the returned ACPI object if
-> > obj->package.count is not 2, so fix the possible memory leak.
-> >
-> > Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> 
-> Rafael, if you want to take these through your tree, feel free.
+Hi hpa,=20
 
-I'm going to do that, thanks!
+=E6=96=BC =E5=9B=9B=EF=BC=8C2013-12-19 =E6=96=BC 06:38 -0800=EF=BC=8CH.=
+ Peter Anvin =E6=8F=90=E5=88=B0=EF=BC=9A
+> Where did you find a platform with "no CMOS" set and a PNP RTC? I fin=
+d the expect behavior in that case to be quite ambiguous and it is not =
+at all clear to me that what you have here is the right thing.
 
-> I'm guessing it probably makes sense to keep the whole series together.
+Actually there doesn't have the box both with "No CMOS" and PNP device.=
+=20
+I choice to totally block rtc-cmos driver when "No CMOS RTC" because th=
+e
+definition in ACPI spec:
 
-Agreed.
+CMOS RTC Not Present
 
-> > ---
-> >  drivers/pci/pci-label.c |   12 ++++--------
-> >  1 file changed, 4 insertions(+), 8 deletions(-)
+If set, indicates that the CMOS RTC is either not implemented, or
+does not exist at the legacy addresses. OSPM uses the Control
+Method Time and Alarm Namespace device instead.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+It suggest us using ACPI TAD interface when this flag present. But, I
+agreed your point for this is ambiguous due to ACPI spec didn't clear
+define the relationship between PNP0B0x.
+
+Maybe we can do more detail check in cmos_init when "No CMOS RTC" set:
+ + check if have ACPI TAD device, then block rtc-cmos
+ + check if no ACPI TAD device, but have PNP0B0x, then we use PNP0b0x.
+
+>=20
+> "Lee, Chun-Yi" <joeyli.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> >We should not acess CMOS address when CMOS RTC Not Present bit set i=
+n
+> >FADT. The ee5872be patch didn't avoid rtc-cmos driver loaded when
+> >system support
+> >ACPI PNP PNP0B0* devices.
+> >So this patch block the registion of rtc-cmos driver to avoid
+> >user space access RTC through CMOS interface.
 > >
-> > diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
-> > index d51f45a..f6e01a5 100644
-> > --- a/drivers/pci/pci-label.c
-> > +++ b/drivers/pci/pci-label.c
-> > @@ -233,11 +233,7 @@ dsm_get_label(acpi_handle handle, int func,
-> >                 return -1;
+> >Signed-off-by: Lee, Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>
+> >---
+> > arch/x86/kernel/rtc.c  |   20 ++++++++++++++++----
+> > drivers/rtc/rtc-cmos.c |    9 +++++++++
+> > 2 files changed, 25 insertions(+), 4 deletions(-)
 > >
-> >         obj = (union acpi_object *)output->pointer;
-> > -
-> > -       switch (obj->type) {
-> > -       case ACPI_TYPE_PACKAGE:
-> > -               if (obj->package.count != 2)
-> > -                       break;
-> > +       if (obj->type == ACPI_TYPE_PACKAGE && obj->package.count == 2) {
-> >                 len = obj->package.elements[0].integer.value;
-> >                 if (buf) {
-> >                         if (attribute == ACPI_ATTR_INDEX_SHOW)
-> > @@ -250,10 +246,10 @@ dsm_get_label(acpi_handle handle, int func,
-> >                 }
-> >                 kfree(output->pointer);
-> >                 return len;
-> > -       break;
-> > -       default:
-> > -               kfree(output->pointer);
-> >         }
-> > +
-> > +       kfree(output->pointer);
-> > +
-> >         return -1;
-> >  }
-> >
-> > --
-> > 1.7.10.4
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+=2E..
+> >--- a/drivers/rtc/rtc-cmos.c
+> >+++ b/drivers/rtc/rtc-cmos.c
+> >@@ -28,6 +28,9 @@
+> >  * interrupts disabled, holding the global rtc_lock, to exclude tho=
+se
+> >  * other drivers and utilities on correctly configured systems.
+> >  */
+> >+
+> >+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> >+
+> > #include <linux/kernel.h>
+> > #include <linux/module.h>
+> > #include <linux/init.h>
+> >@@ -1144,6 +1147,12 @@ static int __init cmos_init(void)
+> > {
+> > 	int retval =3D 0;
+> >=20
+> >+	if (acpi_gbl_FADT.header.revision >=3D 5 &&
+> >+	    acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_CMOS_RTC) {
+> >+		pr_info("ACPI CMOS RTC Not Present detected - not loading\n");
+> >+		return 0;
+> >+	}
+> >+
+> > #ifdef	CONFIG_PNP
+> > 	retval =3D pnp_register_driver(&cmos_pnp_driver);
+> > 	if (retval =3D=3D 0)
+>=20
+
+Thanks a lot!
+Joey Lee
