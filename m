@@ -1,98 +1,38 @@
-From: "Paul V. Gratz" <pgratz@gratz1.com>
-Subject: ACPI errors when pressing brightness hot keys on new HP Spectre 13 x2
- laptop/tablet combo
-Date: Fri, 20 Dec 2013 10:30:35 -0600
-Message-ID: <CAEbBMJJSnrKYgJy83AFtkVo9oFTe31QJGmFsO4Mc=0sqq+tK4Q@mail.gmail.com>
+From: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH 06/14] rtc-efi: register rtc-efi device when EFI enabled
+Date: Fri, 20 Dec 2013 08:48:04 -0800
+Message-ID: <bdf7e604-0aad-4064-ba4c-89f8bb7d82cf@email.android.com>
+References: <1387439515-8926-1-git-send-email-jlee@suse.com> <1387439515-8926-7-git-send-email-jlee@suse.com> <20131219140918.GF3145@console-pimps.org> <1387513491.3539.4345.camel@linux-s257.site> <52B3C7F8.3040901@zytor.com> <20131220103755.GA14784@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f177.google.com ([209.85.220.177]:54793 "EHLO
-	mail-vc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754040Ab3LTQa4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Dec 2013 11:30:56 -0500
-Received: by mail-vc0-f177.google.com with SMTP id hq11so1536772vcb.36
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Dec 2013 08:30:55 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131220103755.GA14784-fF5Pk5pvG8Y@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
+Cc: joeyli <jlee-IBi9RG/b67k@public.gmane.org>, Matt Fleming <matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>, Elliott-VXdhtT5mjnY@public.gmane.org, samer.el-haj-mahmoud-VXdhtT5mjnY@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, werner-IBi9RG/b67k@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matt Fleming <matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-I hope I'm not stepping on toes to post directly to this mailing list,
-the hp-wmi author suggested I email about this issue here.
+The only real use case for the RTC TZ is compatibility with other operating systems that don't keep the time in UTC, at least as far as I can tell.  However, that is a fairly big one, especially in VM deployments.
 
-The issue is that on my new laptop when I press the brightness hot
-keys I get the following ACPI errors (and nothing else happens):
-
-[ 3324.617378]  ACPI Error: [^^^PEG0.PEGP.DD02] Namespace lookup
-failure, AE_NOT_FOUND (20130725/psargs-359)
-[ 3324.617386] ACPI Error: Method parse/execution failed
-[\_SB_.PCI0.LPCB.EC0_._Q1D] (Node ffff8801592fc730), AE_NOT_FOUND
-(20130725/psparse-536)
-[ 3325.604163] ACPI Error: [^^^PEG0.PEGP.DD02] Namespace lookup
-failure, AE_NOT_FOUND (20130725/psargs-359)
-[ 3325.604171] ACPI Error: Method parse/execution failed
-[\_SB_.PCI0.LPCB.EC0_._Q1C] (Node ffff8801592fc708), AE_NOT_FOUND
-(20130725/psparse-536)
-
-I'd love to get these keys working if possible.  I am on the a 3.12.5
-kernel with the latest version of my bios installed.  These keys do
-work properly in windows.
-
-Thanks!
-Paul
-
-
-On Fri, Dec 20, 2013 at 9:20 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org> wrote:
+>On Thu, Dec 19, 2013 at 08:30:48PM -0800, H. Peter Anvin wrote:
+>> On 12/19/2013 08:24 PM, joeyli wrote:
+>> > I agreed, but userspace application should not be too often to
+>access
+>> > RTC. Maybe only when system boot and set timezone.
+>>
+>> This is, quite frankly, an idiotic argument.
 >
-> On Thu, Dec 19, 2013 at 01:57:44PM -0600, Paul V. Gratz wrote:
-> > Dear Matthew,
-> > I understand you are the maintainer of hp-wmi.c in the linux kernel.  I
-> > hope you don't mind me contacting you directly.  I worked with a couple
-> > people on the Ubuntuforums first and they suggested I elevate this at a
-> > kernel issue.   The issue is that I have a new HP Spectre 13 x2
-> > laptop/tablet hybrid and while the hp-wmi module does seem to catch most of
-> > my hot keys, the brightness keys are ignored.  When I hit them I see the
-> > following in my dmesg:
+>TBH, I've been struggling with the question too - and it might even be
+>a
+>stupid question - but what is that absolute need to be able to get the
+>TZ in userspace? Why should I care?
 >
-> Brightness keys should be handled by the ACPI video driver rather than
-> hp-wmi.
+>Can we get some use cases for stupid people like me please?
 >
-> > [ 3324.617378] ACPI Error: [^^^PEG0.PEGP.DD02] Namespace lookup failure,
-> > AE_NOT_FOUND (20130725/psargs-359)
-> > [ 3324.617386] ACPI Error: Method parse/execution failed
-> > [\_SB_.PCI0.LPCB.EC0_._Q1D] (Node ffff8801592fc730), AE_NOT_FOUND
-> > (20130725/psparse-536)
-> > [ 3325.604163] ACPI Error: [^^^PEG0.PEGP.DD02] Namespace lookup failure,
-> > AE_NOT_FOUND (20130725/psargs-359)
-> > [ 3325.604171] ACPI Error: Method parse/execution failed
-> > [\_SB_.PCI0.LPCB.EC0_._Q1C] (Node ffff8801592fc708), AE_NOT_FOUND
-> > (20130725/psparse-536)
->
-> Yeah, something's going wrong here - your ACPI tables are referencing
-> a method that doesn't appear to exist. You'll probably need to take this
-> to linux-acpi@vger.kernel.org.
->
-> --
-> Matthew Garrett | mjg59@srcf.ucam.org
+>Thanks.
 
-
-
-
---
------------------------------------------
-Paul V. Gratz
-Assistant Professor
-ECE Dept, Texas A&M University
-Office: 333M WERC
-Phone: 979-488-4551
-http://cesg.tamu.edu/faculty/paul-gratz/
-
-
-
---
------------------------------------------
-Paul V. Gratz
-Assistant Professor
-ECE Dept, Texas A&M University
-Office: 333M WERC
-Phone: 979-488-4551
-http://cesg.tamu.edu/faculty/paul-gratz/
+-- 
+Sent from my mobile phone.  Please pardon brevity and lack of formatting.
