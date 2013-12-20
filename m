@@ -1,44 +1,37 @@
-From: joeyli <jlee-IBi9RG/b67k@public.gmane.org>
-Subject: Re: [RFC PATCH 04/14] ACPI: Add ACPI 5.0 Time and Alarm Device
- driver
-Date: Fri, 20 Dec 2013 13:41:39 +0800
-Message-ID: <1387518099.3539.4453.camel@linux-s257.site>
-References: <1387439515-8926-1-git-send-email-jlee@suse.com>
-	 <1387439515-8926-5-git-send-email-jlee@suse.com>
-	 <52B30F43.1060306@zytor.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] ACPI / video: Use native backlight control interface by
+ default
+Date: Fri, 20 Dec 2013 14:32:21 +0800
+Message-ID: <20131220063219.GA6158@aaronlu.linux.com>
+References: <1386209037-31349-1-git-send-email-acelan.kao@canonical.com>
+ <20131205023237.GA23671@srcf.ucam.org>
+ <CAKMK7uG14CK+PO4RDzh+GKXotNuSead7-sN83SujK826jgt5iw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52B30F43.1060306-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Matt Fleming <matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>, Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>, Elliott-VXdhtT5mjnY@public.gmane.org, samer.el-haj-mahmoud-VXdhtT5mjnY@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, werner-IBi9RG/b67k@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f181.google.com ([209.85.192.181]:57837 "EHLO
+	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751904Ab3LTGcY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Dec 2013 01:32:24 -0500
+Received: by mail-pd0-f181.google.com with SMTP id p10so2120704pdj.40
+        for <linux-acpi@vger.kernel.org>; Thu, 19 Dec 2013 22:32:24 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <CAKMK7uG14CK+PO4RDzh+GKXotNuSead7-sN83SujK826jgt5iw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, AceLan Kao <acelan.kao@canonical.com>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, intel-gfx <intel-gfx@lists.freedesktop.org>
 
-=E6=96=BC =E5=9B=9B=EF=BC=8C2013-12-19 =E6=96=BC 07:22 -0800=EF=BC=8CH.=
- Peter Anvin =E6=8F=90=E5=88=B0=EF=BC=9A
-> On 12/18/2013 11:51 PM, Lee, Chun-Yi wrote:
-> > This patch add the driver of Time and Alarm Device in ACPI 5.0.
-> > Currently it only implemented get/set time functions and grab
-> > the capabilities of device when driver initial.
-> >=20
-> > This driver also register rtc-acpitad platform device for RTC ACPIT=
-AD
-> > stub driver using.
-> >=20
-> > Signed-off-by: Lee, Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>
->=20
-> What platform do you have that has TAD support?  I am wondering how t=
-his
-> was tested.
->=20
-> 	-hpa
->=20
+On Thu, Dec 05, 2013 at 08:50:21AM +0100, Daniel Vetter wrote:
+> On Thu, Dec 5, 2013 at 3:32 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> > We had problems with the Intel backlight driver the last time we tried
+> > this, so let's push this through their tree for testing first? Cc:ed
+> > intel-gfx and Daniel Vetter.
+> 
+> Makes sense imo. Or if I just get a branch with just those patches (it
+> can rebase, I don't really care) I could  pull it into our
+> drm-intel-nightly integration tree, which is what everyone is testing
+> anyway.
 
-It's a testing platform that's only support get/set time functions of
-ACPI TAD.
-
-
-Thanks
-Joey Lee
+Only this patch is needed, all other patches have been in Linus' tree
+since v3.13-rc1.
