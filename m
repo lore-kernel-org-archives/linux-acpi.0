@@ -1,31 +1,40 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re:
-Date: Mon, 23 Dec 2013 09:44:48 +0800
-Message-ID: <52B79590.5030405@intel.com>
-References: <CANsOggaW_Fve_AAt3=Zae62bcZeOeHiQpPrmg3B3YTV0H0gY_A@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v3 2/6] net: rfkill: gpio: convert to descriptor-based
+ GPIO interface
+Date: Mon, 23 Dec 2013 12:54:20 +0200
+Message-ID: <20131223105420.GP8621@intel.com>
+References: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1385460350-17543-3-git-send-email-mika.westerberg@linux.intel.com>
+ <CACRpkdb03X_Z7amX-vAVX8KboeCo3ia6oqv8KW79WY=nZXV7wQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:29990 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756695Ab3LWBpE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Dec 2013 20:45:04 -0500
-In-Reply-To: <CANsOggaW_Fve_AAt3=Zae62bcZeOeHiQpPrmg3B3YTV0H0gY_A@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdb03X_Z7amX-vAVX8KboeCo3ia6oqv8KW79WY=nZXV7wQ@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Johannes Berg <johannes@sipsolutions.net>, "David S. Miller" <davem@davemloft.net>
+Cc: linux-netdev@vger.kernel.org"netdev@vger.kernel.org" <netdev@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chris Ball <cjb@laptop.org>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Barattini <alex.barattini@gmail.com>, linux-acpi@vger.kernel.org
 
-On 12/22/2013 12:48 AM, Alex Barattini wrote:
-> [1.] One line summary of the problem:
+On Wed, Dec 11, 2013 at 01:00:18PM +0100, Linus Walleij wrote:
+> On Tue, Nov 26, 2013 at 11:05 AM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
 > 
-> 8086:0166 [Dell Inspiron 15R 5521] Impossible to adjust the screen backlight
-> 
-> [2.] Full description of the problem/report:
-> 
-> The change in the level of illumination of the screen, through the
-> corresponding option in the control panel, has no effect.
+> > From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> >
+> > Convert to the safer gpiod_* family of API functions.
+> >
+> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Tested-by: Stephen Warren <swarren@nvidia.com>
 
-Does this patch help?
-http://www.spinics.net/lists/linux-acpi/msg47755.html
+Johannes B, David M,
 
+Are you fine with this patch? If yes, could you ack it so that we could get
+it merged for 3.14.
+
+Thanks!
+
+Here's a link to this series:
+
+https://lkml.org/lkml/2013/11/26/104
