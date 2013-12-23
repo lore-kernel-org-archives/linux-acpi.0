@@ -1,136 +1,42 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 1/2][Untested] ACPI / hotplug: Add demand_offline hotplug profile flag
-Date: Mon, 23 Dec 2013 15:00:41 +0100
-Message-ID: <2003756.4bDvk8cJ93@vostro.rjw.lan>
-References: <1421028.Rsfpmhnym3@vostro.rjw.lan> <3111545.W6MaeKuZVj@vostro.rjw.lan> <2519855.bi7YQLIAPv@vostro.rjw.lan>
+From: Alex Barattini <alex.barattini@gmail.com>
+Subject: Re:
+Date: Mon, 23 Dec 2013 17:24:40 +0100
+Message-ID: <CANsOggaAS4xqCQyobt_ZSWf-HRb4PnbW_R9Oz-0-kLVbazFpJQ@mail.gmail.com>
+References: <CANsOggaW_Fve_AAt3=Zae62bcZeOeHiQpPrmg3B3YTV0H0gY_A@mail.gmail.com>
+	<52B79590.5030405@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51810 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757294Ab3LWNt5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Dec 2013 08:49:57 -0500
-In-Reply-To: <2519855.bi7YQLIAPv@vostro.rjw.lan>
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:58161 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757625Ab3LWQYm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Dec 2013 11:24:42 -0500
+Received: by mail-oa0-f49.google.com with SMTP id i4so5736179oah.8
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Dec 2013 08:24:41 -0800 (PST)
+In-Reply-To: <52B79590.5030405@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+At the moment, set acpi_backlight=vendor on GRUB as a workaround,
+works only with kernel version 3.11.0-14-generic (Ubuntu stable
+kernel).
+Set the workaround in the Kernel v3.13-rc5 produce blackscreen at startup.
+You can see the update and the evolution of the bug here:
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1261853
 
-Add a new ACPI hotplug profile flag, demand_offline, such that if
-set for the given ACPI device object's scan handler, it will cause
-acpi_scan_hot_remove() to check if that device object's physical
-companions are offline upfront and fail the hot removal if that
-is not the case.
-
-That flag will be useful to overcome a problem with containers on
-some system where they can only be hot-removed after some cleanup
-operations carried out by user space, which needs to be notified
-of the container hot-removal before the kernel attempts to offline
-devices in the container.  In those cases the current implementation
-of acpi_scan_hot_remove() is not sufficient, because it first tries
-to offline the devices in the container and only if that is
-suffcessful it tries to offline the container itself.  As a result,
-the container hot-removal notification is not delivered to user space
-at the right time.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/scan.c     |   41 +++++++++++++++++++++++++++++++++++++----
- include/acpi/acpi_bus.h |    3 ++-
- 2 files changed, 39 insertions(+), 5 deletions(-)
-
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -126,6 +126,24 @@ acpi_device_modalias_show(struct device
- }
- static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
- 
-+static bool acpi_scan_is_offline(struct acpi_device *adev)
-+{
-+	struct acpi_device_physical_node *pn;
-+	bool offline = true;
-+
-+	mutex_lock(&adev->physical_node_lock);
-+
-+	list_for_each_entry(pn, &adev->physical_node_list, node)
-+		if (!pn->dev->offline) {
-+			kobject_uevent(&pn->dev->kobj, KOBJ_CHANGE);
-+			offline = false;
-+			break;
-+		}
-+
-+	mutex_unlock(&adev->physical_node_lock);
-+	return offline;
-+}
-+
- static acpi_status acpi_bus_offline(acpi_handle handle, u32 lvl, void *data,
- 				    void **ret_p)
- {
-@@ -196,12 +214,11 @@ static acpi_status acpi_bus_online(acpi_
- 	return AE_OK;
- }
- 
--static int acpi_scan_hot_remove(struct acpi_device *device)
-+static int acpi_scan_try_to_offline(struct acpi_device *device)
- {
- 	acpi_handle handle = device->handle;
--	struct device *errdev;
-+	struct device *errdev = NULL;
- 	acpi_status status;
--	unsigned long long sta;
- 
- 	/*
- 	 * Carry out two passes here and ignore errors in the first pass,
-@@ -212,7 +229,6 @@ static int acpi_scan_hot_remove(struct a
- 	 *
- 	 * If the first pass is successful, the second one isn't needed, though.
- 	 */
--	errdev = NULL;
- 	status = acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
- 				     NULL, acpi_bus_offline, (void *)false,
- 				     (void **)&errdev);
-@@ -241,6 +257,23 @@ static int acpi_scan_hot_remove(struct a
- 			return -EBUSY;
- 		}
- 	}
-+	return 0;
-+}
-+
-+static int acpi_scan_hot_remove(struct acpi_device *device)
-+{
-+	acpi_handle handle = device->handle;
-+	unsigned long long sta;
-+	acpi_status status;
-+
-+	if (device->handler->hotplug.demand_offline && !acpi_force_hot_remove) {
-+		if (!acpi_scan_is_offline(device))
-+			return -EBUSY;
-+	} else {
-+		int error = acpi_scan_try_to_offline(device);
-+		if (error)
-+			return error;
-+	}
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 		"Hot-removing device %s...\n", dev_name(&device->dev)));
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -91,8 +91,9 @@ struct acpi_device;
- 
- struct acpi_hotplug_profile {
- 	struct kobject kobj;
--	bool enabled:1;
- 	int (*scan_dependent)(struct acpi_device *adev);
-+	bool enabled:1;
-+	bool demand_offline:1;
- };
- 
- static inline struct acpi_hotplug_profile *to_acpi_hotplug_profile(
-
+2013/12/23 Aaron Lu <aaron.lu@intel.com>:
+> On 12/22/2013 12:48 AM, Alex Barattini wrote:
+>> [1.] One line summary of the problem:
+>>
+>> 8086:0166 [Dell Inspiron 15R 5521] Impossible to adjust the screen backlight
+>>
+>> [2.] Full description of the problem/report:
+>>
+>> The change in the level of illumination of the screen, through the
+>> corresponding option in the control panel, has no effect.
+>
+> Does this patch help?
+> http://www.spinics.net/lists/linux-acpi/msg47755.html
+>
