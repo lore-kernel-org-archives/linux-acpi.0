@@ -1,42 +1,43 @@
-From: Alex Barattini <alex.barattini@gmail.com>
-Subject: Re:
-Date: Mon, 23 Dec 2013 17:24:40 +0100
-Message-ID: <CANsOggaAS4xqCQyobt_ZSWf-HRb4PnbW_R9Oz-0-kLVbazFpJQ@mail.gmail.com>
-References: <CANsOggaW_Fve_AAt3=Zae62bcZeOeHiQpPrmg3B3YTV0H0gY_A@mail.gmail.com>
-	<52B79590.5030405@intel.com>
+From: Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: [PATCH v3 2/6] net: rfkill: gpio: convert to descriptor-based
+ GPIO interface
+Date: Mon, 23 Dec 2013 22:14:47 +0100
+Message-ID: <1387833287.4412.6.camel@jlt4.sipsolutions.net>
+References: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com>
+	 <1385460350-17543-3-git-send-email-mika.westerberg@linux.intel.com>
+	 <CACRpkdb03X_Z7amX-vAVX8KboeCo3ia6oqv8KW79WY=nZXV7wQ@mail.gmail.com>
+	 <20131223105420.GP8621@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f49.google.com ([209.85.219.49]:58161 "EHLO
-	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757625Ab3LWQYm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Dec 2013 11:24:42 -0500
-Received: by mail-oa0-f49.google.com with SMTP id i4so5736179oah.8
-        for <linux-acpi@vger.kernel.org>; Mon, 23 Dec 2013 08:24:41 -0800 (PST)
-In-Reply-To: <52B79590.5030405@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20131223105420.GP8621@intel.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, "David S. Miller" <davem@davemloft.net>, linux-netdev@vger.kernel.org"netdev@vger.kernel.org" <netdev@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chris Ball <cjb@laptop.org>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org
 
-At the moment, set acpi_backlight=vendor on GRUB as a workaround,
-works only with kernel version 3.11.0-14-generic (Ubuntu stable
-kernel).
-Set the workaround in the Kernel v3.13-rc5 produce blackscreen at startup.
-You can see the update and the evolution of the bug here:
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1261853
+On Mon, 2013-12-23 at 12:54 +0200, Mika Westerberg wrote:
+> On Wed, Dec 11, 2013 at 01:00:18PM +0100, Linus Walleij wrote:
+> > On Tue, Nov 26, 2013 at 11:05 AM, Mika Westerberg
+> > <mika.westerberg@linux.intel.com> wrote:
+> > 
+> > > From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > >
+> > > Convert to the safer gpiod_* family of API functions.
+> > >
+> > > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > > Tested-by: Stephen Warren <swarren@nvidia.com>
+> 
+> Johannes B, David M,
+> 
+> Are you fine with this patch? If yes, could you ack it so that we could get
+> it merged for 3.14.
 
-2013/12/23 Aaron Lu <aaron.lu@intel.com>:
-> On 12/22/2013 12:48 AM, Alex Barattini wrote:
->> [1.] One line summary of the problem:
->>
->> 8086:0166 [Dell Inspiron 15R 5521] Impossible to adjust the screen backlight
->>
->> [2.] Full description of the problem/report:
->>
->> The change in the level of illumination of the screen, through the
->> corresponding option in the control panel, has no effect.
->
-> Does this patch help?
-> http://www.spinics.net/lists/linux-acpi/msg47755.html
->
+I have no objection to this particular patch. I can't really comment on
+it, but I never really delved too deeply into the rfkill-gpio thing - I
+guess it works for whoever needed it :)
+
+johannes
+
