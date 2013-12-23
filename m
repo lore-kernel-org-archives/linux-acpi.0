@@ -1,43 +1,50 @@
-From: Johannes Berg <johannes@sipsolutions.net>
-Subject: Re: [PATCH v3 2/6] net: rfkill: gpio: convert to descriptor-based
- GPIO interface
-Date: Mon, 23 Dec 2013 22:14:47 +0100
-Message-ID: <1387833287.4412.6.camel@jlt4.sipsolutions.net>
-References: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com>
-	 <1385460350-17543-3-git-send-email-mika.westerberg@linux.intel.com>
-	 <CACRpkdb03X_Z7amX-vAVX8KboeCo3ia6oqv8KW79WY=nZXV7wQ@mail.gmail.com>
-	 <20131223105420.GP8621@intel.com>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH 02/14] x86-64/efi: Use EFI to deal with platform wall
+ clock (again)
+Date: Mon, 23 Dec 2013 15:25:41 -0800
+Message-ID: <52B8C675.30204@zytor.com>
+References: <1387439515-8926-1-git-send-email-jlee@suse.com>	<1387448416-11672-1-git-send-email-jlee@suse.com>	<20131219104908.GE3145@console-pimps.org>	<1387459939.3539.4092.camel@linux-s257.site> <20131220112955.75e82a86@alan.etchedpixels.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20131223105420.GP8621@intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, "David S. Miller" <davem@davemloft.net>, linux-netdev@vger.kernel.org"netdev@vger.kernel.org" <netdev@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chris Ball <cjb@laptop.org>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from terminus.zytor.com ([198.137.202.10]:49044 "EHLO mail.zytor.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932564Ab3LWX0V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Dec 2013 18:26:21 -0500
+In-Reply-To: <20131220112955.75e82a86@alan.etchedpixels.co.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, joeyli <jlee@suse.com>
+Cc: Matt Fleming <matt@console-pimps.org>, JBeulich@suse.com, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, x86@kernel.org, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Matt Fleming <matt.fleming@intel.com>
 
-On Mon, 2013-12-23 at 12:54 +0200, Mika Westerberg wrote:
-> On Wed, Dec 11, 2013 at 01:00:18PM +0100, Linus Walleij wrote:
-> > On Tue, Nov 26, 2013 at 11:05 AM, Mika Westerberg
-> > <mika.westerberg@linux.intel.com> wrote:
-> > 
-> > > From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > >
-> > > Convert to the safer gpiod_* family of API functions.
-> > >
-> > > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > > Tested-by: Stephen Warren <swarren@nvidia.com>
-> 
-> Johannes B, David M,
-> 
-> Are you fine with this patch? If yes, could you ack it so that we could get
-> it merged for 3.14.
+On 12/20/2013 03:29 AM, One Thousand Gnomes wrote:
+> On Thu, 19 Dec 2013 21:32:19 +0800
+> joeyli <jlee@suse.com> wrote:
+>=20
+>> =E6=96=BC =E5=9B=9B=EF=BC=8C2013-12-19 =E6=96=BC 10:49 +0000=EF=BC=8C=
+Matt Fleming =E6=8F=90=E5=88=B0=EF=BC=9A
+>>> On Thu, 19 Dec, at 06:20:16PM, Lee, Chun-Yi wrote:
+>>>> From: Jan Beulich <JBeulich@suse.com>
+>>>>
+>>>> Other than ix86, x86-64 on EFI so far didn't set the
+>>>> {g,s}et_wallclock accessors to the EFI routines, thus
+>>>> incorrectly using raw RTC accesses instead.
+>=20
+> Probably wise.
+>=20
+> Before anyone reverts that please make sure it also works on EFI32,
+> because right now we crash and burn on multiple EFI32 tablets queryin=
+g
+> the time.
+>=20
 
-I have no objection to this particular patch. I can't really comment on
-it, but I never really delved too deeply into the rfkill-gpio thing - I
-guess it works for whoever needed it :)
+Quite -- we in fact did just the opposite (checkin 04bf9ba720fc).
 
-johannes
+	-hpa
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
