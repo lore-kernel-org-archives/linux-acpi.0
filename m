@@ -1,334 +1,251 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [Update][PATCH 2/2] ACPI / hotplug / driver core: Handle containers in a special way
-Date: Tue, 24 Dec 2013 01:41:39 +0100
-Message-ID: <1679067.SjjiI0YssD@vostro.rjw.lan>
-References: <1421028.Rsfpmhnym3@vostro.rjw.lan> <2519855.bi7YQLIAPv@vostro.rjw.lan> <1631944.G4iHOhO63p@vostro.rjw.lan>
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Subject: Re: [PATCH v2 rebased] ACPI / video: Add systems that
+ should favor native backlight interface
+Date: Tue, 24 Dec 2013 16:20:55 +0400
+Message-ID: <1387887655.2603.1.camel@X1Carbon.localdomain>
+References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
+	<2140073.U60XyxRqVZ@vostro.rjw.lan> <5268D6BB.3010207@intel.com>
+	<1382682925.3328.4.camel@ThinkPad-X230.localdomain>
+	<526DCFD7.7060002@intel.com> <87fvrl7r6g.fsf@intel.com>
+	<526F615D.2090602@intel.com> <5285BA38.6080804@intel.com>
+	<1384980982.3487.3.camel@ThinkPad-X230.localdomain>
+	<528D9A25.6040503@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54130 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1758346Ab3LXA2N (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Dec 2013 19:28:13 -0500
-In-Reply-To: <1631944.G4iHOhO63p@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <528D9A25.6040503@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: James Hogan <james@albanarts.com>, Mike Galbraith <bitbucket@online.de>, Felipe Contreras <felipe.contreras@gmail.com>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, linux-acpi@vger.kernel.org, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, Martin Steigerwald <Martin@lichtvoll.de>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Kevin Smith <thirdwiggin@gmail.com>, Peter Weber <bugs@ttyhoney.com>, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Lennart Poettering <lennart@poettering.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Tso <tytso@mit.edu>, "Rafael J. Wysocki" <rjw@rjwysock>
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>
-
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / hotplug / driver core: Handle containers in a special way
-
-ACPI container devices require special hotplug handling, at least
-on some systems, since generally user space needs to carry out
-system-specific cleanup before it makes sense to offline devices in
-the container.  However, the current ACPI hotplug code for containers
-first attempts to offline devices in the container and only then it
-notifies user space of the container offline.
-
-Moreover, after commit 202317a573b2 (ACPI / scan: Add acpi_device
-objects for all device nodes in the namespace), ACPI device objects
-representing containers are present as long as the ACPI namespace
-nodes corresponding to them are present, which may be forever, even
-if the container devices are physically detached from the system (the
-return values of the corresponding _STA methods change in those
-cases, but generally the namespace nodes themselves are still there).
-Thus it is useful to introduce entities representing containers that
-will go away during container hot-unplug.
-
-The goal of this change is to address both the above issues.
-
-The idea is to create a "companion" container system device for each
-of the ACPI container device objects during the initial namespace
-scan or on a hotplug event making the container present.  That system
-device will be unregistered on container removal.  A new bus type
-for container devices is added for this purpose, because device
-offline and online operations need to be defined for them.  The
-online operation is a trivial function that is always successful
-and the offline uses a callback pointed to by the container device's
-offline member.
-
-For ACPI containers that callback simply walks the list of ACPI
-device objects right below the container object (its children) and
-checks if all of their physical companion devices are offline.  If
-that's not the case, it returns -EBUSY and the container system
-devivce cannot be put offline.  Consequently, to put the container
-system device offline, it is necessary to put all of the physical
-devices depending on its ACPI companion object offline beforehand.
-
-Container system devices created for ACPI container objects are
-initially online.  They are created by the container ACPI scan
-handler whose hotplug.demand_offline flag is set.  That causes
-acpi_scan_hot_remove() to check if the companion container system
-device is offline before attempting to remove an ACPI container or
-any devices below it.  If the check fails, a KOBJ_CHANGE uevent is
-emitted for the container system device in question and user space
-is expected to offline all devices below the container and the
-container itself in response to it.  Then, user space can finalize
-the removal of the container with the help of its ACPI device
-object's eject attribute in sysfs.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
 
 Hi,
 
-I've realized that I don't need to abuse driver_data here if I define a
-struct container_dev based on struct device and containing a pointer to the
-offline routine, so here goes an update with that modification.
+please add some updates ;)
 
-I checked that my venerable Toshiba test box boots the kernel with [1/2] and
-this patch applied and that the container bus type is present then as expected,
-so it is not totally untested any more.  I still need to test the creation of
-container devices, though.
+On Thu, 2013-11-21 at 13:29 +0800, Aaron Lu wrote:
+> On 11/21/2013 04:56 AM, Igor Gnatenko wrote:
+> > Any news here? If no - I think we need re-send patch as new..
+> 
+> Since the v2 patch can't apply cleanly on top of pm's -next tree, I
+> think it's worth a re-send, so here it comes.
+> 
+> ---
+> Subject: [PATCH] ACPI / video: Add systems that should favor native backlight
+>  interface
+> From: Aaron Lu <aaron.lu@intel.com>
+> Date: Thu, 21 Nov 2013 11:24:48 +0800
+> 
+> Some system's ACPI video backlight control interface is broken and the
+> native backlight control interface should be used by default. This patch
+> sets the use_native_backlight parameter to true for those systems so
+> that video backlight control interface will not be created. To be
+> specific, the ThinkPad T430s/X230, Lenovo Yoga 13, Dell Inspiron 7520
+> and Acer Aspire 5733Z are added here, if they appear in some other DMI
+> table before, they are removed from there.
+> 
+> Note that the user specified kernel cmdline option will always have the
+> highest priority, i.e. if use_native_backlight=0 is specified and the
+> system is in the DMI table, the video module will not skip registering
+> backlight interface for it.
+> 
+> Thinkpad T430s:
+> Reported-by: Theodore Tso <tytso@mit.edu>
+> Reported-and-tested-by: Peter Weber <bugs@ttyhoney.com>
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+> Thinkpad X230:
+> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+ThinkPad X1 Carbon:
+Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+> Lenovo Yoga 13:
+> Reported-by: Lennart Poettering <lennart@poettering.net>
+> Reported-and-tested-by: Kevin Smith <thirdwiggin@gmail.com>
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=63811
+> Dell Inspiron 7520:
+> Reported-by: Rinat Ibragimov <ibragimovrinat@mail.ru>
+> Acer Aspire 5733Z:
+> Reported-by: <sov.info@mail.ru>
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=62941
+HP ProBook 4340s:
+Reported-and-tested-by: Vladimir Sherenkov <a_12300@mail.ru>
+Reference: http://redmine.russianfedora.pro/issues/1258
+> 
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> ---
+>  drivers/acpi/blacklist.c    |  8 ------
+>  drivers/acpi/video.c        | 65 +++++++++++++++++++++++++++++++++++++++++----
+>  drivers/acpi/video_detect.c |  8 ------
+>  3 files changed, 60 insertions(+), 21 deletions(-)
+> 
+> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+> index 078c4f7fe2dd..2b6a76b6d59a 100644
+> --- a/drivers/acpi/blacklist.c
+> +++ b/drivers/acpi/blacklist.c
+> @@ -261,14 +261,6 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+>  	},
+>  	{
+>  	.callback = dmi_disable_osi_win8,
+> -	.ident = "Dell Inspiron 15R SE",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> -		     DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7520"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+>  	.ident = "ThinkPad Edge E530",
+>  	.matches = {
+>  		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 995e91bcb97b..7dc6071a04b6 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -82,11 +82,12 @@ static bool allow_duplicates;
+>  module_param(allow_duplicates, bool, 0644);
+>  
+>  /*
+> - * For Windows 8 systems: if set ture and the GPU driver has
+> - * registered a backlight interface, skip registering ACPI video's.
+> + * For Windows 8 systems: used to decide if video module
+> + * should skip registering backlight interface of its own.
+>   */
+> -static bool use_native_backlight = false;
+> -module_param(use_native_backlight, bool, 0644);
+> +static int use_native_backlight_param = -1;
+> +module_param_named(use_native_backlight, use_native_backlight_param, int, 0444);
+> +static bool use_native_backlight_dmi = false;
+>  
+>  static int register_count;
+>  static struct mutex video_list_lock;
+> @@ -232,9 +233,17 @@ static int acpi_video_get_next_level(struct acpi_video_device *device,
+>  static int acpi_video_switch_brightness(struct acpi_video_device *device,
+>  					 int event);
+>  
+> +static bool acpi_video_use_native_backlight(void)
+> +{
+> +	if (use_native_backlight_param != -1)
+> +		return use_native_backlight_param;
+> +	else
+> +		return use_native_backlight_dmi;
+> +}
+> +
+>  static bool acpi_video_verify_backlight_support(void)
+>  {
+> -	if (acpi_osi_is_win8() && use_native_backlight &&
+> +	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
+>  	    backlight_device_registered(BACKLIGHT_RAW))
+>  		return false;
+>  	return acpi_video_backlight_support();
+> @@ -399,6 +408,12 @@ static int __init video_set_bqc_offset(const struct dmi_system_id *d)
+>  	return 0;
+>  }
+>  
+> +static int __init video_set_use_native_backlight(const struct dmi_system_id *d)
+> +{
+> +	use_native_backlight_dmi = true;
+> +	return 0;
+> +}
+> +
+>  static struct dmi_system_id video_dmi_table[] __initdata = {
+>  	/*
+>  	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
+> @@ -443,6 +458,46 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 7720"),
+>  		},
+>  	},
+> +	{
+> +	 .callback = video_set_use_native_backlight,
+> +	 .ident = "ThinkPad T430s",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_set_use_native_backlight,
+> +	 .ident = "ThinkPad X230",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_set_use_native_backlight,
+> +	 .ident = "Lenovo Yoga 13",
+> +	 .matches = {
+> +		 DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		 DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_set_use_native_backlight,
+> +	 .ident = "Dell Inspiron 7520",
+> +	 .matches = {
+> +		 DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +		 DMI_MATCH(DMI_PRODUCT_VERSION, "Inspiron 7520"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_set_use_native_backlight,
+> +	 .ident = "Acer Aspire 5733Z",
+> +	 .matches = {
+> +		 DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+> +		 DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5733Z"),
+> +		},
+> +	},
+>  	{}
+>  };
+>  
+> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+> index 84875fd4c74f..b6399343de51 100644
+> --- a/drivers/acpi/video_detect.c
+> +++ b/drivers/acpi/video_detect.c
+> @@ -168,14 +168,6 @@ static struct dmi_system_id video_detect_dmi_table[] = {
+>  		DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
+>  		},
+>  	},
+> -	{
+> -	.callback = video_detect_force_vendor,
+> -	.ident = "Lenovo Yoga 13",
+> -	.matches = {
+> -		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
+> -		},
+> -	},
+>  	{ },
+>  };
+>  
 
-Thanks,
-Rafael
+drivers/acpi/video.c
 
----
- drivers/acpi/container.c  |   42 ++++++++++++++++++++++++++++++++++++++----
- drivers/acpi/internal.h   |    1 +
- drivers/acpi/scan.c       |    8 +++++---
- drivers/base/Makefile     |    2 +-
- drivers/base/base.h       |    1 +
- drivers/base/container.c  |   44 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/base/init.c       |    1 +
- include/linux/container.h |   25 +++++++++++++++++++++++++
- 8 files changed, 116 insertions(+), 8 deletions(-)
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "ThinkPad X1 Carbon",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X1 Carbon"),
++		},
++	},
 
-Index: linux-pm/include/linux/container.h
-===================================================================
---- /dev/null
-+++ linux-pm/include/linux/container.h
-@@ -0,0 +1,25 @@
-+/*
-+ * Definitions for container bus type.
-+ *
-+ * Copyright (C) 2013, Intel Corporation
-+ * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/device.h>
-+
-+/* drivers/base/power/container.c */
-+extern struct bus_type container_subsys;
-+
-+struct container_dev {
-+	struct device dev;
-+	int (*offline)(struct container_dev *cdev);
-+};
-+
-+static inline struct container_dev *to_container_dev(struct device *dev)
-+{
-+	return container_of(dev, struct container_dev, dev);
-+}
-Index: linux-pm/drivers/base/container.c
-===================================================================
---- /dev/null
-+++ linux-pm/drivers/base/container.c
-@@ -0,0 +1,44 @@
-+/*
-+ * System bus type for containers.
-+ *
-+ * Copyright (C) 2013, Intel Corporation
-+ * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/container.h>
-+
-+#include "base.h"
-+
-+#define CONTAINER_BUS_NAME	"container"
-+
-+static int trivial_online(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+static int container_offline(struct device *dev)
-+{
-+	struct container_dev *cdev = to_container_dev(dev);
-+
-+	return cdev->offline ? cdev->offline(cdev) : 0;
-+}
-+
-+struct bus_type container_subsys = {
-+	.name = CONTAINER_BUS_NAME,
-+	.dev_name = CONTAINER_BUS_NAME,
-+	.online = trivial_online,
-+	.offline = container_offline,
-+};
-+
-+void __init container_dev_init(void)
-+{
-+	int ret;
-+
-+	ret = subsys_system_register(&container_subsys, NULL);
-+	if (ret)
-+		pr_err("%s() failed: %d\n", __func__, ret);
-+}
-Index: linux-pm/drivers/base/base.h
-===================================================================
---- linux-pm.orig/drivers/base/base.h
-+++ linux-pm/drivers/base/base.h
-@@ -100,6 +100,7 @@ static inline int hypervisor_init(void)
- #endif
- extern int platform_bus_init(void);
- extern void cpu_dev_init(void);
-+extern void container_dev_init(void);
- 
- struct kobject *virtual_device_parent(struct device *dev);
- 
-Index: linux-pm/drivers/base/init.c
-===================================================================
---- linux-pm.orig/drivers/base/init.c
-+++ linux-pm/drivers/base/init.c
-@@ -33,4 +33,5 @@ void __init driver_init(void)
- 	platform_bus_init();
- 	cpu_dev_init();
- 	memory_dev_init();
-+	container_dev_init();
- }
-Index: linux-pm/drivers/base/Makefile
-===================================================================
---- linux-pm.orig/drivers/base/Makefile
-+++ linux-pm/drivers/base/Makefile
-@@ -4,7 +4,7 @@ obj-y			:= core.o bus.o dd.o syscore.o \
- 			   driver.o class.o platform.o \
- 			   cpu.o firmware.o init.o map.o devres.o \
- 			   attribute_container.o transport_class.o \
--			   topology.o
-+			   topology.o container.o
- obj-$(CONFIG_DEVTMPFS)	+= devtmpfs.o
- obj-$(CONFIG_DMA_CMA) += dma-contiguous.o
- obj-y			+= power/
-Index: linux-pm/drivers/acpi/internal.h
-===================================================================
---- linux-pm.orig/drivers/acpi/internal.h
-+++ linux-pm/drivers/acpi/internal.h
-@@ -73,6 +73,7 @@ static inline void acpi_lpss_init(void)
- #endif
- 
- bool acpi_queue_hotplug_work(struct work_struct *work);
-+bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent);
- 
- /* --------------------------------------------------------------------------
-                      Device Node Initialization / Removal
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -126,7 +126,7 @@ acpi_device_modalias_show(struct device
- }
- static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
- 
--static bool acpi_scan_is_offline(struct acpi_device *adev)
-+bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
- {
- 	struct acpi_device_physical_node *pn;
- 	bool offline = true;
-@@ -135,7 +135,9 @@ static bool acpi_scan_is_offline(struct
- 
- 	list_for_each_entry(pn, &adev->physical_node_list, node)
- 		if (!pn->dev->offline) {
--			kobject_uevent(&pn->dev->kobj, KOBJ_CHANGE);
-+			if (uevent)
-+				kobject_uevent(&pn->dev->kobj, KOBJ_CHANGE);
-+
- 			offline = false;
- 			break;
- 		}
-@@ -267,7 +269,7 @@ static int acpi_scan_hot_remove(struct a
- 	acpi_status status;
- 
- 	if (device->handler->hotplug.demand_offline && !acpi_force_hot_remove) {
--		if (!acpi_scan_is_offline(device))
-+		if (!acpi_scan_is_offline(device, true))
- 			return -EBUSY;
- 	} else {
- 		int error = acpi_scan_try_to_offline(device);
-Index: linux-pm/drivers/acpi/container.c
-===================================================================
---- linux-pm.orig/drivers/acpi/container.c
-+++ linux-pm/drivers/acpi/container.c
-@@ -27,8 +27,7 @@
-  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  */
- #include <linux/acpi.h>
--
--#include "internal.h"
-+#include <linux/container.h>
- 
- #include "internal.h"
- 
-@@ -44,16 +43,50 @@ static const struct acpi_device_id conta
- 	{"", 0},
- };
- 
-+static int acpi_container_offline(struct container_dev *cdev)
-+{
-+	struct acpi_device *adev = ACPI_COMPANION(&cdev->dev);
-+	struct acpi_device *child;
-+
-+	/* Check all of the dependent devices' physical companions. */
-+	list_for_each_entry(child, &adev->children, node)
-+		if (!acpi_scan_is_offline(child, false))
-+			return -EBUSY;
-+
-+	return 0;
-+}
-+
- static int container_device_attach(struct acpi_device *adev,
- 				   const struct acpi_device_id *not_used)
- {
--	kobject_uevent(&adev->dev.kobj, KOBJ_ONLINE);
-+	struct container_dev *cdev;
-+	struct device *dev;
-+	int ret;
-+
-+	cdev = kzalloc(sizeof(*cdev), GFP_KERNEL);
-+	if (!cdev)
-+		return -ENOMEM;
-+
-+	cdev->offline = acpi_container_offline;
-+	dev = &cdev->dev;
-+	dev->bus = &container_subsys;
-+	dev_set_name(dev, "%s", dev_name(&adev->dev));
-+	ACPI_COMPANION_SET(dev, adev);
-+	ret = device_register(dev);
-+	if (ret)
-+		return ret;
-+
-+	adev->driver_data = dev;
- 	return 1;
- }
- 
- static void container_device_detach(struct acpi_device *adev)
- {
--	kobject_uevent(&adev->dev.kobj, KOBJ_OFFLINE);
-+	struct device *dev = acpi_driver_data(adev);
-+
-+	adev->driver_data = NULL;
-+	if (dev)
-+		device_unregister(dev);
- }
- 
- static struct acpi_scan_handler container_handler = {
-@@ -62,6 +95,7 @@ static struct acpi_scan_handler containe
- 	.detach = container_device_detach,
- 	.hotplug = {
- 		.enabled = true,
-+		.demand_offline = true,
- 	},
- };
- 
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "HP ProBook 4340s",
++	 .matches = {
++		 DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		 DMI_MATCH(DMI_PRODUCT_VERSION, "HP ProBook 4340s"),
++		},
++	},
 
+-- 
+-Igor Gnatenko
