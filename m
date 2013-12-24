@@ -1,8 +1,8 @@
 From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
 Subject: Re: [PATCH v2 rebased] ACPI / video: Add systems that
  should favor native backlight interface
-Date: Tue, 24 Dec 2013 16:20:55 +0400
-Message-ID: <1387887655.2603.1.camel@X1Carbon.localdomain>
+Date: Tue, 24 Dec 2013 17:59:53 +0400
+Message-ID: <1387893593.2775.5.camel@X1Carbon.localdomain>
 References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
 	<2140073.U60XyxRqVZ@vostro.rjw.lan> <5268D6BB.3010207@intel.com>
 	<1382682925.3328.4.camel@ThinkPad-X230.localdomain>
@@ -13,7 +13,7 @@ References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
 In-Reply-To: <528D9A25.6040503@intel.com>
 List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
 	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
@@ -22,15 +22,15 @@ List-Post: <mailto:intel-gfx@lists.freedesktop.org>
 List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
 List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
 	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Sender: intel-gfx-bounces@lists.freedesktop.org
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
 To: Aaron Lu <aaron.lu@intel.com>
 Cc: James Hogan <james@albanarts.com>, Mike Galbraith <bitbucket@online.de>, Felipe Contreras <felipe.contreras@gmail.com>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, linux-acpi@vger.kernel.org, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, Martin Steigerwald <Martin@lichtvoll.de>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Kevin Smith <thirdwiggin@gmail.com>, Peter Weber <bugs@ttyhoney.com>, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Lennart Poettering <lennart@poettering.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Tso <tytso@mit.edu>, "Rafael J. Wysocki" <rjw@rjwysock>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-please add some updates ;)
+add some updates to the patch ;)
 
 On Thu, 2013-11-21 at 13:29 +0800, Aaron Lu wrote:
 > On 11/21/2013 04:56 AM, Igor Gnatenko wrote:
@@ -67,7 +67,6 @@ On Thu, 2013-11-21 at 13:29 +0800, Aaron Lu wrote:
 > Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
 ThinkPad X1 Carbon:
 Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
 > Lenovo Yoga 13:
 > Reported-by: Lennart Poettering <lennart@poettering.net>
 > Reported-and-tested-by: Kevin Smith <thirdwiggin@gmail.com>
