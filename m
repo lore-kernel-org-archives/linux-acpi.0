@@ -1,250 +1,196 @@
-From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Subject: Re: [PATCH v2 rebased] ACPI / video: Add systems that
- should favor native backlight interface
-Date: Tue, 24 Dec 2013 17:59:53 +0400
-Message-ID: <1387893593.2775.5.camel@X1Carbon.localdomain>
-References: <1381498066-16011-1-git-send-email-aaron.lu@intel.com>
-	<2140073.U60XyxRqVZ@vostro.rjw.lan> <5268D6BB.3010207@intel.com>
-	<1382682925.3328.4.camel@ThinkPad-X230.localdomain>
-	<526DCFD7.7060002@intel.com> <87fvrl7r6g.fsf@intel.com>
-	<526F615D.2090602@intel.com> <5285BA38.6080804@intel.com>
-	<1384980982.3487.3.camel@ThinkPad-X230.localdomain>
-	<528D9A25.6040503@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 7/10] ACPI / hotplug: Move container-specific code out of the core
+Date: Thu, 26 Dec 2013 02:01:07 +0100
+Message-ID: <3387576.nauxTXi2KU@vostro.rjw.lan>
+References: <1421028.Rsfpmhnym3@vostro.rjw.lan> <3111545.W6MaeKuZVj@vostro.rjw.lan> <2519855.bi7YQLIAPv@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <528D9A25.6040503@intel.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces@lists.freedesktop.org
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: James Hogan <james@albanarts.com>, Mike Galbraith <bitbucket@online.de>, Felipe Contreras <felipe.contreras@gmail.com>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, linux-acpi@vger.kernel.org, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, Martin Steigerwald <Martin@lichtvoll.de>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Kevin Smith <thirdwiggin@gmail.com>, Peter Weber <bugs@ttyhoney.com>, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Lennart Poettering <lennart@poettering.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Tso <tytso@mit.edu>, "Rafael J. Wysocki" <rjw@rjwysock>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:62832 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752499Ab3LZArg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Dec 2013 19:47:36 -0500
+In-Reply-To: <2519855.bi7YQLIAPv@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>
 
-Hi,
+On Monday, December 23, 2013 02:58:38 PM Rafael J. Wysocki wrote:
+> On Saturday, December 14, 2013 06:07:06 AM Rafael J. Wysocki wrote:
+> > On Friday, December 13, 2013 02:17:32 PM Yasuaki Ishimatsu wrote:
+> > > (2013/12/13 13:56), Rafael J. Wysocki wrote:
+> > > > On Friday, December 13, 2013 11:56:32 AM Yasuaki Ishimatsu wrote:
+> > > >> Hi Rafael,
+> > > >
+> > > > Hi,
+> > > >
+> > > >> Please share your more detailed idea. I started to implement the following
+> > > >> idea. But the idea has one problem.
+> > > >>
+> > > >>>>> The eject work flow can be:
+> > > >>>>>      (1) an eject event occurs,
+> > > >>>>>      (2) the container "physical" device fails offline in acpi_scan_hot_remove()
+> > > >>>>>          emmitting, say, KOBJ_CHANGE for the "physical" device,
+> > > >>>>>      (3) user space notices the KOBJ_CHANGE and does the cleanup as needed,
+> > > >>>>>      (4) user space changes the "physical" container device flag controlling
+> > > >>>>>          offline to 0,
+> > > >>>>>      (5) user space uses the sysfs "eject" attribute of the ACPI container object
+> > > >>>>>          to finally eject the container,
+> > > >>>>>      (6) the offline in acpi_scan_hot_remove() is now successful, because the
+> > > >>>>>          flag controlling it has been set to 0 in step (4),
+> > > >>>>>      (7) the "physical" container device goes away before executing _EJ0,
+> > > >>>>>      (8) the container is ejected.
+> > > >>
+> > > >> I want to emit KOBJ_CHANGE before offlining devices on container device at (2).
+> > > >> But acpi_scan_hot_remove() offlines devices on container device at first.
+> > > >> So when offline container device, devices on container has been offlined.
+> > > >>
+> > > >> Thus the idea cannot fulfill my necessary feature.
+> > > >
+> > > > Well, in that case we need to treat containers in a special way at the ACPI
+> > > > level.  Which is a bit unfortunate so to speak.
+> > > >
+> > > > To that end I'd try to add a new flag to struct acpi_hotplug_profile, say
+> > > > .verify_offline, such that if set, it would cause acpi_scan_hot_remove() to
+> > > > check if all of the "physical" companions of the top-level device are offline
+> > > > to start with, and if not, it would just emit KOBJ_CHANGE for the companions
+> > > > that are not offline and bail out.
+> > > >
+> > > > So the above algorithm would become:
+> > > >
+> > > > (1) an eject event occurs,
+> > > > (2) acpi_scan_hot_remove() checks the verify_offline flag in the target device's
+> > > >      scan_handler structure,
+> > > > (3) if set (it would always be set for containers), acpi_scan_hot_remove()
+> > > >      checks the status of the target device's "physical" companions; if at least
+> > > >      one of them is offline, KOBJ_CHANGE is emitted for that "physical" device,
+> > > >      and acpi_scan_hot_remove() returns, [I guess we can just emit KOBJ_CHANGE
+> > > >      for the first companion that is not offline at this point.]
+> > > > (4) user space notices the KOBJ_CHANGE and does the cleanup as needed; in the
+> > > >      process it carries out the offline operation for the container's "physical"
+> > > >      companion (there's only one such companion for each container), [That
+> > > >      operation for the container itself is trivial, but to succeed it requires
+> > > >      all devices below the container to be taken offline in advance.]
+> > > > (5) user space uses the sysfs "eject" attribute of the ACPI container object
+> > > >      to finally eject the container,
+> > > > (6) acpi_scan_hot_remove() is now successful, because the container's "physical"
+> > > >      companion is now offline,
+> > > > (7) the "physical" container device goes away before executing _EJ0,
+> > > > (8) the container is ejected.
+> > > >
+> > > > I think that should work for you.
+> > > 
+> > > This idea seems to same as your previous work.
+> > > http://lkml.org/lkml/2013/2/23/97
+> > 
+> > No, it is not.  That one didn't involve physical device representations.
+> > 
+> > > How about add autoremove flag into acpi_hotplug_profile and check it as follow:
+> > 
+> > This is very similar to "enable" except that it generates the uevent and
+> > "enable" doesn't.  You might as well modify "enable" to trigger a uevent if
+> > eject is not enabled (note that with the latest patches in linux-next "enable"
+> > only applies to eject).
+> > 
+> > That said I don't think we should generate any uevents for struct acpi_device
+> > objects, because they are not devices.
+> > 
+> > > ---
+> > >   drivers/acpi/scan.c | 5 +++++
+> > >   1 file changed, 5 insertions(+)
+> > > 
+> > > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > > index 5383c81..c43d110 100644
+> > > --- a/drivers/acpi/scan.c
+> > > +++ b/drivers/acpi/scan.c
+> > > @@ -409,6 +409,11 @@ static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *data)
+> > >   			ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+> > >   			goto err_out;
+> > >   		}
+> > > +		if (!handler->hotplug.autoremove) {
+> > > +			kobject_uevent(&device->dev.kobj, KOBJ_CHANGE);
+> > > +			ost_code = ACPI_OST_SC_EJECT_NON_SPECIFIC_FAILURE;
+> > > +			goto err_out;
+> > > +		}
+> > >   		acpi_evaluate_hotplug_ost(handle, ACPI_NOTIFY_EJECT_REQUEST,
+> > >   					  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+> > >   		break;
+> > > 
+> > > Adding the check into "acpi_hotplug_notify_cb()", user need not change the
+> > > flag for removing container device by "sysfs eject".
+> > 
+> > Which is utterly confusing.  There is no reason whatsoever why the sysfs eject
+> > attribute should work differently from the event-triggered eject.  Quite the
+> > opposite is the case: it should work in the same way in my opinion so that it
+> > is possible to test the eject code path using that attribute.
+> > 
+> > I'm traveling now, but when I get back home (next week), I'll try to implement
+> > the thing I was talking about above.
+> 
+> It took some more time than I had expected, but I finally was able to get to that.
+> 
+> The following two patches implement the idea.  This is the minimum (in my opinion)
+> implementation and it may be extended in some ways.
+> 
+> Patch [1/2] introduces a new demand_offline flag for struct acpi_hotplug_profile
+> that makes acpi_scan_hot_remove() check the offline status of the device object's
+> companion physical devices to start with and return -EBUSY if at least one of them
+> is not offline.
+> 
+> Patch [2/2] uses that flag to implement the container handling.  The details are
+> in the changelog, but that's how it is supposed to work.
+> 
+> During the initial namespace scan the container ACPI scan handler should create
+> "physical" system container device under /sys/devices/system/container/ for
+> each ACPI container object (the sysfs name of that device should be the same as
+> the sysfs name of the corresponding container object and they should be linked
+> to each other via the firmware_node and physical_node symbolic links, respectively).
+> Those system container devices are initially online.
+> 
+> When a container eject event happens, acpi_scan_hot_remove() will notice that
+> hotplug.demand_offline is set in the device object's scan handler and will
+> check the online status of its "physical" companion device, which is online
+> (that is the system container device the above paragraph is about).  That will
+> cause KOBJ_CHANGE to be emitted for the system container device and -EBUSY to
+> be returned by acpi_scan_hot_remove().
+> 
+> Now, user space needs to offline the system container device through its online
+> sysfs attribute (that should be present, because the bus type for containers
+> provides the online and offline callbacks).  However, the offline for system
+> container devices will only succeed if the physical devices right below the
+> container are all offline, so user space will have to offline those devices
+> before attempting to offline the system container device itself.  When
+> finished, user space can trigger the container removal with the help of the
+> eject sysfs attribute of the ACPI container object pointed to by the system
+> container device's firmware_node link (this time the check in
+> acpi_scan_hot_remove() will succeed, because the system container device in
+> question is now offline).
+> 
+> The way it is implemented is a bit hackish (the driver_data pointer is slightly
+> abused), but that's a special case and I wanted to avoid adding new fields to
+> struct device just for handling it.
+> 
+> The patches haven't been tested yet.  I'm going to do that later today, but
+> first I need to take care of some other things, so that has to wait.
 
-add some updates to the patch ;)
+The series of the two patches:
 
-On Thu, 2013-11-21 at 13:29 +0800, Aaron Lu wrote:
-> On 11/21/2013 04:56 AM, Igor Gnatenko wrote:
-> > Any news here? If no - I think we need re-send patch as new..
-> 
-> Since the v2 patch can't apply cleanly on top of pm's -next tree, I
-> think it's worth a re-send, so here it comes.
-> 
-> ---
-> Subject: [PATCH] ACPI / video: Add systems that should favor native backlight
->  interface
-> From: Aaron Lu <aaron.lu@intel.com>
-> Date: Thu, 21 Nov 2013 11:24:48 +0800
-> 
-> Some system's ACPI video backlight control interface is broken and the
-> native backlight control interface should be used by default. This patch
-> sets the use_native_backlight parameter to true for those systems so
-> that video backlight control interface will not be created. To be
-> specific, the ThinkPad T430s/X230, Lenovo Yoga 13, Dell Inspiron 7520
-> and Acer Aspire 5733Z are added here, if they appear in some other DMI
-> table before, they are removed from there.
-> 
-> Note that the user specified kernel cmdline option will always have the
-> highest priority, i.e. if use_native_backlight=0 is specified and the
-> system is in the DMI table, the video module will not skip registering
-> backlight interface for it.
-> 
-> Thinkpad T430s:
-> Reported-by: Theodore Tso <tytso@mit.edu>
-> Reported-and-tested-by: Peter Weber <bugs@ttyhoney.com>
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
-> Thinkpad X230:
-> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
-ThinkPad X1 Carbon:
-Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-> Lenovo Yoga 13:
-> Reported-by: Lennart Poettering <lennart@poettering.net>
-> Reported-and-tested-by: Kevin Smith <thirdwiggin@gmail.com>
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=63811
-> Dell Inspiron 7520:
-> Reported-by: Rinat Ibragimov <ibragimovrinat@mail.ru>
-> Acer Aspire 5733Z:
-> Reported-by: <sov.info@mail.ru>
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=62941
-HP ProBook 4340s:
-Reported-and-tested-by: Vladimir Sherenkov <a_12300@mail.ru>
-Reference: http://redmine.russianfedora.pro/issues/1258
-> 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> ---
->  drivers/acpi/blacklist.c    |  8 ------
->  drivers/acpi/video.c        | 65 +++++++++++++++++++++++++++++++++++++++++----
->  drivers/acpi/video_detect.c |  8 ------
->  3 files changed, 60 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-> index 078c4f7fe2dd..2b6a76b6d59a 100644
-> --- a/drivers/acpi/blacklist.c
-> +++ b/drivers/acpi/blacklist.c
-> @@ -261,14 +261,6 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
->  	},
->  	{
->  	.callback = dmi_disable_osi_win8,
-> -	.ident = "Dell Inspiron 15R SE",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> -		     DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7520"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
->  	.ident = "ThinkPad Edge E530",
->  	.matches = {
->  		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 995e91bcb97b..7dc6071a04b6 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -82,11 +82,12 @@ static bool allow_duplicates;
->  module_param(allow_duplicates, bool, 0644);
->  
->  /*
-> - * For Windows 8 systems: if set ture and the GPU driver has
-> - * registered a backlight interface, skip registering ACPI video's.
-> + * For Windows 8 systems: used to decide if video module
-> + * should skip registering backlight interface of its own.
->   */
-> -static bool use_native_backlight = false;
-> -module_param(use_native_backlight, bool, 0644);
-> +static int use_native_backlight_param = -1;
-> +module_param_named(use_native_backlight, use_native_backlight_param, int, 0444);
-> +static bool use_native_backlight_dmi = false;
->  
->  static int register_count;
->  static struct mutex video_list_lock;
-> @@ -232,9 +233,17 @@ static int acpi_video_get_next_level(struct acpi_video_device *device,
->  static int acpi_video_switch_brightness(struct acpi_video_device *device,
->  					 int event);
->  
-> +static bool acpi_video_use_native_backlight(void)
-> +{
-> +	if (use_native_backlight_param != -1)
-> +		return use_native_backlight_param;
-> +	else
-> +		return use_native_backlight_dmi;
-> +}
-> +
->  static bool acpi_video_verify_backlight_support(void)
->  {
-> -	if (acpi_osi_is_win8() && use_native_backlight &&
-> +	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
->  	    backlight_device_registered(BACKLIGHT_RAW))
->  		return false;
->  	return acpi_video_backlight_support();
-> @@ -399,6 +408,12 @@ static int __init video_set_bqc_offset(const struct dmi_system_id *d)
->  	return 0;
->  }
->  
-> +static int __init video_set_use_native_backlight(const struct dmi_system_id *d)
-> +{
-> +	use_native_backlight_dmi = true;
-> +	return 0;
-> +}
-> +
->  static struct dmi_system_id video_dmi_table[] __initdata = {
->  	/*
->  	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
-> @@ -443,6 +458,46 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 7720"),
->  		},
->  	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "ThinkPad T430s",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "ThinkPad X230",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "Lenovo Yoga 13",
-> +	 .matches = {
-> +		 DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		 DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "Dell Inspiron 7520",
-> +	 .matches = {
-> +		 DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> +		 DMI_MATCH(DMI_PRODUCT_VERSION, "Inspiron 7520"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "Acer Aspire 5733Z",
-> +	 .matches = {
-> +		 DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-> +		 DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5733Z"),
-> +		},
-> +	},
->  	{}
->  };
->  
-> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-> index 84875fd4c74f..b6399343de51 100644
-> --- a/drivers/acpi/video_detect.c
-> +++ b/drivers/acpi/video_detect.c
-> @@ -168,14 +168,6 @@ static struct dmi_system_id video_detect_dmi_table[] = {
->  		DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
->  		},
->  	},
-> -	{
-> -	.callback = video_detect_force_vendor,
-> -	.ident = "Lenovo Yoga 13",
-> -	.matches = {
-> -		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
-> -		},
-> -	},
->  	{ },
->  };
->  
+[1/2] ACPI / hotplug: Add demand_offline hotplug profile flag
+	https://patchwork.kernel.org/patch/3396711/
 
-drivers/acpi/video.c
+[2/2] ACPI / hotplug / driver core: Handle containers in a special way
+	https://patchwork.kernel.org/patch/3399081/
 
-+	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "ThinkPad X1 Carbon",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X1 Carbon"),
-+		},
-+	},
+has been tested now and seems to work as expected, at least for a container
+that has no children (that's one I could simulate easily in a meaningful way).
 
-+	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "HP ProBook 4340s",
-+	 .matches = {
-+		 DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		 DMI_MATCH(DMI_PRODUCT_VERSION, "HP ProBook 4340s"),
-+		},
-+	},
+For this reason, if there are no objections, I'll resend them as an official
+submission during the next couple of days.
+
+Thanks!
 
 -- 
--Igor Gnatenko
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
