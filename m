@@ -1,49 +1,81 @@
-From: Ethan Zhao <ethan.kernel@gmail.com>
-Subject: [PATCH] ghes: don't return 0 even when failed to read estatus in ghes_proc()
-Date: Fri, 27 Dec 2013 22:38:40 +0800
-Message-ID: <1388155120-419-1-git-send-email-ethan.kernel@gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 0/2] ACPI / hotplug / driver core: Special handling for container devices
+Date: Fri, 27 Dec 2013 23:21:59 +0100
+Message-ID: <63118574.0bgUpLnDbK@vostro.rjw.lan>
+References: <1421028.Rsfpmhnym3@vostro.rjw.lan> <52BD0DC1.2000909@jp.fujitsu.com> <2686210.6vSP0yehxh@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:60470 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753080Ab3L0Oi5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Dec 2013 09:38:57 -0500
+Received: from v094114.home.net.pl ([79.96.170.134]:52348 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755056Ab3L0WQO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Dec 2013 17:16:14 -0500
+In-Reply-To: <2686210.6vSP0yehxh@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ying.huang@intel.com, tony.luck@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Ethan Zhao <ethan.kernel@gmail.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>
 
-ghes_proc() always return 0 even failed to read estatus, so when it is
-called in interrupt handler ghes_irq_func(), we don't know the interrupt
-was handled well or not, because the ghes_irq_func() will return only
-IRQ_HANDLED.
+Hi Greg,
 
-Signed-off-by: Ethan Zhao <ethan.kernel@gmail.com>
----
- drivers/acpi/apei/ghes.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+The following series of 2 patches (patch [2/2] in particular) make changes
+needed to handle hot-removal of system container devices (represented by
+ACPI container and module device objects) on Fujitsu systems.  Those devices
+represent things like CPU packages, so we need to be able to take care of them
+cleanly for things like in-the-field CPU socked replacement to work.
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 8ec37bb..9368b73 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -665,7 +665,7 @@ static void ghes_estatus_cache_add(
- 
- static int ghes_proc(struct ghes *ghes)
- {
--	int rc;
-+	int rc = 0;
- 
- 	rc = ghes_read_estatus(ghes, 0);
- 	if (rc)
-@@ -677,7 +677,7 @@ static int ghes_proc(struct ghes *ghes)
- 	ghes_do_proc(ghes, ghes->estatus);
- out:
- 	ghes_clear_estatus(ghes);
--	return 0;
-+	return rc;
- }
- 
- static void ghes_add_timer(struct ghes *ghes)
--- 
-1.8.3.4 (Apple Git-47)
+The problem being addressed here is that on the systems in question the removal
+of container devices has to be carried out with the help of user space that
+needs to be notified of the container removal before the kernel attempts to
+offline any devices below the container (e.g. in the package represented by the
+container device object in the ACPI tables).  However, our current code works
+the other way around and the entire thing is messed up.
+
+This patchset adds the bare bones of what's needed to address that issue and it
+should be possible to build on top of the code added by it in the future if
+need be.
+
+Patch [1/2] introduces a new demand_offline flag for struct acpi_hotplug_profile
+that makes acpi_scan_hot_remove() check the offline status of the device object's
+companion physical devices to start with and return -EBUSY if at least one of them
+is not offline.
+
+Patch [2/2] uses that flag to implement the container handling.  The details are
+in the changelog, but that's how it works.
+
+During the initial namespace scan the container ACPI scan handler creates
+"physical" system container device under /sys/devices/system/container/ for
+each ACPI container object whose status is "present" at that time (the sysfs
+name of that device is the same as the sysfs name of the corresponding
+container object and they are linked to each other via the firmware_node and
+physical_node symbolic links, respectively).  Those system container devices
+are initially online.
+
+The container ACPI scan handler has the demand_offline flag set in its hotplug
+profile, so when a container eject event happens, acpi_scan_hot_remove() will
+notice that the flag is set in the device object's scan handler and will
+check the online status of its "physical" companion device, which is online
+(that is the system container device the above paragraph is about).  That will
+cause KOBJ_CHANGE to be emitted for the system container device and -EBUSY to
+be returned by acpi_scan_hot_remove().  User space is expected to respond to
+that KOBJ_CHANGE by doing what's necessary to remove the container.
+
+To that end, it needs to offline the system container device through its online
+sysfs attribute (which is present, because the bus type for containers provides
+the online and offline callbacks).  However, the offline for system container
+devices will only succeed if the physical devices right below the container
+(e.g. in the package represented by it) are all offline, so user space will
+have to offline those devices before attempting to offline the system container
+device itself.  When finished, user space can trigger the container removal
+with the help of the eject sysfs attribute of the ACPI container object pointed
+to by the system container device's firmware_node link (this time the check in
+acpi_scan_hot_remove() will succeed, because the system container device in
+question is now offline).
+
+Please let me know if you have any objections.  If not, I'd like to queue up
+these patches for 3.14.
+
+Thanks,
+Rafael
 
