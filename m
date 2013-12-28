@@ -1,131 +1,86 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 1/2] ACPI / hotplug: Add demand_offline hotplug profile flag
-Date: Fri, 27 Dec 2013 23:23:42 +0100
-Message-ID: <2072876.4FiiQkgF4K@vostro.rjw.lan>
-References: <1421028.Rsfpmhnym3@vostro.rjw.lan> <2686210.6vSP0yehxh@vostro.rjw.lan> <63118574.0bgUpLnDbK@vostro.rjw.lan>
+Subject: [GIT PULL] ACPI and power management fixes and new device IDs for v3.13-rc6
+Date: Sat, 28 Dec 2013 01:54:44 +0100
+Message-ID: <6028840.QzJRjqMWxJ@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <63118574.0bgUpLnDbK@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:56266 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751891Ab3L1AlM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Dec 2013 19:41:12 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi Linus,
 
-Add a new ACPI hotplug profile flag, demand_offline, such that if
-set for the given ACPI device object's scan handler, it will cause
-acpi_scan_hot_remove() to check if that device object's physical
-companions are offline upfront and fail the hot removal if that
-is not the case.
+Please pull from the git repository at
 
-That flag will be useful to overcome a problem with containers on
-some system where they can only be hot-removed after some cleanup
-operations carried out by user space, which needs to be notified
-of the container hot-removal before the kernel attempts to offline
-devices in the container.  In those cases the current implementation
-of acpi_scan_hot_remove() is not sufficient, because it first tries
-to offline the devices in the container and only if that is
-suffcessful it tries to offline the container itself.  As a result,
-the container hot-removal notification is not delivered to user space
-at the right time.
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.13-rc6
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/scan.c     |   41 +++++++++++++++++++++++++++++++++++++----
- include/acpi/acpi_bus.h |    3 ++-
- 2 files changed, 39 insertions(+), 5 deletions(-)
+to receive fixes and some new device IDs for ACPI and power management
+with top-most commit bfde19c4c2467cbcb5c11ec0fdaa771b8c16cbce
 
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -126,6 +126,24 @@ acpi_device_modalias_show(struct device
- }
- static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
- 
-+static bool acpi_scan_is_offline(struct acpi_device *adev)
-+{
-+	struct acpi_device_physical_node *pn;
-+	bool offline = true;
-+
-+	mutex_lock(&adev->physical_node_lock);
-+
-+	list_for_each_entry(pn, &adev->physical_node_list, node)
-+		if (device_supports_offline(pn->dev) && !pn->dev->offline) {
-+			kobject_uevent(&pn->dev->kobj, KOBJ_CHANGE);
-+			offline = false;
-+			break;
-+		}
-+
-+	mutex_unlock(&adev->physical_node_lock);
-+	return offline;
-+}
-+
- static acpi_status acpi_bus_offline(acpi_handle handle, u32 lvl, void *data,
- 				    void **ret_p)
- {
-@@ -196,12 +214,11 @@ static acpi_status acpi_bus_online(acpi_
- 	return AE_OK;
- }
- 
--static int acpi_scan_hot_remove(struct acpi_device *device)
-+static int acpi_scan_try_to_offline(struct acpi_device *device)
- {
- 	acpi_handle handle = device->handle;
--	struct device *errdev;
-+	struct device *errdev = NULL;
- 	acpi_status status;
--	unsigned long long sta;
- 
- 	/*
- 	 * Carry out two passes here and ignore errors in the first pass,
-@@ -212,7 +229,6 @@ static int acpi_scan_hot_remove(struct a
- 	 *
- 	 * If the first pass is successful, the second one isn't needed, though.
- 	 */
--	errdev = NULL;
- 	status = acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
- 				     NULL, acpi_bus_offline, (void *)false,
- 				     (void **)&errdev);
-@@ -241,6 +257,23 @@ static int acpi_scan_hot_remove(struct a
- 			return -EBUSY;
- 		}
- 	}
-+	return 0;
-+}
-+
-+static int acpi_scan_hot_remove(struct acpi_device *device)
-+{
-+	acpi_handle handle = device->handle;
-+	unsigned long long sta;
-+	acpi_status status;
-+
-+	if (device->handler->hotplug.demand_offline && !acpi_force_hot_remove) {
-+		if (!acpi_scan_is_offline(device))
-+			return -EBUSY;
-+	} else {
-+		int error = acpi_scan_try_to_offline(device);
-+		if (error)
-+			return error;
-+	}
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 		"Hot-removing device %s...\n", dev_name(&device->dev)));
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -91,8 +91,9 @@ struct acpi_device;
- 
- struct acpi_hotplug_profile {
- 	struct kobject kobj;
--	bool enabled:1;
- 	int (*scan_dependent)(struct acpi_device *adev);
-+	bool enabled:1;
-+	bool demand_offline:1;
- };
- 
- static inline struct acpi_hotplug_profile *to_acpi_hotplug_profile(
+  Merge branches 'powercap' and 'acpi-lpss' with new device IDs
+
+on top of commit 413541dd66d51f791a0b169d9b9014e4f56be13c
+
+  Linux 3.13-rc5
+
+These include a fix for a cpufreq regression related to system suspend
+(more fixes in this area are in the works), a fix for an older cpufreq
+bug, a fix for a memory leak in the system suspend console handling
+code and new device IDs for two drviers.
+
+Specifics:
+
+- Fix for a cpufreq regression causing stale sysfs files to be left
+  behind during system resume if cpufreq_add_dev() fails for one or
+  more CPUs from Viresh Kumar.
+
+- Fix for a bug in cpufreq causing CONFIG_CPU_FREQ_DEFAULT_* to be
+  ignored when the intel_pstate driver is used from Jason Baron.
+
+- System suspend fix for a memory leak in pm_vt_switch_unregister()
+  that forgot to release objects after removing them from
+  pm_vt_switch_list.  From Masami Ichikawa.
+
+- Intel Valley View device ID and energy unit encoding update for the
+  (recently added) Intel RAPL (Running Average Power Limit) driver
+  from Jacob Pan.
+
+- Intel Bay Trail SoC GPIO and ACPI device IDs for the Low Power
+  Subsystem (LPSS) ACPI driver from Paul Drews.
+
+Thanks!
+
+
+---------------
+
+Jacob Pan (1):
+      powercap / RAPL: add support for ValleyView Soc
+
+Jason Baron (1):
+      cpufreq: Use CONFIG_CPU_FREQ_DEFAULT_* to set initial policy for setpolicy drivers
+
+Masami Ichikawa (1):
+      PM / sleep: Fix memory leak in pm_vt_switch_unregister().
+
+Paul Drews (1):
+      ACPI: Add BayTrail SoC GPIO and LPSS ACPI IDs
+
+Viresh Kumar (1):
+      cpufreq: remove sysfs files for CPUs which failed to come back after resume
+
+---------------
+
+ drivers/acpi/acpi_lpss.c           |  1 +
+ drivers/cpufreq/cpufreq.c          | 69 ++++++++++++++++++++------------------
+ drivers/pinctrl/pinctrl-baytrail.c |  1 +
+ drivers/powercap/intel_rapl.c      | 13 +++++--
+ kernel/power/console.c             |  1 +
+ 5 files changed, 51 insertions(+), 34 deletions(-)
+
