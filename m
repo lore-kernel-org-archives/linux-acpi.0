@@ -1,86 +1,178 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [GIT PULL] ACPI and power management fixes and new device IDs for v3.13-rc6
-Date: Sat, 28 Dec 2013 01:54:44 +0100
-Message-ID: <6028840.QzJRjqMWxJ@vostro.rjw.lan>
+Subject: [PATCH] ACPIPHP / radeon: Fix VGA switcheroo problem related to hotplug events
+Date: Sat, 28 Dec 2013 23:13:39 +0100
+Message-ID: <10163453.2AxBLHI1XI@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56266 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:57726 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751891Ab3L1AlM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Dec 2013 19:41:12 -0500
+	with SMTP id S1751047Ab3L1WAI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Dec 2013 17:00:08 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mike Lothian <mike@fireburn.co.uk>, madcatx@atlas.cz, Alex Deucher <alexdeucher@gmail.com>, Dave Airlie <airlied@linux.ie>, Takashi Iwai <tiwai@suse.de>
 
-Hi Linus,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Please pull from the git repository at
+The changes in the ACPI-based PCI hotplug (ACPIPHP) subsystem made
+during the 3.12 development cycle uncovered a problem with VGA
+switcheroo that on some systems, when the device-specific method
+(ATPX in the radeon case) is used to turn off the discrete
+graphics, the BIOS generates ACPI hotplug events for that device and
+those events cause ACPIPHP to attempt to remove the device from the
+system (they are events for a device that was present previously and
+is not present any more, so that's what should be done according to
+the spec).  Then, the system stops functioning correctly.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.13-rc6
+Since the hotplug events in question were simply silently ignored
+previously, the least intrusive way to address that problem is to
+make ACPIPHP ignore them again.  For this purpose, introduce a new
+ACPI device flag, no_hotplug, and modify ACPIPHP to ignore hotplug
+events for PCI devices whose ACPI companions have that flag set.
+Next, make the radeon switcheroo detection code set the no_hotplug
+flag for the discrete graphics' ACPI companion.
 
-to receive fixes and some new device IDs for ACPI and power management
-with top-most commit bfde19c4c2467cbcb5c11ec0fdaa771b8c16cbce
+References: https://bugzilla.kernel.org/show_bug.cgi?id=61891
+Fixes: bbd34fcdd1b2 (ACPI / hotplug / PCI: Register all devices under the given bridge)
+Reported-and-tested-by: Mike Lothian <mike@fireburn.co.uk>
+Reported-and-tested-by: <madcatx@atlas.cz>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Alex Deucher <alexdeucher@gmail.com>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Takashi Iwai <tiwai@suse.de>
+---
 
-  Merge branches 'powercap' and 'acpi-lpss' with new device IDs
+Hi All,
 
-on top of commit 413541dd66d51f791a0b169d9b9014e4f56be13c
+I have an analogous change for nouveau in the works and if that really turns
+out to be the same issue, I'll just add the nouveau changes to this patch
+and resend.
 
-  Linux 3.13-rc5
+Thanks,
+Rafael
 
-These include a fix for a cpufreq regression related to system suspend
-(more fixes in this area are in the works), a fix for an older cpufreq
-bug, a fix for a memory leak in the system suspend console handling
-code and new device IDs for two drviers.
+---
+ drivers/gpu/drm/radeon/radeon_atpx_handler.c |   20 ++++++++++++++++++--
+ drivers/pci/hotplug/acpiphp_glue.c           |   26 +++++++++++++++++++++++---
+ include/acpi/acpi_bus.h                      |    3 ++-
+ 3 files changed, 43 insertions(+), 6 deletions(-)
 
-Specifics:
-
-- Fix for a cpufreq regression causing stale sysfs files to be left
-  behind during system resume if cpufreq_add_dev() fails for one or
-  more CPUs from Viresh Kumar.
-
-- Fix for a bug in cpufreq causing CONFIG_CPU_FREQ_DEFAULT_* to be
-  ignored when the intel_pstate driver is used from Jason Baron.
-
-- System suspend fix for a memory leak in pm_vt_switch_unregister()
-  that forgot to release objects after removing them from
-  pm_vt_switch_list.  From Masami Ichikawa.
-
-- Intel Valley View device ID and energy unit encoding update for the
-  (recently added) Intel RAPL (Running Average Power Limit) driver
-  from Jacob Pan.
-
-- Intel Bay Trail SoC GPIO and ACPI device IDs for the Low Power
-  Subsystem (LPSS) ACPI driver from Paul Drews.
-
-Thanks!
-
-
----------------
-
-Jacob Pan (1):
-      powercap / RAPL: add support for ValleyView Soc
-
-Jason Baron (1):
-      cpufreq: Use CONFIG_CPU_FREQ_DEFAULT_* to set initial policy for setpolicy drivers
-
-Masami Ichikawa (1):
-      PM / sleep: Fix memory leak in pm_vt_switch_unregister().
-
-Paul Drews (1):
-      ACPI: Add BayTrail SoC GPIO and LPSS ACPI IDs
-
-Viresh Kumar (1):
-      cpufreq: remove sysfs files for CPUs which failed to come back after resume
-
----------------
-
- drivers/acpi/acpi_lpss.c           |  1 +
- drivers/cpufreq/cpufreq.c          | 69 ++++++++++++++++++++------------------
- drivers/pinctrl/pinctrl-baytrail.c |  1 +
- drivers/powercap/intel_rapl.c      | 13 +++++--
- kernel/power/console.c             |  1 +
- 5 files changed, 51 insertions(+), 34 deletions(-)
+Index: linux-pm/drivers/gpu/drm/radeon/radeon_atpx_handler.c
+===================================================================
+--- linux-pm.orig/drivers/gpu/drm/radeon/radeon_atpx_handler.c
++++ linux-pm/drivers/gpu/drm/radeon/radeon_atpx_handler.c
+@@ -33,6 +33,7 @@ static struct radeon_atpx_priv {
+ 	bool atpx_detected;
+ 	/* handle for device - and atpx */
+ 	acpi_handle dhandle;
++	acpi_handle other_handle;
+ 	struct radeon_atpx atpx;
+ } radeon_atpx_priv;
+ 
+@@ -451,9 +452,10 @@ static bool radeon_atpx_pci_probe_handle
+ 		return false;
+ 
+ 	status = acpi_get_handle(dhandle, "ATPX", &atpx_handle);
+-	if (ACPI_FAILURE(status))
++	if (ACPI_FAILURE(status)) {
++		radeon_atpx_priv.other_handle = dhandle;
+ 		return false;
+-
++	}
+ 	radeon_atpx_priv.dhandle = dhandle;
+ 	radeon_atpx_priv.atpx.handle = atpx_handle;
+ 	return true;
+@@ -526,10 +528,24 @@ static bool radeon_atpx_detect(void)
+ 	}
+ 
+ 	if (has_atpx && vga_count == 2) {
++		struct acpi_device *adev = NULL;
++
+ 		acpi_get_name(radeon_atpx_priv.atpx.handle, ACPI_FULL_PATHNAME, &buffer);
+ 		printk(KERN_INFO "VGA switcheroo: detected switching method %s handle\n",
+ 		       acpi_method_name);
+ 		radeon_atpx_priv.atpx_detected = true;
++		/*
++		 * On some systems hotplug events are generated for the device
++		 * being switched off when ATPX is executed.  They cause ACPI
++		 * hotplug to trigger and attempt to remove the device from
++		 * the system, which causes it to break down.  Prevent that from
++		 * happening by setting the no_hotplug flag for the ACPI device
++		 * object in question.
++		 */
++		acpi_bus_get_device(radeon_atpx_priv.other_handle, &adev);
++		if (adev)
++			adev->flags.no_hotplug = true;
++
+ 		return true;
+ 	}
+ 	return false;
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -169,7 +169,8 @@ struct acpi_device_flags {
+ 	u32 ejectable:1;
+ 	u32 power_manageable:1;
+ 	u32 match_driver:1;
+-	u32 reserved:27;
++	u32 no_hotplug:1;
++	u32 reserved:26;
+ };
+ 
+ /* File System */
+Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+===================================================================
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+@@ -643,6 +643,24 @@ static void disable_slot(struct acpiphp_
+ 	slot->flags &= (~SLOT_ENABLED);
+ }
+ 
++static bool acpiphp_no_hotplug(acpi_handle handle)
++{
++	struct acpi_device *adev = NULL;
++
++	acpi_bus_get_device(handle, &adev);
++	return adev && adev->flags.no_hotplug;
++}
++
++static bool slot_no_hotplug(struct acpiphp_slot *slot)
++{
++	struct acpiphp_func *func;
++
++	list_for_each_entry(func, &slot->funcs, sibling)
++		if (acpiphp_no_hotplug(func_to_handle(func)))
++			return true;
++
++	return false;
++}
+ 
+ /**
+  * get_slot_status - get ACPI slot status
+@@ -701,7 +719,8 @@ static void trim_stale_devices(struct pc
+ 		unsigned long long sta;
+ 
+ 		status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+-		alive = ACPI_SUCCESS(status) && sta == ACPI_STA_ALL;
++		alive = (ACPI_SUCCESS(status) && sta == ACPI_STA_ALL)
++			|| acpiphp_no_hotplug(handle);
+ 	}
+ 	if (!alive) {
+ 		u32 v;
+@@ -741,8 +760,9 @@ static void acpiphp_check_bridge(struct
+ 		struct pci_dev *dev, *tmp;
+ 
+ 		mutex_lock(&slot->crit_sect);
+-		/* wake up all functions */
+-		if (get_slot_status(slot) == ACPI_STA_ALL) {
++		if (slot_no_hotplug(slot)) {
++			; /* do nothing */
++		} else if (get_slot_status(slot) == ACPI_STA_ALL) {
+ 			/* remove stale devices if any */
+ 			list_for_each_entry_safe(dev, tmp, &bus->devices,
+ 						 bus_list)
 
