@@ -1,85 +1,59 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 0/2] ACPI / hotplug / driver core: Special handling for
- container devices
-Date: Sat, 28 Dec 2013 19:59:09 -0800
-Message-ID: <20131229035909.GB26111@kroah.com>
-References: <1421028.Rsfpmhnym3@vostro.rjw.lan>
- <52BD0DC1.2000909@jp.fujitsu.com>
- <2686210.6vSP0yehxh@vostro.rjw.lan>
- <63118574.0bgUpLnDbK@vostro.rjw.lan>
+From: "Vadim A. Misbakh-Soloviov" <mva@mva.name>
+Subject: [Regression] acpi_rsdp doesn't work in 3.12.{5-6}
+Date: Sun, 29 Dec 2013 17:34:46 +0700
+Message-ID: <1441555.SfFoqOgBsH@note>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <63118574.0bgUpLnDbK@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from forward1h.mail.yandex.net ([84.201.187.146]:41286 "EHLO
+	forward1h.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751297Ab3L2Kew convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Dec 2013 05:34:52 -0500
+Received: from smtp2h.mail.yandex.net (smtp2h.mail.yandex.net [84.201.187.145])
+	by forward1h.mail.yandex.net (Yandex) with ESMTP id 137A09E133B
+	for <linux-acpi@vger.kernel.org>; Sun, 29 Dec 2013 14:34:47 +0400 (MSK)
+Received: from smtp2h.mail.yandex.net (localhost [127.0.0.1])
+	by smtp2h.mail.yandex.net (Yandex) with ESMTP id CFD8117017EC
+	for <linux-acpi@vger.kernel.org>; Sun, 29 Dec 2013 14:34:47 +0400 (MSK)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Fri, Dec 27, 2013 at 11:21:59PM +0100, Rafael J. Wysocki wrote:
-> Hi Greg,
-> 
-> The following series of 2 patches (patch [2/2] in particular) make changes
-> needed to handle hot-removal of system container devices (represented by
-> ACPI container and module device objects) on Fujitsu systems.  Those devices
-> represent things like CPU packages, so we need to be able to take care of them
-> cleanly for things like in-the-field CPU socked replacement to work.
-> 
-> The problem being addressed here is that on the systems in question the removal
-> of container devices has to be carried out with the help of user space that
-> needs to be notified of the container removal before the kernel attempts to
-> offline any devices below the container (e.g. in the package represented by the
-> container device object in the ACPI tables).  However, our current code works
-> the other way around and the entire thing is messed up.
-> 
-> This patchset adds the bare bones of what's needed to address that issue and it
-> should be possible to build on top of the code added by it in the future if
-> need be.
-> 
-> Patch [1/2] introduces a new demand_offline flag for struct acpi_hotplug_profile
-> that makes acpi_scan_hot_remove() check the offline status of the device object's
-> companion physical devices to start with and return -EBUSY if at least one of them
-> is not offline.
-> 
-> Patch [2/2] uses that flag to implement the container handling.  The details are
-> in the changelog, but that's how it works.
-> 
-> During the initial namespace scan the container ACPI scan handler creates
-> "physical" system container device under /sys/devices/system/container/ for
-> each ACPI container object whose status is "present" at that time (the sysfs
-> name of that device is the same as the sysfs name of the corresponding
-> container object and they are linked to each other via the firmware_node and
-> physical_node symbolic links, respectively).  Those system container devices
-> are initially online.
-> 
-> The container ACPI scan handler has the demand_offline flag set in its hotplug
-> profile, so when a container eject event happens, acpi_scan_hot_remove() will
-> notice that the flag is set in the device object's scan handler and will
-> check the online status of its "physical" companion device, which is online
-> (that is the system container device the above paragraph is about).  That will
-> cause KOBJ_CHANGE to be emitted for the system container device and -EBUSY to
-> be returned by acpi_scan_hot_remove().  User space is expected to respond to
-> that KOBJ_CHANGE by doing what's necessary to remove the container.
-> 
-> To that end, it needs to offline the system container device through its online
-> sysfs attribute (which is present, because the bus type for containers provides
-> the online and offline callbacks).  However, the offline for system container
-> devices will only succeed if the physical devices right below the container
-> (e.g. in the package represented by it) are all offline, so user space will
-> have to offline those devices before attempting to offline the system container
-> device itself.  When finished, user space can trigger the container removal
-> with the help of the eject sysfs attribute of the ACPI container object pointed
-> to by the system container device's firmware_node link (this time the check in
-> acpi_scan_hot_remove() will succeed, because the system container device in
-> question is now offline).
-> 
-> Please let me know if you have any objections.  If not, I'd like to queue up
-> these patches for 3.14.
+Hello there!
+Unfortunately I've server, that requires to manually point kernel to RS=
+DP-
+table. Otherwise ACPI doesn't work properly and kernel limits processor=
+s to 1.
 
-No objection from me, I've acked the second patch, feel free to take
-both of them in your tree.
+All the time until upgrade to 3.12.5/3.12.6 I did it by specifying=20
+acpi_rsdp=3D0x7F1F7000 to the kernel cmdline (where 0x7F1F7000 is real =
+address=20
+of RSDP table) and all worked fine. But now, after the upgrade, kernel =
+can't=20
+find RSDP table anyway, even with redefinition in cmdline, and so it pr=
+ints
+> [    0.000000] ACPI BIOS Error (bug): A valid RSDP was not found=20
+(20130725/tbxfroot-212)
+And boots just like I don't specified real RSDT table address for it (w=
+ith 1=20
+processor and with broken acpi functionality).
 
-thanks,
+As far, as I investigated, probleam appeared after=20
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?=
+id=3D40031da445fb4d269af9c7c445b2adf674f171e7
 
-greg k-h
+Unfortunately, I can't fully bisect it and get exact place.
+
+Can you advice me, if it is possible to redefine RSDP table now, in 3.1=
+2, and=20
+how? And if it should use same syntax =E2=80=94 why it stop working?
+
+--=20
+Best regsrds,
+mva
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
