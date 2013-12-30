@@ -1,37 +1,24 @@
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: Re: [PATCH 05/11] drivers: acpi: Include appropriate header file in
- utstate.c
-Date: Mon, 30 Dec 2013 12:50:41 -0800
-Message-ID: <20131230205041.GT27213@leaf>
-References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com>
- <c8f6f6fbcd7de593a726d091f5d0f6a245f6e0f7.1387271324.git.rashika.kheria@gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37C7B99F5@ORSMSX103.amr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E88024987F6@SHSMSX101.ccr.corp.intel.com>
+From: nkoffi396@gmail.com
+Subject: Advise to invest in your Country
+Date: Mon, 30 Dec 2013 10:05:50 -0800
+Message-ID: <EMAILrXWWKCSxQaWutz00017d9a@email.bec.local>
+Reply-To: norkoffi@aim.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:58573 "EHLO
-	relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932172Ab3L3Uuv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Dec 2013 15:50:51 -0500
-Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88024987F6@SHSMSX101.ccr.corp.intel.com>
+Received: from email.bec.com.ve ([200.44.146.30]:35462 "EHLO email.bec.local"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932420Ab3LaAQ5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Dec 2013 19:16:57 -0500
+Content-Description: Mail message body
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, Rashika Kheria <rashika.kheria@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: linux-acpi@vger.kernel.org
 
-On Wed, Dec 18, 2013 at 06:17:33AM +0000, Zheng, Lv wrote:
-> Currently we didn't do much on automatically optimized out ACPI_FUTURE_USAGE functions as long as they do not affect the generation of vmlinux binary.
+Dear Friend,
 
-They do affect the size of vmlinux, though, if they're left compiled in
-but not actually called.
+I need someone in your Country I want to invest 30MillionEuros. For more info send me your telephone number for conversation to enable us have a concrete discussion and meeting.
 
-> I have a plan to do a cleanup on all ACPICA build warnings so that such inconsistencies can be sorted out.
-> Maybe it is time to do it right now.
-
-That would be most appreciated, especially if you plan to eliminate the
-warnings from -Wmissing-prototypes in the process.
-
-Thanks,
-Josh Triplett
+Best Regards
+Mr.Norbert Koffi 
