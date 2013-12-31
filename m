@@ -1,49 +1,60 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH][tentative] PCI / ACPI: Rework PCI host bridge removal to
- avoid sysfs warnings
-Date: Tue, 31 Dec 2013 10:45:46 -0800
-Message-ID: <CAE9FiQVEqnWm1j0GckuNsD_FTPxWahZpCnF79sNgKN-JnCDT+w@mail.gmail.com>
-References: <37552283.kG1L4S8Daa@vostro.rjw.lan>
-	<CAE9FiQXCzRNGbUpXDv3c9RDV4quV2b3gkrpjpPpxYzBH-p35jw@mail.gmail.com>
-	<1460504.iemmv1nFbi@vostro.rjw.lan>
-	<31566676.sHXhScpSQ6@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH][tentative] PCI / ACPI: Rework PCI host bridge removal to avoid sysfs warnings
+Date: Tue, 31 Dec 2013 22:03:33 +0100
+Message-ID: <6023795.zgEUjY5fWb@vostro.rjw.lan>
+References: <37552283.kG1L4S8Daa@vostro.rjw.lan> <31566676.sHXhScpSQ6@vostro.rjw.lan> <CAE9FiQVEqnWm1j0GckuNsD_FTPxWahZpCnF79sNgKN-JnCDT+w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <31566676.sHXhScpSQ6@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQVEqnWm1j0GckuNsD_FTPxWahZpCnF79sNgKN-JnCDT+w@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Tejun Heo <tj@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 30, 2013 at 5:15 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Monday, December 30, 2013 01:51:28 PM Rafael J. Wysocki wrote:
->> > We have patches that need to stop ioapic and iommu between
->> > pci_stop_root_bus and pci_remove_root_bus.
->
-> BTW, what *exactly* do they need to be stopped between?  After these two patches:
+On Tuesday, December 31, 2013 10:45:46 AM Yinghai Lu wrote:
+> On Mon, Dec 30, 2013 at 5:15 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Monday, December 30, 2013 01:51:28 PM Rafael J. Wysocki wrote:
+> >> > We have patches that need to stop ioapic and iommu between
+> >> > pci_stop_root_bus and pci_remove_root_bus.
+> >
+> > BTW, what *exactly* do they need to be stopped between?  After these two patches:
+> 
+> need to stop regular pci drivers before stop "driver" for ioapic/dmar.
+> 
+> >
+> >> > Please check if the problem still happen after
+> >> >
+> >> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=c4a0a5d964e90b93eb4101c3927b788e083e530f
+> >> >
+> >> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=e3b439e1d315aff59c1b4f0fc43c5cd2d82b4138
+> >
+> > pci_stop_root_bus() is just a walk over devices on the root bus stopping
+> > them and pci_remove_root_bus() starts with the removal of those devices.
+> >
+> > Surely, those two list walks can be combined into one?
+> 
+> maybe ok, but we have to problem to make sure stop pci drivers before
+> "driver" for ioapic/dmar.
 
-need to stop regular pci drivers before stop "driver" for ioapic/dmar.
+That's fine, but ioapic/dmar stopping need not happen between the stopping of
+drivers and removing of devices on the root bus I suppose?
 
->
->> > Please check if the problem still happen after
->> >
->> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=c4a0a5d964e90b93eb4101c3927b788e083e530f
->> >
->> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=e3b439e1d315aff59c1b4f0fc43c5cd2d82b4138
->
-> pci_stop_root_bus() is just a walk over devices on the root bus stopping
-> them and pci_remove_root_bus() starts with the removal of those devices.
->
-> Surely, those two list walks can be combined into one?
+Actually, I think that the ioapic/dmar stopping should be carried out after
+removing all of the root bus devices, or it can be racy with respect to a
+driver reload.  Isn't that the case?
 
-maybe ok, but we have to problem to make sure stop pci drivers before
-"driver" for ioapic/dmar.
+> also stop all first and remove all make it much cleaner.
 
-also stop all first and remove all make it much cleaner.
+Well, I don't think that's worth special casing, though, because device removal
+may be triggered via sysfs anyway for any PCI device.  In my opinion it would
+be cleaner to use pci_stop_and_remove_bus_device() everywhere for PCI device
+removal.
 
-and add path is two steps too. Add them all, and then attach driver for all.
+> and add path is two steps too. Add them all, and then attach driver for all.
 
-Thanks
+The removal need not mirror the probing ...
 
-Yinghai
+Thanks,
+Rafael
