@@ -1,24 +1,49 @@
-From: nkoffi396@gmail.com
-Subject: Advise to invest in your Country
-Date: Mon, 30 Dec 2013 10:05:50 -0800
-Message-ID: <EMAILrXWWKCSxQaWutz00017d9a@email.bec.local>
-Reply-To: norkoffi@aim.com
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH][tentative] PCI / ACPI: Rework PCI host bridge removal to
+ avoid sysfs warnings
+Date: Tue, 31 Dec 2013 10:45:46 -0800
+Message-ID: <CAE9FiQVEqnWm1j0GckuNsD_FTPxWahZpCnF79sNgKN-JnCDT+w@mail.gmail.com>
+References: <37552283.kG1L4S8Daa@vostro.rjw.lan>
+	<CAE9FiQXCzRNGbUpXDv3c9RDV4quV2b3gkrpjpPpxYzBH-p35jw@mail.gmail.com>
+	<1460504.iemmv1nFbi@vostro.rjw.lan>
+	<31566676.sHXhScpSQ6@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from email.bec.com.ve ([200.44.146.30]:35462 "EHLO email.bec.local"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932420Ab3LaAQ5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Dec 2013 19:16:57 -0500
-Content-Description: Mail message body
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <31566676.sHXhScpSQ6@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Tejun Heo <tj@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Dear Friend,
+On Mon, Dec 30, 2013 at 5:15 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Monday, December 30, 2013 01:51:28 PM Rafael J. Wysocki wrote:
+>> > We have patches that need to stop ioapic and iommu between
+>> > pci_stop_root_bus and pci_remove_root_bus.
+>
+> BTW, what *exactly* do they need to be stopped between?  After these two patches:
 
-I need someone in your Country I want to invest 30MillionEuros. For more info send me your telephone number for conversation to enable us have a concrete discussion and meeting.
+need to stop regular pci drivers before stop "driver" for ioapic/dmar.
 
-Best Regards
-Mr.Norbert Koffi 
+>
+>> > Please check if the problem still happen after
+>> >
+>> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=c4a0a5d964e90b93eb4101c3927b788e083e530f
+>> >
+>> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=e3b439e1d315aff59c1b4f0fc43c5cd2d82b4138
+>
+> pci_stop_root_bus() is just a walk over devices on the root bus stopping
+> them and pci_remove_root_bus() starts with the removal of those devices.
+>
+> Surely, those two list walks can be combined into one?
+
+maybe ok, but we have to problem to make sure stop pci drivers before
+"driver" for ioapic/dmar.
+
+also stop all first and remove all make it much cleaner.
+
+and add path is two steps too. Add them all, and then attach driver for all.
+
+Thanks
+
+Yinghai
