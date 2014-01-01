@@ -1,275 +1,29 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH][update 2] ACPIPHP / radeon / nouveau: Fix VGA switcheroo problem related to hotplug
-Date: Tue, 31 Dec 2013 22:14:32 +0100
-Message-ID: <15972921.jFQXWrkyOJ@vostro.rjw.lan>
-References: <10163453.2AxBLHI1XI@vostro.rjw.lan> <3135179.iXEx1Rk87m@vostro.rjw.lan>
+From: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH 04/14] ACPI: Add ACPI 5.0 Time and Alarm Device driver
+Date: Tue, 31 Dec 2013 16:42:35 -0800
+Message-ID: <52C3647B.7000708@zytor.com>
+References: <1387439515-8926-1-git-send-email-jlee@suse.com>	 <1387439515-8926-5-git-send-email-jlee@suse.com>	 <52B30F43.1060306@zytor.com> <1387518099.3539.4453.camel@linux-s257.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59544 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754838Ab3LaVAz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Dec 2013 16:00:55 -0500
-In-Reply-To: <3135179.iXEx1Rk87m@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1387518099.3539.4453.camel-ONCj+Eqt86TasUa73XJKwA@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: joeyli <jlee-IBi9RG/b67k@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Matt Fleming <matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>, Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>, Elliott-VXdhtT5mjnY@public.gmane.org, samer.el-haj-mahmoud-VXdhtT5mjnY@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, werner-IBi9RG/b67k@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mike Lothian <mike@fireburn.co.uk>, madcatx@atlas.cz, Alex Deucher <alexdeucher@gmail.com>, Dave Airlie <airlied@linux.ie>, Takashi Iwai <tiwai@suse.de>, =?ISO-8859-1?Q?Joaqu=EDn_Aramend=EDa?= <samsagax@gmail.com>
 
-=46rom: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 12/19/2013 09:41 PM, joeyli wrote:
+>>
+>> What platform do you have that has TAD support?  I am wondering how this
+>> was tested.
+>>
+> 
+> It's a testing platform that's only support get/set time functions of
+> ACPI TAD.
+> 
 
-The changes in the ACPI-based PCI hotplug (ACPIPHP) subsystem made
-during the 3.12 development cycle uncovered a problem with VGA
-switcheroo that on some systems, when the device-specific method
-(ATPX in the radeon case, _DSM in the nouveau case) is used to turn
-off the discrete graphics, the BIOS generates ACPI hotplug events for
-that device and those events cause ACPIPHP to attempt to remove the
-device from the system (they are events for a device that was present
-previously and is not present any more, so that's what should be done
-according to the spec).  Then, the system stops functioning correctly.
+It would be really, really good to get this into Qemu (either SeaBIOS or
+OVMF, or ideally both) so we can have anyone test.
 
-Since the hotplug events in question were simply silently ignored
-previously, the least intrusive way to address that problem is to
-make ACPIPHP ignore them again.  For this purpose, introduce a new
-ACPI device flag, no_hotplug, and modify ACPIPHP to ignore hotplug
-events for PCI devices whose ACPI companions have that flag set.
-Next, make the radeon and nouveau switcheroo detection code set the
-no_hotplug flag for the discrete graphics' ACPI companion.
-
-=46ixes: bbd34fcdd1b2 (ACPI / hotplug / PCI: Register all devices under=
- the given bridge)
-References: https://bugzilla.kernel.org/show_bug.cgi?id=3D61891
-References: https://bugzilla.kernel.org/show_bug.cgi?id=3D64891
-Reported-and-tested-by: Mike Lothian <mike@fireburn.co.uk>
-Reported-and-tested-by: <madcatx@atlas.cz>
-Reported-and-tested-by: Joaqu=C3=ADn Aramend=C3=ADa <samsagax@gmail.com=
->
-Cc: Alex Deucher <alexdeucher@gmail.com>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Takashi Iwai <tiwai@suse.de>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: 3.12+ <stable@vger.kernel.org> # 3.12+
----
-
-Hi All,
-
-One more update here.  Because the device the hotplug events are genera=
-ted for
-may be either the one with the "switching" ACPI method (ATPX or _DSM) o=
-r the
-second one, no_hotplug needs to be set for the both of them.
-
-This version has been retested and appears to work for both the radeon =
-and
-nouveau cases.
-
-Thanks and Happy New Year,
-Rafael
-
----
- drivers/acpi/bus.c                           |   10 ++++++++++
- drivers/gpu/drm/nouveau/nouveau_acpi.c       |   16 ++++++++++++++--
- drivers/gpu/drm/radeon/radeon_atpx_handler.c |   16 ++++++++++++++--
- drivers/pci/hotplug/acpiphp_glue.c           |   26 ++++++++++++++++++=
-+++++---
- include/acpi/acpi_bus.h                      |    4 +++-
- 5 files changed, 64 insertions(+), 8 deletions(-)
-
-Index: linux-pm/drivers/gpu/drm/radeon/radeon_atpx_handler.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-pm.orig/drivers/gpu/drm/radeon/radeon_atpx_handler.c
-+++ linux-pm/drivers/gpu/drm/radeon/radeon_atpx_handler.c
-@@ -33,6 +33,7 @@ static struct radeon_atpx_priv {
- 	bool atpx_detected;
- 	/* handle for device - and atpx */
- 	acpi_handle dhandle;
-+	acpi_handle other_handle;
- 	struct radeon_atpx atpx;
- } radeon_atpx_priv;
-=20
-@@ -451,9 +452,10 @@ static bool radeon_atpx_pci_probe_handle
- 		return false;
-=20
- 	status =3D acpi_get_handle(dhandle, "ATPX", &atpx_handle);
--	if (ACPI_FAILURE(status))
-+	if (ACPI_FAILURE(status)) {
-+		radeon_atpx_priv.other_handle =3D dhandle;
- 		return false;
--
-+	}
- 	radeon_atpx_priv.dhandle =3D dhandle;
- 	radeon_atpx_priv.atpx.handle =3D atpx_handle;
- 	return true;
-@@ -530,6 +532,16 @@ static bool radeon_atpx_detect(void)
- 		printk(KERN_INFO "VGA switcheroo: detected switching method %s handl=
-e\n",
- 		       acpi_method_name);
- 		radeon_atpx_priv.atpx_detected =3D true;
-+		/*
-+		 * On some systems hotplug events are generated for the device
-+		 * being switched off when ATPX is executed.  They cause ACPI
-+		 * hotplug to trigger and attempt to remove the device from
-+		 * the system, which causes it to break down.  Prevent that from
-+		 * happening by setting the no_hotplug flag for the involved
-+		 * ACPI device objects.
-+		 */
-+		acpi_bus_no_hotplug(radeon_atpx_priv.dhandle);
-+		acpi_bus_no_hotplug(radeon_atpx_priv.other_handle);
- 		return true;
- 	}
- 	return false;
-Index: linux-pm/drivers/gpu/drm/nouveau/nouveau_acpi.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-pm.orig/drivers/gpu/drm/nouveau/nouveau_acpi.c
-+++ linux-pm/drivers/gpu/drm/nouveau/nouveau_acpi.c
-@@ -51,6 +51,7 @@ static struct nouveau_dsm_priv {
- 	bool dsm_detected;
- 	bool optimus_detected;
- 	acpi_handle dhandle;
-+	acpi_handle other_handle;
- 	acpi_handle rom_handle;
- } nouveau_dsm_priv;
-=20
-@@ -260,9 +261,10 @@ static int nouveau_dsm_pci_probe(struct
- 	if (!dhandle)
- 		return false;
-=20
--	if (!acpi_has_method(dhandle, "_DSM"))
-+	if (!acpi_has_method(dhandle, "_DSM")) {
-+		nouveau_dsm_priv.other_handle =3D dhandle;
- 		return false;
--
-+	}
- 	if (nouveau_test_dsm(dhandle, nouveau_dsm, NOUVEAU_DSM_POWER))
- 		retval |=3D NOUVEAU_DSM_HAS_MUX;
-=20
-@@ -338,6 +340,16 @@ static bool nouveau_dsm_detect(void)
- 		printk(KERN_INFO "VGA switcheroo: detected DSM switching method %s h=
-andle\n",
- 			acpi_method_name);
- 		nouveau_dsm_priv.dsm_detected =3D true;
-+		/*
-+		 * On some systems hotplug events are generated for the device
-+		 * being switched off when _DSM is executed.  They cause ACPI
-+		 * hotplug to trigger and attempt to remove the device from
-+		 * the system, which causes it to break down.  Prevent that from
-+		 * happening by setting the no_hotplug flag for the involved
-+		 * ACPI device objects.
-+		 */
-+		acpi_bus_no_hotplug(nouveau_dsm_priv.dhandle);
-+		acpi_bus_no_hotplug(nouveau_dsm_priv.other_handle);
- 		ret =3D true;
- 	}
-=20
-Index: linux-pm/include/acpi/acpi_bus.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -169,7 +169,8 @@ struct acpi_device_flags {
- 	u32 ejectable:1;
- 	u32 power_manageable:1;
- 	u32 match_driver:1;
--	u32 reserved:27;
-+	u32 no_hotplug:1;
-+	u32 reserved:26;
- };
-=20
- /* File System */
-@@ -344,6 +345,7 @@ extern struct kobject *acpi_kobj;
- extern int acpi_bus_generate_netlink_event(const char*, const char*, u=
-8, int);
- void acpi_bus_private_data_handler(acpi_handle, void *);
- int acpi_bus_get_private_data(acpi_handle, void **);
-+void acpi_bus_no_hotplug(acpi_handle handle);
- extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
- extern int register_acpi_notifier(struct notifier_block *);
- extern int unregister_acpi_notifier(struct notifier_block *);
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -643,6 +643,24 @@ static void disable_slot(struct acpiphp_
- 	slot->flags &=3D (~SLOT_ENABLED);
- }
-=20
-+static bool acpiphp_no_hotplug(acpi_handle handle)
-+{
-+	struct acpi_device *adev =3D NULL;
-+
-+	acpi_bus_get_device(handle, &adev);
-+	return adev && adev->flags.no_hotplug;
-+}
-+
-+static bool slot_no_hotplug(struct acpiphp_slot *slot)
-+{
-+	struct acpiphp_func *func;
-+
-+	list_for_each_entry(func, &slot->funcs, sibling)
-+		if (acpiphp_no_hotplug(func_to_handle(func)))
-+			return true;
-+
-+	return false;
-+}
-=20
- /**
-  * get_slot_status - get ACPI slot status
-@@ -701,7 +719,8 @@ static void trim_stale_devices(struct pc
- 		unsigned long long sta;
-=20
- 		status =3D acpi_evaluate_integer(handle, "_STA", NULL, &sta);
--		alive =3D ACPI_SUCCESS(status) && sta =3D=3D ACPI_STA_ALL;
-+		alive =3D (ACPI_SUCCESS(status) && sta =3D=3D ACPI_STA_ALL)
-+			|| acpiphp_no_hotplug(handle);
- 	}
- 	if (!alive) {
- 		u32 v;
-@@ -741,8 +760,9 @@ static void acpiphp_check_bridge(struct
- 		struct pci_dev *dev, *tmp;
-=20
- 		mutex_lock(&slot->crit_sect);
--		/* wake up all functions */
--		if (get_slot_status(slot) =3D=3D ACPI_STA_ALL) {
-+		if (slot_no_hotplug(slot)) {
-+			; /* do nothing */
-+		} else if (get_slot_status(slot) =3D=3D ACPI_STA_ALL) {
- 			/* remove stale devices if any */
- 			list_for_each_entry_safe(dev, tmp, &bus->devices,
- 						 bus_list)
-Index: linux-pm/drivers/acpi/bus.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-pm.orig/drivers/acpi/bus.c
-+++ linux-pm/drivers/acpi/bus.c
-@@ -156,6 +156,16 @@ int acpi_bus_get_private_data(acpi_handl
- }
- EXPORT_SYMBOL(acpi_bus_get_private_data);
-=20
-+void acpi_bus_no_hotplug(acpi_handle handle)
-+{
-+	struct acpi_device *adev =3D NULL;
-+
-+	acpi_bus_get_device(handle, &adev);
-+	if (adev)
-+		adev->flags.no_hotplug =3D true;
-+}
-+EXPORT_SYMBOL_GPL(acpi_bus_no_hotplug);
-+
- static void acpi_print_osc_error(acpi_handle handle,
- 	struct acpi_osc_context *context, char *error)
- {
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	-hpa
