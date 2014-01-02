@@ -1,29 +1,86 @@
-From: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH 04/14] ACPI: Add ACPI 5.0 Time and Alarm Device driver
-Date: Tue, 31 Dec 2013 16:42:35 -0800
-Message-ID: <52C3647B.7000708@zytor.com>
-References: <1387439515-8926-1-git-send-email-jlee@suse.com>	 <1387439515-8926-5-git-send-email-jlee@suse.com>	 <52B30F43.1060306@zytor.com> <1387518099.3539.4453.camel@linux-s257.site>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1387518099.3539.4453.camel-ONCj+Eqt86TasUa73XJKwA@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: joeyli <jlee-IBi9RG/b67k@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Matt Fleming <matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>, Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>, Elliott-VXdhtT5mjnY@public.gmane.org, samer.el-haj-mahmoud-VXdhtT5mjnY@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, werner-IBi9RG/b67k@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH] ACPI/Battery: Add a _BIX quirk for NEC LZ750/LS
+Date: Thu,  2 Jan 2014 15:37:57 +0800
+Message-ID: <1388648277-23453-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: lenb@kernel.org, rjw@rjwysocki.net
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, fcr@adinet.com.uy, "3.8+" <stable@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/19/2013 09:41 PM, joeyli wrote:
->>
->> What platform do you have that has TAD support?  I am wondering how this
->> was tested.
->>
-> 
-> It's a testing platform that's only support get/set time functions of
-> ACPI TAD.
-> 
+The aml method _BIX of NEC LZ750/LS returns a broken package which
+skip the first member "Revision" according ACPI 5.0 spec Table 10-234.
 
-It would be really, really good to get this into Qemu (either SeaBIOS or
-OVMF, or ideally both) so we can have anyone test.
+This patch is to add a quirk for this machine to skip member "Revision"
+during parsing _BIX returned package.
 
-	-hpa
+Reported-and-tested-by: Francisco Castro <fcr@adinet.com.uy>
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=67351
+Cc: 3.8+ <stable@vger.kernel.org>
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/acpi/battery.c |   28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index fbf1ace..3d64a87 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -62,6 +62,7 @@ MODULE_AUTHOR("Alexey Starikovskiy <astarikovskiy@suse.de>");
+ MODULE_DESCRIPTION("ACPI Battery Driver");
+ MODULE_LICENSE("GPL");
+ 
++static int battery_bix_broken_package;
+ static unsigned int cache_time = 1000;
+ module_param(cache_time, uint, 0644);
+ MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+@@ -416,7 +417,12 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
+ 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating %s", name));
+ 		return -ENODEV;
+ 	}
+-	if (test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags))
++
++	if (battery_bix_broken_package)
++		result = extract_package(battery, buffer.pointer,
++				extended_info_offsets + 1,
++				ARRAY_SIZE(extended_info_offsets) - 1);
++	else if (test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags))
+ 		result = extract_package(battery, buffer.pointer,
+ 				extended_info_offsets,
+ 				ARRAY_SIZE(extended_info_offsets));
+@@ -754,6 +760,24 @@ static int battery_notify(struct notifier_block *nb,
+ 	return 0;
+ }
+ 
++static int battery_bix_package_quirk(const struct dmi_system_id *id)
++{
++	battery_bix_broken_package = 1;
++	return 0;
++}
++
++static struct dmi_system_id bat_dmi_table[] = {
++	{
++	.callback = battery_bix_package_quirk,
++	.ident = "NEC LZ750/LS",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "NEC"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "PC-LZ750LS"),
++		},
++	},
++	{},
++};
++
+ static int acpi_battery_add(struct acpi_device *device)
+ {
+ 	int result = 0;
+@@ -846,6 +870,8 @@ static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
+ {
+ 	if (acpi_disabled)
+ 		return;
++
++	dmi_check_system(bat_dmi_table);
+ 	acpi_bus_register_driver(&acpi_battery_driver);
+ }
+ 
+-- 
+1.7.9.5
