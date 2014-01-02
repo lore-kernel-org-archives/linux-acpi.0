@@ -1,45 +1,57 @@
-From: Laura Abbott <lauraa@codeaurora.org>
-Subject: [RFC PATCHv3 01/11] mce: acpi/apei: Use get_vm_area directly
-Date: Thu,  2 Jan 2014 13:53:19 -0800
-Message-ID: <1388699609-18214-2-git-send-email-lauraa@codeaurora.org>
-References: <1388699609-18214-1-git-send-email-lauraa@codeaurora.org>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1388699609-18214-1-git-send-email-lauraa@codeaurora.org>
-Sender: owner-linux-mm@kvack.org
-To: Andrew Morton <akpm@linux-foundation.org>, Kyungmin Park <kmpark@infradead.org>, Dave Hansen <dave@sr71.net>, linux-mm@kvack.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-kernel@vger.kernel.org, Laura Abbott <lauraa@codeaurora.org>, linux-acpi@vger.kernel.org
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH][tentative] PCI / ACPI: Rework PCI host bridge removal to
+ avoid sysfs warnings
+Date: Thu, 2 Jan 2014 14:47:04 -0800
+Message-ID: <CAE9FiQXQuX5EOE1jbXfK+G1mf9q=4-fpw1jNs38sza9tcPtqMg@mail.gmail.com>
+References: <37552283.kG1L4S8Daa@vostro.rjw.lan>
+	<31566676.sHXhScpSQ6@vostro.rjw.lan>
+	<CAE9FiQVEqnWm1j0GckuNsD_FTPxWahZpCnF79sNgKN-JnCDT+w@mail.gmail.com>
+	<6023795.zgEUjY5fWb@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <6023795.zgEUjY5fWb@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Tejun Heo <tj@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-There's no need to use VMALLOC_START and VMALLOC_END with
-__get_vm_area when get_vm_area does the exact same thing.
-Convert over.
+On Tue, Dec 31, 2013 at 1:03 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, December 31, 2013 10:45:46 AM Yinghai Lu wrote:
+>> On Mon, Dec 30, 2013 at 5:15 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> > On Monday, December 30, 2013 01:51:28 PM Rafael J. Wysocki wrote:
+>> >> > We have patches that need to stop ioapic and iommu between
+>> >> > pci_stop_root_bus and pci_remove_root_bus.
+>> >
+>> > BTW, what *exactly* do they need to be stopped between?  After these two patches:
+>>
+>> need to stop regular pci drivers before stop "driver" for ioapic/dmar.
+>>
+>> >
+>> >> > Please check if the problem still happen after
+>> >> >
+>> >> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=c4a0a5d964e90b93eb4101c3927b788e083e530f
+>> >> >
+>> >> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=e3b439e1d315aff59c1b4f0fc43c5cd2d82b4138
+>> >
+>> > pci_stop_root_bus() is just a walk over devices on the root bus stopping
+>> > them and pci_remove_root_bus() starts with the removal of those devices.
+>> >
+>> > Surely, those two list walks can be combined into one?
+>>
+>> maybe ok, but we have to problem to make sure stop pci drivers before
+>> "driver" for ioapic/dmar.
+>
+> That's fine, but ioapic/dmar stopping need not happen between the stopping of
+> drivers and removing of devices on the root bus I suppose?
+>
+> Actually, I think that the ioapic/dmar stopping should be carried out after
+> removing all of the root bus devices, or it can be racy with respect to a
+> driver reload.  Isn't that the case?
 
-Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
----
- drivers/acpi/apei/ghes.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+No. It should be before removing all root bus devices.
+as they need to access the pci devices during stop ioapic and dmar.
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index a30bc31..6e784b7 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -149,8 +149,8 @@ static atomic_t ghes_estatus_cache_alloced;
- 
- static int ghes_ioremap_init(void)
- {
--	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
--		VM_IOREMAP, VMALLOC_START, VMALLOC_END);
-+	ghes_ioremap_area = get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
-+		VM_IOREMAP);
- 	if (!ghes_ioremap_area) {
- 		pr_err(GHES_PFX "Failed to allocate virtual memory area for atomic ioremap.\n");
- 		return -ENOMEM;
--- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-hosted by The Linux Foundation
+Also ioapic itself could one one pci device.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Yinghai
