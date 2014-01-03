@@ -1,71 +1,81 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v5 25/33] PCI, x86: Make ioapic hotplug support built-in
-Date: Fri, 3 Jan 2014 15:47:13 -0700
-Message-ID: <20140103224713.GC18987@google.com>
-References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
- <1388707565-16535-26-git-send-email-yinghai@kernel.org>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] ACPI/Battery: Add a _BIX quirk for NEC LZ750/LS
+Date: Fri, 3 Jan 2014 15:12:50 -0800
+Message-ID: <20140103231250.GD13489@core.coreip.homeip.net>
+References: <1388648277-23453-1-git-send-email-tianyu.lan@intel.com>
+ <20140103190033.GA20314@dorilex-lnv.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1388707565-16535-26-git-send-email-yinghai@kernel.org>
+In-Reply-To: <20140103190033.GA20314@dorilex-lnv.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Leandro Dorileo <l@dorileo.org>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, fcr@adinet.com.uy, "3.8+" <stable@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-[fixed Rafael's email address; I imagine you got a few bounces :)]
-
-On Thu, Jan 02, 2014 at 04:05:57PM -0800, Yinghai Lu wrote:
-> ioapic hotplug should be built-in like pci root bus hotplug.
+On Fri, Jan 03, 2014 at 05:01:11PM -0200, Leandro Dorileo wrote:
+> On Thu, Jan 02, 2014 at 03:37:57PM +0800, Lan Tianyu wrote:
+> > The aml method _BIX of NEC LZ750/LS returns a broken package which
+> > skip the first member "Revision" according ACPI 5.0 spec Table 10-234.
+> > 
+> > This patch is to add a quirk for this machine to skip member "Revision"
+> > during parsing _BIX returned package.
+> > 
+> > Reported-and-tested-by: Francisco Castro <fcr@adinet.com.uy>
+> > Reference: https://bugzilla.kernel.org/show_bug.cgi?id=67351
+> > Cc: 3.8+ <stable@vger.kernel.org>
+> > Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> > ---
+> >  drivers/acpi/battery.c |   28 +++++++++++++++++++++++++++-
+> >  1 file changed, 27 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> > index fbf1ace..3d64a87 100644
+> > --- a/drivers/acpi/battery.c
+> > +++ b/drivers/acpi/battery.c
+> > @@ -62,6 +62,7 @@ MODULE_AUTHOR("Alexey Starikovskiy <astarikovskiy@suse.de>");
+> >  MODULE_DESCRIPTION("ACPI Battery Driver");
+> >  MODULE_LICENSE("GPL");
+> >  
+> > +static int battery_bix_broken_package;
+> >  static unsigned int cache_time = 1000;
+> >  module_param(cache_time, uint, 0644);
+> >  MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+> > @@ -416,7 +417,12 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
+> >  		ACPI_EXCEPTION((AE_INFO, status, "Evaluating %s", name));
+> >  		return -ENODEV;
+> >  	}
+> > -	if (test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags))
+> > +
+> > +	if (battery_bix_broken_package)
+> > +		result = extract_package(battery, buffer.pointer,
+> > +				extended_info_offsets + 1,
+> > +				ARRAY_SIZE(extended_info_offsets) - 1);
+> > +	else if (test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags))
+> >  		result = extract_package(battery, buffer.pointer,
+> >  				extended_info_offsets,
+> >  				ARRAY_SIZE(extended_info_offsets));
+> > @@ -754,6 +760,24 @@ static int battery_notify(struct notifier_block *nb,
+> >  	return 0;
+> >  }
+> >  
+> > +static int battery_bix_package_quirk(const struct dmi_system_id *id)
+> > +{
+> > +	battery_bix_broken_package = 1;
+> > +	return 0;
+> > +}
+> > +
 > 
-> Also need to make it depends on X86_IO_APIC.
 > 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-
-Most of this series is x86-specific and outside the scope of PCI, so I
-assume somebody else will deal with it.
-
-This particular patch doesn't seem to depend on anything else, so I'll
-merge it.
-
-> ---
->  drivers/pci/Kconfig  | 3 ++-
->  drivers/pci/ioapic.c | 6 +++++-
->  2 files changed, 7 insertions(+), 2 deletions(-)
+> Do you really need this callback? Why don't you just do:
 > 
-> diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-> index b6a99f7..893503f 100644
-> --- a/drivers/pci/Kconfig
-> +++ b/drivers/pci/Kconfig
-> @@ -105,9 +105,10 @@ config PCI_PASID
->  	  If unsure, say N.
->  
->  config PCI_IOAPIC
-> -	tristate "PCI IO-APIC hotplug support" if X86
-> +	bool "PCI IO-APIC hotplug support" if X86
->  	depends on PCI
->  	depends on ACPI
-> +	depends on X86_IO_APIC
->  	default !X86
->  
->  config PCI_LABEL
-> diff --git a/drivers/pci/ioapic.c b/drivers/pci/ioapic.c
-> index 50ce680..2c2930e 100644
-> --- a/drivers/pci/ioapic.c
-> +++ b/drivers/pci/ioapic.c
-> @@ -113,6 +113,10 @@ static struct pci_driver ioapic_driver = {
->  	.remove		= ioapic_remove,
->  };
->  
-> -module_pci_driver(ioapic_driver);
-> +static int __init ioapic_init(void)
-> +{
-> +	return pci_register_driver(&ioapic_driver);
-> +}
-> +module_init(ioapic_init);
->  
->  MODULE_LICENSE("GPL");
-> -- 
-> 1.8.4
+> if (dmi_check_system(bat_dmi_table))
+>        battery_bix_broken_package = 1;
 > 
+
+Callback would be useful if we were to print the DMI data of the match,
+otherwise not so much.
+
+-- 
+Dmitry
