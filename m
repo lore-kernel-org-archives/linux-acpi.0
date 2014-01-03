@@ -1,64 +1,61 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH][tentative] PCI / ACPI: Rework PCI host bridge removal to avoid sysfs warnings
-Date: Fri, 03 Jan 2014 01:45:28 +0100
-Message-ID: <2459491.HIKjAnF27k@vostro.rjw.lan>
-References: <37552283.kG1L4S8Daa@vostro.rjw.lan> <6023795.zgEUjY5fWb@vostro.rjw.lan> <CAE9FiQXQuX5EOE1jbXfK+G1mf9q=4-fpw1jNs38sza9tcPtqMg@mail.gmail.com>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [RFC PATCHv3 01/11] mce: acpi/apei: Use get_vm_area directly
+Date: Thu, 2 Jan 2014 21:33:46 -0500
+Message-ID: <20140103023346.GC1913@gchen.bj.intel.com>
+References: <1388699609-18214-1-git-send-email-lauraa@codeaurora.org>
+ <1388699609-18214-2-git-send-email-lauraa@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50655 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752661AbaACAbq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jan 2014 19:31:46 -0500
-In-Reply-To: <CAE9FiQXQuX5EOE1jbXfK+G1mf9q=4-fpw1jNs38sza9tcPtqMg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4ZLFUWh1odzi/v6L"
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <1388699609-18214-2-git-send-email-lauraa@codeaurora.org>
+Sender: owner-linux-mm@kvack.org
+To: Laura Abbott <lauraa@codeaurora.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Kyungmin Park <kmpark@infradead.org>, Dave Hansen <dave@sr71.net>, linux-mm@kvack.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Tejun Heo <tj@kernel.org>
 
-On Thursday, January 02, 2014 02:47:04 PM Yinghai Lu wrote:
-> On Tue, Dec 31, 2013 at 1:03 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Tuesday, December 31, 2013 10:45:46 AM Yinghai Lu wrote:
-> >> On Mon, Dec 30, 2013 at 5:15 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >> > On Monday, December 30, 2013 01:51:28 PM Rafael J. Wysocki wrote:
-> >> >> > We have patches that need to stop ioapic and iommu between
-> >> >> > pci_stop_root_bus and pci_remove_root_bus.
-> >> >
-> >> > BTW, what *exactly* do they need to be stopped between?  After these two patches:
-> >>
-> >> need to stop regular pci drivers before stop "driver" for ioapic/dmar.
-> >>
-> >> >
-> >> >> > Please check if the problem still happen after
-> >> >> >
-> >> >> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=c4a0a5d964e90b93eb4101c3927b788e083e530f
-> >> >> >
-> >> >> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=e3b439e1d315aff59c1b4f0fc43c5cd2d82b4138
-> >> >
-> >> > pci_stop_root_bus() is just a walk over devices on the root bus stopping
-> >> > them and pci_remove_root_bus() starts with the removal of those devices.
-> >> >
-> >> > Surely, those two list walks can be combined into one?
-> >>
-> >> maybe ok, but we have to problem to make sure stop pci drivers before
-> >> "driver" for ioapic/dmar.
-> >
-> > That's fine, but ioapic/dmar stopping need not happen between the stopping of
-> > drivers and removing of devices on the root bus I suppose?
-> >
-> > Actually, I think that the ioapic/dmar stopping should be carried out after
-> > removing all of the root bus devices, or it can be racy with respect to a
-> > driver reload.  Isn't that the case?
-> 
-> No. It should be before removing all root bus devices.
-> as they need to access the pci devices during stop ioapic and dmar.
-> 
-> Also ioapic itself could one one pci device.
 
-Well, if we stop drivers first, then stop ioapic/dmar and *then* remove
-devices, it is possible to rebind a driver to a device after ioapic/dmar has
-been stopped, which I guess will not lead to anything nice?
+--4ZLFUWh1odzi/v6L
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Rafael
+On Thu, Jan 02, 2014 at 01:53:19PM -0800, Laura Abbott wrote:
+> There's no need to use VMALLOC_START and VMALLOC_END with
+> __get_vm_area when get_vm_area does the exact same thing.
+> Convert over.
+>=20
+> Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
 
+Ack-by: Chen, Gong <gong.chen@linux.intel.com>
+
+--4ZLFUWh1odzi/v6L
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSxiGJAAoJEI01n1+kOSLHHnMQAJUYxbX5bO/DCVMasvDbRMjl
+Asjtkqf8Dzn4l7AN0InmuPUXLvRSDVMwUdtJYIyYr62G9JiySIpLeq05wloUfNnv
+9quueR51yCA0y+z18/ImcXD+LBt8YVxwo4oaXNByCy+eq7tWvZ0hXe76g5gUL+f5
+053GWAGlxtHAtKm4JCLBx/IxXmC8Y2FleIhacOEv3ernN4FjBbziudy5wSVhy5hh
+NT40Scj1MxVXR7afDYzEodLbVpx+e7Voxa+vuNBVoIaT9GCt6FF1DrTOIStSq5CA
+29QI8CsP5NCkpEqdpzpnb+EzfFFmwIt3q1XCtrfn3oQVaUARh9uhBib1cV2zygzo
+IDmWYzQa97wqGZyydKLXTEPoWO63WRQrIKdcZGLS5rS+2NurgyrsCKBqHWkRY41t
+UblgPJWLfD0XBqplpTfq1WvO9bauneZJ9J++4/HOInAxUYRc4QfBmxdE3ipSWOBM
+EI8NuqhVlvX9LC6uD49F7i+ugT3l/OHaX3laYBj9xMmbPmdhT4hVVxjfPCI3Eh7e
+Be4fI4xGdKK4xWYFL0ulhwktcPeFlAkFe08bhvRYN10YrYQcQ2E0UeLm+qA96Feu
+pOJWOhVffl5iCrPS1dLhyOY5AtIS7nDs4Kgd489UT/a4x2QIx0+pRAHoMoY5Kg85
+yegIXOfeMuSQLN09+wvq
+=xoax
+-----END PGP SIGNATURE-----
+
+--4ZLFUWh1odzi/v6L--
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
