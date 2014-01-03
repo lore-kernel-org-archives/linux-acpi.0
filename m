@@ -1,288 +1,109 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v2 10/10] IOMMU: Add intel iommu irq-remapping and dmar hotplug support
-Date: Thu,  2 Jan 2014 16:08:17 -0800
-Message-ID: <1388707697-16800-11-git-send-email-yinghai@kernel.org>
-References: <1388707697-16800-1-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v5 22/33] x86, irq: Add mp_unregister_ioapic to handle hot-remove ioapic
+Date: Thu,  2 Jan 2014 16:05:54 -0800
+Message-ID: <1388707565-16535-23-git-send-email-yinghai@kernel.org>
+References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1388707697-16800-1-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, x86 <x86@kernel.org>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, Joerg Roedel <joro@8bytes.org>, Donald Dutile <ddutile@redhat.com>
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jiang Liu <jiang.liu@huawei.com>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 List-Id: linux-acpi@vger.kernel.org
 
-during hostbridge hotadd/hotremove, we call acpi_pci_iommu_add/remove in
-acpi_pci_root_add/remove.
-
-For add, need to after ioapic add.
-
-Run dsm in acpi root device to get iommu entries, and init dmar/irq_remapping
+It will free ioapic related irq_desc and also clear allocated_irqs bits.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
 Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Donald Dutile <ddutile@redhat.com>
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-pci@vger.kernel.org
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 ---
- drivers/acpi/pci_root.c  |   2 +
- drivers/iommu/dmar.c     | 201 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pci-acpi.h |   8 ++
- 3 files changed, 211 insertions(+)
+ arch/x86/include/asm/mpspec.h  |  1 +
+ arch/x86/kernel/apic/io_apic.c | 45 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index e666be3..dd82d8b 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -600,6 +600,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+diff --git a/arch/x86/include/asm/mpspec.h b/arch/x86/include/asm/mpspec.h
+index 59d8465..b98665f 100644
+--- a/arch/x86/include/asm/mpspec.h
++++ b/arch/x86/include/asm/mpspec.h
+@@ -97,6 +97,7 @@ static inline void early_reserve_e820_mpc_new(void) { }
+ int generic_processor_info(int apicid, int version);
+ #ifdef CONFIG_ACPI
+ int __mp_register_ioapic(int id, u32 address, u32 gsi_base, bool hot);
++int mp_unregister_ioapic(u32 gsi_base);
+ extern void mp_register_ioapic(int id, u32 address, u32 gsi_base);
+ extern void mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger,
+ 				   u32 gsi);
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 0fdda49..af6cbcd 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -334,6 +334,20 @@ static void __init reserve_ioapic_gsi_irq_extra(void)
  	}
- 
- 	acpi_pci_ioapic_add(root);
-+	acpi_pci_iommu_add(root);
- 
- 	pci_bus_add_devices(root->bus);
- 	return 1;
-@@ -615,6 +616,7 @@ static void acpi_pci_root_remove(struct acpi_device *device)
- 
- 	pci_stop_root_bus(root->bus);
- 
-+	acpi_pci_iommu_remove(root);
- 	acpi_pci_ioapic_remove(root);
- 
- 	device_set_run_wake(root->bus->bridge, false);
-diff --git a/drivers/iommu/dmar.c b/drivers/iommu/dmar.c
-index 31d7942..c74f112 100644
---- a/drivers/iommu/dmar.c
-+++ b/drivers/iommu/dmar.c
-@@ -38,6 +38,7 @@
- #include <linux/tboot.h>
- #include <linux/dmi.h>
- #include <linux/slab.h>
-+#include <acpi/acpi.h>
- #include <asm/irq_remapping.h>
- #include <asm/iommu_table.h>
- 
-@@ -1548,3 +1549,203 @@ int __init dmar_ir_support(void)
- 	return dmar->flags & 0x1;
  }
- IOMMU_INIT_POST(detect_intel_iommu);
-+
-+static u8 dmar_uuid_str[] = "D8C1A3A6-BE9B-4C9B-91BF-C3CB81FC5DAF";
-+
-+static int acpi_dmar_dsm_support(acpi_handle handle)
+ 
++static void free_ioapic_gsi_irq_base(int idx)
 +{
-+	int support = 0;
-+	struct acpi_dsm_context context = {
-+		.uuid_str = dmar_uuid_str,
-+		.rev = 1,
-+		.func_idx = 0,
-+	};
++	int i;
++	struct mp_ioapic_gsi *gsi_cfg = mp_ioapic_gsi_routing(idx);
++	int irq_base = gsi_cfg->irq_base;
++	int irq_cnt = gsi_cfg->gsi_end - gsi_cfg->gsi_base + 1;
 +
-+	if (ACPI_SUCCESS(acpi_run_dsm(handle, &context))) {
-+		u32 *ret = context.ret.pointer;
-+		support = ret[0];
-+		kfree(context.ret.pointer);
++	if (irq_base < 0)
++		return;
++
++	for (i = irq_base; i < irq_base + irq_cnt; i++)
++		free_irq_at(i, irq_get_chip_data(i));
++}
++
+ static void alloc_ioapic_saved_registers(int idx)
+ {
+ 	if (ioapics[idx].saved_registers)
+@@ -347,6 +361,11 @@ static void alloc_ioapic_saved_registers(int idx)
+ 		pr_err("IOAPIC %d: suspend/resume impossible!\n", idx);
+ }
+ 
++static void free_ioapic_saved_registers(int idx)
++{
++	kfree(ioapics[idx].saved_registers);
++}
++
+ int __init arch_early_irq_init(void)
+ {
+ 	int node = cpu_to_node(0);
+@@ -3999,6 +4018,32 @@ void mp_register_ioapic(int id, u32 address, u32 gsi_base)
+ 	__mp_register_ioapic(id, address, gsi_base, false);
+ }
+ 
++int mp_unregister_ioapic(u32 gsi_base)
++{
++	int idx;
++
++	lock_ioapics();
++
++	idx = __mp_find_ioapic(gsi_base);
++	if (idx < 0) {
++		unlock_ioapics();
++		return -EINVAL;
 +	}
++	clear_bit(idx, ioapics_mask);
 +
-+	if (support & 1)
-+		return support & 0x0e;
++	free_ioapic_saved_registers(idx);
++
++	free_ioapic_gsi_irq_base(idx);
++
++	clear_fixmap(FIX_IO_APIC_BASE_0 + idx);
++	memset(&ioapics[idx], 0, sizeof(struct ioapic));
++	nr_ioapics = bitmap_weight(ioapics_mask, MAX_IO_APICS);
++
++	unlock_ioapics();
 +
 +	return 0;
 +}
 +
-+static void *acpi_dmar_dsm_run(acpi_handle handle, int idx)
-+{
-+	struct acpi_dsm_context context = {
-+		.uuid_str = dmar_uuid_str,
-+		.rev = 1,
-+		.func_idx = idx,
-+	};
-+
-+	if (ACPI_SUCCESS(acpi_run_dsm(handle, &context)))
-+		return context.ret.pointer;
-+
-+	return NULL;
-+}
-+
-+static void handle_iommu_add(acpi_handle handle, void **d, void **a)
-+{
-+	int support;
-+	struct acpi_dmar_header *header;
-+	struct dmar_drhd_unit *dmaru = NULL;
-+	struct dmar_atsr_unit *atsru = NULL;
-+
-+	*d = NULL;
-+	*a = NULL;
-+
-+	support = acpi_dmar_dsm_support(handle);
-+
-+	if (!support)
-+		return;
-+
-+	/* DRHD */
-+	if (support & (1<<1)) {
-+		header = acpi_dmar_dsm_run(handle, 1);
-+		dmar_table_print_dmar_entry(header);
-+		__dmar_parse_one_drhd(header, &dmaru);
-+	}
-+
-+	if (!dmaru)
-+		return;
-+
-+	/* ATSR */
-+	if (support & (1<<2)) {
-+		header = acpi_dmar_dsm_run(handle, 2);
-+		dmar_table_print_dmar_entry(header);
-+		__dmar_parse_one_atsr(header, &atsru);
-+	}
-+
-+	/* RHSA */
-+	if (support & (1<<3)) {
-+		header = acpi_dmar_dsm_run(handle, 3);
-+		dmar_table_print_dmar_entry(header);
-+		dmar_parse_one_rhsa(header);
-+		kfree(header);
-+	}
-+
-+	/*
-+	 *  only need to init intr_remap and dmar for hot-add ones
-+	 *  after enable_IR() or pci_iommu_init
-+	 */
-+	/*
-+	 * TODO: handle parsing failure for pre-installed hotplug one
-+	 *	Could make every parse_one duplicate the entry table?
-+	 */
-+	if (irq_remapping_enabled == 1)
-+		intel_enable_irq_remapping_one(dmaru);
-+	if (irq_remapping_enabled == 1 || intel_iommu_enabled == 1)
-+		dmar_parse_dev(dmaru);
-+	if (intel_iommu_enabled == 1) {
-+		init_dmar_one(dmaru);
-+		if (atsru) {
-+			header = atsru->hdr;
-+			if (atsr_parse_dev(atsru)) {
-+				kfree(header);
-+				atsru = NULL;
-+			}
-+			*a = atsru;
-+		}
-+	}
-+	*d = dmaru;
-+}
-+
-+static void handle_iommu_remove(void *drhd, void *atsr)
-+{
-+	struct dmar_drhd_unit *dmaru = drhd;
-+	struct dmar_atsr_unit *atsru = atsr;
-+
-+	if (!dmaru)
-+		return;
-+
-+	if (irq_remapping_enabled == 1)
-+		disable_irq_remapping_one(dmaru);
-+	if (intel_iommu_enabled == 1) {
-+		free_dmar_iommu(dmaru->iommu);
-+		if (atsru) {
-+			kfree(atsru->devices);
-+			remove_atsru_from_saved_dev_atsru_list(atsru);
-+		}
-+	}
-+	if (irq_remapping_enabled == 1 || intel_iommu_enabled == 1) {
-+		kfree(dmaru->devices);
-+		remove_dmaru_from_saved_dev_drhd_list(dmaru);
-+	}
-+	if (atsru) {
-+		kfree(atsru->hdr);
-+		list_del(&atsru->list);
-+		kfree(atsru);
-+	}
-+	free_iommu(dmaru->iommu);
-+	kfree(dmaru->hdr);
-+	list_del(&dmaru->list);
-+	kfree(dmaru);
-+}
-+
-+struct acpi_pci_iommu {
-+	acpi_handle root_handle;
-+	void *dmaru;
-+	void *atsru;
-+	struct list_head list;
-+};
-+
-+static LIST_HEAD(iommu_list);
-+static DEFINE_MUTEX(iommu_list_lock);
-+
-+static acpi_status register_iommu(acpi_handle handle, u32 lvl,
-+				  void *context, void **rv)
-+{
-+	acpi_handle root_handle = context;
-+	void *dmaru, *atsru;
-+	struct acpi_pci_iommu *iommu;
-+
-+	handle_iommu_add(handle, &dmaru, &atsru);
-+	if (!dmaru)
-+		return AE_OK;
-+
-+	iommu = kzalloc(sizeof(*iommu), GFP_KERNEL);
-+	if (!iommu) {
-+		pr_err("%s: cannot allocate memory\n", __func__);
-+		handle_iommu_remove(dmaru, atsru);
-+		return AE_OK;
-+	}
-+	iommu->root_handle = root_handle;
-+	iommu->dmaru = dmaru;
-+	iommu->atsru = atsru;
-+
-+	mutex_lock(&iommu_list_lock);
-+	list_add(&iommu->list, &iommu_list);
-+	mutex_unlock(&iommu_list_lock);
-+
-+	return AE_OK;
-+}
-+
-+void acpi_pci_iommu_add(struct acpi_pci_root *root)
-+{
-+	acpi_status status;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device->handle,
-+				     (u32)1, register_iommu, NULL,
-+				     root->device->handle,
-+				     NULL);
-+	if (ACPI_FAILURE(status))
-+		pr_err("%s: register_iommu failure - %d", __func__, status);
-+}
-+
-+void acpi_pci_iommu_remove(struct acpi_pci_root *root)
-+{
-+	struct acpi_pci_iommu *iommu, *tmp;
-+
-+	mutex_lock(&iommu_list_lock);
-+	list_for_each_entry_safe(iommu, tmp, &iommu_list, list) {
-+		if (root->device->handle != iommu->root_handle)
-+			continue;
-+		list_del(&iommu->list);
-+		handle_iommu_remove(iommu->dmaru, iommu->atsru);
-+		kfree(iommu);
-+	}
-+	mutex_unlock(&iommu_list_lock);
-+}
-diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-index d2a976a..f00a89f 100644
---- a/include/linux/pci-acpi.h
-+++ b/include/linux/pci-acpi.h
-@@ -86,4 +86,12 @@ extern bool aer_acpi_firmware_first(void);
- static inline bool aer_acpi_firmware_first(void) { return false; }
- #endif
- 
-+#ifdef CONFIG_DMAR_TABLE
-+void acpi_pci_iommu_add(struct acpi_pci_root *root);
-+void acpi_pci_iommu_remove(struct acpi_pci_root *root);
-+#else
-+static inline void acpi_pci_iommu_add(struct acpi_pci_root *root) { }
-+static inline void acpi_pci_iommu_remove(struct acpi_pci_root *root) { }
-+#endif
-+
- #endif	/* _PCI_ACPI_H_ */
+ /* Enable IOAPIC early just for system timer */
+ void __init pre_init_apic_IRQ0(void)
+ {
 -- 
 1.8.4
