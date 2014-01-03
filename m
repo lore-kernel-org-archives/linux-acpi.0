@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v5 02/33] genirq: Add irq_alloc_reserved_desc()
-Date: Thu,  2 Jan 2014 16:05:34 -0800
-Message-ID: <1388707565-16535-3-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v5 17/33] x86, irq: Reserve irq range and alloc_reserved for booting path
+Date: Thu,  2 Jan 2014 16:05:49 -0800
+Message-ID: <1388707565-16535-18-git-send-email-yinghai@kernel.org>
 References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
@@ -10,87 +10,149 @@ To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 List-Id: linux-acpi@vger.kernel.org
 
-For ioapic hot-add support, it would be easy if we have continuous
-irq numbers for hot added ioapic controller.
+We will use reserve and alloc_reserved_irq_and_cfg_at for hotplug ioapic path.
 
-We can reserve irq range at first, and later allocate desc for those
-pre-reserved irqs when they are needed.
+To make thing simple, we could make booting path use same code.
 
-The reasons for not allocating them during reserving:
-1. only several pins of one ioapic are used, allocate for all pins, will
-   waste memory for not used pins.
-2. allocate later when is needed could make sure irq_desc is allocated
-   on local node ram, as dev->node is set at that point.
-
--v2: update changelog by adding reasons, requested by Konrad.
--v3: according to tglx:
-       separate core code change with arch code change.
-       change function name to irq_alloc_reserved_desc.
-       kill __irq_is_reserved().
-       remove not need exports.
-     according to Sebastian:
-       spare one comments by put two functions together.
+All irq range for all GSIs will be reserved at first, and alloc_reserved
+will really allocate those irq_desc/cfg when it is used.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Joerg Roedel <joro@8bytes.org>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 ---
- include/linux/irq.h  |  3 +++
- kernel/irq/irqdesc.c | 23 +++++++++++++++++++++++
- 2 files changed, 26 insertions(+)
+ arch/x86/include/asm/io_apic.h |  1 +
+ arch/x86/kernel/apic/io_apic.c | 80 +++++++++++++++++++++++++++++++-----------
+ 2 files changed, 60 insertions(+), 21 deletions(-)
 
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index 0229caf..e5f6493 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -595,10 +595,13 @@ static inline u32 irq_get_trigger_type(unsigned int irq)
+diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
+index eaff3ad..8181fd8 100644
+--- a/arch/x86/include/asm/io_apic.h
++++ b/arch/x86/include/asm/io_apic.h
+@@ -176,6 +176,7 @@ extern void setup_ioapic_ids_from_mpc_nocheck(void);
+ struct mp_ioapic_gsi{
+ 	u32 gsi_base;
+ 	u32 gsi_end;
++	u32 irq_base;
+ };
+ extern struct mp_ioapic_gsi  mp_gsi_routing[];
+ extern u32 gsi_top;
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index c94dd19..a1af837 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -280,8 +280,47 @@ static struct irq_cfg *alloc_reserved_irq_and_cfg_at(unsigned int at, int node)
+ 	return alloc_irq_and_cfg_at(at, node);
+ }
  
- int __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
- 		struct module *owner);
-+int __irq_alloc_reserved_desc(int at, int node, struct module *owner);
- 
- /* use macros to avoid needing export.h for THIS_MODULE */
- #define irq_alloc_descs(irq, from, cnt, node)	\
- 	__irq_alloc_descs(irq, from, cnt, node, THIS_MODULE)
-+#define irq_alloc_reserved_desc_at(at, node)	\
-+	__irq_alloc_reserved_desc(at, node, THIS_MODULE)
- 
- #define irq_alloc_desc(node)			\
- 	irq_alloc_descs(-1, 0, 1, node)
-diff --git a/kernel/irq/irqdesc.c b/kernel/irq/irqdesc.c
-index a151db6..1166545 100644
---- a/kernel/irq/irqdesc.c
-+++ b/kernel/irq/irqdesc.c
-@@ -410,6 +410,29 @@ __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
- EXPORT_SYMBOL_GPL(__irq_alloc_descs);
- 
- /**
-+ * __irq_alloc_reserved_desc - allocate irq descriptor for irq that is already reserved
-+ * @irq:	Allocate for specific irq number if irq >= 0
-+ * @node:	Preferred node on which the irq descriptor should be allocated
-+ * @owner:	Owning module (can be NULL)
-+ *
-+ * Returns the irq number or error code
-+ */
-+int __ref __irq_alloc_reserved_desc(int irq, int node, struct module *owner)
+-/* irq_cfg is indexed by the sum of all RTEs in all I/O APICs. */
+-static struct irq_cfg irq_cfgx[NR_IRQS_LEGACY];
++static int reserve_ioapic_gsi_irq_base(int idx)
 +{
-+	mutex_lock(&sparse_irq_lock);
-+	if (!test_bit(irq, allocated_irqs)) {
-+		mutex_unlock(&sparse_irq_lock);
-+		return -EINVAL;
-+	}
-+	mutex_unlock(&sparse_irq_lock);
++	int irq;
++	struct mp_ioapic_gsi *gsi_cfg = mp_ioapic_gsi_routing(idx);
++	int cnt = gsi_cfg->gsi_end - gsi_cfg->gsi_base + 1;
 +
-+	if (irq_to_desc(irq))
-+		return irq;
++	irq = __irq_reserve_irqs(-1, gsi_cfg->gsi_base, cnt);
++	if (irq >= 0) {
++		gsi_cfg->irq_base = irq;
++		apic_printk(APIC_VERBOSE, KERN_INFO
++			"IOAPIC[%d]: apic_id %d, GSI %d-%d ==> irq %d-%d reserved\n",
++			idx, mpc_ioapic_id(idx),
++			gsi_cfg->gsi_base, gsi_cfg->gsi_end,
++			irq, irq + cnt - 1);
++	} else
++		apic_printk(APIC_VERBOSE, KERN_WARNING
++			"IOAPIC[%d]: apic_id %d, GSI %d-%d ==> irq reserve failed\n",
++			idx, mpc_ioapic_id(idx),
++			gsi_cfg->gsi_base, gsi_cfg->gsi_end);
 +
-+	return alloc_descs(irq, 1, node, owner);
++	return irq;
 +}
 +
-+/**
-  * irq_reserve_irqs - mark irqs allocated
-  * @from:	mark from irq number
-  * @cnt:	number of irqs to mark
++static void __init reserve_ioapic_gsi_irq_extra(void)
++{
++	int irq;
++
++	/* to prevent hot add ioapic taking those slots */
++	if (gsi_top) {
++		irq = irq_reserve_irqs(gsi_top, NR_IRQS_LEGACY);
++		if (irq >= 0)
++			apic_printk(APIC_VERBOSE, KERN_INFO
++				"IOAPIC[extra]: GSI %d-%d ==> irq %d-%d reserved\n",
++				gsi_top, gsi_top + NR_IRQS_LEGACY - 1,
++				irq, irq + NR_IRQS_LEGACY - 1);
++		else
++			apic_printk(APIC_VERBOSE, KERN_WARNING
++				"IOAPIC[extra]: GSI %d-%d ==> irq reserve failed\n",
++				gsi_top, gsi_top + NR_IRQS_LEGACY - 1);
++	}
++}
+ 
+ static void alloc_ioapic_saved_registers(int idx)
+ {
+@@ -298,8 +337,9 @@ static void alloc_ioapic_saved_registers(int idx)
+ 
+ int __init arch_early_irq_init(void)
+ {
++	int node = cpu_to_node(0);
+ 	struct irq_cfg *cfg;
+-	int count, node, i;
++	int i;
+ 
+ 	if (!legacy_pic->nr_legacy_irqs)
+ 		io_apic_irqs = ~0UL;
+@@ -307,26 +347,23 @@ int __init arch_early_irq_init(void)
+ 	for (i = 0; i < nr_ioapics; i++)
+ 		alloc_ioapic_saved_registers(i);
+ 
+-	cfg = irq_cfgx;
+-	count = ARRAY_SIZE(irq_cfgx);
+-	node = cpu_to_node(0);
++	for (i = 0; i < nr_ioapics; i++)
++		reserve_ioapic_gsi_irq_base(i);
+ 
+-	/* Make sure the legacy interrupts are marked in the bitmap */
+-	irq_reserve_irqs(0, legacy_pic->nr_legacy_irqs);
++	reserve_ioapic_gsi_irq_extra();
+ 
+-	for (i = 0; i < count; i++) {
+-		INIT_LIST_HEAD(&cfg[i].irq_2_pin);
+-		irq_set_chip_data(i, &cfg[i]);
+-		zalloc_cpumask_var_node(&cfg[i].domain, GFP_KERNEL, node);
+-		zalloc_cpumask_var_node(&cfg[i].old_domain, GFP_KERNEL, node);
+-		/*
+-		 * For legacy IRQ's, start with assigning irq0 to irq15 to
+-		 * IRQ0_VECTOR to IRQ15_VECTOR for all cpu's.
+-		 */
+-		if (i < legacy_pic->nr_legacy_irqs) {
+-			cfg[i].vector = IRQ0_VECTOR + i;
+-			cpumask_setall(cfg[i].domain);
++	/*
++	 * For legacy IRQ's, start with assigning irq0 to irq15 to
++	 * IRQ0_VECTOR to IRQ15_VECTOR for all cpu's.
++	 */
++	for (i = 0; i < legacy_pic->nr_legacy_irqs; i++) {
++		cfg = alloc_reserved_irq_and_cfg_at(i, node);
++		if (!cfg) {
++			pr_warn("can not allocate irq_desc/cfg for %d\n", i);
++			continue;
+ 		}
++		cfg->vector = IRQ0_VECTOR + i;
++		cpumask_setall(cfg->domain);
+ 	}
+ 
+ 	return 0;
+@@ -3468,7 +3505,8 @@ int __init arch_probe_nr_irqs(void)
+ 	if (nr < nr_irqs)
+ 		nr_irqs = nr;
+ 
+-	return NR_IRQS_LEGACY;
++	/* x86 arch code will allocate irq_desc/cfg */
++	return 0;
+ }
+ 
+ int io_apic_set_pci_routing(struct device *dev, int irq,
 -- 
 1.8.4
