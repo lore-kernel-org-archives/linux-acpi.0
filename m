@@ -1,138 +1,64 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v5 01/33] genirq: Split __irq_reserve_irqs from irq_alloc_descs
-Date: Thu,  2 Jan 2014 16:05:33 -0800
-Message-ID: <1388707565-16535-2-git-send-email-yinghai@kernel.org>
-References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Alexander Gordeev <agordeev@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH][tentative] PCI / ACPI: Rework PCI host bridge removal to avoid sysfs warnings
+Date: Fri, 03 Jan 2014 01:45:28 +0100
+Message-ID: <2459491.HIKjAnF27k@vostro.rjw.lan>
+References: <37552283.kG1L4S8Daa@vostro.rjw.lan> <6023795.zgEUjY5fWb@vostro.rjw.lan> <CAE9FiQXQuX5EOE1jbXfK+G1mf9q=4-fpw1jNs38sza9tcPtqMg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:50655 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752661AbaACAbq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jan 2014 19:31:46 -0500
+In-Reply-To: <CAE9FiQXQuX5EOE1jbXfK+G1mf9q=4-fpw1jNs38sza9tcPtqMg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Tejun Heo <tj@kernel.org>
 
-irq_alloc_descs and irq_reserve_irqs are almost the same.
-Separate code out to __irq_reserved_irqs, and other two reuse
-__irq_reserve_irqs.
+On Thursday, January 02, 2014 02:47:04 PM Yinghai Lu wrote:
+> On Tue, Dec 31, 2013 at 1:03 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Tuesday, December 31, 2013 10:45:46 AM Yinghai Lu wrote:
+> >> On Mon, Dec 30, 2013 at 5:15 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >> > On Monday, December 30, 2013 01:51:28 PM Rafael J. Wysocki wrote:
+> >> >> > We have patches that need to stop ioapic and iommu between
+> >> >> > pci_stop_root_bus and pci_remove_root_bus.
+> >> >
+> >> > BTW, what *exactly* do they need to be stopped between?  After these two patches:
+> >>
+> >> need to stop regular pci drivers before stop "driver" for ioapic/dmar.
+> >>
+> >> >
+> >> >> > Please check if the problem still happen after
+> >> >> >
+> >> >> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=c4a0a5d964e90b93eb4101c3927b788e083e530f
+> >> >> >
+> >> >> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=e3b439e1d315aff59c1b4f0fc43c5cd2d82b4138
+> >> >
+> >> > pci_stop_root_bus() is just a walk over devices on the root bus stopping
+> >> > them and pci_remove_root_bus() starts with the removal of those devices.
+> >> >
+> >> > Surely, those two list walks can be combined into one?
+> >>
+> >> maybe ok, but we have to problem to make sure stop pci drivers before
+> >> "driver" for ioapic/dmar.
+> >
+> > That's fine, but ioapic/dmar stopping need not happen between the stopping of
+> > drivers and removing of devices on the root bus I suppose?
+> >
+> > Actually, I think that the ioapic/dmar stopping should be carried out after
+> > removing all of the root bus devices, or it can be racy with respect to a
+> > driver reload.  Isn't that the case?
+> 
+> No. It should be before removing all root bus devices.
+> as they need to access the pci devices during stop ioapic and dmar.
+> 
+> Also ioapic itself could one one pci device.
 
-We will use __irq_reserve_irqs for coming ioapic hotplug support.
+Well, if we stop drivers first, then stop ioapic/dmar and *then* remove
+devices, it is possible to rebind a driver to a device after ioapic/dmar has
+been stopped, which I guess will not lead to anything nice?
 
--v2: fix func docbook related comments, pointed out by tglx.
+Rafael
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Alexander Gordeev <agordeev@redhat.com>
-Reviewed-by: Alexander Gordeev <agordeev@redhat.com>
----
- include/linux/irq.h  |  1 +
- kernel/irq/irqdesc.c | 54 ++++++++++++++++++++++++++++++----------------------
- 2 files changed, 32 insertions(+), 23 deletions(-)
-
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index 7dc1003..0229caf 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -614,6 +614,7 @@ int __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
- 
- void irq_free_descs(unsigned int irq, unsigned int cnt);
- int irq_reserve_irqs(unsigned int from, unsigned int cnt);
-+int __irq_reserve_irqs(int irq, unsigned int from, unsigned int cnt);
- 
- static inline void irq_free_desc(unsigned int irq)
- {
-diff --git a/kernel/irq/irqdesc.c b/kernel/irq/irqdesc.c
-index 192a302..a151db6 100644
---- a/kernel/irq/irqdesc.c
-+++ b/kernel/irq/irqdesc.c
-@@ -340,18 +340,15 @@ void irq_free_descs(unsigned int from, unsigned int cnt)
- EXPORT_SYMBOL_GPL(irq_free_descs);
- 
- /**
-- * irq_alloc_descs - allocate and initialize a range of irq descriptors
-- * @irq:	Allocate for specific irq number if irq >= 0
-+ * __irq_reserve_irqs - reserve a range of irqs
-+ * @irq:	Reserve for specific irq number if irq >= 0
-  * @from:	Start the search from this irq number
-- * @cnt:	Number of consecutive irqs to allocate.
-- * @node:	Preferred node on which the irq descriptor should be allocated
-- * @owner:	Owning module (can be NULL)
-+ * @cnt:	Number of consecutive irqs to reserve.
-  *
-  * Returns the first irq number or error code
-  */
- int __ref
--__irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
--		  struct module *owner)
-+__irq_reserve_irqs(int irq, unsigned int from, unsigned int cnt)
- {
- 	int start, ret;
- 
-@@ -369,7 +366,7 @@ __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
- 	start = bitmap_find_next_zero_area(allocated_irqs, IRQ_BITMAP_BITS,
- 					   from, cnt, 0);
- 	ret = -EEXIST;
--	if (irq >=0 && start != irq)
-+	if (irq >= 0 && start != irq)
- 		goto err;
- 
- 	if (start + cnt > nr_irqs) {
-@@ -380,12 +377,36 @@ __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
- 
- 	bitmap_set(allocated_irqs, start, cnt);
- 	mutex_unlock(&sparse_irq_lock);
--	return alloc_descs(start, cnt, node, owner);
-+	return start;
- 
- err:
- 	mutex_unlock(&sparse_irq_lock);
- 	return ret;
- }
-+
-+/**
-+ * __irq_alloc_descs - allocate and initialize a range of irq descriptors
-+ * @irq:	Allocate for specific irq number if irq >= 0
-+ * @from:	Start the search from this irq number
-+ * @cnt:	Number of consecutive irqs to allocate.
-+ * @node:	Preferred node on which the irq descriptor should be allocated
-+ * @owner:	Owning module (can be NULL)
-+ *
-+ * Returns the first irq number or error code
-+ */
-+int __ref
-+__irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
-+		  struct module *owner)
-+{
-+	int start;
-+
-+	start = __irq_reserve_irqs(irq, from, cnt);
-+
-+	if (start < 0)
-+		return start;
-+
-+	return alloc_descs(start, cnt, node, owner);
-+}
- EXPORT_SYMBOL_GPL(__irq_alloc_descs);
- 
- /**
-@@ -397,20 +418,7 @@ EXPORT_SYMBOL_GPL(__irq_alloc_descs);
-  */
- int irq_reserve_irqs(unsigned int from, unsigned int cnt)
- {
--	unsigned int start;
--	int ret = 0;
--
--	if (!cnt || (from + cnt) > nr_irqs)
--		return -EINVAL;
--
--	mutex_lock(&sparse_irq_lock);
--	start = bitmap_find_next_zero_area(allocated_irqs, nr_irqs, from, cnt, 0);
--	if (start == from)
--		bitmap_set(allocated_irqs, start, cnt);
--	else
--		ret = -EEXIST;
--	mutex_unlock(&sparse_irq_lock);
--	return ret;
-+	return __irq_reserve_irqs(from, from, cnt);
- }
- 
- /**
--- 
-1.8.4
