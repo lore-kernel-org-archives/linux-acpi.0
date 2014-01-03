@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v5 11/33] x86, irq: Kill create_irq()
-Date: Thu,  2 Jan 2014 16:05:43 -0800
-Message-ID: <1388707565-16535-12-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v5 06/33] x86, irq: Show MSI-X clearly in debug message
+Date: Thu,  2 Jan 2014 16:05:38 -0800
+Message-ID: <1388707565-16535-7-git-send-email-yinghai@kernel.org>
 References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
@@ -10,46 +10,29 @@ To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 List-Id: linux-acpi@vger.kernel.org
 
-create_irq() will return -1 when failing to allocate.
-create_irq_nr() will return 0 when failing to allocate.
-
-It only causes confusion.
-
-Now we have no user for create_irq(), so remove create_irq() for x86.
+Print out exact MSI or MSI-X instead of MSI/MSI-X.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Joerg Roedel <joro@8bytes.org>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 ---
- arch/x86/kernel/apic/io_apic.c | 15 ---------------
- 1 file changed, 15 deletions(-)
+ arch/x86/kernel/apic/io_apic.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 241325c..86d5466 100644
+index 6e9f55b..8616517 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -2973,21 +2973,6 @@ unsigned int create_irq_nr(unsigned int from, int node)
- 	return __create_irqs(from, 1, node);
- }
+@@ -3130,7 +3130,8 @@ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
  
--int create_irq(void)
--{
--	int node = cpu_to_node(0);
--	unsigned int irq_want;
--	int irq;
--
--	irq_want = nr_irqs_gsi;
--	irq = create_irq_nr(irq_want, node);
--
--	if (irq == 0)
--		irq = -1;
--
--	return irq;
--}
--
- void destroy_irq(unsigned int irq)
- {
- 	struct irq_cfg *cfg = irq_get_chip_data(irq);
+ 	irq_set_chip_and_handler_name(irq, chip, handle_edge_irq, "edge");
+ 
+-	dev_printk(KERN_DEBUG, &dev->dev, "irq %d for MSI/MSI-X\n", irq);
++	dev_printk(KERN_DEBUG, &dev->dev, "irq %d for MSI%s\n", irq,
++			 msidesc->msi_attrib.is_msix ? "-X" : "");
+ 
+ 	return 0;
+ }
 -- 
 1.8.4
