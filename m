@@ -1,61 +1,94 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [RFC PATCHv3 01/11] mce: acpi/apei: Use get_vm_area directly
-Date: Thu, 2 Jan 2014 21:33:46 -0500
-Message-ID: <20140103023346.GC1913@gchen.bj.intel.com>
-References: <1388699609-18214-1-git-send-email-lauraa@codeaurora.org>
- <1388699609-18214-2-git-send-email-lauraa@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [GIT PULL] ACPI and power management fixes for v3.13-rc7
+Date: Fri, 03 Jan 2014 14:37:33 +0100
+Message-ID: <4606291.Jt1hNa9vKs@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4ZLFUWh1odzi/v6L"
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1388699609-18214-2-git-send-email-lauraa@codeaurora.org>
-Sender: owner-linux-mm@kvack.org
-To: Laura Abbott <lauraa@codeaurora.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Kyungmin Park <kmpark@infradead.org>, Dave Hansen <dave@sr71.net>, linux-mm@kvack.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Linus,
 
---4ZLFUWh1odzi/v6L
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Please pull from the git repository at
 
-On Thu, Jan 02, 2014 at 01:53:19PM -0800, Laura Abbott wrote:
-> There's no need to use VMALLOC_START and VMALLOC_END with
-> __get_vm_area when get_vm_area does the exact same thing.
-> Convert over.
->=20
-> Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-3.13-rc7
 
-Ack-by: Chen, Gong <gong.chen@linux.intel.com>
+to receive ACPI and power management fixes for 3.13-rc7
+with top-most commit 0a405fe97fd54d5e89560c6d0f4070ff43862a49
 
---4ZLFUWh1odzi/v6L
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+  Merge branches 'pm-cpufreq' and 'pm-cpuidle'
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+on top of commit 802eee95bde72fd0cd0f3a5b2098375a487d1eda
 
-iQIcBAEBAgAGBQJSxiGJAAoJEI01n1+kOSLHHnMQAJUYxbX5bO/DCVMasvDbRMjl
-Asjtkqf8Dzn4l7AN0InmuPUXLvRSDVMwUdtJYIyYr62G9JiySIpLeq05wloUfNnv
-9quueR51yCA0y+z18/ImcXD+LBt8YVxwo4oaXNByCy+eq7tWvZ0hXe76g5gUL+f5
-053GWAGlxtHAtKm4JCLBx/IxXmC8Y2FleIhacOEv3ernN4FjBbziudy5wSVhy5hh
-NT40Scj1MxVXR7afDYzEodLbVpx+e7Voxa+vuNBVoIaT9GCt6FF1DrTOIStSq5CA
-29QI8CsP5NCkpEqdpzpnb+EzfFFmwIt3q1XCtrfn3oQVaUARh9uhBib1cV2zygzo
-IDmWYzQa97wqGZyydKLXTEPoWO63WRQrIKdcZGLS5rS+2NurgyrsCKBqHWkRY41t
-UblgPJWLfD0XBqplpTfq1WvO9bauneZJ9J++4/HOInAxUYRc4QfBmxdE3ipSWOBM
-EI8NuqhVlvX9LC6uD49F7i+ugT3l/OHaX3laYBj9xMmbPmdhT4hVVxjfPCI3Eh7e
-Be4fI4xGdKK4xWYFL0ulhwktcPeFlAkFe08bhvRYN10YrYQcQ2E0UeLm+qA96Feu
-pOJWOhVffl5iCrPS1dLhyOY5AtIS7nDs4Kgd489UT/a4x2QIx0+pRAHoMoY5Kg85
-yegIXOfeMuSQLN09+wvq
-=xoax
------END PGP SIGNATURE-----
+  Linux 3.13-rc6
 
---4ZLFUWh1odzi/v6L--
+These commits, except for one, are regression fixes and the remaining
+one fixes a divide error leading to a kernel panic.  The majority of
+the regressions fixed here were introduced during the 3.12 cycle, one
+of them is from this cycle and one is older.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Specifics:
+
+- VGA switcheroo was broken for some users as a result of the ACPI-based
+  PCI hotplug (ACPIPHP) changes in 3.12, because some previously ignored
+  hotplug events started to be handled.  The fix causes them to be
+  ignored again.
+
+- There are two more issues related to cpufreq's suspend/resume handling
+  changes from the 3.12 cycle addressed by Viresh Kumar's fixes.
+
+- intel_pstate triggers a divide error in a timer function if the P-state
+  information it needs is missing during initialization.  This leads to
+  kernel panics on nested KVM clients and is fixed by failing the
+  initialization cleanly in those cases.
+
+- PCI initalization code changes during the 3.9 cycle uncovered BIOS
+  issues related to ACPI wakeup notifications (some BIOSes send them
+  for devices that aren't supposed to support ACPI wakeup).  Work around
+  them by installing an ACPI wakeup notify handler for all PCI devices
+  with ACPI support.
+
+- The Calxeda cpuilde driver's probe function is tagged as __init, which
+  is incorrect and causes a section mismatch to occur during build.  Fix
+  from Andre Przywara removes the __init tag from there.
+
+- During the 3.12 cycle ACPIPHP started to print warnings about missing
+  _ADR for devices that legitimately don't have it.  Fix from Toshi Kani
+  makes it only print the warnings where they make sense.
+
+All the best in 2014 and thanks!
+
+
+---------------
+
+Andre Przywara (1):
+      ARM/cpuidle: remove __init tag from Calxeda cpuidle probe function
+
+Rafael J. Wysocki (4):
+      cpufreq: Clean up after a failing light-weight initialization
+      PCI / ACPI: Install wakeup notify handlers for all PCI devs with ACPI
+      intel_pstate: Fail initialization if P-state information is missing
+      ACPIPHP / radeon / nouveau: Fix VGA switcheroo problem related to hotplug
+
+Toshi Kani (1):
+      ACPI / PCI / hotplug: Avoid warning when _ADR not present
+
+Viresh Kumar (1):
+      cpufreq: preserve user_policy across suspend/resume
+
+---------------
+
+ drivers/acpi/bus.c                           | 10 ++++++++
+ drivers/cpufreq/cpufreq.c                    | 37 +++++++++++++++++-----------
+ drivers/cpufreq/intel_pstate.c               |  5 ++++
+ drivers/cpuidle/cpuidle-calxeda.c            |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_acpi.c       | 16 ++++++++++--
+ drivers/gpu/drm/radeon/radeon_atpx_handler.c | 16 ++++++++++--
+ drivers/pci/hotplug/acpiphp_glue.c           | 30 +++++++++++++++++++---
+ drivers/pci/pci-acpi.c                       | 21 +++++++++-------
+ include/acpi/acpi_bus.h                      |  4 ++-
+ 9 files changed, 108 insertions(+), 33 deletions(-)
