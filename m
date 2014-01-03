@@ -1,38 +1,56 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v5 06/33] x86, irq: Show MSI-X clearly in debug message
-Date: Thu,  2 Jan 2014 16:05:38 -0800
-Message-ID: <1388707565-16535-7-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v5 16/33] xen,
+	irq: Call irq_alloc_reserved_desc_at() at first
+Date: Thu,  2 Jan 2014 16:05:48 -0800
+Message-ID: <1388707565-16535-17-git-send-email-yinghai@kernel.org>
 References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <xen-devel-bounces@lists.xen.org>
 In-Reply-To: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.xen.org/cgi-bin/mailman/options/xen-devel>,
+	<mailto:xen-devel-request@lists.xen.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xen.org>
+List-Help: <mailto:xen-devel-request@lists.xen.org?subject=help>
+List-Subscribe: <http://lists.xen.org/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xen.org?subject=subscribe>
+Sender: xen-devel-bounces@lists.xen.org
+Errors-To: xen-devel-bounces@lists.xen.org
 To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Cc: xen-devel@lists.xensource.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Print out exact MSI or MSI-X instead of MSI/MSI-X.
+To make x86 irq allocation to be same with booting path and ioapic
+hot add path, We will pre-reserve irq for all gsi at first.
+We have to use alloc_reserved here, otherwise irq_alloc_desc_at will fail
+because bit is already get marked for pre-reserved in irq bitmaps.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Joerg Roedel <joro@8bytes.org>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Cc: xen-devel@lists.xensource.com
 ---
- arch/x86/kernel/apic/io_apic.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/xen/events.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 6e9f55b..8616517 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3130,7 +3130,8 @@ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
+diff --git a/drivers/xen/events.c b/drivers/xen/events.c
+index 4035e83..020cd77 100644
+--- a/drivers/xen/events.c
++++ b/drivers/xen/events.c
+@@ -508,8 +508,12 @@ static int __must_check xen_allocate_irq_gsi(unsigned gsi)
+ 	/* Legacy IRQ descriptors are already allocated by the arch. */
+ 	if (gsi < NR_IRQS_LEGACY)
+ 		irq = gsi;
+-	else
+-		irq = irq_alloc_desc_at(gsi, -1);
++	else {
++		/* for x86, irq already get reserved for gsi */
++		irq = irq_alloc_reserved_desc_at(gsi, -1);
++		if (irq < 0)
++			irq = irq_alloc_desc_at(gsi, -1);
++	}
  
- 	irq_set_chip_and_handler_name(irq, chip, handle_edge_irq, "edge");
+ 	xen_irq_init(irq);
  
--	dev_printk(KERN_DEBUG, &dev->dev, "irq %d for MSI/MSI-X\n", irq);
-+	dev_printk(KERN_DEBUG, &dev->dev, "irq %d for MSI%s\n", irq,
-+			 msidesc->msi_attrib.is_msix ? "-X" : "");
- 
- 	return 0;
- }
 -- 
 1.8.4
