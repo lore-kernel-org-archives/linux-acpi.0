@@ -1,57 +1,48 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH][tentative] PCI / ACPI: Rework PCI host bridge removal to
- avoid sysfs warnings
-Date: Thu, 2 Jan 2014 14:47:04 -0800
-Message-ID: <CAE9FiQXQuX5EOE1jbXfK+G1mf9q=4-fpw1jNs38sza9tcPtqMg@mail.gmail.com>
-References: <37552283.kG1L4S8Daa@vostro.rjw.lan>
-	<31566676.sHXhScpSQ6@vostro.rjw.lan>
-	<CAE9FiQVEqnWm1j0GckuNsD_FTPxWahZpCnF79sNgKN-JnCDT+w@mail.gmail.com>
-	<6023795.zgEUjY5fWb@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <6023795.zgEUjY5fWb@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Tejun Heo <tj@kernel.org>
+Subject: [PATCH v5 09/33] ia64, irq: Add dummy create_irq_nr()
+Date: Thu,  2 Jan 2014 16:05:41 -0800
+Message-ID: <1388707565-16535-10-git-send-email-yinghai@kernel.org>
+References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 31, 2013 at 1:03 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Tuesday, December 31, 2013 10:45:46 AM Yinghai Lu wrote:
->> On Mon, Dec 30, 2013 at 5:15 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> > On Monday, December 30, 2013 01:51:28 PM Rafael J. Wysocki wrote:
->> >> > We have patches that need to stop ioapic and iommu between
->> >> > pci_stop_root_bus and pci_remove_root_bus.
->> >
->> > BTW, what *exactly* do they need to be stopped between?  After these two patches:
->>
->> need to stop regular pci drivers before stop "driver" for ioapic/dmar.
->>
->> >
->> >> > Please check if the problem still happen after
->> >> >
->> >> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=c4a0a5d964e90b93eb4101c3927b788e083e530f
->> >> >
->> >> > http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/patch/?id=e3b439e1d315aff59c1b4f0fc43c5cd2d82b4138
->> >
->> > pci_stop_root_bus() is just a walk over devices on the root bus stopping
->> > them and pci_remove_root_bus() starts with the removal of those devices.
->> >
->> > Surely, those two list walks can be combined into one?
->>
->> maybe ok, but we have to problem to make sure stop pci drivers before
->> "driver" for ioapic/dmar.
->
-> That's fine, but ioapic/dmar stopping need not happen between the stopping of
-> drivers and removing of devices on the root bus I suppose?
->
-> Actually, I think that the ioapic/dmar stopping should be carried out after
-> removing all of the root bus devices, or it can be racy with respect to a
-> driver reload.  Isn't that the case?
+create_irq() will return -1 when fail to allocate.
+create_irq_nr() will return 0 when fail to allocate.
 
-No. It should be before removing all root bus devices.
-as they need to access the pci devices during stop ioapic and dmar.
+Will use it to fix one return value checking for dmar_msi irq.
 
-Also ioapic itself could one one pci device.
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: linux-ia64@vger.kernel.org
+Cc: stable@vger.kernel.org
+---
+ arch/ia64/kernel/irq_ia64.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Yinghai
+diff --git a/arch/ia64/kernel/irq_ia64.c b/arch/ia64/kernel/irq_ia64.c
+index 1034884..38e46df 100644
+--- a/arch/ia64/kernel/irq_ia64.c
++++ b/arch/ia64/kernel/irq_ia64.c
+@@ -429,6 +429,16 @@ int create_irq(void)
+ 	return irq;
+ }
+ 
++unsigned int create_irq_nr(unsigned int from, int node)
++{
++	int irq = create_irq();
++
++	if (irq < 0)
++		irq = 0;
++
++	return irq;
++}
++
+ void destroy_irq(unsigned int irq)
+ {
+ 	dynamic_irq_cleanup(irq);
+-- 
+1.8.4
