@@ -1,81 +1,57 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] ACPI/Battery: Add a _BIX quirk for NEC LZ750/LS
-Date: Fri, 3 Jan 2014 15:12:50 -0800
-Message-ID: <20140103231250.GD13489@core.coreip.homeip.net>
-References: <1388648277-23453-1-git-send-email-tianyu.lan@intel.com>
- <20140103190033.GA20314@dorilex-lnv.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140103190033.GA20314@dorilex-lnv.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leandro Dorileo <l@dorileo.org>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, fcr@adinet.com.uy, "3.8+" <stable@vger.kernel.org>
+From: Alexander Mezin <mezin.alexander@gmail.com>
+Subject: [PATCH] ACPI / AC: change notification handler type to ACPI_ALL_NOTIFY
+Date: Sat,  4 Jan 2014 09:07:59 +0700
+Message-ID: <1388801279-15502-1-git-send-email-mezin.alexander@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f49.google.com ([209.85.215.49]:48684 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753866AbaADCIf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Jan 2014 21:08:35 -0500
+Received: by mail-la0-f49.google.com with SMTP id er20so8374291lab.22
+        for <linux-acpi@vger.kernel.org>; Fri, 03 Jan 2014 18:08:34 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: tianyu.lan@intel.com, Alexander Mezin <mezin.alexander@gmail.com>
 
-On Fri, Jan 03, 2014 at 05:01:11PM -0200, Leandro Dorileo wrote:
-> On Thu, Jan 02, 2014 at 03:37:57PM +0800, Lan Tianyu wrote:
-> > The aml method _BIX of NEC LZ750/LS returns a broken package which
-> > skip the first member "Revision" according ACPI 5.0 spec Table 10-234.
-> > 
-> > This patch is to add a quirk for this machine to skip member "Revision"
-> > during parsing _BIX returned package.
-> > 
-> > Reported-and-tested-by: Francisco Castro <fcr@adinet.com.uy>
-> > Reference: https://bugzilla.kernel.org/show_bug.cgi?id=67351
-> > Cc: 3.8+ <stable@vger.kernel.org>
-> > Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> > ---
-> >  drivers/acpi/battery.c |   28 +++++++++++++++++++++++++++-
-> >  1 file changed, 27 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> > index fbf1ace..3d64a87 100644
-> > --- a/drivers/acpi/battery.c
-> > +++ b/drivers/acpi/battery.c
-> > @@ -62,6 +62,7 @@ MODULE_AUTHOR("Alexey Starikovskiy <astarikovskiy@suse.de>");
-> >  MODULE_DESCRIPTION("ACPI Battery Driver");
-> >  MODULE_LICENSE("GPL");
-> >  
-> > +static int battery_bix_broken_package;
-> >  static unsigned int cache_time = 1000;
-> >  module_param(cache_time, uint, 0644);
-> >  MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
-> > @@ -416,7 +417,12 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
-> >  		ACPI_EXCEPTION((AE_INFO, status, "Evaluating %s", name));
-> >  		return -ENODEV;
-> >  	}
-> > -	if (test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags))
-> > +
-> > +	if (battery_bix_broken_package)
-> > +		result = extract_package(battery, buffer.pointer,
-> > +				extended_info_offsets + 1,
-> > +				ARRAY_SIZE(extended_info_offsets) - 1);
-> > +	else if (test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags))
-> >  		result = extract_package(battery, buffer.pointer,
-> >  				extended_info_offsets,
-> >  				ARRAY_SIZE(extended_info_offsets));
-> > @@ -754,6 +760,24 @@ static int battery_notify(struct notifier_block *nb,
-> >  	return 0;
-> >  }
-> >  
-> > +static int battery_bix_package_quirk(const struct dmi_system_id *id)
-> > +{
-> > +	battery_bix_broken_package = 1;
-> > +	return 0;
-> > +}
-> > +
-> 
-> 
-> Do you really need this callback? Why don't you just do:
-> 
-> if (dmi_check_system(bat_dmi_table))
->        battery_bix_broken_package = 1;
-> 
+With kernel 3.13rc5 there are no AC adapter notifications on my laptop.
 
-Callback would be useful if we were to print the DMI data of the match,
-otherwise not so much.
+Commit cc8ef52707341e67a12067d6ead991d56ea017ca
+"ACPI / AC: convert ACPI ac driver to platform bus" changed the driver
+to listen only to device notifications. However, aml code on my laptop
+notifies the driver with zero event.
 
+This patch changes the driver to listen to all events again.
+
+References: https://bugzilla.kernel.org/show_bug.cgi?id=67821
+
+Signed-off-by: Alexander Mezin <mezin.alexander@gmail.com>
+---
+ drivers/acpi/ac.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 8711e37..3c2e4aa 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -207,7 +207,7 @@ static int acpi_ac_probe(struct platform_device *pdev)
+ 		goto end;
+ 
+ 	result = acpi_install_notify_handler(ACPI_HANDLE(&pdev->dev),
+-			ACPI_DEVICE_NOTIFY, acpi_ac_notify_handler, ac);
++			ACPI_ALL_NOTIFY, acpi_ac_notify_handler, ac);
+ 	if (result) {
+ 		power_supply_unregister(&ac->charger);
+ 		goto end;
+@@ -255,7 +255,7 @@ static int acpi_ac_remove(struct platform_device *pdev)
+ 		return -EINVAL;
+ 
+ 	acpi_remove_notify_handler(ACPI_HANDLE(&pdev->dev),
+-			ACPI_DEVICE_NOTIFY, acpi_ac_notify_handler);
++			ACPI_ALL_NOTIFY, acpi_ac_notify_handler);
+ 
+ 	ac = platform_get_drvdata(pdev);
+ 	if (ac->charger.dev)
 -- 
-Dmitry
+1.8.5.2
+
