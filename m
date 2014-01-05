@@ -1,86 +1,112 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 11/11] drivers: acpi: Include header file in debugfs.c and rectify prototype declaration in internal.h
-Date: Mon, 06 Jan 2014 00:33:57 +0100
-Message-ID: <1528697.GH1GrQaKgp@vostro.rjw.lan>
-References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com> <37de640470c91e2e54ab68a158e19dde3938f18a.1387271324.git.rashika.kheria@gmail.com>
+Subject: Re: [PATCH 1/1] acpi_pad: call schedule() when need_resched is true
+Date: Mon, 06 Jan 2014 00:42:53 +0100
+Message-ID: <6267303.NrPfzMWnJU@vostro.rjw.lan>
+References: <1386863415-12790-1-git-send-email-tcamuso@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59480 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751698AbaAEXUM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Jan 2014 18:20:12 -0500
-In-Reply-To: <37de640470c91e2e54ab68a158e19dde3938f18a.1387271324.git.rashika.kheria@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1386863415-12790-1-git-send-email-tcamuso@redhat.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Camuso <tcamuso@redhat.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Rashika Kheria <rashika.kheria@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, josh@joshtriplett.org
 
-On Tuesday, December 17, 2013 03:06:54 PM Rashika Kheria wrote:
-> Include header file internal.h in debugfs.c and change the return
-> value's type in header file internal.h.
->=20
-> This eliminates the following warning in debugfs.c:
-> drivers/acpi/debugfs.c:16:13: warning: no previous prototype for =E2=80=
-=98acpi_debugfs_init=E2=80=99 [-Wmissing-prototypes]
->=20
-> Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
-> Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+On Thursday, December 12, 2013 10:50:15 AM Tony Camuso wrote:
+> (Slightly rephrased from a bug report submitted by Stuart Hayes)
+> 
+> The purpose of the acpi_pad driver is to implement the "processor power
+> aggregator" device as described in the ACPI 4.0 spec section 8.5. It
+> takes requests from the BIOS (via ACPI) to put a specified number of
+> CPUs into idle, in order to save power, until further notice.
+> 
+> It does this by creating high-priority threads that try to keep the CPUs
+> in a high C-state (using the monitor/mwait CPU instructions). The
+> mwait() call is in a loop that checks periodically if the thread should
+> end and a few other things.
+> 
+> It was discovered through testing that the power_saving threads were
+> causing the system to consume more power than the system was consuming
+> before the threads were created. A counter in the main loop of
+> power_saving_thread() revealed that it was spinning. The mwait()
+> instruction was not keeping the CPU in a high C state very much if at
+> all.
+> 
+> Here is a simplification of the loop in function power_saving_thread() in
+> drivers/acpi/acpi_pad.c
+> 
+>     while (!kthread_should_stop()) {
+>          :
+>         try_to_freeze()
+>          :
+>         while (!need_resched()) {
+>              :
+>             if (!need_resched())
+>                 __mwait(power_saving_mwait_eax, 1);
+>              :
+>             if (jiffies > expire_time) {
+>                 do_sleep = 1;
+>                 break;
+>             }
+>         }
+>     }
+> 
+> If need_resched() returns true, then mwait() is not called. It was
+> returning true because of things like timer interrupts, as in the
+> following sequence.
+> 
+> hrtimer_interrupt->__run_hrtimer->tick_sched_timer-> update_process_times->
+> rcu_check_callbacks->rcu_pending->__rcu_pending->set_need_resched
+> 
+> Kernels 3.5.0-rc2+ do not exhibit this problem, because a patch to
+> try_to_freeze() in include/linux/freezer.h introduces a call to
+> might_sleep(), which ultimately calls schedule() to clear the reschedule
+> flag and allows the the loop to execute the call to mwait().
+> 
+> However, the changes to try_to_freeze are unrelated to acpi_pad, and it
+> does not seem like a good idea to rely on an unrelated patch in a
+> function that could later be changed and reintroduce this bug.
+> 
+> Therefore, it seems better to make an explicit call to schedule() in the
+> outer loop when the need_resched flag is set.
+> 
+> Reported-by: Stuart Hayes <stuart_hayes@dell.com>
+> Tested-by: Stuart Hayes <stuart_hayes@dell.com>
+> Signed-off-by: Tony Camuso <tcamuso@redhat.com>
+
+Peter Zijlstra has an acpi_pad patch that I think will conflict with this, so
+please resubmit after the 3.14 merge window if still necessary.
+
+Thanks! 
+
 > ---
->  drivers/acpi/debugfs.c  |    3 +++
->  drivers/acpi/internal.h |    2 +-
->  2 files changed, 4 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
-> index b55d6a2..96bcaf7 100644
-> --- a/drivers/acpi/debugfs.c
-> +++ b/drivers/acpi/debugfs.c
-> @@ -6,6 +6,7 @@
->  #include <linux/init.h>
->  #include <linux/debugfs.h>
->  #include <acpi/acpi_drivers.h>
-> +#include "internal.h"
-> =20
->  #define _COMPONENT		ACPI_SYSTEM_COMPONENT
->  ACPI_MODULE_NAME("debugfs");
-> @@ -13,7 +14,9 @@ ACPI_MODULE_NAME("debugfs");
->  struct dentry *acpi_debugfs_dir;
->  EXPORT_SYMBOL_GPL(acpi_debugfs_dir);
-> =20
-> +#ifdef  CONFIG_DEBUG_FS
->  void __init acpi_debugfs_init(void)
->  {
->  	acpi_debugfs_dir =3D debugfs_create_dir("acpi", NULL);
->  }
-> +#endif
+>  drivers/acpi/acpi_pad.c |    9 ++++++++-
+>  1 files changed, 8 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+> index fc6008f..2c67e59 100644
+> --- a/drivers/acpi/acpi_pad.c
+> +++ b/drivers/acpi/acpi_pad.c
+> @@ -219,8 +219,15 @@ static int power_saving_thread(void *data)
+>  		 * borrow CPU time from this CPU and cause RT task use > 95%
+>  		 * CPU time. To make 'avoid starvation' work, takes a nap here.
+>  		 */
+> -		if (do_sleep)
+> +		if (unlikely(do_sleep))
+>  			schedule_timeout_killable(HZ * idle_pct / 100);
+> +
+> +		/* If an external event has set the need_resched flag, then
+> +		 * we need to deal with it, or this loop will continue to
+> +		 * spin without calling __mwait().
+> +		 */
+> +		if (unlikely(need_resched()))
+> +			schedule();
+>  	}
+>  
+>  	exit_round_robin(tsk_index);
+> 
 
-What about avoiding to build the entire debugfs.c for CONFIG_DEBUG_FS u=
-nset?
-
-That surely would make sense?=20
-
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 8ef9787..c2e35bd 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -63,7 +63,7 @@ void acpi_scan_hotplug_enabled(struct acpi_hotplug_=
-profile *hotplug, bool val);
-> =20
->  #ifdef CONFIG_DEBUG_FS
->  extern struct dentry *acpi_debugfs_dir;
-> -int acpi_debugfs_init(void);
-> +void acpi_debugfs_init(void);
->  #else
->  static inline void acpi_debugfs_init(void) { return; }
->  #endif
->=20
-
---=20
+-- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
