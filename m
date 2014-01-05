@@ -1,62 +1,79 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 01/11] drivers: acpi: Mark the function acpi_table_checksum() as static in osl.c
-Date: Mon, 06 Jan 2014 00:30:20 +0100
-Message-ID: <6441094.4QZhMcC2S0@vostro.rjw.lan>
-References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com>
+Subject: Re: [PATCH 11/11] drivers: acpi: Include header file in debugfs.c and rectify prototype declaration in internal.h
+Date: Mon, 06 Jan 2014 00:33:57 +0100
+Message-ID: <1528697.GH1GrQaKgp@vostro.rjw.lan>
+References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com> <37de640470c91e2e54ab68a158e19dde3938f18a.1387271324.git.rashika.kheria@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57779 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:59480 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751795AbaAEXQf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Jan 2014 18:16:35 -0500
-In-Reply-To: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com>
+	with SMTP id S1751698AbaAEXUM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Jan 2014 18:20:12 -0500
+In-Reply-To: <37de640470c91e2e54ab68a158e19dde3938f18a.1387271324.git.rashika.kheria@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Rashika Kheria <rashika.kheria@gmail.com>
 Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, josh@joshtriplett.org
 
-On Tuesday, December 17, 2013 02:43:05 PM Rashika Kheria wrote:
-> Marks the function acpi_table_checksum() as static in osl.c
-> because it is not used outside this file.
+On Tuesday, December 17, 2013 03:06:54 PM Rashika Kheria wrote:
+> Include header file internal.h in debugfs.c and change the return
+> value's type in header file internal.h.
 >=20
-> This eliminates the following warning in osl.c:
-> drivers/acpi/osl.c:547:11: warning: no previous prototype for
-> =E2=80=98acpi_table_checksum=E2=80=99 [-Wmissing-prototypes]
+> This eliminates the following warning in debugfs.c:
+> drivers/acpi/debugfs.c:16:13: warning: no previous prototype for =E2=80=
+=98acpi_debugfs_init=E2=80=99 [-Wmissing-prototypes]
 >=20
 > Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
 > Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-
-I've queued up patches [1-4/11] and [7-10/11] for 3.14.
-
-I've skipped patches [5-6/11], because the general rule for ACPICA mate=
-rial is
-that it should go through ACPICA upstream, so please submit those patch=
-es to
-Bob/Lv.
-
-I'll send a reply to patch [11/11] in a while.
-
-Thanks!
-
 > ---
->  drivers/acpi/osl.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/acpi/debugfs.c  |    3 +++
+>  drivers/acpi/internal.h |    2 +-
+>  2 files changed, 4 insertions(+), 1 deletion(-)
 >=20
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 54a20ff..1f4c104 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -544,7 +544,7 @@ static u64 acpi_tables_addr;
->  static int all_tables_size;
+> diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
+> index b55d6a2..96bcaf7 100644
+> --- a/drivers/acpi/debugfs.c
+> +++ b/drivers/acpi/debugfs.c
+> @@ -6,6 +6,7 @@
+>  #include <linux/init.h>
+>  #include <linux/debugfs.h>
+>  #include <acpi/acpi_drivers.h>
+> +#include "internal.h"
 > =20
->  /* Copied from acpica/tbutils.c:acpi_tb_checksum() */
-> -u8 __init acpi_table_checksum(u8 *buffer, u32 length)
-> +static u8 __init acpi_table_checksum(u8 *buffer, u32 length)
+>  #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+>  ACPI_MODULE_NAME("debugfs");
+> @@ -13,7 +14,9 @@ ACPI_MODULE_NAME("debugfs");
+>  struct dentry *acpi_debugfs_dir;
+>  EXPORT_SYMBOL_GPL(acpi_debugfs_dir);
+> =20
+> +#ifdef  CONFIG_DEBUG_FS
+>  void __init acpi_debugfs_init(void)
 >  {
->  	u8 sum =3D 0;
->  	u8 *end =3D buffer + length;
+>  	acpi_debugfs_dir =3D debugfs_create_dir("acpi", NULL);
+>  }
+> +#endif
+
+What about avoiding to build the entire debugfs.c for CONFIG_DEBUG_FS u=
+nset?
+
+That surely would make sense?=20
+
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 8ef9787..c2e35bd 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -63,7 +63,7 @@ void acpi_scan_hotplug_enabled(struct acpi_hotplug_=
+profile *hotplug, bool val);
+> =20
+>  #ifdef CONFIG_DEBUG_FS
+>  extern struct dentry *acpi_debugfs_dir;
+> -int acpi_debugfs_init(void);
+> +void acpi_debugfs_init(void);
+>  #else
+>  static inline void acpi_debugfs_init(void) { return; }
+>  #endif
 >=20
 
 --=20
