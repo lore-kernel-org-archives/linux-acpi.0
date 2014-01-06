@@ -1,100 +1,52 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v5 24/33] x86: Move declaration for mp_register_ioapic()
-Date: Mon, 6 Jan 2014 14:30:41 -0800
-Message-ID: <CAE9FiQU2SEj7L=pjtTOewxExKJhoG3LbJ+YsVbNJ2O_9Kevz5A@mail.gmail.com>
-References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
-	<1388707565-16535-25-git-send-email-yinghai@kernel.org>
-	<20140103212413.GA18987@google.com>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [PATCH v4 1/5] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE to
+ enable this ACPI mode
+Date: Mon, 06 Jan 2014 15:38:39 -0700
+Message-ID: <52CB306F.1020201@linaro.org>
+References: <1387239401-13918-1-git-send-email-al.stone@linaro.org>
+ <1387239401-13918-2-git-send-email-al.stone@linaro.org>
+ <20131227045848.GB21429@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001a1134c7925c25b304ef54cf8b
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20140103212413.GA18987@google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jiang Liu <jiang.liu@huawei.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131227045848.GB21429@srcf.ucam.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
---001a1134c7925c25b304ef54cf8b
-Content-Type: text/plain; charset=ISO-8859-1
-
-On Fri, Jan 3, 2014 at 1:24 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Thu, Jan 02, 2014 at 04:05:56PM -0800, Yinghai Lu wrote:
->> Address compiling problem that Fengguang report.
+On 12/26/2013 09:58 PM, Matthew Garrett wrote:
+> On Mon, Dec 16, 2013 at 05:16:37PM -0700, al.stone@linaro.org wrote:
 >
-> Does this fix a problem that's already in the upstream tree?
+>> +config ACPI_REDUCED_HARDWARE
+>> +	bool "Hardware-reduced ACPI support"
+>> +	depends on ARM || ARM64
+>> +	help
+>> +	This config adds support for Hardware-reduced ACPI.
 >
-> If it merely fixes a problem that was added somewhere in your patches,
-> why don't you fold this fix into the patch that added the problem?
+> Well, that's not really true - most of the hardware-reduced ACPI support
+> seems to be built even if this isn't turned on. Maybe
+> ACPI_REDUCED_HARDWARE_ONLY ?
 >
-> If you included more details, like the exact problem report, I could
-> probably have figured this out myself.
 
-please check updated changelog:
+Aha.  Good point; semantically, it is unclear as is.  I'll clarify
+and re-submit.
 
----
-Subject: [PATCH] x86: Move declaration for mp_register_ioapic()
-
-Preparing patch for ioapic hotplug:
-        PCI, x86, ACPI: Link acpi ioapic register to ioapic
-as it adds calling in
-        arch/x86/kernel/acpi/boot.c::acpi_register_ioapic()
-                                     acpi_unregister_ioapic()
-
-Address compiling problem when
- CONFIG_ACPI is defined
- CONFIG_X86_IOAPIC is not defined.
-
-Change condition to X86_IO_APIC instead of ACPI.
-
--v2: update changelog requested by Bjorn.
-
------
-
---001a1134c7925c25b304ef54cf8b
-Content-Type: text/x-patch; charset=US-ASCII; name="move_mp_register.patch"
-Content-Disposition: attachment; filename="move_mp_register.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hq4as3vf0
-
-U3ViamVjdDogW1BBVENIXSB4ODY6IE1vdmUgZGVjbGFyYXRpb24gZm9yIG1wX3JlZ2lzdGVyX2lv
-YXBpYygpCgpQcmVwYXJpbmcgcGF0Y2ggZm9yIGlvYXBpYyBob3RwbHVnOgoJUENJLCB4ODYsIEFD
-UEk6IExpbmsgYWNwaSBpb2FwaWMgcmVnaXN0ZXIgdG8gaW9hcGljCmFzIGl0IGFkZHMgY2FsbGlu
-ZyBpbgoJYXJjaC94ODYva2VybmVsL2FjcGkvYm9vdC5jOjphY3BpX3JlZ2lzdGVyX2lvYXBpYygp
-CgkJCQkgICAgIGFjcGlfdW5yZWdpc3Rlcl9pb2FwaWMoKQoKQWRkcmVzcyBjb21waWxpbmcgcHJv
-YmxlbSB3aGVuCiBDT05GSUdfQUNQSSBpcyBkZWZpbmVkCiBDT05GSUdfWDg2X0lPQVBJQyBpcyBu
-b3QgZGVmaW5lZC4KCkNoYW5nZSBjb25kaXRpb24gdG8gWDg2X0lPX0FQSUMgaW5zdGVhZCBvZiBB
-Q1BJLgoKLXYyOiB1cGRhdGUgY2hhbmdlbG9nIHJlcXVlc3RlZCBieSBCam9ybi4KClJlcG9ydGVk
-LWJ5OiBGZW5nZ3VhbmcgV3UgPHdmZ0BsaW51eC5pbnRlbC5jb20+ClNpZ25lZC1vZmYtYnk6IFlp
-bmdoYWkgTHUgPHlpbmdoYWlAa2VybmVsLm9yZz4KQ2M6IFBhdWwgR29ydG1ha2VyIDxwYXVsLmdv
-cnRtYWtlckB3aW5kcml2ZXIuY29tPgpDYzogSmlhbmcgTGl1IDxqaWFuZy5saXVAaHVhd2VpLmNv
-bT4KCi0tLQogYXJjaC94ODYvaW5jbHVkZS9hc20vaW9fYXBpYy5oIHwgICAgMSAtCiBhcmNoL3g4
-Ni9pbmNsdWRlL2FzbS9tcHNwZWMuaCAgfCAgIDE4ICsrKysrKysrKysrKysrKysrLQogMiBmaWxl
-cyBjaGFuZ2VkLCAxNyBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKSW5kZXg6IGxpbnV4
-LTIuNi9hcmNoL3g4Ni9pbmNsdWRlL2FzbS9tcHNwZWMuaAo9PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC0y
-LjYub3JpZy9hcmNoL3g4Ni9pbmNsdWRlL2FzbS9tcHNwZWMuaAorKysgbGludXgtMi42L2FyY2gv
-eDg2L2luY2x1ZGUvYXNtL21wc3BlYy5oCkBAIC05NSwxMCArOTUsMjYgQEAgc3RhdGljIGlubGlu
-ZSB2b2lkIGVhcmx5X3Jlc2VydmVfZTgyMF9tcAogI2VuZGlmCiAKIGludCBnZW5lcmljX3Byb2Nl
-c3Nvcl9pbmZvKGludCBhcGljaWQsIGludCB2ZXJzaW9uKTsKLSNpZmRlZiBDT05GSUdfQUNQSQor
-I2lmZGVmIENPTkZJR19YODZfSU9fQVBJQwogaW50IF9fbXBfcmVnaXN0ZXJfaW9hcGljKGludCBp
-ZCwgdTMyIGFkZHJlc3MsIHUzMiBnc2lfYmFzZSwgYm9vbCBob3QpOwogaW50IG1wX3VucmVnaXN0
-ZXJfaW9hcGljKHUzMiBnc2lfYmFzZSk7CiBleHRlcm4gdm9pZCBtcF9yZWdpc3Rlcl9pb2FwaWMo
-aW50IGlkLCB1MzIgYWRkcmVzcywgdTMyIGdzaV9iYXNlKTsKKyNlbHNlCitzdGF0aWMgaW5saW5l
-IGludCBfX21wX3JlZ2lzdGVyX2lvYXBpYyhpbnQgaWQsIHUzMiBhZGRyZXNzLCB1MzIgZ3NpX2Jh
-c2UsCisJCQkJCSBib29sIGhvdCkKK3sKKwlyZXR1cm4gMDsKK30KK3N0YXRpYyBpbmxpbmUgaW50
-IG1wX3VucmVnaXN0ZXJfaW9hcGljKHUzMiBnc2lfYmFzZSkKK3sKKwlyZXR1cm4gMDsKK30KK3N0
-YXRpYyBpbmxpbmUgdm9pZCBtcF9yZWdpc3Rlcl9pb2FwaWMoaW50IGlkLCB1MzIgYWRkcmVzcywg
-dTMyIGdzaV9iYXNlKQoreworfQorI2VuZGlmCisKKyNpZmRlZiBDT05GSUdfQUNQSQogZXh0ZXJu
-IHZvaWQgbXBfb3ZlcnJpZGVfbGVnYWN5X2lycSh1OCBidXNfaXJxLCB1OCBwb2xhcml0eSwgdTgg
-dHJpZ2dlciwKIAkJCQkgICB1MzIgZ3NpKTsKIGV4dGVybiB2b2lkIG1wX2NvbmZpZ19hY3BpX2xl
-Z2FjeV9pcnFzKHZvaWQpOwpJbmRleDogbGludXgtMi42L2FyY2gveDg2L2luY2x1ZGUvYXNtL2lv
-X2FwaWMuaAo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC0yLjYub3JpZy9hcmNoL3g4Ni9pbmNsdWRlL2Fz
-bS9pb19hcGljLmgKKysrIGxpbnV4LTIuNi9hcmNoL3g4Ni9pbmNsdWRlL2FzbS9pb19hcGljLmgK
-QEAgLTE4OSw3ICsxODksNiBAQCBleHRlcm4gdTMyIGdzaV90b3A7CiBpbnQgaW9hcGljX2dzaV90
-b19pcnEodTMyIGdzaSk7CiBpbnQgbXBfZmluZF9pb2FwaWModTMyIGdzaSk7CiBpbnQgbXBfZmlu
-ZF9pb2FwaWNfcGluKGludCBpb2FwaWMsIHUzMiBnc2kpOwotdm9pZCBfX2luaXQgbXBfcmVnaXN0
-ZXJfaW9hcGljKGludCBpZCwgdTMyIGFkZHJlc3MsIHUzMiBnc2lfYmFzZSk7CiBleHRlcm4gdm9p
-ZCBfX2luaXQgcHJlX2luaXRfYXBpY19JUlEwKHZvaWQpOwogCiBleHRlcm4gdm9pZCBtcF9zYXZl
-X2lycShzdHJ1Y3QgbXBjX2ludHNyYyAqbSk7Cg==
---001a1134c7925c25b304ef54cf8b--
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
