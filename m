@@ -1,45 +1,106 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH][tentative] PCI / ACPI: Rework PCI host bridge removal to avoid sysfs warnings
-Date: Mon, 06 Jan 2014 21:41:46 +0100
-Message-ID: <4679785.iPCX7mECEL@vostro.rjw.lan>
-References: <37552283.kG1L4S8Daa@vostro.rjw.lan> <2459491.HIKjAnF27k@vostro.rjw.lan> <CAE9FiQV1tui+nHMFF419dpTOKt_x4US6R=3uPhDvUDJ0zoMrEg@mail.gmail.com>
+Subject: Re: [PATCH V2] ACPI/Battery: Add a _BIX quirk for NEC LZ750/LS
+Date: Mon, 06 Jan 2014 23:25:53 +0100
+Message-ID: <1793775.ULjNzyMivD@vostro.rjw.lan>
+References: <1389019837-13619-1-git-send-email-tianyu.lan@intel.com> <20140106175912.GA2754@core.coreip.homeip.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57336 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753702AbaAFU17 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jan 2014 15:27:59 -0500
-In-Reply-To: <CAE9FiQV1tui+nHMFF419dpTOKt_x4US6R=3uPhDvUDJ0zoMrEg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20140106175912.GA2754@core.coreip.homeip.net>
+Sender: stable-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, fcr@adinet.com.uy, l@dorileo.org, "3.8+" <stable@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Tejun Heo <tj@kernel.org>
 
-On Monday, January 06, 2014 11:28:43 AM Yinghai Lu wrote:
-> On Thu, Jan 2, 2014 at 4:45 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Thursday, January 02, 2014 02:47:04 PM Yinghai Lu wrote:
-> >>
-> >> No. It should be before removing all root bus devices.
-> >> as they need to access the pci devices during stop ioapic and dmar.
-> >>
-> >> Also ioapic itself could one one pci device.
-> >
-> > Well, if we stop drivers first, then stop ioapic/dmar and *then* remove
-> > devices, it is possible to rebind a driver to a device after ioapic/dmar has
-> > been stopped, which I guess will not lead to anything nice?
+On Monday, January 06, 2014 09:59:12 AM Dmitry Torokhov wrote:
+> Hi Lan,
 > 
-> Not sure how that could happen.
+> On Mon, Jan 06, 2014 at 10:50:37PM +0800, Lan Tianyu wrote:
+> > The aml method _BIX of NEC LZ750/LS returns a broken package which
+> > skip the first member "Revision" according ACPI 5.0 spec Table 10-234.
+> > 
+> > This patch is to add a quirk for this machine to skip member "Revision"
+> > during parsing _BIX returned package.
+> > 
+> > Reported-and-tested-by: Francisco Castro <fcr@adinet.com.uy>
+> > Reference: https://bugzilla.kernel.org/show_bug.cgi?id=67351
+> > Cc: 3.8+ <stable@vger.kernel.org>
+> > Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+
+Queued up as a fix for 3.13 (I fixed up the indentation).
+
+Thanks!
+
+> > ---
+> > Change since v1:
+> > 	Remove battery_bix_package_quirk() function and set
+> > battery_bix_broken_package flag according the returned value
+> > of dmi_check_system().
+> > 
+> >  drivers/acpi/battery.c | 22 +++++++++++++++++++++-
+> >  1 file changed, 21 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> > index e90ef8b..d21cc1a 100644
+> > --- a/drivers/acpi/battery.c
+> > +++ b/drivers/acpi/battery.c
+> > @@ -61,6 +61,7 @@ MODULE_AUTHOR("Alexey Starikovskiy <astarikovskiy@suse.de>");
+> >  MODULE_DESCRIPTION("ACPI Battery Driver");
+> >  MODULE_LICENSE("GPL");
+> >  
+> > +static int battery_bix_broken_package;
+> >  static unsigned int cache_time = 1000;
+> >  module_param(cache_time, uint, 0644);
+> >  MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+> > @@ -415,7 +416,12 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
+> >  		ACPI_EXCEPTION((AE_INFO, status, "Evaluating %s", name));
+> >  		return -ENODEV;
+> >  	}
+> > -	if (test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags))
+> > +
+> > +	if (battery_bix_broken_package)
+> > +		result = extract_package(battery, buffer.pointer,
+> > +				extended_info_offsets + 1,
+> > +				ARRAY_SIZE(extended_info_offsets) - 1);
+> > +	else if (test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags))
+> >  		result = extract_package(battery, buffer.pointer,
+> >  				extended_info_offsets,
+> >  				ARRAY_SIZE(extended_info_offsets));
+> > @@ -753,6 +759,17 @@ static int battery_notify(struct notifier_block *nb,
+> >  	return 0;
+> >  }
+> >  
+> > +static struct dmi_system_id bat_dmi_table[] = {
+> > +	{
+> > +	.ident = "NEC LZ750/LS",
+> > +	.matches = {
+> > +		DMI_MATCH(DMI_SYS_VENDOR, "NEC"),
+> > +		DMI_MATCH(DMI_PRODUCT_NAME, "PC-LZ750LS"),
+> > +		},
 > 
-> If it would really happen, we could set dev->match_driver to 0 in pci_stop_dev.
+> This does not appear at be indented properly. I see there some
+> inventive formatting in drivers/acpi, but I believe the proper form is:
+> 
+> static struct dmi_system_id bat_dmi_table[] = {
+> 	{
+> 		.ident = "NEC LZ750/LS",
+> 		.matches = {
+> 			DMI_MATCH(DMI_SYS_VENDOR, "NEC"),
+> 			DMI_MATCH(DMI_PRODUCT_NAME, "PC-LZ750LS"),
+> 		},
+> 	},
+> 	{}
+> };
+> 
+> Otherwise:
+> 
+> Reviewed-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> 
+> Thanks.
+> 
+> 
 
-Simply, run "modprobe -r driver && modprobe driver" in a loop and
-remove the PCI host bridge the given device is on in parallel to that.  Chances
-are, you'll see some nice breakage.
-
-Also what happens if somebody uses the "remove" sysfs attribute on a device
-needed by ioapic/dmar?
-
-Rafael
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
