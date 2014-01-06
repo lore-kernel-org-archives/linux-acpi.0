@@ -1,75 +1,75 @@
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: Re: [PATCH 11/11] drivers: acpi: Include header file in debugfs.c
- and rectify prototype declaration in internal.h
-Date: Sun, 5 Jan 2014 19:28:49 -0800
-Message-ID: <20140106032849.GA20605@leaf>
-References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com>
- <37de640470c91e2e54ab68a158e19dde3938f18a.1387271324.git.rashika.kheria@gmail.com>
- <1528697.GH1GrQaKgp@vostro.rjw.lan>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Patch v2 00/13] Introduce ACPI _DSM helper functions to simplify
+ code
+Date: Mon, 06 Jan 2014 14:18:45 +0800
+Message-ID: <52CA4AC5.5080704@linux.intel.com>
+References: <1387456702-4709-1-git-send-email-jiang.liu@linux.intel.com> <1922556.NGT5hD6mbC@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:53607 "EHLO
-	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752141AbaAFD27 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Jan 2014 22:28:59 -0500
-Content-Disposition: inline
-In-Reply-To: <1528697.GH1GrQaKgp@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1922556.NGT5hD6mbC@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Rashika Kheria <rashika.kheria@gmail.com>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Leonidas Da Silva Barbosa <leosilva@linux.vnet.ibm.com>, Ashley Lai <ashley@ashleylai.com>, Peter Huewe <peterhuewe@gmx.de>, Rajiv Andrade <mail@srajiv.net>, Marcel Selhorst <tpmdd@selhorst.net>, Sirrix AG <tpmdd@sirrix.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jiri Kosina <jkosina@suse.cz>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 06, 2014 at 12:33:57AM +0100, Rafael J. Wysocki wrote:
-> On Tuesday, December 17, 2013 03:06:54 PM Rashika Kheria wrote:
-> > Include header file internal.h in debugfs.c and change the return
-> > value's type in header file internal.h.
-> >=20
-> > This eliminates the following warning in debugfs.c:
-> > drivers/acpi/debugfs.c:16:13: warning: no previous prototype for =E2=
-=80=98acpi_debugfs_init=E2=80=99 [-Wmissing-prototypes]
-> >=20
-> > Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
-> > Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-> > ---
-> >  drivers/acpi/debugfs.c  |    3 +++
-> >  drivers/acpi/internal.h |    2 +-
-> >  2 files changed, 4 insertions(+), 1 deletion(-)
-> >=20
-> > diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
-> > index b55d6a2..96bcaf7 100644
-> > --- a/drivers/acpi/debugfs.c
-> > +++ b/drivers/acpi/debugfs.c
-> > @@ -6,6 +6,7 @@
-> >  #include <linux/init.h>
-> >  #include <linux/debugfs.h>
-> >  #include <acpi/acpi_drivers.h>
-> > +#include "internal.h"
-> > =20
-> >  #define _COMPONENT		ACPI_SYSTEM_COMPONENT
-> >  ACPI_MODULE_NAME("debugfs");
-> > @@ -13,7 +14,9 @@ ACPI_MODULE_NAME("debugfs");
-> >  struct dentry *acpi_debugfs_dir;
-> >  EXPORT_SYMBOL_GPL(acpi_debugfs_dir);
-> > =20
-> > +#ifdef  CONFIG_DEBUG_FS
-> >  void __init acpi_debugfs_init(void)
-> >  {
-> >  	acpi_debugfs_dir =3D debugfs_create_dir("acpi", NULL);
-> >  }
-> > +#endif
->=20
-> What about avoiding to build the entire debugfs.c for CONFIG_DEBUG_FS=
- unset?
->=20
-> That surely would make sense?=20
+Thanks, Rafael!
 
-It exports the symbol acpi_debugfs_dir, which is used unconditionally.
-
-- Josh Triplett
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 2014/1/6 5:58, Rafael J. Wysocki wrote:
+> On Thursday, December 19, 2013 08:38:09 PM Jiang Liu wrote:
+>> There are several drivers making use of ACPI _DSM method to detect
+>> and invoke device specific methods. Currently every driver has
+>> implemented its private version to support ACPI _DSM method.
+>> So this patch introduces three helper functions to support ACPI _DSM
+>> method, which will be used to replace open-coded versions.  It helps
+>> to simplify code and improve code readability.
+>>
+>> It also includes some bugfixes for TPM/nouveau drivers.
+>>
+>> It applies to the mainstream kernel on top of
+>> b0031f2 Merge tag 's2mps11-build' of git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator
+>>
+>> Due to lacking of hardware platform, I have only tested the ACPI _DSM
+>> helper functions and TPM related changes, but haven't tested changes to
+>> other drivers yet. So appreciate help to review and test these patches.
+>>
+>> V1->V2
+>> 1) fix an issue in initializing acpi_object structure
+>>
+>> Jiang Liu (13):
+>>   ACPI: introduce helper interfaces to support ACPI _DSM method
+>>   ACPI, extlog: replace open-coded _DSM specific code with helper
+>>     functions
+>>   PCI, pci-label: release allocated ACPI object on error recovery path
+>>   ACPI, PCI: replace open-coded _DSM specific code with helper
+>>     functions
+>>   PCI, pci-label: treat PCI label with index 0 as valid label
+>>   ACPI, TPM: fix memory leak when walking ACPI namespace
+>>   ACPI, TPM: matching node name instead of full path when searching for
+>>     TPM device
+>>   ACPI, TPM: replace open-coded _DSM specific code with helper
+>>     functions
+>>   ACPI, TPM: detecting PPI features by checking availability of _DSM
+>>     functions
+>>   ACPI, i2c-hid: replace open-coded _DSM specific code with helper
+>>     functions
+>>   ACPI, i915: replace open-coded _DSM specific code with helper
+>>     functions
+>>   nouveau: fix memory leak in ACPI _DSM related code
+>>   ACPI, nouveau: replace open-coded _DSM specific code with helper
+>>     functions
+>>
+>>  drivers/acpi/acpi_extlog.c                     |   61 +---
+>>  drivers/acpi/utils.c                           |   98 ++++++
+>>  drivers/char/tpm/tpm_ppi.c                     |  406 +++++++++---------------
+>>  drivers/gpu/drm/i915/intel_acpi.c              |  144 ++-------
+>>  drivers/gpu/drm/nouveau/core/subdev/mxm/base.c |   48 +--
+>>  drivers/gpu/drm/nouveau/nouveau_acpi.c         |  134 +++-----
+>>  drivers/hid/i2c-hid/i2c-hid.c                  |   26 +-
+>>  drivers/pci/pci-label.c                        |  129 +++-----
+>>  include/acpi/acpi_bus.h                        |   26 ++
+>>  9 files changed, 406 insertions(+), 666 deletions(-)
+> 
+> I've queued up the entire series for 3.14, thanks a lot!
+> 
