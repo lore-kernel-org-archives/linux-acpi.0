@@ -1,52 +1,36 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: Re: [PATCH v4 1/5] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE to
- enable this ACPI mode
-Date: Mon, 06 Jan 2014 15:38:39 -0700
-Message-ID: <52CB306F.1020201@linaro.org>
-References: <1387239401-13918-1-git-send-email-al.stone@linaro.org>
- <1387239401-13918-2-git-send-email-al.stone@linaro.org>
- <20131227045848.GB21429@srcf.ucam.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v5 25/33] PCI, x86: Make ioapic hotplug support built-in
+Date: Mon, 6 Jan 2014 14:47:47 -0800
+Message-ID: <CAE9FiQXa0RK8ht=91dGFj0mC-KQqJjxHXfnh4Td5EUhxEf8M6g@mail.gmail.com>
+References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
+	<1388707565-16535-26-git-send-email-yinghai@kernel.org>
+	<20140103224713.GC18987@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131227045848.GB21429@srcf.ucam.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140103224713.GC18987@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/26/2013 09:58 PM, Matthew Garrett wrote:
-> On Mon, Dec 16, 2013 at 05:16:37PM -0700, al.stone@linaro.org wrote:
+On Fri, Jan 3, 2014 at 2:47 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> [fixed Rafael's email address; I imagine you got a few bounces :)]
 >
->> +config ACPI_REDUCED_HARDWARE
->> +	bool "Hardware-reduced ACPI support"
->> +	depends on ARM || ARM64
->> +	help
->> +	This config adds support for Hardware-reduced ACPI.
+> On Thu, Jan 02, 2014 at 04:05:57PM -0800, Yinghai Lu wrote:
+>> ioapic hotplug should be built-in like pci root bus hotplug.
+>>
+>> Also need to make it depends on X86_IO_APIC.
+>>
+>> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 >
-> Well, that's not really true - most of the hardware-reduced ACPI support
-> seems to be built even if this isn't turned on. Maybe
-> ACPI_REDUCED_HARDWARE_ONLY ?
->
+> Most of this series is x86-specific and outside the scope of PCI, so I
+> assume somebody else will deal with it.
 
-Aha.  Good point; semantically, it is unclear as is.  I'll clarify
-and re-submit.
+Yes.
 
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Linaro Enterprise Group
-al.stone@linaro.org
------------------------------------
+>
+> This particular patch doesn't seem to depend on anything else, so I'll
+> merge it.
+
+yes.
