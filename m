@@ -1,79 +1,47 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 11/11] drivers: acpi: Include header file in debugfs.c and rectify prototype declaration in internal.h
-Date: Mon, 06 Jan 2014 12:17:55 +0100
-Message-ID: <1448202.tci3nLAAiD@vostro.rjw.lan>
-References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com> <1528697.GH1GrQaKgp@vostro.rjw.lan> <20140106032849.GA20605@leaf>
+Subject: Re: [PATCH] acpi: Check if @id is NULL in acpi_table_parse()
+Date: Mon, 06 Jan 2014 12:49:11 +0100
+Message-ID: <1613518.D6bOWsShm6@vostro.rjw.lan>
+References: <1388997834-28028-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60940 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753887AbaAFLEN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jan 2014 06:04:13 -0500
-In-Reply-To: <20140106032849.GA20605@leaf>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1388997834-28028-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: rjw@sisk.pl, lenb@kernel.org, toshi.kani@hp.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Josh Triplett <josh@joshtriplett.org>
-Cc: Rashika Kheria <rashika.kheria@gmail.com>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Sunday, January 05, 2014 07:28:49 PM Josh Triplett wrote:
-> On Mon, Jan 06, 2014 at 12:33:57AM +0100, Rafael J. Wysocki wrote:
-> > On Tuesday, December 17, 2013 03:06:54 PM Rashika Kheria wrote:
-> > > Include header file internal.h in debugfs.c and change the return
-> > > value's type in header file internal.h.
-> > >=20
-> > > This eliminates the following warning in debugfs.c:
-> > > drivers/acpi/debugfs.c:16:13: warning: no previous prototype for =
-=E2=80=98acpi_debugfs_init=E2=80=99 [-Wmissing-prototypes]
-> > >=20
-> > > Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
-> > > Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-> > > ---
-> > >  drivers/acpi/debugfs.c  |    3 +++
-> > >  drivers/acpi/internal.h |    2 +-
-> > >  2 files changed, 4 insertions(+), 1 deletion(-)
-> > >=20
-> > > diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
-> > > index b55d6a2..96bcaf7 100644
-> > > --- a/drivers/acpi/debugfs.c
-> > > +++ b/drivers/acpi/debugfs.c
-> > > @@ -6,6 +6,7 @@
-> > >  #include <linux/init.h>
-> > >  #include <linux/debugfs.h>
-> > >  #include <acpi/acpi_drivers.h>
-> > > +#include "internal.h"
-> > > =20
-> > >  #define _COMPONENT		ACPI_SYSTEM_COMPONENT
-> > >  ACPI_MODULE_NAME("debugfs");
-> > > @@ -13,7 +14,9 @@ ACPI_MODULE_NAME("debugfs");
-> > >  struct dentry *acpi_debugfs_dir;
-> > >  EXPORT_SYMBOL_GPL(acpi_debugfs_dir);
-> > > =20
-> > > +#ifdef  CONFIG_DEBUG_FS
-> > >  void __init acpi_debugfs_init(void)
-> > >  {
-> > >  	acpi_debugfs_dir =3D debugfs_create_dir("acpi", NULL);
-> > >  }
-> > > +#endif
-> >=20
-> > What about avoiding to build the entire debugfs.c for CONFIG_DEBUG_=
-=46S unset?
-> >=20
-> > That surely would make sense?=20
->=20
-> It exports the symbol acpi_debugfs_dir, which is used unconditionally=
-=2E
+On Monday, January 06, 2014 04:43:54 PM Tang Chen wrote:
+> strncmp() does not check if the params are NULL. In acpi_table_parse(),
+> if @id is NULL, the kernel will panic.
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Acked-by: Toshi Kani <toshi.kani@hp.com>
 
-It's only used by drivers/acpi/custom_method.c which also should only b=
-e
-compiled for CONFIG_DEBUG_FS set.
+Queued up for 3.14 (but please use the e-mail address from MAINTAINERS next
+time).  Thanks!
 
-Thanks,
-Rafael
+> ---
+>  drivers/acpi/tables.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index d67a1fe..5a5263b 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -293,7 +293,7 @@ int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
+>  	if (acpi_disabled)
+>  		return -ENODEV;
+>  
+> -	if (!handler)
+> +	if (!id || !handler)
+>  		return -EINVAL;
+>  
+>  	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
+> 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
