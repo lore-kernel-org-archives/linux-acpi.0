@@ -1,112 +1,314 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/1] acpi_pad: call schedule() when need_resched is true
-Date: Mon, 06 Jan 2014 00:42:53 +0100
-Message-ID: <6267303.NrPfzMWnJU@vostro.rjw.lan>
-References: <1386863415-12790-1-git-send-email-tcamuso@redhat.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Subject: Re: [PATCH v2 10/10] IOMMU: Add intel iommu irq-remapping and dmar
+ hotplug support
+Date: Mon, 6 Jan 2014 10:23:36 +0800
+Message-ID: <52CA13A8.4060808@huawei.com>
+References: <1388707697-16800-1-git-send-email-yinghai@kernel.org> <1388707697-16800-11-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1386863415-12790-1-git-send-email-tcamuso@redhat.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Camuso <tcamuso@redhat.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:4565 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751460AbaAFCZh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Jan 2014 21:25:37 -0500
+In-Reply-To: <1388707697-16800-11-git-send-email-yinghai@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, x86 <x86@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Joerg Roedel <joro@8bytes.org>, Donald Dutile <ddutile@redhat.com>
 
-On Thursday, December 12, 2013 10:50:15 AM Tony Camuso wrote:
-> (Slightly rephrased from a bug report submitted by Stuart Hayes)
-> 
-> The purpose of the acpi_pad driver is to implement the "processor power
-> aggregator" device as described in the ACPI 4.0 spec section 8.5. It
-> takes requests from the BIOS (via ACPI) to put a specified number of
-> CPUs into idle, in order to save power, until further notice.
-> 
-> It does this by creating high-priority threads that try to keep the CPUs
-> in a high C-state (using the monitor/mwait CPU instructions). The
-> mwait() call is in a loop that checks periodically if the thread should
-> end and a few other things.
-> 
-> It was discovered through testing that the power_saving threads were
-> causing the system to consume more power than the system was consuming
-> before the threads were created. A counter in the main loop of
-> power_saving_thread() revealed that it was spinning. The mwait()
-> instruction was not keeping the CPU in a high C state very much if at
-> all.
-> 
-> Here is a simplification of the loop in function power_saving_thread() in
-> drivers/acpi/acpi_pad.c
-> 
->     while (!kthread_should_stop()) {
->          :
->         try_to_freeze()
->          :
->         while (!need_resched()) {
->              :
->             if (!need_resched())
->                 __mwait(power_saving_mwait_eax, 1);
->              :
->             if (jiffies > expire_time) {
->                 do_sleep = 1;
->                 break;
->             }
->         }
->     }
-> 
-> If need_resched() returns true, then mwait() is not called. It was
-> returning true because of things like timer interrupts, as in the
-> following sequence.
-> 
-> hrtimer_interrupt->__run_hrtimer->tick_sched_timer-> update_process_times->
-> rcu_check_callbacks->rcu_pending->__rcu_pending->set_need_resched
-> 
-> Kernels 3.5.0-rc2+ do not exhibit this problem, because a patch to
-> try_to_freeze() in include/linux/freezer.h introduces a call to
-> might_sleep(), which ultimately calls schedule() to clear the reschedule
-> flag and allows the the loop to execute the call to mwait().
-> 
-> However, the changes to try_to_freeze are unrelated to acpi_pad, and it
-> does not seem like a good idea to rely on an unrelated patch in a
-> function that could later be changed and reintroduce this bug.
-> 
-> Therefore, it seems better to make an explicit call to schedule() in the
-> outer loop when the need_resched flag is set.
-> 
-> Reported-by: Stuart Hayes <stuart_hayes@dell.com>
-> Tested-by: Stuart Hayes <stuart_hayes@dell.com>
-> Signed-off-by: Tony Camuso <tcamuso@redhat.com>
+Hi Yinghai,
+   There is a problem, consider that static DMAR table contains the hotplug CPU DMAR info(include drhd and atsr).
+So, if we enable irq remapping, all DMAR drhd unit and atsr unit will be parsed during boot path. When IOH hub object in
+DSDT was enumerated, we found device that support _DSM, by _DSM, we get the hotplug DMAR info(which has been initialized during irq remapping boot path).
+We cannot identify the DMAR info in _DSM whether has been initialized.
 
-Peter Zijlstra has an acpi_pad patch that I think will conflict with this, so
-please resubmit after the 3.14 merge window if still necessary.
+For DRHD, I think we can use reg_base_addr to identify whether has been registered.
+But for ATSR, maybe it's a Thorny issue.
 
-Thanks! 
+Thanks!
+Yijing.
 
+On 2014/1/3 8:08, Yinghai Lu wrote:
+> during hostbridge hotadd/hotremove, we call acpi_pci_iommu_add/remove in
+> acpi_pci_root_add/remove.
+> 
+> For add, need to after ioapic add.
+> 
+> Run dsm in acpi root device to get iommu entries, and init dmar/irq_remapping
+> 
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Joerg Roedel <joro@8bytes.org>
+> Cc: Donald Dutile <ddutile@redhat.com>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: linux-pci@vger.kernel.org
 > ---
->  drivers/acpi/acpi_pad.c |    9 ++++++++-
->  1 files changed, 8 insertions(+), 1 deletions(-)
+>  drivers/acpi/pci_root.c  |   2 +
+>  drivers/iommu/dmar.c     | 201 +++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/pci-acpi.h |   8 ++
+>  3 files changed, 211 insertions(+)
 > 
-> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-> index fc6008f..2c67e59 100644
-> --- a/drivers/acpi/acpi_pad.c
-> +++ b/drivers/acpi/acpi_pad.c
-> @@ -219,8 +219,15 @@ static int power_saving_thread(void *data)
->  		 * borrow CPU time from this CPU and cause RT task use > 95%
->  		 * CPU time. To make 'avoid starvation' work, takes a nap here.
->  		 */
-> -		if (do_sleep)
-> +		if (unlikely(do_sleep))
->  			schedule_timeout_killable(HZ * idle_pct / 100);
-> +
-> +		/* If an external event has set the need_resched flag, then
-> +		 * we need to deal with it, or this loop will continue to
-> +		 * spin without calling __mwait().
-> +		 */
-> +		if (unlikely(need_resched()))
-> +			schedule();
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index e666be3..dd82d8b 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -600,6 +600,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
 >  	}
 >  
->  	exit_round_robin(tsk_index);
+>  	acpi_pci_ioapic_add(root);
+> +	acpi_pci_iommu_add(root);
+>  
+>  	pci_bus_add_devices(root->bus);
+>  	return 1;
+> @@ -615,6 +616,7 @@ static void acpi_pci_root_remove(struct acpi_device *device)
+>  
+>  	pci_stop_root_bus(root->bus);
+>  
+> +	acpi_pci_iommu_remove(root);
+>  	acpi_pci_ioapic_remove(root);
+>  
+>  	device_set_run_wake(root->bus->bridge, false);
+> diff --git a/drivers/iommu/dmar.c b/drivers/iommu/dmar.c
+> index 31d7942..c74f112 100644
+> --- a/drivers/iommu/dmar.c
+> +++ b/drivers/iommu/dmar.c
+> @@ -38,6 +38,7 @@
+>  #include <linux/tboot.h>
+>  #include <linux/dmi.h>
+>  #include <linux/slab.h>
+> +#include <acpi/acpi.h>
+>  #include <asm/irq_remapping.h>
+>  #include <asm/iommu_table.h>
+>  
+> @@ -1548,3 +1549,203 @@ int __init dmar_ir_support(void)
+>  	return dmar->flags & 0x1;
+>  }
+>  IOMMU_INIT_POST(detect_intel_iommu);
+> +
+> +static u8 dmar_uuid_str[] = "D8C1A3A6-BE9B-4C9B-91BF-C3CB81FC5DAF";
+> +
+> +static int acpi_dmar_dsm_support(acpi_handle handle)
+> +{
+> +	int support = 0;
+> +	struct acpi_dsm_context context = {
+> +		.uuid_str = dmar_uuid_str,
+> +		.rev = 1,
+> +		.func_idx = 0,
+> +	};
+> +
+> +	if (ACPI_SUCCESS(acpi_run_dsm(handle, &context))) {
+> +		u32 *ret = context.ret.pointer;
+> +		support = ret[0];
+> +		kfree(context.ret.pointer);
+> +	}
+> +
+> +	if (support & 1)
+> +		return support & 0x0e;
+> +
+> +	return 0;
+> +}
+> +
+> +static void *acpi_dmar_dsm_run(acpi_handle handle, int idx)
+> +{
+> +	struct acpi_dsm_context context = {
+> +		.uuid_str = dmar_uuid_str,
+> +		.rev = 1,
+> +		.func_idx = idx,
+> +	};
+> +
+> +	if (ACPI_SUCCESS(acpi_run_dsm(handle, &context)))
+> +		return context.ret.pointer;
+> +
+> +	return NULL;
+> +}
+> +
+> +static void handle_iommu_add(acpi_handle handle, void **d, void **a)
+> +{
+> +	int support;
+> +	struct acpi_dmar_header *header;
+> +	struct dmar_drhd_unit *dmaru = NULL;
+> +	struct dmar_atsr_unit *atsru = NULL;
+> +
+> +	*d = NULL;
+> +	*a = NULL;
+> +
+> +	support = acpi_dmar_dsm_support(handle);
+> +
+> +	if (!support)
+> +		return;
+> +
+> +	/* DRHD */
+> +	if (support & (1<<1)) {
+> +		header = acpi_dmar_dsm_run(handle, 1);
+> +		dmar_table_print_dmar_entry(header);
+> +		__dmar_parse_one_drhd(header, &dmaru);
+> +	}
+> +
+> +	if (!dmaru)
+> +		return;
+> +
+> +	/* ATSR */
+> +	if (support & (1<<2)) {
+> +		header = acpi_dmar_dsm_run(handle, 2);
+> +		dmar_table_print_dmar_entry(header);
+> +		__dmar_parse_one_atsr(header, &atsru);
+> +	}
+> +
+> +	/* RHSA */
+> +	if (support & (1<<3)) {
+> +		header = acpi_dmar_dsm_run(handle, 3);
+> +		dmar_table_print_dmar_entry(header);
+> +		dmar_parse_one_rhsa(header);
+> +		kfree(header);
+> +	}
+> +
+> +	/*
+> +	 *  only need to init intr_remap and dmar for hot-add ones
+> +	 *  after enable_IR() or pci_iommu_init
+> +	 */
+> +	/*
+> +	 * TODO: handle parsing failure for pre-installed hotplug one
+> +	 *	Could make every parse_one duplicate the entry table?
+> +	 */
+> +	if (irq_remapping_enabled == 1)
+> +		intel_enable_irq_remapping_one(dmaru);
+> +	if (irq_remapping_enabled == 1 || intel_iommu_enabled == 1)
+> +		dmar_parse_dev(dmaru);
+> +	if (intel_iommu_enabled == 1) {
+> +		init_dmar_one(dmaru);
+> +		if (atsru) {
+> +			header = atsru->hdr;
+> +			if (atsr_parse_dev(atsru)) {
+> +				kfree(header);
+> +				atsru = NULL;
+> +			}
+> +			*a = atsru;
+> +		}
+> +	}
+> +	*d = dmaru;
+> +}
+> +
+> +static void handle_iommu_remove(void *drhd, void *atsr)
+> +{
+> +	struct dmar_drhd_unit *dmaru = drhd;
+> +	struct dmar_atsr_unit *atsru = atsr;
+> +
+> +	if (!dmaru)
+> +		return;
+> +
+> +	if (irq_remapping_enabled == 1)
+> +		disable_irq_remapping_one(dmaru);
+> +	if (intel_iommu_enabled == 1) {
+> +		free_dmar_iommu(dmaru->iommu);
+> +		if (atsru) {
+> +			kfree(atsru->devices);
+> +			remove_atsru_from_saved_dev_atsru_list(atsru);
+> +		}
+> +	}
+> +	if (irq_remapping_enabled == 1 || intel_iommu_enabled == 1) {
+> +		kfree(dmaru->devices);
+> +		remove_dmaru_from_saved_dev_drhd_list(dmaru);
+> +	}
+> +	if (atsru) {
+> +		kfree(atsru->hdr);
+> +		list_del(&atsru->list);
+> +		kfree(atsru);
+> +	}
+> +	free_iommu(dmaru->iommu);
+> +	kfree(dmaru->hdr);
+> +	list_del(&dmaru->list);
+> +	kfree(dmaru);
+> +}
+> +
+> +struct acpi_pci_iommu {
+> +	acpi_handle root_handle;
+> +	void *dmaru;
+> +	void *atsru;
+> +	struct list_head list;
+> +};
+> +
+> +static LIST_HEAD(iommu_list);
+> +static DEFINE_MUTEX(iommu_list_lock);
+> +
+> +static acpi_status register_iommu(acpi_handle handle, u32 lvl,
+> +				  void *context, void **rv)
+> +{
+> +	acpi_handle root_handle = context;
+> +	void *dmaru, *atsru;
+> +	struct acpi_pci_iommu *iommu;
+> +
+> +	handle_iommu_add(handle, &dmaru, &atsru);
+> +	if (!dmaru)
+> +		return AE_OK;
+> +
+> +	iommu = kzalloc(sizeof(*iommu), GFP_KERNEL);
+> +	if (!iommu) {
+> +		pr_err("%s: cannot allocate memory\n", __func__);
+> +		handle_iommu_remove(dmaru, atsru);
+> +		return AE_OK;
+> +	}
+> +	iommu->root_handle = root_handle;
+> +	iommu->dmaru = dmaru;
+> +	iommu->atsru = atsru;
+> +
+> +	mutex_lock(&iommu_list_lock);
+> +	list_add(&iommu->list, &iommu_list);
+> +	mutex_unlock(&iommu_list_lock);
+> +
+> +	return AE_OK;
+> +}
+> +
+> +void acpi_pci_iommu_add(struct acpi_pci_root *root)
+> +{
+> +	acpi_status status;
+> +
+> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device->handle,
+> +				     (u32)1, register_iommu, NULL,
+> +				     root->device->handle,
+> +				     NULL);
+> +	if (ACPI_FAILURE(status))
+> +		pr_err("%s: register_iommu failure - %d", __func__, status);
+> +}
+> +
+> +void acpi_pci_iommu_remove(struct acpi_pci_root *root)
+> +{
+> +	struct acpi_pci_iommu *iommu, *tmp;
+> +
+> +	mutex_lock(&iommu_list_lock);
+> +	list_for_each_entry_safe(iommu, tmp, &iommu_list, list) {
+> +		if (root->device->handle != iommu->root_handle)
+> +			continue;
+> +		list_del(&iommu->list);
+> +		handle_iommu_remove(iommu->dmaru, iommu->atsru);
+> +		kfree(iommu);
+> +	}
+> +	mutex_unlock(&iommu_list_lock);
+> +}
+> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> index d2a976a..f00a89f 100644
+> --- a/include/linux/pci-acpi.h
+> +++ b/include/linux/pci-acpi.h
+> @@ -86,4 +86,12 @@ extern bool aer_acpi_firmware_first(void);
+>  static inline bool aer_acpi_firmware_first(void) { return false; }
+>  #endif
+>  
+> +#ifdef CONFIG_DMAR_TABLE
+> +void acpi_pci_iommu_add(struct acpi_pci_root *root);
+> +void acpi_pci_iommu_remove(struct acpi_pci_root *root);
+> +#else
+> +static inline void acpi_pci_iommu_add(struct acpi_pci_root *root) { }
+> +static inline void acpi_pci_iommu_remove(struct acpi_pci_root *root) { }
+> +#endif
+> +
+>  #endif	/* _PCI_ACPI_H_ */
 > 
 
+
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Thanks!
+Yijing
+
