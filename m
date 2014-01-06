@@ -1,31 +1,22 @@
 From: Yijing Wang <wangyijing@huawei.com>
 Subject: Re: [PATCH v2 10/10] IOMMU: Add intel iommu irq-remapping and dmar
  hotplug support
-Date: Mon, 6 Jan 2014 10:23:36 +0800
-Message-ID: <52CA13A8.4060808@huawei.com>
+Date: Mon, 6 Jan 2014 11:12:01 +0800
+Message-ID: <52CA1F01.9070709@huawei.com>
 References: <1388707697-16800-1-git-send-email-yinghai@kernel.org> <1388707697-16800-11-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:4565 "EHLO
-	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751460AbaAFCZh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Jan 2014 21:25:37 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1388707697-16800-11-git-send-email-yinghai@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, x86 <x86@kernel.org>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Joerg Roedel <joro@8bytes.org>, Donald Dutile <ddutile@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
 Hi Yinghai,
-   There is a problem, consider that static DMAR table contains the hotplug CPU DMAR info(include drhd and atsr).
-So, if we enable irq remapping, all DMAR drhd unit and atsr unit will be parsed during boot path. When IOH hub object in
-DSDT was enumerated, we found device that support _DSM, by _DSM, we get the hotplug DMAR info(which has been initialized during irq remapping boot path).
-We cannot identify the DMAR info in _DSM whether has been initialized.
-
-For DRHD, I think we can use reg_base_addr to identify whether has been registered.
-But for ATSR, maybe it's a Thorny issue.
+   Maybe we should add some guards to protect from initializing DMAR when we disable Intel IOMMU
+like append intel_iommu=off to boot command.
 
 Thanks!
 Yijing.
@@ -311,4 +302,3 @@ On 2014/1/3 8:08, Yinghai Lu wrote:
 -- 
 Thanks!
 Yijing
-
