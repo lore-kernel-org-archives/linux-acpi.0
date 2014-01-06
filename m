@@ -1,56 +1,76 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [RFC PATCH 04/14] ACPI: Add ACPI 5.0 Time and Alarm Device
- driver
-Date: Mon, 06 Jan 2014 17:20:53 +0800
-Message-ID: <1389000053.3539.6078.camel@linux-s257.site>
-References: <1387439515-8926-1-git-send-email-jlee@suse.com>
-	 <1387439515-8926-5-git-send-email-jlee@suse.com>
-	 <CAOLK0pynyv2CjA-Jb-0cUMkdnXY8KD2QForsk5ygM1mrRtXOyg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 11/11] drivers: acpi: Include header file in debugfs.c and rectify prototype declaration in internal.h
+Date: Mon, 06 Jan 2014 12:17:55 +0100
+Message-ID: <1448202.tci3nLAAiD@vostro.rjw.lan>
+References: <c676af6619fc5a84208740bfc7edcf56bb78ed4e.1387271324.git.rashika.kheria@gmail.com> <1528697.GH1GrQaKgp@vostro.rjw.lan> <20140106032849.GA20605@leaf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:34057 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751799AbaAFJWd (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-	Mon, 6 Jan 2014 04:22:33 -0500
-In-Reply-To: <CAOLK0pynyv2CjA-Jb-0cUMkdnXY8KD2QForsk5ygM1mrRtXOyg@mail.gmail.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:60940 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753887AbaAFLEN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jan 2014 06:04:13 -0500
+In-Reply-To: <20140106032849.GA20605@leaf>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <lantianyu1986@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alessandro Zummo <a.zummo@towertech.it>, "H. Peter Anvin" <hpa@zytor.com>, Matt Fleming <matt@console-pimps.org>, Matthew Garrett <matthew.garrett@nebula.com>, Elliott@hp.com, samer.el-haj-mahmoud@hp.com, Oliver Neukum <oneukum@suse.de>, werner@suse.com, trenn@suse.de, JBeulich@suse.com, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, rtc-linux@googlegroups.com, x86@kernel.org, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Josh Triplett <josh@joshtriplett.org>
+Cc: Rashika Kheria <rashika.kheria@gmail.com>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-=E6=96=BC =E5=9B=9B=EF=BC=8C2014-01-02 =E6=96=BC 16:09 +0800=EF=BC=8CLa=
-n Tianyu =E6=8F=90=E5=88=B0=EF=BC=9A
-> > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> > index bba9b72..3f7a075 100644
-> > --- a/drivers/acpi/bus.c
-> > +++ b/drivers/acpi/bus.c
-> > @@ -689,6 +689,9 @@ static int __init acpi_init(void)
-> >         pci_mmcfg_late_init();
-> >         acpi_scan_init();
-> >         acpi_ec_init();
-> > +#ifdef CONFIG_X86
-> > +       acpi_tad_init();
-> > +#endif
+On Sunday, January 05, 2014 07:28:49 PM Josh Triplett wrote:
+> On Mon, Jan 06, 2014 at 12:33:57AM +0100, Rafael J. Wysocki wrote:
+> > On Tuesday, December 17, 2013 03:06:54 PM Rashika Kheria wrote:
+> > > Include header file internal.h in debugfs.c and change the return
+> > > value's type in header file internal.h.
+> > >=20
+> > > This eliminates the following warning in debugfs.c:
+> > > drivers/acpi/debugfs.c:16:13: warning: no previous prototype for =
+=E2=80=98acpi_debugfs_init=E2=80=99 [-Wmissing-prototypes]
+> > >=20
+> > > Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
+> > > Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+> > > ---
+> > >  drivers/acpi/debugfs.c  |    3 +++
+> > >  drivers/acpi/internal.h |    2 +-
+> > >  2 files changed, 4 insertions(+), 1 deletion(-)
+> > >=20
+> > > diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
+> > > index b55d6a2..96bcaf7 100644
+> > > --- a/drivers/acpi/debugfs.c
+> > > +++ b/drivers/acpi/debugfs.c
+> > > @@ -6,6 +6,7 @@
+> > >  #include <linux/init.h>
+> > >  #include <linux/debugfs.h>
+> > >  #include <acpi/acpi_drivers.h>
+> > > +#include "internal.h"
+> > > =20
+> > >  #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+> > >  ACPI_MODULE_NAME("debugfs");
+> > > @@ -13,7 +14,9 @@ ACPI_MODULE_NAME("debugfs");
+> > >  struct dentry *acpi_debugfs_dir;
+> > >  EXPORT_SYMBOL_GPL(acpi_debugfs_dir);
+> > > =20
+> > > +#ifdef  CONFIG_DEBUG_FS
+> > >  void __init acpi_debugfs_init(void)
+> > >  {
+> > >  	acpi_debugfs_dir =3D debugfs_create_dir("acpi", NULL);
+> > >  }
+> > > +#endif
+> >=20
+> > What about avoiding to build the entire debugfs.c for CONFIG_DEBUG_=
+=46S unset?
+> >=20
+> > That surely would make sense?=20
 >=20
-> Why calling acpi_tad_init() directly here rather than using
-> module_initcall?
-> Is there dependency?
->=20
+> It exports the symbol acpi_debugfs_dir, which is used unconditionally=
+=2E
 
-The rtc-acpitad RTC driver depend on acpi_read/set_time functions in
-acpi_tad.
+It's only used by drivers/acpi/custom_method.c which also should only b=
+e
+compiled for CONFIG_DEBUG_FS set.
 
-On the other hand, if we adapt to ACPI time device when "CMOS RTC Not
-Present" set, then acpi_read/set_time will used to replace CMOS
-functions that's called by other drivers. So, I direct call
-acpi_tad_init() here.
-
-
-Thanks a lot!
-Joey Lee
+Thanks,
+Rafael
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
