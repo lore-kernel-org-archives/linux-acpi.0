@@ -1,59 +1,45 @@
-From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Subject: Re: [Xen-devel] [PATCH v5 16/33] xen, irq: Call irq_alloc_reserved_desc_at()
- at first
-Date: Tue, 7 Jan 2014 13:30:10 +0000
-Message-ID: <alpine.DEB.2.02.1401071327510.8667@kaball.uk.xensource.com>
-References: <1388707565-16535-1-git-send-email-yinghai@kernel.org> <1388707565-16535-17-git-send-email-yinghai@kernel.org> <alpine.DEB.2.02.1401031749340.8667@kaball.uk.xensource.com> <CAE9FiQVba9K_3LDkHTP4YZJ-FzwE_mF3h6iiXEFb1shUUmhGpg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQVba9K_3LDkHTP4YZJ-FzwE_mF3h6iiXEFb1shUUmhGpg@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Xen Devel <xen-devel@lists.xensource.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+From: Emil Goode <emilgoode@gmail.com>
+Subject: [PATCH] ACPI: thermal: remove const from thermal_zone_device_ops declaration
+Date: Tue,  7 Jan 2014 17:24:55 +0100
+Message-ID: <1389111895-23007-1-git-send-email-emilgoode@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:62850 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751551AbaAGQYA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jan 2014 11:24:00 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Emil Goode <emilgoode@gmail.com>
 
-On Mon, 6 Jan 2014, Yinghai Lu wrote:
-> On Fri, Jan 3, 2014 at 9:50 AM, Stefano Stabellini
-> <stefano.stabellini@eu.citrix.com> wrote:
-> 
-> >>  drivers/xen/events.c | 8 ++++++--
-> >>  1 file changed, 6 insertions(+), 2 deletions(-)
-> >>
-> >> diff --git a/drivers/xen/events.c b/drivers/xen/events.c
-> >> index 4035e83..020cd77 100644
-> >> --- a/drivers/xen/events.c
-> >> +++ b/drivers/xen/events.c
-> >> @@ -508,8 +508,12 @@ static int __must_check xen_allocate_irq_gsi(unsigned gsi)
-> >>       /* Legacy IRQ descriptors are already allocated by the arch. */
-> >>       if (gsi < NR_IRQS_LEGACY)
-> >>               irq = gsi;
-> >> -     else
-> >> -             irq = irq_alloc_desc_at(gsi, -1);
-> >> +     else {
-> >> +             /* for x86, irq already get reserved for gsi */
-> >> +             irq = irq_alloc_reserved_desc_at(gsi, -1);
-> >> +             if (irq < 0)
-> >> +                     irq = irq_alloc_desc_at(gsi, -1);
-> >> +     }
-> >
-> > This is common code. On ARM I get:
-> >
-> > drivers/xen/events.c: In function 'xen_allocate_irq_gsi':
-> > drivers/xen/events.c:513:3: error: implicit declaration of function 'irq_alloc_reserved_desc_at' [-Werror=implicit-function-declaration]
-> >    irq = irq_alloc_reserved_desc_at(gsi, -1);
-> >    ^
-> > cc1: some warnings being treated as errors
-> 
-> It's strange.
-> 
-> that is defined with irq_alloc_desc_at in parallel in
-> include/linux/irq.h and kernel/irq/irqdesc.c.
-> 
-> Did you try the whole tree, or just this patch?
+The following commit introduced the requirement to not declare
+thermal_zone_device_ops structs as const in order to allow
+changing the .get_temp callback.
 
-Just this patch.
-The whole tree (yinghai/for-x86-irq-3.14) builds just fine.
-Thanks!
+commit 4e5e4705bf69ea450f58fc709ac5888f321a9299
+Author: Eduardo Valentin <eduardo.valentin@ti.com>
+Date:   Wed Jul 3 15:35:39 2013 -0400
 
-- Stefano
+    thermal: introduce device tree parser
+
+Signed-off-by: Emil Goode <emilgoode@gmail.com>
+---
+ drivers/acpi/thermal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 1fd21ad..8349a55 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -861,7 +861,7 @@ acpi_thermal_unbind_cooling_device(struct thermal_zone_device *thermal,
+ 	return acpi_thermal_cooling_device_cb(thermal, cdev, false);
+ }
+ 
+-static const struct thermal_zone_device_ops acpi_thermal_zone_ops = {
++static struct thermal_zone_device_ops acpi_thermal_zone_ops = {
+ 	.bind = acpi_thermal_bind_cooling_device,
+ 	.unbind	= acpi_thermal_unbind_cooling_device,
+ 	.get_temp = thermal_get_temp,
+-- 
+1.7.10.4
+
