@@ -1,48 +1,42 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v3 4/6] gpio / ACPI: register to ACPI events automatically
-Date: Tue, 7 Jan 2014 18:50:00 +0100
-Message-ID: <CACRpkdZhw5At_X-mNkb3TmQ2n1hXc0FGWYAbkAVgxvzCw=xgtw@mail.gmail.com>
-References: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com>
-	<1385460350-17543-5-git-send-email-mika.westerberg@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f48.google.com ([209.85.219.48]:33552 "EHLO
-	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388AbaAGRuA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jan 2014 12:50:00 -0500
-Received: by mail-oa0-f48.google.com with SMTP id k1so544649oag.7
-        for <linux-acpi@vger.kernel.org>; Tue, 07 Jan 2014 09:50:00 -0800 (PST)
-In-Reply-To: <1385460350-17543-5-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>
+Subject: [PATCH V2 0/6] Enable X-Gene platform reboot driver.
+Date: Tue,  7 Jan 2014 14:50:35 -0800
+Message-ID: <1389135041-16062-1-git-send-email-fkan@apm.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, Nov 26, 2013 at 11:05 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
+Enable X-Gene platform driver for the X-Gene platform. Remove the
+use of the mask attribute from the reboot dts node. Add support
+for using the ACPI and DTS resource for the reboot driver.
 
-> Instead of asking each driver to register to ACPI events we can just call
-> acpi_gpiochip_register_interrupts() for each chip that has an ACPI handle.
-> The function checks chip->to_irq and if it is set to NULL (a GPIO driver
-> that doesn't do interrupts) the function does nothing.
->
-> We also add the a new header drivers/gpio/gpiolib.h that is used for
-> functions internal to gpiolib and add ACPI GPIO chip registering functions
-> to that header.
->
-> Once that is done we can remove call to acpi_gpiochip_register_interrupts()
-> from its only user, pinctrl-baytrail.c
->
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+V2 Change:
+	- Add support for using ACPI resource.
 
-Two questions:
+Feng Kan (6):
+  Documentation: add dts binding for X-Gene reboot dts node.
+  arm64: add missing dts entry for X-Gene platform.
+  arm64: Enable system reset via arch Kconfig for X-Gene system.
+  power: reset: removed use of the dts mask and use fixed value for
+    reset.
+  power: reset: change xgene reboot driver to use both acpi and dts    
+    resource for reboot.
+  acpi: platform: add ACPI code for X-Gene reboot platform driver.
 
-- Can you please rebase patches 3-6 on my GPIO tree "devel" branch?
+ .../devicetree/bindings/arm64/xgene/reboot.txt     |   10 +++++
+ arch/arm64/Kconfig                                 |    1 +
+ arch/arm64/boot/dts/apm-storm.dtsi                 |    5 +++
+ drivers/acpi/acpi_platform.c                       |    3 ++
+ drivers/power/reset/xgene-reboot.c                 |   38 +++++++++++++++----
+ 5 files changed, 49 insertions(+), 8 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm64/xgene/reboot.txt
 
-- Can this patch be placed first? It does not seem to depend on the
-  others, to to push dependent patches to the end of the series.
+-- 
+1.7.6.1
 
-Yours,
-Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
