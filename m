@@ -1,50 +1,101 @@
-From: Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>
-Subject: [PATCH V2 4/6] power: reset: removed use of the dts mask and use fixed value for reset.
-Date: Tue,  7 Jan 2014 14:50:39 -0800
-Message-ID: <1389135041-16062-5-git-send-email-fkan@apm.com>
+From: Feng Kan <fkan@apm.com>
+Subject: [PATCH V2 5/6] power: reset: change xgene reboot driver to use both acpi and dts resource for reboot.
+Date: Tue,  7 Jan 2014 14:50:40 -0800
+Message-ID: <1389135041-16062-6-git-send-email-fkan@apm.com>
 References: <1389135041-16062-1-git-send-email-fkan@apm.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389135041-16062-1-git-send-email-fkan-qTEPVZfXA3Y@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1389135041-16062-1-git-send-email-fkan@apm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Feng Kan <fkan@apm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Remove the use of the mask attribute in the X-Gene reboot driver and
-use fixed value.
+Enable the X-Gene reboot driver to use either the ACPI or the DTS
+resource using the platform driver method.
 
-Signed-off-by: Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>
+Signed-off-by: Feng Kan <fkan@apm.com>
 ---
- drivers/power/reset/xgene-reboot.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/power/reset/xgene-reboot.c |   33 ++++++++++++++++++++++++++++-----
+ 1 files changed, 28 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/power/reset/xgene-reboot.c b/drivers/power/reset/xgene-reboot.c
-index ecd55f8..683238c 100644
+index 683238c..e3223c2 100644
 --- a/drivers/power/reset/xgene-reboot.c
 +++ b/drivers/power/reset/xgene-reboot.c
-@@ -40,7 +40,7 @@ struct xgene_reboot_context {
+@@ -30,6 +30,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/stat.h>
+ #include <linux/slab.h>
++#include <linux/acpi.h>
++#include <linux/efi.h>
+ #include <asm/system_misc.h>
  
- static struct xgene_reboot_context *xgene_restart_ctx;
- 
--static void xgene_restart(char str, const char *cmd)
-+static void xgene_restart(enum reboot_mode reboot_mode, const char *cmd)
+ struct xgene_reboot_context {
+@@ -59,6 +61,14 @@ static void xgene_restart(enum reboot_mode reboot_mode, const char *cmd)
+ static int xgene_reboot_probe(struct platform_device *pdev)
  {
- 	struct xgene_reboot_context *ctx = xgene_restart_ctx;
- 	unsigned long timeout;
-@@ -73,8 +73,7 @@ static int xgene_reboot_probe(struct platform_device *pdev)
+ 	struct xgene_reboot_context *ctx;
++	struct resource *res;
++	int rc;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		dev_err(&pdev->dev, "no resource address\n");
++		return -ENODEV;
++	}
+ 
+ 	ctx = devm_kzalloc(&pdev->dev, sizeof(*ctx), GFP_KERNEL);
+ 	if (!ctx) {
+@@ -66,20 +76,27 @@ static int xgene_reboot_probe(struct platform_device *pdev)
  		return -ENODEV;
  	}
  
--	if (of_property_read_u32(pdev->dev.of_node, "mask", &ctx->mask))
--		ctx->mask = 0xFFFFFFFF;
-+	ctx->mask = 0x1;
+-	ctx->csr = of_iomap(pdev->dev.of_node, 0);
++	ctx->csr = devm_ioremap_resource(&pdev->dev, res);
+ 	if (!ctx->csr) {
+-		devm_kfree(&pdev->dev, ctx);
+-		dev_err(&pdev->dev, "can not map resource\n");
+-		return -ENODEV;
++		dev_err(&pdev->dev, "can't map CSR resource\n");
++		rc  = -ENOMEM;
++		goto error;
+ 	}
  
+ 	ctx->mask = 0x1;
+ 
++	dev_info(&pdev->dev, "X-Gene register reboot driver\n");
++
  	ctx->pdev = pdev;
  	arm_pm_restart = xgene_restart;
+ 	xgene_restart_ctx = ctx;
+-
+ 	return 0;
++
++error:
++	if (ctx->csr)
++		devm_iounmap(&pdev->dev, ctx->csr);
++	devm_kfree(&pdev->dev, ctx);
++	return rc;
+ }
+ 
+ static struct of_device_id xgene_reboot_of_match[] = {
+@@ -87,11 +104,17 @@ static struct of_device_id xgene_reboot_of_match[] = {
+ 	{}
+ };
+ 
++static const struct acpi_device_id xgene_reset_acpi_ids[] = {
++	{ "APMC0D08", 0 },
++	{}
++};
++
+ static struct platform_driver xgene_reboot_driver = {
+ 	.probe = xgene_reboot_probe,
+ 	.driver = {
+ 		.name = "xgene-reboot",
+ 		.of_match_table = xgene_reboot_of_match,
++		.acpi_match_table = ACPI_PTR(xgene_reset_acpi_ids),
+ 	},
+ };
+ 
 -- 
 1.7.6.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
