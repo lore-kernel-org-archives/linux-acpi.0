@@ -1,45 +1,30 @@
-From: Emil Goode <emilgoode@gmail.com>
-Subject: [PATCH] ACPI: thermal: remove const from thermal_zone_device_ops declaration
-Date: Tue,  7 Jan 2014 17:24:55 +0100
-Message-ID: <1389111895-23007-1-git-send-email-emilgoode@gmail.com>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [RFC PATCH 04/14] ACPI: Add ACPI 5.0 Time and Alarm Device driver
+Date: Tue, 07 Jan 2014 08:35:43 -0800
+Message-ID: <52CC2CDF.3000100@zytor.com>
+References: <1387439515-8926-1-git-send-email-jlee@suse.com>	 <1387439515-8926-5-git-send-email-jlee@suse.com>	 <52B30F43.1060306@zytor.com> <1387518099.3539.4453.camel@linux-s257.site>	 <52C3647B.7000708@zytor.com> <1388998707.3539.6070.camel@linux-s257.site>	 <52CB929C.6050403@zytor.com> <1389091244.3539.6095.camel@linux-s257.site>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:62850 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751551AbaAGQYA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jan 2014 11:24:00 -0500
+Received: from terminus.zytor.com ([198.137.202.10]:56711 "EHLO mail.zytor.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751468AbaAGQgm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 Jan 2014 11:36:42 -0500
+In-Reply-To: <1389091244.3539.6095.camel@linux-s257.site>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Emil Goode <emilgoode@gmail.com>
+To: joeyli <jlee@suse.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alessandro Zummo <a.zummo@towertech.it>, Matt Fleming <matt@console-pimps.org>, Matthew Garrett <matthew.garrett@nebula.com>, Elliott@hp.com, samer.el-haj-mahmoud@hp.com, Oliver Neukum <oneukum@suse.de>, werner@suse.com, trenn@suse.de, JBeulich@suse.com, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, x86@kernel.org, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-The following commit introduced the requirement to not declare
-thermal_zone_device_ops structs as const in order to allow
-changing the .get_temp callback.
+On 01/07/2014 02:40 AM, joeyli wrote:
+> 
+> Due to accessing CMOS through ASL need enable SMM support in OVMF,
 
-commit 4e5e4705bf69ea450f58fc709ac5888f321a9299
-Author: Eduardo Valentin <eduardo.valentin@ti.com>
-Date:   Wed Jul 3 15:35:39 2013 -0400
+Why?  The CMOS is its own ASL address space, and you need that anyway to
+be able to access the RTC proper.  If you don't want to use it because
+you don't want to export any indication of a legacy RTC you should be
+able to just do I/O port references directly in your ASL.
 
-    thermal: introduce device tree parser
-
-Signed-off-by: Emil Goode <emilgoode@gmail.com>
----
- drivers/acpi/thermal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 1fd21ad..8349a55 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -861,7 +861,7 @@ acpi_thermal_unbind_cooling_device(struct thermal_zone_device *thermal,
- 	return acpi_thermal_cooling_device_cb(thermal, cdev, false);
- }
- 
--static const struct thermal_zone_device_ops acpi_thermal_zone_ops = {
-+static struct thermal_zone_device_ops acpi_thermal_zone_ops = {
- 	.bind = acpi_thermal_bind_cooling_device,
- 	.unbind	= acpi_thermal_unbind_cooling_device,
- 	.get_temp = thermal_get_temp,
--- 
-1.7.10.4
+	-hpa
 
