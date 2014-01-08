@@ -1,77 +1,93 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: kdump failed because of hotplug memory adding in kdump kernel
-Date: Thu, 09 Jan 2014 00:07:17 +0100
-Message-ID: <8500545.JVNPnKcyD1@vostro.rjw.lan>
-References: <52CD6E33.400@redhat.com> <20140108155829.GC13649@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: thermal: remove const from thermal_zone_device_ops declaration
+Date: Thu, 09 Jan 2014 00:07:46 +0100
+Message-ID: <3062913.xSrRXgZCY8@vostro.rjw.lan>
+References: <1389111895-23007-1-git-send-email-emilgoode@gmail.com> <52CC8EEB.9010604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <20140108155829.GC13649-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec/>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Baoquan <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tangchen-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, zhangyanfei-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:51248 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1757552AbaAHWx4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jan 2014 17:53:56 -0500
+In-Reply-To: <52CC8EEB.9010604@ti.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: Emil Goode <emilgoode@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-On Wednesday, January 08, 2014 10:58:29 AM Vivek Goyal wrote:
-> On Wed, Jan 08, 2014 at 11:26:43PM +0800, Baoquan wrote:
+On Tuesday, January 07, 2014 07:34:03 PM Eduardo Valentin wrote:
 > 
-> [..]
-> > [    1.592222] acpi PNP0A03:03: fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge.
-> > [    1.605045] PCI host bridge to bus 0000:ff
-> > [    1.609615] pci_bus 0000:ff: root bus resource [bus ff]
-> > [    1.632117] System RAM resource [mem 0x01000000-0x7bffffff] cannot be added
-> > [    1.639892] init_memory_mapping: [mem 0x100000000-0x87fffffff]
-> > [    1.717793] swapper/0: page allocation failure: order:9, mode:0x84d0
-> > [    1.724884] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.10.0-59.el7.x86_64 #1
-> > [    1.732842] Hardware name: QCI QSSC-S4R/QSSC-S4R, BIOS QSSC-S4R.QCI.01.00.S001.032520101647 03/25/2010
-> > [    1.743224]  0000000000000000 ffff8800339878c8 ffffffff815b64ad ffff880033987950
-> > [    1.751513]  ffffffff8113a980 ffff88003673ab28 00000000000001fe 0000000000000001
-> > [    1.759804]  ffff880000000040 ffffffff810bc28a 0000000000000000 0000000000000200
-> > [    1.768096] Call Trace:                                                                                                                                            [348/1928]
-> > [    1.770834]  [<ffffffff815b64ad>] dump_stack+0x19/0x1b
-> > [    1.776561]  [<ffffffff8113a980>] warn_alloc_failed+0xf0/0x160
-> > [    1.783076]  [<ffffffff810bc28a>] ? on_each_cpu_mask+0x2a/0x60
-> > [    1.789581]  [<ffffffff8113e92f>] __alloc_pages_nodemask+0x7ff/0xa00
-> > [    1.796672]  [<ffffffff815ada2c>] vmemmap_alloc_block+0x62/0xba
-> > [    1.803274]  [<ffffffff815ada99>] vmemmap_alloc_block_buf+0x15/0x3b
-> > [    1.810263]  [<ffffffff815ab8a6>] vmemmap_populate+0xb4/0x21b
-> > [    1.816673]  [<ffffffff815adecd>] sparse_mem_map_populate+0x27/0x35
-> > [    1.823665]  [<ffffffff815ad8bf>] sparse_add_one_section+0x7a/0x185
-> > [    1.830659]  [<ffffffff8159b74f>] __add_pages+0xaf/0x240
-> > [    1.836588]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
-> > [    1.842804]  [<ffffffff8159ba89>] add_memory+0xb9/0x1b0
-> > [    1.848638]  [<ffffffff8132dd2c>] acpi_memory_device_add+0x18d/0x26d
-> > [    1.855728]  [<ffffffff81303b91>] acpi_bus_device_attach+0x7d/0xcd
-> > [    1.862625]  [<ffffffff8131d92d>] acpi_ns_walk_namespace+0xc8/0x17f
-> > [    1.869616]  [<ffffffff81303b14>] ? acpi_bus_type_and_status+0x90/0x90
-> > [    1.876896]  [<ffffffff81303b14>] ? acpi_bus_type_and_status+0x90/0x90
-> > [    1.884177]  [<ffffffff8131de1c>] acpi_walk_namespace+0x95/0xc5
-> > [    1.890780]  [<ffffffff81304866>] acpi_bus_scan+0x8b/0x9d
-> > [    1.896805]  [<ffffffff81a14a15>] acpi_scan_init+0x63/0x160
-> > [    1.903021]  [<ffffffff81a14830>] acpi_init+0x25d/0x2a6
+> --d38TXoq0sN4NKSKSmrSA0nrfhHhs3Hefk
+> Content-Type: text/plain; charset=ISO-8859-1
+> Content-Transfer-Encoding: quoted-printable
 > 
-> So basically acpi thinks that some memory block is a hot plug memory
-> and tries to add it. And that consumes lots of memory and we don't have
-> that memory in second kernel.
+> On 07-01-2014 12:24, Emil Goode wrote:
+> > The following commit introduced the requirement to not declare
+> > thermal_zone_device_ops structs as const in order to allow
+> > changing the .get_temp callback.
+> >=20
+> > commit 4e5e4705bf69ea450f58fc709ac5888f321a9299
+> > Author: Eduardo Valentin <eduardo.valentin@ti.com>
+> > Date:   Wed Jul 3 15:35:39 2013 -0400
+> >=20
+> >     thermal: introduce device tree parser
+> >=20
+> > Signed-off-by: Emil Goode <emilgoode@gmail.com>
+> 
+> Acked-by: Eduardo Valentin <eduardo.valentin@ti.com>
 
-That's not exactly the case.  What seems to happen is that there is an ACPI
-memory object in the ACPI namespace and the ACPI memory hotplug driver
-attempts to bind to it.  That driver attempts to find removable memory blocks
-associated with that object and to add them to the memory map.
+Queued up for 3.14, thanks!
 
-Why don't you simply append acpi=off to the kexec command line?  That should
-make the problem go away.
-
-Thanks!
+> > ---
+> >  drivers/acpi/thermal.c |    2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >=20
+> > diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> > index 1fd21ad..8349a55 100644
+> > --- a/drivers/acpi/thermal.c
+> > +++ b/drivers/acpi/thermal.c
+> > @@ -861,7 +861,7 @@ acpi_thermal_unbind_cooling_device(struct thermal_z=
+> one_device *thermal,
+> >  	return acpi_thermal_cooling_device_cb(thermal, cdev, false);
+> >  }
+> > =20
+> > -static const struct thermal_zone_device_ops acpi_thermal_zone_ops =3D =
+> {
+> > +static struct thermal_zone_device_ops acpi_thermal_zone_ops =3D {
+> >  	.bind =3D acpi_thermal_bind_cooling_device,
+> >  	.unbind	=3D acpi_thermal_unbind_cooling_device,
+> >  	.get_temp =3D thermal_get_temp,
+> >=20
+> 
+> 
+> --=20
+> You have got to be excited about what you are doing. (L. Lamport)
+> 
+> Eduardo Valentin
+> 
+> 
+> --d38TXoq0sN4NKSKSmrSA0nrfhHhs3Hefk
+> Content-Type: application/pgp-signature; name="signature.asc"
+> Content-Description: OpenPGP digital signature
+> Content-Disposition: attachment; filename="signature.asc"
+> 
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.4.12 (GNU/Linux)
+> Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+> 
+> iF4EAREIAAYFAlLMjvIACgkQCXcVR3XQvP3L6gD7B2J7f2SUQuZhpShZH/GNtjUm
+> 66MHYjXagUB6rDRkCAQA/3/Hh35+smtAZvxKm/IX45BOmyC/z3qMulmA6Alsy52I
+> =Cuu1
+> -----END PGP SIGNATURE-----
+> 
+> --d38TXoq0sN4NKSKSmrSA0nrfhHhs3Hefk--
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 -- 
 I speak only for myself.
