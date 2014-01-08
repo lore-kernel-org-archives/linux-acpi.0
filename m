@@ -1,171 +1,77 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi memory hotplug, add parameter to disable memory hotplug for kexec
-Date: Thu, 09 Jan 2014 00:00:29 +0100
-Message-ID: <3476878.EqQiEtA2Ag@vostro.rjw.lan>
-References: <1389220181-14474-1-git-send-email-prarit@redhat.com>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: kdump failed because of hotplug memory adding in kdump kernel
+Date: Thu, 09 Jan 2014 00:07:17 +0100
+Message-ID: <8500545.JVNPnKcyD1@vostro.rjw.lan>
+References: <52CD6E33.400@redhat.com> <20140108155829.GC13649@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63600 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751668AbaAHWqj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jan 2014 17:46:39 -0500
-In-Reply-To: <1389220181-14474-1-git-send-email-prarit@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <20140108155829.GC13649-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/kexec/>
+List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Baoquan <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tangchen-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, zhangyanfei-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Prarit Bhargava <prarit@redhat.com>
-Cc: linux-acpi@vger.kernel.org, Vivek Goyal <vgoyal@redhat.com>, Len Brown <lenb@kernel.org>
 
-On Wednesday, January 08, 2014 05:29:41 PM Prarit Bhargava wrote:
-> When booting a kexec/kdump kernel on a system that has specific memory hotplug
-> regions the boot will fail with warnings like:
+On Wednesday, January 08, 2014 10:58:29 AM Vivek Goyal wrote:
+> On Wed, Jan 08, 2014 at 11:26:43PM +0800, Baoquan wrote:
 > 
-> [    2.939467] swapper/0: page allocation failure: order:9, mode:0x84d0
-> [    2.946564] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
-> 3.10.0-65.el7.x86_64 #1
-> [    2.954532] Hardware name: QCI QSSC-S4R/QSSC-S4R, BIOS
-> QSSC-S4R.QCI.01.00.S013.032920111005 03/29/2011
-> [    2.964926]  0000000000000000 ffff8800341bd8c8 ffffffff815bcc67
-> ffff8800341bd950
-> [    2.973224]  ffffffff8113b1a0 ffff880036339b00 0000000000000009
-> 00000000000084d0
-> [    2.981523]  ffff8800341bd950 ffffffff815b87ee 0000000000000000
-> 0000000000000200
-> [    2.989821] Call Trace:
-> [    2.992560]  [<ffffffff815bcc67>] dump_stack+0x19/0x1b
-> [    2.998300]  [<ffffffff8113b1a0>] warn_alloc_failed+0xf0/0x160
-> [    3.004817]  [<ffffffff815b87ee>] ?
-> __alloc_pages_direct_compact+0xac/0x196
-> [    3.012594]  [<ffffffff8113f14f>] __alloc_pages_nodemask+0x7ff/0xa00
-> [    3.019692]  [<ffffffff815b417c>] vmemmap_alloc_block+0x62/0xba
-> [    3.026303]  [<ffffffff815b41e9>] vmemmap_alloc_block_buf+0x15/0x3b
-> [    3.033302]  [<ffffffff815b1ff6>] vmemmap_populate+0xb4/0x21b
-> [    3.039718]  [<ffffffff815b461d>] sparse_mem_map_populate+0x27/0x35
-> [    3.046717]  [<ffffffff815b400f>] sparse_add_one_section+0x7a/0x185
-> [    3.053720]  [<ffffffff815a1e9f>] __add_pages+0xaf/0x240
-> [    3.059656]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
-> [    3.065877]  [<ffffffff815a21d9>] add_memory+0xb9/0x1b0
-> [    3.071713]  [<ffffffff81333b9c>] acpi_memory_device_add+0x18d/0x26d
-> [    3.078813]  [<ffffffff81309a01>] acpi_bus_device_attach+0x7d/0xcd
-> [    3.085719]  [<ffffffff8132379d>] acpi_ns_walk_namespace+0xc8/0x17f
-> [    3.092716]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-> [    3.100004]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-> [    3.107293]  [<ffffffff81323c8c>] acpi_walk_namespace+0x95/0xc5
-> [    3.113904]  [<ffffffff8130a6d6>] acpi_bus_scan+0x8b/0x9d
-> [    3.119933]  [<ffffffff81a2019a>] acpi_scan_init+0x63/0x160
-> [    3.126153]  [<ffffffff81a1ffb5>] acpi_init+0x25d/0x2a6
-> [    3.131987]  [<ffffffff81a1fd58>] ? acpi_sleep_proc_init+0x2a/0x2a
-> [    3.138889]  [<ffffffff810020e2>] do_one_initcall+0xe2/0x190
-> [    3.145210]  [<ffffffff819e20c4>] kernel_init_freeable+0x17c/0x207
-> [    3.152111]  [<ffffffff819e18d0>] ? do_early_param+0x88/0x88
-> [    3.158430]  [<ffffffff8159fea0>] ? rest_init+0x80/0x80
-> [    3.164264]  [<ffffffff8159feae>] kernel_init+0xe/0x180
-> [    3.170097]  [<ffffffff815cca2c>] ret_from_fork+0x7c/0xb0
-> [    3.176123]  [<ffffffff8159fea0>] ? rest_init+0x80/0x80
-> [    3.181956] Mem-Info:
-> [    3.184490] Node 0 DMA per-cpu:
-> [    3.188007] CPU    0: hi:    0, btch:   1 usd:   0
-> [    3.193353] Node 0 DMA32 per-cpu:
-> [    3.197060] CPU    0: hi:   42, btch:   7 usd:   0
-> [    3.202410] active_anon:0 inactive_anon:0 isolated_anon:0
-> [    3.202410]  active_file:0 inactive_file:0 isolated_file:0
-> [    3.202410]  unevictable:0 dirty:0 writeback:0 unstable:0
-> [    3.202410]  free:872 slab_reclaimable:13 slab_unreclaimable:1880
-> [    3.202410]  mapped:0 shmem:0 pagetables:0 bounce:0
-> [    3.202410]  free_cma:0
+> [..]
+> > [    1.592222] acpi PNP0A03:03: fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge.
+> > [    1.605045] PCI host bridge to bus 0000:ff
+> > [    1.609615] pci_bus 0000:ff: root bus resource [bus ff]
+> > [    1.632117] System RAM resource [mem 0x01000000-0x7bffffff] cannot be added
+> > [    1.639892] init_memory_mapping: [mem 0x100000000-0x87fffffff]
+> > [    1.717793] swapper/0: page allocation failure: order:9, mode:0x84d0
+> > [    1.724884] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.10.0-59.el7.x86_64 #1
+> > [    1.732842] Hardware name: QCI QSSC-S4R/QSSC-S4R, BIOS QSSC-S4R.QCI.01.00.S001.032520101647 03/25/2010
+> > [    1.743224]  0000000000000000 ffff8800339878c8 ffffffff815b64ad ffff880033987950
+> > [    1.751513]  ffffffff8113a980 ffff88003673ab28 00000000000001fe 0000000000000001
+> > [    1.759804]  ffff880000000040 ffffffff810bc28a 0000000000000000 0000000000000200
+> > [    1.768096] Call Trace:                                                                                                                                            [348/1928]
+> > [    1.770834]  [<ffffffff815b64ad>] dump_stack+0x19/0x1b
+> > [    1.776561]  [<ffffffff8113a980>] warn_alloc_failed+0xf0/0x160
+> > [    1.783076]  [<ffffffff810bc28a>] ? on_each_cpu_mask+0x2a/0x60
+> > [    1.789581]  [<ffffffff8113e92f>] __alloc_pages_nodemask+0x7ff/0xa00
+> > [    1.796672]  [<ffffffff815ada2c>] vmemmap_alloc_block+0x62/0xba
+> > [    1.803274]  [<ffffffff815ada99>] vmemmap_alloc_block_buf+0x15/0x3b
+> > [    1.810263]  [<ffffffff815ab8a6>] vmemmap_populate+0xb4/0x21b
+> > [    1.816673]  [<ffffffff815adecd>] sparse_mem_map_populate+0x27/0x35
+> > [    1.823665]  [<ffffffff815ad8bf>] sparse_add_one_section+0x7a/0x185
+> > [    1.830659]  [<ffffffff8159b74f>] __add_pages+0xaf/0x240
+> > [    1.836588]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
+> > [    1.842804]  [<ffffffff8159ba89>] add_memory+0xb9/0x1b0
+> > [    1.848638]  [<ffffffff8132dd2c>] acpi_memory_device_add+0x18d/0x26d
+> > [    1.855728]  [<ffffffff81303b91>] acpi_bus_device_attach+0x7d/0xcd
+> > [    1.862625]  [<ffffffff8131d92d>] acpi_ns_walk_namespace+0xc8/0x17f
+> > [    1.869616]  [<ffffffff81303b14>] ? acpi_bus_type_and_status+0x90/0x90
+> > [    1.876896]  [<ffffffff81303b14>] ? acpi_bus_type_and_status+0x90/0x90
+> > [    1.884177]  [<ffffffff8131de1c>] acpi_walk_namespace+0x95/0xc5
+> > [    1.890780]  [<ffffffff81304866>] acpi_bus_scan+0x8b/0x9d
+> > [    1.896805]  [<ffffffff81a14a15>] acpi_scan_init+0x63/0x160
+> > [    1.903021]  [<ffffffff81a14830>] acpi_init+0x25d/0x2a6
 > 
-> because the system has run out of memory at boot time.  This occurs
-> because of the following sequence in the boot:
-> 
-> Main kernel boots and sets E820 map.  The second kernel is booted with a
-> map generated by the kdump service using memmap= and memmap=exactmap.
-> These parameters are added to the kernel parameters of the kexec/kdump
-> kernel.   The kexec/kdump kernel has limited memory resources so as not
-> to severely impact the main kernel.
-> 
-> The system then panics and the kdump/kexec kernel boots.  During this boot
-> ACPi is initialized and the kernel (as can be seen above)
+> So basically acpi thinks that some memory block is a hot plug memory
+> and tries to add it. And that consumes lots of memory and we don't have
+> that memory in second kernel.
 
-Which is a bug.  You're not supposed to initialize ACPI twice in a row.
+That's not exactly the case.  What seems to happen is that there is an ACPI
+memory object in the ACPI namespace and the ACPI memory hotplug driver
+attempts to bind to it.  That driver attempts to find removable memory blocks
+associated with that object and to add them to the memory map.
 
-> traverses the ACPI namespace and finds an entry for a memory device to be hotadded.
-> 
-> ie)
-> 
-> [    3.053720]  [<ffffffff815a1e9f>] __add_pages+0xaf/0x240
-> [    3.059656]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
-> [    3.065877]  [<ffffffff815a21d9>] add_memory+0xb9/0x1b0
-> [    3.071713]  [<ffffffff81333b9c>] acpi_memory_device_add+0x18d/0x26d
-> [    3.078813]  [<ffffffff81309a01>] acpi_bus_device_attach+0x7d/0xcd
-> [    3.085719]  [<ffffffff8132379d>] acpi_ns_walk_namespace+0xc8/0x17f
-> [    3.092716]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-> [    3.100004]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-> [    3.107293]  [<ffffffff81323c8c>] acpi_walk_namespace+0x95/0xc5
-> [    3.113904]  [<ffffffff8130a6d6>] acpi_bus_scan+0x8b/0x9d
-> [    3.119933]  [<ffffffff81a2019a>] acpi_scan_init+0x63/0x160
-> [    3.126153]  [<ffffffff81a1ffb5>] acpi_init+0x25d/0x2a6
-> 
-> At this point the kernel adds page table information and the the kexec/kdump
-> kernel runs out of memory.
-> 
-> This patchset resolves the problem by adding a kernel parameter,
-> no_memory_hotplug, to disable ACPI memory hotplug.  It can be added by default
-> as a parameter to the kexec/kdump kernel so the kernel boots correctly.
-
-This problem is specific to kexec/kdump, so please don't add *generic* command
-line parameters to address this.
+Why don't you simply append acpi=off to the kexec command line?  That should
+make the problem go away.
 
 Thanks!
-
-> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-> Cc: Vivek Goyal <vgoyal@redhat.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> ---
->  Documentation/kernel-parameters.txt |    3 +++
->  drivers/acpi/acpi_memhotplug.c      |   12 ++++++++++++
->  2 files changed, 15 insertions(+)
-> 
-> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-> index b9e9bd8..df256cc 100644
-> --- a/Documentation/kernel-parameters.txt
-> +++ b/Documentation/kernel-parameters.txt
-> @@ -2117,6 +2117,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
->  
->  	nomce		[X86-32] Machine Check Exception
->  
-> +	no_memory_hotplug [ACPI] Disable memory hotplug.  Useful for kexec
-> +			  and kdump kernels.
-> +
->  	nomfgpt		[X86-32] Disable Multi-Function General Purpose
->  			Timer usage (for AMD Geode machines).
->  
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index 551dad7..cbd328f 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -361,7 +361,19 @@ static void acpi_memory_device_remove(struct acpi_device *device)
->  	acpi_memory_device_free(mem_device);
->  }
->  
-> +static int no_memory_hotplug;
-> +
->  void __init acpi_memory_hotplug_init(void)
->  {
-> +	if (no_memory_hotplug)
-> +		return;
-> +
->  	acpi_scan_add_handler_with_hotplug(&memory_device_handler, "memory");
->  }
-> +
-> +static int __init disable_memory_hotplug(char *str)
-> +{
-> +	no_memory_hotplug = 1;
-> +	return 1;
-> +}
-> +__setup("no_memory_hotplug", disable_memory_hotplug);
-> 
 
 -- 
 I speak only for myself.
