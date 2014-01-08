@@ -1,86 +1,62 @@
-From: Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: kdump failed because of hotplug memory adding in kdump kernel
-Date: Wed, 8 Jan 2014 10:58:29 -0500
-Message-ID: <20140108155829.GC13649@redhat.com>
-References: <52CD6E33.400@redhat.com>
+From: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH 04/14] ACPI: Add ACPI 5.0 Time and Alarm Device driver
+Date: Wed, 08 Jan 2014 09:56:09 -0800
+Message-ID: <52CD9139.2070302@zytor.com>
+References: <1387439515-8926-1-git-send-email-jlee@suse.com>	 <1387439515-8926-5-git-send-email-jlee@suse.com>	 <52B30F43.1060306@zytor.com> <1387518099.3539.4453.camel@linux-s257.site>	 <52C3647B.7000708@zytor.com> <1388998707.3539.6070.camel@linux-s257.site>	 <52CB929C.6050403@zytor.com> <1389091244.3539.6095.camel@linux-s257.site>	 <52CC2CDF.3000100@zytor.com> <1389193142.3539.6123.camel@linux-s257.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <52CD6E33.400-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec/>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Baoquan <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tangchen-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, zhangyanfei-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1389193142.3539.6123.camel-ONCj+Eqt86TasUa73XJKwA@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: joeyli <jlee-IBi9RG/b67k@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Matt Fleming <matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>, Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>, Elliott-VXdhtT5mjnY@public.gmane.org, samer.el-haj-mahmoud-VXdhtT5mjnY@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, werner-IBi9RG/b67k@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 08, 2014 at 11:26:43PM +0800, Baoquan wrote:
+On 01/08/2014 06:59 AM, joeyli wrote:
+> 
+> ACPICA denied AML access RTC ports.
+> 
+> I tried to access 0x70, 0x71 ports in ASL on a real machine, ACPICA
+> denied AML access to those ports. I got the following dmesg:
+> 
+> hwvalid-0188 hw_validate_io_request: Denied AML access to port
+> 0x0000000000000071/1
+> 
+> The code in acpica denied it:
+> 
+> linux/drivers/acpi/acpica/hwvalid.c
+> 
+>  * This provides ACPICA with the desired port protections and
+>  * Microsoft compatibility.
+>  *
+>  * Description of port entries:
+> [...]
+>  *  RTC:   Real-time clock
+>  *  CMOS:  Extended CMOS
+> [...]
+>  */
+> static const struct acpi_port_info acpi_protected_ports[] = {
+> [...]
+>         {"RTC", 0x0070, 0x0071, ACPI_OSI_WIN_XP},
+>         {"CMOS", 0x0074, 0x0076, ACPI_OSI_WIN_XP},
+> 
+> 
+> Document of Windows XP:
+> http://www.freelists.org/post/windows_errors/what-error-messages-really-mean-WinXP-IO-Ports-Blocked-from-Bios-AML-on-Windows-XP
+> 
+> If just for ACPI TAD testing, we can remove the port protection check of
+> RTC ports in hwvalid.c. I have read 0x70/0x71 port success after removed
+> the checking in acpica/hwvalid.c.
+> 
+> I will try to write RTC port in AML after remove acpica check, maybe
+> have other unpredictable situation.
+> 
 
-[..]
-> [    1.592222] acpi PNP0A03:03: fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge.
-> [    1.605045] PCI host bridge to bus 0000:ff
-> [    1.609615] pci_bus 0000:ff: root bus resource [bus ff]
-> [    1.632117] System RAM resource [mem 0x01000000-0x7bffffff] cannot be added
-> [    1.639892] init_memory_mapping: [mem 0x100000000-0x87fffffff]
-> [    1.717793] swapper/0: page allocation failure: order:9, mode:0x84d0
-> [    1.724884] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.10.0-59.el7.x86_64 #1
-> [    1.732842] Hardware name: QCI QSSC-S4R/QSSC-S4R, BIOS QSSC-S4R.QCI.01.00.S001.032520101647 03/25/2010
-> [    1.743224]  0000000000000000 ffff8800339878c8 ffffffff815b64ad ffff880033987950
-> [    1.751513]  ffffffff8113a980 ffff88003673ab28 00000000000001fe 0000000000000001
-> [    1.759804]  ffff880000000040 ffffffff810bc28a 0000000000000000 0000000000000200
-> [    1.768096] Call Trace:                                                                                                                                            [348/1928]
-> [    1.770834]  [<ffffffff815b64ad>] dump_stack+0x19/0x1b
-> [    1.776561]  [<ffffffff8113a980>] warn_alloc_failed+0xf0/0x160
-> [    1.783076]  [<ffffffff810bc28a>] ? on_each_cpu_mask+0x2a/0x60
-> [    1.789581]  [<ffffffff8113e92f>] __alloc_pages_nodemask+0x7ff/0xa00
-> [    1.796672]  [<ffffffff815ada2c>] vmemmap_alloc_block+0x62/0xba
-> [    1.803274]  [<ffffffff815ada99>] vmemmap_alloc_block_buf+0x15/0x3b
-> [    1.810263]  [<ffffffff815ab8a6>] vmemmap_populate+0xb4/0x21b
-> [    1.816673]  [<ffffffff815adecd>] sparse_mem_map_populate+0x27/0x35
-> [    1.823665]  [<ffffffff815ad8bf>] sparse_add_one_section+0x7a/0x185
-> [    1.830659]  [<ffffffff8159b74f>] __add_pages+0xaf/0x240
-> [    1.836588]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
-> [    1.842804]  [<ffffffff8159ba89>] add_memory+0xb9/0x1b0
-> [    1.848638]  [<ffffffff8132dd2c>] acpi_memory_device_add+0x18d/0x26d
-> [    1.855728]  [<ffffffff81303b91>] acpi_bus_device_attach+0x7d/0xcd
-> [    1.862625]  [<ffffffff8131d92d>] acpi_ns_walk_namespace+0xc8/0x17f
-> [    1.869616]  [<ffffffff81303b14>] ? acpi_bus_type_and_status+0x90/0x90
-> [    1.876896]  [<ffffffff81303b14>] ? acpi_bus_type_and_status+0x90/0x90
-> [    1.884177]  [<ffffffff8131de1c>] acpi_walk_namespace+0x95/0xc5
-> [    1.890780]  [<ffffffff81304866>] acpi_bus_scan+0x8b/0x9d
-> [    1.896805]  [<ffffffff81a14a15>] acpi_scan_init+0x63/0x160
-> [    1.903021]  [<ffffffff81a14830>] acpi_init+0x25d/0x2a6
+Now *THERE* is a good use of the "no RTC bit".  In the case that bit is
+set we should presumably remove these ports from the block list.
 
-So basically acpi thinks that some memory block is a hot plug memory
-and tries to add it. And that consumes lots of memory and we don't have
-that memory in second kernel.
+Otherwise we should use the CMOS address space, not the I/O port address
+space.
 
-For this reason, we pass a custom E820 map to second kernel so that it
-only initializes page tables and memmap array for a very small physical
-memory range.
-
-Now question is what is hot plug memory. In this case we have not
-physically plugged in any physical memory. So why acpi is considering
-this memory to be a hot add memory operation.
-
-Are there memory hotplug slots and these ranges always considered hot added
-memory? IOW, what if I hotplug a memory and then reboot the system. Will
-new E820 map contain this new memory range or not?
-
-I guess simplest way to solve this problem might be to disable memory hot
-plug in kdump kernel. Is there any command line parameter to do that?
-
-If we disable memory hotplug in second kernel, and a hot plug memory
-is passed in E820 map, will it still work. Can I access that memory in
-second kernel?
-
-Thanks
-Vivek
+	-hpa
