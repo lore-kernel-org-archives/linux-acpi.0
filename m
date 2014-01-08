@@ -1,157 +1,504 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 06/21] ACPICA: Cleanup the option of forcing the use of the RSDT.
-Date: Wed,  8 Jan 2014 13:43:40 +0800
-Message-ID: <3a1fe16128e18f762064d0b927d533540eb1d939.1387505702.git.lv.zheng@intel.com>
+Subject: [PATCH 07/21] ACPICA: Add option to favor 32-bit FADT addresses.
+Date: Wed,  8 Jan 2014 13:43:46 +0800
+Message-ID: <411668e8bacc0928a5fbc078927e562a9235f677.1387505703.git.lv.zheng@intel.com>
 References: <cover.1387505702.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:30806 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:32081 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754503AbaAHFnt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Jan 2014 00:43:49 -0500
+	id S1754503AbaAHFnz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Jan 2014 00:43:55 -0500
 In-Reply-To: <cover.1387505702.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-This option is already in the Linux kernel.  When it is back ported to
-ACPICA, code is re-written to follow ACPICA coding style.  This patch
-is the generation of the integration.
+From: Bob Moore <robert.moore@intel.com>
 
-This change adds a runtime option that will force ACPICA to use the
-RSDT instead of the XSDT. Although the ACPI spec requires that an XSDT
-be used instead of the RSDT, the XSDT has been found to be corrupt or
-ill-formed on some machines.
+This change adds an option to favor 32-bit FADT addresses when there
+is a conflict between the 32-bit and 64-bit versions of the same
+address. The default behavior is to use the 64-bit version in accordance
+with the ACPI specification. This can now be overridden via the
+AcpiGbl_Use32BitFadtAddresses flag. Lv Zheng.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Also, the "Convert FADT" and "Verify FADT" functions have been merged to
+simplify the code, make it easier to understand, and make it easier to
+maintain. Bob Moore.
+
+Buglink: https://bugs.acpica.org/show_bug.cgi?id=885
+Buglink: https://bugs.acpica.org/show_bug.cgi?id=993
+Original-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- arch/ia64/kernel/acpi.c        |    1 -
- arch/x86/kernel/acpi/boot.c    |    3 +--
- drivers/acpi/acpica/acglobal.h |    8 ++++++++
- drivers/acpi/acpica/tbutils.c  |   10 +++++-----
- include/acpi/acpixf.h          |   16 ++++++++--------
- 5 files changed, 22 insertions(+), 16 deletions(-)
+ drivers/acpi/acpica/acglobal.h |   10 ++
+ drivers/acpi/acpica/tbfadt.c   |  335 ++++++++++++++++++++++------------------
+ include/acpi/acpixf.h          |    1 +
+ 3 files changed, 194 insertions(+), 152 deletions(-)
 
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index 59d52e3..28dc6ba 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -61,7 +61,6 @@
- 
- #define PREFIX			"ACPI: "
- 
--u32 acpi_rsdt_forced;
- unsigned int acpi_cpei_override;
- unsigned int acpi_cpei_phys_cpuid;
- 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 6c0b43b..0b0b91b 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -46,7 +46,6 @@
- 
- #include "sleep.h" /* To include x86_acpi_suspend_lowlevel */
- static int __initdata acpi_force = 0;
--u32 acpi_rsdt_forced;
- int acpi_disabled;
- EXPORT_SYMBOL(acpi_disabled);
- 
-@@ -1564,7 +1563,7 @@ static int __init parse_acpi(char *arg)
- 	}
- 	/* acpi=rsdt use RSDT instead of XSDT */
- 	else if (strcmp(arg, "rsdt") == 0) {
--		acpi_rsdt_forced = 1;
-+		acpi_gbl_do_not_use_xsdt = TRUE;
- 	}
- 	/* "acpi=noirq" disables ACPI interrupt routing */
- 	else if (strcmp(arg, "noirq") == 0) {
 diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index e9f1fc7..cffb457 100644
+index cffb457..2686998 100644
 --- a/drivers/acpi/acpica/acglobal.h
 +++ b/drivers/acpi/acpica/acglobal.h
-@@ -119,6 +119,14 @@ bool ACPI_INIT_GLOBAL(acpi_gbl_enable_aml_debug_object, FALSE);
- u8 ACPI_INIT_GLOBAL(acpi_gbl_copy_dsdt_locally, FALSE);
+@@ -127,6 +127,16 @@ u8 ACPI_INIT_GLOBAL(acpi_gbl_copy_dsdt_locally, FALSE);
+ u8 ACPI_INIT_GLOBAL(acpi_gbl_do_not_use_xsdt, FALSE);
  
  /*
-+ * Optionally ignore an XSDT if present and use the RSDT instead.
-+ * Although the ACPI specification requires that an XSDT be used instead
-+ * of the RSDT, the XSDT has been found to be corrupt or ill-formed on
-+ * some machines. Default behavior is to use the XSDT if present.
++ * Optionally use 32-bit FADT addresses if and when there is a conflict
++ * (address mismatch) between the 32-bit and 64-bit versions of the
++ * address. Although ACPICA adheres to the ACPI specification which
++ * requires the use of the corresponding 64-bit address if it is non-zero,
++ * some machines have been found to have a corrupted non-zero 64-bit
++ * address. Default is FALSE, do not favor the 32-bit addresses.
 + */
-+u8 ACPI_INIT_GLOBAL(acpi_gbl_do_not_use_xsdt, FALSE);
++u8 ACPI_INIT_GLOBAL(acpi_gbl_use32_bit_fadt_addresses, FALSE);
 +
 +/*
   * Optionally truncate I/O addresses to 16 bits. Provides compatibility
   * with other ACPI implementations. NOTE: During ACPICA initialization,
   * this value is set to TRUE if any Windows OSI strings have been
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index ee60670..6412d3c 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -478,10 +478,10 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
- 				   ACPI_CAST_PTR(struct acpi_table_header,
- 						 rsdp));
+diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+index 9d99f21..8f89263 100644
+--- a/drivers/acpi/acpica/tbfadt.c
++++ b/drivers/acpi/acpica/tbfadt.c
+@@ -56,10 +56,11 @@ acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
  
--	/* Differentiate between RSDT and XSDT root tables */
-+	/* Use XSDT if present and not overridden. Otherwise, use RSDT */
+ static void acpi_tb_convert_fadt(void);
  
--	if ((rsdp->revision > 1) && rsdp->xsdt_physical_address
--			&& !acpi_rsdt_forced) {
-+	if ((rsdp->revision > 1) &&
-+	    rsdp->xsdt_physical_address && !acpi_gbl_do_not_use_xsdt) {
- 		/*
- 		 * RSDP contains an XSDT (64-bit physical addresses). We must use
- 		 * the XSDT if the revision is > 1 and the XSDT pointer is present,
-@@ -503,8 +503,8 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
- 	acpi_os_unmap_memory(rsdp, sizeof(struct acpi_table_rsdp));
+-static void acpi_tb_validate_fadt(void);
+-
+ static void acpi_tb_setup_fadt_registers(void);
+ 
++static u64
++acpi_tb_select_address(char *register_name, u32 address32, u64 address64);
++
+ /* Table for conversion of FADT to common internal format and FADT validation */
+ 
+ typedef struct acpi_fadt_info {
+@@ -175,6 +176,7 @@ static struct acpi_fadt_pm_info fadt_pm_info_table[] = {
+  *              space_id            - ACPI Space ID for this register
+  *              byte_width          - Width of this register
+  *              address             - Address of the register
++ *              register_name       - ASCII name of the ACPI register
+  *
+  * RETURN:      None
+  *
+@@ -220,6 +222,68 @@ acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
+ 
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_tb_select_address
++ *
++ * PARAMETERS:  register_name       - ASCII name of the ACPI register
++ *              address32           - 32-bit address of the register
++ *              address64           - 64-bit address of the register
++ *
++ * RETURN:      The resolved 64-bit address
++ *
++ * DESCRIPTION: Select between 32-bit and 64-bit versions of addresses within
++ *              the FADT. Used for the FACS and DSDT addresses.
++ *
++ * NOTES:
++ *
++ * Check for FACS and DSDT address mismatches. An address mismatch between
++ * the 32-bit and 64-bit address fields (FIRMWARE_CTRL/X_FIRMWARE_CTRL and
++ * DSDT/X_DSDT) could be a corrupted address field or it might indicate
++ * the presence of two FACS or two DSDT tables.
++ *
++ * November 2013:
++ * By default, as per the ACPICA specification, a valid 64-bit address is
++ * used regardless of the value of the 32-bit address. However, this
++ * behavior can be overridden via the acpi_gbl_use32_bit_fadt_addresses flag.
++ *
++ ******************************************************************************/
++
++static u64
++acpi_tb_select_address(char *register_name, u32 address32, u64 address64)
++{
++
++	if (!address64) {
++
++		/* 64-bit address is zero, use 32-bit address */
++
++		return ((u64)address32);
++	}
++
++	if (address32 && (address64 != (u64)address32)) {
++
++		/* Address mismatch between 32-bit and 64-bit versions */
++
++		ACPI_BIOS_WARNING((AE_INFO,
++				   "32/64X %s address mismatch in FADT: "
++				   "0x%8.8X/0x%8.8X%8.8X, using %u-bit address",
++				   register_name, address32,
++				   ACPI_FORMAT_UINT64(address64),
++				   acpi_gbl_use32_bit_fadt_addresses ? 32 :
++				   64));
++
++		/* 32-bit address override */
++
++		if (acpi_gbl_use32_bit_fadt_addresses) {
++			return ((u64)address32);
++		}
++	}
++
++	/* Default is to use the 64-bit address */
++
++	return (address64);
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_tb_parse_fadt
+  *
+  * PARAMETERS:  table_index         - Index for the FADT
+@@ -331,10 +395,6 @@ void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length)
+ 
+ 	acpi_tb_convert_fadt();
+ 
+-	/* Validate FADT values now, before we make any changes */
+-
+-	acpi_tb_validate_fadt();
+-
+ 	/* Initialize the global ACPI register structures */
+ 
+ 	acpi_tb_setup_fadt_registers();
+@@ -344,66 +404,55 @@ void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length)
+  *
+  * FUNCTION:    acpi_tb_convert_fadt
+  *
+- * PARAMETERS:  None, uses acpi_gbl_FADT
++ * PARAMETERS:  none - acpi_gbl_FADT is used.
+  *
+  * RETURN:      None
+  *
+  * DESCRIPTION: Converts all versions of the FADT to a common internal format.
+- *              Expand 32-bit addresses to 64-bit as necessary.
++ *              Expand 32-bit addresses to 64-bit as necessary. Also validate
++ *              important fields within the FADT.
+  *
+- * NOTE:        acpi_gbl_FADT must be of size (struct acpi_table_fadt),
+- *              and must contain a copy of the actual FADT.
++ * NOTE:        acpi_gbl_FADT must be of size (struct acpi_table_fadt), and must
++ *              contain a copy of the actual BIOS-provided FADT.
+  *
+  * Notes on 64-bit register addresses:
+  *
+  * After this FADT conversion, later ACPICA code will only use the 64-bit "X"
+  * fields of the FADT for all ACPI register addresses.
+  *
+- * The 64-bit "X" fields are optional extensions to the original 32-bit FADT
++ * The 64-bit X fields are optional extensions to the original 32-bit FADT
+  * V1.0 fields. Even if they are present in the FADT, they are optional and
+  * are unused if the BIOS sets them to zero. Therefore, we must copy/expand
+- * 32-bit V1.0 fields if the corresponding X field is zero.
++ * 32-bit V1.0 fields to the 64-bit X fields if the the 64-bit X field is
++ * originally zero.
+  *
+- * For ACPI 1.0 FADTs, all 32-bit address fields are expanded to the
+- * corresponding "X" fields in the internal FADT.
++ * For ACPI 1.0 FADTs (that contain no 64-bit addresses), all 32-bit address
++ * fields are expanded to the corresponding 64-bit X fields in the internal
++ * common FADT.
+  *
+  * For ACPI 2.0+ FADTs, all valid (non-zero) 32-bit address fields are expanded
+- * to the corresponding 64-bit X fields. For compatibility with other ACPI
+- * implementations, we ignore the 64-bit field if the 32-bit field is valid,
+- * regardless of whether the host OS is 32-bit or 64-bit.
++ * to the corresponding 64-bit X fields, if the 64-bit field is originally
++ * zero. Adhering to the ACPI specification, we completely ignore the 32-bit
++ * field if the 64-bit field is valid, regardless of whether the host OS is
++ * 32-bit or 64-bit.
++ *
++ * Possible additional checks:
++ *  (acpi_gbl_FADT.pm1_event_length >= 4)
++ *  (acpi_gbl_FADT.pm1_control_length >= 2)
++ *  (acpi_gbl_FADT.pm_timer_length >= 4)
++ *  Gpe block lengths must be multiple of 2
+  *
+  ******************************************************************************/
+ 
+ static void acpi_tb_convert_fadt(void)
+ {
++	char *name;
+ 	struct acpi_generic_address *address64;
+ 	u32 address32;
++	u8 length;
+ 	u32 i;
  
  	/*
--	 * If it is present, validate the XSDT for access/size and ensure
--	 * that all table entries are at least non-NULL
-+	 * If it is present and used, validate the XSDT for access/size
-+	 * and ensure that all table entries are at least non-NULL
+-	 * Expand the 32-bit FACS and DSDT addresses to 64-bit as necessary.
+-	 * Later code will always use the X 64-bit field. Also, check for an
+-	 * address mismatch between the 32-bit and 64-bit address fields
+-	 * (FIRMWARE_CTRL/X_FIRMWARE_CTRL, DSDT/X_DSDT) which would indicate
+-	 * the presence of two FACS or two DSDT tables.
+-	 */
+-	if (!acpi_gbl_FADT.Xfacs) {
+-		acpi_gbl_FADT.Xfacs = (u64) acpi_gbl_FADT.facs;
+-	} else if (acpi_gbl_FADT.facs &&
+-		   (acpi_gbl_FADT.Xfacs != (u64) acpi_gbl_FADT.facs)) {
+-		ACPI_WARNING((AE_INFO,
+-		    "32/64 FACS address mismatch in FADT - two FACS tables!"));
+-	}
+-
+-	if (!acpi_gbl_FADT.Xdsdt) {
+-		acpi_gbl_FADT.Xdsdt = (u64) acpi_gbl_FADT.dsdt;
+-	} else if (acpi_gbl_FADT.dsdt &&
+-		   (acpi_gbl_FADT.Xdsdt != (u64) acpi_gbl_FADT.dsdt)) {
+-		ACPI_WARNING((AE_INFO,
+-		    "32/64 DSDT address mismatch in FADT - two DSDT tables!"));
+-	}
+-
+-	/*
+ 	 * For ACPI 1.0 FADTs (revision 1 or 2), ensure that reserved fields which
+ 	 * should be zero are indeed zero. This will workaround BIOSs that
+ 	 * inadvertently place values in these fields.
+@@ -421,119 +470,24 @@ static void acpi_tb_convert_fadt(void)
+ 		acpi_gbl_FADT.boot_flags = 0;
+ 	}
+ 
+-	/* Update the local FADT table header length */
+-
+-	acpi_gbl_FADT.header.length = sizeof(struct acpi_table_fadt);
+-
+ 	/*
+-	 * Expand the ACPI 1.0 32-bit addresses to the ACPI 2.0 64-bit "X"
+-	 * generic address structures as necessary. Later code will always use
+-	 * the 64-bit address structures.
+-	 *
+-	 * March 2009:
+-	 * We now always use the 32-bit address if it is valid (non-null). This
+-	 * is not in accordance with the ACPI specification which states that
+-	 * the 64-bit address supersedes the 32-bit version, but we do this for
+-	 * compatibility with other ACPI implementations. Most notably, in the
+-	 * case where both the 32 and 64 versions are non-null, we use the 32-bit
+-	 * version. This is the only address that is guaranteed to have been
+-	 * tested by the BIOS manufacturer.
++	 * Now we can update the local FADT length to the length of the
++	 * current FADT version as defined by the ACPI specification.
++	 * Thus, we will have a common FADT internally.
  	 */
- 	if (table_entry_size == ACPI_XSDT_ENTRY_SIZE) {
- 		status = acpi_tb_validate_xsdt(address);
+-	for (i = 0; i < ACPI_FADT_INFO_ENTRIES; i++) {
+-		address32 = *ACPI_ADD_PTR(u32,
+-					  &acpi_gbl_FADT,
+-					  fadt_info_table[i].address32);
+-
+-		address64 = ACPI_ADD_PTR(struct acpi_generic_address,
+-					 &acpi_gbl_FADT,
+-					 fadt_info_table[i].address64);
+-
+-		/*
+-		 * If both 32- and 64-bit addresses are valid (non-zero),
+-		 * they must match.
+-		 */
+-		if (address64->address && address32 &&
+-		    (address64->address != (u64)address32)) {
+-			ACPI_BIOS_ERROR((AE_INFO,
+-					 "32/64X address mismatch in FADT/%s: "
+-					 "0x%8.8X/0x%8.8X%8.8X, using 32",
+-					 fadt_info_table[i].name, address32,
+-					 ACPI_FORMAT_UINT64(address64->
+-							    address)));
+-		}
+-
+-		/* Always use 32-bit address if it is valid (non-null) */
+-
+-		if (address32) {
+-			/*
+-			 * Copy the 32-bit address to the 64-bit GAS structure. The
+-			 * Space ID is always I/O for 32-bit legacy address fields
+-			*/
+-			acpi_tb_init_generic_address(address64,
+-						     ACPI_ADR_SPACE_SYSTEM_IO,
+-						     *ACPI_ADD_PTR(u8,
+-								   &acpi_gbl_FADT,
+-								   fadt_info_table
+-								   [i].length),
+-						     (u64) address32,
+-						     fadt_info_table[i].name);
+-		}
+-	}
+-}
+-
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_tb_validate_fadt
+- *
+- * PARAMETERS:  table           - Pointer to the FADT to be validated
+- *
+- * RETURN:      None
+- *
+- * DESCRIPTION: Validate various important fields within the FADT. If a problem
+- *              is found, issue a message, but no status is returned.
+- *              Used by both the table manager and the disassembler.
+- *
+- * Possible additional checks:
+- * (acpi_gbl_FADT.pm1_event_length >= 4)
+- * (acpi_gbl_FADT.pm1_control_length >= 2)
+- * (acpi_gbl_FADT.pm_timer_length >= 4)
+- * Gpe block lengths must be multiple of 2
+- *
+- ******************************************************************************/
+-
+-static void acpi_tb_validate_fadt(void)
+-{
+-	char *name;
+-	struct acpi_generic_address *address64;
+-	u8 length;
+-	u32 i;
++	acpi_gbl_FADT.header.length = sizeof(struct acpi_table_fadt);
+ 
+ 	/*
+-	 * Check for FACS and DSDT address mismatches. An address mismatch between
+-	 * the 32-bit and 64-bit address fields (FIRMWARE_CTRL/X_FIRMWARE_CTRL and
+-	 * DSDT/X_DSDT) would indicate the presence of two FACS or two DSDT tables.
++	 * Expand the 32-bit FACS and DSDT addresses to 64-bit as necessary.
++	 * Later ACPICA code will always use the X 64-bit field.
+ 	 */
+-	if (acpi_gbl_FADT.facs &&
+-	    (acpi_gbl_FADT.Xfacs != (u64)acpi_gbl_FADT.facs)) {
+-		ACPI_BIOS_WARNING((AE_INFO,
+-				   "32/64X FACS address mismatch in FADT - "
+-				   "0x%8.8X/0x%8.8X%8.8X, using 32",
+-				   acpi_gbl_FADT.facs,
+-				   ACPI_FORMAT_UINT64(acpi_gbl_FADT.Xfacs)));
+-
+-		acpi_gbl_FADT.Xfacs = (u64)acpi_gbl_FADT.facs;
+-	}
+-
+-	if (acpi_gbl_FADT.dsdt &&
+-	    (acpi_gbl_FADT.Xdsdt != (u64)acpi_gbl_FADT.dsdt)) {
+-		ACPI_BIOS_WARNING((AE_INFO,
+-				   "32/64X DSDT address mismatch in FADT - "
+-				   "0x%8.8X/0x%8.8X%8.8X, using 32",
+-				   acpi_gbl_FADT.dsdt,
+-				   ACPI_FORMAT_UINT64(acpi_gbl_FADT.Xdsdt)));
++	acpi_gbl_FADT.Xfacs = acpi_tb_select_address("FACS",
++						     acpi_gbl_FADT.facs,
++						     acpi_gbl_FADT.Xfacs);
+ 
+-		acpi_gbl_FADT.Xdsdt = (u64)acpi_gbl_FADT.dsdt;
+-	}
++	acpi_gbl_FADT.Xdsdt = acpi_tb_select_address("DSDT",
++						     acpi_gbl_FADT.dsdt,
++						     acpi_gbl_FADT.Xdsdt);
+ 
+ 	/* If Hardware Reduced flag is set, we are all done */
+ 
+@@ -545,18 +499,95 @@ static void acpi_tb_validate_fadt(void)
+ 
+ 	for (i = 0; i < ACPI_FADT_INFO_ENTRIES; i++) {
+ 		/*
+-		 * Generate pointer to the 64-bit address, get the register
+-		 * length (width) and the register name
++		 * Get the 32-bit and 64-bit addresses, as well as the register
++		 * length and register name.
+ 		 */
++		address32 = *ACPI_ADD_PTR(u32,
++					  &acpi_gbl_FADT,
++					  fadt_info_table[i].address32);
++
+ 		address64 = ACPI_ADD_PTR(struct acpi_generic_address,
+ 					 &acpi_gbl_FADT,
+ 					 fadt_info_table[i].address64);
+-		length =
+-		    *ACPI_ADD_PTR(u8, &acpi_gbl_FADT,
+-				  fadt_info_table[i].length);
++
++		length = *ACPI_ADD_PTR(u8,
++				       &acpi_gbl_FADT,
++				       fadt_info_table[i].length);
++
+ 		name = fadt_info_table[i].name;
+ 
+ 		/*
++		 * Expand the ACPI 1.0 32-bit addresses to the ACPI 2.0 64-bit "X"
++		 * generic address structures as necessary. Later code will always use
++		 * the 64-bit address structures.
++		 *
++		 * November 2013:
++		 * Now always use the 64-bit address if it is valid (non-zero), in
++		 * accordance with the ACPI specification which states that a 64-bit
++		 * address supersedes the 32-bit version. This behavior can be
++		 * overridden by the acpi_gbl_use32_bit_fadt_addresses flag.
++		 *
++		 * During 64-bit address construction and verification,
++		 * these cases are handled:
++		 *
++		 * Address32 zero, Address64 [don't care]   - Use Address64
++		 *
++		 * Address32 non-zero, Address64 zero       - Copy/use Address32
++		 * Address32 non-zero == Address64 non-zero - Use Address64
++		 * Address32 non-zero != Address64 non-zero - Warning, use Address64
++		 *
++		 * Override: if acpi_gbl_use32_bit_fadt_addresses is TRUE, and:
++		 * Address32 non-zero != Address64 non-zero - Warning, copy/use Address32
++		 *
++		 * Note: space_id is always I/O for 32-bit legacy address fields
++		 */
++		if (address32) {
++			if (!address64->address) {
++
++				/* 64-bit address is zero, use 32-bit address */
++
++				acpi_tb_init_generic_address(address64,
++							     ACPI_ADR_SPACE_SYSTEM_IO,
++							     *ACPI_ADD_PTR(u8,
++									   &acpi_gbl_FADT,
++									   fadt_info_table
++									   [i].
++									   length),
++							     (u64)address32,
++							     name);
++			} else if (address64->address != (u64)address32) {
++
++				/* Address mismatch */
++
++				ACPI_BIOS_WARNING((AE_INFO,
++						   "32/64X address mismatch in FADT/%s: "
++						   "0x%8.8X/0x%8.8X%8.8X, using %u-bit address",
++						   name, address32,
++						   ACPI_FORMAT_UINT64
++						   (address64->address),
++						   acpi_gbl_use32_bit_fadt_addresses
++						   ? 32 : 64));
++
++				if (acpi_gbl_use32_bit_fadt_addresses) {
++
++					/* 32-bit address override */
++
++					acpi_tb_init_generic_address(address64,
++								     ACPI_ADR_SPACE_SYSTEM_IO,
++								     *ACPI_ADD_PTR
++								     (u8,
++								      &acpi_gbl_FADT,
++								      fadt_info_table
++								      [i].
++								      length),
++								     (u64)
++								     address32,
++								     name);
++				}
++			}
++		}
++
++		/*
+ 		 * For each extended field, check for length mismatch between the
+ 		 * legacy length field and the corresponding 64-bit X length field.
+ 		 * Note: If the legacy length field is > 0xFF bits, ignore this
 diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 4278aba9..30b01f8 100644
+index 30b01f8..01ba80b 100644
 --- a/include/acpi/acpixf.h
 +++ b/include/acpi/acpixf.h
-@@ -54,7 +54,6 @@
- #include <acpi/acbuffer.h>
- 
- extern u8 acpi_gbl_permanent_mmap;
--extern u32 acpi_rsdt_forced;
- 
- /*
-  * Globals that are publically available
-@@ -72,17 +71,18 @@ extern u32 acpi_dbg_layer;
- 
- /* ACPICA runtime options */
- 
--extern u8 acpi_gbl_enable_interpreter_slack;
- extern u8 acpi_gbl_all_methods_serialized;
--extern u8 acpi_gbl_create_osi_method;
--extern u8 acpi_gbl_use_default_register_widths;
--extern acpi_name acpi_gbl_trace_method_name;
--extern u32 acpi_gbl_trace_flags;
--extern bool acpi_gbl_enable_aml_debug_object;
- extern u8 acpi_gbl_copy_dsdt_locally;
--extern u8 acpi_gbl_truncate_io_addresses;
-+extern u8 acpi_gbl_create_osi_method;
- extern u8 acpi_gbl_disable_auto_repair;
- extern u8 acpi_gbl_disable_ssdt_table_load;
-+extern u8 acpi_gbl_do_not_use_xsdt;
-+extern bool acpi_gbl_enable_aml_debug_object;
-+extern u8 acpi_gbl_enable_interpreter_slack;
-+extern u32 acpi_gbl_trace_flags;
-+extern acpi_name acpi_gbl_trace_method_name;
-+extern u8 acpi_gbl_truncate_io_addresses;
-+extern u8 acpi_gbl_use_default_register_widths;
+@@ -82,6 +82,7 @@ extern u8 acpi_gbl_enable_interpreter_slack;
+ extern u32 acpi_gbl_trace_flags;
+ extern acpi_name acpi_gbl_trace_method_name;
+ extern u8 acpi_gbl_truncate_io_addresses;
++extern u8 acpi_gbl_use32_bit_fadt_addresses;
+ extern u8 acpi_gbl_use_default_register_widths;
  
  /*
-  * Hardware-reduced prototypes. All interfaces that use these macros will
 -- 
 1.7.10
 
