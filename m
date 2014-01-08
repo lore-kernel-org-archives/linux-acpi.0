@@ -1,162 +1,51 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v4 3/4] gpio / ACPI: get rid of acpi_gpio.h
-Date: Wed,  8 Jan 2014 12:40:56 +0200
-Message-ID: <1389177657-29266-4-git-send-email-mika.westerberg@linux.intel.com>
-References: <1389177657-29266-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1389177657-29266-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH v4 0/4] gpio / ACPI: convert users to gpiod_* and drop acpi_gpio.h
+Date: Wed,  8 Jan 2014 12:40:53 +0200
+Message-ID: <1389177657-29266-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:12595 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755069AbaAHKlT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Jan 2014 05:41:19 -0500
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Rob Landley <rob@landley.net>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-Now that all users of acpi_gpio.h have been moved to use either the GPIO
-descriptor interface or to the internal gpiolib.h we can get rid of
-acpi_gpio.h entirely.
+Hi,
 
-Once this is done the only interface to get GPIOs to drivers enumerated
-from ACPI namespace is the descriptor based interface.
+This is fourth revision of the patch series. The previous version can be
+found here [1].
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Acked-by: Alexandre Courbot <acourbot@nvidia.com>
----
- drivers/gpio/gpiolib-acpi.c |  5 +++--
- drivers/gpio/gpiolib.c      |  1 -
- drivers/gpio/gpiolib.h      | 23 +++++++++++++++++++++++
- include/linux/acpi_gpio.h   | 45 ---------------------------------------------
- 4 files changed, 26 insertions(+), 48 deletions(-)
+We convert the remaining user (sdhci-acpi) to use the GPIO descriptor API
+and get rid for ACPI specific GPIO helpers in favor of the new GPIO
+descriptor API.
+
+Changes to v3:
+
+ * Dropped patches 1 and 2 as they got merged already.
+ * Rebased on top of latest linux-gpio.git devel -branch.
+ * Moved patch [4/4] in previous version to be the first in this version.
+
+[1] https://lkml.org/lkml/2013/11/26/104
+
+Mika Westerberg (4):
+  gpio / ACPI: register to ACPI events automatically
+  mmc: sdhci-acpi: convert to use GPIO descriptor API
+  gpio / ACPI: get rid of acpi_gpio.h
+  Documentation / ACPI: update to GPIO descriptor API
+
+ Documentation/acpi/enumeration.txt | 36 ++++++---------------------
+ drivers/gpio/gpiolib-acpi.c        | 21 +++++++++++-----
+ drivers/gpio/gpiolib.c             |  5 +++-
+ drivers/gpio/gpiolib.h             | 46 ++++++++++++++++++++++++++++++++++
+ drivers/mmc/host/sdhci-acpi.c      | 26 +++++++++----------
+ drivers/pinctrl/pinctrl-baytrail.c |  4 ---
+ include/linux/acpi_gpio.h          | 51 --------------------------------------
+ 7 files changed, 84 insertions(+), 105 deletions(-)
+ create mode 100644 drivers/gpio/gpiolib.h
  delete mode 100644 include/linux/acpi_gpio.h
 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 739b72b6731a..716ee9843110 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -12,11 +12,13 @@
- 
- #include <linux/errno.h>
- #include <linux/gpio/consumer.h>
-+#include <linux/gpio/driver.h>
- #include <linux/export.h>
--#include <linux/acpi_gpio.h>
- #include <linux/acpi.h>
- #include <linux/interrupt.h>
- 
-+#include "gpiolib.h"
-+
- struct acpi_gpio_evt_pin {
- 	struct list_head node;
- 	acpi_handle *evt_handle;
-@@ -307,7 +309,6 @@ struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
- 
- 	return lookup.desc ? lookup.desc : ERR_PTR(-ENOENT);
- }
--EXPORT_SYMBOL_GPL(acpi_get_gpiod_by_index);
- 
- void acpi_gpiochip_add(struct gpio_chip *chip)
- {
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index 0de4069e33ab..ea0eba572333 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -10,7 +10,6 @@
- #include <linux/seq_file.h>
- #include <linux/gpio.h>
- #include <linux/of_gpio.h>
--#include <linux/acpi_gpio.h>
- #include <linux/idr.h>
- #include <linux/slab.h>
- #include <linux/acpi.h>
-diff --git a/drivers/gpio/gpiolib.h b/drivers/gpio/gpiolib.h
-index 2ed23ab8298c..82be586c1f90 100644
---- a/drivers/gpio/gpiolib.h
-+++ b/drivers/gpio/gpiolib.h
-@@ -12,12 +12,35 @@
- #ifndef GPIOLIB_H
- #define GPIOLIB_H
- 
-+#include <linux/err.h>
-+#include <linux/device.h>
-+
-+/**
-+ * struct acpi_gpio_info - ACPI GPIO specific information
-+ * @gpioint: if %true this GPIO is of type GpioInt otherwise type is GpioIo
-+ * @active_low: in case of @gpioint, the pin is active low
-+ */
-+struct acpi_gpio_info {
-+	bool gpioint;
-+	bool active_low;
-+};
-+
- #ifdef CONFIG_ACPI
- void acpi_gpiochip_add(struct gpio_chip *chip);
- void acpi_gpiochip_remove(struct gpio_chip *chip);
-+
-+struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
-+					  struct acpi_gpio_info *info);
- #else
- static inline void acpi_gpiochip_add(struct gpio_chip *chip) { }
- static inline void acpi_gpiochip_remove(struct gpio_chip *chip) { }
-+
-+static inline struct gpio_desc *
-+acpi_get_gpiod_by_index(struct device *dev, int index,
-+			struct acpi_gpio_info *info)
-+{
-+	return ERR_PTR(-ENOSYS);
-+}
- #endif
- 
- #endif /* GPIOLIB_H */
-diff --git a/include/linux/acpi_gpio.h b/include/linux/acpi_gpio.h
-deleted file mode 100644
-index af96a0d452f6..000000000000
---- a/include/linux/acpi_gpio.h
-+++ /dev/null
-@@ -1,45 +0,0 @@
--#ifndef _LINUX_ACPI_GPIO_H_
--#define _LINUX_ACPI_GPIO_H_
--
--#include <linux/device.h>
--#include <linux/err.h>
--#include <linux/errno.h>
--#include <linux/gpio.h>
--#include <linux/gpio/consumer.h>
--
--/**
-- * struct acpi_gpio_info - ACPI GPIO specific information
-- * @gpioint: if %true this GPIO is of type GpioInt otherwise type is GpioIo
-- * @active_low: in case of @gpioint, the pin is active low
-- */
--struct acpi_gpio_info {
--	bool gpioint;
--	bool active_low;
--};
--
--#ifdef CONFIG_GPIO_ACPI
--
--struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
--					  struct acpi_gpio_info *info);
--#else /* CONFIG_GPIO_ACPI */
--
--static inline struct gpio_desc *
--acpi_get_gpiod_by_index(struct device *dev, int index,
--			struct acpi_gpio_info *info)
--{
--	return ERR_PTR(-ENOSYS);
--}
--
--#endif /* CONFIG_GPIO_ACPI */
--
--static inline int acpi_get_gpio_by_index(struct device *dev, int index,
--					 struct acpi_gpio_info *info)
--{
--	struct gpio_desc *desc = acpi_get_gpiod_by_index(dev, index, info);
--
--	if (IS_ERR(desc))
--		return PTR_ERR(desc);
--	return desc_to_gpio(desc);
--}
--
--#endif /* _LINUX_ACPI_GPIO_H_ */
 -- 
 1.8.5.2
+
