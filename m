@@ -1,42 +1,59 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 21/21] ACPICA: Update version to 20131218.
-Date: Wed,  8 Jan 2014 13:45:11 +0800
-Message-ID: <3ff07d419f8a7a0310a8e0e77191fa96ac4a46a7.1387505703.git.lv.zheng@intel.com>
-References: <cover.1387505702.git.lv.zheng@intel.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH V2 1/6] Documentation: add dts binding for X-Gene
+ reboot dts node.
+Date: Wed, 8 Jan 2014 10:05:50 +0000
+Message-ID: <20140108100549.GE6701@e106331-lin.cambridge.arm.com>
+References: <1389135041-16062-1-git-send-email-fkan@apm.com>
+ <1389135041-16062-2-git-send-email-fkan@apm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:58294 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750898AbaAHFpU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Jan 2014 00:45:20 -0500
-In-Reply-To: <cover.1387505702.git.lv.zheng@intel.com>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:44515 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755262AbaAHKGU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jan 2014 05:06:20 -0500
+Content-Disposition: inline
+In-Reply-To: <1389135041-16062-2-git-send-email-fkan@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: Feng Kan <fkan@apm.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-From: Bob Moore <robert.moore@intel.com>
+On Tue, Jan 07, 2014 at 10:50:36PM +0000, Feng Kan wrote:
+> Add X-Gene reboot device tree node documentation.
+> 
+> Signed-off-by: Feng Kan <fkan@apm.com>
+> ---
+>  .../devicetree/bindings/arm64/xgene/reboot.txt     |   10 ++++++++++
+>  1 files changed, 10 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/arm64/xgene/reboot.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/arm64/xgene/reboot.txt b/Documentation/devicetree/bindings/arm64/xgene/reboot.txt
+> new file mode 100644
+> index 0000000..51d23c1
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/arm64/xgene/reboot.txt
+> @@ -0,0 +1,10 @@
+> +Reboot property to control system reboot on storm platforms:
+> +
+> +The register attribute contain the address of the reset register.
 
-Version 20131218.
+Required properties:
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- include/acpi/acpixf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+- compatible: should contain "apm,xgene-reboot"
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index cfe929b..d2f16f1 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -46,7 +46,7 @@
- 
- /* Current ACPICA subsystem version in YYYYMMDD format */
- 
--#define ACPI_CA_VERSION                 0x20131115
-+#define ACPI_CA_VERSION                 0x20131218
- 
- #include <acpi/acconfig.h>
- #include <acpi/actypes.h>
--- 
-1.7.10
+- reg: the base address and size of the reset register.
 
+> +
+> +Example:
+> +
+> +	reboot@0 {
+> +		compatible = "apm,xgene-reboot";
+> +		reg = <0x0 0x17000014 0x0 0x4>;
+> +	};
+
+Given this seems to be a 64-bit address, the unit address should
+preferably be 0,17000014 rather than just 0.
+
+Thanks,
+Mark.
