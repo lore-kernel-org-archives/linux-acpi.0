@@ -1,44 +1,46 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V2 1/6] Documentation: add dts binding for X-Gene reboot
- dts node.
-Date: Wed, 08 Jan 2014 11:08:33 +0100
-Message-ID: <6073715.cGydpIHKD1@wuerfel>
-References: <1389135041-16062-1-git-send-email-fkan@apm.com>
- <1389135041-16062-2-git-send-email-fkan@apm.com>
- <20140108100549.GE6701@e106331-lin.cambridge.arm.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v3 4/6] gpio / ACPI: register to ACPI events automatically
+Date: Wed, 8 Jan 2014 12:22:24 +0200
+Message-ID: <20140108102224.GO2494@intel.com>
+References: <1385460350-17543-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1385460350-17543-5-git-send-email-mika.westerberg@linux.intel.com>
+ <CACRpkdZhw5At_X-mNkb3TmQ2n1hXc0FGWYAbkAVgxvzCw=xgtw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140108100549.GE6701@e106331-lin.cambridge.arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Mark Rutland <mark.rutland@arm.com>, Feng Kan <fkan@apm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdZhw5At_X-mNkb3TmQ2n1hXc0FGWYAbkAVgxvzCw=xgtw@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chris Ball <cjb@laptop.org>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Rob Landley <rob@landley.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 08 January 2014 10:05:50 Mark Rutland wrote:
-> > +
-> > +Example:
-> > +
-> > +     reboot@0 {
-> > +             compatible = "apm,xgene-reboot";
-> > +             reg = <0x0 0x17000014 0x0 0x4>;
-> > +     };
+On Tue, Jan 07, 2014 at 06:50:00PM +0100, Linus Walleij wrote:
+> On Tue, Nov 26, 2013 at 11:05 AM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
 > 
-> Given this seems to be a 64-bit address, the unit address should
-> preferably be 0,17000014 rather than just 0.
+> > Instead of asking each driver to register to ACPI events we can just call
+> > acpi_gpiochip_register_interrupts() for each chip that has an ACPI handle.
+> > The function checks chip->to_irq and if it is set to NULL (a GPIO driver
+> > that doesn't do interrupts) the function does nothing.
+> >
+> > We also add the a new header drivers/gpio/gpiolib.h that is used for
+> > functions internal to gpiolib and add ACPI GPIO chip registering functions
+> > to that header.
+> >
+> > Once that is done we can remove call to acpi_gpiochip_register_interrupts()
+> > from its only user, pinctrl-baytrail.c
+> >
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Two questions:
+> 
+> - Can you please rebase patches 3-6 on my GPIO tree "devel" branch?
 
-I also wonder about the size and location of the register.
-Are you sure the device is just a single 4-byte register at offset
-0x14, rather than a complex device that happens to contain the
-reset register?
+Yes.
 
-	Arnd
+> - Can this patch be placed first? It does not seem to depend on the
+>   others, to to push dependent patches to the end of the series.
+
+Sure - I'll post a rebased version in a moment.
