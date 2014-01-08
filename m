@@ -1,51 +1,35 @@
-From: "Dr. Musa Hamed" <drmusahamed01@gmail.com>
-Subject: I have a very lucrative Business
-Date: Wed, 8 Jan 2014 21:47:31 +0100
-Message-ID: <CALS90i9nMs6jMoH2O5S68sPF=juYOV2sfMAwaBekL8ccz3eSOQ__6714.7075933919$1389215799$gmane$org@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V2 5/6] power: reset: change xgene reboot driver to use both acpi and dts resource for reboot.
+Date: Wed, 8 Jan 2014 22:43:01 +0100
+Message-ID: <201401082243.01694.arnd@arndb.de>
+References: <1389135041-16062-1-git-send-email-fkan@apm.com> <1389135041-16062-6-git-send-email-fkan@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f195.google.com ([209.85.212.195]:46481 "EHLO
-	mail-wi0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752511AbaAHVQ2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jan 2014 16:16:28 -0500
-Received: by mail-wi0-f195.google.com with SMTP id hm19so654590wib.6
-        for <linux-acpi@vger.kernel.org>; Wed, 08 Jan 2014 13:16:27 -0800 (PST)
+Received: from moutng.kundenserver.de ([212.227.17.8]:64911 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755563AbaAHVnc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jan 2014 16:43:32 -0500
+In-Reply-To: <1389135041-16062-6-git-send-email-fkan@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Feng Kan <fkan@apm.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
 
-ATTN: Dear,
+On Tuesday 07 January 2014, Feng Kan wrote:
+> Enable the X-Gene reboot driver to use either the ACPI or the DTS
+> resource using the platform driver method.
+> 
+> Signed-off-by: Feng Kan <fkan@apm.com>
+> ---
+>  drivers/power/reset/xgene-reboot.c |   33 ++++++++++++++++++++++++++++-----
+>  1 files changed, 28 insertions(+), 5 deletions(-)
+> 
 
-I am Dr. Musa Hamed Executive Director of the Bank of Africa
-Plc B.O.A,Cotonou Benin Rep. I have a very lucrative Business proposal
-worth of 21,500,000.00 USD.
+Shouldn't an ACPI based system always be able to reboot through the
+UEFI reset_system call? I really don't think we want to support
+ACPI on non-UEFI systems.
 
-An Iraqi named Hamadi Hashem a business man made a fixed deposit of
-21,500,000.00 USD . Upon maturity several notices was sent to him,
-even during the war,eleven years ago (2003) up till this date. Again
-after the war another notification was sent and still no response came
-from him. it has been found out that Hamadi Hashem and his family had
-been killed during the war in bomb blast that hit their home at
-Mukaradeeb where his personal oil well was. I am prepared to split the
-funds with you 50%:50%.By placing you as the NEXT OF KIN to his
-deposit.
-
-Should you be interested in doing this deal with me, please send me
-the following information:
-
-(1) Your Name
-(2) Resident Address
-(3) Your Occupation
-(4) Your Phone Number
-(5) Date of Birth
-(6) Resident Country
-
-And I will prefer you to reach me privately and securely on my personal
-email address: dr.musahamed30@yahoo.fr
-Tel: +229-988-400-97
-
-I will provide you with further information as soon as I hear
-positively from you.
-
-Regards,
-Dr. Musa Hamed
+	Arnd
