@@ -1,80 +1,112 @@
-From: Bodo Eggert <7eggert@gmx.de>
-Subject: Regression: Asrock M3A UCC does not boot without acpi=off or
- pci=noacpi
-Date: Wed, 8 Jan 2014 01:12:53 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1401080011480.4231@be10.lrz>
-Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323329-776041718-1389139974=:4231"
+From: al.stone@linaro.org
+Subject: [PATCH v5 1/5] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE_ONLY to enforce this ACPI mode
+Date: Tue,  7 Jan 2014 17:46:47 -0700
+Message-ID: <1389142011-27356-2-git-send-email-al.stone@linaro.org>
+References: <1389142011-27356-1-git-send-email-al.stone@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:42802 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754069AbaAHAM5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jan 2014 19:12:57 -0500
-Received: from mail-in-19-z2.arcor-online.net (mail-in-19-z2.arcor-online.net [151.189.8.36])
-	by mx.arcor.de (Postfix) with ESMTP id 4C693D8D9C
-	for <linux-acpi@vger.kernel.org>; Wed,  8 Jan 2014 01:12:56 +0100 (CET)
-Received: from mail-in-15.arcor-online.net (mail-in-15.arcor-online.net [151.189.21.55])
-	by mail-in-19-z2.arcor-online.net (Postfix) with ESMTP id 48E773F8304
-	for <linux-acpi@vger.kernel.org>; Wed,  8 Jan 2014 01:12:56 +0100 (CET)
-Received: from be10.7eggert.dyndns.org (95-91-230-165-dynip.superkabel.de [95.91.230.165])
-	(Authenticated sender: x7eggert@arcor.de)
-	by mail-in-15.arcor-online.net (Postfix) with ESMTPSA id 3A33E1AB523
-	for <linux-acpi@vger.kernel.org>; Wed,  8 Jan 2014 01:12:56 +0100 (CET)
-Received: from 7eggert (helo=localhost)
-	by be10.7eggert.dyndns.org with local-esmtp (Exim 4.72)
-	(envelope-from <7eggert@gmx.de>)
-	id 1W0glS-00016v-4S
-	for linux-acpi@vger.kernel.org; Wed, 08 Jan 2014 01:12:54 +0100
+Received: from mail-ig0-f179.google.com ([209.85.213.179]:44582 "EHLO
+	mail-ig0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610AbaAHArF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jan 2014 19:47:05 -0500
+Received: by mail-ig0-f179.google.com with SMTP id hk11so3219687igb.0
+        for <linux-acpi@vger.kernel.org>; Tue, 07 Jan 2014 16:47:04 -0800 (PST)
+In-Reply-To: <1389142011-27356-1-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Al Stone <al.stone@linaro.org>
 
---8323329-776041718-1389139974=:4231
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Hardware reduced mode, despite the name, exists primarily to allow
+newer platforms to use a much simpler form of ACPI that does not
+require supporting the legacy of previous versions of the specification.
+This mode was first introduced in the ACPI 5.0 specification, but because
+it is so much simpler and reduces the size of the object code needed to
+support ACPI, it is likely to be used more often in the near future.
 
-While upgrading, I found out that my Asrock M3A UCC mainboard is no longer=
-=20
-compatible with current Linux' acpi. The BIOS version was 1.30, now I=20
-upgraded to 1.40 (latest) without a change. (Error description below)
+To enable the hardware reduced mode of ACPI on some platforms (such as
+ARM), we need to modify the kernel code and set ACPI_REDUCED_HARDWARE
+to TRUE in the ACPICA source.  For ARM/ARM64, hardware reduced ACPI
+should be the only mode used; legacy mode would require modifications
+to SoCs in order to provide several x86-specific hardware features (e.g.,
+an NMI and SMI support).
 
-I found no other information from other people using the same mainboard=20
-suffering from or solving this bug.
+We set ACPI_REDUCED_HARDWARE to TRUE in the ACPICA source by introducing
+a kernel config item to enable/disable ACPI_REDUCED_HARDWARE.  We can then
+change the kernel config instead of having to modify the kernel source
+directly to enable the reduced hardware mode of ACPI.
 
-What's the best way to find (and fix) the cause? Debugging using=20
-self-compiled kernels (with enabled debugging)? Bisecting? Asking=20
-somewhere else?
+Lv Zheng suggested that this configuration item does not belong in ACPICA,
+the upstream source for much of the ACPI internals, but rather to the
+Linux kernel itself.  Hence, we introduce this flag so that we can make
+ACPI_REDUCED_HARDWARE configurable.  For the details of the discussion,
+please refer to: http://www.spinics.net/lists/linux-acpi/msg46369.html
 
-Error description: The kernel will start to boot, but hang after
-"NET: Registered protocol family 1" and before
-"ACPI: PCI Interrupt Link [APCF] enabled at IRQ 22" (reached only on 2.6)
-My self-compiled kernel with ACPI debugging seems to indicate an infinite=
-=20
-loop - it spams plenty of messages too fast to read.
+Even though support for X86 in hardware reduced mode is possible, it
+is NOT enabled.  Extensive effort has gone into the Linux kernel so that
+there is a single kernel image than can run on all x86 hardware; the kernel
+changes run-time behavior to adapt to the hardware being used.  This is not
+currently possible with the existing ACPICA infrastructure but only presents
+a problem on achitectures supporting both hardware-reduced and legacy modes
+of ACPI -- i.e., on x86 only.
 
-Debian oldstable kernel 2.6.32-5-amd64 works fine.
-Debian stable    kernel 3.2.0-4(?) needs acpi=3Doff or pci=3Dnoacpi.
-Same with Kubuntu 13.10's kernel.
-Same with self-compiled kernel 3.12.6.
+The problem with the current ACPICA code base is that if one builds legacy
+ACPI (a proper superset of hardware-reduced), the kernel can run in hardware-
+reduced with the proper ACPI tables, but there is still ACPICA code that could
+be executed even though it is not allowed by the specification.  If one builds
+a hardware-reduced only ACPI, the kernel cannot run with ACPI tables that are
+for legacy mode.  To ensure compliance with ACPI, one must therefore build
+two separate kernels.  Once this problem has been properly fixed, we can then
+enable x86 hardware-reduced mode and use a single kernel.
 
-With acpi=3Doff or pci=3Dnoacpi, the nvidia X11 driver crashes ... but that=
-'s=20
-a different story.
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Signed-off-by: Al Stone <al.stone@linaro.org>
+---
+ drivers/acpi/Kconfig            | 12 ++++++++++++
+ include/acpi/platform/aclinux.h |  6 ++++++
+ 2 files changed, 18 insertions(+)
 
-with kind regards
-=09Bodo Eggert
---=20
-Achtung Outlook-Fehler: Sollte diese Mail nicht korrekt dargestellt werden,
-so hat Microsoft mal wieder die "unn=F6tigen" Zeilenumbr=FCche ausgeblendet=
-=2E
-(Grauer Balken fast ganz oben.)
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 4770de5..1199087 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -343,6 +343,18 @@ config ACPI_BGRT
+ 	  data from the firmware boot splash. It will appear under
+ 	  /sys/firmware/acpi/bgrt/ .
+ 
++config ACPI_REDUCED_HARDWARE_ONLY
++	bool "Hardware-reduced ACPI support only"
++	depends on ARM || ARM64
++	help
++	This config item changes the way the ACPI code is built.  When this
++	option is selected, the kernel will use a specialized version of
++	ACPICA that ONLY supports the ACPI "reduced hardware" mode.  The
++	resulting kernel will be smaller but it will also be restricted to
++	running in ACPI reduced hardware mode ONLY.
++
++	If you are unsure what to do, do not enable this option.
++
+ source "drivers/acpi/apei/Kconfig"
+ 
+ config ACPI_EXTLOG
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 28f4f4d..7d71f08 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -52,6 +52,12 @@
+ 
+ #ifdef __KERNEL__
+ 
++/* Compile for reduced hardware mode only with this kernel config */
++
++#ifdef CONFIG_ACPI_REDUCED_HARDWARE_ONLY
++#define ACPI_REDUCED_HARDWARE 1
++#endif
++
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+ #include <linux/ctype.h>
+-- 
+1.8.4.2
 
-Mit Rechtsklick->Haken weg beheben Sie dieses Problem.
-Dauerhafte L=F6sung:
-http://www.pixeljunkie.de/entwickeltes/outlook-tipp-unnoetige-zeilenumbruec=
-he-automatisch-entfernen-abschalten/
-Oder nutzen Sie einfach ein Email-Programm eines anderen Herstellers.
---8323329-776041718-1389139974=:4231--
