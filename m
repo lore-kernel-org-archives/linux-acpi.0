@@ -1,94 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: thermal: remove const from thermal_zone_device_ops declaration
-Date: Thu, 09 Jan 2014 00:07:46 +0100
-Message-ID: <3062913.xSrRXgZCY8@vostro.rjw.lan>
-References: <1389111895-23007-1-git-send-email-emilgoode@gmail.com> <52CC8EEB.9010604@ti.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH][tentative] PCI / ACPI: Rework PCI host bridge removal to
+ avoid sysfs warnings
+Date: Wed, 8 Jan 2014 15:41:52 -0800
+Message-ID: <CAE9FiQXYskZcfccVO6OacYchfA=cd0Ns9EF1CbwERS7MR05bUA@mail.gmail.com>
+References: <37552283.kG1L4S8Daa@vostro.rjw.lan>
+	<2459491.HIKjAnF27k@vostro.rjw.lan>
+	<CAE9FiQV1tui+nHMFF419dpTOKt_x4US6R=3uPhDvUDJ0zoMrEg@mail.gmail.com>
+	<4679785.iPCX7mECEL@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51248 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757552AbaAHWx4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jan 2014 17:53:56 -0500
-In-Reply-To: <52CC8EEB.9010604@ti.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <4679785.iPCX7mECEL@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Tejun Heo <tj@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: Emil Goode <emilgoode@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-On Tuesday, January 07, 2014 07:34:03 PM Eduardo Valentin wrote:
-> 
-> --d38TXoq0sN4NKSKSmrSA0nrfhHhs3Hefk
-> Content-Type: text/plain; charset=ISO-8859-1
-> Content-Transfer-Encoding: quoted-printable
-> 
-> On 07-01-2014 12:24, Emil Goode wrote:
-> > The following commit introduced the requirement to not declare
-> > thermal_zone_device_ops structs as const in order to allow
-> > changing the .get_temp callback.
-> >=20
-> > commit 4e5e4705bf69ea450f58fc709ac5888f321a9299
-> > Author: Eduardo Valentin <eduardo.valentin@ti.com>
-> > Date:   Wed Jul 3 15:35:39 2013 -0400
-> >=20
-> >     thermal: introduce device tree parser
-> >=20
-> > Signed-off-by: Emil Goode <emilgoode@gmail.com>
-> 
-> Acked-by: Eduardo Valentin <eduardo.valentin@ti.com>
+On Mon, Jan 6, 2014 at 12:41 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
 
-Queued up for 3.14, thanks!
+>> Not sure how that could happen.
+>>
+>> If it would really happen, we could set dev->match_driver to 0 in pci_stop_dev.
+>
+> Simply, run "modprobe -r driver && modprobe driver" in a loop and
+> remove the PCI host bridge the given device is on in parallel to that.  Chances
+> are, you'll see some nice breakage.
 
-> > ---
-> >  drivers/acpi/thermal.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >=20
-> > diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> > index 1fd21ad..8349a55 100644
-> > --- a/drivers/acpi/thermal.c
-> > +++ b/drivers/acpi/thermal.c
-> > @@ -861,7 +861,7 @@ acpi_thermal_unbind_cooling_device(struct thermal_z=
-> one_device *thermal,
-> >  	return acpi_thermal_cooling_device_cb(thermal, cdev, false);
-> >  }
-> > =20
-> > -static const struct thermal_zone_device_ops acpi_thermal_zone_ops =3D =
-> {
-> > +static struct thermal_zone_device_ops acpi_thermal_zone_ops =3D {
-> >  	.bind =3D acpi_thermal_bind_cooling_device,
-> >  	.unbind	=3D acpi_thermal_unbind_cooling_device,
-> >  	.get_temp =3D thermal_get_temp,
-> >=20
-> 
-> 
-> --=20
-> You have got to be excited about what you are doing. (L. Lamport)
-> 
-> Eduardo Valentin
-> 
-> 
-> --d38TXoq0sN4NKSKSmrSA0nrfhHhs3Hefk
-> Content-Type: application/pgp-signature; name="signature.asc"
-> Content-Description: OpenPGP digital signature
-> Content-Disposition: attachment; filename="signature.asc"
-> 
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.4.12 (GNU/Linux)
-> Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-> 
-> iF4EAREIAAYFAlLMjvIACgkQCXcVR3XQvP3L6gD7B2J7f2SUQuZhpShZH/GNtjUm
-> 66MHYjXagUB6rDRkCAQA/3/Hh35+smtAZvxKm/IX45BOmyC/z3qMulmA6Alsy52I
-> =Cuu1
-> -----END PGP SIGNATURE-----
-> 
-> --d38TXoq0sN4NKSKSmrSA0nrfhHhs3Hefk--
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+I would suggest using match_driver prevent driver from attaching again.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+---
+ drivers/pci/remove.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+Index: linux-2.6/drivers/pci/remove.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/remove.c
++++ linux-2.6/drivers/pci/remove.c
+@@ -11,6 +11,7 @@ static void pci_stop_dev(struct pci_dev
+         pci_proc_detach_device(dev);
+         pci_remove_sysfs_dev_files(dev);
+         device_release_driver(&dev->dev);
++        dev->match_driver = false;
+         dev->is_added = 0;
+     }
+
+
+>
+> Also what happens if somebody uses the "remove" sysfs attribute on a device
+> needed by ioapic/dmar?
+
+Good question, we will have problem in that case.
+To make it simple, we may hide the "remove" in sysfs for ioapic pci device ?
+
+Thanks
+
+Yinghai
