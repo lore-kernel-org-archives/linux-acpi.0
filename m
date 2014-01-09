@@ -1,76 +1,88 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH 04/14] ACPI: Add ACPI 5.0 Time and Alarm Device driver
-Date: Thu, 09 Jan 2014 13:16:21 +0100
-Message-ID: <2612691.m9rj3jIJ1M@vostro.rjw.lan>
-References: <1387439515-8926-1-git-send-email-jlee@suse.com> <52CD9139.2070302@zytor.com> <1389239259.24105.2.camel@linux-s257.site>
+Subject: Re: kdump failed because of hotplug memory adding in kdump kernel
+Date: Thu, 09 Jan 2014 14:10:26 +0100
+Message-ID: <1607377.rjs1kRTsnc@vostro.rjw.lan>
+References: <52CD6E33.400@redhat.com> <8500545.JVNPnKcyD1@vostro.rjw.lan> <1389226308.1792.39.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62539 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:60762 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752057AbaAIMCa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jan 2014 07:02:30 -0500
-In-Reply-To: <1389239259.24105.2.camel@linux-s257.site>
+	with SMTP id S1751678AbaAIM4g (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jan 2014 07:56:36 -0500
+In-Reply-To: <1389226308.1792.39.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Alessandro Zummo <a.zummo@towertech.it>, Matt Fleming <matt@console-pimps.org>, Matthew Garrett <matthew.garrett@nebula.com>, Elliott@hp.com, samer.el-haj-mahmoud@hp.com, Oliver Neukum <oneukum@suse.de>, werner@suse.com, trenn@suse.de, JBeulich@suse.com, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, x86@kernel.org, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>, Baoquan <bhe@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>, linux-acpi@vger.kernel.org, zhangyanfei@cn.fujitsu.com, tangchen@cn.fujitsu.com, kexec@lists.infradead.org, linux-kernel@vger.kernel.org, dyoung@redhat.com
 
-On Thursday, January 09, 2014 11:47:39 AM joeyli wrote:
-> =E6=96=BC =E4=B8=89=EF=BC=8C2014-01-08 =E6=96=BC 09:56 -0800=EF=BC=8C=
-H. Peter Anvin =E6=8F=90=E5=88=B0=EF=BC=9A
-> [...]
-> > > Document of Windows XP:
-> > >
-> > http://www.freelists.org/post/windows_errors/what-error-messages-re=
-ally-mean-WinXP-IO-Ports-Blocked-from-Bios-AML-on-Windows-XP
-> > >=20
-> > > If just for ACPI TAD testing, we can remove the port protection
-> > check of
-> > > RTC ports in hwvalid.c. I have read 0x70/0x71 port success after
-> > removed
-> > > the checking in acpica/hwvalid.c.
-> > >=20
-> > > I will try to write RTC port in AML after remove acpica check, ma=
-ybe
-> > > have other unpredictable situation.
-> > >=20
-> >=20
-> > Now *THERE* is a good use of the "no RTC bit".  In the case that bi=
-t
-> > is
-> > set we should presumably remove these ports from the block list.
->=20
-> Thanks for your suggestion, I will put a testing patch on this.
->=20
-> >=20
-> > Otherwise we should use the CMOS address space, not the I/O port
-> > address
-> > space.
-> >=20
-> >         -hpa=20
->=20
-> Unfortunately current acpica leaks the SystemCMOS handler:
->=20
-> ACPI Error: Region SystemCMOS (ID=3D5) has no handler (20131115/exfld=
-io-299)
+On Wednesday, January 08, 2014 05:11:48 PM Toshi Kani wrote:
+> On Thu, 2014-01-09 at 00:07 +0100, Rafael J. Wysocki wrote:
+> > On Wednesday, January 08, 2014 10:58:29 AM Vivek Goyal wrote:
+> > > On Wed, Jan 08, 2014 at 11:26:43PM +0800, Baoquan wrote:
+> > > 
+> > > [..]
+> > > > [    1.592222] acpi PNP0A03:03: fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge.
+> > > > [    1.605045] PCI host bridge to bus 0000:ff
+> > > > [    1.609615] pci_bus 0000:ff: root bus resource [bus ff]
+> > > > [    1.632117] System RAM resource [mem 0x01000000-0x7bffffff] cannot be added
+> > > > [    1.639892] init_memory_mapping: [mem 0x100000000-0x87fffffff]
+> > > > [    1.717793] swapper/0: page allocation failure: order:9, mode:0x84d0
+> > > > [    1.724884] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.10.0-59.el7.x86_64 #1
+> > > > [    1.732842] Hardware name: QCI QSSC-S4R/QSSC-S4R, BIOS QSSC-S4R.QCI.01.00.S001.032520101647 03/25/2010
+> > > > [    1.743224]  0000000000000000 ffff8800339878c8 ffffffff815b64ad ffff880033987950
+> > > > [    1.751513]  ffffffff8113a980 ffff88003673ab28 00000000000001fe 0000000000000001
+> > > > [    1.759804]  ffff880000000040 ffffffff810bc28a 0000000000000000 0000000000000200
+> > > > [    1.768096] Call Trace:                                                                                                                                            [348/1928]
+> > > > [    1.770834]  [<ffffffff815b64ad>] dump_stack+0x19/0x1b
+> > > > [    1.776561]  [<ffffffff8113a980>] warn_alloc_failed+0xf0/0x160
+> > > > [    1.783076]  [<ffffffff810bc28a>] ? on_each_cpu_mask+0x2a/0x60
+> > > > [    1.789581]  [<ffffffff8113e92f>] __alloc_pages_nodemask+0x7ff/0xa00
+> > > > [    1.796672]  [<ffffffff815ada2c>] vmemmap_alloc_block+0x62/0xba
+> > > > [    1.803274]  [<ffffffff815ada99>] vmemmap_alloc_block_buf+0x15/0x3b
+> > > > [    1.810263]  [<ffffffff815ab8a6>] vmemmap_populate+0xb4/0x21b
+> > > > [    1.816673]  [<ffffffff815adecd>] sparse_mem_map_populate+0x27/0x35
+> > > > [    1.823665]  [<ffffffff815ad8bf>] sparse_add_one_section+0x7a/0x185
+> > > > [    1.830659]  [<ffffffff8159b74f>] __add_pages+0xaf/0x240
+> > > > [    1.836588]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
+> > > > [    1.842804]  [<ffffffff8159ba89>] add_memory+0xb9/0x1b0
+> > > > [    1.848638]  [<ffffffff8132dd2c>] acpi_memory_device_add+0x18d/0x26d
+> > > > [    1.855728]  [<ffffffff81303b91>] acpi_bus_device_attach+0x7d/0xcd
+> > > > [    1.862625]  [<ffffffff8131d92d>] acpi_ns_walk_namespace+0xc8/0x17f
+> > > > [    1.869616]  [<ffffffff81303b14>] ? acpi_bus_type_and_status+0x90/0x90
+> > > > [    1.876896]  [<ffffffff81303b14>] ? acpi_bus_type_and_status+0x90/0x90
+> > > > [    1.884177]  [<ffffffff8131de1c>] acpi_walk_namespace+0x95/0xc5
+> > > > [    1.890780]  [<ffffffff81304866>] acpi_bus_scan+0x8b/0x9d
+> > > > [    1.896805]  [<ffffffff81a14a15>] acpi_scan_init+0x63/0x160
+> > > > [    1.903021]  [<ffffffff81a14830>] acpi_init+0x25d/0x2a6
+> > > 
+> > > So basically acpi thinks that some memory block is a hot plug memory
+> > > and tries to add it. And that consumes lots of memory and we don't have
+> > > that memory in second kernel.
+> > 
+> > That's not exactly the case.  What seems to happen is that there is an ACPI
+> > memory object in the ACPI namespace and the ACPI memory hotplug driver
+> > attempts to bind to it.  That driver attempts to find removable memory blocks
+> > associated with that object and to add them to the memory map.
+> > 
+> > Why don't you simply append acpi=off to the kexec command line?  That should
+> > make the problem go away.
+> 
+> Yes, that should work, but Baoquan's approach makes sense to me.  When
+> memmap=exactmap is specified, the kernel should ignore any memory
+> information from the firmware.
 
-This is not an ACPICA problem.  We have no CMOS address space handler i=
-n Linux
-and arguably there should be one.  So I'd suggest implementing that to =
-start
-with or we risk conflicts between kernel code and AML accessing registe=
-rs in
-that space.
+OK
+
+Baoquan, please modify your patch to get rid of the #ifdef CONFIG_X86 in
+acpi_memory_hotplug_init().  For example, you can add a function returning true
+if use_exactmap is set and false otherwise and make acpi_memory_hotplug_init()
+call that function.  Alternatively, you can define arch-independent
+no_memory_hotplug (instead of use_exactmap) and set if for memmap=exactmap.
 
 Thanks!
 
---=20
+-- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
