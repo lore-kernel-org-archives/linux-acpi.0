@@ -1,64 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH][tentative] PCI / ACPI: Rework PCI host bridge removal to avoid sysfs warnings
-Date: Thu, 09 Jan 2014 01:10:26 +0100
-Message-ID: <1473769.SaDXEol2iJ@vostro.rjw.lan>
-References: <37552283.kG1L4S8Daa@vostro.rjw.lan> <4679785.iPCX7mECEL@vostro.rjw.lan> <CAE9FiQXYskZcfccVO6OacYchfA=cd0Ns9EF1CbwERS7MR05bUA@mail.gmail.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: kdump failed because of hotplug memory adding in kdump kernel
+Date: Wed, 08 Jan 2014 17:11:48 -0700
+Message-ID: <1389226308.1792.39.camel@misato.fc.hp.com>
+References: <52CD6E33.400@redhat.com> <20140108155829.GC13649@redhat.com>
+	 <8500545.JVNPnKcyD1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQXYskZcfccVO6OacYchfA=cd0Ns9EF1CbwERS7MR05bUA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Tejun Heo <tj@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:12930 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839AbaAIARm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jan 2014 19:17:42 -0500
+In-Reply-To: <8500545.JVNPnKcyD1@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Vivek Goyal <vgoyal@redhat.com>, Baoquan <bhe@redhat.com>, linux-acpi@vger.kernel.org, zhangyanfei@cn.fujitsu.com, tangchen@cn.fujitsu.com, kexec@lists.infradead.org, linux-kernel@vger.kernel.org, dyoung@redhat.com
 
-On Wednesday, January 08, 2014 03:41:52 PM Yinghai Lu wrote:
-> On Mon, Jan 6, 2014 at 12:41 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+On Thu, 2014-01-09 at 00:07 +0100, Rafael J. Wysocki wrote:
+> On Wednesday, January 08, 2014 10:58:29 AM Vivek Goyal wrote:
+> > On Wed, Jan 08, 2014 at 11:26:43PM +0800, Baoquan wrote:
+> > 
+> > [..]
+> > > [    1.592222] acpi PNP0A03:03: fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge.
+> > > [    1.605045] PCI host bridge to bus 0000:ff
+> > > [    1.609615] pci_bus 0000:ff: root bus resource [bus ff]
+> > > [    1.632117] System RAM resource [mem 0x01000000-0x7bffffff] cannot be added
+> > > [    1.639892] init_memory_mapping: [mem 0x100000000-0x87fffffff]
+> > > [    1.717793] swapper/0: page allocation failure: order:9, mode:0x84d0
+> > > [    1.724884] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.10.0-59.el7.x86_64 #1
+> > > [    1.732842] Hardware name: QCI QSSC-S4R/QSSC-S4R, BIOS QSSC-S4R.QCI.01.00.S001.032520101647 03/25/2010
+> > > [    1.743224]  0000000000000000 ffff8800339878c8 ffffffff815b64ad ffff880033987950
+> > > [    1.751513]  ffffffff8113a980 ffff88003673ab28 00000000000001fe 0000000000000001
+> > > [    1.759804]  ffff880000000040 ffffffff810bc28a 0000000000000000 0000000000000200
+> > > [    1.768096] Call Trace:                                                                                                                                            [348/1928]
+> > > [    1.770834]  [<ffffffff815b64ad>] dump_stack+0x19/0x1b
+> > > [    1.776561]  [<ffffffff8113a980>] warn_alloc_failed+0xf0/0x160
+> > > [    1.783076]  [<ffffffff810bc28a>] ? on_each_cpu_mask+0x2a/0x60
+> > > [    1.789581]  [<ffffffff8113e92f>] __alloc_pages_nodemask+0x7ff/0xa00
+> > > [    1.796672]  [<ffffffff815ada2c>] vmemmap_alloc_block+0x62/0xba
+> > > [    1.803274]  [<ffffffff815ada99>] vmemmap_alloc_block_buf+0x15/0x3b
+> > > [    1.810263]  [<ffffffff815ab8a6>] vmemmap_populate+0xb4/0x21b
+> > > [    1.816673]  [<ffffffff815adecd>] sparse_mem_map_populate+0x27/0x35
+> > > [    1.823665]  [<ffffffff815ad8bf>] sparse_add_one_section+0x7a/0x185
+> > > [    1.830659]  [<ffffffff8159b74f>] __add_pages+0xaf/0x240
+> > > [    1.836588]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
+> > > [    1.842804]  [<ffffffff8159ba89>] add_memory+0xb9/0x1b0
+> > > [    1.848638]  [<ffffffff8132dd2c>] acpi_memory_device_add+0x18d/0x26d
+> > > [    1.855728]  [<ffffffff81303b91>] acpi_bus_device_attach+0x7d/0xcd
+> > > [    1.862625]  [<ffffffff8131d92d>] acpi_ns_walk_namespace+0xc8/0x17f
+> > > [    1.869616]  [<ffffffff81303b14>] ? acpi_bus_type_and_status+0x90/0x90
+> > > [    1.876896]  [<ffffffff81303b14>] ? acpi_bus_type_and_status+0x90/0x90
+> > > [    1.884177]  [<ffffffff8131de1c>] acpi_walk_namespace+0x95/0xc5
+> > > [    1.890780]  [<ffffffff81304866>] acpi_bus_scan+0x8b/0x9d
+> > > [    1.896805]  [<ffffffff81a14a15>] acpi_scan_init+0x63/0x160
+> > > [    1.903021]  [<ffffffff81a14830>] acpi_init+0x25d/0x2a6
+> > 
+> > So basically acpi thinks that some memory block is a hot plug memory
+> > and tries to add it. And that consumes lots of memory and we don't have
+> > that memory in second kernel.
 > 
-> >> Not sure how that could happen.
-> >>
-> >> If it would really happen, we could set dev->match_driver to 0 in pci_stop_dev.
-> >
-> > Simply, run "modprobe -r driver && modprobe driver" in a loop and
-> > remove the PCI host bridge the given device is on in parallel to that.  Chances
-> > are, you'll see some nice breakage.
+> That's not exactly the case.  What seems to happen is that there is an ACPI
+> memory object in the ACPI namespace and the ACPI memory hotplug driver
+> attempts to bind to it.  That driver attempts to find removable memory blocks
+> associated with that object and to add them to the memory map.
 > 
-> I would suggest using match_driver prevent driver from attaching again.
+> Why don't you simply append acpi=off to the kexec command line?  That should
+> make the problem go away.
 
-Yes, we can do that.  Some locking is needed for it to be non-racy, however.
-
-Anyway, we still have the problem with race conditions between different PCI
-removal/rescan code paths.  And I'm still going to prepare a patch to use
-the remove-rescan mutex to address those race conditions and that patch should
-help here too.
-
-> 
-> ---
->  drivers/pci/remove.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> Index: linux-2.6/drivers/pci/remove.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/remove.c
-> +++ linux-2.6/drivers/pci/remove.c
-> @@ -11,6 +11,7 @@ static void pci_stop_dev(struct pci_dev
->          pci_proc_detach_device(dev);
->          pci_remove_sysfs_dev_files(dev);
->          device_release_driver(&dev->dev);
-> +        dev->match_driver = false;
->          dev->is_added = 0;
->      }
-> 
-> 
-> >
-> > Also what happens if somebody uses the "remove" sysfs attribute on a device
-> > needed by ioapic/dmar?
-> 
-> Good question, we will have problem in that case.
-> To make it simple, we may hide the "remove" in sysfs for ioapic pci device ?
-
-Yeah, we need to do that if using that attribute may lead to problems.
+Yes, that should work, but Baoquan's approach makes sense to me.  When
+memmap=exactmap is specified, the kernel should ignore any memory
+information from the firmware.
 
 Thanks,
-Rafael
+-Toshi
+
+
