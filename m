@@ -1,26 +1,80 @@
-From: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH 04/14] ACPI: Add ACPI 5.0 Time and Alarm Device driver
-Date: Wed, 08 Jan 2014 20:00:54 -0800
-Message-ID: <52CE1EF6.40300@zytor.com>
-References: <1387439515-8926-1-git-send-email-jlee@suse.com>	 <1387439515-8926-5-git-send-email-jlee@suse.com>	 <52B30F43.1060306@zytor.com> <1387518099.3539.4453.camel@linux-s257.site>	 <52C3647B.7000708@zytor.com> <1388998707.3539.6070.camel@linux-s257.site>	 <52CB929C.6050403@zytor.com> <1389091244.3539.6095.camel@linux-s257.site>	 <52CC2CDF.3000100@zytor.com> <1389193142.3539.6123.camel@linux-s257.site>	 <52CD9139.2070302@zytor.com> <1389239259.24105.2.camel@linux-s257.site>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389239259.24105.2.camel-ONCj+Eqt86TasUa73XJKwA@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: joeyli <jlee-IBi9RG/b67k@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Matt Fleming <matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>, Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>, Elliott-VXdhtT5mjnY@public.gmane.org, samer.el-haj-mahmoud-VXdhtT5mjnY@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, werner-IBi9RG/b67k@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [PATCH] ACPI: print error message and bail out early if failed to parse APIC ID for CPU
+Date: Thu,  9 Jan 2014 16:15:19 +0800
+Message-ID: <1389255320-1563-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:34917 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751201AbaAIIOz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Jan 2014 03:14:55 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 01/08/2014 07:47 PM, joeyli wrote:
-> 
-> Unfortunately current acpica leaks the SystemCMOS handler:
-> 
-> ACPI Error: Region SystemCMOS (ID=5) has no handler (20131115/exfldio-299)
-> 
+Enhance ACPI CPU hotplug driver to print clear error message and
+bail out early if BIOS returns wrong value in ACPI MADT table or
+_MAT method. Otherwise it will add the CPU device even if failed
+to get APIC ID and fails any operations against sysfs interface:
+/sys/devices/system/cpu/cpux/online
 
-I'm sorry, I can't parse either your statement or the error message...
-sounds like there is a bug here, too.
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ drivers/acpi/acpi_processor.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
-	-hpa
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index 3c1d6b0..6ce71b0 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -212,7 +212,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 	union acpi_object object = { 0 };
+ 	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
+ 	struct acpi_processor *pr = acpi_driver_data(device);
+-	int cpu_index, device_declaration = 0;
++	int apic_id, cpu_index, device_declaration = 0;
+ 	acpi_status status = AE_OK;
+ 	static int cpu0_initialized;
+ 	unsigned long long value;
+@@ -258,18 +258,21 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 		device_declaration = 1;
+ 		pr->acpi_id = value;
+ 	}
+-	pr->apic_id = acpi_get_apicid(pr->handle, device_declaration,
+-					pr->acpi_id);
+-	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
+ 
+-	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+-	if (!cpu0_initialized && (cpu_index == -1) &&
+-	    (num_online_cpus() == 1)) {
+-		cpu_index = 0;
++	apic_id = acpi_get_apicid(pr->handle, device_declaration, pr->acpi_id);
++	if (apic_id < 0) {
++		acpi_handle_err(pr->handle, "failed to get CPU APIC ID.\n");
++		return -ENODEV;
+ 	}
++	pr->apic_id = apic_id;
+ 
+-	cpu0_initialized = 1;
+-
++	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
++	if (!cpu0_initialized) {
++		cpu0_initialized = 1;
++		/* Handle UP system running SMP kernel, with no LAPIC in MADT */
++		if ((cpu_index == -1) && (num_online_cpus() == 1))
++			cpu_index = 0;
++	}
+ 	pr->id = cpu_index;
+ 
+ 	/*
+@@ -282,6 +285,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 		if (ret)
+ 			return ret;
+ 	}
++
+ 	/*
+ 	 * On some boxes several processors use the same processor bus id.
+ 	 * But they are located in different scope. For example:
+-- 
+1.7.10.4
+
