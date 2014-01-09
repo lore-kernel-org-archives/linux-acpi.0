@@ -1,24 +1,25 @@
-From: Toshi Kani <toshi.kani@hp.com>
+From: Baoquan <bhe@redhat.com>
 Subject: Re: kdump failed because of hotplug memory adding in kdump kernel
-Date: Wed, 08 Jan 2014 17:11:48 -0700
-Message-ID: <1389226308.1792.39.camel@misato.fc.hp.com>
-References: <52CD6E33.400@redhat.com> <20140108155829.GC13649@redhat.com>
-	 <8500545.JVNPnKcyD1@vostro.rjw.lan>
+Date: Thu, 9 Jan 2014 11:22:02 +0800
+Message-ID: <20140109032202.GA29272@dhcp-16-116.nay.redhat.com>
+References: <52CD6E33.400@redhat.com>
+ <20140108155829.GC13649@redhat.com>
+ <8500545.JVNPnKcyD1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:12930 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750839AbaAIARm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jan 2014 19:17:42 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:3448 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751571AbaAIDWi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Jan 2014 22:22:38 -0500
+Content-Disposition: inline
 In-Reply-To: <8500545.JVNPnKcyD1@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Vivek Goyal <vgoyal@redhat.com>, Baoquan <bhe@redhat.com>, linux-acpi@vger.kernel.org, zhangyanfei@cn.fujitsu.com, tangchen@cn.fujitsu.com, kexec@lists.infradead.org, linux-kernel@vger.kernel.org, dyoung@redhat.com
+Cc: Vivek Goyal <vgoyal@redhat.com>, linux-acpi@vger.kernel.org, zhangyanfei@cn.fujitsu.com, tangchen@cn.fujitsu.com, kexec@lists.infradead.org, linux-kernel@vger.kernel.org, dyoung@redhat.com
 
-On Thu, 2014-01-09 at 00:07 +0100, Rafael J. Wysocki wrote:
+On 01/09/14 at 12:07am, Rafael J. Wysocki wrote:
 > On Wednesday, January 08, 2014 10:58:29 AM Vivek Goyal wrote:
 > > On Wed, Jan 08, 2014 at 11:26:43PM +0800, Baoquan wrote:
 > > 
@@ -65,15 +66,15 @@ On Thu, 2014-01-09 at 00:07 +0100, Rafael J. Wysocki wrote:
 > memory object in the ACPI namespace and the ACPI memory hotplug driver
 > attempts to bind to it.  That driver attempts to find removable memory blocks
 > associated with that object and to add them to the memory map.
+
+Yeah, since kdump kernel will detect rsdp for legacy machine in the
+first 1K of the EBDA or between E0000 and FFFFF. 
+
 > 
 > Why don't you simply append acpi=off to the kexec command line?  That should
 > make the problem go away.
 
-Yes, that should work, but Baoquan's approach makes sense to me.  When
-memmap=exactmap is specified, the kernel should ignore any memory
-information from the firmware.
-
-Thanks,
--Toshi
-
+acpi=off doesn't work, kdump kernel hang immediately after crash is
+triggered. Because acpi information is needed by kdump kernel, we can't
+disable it.
 
