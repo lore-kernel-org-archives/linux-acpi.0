@@ -1,71 +1,59 @@
-From: Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: kdump failed because of hotplug memory adding in kdump kernel
-Date: Thu, 9 Jan 2014 16:27:05 -0500
-Message-ID: <20140109212705.GC12111@redhat.com>
-References: <52CD6E33.400@redhat.com> <20140108155829.GC13649@redhat.com>
- <8500545.JVNPnKcyD1@vostro.rjw.lan>
- <1389226308.1792.39.camel@misato.fc.hp.com>
- <20140109145035.GB25897@redhat.com>
- <1389283439.1792.66.camel@misato.fc.hp.com>
- <20140109162427.GF25897@redhat.com>
- <1389288265.1792.108.camel@misato.fc.hp.com>
- <20140109182310.GG25897@redhat.com>
- <1389292470.1792.109.camel@misato.fc.hp.com>
+From: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Subject: Re: [PATCH] acpi memory hotplug, add parameter to disable memory
+ hotplug for kexec
+Date: Thu, 9 Jan 2014 16:34:16 -0500
+Message-ID: <CAHGf_=oaPZNE8tVsZ1C1z3mHee8MK6CkuZ0YBTcJpRrTWgVn6g@mail.gmail.com>
+References: <1389220181-14474-1-git-send-email-prarit@redhat.com>
+ <3476878.EqQiEtA2Ag@vostro.rjw.lan> <20140109150053.GD25897@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1389292470.1792.109.camel-RbGIw1UOYPVo/CpIj0byZw@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec/>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>
-Cc: Baoquan <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tangchen-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, zhangyanfei-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f52.google.com ([209.85.219.52]:61202 "EHLO
+	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757604AbaAIVeh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jan 2014 16:34:37 -0500
+In-Reply-To: <20140109150053.GD25897@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Prarit Bhargava <prarit@redhat.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, linux kernel mailing list <linux-kernel@vger.kernel.org>, Dave Young <dyoung@redhat.com>, Kexec Mailing List <kexec@lists.infradead.org>
 
-On Thu, Jan 09, 2014 at 11:34:30AM -0700, Toshi Kani wrote:
-> On Thu, 2014-01-09 at 13:23 -0500, Vivek Goyal wrote:
-> > On Thu, Jan 09, 2014 at 10:24:25AM -0700, Toshi Kani wrote:
-> > 
-> > [..]
-> > > > I think creating a new command line option is simpler as compared to
-> > > > creating a new flag in bootparam which in turn disables memory hotplug.
-> > > > More users can use that option. For example, if for some reason hotplug
-> > > > code is crashing, one can just disable it on command line as work around
-> > > > and move on.
-> > > 
-> > > I do not have a strong opinion about having such option.  However, I
-> > > think it is more user friendly to keep the exactmap option works alone
-> > > on any platforms.
-> > 
-> > I think we should create internally a variable which will disable memory
-> > hotplug. And set that variable based on memmap=exactmap, mem=X and also
-> > provide a way to disable memory hotplug directly using command line
-> > option.
-> > 
-> > Current kexec-tools can use memmap=exactmap and be happy. I am writing
-> > a new kexec syscall and will not be using memmap=exactmap and would need
-> > to use that command line option to disable memory hotplug behavior.
-> 
-> Sounds good to me.
+On Thu, Jan 9, 2014 at 10:00 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Thu, Jan 09, 2014 at 12:00:29AM +0100, Rafael J. Wysocki wrote:
+>
+> [..]
+>> > The system then panics and the kdump/kexec kernel boots.  During this boot
+>> > ACPi is initialized and the kernel (as can be seen above)
+>>
+>> Which is a bug.  You're not supposed to initialize ACPI twice in a row.
+>
+> [CC lkml, kexec mailing list, dave young]
+>
+> It is a fresh instance of kernel booting and it is initializing its data
+> structures fresh. It is *not* re-initializing ACPI in same kernel.
+>
+>> > This patchset resolves the problem by adding a kernel parameter,
+>> > no_memory_hotplug, to disable ACPI memory hotplug.  It can be added by default
+>> > as a parameter to the kexec/kdump kernel so the kernel boots correctly.
+>>
+>> This problem is specific to kexec/kdump, so please don't add *generic* command
+>> line parameters to address this.
+>>
+>
+> There are other command line options to solve kdump problems. In general
+> one might want to disable memory hogplug on the fly even if it is compiled
+> in the kernel. So it can act as a good debugging aid.
+>
+> Secondly, it can be specified with memmap=exactmap and mem=X paramters to
+> make sure no memory is hot added in the system.
+>
+> So I can see other usages of this parameter. To me it makes sense to have
+> a separate command line option to disable memory hotplug feature on the
+> fly.
 
-Nobody responded to my other question, so I would ask it again.
+I'm ok this option. But note, even if this option is specified, SH,
+Power and S390 still
+be able to use memory hotplug because their firmware are totally
+different from ACPI.
 
-Assume we have disabled hotplug memory in second kernel. First kernel
-saw hotplug memory and assume crash kernel reserved region came from
-there. We will pass this memory in bootparams to second kernel and it
-will show up in E820 map. It should still be accessible in second kernel,
-is that right?
-
-Or there is some dependency on ACPI doing some magic before this memory
-range is available in second kernel?
-
-Thanks
-Vivek
+Maybe, adding acpi prefix provides good clarification.
