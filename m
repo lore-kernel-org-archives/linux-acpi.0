@@ -1,169 +1,112 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v6 3/6] ACPI: HW reduced mode does not allow use of the FADT sci_interrupt field
-Date: Sat, 11 Jan 2014 00:20:33 +0100
-Message-ID: <13769273.zu9PcWNH5N@vostro.rjw.lan>
-References: <1389394340-2680-1-git-send-email-al.stone@linaro.org> <1389394340-2680-4-git-send-email-al.stone@linaro.org>
+Subject: Re: [PATCH v6 0/6] Hardware Reduced Mode Cleanup for ACPI
+Date: Sat, 11 Jan 2014 00:25:05 +0100
+Message-ID: <5177919.p7dmYTQUj8@vostro.rjw.lan>
+References: <1389394340-2680-1-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56067 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:64575 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751790AbaAJXGl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 18:06:41 -0500
-In-Reply-To: <1389394340-2680-4-git-send-email-al.stone@linaro.org>
+	with SMTP id S1751698AbaAJXLN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 18:11:13 -0500
+In-Reply-To: <1389394340-2680-1-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: al.stone@linaro.org
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Len Brown <len.brown@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Garrett <mjg59@srcf.ucam.org>, David Woodhouse <David.Woodhouse@intel.com>, x86@kernel.org
 
-On Friday, January 10, 2014 03:52:17 PM al.stone@linaro.org wrote:
+On Friday, January 10, 2014 03:52:14 PM al.stone@linaro.org wrote:
 > From: Al Stone <al.stone@linaro.org>
 > 
-> In HW reduced mode, the use of the SCI interrupt is not allowed.  In
-> all those places that use the FADT sci_interrupt field, make sure we
-> do not execute that path when in HW reduced mode.
+> This series of patches starts with Hanjun's patch to create a kernel
+> config item for CONFIG_ACPI_REDUCED_HARDWARE [0].  Building on that, I
+> then reviewed all of the code that touched any of several fields in the
+> FADT that the OSPM is supposed to ignore when ACPI is in Hardware Reduced
+> mode [1].  Any time there was a use of one of the fields to be ignored,
+> I evaluated whether or not the code was implementing Hardware Reduced
+> mode correctly.  Similarly, for each the flags in the FADT flags field
+> that are to be ignored in Hardware Reduced mode, the kernel code was again
+> scanned for proper usage.  The remainder of the patches are to fix all of
+> the situations I could find where the kernel would not behave correctly
+> in this ACPI mode.
 > 
-> In the case of acpi_os_install_interrupt_handler() in osl.c, this allows
-> us to open up the routine to installing interrupt handlers other than
-> acpi_gbl_FADT.sci_interrupt regardless of whether we are in ACPI legacy
-> mode or reduced HW mode; acpi_os_remove_interrupt_handler() changes to
-> maintain symmetry.
+> These seem to work just fine on the RTSM model for ARMv7, both with and
+> without ACPI enabled, and with and without ACPI_REDUCED_HARDWARE enabled;
+> similarly for the FVP model for ARMv8.  The patches for ACPI on ARM
+> hardware have been submitted elsewhere but they presume that reduced HW
+> mode is functioning correctly.  In the meantime, there's no way I can think
+> of to test all possible scenarios so feedback would be greatly appreciated.
+
+Quite frankly, I'm seeing a pattern in this patchset that I'm not really
+liking, which is making changes on a hunch.  Especially things like
+changing code under #ifdef CONFIG_X86 and similar.
+
+Can we please focus on making changes that are *known* to be necessary and
+where we know *why* this is the case?
+
+> [0] List at https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI/AcpiReducedHw#Section_5:_ACPI_Software_Programming_Model
+> [1] Please see the ACPI Specification v5.0 for details on Hardware Reduced
+>     mode (sections 3.11.1, 4.1, 5.2.9, at a minimum).
 > 
-> Signed-off-by: Al Stone <al.stone@linaro.org>
-> ---
->  drivers/acpi/bus.c      | 30 ++++++++++++++++--------------
->  drivers/acpi/osl.c      | 18 +++++++-----------
->  drivers/acpi/pci_link.c |  2 ++
->  3 files changed, 25 insertions(+), 25 deletions(-)
+> Changes for v6:
+>    -- Allow selection of CONFIG_ACPI_REDUCED_HARDWARE_ONLY to be more
+>       architecture-independent, but make it harder to accidentally enable.
+>    -- Make sure that ACPI ECs do not use the ACPI global lock when in
+>       hardware reduced mode (I had missed this case in earlier reviews
+>       of the kernel tree).
 > 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 0710004..d871859 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -552,21 +552,23 @@ void __init acpi_early_init(void)
->  	}
->  
->  #ifdef CONFIG_X86
-> -	if (!acpi_ioapic) {
-> -		/* compatible (0) means level (3) */
-> -		if (!(acpi_sci_flags & ACPI_MADT_TRIGGER_MASK)) {
-> -			acpi_sci_flags &= ~ACPI_MADT_TRIGGER_MASK;
-> -			acpi_sci_flags |= ACPI_MADT_TRIGGER_LEVEL;
+> Changes for v5:
+>    -- Clarify that if the kernel config option to build ACPI hardware reduced
+>       mode is used, it builds a hardware reduced *only* kernel (i.e., full
+>       legacy ACPI mode will no longer work).
+> 
+> Changes for v4:
+>    -- Given the current state of ACPICA, disable CONFIG_ACPI_REDUCED_HARDWARE
+>       for use on anything other than ARM.
+>    -- Replaced #ifdefs with run-time checking for hardware reduced mode,
+>       whenever possible
+> 
+> Changes for v3:
+>    -- Modified enabling ACPI_REDUCED_HARDWARE in ACPICA when using
+>       kernel config item CONFIG_ACPI_REDUCED_HARDWARE; now consistent
+>       with ACPICA code base where needed
+>    -- Enable X86 for CONFIG_ACPI_REDUCED_HARDWARE
+>    -- Minimize bus master reload patching
+>    -- Remove unneeded patch for dmi_check_system() (was 4/6)
+>    -- Correct the patch for removing unneeded map/unmap of FADT fields
+> 
+> Changes for v2:
+>    -- Remove patch that was outside of reduced HW mode changes
+>    -- Simplify CONFIG_ACPI_REDUCED_HARDWARE in Kconfig
+>    -- Simplify use of CONFIG_ACPI_REDUCED_HARDWARE in #ifdefs
+>    -- Ensure changelogs are present
+>    -- Combine and simplify previous patches 8 & 10
+> 
+> 
+> Al Stone (6):
+>   ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE_ONLY to enforce this ACPI
+>     mode
+>   ACPI: bus master reload not supported in reduced HW mode
+>   ACPI: HW reduced mode does not allow use of the FADT sci_interrupt
+>     field
+>   ACPI: in HW reduced mode, using FADT PM information is not allowed.
+>   ACPI: do not map/unmap memory regions for FADT entries in reduced HW
+>     mode
+>   ACPI: make sure ECs do not use the ACPI global lock
+> 
+>  drivers/acpi/Kconfig            | 12 ++++++++++++
+>  drivers/acpi/bus.c              | 30 ++++++++++++++++--------------
+>  drivers/acpi/ec.c               | 12 ++++++++++--
+>  drivers/acpi/osl.c              | 38 +++++++++++++++++++-------------------
+>  drivers/acpi/pci_link.c         |  2 ++
+>  drivers/acpi/processor_idle.c   | 14 ++++++++++++--
+>  include/acpi/platform/aclinux.h |  6 ++++++
+>  7 files changed, 77 insertions(+), 37 deletions(-)
+> 
+> 
 
-I wonder why exactly you want to make this change.  It surely doesn't matter
-for ARM and do you have any HW-reduced x86 hardware to test it?
-
-> +	if (!acpi_gbl_reduced_hardware) {
-> +		if (!acpi_ioapic) {
-> +			/* compatible (0) means level (3) */
-> +			if (!(acpi_sci_flags & ACPI_MADT_TRIGGER_MASK)) {
-> +				acpi_sci_flags &= ~ACPI_MADT_TRIGGER_MASK;
-> +				acpi_sci_flags |= ACPI_MADT_TRIGGER_LEVEL;
-> +			}
-> +			/* Set PIC-mode SCI trigger type */
-> +			acpi_pic_sci_set_trigger(acpi_gbl_FADT.sci_interrupt,
-> +				(acpi_sci_flags & ACPI_MADT_TRIGGER_MASK) >> 2);
-> +		} else {
-> +			/*
-> +			 * now that acpi_gbl_FADT is initialized,
-> +			 * update it with result from INT_SRC_OVR parsing
-> +			 */
-> +			acpi_gbl_FADT.sci_interrupt = acpi_sci_override_gsi;
->  		}
-> -		/* Set PIC-mode SCI trigger type */
-> -		acpi_pic_sci_set_trigger(acpi_gbl_FADT.sci_interrupt,
-> -					 (acpi_sci_flags & ACPI_MADT_TRIGGER_MASK) >> 2);
-> -	} else {
-> -		/*
-> -		 * now that acpi_gbl_FADT is initialized,
-> -		 * update it with result from INT_SRC_OVR parsing
-> -		 */
-> -		acpi_gbl_FADT.sci_interrupt = acpi_sci_override_gsi;
->  	}
->  #endif
->  
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 44c07eb..c946a3a 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -84,6 +84,7 @@ static int (*__acpi_os_prepare_extended_sleep)(u8 sleep_state, u32 val_a,
->  
->  static acpi_osd_handler acpi_irq_handler;
->  static void *acpi_irq_context;
-> +static u32 acpi_irq_number;
->  static struct workqueue_struct *kacpid_wq;
->  static struct workqueue_struct *kacpi_notify_wq;
->  static struct workqueue_struct *kacpi_hotplug_wq;
-> @@ -178,6 +179,10 @@ static void __init acpi_request_region (struct acpi_generic_address *gas,
->  
->  static int __init acpi_reserve_resources(void)
->  {
-> +	/* Handle hardware reduced mode: i.e., do nothing. */
-> +	if (acpi_gbl_reduced_hardware)
-> +		return 0;
-
-Does it actually break things if we do that?
-
-> +
->  	acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block, acpi_gbl_FADT.pm1_event_length,
->  		"ACPI PM1a_EVT_BLK");
->  
-> @@ -795,13 +800,6 @@ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler,
->  
->  	acpi_irq_stats_init();
->  
-> -	/*
-> -	 * ACPI interrupts different from the SCI in our copy of the FADT are
-> -	 * not supported.
-> -	 */
-> -	if (gsi != acpi_gbl_FADT.sci_interrupt)
-> -		return AE_BAD_PARAMETER;
-> -
->  	if (acpi_irq_handler)
->  		return AE_ALREADY_ACQUIRED;
->  
-> @@ -818,15 +816,13 @@ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler,
->  		acpi_irq_handler = NULL;
->  		return AE_NOT_ACQUIRED;
->  	}
-> +	acpi_irq_number = irq;
->  
->  	return AE_OK;
->  }
->  
->  acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
->  {
-> -	if (irq != acpi_gbl_FADT.sci_interrupt)
-> -		return AE_BAD_PARAMETER;
-> -
->  	free_irq(irq, acpi_irq);
->  	acpi_irq_handler = NULL;
->  
-> @@ -1806,7 +1802,7 @@ acpi_status __init acpi_os_initialize1(void)
->  acpi_status acpi_os_terminate(void)
->  {
->  	if (acpi_irq_handler) {
-> -		acpi_os_remove_interrupt_handler(acpi_gbl_FADT.sci_interrupt,
-> +		acpi_os_remove_interrupt_handler(acpi_irq_number,
->  						 acpi_irq_handler);
->  	}
->  
-> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> index 2652a61..d5c155e 100644
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -505,6 +505,8 @@ int __init acpi_irq_penalty_init(void)
->  		}
->  	}
->  	/* Add a penalty for the SCI */
-> +	if (acpi_gbl_reduced_hardware)
-> +		return 0;
->  	acpi_irq_penalty[acpi_gbl_FADT.sci_interrupt] += PIRQ_PENALTY_PCI_USING;
->  	return 0;
->  }
-
-Is ARM really going to use the code in pci_link.c?  If so, then how exactly?
-
-Rafael
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
