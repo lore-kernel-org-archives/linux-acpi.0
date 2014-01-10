@@ -1,12 +1,14 @@
 From: oliver@neukum.org
-Subject: [PATCH] ACPI:remove panic in case hardware has changed after S4
-Date: Fri, 10 Jan 2014 10:51:53 +0100
-Message-ID: <1389347514-8112-1-git-send-email-oliver@neukum.org>
+Subject: [PATCH] xhci: make warnings greppable
+Date: Fri, 10 Jan 2014 10:51:54 +0100
+Message-ID: <1389347514-8112-2-git-send-email-oliver@neukum.org>
+References: <1389347514-8112-1-git-send-email-oliver@neukum.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out002.kontent.com ([81.88.40.216]:51366 "EHLO
+Received: from smtp-out002.kontent.com ([81.88.40.216]:51398 "EHLO
 	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751304AbaAJJv5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 04:51:57 -0500
+	with ESMTP id S1751544AbaAJJwC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 04:52:02 -0500
+In-Reply-To: <1389347514-8112-1-git-send-email-oliver@neukum.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, trenn@suse.de
@@ -14,35 +16,72 @@ Cc: Oliver Neukum <oneukum@suse.de>
 
 From: Oliver Neukum <oneukum@suse.de>
 
-Some BIOSes change hardware based on the state of
-a laptop's lid. If the lid is closed, the touchpad is
-disabled and the checksum changes. Windows 8 no longer
-aborts resume if the checksum has changed.
+This changes debug messages and warnings in xhci-ring.c
+to be on a single line so grep can find them. grep must
+have precedence over the 80 column limit.
 
 Signed-off-by: Oliver Neukum <oneukum@suse.de>
 ---
- drivers/acpi/sleep.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/usb/host/xhci-ring.c | 21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 9c1a435..14744e5 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -664,11 +664,9 @@ static void acpi_hibernation_leave(void)
- 	/* Reprogram control registers */
- 	acpi_leave_sleep_state_prep(ACPI_STATE_S4);
- 	/* Check the hardware signature */
--	if (facs && s4_hardware_signature != facs->hardware_signature) {
--		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
--			"cannot resume!\n");
--		panic("ACPI S4 hardware signature mismatch");
--	}
-+	if (facs && s4_hardware_signature != facs->hardware_signature)
-+		printk(KERN_CRIT "ACPI: Hardware changed while hibernated, "
-+			"success doubtful!\n");
- 	/* Restore the NVS memory area */
- 	suspend_nvs_restore();
- 	/* Allow EC transactions to happen. */
+diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
+index 09b2b55..34dce53 100644
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -1081,8 +1081,7 @@ static void xhci_handle_cmd_set_deq(struct xhci_hcd *xhci, int slot_id,
+ 
+ 	ep_ring = xhci_stream_id_to_ring(dev, ep_index, stream_id);
+ 	if (!ep_ring) {
+-		xhci_warn(xhci, "WARN Set TR deq ptr command for "
+-				"freed stream ID %u\n",
++		xhci_warn(xhci, "WARN Set TR deq ptr command for freed stream ID %u\n",
+ 				stream_id);
+ 		/* XXX: Harmless??? */
+ 		dev->eps[ep_index].ep_state &= ~SET_DEQ_PENDING;
+@@ -1098,12 +1097,10 @@ static void xhci_handle_cmd_set_deq(struct xhci_hcd *xhci, int slot_id,
+ 
+ 		switch (cmd_comp_code) {
+ 		case COMP_TRB_ERR:
+-			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd invalid because "
+-					"of stream ID configuration\n");
++			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd invalid because of stream ID configuration\n");
+ 			break;
+ 		case COMP_CTX_STATE:
+-			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd failed due "
+-					"to incorrect slot or ep state.\n");
++			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state.\n");
+ 			ep_state = le32_to_cpu(ep_ctx->ep_info);
+ 			ep_state &= EP_STATE_MASK;
+ 			slot_state = le32_to_cpu(slot_ctx->dev_state);
+@@ -1113,13 +1110,12 @@ static void xhci_handle_cmd_set_deq(struct xhci_hcd *xhci, int slot_id,
+ 					slot_state, ep_state);
+ 			break;
+ 		case COMP_EBADSLT:
+-			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd failed because "
+-					"slot %u was not enabled.\n", slot_id);
++			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd failed because slot "
++					"%u was not enabled.\n", slot_id);
+ 			break;
+ 		default:
+-			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd with unknown "
+-					"completion code of %u.\n",
+-				  cmd_comp_code);
++			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd with unknown completion code of "
++					"%u.\n", cmd_comp_code);
+ 			break;
+ 		}
+ 		/* OK what do we do now?  The endpoint state is hosed, and we
+@@ -1141,8 +1137,7 @@ static void xhci_handle_cmd_set_deq(struct xhci_hcd *xhci, int slot_id,
+ 			update_ring_for_set_deq_completion(xhci, dev,
+ 				ep_ring, ep_index);
+ 		} else {
+-			xhci_warn(xhci, "Mismatch between completed Set TR Deq "
+-					"Ptr command & xHCI internal state.\n");
++			xhci_warn(xhci, "Mismatch between completed Set TR Deq Ptr command & xHCI internal state.\n");
+ 			xhci_warn(xhci, "ep deq seg = %p, deq ptr = %p\n",
+ 					dev->eps[ep_index].queued_deq_seg,
+ 					dev->eps[ep_index].queued_deq_ptr);
 -- 
 1.8.4
 
