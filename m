@@ -1,101 +1,69 @@
-From: Baoquan <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: kdump failed because of hotplug memory adding in kdump kernel
-Date: Fri, 10 Jan 2014 18:27:46 +0800
-Message-ID: <20140110102746.GC14074@dhcp-16-105.nay.redhat.com>
-References: <20140109162427.GF25897@redhat.com>
- <1389288265.1792.108.camel@misato.fc.hp.com>
- <20140109182310.GG25897@redhat.com>
- <1389292470.1792.109.camel@misato.fc.hp.com>
- <20140109212705.GC12111@redhat.com>
- <1389304583.1792.139.camel@misato.fc.hp.com>
- <20140110071124.GA6464@dhcp-16-105.nay.redhat.com>
- <52CFAA20.2010109@jp.fujitsu.com>
- <20140110091433.GA14074@dhcp-16-105.nay.redhat.com>
- <52CFBECB.9040309@jp.fujitsu.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v5 1/5] ACPI: introduce
+ CONFIG_ACPI_REDUCED_HARDWARE_ONLY to enforce this ACPI mode
+Date: Fri, 10 Jan 2014 10:37:58 +0000
+Message-ID: <20140110103757.GC925@arm.com>
+References: <1389142011-27356-1-git-send-email-al.stone@linaro.org>
+ <1389142011-27356-2-git-send-email-al.stone@linaro.org>
+ <201401081346.25767.arnd@arndb.de>
+ <CAHkRjk50ctWV4Z13wRYh8n6urcTdkq4a8tgKi8k6hgNHA3cVVA@mail.gmail.com>
+ <52CF1297.9030306@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fw-tnat.austin.arm.com ([217.140.110.23]:47299 "EHLO
+	collaborate-mta1.arm.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751950AbaAJKi1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Jan 2014 05:38:27 -0500
 Content-Disposition: inline
-In-Reply-To: <52CFBECB.9040309-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec/>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Cc: Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tangchen-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, zhangyanfei-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <52CF1297.9030306@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Al Stone <ahs3@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linaro-kernel <linaro-kernel@lists.linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 01/10/14 at 06:35pm, Yasuaki Ishimatsu wrote:
-> (2014/01/10 18:14), Baoquan wrote:
-> >
-> >  >In ns
-> >>>object tree, they are not treated as hotplug memory.
+On Thu, Jan 09, 2014 at 09:20:23PM +0000, Al Stone wrote:
+> On 01/09/2014 10:38 AM, Catalin Marinas wrote:
+> > On 8 January 2014 12:46, Arnd Bergmann <arnd@arndb.de> wrote:
+> >> On Wednesday 08 January 2014, al.stone@linaro.org wrote:
+> >>> Even though support for X86 in hardware reduced mode is possible, it
+> >>> is NOT enabled.  Extensive effort has gone into the Linux kernel so that
+> >>> there is a single kernel image than can run on all x86 hardware; the kernel
+> >>> changes run-time behavior to adapt to the hardware being used.  This is not
+> >>> currently possible with the existing ACPICA infrastructure but only presents
+> >>> a problem on achitectures supporting both hardware-reduced and legacy modes
+> >>> of ACPI -- i.e., on x86 only.
 > >>
-> >>wrong.
-> >>They are treated as hotplug memory. But the memory cannot hot removed
-> >>because the memory has kernel memory.
-> >>
-> >>>Otherwise, any hotplug memory which is not reserved for 2nd kernel can
-> >>>be parsed and need be added as hotplug memory, and add them into movable
-> >>>zone.
-> >>
-> >>wrong.
-> >>The memory is allocated as normal zone and it is offline.
+> >> Not sure about the logic here: While it's certainly possible to build a kernel
+> >> that runs on all x86 machines, it's also possible to build one that only
+> >> runs on some of them when some basic options are turned off. I don't see
+> >> any difference between that and what we have on ARM64 or the multiplatform
+> >> subset of ARM32.
 > >
-> >Hi,
-> >
-> >Thanks for answering.
+> > Would we ever need !CONFIG_ACPI_REDUCED_HARDWARE_ONLY on ARM or ARM64?
+> > If not, we could even make this always on for these archs.
 > >
 > 
-> 
-> >I am confused. Now the fact is in 1st kernel memory is reserved for
-> >crashkernel and passed to 2nd kernel by exactmap. Then in 2nd kernel,
-> >reserved memory regions are added into e820. Later hotplug memory still
-> >trigger add_memory, and cause bug I reported.
-> 
-> Does the issue occur even if you apply the following Prarit's patch to
-> your kernel and add no_memory_hotplug boot option to 2nd kernel?
-> 
-> http://marc.info/?l=linux-acpi&m=138922019607796&w=2
+> Not that I know of -- and I would hope not.  This mode is so much
+> more straightforward that it makes no sense to me to do anything
+> but reduced HW if you have the choice.
 
-This issue is the same as Prarit's. He posted the formal patch.
+Thanks for clarifying.
 
-But still there are some questions we want to know.
+> I assume you were thinking of something like this in the arch Kconfig
+> file:
+> 
+> config ARM64
+> 	....
+> 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+> 	...
+> 
+> But, do let me know if you had something else in mind.  I think it does
+> make sense to add so I'll put this in the next version.
 
-> 
-> Thanks,
-> Yasuaki Ishimatsu
-> 
-> >
-> >
-> >>
-> >>>
-> >>>Am I right?
-> >>>
-> >>
-> >>>The other question, e820 reserve is done earlier than acpi
-> >>>initialization, because acpi_early_init() invocation is very late in
-> >>>start_kernel(). Does that means at the very beginning all memorys are in
-> >>>e820, later when acpi_early_init is called, hotplug memory is detected,
-> >>>they will be moved to different place or need be marked with a specific
-> >>>flag?
-> >>
-> >>No.
-> >>
-> >>Thanks,
-> >>Yasuaki Ishimatsu
-> >>
-> >
-> >--
-> >To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> >the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-> 
+The change makes sense but I think it should come with the patches for
+ACPI support on arm64 rather than your hw-reduced patches.
+
+-- 
+Catalin
