@@ -1,110 +1,83 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: print error message and bail out early if failed to parse APIC ID for CPU
-Date: Fri, 10 Jan 2014 02:52:40 +0100
-Message-ID: <2486715.U8PQu7xGGe@vostro.rjw.lan>
-References: <1389255320-1563-1-git-send-email-jiang.liu@linux.intel.com> <5603175.k76fij1bcj@vostro.rjw.lan> <52CF4E4C.7080909@linux.intel.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH] acpi memory hotplug, add parameter to disable memory
+ hotplug for kexec
+Date: Fri, 10 Jan 2014 12:57:50 +0900
+Message-ID: <52CF6FBE.8000005@jp.fujitsu.com>
+References: <1389220181-14474-1-git-send-email-prarit@redhat.com> <3476878.EqQiEtA2Ag@vostro.rjw.lan> <20140109150053.GD25897@redhat.com> <CAHGf_=oaPZNE8tVsZ1C1z3mHee8MK6CkuZ0YBTcJpRrTWgVn6g@mail.gmail.com> <20140109214425.GD12111@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62079 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752728AbaAJBit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jan 2014 20:38:49 -0500
-In-Reply-To: <52CF4E4C.7080909@linux.intel.com>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:37531 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751024AbaAJD6d (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jan 2014 22:58:33 -0500
+In-Reply-To: <20140109214425.GD12111@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Vivek Goyal <vgoyal@redhat.com>, Prarit Bhargava <prarit@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, linux kernel mailing list <linux-kernel@vger.kernel.org>, Dave Young <dyoung@redhat.com>, Kexec Mailing List <kexec@lists.infradead.org>
 
-On Friday, January 10, 2014 09:35:08 AM Jiang Liu wrote:
-> 
-> On 2014/1/9 20:12, Rafael J. Wysocki wrote:
-> > On Thursday, January 09, 2014 04:15:19 PM Jiang Liu wrote:
-> >> Enhance ACPI CPU hotplug driver to print clear error message and
-> >> bail out early if BIOS returns wrong value in ACPI MADT table or
-> >> _MAT method. Otherwise it will add the CPU device even if failed
-> >> to get APIC ID and fails any operations against sysfs interface:
-> >> /sys/devices/system/cpu/cpux/online
-> >>
-> >> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> > 
-> > Do you have any pointers to bug reports regarding this etc.?  If so,
-> > it would be good to add links to them to the commit log.
-> Hi Rafael,
-> 	I have no bug id for this. It was found during verifying an
-> internal BIOS version, so no external bug id for it yet.
+(2014/01/10 6:44), Vivek Goyal wrote:
+> On Thu, Jan 09, 2014 at 04:34:16PM -0500, KOSAKI Motohiro wrote:
+>> On Thu, Jan 9, 2014 at 10:00 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>>> On Thu, Jan 09, 2014 at 12:00:29AM +0100, Rafael J. Wysocki wrote:
+>>>
+>>> [..]
+>>>>> The system then panics and the kdump/kexec kernel boots.  During this boot
+>>>>> ACPi is initialized and the kernel (as can be seen above)
+>>>>
+>>>> Which is a bug.  You're not supposed to initialize ACPI twice in a row.
+>>>
+>>> [CC lkml, kexec mailing list, dave young]
+>>>
+>>> It is a fresh instance of kernel booting and it is initializing its data
+>>> structures fresh. It is *not* re-initializing ACPI in same kernel.
+>>>
+>>>>> This patchset resolves the problem by adding a kernel parameter,
+>>>>> no_memory_hotplug, to disable ACPI memory hotplug.  It can be added by default
+>>>>> as a parameter to the kexec/kdump kernel so the kernel boots correctly.
+>>>>
+>>>> This problem is specific to kexec/kdump, so please don't add *generic* command
+>>>> line parameters to address this.
+>>>>
+>>>
+>>> There are other command line options to solve kdump problems. In general
+>>> one might want to disable memory hogplug on the fly even if it is compiled
+>>> in the kernel. So it can act as a good debugging aid.
+>>>
+>>> Secondly, it can be specified with memmap=exactmap and mem=X paramters to
+>>> make sure no memory is hot added in the system.
+>>>
+>>> So I can see other usages of this parameter. To me it makes sense to have
+>>> a separate command line option to disable memory hotplug feature on the
+>>> fly.
+>>
+>> I'm ok this option. But note, even if this option is specified, SH,
+>> Power and S390 still
+>> be able to use memory hotplug because their firmware are totally
+>> different from ACPI.
+>>
+>> Maybe, adding acpi prefix provides good clarification.
+>
 
-OK
+> Makes sense. Something like "acpi_no_memhotplug" or "acpi_disable_memhotplug"
+> or something else.
 
-I'm going to queue it up for 3.14.
+I like Prarit's patch and the boot option name. If it is updated,
+I'll test it.
 
-Thanks!
+Thanks,
+Yasuaki Ishimatsu
 
-
-> >> ---
-> >>  drivers/acpi/acpi_processor.c |   24 ++++++++++++++----------
-> >>  1 file changed, 14 insertions(+), 10 deletions(-)
-> >>
-> >> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-> >> index 3c1d6b0..6ce71b0 100644
-> >> --- a/drivers/acpi/acpi_processor.c
-> >> +++ b/drivers/acpi/acpi_processor.c
-> >> @@ -212,7 +212,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
-> >>  	union acpi_object object = { 0 };
-> >>  	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
-> >>  	struct acpi_processor *pr = acpi_driver_data(device);
-> >> -	int cpu_index, device_declaration = 0;
-> >> +	int apic_id, cpu_index, device_declaration = 0;
-> >>  	acpi_status status = AE_OK;
-> >>  	static int cpu0_initialized;
-> >>  	unsigned long long value;
-> >> @@ -258,18 +258,21 @@ static int acpi_processor_get_info(struct acpi_device *device)
-> >>  		device_declaration = 1;
-> >>  		pr->acpi_id = value;
-> >>  	}
-> >> -	pr->apic_id = acpi_get_apicid(pr->handle, device_declaration,
-> >> -					pr->acpi_id);
-> >> -	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
-> >>  
-> >> -	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
-> >> -	if (!cpu0_initialized && (cpu_index == -1) &&
-> >> -	    (num_online_cpus() == 1)) {
-> >> -		cpu_index = 0;
-> >> +	apic_id = acpi_get_apicid(pr->handle, device_declaration, pr->acpi_id);
-> >> +	if (apic_id < 0) {
-> >> +		acpi_handle_err(pr->handle, "failed to get CPU APIC ID.\n");
-> >> +		return -ENODEV;
-> >>  	}
-> >> +	pr->apic_id = apic_id;
-> >>  
-> >> -	cpu0_initialized = 1;
-> >> -
-> >> +	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
-> >> +	if (!cpu0_initialized) {
-> >> +		cpu0_initialized = 1;
-> >> +		/* Handle UP system running SMP kernel, with no LAPIC in MADT */
-> >> +		if ((cpu_index == -1) && (num_online_cpus() == 1))
-> >> +			cpu_index = 0;
-> >> +	}
-> >>  	pr->id = cpu_index;
-> >>  
-> >>  	/*
-> >> @@ -282,6 +285,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
-> >>  		if (ret)
-> >>  			return ret;
-> >>  	}
-> >> +
-> >>  	/*
-> >>  	 * On some boxes several processors use the same processor bus id.
-> >>  	 * But they are located in different scope. For example:
-> >>
-> > 
+>
+> Thanks
+> Vivek
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+
