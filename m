@@ -1,8 +1,10 @@
 From: Toshi Kani <toshi.kani@hp.com>
 Subject: Re: kdump failed because of hotplug memory adding in kdump kernel
-Date: Fri, 10 Jan 2014 08:19:27 -0700
-Message-ID: <1389367167.1792.148.camel@misato.fc.hp.com>
-References: <20140109145035.GB25897@redhat.com>
+Date: Fri, 10 Jan 2014 08:56:17 -0700
+Message-ID: <1389369377.1792.160.camel@misato.fc.hp.com>
+References: <8500545.JVNPnKcyD1@vostro.rjw.lan>
+	 <1389226308.1792.39.camel@misato.fc.hp.com>
+	 <20140109145035.GB25897@redhat.com>
 	 <1389283439.1792.66.camel@misato.fc.hp.com>
 	 <20140109162427.GF25897@redhat.com>
 	 <1389288265.1792.108.camel@misato.fc.hp.com>
@@ -11,51 +13,50 @@ References: <20140109145035.GB25897@redhat.com>
 	 <20140109212705.GC12111@redhat.com>
 	 <1389304583.1792.139.camel@misato.fc.hp.com>
 	 <20140110071124.GA6464@dhcp-16-105.nay.redhat.com>
-	 <52CFAA20.2010109@jp.fujitsu.com>
-	 <20140110091433.GA14074@dhcp-16-105.nay.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:13171 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751997AbaAJPZX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 10:25:23 -0500
-In-Reply-To: <20140110091433.GA14074@dhcp-16-105.nay.redhat.com>
+Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:6989 "EHLO
+	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757464AbaAJQCO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 11:02:14 -0500
+In-Reply-To: <20140110071124.GA6464@dhcp-16-105.nay.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Baoquan <bhe@redhat.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, kexec@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, tangchen@cn.fujitsu.com, linux-acpi@vger.kernel.org, zhangyanfei@cn.fujitsu.com, dyoung@redhat.com
+Cc: Vivek Goyal <vgoyal@redhat.com>, kexec@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, tangchen@cn.fujitsu.com, linux-acpi@vger.kernel.org, zhangyanfei@cn.fujitsu.com, dyoung@redhat.com
 
-On Fri, 2014-01-10 at 17:14 +0800, Baoquan wrote:
+On Fri, 2014-01-10 at 15:11 +0800, Baoquan wrote:
+> On 01/09/14 at 02:56pm, Toshi Kani wrote:
  :
-> > 
-> > >Otherwise, any hotplug memory which is not reserved for 2nd kernel can
-> > >be parsed and need be added as hotplug memory, and add them into movable
-> > >zone.
-> > 
-> > wrong.
-> > The memory is allocated as normal zone and it is offline.
-
-This is "logical" offline, which means that the memory is accessible,
-but the 1st kernel does not use it.
-
-> Hi,
+> > I am more curious to know how makedumpfile decides what memory ranges to
+> > dump.  The 1st kernel may have performed memory hot-add / delete
+> > operations before a crash, so it needs to know the valid physical
+> > address range at the time of crash, and may not rely on the E820 map
+> > from BIOS (which is stale).  Am I right to assume that makedumpfile gets
+> > it from the page tables of the 1st kernel?
 > 
-> Thanks for answering.
+> makedumpfile just do the dump, what memory ranges to dump is decided in
+> 1st kernel by kexec-tools. In 1st kernel, if kexec-tools executed, it
+> will find all System Ram memorys which exclude the reserved regions for
+> kdump kernel, then build a logical elf file, each load segment is one of
+> these System Ram memory regions, its addr and length is written into the
+> program header.
 > 
-> I am confused. Now the fact is in 1st kernel memory is reserved for
-> crashkernel and passed to 2nd kernel by exactmap. Then in 2nd kernel,
-> reserved memory regions are added into e820.
+> Then makedumpfile just read this elf file, and read all of them and
+> dump.
+> 
+> If after kexec-tools execution and before crash, a hotplug memory is
+> removed, udev will check this and trigger a kdump restart, kexec-tools
+> is executed again, System Ram region information are stored. The logical
+> file header will be passed to 2nd kernel.
 
-Right.  And this memory is accessible.  
-
->  Later hotplug memory still
-> trigger add_memory, and cause bug I reported.
-
-This is because the 2nd kernel gets all memory ranges from ACPI without
-your change.  This is bad, not only it causes the panic you reported but
-also it can overwrite the 1st kernel's memory.
+Oh, that's how it works.  Thanks for the explanation!  In case of
+hot-delete, ideally, the elf file should be updated after a memory
+region is put into off-line, but before it is ejected.  But it is
+difficult/vulnerable to coordinate such sequence with user space.  So,
+the current scheme sounds good to me.
 
 Thanks,
 -Toshi
