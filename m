@@ -1,34 +1,53 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [PATCH 2/2] x86, e820 disable ACPI Memory Hotplug if memory mapping
- is specified by user
-Date: Fri, 10 Jan 2014 14:00:55 -0500
-Message-ID: <52D04367.1070107@redhat.com>
-References: <1389379579-18614-1-git-send-email-prarit@redhat.com> <1389379579-18614-3-git-send-email-prarit@redhat.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 2/2] x86, e820 disable ACPI Memory Hotplug if memory
+ mapping is specified by user [v2]
+Date: Fri, 10 Jan 2014 16:12:04 -0500
+Message-ID: <20140110211204.GC19115@redhat.com>
+References: <1389380698-19361-1-git-send-email-prarit@redhat.com>
+ <1389380698-19361-4-git-send-email-prarit@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1389379579-18614-3-git-send-email-prarit@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <1389380698-19361-4-git-send-email-prarit@redhat.com>
 Sender: owner-linux-mm@kvack.org
 To: Prarit Bhargava <prarit@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, kosaki.motohiro@gmail.com, dyoung@redhat.com, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, kosaki.motohiro@gmail.com, dyoung@redhat.com, linux-acpi@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, Jan 10, 2014 at 02:04:58PM -0500, Prarit Bhargava wrote:
 
+> kdump uses memmap=exactmap and mem=X values
 
-On 01/10/2014 01:46 PM, Prarit Bhargava wrote:
-> kdump uses memmap=exactmap and mem=X values to configure the memory
-> mapping for the kdump kernel.  If memory is hotadded during the boot of
-> the kdump kernel it is possible that the page tables for the new memory
-> cause the kdump kernel to run out of memory.
-> 
-> Since the user has specified a specific mapping ACPI Memory Hotplug should be
-> disabled in this case.
-> 
+Minor nit. Kdump only uses memmap=exactmap and not mem=X. mem=X is there
+for debugging. So lets fix the changelog.
 
-Noticed a bug in this.  Will repost a new version shortly.
+[..]
+>  static int __init parse_memmap_opt(char *str)
+>  {
+> +	int ret;
+> +
+>  	while (str) {
+>  		char *k = strchr(str, ',');
+>  
+>  		if (k)
+>  			*k++ = 0;
+>  
+> -		parse_memmap_one(str);
+> +		ret = parse_memmap_one(str);
+> +		if (!ret)
+> +			set_acpi_no_memhotplug();
 
-P.
+We want to call this only in case of memmap=exactmap and not other memmap=
+options. So I think instead of here, call it inside parse_memmap_one()
+where exactmap check is done.
+
+        if (!strncmp(p, "exactmap", 8)) {
+		set_acpi_no_memhotplug();
+	}
+
+Thanks
+Vivek
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
