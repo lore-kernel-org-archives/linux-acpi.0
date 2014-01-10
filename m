@@ -1,63 +1,77 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: kdump failed because of hotplug memory adding in kdump kernel
-Date: Fri, 10 Jan 2014 08:56:17 -0700
-Message-ID: <1389369377.1792.160.camel@misato.fc.hp.com>
-References: <8500545.JVNPnKcyD1@vostro.rjw.lan>
-	 <1389226308.1792.39.camel@misato.fc.hp.com>
-	 <20140109145035.GB25897@redhat.com>
-	 <1389283439.1792.66.camel@misato.fc.hp.com>
-	 <20140109162427.GF25897@redhat.com>
-	 <1389288265.1792.108.camel@misato.fc.hp.com>
-	 <20140109182310.GG25897@redhat.com>
-	 <1389292470.1792.109.camel@misato.fc.hp.com>
-	 <20140109212705.GC12111@redhat.com>
-	 <1389304583.1792.139.camel@misato.fc.hp.com>
-	 <20140110071124.GA6464@dhcp-16-105.nay.redhat.com>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [PATCH v5 1/5] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE_ONLY
+ to enforce this ACPI mode
+Date: Fri, 10 Jan 2014 10:12:32 -0700
+Message-ID: <52D02A00.3000209@linaro.org>
+References: <1389142011-27356-1-git-send-email-al.stone@linaro.org> <1389142011-27356-2-git-send-email-al.stone@linaro.org> <201401081346.25767.arnd@arndb.de> <CAHkRjk50ctWV4Z13wRYh8n6urcTdkq4a8tgKi8k6hgNHA3cVVA@mail.gmail.com> <52CF1297.9030306@redhat.com> <20140110103757.GC925@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:6989 "EHLO
-	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757464AbaAJQCO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 11:02:14 -0500
-In-Reply-To: <20140110071124.GA6464@dhcp-16-105.nay.redhat.com>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:60170 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751620AbaAJRMe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 12:12:34 -0500
+Received: by mail-pa0-f49.google.com with SMTP id bj1so1181378pad.36
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Jan 2014 09:12:34 -0800 (PST)
+In-Reply-To: <20140110103757.GC925@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Baoquan <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>, kexec@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, tangchen@cn.fujitsu.com, linux-acpi@vger.kernel.org, zhangyanfei@cn.fujitsu.com, dyoung@redhat.com
+To: Catalin Marinas <catalin.marinas@arm.com>, Al Stone <ahs3@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linaro-kernel <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, 2014-01-10 at 15:11 +0800, Baoquan wrote:
-> On 01/09/14 at 02:56pm, Toshi Kani wrote:
- :
-> > I am more curious to know how makedumpfile decides what memory ranges to
-> > dump.  The 1st kernel may have performed memory hot-add / delete
-> > operations before a crash, so it needs to know the valid physical
-> > address range at the time of crash, and may not rely on the E820 map
-> > from BIOS (which is stale).  Am I right to assume that makedumpfile gets
-> > it from the page tables of the 1st kernel?
-> 
-> makedumpfile just do the dump, what memory ranges to dump is decided in
-> 1st kernel by kexec-tools. In 1st kernel, if kexec-tools executed, it
-> will find all System Ram memorys which exclude the reserved regions for
-> kdump kernel, then build a logical elf file, each load segment is one of
-> these System Ram memory regions, its addr and length is written into the
-> program header.
-> 
-> Then makedumpfile just read this elf file, and read all of them and
-> dump.
-> 
-> If after kexec-tools execution and before crash, a hotplug memory is
-> removed, udev will check this and trigger a kdump restart, kexec-tools
-> is executed again, System Ram region information are stored. The logical
-> file header will be passed to 2nd kernel.
+On 01/10/2014 03:37 AM, Catalin Marinas wrote:
+> On Thu, Jan 09, 2014 at 09:20:23PM +0000, Al Stone wrote:
+>> On 01/09/2014 10:38 AM, Catalin Marinas wrote:
+>>> On 8 January 2014 12:46, Arnd Bergmann <arnd@arndb.de> wrote:
+>>>> On Wednesday 08 January 2014, al.stone@linaro.org wrote:
+>>>>> Even though support for X86 in hardware reduced mode is possible, it
+>>>>> is NOT enabled.  Extensive effort has gone into the Linux kernel so that
+>>>>> there is a single kernel image than can run on all x86 hardware; the kernel
+>>>>> changes run-time behavior to adapt to the hardware being used.  This is not
+>>>>> currently possible with the existing ACPICA infrastructure but only presents
+>>>>> a problem on achitectures supporting both hardware-reduced and legacy modes
+>>>>> of ACPI -- i.e., on x86 only.
+>>>>
+>>>> Not sure about the logic here: While it's certainly possible to build a kernel
+>>>> that runs on all x86 machines, it's also possible to build one that only
+>>>> runs on some of them when some basic options are turned off. I don't see
+>>>> any difference between that and what we have on ARM64 or the multiplatform
+>>>> subset of ARM32.
+>>>
+>>> Would we ever need !CONFIG_ACPI_REDUCED_HARDWARE_ONLY on ARM or ARM64?
+>>> If not, we could even make this always on for these archs.
+>>>
+>>
+>> Not that I know of -- and I would hope not.  This mode is so much
+>> more straightforward that it makes no sense to me to do anything
+>> but reduced HW if you have the choice.
+>
+> Thanks for clarifying.
+>
+>> I assume you were thinking of something like this in the arch Kconfig
+>> file:
+>>
+>> config ARM64
+>> 	....
+>> 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+>> 	...
+>>
+>> But, do let me know if you had something else in mind.  I think it does
+>> make sense to add so I'll put this in the next version.
+>
+> The change makes sense but I think it should come with the patches for
+> ACPI support on arm64 rather than your hw-reduced patches.
+>
 
-Oh, that's how it works.  Thanks for the explanation!  In case of
-hot-delete, ideally, the elf file should be updated after a memory
-region is put into off-line, but before it is ejected.  But it is
-difficult/vulnerable to coordinate such sequence with user space.  So,
-the current scheme sounds good to me.
+Ah.  Indeed.  That makes more sense; I'll pass it on to my colleagues.
 
-Thanks,
--Toshi
-
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
