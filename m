@@ -1,47 +1,66 @@
-From: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] acpi memory hotplug, add parameter to disable memory
- hotplug for kexec
-Date: Thu, 09 Jan 2014 20:04:49 -0500
-Message-ID: <52CF4731.6090106@redhat.com>
-References: <1389220181-14474-1-git-send-email-prarit@redhat.com>
- <3476878.EqQiEtA2Ag@vostro.rjw.lan> <20140109150053.GD25897@redhat.com>
- <CAHGf_=oaPZNE8tVsZ1C1z3mHee8MK6CkuZ0YBTcJpRrTWgVn6g@mail.gmail.com>
- <20140109214425.GD12111@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi memory hotplug, add parameter to disable memory hotplug for kexec
+Date: Fri, 10 Jan 2014 02:31:31 +0100
+Message-ID: <2117213.k9zFiTsMXU@vostro.rjw.lan>
+References: <1389220181-14474-1-git-send-email-prarit@redhat.com> <3476878.EqQiEtA2Ag@vostro.rjw.lan> <20140109150053.GD25897@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <20140109214425.GD12111-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec/>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Kexec Mailing List <kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux kernel mailing list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, KOSAKI Motohiro <kosaki.motohiro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:58151 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751745AbaAJBRo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jan 2014 20:17:44 -0500
+In-Reply-To: <20140109150053.GD25897@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: Prarit Bhargava <prarit@redhat.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, linux kernel mailing list <linux-kernel@vger.kernel.org>, Dave Young <dyoung@redhat.com>, Kexec Mailing List <kexec@lists.infradead.org>
 
-
-
-On 01/09/2014 04:44 PM, Vivek Goyal wrote:
-> On Thu, Jan 09, 2014 at 04:34:16PM -0500, KOSAKI Motohiro wrote:
->> On Thu, Jan 9, 2014 at 10:00 AM, Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->>> On Thu, Jan 09, 2014 at 12:00:29AM +0100, Rafael J. Wysocki wrote:
-
+On Thursday, January 09, 2014 10:00:53 AM Vivek Goyal wrote:
+> On Thu, Jan 09, 2014 at 12:00:29AM +0100, Rafael J. Wysocki wrote:
 > 
-> Makes sense. Something like "acpi_no_memhotplug" or "acpi_disable_memhotplug"
-> or something else.
+> [..]
+> > > The system then panics and the kdump/kexec kernel boots.  During this boot
+> > > ACPi is initialized and the kernel (as can be seen above)
+> > 
+> > Which is a bug.  You're not supposed to initialize ACPI twice in a row.
 > 
+> [CC lkml, kexec mailing list, dave young]
+> 
+> It is a fresh instance of kernel booting and it is initializing its data
+> structures fresh. It is *not* re-initializing ACPI in same kernel.
 
-FWIW ... after thinking about it and some of the other debug I've had to do,
-maybe acpi=no_memhotplug and acpi=no_cpuhotplug are in order here.  I've had to
-disable both during hardware enablement debug and it seems that it "fits" the
-current acpi disabling scheme.
+I know.  The problem is that the BIOS is generally not stateless and it
+remebers stuff.  In particular, there are a few handshakes done during the ACPI
+initialization and they cannot be repeated without resetting the BIOS to the
+initial state, which basically means a reboot.
 
-Unless, of course, Rafael still objects.
+That is kind of orthogonal to the problem at hand, though.
 
-P.
+> > > This patchset resolves the problem by adding a kernel parameter,
+> > > no_memory_hotplug, to disable ACPI memory hotplug.  It can be added by default
+> > > as a parameter to the kexec/kdump kernel so the kernel boots correctly.
+> > 
+> > This problem is specific to kexec/kdump, so please don't add *generic* command
+> > line parameters to address this.
+> > 
+> 
+> There are other command line options to solve kdump problems. In general
+> one might want to disable memory hogplug on the fly even if it is compiled
+> in the kernel. So it can act as a good debugging aid.
+> 
+> Secondly, it can be specified with memmap=exactmap and mem=X paramters to
+> make sure no memory is hot added in the system.
+> 
+> So I can see other usages of this parameter. To me it makes sense to have
+> a separate command line option to disable memory hotplug feature on the
+> fly.
+
+Well, if there are other uses, then fine.
+
+Thanks!
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
