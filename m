@@ -1,87 +1,101 @@
-From: oliver@neukum.org
-Subject: [PATCH] xhci: make warnings greppable
-Date: Fri, 10 Jan 2014 10:51:54 +0100
-Message-ID: <1389347514-8112-2-git-send-email-oliver@neukum.org>
-References: <1389347514-8112-1-git-send-email-oliver@neukum.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out002.kontent.com ([81.88.40.216]:51398 "EHLO
-	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751544AbaAJJwC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 04:52:02 -0500
-In-Reply-To: <1389347514-8112-1-git-send-email-oliver@neukum.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Baoquan <bhe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: kdump failed because of hotplug memory adding in kdump kernel
+Date: Fri, 10 Jan 2014 18:27:46 +0800
+Message-ID: <20140110102746.GC14074@dhcp-16-105.nay.redhat.com>
+References: <20140109162427.GF25897@redhat.com>
+ <1389288265.1792.108.camel@misato.fc.hp.com>
+ <20140109182310.GG25897@redhat.com>
+ <1389292470.1792.109.camel@misato.fc.hp.com>
+ <20140109212705.GC12111@redhat.com>
+ <1389304583.1792.139.camel@misato.fc.hp.com>
+ <20140110071124.GA6464@dhcp-16-105.nay.redhat.com>
+ <52CFAA20.2010109@jp.fujitsu.com>
+ <20140110091433.GA14074@dhcp-16-105.nay.redhat.com>
+ <52CFBECB.9040309@jp.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <52CFBECB.9040309-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/kexec/>
+List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Cc: Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tangchen-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, zhangyanfei-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, trenn@suse.de
-Cc: Oliver Neukum <oneukum@suse.de>
 
-From: Oliver Neukum <oneukum@suse.de>
+On 01/10/14 at 06:35pm, Yasuaki Ishimatsu wrote:
+> (2014/01/10 18:14), Baoquan wrote:
+> >
+> >  >In ns
+> >>>object tree, they are not treated as hotplug memory.
+> >>
+> >>wrong.
+> >>They are treated as hotplug memory. But the memory cannot hot removed
+> >>because the memory has kernel memory.
+> >>
+> >>>Otherwise, any hotplug memory which is not reserved for 2nd kernel can
+> >>>be parsed and need be added as hotplug memory, and add them into movable
+> >>>zone.
+> >>
+> >>wrong.
+> >>The memory is allocated as normal zone and it is offline.
+> >
+> >Hi,
+> >
+> >Thanks for answering.
+> >
+> 
+> 
+> >I am confused. Now the fact is in 1st kernel memory is reserved for
+> >crashkernel and passed to 2nd kernel by exactmap. Then in 2nd kernel,
+> >reserved memory regions are added into e820. Later hotplug memory still
+> >trigger add_memory, and cause bug I reported.
+> 
+> Does the issue occur even if you apply the following Prarit's patch to
+> your kernel and add no_memory_hotplug boot option to 2nd kernel?
+> 
+> http://marc.info/?l=linux-acpi&m=138922019607796&w=2
 
-This changes debug messages and warnings in xhci-ring.c
-to be on a single line so grep can find them. grep must
-have precedence over the 80 column limit.
+This issue is the same as Prarit's. He posted the formal patch.
 
-Signed-off-by: Oliver Neukum <oneukum@suse.de>
----
- drivers/usb/host/xhci-ring.c | 21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+But still there are some questions we want to know.
 
-diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
-index 09b2b55..34dce53 100644
---- a/drivers/usb/host/xhci-ring.c
-+++ b/drivers/usb/host/xhci-ring.c
-@@ -1081,8 +1081,7 @@ static void xhci_handle_cmd_set_deq(struct xhci_hcd *xhci, int slot_id,
- 
- 	ep_ring = xhci_stream_id_to_ring(dev, ep_index, stream_id);
- 	if (!ep_ring) {
--		xhci_warn(xhci, "WARN Set TR deq ptr command for "
--				"freed stream ID %u\n",
-+		xhci_warn(xhci, "WARN Set TR deq ptr command for freed stream ID %u\n",
- 				stream_id);
- 		/* XXX: Harmless??? */
- 		dev->eps[ep_index].ep_state &= ~SET_DEQ_PENDING;
-@@ -1098,12 +1097,10 @@ static void xhci_handle_cmd_set_deq(struct xhci_hcd *xhci, int slot_id,
- 
- 		switch (cmd_comp_code) {
- 		case COMP_TRB_ERR:
--			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd invalid because "
--					"of stream ID configuration\n");
-+			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd invalid because of stream ID configuration\n");
- 			break;
- 		case COMP_CTX_STATE:
--			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd failed due "
--					"to incorrect slot or ep state.\n");
-+			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state.\n");
- 			ep_state = le32_to_cpu(ep_ctx->ep_info);
- 			ep_state &= EP_STATE_MASK;
- 			slot_state = le32_to_cpu(slot_ctx->dev_state);
-@@ -1113,13 +1110,12 @@ static void xhci_handle_cmd_set_deq(struct xhci_hcd *xhci, int slot_id,
- 					slot_state, ep_state);
- 			break;
- 		case COMP_EBADSLT:
--			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd failed because "
--					"slot %u was not enabled.\n", slot_id);
-+			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd failed because slot "
-+					"%u was not enabled.\n", slot_id);
- 			break;
- 		default:
--			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd with unknown "
--					"completion code of %u.\n",
--				  cmd_comp_code);
-+			xhci_warn(xhci, "WARN Set TR Deq Ptr cmd with unknown completion code of "
-+					"%u.\n", cmd_comp_code);
- 			break;
- 		}
- 		/* OK what do we do now?  The endpoint state is hosed, and we
-@@ -1141,8 +1137,7 @@ static void xhci_handle_cmd_set_deq(struct xhci_hcd *xhci, int slot_id,
- 			update_ring_for_set_deq_completion(xhci, dev,
- 				ep_ring, ep_index);
- 		} else {
--			xhci_warn(xhci, "Mismatch between completed Set TR Deq "
--					"Ptr command & xHCI internal state.\n");
-+			xhci_warn(xhci, "Mismatch between completed Set TR Deq Ptr command & xHCI internal state.\n");
- 			xhci_warn(xhci, "ep deq seg = %p, deq ptr = %p\n",
- 					dev->eps[ep_index].queued_deq_seg,
- 					dev->eps[ep_index].queued_deq_ptr);
--- 
-1.8.4
-
+> 
+> Thanks,
+> Yasuaki Ishimatsu
+> 
+> >
+> >
+> >>
+> >>>
+> >>>Am I right?
+> >>>
+> >>
+> >>>The other question, e820 reserve is done earlier than acpi
+> >>>initialization, because acpi_early_init() invocation is very late in
+> >>>start_kernel(). Does that means at the very beginning all memorys are in
+> >>>e820, later when acpi_early_init is called, hotplug memory is detected,
+> >>>they will be moved to different place or need be marked with a specific
+> >>>flag?
+> >>
+> >>No.
+> >>
+> >>Thanks,
+> >>Yasuaki Ishimatsu
+> >>
+> >
+> >--
+> >To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> >the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> 
