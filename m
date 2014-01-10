@@ -1,69 +1,93 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v5 1/5] ACPI: introduce
- CONFIG_ACPI_REDUCED_HARDWARE_ONLY to enforce this ACPI mode
-Date: Fri, 10 Jan 2014 10:37:58 +0000
-Message-ID: <20140110103757.GC925@arm.com>
-References: <1389142011-27356-1-git-send-email-al.stone@linaro.org>
- <1389142011-27356-2-git-send-email-al.stone@linaro.org>
- <201401081346.25767.arnd@arndb.de>
- <CAHkRjk50ctWV4Z13wRYh8n6urcTdkq4a8tgKi8k6hgNHA3cVVA@mail.gmail.com>
- <52CF1297.9030306@redhat.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH] acpi memory hotplug, add parameter to disable memory
+ hotplug for kexec
+Date: Fri, 10 Jan 2014 06:01:26 -0500
+Message-ID: <52CFD306.5050804@redhat.com>
+References: <1389220181-14474-1-git-send-email-prarit@redhat.com> <3476878.EqQiEtA2Ag@vostro.rjw.lan> <20140109150053.GD25897@redhat.com> <CAHGf_=oaPZNE8tVsZ1C1z3mHee8MK6CkuZ0YBTcJpRrTWgVn6g@mail.gmail.com> <20140109214425.GD12111@redhat.com> <52CF6FBE.8000005@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fw-tnat.austin.arm.com ([217.140.110.23]:47299 "EHLO
-	collaborate-mta1.arm.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751950AbaAJKi1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Jan 2014 05:38:27 -0500
-Content-Disposition: inline
-In-Reply-To: <52CF1297.9030306@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:12228 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754891AbaAJLB6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Jan 2014 06:01:58 -0500
+In-Reply-To: <52CF6FBE.8000005@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linaro-kernel <linaro-kernel@lists.linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>, KOSAKI Motohiro <kosaki.motohiro@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, linux kernel mailing list <linux-kernel@vger.kernel.org>, Dave Young <dyoung@redhat.com>, Kexec Mailing List <kexec@lists.infradead.org>
 
-On Thu, Jan 09, 2014 at 09:20:23PM +0000, Al Stone wrote:
-> On 01/09/2014 10:38 AM, Catalin Marinas wrote:
-> > On 8 January 2014 12:46, Arnd Bergmann <arnd@arndb.de> wrote:
-> >> On Wednesday 08 January 2014, al.stone@linaro.org wrote:
-> >>> Even though support for X86 in hardware reduced mode is possible, it
-> >>> is NOT enabled.  Extensive effort has gone into the Linux kernel so that
-> >>> there is a single kernel image than can run on all x86 hardware; the kernel
-> >>> changes run-time behavior to adapt to the hardware being used.  This is not
-> >>> currently possible with the existing ACPICA infrastructure but only presents
-> >>> a problem on achitectures supporting both hardware-reduced and legacy modes
-> >>> of ACPI -- i.e., on x86 only.
-> >>
-> >> Not sure about the logic here: While it's certainly possible to build a kernel
-> >> that runs on all x86 machines, it's also possible to build one that only
-> >> runs on some of them when some basic options are turned off. I don't see
-> >> any difference between that and what we have on ARM64 or the multiplatform
-> >> subset of ARM32.
-> >
-> > Would we ever need !CONFIG_ACPI_REDUCED_HARDWARE_ONLY on ARM or ARM64?
-> > If not, we could even make this always on for these archs.
-> >
+
+
+On 01/09/2014 10:57 PM, Yasuaki Ishimatsu wrote:
+> (2014/01/10 6:44), Vivek Goyal wrote:
+>> On Thu, Jan 09, 2014 at 04:34:16PM -0500, KOSAKI Motohiro wrote:
+>>> On Thu, Jan 9, 2014 at 10:00 AM, Vivek Goyal <vgoyal@redhat.com> wrote:
+>>>> On Thu, Jan 09, 2014 at 12:00:29AM +0100, Rafael J. Wysocki wrote:
+>>>>
+>>>> [..]
+>>>>>> The system then panics and the kdump/kexec kernel boots.  During this boot
+>>>>>> ACPi is initialized and the kernel (as can be seen above)
+>>>>>
+>>>>> Which is a bug.  You're not supposed to initialize ACPI twice in a row.
+>>>>
+>>>> [CC lkml, kexec mailing list, dave young]
+>>>>
+>>>> It is a fresh instance of kernel booting and it is initializing its data
+>>>> structures fresh. It is *not* re-initializing ACPI in same kernel.
+>>>>
+>>>>>> This patchset resolves the problem by adding a kernel parameter,
+>>>>>> no_memory_hotplug, to disable ACPI memory hotplug.  It can be added by
+>>>>>> default
+>>>>>> as a parameter to the kexec/kdump kernel so the kernel boots correctly.
+>>>>>
+>>>>> This problem is specific to kexec/kdump, so please don't add *generic* command
+>>>>> line parameters to address this.
+>>>>>
+>>>>
+>>>> There are other command line options to solve kdump problems. In general
+>>>> one might want to disable memory hogplug on the fly even if it is compiled
+>>>> in the kernel. So it can act as a good debugging aid.
+>>>>
+>>>> Secondly, it can be specified with memmap=exactmap and mem=X paramters to
+>>>> make sure no memory is hot added in the system.
+>>>>
+>>>> So I can see other usages of this parameter. To me it makes sense to have
+>>>> a separate command line option to disable memory hotplug feature on the
+>>>> fly.
+>>>
+>>> I'm ok this option. But note, even if this option is specified, SH,
+>>> Power and S390 still
+>>> be able to use memory hotplug because their firmware are totally
+>>> different from ACPI.
+>>>
+>>> Maybe, adding acpi prefix provides good clarification.
+>>
 > 
-> Not that I know of -- and I would hope not.  This mode is so much
-> more straightforward that it makes no sense to me to do anything
-> but reduced HW if you have the choice.
-
-Thanks for clarifying.
-
-> I assume you were thinking of something like this in the arch Kconfig
-> file:
+>> Makes sense. Something like "acpi_no_memhotplug" or "acpi_disable_memhotplug"
+>> or something else.
 > 
-> config ARM64
-> 	....
-> 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
-> 	...
+> I like Prarit's patch and the boot option name. If it is updated,
+> I'll test it.
+
+I'm going with "acpi_no_memhotplug" and I'm testing across several systems right
+now.  Will send out a new patch shortly.
+
+P.
+
 > 
-> But, do let me know if you had something else in mind.  I think it does
-> make sense to add so I'll put this in the next version.
-
-The change makes sense but I think it should come with the patches for
-ACPI support on arm64 rather than your hw-reduced patches.
-
--- 
-Catalin
+> Thanks,
+> Yasuaki Ishimatsu
+> 
+>>
+>> Thanks
+>> Vivek
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
+> 
