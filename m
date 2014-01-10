@@ -1,56 +1,100 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 2/2] x86, e820 disable ACPI Memory Hotplug if memory
- mapping is specified by user [v2]
-Date: Fri, 10 Jan 2014 14:34:48 -0700
-Message-ID: <1389389688.1792.174.camel@misato.fc.hp.com>
-References: <1389380698-19361-1-git-send-email-prarit@redhat.com>
-	 <1389380698-19361-4-git-send-email-prarit@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1389380698-19361-4-git-send-email-prarit@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Prarit Bhargava <prarit@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, kosaki.motohiro@gmail.com, dyoung@redhat.com, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+From: al.stone@linaro.org
+Subject: [PATCH v6 0/6] Hardware Reduced Mode Cleanup for ACPI
+Date: Fri, 10 Jan 2014 15:52:14 -0700
+Message-ID: <1389394340-2680-1-git-send-email-al.stone@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f170.google.com ([209.85.223.170]:63126 "EHLO
+	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757837AbaAJWwb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 17:52:31 -0500
+Received: by mail-ie0-f170.google.com with SMTP id tq11so5181940ieb.1
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Jan 2014 14:52:31 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Al Stone <al.stone@linaro.org>
 
-On Fri, 2014-01-10 at 14:04 -0500, Prarit Bhargava wrote:
- :
->  arch/x86/kernel/e820.c         |   10 +++++++++-
->  drivers/acpi/acpi_memhotplug.c |    7 ++++++-
->  include/linux/memory_hotplug.h |    3 +++
->  3 files changed, 18 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
-> index 174da5f..747f36a 100644
-> --- a/arch/x86/kernel/e820.c
-> +++ b/arch/x86/kernel/e820.c
-> @@ -20,6 +20,7 @@
->  #include <linux/firmware-map.h>
->  #include <linux/memblock.h>
->  #include <linux/sort.h>
-> +#include <linux/memory_hotplug.h>
->  
->  #include <asm/e820.h>
->  #include <asm/proto.h>
-> @@ -834,6 +835,8 @@ static int __init parse_memopt(char *p)
->  		return -EINVAL;
->  	e820_remove_range(mem_size, ULLONG_MAX - mem_size, E820_RAM, 1);
->  
-> +	set_acpi_no_memhotplug();
-> +
+From: Al Stone <al.stone@linaro.org>
 
-It won't build when CONFIG_ACPI_HOTPLUG_MEMORY is not defined.
+This series of patches starts with Hanjun's patch to create a kernel
+config item for CONFIG_ACPI_REDUCED_HARDWARE [0].  Building on that, I
+then reviewed all of the code that touched any of several fields in the
+FADT that the OSPM is supposed to ignore when ACPI is in Hardware Reduced
+mode [1].  Any time there was a use of one of the fields to be ignored,
+I evaluated whether or not the code was implementing Hardware Reduced
+mode correctly.  Similarly, for each the flags in the FADT flags field
+that are to be ignored in Hardware Reduced mode, the kernel code was again
+scanned for proper usage.  The remainder of the patches are to fix all of
+the situations I could find where the kernel would not behave correctly
+in this ACPI mode.
 
-Thanks,
--Toshi
+These seem to work just fine on the RTSM model for ARMv7, both with and
+without ACPI enabled, and with and without ACPI_REDUCED_HARDWARE enabled;
+similarly for the FVP model for ARMv8.  The patches for ACPI on ARM
+hardware have been submitted elsewhere but they presume that reduced HW
+mode is functioning correctly.  In the meantime, there's no way I can think
+of to test all possible scenarios so feedback would be greatly appreciated.
 
 
+[0] List at https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI/AcpiReducedHw#Section_5:_ACPI_Software_Programming_Model
+[1] Please see the ACPI Specification v5.0 for details on Hardware Reduced
+    mode (sections 3.11.1, 4.1, 5.2.9, at a minimum).
+
+Changes for v6:
+   -- Allow selection of CONFIG_ACPI_REDUCED_HARDWARE_ONLY to be more
+      architecture-independent, but make it harder to accidentally enable.
+   -- Make sure that ACPI ECs do not use the ACPI global lock when in
+      hardware reduced mode (I had missed this case in earlier reviews
+      of the kernel tree).
+
+Changes for v5:
+   -- Clarify that if the kernel config option to build ACPI hardware reduced
+      mode is used, it builds a hardware reduced *only* kernel (i.e., full
+      legacy ACPI mode will no longer work).
+
+Changes for v4:
+   -- Given the current state of ACPICA, disable CONFIG_ACPI_REDUCED_HARDWARE
+      for use on anything other than ARM.
+   -- Replaced #ifdefs with run-time checking for hardware reduced mode,
+      whenever possible
+
+Changes for v3:
+   -- Modified enabling ACPI_REDUCED_HARDWARE in ACPICA when using
+      kernel config item CONFIG_ACPI_REDUCED_HARDWARE; now consistent
+      with ACPICA code base where needed
+   -- Enable X86 for CONFIG_ACPI_REDUCED_HARDWARE
+   -- Minimize bus master reload patching
+   -- Remove unneeded patch for dmi_check_system() (was 4/6)
+   -- Correct the patch for removing unneeded map/unmap of FADT fields
+
+Changes for v2:
+   -- Remove patch that was outside of reduced HW mode changes
+   -- Simplify CONFIG_ACPI_REDUCED_HARDWARE in Kconfig
+   -- Simplify use of CONFIG_ACPI_REDUCED_HARDWARE in #ifdefs
+   -- Ensure changelogs are present
+   -- Combine and simplify previous patches 8 & 10
 
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Al Stone (6):
+  ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE_ONLY to enforce this ACPI
+    mode
+  ACPI: bus master reload not supported in reduced HW mode
+  ACPI: HW reduced mode does not allow use of the FADT sci_interrupt
+    field
+  ACPI: in HW reduced mode, using FADT PM information is not allowed.
+  ACPI: do not map/unmap memory regions for FADT entries in reduced HW
+    mode
+  ACPI: make sure ECs do not use the ACPI global lock
+
+ drivers/acpi/Kconfig            | 12 ++++++++++++
+ drivers/acpi/bus.c              | 30 ++++++++++++++++--------------
+ drivers/acpi/ec.c               | 12 ++++++++++--
+ drivers/acpi/osl.c              | 38 +++++++++++++++++++-------------------
+ drivers/acpi/pci_link.c         |  2 ++
+ drivers/acpi/processor_idle.c   | 14 ++++++++++++--
+ include/acpi/platform/aclinux.h |  6 ++++++
+ 7 files changed, 77 insertions(+), 37 deletions(-)
+
+-- 
+1.8.4.2
+
