@@ -1,53 +1,49 @@
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 2/2] x86, e820 disable ACPI Memory Hotplug if memory
- mapping is specified by user [v2]
-Date: Fri, 10 Jan 2014 16:12:04 -0500
-Message-ID: <20140110211204.GC19115@redhat.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 1/2] acpi memory hotplug, add parameter to disable
+ memory hotplug [v2]
+Date: Fri, 10 Jan 2014 14:34:01 -0700
+Message-ID: <1389389641.1792.173.camel@misato.fc.hp.com>
 References: <1389380698-19361-1-git-send-email-prarit@redhat.com>
- <1389380698-19361-4-git-send-email-prarit@redhat.com>
+	 <1389380698-19361-3-git-send-email-prarit@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1389380698-19361-4-git-send-email-prarit@redhat.com>
+In-Reply-To: <1389380698-19361-3-git-send-email-prarit@redhat.com>
 Sender: owner-linux-mm@kvack.org
 To: Prarit Bhargava <prarit@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, kosaki.motohiro@gmail.com, dyoung@redhat.com, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, kosaki.motohiro@gmail.com, dyoung@redhat.com, linux-acpi@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 10, 2014 at 02:04:58PM -0500, Prarit Bhargava wrote:
-
-> kdump uses memmap=exactmap and mem=X values
-
-Minor nit. Kdump only uses memmap=exactmap and not mem=X. mem=X is there
-for debugging. So lets fix the changelog.
-
-[..]
->  static int __init parse_memmap_opt(char *str)
->  {
-> +	int ret;
+On Fri, 2014-01-10 at 14:04 -0500, Prarit Bhargava wrote:
+ :
+> ---
+>  Documentation/kernel-parameters.txt |    3 +++
+>  drivers/acpi/acpi_memhotplug.c      |   12 ++++++++++++
+>  2 files changed, 15 insertions(+)
+> 
+> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+> index b9e9bd8..41374f9 100644
+> --- a/Documentation/kernel-parameters.txt
+> +++ b/Documentation/kernel-parameters.txt
+> @@ -2117,6 +2117,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+>  
+>  	nomce		[X86-32] Machine Check Exception
+>  
+> +	acpi_no_memhotplug [ACPI] Disable memory hotplug.  Useful for kexec
+> +			   and kdump kernels.
 > +
->  	while (str) {
->  		char *k = strchr(str, ',');
->  
->  		if (k)
->  			*k++ = 0;
->  
-> -		parse_memmap_one(str);
-> +		ret = parse_memmap_one(str);
-> +		if (!ret)
-> +			set_acpi_no_memhotplug();
 
-We want to call this only in case of memmap=exactmap and not other memmap=
-options. So I think instead of here, call it inside parse_memmap_one()
-where exactmap check is done.
+Please move it to where other acpi_xxx are described.
 
-        if (!strncmp(p, "exactmap", 8)) {
-		set_acpi_no_memhotplug();
-	}
+For kdump kernel, this option will be used when memmap=exactmap is
+deprecated.  IOW, it is not useful yet.  Not sure what you mean by kexec
+kernel.  Memory hotplug does not need to be disabled for kexec reboot.
 
-Thanks
-Vivek
+Thanks,
+-Toshi
+
+
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
