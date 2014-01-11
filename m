@@ -1,84 +1,65 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI/SCAN: _STA status read
-Date: Sat, 11 Jan 2014 02:21:21 +0100
-Message-ID: <8334447.ggorZeCfj4@vostro.rjw.lan>
-References: <1389398405-1970-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: Feng Kan <fkan@apm.com>
+Subject: Re: [PATCH V2 1/6] Documentation: add dts binding for X-Gene reboot
+ dts node.
+Date: Fri, 10 Jan 2014 17:11:53 -0800
+Message-ID: <CAL85gmCEk3c1qbo978qHssrz0toxbCT3LiTinX5ZZcwg-Q-FnA@mail.gmail.com>
+References: <1389135041-16062-1-git-send-email-fkan@apm.com>
+	<1389135041-16062-2-git-send-email-fkan@apm.com>
+	<20140108100549.GE6701@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52187 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751149AbaAKBH3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 20:07:29 -0500
-In-Reply-To: <1389398405-1970-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Received: from exprod5og113.obsmtp.com ([64.18.0.26]:37020 "HELO
+	exprod5og113.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750983AbaAKBLy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 20:11:54 -0500
+Received: by mail-oa0-f53.google.com with SMTP id h16so5895157oag.12
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Jan 2014 17:11:54 -0800 (PST)
+In-Reply-To: <20140108100549.GE6701@e106331-lin.cambridge.arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: rafael.j.wysocki@intel.com, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Friday, January 10, 2014 04:00:05 PM Srinivas Pandruvada wrote:
-> This patch adds a "status" attribute for an acpi device. This status
-> attribute shows the value of _STA object. The _STA object returns
-> current status of an ACPI device to show enabled, disabled or removed.
-> 
-> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+On Wed, Jan 8, 2014 at 2:05 AM, Mark Rutland <mark.rutland@arm.com> wrote:
+> On Tue, Jan 07, 2014 at 10:50:36PM +0000, Feng Kan wrote:
+>> Add X-Gene reboot device tree node documentation.
+>>
+>> Signed-off-by: Feng Kan <fkan@apm.com>
+>> ---
+>>  .../devicetree/bindings/arm64/xgene/reboot.txt     |   10 ++++++++++
+>>  1 files changed, 10 insertions(+), 0 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/arm64/xgene/reboot.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/arm64/xgene/reboot.txt b/Documentation/devicetree/bindings/arm64/xgene/reboot.txt
+>> new file mode 100644
+>> index 0000000..51d23c1
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/arm64/xgene/reboot.txt
+>> @@ -0,0 +1,10 @@
+>> +Reboot property to control system reboot on storm platforms:
+>> +
+>> +The register attribute contain the address of the reset register.
+>
+> Required properties:
+>
+> - compatible: should contain "apm,xgene-reboot"
+>
+> - reg: the base address and size of the reset register.
+>
+>> +
+>> +Example:
+>> +
+>> +     reboot@0 {
+>> +             compatible = "apm,xgene-reboot";
+>> +             reg = <0x0 0x17000014 0x0 0x4>;
+>> +     };
+>
+> Given this seems to be a 64-bit address, the unit address should
+> preferably be 0,17000014 rather than just 0.
 
-Queued up for 3.14, thanks!
-
-> ---
->  drivers/acpi/scan.c | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index fd39459..a5f4a60 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -567,6 +567,20 @@ acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
->  }
->  static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
->  
-> +static ssize_t status_show(struct device *dev, struct device_attribute *attr,
-> +				char *buf) {
-> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
-> +	acpi_status status;
-> +	unsigned long long sta;
-> +
-> +	status = acpi_evaluate_integer(acpi_dev->handle, "_STA", NULL, &sta);
-> +	if (ACPI_FAILURE(status))
-> +		return -ENODEV;
-> +
-> +	return sprintf(buf, "%llu\n", sta);
-> +}
-> +static DEVICE_ATTR_RO(status);
-> +
->  static int acpi_device_setup_files(struct acpi_device *dev)
->  {
->  	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-> @@ -622,6 +636,12 @@ static int acpi_device_setup_files(struct acpi_device *dev)
->  		dev->pnp.sun = (unsigned long)-1;
->  	}
->  
-> +	if (acpi_has_method(dev->handle, "_STA")) {
-> +		result = device_create_file(&dev->dev, &dev_attr_status);
-> +		if (result)
-> +			goto end;
-> +	}
-> +
->          /*
->           * If device has _EJ0, 'eject' file is created that is used to trigger
->           * hot-removal function from userland.
-> @@ -677,6 +697,8 @@ static void acpi_device_remove_files(struct acpi_device *dev)
->  		device_remove_file(&dev->dev, &dev_attr_adr);
->  	device_remove_file(&dev->dev, &dev_attr_modalias);
->  	device_remove_file(&dev->dev, &dev_attr_hid);
-> +	if (acpi_has_method(dev->handle, "_STA"))
-> +		device_remove_file(&dev->dev, &dev_attr_status);
->  	if (dev->handle)
->  		device_remove_file(&dev->dev, &dev_attr_path);
->  }
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+FKAN: Mark, can I keep this as it is to be consistent with the reset
+of the file?
+>
+> Thanks,
+> Mark.
