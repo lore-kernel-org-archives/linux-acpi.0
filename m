@@ -1,65 +1,35 @@
-From: Feng Kan <fkan@apm.com>
-Subject: Re: [PATCH V2 1/6] Documentation: add dts binding for X-Gene reboot
- dts node.
-Date: Fri, 10 Jan 2014 17:11:53 -0800
-Message-ID: <CAL85gmCEk3c1qbo978qHssrz0toxbCT3LiTinX5ZZcwg-Q-FnA@mail.gmail.com>
-References: <1389135041-16062-1-git-send-email-fkan@apm.com>
-	<1389135041-16062-2-git-send-email-fkan@apm.com>
-	<20140108100549.GE6701@e106331-lin.cambridge.arm.com>
+From: Bradley Baetz <bbaetz@gmail.com>
+Subject: Multiple video backlight devices on Dell laptop
+Date: Sat, 11 Jan 2014 14:22:55 +1100
+Message-ID: <CAJrk0Bv5w25vipp8vTmoZEegb-7Va+FLvek=QnTvSfHDFjvroA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from exprod5og113.obsmtp.com ([64.18.0.26]:37020 "HELO
-	exprod5og113.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750983AbaAKBLy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 20:11:54 -0500
-Received: by mail-oa0-f53.google.com with SMTP id h16so5895157oag.12
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Jan 2014 17:11:54 -0800 (PST)
-In-Reply-To: <20140108100549.GE6701@e106331-lin.cambridge.arm.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:47706 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751343AbaAKDW5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jan 2014 22:22:57 -0500
+Received: by mail-we0-f174.google.com with SMTP id x55so1181106wes.5
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Jan 2014 19:22:56 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Wed, Jan 8, 2014 at 2:05 AM, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Tue, Jan 07, 2014 at 10:50:36PM +0000, Feng Kan wrote:
->> Add X-Gene reboot device tree node documentation.
->>
->> Signed-off-by: Feng Kan <fkan@apm.com>
->> ---
->>  .../devicetree/bindings/arm64/xgene/reboot.txt     |   10 ++++++++++
->>  1 files changed, 10 insertions(+), 0 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/arm64/xgene/reboot.txt
->>
->> diff --git a/Documentation/devicetree/bindings/arm64/xgene/reboot.txt b/Documentation/devicetree/bindings/arm64/xgene/reboot.txt
->> new file mode 100644
->> index 0000000..51d23c1
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/arm64/xgene/reboot.txt
->> @@ -0,0 +1,10 @@
->> +Reboot property to control system reboot on storm platforms:
->> +
->> +The register attribute contain the address of the reset register.
->
-> Required properties:
->
-> - compatible: should contain "apm,xgene-reboot"
->
-> - reg: the base address and size of the reset register.
->
->> +
->> +Example:
->> +
->> +     reboot@0 {
->> +             compatible = "apm,xgene-reboot";
->> +             reg = <0x0 0x17000014 0x0 0x4>;
->> +     };
->
-> Given this seems to be a 64-bit address, the unit address should
-> preferably be 0,17000014 rather than just 0.
+Hi,
 
-FKAN: Mark, can I keep this as it is to be consistent with the reset
-of the file?
->
-> Thanks,
-> Mark.
+I have a Dell Vostro 3560 laptop, with hybrid graphics (intel + radeon).
+
+This exposes 3 backlight devices - acpi_video0, acpi_video1, and
+intel_backlight. Only the intel_backlight/brightness file actually
+changes the backlight. Is this a kernel bug, or should userspace
+'know' which backlight file to use based on which graphics device is
+active? XFCE picks the first one it finds (acpi_video0), which doesn't
+work.
+
+I was using acpi_backlight=vendor, but some recent changes to memory
+allocation seem to have exposed that that SMM method is not safe to
+use with EFI... (see http://marc.info/?t=138811462300004&r=1&w=2)
+
+I've uploaded my ACPI tables to http://members.optusnet.com.au/bbaetz1/acpi.tgz
+
+Bradley
