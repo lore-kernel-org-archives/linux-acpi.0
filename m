@@ -1,46 +1,46 @@
-From: Matt Fleming <matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>
-Subject: Re: [RFT][PATCH] ACPI / init: Run acpi_early_init() before
- efi_enter_virtual_mode() (was: Re: [RFC PATCH 00/14] Support timezone of
- ACPI TAD and EFI TIME)
-Date: Sun, 12 Jan 2014 11:05:46 +0000
-Message-ID: <20140112110546.GB25180@console-pimps.org>
-References: <1387439053-8711-1-git-send-email-jlee@suse.com>
- <3476450.BMEcId2Lgj@vostro.rjw.lan>
- <20131221122148.GB29501@console-pimps.org>
- <2530951.HFPX8MI38t@vostro.rjw.lan>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH 2/2] x86, e820 disable ACPI Memory Hotplug if memory mapping
+ is specified by user [v2]
+Date: Sun, 12 Jan 2014 18:46:42 -0500
+Message-ID: <52D32962.5050908@redhat.com>
+References: <1389380698-19361-1-git-send-email-prarit@redhat.com> <1389380698-19361-4-git-send-email-prarit@redhat.com> <alpine.DEB.2.02.1401111624170.20677@be1.lrz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2530951.HFPX8MI38t-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, joeyli <jlee-IBi9RG/b67k@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>, Elliott-VXdhtT5mjnY@public.gmane.org, samer.el-haj-mahmoud-VXdhtT5mjnY@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, werner-IBi9RG/b67k@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <alpine.DEB.2.02.1401111624170.20677@be1.lrz>
+Sender: owner-linux-mm@kvack.org
+To: 7eggert@gmx.de
+Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, kosaki.motohiro@gmail.com, dyoung@redhat.com, linux-acpi@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 12 Jan, at 01:30:23AM, Rafael J. Wysocki wrote:
-> On Saturday, December 21, 2013 12:21:48 PM Matt Fleming wrote:
-> > On Fri, 20 Dec, at 11:18:56PM, Rafael J. Wysocki wrote:
-> > > 
-> > > I'm not sure 100%, but I *think* we need to do that with interrupts enabled.
-> > > At least after mm_init(), because it relies on things initialized there if I
-> > > remember correctly.
-> > > 
-> > > From what I can tell at the moment, it might be possible to move it before
-> > > efi_enter_virtual_mode() if that would help.
-> > 
-> > Actually yeah, that would be super useful, and I think we'd be able to
-> > get rid of the whole efi_late_init() stuff because we'd no longer need
-> > to hang on to the EFI_BOOT_SERVICES* regions after
-> > SetVirtualAddressMap().
-> 
-> OK
-> 
-> I don't see any adverse effects of the patch below on a couple of my test
-> boxes, but (a) they are Intel-based and (b) they are non-EFI, so it would be
-> good to give it a go on as many machines as reasonably possible.
 
-Thanks Rafael, I'll give this a spin on my test machines here.
 
--- 
-Matt Fleming, Intel Open Source Technology Center
+On 01/11/2014 11:35 AM, 7eggert@gmx.de wrote:
+> 
+> 
+> On Fri, 10 Jan 2014, Prarit Bhargava wrote:
+> 
+>> kdump uses memmap=exactmap and mem=X values to configure the memory
+>> mapping for the kdump kernel.  If memory is hotadded during the boot of
+>> the kdump kernel it is possible that the page tables for the new memory
+>> cause the kdump kernel to run out of memory.
+>>
+>> Since the user has specified a specific mapping ACPI Memory Hotplug should be
+>> disabled in this case.
+> 
+> I'll ask just in case: Is it possible to want memory hotplug in spite of 
+> using memmap=exactmap or mem=X?
+
+Good question -- I can't think of a case.  When a user specifies "memmap" or
+"mem" IMO they are asking for a very specific memory configuration.  Having
+extra memory added above what the user has specified seems to defeat the purpose
+of "memmap" and "mem".
+
+P.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
