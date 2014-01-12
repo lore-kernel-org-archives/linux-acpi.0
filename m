@@ -1,35 +1,77 @@
-From: 7eggert@gmx.de
-Subject: Re: [PATCH 2/2] x86, e820 disable ACPI Memory Hotplug if memory
- mapping is specified by user [v2]
-Date: Sat, 11 Jan 2014 16:35:00 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1401111624170.20677@be1.lrz>
-References: <1389380698-19361-1-git-send-email-prarit@redhat.com> <1389380698-19361-4-git-send-email-prarit@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [RFT][PATCH] ACPI / init: Run acpi_early_init() before efi_enter_virtual_mode() (was: Re: [RFC PATCH 00/14] Support timezone of ACPI TAD and EFI TIME)
+Date: Sun, 12 Jan 2014 01:30:23 +0100
+Message-ID: <2530951.HFPX8MI38t@vostro.rjw.lan>
+References: <1387439053-8711-1-git-send-email-jlee@suse.com> <3476450.BMEcId2Lgj@vostro.rjw.lan> <20131221122148.GB29501@console-pimps.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1389380698-19361-4-git-send-email-prarit@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Prarit Bhargava <prarit@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, kosaki.motohiro@gmail.com, dyoung@redhat.com, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:51749 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750843AbaALAQa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Jan 2014 19:16:30 -0500
+In-Reply-To: <20131221122148.GB29501@console-pimps.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matt Fleming <matt@console-pimps.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, joeyli <jlee@suse.com>, Alessandro Zummo <a.zummo@towertech.it>, Matthew Garrett <matthew.garrett@nebula.com>, Elliott@hp.com, samer.el-haj-mahmoud@hp.com, Oliver Neukum <oneukum@suse.de>, werner@suse.com, trenn@suse.de, JBeulich@suse.com, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, x86@kernel.org, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@suse.de>
 
-
-
-On Fri, 10 Jan 2014, Prarit Bhargava wrote:
-
-> kdump uses memmap=exactmap and mem=X values to configure the memory
-> mapping for the kdump kernel.  If memory is hotadded during the boot of
-> the kdump kernel it is possible that the page tables for the new memory
-> cause the kdump kernel to run out of memory.
+On Saturday, December 21, 2013 12:21:48 PM Matt Fleming wrote:
+> On Fri, 20 Dec, at 11:18:56PM, Rafael J. Wysocki wrote:
+> > 
+> > I'm not sure 100%, but I *think* we need to do that with interrupts enabled.
+> > At least after mm_init(), because it relies on things initialized there if I
+> > remember correctly.
+> > 
+> > From what I can tell at the moment, it might be possible to move it before
+> > efi_enter_virtual_mode() if that would help.
 > 
-> Since the user has specified a specific mapping ACPI Memory Hotplug should be
-> disabled in this case.
+> Actually yeah, that would be super useful, and I think we'd be able to
+> get rid of the whole efi_late_init() stuff because we'd no longer need
+> to hang on to the EFI_BOOT_SERVICES* regions after
+> SetVirtualAddressMap().
 
-I'll ask just in case: Is it possible to want memory hotplug in spite of 
-using memmap=exactmap or mem=X?
+OK
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+I don't see any adverse effects of the patch below on a couple of my test
+boxes, but (a) they are Intel-based and (b) they are non-EFI, so it would be
+good to give it a go on as many machines as reasonably possible.
+
+Thanks,
+Rafael
+
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / init: Run acpi_early_init() before efi_enter_virtual_mode()
+
+According to Matt Fleming, if acpi_early_init() was executed befpre
+efi_enter_virtual_mode(), the EFI initialization could benefit from
+it, so make that happen.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ init/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-pm/init/main.c
+===================================================================
+--- linux-pm.orig/init/main.c
++++ linux-pm/init/main.c
+@@ -615,6 +615,7 @@ asmlinkage void __init start_kernel(void
+ 	calibrate_delay();
+ 	pidmap_init();
+ 	anon_vma_init();
++	acpi_early_init();
+ #ifdef CONFIG_X86
+ 	if (efi_enabled(EFI_RUNTIME_SERVICES))
+ 		efi_enter_virtual_mode();
+@@ -641,7 +642,6 @@ asmlinkage void __init start_kernel(void
+ 
+ 	check_bugs();
+ 
+-	acpi_early_init(); /* before LAPIC and SMP init */
+ 	sfi_init_late();
+ 
+ 	if (efi_enabled(EFI_RUNTIME_SERVICES)) {
+
