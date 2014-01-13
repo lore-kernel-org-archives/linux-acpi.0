@@ -1,74 +1,97 @@
 From: Al Stone <al.stone@linaro.org>
-Subject: Re: [PATCH v6 4/6] ACPI: in HW reduced mode, using FADT PM information
- is not allowed.
-Date: Mon, 13 Jan 2014 15:46:58 -0700
-Message-ID: <52D46CE2.8020300@linaro.org>
-References: <1389394340-2680-1-git-send-email-al.stone@linaro.org> <1389394340-2680-5-git-send-email-al.stone@linaro.org> <4248842.kTIlfoGImy@vostro.rjw.lan>
+Subject: Re: [PATCH v6 5/6] ACPI: do not map/unmap memory regions for FADT
+ entries in reduced HW mode
+Date: Mon, 13 Jan 2014 16:07:19 -0700
+Message-ID: <52D471A7.9090907@linaro.org>
+References: <1389394340-2680-1-git-send-email-al.stone@linaro.org> <1389394340-2680-6-git-send-email-al.stone@linaro.org> <3512616.qUD2F1beoi@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:60136 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752165AbaAMWrA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jan 2014 17:47:00 -0500
-Received: by mail-pa0-f54.google.com with SMTP id fa1so1331270pad.27
-        for <linux-acpi@vger.kernel.org>; Mon, 13 Jan 2014 14:47:00 -0800 (PST)
-In-Reply-To: <4248842.kTIlfoGImy@vostro.rjw.lan>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:62006 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751693AbaAMXHV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jan 2014 18:07:21 -0500
+Received: by mail-pa0-f46.google.com with SMTP id rd3so2524023pab.33
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Jan 2014 15:07:21 -0800 (PST)
+In-Reply-To: <3512616.qUD2F1beoi@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org
 
-On 01/10/2014 04:31 PM, Rafael J. Wysocki wrote:
-> On Friday, January 10, 2014 03:52:18 PM al.stone@linaro.org wrote:
+On 01/10/2014 04:32 PM, Rafael J. Wysocki wrote:
+> On Friday, January 10, 2014 03:52:19 PM al.stone@linaro.org wrote:
 >> From: Al Stone <al.stone@linaro.org>
 >>
->> Per the ACPI 5.0 specification, section 5.2.9, none of the power
->> management fields in the FADT are to be used.  Short-circuit using
->> any of those fields in acpi_processor_get_power_info_fadt().
->
-> So the spec says that we're supposed to ignore the information in
-> certain FADT fields if the HW_REDUCED_ACPI flag is set.
->
-> However, what about systems in which that information is actually
-> valid even though HW_REDUCED_ACPI is set?
->
-> Does it break things if we attempt to use that information?
-
-The way I see it in the spec, we just don't use that info _if_ we wish
-to remain compliant with the spec.  If we insist on using it anyway, we
-can't say we're implementing hardware reduced mode correctly.  That
-being said, from my read of the code it appears things would operate
-the same as they did before if this part of the spec was ignored _and_
-the info in the tables was still valid (same control register addresses
-and content and so on).
-
+>> Several of the FADT fields are normally kept in specific memory
+>> regions.  Since these fields are to be ignored in hardware reduced
+>> ACPI mode, do not map those addresses when in that mode, and of
+>> course do not release the mappings that have not been made.
 >>
+>> The function acpi_os_initialize() could become a stub in the header
+>> file but is left here in case it can be of further use.
+>
+> Why exactly is this change necessary?
+
+Two reasons: (1) why do work we do not have to do?  and (2) it
+seemed to make sense to me to have the code reflect the spec
+accurately.
+
+> Will things work incorrectly on HW-reduced ACPI systems if we don't make it?
+
+If the ACPI tables have all of these fields properly set to zero
+in hardware reduced, this change does not need to be made.  If a
+vendor provides broken ACPI tables where these values are valid,
+but still sets hardware reduced in the FADT, these fields could
+then be used as before -- but allowing them to be used would mean
+we can no longer claim we are implementing hardware reduced correctly.
+So things would work, but the system would by definition be in some
+sort of undefined hybrid ACPI mode.
+
 >> Signed-off-by: Al Stone <al.stone@linaro.org>
 >> ---
->>   drivers/acpi/processor_idle.c | 8 ++++++++
->>   1 file changed, 8 insertions(+)
+>>   drivers/acpi/osl.c | 20 ++++++++++++--------
+>>   1 file changed, 12 insertions(+), 8 deletions(-)
 >>
->> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
->> index eac984a..89f0a0f 100644
->> --- a/drivers/acpi/processor_idle.c
->> +++ b/drivers/acpi/processor_idle.c
->> @@ -270,6 +270,14 @@ static int acpi_processor_get_power_info_fadt(struct acpi_processor *pr)
->>   	if (!pr->pblk)
->>   		return -ENODEV;
+>> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+>> index c946a3a..7822821 100644
+>> --- a/drivers/acpi/osl.c
+>> +++ b/drivers/acpi/osl.c
+>> @@ -1778,10 +1778,12 @@ __setup("acpi_no_auto_ssdt", acpi_no_auto_ssdt_setup);
 >>
->> +	/*
->> +	 * Using power management information from the FADT is not
->> +	 * allowed when in HW reduced mode.  See ACPI 5.0, section
->> +	 * 5.2.9.
->> +	 */
->> +	if (acpi_gbl_reduced_hardware)
->> +		return -ENODEV;
->> +
->>   	/* if info is obtained from pblk/fadt, type equals state */
->>   	pr->power.states[ACPI_STATE_C2].type = ACPI_STATE_C2;
->>   	pr->power.states[ACPI_STATE_C3].type = ACPI_STATE_C3;
+>>   acpi_status __init acpi_os_initialize(void)
+>>   {
+>> -	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
+>> -	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
+>> -	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
+>> -	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
+>> +	if (!acpi_gbl_reduced_hardware) {
+>> +		acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
+>> +		acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
+>> +		acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
+>> +		acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
+>> +	}
+>>
+>>   	return AE_OK;
+>>   }
+>> @@ -1806,10 +1808,12 @@ acpi_status acpi_os_terminate(void)
+>>   						 acpi_irq_handler);
+>>   	}
+>>
+>> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
+>> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
+>> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
+>> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
+>> +	if (!acpi_gbl_reduced_hardware) {
+>> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
+>> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
+>> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
+>> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
+>> +	}
+>>
+>>   	destroy_workqueue(kacpid_wq);
+>>   	destroy_workqueue(kacpi_notify_wq);
 >>
 >
 
