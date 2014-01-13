@@ -1,70 +1,100 @@
-From: Feng Kan <fkan@apm.com>
-Subject: Re: [PATCH V2 1/6] Documentation: add dts binding for X-Gene reboot
- dts node.
-Date: Mon, 13 Jan 2014 11:25:39 -0800
-Message-ID: <CAL85gmCTsxng3jCaAcCjePE6Pxu7Jg98TDUqQrDFzsfW2GQwEg@mail.gmail.com>
-References: <1389135041-16062-1-git-send-email-fkan@apm.com>
-	<6073715.cGydpIHKD1@wuerfel>
-	<CAL85gmA5Ob+kp-+5seO-wcB8tx4jyiOeFMyCsZWFBLdX09nZDg@mail.gmail.com>
-	<201401131619.35030.arnd@arndb.de>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] PCI/ACPI: Use PCIe segment in the ACPI HEST AER error sources
+Date: Mon, 13 Jan 2014 12:29:23 -0700
+Message-ID: <CAErSpo6VeD=TbrtCkXPkUwMT8Edz7bdBQHAimvW1v8bMrmdR9g@mail.gmail.com>
+References: <1386256104-20624-1-git-send-email-betty.dall@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201401131619.35030.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:33593 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752047AbaAMT3q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jan 2014 14:29:46 -0500
+Received: by mail-ie0-f169.google.com with SMTP id at1so887840iec.0
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Jan 2014 11:29:43 -0800 (PST)
+In-Reply-To: <1386256104-20624-1-git-send-email-betty.dall@hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Betty Dall <betty.dall@hp.com>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Moore, Robert" <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-> That is not what I was asking about.
+On Thu, Dec 5, 2013 at 8:08 AM, Betty Dall <betty.dall@hp.com> wrote:
+> In the discussion for this set of patches: https://lkml.org/lkml/2013/6/6/517,
+> Bjorn Helgaas pointed out that the ACPI HEST AER error sources do not have the
+> PCIe segment number associated with the bus. I worked with the ACPI spec and
+> got this change to definition of the "Bus" field into the recently released
+> ACPI Spec 5.0a section 18.3.2.3-5:
 >
-> The problem with your binding is that it doesn't seem to describe
-> the hardware structure at all, but rather try to invent devices
-> because of how it's convenient for how you write the Linux drivers.
+> "Identifies the PCI Bus and Segment of the device. The Bus is
+> encoded in bits 0-7. For systems that expose multiple PCI
+> segment groups, the segment number is encoded in bits 8-23
+> and bits 24-31 must be zero. For systems that do not expose
+> multiple PCI segment groups, bits 8-31 must be zero. If the
+> GLOBAL flag is specified, this field is ignored."
 >
-> This is never a good idea and it will become a problem once you
-> try to port a different operating system, or when the structure
-> of the Linux drivers changes. Remember that in Linux we can freely
-> reorganize our code as requirements change, but the bindings have
-> to remain stable to allow running new kernels with an older device
-> tree that may be shipped with the firmware.
+> This patch makes use of the new definition in the only place in the kernel
+> that uses the acpi_hest_aer_common's bus field.
 >
-> (Side note: if you end up doing an ACPI driver for this after all,
-> the problem is even worse because it's basically impossible to update
-> the ACPI tables in field, while with DT you can at least override
-> them in the firmware if something goes really wrong.)
->
-> On most SoCs I've seen, the system reset registers are part of
-> some on-chip device, most likely one of
-> - A SoC-specific system control register set containing various
->   global registers that may be of interest to other parts of the
->   kernel.
-FKAN: our system block in your reference would be the system clock unit (SCU).
-It handles number of things (JTAG, clock control, power control not
-touched by OS).
-The register that is relevant to the system reset is this lone
-register. I reduce the
-range of the dts aperture due to this fact.
+> Signed-off-by: Betty Dall <betty.dall@hp.com>
 
+I cherry picked 36f3615152c1 ("ACPICA: Add helper macros to extract
+bus/segment numbers from HEST table.") and applied the aerdrv_acpi.c
+change to pci/aer for v3.14, thanks!
 
-> - A watchdog timer device that will reset the system after a crash,
->   or when explicit requested by the OS
-> - A dedicated reset controller that has registers for individually
->   resetting a number of subsystems of the SoC, or all at once in
->   case of system reboot.
-> - an interface to an external or integrated power management IC
->   that controls voltages and/or clock frequencies provided to
->   the SoC and other parts of the system.
+Bjorn
+
+> ---
 >
-> In each of those cases, we already have a subsystem that is supposed
-> to handle the entire register set and provide a system reset method
-> as one of the things it does. Given that your register is at offset
-> 0x14 from the start of a larger MMIO range, I strongly suspect
-> that the same is true here.
-FKAN: I could remove this dts node and create another dts node that
-describe the range of registers on the SCU and use that node in this driver.
-I am not sure which subsystem I can use to handle this case, I do see a reset
-subsystem in the kernel but more used for ip resets. Please kindly let
-me know. Thanks for the great feedback.
+>  drivers/pci/pcie/aer/aerdrv_acpi.c |    8 ++++----
+>  include/acpi/actbl1.h              |   11 ++++++++++-
+>  2 files changed, 14 insertions(+), 5 deletions(-)
 >
->         Arnd
+>
+> diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
+> index cf611ab..93f852b 100644
+> --- a/drivers/pci/pcie/aer/aerdrv_acpi.c
+> +++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
+> @@ -23,10 +23,10 @@
+>  static inline int hest_match_pci(struct acpi_hest_aer_common *p,
+>                                  struct pci_dev *pci)
+>  {
+> -       return  (0           == pci_domain_nr(pci->bus) &&
+> -                p->bus      == pci->bus->number &&
+> -                p->device   == PCI_SLOT(pci->devfn) &&
+> -                p->function == PCI_FUNC(pci->devfn));
+> +       return   ACPI_HEST_SEGMENT(p->bus) == pci_domain_nr(pci->bus) &&
+> +                ACPI_HEST_BUS(p->bus)     == pci->bus->number &&
+> +                p->device                 == PCI_SLOT(pci->devfn) &&
+> +                p->function               == PCI_FUNC(pci->devfn);
+>  }
+>
+>  static inline bool hest_match_type(struct acpi_hest_header *hest_hdr,
+> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+> index 556c83ee..0c7428b 100644
+> --- a/include/acpi/actbl1.h
+> +++ b/include/acpi/actbl1.h
+> @@ -457,7 +457,7 @@ struct acpi_hest_aer_common {
+>         u8 enabled;
+>         u32 records_to_preallocate;
+>         u32 max_sections_per_record;
+> -       u32 bus;
+> +       u32 bus;                /* bus: bits 0-7; segment: bits 8-23 */
+>         u16 device;
+>         u16 function;
+>         u16 device_control;
+> @@ -473,6 +473,15 @@ struct acpi_hest_aer_common {
+>  #define ACPI_HEST_FIRMWARE_FIRST        (1)
+>  #define ACPI_HEST_GLOBAL                (1<<1)
+>
+> +/*
+> + * The segment/bus of the PCIe device is encoded in the bus field
+> + * of the acpi_hest_aer_common structure as follows:
+> + *      23:8 = segment
+> + *      7:0 = bus
+> + */
+> +#define ACPI_HEST_SEGMENT(bus)         (((bus) >> 8) & 0xFFFF)
+> +#define ACPI_HEST_BUS(bus)             ((bus) & 0xFF)
+> +
+>  /* Hardware Error Notification */
+>
+>  struct acpi_hest_notify {
