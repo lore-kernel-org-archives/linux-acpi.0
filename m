@@ -1,107 +1,73 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: Re: [PATCH v6 5/6] ACPI: do not map/unmap memory regions for FADT
- entries in reduced HW mode
-Date: Mon, 13 Jan 2014 16:07:19 -0700
-Message-ID: <52D471A7.9090907@linaro.org>
-References: <1389394340-2680-1-git-send-email-al.stone@linaro.org> <1389394340-2680-6-git-send-email-al.stone@linaro.org> <3512616.qUD2F1beoi@vostro.rjw.lan>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH 2/2] x86, e820 disable ACPI Memory Hotplug if memory mapping
+ is specified by user [v2]
+Date: Mon, 13 Jan 2014 18:39:42 -0500
+Message-ID: <52D4793E.8070102@redhat.com>
+References: <1389380698-19361-1-git-send-email-prarit@redhat.com> <1389380698-19361-4-git-send-email-prarit@redhat.com> <alpine.DEB.2.02.1401111624170.20677@be1.lrz> <52D32962.5050908@redhat.com> <CAHGf_=qWB81f8fdDdjaXXh1JoSDUsJmcEHwH+CEJ2E-5XWz6qA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:62006 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693AbaAMXHV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jan 2014 18:07:21 -0500
-Received: by mail-pa0-f46.google.com with SMTP id rd3so2524023pab.33
-        for <linux-acpi@vger.kernel.org>; Mon, 13 Jan 2014 15:07:21 -0800 (PST)
-In-Reply-To: <3512616.qUD2F1beoi@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CAHGf_=qWB81f8fdDdjaXXh1JoSDUsJmcEHwH+CEJ2E-5XWz6qA@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Bodo Eggert <7eggert@gmx.de>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, dyoung@redhat.com, linux-acpi@vger.kernel.org, "linux-mm@kvack.org" <linux-mm@kvack.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org
-
-On 01/10/2014 04:32 PM, Rafael J. Wysocki wrote:
-> On Friday, January 10, 2014 03:52:19 PM al.stone@linaro.org wrote:
->> From: Al Stone <al.stone@linaro.org>
->>
->> Several of the FADT fields are normally kept in specific memory
->> regions.  Since these fields are to be ignored in hardware reduced
->> ACPI mode, do not map those addresses when in that mode, and of
->> course do not release the mappings that have not been made.
->>
->> The function acpi_os_initialize() could become a stub in the header
->> file but is left here in case it can be of further use.
->
-> Why exactly is this change necessary?
-
-Two reasons: (1) why do work we do not have to do?  and (2) it
-seemed to make sense to me to have the code reflect the spec
-accurately.
-
-> Will things work incorrectly on HW-reduced ACPI systems if we don't make it?
-
-If the ACPI tables have all of these fields properly set to zero
-in hardware reduced, this change does not need to be made.  If a
-vendor provides broken ACPI tables where these values are valid,
-but still sets hardware reduced in the FADT, these fields could
-then be used as before -- but allowing them to be used would mean
-we can no longer claim we are implementing hardware reduced correctly.
-So things would work, but the system would by definition be in some
-sort of undefined hybrid ACPI mode.
-
->> Signed-off-by: Al Stone <al.stone@linaro.org>
->> ---
->>   drivers/acpi/osl.c | 20 ++++++++++++--------
->>   1 file changed, 12 insertions(+), 8 deletions(-)
->>
->> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
->> index c946a3a..7822821 100644
->> --- a/drivers/acpi/osl.c
->> +++ b/drivers/acpi/osl.c
->> @@ -1778,10 +1778,12 @@ __setup("acpi_no_auto_ssdt", acpi_no_auto_ssdt_setup);
->>
->>   acpi_status __init acpi_os_initialize(void)
->>   {
->> -	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
->> -	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
->> -	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
->> -	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
->> +	if (!acpi_gbl_reduced_hardware) {
->> +		acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
->> +		acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
->> +		acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
->> +		acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
->> +	}
->>
->>   	return AE_OK;
->>   }
->> @@ -1806,10 +1808,12 @@ acpi_status acpi_os_terminate(void)
->>   						 acpi_irq_handler);
->>   	}
->>
->> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
->> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
->> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
->> -	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
->> +	if (!acpi_gbl_reduced_hardware) {
->> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe1_block);
->> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
->> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
->> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
->> +	}
->>
->>   	destroy_workqueue(kacpid_wq);
->>   	destroy_workqueue(kacpi_notify_wq);
->>
->
 
 
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Linaro Enterprise Group
-al.stone@linaro.org
------------------------------------
+
+On 01/13/2014 03:31 PM, KOSAKI Motohiro wrote:
+> On Sun, Jan 12, 2014 at 6:46 PM, Prarit Bhargava <prarit@redhat.com> wrote:
+>>
+>>
+>> On 01/11/2014 11:35 AM, 7eggert@gmx.de wrote:
+>>>
+>>>
+>>> On Fri, 10 Jan 2014, Prarit Bhargava wrote:
+>>>
+>>>> kdump uses memmap=exactmap and mem=X values to configure the memory
+>>>> mapping for the kdump kernel.  If memory is hotadded during the boot of
+>>>> the kdump kernel it is possible that the page tables for the new memory
+>>>> cause the kdump kernel to run out of memory.
+>>>>
+>>>> Since the user has specified a specific mapping ACPI Memory Hotplug should be
+>>>> disabled in this case.
+>>>
+>>> I'll ask just in case: Is it possible to want memory hotplug in spite of
+>>> using memmap=exactmap or mem=X?
+>>
+>> Good question -- I can't think of a case.  When a user specifies "memmap" or
+>> "mem" IMO they are asking for a very specific memory configuration.  Having
+>> extra memory added above what the user has specified seems to defeat the purpose
+>> of "memmap" and "mem".
+> 
+> May be yes, may be no.
+> 
+> They are often used for a wrokaround to avoid broken firmware issue.
+> If we have no way
+> to explicitly enable hotplug. We will lose a workaround.
+> 
+> Perhaps, there is no matter. Today, memory hotplug is only used on
+> high-end machine
+> and their firmware is carefully developped and don't have a serious
+> issue almostly. Though.
+
+Oof -- sorry Kosaki :(  I didn't see this until just now (and your subsequent
+ACK on the updated patch).
+
+I just remembered that we did have a processor vendor's whitebox that would not
+boot unless we specified a specific memmap and we did specify memmap=exactmap to
+boot the system correctly and the system had hotplug memory.
+
+So it means that I should not key off of "memmap=exactmap".
+
+I will self-NAK the updated patch and submit a new one.
+
+P.
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
