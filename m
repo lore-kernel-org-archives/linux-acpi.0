@@ -1,46 +1,77 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [PATCH 2/2] x86, e820 disable ACPI Memory Hotplug if memory mapping
- is specified by user [v2]
-Date: Sun, 12 Jan 2014 18:46:42 -0500
-Message-ID: <52D32962.5050908@redhat.com>
-References: <1389380698-19361-1-git-send-email-prarit@redhat.com> <1389380698-19361-4-git-send-email-prarit@redhat.com> <alpine.DEB.2.02.1401111624170.20677@be1.lrz>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] acer-wmi: add video_vendor quirk for Acer Aspire E1-572
+Date: Mon, 13 Jan 2014 10:49:40 +0800
+Message-ID: <52D35444.4060301@intel.com>
+References: <1386248428-5767-1-git-send-email-linux@rempel-privat.de>	 <1388116274.3539.6046.camel@linux-s257.site>	 <1388118336.3539.6055.camel@linux-s257.site>	 <52C42821.3020801@rempel-privat.de>	 <1388666346.3539.6065.camel@linux-s257.site>	 <52CAD7B3.6060508@rempel-privat.de>	 <1389251197.24105.20.camel@linux-s257.site>	 <52CE59CD.7070805@rempel-privat.de> <1389258310.24105.82.camel@linux-s257.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <alpine.DEB.2.02.1401111624170.20677@be1.lrz>
-Sender: owner-linux-mm@kvack.org
-To: 7eggert@gmx.de
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, kosaki.motohiro@gmail.com, dyoung@redhat.com, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1389258310.24105.82.camel@linux-s257.site>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: joeyli <jlee@suse.com>, Oleksij Rempel <linux@rempel-privat.de>
+Cc: matthew.garrett@nebula.com, platform-driver-x86@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-On 01/11/2014 11:35 AM, 7eggert@gmx.de wrote:
-> 
-> 
-> On Fri, 10 Jan 2014, Prarit Bhargava wrote:
-> 
->> kdump uses memmap=exactmap and mem=X values to configure the memory
->> mapping for the kdump kernel.  If memory is hotadded during the boot of
->> the kdump kernel it is possible that the page tables for the new memory
->> cause the kdump kernel to run out of memory.
+On 01/09/2014 05:05 PM, joeyli wrote:
+> =E6=96=BC =E5=9B=9B=EF=BC=8C2014-01-09 =E6=96=BC 09:11 +0100=EF=BC=8C=
+Oleksij Rempel =E6=8F=90=E5=88=B0=EF=BC=9A
+>> Am 09.01.2014 08:06, schrieb joeyli:
+>>> =E6=96=BC =E4=B8=80=EF=BC=8C2014-01-06 =E6=96=BC 17:20 +0100=EF=BC=8C=
+Oleksij Rempel =E6=8F=90=E5=88=B0=EF=BC=9A
+>>>>> I think Aaron's patches can fix it on E1-572. Let's wait until v3=
+=2E13
+>>>>> version released then look at maybe someone report issue again.
+>>>>>
+>>>>> Very appreciate for your patch.
+>>>>>
+>>>>> Joey Lee
+>>>>>
+>>>>
+>>>> Hi Joey,
+>>>>
+>>>> i have access to this hardware for next two weeks. Theoretically t=
+his
+>>>> kernel should have patches you was talking about:
+>>>> http://kernel.ubuntu.com/~kernel-ppa/mainline/daily/2014-01-06-tru=
+sty/
+>>>>
+>>>> it works with video.use_native_backlight=3D1.
+>>>>
+>>>> If you need more testing, you have two weeks ;)
+>>>>
+>>>> --=20
+>>>> Regards,
+>>>> Oleksij
+>>>>
+>>>
+>>> Thanks for your testing, then I think just use
+>>> video.use_native_backlight to fix issue on Aspire E1-572. Don't nee=
+d add
+>>> quirk to acer-wmi driver.
 >>
->> Since the user has specified a specific mapping ACPI Memory Hotplug should be
->> disabled in this case.
-> 
-> I'll ask just in case: Is it possible to want memory hotplug in spite of 
-> using memmap=exactmap or mem=X?
+>> You mean editing grub and adding kernel option?
+>=20
+> Good point!
+>=20
+> Looks we need add Aspire E1-572 to the video_dmi_table in
+> drivers/acpi/video.c, like:
+> http://lists.freedesktop.org/archives/dri-devel/2013-November/049427.=
+html
+>=20
+> But this patch doesn't in mainline.=20
+>=20
+> Do you want send a patch to Aaron Lu for add Aspire E1-572 to list? o=
+r
+> maybe we can ping Aaron to direct add it.
 
-Good question -- I can't think of a case.  When a user specifies "memmap" or
-"mem" IMO they are asking for a very specific memory configuration.  Having
-extra memory added above what the user has specified seems to defeat the purpose
-of "memmap" and "mem".
+Since it is shipped with Win8, I think the following patch should take
+care of it:
+[PATCH] ACPI / video: Use native backlight control interface by default
+http://www.spinics.net/lists/linux-acpi/msg47755.html
 
-P.
+Last time Daniel seems to agree to merge it for test purpose, but I
+didn't see it get merged somewhere yet.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Thanks,
+Aaron
