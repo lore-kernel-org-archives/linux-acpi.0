@@ -1,52 +1,70 @@
-From: Chris Ball <chris@printf.net>
-Subject: Re: [PATCH v4 2/4] mmc: sdhci-acpi: convert to use GPIO descriptor API
-Date: Mon, 13 Jan 2014 18:32:56 +0000
-Message-ID: <86ppnvbulj.fsf@void.printf.net>
-References: <1389177657-29266-1-git-send-email-mika.westerberg@linux.intel.com>
-	<1389177657-29266-3-git-send-email-mika.westerberg@linux.intel.com>
-	<CACRpkdYhynQ4ooHcZyc-nrgVK9gbvtsYR6ZVv1u0sfBVEaK93A@mail.gmail.com>
+From: Feng Kan <fkan@apm.com>
+Subject: Re: [PATCH V2 1/6] Documentation: add dts binding for X-Gene reboot
+ dts node.
+Date: Mon, 13 Jan 2014 11:25:39 -0800
+Message-ID: <CAL85gmCTsxng3jCaAcCjePE6Pxu7Jg98TDUqQrDFzsfW2GQwEg@mail.gmail.com>
+References: <1389135041-16062-1-git-send-email-fkan@apm.com>
+	<6073715.cGydpIHKD1@wuerfel>
+	<CAL85gmA5Ob+kp-+5seO-wcB8tx4jyiOeFMyCsZWFBLdX09nZDg@mail.gmail.com>
+	<201401131619.35030.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from void.printf.net ([89.145.121.20]:55201 "EHLO void.printf.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751623AbaAMSdN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Jan 2014 13:33:13 -0500
-In-Reply-To: <CACRpkdYhynQ4ooHcZyc-nrgVK9gbvtsYR6ZVv1u0sfBVEaK93A@mail.gmail.com>
-	(Linus Walleij's message of "Wed, 8 Jan 2014 12:54:13 +0100")
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201401131619.35030.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Johannes Berg <johannes@sipsolutions.net>, Rhyland Klein <rklein@nvidia.com>, Adrian Hunter <adrian.hunter@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Rob Landley <rob@landley.net>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi Linus,
-
-On Wed, Jan 08 2014, Linus Walleij wrote:
-> On Wed, Jan 8, 2014 at 11:40 AM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
+> That is not what I was asking about.
 >
->> The new descriptor based GPIO interface is now the recommended and safer
->> way of using GPIOs from device drivers. Convert the ACPI SDHCI driver to
->> use that interface.
->>
->> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> Acked-by: Adrian Hunter <adrian.hunter@intel.com>
->> Acked-by: Alexandre Courbot <acourbot@nvidia.com>
+> The problem with your binding is that it doesn't seem to describe
+> the hardware structure at all, but rather try to invent devices
+> because of how it's convenient for how you write the Linux drivers.
 >
-> I've tentatively applied this to the GPIO tree now, as it was acked by
-> Adrian who is a long time MMC subsystem contributor and we need
-> it to proceed with the rest of the refactorings.
+> This is never a good idea and it will become a problem once you
+> try to port a different operating system, or when the structure
+> of the Linux drivers changes. Remember that in Linux we can freely
+> reorganize our code as requirements change, but the bindings have
+> to remain stable to allow running new kernels with an older device
+> tree that may be shipped with the firmware.
 >
-> Chris, beat me up if you're unhappy with this.
+> (Side note: if you end up doing an ACPI driver for this after all,
+> the problem is even worse because it's basically impossible to update
+> the ACPI tables in field, while with DT you can at least override
+> them in the firmware if something goes really wrong.)
 >
-> (If it explodes in linux-next I'll just back it all out.)
+> On most SoCs I've seen, the system reset registers are part of
+> some on-chip device, most likely one of
+> - A SoC-specific system control register set containing various
+>   global registers that may be of interest to other parts of the
+>   kernel.
+FKAN: our system block in your reference would be the system clock unit (SCU).
+It handles number of things (JTAG, clock control, power control not
+touched by OS).
+The register that is relevant to the system reset is this lone
+register. I reduce the
+range of the dts aperture due to this fact.
 
-That's fine.  Feel free to add:
 
-Acked-by: Chris Ball <chris@printf.net>
-
-Thanks,
-
-- Chris.
--- 
-Chris Ball   <chris@printf.net>   <http://printf.net/>
+> - A watchdog timer device that will reset the system after a crash,
+>   or when explicit requested by the OS
+> - A dedicated reset controller that has registers for individually
+>   resetting a number of subsystems of the SoC, or all at once in
+>   case of system reboot.
+> - an interface to an external or integrated power management IC
+>   that controls voltages and/or clock frequencies provided to
+>   the SoC and other parts of the system.
+>
+> In each of those cases, we already have a subsystem that is supposed
+> to handle the entire register set and provide a system reset method
+> as one of the things it does. Given that your register is at offset
+> 0x14 from the start of a larger MMIO range, I strongly suspect
+> that the same is true here.
+FKAN: I could remove this dts node and create another dts node that
+describe the range of registers on the SCU and use that node in this driver.
+I am not sure which subsystem I can use to handle this case, I do see a reset
+subsystem in the kernel but more used for ip resets. Please kindly let
+me know. Thanks for the great feedback.
+>
+>         Arnd
