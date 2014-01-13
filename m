@@ -1,42 +1,57 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V2 1/6] Documentation: add dts binding for X-Gene reboot dts node.
-Date: Mon, 13 Jan 2014 20:43:51 +0100
-Message-ID: <201401132043.52491.arnd@arndb.de>
-References: <1389135041-16062-1-git-send-email-fkan@apm.com> <201401131619.35030.arnd@arndb.de> <CAL85gmCTsxng3jCaAcCjePE6Pxu7Jg98TDUqQrDFzsfW2GQwEg@mail.gmail.com>
+From: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Subject: Re: [PATCH 2/2] x86, e820 disable ACPI Memory Hotplug if memory
+ mapping is specified by user [v2]
+Date: Mon, 13 Jan 2014 15:31:04 -0500
+Message-ID: <CAHGf_=qWB81f8fdDdjaXXh1JoSDUsJmcEHwH+CEJ2E-5XWz6qA@mail.gmail.com>
+References: <1389380698-19361-1-git-send-email-prarit@redhat.com>
+ <1389380698-19361-4-git-send-email-prarit@redhat.com> <alpine.DEB.2.02.1401111624170.20677@be1.lrz>
+ <52D32962.5050908@redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:57649 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751997AbaAMTn6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jan 2014 14:43:58 -0500
-In-Reply-To: <CAL85gmCTsxng3jCaAcCjePE6Pxu7Jg98TDUqQrDFzsfW2GQwEg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <52D32962.5050908@redhat.com>
+Sender: owner-linux-mm@kvack.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: Bodo Eggert <7eggert@gmx.de>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, dyoung@redhat.com, linux-acpi@vger.kernel.org, "linux-mm@kvack.org" <linux-mm@kvack.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Feng Kan <fkan@apm.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Monday 13 January 2014, Feng Kan wrote:
-> FKAN: I could remove this dts node and create another dts node that
-> describe the range of registers on the SCU and use that node in this driver.
-> I am not sure which subsystem I can use to handle this case, I do see a reset
-> subsystem in the kernel but more used for ip resets. Please kindly let
-> me know. Thanks for the great feedback.
+On Sun, Jan 12, 2014 at 6:46 PM, Prarit Bhargava <prarit@redhat.com> wrote:
+>
+>
+> On 01/11/2014 11:35 AM, 7eggert@gmx.de wrote:
+>>
+>>
+>> On Fri, 10 Jan 2014, Prarit Bhargava wrote:
+>>
+>>> kdump uses memmap=exactmap and mem=X values to configure the memory
+>>> mapping for the kdump kernel.  If memory is hotadded during the boot of
+>>> the kdump kernel it is possible that the page tables for the new memory
+>>> cause the kdump kernel to run out of memory.
+>>>
+>>> Since the user has specified a specific mapping ACPI Memory Hotplug should be
+>>> disabled in this case.
+>>
+>> I'll ask just in case: Is it possible to want memory hotplug in spite of
+>> using memmap=exactmap or mem=X?
+>
+> Good question -- I can't think of a case.  When a user specifies "memmap" or
+> "mem" IMO they are asking for a very specific memory configuration.  Having
+> extra memory added above what the user has specified seems to defeat the purpose
+> of "memmap" and "mem".
 
-Is this related to the standard ARM SCU that manages multiprocessor
-systems, or a different unit that uses the same name?
+May be yes, may be no.
 
-Since this is a global register range with a variety of things in it,
-the best candidate IMHO would be to use the "syscon" driver. You can
-mark the device node as 'compatible="apm,xgene-scu","syscon"' to let
-it get picked up by the drivers/mfd/syscon driver, which creates
-a "regmap" structure for it.
+They are often used for a wrokaround to avoid broken firmware issue.
+If we have no way
+to explicitly enable hotplug. We will lose a workaround.
 
-The reset driver then uses a DT reference with a phandle to the
-SCU node and calls syscon_regmap_lookup_by_phandle() to get the
-regmap. It can get the register number inside the regmap from DT
-as well and use the regmap API to perform the reset.
+Perhaps, there is no matter. Today, memory hotplug is only used on
+high-end machine
+and their firmware is carefully developped and don't have a serious
+issue almostly. Though.
 
-	Arnd
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
