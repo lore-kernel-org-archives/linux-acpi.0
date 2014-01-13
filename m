@@ -1,143 +1,219 @@
-From: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Subject: Re: [PATCH] x86, acpi memory hotplug, add parameter to disable memory hotplug
-Date: Mon, 13 Jan 2014 17:17:02 -0500
-Message-ID: <CAHGf_=pX303E6VAhL+gApSQ1OsEQHqTuCN8ZSdD3E54YAcFQKA@mail.gmail.com>
-References: <1389650161-13292-1-git-send-email-prarit@redhat.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH v6 3/6] ACPI: HW reduced mode does not allow use of the
+ FADT sci_interrupt field
+Date: Mon, 13 Jan 2014 15:28:53 -0700
+Message-ID: <52D468A5.90609@redhat.com>
+References: <1389394340-2680-1-git-send-email-al.stone@linaro.org> <1389394340-2680-4-git-send-email-al.stone@linaro.org> <13769273.zu9PcWNH5N@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1389650161-13292-1-git-send-email-prarit@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Prarit Bhargava <prarit@redhat.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, Dave Young <dyoung@redhat.com>, linux-acpi@vger.kernel.org, "linux-mm@kvack.org" <linux-mm@kvack.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:42123 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751762AbaAMW3W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Jan 2014 17:29:22 -0500
+In-Reply-To: <13769273.zu9PcWNH5N@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, al.stone@linaro.org
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org
 
-On Mon, Jan 13, 2014 at 4:56 PM, Prarit Bhargava <prarit@redhat.com> wrote:
-> When booting a kexec/kdump kernel on a system that has specific memory hotplug
-> regions the boot will fail with warnings like:
+On 01/10/2014 04:20 PM, Rafael J. Wysocki wrote:
+> On Friday, January 10, 2014 03:52:17 PM al.stone@linaro.org wrote:
+>> From: Al Stone <al.stone@linaro.org>
+>>
+>> In HW reduced mode, the use of the SCI interrupt is not allowed.  In
+>> all those places that use the FADT sci_interrupt field, make sure we
+>> do not execute that path when in HW reduced mode.
+>>
+>> In the case of acpi_os_install_interrupt_handler() in osl.c, this allows
+>> us to open up the routine to installing interrupt handlers other than
+>> acpi_gbl_FADT.sci_interrupt regardless of whether we are in ACPI legacy
+>> mode or reduced HW mode; acpi_os_remove_interrupt_handler() changes to
+>> maintain symmetry.
+>>
+>> Signed-off-by: Al Stone <al.stone@linaro.org>
+>> ---
+>>   drivers/acpi/bus.c      | 30 ++++++++++++++++--------------
+>>   drivers/acpi/osl.c      | 18 +++++++-----------
+>>   drivers/acpi/pci_link.c |  2 ++
+>>   3 files changed, 25 insertions(+), 25 deletions(-)
+>>
+>> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+>> index 0710004..d871859 100644
+>> --- a/drivers/acpi/bus.c
+>> +++ b/drivers/acpi/bus.c
+>> @@ -552,21 +552,23 @@ void __init acpi_early_init(void)
+>>   	}
+>>
+>>   #ifdef CONFIG_X86
+>> -	if (!acpi_ioapic) {
+>> -		/* compatible (0) means level (3) */
+>> -		if (!(acpi_sci_flags & ACPI_MADT_TRIGGER_MASK)) {
+>> -			acpi_sci_flags &= ~ACPI_MADT_TRIGGER_MASK;
+>> -			acpi_sci_flags |= ACPI_MADT_TRIGGER_LEVEL;
 >
-> [    2.939467] swapper/0: page allocation failure: order:9, mode:0x84d0
-> [    2.946564] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
-> 3.10.0-65.el7.x86_64 #1
-> [    2.954532] Hardware name: QCI QSSC-S4R/QSSC-S4R, BIOS
-> QSSC-S4R.QCI.01.00.S013.032920111005 03/29/2011
-> [    2.964926]  0000000000000000 ffff8800341bd8c8 ffffffff815bcc67
-> ffff8800341bd950
-> [    2.973224]  ffffffff8113b1a0 ffff880036339b00 0000000000000009
-> 00000000000084d0
-> [    2.981523]  ffff8800341bd950 ffffffff815b87ee 0000000000000000
-> 0000000000000200
-> [    2.989821] Call Trace:
-> [    2.992560]  [<ffffffff815bcc67>] dump_stack+0x19/0x1b
-> [    2.998300]  [<ffffffff8113b1a0>] warn_alloc_failed+0xf0/0x160
-> [    3.004817]  [<ffffffff815b87ee>] ?
-> __alloc_pages_direct_compact+0xac/0x196
-> [    3.012594]  [<ffffffff8113f14f>] __alloc_pages_nodemask+0x7ff/0xa00
-> [    3.019692]  [<ffffffff815b417c>] vmemmap_alloc_block+0x62/0xba
-> [    3.026303]  [<ffffffff815b41e9>] vmemmap_alloc_block_buf+0x15/0x3b
-> [    3.033302]  [<ffffffff815b1ff6>] vmemmap_populate+0xb4/0x21b
-> [    3.039718]  [<ffffffff815b461d>] sparse_mem_map_populate+0x27/0x35
-> [    3.046717]  [<ffffffff815b400f>] sparse_add_one_section+0x7a/0x185
-> [    3.053720]  [<ffffffff815a1e9f>] __add_pages+0xaf/0x240
-> [    3.059656]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
-> [    3.065877]  [<ffffffff815a21d9>] add_memory+0xb9/0x1b0
-> [    3.071713]  [<ffffffff81333b9c>] acpi_memory_device_add+0x18d/0x26d
-> [    3.078813]  [<ffffffff81309a01>] acpi_bus_device_attach+0x7d/0xcd
-> [    3.085719]  [<ffffffff8132379d>] acpi_ns_walk_namespace+0xc8/0x17f
-> [    3.092716]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-> [    3.100004]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-> [    3.107293]  [<ffffffff81323c8c>] acpi_walk_namespace+0x95/0xc5
-> [    3.113904]  [<ffffffff8130a6d6>] acpi_bus_scan+0x8b/0x9d
-> [    3.119933]  [<ffffffff81a2019a>] acpi_scan_init+0x63/0x160
-> [    3.126153]  [<ffffffff81a1ffb5>] acpi_init+0x25d/0x2a6
-> [    3.131987]  [<ffffffff81a1fd58>] ? acpi_sleep_proc_init+0x2a/0x2a
-> [    3.138889]  [<ffffffff810020e2>] do_one_initcall+0xe2/0x190
-> [    3.145210]  [<ffffffff819e20c4>] kernel_init_freeable+0x17c/0x207
-> [    3.152111]  [<ffffffff819e18d0>] ? do_early_param+0x88/0x88
-> [    3.158430]  [<ffffffff8159fea0>] ? rest_init+0x80/0x80
-> [    3.164264]  [<ffffffff8159feae>] kernel_init+0xe/0x180
-> [    3.170097]  [<ffffffff815cca2c>] ret_from_fork+0x7c/0xb0
-> [    3.176123]  [<ffffffff8159fea0>] ? rest_init+0x80/0x80
-> [    3.181956] Mem-Info:
-> [    3.184490] Node 0 DMA per-cpu:
-> [    3.188007] CPU    0: hi:    0, btch:   1 usd:   0
-> [    3.193353] Node 0 DMA32 per-cpu:
-> [    3.197060] CPU    0: hi:   42, btch:   7 usd:   0
-> [    3.202410] active_anon:0 inactive_anon:0 isolated_anon:0
-> [    3.202410]  active_file:0 inactive_file:0 isolated_file:0
-> [    3.202410]  unevictable:0 dirty:0 writeback:0 unstable:0
-> [    3.202410]  free:872 slab_reclaimable:13 slab_unreclaimable:1880
-> [    3.202410]  mapped:0 shmem:0 pagetables:0 bounce:0
-> [    3.202410]  free_cma:0
->
-> because the system has run out of memory at boot time.  This occurs
-> because of the following sequence in the boot:
->
-> Main kernel boots and sets E820 map.  The second kernel is booted with a
-> map generated by the kdump service using memmap= and memmap=exactmap.
-> These parameters are added to the kernel parameters of the kexec/kdump
-> kernel.   The kexec/kdump kernel has limited memory resources so as not
-> to severely impact the main kernel.
->
-> The system then panics and the kdump/kexec kernel boots (which is a
-> completely new kernel boot).  During this boot ACPI is initialized and the
-> kernel (as can be seen above) traverses the ACPI namespace and finds an
-> entry for a memory device to be hotadded.
->
-> ie)
->
-> [    3.053720]  [<ffffffff815a1e9f>] __add_pages+0xaf/0x240
-> [    3.059656]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
-> [    3.065877]  [<ffffffff815a21d9>] add_memory+0xb9/0x1b0
-> [    3.071713]  [<ffffffff81333b9c>] acpi_memory_device_add+0x18d/0x26d
-> [    3.078813]  [<ffffffff81309a01>] acpi_bus_device_attach+0x7d/0xcd
-> [    3.085719]  [<ffffffff8132379d>] acpi_ns_walk_namespace+0xc8/0x17f
-> [    3.092716]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-> [    3.100004]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-> [    3.107293]  [<ffffffff81323c8c>] acpi_walk_namespace+0x95/0xc5
-> [    3.113904]  [<ffffffff8130a6d6>] acpi_bus_scan+0x8b/0x9d
-> [    3.119933]  [<ffffffff81a2019a>] acpi_scan_init+0x63/0x160
-> [    3.126153]  [<ffffffff81a1ffb5>] acpi_init+0x25d/0x2a6
->
-> At this point the kernel adds page table information and the the kexec/kdump
-> kernel runs out of memory.
->
-> This can also be reproduced with a "regular" kernel by using the
-> memmap=exactmap and mem=X parameters on the main kernel and booting.
->
-> This patchset resolves the problem by adding a kernel parameter,
-> acpi_no_memhotplug, to disable ACPI memory hotplug.  ACPI memory hotplug
-> should also be disabled by default when a user specified a memory mapping with
-> "memmap=exactmap" or "mem=X".
->
-> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: "H. Peter Anvin" <hpa@zytor.com>
-> Cc: x86@kernel.org
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Linn Crosetto <linn@hp.com>
-> Cc: Pekka Enberg <penberg@kernel.org>
-> Cc: Yinghai Lu <yinghai@kernel.org>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Toshi Kani <toshi.kani@hp.com>
-> Cc: Tang Chen <tangchen@cn.fujitsu.com>
-> Cc: Wen Congyang <wency@cn.fujitsu.com>
-> Cc: Vivek Goyal <vgoyal@redhat.com>
-> Cc: kosaki.motohiro@gmail.com
-> Cc: dyoung@redhat.com
-> Cc: Toshi Kani <toshi.kani@hp.com>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: linux-mm@kvack.org
+> I wonder why exactly you want to make this change.  It surely doesn't matter
+> for ARM and do you have any HW-reduced x86 hardware to test it?
 
-I think we need a knob manually enable mem-hotplug when specify memmap. But
-it is another story.
+The point of this exercise was not to make hardware reduced work for
+just ARM; the point was to ensure hardware reduced is working correctly
+for any architecture using ACPI.
 
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+No, I do not have hardware reduced x86 hardware to test with.  Nor can
+I predict if or when Intel will make such a thing.  If you would rather
+wait until they do, so be it.  My intent was to avoid problems before
+they occur, rather than waiting until they actually break.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+I chose to make this change because (a) it seemed silly to me to
+execute code you don't have to, (b) since the kernel code does end
+up acting as documentation for how ACPI is implemented and how it
+is compliant with the spec, it made sense to me to ensure all usage
+was compliant with the spec, and (c) if the machine has an IOAPIC
+and acpi_sci=n (n is non-zero) is supplied on the command line, the
+FADT SCI interrupt will end being initialized and used which is not
+allowed in hardware reduced mode.
+
+>> +	if (!acpi_gbl_reduced_hardware) {
+>> +		if (!acpi_ioapic) {
+>> +			/* compatible (0) means level (3) */
+>> +			if (!(acpi_sci_flags & ACPI_MADT_TRIGGER_MASK)) {
+>> +				acpi_sci_flags &= ~ACPI_MADT_TRIGGER_MASK;
+>> +				acpi_sci_flags |= ACPI_MADT_TRIGGER_LEVEL;
+>> +			}
+>> +			/* Set PIC-mode SCI trigger type */
+>> +			acpi_pic_sci_set_trigger(acpi_gbl_FADT.sci_interrupt,
+>> +				(acpi_sci_flags & ACPI_MADT_TRIGGER_MASK) >> 2);
+>> +		} else {
+>> +			/*
+>> +			 * now that acpi_gbl_FADT is initialized,
+>> +			 * update it with result from INT_SRC_OVR parsing
+>> +			 */
+>> +			acpi_gbl_FADT.sci_interrupt = acpi_sci_override_gsi;
+>>   		}
+>> -		/* Set PIC-mode SCI trigger type */
+>> -		acpi_pic_sci_set_trigger(acpi_gbl_FADT.sci_interrupt,
+>> -					 (acpi_sci_flags & ACPI_MADT_TRIGGER_MASK) >> 2);
+>> -	} else {
+>> -		/*
+>> -		 * now that acpi_gbl_FADT is initialized,
+>> -		 * update it with result from INT_SRC_OVR parsing
+>> -		 */
+>> -		acpi_gbl_FADT.sci_interrupt = acpi_sci_override_gsi;
+>>   	}
+>>   #endif
+>>
+>> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+>> index 44c07eb..c946a3a 100644
+>> --- a/drivers/acpi/osl.c
+>> +++ b/drivers/acpi/osl.c
+>> @@ -84,6 +84,7 @@ static int (*__acpi_os_prepare_extended_sleep)(u8 sleep_state, u32 val_a,
+>>
+>>   static acpi_osd_handler acpi_irq_handler;
+>>   static void *acpi_irq_context;
+>> +static u32 acpi_irq_number;
+>>   static struct workqueue_struct *kacpid_wq;
+>>   static struct workqueue_struct *kacpi_notify_wq;
+>>   static struct workqueue_struct *kacpi_hotplug_wq;
+>> @@ -178,6 +179,10 @@ static void __init acpi_request_region (struct acpi_generic_address *gas,
+>>
+>>   static int __init acpi_reserve_resources(void)
+>>   {
+>> +	/* Handle hardware reduced mode: i.e., do nothing. */
+>> +	if (acpi_gbl_reduced_hardware)
+>> +		return 0;
+>
+> Does it actually break things if we do that?
+
+Not that I can see anywhere.  All of the code I have looked at appears
+to behave correctly if the ignored fields in the FADT are set to zero
+-- in this case, not using or checking bits in the xpm1a_event_blocks
+if the FADT field is zero.
+
+>> +
+>>   	acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block, acpi_gbl_FADT.pm1_event_length,
+>>   		"ACPI PM1a_EVT_BLK");
+>>
+>> @@ -795,13 +800,6 @@ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler,
+>>
+>>   	acpi_irq_stats_init();
+>>
+>> -	/*
+>> -	 * ACPI interrupts different from the SCI in our copy of the FADT are
+>> -	 * not supported.
+>> -	 */
+>> -	if (gsi != acpi_gbl_FADT.sci_interrupt)
+>> -		return AE_BAD_PARAMETER;
+>> -
+>>   	if (acpi_irq_handler)
+>>   		return AE_ALREADY_ACQUIRED;
+>>
+>> @@ -818,15 +816,13 @@ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler,
+>>   		acpi_irq_handler = NULL;
+>>   		return AE_NOT_ACQUIRED;
+>>   	}
+>> +	acpi_irq_number = irq;
+>>
+>>   	return AE_OK;
+>>   }
+>>
+>>   acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
+>>   {
+>> -	if (irq != acpi_gbl_FADT.sci_interrupt)
+>> -		return AE_BAD_PARAMETER;
+>> -
+>>   	free_irq(irq, acpi_irq);
+>>   	acpi_irq_handler = NULL;
+>>
+>> @@ -1806,7 +1802,7 @@ acpi_status __init acpi_os_initialize1(void)
+>>   acpi_status acpi_os_terminate(void)
+>>   {
+>>   	if (acpi_irq_handler) {
+>> -		acpi_os_remove_interrupt_handler(acpi_gbl_FADT.sci_interrupt,
+>> +		acpi_os_remove_interrupt_handler(acpi_irq_number,
+>>   						 acpi_irq_handler);
+>>   	}
+>>
+>> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+>> index 2652a61..d5c155e 100644
+>> --- a/drivers/acpi/pci_link.c
+>> +++ b/drivers/acpi/pci_link.c
+>> @@ -505,6 +505,8 @@ int __init acpi_irq_penalty_init(void)
+>>   		}
+>>   	}
+>>   	/* Add a penalty for the SCI */
+>> +	if (acpi_gbl_reduced_hardware)
+>> +		return 0;
+>>   	acpi_irq_penalty[acpi_gbl_FADT.sci_interrupt] += PIRQ_PENALTY_PCI_USING;
+>>   	return 0;
+>>   }
+>
+> Is ARM really going to use the code in pci_link.c?  If so, then how exactly?
+
+I have no idea; I wasn't thinking strictly ARM in the first place.
+Just the same, why execute code if it is irrelevant?  Further, if
+hardware reduced ACPI tables have the SCI interrupt field set to
+zero as they should, IRQ 0 gets a hefty penalty assessed; or, if the
+hardware reduced tables were made by taking a shortcut and just toggling
+the hardware reduced flag while leaving the SCI interrupt field alone,
+some other IRQ gets a penalty assessed, neither of which seemed to me
+to be correct either.
+
+> Rafael
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
