@@ -1,68 +1,81 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V2 5/6] power: reset: change xgene reboot driver to use both acpi and dts resource for reboot.
-Date: Mon, 13 Jan 2014 16:03:30 +0100
-Message-ID: <201401131603.31205.arnd@arndb.de>
-References: <1389135041-16062-1-git-send-email-fkan@apm.com> <201401082243.01694.arnd@arndb.de> <CAL85gmB4erJ8C=YYysXuLaY9Tkr79Z=7pAgrv0JuSU+bkxwaxg@mail.gmail.com>
+Subject: Re: [PATCH V2 1/6] Documentation: add dts binding for X-Gene reboot dts node.
+Date: Mon, 13 Jan 2014 16:19:34 +0100
+Message-ID: <201401131619.35030.arnd@arndb.de>
+References: <1389135041-16062-1-git-send-email-fkan@apm.com> <6073715.cGydpIHKD1@wuerfel> <CAL85gmA5Ob+kp-+5seO-wcB8tx4jyiOeFMyCsZWFBLdX09nZDg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:52331 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.171]:58000 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751546AbaAMPDj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jan 2014 10:03:39 -0500
-In-Reply-To: <CAL85gmB4erJ8C=YYysXuLaY9Tkr79Z=7pAgrv0JuSU+bkxwaxg@mail.gmail.com>
+	with ESMTP id S1751308AbaAMPUI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jan 2014 10:20:08 -0500
+In-Reply-To: <CAL85gmA5Ob+kp-+5seO-wcB8tx4jyiOeFMyCsZWFBLdX09nZDg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Feng Kan <fkan@apm.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
 On Thursday 09 January 2014, Feng Kan wrote:
-> On Wed, Jan 8, 2014 at 1:43 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Tuesday 07 January 2014, Feng Kan wrote:
-> >> Enable the X-Gene reboot driver to use either the ACPI or the DTS
-> >> resource using the platform driver method.
+> On Wed, Jan 8, 2014 at 2:08 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Wednesday 08 January 2014 10:05:50 Mark Rutland wrote:
+> >> > +
+> >> > +Example:
+> >> > +
+> >> > +     reboot@0 {
+> >> > +             compatible = "apm,xgene-reboot";
+> >> > +             reg = <0x0 0x17000014 0x0 0x4>;
+> >> > +     };
 > >>
-> >> Signed-off-by: Feng Kan <fkan@apm.com>
-> >> ---
-> >>  drivers/power/reset/xgene-reboot.c |   33 ++++++++++++++++++++++++++++-----
-> >>  1 files changed, 28 insertions(+), 5 deletions(-)
-> >>
+> >> Given this seems to be a 64-bit address, the unit address should
+> >> preferably be 0,17000014 rather than just 0.
 > >
-> > Shouldn't an ACPI based system always be able to reboot through the
-> > UEFI reset_system call? I really don't think we want to support
-> > ACPI on non-UEFI systems.
-> >
-> >         Arnd
-> Thanks Arnd, I will retract the ACPI support for now. We are still
-> trying to figure out how best to support ACPI.
+> > I also wonder about the size and location of the register.
+> > Are you sure the device is just a single 4-byte register at offset
+> > 0x14, rather than a complex device that happens to contain the
+> > reset register?
+> 
+> FKAN: this is a single 4 byte register when clicked perform the system
+> reset of the platform.
 
-Ok, that makes sense.
+That is not what I was asking about.
 
-> The larger problem seems to be the fact that
-> UEFI and ACPI were originally made for x86 and is ill suited for the
-> arm64. I will see if I can find a better path for this patch.
+The problem with your binding is that it doesn't seem to describe
+the hardware structure at all, but rather try to invent devices
+because of how it's convenient for how you write the Linux drivers.
 
-I would strongly recommend to implement the standard UEFI reset
-mechanism on arm64-linux and then ensure your firmware provides
-the appropriate methods.
+This is never a good idea and it will become a problem once you
+try to port a different operating system, or when the structure
+of the Linux drivers changes. Remember that in Linux we can freely
+reorganize our code as requirements change, but the bindings have
+to remain stable to allow running new kernels with an older device
+tree that may be shipped with the firmware.
 
-Note that any proper arm64 system that you want a standard Linux
-distro to run on will likely need to implement UEFI anyway.
+(Side note: if you end up doing an ACPI driver for this after all,
+the problem is even worse because it's basically impossible to update
+the ACPI tables in field, while with DT you can at least override
+them in the firmware if something goes really wrong.)
 
-Regarding ACPI, I'm well aware of the problems you are facing, but
-they have less to do with the intruction set (x86 vs arm64) and much
-more with the lack of a standard hardware platform. There is work
-underway to support a standardized subset of arm64 servers with ACPI,
-but X-Gene is rather unlikely to fit into that subset because of how
-it's just a collection of homegrown hardware blocks that are attached
-in seemingly random ways without a clear structure and certainly
-not following any standard.
+On most SoCs I've seen, the system reset registers are part of
+some on-chip device, most likely one of
+- A SoC-specific system control register set containing various
+  global registers that may be of interest to other parts of the
+  kernel.
+- A watchdog timer device that will reset the system after a crash,
+  or when explicit requested by the OS
+- A dedicated reset controller that has registers for individually
+  resetting a number of subsystems of the SoC, or all at once in
+  case of system reboot.
+- an interface to an external or integrated power management IC
+  that controls voltages and/or clock frequencies provided to
+  the SoC and other parts of the system.
 
-This is not unusual for ARM SoCs, and we can have learned to
-deal with it, but as we have no intention of supporting multiple
-incompatible ACPI implementations in Linux, you should not spend
-too much time thinking about ACPI on your platform.
+In each of those cases, we already have a subsystem that is supposed
+to handle the entire register set and provide a system reset method
+as one of the things it does. Given that your register is at offset
+0x14 from the start of a larger MMIO range, I strongly suspect
+that the same is true here.
 
 	Arnd
