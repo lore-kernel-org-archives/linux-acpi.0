@@ -1,37 +1,40 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE_ONLY to enforce this ACPI mode
-Date: Tue, 14 Jan 2014 22:26:21 +0100
-Message-ID: <15081767.3kxW799CSQ@wuerfel>
-References: <1389731822-21336-1-git-send-email-al.stone@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V2] ACPI/Battery: Add a _BIX quirk for NEC LZ750/LS
+Date: Tue, 14 Jan 2014 23:17:16 +0100
+Message-ID: <4100200.O09E65sAKi@vostro.rjw.lan>
+References: <1389019837-13619-1-git-send-email-tianyu.lan@intel.com> <5255063.SeYbBZqxVQ@vostro.rjw.lan> <20140114212406.GA25438@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:54030 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752256AbaANV0s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jan 2014 16:26:48 -0500
-In-Reply-To: <1389731822-21336-1-git-send-email-al.stone@linaro.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:54515 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751713AbaANWDS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jan 2014 17:03:18 -0500
+In-Reply-To: <20140114212406.GA25438@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linaro-kernel@lists.linaro.org
-Cc: al.stone@linaro.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>, patches@linaro.org, linaro-acpi@lists.linaro.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, fcr@adinet.com.uy, l@dorileo.org
 
-On Tuesday 14 January 2014 13:37:02 al.stone@linaro.org wrote:
-> +config ACPI_REDUCED_HARDWARE_ONLY
-> +       bool "Hardware-reduced ACPI support only"
-> +       def_bool n
-> +       depends on ACPI && EXPERT
+On Tuesday, January 14, 2014 09:24:06 PM Matthew Garrett wrote:
+> On Tue, Jan 14, 2014 at 10:37:02PM +0100, Rafael J. Wysocki wrote:
+> > On Tuesday, January 14, 2014 04:06:01 PM Matthew Garrett wrote:
+> > > On Mon, Jan 06, 2014 at 11:25:53PM +0100, Rafael J. Wysocki wrote:
+> > > 
+> > > > Queued up as a fix for 3.13 (I fixed up the indentation).
+> > > 
+> > > Ah, sorry, I missed this chunk of the thread. If the system provides 
+> > > valid _BIF data then we should possibly just fall back to that rather 
+> > > than adding another quirk table.
+> > 
+> > The problem is to know that _BIX is broken.  If we could figure that out
+> > upfront, we woulnd't need the quirk table in any case.
+> 
+> It's obvious that it is in this case - the package is the wrong size.
 
-I think this will cause a Kconfig warning if you try to select this
-on ARM64 without turning on EXPERT as well. 
+Then Tianyu should be able to come up with a better fix relatively easily. :-)
 
-It should be ok if you express it as
-
-config ACPI_REDUCED_HARDWARE_ONLY
-       bool "Hardware-reduced ACPI support only" if EXPERT
-       def_bool n
-       depends on ACPI
-
-
-	Arnd
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
