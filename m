@@ -1,39 +1,100 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH 2/2] x86, e820 disable ACPI Memory Hotplug if memory mapping
- is specified by user [v2]
-Date: Mon, 13 Jan 2014 16:53:49 -0800
-Message-ID: <52D48A9D.7000003@zytor.com>
-References: <1389380698-19361-1-git-send-email-prarit@redhat.com>	 <1389380698-19361-4-git-send-email-prarit@redhat.com>	 <alpine.DEB.2.02.1401111624170.20677@be1.lrz> <52D32962.5050908@redhat.com>	 <CAHGf_=qWB81f8fdDdjaXXh1JoSDUsJmcEHwH+CEJ2E-5XWz6qA@mail.gmail.com>	 <52D4793E.8070102@redhat.com> <1389659632.1792.247.camel@misato.fc.hp.com>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [PATCH v6 5/6] ACPI: do not map/unmap memory regions for FADT
+ entries in reduced HW mode
+Date: Mon, 13 Jan 2014 17:59:25 -0700
+Message-ID: <52D48BED.4060505@linaro.org>
+References: <1389394340-2680-1-git-send-email-al.stone@linaro.org> <3512616.qUD2F1beoi@vostro.rjw.lan> <52D471A7.9090907@linaro.org> <11986900.5FYeBqExXg@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1389659632.1792.247.camel@misato.fc.hp.com>
-Sender: owner-linux-mm@kvack.org
-To: Toshi Kani <toshi.kani@hp.com>, Prarit Bhargava <prarit@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>, Bodo Eggert <7eggert@gmx.de>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, the arch/x86 maintainers <x86@kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, dyoung@redhat.com, linux-acpi@vger.kernel.org, "linux-mm@kvack.org" <linux-mm@kvack.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:60330 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753375AbaANA71 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jan 2014 19:59:27 -0500
+Received: by mail-pd0-f170.google.com with SMTP id z10so2787951pdj.29
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Jan 2014 16:59:26 -0800 (PST)
+In-Reply-To: <11986900.5FYeBqExXg@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org
 
-On 01/13/2014 04:33 PM, Toshi Kani wrote:
-> 
-> I do not think it makes sense.  You needed memmap=exactmap as a
-> workaround because the kernel did not boot with the firmware's memory
-> info.  So, it's broken, and you requested the kernel to ignore the
-> firmware info.
-> 
-> Why do you think memory hotplug needs to be supported under such
-> condition, which has to use the broken firmware info?
-> 
+On 01/13/2014 05:02 PM, Rafael J. Wysocki wrote:
+> On Monday, January 13, 2014 04:07:19 PM Al Stone wrote:
+>> On 01/10/2014 04:32 PM, Rafael J. Wysocki wrote:
+>>> On Friday, January 10, 2014 03:52:19 PM al.stone@linaro.org wrote:
+>>>> From: Al Stone <al.stone@linaro.org>
+>>>>
+>>>> Several of the FADT fields are normally kept in specific memory
+>>>> regions.  Since these fields are to be ignored in hardware reduced
+>>>> ACPI mode, do not map those addresses when in that mode, and of
+>>>> course do not release the mappings that have not been made.
+>>>>
+>>>> The function acpi_os_initialize() could become a stub in the header
+>>>> file but is left here in case it can be of further use.
+>>>
+>>> Why exactly is this change necessary?
+>>
+>> Two reasons: (1) why do work we do not have to do?  and (2) it
+>> seemed to make sense to me to have the code reflect the spec
+>> accurately.
+>>
+>>> Will things work incorrectly on HW-reduced ACPI systems if we don't make it?
+>>
+>> If the ACPI tables have all of these fields properly set to zero
+>> in hardware reduced, this change does not need to be made.  If a
+>> vendor provides broken ACPI tables where these values are valid,
+>> but still sets hardware reduced in the FADT, these fields could
+>> then be used as before -- but allowing them to be used would mean
+>> we can no longer claim we are implementing hardware reduced correctly.
+>> So things would work, but the system would by definition be in some
+>> sort of undefined hybrid ACPI mode.
+>
+> So this is how it goes.  I'm being told that there are systems in existence
+> where the HW-reduced bit is set for Windows RT compatibility, but otherwise
+> the ACPI HW is fully functional on them.  Apparently, people are able to
+> install and run Linux on those systems today.
+>
+> Question is, are they still going to be able to run Linux on them after the
+> changes in this set?
 
-Even more than memory hotplug: what do we do with NUMA?  Since we have
-already told the kernel "the firmware is bogus" it would seem that any
-NUMA optimizations would be a bit ... cantankerous at best, no?
+Hrm.  This would have been incredibly useful to know earlier.  I
+might have taken a completely different approach.  Or perhaps not
+even have bothered.
 
-	-hpa
+I'm not naive enough to think all vendors will fully or rigorously
+comply with standards.  Down that path madness lies.  But at face
+value, it sounds like they didn't even try.
 
+Without access to the ACPI tables and the hardware itself, there is
+no way to know if Linux will run; I have yet to see any such system.
+The phrase "...the ACPI HW is fully functional..." could mean way too
+many things -- it could mean anything from strict compliance with
+hardware reduced mode to completely compliant with legacy mode but all
+we did was toggle the hardware reduced flag so we could use GPIOs 
+instead of an SCI.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+As far as I can tell, that makes the question undecidable.  I can't
+prove a negative -- I can't prove these patches won't break an unknown
+set of systems that have implemented an unknown hybrid of legacy and
+hardware reduced modes.
+
+If someone can tell me that these mongrel ACPI systems continue
+to run correctly when they run a Linux built with the
+ACPI_REDUCED_HARDWARE flag set in the ACPICA code, I might at least
+have a clue as to where the boundaries of compliance are.
+
+Or, if such hardware is commercially available, where does one get it?
+
+Otherwise, the only safe patch is 1/6, the Kconfig changes.
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
