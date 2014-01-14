@@ -1,59 +1,49 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH] x86, acpi memory hotplug, add parameter to disable memory
- hotplug
-Date: Tue, 14 Jan 2014 11:43:53 +0900
-Message-ID: <52D4A469.9090100@jp.fujitsu.com>
-References: <1389650161-13292-1-git-send-email-prarit@redhat.com>  <CAHGf_=pX303E6VAhL+gApSQ1OsEQHqTuCN8ZSdD3E54YAcFQKA@mail.gmail.com>  <52D47999.5080905@redhat.com> <52D48EC4.5070400@jp.fujitsu.com> <1389663689.1792.268.camel@misato.fc.hp.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: Multiple video backlight devices on Dell laptop
+Date: Tue, 14 Jan 2014 10:49:40 +0800
+Message-ID: <52D4A5C4.5000405@intel.com>
+References: <CAJrk0Bv5w25vipp8vTmoZEegb-7Va+FLvek=QnTvSfHDFjvroA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:52247 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751362AbaANCou (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jan 2014 21:44:50 -0500
-In-Reply-To: <1389663689.1792.268.camel@misato.fc.hp.com>
+Received: from mga11.intel.com ([192.55.52.93]:40229 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751362AbaANCtX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Jan 2014 21:49:23 -0500
+In-Reply-To: <CAJrk0Bv5w25vipp8vTmoZEegb-7Va+FLvek=QnTvSfHDFjvroA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>, Prarit Bhargava <prarit@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, Dave Young <dyoung@redhat.com>, linux-acpi@vger.kernel.org, "linux-mm@kvack.org" <linux-mm@kvack.org>
+To: Bradley Baetz <bbaetz@gmail.com>, linux-acpi@vger.kernel.org
 
-(2014/01/14 10:41), Toshi Kani wrote:
-> On Tue, 2014-01-14 at 10:11 +0900, Yasuaki Ishimatsu wrote:
->   :
->>>> I think we need a knob manually enable mem-hotplug when specify memmap. But
->>>> it is another story.
->>>>
->>>> Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->>>
->>> As mentioned, self-NAK.  I have seen a system that I needed to specify
->>> memmap=exactmap & had hotplug memory.  I will only keep the acpi_no_memhotplug
->>> option in the next version of the patch.
->>
->>
->> Your following first patch is simply and makes sense.
->>
->> http://marc.info/?l=linux-acpi&m=138922019607796&w=2
->>
->
-> In this option, it also requires changing kexec-tools to specify the new
-> option for kdump.  It won't be simpler.
+On 01/11/2014 11:22 AM, Bradley Baetz wrote:
+> Hi,
+> 
+> I have a Dell Vostro 3560 laptop, with hybrid graphics (intel + radeon).
+> 
+> This exposes 3 backlight devices - acpi_video0, acpi_video1, and
+> intel_backlight. Only the intel_backlight/brightness file actually
+> changes the backlight. Is this a kernel bug, or should userspace
+> 'know' which backlight file to use based on which graphics device is
+> active? XFCE picks the first one it finds (acpi_video0), which doesn't
+> work.
 
-Hmm.
-I use memm= boot option and hotplug memory for memory hot-remove.
-At least, the patch cannot be accepted.
+Solving it from userspace:
+You can specify which backlight interface to use by editing /etc/xorg.conf:
+ Section "Device"
+    Identifier  "Intel Graphics"
+    Driver      "intel"
+    Option      "AccelMethod"     "sna"
+    Option      "Backlight"       "intel_backlight" # use your backlight that works here
+    Driver      "intel"
+    BusID       "PCI:0:2:0"
+ EndSection
 
-Thanks,
-Yasuaki Ishimatsu
+See https://wiki.archlinux.org/index.php/Backlight
 
->
-> Thanks,
-> -Toshi
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+solving it from kernel space:
+Since the firmware claims support of win8, you can forget the
+acpi_backlight=vendor cmdline option and just use video.use_native_backlight=1.
 
-
+Hope it helps.
+-Aaron
