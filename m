@@ -1,118 +1,70 @@
-From: al.stone@linaro.org
-Subject: [PATCH] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE_ONLY to enforce this ACPI mode
-Date: Tue, 14 Jan 2014 13:37:02 -0700
-Message-ID: <1389731822-21336-1-git-send-email-al.stone@linaro.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFT][PATCH] ACPI / init: Run acpi_early_init() before
+ efi_enter_virtual_mode()
+Date: Tue, 14 Jan 2014 13:32:27 -0700
+Message-ID: <1389731547.1792.296.camel@misato.fc.hp.com>
+References: <1387439053-8711-1-git-send-email-jlee@suse.com>
+		 <3476450.BMEcId2Lgj@vostro.rjw.lan>
+		 <20131221122148.GB29501@console-pimps.org>
+		 <2530951.HFPX8MI38t@vostro.rjw.lan>
+	 <1389672548.24105.252.camel@linux-s257.site> <52D57B54.7080509@zytor.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:56427 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751599AbaANUhM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jan 2014 15:37:12 -0500
-Received: by mail-ie0-f175.google.com with SMTP id tp5so1036146ieb.6
-        for <linux-acpi@vger.kernel.org>; Tue, 14 Jan 2014 12:37:12 -0800 (PST)
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:13797 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751472AbaANUia (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jan 2014 15:38:30 -0500
+In-Reply-To: <52D57B54.7080509@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: joeyli <jlee@suse.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Matt Fleming <matt@console-pimps.org>, Alessandro Zummo <a.zummo@towertech.it>, Matthew Garrett <matthew.garrett@nebula.com>, Elliott@hp.com, samer.el-haj-mahmoud@hp.com, Oliver Neukum <oneukum@suse.de>, werner@suse.com, trenn@suse.de, JBeulich@suse.com, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, x86@kernel.org, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@suse.de>
 
-From: Al Stone <al.stone@linaro.org>
+On Tue, 2014-01-14 at 10:00 -0800, H. Peter Anvin wrote:
+> On 01/13/2014 08:09 PM, joeyli wrote:
+> > 
+> > This patch works to me on Acer Gateway Z5WT2 UEFI notebook and Intel
+> > UEFI development board.
+> > 
+> > Does it possible move acpi_early_init() to before timekeeping_init()?
+> > The position is also before efi_enter_virtual_mode() and that will be
+> > useful for parsing ACPI TAD to set system clock:
+> > 
+> > diff --git a/init/main.c b/init/main.c
+> > index febc511..b6d93c8 100644
+> > --- a/init/main.c
+> > +++ b/init/main.c
+> > @@ -565,6 +565,7 @@ asmlinkage void __init start_kernel(void)
+> >         init_timers();
+> >         hrtimers_init();
+> >         softirq_init();
+> > +       acpi_early_init();
+> >         timekeeping_init();
+> >         time_init();
+> >         sched_clock_postinit();
+> > @@ -641,7 +642,6 @@ asmlinkage void __init start_kernel(void)
+> >  
+> >         check_bugs();
+> >  
+> > -       acpi_early_init(); /* before LAPIC and SMP init */
+> >         sfi_init_late();
+> >  
+> >         if (efi_enabled(EFI_RUNTIME_SERVICES)) {
+> > 
+> 
+> Hi Toshi,
+> 
+> Could you try this variant, too?  If this works as well then we end up
+> solving two problems in one patch...
 
-Hardware reduced mode, despite the name, exists primarily to allow
-newer platforms to use a much simpler form of ACPI that does not
-require supporting the legacy of previous versions of the specification.
-This mode was first introduced in the ACPI 5.0 specification, but because
-it is so much simpler and reduces the size of the object code needed to
-support ACPI, it is likely to be used more often in the near future.
+Hi Peter,
 
-To enable the hardware reduced mode of ACPI on some platforms (such as
-ARM), we need to modify the kernel code and set ACPI_REDUCED_HARDWARE
-to TRUE in the ACPICA source.  For ARM/ARM64, hardware reduced ACPI
-should be the only mode used; legacy mode would require modifications
-to SoCs in order to provide several x86-specific hardware features (e.g.,
-an NMI and SMI support).
+Yes, this version works fine as well.
 
-We set ACPI_REDUCED_HARDWARE to TRUE in the ACPICA source by introducing
-a kernel config item to enable/disable ACPI_REDUCED_HARDWARE.  We can then
-change the kernel config instead of having to modify the kernel source
-directly to enable the reduced hardware mode of ACPI.
+Tested-by: Toshi Kani <toshi.kani@hp.com>
 
-Lv Zheng suggested that this configuration item does not belong in ACPICA,
-the upstream source for much of the ACPI internals, but rather to the
-Linux kernel itself.  Hence, we introduce this flag so that we can make
-ACPI_REDUCED_HARDWARE configurable.  For the details of the discussion,
-please refer to: http://www.spinics.net/lists/linux-acpi/msg46369.html
-
-Even though support for X86 in hardware reduced mode is possible, it
-is NOT enabled.  Extensive effort has gone into the Linux kernel so that
-there is a single kernel image than can run on all x86 hardware; the kernel
-changes run-time behavior to adapt to the hardware being used.  This is not
-currently possible with the existing ACPICA infrastructure but only presents
-a problem on achitectures supporting both hardware-reduced and legacy modes
-of ACPI -- i.e., on x86 only.
-
-The problem with the current ACPICA code base is that if one builds legacy
-ACPI (a proper superset of hardware-reduced), the kernel can run in hardware-
-reduced with the proper ACPI tables, but there is still ACPICA code that could
-be executed even though it is not allowed by the specification.  If one builds
-a hardware-reduced only ACPI, the kernel cannot run with ACPI tables that are
-for legacy mode.  To ensure compliance with ACPI, one must therefore build
-two separate kernels.  Once this problem has been properly fixed, we can then
-enable x86 hardware-reduced mode and use a single kernel.
-
-This patch used to be part of a set to implement stricter conformance with
-hardware reduced ACPI.  The code changes from that set are being re-thought
-in order to handle some non-compliant hardware, but this patch did not depend
-on those changes.  In the meantime, this patch is needed in order to enable
-ACPI core functionality for ARMv8 servers and hence is being submitted
-separately in order to aid that effort.
-
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Al Stone <al.stone@linaro.org>
----
- drivers/acpi/Kconfig            | 13 +++++++++++++
- include/acpi/platform/aclinux.h |  6 ++++++
- 2 files changed, 19 insertions(+)
-
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 4770de5..961ea9e 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -343,6 +343,19 @@ config ACPI_BGRT
- 	  data from the firmware boot splash. It will appear under
- 	  /sys/firmware/acpi/bgrt/ .
- 
-+config ACPI_REDUCED_HARDWARE_ONLY
-+	bool "Hardware-reduced ACPI support only"
-+	def_bool n
-+	depends on ACPI && EXPERT
-+	help
-+	This config item changes the way the ACPI code is built.  When this
-+	option is selected, the kernel will use a specialized version of
-+	ACPICA that ONLY supports the ACPI "reduced hardware" mode.  The
-+	resulting kernel will be smaller but it will also be restricted to
-+	running in ACPI reduced hardware mode ONLY.
-+
-+	If you are unsure what to do, do not enable this option.
-+
- source "drivers/acpi/apei/Kconfig"
- 
- config ACPI_EXTLOG
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 28f4f4d..7d71f08 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -52,6 +52,12 @@
- 
- #ifdef __KERNEL__
- 
-+/* Compile for reduced hardware mode only with this kernel config */
-+
-+#ifdef CONFIG_ACPI_REDUCED_HARDWARE_ONLY
-+#define ACPI_REDUCED_HARDWARE 1
-+#endif
-+
- #include <linux/string.h>
- #include <linux/kernel.h>
- #include <linux/ctype.h>
--- 
-1.8.4.2
+Thanks,
+-Toshi
 
