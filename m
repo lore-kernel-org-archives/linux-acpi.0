@@ -1,40 +1,47 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V2 1/6] Documentation: add dts binding for X-Gene reboot
- dts node.
-Date: Tue, 14 Jan 2014 07:06:12 +0100
-Message-ID: <201401140706.13406.arnd@arndb.de>
-References: <1389135041-16062-1-git-send-email-fkan@apm.com>
- <201401132043.52491.arnd@arndb.de>
- <CAL85gmCA4kBsRUMC_ENjGfCq5jM11iY5Jx_+A3V9XQDU0b7E0A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAL85gmCA4kBsRUMC_ENjGfCq5jM11iY5Jx_+A3V9XQDU0b7E0A@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Feng Kan <fkan@apm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+From: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/4] module autoloading fixes
+Date: Tue, 14 Jan 2014 16:46:34 +0800
+Message-ID: <1389689198-2641-1-git-send-email-rui.zhang@intel.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 14 January 2014, Feng Kan wrote:
-> 
-> >
-> > Is this related to the standard ARM SCU that manages multiprocessor
-> > systems, or a different unit that uses the same name?
-> 
-> FKAN: You mean the snoop control unit in ARM. This is different from
-> that, the main function of this unit is clk control.
+Hi, all,
 
-Hmm, if it's *mainly* used for clocks, you may actually just want to
-have a driver in drivers/clk for it that also performs a few of the
-other things on the side.
+This patch set fixes a couple of module autoloading problem.
 
-	Arnd
+Patch 1/4 fixes a bug in ACPI device 'modalias' and 'uevent' attributes,
+          although the bug can rarely be reproduced (only if there is an
+          output error of snprintf, or the ids are longer than 1024 bytes)
+Patch 2/4 introduces two new APIs for exporting ACPI style 'modalias' and
+          'uevent' attributes in other buses.
+Patch 3/4 introduce support for ACPI style 'modalias' and 'uevent'
+          attributes in platform, I2C and SPI bus.
+Patch 4/4 add OF style 'modalias' support for platform bus.
+
+I did some tests and can confirm that the code for ACPI enumerated platform
+bus device works well.
+I tried with a patch with convert ACPI Fan device/driver to platform bus,
+and can confirm that the code for ACPI enumerated platform device works well,
+both the platform Fan driver and device show their modalias as "acpi:PNP0C0B".
+
+thanks,
+rui
+
+----------------------------------------------------------------
+Zhang Rui (4):
+      ACPI: fix create_modalias() return value handling
+      ACPI: add module autoloading support for ACPI enumerated devices
+      fix module autoloading for ACPI enumerated devices
+      OF: introduce OF style 'modalias' support for platform bus.
+
+ drivers/acpi/scan.c       |   73 +++++++++++++++++++++++++++++++++++++++++----
+ drivers/base/platform.c   |   16 +++++++++-
+ drivers/i2c/i2c-core.c    |   11 +++++++
+ drivers/of/device.c       |    3 ++
+ drivers/spi/spi.c         |   10 +++++++
+ include/linux/acpi.h      |   15 ++++++++++
+ include/linux/of_device.h |    6 ++++
+ 7 files changed, 127 insertions(+), 7 deletions(-)
