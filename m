@@ -1,221 +1,85 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v6 3/6] ACPI: HW reduced mode does not allow use of the FADT sci_interrupt field
-Date: Tue, 14 Jan 2014 01:21:56 +0100
-Message-ID: <7770549.oezqyo8gaq@vostro.rjw.lan>
-References: <1389394340-2680-1-git-send-email-al.stone@linaro.org> <13769273.zu9PcWNH5N@vostro.rjw.lan> <52D468A5.90609@redhat.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 2/2] x86, e820 disable ACPI Memory Hotplug if memory
+ mapping is specified by user [v2]
+Date: Mon, 13 Jan 2014 17:33:52 -0700
+Message-ID: <1389659632.1792.247.camel@misato.fc.hp.com>
+References: <1389380698-19361-1-git-send-email-prarit@redhat.com>
+	 <1389380698-19361-4-git-send-email-prarit@redhat.com>
+	 <alpine.DEB.2.02.1401111624170.20677@be1.lrz> <52D32962.5050908@redhat.com>
+	 <CAHGf_=qWB81f8fdDdjaXXh1JoSDUsJmcEHwH+CEJ2E-5XWz6qA@mail.gmail.com>
+	 <52D4793E.8070102@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53835 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750821AbaANAH7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jan 2014 19:07:59 -0500
-In-Reply-To: <52D468A5.90609@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <52D4793E.8070102@redhat.com>
+Sender: owner-linux-mm@kvack.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>, Bodo Eggert <7eggert@gmx.de>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, dyoung@redhat.com, linux-acpi@vger.kernel.org, "linux-mm@kvack.org" <linux-mm@kvack.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: al.stone@linaro.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org
 
-On Monday, January 13, 2014 03:28:53 PM Al Stone wrote:
-> On 01/10/2014 04:20 PM, Rafael J. Wysocki wrote:
-> > On Friday, January 10, 2014 03:52:17 PM al.stone@linaro.org wrote:
-> >> From: Al Stone <al.stone@linaro.org>
-> >>
-> >> In HW reduced mode, the use of the SCI interrupt is not allowed.  In
-> >> all those places that use the FADT sci_interrupt field, make sure we
-> >> do not execute that path when in HW reduced mode.
-> >>
-> >> In the case of acpi_os_install_interrupt_handler() in osl.c, this allows
-> >> us to open up the routine to installing interrupt handlers other than
-> >> acpi_gbl_FADT.sci_interrupt regardless of whether we are in ACPI legacy
-> >> mode or reduced HW mode; acpi_os_remove_interrupt_handler() changes to
-> >> maintain symmetry.
-> >>
-> >> Signed-off-by: Al Stone <al.stone@linaro.org>
-> >> ---
-> >>   drivers/acpi/bus.c      | 30 ++++++++++++++++--------------
-> >>   drivers/acpi/osl.c      | 18 +++++++-----------
-> >>   drivers/acpi/pci_link.c |  2 ++
-> >>   3 files changed, 25 insertions(+), 25 deletions(-)
-> >>
-> >> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> >> index 0710004..d871859 100644
-> >> --- a/drivers/acpi/bus.c
-> >> +++ b/drivers/acpi/bus.c
-> >> @@ -552,21 +552,23 @@ void __init acpi_early_init(void)
-> >>   	}
-> >>
-> >>   #ifdef CONFIG_X86
-> >> -	if (!acpi_ioapic) {
-> >> -		/* compatible (0) means level (3) */
-> >> -		if (!(acpi_sci_flags & ACPI_MADT_TRIGGER_MASK)) {
-> >> -			acpi_sci_flags &= ~ACPI_MADT_TRIGGER_MASK;
-> >> -			acpi_sci_flags |= ACPI_MADT_TRIGGER_LEVEL;
-> >
-> > I wonder why exactly you want to make this change.  It surely doesn't matter
-> > for ARM and do you have any HW-reduced x86 hardware to test it?
+On Mon, 2014-01-13 at 18:39 -0500, Prarit Bhargava wrote:
 > 
-> The point of this exercise was not to make hardware reduced work for
-> just ARM; the point was to ensure hardware reduced is working correctly
-> for any architecture using ACPI.
+> On 01/13/2014 03:31 PM, KOSAKI Motohiro wrote:
+> > On Sun, Jan 12, 2014 at 6:46 PM, Prarit Bhargava <prarit@redhat.com> wrote:
+> >>
+> >>
+> >> On 01/11/2014 11:35 AM, 7eggert@gmx.de wrote:
+> >>>
+> >>>
+> >>> On Fri, 10 Jan 2014, Prarit Bhargava wrote:
+> >>>
+> >>>> kdump uses memmap=exactmap and mem=X values to configure the memory
+> >>>> mapping for the kdump kernel.  If memory is hotadded during the boot of
+> >>>> the kdump kernel it is possible that the page tables for the new memory
+> >>>> cause the kdump kernel to run out of memory.
+> >>>>
+> >>>> Since the user has specified a specific mapping ACPI Memory Hotplug should be
+> >>>> disabled in this case.
+> >>>
+> >>> I'll ask just in case: Is it possible to want memory hotplug in spite of
+> >>> using memmap=exactmap or mem=X?
+> >>
+> >> Good question -- I can't think of a case.  When a user specifies "memmap" or
+> >> "mem" IMO they are asking for a very specific memory configuration.  Having
+> >> extra memory added above what the user has specified seems to defeat the purpose
+> >> of "memmap" and "mem".
+> > 
+> > May be yes, may be no.
+> > 
+> > They are often used for a wrokaround to avoid broken firmware issue.
+> > If we have no way
+> > to explicitly enable hotplug. We will lose a workaround.
+> > 
+> > Perhaps, there is no matter. Today, memory hotplug is only used on
+> > high-end machine
+> > and their firmware is carefully developped and don't have a serious
+> > issue almostly. Though.
 > 
-> No, I do not have hardware reduced x86 hardware to test with.  Nor can
-> I predict if or when Intel will make such a thing.  If you would rather
-> wait until they do, so be it.  My intent was to avoid problems before
-> they occur, rather than waiting until they actually break.
+> Oof -- sorry Kosaki :(  I didn't see this until just now (and your subsequent
+> ACK on the updated patch).
 > 
-> I chose to make this change because (a) it seemed silly to me to
-> execute code you don't have to, (b) since the kernel code does end
-> up acting as documentation for how ACPI is implemented and how it
-> is compliant with the spec, it made sense to me to ensure all usage
-> was compliant with the spec, and (c) if the machine has an IOAPIC
-> and acpi_sci=n (n is non-zero) is supplied on the command line, the
-> FADT SCI interrupt will end being initialized and used which is not
-> allowed in hardware reduced mode.
-> 
-> >> +	if (!acpi_gbl_reduced_hardware) {
-> >> +		if (!acpi_ioapic) {
-> >> +			/* compatible (0) means level (3) */
-> >> +			if (!(acpi_sci_flags & ACPI_MADT_TRIGGER_MASK)) {
-> >> +				acpi_sci_flags &= ~ACPI_MADT_TRIGGER_MASK;
-> >> +				acpi_sci_flags |= ACPI_MADT_TRIGGER_LEVEL;
-> >> +			}
-> >> +			/* Set PIC-mode SCI trigger type */
-> >> +			acpi_pic_sci_set_trigger(acpi_gbl_FADT.sci_interrupt,
-> >> +				(acpi_sci_flags & ACPI_MADT_TRIGGER_MASK) >> 2);
-> >> +		} else {
-> >> +			/*
-> >> +			 * now that acpi_gbl_FADT is initialized,
-> >> +			 * update it with result from INT_SRC_OVR parsing
-> >> +			 */
-> >> +			acpi_gbl_FADT.sci_interrupt = acpi_sci_override_gsi;
-> >>   		}
-> >> -		/* Set PIC-mode SCI trigger type */
-> >> -		acpi_pic_sci_set_trigger(acpi_gbl_FADT.sci_interrupt,
-> >> -					 (acpi_sci_flags & ACPI_MADT_TRIGGER_MASK) >> 2);
-> >> -	} else {
-> >> -		/*
-> >> -		 * now that acpi_gbl_FADT is initialized,
-> >> -		 * update it with result from INT_SRC_OVR parsing
-> >> -		 */
-> >> -		acpi_gbl_FADT.sci_interrupt = acpi_sci_override_gsi;
-> >>   	}
-> >>   #endif
-> >>
-> >> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> >> index 44c07eb..c946a3a 100644
-> >> --- a/drivers/acpi/osl.c
-> >> +++ b/drivers/acpi/osl.c
-> >> @@ -84,6 +84,7 @@ static int (*__acpi_os_prepare_extended_sleep)(u8 sleep_state, u32 val_a,
-> >>
-> >>   static acpi_osd_handler acpi_irq_handler;
-> >>   static void *acpi_irq_context;
-> >> +static u32 acpi_irq_number;
-> >>   static struct workqueue_struct *kacpid_wq;
-> >>   static struct workqueue_struct *kacpi_notify_wq;
-> >>   static struct workqueue_struct *kacpi_hotplug_wq;
-> >> @@ -178,6 +179,10 @@ static void __init acpi_request_region (struct acpi_generic_address *gas,
-> >>
-> >>   static int __init acpi_reserve_resources(void)
-> >>   {
-> >> +	/* Handle hardware reduced mode: i.e., do nothing. */
-> >> +	if (acpi_gbl_reduced_hardware)
-> >> +		return 0;
-> >
-> > Does it actually break things if we do that?
-> 
-> Not that I can see anywhere.  All of the code I have looked at appears
-> to behave correctly if the ignored fields in the FADT are set to zero
-> -- in this case, not using or checking bits in the xpm1a_event_blocks
-> if the FADT field is zero.
-> 
-> >> +
-> >>   	acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block, acpi_gbl_FADT.pm1_event_length,
-> >>   		"ACPI PM1a_EVT_BLK");
-> >>
-> >> @@ -795,13 +800,6 @@ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler,
-> >>
-> >>   	acpi_irq_stats_init();
-> >>
-> >> -	/*
-> >> -	 * ACPI interrupts different from the SCI in our copy of the FADT are
-> >> -	 * not supported.
-> >> -	 */
-> >> -	if (gsi != acpi_gbl_FADT.sci_interrupt)
-> >> -		return AE_BAD_PARAMETER;
-> >> -
-> >>   	if (acpi_irq_handler)
-> >>   		return AE_ALREADY_ACQUIRED;
-> >>
-> >> @@ -818,15 +816,13 @@ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler,
-> >>   		acpi_irq_handler = NULL;
-> >>   		return AE_NOT_ACQUIRED;
-> >>   	}
-> >> +	acpi_irq_number = irq;
-> >>
-> >>   	return AE_OK;
-> >>   }
-> >>
-> >>   acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
-> >>   {
-> >> -	if (irq != acpi_gbl_FADT.sci_interrupt)
-> >> -		return AE_BAD_PARAMETER;
-> >> -
-> >>   	free_irq(irq, acpi_irq);
-> >>   	acpi_irq_handler = NULL;
-> >>
-> >> @@ -1806,7 +1802,7 @@ acpi_status __init acpi_os_initialize1(void)
-> >>   acpi_status acpi_os_terminate(void)
-> >>   {
-> >>   	if (acpi_irq_handler) {
-> >> -		acpi_os_remove_interrupt_handler(acpi_gbl_FADT.sci_interrupt,
-> >> +		acpi_os_remove_interrupt_handler(acpi_irq_number,
-> >>   						 acpi_irq_handler);
-> >>   	}
-> >>
-> >> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> >> index 2652a61..d5c155e 100644
-> >> --- a/drivers/acpi/pci_link.c
-> >> +++ b/drivers/acpi/pci_link.c
-> >> @@ -505,6 +505,8 @@ int __init acpi_irq_penalty_init(void)
-> >>   		}
-> >>   	}
-> >>   	/* Add a penalty for the SCI */
-> >> +	if (acpi_gbl_reduced_hardware)
-> >> +		return 0;
-> >>   	acpi_irq_penalty[acpi_gbl_FADT.sci_interrupt] += PIRQ_PENALTY_PCI_USING;
-> >>   	return 0;
-> >>   }
-> >
-> > Is ARM really going to use the code in pci_link.c?  If so, then how exactly?
-> 
-> I have no idea; I wasn't thinking strictly ARM in the first place.
-> Just the same, why execute code if it is irrelevant?
+> I just remembered that we did have a processor vendor's whitebox that would not
+> boot unless we specified a specific memmap and we did specify memmap=exactmap to
+> boot the system correctly and the system had hotplug memory.
+>
+> So it means that I should not key off of "memmap=exactmap".
 
-Becase we don't know if it really is irrelevant.  Had I known for a fact that
-it had been irrelevant, I wouldn't have had any concerns here.
+I do not think it makes sense.  You needed memmap=exactmap as a
+workaround because the kernel did not boot with the firmware's memory
+info.  So, it's broken, and you requested the kernel to ignore the
+firmware info.
 
-> Further, if hardware reduced ACPI tables have the SCI interrupt field set to
-> zero as they should, IRQ 0 gets a hefty penalty assessed; or, if the
-> hardware reduced tables were made by taking a shortcut and just toggling
-> the hardware reduced flag while leaving the SCI interrupt field alone,
-> some other IRQ gets a penalty assessed, neither of which seemed to me
-> to be correct either.
+Why do you think memory hotplug needs to be supported under such
+condition, which has to use the broken firmware info?
 
-That is a good point.  I think it will be safe to avoid using the SCI if
-the HW reduced bit is set and the SCI interrupt field is 0 at the same time.
+Thanks,
+-Toshi 
 
-So in my opinion it generally is better to avoid interpreting the spec
-literally in this particular respect and to treat the ACPI HW features as
-optional if the the HW reduced bit is set.  I think it is OK to check if they
-are present (arguably, we should be doing that anyway, because there may be
-broken BIOSes that don't set HW-reduced and still don't implement those features
-although they should in that case), but changing the code to always ignore them
-altogether may be going a bit too far.
 
-Thanks!
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
