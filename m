@@ -1,54 +1,63 @@
-From: Bradley Baetz <bbaetz@gmail.com>
-Subject: Re: Multiple video backlight devices on Dell laptop
-Date: Tue, 14 Jan 2014 23:34:23 +1100
-Message-ID: <CAJrk0Bt42pBAHCYu7uPmyDs1oy5QcMNpnzc2YgHy7iBXX+4tWw@mail.gmail.com>
-References: <CAJrk0Bv5w25vipp8vTmoZEegb-7Va+FLvek=QnTvSfHDFjvroA@mail.gmail.com>
-	<52D4A5C4.5000405@intel.com>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH] x86, acpi memory hotplug, add parameter to disable
+ memory hotplug
+Date: Tue, 14 Jan 2014 09:37:49 -0500
+Message-ID: <20140114143749.GB3096@redhat.com>
+References: <1389650161-13292-1-git-send-email-prarit@redhat.com>
+ <CAHGf_=pX303E6VAhL+gApSQ1OsEQHqTuCN8ZSdD3E54YAcFQKA@mail.gmail.com>
+ <52D47999.5080905@redhat.com>
+ <52D48EC4.5070400@jp.fujitsu.com>
+ <1389663689.1792.268.camel@misato.fc.hp.com>
+ <52D519EB.3040709@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:35201 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751300AbaANMeZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jan 2014 07:34:25 -0500
-Received: by mail-wg0-f46.google.com with SMTP id x12so308855wgg.1
-        for <linux-acpi@vger.kernel.org>; Tue, 14 Jan 2014 04:34:24 -0800 (PST)
-In-Reply-To: <52D4A5C4.5000405@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <52D519EB.3040709@redhat.com>
+Sender: owner-linux-mm@kvack.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, KOSAKI Motohiro <kosaki.motohiro@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Dave Young <dyoung@redhat.com>, linux-acpi@vger.kernel.org, "linux-mm@kvack.org" <linux-mm@kvack.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Tue, Jan 14, 2014 at 1:49 PM, Aaron Lu <aaron.lu@intel.com> wrote:
-> On 01/11/2014 11:22 AM, Bradley Baetz wrote:
->> Hi,
->>
->> I have a Dell Vostro 3560 laptop, with hybrid graphics (intel + radeon).
->>
->> This exposes 3 backlight devices - acpi_video0, acpi_video1, and
->> intel_backlight. Only the intel_backlight/brightness file actually
->> changes the backlight. Is this a kernel bug, or should userspace
->> 'know' which backlight file to use based on which graphics device is
->> active? XFCE picks the first one it finds (acpi_video0), which doesn't
->> work.
->
-> Solving it from userspace:
-> You can specify which backlight interface to use by editing /etc/xorg.conf:
->  Section "Device"
->     Identifier  "Intel Graphics"
->     Driver      "intel"
->     Option      "AccelMethod"     "sna"
->     Option      "Backlight"       "intel_backlight" # use your backlight that works here
->     Driver      "intel"
->     BusID       "PCI:0:2:0"
->  EndSection
->
-> See https://wiki.archlinux.org/index.php/Backlight
->
-> solving it from kernel space:
-> Since the firmware claims support of win8, you can forget the
-> acpi_backlight=vendor cmdline option and just use video.use_native_backlight=1.
+On Tue, Jan 14, 2014 at 06:05:15AM -0500, Prarit Bhargava wrote:
+> 
+> 
+> On 01/13/2014 08:41 PM, Toshi Kani wrote:
+> > On Tue, 2014-01-14 at 10:11 +0900, Yasuaki Ishimatsu wrote:
+> >  :
+> >>>> I think we need a knob manually enable mem-hotplug when specify memmap. But
+> >>>> it is another story.
+> >>>>
+> >>>> Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+> >>>
+> >>> As mentioned, self-NAK.  I have seen a system that I needed to specify
+> >>> memmap=exactmap & had hotplug memory.  I will only keep the acpi_no_memhotplug
+> >>> option in the next version of the patch.
+> >>
+> >>
+> >> Your following first patch is simply and makes sense.
+> >>
+> >> http://marc.info/?l=linux-acpi&m=138922019607796&w=2
+> >>
+> > 
+> > In this option, it also requires changing kexec-tools to specify the new
+> > option for kdump.  It won't be simpler.
+> 
+> It will be simpler for the kernel and those of us who have to debug busted e820
+> maps ;)
+> 
+> Unfortunately I may not be able to give you the automatic disable.  I did
+> contemplate adding a !is_kdump_kernel() to the ACPI memory hotplug init call,
+> but it seems like that is unacceptable as well.
 
-Thanks, that commandline option works on 3.13-rc.
+Yep, I don't think hotplug feature should be tied to it being a kdump
+kernel.
 
-Bradley
+Thanks
+Vivek
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
