@@ -1,70 +1,31 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFT][PATCH] ACPI / init: Run acpi_early_init() before
- efi_enter_virtual_mode()
-Date: Tue, 14 Jan 2014 13:32:27 -0700
-Message-ID: <1389731547.1792.296.camel@misato.fc.hp.com>
-References: <1387439053-8711-1-git-send-email-jlee@suse.com>
-		 <3476450.BMEcId2Lgj@vostro.rjw.lan>
-		 <20131221122148.GB29501@console-pimps.org>
-		 <2530951.HFPX8MI38t@vostro.rjw.lan>
-	 <1389672548.24105.252.camel@linux-s257.site> <52D57B54.7080509@zytor.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V2] ACPI/Battery: Add a _BIX quirk for NEC LZ750/LS
+Date: Tue, 14 Jan 2014 22:37:02 +0100
+Message-ID: <5255063.SeYbBZqxVQ@vostro.rjw.lan>
+References: <1389019837-13619-1-git-send-email-tianyu.lan@intel.com> <1793775.ULjNzyMivD@vostro.rjw.lan> <20140114160601.GB4307@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:13797 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751472AbaANUia (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jan 2014 15:38:30 -0500
-In-Reply-To: <52D57B54.7080509@zytor.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140114160601.GB4307@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>, Lan Tianyu <tianyu.lan@intel.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, fcr@adinet.com.uy, l@dorileo.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: joeyli <jlee@suse.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Matt Fleming <matt@console-pimps.org>, Alessandro Zummo <a.zummo@towertech.it>, Matthew Garrett <matthew.garrett@nebula.com>, Elliott@hp.com, samer.el-haj-mahmoud@hp.com, Oliver Neukum <oneukum@suse.de>, werner@suse.com, trenn@suse.de, JBeulich@suse.com, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, x86@kernel.org, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@suse.de>
 
-On Tue, 2014-01-14 at 10:00 -0800, H. Peter Anvin wrote:
-> On 01/13/2014 08:09 PM, joeyli wrote:
-> > 
-> > This patch works to me on Acer Gateway Z5WT2 UEFI notebook and Intel
-> > UEFI development board.
-> > 
-> > Does it possible move acpi_early_init() to before timekeeping_init()?
-> > The position is also before efi_enter_virtual_mode() and that will be
-> > useful for parsing ACPI TAD to set system clock:
-> > 
-> > diff --git a/init/main.c b/init/main.c
-> > index febc511..b6d93c8 100644
-> > --- a/init/main.c
-> > +++ b/init/main.c
-> > @@ -565,6 +565,7 @@ asmlinkage void __init start_kernel(void)
-> >         init_timers();
-> >         hrtimers_init();
-> >         softirq_init();
-> > +       acpi_early_init();
-> >         timekeeping_init();
-> >         time_init();
-> >         sched_clock_postinit();
-> > @@ -641,7 +642,6 @@ asmlinkage void __init start_kernel(void)
-> >  
-> >         check_bugs();
-> >  
-> > -       acpi_early_init(); /* before LAPIC and SMP init */
-> >         sfi_init_late();
-> >  
-> >         if (efi_enabled(EFI_RUNTIME_SERVICES)) {
-> > 
+On Tuesday, January 14, 2014 04:06:01 PM Matthew Garrett wrote:
+> On Mon, Jan 06, 2014 at 11:25:53PM +0100, Rafael J. Wysocki wrote:
 > 
-> Hi Toshi,
+> > Queued up as a fix for 3.13 (I fixed up the indentation).
 > 
-> Could you try this variant, too?  If this works as well then we end up
-> solving two problems in one patch...
+> Ah, sorry, I missed this chunk of the thread. If the system provides 
+> valid _BIF data then we should possibly just fall back to that rather 
+> than adding another quirk table.
 
-Hi Peter,
+The problem is to know that _BIX is broken.  If we could figure that out
+upfront, we woulnd't need the quirk table in any case.
 
-Yes, this version works fine as well.
+Tianyu, can we do some effort during the driver initialization to detect
+this breakage and handle it without blacklisting systems?
 
-Tested-by: Toshi Kani <toshi.kani@hp.com>
-
-Thanks,
--Toshi
-
+Rafael
