@@ -1,115 +1,40 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [RFT][PATCH] ACPI / init: Run acpi_early_init() before
- efi_enter_virtual_mode() (was: Re: [RFC PATCH 00/14] Support timezone of
- ACPI TAD and EFI TIME)
-Date: Tue, 14 Jan 2014 12:09:08 +0800
-Message-ID: <1389672548.24105.252.camel@linux-s257.site>
-References: <1387439053-8711-1-git-send-email-jlee@suse.com>
-	 <3476450.BMEcId2Lgj@vostro.rjw.lan>
-	 <20131221122148.GB29501@console-pimps.org>
-	 <2530951.HFPX8MI38t@vostro.rjw.lan>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V2 1/6] Documentation: add dts binding for X-Gene reboot
+ dts node.
+Date: Tue, 14 Jan 2014 07:06:12 +0100
+Message-ID: <201401140706.13406.arnd@arndb.de>
+References: <1389135041-16062-1-git-send-email-fkan@apm.com>
+ <201401132043.52491.arnd@arndb.de>
+ <CAL85gmCA4kBsRUMC_ENjGfCq5jM11iY5Jx_+A3V9XQDU0b7E0A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:57481 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751342AbaANELA (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-	Mon, 13 Jan 2014 23:11:00 -0500
-In-Reply-To: <2530951.HFPX8MI38t@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAL85gmCA4kBsRUMC_ENjGfCq5jM11iY5Jx_+A3V9XQDU0b7E0A@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Feng Kan <fkan@apm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Matt Fleming <matt@console-pimps.org>, "H. Peter Anvin" <hpa@zytor.com>, Alessandro Zummo <a.zummo@towertech.it>, Matthew Garrett <matthew.garrett@nebula.com>, Elliott@hp.com, samer.el-haj-mahmoud@hp.com, Oliver Neukum <oneukum@suse.de>, werner@suse.com, trenn@suse.de, JBeulich@suse.com, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, x86@kernel.org, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@suse.de>
 
-=E6=96=BC =E6=97=A5=EF=BC=8C2014-01-12 =E6=96=BC 01:30 +0100=EF=BC=8CRa=
-fael J. Wysocki =E6=8F=90=E5=88=B0=EF=BC=9A
-> OK
->=20
-> I don't see any adverse effects of the patch below on a couple of my
-> test
-> boxes, but (a) they are Intel-based and (b) they are non-EFI, so it
-> would be
-> good to give it a go on as many machines as reasonably possible.
->=20
-> Thanks,
-> Rafael
->=20
-> ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI / init: Run acpi_early_init() before
-> efi_enter_virtual_mode()
->=20
-> According to Matt Fleming, if acpi_early_init() was executed befpre
-> efi_enter_virtual_mode(), the EFI initialization could benefit from
-> it, so make that happen.
->=20
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  init/main.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> Index: linux-pm/init/main.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-pm.orig/init/main.c
-> +++ linux-pm/init/main.c
-> @@ -615,6 +615,7 @@ asmlinkage void __init start_kernel(void
->         calibrate_delay();
->         pidmap_init();
->         anon_vma_init();
-> +       acpi_early_init();
->  #ifdef CONFIG_X86
->         if (efi_enabled(EFI_RUNTIME_SERVICES))
->                 efi_enter_virtual_mode();
-> @@ -641,7 +642,6 @@ asmlinkage void __init start_kernel(void
-> =20
->         check_bugs();
-> =20
-> -       acpi_early_init(); /* before LAPIC and SMP init */
->         sfi_init_late();
-> =20
->         if (efi_enabled(EFI_RUNTIME_SERVICES)) {
->=20
->=20
->=20
+On Tuesday 14 January 2014, Feng Kan wrote:
+> 
+> >
+> > Is this related to the standard ARM SCU that manages multiprocessor
+> > systems, or a different unit that uses the same name?
+> 
+> FKAN: You mean the snoop control unit in ARM. This is different from
+> that, the main function of this unit is clk control.
 
-This patch works to me on Acer Gateway Z5WT2 UEFI notebook and Intel
-UEFI development board.
+Hmm, if it's *mainly* used for clocks, you may actually just want to
+have a driver in drivers/clk for it that also performs a few of the
+other things on the side.
 
-Does it possible move acpi_early_init() to before timekeeping_init()?
-The position is also before efi_enter_virtual_mode() and that will be
-useful for parsing ACPI TAD to set system clock:
-
-diff --git a/init/main.c b/init/main.c
-index febc511..b6d93c8 100644
---- a/init/main.c
-+++ b/init/main.c
-@@ -565,6 +565,7 @@ asmlinkage void __init start_kernel(void)
-        init_timers();
-        hrtimers_init();
-        softirq_init();
-+       acpi_early_init();
-        timekeeping_init();
-        time_init();
-        sched_clock_postinit();
-@@ -641,7 +642,6 @@ asmlinkage void __init start_kernel(void)
-=20
-        check_bugs();
-=20
--       acpi_early_init(); /* before LAPIC and SMP init */
-        sfi_init_late();
-=20
-        if (efi_enabled(EFI_RUNTIME_SERVICES)) {
-
-
-Thanks a lot!
-Joey Lee
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
