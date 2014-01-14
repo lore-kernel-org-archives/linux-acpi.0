@@ -1,52 +1,44 @@
-From: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFT][PATCH] ACPI / init: Run acpi_early_init() before efi_enter_virtual_mode()
-Date: Tue, 14 Jan 2014 10:00:52 -0800
-Message-ID: <52D57B54.7080509@zytor.com>
-References: <1387439053-8711-1-git-send-email-jlee@suse.com>	 <3476450.BMEcId2Lgj@vostro.rjw.lan>	 <20131221122148.GB29501@console-pimps.org>	 <2530951.HFPX8MI38t@vostro.rjw.lan> <1389672548.24105.252.camel@linux-s257.site>
+From: Feng Kan <fkan@apm.com>
+Subject: Re: [PATCH V2 1/6] Documentation: add dts binding for X-Gene reboot
+ dts node.
+Date: Tue, 14 Jan 2014 10:35:33 -0800
+Message-ID: <CAL85gmD+34VKSHsGXWTbQ2w3razo_cKukfe=dSQJi+x-Zfvtpw@mail.gmail.com>
+References: <1389135041-16062-1-git-send-email-fkan@apm.com>
+	<201401132043.52491.arnd@arndb.de>
+	<CAL85gmCA4kBsRUMC_ENjGfCq5jM11iY5Jx_+A3V9XQDU0b7E0A@mail.gmail.com>
+	<201401140706.13406.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1389672548.24105.252.camel-ONCj+Eqt86TasUa73XJKwA@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: joeyli <jlee-IBi9RG/b67k@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>
-Cc: Matt Fleming <matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>, Elliott-VXdhtT5mjnY@public.gmane.org, samer.el-haj-mahmoud-VXdhtT5mjnY@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, werner-IBi9RG/b67k@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, JBeulich-IBi9RG/b67k@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from exprod5og111.obsmtp.com ([64.18.0.22]:46123 "HELO
+	exprod5og111.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750751AbaANSfe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jan 2014 13:35:34 -0500
+Received: by mail-ob0-f170.google.com with SMTP id uy5so7736204obc.1
+        for <linux-acpi@vger.kernel.org>; Tue, 14 Jan 2014 10:35:33 -0800 (PST)
+In-Reply-To: <201401140706.13406.arnd@arndb.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 01/13/2014 08:09 PM, joeyli wrote:
-> 
-> This patch works to me on Acer Gateway Z5WT2 UEFI notebook and Intel
-> UEFI development board.
-> 
-> Does it possible move acpi_early_init() to before timekeeping_init()?
-> The position is also before efi_enter_virtual_mode() and that will be
-> useful for parsing ACPI TAD to set system clock:
-> 
-> diff --git a/init/main.c b/init/main.c
-> index febc511..b6d93c8 100644
-> --- a/init/main.c
-> +++ b/init/main.c
-> @@ -565,6 +565,7 @@ asmlinkage void __init start_kernel(void)
->         init_timers();
->         hrtimers_init();
->         softirq_init();
-> +       acpi_early_init();
->         timekeeping_init();
->         time_init();
->         sched_clock_postinit();
-> @@ -641,7 +642,6 @@ asmlinkage void __init start_kernel(void)
->  
->         check_bugs();
->  
-> -       acpi_early_init(); /* before LAPIC and SMP init */
->         sfi_init_late();
->  
->         if (efi_enabled(EFI_RUNTIME_SERVICES)) {
-> 
+On Mon, Jan 13, 2014 at 10:06 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Tuesday 14 January 2014, Feng Kan wrote:
+>>
+>> >
+>> > Is this related to the standard ARM SCU that manages multiprocessor
+>> > systems, or a different unit that uses the same name?
+>>
+>> FKAN: You mean the snoop control unit in ARM. This is different from
+>> that, the main function of this unit is clk control.
+>
+> Hmm, if it's *mainly* used for clocks, you may actually just want to
+> have a driver in drivers/clk for it that also performs a few of the
+> other things on the side.
+>
 
-Hi Toshi,
+FKAN: there among other thing, reset controls, fuse id's and deep sleep
+resume registers... I like your idea of using syscon, we can have a node
+for SCU and then the specific driver to parse out the needed chunk to use.
 
-Could you try this variant, too?  If this works as well then we end up
-solving two problems in one patch...
-
-	-hpa
+>         Arnd
