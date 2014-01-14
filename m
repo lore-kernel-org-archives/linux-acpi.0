@@ -1,61 +1,80 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 2/2] x86, e820 disable ACPI Memory Hotplug if memory
- mapping is specified by user [v2]
-Date: Mon, 13 Jan 2014 18:47:35 -0700
-Message-ID: <1389664055.1792.269.camel@misato.fc.hp.com>
-References: <1389380698-19361-1-git-send-email-prarit@redhat.com>
-	 <1389380698-19361-4-git-send-email-prarit@redhat.com>
-	 <alpine.DEB.2.02.1401111624170.20677@be1.lrz> <52D32962.5050908@redhat.com>
-	 <CAHGf_=qWB81f8fdDdjaXXh1JoSDUsJmcEHwH+CEJ2E-5XWz6qA@mail.gmail.com>
-	 <52D4793E.8070102@redhat.com> <1389659632.1792.247.camel@misato.fc.hp.com>
-	 <52D48A9D.7000003@zytor.com> <1389661746.1792.254.camel@misato.fc.hp.com>
-	 <20140114015202.GD4327@dhcp-16-126.nay.redhat.com>
+Subject: Re: [RFT][PATCH] ACPI / init: Run acpi_early_init() before
+ efi_enter_virtual_mode() (was: Re: [RFC PATCH 00/14] Support timezone of
+ ACPI TAD and EFI TIME)
+Date: Mon, 13 Jan 2014 19:04:56 -0700
+Message-ID: <1389665096.1792.271.camel@misato.fc.hp.com>
+References: <1387439053-8711-1-git-send-email-jlee@suse.com>
+	 <3476450.BMEcId2Lgj@vostro.rjw.lan>
+	 <20131221122148.GB29501@console-pimps.org>
+	 <2530951.HFPX8MI38t@vostro.rjw.lan> <20140112090627.GB3668@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20140114015202.GD4327@dhcp-16-126.nay.redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Dave Young <dyoung@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Prarit Bhargava <prarit@redhat.com>, KOSAKI Motohiro <kosaki.motohiro@gmail.com>, Bodo Eggert <7eggert@gmx.de>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, the arch/x86 maintainers <x86@kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linn Crosetto <linn@hp.com>, Pekka Enberg <penberg@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tang Chen <tangchen@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Vivek Goyal <vgoyal@redhat.com>, linux-acpi@vger.kernel.org, "linux-mm@kvack.org" <linux-mm@kvack.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:44078 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751172AbaANCKz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jan 2014 21:10:55 -0500
+In-Reply-To: <20140112090627.GB3668@pd.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@suse.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Matt Fleming <matt@console-pimps.org>, "H. Peter Anvin" <hpa@zytor.com>, joeyli <jlee@suse.com>, Alessandro Zummo <a.zummo@towertech.it>, Matthew Garrett <matthew.garrett@nebula.com>, Elliott@hp.com, samer.el-haj-mahmoud@hp.com, Oliver Neukum <oneukum@suse.de>, werner@suse.com, trenn@suse.de, JBeulich@suse.com, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, x86@kernel.org, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Tue, 2014-01-14 at 09:52 +0800, Dave Young wrote:
-> On 01/13/14 at 06:09pm, Toshi Kani wrote:
-> > On Mon, 2014-01-13 at 16:53 -0800, H. Peter Anvin wrote:
-> > > On 01/13/2014 04:33 PM, Toshi Kani wrote:
-> > > > 
-> > > > I do not think it makes sense.  You needed memmap=exactmap as a
-> > > > workaround because the kernel did not boot with the firmware's memory
-> > > > info.  So, it's broken, and you requested the kernel to ignore the
-> > > > firmware info.
-> > > > 
-> > > > Why do you think memory hotplug needs to be supported under such
-> > > > condition, which has to use the broken firmware info?
-> > > > 
-> > > 
-> > > Even more than memory hotplug: what do we do with NUMA?  Since we have
-> > > already told the kernel "the firmware is bogus" it would seem that any
-> > > NUMA optimizations would be a bit ... cantankerous at best, no?
+On Sun, 2014-01-12 at 10:06 +0100, Borislav Petkov wrote:
+> On Sun, Jan 12, 2014 at 01:30:23AM +0100, Rafael J. Wysocki wrote:
+> > I don't see any adverse effects of the patch below on a couple of my test
+> > boxes, but (a) they are Intel-based and (b) they are non-EFI, so it would be
+> > good to give it a go on as many machines as reasonably possible.
 > > 
-> > Agreed that NUMA info can be bogus in this case, but is probably not
-> > critical.
+> > Thanks,
+> > Rafael
 > > 
-> > In majority of the cases, memmap=exactmap is used for kdump and the
-> > firmware info is sane.  So, I think we should keep NUMA enabled since it
-> > could be useful when multiple CPUs are enabled for kdump.
+> > ---
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Subject: ACPI / init: Run acpi_early_init() before efi_enter_virtual_mode()
+> > 
+> > According to Matt Fleming, if acpi_early_init() was executed befpre
+> > efi_enter_virtual_mode(), the EFI initialization could benefit from
+> > it, so make that happen.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  init/main.c |    2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > Index: linux-pm/init/main.c
+> > ===================================================================
+> > --- linux-pm.orig/init/main.c
+> > +++ linux-pm/init/main.c
+> > @@ -615,6 +615,7 @@ asmlinkage void __init start_kernel(void
+> >  	calibrate_delay();
+> >  	pidmap_init();
+> >  	anon_vma_init();
+> > +	acpi_early_init();
+> >  #ifdef CONFIG_X86
+> >  	if (efi_enabled(EFI_RUNTIME_SERVICES))
+> >  		efi_enter_virtual_mode();
+> > @@ -641,7 +642,6 @@ asmlinkage void __init start_kernel(void
+> >  
+> >  	check_bugs();
+> >  
+> > -	acpi_early_init(); /* before LAPIC and SMP init */
+> >  	sfi_init_late();
+> >  
+> >  	if (efi_enabled(EFI_RUNTIME_SERVICES)) {
+> >
 > 
-> In Fedora kdump, we by default add numa=off to 2nd kernel cmdline because
-> enabling numa will use a lot more memory, at the same time we have only 128M
-> reserved by default..
+> Looks good both on kvm+OVMF and on my Dell EFI box.
+> 
+> Tested-by: Borislav Petkov <bp@suse.de>
+> 
+> Toshi has a big EFI box though - if he could run it too, that would be
+> great :-)
 
-That quite makes sense as we only enable a single CPU today.
+Yes, I will test the change.
 
 Thanks,
 -Toshi
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
