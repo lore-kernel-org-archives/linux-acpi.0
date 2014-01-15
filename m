@@ -1,71 +1,74 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [PATCH] acpi memory hotplug, add parameter to disable memory
- hotplug [v3]
-Date: Wed, 15 Jan 2014 06:21:47 -0500
-Message-ID: <52D66F4B.8080301@redhat.com>
-References: <1389727273-27817-1-git-send-email-prarit@redhat.com> <alpine.DEB.2.02.1401141642020.3375@chino.kir.corp.google.com>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH] ACPI / init: Run acpi_early_init() before timekeeping_init()
+Date: Wed, 15 Jan 2014 04:16:59 -0800
+Message-ID: <52D67C3B.4050503@zytor.com>
+References: <1389770748-32698-1-git-send-email-jlee@suse.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64004 "EHLO mx1.redhat.com"
+Received: from terminus.zytor.com ([198.137.202.10]:46868 "EHLO mail.zytor.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750928AbaAOLWV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jan 2014 06:22:21 -0500
-In-Reply-To: <alpine.DEB.2.02.1401141642020.3375@chino.kir.corp.google.com>
+	id S1751783AbaAOMRv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jan 2014 07:17:51 -0500
+In-Reply-To: <1389770748-32698-1-git-send-email-jlee@suse.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Rientjes <rientjes@google.com>
-Cc: linux-kernel@vger.kernel.org, Vivek Goyal <vgoyal@redhat.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, kosaki.motohiro@gmail.com, dyoung@redhat.com, toshi.kani@hp.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, kexec@lists.infradead.org
+To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alessandro Zummo <a.zummo@towertech.it>, Matt Fleming <matt@console-pimps.org>, Matthew Garrett <matthew.garrett@nebula.com>
+Cc: Elliott@hp.com, samer.el-haj-mahmoud@hp.com, Oliver Neukum <oneukum@suse.de>, werner@suse.com, trenn@suse.de, JBeulich@suse.com, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, x86@kernel.org, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Borislav Petkov <bp@suse.de>
 
+Rafael, you want to take this one?
 
-
-On 01/14/2014 07:42 PM, David Rientjes wrote:
-> On Tue, 14 Jan 2014, Prarit Bhargava wrote:
+On 01/14/2014 11:25 PM, Lee, Chun-Yi wrote:
+> This is a variant patch from Rafael J. Wysocki's
+> ACPI / init: Run acpi_early_init() before efi_enter_virtual_mode()
 > 
->> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
->> index b9e9bd8..ea93f75 100644
->> --- a/Documentation/kernel-parameters.txt
->> +++ b/Documentation/kernel-parameters.txt
->> @@ -343,6 +343,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
->>  			no: ACPI OperationRegions are not marked as reserved,
->>  			no further checks are performed.
->>  
->> +	acpi_no_memhotplug [ACPI] Disable memory hotplug.  Useful for kexec
->> +			   and kdump kernels.
->> +
->>  	add_efi_memmap	[EFI; X86] Include EFI memory map in
->>  			kernel's map of available physical RAM.
->>  
->> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
->> index 551dad7..4a0fa94 100644
->> --- a/drivers/acpi/acpi_memhotplug.c
->> +++ b/drivers/acpi/acpi_memhotplug.c
->> @@ -361,7 +361,19 @@ static void acpi_memory_device_remove(struct acpi_device *device)
->>  	acpi_memory_device_free(mem_device);
->>  }
->>  
->> +static bool acpi_no_memhotplug;
->> +
+> According to Matt Fleming, if acpi_early_init() was executed before
+> efi_enter_virtual_mode(), the EFI initialization could benefit from
+> it, so Rafael's patch makes that happen.
 > 
-> I think this should be annotated with __initdata.
-
-Yep, I'll shoot out a v4 with that change.
-
-P.
-
+> And, we want accessing ACPI TAD device to set system clock, so move
+> acpi_early_init() before timekeeping_init(). This final position is
+> also before efi_enter_virtual_mode().
 > 
->>  void __init acpi_memory_hotplug_init(void)
->>  {
->> +	if (acpi_no_memhotplug)
->> +		return;
->> +
->>  	acpi_scan_add_handler_with_hotplug(&memory_device_handler, "memory");
->>  }
->> +
->> +static int __init disable_acpi_memory_hotplug(char *str)
->> +{
->> +	acpi_no_memhotplug = true;
->> +	return 1;
->> +}
->> +__setup("acpi_no_memhotplug", disable_acpi_memory_hotplug);
+> v2:
+> Move acpi_early_init() before timekeeping_init() to prepare setting
+> system clock with ACPI TAD.
+> 
+> v1:
+> Rafael J. Wysocki
+> ACPI / init: Run acpi_early_init() before efi_enter_virtual_mode()
+> 
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Matt Fleming <matt@console-pimps.org>
+> Cc: H. Peter Anvin <hpa@zytor.com>
+> Cc: Borislav Petkov <bp@suse.de>
+> Cc: Matthew Garrett <matthew.garrett@nebula.com>
+> Tested-by: Toshi Kani <toshi.kani@hp.com>
+> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+> ---
+>  init/main.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/init/main.c b/init/main.c
+> index febc511..b6d93c8 100644
+> --- a/init/main.c
+> +++ b/init/main.c
+> @@ -565,6 +565,7 @@ asmlinkage void __init start_kernel(void)
+>  	init_timers();
+>  	hrtimers_init();
+>  	softirq_init();
+> +	acpi_early_init();
+>  	timekeeping_init();
+>  	time_init();
+>  	sched_clock_postinit();
+> @@ -641,7 +642,6 @@ asmlinkage void __init start_kernel(void)
+>  
+>  	check_bugs();
+>  
+> -	acpi_early_init(); /* before LAPIC and SMP init */
+>  	sfi_init_late();
+>  
+>  	if (efi_enabled(EFI_RUNTIME_SERVICES)) {
+> 
+
