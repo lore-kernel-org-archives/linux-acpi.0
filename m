@@ -1,54 +1,37 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH 0/3] ACPI: Integrate tools/power/acpi Makefile into tools
- Makefile.
-Date: Wed, 15 Jan 2014 10:04:41 -0700
-Message-ID: <52D6BFA9.80609@redhat.com>
-References: <cover.1376378577.git.lv.zheng@intel.com> <cover.1389676901.git.lv.zheng@intel.com>
+From: Feng Kan <fkan@apm.com>
+Subject: Re: [PATCH V2 0/6] Enable X-Gene platform reboot driver.
+Date: Wed, 15 Jan 2014 09:39:17 -0800
+Message-ID: <CAL85gmC+OR_hR+jtsAdBSgMau7MnHZSqFpoR+VJ7dWNOGdfBXQ@mail.gmail.com>
+References: <1389135041-16062-1-git-send-email-fkan@apm.com>
+	<20140114160755.GC4307@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28824 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752261AbaAOREp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jan 2014 12:04:45 -0500
-In-Reply-To: <cover.1389676901.git.lv.zheng@intel.com>
+Received: from exprod5og117.obsmtp.com ([64.18.0.149]:48964 "HELO
+	exprod5og117.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752502AbaAORjS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2014 12:39:18 -0500
+Received: by mail-ob0-f171.google.com with SMTP id wm4so1510752obc.16
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Jan 2014 09:39:17 -0800 (PST)
+In-Reply-To: <20140114160755.GC4307@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 01/14/2014 09:03 PM, Lv Zheng wrote:
-> This patchset updates tools/power/acpi folder to integrate its Makefiles
-> with other tools.
+On Tue, Jan 14, 2014 at 8:07 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> On Tue, Jan 07, 2014 at 02:50:35PM -0800, Feng Kan wrote:
+>> Enable X-Gene platform driver for the X-Gene platform. Remove the
+>> use of the mask attribute from the reboot dts node. Add support
+>> for using the ACPI and DTS resource for the reboot driver.
 >
-> Lv Zheng (3):
->    ACPICA: acpidump: Cleanup tools/power/acpi makefiles.
->    ACPICA: acpidump: Enable tools Makefile to include acpi tools.
->    ACPICA: acpidump: Update MAINTAINERS file to include tools folder for
->      ACPI/ACPICA.
+> Why can't you just use the standard ACPI reboot register values in the
+> FADT?
 >
->   MAINTAINERS                                      |    2 +
->   tools/Makefile                                   |   16 ++-
->   tools/power/acpi/Makefile                        |  149 ++++++++++++++++++++--
->   tools/power/acpi/{ => man}/acpidump.8            |    0
->   tools/power/acpi/{ => tools/acpidump}/acpidump.c |    0
->   5 files changed, 152 insertions(+), 15 deletions(-)
->   rename tools/power/acpi/{ => man}/acpidump.8 (100%)
->   rename tools/power/acpi/{ => tools/acpidump}/acpidump.c (100%)
->
+FKAN: I am removing the acpi patch in the next round. Mainly, I don't see a
+way for the arm64 kernel to use those values. EFI in x86 have some runtime
+services that can be triggered to call reset_system, but that code is not
+available yet in arm64.
 
-Is there any work going on to reconcile (or merge or ...) this
-version of acpidump with the version in upstream ACPICA?  The
-sources are very different yet they seem to me to provide more
-or less the same functionality.
-
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+> --
+> Matthew Garrett | mjg59@srcf.ucam.org
