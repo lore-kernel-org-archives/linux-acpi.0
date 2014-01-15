@@ -1,74 +1,176 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH] ACPI / init: Run acpi_early_init() before timekeeping_init()
-Date: Wed, 15 Jan 2014 04:16:59 -0800
-Message-ID: <52D67C3B.4050503@zytor.com>
-References: <1389770748-32698-1-git-send-email-jlee@suse.com>
+From: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] acpi memory hotplug,
+ add parameter to disable memory hotplug [v4]
+Date: Wed, 15 Jan 2014 07:34:44 -0500
+Message-ID: <1389789284-10622-1-git-send-email-prarit@redhat.com>
+References: <alpine.DEB.2.02.1401141642020.3375@chino.kir.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:46868 "EHLO mail.zytor.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751783AbaAOMRv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jan 2014 07:17:51 -0500
-In-Reply-To: <1389770748-32698-1-git-send-email-jlee@suse.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.02.1401141642020.3375-X6Q0R45D7oAcqpCFd4KODRPsWskHk0ljAL8bYrjMMd8@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/kexec/>
+List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kosaki.motohiro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alessandro Zummo <a.zummo@towertech.it>, Matt Fleming <matt@console-pimps.org>, Matthew Garrett <matthew.garrett@nebula.com>
-Cc: Elliott@hp.com, samer.el-haj-mahmoud@hp.com, Oliver Neukum <oneukum@suse.de>, werner@suse.com, trenn@suse.de, JBeulich@suse.com, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, x86@kernel.org, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Borislav Petkov <bp@suse.de>
 
-Rafael, you want to take this one?
+When booting a kexec/kdump kernel on a system that has specific memory hotplug
+regions the boot will fail with warnings like:
 
-On 01/14/2014 11:25 PM, Lee, Chun-Yi wrote:
-> This is a variant patch from Rafael J. Wysocki's
-> ACPI / init: Run acpi_early_init() before efi_enter_virtual_mode()
-> 
-> According to Matt Fleming, if acpi_early_init() was executed before
-> efi_enter_virtual_mode(), the EFI initialization could benefit from
-> it, so Rafael's patch makes that happen.
-> 
-> And, we want accessing ACPI TAD device to set system clock, so move
-> acpi_early_init() before timekeeping_init(). This final position is
-> also before efi_enter_virtual_mode().
-> 
-> v2:
-> Move acpi_early_init() before timekeeping_init() to prepare setting
-> system clock with ACPI TAD.
-> 
-> v1:
-> Rafael J. Wysocki
-> ACPI / init: Run acpi_early_init() before efi_enter_virtual_mode()
-> 
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Matt Fleming <matt@console-pimps.org>
-> Cc: H. Peter Anvin <hpa@zytor.com>
-> Cc: Borislav Petkov <bp@suse.de>
-> Cc: Matthew Garrett <matthew.garrett@nebula.com>
-> Tested-by: Toshi Kani <toshi.kani@hp.com>
-> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
-> ---
->  init/main.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/init/main.c b/init/main.c
-> index febc511..b6d93c8 100644
-> --- a/init/main.c
-> +++ b/init/main.c
-> @@ -565,6 +565,7 @@ asmlinkage void __init start_kernel(void)
->  	init_timers();
->  	hrtimers_init();
->  	softirq_init();
-> +	acpi_early_init();
->  	timekeeping_init();
->  	time_init();
->  	sched_clock_postinit();
-> @@ -641,7 +642,6 @@ asmlinkage void __init start_kernel(void)
->  
->  	check_bugs();
->  
-> -	acpi_early_init(); /* before LAPIC and SMP init */
->  	sfi_init_late();
->  
->  	if (efi_enabled(EFI_RUNTIME_SERVICES)) {
-> 
+[    2.939467] swapper/0: page allocation failure: order:9, mode:0x84d0
+[    2.946564] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
+3.10.0-65.el7.x86_64 #1
+[    2.954532] Hardware name: QCI QSSC-S4R/QSSC-S4R, BIOS
+QSSC-S4R.QCI.01.00.S013.032920111005 03/29/2011
+[    2.964926]  0000000000000000 ffff8800341bd8c8 ffffffff815bcc67
+ffff8800341bd950
+[    2.973224]  ffffffff8113b1a0 ffff880036339b00 0000000000000009
+00000000000084d0
+[    2.981523]  ffff8800341bd950 ffffffff815b87ee 0000000000000000
+0000000000000200
+[    2.989821] Call Trace:
+[    2.992560]  [<ffffffff815bcc67>] dump_stack+0x19/0x1b
+[    2.998300]  [<ffffffff8113b1a0>] warn_alloc_failed+0xf0/0x160
+[    3.004817]  [<ffffffff815b87ee>] ?
+__alloc_pages_direct_compact+0xac/0x196
+[    3.012594]  [<ffffffff8113f14f>] __alloc_pages_nodemask+0x7ff/0xa00
+[    3.019692]  [<ffffffff815b417c>] vmemmap_alloc_block+0x62/0xba
+[    3.026303]  [<ffffffff815b41e9>] vmemmap_alloc_block_buf+0x15/0x3b
+[    3.033302]  [<ffffffff815b1ff6>] vmemmap_populate+0xb4/0x21b
+[    3.039718]  [<ffffffff815b461d>] sparse_mem_map_populate+0x27/0x35
+[    3.046717]  [<ffffffff815b400f>] sparse_add_one_section+0x7a/0x185
+[    3.053720]  [<ffffffff815a1e9f>] __add_pages+0xaf/0x240
+[    3.059656]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
+[    3.065877]  [<ffffffff815a21d9>] add_memory+0xb9/0x1b0
+[    3.071713]  [<ffffffff81333b9c>] acpi_memory_device_add+0x18d/0x26d
+[    3.078813]  [<ffffffff81309a01>] acpi_bus_device_attach+0x7d/0xcd
+[    3.085719]  [<ffffffff8132379d>] acpi_ns_walk_namespace+0xc8/0x17f
+[    3.092716]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
+[    3.100004]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
+[    3.107293]  [<ffffffff81323c8c>] acpi_walk_namespace+0x95/0xc5
+[    3.113904]  [<ffffffff8130a6d6>] acpi_bus_scan+0x8b/0x9d
+[    3.119933]  [<ffffffff81a2019a>] acpi_scan_init+0x63/0x160
+[    3.126153]  [<ffffffff81a1ffb5>] acpi_init+0x25d/0x2a6
+[    3.131987]  [<ffffffff81a1fd58>] ? acpi_sleep_proc_init+0x2a/0x2a
+[    3.138889]  [<ffffffff810020e2>] do_one_initcall+0xe2/0x190
+[    3.145210]  [<ffffffff819e20c4>] kernel_init_freeable+0x17c/0x207
+[    3.152111]  [<ffffffff819e18d0>] ? do_early_param+0x88/0x88
+[    3.158430]  [<ffffffff8159fea0>] ? rest_init+0x80/0x80
+[    3.164264]  [<ffffffff8159feae>] kernel_init+0xe/0x180
+[    3.170097]  [<ffffffff815cca2c>] ret_from_fork+0x7c/0xb0
+[    3.176123]  [<ffffffff8159fea0>] ? rest_init+0x80/0x80
+[    3.181956] Mem-Info:
+[    3.184490] Node 0 DMA per-cpu:
+[    3.188007] CPU    0: hi:    0, btch:   1 usd:   0
+[    3.193353] Node 0 DMA32 per-cpu:
+[    3.197060] CPU    0: hi:   42, btch:   7 usd:   0
+[    3.202410] active_anon:0 inactive_anon:0 isolated_anon:0
+[    3.202410]  active_file:0 inactive_file:0 isolated_file:0
+[    3.202410]  unevictable:0 dirty:0 writeback:0 unstable:0
+[    3.202410]  free:872 slab_reclaimable:13 slab_unreclaimable:1880
+[    3.202410]  mapped:0 shmem:0 pagetables:0 bounce:0
+[    3.202410]  free_cma:0
 
+because the system has run out of memory at boot time.  This occurs
+because of the following sequence in the boot:
+
+Main kernel boots and sets E820 map.  The second kernel is booted with a
+map generated by the kdump service using memmap= and memmap=exactmap.
+These parameters are added to the kernel parameters of the kexec/kdump
+kernel.   The kexec/kdump kernel has limited memory resources so as not
+to severely impact the main kernel.
+
+The system then panics and the kdump/kexec kernel boots (which is a
+completely new kernel boot).  During this boot ACPI is initialized and the
+kernel (as can be seen above) traverses the ACPI namespace and finds an
+entry for a memory device to be hotadded.
+
+ie)
+
+[    3.053720]  [<ffffffff815a1e9f>] __add_pages+0xaf/0x240
+[    3.059656]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
+[    3.065877]  [<ffffffff815a21d9>] add_memory+0xb9/0x1b0
+[    3.071713]  [<ffffffff81333b9c>] acpi_memory_device_add+0x18d/0x26d
+[    3.078813]  [<ffffffff81309a01>] acpi_bus_device_attach+0x7d/0xcd
+[    3.085719]  [<ffffffff8132379d>] acpi_ns_walk_namespace+0xc8/0x17f
+[    3.092716]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
+[    3.100004]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
+[    3.107293]  [<ffffffff81323c8c>] acpi_walk_namespace+0x95/0xc5
+[    3.113904]  [<ffffffff8130a6d6>] acpi_bus_scan+0x8b/0x9d
+[    3.119933]  [<ffffffff81a2019a>] acpi_scan_init+0x63/0x160
+[    3.126153]  [<ffffffff81a1ffb5>] acpi_init+0x25d/0x2a6
+
+At this point the kernel adds page table information and the the kexec/kdump
+kernel runs out of memory.
+
+This can also be reproduced by using the memmap=exactmap and mem=X
+parameters on the main kernel and booting.
+
+This patchset resolves the problem by adding a kernel parameter,
+acpi_no_memhotplug, to disable ACPI memory hotplug.
+
+[v2]: changed acpi_no_memhotplug to bool
+[v3]: cleaned up Documentation/kernel-parameters.txt
+[v4]: add __initdata to acpi_no_memhotplug
+
+Signed-off-by: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: kosaki.motohiro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+---
+ Documentation/kernel-parameters.txt |    3 +++
+ drivers/acpi/acpi_memhotplug.c      |   12 ++++++++++++
+ 2 files changed, 15 insertions(+)
+
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index b9e9bd8..ea93f75 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -343,6 +343,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			no: ACPI OperationRegions are not marked as reserved,
+ 			no further checks are performed.
+ 
++	acpi_no_memhotplug [ACPI] Disable memory hotplug.  Useful for kexec
++			   and kdump kernels.
++
+ 	add_efi_memmap	[EFI; X86] Include EFI memory map in
+ 			kernel's map of available physical RAM.
+ 
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 551dad7..383cd80 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -361,7 +361,19 @@ static void acpi_memory_device_remove(struct acpi_device *device)
+ 	acpi_memory_device_free(mem_device);
+ }
+ 
++static bool __initdata acpi_no_memhotplug;
++
+ void __init acpi_memory_hotplug_init(void)
+ {
++	if (acpi_no_memhotplug)
++		return;
++
+ 	acpi_scan_add_handler_with_hotplug(&memory_device_handler, "memory");
+ }
++
++static int __init disable_acpi_memory_hotplug(char *str)
++{
++	acpi_no_memhotplug = true;
++	return 1;
++}
++__setup("acpi_no_memhotplug", disable_acpi_memory_hotplug);
+-- 
+1.7.9.3
