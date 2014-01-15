@@ -1,101 +1,55 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 3/4] fix module autoloading for ACPI enumerated devices
-Date: Wed, 15 Jan 2014 17:08:34 +0200
-Message-ID: <20140115150834.GX2494@intel.com>
-References: <1389689198-2641-1-git-send-email-rui.zhang@intel.com>
- <1389689198-2641-4-git-send-email-rui.zhang@intel.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH V2] ACPI/Battery: Add a _BIX quirk for NEC LZ750/LS
+Date: Wed, 15 Jan 2014 23:06:39 +0800
+Message-ID: <52D6A3FF.8070100@intel.com>
+References: <1389019837-13619-1-git-send-email-tianyu.lan@intel.com> <5255063.SeYbBZqxVQ@vostro.rjw.lan> <20140114212406.GA25438@srcf.ucam.org> <4100200.O09E65sAKi@vostro.rjw.lan> <52D69E57.5020208@intel.com> <20140115144720.GA23218@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:27208 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:44282 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752439AbaAOPCW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jan 2014 10:02:22 -0500
-Content-Disposition: inline
-In-Reply-To: <1389689198-2641-4-git-send-email-rui.zhang@intel.com>
+	id S1751037AbaAOPGp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jan 2014 10:06:45 -0500
+In-Reply-To: <20140115144720.GA23218@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, wsa@the-dreams.de, broonie@linaro.org, gregkh@linuxfoundation.org, rafael.j.wysocki@intel.com, grant.likely@linaro.org, rob.herring@calxeda.com, jarkko.nikula@linux.intel.com
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, fcr@adinet.com.uy, l@dorileo.org, "Zheng, Lv" <lv.zheng@intel.com>, robert.moore@intel.com
 
-On Tue, Jan 14, 2014 at 04:46:37PM +0800, Zhang Rui wrote:
-> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> index 3a94b79..2f4aea2 100644
-> --- a/drivers/base/platform.c
-> +++ b/drivers/base/platform.c
-> @@ -677,7 +677,13 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *a,
->  			     char *buf)
->  {
->  	struct platform_device	*pdev = to_platform_device(dev);
-> -	int len = snprintf(buf, PAGE_SIZE, "platform:%s\n", pdev->name);
-> +	int len;
-> +
-> +	len = acpi_device_modalias(dev, buf, PAGE_SIZE -1);
+On 01/15/2014 10:47 PM, Matthew Garrett wrote:
+> On Wed, Jan 15, 2014 at 10:42:31PM +0800, Lan Tianyu wrote:
+>> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+>> index fbf1ace..e98fa83 100644
+>> --- a/drivers/acpi/battery.c
+>> +++ b/drivers/acpi/battery.c
+>> @@ -770,7 +770,7 @@ static int acpi_battery_add(struct acpi_device *device)
+>>          device->driver_data = battery;
+>>          mutex_init(&battery->lock);
+>>          mutex_init(&battery->sysfs_lock);
+>> -       if (acpi_has_method(battery->device->handle, "_BIX"))
+>> +       if (acpi_evaluate_object(device->handle, "_BIX", NULL, &buffer);)
+>>                  set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
+>
+> Doesn't acpi_evaluate_object() return 0 on success? I think:
+>
+> if (ACPI_SUCESS(acpi_evaluate_object(device->handle, "_BIX", NULL,
+> &buffer))
+>
 
-Here you have PAGE_SIZE -1...
+Yes, Sorry for oops.
 
-> +	if (len != -ENODEV)
-> +		return len;
-> +
-> +	len = snprintf(buf, PAGE_SIZE, "platform:%s\n", pdev->name);
->  
->  	return (len >= PAGE_SIZE) ? (PAGE_SIZE - 1) : len;
->  }
-> @@ -699,6 +705,10 @@ static int platform_uevent(struct device *dev, struct kobj_uevent_env *env)
->  	if (rc != -ENODEV)
->  		return rc;
->  
-> +	rc = acpi_device_uevent_modalias(dev, env);
-> +	if (rc != -ENODEV)
-> +		return rc;
-> +
->  	add_uevent_var(env, "MODALIAS=%s%s", PLATFORM_MODULE_PREFIX,
->  			pdev->name);
->  	return 0;
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index d74c0b3..c4c5588 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -104,6 +104,11 @@ static int i2c_device_match(struct device *dev, struct device_driver *drv)
->  static int i2c_device_uevent(struct device *dev, struct kobj_uevent_env *env)
->  {
->  	struct i2c_client	*client = to_i2c_client(dev);
-> +	int rc;
-> +
-> +	rc = acpi_device_uevent_modalias(dev, env);
-> +	if (rc != -ENODEV)
-> +		return rc;
->  
->  	if (add_uevent_var(env, "MODALIAS=%s%s",
->  			   I2C_MODULE_PREFIX, client->name))
-> @@ -409,6 +414,12 @@ static ssize_t
->  show_modalias(struct device *dev, struct device_attribute *attr, char *buf)
->  {
->  	struct i2c_client *client = to_i2c_client(dev);
-> +	int len;
-> +
-> +	len = acpi_device_modalias(dev, buf, PAGE_SIZE -1);
+> But maybe we should check for existence first and give an FW_BUG message
+> to indicate an invalid _BIX?
 
-and here
+Yes, this is a good idea.
 
-> +	if (len != -ENODEV)
-> +		return len;
-> +
->  	return sprintf(buf, "%s%s\n", I2C_MODULE_PREFIX, client->name);
->  }
->  
-> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-> index 349ebba..ab70eda 100644
-> --- a/drivers/spi/spi.c
-> +++ b/drivers/spi/spi.c
-> @@ -58,6 +58,11 @@ static ssize_t
->  modalias_show(struct device *dev, struct device_attribute *a, char *buf)
->  {
->  	const struct spi_device	*spi = to_spi_device(dev);
-> +	int len;
-> +
-> +	len = acpi_device_modalias(dev, buf, PAGE_SIZE);
+Another point, the acpi_evaluate_object should return different error 
+code for these two cases(no _BIX and wrong size.). I wonder whether we 
+can use the error code to determine it belong which case?
+>
 
-but here it is PAGE_SIZE.
 
-Perhaps it should be PAGE_SIZE in all sites?
+-- 
+Best Regards
+Tianyu Lan
