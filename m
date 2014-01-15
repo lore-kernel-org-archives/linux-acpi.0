@@ -1,55 +1,48 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH V2] ACPI/Battery: Add a _BIX quirk for NEC LZ750/LS
-Date: Wed, 15 Jan 2014 23:06:39 +0800
-Message-ID: <52D6A3FF.8070100@intel.com>
-References: <1389019837-13619-1-git-send-email-tianyu.lan@intel.com> <5255063.SeYbBZqxVQ@vostro.rjw.lan> <20140114212406.GA25438@srcf.ucam.org> <4100200.O09E65sAKi@vostro.rjw.lan> <52D69E57.5020208@intel.com> <20140115144720.GA23218@srcf.ucam.org>
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH] acpi memory hotplug, add parameter to disable memory
+ hotplug [v4]
+Date: Wed, 15 Jan 2014 11:39:53 -0500
+Message-ID: <20140115163953.GB3180@redhat.com>
+References: <alpine.DEB.2.02.1401141642020.3375@chino.kir.corp.google.com>
+ <1389789284-10622-1-git-send-email-prarit@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44282 "EHLO mga01.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:26962 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751037AbaAOPGp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jan 2014 10:06:45 -0500
-In-Reply-To: <20140115144720.GA23218@srcf.ucam.org>
+	id S1752300AbaAOQkW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jan 2014 11:40:22 -0500
+Content-Disposition: inline
+In-Reply-To: <1389789284-10622-1-git-send-email-prarit@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, fcr@adinet.com.uy, l@dorileo.org, "Zheng, Lv" <lv.zheng@intel.com>, robert.moore@intel.com
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, kosaki.motohiro@gmail.com, dyoung@redhat.com, linux-acpi@vger.kernel.org, kexec@lists.infradead.org
 
-On 01/15/2014 10:47 PM, Matthew Garrett wrote:
-> On Wed, Jan 15, 2014 at 10:42:31PM +0800, Lan Tianyu wrote:
->> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
->> index fbf1ace..e98fa83 100644
->> --- a/drivers/acpi/battery.c
->> +++ b/drivers/acpi/battery.c
->> @@ -770,7 +770,7 @@ static int acpi_battery_add(struct acpi_device *device)
->>          device->driver_data = battery;
->>          mutex_init(&battery->lock);
->>          mutex_init(&battery->sysfs_lock);
->> -       if (acpi_has_method(battery->device->handle, "_BIX"))
->> +       if (acpi_evaluate_object(device->handle, "_BIX", NULL, &buffer);)
->>                  set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
->
-> Doesn't acpi_evaluate_object() return 0 on success? I think:
->
-> if (ACPI_SUCESS(acpi_evaluate_object(device->handle, "_BIX", NULL,
-> &buffer))
->
+On Wed, Jan 15, 2014 at 07:34:44AM -0500, Prarit Bhargava wrote:
 
-Yes, Sorry for oops.
+[..]
+> This patchset resolves the problem by adding a kernel parameter,
+> acpi_no_memhotplug, to disable ACPI memory hotplug.
+> 
+> [v2]: changed acpi_no_memhotplug to bool
+> [v3]: cleaned up Documentation/kernel-parameters.txt
+> [v4]: add __initdata to acpi_no_memhotplug
+> 
+> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+> Cc: Vivek Goyal <vgoyal@redhat.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: kosaki.motohiro@gmail.com
+> Cc: dyoung@redhat.com
+> Cc: linux-acpi@vger.kernel.org
+> Cc: kexec@lists.infradead.org
 
-> But maybe we should check for existence first and give an FW_BUG message
-> to indicate an invalid _BIX?
+Hi Prarit,
 
-Yes, this is a good idea.
+Capture all the acks from V3 here so that people don't have to ack 
+again. This is a minor change as compared to V3. 
 
-Another point, the acpi_evaluate_object should return different error 
-code for these two cases(no _BIX and wrong size.). I wonder whether we 
-can use the error code to determine it belong which case?
->
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
 
-
--- 
-Best Regards
-Tianyu Lan
+Vivek
