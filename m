@@ -1,184 +1,131 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi memory hotplug, add parameter to disable memory hotplug [v4]
-Date: Wed, 15 Jan 2014 14:47:49 +0100
-Message-ID: <1437311.bF4k07FdsN@vostro.rjw.lan>
-References: <alpine.DEB.2.02.1401141642020.3375@chino.kir.corp.google.com> <1389789284-10622-1-git-send-email-prarit@redhat.com>
+Subject: [Update][RFC][PATCH 3/3] ACPI / PM: Avoid resuming devices in ACPI PM domain during system suspend
+Date: Wed, 15 Jan 2014 14:57:03 +0100
+Message-ID: <8541144.96Rt7mpIsi@vostro.rjw.lan>
+References: <5420830.W4laSGaAU9@vostro.rjw.lan> <2417673.F2yu8qohk7@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49534 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:60628 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751744AbaAONdv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2014 08:33:51 -0500
-In-Reply-To: <1389789284-10622-1-git-send-email-prarit@redhat.com>
+	with SMTP id S1751760AbaAONnE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2014 08:43:04 -0500
+In-Reply-To: <2417673.F2yu8qohk7@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Prarit Bhargava <prarit@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Vivek Goyal <vgoyal@redhat.com>, Len Brown <lenb@kernel.org>, kosaki.motohiro@gmail.com, dyoung@redhat.com, linux-acpi@vger.kernel.org, kexec@lists.infradead.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Wednesday, January 15, 2014 07:34:44 AM Prarit Bhargava wrote:
-> When booting a kexec/kdump kernel on a system that has specific memory hotplug
-> regions the boot will fail with warnings like:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / PM: Avoid resuming devices in ACPI PM domain during system suspend
 
-Next time, can you please remove timestamps from dmesg output in
-patch changelogs, unless those timestamps are relevant for the bug
-description?
+Rework the ACPI PM domain's PM callbacks to avoid resuming devices
+during system suspend in order to modify their wakeup settings if
+that isn't necessary.
 
-> [    2.939467] swapper/0: page allocation failure: order:9, mode:0x84d0
-> [    2.946564] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
-> 3.10.0-65.el7.x86_64 #1
-> [    2.954532] Hardware name: QCI QSSC-S4R/QSSC-S4R, BIOS
-> QSSC-S4R.QCI.01.00.S013.032920111005 03/29/2011
-> [    2.964926]  0000000000000000 ffff8800341bd8c8 ffffffff815bcc67
-> ffff8800341bd950
-> [    2.973224]  ffffffff8113b1a0 ffff880036339b00 0000000000000009
-> 00000000000084d0
-> [    2.981523]  ffff8800341bd950 ffffffff815b87ee 0000000000000000
-> 0000000000000200
-> [    2.989821] Call Trace:
-> [    2.992560]  [<ffffffff815bcc67>] dump_stack+0x19/0x1b
-> [    2.998300]  [<ffffffff8113b1a0>] warn_alloc_failed+0xf0/0x160
-> [    3.004817]  [<ffffffff815b87ee>] ?
-> __alloc_pages_direct_compact+0xac/0x196
-> [    3.012594]  [<ffffffff8113f14f>] __alloc_pages_nodemask+0x7ff/0xa00
-> [    3.019692]  [<ffffffff815b417c>] vmemmap_alloc_block+0x62/0xba
-> [    3.026303]  [<ffffffff815b41e9>] vmemmap_alloc_block_buf+0x15/0x3b
-> [    3.033302]  [<ffffffff815b1ff6>] vmemmap_populate+0xb4/0x21b
-> [    3.039718]  [<ffffffff815b461d>] sparse_mem_map_populate+0x27/0x35
-> [    3.046717]  [<ffffffff815b400f>] sparse_add_one_section+0x7a/0x185
-> [    3.053720]  [<ffffffff815a1e9f>] __add_pages+0xaf/0x240
-> [    3.059656]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
-> [    3.065877]  [<ffffffff815a21d9>] add_memory+0xb9/0x1b0
-> [    3.071713]  [<ffffffff81333b9c>] acpi_memory_device_add+0x18d/0x26d
-> [    3.078813]  [<ffffffff81309a01>] acpi_bus_device_attach+0x7d/0xcd
-> [    3.085719]  [<ffffffff8132379d>] acpi_ns_walk_namespace+0xc8/0x17f
-> [    3.092716]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-> [    3.100004]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-> [    3.107293]  [<ffffffff81323c8c>] acpi_walk_namespace+0x95/0xc5
-> [    3.113904]  [<ffffffff8130a6d6>] acpi_bus_scan+0x8b/0x9d
-> [    3.119933]  [<ffffffff81a2019a>] acpi_scan_init+0x63/0x160
-> [    3.126153]  [<ffffffff81a1ffb5>] acpi_init+0x25d/0x2a6
-> [    3.131987]  [<ffffffff81a1fd58>] ? acpi_sleep_proc_init+0x2a/0x2a
-> [    3.138889]  [<ffffffff810020e2>] do_one_initcall+0xe2/0x190
-> [    3.145210]  [<ffffffff819e20c4>] kernel_init_freeable+0x17c/0x207
-> [    3.152111]  [<ffffffff819e18d0>] ? do_early_param+0x88/0x88
-> [    3.158430]  [<ffffffff8159fea0>] ? rest_init+0x80/0x80
-> [    3.164264]  [<ffffffff8159feae>] kernel_init+0xe/0x180
-> [    3.170097]  [<ffffffff815cca2c>] ret_from_fork+0x7c/0xb0
-> [    3.176123]  [<ffffffff8159fea0>] ? rest_init+0x80/0x80
-> [    3.181956] Mem-Info:
-> [    3.184490] Node 0 DMA per-cpu:
-> [    3.188007] CPU    0: hi:    0, btch:   1 usd:   0
-> [    3.193353] Node 0 DMA32 per-cpu:
-> [    3.197060] CPU    0: hi:   42, btch:   7 usd:   0
-> [    3.202410] active_anon:0 inactive_anon:0 isolated_anon:0
-> [    3.202410]  active_file:0 inactive_file:0 isolated_file:0
-> [    3.202410]  unevictable:0 dirty:0 writeback:0 unstable:0
-> [    3.202410]  free:872 slab_reclaimable:13 slab_unreclaimable:1880
-> [    3.202410]  mapped:0 shmem:0 pagetables:0 bounce:0
-> [    3.202410]  free_cma:0
-> 
-> because the system has run out of memory at boot time.  This occurs
-> because of the following sequence in the boot:
-> 
-> Main kernel boots and sets E820 map.  The second kernel is booted with a
-> map generated by the kdump service using memmap= and memmap=exactmap.
-> These parameters are added to the kernel parameters of the kexec/kdump
-> kernel.   The kexec/kdump kernel has limited memory resources so as not
-> to severely impact the main kernel.
-> 
-> The system then panics and the kdump/kexec kernel boots (which is a
-> completely new kernel boot).  During this boot ACPI is initialized and the
-> kernel (as can be seen above) traverses the ACPI namespace and finds an
-> entry for a memory device to be hotadded.
-> 
-> ie)
-> 
-> [    3.053720]  [<ffffffff815a1e9f>] __add_pages+0xaf/0x240
-> [    3.059656]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
-> [    3.065877]  [<ffffffff815a21d9>] add_memory+0xb9/0x1b0
-> [    3.071713]  [<ffffffff81333b9c>] acpi_memory_device_add+0x18d/0x26d
-> [    3.078813]  [<ffffffff81309a01>] acpi_bus_device_attach+0x7d/0xcd
-> [    3.085719]  [<ffffffff8132379d>] acpi_ns_walk_namespace+0xc8/0x17f
-> [    3.092716]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-> [    3.100004]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-> [    3.107293]  [<ffffffff81323c8c>] acpi_walk_namespace+0x95/0xc5
-> [    3.113904]  [<ffffffff8130a6d6>] acpi_bus_scan+0x8b/0x9d
-> [    3.119933]  [<ffffffff81a2019a>] acpi_scan_init+0x63/0x160
-> [    3.126153]  [<ffffffff81a1ffb5>] acpi_init+0x25d/0x2a6
-> 
-> At this point the kernel adds page table information and the the kexec/kdump
-> kernel runs out of memory.
-> 
-> This can also be reproduced by using the memmap=exactmap and mem=X
-> parameters on the main kernel and booting.
-> 
-> This patchset resolves the problem by adding a kernel parameter,
-> acpi_no_memhotplug, to disable ACPI memory hotplug.
-> 
-> [v2]: changed acpi_no_memhotplug to bool
-> [v3]: cleaned up Documentation/kernel-parameters.txt
-> [v4]: add __initdata to acpi_no_memhotplug
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-If that's the only difference, I guess the previous ACKs etc. still apply?
+Changes from the previous version:
 
+ - I don't think it is really necessary to clear power.no_suspend from
+   acpi_dev_runtime_resume(), because __device_suspend() will run for
+   children before it runs for the parent, so it is sufficient to clear
+   power.no_suspend for the parent from there.
+
+   At the same time, since the parent can only be runtime-suspended if the
+   children are runtime-suspended, the children with power.no_suspend clear
+   have to be runtime-resumed before __device_suspend() is executed for
+   them and that will trigger runtime resume of the parent.
+
+ - To avoid problems related to possible differences between runtime resume
+   and system resume driver callbacks, use pm_runtime_resume() to resume
+   devices whose power.no_suspend was set during the suspend we're resuming
+   from.
+
+Thanks,
 Rafael
 
+---
+ drivers/acpi/device_pm.c |   45 ++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 40 insertions(+), 5 deletions(-)
 
-> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-> Cc: Vivek Goyal <vgoyal@redhat.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: kosaki.motohiro@gmail.com
-> Cc: dyoung@redhat.com
-> Cc: linux-acpi@vger.kernel.org
-> Cc: kexec@lists.infradead.org
-> ---
->  Documentation/kernel-parameters.txt |    3 +++
->  drivers/acpi/acpi_memhotplug.c      |   12 ++++++++++++
->  2 files changed, 15 insertions(+)
-> 
-> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-> index b9e9bd8..ea93f75 100644
-> --- a/Documentation/kernel-parameters.txt
-> +++ b/Documentation/kernel-parameters.txt
-> @@ -343,6 +343,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
->  			no: ACPI OperationRegions are not marked as reserved,
->  			no further checks are performed.
->  
-> +	acpi_no_memhotplug [ACPI] Disable memory hotplug.  Useful for kexec
-> +			   and kdump kernels.
-> +
->  	add_efi_memmap	[EFI; X86] Include EFI memory map in
->  			kernel's map of available physical RAM.
->  
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index 551dad7..383cd80 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -361,7 +361,19 @@ static void acpi_memory_device_remove(struct acpi_device *device)
->  	acpi_memory_device_free(mem_device);
->  }
->  
-> +static bool __initdata acpi_no_memhotplug;
-> +
->  void __init acpi_memory_hotplug_init(void)
->  {
-> +	if (acpi_no_memhotplug)
-> +		return;
-> +
->  	acpi_scan_add_handler_with_hotplug(&memory_device_handler, "memory");
->  }
-> +
-> +static int __init disable_acpi_memory_hotplug(char *str)
-> +{
-> +	acpi_no_memhotplug = true;
-> +	return 1;
-> +}
-> +__setup("acpi_no_memhotplug", disable_acpi_memory_hotplug);
-> 
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -912,12 +912,28 @@ EXPORT_SYMBOL_GPL(acpi_dev_resume_early)
+  */
+ int acpi_subsys_prepare(struct device *dev)
+ {
++	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
++	u32 target_state;
++	int error, state;
++
++	if (!adev || !pm_runtime_enabled_and_suspended(dev))
++		return pm_generic_prepare(dev);
++
++	target_state = acpi_target_system_state();
++	error = acpi_dev_pm_get_state(dev, adev, target_state, NULL, &state);
++	if (error || state != adev->power.state
++	    || device_may_wakeup(dev) != !!adev->wakeup.prepare_count) {
++		pm_runtime_resume(dev);
++		return pm_generic_prepare(dev);
++	}
+ 	/*
+-	 * Follow PCI and resume devices suspended at run time before running
+-	 * their system suspend callbacks.
++	 * If this is a wakeup device, wakeup power has been enabled already for
++	 * it during the preceding runtime suspend.  Caveat: "sleep state" is
++	 * one of the _DSW arguments, but that shouldn't matter for the devices
++	 * using acpi_general_pm_domain.
+ 	 */
+-	pm_runtime_resume(dev);
+-	return pm_generic_prepare(dev);
++	error =  pm_generic_prepare(dev);
++	return error ? error : 1;
+ }
+ EXPORT_SYMBOL_GPL(acpi_subsys_prepare);
+ 
+@@ -945,10 +961,27 @@ EXPORT_SYMBOL_GPL(acpi_subsys_suspend_la
+  */
+ int acpi_subsys_resume_early(struct device *dev)
+ {
+-	int ret = acpi_dev_resume_early(dev);
++	int ret;
++
++	if (dev->power.no_suspend)
++		return 0;
++
++	ret = acpi_dev_resume_early(dev);
+ 	return ret ? ret : pm_generic_resume_early(dev);
+ }
+ EXPORT_SYMBOL_GPL(acpi_subsys_resume_early);
++
++/**
++ * acpi_subsys_resume - Resume device using ACPI (if not resumed before).
++ * @dev: Device to resume.
++ *
++ * If power.no_suspend is set for @dev, run pm_runtime_resume() for it.
++ */
++int acpi_subsys_resume(struct device *dev)
++{
++	return dev->power.no_suspend ? pm_runtime_resume(dev) : 0;
++}
++EXPORT_SYMBOL_GPL(acpi_subsys_resume);
+ #endif /* CONFIG_PM_SLEEP */
+ 
+ static struct dev_pm_domain acpi_general_pm_domain = {
+@@ -961,8 +994,10 @@ static struct dev_pm_domain acpi_general
+ 		.prepare = acpi_subsys_prepare,
+ 		.suspend_late = acpi_subsys_suspend_late,
+ 		.resume_early = acpi_subsys_resume_early,
++		.resume = acpi_subsys_resume,
+ 		.poweroff_late = acpi_subsys_suspend_late,
+ 		.restore_early = acpi_subsys_resume_early,
++		.restore = acpi_subsys_resume,
+ #endif
+ 	},
+ };
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
