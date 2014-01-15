@@ -1,46 +1,31 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH V2] ACPI/Battery: Add a _BIX quirk for NEC LZ750/LS
-Date: Wed, 15 Jan 2014 14:47:21 +0000
-Message-ID: <20140115144720.GA23218@srcf.ucam.org>
-References: <1389019837-13619-1-git-send-email-tianyu.lan@intel.com>
- <5255063.SeYbBZqxVQ@vostro.rjw.lan>
- <20140114212406.GA25438@srcf.ucam.org>
- <4100200.O09E65sAKi@vostro.rjw.lan>
- <52D69E57.5020208@intel.com>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH 1/4] ACPI: fix create_modalias() return value handling
+Date: Wed, 15 Jan 2014 17:02:45 +0200
+Message-ID: <20140115150245.GW2494@intel.com>
+References: <1389689198-2641-1-git-send-email-rui.zhang@intel.com>
+ <1389689198-2641-2-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:49470 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751760AbaAOOrc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2014 09:47:32 -0500
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <52D69E57.5020208@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1389689198-2641-2-git-send-email-rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, fcr@adinet.com.uy, l@dorileo.org, "Zheng, Lv" <lv.zheng@intel.com>, robert.moore@intel.com
 
-On Wed, Jan 15, 2014 at 10:42:31PM +0800, Lan Tianyu wrote:
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index fbf1ace..e98fa83 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -770,7 +770,7 @@ static int acpi_battery_add(struct acpi_device *device)
->         device->driver_data = battery;
->         mutex_init(&battery->lock);
->         mutex_init(&battery->sysfs_lock);
-> -       if (acpi_has_method(battery->device->handle, "_BIX"))
-> +       if (acpi_evaluate_object(device->handle, "_BIX", NULL, &buffer);)
->                 set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
+On Tue, Jan 14, 2014 at 04:46:35PM +0800, Zhang Rui wrote:
+> Currently, create_modalias() handles the output truncated case in
+> an improper way (return -EINVAL).
+> Plus, acpi_device_uevent() and acpi_device_modalias_show() do
+> improper check for the create_modalias() return value as well.
+> 
+> This patch fixes create_modalias() to
+> return -EINVAL if there is an output error,
+> return -ENOMEM if the output is truncated,
+> and also fixes both acpi_device_uevent() and acpi_device_modalias_show()
+> to do proper return value check.
+> 
+> Signed-off-by: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Doesn't acpi_evaluate_object() return 0 on success? I think:
-
-if (ACPI_SUCESS(acpi_evaluate_object(device->handle, "_BIX", NULL, 
-&buffer))
-
-But maybe we should check for existence first and give an FW_BUG message 
-to indicate an invalid _BIX?
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Reviewed-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
