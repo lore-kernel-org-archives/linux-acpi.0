@@ -1,167 +1,58 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [RFC][PATCH 1/3] PM / sleep: Flag to avoid executing suspend callbacks for devices
-Date: Wed, 15 Jan 2014 00:13:53 +0100
-Message-ID: <2057014.FtPLgvpVX8@vostro.rjw.lan>
-References: <5420830.W4laSGaAU9@vostro.rjw.lan>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH] acpi memory hotplug, add parameter to disable memory
+ hotplug [v3]
+Date: Tue, 14 Jan 2014 16:42:24 -0800 (PST)
+Message-ID: <alpine.DEB.2.02.1401141642020.3375@chino.kir.corp.google.com>
+References: <1389727273-27817-1-git-send-email-prarit@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5420830.W4laSGaAU9@vostro.rjw.lan>
+In-Reply-To: <1389727273-27817-1-git-send-email-prarit@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Vivek Goyal <vgoyal@redhat.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, kosaki.motohiro@gmail.com, dyoung@redhat.com, toshi.kani@hp.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, kexec@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Tue, 14 Jan 2014, Prarit Bhargava wrote:
 
-Currently, some subsystems (e.g. PCI and the ACPI PM domain) have to
-resume all runtime-suspended devices during system suspend, mostly
-because those devices may need to be reprogrammed due to different
-wakeup settings for system sleep and runtime PM.  However, at least
-in some cases that isn't really necessary, because the wakeup
-settings aren't really different.
+> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+> index b9e9bd8..ea93f75 100644
+> --- a/Documentation/kernel-parameters.txt
+> +++ b/Documentation/kernel-parameters.txt
+> @@ -343,6 +343,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+>  			no: ACPI OperationRegions are not marked as reserved,
+>  			no further checks are performed.
+>  
+> +	acpi_no_memhotplug [ACPI] Disable memory hotplug.  Useful for kexec
+> +			   and kdump kernels.
+> +
+>  	add_efi_memmap	[EFI; X86] Include EFI memory map in
+>  			kernel's map of available physical RAM.
+>  
+> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> index 551dad7..4a0fa94 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -361,7 +361,19 @@ static void acpi_memory_device_remove(struct acpi_device *device)
+>  	acpi_memory_device_free(mem_device);
+>  }
+>  
+> +static bool acpi_no_memhotplug;
+> +
 
-The idea here is that subsystems should know whether or not it is
-necessary to reprogram a given device during system suspend and they
-should be able to tell the PM core about that.  For this reason,
-modify the PM core so that if the .prepare() callback returns a
-positive value for certain device, the core will set a new
-power.no_suspend flag for it.  Then, if that flag is set, the core
-will skip all of the subsequent suspend callbacks for that device.
+I think this should be annotated with __initdata.
 
-However, since parents may need to be resumed so that their children
-can be reprogrammed, make the PM core clear power.no_suspend for
-devices that don't have power.ignore_children set and whose
-children don't have power.no_suspend set.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/base/power/main.c |   38 ++++++++++++++++++++++++++------------
- include/linux/pm.h        |    1 +
- 2 files changed, 27 insertions(+), 12 deletions(-)
-
-Index: linux-pm/drivers/base/power/main.c
-===================================================================
---- linux-pm.orig/drivers/base/power/main.c
-+++ linux-pm/drivers/base/power/main.c
-@@ -918,7 +918,7 @@ static int device_suspend_noirq(struct d
- 	pm_callback_t callback = NULL;
- 	char *info = NULL;
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || dev->power.no_suspend)
- 		return 0;
- 
- 	if (dev->pm_domain) {
-@@ -1006,7 +1006,7 @@ static int device_suspend_late(struct de
- 
- 	__pm_runtime_disable(dev, false);
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || dev->power.no_suspend)
- 		return 0;
- 
- 	if (dev->pm_domain) {
-@@ -1143,8 +1143,10 @@ static int __device_suspend(struct devic
- 	 * for it, this is equivalent to the device signaling wakeup, so the
- 	 * system suspend operation should be aborted.
- 	 */
--	if (pm_runtime_barrier(dev) && device_may_wakeup(dev))
-+	if (pm_runtime_barrier(dev) && device_may_wakeup(dev)) {
- 		pm_wakeup_event(dev, 0);
-+		dev->power.no_suspend = false;
-+	}
- 
- 	if (pm_wakeup_pending()) {
- 		async_error = -EBUSY;
-@@ -1157,6 +1159,9 @@ static int __device_suspend(struct devic
- 	dpm_watchdog_set(&wd, dev);
- 	device_lock(dev);
- 
-+	if (dev->power.no_suspend)
-+		goto End;
-+
- 	if (dev->pm_domain) {
- 		info = "power domain ";
- 		callback = pm_op(&dev->pm_domain->ops, state);
-@@ -1205,9 +1210,13 @@ static int __device_suspend(struct devic
-  End:
- 	if (!error) {
- 		dev->power.is_suspended = true;
--		if (dev->power.wakeup_path
--		    && dev->parent && !dev->parent->power.ignore_children)
--			dev->parent->power.wakeup_path = true;
-+		if (dev->parent && !dev->parent->power.ignore_children) {
-+			if (dev->power.wakeup_path)
-+				dev->parent->power.wakeup_path = true;
-+
-+			if (!dev->power.no_suspend)
-+				dev->parent->power.no_suspend = false;
-+		}
- 	}
- 
- 	device_unlock(dev);
-@@ -1307,7 +1316,7 @@ static int device_prepare(struct device
- {
- 	int (*callback)(struct device *) = NULL;
- 	char *info = NULL;
--	int error = 0;
-+	int ret = 0;
- 
- 	if (dev->power.syscore)
- 		return 0;
-@@ -1323,6 +1332,7 @@ static int device_prepare(struct device
- 	device_lock(dev);
- 
- 	dev->power.wakeup_path = device_may_wakeup(dev);
-+	dev->power.no_suspend = false;
- 
- 	if (dev->pm_domain) {
- 		info = "preparing power domain ";
-@@ -1344,16 +1354,20 @@ static int device_prepare(struct device
- 	}
- 
- 	if (callback) {
--		error = callback(dev);
--		suspend_report_result(callback, error);
-+		ret = callback(dev);
-+		suspend_report_result(callback, ret);
- 	}
- 
- 	device_unlock(dev);
- 
--	if (error)
-+	if (ret < 0) {
- 		pm_runtime_put(dev);
-+	} else if (ret > 0) {
-+		dev->power.no_suspend = true;
-+		ret = 0;
-+	}
- 
--	return error;
-+	return ret;
- }
- 
- /**
-@@ -1422,7 +1436,7 @@ EXPORT_SYMBOL_GPL(dpm_suspend_start);
- 
- void __suspend_report_result(const char *function, void *fn, int ret)
- {
--	if (ret)
-+	if (ret < 0)
- 		printk(KERN_ERR "%s(): %pF returns %d\n", function, fn, ret);
- }
- EXPORT_SYMBOL_GPL(__suspend_report_result);
-Index: linux-pm/include/linux/pm.h
-===================================================================
---- linux-pm.orig/include/linux/pm.h
-+++ linux-pm/include/linux/pm.h
-@@ -544,6 +544,7 @@ struct dev_pm_info {
- 	bool			is_suspended:1;	/* Ditto */
- 	bool			ignore_children:1;
- 	bool			early_init:1;	/* Owned by the PM core */
-+	bool			no_suspend:1;
- 	spinlock_t		lock;
- #ifdef CONFIG_PM_SLEEP
- 	struct list_head	entry;
+>  void __init acpi_memory_hotplug_init(void)
+>  {
+> +	if (acpi_no_memhotplug)
+> +		return;
+> +
+>  	acpi_scan_add_handler_with_hotplug(&memory_device_handler, "memory");
+>  }
+> +
+> +static int __init disable_acpi_memory_hotplug(char *str)
+> +{
+> +	acpi_no_memhotplug = true;
+> +	return 1;
+> +}
+> +__setup("acpi_no_memhotplug", disable_acpi_memory_hotplug);
