@@ -1,131 +1,92 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [Update][RFC][PATCH 3/3] ACPI / PM: Avoid resuming devices in ACPI PM domain during system suspend
-Date: Wed, 15 Jan 2014 14:57:03 +0100
-Message-ID: <8541144.96Rt7mpIsi@vostro.rjw.lan>
-References: <5420830.W4laSGaAU9@vostro.rjw.lan> <2417673.F2yu8qohk7@vostro.rjw.lan>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 4/4] OF: introduce OF style 'modalias' support for
+ platform bus.
+Date: Wed, 15 Jan 2014 07:45:18 -0600
+Message-ID: <CAL_JsqJFRQ+27N_9AwZXpx4V=g8HKn84WdVKtQ_Br_8SQTXY7g@mail.gmail.com>
+References: <1389689198-2641-1-git-send-email-rui.zhang@intel.com>
+	<1389689198-2641-5-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60628 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751760AbaAONnE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2014 08:43:04 -0500
-In-Reply-To: <2417673.F2yu8qohk7@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1389689198-2641-5-git-send-email-rui.zhang@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, wsa@the-dreams.de, Mark Brown <broonie@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, rafael.j.wysocki@intel.com, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, jarkko.nikula@linux.intel.com, mika.westerberg@linux.intel.com, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / PM: Avoid resuming devices in ACPI PM domain during system suspend
+On Tue, Jan 14, 2014 at 2:46 AM, Zhang Rui <rui.zhang@intel.com> wrote:
+> Fix a problem that, the platform bus supports the OF style modalias
+> in .uevent() call, but not in its device 'modalias' sysfs attribute.
+>
+> cc: devicetree@vger.kernel.org
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
-Rework the ACPI PM domain's PM callbacks to avoid resuming devices
-during system suspend in order to modify their wakeup settings if
-that isn't necessary.
+Acked-by: Rob Herring <robh@kernel.org>
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+As there doesn't appear any dependency with the rest of this series, I
+can take this.
 
-Changes from the previous version:
+One minor nit below.
 
- - I don't think it is really necessary to clear power.no_suspend from
-   acpi_dev_runtime_resume(), because __device_suspend() will run for
-   children before it runs for the parent, so it is sufficient to clear
-   power.no_suspend for the parent from there.
+> ---
+>  drivers/base/platform.c   |    4 ++++
+>  drivers/of/device.c       |    3 +++
+>  include/linux/of_device.h |    6 ++++++
+>  3 files changed, 13 insertions(+)
+>
+> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+> index 2f4aea2..bc78848 100644
+> --- a/drivers/base/platform.c
+> +++ b/drivers/base/platform.c
+> @@ -679,6 +679,10 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *a,
+>         struct platform_device  *pdev = to_platform_device(dev);
+>         int len;
+>
+> +       len = of_device_get_modalias(dev, buf, PAGE_SIZE -1);
+> +       if (len != -ENODEV)
+> +               return len;
+> +
+>         len = acpi_device_modalias(dev, buf, PAGE_SIZE -1);
+>         if (len != -ENODEV)
+>                 return len;
+> diff --git a/drivers/of/device.c b/drivers/of/device.c
+> index f685e55..dafb973 100644
+> --- a/drivers/of/device.c
+> +++ b/drivers/of/device.c
+> @@ -85,6 +85,9 @@ ssize_t of_device_get_modalias(struct device *dev, char *str, ssize_t len)
+>         int cplen, i;
+>         ssize_t tsize, csize, repend;
+>
+> +       if ((!dev) || (!dev->of_node))\
 
-   At the same time, since the parent can only be runtime-suspended if the
-   children are runtime-suspended, the children with power.no_suspend clear
-   have to be runtime-resumed before __device_suspend() is executed for
-   them and that will trigger runtime resume of the parent.
+Don't need the parentheses here.
 
- - To avoid problems related to possible differences between runtime resume
-   and system resume driver callbacks, use pm_runtime_resume() to resume
-   devices whose power.no_suspend was set during the suspend we're resuming
-   from.
-
-Thanks,
-Rafael
-
----
- drivers/acpi/device_pm.c |   45 ++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 40 insertions(+), 5 deletions(-)
-
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -912,12 +912,28 @@ EXPORT_SYMBOL_GPL(acpi_dev_resume_early)
-  */
- int acpi_subsys_prepare(struct device *dev)
- {
-+	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
-+	u32 target_state;
-+	int error, state;
-+
-+	if (!adev || !pm_runtime_enabled_and_suspended(dev))
-+		return pm_generic_prepare(dev);
-+
-+	target_state = acpi_target_system_state();
-+	error = acpi_dev_pm_get_state(dev, adev, target_state, NULL, &state);
-+	if (error || state != adev->power.state
-+	    || device_may_wakeup(dev) != !!adev->wakeup.prepare_count) {
-+		pm_runtime_resume(dev);
-+		return pm_generic_prepare(dev);
-+	}
- 	/*
--	 * Follow PCI and resume devices suspended at run time before running
--	 * their system suspend callbacks.
-+	 * If this is a wakeup device, wakeup power has been enabled already for
-+	 * it during the preceding runtime suspend.  Caveat: "sleep state" is
-+	 * one of the _DSW arguments, but that shouldn't matter for the devices
-+	 * using acpi_general_pm_domain.
- 	 */
--	pm_runtime_resume(dev);
--	return pm_generic_prepare(dev);
-+	error =  pm_generic_prepare(dev);
-+	return error ? error : 1;
- }
- EXPORT_SYMBOL_GPL(acpi_subsys_prepare);
- 
-@@ -945,10 +961,27 @@ EXPORT_SYMBOL_GPL(acpi_subsys_suspend_la
-  */
- int acpi_subsys_resume_early(struct device *dev)
- {
--	int ret = acpi_dev_resume_early(dev);
-+	int ret;
-+
-+	if (dev->power.no_suspend)
-+		return 0;
-+
-+	ret = acpi_dev_resume_early(dev);
- 	return ret ? ret : pm_generic_resume_early(dev);
- }
- EXPORT_SYMBOL_GPL(acpi_subsys_resume_early);
-+
-+/**
-+ * acpi_subsys_resume - Resume device using ACPI (if not resumed before).
-+ * @dev: Device to resume.
-+ *
-+ * If power.no_suspend is set for @dev, run pm_runtime_resume() for it.
-+ */
-+int acpi_subsys_resume(struct device *dev)
-+{
-+	return dev->power.no_suspend ? pm_runtime_resume(dev) : 0;
-+}
-+EXPORT_SYMBOL_GPL(acpi_subsys_resume);
- #endif /* CONFIG_PM_SLEEP */
- 
- static struct dev_pm_domain acpi_general_pm_domain = {
-@@ -961,8 +994,10 @@ static struct dev_pm_domain acpi_general
- 		.prepare = acpi_subsys_prepare,
- 		.suspend_late = acpi_subsys_suspend_late,
- 		.resume_early = acpi_subsys_resume_early,
-+		.resume = acpi_subsys_resume,
- 		.poweroff_late = acpi_subsys_suspend_late,
- 		.restore_early = acpi_subsys_resume_early,
-+		.restore = acpi_subsys_resume,
- #endif
- 	},
- };
-
+> +               return -ENODEV;
+> +
+>         /* Name & Type */
+>         csize = snprintf(str, len, "of:N%sT%s", dev->of_node->name,
+>                          dev->of_node->type);
+> diff --git a/include/linux/of_device.h b/include/linux/of_device.h
+> index 82ce324..8d7dd67 100644
+> --- a/include/linux/of_device.h
+> +++ b/include/linux/of_device.h
+> @@ -64,6 +64,12 @@ static inline int of_driver_match_device(struct device *dev,
+>  static inline void of_device_uevent(struct device *dev,
+>                         struct kobj_uevent_env *env) { }
+>
+> +static inline int of_device_get_modalias(struct device *dev,
+> +                                  char *str, ssize_t len)
+> +{
+> +       return -ENODEV;
+> +}
+> +
+>  static inline int of_device_uevent_modalias(struct device *dev,
+>                                    struct kobj_uevent_env *env)
+>  {
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
