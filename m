@@ -1,18 +1,18 @@
-From: Peter Pick <pickp@sunyit.edu>
+From: Grace Barron <gbarron2@fordham.edu>
 Subject: RE
-Date: Wed, 15 Jan 2014 05:49:32 -0800
-Message-ID: <CANRxc993zwZhwAxTMhVhjukj3DXwpa5TBudJzFftENby3r6L6Q@mail.gmail.com>
+Date: Wed, 15 Jan 2014 06:01:20 -0800
+Message-ID: <CAADx7dNcsNNWX9sPczAqi9Orh931LnR=jeyPSkD2Jc_6Hb7t9g@mail.gmail.com>
 Reply-To: myownryantom@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=GB2312
 Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:48326 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751526AbaAONtd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2014 08:49:33 -0500
-Received: by mail-ie0-f180.google.com with SMTP id ar20so2088266iec.11
-        for <linux-acpi@vger.kernel.org>; Wed, 15 Jan 2014 05:49:33 -0800 (PST)
+Received: from mail-qc0-f175.google.com ([209.85.216.175]:55735 "EHLO
+	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751683AbaAOOBW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2014 09:01:22 -0500
+Received: by mail-qc0-f175.google.com with SMTP id x13so953585qcv.6
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Jan 2014 06:01:22 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: ad@yahoo.com
