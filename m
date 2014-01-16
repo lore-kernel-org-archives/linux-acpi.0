@@ -1,45 +1,51 @@
-From: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/4] fix module autoloading for ACPI enumerated devices
-Date: Thu, 16 Jan 2014 21:05:09 +0800
-Message-ID: <1389877509.3010.15.camel@rzhang1-mobl4>
-References: <1389689198-2641-1-git-send-email-rui.zhang@intel.com>
-	 <1389689198-2641-4-git-send-email-rui.zhang@intel.com>
-	 <20140116122704.GD2617@katana>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [RFC][PATCH 2/3] PM / runtime: Routine for checking device
+ status during system suspend
+Date: Thu, 16 Jan 2014 15:32:51 +0200
+Message-ID: <20140116133251.GC2494@intel.com>
+References: <5420830.W4laSGaAU9@vostro.rjw.lan>
+ <2472996.a5CGlmW4AP@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140116122704.GD2617@katana>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2472996.a5CGlmW4AP@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2014-01-16 at 13:27 +0100, Wolfram Sang wrote:
-> > diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> > index d74c0b3..c4c5588 100644
-> > --- a/drivers/i2c/i2c-core.c
-> > +++ b/drivers/i2c/i2c-core.c
-> > @@ -104,6 +104,11 @@ static int i2c_device_match(struct device *dev, struct device_driver *drv)
-> >  static int i2c_device_uevent(struct device *dev, struct kobj_uevent_env *env)
-> >  {
-> >  	struct i2c_client	*client = to_i2c_client(dev);
-> > +	int rc;
-> > +
-> > +	rc = acpi_device_uevent_modalias(dev, env);
-> > +	if (rc != -ENODEV)
-> > +		return rc;
-> >  
-> >  	if (add_uevent_var(env, "MODALIAS=%s%s",
-> >  			   I2C_MODULE_PREFIX, client->name))
+On Wed, Jan 15, 2014 at 12:14:46AM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> I wonder why we don't have/need that with CONFIG_OF? Because probably
-> nobody is using modules with i2c devices there?
+> Add a new helper routine, pm_runtime_enabled_and_suspended(), to
+> allow subsystems (or PM domains) to check the runtime PM status of
+> devices during system suspend (possibly to avoid resuming those
+> devices upfront at that time).
 > 
-This seems a gap to me but I'm not 100% sure.
-I saw Grant Likely introduced the OF style MODALIAS to platform bus, and
-OF style registration/binding to i2c bus, maybe he has an answer for
-this.
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/base/power/runtime.c |   28 ++++++++++++++++++++++++++++
+>  include/linux/pm_runtime.h   |    2 ++
+>  2 files changed, 30 insertions(+)
+> 
+> Index: linux-pm/include/linux/pm_runtime.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/pm_runtime.h
+> +++ linux-pm/include/linux/pm_runtime.h
+> @@ -53,6 +53,7 @@ extern unsigned long pm_runtime_autosusp
+>  extern void pm_runtime_update_max_time_suspended(struct device *dev,
+>  						 s64 delta_ns);
+>  extern void pm_runtime_set_memalloc_noio(struct device *dev, bool enable);
+> +extern bool pm_runtime_enabled_and_suspended(struct device *dev);
+>  
+>  static inline bool pm_children_suspended(struct device *dev)
+>  {
+> @@ -161,6 +162,7 @@ static inline unsigned long pm_runtime_a
+>  				struct device *dev) { return 0; }
+>  static inline void pm_runtime_set_memalloc_noio(struct device *dev,
+>  						bool enable){}
+> +static inline bool pm_runtime_enabled_and_suspended(struct device *dev) { return false };
 
-thanks,
-rui
+The above probably doesn't compile if !CONFIG_PM_RUNTIME because of the
+misplaced semicolon.
