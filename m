@@ -1,180 +1,130 @@
-From: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] acpi memory hotplug,
- add parameter to disable memory hotplug [v5]
-Date: Thu, 16 Jan 2014 10:35:51 -0500
-Message-ID: <1389886551-32647-1-git-send-email-prarit@redhat.com>
-References: <1389822660.1792.349.camel@misato.fc.hp.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [Update][RFC][PATCH 2/3] PM / runtime: Routine for checking device status during system suspend
+Date: Thu, 16 Jan 2014 17:07:07 +0100
+Message-ID: <2673469.H8s3UchFPJ@vostro.rjw.lan>
+References: <5420830.W4laSGaAU9@vostro.rjw.lan> <2472996.a5CGlmW4AP@vostro.rjw.lan> <20140116133251.GC2494@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <1389822660.1792.349.camel-RbGIw1UOYPVo/CpIj0byZw@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec/>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, kosaki.motohiro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20140116133251.GC2494@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Linux PM list <linux-pm@vger.kernel.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-When booting a kdump kernel on a system that has specific memory hotplug
-regions the boot will fail with warnings like:
+On Thursday, January 16, 2014 03:32:51 PM Mika Westerberg wrote:
+> On Wed, Jan 15, 2014 at 12:14:46AM +0100, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > Add a new helper routine, pm_runtime_enabled_and_suspended(), to
+> > allow subsystems (or PM domains) to check the runtime PM status of
+> > devices during system suspend (possibly to avoid resuming those
+> > devices upfront at that time).
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/base/power/runtime.c |   28 ++++++++++++++++++++++++++++
+> >  include/linux/pm_runtime.h   |    2 ++
+> >  2 files changed, 30 insertions(+)
+> > 
+> > Index: linux-pm/include/linux/pm_runtime.h
+> > ===================================================================
+> > --- linux-pm.orig/include/linux/pm_runtime.h
+> > +++ linux-pm/include/linux/pm_runtime.h
+> > @@ -53,6 +53,7 @@ extern unsigned long pm_runtime_autosusp
+> >  extern void pm_runtime_update_max_time_suspended(struct device *dev,
+> >  						 s64 delta_ns);
+> >  extern void pm_runtime_set_memalloc_noio(struct device *dev, bool enable);
+> > +extern bool pm_runtime_enabled_and_suspended(struct device *dev);
+> >  
+> >  static inline bool pm_children_suspended(struct device *dev)
+> >  {
+> > @@ -161,6 +162,7 @@ static inline unsigned long pm_runtime_a
+> >  				struct device *dev) { return 0; }
+> >  static inline void pm_runtime_set_memalloc_noio(struct device *dev,
+> >  						bool enable){}
+> > +static inline bool pm_runtime_enabled_and_suspended(struct device *dev) { return false };
+> 
+> The above probably doesn't compile if !CONFIG_PM_RUNTIME because of the
+> misplaced semicolon.
 
-[    2.939467] swapper/0: page allocation failure: order:9, mode:0x84d0
-[    2.946564] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
-3.10.0-65.el7.x86_64 #1
-[    2.954532] Hardware name: QCI QSSC-S4R/QSSC-S4R, BIOS
-QSSC-S4R.QCI.01.00.S013.032920111005 03/29/2011
-[    2.964926]  0000000000000000 ffff8800341bd8c8 ffffffff815bcc67
-ffff8800341bd950
-[    2.973224]  ffffffff8113b1a0 ffff880036339b00 0000000000000009
-00000000000084d0
-[    2.981523]  ffff8800341bd950 ffffffff815b87ee 0000000000000000
-0000000000000200
-[    2.989821] Call Trace:
-[    2.992560]  [<ffffffff815bcc67>] dump_stack+0x19/0x1b
-[    2.998300]  [<ffffffff8113b1a0>] warn_alloc_failed+0xf0/0x160
-[    3.004817]  [<ffffffff815b87ee>] ?
-__alloc_pages_direct_compact+0xac/0x196
-[    3.012594]  [<ffffffff8113f14f>] __alloc_pages_nodemask+0x7ff/0xa00
-[    3.019692]  [<ffffffff815b417c>] vmemmap_alloc_block+0x62/0xba
-[    3.026303]  [<ffffffff815b41e9>] vmemmap_alloc_block_buf+0x15/0x3b
-[    3.033302]  [<ffffffff815b1ff6>] vmemmap_populate+0xb4/0x21b
-[    3.039718]  [<ffffffff815b461d>] sparse_mem_map_populate+0x27/0x35
-[    3.046717]  [<ffffffff815b400f>] sparse_add_one_section+0x7a/0x185
-[    3.053720]  [<ffffffff815a1e9f>] __add_pages+0xaf/0x240
-[    3.059656]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
-[    3.065877]  [<ffffffff815a21d9>] add_memory+0xb9/0x1b0
-[    3.071713]  [<ffffffff81333b9c>] acpi_memory_device_add+0x18d/0x26d
-[    3.078813]  [<ffffffff81309a01>] acpi_bus_device_attach+0x7d/0xcd
-[    3.085719]  [<ffffffff8132379d>] acpi_ns_walk_namespace+0xc8/0x17f
-[    3.092716]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-[    3.100004]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-[    3.107293]  [<ffffffff81323c8c>] acpi_walk_namespace+0x95/0xc5
-[    3.113904]  [<ffffffff8130a6d6>] acpi_bus_scan+0x8b/0x9d
-[    3.119933]  [<ffffffff81a2019a>] acpi_scan_init+0x63/0x160
-[    3.126153]  [<ffffffff81a1ffb5>] acpi_init+0x25d/0x2a6
-[    3.131987]  [<ffffffff81a1fd58>] ? acpi_sleep_proc_init+0x2a/0x2a
-[    3.138889]  [<ffffffff810020e2>] do_one_initcall+0xe2/0x190
-[    3.145210]  [<ffffffff819e20c4>] kernel_init_freeable+0x17c/0x207
-[    3.152111]  [<ffffffff819e18d0>] ? do_early_param+0x88/0x88
-[    3.158430]  [<ffffffff8159fea0>] ? rest_init+0x80/0x80
-[    3.164264]  [<ffffffff8159feae>] kernel_init+0xe/0x180
-[    3.170097]  [<ffffffff815cca2c>] ret_from_fork+0x7c/0xb0
-[    3.176123]  [<ffffffff8159fea0>] ? rest_init+0x80/0x80
-[    3.181956] Mem-Info:
-[    3.184490] Node 0 DMA per-cpu:
-[    3.188007] CPU    0: hi:    0, btch:   1 usd:   0
-[    3.193353] Node 0 DMA32 per-cpu:
-[    3.197060] CPU    0: hi:   42, btch:   7 usd:   0
-[    3.202410] active_anon:0 inactive_anon:0 isolated_anon:0
-[    3.202410]  active_file:0 inactive_file:0 isolated_file:0
-[    3.202410]  unevictable:0 dirty:0 writeback:0 unstable:0
-[    3.202410]  free:872 slab_reclaimable:13 slab_unreclaimable:1880
-[    3.202410]  mapped:0 shmem:0 pagetables:0 bounce:0
-[    3.202410]  free_cma:0
+Of well, indeed, thanks!
 
-because the system has run out of memory at boot time.  This occurs
-because of the following sequence in the boot:
+Update follows.
 
-Main kernel boots and sets E820 map.  The second kernel is booted with a
-map generated by the kdump service using memmap= and memmap=exactmap.
-These parameters are added to the kernel parameters of the kdump
-kernel.   The kdump kernel has limited memory resources so as not
-to severely impact the main kernel.
-
-The system then panics and the kdump kernel boots (which is a
-completely new kernel boot).  During this boot ACPI is initialized and the
-kernel (as can be seen above) traverses the ACPI namespace and finds an
-entry for a memory device to be hotadded.
-
-ie)
-
-[    3.053720]  [<ffffffff815a1e9f>] __add_pages+0xaf/0x240
-[    3.059656]  [<ffffffff81047359>] arch_add_memory+0x59/0xd0
-[    3.065877]  [<ffffffff815a21d9>] add_memory+0xb9/0x1b0
-[    3.071713]  [<ffffffff81333b9c>] acpi_memory_device_add+0x18d/0x26d
-[    3.078813]  [<ffffffff81309a01>] acpi_bus_device_attach+0x7d/0xcd
-[    3.085719]  [<ffffffff8132379d>] acpi_ns_walk_namespace+0xc8/0x17f
-[    3.092716]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-[    3.100004]  [<ffffffff81309984>] ? acpi_bus_type_and_status+0x90/0x90
-[    3.107293]  [<ffffffff81323c8c>] acpi_walk_namespace+0x95/0xc5
-[    3.113904]  [<ffffffff8130a6d6>] acpi_bus_scan+0x8b/0x9d
-[    3.119933]  [<ffffffff81a2019a>] acpi_scan_init+0x63/0x160
-[    3.126153]  [<ffffffff81a1ffb5>] acpi_init+0x25d/0x2a6
-
-At this point the kernel adds page table information and the the kdump
-kernel runs out of memory.
-
-This can also be reproduced by using the memmap=exactmap and mem=X
-parameters on the main kernel and booting.
-
-This patchset resolves the problem by adding a kernel parameter,
-acpi_no_memhotplug, to disable ACPI memory hotplug.
-
-[v2]: changed acpi_no_memhotplug to bool
-[v3]: cleaned up Documentation/kernel-parameters.txt
-[v4]: add __initdata to acpi_no_memhotplug
-[v5]: remove kexec, kdump only
-
-Signed-off-by: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Acked-by: Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>
-Acked-by: Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Vivek Goyal <vgoyal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: kosaki.motohiro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 ---
- Documentation/kernel-parameters.txt |    3 +++
- drivers/acpi/acpi_memhotplug.c      |   12 ++++++++++++
- 2 files changed, 15 insertions(+)
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: PM / runtime: Routine for checking device status during system suspend
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index b9e9bd8..6201229 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -343,6 +343,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 			no: ACPI OperationRegions are not marked as reserved,
- 			no further checks are performed.
+Add a new helper routine, pm_runtime_enabled_and_suspended(), to
+allow subsystems (or PM domains) to check the runtime PM status of
+devices during system suspend (possibly to avoid resuming those
+devices upfront at that time).
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/base/power/runtime.c |   28 ++++++++++++++++++++++++++++
+ include/linux/pm_runtime.h   |    2 ++
+ 2 files changed, 30 insertions(+)
+
+Index: linux-pm/include/linux/pm_runtime.h
+===================================================================
+--- linux-pm.orig/include/linux/pm_runtime.h
++++ linux-pm/include/linux/pm_runtime.h
+@@ -53,6 +53,7 @@ extern unsigned long pm_runtime_autosusp
+ extern void pm_runtime_update_max_time_suspended(struct device *dev,
+ 						 s64 delta_ns);
+ extern void pm_runtime_set_memalloc_noio(struct device *dev, bool enable);
++extern bool pm_runtime_enabled_and_suspended(struct device *dev);
  
-+	acpi_no_memhotplug [ACPI] Disable memory hotplug.  Useful for kdump
-+			   kernels.
-+
- 	add_efi_memmap	[EFI; X86] Include EFI memory map in
- 			kernel's map of available physical RAM.
- 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 551dad7..383cd80 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -361,7 +361,19 @@ static void acpi_memory_device_remove(struct acpi_device *device)
- 	acpi_memory_device_free(mem_device);
- }
- 
-+static bool __initdata acpi_no_memhotplug;
-+
- void __init acpi_memory_hotplug_init(void)
+ static inline bool pm_children_suspended(struct device *dev)
  {
-+	if (acpi_no_memhotplug)
-+		return;
-+
- 	acpi_scan_add_handler_with_hotplug(&memory_device_handler, "memory");
- }
-+
-+static int __init disable_acpi_memory_hotplug(char *str)
+@@ -161,6 +162,7 @@ static inline unsigned long pm_runtime_a
+ 				struct device *dev) { return 0; }
+ static inline void pm_runtime_set_memalloc_noio(struct device *dev,
+ 						bool enable){}
++static inline bool pm_runtime_enabled_and_suspended(struct device *dev) { return false; }
+ 
+ #endif /* !CONFIG_PM_RUNTIME */
+ 
+Index: linux-pm/drivers/base/power/runtime.c
+===================================================================
+--- linux-pm.orig/drivers/base/power/runtime.c
++++ linux-pm/drivers/base/power/runtime.c
+@@ -1194,6 +1194,34 @@ void pm_runtime_enable(struct device *de
+ EXPORT_SYMBOL_GPL(pm_runtime_enable);
+ 
+ /**
++ * pm_runtime_enabled_and_suspended - Check runtime PM status of a device.
++ * @dev: Device to handle.
++ *
++ * This routine is to be executed during system suspend only, after
++ * device_prepare() has been executed for @dev.
++ *
++ * Return false if runtime PM is disabled for the device.  Otherwise, wait
++ * for pending transitions to complete and check the runtime PM status of the
++ * device after that.  Return true if it is RPM_SUSPENDED.
++ */
++bool pm_runtime_enabled_and_suspended(struct device *dev)
 +{
-+	acpi_no_memhotplug = true;
-+	return 1;
++	unsigned long flags;
++	bool ret;
++
++	spin_lock_irqsave(&dev->power.lock, flags);
++	if (dev->power.disable_depth) {
++		ret = false;
++	} else {
++		__pm_runtime_barrier(dev);
++		ret = pm_runtime_status_suspended(dev);
++	}
++	spin_unlock_irqrestore(&dev->power.lock, flags);
++	return ret;
 +}
-+__setup("acpi_no_memhotplug", disable_acpi_memory_hotplug);
--- 
-1.7.9.3
++EXPORT_SYMBOL_GPL(pm_runtime_enabled_and_suspended);
++
++/**
+  * pm_runtime_forbid - Block runtime PM of a device.
+  * @dev: Device to handle.
+  *
+
