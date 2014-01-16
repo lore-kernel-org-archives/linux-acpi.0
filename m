@@ -1,130 +1,77 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [Update][RFC][PATCH 2/3] PM / runtime: Routine for checking device status during system suspend
-Date: Thu, 16 Jan 2014 17:07:07 +0100
-Message-ID: <2673469.H8s3UchFPJ@vostro.rjw.lan>
-References: <5420830.W4laSGaAU9@vostro.rjw.lan> <2472996.a5CGlmW4AP@vostro.rjw.lan> <20140116133251.GC2494@intel.com>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [PATCH] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE_ONLY to
+ enforce this ACPI mode
+Date: Thu, 16 Jan 2014 11:35:29 -0700
+Message-ID: <52D82671.6000200@linaro.org>
+References: <1389731822-21336-1-git-send-email-al.stone@linaro.org> <15081767.3kxW799CSQ@wuerfel> <52D7414C.7080206@linaro.org> <201401161155.27592.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20140116133251.GC2494@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Linux PM list <linux-pm@vger.kernel.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:42310 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750937AbaAPSfb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jan 2014 13:35:31 -0500
+Received: by mail-pa0-f49.google.com with SMTP id hz1so3001604pad.8
+        for <linux-acpi@vger.kernel.org>; Thu, 16 Jan 2014 10:35:30 -0800 (PST)
+In-Reply-To: <201401161155.27592.arnd@arndb.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linaro-kernel@lists.linaro.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>, patches@linaro.org, linaro-acpi@lists.linaro.org
 
-On Thursday, January 16, 2014 03:32:51 PM Mika Westerberg wrote:
-> On Wed, Jan 15, 2014 at 12:14:46AM +0100, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > Add a new helper routine, pm_runtime_enabled_and_suspended(), to
-> > allow subsystems (or PM domains) to check the runtime PM status of
-> > devices during system suspend (possibly to avoid resuming those
-> > devices upfront at that time).
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/base/power/runtime.c |   28 ++++++++++++++++++++++++++++
-> >  include/linux/pm_runtime.h   |    2 ++
-> >  2 files changed, 30 insertions(+)
-> > 
-> > Index: linux-pm/include/linux/pm_runtime.h
-> > ===================================================================
-> > --- linux-pm.orig/include/linux/pm_runtime.h
-> > +++ linux-pm/include/linux/pm_runtime.h
-> > @@ -53,6 +53,7 @@ extern unsigned long pm_runtime_autosusp
-> >  extern void pm_runtime_update_max_time_suspended(struct device *dev,
-> >  						 s64 delta_ns);
-> >  extern void pm_runtime_set_memalloc_noio(struct device *dev, bool enable);
-> > +extern bool pm_runtime_enabled_and_suspended(struct device *dev);
-> >  
-> >  static inline bool pm_children_suspended(struct device *dev)
-> >  {
-> > @@ -161,6 +162,7 @@ static inline unsigned long pm_runtime_a
-> >  				struct device *dev) { return 0; }
-> >  static inline void pm_runtime_set_memalloc_noio(struct device *dev,
-> >  						bool enable){}
-> > +static inline bool pm_runtime_enabled_and_suspended(struct device *dev) { return false };
-> 
-> The above probably doesn't compile if !CONFIG_PM_RUNTIME because of the
-> misplaced semicolon.
+On 01/16/2014 03:55 AM, Arnd Bergmann wrote:
+> On Thursday 16 January 2014, Al Stone wrote:
+>> On 01/14/2014 02:26 PM, Arnd Bergmann wrote:
+>>> On Tuesday 14 January 2014 13:37:02 al.stone@linaro.org wrote:
+>>>> +config ACPI_REDUCED_HARDWARE_ONLY
+>>>> +       bool "Hardware-reduced ACPI support only"
+>>>> +       def_bool n
+>>>> +       depends on ACPI && EXPERT
+>>>
+>>> I think this will cause a Kconfig warning if you try to select this
+>>> on ARM64 without turning on EXPERT as well.
+>>>
+>>> It should be ok if you express it as
+>>>
+>>> config ACPI_REDUCED_HARDWARE_ONLY
+>>>          bool "Hardware-reduced ACPI support only" if EXPERT
+>>>          def_bool n
+>>>          depends on ACPI
+>>>
+>>>
+>>>        Arnd
+>>>
+>>
+>> I am very puzzled.  I went back and re-did my configs from
+>> before, tried a few new ones, and tried with both expressions
+>> above, but I could not get a Kconfig warning.  Do you have an
+>> example .config that shows the warning?
+>>
+>
+> I don't have a source tree that allows turning on ACPI on arm64
+> to easily test this. To clarify: the warning will only happen if
+> you also add this piece to arch/arm64/Kconfig:
+>
+> 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+>
+> 	Arnd
+>
 
-Of well, indeed, thanks!
+Right; I assumed I had to have that SELECT.  My apologies -- I
+still cannot reproduce the warning.  I'll resubmit the patch
+incorporating the suggestion, though, since the result ends up
+being the same -- you must have ACPI and EXPERT selected in order
+to enable ACPI_REDUCED_HARDWARE_ONLY.
 
-Update follows.
+Thanks.
 
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: PM / runtime: Routine for checking device status during system suspend
-
-Add a new helper routine, pm_runtime_enabled_and_suspended(), to
-allow subsystems (or PM domains) to check the runtime PM status of
-devices during system suspend (possibly to avoid resuming those
-devices upfront at that time).
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/base/power/runtime.c |   28 ++++++++++++++++++++++++++++
- include/linux/pm_runtime.h   |    2 ++
- 2 files changed, 30 insertions(+)
-
-Index: linux-pm/include/linux/pm_runtime.h
-===================================================================
---- linux-pm.orig/include/linux/pm_runtime.h
-+++ linux-pm/include/linux/pm_runtime.h
-@@ -53,6 +53,7 @@ extern unsigned long pm_runtime_autosusp
- extern void pm_runtime_update_max_time_suspended(struct device *dev,
- 						 s64 delta_ns);
- extern void pm_runtime_set_memalloc_noio(struct device *dev, bool enable);
-+extern bool pm_runtime_enabled_and_suspended(struct device *dev);
- 
- static inline bool pm_children_suspended(struct device *dev)
- {
-@@ -161,6 +162,7 @@ static inline unsigned long pm_runtime_a
- 				struct device *dev) { return 0; }
- static inline void pm_runtime_set_memalloc_noio(struct device *dev,
- 						bool enable){}
-+static inline bool pm_runtime_enabled_and_suspended(struct device *dev) { return false; }
- 
- #endif /* !CONFIG_PM_RUNTIME */
- 
-Index: linux-pm/drivers/base/power/runtime.c
-===================================================================
---- linux-pm.orig/drivers/base/power/runtime.c
-+++ linux-pm/drivers/base/power/runtime.c
-@@ -1194,6 +1194,34 @@ void pm_runtime_enable(struct device *de
- EXPORT_SYMBOL_GPL(pm_runtime_enable);
- 
- /**
-+ * pm_runtime_enabled_and_suspended - Check runtime PM status of a device.
-+ * @dev: Device to handle.
-+ *
-+ * This routine is to be executed during system suspend only, after
-+ * device_prepare() has been executed for @dev.
-+ *
-+ * Return false if runtime PM is disabled for the device.  Otherwise, wait
-+ * for pending transitions to complete and check the runtime PM status of the
-+ * device after that.  Return true if it is RPM_SUSPENDED.
-+ */
-+bool pm_runtime_enabled_and_suspended(struct device *dev)
-+{
-+	unsigned long flags;
-+	bool ret;
-+
-+	spin_lock_irqsave(&dev->power.lock, flags);
-+	if (dev->power.disable_depth) {
-+		ret = false;
-+	} else {
-+		__pm_runtime_barrier(dev);
-+		ret = pm_runtime_status_suspended(dev);
-+	}
-+	spin_unlock_irqrestore(&dev->power.lock, flags);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(pm_runtime_enabled_and_suspended);
-+
-+/**
-  * pm_runtime_forbid - Block runtime PM of a device.
-  * @dev: Device to handle.
-  *
-
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
