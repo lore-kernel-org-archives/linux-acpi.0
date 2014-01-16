@@ -1,106 +1,43 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH 4/4] OF: introduce OF style 'modalias' support for platform bus.
-Date: Thu, 16 Jan 2014 02:09:55 +0100
-Message-ID: <77231285.q8OGi4Gmjj@vostro.rjw.lan>
-References: <1389689198-2641-1-git-send-email-rui.zhang@intel.com> <1389689198-2641-5-git-send-email-rui.zhang@intel.com> <CAL_JsqJFRQ+27N_9AwZXpx4V=g8HKn84WdVKtQ_Br_8SQTXY7g@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/3] ACPI: Integrate tools/power/acpi Makefile into tools Makefile.
+Date: Thu, 16 Jan 2014 02:10:22 +0100
+Message-ID: <4000586.0EcRlCdl8J@vostro.rjw.lan>
+References: <cover.1376378577.git.lv.zheng@intel.com> <cover.1389676901.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL_JsqJFRQ+27N_9AwZXpx4V=g8HKn84WdVKtQ_Br_8SQTXY7g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:63679 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752147AbaAPA4W (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2014 19:56:22 -0500
+In-Reply-To: <cover.1389676901.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Wednesday, January 15, 2014 07:45:18 AM Rob Herring wrote:
-> On Tue, Jan 14, 2014 at 2:46 AM, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> > Fix a problem that, the platform bus supports the OF style modalias
-> > in .uevent() call, but not in its device 'modalias' sysfs attribute.
-> >
-> > cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Signed-off-by: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Wednesday, January 15, 2014 12:03:10 PM Lv Zheng wrote:
+> This patchset updates tools/power/acpi folder to integrate its Makefiles
+> with other tools.
 > 
-> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Lv Zheng (3):
+>   ACPICA: acpidump: Cleanup tools/power/acpi makefiles.
+>   ACPICA: acpidump: Enable tools Makefile to include acpi tools.
+>   ACPICA: acpidump: Update MAINTAINERS file to include tools folder for
+>     ACPI/ACPICA.
 > 
-> As there doesn't appear any dependency with the rest of this series, I
-> can take this.
+>  MAINTAINERS                                      |    2 +
+>  tools/Makefile                                   |   16 ++-
+>  tools/power/acpi/Makefile                        |  149 ++++++++++++++++++++--
+>  tools/power/acpi/{ => man}/acpidump.8            |    0
+>  tools/power/acpi/{ => tools/acpidump}/acpidump.c |    0
+>  5 files changed, 152 insertions(+), 15 deletions(-)
+>  rename tools/power/acpi/{ => man}/acpidump.8 (100%)
+>  rename tools/power/acpi/{ => tools/acpidump}/acpidump.c (100%)
 
-Please do, thanks!
-
-> One minor nit below.
-> 
-> > ---
-> >  drivers/base/platform.c   |    4 ++++
-> >  drivers/of/device.c       |    3 +++
-> >  include/linux/of_device.h |    6 ++++++
-> >  3 files changed, 13 insertions(+)
-> >
-> > diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> > index 2f4aea2..bc78848 100644
-> > --- a/drivers/base/platform.c
-> > +++ b/drivers/base/platform.c
-> > @@ -679,6 +679,10 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *a,
-> >         struct platform_device  *pdev = to_platform_device(dev);
-> >         int len;
-> >
-> > +       len = of_device_get_modalias(dev, buf, PAGE_SIZE -1);
-> > +       if (len != -ENODEV)
-> > +               return len;
-> > +
-> >         len = acpi_device_modalias(dev, buf, PAGE_SIZE -1);
-> >         if (len != -ENODEV)
-> >                 return len;
-> > diff --git a/drivers/of/device.c b/drivers/of/device.c
-> > index f685e55..dafb973 100644
-> > --- a/drivers/of/device.c
-> > +++ b/drivers/of/device.c
-> > @@ -85,6 +85,9 @@ ssize_t of_device_get_modalias(struct device *dev, char *str, ssize_t len)
-> >         int cplen, i;
-> >         ssize_t tsize, csize, repend;
-> >
-> > +       if ((!dev) || (!dev->of_node))\
-> 
-> Don't need the parentheses here.
-> 
-> > +               return -ENODEV;
-> > +
-> >         /* Name & Type */
-> >         csize = snprintf(str, len, "of:N%sT%s", dev->of_node->name,
-> >                          dev->of_node->type);
-> > diff --git a/include/linux/of_device.h b/include/linux/of_device.h
-> > index 82ce324..8d7dd67 100644
-> > --- a/include/linux/of_device.h
-> > +++ b/include/linux/of_device.h
-> > @@ -64,6 +64,12 @@ static inline int of_driver_match_device(struct device *dev,
-> >  static inline void of_device_uevent(struct device *dev,
-> >                         struct kobj_uevent_env *env) { }
-> >
-> > +static inline int of_device_get_modalias(struct device *dev,
-> > +                                  char *str, ssize_t len)
-> > +{
-> > +       return -ENODEV;
-> > +}
-> > +
-> >  static inline int of_device_uevent_modalias(struct device *dev,
-> >                                    struct kobj_uevent_env *env)
-> >  {
-> > --
-> > 1.7.9.5
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Queued up for 3.14, thanks Lv!
 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
