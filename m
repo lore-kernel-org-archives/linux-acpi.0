@@ -1,71 +1,67 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+From: Mark Brown <broonie@kernel.org>
 Subject: Re: [PATCH 3/4] fix module autoloading for ACPI enumerated devices
-Date: Thu, 16 Jan 2014 20:24:40 +0100
-Message-ID: <20140116192440.GA4127@katana>
+Date: Thu, 16 Jan 2014 19:46:51 +0000
+Message-ID: <20140116194651.GO17314@sirena.org.uk>
 References: <1389689198-2641-1-git-send-email-rui.zhang@intel.com>
  <1389689198-2641-4-git-send-email-rui.zhang@intel.com>
- <20140116122819.GO15567@sirena.org.uk>
+ <20140116122704.GD2617@katana>
+ <1389877509.3010.15.camel@rzhang1-mobl4>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Q68bSM7Ycu6FN28Q"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="5PFZVUeDPxlnBcQp"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:55793 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750994AbaAPTrB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jan 2014 14:47:01 -0500
 Content-Disposition: inline
-In-Reply-To: <20140116122819.GO15567-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+In-Reply-To: <1389877509.3010.15.camel@rzhang1-mobl4>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, gregkh@linuxfoundation.org, rafael.j.wysocki@intel.com, grant.likely@linaro.org, jarkko.nikula@linux.intel.com, mika.westerberg@linux.intel.com, grant.likely@secretlab.ca
 
 
---Q68bSM7Ycu6FN28Q
+--5PFZVUeDPxlnBcQp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 16, 2014 at 12:28:19PM +0000, Mark Brown wrote:
-> On Tue, Jan 14, 2014 at 04:46:37PM +0800, Zhang Rui wrote:
-> > ACPI enumerated devices has ACPI style _HID and _CID strings,
-> > all of these strings can be used for both driver loading and matching.
-> >=20
-> > Currently, in Platform, I2C and SPI bus, the ACPI style driver matching
-> > is supported by invoking acpi_driver_match_device() in bus .match() cal=
-lback.
-> > But, the module autoloading is still broken.
->=20
-> Acked-by: Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->=20
-> modulo the PAGE_SIZE stuff Mika noted - unless this changes radically
-> please just assume I'm OK with it.
+On Thu, Jan 16, 2014 at 09:05:09PM +0800, Zhang Rui wrote:
+> On Thu, 2014-01-16 at 13:27 +0100, Wolfram Sang wrote:
 
-Ditto
+> > I wonder why we don't have/need that with CONFIG_OF? Because probably
+> > nobody is using modules with i2c devices there?
 
-Acked-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+> This seems a gap to me but I'm not 100% sure.
+> I saw Grant Likely introduced the OF style MODALIAS to platform bus, and
+> OF style registration/binding to i2c bus, maybe he has an answer for
+> this.
 
+This is needed for ACPI because we rewrite the device names to give us
+stable names.  With OF for I2C and SPI nothing bus specific is done that=20
+affects this stuff so the default behaviour works.
 
---Q68bSM7Ycu6FN28Q
+--5PFZVUeDPxlnBcQp
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJS2DH4AAoJEBQN5MwUoCm2zsIP/iesTC0J7+9BH9yhobIeHxaG
-SSxm8jK+938hUgdZcTuZwS5+HKxWNzydkK7vop0xRDjIAHBs+WX6nDrKiq7WDQJ1
-H74j/z4T2T5l/3TeAu26/DtoN25wjU3T0NYpKkx6Dw6+02V+LZ5a1i+VWFfsYfcG
-uiTjBR6wHvIMnZ31CpU9gf1NZ/9NueIkXQxGKfDNucJZLltL4V9DNyCIhzCcR0an
-R3C/mG9iiYMbIgb3RNcZZObxerB1sADQL/srEoLHZ/+fMmhT1M4sIZ26B1I0dP6m
-OxuxAFfQ1xr+uKUBDxlqWX9CyMs9wWaQosQliMB8FKttLUrL5Cpica8WB3aTFl2M
-TwwV30DzDDNXbGyJ4n7MDqD2Zu5rTqMkdduLMvOq/siQlw9PbeKvH9w0k8bdKd2y
-iYrcLJv9wGDT73fGj4PMXlNQQ0H5u3JTAH4cg/upWzYH14E5lWouZc0ecrospFHv
-/3MndevF7eoXfao8D574QNVsMqNkcZanZb5HTuWhTPL/V0E345uv4hvLuqBjSA+n
-BqIoyH/YjmWzv1dpoimBI0NaR+g9rCs4DrJSg0+JYwRdXLlxzJkNKOWZ5XcDxpah
-KQi0++0gGviIS5UOeCEoLyTyMr9zwsTKjcjIH5wI1RpOkYsMqvt9hjuPkg7Tu4LN
-zM+uGCgxM7hBg8AogV7A
-=Mp55
+iQIcBAEBAgAGBQJS2DcoAAoJELSic+t+oim9a7MQAIfTIeEbTBAP+JAbDykZ/5Nq
+r6m4YR+9uoNfiHUXoFHhA+dUH0VGQVERrgsHdIJGX0l4QJSRA3900enuXYsh9aFh
+TFPXZiI7UjxvRQ0EQbJX3et9ZqcDAU64ND5uq6N1H8XqhNSFAyt4k04sLB58/RrR
+1b8aKsxX4yP1bY8/BiErC5Tv7g8oiTS/i50NZvIwvbs6uKV7RbHv3RAxSELyW5XF
+ue6RJtGSyLm2iGv8GAMRwsgoqjrvhRELlwIaBPb+UfF30OKizNSFV/OmqTfez3D7
+fgUrysxi/gChplEzr5WtVCvdpSkEvTAJ5ybSSapZgKQYNJErhuCZrKk3o8k+/n46
+WefsH6jsUl3LtgTRzE/0DWUVSz8InJm8dn/o2+XJOD3yx0bBhbf/Q8NcqmVJGh9Q
+iznQfEHqIuGVzyCg88P2mSPEebyKmcB6uV5qYV1/zPEYl90a/f9f08mtsDztKHqh
+/ehutIRIqimWevZCtGHecEx0U76PV5tFo0ffeSO72pe86EkZzJoRfu3P01cZjkLn
+At0tq6jCsLNOAnHnTouHKwjDt03+EfSU2re5/pOpaJDmLTukumLZVPc6T7J0zGVx
+L1j/t6hZgFY8YcDRQfVH4t/zqmzsfBMTFZoQcv1qGLG4+27I8Az6he81S9PbQy/k
+8DmX47Q+eSQA7b+LflGe
+=BRrz
 -----END PGP SIGNATURE-----
 
---Q68bSM7Ycu6FN28Q--
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--5PFZVUeDPxlnBcQp--
