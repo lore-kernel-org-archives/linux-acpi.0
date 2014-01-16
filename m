@@ -1,67 +1,59 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 3/4] fix module autoloading for ACPI enumerated devices
-Date: Thu, 16 Jan 2014 19:46:51 +0000
-Message-ID: <20140116194651.GO17314@sirena.org.uk>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 4/4] OF: introduce OF style 'modalias' support for
+ platform bus.
+Date: Thu, 16 Jan 2014 15:21:12 -0600
+Message-ID: <CAL_Jsq+uVs=pHqSaQcQY-TQNnkFJ1MWkZxfE1B3Oxjby7uqrmw@mail.gmail.com>
 References: <1389689198-2641-1-git-send-email-rui.zhang@intel.com>
- <1389689198-2641-4-git-send-email-rui.zhang@intel.com>
- <20140116122704.GD2617@katana>
- <1389877509.3010.15.camel@rzhang1-mobl4>
+	<1389689198-2641-5-git-send-email-rui.zhang@intel.com>
+	<CAL_JsqJFRQ+27N_9AwZXpx4V=g8HKn84WdVKtQ_Br_8SQTXY7g@mail.gmail.com>
+	<744357E9AAD1214791ACBA4B0B909263011CE77F@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5PFZVUeDPxlnBcQp"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:55793 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994AbaAPTrB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jan 2014 14:47:01 -0500
-Content-Disposition: inline
-In-Reply-To: <1389877509.3010.15.camel@rzhang1-mobl4>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:63169 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750898AbaAPVVN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jan 2014 16:21:13 -0500
+In-Reply-To: <744357E9AAD1214791ACBA4B0B909263011CE77F@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, gregkh@linuxfoundation.org, rafael.j.wysocki@intel.com, grant.likely@linaro.org, jarkko.nikula@linux.intel.com, mika.westerberg@linux.intel.com, grant.likely@secretlab.ca
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, "wsa@the-dreams.de" <wsa@the-dreams.de>, Mark Brown <broonie@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, "jarkko.nikula@linux.intel.com" <jarkko.nikula@linux.intel.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
+On Thu, Jan 16, 2014 at 1:04 AM, Zhang, Rui <rui.zhang@intel.com> wrote:
+>
+>
+>> -----Original Message-----
+>> From: Rob Herring [mailto:robherring2@gmail.com]
+>> Sent: Wednesday, January 15, 2014 9:45 PM
+>> To: Zhang, Rui
+>> Cc: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org; linux-
+>> i2c@vger.kernel.org; linux-spi@vger.kernel.org; wsa@the-dreams.de; Mark
+>> Brown; Greg Kroah-Hartman; Wysocki, Rafael J; Grant Likely; Rob Herring;
+>> jarkko.nikula@linux.intel.com; mika.westerberg@linux.intel.com;
+>> devicetree@vger.kernel.org
+>> Subject: Re: [PATCH 4/4] OF: introduce OF style 'modalias' support for
+>> platform bus.
+>> Importance: High
+>>
+>> On Tue, Jan 14, 2014 at 2:46 AM, Zhang Rui <rui.zhang@intel.com> wrote:
+>> > Fix a problem that, the platform bus supports the OF style modalias
+>> in
+>> > .uevent() call, but not in its device 'modalias' sysfs attribute.
+>> >
+>> > cc: devicetree@vger.kernel.org
+>> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+>>
+>> Acked-by: Rob Herring <robh@kernel.org>
+>>
+>> As there doesn't appear any dependency with the rest of this series, I
+>> can take this.
+>>
+> Thanks.
+>
 
---5PFZVUeDPxlnBcQp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Looks like there is actually a dependency in modalias_show, and the
+comment about PAGE_SIZE would apply here too I think. So the whole
+series should be taken together.
 
-On Thu, Jan 16, 2014 at 09:05:09PM +0800, Zhang Rui wrote:
-> On Thu, 2014-01-16 at 13:27 +0100, Wolfram Sang wrote:
-
-> > I wonder why we don't have/need that with CONFIG_OF? Because probably
-> > nobody is using modules with i2c devices there?
-
-> This seems a gap to me but I'm not 100% sure.
-> I saw Grant Likely introduced the OF style MODALIAS to platform bus, and
-> OF style registration/binding to i2c bus, maybe he has an answer for
-> this.
-
-This is needed for ACPI because we rewrite the device names to give us
-stable names.  With OF for I2C and SPI nothing bus specific is done that=20
-affects this stuff so the default behaviour works.
-
---5PFZVUeDPxlnBcQp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJS2DcoAAoJELSic+t+oim9a7MQAIfTIeEbTBAP+JAbDykZ/5Nq
-r6m4YR+9uoNfiHUXoFHhA+dUH0VGQVERrgsHdIJGX0l4QJSRA3900enuXYsh9aFh
-TFPXZiI7UjxvRQ0EQbJX3et9ZqcDAU64ND5uq6N1H8XqhNSFAyt4k04sLB58/RrR
-1b8aKsxX4yP1bY8/BiErC5Tv7g8oiTS/i50NZvIwvbs6uKV7RbHv3RAxSELyW5XF
-ue6RJtGSyLm2iGv8GAMRwsgoqjrvhRELlwIaBPb+UfF30OKizNSFV/OmqTfez3D7
-fgUrysxi/gChplEzr5WtVCvdpSkEvTAJ5ybSSapZgKQYNJErhuCZrKk3o8k+/n46
-WefsH6jsUl3LtgTRzE/0DWUVSz8InJm8dn/o2+XJOD3yx0bBhbf/Q8NcqmVJGh9Q
-iznQfEHqIuGVzyCg88P2mSPEebyKmcB6uV5qYV1/zPEYl90a/f9f08mtsDztKHqh
-/ehutIRIqimWevZCtGHecEx0U76PV5tFo0ffeSO72pe86EkZzJoRfu3P01cZjkLn
-At0tq6jCsLNOAnHnTouHKwjDt03+EfSU2re5/pOpaJDmLTukumLZVPc6T7J0zGVx
-L1j/t6hZgFY8YcDRQfVH4t/zqmzsfBMTFZoQcv1qGLG4+27I8Az6he81S9PbQy/k
-8DmX47Q+eSQA7b+LflGe
-=BRrz
------END PGP SIGNATURE-----
-
---5PFZVUeDPxlnBcQp--
+Rob
