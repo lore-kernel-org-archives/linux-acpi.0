@@ -1,43 +1,74 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/3] ACPI: Integrate tools/power/acpi Makefile into tools Makefile.
-Date: Thu, 16 Jan 2014 02:10:22 +0100
-Message-ID: <4000586.0EcRlCdl8J@vostro.rjw.lan>
-References: <cover.1376378577.git.lv.zheng@intel.com> <cover.1389676901.git.lv.zheng@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 0/3] ACPI: Integrate tools/power/acpi Makefile into
+ tools Makefile.
+Date: Thu, 16 Jan 2014 01:02:08 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88024A9DFA@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1376378577.git.lv.zheng@intel.com>
+ <cover.1389676901.git.lv.zheng@intel.com> <52D6BFA9.80609@redhat.com>
+ <1A7043D5F58CCB44A599DFD55ED4C948452C20CD@FMSMSX106.amr.corp.intel.com>
+ <52D70232.2030809@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63679 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752147AbaAPA4W (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2014 19:56:22 -0500
-In-Reply-To: <cover.1389676901.git.lv.zheng@intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:53246 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751875AbaAPBCa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2014 20:02:30 -0500
+In-Reply-To: <52D70232.2030809@redhat.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: Al Stone <ahs3@redhat.com>, "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wednesday, January 15, 2014 12:03:10 PM Lv Zheng wrote:
-> This patchset updates tools/power/acpi folder to integrate its Makefiles
-> with other tools.
+Hi,
+
+> From: Al Stone [mailto:ahs3@redhat.com]
+> Sent: Thursday, January 16, 2014 5:49 AM
 > 
-> Lv Zheng (3):
->   ACPICA: acpidump: Cleanup tools/power/acpi makefiles.
->   ACPICA: acpidump: Enable tools Makefile to include acpi tools.
->   ACPICA: acpidump: Update MAINTAINERS file to include tools folder for
->     ACPI/ACPICA.
+> On 01/15/2014 02:43 PM, Brown, Len wrote:
+> >> Is there any work going on to reconcile (or merge or ...) this
+> >> version of acpidump with the version in upstream ACPICA?  The
+> >> sources are very different yet they seem to me to provide more
+> >> or less the same functionality.
+> >
+> > Yes, that is exactly what is going on.
+> > The acpidump in the kernel tree today is what we've been using for years.
 > 
->  MAINTAINERS                                      |    2 +
->  tools/Makefile                                   |   16 ++-
->  tools/power/acpi/Makefile                        |  149 ++++++++++++++++++++--
->  tools/power/acpi/{ => man}/acpidump.8            |    0
->  tools/power/acpi/{ => tools/acpidump}/acpidump.c |    0
->  5 files changed, 152 insertions(+), 15 deletions(-)
->  rename tools/power/acpi/{ => man}/acpidump.8 (100%)
->  rename tools/power/acpi/{ => tools/acpidump}/acpidump.c (100%)
+> Right.
+> 
+> > The acpidump in the ACPICA tree its newly developed replacement.
+> > When we cut over to the new, it will replace the old.
+> 
+> Ah, okay.
+> 
+> > There is no big feature change here -- mostly the idea is
+> > simply that more benefit from sharing the code maintained in the
+> > upstream ACPICA source tree.
+> >
+> > cheers,
+> > -Len
+> >
+> 
+> Thanks, Len.  I suspected that might be the case.  That's good to
+> hear -- it makes my life a little easier maintaining the distro
+> packages for the ACPCICA user space tools.
 
-Queued up for 3.14, thanks Lv!
+I've commits to change ACPICA release scripts to include acpidump.
+If they were merged by ACPICA upstream, the acpidump maintained by ACPICA will replace the old one maintained in the kernel tools/power/acpi folder.
+And the tools/power/acpi folder will be automatically updated by the ACPICA release cycle from then on.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Thanks and best regards
+-Lv
+
+> 
+> --
+> ciao,
+> al
+> -----------------------------------
+> Al Stone
+> Software Engineer
+> Red Hat, Inc.
+> ahs3@redhat.com
+> -----------------------------------
