@@ -1,74 +1,59 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 0/3] ACPI: Integrate tools/power/acpi Makefile into
- tools Makefile.
-Date: Thu, 16 Jan 2014 01:02:08 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88024A9DFA@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1376378577.git.lv.zheng@intel.com>
- <cover.1389676901.git.lv.zheng@intel.com> <52D6BFA9.80609@redhat.com>
- <1A7043D5F58CCB44A599DFD55ED4C948452C20CD@FMSMSX106.amr.corp.intel.com>
- <52D70232.2030809@redhat.com>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [PATCH] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE_ONLY to
+ enforce this ACPI mode
+Date: Wed, 15 Jan 2014 19:17:48 -0700
+Message-ID: <52D7414C.7080206@linaro.org>
+References: <1389731822-21336-1-git-send-email-al.stone@linaro.org> <15081767.3kxW799CSQ@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:53246 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751875AbaAPBCa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2014 20:02:30 -0500
-In-Reply-To: <52D70232.2030809@redhat.com>
-Content-Language: en-US
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:48935 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750867AbaAPCRv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jan 2014 21:17:51 -0500
+Received: by mail-pd0-f169.google.com with SMTP id v10so1954615pde.0
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Jan 2014 18:17:51 -0800 (PST)
+In-Reply-To: <15081767.3kxW799CSQ@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>, "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>, linaro-kernel@lists.linaro.org
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>, patches@linaro.org, linaro-acpi@lists.linaro.org
 
-Hi,
+On 01/14/2014 02:26 PM, Arnd Bergmann wrote:
+> On Tuesday 14 January 2014 13:37:02 al.stone@linaro.org wrote:
+>> +config ACPI_REDUCED_HARDWARE_ONLY
+>> +       bool "Hardware-reduced ACPI support only"
+>> +       def_bool n
+>> +       depends on ACPI && EXPERT
+>
+> I think this will cause a Kconfig warning if you try to select this
+> on ARM64 without turning on EXPERT as well.
+>
+> It should be ok if you express it as
+>
+> config ACPI_REDUCED_HARDWARE_ONLY
+>         bool "Hardware-reduced ACPI support only" if EXPERT
+>         def_bool n
+>         depends on ACPI
+>
+>
+> 	Arnd
+>
 
-> From: Al Stone [mailto:ahs3@redhat.com]
-> Sent: Thursday, January 16, 2014 5:49 AM
-> 
-> On 01/15/2014 02:43 PM, Brown, Len wrote:
-> >> Is there any work going on to reconcile (or merge or ...) this
-> >> version of acpidump with the version in upstream ACPICA?  The
-> >> sources are very different yet they seem to me to provide more
-> >> or less the same functionality.
-> >
-> > Yes, that is exactly what is going on.
-> > The acpidump in the kernel tree today is what we've been using for years.
-> 
-> Right.
-> 
-> > The acpidump in the ACPICA tree its newly developed replacement.
-> > When we cut over to the new, it will replace the old.
-> 
-> Ah, okay.
-> 
-> > There is no big feature change here -- mostly the idea is
-> > simply that more benefit from sharing the code maintained in the
-> > upstream ACPICA source tree.
-> >
-> > cheers,
-> > -Len
-> >
-> 
-> Thanks, Len.  I suspected that might be the case.  That's good to
-> hear -- it makes my life a little easier maintaining the distro
-> packages for the ACPCICA user space tools.
+I am very puzzled.  I went back and re-did my configs from
+before, tried a few new ones, and tried with both expressions
+above, but I could not get a Kconfig warning.  Do you have an
+example .config that shows the warning?
 
-I've commits to change ACPICA release scripts to include acpidump.
-If they were merged by ACPICA upstream, the acpidump maintained by ACPICA will replace the old one maintained in the kernel tools/power/acpi folder.
-And the tools/power/acpi folder will be automatically updated by the ACPICA release cycle from then on.
+Thanks.
 
-Thanks and best regards
--Lv
-
-> 
-> --
-> ciao,
-> al
-> -----------------------------------
-> Al Stone
-> Software Engineer
-> Red Hat, Inc.
-> ahs3@redhat.com
-> -----------------------------------
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
