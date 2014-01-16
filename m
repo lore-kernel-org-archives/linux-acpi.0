@@ -1,107 +1,60 @@
-From: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/4] fix module autoloading for ACPI enumerated devices
-Date: Thu, 16 Jan 2014 16:04:35 +0800
-Message-ID: <1389859475.3010.5.camel@rzhang1-mobl4>
-References: <1389689198-2641-1-git-send-email-rui.zhang@intel.com>
-	 <1389689198-2641-4-git-send-email-rui.zhang@intel.com>
-	 <20140115150834.GX2494@intel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE_ONLY to
+ enforce this ACPI mode
+Date: Thu, 16 Jan 2014 11:55:26 +0100
+Message-ID: <201401161155.27592.arnd@arndb.de>
+References: <1389731822-21336-1-git-send-email-al.stone@linaro.org>
+ <15081767.3kxW799CSQ@wuerfel> <52D7414C.7080206@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140115150834.GX2494-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <52D7414C.7080206@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Al Stone <al.stone@linaro.org>
+Cc: linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2014-01-15 at 17:08 +0200, Mika Westerberg wrote:
-> On Tue, Jan 14, 2014 at 04:46:37PM +0800, Zhang Rui wrote:
-> > diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-> > index 3a94b79..2f4aea2 100644
-> > --- a/drivers/base/platform.c
-> > +++ b/drivers/base/platform.c
-> > @@ -677,7 +677,13 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *a,
-> >  			     char *buf)
-> >  {
-> >  	struct platform_device	*pdev = to_platform_device(dev);
-> > -	int len = snprintf(buf, PAGE_SIZE, "platform:%s\n", pdev->name);
-> > +	int len;
-> > +
-> > +	len = acpi_device_modalias(dev, buf, PAGE_SIZE -1);
+On Thursday 16 January 2014, Al Stone wrote:
+> On 01/14/2014 02:26 PM, Arnd Bergmann wrote:
+> > On Tuesday 14 January 2014 13:37:02 al.stone@linaro.org wrote:
+> >> +config ACPI_REDUCED_HARDWARE_ONLY
+> >> +       bool "Hardware-reduced ACPI support only"
+> >> +       def_bool n
+> >> +       depends on ACPI && EXPERT
+> >
+> > I think this will cause a Kconfig warning if you try to select this
+> > on ARM64 without turning on EXPERT as well.
+> >
+> > It should be ok if you express it as
+> >
+> > config ACPI_REDUCED_HARDWARE_ONLY
+> >         bool "Hardware-reduced ACPI support only" if EXPERT
+> >         def_bool n
+> >         depends on ACPI
+> >
+> >
+> >       Arnd
+> >
 > 
-> Here you have PAGE_SIZE -1...
+> I am very puzzled.  I went back and re-did my configs from
+> before, tried a few new ones, and tried with both expressions
+> above, but I could not get a Kconfig warning.  Do you have an
+> example .config that shows the warning?
 > 
-> > +	if (len != -ENODEV)
-> > +		return len;
-> > +
-> > +	len = snprintf(buf, PAGE_SIZE, "platform:%s\n", pdev->name);
-> >  
-> >  	return (len >= PAGE_SIZE) ? (PAGE_SIZE - 1) : len;
-> >  }
-> > @@ -699,6 +705,10 @@ static int platform_uevent(struct device *dev, struct kobj_uevent_env *env)
-> >  	if (rc != -ENODEV)
-> >  		return rc;
-> >  
-> > +	rc = acpi_device_uevent_modalias(dev, env);
-> > +	if (rc != -ENODEV)
-> > +		return rc;
-> > +
-> >  	add_uevent_var(env, "MODALIAS=%s%s", PLATFORM_MODULE_PREFIX,
-> >  			pdev->name);
-> >  	return 0;
-> > diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> > index d74c0b3..c4c5588 100644
-> > --- a/drivers/i2c/i2c-core.c
-> > +++ b/drivers/i2c/i2c-core.c
-> > @@ -104,6 +104,11 @@ static int i2c_device_match(struct device *dev, struct device_driver *drv)
-> >  static int i2c_device_uevent(struct device *dev, struct kobj_uevent_env *env)
-> >  {
-> >  	struct i2c_client	*client = to_i2c_client(dev);
-> > +	int rc;
-> > +
-> > +	rc = acpi_device_uevent_modalias(dev, env);
-> > +	if (rc != -ENODEV)
-> > +		return rc;
-> >  
-> >  	if (add_uevent_var(env, "MODALIAS=%s%s",
-> >  			   I2C_MODULE_PREFIX, client->name))
-> > @@ -409,6 +414,12 @@ static ssize_t
-> >  show_modalias(struct device *dev, struct device_attribute *attr, char *buf)
-> >  {
-> >  	struct i2c_client *client = to_i2c_client(dev);
-> > +	int len;
-> > +
-> > +	len = acpi_device_modalias(dev, buf, PAGE_SIZE -1);
-> 
-> and here
-> 
-> > +	if (len != -ENODEV)
-> > +		return len;
-> > +
-> >  	return sprintf(buf, "%s%s\n", I2C_MODULE_PREFIX, client->name);
-> >  }
-> >  
-> > diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-> > index 349ebba..ab70eda 100644
-> > --- a/drivers/spi/spi.c
-> > +++ b/drivers/spi/spi.c
-> > @@ -58,6 +58,11 @@ static ssize_t
-> >  modalias_show(struct device *dev, struct device_attribute *a, char *buf)
-> >  {
-> >  	const struct spi_device	*spi = to_spi_device(dev);
-> > +	int len;
-> > +
-> > +	len = acpi_device_modalias(dev, buf, PAGE_SIZE);
-> 
-> but here it is PAGE_SIZE.
-> 
-good catch.
 
-> Perhaps it should be PAGE_SIZE in all sites?
+I don't have a source tree that allows turning on ACPI on arm64
+to easily test this. To clarify: the warning will only happen if
+you also add this piece to arch/arm64/Kconfig:
 
-dev_attr_show() will give a warning message if modalias_show() returns
-PAGE_SIZE, thus I'd prefer to use PAGE_SIZE - 1 for all sites.
+	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
 
-thanks,
-rui
+	Arnd
