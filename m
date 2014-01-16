@@ -1,60 +1,168 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE_ONLY to
- enforce this ACPI mode
-Date: Thu, 16 Jan 2014 11:55:26 +0100
-Message-ID: <201401161155.27592.arnd@arndb.de>
-References: <1389731822-21336-1-git-send-email-al.stone@linaro.org>
- <15081767.3kxW799CSQ@wuerfel> <52D7414C.7080206@linaro.org>
+From: Yijing Wang <wangyijing@huawei.com>
+Subject: [PATCH] ACPI: Fix acpi_evaluate_object() return value check
+Date: Thu, 16 Jan 2014 20:06:00 +0800
+Message-ID: <1389873960-25500-1-git-send-email-wangyijing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <52D7414C.7080206@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Al Stone <al.stone@linaro.org>
-Cc: linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:33184 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751520AbaAPMGT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jan 2014 07:06:19 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-acpi@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>
 
-On Thursday 16 January 2014, Al Stone wrote:
-> On 01/14/2014 02:26 PM, Arnd Bergmann wrote:
-> > On Tuesday 14 January 2014 13:37:02 al.stone@linaro.org wrote:
-> >> +config ACPI_REDUCED_HARDWARE_ONLY
-> >> +       bool "Hardware-reduced ACPI support only"
-> >> +       def_bool n
-> >> +       depends on ACPI && EXPERT
-> >
-> > I think this will cause a Kconfig warning if you try to select this
-> > on ARM64 without turning on EXPERT as well.
-> >
-> > It should be ok if you express it as
-> >
-> > config ACPI_REDUCED_HARDWARE_ONLY
-> >         bool "Hardware-reduced ACPI support only" if EXPERT
-> >         def_bool n
-> >         depends on ACPI
-> >
-> >
-> >       Arnd
-> >
-> 
-> I am very puzzled.  I went back and re-did my configs from
-> before, tried a few new ones, and tried with both expressions
-> above, but I could not get a Kconfig warning.  Do you have an
-> example .config that shows the warning?
-> 
+Fix acpi_evaluate_object() return value check,
+shoud acpi_status not int.
 
-I don't have a source tree that allows turning on ACPI on arm64
-to easily test this. To clarify: the warning will only happen if
-you also add this piece to arch/arm64/Kconfig:
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+ drivers/gpu/drm/i915/intel_acpi.c              |   13 +++++++------
+ drivers/gpu/drm/nouveau/core/subdev/mxm/base.c |    6 +++---
+ drivers/gpu/drm/nouveau/nouveau_acpi.c         |   13 +++++++------
+ drivers/pci/pci-label.c                        |    6 +++---
+ 4 files changed, 20 insertions(+), 18 deletions(-)
 
-	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+diff --git a/drivers/gpu/drm/i915/intel_acpi.c b/drivers/gpu/drm/i915/intel_acpi.c
+index dfff090..7ea00e5 100644
+--- a/drivers/gpu/drm/i915/intel_acpi.c
++++ b/drivers/gpu/drm/i915/intel_acpi.c
+@@ -35,7 +35,7 @@ static int intel_dsm(acpi_handle handle, int func)
+ 	union acpi_object params[4];
+ 	union acpi_object *obj;
+ 	u32 result;
+-	int ret = 0;
++	acpi_status status;
+ 
+ 	input.count = 4;
+ 	input.pointer = params;
+@@ -50,8 +50,8 @@ static int intel_dsm(acpi_handle handle, int func)
+ 	params[3].package.count = 0;
+ 	params[3].package.elements = NULL;
+ 
+-	ret = acpi_evaluate_object(handle, "_DSM", &input, &output);
+-	if (ret) {
++	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
++	if (ACPI_FAILURE(status)) {
+ 		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
+ 		return ret;
+ 	}
+@@ -141,7 +141,8 @@ static void intel_dsm_platform_mux_info(void)
+ 	struct acpi_object_list input;
+ 	union acpi_object params[4];
+ 	union acpi_object *pkg;
+-	int i, ret;
++	acpi_status status;
++	int i;
+ 
+ 	input.count = 4;
+ 	input.pointer = params;
+@@ -156,9 +157,9 @@ static void intel_dsm_platform_mux_info(void)
+ 	params[3].package.count = 0;
+ 	params[3].package.elements = NULL;
+ 
+-	ret = acpi_evaluate_object(intel_dsm_priv.dhandle, "_DSM", &input,
++	acpi_status = acpi_evaluate_object(intel_dsm_priv.dhandle, "_DSM", &input,
+ 				   &output);
+-	if (ret) {
++	if (ACPI_FAILURE(status)) {
+ 		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
+ 		goto out;
+ 	}
+diff --git a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
+index 1291204..3920943 100644
+--- a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
++++ b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
+@@ -114,14 +114,14 @@ mxm_shadow_dsm(struct nouveau_mxm *mxm, u8 version)
+ 	struct acpi_buffer retn = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	union acpi_object *obj;
+ 	acpi_handle handle;
+-	int ret;
++	acpi_status status;
+ 
+ 	handle = ACPI_HANDLE(&device->pdev->dev);
+ 	if (!handle)
+ 		return false;
+ 
+-	ret = acpi_evaluate_object(handle, "_DSM", &list, &retn);
+-	if (ret) {
++	status = acpi_evaluate_object(handle, "_DSM", &list, &retn);
++	if (ACPI_FAILURE(status)) {
+ 		nv_debug(mxm, "DSM MXMS failed: %d\n", ret);
+ 		return false;
+ 	}
+diff --git a/drivers/gpu/drm/nouveau/nouveau_acpi.c b/drivers/gpu/drm/nouveau/nouveau_acpi.c
+index ba0183f..6f810f2 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_acpi.c
++++ b/drivers/gpu/drm/nouveau/nouveau_acpi.c
+@@ -82,7 +82,8 @@ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *
+ 	struct acpi_object_list input;
+ 	union acpi_object params[4];
+ 	union acpi_object *obj;
+-	int i, err;
++	acpi_status status;
++	int i;
+ 	char args_buff[4];
+ 
+ 	input.count = 4;
+@@ -101,8 +102,8 @@ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *
+ 		args_buff[i] = (arg >> i * 8) & 0xFF;
+ 	params[3].buffer.pointer = args_buff;
+ 
+-	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
+-	if (err) {
++	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
++	if (ACPI_FAILURE(status)) {
+ 		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
+ 		return err;
+ 	}
+@@ -134,7 +135,7 @@ static int nouveau_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
+ 	struct acpi_object_list input;
+ 	union acpi_object params[4];
+ 	union acpi_object *obj;
+-	int err;
++	acpi_status status;
+ 
+ 	input.count = 4;
+ 	input.pointer = params;
+@@ -148,8 +149,8 @@ static int nouveau_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
+ 	params[3].type = ACPI_TYPE_INTEGER;
+ 	params[3].integer.value = arg;
+ 
+-	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
+-	if (err) {
++	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
++	if (ACPI_FAILURE(status)) {
+ 		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
+ 		return err;
+ 	}
+diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
+index d51f45a..3c21f1b 100644
+--- a/drivers/pci/pci-label.c
++++ b/drivers/pci/pci-label.c
+@@ -213,7 +213,7 @@ dsm_get_label(acpi_handle handle, int func,
+ 	union acpi_object *obj;
+ 	int len = 0;
+ 
+-	int err;
++	acpi_status status;
+ 
+ 	input.count = 4;
+ 	input.pointer = params;
+@@ -228,8 +228,8 @@ dsm_get_label(acpi_handle handle, int func,
+ 	params[3].package.count = 0;
+ 	params[3].package.elements = NULL;
+ 
+-	err = acpi_evaluate_object(handle, "_DSM", &input, output);
+-	if (err)
++	status = acpi_evaluate_object(handle, "_DSM", &input, output);
++	if (ACPI_FAILURE(status))
+ 		return -1;
+ 
+ 	obj = (union acpi_object *)output->pointer;
+-- 
+1.7.1
 
-	Arnd
+
