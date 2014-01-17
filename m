@@ -1,132 +1,185 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE_ONLY to enforce this ACPI mode
-Date: Fri, 17 Jan 2014 02:36:09 +0100
-Message-ID: <2431442.3c5QftZDpd@vostro.rjw.lan>
-References: <1389897857-1790-1-git-send-email-al.stone@linaro.org>
+From: Yijing Wang <wangyijing@huawei.com>
+Subject: Re: [PATCH] ACPI: Fix acpi_evaluate_object() return value check
+Date: Fri, 17 Jan 2014 09:22:58 +0800
+Message-ID: <52D885F2.4020500@huawei.com>
+References: <1389873960-25500-1-git-send-email-wangyijing@huawei.com> <8198575.U5hSOuId3C@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49409 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751892AbaAQBWI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jan 2014 20:22:08 -0500
-In-Reply-To: <1389897857-1790-1-git-send-email-al.stone@linaro.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:53531 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751333AbaAQBX0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jan 2014 20:23:26 -0500
+In-Reply-To: <8198575.U5hSOuId3C@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: al.stone@linaro.org
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>
 
-On Thursday, January 16, 2014 11:44:17 AM al.stone@linaro.org wrote:
-> From: Al Stone <al.stone@linaro.org>
+On 2014/1/17 9:24, Rafael J. Wysocki wrote:
+> On Thursday, January 16, 2014 08:06:00 PM Yijing Wang wrote:
+>> Fix acpi_evaluate_object() return value check,
+>> shoud acpi_status not int.
+>>
+>> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 > 
-> Hardware reduced mode, despite the name, exists primarily to allow
-> newer platforms to use a much simpler form of ACPI that does not
-> require supporting the legacy of previous versions of the specification.
-> This mode was first introduced in the ACPI 5.0 specification, but because
-> it is so much simpler and reduces the size of the object code needed to
-> support ACPI, it is likely to be used more often in the near future.
-> 
-> To enable the hardware reduced mode of ACPI on some platforms (such as
-> ARM), we need to modify the kernel code and set ACPI_REDUCED_HARDWARE
-> to TRUE in the ACPICA source.  For ARM/ARM64, hardware reduced ACPI
-> should be the only mode used; legacy mode would require modifications
-> to SoCs in order to provide several x86-specific hardware features (e.g.,
-> an NMI and SMI support).
-> 
-> We set ACPI_REDUCED_HARDWARE to TRUE in the ACPICA source by introducing
-> a kernel config item to enable/disable ACPI_REDUCED_HARDWARE.  We can then
-> change the kernel config instead of having to modify the kernel source
-> directly to enable the reduced hardware mode of ACPI.
-> 
-> Lv Zheng suggested that this configuration item does not belong in ACPICA,
-> the upstream source for much of the ACPI internals, but rather to the
-> Linux kernel itself.  Hence, we introduce this flag so that we can make
-> ACPI_REDUCED_HARDWARE configurable.  For the details of the discussion,
-> please refer to: http://www.spinics.net/lists/linux-acpi/msg46369.html
-> 
-> Even though support for X86 in hardware reduced mode is possible, it
-> is NOT enabled.  Extensive effort has gone into the Linux kernel so that
-> there is a single kernel image than can run on all x86 hardware; the kernel
-> changes run-time behavior to adapt to the hardware being used.  This is not
-> currently possible with the existing ACPICA infrastructure but only presents
-> a problem on achitectures supporting both hardware-reduced and legacy modes
-> of ACPI -- i.e., on x86 only.
-> 
-> The problem with the current ACPICA code base is that if one builds legacy
-> ACPI (a proper superset of hardware-reduced), the kernel can run in hardware-
-> reduced with the proper ACPI tables, but there is still ACPICA code that could
-> be executed even though it is not allowed by the specification.  If one builds
-> a hardware-reduced only ACPI, the kernel cannot run with ACPI tables that are
-> for legacy mode.  To ensure compliance with ACPI, one must therefore build
-> two separate kernels.  Once this problem has been properly fixed, we can then
-> enable x86 hardware-reduced mode and use a single kernel.
-> 
-> Changes for v2:
->    -- Changed test for EXPERT to avoid reported Kconfig warning
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Care to CC the maintainers of the files you're modifying in this patch?
 
-While the patch itself is fine by me, please modify the changelog.
+OK,thanks.
 
-The reason why this is useful is for some architectures to avoud building
-ACPICA code that they'll never use and that's the *only* reason AFAICS.
-
-All of the above remarks about non-compliance are totally irrelevant in my
-opinion (and some of them appear to be incorrect even).
-
-Thanks!
-
-
-> ---
->  drivers/acpi/Kconfig            | 13 +++++++++++++
->  include/acpi/platform/aclinux.h |  6 ++++++
->  2 files changed, 19 insertions(+)
 > 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 4770de5..9fd6a7a 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -343,6 +343,19 @@ config ACPI_BGRT
->  	  data from the firmware boot splash. It will appear under
->  	  /sys/firmware/acpi/bgrt/ .
->  
-> +config ACPI_REDUCED_HARDWARE_ONLY
-> +	bool "Hardware-reduced ACPI support only" if EXPERT
-> +	def_bool n
-> +	depends on ACPI
-> +	help
-> +	This config item changes the way the ACPI code is built.  When this
-> +	option is selected, the kernel will use a specialized version of
-> +	ACPICA that ONLY supports the ACPI "reduced hardware" mode.  The
-> +	resulting kernel will be smaller but it will also be restricted to
-> +	running in ACPI reduced hardware mode ONLY.
-> +
-> +	If you are unsure what to do, do not enable this option.
-> +
->  source "drivers/acpi/apei/Kconfig"
->  
->  config ACPI_EXTLOG
-> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-> index 28f4f4d..7d71f08 100644
-> --- a/include/acpi/platform/aclinux.h
-> +++ b/include/acpi/platform/aclinux.h
-> @@ -52,6 +52,12 @@
->  
->  #ifdef __KERNEL__
->  
-> +/* Compile for reduced hardware mode only with this kernel config */
-> +
-> +#ifdef CONFIG_ACPI_REDUCED_HARDWARE_ONLY
-> +#define ACPI_REDUCED_HARDWARE 1
-> +#endif
-> +
->  #include <linux/string.h>
->  #include <linux/kernel.h>
->  #include <linux/ctype.h>
+> Thanks!
 > 
+>> ---
+>>  drivers/gpu/drm/i915/intel_acpi.c              |   13 +++++++------
+>>  drivers/gpu/drm/nouveau/core/subdev/mxm/base.c |    6 +++---
+>>  drivers/gpu/drm/nouveau/nouveau_acpi.c         |   13 +++++++------
+>>  drivers/pci/pci-label.c                        |    6 +++---
+>>  4 files changed, 20 insertions(+), 18 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/i915/intel_acpi.c b/drivers/gpu/drm/i915/intel_acpi.c
+>> index dfff090..7ea00e5 100644
+>> --- a/drivers/gpu/drm/i915/intel_acpi.c
+>> +++ b/drivers/gpu/drm/i915/intel_acpi.c
+>> @@ -35,7 +35,7 @@ static int intel_dsm(acpi_handle handle, int func)
+>>  	union acpi_object params[4];
+>>  	union acpi_object *obj;
+>>  	u32 result;
+>> -	int ret = 0;
+>> +	acpi_status status;
+>>  
+>>  	input.count = 4;
+>>  	input.pointer = params;
+>> @@ -50,8 +50,8 @@ static int intel_dsm(acpi_handle handle, int func)
+>>  	params[3].package.count = 0;
+>>  	params[3].package.elements = NULL;
+>>  
+>> -	ret = acpi_evaluate_object(handle, "_DSM", &input, &output);
+>> -	if (ret) {
+>> +	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
+>> +	if (ACPI_FAILURE(status)) {
+>>  		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
+>>  		return ret;
+>>  	}
+>> @@ -141,7 +141,8 @@ static void intel_dsm_platform_mux_info(void)
+>>  	struct acpi_object_list input;
+>>  	union acpi_object params[4];
+>>  	union acpi_object *pkg;
+>> -	int i, ret;
+>> +	acpi_status status;
+>> +	int i;
+>>  
+>>  	input.count = 4;
+>>  	input.pointer = params;
+>> @@ -156,9 +157,9 @@ static void intel_dsm_platform_mux_info(void)
+>>  	params[3].package.count = 0;
+>>  	params[3].package.elements = NULL;
+>>  
+>> -	ret = acpi_evaluate_object(intel_dsm_priv.dhandle, "_DSM", &input,
+>> +	acpi_status = acpi_evaluate_object(intel_dsm_priv.dhandle, "_DSM", &input,
+>>  				   &output);
+>> -	if (ret) {
+>> +	if (ACPI_FAILURE(status)) {
+>>  		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
+>>  		goto out;
+>>  	}
+>> diff --git a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
+>> index 1291204..3920943 100644
+>> --- a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
+>> +++ b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
+>> @@ -114,14 +114,14 @@ mxm_shadow_dsm(struct nouveau_mxm *mxm, u8 version)
+>>  	struct acpi_buffer retn = { ACPI_ALLOCATE_BUFFER, NULL };
+>>  	union acpi_object *obj;
+>>  	acpi_handle handle;
+>> -	int ret;
+>> +	acpi_status status;
+>>  
+>>  	handle = ACPI_HANDLE(&device->pdev->dev);
+>>  	if (!handle)
+>>  		return false;
+>>  
+>> -	ret = acpi_evaluate_object(handle, "_DSM", &list, &retn);
+>> -	if (ret) {
+>> +	status = acpi_evaluate_object(handle, "_DSM", &list, &retn);
+>> +	if (ACPI_FAILURE(status)) {
+>>  		nv_debug(mxm, "DSM MXMS failed: %d\n", ret);
+>>  		return false;
+>>  	}
+>> diff --git a/drivers/gpu/drm/nouveau/nouveau_acpi.c b/drivers/gpu/drm/nouveau/nouveau_acpi.c
+>> index ba0183f..6f810f2 100644
+>> --- a/drivers/gpu/drm/nouveau/nouveau_acpi.c
+>> +++ b/drivers/gpu/drm/nouveau/nouveau_acpi.c
+>> @@ -82,7 +82,8 @@ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *
+>>  	struct acpi_object_list input;
+>>  	union acpi_object params[4];
+>>  	union acpi_object *obj;
+>> -	int i, err;
+>> +	acpi_status status;
+>> +	int i;
+>>  	char args_buff[4];
+>>  
+>>  	input.count = 4;
+>> @@ -101,8 +102,8 @@ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *
+>>  		args_buff[i] = (arg >> i * 8) & 0xFF;
+>>  	params[3].buffer.pointer = args_buff;
+>>  
+>> -	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
+>> -	if (err) {
+>> +	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
+>> +	if (ACPI_FAILURE(status)) {
+>>  		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
+>>  		return err;
+>>  	}
+>> @@ -134,7 +135,7 @@ static int nouveau_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
+>>  	struct acpi_object_list input;
+>>  	union acpi_object params[4];
+>>  	union acpi_object *obj;
+>> -	int err;
+>> +	acpi_status status;
+>>  
+>>  	input.count = 4;
+>>  	input.pointer = params;
+>> @@ -148,8 +149,8 @@ static int nouveau_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
+>>  	params[3].type = ACPI_TYPE_INTEGER;
+>>  	params[3].integer.value = arg;
+>>  
+>> -	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
+>> -	if (err) {
+>> +	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
+>> +	if (ACPI_FAILURE(status)) {
+>>  		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
+>>  		return err;
+>>  	}
+>> diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
+>> index d51f45a..3c21f1b 100644
+>> --- a/drivers/pci/pci-label.c
+>> +++ b/drivers/pci/pci-label.c
+>> @@ -213,7 +213,7 @@ dsm_get_label(acpi_handle handle, int func,
+>>  	union acpi_object *obj;
+>>  	int len = 0;
+>>  
+>> -	int err;
+>> +	acpi_status status;
+>>  
+>>  	input.count = 4;
+>>  	input.pointer = params;
+>> @@ -228,8 +228,8 @@ dsm_get_label(acpi_handle handle, int func,
+>>  	params[3].package.count = 0;
+>>  	params[3].package.elements = NULL;
+>>  
+>> -	err = acpi_evaluate_object(handle, "_DSM", &input, output);
+>> -	if (err)
+>> +	status = acpi_evaluate_object(handle, "_DSM", &input, output);
+>> +	if (ACPI_FAILURE(status))
+>>  		return -1;
+>>  
+>>  	obj = (union acpi_object *)output->pointer;
+>>
+> 
+
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Thanks!
+Yijing
+
