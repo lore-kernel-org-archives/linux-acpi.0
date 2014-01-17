@@ -1,33 +1,134 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH 12/20] ARM64 / ACPI: Use Parked Address in GIC structure
- for spin table SMP initialisation
-Date: Fri, 17 Jan 2014 15:35:43 +0100
-Message-ID: <52D93FBF.2010609@linaro.org>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-13-git-send-email-hanjun.guo@linaro.org> <201401171515.21250.arnd@arndb.de>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [RFC/RFT][PATCH 5/5] PM / QoS: Add type to dev_pm_qos_add_ancestor_request() arguments
+Date: Fri, 17 Jan 2014 15:49:03 +0100
+Message-ID: <13391502.k2E2vCKgDd@vostro.rjw.lan>
+References: <5434847.aCyiWHNRe7@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:55577 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751540AbaAQOgD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jan 2014 09:36:03 -0500
-Received: by mail-we0-f175.google.com with SMTP id p61so4528154wes.6
-        for <linux-acpi@vger.kernel.org>; Fri, 17 Jan 2014 06:36:01 -0800 (PST)
-In-Reply-To: <201401171515.21250.arnd@arndb.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <5434847.aCyiWHNRe7@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Mark Rutland <mark.rutland@arm.com>, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Charles.Garcia-Tobin@arm.com
 
-On 01/17/14 15:15, Arnd Bergmann wrote:
-> On Friday 17 January 2014, Hanjun Guo wrote:
->> +/* Parked Address in ACPI GIC structure */
->> +static u64 parked_address[NR_CPUS];
->
-> Please use the per_cpu infrastructure rather than NR_CPUS long arrays.
-Actually, per_cpu areas are initialized a bit later. If we really want 
-to use here per_cpu, then we need to implement early_per_cpu 
-Frankenstein like x86 does.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Tomasz
+Rework dev_pm_qos_add_ancestor_request() so that device PM QoS type
+is passed to it as the third argument and make it support the
+DEV_PM_QOS_LATENCY_TOLERANCE device PM QoS type (in addition to
+DEV_PM_QOS_RESUME_LATENCY).
+
+That will allow the drivers of devices without latency tolerance
+hardware support to use their ancestors having it as proxies for
+their latency tolerance requirements.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ Documentation/power/pm_qos_interface.txt |    6 ++++--
+ drivers/base/power/qos.c                 |   22 +++++++++++++++++-----
+ drivers/input/touchscreen/st1232.c       |    3 ++-
+ include/linux/pm_qos.h                   |    7 +++++--
+ 4 files changed, 28 insertions(+), 10 deletions(-)
+
+Index: linux-pm/include/linux/pm_qos.h
+===================================================================
+--- linux-pm.orig/include/linux/pm_qos.h
++++ linux-pm/include/linux/pm_qos.h
+@@ -148,7 +148,8 @@ int dev_pm_qos_remove_global_notifier(st
+ void dev_pm_qos_constraints_init(struct device *dev);
+ void dev_pm_qos_constraints_destroy(struct device *dev);
+ int dev_pm_qos_add_ancestor_request(struct device *dev,
+-				    struct dev_pm_qos_request *req, s32 value);
++				    struct dev_pm_qos_request *req,
++				    enum dev_pm_qos_req_type type, s32 value);
+ #else
+ static inline enum pm_qos_flags_status __dev_pm_qos_flags(struct device *dev,
+ 							  s32 mask)
+@@ -191,7 +192,9 @@ static inline void dev_pm_qos_constraint
+ 	dev->power.power_state = PMSG_INVALID;
+ }
+ static inline int dev_pm_qos_add_ancestor_request(struct device *dev,
+-				    struct dev_pm_qos_request *req, s32 value)
++						  struct dev_pm_qos_request *req,
++						  enum dev_pm_qos_req_type type,
++						  s32 value)
+ 			{ return 0; }
+ #endif
+ 
+Index: linux-pm/drivers/base/power/qos.c
+===================================================================
+--- linux-pm.orig/drivers/base/power/qos.c
++++ linux-pm/drivers/base/power/qos.c
+@@ -558,20 +558,32 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_remove_glob
+  * dev_pm_qos_add_ancestor_request - Add PM QoS request for device's ancestor.
+  * @dev: Device whose ancestor to add the request for.
+  * @req: Pointer to the preallocated handle.
++ * @type: Type of the request.
+  * @value: Constraint latency value.
+  */
+ int dev_pm_qos_add_ancestor_request(struct device *dev,
+-				    struct dev_pm_qos_request *req, s32 value)
++				    struct dev_pm_qos_request *req,
++				    enum dev_pm_qos_req_type type, s32 value)
+ {
+ 	struct device *ancestor = dev->parent;
+ 	int ret = -ENODEV;
+ 
+-	while (ancestor && !ancestor->power.ignore_children)
+-		ancestor = ancestor->parent;
++	switch (type) {
++	case DEV_PM_QOS_RESUME_LATENCY:
++		while (ancestor && !ancestor->power.ignore_children)
++			ancestor = ancestor->parent;
+ 
++		break;
++	case DEV_PM_QOS_LATENCY_TOLERANCE:
++		while (ancestor && !ancestor->power.set_latency_tolerance)
++			ancestor = ancestor->parent;
++
++		break;
++	default:
++		ancestor = NULL;
++	}
+ 	if (ancestor)
+-		ret = dev_pm_qos_add_request(ancestor, req,
+-					     DEV_PM_QOS_RESUME_LATENCY, value);
++		ret = dev_pm_qos_add_request(ancestor, req, type, value);
+ 
+ 	if (ret < 0)
+ 		req->dev = NULL;
+Index: linux-pm/Documentation/power/pm_qos_interface.txt
+===================================================================
+--- linux-pm.orig/Documentation/power/pm_qos_interface.txt
++++ linux-pm/Documentation/power/pm_qos_interface.txt
+@@ -134,9 +134,11 @@ The meaning of the return values is as f
+ 	PM_QOS_FLAGS_UNDEFINED: The device's PM QoS structure has not been
+ 			initialized or the list of requests is empty.
+ 
+-int dev_pm_qos_add_ancestor_request(dev, handle, value)
++int dev_pm_qos_add_ancestor_request(dev, handle, type, value)
+ Add a PM QoS request for the first direct ancestor of the given device whose
+-power.ignore_children flag is unset.
++power.ignore_children flag is unset (for DEV_PM_QOS_RESUME_LATENCY requests)
++or whose power.set_latency_tolerance callback pointer is not NULL (for
++DEV_PM_QOS_LATENCY_TOLERANCE requests).
+ 
+ int dev_pm_qos_expose_latency_limit(device, value)
+ Add a request to the device's PM QoS list of resume latency constraints and
+Index: linux-pm/drivers/input/touchscreen/st1232.c
+===================================================================
+--- linux-pm.orig/drivers/input/touchscreen/st1232.c
++++ linux-pm/drivers/input/touchscreen/st1232.c
+@@ -134,7 +134,8 @@ static irqreturn_t st1232_ts_irq_handler
+ 	} else if (!ts->low_latency_req.dev) {
+ 		/* First contact, request 100 us latency. */
+ 		dev_pm_qos_add_ancestor_request(&ts->client->dev,
+-						&ts->low_latency_req, 100);
++						&ts->low_latency_req,
++						DEV_PM_QOS_RESUME_LATENCY, 100);
+ 	}
+ 
+ 	/* SYN_REPORT */
+
