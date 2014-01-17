@@ -1,77 +1,94 @@
-From: Sudeep Holla <Sudeep.Holla@arm.com>
-Subject: Re: [PATCH 10/20] ARM64 / ACPI: Enumerate possible/present CPU set
- and map logical cpu id to APIC id
-Date: Fri, 17 Jan 2014 17:37:37 +0000
-Message-ID: <52D96A61.9080505@arm.com>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-11-git-send-email-hanjun.guo@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1389961514-13562-11-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Sudeep.Holla@arm.com, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Olof Johansson <olof@lixom.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: al.stone@linaro.org
+Subject: [PATCH v3] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE_ONLY to enable this ACPI mode
+Date: Fri, 17 Jan 2014 11:51:30 -0700
+Message-ID: <1389984690-24251-1-git-send-email-al.stone@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:43434 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752255AbaAQSvl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jan 2014 13:51:41 -0500
+Received: by mail-pb0-f42.google.com with SMTP id jt11so2372499pbb.15
+        for <linux-acpi@vger.kernel.org>; Fri, 17 Jan 2014 10:51:41 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 17/01/14 12:25, Hanjun Guo wrote:
-> When boot the kernel with MADT, the cpu possible and present sets should
-> be enumerated for later smp initialization.
-> 
-> The logic cpu id maps to APIC id (GIC id) is also implemented, it is
-> needed for acpi processor drivers.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/arm64/include/asm/acpi.h |    7 ++--
->  drivers/acpi/plat/arm-core.c  |   83 +++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 87 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index c335c6d..7edd39e 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -76,9 +76,6 @@ static inline void acpi_disable_pci(void)
->  /* FIXME: this function should be moved to topology.h when it's ready */
->  void arch_fix_phys_package_id(int num, u32 slot);
->  
-> -/* temperally define -1 to make acpi core compilerable */
-> -#define cpu_physical_id(cpu) -1
-> -
->  /* Low-level suspend routine. */
->  extern int (*acpi_suspend_lowlevel)(void);
->  #define acpi_wakeup_address (0)
-> @@ -86,6 +83,10 @@ extern int (*acpi_suspend_lowlevel)(void);
->  #define MAX_GIC_CPU_INTERFACE 256
->  #define MAX_GIC_DISTRIBUTOR   1		/* should be the same as MAX_GIC_NR */
->  
-> +/* map logic cpu id to physical GIC id */
-> +extern int arm_cpu_to_apicid[NR_CPUS];
-> +#define cpu_physical_id(cpu) arm_cpu_to_apicid[cpu]
-> +
+From: Al Stone <al.stone@linaro.org>
 
-You refer arm_cpu_to_apicid as a mapping from logical cpu id to GIC id,
-then why is it assigned to cpu_physical_id. cpu_physical_id must be same as
-cpu_logical_map which is from logical cpu id to MPIDRs.
+ACPI hardware reduced mode exists to allow newer platforms to use a
+simpler form of ACPI that does not require supporting legacy versions
+of the specification and their associated hardware.  This mode was
+introduced in the ACPI 5.0 specification.
 
-[...]
+To enable the hardware reduced mode of ACPI, we need to set the flag
+ACPI_REDUCED_HARDWARE to TRUE in the ACPICA source.  In order to do
+that, we introduce a kernel configuration item to enable or disable
+ACPI_REDUCED_HARDWARE.  We can then change the kernel configuration
+instead of having to modify the kernel source.
 
-> @@ -321,6 +401,9 @@ int __init early_acpi_boot_init(void)
->  	if (acpi_disabled)
->  		return -ENODEV;
->  
-> +	/* Get the boot CPU's GIC cpu interface id before MADT parsing */
-> +	boot_cpu_apic_id = read_cpuid_mpidr() & MPIDR_HWID_BITMASK;
-> +
+Introducing this configuration item is based on suggestions from Lv
+Zheng saying that this does not belong in ACPICA, but rather to the
+Linux kernel itself.  Hence, we introduce this configuration item so
+that we can make ACPI_REDUCED_HARDWARE configurable.  For the details
+of the discussion, please refer to:
 
-Code contradicts your comment. You need GIC cpu interface ID(referred as GIC ID
-in the MADT), but you are assigning the MPIDR(physical CPU ID on ARM) to
-boot_cpu_apic_id. I think you are assuming GIC ID and MPIDR to be same which is
-wrong.
+   http://www.spinics.net/lists/linux-acpi/msg46369.html
 
-With ACPI5.0, IIUC the only possible way to manage mapping from GIC CPU
-interface to MPIDR is to assume(in a way enforce on ARM) ACPI Processor UID in
-MADT and CPU Device definition match MPIDR.
+Changes for v3:
+   -- Minimize the changelog.
 
-Regards,
-Sudeep
+Changes for v2:
+   -- Changed test for EXPERT to avoid reported Kconfig warning
+
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Signed-off-by: Al Stone <al.stone@linaro.org>
+---
+ drivers/acpi/Kconfig            | 13 +++++++++++++
+ include/acpi/platform/aclinux.h |  6 ++++++
+ 2 files changed, 19 insertions(+)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 4770de5..9fd6a7a 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -343,6 +343,19 @@ config ACPI_BGRT
+ 	  data from the firmware boot splash. It will appear under
+ 	  /sys/firmware/acpi/bgrt/ .
+ 
++config ACPI_REDUCED_HARDWARE_ONLY
++	bool "Hardware-reduced ACPI support only" if EXPERT
++	def_bool n
++	depends on ACPI
++	help
++	This config item changes the way the ACPI code is built.  When this
++	option is selected, the kernel will use a specialized version of
++	ACPICA that ONLY supports the ACPI "reduced hardware" mode.  The
++	resulting kernel will be smaller but it will also be restricted to
++	running in ACPI reduced hardware mode ONLY.
++
++	If you are unsure what to do, do not enable this option.
++
+ source "drivers/acpi/apei/Kconfig"
+ 
+ config ACPI_EXTLOG
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 28f4f4d..7d71f08 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -52,6 +52,12 @@
+ 
+ #ifdef __KERNEL__
+ 
++/* Compile for reduced hardware mode only with this kernel config */
++
++#ifdef CONFIG_ACPI_REDUCED_HARDWARE_ONLY
++#define ACPI_REDUCED_HARDWARE 1
++#endif
++
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+ #include <linux/ctype.h>
+-- 
+1.8.4.2
+
