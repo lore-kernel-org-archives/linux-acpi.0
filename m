@@ -1,62 +1,89 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 3/4] fix module autoloading for ACPI enumerated devices
-Date: Fri, 17 Jan 2014 15:57:08 +0000
-Message-ID: <20140117155708.GS17314@sirena.org.uk>
-References: <1389689198-2641-1-git-send-email-rui.zhang@intel.com>
- <1389689198-2641-4-git-send-email-rui.zhang@intel.com>
- <20140116122704.GD2617@katana>
- <1389877509.3010.15.camel@rzhang1-mobl4>
- <20140116194651.GO17314@sirena.org.uk>
- <52D8DDD4.10704@linux.intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 01/20] ARM64 / ACPI: Make PCI optional for ACPI on ARM64
+Date: Fri, 17 Jan 2014 09:00:54 -0700
+Message-ID: <CAErSpo6tsZtqFfgBp9mwU9Ln7yDmKLWJFKK8eW9_m4Sgb=E3eg@mail.gmail.com>
+References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-2-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZmeoGP/RI+eIV+cU"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <52D8DDD4.10704-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1389961514-13562-2-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <robh@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, patches@linaro.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Charles.Garcia-Tobin@arm.com, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jens Axboe <axboe@kernel.dk>, Jej B <James.Bottomley@hansenpartnership.com>, Benjamin
 List-Id: linux-acpi@vger.kernel.org
 
+[+cc Jens, James, Ben, Fujita (authors of PCI_DMA_BUS_IS_PHYS usage)]
 
---ZmeoGP/RI+eIV+cU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Fri, Jan 17, 2014 at 5:24 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> Not all the ARM64 targets that are using ACPI have PCI, so introduce
+> some stub functions to make PCI optional for ACPI, and make ACPI core
+> run without CONFIG_PCI on ARM64.
+>
+> pcibios_penalize_isa_irq() is arch dependent, introduce asm/pci.h to
+> include it.
+>
+> Since ACPI on X86 and IA64 depends on PCI, it will not break X86 and
+> IA64 with this patch.
+>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  arch/arm64/include/asm/pci.h |   20 ++++++++++++++++++++
+>  drivers/acpi/Makefile        |    2 +-
+>  drivers/acpi/internal.h      |    7 +++++++
+>  drivers/acpi/osl.c           |    3 ++-
+>  include/linux/pci.h          |   33 ++++++++++++++++++++++++---------
+>  5 files changed, 54 insertions(+), 11 deletions(-)
+>  create mode 100644 arch/arm64/include/asm/pci.h
+>
+> diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
+> new file mode 100644
+> index 0000000..455909d
+> --- /dev/null
+> +++ b/arch/arm64/include/asm/pci.h
+> @@ -0,0 +1,20 @@
+> +#ifndef __ASMARM64_PCI_H
+> +#define __ASMARM64_PCI_H
+> +
+> +#ifdef __KERNEL__
+> +
+> +static inline void pcibios_penalize_isa_irq(int irq, int active)
+> +{
+> +       /* We don't do dynamic PCI IRQ allocation */
+> +}
+> +
+> +/*
+> + * The PCI address space does equal the physical memory address space.
+> + * The networking and block device layers use this boolean for bounce
+> + * buffer decisions.
+> + */
+> +#define PCI_DMA_BUS_IS_PHYS     (1)
 
-On Fri, Jan 17, 2014 at 09:37:56AM +0200, Jarkko Nikula wrote:
-> On 01/16/2014 09:46 PM, Mark Brown wrote:
+I'm not sure this is accurate.  The arm code uses
+pci_add_resource_offset() with non-zero offsets, which means a
+physical memory address is not the same as a PCI bus address.  I don't
+know what arm64 does for PCI, but I suspect it is similar.
 
-> >This is needed for ACPI because we rewrite the device names to give us
-> >stable names.  With OF for I2C and SPI nothing bus specific is done that
-> >affects this stuff so the default behaviour works.
+I think PCI_DMA_BUS_IS_PHYS is due for some overhaul.  I'm dubious
+that it is working as intended anymore.  At the very least, it seems
+like something that is dependent on the device in question.
 
-> Sidenote: actually this modalias/module loading issue is different
-> and not related to stable ACPI i2c/spi slave device names.
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index a13d682..726cf2a 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> ...
+> +static inline int raw_pci_read(unsigned int domain, unsigned int bus,
+> +               unsigned int devfn, int reg, int len, u32 *val)
+> +{ return -EINVAL; }
+> +
+> +static inline int raw_pci_write(unsigned int domain, unsigned int bus,
+> +               unsigned int devfn, int reg, int len, u32 val)
+> +{return -EINVAL; }
 
-Oh, I'd been under the impression that it was the rewrite that was
-triggering this?
+Fix the spacing here (missing a space before "return").
 
---ZmeoGP/RI+eIV+cU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+With that, this include/linux/pci.h change is:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJS2VLQAAoJELSic+t+oim9/IoP/jwV9eQlcNzANS8xR3W2qTzP
-F44eYYTUYbgUffFQkSi1KrJZrCgn6x9/tqBj8+fwUMuahcIy+PIQX4GoPvvcpSh7
-6lZZF6av22aPhecIkYN+NA/MdDS1WB8EJzWULruq8G7nCpiywTcZRkQDk295m/oR
-cFMCpYq0PbqqXPrLWbsL+cCPuA4wv4vYwVHyIPTj5DKc66nFl6TOXOJxeL4V3ZMR
-sdaYUudgn4YOxxVSeb6wS72EehecyXaP0ufOCgTyMpUzx7DF4icmhqkBrrfzuGqC
-4R6Tojn+SJlZG9AN8iLFpsXyizGS2tnViPewN7ilgletimPelAnPisdwHI7ujPUp
-mUbp8pSVW0DEJ6omD6tZo/UECfaWFpmlgJga+t+nzr6sq/KMcycxC2hl3f7HdSFI
-Dzt8VZd4TAfA586nDTwJUaRsmLYv7oNJYeth+y0TodUWXLHmA7K6jbiJ0U1xp3r6
-V9+zFnz3DFo0lFu35i3Cn7BZlmg3BVdz/aSFv+8jCHiNSamkQ47OrZNW96BTjLEh
-5XZdm102m/l7of3WUV0UHxUkAk3kI7KkA3JzFvtOw0kEIi4hX2OVmIvvt7ucexhT
-kPeiUXjbTXcnVXe9VdNk3+W4PL/c8pZd7vSveUeaoU6BhR2gqcJKVp+Vgavl6EsY
-mxuJhPk0NehTlEiyVzjo
-=FIsn
------END PGP SIGNATURE-----
-
---ZmeoGP/RI+eIV+cU--
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
