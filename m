@@ -1,39 +1,61 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH 20/20] ARM64 / clocksource: Use clocksource_acpi_init()
-Date: Fri, 17 Jan 2014 20:25:14 +0800
-Message-ID: <1389961514-13562-21-git-send-email-hanjun.guo@linaro.org>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Charles.Garcia-Tobin@arm.com, Hanjun Guo <hanjun.guo@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: Baytrail problems (was Re: Linux 3.13-rc8)
+Date: Fri, 17 Jan 2014 14:38:32 +0100
+Message-ID: <99308060.pSzgvg98VT@vostro.rjw.lan>
+References: <CA+55aFzcHCg1Azf0t4KrYx0N1z0xaeT8fNHJEW5og3VBd+UPOA@mail.gmail.com> <CACRpkdZqdaq7qqwhvfufa9BNUAeO4CFAr6g4uqXvbe5wsAYaQQ@mail.gmail.com> <2029519.Z7OA0cinWM@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:64700 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751382AbaAQNYb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jan 2014 08:24:31 -0500
+In-Reply-To: <2029519.Z7OA0cinWM@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Paul Drews <paul.drews@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Dave Airlie <airlied@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Nyman, Mathias" <mathias.nyman@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Use clocksource_acpi_init() on ARM64 to initialise timers
-in ACPI way when DT is not available.
+On Thursday, January 16, 2014 05:01:19 PM Rafael J. Wysocki wrote:
+> On Thursday, January 16, 2014 10:29:45 AM Linus Walleij wrote:
+> > On Thu, Jan 16, 2014 at 2:49 AM, Linus Torvalds
+> > <torvalds@linux-foundation.org> wrote:
+> > > Adding in the appropriate people...
+> > >
+> > > On Tue, Jan 14, 2014 at 7:01 PM, One Thousand Gnomes
+> > > <gnomes@lxorguk.ukuu.org.uk> wrote:
+> > >>
+> > >> It seems to hate Baytrail/T
+> > >>
+> > >> My ASUS T100TA has gone from 3.11 'needs video=VGA-1:blah' to get the mode
+> > >> right but otherwise running nicely and playing 3D games to 3.13-rc8
+> > >>
+> > >> - crashes and burns during boot if the Baytrail pinctrl driver is compiled
+> > >>   in
+> > >
+> > > Andy, Paul? The changes to the pinctrl driver since 3.11 look trivial,
+> > > but I guess the GPIO and ACPI ID addition ends up also enabling all
+> > > the old code that Alan probably never ran in 3.11 because the driver
+> > > didn't trigger on his machine.
+> > 
+> > So that is commit f6308b36c411dc5
+> > "ACPI: Add BayTrail SoC GPIO and LPSS ACPI IDs"?
+> > 
+> > This seems to have been selected for -stable as well so the
+> > problem will be spreading as distros start pushing stable kernel
+> > updates :-(
+> > 
+> > That came in through the ACPI tree, Rafael do you want to
+> > revert it if there is no better quickfix?
+> 
+> Yes, I'll push either a revert or a fix before the weekend.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- arch/arm64/kernel/time.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+OK, I haven't seen any fixes for this so far, so I'm queing up a revert of
+commit f6308b36c411dc5 to be pushed later today.
 
-diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
-index 29c39d5..6e453ac 100644
---- a/arch/arm64/kernel/time.c
-+++ b/arch/arm64/kernel/time.c
-@@ -67,6 +67,12 @@ void __init time_init(void)
- 
- 	clocksource_of_init();
- 
-+	/*
-+	 * Since ACPI or FDT will only one be available in the system,
-+	 * we can use clocksource_acpi_init() here safely
-+	 */
-+	clocksource_acpi_init();
-+
- 	arch_timer_rate = arch_timer_get_rate();
- 	if (!arch_timer_rate)
- 		panic("Unable to initialise architected timer.\n");
+Thanks!
+
 -- 
-1.7.9.5
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
