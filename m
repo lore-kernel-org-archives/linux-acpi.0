@@ -1,212 +1,132 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: [PATCH v3] ACPI: Fix acpi_evaluate_object() return value check
-Date: Fri, 17 Jan 2014 09:46:48 +0200
-Message-ID: <87d2jr82zb.fsf@intel.com>
-References: <1389932513-27684-1-git-send-email-wangyijing@huawei.com>
+From: Sudeep Holla <Sudeep.Holla@arm.com>
+Subject: Re: [PATCH 1/3] ACPI / idle: Move idle_boot_override out of the arch
+ directory
+Date: Fri, 17 Jan 2014 12:06:58 +0000
+Message-ID: <52D91CE2.3050704@arm.com>
+References: <1389924207-7360-1-git-send-email-hanjun.guo@linaro.org> <1389924207-7360-2-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1389932513-27684-1-git-send-email-wangyijing@huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Bjorn Helgaas <bhelgaas@google.com>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dave Airlie <airlied@redhat.com>, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from service87.mimecast.com ([91.220.42.44]:59246 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751382AbaAQMGy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jan 2014 07:06:54 -0500
+In-Reply-To: <1389924207-7360-2-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Sudeep.Holla@arm.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Mark Rutland <Mark.Rutland@arm.com>, Jon Masters <jonathan@jonmasters.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.or>
 
-On Fri, 17 Jan 2014, Yijing Wang <wangyijing@huawei.com> wrote:
-> Fix acpi_evaluate_object() return value check,
-> shoud acpi_status not int.
-
-Please spellcheck.
-
->
-> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+On 17/01/14 02:03, Hanjun Guo wrote:
+> Move idle_boot_override out of the arch directory to be a single enum
+> including both platforms values, this will make it rather easier to
+> avoid ifdefs around which definitions are for which processor in
+> generally used ACPI code.
+> 
+> IDLE_FORCE_MWAIT for IA64 is not used anywhere, so romove it.
+> 
+> No functional change in this patch.
+> 
+> Suggested-by: Alan <gnomes@lxorguk.ukuu.org.uk>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 > ---
-> v2->v3: Fix compile error pointed out by Hanjun.
-> v1->v2: Add CC to related subsystem MAINTAINERS
-> ---
->  drivers/gpu/drm/i915/intel_acpi.c              |   24 ++++++++++++++----------
->  drivers/gpu/drm/nouveau/core/subdev/mxm/base.c |    9 +++++----
->  drivers/gpu/drm/nouveau/nouveau_acpi.c         |   23 +++++++++++++----------
->  drivers/pci/pci-label.c                        |    9 ++++++---
->  4 files changed, 38 insertions(+), 27 deletions(-)
->
-> diff --git a/drivers/gpu/drm/i915/intel_acpi.c b/drivers/gpu/drm/i915/intel_acpi.c
-> index dfff090..87e8f74 100644
-> --- a/drivers/gpu/drm/i915/intel_acpi.c
-> +++ b/drivers/gpu/drm/i915/intel_acpi.c
-> @@ -35,7 +35,8 @@ static int intel_dsm(acpi_handle handle, int func)
->  	union acpi_object params[4];
->  	union acpi_object *obj;
->  	u32 result;
-> -	int ret = 0;
-> +	acpi_status status;
-> +	int ret;
+>  arch/ia64/include/asm/processor.h    | 3 ---
+>  arch/powerpc/include/asm/processor.h | 1 -
+>  arch/x86/include/asm/processor.h     | 3 ---
+>  arch/x86/kernel/process.c            | 1 +
+>  include/linux/cpu.h                  | 8 ++++++++
+>  5 files changed, 9 insertions(+), 7 deletions(-)
+> 
+> diff --git a/arch/ia64/include/asm/processor.h b/arch/ia64/include/asm/processor.h
+> index 5a84b3a..ccd63a0 100644
+> --- a/arch/ia64/include/asm/processor.h
+> +++ b/arch/ia64/include/asm/processor.h
+> @@ -698,9 +698,6 @@ prefetchw (const void *x)
 >  
->  	input.count = 4;
->  	input.pointer = params;
-> @@ -50,10 +51,11 @@ static int intel_dsm(acpi_handle handle, int func)
->  	params[3].package.count = 0;
->  	params[3].package.elements = NULL;
+>  extern unsigned long boot_option_idle_override;
 >  
-> -	ret = acpi_evaluate_object(handle, "_DSM", &input, &output);
-> -	if (ret) {
-> -		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
-> -		return ret;
-> +	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
-> +	if (ACPI_FAILURE(status)) {
-> +		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %s\n",
-> +				acpi_format_exception(status));
-> +		return -EINVAL;
->  	}
+> -enum idle_boot_override {IDLE_NO_OVERRIDE=0, IDLE_HALT, IDLE_FORCE_MWAIT,
+> -			 IDLE_NOMWAIT, IDLE_POLL};
+> -
+>  void default_idle(void);
 >  
->  	obj = (union acpi_object *)output.pointer;
-> @@ -141,7 +143,8 @@ static void intel_dsm_platform_mux_info(void)
->  	struct acpi_object_list input;
->  	union acpi_object params[4];
->  	union acpi_object *pkg;
-> -	int i, ret;
-> +	acpi_status status;
-> +	int i;
+>  #define ia64_platform_is(x) (strcmp(x, ia64_platform_name) == 0)
+> diff --git a/arch/powerpc/include/asm/processor.h b/arch/powerpc/include/asm/processor.h
+> index fc14a38..06689c0 100644
+> --- a/arch/powerpc/include/asm/processor.h
+> +++ b/arch/powerpc/include/asm/processor.h
+> @@ -440,7 +440,6 @@ static inline unsigned long get_clean_sp(unsigned long sp, int is_32)
+>  #endif
 >  
->  	input.count = 4;
->  	input.pointer = params;
-> @@ -156,10 +159,11 @@ static void intel_dsm_platform_mux_info(void)
->  	params[3].package.count = 0;
->  	params[3].package.elements = NULL;
+>  extern unsigned long cpuidle_disable;
+> -enum idle_boot_override {IDLE_NO_OVERRIDE = 0, IDLE_POWERSAVE_OFF};
 >  
-> -	ret = acpi_evaluate_object(intel_dsm_priv.dhandle, "_DSM", &input,
-> -				   &output);
-> -	if (ret) {
-> -		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
-> +	acpi_status = acpi_evaluate_object(intel_dsm_priv.dhandle,
-> +			"_DSM", &input, &output);
-> +	if (ACPI_FAILURE(status)) {
-> +		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %s\n",
-> +				acpi_format_exception(status));
->  		goto out;
->  	}
 
-In the two hunks above, one of the error paths calls
-kfree(output.pointer), the other doesn't. Which one is wrong?
+I don't think it is used in the context of ACPI. Though it's same variable name,
+it looks like it just used as boot to override the cpuidle option.
+Does it still make any sense to combine this ?
 
-The fix for that should probably be a follow-up patch; this patch is
+>  extern int powersave_nap;	/* set if nap mode can be used in idle loop */
+>  extern void power7_nap(void);
+> diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
+> index 7b034a4..4bee51a 100644
+> --- a/arch/x86/include/asm/processor.h
+> +++ b/arch/x86/include/asm/processor.h
+> @@ -729,9 +729,6 @@ extern void init_amd_e400_c1e_mask(void);
+>  extern unsigned long		boot_option_idle_override;
+>  extern bool			amd_e400_c1e_detected;
+>  
+> -enum idle_boot_override {IDLE_NO_OVERRIDE=0, IDLE_HALT, IDLE_NOMWAIT,
+> -			 IDLE_POLL};
+> -
+>  extern void enable_sep_cpu(void);
+>  extern int sysenter_setup(void);
+>  
+> diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
+> index 3fb8d95..62764ff 100644
+> --- a/arch/x86/kernel/process.c
+> +++ b/arch/x86/kernel/process.c
+> @@ -17,6 +17,7 @@
+>  #include <linux/stackprotector.h>
+>  #include <linux/tick.h>
+>  #include <linux/cpuidle.h>
+> +#include <linux/cpu.h>
+>  #include <trace/events/power.h>
+>  #include <linux/hw_breakpoint.h>
+>  #include <asm/cpu.h>
+> diff --git a/include/linux/cpu.h b/include/linux/cpu.h
+> index 03e235ad..e324561 100644
+> --- a/include/linux/cpu.h
+> +++ b/include/linux/cpu.h
+> @@ -220,6 +220,14 @@ void cpu_idle(void);
+>  
+>  void cpu_idle_poll_ctrl(bool enable);
+>  
+> +enum idle_boot_override {
+> +	IDLE_NO_OVERRIDE = 0,
+> +	IDLE_HALT,
+> +	IDLE_NOMWAIT,
+> +	IDLE_POLL,
+> +	IDLE_POWERSAVE_OFF
+> +};
+> +
 
-Reviewed-by: Jani Nikula <jani.nikula@intel.com>
+I do understand the idea behind this change, but IMO HALT and MWAIT are x86
+specific and may not make sense for other architectures.
 
+It will also require every architecture using ACPI to export
+boot_option_idle_override which may not be really required.
 
->  
-> diff --git a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
-> index 1291204..c5e7a2b 100644
-> --- a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
-> +++ b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
-> @@ -114,15 +114,16 @@ mxm_shadow_dsm(struct nouveau_mxm *mxm, u8 version)
->  	struct acpi_buffer retn = { ACPI_ALLOCATE_BUFFER, NULL };
->  	union acpi_object *obj;
->  	acpi_handle handle;
-> -	int ret;
-> +	acpi_status status;
->  
->  	handle = ACPI_HANDLE(&device->pdev->dev);
->  	if (!handle)
->  		return false;
->  
-> -	ret = acpi_evaluate_object(handle, "_DSM", &list, &retn);
-> -	if (ret) {
-> -		nv_debug(mxm, "DSM MXMS failed: %d\n", ret);
-> +	status = acpi_evaluate_object(handle, "_DSM", &list, &retn);
-> +	if (ACPI_FAILURE(status)) {
-> +		nv_debug(mxm, "DSM MXMS failed: %s\n",
-> +				acpi_format_exception(status));
->  		return false;
->  	}
->  
-> diff --git a/drivers/gpu/drm/nouveau/nouveau_acpi.c b/drivers/gpu/drm/nouveau/nouveau_acpi.c
-> index ba0183f..de3068b 100644
-> --- a/drivers/gpu/drm/nouveau/nouveau_acpi.c
-> +++ b/drivers/gpu/drm/nouveau/nouveau_acpi.c
-> @@ -82,7 +82,8 @@ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *
->  	struct acpi_object_list input;
->  	union acpi_object params[4];
->  	union acpi_object *obj;
-> -	int i, err;
-> +	acpi_status status;
-> +	int i;
->  	char args_buff[4];
->  
->  	input.count = 4;
-> @@ -101,10 +102,11 @@ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *
->  		args_buff[i] = (arg >> i * 8) & 0xFF;
->  	params[3].buffer.pointer = args_buff;
->  
-> -	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
-> -	if (err) {
-> -		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
-> -		return err;
-> +	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
-> +	if (ACPI_FAILURE(status)) {
-> +		pr_info("failed to evaluate _DSM: %s\n",
-> +				acpi_format_exception(status));
-> +		return -EINVAL;
->  	}
->  
->  	obj = (union acpi_object *)output.pointer;
-> @@ -134,7 +136,7 @@ static int nouveau_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
->  	struct acpi_object_list input;
->  	union acpi_object params[4];
->  	union acpi_object *obj;
-> -	int err;
-> +	acpi_status status;
->  
->  	input.count = 4;
->  	input.pointer = params;
-> @@ -148,10 +150,11 @@ static int nouveau_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
->  	params[3].type = ACPI_TYPE_INTEGER;
->  	params[3].integer.value = arg;
->  
-> -	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
-> -	if (err) {
-> -		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
-> -		return err;
-> +	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
-> +	if (ACPI_FAILURE(status)) {
-> +		pr_info("failed to evaluate _DSM: %s\n",
-> +				acpi_format_exception(status));
-> +		return -EINVAL;
->  	}
->  
->  	obj = (union acpi_object *)output.pointer;
-> diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
-> index d51f45a..7ba4de6 100644
-> --- a/drivers/pci/pci-label.c
-> +++ b/drivers/pci/pci-label.c
-> @@ -213,7 +213,7 @@ dsm_get_label(acpi_handle handle, int func,
->  	union acpi_object *obj;
->  	int len = 0;
->  
-> -	int err;
-> +	acpi_status status;
->  
->  	input.count = 4;
->  	input.pointer = params;
-> @@ -228,9 +228,12 @@ dsm_get_label(acpi_handle handle, int func,
->  	params[3].package.count = 0;
->  	params[3].package.elements = NULL;
->  
-> -	err = acpi_evaluate_object(handle, "_DSM", &input, output);
-> -	if (err)
-> +	status = acpi_evaluate_object(handle, "_DSM", &input, output);
-> +	if (ACPI_FAILURE(status)) {
-> +		pr_info("failed to evaluate _DSM: %s\n",
-> +				acpi_format_exception(status));
->  		return -1;
-> +	}
->  
->  	obj = (union acpi_object *)output->pointer;
->  
-> -- 
-> 1.7.1
->
->
+Further the only users of boot_option_idle_override(outside x86) are:
 
--- 
-Jani Nikula, Intel Open Source Technology Center
+1. drivers/acpi/processor_core.c
+   Your second patch is moving this to x86 specific code anyway
+
+2. drivers/acpi/processor_idle.c
+   Currently idle driver is bit x86 specific and needs modifications to get it
+   working on ARM
+
+Regards,
+Sudeep
+
