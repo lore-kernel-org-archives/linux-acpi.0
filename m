@@ -1,34 +1,212 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [PATCH 3/4] fix module autoloading for ACPI enumerated devices
-Date: Fri, 17 Jan 2014 09:37:56 +0200
-Message-ID: <52D8DDD4.10704@linux.intel.com>
-References: <1389689198-2641-1-git-send-email-rui.zhang@intel.com> <1389689198-2641-4-git-send-email-rui.zhang@intel.com> <20140116122704.GD2617@katana> <1389877509.3010.15.camel@rzhang1-mobl4> <20140116194651.GO17314@sirena.org.uk>
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: [PATCH v3] ACPI: Fix acpi_evaluate_object() return value check
+Date: Fri, 17 Jan 2014 09:46:48 +0200
+Message-ID: <87d2jr82zb.fsf@intel.com>
+References: <1389932513-27684-1-git-send-email-wangyijing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:30249 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751155AbaAQHiA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Jan 2014 02:38:00 -0500
-In-Reply-To: <20140116194651.GO17314@sirena.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1389932513-27684-1-git-send-email-wangyijing@huawei.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-acpi@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Bjorn Helgaas <bhelgaas@google.com>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dave Airlie <airlied@redhat.com>, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, gregkh@linuxfoundation.org, rafael.j.wysocki@intel.com, grant.likely@linaro.org, mika.westerberg@linux.intel.com, grant.likely@secretlab.ca
 
-On 01/16/2014 09:46 PM, Mark Brown wrote:
-> On Thu, Jan 16, 2014 at 09:05:09PM +0800, Zhang Rui wrote:
->> On Thu, 2014-01-16 at 13:27 +0100, Wolfram Sang wrote:
->> This seems a gap to me but I'm not 100% sure.
->> I saw Grant Likely introduced the OF style MODALIAS to platform bus, and
->> OF style registration/binding to i2c bus, maybe he has an answer for
->> this.
-> This is needed for ACPI because we rewrite the device names to give us
-> stable names.  With OF for I2C and SPI nothing bus specific is done that
-> affects this stuff so the default behaviour works.
-Sidenote: actually this modalias/module loading issue is different and 
-not related to stable ACPI i2c/spi slave device names.
+On Fri, 17 Jan 2014, Yijing Wang <wangyijing@huawei.com> wrote:
+> Fix acpi_evaluate_object() return value check,
+> shoud acpi_status not int.
+
+Please spellcheck.
+
+>
+> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+> ---
+> v2->v3: Fix compile error pointed out by Hanjun.
+> v1->v2: Add CC to related subsystem MAINTAINERS
+> ---
+>  drivers/gpu/drm/i915/intel_acpi.c              |   24 ++++++++++++++----------
+>  drivers/gpu/drm/nouveau/core/subdev/mxm/base.c |    9 +++++----
+>  drivers/gpu/drm/nouveau/nouveau_acpi.c         |   23 +++++++++++++----------
+>  drivers/pci/pci-label.c                        |    9 ++++++---
+>  4 files changed, 38 insertions(+), 27 deletions(-)
+>
+> diff --git a/drivers/gpu/drm/i915/intel_acpi.c b/drivers/gpu/drm/i915/intel_acpi.c
+> index dfff090..87e8f74 100644
+> --- a/drivers/gpu/drm/i915/intel_acpi.c
+> +++ b/drivers/gpu/drm/i915/intel_acpi.c
+> @@ -35,7 +35,8 @@ static int intel_dsm(acpi_handle handle, int func)
+>  	union acpi_object params[4];
+>  	union acpi_object *obj;
+>  	u32 result;
+> -	int ret = 0;
+> +	acpi_status status;
+> +	int ret;
+>  
+>  	input.count = 4;
+>  	input.pointer = params;
+> @@ -50,10 +51,11 @@ static int intel_dsm(acpi_handle handle, int func)
+>  	params[3].package.count = 0;
+>  	params[3].package.elements = NULL;
+>  
+> -	ret = acpi_evaluate_object(handle, "_DSM", &input, &output);
+> -	if (ret) {
+> -		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
+> -		return ret;
+> +	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
+> +	if (ACPI_FAILURE(status)) {
+> +		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %s\n",
+> +				acpi_format_exception(status));
+> +		return -EINVAL;
+>  	}
+>  
+>  	obj = (union acpi_object *)output.pointer;
+> @@ -141,7 +143,8 @@ static void intel_dsm_platform_mux_info(void)
+>  	struct acpi_object_list input;
+>  	union acpi_object params[4];
+>  	union acpi_object *pkg;
+> -	int i, ret;
+> +	acpi_status status;
+> +	int i;
+>  
+>  	input.count = 4;
+>  	input.pointer = params;
+> @@ -156,10 +159,11 @@ static void intel_dsm_platform_mux_info(void)
+>  	params[3].package.count = 0;
+>  	params[3].package.elements = NULL;
+>  
+> -	ret = acpi_evaluate_object(intel_dsm_priv.dhandle, "_DSM", &input,
+> -				   &output);
+> -	if (ret) {
+> -		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
+> +	acpi_status = acpi_evaluate_object(intel_dsm_priv.dhandle,
+> +			"_DSM", &input, &output);
+> +	if (ACPI_FAILURE(status)) {
+> +		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %s\n",
+> +				acpi_format_exception(status));
+>  		goto out;
+>  	}
+
+In the two hunks above, one of the error paths calls
+kfree(output.pointer), the other doesn't. Which one is wrong?
+
+The fix for that should probably be a follow-up patch; this patch is
+
+Reviewed-by: Jani Nikula <jani.nikula@intel.com>
+
+
+>  
+> diff --git a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
+> index 1291204..c5e7a2b 100644
+> --- a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
+> +++ b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
+> @@ -114,15 +114,16 @@ mxm_shadow_dsm(struct nouveau_mxm *mxm, u8 version)
+>  	struct acpi_buffer retn = { ACPI_ALLOCATE_BUFFER, NULL };
+>  	union acpi_object *obj;
+>  	acpi_handle handle;
+> -	int ret;
+> +	acpi_status status;
+>  
+>  	handle = ACPI_HANDLE(&device->pdev->dev);
+>  	if (!handle)
+>  		return false;
+>  
+> -	ret = acpi_evaluate_object(handle, "_DSM", &list, &retn);
+> -	if (ret) {
+> -		nv_debug(mxm, "DSM MXMS failed: %d\n", ret);
+> +	status = acpi_evaluate_object(handle, "_DSM", &list, &retn);
+> +	if (ACPI_FAILURE(status)) {
+> +		nv_debug(mxm, "DSM MXMS failed: %s\n",
+> +				acpi_format_exception(status));
+>  		return false;
+>  	}
+>  
+> diff --git a/drivers/gpu/drm/nouveau/nouveau_acpi.c b/drivers/gpu/drm/nouveau/nouveau_acpi.c
+> index ba0183f..de3068b 100644
+> --- a/drivers/gpu/drm/nouveau/nouveau_acpi.c
+> +++ b/drivers/gpu/drm/nouveau/nouveau_acpi.c
+> @@ -82,7 +82,8 @@ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *
+>  	struct acpi_object_list input;
+>  	union acpi_object params[4];
+>  	union acpi_object *obj;
+> -	int i, err;
+> +	acpi_status status;
+> +	int i;
+>  	char args_buff[4];
+>  
+>  	input.count = 4;
+> @@ -101,10 +102,11 @@ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *
+>  		args_buff[i] = (arg >> i * 8) & 0xFF;
+>  	params[3].buffer.pointer = args_buff;
+>  
+> -	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
+> -	if (err) {
+> -		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
+> -		return err;
+> +	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
+> +	if (ACPI_FAILURE(status)) {
+> +		pr_info("failed to evaluate _DSM: %s\n",
+> +				acpi_format_exception(status));
+> +		return -EINVAL;
+>  	}
+>  
+>  	obj = (union acpi_object *)output.pointer;
+> @@ -134,7 +136,7 @@ static int nouveau_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
+>  	struct acpi_object_list input;
+>  	union acpi_object params[4];
+>  	union acpi_object *obj;
+> -	int err;
+> +	acpi_status status;
+>  
+>  	input.count = 4;
+>  	input.pointer = params;
+> @@ -148,10 +150,11 @@ static int nouveau_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
+>  	params[3].type = ACPI_TYPE_INTEGER;
+>  	params[3].integer.value = arg;
+>  
+> -	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
+> -	if (err) {
+> -		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
+> -		return err;
+> +	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
+> +	if (ACPI_FAILURE(status)) {
+> +		pr_info("failed to evaluate _DSM: %s\n",
+> +				acpi_format_exception(status));
+> +		return -EINVAL;
+>  	}
+>  
+>  	obj = (union acpi_object *)output.pointer;
+> diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
+> index d51f45a..7ba4de6 100644
+> --- a/drivers/pci/pci-label.c
+> +++ b/drivers/pci/pci-label.c
+> @@ -213,7 +213,7 @@ dsm_get_label(acpi_handle handle, int func,
+>  	union acpi_object *obj;
+>  	int len = 0;
+>  
+> -	int err;
+> +	acpi_status status;
+>  
+>  	input.count = 4;
+>  	input.pointer = params;
+> @@ -228,9 +228,12 @@ dsm_get_label(acpi_handle handle, int func,
+>  	params[3].package.count = 0;
+>  	params[3].package.elements = NULL;
+>  
+> -	err = acpi_evaluate_object(handle, "_DSM", &input, output);
+> -	if (err)
+> +	status = acpi_evaluate_object(handle, "_DSM", &input, output);
+> +	if (ACPI_FAILURE(status)) {
+> +		pr_info("failed to evaluate _DSM: %s\n",
+> +				acpi_format_exception(status));
+>  		return -1;
+> +	}
+>  
+>  	obj = (union acpi_object *)output->pointer;
+>  
+> -- 
+> 1.7.1
+>
+>
 
 -- 
-Jarkko
+Jani Nikula, Intel Open Source Technology Center
