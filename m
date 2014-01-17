@@ -1,93 +1,56 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 06/20] ARM64 / ACPI: Introduce some PCI functions when PCI is enabled
-Date: Fri, 17 Jan 2014 15:04:23 +0100
-Message-ID: <201401171504.24525.arnd@arndb.de>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-7-git-send-email-hanjun.guo@linaro.org>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH 04/20] ARM64 / ACPI: Introduce arm_core.c and its related
+ head file
+Date: Fri, 17 Jan 2014 14:12:41 +0000
+Message-ID: <20140117141241.GH16003@mudshark.cambridge.arm.com>
+References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org>
+ <1389961514-13562-5-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:63467 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751920AbaAQOEu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jan 2014 09:04:50 -0500
-In-Reply-To: <1389961514-13562-7-git-send-email-hanjun.guo@linaro.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:33221 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751920AbaAQOMt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Jan 2014 09:12:49 -0500
+Content-Disposition: inline
+In-Reply-To: <1389961514-13562-5-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Mark Rutland <mark.rutland@arm.com>, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Charles.Garcia-Tobin@arm.com
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>Al Stone <a>
 
-On Friday 17 January 2014, Hanjun Guo wrote:
-> +++ b/arch/arm64/pci/Makefile
-> @@ -0,0 +1 @@
-> +obj-y                 += pci.o
-> diff --git a/arch/arm64/pci/pci.c b/arch/arm64/pci/pci.c
-> new file mode 100644
-> index 0000000..4e46790
-> --- /dev/null
-> +++ b/arch/arm64/pci/pci.c
-> @@ -0,0 +1,33 @@
+On Fri, Jan 17, 2014 at 12:24:58PM +0000, Hanjun Guo wrote:
+> Introduce arm_core.c and its related head file, after this patch,
+> we can get ACPI tables from firmware on ARM64 now.
+> 
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+[...]
+
+> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+> index bd9bbd0..2210353 100644
+> --- a/arch/arm64/kernel/setup.c
+> +++ b/arch/arm64/kernel/setup.c
+> @@ -41,6 +41,7 @@
+>  #include <linux/memblock.h>
+>  #include <linux/of_fdt.h>
+>  #include <linux/of_platform.h>
 > +#include <linux/acpi.h>
-> +#include <linux/types.h>
-> +#include <linux/kernel.h>
-> +#include <linux/pci.h>
-> +
-> +/**
-> + * raw_pci_read - Platform-specific PCI config space access.
-> + *
-> + * Default empty implementation.  Replace with an architecture-specific setup
-> + * routine, if necessary.
-> + */
-> +int __weak raw_pci_read(unsigned int domain, unsigned int bus,
-> +			unsigned int devfn, int reg, int len, u32 *val)
-> +{
-> +	return -EINVAL;
-> +}
-> +
-> +int __weak raw_pci_write(unsigned int domain, unsigned int bus,
-> +			unsigned int devfn, int reg, int len, u32 val)
-> +{
-> +	return -EINVAL;
-> +}
-
-I'd rather not see __weak functions here. Just provide them unconditionally
-so that we can add a proper implementation when needed. You could also
-define these as 'static inline' in a header file to keep them from consuming
-space in the object code.
-
-> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-core.c
-> index 3c8521d..1835b21 100644
-> --- a/drivers/acpi/plat/arm-core.c
-> +++ b/drivers/acpi/plat/arm-core.c
-> @@ -100,6 +100,25 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
->  }
->  EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
 >  
-> +int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
-> +{
-> +	return -1;
-> +}
-> +
-> +int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
-> +{
-> +	/* TBD */
-> +	return -EINVAL;
-> +}
-> +EXPORT_SYMBOL(acpi_register_ioapic);
-> +
-> +int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base)
-> +{
-> +	/* TBD */
-> +	return -EINVAL;
-> +}
-> +EXPORT_SYMBOL(acpi_unregister_ioapic);
-> +
+>  #include <asm/cputype.h>
+>  #include <asm/elf.h>
+> @@ -225,6 +226,11 @@ void __init setup_arch(char **cmdline_p)
+>  
+>  	arm64_memblock_init();
+>  
+> +	/* Parse the ACPI tables for possible boot-time configuration */
+> +	acpi_boot_table_init();
+> +	early_acpi_boot_init();
+> +	acpi_boot_init();
 
-My feeling is that these are better handled in the ACPI code by not
-calling them on architectures that have no ISA or no IOAPIC support.
+Do we really need *three* back-to-back calls for ACPI to initialise?
 
-We have configuration symbols for both, so you don't have to make
-it depend on CONFIG_ARM64 or CONFIG_X86.
-
-	Arnd
+Will
