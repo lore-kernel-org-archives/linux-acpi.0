@@ -1,94 +1,49 @@
-From: al.stone@linaro.org
-Subject: [PATCH v3] ACPI: introduce CONFIG_ACPI_REDUCED_HARDWARE_ONLY to enable this ACPI mode
-Date: Fri, 17 Jan 2014 11:51:30 -0700
-Message-ID: <1389984690-24251-1-git-send-email-al.stone@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [GIT PULL] Last minute ACPI fix for v3.13
+Date: Fri, 17 Jan 2014 23:43:39 +0100
+Message-ID: <1607643.bXgUGr2Zse@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:43434 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752255AbaAQSvl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jan 2014 13:51:41 -0500
-Received: by mail-pb0-f42.google.com with SMTP id jt11so2372499pbb.15
-        for <linux-acpi@vger.kernel.org>; Fri, 17 Jan 2014 10:51:41 -0800 (PST)
+Received: from v094114.home.net.pl ([79.96.170.134]:53702 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753244AbaAQW3h (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jan 2014 17:29:37 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Linus Walleij <linus.walleij@linaro.org>
 
-From: Al Stone <al.stone@linaro.org>
+Hi Linus,
 
-ACPI hardware reduced mode exists to allow newer platforms to use a
-simpler form of ACPI that does not require supporting legacy versions
-of the specification and their associated hardware.  This mode was
-introduced in the ACPI 5.0 specification.
+Please pull from the git repository at
 
-To enable the hardware reduced mode of ACPI, we need to set the flag
-ACPI_REDUCED_HARDWARE to TRUE in the ACPICA source.  In order to do
-that, we introduce a kernel configuration item to enable or disable
-ACPI_REDUCED_HARDWARE.  We can then change the kernel configuration
-instead of having to modify the kernel source.
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-3.13-fixup
 
-Introducing this configuration item is based on suggestions from Lv
-Zheng saying that this does not belong in ACPICA, but rather to the
-Linux kernel itself.  Hence, we introduce this configuration item so
-that we can make ACPI_REDUCED_HARDWARE configurable.  For the details
-of the discussion, please refer to:
+to receive a last-minute ACPI fix for 3.13 as commit 
+b40f93bb008ed5d83aa608b21c8c65c5111512e1
 
-   http://www.spinics.net/lists/linux-acpi/msg46369.html
+  Revert "ACPI: Add BayTrail SoC GPIO and LPSS ACPI IDs"
 
-Changes for v3:
-   -- Minimize the changelog.
+on top of commit 7e22e91102c6b9df7c4ae2168910e19d2bb14cd6
 
-Changes for v2:
-   -- Changed test for EXPERT to avoid reported Kconfig warning
+  Linux 3.13-rc8
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Al Stone <al.stone@linaro.org>
----
- drivers/acpi/Kconfig            | 13 +++++++++++++
- include/acpi/platform/aclinux.h |  6 ++++++
- 2 files changed, 19 insertions(+)
+This reverts a commit that causes the Alan Cox' ASUS T100TA to "crash and
+burn" during boot if the Baytrail pinctrl driver is compiled in.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 4770de5..9fd6a7a 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -343,6 +343,19 @@ config ACPI_BGRT
- 	  data from the firmware boot splash. It will appear under
- 	  /sys/firmware/acpi/bgrt/ .
- 
-+config ACPI_REDUCED_HARDWARE_ONLY
-+	bool "Hardware-reduced ACPI support only" if EXPERT
-+	def_bool n
-+	depends on ACPI
-+	help
-+	This config item changes the way the ACPI code is built.  When this
-+	option is selected, the kernel will use a specialized version of
-+	ACPICA that ONLY supports the ACPI "reduced hardware" mode.  The
-+	resulting kernel will be smaller but it will also be restricted to
-+	running in ACPI reduced hardware mode ONLY.
-+
-+	If you are unsure what to do, do not enable this option.
-+
- source "drivers/acpi/apei/Kconfig"
- 
- config ACPI_EXTLOG
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 28f4f4d..7d71f08 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -52,6 +52,12 @@
- 
- #ifdef __KERNEL__
- 
-+/* Compile for reduced hardware mode only with this kernel config */
-+
-+#ifdef CONFIG_ACPI_REDUCED_HARDWARE_ONLY
-+#define ACPI_REDUCED_HARDWARE 1
-+#endif
-+
- #include <linux/string.h>
- #include <linux/kernel.h>
- #include <linux/ctype.h>
--- 
-1.8.4.2
+Thanks!
+
+
+---------------
+
+Rafael J. Wysocki (1):
+      Revert "ACPI: Add BayTrail SoC GPIO and LPSS ACPI IDs"
+
+---------------
+
+ drivers/acpi/acpi_lpss.c           | 1 -
+ drivers/pinctrl/pinctrl-baytrail.c | 1 -
+ 2 files changed, 2 deletions(-)
 
