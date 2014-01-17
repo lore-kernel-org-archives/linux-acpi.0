@@ -1,81 +1,52 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH 3/3] ACPI: Introduce map_gic_id() to get apic id from MADT or _MAT method
-Date: Fri, 17 Jan 2014 10:03:27 +0800
-Message-ID: <1389924207-7360-4-git-send-email-hanjun.guo@linaro.org>
-References: <1389924207-7360-1-git-send-email-hanjun.guo@linaro.org>
+From: Thomas Christensen <christensenthomas@gmail.com>
+Subject: Re: [Aspire V5-431] Brightness control visible but does nothing
+Date: Fri, 17 Jan 2014 09:13:41 +0700
+Message-ID: <20140117021341.GA22022@3bb.co.th>
+References: <CADNMoF1A2iExRav_O8GYm8P9jbaf2GqPRsi+eymNtcddyfnUfA@mail.gmail.com>
+ <52D60057.2050505@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:34130 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601AbaAQCHd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jan 2014 21:07:33 -0500
-Received: by mail-pd0-f179.google.com with SMTP id q10so1319382pdj.38
-        for <linux-acpi@vger.kernel.org>; Thu, 16 Jan 2014 18:07:33 -0800 (PST)
-In-Reply-To: <1389924207-7360-1-git-send-email-hanjun.guo@linaro.org>
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:44170 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751713AbaAQCNr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jan 2014 21:13:47 -0500
+Received: by mail-pb0-f48.google.com with SMTP id rr13so3453250pbb.7
+        for <linux-acpi@vger.kernel.org>; Thu, 16 Jan 2014 18:13:46 -0800 (PST)
+Received: from thomasc-Aspire-V5-431 ([183.89.70.8])
+        by mx.google.com with ESMTPSA id nw11sm24700077pab.13.2014.01.16.18.13.44
+        for <linux-acpi@vger.kernel.org>
+        (version=TLSv1.1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Thu, 16 Jan 2014 18:13:45 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <52D60057.2050505@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <rob.herring@calxeda.com>, Mark Rutland <mark.rutland@arm.com>, Jon Masters <jonathan@jonmasters.org>, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+To: linux-acpi@vger.kernel.org
 
-Get apic id from MADT or _MAT method is not implemented on arm/arm64,
-and ACPI 5.0 introduces GIC Structure for it, so this patch introduces
-map_gic_id() to get apic id followed the ACPI 5.0 spec.
+On Wed, Jan 15, 2014 at 11:28:23AM +0800, Aaron Lu wrote:
+> On 01/14/2014 06:02 PM, Thomas Christensen wrote:
+> > This laptop gets a /sys/class/backlight/acpi_video0 entry for
+> > backlight that is not working.
+> > 
+> > $ ls /sys/class/backlight
+> > acpi_video0  intel_backlight
+> > 
+> > and I see the following entry in the kernel log:
+> > 
+> > [   19.515016] acer_wmi: Brightness must be controlled by acpi video driver
+> > 
+> > By using 'acpi_backlight=vendor' my desktop starts to work.
+> 
+> Please file a bug to kernel bugzilla:
+> https://bugzilla.kernel.org/
+> Choose ACPI/Power-Video, and attach your acpidump there.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/processor_core.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+opened as
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index cd7b5fe..165eac7 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -90,6 +90,27 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
- 	return 1;
- }
- 
-+static int map_gic_id(struct acpi_subtable_header *entry,
-+		int device_declaration, u32 acpi_id, int *apic_id)
-+{
-+	struct acpi_madt_generic_interrupt *gic =
-+		(struct acpi_madt_generic_interrupt *)entry;
-+
-+	if (!(gic->flags & ACPI_MADT_ENABLED))
-+		return 0;
-+
-+	/* In the GIC interrupt model, logical processors are
-+	 * required to have a Processor Device object in the DSDT,
-+	 * so we should check device_declaration here
-+	 */
-+	if (device_declaration && (gic->uid == acpi_id)) {
-+		*apic_id = gic->gic_id;
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
- static int map_madt_entry(int type, u32 acpi_id)
- {
- 	unsigned long madt_end, entry;
-@@ -125,6 +146,9 @@ static int map_madt_entry(int type, u32 acpi_id)
- 		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
- 			if (map_lsapic_id(header, type, acpi_id, &apic_id))
- 				break;
-+		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-+			if (map_gic_id(header, type, acpi_id, &apic_id))
-+				break;
- 		}
- 		entry += header->length;
- 	}
-@@ -155,6 +179,8 @@ static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
- 		map_lapic_id(header, acpi_id, &apic_id);
- 	} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
- 		map_lsapic_id(header, type, acpi_id, &apic_id);
-+	} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-+		map_gic_id(header, type, acpi_id, &apic_id);
- 	}
- 
- exit:
--- 
-1.8.2.2
+https://bugzilla.kernel.org/show_bug.cgi?id=68751
 
+let me know if I can be of further assistance.
+
+Thanks,
+Thomas
