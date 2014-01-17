@@ -1,99 +1,34 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH] ACPI / processor: Return specific error value when mapping lapic id
-Date: Fri, 17 Jan 2014 12:37:02 +0800
-Message-ID: <1389933422-10016-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: [PATCH 3/4] fix module autoloading for ACPI enumerated devices
+Date: Fri, 17 Jan 2014 09:37:56 +0200
+Message-ID: <52D8DDD4.10704@linux.intel.com>
+References: <1389689198-2641-1-git-send-email-rui.zhang@intel.com> <1389689198-2641-4-git-send-email-rui.zhang@intel.com> <20140116122704.GD2617@katana> <1389877509.3010.15.camel@rzhang1-mobl4> <20140116194651.GO17314@sirena.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:30249 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751155AbaAQHiA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Jan 2014 02:38:00 -0500
+In-Reply-To: <20140116194651.GO17314@sirena.org.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, gregkh@linuxfoundation.org, rafael.j.wysocki@intel.com, grant.likely@linaro.org, mika.westerberg@linux.intel.com, grant.likely@secretlab.ca
 
-we usually return 0 for success in int returned function, and negative
-value when failed, but in processor_core.c, some function return 1
-for success and 0 for failure which leads confusion sometimes,
-replace with specific error values to fix that.
+On 01/16/2014 09:46 PM, Mark Brown wrote:
+> On Thu, Jan 16, 2014 at 09:05:09PM +0800, Zhang Rui wrote:
+>> On Thu, 2014-01-16 at 13:27 +0100, Wolfram Sang wrote:
+>> This seems a gap to me but I'm not 100% sure.
+>> I saw Grant Likely introduced the OF style MODALIAS to platform bus, and
+>> OF style registration/binding to i2c bus, maybe he has an answer for
+>> this.
+> This is needed for ACPI because we rewrite the device names to give us
+> stable names.  With OF for I2C and SPI nothing bus specific is done that
+> affects this stuff so the default behaviour works.
+Sidenote: actually this modalias/module loading issue is different and 
+not related to stable ACPI i2c/spi slave device names.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/processor_core.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index b3171f3..24c87ef 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -45,13 +45,13 @@ static int map_lapic_id(struct acpi_subtable_header *entry,
- 		(struct acpi_madt_local_apic *)entry;
- 
- 	if (!(lapic->lapic_flags & ACPI_MADT_ENABLED))
--		return 0;
-+		return -ENODEV;
- 
- 	if (lapic->processor_id != acpi_id)
--		return 0;
-+		return -EINVAL;
- 
- 	*apic_id = lapic->id;
--	return 1;
-+	return 0;
- }
- 
- static int map_x2apic_id(struct acpi_subtable_header *entry,
-@@ -61,14 +61,14 @@ static int map_x2apic_id(struct acpi_subtable_header *entry,
- 		(struct acpi_madt_local_x2apic *)entry;
- 
- 	if (!(apic->lapic_flags & ACPI_MADT_ENABLED))
--		return 0;
-+		return -ENODEV;
- 
- 	if (device_declaration && (apic->uid == acpi_id)) {
- 		*apic_id = apic->local_apic_id;
--		return 1;
-+		return 0;
- 	}
- 
--	return 0;
-+	return -EINVAL;
- }
- 
- static int map_lsapic_id(struct acpi_subtable_header *entry,
-@@ -78,16 +78,16 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
- 		(struct acpi_madt_local_sapic *)entry;
- 
- 	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
--		return 0;
-+		return -ENODEV;
- 
- 	if (device_declaration) {
- 		if ((entry->length < 16) || (lsapic->uid != acpi_id))
--			return 0;
-+			return -EINVAL;
- 	} else if (lsapic->processor_id != acpi_id)
--		return 0;
-+		return -EINVAL;
- 
- 	*apic_id = (lsapic->id << 8) | lsapic->eid;
--	return 1;
-+	return 0;
- }
- 
- static int map_madt_entry(int type, u32 acpi_id)
-@@ -117,13 +117,13 @@ static int map_madt_entry(int type, u32 acpi_id)
- 		struct acpi_subtable_header *header =
- 			(struct acpi_subtable_header *)entry;
- 		if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
--			if (map_lapic_id(header, acpi_id, &apic_id))
-+			if (!map_lapic_id(header, acpi_id, &apic_id))
- 				break;
- 		} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
--			if (map_x2apic_id(header, type, acpi_id, &apic_id))
-+			if (!map_x2apic_id(header, type, acpi_id, &apic_id))
- 				break;
- 		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
--			if (map_lsapic_id(header, type, acpi_id, &apic_id))
-+			if (!map_lsapic_id(header, type, acpi_id, &apic_id))
- 				break;
- 		}
- 		entry += header->length;
 -- 
-1.7.9.5
+Jarkko
