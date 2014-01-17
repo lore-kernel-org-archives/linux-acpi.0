@@ -1,113 +1,77 @@
 From: Sudeep Holla <Sudeep.Holla@arm.com>
-Subject: Re: [PATCH 04/20] ARM64 / ACPI: Introduce arm_core.c and its related
- head file
-Date: Fri, 17 Jan 2014 16:56:49 +0000
-Message-ID: <52D960D1.3090700@arm.com>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org>
- <1389961514-13562-5-git-send-email-hanjun.guo@linaro.org>
+Subject: Re: [PATCH 10/20] ARM64 / ACPI: Enumerate possible/present CPU set
+ and map logical cpu id to APIC id
+Date: Fri, 17 Jan 2014 17:37:37 +0000
+Message-ID: <52D96A61.9080505@arm.com>
+References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-11-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1389961514-13562-5-git-send-email-hanjun.guo@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1389961514-13562-11-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Rob Herring <robh@kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "Rafael J. Wysocki" <rjw@rjw>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Sudeep.Holla@arm.com, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Olof Johansson <olof@lixom.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 17/01/14 12:24, Hanjun Guo wrote:
-> Introduce arm_core.c and its related head file, after this patch,
-> we can get ACPI tables from firmware on ARM64 now.
+On 17/01/14 12:25, Hanjun Guo wrote:
+> When boot the kernel with MADT, the cpu possible and present sets should
+> be enumerated for later smp initialization.
 > 
-> Signed-off-by: Al Stone <al.stone@linaro.org>
-> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> The logic cpu id maps to APIC id (GIC id) is also implemented, it is
+> needed for acpi processor drivers.
+> 
 > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 > ---
->  arch/arm64/include/asm/acpi.h |   57 +++++++++++
->  arch/arm64/kernel/setup.c     |    6 ++
->  drivers/acpi/Makefile         |    2 +
->  drivers/acpi/plat/Makefile    |    1 +
->  drivers/acpi/plat/arm-core.c  |  209 +++++++++++++++++++++++++++++++++++++++++
->  5 files changed, 275 insertions(+)
->  create mode 100644 drivers/acpi/plat/Makefile
->  create mode 100644 drivers/acpi/plat/arm-core.c
+>  arch/arm64/include/asm/acpi.h |    7 ++--
+>  drivers/acpi/plat/arm-core.c  |   83 +++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 87 insertions(+), 3 deletions(-)
 > 
 > diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index cf19dc6..908d71b 100644
+> index c335c6d..7edd39e 100644
 > --- a/arch/arm64/include/asm/acpi.h
 > +++ b/arch/arm64/include/asm/acpi.h
-> @@ -19,6 +19,43 @@
->  #ifndef _ASM_ARM64_ACPI_H
->  #define _ASM_ARM64_ACPI_H
+> @@ -76,9 +76,6 @@ static inline void acpi_disable_pci(void)
+>  /* FIXME: this function should be moved to topology.h when it's ready */
+>  void arch_fix_phys_package_id(int num, u32 slot);
 >  
-> +#include <asm/cacheflush.h>
-> +
-> +#include <linux/init.h>
-> +
-> +#define COMPILER_DEPENDENT_INT64	s64
-> +#define COMPILER_DEPENDENT_UINT64	u64
-> +
-> +/*
-> + * Calling conventions:
-> + *
-> + * ACPI_SYSTEM_XFACE        - Interfaces to host OS (handlers, threads)
-> + * ACPI_EXTERNAL_XFACE      - External ACPI interfaces
-> + * ACPI_INTERNAL_XFACE      - Internal ACPI interfaces
-> + * ACPI_INTERNAL_VAR_XFACE  - Internal variable-parameter list interfaces
-> + */
-> +#define ACPI_SYSTEM_XFACE
-> +#define ACPI_EXTERNAL_XFACE
-> +#define ACPI_INTERNAL_XFACE
-> +#define ACPI_INTERNAL_VAR_XFACE
-> +
-> +/* Asm macros */
-> +#define ACPI_FLUSH_CPU_CACHE() flush_cache_all()
-> +
-> +/* Basic configuration for ACPI */
-> +#ifdef	CONFIG_ACPI
-> +extern int acpi_disabled;
-> +extern int acpi_noirq;
-> +extern int acpi_pci_disabled;
-> +extern int acpi_strict;
-> +
-> +static inline void disable_acpi(void)
-> +{
-> +	acpi_disabled = 1;
-> +	acpi_pci_disabled = 1;
-> +	acpi_noirq = 1;
-> +}
-> +
->  static inline bool arch_has_acpi_pdc(void)
->  {
->  	return false;	/* always false for now */
-> @@ -29,4 +66,24 @@ static inline void arch_acpi_set_pdc_bits(u32 *buf)
->  	return;
->  }
+> -/* temperally define -1 to make acpi core compilerable */
+> -#define cpu_physical_id(cpu) -1
+> -
+>  /* Low-level suspend routine. */
+>  extern int (*acpi_suspend_lowlevel)(void);
+>  #define acpi_wakeup_address (0)
+> @@ -86,6 +83,10 @@ extern int (*acpi_suspend_lowlevel)(void);
+>  #define MAX_GIC_CPU_INTERFACE 256
+>  #define MAX_GIC_DISTRIBUTOR   1		/* should be the same as MAX_GIC_NR */
 >  
-> +static inline void acpi_noirq_set(void) { acpi_noirq = 1; }
-> +static inline void acpi_disable_pci(void)
-> +{
-> +	acpi_pci_disabled = 1;
-> +	acpi_noirq_set();
-> +}
-> +
-> +/* FIXME: this function should be moved to topology.h when it's ready */
-> +void arch_fix_phys_package_id(int num, u32 slot);
-> +
-> +/* temperally define -1 to make acpi core compilerable */
-> +#define cpu_physical_id(cpu) -1
+> +/* map logic cpu id to physical GIC id */
+> +extern int arm_cpu_to_apicid[NR_CPUS];
+> +#define cpu_physical_id(cpu) arm_cpu_to_apicid[cpu]
 > +
 
-I assume `cpu` here is logical cpu id in which case you can define it to be same
-as cpu_logical_map ?
+You refer arm_cpu_to_apicid as a mapping from logical cpu id to GIC id,
+then why is it assigned to cpu_physical_id. cpu_physical_id must be same as
+cpu_logical_map which is from logical cpu id to MPIDRs.
+
+[...]
+
+> @@ -321,6 +401,9 @@ int __init early_acpi_boot_init(void)
+>  	if (acpi_disabled)
+>  		return -ENODEV;
+>  
+> +	/* Get the boot CPU's GIC cpu interface id before MADT parsing */
+> +	boot_cpu_apic_id = read_cpuid_mpidr() & MPIDR_HWID_BITMASK;
+> +
+
+Code contradicts your comment. You need GIC cpu interface ID(referred as GIC ID
+in the MADT), but you are assigning the MPIDR(physical CPU ID on ARM) to
+boot_cpu_apic_id. I think you are assuming GIC ID and MPIDR to be same which is
+wrong.
+
+With ACPI5.0, IIUC the only possible way to manage mapping from GIC CPU
+interface to MPIDR is to assume(in a way enforce on ARM) ACPI Processor UID in
+MADT and CPU Device definition match MPIDR.
 
 Regards,
 Sudeep
