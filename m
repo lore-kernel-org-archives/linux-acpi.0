@@ -1,235 +1,149 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [Patch v1 2/3] ACPI, PCI: reuse ACPI hotplug framework to support
- PCI host bridge hotplug
-Date: Fri, 17 Jan 2014 19:23:33 -0800
-Message-ID: <CAE9FiQXS-vctiWtXBcw8g6dqPEJGSND+GXB1t64kEoCiygBhjQ@mail.gmail.com>
-References: <1390013297-23462-1-git-send-email-jiang.liu@linux.intel.com>
-	<1390013297-23462-2-git-send-email-jiang.liu@linux.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 1/3] ACPI / idle: Move idle_boot_override out of the arch
+ directory
+Date: Sat, 18 Jan 2014 11:45:44 +0800
+Message-ID: <52D9F8E8.8030602@linaro.org>
+References: <1389924207-7360-1-git-send-email-hanjun.guo@linaro.org> <1389924207-7360-2-git-send-email-hanjun.guo@linaro.org> <52D91CE2.3050704@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f176.google.com ([209.85.213.176]:61827 "EHLO
-	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752026AbaARDXe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jan 2014 22:23:34 -0500
-In-Reply-To: <1390013297-23462-2-git-send-email-jiang.liu@linux.intel.com>
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:40691 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752026AbaARDqN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jan 2014 22:46:13 -0500
+Received: by mail-pb0-f49.google.com with SMTP id up15so4329250pbc.22
+        for <linux-acpi@vger.kernel.org>; Fri, 17 Jan 2014 19:46:13 -0800 (PST)
+In-Reply-To: <52D91CE2.3050704@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Toshi Kani <toshi.kani@hp.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Sudeep Holla <Sudeep.Holla@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Mark Rutland <Mark.Rutland@arm.com>, Jon Masters <jonathan@jonmasters.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, linaro-acpi@lists
 
-On Fri, Jan 17, 2014 at 6:48 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> Reuse ACPI hotplug framework to support PCI host bridge hotplug, this
-> makes PCI host bridge hotplug implementation simpler and more clear.
->
-> It also fixes a bug in support of PCI host bridge hot-addition.
-> Currently pci_root driver fails to install notification handler for
-> PCI host bridge absent at boot time because acpi_is_root_bridge()
-> returns false if no ACPI device created for handle. So PCI host
-> bridge hot-addition event will just be ignored by system.
->
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+On 2014-1-17 20:06, Sudeep Holla wrote:
+> On 17/01/14 02:03, Hanjun Guo wrote:
+>> Move idle_boot_override out of the arch directory to be a single enum
+>> including both platforms values, this will make it rather easier to
+>> avoid ifdefs around which definitions are for which processor in
+>> generally used ACPI code.
+>>
+>> IDLE_FORCE_MWAIT for IA64 is not used anywhere, so romove it.
+>>
+>> No functional change in this patch.
+>>
+>> Suggested-by: Alan <gnomes@lxorguk.ukuu.org.uk>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>  arch/ia64/include/asm/processor.h    | 3 ---
+>>  arch/powerpc/include/asm/processor.h | 1 -
+>>  arch/x86/include/asm/processor.h     | 3 ---
+>>  arch/x86/kernel/process.c            | 1 +
+>>  include/linux/cpu.h                  | 8 ++++++++
+>>  5 files changed, 9 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/arch/ia64/include/asm/processor.h b/arch/ia64/include/asm/processor.h
+>> index 5a84b3a..ccd63a0 100644
+>> --- a/arch/ia64/include/asm/processor.h
+>> +++ b/arch/ia64/include/asm/processor.h
+>> @@ -698,9 +698,6 @@ prefetchw (const void *x)
+>>  
+>>  extern unsigned long boot_option_idle_override;
+>>  
+>> -enum idle_boot_override {IDLE_NO_OVERRIDE=0, IDLE_HALT, IDLE_FORCE_MWAIT,
+>> -			 IDLE_NOMWAIT, IDLE_POLL};
+>> -
+>>  void default_idle(void);
+>>  
+>>  #define ia64_platform_is(x) (strcmp(x, ia64_platform_name) == 0)
+>> diff --git a/arch/powerpc/include/asm/processor.h b/arch/powerpc/include/asm/processor.h
+>> index fc14a38..06689c0 100644
+>> --- a/arch/powerpc/include/asm/processor.h
+>> +++ b/arch/powerpc/include/asm/processor.h
+>> @@ -440,7 +440,6 @@ static inline unsigned long get_clean_sp(unsigned long sp, int is_32)
+>>  #endif
+>>  
+>>  extern unsigned long cpuidle_disable;
+>> -enum idle_boot_override {IDLE_NO_OVERRIDE = 0, IDLE_POWERSAVE_OFF};
+>>  
+> 
+> I don't think it is used in the context of ACPI. Though it's same variable name,
+> it looks like it just used as boot to override the cpuidle option.
+> Does it still make any sense to combine this ?
 
-is the same as
+Yes, it is not related to ACPI on powerpc, I will investigate it will cause
+compile warning or not if I don't combine this.
 
-commit 3338db0057ed9f554050bd06863731c515d79672
-Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Date:   Fri Nov 22 21:55:20 2013 +0100
+> 
+>>  extern int powersave_nap;	/* set if nap mode can be used in idle loop */
+>>  extern void power7_nap(void);
+>> diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
+>> index 7b034a4..4bee51a 100644
+>> --- a/arch/x86/include/asm/processor.h
+>> +++ b/arch/x86/include/asm/processor.h
+>> @@ -729,9 +729,6 @@ extern void init_amd_e400_c1e_mask(void);
+>>  extern unsigned long		boot_option_idle_override;
+>>  extern bool			amd_e400_c1e_detected;
+>>  
+>> -enum idle_boot_override {IDLE_NO_OVERRIDE=0, IDLE_HALT, IDLE_NOMWAIT,
+>> -			 IDLE_POLL};
+>> -
+>>  extern void enable_sep_cpu(void);
+>>  extern int sysenter_setup(void);
+>>  
+>> diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
+>> index 3fb8d95..62764ff 100644
+>> --- a/arch/x86/kernel/process.c
+>> +++ b/arch/x86/kernel/process.c
+>> @@ -17,6 +17,7 @@
+>>  #include <linux/stackprotector.h>
+>>  #include <linux/tick.h>
+>>  #include <linux/cpuidle.h>
+>> +#include <linux/cpu.h>
+>>  #include <trace/events/power.h>
+>>  #include <linux/hw_breakpoint.h>
+>>  #include <asm/cpu.h>
+>> diff --git a/include/linux/cpu.h b/include/linux/cpu.h
+>> index 03e235ad..e324561 100644
+>> --- a/include/linux/cpu.h
+>> +++ b/include/linux/cpu.h
+>> @@ -220,6 +220,14 @@ void cpu_idle(void);
+>>  
+>>  void cpu_idle_poll_ctrl(bool enable);
+>>  
+>> +enum idle_boot_override {
+>> +	IDLE_NO_OVERRIDE = 0,
+>> +	IDLE_HALT,
+>> +	IDLE_NOMWAIT,
+>> +	IDLE_POLL,
+>> +	IDLE_POWERSAVE_OFF
+>> +};
+>> +
+> 
+> I do understand the idea behind this change, but IMO HALT and MWAIT are x86
+> specific and may not make sense for other architectures.
 
-    ACPI / hotplug: Make ACPI PCI root hotplug use common hotplug code
+yes, this is the strange part, the value is arch-dependent.
 
-in rafael tree pm/linux-next for 3.14?
+> 
+> It will also require every architecture using ACPI to export
+> boot_option_idle_override which may not be really required.
 
-> ---
->  drivers/acpi/internal.h |    1 -
->  drivers/acpi/pci_root.c |  117 +++++++----------------------------------------
->  drivers/acpi/scan.c     |    2 -
->  3 files changed, 17 insertions(+), 103 deletions(-)
->
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index a29739c..03efa56 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -28,7 +28,6 @@ int init_acpi_device_notify(void);
->  int acpi_scan_init(void);
->  void acpi_pci_root_init(void);
->  void acpi_pci_link_init(void);
-> -void acpi_pci_root_hp_init(void);
->  void acpi_processor_init(void);
->  void acpi_platform_init(void);
->  int acpi_sysfs_init(void);
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 20360e4..6f6e6c1 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -50,6 +50,7 @@ ACPI_MODULE_NAME("pci_root");
->  static int acpi_pci_root_add(struct acpi_device *device,
->                              const struct acpi_device_id *not_used);
->  static void acpi_pci_root_remove(struct acpi_device *device);
-> +static int handle_hotplug_event_root(acpi_handle handle, u32 type, void *ctx);
->
->  #define ACPI_PCIE_REQ_SUPPORT (OSC_PCI_EXT_CONFIG_SUPPORT \
->                                 | OSC_PCI_ASPM_SUPPORT \
-> @@ -61,12 +62,14 @@ static const struct acpi_device_id root_device_ids[] = {
->         {"", 0},
->  };
->
-> +
->  static struct acpi_scan_handler pci_root_handler = {
->         .ids = root_device_ids,
-> +       .prepare = handle_hotplug_event_root,
->         .attach = acpi_pci_root_add,
->         .detach = acpi_pci_root_remove,
->         .hotplug = {
-> -               .ignore = true,
-> +               .enabled = true,
->         },
->  };
->
-> @@ -627,113 +630,27 @@ void __init acpi_pci_root_init(void)
->
->         if (!acpi_pci_disabled) {
->                 pci_acpi_crs_quirks();
-> -               acpi_scan_add_handler(&pci_root_handler);
-> -       }
-> -}
-> -/* Support root bridge hotplug */
-> -
-> -static void handle_root_bridge_insertion(acpi_handle handle)
-> -{
-> -       struct acpi_device *device;
-> -
-> -       if (!acpi_bus_get_device(handle, &device)) {
-> -               dev_printk(KERN_DEBUG, &device->dev,
-> -                          "acpi device already exists; ignoring notify\n");
-> -               return;
-> +               acpi_scan_add_handler_with_hotplug(&pci_root_handler,
-> +                                                  "pci_hostbridge");
->         }
-> -
-> -       if (acpi_bus_scan(handle))
-> -               acpi_handle_err(handle, "cannot add bridge to acpi list\n");
->  }
->
-> -static void hotplug_event_root(void *data, u32 type)
-> +static int handle_hotplug_event_root(acpi_handle handle, u32 type, void *ctx)
->  {
-> -       acpi_handle handle = data;
-> +       int ret = NOTIFY_OK;
->         struct acpi_pci_root *root;
->
-> -       acpi_scan_lock_acquire();
-> -
-> -       root = acpi_pci_find_root(handle);
-> -
-> -       switch (type) {
-> -       case ACPI_NOTIFY_BUS_CHECK:
-> -               /* bus enumerate */
-> -               acpi_handle_printk(KERN_DEBUG, handle,
-> -                                  "Bus check notify on %s\n", __func__);
-> -               if (root)
-> +       if (type == ACPI_NOTIFY_BUS_CHECK) {
-> +               acpi_scan_lock_acquire();
-> +               root = acpi_pci_find_root(handle);
-> +               if (root) {
-> +                       acpi_handle_printk(KERN_DEBUG, handle,
-> +                               "Bus check notify on %s\n", __func__);
->                         acpiphp_check_host_bridge(handle);
-> -               else
-> -                       handle_root_bridge_insertion(handle);
-> -
-> -               break;
-> -
-> -       case ACPI_NOTIFY_DEVICE_CHECK:
-> -               /* device check */
-> -               acpi_handle_printk(KERN_DEBUG, handle,
-> -                                  "Device check notify on %s\n", __func__);
-> -               if (!root)
-> -                       handle_root_bridge_insertion(handle);
-> -               break;
-> -
-> -       case ACPI_NOTIFY_EJECT_REQUEST:
-> -               /* request device eject */
-> -               acpi_handle_printk(KERN_DEBUG, handle,
-> -                                  "Device eject notify on %s\n", __func__);
-> -               if (!root)
-> -                       break;
-> -
-> -               get_device(&root->device->dev);
-> -
-> +                       ret = NOTIFY_STOP;
-> +               }
->                 acpi_scan_lock_release();
-> -
-> -               acpi_bus_device_eject(root->device, ACPI_NOTIFY_EJECT_REQUEST);
-> -               return;
-> -       default:
-> -               acpi_handle_warn(handle,
-> -                                "notify_handler: unknown event type 0x%x\n",
-> -                                type);
-> -               break;
->         }
->
-> -       acpi_scan_lock_release();
-> -}
-> -
-> -static void handle_hotplug_event_root(acpi_handle handle, u32 type,
-> -                                       void *context)
-> -{
-> -       acpi_hotplug_execute(hotplug_event_root, handle, type);
-> -}
-> -
-> -static acpi_status __init
-> -find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
-> -{
-> -       acpi_status status;
-> -       int *count = (int *)context;
-> -
-> -       if (!acpi_is_root_bridge(handle))
-> -               return AE_OK;
-> -
-> -       (*count)++;
-> -
-> -       status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-> -                                       handle_hotplug_event_root, NULL);
-> -       if (ACPI_FAILURE(status))
-> -               acpi_handle_printk(KERN_DEBUG, handle,
-> -                       "notify handler is not installed, exit status: %u\n",
-> -                        (unsigned int)status);
-> -       else
-> -               acpi_handle_printk(KERN_DEBUG, handle,
-> -                                  "notify handler is installed\n");
-> -
-> -       return AE_OK;
-> -}
-> -
-> -void __init acpi_pci_root_hp_init(void)
-> -{
-> -       int num = 0;
-> -
-> -       acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-> -               ACPI_UINT32_MAX, find_root_bridges, NULL, &num, NULL);
-> -
-> -       printk(KERN_DEBUG "Found %d acpi root devices\n", num);
-> +       return ret;
->  }
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 6b0f419..d83e0ff 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -2057,8 +2057,6 @@ int __init acpi_scan_init(void)
->
->         acpi_update_all_gpes();
->
-> -       acpi_pci_root_hp_init();
-> -
->   out:
->         mutex_unlock(&acpi_scan_lock);
->         return result;
-> --
-> 1.7.10.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+so, how about forget this patch and move boot_option_idle_override
+related code into arch directory such as arch/x86/acpi/boot.c for
+x86?
+
+> 
+> Further the only users of boot_option_idle_override(outside x86) are:
+> 
+> 1. drivers/acpi/processor_core.c
+>    Your second patch is moving this to x86 specific code anyway
+> 
+> 2. drivers/acpi/processor_idle.c
+>    Currently idle driver is bit x86 specific and needs modifications to get it
+>    working on ARM
+
+Yes, That's why I did not enable acpi idle driver on ARM64 for now.
+
+Thanks
+Hanjun
+
