@@ -1,76 +1,223 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/3] ACPI / idle: Move idle_boot_override out of the arch directory
-Date: Sat, 18 Jan 2014 14:47:43 +0100
-Message-ID: <5375666.26CZK1LlZA@vostro.rjw.lan>
-References: <1389924207-7360-1-git-send-email-hanjun.guo@linaro.org> <52D9F8E8.8030602@linaro.org> <52D9FA72.5020505@linaro.org>
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Subject: [PATCH v3] ACPI / video: Add systems that should favor
+	native backlight interface
+Date: Sat, 18 Jan 2014 17:54:09 +0400
+Message-ID: <1390053249-18919-1-git-send-email-i.gnatenko.brain@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60131 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751814AbaARNdl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Jan 2014 08:33:41 -0500
-In-Reply-To: <52D9FA72.5020505@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces@lists.freedesktop.org
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+To: linux-acpi@vger.kernel.org
+Cc: James Hogan <james@albanarts.com>, Mike Galbraith <bitbucket@online.de>, Felipe Contreras <felipe.contreras@gmail.com>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, Martin Steigerwald <Martin@lichtvoll.de>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Kevin Smith <thirdwiggin@gmail.com>, Peter Weber <bugs@ttyhoney.com>, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Lennart Poettering <lennart@poettering.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Theodore Tso <tytso@mit.edu>, "Rafael J. Wysocki" <rjw@rjwys>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Sudeep Holla <Sudeep.Holla@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Mark Rutland <Mark.Rutland@arm.com>, Jon Masters <jonathan@jonmasters.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, linaro-acpi@lists.lin
 
-On Saturday, January 18, 2014 11:52:18 AM Hanjun Guo wrote:
-> On 2014-1-18 11:45, Hanjun Guo wrote:
-> > On 2014-1-17 20:06, Sudeep Holla wrote:
-> >> On 17/01/14 02:03, Hanjun Guo wrote:
-> >>> Move idle_boot_override out of the arch directory to be a single enum
-> >>> including both platforms values, this will make it rather easier to
-> >>> avoid ifdefs around which definitions are for which processor in
-> >>> generally used ACPI code.
-> >>>
-> >>> IDLE_FORCE_MWAIT for IA64 is not used anywhere, so romove it.
-> >>>
-> >>> No functional change in this patch.
-> >>>
-> >>> Suggested-by: Alan <gnomes@lxorguk.ukuu.org.uk>
-> >>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >>> ---
-> [...]
-> >>> diff --git a/include/linux/cpu.h b/include/linux/cpu.h
-> >>> index 03e235ad..e324561 100644
-> >>> --- a/include/linux/cpu.h
-> >>> +++ b/include/linux/cpu.h
-> >>> @@ -220,6 +220,14 @@ void cpu_idle(void);
-> >>>  
-> >>>  void cpu_idle_poll_ctrl(bool enable);
-> >>>  
-> >>> +enum idle_boot_override {
-> >>> +	IDLE_NO_OVERRIDE = 0,
-> >>> +	IDLE_HALT,
-> >>> +	IDLE_NOMWAIT,
-> >>> +	IDLE_POLL,
-> >>> +	IDLE_POWERSAVE_OFF
-> >>> +};
-> >>> +
-> >>
-> >> I do understand the idea behind this change, but IMO HALT and MWAIT are x86
-> >> specific and may not make sense for other architectures.
-> > 
-> > yes, this is the strange part, the value is arch-dependent.
-> > 
-> >>
-> >> It will also require every architecture using ACPI to export
-> >> boot_option_idle_override which may not be really required.
-> > 
-> > so, how about forget this patch and move boot_option_idle_override
-> > related code into arch directory such as arch/x86/acpi/boot.c for
-> > x86?
-> 
-> The general idea is that we can move all the arch-dependent codes
-> in ACPI driver to arch directory, then make codes in drivers/acpi/
-> arch independent.
+From: Aaron Lu <aaron.lu@intel.com>
 
-Well, MWAIT is arch-dependent, so I'm not sure how IDLE_NOMWAIT fits into
-include/linux/cpu.h?
+Some system's ACPI video backlight control interface is broken and the
+native backlight control interface should be used by default. This patch
+sets the use_native_backlight parameter to true for those systems so
+that video backlight control interface will not be created. To be
+specific, the ThinkPad T430s/X230/X1 Carbon, Lenovo Yoga 13, Dell
+Inspiron 7520, Acer Aspire 5733Z and HP ProBook 4340s are added here,
+if they appear in some other DMI table before, they are removed from there.
 
+Note that the user specified kernel cmdline option will always have the
+highest priority, i.e. if use_native_backlight=0 is specified and the
+system is in the DMI table, the video module will not skip registering
+backlight interface for it.
+
+Thinkpad T430s:
+Reported-by: Theodore Tso <tytso@mit.edu>
+Reported-and-tested-by: Peter Weber <bugs@ttyhoney.com>
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+Thinkpad X230:
+Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+ThinkPad X1 Carbon:
+Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Lenovo Yoga 13:
+Reported-by: Lennart Poettering <lennart@poettering.net>
+Reported-and-tested-by: Kevin Smith <thirdwiggin@gmail.com>
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=63811
+Dell Inspiron 7520:
+Reported-by: Rinat Ibragimov <ibragimovrinat@mail.ru>
+Acer Aspire 5733Z:
+Reported-by: <sov.info@mail.ru>
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=62941
+HP ProBook 4340s:
+Reported-and-tested-by: Vladimir Sherenkov <a_12300@mail.ru>
+Reference: http://redmine.russianfedora.pro/issues/1258
+
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Signed-off-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+---
+ drivers/acpi/blacklist.c    |  8 -----
+ drivers/acpi/video.c        | 81 ++++++++++++++++++++++++++++++++++++++++++---
+ drivers/acpi/video_detect.c |  8 -----
+ 3 files changed, 76 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 078c4f7..2b6a76b 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -261,14 +261,6 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 	},
+ 	{
+ 	.callback = dmi_disable_osi_win8,
+-	.ident = "Dell Inspiron 15R SE",
+-	.matches = {
+-		     DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+-		     DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7520"),
+-		},
+-	},
+-	{
+-	.callback = dmi_disable_osi_win8,
+ 	.ident = "ThinkPad Edge E530",
+ 	.matches = {
+ 		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 995e91b..2d2fb84 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -82,11 +82,12 @@ static bool allow_duplicates;
+ module_param(allow_duplicates, bool, 0644);
+ 
+ /*
+- * For Windows 8 systems: if set ture and the GPU driver has
+- * registered a backlight interface, skip registering ACPI video's.
++ * For Windows 8 systems: used to decide if video module
++ * should skip registering backlight interface of its own.
+  */
+-static bool use_native_backlight = false;
+-module_param(use_native_backlight, bool, 0644);
++static int use_native_backlight_param = -1;
++module_param_named(use_native_backlight, use_native_backlight_param, int, 0444);
++static bool use_native_backlight_dmi = false;
+ 
+ static int register_count;
+ static struct mutex video_list_lock;
+@@ -232,9 +233,17 @@ static int acpi_video_get_next_level(struct acpi_video_device *device,
+ static int acpi_video_switch_brightness(struct acpi_video_device *device,
+ 					 int event);
+ 
++static bool acpi_video_use_native_backlight(void)
++{
++	if (use_native_backlight_param != -1)
++		return use_native_backlight_param;
++	else
++		return use_native_backlight_dmi;
++}
++
+ static bool acpi_video_verify_backlight_support(void)
+ {
+-	if (acpi_osi_is_win8() && use_native_backlight &&
++	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
+ 	    backlight_device_registered(BACKLIGHT_RAW))
+ 		return false;
+ 	return acpi_video_backlight_support();
+@@ -399,6 +408,12 @@ static int __init video_set_bqc_offset(const struct dmi_system_id *d)
+ 	return 0;
+ }
+ 
++static int __init video_set_use_native_backlight(const struct dmi_system_id *d)
++{
++	use_native_backlight_dmi = true;
++	return 0;
++}
++
+ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 	/*
+ 	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
+@@ -443,6 +458,62 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 7720"),
+ 		},
+ 	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "ThinkPad T430s",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
++		},
++	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "ThinkPad X230",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
++		},
++	},
++	{
++		.callback = video_set_use_native_backlight,
++		.ident = "ThinkPad X1 Carbon",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X1 Carbon"),
++		},
++	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "Lenovo Yoga 13",
++	 .matches = {
++		 DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		 DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
++		},
++	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "Dell Inspiron 7520",
++	 .matches = {
++		 DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		 DMI_MATCH(DMI_PRODUCT_VERSION, "Inspiron 7520"),
++		},
++	},
++	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "Acer Aspire 5733Z",
++	 .matches = {
++		 DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++		 DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5733Z"),
++		},
++	},
++	{
++		.callback = video_set_use_native_backlight,
++		.ident = "HP ProBook 4340s",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++			DMI_MATCH(DMI_PRODUCT_VERSION, "HP ProBook 4340s"),
++		},
++	},
+ 	{}
+ };
+ 
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 84875fd..b639934 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -168,14 +168,6 @@ static struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
+ 		},
+ 	},
+-	{
+-	.callback = video_detect_force_vendor,
+-	.ident = "Lenovo Yoga 13",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
+-		},
+-	},
+ 	{ },
+ };
+ 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.8.4.2
