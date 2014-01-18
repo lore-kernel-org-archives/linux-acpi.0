@@ -1,49 +1,54 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [GIT PULL] Last minute ACPI fix for v3.13
-Date: Fri, 17 Jan 2014 23:43:39 +0100
-Message-ID: <1607643.bXgUGr2Zse@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v1 1/3] ACPI: add callback prepare() into acpi_hotplug_handler
+Date: Sat, 18 Jan 2014 10:48:15 +0800
+Message-ID: <1390013297-23462-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53702 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753244AbaAQW3h (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jan 2014 17:29:37 -0500
+Received: from mga02.intel.com ([134.134.136.20]:51359 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752026AbaARCro (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Jan 2014 21:47:44 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Linus Walleij <linus.walleij@linaro.org>
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
 
-Hi Linus,
+Add callback prepare() into acpi_hotplug_handler, which will get called
+at the very beginning of ACPI hotplug event handler. The ACPI core will
+ignore the event if prepare() returns NOTIFY_STOP.
 
-Please pull from the git repository at
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ drivers/acpi/scan.c     |    4 ++++
+ include/acpi/acpi_bus.h |    1 +
+ 2 files changed, 5 insertions(+)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-3.13-fixup
-
-to receive a last-minute ACPI fix for 3.13 as commit 
-b40f93bb008ed5d83aa608b21c8c65c5111512e1
-
-  Revert "ACPI: Add BayTrail SoC GPIO and LPSS ACPI IDs"
-
-on top of commit 7e22e91102c6b9df7c4ae2168910e19d2bb14cd6
-
-  Linux 3.13-rc8
-
-This reverts a commit that causes the Alan Cox' ASUS T100TA to "crash and
-burn" during boot if the Baytrail pinctrl driver is compiled in.
-
-Thanks!
-
-
----------------
-
-Rafael J. Wysocki (1):
-      Revert "ACPI: Add BayTrail SoC GPIO and LPSS ACPI IDs"
-
----------------
-
- drivers/acpi/acpi_lpss.c           | 1 -
- drivers/pinctrl/pinctrl-baytrail.c | 1 -
- 2 files changed, 2 deletions(-)
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index fd39459..6b0f419 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -392,6 +392,10 @@ static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *data)
+ 	struct acpi_device *adev;
+ 	acpi_status status;
+ 
++	if (handler->prepare &&
++	    handler->prepare(handle, type, data) == NOTIFY_STOP)
++		return;
++
+ 	if (!handler->hotplug.enabled)
+ 		return acpi_hotplug_unsupported(handle, type);
+ 
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index ddabed1..09a73bd 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -113,6 +113,7 @@ static inline struct acpi_hotplug_profile *to_acpi_hotplug_profile(
+ struct acpi_scan_handler {
+ 	const struct acpi_device_id *ids;
+ 	struct list_head list_node;
++	int (*prepare)(acpi_handle handle, u32 type, void *context);
+ 	int (*attach)(struct acpi_device *dev, const struct acpi_device_id *id);
+ 	void (*detach)(struct acpi_device *dev);
+ 	struct acpi_hotplug_profile hotplug;
+-- 
+1.7.10.4
 
