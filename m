@@ -1,35 +1,110 @@
-From: John Walker <john.walker1@yandex.com>
-Subject: Let's have a great deal.
-Date: Sun, 19 Jan 2014 03:09:56 +0100
-Message-ID: <342731390097396__6714.63014227829$1390097813$gmane$org@web13j.yandex.ru>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / PM: Use ACPI_COMPANION() to get ACPI companions of devices
+Date: Sun, 19 Jan 2014 16:38:33 +0100
+Message-ID: <3698474.jasU9n7YCg@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=koi8-r
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from forward14.mail.yandex.net ([95.108.130.92]:54585 "EHLO
-	forward14.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751712AbaASCQl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Jan 2014 21:16:41 -0500
+Received: from v094114.home.net.pl ([79.96.170.134]:49214 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752230AbaASPY2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Jan 2014 10:24:28 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: john.walker1@yandex.com
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>
 
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
+The ACPI device PM code in device_pm.c uses a special function,
+acpi_dev_pm_get_node(), to obtain an ACPI companion object of a given
+device.  However, that is not necessary any more after recent changes
+that introduced the ACPI_COMPANION() macro serving exactly the same
+purpose, but working in a much more straightforward way.  For this
+reason, drop acpi_dev_pm_get_node() and use ACPI_COMPANION() instead
+of it everywhere.
 
---=20
-Let's have a great deal.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/device_pm.c |   24 ++++++------------------
+ 1 file changed, 6 insertions(+), 18 deletions(-)
 
-My name is John Walker, I discovered an unclaimed Inheritance Fund in O=
-ur Bank, I know What Will be Required to Release The Fund to you.=9A
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -727,18 +727,6 @@ int acpi_pm_device_sleep_wake(struct dev
+ #endif /* CONFIG_PM_SLEEP */
+ 
+ /**
+- * acpi_dev_pm_get_node - Get ACPI device node for the given physical device.
+- * @dev: Device to get the ACPI node for.
+- */
+-struct acpi_device *acpi_dev_pm_get_node(struct device *dev)
+-{
+-	acpi_handle handle = ACPI_HANDLE(dev);
+-	struct acpi_device *adev;
+-
+-	return handle && !acpi_bus_get_device(handle, &adev) ? adev : NULL;
+-}
+-
+-/**
+  * acpi_dev_pm_low_power - Put ACPI device into a low-power state.
+  * @dev: Device to put into a low-power state.
+  * @adev: ACPI device node corresponding to @dev.
+@@ -778,7 +766,7 @@ static int acpi_dev_pm_full_power(struct
+  */
+ int acpi_dev_runtime_suspend(struct device *dev)
+ {
+-	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
++	struct acpi_device *adev = ACPI_COMPANION(dev);
+ 	bool remote_wakeup;
+ 	int error;
+ 
+@@ -809,7 +797,7 @@ EXPORT_SYMBOL_GPL(acpi_dev_runtime_suspe
+  */
+ int acpi_dev_runtime_resume(struct device *dev)
+ {
+-	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
++	struct acpi_device *adev = ACPI_COMPANION(dev);
+ 	int error;
+ 
+ 	if (!adev)
+@@ -862,7 +850,7 @@ EXPORT_SYMBOL_GPL(acpi_subsys_runtime_re
+  */
+ int acpi_dev_suspend_late(struct device *dev)
+ {
+-	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
++	struct acpi_device *adev = ACPI_COMPANION(dev);
+ 	u32 target_state;
+ 	bool wakeup;
+ 	int error;
+@@ -894,7 +882,7 @@ EXPORT_SYMBOL_GPL(acpi_dev_suspend_late)
+  */
+ int acpi_dev_resume_early(struct device *dev)
+ {
+-	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
++	struct acpi_device *adev = ACPI_COMPANION(dev);
+ 	int error;
+ 
+ 	if (!adev)
+@@ -985,7 +973,7 @@ static struct dev_pm_domain acpi_general
+  */
+ int acpi_dev_pm_attach(struct device *dev, bool power_on)
+ {
+-	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
++	struct acpi_device *adev = ACPI_COMPANION(dev);
+ 
+ 	if (!adev)
+ 		return -ENODEV;
+@@ -1017,7 +1005,7 @@ EXPORT_SYMBOL_GPL(acpi_dev_pm_attach);
+  */
+ void acpi_dev_pm_detach(struct device *dev, bool power_off)
+ {
+-	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
++	struct acpi_device *adev = ACPI_COMPANION(dev);
+ 
+ 	if (adev && dev->pm_domain == &acpi_general_pm_domain) {
+ 		dev->pm_domain = NULL;
 
-Get back to Me with your information Via E-mail for More details: jw24h=
-rs@hotmail.com=9A
-
-Regards,=9A
-
-John Walker
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
