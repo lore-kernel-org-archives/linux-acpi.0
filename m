@@ -1,75 +1,68 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v3] ACPI / video: Add systems that should
- favor native backlight interface
-Date: Mon, 20 Jan 2014 16:12:37 +0800
-Message-ID: <52DCDA75.2000108@intel.com>
-References: <1390053249-18919-1-git-send-email-i.gnatenko.brain@gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 06/20] ARM64 / ACPI: Introduce some PCI functions when PCI is enabled
+Date: Mon, 20 Jan 2014 09:20:49 +0100
+Message-ID: <4387274.ri38HmFxAV@wuerfel>
+References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <201401171504.24525.arnd@arndb.de> <52DCD961.70303@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <1390053249-18919-1-git-send-email-i.gnatenko.brain@gmail.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
-To: Igor Gnatenko <i.gnatenko.brain@gmail.com>, linux-acpi@vger.kernel.org
-Cc: James Hogan <james@albanarts.com>, Mike Galbraith <bitbucket@online.de>, Felipe Contreras <felipe.contreras@gmail.com>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, Martin Steigerwald <Martin@lichtvoll.de>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?UTF-8?B?SsO2cmcgT3R0ZQ==?= <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Kevin Smith <thirdwiggin@gmail.com>, Peter Weber <bugs@ttyhoney.com>, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Lennart Poettering <lennart@poettering.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Tso <tytso@mit.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.ke
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.8]:62279 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750801AbaATIVS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jan 2014 03:21:18 -0500
+In-Reply-To: <52DCD961.70303@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linaro-kernel@lists.linaro.org
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rob Herring <robh@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, patches@linaro.org, Grant Likely <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Charles.Garcia-Tobin@arm.com
 
-Hi Igor,
+On Monday 20 January 2014 16:08:01 Hanjun Guo wrote:
+> >> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-core.c
+> >> index 3c8521d..1835b21 100644
+> >> --- a/drivers/acpi/plat/arm-core.c
+> >> +++ b/drivers/acpi/plat/arm-core.c
+> >> @@ -100,6 +100,25 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+> >>  }
+> >>  EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+> >>  
+> >> +int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
+> >> +{
+> >> +    return -1;
+> >> +}
+> >> +
+> >> +int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
+> >> +{
+> >> +    /* TBD */
+> >> +    return -EINVAL;
+> >> +}
+> >> +EXPORT_SYMBOL(acpi_register_ioapic);
+> >> +
+> >> +int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base)
+> >> +{
+> >> +    /* TBD */
+> >> +    return -EINVAL;
+> >> +}
+> >> +EXPORT_SYMBOL(acpi_unregister_ioapic);
+> >> +
+> > 
+> > My feeling is that these are better handled in the ACPI code by not
+> > calling them on architectures that have no ISA or no IOAPIC support.
+> > 
+> > We have configuration symbols for both, so you don't have to make
+> > it depend on CONFIG_ARM64 or CONFIG_X86.
+> 
+> Do you mean introduce a stub function when there is no ISA support?
 
-On 01/18/2014 09:54 PM, Igor Gnatenko wrote:
-> From: Aaron Lu <aaron.lu@intel.com>
-> 
-> Some system's ACPI video backlight control interface is broken and the
-> native backlight control interface should be used by default. This patch
-> sets the use_native_backlight parameter to true for those systems so
-> that video backlight control interface will not be created. To be
-> specific, the ThinkPad T430s/X230/X1 Carbon, Lenovo Yoga 13, Dell
-> Inspiron 7520, Acer Aspire 5733Z and HP ProBook 4340s are added here,
-> if they appear in some other DMI table before, they are removed from there.
-> 
-> Note that the user specified kernel cmdline option will always have the
-> highest priority, i.e. if use_native_backlight=0 is specified and the
-> system is in the DMI table, the video module will not skip registering
-> backlight interface for it.
-> 
-> Thinkpad T430s:
-> Reported-by: Theodore Tso <tytso@mit.edu>
-> Reported-and-tested-by: Peter Weber <bugs@ttyhoney.com>
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
-> Thinkpad X230:
-> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
-> ThinkPad X1 Carbon:
-> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-> Lenovo Yoga 13:
-> Reported-by: Lennart Poettering <lennart@poettering.net>
-> Reported-and-tested-by: Kevin Smith <thirdwiggin@gmail.com>
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=63811
-> Dell Inspiron 7520:
-> Reported-by: Rinat Ibragimov <ibragimovrinat@mail.ru>
-> Acer Aspire 5733Z:
-> Reported-by: <sov.info@mail.ru>
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=62941
-> HP ProBook 4340s:
-> Reported-and-tested-by: Vladimir Sherenkov <a_12300@mail.ru>
-> Reference: http://redmine.russianfedora.pro/issues/1258
-> 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Signed-off-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Do you anticipate ISA devices on ARM64? I hope not ;-)
 
-Thanks for updating this patch.
+My guess is that whatever code calls this function should be disabled
+in reduced hw mode.
 
-In the meantime, I plan to make some small modifications to this patch
-in next revision:
-1 remove the win8 OSI check, I've seen win7 laptops that also needs to
-  have only the GPU interface left and checking win8 doesn't make much
-  sense now;
-2 add more entries for laptops that appeared in bugzilla recently.
+> acpi_register_ioapic()/acpi_unregister_ioapic() will be used for IOAPIC
+> hotplug and GIC distributor is something like IOAPIC on x86, so I think
+> these two functions can be reserved for future use.
+
+But GIC is not hotplugged, is it? It still sounds x86 specific to me.
+
+	Arnd
