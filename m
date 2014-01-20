@@ -1,46 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Resend][GIT PULL] Last minute ACPI fix for v3.13
-Date: Mon, 20 Jan 2014 01:29:23 +0100
-Message-ID: <3273592.IXfjZA4ZpZ@vostro.rjw.lan>
-References: <1607643.bXgUGr2Zse@vostro.rjw.lan> <1561890.zx3ITxE09Q@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1561890.zx3ITxE09Q@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v1] ACPI, x86: fix bug in associating hot-added CPUs with corresponding NUMA node
+Date: Mon, 20 Jan 2014 10:31:54 +0800
+Message-ID: <1390185115-26850-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-hotplug-owner@vger.kernel.org>
+Sender: linux-hotplug-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, linux-acpi@vger.kernel.org, linux-hotplug@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+Current ACPI cpu hotplug driver fails to associate hot-added CPUs with
+corresponding NUMA node when doing socket online. The code path to
+associate CPU with NUMA node is as below:
+acpi_processor_add()
+    ->acpi_processor_get_info()
+	->acpi_processor_hotadd_init()
+	    ->acpi_map_lsapic()
+		->_acpi_map_lsapic()
+		    ->acpi_map_cpu2node()
+cpu_subsys_online()
+    ->try_online_node()
+	->node_set_online()
 
-On Saturday, January 18, 2014 02:31:00 PM Rafael J. Wysocki wrote:
-> Hi Linus,
-> 
-> The original revert commit was missing the Fixes: and Reported-by: tags, so if
-> you haven't pulled it yet, here it goes again with those tags added.
-> 
-> Please pull from the git repository at
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-3.13-fixup
-> 
-> to receive a last-minute ACPI fix for 3.13 as commit 
-> 2b844ba79f4a114bd228ad6fee040ffd99a0963d
-> 
->   Revert "ACPI: Add BayTrail SoC GPIO and LPSS ACPI IDs"
-> 
-> on top of commit 7e22e91102c6b9df7c4ae2168910e19d2bb14cd6
-> 
->   Linux 3.13-rc8
-> 
-> This reverts a commit that causes the Alan Cox' ASUS T100TA to "crash and
-> burn" during boot if the Baytrail pinctrl driver is compiled in.
+When doing socket online, a new NUMA node is introduced in addition to
+hot-added CPU and memory device. And the new NUMA node is marked as
+online when onlining hot-added CPUs through sysfs interface
+/sys/devices/system/cpu/cpuxx/online.
 
-Well, that will be a regression in 3.13 if we don't revert this commit, but
-you apparently don't like the revert. :-)
+On the other hand, acpi_map_cpu2node() will only build the CPU to node
+map if corresponding NUMA node is already online, so it always fails
+to associate hot-added CPUs with corresponding NUMA node because the
+NUMA node is still in offline state.
 
-Please let me know if you want me to add the revert to the 3.14-rc1 pull
-request or just wait with it for the time being.
+For the fix, we could safely remove the "node_online(node)" check in
+function acpi_map_cpu2node() because it's only called for hot-added CPUs
+by acpi_processor_hotadd_init().
 
-Rafael
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ arch/x86/kernel/acpi/boot.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 6c0b43b..7625de9 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -614,10 +614,10 @@ static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+ 	int nid;
+ 
+ 	nid = acpi_get_node(handle);
+-	if (nid == -1 || !node_online(nid))
+-		return;
+-	set_apicid_to_node(physid, nid);
+-	numa_set_node(cpu, nid);
++	if (nid != -1) {
++		set_apicid_to_node(physid, nid);
++		numa_set_node(cpu, nid);
++	}
+ #endif
+ }
+ 
+-- 
+1.7.10.4
+
