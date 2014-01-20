@@ -1,64 +1,34 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v1] ACPI, x86: fix bug in associating hot-added CPUs with corresponding NUMA node
-Date: Mon, 20 Jan 2014 10:31:54 +0800
-Message-ID: <1390185115-26850-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-hotplug-owner@vger.kernel.org>
-Sender: linux-hotplug-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, linux-acpi@vger.kernel.org, linux-hotplug@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: [PATCH 3/4] fix module autoloading for ACPI enumerated devices
+Date: Mon, 20 Jan 2014 09:10:21 +0200
+Message-ID: <52DCCBDD.8000209@linux.intel.com>
+References: <1389689198-2641-1-git-send-email-rui.zhang@intel.com> <1389689198-2641-4-git-send-email-rui.zhang@intel.com> <20140116122704.GD2617@katana> <1389877509.3010.15.camel@rzhang1-mobl4> <20140116194651.GO17314@sirena.org.uk> <52D8DDD4.10704@linux.intel.com> <20140117155708.GS17314@sirena.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:38378 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750735AbaATHKi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Jan 2014 02:10:38 -0500
+In-Reply-To: <20140117155708.GS17314@sirena.org.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, gregkh@linuxfoundation.org, rafael.j.wysocki@intel.com, grant.likely@linaro.org, mika.westerberg@linux.intel.com, grant.likely@secretlab.ca
 
-Current ACPI cpu hotplug driver fails to associate hot-added CPUs with
-corresponding NUMA node when doing socket online. The code path to
-associate CPU with NUMA node is as below:
-acpi_processor_add()
-    ->acpi_processor_get_info()
-	->acpi_processor_hotadd_init()
-	    ->acpi_map_lsapic()
-		->_acpi_map_lsapic()
-		    ->acpi_map_cpu2node()
-cpu_subsys_online()
-    ->try_online_node()
-	->node_set_online()
+On 01/17/2014 05:57 PM, Mark Brown wrote:
+> On Fri, Jan 17, 2014 at 09:37:56AM +0200, Jarkko Nikula wrote:
+>> Sidenote: actually this modalias/module loading issue is different
+>> and not related to stable ACPI i2c/spi slave device names.
+> Oh, I'd been under the impression that it was the rewrite that was
+> triggering this?
+IIRC issue has been there since when ACPI slave device support was added.
 
-When doing socket online, a new NUMA node is introduced in addition to
-hot-added CPU and memory device. And the new NUMA node is marked as
-online when onlining hot-added CPUs through sysfs interface
-/sys/devices/system/cpu/cpuxx/online.
+I have a partial fix for it in cf9eb39c6f7b ("spi: Fix modalias for ACPI 
+enumerated SPI devices") and when doing similar change for i2c Rui 
+pointed me that he has a better fix that takes care of _CID string and 
+platform code too.
 
-On the other hand, acpi_map_cpu2node() will only build the CPU to node
-map if corresponding NUMA node is already online, so it always fails
-to associate hot-added CPUs with corresponding NUMA node because the
-NUMA node is still in offline state.
-
-For the fix, we could safely remove the "node_online(node)" check in
-function acpi_map_cpu2node() because it's only called for hot-added CPUs
-by acpi_processor_hotadd_init().
-
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/x86/kernel/acpi/boot.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 6c0b43b..7625de9 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -614,10 +614,10 @@ static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
- 	int nid;
- 
- 	nid = acpi_get_node(handle);
--	if (nid == -1 || !node_online(nid))
--		return;
--	set_apicid_to_node(physid, nid);
--	numa_set_node(cpu, nid);
-+	if (nid != -1) {
-+		set_apicid_to_node(physid, nid);
-+		numa_set_node(cpu, nid);
-+	}
- #endif
- }
- 
 -- 
-1.7.10.4
-
+Jarkko
