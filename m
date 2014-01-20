@@ -1,37 +1,108 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: Re: [PATCH v3] ACPI / video: Add systems that should
- favor native backlight interface
-Date: Mon, 20 Jan 2014 13:34:18 +0000
-Message-ID: <1390224857.10605.0.camel@x230>
-References: <1390053249-18919-1-git-send-email-i.gnatenko.brain@gmail.com>
-	<52DCDA75.2000108@intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 10/20] ARM64 / ACPI: Enumerate possible/present CPU set
+ and map logical cpu id to APIC id
+Date: Mon, 20 Jan 2014 22:00:46 +0800
+Message-ID: <52DD2C0E.10403@linaro.org>
+References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-11-git-send-email-hanjun.guo@linaro.org> <52D96A61.9080505@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <52DCDA75.2000108@intel.com>
-Content-Language: en-US
-Content-ID: <39399BBE48CA7F4E974FA23107E05D63@namprd05.prod.outlook.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces@lists.freedesktop.org
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-To: "aaron.lu@intel.com" <aaron.lu@intel.com>
-Cc: "james@albanarts.com" <james@albanarts.com>, "bitbucket@online.de" <bitbucket@online.de>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "hmh@hmh.eng.br" <hmh@hmh.eng.br>, "kvalo@adurom.com" <kvalo@adurom.com>, "corsac@debian.org" <corsac@debian.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "ben@bjencks.net" <ben@bjencks.net>, "jrg.otte@gmail.com" <jrg.otte@gmail.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "Martin@lichtvoll.de" <Martin@lichtvoll.de>, "thirdwiggin@gmail.com" <thirdwiggin@gmail.com>, "bugs@ttyhoney.com" <bugs@ttyhoney.com>, "jplatte@naasa.net" <jplatte@naasa.net>, "seth.forshee@canonical.com" <se>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:58643 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751538AbaATOBR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jan 2014 09:01:17 -0500
+Received: by mail-pd0-f182.google.com with SMTP id v10so6843853pde.41
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Jan 2014 06:01:17 -0800 (PST)
+In-Reply-To: <52D96A61.9080505@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <Sudeep.Holla@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Olof Johansson <olof@lixom.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, 2014-01-20 at 16:12 +0800, Aaron Lu wrote:
+On 2014=E5=B9=B401=E6=9C=8818=E6=97=A5 01:37, Sudeep Holla wrote:
+> On 17/01/14 12:25, Hanjun Guo wrote:
+>> When boot the kernel with MADT, the cpu possible and present sets sh=
+ould
+>> be enumerated for later smp initialization.
+>>
+>> The logic cpu id maps to APIC id (GIC id) is also implemented, it is
+>> needed for acpi processor drivers.
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>   arch/arm64/include/asm/acpi.h |    7 ++--
+>>   drivers/acpi/plat/arm-core.c  |   83 +++++++++++++++++++++++++++++=
+++++++++++++
+>>   2 files changed, 87 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/=
+acpi.h
+>> index c335c6d..7edd39e 100644
+>> --- a/arch/arm64/include/asm/acpi.h
+>> +++ b/arch/arm64/include/asm/acpi.h
+>> @@ -76,9 +76,6 @@ static inline void acpi_disable_pci(void)
+>>   /* FIXME: this function should be moved to topology.h when it's re=
+ady */
+>>   void arch_fix_phys_package_id(int num, u32 slot);
+>>  =20
+>> -/* temperally define -1 to make acpi core compilerable */
+>> -#define cpu_physical_id(cpu) -1
+>> -
+>>   /* Low-level suspend routine. */
+>>   extern int (*acpi_suspend_lowlevel)(void);
+>>   #define acpi_wakeup_address (0)
+>> @@ -86,6 +83,10 @@ extern int (*acpi_suspend_lowlevel)(void);
+>>   #define MAX_GIC_CPU_INTERFACE 256
+>>   #define MAX_GIC_DISTRIBUTOR   1		/* should be the same as MAX_GIC_=
+NR */
+>>  =20
+>> +/* map logic cpu id to physical GIC id */
+>> +extern int arm_cpu_to_apicid[NR_CPUS];
+>> +#define cpu_physical_id(cpu) arm_cpu_to_apicid[cpu]
+>> +
+> You refer arm_cpu_to_apicid as a mapping from logical cpu id to GIC i=
+d,
+> then why is it assigned to cpu_physical_id. cpu_physical_id must be s=
+ame as
+> cpu_logical_map which is from logical cpu id to MPIDRs.
+>
+> [...]
+>
+>> @@ -321,6 +401,9 @@ int __init early_acpi_boot_init(void)
+>>   	if (acpi_disabled)
+>>   		return -ENODEV;
+>>  =20
+>> +	/* Get the boot CPU's GIC cpu interface id before MADT parsing */
+>> +	boot_cpu_apic_id =3D read_cpuid_mpidr() & MPIDR_HWID_BITMASK;
+>> +
+> Code contradicts your comment. You need GIC cpu interface ID(referred=
+ as GIC ID
+> in the MADT), but you are assigning the MPIDR(physical CPU ID on ARM)=
+ to
+> boot_cpu_apic_id. I think you are assuming GIC ID and MPIDR to be sam=
+e which is
+> wrong.
+>
+> With ACPI5.0, IIUC the only possible way to manage mapping from GIC C=
+PU
+> interface to MPIDR is to assume(in a way enforce on ARM) ACPI Process=
+or UID in
+> MADT and CPU Device definition match MPIDR.
 
-> 1 remove the win8 OSI check, I've seen win7 laptops that also needs to
->   have only the GPU interface left and checking win8 doesn't make much
->   sense now;
+yes, agree with you. I mixed up the GIC Id and UID, as you said, UID ca=
+n be
+MPIDR, and then use as hardware id to map to the logical id, it is not =
+the
+same as x86 and ia64, will update this patch.
 
-Are we sure that those aren't simply some other bug?
+Thanks
+Hanjun
 
--- 
-Matthew Garrett <matthew.garrett@nebula.com>
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
