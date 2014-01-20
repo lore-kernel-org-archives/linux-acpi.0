@@ -1,50 +1,37 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC/RFT][PATCH 4/5] ACPI / LPSS: Support for device latency tolerance PM QoS
-Date: Mon, 20 Jan 2014 14:10:10 +0100
-Message-ID: <1623216.7y3zYLQxqp@vostro.rjw.lan>
-References: <5434847.aCyiWHNRe7@vostro.rjw.lan> <12327024.lrSi2qfq01@vostro.rjw.lan> <20140120111518.GE18029@intel.com>
+From: Matthew Garrett <matthew.garrett@nebula.com>
+Subject: Re: [PATCH v3] ACPI / video: Add systems that should
+ favor native backlight interface
+Date: Mon, 20 Jan 2014 13:34:18 +0000
+Message-ID: <1390224857.10605.0.camel@x230>
+References: <1390053249-18919-1-git-send-email-i.gnatenko.brain@gmail.com>
+	<52DCDA75.2000108@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59083 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752484AbaATM4F (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jan 2014 07:56:05 -0500
-In-Reply-To: <20140120111518.GE18029@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <52DCDA75.2000108@intel.com>
+Content-Language: en-US
+Content-ID: <39399BBE48CA7F4E974FA23107E05D63@namprd05.prod.outlook.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces@lists.freedesktop.org
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+To: "aaron.lu@intel.com" <aaron.lu@intel.com>
+Cc: "james@albanarts.com" <james@albanarts.com>, "bitbucket@online.de" <bitbucket@online.de>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "hmh@hmh.eng.br" <hmh@hmh.eng.br>, "kvalo@adurom.com" <kvalo@adurom.com>, "corsac@debian.org" <corsac@debian.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "ben@bjencks.net" <ben@bjencks.net>, "jrg.otte@gmail.com" <jrg.otte@gmail.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "Martin@lichtvoll.de" <Martin@lichtvoll.de>, "thirdwiggin@gmail.com" <thirdwiggin@gmail.com>, "bugs@ttyhoney.com" <bugs@ttyhoney.com>, "jplatte@naasa.net" <jplatte@naasa.net>, "seth.forshee@canonical.com" <se>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Monday, January 20, 2014 01:15:19 PM Mika Westerberg wrote:
-> On Fri, Jan 17, 2014 at 03:46:40PM +0100, Rafael J. Wysocki wrote:
-> > @@ -415,11 +472,12 @@ static int acpi_lpss_platform_notify(str
-> >  		return 0;
-> >  	}
-> >  
-> > -	if (action == BUS_NOTIFY_ADD_DEVICE)
-> > +	if (action == BUS_NOTIFY_ADD_DEVICE) {
-> >  		ret = sysfs_create_group(&pdev->dev.kobj, &lpss_attr_group);
-> > -	else if (action == BUS_NOTIFY_DEL_DEVICE)
-> > +		pdev->dev.power.set_latency_tolerance = acpi_lpss_set_ltr;
-> 
-> While trying to test this I noticed that BUS_NOTIFY_ADD_DEVICE happens
-> after call to dpm_sysfs_add(), so LTR field is never exposed to the
-> userspace.
+On Mon, 2014-01-20 at 16:12 +0800, Aaron Lu wrote:
 
-Ahh, I confused things, thanks for reporting this!
+> 1 remove the win8 OSI check, I've seen win7 laptops that also needs to
+>   have only the GPU interface left and checking win8 doesn't make much
+>   sense now;
 
-I'll need to hook it up to acpi_platform_notify() somehow I think.
-
-> > +	} else if (action == BUS_NOTIFY_DEL_DEVICE) {
-> >  		sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
-> > -
-> > +	}
-> >  	return ret;
-> >  }
-> >  
+Are we sure that those aren't simply some other bug?
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Matthew Garrett <matthew.garrett@nebula.com>
