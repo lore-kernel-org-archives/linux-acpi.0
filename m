@@ -1,34 +1,106 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [PATCH 3/4] fix module autoloading for ACPI enumerated devices
-Date: Mon, 20 Jan 2014 09:10:21 +0200
-Message-ID: <52DCCBDD.8000209@linux.intel.com>
-References: <1389689198-2641-1-git-send-email-rui.zhang@intel.com> <1389689198-2641-4-git-send-email-rui.zhang@intel.com> <20140116122704.GD2617@katana> <1389877509.3010.15.camel@rzhang1-mobl4> <20140116194651.GO17314@sirena.org.uk> <52D8DDD4.10704@linux.intel.com> <20140117155708.GS17314@sirena.org.uk>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 06/20] ARM64 / ACPI: Introduce some PCI functions when
+ PCI is enabled
+Date: Mon, 20 Jan 2014 16:08:01 +0800
+Message-ID: <52DCD961.70303@linaro.org>
+References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-7-git-send-email-hanjun.guo@linaro.org> <201401171504.24525.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:38378 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750735AbaATHKi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Jan 2014 02:10:38 -0500
-In-Reply-To: <20140117155708.GS17314@sirena.org.uk>
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:59050 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751697AbaATIJg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jan 2014 03:09:36 -0500
+Received: by mail-pd0-f171.google.com with SMTP id g10so5823152pdj.2
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Jan 2014 00:09:36 -0800 (PST)
+In-Reply-To: <201401171504.24525.arnd@arndb.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, gregkh@linuxfoundation.org, rafael.j.wysocki@intel.com, grant.likely@linaro.org, mika.westerberg@linux.intel.com, grant.likely@secretlab.ca
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Mark Rutland <mark.rutland@arm.com>, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Charles.Garcia-Tobin@arm.com
 
-On 01/17/2014 05:57 PM, Mark Brown wrote:
-> On Fri, Jan 17, 2014 at 09:37:56AM +0200, Jarkko Nikula wrote:
->> Sidenote: actually this modalias/module loading issue is different
->> and not related to stable ACPI i2c/spi slave device names.
-> Oh, I'd been under the impression that it was the rewrite that was
-> triggering this?
-IIRC issue has been there since when ACPI slave device support was added.
+On 2014-1-17 22:04, Arnd Bergmann wrote:
+> On Friday 17 January 2014, Hanjun Guo wrote:
+>> +++ b/arch/arm64/pci/Makefile
+>> @@ -0,0 +1 @@
+>> +obj-y                 += pci.o
+>> diff --git a/arch/arm64/pci/pci.c b/arch/arm64/pci/pci.c
+>> new file mode 100644
+>> index 0000000..4e46790
+>> --- /dev/null
+>> +++ b/arch/arm64/pci/pci.c
+>> @@ -0,0 +1,33 @@
+>> +#include <linux/acpi.h>
+>> +#include <linux/types.h>
+>> +#include <linux/kernel.h>
+>> +#include <linux/pci.h>
+>> +
+>> +/**
+>> + * raw_pci_read - Platform-specific PCI config space access.
+>> + *
+>> + * Default empty implementation.  Replace with an architecture-specific setup
+>> + * routine, if necessary.
+>> + */
+>> +int __weak raw_pci_read(unsigned int domain, unsigned int bus,
+>> +			unsigned int devfn, int reg, int len, u32 *val)
+>> +{
+>> +	return -EINVAL;
+>> +}
+>> +
+>> +int __weak raw_pci_write(unsigned int domain, unsigned int bus,
+>> +			unsigned int devfn, int reg, int len, u32 val)
+>> +{
+>> +	return -EINVAL;
+>> +}
+> 
+> I'd rather not see __weak functions here. Just provide them unconditionally
+> so that we can add a proper implementation when needed. You could also
+> define these as 'static inline' in a header file to keep them from consuming
+> space in the object code.
 
-I have a partial fix for it in cf9eb39c6f7b ("spi: Fix modalias for ACPI 
-enumerated SPI devices") and when doing similar change for i2c Rui 
-pointed me that he has a better fix that takes care of _CID string and 
-platform code too.
+Ok, I will remove __weak in next version.
 
--- 
-Jarkko
+> 
+>> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-core.c
+>> index 3c8521d..1835b21 100644
+>> --- a/drivers/acpi/plat/arm-core.c
+>> +++ b/drivers/acpi/plat/arm-core.c
+>> @@ -100,6 +100,25 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+>>  }
+>>  EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+>>  
+>> +int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
+>> +{
+>> +	return -1;
+>> +}
+>> +
+>> +int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
+>> +{
+>> +	/* TBD */
+>> +	return -EINVAL;
+>> +}
+>> +EXPORT_SYMBOL(acpi_register_ioapic);
+>> +
+>> +int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base)
+>> +{
+>> +	/* TBD */
+>> +	return -EINVAL;
+>> +}
+>> +EXPORT_SYMBOL(acpi_unregister_ioapic);
+>> +
+> 
+> My feeling is that these are better handled in the ACPI code by not
+> calling them on architectures that have no ISA or no IOAPIC support.
+> 
+> We have configuration symbols for both, so you don't have to make
+> it depend on CONFIG_ARM64 or CONFIG_X86.
+
+Do you mean introduce a stub function when there is no ISA support?
+
+acpi_register_ioapic()/acpi_unregister_ioapic() will be used for IOAPIC
+hotplug and GIC distributor is something like IOAPIC on x86, so I think
+these two functions can be reserved for future use.
+
+Thanks
+Hanjun
