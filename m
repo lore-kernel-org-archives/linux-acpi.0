@@ -1,106 +1,75 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 06/20] ARM64 / ACPI: Introduce some PCI functions when
- PCI is enabled
-Date: Mon, 20 Jan 2014 16:08:01 +0800
-Message-ID: <52DCD961.70303@linaro.org>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-7-git-send-email-hanjun.guo@linaro.org> <201401171504.24525.arnd@arndb.de>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v3] ACPI / video: Add systems that should
+ favor native backlight interface
+Date: Mon, 20 Jan 2014 16:12:37 +0800
+Message-ID: <52DCDA75.2000108@intel.com>
+References: <1390053249-18919-1-git-send-email-i.gnatenko.brain@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:59050 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697AbaATIJg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jan 2014 03:09:36 -0500
-Received: by mail-pd0-f171.google.com with SMTP id g10so5823152pdj.2
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Jan 2014 00:09:36 -0800 (PST)
-In-Reply-To: <201401171504.24525.arnd@arndb.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <1390053249-18919-1-git-send-email-i.gnatenko.brain@gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+Errors-To: intel-gfx-bounces+gcfxdi-intel-gfx=m.gmane.org@lists.freedesktop.org
+To: Igor Gnatenko <i.gnatenko.brain@gmail.com>, linux-acpi@vger.kernel.org
+Cc: James Hogan <james@albanarts.com>, Mike Galbraith <bitbucket@online.de>, Felipe Contreras <felipe.contreras@gmail.com>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <matthew.garrett@nebula.com>, Kalle Valo <kvalo@adurom.com>, Yves-Alexis Perez <corsac@debian.org>, Martin Steigerwald <Martin@lichtvoll.de>, Lee Chun-Yi <joeyli.kernel@gmail.com>, Ben Jencks <ben@bjencks.net>, =?UTF-8?B?SsO2cmcgT3R0ZQ==?= <jrg.otte@gmail.com>, intel-gfx@lists.freedesktop.org, Kevin Smith <thirdwiggin@gmail.com>, Peter Weber <bugs@ttyhoney.com>, Joerg Platte <jplatte@naasa.net>, Seth Forshee <seth.forshee@canonical.com>, Lennart Poettering <lennart@poettering.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Tso <tytso@mit.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.ke
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Mark Rutland <mark.rutland@arm.com>, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Charles.Garcia-Tobin@arm.com
 
-On 2014-1-17 22:04, Arnd Bergmann wrote:
-> On Friday 17 January 2014, Hanjun Guo wrote:
->> +++ b/arch/arm64/pci/Makefile
->> @@ -0,0 +1 @@
->> +obj-y                 += pci.o
->> diff --git a/arch/arm64/pci/pci.c b/arch/arm64/pci/pci.c
->> new file mode 100644
->> index 0000000..4e46790
->> --- /dev/null
->> +++ b/arch/arm64/pci/pci.c
->> @@ -0,0 +1,33 @@
->> +#include <linux/acpi.h>
->> +#include <linux/types.h>
->> +#include <linux/kernel.h>
->> +#include <linux/pci.h>
->> +
->> +/**
->> + * raw_pci_read - Platform-specific PCI config space access.
->> + *
->> + * Default empty implementation.  Replace with an architecture-specific setup
->> + * routine, if necessary.
->> + */
->> +int __weak raw_pci_read(unsigned int domain, unsigned int bus,
->> +			unsigned int devfn, int reg, int len, u32 *val)
->> +{
->> +	return -EINVAL;
->> +}
->> +
->> +int __weak raw_pci_write(unsigned int domain, unsigned int bus,
->> +			unsigned int devfn, int reg, int len, u32 val)
->> +{
->> +	return -EINVAL;
->> +}
+Hi Igor,
+
+On 01/18/2014 09:54 PM, Igor Gnatenko wrote:
+> From: Aaron Lu <aaron.lu@intel.com>
 > 
-> I'd rather not see __weak functions here. Just provide them unconditionally
-> so that we can add a proper implementation when needed. You could also
-> define these as 'static inline' in a header file to keep them from consuming
-> space in the object code.
-
-Ok, I will remove __weak in next version.
-
+> Some system's ACPI video backlight control interface is broken and the
+> native backlight control interface should be used by default. This patch
+> sets the use_native_backlight parameter to true for those systems so
+> that video backlight control interface will not be created. To be
+> specific, the ThinkPad T430s/X230/X1 Carbon, Lenovo Yoga 13, Dell
+> Inspiron 7520, Acer Aspire 5733Z and HP ProBook 4340s are added here,
+> if they appear in some other DMI table before, they are removed from there.
 > 
->> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-core.c
->> index 3c8521d..1835b21 100644
->> --- a/drivers/acpi/plat/arm-core.c
->> +++ b/drivers/acpi/plat/arm-core.c
->> @@ -100,6 +100,25 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
->>  }
->>  EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
->>  
->> +int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
->> +{
->> +	return -1;
->> +}
->> +
->> +int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
->> +{
->> +	/* TBD */
->> +	return -EINVAL;
->> +}
->> +EXPORT_SYMBOL(acpi_register_ioapic);
->> +
->> +int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base)
->> +{
->> +	/* TBD */
->> +	return -EINVAL;
->> +}
->> +EXPORT_SYMBOL(acpi_unregister_ioapic);
->> +
+> Note that the user specified kernel cmdline option will always have the
+> highest priority, i.e. if use_native_backlight=0 is specified and the
+> system is in the DMI table, the video module will not skip registering
+> backlight interface for it.
 > 
-> My feeling is that these are better handled in the ACPI code by not
-> calling them on architectures that have no ISA or no IOAPIC support.
+> Thinkpad T430s:
+> Reported-by: Theodore Tso <tytso@mit.edu>
+> Reported-and-tested-by: Peter Weber <bugs@ttyhoney.com>
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+> Thinkpad X230:
+> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+> ThinkPad X1 Carbon:
+> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+> Lenovo Yoga 13:
+> Reported-by: Lennart Poettering <lennart@poettering.net>
+> Reported-and-tested-by: Kevin Smith <thirdwiggin@gmail.com>
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=63811
+> Dell Inspiron 7520:
+> Reported-by: Rinat Ibragimov <ibragimovrinat@mail.ru>
+> Acer Aspire 5733Z:
+> Reported-by: <sov.info@mail.ru>
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=62941
+> HP ProBook 4340s:
+> Reported-and-tested-by: Vladimir Sherenkov <a_12300@mail.ru>
+> Reference: http://redmine.russianfedora.pro/issues/1258
 > 
-> We have configuration symbols for both, so you don't have to make
-> it depend on CONFIG_ARM64 or CONFIG_X86.
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> Signed-off-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
 
-Do you mean introduce a stub function when there is no ISA support?
+Thanks for updating this patch.
 
-acpi_register_ioapic()/acpi_unregister_ioapic() will be used for IOAPIC
-hotplug and GIC distributor is something like IOAPIC on x86, so I think
-these two functions can be reserved for future use.
-
-Thanks
-Hanjun
+In the meantime, I plan to make some small modifications to this patch
+in next revision:
+1 remove the win8 OSI check, I've seen win7 laptops that also needs to
+  have only the GPU interface left and checking win8 doesn't make much
+  sense now;
+2 add more entries for laptops that appeared in bugzilla recently.
