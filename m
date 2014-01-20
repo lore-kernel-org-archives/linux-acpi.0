@@ -1,61 +1,38 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 02/20] ARM64 : Add dummy asm/cpu.h
-Date: Mon, 20 Jan 2014 16:58:38 +0800
-Message-ID: <52DCE53E.90109@linaro.org>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-3-git-send-email-hanjun.guo@linaro.org> <52D93CAA.1080604@arm.com>
+Subject: Re: [PATCH 18/20] clocksource / acpi: Add macro CLOCKSOURCE_ACPI_DECLARE
+Date: Mon, 20 Jan 2014 17:08:32 +0800
+Message-ID: <52DCE790.6080809@linaro.org>
+References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-19-git-send-email-hanjun.guo@linaro.org> <201401171521.35940.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52D93CAA.1080604@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <Sudeep.Holla@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Charles Garcia-Tobin <Charles>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:45728 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753083AbaATJIs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jan 2014 04:08:48 -0500
+Received: by mail-pb0-f50.google.com with SMTP id rq2so6733836pbb.23
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Jan 2014 01:08:47 -0800 (PST)
+In-Reply-To: <201401171521.35940.arnd@arndb.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Mark Rutland <mark.rutland@arm.com>, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Charles.Garcia-Tobin@arm.com, Amit Daniel Kachhap <amit.daniel@samsung.com>
 
-On 2014-1-17 22:22, Sudeep Holla wrote:
-> On 17/01/14 12:24, Hanjun Guo wrote:
->> ACPI requires a cpu.h, add a dummy one copied from arm. This will need
->> updated or replaced as ACPI based cpu hotplug or cpu topology for armv8
->> is worked out.
+On 2014-1-17 22:21, Arnd Bergmann wrote:
+> On Friday 17 January 2014, Hanjun Guo wrote:
 >>
->> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>  arch/arm64/include/asm/cpu.h |   25 +++++++++++++++++++++++++
->>  1 file changed, 25 insertions(+)
->>  create mode 100644 arch/arm64/include/asm/cpu.h
+>> From: Amit Daniel Kachhap <amit.daniel@samsung.com>
 >>
->> diff --git a/arch/arm64/include/asm/cpu.h b/arch/arm64/include/asm/cpu.h
->> new file mode 100644
->> index 0000000..8625eb1
->> --- /dev/null
->> +++ b/arch/arm64/include/asm/cpu.h
->> @@ -0,0 +1,25 @@
->> +/*
->> + *  Copyright (C) 2004-2005 ARM Ltd.
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +#ifndef __ASM_ARM_CPU_H
->> +#define __ASM_ARM_CPU_H
->> +
->> +#include <linux/percpu.h>
->> +#include <linux/cpu.h>
->> +#include <linux/topology.h>
->> +
->> +struct cpuinfo_arm {
->> +	struct cpu	cpu;
->> +	u64		cpuid;
->> +#ifdef CONFIG_SMP
->> +	unsigned int	loops_per_jiffy;
+>> This macro does the same job as CLOCKSOURCE_OF_DECLARE. The device
+>> name from the ACPI timer table is matched with all the registered
+>> timer controllers and matching initialisation routine is invoked.
 > 
-> IIUC we don't have loop-based delay support in ARM64.
-> It's always timer based and in which case we don't need loops_per_jiffy
+> I wouldn't anticipate this infrastructure to be required. Shouldn't all
+> ARMv8 machines have an architected timer?
 
-Ok, will remove it.
+I not sure of this, could anyone can give some guidance? if only arch
+timer is available for ARM64, this will make thing very simple.
 
 Thanks
 Hanjun
