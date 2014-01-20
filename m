@@ -1,96 +1,106 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 07/20] ARM64 / ACPI: Enable ARM64 in Kconfig
-Date: Mon, 20 Jan 2014 17:30:21 +0800
-Message-ID: <52DCECAD.9090906@linaro.org>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-8-git-send-email-hanjun.guo@linaro.org> <52D93F88.8090801@arm.com>
+Subject: Re: [PATCH 01/20] ARM64 / ACPI: Make PCI optional for ACPI on ARM64
+Date: Mon, 20 Jan 2014 17:33:09 +0800
+Message-ID: <52DCED55.1080903@linaro.org>
+References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-2-git-send-email-hanjun.guo@linaro.org> <CAErSpo6tsZtqFfgBp9mwU9Ln7yDmKLWJFKK8eW9_m4Sgb=E3eg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52D93F88.8090801@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <Sudeep.Holla@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Charles Garcia-Tobin <Charles>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:54106 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752115AbaATJdf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jan 2014 04:33:35 -0500
+Received: by mail-pb0-f53.google.com with SMTP id md12so1749095pbc.26
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Jan 2014 01:33:33 -0800 (PST)
+In-Reply-To: <CAErSpo6tsZtqFfgBp9mwU9Ln7yDmKLWJFKK8eW9_m4Sgb=E3eg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <robh@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, patches@linaro.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, Charles.Garcia-Tobin@arm.com, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jens Axboe <axboe@kernel.dk>, Jej B <James.Bottomley@hansenpartnership.com>, Benjamin
 
-On 2014-1-17 22:34, Sudeep Holla wrote:
-> On 17/01/14 12:25, Hanjun Guo wrote:
->> Add Kconfigs to build ACPI on ARM64, and make ACPI runable on ARM64.
+On 2014-1-18 0:00, Bjorn Helgaas wrote:
+> [+cc Jens, James, Ben, Fujita (authors of PCI_DMA_BUS_IS_PHYS usage)]
+> 
+> On Fri, Jan 17, 2014 at 5:24 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+>> Not all the ARM64 targets that are using ACPI have PCI, so introduce
+>> some stub functions to make PCI optional for ACPI, and make ACPI core
+>> run without CONFIG_PCI on ARM64.
 >>
->> acpi_idle driver is x86/IA64 dependent now, so make CONFIG_ACPI_PROCESSOR
->> depends on X86 || IA64, and implement it on ARM/ARM64 in the furture.
+>> pcibios_penalize_isa_irq() is arch dependent, introduce asm/pci.h to
+>> include it.
 >>
->> In order to make arm-core.c can both run on ARM and ARM64, introduce
->> CONFIG_ACPI_ARM to support it.
+>> Since ACPI on X86 and IA64 depends on PCI, it will not break X86 and
+>> IA64 with this patch.
 >>
 >> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 >> Signed-off-by: Al Stone <al.stone@linaro.org>
 >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 >> ---
->>  arch/arm64/Kconfig         |    2 ++
->>  drivers/acpi/Kconfig       |   11 ++++++++---
->>  drivers/acpi/plat/Makefile |    2 +-
->>  3 files changed, 11 insertions(+), 4 deletions(-)
+>>  arch/arm64/include/asm/pci.h |   20 ++++++++++++++++++++
+>>  drivers/acpi/Makefile        |    2 +-
+>>  drivers/acpi/internal.h      |    7 +++++++
+>>  drivers/acpi/osl.c           |    3 ++-
+>>  include/linux/pci.h          |   33 ++++++++++++++++++++++++---------
+>>  5 files changed, 54 insertions(+), 11 deletions(-)
+>>  create mode 100644 arch/arm64/include/asm/pci.h
 >>
->> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->> index 6d4dd22..2b1fb1d 100644
->> --- a/arch/arm64/Kconfig
->> +++ b/arch/arm64/Kconfig
->> @@ -279,6 +279,8 @@ source "net/Kconfig"
->>  
->>  source "drivers/Kconfig"
->>  
->> +source "drivers/acpi/Kconfig"
+>> diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
+>> new file mode 100644
+>> index 0000000..455909d
+>> --- /dev/null
+>> +++ b/arch/arm64/include/asm/pci.h
+>> @@ -0,0 +1,20 @@
+>> +#ifndef __ASMARM64_PCI_H
+>> +#define __ASMARM64_PCI_H
 >> +
->>  source "fs/Kconfig"
->>  
->>  source "arch/arm64/kvm/Kconfig"
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index 4770de5..cae5dc9 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -2,13 +2,16 @@
->>  # ACPI Configuration
->>  #
->>  
->> +config ACPI_ARM
->> +	bool
+>> +#ifdef __KERNEL__
 >> +
->>  menuconfig ACPI
->>  	bool "ACPI (Advanced Configuration and Power Interface) Support"
->>  	depends on !IA64_HP_SIM
->> -	depends on IA64 || X86
->> -	depends on PCI
->> +	depends on ((IA64 || X86) && PCI) || ARM64
->>  	select PNP
->> -	default y
->> +	select ACPI_ARM if ARM64
->> +	default y if !ARM64
->>  	help
->>  	  Advanced Configuration and Power Interface (ACPI) support for 
->>  	  Linux requires an ACPI-compliant platform (hardware/firmware),
->> @@ -149,6 +152,7 @@ config ACPI_PROCESSOR
->>  	tristate "Processor"
->>  	select THERMAL
->>  	select CPU_IDLE
->> +	depends on X86 || IA64
+>> +static inline void pcibios_penalize_isa_irq(int irq, int active)
+>> +{
+>> +       /* We don't do dynamic PCI IRQ allocation */
+>> +}
+>> +
+>> +/*
+>> + * The PCI address space does equal the physical memory address space.
+>> + * The networking and block device layers use this boolean for bounce
+>> + * buffer decisions.
+>> + */
+>> +#define PCI_DMA_BUS_IS_PHYS     (1)
 > 
-> This doesn't look correct to me. You are disabling Perf/Idle/Thermal/Throttling
-> support for ARM64. Any particular reason ?
+> I'm not sure this is accurate.  The arm code uses
+> pci_add_resource_offset() with non-zero offsets, which means a
+> physical memory address is not the same as a PCI bus address.  I don't
+> know what arm64 does for PCI, but I suspect it is similar.
 
-As I said in the change log, acpi_idle driver is x86/IA64 dependent now,
-we should revisit it later for these drivers on ARM64.
-
-Since this is the ARM ACPI core patches, I think we can implement it later.
+I'm not sure either. I copied this code from arm/asm/pci.h and I
+thought it will be the same for ARM64.
 
 > 
-> Also this is conflicting with other change where you are adding/exporting
-> boot_option_idle_override which is mainly used in processor_idle and that's
-> disabled for ARM64 here.
+> I think PCI_DMA_BUS_IS_PHYS is due for some overhaul.  I'm dubious
+> that it is working as intended anymore.  At the very least, it seems
+> like something that is dependent on the device in question.
+> 
+>> diff --git a/include/linux/pci.h b/include/linux/pci.h
+>> index a13d682..726cf2a 100644
+>> --- a/include/linux/pci.h
+>> +++ b/include/linux/pci.h
+>> ...
+>> +static inline int raw_pci_read(unsigned int domain, unsigned int bus,
+>> +               unsigned int devfn, int reg, int len, u32 *val)
+>> +{ return -EINVAL; }
+>> +
+>> +static inline int raw_pci_write(unsigned int domain, unsigned int bus,
+>> +               unsigned int devfn, int reg, int len, u32 val)
+>> +{return -EINVAL; }
+> 
+> Fix the spacing here (missing a space before "return").
+> 
+> With that, this include/linux/pci.h change is:
+> 
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-boot_option_idle_override is used in processor_core.c and it is the common
-file used by every processor drivers including the processor_idle driver,
-if I didn't introduce boot_option_idle_override there will be compile errors.
+Thanks!
 
-Thanks
 Hanjun
+
