@@ -1,38 +1,70 @@
-From: "Luis G.F" <luisgf@luisgf.es>
-Subject: [PATCH 1/1] acpi: Fix incorrect sscanf() string in acpi_battery_init_alarm()
-Date: Tue, 21 Jan 2014 15:40:43 +0100
-Message-ID: <1390315243-11653-1-git-send-email-luisgf@luisgf.es>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [Patch v1 1/3] ACPI: add callback prepare() into
+ acpi_hotplug_handler
+Date: Tue, 21 Jan 2014 14:14:57 -0700
+Message-ID: <1390338897.1792.467.camel@misato.fc.hp.com>
+References: <1390013297-23462-1-git-send-email-jiang.liu@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.domainsvm.com ([37.77.82.227]:48239 "EHLO
-	cp-nl-1.domainsvm.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1752265AbaAUPeF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Jan 2014 10:34:05 -0500
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:10085 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751408AbaAUVVF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Jan 2014 16:21:05 -0500
+In-Reply-To: <1390013297-23462-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, "Luis G.F" <luisgf@luisgf.es>
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
 
-Fix incorrect sscanf() string in acpi_battery_init_alarm function.
-Change from %ld to %lu that's 'x' variable is unsigned long.
+On Sat, 2014-01-18 at 10:48 +0800, Jiang Liu wrote:
+> Add callback prepare() into acpi_hotplug_handler, which will get called
+> at the very beginning of ACPI hotplug event handler. The ACPI core will
+> ignore the event if prepare() returns NOTIFY_STOP.
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  drivers/acpi/scan.c     |    4 ++++
+>  include/acpi/acpi_bus.h |    1 +
+>  2 files changed, 5 insertions(+)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index fd39459..6b0f419 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -392,6 +392,10 @@ static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *data)
+>  	struct acpi_device *adev;
+>  	acpi_status status;
+>  
+> +	if (handler->prepare &&
+> +	    handler->prepare(handle, type, data) == NOTIFY_STOP)
+> +		return;
 
-Signed-off-by: Luis G.F <luisgf@luisgf.es>
----
- drivers/acpi/battery.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The OS is responsible for calling _OST when it is implemented.  So you
+cannot just return here.  See acpi_hotplug_unsupported(handle, type)
+next line.  Also, please describe why prepare() needs to be added.
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 5876a49..95aa5d0 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -550,7 +550,7 @@ static ssize_t acpi_battery_alarm_store(struct device *dev,
- {
- 	unsigned long x;
- 	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
--	if (sscanf(buf, "%ld\n", &x) == 1)
-+	if (sscanf(buf, "%lu\n", &x) == 1)
- 		battery->alarm = x/1000;
- 	if (acpi_battery_present(battery))
- 		acpi_battery_set_alarm(battery);
--- 
-1.8.4
+Thanks,
+-Toshi
+
+
+
+> +
+>  	if (!handler->hotplug.enabled)
+>  		return acpi_hotplug_unsupported(handle, type);
+>  
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index ddabed1..09a73bd 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -113,6 +113,7 @@ static inline struct acpi_hotplug_profile *to_acpi_hotplug_profile(
+>  struct acpi_scan_handler {
+>  	const struct acpi_device_id *ids;
+>  	struct list_head list_node;
+> +	int (*prepare)(acpi_handle handle, u32 type, void *context);
+>  	int (*attach)(struct acpi_device *dev, const struct acpi_device_id *id);
+>  	void (*detach)(struct acpi_device *dev);
+>  	struct acpi_hotplug_profile hotplug;
+
 
