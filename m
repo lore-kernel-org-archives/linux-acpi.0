@@ -1,38 +1,200 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v3] ACPI / video: Add systems that should
- favor native backlight interface
-Date: Tue, 21 Jan 2014 10:24:36 +0800
-Message-ID: <52DDDA64.90407@intel.com>
-References: <1390053249-18919-1-git-send-email-i.gnatenko.brain@gmail.com>	
-	<52DCDA75.2000108@intel.com> <1390224857.10605.0.camel@x230>
+From: Yijing Wang <wangyijing@huawei.com>
+Subject: [PATCH v4] ACPI: Fix acpi_evaluate_object() return value check
+Date: Tue, 21 Jan 2014 10:46:15 +0800
+Message-ID: <1390272375-28728-1-git-send-email-wangyijing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <1390224857.10605.0.camel@x230>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces@lists.freedesktop.org
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: "james@albanarts.com" <james@albanarts.com>, "bitbucket@online.de" <bitbucket@online.de>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "hmh@hmh.eng.br" <hmh@hmh.eng.br>, "kvalo@adurom.com" <kvalo@adurom.com>, "corsac@debian.org" <corsac@debian.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "ben@bjencks.net" <ben@bjencks.net>, "jrg.otte@gmail.com" <jrg.otte@gmail.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "Martin@lichtvoll.de" <Martin@lichtvoll.de>, "thirdwiggin@gmail.com" <thirdwiggin@gmail.com>, "bugs@ttyhoney.com" <bugs@ttyhoney.com>, "jplatte@naasa.net" <jplatte@naasa.net>, "seth.forshee@canonical.com" <se>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:30596 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752150AbaAUCqw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jan 2014 21:46:52 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-acpi@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Bjorn Helgaas <bhelgaas@google.com>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dave Airlie <airlied@redhat.com>, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>
 
-On 01/20/2014 09:34 PM, Matthew Garrett wrote:
-> On Mon, 2014-01-20 at 16:12 +0800, Aaron Lu wrote:
-> 
->> 1 remove the win8 OSI check, I've seen win7 laptops that also needs to
->>   have only the GPU interface left and checking win8 doesn't make much
->>   sense now;
-> 
-> Are we sure that those aren't simply some other bug?
+Since acpi_evaluate_object() returns acpi_status and not plain int,
+ACPI_FAILURE() should be used for checking its return value.
 
-Well, the firmware on that laptop makes use of EC to do backlight
-control and the fact that the firmware interface doesn't work while the
-GPU's work seems to indicate that the backlight control circuit is not
-routed to EC. I think this is the same case as Win8 laptops.
+Reviewed-by: Jani Nikula <jani.nikula@intel.com>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+v3->v4: Fix spell error, add Jani Nikula reviewed-by.
+v2->v3: Fix compile error pointed out by Hanjun.
+v1->v2: Add CC to related subsystem MAINTAINERS
+---
+ drivers/gpu/drm/i915/intel_acpi.c              |   24 ++++++++++++++----------
+ drivers/gpu/drm/nouveau/core/subdev/mxm/base.c |    9 +++++----
+ drivers/gpu/drm/nouveau/nouveau_acpi.c         |   23 +++++++++++++----------
+ drivers/pci/pci-label.c                        |    9 ++++++---
+ 4 files changed, 38 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_acpi.c b/drivers/gpu/drm/i915/intel_acpi.c
+index dfff090..87e8f74 100644
+--- a/drivers/gpu/drm/i915/intel_acpi.c
++++ b/drivers/gpu/drm/i915/intel_acpi.c
+@@ -35,7 +35,8 @@ static int intel_dsm(acpi_handle handle, int func)
+ 	union acpi_object params[4];
+ 	union acpi_object *obj;
+ 	u32 result;
+-	int ret = 0;
++	acpi_status status;
++	int ret;
+ 
+ 	input.count = 4;
+ 	input.pointer = params;
+@@ -50,10 +51,11 @@ static int intel_dsm(acpi_handle handle, int func)
+ 	params[3].package.count = 0;
+ 	params[3].package.elements = NULL;
+ 
+-	ret = acpi_evaluate_object(handle, "_DSM", &input, &output);
+-	if (ret) {
+-		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
+-		return ret;
++	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
++	if (ACPI_FAILURE(status)) {
++		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %s\n",
++				acpi_format_exception(status));
++		return -EINVAL;
+ 	}
+ 
+ 	obj = (union acpi_object *)output.pointer;
+@@ -141,7 +143,8 @@ static void intel_dsm_platform_mux_info(void)
+ 	struct acpi_object_list input;
+ 	union acpi_object params[4];
+ 	union acpi_object *pkg;
+-	int i, ret;
++	acpi_status status;
++	int i;
+ 
+ 	input.count = 4;
+ 	input.pointer = params;
+@@ -156,10 +159,11 @@ static void intel_dsm_platform_mux_info(void)
+ 	params[3].package.count = 0;
+ 	params[3].package.elements = NULL;
+ 
+-	ret = acpi_evaluate_object(intel_dsm_priv.dhandle, "_DSM", &input,
+-				   &output);
+-	if (ret) {
+-		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
++	acpi_status = acpi_evaluate_object(intel_dsm_priv.dhandle,
++			"_DSM", &input, &output);
++	if (ACPI_FAILURE(status)) {
++		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %s\n",
++				acpi_format_exception(status));
+ 		goto out;
+ 	}
+ 
+diff --git a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
+index 1291204..c5e7a2b 100644
+--- a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
++++ b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
+@@ -114,15 +114,16 @@ mxm_shadow_dsm(struct nouveau_mxm *mxm, u8 version)
+ 	struct acpi_buffer retn = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	union acpi_object *obj;
+ 	acpi_handle handle;
+-	int ret;
++	acpi_status status;
+ 
+ 	handle = ACPI_HANDLE(&device->pdev->dev);
+ 	if (!handle)
+ 		return false;
+ 
+-	ret = acpi_evaluate_object(handle, "_DSM", &list, &retn);
+-	if (ret) {
+-		nv_debug(mxm, "DSM MXMS failed: %d\n", ret);
++	status = acpi_evaluate_object(handle, "_DSM", &list, &retn);
++	if (ACPI_FAILURE(status)) {
++		nv_debug(mxm, "DSM MXMS failed: %s\n",
++				acpi_format_exception(status));
+ 		return false;
+ 	}
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_acpi.c b/drivers/gpu/drm/nouveau/nouveau_acpi.c
+index ba0183f..de3068b 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_acpi.c
++++ b/drivers/gpu/drm/nouveau/nouveau_acpi.c
+@@ -82,7 +82,8 @@ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *
+ 	struct acpi_object_list input;
+ 	union acpi_object params[4];
+ 	union acpi_object *obj;
+-	int i, err;
++	acpi_status status;
++	int i;
+ 	char args_buff[4];
+ 
+ 	input.count = 4;
+@@ -101,10 +102,11 @@ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *
+ 		args_buff[i] = (arg >> i * 8) & 0xFF;
+ 	params[3].buffer.pointer = args_buff;
+ 
+-	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
+-	if (err) {
+-		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
+-		return err;
++	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
++	if (ACPI_FAILURE(status)) {
++		pr_info("failed to evaluate _DSM: %s\n",
++				acpi_format_exception(status));
++		return -EINVAL;
+ 	}
+ 
+ 	obj = (union acpi_object *)output.pointer;
+@@ -134,7 +136,7 @@ static int nouveau_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
+ 	struct acpi_object_list input;
+ 	union acpi_object params[4];
+ 	union acpi_object *obj;
+-	int err;
++	acpi_status status;
+ 
+ 	input.count = 4;
+ 	input.pointer = params;
+@@ -148,10 +150,11 @@ static int nouveau_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
+ 	params[3].type = ACPI_TYPE_INTEGER;
+ 	params[3].integer.value = arg;
+ 
+-	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
+-	if (err) {
+-		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
+-		return err;
++	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
++	if (ACPI_FAILURE(status)) {
++		pr_info("failed to evaluate _DSM: %s\n",
++				acpi_format_exception(status));
++		return -EINVAL;
+ 	}
+ 
+ 	obj = (union acpi_object *)output.pointer;
+diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
+index d51f45a..7ba4de6 100644
+--- a/drivers/pci/pci-label.c
++++ b/drivers/pci/pci-label.c
+@@ -213,7 +213,7 @@ dsm_get_label(acpi_handle handle, int func,
+ 	union acpi_object *obj;
+ 	int len = 0;
+ 
+-	int err;
++	acpi_status status;
+ 
+ 	input.count = 4;
+ 	input.pointer = params;
+@@ -228,9 +228,12 @@ dsm_get_label(acpi_handle handle, int func,
+ 	params[3].package.count = 0;
+ 	params[3].package.elements = NULL;
+ 
+-	err = acpi_evaluate_object(handle, "_DSM", &input, output);
+-	if (err)
++	status = acpi_evaluate_object(handle, "_DSM", &input, output);
++	if (ACPI_FAILURE(status)) {
++		pr_info("failed to evaluate _DSM: %s\n",
++				acpi_format_exception(status));
+ 		return -1;
++	}
+ 
+ 	obj = (union acpi_object *)output->pointer;
+ 
+-- 
+1.7.1
+
+
