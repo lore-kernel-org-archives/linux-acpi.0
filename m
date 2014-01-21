@@ -1,44 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC/RFT][PATCH 4/5] ACPI / LPSS: Support for device latency tolerance PM QoS
-Date: Wed, 22 Jan 2014 00:23:29 +0100
-Message-ID: <5380624.AVmYnxjkQF@vostro.rjw.lan>
-References: <5434847.aCyiWHNRe7@vostro.rjw.lan> <20140120111518.GE18029@intel.com> <1623216.7y3zYLQxqp@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [Patch v1 1/3] ACPI: add callback prepare() into
+ acpi_hotplug_handler
+Date: Tue, 21 Jan 2014 16:06:36 -0700
+Message-ID: <1390345596.1792.468.camel@misato.fc.hp.com>
+References: <1390013297-23462-1-git-send-email-jiang.liu@linux.intel.com>
+	 <1390338897.1792.467.camel@misato.fc.hp.com>
+	 <2201697.uqWgsYrLat@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1623216.7y3zYLQxqp@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <2201697.uqWgsYrLat@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, January 20, 2014 02:10:10 PM Rafael J. Wysocki wrote:
-> On Monday, January 20, 2014 01:15:19 PM Mika Westerberg wrote:
-> > On Fri, Jan 17, 2014 at 03:46:40PM +0100, Rafael J. Wysocki wrote:
-> > > @@ -415,11 +472,12 @@ static int acpi_lpss_platform_notify(str
-> > >  		return 0;
-> > >  	}
+On Wed, 2014-01-22 at 00:17 +0100, Rafael J. Wysocki wrote:
+> On Tuesday, January 21, 2014 02:14:57 PM Toshi Kani wrote:
+> > On Sat, 2014-01-18 at 10:48 +0800, Jiang Liu wrote:
+> > > Add callback prepare() into acpi_hotplug_handler, which will get called
+> > > at the very beginning of ACPI hotplug event handler. The ACPI core will
+> > > ignore the event if prepare() returns NOTIFY_STOP.
+> > > 
+> > > Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> > > ---
+> > >  drivers/acpi/scan.c     |    4 ++++
+> > >  include/acpi/acpi_bus.h |    1 +
+> > >  2 files changed, 5 insertions(+)
+> > > 
+> > > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > > index fd39459..6b0f419 100644
+> > > --- a/drivers/acpi/scan.c
+> > > +++ b/drivers/acpi/scan.c
+> > > @@ -392,6 +392,10 @@ static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *data)
+> > >  	struct acpi_device *adev;
+> > >  	acpi_status status;
 > > >  
-> > > -	if (action == BUS_NOTIFY_ADD_DEVICE)
-> > > +	if (action == BUS_NOTIFY_ADD_DEVICE) {
-> > >  		ret = sysfs_create_group(&pdev->dev.kobj, &lpss_attr_group);
-> > > -	else if (action == BUS_NOTIFY_DEL_DEVICE)
-> > > +		pdev->dev.power.set_latency_tolerance = acpi_lpss_set_ltr;
+> > > +	if (handler->prepare &&
+> > > +	    handler->prepare(handle, type, data) == NOTIFY_STOP)
+> > > +		return;
 > > 
-> > While trying to test this I noticed that BUS_NOTIFY_ADD_DEVICE happens
-> > after call to dpm_sysfs_add(), so LTR field is never exposed to the
-> > userspace.
+> > The OS is responsible for calling _OST when it is implemented.  So you
+> > cannot just return here.  See acpi_hotplug_unsupported(handle, type)
+> > next line.  Also, please describe why prepare() needs to be added.
 > 
-> Ahh, I confused things, thanks for reporting this!
+> I don't think it's needed any more, please see:
 > 
-> I'll need to hook it up to acpi_platform_notify() somehow I think.
+> http://marc.info/?l=linux-acpi&m=139001691317575&w=2
 
-OK, two patches to replace this one ([4/5]) will follow.
-
-On top of them we can move the code from acpi_lpss_platform_notify() to
-acpi_lpss_(bind|unbind)() and get rid of acpi_lpss_nb, which I think would be
-an improvement too. :-)
-
-Thanks,
-Rafael
+Oh, I see.  Thanks!
+-Toshi
