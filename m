@@ -1,48 +1,38 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: Re: [PATCH v3] ACPI / video: Add systems that should
- favor native backlight interface
-Date: Tue, 21 Jan 2014 12:11:12 +0000
-Message-ID: <1390306271.5320.4.camel@x230>
-References: <1390053249-18919-1-git-send-email-i.gnatenko.brain@gmail.com>
-	<52DCDA75.2000108@intel.com> <1390224857.10605.0.camel@x230>
-	<52DDDA64.90407@intel.com> <1390274270.5320.2.camel@x230>
-	<52DE067A.60400@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <52DE067A.60400@intel.com>
-Content-Language: en-US
-Content-ID: <AFF98283EBF9814E920F026255E917C9@namprd05.prod.outlook.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
-	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Sender: intel-gfx-bounces@lists.freedesktop.org
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-To: "aaron.lu@intel.com" <aaron.lu@intel.com>
-Cc: "james@albanarts.com" <james@albanarts.com>, "bitbucket@online.de" <bitbucket@online.de>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "hmh@hmh.eng.br" <hmh@hmh.eng.br>, "kvalo@adurom.com" <kvalo@adurom.com>, "corsac@debian.org" <corsac@debian.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "joeyli.kernel@gmail.com" <joeyli.kernel@gmail.com>, "ben@bjencks.net" <ben@bjencks.net>, "jrg.otte@gmail.com" <jrg.otte@gmail.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "Martin@lichtvoll.de" <Martin@lichtvoll.de>, "thirdwiggin@gmail.com" <thirdwiggin@gmail.com>, "bugs@ttyhoney.com" <bugs@ttyhoney.com>, "jplatte@naasa.net" <jplatte@naasa.net>, "seth.forshee@canonical.com" <se>
+From: "Luis G.F" <luisgf@luisgf.es>
+Subject: [PATCH 1/1] acpi: Fix incorrect sscanf() string in acpi_battery_init_alarm()
+Date: Tue, 21 Jan 2014 15:40:43 +0100
+Message-ID: <1390315243-11653-1-git-send-email-luisgf@luisgf.es>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.domainsvm.com ([37.77.82.227]:48239 "EHLO
+	cp-nl-1.domainsvm.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1752265AbaAUPeF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Jan 2014 10:34:05 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, "Luis G.F" <luisgf@luisgf.es>
 
-On Tue, 2014-01-21 at 13:32 +0800, Aaron Lu wrote:
-> On 01/21/2014 11:17 AM, Matthew Garrett wrote:
-> > We know that Windows 8 graphics drivers don't use the ACPI interface,
-> > and that systems change their behaviour as a result, in some cases with
-> > absolutely no way for the ACPI interface could possibly work. I haven't
-> > seen any cases where that's obviously true for any non-Windows 8
-> 
-> Perhaps I'm not clear, I didn't mean non-Windows 8 systems will all favor
-> GPU's interface, I just meant for one specific win7 laptop I could re-use
-> the existing code to make the GPU's interface as the only one left. And to
-> achieve this, the Win8 OSI check in acpi_video_verify_backlight_support
-> has to be gone.
+Fix incorrect sscanf() string in acpi_battery_init_alarm function.
+Change from %ld to %lu that's 'x' variable is unsigned long.
 
-We could do that, but why do we think that's the correct fix? The plan
-is to remove the native list entirely and do this for all Windows 8
-systems, so the Win8 OSI check is the right thing to do.
+Signed-off-by: Luis G.F <luisgf@luisgf.es>
+---
+ drivers/acpi/battery.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 5876a49..95aa5d0 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -550,7 +550,7 @@ static ssize_t acpi_battery_alarm_store(struct device *dev,
+ {
+ 	unsigned long x;
+ 	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
+-	if (sscanf(buf, "%ld\n", &x) == 1)
++	if (sscanf(buf, "%lu\n", &x) == 1)
+ 		battery->alarm = x/1000;
+ 	if (acpi_battery_present(battery))
+ 		acpi_battery_set_alarm(battery);
 -- 
-Matthew Garrett <matthew.garrett@nebula.com>
+1.8.4
+
