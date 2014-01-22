@@ -1,35 +1,42 @@
-From: Linus Walleij <linus.walleij@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [PATCH 18/20] clocksource / acpi: Add macro CLOCKSOURCE_ACPI_DECLARE
-Date: Wed, 22 Jan 2014 15:38:58 +0100
-Message-ID: <CACRpkda1UoGV1anjZqPVXQU1+=xU3g3zpAvuu7C2sbhJgw+dSw@mail.gmail.com>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org>
-	<1389961514-13562-19-git-send-email-hanjun.guo@linaro.org>
-	<CACRpkdYKwaH5DX27irzmcTDAMhQMUhuzz6N7mjKWv9tZchv0Ug@mail.gmail.com>
-	<20140122114537.GA15591@e106331-lin.cambridge.arm.com>
+Date: Wed, 22 Jan 2014 15:56:05 +0100
+Message-ID: <3140612.0s75qS6VKb@wuerfel>
+References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <52DCE790.6080809@linaro.org> <20140122114616.GB15591@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:53330 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755215AbaAVOi7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jan 2014 09:38:59 -0500
-Received: by mail-ob0-f170.google.com with SMTP id va2so491305obc.15
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Jan 2014 06:38:58 -0800 (PST)
-In-Reply-To: <20140122114537.GA15591@e106331-lin.cambridge.arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140122114616.GB15591@e106331-lin.cambridge.arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Mark Rutland <mark.rutland@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Patch Tracking <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-kernel <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Amit Daniel Kachhap <amit.daniel@samsung.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Amit
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 22, 2014 at 12:45 PM, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Wed, Jan 22, 2014 at 08:26:50AM +0000, Linus Walleij wrote:
+On Wednesday 22 January 2014 11:46:16 Mark Rutland wrote:
+> On Mon, Jan 20, 2014 at 09:08:32AM +0000, Hanjun Guo wrote:
+> > On 2014-1-17 22:21, Arnd Bergmann wrote:
+> > > On Friday 17 January 2014, Hanjun Guo wrote:
+> > >>
+> > >> From: Amit Daniel Kachhap <amit.daniel@samsung.com>
+> > >>
+> > >> This macro does the same job as CLOCKSOURCE_OF_DECLARE. The device
+> > >> name from the ACPI timer table is matched with all the registered
+> > >> timer controllers and matching initialisation routine is invoked.
+> > > 
+> > > I wouldn't anticipate this infrastructure to be required. Shouldn't all
+> > > ARMv8 machines have an architected timer?
+> > 
+> > I not sure of this, could anyone can give some guidance? if only arch
+> > timer is available for ARM64, this will make thing very simple.
+> 
+> All ARMv8 systems should have an architected timer.
+> 
+> However, they may also have other timers (e.g. global timers for use
+> when CPUs are in low power states and their local architected timers
+> aren't active).
 
->> This hammers down the world to compile one binary for ACPI
->> and one binary for device tree. Maybe that's fine, I don't know.
->
-> How does it do that?
+But all other timers could be regular platform drivers I suppose. No
+need for special infrastructure for those.
 
-Bah it doesn't I misread the patch. Forget that comment.
-
-Yours,
-Linus Walleij
+	Arnd
