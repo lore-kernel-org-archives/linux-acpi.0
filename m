@@ -1,44 +1,204 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 18/20] clocksource / acpi: Add macro CLOCKSOURCE_ACPI_DECLARE
-Date: Wed, 22 Jan 2014 16:47:28 +0100
-Message-ID: <4603592.X6dscGmyfO@wuerfel>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <3140612.0s75qS6VKb@wuerfel> <20140122151749.GA1519@e106331-lin.cambridge.arm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 10/20] ARM64 / ACPI: Enumerate possible/present CPU set
+ and map logical cpu id to APIC id
+Date: Wed, 22 Jan 2014 15:53:31 +0000
+Message-ID: <20140122155331.GD24288@e102568-lin.cambridge.arm.com>
+References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org>
+ <1389961514-13562-11-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:50036 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756030AbaAVPrx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jan 2014 10:47:53 -0500
-In-Reply-To: <20140122151749.GA1519@e106331-lin.cambridge.arm.com>
+Received: from service87.mimecast.com ([91.220.42.44]:50265 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751379AbaAVPxi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jan 2014 10:53:38 -0500
+In-Reply-To: <1389961514-13562-11-git-send-email-hanjun.guo@linaro.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linaro-kernel@lists.linaro.org
-Cc: Mark Rutland <mark.rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rob Herring <robh@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Amit Daniel Kachhap <amit.daniel@samsung.com>, Hanjun Guo <hanjun.guo@linaro.org>, "patches@linaro.org" <patches@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Charles Garcia-Tobin <Charles>
 
-On Wednesday 22 January 2014 15:17:49 Mark Rutland wrote:
-> Except for the fact that some timers / clocksources that we already have
-> in 32-bit land will likely be reused in 64-bit SoC designs. People will
-> want to use the same driver for both 32-bit and 64-bit kernels, and thus
-> we need CLOCKSOURCE_OF_DECLARE in 64-bit kernels.
-> 
-> Those platforms which will have ACPI will likely reuse existing timer IP
-> blocks, and will want to make minimal changes to the driver, which will
-> likely be using CLOCKSOURCE_OF_DECLARE. We can't change these to
-> platform drivers or we can break existing systems because the timers
-> will be registered too late.
-> 
-> I don't see how we can share drivers between 32-bit and 64-bit kernels
-> without sharing a common driver model, and I think it makes sense to
-> have some uniformity across drivers (i.e. always use
-> CLOCKSOURCE_*_DECLARE rather than sometimes using platform drivers).
+On Fri, Jan 17, 2014 at 12:25:04PM +0000, Hanjun Guo wrote:
 
-This still sounds like speculation. I would defer this change until
-we actually have a platform that needs it.
+[...]
 
-The platforms that would reuse a lot of IP blocks are most likely
-embedded systems and /not/ server hardware following some strict
-specification, so they wouldn't use ACPI.
+> +/* map logic cpu id to physical GIC id */
+> +extern int arm_cpu_to_apicid[NR_CPUS];
+> +#define cpu_physical_id(cpu) arm_cpu_to_apicid[cpu]
 
-	Arnd
+Sudeep already commented on this, please update it accordingly.
+
+> +
+>  #else	/* !CONFIG_ACPI */
+>  #define acpi_disabled 1		/* ACPI sometimes enabled on ARM */
+>  #define acpi_noirq 1		/* ACPI sometimes enabled on ARM */
+> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-core.c
+> index 8ba3e6f..1d9b789 100644
+> --- a/drivers/acpi/plat/arm-core.c
+> +++ b/drivers/acpi/plat/arm-core.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/smp.h>
+>  
+>  #include <asm/pgtable.h>
+> +#include <asm/cputype.h>
+>  
+>  /*
+>   * We never plan to use RSDT on arm/arm64 as its deprecated in spec but this
+> @@ -52,6 +53,13 @@ EXPORT_SYMBOL(acpi_pci_disabled);
+>   */
+>  static u64 acpi_lapic_addr __initdata;
+
+Is this variable actually needed ?
+
+>  
+> +/* available_cpus here means enabled cpu in MADT */
+> +static int available_cpus;
+
+Ditto.
+
+> +
+> +/* Map logic cpu id to physical GIC id (physical CPU id). */
+> +int arm_cpu_to_apicid[NR_CPUS] = { [0 ... NR_CPUS-1] = -1 };
+> +static int boot_cpu_apic_id = -1;
+
+Do we need all these variables ? I think we should reuse cpu_logical_map
+data structures for that, it looks suspiciously familiar.
+
+>  #define BAD_MADT_ENTRY(entry, end) (					\
+>  	(!entry) || (unsigned long)entry + sizeof(*entry) > end ||	\
+>  	((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
+> @@ -132,6 +140,55 @@ static int __init acpi_parse_madt(struct acpi_table_header *table)
+>   * Please refer to chapter5.2.12.14/15 of ACPI 5.0
+>   */
+>  
+> +/**
+> + * acpi_register_gic_cpu_interface - register a gic cpu interface and
+> + * generates a logic cpu number
+> + * @id: gic cpu interface id to register
+> + * @enabled: this cpu is enabled or not
+> + *
+> + * Returns the logic cpu number which maps to the gic cpu interface
+> + */
+> +static int acpi_register_gic_cpu_interface(int id, u8 enabled)
+> +{
+> +	int cpu;
+> +
+> +	if (id >= MAX_GIC_CPU_INTERFACE) {
+> +		pr_info(PREFIX "skipped apicid that is too big\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	total_cpus++;
+> +	if (!enabled)
+> +		return -EINVAL;
+> +
+> +	if (available_cpus >=  NR_CPUS) {
+> +		pr_warn(PREFIX "NR_CPUS limit of %d reached,"
+> +		" Processor %d/0x%x ignored.\n", NR_CPUS, total_cpus, id);
+> +		return -EINVAL;
+> +	}
+
+Hmm...what if you are missing the boot CPU ? It is a worthy check.
+Have a look at smp_init_cpus(), it does not bail out on cpu>= NR_CPUS
+because you do want to make sure that the DT contains the boot CPU
+node. Same logic applies.
+
+> +
+> +	available_cpus++;
+> +
+
+Is available_cpus != num_possible_cpus() ? It does not look like hence
+available_cpus can go.
+
+> +	/* allocate a logic cpu id for the new comer */
+> +	if (boot_cpu_apic_id == id) {
+> +		/*
+> +		 * boot_cpu_init() already hold bit 0 in cpu_present_mask
+> +		 * for BSP, no need to allocte again.
+> +		 */
+> +		cpu = 0;
+> +	} else {
+> +		cpu = cpumask_next_zero(-1, cpu_present_mask);
+> +	}
+> +
+> +	/* map the logic cpu id to APIC id */
+> +	arm_cpu_to_apicid[cpu] = id;
+> +
+> +	set_cpu_present(cpu, true);
+> +	set_cpu_possible(cpu, true);
+
+This is getting nasty. Before adding this patch and previous ones we
+need to put in place a method for the kernel to make a definite choice between
+ACPI and DT and stick to that. We can't initialize the logical map twice
+(which will happen if your DT has valid cpu nodes and a chosen node pointing
+to proper ACPI tables) or even having some entries initialized from DT and
+others by ACPI. It is a big fat no-no, please update the series accordingly.
+
+> +
+> +	return cpu;
+> +}
+> +
+>  static int __init
+>  acpi_parse_gic(struct acpi_subtable_header *header, const unsigned long end)
+>  {
+> @@ -144,6 +201,16 @@ acpi_parse_gic(struct acpi_subtable_header *header, const unsigned long end)
+>  
+>  	acpi_table_print_madt_entry(header);
+>  
+> +	/*
+> +	 * We need to register disabled CPU as well to permit
+> +	 * counting disabled CPUs. This allows us to size
+> +	 * cpus_possible_map more accurately, to permit
+> +	 * to not preallocating memory for all NR_CPUS
+> +	 * when we use CPU hotplug.
+> +	 */
+> +	acpi_register_gic_cpu_interface(processor->gic_id,
+> +			processor->flags & ACPI_MADT_ENABLED);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -186,6 +253,19 @@ static int __init acpi_parse_madt_gic_entries(void)
+>  		return count;
+>  	}
+>  
+> +#ifdef CONFIG_SMP
+> +	if (available_cpus == 0) {
+> +		pr_info(PREFIX "Found 0 CPUs; assuming 1\n");
+> +		arm_cpu_to_apicid[available_cpus] =
+> +			read_cpuid_mpidr() & MPIDR_HWID_BITMASK;
+> +		available_cpus = 1;	/* We've got at least one of these */
+> +	}
+
+I'd rather check the MADT for at least the boot cpu to present, if it is
+not ACPI tables are horribly buggy and the kernel should barf on that.
+
+> +#endif
+> +
+> +	/* Make boot-up look pretty */
+> +	pr_info("%d CPUs available, %d CPUs total\n", available_cpus,
+> +		total_cpus);
+
+Ok, now, how can we use the "disabled" CPUs == (total_cpus - available_cpus) ?
+
+Are we keeping track of them in the kernel at all ? It does not look
+like, so I wonder whether we need this bit of info. I do not see why it
+is pretty to know that there are disabled, aka unusable CPUs.
+
+>  	return 0;
+>  }
+>  
+> @@ -321,6 +401,9 @@ int __init early_acpi_boot_init(void)
+>  	if (acpi_disabled)
+>  		return -ENODEV;
+>  
+> +	/* Get the boot CPU's GIC cpu interface id before MADT parsing */
+> +	boot_cpu_apic_id = read_cpuid_mpidr() & MPIDR_HWID_BITMASK;
+
+See Sudeep's comment.
+
+Thanks,
+Lorenzo
+
