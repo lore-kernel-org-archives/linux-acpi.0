@@ -1,229 +1,148 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Subject: [PATCH v5] ACPI: Fix acpi_evaluate_object() return value check
-Date: Thu, 23 Jan 2014 11:42:39 +0800
-Message-ID: <1390448559-33896-1-git-send-email-wangyijing@huawei.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [RFC/RFT][PATCH v2 5/6] ACPI / LPSS: Support for device latency tolerance PM QoS
+Date: Thu, 23 Jan 2014 14:39:40 +0100
+Message-ID: <4404835.S7CcAgDRpP@vostro.rjw.lan>
+References: <5434847.aCyiWHNRe7@vostro.rjw.lan> <1447517.8AFrWcAgld@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:56777 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752310AbaAWDnQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jan 2014 22:43:16 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1447517.8AFrWcAgld@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, konrad.wilk@oracle.com, David Airlie <airlied@linux.ie>, Bjorn Helgaas <bhelgaas@google.com>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Dave Airlie <airlied@redhat.com>, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>
 
-Since acpi_evaluate_object() returns acpi_status and not plain int,
-ACPI_FAILURE() should be used for checking its return value. Also
-add some detailed debug info when acpi_evaluate_object() failed.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Reviewed-by: Jani Nikula <jani.nikula@intel.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Add a new routine, acpi_lpss_set_ltr(), for setting latency tolerance
+values for LPSS devices having LTR (Latency Tolerance Reporting)
+registers.  Add .bind()/.unbind() callbacks to lpss_handler to set
+the LPSS devices' power.set_latency_tolerance callback pointers to
+acpi_lpss_set_ltr() during device addition and to clear them on
+device removal, respectively.
+
+That will cause the device latency tolerance PM QoS to work for
+the devices in question as documented.
+
+This changeset includes a fix from Mika Westerberg.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
-v4->v5: Add some detailed debug info for acpi_evaluate_object() 
-        failure suggested by Bjorn.
-v3->v4: Fix spell error, add Jani Nikula reviewed-by.
-v2->v3: Fix compile error pointed out by Hanjun.
-v1->v2: Add CC to related subsystem MAINTAINERS
----
- drivers/gpu/drm/i915/intel_acpi.c              |   33 ++++++++++++++++-------
- drivers/gpu/drm/nouveau/core/subdev/mxm/base.c |   13 ++++++---
- drivers/gpu/drm/nouveau/nouveau_acpi.c         |   25 +++++++++++-------
- drivers/pci/pci-label.c                        |   10 +++++--
- 4 files changed, 54 insertions(+), 27 deletions(-)
+ drivers/acpi/acpi_lpss.c |   71 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 70 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/drm/i915/intel_acpi.c b/drivers/gpu/drm/i915/intel_acpi.c
-index dfff090..e7b526b 100644
---- a/drivers/gpu/drm/i915/intel_acpi.c
-+++ b/drivers/gpu/drm/i915/intel_acpi.c
-@@ -31,11 +31,13 @@ static const u8 intel_dsm_guid[] = {
- static int intel_dsm(acpi_handle handle, int func)
+Index: linux-pm/drivers/acpi/acpi_lpss.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpi_lpss.c
++++ linux-pm/drivers/acpi/acpi_lpss.c
+@@ -33,6 +33,12 @@ ACPI_MODULE_NAME("acpi_lpss");
+ #define LPSS_GENERAL_UART_RTS_OVRD	BIT(3)
+ #define LPSS_SW_LTR			0x10
+ #define LPSS_AUTO_LTR			0x14
++#define LPSS_LTR_SNOOP_REQ		BIT(15)
++#define LPSS_LTR_SNOOP_MASK		0x0000FFFF
++#define LPSS_LTR_SNOOP_LAT_1US		0x800
++#define LPSS_LTR_SNOOP_LAT_32US		0xC00
++#define LPSS_LTR_SNOOP_LAT_SHIFT	5
++#define LPSS_LTR_MAX_VAL		0x3FF
+ #define LPSS_TX_INT			0x20
+ #define LPSS_TX_INT_MASK		BIT(1)
+ 
+@@ -316,6 +322,17 @@ static int acpi_lpss_create_device(struc
+ 	return ret;
+ }
+ 
++static u32 __lpss_reg_read(struct lpss_private_data *pdata, unsigned int reg)
++{
++	return readl(pdata->mmio_base + pdata->dev_desc->prv_offset + reg);
++}
++
++static void __lpss_reg_write(u32 val, struct lpss_private_data *pdata,
++			     unsigned int reg)
++{
++	writel(val, pdata->mmio_base + pdata->dev_desc->prv_offset + reg);
++}
++
+ static int lpss_reg_read(struct device *dev, unsigned int reg, u32 *val)
  {
- 	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct acpi_buffer string = { ACPI_ALLOCATE_BUFFER, NULL };
- 	struct acpi_object_list input;
- 	union acpi_object params[4];
- 	union acpi_object *obj;
- 	u32 result;
--	int ret = 0;
-+	acpi_status status;
-+	int ret;
- 
- 	input.count = 4;
- 	input.pointer = params;
-@@ -50,10 +52,14 @@ static int intel_dsm(acpi_handle handle, int func)
- 	params[3].package.count = 0;
- 	params[3].package.elements = NULL;
- 
--	ret = acpi_evaluate_object(handle, "_DSM", &input, &output);
--	if (ret) {
--		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
--		return ret;
-+	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
-+	if (ACPI_FAILURE(status)) {
-+		acpi_get_name(handle, ACPI_FULL_PATHNAME, &string);
-+		DRM_DEBUG_DRIVER(
-+			"failed to evaluate _DSM for %s, exit status %u\n",
-+			(char *)string.pointer,	(unsigned int)status);
-+		kfree(string.pointer);
-+		return -EINVAL;
- 	}
- 
- 	obj = (union acpi_object *)output.pointer;
-@@ -138,10 +144,12 @@ static char *intel_dsm_mux_type(u8 type)
- static void intel_dsm_platform_mux_info(void)
- {
- 	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct acpi_buffer string = { ACPI_ALLOCATE_BUFFER, NULL };
- 	struct acpi_object_list input;
- 	union acpi_object params[4];
- 	union acpi_object *pkg;
--	int i, ret;
-+	acpi_status status;
-+	int i;
- 
- 	input.count = 4;
- 	input.pointer = params;
-@@ -156,10 +164,15 @@ static void intel_dsm_platform_mux_info(void)
- 	params[3].package.count = 0;
- 	params[3].package.elements = NULL;
- 
--	ret = acpi_evaluate_object(intel_dsm_priv.dhandle, "_DSM", &input,
--				   &output);
--	if (ret) {
--		DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
-+	acpi_status = acpi_evaluate_object(intel_dsm_priv.dhandle,
-+			"_DSM", &input, &output);
-+	if (ACPI_FAILURE(status)) {
-+		acpi_get_name(intel_dsm_priv.dhandle,
-+				ACPI_FULL_PATHNAME, &string);
-+		DRM_DEBUG_DRIVER(
-+			"failed to evaluate _DSM for %s, exit status %u\n",
-+			(char *)string.pointer,	(unsigned int)status);
-+		kfree(string.pointer);
+ 	struct acpi_device *adev;
+@@ -337,7 +354,7 @@ static int lpss_reg_read(struct device *
+ 		ret = -ENODEV;
  		goto out;
  	}
+-	*val = readl(pdata->mmio_base + pdata->dev_desc->prv_offset + reg);
++	*val = __lpss_reg_read(pdata, reg);
  
-diff --git a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
-index 1291204..c30ee88 100644
---- a/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
-+++ b/drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
-@@ -112,17 +112,22 @@ mxm_shadow_dsm(struct nouveau_mxm *mxm, u8 version)
- 	};
- 	struct acpi_object_list list = { ARRAY_SIZE(args), args };
- 	struct acpi_buffer retn = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct acpi_buffer string = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *obj;
- 	acpi_handle handle;
--	int ret;
-+	acpi_status status;
+  out:
+ 	spin_unlock_irqrestore(&dev->power.lock, flags);
+@@ -390,6 +407,38 @@ static struct attribute_group lpss_attr_
+ 	.name = "lpss_ltr",
+ };
  
- 	handle = ACPI_HANDLE(&device->pdev->dev);
- 	if (!handle)
- 		return false;
- 
--	ret = acpi_evaluate_object(handle, "_DSM", &list, &retn);
--	if (ret) {
--		nv_debug(mxm, "DSM MXMS failed: %d\n", ret);
-+	status = acpi_evaluate_object(handle, "_DSM", &list, &retn);
-+	if (ACPI_FAILURE(status)) {
-+		acpi_get_name(handle, ACPI_FULL_PATHNAME, &string);
-+		nv_debug(mxm, "DSM MXMS failed for %s: exit status %u\n",
-+				(char *)string.pointer,
-+				(unsigned int)status);
-+		kfree(string.pointer);
- 		return false;
- 	}
- 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_acpi.c b/drivers/gpu/drm/nouveau/nouveau_acpi.c
-index ba0183f..53d24a7 100644
---- a/drivers/gpu/drm/nouveau/nouveau_acpi.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_acpi.c
-@@ -82,7 +82,8 @@ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *
- 	struct acpi_object_list input;
- 	union acpi_object params[4];
- 	union acpi_object *obj;
--	int i, err;
-+	acpi_status status;
-+	int i;
- 	char args_buff[4];
- 
- 	input.count = 4;
-@@ -101,10 +102,12 @@ static int nouveau_optimus_dsm(acpi_handle handle, int func, int arg, uint32_t *
- 		args_buff[i] = (arg >> i * 8) & 0xFF;
- 	params[3].buffer.pointer = args_buff;
- 
--	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
--	if (err) {
--		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
--		return err;
-+	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
-+	if (ACPI_FAILURE(status)) {
-+		acpi_handle_info(handle,
-+				"failed to evaluate _DSM, exit status %u\n",
-+				(unsigned int)status);
-+		return -EINVAL;
- 	}
- 
- 	obj = (union acpi_object *)output.pointer;
-@@ -134,7 +137,7 @@ static int nouveau_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
- 	struct acpi_object_list input;
- 	union acpi_object params[4];
- 	union acpi_object *obj;
--	int err;
-+	acpi_status status;
- 
- 	input.count = 4;
- 	input.pointer = params;
-@@ -148,10 +151,12 @@ static int nouveau_dsm(acpi_handle handle, int func, int arg, uint32_t *result)
- 	params[3].type = ACPI_TYPE_INTEGER;
- 	params[3].integer.value = arg;
- 
--	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
--	if (err) {
--		printk(KERN_INFO "failed to evaluate _DSM: %d\n", err);
--		return err;
-+	status = acpi_evaluate_object(handle, "_DSM", &input, &output);
-+	if (ACPI_FAILURE(status)) {
-+		acpi_handle_info(handle,
-+				"failed to evaluate _DSM, exit status %u\n",
-+				(unsigned int)status);
-+		return -EINVAL;
- 	}
- 
- 	obj = (union acpi_object *)output.pointer;
-diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
-index d51f45a..0216094 100644
---- a/drivers/pci/pci-label.c
-+++ b/drivers/pci/pci-label.c
-@@ -213,7 +213,7 @@ dsm_get_label(acpi_handle handle, int func,
- 	union acpi_object *obj;
- 	int len = 0;
- 
--	int err;
-+	acpi_status status;
- 
- 	input.count = 4;
- 	input.pointer = params;
-@@ -228,9 +228,13 @@ dsm_get_label(acpi_handle handle, int func,
- 	params[3].package.count = 0;
- 	params[3].package.elements = NULL;
- 
--	err = acpi_evaluate_object(handle, "_DSM", &input, output);
--	if (err)
-+	status = acpi_evaluate_object(handle, "_DSM", &input, output);
-+	if (ACPI_FAILURE(status)) {
-+		acpi_handle_info(handle,
-+				"failed to evaluate _DSM, exit status %u\n",
-+				 (unsigned int)status);
- 		return -1;
++static void acpi_lpss_set_ltr(struct device *dev, s32 val)
++{
++	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
++	u32 ltr_mode, ltr_val;
++
++	ltr_mode = __lpss_reg_read(pdata, LPSS_GENERAL);
++	if (val < 0) {
++		if (ltr_mode & LPSS_GENERAL_LTR_MODE_SW) {
++			ltr_mode &= ~LPSS_GENERAL_LTR_MODE_SW;
++			__lpss_reg_write(ltr_mode, pdata, LPSS_GENERAL);
++		}
++		return;
 +	}
++	ltr_val = __lpss_reg_read(pdata, LPSS_SW_LTR) & ~LPSS_LTR_SNOOP_MASK;
++	if (val > LPSS_LTR_MAX_VAL) {
++		ltr_val |= LPSS_LTR_SNOOP_LAT_32US | LPSS_LTR_SNOOP_REQ;
++		val >>= LPSS_LTR_SNOOP_LAT_SHIFT;
++		if (val > LPSS_LTR_MAX_VAL)
++			val = LPSS_LTR_MAX_VAL;
++	} else {
++		ltr_val |= LPSS_LTR_SNOOP_LAT_1US;
++		if (val > 0)
++			ltr_val |= LPSS_LTR_SNOOP_REQ;
++	}
++	ltr_val |= val;
++	__lpss_reg_write(ltr_val, pdata, LPSS_SW_LTR);
++	if (!(ltr_mode & LPSS_GENERAL_LTR_MODE_SW)) {
++		ltr_mode |= LPSS_GENERAL_LTR_MODE_SW;
++		__lpss_reg_write(ltr_mode, pdata, LPSS_GENERAL);
++	}
++}
++
+ static int acpi_lpss_platform_notify(struct notifier_block *nb,
+ 				     unsigned long action, void *data)
+ {
+@@ -427,9 +476,29 @@ static struct notifier_block acpi_lpss_n
+ 	.notifier_call = acpi_lpss_platform_notify,
+ };
  
- 	obj = (union acpi_object *)output->pointer;
++static void acpi_lpss_bind(struct device *dev)
++{
++	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
++
++	if (!pdata || !pdata->mmio_base)
++		return;
++
++	if (pdata->mmio_size >= pdata->dev_desc->prv_offset + LPSS_LTR_SIZE)
++		dev->power.set_latency_tolerance = acpi_lpss_set_ltr;
++	else
++		dev_err(dev, "MMIO size insufficient to access LTR\n");
++}
++
++static void acpi_lpss_unbind(struct device *dev)
++{
++	dev->power.set_latency_tolerance = NULL;
++}
++
+ static struct acpi_scan_handler lpss_handler = {
+ 	.ids = acpi_lpss_device_ids,
+ 	.attach = acpi_lpss_create_device,
++	.bind = acpi_lpss_bind,
++	.unbind = acpi_lpss_unbind,
+ };
  
--- 
-1.7.1
-
+ void __init acpi_lpss_init(void)
 
