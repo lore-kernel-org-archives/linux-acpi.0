@@ -1,147 +1,65 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [Linaro-acpi] [PATCH 04/20] ARM64 / ACPI: Introduce arm_core.c
- and its related head file
-Date: Thu, 23 Jan 2014 16:56:44 +0100
-Message-ID: <52E13BBC.5020005@linaro.org>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-5-git-send-email-hanjun.guo@linaro.org> <20140122115453.GC24288@e102568-lin.cambridge.arm.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 02/20] ARM64 : Add dummy asm/cpu.h
+Date: Thu, 23 Jan 2014 16:15:05 +0000
+Message-ID: <20140123161505.GB23939@localhost>
+References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org>
+ <1389961514-13562-3-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:47868 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751696AbaAWP5Q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jan 2014 10:57:16 -0500
-Received: by mail-ee0-f50.google.com with SMTP id d17so494958eek.9
-        for <linux-acpi@vger.kernel.org>; Thu, 23 Jan 2014 07:57:15 -0800 (PST)
-In-Reply-To: <20140122115453.GC24288@e102568-lin.cambridge.arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1389961514-13562-3-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, graeme.gregory@lin
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Lorenzo,
+On Fri, Jan 17, 2014 at 12:24:56PM +0000, Hanjun Guo wrote:
+> ACPI requires a cpu.h, add a dummy one copied from arm. This will need
+> updated or replaced as ACPI based cpu hotplug or cpu topology for armv8
+> is worked out.
+> 
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  arch/arm64/include/asm/cpu.h |   25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+>  create mode 100644 arch/arm64/include/asm/cpu.h
+> 
+> diff --git a/arch/arm64/include/asm/cpu.h b/arch/arm64/include/asm/cpu.h
+> new file mode 100644
+> index 0000000..8625eb1
+> --- /dev/null
+> +++ b/arch/arm64/include/asm/cpu.h
+> @@ -0,0 +1,25 @@
+> +/*
+> + *  Copyright (C) 2004-2005 ARM Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +#ifndef __ASM_ARM_CPU_H
+> +#define __ASM_ARM_CPU_H
+> +
+> +#include <linux/percpu.h>
+> +#include <linux/cpu.h>
+> +#include <linux/topology.h>
+> +
+> +struct cpuinfo_arm {
+> +	struct cpu	cpu;
+> +	u64		cpuid;
+> +#ifdef CONFIG_SMP
+> +	unsigned int	loops_per_jiffy;
+> +#endif
+> +};
+> +
+> +DECLARE_PER_CPU(struct cpuinfo_arm, cpu_data);
+> +
+> +#endif
 
-W dniu 22.01.2014 12:54, Lorenzo Pieralisi pisze:
-> On Fri, Jan 17, 2014 at 12:24:58PM +0000, Hanjun Guo wrote:
->
-> [...]
->
->> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
->> index bd9bbd0..2210353 100644
->> --- a/arch/arm64/kernel/setup.c
->> +++ b/arch/arm64/kernel/setup.c
->> @@ -41,6 +41,7 @@
->>   #include <linux/memblock.h>
->>   #include <linux/of_fdt.h>
->>   #include <linux/of_platform.h>
->> +#include <linux/acpi.h>
->>
->>   #include <asm/cputype.h>
->>   #include <asm/elf.h>
->> @@ -225,6 +226,11 @@ void __init setup_arch(char **cmdline_p)
->>
->>   	arm64_memblock_init();
->>
->> +	/* Parse the ACPI tables for possible boot-time configuration */
->> +	acpi_boot_table_init();
->> +	early_acpi_boot_init();
->> +	acpi_boot_init();
->> +
->>   	paging_init();
->
-> Can I ask you please why we need to parse ACPI tables before
-> paging_init() ?
-This is for future usage and because of couple of reasons. Mainly SRAT 
-table parsing should be done (before paging_init()) for proper NUMA 
-initialization and then paging_init().
+Could you not leave this file empty until you add the code that actually
+makes use of cpu_data?
 
-Regards,
-Tomasz
->
-> [...]
->
->> +/*
->> + * __acpi_map_table() will be called before page_init(), so early_ioremap()
->> + * or early_memremap() should be called here.
->
-> Again, why is this needed ? What's needed before paging_init() from ACPI ?
->
-> [...]
->
->> +/*
->> + * acpi_boot_table_init() and acpi_boot_init()
->> + *  called from setup_arch(), always.
->> + *	1. checksums all tables
->> + *	2. enumerates lapics
->> + *	3. enumerates io-apics
->> + *
->> + * acpi_table_init() is separated to allow reading SRAT without
->> + * other side effects.
->> + */
->> +void __init acpi_boot_table_init(void)
->> +{
->> +	/*
->> +	 * If acpi_disabled, bail out
->> +	 */
->> +	if (acpi_disabled)
->> +		return;
->> +
->> +	/*
->> +	 * Initialize the ACPI boot-time table parser.
->> +	 */
->> +	if (acpi_table_init()) {
->> +		disable_acpi();
->> +		return;
->> +	}
->> +}
->> +
->> +int __init early_acpi_boot_init(void)
->> +{
->> +	/*
->> +	 * If acpi_disabled, bail out
->> +	 */
->> +	if (acpi_disabled)
->> +		return -ENODEV;
->> +
->> +	/*
->> +	 * Process the Multiple APIC Description Table (MADT), if present
->> +	 */
->> +	early_acpi_process_madt();
->> +
->> +	return 0;
->> +}
->> +
->> +int __init acpi_boot_init(void)
->> +{
->> +	/*
->> +	 * If acpi_disabled, bail out
->> +	 */
->> +	if (acpi_disabled)
->> +		return -ENODEV;
->> +
->> +	acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt);
->> +
->> +	/*
->> +	 * Process the Multiple APIC Description Table (MADT), if present
->> +	 */
->> +	acpi_process_madt();
->> +
->> +	return 0;
->> +}
->
-> Well, apart from having three init calls, one returning void and two
-> returning proper values, do not understand why, and do not understand
-> why we need three calls in the first place...why should we process MADT
-> twice in two separate calls ? What is supposed to change in between that
-> prevents you from merging the two together ?
->
-> Thanks,
-> Lorenzo
->
->
-> _______________________________________________
-> Linaro-acpi mailing list
-> Linaro-acpi@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-acpi
->
+-- 
+Catalin
