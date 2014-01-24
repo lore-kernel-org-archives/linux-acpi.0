@@ -1,38 +1,143 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH] Platform / wmi: Fix potential memory leak in parse_wdg()
-Date: Sat, 25 Jan 2014 00:14:35 +0800
-Message-ID: <1390580075-14342-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-kernel@lists.linaro.org, linaro-acpi@lists.linaro.org, platform-driver-x86@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH 1/2] ACPI / ACPICA: refactor acpi_evaluate_object() to reduce nesting if
+Date: Sat, 25 Jan 2014 00:20:06 +0800
+Message-ID: <1390580407-14525-1-git-send-email-hanjun.guo@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, devel@acpica.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-we forgot to call wmi_free_devices() and free out.pointer
-when alloc mamory failed.
+acpi_evaluate_object() has nesting if judgement to make code a little
+bit complicated, refactor it to make things simple.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/platform/x86/wmi.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/nsxfeval.c |  104 +++++++++++++++++++---------------------
+ 1 file changed, 50 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index 43d1329..e1338b5 100644
---- a/drivers/platform/x86/wmi.c
-+++ b/drivers/platform/x86/wmi.c
-@@ -797,8 +797,11 @@ static int parse_wdg(acpi_handle handle)
- 			wmi_dump_wdg(&gblock[i]);
+diff --git a/drivers/acpi/acpica/nsxfeval.c b/drivers/acpi/acpica/nsxfeval.c
+index 1f0c28b..a1b0b88 100644
+--- a/drivers/acpi/acpica/nsxfeval.c
++++ b/drivers/acpi/acpica/nsxfeval.c
+@@ -370,68 +370,64 @@ acpi_evaluate_object(acpi_handle handle,
+ 	 * If we are expecting a return value, and all went well above,
+ 	 * copy the return value to an external object.
+ 	 */
+-	if (return_buffer) {
+-		if (!info->return_object) {
+-			return_buffer->length = 0;
+-		} else {
+-			if (ACPI_GET_DESCRIPTOR_TYPE(info->return_object) ==
+-			    ACPI_DESC_TYPE_NAMED) {
+-				/*
+-				 * If we received a NS Node as a return object, this means that
+-				 * the object we are evaluating has nothing interesting to
+-				 * return (such as a mutex, etc.)  We return an error because
+-				 * these types are essentially unsupported by this interface.
+-				 * We don't check up front because this makes it easier to add
+-				 * support for various types at a later date if necessary.
+-				 */
+-				status = AE_TYPE;
+-				info->return_object = NULL;	/* No need to delete a NS Node */
+-				return_buffer->length = 0;
+-			}
++	if (!return_buffer)
++		goto out;
  
- 		wblock = kzalloc(sizeof(struct wmi_block), GFP_KERNEL);
--		if (!wblock)
--			return -ENOMEM;
-+		if (!wblock) {
-+			wmi_free_devices();
-+			retval = -ENOMEM;
-+			goto out_free_pointer;
-+		}
+-			if (ACPI_SUCCESS(status)) {
++	if (!info->return_object) {
++		return_buffer->length = 0;
++		goto out;
++	}
  
- 		wblock->handle = handle;
- 		wblock->gblock = gblock[i];
+-				/* Dereference Index and ref_of references */
++	if (ACPI_GET_DESCRIPTOR_TYPE(info->return_object) ==
++		ACPI_DESC_TYPE_NAMED) {
++		/*
++		 * If we received a NS Node as a return object, this means that
++		 * the object we are evaluating has nothing interesting to
++		 * return (such as a mutex, etc.)  We return an error because
++		 * these types are essentially unsupported by this interface.
++		 * We don't check up front because this makes it easier to add
++		 * support for various types at a later date if necessary.
++		 */
++		status = AE_TYPE;
++		info->return_object = NULL;	/* No need to delete a NS Node */
++		return_buffer->length = 0;
++	}
+ 
+-				acpi_ns_resolve_references(info);
++	if (ACPI_FAILURE(status))
++		goto out;
+ 
+-				/* Get the size of the returned object */
++	/* Dereference Index and ref_of references */
+ 
+-				status =
+-				    acpi_ut_get_object_size(info->return_object,
+-							    &buffer_space_needed);
+-				if (ACPI_SUCCESS(status)) {
+-
+-					/* Validate/Allocate/Clear caller buffer */
+-
+-					status =
+-					    acpi_ut_initialize_buffer
+-					    (return_buffer,
+-					     buffer_space_needed);
+-					if (ACPI_FAILURE(status)) {
+-						/*
+-						 * Caller's buffer is too small or a new one can't
+-						 * be allocated
+-						 */
+-						ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-								  "Needed buffer size %X, %s\n",
+-								  (u32)
+-								  buffer_space_needed,
+-								  acpi_format_exception
+-								  (status)));
+-					} else {
+-						/* We have enough space for the object, build it */
+-
+-						status =
+-						    acpi_ut_copy_iobject_to_eobject
+-						    (info->return_object,
+-						     return_buffer);
+-					}
+-				}
+-			}
++	acpi_ns_resolve_references(info);
++
++	/* Get the size of the returned object */
++
++	status = acpi_ut_get_object_size(info->return_object,
++						&buffer_space_needed);
++	if (ACPI_SUCCESS(status)) {
++
++		/* Validate/Allocate/Clear caller buffer */
++
++		status = acpi_ut_initialize_buffer(return_buffer,
++							buffer_space_needed);
++		if (ACPI_FAILURE(status)) {
++			/*
++			 * Caller's buffer is too small or a new one can't
++			 * be allocated
++			 */
++			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++					"Needed buffer size %X, %s\n",
++					(u32)buffer_space_needed,
++					 acpi_format_exception(status)));
++		} else {
++			/* We have enough space for the object, build it */
++
++			status = acpi_ut_copy_iobject_to_eobject(
++					info->return_object, return_buffer);
+ 		}
+ 	}
+ 
++out:
+ 	if (info->return_object) {
+ 		/*
+ 		 * Delete the internal return object. NOTE: Interpreter must be
 -- 
 1.7.9.5
