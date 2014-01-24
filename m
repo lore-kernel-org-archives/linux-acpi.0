@@ -1,120 +1,359 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v5] ACPI: Fix acpi_evaluate_object() return value check
-Date: Fri, 24 Jan 2014 08:25:23 -0700
-Message-ID: <CAErSpo6T28Dh=xkgx=Ki6nZOZN1c8QGhB6KWhiZ46ZwHAmirbg@mail.gmail.com>
-References: <1390448559-33896-1-git-send-email-wangyijing@huawei.com>
-	<38648196.Uh7omNjHIu@vostro.rjw.lan>
-	<CAErSpo5VGy9nCnrOAZtU9OjMsXxz5q_x2rVn596mqg1TWTT64g@mail.gmail.com>
-	<11909895.7rJ1jejxPI@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 09/20] ARM64 / ACPI: Implement core functions for parsing
+ MADT table
+Date: Fri, 24 Jan 2014 23:34:06 +0800
+Message-ID: <52E287EE.70407@linaro.org>
+References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-10-git-send-email-hanjun.guo@linaro.org> <52E15756.4060705@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <11909895.7rJ1jejxPI@vostro.rjw.lan>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces@lists.freedesktop.org
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Hanjun Guo <guohanjun@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, DRI mailing list <dri-devel@lists.freedesktop.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Yijing Wang <wangyijing@huawei.com>, Dave Airlie <airlied@redhat.com>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:63449 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753119AbaAXPeO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jan 2014 10:34:14 -0500
+Received: by mail-pb0-f44.google.com with SMTP id rq2so3389664pbb.3
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Jan 2014 07:34:13 -0800 (PST)
+In-Reply-To: <52E15756.4060705@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Mark Rutland <Mark.Rutland@arm.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Olof Johansson <olof@lixom.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Charles Garcia-Tobin <Charles.>
 
-On Fri, Jan 24, 2014 at 8:36 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Friday, January 24, 2014 07:54:29 AM Bjorn Helgaas wrote:
->> On Thu, Jan 23, 2014 at 5:33 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> > On Thursday, January 23, 2014 11:21:01 AM Bjorn Helgaas wrote:
->> >> On Wed, Jan 22, 2014 at 8:42 PM, Yijing Wang <wangyijing@huawei.com> wrote:
->> >> > Since acpi_evaluate_object() returns acpi_status and not plain int,
->> >> > ACPI_FAILURE() should be used for checking its return value. Also
->> >> > add some detailed debug info when acpi_evaluate_object() failed.
->> >> >
->> >> > Reviewed-by: Jani Nikula <jani.nikula@intel.com>
->> >> > Acked-by: Bjorn Helgaas <bhelgaas@google.com>
->> >> > Signed-off-by: Yijing Wang <wangyijing@huawei.com>
->> >> > ---
->> >> > v4->v5: Add some detailed debug info for acpi_evaluate_object()
->> >> >         failure suggested by Bjorn.
->> >> > v3->v4: Fix spell error, add Jani Nikula reviewed-by.
->> >> > v2->v3: Fix compile error pointed out by Hanjun.
->> >> > v1->v2: Add CC to related subsystem MAINTAINERS
->> >> > ---
->> >> >  drivers/gpu/drm/i915/intel_acpi.c              |   33 ++++++++++++++++-------
->> >> >  drivers/gpu/drm/nouveau/core/subdev/mxm/base.c |   13 ++++++---
->> >> >  drivers/gpu/drm/nouveau/nouveau_acpi.c         |   25 +++++++++++-------
->> >> >  drivers/pci/pci-label.c                        |   10 +++++--
->> >> >  4 files changed, 54 insertions(+), 27 deletions(-)
->> >> >
->> >> > diff --git a/drivers/gpu/drm/i915/intel_acpi.c b/drivers/gpu/drm/i915/intel_acpi.c
->> >> > index dfff090..e7b526b 100644
->> >> > --- a/drivers/gpu/drm/i915/intel_acpi.c
->> >> > +++ b/drivers/gpu/drm/i915/intel_acpi.c
->> >> > @@ -31,11 +31,13 @@ static const u8 intel_dsm_guid[] = {
->> >> >  static int intel_dsm(acpi_handle handle, int func)
->> >> >  {
->> >> >         struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
->> >> > +       struct acpi_buffer string = { ACPI_ALLOCATE_BUFFER, NULL };
->> >> >         struct acpi_object_list input;
->> >> >         union acpi_object params[4];
->> >> >         union acpi_object *obj;
->> >> >         u32 result;
->> >> > -       int ret = 0;
->> >> > +       acpi_status status;
->> >> > +       int ret;
->> >> >
->> >> >         input.count = 4;
->> >> >         input.pointer = params;
->> >> > @@ -50,10 +52,14 @@ static int intel_dsm(acpi_handle handle, int func)
->> >> >         params[3].package.count = 0;
->> >> >         params[3].package.elements = NULL;
->> >> >
->> >> > -       ret = acpi_evaluate_object(handle, "_DSM", &input, &output);
->> >> > -       if (ret) {
->> >> > -               DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
->> >> > -               return ret;
->> >> > +       status = acpi_evaluate_object(handle, "_DSM", &input, &output);
->> >> > +       if (ACPI_FAILURE(status)) {
->> >> > +               acpi_get_name(handle, ACPI_FULL_PATHNAME, &string);
->> >> > +               DRM_DEBUG_DRIVER(
->> >> > +                       "failed to evaluate _DSM for %s, exit status %u\n",
->> >> > +                       (char *)string.pointer, (unsigned int)status);
->> >> > +               kfree(string.pointer);
->> >> > +               return -EINVAL;
->> >>
->> >> I said "too bad there isn't an *easy* way" to include more
->> >> information.  IMHO this is too ugly and error-prone to use
->> >> consistently.  And if you are going to add more information, why did
->> >> you only do it for some of the calls and not others?
->> >>
->> >> I considered adding a %p extension to print the pathname; I don't know
->> >> if that's worthwhile or not.  I think it would be ideal if we had a
->> >> struct device and could use dev_info(), and then a way to connect the
->> >> struct device with an ACPI path, like maybe a dmesg note when we
->> >> create the struct device corresponding to an ACPI Device node.
->> >
->> > Well, we can generally print something like that from pci_acpi_setup().
->> >
->> > What about the below?  Wouldn't it generate too much output on some systems?
+Hi Marc,
+
+On 2014=E5=B9=B401=E6=9C=8824=E6=97=A5 01:54, Marc Zyngier wrote:
+> Hi Hanjun,
+>
+> On 17/01/14 12:25, Hanjun Guo wrote:
+>> Implement core functions for parsing MADT table to get the informati=
+on
+>> about GIC cpu interface and GIC distributor to prepare for SMP and G=
+IC
+>> initialization.
 >>
->> Yeah, that probably would generate an awful lot of output.  I was just
->> hoping to avoid treating ACPI pathnames as first-class objects.  What
->> do you think about a %p extension?  I played with that once, but I
->> seem to have lost the patch.
->
-> Well, it may be worth doing.  However, that information is readily available from
-> sysfs anyway, you only need to follow the firmware_node link in the PCI device's
-> sysfs directory and read the path attribute from there.  For example, on my
-> system:
->
-> $ cat /sys/devices/pci0000:00/0000:00:1c.4/0000:0b:00.0/firmware_node/path
-> \_SB_.PCI0.RP05.PXSX
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>   arch/arm64/include/asm/acpi.h |    3 +
+>>   drivers/acpi/plat/arm-core.c  |  139 +++++++++++++++++++++++++++++=
++++++++++++-
+>>   drivers/acpi/tables.c         |   21 +++++++
+>>   3 files changed, 162 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/=
+acpi.h
+>> index e108d9c..c335c6d 100644
+>> --- a/arch/arm64/include/asm/acpi.h
+>> +++ b/arch/arm64/include/asm/acpi.h
+>> @@ -83,6 +83,9 @@ void arch_fix_phys_package_id(int num, u32 slot);
+>>   extern int (*acpi_suspend_lowlevel)(void);
+>>   #define acpi_wakeup_address (0)
+>>  =20
+>> +#define MAX_GIC_CPU_INTERFACE 256
+> I'll bite. Where on Earth is this value coming from?
 
-That's perfect.  If we had a struct device, we could just use
-dev_info() for these messages.  But I have no idea how hard it would
-be to get at the struct device.
+I just thought 256 is big enough for now :(
+Yes, should be a larger number for GICv3.
 
-Bjorn
+> If that's for
+> GICv2, 8 is the maximum. For GICv3+, that's incredibly low, and shoul=
+d
+> be probed probed at runtime anyway.
+
+I would prefer to do that, but this value is used to
+probe CPUs in MADT :)
+
+>
+>> +#define MAX_GIC_DISTRIBUTOR   1		/* should be the same as MAX_GIC_N=
+R */
+> No support for cascaded GICs?
+
+Yes, no cascade GICs in ACPI at now.
+
+>
+>> +
+>>   #else	/* !CONFIG_ACPI */
+>>   #define acpi_disabled 1		/* ACPI sometimes enabled on ARM */
+>>   #define acpi_noirq 1		/* ACPI sometimes enabled on ARM */
+>> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-co=
+re.c
+>> index 1835b21..8ba3e6f 100644
+>> --- a/drivers/acpi/plat/arm-core.c
+>> +++ b/drivers/acpi/plat/arm-core.c
+>> @@ -46,6 +46,16 @@ EXPORT_SYMBOL(acpi_disabled);
+>>   int acpi_pci_disabled;		/* skip ACPI PCI scan and IRQ initializati=
+on */
+>>   EXPORT_SYMBOL(acpi_pci_disabled);
+>>  =20
+>> +/*
+>> + * Local interrupt controller address,
+>> + * GIC cpu interface base address on ARM/ARM64
+>> + */
+>> +static u64 acpi_lapic_addr __initdata;
+> If that's a GIC address, why not call it as such?
+
+thanks for the suggesting, I will update.
+
+>
+>> +#define BAD_MADT_ENTRY(entry, end) (					\
+>> +	(!entry) || (unsigned long)entry + sizeof(*entry) > end ||	\
+>> +	((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
+>> +
+>>   #define PREFIX			"ACPI: "
+> Just do:
+> #define pr_fmt(fmt)	"ACPI: " fmt
+>
+> and remove all the occurrences of PREFIX.
+>
+>>   /* FIXME: this function should be moved to topology.c when it is r=
+eady */
+>> @@ -92,6 +102,115 @@ void __init __acpi_unmap_table(char *map, unsig=
+ned long size)
+>>   	return;
+>>   }
+>>  =20
+>> +static int __init acpi_parse_madt(struct acpi_table_header *table)
+>> +{
+>> +	struct acpi_table_madt *madt =3D NULL;
+> No need to initialize this to NULL, you're doing an assignment at the
+> next line...
+>
+>> +
+>> +	madt =3D (struct acpi_table_madt *)table;
+>> +	if (!madt) {
+>> +		pr_warn(PREFIX "Unable to map MADT\n");
+> There is no mapping here, please fix the message accordingly.
+
+Ok, I will address your comments above in next version.
+>
+>> +		return -ENODEV;
+>> +	}
+>> +
+>> +	if (madt->address) {
+>> +		acpi_lapic_addr =3D (u64) madt->address;
+> So you're updating this static variable, for the distributor and each
+> CPU interface? /me puzzled...
+
+Good catch. So I have a question: do we really have some SoCs
+without banked registers on ARM64? if not , I think we can use
+a single static variable is ok.
+
+>
+>> +		pr_info(PREFIX "Local APIC address 0x%08x\n", madt->address);
+> Away with this APIC madness. GICC and GICD are the concepts we're all
+> familiar with here, and using the proper terminology would certainly
+> help reviewing these patches...
+
+That make sense to me too, will update.
+
+>
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +/*
+>> + * GIC structures on ARM are somthing like Local APIC structures on=
+ x86,
+>> + * which means GIC cpu interfaces for GICv2/v3. Every GIC structure=
+ in
+>> + * MADT table represents a cpu in the system.
+> And what do you do when your GICv3 doesn't have a memory-mapped
+> interface, but only uses system registers?
+>
+>> + * GIC distributor structures are somthing like IOAPIC on x86. GIC =
+can
+>> + * be initialized with information in this structure.
+>> + *
+>> + * Please refer to chapter5.2.12.14/15 of ACPI 5.0
+> A pointer to that documentation?
+
+Please refer to http://www.acpi.info/
+
+>
+>> + */
+>> +
+>> +static int __init
+>> +acpi_parse_gic(struct acpi_subtable_header *header, const unsigned =
+long end)
+>> +{
+>> +	struct acpi_madt_generic_interrupt *processor =3D NULL;
+>> +
+>> +	processor =3D (struct acpi_madt_generic_interrupt *)header;
+>> +
+>> +	if (BAD_MADT_ENTRY(processor, end))
+>> +		return -EINVAL;
+>> +
+>> +	acpi_table_print_madt_entry(header);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int __init
+>> +acpi_parse_gic_distributor(struct acpi_subtable_header *header,
+>> +				const unsigned long end)
+>> +{
+>> +	struct acpi_madt_generic_distributor *distributor =3D NULL;
+>> +
+>> +	distributor =3D (struct acpi_madt_generic_distributor *)header;
+>> +
+>> +	if (BAD_MADT_ENTRY(distributor, end))
+>> +		return -EINVAL;
+>> +
+>> +	acpi_table_print_madt_entry(header);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +/*
+>> + * Parse GIC cpu interface related entries in MADT
+>> + * returns 0 on success, < 0 on error
+>> + */
+>> +static int __init acpi_parse_madt_gic_entries(void)
+>> +{
+>> +	int count;
+>> +
+>> +	/*
+>> +	 * do a partial walk of MADT to determine how many CPUs
+>> +	 * we have including disabled CPUs
+>> +	 */
+>> +	count =3D acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
+>> +				acpi_parse_gic, MAX_GIC_CPU_INTERFACE);
+>> +
+>> +	if (!count) {
+>> +		pr_err(PREFIX "No GIC entries present\n");
+>> +		return -ENODEV;
+>> +	} else if (count < 0) {
+>> +		pr_err(PREFIX "Error parsing GIC entry\n");
+>> +		return count;
+>> +	}
+> So you do a lot of parsing to count stuff, and then discard the numbe=
+r
+> of counted objects... You might as well check that there is at least =
+one
+> valid object and stop there.
+>
+>> +	return 0;
+>> +}
+>> +
+>> +/*
+>> + * Parse GIC distributor related entries in MADT
+>> + * returns 0 on success, < 0 on error
+>> + */
+>> +static int __init acpi_parse_madt_gic_distributor_entries(void)
+>> +{
+>> +	int count;
+>> +
+>> +	count =3D acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR=
+,
+>> +			acpi_parse_gic_distributor, MAX_GIC_DISTRIBUTOR);
+>> +
+>> +	if (!count) {
+>> +		pr_err(PREFIX "No GIC distributor entries present\n");
+>> +		return -ENODEV;
+>> +	} else if (count < 0) {
+>> +		pr_err(PREFIX "Error parsing GIC distributor entry\n");
+>> +		return count;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>>   int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+>>   {
+>>   	*irq =3D gsi_to_irq(gsi);
+>> @@ -141,11 +260,29 @@ static int __init acpi_parse_fadt(struct acpi_=
+table_header *table)
+>>  =20
+>>   static void __init early_acpi_process_madt(void)
+>>   {
+>> -	return;
+>> +	acpi_table_parse(ACPI_SIG_MADT, acpi_parse_madt);
+>>   }
+>>  =20
+>>   static void __init acpi_process_madt(void)
+>>   {
+>> +	int error;
+>> +
+>> +	if (!acpi_table_parse(ACPI_SIG_MADT, acpi_parse_madt)) {
+> How many times are you going to parse the same table? Surely you can
+> stash whatever information you need and be done with it?
+
+good catch, we already addressed this problem, and will
+update in next version.
+
+>
+>> +		/*
+>> +		 * Parse MADT GIC cpu interface entries
+>> +		 */
+>> +		error =3D acpi_parse_madt_gic_entries();
+>> +		if (!error) {
+>> +			/*
+>> +			 * Parse MADT GIC distributor entries
+>> +			 */
+>> +			acpi_parse_madt_gic_distributor_entries();
+>> +		}
+>> +	}
+>> +
+>> +	pr_info("Using ACPI for processor (GIC) configuration information\=
+n");
+>> +
+>>   	return;
+>>   }
+>>  =20
+>> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+>> index d67a1fe..b3e4615 100644
+>> --- a/drivers/acpi/tables.c
+>> +++ b/drivers/acpi/tables.c
+>> @@ -191,6 +191,27 @@ void acpi_table_print_madt_entry(struct acpi_su=
+btable_header *header)
+>>   		}
+>>   		break;
+>>  =20
+>> +	case ACPI_MADT_TYPE_GENERIC_INTERRUPT:
+>> +		{
+>> +			struct acpi_madt_generic_interrupt *p =3D
+>> +				(struct acpi_madt_generic_interrupt *)header;
+>> +			printk(KERN_INFO PREFIX
+> Use pr_info
+
+this function use printk always, should change all of them?
+
+>
+>> +			       "GIC (acpi_id[0x%04x] gic_id[0x%04x] %s)\n",
+>> +			       p->uid, p->gic_id,
+>> +			       (p->flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
+>> +		}
+>> +		break;
+>> +
+>> +	case ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR:
+>> +		{
+>> +			struct acpi_madt_generic_distributor *p =3D
+>> +				(struct acpi_madt_generic_distributor *)header;
+>> +			printk(KERN_INFO PREFIX
+>> +			       "GIC Distributor (id[0x%04x] address[0x%08llx] gsi_base[%=
+d])\n",
+>> +			       p->gic_id, p->base_address, p->global_irq_base);
+>> +		}
+>> +		break;
+>> +
+>>   	default:
+>>   		printk(KERN_WARNING PREFIX
+>>   		       "Found unsupported MADT entry (type =3D 0x%x)\n",
+>>
+> Most of that code seems to be repeatedly parsing and printing stuff, =
+and
+> I fail to see what it actually does.
+
+yes, just print some information when booting.
+
+Thank you very much for the comments.
+
+Hanjun
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
