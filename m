@@ -1,170 +1,66 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [Linaro-acpi] [PATCH 04/20] ARM64 / ACPI: Introduce arm_core.c
- and its related head file
-Date: Fri, 24 Jan 2014 12:53:33 +0000
-Message-ID: <20140124125332.GA23274@e102568-lin.cambridge.arm.com>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org>
- <1389961514-13562-5-git-send-email-hanjun.guo@linaro.org>
- <20140122115453.GC24288@e102568-lin.cambridge.arm.com>
- <52E13BBC.5020005@linaro.org>
- <52E22DD4.3050807@linaro.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [RFC/RFT][PATCH v2 0/6] PM / QoS: Introduce latency tolerance
+ device PM QoS type
+Date: Fri, 24 Jan 2014 16:19:23 +0200
+Message-ID: <20140124141923.GQ18029@intel.com>
+References: <5434847.aCyiWHNRe7@vostro.rjw.lan>
+ <1447517.8AFrWcAgld@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52E22DD4.3050807@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:28966 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752359AbaAXOMe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Jan 2014 09:12:34 -0500
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <1447517.8AFrWcAgld@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Hanjun,
-
-On Fri, Jan 24, 2014 at 09:09:40AM +0000, Hanjun Guo wrote:
-> On 2014?01?23? 23:56, Tomasz Nowicki wrote:
-> > Hi Lorenzo,
-> >
-> > W dniu 22.01.2014 12:54, Lorenzo Pieralisi pisze:
-> >> On Fri, Jan 17, 2014 at 12:24:58PM +0000, Hanjun Guo wrote:
-> >>
-> >> [...]
-> >>
-> >>> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-> >>> index bd9bbd0..2210353 100644
-> >>> --- a/arch/arm64/kernel/setup.c
-> >>> +++ b/arch/arm64/kernel/setup.c
-> >>> @@ -41,6 +41,7 @@
-> >>> #include <linux/memblock.h>
-> >>> #include <linux/of_fdt.h>
-> >>> #include <linux/of_platform.h>
-> >>> +#include <linux/acpi.h>
-> >>>
-> >>> #include <asm/cputype.h>
-> >>> #include <asm/elf.h>
-> >>> @@ -225,6 +226,11 @@ void __init setup_arch(char **cmdline_p)
-> >>>
-> >>> arm64_memblock_init();
-> >>>
-> >>> + /* Parse the ACPI tables for possible boot-time configuration */
-> >>> + acpi_boot_table_init();
-> >>> + early_acpi_boot_init();
-> >>> + acpi_boot_init();
-> >>> +
-> >>> paging_init();
-> >>
-> >> Can I ask you please why we need to parse ACPI tables before
-> >> paging_init() ?
-> > This is for future usage and because of couple of reasons. Mainly SRAT 
-> > table parsing should be done (before paging_init()) for proper NUMA 
-> > initialization and then paging_init().
-
-Thank you for the explanation. I still have some questions:
-
-1) What are the other reasons ?
-2) NUMA is not supported at the moment and I reckon SRAT needs updating
-   since the only way to associate a CPU to a memory node is through
-   a local APIC id that is non-existent on ARM and at least deserves a
-   new entry.
-
-I am still not sure that providing a hook for parsing the ACPI tables before
-paging_init() is the main focus at the moment, it is probably best, as we've
-mentioned manifold times, to make sure that the infrastructure to detect
-ACPI vs DT at run-time is in place in the kernel and allows us to boot
-either with ACPI or DT, in a mutual exclusive way (same binary kernel
-supporting both, runtime detection/decision on what data to use, ACPI tables
-vs DT nodes, detection made once for all and NOT on a per property basis).
-
-I will have a look at SRAT and how it is used on x86, and get back to you on
-this.
-
-[...]
-
-> >>> + * acpi_boot_table_init() and acpi_boot_init()
-> >>> + * called from setup_arch(), always.
-> >>> + * 1. checksums all tables
-> >>> + * 2. enumerates lapics
-> >>> + * 3. enumerates io-apics
-> >>> + *
-> >>> + * acpi_table_init() is separated to allow reading SRAT without
-> >>> + * other side effects.
-> >>> + */
-> >>> +void __init acpi_boot_table_init(void)
-> >>> +{
-> >>> + /*
-> >>> + * If acpi_disabled, bail out
-> >>> + */
-> >>> + if (acpi_disabled)
-> >>> + return;
-> >>> +
-> >>> + /*
-> >>> + * Initialize the ACPI boot-time table parser.
-> >>> + */
-> >>> + if (acpi_table_init()) {
-> >>> + disable_acpi();
-> >>> + return;
-> >>> + }
-> >>> +}
-> >>> +
-> >>> +int __init early_acpi_boot_init(void)
-> >>> +{
-> >>> + /*
-> >>> + * If acpi_disabled, bail out
-> >>> + */
-> >>> + if (acpi_disabled)
-> >>> + return -ENODEV;
-> >>> +
-> >>> + /*
-> >>> + * Process the Multiple APIC Description Table (MADT), if present
-> >>> + */
-> >>> + early_acpi_process_madt();
-> >>> +
-> >>> + return 0;
-> >>> +}
-> >>> +
-> >>> +int __init acpi_boot_init(void)
-> >>> +{
-> >>> + /*
-> >>> + * If acpi_disabled, bail out
-> >>> + */
-> >>> + if (acpi_disabled)
-> >>> + return -ENODEV;
-> >>> +
-> >>> + acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt);
-> >>> +
-> >>> + /*
-> >>> + * Process the Multiple APIC Description Table (MADT), if present
-> >>> + */
-> >>> + acpi_process_madt();
-> >>> +
-> >>> + return 0;
-> >>> +}
-> >>
-> >> Well, apart from having three init calls, one returning void and two
-> >> returning proper values, do not understand why, and do not understand
-> >> why we need three calls in the first place...why should we process MADT
-> >> twice in two separate calls ? What is supposed to change in between that
-> >> prevents you from merging the two together ?
+On Thu, Jan 23, 2014 at 02:34:59PM +0100, Rafael J. Wysocki wrote:
+> On Friday, January 17, 2014 03:42:13 PM Rafael J. Wysocki wrote:
+> > Hi All,
+> > 
+> > On some platforms hardware may switch to an energy-saving mode on the fly
+> > on the basis of certain utilization metrics used by it.  That usually is
+> > desirable from the energy conservation standpoint, but it generally causes
+> > latencies to increase which may adversely affect some operations.  For this
+> > reason, the platforms in question usually provide some interfaces for software
+> > to indicate its latency tolerance and possibly to prevent the energy-saving
+> > modes from being selected too aggressively.
+> > 
+> > The following series of patches introduces a device PM QoS type allowing
+> > those interfaces to be used by kernel code and user space.  It is designed
+> > in analogy with the existing resume latency device PM QoS type, which allows
+> > some pieces of the existing device PM QoS code to be re-used and makes the
+> > new user space interface fit into the existing framework.
+> > 
+> > Patch [1/5] modifies the names of symbols, variables, functions and structure
+> > fields associated with the existing resume latency device PM QoS type to
+> > avoid any confusion with the new one introduced by the subsequent patches.
+> > 
+> > Patch [2/5] introduces a new field in struct pm_qos_constraints for specifying
+> > a special value to be returned as the effective requirement when the given list
+> > of PM QoS requirements is empty.  That field is necessary for the new latency
+> > tolerance device PM QoS type.
+> > 
+> > Patch [3/5] introduces the latency tolerance device PM QoS type along with
+> > documentation.
+> > 
+> > Patch [4/5] modifies the ACPI LPSS (Low-Power Subsystem) driver to hook up
+> > LPSS devices to the new latency tolerance device PM QoS interface.
+> > 
+> > Patch [5/5] modifies the dev_pm_qos_add_ancestor_request() routine so that it
+> > can be used by drivers of devices without hardware latency tolerance support
+> > for specifying their requirements via the ancestors of those devies.
 > 
-> Thanks for pointing this out. I can merge acpi_boot_table_init() and
-> early_acpi_boot_init() together, but can not merge early_acpi_boot_init()
-> and acpi_boot_init() together.
-> 
-> early_acpi_boot_init() and acpi_boot_init() was separated intentionally for
-> memory hotplug reasons. memory allocated in this stage can not be migrated
-> and cause memory hot-remove failed, in order to keep memory allocated
-> at base node (general NUMA node 0 in the system) at boot stage, we should
-> parse SRAT first before CPU is enumerated, does this make sense to you?
+> As usual, testing uncovered some issues, so an updated series follows.
 
-Are you parsing the SRAT in this series to get memory info or memory is
-still initialized by DT even when system is supposed to be booted with ACPI
-(ie there is a valid ACPI root table ?)
+I tested this series on HSWULT and adding/removing QoS LTR requests from
+both userspace and from a modified i2c-hid driver (calling
+dev_pm_qos_add_ancestor_request()) and seems to work nicely -- When I read
+back the HW LTR values they are what is expected.
 
-I have a hunch the latter is what's happening (and that's wrong, because
-memory information when kernel is booted through ACPI must be retrieved
-from UEFI - at least that's what has been defined), so I still see an early
-hook to initialize ACPI tables before paging_init() that has no use as the
-current patchset stands, please correct me if I am wrong.
-
-Thank you,
-Lorenzo
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
