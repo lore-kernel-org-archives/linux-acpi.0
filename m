@@ -1,185 +1,118 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [Linaro-acpi] [PATCH 04/20] ARM64 / ACPI: Introduce arm_core.c
- and its related head file
-Date: Fri, 24 Jan 2014 17:44:27 +0100
-Message-ID: <52E2986B.802@linaro.org>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-5-git-send-email-hanjun.guo@linaro.org> <20140122115453.GC24288@e102568-lin.cambridge.arm.com> <52E13BBC.5020005@linaro.org> <52E22DD4.3050807@linaro.org> <20140124125332.GA23274@e102568-lin.cambridge.arm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v5] ACPI: Fix acpi_evaluate_object() return value check
+Date: Fri, 24 Jan 2014 18:19:55 +0100
+Message-ID: <4891976.lTa9ZQzyVA@vostro.rjw.lan>
+References: <1390448559-33896-1-git-send-email-wangyijing@huawei.com> <11909895.7rJ1jejxPI@vostro.rjw.lan> <CAErSpo6T28Dh=xkgx=Ki6nZOZN1c8QGhB6KWhiZ46ZwHAmirbg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f171.google.com ([74.125.82.171]:57068 "EHLO
-	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751302AbaAXQoc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jan 2014 11:44:32 -0500
-Received: by mail-we0-f171.google.com with SMTP id w61so2959249wes.30
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Jan 2014 08:44:30 -0800 (PST)
-In-Reply-To: <20140124125332.GA23274@e102568-lin.cambridge.arm.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:54652 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751084AbaAXRFn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jan 2014 12:05:43 -0500
+In-Reply-To: <CAErSpo6T28Dh=xkgx=Ki6nZOZN1c8QGhB6KWhiZ46ZwHAmirbg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Yijing Wang <wangyijing@huawei.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Airlie <airlied@linux.ie>, intel-gfx@lists.freedesktop.org, DRI mailing list <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Dave Airlie <airlied@redhat.com>, Hanjun Guo <guohanjun@huawei.com>
 
-Hi Lorenzo,
+On Friday, January 24, 2014 08:25:23 AM Bjorn Helgaas wrote:
+> On Fri, Jan 24, 2014 at 8:36 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Friday, January 24, 2014 07:54:29 AM Bjorn Helgaas wrote:
+> >> On Thu, Jan 23, 2014 at 5:33 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >> > On Thursday, January 23, 2014 11:21:01 AM Bjorn Helgaas wrote:
+> >> >> On Wed, Jan 22, 2014 at 8:42 PM, Yijing Wang <wangyijing@huawei.com> wrote:
+> >> >> > Since acpi_evaluate_object() returns acpi_status and not plain int,
+> >> >> > ACPI_FAILURE() should be used for checking its return value. Also
+> >> >> > add some detailed debug info when acpi_evaluate_object() failed.
+> >> >> >
+> >> >> > Reviewed-by: Jani Nikula <jani.nikula@intel.com>
+> >> >> > Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> >> >> > Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+> >> >> > ---
+> >> >> > v4->v5: Add some detailed debug info for acpi_evaluate_object()
+> >> >> >         failure suggested by Bjorn.
+> >> >> > v3->v4: Fix spell error, add Jani Nikula reviewed-by.
+> >> >> > v2->v3: Fix compile error pointed out by Hanjun.
+> >> >> > v1->v2: Add CC to related subsystem MAINTAINERS
+> >> >> > ---
+> >> >> >  drivers/gpu/drm/i915/intel_acpi.c              |   33 ++++++++++++++++-------
+> >> >> >  drivers/gpu/drm/nouveau/core/subdev/mxm/base.c |   13 ++++++---
+> >> >> >  drivers/gpu/drm/nouveau/nouveau_acpi.c         |   25 +++++++++++-------
+> >> >> >  drivers/pci/pci-label.c                        |   10 +++++--
+> >> >> >  4 files changed, 54 insertions(+), 27 deletions(-)
+> >> >> >
+> >> >> > diff --git a/drivers/gpu/drm/i915/intel_acpi.c b/drivers/gpu/drm/i915/intel_acpi.c
+> >> >> > index dfff090..e7b526b 100644
+> >> >> > --- a/drivers/gpu/drm/i915/intel_acpi.c
+> >> >> > +++ b/drivers/gpu/drm/i915/intel_acpi.c
+> >> >> > @@ -31,11 +31,13 @@ static const u8 intel_dsm_guid[] = {
+> >> >> >  static int intel_dsm(acpi_handle handle, int func)
+> >> >> >  {
+> >> >> >         struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
+> >> >> > +       struct acpi_buffer string = { ACPI_ALLOCATE_BUFFER, NULL };
+> >> >> >         struct acpi_object_list input;
+> >> >> >         union acpi_object params[4];
+> >> >> >         union acpi_object *obj;
+> >> >> >         u32 result;
+> >> >> > -       int ret = 0;
+> >> >> > +       acpi_status status;
+> >> >> > +       int ret;
+> >> >> >
+> >> >> >         input.count = 4;
+> >> >> >         input.pointer = params;
+> >> >> > @@ -50,10 +52,14 @@ static int intel_dsm(acpi_handle handle, int func)
+> >> >> >         params[3].package.count = 0;
+> >> >> >         params[3].package.elements = NULL;
+> >> >> >
+> >> >> > -       ret = acpi_evaluate_object(handle, "_DSM", &input, &output);
+> >> >> > -       if (ret) {
+> >> >> > -               DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
+> >> >> > -               return ret;
+> >> >> > +       status = acpi_evaluate_object(handle, "_DSM", &input, &output);
+> >> >> > +       if (ACPI_FAILURE(status)) {
+> >> >> > +               acpi_get_name(handle, ACPI_FULL_PATHNAME, &string);
+> >> >> > +               DRM_DEBUG_DRIVER(
+> >> >> > +                       "failed to evaluate _DSM for %s, exit status %u\n",
+> >> >> > +                       (char *)string.pointer, (unsigned int)status);
+> >> >> > +               kfree(string.pointer);
+> >> >> > +               return -EINVAL;
+> >> >>
+> >> >> I said "too bad there isn't an *easy* way" to include more
+> >> >> information.  IMHO this is too ugly and error-prone to use
+> >> >> consistently.  And if you are going to add more information, why did
+> >> >> you only do it for some of the calls and not others?
+> >> >>
+> >> >> I considered adding a %p extension to print the pathname; I don't know
+> >> >> if that's worthwhile or not.  I think it would be ideal if we had a
+> >> >> struct device and could use dev_info(), and then a way to connect the
+> >> >> struct device with an ACPI path, like maybe a dmesg note when we
+> >> >> create the struct device corresponding to an ACPI Device node.
+> >> >
+> >> > Well, we can generally print something like that from pci_acpi_setup().
+> >> >
+> >> > What about the below?  Wouldn't it generate too much output on some systems?
+> >>
+> >> Yeah, that probably would generate an awful lot of output.  I was just
+> >> hoping to avoid treating ACPI pathnames as first-class objects.  What
+> >> do you think about a %p extension?  I played with that once, but I
+> >> seem to have lost the patch.
+> >
+> > Well, it may be worth doing.  However, that information is readily available from
+> > sysfs anyway, you only need to follow the firmware_node link in the PCI device's
+> > sysfs directory and read the path attribute from there.  For example, on my
+> > system:
+> >
+> > $ cat /sys/devices/pci0000:00/0000:00:1c.4/0000:0b:00.0/firmware_node/path
+> > \_SB_.PCI0.RP05.PXSX
+> 
+> That's perfect.  If we had a struct device, we could just use
+> dev_info() for these messages.  But I have no idea how hard it would
+> be to get at the struct device.
 
-W dniu 24.01.2014 13:53, Lorenzo Pieralisi pisze:
-> Hi Hanjun,
->
-> On Fri, Jan 24, 2014 at 09:09:40AM +0000, Hanjun Guo wrote:
->> On 2014?01?23? 23:56, Tomasz Nowicki wrote:
->>> Hi Lorenzo,
->>>
->>> W dniu 22.01.2014 12:54, Lorenzo Pieralisi pisze:
->>>> On Fri, Jan 17, 2014 at 12:24:58PM +0000, Hanjun Guo wrote:
->>>>
->>>> [...]
->>>>
->>>>> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
->>>>> index bd9bbd0..2210353 100644
->>>>> --- a/arch/arm64/kernel/setup.c
->>>>> +++ b/arch/arm64/kernel/setup.c
->>>>> @@ -41,6 +41,7 @@
->>>>> #include <linux/memblock.h>
->>>>> #include <linux/of_fdt.h>
->>>>> #include <linux/of_platform.h>
->>>>> +#include <linux/acpi.h>
->>>>>
->>>>> #include <asm/cputype.h>
->>>>> #include <asm/elf.h>
->>>>> @@ -225,6 +226,11 @@ void __init setup_arch(char **cmdline_p)
->>>>>
->>>>> arm64_memblock_init();
->>>>>
->>>>> + /* Parse the ACPI tables for possible boot-time configuration */
->>>>> + acpi_boot_table_init();
->>>>> + early_acpi_boot_init();
->>>>> + acpi_boot_init();
->>>>> +
->>>>> paging_init();
->>>>
->>>> Can I ask you please why we need to parse ACPI tables before
->>>> paging_init() ?
->>> This is for future usage and because of couple of reasons. Mainly SRAT
->>> table parsing should be done (before paging_init()) for proper NUMA
->>> initialization and then paging_init().
->
-> Thank you for the explanation. I still have some questions:
->
-> 1) What are the other reasons ?
-If we agreed that we need SRAT parsing before paging_init() the second 
-reason is all implications related to that. I mean if we want to make 
-ACPI tables parseable before paging_init(), we need early_ioremap 
-mechanism and __acpi_map_table() fixes. In that case, IMHO, it is better 
-to please it in the right place now. early_ioremap is object of UEFI 
-support patch set.
-> 2) NUMA is not supported at the moment and I reckon SRAT needs updating
->     since the only way to associate a CPU to a memory node is through
->     a local APIC id that is non-existent on ARM and at least deserves a
->     new entry.
-Right, that requires further work on SRAT.
->
-> I am still not sure that providing a hook for parsing the ACPI tables before
-> paging_init() is the main focus at the moment, it is probably best, as we've
-> mentioned manifold times, to make sure that the infrastructure to detect
-> ACPI vs DT at run-time is in place in the kernel and allows us to boot
-> either with ACPI or DT, in a mutual exclusive way (same binary kernel
-> supporting both, runtime detection/decision on what data to use, ACPI tables
-> vs DT nodes, detection made once for all and NOT on a per property basis).
->
-> I will have a look at SRAT and how it is used on x86, and get back to you on
-> this.
->
-> [...]
->
->>>>> + * acpi_boot_table_init() and acpi_boot_init()
->>>>> + * called from setup_arch(), always.
->>>>> + * 1. checksums all tables
->>>>> + * 2. enumerates lapics
->>>>> + * 3. enumerates io-apics
->>>>> + *
->>>>> + * acpi_table_init() is separated to allow reading SRAT without
->>>>> + * other side effects.
->>>>> + */
->>>>> +void __init acpi_boot_table_init(void)
->>>>> +{
->>>>> + /*
->>>>> + * If acpi_disabled, bail out
->>>>> + */
->>>>> + if (acpi_disabled)
->>>>> + return;
->>>>> +
->>>>> + /*
->>>>> + * Initialize the ACPI boot-time table parser.
->>>>> + */
->>>>> + if (acpi_table_init()) {
->>>>> + disable_acpi();
->>>>> + return;
->>>>> + }
->>>>> +}
->>>>> +
->>>>> +int __init early_acpi_boot_init(void)
->>>>> +{
->>>>> + /*
->>>>> + * If acpi_disabled, bail out
->>>>> + */
->>>>> + if (acpi_disabled)
->>>>> + return -ENODEV;
->>>>> +
->>>>> + /*
->>>>> + * Process the Multiple APIC Description Table (MADT), if present
->>>>> + */
->>>>> + early_acpi_process_madt();
->>>>> +
->>>>> + return 0;
->>>>> +}
->>>>> +
->>>>> +int __init acpi_boot_init(void)
->>>>> +{
->>>>> + /*
->>>>> + * If acpi_disabled, bail out
->>>>> + */
->>>>> + if (acpi_disabled)
->>>>> + return -ENODEV;
->>>>> +
->>>>> + acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt);
->>>>> +
->>>>> + /*
->>>>> + * Process the Multiple APIC Description Table (MADT), if present
->>>>> + */
->>>>> + acpi_process_madt();
->>>>> +
->>>>> + return 0;
->>>>> +}
->>>>
->>>> Well, apart from having three init calls, one returning void and two
->>>> returning proper values, do not understand why, and do not understand
->>>> why we need three calls in the first place...why should we process MADT
->>>> twice in two separate calls ? What is supposed to change in between that
->>>> prevents you from merging the two together ?
->>
->> Thanks for pointing this out. I can merge acpi_boot_table_init() and
->> early_acpi_boot_init() together, but can not merge early_acpi_boot_init()
->> and acpi_boot_init() together.
->>
->> early_acpi_boot_init() and acpi_boot_init() was separated intentionally for
->> memory hotplug reasons. memory allocated in this stage can not be migrated
->> and cause memory hot-remove failed, in order to keep memory allocated
->> at base node (general NUMA node 0 in the system) at boot stage, we should
->> parse SRAT first before CPU is enumerated, does this make sense to you?
->
-> Are you parsing the SRAT in this series to get memory info or memory is
-> still initialized by DT even when system is supposed to be booted with ACPI
-> (ie there is a valid ACPI root table ?)
->
-> I have a hunch the latter is what's happening (and that's wrong, because
-> memory information when kernel is booted through ACPI must be retrieved
-> from UEFI - at least that's what has been defined), so I still see an early
-> hook to initialize ACPI tables before paging_init() that has no use as the
-> current patchset stands, please correct me if I am wrong.
-Yes, currently memory is initialized by DT but getting memory map from 
-UEFI is the matter of time (pending upstream process). Also, SRAT table 
-is not parsing in this series but it will, and I think it plays the main 
-role to put it before paging_init.
+>From the pci_dev side that is trivial: use ACPI_COMPANION().  The other way
+around is rather more difficult as browsing a list would be involved.
 
-Regards,
-Tomasz
+Rafael
+
