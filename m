@@ -1,165 +1,122 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 11/20] ARM64 / ACPI: Get the enable method for SMP initialization
-Date: Fri, 24 Jan 2014 22:57:33 +0800
-Message-ID: <52E27F5D.6070302@linaro.org>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-12-git-send-email-hanjun.guo@linaro.org> <20140123175031.GJ27520@arm.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 18/20] clocksource / acpi: Add macro
+ CLOCKSOURCE_ACPI_DECLARE
+Date: Fri, 24 Jan 2014 15:15:13 +0000
+Message-ID: <20140124151513.GD19052@arm.com>
+References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org>
+ <1389961514-13562-19-git-send-email-hanjun.guo@linaro.org>
+ <CACRpkdYKwaH5DX27irzmcTDAMhQMUhuzz6N7mjKWv9tZchv0Ug@mail.gmail.com>
+ <20140122114537.GA15591@e106331-lin.cambridge.arm.com>
+ <52E1B1DE.5050507@linaro.org>
+ <20140124120815.GH814@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:44045 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752728AbaAXO5n (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jan 2014 09:57:43 -0500
-Received: by mail-pb0-f45.google.com with SMTP id un15so3336646pbc.4
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Jan 2014 06:57:42 -0800 (PST)
-In-Reply-To: <20140123175031.GJ27520@arm.com>
+Received: from fw-tnat.austin.arm.com ([217.140.110.23]:59397 "EHLO
+	collaborate-mta1.arm.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752541AbaAXPPv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Jan 2014 10:15:51 -0500
+Content-Disposition: inline
+In-Reply-To: <20140124120815.GH814@e106331-lin.cambridge.arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Patch Tracking <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-kernel <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Amit Daniel Kachhap <amit.daniel@samsung.com>
 
-Hi Catalin,
+On Fri, Jan 24, 2014 at 12:08:15PM +0000, Mark Rutland wrote:
+> On Fri, Jan 24, 2014 at 12:20:46AM +0000, Hanjun Guo wrote:
+> > On 2014=E5=B9=B401=E6=9C=8822=E6=97=A5 19:45, Mark Rutland wrote:
+> > > On Wed, Jan 22, 2014 at 08:26:50AM +0000, Linus Walleij wrote:
+> > >> On Fri, Jan 17, 2014 at 1:25 PM, Hanjun Guo <hanjun.guo@linaro.o=
+rg> wrote:
+> > >>
+> > >>> From: Amit Daniel Kachhap <amit.daniel@samsung.com>
+> > >>>
+> > >>> This macro does the same job as CLOCKSOURCE_OF_DECLARE. The dev=
+ice
+> > >>> name from the ACPI timer table is matched with all the register=
+ed
+> > >>> timer controllers and matching initialisation routine is invoke=
+d.
+> > >>>
+> > >>> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+> > >>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> > >> Actually I have a fat patch renaming CLOCKSOURCE_OF_DECLARE()
+> > >> to TIMER_OF_DECLARE() and I think this macro, if needed, should
+> > >> be named TIMER_ACPI_DECLARE().
+> > >>
+> > >> The reason is that "clocksource" is a Linux-internal name and th=
+is
+> > >> macro pertains to the hardware name in respective system
+> > >> description type.
+> > >>
+> > >>> +#ifdef CONFIG_ACPI
+> > >>> +#define CLOCKSOURCE_ACPI_DECLARE(name, compat, fn)            =
+         \
+> > >>> +       static const struct acpi_device_id __clksrc_acpi_table_=
+##name   \
+> > >>> +               __used __section(__clksrc_acpi_table)          =
+         \
+> > >>> +                =3D { .id =3D compat,                         =
+     \
+> > >>> +                    .driver_data =3D (kernel_ulong_t)fn }
+> > >>> +#else
+> > >>> +#define CLOCKSOURCE_ACPI_DECLARE(name, compat, fn)
+> > >>> +#endif
+> > >> This hammers down the world to compile one binary for ACPI
+> > >> and one binary for device tree. Maybe that's fine, I don't know.
+> > > How does it do that?
+> > >
+> > > As far as I could tell CONFIG_ACPI and CONFIG_OF are not mutually
+> > > exclusive, and this just means that we only build the datastructu=
+res for
+> > > matching from ACPI when CONFIG_ACPI is enabled.
+> > >
+> > > Have I missed something?
+> > >
+> > > I definitely don't want to see mutually exclusive ACPI and DT sup=
+port.
+> >=20
+> > ACPI and DT did the same job so I think they should mutually exclus=
+ive.
+> > if we enable both DT and ACPI in one system, this will leading conf=
+usions.
+>=20
+> ACPI and DT do similar jobs, and we should be mutually exclusive at
+> runtime. However, they should not be mutually exclusive at compile-ti=
+me.
+>=20
+> Being mutually exclusive at compile-time is just broken. It creates m=
+ore
+> work for distributions (who need to ship double the number of kernels=
+),
+> it increases the number of configurations requiring testing, and it
+> makes it easier for bugs to be introduced. It's just painful, and
+> there's no reason for it.
 
-On 2014=E5=B9=B401=E6=9C=8824=E6=97=A5 01:50, Catalin Marinas wrote:
-> On Fri, Jan 17, 2014 at 12:25:05PM +0000, Hanjun Guo wrote:
->> --- a/arch/arm64/kernel/smp.c
->> +++ b/arch/arm64/kernel/smp.c
->> @@ -48,6 +48,7 @@
->>   #include <asm/sections.h>
->>   #include <asm/tlbflush.h>
->>   #include <asm/ptrace.h>
->> +#include <asm/acpi.h>
->>  =20
->>   /*
->>    * as from 2.5, kernels no longer have an init_tasks structure
->> @@ -280,7 +281,7 @@ static void (*smp_cross_call)(const struct cpuma=
-sk *, unsigned int);
->>    * cpu logical map array containing MPIDR values related to logica=
-l
->>    * cpus. Assumes that cpu_logical_map(0) has already been initiali=
-zed.
->>    */
->> -void __init smp_init_cpus(void)
->> +static int __init of_smp_init_cpus(void)
->>   {
->>   	struct device_node *dn =3D NULL;
->>   	unsigned int i, cpu =3D 1;
->> @@ -364,6 +365,10 @@ next:
->>   		cpu++;
->>   	}
->>  =20
->> +	/* No device tree or no CPU node in DT */
->> +	if (cpu =3D=3D 1 && !bootcpu_valid)
->> +		return -ENODEV;
->> +
->>   	/* sanity check */
->>   	if (cpu > NR_CPUS)
->>   		pr_warning("no. of cores (%d) greater than configured maximum of=
- %d - clipping\n",
->> @@ -371,7 +376,7 @@ next:
->>  =20
->>   	if (!bootcpu_valid) {
->>   		pr_err("DT missing boot CPU MPIDR, not enabling secondaries\n");
->> -		return;
->> +		return -EINVAL;
->>   	}
->>  =20
->>   	/*
->> @@ -381,6 +386,39 @@ next:
->>   	for (i =3D 0; i < NR_CPUS; i++)
->>   		if (cpu_logical_map(i) !=3D INVALID_HWID)
->>   			set_cpu_possible(i, true);
->> +
->> +	return 0;
->> +}
->> +
->> +/*
->> + * In ACPI mode, the cpu possible map was enumerated before SMP
->> + * initialization when MADT table was parsed, so we can get the
->> + * possible map here to initialize CPUs.
->> + */
->> +static void __init acpi_smp_init_cpus(void)
->> +{
->> +	int cpu;
->> +	const char *enable_method;
->> +
->> +	for_each_possible_cpu(cpu) {
->> +		enable_method =3D acpi_get_enable_method(cpu);
->> +		if (!enable_method)
->> +			continue;
->> +
->> +		cpu_ops[cpu] =3D cpu_get_ops(enable_method);
->> +		if (!cpu_ops[cpu])
->> +			continue;
->> +
->> +		cpu_ops[cpu]->cpu_init(NULL, cpu);
->> +	}
->> +}
->> +
->> +void __init smp_init_cpus(void)
->> +{
->> +	if (!of_smp_init_cpus())
->> +		return;
->> +
->> +	acpi_smp_init_cpus();
->>   }
-> With DT we initialise the cpu_ops[0] via cpu_read_bootcpu_ops() calle=
-d
-> from setup_arch(). This is needed because with PSCI we use cpu_ops fo=
+I fully agree (IOW, I'll NAK patches that break this assumption; we wan=
+t
+single kernel image whether it uses DT or ACPI).
+
+> At boot time the kernel needs to decide which to use for hardware
+> description, and completely ignore the other (which should not be
+> present, but lets not assume that or inevitably someone will break th=
+at
+> assumption for a quick hack).
+>=20
+> The same kernel should boot on a system that has a DTB or a system th=
+at
+> has ACPI tables. On a system that's provided both it should use one o=
 r
-> power management even if it's a UP system. Do you get a some kernel
-> warning about device node for the boot cpu not found?
+> the other, but not both.
 
-Thanks for pointing this out, actually we didn't find a dts file with
-spin-table method for SMP initialization, and this patch is not fully
-tested (only spin-table method is supported in ACPI now), we are
-working on that and get this patch fully tested.
+Do we still need the chosen node to be passed via DT for command line,
+even if the kernel uses ACPI?
 
-I will review the code carefully in your comments, and update
-the code accordingly.
-
->
->> --- a/drivers/acpi/plat/arm-core.c
->> +++ b/drivers/acpi/plat/arm-core.c
->> @@ -367,6 +367,32 @@ static void __init acpi_process_madt(void)
->>   }
->>  =20
->>   /*
->> + * To see PCSI is enabled or not.
->> + *
->> + * PSCI is not available for ACPI 5.0, return FALSE for now.
->> + *
->> + * FIXME: should we introduce early_param("psci", func) for test pu=
-rpose?
->> + */
->> +static bool acpi_psci_smp_available(int cpu)
->> +{
->> +	return FALSE;
->> +}
->> +
->> +static const char *enable_method[] =3D {
->> +	"psci",
->> +	"spin-table",
->> +	NULL
->> +};
->> +
->> +const char *acpi_get_enable_method(int cpu)
->> +{
->> +	if (acpi_psci_smp_available(cpu))
->> +		return enable_method[0];
->> +	else
->> +		return enable_method[1];
->> +}
-> You could just use literal strings here, actually even ignoring PSCI
-> until available.
-
-Ok.
-
-Thanks
-Hanjun
-
+--=20
+Catalin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
