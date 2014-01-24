@@ -1,89 +1,122 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 07/20] ARM64 / ACPI: Enable ARM64 in Kconfig
-Date: Fri, 24 Jan 2014 22:45:03 +0800
-Message-ID: <52E27C6F.1070503@linaro.org>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org> <1389961514-13562-8-git-send-email-hanjun.guo@linaro.org> <20140123163939.GB25927@localhost>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v5] ACPI: Fix acpi_evaluate_object() return value check
+Date: Fri, 24 Jan 2014 07:54:29 -0700
+Message-ID: <CAErSpo5VGy9nCnrOAZtU9OjMsXxz5q_x2rVn596mqg1TWTT64g@mail.gmail.com>
+References: <1390448559-33896-1-git-send-email-wangyijing@huawei.com>
+	<CAErSpo7YBGnPF9gz4rwwEdk8uF2h2aNAZWhSAd-X=tAOWOhRow@mail.gmail.com>
+	<38648196.Uh7omNjHIu@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:36160 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752728AbaAXOpM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jan 2014 09:45:12 -0500
-Received: by mail-pa0-f42.google.com with SMTP id kl14so3346626pab.29
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Jan 2014 06:45:11 -0800 (PST)
-In-Reply-To: <20140123163939.GB25927@localhost>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <38648196.Uh7omNjHIu@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces@lists.freedesktop.org
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Hanjun Guo <guohanjun@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, DRI mailing list <dri-devel@lists.freedesktop.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Yijing Wang <wangyijing@huawei.com>, Dave Airlie <airlied@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, graeme.gregory@lin
 
-On 2014=E5=B9=B401=E6=9C=8824=E6=97=A5 00:39, Catalin Marinas wrote:
-> On Fri, Jan 17, 2014 at 12:25:01PM +0000, Hanjun Guo wrote:
->> Add Kconfigs to build ACPI on ARM64, and make ACPI runable on ARM64.
+On Thu, Jan 23, 2014 at 5:33 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Thursday, January 23, 2014 11:21:01 AM Bjorn Helgaas wrote:
+>> On Wed, Jan 22, 2014 at 8:42 PM, Yijing Wang <wangyijing@huawei.com> wrote:
+>> > Since acpi_evaluate_object() returns acpi_status and not plain int,
+>> > ACPI_FAILURE() should be used for checking its return value. Also
+>> > add some detailed debug info when acpi_evaluate_object() failed.
+>> >
+>> > Reviewed-by: Jani Nikula <jani.nikula@intel.com>
+>> > Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+>> > Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+>> > ---
+>> > v4->v5: Add some detailed debug info for acpi_evaluate_object()
+>> >         failure suggested by Bjorn.
+>> > v3->v4: Fix spell error, add Jani Nikula reviewed-by.
+>> > v2->v3: Fix compile error pointed out by Hanjun.
+>> > v1->v2: Add CC to related subsystem MAINTAINERS
+>> > ---
+>> >  drivers/gpu/drm/i915/intel_acpi.c              |   33 ++++++++++++++++-------
+>> >  drivers/gpu/drm/nouveau/core/subdev/mxm/base.c |   13 ++++++---
+>> >  drivers/gpu/drm/nouveau/nouveau_acpi.c         |   25 +++++++++++-------
+>> >  drivers/pci/pci-label.c                        |   10 +++++--
+>> >  4 files changed, 54 insertions(+), 27 deletions(-)
+>> >
+>> > diff --git a/drivers/gpu/drm/i915/intel_acpi.c b/drivers/gpu/drm/i915/intel_acpi.c
+>> > index dfff090..e7b526b 100644
+>> > --- a/drivers/gpu/drm/i915/intel_acpi.c
+>> > +++ b/drivers/gpu/drm/i915/intel_acpi.c
+>> > @@ -31,11 +31,13 @@ static const u8 intel_dsm_guid[] = {
+>> >  static int intel_dsm(acpi_handle handle, int func)
+>> >  {
+>> >         struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
+>> > +       struct acpi_buffer string = { ACPI_ALLOCATE_BUFFER, NULL };
+>> >         struct acpi_object_list input;
+>> >         union acpi_object params[4];
+>> >         union acpi_object *obj;
+>> >         u32 result;
+>> > -       int ret = 0;
+>> > +       acpi_status status;
+>> > +       int ret;
+>> >
+>> >         input.count = 4;
+>> >         input.pointer = params;
+>> > @@ -50,10 +52,14 @@ static int intel_dsm(acpi_handle handle, int func)
+>> >         params[3].package.count = 0;
+>> >         params[3].package.elements = NULL;
+>> >
+>> > -       ret = acpi_evaluate_object(handle, "_DSM", &input, &output);
+>> > -       if (ret) {
+>> > -               DRM_DEBUG_DRIVER("failed to evaluate _DSM: %d\n", ret);
+>> > -               return ret;
+>> > +       status = acpi_evaluate_object(handle, "_DSM", &input, &output);
+>> > +       if (ACPI_FAILURE(status)) {
+>> > +               acpi_get_name(handle, ACPI_FULL_PATHNAME, &string);
+>> > +               DRM_DEBUG_DRIVER(
+>> > +                       "failed to evaluate _DSM for %s, exit status %u\n",
+>> > +                       (char *)string.pointer, (unsigned int)status);
+>> > +               kfree(string.pointer);
+>> > +               return -EINVAL;
 >>
->> acpi_idle driver is x86/IA64 dependent now, so make CONFIG_ACPI_PROC=
-ESSOR
->> depends on X86 || IA64, and implement it on ARM/ARM64 in the furture=
-=2E
+>> I said "too bad there isn't an *easy* way" to include more
+>> information.  IMHO this is too ugly and error-prone to use
+>> consistently.  And if you are going to add more information, why did
+>> you only do it for some of the calls and not others?
 >>
->> In order to make arm-core.c can both run on ARM and ARM64, introduce
->> CONFIG_ACPI_ARM to support it.
->>
->> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
->> Signed-off-by: Al Stone <al.stone@linaro.org>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>   arch/arm64/Kconfig         |    2 ++
->>   drivers/acpi/Kconfig       |   11 ++++++++---
->>   drivers/acpi/plat/Makefile |    2 +-
->>   3 files changed, 11 insertions(+), 4 deletions(-)
->>
->> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->> index 6d4dd22..2b1fb1d 100644
->> --- a/arch/arm64/Kconfig
->> +++ b/arch/arm64/Kconfig
->> @@ -279,6 +279,8 @@ source "net/Kconfig"
->>  =20
->>   source "drivers/Kconfig"
->>  =20
->> +source "drivers/acpi/Kconfig"
->> +
->>   source "fs/Kconfig"
->>  =20
->>   source "arch/arm64/kvm/Kconfig"
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index 4770de5..cae5dc9 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -2,13 +2,16 @@
->>   # ACPI Configuration
->>   #
->>  =20
->> +config ACPI_ARM
->> +	bool
-> Could be better as def_bool ARM64
+>> I considered adding a %p extension to print the pathname; I don't know
+>> if that's worthwhile or not.  I think it would be ideal if we had a
+>> struct device and could use dev_info(), and then a way to connect the
+>> struct device with an ACPI path, like maybe a dmesg note when we
+>> create the struct device corresponding to an ACPI Device node.
 >
->> +
->>   menuconfig ACPI
->>   	bool "ACPI (Advanced Configuration and Power Interface) Support"
->>   	depends on !IA64_HP_SIM
->> -	depends on IA64 || X86
->> -	depends on PCI
->> +	depends on ((IA64 || X86) && PCI) || ARM64
->>   	select PNP
->> -	default y
->> +	select ACPI_ARM if ARM64
-> And remove this select here.
-
-Thanks for the guidance, will update in next version.
-
+> Well, we can generally print something like that from pci_acpi_setup().
 >
+> What about the below?  Wouldn't it generate too much output on some systems?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yeah, that probably would generate an awful lot of output.  I was just
+hoping to avoid treating ACPI pathnames as first-class objects.  What
+do you think about a %p extension?  I played with that once, but I
+seem to have lost the patch.
+
+> ---
+>  drivers/pci/pci-acpi.c |    2 ++
+>  1 file changed, 2 insertions(+)
+>
+> Index: linux-pm/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-acpi.c
+> +++ linux-pm/drivers/pci/pci-acpi.c
+> @@ -330,6 +330,8 @@ static void pci_acpi_setup(struct device
+>         if (!adev)
+>                 return;
+>
+> +       acpi_handle_info(adev->handle, "bound to %s\n", dev_name(dev));
+> +
+>         pci_acpi_add_pm_notifier(adev, pci_dev);
+>         if (!adev->wakeup.flags.valid)
+>                 return;
+>
