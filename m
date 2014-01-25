@@ -1,75 +1,63 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
 Subject: Re: [kernel 3.13.0-06058-g2d08cd0] Strange ACPI error messages
-Date: Sat, 25 Jan 2014 14:18:17 -0200
-Message-ID: <20140125161817.GB25531@khazad-dum.debian.net>
+Date: Sat, 25 Jan 2014 17:32:19 +0100
+Message-ID: <CADDKRnBFvfHcuEY8TA=nfyP-WSotkj9wkXxE2QS8h+22cyk_0w@mail.gmail.com>
 References: <CADDKRnDZt9Q4XKyJcO1htMrCJYj6_5yECURBHsJ7O==hup7ZRw@mail.gmail.com>
- <9739501.rBu7tJQIYj@vostro.rjw.lan>
- <4387759.ffnsEjDaad@vostro.rjw.lan>
+	<9739501.rBu7tJQIYj@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:52724 "EHLO
-	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751781AbaAYQSY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 25 Jan 2014 11:18:24 -0500
-Received: from compute5.internal (compute5.nyi.mail.srv.osa [10.202.2.45])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 22F3C20B26
-	for <linux-acpi@vger.kernel.org>; Sat, 25 Jan 2014 11:18:24 -0500 (EST)
-Content-Disposition: inline
-In-Reply-To: <4387759.ffnsEjDaad@vostro.rjw.lan>
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:41839 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751843AbaAYQcU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Jan 2014 11:32:20 -0500
+In-Reply-To: <9739501.rBu7tJQIYj@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Sat, 25 Jan 2014, Rafael J. Wysocki wrote:
-> On Saturday, January 25, 2014 02:53:24 PM Rafael J. Wysocki wrote:
-> > On Saturday, January 25, 2014 11:03:09 AM J=F6rg Otte wrote:
-> > > Kernel 3.13.0-06058-g2d08cd0 displays following errors on the con=
-sole:
-> > >=20
-> > > ACPI: \_PR_.CPU4: failed to get CPU APIC ID.
-> > > ACPI: \_PR_.CPU5: failed to get CPU APIC ID.
-> > > ACPI: \_PR_.CPU6: failed to get CPU APIC ID.
-> > > ACPI: \_PR_.CPU7: failed to get CPU APIC ID.
-> > >=20
-> > > I don't have CPUs 4..7! Error messages regarding not existing
-> > > CPUs should not be displayed.
-> > > kernel 3.13.0-05617-g3aacd62 and before did'nt show this messages=
-=2E
-> > >=20
-> > > This is a regression. I never saw this messages before.
-> >=20
-> > Does your system show any other suspicious symptoms or are you worr=
-ied about
-> > those messages only?
->=20
-> Gerry, this is your commit b981513f806d (ACPI / scan: bail out early =
-if failed
-> to parse APIC ID for CPU).  Apparently, the BIOS has room for 4 CPUs =
-more than
-> there actually are in the system.  Maybe we can reduce the log level =
-of those
-> messages to avoid ringing bells unnecessarily?
+2014-01-25 Rafael J. Wysocki <rjw@rjwysocki.net>:
+> On Saturday, January 25, 2014 11:03:09 AM J=C3=B6rg Otte wrote:
+>> Kernel 3.13.0-06058-g2d08cd0 displays following errors on the consol=
+e:
+>>
+>> ACPI: \_PR_.CPU4: failed to get CPU APIC ID.
+>> ACPI: \_PR_.CPU5: failed to get CPU APIC ID.
+>> ACPI: \_PR_.CPU6: failed to get CPU APIC ID.
+>> ACPI: \_PR_.CPU7: failed to get CPU APIC ID.
+>>
+>> I don't have CPUs 4..7! Error messages regarding not existing
+>> CPUs should not be displayed.
+>> kernel 3.13.0-05617-g3aacd62 and before did'nt show this messages.
+>>
+>> This is a regression. I never saw this messages before.
+>
+> Does your system show any other suspicious symptoms or are you worrie=
+d about
+> those messages only?
+>
+> Rafael
+>
 
-It is standard practice (at least in SuperMicro boxes, but I've also se=
-en it
-elsewhere) for the BIOS to have ACPI tables mentioning all cores suppor=
-ted
-by the biggest core-count CPU topology possible by the motherboard.  Th=
-e
-cores you don't have are reported as if they were hotpluggable but abse=
-nt,
-even if they will *never* show up at runtime.  Meh.
+what's looking badly is this:
 
-So yes, such warnings will get annoying *very* quickly.
+ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S1_]
+(20131218/hwxface-580)
+ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S2_]
+(20131218/hwxface-580)
 
---=20
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+and this:
+
+acpi PNP0A08:00: _OSC: OS supports [ASPM ClockPM Segments MSI]
+ \_SB_.PCI0:_OSC invalid UUID
+ _OSC request data:1 1e 0
+acpi PNP0A08:00: _OSC failed (AE_ERROR); disabling ASPM
+
+but these messages are not new.
+
+J=C3=B6rg
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
