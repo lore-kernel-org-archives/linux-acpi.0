@@ -1,43 +1,35 @@
-From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
-Subject: [kernel 3.13.0-06058-g2d08cd0] Strange ACPI error messages
-Date: Sat, 25 Jan 2014 11:03:09 +0100
-Message-ID: <CADDKRnDZt9Q4XKyJcO1htMrCJYj6_5yECURBHsJ7O==hup7ZRw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [kernel 3.13.0-06058-g2d08cd0] Strange ACPI error messages
+Date: Sat, 25 Jan 2014 14:53:24 +0100
+Message-ID: <9739501.rBu7tJQIYj@vostro.rjw.lan>
+References: <CADDKRnDZt9Q4XKyJcO1htMrCJYj6_5yECURBHsJ7O==hup7ZRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f177.google.com ([209.85.214.177]:62920 "EHLO
-	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751282AbaAYKDK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Jan 2014 05:03:10 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CADDKRnDZt9Q4XKyJcO1htMrCJYj6_5yECURBHsJ7O==hup7ZRw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Kernel 3.13.0-06058-g2d08cd0 displays following errors on the console:
+On Saturday, January 25, 2014 11:03:09 AM J=C3=B6rg Otte wrote:
+> Kernel 3.13.0-06058-g2d08cd0 displays following errors on the console=
+:
+>=20
+> ACPI: \_PR_.CPU4: failed to get CPU APIC ID.
+> ACPI: \_PR_.CPU5: failed to get CPU APIC ID.
+> ACPI: \_PR_.CPU6: failed to get CPU APIC ID.
+> ACPI: \_PR_.CPU7: failed to get CPU APIC ID.
+>=20
+> I don't have CPUs 4..7! Error messages regarding not existing
+> CPUs should not be displayed.
+> kernel 3.13.0-05617-g3aacd62 and before did'nt show this messages.
+>=20
+> This is a regression. I never saw this messages before.
 
-ACPI: \_PR_.CPU4: failed to get CPU APIC ID.
-ACPI: \_PR_.CPU5: failed to get CPU APIC ID.
-ACPI: \_PR_.CPU6: failed to get CPU APIC ID.
-ACPI: \_PR_.CPU7: failed to get CPU APIC ID.
+Does your system show any other suspicious symptoms or are you worried =
+about
+those messages only?
 
-I don't have CPUs 4..7! Error messages regarding not existing
-CPUs should not be displayed.
-kernel 3.13.0-05617-g3aacd62 and before did'nt show this messages.
-
-This is a regression. I never saw this messages before.
-
-Processor model: Intel(R) Core(TM) i5-3210M CPU @ 2.50GHz
-$ cat /proc/cpuinfo | grep processor
-processor       : 0
-processor       : 1
-processor       : 2
-processor       : 3
-
-
-J=C3=B6rg
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael
