@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 2/11] ACPI / hotplug / PCI: Simplify register_slot()
-Date: Mon, 27 Jan 2014 01:38:47 +0100
-Message-ID: <7524438.fFikVHOtly@vostro.rjw.lan>
+Subject: [PATCH 10/11] ACPI / hotplug / PCI: Use acpi_handle_debug() in hotplug_event()
+Date: Mon, 27 Jan 2014 01:45:26 +0100
+Message-ID: <13914527.ifKH1txkRD@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,41 +15,59 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The err label in register_slot() is only jumped to from one place,
-so move the code under the label to that place and drop the label.
+Make hotplug_event() use acpi_handle_debug() instead of an open-coded
+debug message printing and clean up the messages printed by it.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -316,8 +316,10 @@ static acpi_status register_slot(acpi_ha
+@@ -794,9 +794,6 @@ static void hotplug_event(acpi_handle ha
+ 	struct acpiphp_func *func = &context->func;
+ 	struct acpiphp_slot *slot = func->slot;
+ 	struct acpiphp_bridge *bridge;
+-	char objname[64];
+-	struct acpi_buffer buffer = { .length = sizeof(objname),
+-				      .pointer = objname };
  
- 	slot = kzalloc(sizeof(struct acpiphp_slot), GFP_KERNEL);
- 	if (!slot) {
--		status = AE_NO_MEMORY;
--		goto err;
-+		mutex_lock(&acpiphp_context_lock);
-+		acpiphp_put_context(context);
-+		mutex_unlock(&acpiphp_context_lock);
-+		return AE_NO_MEMORY;
- 	}
+ 	mutex_lock(&acpiphp_context_lock);
+ 	bridge = context->bridge;
+@@ -805,14 +802,10 @@ static void hotplug_event(acpi_handle ha
  
- 	slot->bus = bridge->pci_bus;
-@@ -385,12 +387,6 @@ static acpi_status register_slot(acpi_ha
- 	}
+ 	mutex_unlock(&acpiphp_context_lock);
  
- 	return AE_OK;
+-	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
 -
-- err:
--	mutex_lock(&acpiphp_context_lock);
--	acpiphp_put_context(context);
--	mutex_unlock(&acpiphp_context_lock);
--	return status;
- }
+ 	switch (type) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+ 		/* bus re-enumerate */
+-		pr_debug("%s: Bus check notify on %s\n", __func__, objname);
+-		pr_debug("%s: re-enumerating slots under %s\n",
+-			 __func__, objname);
++		acpi_handle_debug(handle, "Bus check in %s()\n", __func__);
+ 		if (bridge)
+ 			acpiphp_check_bridge(bridge);
+ 		else if (!(slot->flags & SLOT_IS_GOING_AWAY))
+@@ -822,7 +815,7 @@ static void hotplug_event(acpi_handle ha
  
- static struct acpiphp_bridge *acpiphp_handle_to_bridge(acpi_handle handle)
+ 	case ACPI_NOTIFY_DEVICE_CHECK:
+ 		/* device check */
+-		pr_debug("%s: Device check notify on %s\n", __func__, objname);
++		acpi_handle_debug(handle, "Device check in %s()\n", __func__);
+ 		if (bridge) {
+ 			acpiphp_check_bridge(bridge);
+ 		} else if (!(slot->flags & SLOT_IS_GOING_AWAY)) {
+@@ -837,7 +830,7 @@ static void hotplug_event(acpi_handle ha
+ 
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		/* request device eject */
+-		pr_debug("%s: Device eject notify on %s\n", __func__, objname);
++		acpi_handle_debug(handle, "Eject request in %s()\n", __func__);
+ 		acpiphp_disable_and_eject_slot(slot);
+ 		break;
+ 	}
