@@ -1,38 +1,68 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 0/11] ACPI / hotplug / PCI: Updates on top of changes merged recently
-Date: Mon, 27 Jan 2014 01:37:17 +0100
-Message-ID: <2217793.001RY6hKlo@vostro.rjw.lan>
+Subject: [PATCH 6/11] ACPI / hotplug / PCI: Drop acpiphp_bus_add()
+Date: Mon, 27 Jan 2014 01:41:59 +0100
+Message-ID: <2004943.zYTADWJ10j@vostro.rjw.lan>
+References: <2217793.001RY6hKlo@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2217793.001RY6hKlo@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi All,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-ACPIPHP can be simplified a bit on top of some PCI and ACPI changes merged
-recently and the following series of patches implements those simplifications:
+acpiphp_bus_add() is only called from one place, so move the code out
+of it into that place and drop it.  Also make that code use
+func_to_acpi_device() to get the struct acpi_device pointer it needs
+instead of calling acpi_bus_get_device() which may be costly.
 
-[1/11] Fix up two kerneldoc comments in acpiphp_glue.c.
-[2/11] Get rid of an unnecessary label in register_slot().
-[3/11] Drop acpiphp_bus_trim() and use acpi_bus_trim() instead of it directly.
-[4/11] Move the acpi_bus_get_device() call out of acpiphp_no_hotplug().
-[5/11] Store struct acpi_device pointers instead of ACPI handles in struct acpiphp_context.
-[6/11] Drop acpiphp_bus_add() (which has only one user).
-[7/11] Drop crit_sect mutexes (that are redundant).
-[8/11] Clean up the usage of the slot variable in hotplug_event().
-[9/11] Drop dev_in_slot() and rework disable_slot() to walk bus->devices directly.
-[10/11] Use acpi_handle_debug() in hotplug_event() instead of open-coded stuff.
-[11/11] Drop handle argument from the member functions of struct acpi_dock_ops.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/pci/hotplug/acpiphp_glue.c |   22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
 
-All of that is relateively straightforward, but I have some more intrusive changes
-on top of it in the works.  They will be posted separately later this week.
-
-Thanks!
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+===================================================================
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+@@ -470,20 +470,6 @@ static unsigned char acpiphp_max_busnr(s
+ 	return max;
+ }
+ 
+-/**
+- * acpiphp_bus_add - Scan ACPI namespace subtree.
+- * @handle: ACPI object handle to start the scan from.
+- */
+-static void acpiphp_bus_add(acpi_handle handle)
+-{
+-	struct acpi_device *adev = NULL;
+-
+-	acpi_bus_scan(handle);
+-	acpi_bus_get_device(handle, &adev);
+-	if (acpi_device_enumerated(adev))
+-		acpi_device_set_power(adev, ACPI_STATE_D0);
+-}
+-
+ static void acpiphp_set_acpi_region(struct acpiphp_slot *slot)
+ {
+ 	struct acpiphp_func *func;
+@@ -523,9 +509,13 @@ static int acpiphp_rescan_slot(struct ac
+ {
+ 	struct acpiphp_func *func;
+ 
+-	list_for_each_entry(func, &slot->funcs, sibling)
+-		acpiphp_bus_add(func_to_handle(func));
++	list_for_each_entry(func, &slot->funcs, sibling) {
++		struct acpi_device *adev = func_to_acpi_device(func);
+ 
++		acpi_bus_scan(adev->handle);
++		if (acpi_device_enumerated(adev))
++			acpi_device_set_power(adev, ACPI_STATE_D0);
++	}
+ 	return pci_scan_slot(slot->bus, PCI_DEVFN(slot->device, 0));
+ }
+ 
