@@ -1,86 +1,74 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: Flag use of ACPI and ACPI idioms for power supplies to regulator API
-Date: Mon, 27 Jan 2014 01:54:49 +0100
-Message-ID: <2348079.FWLATJ4QDO@vostro.rjw.lan>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] ACPI: Flag use of ACPI and ACPI idioms for power
+ supplies to regulator API
+Date: Mon, 27 Jan 2014 00:44:34 +0000
+Message-ID: <20140127004434.GT11727@sirena.org.uk>
 References: <1390782734-10131-1-git-send-email-broonie@kernel.org>
+ <2348079.FWLATJ4QDO@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="QgvTbcZPsSS/HkXe"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51143 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753257AbaA0Akd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Jan 2014 19:40:33 -0500
-In-Reply-To: <1390782734-10131-1-git-send-email-broonie@kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:59853 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753121AbaA0Aol (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Jan 2014 19:44:41 -0500
+Content-Disposition: inline
+In-Reply-To: <2348079.FWLATJ4QDO@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linaro-kernel@lists.linaro.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Mark Brown <broonie@linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linaro-kernel@lists.linaro.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
 
-On Monday, January 27, 2014 12:32:14 AM Mark Brown wrote:
-> From: Mark Brown <broonie@linaro.org>
-> 
-> There is currently no facility in ACPI to express the hookup of voltage
-> regulators, the expectation is that the regulators that exist in the
-> system will be handled transparently by firmware if they need software
-> control at all. This means that if for some reason the regulator API is
-> enabled on such a system it should assume that any supplies that devices
-> need are provided by the system at all relevant times without any software
-> intervention.
-> 
-> Tell the regulator core to make this assumption by calling
-> regulator_has_full_constraints(). Do this as soon as we know we are using
-> ACPI so that the information is available to the regulator core as early
-> as possible. This will cause the regulator core to pretend that there is
-> an always on regulator supplying any supply that is requested but that has
-> not otherwise been mapped which is the behaviour expected on a system with
-> ACPI.
-> 
-> Should the ability to specify regulators be added in future revisions of
-> ACPI then once we have support for ACPI mappings in the kernel the same
-> assumptions will apply. It is also likely that systems will default to a
-> mode of operation which does not require any interpretation of these
-> mappings in order to be compatible with existing operating system releases
-> so it should remain safe to make these assumptions even if the mappings
-> exist but are not supported by the kernel.
-> 
-> Signed-off-by: Mark Brown <broonie@linaro.org>
-> ---
->  drivers/acpi/bus.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 384da5ab5955..fcb59c21c68d 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -33,6 +33,7 @@
->  #include <linux/proc_fs.h>
->  #include <linux/acpi.h>
->  #include <linux/slab.h>
-> +#include <linux/regulator/machine.h>
->  #ifdef CONFIG_X86
->  #include <asm/mpspec.h>
->  #endif
-> @@ -509,6 +510,14 @@ void __init acpi_early_init(void)
->  		goto error0;
->  	}
->  
-> +	/*
-> +	 * If the system is using ACPI then we can be reasonably
-> +	 * confident that any regulators are managed by the firmware
-> +	 * so tell the regulator core it has everything it needs to
-> +	 * know.
-> +	 */
-> +	regulator_has_full_constraints();
-> +
->  	return;
->  
->        error0:
 
-That's going to be called earlier than it use to be in 3.13 and before.
+--QgvTbcZPsSS/HkXe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-No problems with that?
+On Mon, Jan 27, 2014 at 01:54:49AM +0100, Rafael J. Wysocki wrote:
+> On Monday, January 27, 2014 12:32:14 AM Mark Brown wrote:
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> > @@ -509,6 +510,14 @@ void __init acpi_early_init(void)
+> >  		goto error0;
+> >  	}
+> > =20
+> > +	/*
+> > +	 * If the system is using ACPI then we can be reasonably
+> > +	 * confident that any regulators are managed by the firmware
+> > +	 * so tell the regulator core it has everything it needs to
+> > +	 * know.
+> > +	 */
+> > +	regulator_has_full_constraints();
+> > +
+
+> That's going to be called earlier than it use to be in 3.13 and before.
+
+> No problems with that?
+
+All that function does is to set a flag - so long as we can assign to a
+static variable it should be OK.
+
+--QgvTbcZPsSS/HkXe
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJS5avvAAoJELSic+t+oim90CEP/1A1wuAzkRFuRvdY1mKD+2uz
+CNcryAMla4s/2O1Y4fq8zrx3i72h26VgvBcOH+YvupLCdPo79OWosRoLcOt+Zdw8
+or8C4/LVc09lKJOn0gxQPjHeFzVuBeiCR3KU+3wIOGYI4AMlVukMmpv6ZMCWgbGv
+XxX3SZQqBgGroKikzn0Q2h3F09c5XbxndcgDB7nBnnN4d6mOw9eKO7FfNOySGJph
+Qn6U+mn2F7rPgTVHOQuxkwSb5KBhLik3ZhI2CsSzh/rXOx2n4S9Upevo873CM1Ix
+ezc3IPpvoGhbiUBxD5QWcxD2o/DfDNXVF0Jx0QxstZLOvYK793/wP8Wi6b7jPnio
+ucMdi0tnHNtZ/xY1NWzgyYGVurOcz42oNydMe4vmWYasMFlJkIHAFqq0D/lY8dsB
+xQi9TM8H3L1c4bvUQ6vwdGWlTGFl05ByxnIOI3gIsc68jeIOKdg2VC9klWGysHU3
+vyxu4znc0lUY/5R2rlXnDABTP7TlQCifCeLWLyJSbDuFqF0qiGJ/FUzNv4CLkpFw
+tPELLMn2iO4SKuvsyCIUXcoyPfg/a8fvKkQzqwlHjSP9xoHV+5m+aQkP+OHhMuo9
+17azyxQ1QY9vcLJMQvx0ayZcPrTJYx8ZeWzwvFJI9DosaH3C29SMC+Xv4jor67Fn
+BCmmEEAQdu++Mom4yrwe
+=0OQt
+-----END PGP SIGNATURE-----
+
+--QgvTbcZPsSS/HkXe--
