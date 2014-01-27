@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 1/11] ACPI / hotplug / PCI: Proper kerneldoc comments for enumeration/removal
-Date: Mon, 27 Jan 2014 01:38:06 +0100
-Message-ID: <13004664.yV6PfsiXzU@vostro.rjw.lan>
+Subject: [PATCH 2/11] ACPI / hotplug / PCI: Simplify register_slot()
+Date: Mon, 27 Jan 2014 01:38:47 +0100
+Message-ID: <7524438.fFikVHOtly@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,43 +15,41 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Add proper kerneldoc comments describing acpiphp_enumerate_slots()
-and acpiphp_remove_slots().
+The err label in register_slot() is only jumped to from one place,
+so move the code under the label to that place and drop the label.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -986,9 +986,12 @@ static void handle_hotplug_event(acpi_ha
- 	acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
- }
+@@ -316,8 +316,10 @@ static acpi_status register_slot(acpi_ha
  
--/*
-- * Create hotplug slots for the PCI bus.
-- * It should always return 0 to avoid skipping following notifiers.
-+/**
-+ * acpiphp_enumerate_slots - Enumerate PCI slots for a given bus.
-+ * @bus: PCI bus to enumerate the slots for.
-+ *
-+ * A "slot" is an object associated with a PCI device number.  All functions
-+ * (PCI devices) with the same bus and device number belong to the same slot.
-  */
- void acpiphp_enumerate_slots(struct pci_bus *bus)
- {
-@@ -1061,7 +1064,10 @@ void acpiphp_enumerate_slots(struct pci_
+ 	slot = kzalloc(sizeof(struct acpiphp_slot), GFP_KERNEL);
+ 	if (!slot) {
+-		status = AE_NO_MEMORY;
+-		goto err;
++		mutex_lock(&acpiphp_context_lock);
++		acpiphp_put_context(context);
++		mutex_unlock(&acpiphp_context_lock);
++		return AE_NO_MEMORY;
  	}
+ 
+ 	slot->bus = bridge->pci_bus;
+@@ -385,12 +387,6 @@ static acpi_status register_slot(acpi_ha
+ 	}
+ 
+ 	return AE_OK;
+-
+- err:
+-	mutex_lock(&acpiphp_context_lock);
+-	acpiphp_put_context(context);
+-	mutex_unlock(&acpiphp_context_lock);
+-	return status;
  }
  
--/* Destroy hotplug slots associated with the PCI bus */
-+/**
-+ * acpiphp_remove_slots - Remove slot objects associated with a given bus.
-+ * @bus: PCI bus to remove the slot objects for.
-+ */
- void acpiphp_remove_slots(struct pci_bus *bus)
- {
- 	struct acpiphp_bridge *bridge;
+ static struct acpiphp_bridge *acpiphp_handle_to_bridge(acpi_handle handle)
