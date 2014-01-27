@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 6/11] ACPI / hotplug / PCI: Drop acpiphp_bus_add()
-Date: Mon, 27 Jan 2014 01:41:59 +0100
-Message-ID: <2004943.zYTADWJ10j@vostro.rjw.lan>
+Subject: [PATCH 1/11] ACPI / hotplug / PCI: Proper kerneldoc comments for enumeration/removal
+Date: Mon, 27 Jan 2014 01:38:06 +0100
+Message-ID: <13004664.yV6PfsiXzU@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,54 +15,43 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-acpiphp_bus_add() is only called from one place, so move the code out
-of it into that place and drop it.  Also make that code use
-func_to_acpi_device() to get the struct acpi_device pointer it needs
-instead of calling acpi_bus_get_device() which may be costly.
+Add proper kerneldoc comments describing acpiphp_enumerate_slots()
+and acpiphp_remove_slots().
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |   22 ++++++----------------
- 1 file changed, 6 insertions(+), 16 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -470,20 +470,6 @@ static unsigned char acpiphp_max_busnr(s
- 	return max;
+@@ -986,9 +986,12 @@ static void handle_hotplug_event(acpi_ha
+ 	acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
  }
  
--/**
-- * acpiphp_bus_add - Scan ACPI namespace subtree.
-- * @handle: ACPI object handle to start the scan from.
-- */
--static void acpiphp_bus_add(acpi_handle handle)
--{
--	struct acpi_device *adev = NULL;
--
--	acpi_bus_scan(handle);
--	acpi_bus_get_device(handle, &adev);
--	if (acpi_device_enumerated(adev))
--		acpi_device_set_power(adev, ACPI_STATE_D0);
--}
--
- static void acpiphp_set_acpi_region(struct acpiphp_slot *slot)
+-/*
+- * Create hotplug slots for the PCI bus.
+- * It should always return 0 to avoid skipping following notifiers.
++/**
++ * acpiphp_enumerate_slots - Enumerate PCI slots for a given bus.
++ * @bus: PCI bus to enumerate the slots for.
++ *
++ * A "slot" is an object associated with a PCI device number.  All functions
++ * (PCI devices) with the same bus and device number belong to the same slot.
+  */
+ void acpiphp_enumerate_slots(struct pci_bus *bus)
  {
- 	struct acpiphp_func *func;
-@@ -523,9 +509,13 @@ static int acpiphp_rescan_slot(struct ac
- {
- 	struct acpiphp_func *func;
- 
--	list_for_each_entry(func, &slot->funcs, sibling)
--		acpiphp_bus_add(func_to_handle(func));
-+	list_for_each_entry(func, &slot->funcs, sibling) {
-+		struct acpi_device *adev = func_to_acpi_device(func);
- 
-+		acpi_bus_scan(adev->handle);
-+		if (acpi_device_enumerated(adev))
-+			acpi_device_set_power(adev, ACPI_STATE_D0);
-+	}
- 	return pci_scan_slot(slot->bus, PCI_DEVFN(slot->device, 0));
+@@ -1061,7 +1064,10 @@ void acpiphp_enumerate_slots(struct pci_
+ 	}
  }
  
+-/* Destroy hotplug slots associated with the PCI bus */
++/**
++ * acpiphp_remove_slots - Remove slot objects associated with a given bus.
++ * @bus: PCI bus to remove the slot objects for.
++ */
+ void acpiphp_remove_slots(struct pci_bus *bus)
+ {
+ 	struct acpiphp_bridge *bridge;
