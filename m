@@ -1,82 +1,53 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 17/20] clocksource / arch_timer: Use ACPI GTDT table to
- initialize arch timer
-Date: Mon, 27 Jan 2014 11:26:47 +0000
-Message-ID: <20140127112647.GC16516@e106331-lin.cambridge.arm.com>
-References: <1389961514-13562-1-git-send-email-hanjun.guo@linaro.org>
- <1389961514-13562-18-git-send-email-hanjun.guo@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: Flag use of ACPI and ACPI idioms for power supplies to regulator API
+Date: Mon, 27 Jan 2014 13:54:48 +0100
+Message-ID: <3051988.Sav3BEhI94@vostro.rjw.lan>
+References: <1390782734-10131-1-git-send-email-broonie@kernel.org> <2348079.FWLATJ4QDO@vostro.rjw.lan> <20140127004434.GT11727@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:40751 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751321AbaA0L0t (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Jan 2014 06:26:49 -0500
-Content-Disposition: inline
-In-Reply-To: <1389961514-13562-18-git-send-email-hanjun.guo@linaro.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:54295 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751431AbaA0Mkd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jan 2014 07:40:33 -0500
+In-Reply-To: <20140127004434.GT11727@sirena.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Olof Johansson <olof@lixom.net>, Linus Walleij <linus.walleij@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Arnd Bergmann <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Amit
+To: Mark Brown <broonie@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linaro-kernel@lists.linaro.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
 
-On Fri, Jan 17, 2014 at 12:25:11PM +0000, Hanjun Guo wrote:
-> ACPI GTDT (Generic Timer Description Table) contains information for
-> arch timer initialization, this patch use this table to probe arm timer.
+On Monday, January 27, 2014 12:44:34 AM Mark Brown wrote:
 > 
-> GTDT table is used for ARM/ARM64 only, please refer to chapter 5.2.24
-> of ACPI 5.0 spec for detailed inforamtion
+> --QgvTbcZPsSS/HkXe
+> Content-Type: text/plain; charset=us-ascii
+> Content-Disposition: inline
+> Content-Transfer-Encoding: quoted-printable
 > 
-> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/clocksource/arm_arch_timer.c |  100 +++++++++++++++++++++++++++++-----
->  1 file changed, 85 insertions(+), 15 deletions(-)
+> On Mon, Jan 27, 2014 at 01:54:49AM +0100, Rafael J. Wysocki wrote:
+> > On Monday, January 27, 2014 12:32:14 AM Mark Brown wrote:
+> 
+> > > @@ -509,6 +510,14 @@ void __init acpi_early_init(void)
+> > >  		goto error0;
+> > >  	}
+> > > =20
+> > > +	/*
+> > > +	 * If the system is using ACPI then we can be reasonably
+> > > +	 * confident that any regulators are managed by the firmware
+> > > +	 * so tell the regulator core it has everything it needs to
+> > > +	 * know.
+> > > +	 */
+> > > +	regulator_has_full_constraints();
+> > > +
+> 
+> > That's going to be called earlier than it use to be in 3.13 and before.
+> 
+> > No problems with that?
+> 
+> All that function does is to set a flag - so long as we can assign to a
+> static variable it should be OK.
 
-[...]
+OK, do you want me to take it?
 
-> +static void __init register_arch_interrupt(u32 interrupt, u32 flags,
-> +					int *arch_timer_ppi)
-> +{
-> +	int trigger, polarity;
-> +
-> +	if (!interrupt || !arch_timer_ppi)
-> +		return;
-> +
-> +	trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
-> +			: ACPI_LEVEL_SENSITIVE;
-> +
-> +	polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
-> +			: ACPI_ACTIVE_HIGH;
-> +
-> +	*arch_timer_ppi = acpi_register_gsi(NULL, interrupt, trigger,
-> +						polarity);
-> +}
+Rafael
 
-Why does this take a pointer to the irq rather than returning the irq
-(as with irq_of_parse_and_map)?
-
-This looks awfully generic. Are the timer interrupts encoded specially
-or is this useful for parsing other interrupts?
-
-> +
-> +static int __init acpi_parse_gtdt(struct acpi_table_header *table)
-> +{
-> +	struct acpi_table_gtdt *gtdt;
-> +
-> +	gtdt = (struct acpi_table_gtdt *)table;
-> +	if (!gtdt)
-> +		return -EINVAL;
-> +
-> +	arch_timer_rate = arch_timer_get_cntfrq();
-> +
-> +	if (!arch_timer_rate) {
-> +		pr_warn("arch_timer: Could not get frequency from CNTFREG\n");
-
-s/CNTFREG/CNTFREQ/
-
-This is probably worth a pr_err at least, the system is unlikely to get
-very far if the timers don't work.
-
-Thanks,
-Mark.
