@@ -1,68 +1,99 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] ACPI: Flag use of ACPI and ACPI idioms for power
- supplies to regulator API
-Date: Mon, 27 Jan 2014 13:21:06 +0000
-Message-ID: <20140127132106.GY11727@sirena.org.uk>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH] ACPI: Flag use of ACPI and ACPI idioms for power supplies
+ to regulator API
+Date: Mon, 27 Jan 2014 06:58:35 -0800
+Message-ID: <52E6741B.2010002@roeck-us.net>
 References: <1390782734-10131-1-git-send-email-broonie@kernel.org>
- <2348079.FWLATJ4QDO@vostro.rjw.lan>
- <20140127004434.GT11727@sirena.org.uk>
- <3051988.Sav3BEhI94@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fzoBs0edN2XpEQF6"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:59992 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753485AbaA0NVQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jan 2014 08:21:16 -0500
-Content-Disposition: inline
-In-Reply-To: <3051988.Sav3BEhI94@vostro.rjw.lan>
+Received: from mail.active-venture.com ([67.228.131.205]:58570 "EHLO
+	mail.active-venture.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753539AbaA0O6h (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jan 2014 09:58:37 -0500
+In-Reply-To: <1390782734-10131-1-git-send-email-broonie@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linaro-kernel@lists.linaro.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
+To: Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linaro-kernel@lists.linaro.org, Jean Delvare <khali@linux-fr.org>, Mark Brown <broonie@linaro.org>
 
+On 01/26/2014 04:32 PM, Mark Brown wrote:
+> From: Mark Brown <broonie@linaro.org>
+>
+> There is currently no facility in ACPI to express the hookup of voltage
+> regulators, the expectation is that the regulators that exist in the
+> system will be handled transparently by firmware if they need software
+> control at all. This means that if for some reason the regulator API is
+> enabled on such a system it should assume that any supplies that devices
+> need are provided by the system at all relevant times without any software
+> intervention.
+>
+> Tell the regulator core to make this assumption by calling
+> regulator_has_full_constraints(). Do this as soon as we know we are using
+> ACPI so that the information is available to the regulator core as early
+> as possible. This will cause the regulator core to pretend that there is
+> an always on regulator supplying any supply that is requested but that has
+> not otherwise been mapped which is the behaviour expected on a system with
+> ACPI.
+>
+> Should the ability to specify regulators be added in future revisions of
+> ACPI then once we have support for ACPI mappings in the kernel the same
+> assumptions will apply. It is also likely that systems will default to a
+> mode of operation which does not require any interpretation of these
+> mappings in order to be compatible with existing operating system releases
+> so it should remain safe to make these assumptions even if the mappings
+> exist but are not supported by the kernel.
+>
+> Signed-off-by: Mark Brown <broonie@linaro.org>
+> ---
+>   drivers/acpi/bus.c | 9 +++++++++
+>   1 file changed, 9 insertions(+)
+>
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 384da5ab5955..fcb59c21c68d 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -33,6 +33,7 @@
+>   #include <linux/proc_fs.h>
+>   #include <linux/acpi.h>
+>   #include <linux/slab.h>
+> +#include <linux/regulator/machine.h>
+>   #ifdef CONFIG_X86
+>   #include <asm/mpspec.h>
+>   #endif
+> @@ -509,6 +510,14 @@ void __init acpi_early_init(void)
+>   		goto error0;
+>   	}
+>
+> +	/*
+> +	 * If the system is using ACPI then we can be reasonably
+> +	 * confident that any regulators are managed by the firmware
+> +	 * so tell the regulator core it has everything it needs to
+> +	 * know.
+> +	 */
+> +	regulator_has_full_constraints();
+> +
+>   	return;
+>
+>         error0:
+>
 
---fzoBs0edN2XpEQF6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Couple of scenarios where I don't entirely see how this is expected to work.
 
-On Mon, Jan 27, 2014 at 01:54:48PM +0100, Rafael J. Wysocki wrote:
-> On Monday, January 27, 2014 12:44:34 AM Mark Brown wrote:
+- A system which uses CPU cards which sit on a carrier card. The CPU is shared
+   across multiple carrier cards, and built by an OEM. It supports and uses ACPI,
+   but ACPI only knows about the CPU card and not the carrier cards, and thus does
+   not know anything about the carrier card power or regulator requirements.
+- A system which supports a large number of complex OIR capable cards.
+   The card connector includes GPIO pins, I2C busses, PCIe busses, and various other
+   functionality such as SERDES lines. The card functionality is determined by the
+   card ID and not known by the time the system ships.
+- A USB-I2C or USB-SPI adapter connected to a standard PC. Any I2C or SPI device
+   can be connected to the I2C or SPI ports.
 
-> > > That's going to be called earlier than it use to be in 3.13 and before.
+How is the firmware expected to know about the various devices ? Is the answer
+"sorry, this scenario is not supported by the kernel" ?
 
-> > > No problems with that?
+Guenter
 
-> > All that function does is to set a flag - so long as we can assign to a
-> > static variable it should be OK.
-
-> OK, do you want me to take it?
-
-I'd like someone to take it :) .  I'd expected the default thing would
-be for it to go via the ACPI tree but I can apply it to the regulator
-tree if you'd prefer, either way is fine by me.
-
---fzoBs0edN2XpEQF6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJS5l0/AAoJELSic+t+oim9YycP/RSTyNfeQQ0RZKgnD9BOt9nM
-qhbPrfv3easSoQZoXUTy8KE1ZqdU0syl0fj5afU5jHAQKuldSHQZP0uWd5DWff+y
-KRqbBB8lM65FKbgdyNlczeEBP/FOjj2FgbieoyaN42cWSD0cGwZ85kraOIK8uy7D
-M58Zs/K9SMSk7Ekn2AuOnEBVt81mqDvqCXKCgZ56ymcy27yb7ecjyHl86USbLOQ5
-gA3DqXI/gKBrmeLWhBu16VDkTW+owYSkISDd2506QskNHNO6c2iTo+tswRABsCF+
-HO8kqvBAKkaDK9jzEX2Uvd1S+zgr+opr7eGdiiH8sK5uQAeXswt/mTDSmaockepY
-6V69qQ1Mb83HuXSpZXe8IixCnEAL+gLcNC0ohzs2OFYE3KYcqKP8331QjsVYrMD0
-G7X3fLr4Hs6wZVcZIxrPIA1kpcHVJGL9pyKclqWG5nK95iucP4uVxsvueXVeUZZm
-/+ZUJrWw63/FiWPnrJypCm5kXmh2xZ/iopWt6W3wEnmalZDVVzW7ZWpw0G68t9CI
-05pNxZhOM7QDfl4WOqLmfrGuY1pBGNb5xIkPfj1eyWDzqtBONH8RWh3cAGDwDnGW
-pwAH5XWJ9KvbVP9qw9tY1PazchtQbsCHQBtUyQpRo9ipEMZbKiLVxQqdgdwTDLAh
-CuZArAB4BdDegIiKZVTl
-=R2gK
------END PGP SIGNATURE-----
-
---fzoBs0edN2XpEQF6--
