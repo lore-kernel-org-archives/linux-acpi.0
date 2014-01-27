@@ -1,82 +1,86 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 9/11] ACPI / hotplug / PCI: Simplify disable_slot()
-Date: Mon, 27 Jan 2014 01:44:46 +0100
-Message-ID: <3181996.2TszSTpj8L@vostro.rjw.lan>
-References: <2217793.001RY6hKlo@vostro.rjw.lan>
+Subject: Re: [PATCH] ACPI: Flag use of ACPI and ACPI idioms for power supplies to regulator API
+Date: Mon, 27 Jan 2014 01:54:49 +0100
+Message-ID: <2348079.FWLATJ4QDO@vostro.rjw.lan>
+References: <1390782734-10131-1-git-send-email-broonie@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2217793.001RY6hKlo@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:51143 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753257AbaA0Akd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Jan 2014 19:40:33 -0500
+In-Reply-To: <1390782734-10131-1-git-send-email-broonie@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linaro-kernel@lists.linaro.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Mark Brown <broonie@linaro.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Monday, January 27, 2014 12:32:14 AM Mark Brown wrote:
+> From: Mark Brown <broonie@linaro.org>
+> 
+> There is currently no facility in ACPI to express the hookup of voltage
+> regulators, the expectation is that the regulators that exist in the
+> system will be handled transparently by firmware if they need software
+> control at all. This means that if for some reason the regulator API is
+> enabled on such a system it should assume that any supplies that devices
+> need are provided by the system at all relevant times without any software
+> intervention.
+> 
+> Tell the regulator core to make this assumption by calling
+> regulator_has_full_constraints(). Do this as soon as we know we are using
+> ACPI so that the information is available to the regulator core as early
+> as possible. This will cause the regulator core to pretend that there is
+> an always on regulator supplying any supply that is requested but that has
+> not otherwise been mapped which is the behaviour expected on a system with
+> ACPI.
+> 
+> Should the ability to specify regulators be added in future revisions of
+> ACPI then once we have support for ACPI mappings in the kernel the same
+> assumptions will apply. It is also likely that systems will default to a
+> mode of operation which does not require any interpretation of these
+> mappings in order to be compatible with existing operating system releases
+> so it should remain safe to make these assumptions even if the mappings
+> exist but are not supported by the kernel.
+> 
+> Signed-off-by: Mark Brown <broonie@linaro.org>
+> ---
+>  drivers/acpi/bus.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 384da5ab5955..fcb59c21c68d 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -33,6 +33,7 @@
+>  #include <linux/proc_fs.h>
+>  #include <linux/acpi.h>
+>  #include <linux/slab.h>
+> +#include <linux/regulator/machine.h>
+>  #ifdef CONFIG_X86
+>  #include <asm/mpspec.h>
+>  #endif
+> @@ -509,6 +510,14 @@ void __init acpi_early_init(void)
+>  		goto error0;
+>  	}
+>  
+> +	/*
+> +	 * If the system is using ACPI then we can be reasonably
+> +	 * confident that any regulators are managed by the firmware
+> +	 * so tell the regulator core it has everything it needs to
+> +	 * know.
+> +	 */
+> +	regulator_has_full_constraints();
+> +
+>  	return;
+>  
+>        error0:
 
-After recent PCI core changes related to the rescan/remove locking,
-the ACPIPHP's disable_slot() function is only called under the
-general PCI rescan/remove lock, so it doesn't have to use
-dev_in_slot() any more to avoid race conditions.  Make it simply
-walk the devices on the bus and remove the ones in the slot being
-disabled.  Then, drop dev_in_slot() which has no more users.
+That's going to be called earlier than it use to be in 3.13 and before.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/pci/hotplug/acpiphp_glue.c |   28 +++++-----------------------
- 1 file changed, 5 insertions(+), 23 deletions(-)
+No problems with that?
 
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -579,32 +579,15 @@ static void __ref enable_slot(struct acp
- 	}
- }
- 
--/* return first device in slot, acquiring a reference on it */
--static struct pci_dev *dev_in_slot(struct acpiphp_slot *slot)
--{
--	struct pci_bus *bus = slot->bus;
--	struct pci_dev *dev;
--	struct pci_dev *ret = NULL;
--
--	down_read(&pci_bus_sem);
--	list_for_each_entry(dev, &bus->devices, bus_list)
--		if (PCI_SLOT(dev->devfn) == slot->device) {
--			ret = pci_dev_get(dev);
--			break;
--		}
--	up_read(&pci_bus_sem);
--
--	return ret;
--}
--
- /**
-  * disable_slot - disable a slot
-  * @slot: ACPI PHP slot
-  */
- static void disable_slot(struct acpiphp_slot *slot)
- {
-+	struct pci_bus *bus = slot->bus;
-+	struct pci_dev *dev, *next;
- 	struct acpiphp_func *func;
--	struct pci_dev *pdev;
- 
- 	/*
- 	 * enable_slot() enumerates all functions in this device via
-@@ -612,10 +595,9 @@ static void disable_slot(struct acpiphp_
- 	 * methods (_EJ0, etc.) or not.  Therefore, we remove all functions
- 	 * here.
- 	 */
--	while ((pdev = dev_in_slot(slot))) {
--		pci_stop_and_remove_bus_device(pdev);
--		pci_dev_put(pdev);
--	}
-+	list_for_each_entry_safe(dev, next, &bus->devices, bus_list)
-+		if (PCI_SLOT(dev->devfn) == slot->device)
-+			pci_stop_and_remove_bus_device(dev);
- 
- 	list_for_each_entry(func, &slot->funcs, sibling)
- 		acpi_bus_trim(func_to_acpi_device(func));
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
