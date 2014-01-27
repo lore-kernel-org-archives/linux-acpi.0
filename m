@@ -1,26 +1,45 @@
-From: Abdul Nasser <abdulnas500@justin.ddo.jp>
-Subject: Kind Regards
-Date: Sun, 26 Jan 2014 22:31:03 +0000
-Message-ID: <SECEXCHANGEiLkOhpWL00006262@mail.standardelectronics.com>
-Reply-To: s.abdulnasser@yahoo.com.hk
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / scan: Clear match_driver flag in acpi_bus_trim()
+Date: Mon, 27 Jan 2014 01:16:09 +0100
+Message-ID: <1737561.u7lWGR6b7C@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.standardelectronics.com ([74.92.67.124]:55453 "EHLO
-	mail.standardelectronics.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753355AbaAZXi4 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 26 Jan 2014 18:38:56 -0500
-Content-Description: Mail message body
+Received: from v094114.home.net.pl ([79.96.170.134]:54106 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753121AbaA0ABy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Jan 2014 19:01:54 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients <abdulnas500@justin.ddo.jp>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Toshi Kani <toshi.kani@hp.com>
 
-Greetings,
-My name is Abdul Nasser Sokariah and I am writing you from Syria, I choose to contact you directly as I need a reliable person to trust who can help me handle my huge deposit  with a vault company in EUROPE, and based on my present situation in Syria, I need you urgently to take possession of everything and further modalities/directives will follow.Please reply to my private  Email: nasserabdul190@yahoo.com
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I wait for your response.
+Drivers should not bind to struct acpi_device objects that
+acpi_bus_trim() has been called for, so make that function
+clear flags.match_driver for those objects.
 
-Yours truly,
-Abdul Nasser Sokariah
+If that is not done, an ACPI driver may theoretically try to operate
+a device that is not physically present.
+
+Fixes: 202317a573b2 (ACPI / scan: Add acpi_device objects for all device nodes in the namespace)
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -2106,6 +2106,7 @@ void acpi_bus_trim(struct acpi_device *a
+ 	list_for_each_entry_reverse(child, &adev->children, node)
+ 		acpi_bus_trim(child);
+ 
++	adev->flags.match_driver = false;
+ 	if (handler) {
+ 		if (handler->detach)
+ 			handler->detach(adev);
+
