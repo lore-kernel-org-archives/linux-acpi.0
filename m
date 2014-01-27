@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 3/11] ACPI / hotplug / PCI: Drop acpiphp_bus_trim()
-Date: Mon, 27 Jan 2014 01:39:43 +0100
-Message-ID: <3449224.XnJj9bubey@vostro.rjw.lan>
+Subject: [PATCH 7/11] ACPI / hotplug / PCI: Drop crit_sect locking
+Date: Mon, 27 Jan 2014 01:42:47 +0100
+Message-ID: <3111119.pNdaxh8h5x@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,78 +15,121 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-If trim_stale_devices() calls acpi_bus_trim() directly, we can
-save a potentially costly acpi_bus_get_device() invocation.  After
-making that change acpiphp_bus_trim() would only be called from one
-place, so move the code from it to that place and drop it.
+After recent PCI core changes related to the rescan/remove locking,
+the code sections under crit_sect mutexes from ACPIPHP slot objects
+are always executed under the general PCI rescan/remove lock.
+For this reason, the crit_sect mutexes are simply redundant, so drop
+them.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |   30 +++++++++++-------------------
- 1 file changed, 11 insertions(+), 19 deletions(-)
+ drivers/pci/hotplug/acpiphp.h      |    1 -
+ drivers/pci/hotplug/acpiphp_glue.c |   23 +++--------------------
+ 2 files changed, 3 insertions(+), 21 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -468,19 +468,6 @@ static unsigned char acpiphp_max_busnr(s
+@@ -328,7 +328,6 @@ static acpi_status register_slot(acpi_ha
+ 	slot->bus = bridge->pci_bus;
+ 	slot->device = device;
+ 	INIT_LIST_HEAD(&slot->funcs);
+-	mutex_init(&slot->crit_sect);
+ 
+ 	list_add_tail(&slot->node, &bridge->slots);
+ 
+@@ -741,7 +740,6 @@ static void acpiphp_check_bridge(struct
+ 		struct pci_bus *bus = slot->bus;
+ 		struct pci_dev *dev, *tmp;
+ 
+-		mutex_lock(&slot->crit_sect);
+ 		if (slot_no_hotplug(slot)) {
+ 			; /* do nothing */
+ 		} else if (get_slot_status(slot) == ACPI_STA_ALL) {
+@@ -756,7 +754,6 @@ static void acpiphp_check_bridge(struct
+ 		} else {
+ 			disable_slot(slot);
+ 		}
+-		mutex_unlock(&slot->crit_sect);
+ 	}
  }
  
- /**
-- * acpiphp_bus_trim - Trim device objects in an ACPI namespace subtree.
-- * @handle: ACPI device object handle to start from.
-- */
--static void acpiphp_bus_trim(acpi_handle handle)
--{
--	struct acpi_device *adev = NULL;
--
--	acpi_bus_get_device(handle, &adev);
--	if (adev)
--		acpi_bus_trim(adev);
--}
--
--/**
-  * acpiphp_bus_add - Scan ACPI namespace subtree.
-  * @handle: ACPI object handle to start the scan from.
-  */
-@@ -638,8 +625,12 @@ static void disable_slot(struct acpiphp_
- 		pci_dev_put(pdev);
- 	}
+@@ -838,12 +835,8 @@ static void hotplug_event(acpi_handle ha
+ 		} else {
+ 			struct acpiphp_slot *slot = func->slot;
  
--	list_for_each_entry(func, &slot->funcs, sibling)
--		acpiphp_bus_trim(func_to_handle(func));
-+	list_for_each_entry(func, &slot->funcs, sibling) {
-+		struct acpi_device *adev;
-+
-+		if (!acpi_bus_get_device(func_to_handle(func), &adev))
-+			acpi_bus_trim(adev);
-+	}
+-			if (slot->flags & SLOT_IS_GOING_AWAY)
+-				break;
+-
+-			mutex_lock(&slot->crit_sect);
+-			enable_slot(slot);
+-			mutex_unlock(&slot->crit_sect);
++			if (!(slot->flags & SLOT_IS_GOING_AWAY))
++				enable_slot(slot);
+ 		}
+ 		break;
  
- 	slot->flags &= (~SLOT_ENABLED);
+@@ -854,7 +847,6 @@ static void hotplug_event(acpi_handle ha
+ 			acpiphp_check_bridge(bridge);
+ 		} else {
+ 			struct acpiphp_slot *slot = func->slot;
+-			int ret;
+ 
+ 			if (slot->flags & SLOT_IS_GOING_AWAY)
+ 				break;
+@@ -863,10 +855,7 @@ static void hotplug_event(acpi_handle ha
+ 			 * Check if anything has changed in the slot and rescan
+ 			 * from the parent if that's the case.
+ 			 */
+-			mutex_lock(&slot->crit_sect);
+-			ret = acpiphp_rescan_slot(slot);
+-			mutex_unlock(&slot->crit_sect);
+-			if (ret)
++			if (acpiphp_rescan_slot(slot))
+ 				acpiphp_check_bridge(func->parent);
+ 		}
+ 		break;
+@@ -1073,13 +1062,10 @@ int acpiphp_enable_slot(struct acpiphp_s
+ 	if (slot->flags & SLOT_IS_GOING_AWAY)
+ 		return -ENODEV;
+ 
+-	mutex_lock(&slot->crit_sect);
+ 	/* configure all functions */
+ 	if (!(slot->flags & SLOT_ENABLED))
+ 		enable_slot(slot);
+ 
+-	mutex_unlock(&slot->crit_sect);
+-
+ 	pci_unlock_rescan_remove();
+ 	return 0;
  }
-@@ -711,11 +702,12 @@ static unsigned int get_slot_status(stru
-  */
- static void trim_stale_devices(struct pci_dev *dev)
- {
--	acpi_handle handle = ACPI_HANDLE(&dev->dev);
-+	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
- 	struct pci_bus *bus = dev->subordinate;
- 	bool alive = false;
+@@ -1095,8 +1081,6 @@ static int acpiphp_disable_and_eject_slo
+ 	if (slot->flags & SLOT_IS_GOING_AWAY)
+ 		return -ENODEV;
  
--	if (handle) {
-+	if (adev) {
-+		acpi_handle handle = adev->handle;
- 		acpi_status status;
- 		unsigned long long sta;
+-	mutex_lock(&slot->crit_sect);
+-
+ 	/* unconfigure all functions */
+ 	disable_slot(slot);
  
-@@ -731,8 +723,8 @@ static void trim_stale_devices(struct pc
- 	}
- 	if (!alive) {
- 		pci_stop_and_remove_bus_device(dev);
--		if (handle)
--			acpiphp_bus_trim(handle);
-+		if (adev)
-+			acpi_bus_trim(adev);
- 	} else if (bus) {
- 		struct pci_dev *child, *tmp;
+@@ -1110,7 +1094,6 @@ static int acpiphp_disable_and_eject_slo
+ 			break;
+ 		}
  
+-	mutex_unlock(&slot->crit_sect);
+ 	return 0;
+ }
+ 
+Index: linux-pm/drivers/pci/hotplug/acpiphp.h
+===================================================================
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp.h
++++ linux-pm/drivers/pci/hotplug/acpiphp.h
+@@ -93,7 +93,6 @@ struct acpiphp_slot {
+ 	struct list_head funcs;		/* one slot may have different
+ 					   objects (i.e. for each function) */
+ 	struct slot *slot;
+-	struct mutex crit_sect;
+ 
+ 	u8		device;		/* pci device# */
+ 	u32		flags;		/* see below */
