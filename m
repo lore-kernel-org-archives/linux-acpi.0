@@ -1,56 +1,85 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [PATCH] ACPI: reduce log level for message "ACPI: \_PR_.CPU4: failed to get CPU APIC ID"
-Date: Mon, 27 Jan 2014 14:34:58 +0800
-Message-ID: <1390804498-30311-1-git-send-email-jiang.liu@linux.intel.com>
-References: <CADDKRnDZt9Q4XKyJcO1htMrCJYj6_5yECURBHsJ7O==hup7ZRw@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH] ACPI: Flag use of ACPI and ACPI idioms for power
+ supplies to regulator API
+Date: Mon, 27 Jan 2014 09:25:09 +0100
+Message-ID: <20140127092509.24844e25@endymion.delvare>
+References: <1390782734-10131-1-git-send-email-broonie@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:34056 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751069AbaA0GeB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Jan 2014 01:34:01 -0500
-In-Reply-To: <CADDKRnDZt9Q4XKyJcO1htMrCJYj6_5yECURBHsJ7O==hup7ZRw@mail.gmail.com>
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:8817 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751069AbaA0IZV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jan 2014 03:25:21 -0500
+In-Reply-To: <1390782734-10131-1-git-send-email-broonie@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jorg Otte <jrg.otte@gmail.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jiang Liu <jiang.liu@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linaro-kernel@lists.linaro.org, Guenter Roeck <linux@roeck-us.net>, Mark Brown <broonie@linaro.org>
 
-Commit b981513f806d (ACPI / scan: bail out early if failed to parse
-APIC ID for CPU) emits an error message if ACPI processor driver fails
-to query APIC ID for the CPU.
+On Mon, 27 Jan 2014 00:32:14 +0000, Mark Brown wrote:
+> From: Mark Brown <broonie@linaro.org>
+> 
+> There is currently no facility in ACPI to express the hookup of voltage
+> regulators, the expectation is that the regulators that exist in the
+> system will be handled transparently by firmware if they need software
+> control at all. This means that if for some reason the regulator API is
+> enabled on such a system it should assume that any supplies that devices
+> need are provided by the system at all relevant times without any software
+> intervention.
+> 
+> Tell the regulator core to make this assumption by calling
+> regulator_has_full_constraints(). Do this as soon as we know we are using
+> ACPI so that the information is available to the regulator core as early
+> as possible. This will cause the regulator core to pretend that there is
+> an always on regulator supplying any supply that is requested but that has
+> not otherwise been mapped which is the behaviour expected on a system with
+> ACPI.
+> 
+> Should the ability to specify regulators be added in future revisions of
+> ACPI then once we have support for ACPI mappings in the kernel the same
+> assumptions will apply. It is also likely that systems will default to a
+> mode of operation which does not require any interpretation of these
+> mappings in order to be compatible with existing operating system releases
+> so it should remain safe to make these assumptions even if the mappings
+> exist but are not supported by the kernel.
+> 
+> Signed-off-by: Mark Brown <broonie@linaro.org>
+> ---
+>  drivers/acpi/bus.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 384da5ab5955..fcb59c21c68d 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -33,6 +33,7 @@
+>  #include <linux/proc_fs.h>
+>  #include <linux/acpi.h>
+>  #include <linux/slab.h>
+> +#include <linux/regulator/machine.h>
+>  #ifdef CONFIG_X86
+>  #include <asm/mpspec.h>
+>  #endif
+> @@ -509,6 +510,14 @@ void __init acpi_early_init(void)
+>  		goto error0;
+>  	}
+>  
+> +	/*
+> +	 * If the system is using ACPI then we can be reasonably
+> +	 * confident that any regulators are managed by the firmware
+> +	 * so tell the regulator core it has everything it needs to
+> +	 * know.
+> +	 */
+> +	regulator_has_full_constraints();
+> +
+>  	return;
+>  
+>        error0:
 
-Originally it's designed to catch BIOS bugs for CPU hot-addition. But
-it accidently reveals another type of BIOS bug that:
-1) BIOS implements ACPI objects for all possible instead of present
-   CPUs. (It's legal per ACPI specification.)
-2) BIOS doesn't implement _STA method for CPU objects. OSPM assumes
-   that all CPU objects are present and functioning and binds ACPI
-   processor driver to those CPU objects, which then triggers the error
-   message. According to ACPI spec, BIOS should implement _STA method
-   for those absent CPUs at least.
+I think it makes sense to have this included in stable kernel trees?
 
-Though it's a BIOS bug in essential, there are some BIOSes in the fields
-which are implmented in this way. So reduce the log level from ERR to
-DEBUG to accommodate these existing BIOSes.
-
-Fixes: b981513f806d (ACPI / scan: bail out early if failed to parse APIC ID for CPU)
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- drivers/acpi/acpi_processor.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index c9311be..c29c2c3 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -261,7 +261,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 
- 	apic_id = acpi_get_apicid(pr->handle, device_declaration, pr->acpi_id);
- 	if (apic_id < 0) {
--		acpi_handle_err(pr->handle, "failed to get CPU APIC ID.\n");
-+		acpi_handle_debug(pr->handle, "failed to get CPU APIC ID.\n");
- 		return -ENODEV;
- 	}
- 	pr->apic_id = apic_id;
+Thanks,
 -- 
-1.7.10.4
-
+Jean Delvare
