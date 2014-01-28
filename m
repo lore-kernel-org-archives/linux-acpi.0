@@ -1,53 +1,67 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [PATCH] ACPI: reduce log level for message "ACPI: \_PR_.CPU4:
- failed to get CPU APIC ID"
-Date: Tue, 28 Jan 2014 09:20:20 +0800
-Message-ID: <52E705D4.3010806@linux.intel.com>
-References: <CADDKRnDZt9Q4XKyJcO1htMrCJYj6_5yECURBHsJ7O==hup7ZRw@mail.gmail.com> <1390804498-30311-1-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.02.1401271615580.17114@chino.kir.corp.google.com> <52E6F9B9.1070900@intel.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] ACPI: Flag use of ACPI and ACPI idioms for power
+ supplies to regulator API
+Date: Tue, 28 Jan 2014 12:21:06 +0000
+Message-ID: <20140128122106.GA11949@sirena.org.uk>
+References: <1390782734-10131-1-git-send-email-broonie@kernel.org>
+ <3051988.Sav3BEhI94@vostro.rjw.lan>
+ <20140127132106.GY11727@sirena.org.uk>
+ <15814871.c5vzFttNXX@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XsQoSWH+UP9D9v3l"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:46190 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753679AbaA1BUY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Jan 2014 20:20:24 -0500
-In-Reply-To: <52E6F9B9.1070900@intel.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:60588 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754716AbaA1MVT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jan 2014 07:21:19 -0500
+Content-Disposition: inline
+In-Reply-To: <15814871.c5vzFttNXX@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, David Rientjes <rientjes@google.com>
-Cc: Jorg Otte <jrg.otte@gmail.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linaro-kernel@lists.linaro.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
 
 
+--XsQoSWH+UP9D9v3l
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 2014/1/28 8:28, Rafael J. Wysocki wrote:
-> On 1/28/2014 1:18 AM, David Rientjes wrote:
->> On Mon, 27 Jan 2014, Jiang Liu wrote:
->>
->>> diff --git a/drivers/acpi/acpi_processor.c
->>> b/drivers/acpi/acpi_processor.c
->>> index c9311be..c29c2c3 100644
->>> --- a/drivers/acpi/acpi_processor.c
->>> +++ b/drivers/acpi/acpi_processor.c
->>> @@ -261,7 +261,7 @@ static int acpi_processor_get_info(struct
->>> acpi_device *device)
->>>         apic_id = acpi_get_apicid(pr->handle, device_declaration,
->>> pr->acpi_id);
->>>       if (apic_id < 0) {
->>> -        acpi_handle_err(pr->handle, "failed to get CPU APIC ID.\n");
->>> +        acpi_handle_debug(pr->handle, "failed to get CPU APIC ID.\n");
->>>           return -ENODEV;
->>>       }
->> Don't we already leave some artifact in the kernel log at boot about apic
->> ids that don't get registered?  I'm wondering if we should have this
->> warning at all.
-> 
-> It is useful for knowing that there are potentially broken objects in
-> the ACPI tables.
-And it's very useful to identify BIOS bug in case of CPU hot-addition.
-It caused our test team about 1 week to identify BIOS bug in CPU
-hot-addition, so I added this debug message.
-Thanks!
-Gerry
-> 
-> 
+On Tue, Jan 28, 2014 at 01:06:45AM +0100, Rafael J. Wysocki wrote:
+> On Monday, January 27, 2014 01:21:06 PM Mark Brown wrote:
+
+> > I'd like someone to take it :) .  I'd expected the default thing would
+> > be for it to go via the ACPI tree but I can apply it to the regulator
+> > tree if you'd prefer, either way is fine by me.
+
+> I've queued it up for my next pull request, thanks!
+
+Excellent, thanks!  Could you tag it for stable please as Jean
+requested?  In v3.13 it fixes regressions in lm90 on PCs if the
+regulator API is enabled (which unfortunately Ubuntu did so it's
+a real scenario) and it should be safe in older kernels though I'm
+not aware of any actual systems that are affected.
+
+--XsQoSWH+UP9D9v3l
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJS56CvAAoJELSic+t+oim97qIP/RTtZiqHnyiFU7f2xkov8glU
+QGygSSCW5n2a1hfWfkgJGyxR6xQ4XUfyVwGnvFpmXjyCexgxtIxbU8z8afnlSS/X
+V31SYqoDmx2WFTugbKGPgZiHvyprLQLfHbVljTgImzM2+U/88NOPPDkVyWFSstMb
+hVYpduHQbgGBBFQBRiWpvs/sfCmhu5rWDoDn2Cu3hREeybQUbHwgEwc8g11zMgyT
+aFY/M24070JbbC7gTilnK0HTaUTlwLhPIBBlJCXJ/7JkGk7Ir69YgyLU/z2DtKFu
+retgbtrXwzHiTpieDiTS13caRcK+cyUba5p0RVj9uS9tqFJVvyGigxYD9vlwzHRw
+awx9Jm39Vg1F0PV86a1ZNQ/DDZgbc5jj1jyhPYzBKK7oJDSeMaIjd/uJu9zFVoLl
+vQzz9QE+Nle0g4L1fpZGJIdjT/t+5ue0jF2FKI6awy0cjT9G7mvGS+fVdhOW8WY9
+PPDseVpjLtOpf6yEuXNGdiqvioTitOEMhTLhe6Nt0dM9x5qY1AmEID55z53Oy9Cc
+b3PNL8ibvn01KTjvjKwvyiE2ATCF/hljzXgx5qYbv48e3fMs4MQU4ICT8azV8o74
+GkQdbd6NLaXwIFaMwmhtB5gSXmQ0uEB8Q7BFfkWjArZNTguru16TMA+SFZUBibly
+PHRYJQIxSIw168HfOjCx
+=/Pbu
+-----END PGP SIGNATURE-----
+
+--XsQoSWH+UP9D9v3l--
