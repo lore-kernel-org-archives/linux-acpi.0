@@ -1,68 +1,109 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 03/17] x86/PCI: Use pcibios_scan_root() instead of
- pci_scan_bus_on_node()
-Date: Wed, 29 Jan 2014 11:17:49 -0700
-Message-ID: <20140129181749.15476.64115.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Subject: [PATCH 04/17] x86/PCI: Merge pci_scan_bus_on_node() into
+ pcibios_scan_root()
+Date: Wed, 29 Jan 2014 11:17:56 -0700
+Message-ID: <20140129181756.15476.8169.stgit@bhelgaas-glaptop.roam.corp.google.com>
 References: <20140129174106.15476.7075.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-ia64-owner@vger.kernel.org>
 In-Reply-To: <20140129174106.15476.7075.stgit@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-ia64-owner@vger.kernel.org
 To: linux-pci@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org, x86@kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-pcibios_scan_root() looks up the bus's NUMA node, then calls
-pci_scan_bus_on_node().  This uses pcibios_scan_root() directly and drops
-the node lookup in the callers.
+pci_scan_bus_on_node() is only called by pcibios_scan_root().
+This merges pci_scan_bus_on_node() into pcibios_scan_root() and removes
+pci_scan_bus_on_node().
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- arch/x86/pci/irq.c    |    4 +---
- arch/x86/pci/legacy.c |    4 +---
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ arch/x86/include/asm/pci.h |    4 ----
+ arch/x86/pci/common.c      |   49 +++++++++++++++++---------------------------
+ 2 files changed, 19 insertions(+), 34 deletions(-)
 
-diff --git a/arch/x86/pci/irq.c b/arch/x86/pci/irq.c
-index 372e9b8989b3..8658874165c2 100644
---- a/arch/x86/pci/irq.c
-+++ b/arch/x86/pci/irq.c
-@@ -136,11 +136,9 @@ static void __init pirq_peer_trick(void)
- 		busmap[e->bus] = 1;
- 	}
- 	for (i = 1; i < 256; i++) {
--		int node;
- 		if (!busmap[i] || pci_find_bus(0, i))
- 			continue;
--		node = get_mp_bus_to_node(i);
--		if (pci_scan_bus_on_node(i, &pci_root_ops, node))
-+		if (pcibios_scan_root(i))
- 			printk(KERN_INFO "PCI: Discovered primary peer "
- 			       "bus %02x [IRQ]\n", i);
- 	}
-diff --git a/arch/x86/pci/legacy.c b/arch/x86/pci/legacy.c
-index 4db96fb1c232..5b662c0faf8c 100644
---- a/arch/x86/pci/legacy.c
-+++ b/arch/x86/pci/legacy.c
-@@ -37,19 +37,17 @@ int __init pci_legacy_init(void)
- void pcibios_scan_specific_bus(int busn)
+diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+index 4e891abf8b48..b52f9c0ec5fb 100644
+--- a/arch/x86/include/asm/pci.h
++++ b/arch/x86/include/asm/pci.h
+@@ -26,10 +26,6 @@ extern int pci_routeirq;
+ extern int noioapicquirk;
+ extern int noioapicreroute;
+ 
+-/* scan a bus after allocating a pci_sysdata for it */
+-extern struct pci_bus *pci_scan_bus_on_node(int busno, struct pci_ops *ops,
+-					    int node);
+-
+ #ifdef CONFIG_PCI
+ 
+ #ifdef CONFIG_PCI_DOMAINS
+diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+index f530c7e93250..52ad00c2e198 100644
+--- a/arch/x86/pci/common.c
++++ b/arch/x86/pci/common.c
+@@ -458,8 +458,25 @@ void __init dmi_check_pciprobe(void)
+ 
+ struct pci_bus *pcibios_scan_root(int busnum)
  {
- 	int devfn;
--	long node;
- 	u32 l;
+-	return pci_scan_bus_on_node(busnum, &pci_root_ops,
+-					get_mp_bus_to_node(busnum));
++	struct pci_bus *bus;
++	struct pci_sysdata *sd;
++	LIST_HEAD(resources);
++
++	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
++	if (!sd) {
++		printk(KERN_ERR "PCI: OOM, skipping PCI bus %02x\n", busnum);
++		return NULL;
++	}
++	sd->node = get_mp_bus_to_node(busnum);
++	x86_pci_root_bus_resources(busnum, &resources);
++	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x)\n", busnum);
++	bus = pci_scan_root_bus(NULL, busnum, &pci_root_ops, sd, &resources);
++	if (!bus) {
++		pci_free_resource_list(&resources);
++		kfree(sd);
++	}
++
++	return bus;
+ }
  
- 	if (pci_find_bus(0, busn))
- 		return;
+ void __init pcibios_set_cache_line_size(void)
+@@ -669,34 +686,6 @@ int pci_ext_cfg_avail(void)
+ 		return 0;
+ }
  
--	node = get_mp_bus_to_node(busn);
- 	for (devfn = 0; devfn < 256; devfn += 8) {
- 		if (!raw_pci_read(0, busn, devfn, PCI_VENDOR_ID, 2, &l) &&
- 		    l != 0x0000 && l != 0xffff) {
- 			DBG("Found device at %02x:%02x [%04x]\n", busn, devfn, l);
- 			printk(KERN_INFO "PCI: Discovered peer bus %02x\n", busn);
--			pci_scan_bus_on_node(busn, &pci_root_ops, node);
-+			pcibios_scan_root(busn);
- 			return;
- 		}
- 	}
+-struct pci_bus *pci_scan_bus_on_node(int busno, struct pci_ops *ops, int node)
+-{
+-	LIST_HEAD(resources);
+-	struct pci_bus *bus = NULL;
+-	struct pci_sysdata *sd;
+-
+-	/*
+-	 * Allocate per-root-bus (not per bus) arch-specific data.
+-	 * TODO: leak; this memory is never freed.
+-	 * It's arguable whether it's worth the trouble to care.
+-	 */
+-	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
+-	if (!sd) {
+-		printk(KERN_ERR "PCI: OOM, skipping PCI bus %02x\n", busno);
+-		return NULL;
+-	}
+-	sd->node = node;
+-	x86_pci_root_bus_resources(busno, &resources);
+-	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x)\n", busno);
+-	bus = pci_scan_root_bus(NULL, busno, ops, sd, &resources);
+-	if (!bus) {
+-		pci_free_resource_list(&resources);
+-		kfree(sd);
+-	}
+-
+-	return bus;
+-}
+-
+ /*
+  * NUMA info for PCI busses
+  *
+
