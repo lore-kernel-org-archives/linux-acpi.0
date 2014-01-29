@@ -1,8 +1,7 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 09/17] x86/PCI: Remove unnecessary
- list_empty(&pci_root_infos) check
-Date: Wed, 29 Jan 2014 11:18:33 -0700
-Message-ID: <20140129181833.15476.93146.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Subject: [PATCH 17/17] ACPI / numa: Use __weak, not the gcc-specific version
+Date: Wed, 29 Jan 2014 11:19:32 -0700
+Message-ID: <20140129181932.15476.8351.stgit@bhelgaas-glaptop.roam.corp.google.com>
 References: <20140129174106.15476.7075.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,25 +13,23 @@ To: linux-pci@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org, x86@kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-list_for_each_entry() handles empty lists, so there's no need to check
-whether the list is empty first.
+Use "__weak" instead of the gcc-specific "__attribute__ ((weak))".
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- arch/x86/pci/bus_numa.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/acpi/numa.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/x86/pci/bus_numa.c b/arch/x86/pci/bus_numa.c
-index 2e36a4469549..f3a2cfc14125 100644
---- a/arch/x86/pci/bus_numa.c
-+++ b/arch/x86/pci/bus_numa.c
-@@ -10,9 +10,6 @@ static struct pci_root_info *x86_find_pci_root_info(int bus)
- {
- 	struct pci_root_info *info;
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 359a43bdd948..24b5476449a1 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -193,7 +193,7 @@ static int __init acpi_parse_slit(struct acpi_table_header *table)
+ 	return 0;
+ }
  
--	if (list_empty(&pci_root_infos))
--		return NULL;
--
- 	list_for_each_entry(info, &pci_root_infos, list)
- 		if (info->busn.start == bus)
- 			return info;
+-void __init __attribute__ ((weak))
++void __init __weak
+ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
+ {
+ 	printk(KERN_WARNING PREFIX
