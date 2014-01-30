@@ -1,32 +1,27 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] ACPI: remove a pointless NULL check
-Date: Thu, 30 Jan 2014 14:56:56 +0300
-Message-ID: <20140130115656.GG12734@elgon.mountain>
+From: Naresh Bhat <naresh.bhat@linaro.org>
+Subject: Regarding Automated Basic Acceptance Test (ABAT)
+Date: Thu, 30 Jan 2014 18:04:02 +0530
+Message-ID: <CAFoFrHZ3_wK6ax9yVoRZ2KN6uSuoQYTzhMvFBceS-eT0w9LdMg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f169.google.com ([209.85.214.169]:49955 "EHLO
+	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751567AbaA3MeD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jan 2014 07:34:03 -0500
+Received: by mail-ob0-f169.google.com with SMTP id wo20so3393567obc.14
+        for <linux-acpi@vger.kernel.org>; Thu, 30 Jan 2014 04:34:02 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ling.l.yu@intel.com
+Cc: linux-acpi@vger.kernel.org
 
-"element" can't be NULL because it is the address of a struct member.
+Hi Ling Yu,
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+I see the ABAT test suite source link is broken
+https://01.org/linux-acpi/documentation/linux-acpi-validation
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 492cf4f409fd..94dbbcb5827b 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -98,10 +98,6 @@ acpi_extract_package(union acpi_object *package,
- 
- 		union acpi_object *element = &(package->package.elements[i]);
- 
--		if (!element) {
--			return AE_BAD_DATA;
--		}
--
- 		switch (element->type) {
- 
- 		case ACPI_TYPE_INTEGER:
+Where can I find the test suite source ?
+
+Thanks
+-Naresh
