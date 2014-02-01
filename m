@@ -1,27 +1,20 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL][Resend] ACPI and power management fixes and cleanup
- for v3.14-rc1
-Date: Fri, 31 Jan 2014 09:25:49 -0800
-Message-ID: <CA+55aFzzTo+sE9pX9tmK61ctEFBUdYm5YQuuCndrMoeLC_RhRA@mail.gmail.com>
-References: <CAJZ5v0gJX+AdScYjmZKCdHM=pGUX=2jymvDvUGqQ8OU8MNNb-w@mail.gmail.com>
+From: SA <asliersoy@akdeniz.edu.tr>
+Subject: partnership
+Date: Sat, 1 Feb 2014 05:16:34 +0100
+Message-ID: <00f49697-41671-a7c72205343634@ehoserver>
+Reply-To: SA <asuleyman43@foxmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gJX+AdScYjmZKCdHM=pGUX=2jymvDvUGqQ8OU8MNNb-w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rafael Wysocki <rjwysocki@gmail.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail1.akdeniz.edu.tr ([194.27.186.38]:38380 "EHLO
+	mail.akdeniz.edu.tr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933026AbaBAEWx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jan 2014 23:22:53 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Fri, Jan 31, 2014 at 3:21 AM, Rafael Wysocki <rjwysocki@gmail.com> wrote:
->
-> It looks like gmail doesn't want you to receive any messages from
-> rjwysocki.net, regardless of the signature, so here it goes again from my
-> gmail account.
 
-Actually, I got the previous one from rjwysocki.net, it just got
-delayed by me doing mostly fs and architecture merges yesterday.
+I need your assistance to reprofile funds to the tune of 82M USD. Should you be interested, kindly respond.
 
-Pulled now, going through test-compiles before pushing out
-
-              Linus
