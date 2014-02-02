@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v2 4/13] ACPI / hotplug / PCI: Proper kerneldoc comments for enumeration/removal
-Date: Sun, 02 Feb 2014 01:24:11 +0100
-Message-ID: <1433595.AEFb5xDlZx@vostro.rjw.lan>
+Subject: [PATCH v2 2/13] ACPI / hotplug / PCI: Move PCI rescan-remove locking to hotplug_event()
+Date: Sun, 02 Feb 2014 01:22:06 +0100
+Message-ID: <3266705.b26GDtjItd@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan> <1935791.liE9ZlzmO9@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,43 +15,57 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Add proper kerneldoc comments describing acpiphp_enumerate_slots()
-and acpiphp_remove_slots().
+Commit 9217a984671e (ACPI / hotplug / PCI: Use global PCI rescan-remove
+locking) modified ACPIPHP to protect its PCI device removal and addition
+code paths from races against sysfs-driven rescan and remove operations
+with the help of PCI rescan-remove locking.  However, it overlooked the
+fact that hotplug_event_work() is not the only caller of hotplug_event()
+which may also be called by dock_hotplug_event() and that code path
+is missing the PCI rescan-remove locking.  This means that, although
+the PCI rescan-remove lock is held as appropriate during the handling
+of events originating from handle_hotplug_event(), the ACPIPHP's
+operations resulting from dock events may still suffer the race
+conditions that commit 9217a984671e was supposed to eliminate.
 
+To address that problem, move the PCI rescan-remove locking from
+hotplug_event_work() to hotplug_event() so that it is used regardless
+of the way that function is invoked.
+
+Revamps: 9217a984671e (ACPI / hotplug / PCI: Use global PCI rescan-remove locking)
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -968,9 +968,12 @@ static void handle_hotplug_event(acpi_ha
- 	acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
- }
+@@ -852,6 +852,7 @@ static void hotplug_event(acpi_handle ha
  
--/*
-- * Create hotplug slots for the PCI bus.
-- * It should always return 0 to avoid skipping following notifiers.
-+/**
-+ * acpiphp_enumerate_slots - Enumerate PCI slots for a given bus.
-+ * @bus: PCI bus to enumerate the slots for.
-+ *
-+ * A "slot" is an object associated with a PCI device number.  All functions
-+ * (PCI devices) with the same bus and device number belong to the same slot.
-  */
- void acpiphp_enumerate_slots(struct pci_bus *bus)
- {
-@@ -1043,7 +1046,10 @@ void acpiphp_enumerate_slots(struct pci_
+ 	mutex_unlock(&acpiphp_context_lock);
+ 
++	pci_lock_rescan_remove();
+ 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+ 
+ 	switch (type) {
+@@ -905,6 +906,7 @@ static void hotplug_event(acpi_handle ha
+ 		break;
  	}
- }
  
--/* Destroy hotplug slots associated with the PCI bus */
-+/**
-+ * acpiphp_remove_slots - Remove slot objects associated with a given bus.
-+ * @bus: PCI bus to remove the slot objects for.
-+ */
- void acpiphp_remove_slots(struct pci_bus *bus)
- {
- 	struct acpiphp_bridge *bridge;
++	pci_unlock_rescan_remove();
+ 	if (bridge)
+ 		put_bridge(bridge);
+ }
+@@ -915,11 +917,9 @@ static void hotplug_event_work(void *dat
+ 	acpi_handle handle = context->handle;
+ 
+ 	acpi_scan_lock_acquire();
+-	pci_lock_rescan_remove();
+ 
+ 	hotplug_event(handle, type, context);
+ 
+-	pci_unlock_rescan_remove();
+ 	acpi_scan_lock_release();
+ 	acpi_evaluate_hotplug_ost(handle, type, ACPI_OST_SC_SUCCESS, NULL);
+ 	put_bridge(context->func.parent);
