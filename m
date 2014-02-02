@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v3 5/7] ACPI / hotplug / PCI: Rework the handling of eject requests
-Date: Sun, 02 Feb 2014 18:18:44 +0100
-Message-ID: <15293594.kU6VSMnHoa@vostro.rjw.lan>
+Subject: [PATCH v3 2/7] ACPI / hotplug: Fix potential races in notify handlers
+Date: Sun, 02 Feb 2014 18:15:02 +0100
+Message-ID: <1499994.Za93jVWRjt@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan> <1519631.YS65c9Af2C@vostro.rjw.lan> <5157096.hCmU2aoKCT@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,78 +15,158 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-To avoid the need to install a hotplug notify handler for each ACPI
-namespace node representing a device and having a matching scan
-handler, move the check whether or not the ejection of the given
-device is enabled through its scan handler from acpi_hotplug_notify_cb()
-to acpi_generic_hotplug_event().  Also, move the execution of
-ACPI_OST_SC_EJECT_IN_PROGRESS _OST to acpi_generic_hotplug_event(),
-because in acpi_hotplug_notify_cb() or in acpi_eject_store() we really
-don't know whether or not the eject is going to be in progress (for
-example, acpi_hotplug_execute() may still fail without queuing up the
-work item).
+There is a slight possibility for the ACPI device object pointed to
+by adev in acpi_hotplug_notify_cb() to become invalid between the
+acpi_bus_get_device() that it comes from and the subsequent dereference
+of that pointer under get_device().  Namely, if acpi_scan_drop_device()
+runs in parallel with acpi_hotplug_notify_cb(), acpi_device_del_work_fn()
+queued up by it may delete the device object in question right after
+a successful execution of acpi_bus_get_device() in acpi_bus_notify().
+
+An analogous problem is present in acpi_bus_notify() where the device
+pointer coming from acpi_bus_get_device() may become invalid before
+it subsequent dereference in the "if" block.
+
+To prevent that from happening, introduce a new function,
+acpi_bus_get_acpi_device(), working analogously to acpi_bus_get_device()
+except that it will grab a reference to the ACPI device object returned
+by it and it will do that under the ACPICA's namespace mutex.  Then,
+make both acpi_hotplug_notify_cb() and acpi_bus_notify() use
+acpi_bus_get_acpi_device() instead of acpi_bus_get_device() so as to
+ensure that the pointers used by them will not become stale at one
+point.
+
+In addition to that, introduce acpi_bus_put_acpi_device() as a wrapper
+around put_device() to be used along with acpi_bus_get_acpi_device()
+and make the (new) users of the latter use acpi_bus_put_acpi_device()
+too.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/scan.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/acpi/bus.c      |    4 +++-
+ drivers/acpi/internal.h |    2 ++
+ drivers/acpi/scan.c     |   38 ++++++++++++++++++++++++++++++--------
+ 3 files changed, 35 insertions(+), 9 deletions(-)
 
 Index: linux-pm/drivers/acpi/scan.c
 ===================================================================
 --- linux-pm.orig/drivers/acpi/scan.c
 +++ linux-pm/drivers/acpi/scan.c
-@@ -459,6 +459,12 @@ static int acpi_generic_hotplug_event(st
- 		return acpi_scan_device_check(adev);
- 	case ACPI_NOTIFY_EJECT_REQUEST:
- 	case ACPI_OST_EC_OSPM_EJECT:
-+		if (adev->handler && !adev->handler->hotplug.enabled) {
-+			dev_info(&adev->dev, "Eject disabled\n");
-+			return -EPERM;
-+		}
-+		acpi_evaluate_hotplug_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
-+					  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
- 		return acpi_scan_hot_remove(adev);
- 	}
- 	return -EINVAL;
-@@ -483,6 +489,10 @@ static void acpi_device_hotplug(void *da
+@@ -476,7 +476,7 @@ static void acpi_device_hotplug(void *da
  
- 	if (adev->handler) {
- 		error = acpi_generic_hotplug_event(adev, src);
-+		if (error == -EPERM) {
-+			ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-+			goto err_out;
-+		}
- 	} else {
- 		int (*event)(struct acpi_device *, u32);
- 
-@@ -512,7 +522,6 @@ static void acpi_device_hotplug(void *da
- 
- static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *data)
- {
--	struct acpi_scan_handler *handler = data;
- 	u32 ost_code = ACPI_OST_SC_SUCCESS;
+  out:
+ 	acpi_evaluate_hotplug_ost(adev->handle, src, ost_code, NULL);
+-	put_device(&adev->dev);
++	acpi_bus_put_acpi_device(adev);
+ 	mutex_unlock(&acpi_scan_lock);
+ 	unlock_device_hotplug();
+ }
+@@ -488,9 +488,6 @@ static void acpi_hotplug_notify_cb(acpi_
  	struct acpi_device *adev;
  	acpi_status status;
-@@ -528,13 +537,6 @@ static void acpi_hotplug_notify_cb(acpi_
  
- 	case ACPI_NOTIFY_EJECT_REQUEST:
- 		acpi_handle_debug(handle, "ACPI_NOTIFY_EJECT_REQUEST event\n");
--		if (handler && !handler->hotplug.enabled) {
--			acpi_handle_err(handle, "Eject disabled\n");
--			ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
--			goto out;
--		}
--		acpi_evaluate_hotplug_ost(handle, ACPI_NOTIFY_EJECT_REQUEST,
--					  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+-	if (acpi_bus_get_device(handle, &adev))
+-		goto err_out;
+-
+ 	switch (type) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+ 		acpi_handle_debug(handle, "ACPI_NOTIFY_BUS_CHECK event\n");
+@@ -512,12 +509,14 @@ static void acpi_hotplug_notify_cb(acpi_
+ 		/* non-hotplug event; possibly handled by other handler */
+ 		return;
+ 	}
+-	get_device(&adev->dev);
++	if (acpi_bus_get_acpi_device(handle, &adev))
++		goto err_out;
++
+ 	status = acpi_hotplug_execute(acpi_device_hotplug, adev, type);
+ 	if (ACPI_SUCCESS(status))
+ 		return;
+ 
+-	put_device(&adev->dev);
++	acpi_bus_put_acpi_device(adev);
+ 
+  err_out:
+ 	acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
+@@ -1112,14 +1111,16 @@ static void acpi_scan_drop_device(acpi_h
+ 	mutex_unlock(&acpi_device_del_lock);
+ }
+ 
+-int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device)
++static int acpi_get_device_data(acpi_handle handle, struct acpi_device **device,
++				void (*callback)(void *))
+ {
+ 	acpi_status status;
+ 
+ 	if (!device)
+ 		return -EINVAL;
+ 
+-	status = acpi_get_data(handle, acpi_scan_drop_device, (void **)device);
++	status = acpi_get_data_full(handle, acpi_scan_drop_device,
++				    (void **)device, callback);
+ 	if (ACPI_FAILURE(status) || !*device) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No context for object [%p]\n",
+ 				  handle));
+@@ -1127,8 +1128,29 @@ int acpi_bus_get_device(acpi_handle hand
+ 	}
+ 	return 0;
+ }
++
++int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device)
++{
++	return acpi_get_device_data(handle, device, NULL);
++}
+ EXPORT_SYMBOL(acpi_bus_get_device);
+ 
++static void get_acpi_device(void *dev)
++{
++	if (dev)
++		get_device(&((struct acpi_device *)dev)->dev);
++}
++
++int acpi_bus_get_acpi_device(acpi_handle handle, struct acpi_device **adev_p)
++{
++	return acpi_get_device_data(handle, adev_p, get_acpi_device);
++}
++
++void acpi_bus_put_acpi_device(struct acpi_device *adev)
++{
++	put_device(&adev->dev);
++}
++
+ int acpi_device_add(struct acpi_device *device,
+ 		    void (*release)(struct device *))
+ {
+Index: linux-pm/drivers/acpi/internal.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/internal.h
++++ linux-pm/drivers/acpi/internal.h
+@@ -81,6 +81,8 @@ bool acpi_scan_is_offline(struct acpi_de
+ #define ACPI_STA_DEFAULT (ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED | \
+ 			  ACPI_STA_DEVICE_UI | ACPI_STA_DEVICE_FUNCTIONING)
+ 
++int acpi_bus_get_acpi_device(acpi_handle handle, struct acpi_device **adev_p);
++void acpi_bus_put_acpi_device(struct acpi_device *adev);
+ int acpi_device_add(struct acpi_device *device,
+ 		    void (*release)(struct device *));
+ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+Index: linux-pm/drivers/acpi/bus.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/bus.c
++++ linux-pm/drivers/acpi/bus.c
+@@ -387,12 +387,14 @@ static void acpi_bus_notify(acpi_handle
  		break;
+ 	}
  
- 	case ACPI_NOTIFY_DEVICE_WAKE:
-@@ -631,8 +633,6 @@ acpi_eject_store(struct device *d, struc
- 	if (ACPI_FAILURE(status) || !acpi_device->flags.ejectable)
- 		return -ENODEV;
+-	acpi_bus_get_device(handle, &device);
++	acpi_bus_get_acpi_device(handle, &device);
+ 	if (device) {
+ 		driver = device->driver;
+ 		if (driver && driver->ops.notify &&
+ 		    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
+ 			driver->ops.notify(device, type);
++
++		acpi_bus_put_acpi_device(device);
+ 	}
+ }
  
--	acpi_evaluate_hotplug_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
--				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
- 	get_device(&acpi_device->dev);
- 	status = acpi_hotplug_execute(acpi_device_hotplug, acpi_device,
- 				      ACPI_OST_EC_OSPM_EJECT);
