@@ -1,52 +1,65 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v2 0/13] ACPI / hotplug / PCI: Updates on top of changes merged recently
-Date: Sun, 02 Feb 2014 01:19:33 +0100
-Message-ID: <1935791.liE9ZlzmO9@vostro.rjw.lan>
-References: <2217793.001RY6hKlo@vostro.rjw.lan>
+Subject: [PATCH v2 1/13] ACPI / hotplug / PCI: Remove entries from bus->devices in reverse order
+Date: Sun, 02 Feb 2014 01:21:17 +0100
+Message-ID: <2191766.e0OEb5Pek7@vostro.rjw.lan>
+References: <2217793.001RY6hKlo@vostro.rjw.lan> <1935791.liE9ZlzmO9@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2217793.001RY6hKlo@vostro.rjw.lan>
+In-Reply-To: <1935791.liE9ZlzmO9@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, January 27, 2014 01:37:17 AM Rafael J. Wysocki wrote:
-> Hi All,
-> 
-> ACPIPHP can be simplified a bit on top of some PCI and ACPI changes merged
-> recently and the following series of patches implements those simplifications:
-> 
-> [1/11] Fix up two kerneldoc comments in acpiphp_glue.c.
-> [2/11] Get rid of an unnecessary label in register_slot().
-> [3/11] Drop acpiphp_bus_trim() and use acpi_bus_trim() instead of it directly.
-> [4/11] Move the acpi_bus_get_device() call out of acpiphp_no_hotplug().
-> [5/11] Store struct acpi_device pointers instead of ACPI handles in struct acpiphp_context.
-> [6/11] Drop acpiphp_bus_add() (which has only one user).
-> [7/11] Drop crit_sect mutexes (that are redundant).
-> [8/11] Clean up the usage of the slot variable in hotplug_event().
-> [9/11] Drop dev_in_slot() and rework disable_slot() to walk bus->devices directly.
-> [10/11] Use acpi_handle_debug() in hotplug_event() instead of open-coded stuff.
-> [11/11] Drop handle argument from the member functions of struct acpi_dock_ops.
-> 
-> All of that is relateively straightforward, but I have some more intrusive changes
-> on top of it in the works.  They will be posted separately later this week.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I've learned a couple of things since I sent this patchset.  First, all
-bus->devices list walks that may remove PCI devices should be done in reverse
-order or they can crash if virtual functions are involved.  Second, hotplug_event()
-(in acpiphp_glue.c) has to acquire pci_rescan_remove_lock by itself, because it
-may be called from multiple places and all of them need that lock to be held.
-That is done by patches [1-2/13] which I'm planning to push as fixes for 3.14-rc2.
+According to the changelog of commit 29ed1f29b68a (PCI: pciehp: Fix null
+pointer deref when hot-removing SR-IOV device) it is unsafe to walk the
+bus->devices list of a PCI bus and remove devices from it in direct order,
+because that may lead to NULL pointer dereferences related to virtual
+functions.
 
-The rest is pretty much the same as last time except that the old patch [9/11]
-became [3/13] in this series and it has been changed so that the list is walked in
+For this reason, change all of the bus->devices list walks in
+acpiphp_glue.c during which devices may be removed to be carried out in
 reverse order.
 
-Thanks!
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/pci/hotplug/acpiphp_glue.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+===================================================================
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+@@ -742,7 +742,7 @@ static void trim_stale_devices(struct pc
+ 
+ 		/* The device is a bridge. so check the bus below it. */
+ 		pm_runtime_get_sync(&dev->dev);
+-		list_for_each_entry_safe(child, tmp, &bus->devices, bus_list)
++		list_for_each_entry_safe_reverse(child, tmp, &bus->devices, bus_list)
+ 			trim_stale_devices(child);
+ 
+ 		pm_runtime_put(&dev->dev);
+@@ -773,8 +773,8 @@ static void acpiphp_check_bridge(struct
+ 			; /* do nothing */
+ 		} else if (get_slot_status(slot) == ACPI_STA_ALL) {
+ 			/* remove stale devices if any */
+-			list_for_each_entry_safe(dev, tmp, &bus->devices,
+-						 bus_list)
++			list_for_each_entry_safe_reverse(dev, tmp,
++							 &bus->devices, bus_list)
+ 				if (PCI_SLOT(dev->devfn) == slot->device)
+ 					trim_stale_devices(dev);
+ 
+@@ -805,7 +805,7 @@ static void acpiphp_sanitize_bus(struct
+ 	int i;
+ 	unsigned long type_mask = IORESOURCE_IO | IORESOURCE_MEM;
+ 
+-	list_for_each_entry_safe(dev, tmp, &bus->devices, bus_list) {
++	list_for_each_entry_safe_reverse(dev, tmp, &bus->devices, bus_list) {
+ 		for (i=0; i<PCI_BRIDGE_RESOURCES; i++) {
+ 			struct resource *res = &dev->resource[i];
+ 			if ((res->flags & type_mask) && !res->start &&
