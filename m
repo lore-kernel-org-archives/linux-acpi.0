@@ -1,159 +1,87 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v2 13/13] ACPI / hotplug: Do not pass ACPI handles to ACPI dock operations
-Date: Sun, 02 Feb 2014 01:31:48 +0100
-Message-ID: <5610827.AznebXRq6q@vostro.rjw.lan>
+Subject: [PATCH v2 3/13] ACPI / hotplug / PCI: Simplify disable_slot()
+Date: Sun, 02 Feb 2014 01:23:30 +0100
+Message-ID: <1662988.VQzBl3dffR@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan> <1935791.liE9ZlzmO9@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1935791.liE9ZlzmO9@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-None of the existing users of struct acpi_dock_ops actually needs the
-first argument of its member functions, so redefine those functions
-to take only two arguments, the event type and data pointer, and
-update the users of struct acpi_dock_ops accordingly.
+After recent PCI core changes related to the rescan/remove locking,
+the ACPIPHP's disable_slot() function is only called under the
+general PCI rescan/remove lock, so it doesn't have to use
+dev_in_slot() any more to avoid race conditions.  Make it simply
+walk the devices on the bus and drop the ones in the slot being
+disabled and drop dev_in_slot() which has no more users.
+
+Moreover, to avoid problems described in the changelog of commit
+29ed1f29b68a (PCI: pciehp: Fix null pointer deref when hot-removing
+SR-IOV device), make disable_slot() carry out the list walk in
+reverse order.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/dock.c                |    4 ++--
- drivers/ata/libata-acpi.c          |    8 ++++----
- drivers/pci/hotplug/acpiphp_glue.c |   13 +++++++------
- include/acpi/acpi_drivers.h        |    6 +++---
- 4 files changed, 16 insertions(+), 15 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   28 +++++-----------------------
+ 1 file changed, 5 insertions(+), 23 deletions(-)
 
-Index: linux-pm/include/acpi/acpi_drivers.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_drivers.h
-+++ linux-pm/include/acpi/acpi_drivers.h
-@@ -110,9 +110,9 @@ void pci_acpi_crs_quirks(void);
-                                   Dock Station
-   -------------------------------------------------------------------------- */
- struct acpi_dock_ops {
--	acpi_notify_handler fixup;
--	acpi_notify_handler handler;
--	acpi_notify_handler uevent;
-+	void (*handler)(u32 event_type, void *data);
-+	void (*fixup)(u32 event_type, void *data);
-+	void (*uevent)(u32 event_type, void *data);
- };
- 
- #ifdef CONFIG_ACPI_DOCK
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -63,7 +63,7 @@ static DEFINE_MUTEX(acpiphp_context_lock
- static void handle_hotplug_event(acpi_handle handle, u32 type, void *data);
- static void acpiphp_sanitize_bus(struct pci_bus *bus);
- static void acpiphp_set_hpp_values(struct pci_bus *bus);
--static void hotplug_event(acpi_handle handle, u32 type, void *data);
-+static void hotplug_event(u32 type, void *data);
- static void free_bridge(struct kref *kref);
- 
- static void acpiphp_context_handler(acpi_handle handle, void *context)
-@@ -185,7 +185,7 @@ static void free_bridge(struct kref *kre
-  * TBD - figure out a way to only call fixups for
-  * systems that require them.
-  */
--static void post_dock_fixups(acpi_handle not_used, u32 event, void *data)
-+static void post_dock_fixups(u32 event, void *data)
- {
- 	struct acpiphp_context *context = data;
- 	struct pci_bus *bus = context->func.slot->bus;
-@@ -788,11 +788,12 @@ void acpiphp_check_host_bridge(acpi_hand
- 
- static int acpiphp_disable_and_eject_slot(struct acpiphp_slot *slot);
- 
--static void hotplug_event(acpi_handle handle, u32 type, void *data)
-+static void hotplug_event(u32 type, void *data)
- {
- 	struct acpiphp_context *context = data;
- 	struct acpiphp_func *func = &context->func;
- 	struct acpiphp_slot *slot = func->slot;
-+	acpi_handle handle = context->adev->handle;
- 	struct acpiphp_bridge *bridge;
- 
- 	mutex_lock(&acpiphp_context_lock);
-@@ -845,14 +846,14 @@ static void hotplug_event(acpi_handle ha
- static void hotplug_event_work(void *data, u32 type)
- {
- 	struct acpiphp_context *context = data;
--	acpi_handle handle = context->adev->handle;
- 
- 	acpi_scan_lock_acquire();
- 
--	hotplug_event(handle, type, context);
-+	hotplug_event(type, context);
- 
- 	acpi_scan_lock_release();
--	acpi_evaluate_hotplug_ost(handle, type, ACPI_OST_SC_SUCCESS, NULL);
-+	acpi_evaluate_hotplug_ost(context->adev->handle, type,
-+				  ACPI_OST_SC_SUCCESS, NULL);
- 	put_bridge(context->func.parent);
- }
- 
-Index: linux-pm/drivers/acpi/dock.c
-===================================================================
---- linux-pm.orig/drivers/acpi/dock.c
-+++ linux-pm/drivers/acpi/dock.c
-@@ -185,7 +185,7 @@ static void dock_release_hotplug(struct
- static void dock_hotplug_event(struct dock_dependent_device *dd, u32 event,
- 			       enum dock_callback_type cb_type)
- {
--	acpi_notify_handler cb = NULL;
-+	void (*cb)(u32, void *) = NULL;
- 	bool run = false;
- 
- 	mutex_lock(&hotplug_lock);
-@@ -213,7 +213,7 @@ static void dock_hotplug_event(struct do
- 		return;
- 
- 	if (cb)
--		cb(dd->handle, event, dd->hp_context);
-+		cb(event, dd->hp_context);
- 
- 	dock_release_hotplug(dd);
- }
-Index: linux-pm/drivers/ata/libata-acpi.c
-===================================================================
---- linux-pm.orig/drivers/ata/libata-acpi.c
-+++ linux-pm/drivers/ata/libata-acpi.c
-@@ -121,14 +121,14 @@ static void ata_acpi_handle_hotplug(stru
- 		ata_port_wait_eh(ap);
- }
- 
--static void ata_acpi_dev_notify_dock(acpi_handle handle, u32 event, void *data)
-+static void ata_acpi_dev_notify_dock(u32 event, void *data)
- {
- 	struct ata_device *dev = data;
- 
- 	ata_acpi_handle_hotplug(dev->link->ap, dev, event);
- }
- 
--static void ata_acpi_ap_notify_dock(acpi_handle handle, u32 event, void *data)
-+static void ata_acpi_ap_notify_dock(u32 event, void *data)
- {
- 	struct ata_port *ap = data;
- 
-@@ -154,12 +154,12 @@ static void ata_acpi_uevent(struct ata_p
+@@ -604,32 +604,15 @@ static void __ref enable_slot(struct acp
  	}
  }
  
--static void ata_acpi_ap_uevent(acpi_handle handle, u32 event, void *data)
-+static void ata_acpi_ap_uevent(u32 event, void *data)
+-/* return first device in slot, acquiring a reference on it */
+-static struct pci_dev *dev_in_slot(struct acpiphp_slot *slot)
+-{
+-	struct pci_bus *bus = slot->bus;
+-	struct pci_dev *dev;
+-	struct pci_dev *ret = NULL;
+-
+-	down_read(&pci_bus_sem);
+-	list_for_each_entry(dev, &bus->devices, bus_list)
+-		if (PCI_SLOT(dev->devfn) == slot->device) {
+-			ret = pci_dev_get(dev);
+-			break;
+-		}
+-	up_read(&pci_bus_sem);
+-
+-	return ret;
+-}
+-
+ /**
+  * disable_slot - disable a slot
+  * @slot: ACPI PHP slot
+  */
+ static void disable_slot(struct acpiphp_slot *slot)
  {
- 	ata_acpi_uevent(data, NULL, event);
- }
++	struct pci_bus *bus = slot->bus;
++	struct pci_dev *dev, *prev;
+ 	struct acpiphp_func *func;
+-	struct pci_dev *pdev;
  
--static void ata_acpi_dev_uevent(acpi_handle handle, u32 event, void *data)
-+static void ata_acpi_dev_uevent(u32 event, void *data)
- {
- 	struct ata_device *dev = data;
- 	ata_acpi_uevent(dev->link->ap, dev, event);
+ 	/*
+ 	 * enable_slot() enumerates all functions in this device via
+@@ -637,10 +620,9 @@ static void disable_slot(struct acpiphp_
+ 	 * methods (_EJ0, etc.) or not.  Therefore, we remove all functions
+ 	 * here.
+ 	 */
+-	while ((pdev = dev_in_slot(slot))) {
+-		pci_stop_and_remove_bus_device(pdev);
+-		pci_dev_put(pdev);
+-	}
++	list_for_each_entry_safe_reverse(dev, prev, &bus->devices, bus_list)
++		if (PCI_SLOT(dev->devfn) == slot->device)
++			pci_stop_and_remove_bus_device(dev);
+ 
+ 	list_for_each_entry(func, &slot->funcs, sibling)
+ 		acpiphp_bus_trim(func_to_handle(func));
