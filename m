@@ -1,65 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v2 1/13] ACPI / hotplug / PCI: Remove entries from bus->devices in reverse order
-Date: Sun, 02 Feb 2014 01:21:17 +0100
-Message-ID: <2191766.e0OEb5Pek7@vostro.rjw.lan>
+Subject: [PATCH v2 5/13] ACPI / hotplug / PCI: Simplify register_slot()
+Date: Sun, 02 Feb 2014 01:25:10 +0100
+Message-ID: <2259347.Au4dNdgsmh@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan> <1935791.liE9ZlzmO9@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1935791.liE9ZlzmO9@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-According to the changelog of commit 29ed1f29b68a (PCI: pciehp: Fix null
-pointer deref when hot-removing SR-IOV device) it is unsafe to walk the
-bus->devices list of a PCI bus and remove devices from it in direct order,
-because that may lead to NULL pointer dereferences related to virtual
-functions.
-
-For this reason, change all of the bus->devices list walks in
-acpiphp_glue.c during which devices may be removed to be carried out in
-reverse order.
+The err label in register_slot() is only jumped to from one place,
+so move the code under the label to that place and drop the label.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -742,7 +742,7 @@ static void trim_stale_devices(struct pc
+@@ -316,8 +316,10 @@ static acpi_status register_slot(acpi_ha
  
- 		/* The device is a bridge. so check the bus below it. */
- 		pm_runtime_get_sync(&dev->dev);
--		list_for_each_entry_safe(child, tmp, &bus->devices, bus_list)
-+		list_for_each_entry_safe_reverse(child, tmp, &bus->devices, bus_list)
- 			trim_stale_devices(child);
+ 	slot = kzalloc(sizeof(struct acpiphp_slot), GFP_KERNEL);
+ 	if (!slot) {
+-		status = AE_NO_MEMORY;
+-		goto err;
++		mutex_lock(&acpiphp_context_lock);
++		acpiphp_put_context(context);
++		mutex_unlock(&acpiphp_context_lock);
++		return AE_NO_MEMORY;
+ 	}
  
- 		pm_runtime_put(&dev->dev);
-@@ -773,8 +773,8 @@ static void acpiphp_check_bridge(struct
- 			; /* do nothing */
- 		} else if (get_slot_status(slot) == ACPI_STA_ALL) {
- 			/* remove stale devices if any */
--			list_for_each_entry_safe(dev, tmp, &bus->devices,
--						 bus_list)
-+			list_for_each_entry_safe_reverse(dev, tmp,
-+							 &bus->devices, bus_list)
- 				if (PCI_SLOT(dev->devfn) == slot->device)
- 					trim_stale_devices(dev);
+ 	slot->bus = bridge->pci_bus;
+@@ -385,12 +387,6 @@ static acpi_status register_slot(acpi_ha
+ 	}
  
-@@ -805,7 +805,7 @@ static void acpiphp_sanitize_bus(struct
- 	int i;
- 	unsigned long type_mask = IORESOURCE_IO | IORESOURCE_MEM;
+ 	return AE_OK;
+-
+- err:
+-	mutex_lock(&acpiphp_context_lock);
+-	acpiphp_put_context(context);
+-	mutex_unlock(&acpiphp_context_lock);
+-	return status;
+ }
  
--	list_for_each_entry_safe(dev, tmp, &bus->devices, bus_list) {
-+	list_for_each_entry_safe_reverse(dev, tmp, &bus->devices, bus_list) {
- 		for (i=0; i<PCI_BRIDGE_RESOURCES; i++) {
- 			struct resource *res = &dev->resource[i];
- 			if ((res->flags & type_mask) && !res->start &&
+ static struct acpiphp_bridge *acpiphp_handle_to_bridge(acpi_handle handle)
