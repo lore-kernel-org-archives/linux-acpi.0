@@ -1,71 +1,73 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v2 2/13] ACPI / hotplug / PCI: Move PCI rescan-remove locking to hotplug_event()
-Date: Sun, 02 Feb 2014 01:22:06 +0100
-Message-ID: <3266705.b26GDtjItd@vostro.rjw.lan>
+Subject: [PATCH v2 12/13] ACPI / hotplug / PCI: Use acpi_handle_debug() in hotplug_event()
+Date: Sun, 02 Feb 2014 01:31:04 +0100
+Message-ID: <6471909.WrxDdSLtfn@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan> <1935791.liE9ZlzmO9@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1935791.liE9ZlzmO9@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Commit 9217a984671e (ACPI / hotplug / PCI: Use global PCI rescan-remove
-locking) modified ACPIPHP to protect its PCI device removal and addition
-code paths from races against sysfs-driven rescan and remove operations
-with the help of PCI rescan-remove locking.  However, it overlooked the
-fact that hotplug_event_work() is not the only caller of hotplug_event()
-which may also be called by dock_hotplug_event() and that code path
-is missing the PCI rescan-remove locking.  This means that, although
-the PCI rescan-remove lock is held as appropriate during the handling
-of events originating from handle_hotplug_event(), the ACPIPHP's
-operations resulting from dock events may still suffer the race
-conditions that commit 9217a984671e was supposed to eliminate.
+Make hotplug_event() use acpi_handle_debug() instead of an open-coded
+debug message printing and clean up the messages printed by it.
 
-To address that problem, move the PCI rescan-remove locking from
-hotplug_event_work() to hotplug_event() so that it is used regardless
-of the way that function is invoked.
-
-Revamps: 9217a984671e (ACPI / hotplug / PCI: Use global PCI rescan-remove locking)
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -852,6 +852,7 @@ static void hotplug_event(acpi_handle ha
+@@ -794,9 +794,6 @@ static void hotplug_event(acpi_handle ha
+ 	struct acpiphp_func *func = &context->func;
+ 	struct acpiphp_slot *slot = func->slot;
+ 	struct acpiphp_bridge *bridge;
+-	char objname[64];
+-	struct acpi_buffer buffer = { .length = sizeof(objname),
+-				      .pointer = objname };
  
+ 	mutex_lock(&acpiphp_context_lock);
+ 	bridge = context->bridge;
+@@ -806,14 +803,11 @@ static void hotplug_event(acpi_handle ha
  	mutex_unlock(&acpiphp_context_lock);
  
-+	pci_lock_rescan_remove();
- 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+ 	pci_lock_rescan_remove();
+-	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
  
  	switch (type) {
-@@ -905,6 +906,7 @@ static void hotplug_event(acpi_handle ha
+ 	case ACPI_NOTIFY_BUS_CHECK:
+ 		/* bus re-enumerate */
+-		pr_debug("%s: Bus check notify on %s\n", __func__, objname);
+-		pr_debug("%s: re-enumerating slots under %s\n",
+-			 __func__, objname);
++		acpi_handle_debug(handle, "Bus check in %s()\n", __func__);
+ 		if (bridge)
+ 			acpiphp_check_bridge(bridge);
+ 		else if (!(slot->flags & SLOT_IS_GOING_AWAY))
+@@ -823,7 +817,7 @@ static void hotplug_event(acpi_handle ha
+ 
+ 	case ACPI_NOTIFY_DEVICE_CHECK:
+ 		/* device check */
+-		pr_debug("%s: Device check notify on %s\n", __func__, objname);
++		acpi_handle_debug(handle, "Device check in %s()\n", __func__);
+ 		if (bridge) {
+ 			acpiphp_check_bridge(bridge);
+ 		} else if (!(slot->flags & SLOT_IS_GOING_AWAY)) {
+@@ -838,7 +832,7 @@ static void hotplug_event(acpi_handle ha
+ 
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		/* request device eject */
+-		pr_debug("%s: Device eject notify on %s\n", __func__, objname);
++		acpi_handle_debug(handle, "Eject request in %s()\n", __func__);
+ 		acpiphp_disable_and_eject_slot(slot);
  		break;
  	}
- 
-+	pci_unlock_rescan_remove();
- 	if (bridge)
- 		put_bridge(bridge);
- }
-@@ -915,11 +917,9 @@ static void hotplug_event_work(void *dat
- 	acpi_handle handle = context->handle;
- 
- 	acpi_scan_lock_acquire();
--	pci_lock_rescan_remove();
- 
- 	hotplug_event(handle, type, context);
- 
--	pci_unlock_rescan_remove();
- 	acpi_scan_lock_release();
- 	acpi_evaluate_hotplug_ost(handle, type, ACPI_OST_SC_SUCCESS, NULL);
- 	put_bridge(context->func.parent);
