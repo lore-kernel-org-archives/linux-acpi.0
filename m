@@ -1,93 +1,82 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 9/24][Resend] ACPI / hotplug / PCI: Drop acpiphp_bus_trim()
-Date: Tue, 04 Feb 2014 00:23:27 +0100
-Message-ID: <1689985.1LxlJr9Vc9@vostro.rjw.lan>
+Subject: [PATCH 10/24][Resend] ACPI / hotplug / PCI: Rework acpiphp_no_hotplug()
+Date: Tue, 04 Feb 2014 00:24:21 +0100
+Message-ID: <2910389.HdF4mpSM6b@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan> <20140203104408.GQ18029@intel.com> <7532948.aJNUotNMpR@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <7532948.aJNUotNMpR@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-If trim_stale_devices() calls acpi_bus_trim() directly, we can
-save a potentially costly acpi_bus_get_device() invocation.  After
-making that change acpiphp_bus_trim() would only be called from one
-place, so move the code from it to that place and drop it.
+If a struct acpi_device pointer is passed to acpiphp_no_hotplug()
+instead of an ACPI handle, the function won't need to call
+acpi_bus_get_device(), which may be costly, any more.  Then,
+trim_stale_devices() can call acpiphp_no_hotplug() passing
+the struct acpi_device object it already has directly to that
+function.
+
+Make those changes and update slot_no_hotplug() accordingly.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |   30 +++++++++++-------------------
- 1 file changed, 11 insertions(+), 19 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -489,19 +489,6 @@ static unsigned char acpiphp_max_busnr(s
+@@ -638,11 +638,8 @@ static void disable_slot(struct acpiphp_
+ 	slot->flags &= (~SLOT_ENABLED);
  }
  
- /**
-- * acpiphp_bus_trim - Trim device objects in an ACPI namespace subtree.
-- * @handle: ACPI device object handle to start from.
-- */
--static void acpiphp_bus_trim(acpi_handle handle)
--{
+-static bool acpiphp_no_hotplug(acpi_handle handle)
++static bool acpiphp_no_hotplug(struct acpi_device *adev)
+ {
 -	struct acpi_device *adev = NULL;
 -
 -	acpi_bus_get_device(handle, &adev);
--	if (adev)
--		acpi_bus_trim(adev);
--}
--
--/**
-  * acpiphp_bus_add - Scan ACPI namespace subtree.
-  * @handle: ACPI object handle to start the scan from.
-  */
-@@ -641,8 +628,12 @@ static void disable_slot(struct acpiphp_
- 		if (PCI_SLOT(dev->devfn) == slot->device)
- 			pci_stop_and_remove_bus_device(dev);
+ 	return adev && adev->flags.no_hotplug;
+ }
+ 
+@@ -650,10 +647,13 @@ static bool slot_no_hotplug(struct acpip
+ {
+ 	struct acpiphp_func *func;
  
 -	list_for_each_entry(func, &slot->funcs, sibling)
--		acpiphp_bus_trim(func_to_handle(func));
+-		if (acpiphp_no_hotplug(func_to_handle(func)))
+-			return true;
 +	list_for_each_entry(func, &slot->funcs, sibling) {
-+		struct acpi_device *adev;
-+
-+		if (!acpi_bus_get_device(func_to_handle(func), &adev))
-+			acpi_bus_trim(adev);
-+	}
++		struct acpi_device *adev = NULL;
  
- 	slot->flags &= (~SLOT_ENABLED);
++		acpi_bus_get_device(func_to_handle(func), &adev);
++		if (acpiphp_no_hotplug(adev))
++			return true;
++	}
+ 	return false;
  }
-@@ -714,11 +705,12 @@ static unsigned int get_slot_status(stru
-  */
- static void trim_stale_devices(struct pci_dev *dev)
- {
--	acpi_handle handle = ACPI_HANDLE(&dev->dev);
-+	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
- 	struct pci_bus *bus = dev->subordinate;
+ 
+@@ -710,13 +710,12 @@ static void trim_stale_devices(struct pc
  	bool alive = false;
  
--	if (handle) {
-+	if (adev) {
-+		acpi_handle handle = adev->handle;
+ 	if (adev) {
+-		acpi_handle handle = adev->handle;
  		acpi_status status;
  		unsigned long long sta;
  
-@@ -734,8 +726,8 @@ static void trim_stale_devices(struct pc
+-		status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
++		status = acpi_evaluate_integer(adev->handle, "_STA", NULL, &sta);
+ 		alive = (ACPI_SUCCESS(status) && sta == ACPI_STA_ALL)
+-			|| acpiphp_no_hotplug(handle);
++			|| acpiphp_no_hotplug(adev);
  	}
  	if (!alive) {
- 		pci_stop_and_remove_bus_device(dev);
--		if (handle)
--			acpiphp_bus_trim(handle);
-+		if (adev)
-+			acpi_bus_trim(adev);
- 	} else if (bus) {
- 		struct pci_dev *child, *tmp;
- 
+ 		u32 v;
