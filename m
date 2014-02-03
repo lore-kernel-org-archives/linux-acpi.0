@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 22/24][Resend] ACPI / hotplug / PCI: Simplify acpi_install_hotplug_notify_handler()
-Date: Tue, 04 Feb 2014 00:39:38 +0100
-Message-ID: <2300097.5mc1uSoD5p@vostro.rjw.lan>
+Subject: [PATCH 13/24][Resend] ACPI / hotplug / PCI: Drop crit_sect locking
+Date: Tue, 04 Feb 2014 00:27:01 +0100
+Message-ID: <5034851.lQfU1PoFxK@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan> <20140203104408.GQ18029@intel.com> <7532948.aJNUotNMpR@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,67 +15,122 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Since acpi_hotplug_notify_cb() does not use its data argument any
-more, the second argument of acpi_install_hotplug_notify_handler()
-can be dropped, so do that and update its callers accordingly.
+After recent PCI core changes related to the rescan/remove locking,
+the code sections under crit_sect mutexes from ACPIPHP slot objects
+are always executed under the general PCI rescan/remove lock.
+For this reason, the crit_sect mutexes are simply redundant, so drop
+them.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/acpi/scan.c                |    6 +++---
- drivers/pci/hotplug/acpiphp_glue.c |    2 +-
- include/acpi/acpi_bus.h            |    2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/pci/hotplug/acpiphp.h      |    1 -
+ drivers/pci/hotplug/acpiphp_glue.c |   23 +++--------------------
+ 2 files changed, 3 insertions(+), 21 deletions(-)
 
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -577,10 +577,10 @@ static void acpi_hotplug_notify_cb(acpi_
- 	acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
- }
- 
--void acpi_install_hotplug_notify_handler(acpi_handle handle, void *data)
-+void acpi_install_hotplug_notify_handler(acpi_handle handle)
- {
- 	acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
--				    acpi_hotplug_notify_cb, data);
-+				    acpi_hotplug_notify_cb, NULL);
- }
- 
- void acpi_remove_hotplug_notify_handler(acpi_handle handle)
-@@ -2048,7 +2048,7 @@ static void acpi_scan_init_hotplug(acpi_
- 	list_for_each_entry(hwid, &pnp.ids, list) {
- 		handler = acpi_scan_match_handler(hwid->id, NULL);
- 		if (handler) {
--			acpi_install_hotplug_notify_handler(handle, handler);
-+			acpi_install_hotplug_notify_handler(handle);
- 			break;
- 		}
- 	}
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -372,7 +372,7 @@ static acpi_status register_slot(acpi_ha
+@@ -347,7 +347,6 @@ static acpi_status register_slot(acpi_ha
+ 	slot->bus = bridge->pci_bus;
+ 	slot->device = device;
+ 	INIT_LIST_HEAD(&slot->funcs);
+-	mutex_init(&slot->crit_sect);
  
- 	/* install notify handler */
- 	if (!(newfunc->flags & FUNC_HAS_DCK))
--		acpi_install_hotplug_notify_handler(handle, NULL);
-+		acpi_install_hotplug_notify_handler(handle);
+ 	list_add_tail(&slot->node, &bridge->slots);
  
- 	return AE_OK;
+@@ -744,7 +743,6 @@ static void acpiphp_check_bridge(struct
+ 		struct pci_bus *bus = slot->bus;
+ 		struct pci_dev *dev, *tmp;
+ 
+-		mutex_lock(&slot->crit_sect);
+ 		if (slot_no_hotplug(slot)) {
+ 			; /* do nothing */
+ 		} else if (get_slot_status(slot) == ACPI_STA_ALL) {
+@@ -759,7 +757,6 @@ static void acpiphp_check_bridge(struct
+ 		} else {
+ 			disable_slot(slot);
+ 		}
+-		mutex_unlock(&slot->crit_sect);
+ 	}
  }
-Index: linux-pm/include/acpi/acpi_bus.h
+ 
+@@ -846,12 +843,8 @@ static void hotplug_event(acpi_handle ha
+ 		} else {
+ 			struct acpiphp_slot *slot = func->slot;
+ 
+-			if (slot->flags & SLOT_IS_GOING_AWAY)
+-				break;
+-
+-			mutex_lock(&slot->crit_sect);
+-			enable_slot(slot);
+-			mutex_unlock(&slot->crit_sect);
++			if (!(slot->flags & SLOT_IS_GOING_AWAY))
++				enable_slot(slot);
+ 		}
+ 		break;
+ 
+@@ -862,7 +855,6 @@ static void hotplug_event(acpi_handle ha
+ 			acpiphp_check_bridge(bridge);
+ 		} else {
+ 			struct acpiphp_slot *slot = func->slot;
+-			int ret;
+ 
+ 			if (slot->flags & SLOT_IS_GOING_AWAY)
+ 				break;
+@@ -871,10 +863,7 @@ static void hotplug_event(acpi_handle ha
+ 			 * Check if anything has changed in the slot and rescan
+ 			 * from the parent if that's the case.
+ 			 */
+-			mutex_lock(&slot->crit_sect);
+-			ret = acpiphp_rescan_slot(slot);
+-			mutex_unlock(&slot->crit_sect);
+-			if (ret)
++			if (acpiphp_rescan_slot(slot))
+ 				acpiphp_check_bridge(func->parent);
+ 		}
+ 		break;
+@@ -1088,13 +1077,10 @@ int acpiphp_enable_slot(struct acpiphp_s
+ 	if (slot->flags & SLOT_IS_GOING_AWAY)
+ 		return -ENODEV;
+ 
+-	mutex_lock(&slot->crit_sect);
+ 	/* configure all functions */
+ 	if (!(slot->flags & SLOT_ENABLED))
+ 		enable_slot(slot);
+ 
+-	mutex_unlock(&slot->crit_sect);
+-
+ 	pci_unlock_rescan_remove();
+ 	return 0;
+ }
+@@ -1110,8 +1096,6 @@ static int acpiphp_disable_and_eject_slo
+ 	if (slot->flags & SLOT_IS_GOING_AWAY)
+ 		return -ENODEV;
+ 
+-	mutex_lock(&slot->crit_sect);
+-
+ 	/* unconfigure all functions */
+ 	disable_slot(slot);
+ 
+@@ -1125,7 +1109,6 @@ static int acpiphp_disable_and_eject_slo
+ 			break;
+ 		}
+ 
+-	mutex_unlock(&slot->crit_sect);
+ 	return 0;
+ }
+ 
+Index: linux-pm/drivers/pci/hotplug/acpiphp.h
 ===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -445,7 +445,7 @@ static inline bool acpi_device_enumerate
- typedef void (*acpi_hp_callback)(void *data, u32 src);
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp.h
++++ linux-pm/drivers/pci/hotplug/acpiphp.h
+@@ -93,7 +93,6 @@ struct acpiphp_slot {
+ 	struct list_head funcs;		/* one slot may have different
+ 					   objects (i.e. for each function) */
+ 	struct slot *slot;
+-	struct mutex crit_sect;
  
- acpi_status acpi_hotplug_execute(acpi_hp_callback func, void *data, u32 src);
--void acpi_install_hotplug_notify_handler(acpi_handle handle, void *data);
-+void acpi_install_hotplug_notify_handler(acpi_handle handle);
- void acpi_remove_hotplug_notify_handler(acpi_handle handle);
- 
- /**
+ 	u8		device;		/* pci device# */
+ 	u32		flags;		/* see below */
