@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 1/24][Resend] ACPI / hotplug / PCI: Remove entries from bus->devices in reverse order
-Date: Tue, 04 Feb 2014 00:14:48 +0100
-Message-ID: <1839968.W3QXGMsfBF@vostro.rjw.lan>
+Subject: [PATCH 3/24][Resend] ACPI / hotplug / PCI: Scan root bus under the PCI rescan-remove lock
+Date: Tue, 04 Feb 2014 00:16:47 +0100
+Message-ID: <17625030.0nuH6OuXil@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan> <20140203104408.GQ18029@intel.com> <7532948.aJNUotNMpR@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,52 +15,28 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-According to the changelog of commit 29ed1f29b68a (PCI: pciehp: Fix null
-pointer deref when hot-removing SR-IOV device) it is unsafe to walk the
-bus->devices list of a PCI bus and remove devices from it in direct order,
-because that may lead to NULL pointer dereferences related to virtual
-functions.
-
-For this reason, change all of the bus->devices list walks in
-acpiphp_glue.c during which devices may be removed to be carried out in
-reverse order.
+Since acpiphp_check_bridge() called by acpiphp_check_host_bridge()
+does things that require PCI rescan-remove locking around it,
+make acpiphp_check_host_bridge() use that locking.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -742,7 +742,7 @@ static void trim_stale_devices(struct pc
+@@ -829,7 +829,11 @@ void acpiphp_check_host_bridge(acpi_hand
  
- 		/* The device is a bridge. so check the bus below it. */
- 		pm_runtime_get_sync(&dev->dev);
--		list_for_each_entry_safe(child, tmp, &bus->devices, bus_list)
-+		list_for_each_entry_safe_reverse(child, tmp, &bus->devices, bus_list)
- 			trim_stale_devices(child);
- 
- 		pm_runtime_put(&dev->dev);
-@@ -773,8 +773,8 @@ static void acpiphp_check_bridge(struct
- 			; /* do nothing */
- 		} else if (get_slot_status(slot) == ACPI_STA_ALL) {
- 			/* remove stale devices if any */
--			list_for_each_entry_safe(dev, tmp, &bus->devices,
--						 bus_list)
-+			list_for_each_entry_safe_reverse(dev, tmp,
-+							 &bus->devices, bus_list)
- 				if (PCI_SLOT(dev->devfn) == slot->device)
- 					trim_stale_devices(dev);
- 
-@@ -805,7 +805,7 @@ static void acpiphp_sanitize_bus(struct
- 	int i;
- 	unsigned long type_mask = IORESOURCE_IO | IORESOURCE_MEM;
- 
--	list_for_each_entry_safe(dev, tmp, &bus->devices, bus_list) {
-+	list_for_each_entry_safe_reverse(dev, tmp, &bus->devices, bus_list) {
- 		for (i=0; i<PCI_BRIDGE_RESOURCES; i++) {
- 			struct resource *res = &dev->resource[i];
- 			if ((res->flags & type_mask) && !res->start &&
+ 	bridge = acpiphp_handle_to_bridge(handle);
+ 	if (bridge) {
++		pci_lock_rescan_remove();
++
+ 		acpiphp_check_bridge(bridge);
++
++		pci_unlock_rescan_remove();
+ 		put_bridge(bridge);
+ 	}
+ }
