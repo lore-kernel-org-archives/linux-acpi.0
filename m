@@ -1,114 +1,74 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 17/24][Resend] ACPICA: Introduce acpi_get_data_full() and rework acpi_get_data()
-Date: Tue, 04 Feb 2014 00:34:19 +0100
-Message-ID: <2346175.LEPCgcSjCH@vostro.rjw.lan>
+Subject: [PATCH 12/24][Resend] ACPI / hotplug / PCI: Drop acpiphp_bus_add()
+Date: Tue, 04 Feb 2014 00:26:06 +0100
+Message-ID: <1535557.TbkE2ed7qM@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan> <20140203104408.GQ18029@intel.com> <7532948.aJNUotNMpR@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:54196 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753582AbaBCX20 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Feb 2014 18:28:26 -0500
 In-Reply-To: <7532948.aJNUotNMpR@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Introduce a new function, acpi_get_data_full(), working in analogy
-with acpi_get_data() except that it can execute a callback provided
-as its 4th argument right after acpi_ns_get_attached_data() has
-returned a success.
-
-That will allow Linux to reference count the object pointed to by
-*data before the namespace mutex is released so as to ensure that it
-will not be freed going forward until the reference to it acquired
-by acpi_get_data_full() is dropped.
+acpiphp_bus_add() is only called from one place, so move the code out
+of it into that place and drop it.  Also make that code use
+func_to_acpi_device() to get the struct acpi_device pointer it needs
+instead of calling acpi_bus_get_device() which may be costly.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/acpi/acpica/nsxfeval.c |   33 ++++++++++++++++++++++++++++++---
- include/acpi/acpixf.h          |    4 ++++
- 2 files changed, 34 insertions(+), 3 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
 
-Index: linux-pm/drivers/acpi/acpica/nsxfeval.c
+Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
---- linux-pm.orig/drivers/acpi/acpica/nsxfeval.c
-+++ linux-pm/drivers/acpi/acpica/nsxfeval.c
-@@ -923,19 +923,22 @@ ACPI_EXPORT_SYMBOL(acpi_detach_data)
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_get_data
-+ * FUNCTION:    acpi_get_data_full
-  *
-  * PARAMETERS:  obj_handle          - Namespace node
-  *              handler             - Handler used in call to attach_data
-  *              data                - Where the data is returned
-+ *              callback            - function to execute before returning
-  *
-  * RETURN:      Status
-  *
-- * DESCRIPTION: Retrieve data that was previously attached to a namespace node.
-+ * DESCRIPTION: Retrieve data that was previously attached to a namespace node
-+ *              and execute a callback before returning.
-  *
-  ******************************************************************************/
- acpi_status
--acpi_get_data(acpi_handle obj_handle, acpi_object_handler handler, void **data)
-+acpi_get_data_full(acpi_handle obj_handle, acpi_object_handler handler,
-+		   void **data, void (*callback)(void *))
- {
- 	struct acpi_namespace_node *node;
- 	acpi_status status;
-@@ -960,10 +963,34 @@ acpi_get_data(acpi_handle obj_handle, ac
- 	}
- 
- 	status = acpi_ns_get_attached_data(node, handler, data);
-+	if (ACPI_SUCCESS(status) && callback) {
-+		callback(*data);
-+	}
- 
- unlock_and_exit:
- 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
- 	return (status);
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+@@ -491,20 +491,6 @@ static unsigned char acpiphp_max_busnr(s
+ 	return max;
  }
  
-+ACPI_EXPORT_SYMBOL(acpi_get_data_full)
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_get_data
-+ *
-+ * PARAMETERS:  obj_handle          - Namespace node
-+ *              handler             - Handler used in call to attach_data
-+ *              data                - Where the data is returned
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Retrieve data that was previously attached to a namespace node.
-+ *
-+ ******************************************************************************/
-+acpi_status
-+acpi_get_data(acpi_handle obj_handle, acpi_object_handler handler, void **data)
-+{
-+	return acpi_get_data_full(obj_handle, handler, data, NULL);
-+}
-+
- ACPI_EXPORT_SYMBOL(acpi_get_data)
-Index: linux-pm/include/acpi/acpixf.h
-===================================================================
---- linux-pm.orig/include/acpi/acpixf.h
-+++ linux-pm/include/acpi/acpixf.h
-@@ -230,6 +230,10 @@ acpi_attach_data(acpi_handle object, acp
- acpi_status acpi_detach_data(acpi_handle object, acpi_object_handler handler);
+-/**
+- * acpiphp_bus_add - Scan ACPI namespace subtree.
+- * @handle: ACPI object handle to start the scan from.
+- */
+-static void acpiphp_bus_add(acpi_handle handle)
+-{
+-	struct acpi_device *adev = NULL;
+-
+-	acpi_bus_scan(handle);
+-	acpi_bus_get_device(handle, &adev);
+-	if (acpi_device_enumerated(adev))
+-		acpi_device_set_power(adev, ACPI_STATE_D0);
+-}
+-
+ static void acpiphp_set_acpi_region(struct acpiphp_slot *slot)
+ {
+ 	struct acpiphp_func *func;
+@@ -544,9 +530,13 @@ static int acpiphp_rescan_slot(struct ac
+ {
+ 	struct acpiphp_func *func;
  
- acpi_status
-+acpi_get_data_full(acpi_handle object, acpi_object_handler handler, void **data,
-+		   void (*callback)(void *));
-+
-+acpi_status
- acpi_get_data(acpi_handle object, acpi_object_handler handler, void **data);
+-	list_for_each_entry(func, &slot->funcs, sibling)
+-		acpiphp_bus_add(func_to_handle(func));
++	list_for_each_entry(func, &slot->funcs, sibling) {
++		struct acpi_device *adev = func_to_acpi_device(func);
  
- acpi_status
++		acpi_bus_scan(adev->handle);
++		if (acpi_device_enumerated(adev))
++			acpi_device_set_power(adev, ACPI_STATE_D0);
++	}
+ 	return pci_scan_slot(slot->bus, PCI_DEVFN(slot->device, 0));
+ }
+ 
+
