@@ -1,85 +1,62 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 00/17] x86, ia64 NUMA cleanup
-Date: Mon, 3 Feb 2014 12:23:28 -0700
-Message-ID: <CAErSpo5whsUH0aM8iocKdn4FOQLEjCQoM+ShjVjzWDxSWTzQnA@mail.gmail.com>
-References: <20140129174106.15476.7075.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 0/7] ACPI / hotplug / PCI: Consolidation of ACPIPHP with ACPI core device hotplug
+Date: Mon, 03 Feb 2014 22:51:09 +0100
+Message-ID: <3208910.EcIUVqxZdQ@vostro.rjw.lan>
+References: <2217793.001RY6hKlo@vostro.rjw.lan> <5157096.hCmU2aoKCT@vostro.rjw.lan> <20140203104511.GR18029@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20140129174106.15476.7075.stgit@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:51954 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753004AbaBCVgl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Feb 2014 16:36:41 -0500
+In-Reply-To: <20140203104511.GR18029@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Robert Moore <robert.moore@intel.com>
 
-[+cc Tony]
+On Monday, February 03, 2014 12:45:11 PM Mika Westerberg wrote:
+> On Sun, Feb 02, 2014 at 06:11:19PM +0100, Rafael J. Wysocki wrote:
+> > As stated in the message at http://marc.info/?l=linux-acpi&m=139135963030012&w=4 ,
+> > patch [1/6] was actaully wrong and the whole patchset had to be reworked for that
+> > reason.  What follows is an entirely new version:
+> > 
+> > [1/7] Add a new function to ACPICA allowing a callback to be executed under the
+> >       namespace mutex after calling acpi_ns_get_attached_data().
+> > 
+> > [2/7] Use the new ACPICA's function to fix a couple of potential races related
+> >       to ACPI notifies.
+> > 
+> > [3/7] Same as [2/6] above.
+> > [4/7] Same as [3/6] above, rebased.
+> > [5/7] Same as [4/6] above.
+> > [6/7] Same as [5/6] above.
+> > [7/7] Dispatch ACPI hotplug notifications for "core" devices and PCI from
+> >       acpi_bus_notify().  This actually is different from [6/6] above, although
+> >       it serves the same purpose.
+> > 
+> 
+> On Intel NUC and DZ77RE-75K,
+> 
+> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Wed, Jan 29, 2014 at 11:17 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> This is all cleanup: it adds no new functionality and should make no
-> functional difference at all except a printk change or two.
->
-> The main ideas are:
->
->   - Clean up the x86 PCI bus scanning interfaces.  We had:
->       struct pci_bus *pci_scan_bus_on_node(int bus, struct pci_ops *, int node)
->       struct pci_bus *pcibios_scan_root(int bus)
->       struct pci_bus *pci_scan_bus_with_sysdata(int bus)
->       void pcibios_scan_specific_bus(int bus)
->     These were all basically the same, so I kept only pcibios_scan_root().
->
->   - Get rid of mp_bus_to_node[].  This was basically a way of passing node
->     info from the AMD "native host bridg driver" (amd_bus.c) into the PCI
->     core.  It was clunky and inconsistent between x86-64 and i386.  I
->     replaced it with x86_pci_root_bus_node(), analogous to the existing
->     x86_pci_root_bus_resources().
->
->   - Remove _PXM knowledge from the PCI host bridge, IOMMU, and APIC code.
->     They really only care about the NUMA node number, not the raw _PXM
->     value.
->
-> ---
->
-> Bjorn Helgaas (17):
->       x86/PCI: Drop pcibios_scan_root() check for bus already scanned
->       x86/PCI: Use pcibios_scan_root() instead of pci_scan_bus_with_sysdata()
->       x86/PCI: Use pcibios_scan_root() instead of pci_scan_bus_on_node()
->       x86/PCI: Merge pci_scan_bus_on_node() into pcibios_scan_root()
->       x86/PCI: Drop return value of pcibios_scan_root()
->       x86/PCI: Add x86_pci_root_bus_node() to look up NUMA node from PCI bus
->       x86/PCI: Use x86_pci_root_bus_node() instead of get_mp_bus_to_node()
->       x86/PCI: Remove mp_bus_to_node[], set_mp_bus_to_node(), get_mp_bus_to_node()
->       x86/PCI: Remove unnecessary list_empty(&pci_root_infos) check
->       x86/PCI: Use NUMA_NO_NODE, not -1, for unknown node
->       x86/PCI: Remove acpi_get_pxm() usage
->       ia64 / sba_iommu: Use NUMA_NO_NODE, not MAX_NUMNODES, for unknown node
->       ia64: Remove acpi_get_pxm() usage
->       ACPI / numa: Fix acpi_get_node() prototype
->       ACPI / numa: Simplify acpi_get_node() style
->       ACPI / numa: Make __acpi_map_pxm_to_node(), acpi_get_pxm() static
->       ACPI / numa: Use __weak, not the gcc-specific version
->
->
->  arch/ia64/hp/common/sba_iommu.c |   32 +++-------
->  arch/ia64/include/asm/pci.h     |    2 -
->  arch/ia64/kernel/acpi.c         |   28 ++-------
->  arch/ia64/pci/pci.c             |   10 +--
->  arch/x86/include/asm/pci.h      |    7 --
->  arch/x86/include/asm/topology.h |   14 ----
->  arch/x86/pci/acpi.c             |   29 ++-------
->  arch/x86/pci/amd_bus.c          |   10 ---
->  arch/x86/pci/bus_numa.c         |   13 +++-
->  arch/x86/pci/common.c           |  128 +++++----------------------------------
->  arch/x86/pci/fixup.c            |    6 +-
->  arch/x86/pci/irq.c              |    6 --
->  arch/x86/pci/legacy.c           |    4 -
->  arch/x86/pci/numaq_32.c         |    6 +-
->  arch/x86/pci/visws.c            |    4 +
->  drivers/acpi/numa.c             |   16 ++---
->  include/acpi/acpi_numa.h        |    1
->  include/linux/acpi.h            |    9 +--
->  18 files changed, 75 insertions(+), 250 deletions(-)
+Thanks a lot for testing!
 
-I added this series to my "next" branch for v3.14.  Tony, let me know
-if you see any ia64 issues.
+In the meantime, though, I found two more race conditions in ACPIPHP related to
+races with sysfs-triggered device remove.  I have patches to fix them, but then
+I had to rebase this series (and the ACPIPHP one this is based on) on top of
+those fixes.
 
-Bjorn
+I'm going to resend the two patchsets as one series including the fixes
+mentioned above.  I tried to avoid sending out a series of 20+ patches, because
+then it's almost guaranteed that no one will look at them unless they happen to
+break things in testing, but I guess I have no choice but to do that at this
+point.
+
+Thanks!
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
