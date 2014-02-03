@@ -1,42 +1,48 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v3 0/7] ACPI / hotplug / PCI: Consolidation of ACPIPHP
- with ACPI core device hotplug
-Date: Mon, 3 Feb 2014 12:45:11 +0200
-Message-ID: <20140203104511.GR18029@intel.com>
-References: <2217793.001RY6hKlo@vostro.rjw.lan>
- <1693151.2qrLZHyp0o@vostro.rjw.lan>
- <1519631.YS65c9Af2C@vostro.rjw.lan>
- <5157096.hCmU2aoKCT@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5157096.hCmU2aoKCT@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Robert Moore <robert.moore@intel.com>
+Subject: [PATCH] ACPI / video: Add HP EliteBook Revolve 810 to the blacklist
+Date: Mon,  3 Feb 2014 12:59:16 +0200
+Message-ID: <1391425156-27821-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:7361 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750784AbaBCK7T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Feb 2014 05:59:19 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Aaron Lu <aaron.lu@intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Sun, Feb 02, 2014 at 06:11:19PM +0100, Rafael J. Wysocki wrote:
-> As stated in the message at http://marc.info/?l=linux-acpi&m=139135963030012&w=4 ,
-> patch [1/6] was actaully wrong and the whole patchset had to be reworked for that
-> reason.  What follows is an entirely new version:
-> 
-> [1/7] Add a new function to ACPICA allowing a callback to be executed under the
->       namespace mutex after calling acpi_ns_get_attached_data().
-> 
-> [2/7] Use the new ACPICA's function to fix a couple of potential races related
->       to ACPI notifies.
-> 
-> [3/7] Same as [2/6] above.
-> [4/7] Same as [3/6] above, rebased.
-> [5/7] Same as [4/6] above.
-> [6/7] Same as [5/6] above.
-> [7/7] Dispatch ACPI hotplug notifications for "core" devices and PCI from
->       acpi_bus_notify().  This actually is different from [6/6] above, although
->       it serves the same purpose.
-> 
+On HP EliteBook Revolve 810 the ACPI backlight device doesn't work as
+expected. For example when resuming from system sleep, it seems to lose
+backlight settings.
 
-On Intel NUC and DZ77RE-75K,
+Forcing Intel driver fixes the problem so add this machine the ACPI
+video detect blacklist.
 
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/acpi/video_detect.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index f0447d3daf2c..a697b77b8865 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -170,6 +170,14 @@ static struct dmi_system_id video_detect_dmi_table[] = {
+ 	},
+ 	{
+ 	.callback = video_detect_force_vendor,
++	.ident = "HP EliteBook Revolve 810",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook Revolve 810 G1"),
++		},
++	},
++	{
++	.callback = video_detect_force_vendor,
+ 	.ident = "Lenovo Yoga 13",
+ 	.matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-- 
+1.8.3.1
+
