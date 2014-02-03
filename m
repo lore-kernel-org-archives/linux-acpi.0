@@ -1,229 +1,114 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 11/24][Update] ACPI / hotplug / PCI: Store acpi_device pointer in acpiphp_context
-Date: Tue, 04 Feb 2014 00:25:14 +0100
-Message-ID: <1852062.LYyYA0uj6D@vostro.rjw.lan>
+Subject: [PATCH 17/24][Resend] ACPICA: Introduce acpi_get_data_full() and rework acpi_get_data()
+Date: Tue, 04 Feb 2014 00:34:19 +0100
+Message-ID: <2346175.LEPCgcSjCH@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan> <20140203104408.GQ18029@intel.com> <7532948.aJNUotNMpR@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64478 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753623AbaBCX21 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Feb 2014 18:28:27 -0500
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <7532948.aJNUotNMpR@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-After recent modifications of the ACPI core making it create a struct
-acpi_device object for every namespace node representing a device
-regardless of the current status of that device the ACPIPHP code
-can store a struct acpi_device pointer instead of an ACPI handle
-in struct acpiphp_context.  This immediately makes it possible to
-avoid making potentially costly calls to acpi_bus_get_device() in
-two places and allows some more simplifications to be made going
-forward.
+Introduce a new function, acpi_get_data_full(), working in analogy
+with acpi_get_data() except that it can execute a callback provided
+as its 4th argument right after acpi_ns_get_attached_data() has
+returned a success.
 
-The reason why that is correct is because ACPIPHP only installs
-hotify handlers for namespace nodes that exist when
-acpiphp_enumerate_slots() is called for their parent bridge.
-That only happens if the parent bridge has an ACPI companion
-associated with it, which means that the ACPI namespace scope
-in question has been scanned already at that point.  That, in
-turn, means that struct acpi_device objects have been created
-for all namespace nodes in that scope and pointers to those
-objects can be stored directly instead of their ACPI handles.
+That will allow Linux to reference count the object pointed to by
+*data before the namespace mutex is released so as to ensure that it
+will not be freed going forward until the reference to it acquired
+by acpi_get_data_full() is dropped.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/pci/hotplug/acpiphp.h      |    9 +++++--
- drivers/pci/hotplug/acpiphp_glue.c |   46 +++++++++++++++++--------------------
- 2 files changed, 29 insertions(+), 26 deletions(-)
+ drivers/acpi/acpica/nsxfeval.c |   33 ++++++++++++++++++++++++++++++---
+ include/acpi/acpixf.h          |    4 ++++
+ 2 files changed, 34 insertions(+), 3 deletions(-)
 
-Index: linux-pm/drivers/pci/hotplug/acpiphp.h
+Index: linux-pm/drivers/acpi/acpica/nsxfeval.c
 ===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp.h
-+++ linux-pm/drivers/pci/hotplug/acpiphp.h
-@@ -117,8 +117,8 @@ struct acpiphp_func {
- };
+--- linux-pm.orig/drivers/acpi/acpica/nsxfeval.c
++++ linux-pm/drivers/acpi/acpica/nsxfeval.c
+@@ -923,19 +923,22 @@ ACPI_EXPORT_SYMBOL(acpi_detach_data)
  
- struct acpiphp_context {
--	acpi_handle handle;
- 	struct acpiphp_func func;
-+	struct acpi_device *adev;
- 	struct acpiphp_bridge *bridge;
- 	unsigned int refcount;
- };
-@@ -128,9 +128,14 @@ static inline struct acpiphp_context *fu
- 	return container_of(func, struct acpiphp_context, func);
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_get_data
++ * FUNCTION:    acpi_get_data_full
+  *
+  * PARAMETERS:  obj_handle          - Namespace node
+  *              handler             - Handler used in call to attach_data
+  *              data                - Where the data is returned
++ *              callback            - function to execute before returning
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Retrieve data that was previously attached to a namespace node.
++ * DESCRIPTION: Retrieve data that was previously attached to a namespace node
++ *              and execute a callback before returning.
+  *
+  ******************************************************************************/
+ acpi_status
+-acpi_get_data(acpi_handle obj_handle, acpi_object_handler handler, void **data)
++acpi_get_data_full(acpi_handle obj_handle, acpi_object_handler handler,
++		   void **data, void (*callback)(void *))
+ {
+ 	struct acpi_namespace_node *node;
+ 	acpi_status status;
+@@ -960,10 +963,34 @@ acpi_get_data(acpi_handle obj_handle, ac
+ 	}
+ 
+ 	status = acpi_ns_get_attached_data(node, handler, data);
++	if (ACPI_SUCCESS(status) && callback) {
++		callback(*data);
++	}
+ 
+ unlock_and_exit:
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+ 	return (status);
  }
  
-+static inline struct acpi_device *func_to_acpi_device(struct acpiphp_func *func)
++ACPI_EXPORT_SYMBOL(acpi_get_data_full)
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_get_data
++ *
++ * PARAMETERS:  obj_handle          - Namespace node
++ *              handler             - Handler used in call to attach_data
++ *              data                - Where the data is returned
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Retrieve data that was previously attached to a namespace node.
++ *
++ ******************************************************************************/
++acpi_status
++acpi_get_data(acpi_handle obj_handle, acpi_object_handler handler, void **data)
 +{
-+	return func_to_context(func)->adev;
++	return acpi_get_data_full(obj_handle, handler, data, NULL);
 +}
 +
- static inline acpi_handle func_to_handle(struct acpiphp_func *func)
- {
--	return func_to_context(func)->handle;
-+	return func_to_acpi_device(func)->handle;
- }
- 
- /*
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+ ACPI_EXPORT_SYMBOL(acpi_get_data)
+Index: linux-pm/include/acpi/acpixf.h
 ===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -73,11 +73,11 @@ static void acpiphp_context_handler(acpi
+--- linux-pm.orig/include/acpi/acpixf.h
++++ linux-pm/include/acpi/acpixf.h
+@@ -230,6 +230,10 @@ acpi_attach_data(acpi_handle object, acp
+ acpi_status acpi_detach_data(acpi_handle object, acpi_object_handler handler);
  
- /**
-  * acpiphp_init_context - Create hotplug context and grab a reference to it.
-- * @handle: ACPI object handle to create the context for.
-+ * @adev: ACPI device object to create the context for.
-  *
-  * Call under acpiphp_context_lock.
-  */
--static struct acpiphp_context *acpiphp_init_context(acpi_handle handle)
-+static struct acpiphp_context *acpiphp_init_context(struct acpi_device *adev)
- {
- 	struct acpiphp_context *context;
- 	acpi_status status;
-@@ -86,9 +86,9 @@ static struct acpiphp_context *acpiphp_i
- 	if (!context)
- 		return NULL;
- 
--	context->handle = handle;
-+	context->adev = adev;
- 	context->refcount = 1;
--	status = acpi_attach_data(handle, acpiphp_context_handler, context);
-+	status = acpi_attach_data(adev->handle, acpiphp_context_handler, context);
- 	if (ACPI_FAILURE(status)) {
- 		kfree(context);
- 		return NULL;
-@@ -118,7 +118,7 @@ static struct acpiphp_context *acpiphp_g
- 
- /**
-  * acpiphp_put_context - Drop a reference to ACPI hotplug context.
-- * @handle: ACPI object handle to put the context for.
-+ * @context: ACPI hotplug context to drop a reference to.
-  *
-  * The context object is removed if there are no more references to it.
-  *
-@@ -130,7 +130,7 @@ static void acpiphp_put_context(struct a
- 		return;
- 
- 	WARN_ON(context->bridge);
--	acpi_detach_data(context->handle, acpiphp_context_handler);
-+	acpi_detach_data(context->adev->handle, acpiphp_context_handler);
- 	kfree(context);
- }
- 
-@@ -216,7 +216,7 @@ static void dock_event(acpi_handle handl
- 
- 	mutex_lock(&acpiphp_context_lock);
- 	context = acpiphp_get_context(handle);
--	if (!context || WARN_ON(context->handle != handle)
-+	if (!context || WARN_ON(context->adev->handle != handle)
- 	    || context->func.parent->is_going_away) {
- 		mutex_unlock(&acpiphp_context_lock);
- 		return;
-@@ -284,6 +284,7 @@ static acpi_status register_slot(acpi_ha
- {
- 	struct acpiphp_bridge *bridge = data;
- 	struct acpiphp_context *context;
-+	struct acpi_device *adev;
- 	struct acpiphp_slot *slot;
- 	struct acpiphp_func *newfunc;
- 	acpi_status status = AE_OK;
-@@ -303,12 +304,14 @@ static acpi_status register_slot(acpi_ha
- 				"can't evaluate _ADR (%#x)\n", status);
- 		return AE_OK;
- 	}
-+	if (acpi_bus_get_device(handle, &adev))
-+		return AE_OK;
- 
- 	device = (adr >> 16) & 0xffff;
- 	function = adr & 0xffff;
- 
- 	mutex_lock(&acpiphp_context_lock);
--	context = acpiphp_init_context(handle);
-+	context = acpiphp_init_context(adev);
- 	if (!context) {
- 		mutex_unlock(&acpiphp_context_lock);
- 		acpi_handle_err(handle, "No hotplug context\n");
-@@ -628,12 +631,8 @@ static void disable_slot(struct acpiphp_
- 		if (PCI_SLOT(dev->devfn) == slot->device)
- 			pci_stop_and_remove_bus_device(dev);
- 
--	list_for_each_entry(func, &slot->funcs, sibling) {
--		struct acpi_device *adev;
--
--		if (!acpi_bus_get_device(func_to_handle(func), &adev))
--			acpi_bus_trim(adev);
--	}
-+	list_for_each_entry(func, &slot->funcs, sibling)
-+		acpi_bus_trim(func_to_acpi_device(func));
- 
- 	slot->flags &= (~SLOT_ENABLED);
- }
-@@ -647,13 +646,10 @@ static bool slot_no_hotplug(struct acpip
- {
- 	struct acpiphp_func *func;
- 
--	list_for_each_entry(func, &slot->funcs, sibling) {
--		struct acpi_device *adev = NULL;
--
--		acpi_bus_get_device(func_to_handle(func), &adev);
--		if (acpiphp_no_hotplug(adev))
-+	list_for_each_entry(func, &slot->funcs, sibling)
-+		if (acpiphp_no_hotplug(func_to_acpi_device(func)))
- 			return true;
--	}
+ acpi_status
++acpi_get_data_full(acpi_handle object, acpi_object_handler handler, void **data,
++		   void (*callback)(void *));
 +
- 	return false;
- }
++acpi_status
+ acpi_get_data(acpi_handle object, acpi_object_handler handler, void **data);
  
-@@ -908,7 +904,7 @@ static void hotplug_event(acpi_handle ha
- static void hotplug_event_work(void *data, u32 type)
- {
- 	struct acpiphp_context *context = data;
--	acpi_handle handle = context->handle;
-+	acpi_handle handle = context->adev->handle;
- 
- 	acpi_scan_lock_acquire();
- 
-@@ -967,7 +963,7 @@ static void handle_hotplug_event(acpi_ha
- 
- 	mutex_lock(&acpiphp_context_lock);
- 	context = acpiphp_get_context(handle);
--	if (!context || WARN_ON(context->handle != handle)
-+	if (!context || WARN_ON(context->adev->handle != handle)
- 	    || context->func.parent->is_going_away)
- 		goto err_out;
- 
-@@ -998,16 +994,18 @@ static void handle_hotplug_event(acpi_ha
- void acpiphp_enumerate_slots(struct pci_bus *bus)
- {
- 	struct acpiphp_bridge *bridge;
-+	struct acpi_device *adev;
- 	acpi_handle handle;
- 	acpi_status status;
- 
- 	if (acpiphp_disabled)
- 		return;
- 
--	handle = ACPI_HANDLE(bus->bridge);
--	if (!handle)
-+	adev = ACPI_COMPANION(bus->bridge);
-+	if (!adev)
- 		return;
- 
-+	handle = adev->handle;
- 	bridge = kzalloc(sizeof(struct acpiphp_bridge), GFP_KERNEL);
- 	if (!bridge) {
- 		acpi_handle_err(handle, "No memory for bridge object\n");
-
+ acpi_status
