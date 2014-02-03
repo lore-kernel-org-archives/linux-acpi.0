@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 2/24][Resend] ACPI / hotplug / PCI: Move PCI rescan-remove locking to hotplug_event()
-Date: Tue, 04 Feb 2014 00:15:50 +0100
-Message-ID: <3356372.HPHJPAeHZz@vostro.rjw.lan>
+Subject: [PATCH 1/24][Resend] ACPI / hotplug / PCI: Remove entries from bus->devices in reverse order
+Date: Tue, 04 Feb 2014 00:14:48 +0100
+Message-ID: <1839968.W3QXGMsfBF@vostro.rjw.lan>
 References: <2217793.001RY6hKlo@vostro.rjw.lan> <20140203104408.GQ18029@intel.com> <7532948.aJNUotNMpR@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,58 +15,52 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Commit 9217a984671e (ACPI / hotplug / PCI: Use global PCI rescan-remove
-locking) modified ACPIPHP to protect its PCI device removal and addition
-code paths from races against sysfs-driven rescan and remove operations
-with the help of PCI rescan-remove locking.  However, it overlooked the
-fact that hotplug_event_work() is not the only caller of hotplug_event()
-which may also be called by dock_hotplug_event() and that code path
-is missing the PCI rescan-remove locking.  This means that, although
-the PCI rescan-remove lock is held as appropriate during the handling
-of events originating from handle_hotplug_event(), the ACPIPHP's
-operations resulting from dock events may still suffer the race
-conditions that commit 9217a984671e was supposed to eliminate.
+According to the changelog of commit 29ed1f29b68a (PCI: pciehp: Fix null
+pointer deref when hot-removing SR-IOV device) it is unsafe to walk the
+bus->devices list of a PCI bus and remove devices from it in direct order,
+because that may lead to NULL pointer dereferences related to virtual
+functions.
 
-To address that problem, move the PCI rescan-remove locking from
-hotplug_event_work() to hotplug_event() so that it is used regardless
-of the way that function is invoked.
+For this reason, change all of the bus->devices list walks in
+acpiphp_glue.c during which devices may be removed to be carried out in
+reverse order.
 
-Revamps: 9217a984671e (ACPI / hotplug / PCI: Use global PCI rescan-remove locking)
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
 --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
 +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -852,6 +852,7 @@ static void hotplug_event(acpi_handle ha
+@@ -742,7 +742,7 @@ static void trim_stale_devices(struct pc
  
- 	mutex_unlock(&acpiphp_context_lock);
+ 		/* The device is a bridge. so check the bus below it. */
+ 		pm_runtime_get_sync(&dev->dev);
+-		list_for_each_entry_safe(child, tmp, &bus->devices, bus_list)
++		list_for_each_entry_safe_reverse(child, tmp, &bus->devices, bus_list)
+ 			trim_stale_devices(child);
  
-+	pci_lock_rescan_remove();
- 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+ 		pm_runtime_put(&dev->dev);
+@@ -773,8 +773,8 @@ static void acpiphp_check_bridge(struct
+ 			; /* do nothing */
+ 		} else if (get_slot_status(slot) == ACPI_STA_ALL) {
+ 			/* remove stale devices if any */
+-			list_for_each_entry_safe(dev, tmp, &bus->devices,
+-						 bus_list)
++			list_for_each_entry_safe_reverse(dev, tmp,
++							 &bus->devices, bus_list)
+ 				if (PCI_SLOT(dev->devfn) == slot->device)
+ 					trim_stale_devices(dev);
  
- 	switch (type) {
-@@ -905,6 +906,7 @@ static void hotplug_event(acpi_handle ha
- 		break;
- 	}
+@@ -805,7 +805,7 @@ static void acpiphp_sanitize_bus(struct
+ 	int i;
+ 	unsigned long type_mask = IORESOURCE_IO | IORESOURCE_MEM;
  
-+	pci_unlock_rescan_remove();
- 	if (bridge)
- 		put_bridge(bridge);
- }
-@@ -915,11 +917,9 @@ static void hotplug_event_work(void *dat
- 	acpi_handle handle = context->handle;
- 
- 	acpi_scan_lock_acquire();
--	pci_lock_rescan_remove();
- 
- 	hotplug_event(handle, type, context);
- 
--	pci_unlock_rescan_remove();
- 	acpi_scan_lock_release();
- 	acpi_evaluate_hotplug_ost(handle, type, ACPI_OST_SC_SUCCESS, NULL);
- 	put_bridge(context->func.parent);
+-	list_for_each_entry_safe(dev, tmp, &bus->devices, bus_list) {
++	list_for_each_entry_safe_reverse(dev, tmp, &bus->devices, bus_list) {
+ 		for (i=0; i<PCI_BRIDGE_RESOURCES; i++) {
+ 			struct resource *res = &dev->resource[i];
+ 			if ((res->flags & type_mask) && !res->start &&
