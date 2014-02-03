@@ -1,60 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / hotplug / PCI: Scan root bus under the PCI rescan-remove lock
-Date: Mon, 03 Feb 2014 02:47:51 +0100
-Message-ID: <1470947.hTFtukjoka@vostro.rjw.lan>
-References: <2217793.001RY6hKlo@vostro.rjw.lan> <1935791.liE9ZlzmO9@vostro.rjw.lan>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 0/13] ACPI / hotplug / PCI: Updates on top of changes
+ merged recently
+Date: Mon, 3 Feb 2014 12:44:08 +0200
+Message-ID: <20140203104408.GQ18029@intel.com>
+References: <2217793.001RY6hKlo@vostro.rjw.lan>
+ <1935791.liE9ZlzmO9@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58180 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752675AbaBCBdZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Feb 2014 20:33:25 -0500
+Received: from mga09.intel.com ([134.134.136.24]:36576 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750849AbaBCKhX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Feb 2014 05:37:23 -0500
+Content-Disposition: inline
 In-Reply-To: <1935791.liE9ZlzmO9@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Sun, Feb 02, 2014 at 01:19:33AM +0100, Rafael J. Wysocki wrote:
+> On Monday, January 27, 2014 01:37:17 AM Rafael J. Wysocki wrote:
+> > Hi All,
+> > 
+> > ACPIPHP can be simplified a bit on top of some PCI and ACPI changes merged
+> > recently and the following series of patches implements those simplifications:
+> > 
+> > [1/11] Fix up two kerneldoc comments in acpiphp_glue.c.
+> > [2/11] Get rid of an unnecessary label in register_slot().
+> > [3/11] Drop acpiphp_bus_trim() and use acpi_bus_trim() instead of it directly.
+> > [4/11] Move the acpi_bus_get_device() call out of acpiphp_no_hotplug().
+> > [5/11] Store struct acpi_device pointers instead of ACPI handles in struct acpiphp_context.
+> > [6/11] Drop acpiphp_bus_add() (which has only one user).
+> > [7/11] Drop crit_sect mutexes (that are redundant).
+> > [8/11] Clean up the usage of the slot variable in hotplug_event().
+> > [9/11] Drop dev_in_slot() and rework disable_slot() to walk bus->devices directly.
+> > [10/11] Use acpi_handle_debug() in hotplug_event() instead of open-coded stuff.
+> > [11/11] Drop handle argument from the member functions of struct acpi_dock_ops.
+> > 
+> > All of that is relateively straightforward, but I have some more intrusive changes
+> > on top of it in the works.  They will be posted separately later this week.
+> 
+> I've learned a couple of things since I sent this patchset.  First, all
+> bus->devices list walks that may remove PCI devices should be done in reverse
+> order or they can crash if virtual functions are involved.  Second, hotplug_event()
+> (in acpiphp_glue.c) has to acquire pci_rescan_remove_lock by itself, because it
+> may be called from multiple places and all of them need that lock to be held.
+> That is done by patches [1-2/13] which I'm planning to push as fixes for 3.14-rc2.
+> 
+> The rest is pretty much the same as last time except that the old patch [9/11]
+> became [3/13] in this series and it has been changed so that the list is walked in
+> reverse order.
 
-Since acpiphp_check_bridge() called by acpiphp_check_host_bridge()
-does things that require PCI rescan-remove locking around it,
-make acpiphp_check_host_bridge() use that locking.
+On Intel NUC and DZ77RE-75K,
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-One more thing I overlooked in the PCI rescan-remove locking patchset.
-
-I just found it sitting there in a dark dusty corner and staring at me in
-horror when I approached it with a vacuum cleaner ...
-
-Anyway, 3.14-rc2 material on top of patches [1-2/13] from this series:
-https://lkml.org/lkml/2014/2/1/123
-
-Thanks,
-Rafael
-
----
- drivers/pci/hotplug/acpiphp_glue.c |    4 ++++
- 1 file changed, 4 insertions(+)
-
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -829,7 +829,11 @@ void acpiphp_check_host_bridge(acpi_hand
- 
- 	bridge = acpiphp_handle_to_bridge(handle);
- 	if (bridge) {
-+		pci_lock_rescan_remove();
-+
- 		acpiphp_check_bridge(bridge);
-+
-+		pci_unlock_rescan_remove();
- 		put_bridge(bridge);
- 	}
- }
-
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
