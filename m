@@ -1,115 +1,101 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 24/24][New] ACPI / hotplug / PCI: Rework acpiphp_check_host_bridge()
-Date: Tue, 04 Feb 2014 00:41:54 +0100
-Message-ID: <7962756.Dx5cJ92CrE@vostro.rjw.lan>
-References: <2217793.001RY6hKlo@vostro.rjw.lan> <20140203104408.GQ18029@intel.com> <7532948.aJNUotNMpR@vostro.rjw.lan>
+Subject: [PATCH v2 0/24] ACPI / hotplug / PCI: ACPIPHP updates and consolidation with ACPI core
+Date: Tue, 04 Feb 2014 00:12:26 +0100
+Message-ID: <7532948.aJNUotNMpR@vostro.rjw.lan>
+References: <2217793.001RY6hKlo@vostro.rjw.lan> <1935791.liE9ZlzmO9@vostro.rjw.lan> <20140203104408.GQ18029@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58367 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752576AbaBCX2U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Feb 2014 18:28:20 -0500
-In-Reply-To: <7532948.aJNUotNMpR@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140203104408.GQ18029@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Monday, February 03, 2014 12:44:08 PM Mika Westerberg wrote:
+> On Sun, Feb 02, 2014 at 01:19:33AM +0100, Rafael J. Wysocki wrote:
+> > On Monday, January 27, 2014 01:37:17 AM Rafael J. Wysocki wrote:
+> > > Hi All,
+> > > 
+> > > ACPIPHP can be simplified a bit on top of some PCI and ACPI changes merged
+> > > recently and the following series of patches implements those simplifications:
+> > > 
+> > > [1/11] Fix up two kerneldoc comments in acpiphp_glue.c.
+> > > [2/11] Get rid of an unnecessary label in register_slot().
+> > > [3/11] Drop acpiphp_bus_trim() and use acpi_bus_trim() instead of it directly.
+> > > [4/11] Move the acpi_bus_get_device() call out of acpiphp_no_hotplug().
+> > > [5/11] Store struct acpi_device pointers instead of ACPI handles in struct acpiphp_context.
+> > > [6/11] Drop acpiphp_bus_add() (which has only one user).
+> > > [7/11] Drop crit_sect mutexes (that are redundant).
+> > > [8/11] Clean up the usage of the slot variable in hotplug_event().
+> > > [9/11] Drop dev_in_slot() and rework disable_slot() to walk bus->devices directly.
+> > > [10/11] Use acpi_handle_debug() in hotplug_event() instead of open-coded stuff.
+> > > [11/11] Drop handle argument from the member functions of struct acpi_dock_ops.
+> > > 
+> > > All of that is relateively straightforward, but I have some more intrusive changes
+> > > on top of it in the works.  They will be posted separately later this week.
+> > 
+> > I've learned a couple of things since I sent this patchset.  First, all
+> > bus->devices list walks that may remove PCI devices should be done in reverse
+> > order or they can crash if virtual functions are involved.  Second, hotplug_event()
+> > (in acpiphp_glue.c) has to acquire pci_rescan_remove_lock by itself, because it
+> > may be called from multiple places and all of them need that lock to be held.
+> > That is done by patches [1-2/13] which I'm planning to push as fixes for 3.14-rc2.
+> > 
+> > The rest is pretty much the same as last time except that the old patch [9/11]
+> > became [3/13] in this series and it has been changed so that the list is walked in
+> > reverse order.
+> 
+> On Intel NUC and DZ77RE-75K,
+> 
+> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Since the only existing caller of acpiphp_check_host_bridge(),
-which is acpi_pci_root_scan_dependent(), already has a struct
-acpi_device pointer needed to obtain the ACPIPHP context, it
-doesn't make sense to execute acpi_bus_get_device() on its
-handle in acpiphp_handle_to_bridge() just in order to get that
-pointer back.
+Thanks!
 
-For this reason, modify acpiphp_check_host_bridge() to take
-a struct acpi_device pointer as its argument and rearrange the
-code accordingly.
+As I said previously, I have found two concurrency-related bugs more in ACPIPHP
+and I needed to put fixes for those bugs at the top of the series (after previous
+[1-2/13] and the patch at https://patchwork.kernel.org/patch/3567701/).  For this
+reason, I also had to rebase the ACPI/PCI hotplug consolidation patchset
+(https://lkml.org/lkml/2014/2/2/87) which got a few additional cosmetic changes too.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/pci_root.c            |    2 +-
- drivers/pci/hotplug/acpiphp_glue.c |   11 +++--------
- include/linux/pci-acpi.h           |    4 ++--
- 3 files changed, 6 insertions(+), 11 deletions(-)
+The following is a combination of the two series with one patch dropped (it would
+conflict with [4-5/24]) and a few patches added.  It is on top of 3.14-rc1.
 
-Index: linux-pm/include/linux/pci-acpi.h
-===================================================================
---- linux-pm.orig/include/linux/pci-acpi.h
-+++ linux-pm/include/linux/pci-acpi.h
-@@ -59,12 +59,12 @@ static inline void acpi_pci_slot_remove(
- void acpiphp_init(void);
- void acpiphp_enumerate_slots(struct pci_bus *bus);
- void acpiphp_remove_slots(struct pci_bus *bus);
--void acpiphp_check_host_bridge(acpi_handle handle);
-+void acpiphp_check_host_bridge(struct acpi_device *adev);
- #else
- static inline void acpiphp_init(void) { }
- static inline void acpiphp_enumerate_slots(struct pci_bus *bus) { }
- static inline void acpiphp_remove_slots(struct pci_bus *bus) { }
--static inline void acpiphp_check_host_bridge(acpi_handle handle) { }
-+static inline void acpiphp_check_host_bridge(struct acpi_device *adev) { }
- #endif
- 
- #else	/* CONFIG_ACPI */
-Index: linux-pm/drivers/acpi/pci_root.c
-===================================================================
---- linux-pm.orig/drivers/acpi/pci_root.c
-+++ linux-pm/drivers/acpi/pci_root.c
-@@ -51,7 +51,7 @@ static void acpi_pci_root_remove(struct
- 
- static int acpi_pci_root_scan_dependent(struct acpi_device *adev)
- {
--	acpiphp_check_host_bridge(adev->handle);
-+	acpiphp_check_host_bridge(adev);
- 	return 0;
- }
- 
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -378,15 +378,11 @@ static acpi_status register_slot(acpi_ha
- 	return AE_OK;
- }
- 
--static struct acpiphp_bridge *acpiphp_handle_to_bridge(acpi_handle handle)
-+static struct acpiphp_bridge *acpiphp_dev_to_bridge(struct acpi_device *adev)
- {
--	struct acpi_device *adev = acpi_bus_get_acpi_device(handle);
- 	struct acpiphp_context *context;
- 	struct acpiphp_bridge *bridge = NULL;
- 
--	if (!adev)
--		return NULL;
--
- 	acpi_lock_hp_context();
- 	context = acpiphp_get_context(adev);
- 	if (context) {
-@@ -397,7 +393,6 @@ static struct acpiphp_bridge *acpiphp_ha
- 		acpiphp_put_context(context);
- 	}
- 	acpi_unlock_hp_context();
--	acpi_bus_put_acpi_device(adev);
- 	return bridge;
- }
- 
-@@ -764,11 +759,11 @@ static void acpiphp_sanitize_bus(struct
-  * ACPI event handlers
-  */
- 
--void acpiphp_check_host_bridge(acpi_handle handle)
-+void acpiphp_check_host_bridge(struct acpi_device *adev)
- {
- 	struct acpiphp_bridge *bridge;
- 
--	bridge = acpiphp_handle_to_bridge(handle);
-+	bridge = acpiphp_dev_to_bridge(adev);
- 	if (bridge) {
- 		pci_lock_rescan_remove();
- 
+Patches [1-5/24], that are regarded as 3.14-rc2 material, are on the bleeding-edge
+branch of linux-pm.git.  The remaining patches will show up in bleeding-edge
+shortly.
 
+[1/24] Remove entries from bus->devices in reverse order (in ACPIPHP).
+[2/24] Move PCI rescan-remove locking to hotplug_event().
+[3/24] Scan root bus under the PCI rescan-remove lock
+[4/24] Fix race in handle_hotplug_event() related to concurrent bridge removal.
+[5/24] Fix race in hotplug_event() related to dock events and concurrent bridge removal.
+[6/24] Drop dev_in_slot() and rework disable_slot() to walk bus->devices directly.
+[7/24] Fix up two kerneldoc comments in acpiphp_glue.c.
+[8/24] Get rid of an unnecessary label in register_slot().
+[9/24] Drop acpiphp_bus_trim() and use acpi_bus_trim() instead of it directly.
+[10/24] Move the acpi_bus_get_device() call out of acpiphp_no_hotplug().
+[11/24] Store struct acpi_device pointers instead of ACPI handles in struct acpiphp_context.
+[12/24] Drop acpiphp_bus_add() (which has only one user).
+[13/24] Drop crit_sect mutexes (that are redundant).
+[14/24] Clean up the usage of the slot variable in hotplug_event().
+[15/24] Use acpi_handle_debug() in hotplug_event() instead of open-coded stuff.
+[16/24] Do not pass ACPI handle to hotplug_event().
+[17/24] Add a new function to ACPICA allowing a callback to be executed under the
+        namespace mutex after calling acpi_ns_get_attached_data().
+[18/24] Use the new ACPICA's function to fix a couple of potential races related
+        to ACPI notifies.
+[19/24] Move the hotplug context lock definition to the ACPI core (from ACPIPHP).
+[20/24] Consolidate ACPI hotplug signaling for PCI and ACPI core.
+[21/24] Rework the handling of eject requests in the ACPI core.
+[22/24] Simplify a routine for installing hotplug notify handlers.
+[23/24] Dispatch ACPI hotplug notifications for "core" devices and PCI from
+        acpi_bus_notify().
+[24/24] Pass struct acpi_device pointer to acpiphp_check_host_bridge().
+
+Thanks!
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
