@@ -1,79 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Patch v1] ACPI, x86: fix bug in associating hot-added CPUs with corresponding NUMA node
-Date: Wed, 05 Feb 2014 01:14:54 +0100
-Message-ID: <4676819.HL23G4Egmr@vostro.rjw.lan>
-References: <1390185115-26850-1-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH] ACPI hotplug: Fix panic on eject to ejected device
+Date: Tue,  4 Feb 2014 17:48:28 -0700
+Message-ID: <1391561308-18893-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54746 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755238AbaBEAA0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Feb 2014 19:00:26 -0500
-In-Reply-To: <1390185115-26850-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:12392 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751470AbaBEAy6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Feb 2014 19:54:58 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-hotplug@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
 
-On Monday, January 20, 2014 10:31:54 AM Jiang Liu wrote:
-> Current ACPI cpu hotplug driver fails to associate hot-added CPUs with
-> corresponding NUMA node when doing socket online. The code path to
-> associate CPU with NUMA node is as below:
-> acpi_processor_add()
->     ->acpi_processor_get_info()
-> 	->acpi_processor_hotadd_init()
-> 	    ->acpi_map_lsapic()
-> 		->_acpi_map_lsapic()
-> 		    ->acpi_map_cpu2node()
-> cpu_subsys_online()
->     ->try_online_node()
-> 	->node_set_online()
-> 
-> When doing socket online, a new NUMA node is introduced in addition to
-> hot-added CPU and memory device. And the new NUMA node is marked as
-> online when onlining hot-added CPUs through sysfs interface
-> /sys/devices/system/cpu/cpuxx/online.
-> 
-> On the other hand, acpi_map_cpu2node() will only build the CPU to node
-> map if corresponding NUMA node is already online, so it always fails
-> to associate hot-added CPUs with corresponding NUMA node because the
-> NUMA node is still in offline state.
-> 
-> For the fix, we could safely remove the "node_online(node)" check in
-> function acpi_map_cpu2node() because it's only called for hot-added CPUs
-> by acpi_processor_hotadd_init().
-> 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+When an eject request is sent to an ejected ACPI device, the following
+panic occurs:
 
-I wonder what the status here is?  Did this patch go anywhere?
+ ACPI: \_SB_.SCK3.CPU3: ACPI_NOTIFY_EJECT_REQUEST event
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000070
+ IP: [<ffffffff813a7cfe>] acpi_device_hotplug+0x10b/0x33b
+	:
+ Call Trace:
+ [<ffffffff813a24da>] acpi_hotplug_work_fn+0x1c/0x27
+ [<ffffffff8109cbe5>] process_one_work+0x175/0x430
+ [<ffffffff8109d7db>] worker_thread+0x11b/0x3a0
 
-> ---
->  arch/x86/kernel/acpi/boot.c |    8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-> index 6c0b43b..7625de9 100644
-> --- a/arch/x86/kernel/acpi/boot.c
-> +++ b/arch/x86/kernel/acpi/boot.c
-> @@ -614,10 +614,10 @@ static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
->  	int nid;
->  
->  	nid = acpi_get_node(handle);
-> -	if (nid == -1 || !node_online(nid))
-> -		return;
-> -	set_apicid_to_node(physid, nid);
-> -	numa_set_node(cpu, nid);
-> +	if (nid != -1) {
-> +		set_apicid_to_node(physid, nid);
-> +		numa_set_node(cpu, nid);
-> +	}
->  #endif
->  }
->  
-> 
+This is becase device->handler is NULL in acpi_device_hotplug().
+This case was used to fail in acpi_hotplug_notify_cb() as the target
+had no acpi_deivce.  However, acpi_device now exists after ejection.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Added a check to verify if acpi_device->handler is valid for an
+eject request in acpi_hotplug_notify_cb().  Note that handler passed
+from an argument is still valid while acpi_device->handler is NULL.
+
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+---
+ drivers/acpi/scan.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 7384158..5cf6adf 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -484,7 +484,6 @@ static void acpi_device_hotplug(void *data, u32 src)
+ static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *data)
+ {
+ 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
+-	struct acpi_scan_handler *handler = data;
+ 	struct acpi_device *adev;
+ 	acpi_status status;
+ 
+@@ -500,7 +499,9 @@ static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *data)
+ 		break;
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		acpi_handle_debug(handle, "ACPI_NOTIFY_EJECT_REQUEST event\n");
+-		if (!handler->hotplug.enabled) {
++		if (!adev->handler)
++			goto err_out;
++		if (!adev->handler->hotplug.enabled) {
+ 			acpi_handle_err(handle, "Eject disabled\n");
+ 			ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+ 			goto err_out;
