@@ -1,22 +1,77 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH 00/17] x86, ia64 NUMA cleanup
-Date: Tue, 4 Feb 2014 18:32:23 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F31DC030A@ORSMSX106.amr.corp.intel.com>
-References: <20140129174106.15476.7075.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <CAErSpo5whsUH0aM8iocKdn4FOQLEjCQoM+ShjVjzWDxSWTzQnA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / LPSS: Add BYT ACPI mode PWM
+Date: Wed, 05 Feb 2014 01:10:46 +0100
+Message-ID: <7753658.iUv9mCkDx9@vostro.rjw.lan>
+References: <1390245122-18907-1-git-send-email-chiau.ee.chew@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo5whsUH0aM8iocKdn4FOQLEjCQoM+ShjVjzWDxSWTzQnA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:52433 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755199AbaBDX4R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Feb 2014 18:56:17 -0500
+In-Reply-To: <1390245122-18907-1-git-send-email-chiau.ee.chew@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chew Chiau Ee <chiau.ee.chew@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-PiBJIGFkZGVkIHRoaXMgc2VyaWVzIHRvIG15ICJuZXh0IiBicmFuY2ggZm9yIHYzLjE0LiAgVG9u
-eSwgbGV0IG1lIGtub3cNCj4gaWYgeW91IHNlZSBhbnkgaWE2NCBpc3N1ZXMuDQoNCkl0IHNob3dl
-ZCB1cCBpbiBuZXh0LTIwMTQwMjA0IC0gYW5kIGRvZXNuJ3Qgc2VlbSB0byBoYXZlIGNhdXNlZCBh
-bnkgYnVpbGQgb3IgYm9vdA0KcHJvYmxlbXMgb24gbXkgdGVzdCBtYWNoaW5lcy4NCg0KLVRvbnkN
-Cg==
+On Tuesday, January 21, 2014 03:12:02 AM Chew Chiau Ee wrote:
+> From: Chew, Chiau Ee <chiau.ee.chew@intel.com>
+> 
+> Intel BayTrail LPSS consists of two PWM controllers which can
+> be enumerated from ACPI namespace.
+
+First, please say "Bay Trail" (or similar) instead of BYT in the subject.
+
+Second, please say in the changelog what the patch will cause to happen.
+
+For example, "This change will cause platform device objects to be
+created for PWM controllers on Bay Trail which will allow the <driver
+that's going to handle those things> driver to bind to them and handle
+those devices."
+
+Finally, the PWM maintainer has to see this.
+
+Thanks!
+
+> Signed-off-by: Chew, Chiau Ee <chiau.ee.chew@intel.com>
+> ---
+>  drivers/acpi/acpi_lpss.c |   11 +++++++++++
+>  1 files changed, 11 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index 6745fe1..8c2bae9 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -102,6 +102,16 @@ static struct lpss_device_desc lpt_sdio_dev_desc = {
+>  	.ltr_required = true,
+>  };
+>  
+> +static struct lpss_shared_clock pwm_clock = {
+> +	.name = "pwm_clk",
+> +	.rate = 25000000,
+> +};
+> +
+> +static struct lpss_device_desc byt_pwm_dev_desc = {
+> +	.clk_required = true,
+> +	.shared_clock = &pwm_clock,
+> +};
+> +
+>  static struct lpss_shared_clock uart_clock = {
+>  	.name = "uart_clk",
+>  	.rate = 44236800,
+> @@ -157,6 +167,7 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+>  	{ "INT33C7", },
+>  
+>  	/* BayTrail LPSS devices */
+> +	{ "80860F09", (unsigned long)&byt_pwm_dev_desc },
+>  	{ "80860F0A", (unsigned long)&byt_uart_dev_desc },
+>  	{ "80860F0E", (unsigned long)&byt_spi_dev_desc },
+>  	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
