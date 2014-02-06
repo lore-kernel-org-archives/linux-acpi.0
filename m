@@ -1,354 +1,134 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [Update][PATCH 23/24] ACPI / hotplug / PCI: Hotplug notifications from acpi_bus_notify()
-Date: Thu, 06 Feb 2014 14:10:20 +0100
-Message-ID: <1678328.rmfqzQ5s9e@vostro.rjw.lan>
-References: <2217793.001RY6hKlo@vostro.rjw.lan> <7532948.aJNUotNMpR@vostro.rjw.lan> <4319453.nrCmpQmkNH@vostro.rjw.lan>
+Subject: [PATCH v3 6/6] PM / QoS: Add type to dev_pm_qos_add_ancestor_request() arguments
+Date: Thu, 06 Feb 2014 14:27:36 +0100
+Message-ID: <1999803.DnBmq6IRuT@vostro.rjw.lan>
+References: <5434847.aCyiWHNRe7@vostro.rjw.lan> <1447517.8AFrWcAgld@vostro.rjw.lan> <1550670.IB7tE3uSq4@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <4319453.nrCmpQmkNH@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1550670.IB7tE3uSq4@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / hotplug / PCI: Hotplug notifications from acpi_bus_notify()
 
-Since acpi_bus_notify() is executed on all notifications for all
-devices anyway, make it execute acpi_device_hotplug() for all
-hotplug events instead of installing notify handlers pointing to
-the same function for all hotplug devices.
+Rework dev_pm_qos_add_ancestor_request() so that device PM QoS type
+is passed to it as the third argument and make it support the
+DEV_PM_QOS_LATENCY_TOLERANCE device PM QoS type (in addition to
+DEV_PM_QOS_RESUME_LATENCY).
 
-This change reduces both the size and complexity of ACPI-based device
-hotplug code.  Moreover, since acpi_device_hotplug() only does
-significant things for devices that have either an ACPI scan handler,
-or a hotplug context with .eject() defined, and those devices
-had notify handlers pointing to acpi_hotplug_notify_cb() installed
-before anyway, this modification shouldn't change functionality.
+That will allow the drivers of devices without latency tolerance
+hardware support to use their ancestors having it as proxies for
+their latency tolerance requirements.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
+ Documentation/power/pm_qos_interface.txt |    6 ++++--
+ drivers/base/power/qos.c                 |   22 +++++++++++++++++-----
+ drivers/input/touchscreen/st1232.c       |    3 ++-
+ include/linux/pm_qos.h                   |    7 +++++--
+ 4 files changed, 28 insertions(+), 10 deletions(-)
 
-This one had to be updated after patch [20/24] had been updated.
-
-Thanks,
-Rafael
-
----
- drivers/acpi/bus.c                 |   61 +++++++++++++++++----------
- drivers/acpi/internal.h            |    1 
- drivers/acpi/scan.c                |   81 ++-----------------------------------
- drivers/pci/hotplug/acpiphp.h      |    1 
- drivers/pci/hotplug/acpiphp_glue.c |   24 +++++-----
- include/acpi/acpi_bus.h            |    2 
- 6 files changed, 57 insertions(+), 113 deletions(-)
-
-Index: linux-pm/drivers/acpi/bus.c
+Index: linux-pm/include/linux/pm_qos.h
 ===================================================================
---- linux-pm.orig/drivers/acpi/bus.c
-+++ linux-pm/drivers/acpi/bus.c
-@@ -340,62 +340,77 @@ static void acpi_bus_osc_support(void)
-  */
- static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
- {
--	struct acpi_device *device;
-+	struct acpi_device *adev;
- 	struct acpi_driver *driver;
--
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Notification %#02x to handle %p\n",
--			  type, handle));
-+	acpi_status status;
-+	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
- 
- 	switch (type) {
--
- 	case ACPI_NOTIFY_BUS_CHECK:
--		/* TBD */
-+		acpi_handle_debug(handle, "ACPI_NOTIFY_BUS_CHECK event\n");
- 		break;
- 
- 	case ACPI_NOTIFY_DEVICE_CHECK:
--		/* TBD */
-+		acpi_handle_debug(handle, "ACPI_NOTIFY_DEVICE_CHECK event\n");
- 		break;
- 
- 	case ACPI_NOTIFY_DEVICE_WAKE:
--		/* TBD */
-+		acpi_handle_debug(handle, "ACPI_NOTIFY_DEVICE_WAKE event\n");
- 		break;
- 
- 	case ACPI_NOTIFY_EJECT_REQUEST:
--		/* TBD */
-+		acpi_handle_debug(handle, "ACPI_NOTIFY_EJECT_REQUEST event\n");
- 		break;
- 
- 	case ACPI_NOTIFY_DEVICE_CHECK_LIGHT:
-+		acpi_handle_debug(handle, "ACPI_NOTIFY_DEVICE_CHECK_LIGHT event\n");
- 		/* TBD: Exactly what does 'light' mean? */
- 		break;
- 
- 	case ACPI_NOTIFY_FREQUENCY_MISMATCH:
--		/* TBD */
-+		acpi_handle_err(handle, "Device cannot be configured due "
-+				"to a frequency mismatch\n");
- 		break;
- 
- 	case ACPI_NOTIFY_BUS_MODE_MISMATCH:
--		/* TBD */
-+		acpi_handle_err(handle, "Device cannot be configured due "
-+				"to a bus mode mismatch\n");
- 		break;
- 
- 	case ACPI_NOTIFY_POWER_FAULT:
--		/* TBD */
-+		acpi_handle_err(handle, "Device has suffered a power fault\n");
- 		break;
- 
- 	default:
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--				  "Received unknown/unsupported notification [%08x]\n",
--				  type));
--		break;
-+		acpi_handle_warn(handle, "Unsupported event type 0x%x\n", type);
-+		ost_code = ACPI_OST_SC_UNRECOGNIZED_NOTIFY;
-+		goto err;
- 	}
- 
--	device = acpi_bus_get_acpi_device(handle);
--	if (device) {
--		driver = device->driver;
--		if (driver && driver->ops.notify &&
--		    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
--			driver->ops.notify(device, type);
-+	adev = acpi_bus_get_acpi_device(handle);
-+	if (!adev)
-+		goto err;
-+
-+	driver = adev->driver;
-+	if (driver && driver->ops.notify &&
-+	    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
-+		driver->ops.notify(adev, type);
- 
--		acpi_bus_put_acpi_device(device);
-+	switch (type) {
-+	case ACPI_NOTIFY_BUS_CHECK:
-+	case ACPI_NOTIFY_DEVICE_CHECK:
-+	case ACPI_NOTIFY_EJECT_REQUEST:
-+		status = acpi_hotplug_execute(acpi_device_hotplug, adev, type);
-+		if (ACPI_SUCCESS(status))
-+			return;
-+	default:
-+		break;
- 	}
-+	acpi_bus_put_acpi_device(adev);
-+	return;
-+
-+ err:
-+	acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
+--- linux-pm.orig/include/linux/pm_qos.h
++++ linux-pm/include/linux/pm_qos.h
+@@ -149,7 +149,8 @@ int dev_pm_qos_remove_global_notifier(st
+ void dev_pm_qos_constraints_init(struct device *dev);
+ void dev_pm_qos_constraints_destroy(struct device *dev);
+ int dev_pm_qos_add_ancestor_request(struct device *dev,
+-				    struct dev_pm_qos_request *req, s32 value);
++				    struct dev_pm_qos_request *req,
++				    enum dev_pm_qos_req_type type, s32 value);
+ #else
+ static inline enum pm_qos_flags_status __dev_pm_qos_flags(struct device *dev,
+ 							  s32 mask)
+@@ -192,7 +193,9 @@ static inline void dev_pm_qos_constraint
+ 	dev->power.power_state = PMSG_INVALID;
  }
- 
- /* --------------------------------------------------------------------------
-Index: linux-pm/drivers/acpi/internal.h
-===================================================================
---- linux-pm.orig/drivers/acpi/internal.h
-+++ linux-pm/drivers/acpi/internal.h
-@@ -73,6 +73,7 @@ static inline void acpi_lpss_init(void)
+ static inline int dev_pm_qos_add_ancestor_request(struct device *dev,
+-				    struct dev_pm_qos_request *req, s32 value)
++						  struct dev_pm_qos_request *req,
++						  enum dev_pm_qos_req_type type,
++						  s32 value)
+ 			{ return 0; }
  #endif
  
- bool acpi_queue_hotplug_work(struct work_struct *work);
-+void acpi_device_hotplug(void *data, u32 src);
- bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent);
- 
- /* --------------------------------------------------------------------------
-Index: linux-pm/drivers/acpi/scan.c
+Index: linux-pm/drivers/base/power/qos.c
 ===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -470,7 +470,7 @@ static int acpi_generic_hotplug_event(st
- 	return -EINVAL;
- }
- 
--static void acpi_device_hotplug(void *data, u32 src)
-+void acpi_device_hotplug(void *data, u32 src)
+--- linux-pm.orig/drivers/base/power/qos.c
++++ linux-pm/drivers/base/power/qos.c
+@@ -565,20 +565,32 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_remove_glob
+  * dev_pm_qos_add_ancestor_request - Add PM QoS request for device's ancestor.
+  * @dev: Device whose ancestor to add the request for.
+  * @req: Pointer to the preallocated handle.
++ * @type: Type of the request.
+  * @value: Constraint latency value.
+  */
+ int dev_pm_qos_add_ancestor_request(struct device *dev,
+-				    struct dev_pm_qos_request *req, s32 value)
++				    struct dev_pm_qos_request *req,
++				    enum dev_pm_qos_req_type type, s32 value)
  {
- 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
- 	struct acpi_device *adev = data;
-@@ -520,75 +520,6 @@ static void acpi_device_hotplug(void *da
- 	unlock_device_hotplug();
- }
+ 	struct device *ancestor = dev->parent;
+ 	int ret = -ENODEV;
  
--static void acpi_hotplug_notify_cb(acpi_handle handle, u32 type, void *data)
--{
--	u32 ost_code = ACPI_OST_SC_SUCCESS;
--	struct acpi_device *adev;
--	acpi_status status;
--
--	switch (type) {
--	case ACPI_NOTIFY_BUS_CHECK:
--		acpi_handle_debug(handle, "ACPI_NOTIFY_BUS_CHECK event\n");
--		break;
--
--	case ACPI_NOTIFY_DEVICE_CHECK:
--		acpi_handle_debug(handle, "ACPI_NOTIFY_DEVICE_CHECK event\n");
--		break;
--
--	case ACPI_NOTIFY_EJECT_REQUEST:
--		acpi_handle_debug(handle, "ACPI_NOTIFY_EJECT_REQUEST event\n");
--		break;
--
--	case ACPI_NOTIFY_DEVICE_WAKE:
--		return;
--
--	case ACPI_NOTIFY_FREQUENCY_MISMATCH:
--		acpi_handle_err(handle, "Device cannot be configured due "
--				"to a frequency mismatch\n");
--		goto out;
--
--	case ACPI_NOTIFY_BUS_MODE_MISMATCH:
--		acpi_handle_err(handle, "Device cannot be configured due "
--				"to a bus mode mismatch\n");
--		goto out;
--
--	case ACPI_NOTIFY_POWER_FAULT:
--		acpi_handle_err(handle, "Device has suffered a power fault\n");
--		goto out;
--
--	default:
--		acpi_handle_warn(handle, "Unsupported event type 0x%x\n", type);
--		ost_code = ACPI_OST_SC_UNRECOGNIZED_NOTIFY;
--		goto out;
--	}
--
--	ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
--	adev = acpi_bus_get_acpi_device(handle);
--	if (!adev)
--		goto out;
--
--	status = acpi_hotplug_execute(acpi_device_hotplug, adev, type);
--	if (ACPI_SUCCESS(status))
--		return;
--
--	acpi_bus_put_acpi_device(adev);
--
-- out:
--	acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
--}
--
--void acpi_install_hotplug_notify_handler(acpi_handle handle)
--{
--	acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
--				    acpi_hotplug_notify_cb, NULL);
--}
--
--void acpi_remove_hotplug_notify_handler(acpi_handle handle)
--{
--	acpi_remove_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
--				   acpi_hotplug_notify_cb);
--}
--
- static ssize_t real_power_state_show(struct device *dev,
- 				     struct device_attribute *attr, char *buf)
- {
-@@ -2037,12 +1968,10 @@ static void acpi_scan_init_hotplug(struc
- 		struct acpi_scan_handler *handler;
+-	while (ancestor && !ancestor->power.ignore_children)
+-		ancestor = ancestor->parent;
++	switch (type) {
++	case DEV_PM_QOS_RESUME_LATENCY:
++		while (ancestor && !ancestor->power.ignore_children)
++			ancestor = ancestor->parent;
  
- 		handler = acpi_scan_match_handler(hwid->id, NULL);
--		if (!handler)
--			continue;
--
--		acpi_install_hotplug_notify_handler(adev->handle);
--		adev->flags.hotplug_notify = true;
--		break;
-+		if (handler) {
-+			adev->flags.hotplug_notify = true;
-+			break;
-+		}
- 	}
- }
- 
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -293,7 +293,6 @@ static acpi_status register_slot(acpi_ha
- 	newfunc = &context->func;
- 	newfunc->function = function;
- 	newfunc->parent = bridge;
--	acpi_unlock_hp_context();
- 
- 	if (acpi_has_method(handle, "_EJ0"))
- 		newfunc->flags = FUNC_HAS_EJ0;
-@@ -301,8 +300,14 @@ static acpi_status register_slot(acpi_ha
- 	if (acpi_has_method(handle, "_STA"))
- 		newfunc->flags |= FUNC_HAS_STA;
- 
-+	/*
-+	 * Dock stations' notify handler should be used for dock devices instead
-+	 * of the common one, so clear hp.event in their contexts.
-+	 */
- 	if (acpi_has_method(handle, "_DCK"))
--		newfunc->flags |= FUNC_HAS_DCK;
-+		context->hp.event = NULL;
++		break;
++	case DEV_PM_QOS_LATENCY_TOLERANCE:
++		while (ancestor && !ancestor->power.set_latency_tolerance)
++			ancestor = ancestor->parent;
 +
-+	acpi_unlock_hp_context();
++		break;
++	default:
++		ancestor = NULL;
++	}
+ 	if (ancestor)
+-		ret = dev_pm_qos_add_request(ancestor, req,
+-					     DEV_PM_QOS_RESUME_LATENCY, value);
++		ret = dev_pm_qos_add_request(ancestor, req, type, value);
  
- 	/* search for objects that share the same slot */
- 	list_for_each_entry(slot, &bridge->slots, node)
-@@ -370,10 +375,6 @@ static acpi_status register_slot(acpi_ha
- 			pr_debug("failed to register dock device\n");
+ 	if (ret < 0)
+ 		req->dev = NULL;
+Index: linux-pm/Documentation/power/pm_qos_interface.txt
+===================================================================
+--- linux-pm.orig/Documentation/power/pm_qos_interface.txt
++++ linux-pm/Documentation/power/pm_qos_interface.txt
+@@ -134,9 +134,11 @@ The meaning of the return values is as f
+ 	PM_QOS_FLAGS_UNDEFINED: The device's PM QoS structure has not been
+ 			initialized or the list of requests is empty.
+ 
+-int dev_pm_qos_add_ancestor_request(dev, handle, value)
++int dev_pm_qos_add_ancestor_request(dev, handle, type, value)
+ Add a PM QoS request for the first direct ancestor of the given device whose
+-power.ignore_children flag is unset.
++power.ignore_children flag is unset (for DEV_PM_QOS_RESUME_LATENCY requests)
++or whose power.set_latency_tolerance callback pointer is not NULL (for
++DEV_PM_QOS_LATENCY_TOLERANCE requests).
+ 
+ int dev_pm_qos_expose_latency_limit(device, value)
+ Add a request to the device's PM QoS list of resume latency constraints and
+Index: linux-pm/drivers/input/touchscreen/st1232.c
+===================================================================
+--- linux-pm.orig/drivers/input/touchscreen/st1232.c
++++ linux-pm/drivers/input/touchscreen/st1232.c
+@@ -134,7 +134,8 @@ static irqreturn_t st1232_ts_irq_handler
+ 	} else if (!ts->low_latency_req.dev) {
+ 		/* First contact, request 100 us latency. */
+ 		dev_pm_qos_add_ancestor_request(&ts->client->dev,
+-						&ts->low_latency_req, 100);
++						&ts->low_latency_req,
++						DEV_PM_QOS_RESUME_LATENCY, 100);
  	}
  
--	/* install notify handler */
--	if (!(newfunc->flags & FUNC_HAS_DCK))
--		acpi_install_hotplug_notify_handler(handle);
--
- 	return AE_OK;
- }
- 
-@@ -407,13 +408,14 @@ static void cleanup_bridge(struct acpiph
- 
- 	list_for_each_entry(slot, &bridge->slots, node) {
- 		list_for_each_entry(func, &slot->funcs, sibling) {
--			acpi_handle handle = func_to_handle(func);
-+			struct acpi_device *adev = func_to_acpi_device(func);
- 
--			if (is_dock_device(handle))
--				unregister_hotplug_dock_device(handle);
-+			if (is_dock_device(adev->handle))
-+				unregister_hotplug_dock_device(adev->handle);
- 
--			if (!(func->flags & FUNC_HAS_DCK))
--				acpi_remove_hotplug_notify_handler(handle);
-+			acpi_lock_hp_context();
-+			adev->hp->event = NULL;
-+			acpi_unlock_hp_context();
- 		}
- 		slot->flags |= SLOT_IS_GOING_AWAY;
- 		if (slot->slot)
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -446,8 +446,6 @@ static inline bool acpi_device_enumerate
- typedef void (*acpi_hp_callback)(void *data, u32 src);
- 
- acpi_status acpi_hotplug_execute(acpi_hp_callback func, void *data, u32 src);
--void acpi_install_hotplug_notify_handler(acpi_handle handle);
--void acpi_remove_hotplug_notify_handler(acpi_handle handle);
- 
- /**
-  * module_acpi_driver(acpi_driver) - Helper macro for registering an ACPI driver
-Index: linux-pm/drivers/pci/hotplug/acpiphp.h
-===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp.h
-+++ linux-pm/drivers/pci/hotplug/acpiphp.h
-@@ -167,7 +167,6 @@ struct acpiphp_attention_info
- 
- #define FUNC_HAS_STA		(0x00000001)
- #define FUNC_HAS_EJ0		(0x00000002)
--#define FUNC_HAS_DCK            (0x00000004)
- 
- /* function prototypes */
- 
+ 	/* SYN_REPORT */
+
