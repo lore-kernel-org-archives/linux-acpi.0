@@ -1,93 +1,154 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI and power management fixes for v3.14-rc2
-Date: Fri, 7 Feb 2014 00:26:12 +0100
-Message-ID: <CAJZ5v0ht94v9Rap4EN4kMUTLJFZPD_AKMYz8FdrDOQ-E=ifJZQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [Update][PATCH v3 5/6] ACPI / LPSS: Support for device latency tolerance PM QoS
+Date: Fri, 07 Feb 2014 02:22:44 +0100
+Message-ID: <2498422.rdG59AvNsc@vostro.rjw.lan>
+References: <5434847.aCyiWHNRe7@vostro.rjw.lan> <1550670.IB7tE3uSq4@vostro.rjw.lan> <1730614.QEN8YiXxIm@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1730614.QEN8YiXxIm@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / LPSS: Support for device latency tolerance PM QoS
 
-Please pull from the git repository at
+Add a new routine, acpi_lpss_set_ltr(), for setting latency tolerance
+values for LPSS devices having LTR (Latency Tolerance Reporting)
+registers.  Add .bind()/.unbind() callbacks to lpss_handler to set
+the LPSS devices' power.set_latency_tolerance callback pointers to
+acpi_lpss_set_ltr() during device addition and to clear them on
+device removal, respectively.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
-pm+acpi-3.14-rc2
+That will cause the device latency tolerance PM QoS to work for
+the devices in question as documented.
 
-to receive ACPI and power management fixes for v3.14-rc2
-with top-most commit a2ff34c433932e201ea3c5081335f3beeb2509bd
+This changeset includes a fix from Mika Westerberg.
 
-  Merge branches 'acpi-cleanup' and 'acpi-video'
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-on top of commit 38dbfb59d1175ef458d006556061adeaa8751b72
+acpi_lpss_bind() has to check pdata->dev_desc->ltr_required or it will
+enable LTR on systems where it may not work.
 
-  Linus 3.14-rc1
+---
+ drivers/acpi/acpi_lpss.c |   71 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 70 insertions(+), 1 deletion(-)
 
-These include a fix for a recent ACPI hotplug regression, four concurrency
-related fixes and one PCI device removal fix for ACPI-based PCI hotplug
-(ACPIPHP), intel_pstate fix that should go into stable, three simple
-ACPI cleanups and a new entry for the ACPI video blacklist.
+Index: linux-pm/drivers/acpi/acpi_lpss.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpi_lpss.c
++++ linux-pm/drivers/acpi/acpi_lpss.c
+@@ -33,6 +33,13 @@ ACPI_MODULE_NAME("acpi_lpss");
+ #define LPSS_GENERAL_UART_RTS_OVRD	BIT(3)
+ #define LPSS_SW_LTR			0x10
+ #define LPSS_AUTO_LTR			0x14
++#define LPSS_LTR_SNOOP_REQ		BIT(15)
++#define LPSS_LTR_SNOOP_MASK		0x0000FFFF
++#define LPSS_LTR_SNOOP_LAT_1US		0x800
++#define LPSS_LTR_SNOOP_LAT_32US		0xC00
++#define LPSS_LTR_SNOOP_LAT_SHIFT	5
++#define LPSS_LTR_SNOOP_LAT_CUTOFF	3000
++#define LPSS_LTR_MAX_VAL		0x3FF
+ #define LPSS_TX_INT			0x20
+ #define LPSS_TX_INT_MASK		BIT(1)
+ 
+@@ -315,6 +322,17 @@ static int acpi_lpss_create_device(struc
+ 	return ret;
+ }
+ 
++static u32 __lpss_reg_read(struct lpss_private_data *pdata, unsigned int reg)
++{
++	return readl(pdata->mmio_base + pdata->dev_desc->prv_offset + reg);
++}
++
++static void __lpss_reg_write(u32 val, struct lpss_private_data *pdata,
++			     unsigned int reg)
++{
++	writel(val, pdata->mmio_base + pdata->dev_desc->prv_offset + reg);
++}
++
+ static int lpss_reg_read(struct device *dev, unsigned int reg, u32 *val)
+ {
+ 	struct acpi_device *adev;
+@@ -336,7 +354,7 @@ static int lpss_reg_read(struct device *
+ 		ret = -ENODEV;
+ 		goto out;
+ 	}
+-	*val = readl(pdata->mmio_base + pdata->dev_desc->prv_offset + reg);
++	*val = __lpss_reg_read(pdata, reg);
+ 
+  out:
+ 	spin_unlock_irqrestore(&dev->power.lock, flags);
+@@ -389,6 +407,37 @@ static struct attribute_group lpss_attr_
+ 	.name = "lpss_ltr",
+ };
+ 
++static void acpi_lpss_set_ltr(struct device *dev, s32 val)
++{
++	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
++	u32 ltr_mode, ltr_val;
++
++	ltr_mode = __lpss_reg_read(pdata, LPSS_GENERAL);
++	if (val < 0) {
++		if (ltr_mode & LPSS_GENERAL_LTR_MODE_SW) {
++			ltr_mode &= ~LPSS_GENERAL_LTR_MODE_SW;
++			__lpss_reg_write(ltr_mode, pdata, LPSS_GENERAL);
++		}
++		return;
++	}
++	ltr_val = __lpss_reg_read(pdata, LPSS_SW_LTR) & ~LPSS_LTR_SNOOP_MASK;
++	if (val >= LPSS_LTR_SNOOP_LAT_CUTOFF) {
++		ltr_val |= LPSS_LTR_SNOOP_LAT_32US;
++		val = LPSS_LTR_MAX_VAL;
++	} else if (val > LPSS_LTR_MAX_VAL) {
++		ltr_val |= LPSS_LTR_SNOOP_LAT_32US | LPSS_LTR_SNOOP_REQ;
++		val >>= LPSS_LTR_SNOOP_LAT_SHIFT;
++	} else {
++		ltr_val |= LPSS_LTR_SNOOP_LAT_1US | LPSS_LTR_SNOOP_REQ;
++	}
++	ltr_val |= val;
++	__lpss_reg_write(ltr_val, pdata, LPSS_SW_LTR);
++	if (!(ltr_mode & LPSS_GENERAL_LTR_MODE_SW)) {
++		ltr_mode |= LPSS_GENERAL_LTR_MODE_SW;
++		__lpss_reg_write(ltr_mode, pdata, LPSS_GENERAL);
++	}
++}
++
+ static int acpi_lpss_platform_notify(struct notifier_block *nb,
+ 				     unsigned long action, void *data)
+ {
+@@ -426,9 +475,29 @@ static struct notifier_block acpi_lpss_n
+ 	.notifier_call = acpi_lpss_platform_notify,
+ };
+ 
++static void acpi_lpss_bind(struct device *dev)
++{
++	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
++
++	if (!pdata || !pdata->mmio_base || !pdata->dev_desc->ltr_required)
++		return;
++
++	if (pdata->mmio_size >= pdata->dev_desc->prv_offset + LPSS_LTR_SIZE)
++		dev->power.set_latency_tolerance = acpi_lpss_set_ltr;
++	else
++		dev_err(dev, "MMIO size insufficient to access LTR\n");
++}
++
++static void acpi_lpss_unbind(struct device *dev)
++{
++	dev->power.set_latency_tolerance = NULL;
++}
++
+ static struct acpi_scan_handler lpss_handler = {
+ 	.ids = acpi_lpss_device_ids,
+ 	.attach = acpi_lpss_create_device,
++	.bind = acpi_lpss_bind,
++	.unbind = acpi_lpss_unbind,
+ };
+ 
+ void __init acpi_lpss_init(void)
 
-Specifics:
-
- - Fix for a recent ACPI hotplug regression causing a NULL pointer
-   dereference to occur while handling ACPI eject notifications for
-   already ejected devices.  From Toshi Kani.
-
- - Four concurrency-related fixes for ACPIPHP.  Two of them add
-   missing locking and the other two fix race conditions related to
-   reference counting.
-
- - ACPIPHP fix to avoid NULL pointer dereferences during device removal
-   involving Virtual Funcions.
-
- - intel_pstate fix to make it compute the percentage of time the CPU
-   is busy properly.  From Dirk Brandewie.
-
- - Removal of two unnecessary NULL pointer checks in ACPI code and a
-   fix for sscanf() format string from Dan Carpenter and Luis G.F.
-
- - New ACPI video blacklist entry for HP EliteBook Revolve 810 from
-   Mika Westerberg.
-
-Thanks!
-
-
----------------
-
-Dan Carpenter (2):
-      ACPI / utils: remove a pointless NULL check
-      ACPI / proc: remove unneeded NULL check
-
-Dirk Brandewie (1):
-      intel_pstate: Take core C0 time into account for core busy calculation
-
-Luis G.F (1):
-      ACPI / battery: Fix incorrect sscanf() string in acpi_battery_init_alarm()
-
-Mika Westerberg (1):
-      ACPI / video: Add HP EliteBook Revolve 810 to the blacklist
-
-Rafael J. Wysocki (5):
-      ACPI / hotplug / PCI: Remove entries from bus->devices in reverse order
-      ACPI / hotplug / PCI: Move PCI rescan-remove locking to hotplug_event()
-      ACPI / hotplug / PCI: Scan root bus under the PCI rescan-remove lock
-      ACPI / hotplug / PCI: Fix bridge removal race in handle_hotplug_event()
-      ACPI / hotplug / PCI: Fix bridge removal race vs dock events
-
-Toshi Kani (1):
-      ACPI / hotplug: Fix panic on eject to ejected device
-
----------------
-
- drivers/acpi/battery.c             |    2 +-
- drivers/acpi/proc.c                |    2 +-
- drivers/acpi/scan.c                |    6 ++--
- drivers/acpi/utils.c               |    4 ---
- drivers/acpi/video_detect.c        |    8 ++++++
- drivers/cpufreq/intel_pstate.c     |   21 +++++++++++---
- drivers/pci/hotplug/acpiphp_glue.c |   55 ++++++++++++++++++++++++++++--------
- 7 files changed, 75 insertions(+), 23 deletions(-)
