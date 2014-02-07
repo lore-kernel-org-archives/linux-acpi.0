@@ -1,44 +1,90 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI / video: Add HP EliteBook Revolve 810 to the
- blacklist
-Date: Fri, 7 Feb 2014 12:25:23 +0200
-Message-ID: <20140207102523.GO18029@intel.com>
-References: <1391425156-27821-1-git-send-email-mika.westerberg@linux.intel.com>
- <52F43716.7020008@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Patch v1] ACPI, x86: fix bug in associating hot-added CPUs with corresponding NUMA node
+Date: Fri, 07 Feb 2014 13:03:06 +0100
+Message-ID: <1440384.cOMzyfyUzg@vostro.rjw.lan>
+References: <1390185115-26850-1-git-send-email-jiang.liu@linux.intel.com> <4676819.HL23G4Egmr@vostro.rjw.lan> <52F4A4B9.2060006@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:42298 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751823AbaBGKST (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Feb 2014 05:18:19 -0500
-Content-Disposition: inline
-In-Reply-To: <52F43716.7020008@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52F4A4B9.2060006@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Toshi Kani <toshi.kani@hp.com>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-hotplug@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-On Fri, Feb 07, 2014 at 09:29:58AM +0800, Aaron Lu wrote:
-> On 02/03/2014 06:59 PM, Mika Westerberg wrote:
-> > On HP EliteBook Revolve 810 the ACPI backlight device doesn't work as
-> > expected. For example when resuming from system sleep, it seems to lose
-> > backlight settings.
-> > 
-> > Forcing Intel driver fixes the problem so add this machine the ACPI
-> > video detect blacklist.
+On Friday, February 07, 2014 05:17:45 PM Jiang Liu wrote:
 > 
-> For reference's purpose, can you please file a bug to kernel bugzilla
-> under the ACPI/Power-Video category and attach the acpidump and dmesg
-> there? Thanks.
+> On 2014/2/5 8:14, Rafael J. Wysocki wrote:
+> > On Monday, January 20, 2014 10:31:54 AM Jiang Liu wrote:
+> >> Current ACPI cpu hotplug driver fails to associate hot-added CPUs with
+> >> corresponding NUMA node when doing socket online. The code path to
+> >> associate CPU with NUMA node is as below:
+> >> acpi_processor_add()
+> >>     ->acpi_processor_get_info()
+> >> 	->acpi_processor_hotadd_init()
+> >> 	    ->acpi_map_lsapic()
+> >> 		->_acpi_map_lsapic()
+> >> 		    ->acpi_map_cpu2node()
+> >> cpu_subsys_online()
+> >>     ->try_online_node()
+> >> 	->node_set_online()
+> >>
+> >> When doing socket online, a new NUMA node is introduced in addition to
+> >> hot-added CPU and memory device. And the new NUMA node is marked as
+> >> online when onlining hot-added CPUs through sysfs interface
+> >> /sys/devices/system/cpu/cpuxx/online.
+> >>
+> >> On the other hand, acpi_map_cpu2node() will only build the CPU to node
+> >> map if corresponding NUMA node is already online, so it always fails
+> >> to associate hot-added CPUs with corresponding NUMA node because the
+> >> NUMA node is still in offline state.
+> >>
+> >> For the fix, we could safely remove the "node_online(node)" check in
+> >> function acpi_map_cpu2node() because it's only called for hot-added CPUs
+> >> by acpi_processor_hotadd_init().
+> >>
+> >> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> > 
+> > I wonder what the status here is?  Did this patch go anywhere?
+> Hi Rafael,
+> 	It's still in review stage, hasn't been accepted by any
+> maintainer yet.
 
-Done, the bug is here:
+OK
 
-https://bugzilla.kernel.org/show_bug.cgi?id=70231
+Peter, are you fine with the patch below?
 
-I noticed that using only the acpi_video0 for tuning backlight works but if
-I use intel_backlight directly, on resume I get values from acpi_video0
-instead. I'm not really familiar how this is supposed to work, though so
-please let me know if I'm missing something.
+Rafael
 
-Thanks.
+
+> > 
+> >> ---
+> >>  arch/x86/kernel/acpi/boot.c |    8 ++++----
+> >>  1 file changed, 4 insertions(+), 4 deletions(-)
+> >>
+> >> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> >> index 6c0b43b..7625de9 100644
+> >> --- a/arch/x86/kernel/acpi/boot.c
+> >> +++ b/arch/x86/kernel/acpi/boot.c
+> >> @@ -614,10 +614,10 @@ static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+> >>  	int nid;
+> >>  
+> >>  	nid = acpi_get_node(handle);
+> >> -	if (nid == -1 || !node_online(nid))
+> >> -		return;
+> >> -	set_apicid_to_node(physid, nid);
+> >> -	numa_set_node(cpu, nid);
+> >> +	if (nid != -1) {
+> >> +		set_apicid_to_node(physid, nid);
+> >> +		numa_set_node(cpu, nid);
+> >> +	}
+> >>  #endif
+> >>  }
+> >>  
+> >>
+> > 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
