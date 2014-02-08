@@ -1,42 +1,55 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH 2/2] ACPI / trivial: Fix the return value type of acpi_processor_eval_pdc()
-Date: Sat,  8 Feb 2014 20:46:26 +0800
-Message-ID: <1391863586-3157-2-git-send-email-hanjun.guo@linaro.org>
-References: <1391863586-3157-1-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v2 0/3] Prepare for running ACPI on !x86 and !ia64
+Date: Sat,  8 Feb 2014 21:10:15 +0800
+Message-ID: <1391865018-3446-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:60803 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751660AbaBHMrL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Feb 2014 07:47:11 -0500
-Received: by mail-pa0-f46.google.com with SMTP id rd3so4285157pab.19
-        for <linux-acpi@vger.kernel.org>; Sat, 08 Feb 2014 04:47:11 -0800 (PST)
-In-Reply-To: <1391863586-3157-1-git-send-email-hanjun.guo@linaro.org>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:43294 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751347AbaBHNKz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Feb 2014 08:10:55 -0500
+Received: by mail-pa0-f44.google.com with SMTP id kq14so4335235pab.3
+        for <linux-acpi@vger.kernel.org>; Sat, 08 Feb 2014 05:10:55 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: linux-acpi@vger.kernel.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-The return value type of acpi_processor_eval_pdc() should be
-'acpi_status' but defined as 'int', fix it.
+Some of the ACPI code is arch-dependent and make the code can't be
+compiled on !x86 or !ia64, the first two patches just do some rework
+on the idle_boot_override and _PDC related stuff to make the ACPI
+code more arch-independent.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/processor_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The third patch just introduce map_gic_id() for ACPI processor core
+followed by the ACPI 5.0 spec.
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 849cfd6..46583d7 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -323,7 +323,7 @@ static struct acpi_object_list *acpi_processor_alloc_pdc(void)
-  * _PDC is required for a BIOS-OS handshake for most of the newer
-  * ACPI processor features.
-  */
--static int
-+static acpi_status
- acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
- {
- 	acpi_status status = AE_OK;
+I have compiled the kernel successfully after appling this patch set
+on x86 and ia64.
+
+Changes for v2:
+a) add #if defined(CONFIG_X86) || defined(CONFIG_IA64) for
+   idle_boot_override related code;
+b) Rebased on 3.14-rc1.
+
+Changes since the RFC version:
+a) Remove the RFC tag;
+b) Move idle_boot_override out of the arch directory suggested
+   by Alan;
+c) Make these 3 patches as a separate patch set since there are
+   not not related to the ARM/ARM64 platform.
+
+Hanjun Guo (3):
+  ACPI / idle: Make idle_boot_override depend on x86 and ia64
+  ACPI / processor_core: Rework _PDC related stuff to make it more
+    arch-independent
+  ACPI: Introduce map_gic_id() to get apic id from MADT or _MAT method
+
+ arch/ia64/include/asm/acpi.h  |    5 +--
+ arch/ia64/kernel/acpi.c       |   17 +++++++++
+ arch/x86/include/asm/acpi.h   |   19 +--------
+ arch/x86/kernel/acpi/cstate.c |   31 +++++++++++++++
+ drivers/acpi/processor_core.c |   85 ++++++++++++++++++++++++-----------------
+ 5 files changed, 99 insertions(+), 58 deletions(-)
+
 -- 
 1.7.9.5
 
