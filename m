@@ -1,79 +1,116 @@
-From: Alexander Mezin <mezin.alexander@gmail.com>
-Subject: [PATCH 2/2] ACPI / battery: check AC adapter's state when battery state changes
-Date: Sat,  8 Feb 2014 02:28:53 +0700
-Message-ID: <1391801333-18519-2-git-send-email-mezin.alexander@gmail.com>
-References: <1391801333-18519-1-git-send-email-mezin.alexander@gmail.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 01/10] ACPICA: Improve support for 32/64 bit physical addresses in printf().
+Date: Sat,  8 Feb 2014 09:42:01 +0800
+Message-ID: <6dfcd39dc46448a6a5fd1ebbe87bcc7d5dca5c59.1390438466.git.lv.zheng@intel.com>
+References: <cover.1390438466.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:34376 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209AbaBGTb1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Feb 2014 14:31:27 -0500
-Received: by mail-la0-f45.google.com with SMTP id b8so3048045lan.32
-        for <linux-acpi@vger.kernel.org>; Fri, 07 Feb 2014 11:31:26 -0800 (PST)
-In-Reply-To: <1391801333-18519-1-git-send-email-mezin.alexander@gmail.com>
+Received: from mga11.intel.com ([192.55.52.93]:26500 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751004AbaBHBmH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Feb 2014 20:42:07 -0500
+In-Reply-To: <cover.1390438466.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Alexander Mezin <mezin.alexander@gmail.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-When battery state changes (i. e. it starts to charge/discharge),
-it could indicate that AC adapter has been plugged or unplugged.
+From: Bob Moore <robert.moore@intel.com>
 
-When POWER_SUPPLY_PROP_ONLINE is read, AC driver should check actual
-adapter state, and emit notification if the state has changed
-(my previous patch).
+This change improves the support for physical addresses in printf
+debug statements and other output on both 32-bit and 64-bit hosts.
+It consistently outputs the appropriate number of bytes for each
+host. The %p specifier is unsatisfactory since it does not emit
+uniform output on all hosts/clib implementations (on some, leading
+zeros are not supported, leading to difficult-to-read output).
 
-This patch finally solves the problem with AC notifications on my
-HP Pavilion dv6-6179er.
-
-Signed-off-by: Alexander Mezin <mezin.alexander@gmail.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/battery.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/acpi/acpica/acmacros.h |   14 +++++++++-----
+ drivers/acpi/acpica/tbprint.c  |   20 ++++++++++++--------
+ 2 files changed, 21 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 470e754..68b263c 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -671,9 +671,22 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
- 	}
- }
+diff --git a/drivers/acpi/acpica/acmacros.h b/drivers/acpi/acpica/acmacros.h
+index 2a86c65..2546782 100644
+--- a/drivers/acpi/acpica/acmacros.h
++++ b/drivers/acpi/acpica/acmacros.h
+@@ -63,17 +63,21 @@
+ #define ACPI_SET64(ptr, val)            (*ACPI_CAST64 (ptr) = (u64) (val))
  
-+static int acpi_battery_check_ac_state(struct device *dev, void *unused)
-+{
-+	struct power_supply *ps = dev_get_drvdata(dev);
-+	union power_supply_propval temp;
-+
-+	if (ps->type != POWER_SUPPLY_TYPE_MAINS)
-+		return 0;
-+
-+	ps->get_property(ps, POWER_SUPPLY_PROP_ONLINE, &temp);
-+	return 0;
-+}
-+
- static int acpi_battery_update(struct acpi_battery *battery)
- {
- 	int result, old_present = acpi_battery_present(battery);
-+	int old_state = battery->state;
- 	result = acpi_battery_get_status(battery);
- 	if (result)
- 		return result;
-@@ -696,6 +709,15 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 	}
- 	result = acpi_battery_get_state(battery);
- 	acpi_battery_quirks(battery);
-+	if (old_state != battery->state)
-+		/*
-+		 * Some BIOSes don't send notifications when ac adapter
-+		 * is plugged or unplugged.
-+		 * If battery changes its state, this could indicate that
-+		 * AC adapter's state has changed too.
-+		 */
-+		class_for_each_device(power_supply_class, NULL, NULL,
-+				      &acpi_battery_check_ac_state);
- 	return result;
- }
+ /*
+- * printf() format helpers
++ * printf() format helpers. These macros are workarounds for the difficulties
++ * with emitting 64-bit integers and 64-bit pointers with the same code
++ * for both 32-bit and 64-bit hosts.
+  */
+-
+-/* Split 64-bit integer into two 32-bit values. Use with %8.8X%8.8X */
+-
+ #define ACPI_FORMAT_UINT64(i)           ACPI_HIDWORD(i), ACPI_LODWORD(i)
  
+ #if ACPI_MACHINE_WIDTH == 64
+ #define ACPI_FORMAT_NATIVE_UINT(i)      ACPI_FORMAT_UINT64(i)
++#define ACPI_FORMAT_TO_UINT(i)          ACPI_FORMAT_UINT64(i)
++#define ACPI_PRINTF_UINT                 "0x%8.8X%8.8X"
++
+ #else
+-#define ACPI_FORMAT_NATIVE_UINT(i)      0, (i)
++#define ACPI_FORMAT_NATIVE_UINT(i)      0, (u32) (i)
++#define ACPI_FORMAT_TO_UINT(i)          (u32) (i)
++#define ACPI_PRINTF_UINT                 "0x%8.8X"
+ #endif
+ 
+ /*
+diff --git a/drivers/acpi/acpica/tbprint.c b/drivers/acpi/acpica/tbprint.c
+index 6866e76..05ded33 100644
+--- a/drivers/acpi/acpica/tbprint.c
++++ b/drivers/acpi/acpica/tbprint.c
+@@ -128,15 +128,17 @@ acpi_tb_print_table_header(acpi_physical_address address,
+ 	struct acpi_table_header local_header;
+ 
+ 	/*
+-	 * The reason that the Address is cast to a void pointer is so that we
+-	 * can use %p which will work properly on both 32-bit and 64-bit hosts.
++	 * The reason that we use ACPI_PRINTF_UINT and ACPI_FORMAT_TO_UINT is to
++	 * support both 32-bit and 64-bit hosts/addresses in a consistent manner.
++	 * The %p specifier does not emit uniform output on all hosts. On some,
++	 * leading zeros are not supported.
+ 	 */
+ 	if (ACPI_COMPARE_NAME(header->signature, ACPI_SIG_FACS)) {
+ 
+ 		/* FACS only has signature and length fields */
+ 
+-		ACPI_INFO((AE_INFO, "%4.4s %p %06X",
+-			   header->signature, ACPI_CAST_PTR(void, address),
++		ACPI_INFO((AE_INFO, "%-4.4s " ACPI_PRINTF_UINT " %06X",
++			   header->signature, ACPI_FORMAT_TO_UINT(address),
+ 			   header->length));
+ 	} else if (ACPI_VALIDATE_RSDP_SIG(header->signature)) {
+ 
+@@ -147,8 +149,9 @@ acpi_tb_print_table_header(acpi_physical_address address,
+ 					  header)->oem_id, ACPI_OEM_ID_SIZE);
+ 		acpi_tb_fix_string(local_header.oem_id, ACPI_OEM_ID_SIZE);
+ 
+-		ACPI_INFO((AE_INFO, "RSDP %p %06X (v%.2d %6.6s)",
+-			   ACPI_CAST_PTR(void, address),
++		ACPI_INFO((AE_INFO,
++			   "RSDP " ACPI_PRINTF_UINT " %06X (v%.2d %-6.6s)",
++			   ACPI_FORMAT_TO_UINT(address),
+ 			   (ACPI_CAST_PTR(struct acpi_table_rsdp, header)->
+ 			    revision >
+ 			    0) ? ACPI_CAST_PTR(struct acpi_table_rsdp,
+@@ -162,8 +165,9 @@ acpi_tb_print_table_header(acpi_physical_address address,
+ 		acpi_tb_cleanup_table_header(&local_header, header);
+ 
+ 		ACPI_INFO((AE_INFO,
+-			   "%4.4s %p %06X (v%.2d %6.6s %8.8s %08X %4.4s %08X)",
+-			   local_header.signature, ACPI_CAST_PTR(void, address),
++			   "%-4.4s " ACPI_PRINTF_UINT
++			   " %06X (v%.2d %-6.6s %-8.8s %08X %-4.4s %08X)",
++			   local_header.signature, ACPI_FORMAT_TO_UINT(address),
+ 			   local_header.length, local_header.revision,
+ 			   local_header.oem_id, local_header.oem_table_id,
+ 			   local_header.oem_revision,
 -- 
-1.8.5.4
+1.7.10
 
