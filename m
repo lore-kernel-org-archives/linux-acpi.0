@@ -1,74 +1,48 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v2 3/3] ACPI: Introduce map_gic_id() to get apic id from MADT or _MAT method
-Date: Sat,  8 Feb 2014 21:10:18 +0800
-Message-ID: <1391865018-3446-4-git-send-email-hanjun.guo@linaro.org>
-References: <1391865018-3446-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1391865018-3446-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/2] ACPI / processor: Replace hard-coded "ACPI0007" with ACPI_PROCESSOR_DEVICE_HID
+Date: Sat, 08 Feb 2014 16:03:29 +0100
+Message-ID: <3206968.bZnklzZdTg@vostro.rjw.lan>
+References: <1391863586-3157-1-git-send-email-hanjun.guo@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:58662 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751377AbaBHOsy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Feb 2014 09:48:54 -0500
+In-Reply-To: <1391863586-3157-1-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: linux-acpi@vger.kernel.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-Get apic id from MADT or _MAT method is not implemented on arm/arm64,
-and ACPI 5.0 introduces GIC Structure for it, so this patch introduces
-map_gic_id() to get apic id followed the ACPI 5.0 spec.
+On Saturday, February 08, 2014 08:46:25 PM Hanjun Guo wrote:
+> Replace "ACPI0007" with ACPI_PROCESSOR_DEVICE_HID to improve code
+> readability.
+> 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  drivers/acpi/processor_core.c |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> index a4eea9a..849cfd6 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -390,5 +390,6 @@ void __init acpi_early_processor_set_pdc(void)
+>  	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+>  			    ACPI_UINT32_MAX,
+>  			    early_init_pdc, NULL, NULL, NULL);
+> -	acpi_get_devices("ACPI0007", early_init_pdc, NULL, NULL);
+> +	acpi_get_devices(ACPI_PROCESSOR_DEVICE_HID,
+> +				early_init_pdc, NULL, NULL);
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/processor_core.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+Please don't break this line (I know it will exceed 80 characters).
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 31a4281..5a50f03 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -71,6 +71,27 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
- 	return 0;
- }
- 
-+static int map_gic_id(struct acpi_subtable_header *entry,
-+		int device_declaration, u32 acpi_id, int *apic_id)
-+{
-+	struct acpi_madt_generic_interrupt *gic =
-+		(struct acpi_madt_generic_interrupt *)entry;
-+
-+	if (!(gic->flags & ACPI_MADT_ENABLED))
-+		return -ENODEV;
-+
-+	/* In the GIC interrupt model, logical processors are
-+	 * required to have a Processor Device object in the DSDT,
-+	 * so we should check device_declaration here
-+	 */
-+	if (device_declaration && (gic->uid == acpi_id)) {
-+		*apic_id = gic->gic_id;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
- static int map_madt_entry(int type, u32 acpi_id)
- {
- 	unsigned long madt_end, entry;
-@@ -106,6 +127,9 @@ static int map_madt_entry(int type, u32 acpi_id)
- 		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
- 			if (!map_lsapic_id(header, type, acpi_id, &apic_id))
- 				break;
-+		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-+			if (!map_gic_id(header, type, acpi_id, &apic_id))
-+				break;
- 		}
- 		entry += header->length;
- 	}
-@@ -136,6 +160,8 @@ static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
- 		map_lapic_id(header, acpi_id, &apic_id);
- 	} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
- 		map_lsapic_id(header, type, acpi_id, &apic_id);
-+	} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-+		map_gic_id(header, type, acpi_id, &apic_id);
- 	}
- 
- exit:
+>  }
+> 
+
 -- 
-1.7.9.5
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
