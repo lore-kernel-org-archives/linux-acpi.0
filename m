@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 06/10] ACPICA: Correctly support references in the union acpi_object.
-Date: Sat,  8 Feb 2014 09:42:32 +0800
-Message-ID: <76a70ef5fb43d83bd98354df0f7733dfe3c505de.1390438467.git.lv.zheng@intel.com>
+Subject: [PATCH 07/10] ACPICA: Debugger: Add new command to read/write/compare all namespace objects.
+Date: Sat,  8 Feb 2014 09:42:39 +0800
+Message-ID: <f3518537996a0f056da98e60556561698787d20e.1390438467.git.lv.zheng@intel.com>
 References: <cover.1390438466.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:18588 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:27672 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751102AbaBHBmi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Feb 2014 20:42:38 -0500
+	id S1751159AbaBHBmv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Feb 2014 20:42:51 -0500
 In-Reply-To: <cover.1390438466.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,34 +16,33 @@ Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger
 
 From: Bob Moore <robert.moore@intel.com>
 
-This change fixes the support to allow references (namespace nodes)
-to be passed as arguments to control methods via the evaluate object
-interface. This is probably most useful for testing purposes, however.
+This patch doesn't affect kernel behavior as the debugger is
+currently not shipped in the Linux source tree.  It is generated
+by ACPICA release automation.
+
+This command "test objects" will exercise the entire namespace by
+writing new values to each data object, and ensuring that the write
+was successful. The original value is then restored and verified.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/utcopy.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/acdebug.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/acpica/utcopy.c b/drivers/acpi/acpica/utcopy.c
-index 95e55f5..270c164 100644
---- a/drivers/acpi/acpica/utcopy.c
-+++ b/drivers/acpi/acpica/utcopy.c
-@@ -535,10 +535,10 @@ acpi_ut_copy_esimple_to_isimple(union acpi_object *external_object,
+diff --git a/drivers/acpi/acpica/acdebug.h b/drivers/acpi/acpica/acdebug.h
+index 7db70ae..68a91eb 100644
+--- a/drivers/acpi/acpica/acdebug.h
++++ b/drivers/acpi/acpica/acdebug.h
+@@ -115,6 +115,8 @@ ACPI_HW_DEPENDENT_RETURN_VOID(void
+ 						   char *block_arg))
+ ACPI_HW_DEPENDENT_RETURN_VOID(void acpi_db_generate_sci(void))
  
- 	case ACPI_TYPE_LOCAL_REFERENCE:
- 
--		/* TBD: should validate incoming handle */
-+		/* An incoming reference is defined to be a namespace node */
- 
--		internal_object->reference.class = ACPI_REFCLASS_NAME;
--		internal_object->reference.node =
-+		internal_object->reference.class = ACPI_REFCLASS_REFOF;
-+		internal_object->reference.object =
- 		    external_object->reference.handle;
- 		break;
- 
++void acpi_db_execute_test(char *type_arg);
++
+ /*
+  * dbconvert - miscellaneous conversion routines
+  */
 -- 
 1.7.10
 
