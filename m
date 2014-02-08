@@ -1,71 +1,63 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / dock: Use acpi_device_enumerated() to check if dock is present
-Date: Sat, 08 Feb 2014 16:17:10 +0100
-Message-ID: <11510342.Z0olNXfrHj@vostro.rjw.lan>
+Subject: [PATCH] ACPI / hotplug / PCI: Execute _EJ0 under the ACPI scan lock
+Date: Sat, 08 Feb 2014 16:22:30 +0100
+Message-ID: <1629492.WLGZp2sePX@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60532 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:58249 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751760AbaBHPCg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Feb 2014 10:02:36 -0500
+	with SMTP id S1751799AbaBHPHz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Feb 2014 10:07:55 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-After commit 202317a573b2 (ACPI / scan: Add acpi_device objects for
-all device nodes in the namespace) acpi_bus_get_device() will always
-return 0 for dock devices in dock_notify(), so the dock station
-docking code under ACPI_NOTIFY_DEVICE_CHECK will never be executed
-and docking will not work as a result of that.
+Since acpi_device_hotplug() assumes that ACPI handles of device
+objects passed to it will not become invalid while acpi_scan_lock
+is being held, make acpiphp_disable_slot() acquire acpi_scan_lock,
+because it generally causes _EJ0 to be executed for one of the
+devices in the slot and that may cause its ACPI handle to become
+invalid.
 
-Fix the problem by making dock_notify() use acpi_device_enumerated()
-to check the presence of the device instead of checking the return
-value of acpi_bus_get_device().
-
-Fixes: 202317a573b2 (ACPI / scan: Add acpi_device objects for all device nodes in the namespace)
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
 
 Hi All,
 
-If I'm not mistaken, ACPI dock station docking is broken in 3.14-rc1 and this
-patch should fix it.
+This change is not necessary in 3.14-rc (it wouldn't hurt, though), but it
+closes a (mostly theoretical) race on top of the changes I've queued up for
+3.15 in linux-next.
 
-Can anyone who happens to own a dock station with ACPI-based dock/undock
-signaling verify this for me, please?
-
+Thanks,
 Rafael
 
 ---
- drivers/acpi/dock.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Index: linux-pm/drivers/acpi/dock.c
+Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
---- linux-pm.orig/drivers/acpi/dock.c
-+++ linux-pm/drivers/acpi/dock.c
-@@ -609,7 +609,7 @@ static int handle_eject_request(struct d
- static void dock_notify(struct dock_station *ds, u32 event)
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+@@ -1007,9 +1007,15 @@ int acpiphp_disable_slot(struct acpiphp_
  {
- 	acpi_handle handle = ds->handle;
--	struct acpi_device *ad;
-+	struct acpi_device *adev = NULL;
- 	int surprise_removal = 0;
+ 	int ret;
  
- 	/*
-@@ -632,7 +632,8 @@ static void dock_notify(struct dock_stat
- 	switch (event) {
- 	case ACPI_NOTIFY_BUS_CHECK:
- 	case ACPI_NOTIFY_DEVICE_CHECK:
--		if (!dock_in_progress(ds) && acpi_bus_get_device(handle, &ad)) {
-+		acpi_bus_get_device(handle, &adev);
-+		if (!dock_in_progress(ds) && !acpi_device_enumerated(adev)) {
- 			begin_dock(ds);
- 			dock(ds);
- 			if (!dock_present(ds)) {
++	/*
++	 * Acquire acpi_scan_lock to ensure that the execution of _EJ0 in
++	 * acpiphp_disable_and_eject_slot() will be synchronized properly.
++	 */
++	acpi_scan_lock_acquire();
+ 	pci_lock_rescan_remove();
+ 	ret = acpiphp_disable_and_eject_slot(slot);
+ 	pci_unlock_rescan_remove();
++	acpi_scan_lock_release();
+ 	return ret;
+ }
+ 
 
