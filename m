@@ -1,63 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / hotplug / PCI: Execute _EJ0 under the ACPI scan lock
-Date: Sat, 08 Feb 2014 16:22:30 +0100
-Message-ID: <1629492.WLGZp2sePX@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 1/2] ACPI / processor: Replace hard-coded "ACPI0007" with
+ ACPI_PROCESSOR_DEVICE_HID
+Date: Sun, 09 Feb 2014 17:06:01 +0800
+Message-ID: <52F744F9.5090001@linaro.org>
+References: <1391863586-3157-1-git-send-email-hanjun.guo@linaro.org> <3206968.bZnklzZdTg@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58249 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751799AbaBHPHz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Feb 2014 10:07:55 -0500
+Received: from mail-pd0-f181.google.com ([209.85.192.181]:63690 "EHLO
+	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751825AbaBIJGI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Feb 2014 04:06:08 -0500
+Received: by mail-pd0-f181.google.com with SMTP id y10so4872574pdj.40
+        for <linux-acpi@vger.kernel.org>; Sun, 09 Feb 2014 01:06:07 -0800 (PST)
+In-Reply-To: <3206968.bZnklzZdTg@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 2014=E5=B9=B402=E6=9C=8808=E6=97=A5 23:03, Rafael J. Wysocki wrote:
+> On Saturday, February 08, 2014 08:46:25 PM Hanjun Guo wrote:
+>> Replace "ACPI0007" with ACPI_PROCESSOR_DEVICE_HID to improve code
+>> readability.
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>   drivers/acpi/processor_core.c |    3 ++-
+>>   1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_=
+core.c
+>> index a4eea9a..849cfd6 100644
+>> --- a/drivers/acpi/processor_core.c
+>> +++ b/drivers/acpi/processor_core.c
+>> @@ -390,5 +390,6 @@ void __init acpi_early_processor_set_pdc(void)
+>>   	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+>>   			    ACPI_UINT32_MAX,
+>>   			    early_init_pdc, NULL, NULL, NULL);
+>> -	acpi_get_devices("ACPI0007", early_init_pdc, NULL, NULL);
+>> +	acpi_get_devices(ACPI_PROCESSOR_DEVICE_HID,
+>> +				early_init_pdc, NULL, NULL);
+> Please don't break this line (I know it will exceed 80 characters).
 
-Since acpi_device_hotplug() assumes that ACPI handles of device
-objects passed to it will not become invalid while acpi_scan_lock
-is being held, make acpiphp_disable_slot() acquire acpi_scan_lock,
-because it generally causes _EJ0 to be executed for one of the
-devices in the slot and that may cause its ACPI handle to become
-invalid.
+Ok, I will update this patch.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+Thanks
+Hanjun
 
-Hi All,
-
-This change is not necessary in 3.14-rc (it wouldn't hurt, though), but it
-closes a (mostly theoretical) race on top of the changes I've queued up for
-3.15 in linux-next.
-
-Thanks,
-Rafael
-
----
- drivers/pci/hotplug/acpiphp_glue.c |    6 ++++++
- 1 file changed, 6 insertions(+)
-
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -1007,9 +1007,15 @@ int acpiphp_disable_slot(struct acpiphp_
- {
- 	int ret;
- 
-+	/*
-+	 * Acquire acpi_scan_lock to ensure that the execution of _EJ0 in
-+	 * acpiphp_disable_and_eject_slot() will be synchronized properly.
-+	 */
-+	acpi_scan_lock_acquire();
- 	pci_lock_rescan_remove();
- 	ret = acpiphp_disable_and_eject_slot(slot);
- 	pci_unlock_rescan_remove();
-+	acpi_scan_lock_release();
- 	return ret;
- }
- 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
