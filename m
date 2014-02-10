@@ -1,60 +1,108 @@
 From: Lan Tianyu <lantianyu1986@gmail.com>
-Subject: Re: [PATCH 1/2] ACPI / AC: Notify when state changes in get_ac_property
-Date: Mon, 10 Feb 2014 09:29:21 +0800
-Message-ID: <CAOLK0pxeQN5gtr1qckdp+Y2Mbi8yih2U1_hQFedm18K4Mzw6_A@mail.gmail.com>
-References: <1391801333-18519-1-git-send-email-mezin.alexander@gmail.com>
-	<CAOLK0pytRO+4vkzH7NEcn4T=rAPbTxDQhex5YCegD-f6eKngkw@mail.gmail.com>
-	<CADnvcfLxGtJtJ3de8yuzkdNhkU9vCKO-fz+LmgmL-A2tbsNdZw@mail.gmail.com>
+Subject: Re: [PATCH v2 1/3] ACPI / idle: Make idle_boot_override depend on x86
+ and ia64
+Date: Mon, 10 Feb 2014 09:55:59 +0800
+Message-ID: <CAOLK0px-Ju9Oz9jdPtjWk19HJcxYWGYn8VBn5xTpQwq=ZsyrUQ@mail.gmail.com>
+References: <1391865018-3446-1-git-send-email-hanjun.guo@linaro.org>
+	<1391865018-3446-2-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f181.google.com ([209.85.216.181]:65298 "EHLO
-	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996AbaBJB3V (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Feb 2014 20:29:21 -0500
-Received: by mail-qc0-f181.google.com with SMTP id e9so9537386qcy.40
-        for <linux-acpi@vger.kernel.org>; Sun, 09 Feb 2014 17:29:21 -0800 (PST)
-In-Reply-To: <CADnvcfLxGtJtJ3de8yuzkdNhkU9vCKO-fz+LmgmL-A2tbsNdZw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1391865018-3446-2-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Patch Tracking <patches@linaro.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexander Mezin <mezin.alexander@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-2014-02-08 Alexander Mezin <mezin.alexander@gmail.com>:
-> 2014-02-08 13:33 GMT+07:00 Lan Tianyu <lantianyu1986@gmail.com>:
->> 2014-02-08 Alexander Mezin <mezin.alexander@gmail.com>:
->>> Do the same thing as in acpi_ac_resume.
->>>
->>> BIOS on my laptop (HP Pavilion dv6-6179er) don't send proper
->>> notifications when AC adapter is plugged/unplugged.
->>> This change makes it possible to workaround the problem by using
->>> acpid and a shell script.
->>>
->>> This patch has the same effect as
->>> commit 50a2bc5429f07ec4d53df2d287b03bdbceb281bb
->>> "ACPI / AC: change notification handler type to ACPI_ALL_NOTIFY"
->>>
->>> Aforementioned commit could be reverted.
->>
->> Hi Alexander:
->>              I don't think the previous commit can be reverted. AC driver
->> should get system notify events(E,G bus check event) and  process them.
->> Some drivers(E,G radeon) also need to know AC event and AC driver's
->> notify handler sends the event to these drivers via block notifier call chain.
->> Further more, this patch only works when the related sysfs interfaces are
->> accessed. It's redundant with previous commit.
+2014-02-08 Hanjun Guo <hanjun.guo@linaro.org>:
+> idle_boot_override depends on x86 and ia64 now, and we can not
+> foresee it will be used on ARM or ARM64,so move the code into
+> CONFIG_X86 and CONFIG_IA64 #ifdefs to make processor_core.c
+> can be compiled on ARM64.
 >
-> OK, I didn't think about other drivers and so.
+
+Reviewed-by: Lan Tianyu <tianyu.lan@intel.com>
+
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  drivers/acpi/processor_core.c |   40 ++++++++++++++++++++++------------------
+>  1 file changed, 22 insertions(+), 18 deletions(-)
 >
-> Second patch works fine on its own (if old commit isn't reverted, of course),
-> I've tested it just now. Should I resend it as single patch?
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> index 46583d7..01b2656 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -19,24 +19,6 @@
+>  #define _COMPONENT             ACPI_PROCESSOR_COMPONENT
+>  ACPI_MODULE_NAME("processor_core");
+>
+> -static int __init set_no_mwait(const struct dmi_system_id *id)
+> -{
+> -       printk(KERN_NOTICE PREFIX "%s detected - "
+> -               "disabling mwait for CPU C-states\n", id->ident);
+> -       boot_option_idle_override = IDLE_NOMWAIT;
+> -       return 0;
+> -}
+> -
+> -static struct dmi_system_id processor_idle_dmi_table[] __initdata = {
+> -       {
+> -       set_no_mwait, "Extensa 5220", {
+> -       DMI_MATCH(DMI_BIOS_VENDOR, "Phoenix Technologies LTD"),
+> -       DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+> -       DMI_MATCH(DMI_PRODUCT_VERSION, "0100"),
+> -       DMI_MATCH(DMI_BOARD_NAME, "Columbia") }, NULL},
+> -       {},
+> -};
+> -
+>  static int map_lapic_id(struct acpi_subtable_header *entry,
+>                  u32 acpi_id, int *apic_id)
+>  {
+> @@ -379,13 +361,35 @@ early_init_pdc(acpi_handle handle, u32 lvl, void *context, void **rv)
+>         return AE_OK;
+>  }
+>
+> +#if defined(CONFIG_X86) || defined(CONFIG_IA64)
+> +static int __init set_no_mwait(const struct dmi_system_id *id)
+> +{
+> +       printk(KERN_NOTICE PREFIX "%s detected - "
+> +               "disabling mwait for CPU C-states\n", id->ident);
+> +       boot_option_idle_override = IDLE_NOMWAIT;
+> +       return 0;
+> +}
+> +
+> +static struct dmi_system_id processor_idle_dmi_table[] __initdata = {
+> +       {
+> +       set_no_mwait, "Extensa 5220", {
+> +       DMI_MATCH(DMI_BIOS_VENDOR, "Phoenix Technologies LTD"),
+> +       DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+> +       DMI_MATCH(DMI_PRODUCT_VERSION, "0100"),
+> +       DMI_MATCH(DMI_BOARD_NAME, "Columbia") }, NULL},
+> +       {},
+> +};
+> +#endif
+> +
+>  void __init acpi_early_processor_set_pdc(void)
+>  {
+> +#if defined(CONFIG_X86) || defined(CONFIG_IA64)
+>         /*
+>          * Check whether the system is DMI table. If yes, OSPM
+>          * should not use mwait for CPU-states.
+>          */
+>         dmi_check_system(processor_idle_dmi_table);
+> +#endif
+>
+>         acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+>                             ACPI_UINT32_MAX,
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Hi:
-       What's the benefit of the second patch without this patch?
-So far, bios sends the ACPI notify event of power change to AC driver and
-the driver would change status and send uevent. That seems enough.
 
-BTW, battery status update normally is also triggered by ACPI notify event.
+
 -- 
 Best regards
 Tianyu Lan
