@@ -1,40 +1,75 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: [PATCH] ACPI, APEI: Remove X86 redundant dependency for APEI Generic Hardware Error Source.
-Date: Mon, 10 Feb 2014 17:23:36 +0100
-Message-ID: <1392049416-31240-1-git-send-email-tomasz.nowicki@linaro.org>
+From: Alexander Mezin <mezin.alexander@gmail.com>
+Subject: Re: [PATCH 1/2] ACPI / AC: Notify when state changes in get_ac_property
+Date: Tue, 11 Feb 2014 01:34:29 +0700
+Message-ID: <CADnvcf+F1AmL4BNsGAhxObrgnSDm+_Nnrtg7TwnKtv9oyxYzdw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:48415 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752423AbaBJQXa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Feb 2014 11:23:30 -0500
-Received: by mail-ee0-f54.google.com with SMTP id e53so3083941eek.13
-        for <linux-acpi@vger.kernel.org>; Mon, 10 Feb 2014 08:23:29 -0800 (PST)
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:49431 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751949AbaBJSea (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Feb 2014 13:34:30 -0500
+Received: by mail-pb0-f47.google.com with SMTP id rp16so6598158pbb.34
+        for <linux-acpi@vger.kernel.org>; Mon, 10 Feb 2014 10:34:29 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rjw@rjwysocki.net
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+To: =?UTF-8?B?6JOd5aSp5a6H?= <lantianyu1986@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-ACPI_APEI is already dependent on X86, hence, there is no need to
-define such dependency for ACPI_APEI_GHES again.
+Sorry, I've pressed wrong "Reply" button
 
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
----
- drivers/acpi/apei/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+---------- Forwarded message ----------
+From: Alexander Mezin <mezin.alexander@gmail.com>
+Date: 2014-02-10 16:38 GMT+07:00
+Subject: Re: [PATCH 1/2] ACPI / AC: Notify when state changes in get_ac_property
+To: Lan Tianyu <lantianyu1986@gmail.com>
 
-diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
-index 786294b..1d7ca6e 100644
---- a/drivers/acpi/apei/Kconfig
-+++ b/drivers/acpi/apei/Kconfig
-@@ -13,7 +13,7 @@ config ACPI_APEI
- 
- config ACPI_APEI_GHES
- 	bool "APEI Generic Hardware Error Source"
--	depends on ACPI_APEI && X86
-+	depends on ACPI_APEI
- 	select ACPI_HED
- 	select IRQ_WORK
- 	select GENERIC_ALLOCATOR
--- 
-1.7.9.5
 
+2014-02-10 10:15 GMT+07:00 Lan Tianyu <lantianyu1986@gmail.com>:
+> 2014-02-10 Alexander Mezin <mezin.alexander@gmail.com>:
+>> 2014-02-10 9:34 GMT+07:00 Lan Tianyu <lantianyu1986@gmail.com>:
+>>> 2014-02-10 Lan Tianyu <lantianyu1986@gmail.com>:
+>>>> 2014-02-10 10:16 GMT+08:00 Alexander Mezin <mezin.alexander@gmail.com>:
+>>>>> 2014-02-10 8:29 GMT+07:00 Lan Tianyu <lantianyu1986@gmail.com>:
+>>>>>> 2014-02-08 Alexander Mezin <mezin.alexander@gmail.com>:
+>>>>>>> 2014-02-08 13:33 GMT+07:00 Lan Tianyu <lantianyu1986@gmail.com>:
+>>>>>> Hi:
+>>>>>>        What's the benefit of the second patch without this patch?
+>>>>>> So far, bios sends the ACPI notify event of power change to AC driver and
+>>>>>> the driver would change status and send uevent. That seems enough.
+>>>>> Without second patch AC adapter's status isn't updated on my laptop.
+>>>>
+>>>> commit 50a2bc5429f can't fix this issue.
+>>> Sorry. commit 50a2bc5429f can't fix this issue?
+>> No, it doesn't solve the problem. But before it AC state didn't update
+>> even when I run "acpi -a". There was no way other than reboot.
+>
+> Ok. You mean AC state didn't update before running "acpi -a" with commit
+> 50a2bc5429f, right?
+No. I mean AC state didn't update when I run "acpi -a", before I made commit
+50a2bc5429f. Or maybe I just don't understand you.
+>
+> How do you check the AC state? via /sys/class/power_supply/ACXX/online?
+No. I check it by looking at KDE's power manager icon. Reading
+/sys/class/power_supply/AC/online has the same effect as "acpi -a"
+(without 50a2bc5429f state doesn't update, with 50a2bc5429f - state updates,
+and power manager also gets the notification).
+Also, I checked it using UPower dbus interface and qbus.
+The same results as with power manager.
+>
+> What does acpi_listen show when plug or unplug adaptor?
+With second patch ("ACPI / battery: check AC adapter's state when
+battery state changes"):
+battery PNP0C0A:00 00000001 00000001
+battery PNP0C0A:00 00000080 00000001
+ PNP0C14:00 00000080 00000000
+ac_adapter ACPI0003:00 00000000 00000000
+processor LNXCPU:00 00000082 00000000
+battery PNP0C0A:00 00000000 00000001
+battery PNP0C0A:00 00000080 00000001
+ PNP0C14:00 00000080 00000000
+processor LNXCPU:00 00000082 00000000
+battery PNP0C0A:00 00000080 00000001
+ac_adapter ACPI0003:00 00000000 00000001
+
+Without the patch - the same, but without lines starting with "ac_adapter".
