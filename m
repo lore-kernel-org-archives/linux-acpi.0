@@ -1,74 +1,37 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v3 3/3] ACPI / processor: Introduce map_gic_id() to get apic id from MADT or _MAT method
-Date: Mon, 10 Feb 2014 15:49:02 +0800
-Message-ID: <1392018542-10949-4-git-send-email-hanjun.guo@linaro.org>
-References: <1392018542-10949-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1392018542-10949-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+From: "Luis G.F" <luisgf@luisgf.es>
+Subject: [PATCH 2/2] acpi / sbs: Fix incorrect sscanf() string
+Date: Mon, 10 Feb 2014 11:36:42 +0100
+Message-ID: <1392028602-21326-1-git-send-email-luisgf@luisgf.es>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.domainsvm.com ([37.77.82.227]:40839 "EHLO
+	cp-nl-1.domainsvm.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1751819AbaBJKgv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Feb 2014 05:36:51 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, rjw@rjwsocki.net, linux-acpi@vger.kernel.org
+Cc: "Luis G.F" <luisgf@luisgf.es>
 
-Get apic id from MADT or _MAT method is not implemented on arm/arm64,
-and ACPI 5.0 introduces GIC Structure for it, so this patch introduces
-map_gic_id() to get apic id followed the ACPI 5.0 spec.
+Fix incorrect sscanf() string in function acpi_battery_alarm_store().
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Signed-off-by: Luis G.F <luisgf@luisgf.es>
 ---
- drivers/acpi/processor_core.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ drivers/acpi/sbs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 575c500..eaaeebc 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -71,6 +71,27 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
- 	return 0;
- }
- 
-+static int map_gic_id(struct acpi_subtable_header *entry,
-+		int device_declaration, u32 acpi_id, int *apic_id)
-+{
-+	struct acpi_madt_generic_interrupt *gic =
-+		(struct acpi_madt_generic_interrupt *)entry;
-+
-+	if (!(gic->flags & ACPI_MADT_ENABLED))
-+		return -ENODEV;
-+
-+	/* In the GIC interrupt model, logical processors are
-+	 * required to have a Processor Device object in the DSDT,
-+	 * so we should check device_declaration here
-+	 */
-+	if (device_declaration && (gic->uid == acpi_id)) {
-+		*apic_id = gic->gic_id;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
- static int map_madt_entry(int type, u32 acpi_id)
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index d465ae6..02d0c21 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -450,7 +450,7 @@ static ssize_t acpi_battery_alarm_store(struct device *dev,
  {
- 	unsigned long madt_end, entry;
-@@ -106,6 +127,9 @@ static int map_madt_entry(int type, u32 acpi_id)
- 		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
- 			if (!map_lsapic_id(header, type, acpi_id, &apic_id))
- 				break;
-+		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-+			if (!map_gic_id(header, type, acpi_id, &apic_id))
-+				break;
- 		}
- 		entry += header->length;
- 	}
-@@ -136,6 +160,8 @@ static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
- 		map_lapic_id(header, acpi_id, &apic_id);
- 	} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
- 		map_lsapic_id(header, type, acpi_id, &apic_id);
-+	} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-+		map_gic_id(header, type, acpi_id, &apic_id);
- 	}
- 
- exit:
+ 	unsigned long x;
+ 	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
+-	if (sscanf(buf, "%ld\n", &x) == 1)
++	if (sscanf(buf, "%lu\n", &x) == 1)
+ 		battery->alarm_capacity = x /
+ 			(1000 * acpi_battery_scale(battery));
+ 	if (battery->present)
 -- 
-1.7.9.5
+1.8.4.5
+
