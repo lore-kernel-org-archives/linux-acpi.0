@@ -1,37 +1,54 @@
-From: "Luis G.F" <luisgf@luisgf.es>
-Subject: [PATCH 2/2] acpi / sbs: Fix incorrect sscanf() string
-Date: Mon, 10 Feb 2014 11:36:42 +0100
-Message-ID: <1392028602-21326-1-git-send-email-luisgf@luisgf.es>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: [PATCH 1/2] ACPI, PCI, ISA: Call ISA-specific code only for architectures which support ISA.
+Date: Mon, 10 Feb 2014 14:00:10 +0100
+Message-ID: <1392037211-29349-1-git-send-email-tomasz.nowicki@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.domainsvm.com ([37.77.82.227]:40839 "EHLO
-	cp-nl-1.domainsvm.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751819AbaBJKgv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Feb 2014 05:36:51 -0500
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:35844 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752206AbaBJNAg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Feb 2014 08:00:36 -0500
+Received: by mail-ea0-f174.google.com with SMTP id b10so2971548eae.19
+        for <linux-acpi@vger.kernel.org>; Mon, 10 Feb 2014 05:00:35 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rjw@rjwsocki.net, linux-acpi@vger.kernel.org
-Cc: "Luis G.F" <luisgf@luisgf.es>
+To: lenb@kernel.org, rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-Fix incorrect sscanf() string in function acpi_battery_alarm_store().
+This commit enables ISA-specific code if and only if CONFIG_{E}ISA is set
+in the kernel configuration so that we do not have to maintain
+acpi_isa_irq_to_gsi() function for architectures which do not support ISA.
 
-Signed-off-by: Luis G.F <luisgf@luisgf.es>
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 ---
- drivers/acpi/sbs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/pci_irq.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index d465ae6..02d0c21 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -450,7 +450,7 @@ static ssize_t acpi_battery_alarm_store(struct device *dev,
- {
- 	unsigned long x;
- 	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
--	if (sscanf(buf, "%ld\n", &x) == 1)
-+	if (sscanf(buf, "%lu\n", &x) == 1)
- 		battery->alarm_capacity = x /
- 			(1000 * acpi_battery_scale(battery));
- 	if (battery->present)
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 41c5e1b..b0e31b6 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -418,6 +418,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 	 * driver reported one, then use it. Exit in any case.
+ 	 */
+ 	if (gsi < 0) {
++#if IS_ENABLED(CONFIG_ISA) || IS_ENABLED(CONFIG_EISA)
+ 		u32 dev_gsi;
+ 		/* Interrupt Line values above 0xF are forbidden */
+ 		if (dev->irq > 0 && (dev->irq <= 0xF) &&
+@@ -427,10 +428,9 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 			acpi_register_gsi(&dev->dev, dev_gsi,
+ 					  ACPI_LEVEL_SENSITIVE,
+ 					  ACPI_ACTIVE_LOW);
+-		} else {
+-			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+-				 pin_name(pin));
+-		}
++		} else
++#endif
++		dev_warn(&dev->dev, "PCI INT %c: no GSI\n", pin_name(pin));
+ 
+ 		return 0;
+ 	}
 -- 
-1.8.4.5
+1.7.9.5
 
