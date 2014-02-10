@@ -1,55 +1,176 @@
-From: Lan Tianyu <lantianyu1986@gmail.com>
-Subject: Re: [PATCH 1/2] ACPI / AC: Notify when state changes in get_ac_property
-Date: Mon, 10 Feb 2014 11:15:27 +0800
-Message-ID: <CAOLK0pxqobCw7Qhz4MRavFmyKf0SjAddMACTj6W5j5ZXBHKx1A@mail.gmail.com>
-References: <1391801333-18519-1-git-send-email-mezin.alexander@gmail.com>
-	<CAOLK0pytRO+4vkzH7NEcn4T=rAPbTxDQhex5YCegD-f6eKngkw@mail.gmail.com>
-	<CADnvcfLxGtJtJ3de8yuzkdNhkU9vCKO-fz+LmgmL-A2tbsNdZw@mail.gmail.com>
-	<CAOLK0pxeQN5gtr1qckdp+Y2Mbi8yih2U1_hQFedm18K4Mzw6_A@mail.gmail.com>
-	<CADnvcf+7T8qDeRhwbwhmja9N1HeAzfF_oDSBpnUX59NTCRmkAg@mail.gmail.com>
-	<CAOLK0pwE5m1RUOnnUTNQVHFB6WAcgvfR5twZCHDbvuOwZN_aNQ@mail.gmail.com>
-	<CAOLK0pzjXyHh1ga1TwN9JWepUnNzqwRym9Sa5Rt3XF2et6DwpA@mail.gmail.com>
-	<CADnvcfLfJUPRZZ-uBk1=mb9a+63CaOX+M+M1osuUYDzyAA=qBg@mail.gmail.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2 2/3] ACPI / processor_core: Rework _PDC related stuff
+ to make it more arch-independent
+Date: Mon, 10 Feb 2014 15:09:17 +0800
+Message-ID: <52F87B1D.7090401@linaro.org>
+References: <1391865018-3446-1-git-send-email-hanjun.guo@linaro.org> <1391865018-3446-3-git-send-email-hanjun.guo@linaro.org> <CAOLK0pxxF+3e3gzgfSYuz+R8+n6hnB9rrCpzxdGNJPyHQ4xS5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f172.google.com ([209.85.216.172]:53405 "EHLO
-	mail-qc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340AbaBJDP1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Feb 2014 22:15:27 -0500
-Received: by mail-qc0-f172.google.com with SMTP id c9so9778933qcz.3
-        for <linux-acpi@vger.kernel.org>; Sun, 09 Feb 2014 19:15:27 -0800 (PST)
-In-Reply-To: <CADnvcfLfJUPRZZ-uBk1=mb9a+63CaOX+M+M1osuUYDzyAA=qBg@mail.gmail.com>
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:56135 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750797AbaBJHJg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Feb 2014 02:09:36 -0500
+Received: by mail-pd0-f170.google.com with SMTP id p10so5743428pdj.15
+        for <linux-acpi@vger.kernel.org>; Sun, 09 Feb 2014 23:09:36 -0800 (PST)
+In-Reply-To: <CAOLK0pxxF+3e3gzgfSYuz+R8+n6hnB9rrCpzxdGNJPyHQ4xS5w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexander Mezin <mezin.alexander@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Lan Tianyu <lantianyu1986@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Patch Tracking <patches@linaro.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, linaro-acpi <linaro-acpi@lists.linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>
 
-2014-02-10 Alexander Mezin <mezin.alexander@gmail.com>:
-> 2014-02-10 9:34 GMT+07:00 Lan Tianyu <lantianyu1986@gmail.com>:
->> 2014-02-10 Lan Tianyu <lantianyu1986@gmail.com>:
->>> 2014-02-10 10:16 GMT+08:00 Alexander Mezin <mezin.alexander@gmail.com>:
->>>> 2014-02-10 8:29 GMT+07:00 Lan Tianyu <lantianyu1986@gmail.com>:
->>>>> 2014-02-08 Alexander Mezin <mezin.alexander@gmail.com>:
->>>>>> 2014-02-08 13:33 GMT+07:00 Lan Tianyu <lantianyu1986@gmail.com>:
->>>>> Hi:
->>>>>        What's the benefit of the second patch without this patch?
->>>>> So far, bios sends the ACPI notify event of power change to AC driver and
->>>>> the driver would change status and send uevent. That seems enough.
->>>> Without second patch AC adapter's status isn't updated on my laptop.
->>>
->>> commit 50a2bc5429f can't fix this issue.
->> Sorry. commit 50a2bc5429f can't fix this issue?
-> No, it doesn't solve the problem. But before it AC state didn't update
-> even when I run "acpi -a". There was no way other than reboot.
+Hi Tianyu,
 
-Ok. You mean AC state didn't update before running "acpi -a" with commit
-50a2bc5429f, right?
+On 2014=E5=B9=B402=E6=9C=8810=E6=97=A5 10:21, Lan Tianyu wrote:
+> 2014-02-08 21:10 GMT+08:00 Hanjun Guo <hanjun.guo@linaro.org>:
+>> _PDC related stuff in processor_core.c is little bit X86/IA64 depend=
+ent,
+>> rework the code to make it more arch-independent, no functional chan=
+ge
+>> in this patch.
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+>> ---
+>>   arch/ia64/include/asm/acpi.h  |    5 +----
+>>   arch/ia64/kernel/acpi.c       |   17 +++++++++++++++++
+>>   arch/x86/include/asm/acpi.h   |   19 +------------------
+>>   arch/x86/kernel/acpi/cstate.c |   31 +++++++++++++++++++++++++++++=
+++
+>>   drivers/acpi/processor_core.c |   19 +------------------
+>>   5 files changed, 51 insertions(+), 40 deletions(-)
+>>
+>> diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/ac=
+pi.h
+>> index d651102..d2b8b9d 100644
+>> --- a/arch/ia64/include/asm/acpi.h
+>> +++ b/arch/ia64/include/asm/acpi.h
+>> @@ -152,10 +152,7 @@ extern int __initdata nid_to_pxm_map[MAX_NUMNOD=
+ES];
+>>   #endif
+>>
+>>   static inline bool arch_has_acpi_pdc(void) { return true; }
+>> -static inline void arch_acpi_set_pdc_bits(u32 *buf)
+>> -{
+>> -       buf[2] |=3D ACPI_PDC_EST_CAPABILITY_SMP;
+>> -}
+>> +extern void arch_acpi_set_pdc_bits(u32 *buf);
+>>
+>>   #define acpi_unlazy_tlb(x)
+>>
+>> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+>> index 07d209c..d71f64a 100644
+>> --- a/arch/ia64/kernel/acpi.c
+>> +++ b/arch/ia64/kernel/acpi.c
+>> @@ -1014,3 +1014,20 @@ EXPORT_SYMBOL(acpi_unregister_ioapic);
+>>    * TBD when when IA64 starts to support suspend...
+>>    */
+>>   int acpi_suspend_lowlevel(void) { return 0; }
+>> +
+>> +void arch_acpi_set_pdc_bits(u32 *buf)
+>> +{
+>> +       /* Enable coordination with firmware's _TSD info */
+>> +       buf[2] |=3D ACPI_PDC_SMP_T_SWCOORD;
+> Hi Hanjun:
+>              You can write like this.
+>              buf[2] |=3D ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_EST_CAPABI=
+LITY_SMP;
 
-How do you check the AC state? via /sys/class/power_supply/ACXX/online?
+Thanks for the suggestion, will update it.
 
-What does acpi_listen show when plug or unplug adaptor?
+>
+>> +       if (boot_option_idle_override =3D=3D IDLE_NOMWAIT) {
+>> +               /*
+>> +                * If mwait is disabled for CPU C-states, the C2C3_F=
+=46H access
+>> +                * mode will be disabled in the parameter of _PDC ob=
+ject.
+>> +                * Of course C1_FFH access mode will also be disable=
+d.
+>> +                */
+>> +               buf[2] &=3D ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FF=
+H);
+>> +
+>> +       }
+>> +
+>> +       buf[2] |=3D ACPI_PDC_EST_CAPABILITY_SMP;
+>> +}
+>> diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi=
+=2Eh
+>> index c8c1e70..e9f71bc 100644
+>> --- a/arch/x86/include/asm/acpi.h
+>> +++ b/arch/x86/include/asm/acpi.h
+>> @@ -147,24 +147,7 @@ static inline bool arch_has_acpi_pdc(void)
+>>                  c->x86_vendor =3D=3D X86_VENDOR_CENTAUR);
+>>   }
+>>
+>> -static inline void arch_acpi_set_pdc_bits(u32 *buf)
+>> -{
+>> -       struct cpuinfo_x86 *c =3D &cpu_data(0);
+>> -
+>> -       buf[2] |=3D ACPI_PDC_C_CAPABILITY_SMP;
+>> -
+>> -       if (cpu_has(c, X86_FEATURE_EST))
+>> -               buf[2] |=3D ACPI_PDC_EST_CAPABILITY_SWSMP;
+>> -
+>> -       if (cpu_has(c, X86_FEATURE_ACPI))
+>> -               buf[2] |=3D ACPI_PDC_T_FFH;
+>> -
+>> -       /*
+>> -        * If mwait/monitor is unsupported, C2/C3_FFH will be disabl=
+ed
+>> -        */
+>> -       if (!cpu_has(c, X86_FEATURE_MWAIT))
+>> -               buf[2] &=3D ~(ACPI_PDC_C_C2C3_FFH);
+>> -}
+>> +extern void arch_acpi_set_pdc_bits(u32 *buf);
+>>
+>>   #else /* !CONFIG_ACPI */
+>>
+>> diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cs=
+tate.c
+>> index e69182f..aa9aed9 100644
+>> --- a/arch/x86/kernel/acpi/cstate.c
+>> +++ b/arch/x86/kernel/acpi/cstate.c
+>> @@ -16,6 +16,37 @@
+>>   #include <asm/mwait.h>
+>>   #include <asm/special_insns.h>
+>>
+>> +void arch_acpi_set_pdc_bits(u32 *buf)
+>> +{
+>> +       struct cpuinfo_x86 *c =3D &cpu_data(0);
+>> +
+>> +       /* Enable coordination with firmware's _TSD info */
+>> +       buf[2] |=3D ACPI_PDC_SMP_T_SWCOORD;
+>> +       if (boot_option_idle_override =3D=3D IDLE_NOMWAIT) {
+>> +               /*
+>> +                * If mwait is disabled for CPU C-states, the C2C3_F=
+=46H access
+>> +                * mode will be disabled in the parameter of _PDC ob=
+ject.
+>> +                * Of course C1_FFH access mode will also be disable=
+d.
+>> +                */
+>> +               buf[2] &=3D ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FF=
+H);
+>> +
+>> +       }
+>> +
+>> +       buf[2] |=3D ACPI_PDC_C_CAPABILITY_SMP;
+> This is not right. ACPI_PDC_C_CAPABILITY_SMP contians ACPI_PDC_C_C1_F=
+=46H and
+> ACPI_PDC_C_C2C3_FFH. boot_option_idle_override is meaningless here.
+>
+> You should keep original order and put the check at last.
 
--- 
+Good catch! I will update this patch, thanks for your review :)
+
 Best regards
-Tianyu Lan
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
