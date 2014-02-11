@@ -1,53 +1,40 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 0/11] ACPI / hotplug / PCI: Updates on top of changes
- merged recently
-Date: Mon, 10 Feb 2014 17:19:58 -0700
-Message-ID: <20140211001958.GB12851@google.com>
-References: <2217793.001RY6hKlo@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH] ACPICA: Add "Windows 2013" string to _OSI support.
+Date: Tue, 11 Feb 2014 10:25:27 +0800
+Message-ID: <1392085527-5789-1-git-send-email-lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f176.google.com ([209.85.213.176]:49275 "EHLO
-	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752231AbaBKAUB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Feb 2014 19:20:01 -0500
-Received: by mail-ig0-f176.google.com with SMTP id j1so7827060iga.3
-        for <linux-acpi@vger.kernel.org>; Mon, 10 Feb 2014 16:20:00 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <2217793.001RY6hKlo@vostro.rjw.lan>
+Received: from mga02.intel.com ([134.134.136.20]:65398 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751779AbaBKCZq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Feb 2014 21:25:46 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <Robert.Moore@intel.com>
 
-On Mon, Jan 27, 2014 at 01:37:17AM +0100, Rafael J. Wysocki wrote:
-> Hi All,
-> 
-> ACPIPHP can be simplified a bit on top of some PCI and ACPI changes merged
-> recently and the following series of patches implements those simplifications:
-> 
-> [1/11] Fix up two kerneldoc comments in acpiphp_glue.c.
-> [2/11] Get rid of an unnecessary label in register_slot().
-> [3/11] Drop acpiphp_bus_trim() and use acpi_bus_trim() instead of it directly.
-> [4/11] Move the acpi_bus_get_device() call out of acpiphp_no_hotplug().
-> [5/11] Store struct acpi_device pointers instead of ACPI handles in struct acpiphp_context.
-> [6/11] Drop acpiphp_bus_add() (which has only one user).
-> [7/11] Drop crit_sect mutexes (that are redundant).
-> [8/11] Clean up the usage of the slot variable in hotplug_event().
-> [9/11] Drop dev_in_slot() and rework disable_slot() to walk bus->devices directly.
-> [10/11] Use acpi_handle_debug() in hotplug_event() instead of open-coded stuff.
-> [11/11] Drop handle argument from the member functions of struct acpi_dock_ops.
+From: Bob Moore <Robert.Moore@intel.com>
 
-I assume you'll handle all these through your tree, Rafael.  Let me know if
-you need me to do anything.
+This urgent patch is cherry picked from ACPICA upstream.
+It is reported that some platforms fail to boot without this new _OSI
+string.
 
-Bjorn
+This change adds this string for Windows 8.1 and Server 2012 R2.
 
-> All of that is relateively straightforward, but I have some more intrusive changes
-> on top of it in the works.  They will be posted separately later this week.
-> 
-> Thanks!
-> 
-> -- 
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+Reported-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Bob Moore <Robert.Moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ utosi.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff -Nurp linux.before/drivers/acpi/acpica/utosi.c linux.after/drivers/acpi/acpica/utosi.c
+--- linux.before/drivers/acpi/acpica/utosi.c	2014-02-11 10:02:49.000000000 +0800
++++ linux.after/drivers/acpi/acpica/utosi.c	2014-02-11 10:02:10.000000000 +0800
+@@ -74,6 +74,7 @@ static struct acpi_interface_info acpi_d
+ 	{"Windows 2006 SP2", NULL, 0, ACPI_OSI_WIN_VISTA_SP2},	/* Windows Vista SP2 - Added 09/2010 */
+ 	{"Windows 2009", NULL, 0, ACPI_OSI_WIN_7},	/* Windows 7 and Server 2008 R2 - Added 09/2009 */
+ 	{"Windows 2012", NULL, 0, ACPI_OSI_WIN_8},	/* Windows 8 and Server 2012 - Added 08/2012 */
++	{"Windows 2013", NULL, 0, ACPI_OSI_WIN_8},	/* Windows 8.1 and Server 2012 R2 - Added 01/2014 */
+ 
+ 	/* Feature Group Strings */
+ 
