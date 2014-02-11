@@ -1,110 +1,79 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 2/3] ACPI / dock: Pass ACPI device pointer to acpi_device_is_battery()
-Date: Tue, 11 Feb 2014 01:10:51 +0100
-Message-ID: <3670100.egnJn4ezsJ@vostro.rjw.lan>
-References: <3728252.WpMGKRKmqq@vostro.rjw.lan>
+Subject: [PATCH 2/2] ACPI / hotplug / PCI: Add ACPIPHP contexts to devices handled by PCIeHP
+Date: Tue, 11 Feb 2014 01:18:37 +0100
+Message-ID: <6623444.enfLAe3lRN@vostro.rjw.lan>
+References: <1461050.jQppMgDSvA@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61170 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:63750 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752635AbaBJX5U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Feb 2014 18:57:20 -0500
-In-Reply-To: <3728252.WpMGKRKmqq@vostro.rjw.lan>
+	with SMTP id S1752111AbaBKAEa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Feb 2014 19:04:30 -0500
+In-Reply-To: <1461050.jQppMgDSvA@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
+To: Linux PCI <linux-pci@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Since we already know what the device's PNP IDs are when
-acpi_device_is_battery() is called, it is not necessary to run
-acpi_get_object_info() for the device in that function.  Instead, if
-acpi_device_is_battery() is passed a pointer to a struct acpi_device
-object, it can use the list of PNP IDs from that object, so make that
-happen and modify the function's header accordingly
+Currently, ACPIPHP does not add hotplug context to devices that
+should be handled by the native PCI hotplug (PCIeHP) code.  The
+reason why was because PCIeHP didn't know about the devices'
+connections with ACPI and would not clean up things properly
+during an eject of an ACPI-backed device, for example.
+
+However, after recent changes that made the ACPI core create struct
+acpi_device objects for all namespace nodes regardless of the
+underlying devices' status and added PCI rescan-remove locking to
+both ACPIPHP and PCIeHP, that concern is not valid any more.
+Namely, after those changes PCIeHP need not care about the ACPI
+side of things any more and it should be serialized with respect to
+ACPIPHP and they won't be running concurrently with each other in
+any case.
+
+For this reason, make ACPIPHP to add its hotplug context to
+all devices with ACPI companions, even the ones that should be
+handled by PCIeHP in principle.  That may work around hotplug
+issues on some systems where PCIeHP is supposed to work, but it
+doesn't and the ACPI hotplug signaling works instead.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/dock.c     |    2 +-
- drivers/acpi/internal.h |    2 +-
- drivers/acpi/scan.c     |   24 +++++++++++-------------
- 3 files changed, 13 insertions(+), 15 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-Index: linux-pm/drivers/acpi/internal.h
+Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
 ===================================================================
---- linux-pm.orig/drivers/acpi/internal.h
-+++ linux-pm/drivers/acpi/internal.h
-@@ -97,7 +97,7 @@ void acpi_free_pnp_ids(struct acpi_devic
- int acpi_bind_one(struct device *dev, struct acpi_device *adev);
- int acpi_unbind_one(struct device *dev);
- bool acpi_device_is_present(struct acpi_device *adev);
--bool acpi_device_is_battery(acpi_handle handle);
-+bool acpi_device_is_battery(struct acpi_device *adev);
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+@@ -277,9 +277,6 @@ static acpi_status acpiphp_add_context(a
+ 	struct pci_dev *pdev = bridge->pci_dev;
+ 	u32 val;
  
- /* --------------------------------------------------------------------------
-                                   Power Resource
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -1662,24 +1662,22 @@ bool acpi_bay_match(acpi_handle handle)
- 	return acpi_ata_match(phandle);
- }
- 
--bool acpi_device_is_battery(acpi_handle handle)
-+bool acpi_device_is_battery(struct acpi_device *adev)
- {
--	struct acpi_device_info *info;
--	bool ret = false;
+-	if (pdev && device_is_managed_by_native_pciehp(pdev))
+-		return AE_OK;
 -
--	if (!ACPI_SUCCESS(acpi_get_object_info(handle, &info)))
--		return false;
-+	struct acpi_hardware_id *hwid;
+ 	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
+ 	if (ACPI_FAILURE(status)) {
+ 		if (status != AE_NOT_FOUND)
+@@ -338,8 +335,14 @@ static acpi_status acpiphp_add_context(a
  
--	if (info->valid & ACPI_VALID_HID)
--		ret = !strcmp("PNP0C0A", info->hardware_id.string);
-+	list_for_each_entry(hwid, &adev->pnp.ids, list)
-+		if (!strcmp("PNP0C0A", hwid->id))
-+			return true;
+ 	list_add_tail(&slot->node, &bridge->slots);
  
--	kfree(info);
--	return ret;
-+	return false;
- }
+-	/* Register slots for ejectable functions only. */
+-	if (acpi_pci_check_ejectable(pbus, handle)  || is_dock_device(handle)) {
++	/*
++	 * Expose slots to user space for functions that have _EJ0 or _RMV or
++	 * are located in dock stations.  Do not expose them for devices handled
++	 * by the native PCIe hotplug (PCIeHP), becuase that code is supposed to
++	 * expose slots to user space in those cases.
++	 */
++	if ((acpi_pci_check_ejectable(pbus, handle) || is_dock_device(handle))
++	    && !(pdev && device_is_managed_by_native_pciehp(pdev))) {
+ 		unsigned long long sun;
+ 		int retval;
  
--static bool is_ejectable_bay(acpi_handle handle)
-+static bool is_ejectable_bay(struct acpi_device *adev)
- {
--	if (acpi_has_method(handle, "_EJ0") && acpi_device_is_battery(handle))
-+	acpi_handle handle = adev->handle;
-+
-+	if (acpi_has_method(handle, "_EJ0") && acpi_device_is_battery(adev))
- 		return true;
- 
- 	return acpi_bay_match(handle);
-@@ -1989,7 +1987,7 @@ static void acpi_scan_init_hotplug(struc
- {
- 	struct acpi_hardware_id *hwid;
- 
--	if (acpi_dock_match(adev->handle) || is_ejectable_bay(adev->handle)) {
-+	if (acpi_dock_match(adev->handle) || is_ejectable_bay(adev)) {
- 		acpi_dock_add(adev);
- 		return;
- 	}
-Index: linux-pm/drivers/acpi/dock.c
-===================================================================
---- linux-pm.orig/drivers/acpi/dock.c
-+++ linux-pm/drivers/acpi/dock.c
-@@ -796,7 +796,7 @@ void acpi_dock_add(struct acpi_device *a
- 		dock_station->flags |= DOCK_IS_DOCK;
- 	if (acpi_ata_match(handle))
- 		dock_station->flags |= DOCK_IS_ATA;
--	if (acpi_device_is_battery(handle))
-+	if (acpi_device_is_battery(adev))
- 		dock_station->flags |= DOCK_IS_BAT;
- 
- 	ret = sysfs_create_group(&dd->dev.kobj, &dock_attribute_group);
 
