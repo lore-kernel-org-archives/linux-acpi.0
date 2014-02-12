@@ -1,40 +1,57 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/11] ACPI / hotplug / PCI: Updates on top of changes merged recently
-Date: Tue, 11 Feb 2014 13:53:58 +0100
-Message-ID: <2679492.S4dAZoqvRT@vostro.rjw.lan>
-References: <2217793.001RY6hKlo@vostro.rjw.lan> <20140211001958.GB12851@google.com>
+Subject: Re: [BUG] can't boot up: unable to handle kernel paging request at ffffffffff340003
+Date: Wed, 12 Feb 2014 01:00:44 +0100
+Message-ID: <2489572.ETmt2OD4Ee@vostro.rjw.lan>
+References: <8738jr5t3e.fsf@redhat.com> <87lhxh69u0.fsf@redhat.com> <20140211141846.GA1725@console-pimps.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20140211001958.GB12851@google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:62606 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751533AbaBKXqE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Feb 2014 18:46:04 -0500
+In-Reply-To: <20140211141846.GA1725@console-pimps.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matt Fleming <matt@console-pimps.org>
+Cc: Madper Xie <cxie@redhat.com>, Matt Fleming <matt.fleming@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Josh Triplett <josh@joshtriplett.org>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>
 
-On Monday, February 10, 2014 05:19:58 PM Bjorn Helgaas wrote:
-> On Mon, Jan 27, 2014 at 01:37:17AM +0100, Rafael J. Wysocki wrote:
-> > Hi All,
-> > 
-> > ACPIPHP can be simplified a bit on top of some PCI and ACPI changes merged
-> > recently and the following series of patches implements those simplifications:
-> > 
-> > [1/11] Fix up two kerneldoc comments in acpiphp_glue.c.
-> > [2/11] Get rid of an unnecessary label in register_slot().
-> > [3/11] Drop acpiphp_bus_trim() and use acpi_bus_trim() instead of it directly.
-> > [4/11] Move the acpi_bus_get_device() call out of acpiphp_no_hotplug().
-> > [5/11] Store struct acpi_device pointers instead of ACPI handles in struct acpiphp_context.
-> > [6/11] Drop acpiphp_bus_add() (which has only one user).
-> > [7/11] Drop crit_sect mutexes (that are redundant).
-> > [8/11] Clean up the usage of the slot variable in hotplug_event().
-> > [9/11] Drop dev_in_slot() and rework disable_slot() to walk bus->devices directly.
-> > [10/11] Use acpi_handle_debug() in hotplug_event() instead of open-coded stuff.
-> > [11/11] Drop handle argument from the member functions of struct acpi_dock_ops.
+On Tuesday, February 11, 2014 02:18:46 PM Matt Fleming wrote:
+> (Entering the realm of ACPI, pulling in more folks)
 > 
-> I assume you'll handle all these through your tree, Rafael.  Let me know if
-> you need me to do anything.
+> On Tue, 11 Feb, at 09:47:57PM, Madper Xie wrote:
+> > Thanks for your reply. I attached the all the dmesg outputs for you.
+> > [    0.000000] ACPI: BGRT 00000000d9bb5100 00003C (v00 HPQOEM SLIC-BPC 01072009 AMI  00010013)
+>  
+> Your BGRT table has an extra 4 bytes for some reason, (0x3C should be
+> 0x38) and doesn't match the defintion in include/acpi/actbl3.h,
+> 
+> 
+> struct acpi_table_bgrt {
+> 	struct acpi_table_header header;	/* Common ACPI table header */
+> 	u16 version;
+> 	u8 status;
+> 	u8 image_type;
+> 	u64 image_address;
+> 	u32 image_offset_x;
+> 	u32 image_offset_y;
+> };
+> 
+> 
+> which explains why when we dereference ->image_address we don't get a
+> sensible value.
+> 
+> Guys, what do you make of this? Firmware bug? Full thread here,
+> 
+>   http://article.gmane.org/gmane.linux.kernel.efi/3499
 
-Yes, I'll handle these, thanks!
+Firmware bug, but I guess we'll need to work around it.
 
-Rafael
+Adding more CCs.
+
+Thanks!
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
