@@ -1,53 +1,54 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / container: Fix error code path in container_device_attach()
-Date: Wed, 12 Feb 2014 01:05:24 +0100
-Message-ID: <1575051.TZgsd5D5jn@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] ACPI / video: Add HP EliteBook Revolve 810 to the blacklist
+Date: Wed, 12 Feb 2014 10:31:59 +0800
+Message-ID: <52FADD1F.90209@intel.com>
+References: <1391425156-27821-1-git-send-email-mika.westerberg@linux.intel.com> <52F43716.7020008@intel.com> <20140207102523.GO18029@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52655 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751347AbaBKXup (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Feb 2014 18:50:45 -0500
+Received: from mga11.intel.com ([192.55.52.93]:28680 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751933AbaBLCcS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Feb 2014 21:32:18 -0500
+In-Reply-To: <20140207102523.GO18029@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 02/07/2014 06:25 PM, Mika Westerberg wrote:
+> On Fri, Feb 07, 2014 at 09:29:58AM +0800, Aaron Lu wrote:
+>> On 02/03/2014 06:59 PM, Mika Westerberg wrote:
+>>> On HP EliteBook Revolve 810 the ACPI backlight device doesn't work as
+>>> expected. For example when resuming from system sleep, it seems to lose
+>>> backlight settings.
+>>>
+>>> Forcing Intel driver fixes the problem so add this machine the ACPI
+>>> video detect blacklist.
+>>
+>> For reference's purpose, can you please file a bug to kernel bugzilla
+>> under the ACPI/Power-Video category and attach the acpidump and dmesg
+>> there? Thanks.
+> 
+> Done, the bug is here:
+> 
+> https://bugzilla.kernel.org/show_bug.cgi?id=70231
+> 
+> I noticed that using only the acpi_video0 for tuning backlight works but if
+> I use intel_backlight directly, on resume I get values from acpi_video0
+> instead. I'm not really familiar how this is supposed to work, though so
+> please let me know if I'm missing something.
 
-To avoid leaking memory on errors from device_register(), do a
-put_device() on the device object in question in the error code
-path of container_device_attach().
+Thanks for the report, as communicated on the bug page, your system is
+already blacklisted for win8 by commit:
 
-Fixes: caa73ea158de (ACPI / hotplug / driver core: Handle containers in a special way)
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+commit 2d4054d8422462cb2771fdb4eb1925df55d2b320
+Author:	Takashi Iwai <tiwai@suse.de>  Fri Dec 20 00:09:12 2013
+Committer:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>  Fri Dec 20 22:50:56 2013
 
-3.14 material.
+ACPI: Blacklist Win8 OSI for some HP laptop 2013 models
 
-Thanks!
-
----
- drivers/acpi/container.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-Index: linux-pm/drivers/acpi/container.c
-===================================================================
---- linux-pm.orig/drivers/acpi/container.c
-+++ linux-pm/drivers/acpi/container.c
-@@ -82,9 +82,10 @@ static int container_device_attach(struc
- 	ACPI_COMPANION_SET(dev, adev);
- 	dev->release = acpi_container_release;
- 	ret = device_register(dev);
--	if (ret)
-+	if (ret) {
-+		put_device(dev);
- 		return ret;
--
-+	}
- 	adev->driver_data = dev;
- 	return 1;
- }
-
+And the fact that acpi_video interface works made it not appropriate to
+add your system into the video_detect_dmi_table. You can just use acpi_video
+interface and everything should work fine.
