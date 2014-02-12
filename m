@@ -1,72 +1,70 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH] ACPI / container: Fix error code path in container_device_attach()
-Date: Wed, 12 Feb 2014 14:22:59 +0900
-Message-ID: <52FB0533.3020908@jp.fujitsu.com>
-References: <1575051.TZgsd5D5jn@vostro.rjw.lan>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI / video: Add HP EliteBook Revolve 810 to the
+ blacklist
+Date: Wed, 12 Feb 2014 11:34:30 +0200
+Message-ID: <20140212093430.GB5018@intel.com>
+References: <1391425156-27821-1-git-send-email-mika.westerberg@linux.intel.com>
+ <52F43716.7020008@intel.com>
+ <20140207102523.GO18029@intel.com>
+ <52FADD1F.90209@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:50226 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750870AbaBLFXf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Feb 2014 00:23:35 -0500
-In-Reply-To: <1575051.TZgsd5D5jn@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <52FADD1F.90209@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>
 
-(2014/02/12 9:05), Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> To avoid leaking memory on errors from device_register(), do a
-> put_device() on the device object in question in the error code
-> path of container_device_attach().
->
-> Fixes: caa73ea158de (ACPI / hotplug / driver core: Handle containers in a special way)
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
+On Wed, Feb 12, 2014 at 10:31:59AM +0800, Aaron Lu wrote:
+> On 02/07/2014 06:25 PM, Mika Westerberg wrote:
+> > On Fri, Feb 07, 2014 at 09:29:58AM +0800, Aaron Lu wrote:
+> >> On 02/03/2014 06:59 PM, Mika Westerberg wrote:
+> >>> On HP EliteBook Revolve 810 the ACPI backlight device doesn't work as
+> >>> expected. For example when resuming from system sleep, it seems to lose
+> >>> backlight settings.
+> >>>
+> >>> Forcing Intel driver fixes the problem so add this machine the ACPI
+> >>> video detect blacklist.
+> >>
+> >> For reference's purpose, can you please file a bug to kernel bugzilla
+> >> under the ACPI/Power-Video category and attach the acpidump and dmesg
+> >> there? Thanks.
+> > 
+> > Done, the bug is here:
+> > 
+> > https://bugzilla.kernel.org/show_bug.cgi?id=70231
+> > 
+> > I noticed that using only the acpi_video0 for tuning backlight works but if
+> > I use intel_backlight directly, on resume I get values from acpi_video0
+> > instead. I'm not really familiar how this is supposed to work, though so
+> > please let me know if I'm missing something.
+> 
+> Thanks for the report, as communicated on the bug page, your system is
+> already blacklisted for win8 by commit:
+> 
+> commit 2d4054d8422462cb2771fdb4eb1925df55d2b320
+> Author:	Takashi Iwai <tiwai@suse.de>  Fri Dec 20 00:09:12 2013
+> Committer:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>  Fri Dec 20 22:50:56 2013
+> 
+> ACPI: Blacklist Win8 OSI for some HP laptop 2013 models
+> 
+> And the fact that acpi_video interface works made it not appropriate to
+> add your system into the video_detect_dmi_table. You can just use acpi_video
+> interface and everything should work fine.
 
-Looks good to me.
+OK, thanks for the investigation Aaron.
 
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+I have few questions, though.
 
-Thanks,
-Yasuaki Ishimatsu
+ 1) Is it always right thing to do to use acpi_video0 over anything else?
+ In my case that device first disapeared and then reappeared so I got kind
+ of confused about that. I'm going to tune my scripts to use acpi_video0 as
+ you suggested.
 
->
-> 3.14 material.
->
-> Thanks!
->
-> ---
->   drivers/acpi/container.c |    5 +++--
->   1 file changed, 3 insertions(+), 2 deletions(-)
->
-> Index: linux-pm/drivers/acpi/container.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/container.c
-> +++ linux-pm/drivers/acpi/container.c
-> @@ -82,9 +82,10 @@ static int container_device_attach(struc
->   	ACPI_COMPANION_SET(dev, adev);
->   	dev->release = acpi_container_release;
->   	ret = device_register(dev);
-> -	if (ret)
-> +	if (ret) {
-> +		put_device(dev);
->   		return ret;
-> -
-> +	}
->   	adev->driver_data = dev;
->   	return 1;
->   }
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+ 2) What should we do with this commit? It is already in mainline so I
+ guess revert is the sane thing to do.
 
-
+I should have asked/investigated this more before submitting the patch.
+Sorry about that.
