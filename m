@@ -1,91 +1,72 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH] drm/i915/opregion: work around buggy firmware that provides
- 8+ output devices
-Date: Wed, 12 Feb 2014 11:05:40 +0800
-Message-ID: <52FAE504.8020001@intel.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH] ACPI / container: Fix error code path in container_device_attach()
+Date: Wed, 12 Feb 2014 14:22:59 +0900
+Message-ID: <52FB0533.3020908@jp.fujitsu.com>
+References: <1575051.TZgsd5D5jn@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36437 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751933AbaBLDFg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Feb 2014 22:05:36 -0500
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:50226 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750870AbaBLFXf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Feb 2014 00:23:35 -0500
+In-Reply-To: <1575051.TZgsd5D5jn@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Jani Nikula <jani.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Oleksij Rempel <linux@rempel-privat.de>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>
 
-The ACPI table on ASUS UX302LA has more than 8 output devices under the
-graphics controller device node. The problem is, the real active output
-device, the LCD panel, is listed the last. The result is, the LCD's
-device id doesn't get recorded in the active device list CADL array and
-when the _DCS control method for the LCD device is executed, it returns
-0x1d, meaning it is not active. This affects the hotkey delivery ASL
-code that will not deliver a notification if the output device is not
-active on backlight hotkey press.
+(2014/02/12 9:05), Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> To avoid leaking memory on errors from device_register(), do a
+> put_device() on the device object in question in the error code
+> path of container_device_attach().
+>
+> Fixes: caa73ea158de (ACPI / hotplug / driver core: Handle containers in a special way)
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
 
-I don't see a clean way to solve this problem since the operation region
-spec doesn't allow more than 8 output devices so we have no way of
-storing all these output devices. The fact that output devices that have
-_BCM control method usually means they have a higher possibility of being
-used than those who don't made me choose a simple way to work around
-the buggy firmware by replacing the last entry in CADL array with the one
-that has _BCM control method. There is no specific reason why the last
-entry is picked instead of others.
+Looks good to me.
 
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=70241
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-Reported-and-tested-by: Oleksij Rempel <linux@rempel-privat.de>
----
- drivers/gpu/drm/i915/intel_opregion.c | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
-index 4e960ec7419f..fc4348284f41 100644
---- a/drivers/gpu/drm/i915/intel_opregion.c
-+++ b/drivers/gpu/drm/i915/intel_opregion.c
-@@ -613,6 +613,7 @@ static void intel_didl_outputs(struct drm_device *dev)
- 	acpi_status status;
- 	u32 temp;
- 	int i = 0;
-+	bool done;
- 
- 	handle = ACPI_HANDLE(&dev->pdev->dev);
- 	if (!handle || acpi_bus_get_device(handle, &acpi_dev))
-@@ -634,11 +635,20 @@ static void intel_didl_outputs(struct drm_device *dev)
- 		return;
- 	}
- 
-+	done = false;
- 	list_for_each_entry(acpi_cdev, &acpi_video_bus->children, node) {
- 		if (i >= 8) {
- 			dev_dbg(&dev->pdev->dev,
--				"More than 8 outputs detected via ACPI\n");
--			return;
-+				"More than 8 outputs detected via ACPI, %s\n",
-+				acpi_device_bid(acpi_cdev));
-+			if (acpi_has_method(acpi_cdev->handle, "_BCM")) {
-+				dev_dbg(&dev->pdev->dev,
-+					"%s has _BCM, replacing 8th entry\n",
-+					acpi_device_bid(acpi_cdev));
-+				i = 7;
-+				done = true;
-+			} else
-+				continue;
- 		}
- 		status =
- 			acpi_evaluate_integer(acpi_cdev->handle, "_ADR",
-@@ -650,6 +660,9 @@ static void intel_didl_outputs(struct drm_device *dev)
- 				  &opregion->acpi->didl[i]);
- 			i++;
- 		}
-+
-+		if (done)
-+			return;
- 	}
- 
- end:
--- 
-1.8.5.3
+Thanks,
+Yasuaki Ishimatsu
+
+>
+> 3.14 material.
+>
+> Thanks!
+>
+> ---
+>   drivers/acpi/container.c |    5 +++--
+>   1 file changed, 3 insertions(+), 2 deletions(-)
+>
+> Index: linux-pm/drivers/acpi/container.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/container.c
+> +++ linux-pm/drivers/acpi/container.c
+> @@ -82,9 +82,10 @@ static int container_device_attach(struc
+>   	ACPI_COMPANION_SET(dev, adev);
+>   	dev->release = acpi_container_release;
+>   	ret = device_register(dev);
+> -	if (ret)
+> +	if (ret) {
+> +		put_device(dev);
+>   		return ret;
+> -
+> +	}
+>   	adev->driver_data = dev;
+>   	return 1;
+>   }
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>
+
 
