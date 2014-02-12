@@ -1,54 +1,91 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] ACPI / video: Add HP EliteBook Revolve 810 to the blacklist
-Date: Wed, 12 Feb 2014 10:31:59 +0800
-Message-ID: <52FADD1F.90209@intel.com>
-References: <1391425156-27821-1-git-send-email-mika.westerberg@linux.intel.com> <52F43716.7020008@intel.com> <20140207102523.GO18029@intel.com>
+Subject: [PATCH] drm/i915/opregion: work around buggy firmware that provides
+ 8+ output devices
+Date: Wed, 12 Feb 2014 11:05:40 +0800
+Message-ID: <52FAE504.8020001@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:28680 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:36437 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751933AbaBLCcS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Feb 2014 21:32:18 -0500
-In-Reply-To: <20140207102523.GO18029@intel.com>
+	id S1751933AbaBLDFg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Feb 2014 22:05:36 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+To: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Jani Nikula <jani.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Oleksij Rempel <linux@rempel-privat.de>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On 02/07/2014 06:25 PM, Mika Westerberg wrote:
-> On Fri, Feb 07, 2014 at 09:29:58AM +0800, Aaron Lu wrote:
->> On 02/03/2014 06:59 PM, Mika Westerberg wrote:
->>> On HP EliteBook Revolve 810 the ACPI backlight device doesn't work as
->>> expected. For example when resuming from system sleep, it seems to lose
->>> backlight settings.
->>>
->>> Forcing Intel driver fixes the problem so add this machine the ACPI
->>> video detect blacklist.
->>
->> For reference's purpose, can you please file a bug to kernel bugzilla
->> under the ACPI/Power-Video category and attach the acpidump and dmesg
->> there? Thanks.
-> 
-> Done, the bug is here:
-> 
-> https://bugzilla.kernel.org/show_bug.cgi?id=70231
-> 
-> I noticed that using only the acpi_video0 for tuning backlight works but if
-> I use intel_backlight directly, on resume I get values from acpi_video0
-> instead. I'm not really familiar how this is supposed to work, though so
-> please let me know if I'm missing something.
+The ACPI table on ASUS UX302LA has more than 8 output devices under the
+graphics controller device node. The problem is, the real active output
+device, the LCD panel, is listed the last. The result is, the LCD's
+device id doesn't get recorded in the active device list CADL array and
+when the _DCS control method for the LCD device is executed, it returns
+0x1d, meaning it is not active. This affects the hotkey delivery ASL
+code that will not deliver a notification if the output device is not
+active on backlight hotkey press.
 
-Thanks for the report, as communicated on the bug page, your system is
-already blacklisted for win8 by commit:
+I don't see a clean way to solve this problem since the operation region
+spec doesn't allow more than 8 output devices so we have no way of
+storing all these output devices. The fact that output devices that have
+_BCM control method usually means they have a higher possibility of being
+used than those who don't made me choose a simple way to work around
+the buggy firmware by replacing the last entry in CADL array with the one
+that has _BCM control method. There is no specific reason why the last
+entry is picked instead of others.
 
-commit 2d4054d8422462cb2771fdb4eb1925df55d2b320
-Author:	Takashi Iwai <tiwai@suse.de>  Fri Dec 20 00:09:12 2013
-Committer:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>  Fri Dec 20 22:50:56 2013
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=70241
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Reported-and-tested-by: Oleksij Rempel <linux@rempel-privat.de>
+---
+ drivers/gpu/drm/i915/intel_opregion.c | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-ACPI: Blacklist Win8 OSI for some HP laptop 2013 models
+diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+index 4e960ec7419f..fc4348284f41 100644
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
+@@ -613,6 +613,7 @@ static void intel_didl_outputs(struct drm_device *dev)
+ 	acpi_status status;
+ 	u32 temp;
+ 	int i = 0;
++	bool done;
+ 
+ 	handle = ACPI_HANDLE(&dev->pdev->dev);
+ 	if (!handle || acpi_bus_get_device(handle, &acpi_dev))
+@@ -634,11 +635,20 @@ static void intel_didl_outputs(struct drm_device *dev)
+ 		return;
+ 	}
+ 
++	done = false;
+ 	list_for_each_entry(acpi_cdev, &acpi_video_bus->children, node) {
+ 		if (i >= 8) {
+ 			dev_dbg(&dev->pdev->dev,
+-				"More than 8 outputs detected via ACPI\n");
+-			return;
++				"More than 8 outputs detected via ACPI, %s\n",
++				acpi_device_bid(acpi_cdev));
++			if (acpi_has_method(acpi_cdev->handle, "_BCM")) {
++				dev_dbg(&dev->pdev->dev,
++					"%s has _BCM, replacing 8th entry\n",
++					acpi_device_bid(acpi_cdev));
++				i = 7;
++				done = true;
++			} else
++				continue;
+ 		}
+ 		status =
+ 			acpi_evaluate_integer(acpi_cdev->handle, "_ADR",
+@@ -650,6 +660,9 @@ static void intel_didl_outputs(struct drm_device *dev)
+ 				  &opregion->acpi->didl[i]);
+ 			i++;
+ 		}
++
++		if (done)
++			return;
+ 	}
+ 
+ end:
+-- 
+1.8.5.3
 
-And the fact that acpi_video interface works made it not appropriate to
-add your system into the video_detect_dmi_table. You can just use acpi_video
-interface and everything should work fine.
