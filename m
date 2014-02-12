@@ -1,57 +1,53 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [BUG] can't boot up: unable to handle kernel paging request at ffffffffff340003
-Date: Wed, 12 Feb 2014 01:00:44 +0100
-Message-ID: <2489572.ETmt2OD4Ee@vostro.rjw.lan>
-References: <8738jr5t3e.fsf@redhat.com> <87lhxh69u0.fsf@redhat.com> <20140211141846.GA1725@console-pimps.org>
+Subject: [PATCH] ACPI / container: Fix error code path in container_device_attach()
+Date: Wed, 12 Feb 2014 01:05:24 +0100
+Message-ID: <1575051.TZgsd5D5jn@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62606 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:52655 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751533AbaBKXqE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Feb 2014 18:46:04 -0500
-In-Reply-To: <20140211141846.GA1725@console-pimps.org>
+	with SMTP id S1751347AbaBKXup (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Feb 2014 18:50:45 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Fleming <matt@console-pimps.org>
-Cc: Madper Xie <cxie@redhat.com>, Matt Fleming <matt.fleming@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Josh Triplett <josh@joshtriplett.org>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>
 
-On Tuesday, February 11, 2014 02:18:46 PM Matt Fleming wrote:
-> (Entering the realm of ACPI, pulling in more folks)
-> 
-> On Tue, 11 Feb, at 09:47:57PM, Madper Xie wrote:
-> > Thanks for your reply. I attached the all the dmesg outputs for you.
-> > [    0.000000] ACPI: BGRT 00000000d9bb5100 00003C (v00 HPQOEM SLIC-BPC 01072009 AMI  00010013)
->  
-> Your BGRT table has an extra 4 bytes for some reason, (0x3C should be
-> 0x38) and doesn't match the defintion in include/acpi/actbl3.h,
-> 
-> 
-> struct acpi_table_bgrt {
-> 	struct acpi_table_header header;	/* Common ACPI table header */
-> 	u16 version;
-> 	u8 status;
-> 	u8 image_type;
-> 	u64 image_address;
-> 	u32 image_offset_x;
-> 	u32 image_offset_y;
-> };
-> 
-> 
-> which explains why when we dereference ->image_address we don't get a
-> sensible value.
-> 
-> Guys, what do you make of this? Firmware bug? Full thread here,
-> 
->   http://article.gmane.org/gmane.linux.kernel.efi/3499
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Firmware bug, but I guess we'll need to work around it.
+To avoid leaking memory on errors from device_register(), do a
+put_device() on the device object in question in the error code
+path of container_device_attach().
 
-Adding more CCs.
+Fixes: caa73ea158de (ACPI / hotplug / driver core: Handle containers in a special way)
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+3.14 material.
 
 Thanks!
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+---
+ drivers/acpi/container.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+Index: linux-pm/drivers/acpi/container.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/container.c
++++ linux-pm/drivers/acpi/container.c
+@@ -82,9 +82,10 @@ static int container_device_attach(struc
+ 	ACPI_COMPANION_SET(dev, adev);
+ 	dev->release = acpi_container_release;
+ 	ret = device_register(dev);
+-	if (ret)
++	if (ret) {
++		put_device(dev);
+ 		return ret;
+-
++	}
+ 	adev->driver_data = dev;
+ 	return 1;
+ }
+
