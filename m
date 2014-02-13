@@ -1,88 +1,153 @@
-From: Jan Hinnerk Stosch <janhinnerk.stosch@gmail.com>
-Subject: Re: Backlight dark and wireless button not working on Fujitsu E753
-Date: Thu, 13 Feb 2014 10:03:42 +0100
-Message-ID: <CAO_aot4X84XDptXmxPdgYxWwzPXh1b9aEJY=CB-UUaEhYFSRSg@mail.gmail.com>
-References: <CAO_aot70KoE=fvO11HJsg1OW-EGOreNVOcyjb8XsEMmbAbn=Pg@mail.gmail.com>
-	<CAOLK0pyPKHJFq+wRJrwBiPvAJiLORfT5jA2FwQ7t1gk8wnn0Gg@mail.gmail.com>
-	<CAO_aot5vTdwGvnMuvsNZ+kA882WKVMADSUUpqpDRqL5XKtotuw@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] drm/i915/opregion: work around buggy
+ firmware that provides 8+ output devices
+Date: Thu, 13 Feb 2014 17:10:25 +0800
+Message-ID: <52FC8C01.1040002@intel.com>
+References: <52FAE504.8020001@intel.com>
+	<20140212103156.GC5298@nuc-i3427.alporthouse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vb0-f51.google.com ([209.85.212.51]:60873 "EHLO
-	mail-vb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753409AbaBMJDn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Feb 2014 04:03:43 -0500
-Received: by mail-vb0-f51.google.com with SMTP id j16so2241561vbh.10
-        for <linux-acpi@vger.kernel.org>; Thu, 13 Feb 2014 01:03:42 -0800 (PST)
-In-Reply-To: <CAO_aot5vTdwGvnMuvsNZ+kA882WKVMADSUUpqpDRqL5XKtotuw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20140212103156.GC5298@nuc-i3427.alporthouse.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces@lists.freedesktop.org
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+To: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Oleksij Rempel <linux@rempel-privat.de>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <lantianyu1986@gmail.com>
-Cc: linux-acpi@vger.kernel.org
 
-Hi,
-I'd like to ask again about the wireless key problem. First I was
-told, that the fujitsu_laptop module would be responsible for this,
-but recently I looked into this again and discovered, that it made no
-difference whether the module was loaded or not. When booting with
-"acpi_osi="!Windows 2012" the key would work. It still does not work
-without the boot option though.
-I found a bug report at launchpad
-(https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1159690) where
-several users with laptops from different manufacturers (Asus, HP,
-Fujitsu) report the same problem. So I'd conclude this has nothing to
-do with fujitsu_laptop, has it?
-Is there anything that could be done about this or do I simply have to
-stay with the named boot option?
+On 02/12/2014 06:31 PM, Chris Wilson wrote:
+> On Wed, Feb 12, 2014 at 11:05:40AM +0800, Aaron Lu wrote:
+>> The ACPI table on ASUS UX302LA has more than 8 output devices under the
+>> graphics controller device node. The problem is, the real active output
+>> device, the LCD panel, is listed the last. The result is, the LCD's
+>> device id doesn't get recorded in the active device list CADL array and
+>> when the _DCS control method for the LCD device is executed, it returns
+>> 0x1d, meaning it is not active. This affects the hotkey delivery ASL
+>> code that will not deliver a notification if the output device is not
+>> active on backlight hotkey press.
+>>
+>> I don't see a clean way to solve this problem since the operation region
+>> spec doesn't allow more than 8 output devices so we have no way of
+>> storing all these output devices. The fact that output devices that have
+>> _BCM control method usually means they have a higher possibility of being
+>> used than those who don't made me choose a simple way to work around
+>> the buggy firmware by replacing the last entry in CADL array with the one
+>> that has _BCM control method. There is no specific reason why the last
+>> entry is picked instead of others.
+> 
+> Another possibility is that the connector list is in rough priority
+> order so might be useful for sorting the CADL array.
+> 
+> Since the CADL should only be a list of currently active devices, we
+> could just bite the bullet and repopulate it correctly after every
+> setcrtc.
 
-Regards,
+Thanks for the suggestion. As a first step, does the following un-tested
+patch look OK?
 
-jhs
+diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+index acde2945eb8a..afdd7d84fb32 100644
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
+@@ -220,11 +220,11 @@ struct opregion_asle {
+ #define SWSCI_SBCB_POST_VBE_PM		SWSCI_FUNCTION_CODE(SWSCI_SBCB, 19)
+ #define SWSCI_SBCB_ENABLE_DISABLE_AUDIO	SWSCI_FUNCTION_CODE(SWSCI_SBCB, 21)
+ 
+-#define ACPI_OTHER_OUTPUT (0<<8)
+-#define ACPI_VGA_OUTPUT (1<<8)
+-#define ACPI_TV_OUTPUT (2<<8)
+-#define ACPI_DIGITAL_OUTPUT (3<<8)
+-#define ACPI_LVDS_OUTPUT (4<<8)
++#define ACPI_OTHER_OUTPUT 0
++#define ACPI_VGA_OUTPUT 1
++#define ACPI_TV_OUTPUT 2
++#define ACPI_DIGITAL_OUTPUT 3
++#define ACPI_LVDS_OUTPUT 4
+ 
+ #define MAX_DSLP	1500
+ 
+@@ -616,6 +616,7 @@ static void intel_didl_outputs(struct drm_device *dev)
+ 	acpi_status status;
+ 	u32 temp;
+ 	int i = 0;
++	int index[5] = {0};
+ 
+ 	handle = ACPI_HANDLE(&dev->pdev->dev);
+ 	if (!handle || acpi_bus_get_device(handle, &acpi_dev))
+@@ -693,8 +694,8 @@ blind_set:
+ 			break;
+ 		}
+ 		temp = ioread32(&opregion->acpi->didl[i]);
+-		iowrite32(temp | (1<<31) | output_type | i,
+-			  &opregion->acpi->didl[i]);
++		iowrite32(temp | (1<<31) | (output_type << 8) |
++			  index[output_type]++, &opregion->acpi->didl[i]);
+ 		i++;
+ 	}
+ 	goto end;
+@@ -705,18 +706,44 @@ static void intel_setup_cadls(struct drm_device *dev)
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	struct intel_opregion *opregion = &dev_priv->opregion;
+ 	int i = 0;
++	int index[5] = {0};
+ 	u32 disp_id;
++	struct drm_connector *connector;
++
++	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
++		int output_type = ACPI_OTHER_OUTPUT;
+ 
+-	/* Initialize the CADL field by duplicating the DIDL values.
+-	 * Technically, this is not always correct as display outputs may exist,
+-	 * but not active. This initialization is necessary for some Clevo
+-	 * laptops that check this field before processing the brightness and
+-	 * display switching hotkeys. Just like DIDL, CADL is NULL-terminated if
+-	 * there are less than eight devices. */
+-	do {
+-		disp_id = ioread32(&opregion->acpi->didl[i]);
++		switch (connector->connector_type) {
++		case DRM_MODE_CONNECTOR_VGA:
++		case DRM_MODE_CONNECTOR_DVIA:
++			output_type = ACPI_VGA_OUTPUT;
++			break;
++		case DRM_MODE_CONNECTOR_Composite:
++		case DRM_MODE_CONNECTOR_SVIDEO:
++		case DRM_MODE_CONNECTOR_Component:
++		case DRM_MODE_CONNECTOR_9PinDIN:
++			output_type = ACPI_TV_OUTPUT;
++			break;
++		case DRM_MODE_CONNECTOR_DVII:
++		case DRM_MODE_CONNECTOR_DVID:
++		case DRM_MODE_CONNECTOR_DisplayPort:
++		case DRM_MODE_CONNECTOR_HDMIA:
++		case DRM_MODE_CONNECTOR_HDMIB:
++			output_type = ACPI_DIGITAL_OUTPUT;
++			break;
++		case DRM_MODE_CONNECTOR_eDP:
++		case DRM_MODE_CONNECTOR_LVDS:
++			output_type = ACPI_LVDS_OUTPUT;
++			break;
++		}
++		disp_id = (opregion->acpi->didl[0] & (1 << 31)) |
++			  (output_type << 8) | index[output_type]++;
+ 		iowrite32(disp_id, &opregion->acpi->cadl[i]);
+-	} while (++i < 8 && disp_id != 0);
++		i++;
++	}
++
++	if (i < 8)
++		iowrite32(0, &opregion->acpi->cadl[i]);
+ }
+ 
+ void intel_opregion_init(struct drm_device *dev)
 
 
-2013-06-26 11:17 GMT+02:00 Jan Hinnerk Stosch <janhinnerk.stosch@gmail.com>:
-> Ok, thanks,
-> Here is a link FYI: https://bugzilla.kernel.org/show_bug.cgi?id=60161
-> However, acpidump does not give any useful output: "Linux version not
-> implemented yet"
->
-> Regards,
->
-> jhs
->
-> 2013/6/25 Lan Tianyu <lantianyu1986@gmail.com>:
->> 2013/6/25 Jan Hinnerk Stosch <janhinnerk.stosch@gmail.com>
->>>
->>> Hi,
->>>
->>> on my Fujitsu Lifebook E753 I experienced some "regressions" with
->>> current kernel versions compared to linux 3.5 (used in Ubuntu 12.04
->>> for instance):
->>> - on bootup backlight is extremely dark (I can change it though)
->>> - the wireless button does not work any more
->>> Today I did a bisect and found out, that the "regression" was
->>> introduced with commit "a57f7f9175b8ccbc9df83ac13860488913115de4".
->>> Searching the internet I read about a bootloader option
->>> "acpi_osi="!Windows 2012" which solved the issue for me.
->>> If you want/need some further information for a patch just tell me. I
->>> don't have any insight into ACPI escpecially the new Windows8 changes
->>> so if you can't do anything about it I apologize for the noise.
->>>
->> HI:
->>        Could you apply a bug on the https://bugzilla.kernel.org with the
->> output of  acpidump?
->>
->>> Regards
->>>
->>> jhs
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->>
->>
->> --
->> Best regards
->> Tianyu Lan
+Thanks,
+Aaron
