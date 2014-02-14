@@ -1,70 +1,85 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] Revert "ACPI / video: Add HP EliteBook Revolve 810 to the blacklist"
-Date: Fri, 14 Feb 2014 14:34:07 +0200
-Message-ID: <1392381247-28109-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:20854 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751926AbaBNMeX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Feb 2014 07:34:23 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / platform: drop redundant ACPI_HANDLE check
+Date: Fri, 14 Feb 2014 14:45:29 +0100
+Message-ID: <1746200.FR6bSit96i@vostro.rjw.lan>
+References: <1392350443-20074-1-git-send-email-joshc@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1392350443-20074-1-git-send-email-joshc@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Josh Cartwright <joshc@codeaurora.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Aaron Lu <aaron.lu@intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-This reverts commit e18ac62fa4b3f16234bab0d5a6627c57dbae9e7e.
+On Thursday, February 13, 2014 10:00:43 PM Josh Cartwright wrote:
+> The acpi_dev_pm_attach/_detach functions perform their own checks to
+> ensure the device has an ACPI companion.  It is not necessary for the
+> caller to do so.
+> 
+> This mirrors what other busses with ACPI dev PM support do (i2c, spi,
+> sdio).
+> 
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Josh Cartwright <joshc@codeaurora.org>
 
-The referenced commit added HP EliteBook Revolve 810 to the ACPI video
-detected blacklist so that only the native Intel backlight interface was
-exported.
+Hi Greg,
 
-However, this turned to be wrong solution after all. The ACPI video
-interface works and as long as we only use that there are no problems. So
-we can revert this commit and stick to use the backlight interface provided
-by the ACPI video driver.
+If you want to take this, please feel free to add:
 
-(Using Intel native interface will not work after resume since the ACPI
-video driver will restore it's state which takes control over the native
-one. That's a separate thing and should be addressed in the ACPI video
-driver, I suppose.)
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-References: https://bugzilla.kernel.org/show_bug.cgi?id=70231
-Cc: Aaron Lu <aaron.lu@intel.com>
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
-Rafael, 
+to it.  If you want me to take it, please let me know.
 
-This turned out to be misunderstanding from my side. I should have
-investigated this further before submitting the original patch. Sorry about
-that.
+Rafael
 
-Aaron,
 
-Thanks for the investigation and pointing me to the right direction (e.g to
-use acpi_video0 over the native one).
+> ---
+>  drivers/base/platform.c | 11 ++++-------
+>  1 file changed, 4 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+> index bc78848..e714709 100644
+> --- a/drivers/base/platform.c
+> +++ b/drivers/base/platform.c
+> @@ -481,11 +481,10 @@ static int platform_drv_probe(struct device *_dev)
+>  	struct platform_device *dev = to_platform_device(_dev);
+>  	int ret;
+>  
+> -	if (ACPI_HANDLE(_dev))
+> -		acpi_dev_pm_attach(_dev, true);
+> +	acpi_dev_pm_attach(_dev, true);
+>  
+>  	ret = drv->probe(dev);
+> -	if (ret && ACPI_HANDLE(_dev))
+> +	if (ret)
+>  		acpi_dev_pm_detach(_dev, true);
+>  
+>  	if (drv->prevent_deferred_probe && ret == -EPROBE_DEFER) {
+> @@ -508,8 +507,7 @@ static int platform_drv_remove(struct device *_dev)
+>  	int ret;
+>  
+>  	ret = drv->remove(dev);
+> -	if (ACPI_HANDLE(_dev))
+> -		acpi_dev_pm_detach(_dev, true);
+> +	acpi_dev_pm_detach(_dev, true);
+>  
+>  	return ret;
+>  }
+> @@ -520,8 +518,7 @@ static void platform_drv_shutdown(struct device *_dev)
+>  	struct platform_device *dev = to_platform_device(_dev);
+>  
+>  	drv->shutdown(dev);
+> -	if (ACPI_HANDLE(_dev))
+> -		acpi_dev_pm_detach(_dev, true);
+> +	acpi_dev_pm_detach(_dev, true);
+>  }
+>  
+>  /**
+> 
 
- drivers/acpi/video_detect.c | 8 --------
- 1 file changed, 8 deletions(-)
-
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index a697b77b8865..f0447d3daf2c 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -170,14 +170,6 @@ static struct dmi_system_id video_detect_dmi_table[] = {
- 	},
- 	{
- 	.callback = video_detect_force_vendor,
--	.ident = "HP EliteBook Revolve 810",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook Revolve 810 G1"),
--		},
--	},
--	{
--	.callback = video_detect_force_vendor,
- 	.ident = "Lenovo Yoga 13",
- 	.matches = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
 -- 
-1.8.5.2
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
