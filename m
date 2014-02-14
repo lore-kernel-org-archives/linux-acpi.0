@@ -1,92 +1,70 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] acpi-video: Filter the BCL table for duplicate brightness
- values
-Date: Fri, 14 Feb 2014 09:16:26 +0800
-Message-ID: <52FD6E6A.5090504@intel.com>
-References: <1392305571-4895-1-git-send-email-hdegoede@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Josh Cartwright <joshc@codeaurora.org>
+Subject: [PATCH] ACPI / platform: drop redundant ACPI_HANDLE check
+Date: Thu, 13 Feb 2014 22:00:43 -0600
+Message-ID: <1392350443-20074-1-git-send-email-joshc@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:55292 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751089AbaBNBQM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Feb 2014 20:16:12 -0500
-In-Reply-To: <1392305571-4895-1-git-send-email-hdegoede@redhat.com>
+Received: from smtp.codeaurora.org ([198.145.11.231]:41737 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751323AbaBNEDF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Feb 2014 23:03:05 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org
 
-On 02/13/2014 11:32 PM, Hans de Goede wrote:
-> Some devices have duplicate entries in there brightness levels table, ie
-> on my Dell Latitude E6430 the table looks like this:
+The acpi_dev_pm_attach/_detach functions perform their own checks to
+ensure the device has an ACPI companion.  It is not necessary for the
+caller to do so.
 
-For reference's purpose, can you please file a bug in kernel bugzilla
-under the ACPI/Power-Video category and attach the acpidump there? Thanks.
+This mirrors what other busses with ACPI dev PM support do (i2c, spi,
+sdio).
 
--Aaron
+Cc: Len Brown <lenb@kernel.org>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Josh Cartwright <joshc@codeaurora.org>
+---
+ drivers/base/platform.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-> 
-> [    3.686060] acpi backlight index   0, val 80
-> [    3.686095] acpi backlight index   1, val 50
-> [    3.686122] acpi backlight index   2, val 5
-> [    3.686147] acpi backlight index   3, val 5
-> [    3.686172] acpi backlight index   4, val 5
-> [    3.686197] acpi backlight index   5, val 5
-> [    3.686223] acpi backlight index   6, val 5
-> [    3.686248] acpi backlight index   7, val 5
-> [    3.686273] acpi backlight index   8, val 6
-> [    3.686332] acpi backlight index   9, val 7
-> [    3.686356] acpi backlight index  10, val 8
-> [    3.686380] acpi backlight index  11, val 9
-> etc.
-> 
-> Notice that brightness values 0-5 are all mapped to 5. This means that
-> if userspace writes any value between 0 and 5 to the brightness sysfs attribute
-> and then reads it, it will always return 0, which is somewhat unexpected.
-> 
-> This is a problem for ie gnome-settings-daemon, which uses read-modify-write
-> logic when the users presses the brightness up or down keys. This is done
-> this way to take brightness changes from other sources into account.
-> 
-> On this specific laptop what happens once the brightness has been set to 0,
-> is that gsd reads 0, adds 5, writes 5, and on the next brightness up key press
-> again reads 0, so things get stuck at the lowest brightness setting.
-> 
-> Filtering out the duplicate table entries, makes any write to brightness
-> read back as the written value as one would expect, fixing this.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/acpi/video.c | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index b727d10..ea9d914 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -685,6 +685,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
->  	union acpi_object *o;
->  	struct acpi_video_device_brightness *br = NULL;
->  	int result = -EINVAL;
-> +	u32 value;
->  
->  	if (!ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available "
-> @@ -715,7 +716,12 @@ acpi_video_init_brightness(struct acpi_video_device *device)
->  			printk(KERN_ERR PREFIX "Invalid data\n");
->  			continue;
->  		}
-> -		br->levels[count] = (u32) o->integer.value;
-> +		value = (u32) o->integer.value;
-> +		/* Skip duplicate entries */
-> +		if (count > 2 && br->levels[count - 1] == value)
-> +			continue;
-> +
-> +		br->levels[count] = value;
->  
->  		if (br->levels[count] > max_level)
->  			max_level = br->levels[count];
-> 
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index bc78848..e714709 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -481,11 +481,10 @@ static int platform_drv_probe(struct device *_dev)
+ 	struct platform_device *dev = to_platform_device(_dev);
+ 	int ret;
+ 
+-	if (ACPI_HANDLE(_dev))
+-		acpi_dev_pm_attach(_dev, true);
++	acpi_dev_pm_attach(_dev, true);
+ 
+ 	ret = drv->probe(dev);
+-	if (ret && ACPI_HANDLE(_dev))
++	if (ret)
+ 		acpi_dev_pm_detach(_dev, true);
+ 
+ 	if (drv->prevent_deferred_probe && ret == -EPROBE_DEFER) {
+@@ -508,8 +507,7 @@ static int platform_drv_remove(struct device *_dev)
+ 	int ret;
+ 
+ 	ret = drv->remove(dev);
+-	if (ACPI_HANDLE(_dev))
+-		acpi_dev_pm_detach(_dev, true);
++	acpi_dev_pm_detach(_dev, true);
+ 
+ 	return ret;
+ }
+@@ -520,8 +518,7 @@ static void platform_drv_shutdown(struct device *_dev)
+ 	struct platform_device *dev = to_platform_device(_dev);
+ 
+ 	drv->shutdown(dev);
+-	if (ACPI_HANDLE(_dev))
+-		acpi_dev_pm_detach(_dev, true);
++	acpi_dev_pm_detach(_dev, true);
+ }
+ 
+ /**
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+hosted by The Linux Foundation
 
