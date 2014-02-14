@@ -1,40 +1,44 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] ACPI / platform: drop redundant ACPI_HANDLE check
-Date: Fri, 14 Feb 2014 14:06:30 -0800
-Message-ID: <20140214220630.GA7046@kroah.com>
-References: <1392350443-20074-1-git-send-email-joshc@codeaurora.org>
- <1746200.FR6bSit96i@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] Revert "ACPI / video: Add HP EliteBook Revolve 810 to the blacklist"
+Date: Fri, 14 Feb 2014 23:21:53 +0100
+Message-ID: <5716481.SxKZLEy9L1@vostro.rjw.lan>
+References: <1392381247-28109-1-git-send-email-mika.westerberg@linux.intel.com> <s5hy51dzr9f.wl%tiwai@suse.de> <20140214152601.GL5018@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1746200.FR6bSit96i@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Josh Cartwright <joshc@codeaurora.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:58598 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752871AbaBNWHL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Feb 2014 17:07:11 -0500
+In-Reply-To: <20140214152601.GL5018@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Aaron Lu <aaron.lu@intel.com>, linux-kernel@vger.kernel.org
 
-On Fri, Feb 14, 2014 at 02:45:29PM +0100, Rafael J. Wysocki wrote:
-> On Thursday, February 13, 2014 10:00:43 PM Josh Cartwright wrote:
-> > The acpi_dev_pm_attach/_detach functions perform their own checks to
-> > ensure the device has an ACPI companion.  It is not necessary for the
-> > caller to do so.
+On Friday, February 14, 2014 05:26:01 PM Mika Westerberg wrote:
+> On Fri, Feb 14, 2014 at 03:46:20PM +0100, Takashi Iwai wrote:
+> > The acpi_osi blacklist is just a workaround, and if we have better
+> > solutions, it should be removed.  That's why I'm asking it.
 > > 
-> > This mirrors what other busses with ACPI dev PM support do (i2c, spi,
-> > sdio).
-> > 
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Signed-off-by: Josh Cartwright <joshc@codeaurora.org>
+> > So, after removing acpi_osi blacklist, and keeping your video
+> > blacklist patch, the backlight works?
 > 
-> Hi Greg,
+> Yes, the backlight works (there is only intel_backlight listed under
+> /sys/class/backlight).
 > 
-> If you want to take this, please feel free to add:
+> > If yes, as mentioned, we should think of rather extending this video
+> > blacklist to more EliteBook G1 and ProBook G1 machines, and remove
+> > acpi_osi blacklist instead.
 > 
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Makes sense to me. (Well, I'm fine as long as backlight on my machine works
+> ;-))
 > 
-> to it.  If you want me to take it, please let me know.
+> Aaron, Rafael, any comments on this?
 
-Thanks, I'll go take it through my tree.
+I generally agree with Takashi, but I'm not sure what to do for 3.14.
 
-greg k-h
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
