@@ -1,37 +1,70 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] acpi-video: Filter the BCL table for duplicate brightness
- values
-Date: Fri, 14 Feb 2014 10:05:02 +0100
-Message-ID: <52FDDC3E.1070103@redhat.com>
-References: <1392305571-4895-1-git-send-email-hdegoede@redhat.com> <52FD6E6A.5090504@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH] Revert "ACPI / video: Add HP EliteBook Revolve 810 to the blacklist"
+Date: Fri, 14 Feb 2014 14:34:07 +0200
+Message-ID: <1392381247-28109-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48145 "EHLO mx1.redhat.com"
+Received: from mga09.intel.com ([134.134.136.24]:20854 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752449AbaBNJFP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Feb 2014 04:05:15 -0500
-In-Reply-To: <52FD6E6A.5090504@intel.com>
+	id S1751926AbaBNMeX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Feb 2014 07:34:23 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>, Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Aaron Lu <aaron.lu@intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi,
+This reverts commit e18ac62fa4b3f16234bab0d5a6627c57dbae9e7e.
 
-On 02/14/2014 02:16 AM, Aaron Lu wrote:
-> On 02/13/2014 11:32 PM, Hans de Goede wrote:
->> Some devices have duplicate entries in there brightness levels table, ie
->> on my Dell Latitude E6430 the table looks like this:
-> 
-> For reference's purpose, can you please file a bug in kernel bugzilla
-> under the ACPI/Power-Video category and attach the acpidump there? Thanks.
+The referenced commit added HP EliteBook Revolve 810 to the ACPI video
+detected blacklist so that only the native Intel backlight interface was
+exported.
 
-Done:
+However, this turned to be wrong solution after all. The ACPI video
+interface works and as long as we only use that there are no problems. So
+we can revert this commit and stick to use the backlight interface provided
+by the ACPI video driver.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=70571
+(Using Intel native interface will not work after resume since the ACPI
+video driver will restore it's state which takes control over the native
+one. That's a separate thing and should be addressed in the ACPI video
+driver, I suppose.)
 
-Regards,
+References: https://bugzilla.kernel.org/show_bug.cgi?id=70231
+Cc: Aaron Lu <aaron.lu@intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+Rafael, 
 
-Hans
+This turned out to be misunderstanding from my side. I should have
+investigated this further before submitting the original patch. Sorry about
+that.
+
+Aaron,
+
+Thanks for the investigation and pointing me to the right direction (e.g to
+use acpi_video0 over the native one).
+
+ drivers/acpi/video_detect.c | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index a697b77b8865..f0447d3daf2c 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -170,14 +170,6 @@ static struct dmi_system_id video_detect_dmi_table[] = {
+ 	},
+ 	{
+ 	.callback = video_detect_force_vendor,
+-	.ident = "HP EliteBook Revolve 810",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook Revolve 810 G1"),
+-		},
+-	},
+-	{
+-	.callback = video_detect_force_vendor,
+ 	.ident = "Lenovo Yoga 13",
+ 	.matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-- 
+1.8.5.2
+
