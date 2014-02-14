@@ -1,82 +1,87 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI and power management fixes for v3.14-rc3
-Date: Fri, 14 Feb 2014 14:39:11 +0100
-Message-ID: <CAJZ5v0jNWGKqQKozyqWeJnGReKLrzArfrWOntHEaXaJ1R_B7xw@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] Revert "ACPI / video: Add HP EliteBook Revolve 810 to
+ the blacklist"
+Date: Fri, 14 Feb 2014 16:03:16 +0200
+Message-ID: <20140214140316.GI5018@intel.com>
+References: <1392381247-28109-1-git-send-email-mika.westerberg@linux.intel.com>
+ <s5hmwht24ub.wl%tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:22979 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751792AbaBNN4C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Feb 2014 08:56:02 -0500
+Content-Disposition: inline
+In-Reply-To: <s5hmwht24ub.wl%tiwai@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Takashi Iwai <tiwai@suse.de>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Aaron Lu <aaron.lu@intel.com>, linux-kernel@vger.kernel.org
 
-Hi Linus,
+On Fri, Feb 14, 2014 at 02:37:00PM +0100, Takashi Iwai wrote:
+> At Fri, 14 Feb 2014 14:34:07 +0200,
+> Mika Westerberg wrote:
+> > 
+> > This reverts commit e18ac62fa4b3f16234bab0d5a6627c57dbae9e7e.
+> > 
+> > The referenced commit added HP EliteBook Revolve 810 to the ACPI video
+> > detected blacklist so that only the native Intel backlight interface was
+> > exported.
+> > 
+> > However, this turned to be wrong solution after all. The ACPI video
+> > interface works and as long as we only use that there are no problems. So
+> > we can revert this commit and stick to use the backlight interface provided
+> > by the ACPI video driver.
+> > 
+> > (Using Intel native interface will not work after resume since the ACPI
+> > video driver will restore it's state which takes control over the native
+> > one. That's a separate thing and should be addressed in the ACPI video
+> > driver, I suppose.)
+> > 
+> > References: https://bugzilla.kernel.org/show_bug.cgi?id=70231
+> > Cc: Aaron Lu <aaron.lu@intel.com>
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > ---
+> > Rafael, 
+> > 
+> > This turned out to be misunderstanding from my side. I should have
+> > investigated this further before submitting the original patch. Sorry about
+> > that.
+> > 
+> > Aaron,
+> > 
+> > Thanks for the investigation and pointing me to the right direction (e.g to
+> > use acpi_video0 over the native one).
+> 
+> Could you check whether the ACPI video still really works even if you
+> remove the recent acpi_osi blacklist entry below?  It might be that
+> BIOS changed its mind to behave more kindly as if handling for Win7.
+> 
+> 
+> Takashi
+> 
+> ---
+> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+> index 10e4964d051a..64d14406465d 100644
+> --- a/drivers/acpi/blacklist.c
+> +++ b/drivers/acpi/blacklist.c
+> @@ -322,6 +322,7 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+>  		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
+>  		},
+>  	},
+> +#if 0
+>  	{
+>  	.callback = dmi_disable_osi_win8,
+>  	.ident = "HP ProBook 2013 models",
+> @@ -372,6 +373,7 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+>  		     DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8780w"),
+>  		},
+>  	},
+> +#endif
+>  
+>  	/*
+>  	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
 
-Please pull from the git repository at
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-3.14-rc3
-
-to receive ACPI and power management fixes for v3.14-rc3
-with top-most commit 465e5fc41dbeeb5331bbff6e9e734f0542dfc739
-
-  Merge branch 'pm-cpufreq'
-
-on top of commit b28a960c42fcd9cfc987441fa6d1c1a471f0f9ed
-
-  Linux 3.14-rc2
-
-These include a fix for a recent intel_pstate regression, a fix for
-a regression in the ACPI-based PCI hotplug (ACPIPHP) code introduced
-during the 3.12 cycle, fixes for two bugs in the ACPI core introduced
-recently and a MAINTAINERS update related to cpufreq.
-
-Specifics:
-
- - Fix for a recent regression in the intel_pstate driver that
-   introduced a race condition causing systems to crash during
-   initialization in some situations.  This removes the affected
-   code altogether.  From Dirk Brandewie.
-
- - ACPIPHP fix for a regression introduced during the 3.12 cycle
-   causing devices to be dropped as a result of bus check notifications
-   after system resume on some systems due to the way ACPIPHP interprets
-   _STA return values (arguably incorrectly).  From Mika Westerberg.
-
- - ACPI dock driver fix for a problem causing docking to fail due to
-   a check that always fails after recent ACPI core changes (found by
-   code inspection).
-
- - ACPI container driver fix to prevent memory from being leaked in
-   an error code path after device_register() failures.
-
- - Update of the arm_big_little cpufreq driver maintainer's e-mail
-   address.
-
-Thanks!
-
-
----------------
-
-Dirk Brandewie (1):
-      intel_pstate: Remove energy reporting from pstate_sample tracepoint
-
-Mika Westerberg (1):
-      ACPI / hotplug / PCI: Relax the checking of _STA return values
-
-Rafael J. Wysocki (2):
-      ACPI / dock: Use acpi_device_enumerated() to check if dock is present
-      ACPI / container: Fix error code path in container_device_attach()
-
-Sudeep Holla (1):
-      MAINTAINERS / cpufreq: update Sudeep's email address
-
----------------
-
- MAINTAINERS                        |  2 +-
- drivers/acpi/container.c           |  5 +++--
- drivers/acpi/dock.c                |  5 +++--
- drivers/cpufreq/intel_pstate.c     |  9 ---------
- drivers/pci/hotplug/acpiphp_glue.c | 15 +++++++++++++--
- include/trace/events/power.h       |  7 +------
- 6 files changed, 21 insertions(+), 22 deletions(-)
+After this patch is applied, the ACPI backlight doesn't work anymore. The
+brightness stays the same, no matter what I do.
