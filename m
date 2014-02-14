@@ -1,45 +1,40 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] Revert "ACPI / video: Add HP EliteBook Revolve 810 to
- the blacklist"
-Date: Fri, 14 Feb 2014 17:26:01 +0200
-Message-ID: <20140214152601.GL5018@intel.com>
-References: <1392381247-28109-1-git-send-email-mika.westerberg@linux.intel.com>
- <s5hmwht24ub.wl%tiwai@suse.de>
- <20140214140316.GI5018@intel.com>
- <s5hfvnl23pq.wl%tiwai@suse.de>
- <20140214141652.GJ5018@intel.com>
- <s5ha9dt22zp.wl%tiwai@suse.de>
- <20140214144524.GK5018@intel.com>
- <s5hy51dzr9f.wl%tiwai@suse.de>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH] ACPI / platform: drop redundant ACPI_HANDLE check
+Date: Fri, 14 Feb 2014 14:06:30 -0800
+Message-ID: <20140214220630.GA7046@kroah.com>
+References: <1392350443-20074-1-git-send-email-joshc@codeaurora.org>
+ <1746200.FR6bSit96i@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:29987 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751880AbaBNPS1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Feb 2014 10:18:27 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <s5hy51dzr9f.wl%tiwai@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1746200.FR6bSit96i@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Josh Cartwright <joshc@codeaurora.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Aaron Lu <aaron.lu@intel.com>, linux-kernel@vger.kernel.org
 
-On Fri, Feb 14, 2014 at 03:46:20PM +0100, Takashi Iwai wrote:
-> The acpi_osi blacklist is just a workaround, and if we have better
-> solutions, it should be removed.  That's why I'm asking it.
+On Fri, Feb 14, 2014 at 02:45:29PM +0100, Rafael J. Wysocki wrote:
+> On Thursday, February 13, 2014 10:00:43 PM Josh Cartwright wrote:
+> > The acpi_dev_pm_attach/_detach functions perform their own checks to
+> > ensure the device has an ACPI companion.  It is not necessary for the
+> > caller to do so.
+> > 
+> > This mirrors what other busses with ACPI dev PM support do (i2c, spi,
+> > sdio).
+> > 
+> > Cc: Len Brown <lenb@kernel.org>
+> > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Signed-off-by: Josh Cartwright <joshc@codeaurora.org>
 > 
-> So, after removing acpi_osi blacklist, and keeping your video
-> blacklist patch, the backlight works?
+> Hi Greg,
+> 
+> If you want to take this, please feel free to add:
+> 
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> to it.  If you want me to take it, please let me know.
 
-Yes, the backlight works (there is only intel_backlight listed under
-/sys/class/backlight).
+Thanks, I'll go take it through my tree.
 
-> If yes, as mentioned, we should think of rather extending this video
-> blacklist to more EliteBook G1 and ProBook G1 machines, and remove
-> acpi_osi blacklist instead.
-
-Makes sense to me. (Well, I'm fine as long as backlight on my machine works
-;-))
-
-Aaron, Rafael, any comments on this?
+greg k-h
