@@ -1,53 +1,51 @@
-From: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: [PATCH] Documentation: i2c: mention ACPI method for
- instantiating devices
-Date: Sat, 15 Feb 2014 09:42:03 -0800
-Message-ID: <20140215174203.GA19001@roeck-us.net>
-References: <1392476315-13396-1-git-send-email-wsa@the-dreams.de>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi-video: Filter the BCL table for duplicate brightness values
+Date: Sun, 16 Feb 2014 00:12:02 +0100
+Message-ID: <1740306.zxvGuJyJQX@vostro.rjw.lan>
+References: <1392305571-4895-1-git-send-email-hdegoede@redhat.com> <1711359.oXonO7zNKI@vostro.rjw.lan> <20140215114641.GA4856@aaronlu.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1392476315-13396-1-git-send-email-wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:58146 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750808AbaBOW5R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Feb 2014 17:57:17 -0500
+In-Reply-To: <20140215114641.GA4856@aaronlu.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Sat, Feb 15, 2014 at 03:58:35PM +0100, Wolfram Sang wrote:
-> Signed-off-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-> Cc: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-> ---
+On Saturday, February 15, 2014 07:46:41 PM Aaron Lu wrote:
+> On Sat, Feb 15, 2014 at 02:00:50AM +0100, Rafael J. Wysocki wrote:
+> > On Friday, February 14, 2014 10:53:47 PM Aaron Lu wrote:
+> > > On 02/14/2014 05:05 PM, Hans de Goede wrote:
+> > > > Hi,
+> > > > 
+> > > > On 02/14/2014 02:16 AM, Aaron Lu wrote:
+> > > >> On 02/13/2014 11:32 PM, Hans de Goede wrote:
+> > > >>> Some devices have duplicate entries in there brightness levels table, ie
+> > > >>> on my Dell Latitude E6430 the table looks like this:
+> > > >>
+> > > >> For reference's purpose, can you please file a bug in kernel bugzilla
+> > > >> under the ACPI/Power-Video category and attach the acpidump there? Thanks.
+> > > > 
+> > > > Done:
+> > > > 
+> > > > https://bugzilla.kernel.org/show_bug.cgi?id=70571
+> > > 
+> > > Thanks, and the patch looks good to me.
+> > > Reviewed-by: Aaron Lu <aaron.lu@intel.com>
+> > 
+> > OK, thanks!
+> > 
+> > Is this stable material?  If so, which stable kernels should it go into?
 > 
-> Very basic, but probably should do for now?
-> 
+> Yes, all stables I think.
 
-Good enough for me.
+OK, thanks!  Queued up for the next PM/ACPI pull request.
 
-Acked-by: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-
->  Documentation/i2c/instantiating-devices | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/Documentation/i2c/instantiating-devices b/Documentation/i2c/instantiating-devices
-> index 6df095a..0d85ac19 100644
-> --- a/Documentation/i2c/instantiating-devices
-> +++ b/Documentation/i2c/instantiating-devices
-> @@ -81,6 +81,13 @@ additional properties which might be needed to set up the device, please refer
->  to its devicetree documentation in Documentation/devicetree/bindings/.
->  
->  
-> +Method 1c: Declare the I2C devices via ACPI
-> +-------------------------------------------
-> +
-> +ACPI can also describe I2C devices. There is special documentation for this
-> +which is currently located at Documentation/acpi/enumeration.txt.
-> +
-> +
->  Method 2: Instantiate the devices explicitly
->  --------------------------------------------
->  
-> -- 
-> 1.8.5.1
-> 
-> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
