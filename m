@@ -1,65 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/2] ACPI, PCI, ISA: Call ISA-specific code only for architectures which support ISA.
-Date: Sat, 15 Feb 2014 02:05 +0100
-Message-ID: <1463162.p1Ukb4737y@vostro.rjw.lan>
-References: <1392037211-29349-1-git-send-email-tomasz.nowicki@linaro.org>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH] ACPI, APEI: Remove X86 redundant dependency for APEI
+ Generic Hardware Error Source.
+Date: Sat, 15 Feb 2014 07:06:16 +0100
+Message-ID: <20140215060615.GA10430@pd.tnic>
+References: <1392049416-31240-1-git-send-email-tomasz.nowicki@linaro.org>
+ <1611441.dxrnOY2zmW@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61588 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753128AbaBOAuR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Feb 2014 19:50:17 -0500
-In-Reply-To: <1392037211-29349-1-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1611441.dxrnOY2zmW@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Luck, Tony" <tony.luck@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday, February 10, 2014 02:00:10 PM Tomasz Nowicki wrote:
-> This commit enables ISA-specific code if and only if CONFIG_{E}ISA is set
-> in the kernel configuration so that we do not have to maintain
-> acpi_isa_irq_to_gsi() function for architectures which do not support ISA.
+On Sat, Feb 15, 2014 at 01:57:48AM +0100, Rafael J. Wysocki wrote:
+> On Monday, February 10, 2014 05:23:36 PM Tomasz Nowicki wrote:
+> > ACPI_APEI is already dependent on X86, hence, there is no need to
+> > define such dependency for ACPI_APEI_GHES again.
+> > 
+> > Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 > 
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> ---
->  drivers/acpi/pci_irq.c |    8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index 41c5e1b..b0e31b6 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -418,6 +418,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
->  	 * driver reported one, then use it. Exit in any case.
->  	 */
->  	if (gsi < 0) {
-> +#if IS_ENABLED(CONFIG_ISA) || IS_ENABLED(CONFIG_EISA)
+> Tony, Boris, if you're fine with this, I'll take it for 3.15.
 
-Can you please move the code in question into a separate function and make
-that function depend on the above (with an empty stub for when they are not
-enabled)?
+Acked-by: Borislav Petkov <bp@suse.de>
 
->  		u32 dev_gsi;
->  		/* Interrupt Line values above 0xF are forbidden */
->  		if (dev->irq > 0 && (dev->irq <= 0xF) &&
-> @@ -427,10 +428,9 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
->  			acpi_register_gsi(&dev->dev, dev_gsi,
->  					  ACPI_LEVEL_SENSITIVE,
->  					  ACPI_ACTIVE_LOW);
-> -		} else {
-> -			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
-> -				 pin_name(pin));
-> -		}
-> +		} else
-> +#endif
-> +		dev_warn(&dev->dev, "PCI INT %c: no GSI\n", pin_name(pin));
->  
->  		return 0;
->  	}
-> 
+Thanks.
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
