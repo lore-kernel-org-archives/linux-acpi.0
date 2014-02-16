@@ -1,35 +1,68 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: Re: [PATCH] acpi: Remove Kconfig symbol ACPI_PROCFS
-Date: Sun, 16 Feb 2014 21:44:10 +0100
-Message-ID: <1392583450.28866.91.camel@x220>
-References: <1392570485.28866.10.camel@x220>
-	 <49750510.SeydVA5ctE@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 3/3] ACPI / PM: Avoid resuming devices in ACPI PM domain during system suspend
+Date: Mon, 17 Feb 2014 00:52:26 +0100
+Message-ID: <4644785.jPoV06XLG5@vostro.rjw.lan>
+References: <5420830.W4laSGaAU9@vostro.rjw.lan> <1829141.MEZji1aIKp@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cpsmtpb-ews06.kpnxchange.com ([213.75.39.9]:59526 "EHLO
-	cpsmtpb-ews06.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752822AbaBPUoN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 16 Feb 2014 15:44:13 -0500
-In-Reply-To: <49750510.SeydVA5ctE@vostro.rjw.lan>
+Received: from v094114.home.net.pl ([79.96.170.134]:59311 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752381AbaBPXii (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Feb 2014 18:38:38 -0500
+In-Reply-To: <1829141.MEZji1aIKp@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, Michael Opdenacker <michael.opdenacker@free-electrons.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Sun, 2014-02-16 at 21:45 +0100, Rafael J. Wysocki wrote:
-> Some defconfigs set it.  Care to remove it from them too?
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-As in: send a v2 which also strips it from those defconfigs? Fine with
-me.
+Rework the ACPI PM domain's PM callbacks to avoid resuming devices
+during system suspend in order to modify their wakeup settings if
+that isn't necessary.
 
-(Side note: I've learned to ignore the defconfigs. They have accumulated
-a lot of cruft. I once sent a pull request to clean all defconfigs. It
-was ignored and I was rather fed up with doing trying to clean up
-defconfigs, so I never sent out an updated pull request.)
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/device_pm.c |   24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-
-Paul Bolle
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -900,12 +900,28 @@ EXPORT_SYMBOL_GPL(acpi_dev_resume_early)
+  */
+ int acpi_subsys_prepare(struct device *dev)
+ {
++	struct acpi_device *adev = ACPI_COMPANION(dev);
++	u32 target_state;
++	int error, state;
++
++	if (!adev || !pm_runtime_enabled_and_suspended(dev))
++		return pm_generic_prepare(dev);
++
++	target_state = acpi_target_system_state();
++	error = acpi_dev_pm_get_state(dev, adev, target_state, NULL, &state);
++	if (error || state != adev->power.state
++	    || device_may_wakeup(dev) != !!adev->wakeup.prepare_count) {
++		pm_runtime_resume(dev);
++		return pm_generic_prepare(dev);
++	}
+ 	/*
+-	 * Follow PCI and resume devices suspended at run time before running
+-	 * their system suspend callbacks.
++	 * If this is a wakeup device, wakeup power has been enabled already for
++	 * it during the preceding runtime suspend.  Caveat: "sleep state" is
++	 * one of the _DSW arguments, but that shouldn't matter for the devices
++	 * using acpi_general_pm_domain.
+ 	 */
+-	pm_runtime_resume(dev);
+-	return pm_generic_prepare(dev);
++	error =  pm_generic_prepare(dev);
++	return error ? error : 1;
+ }
+ EXPORT_SYMBOL_GPL(acpi_subsys_prepare);
+ 
 
