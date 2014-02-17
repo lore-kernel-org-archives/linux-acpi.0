@@ -1,70 +1,44 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch v1 4/6] xen, acpi_pad: use acpi_evaluate_pad() to replace open-coded version
-Date: Mon, 17 Feb 2014 13:02:51 +0800
-Message-ID: <1392613373-11003-4-git-send-email-jiang.liu@linux.intel.com>
-References: <1392613271-10912-1-git-send-email-jiang.liu@linux.intel.com>
- <1392613373-11003-1-git-send-email-jiang.liu@linux.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] Revert "ACPI / video: Add HP EliteBook Revolve 810 to
+ the blacklist"
+Date: Mon, 17 Feb 2014 13:52:46 +0800
+Message-ID: <5301A3AE.9030703@intel.com>
+References: <1392381247-28109-1-git-send-email-mika.westerberg@linux.intel.com> <s5hy51dzr9f.wl%tiwai@suse.de> <20140214152601.GL5018@intel.com> <5716481.SxKZLEy9L1@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1392613373-11003-1-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <5716481.SxKZLEy9L1@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, David Vrabel <david.vrabel@citrix.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use public function acpi_evaluate_pad() to replace open-coded
-version of evaluating ACPI _OST method.
+On 02/15/2014 06:21 AM, Rafael J. Wysocki wrote:
+> On Friday, February 14, 2014 05:26:01 PM Mika Westerberg wrote:
+>> On Fri, Feb 14, 2014 at 03:46:20PM +0100, Takashi Iwai wrote:
+>>> The acpi_osi blacklist is just a workaround, and if we have better
+>>> solutions, it should be removed.  That's why I'm asking it.
+>>>
+>>> So, after removing acpi_osi blacklist, and keeping your video
+>>> blacklist patch, the backlight works?
+>>
+>> Yes, the backlight works (there is only intel_backlight listed under
+>> /sys/class/backlight).
+>>
+>>> If yes, as mentioned, we should think of rather extending this video
+>>> blacklist to more EliteBook G1 and ProBook G1 machines, and remove
+>>> acpi_osi blacklist instead.
+>>
+>> Makes sense to me. (Well, I'm fine as long as backlight on my machine works
+>> ;-))
+>>
+>> Aaron, Rafael, any comments on this?
+> 
+> I generally agree with Takashi, but I'm not sure what to do for 3.14.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- drivers/xen/xen-acpi-pad.c |   26 +++++++-------------------
- 1 file changed, 7 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/xen/xen-acpi-pad.c b/drivers/xen/xen-acpi-pad.c
-index 40c4bc0..f83b754 100644
---- a/drivers/xen/xen-acpi-pad.c
-+++ b/drivers/xen/xen-acpi-pad.c
-@@ -77,27 +77,14 @@ static int acpi_pad_pur(acpi_handle handle)
- 	return num;
- }
- 
--/* Notify firmware how many CPUs are idle */
--static void acpi_pad_ost(acpi_handle handle, int stat,
--	uint32_t idle_nums)
--{
--	union acpi_object params[3] = {
--		{.type = ACPI_TYPE_INTEGER,},
--		{.type = ACPI_TYPE_INTEGER,},
--		{.type = ACPI_TYPE_BUFFER,},
--	};
--	struct acpi_object_list arg_list = {3, params};
--
--	params[0].integer.value = ACPI_PROCESSOR_AGGREGATOR_NOTIFY;
--	params[1].integer.value =  stat;
--	params[2].buffer.length = 4;
--	params[2].buffer.pointer = (void *)&idle_nums;
--	acpi_evaluate_object(handle, "_OST", &arg_list, NULL);
--}
--
- static void acpi_pad_handle_notify(acpi_handle handle)
- {
- 	int idle_nums;
-+	struct acpi_buffer param = {
-+		.length = 4,
-+		.pointer = (void *)&idle_nums,
-+	};
-+
- 
- 	mutex_lock(&xen_cpu_lock);
- 	idle_nums = acpi_pad_pur(handle);
-@@ -109,7 +96,8 @@ static void acpi_pad_handle_notify(acpi_handle handle)
- 	idle_nums = xen_acpi_pad_idle_cpus(idle_nums)
- 		    ?: xen_acpi_pad_idle_cpus_num();
- 	if (idle_nums >= 0)
--		acpi_pad_ost(handle, 0, idle_nums);
-+		acpi_evaluate_ost(handle, ACPI_PROCESSOR_AGGREGATOR_NOTIFY,
-+				  0, &param);
- 	mutex_unlock(&xen_cpu_lock);
- }
- 
--- 
-1.7.10.4
+I can re-base the previously sent patch titled:
+[PATCH] ACPI / video: Add systems that should favor native backlight interface
+And put Mika's system into the DMI table that will use native backlight
+interface in video module and remove it from video_detect's DMI table at
+the same time. Does this sound OK?
