@@ -1,45 +1,54 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH 2/2] ACPI, PCI, ISA: Fix memory leak when there is no
- IRQ in the ACPI subsystem.
-Date: Tue, 18 Feb 2014 11:21:39 +0100
-Message-ID: <53033433.7080002@linaro.org>
-References: <1392037211-29349-1-git-send-email-tomasz.nowicki@linaro.org> <1392037211-29349-2-git-send-email-tomasz.nowicki@linaro.org> <87065822.vfIc9IskHH@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Chew Chiau Ee <chiau.ee.chew@intel.com>
+Subject: [PATCH v2] ACPI / LPSS: Add Intel BayTrail ACPI mode PWM
+Date: Wed, 19 Feb 2014 02:24:29 +0800
+Message-ID: <1392747869-31435-1-git-send-email-chiau.ee.chew@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87065822.vfIc9IskHH@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 18.02.2014 02:02, Rafael J. Wysocki wrote:
-> On Monday, February 10, 2014 02:00:11 PM Tomasz Nowicki wrote:
->> Whenever we register ISA interrupt or not, we need to free the IRQ routing
->> table entry.
->>
->> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->> ---
->>   drivers/acpi/pci_irq.c |    1 +
->>   1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
->> index b0e31b6..6ec0f36 100644
->> --- a/drivers/acpi/pci_irq.c
->> +++ b/drivers/acpi/pci_irq.c
->> @@ -432,6 +432,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
->>   #endif
->>   		dev_warn(&dev->dev, "PCI INT %c: no GSI\n", pin_name(pin));
->>
->> +		kfree(entry);
->
-> If I'm not mistaken, entry is always NULL here, isn't it?
-acpi_pci_link_allocate_irq() can return negative gsi even if entry != 
-NULL. For that case we'd have memory leak.
->
->>   		return 0;
->>   	}
->>
->>
->
+From: Chew, Chiau Ee <chiau.ee.chew@intel.com>
+
+Intel BayTrail LPSS consists of two PWM controllers which can
+be enumerated from ACPI namespace. This change will cause
+platform device objects to be created for Intel BayTrail PWM
+controllers which will allow the pwm-lpss driver to bind to them
+and handle those devices.
+
+Signed-off-by: Chew, Chiau Ee <chiau.ee.chew@intel.com>
+---
+ drivers/acpi/acpi_lpss.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 2428857..9e22c13 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -96,6 +96,16 @@ static struct lpss_device_desc lpt_sdio_dev_desc = {
+ 	.ltr_required = true,
+ };
+ 
++static struct lpss_shared_clock pwm_clock = {
++	.name = "pwm_clk",
++	.rate = 25000000,
++};
++
++static struct lpss_device_desc byt_pwm_dev_desc = {
++	.clk_required = true,
++	.shared_clock = &pwm_clock,
++};
++
+ static struct lpss_shared_clock uart_clock = {
+ 	.name = "uart_clk",
+ 	.rate = 44236800,
+@@ -151,6 +161,7 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+ 	{ "INT33C7", },
+ 
+ 	/* BayTrail LPSS devices */
++	{ "80860F09", (unsigned long)&byt_pwm_dev_desc },
+ 	{ "80860F0A", (unsigned long)&byt_uart_dev_desc },
+ 	{ "80860F0E", (unsigned long)&byt_spi_dev_desc },
+ 	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
+-- 
+1.7.4.4
