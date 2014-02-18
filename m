@@ -1,100 +1,96 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC Patch v1 1/6] acpi_pad: simplify notify handler by using acpi_drv_ops->notify
-Date: Tue, 18 Feb 2014 02:06:03 +0100
-Message-ID: <8893595.ITmXn6Kgg5@vostro.rjw.lan>
-References: <1392613271-10912-1-git-send-email-jiang.liu@linux.intel.com> <1392613373-11003-1-git-send-email-jiang.liu@linux.intel.com>
+Subject: Re: [RFC Patch v1 2/6] ACPI: rename acpi_evaluate_hotplug_ost to acpi_evaluate_ost for reuse
+Date: Tue, 18 Feb 2014 02:06:48 +0100
+Message-ID: <6382282.2gCVKeUJUt@vostro.rjw.lan>
+References: <1392613271-10912-1-git-send-email-jiang.liu@linux.intel.com> <1392613373-11003-1-git-send-email-jiang.liu@linux.intel.com> <1392613373-11003-2-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49223 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:52356 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754101AbaBRAvP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Feb 2014 19:51:15 -0500
-In-Reply-To: <1392613373-11003-1-git-send-email-jiang.liu@linux.intel.com>
+	with SMTP id S1752394AbaBRAwA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Feb 2014 19:52:00 -0500
+In-Reply-To: <1392613373-11003-2-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
 
-On Monday, February 17, 2014 01:02:48 PM Jiang Liu wrote:
-> Use callback acpi_drv_ops->notify to simplify acpi_pad driver's
-> notification handling code.
+On Monday, February 17, 2014 01:02:49 PM Jiang Liu wrote:
+> Rename acpi_evaluate_hotplug_ost() to acpi_evaluate_ost() for later resue.
 > 
 > Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-
-There is a plan to move away from using struct acpi_driver objects and
-this change will need to be reverted then.  I'm not sure if that's really
-useful?
-
 > ---
->  drivers/acpi/acpi_pad.c |   25 +++++--------------------
->  1 file changed, 5 insertions(+), 20 deletions(-)
+>  drivers/acpi/utils.c    |   14 ++++----------
+>  include/acpi/acpi_bus.h |   10 +++++++++-
+>  2 files changed, 13 insertions(+), 11 deletions(-)
 > 
-> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-> index df96a0f..1e3ce76 100644
-> --- a/drivers/acpi/acpi_pad.c
-> +++ b/drivers/acpi/acpi_pad.c
-> @@ -443,14 +443,11 @@ static void acpi_pad_handle_notify(acpi_handle handle)
->  	mutex_unlock(&isolated_cpus_lock);
->  }
->  
-> -static void acpi_pad_notify(acpi_handle handle, u32 event,
-> -	void *data)
-> +static void acpi_pad_notify(struct acpi_device *device, u32 event)
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index 85e3b61..19d0169 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -433,17 +433,15 @@ EXPORT_SYMBOL(acpi_get_physical_device_location);
+>   * When the platform does not support _OST, this function has no effect.
+>   */
+>  acpi_status
+> -acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+> -		u32 status_code, struct acpi_buffer *status_buf)
+
+There are users of this, what about updating them?
+
+> +acpi_evaluate_ost(acpi_handle handle, u32 source_event, u32 status_code,
+> +		  struct acpi_buffer *status_buf)
 >  {
-> -	struct acpi_device *device = data;
-> -
->  	switch (event) {
->  	case ACPI_PROCESSOR_AGGREGATOR_NOTIFY:
-> -		acpi_pad_handle_notify(handle);
-> +		acpi_pad_handle_notify(device->handle);
->  		acpi_bus_generate_netlink_event(device->pnp.device_class,
->  			dev_name(&device->dev), event, 0);
->  		break;
-> @@ -462,22 +459,10 @@ static void acpi_pad_notify(acpi_handle handle, u32 event,
->  
->  static int acpi_pad_add(struct acpi_device *device)
->  {
+> -#ifdef ACPI_HOTPLUG_OST
+>  	union acpi_object params[3] = {
+>  		{.type = ACPI_TYPE_INTEGER,},
+>  		{.type = ACPI_TYPE_INTEGER,},
+>  		{.type = ACPI_TYPE_BUFFER,}
+>  	};
+>  	struct acpi_object_list arg_list = {3, params};
 > -	acpi_status status;
-> -
->  	strcpy(acpi_device_name(device), ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME);
->  	strcpy(acpi_device_class(device), ACPI_PROCESSOR_AGGREGATOR_CLASS);
 >  
-> -	if (acpi_pad_add_sysfs(device))
-> -		return -ENODEV;
-> -
-> -	status = acpi_install_notify_handler(device->handle,
-> -		ACPI_DEVICE_NOTIFY, acpi_pad_notify, device);
-> -	if (ACPI_FAILURE(status)) {
-> -		acpi_pad_remove_sysfs(device);
-> -		return -ENODEV;
-> -	}
-> -
-> -	return 0;
-> +	return acpi_pad_add_sysfs(device);
+>  	params[0].integer.value = source_event;
+>  	params[1].integer.value = status_code;
+> @@ -455,13 +453,9 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+>  		params[2].buffer.length = 0;
+>  	}
+>  
+> -	status = acpi_evaluate_object(handle, "_OST", &arg_list, NULL);
+> -	return status;
+> -#else
+> -	return AE_OK;
+> -#endif
+> +	return acpi_evaluate_object(handle, "_OST", &arg_list, NULL);
 >  }
+> -EXPORT_SYMBOL(acpi_evaluate_hotplug_ost);
+> +EXPORT_SYMBOL(acpi_evaluate_ost);
 >  
->  static int acpi_pad_remove(struct acpi_device *device)
-> @@ -486,9 +471,8 @@ static int acpi_pad_remove(struct acpi_device *device)
->  	acpi_pad_idle_cpus(0);
->  	mutex_unlock(&isolated_cpus_lock);
+>  /**
+>   * acpi_handle_printk: Print message with ACPI prefix and object path
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 8256eb4..adef502 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -49,8 +49,16 @@ acpi_evaluate_reference(acpi_handle handle,
+>  			struct acpi_object_list *arguments,
+>  			struct acpi_handle_list *list);
+>  acpi_status
+> +acpi_evaluate_ost(acpi_handle handle, u32 source_event, u32 status_code,
+> +		  struct acpi_buffer *status_buf);
+> +#ifdef ACPI_HOTPLUG_OST
+> +#define	acpi_evaluate_hotplug_ost	acpi_evaluate_ost
+> +#else
+> +static inline acpi_status
+>  acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+> -			u32 status_code, struct acpi_buffer *status_buf);
+> +			u32 status_code, struct acpi_buffer *status_buf)
+> +{ return AE_OK; }
+> +#endif
 >  
-> -	acpi_remove_notify_handler(device->handle,
-> -		ACPI_DEVICE_NOTIFY, acpi_pad_notify);
->  	acpi_pad_remove_sysfs(device);
-> +
->  	return 0;
->  }
->  
-> @@ -505,6 +489,7 @@ static struct acpi_driver acpi_pad_driver = {
->  	.ops = {
->  		.add = acpi_pad_add,
->  		.remove = acpi_pad_remove,
-> +		.notify = acpi_pad_notify,
->  	},
->  };
->  
+>  acpi_status
+>  acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld);
 > 
 
 -- 
