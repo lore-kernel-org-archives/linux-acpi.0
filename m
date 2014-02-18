@@ -1,30 +1,28 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: WARNING at kernel/workqueue.c:829 wq_worker_waking_up+0x53/0x70()
-Date: Tue, 18 Feb 2014 17:49:07 -0500
-Message-ID: <20140218224907.GG31892@mtj.dyndns.org>
-References: <20140213124059.GA2908@krava.brq.redhat.com>
- <20140217171900.GB29173@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
+Date: Wed, 19 Feb 2014 00:26 +0100
+Message-ID: <1511662.Ly2fOjCGKz@vostro.rjw.lan>
+References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140217171900.GB29173@redhat.com>
+In-Reply-To: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Oleg Nesterov <oleg@redhat.com>
-Cc: Jiri Olsa <jolsa@redhat.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: minyard@acm.org, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Tuesday, February 18, 2014 11:28:29 AM Matthew Garrett wrote:
+> 
+> The ACPI IPMI driver implements IPMI operation region support for the ACPI
+> core. Systems that declare ACPI operation regions may reference them at any
+> time, including during kernel initialisation. These accesses will fail
+> unless the ACPI IPMI driver is present, and undesirable system behaviour
+> may result. Set the default to Y in order to encourage distributions and
+> users to configure kernels to avoid awkward surprises.
 
-On Mon, Feb 17, 2014 at 06:19:00PM +0100, Oleg Nesterov wrote:
-> acpi_processor_set_throttling() plays with set_cpus_allowed_ptr(current),
-> this is obviously wrong, and the worker is bound.
+Do you have any examples of problems caused by that or is this just theoretical
+at the moment?
 
-Umm... yeah, anything running on workqueues shouldn't be diddling with
-cpu affinity.  The function even has /* FIXME: use work_on_cpu() */ in
-it.  I suppose it's about time to actually implement that?
-
-Thanks.
-
--- 
-tejun
+Rafael
