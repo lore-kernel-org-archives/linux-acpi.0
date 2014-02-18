@@ -1,52 +1,30 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4] ACPI / video: Add systems that should favour native backlight interface
-Date: Tue, 18 Feb 2014 23:35:15 +0100
-Message-ID: <7895886.QojQB2nxcx@vostro.rjw.lan>
-References: <5302F58C.1080001@intel.com> <1903167.TtlOFgMB6X@vostro.rjw.lan> <1392751709.4640.371.camel@X1Carbon.localdomain>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: WARNING at kernel/workqueue.c:829 wq_worker_waking_up+0x53/0x70()
+Date: Tue, 18 Feb 2014 17:49:07 -0500
+Message-ID: <20140218224907.GG31892@mtj.dyndns.org>
+References: <20140213124059.GA2908@krava.brq.redhat.com>
+ <20140217171900.GB29173@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1392751709.4640.371.camel@X1Carbon.localdomain>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Cc: Takashi Iwai <tiwai@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Theodore Tso <tytso@mit.edu>, Peter Weber <bugs@ttyhoney.com>, Lennart Poettering <lennart@poettering.net>, Kevin Smith <thirdwiggin@gmail.com>, Rinat Ibragimov <ibragimovrinat@mail.ru>, sov.info@mail.ru, Thomas Christensen <christensenthomas@gmail.com>, Vladimir Sherenkov <a_12300@mail.ru>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Daniel Vetter <daniel@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140217171900.GB29173@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Oleg Nesterov <oleg@redhat.com>
+Cc: Jiri Olsa <jolsa@redhat.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, February 18, 2014 11:28:29 PM Igor Gnatenko wrote:
-> On Tue, 2014-02-18 at 16:22 +0100, Rafael J. Wysocki wrote: 
-> > On Tuesday, February 18, 2014 02:31:46 PM Takashi Iwai wrote:
-> > > At Tue, 18 Feb 2014 12:34:42 +0200,
-> > > Mika Westerberg wrote:
-> > > > 
-> > > > On Tue, Feb 18, 2014 at 01:54:20PM +0800, Aaron Lu wrote:
-> > > > > +	{
-> > > > > +	.callback = video_set_use_native_backlight,
-> > > > > +	.ident = "HP EliteBook 2013 models",
-> > > > > +	.matches = {
-> > > > > +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-> > > > > +		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook "),
-> > > > > +		DMI_MATCH(DMI_PRODUCT_NAME, " G1"),
-> > > > > +		},
-> > > > > +	},
-> > > > 
-> > > > I see my device is listed here but the above doesn't really use native
-> > > > backlight because it is still in acpi_osi blacklist. Tried this and I can
-> > > > see both acpi_video0 and intel_backlight listed under /sys/class/backlight.
-> > > > Was this the intention?
-> > > 
-> > > The acpi_osi blacklist commit (2d4054d84224) has to be reverted, as I
-> > > mentioned earlier.  But the revert can be done individually after
-> > > merging this patch.  Rafael, could you care?
-> > 
-> > Done.  Please check the result in linux-pm.git/linux-next.
-> Is it will merge to 3.14 ?
+Hello,
 
-That's the plan.
+On Mon, Feb 17, 2014 at 06:19:00PM +0100, Oleg Nesterov wrote:
+> acpi_processor_set_throttling() plays with set_cpus_allowed_ptr(current),
+> this is obviously wrong, and the worker is bound.
 
-> P.S. why you don't using rafael@ mail ? *joke* 
+Umm... yeah, anything running on workqueues shouldn't be diddling with
+cpu affinity.  The function even has /* FIXME: use work_on_cpu() */ in
+it.  I suppose it's about time to actually implement that?
 
-Because it is hooked up to gmail.  And I actually do use it sometimes.
+Thanks.
 
-Thanks,
-Rafael
+-- 
+tejun
