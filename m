@@ -1,42 +1,50 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/2] ACPI, PCI, ISA: Fix memory leak when there is no IRQ in the ACPI subsystem.
-Date: Tue, 18 Feb 2014 02:02:50 +0100
-Message-ID: <87065822.vfIc9IskHH@vostro.rjw.lan>
-References: <1392037211-29349-1-git-send-email-tomasz.nowicki@linaro.org> <1392037211-29349-2-git-send-email-tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 0/6] drivers/acpi: fix driver compile errors when CONFIG_PM_SLEEP is undefined
+Date: Tue, 18 Feb 2014 02:03:39 +0100
+Message-ID: <2205879.dV8tEujxdx@vostro.rjw.lan>
+References: <cover.1392250669.git.shuah.kh@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1392037211-29349-2-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:62553 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753936AbaBRAsv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Feb 2014 19:48:51 -0500
+In-Reply-To: <cover.1392250669.git.shuah.kh@samsung.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Shuah Khan <shuah.kh@samsung.com>
+Cc: lenb@kernel.org, rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, shuahkhan@gmail.com
 
-On Monday, February 10, 2014 02:00:11 PM Tomasz Nowicki wrote:
-> Whenever we register ISA interrupt or not, we need to free the IRQ routing
-> table entry.
+On Wednesday, February 12, 2014 08:19:04 PM Shuah Khan wrote:
+> The following acpi drivers fail with compile errors when CONFIG_PM_SLEEP
+> is undefined.
+
+I'm going to push all of these patches as fixes for 3.14.  Thanks!
+
+> Shuah Khan (6):
+>   drivers/acpi: fix ac driver compile error when CONFIG_PM_SLEEP is
+>     undefined
+>   drivers/acpi: fix battery driver compile error when CONFIG_PM_SLEEP is
+>     undefined
+>   drivers/acpi: fix button driver compile error when CONFIG_PM_SLEEP is
+>     undefined
+>   drivers/acpi: fix fan driver compile error when CONFIG_PM_SLEEP is
+>     undefined
+>   drivers/acpi: fix sbs driver compile error when CONFIG_PM_SLEEP is
+>     undefined
+>   drivers/acpi: fix thermal driver compile error when CONFIG_PM_SLEEP
+>     is undefined
 > 
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> ---
->  drivers/acpi/pci_irq.c |    1 +
->  1 file changed, 1 insertion(+)
+>  drivers/acpi/ac.c      |    2 ++
+>  drivers/acpi/battery.c |    2 ++
+>  drivers/acpi/button.c  |    2 ++
+>  drivers/acpi/fan.c     |    3 +++
+>  drivers/acpi/sbs.c     |    2 ++
+>  drivers/acpi/thermal.c |    2 ++
+>  6 files changed, 13 insertions(+)
 > 
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index b0e31b6..6ec0f36 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -432,6 +432,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
->  #endif
->  		dev_warn(&dev->dev, "PCI INT %c: no GSI\n", pin_name(pin));
->  
-> +		kfree(entry);
-
-If I'm not mistaken, entry is always NULL here, isn't it?
-
->  		return 0;
->  	}
->  
 > 
 
 -- 
