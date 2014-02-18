@@ -1,55 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/2] ACPI, PCI, ISA: Fix memory leak when there is no IRQ in the ACPI subsystem.
-Date: Tue, 18 Feb 2014 16:26:37 +0100
-Message-ID: <1444429.LQSjxavlaG@vostro.rjw.lan>
-References: <1392037211-29349-1-git-send-email-tomasz.nowicki@linaro.org> <87065822.vfIc9IskHH@vostro.rjw.lan> <53033433.7080002@linaro.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v4] ACPI / video: Add systems that should
+ favour native backlight interface
+Date: Tue, 18 Feb 2014 17:46:40 +0200
+Message-ID: <20140218154640.GT5018@intel.com>
+References: <5302F58C.1080001@intel.com> <20140218103442.GS5018@intel.com>
+	<s5hfvngy2bh.wl%tiwai@suse.de> <1903167.TtlOFgMB6X@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62137 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755909AbaBRPLs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Feb 2014 10:11:48 -0500
-In-Reply-To: <53033433.7080002@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <1903167.TtlOFgMB6X@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces@lists.freedesktop.org
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Aaron Lu <aaron.lu@intel.com>, Theodore Tso <tytso@mit.edu>, Kevin Smith <thirdwiggin@gmail.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, Peter Weber <bugs@ttyhoney.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Vladimir Sherenkov <a_12300@mail.ru>, Matthew Garrett <mjg59@srcf.ucam.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Thomas Christensen <christensenthomas@gmail.com>, Lennart Poettering <lennart@poettering.net>, sov.info@mail.ru, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, February 18, 2014 11:21:39 AM Tomasz Nowicki wrote:
-> On 18.02.2014 02:02, Rafael J. Wysocki wrote:
-> > On Monday, February 10, 2014 02:00:11 PM Tomasz Nowicki wrote:
-> >> Whenever we register ISA interrupt or not, we need to free the IRQ routing
-> >> table entry.
-> >>
-> >> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> >> ---
-> >>   drivers/acpi/pci_irq.c |    1 +
-> >>   1 file changed, 1 insertion(+)
-> >>
-> >> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> >> index b0e31b6..6ec0f36 100644
-> >> --- a/drivers/acpi/pci_irq.c
-> >> +++ b/drivers/acpi/pci_irq.c
-> >> @@ -432,6 +432,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
-> >>   #endif
-> >>   		dev_warn(&dev->dev, "PCI INT %c: no GSI\n", pin_name(pin));
-> >>
-> >> +		kfree(entry);
-> >
-> > If I'm not mistaken, entry is always NULL here, isn't it?
->
-> acpi_pci_link_allocate_irq() can return negative gsi even if entry != 
-> NULL. For that case we'd have memory leak.
+On Tue, Feb 18, 2014 at 04:22:27PM +0100, Rafael J. Wysocki wrote:
+> On Tuesday, February 18, 2014 02:31:46 PM Takashi Iwai wrote:
+> > At Tue, 18 Feb 2014 12:34:42 +0200,
+> > Mika Westerberg wrote:
+> > > 
+> > > On Tue, Feb 18, 2014 at 01:54:20PM +0800, Aaron Lu wrote:
+> > > > +	{
+> > > > +	.callback = video_set_use_native_backlight,
+> > > > +	.ident = "HP EliteBook 2013 models",
+> > > > +	.matches = {
+> > > > +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+> > > > +		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook "),
+> > > > +		DMI_MATCH(DMI_PRODUCT_NAME, " G1"),
+> > > > +		},
+> > > > +	},
+> > > 
+> > > I see my device is listed here but the above doesn't really use native
+> > > backlight because it is still in acpi_osi blacklist. Tried this and I can
+> > > see both acpi_video0 and intel_backlight listed under /sys/class/backlight.
+> > > Was this the intention?
+> > 
+> > The acpi_osi blacklist commit (2d4054d84224) has to be reverted, as I
+> > mentioned earlier.  But the revert can be done individually after
+> > merging this patch.  Rafael, could you care?
+> 
+> Done.  Please check the result in linux-pm.git/linux-next.
 
-And that's what your changelog should be saying, isn't it?
+With your revert and this patch from Aaron, backlight on my HP EliteBook
+Revolve G1 works fine, thanks!
 
-Queued up for 3.14 and marked for -stable.  I had to rebase it, though, so
-please check the result in linux-pm.git/linux-next.
-
-Thanks!
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
