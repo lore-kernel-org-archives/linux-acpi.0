@@ -1,70 +1,66 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v5 4/5] ACPI: Move BAD_MADT_ENTRY() to linux/acpi.h
-Date: Wed, 19 Feb 2014 00:23:57 +0800
-Message-ID: <1392740638-2479-5-git-send-email-hanjun.guo@linaro.org>
-References: <1392740638-2479-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1392740638-2479-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, Joe Perches <joe@perches.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+From: Matthew Garrett <matthew.garrett@nebula.com>
+Subject: [PATCH V2] Change ACPI IPMI support to "default y"
+Date: Tue, 18 Feb 2014 11:28:29 -0500
+Message-ID: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:49592 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750727AbaBRQ2j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Feb 2014 11:28:39 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: minyard@acm.org
+Cc: lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>
 
-BAD_MADT_ENTRY() is arch independent and will be used for all
-archs which parsing MADT table, so move it to linux/acpi.h to
-simply the code.
+The ACPI IPMI driver implements IPMI operation region support for the ACPI
+core. Systems that declare ACPI operation regions may reference them at any
+time, including during kernel initialisation. These accesses will fail
+unless the ACPI IPMI driver is present, and undesirable system behaviour
+may result. Set the default to Y in order to encourage distributions and
+users to configure kernels to avoid awkward surprises.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
 ---
- arch/ia64/kernel/acpi.c     |    4 ----
- arch/x86/kernel/acpi/boot.c |    4 ----
- include/linux/acpi.h        |    4 ++++
- 3 files changed, 4 insertions(+), 8 deletions(-)
+Actually, I guess we also want this on CONFIG_IPMI_HANDLER for least
+surprise
 
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index af9d9e4..f7bd074 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -54,10 +54,6 @@
- #include <asm/sal.h>
- #include <asm/cyclone.h>
+ drivers/acpi/Kconfig      | 2 +-
+ drivers/char/ipmi/Kconfig | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 4770de5..0e6aab9 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -162,7 +162,7 @@ config ACPI_PROCESSOR
+ config ACPI_IPMI
+ 	tristate "IPMI"
+ 	depends on IPMI_SI
+-	default n
++	default y
+ 	help
+ 	  This driver enables the ACPI to access the BMC controller. And it
+ 	  uses the IPMI request/response message to communicate with BMC
+diff --git a/drivers/char/ipmi/Kconfig b/drivers/char/ipmi/Kconfig
+index 0baa8fa..eea8464 100644
+--- a/drivers/char/ipmi/Kconfig
++++ b/drivers/char/ipmi/Kconfig
+@@ -5,6 +5,7 @@
+ menuconfig IPMI_HANDLER
+        tristate 'IPMI top-level message handler'
+        depends on HAS_IOMEM
++       default y if ACPI
+        help
+          This enables the central IPMI message handler, required for IPMI
+ 	 to work.
+@@ -45,6 +46,7 @@ config IPMI_DEVICE_INTERFACE
  
--#define BAD_MADT_ENTRY(entry, end) (                                        \
--		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
--		((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
--
- #define PREFIX			"ACPI: "
- 
- unsigned int acpi_cpei_override;
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 1dac942..123f9e3 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -53,10 +53,6 @@ EXPORT_SYMBOL(acpi_disabled);
- # include <asm/proto.h>
- #endif				/* X86 */
- 
--#define BAD_MADT_ENTRY(entry, end) (					    \
--		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
--		((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
--
- #define PREFIX			"ACPI: "
- 
- int acpi_noirq;				/* skip ACPI IRQ initialization */
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 1151a1d..6a15ddd 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -108,6 +108,10 @@ static inline void acpi_initrd_override(void *data, size_t size)
- }
- #endif
- 
-+#define BAD_MADT_ENTRY(entry, end) (					    \
-+		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
-+		((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
-+
- char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
- void __acpi_unmap_table(char *map, unsigned long size);
- int early_acpi_boot_init(void);
+ config IPMI_SI
+        tristate 'IPMI System Interface handler'
++       default y if ACPI
+        help
+          Provides a driver for System Interfaces (KCS, SMIC, BT).
+ 	 Currently, only KCS and SMIC are supported.  If
 -- 
-1.7.9.5
+1.8.5.3
+
