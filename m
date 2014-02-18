@@ -1,281 +1,61 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH v4] ACPI / video: Add systems that should favour native backlight
- interface
-Date: Tue, 18 Feb 2014 13:54:20 +0800
-Message-ID: <5302F58C.1080001@intel.com>
+From: Stanislaw Gruszka <sgruszka@redhat.com>
+Subject: 6 second boot delay if processing SSDT tables
+Date: Tue, 18 Feb 2014 09:38:57 +0100
+Message-ID: <20140218083856.GB1741@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Takashi Iwai <tiwai@suse.de>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Theodore Tso <tytso@mit.edu>, Peter Weber <bugs@ttyhoney.com>, Lennart Poettering <lennart@poettering.net>, Kevin Smith <thirdwiggin@gmail.com>, Rinat Ibragimov <ibragimovrinat@mail.ru>, sov.info@mail.ru, Thomas Christensen <christensenthomas@gmail.com>, Vladimir Sherenkov <a_12300@mail.ru>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Daniel Vetter <daniel@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:10523 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754135AbaBRIgi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Feb 2014 03:36:38 -0500
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: devel@acpica.org, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Gareth Williams <gareth@garethwilliams.me.uk>
 
-Some system's ACPI video backlight control interface is broken and the
-native backlight control interface should be used by default. This patch
-sets the use_native_backlight parameter to true for those systems so
-that video backlight control interface will not be created. For detailed
-models that are added here, reference the following list.
+Hi,
 
-Note that the user specified kernel cmdline option will always have the
-highest priority, i.e. if use_native_backlight=0 is specified and the
-system is in the DMI table, the video module will not skip registering
-backlight interface for it.
+On bugzilla https://bugzilla.redhat.com/show_bug.cgi?id=1055228 ,
+Gareth reported 6 second boot delay on 3.12 kernel. Delay does not
+happen if acpi_no_auto_ssdt option is used, nor if kernel is compiled
+with various debug facilities like LOCKDEP (fedora kernel-debug
+variant). We tried to compile kernel with just CONFIG_ACPI_DEBUG=y, on
+that kernel issue was reproducible, but after enable printing messages,
+again issue disappeared (we tried acpi.debug_layer=0xffffffff together
+with acip.debug_level=0x0307ff4f and acip.debug_level=0x03000000,
+links to logs are provided in bugzilla).
 
-Thinkpad T430s:
-Reported-by: Theodore Tso <tytso@mit.edu>
-Reported-and-tested-by: Peter Weber <bugs@ttyhoney.com>
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
-Thinkpad X230:
-Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=51231
-ThinkPad X1 Carbon:
-Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Lenovo Yoga 13:
-Reported-by: Lennart Poettering <lennart@poettering.net>
-Reported-and-tested-by: Kevin Smith <thirdwiggin@gmail.com>
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=63811
-Dell Inspiron 7520:
-Reported-by: Rinat Ibragimov <ibragimovrinat@mail.ru>
-Acer Aspire 5733Z:
-Reported-by: <sov.info@mail.ru>
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=62941
-Acer Aspire V5-431:
-Reported-by: Thomas Christensen <christensenthomas@gmail.com>
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=68751
-HP ProBook 4340s:
-Reported-and-tested-by: Vladimir Sherenkov <a_12300@mail.ru>
-Reference: http://redmine.russianfedora.pro/issues/1258
-HP EliteBook/ProBook 2013 models, ZBook and some others:
-Provided-by: Takashi Iwai <tiwai@suse.de>
+On affected kernels interesting dmesg part looks like below:
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/acpi/blacklist.c    |   8 ---
- drivers/acpi/video.c        | 139 ++++++++++++++++++++++++++++++++++++++++++--
- drivers/acpi/video_detect.c |  16 -----
- 3 files changed, 134 insertions(+), 29 deletions(-)
+[    0.212035] [Firmware Bug]: ACPI: BIOS _OSI(Linux) query ignored
+[    0.217930] ACPI: SSDT 0000000092e6ac18 003D3 (v01  PmRef  Cpu0Cst 00003001 INTL 20121220)
+[    0.218512] ACPI: Dynamic OEM Table Load:
+[    0.218514] ACPI: SSDT           (null) 003D3 (v01  PmRef  Cpu0Cst 00003001 INTL 20121220)
+[    0.222109] ACPI: SSDT 0000000092e6a618 005AA (v01  PmRef    ApIst 00003000 INTL 20121220)
+[    0.222792] ACPI: Dynamic OEM Table Load:
+[    0.222799] ACPI: SSDT           (null) 005AA (v01  PmRef    ApIst 00003000 INTL 20121220)
+[    0.226920] ACPI: SSDT 0000000092e69d98 00119 (v01  PmRef    ApCst 00003000 INTL 20121220)
+[    0.227495] ACPI: Dynamic OEM Table Load:
+[    0.227497] ACPI: SSDT           (null) 00119 (v01  PmRef    ApCst 00003000 INTL 20121220)
+[    6.812869] ACPI: Interpreter enabled
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index 10e4964d051a..e8e4c3dfaff7 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -260,14 +260,6 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 	},
- 	{
- 	.callback = dmi_disable_osi_win8,
--	.ident = "Dell Inspiron 15R SE",
--	.matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
--		     DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7520"),
--		},
--	},
--	{
--	.callback = dmi_disable_osi_win8,
- 	.ident = "ThinkPad Edge E530",
- 	.matches = {
- 		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index ea9d914d937a..b6ba88ed31ae 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -81,11 +81,12 @@ static bool allow_duplicates;
- module_param(allow_duplicates, bool, 0644);
- 
- /*
-- * For Windows 8 systems: if set ture and the GPU driver has
-- * registered a backlight interface, skip registering ACPI video's.
-+ * For Windows 8 systems: used to decide if video module
-+ * should skip registering backlight interface of its own.
-  */
--static bool use_native_backlight = false;
--module_param(use_native_backlight, bool, 0644);
-+static int use_native_backlight_param = -1;
-+module_param_named(use_native_backlight, use_native_backlight_param, int, 0444);
-+static bool use_native_backlight_dmi = false;
- 
- static int register_count;
- static struct mutex video_list_lock;
-@@ -231,9 +232,17 @@ static int acpi_video_get_next_level(struct acpi_video_device *device,
- static int acpi_video_switch_brightness(struct acpi_video_device *device,
- 					 int event);
- 
-+static bool acpi_video_use_native_backlight(void)
-+{
-+	if (use_native_backlight_param != -1)
-+		return use_native_backlight_param;
-+	else
-+		return use_native_backlight_dmi;
-+}
-+
- static bool acpi_video_verify_backlight_support(void)
- {
--	if (acpi_osi_is_win8() && use_native_backlight &&
-+	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
- 	    backlight_device_registered(BACKLIGHT_RAW))
- 		return false;
- 	return acpi_video_backlight_support();
-@@ -398,6 +407,12 @@ static int __init video_set_bqc_offset(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+static int __init video_set_use_native_backlight(const struct dmi_system_id *d)
-+{
-+	use_native_backlight_dmi = true;
-+	return 0;
-+}
-+
- static struct dmi_system_id video_dmi_table[] __initdata = {
- 	/*
- 	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
-@@ -442,6 +457,120 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 7720"),
- 		},
- 	},
-+	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "ThinkPad T430s",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
-+		},
-+	},
-+	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "ThinkPad X230",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "ThinkPad X1 Carbon",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X1 Carbon"),
-+		},
-+	},
-+	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "Lenovo Yoga 13",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
-+		},
-+	},
-+	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "Dell Inspiron 7520",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "Inspiron 7520"),
-+		},
-+	},
-+	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "Acer Aspire 5733Z",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5733Z"),
-+		},
-+	},
-+	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "Acer Aspire V5-431",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-431"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "HP ProBook 4340s",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "HP ProBook 4340s"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "HP ProBook 2013 models",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "HP ProBook "),
-+		DMI_MATCH(DMI_PRODUCT_NAME, " G1"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "HP EliteBook 2013 models",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook "),
-+		DMI_MATCH(DMI_PRODUCT_NAME, " G1"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "HP ZBook 14",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 14"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "HP ZBook 15",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 15"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "HP ZBook 17",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 17"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "HP EliteBook 8780w",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8780w"),
-+		},
-+	},
- 	{}
- };
- 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index a697b77b8865..19080c8e2f2a 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -168,22 +168,6 @@ static struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
- 		},
- 	},
--	{
--	.callback = video_detect_force_vendor,
--	.ident = "HP EliteBook Revolve 810",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook Revolve 810 G1"),
--		},
--	},
--	{
--	.callback = video_detect_force_vendor,
--	.ident = "Lenovo Yoga 13",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo IdeaPad Yoga 13"),
--		},
--	},
- 	{ },
- };
- 
--- 
-1.8.5.3
+With acpi_no_auto_ssdt option interesting part looks like this:
+
+[    0.203230] [Firmware Bug]: ACPI: BIOS _OSI(Linux) query ignored
+[    0.203595] ACPI Error: [SGMD] Namespace lookup failure, AE_NOT_FOUND (20130725/psargs-359)
+[    0.203601] ACPI Error: Method parse/execution failed [\_SB_._OSC] (Node ffff880253859438), AE_NOT_FOUND (20130725/psparse-536)
+[    0.206093] ACPI Error: [\_PR_.CPU0._PPC] Namespace lookup failure, AE_NOT_FOUND (20130725/psargs-359)
+[    0.206102] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.SASU] (Node ffff8802538570a0), AE_NOT_FOUND (20130725/psparse-536)
+[    0.206108] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.ECMI] (Node ffff880253857078), AE_NOT_FOUND (20130725/psparse-536)
+[    0.206113] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_._REG] (Node ffff880253856910), AE_NOT_FOUND (20130725/psparse-536)
+[    0.206122] Fail in evaluating the _REG object of EC device. Broken bios is suspected.
+[    0.206127] ACPI: Interpreter enabled
+
+Any help to solving this bug would be appreciate. I'm CCing Gareth, he
+can provide more informations if needed.
+
+Thanks
+Stanislaw 
+
