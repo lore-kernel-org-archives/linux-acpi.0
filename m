@@ -1,74 +1,77 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v4 3/5] ACPI / processor: Introduce map_gic_id() to get apic id from MADT or _MAT method
-Date: Tue, 18 Feb 2014 21:54:58 +0800
-Message-ID: <1392731700-10992-4-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v4 4/5] ACPI: Move BAD_MADT_ENTRY() to linux/acpi.h
+Date: Tue, 18 Feb 2014 21:54:59 +0800
+Message-ID: <1392731700-10992-5-git-send-email-hanjun.guo@linaro.org>
 References: <1392731700-10992-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:48445 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932217AbaBRN41 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Feb 2014 08:56:27 -0500
+Received: by mail-pd0-f179.google.com with SMTP id fp1so15949984pdb.10
+        for <linux-acpi@vger.kernel.org>; Tue, 18 Feb 2014 05:56:26 -0800 (PST)
 In-Reply-To: <1392731700-10992-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
-List-Id: linux-acpi@vger.kernel.org
 
-Get apic id from MADT or _MAT method is not implemented on arm/arm64,
-and ACPI 5.0 introduces GIC Structure for it, so this patch introduces
-map_gic_id() to get apic id followed the ACPI 5.0 spec.
+BAD_MADT_ENTRY() is arch independent and will be used for all
+archs which parsing MADT table, so move it to linux/acpi.h to
+simply the code.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/acpi/processor_core.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ arch/ia64/kernel/acpi.c     |    4 ----
+ arch/x86/kernel/acpi/boot.c |    4 ----
+ include/linux/acpi.h        |    4 ++++
+ 3 files changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 5bbc255..09fde83 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -71,6 +71,27 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
- 	return 0;
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index af9d9e4..f7bd074 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -54,10 +54,6 @@
+ #include <asm/sal.h>
+ #include <asm/cyclone.h>
+ 
+-#define BAD_MADT_ENTRY(entry, end) (                                        \
+-		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
+-		((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
+-
+ #define PREFIX			"ACPI: "
+ 
+ unsigned int acpi_cpei_override;
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 1dac942..123f9e3 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -53,10 +53,6 @@ EXPORT_SYMBOL(acpi_disabled);
+ # include <asm/proto.h>
+ #endif				/* X86 */
+ 
+-#define BAD_MADT_ENTRY(entry, end) (					    \
+-		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
+-		((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
+-
+ #define PREFIX			"ACPI: "
+ 
+ int acpi_noirq;				/* skip ACPI IRQ initialization */
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 1151a1d..6a15ddd 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -108,6 +108,10 @@ static inline void acpi_initrd_override(void *data, size_t size)
  }
+ #endif
  
-+static int map_gic_id(struct acpi_subtable_header *entry,
-+		int device_declaration, u32 acpi_id, int *apic_id)
-+{
-+	struct acpi_madt_generic_interrupt *gic =
-+		(struct acpi_madt_generic_interrupt *)entry;
++#define BAD_MADT_ENTRY(entry, end) (					    \
++		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
++		((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
 +
-+	if (!(gic->flags & ACPI_MADT_ENABLED))
-+		return -ENODEV;
-+
-+	/* In the GIC interrupt model, logical processors are
-+	 * required to have a Processor Device object in the DSDT,
-+	 * so we should check device_declaration here
-+	 */
-+	if (device_declaration && (gic->uid == acpi_id)) {
-+		*apic_id = gic->gic_id;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
- static int map_madt_entry(int type, u32 acpi_id)
- {
- 	unsigned long madt_end, entry;
-@@ -106,6 +127,9 @@ static int map_madt_entry(int type, u32 acpi_id)
- 		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
- 			if (!map_lsapic_id(header, type, acpi_id, &apic_id))
- 				break;
-+		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-+			if (!map_gic_id(header, type, acpi_id, &apic_id))
-+				break;
- 		}
- 		entry += header->length;
- 	}
-@@ -136,6 +160,8 @@ static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
- 		map_lapic_id(header, acpi_id, &apic_id);
- 	} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
- 		map_lsapic_id(header, type, acpi_id, &apic_id);
-+	} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-+		map_gic_id(header, type, acpi_id, &apic_id);
- 	}
- 
- exit:
+ char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
+ void __acpi_unmap_table(char *map, unsigned long size);
+ int early_acpi_boot_init(void);
 -- 
 1.7.9.5
+
