@@ -1,54 +1,40 @@
-From: Chew Chiau Ee <chiau.ee.chew@intel.com>
-Subject: [PATCH v2] ACPI / LPSS: Add Intel BayTrail ACPI mode PWM
-Date: Wed, 19 Feb 2014 02:24:29 +0800
-Message-ID: <1392747869-31435-1-git-send-email-chiau.ee.chew@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v4] ACPI / video: Add systems that should
+ favour native backlight interface
+Date: Tue, 18 Feb 2014 12:34:42 +0200
+Message-ID: <20140218103442.GS5018@intel.com>
+References: <5302F58C.1080001@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <5302F58C.1080001@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces@lists.freedesktop.org
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Theodore Tso <tytso@mit.edu>, Kevin Smith <thirdwiggin@gmail.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, Peter Weber <bugs@ttyhoney.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vladimir Sherenkov <a_12300@mail.ru>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Thomas Christensen <christensenthomas@gmail.com>, Lennart Poettering <lennart@poettering.net>, sov.info@mail.ru, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Chew, Chiau Ee <chiau.ee.chew@intel.com>
+On Tue, Feb 18, 2014 at 01:54:20PM +0800, Aaron Lu wrote:
+> +	{
+> +	.callback = video_set_use_native_backlight,
+> +	.ident = "HP EliteBook 2013 models",
+> +	.matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook "),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, " G1"),
+> +		},
+> +	},
 
-Intel BayTrail LPSS consists of two PWM controllers which can
-be enumerated from ACPI namespace. This change will cause
-platform device objects to be created for Intel BayTrail PWM
-controllers which will allow the pwm-lpss driver to bind to them
-and handle those devices.
-
-Signed-off-by: Chew, Chiau Ee <chiau.ee.chew@intel.com>
----
- drivers/acpi/acpi_lpss.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 2428857..9e22c13 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -96,6 +96,16 @@ static struct lpss_device_desc lpt_sdio_dev_desc = {
- 	.ltr_required = true,
- };
- 
-+static struct lpss_shared_clock pwm_clock = {
-+	.name = "pwm_clk",
-+	.rate = 25000000,
-+};
-+
-+static struct lpss_device_desc byt_pwm_dev_desc = {
-+	.clk_required = true,
-+	.shared_clock = &pwm_clock,
-+};
-+
- static struct lpss_shared_clock uart_clock = {
- 	.name = "uart_clk",
- 	.rate = 44236800,
-@@ -151,6 +161,7 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
- 	{ "INT33C7", },
- 
- 	/* BayTrail LPSS devices */
-+	{ "80860F09", (unsigned long)&byt_pwm_dev_desc },
- 	{ "80860F0A", (unsigned long)&byt_uart_dev_desc },
- 	{ "80860F0E", (unsigned long)&byt_spi_dev_desc },
- 	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
--- 
-1.7.4.4
+I see my device is listed here but the above doesn't really use native
+backlight because it is still in acpi_osi blacklist. Tried this and I can
+see both acpi_video0 and intel_backlight listed under /sys/class/backlight.
+Was this the intention?
