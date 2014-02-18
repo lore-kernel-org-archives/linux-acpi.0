@@ -1,50 +1,100 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/6] drivers/acpi: fix driver compile errors when CONFIG_PM_SLEEP is undefined
-Date: Tue, 18 Feb 2014 02:03:39 +0100
-Message-ID: <2205879.dV8tEujxdx@vostro.rjw.lan>
-References: <cover.1392250669.git.shuah.kh@samsung.com>
+Subject: Re: [RFC Patch v1 1/6] acpi_pad: simplify notify handler by using acpi_drv_ops->notify
+Date: Tue, 18 Feb 2014 02:06:03 +0100
+Message-ID: <8893595.ITmXn6Kgg5@vostro.rjw.lan>
+References: <1392613271-10912-1-git-send-email-jiang.liu@linux.intel.com> <1392613373-11003-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62553 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:49223 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753936AbaBRAsv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Feb 2014 19:48:51 -0500
-In-Reply-To: <cover.1392250669.git.shuah.kh@samsung.com>
+	with SMTP id S1754101AbaBRAvP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Feb 2014 19:51:15 -0500
+In-Reply-To: <1392613373-11003-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shuah Khan <shuah.kh@samsung.com>
-Cc: lenb@kernel.org, rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, shuahkhan@gmail.com
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, February 12, 2014 08:19:04 PM Shuah Khan wrote:
-> The following acpi drivers fail with compile errors when CONFIG_PM_SLEEP
-> is undefined.
-
-I'm going to push all of these patches as fixes for 3.14.  Thanks!
-
-> Shuah Khan (6):
->   drivers/acpi: fix ac driver compile error when CONFIG_PM_SLEEP is
->     undefined
->   drivers/acpi: fix battery driver compile error when CONFIG_PM_SLEEP is
->     undefined
->   drivers/acpi: fix button driver compile error when CONFIG_PM_SLEEP is
->     undefined
->   drivers/acpi: fix fan driver compile error when CONFIG_PM_SLEEP is
->     undefined
->   drivers/acpi: fix sbs driver compile error when CONFIG_PM_SLEEP is
->     undefined
->   drivers/acpi: fix thermal driver compile error when CONFIG_PM_SLEEP
->     is undefined
+On Monday, February 17, 2014 01:02:48 PM Jiang Liu wrote:
+> Use callback acpi_drv_ops->notify to simplify acpi_pad driver's
+> notification handling code.
 > 
->  drivers/acpi/ac.c      |    2 ++
->  drivers/acpi/battery.c |    2 ++
->  drivers/acpi/button.c  |    2 ++
->  drivers/acpi/fan.c     |    3 +++
->  drivers/acpi/sbs.c     |    2 ++
->  drivers/acpi/thermal.c |    2 ++
->  6 files changed, 13 insertions(+)
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+
+There is a plan to move away from using struct acpi_driver objects and
+this change will need to be reverted then.  I'm not sure if that's really
+useful?
+
+> ---
+>  drivers/acpi/acpi_pad.c |   25 +++++--------------------
+>  1 file changed, 5 insertions(+), 20 deletions(-)
 > 
+> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+> index df96a0f..1e3ce76 100644
+> --- a/drivers/acpi/acpi_pad.c
+> +++ b/drivers/acpi/acpi_pad.c
+> @@ -443,14 +443,11 @@ static void acpi_pad_handle_notify(acpi_handle handle)
+>  	mutex_unlock(&isolated_cpus_lock);
+>  }
+>  
+> -static void acpi_pad_notify(acpi_handle handle, u32 event,
+> -	void *data)
+> +static void acpi_pad_notify(struct acpi_device *device, u32 event)
+>  {
+> -	struct acpi_device *device = data;
+> -
+>  	switch (event) {
+>  	case ACPI_PROCESSOR_AGGREGATOR_NOTIFY:
+> -		acpi_pad_handle_notify(handle);
+> +		acpi_pad_handle_notify(device->handle);
+>  		acpi_bus_generate_netlink_event(device->pnp.device_class,
+>  			dev_name(&device->dev), event, 0);
+>  		break;
+> @@ -462,22 +459,10 @@ static void acpi_pad_notify(acpi_handle handle, u32 event,
+>  
+>  static int acpi_pad_add(struct acpi_device *device)
+>  {
+> -	acpi_status status;
+> -
+>  	strcpy(acpi_device_name(device), ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME);
+>  	strcpy(acpi_device_class(device), ACPI_PROCESSOR_AGGREGATOR_CLASS);
+>  
+> -	if (acpi_pad_add_sysfs(device))
+> -		return -ENODEV;
+> -
+> -	status = acpi_install_notify_handler(device->handle,
+> -		ACPI_DEVICE_NOTIFY, acpi_pad_notify, device);
+> -	if (ACPI_FAILURE(status)) {
+> -		acpi_pad_remove_sysfs(device);
+> -		return -ENODEV;
+> -	}
+> -
+> -	return 0;
+> +	return acpi_pad_add_sysfs(device);
+>  }
+>  
+>  static int acpi_pad_remove(struct acpi_device *device)
+> @@ -486,9 +471,8 @@ static int acpi_pad_remove(struct acpi_device *device)
+>  	acpi_pad_idle_cpus(0);
+>  	mutex_unlock(&isolated_cpus_lock);
+>  
+> -	acpi_remove_notify_handler(device->handle,
+> -		ACPI_DEVICE_NOTIFY, acpi_pad_notify);
+>  	acpi_pad_remove_sysfs(device);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -505,6 +489,7 @@ static struct acpi_driver acpi_pad_driver = {
+>  	.ops = {
+>  		.add = acpi_pad_add,
+>  		.remove = acpi_pad_remove,
+> +		.notify = acpi_pad_notify,
+>  	},
+>  };
+>  
 > 
 
 -- 
