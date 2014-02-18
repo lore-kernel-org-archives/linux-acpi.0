@@ -1,73 +1,180 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v4 0/5] Prepare for running ACPI on !x86 and !ia64
-Date: Tue, 18 Feb 2014 21:54:55 +0800
-Message-ID: <1392731700-10992-1-git-send-email-hanjun.guo@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Subject: [PATCH v4 2/5] ACPI / processor_core: Rework _PDC related stuff to make it more arch-independent
+Date: Tue, 18 Feb 2014 21:54:57 +0800
+Message-ID: <1392731700-10992-3-git-send-email-hanjun.guo@linaro.org>
+References: <1392731700-10992-1-git-send-email-hanjun.guo@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1392731700-10992-1-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Some of the ACPI code is arch-dependent and make the code can't be
-compiled on !x86 or !ia64, the first two patches just do some rework
-on the idle_boot_override and _PDC related stuff to make the ACPI
-code more arch-independent.
+_PDC related stuff in processor_core.c is little bit X86/IA64 dependent,
+rework the code to make it more arch-independent, no functional change
+in this patch.
 
-The third patch just introduce map_gic_id() for ACPI processor core
-followed the ACPI 5.0 spec. Last two patches are just some cleanups.
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+---
+ arch/ia64/include/asm/acpi.h  |    5 +----
+ arch/ia64/kernel/acpi.c       |   14 ++++++++++++++
+ arch/x86/include/asm/acpi.h   |   19 +------------------
+ arch/x86/kernel/acpi/cstate.c |   29 +++++++++++++++++++++++++++++
+ drivers/acpi/processor_core.c |   19 +------------------
+ 5 files changed, 46 insertions(+), 40 deletions(-)
 
-I have compiled the kernel successfully after appling this patch set
-on x86 and ia64.
-
-Changes for v4:
-a) remove preprocessor directives in function bodies;
-b) add another two patches for cleanups.
-
-Changes for v3:
-Fix the issues pointed out by Lan Tianyu and add the Reviewed-by for
-first patch.
-
-Changes for v2:
-a) add #if defined(CONFIG_X86) || defined(CONFIG_IA64) for
-   idle_boot_override related code;
-b) Rebased on 3.14-rc1.
-
-Changes since the RFC version:
-a) Remove the RFC tag;
-b) Move idle_boot_override out of the arch directory suggested
-   by Alan;
-c) Make these 3 patches as a separate patch set since there are
-   not not related to the ARM/ARM64 platform.
-
-Hanjun Guo (5):
-  ACPI / idle: Make idle_boot_override depend on x86 and ia64
-  ACPI / processor_core: Rework _PDC related stuff to make it more
-    arch-independent
-  ACPI / processor: Introduce map_gic_id() to get apic id from MADT or
-    _MAT method
-  ACPI: Move BAD_MADT_ENTRY() to linux/acpi.h
-  ACPI: Replace printk with pr_* in tables.c
-
- arch/ia64/include/asm/acpi.h  |    5 +--
- arch/ia64/kernel/acpi.c       |   18 ++++++--
- arch/x86/include/asm/acpi.h   |   19 +--------
- arch/x86/kernel/acpi/boot.c   |    4 --
- arch/x86/kernel/acpi/cstate.c |   29 +++++++++++++
- drivers/acpi/processor_core.c |   92 ++++++++++++++++++++++++-----------------
- drivers/acpi/tables.c         |   51 +++++++++--------------
- include/linux/acpi.h          |    4 ++
- 8 files changed, 124 insertions(+), 98 deletions(-)
-
+diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
+index d651102..d2b8b9d 100644
+--- a/arch/ia64/include/asm/acpi.h
++++ b/arch/ia64/include/asm/acpi.h
+@@ -152,10 +152,7 @@ extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
+ #endif
+ 
+ static inline bool arch_has_acpi_pdc(void) { return true; }
+-static inline void arch_acpi_set_pdc_bits(u32 *buf)
+-{
+-	buf[2] |= ACPI_PDC_EST_CAPABILITY_SMP;
+-}
++extern void arch_acpi_set_pdc_bits(u32 *buf);
+ 
+ #define acpi_unlazy_tlb(x)
+ 
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index 07d209c..af9d9e4 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -1014,3 +1014,17 @@ EXPORT_SYMBOL(acpi_unregister_ioapic);
+  * TBD when when IA64 starts to support suspend...
+  */
+ int acpi_suspend_lowlevel(void) { return 0; }
++
++void arch_acpi_set_pdc_bits(u32 *buf)
++{
++	/* Enable coordination with firmware's _TSD info */
++	buf[2] |= ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_EST_CAPABILITY_SMP;
++	if (boot_option_idle_override == IDLE_NOMWAIT) {
++		/*
++		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
++		 * mode will be disabled in the parameter of _PDC object.
++		 * Of course C1_FFH access mode will also be disabled.
++		 */
++		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
++	}
++}
+diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+index c8c1e70..e9f71bc 100644
+--- a/arch/x86/include/asm/acpi.h
++++ b/arch/x86/include/asm/acpi.h
+@@ -147,24 +147,7 @@ static inline bool arch_has_acpi_pdc(void)
+ 		c->x86_vendor == X86_VENDOR_CENTAUR);
+ }
+ 
+-static inline void arch_acpi_set_pdc_bits(u32 *buf)
+-{
+-	struct cpuinfo_x86 *c = &cpu_data(0);
+-
+-	buf[2] |= ACPI_PDC_C_CAPABILITY_SMP;
+-
+-	if (cpu_has(c, X86_FEATURE_EST))
+-		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
+-
+-	if (cpu_has(c, X86_FEATURE_ACPI))
+-		buf[2] |= ACPI_PDC_T_FFH;
+-
+-	/*
+-	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
+-	 */
+-	if (!cpu_has(c, X86_FEATURE_MWAIT))
+-		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
+-}
++extern void arch_acpi_set_pdc_bits(u32 *buf);
+ 
+ #else /* !CONFIG_ACPI */
+ 
+diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
+index e69182f..a36638f 100644
+--- a/arch/x86/kernel/acpi/cstate.c
++++ b/arch/x86/kernel/acpi/cstate.c
+@@ -16,6 +16,35 @@
+ #include <asm/mwait.h>
+ #include <asm/special_insns.h>
+ 
++void arch_acpi_set_pdc_bits(u32 *buf)
++{
++	struct cpuinfo_x86 *c = &cpu_data(0);
++
++	/* Enable coordination with firmware's _TSD info */
++	buf[2] |= ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_C_CAPABILITY_SMP;
++
++	if (cpu_has(c, X86_FEATURE_EST))
++		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
++
++	if (cpu_has(c, X86_FEATURE_ACPI))
++		buf[2] |= ACPI_PDC_T_FFH;
++
++	/*
++	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
++	 */
++	if (!cpu_has(c, X86_FEATURE_MWAIT))
++		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
++
++	if (boot_option_idle_override == IDLE_NOMWAIT) {
++		/*
++		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
++		 * mode will be disabled in the parameter of _PDC object.
++		 * Of course C1_FFH access mode will also be disabled.
++		 */
++		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
++	}
++}
++
+ /*
+  * Initialize bm_flags based on the CPU cache properties
+  * On SMP it depends on cache configuration
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 636fd59..5bbc255 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -255,9 +255,6 @@ static void acpi_set_pdc_bits(u32 *buf)
+ 	buf[0] = ACPI_PDC_REVISION_ID;
+ 	buf[1] = 1;
+ 
+-	/* Enable coordination with firmware's _TSD info */
+-	buf[2] = ACPI_PDC_SMP_T_SWCOORD;
+-
+ 	/* Twiddle arch-specific bits needed for _PDC */
+ 	arch_acpi_set_pdc_bits(buf);
+ }
+@@ -282,7 +279,7 @@ static struct acpi_object_list *acpi_processor_alloc_pdc(void)
+ 		return NULL;
+ 	}
+ 
+-	buf = kmalloc(12, GFP_KERNEL);
++	buf = kzalloc(12, GFP_KERNEL);
+ 	if (!buf) {
+ 		printk(KERN_ERR "Memory allocation error\n");
+ 		kfree(obj);
+@@ -310,20 +307,6 @@ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
+ {
+ 	acpi_status status = AE_OK;
+ 
+-	if (boot_option_idle_override == IDLE_NOMWAIT) {
+-		/*
+-		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
+-		 * mode will be disabled in the parameter of _PDC object.
+-		 * Of course C1_FFH access mode will also be disabled.
+-		 */
+-		union acpi_object *obj;
+-		u32 *buffer = NULL;
+-
+-		obj = pdc_in->pointer;
+-		buffer = (u32 *)(obj->buffer.pointer);
+-		buffer[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
+-
+-	}
+ 	status = acpi_evaluate_object(handle, "_PDC", pdc_in, NULL);
+ 
+ 	if (ACPI_FAILURE(status))
 -- 
 1.7.9.5
