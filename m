@@ -1,39 +1,135 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v5 2/5] ACPI / processor_core: Rework _PDC related stuff
- to make it more arch-independent
-Date: Wed, 19 Feb 2014 10:16:16 +0800
-Message-ID: <530413F0.4050008@linaro.org>
-References: <1392740638-2479-1-git-send-email-hanjun.guo@linaro.org> <1392740638-2479-3-git-send-email-hanjun.guo@linaro.org> <3459962.GkY99aHQbc@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 6/9] ACPI / ATA: Add hotplug contexts to ACPI companions
+ of SATA devices
+Date: Wed, 19 Feb 2014 10:42:20 +0800
+Message-ID: <53041A0C.4040306@intel.com>
+References: <3011875.q18rCmXyYX@vostro.rjw.lan> <1707532.0BItEHDuFB@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3459962.GkY99aHQbc@vostro.rjw.lan>
+In-Reply-To: <1707532.0BItEHDuFB@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, Joe Perches <joe@perches.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Graeme Gregory <graeme.gregory@linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2014=E5=B9=B402=E6=9C=8819=E6=97=A5 08:50, Rafael J. Wysocki wrote:
-> On Wednesday, February 19, 2014 12:23:55 AM Hanjun Guo wrote:
->> _PDC related stuff in processor_core.c is little bit X86/IA64 depend=
-ent,
->> rework the code to make it more arch-independent, no functional chan=
-ge
->> in this patch.
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> I've queued up patches [1,3-5/5] from this series for 3.15 (modulo ch=
-angelog
-> modifications), but this one should be CCed to the x86 and ia64 maint=
-ainers.
+On 02/19/2014 09:30 AM, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Modify the SATA subsystem to add hotplug contexts to ACPI companions
+> of SATA devices and ports instead of registering special ACPI dock
+> operations using register_hotplug_dock_device().
+> 
+> That change will allow the entire code handling those special ACPI
+> dock operations to be dropped in the next commit.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/ata/libata-acpi.c |   76 +++++++++++++++++++++++++++++-----------------
+>  1 file changed, 49 insertions(+), 27 deletions(-)
+> 
+> Index: linux-pm/drivers/ata/libata-acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/ata/libata-acpi.c
+> +++ linux-pm/drivers/ata/libata-acpi.c
+> @@ -38,6 +38,16 @@ static void ata_acpi_clear_gtf(struct at
+>  	dev->gtf_cache = NULL;
+>  }
+>  
+> +struct ata_acpi_hotplug_context {
+> +	struct acpi_hotplug_context hp;
+> +	union {
+> +		struct ata_port *ap;
+> +		struct ata_device *dev;
+> +	} data;
+> +};
+> +
+> +#define ata_hotplug_data(context) (container_of((context), struct ata_acpi_hotplug_context, hp)->data)
+> +
+>  /**
+>   * ata_dev_acpi_handle - provide the acpi_handle for an ata_device
+>   * @dev: the acpi_handle returned will correspond to this device
+> @@ -121,18 +131,17 @@ static void ata_acpi_handle_hotplug(stru
+>  		ata_port_wait_eh(ap);
+>  }
+>  
+> -static void ata_acpi_dev_notify_dock(acpi_handle handle, u32 event, void *data)
+> +static int ata_acpi_dev_notify_dock(struct acpi_device *adev, u32 event)
+>  {
+> -	struct ata_device *dev = data;
+> -
+> +	struct ata_device *dev = ata_hotplug_data(adev->hp).dev;
+>  	ata_acpi_handle_hotplug(dev->link->ap, dev, event);
+> +	return 0;
+>  }
+>  
+> -static void ata_acpi_ap_notify_dock(acpi_handle handle, u32 event, void *data)
+> +static int ata_acpi_ap_notify_dock(struct acpi_device *adev, u32 event)
+>  {
+> -	struct ata_port *ap = data;
+> -
+> -	ata_acpi_handle_hotplug(ap, NULL, event);
+> +	ata_acpi_handle_hotplug(ata_hotplug_data(adev->hp).ap, NULL, event);
+> +	return 0;
+>  }
+>  
+>  static void ata_acpi_uevent(struct ata_port *ap, struct ata_device *dev,
+> @@ -154,31 +163,23 @@ static void ata_acpi_uevent(struct ata_p
+>  	}
+>  }
+>  
+> -static void ata_acpi_ap_uevent(acpi_handle handle, u32 event, void *data)
+> +static void ata_acpi_ap_uevent(struct acpi_device *adev, u32 event)
+>  {
+> -	ata_acpi_uevent(data, NULL, event);
+> +	ata_acpi_uevent(ata_hotplug_data(adev->hp).ap, NULL, event);
+>  }
+>  
+> -static void ata_acpi_dev_uevent(acpi_handle handle, u32 event, void *data)
+> +static void ata_acpi_dev_uevent(struct acpi_device *adev, u32 event)
+>  {
+> -	struct ata_device *dev = data;
+> +	struct ata_device *dev = ata_hotplug_data(adev->hp).dev;
+>  	ata_acpi_uevent(dev->link->ap, dev, event);
+>  }
+>  
+> -static const struct acpi_dock_ops ata_acpi_dev_dock_ops = {
+> -	.handler = ata_acpi_dev_notify_dock,
+> -	.uevent = ata_acpi_dev_uevent,
+> -};
+> -
+> -static const struct acpi_dock_ops ata_acpi_ap_dock_ops = {
+> -	.handler = ata_acpi_ap_notify_dock,
+> -	.uevent = ata_acpi_ap_uevent,
+> -};
+> -
+>  /* bind acpi handle to pata port */
+>  void ata_acpi_bind_port(struct ata_port *ap)
+>  {
+>  	struct acpi_device *host_companion = ACPI_COMPANION(ap->host->dev);
+> +	struct acpi_device *adev;
+> +	struct ata_acpi_hotplug_context *context;
+>  
+>  	if (libata_noacpi || ap->flags & ATA_FLAG_ACPI_SATA || !host_companion)
+>  		return;
+> @@ -188,9 +189,19 @@ void ata_acpi_bind_port(struct ata_port
+>  	if (ata_acpi_gtm(ap, &ap->__acpi_init_gtm) == 0)
+>  		ap->pflags |= ATA_PFLAG_INIT_GTM_VALID;
+>  
+> -	/* we might be on a docking station */
+> -	register_hotplug_dock_device(ACPI_HANDLE(&ap->tdev),
+> -				     &ata_acpi_ap_dock_ops, ap, NULL, NULL);
+> +	adev = ACPI_COMPANION(&ap->tdev);
+> +	if (!adev)
+> +		return;
+> +
+> +	context = kzalloc(sizeof(*context), GFP_KERNEL);
+> +	if (!context)
+> +		return;
 
-Thanks! I will resend this patch with Tony and Thomas in cc list, so is=
-=20
-there any chance for this
-patch to be merged into 3.15 if I get acked from them?
+The context isn't freed on ATA driver detach, which doesn't normally
+happen though.
 
-Best regards
-Hanjun
+Thanks,
+Aaron
