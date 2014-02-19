@@ -1,118 +1,90 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC Patch v1 2/6] ACPI: rename acpi_evaluate_hotplug_ost to acpi_evaluate_ost for reuse
-Date: Wed, 19 Feb 2014 16:53:39 +0100
-Message-ID: <18853631.7tB2OTjZFf@vostro.rjw.lan>
-References: <1392613271-10912-1-git-send-email-jiang.liu@linux.intel.com> <6382282.2gCVKeUJUt@vostro.rjw.lan> <5304453F.1050104@linux.intel.com>
+Subject: Re: [PATCH v2 1/1] ACPI, PCI, ISA: Call ISA-specific code only for architectures which support ISA.
+Date: Wed, 19 Feb 2014 17:11:10 +0100
+Message-ID: <3640027.L0fXHYxIB5@vostro.rjw.lan>
+References: <1392806122-23318-1-git-send-email-tomasz.nowicki@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5304453F.1050104@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:59184 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753779AbaBSP4U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Feb 2014 10:56:20 -0500
+In-Reply-To: <1392806122-23318-1-git-send-email-tomasz.nowicki@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Wednesday, February 19, 2014 01:46:39 PM Jiang Liu wrote:
-> Hi Rafael,
-> 	We have following code to deal with existing users.
-> +#ifdef ACPI_HOTPLUG_OST
-> +#define	acpi_evaluate_hotplug_ost	acpi_evaluate_ost
-
-Well, I'd very much prefer the users to be updated.
-
+On Wednesday, February 19, 2014 11:35:22 AM Tomasz Nowicki wrote:
+> This commit moves ISA-specific code to separate function and makes that
+> function depend on CONFIG_{E}ISA so that we do not have to maintain
+> acpi_isa_irq_to_gsi() function for architectures which do not support ISA.
+> 
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> ---
+>  drivers/acpi/pci_irq.c |   35 +++++++++++++++++++++++++----------
+>  1 file changed, 25 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> index 361b40c..0a553a0 100644
+> --- a/drivers/acpi/pci_irq.c
+> +++ b/drivers/acpi/pci_irq.c
+> @@ -370,6 +370,30 @@ static struct acpi_prt_entry *acpi_pci_irq_lookup(struct pci_dev *dev, int pin)
+>  	return NULL;
+>  }
+>  
+> +#if IS_ENABLED(CONFIG_ISA) || IS_ENABLED(CONFIG_EISA)
+> +static int acpi_isa_register_gsi(struct pci_dev *dev)
+> +{
+> +	u32 dev_gsi;
+> +
+> +	/* Interrupt Line values above 0xF are forbidden */
+> +	if (dev->irq > 0 && (dev->irq <= 0xF) &&
+> +	    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
+> +		dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
+> +			 pin_name(dev->pin), dev->irq);
+> +		acpi_register_gsi(&dev->dev, dev_gsi,
+> +				  ACPI_LEVEL_SENSITIVE,
+> +				  ACPI_ACTIVE_LOW);
+> +		return 0;
+> +	}
+> +	return -EINVAL;
+> +}
 > +#else
-> +static inline acpi_status
->  acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
-> -			u32 status_code, struct acpi_buffer *status_buf);
-> +			u32 status_code, struct acpi_buffer *status_buf)
-> +{ return AE_OK; }
+> +static inline int acpi_isa_register_gsi(struct pci_dev *dev)
+> +{
+> +	return -ENODEV;
+> +}
 > +#endif
+> +
+>  int acpi_pci_irq_enable(struct pci_dev *dev)
+>  {
+>  	struct acpi_prt_entry *entry;
+> @@ -416,16 +440,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+>  	 * driver reported one, then use it. Exit in any case.
+>  	 */
+>  	if (gsi < 0) {
+> -		u32 dev_gsi;
+> -		/* Interrupt Line values above 0xF are forbidden */
+> -		if (dev->irq > 0 && (dev->irq <= 0xF) &&
+> -		    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
+> -			dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
+> -				 pin_name(pin), dev->irq);
+> -			acpi_register_gsi(&dev->dev, dev_gsi,
+> -					  ACPI_LEVEL_SENSITIVE,
+> -					  ACPI_ACTIVE_LOW);
+> -		} else {
+> +		if (acpi_isa_register_gsi(dev)) {
+
+The curly brackets are not necessary here and you can even move the below into
+acpi_isa_register_gsi().
+
+>  			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+>  				 pin_name(pin));
+>  		}
 > 
-> Thanks!
-> 
-> On 2014/2/18 9:06, Rafael J. Wysocki wrote:
-> > On Monday, February 17, 2014 01:02:49 PM Jiang Liu wrote:
-> >> Rename acpi_evaluate_hotplug_ost() to acpi_evaluate_ost() for later resue.
-> >>
-> >> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> >> ---
-> >>  drivers/acpi/utils.c    |   14 ++++----------
-> >>  include/acpi/acpi_bus.h |   10 +++++++++-
-> >>  2 files changed, 13 insertions(+), 11 deletions(-)
-> >>
-> >> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> >> index 85e3b61..19d0169 100644
-> >> --- a/drivers/acpi/utils.c
-> >> +++ b/drivers/acpi/utils.c
-> >> @@ -433,17 +433,15 @@ EXPORT_SYMBOL(acpi_get_physical_device_location);
-> >>   * When the platform does not support _OST, this function has no effect.
-> >>   */
-> >>  acpi_status
-> >> -acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
-> >> -		u32 status_code, struct acpi_buffer *status_buf)
-> > 
-> > There are users of this, what about updating them?
-> > 
-> >> +acpi_evaluate_ost(acpi_handle handle, u32 source_event, u32 status_code,
-> >> +		  struct acpi_buffer *status_buf)
-> >>  {
-> >> -#ifdef ACPI_HOTPLUG_OST
-> >>  	union acpi_object params[3] = {
-> >>  		{.type = ACPI_TYPE_INTEGER,},
-> >>  		{.type = ACPI_TYPE_INTEGER,},
-> >>  		{.type = ACPI_TYPE_BUFFER,}
-> >>  	};
-> >>  	struct acpi_object_list arg_list = {3, params};
-> >> -	acpi_status status;
-> >>  
-> >>  	params[0].integer.value = source_event;
-> >>  	params[1].integer.value = status_code;
-> >> @@ -455,13 +453,9 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
-> >>  		params[2].buffer.length = 0;
-> >>  	}
-> >>  
-> >> -	status = acpi_evaluate_object(handle, "_OST", &arg_list, NULL);
-> >> -	return status;
-> >> -#else
-> >> -	return AE_OK;
-> >> -#endif
-> >> +	return acpi_evaluate_object(handle, "_OST", &arg_list, NULL);
-> >>  }
-> >> -EXPORT_SYMBOL(acpi_evaluate_hotplug_ost);
-> >> +EXPORT_SYMBOL(acpi_evaluate_ost);
-> >>  
-> >>  /**
-> >>   * acpi_handle_printk: Print message with ACPI prefix and object path
-> >> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> >> index 8256eb4..adef502 100644
-> >> --- a/include/acpi/acpi_bus.h
-> >> +++ b/include/acpi/acpi_bus.h
-> >> @@ -49,8 +49,16 @@ acpi_evaluate_reference(acpi_handle handle,
-> >>  			struct acpi_object_list *arguments,
-> >>  			struct acpi_handle_list *list);
-> >>  acpi_status
-> >> +acpi_evaluate_ost(acpi_handle handle, u32 source_event, u32 status_code,
-> >> +		  struct acpi_buffer *status_buf);
-> >> +#ifdef ACPI_HOTPLUG_OST
-> >> +#define	acpi_evaluate_hotplug_ost	acpi_evaluate_ost
-> >> +#else
-> >> +static inline acpi_status
-> >>  acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
-> >> -			u32 status_code, struct acpi_buffer *status_buf);
-> >> +			u32 status_code, struct acpi_buffer *status_buf)
-> >> +{ return AE_OK; }
-> >> +#endif
-> >>  
-> >>  acpi_status
-> >>  acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld);
-> >>
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
 
 -- 
 I speak only for myself.
