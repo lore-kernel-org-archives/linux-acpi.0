@@ -1,91 +1,142 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 1/1] ACPI, PCI, ISA: Call ISA-specific code only for architectures which support ISA.
-Date: Wed, 19 Feb 2014 17:11:10 +0100
-Message-ID: <3640027.L0fXHYxIB5@vostro.rjw.lan>
-References: <1392806122-23318-1-git-send-email-tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 6/9] ACPI / ATA: Add hotplug contexts to ACPI companions of SATA devices
+Date: Wed, 19 Feb 2014 17:40:41 +0100
+Message-ID: <5171255.VRC6s13geU@vostro.rjw.lan>
+References: <3011875.q18rCmXyYX@vostro.rjw.lan> <1707532.0BItEHDuFB@vostro.rjw.lan> <53041A0C.4040306@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59184 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753779AbaBSP4U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Feb 2014 10:56:20 -0500
-In-Reply-To: <1392806122-23318-1-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <53041A0C.4040306@intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Wednesday, February 19, 2014 11:35:22 AM Tomasz Nowicki wrote:
-> This commit moves ISA-specific code to separate function and makes that
-> function depend on CONFIG_{E}ISA so that we do not have to maintain
-> acpi_isa_irq_to_gsi() function for architectures which do not support ISA.
+On Wednesday, February 19, 2014 10:42:20 AM Aaron Lu wrote:
+> On 02/19/2014 09:30 AM, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > Modify the SATA subsystem to add hotplug contexts to ACPI companions
+> > of SATA devices and ports instead of registering special ACPI dock
+> > operations using register_hotplug_dock_device().
+> > 
+> > That change will allow the entire code handling those special ACPI
+> > dock operations to be dropped in the next commit.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/ata/libata-acpi.c |   76 +++++++++++++++++++++++++++++-----------------
+> >  1 file changed, 49 insertions(+), 27 deletions(-)
+> > 
+> > Index: linux-pm/drivers/ata/libata-acpi.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/ata/libata-acpi.c
+> > +++ linux-pm/drivers/ata/libata-acpi.c
+> > @@ -38,6 +38,16 @@ static void ata_acpi_clear_gtf(struct at
+> >  	dev->gtf_cache = NULL;
+> >  }
+> >  
+> > +struct ata_acpi_hotplug_context {
+> > +	struct acpi_hotplug_context hp;
+> > +	union {
+> > +		struct ata_port *ap;
+> > +		struct ata_device *dev;
+> > +	} data;
+> > +};
+> > +
+> > +#define ata_hotplug_data(context) (container_of((context), struct ata_acpi_hotplug_context, hp)->data)
+> > +
+> >  /**
+> >   * ata_dev_acpi_handle - provide the acpi_handle for an ata_device
+> >   * @dev: the acpi_handle returned will correspond to this device
+> > @@ -121,18 +131,17 @@ static void ata_acpi_handle_hotplug(stru
+> >  		ata_port_wait_eh(ap);
+> >  }
+> >  
+> > -static void ata_acpi_dev_notify_dock(acpi_handle handle, u32 event, void *data)
+> > +static int ata_acpi_dev_notify_dock(struct acpi_device *adev, u32 event)
+> >  {
+> > -	struct ata_device *dev = data;
+> > -
+> > +	struct ata_device *dev = ata_hotplug_data(adev->hp).dev;
+> >  	ata_acpi_handle_hotplug(dev->link->ap, dev, event);
+> > +	return 0;
+> >  }
+> >  
+> > -static void ata_acpi_ap_notify_dock(acpi_handle handle, u32 event, void *data)
+> > +static int ata_acpi_ap_notify_dock(struct acpi_device *adev, u32 event)
+> >  {
+> > -	struct ata_port *ap = data;
+> > -
+> > -	ata_acpi_handle_hotplug(ap, NULL, event);
+> > +	ata_acpi_handle_hotplug(ata_hotplug_data(adev->hp).ap, NULL, event);
+> > +	return 0;
+> >  }
+> >  
+> >  static void ata_acpi_uevent(struct ata_port *ap, struct ata_device *dev,
+> > @@ -154,31 +163,23 @@ static void ata_acpi_uevent(struct ata_p
+> >  	}
+> >  }
+> >  
+> > -static void ata_acpi_ap_uevent(acpi_handle handle, u32 event, void *data)
+> > +static void ata_acpi_ap_uevent(struct acpi_device *adev, u32 event)
+> >  {
+> > -	ata_acpi_uevent(data, NULL, event);
+> > +	ata_acpi_uevent(ata_hotplug_data(adev->hp).ap, NULL, event);
+> >  }
+> >  
+> > -static void ata_acpi_dev_uevent(acpi_handle handle, u32 event, void *data)
+> > +static void ata_acpi_dev_uevent(struct acpi_device *adev, u32 event)
+> >  {
+> > -	struct ata_device *dev = data;
+> > +	struct ata_device *dev = ata_hotplug_data(adev->hp).dev;
+> >  	ata_acpi_uevent(dev->link->ap, dev, event);
+> >  }
+> >  
+> > -static const struct acpi_dock_ops ata_acpi_dev_dock_ops = {
+> > -	.handler = ata_acpi_dev_notify_dock,
+> > -	.uevent = ata_acpi_dev_uevent,
+> > -};
+> > -
+> > -static const struct acpi_dock_ops ata_acpi_ap_dock_ops = {
+> > -	.handler = ata_acpi_ap_notify_dock,
+> > -	.uevent = ata_acpi_ap_uevent,
+> > -};
+> > -
+> >  /* bind acpi handle to pata port */
+> >  void ata_acpi_bind_port(struct ata_port *ap)
+> >  {
+> >  	struct acpi_device *host_companion = ACPI_COMPANION(ap->host->dev);
+> > +	struct acpi_device *adev;
+> > +	struct ata_acpi_hotplug_context *context;
+> >  
+> >  	if (libata_noacpi || ap->flags & ATA_FLAG_ACPI_SATA || !host_companion)
+> >  		return;
+> > @@ -188,9 +189,19 @@ void ata_acpi_bind_port(struct ata_port
+> >  	if (ata_acpi_gtm(ap, &ap->__acpi_init_gtm) == 0)
+> >  		ap->pflags |= ATA_PFLAG_INIT_GTM_VALID;
+> >  
+> > -	/* we might be on a docking station */
+> > -	register_hotplug_dock_device(ACPI_HANDLE(&ap->tdev),
+> > -				     &ata_acpi_ap_dock_ops, ap, NULL, NULL);
+> > +	adev = ACPI_COMPANION(&ap->tdev);
+> > +	if (!adev)
+> > +		return;
+> > +
+> > +	context = kzalloc(sizeof(*context), GFP_KERNEL);
+> > +	if (!context)
+> > +		return;
 > 
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> ---
->  drivers/acpi/pci_irq.c |   35 +++++++++++++++++++++++++----------
->  1 file changed, 25 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index 361b40c..0a553a0 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -370,6 +370,30 @@ static struct acpi_prt_entry *acpi_pci_irq_lookup(struct pci_dev *dev, int pin)
->  	return NULL;
->  }
->  
-> +#if IS_ENABLED(CONFIG_ISA) || IS_ENABLED(CONFIG_EISA)
-> +static int acpi_isa_register_gsi(struct pci_dev *dev)
-> +{
-> +	u32 dev_gsi;
-> +
-> +	/* Interrupt Line values above 0xF are forbidden */
-> +	if (dev->irq > 0 && (dev->irq <= 0xF) &&
-> +	    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
-> +		dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
-> +			 pin_name(dev->pin), dev->irq);
-> +		acpi_register_gsi(&dev->dev, dev_gsi,
-> +				  ACPI_LEVEL_SENSITIVE,
-> +				  ACPI_ACTIVE_LOW);
-> +		return 0;
-> +	}
-> +	return -EINVAL;
-> +}
-> +#else
-> +static inline int acpi_isa_register_gsi(struct pci_dev *dev)
-> +{
-> +	return -ENODEV;
-> +}
-> +#endif
-> +
->  int acpi_pci_irq_enable(struct pci_dev *dev)
->  {
->  	struct acpi_prt_entry *entry;
-> @@ -416,16 +440,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
->  	 * driver reported one, then use it. Exit in any case.
->  	 */
->  	if (gsi < 0) {
-> -		u32 dev_gsi;
-> -		/* Interrupt Line values above 0xF are forbidden */
-> -		if (dev->irq > 0 && (dev->irq <= 0xF) &&
-> -		    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
-> -			dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
-> -				 pin_name(pin), dev->irq);
-> -			acpi_register_gsi(&dev->dev, dev_gsi,
-> -					  ACPI_LEVEL_SENSITIVE,
-> -					  ACPI_ACTIVE_LOW);
-> -		} else {
-> +		if (acpi_isa_register_gsi(dev)) {
+> The context isn't freed on ATA driver detach, which doesn't normally
+> happen though.
 
-The curly brackets are not necessary here and you can even move the below into
-acpi_isa_register_gsi().
+Yes, but it will happen for ATA devices in docks and bays.  However,
+the struct acpi_device objects won't go away then and we only need to initialize
+the contexts once, so it should be sufficient to simply return from here if
+the context is already there.
 
->  			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
->  				 pin_name(pin));
->  		}
-> 
+I'll send an updated patch with that change later today.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Thanks,
+Rafael
