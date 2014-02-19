@@ -1,193 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 2/5] ACPI / processor_core: Rework _PDC related stuff to make it more arch-independent
-Date: Wed, 19 Feb 2014 01:50:22 +0100
-Message-ID: <3459962.GkY99aHQbc@vostro.rjw.lan>
-References: <1392740638-2479-1-git-send-email-hanjun.guo@linaro.org> <1392740638-2479-3-git-send-email-hanjun.guo@linaro.org>
+From: Corey Minyard <minyard@acm.org>
+Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
+Date: Tue, 18 Feb 2014 18:53:42 -0600
+Message-ID: <53040096.6010100@acm.org>
+References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com> <1920764.8Poj9R8nZQ@vostro.rjw.lan> <1392765901.3488.4.camel@x230.lan> <2013495.SnSbjHoB2r@vostro.rjw.lan>
+Reply-To: minyard@acm.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1392740638-2479-3-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, Joe Perches <joe@perches.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Graeme Gregory <graeme.gregory@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:40990 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750904AbaBSAxp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Feb 2014 19:53:45 -0500
+In-Reply-To: <2013495.SnSbjHoB2r@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Matthew Garrett <matthew.garrett@nebula.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wednesday, February 19, 2014 12:23:55 AM Hanjun Guo wrote:
-> _PDC related stuff in processor_core.c is little bit X86/IA64 dependent,
-> rework the code to make it more arch-independent, no functional change
-> in this patch.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+I just queued it up, too, but that's fine.  This seems to be a good idea
+with the way ACPI is going.
 
-I've queued up patches [1,3-5/5] from this series for 3.15 (modulo changelog
-modifications), but this one should be CCed to the x86 and ia64 maintainers.
+Acked-by: Corey Minyard <cminyard@mvista.com>
 
-Thanks!
+On 02/18/2014 06:45 PM, Rafael J. Wysocki wrote:
+> On Tuesday, February 18, 2014 11:25:02 PM Matthew Garrett wrote:
+>> On Wed, 2014-02-19 at 00:35 +0100, Rafael J. Wysocki wrote:
+>>> On Tuesday, February 18, 2014 11:15:08 PM Matthew Garrett wrote:
+>>>> For example, if you load the ACPI power meter driver before you've
+>>>> installed the ACPI IPMI driver you'll typically get failures (most
+>>>> vendors implement it via IPMI).
+>>> Well, any specific machine from any specific vendor?
+>> The Dell R720 and HP DL385 both seem to have this configuration. I
+>> believe some Ciscos do, too.
+> I've queued this up for 3.15 (with the above info added to the changelog).
+>
+> Thanks!
+>
 
-> ---
->  arch/ia64/include/asm/acpi.h  |    5 +----
->  arch/ia64/kernel/acpi.c       |   14 ++++++++++++++
->  arch/x86/include/asm/acpi.h   |   19 +------------------
->  arch/x86/kernel/acpi/cstate.c |   29 +++++++++++++++++++++++++++++
->  drivers/acpi/processor_core.c |   19 +------------------
->  5 files changed, 46 insertions(+), 40 deletions(-)
-> 
-> diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
-> index d651102..d2b8b9d 100644
-> --- a/arch/ia64/include/asm/acpi.h
-> +++ b/arch/ia64/include/asm/acpi.h
-> @@ -152,10 +152,7 @@ extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
->  #endif
->  
->  static inline bool arch_has_acpi_pdc(void) { return true; }
-> -static inline void arch_acpi_set_pdc_bits(u32 *buf)
-> -{
-> -	buf[2] |= ACPI_PDC_EST_CAPABILITY_SMP;
-> -}
-> +extern void arch_acpi_set_pdc_bits(u32 *buf);
->  
->  #define acpi_unlazy_tlb(x)
->  
-> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-> index 07d209c..af9d9e4 100644
-> --- a/arch/ia64/kernel/acpi.c
-> +++ b/arch/ia64/kernel/acpi.c
-> @@ -1014,3 +1014,17 @@ EXPORT_SYMBOL(acpi_unregister_ioapic);
->   * TBD when when IA64 starts to support suspend...
->   */
->  int acpi_suspend_lowlevel(void) { return 0; }
-> +
-> +void arch_acpi_set_pdc_bits(u32 *buf)
-> +{
-> +	/* Enable coordination with firmware's _TSD info */
-> +	buf[2] |= ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_EST_CAPABILITY_SMP;
-> +	if (boot_option_idle_override == IDLE_NOMWAIT) {
-> +		/*
-> +		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-> +		 * mode will be disabled in the parameter of _PDC object.
-> +		 * Of course C1_FFH access mode will also be disabled.
-> +		 */
-> +		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
-> +	}
-> +}
-> diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-> index c8c1e70..e9f71bc 100644
-> --- a/arch/x86/include/asm/acpi.h
-> +++ b/arch/x86/include/asm/acpi.h
-> @@ -147,24 +147,7 @@ static inline bool arch_has_acpi_pdc(void)
->  		c->x86_vendor == X86_VENDOR_CENTAUR);
->  }
->  
-> -static inline void arch_acpi_set_pdc_bits(u32 *buf)
-> -{
-> -	struct cpuinfo_x86 *c = &cpu_data(0);
-> -
-> -	buf[2] |= ACPI_PDC_C_CAPABILITY_SMP;
-> -
-> -	if (cpu_has(c, X86_FEATURE_EST))
-> -		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
-> -
-> -	if (cpu_has(c, X86_FEATURE_ACPI))
-> -		buf[2] |= ACPI_PDC_T_FFH;
-> -
-> -	/*
-> -	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
-> -	 */
-> -	if (!cpu_has(c, X86_FEATURE_MWAIT))
-> -		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
-> -}
-> +extern void arch_acpi_set_pdc_bits(u32 *buf);
->  
->  #else /* !CONFIG_ACPI */
->  
-> diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
-> index e69182f..a36638f 100644
-> --- a/arch/x86/kernel/acpi/cstate.c
-> +++ b/arch/x86/kernel/acpi/cstate.c
-> @@ -16,6 +16,35 @@
->  #include <asm/mwait.h>
->  #include <asm/special_insns.h>
->  
-> +void arch_acpi_set_pdc_bits(u32 *buf)
-> +{
-> +	struct cpuinfo_x86 *c = &cpu_data(0);
-> +
-> +	/* Enable coordination with firmware's _TSD info */
-> +	buf[2] |= ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_C_CAPABILITY_SMP;
-> +
-> +	if (cpu_has(c, X86_FEATURE_EST))
-> +		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
-> +
-> +	if (cpu_has(c, X86_FEATURE_ACPI))
-> +		buf[2] |= ACPI_PDC_T_FFH;
-> +
-> +	/*
-> +	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
-> +	 */
-> +	if (!cpu_has(c, X86_FEATURE_MWAIT))
-> +		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
-> +
-> +	if (boot_option_idle_override == IDLE_NOMWAIT) {
-> +		/*
-> +		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-> +		 * mode will be disabled in the parameter of _PDC object.
-> +		 * Of course C1_FFH access mode will also be disabled.
-> +		 */
-> +		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
-> +	}
-> +}
-> +
->  /*
->   * Initialize bm_flags based on the CPU cache properties
->   * On SMP it depends on cache configuration
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index 4d91b32..4dcf776 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -255,9 +255,6 @@ static void acpi_set_pdc_bits(u32 *buf)
->  	buf[0] = ACPI_PDC_REVISION_ID;
->  	buf[1] = 1;
->  
-> -	/* Enable coordination with firmware's _TSD info */
-> -	buf[2] = ACPI_PDC_SMP_T_SWCOORD;
-> -
->  	/* Twiddle arch-specific bits needed for _PDC */
->  	arch_acpi_set_pdc_bits(buf);
->  }
-> @@ -282,7 +279,7 @@ static struct acpi_object_list *acpi_processor_alloc_pdc(void)
->  		return NULL;
->  	}
->  
-> -	buf = kmalloc(12, GFP_KERNEL);
-> +	buf = kzalloc(12, GFP_KERNEL);
->  	if (!buf) {
->  		printk(KERN_ERR "Memory allocation error\n");
->  		kfree(obj);
-> @@ -310,20 +307,6 @@ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
->  {
->  	acpi_status status = AE_OK;
->  
-> -	if (boot_option_idle_override == IDLE_NOMWAIT) {
-> -		/*
-> -		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-> -		 * mode will be disabled in the parameter of _PDC object.
-> -		 * Of course C1_FFH access mode will also be disabled.
-> -		 */
-> -		union acpi_object *obj;
-> -		u32 *buffer = NULL;
-> -
-> -		obj = pdc_in->pointer;
-> -		buffer = (u32 *)(obj->buffer.pointer);
-> -		buffer[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
-> -
-> -	}
->  	status = acpi_evaluate_object(handle, "_PDC", pdc_in, NULL);
->  
->  	if (ACPI_FAILURE(status))
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
