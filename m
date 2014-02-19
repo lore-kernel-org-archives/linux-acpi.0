@@ -1,81 +1,72 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: [PATCH v2 1/1] ACPI, PCI, ISA: Call ISA-specific code only for architectures which support ISA.
-Date: Wed, 19 Feb 2014 11:35:22 +0100
-Message-ID: <1392806122-23318-1-git-send-email-tomasz.nowicki@linaro.org>
+From: Sudeep Holla <Sudeep.Holla@arm.com>
+Subject: Re: [PATCH v5 3/5] ACPI / processor: Introduce map_gic_id() to get
+ apic id from MADT or _MAT method
+Date: Wed, 19 Feb 2014 14:33:40 +0000
+Message-ID: <5304C0C4.3080601@arm.com>
+References: <1392740638-2479-1-git-send-email-hanjun.guo@linaro.org> <1392740638-2479-4-git-send-email-hanjun.guo@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:33228 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751825AbaBSKfq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Feb 2014 05:35:46 -0500
-Received: by mail-ee0-f44.google.com with SMTP id c13so126226eek.17
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Feb 2014 02:35:43 -0800 (PST)
+Received: from service87.mimecast.com ([91.220.42.44]:38010 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753885AbaBSOdQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Feb 2014 09:33:16 -0500
+In-Reply-To: <1392740638-2479-4-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rjw@rjwysocki.net
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep.Holla@arm.com, Lan Tianyu <tianyu.lan@intel.com>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Joe Perches <joe@perches.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-This commit moves ISA-specific code to separate function and makes that
-function depend on CONFIG_{E}ISA so that we do not have to maintain
-acpi_isa_irq_to_gsi() function for architectures which do not support ISA.
+Hi Hanjun,
 
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
----
- drivers/acpi/pci_irq.c |   35 +++++++++++++++++++++++++----------
- 1 file changed, 25 insertions(+), 10 deletions(-)
+On 18/02/14 16:23, Hanjun Guo wrote:
+> Get apic id from MADT or _MAT method is not implemented on arm/arm64,
+> and ACPI 5.0 introduces GIC Structure for it, so this patch introduces
+> map_gic_id() to get apic id followed the ACPI 5.0 spec.
+> 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  drivers/acpi/processor_core.c |   26 ++++++++++++++++++++++++++
+>  1 file changed, 26 insertions(+)
+> 
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> index 4dcf776..d316d9b 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -71,6 +71,27 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+>  	return 0;
+>  }
+>  
+> +static int map_gic_id(struct acpi_subtable_header *entry,
+> +		int device_declaration, u32 acpi_id, int *apic_id)
+> +{
+> +	struct acpi_madt_generic_interrupt *gic =
+> +		(struct acpi_madt_generic_interrupt *)entry;
+> +
+> +	if (!(gic->flags & ACPI_MADT_ENABLED))
+> +		return -ENODEV;
+> +
+> +	/* In the GIC interrupt model, logical processors are
+> +	 * required to have a Processor Device object in the DSDT,
+> +	 * so we should check device_declaration here
+> +	 */
+> +	if (device_declaration && (gic->uid == acpi_id)) {
+> +		*apic_id = gic->gic_id;
 
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index 361b40c..0a553a0 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -370,6 +370,30 @@ static struct acpi_prt_entry *acpi_pci_irq_lookup(struct pci_dev *dev, int pin)
- 	return NULL;
- }
- 
-+#if IS_ENABLED(CONFIG_ISA) || IS_ENABLED(CONFIG_EISA)
-+static int acpi_isa_register_gsi(struct pci_dev *dev)
-+{
-+	u32 dev_gsi;
-+
-+	/* Interrupt Line values above 0xF are forbidden */
-+	if (dev->irq > 0 && (dev->irq <= 0xF) &&
-+	    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
-+		dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
-+			 pin_name(dev->pin), dev->irq);
-+		acpi_register_gsi(&dev->dev, dev_gsi,
-+				  ACPI_LEVEL_SENSITIVE,
-+				  ACPI_ACTIVE_LOW);
-+		return 0;
-+	}
-+	return -EINVAL;
-+}
-+#else
-+static inline int acpi_isa_register_gsi(struct pci_dev *dev)
-+{
-+	return -ENODEV;
-+}
-+#endif
-+
- int acpi_pci_irq_enable(struct pci_dev *dev)
- {
- 	struct acpi_prt_entry *entry;
-@@ -416,16 +440,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 	 * driver reported one, then use it. Exit in any case.
- 	 */
- 	if (gsi < 0) {
--		u32 dev_gsi;
--		/* Interrupt Line values above 0xF are forbidden */
--		if (dev->irq > 0 && (dev->irq <= 0xF) &&
--		    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
--			dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
--				 pin_name(pin), dev->irq);
--			acpi_register_gsi(&dev->dev, dev_gsi,
--					  ACPI_LEVEL_SENSITIVE,
--					  ACPI_ACTIVE_LOW);
--		} else {
-+		if (acpi_isa_register_gsi(dev)) {
- 			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
- 				 pin_name(pin));
- 		}
--- 
-1.7.9.5
+I have mentioned this earlier, it's not clear yet to me how does this work ?
+It needs more clarity in the form of comment here at-least as the ACPIv5.0 is
+also not so clear or explicit on how to handle this.
+
+Here you are expecting gic->uid = acpi_id which is fine, while acpi_map_cpuid
+matches apic_id with cpu_physical_id(which must be MPIDR in ARM{32,64}). The
+latter imposes restriction that gic->gic_id has to be MPIDR. Does that mean we
+are imposing restriction on GIC ID to be MPIDR ? If so please document it here
+and please explain the reason behind that choice.
+
+I would expect _UID to be MPIDR rather than GIC ID but you may have some reasons
+for this choice.
+
+Regards,
+Sudeep
 
