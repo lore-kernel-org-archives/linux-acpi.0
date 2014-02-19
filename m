@@ -1,198 +1,103 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [RESEND][PATCH v5 2/5] ACPI / processor_core: Rework _PDC related stuff to make it more arch-independent
-Date: Wed, 19 Feb 2014 13:10:49 +0800
-Message-ID: <1392786649-5516-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, Joe Perches <joe@perches.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-ia64@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [RFC Patch v1 1/6] acpi_pad: simplify notify handler by using
+ acpi_drv_ops->notify
+Date: Wed, 19 Feb 2014 13:45:27 +0800
+Message-ID: <530444F7.4060108@linux.intel.com>
+References: <1392613271-10912-1-git-send-email-jiang.liu@linux.intel.com> <1392613373-11003-1-git-send-email-jiang.liu@linux.intel.com> <8893595.ITmXn6Kgg5@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:57265 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750897AbaBSFpa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Feb 2014 00:45:30 -0500
+In-Reply-To: <8893595.ITmXn6Kgg5@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-_PDC related stuff in processor_core.c is little bit X86/IA64
-dependent, macros of ACPI_PDC_* are _PDC bit definitions for
-Intel processors, if we use these macros in processor_core.c,
-we can not compile it when ACPI is enabled on ARM/ARM64.
+Thanks, Rafael. I will drop this patch then.
 
-This patch reworks the code to make it more arch-independent,
-moving Intel related _PDC bits into architecture directory,
-no functional change.
-
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: x86@kernel.org
-Cc: linux-ia64@vger.kernel.org
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
----
-Hi Tony, Fenghua, Thomas, Peter, this patch was reviewed
-in ACPI mailling list, and updated for serveral versions,
-Rafael needs your opinion on this patch, could you please
-review and ack it?
-
-Thanks
-Hanjun
----
- arch/ia64/include/asm/acpi.h  |    5 +----
- arch/ia64/kernel/acpi.c       |   14 ++++++++++++++
- arch/x86/include/asm/acpi.h   |   19 +------------------
- arch/x86/kernel/acpi/cstate.c |   29 +++++++++++++++++++++++++++++
- drivers/acpi/processor_core.c |   19 +------------------
- 5 files changed, 46 insertions(+), 40 deletions(-)
-
-diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
-index d651102..d2b8b9d 100644
---- a/arch/ia64/include/asm/acpi.h
-+++ b/arch/ia64/include/asm/acpi.h
-@@ -152,10 +152,7 @@ extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
- #endif
- 
- static inline bool arch_has_acpi_pdc(void) { return true; }
--static inline void arch_acpi_set_pdc_bits(u32 *buf)
--{
--	buf[2] |= ACPI_PDC_EST_CAPABILITY_SMP;
--}
-+extern void arch_acpi_set_pdc_bits(u32 *buf);
- 
- #define acpi_unlazy_tlb(x)
- 
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index 07d209c..af9d9e4 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -1014,3 +1014,17 @@ EXPORT_SYMBOL(acpi_unregister_ioapic);
-  * TBD when when IA64 starts to support suspend...
-  */
- int acpi_suspend_lowlevel(void) { return 0; }
-+
-+void arch_acpi_set_pdc_bits(u32 *buf)
-+{
-+	/* Enable coordination with firmware's _TSD info */
-+	buf[2] |= ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_EST_CAPABILITY_SMP;
-+	if (boot_option_idle_override == IDLE_NOMWAIT) {
-+		/*
-+		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-+		 * mode will be disabled in the parameter of _PDC object.
-+		 * Of course C1_FFH access mode will also be disabled.
-+		 */
-+		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
-+	}
-+}
-diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-index c8c1e70..e9f71bc 100644
---- a/arch/x86/include/asm/acpi.h
-+++ b/arch/x86/include/asm/acpi.h
-@@ -147,24 +147,7 @@ static inline bool arch_has_acpi_pdc(void)
- 		c->x86_vendor == X86_VENDOR_CENTAUR);
- }
- 
--static inline void arch_acpi_set_pdc_bits(u32 *buf)
--{
--	struct cpuinfo_x86 *c = &cpu_data(0);
--
--	buf[2] |= ACPI_PDC_C_CAPABILITY_SMP;
--
--	if (cpu_has(c, X86_FEATURE_EST))
--		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
--
--	if (cpu_has(c, X86_FEATURE_ACPI))
--		buf[2] |= ACPI_PDC_T_FFH;
--
--	/*
--	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
--	 */
--	if (!cpu_has(c, X86_FEATURE_MWAIT))
--		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
--}
-+extern void arch_acpi_set_pdc_bits(u32 *buf);
- 
- #else /* !CONFIG_ACPI */
- 
-diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
-index e69182f..a36638f 100644
---- a/arch/x86/kernel/acpi/cstate.c
-+++ b/arch/x86/kernel/acpi/cstate.c
-@@ -16,6 +16,35 @@
- #include <asm/mwait.h>
- #include <asm/special_insns.h>
- 
-+void arch_acpi_set_pdc_bits(u32 *buf)
-+{
-+	struct cpuinfo_x86 *c = &cpu_data(0);
-+
-+	/* Enable coordination with firmware's _TSD info */
-+	buf[2] |= ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_C_CAPABILITY_SMP;
-+
-+	if (cpu_has(c, X86_FEATURE_EST))
-+		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
-+
-+	if (cpu_has(c, X86_FEATURE_ACPI))
-+		buf[2] |= ACPI_PDC_T_FFH;
-+
-+	/*
-+	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
-+	 */
-+	if (!cpu_has(c, X86_FEATURE_MWAIT))
-+		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
-+
-+	if (boot_option_idle_override == IDLE_NOMWAIT) {
-+		/*
-+		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-+		 * mode will be disabled in the parameter of _PDC object.
-+		 * Of course C1_FFH access mode will also be disabled.
-+		 */
-+		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
-+	}
-+}
-+
- /*
-  * Initialize bm_flags based on the CPU cache properties
-  * On SMP it depends on cache configuration
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 4d91b32..4dcf776 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -255,9 +255,6 @@ static void acpi_set_pdc_bits(u32 *buf)
- 	buf[0] = ACPI_PDC_REVISION_ID;
- 	buf[1] = 1;
- 
--	/* Enable coordination with firmware's _TSD info */
--	buf[2] = ACPI_PDC_SMP_T_SWCOORD;
--
- 	/* Twiddle arch-specific bits needed for _PDC */
- 	arch_acpi_set_pdc_bits(buf);
- }
-@@ -282,7 +279,7 @@ static struct acpi_object_list *acpi_processor_alloc_pdc(void)
- 		return NULL;
- 	}
- 
--	buf = kmalloc(12, GFP_KERNEL);
-+	buf = kzalloc(12, GFP_KERNEL);
- 	if (!buf) {
- 		printk(KERN_ERR "Memory allocation error\n");
- 		kfree(obj);
-@@ -310,20 +307,6 @@ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
- {
- 	acpi_status status = AE_OK;
- 
--	if (boot_option_idle_override == IDLE_NOMWAIT) {
--		/*
--		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
--		 * mode will be disabled in the parameter of _PDC object.
--		 * Of course C1_FFH access mode will also be disabled.
--		 */
--		union acpi_object *obj;
--		u32 *buffer = NULL;
--
--		obj = pdc_in->pointer;
--		buffer = (u32 *)(obj->buffer.pointer);
--		buffer[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
--
--	}
- 	status = acpi_evaluate_object(handle, "_PDC", pdc_in, NULL);
- 
- 	if (ACPI_FAILURE(status))
--- 
-1.7.9.5
-
+On 2014/2/18 9:06, Rafael J. Wysocki wrote:
+> On Monday, February 17, 2014 01:02:48 PM Jiang Liu wrote:
+>> Use callback acpi_drv_ops->notify to simplify acpi_pad driver's
+>> notification handling code.
+>>
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> 
+> There is a plan to move away from using struct acpi_driver objects and
+> this change will need to be reverted then.  I'm not sure if that's really
+> useful?
+> 
+>> ---
+>>  drivers/acpi/acpi_pad.c |   25 +++++--------------------
+>>  1 file changed, 5 insertions(+), 20 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+>> index df96a0f..1e3ce76 100644
+>> --- a/drivers/acpi/acpi_pad.c
+>> +++ b/drivers/acpi/acpi_pad.c
+>> @@ -443,14 +443,11 @@ static void acpi_pad_handle_notify(acpi_handle handle)
+>>  	mutex_unlock(&isolated_cpus_lock);
+>>  }
+>>  
+>> -static void acpi_pad_notify(acpi_handle handle, u32 event,
+>> -	void *data)
+>> +static void acpi_pad_notify(struct acpi_device *device, u32 event)
+>>  {
+>> -	struct acpi_device *device = data;
+>> -
+>>  	switch (event) {
+>>  	case ACPI_PROCESSOR_AGGREGATOR_NOTIFY:
+>> -		acpi_pad_handle_notify(handle);
+>> +		acpi_pad_handle_notify(device->handle);
+>>  		acpi_bus_generate_netlink_event(device->pnp.device_class,
+>>  			dev_name(&device->dev), event, 0);
+>>  		break;
+>> @@ -462,22 +459,10 @@ static void acpi_pad_notify(acpi_handle handle, u32 event,
+>>  
+>>  static int acpi_pad_add(struct acpi_device *device)
+>>  {
+>> -	acpi_status status;
+>> -
+>>  	strcpy(acpi_device_name(device), ACPI_PROCESSOR_AGGREGATOR_DEVICE_NAME);
+>>  	strcpy(acpi_device_class(device), ACPI_PROCESSOR_AGGREGATOR_CLASS);
+>>  
+>> -	if (acpi_pad_add_sysfs(device))
+>> -		return -ENODEV;
+>> -
+>> -	status = acpi_install_notify_handler(device->handle,
+>> -		ACPI_DEVICE_NOTIFY, acpi_pad_notify, device);
+>> -	if (ACPI_FAILURE(status)) {
+>> -		acpi_pad_remove_sysfs(device);
+>> -		return -ENODEV;
+>> -	}
+>> -
+>> -	return 0;
+>> +	return acpi_pad_add_sysfs(device);
+>>  }
+>>  
+>>  static int acpi_pad_remove(struct acpi_device *device)
+>> @@ -486,9 +471,8 @@ static int acpi_pad_remove(struct acpi_device *device)
+>>  	acpi_pad_idle_cpus(0);
+>>  	mutex_unlock(&isolated_cpus_lock);
+>>  
+>> -	acpi_remove_notify_handler(device->handle,
+>> -		ACPI_DEVICE_NOTIFY, acpi_pad_notify);
+>>  	acpi_pad_remove_sysfs(device);
+>> +
+>>  	return 0;
+>>  }
+>>  
+>> @@ -505,6 +489,7 @@ static struct acpi_driver acpi_pad_driver = {
+>>  	.ops = {
+>>  		.add = acpi_pad_add,
+>>  		.remove = acpi_pad_remove,
+>> +		.notify = acpi_pad_notify,
+>>  	},
+>>  };
+>>  
+>>
+> 
