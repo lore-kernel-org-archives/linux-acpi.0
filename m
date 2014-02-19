@@ -1,135 +1,62 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 6/9] ACPI / ATA: Add hotplug contexts to ACPI companions
- of SATA devices
-Date: Wed, 19 Feb 2014 10:42:20 +0800
-Message-ID: <53041A0C.4040306@intel.com>
-References: <3011875.q18rCmXyYX@vostro.rjw.lan> <1707532.0BItEHDuFB@vostro.rjw.lan>
+Subject: Re: [PATCH v4] ACPI / video: Add systems that should
+ favour native backlight interface
+Date: Wed, 19 Feb 2014 10:57:13 +0800
+Message-ID: <53041D89.2050204@intel.com>
+References: <5302F58C.1080001@intel.com> <20140218103442.GS5018@intel.com>
+	<s5hfvngy2bh.wl%tiwai@suse.de> <1903167.TtlOFgMB6X@vostro.rjw.lan>
+	<20140218154640.GT5018@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1707532.0BItEHDuFB@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20140218154640.GT5018@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+	<mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Sender: intel-gfx-bounces@lists.freedesktop.org
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Theodore Tso <tytso@mit.edu>, Kevin Smith <thirdwiggin@gmail.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, Peter Weber <bugs@ttyhoney.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vladimir Sherenkov <a_12300@mail.ru>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Thomas Christensen <christensenthomas@gmail.com>, Lennart Poettering <lennart@poettering.net>, sov.info@mail.ru, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 02/19/2014 09:30 AM, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 02/18/2014 11:46 PM, Mika Westerberg wrote:
+> On Tue, Feb 18, 2014 at 04:22:27PM +0100, Rafael J. Wysocki wrote:
+>> On Tuesday, February 18, 2014 02:31:46 PM Takashi Iwai wrote:
+>>> At Tue, 18 Feb 2014 12:34:42 +0200,
+>>> Mika Westerberg wrote:
+>>>>
+>>>> On Tue, Feb 18, 2014 at 01:54:20PM +0800, Aaron Lu wrote:
+>>>>> +	{
+>>>>> +	.callback = video_set_use_native_backlight,
+>>>>> +	.ident = "HP EliteBook 2013 models",
+>>>>> +	.matches = {
+>>>>> +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+>>>>> +		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook "),
+>>>>> +		DMI_MATCH(DMI_PRODUCT_NAME, " G1"),
+>>>>> +		},
+>>>>> +	},
+>>>>
+>>>> I see my device is listed here but the above doesn't really use native
+>>>> backlight because it is still in acpi_osi blacklist. Tried this and I can
+>>>> see both acpi_video0 and intel_backlight listed under /sys/class/backlight.
+>>>> Was this the intention?
+>>>
+>>> The acpi_osi blacklist commit (2d4054d84224) has to be reverted, as I
+>>> mentioned earlier.  But the revert can be done individually after
+>>> merging this patch.  Rafael, could you care?
+>>
+>> Done.  Please check the result in linux-pm.git/linux-next.
 > 
-> Modify the SATA subsystem to add hotplug contexts to ACPI companions
-> of SATA devices and ports instead of registering special ACPI dock
-> operations using register_hotplug_dock_device().
+> With your revert and this patch from Aaron, backlight on my HP EliteBook
+> Revolve G1 works fine, thanks!
 > 
-> That change will allow the entire code handling those special ACPI
-> dock operations to be dropped in the next commit.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/ata/libata-acpi.c |   76 +++++++++++++++++++++++++++++-----------------
->  1 file changed, 49 insertions(+), 27 deletions(-)
-> 
-> Index: linux-pm/drivers/ata/libata-acpi.c
-> ===================================================================
-> --- linux-pm.orig/drivers/ata/libata-acpi.c
-> +++ linux-pm/drivers/ata/libata-acpi.c
-> @@ -38,6 +38,16 @@ static void ata_acpi_clear_gtf(struct at
->  	dev->gtf_cache = NULL;
->  }
->  
-> +struct ata_acpi_hotplug_context {
-> +	struct acpi_hotplug_context hp;
-> +	union {
-> +		struct ata_port *ap;
-> +		struct ata_device *dev;
-> +	} data;
-> +};
-> +
-> +#define ata_hotplug_data(context) (container_of((context), struct ata_acpi_hotplug_context, hp)->data)
-> +
->  /**
->   * ata_dev_acpi_handle - provide the acpi_handle for an ata_device
->   * @dev: the acpi_handle returned will correspond to this device
-> @@ -121,18 +131,17 @@ static void ata_acpi_handle_hotplug(stru
->  		ata_port_wait_eh(ap);
->  }
->  
-> -static void ata_acpi_dev_notify_dock(acpi_handle handle, u32 event, void *data)
-> +static int ata_acpi_dev_notify_dock(struct acpi_device *adev, u32 event)
->  {
-> -	struct ata_device *dev = data;
-> -
-> +	struct ata_device *dev = ata_hotplug_data(adev->hp).dev;
->  	ata_acpi_handle_hotplug(dev->link->ap, dev, event);
-> +	return 0;
->  }
->  
-> -static void ata_acpi_ap_notify_dock(acpi_handle handle, u32 event, void *data)
-> +static int ata_acpi_ap_notify_dock(struct acpi_device *adev, u32 event)
->  {
-> -	struct ata_port *ap = data;
-> -
-> -	ata_acpi_handle_hotplug(ap, NULL, event);
-> +	ata_acpi_handle_hotplug(ata_hotplug_data(adev->hp).ap, NULL, event);
-> +	return 0;
->  }
->  
->  static void ata_acpi_uevent(struct ata_port *ap, struct ata_device *dev,
-> @@ -154,31 +163,23 @@ static void ata_acpi_uevent(struct ata_p
->  	}
->  }
->  
-> -static void ata_acpi_ap_uevent(acpi_handle handle, u32 event, void *data)
-> +static void ata_acpi_ap_uevent(struct acpi_device *adev, u32 event)
->  {
-> -	ata_acpi_uevent(data, NULL, event);
-> +	ata_acpi_uevent(ata_hotplug_data(adev->hp).ap, NULL, event);
->  }
->  
-> -static void ata_acpi_dev_uevent(acpi_handle handle, u32 event, void *data)
-> +static void ata_acpi_dev_uevent(struct acpi_device *adev, u32 event)
->  {
-> -	struct ata_device *dev = data;
-> +	struct ata_device *dev = ata_hotplug_data(adev->hp).dev;
->  	ata_acpi_uevent(dev->link->ap, dev, event);
->  }
->  
-> -static const struct acpi_dock_ops ata_acpi_dev_dock_ops = {
-> -	.handler = ata_acpi_dev_notify_dock,
-> -	.uevent = ata_acpi_dev_uevent,
-> -};
-> -
-> -static const struct acpi_dock_ops ata_acpi_ap_dock_ops = {
-> -	.handler = ata_acpi_ap_notify_dock,
-> -	.uevent = ata_acpi_ap_uevent,
-> -};
-> -
->  /* bind acpi handle to pata port */
->  void ata_acpi_bind_port(struct ata_port *ap)
->  {
->  	struct acpi_device *host_companion = ACPI_COMPANION(ap->host->dev);
-> +	struct acpi_device *adev;
-> +	struct ata_acpi_hotplug_context *context;
->  
->  	if (libata_noacpi || ap->flags & ATA_FLAG_ACPI_SATA || !host_companion)
->  		return;
-> @@ -188,9 +189,19 @@ void ata_acpi_bind_port(struct ata_port
->  	if (ata_acpi_gtm(ap, &ap->__acpi_init_gtm) == 0)
->  		ap->pflags |= ATA_PFLAG_INIT_GTM_VALID;
->  
-> -	/* we might be on a docking station */
-> -	register_hotplug_dock_device(ACPI_HANDLE(&ap->tdev),
-> -				     &ata_acpi_ap_dock_ops, ap, NULL, NULL);
-> +	adev = ACPI_COMPANION(&ap->tdev);
-> +	if (!adev)
-> +		return;
-> +
-> +	context = kzalloc(sizeof(*context), GFP_KERNEL);
-> +	if (!context)
-> +		return;
+> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-The context isn't freed on ATA driver detach, which doesn't normally
-happen though.
+Thanks for the test Mika and sorry for all the confusions caused.
 
-Thanks,
-Aaron
+-Aaron
