@@ -1,72 +1,119 @@
-From: Sudeep Holla <Sudeep.Holla@arm.com>
-Subject: Re: [PATCH v5 3/5] ACPI / processor: Introduce map_gic_id() to get
- apic id from MADT or _MAT method
-Date: Wed, 19 Feb 2014 14:33:40 +0000
-Message-ID: <5304C0C4.3080601@arm.com>
-References: <1392740638-2479-1-git-send-email-hanjun.guo@linaro.org> <1392740638-2479-4-git-send-email-hanjun.guo@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RFC Patch v1 2/6] ACPI: rename acpi_evaluate_hotplug_ost to acpi_evaluate_ost for reuse
+Date: Wed, 19 Feb 2014 16:53:39 +0100
+Message-ID: <18853631.7tB2OTjZFf@vostro.rjw.lan>
+References: <1392613271-10912-1-git-send-email-jiang.liu@linux.intel.com> <6382282.2gCVKeUJUt@vostro.rjw.lan> <5304453F.1050104@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:38010 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753885AbaBSOdQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Feb 2014 09:33:16 -0500
-In-Reply-To: <1392740638-2479-4-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5304453F.1050104@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep.Holla@arm.com, Lan Tianyu <tianyu.lan@intel.com>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Joe Perches <joe@perches.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Hanjun,
+On Wednesday, February 19, 2014 01:46:39 PM Jiang Liu wrote:
+> Hi Rafael,
+> 	We have following code to deal with existing users.
+> +#ifdef ACPI_HOTPLUG_OST
+> +#define	acpi_evaluate_hotplug_ost	acpi_evaluate_ost
 
-On 18/02/14 16:23, Hanjun Guo wrote:
-> Get apic id from MADT or _MAT method is not implemented on arm/arm64,
-> and ACPI 5.0 introduces GIC Structure for it, so this patch introduces
-> map_gic_id() to get apic id followed the ACPI 5.0 spec.
+Well, I'd very much prefer the users to be updated.
+
+> +#else
+> +static inline acpi_status
+>  acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+> -			u32 status_code, struct acpi_buffer *status_buf);
+> +			u32 status_code, struct acpi_buffer *status_buf)
+> +{ return AE_OK; }
+> +#endif
 > 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/acpi/processor_core.c |   26 ++++++++++++++++++++++++++
->  1 file changed, 26 insertions(+)
+> Thanks!
 > 
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index 4dcf776..d316d9b 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -71,6 +71,27 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
->  	return 0;
->  }
->  
-> +static int map_gic_id(struct acpi_subtable_header *entry,
-> +		int device_declaration, u32 acpi_id, int *apic_id)
-> +{
-> +	struct acpi_madt_generic_interrupt *gic =
-> +		(struct acpi_madt_generic_interrupt *)entry;
-> +
-> +	if (!(gic->flags & ACPI_MADT_ENABLED))
-> +		return -ENODEV;
-> +
-> +	/* In the GIC interrupt model, logical processors are
-> +	 * required to have a Processor Device object in the DSDT,
-> +	 * so we should check device_declaration here
-> +	 */
-> +	if (device_declaration && (gic->uid == acpi_id)) {
-> +		*apic_id = gic->gic_id;
+> On 2014/2/18 9:06, Rafael J. Wysocki wrote:
+> > On Monday, February 17, 2014 01:02:49 PM Jiang Liu wrote:
+> >> Rename acpi_evaluate_hotplug_ost() to acpi_evaluate_ost() for later resue.
+> >>
+> >> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> >> ---
+> >>  drivers/acpi/utils.c    |   14 ++++----------
+> >>  include/acpi/acpi_bus.h |   10 +++++++++-
+> >>  2 files changed, 13 insertions(+), 11 deletions(-)
+> >>
+> >> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> >> index 85e3b61..19d0169 100644
+> >> --- a/drivers/acpi/utils.c
+> >> +++ b/drivers/acpi/utils.c
+> >> @@ -433,17 +433,15 @@ EXPORT_SYMBOL(acpi_get_physical_device_location);
+> >>   * When the platform does not support _OST, this function has no effect.
+> >>   */
+> >>  acpi_status
+> >> -acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+> >> -		u32 status_code, struct acpi_buffer *status_buf)
+> > 
+> > There are users of this, what about updating them?
+> > 
+> >> +acpi_evaluate_ost(acpi_handle handle, u32 source_event, u32 status_code,
+> >> +		  struct acpi_buffer *status_buf)
+> >>  {
+> >> -#ifdef ACPI_HOTPLUG_OST
+> >>  	union acpi_object params[3] = {
+> >>  		{.type = ACPI_TYPE_INTEGER,},
+> >>  		{.type = ACPI_TYPE_INTEGER,},
+> >>  		{.type = ACPI_TYPE_BUFFER,}
+> >>  	};
+> >>  	struct acpi_object_list arg_list = {3, params};
+> >> -	acpi_status status;
+> >>  
+> >>  	params[0].integer.value = source_event;
+> >>  	params[1].integer.value = status_code;
+> >> @@ -455,13 +453,9 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+> >>  		params[2].buffer.length = 0;
+> >>  	}
+> >>  
+> >> -	status = acpi_evaluate_object(handle, "_OST", &arg_list, NULL);
+> >> -	return status;
+> >> -#else
+> >> -	return AE_OK;
+> >> -#endif
+> >> +	return acpi_evaluate_object(handle, "_OST", &arg_list, NULL);
+> >>  }
+> >> -EXPORT_SYMBOL(acpi_evaluate_hotplug_ost);
+> >> +EXPORT_SYMBOL(acpi_evaluate_ost);
+> >>  
+> >>  /**
+> >>   * acpi_handle_printk: Print message with ACPI prefix and object path
+> >> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> >> index 8256eb4..adef502 100644
+> >> --- a/include/acpi/acpi_bus.h
+> >> +++ b/include/acpi/acpi_bus.h
+> >> @@ -49,8 +49,16 @@ acpi_evaluate_reference(acpi_handle handle,
+> >>  			struct acpi_object_list *arguments,
+> >>  			struct acpi_handle_list *list);
+> >>  acpi_status
+> >> +acpi_evaluate_ost(acpi_handle handle, u32 source_event, u32 status_code,
+> >> +		  struct acpi_buffer *status_buf);
+> >> +#ifdef ACPI_HOTPLUG_OST
+> >> +#define	acpi_evaluate_hotplug_ost	acpi_evaluate_ost
+> >> +#else
+> >> +static inline acpi_status
+> >>  acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+> >> -			u32 status_code, struct acpi_buffer *status_buf);
+> >> +			u32 status_code, struct acpi_buffer *status_buf)
+> >> +{ return AE_OK; }
+> >> +#endif
+> >>  
+> >>  acpi_status
+> >>  acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld);
+> >>
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
-I have mentioned this earlier, it's not clear yet to me how does this work ?
-It needs more clarity in the form of comment here at-least as the ACPIv5.0 is
-also not so clear or explicit on how to handle this.
-
-Here you are expecting gic->uid = acpi_id which is fine, while acpi_map_cpuid
-matches apic_id with cpu_physical_id(which must be MPIDR in ARM{32,64}). The
-latter imposes restriction that gic->gic_id has to be MPIDR. Does that mean we
-are imposing restriction on GIC ID to be MPIDR ? If so please document it here
-and please explain the reason behind that choice.
-
-I would expect _UID to be MPIDR rather than GIC ID but you may have some reasons
-for this choice.
-
-Regards,
-Sudeep
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
