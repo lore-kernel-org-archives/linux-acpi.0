@@ -1,68 +1,191 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI / LPSS: Add Intel BayTrail ACPI mode PWM
-Date: Wed, 19 Feb 2014 01:47:19 +0100
-Message-ID: <4137960.8hdMdSsOri@vostro.rjw.lan>
-References: <1392747869-31435-1-git-send-email-chiau.ee.chew@intel.com>
+Subject: Re: [PATCH v5 2/5] ACPI / processor_core: Rework _PDC related stuff to make it more arch-independent
+Date: Wed, 19 Feb 2014 01:50:22 +0100
+Message-ID: <3459962.GkY99aHQbc@vostro.rjw.lan>
+References: <1392740638-2479-1-git-send-email-hanjun.guo@linaro.org> <1392740638-2479-3-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54510 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752478AbaBSAc3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Feb 2014 19:32:29 -0500
-In-Reply-To: <1392747869-31435-1-git-send-email-chiau.ee.chew@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1392740638-2479-3-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, Joe Perches <joe@perches.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Graeme Gregory <graeme.gregory@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Chew Chiau Ee <chiau.ee.chew@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
 
-On Wednesday, February 19, 2014 02:24:29 AM Chew Chiau Ee wrote:
-> From: Chew, Chiau Ee <chiau.ee.chew@intel.com>
+On Wednesday, February 19, 2014 12:23:55 AM Hanjun Guo wrote:
+> _PDC related stuff in processor_core.c is little bit X86/IA64 dependent,
+> rework the code to make it more arch-independent, no functional change
+> in this patch.
 > 
-> Intel BayTrail LPSS consists of two PWM controllers which can
-> be enumerated from ACPI namespace. This change will cause
-> platform device objects to be created for Intel BayTrail PWM
-> controllers which will allow the pwm-lpss driver to bind to them
-> and handle those devices.
-> 
-> Signed-off-by: Chew, Chiau Ee <chiau.ee.chew@intel.com>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 
-Queued up for 3.15, thanks!
+I've queued up patches [1,3-5/5] from this series for 3.15 (modulo changelog
+modifications), but this one should be CCed to the x86 and ia64 maintainers.
+
+Thanks!
 
 > ---
->  drivers/acpi/acpi_lpss.c |   11 +++++++++++
->  1 files changed, 11 insertions(+), 0 deletions(-)
+>  arch/ia64/include/asm/acpi.h  |    5 +----
+>  arch/ia64/kernel/acpi.c       |   14 ++++++++++++++
+>  arch/x86/include/asm/acpi.h   |   19 +------------------
+>  arch/x86/kernel/acpi/cstate.c |   29 +++++++++++++++++++++++++++++
+>  drivers/acpi/processor_core.c |   19 +------------------
+>  5 files changed, 46 insertions(+), 40 deletions(-)
 > 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 2428857..9e22c13 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -96,6 +96,16 @@ static struct lpss_device_desc lpt_sdio_dev_desc = {
->  	.ltr_required = true,
->  };
+> diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
+> index d651102..d2b8b9d 100644
+> --- a/arch/ia64/include/asm/acpi.h
+> +++ b/arch/ia64/include/asm/acpi.h
+> @@ -152,10 +152,7 @@ extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
+>  #endif
 >  
-> +static struct lpss_shared_clock pwm_clock = {
-> +	.name = "pwm_clk",
-> +	.rate = 25000000,
-> +};
-> +
-> +static struct lpss_device_desc byt_pwm_dev_desc = {
-> +	.clk_required = true,
-> +	.shared_clock = &pwm_clock,
-> +};
-> +
->  static struct lpss_shared_clock uart_clock = {
->  	.name = "uart_clk",
->  	.rate = 44236800,
-> @@ -151,6 +161,7 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
->  	{ "INT33C7", },
+>  static inline bool arch_has_acpi_pdc(void) { return true; }
+> -static inline void arch_acpi_set_pdc_bits(u32 *buf)
+> -{
+> -	buf[2] |= ACPI_PDC_EST_CAPABILITY_SMP;
+> -}
+> +extern void arch_acpi_set_pdc_bits(u32 *buf);
 >  
->  	/* BayTrail LPSS devices */
-> +	{ "80860F09", (unsigned long)&byt_pwm_dev_desc },
->  	{ "80860F0A", (unsigned long)&byt_uart_dev_desc },
->  	{ "80860F0E", (unsigned long)&byt_spi_dev_desc },
->  	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
+>  #define acpi_unlazy_tlb(x)
+>  
+> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+> index 07d209c..af9d9e4 100644
+> --- a/arch/ia64/kernel/acpi.c
+> +++ b/arch/ia64/kernel/acpi.c
+> @@ -1014,3 +1014,17 @@ EXPORT_SYMBOL(acpi_unregister_ioapic);
+>   * TBD when when IA64 starts to support suspend...
+>   */
+>  int acpi_suspend_lowlevel(void) { return 0; }
+> +
+> +void arch_acpi_set_pdc_bits(u32 *buf)
+> +{
+> +	/* Enable coordination with firmware's _TSD info */
+> +	buf[2] |= ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_EST_CAPABILITY_SMP;
+> +	if (boot_option_idle_override == IDLE_NOMWAIT) {
+> +		/*
+> +		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
+> +		 * mode will be disabled in the parameter of _PDC object.
+> +		 * Of course C1_FFH access mode will also be disabled.
+> +		 */
+> +		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
+> +	}
+> +}
+> diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+> index c8c1e70..e9f71bc 100644
+> --- a/arch/x86/include/asm/acpi.h
+> +++ b/arch/x86/include/asm/acpi.h
+> @@ -147,24 +147,7 @@ static inline bool arch_has_acpi_pdc(void)
+>  		c->x86_vendor == X86_VENDOR_CENTAUR);
+>  }
+>  
+> -static inline void arch_acpi_set_pdc_bits(u32 *buf)
+> -{
+> -	struct cpuinfo_x86 *c = &cpu_data(0);
+> -
+> -	buf[2] |= ACPI_PDC_C_CAPABILITY_SMP;
+> -
+> -	if (cpu_has(c, X86_FEATURE_EST))
+> -		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
+> -
+> -	if (cpu_has(c, X86_FEATURE_ACPI))
+> -		buf[2] |= ACPI_PDC_T_FFH;
+> -
+> -	/*
+> -	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
+> -	 */
+> -	if (!cpu_has(c, X86_FEATURE_MWAIT))
+> -		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
+> -}
+> +extern void arch_acpi_set_pdc_bits(u32 *buf);
+>  
+>  #else /* !CONFIG_ACPI */
+>  
+> diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
+> index e69182f..a36638f 100644
+> --- a/arch/x86/kernel/acpi/cstate.c
+> +++ b/arch/x86/kernel/acpi/cstate.c
+> @@ -16,6 +16,35 @@
+>  #include <asm/mwait.h>
+>  #include <asm/special_insns.h>
+>  
+> +void arch_acpi_set_pdc_bits(u32 *buf)
+> +{
+> +	struct cpuinfo_x86 *c = &cpu_data(0);
+> +
+> +	/* Enable coordination with firmware's _TSD info */
+> +	buf[2] |= ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_C_CAPABILITY_SMP;
+> +
+> +	if (cpu_has(c, X86_FEATURE_EST))
+> +		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
+> +
+> +	if (cpu_has(c, X86_FEATURE_ACPI))
+> +		buf[2] |= ACPI_PDC_T_FFH;
+> +
+> +	/*
+> +	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
+> +	 */
+> +	if (!cpu_has(c, X86_FEATURE_MWAIT))
+> +		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
+> +
+> +	if (boot_option_idle_override == IDLE_NOMWAIT) {
+> +		/*
+> +		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
+> +		 * mode will be disabled in the parameter of _PDC object.
+> +		 * Of course C1_FFH access mode will also be disabled.
+> +		 */
+> +		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
+> +	}
+> +}
+> +
+>  /*
+>   * Initialize bm_flags based on the CPU cache properties
+>   * On SMP it depends on cache configuration
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> index 4d91b32..4dcf776 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -255,9 +255,6 @@ static void acpi_set_pdc_bits(u32 *buf)
+>  	buf[0] = ACPI_PDC_REVISION_ID;
+>  	buf[1] = 1;
+>  
+> -	/* Enable coordination with firmware's _TSD info */
+> -	buf[2] = ACPI_PDC_SMP_T_SWCOORD;
+> -
+>  	/* Twiddle arch-specific bits needed for _PDC */
+>  	arch_acpi_set_pdc_bits(buf);
+>  }
+> @@ -282,7 +279,7 @@ static struct acpi_object_list *acpi_processor_alloc_pdc(void)
+>  		return NULL;
+>  	}
+>  
+> -	buf = kmalloc(12, GFP_KERNEL);
+> +	buf = kzalloc(12, GFP_KERNEL);
+>  	if (!buf) {
+>  		printk(KERN_ERR "Memory allocation error\n");
+>  		kfree(obj);
+> @@ -310,20 +307,6 @@ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
+>  {
+>  	acpi_status status = AE_OK;
+>  
+> -	if (boot_option_idle_override == IDLE_NOMWAIT) {
+> -		/*
+> -		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
+> -		 * mode will be disabled in the parameter of _PDC object.
+> -		 * Of course C1_FFH access mode will also be disabled.
+> -		 */
+> -		union acpi_object *obj;
+> -		u32 *buffer = NULL;
+> -
+> -		obj = pdc_in->pointer;
+> -		buffer = (u32 *)(obj->buffer.pointer);
+> -		buffer[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
+> -
+> -	}
+>  	status = acpi_evaluate_object(handle, "_PDC", pdc_in, NULL);
+>  
+>  	if (ACPI_FAILURE(status))
 > 
 
 -- 
