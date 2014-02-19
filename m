@@ -1,37 +1,69 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Wed, 19 Feb 2014 01:45:58 +0100
-Message-ID: <2013495.SnSbjHoB2r@vostro.rjw.lan>
-References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com> <1920764.8Poj9R8nZQ@vostro.rjw.lan> <1392765901.3488.4.camel@x230.lan>
+Subject: Re: [PATCH v2] ACPI / LPSS: Add Intel BayTrail ACPI mode PWM
+Date: Wed, 19 Feb 2014 01:47:19 +0100
+Message-ID: <4137960.8hdMdSsOri@vostro.rjw.lan>
+References: <1392747869-31435-1-git-send-email-chiau.ee.chew@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52504 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:54510 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752355AbaBSAbI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Feb 2014 19:31:08 -0500
-In-Reply-To: <1392765901.3488.4.camel@x230.lan>
+	with SMTP id S1752478AbaBSAc3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Feb 2014 19:32:29 -0500
+In-Reply-To: <1392747869-31435-1-git-send-email-chiau.ee.chew@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Chew Chiau Ee <chiau.ee.chew@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
 
-On Tuesday, February 18, 2014 11:25:02 PM Matthew Garrett wrote:
-> On Wed, 2014-02-19 at 00:35 +0100, Rafael J. Wysocki wrote:
-> > On Tuesday, February 18, 2014 11:15:08 PM Matthew Garrett wrote:
-> > > For example, if you load the ACPI power meter driver before you've
-> > > installed the ACPI IPMI driver you'll typically get failures (most
-> > > vendors implement it via IPMI).
-> > 
-> > Well, any specific machine from any specific vendor?
+On Wednesday, February 19, 2014 02:24:29 AM Chew Chiau Ee wrote:
+> From: Chew, Chiau Ee <chiau.ee.chew@intel.com>
 > 
-> The Dell R720 and HP DL385 both seem to have this configuration. I
-> believe some Ciscos do, too.
+> Intel BayTrail LPSS consists of two PWM controllers which can
+> be enumerated from ACPI namespace. This change will cause
+> platform device objects to be created for Intel BayTrail PWM
+> controllers which will allow the pwm-lpss driver to bind to them
+> and handle those devices.
+> 
+> Signed-off-by: Chew, Chiau Ee <chiau.ee.chew@intel.com>
 
-I've queued this up for 3.15 (with the above info added to the changelog).
+Queued up for 3.15, thanks!
 
-Thanks!
+> ---
+>  drivers/acpi/acpi_lpss.c |   11 +++++++++++
+>  1 files changed, 11 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index 2428857..9e22c13 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -96,6 +96,16 @@ static struct lpss_device_desc lpt_sdio_dev_desc = {
+>  	.ltr_required = true,
+>  };
+>  
+> +static struct lpss_shared_clock pwm_clock = {
+> +	.name = "pwm_clk",
+> +	.rate = 25000000,
+> +};
+> +
+> +static struct lpss_device_desc byt_pwm_dev_desc = {
+> +	.clk_required = true,
+> +	.shared_clock = &pwm_clock,
+> +};
+> +
+>  static struct lpss_shared_clock uart_clock = {
+>  	.name = "uart_clk",
+>  	.rate = 44236800,
+> @@ -151,6 +161,7 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+>  	{ "INT33C7", },
+>  
+>  	/* BayTrail LPSS devices */
+> +	{ "80860F09", (unsigned long)&byt_pwm_dev_desc },
+>  	{ "80860F0A", (unsigned long)&byt_uart_dev_desc },
+>  	{ "80860F0E", (unsigned long)&byt_spi_dev_desc },
+>  	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
+> 
 
 -- 
 I speak only for myself.
