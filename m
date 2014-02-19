@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 2/5] acpi_pad: use acpi_evaluate_ost() to replace open-coded version
-Date: Wed, 19 Feb 2014 14:02:16 +0800
-Message-ID: <1392789739-32317-2-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v2 5/5] ACPI: use device name LNXSYBUS.xx for ACPI \_SB and \_TZ objects
+Date: Wed, 19 Feb 2014 14:02:19 +0800
+Message-ID: <1392789739-32317-5-git-send-email-jiang.liu@linux.intel.com>
 References: <1392789739-32317-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1392789739-32317-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,59 +10,59 @@ To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use public function acpi_evaluate_ost() to replace open-coded
-version of evaluating ACPI _OST method.
+Use device name "LNXSYBUS:xx" instead  of "device.xx" for ACPI objects
+\_SB and \_TZ.
+
+BTW, the original check of "handle == ACPI_ROOT_OBJECT" in statment
+"else if (list_empty(&pnp->ids) && handle == ACPI_ROOT_OBJECT)"
+is always false because of the code at the begin of that block.
+                if (handle == ACPI_ROOT_OBJECT) {
+                        acpi_add_id(pnp, ACPI_SYSTEM_HID);
+                        break;
+                }
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/acpi_pad.c |   24 +++++-------------------
- 1 file changed, 5 insertions(+), 19 deletions(-)
+ drivers/acpi/scan.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-index df96a0f..37d7302 100644
---- a/drivers/acpi/acpi_pad.c
-+++ b/drivers/acpi/acpi_pad.c
-@@ -408,28 +408,14 @@ static int acpi_pad_pur(acpi_handle handle)
- 	return num;
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 57b053f..62ec4ba 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1706,6 +1706,20 @@ static bool acpi_ibm_smbus_match(acpi_handle handle)
+ 	return false;
  }
  
--/* Notify firmware how many CPUs are idle */
--static void acpi_pad_ost(acpi_handle handle, int stat,
--	uint32_t idle_cpus)
--{
--	union acpi_object params[3] = {
--		{.type = ACPI_TYPE_INTEGER,},
--		{.type = ACPI_TYPE_INTEGER,},
--		{.type = ACPI_TYPE_BUFFER,},
--	};
--	struct acpi_object_list arg_list = {3, params};
--
--	params[0].integer.value = ACPI_PROCESSOR_AGGREGATOR_NOTIFY;
--	params[1].integer.value =  stat;
--	params[2].buffer.length = 4;
--	params[2].buffer.pointer = (void *)&idle_cpus;
--	acpi_evaluate_object(handle, "_OST", &arg_list, NULL);
--}
--
- static void acpi_pad_handle_notify(acpi_handle handle)
++static bool acpi_object_is_system_bus(acpi_handle handle)
++{
++	acpi_handle tmp;
++
++	if (ACPI_SUCCESS(acpi_get_handle(NULL, "\\_SB", &tmp)) &&
++	    tmp == handle)
++		return true;
++	if (ACPI_SUCCESS(acpi_get_handle(NULL, "\\_TZ", &tmp)) &&
++	    tmp == handle)
++		return true;
++
++	return false;
++}
++
+ static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
+ 				int device_type)
  {
- 	int num_cpus;
- 	uint32_t idle_cpus;
-+	struct acpi_buffer param = {
-+		.length = 4,
-+		.pointer = (void *)&idle_cpus,
-+	};
- 
- 	mutex_lock(&isolated_cpus_lock);
- 	num_cpus = acpi_pad_pur(handle);
-@@ -439,7 +425,7 @@ static void acpi_pad_handle_notify(acpi_handle handle)
- 	}
- 	acpi_pad_idle_cpus(num_cpus);
- 	idle_cpus = acpi_pad_idle_cpus_num();
--	acpi_pad_ost(handle, 0, idle_cpus);
-+	acpi_evaluate_ost(handle, ACPI_PROCESSOR_AGGREGATOR_NOTIFY, 0, &param);
- 	mutex_unlock(&isolated_cpus_lock);
- }
- 
+@@ -1757,8 +1771,10 @@ static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
+ 			acpi_add_id(pnp, ACPI_DOCK_HID);
+ 		else if (acpi_ibm_smbus_match(handle))
+ 			acpi_add_id(pnp, ACPI_SMBUS_IBM_HID);
+-		else if (list_empty(&pnp->ids) && handle == ACPI_ROOT_OBJECT) {
+-			acpi_add_id(pnp, ACPI_BUS_HID); /* \_SB, LNXSYBUS */
++		else if (list_empty(&pnp->ids) &&
++			 acpi_object_is_system_bus(handle)) {
++			/* \_SB, \_TZ, LNXSYBUS */
++			acpi_add_id(pnp, ACPI_BUS_HID);
+ 			strcpy(pnp->device_name, ACPI_BUS_DEVICE_NAME);
+ 			strcpy(pnp->device_class, ACPI_BUS_CLASS);
+ 		}
 -- 
 1.7.10.4
