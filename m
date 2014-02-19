@@ -1,40 +1,45 @@
-From: Corey Minyard <minyard@acm.org>
-Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Tue, 18 Feb 2014 18:53:42 -0600
-Message-ID: <53040096.6010100@acm.org>
-References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com> <1920764.8Poj9R8nZQ@vostro.rjw.lan> <1392765901.3488.4.camel@x230.lan> <2013495.SnSbjHoB2r@vostro.rjw.lan>
-Reply-To: minyard@acm.org
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 9/9] ACPI / dock: Update copyright notice
+Date: Wed, 19 Feb 2014 02:32:50 +0100
+Message-ID: <2585039.uxTQ3ZVMg2@vostro.rjw.lan>
+References: <3011875.q18rCmXyYX@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f47.google.com ([209.85.219.47]:40990 "EHLO
-	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904AbaBSAxp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Feb 2014 19:53:45 -0500
-In-Reply-To: <2013495.SnSbjHoB2r@vostro.rjw.lan>
+Received: from v094114.home.net.pl ([79.96.170.134]:64377 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751270AbaBSBS3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Feb 2014 20:18:29 -0500
+In-Reply-To: <3011875.q18rCmXyYX@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Matthew Garrett <matthew.garrett@nebula.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lu@intel.com>
 
-I just queued it up, too, but that's fine.  This seems to be a good idea
-with the way ACPI is going.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Acked-by: Corey Minyard <cminyard@mvista.com>
+Update the copyright notice of the ACPI dock driver to reflect the
+fact that substantial changes have been made to it recently.
 
-On 02/18/2014 06:45 PM, Rafael J. Wysocki wrote:
-> On Tuesday, February 18, 2014 11:25:02 PM Matthew Garrett wrote:
->> On Wed, 2014-02-19 at 00:35 +0100, Rafael J. Wysocki wrote:
->>> On Tuesday, February 18, 2014 11:15:08 PM Matthew Garrett wrote:
->>>> For example, if you load the ACPI power meter driver before you've
->>>> installed the ACPI IPMI driver you'll typically get failures (most
->>>> vendors implement it via IPMI).
->>> Well, any specific machine from any specific vendor?
->> The Dell R720 and HP DL385 both seem to have this configuration. I
->> believe some Ciscos do, too.
-> I've queued this up for 3.15 (with the above info added to the changelog).
->
-> Thanks!
->
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/dock.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+Index: linux-pm/drivers/acpi/dock.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/dock.c
++++ linux-pm/drivers/acpi/dock.c
+@@ -1,7 +1,9 @@
+ /*
+  *  dock.c - ACPI dock station driver
+  *
+- *  Copyright (C) 2006 Kristen Carlson Accardi <kristen.c.accardi@intel.com>
++ *  Copyright (C) 2006, 2014, Intel Corp.
++ *  Author: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
++ *          Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+  *
+  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  *
 
