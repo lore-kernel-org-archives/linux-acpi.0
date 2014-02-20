@@ -1,83 +1,78 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [Patch v2 3/5] xen, acpi_pad: use acpi_evaluate_ost() to replace
- open-coded version
-Date: Wed, 19 Feb 2014 12:38:22 -0500
-Message-ID: <20140219173822.GF11365@phenom.dumpdata.com>
-References: <1392789739-32317-1-git-send-email-jiang.liu@linux.intel.com>
- <1392789739-32317-3-git-send-email-jiang.liu@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Linaro-acpi] [PATCH v4 5/5] ACPI: Replace printk with pr_* in
+ tables.c
+Date: Thu, 20 Feb 2014 01:37:46 +0100
+Message-ID: <1624648.FYgVXnCCsW@vostro.rjw.lan>
+References: <1392731700-10992-1-git-send-email-hanjun.guo@linaro.org>
+ <2341500.Z47JjkFCMP@vostro.rjw.lan> <5304DFDB.6020202@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:20096 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754123AbaBSRig (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Feb 2014 12:38:36 -0500
-Content-Disposition: inline
-In-Reply-To: <1392789739-32317-3-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5304DFDB.6020202@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sudeep Holla <Sudeep.Holla@arm.com>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, David Vrabel <david.vrabel@citrix.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org
 
-On Wed, Feb 19, 2014 at 02:02:17PM +0800, Jiang Liu wrote:
-> Use public function acpi_evaluate_ost() to replace open-coded
-> version of evaluating ACPI _OST method.
-> 
+On Wednesday, February 19, 2014 04:46:19 PM Sudeep Holla wrote:
+> On 19/02/14 16:49, Rafael J. Wysocki wrote:
+> > On Wednesday, February 19, 2014 04:32:34 PM Sudeep Holla wrote:
+> >> On 18/02/14 13:55, Hanjun Guo wrote:
+> >>> This patch just do some clean up to replace printk with pr_*,
+> >>> no functional change.
+> >>>
+> >> Any particular reason for choosing just this file in this series ?
+> >> It seems but off-topic in this series. The printk format is same in almost all
+> >> other acpi files and it's better to change all or none for consistency.
+> > 
+> > Well, it's fine, I can put it into a different branch in any case. :-)
+> > 
+> >>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >>> ---
+> >>>  drivers/acpi/tables.c |   51 +++++++++++++++++++------------------------------
+> >>>  1 file changed, 20 insertions(+), 31 deletions(-)
+> >>>
+> >>> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> >>> index 5837f85..97bc6df 100644
+> >>> --- a/drivers/acpi/tables.c
+> >>> +++ b/drivers/acpi/tables.c
+> >>> @@ -55,8 +55,7 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+> >>>  		{
+> >>>  			struct acpi_madt_local_apic *p =
+> >>>  			    (struct acpi_madt_local_apic *)header;
+> >>> -			printk(KERN_INFO PREFIX
+> >>> -			       "LAPIC (acpi_id[0x%02x] lapic_id[0x%02x] %s)\n",
+> >>> +			pr_info(PREFIX "LAPIC (acpi_id[0x%02x] lapic_id[0x%02x] %s)\n",
+> >>
+> >> You can even get rid of PREFIX by defining pr_fmt instead.
+> > 
+> > But this is a good point.
+> > 
+> >> If the intention is to move to pr_* format it's better to have this as separate
+> >> patch and convert all of them.
+> > 
+> > Well, not really.  One file at a time is OK too.
+> > 
+> No what I meant was to convert all for consistency, not in a single patch.
+> As I was playing with regex for few minutes, with few patterns was able to fix
+> most(not all) of them. It even compiles :) for x86. But turns out to be a big
+> churn :( [43 files changed, 253 insertions(+), 329 deletions(-)]
 
-Looks OK to me.
+Well, precisely.  That's why I'd prefer doing that gradually.
 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
->  drivers/xen/xen-acpi-pad.c |   26 +++++++-------------------
->  1 file changed, 7 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/xen/xen-acpi-pad.c b/drivers/xen/xen-acpi-pad.c
-> index 40c4bc0..f83b754 100644
-> --- a/drivers/xen/xen-acpi-pad.c
-> +++ b/drivers/xen/xen-acpi-pad.c
-> @@ -77,27 +77,14 @@ static int acpi_pad_pur(acpi_handle handle)
->  	return num;
->  }
->  
-> -/* Notify firmware how many CPUs are idle */
-> -static void acpi_pad_ost(acpi_handle handle, int stat,
-> -	uint32_t idle_nums)
-> -{
-> -	union acpi_object params[3] = {
-> -		{.type = ACPI_TYPE_INTEGER,},
-> -		{.type = ACPI_TYPE_INTEGER,},
-> -		{.type = ACPI_TYPE_BUFFER,},
-> -	};
-> -	struct acpi_object_list arg_list = {3, params};
-> -
-> -	params[0].integer.value = ACPI_PROCESSOR_AGGREGATOR_NOTIFY;
-> -	params[1].integer.value =  stat;
-> -	params[2].buffer.length = 4;
-> -	params[2].buffer.pointer = (void *)&idle_nums;
-> -	acpi_evaluate_object(handle, "_OST", &arg_list, NULL);
-> -}
-> -
->  static void acpi_pad_handle_notify(acpi_handle handle)
->  {
->  	int idle_nums;
-> +	struct acpi_buffer param = {
-> +		.length = 4,
-> +		.pointer = (void *)&idle_nums,
-> +	};
-> +
->  
->  	mutex_lock(&xen_cpu_lock);
->  	idle_nums = acpi_pad_pur(handle);
-> @@ -109,7 +96,8 @@ static void acpi_pad_handle_notify(acpi_handle handle)
->  	idle_nums = xen_acpi_pad_idle_cpus(idle_nums)
->  		    ?: xen_acpi_pad_idle_cpus_num();
->  	if (idle_nums >= 0)
-> -		acpi_pad_ost(handle, 0, idle_nums);
-> +		acpi_evaluate_ost(handle, ACPI_PROCESSOR_AGGREGATOR_NOTIFY,
-> +				  0, &param);
->  	mutex_unlock(&xen_cpu_lock);
->  }
->  
-> -- 
-> 1.7.10.4
-> 
+That said I'll just drop the patch for now due to the PREFIX thing.
+
+Thanks!
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
