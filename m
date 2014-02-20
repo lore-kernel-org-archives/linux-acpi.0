@@ -1,55 +1,45 @@
-From: Russ Anderson <rja@sgi.com>
+From: Matthew Garrett <matthew.garrett@nebula.com>
 Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Thu, 20 Feb 2014 14:40:29 -0600
-Message-ID: <20140220204028.GJ17949@sgi.com>
-References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com> <20140220201458.GA7099@sgi.com> <1392927381.20109.0.camel@x230>
-Reply-To: Russ Anderson <rja@sgi.com>
+Date: Thu, 20 Feb 2014 20:46:04 +0000
+Message-ID: <1392929163.20109.5.camel@x230>
+References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>
+	 <20140220201458.GA7099@sgi.com> <1392927381.20109.0.camel@x230>
+	 <20140220204028.GJ17949@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay2.sgi.com ([192.48.179.30]:53220 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753050AbaBTUka (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Feb 2014 15:40:30 -0500
-Content-Disposition: inline
-In-Reply-To: <1392927381.20109.0.camel@x230>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140220204028.GJ17949@sgi.com>
+Content-Language: en-US
+Content-ID: <AC7E23AE1175F340B547257E0FDFD879@namprd05.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "rja@sgi.com" <rja@sgi.com>
 Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 20, 2014 at 08:16:22PM +0000, Matthew Garrett wrote:
-> On Thu, 2014-02-20 at 14:14 -0600, Russ Anderson wrote:
-> 
-> > The distro that added this change created all sorts of support
-> > problems.  Problems include kipmi0 spinning at 100% of cpu
-> > (creating a performance hit) and long boot delays (as the
-> > kernel tries to talk to a BMC that will never respond).
-> > It has been a big mess.
-> 
-> Why is the BMC not responding? Why is kipmi0 at 100%? Why are we not
-> fixing those bugs?
-
-Why build a driver into the kernel?  The reason ipmi_si is 
-a driver is so systems that want it can load it and systems
-that do not want it do not have to load it.  Plus you can
-stop/start modules without rebooting.  You can change module
-parameters without rebooting.
-
-There are any number of reasons why a BMC may not respond.
-BMCs are notorious for being flakey, with different types
-of BMCs that may or may not be reliable.  You do not want
-to make the kernel boot dependent on an unreliable component.
-
-This is also a problem for systems with functional BMCs.  Our
-large cluster systems do all IPMI traffic (monitoring) through
-a system controller back door.  We do not want the kernel
-doing IPMI commands on those systems.   On those systems we
-simply do not load the ipmi_si module.  Building ipmi_si
-into the kernel means adding kernel boot line options to
-turn ipmi_si back off again.
-
-
--- 
-Russ Anderson,  Kernel and Performance Software Team Manager
-SGI - Silicon Graphics Inc          rja@sgi.com
+T24gVGh1LCAyMDE0LTAyLTIwIGF0IDE0OjQwIC0wNjAwLCBSdXNzIEFuZGVyc29uIHdyb3RlOg0K
+DQo+IFdoeSBidWlsZCBhIGRyaXZlciBpbnRvIHRoZSBrZXJuZWw/DQoNCkJlY2F1c2UgaXQgcHJv
+dmlkZXMgZnVuY3Rpb25hbGl0eSB0aGF0IG90aGVyIGRyaXZlcnMgbWF5IG5lZWQgd2l0aG91dA0K
+dGhlcmUgYmVpbmcgYW55IG1lY2hhbmlzbSB0byBwcm92aWRlIGFuIGV4cGxpY2l0IGRlcGVuZGVu
+Y3kuIFRoZSBzYW1lDQpyZWFzb24gd2UgYnVpbGQgdGhlIEFDUEkgZW1iZWRkZWQgY29udHJvbGxl
+ciBkcml2ZXIgaW50byB0aGUga2VybmVsLg0KDQo+IFRoZSByZWFzb24gaXBtaV9zaSBpcyANCj4g
+YSBkcml2ZXIgaXMgc28gc3lzdGVtcyB0aGF0IHdhbnQgaXQgY2FuIGxvYWQgaXQgYW5kIHN5c3Rl
+bXMNCj4gdGhhdCBkbyBub3Qgd2FudCBpdCBkbyBub3QgaGF2ZSB0byBsb2FkIGl0LiAgUGx1cyB5
+b3UgY2FuDQo+IHN0b3Avc3RhcnQgbW9kdWxlcyB3aXRob3V0IHJlYm9vdGluZy4gIFlvdSBjYW4g
+Y2hhbmdlIG1vZHVsZQ0KPiBwYXJhbWV0ZXJzIHdpdGhvdXQgcmVib290aW5nLg0KDQpZb3UgY2Fu
+IGNoYW5nZSBtb2R1bGUgcGFyYW1ldGVycyB3aXRob3V0IHJlYm9vdGluZyBhbnl3YXkgLSB0aGVy
+ZSdzIGFuDQppbnRlcmZhY2UgZm9yIGl0IGluIHN5c2ZzLg0KDQo+IFRoZXJlIGFyZSBhbnkgbnVt
+YmVyIG9mIHJlYXNvbnMgd2h5IGEgQk1DIG1heSBub3QgcmVzcG9uZC4NCj4gQk1DcyBhcmUgbm90
+b3Jpb3VzIGZvciBiZWluZyBmbGFrZXksIHdpdGggZGlmZmVyZW50IHR5cGVzDQo+IG9mIEJNQ3Mg
+dGhhdCBtYXkgb3IgbWF5IG5vdCBiZSByZWxpYWJsZS4gIFlvdSBkbyBub3Qgd2FudA0KPiB0byBt
+YWtlIHRoZSBrZXJuZWwgYm9vdCBkZXBlbmRlbnQgb24gYW4gdW5yZWxpYWJsZSBjb21wb25lbnQu
+DQoNCllvdSBhcHBlYXIgdG8gYmUgc2F5aW5nICJTR0kgc2hpcCBoYXJkd2FyZSB0aGF0IGRvZXNu
+J3Qgd29yay4gV2UgZG9uJ3QNCmtub3cgd2h5IGl0IGRvZXNuJ3Qgd29yayBhbmQgd2UncmUgbm90
+IGludGVyZXN0ZWQgaW4gZml4aW5nIGl0LCBzbyB3ZSdkDQpwcmVmZXIgdGhlIGRlZmF1bHQga2Vy
+bmVsIGNvbmZpZ3VyYXRpb24gdG8gYmUgYnJva2VuIi4gVGhhdCBkb2Vzbid0IHNlZW0NCmxpa2Ug
+YW4gZXNwZWNpYWxseSBjb21wZWxsaW5nIGFyZ3VtZW50Lg0KDQo+IFRoaXMgaXMgYWxzbyBhIHBy
+b2JsZW0gZm9yIHN5c3RlbXMgd2l0aCBmdW5jdGlvbmFsIEJNQ3MuICBPdXINCj4gbGFyZ2UgY2x1
+c3RlciBzeXN0ZW1zIGRvIGFsbCBJUE1JIHRyYWZmaWMgKG1vbml0b3JpbmcpIHRocm91Z2gNCj4g
+YSBzeXN0ZW0gY29udHJvbGxlciBiYWNrIGRvb3IuICBXZSBkbyBub3Qgd2FudCB0aGUga2VybmVs
+DQo+IGRvaW5nIElQTUkgY29tbWFuZHMgb24gdGhvc2Ugc3lzdGVtcy4NCg0KV2h5IG5vdD8NCg0K
+LS0gDQpNYXR0aGV3IEdhcnJldHQgPG1hdHRoZXcuZ2FycmV0dEBuZWJ1bGEuY29tPg0K
