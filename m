@@ -1,46 +1,50 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [Update][PATCH 6/9] ACPI / ATA: Add hotplug contexts to ACPI
- companions of SATA devices
-Date: Thu, 20 Feb 2014 09:26:39 -0500
-Message-ID: <20140220142639.GD6897@htj.dyndns.org>
-References: <3011875.q18rCmXyYX@vostro.rjw.lan>
- <1707532.0BItEHDuFB@vostro.rjw.lan>
- <5317534.79aoyQFAO7@vostro.rjw.lan>
+From: Jiri Olsa <jolsa@redhat.com>
+Subject: Re: Re: WARNING at kernel/workqueue.c:829
+ wq_worker_waking_up+0x53/0x70()
+Date: Thu, 20 Feb 2014 15:31:03 +0100
+Message-ID: <20140220143102.GA12948@krava.brq.redhat.com>
+References: <20140213124059.GA2908@krava.brq.redhat.com>
+ <20140217171900.GB29173@redhat.com>
+ <20140218224907.GG31892@mtj.dyndns.org>
+ <530602FA.1020103@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:5474 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754727AbaBTObJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Feb 2014 09:31:09 -0500
 Content-Disposition: inline
-In-Reply-To: <5317534.79aoyQFAO7@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>
+In-Reply-To: <530602FA.1020103@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Feb 20, 2014 at 02:47:19AM +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Thu, Feb 20, 2014 at 09:28:26PM +0800, Lan Tianyu wrote:
+> On 02/19/2014 06:49 AM, Tejun Heo wrote:
+> >Hello,
+> >
+> >On Mon, Feb 17, 2014 at 06:19:00PM +0100, Oleg Nesterov wrote:
+> >>acpi_processor_set_throttling() plays with set_cpus_allowed_ptr(current),
+> >>this is obviously wrong, and the worker is bound.
+> >
+> >Umm... yeah, anything running on workqueues shouldn't be diddling with
+> >cpu affinity.  The function even has /* FIXME: use work_on_cpu() */ in
+> >it.  I suppose it's about time to actually implement that?
+> >
+> >Thanks.
+> >
 > 
-> Modify the SATA subsystem to add hotplug contexts to ACPI companions
-> of SATA devices and ports instead of registering special ACPI dock
-> operations using register_hotplug_dock_device().
-> 
-> That change will allow the entire code handling those special ACPI
-> dock operations to be dropped in the next commit.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
-> 
-> As noted by Aaron, the hotplug contexts are not freed during ATA device
-> unregistration, but that is not necessary, because the struct acpi_device
-> things they are attached to never go away.  However, they obviously should
-> not be created more than once per struct acpi_device, so I've modified the
-> patch to skip the creation of hotplug contexts for devices that already
-> have them.
+> Hi Jiri:
+> 	Could you try this patch which reworks ACPI processor throttling
+> with work_on_cpu()?
 
-Please feel free to route with the rest of acpi changes.
+hum, I've got difficulties to apply it..
 
- Acked-by: Tejun Heo <tj@kernel.org>
+[jolsa@krava2 linux-perf]$ git am /tmp/wq/
+Applying: WARNING at kernel/workqueue.c:829 wq_worker_waking_up+0x53/0x70()
+fatal: corrupt patch at line 8
+Patch failed at 0001 WARNING at kernel/workqueue.c:829 wq_worker_waking_up+0x53/0x70()
 
-Thanks.
-
--- 
-tejun
+jirka
