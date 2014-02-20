@@ -1,61 +1,74 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
+From: Russ Anderson <rja@sgi.com>
 Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Thu, 20 Feb 2014 22:26:45 +0000
-Message-ID: <1392935204.20109.17.camel@x230>
-References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>
-	 <20140220201458.GA7099@sgi.com> <1392927381.20109.0.camel@x230>
-	 <20140220204028.GJ17949@sgi.com> <1392929163.20109.5.camel@x230>
-	 <20140220205901.GM17949@sgi.com> <1392930047.20109.6.camel@x230>
-	 <20140220212854.GO17949@sgi.com> <1392932363.20109.11.camel@x230>
-	 <20140220220656.GT17949@sgi.com>
+Date: Thu, 20 Feb 2014 16:45:29 -0600
+Message-ID: <20140220224529.GV17949@sgi.com>
+References: <20140220201458.GA7099@sgi.com> <1392927381.20109.0.camel@x230> <20140220204028.GJ17949@sgi.com> <1392929163.20109.5.camel@x230> <20140220205901.GM17949@sgi.com> <1392930047.20109.6.camel@x230> <20140220212854.GO17949@sgi.com> <1392932363.20109.11.camel@x230> <20140220220656.GT17949@sgi.com> <1392935204.20109.17.camel@x230>
+Reply-To: Russ Anderson <rja@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2lp0239.outbound.protection.outlook.com ([207.46.163.239]:40059
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+Received: from relay3.sgi.com ([192.48.152.1]:36490 "EHLO relay.sgi.com"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752412AbaBTW0s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Feb 2014 17:26:48 -0500
-In-Reply-To: <20140220220656.GT17949@sgi.com>
-Content-Language: en-US
-Content-ID: <A925D6350B0FB047B6F3A53B43B289A1@namprd05.prod.outlook.com>
+	id S1751522AbaBTWpb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Feb 2014 17:45:31 -0500
+Content-Disposition: inline
+In-Reply-To: <1392935204.20109.17.camel@x230>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "rja@sgi.com" <rja@sgi.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, rja@sgi.com
 
-T24gVGh1LCAyMDE0LTAyLTIwIGF0IDE2OjA2IC0wNjAwLCBSdXNzIEFuZGVyc29uIHdyb3RlOg0K
-PiBPbiBUaHUsIEZlYiAyMCwgMjAxNCBhdCAwOTozOToyM1BNICswMDAwLCBNYXR0aGV3IEdhcnJl
-dHQgd3JvdGU6DQo+ID4gT24gVGh1LCAyMDE0LTAyLTIwIGF0IDE1OjI4IC0wNjAwLCBSdXNzIEFu
-ZGVyc29uIHdyb3RlOg0KPiA+IA0KPiA+ID4gRm9yIHNvbWUgY3VzdG9tZXJzIF9hbnlfIGFtb3Vu
-dCBpcyBzaWduaWZpY2FudCwgZXNwZWNpYWxseQ0KPiA+ID4gb24gbGFyZ2UgY2x1c3RlcmVkIHN5
-c3RlbXMgd2hlcmUgdGhlIGFtb3VudCBpcyBtdWx0aXBsaWVkDQo+ID4gPiBieSB0ZW5zIG9yIGh1
-bmRyZWRzIG9mIHRob3VzYW5kcyBvZiBub2Rlcy4NCj4gPiA+IA0KPiA+ID4gWW91IG1hbnkgbm90
-IHRoaW5rIHdhc3RpbmcgdGhlaXIgY3B1IGN5Y2xlcyBpcyBpbXBvcnRhbnQsIGJ1dCB0aGV5IGRv
-Lg0KPiA+IA0KPiA+IFRoZW4gdGhleSBzaG91bGQgYmUgcnVubmluZyBsb2NhbGx5IGJ1aWx0IGtl
-cm5lbHMgaW4gb3JkZXIgdG8gZW5zdXJlDQo+IA0KPiBXaHkgZG9uJ3QgWU9VIHJ1biBhIGxvY2Fs
-bHkgYnVpbHQga2VybmVsPw0KDQpCZWNhdXNlIEknbSB0cnlpbmcgdG8gZW5zdXJlIHRoYXQgdGhl
-IGRlZmF1bHQgYmVoYXZpb3VyIG9mIHRoZSBrZXJuZWwgaXMNCnRvICp3b3JrKi4gRGVmYXVsdGlu
-ZyB0byBoYXZpbmcgSVBNSSBiZSBtb2R1bGFyIG1lYW5zIHRoYXQgdGhlIGRlZmF1bHQNCmJlaGF2
-aW91ciBvZiB0aGUga2VybmVsLCBhcyBmYXIgYXMgdGhlIEFDUEkgc3BlYyBnb2VzLCBpcyB0byBi
-ZSBicm9rZW4uDQoNCj4+IElmIHlvdSBoYXZlIHNwZWNpZmljIGJ1ZyByZXBvcnRzLCB0aGF0IHdv
-dWxkIGJlIGhlbHBmdWwuIEJ1dCB5b3UncmUgbm90DQo+ID4gZGVzY3JpYmluZyBhY3R1YWwgZmFp
-bHVyZSBjb25kaXRpb25zIG9yIHNob3dpbmcgYW55IHdpbGxpbmduZXNzIHRvDQo+ID4gZmlndXJl
-IG91dCB3aGF0IHRoZSB1bmRlcmx5aW5nIHByb2JsZW0gaXMuDQo+IA0KPiBZb3UgY2FuJ3QgZml4
-IHlvdXIgcHJvYmxlbSB3aXRob3V0IGNyZWF0aW5nIHByb2JsZW1zIGZvcg0KPiBvdGhlcnMgdG8g
-Zml4Pw0KDQpBQ1BJIDQuMCBpbmNsdWRlcyBzdXBwb3J0IGZvciBJUE1JIG9wZXJhdGlvbiByZWdp
-b25zLiBNb2R1bGFyIElQTUkgbWVhbnMNCnRoYXQgdGhlIGtlcm5lbCB3aWxsIHNwZW5kIGEgc2ln
-bmlmaWNhbnQgYW1vdW50IG9mIHRpbWUgKHBvdGVudGlhbGx5DQp1bnRpbCBhIHVzZXIgbWFudWFs
-bHkgbG9hZHMgYSBkcml2ZXIpIGZhaWxpbmcgdG8gaW1wbGVtZW50IHBhcnQgb2YgdGhlDQpJUE1J
-IHNwZWNpZmljYXRpb24uIFRoYXQncyBhIHByb2JsZW0sIGFuZCB0aGUgY29ycmVjdCBmaXggaXMg
-dG8gZW5zdXJlDQp0aGF0IHRoZSBrZXJuZWwgYWx3YXlzIGltcGxlbWVudHMgSVBNSSBzdXBwb3J0
-Lg0KDQpOb3csIHlvdSd2ZSBkZXNjcmliZWQgc29tZSBvdGhlciBwcm9ibGVtcy4gSSBkb24ndCBk
-aXNhZ3JlZSB0aGF0IHRob3NlDQphcmUgcHJvYmxlbXMuIFRoZSBjb3JyZWN0IHRoaW5nIGZvciB1
-cyB0byBkbyB3aXRoIHRob3NlIHByb2JsZW1zIGlzIHRvDQpmaXggdGhlbSwgbm90IHRvIHNpbXBs
-eSBjaGFuZ2UgdGhlIGtlcm5lbCBkZWZhdWx0cyBzdWNoIHRoYXQgaXQncw0KcG9zc2libGUgZm9y
-IHVzZXJzIHRvIGNob29zZSBiZXR3ZWVuIHR3byBkaWZmZXJlbnRseSBicm9rZW4gc3RhdGVzLiBJ
-J20NCmFic29sdXRlbHkgd2lsbGluZyB0byBoZWxwLCBhcyBsb25nIGFzIHlvdSdyZSB3aWxsaW5n
-IHRvIHB1dCBzb21lDQpyZWFzb25hYmxlIGFtb3VudCBvZiBlZmZvcnQgaW50byBkZXNjcmliaW5n
-IHRoZW0uDQoNCi0tIA0KTWF0dGhldyBHYXJyZXR0IDxtYXR0aGV3LmdhcnJldHRAbmVidWxhLmNv
-bT4NCg==
+On Thu, Feb 20, 2014 at 10:26:45PM +0000, Matthew Garrett wrote:
+> On Thu, 2014-02-20 at 16:06 -0600, Russ Anderson wrote:
+> > On Thu, Feb 20, 2014 at 09:39:23PM +0000, Matthew Garrett wrote:
+> > > On Thu, 2014-02-20 at 15:28 -0600, Russ Anderson wrote:
+> > > 
+> > > > For some customers _any_ amount is significant, especially
+> > > > on large clustered systems where the amount is multiplied
+> > > > by tens or hundreds of thousands of nodes.
+> > > > 
+> > > > You many not think wasting their cpu cycles is important, but they do.
+> > > 
+> > > Then they should be running locally built kernels in order to ensure
+> > 
+> > Why don't YOU run a locally built kernel?
+> 
+> Because I'm trying to ensure that the default behaviour of the kernel is
+> to *work*. Defaulting to having IPMI be modular means that the default
+> behaviour of the kernel, as far as the ACPI spec goes, is to be broken.
+
+The ACPI spec requires IPMI functionality before a module loads at
+boot time?  And the kernel is *broken* if it does not support ACIP IPMI
+functionality before module load time?  Really?
+
+
+> >> If you have specific bug reports, that would be helpful. But you're not
+> > > describing actual failure conditions or showing any willingness to
+> > > figure out what the underlying problem is.
+> > 
+> > You can't fix your problem without creating problems for
+> > others to fix?
+> 
+> ACPI 4.0 includes support for IPMI operation regions. Modular IPMI means
+> that the kernel will spend a significant amount of time (potentially
+> until a user manually loads a driver) failing to implement part of the
+> IPMI specification. That's a problem, and the correct fix is to ensure
+> that the kernel always implements IPMI support.
+
+The ACPI spec says ipmi_si cannot be a driver?  Really?
+What is the real problem you are trying to solve?
+
+
+> Now, you've described some other problems. I don't disagree that those
+> are problems. The correct thing for us to do with those problems is to
+> fix them, not to simply change the kernel defaults such that it's
+> possible for users to choose between two differently broken states. I'm
+> absolutely willing to help, as long as you're willing to put some
+> reasonable amount of effort into describing them.
+
+How about ACPI IPMI functionality starts when the ipmi_si
+module loads at boot time.  
+
+-- 
+Russ Anderson,  Kernel and Performance Software Team Manager
+SGI - Silicon Graphics Inc          rja@sgi.com
