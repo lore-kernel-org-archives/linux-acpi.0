@@ -1,115 +1,180 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/3] PM / sleep: New flag to speed up suspend-resume of suspended devices
-Date: Thu, 20 Feb 2014 02:42:38 +0100
-Message-ID: <2436342.FaiucBZtkf@vostro.rjw.lan>
-References: <Pine.LNX.4.44L0.1402191137350.1133-100000@iolanthe.rowland.org> <1757715.oeT3oQZ2Zz@vostro.rjw.lan>
+Subject: [Update][PATCH 6/9] ACPI / ATA: Add hotplug contexts to ACPI companions of SATA devices
+Date: Thu, 20 Feb 2014 02:47:19 +0100
+Message-ID: <5317534.79aoyQFAO7@vostro.rjw.lan>
+References: <3011875.q18rCmXyYX@vostro.rjw.lan> <1707532.0BItEHDuFB@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52173 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752022AbaBTB1q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Feb 2014 20:27:46 -0500
-In-Reply-To: <1757715.oeT3oQZ2Zz@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1707532.0BItEHDuFB@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Thursday, February 20, 2014 02:23:30 AM Rafael J. Wysocki wrote:
-> On Wednesday, February 19, 2014 12:01:20 PM Alan Stern wrote:
-> > On Mon, 17 Feb 2014, Rafael J. Wysocki wrote:
-> > 
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > 
-> > > Currently, some subsystems (e.g. PCI and the ACPI PM domain) have to
-> > > resume all runtime-suspended devices during system suspend, mostly
-> > > because those devices may need to be reprogrammed due to different
-> > > wakeup settings for system sleep and for runtime PM.  However, at
-> > > least in some cases, that isn't really necessary, because the wakeup
-> > > settings may not be really different.
-> > > 
-> > > The idea here is that subsystems should know whether or not it is
-> > > necessary to reprogram a given device during system suspend and they
-> > > should be able to tell the PM core about that.  For this reason,
-> > > modify the PM core so that if the .prepare() callback returns a
-> > > positive value for certain device, the core will set a new
-> > > power.fast_suspend flag for it.  Then, if that flag is set, the core
-> > > will skip all of the subsequent suspend callbacks for that device.
-> > > It also will skip all of the system resume callbacks for the device
-> > > during the subsequent system resume and pm_request_resume() will be
-> > > executed to trigger a runtime PM resume of the device after the
-> > > system device resume sequence has been finished.
-> 
-> I was worried that you wouldn't comment at all. ;-)
-> 
-> > Does the PM core really need to get involved in this?
-> 
-> Yes, it does, in my opinion, and the reason is because it may be necessary
-> to resume parents in order to reprogram their children and the parents and
-> the children may be on different bus types.
-> 
-> > Can't the subsystem do the right thing on its own?
-> 
-> No, I don't think so.
-> 
-> > In the USB subsystem, the .suspend routine checks the required wakeup
-> > settings.  If they are different for runtime suspend and system
-> > suspend, and if the device is runtime suspended, then we call
-> > pm_runtime_resume.  After that, if the device is still in runtime
-> > suspend then we return immediately.
-> > 
-> > Of course, this addresses only the suspend side of the issue.  Skipping 
-> > the resume callbacks is a separate matter, and the USB subsystem 
-> > doesn't try to do it.  Still, I don't see any reason why we couldn't 
-> > take care of that as well.
-> 
-> What about USB controllers that are PCI devices?
-> 
-> > > However, since parents may need to be resumed so that their children
-> > > can be reprogrammed, make the PM core clear power.fast_suspend for
-> > > devices whose children don't have power.fast_suspend set (the
-> > > power.ignore_children flag doesn't matter here, because a parent
-> > > whose children are normally ignored for runtime PM may still need to
-> > > be accessible for their children to be prepare for system suspend
-> > > properly).
-> > 
-> > I have run across a similar issue.  It's a general problem that a
-> > device may try to remain in runtime suspend during a system resume, but
-> > a descendant of the device may need to perform I/O as part of its own
-> > resume routine.  A natural solution would be to use the regular runtime
-> > PM facilities to wake up the device.  But since the PM work queue is
-> > frozen, we can't rely on pm_runtime_get or the equivalent.  I'm not
-> > sure what the best solution will be.
-> 
-> We can rely on pm_runtime_get_sync(), though, which would be the right thing to
-> use here.
-> 
-> However, given that the parent's .prepare() has run already, I'm not sure
-> if we want runtime PM to be involved at all.
-> 
-> > After a quick look, I noticed a couple of questionable things in this
-> > patch.  This is after reading just the second half...
-> > 
-> > > @@ -1296,8 +1301,10 @@ static int __device_suspend(struct devic
-> > >  	 * for it, this is equivalent to the device signaling wakeup, so the
-> > >  	 * system suspend operation should be aborted.
-> > >  	 */
-> > > -	if (pm_runtime_barrier(dev) && device_may_wakeup(dev))
-> > > +	if (pm_runtime_barrier(dev) && device_may_wakeup(dev)) {
-> > >  		pm_wakeup_event(dev, 0);
-> > > +		dev->power.fast_suspend = false;
-> > > +	}
-> > 
-> > Is this change needed?  We're aborting the sleep transition anyway, 
-> > right?
-> 
-> Yes, we are.  The goal was to ensure that power.fast_suspend would be cleared
-> in that case, but dpm_resume_end() should take care of this anyway.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Sorry, I wanted to say "the clearing of it in device_prepare()", not sure why
-I mentioned dpm_resume_end().  Well, maybe I'm too tired ...
+Modify the SATA subsystem to add hotplug contexts to ACPI companions
+of SATA devices and ports instead of registering special ACPI dock
+operations using register_hotplug_dock_device().
 
+That change will allow the entire code handling those special ACPI
+dock operations to be dropped in the next commit.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+As noted by Aaron, the hotplug contexts are not freed during ATA device
+unregistration, but that is not necessary, because the struct acpi_device
+things they are attached to never go away.  However, they obviously should
+not be created more than once per struct acpi_device, so I've modified the
+patch to skip the creation of hotplug contexts for devices that already
+have them.
+
+Thanks,
 Rafael
 
+---
+ drivers/ata/libata-acpi.c |   76 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 49 insertions(+), 27 deletions(-)
+
+Index: linux-pm/drivers/ata/libata-acpi.c
+===================================================================
+--- linux-pm.orig/drivers/ata/libata-acpi.c
++++ linux-pm/drivers/ata/libata-acpi.c
+@@ -38,6 +38,16 @@ static void ata_acpi_clear_gtf(struct at
+ 	dev->gtf_cache = NULL;
+ }
+ 
++struct ata_acpi_hotplug_context {
++	struct acpi_hotplug_context hp;
++	union {
++		struct ata_port *ap;
++		struct ata_device *dev;
++	} data;
++};
++
++#define ata_hotplug_data(context) (container_of((context), struct ata_acpi_hotplug_context, hp)->data)
++
+ /**
+  * ata_dev_acpi_handle - provide the acpi_handle for an ata_device
+  * @dev: the acpi_handle returned will correspond to this device
+@@ -121,18 +131,17 @@ static void ata_acpi_handle_hotplug(stru
+ 		ata_port_wait_eh(ap);
+ }
+ 
+-static void ata_acpi_dev_notify_dock(acpi_handle handle, u32 event, void *data)
++static int ata_acpi_dev_notify_dock(struct acpi_device *adev, u32 event)
+ {
+-	struct ata_device *dev = data;
+-
++	struct ata_device *dev = ata_hotplug_data(adev->hp).dev;
+ 	ata_acpi_handle_hotplug(dev->link->ap, dev, event);
++	return 0;
+ }
+ 
+-static void ata_acpi_ap_notify_dock(acpi_handle handle, u32 event, void *data)
++static int ata_acpi_ap_notify_dock(struct acpi_device *adev, u32 event)
+ {
+-	struct ata_port *ap = data;
+-
+-	ata_acpi_handle_hotplug(ap, NULL, event);
++	ata_acpi_handle_hotplug(ata_hotplug_data(adev->hp).ap, NULL, event);
++	return 0;
+ }
+ 
+ static void ata_acpi_uevent(struct ata_port *ap, struct ata_device *dev,
+@@ -154,31 +163,23 @@ static void ata_acpi_uevent(struct ata_p
+ 	}
+ }
+ 
+-static void ata_acpi_ap_uevent(acpi_handle handle, u32 event, void *data)
++static void ata_acpi_ap_uevent(struct acpi_device *adev, u32 event)
+ {
+-	ata_acpi_uevent(data, NULL, event);
++	ata_acpi_uevent(ata_hotplug_data(adev->hp).ap, NULL, event);
+ }
+ 
+-static void ata_acpi_dev_uevent(acpi_handle handle, u32 event, void *data)
++static void ata_acpi_dev_uevent(struct acpi_device *adev, u32 event)
+ {
+-	struct ata_device *dev = data;
++	struct ata_device *dev = ata_hotplug_data(adev->hp).dev;
+ 	ata_acpi_uevent(dev->link->ap, dev, event);
+ }
+ 
+-static const struct acpi_dock_ops ata_acpi_dev_dock_ops = {
+-	.handler = ata_acpi_dev_notify_dock,
+-	.uevent = ata_acpi_dev_uevent,
+-};
+-
+-static const struct acpi_dock_ops ata_acpi_ap_dock_ops = {
+-	.handler = ata_acpi_ap_notify_dock,
+-	.uevent = ata_acpi_ap_uevent,
+-};
+-
+ /* bind acpi handle to pata port */
+ void ata_acpi_bind_port(struct ata_port *ap)
+ {
+ 	struct acpi_device *host_companion = ACPI_COMPANION(ap->host->dev);
++	struct acpi_device *adev;
++	struct ata_acpi_hotplug_context *context;
+ 
+ 	if (libata_noacpi || ap->flags & ATA_FLAG_ACPI_SATA || !host_companion)
+ 		return;
+@@ -188,9 +189,19 @@ void ata_acpi_bind_port(struct ata_port
+ 	if (ata_acpi_gtm(ap, &ap->__acpi_init_gtm) == 0)
+ 		ap->pflags |= ATA_PFLAG_INIT_GTM_VALID;
+ 
+-	/* we might be on a docking station */
+-	register_hotplug_dock_device(ACPI_HANDLE(&ap->tdev),
+-				     &ata_acpi_ap_dock_ops, ap, NULL, NULL);
++	adev = ACPI_COMPANION(&ap->tdev);
++	if (!adev || adev->hp)
++		return;
++
++	context = kzalloc(sizeof(*context), GFP_KERNEL);
++	if (!context)
++		return;
++
++	context->data.ap = ap;
++	acpi_lock_hp_context();
++	acpi_set_hp_context(adev, &context->hp, ata_acpi_ap_notify_dock,
++			    ata_acpi_ap_uevent, NULL);
++	acpi_unlock_hp_context();
+ }
+ 
+ void ata_acpi_bind_dev(struct ata_device *dev)
+@@ -198,7 +209,8 @@ void ata_acpi_bind_dev(struct ata_device
+ 	struct ata_port *ap = dev->link->ap;
+ 	struct acpi_device *port_companion = ACPI_COMPANION(&ap->tdev);
+ 	struct acpi_device *host_companion = ACPI_COMPANION(ap->host->dev);
+-	struct acpi_device *parent;
++	struct acpi_device *parent, *adev;
++	struct ata_acpi_hotplug_context *context;
+ 	u64 adr;
+ 
+ 	/*
+@@ -221,9 +233,19 @@ void ata_acpi_bind_dev(struct ata_device
+ 	}
+ 
+ 	acpi_preset_companion(&dev->tdev, parent, adr);
++	adev = ACPI_COMPANION(&dev->tdev);
++	if (!adev || adev->hp)
++		return;
++
++	context = kzalloc(sizeof(*context), GFP_KERNEL);
++	if (!context)
++		return;
+ 
+-	register_hotplug_dock_device(ata_dev_acpi_handle(dev),
+-				     &ata_acpi_dev_dock_ops, dev, NULL, NULL);
++	context->data.dev = dev;
++	acpi_lock_hp_context();
++	acpi_set_hp_context(adev, &context->hp, ata_acpi_dev_notify_dock,
++			    ata_acpi_dev_uevent, NULL);
++	acpi_unlock_hp_context();
+ }
+ 
+ /**
