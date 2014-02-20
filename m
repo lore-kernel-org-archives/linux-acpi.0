@@ -1,216 +1,90 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 1/3] PM / sleep: New flag to speed up suspend-resume of
- suspended devices
-Date: Thu, 20 Feb 2014 12:03:37 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1402201113070.888-100000@iolanthe.rowland.org>
-References: <1757715.oeT3oQZ2Zz@vostro.rjw.lan>
+From: Russ Anderson <rja@sgi.com>
+Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
+Date: Thu, 20 Feb 2014 14:14:58 -0600
+Message-ID: <20140220201458.GA7099@sgi.com>
+References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>
+Reply-To: Russ Anderson <rja@sgi.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:42532 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755286AbaBTRDi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Feb 2014 12:03:38 -0500
-In-Reply-To: <1757715.oeT3oQZ2Zz@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: minyard@acm.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Thu, 20 Feb 2014, Rafael J. Wysocki wrote:
+On Tue, Feb 18, 2014 at 11:28:29AM -0500, Matthew Garrett wrote:
+> The ACPI IPMI driver implements IPMI operation region support for the ACPI
+> core. Systems that declare ACPI operation regions may reference them at any
+> time, including during kernel initialisation. These accesses will fail
+> unless the ACPI IPMI driver is present, and undesirable system behaviour
+> may result. Set the default to Y in order to encourage distributions and
+> users to configure kernels to avoid awkward surprises.
 
-> On Wednesday, February 19, 2014 12:01:20 PM Alan Stern wrote:
-> > On Mon, 17 Feb 2014, Rafael J. Wysocki wrote:
-> > 
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > 
-> > > Currently, some subsystems (e.g. PCI and the ACPI PM domain) have to
-> > > resume all runtime-suspended devices during system suspend, mostly
-> > > because those devices may need to be reprogrammed due to different
-> > > wakeup settings for system sleep and for runtime PM.  However, at
-> > > least in some cases, that isn't really necessary, because the wakeup
-> > > settings may not be really different.
-> > > 
-> > > The idea here is that subsystems should know whether or not it is
-> > > necessary to reprogram a given device during system suspend and they
-> > > should be able to tell the PM core about that.  For this reason,
-> > > modify the PM core so that if the .prepare() callback returns a
-> > > positive value for certain device, the core will set a new
-> > > power.fast_suspend flag for it.  Then, if that flag is set, the core
-> > > will skip all of the subsequent suspend callbacks for that device.
-> > > It also will skip all of the system resume callbacks for the device
-> > > during the subsequent system resume and pm_request_resume() will be
-> > > executed to trigger a runtime PM resume of the device after the
-> > > system device resume sequence has been finished.
+No, please do not build the ipmi_si driver into the kernel.
+Not all systems want, or need, the ipmi_si driver.  
+
+The distro that added this change created all sorts of support
+problems.  Problems include kipmi0 spinning at 100% of cpu
+(creating a performance hit) and long boot delays (as the
+kernel tries to talk to a BMC that will never respond).
+It has been a big mess.
+
+Nacked-by: Russ Anderson <rja@sgi.com>
+
+
+> Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
+> ---
+> Actually, I guess we also want this on CONFIG_IPMI_HANDLER for least
+> surprise
 > 
-> I was worried that you wouldn't comment at all. ;-)
-
-Things have been pretty busy here for the last few weeks...
-
-> > Does the PM core really need to get involved in this?
+>  drivers/acpi/Kconfig      | 2 +-
+>  drivers/char/ipmi/Kconfig | 2 ++
+>  2 files changed, 3 insertions(+), 1 deletion(-)
 > 
-> Yes, it does, in my opinion, and the reason is because it may be necessary
-> to resume parents in order to reprogram their children and the parents and
-> the children may be on different bus types.
-
-Hmmm.  Reprogramming the children could refer to two different things:
-
-   (1)	Altering the child's wakeup settings before suspending it, or
-
-   (2)	Doing I/O to the child after resuming it.
-
-(1) is something we already have to deal with.  Generally, the child's
-subsystem or driver would simply call pm_runtime_get_sync, or something
-of the sort.  The parent would then be in the RPM_ACTIVE state when its
-->resume callback was invoked, so the rest of this discussion would not 
-apply.
-
-(2) is more difficult.  It is the reason why, in the original runtime 
-PM documentation, we suggested that system resume should wake up _all_ 
-devices, including those that were in runtime suspend before the system 
-sleep.
-
-If the child's subsystem or driver knows to call pm_runtime_get_sync
-before starting the I/O, then it should work out okay.  Trouble arises
-when the subsystem/driver _assumes_ that the parent is active.  This
-sounds like the sort of thing that could be fixed on a case-by-case
-basis: Simply remove that assumption from the child's subsystem/driver.  
-But I guess you want to set up a more structured solution.
-
-Note that this patch set really addresses two distinct issues: Skipping 
-the ->suspend callbacks if the device is already runtime suspended, and 
-skipping the ->resume callbacks.  In principle these are independent 
-decisions.
-
-> > Can't the subsystem do the right thing on its own?
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 4770de5..0e6aab9 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -162,7 +162,7 @@ config ACPI_PROCESSOR
+>  config ACPI_IPMI
+>  	tristate "IPMI"
+>  	depends on IPMI_SI
+> -	default n
+> +	default y
+>  	help
+>  	  This driver enables the ACPI to access the BMC controller. And it
+>  	  uses the IPMI request/response message to communicate with BMC
+> diff --git a/drivers/char/ipmi/Kconfig b/drivers/char/ipmi/Kconfig
+> index 0baa8fa..eea8464 100644
+> --- a/drivers/char/ipmi/Kconfig
+> +++ b/drivers/char/ipmi/Kconfig
+> @@ -5,6 +5,7 @@
+>  menuconfig IPMI_HANDLER
+>         tristate 'IPMI top-level message handler'
+>         depends on HAS_IOMEM
+> +       default y if ACPI
+>         help
+>           This enables the central IPMI message handler, required for IPMI
+>  	 to work.
+> @@ -45,6 +46,7 @@ config IPMI_DEVICE_INTERFACE
+>  
+>  config IPMI_SI
+>         tristate 'IPMI System Interface handler'
+> +       default y if ACPI
+>         help
+>           Provides a driver for System Interfaces (KCS, SMIC, BT).
+>  	 Currently, only KCS and SMIC are supported.  If
+> -- 
+> 1.8.5.3
 > 
-> No, I don't think so.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
-Well, certainly the subsystem could avoid doing anything in the
-->suspend callbacks, by returning immediately.  But skipping over the
-->resume callbacks is more problematic, because of case (2) above.
-
-> > In the USB subsystem, the .suspend routine checks the required wakeup
-> > settings.  If they are different for runtime suspend and system
-> > suspend, and if the device is runtime suspended, then we call
-> > pm_runtime_resume.  After that, if the device is still in runtime
-> > suspend then we return immediately.
-> > 
-> > Of course, this addresses only the suspend side of the issue.  Skipping 
-> > the resume callbacks is a separate matter, and the USB subsystem 
-> > doesn't try to do it.  Still, I don't see any reason why we couldn't 
-> > take care of that as well.
-> 
-> What about USB controllers that are PCI devices?
-
-The description above applies to USB devices, not USB controllers.  
-For PCI-based USB controllers, we currently assume that the controller
-is RPM_ACTIVE when the ->suspend callback is called.
-
-Of course, that assumption could be removed easily enough.
-
-> > I have run across a similar issue.  It's a general problem that a
-> > device may try to remain in runtime suspend during a system resume, but
-> > a descendant of the device may need to perform I/O as part of its own
-> > resume routine.  A natural solution would be to use the regular runtime
-> > PM facilities to wake up the device.  But since the PM work queue is
-> > frozen, we can't rely on pm_runtime_get or the equivalent.  I'm not
-> > sure what the best solution will be.
-> 
-> We can rely on pm_runtime_get_sync(), though, which would be the right thing to
-> use here.
-> 
-> However, given that the parent's .prepare() has run already, I'm not sure
-> if we want runtime PM to be involved at all.
-
-This is a decision we have to make.  At the start of a system resume, 
-we expect that the device is in a low-power state.  After the ->resume 
-callback returns, there is a choice.  The device could be back to full 
-power and marked RPM_ACTIVE.  Or it could remain in low power and be 
-marked RPM_SUSPENDED.  In the second alternative, it seems that runtime 
-PM is unavoidably involved.
-
-Are you primarily concerned about performing runtime PM actions before 
-calling the ->complete callback?  I don't think that will cause any 
-difficulties, but we could warn about it in the documentation.
-
-> > > @@ -1310,6 +1317,9 @@ static int __device_suspend(struct devic
-> > >  	dpm_watchdog_set(&wd, dev);
-> > >  	device_lock(dev);
-> > >  
-> > > +	if (dev->power.fast_suspend)
-> > > +		goto End;
-> > > +
-> > 
-> > What happens if dev->power.fast_suspend gets set following the .prepare
-> > callback, but then before __device_suspend runs, the device gets
-> > runtime resumed?
-> > 
-> > It looks like rpm_resume needs to clear the new flag.
-> 
-> I thought about that and came to the conclusion that that wasn't necessary.
-> 
-> There simply is no reason for devices with power.fast_suspend set to be
-> runtime-resumed after (or even during) dpm_prepare() other than while
-> resuming their children, in which case power.fast_suspend is going to be
-> cleared for the children and then for the parents too.
-> 
-> That *is* a little fragile, though.
-
-It's possible for the device to get a wakeup request.  If this happens, 
-it should cause the entire system sleep to be aborted, but depending on 
-that is also a little fragile.
-
-There's also the possibility of doing I/O to the child while the parent 
-is in runtime suspend (with ignore_children set).  These situations 
-tend to be idiosyncratic; it's hard to say anything about them in 
-general.
-
-> > > @@ -1358,9 +1368,14 @@ static int __device_suspend(struct devic
-> > >   End:
-> > >  	if (!error) {
-> > >  		dev->power.is_suspended = true;
-> > > -		if (dev->power.wakeup_path
-> > > -		    && dev->parent && !dev->parent->power.ignore_children)
-> > > -			dev->parent->power.wakeup_path = true;
-> > > +		if (dev->parent) {
-> > > +			if (!dev->parent->power.ignore_children
-> > > +			    && dev->power.wakeup_path)
-> > > +				dev->parent->power.wakeup_path = true;
-> > > +
-> > > +			if (!dev->power.fast_suspend)
-> > > +				dev->parent->power.fast_suspend = false;
-> > > +		}
-> > 
-> > On SMP systems with async suspend, this isn't safe.  Two threads should 
-> > not be allowed to write to bitfields in the same structure at the same 
-> > time.
-> 
-> Do I understand correctly that your concern is about suspending two
-> children of the same parent in parallel and one of them modifying
-> power.wakeup_path and the other modifying power.fast_suspend at the
-> same time?
-
-Yes, that's what I meant.
-
-> If so, that modification can be done under the parent's power.lock.
-
-That would avoid the problem.
-
-Overall, I'm not convinced about the need for the fast_suspend 
-mechanism.  I'm quite certain that the PM core doesn't need to get 
-involved in the decision about skipping ->suspend callbacks.
-
-The question of skipping ->resume callbacks is more complex.  In the
-end, it comes down to a question of leaving the device in runtime
-suspend during system resume -- whether this is happens because the PM
-core skips the ->resume callback or because the callback returns
-immediately is unimportant.
-
-So I think what we really need to do is discuss this last question more
-fully.  Case (2) can be tricky, and we may find that the device's
-subsystem doesn't have enough information to predict what the
-children's subsystems will do.
-
-Alan Stern
-
+-- 
+Russ Anderson,  Kernel and Performance Software Team Manager
+SGI - Silicon Graphics Inc          rja@sgi.com
