@@ -1,71 +1,51 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Thu, 20 Feb 2014 23:09:42 +0000
-Message-ID: <1392937781.20109.24.camel@x230>
-References: <20140220201458.GA7099@sgi.com> <1392927381.20109.0.camel@x230>
-	 <20140220204028.GJ17949@sgi.com> <1392929163.20109.5.camel@x230>
-	 <20140220205901.GM17949@sgi.com> <1392930047.20109.6.camel@x230>
-	 <20140220212854.GO17949@sgi.com> <1392932363.20109.11.camel@x230>
-	 <20140220220656.GT17949@sgi.com> <1392935204.20109.17.camel@x230>
-	 <20140220224529.GV17949@sgi.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Update][PATCH 6/9] ACPI / ATA: Add hotplug contexts to ACPI companions of SATA devices
+Date: Fri, 21 Feb 2014 00:59:50 +0100
+Message-ID: <4483557.ntKET9UxSY@vostro.rjw.lan>
+References: <3011875.q18rCmXyYX@vostro.rjw.lan> <5317534.79aoyQFAO7@vostro.rjw.lan> <20140220142639.GD6897@htj.dyndns.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1blp0184.outbound.protection.outlook.com ([207.46.163.184]:25671
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753770AbaBTXJs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Feb 2014 18:09:48 -0500
-In-Reply-To: <20140220224529.GV17949@sgi.com>
-Content-Language: en-US
-Content-ID: <A9FBAACA72062D4C9A931BA5299C4AAE@namprd05.prod.outlook.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:61723 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752911AbaBTXo6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Feb 2014 18:44:58 -0500
+In-Reply-To: <20140220142639.GD6897@htj.dyndns.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "rja@sgi.com" <rja@sgi.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Tejun Heo <tj@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Aaron Lu <aaron.lu@intel.com>
 
-T24gVGh1LCAyMDE0LTAyLTIwIGF0IDE2OjQ1IC0wNjAwLCBSdXNzIEFuZGVyc29uIHdyb3RlOg0K
-PiBPbiBUaHUsIEZlYiAyMCwgMjAxNCBhdCAxMDoyNjo0NVBNICswMDAwLCBNYXR0aGV3IEdhcnJl
-dHQgd3JvdGU6DQoNCj4gPiBCZWNhdXNlIEknbSB0cnlpbmcgdG8gZW5zdXJlIHRoYXQgdGhlIGRl
-ZmF1bHQgYmVoYXZpb3VyIG9mIHRoZSBrZXJuZWwgaXMNCj4gPiB0byAqd29yayouIERlZmF1bHRp
-bmcgdG8gaGF2aW5nIElQTUkgYmUgbW9kdWxhciBtZWFucyB0aGF0IHRoZSBkZWZhdWx0DQo+ID4g
-YmVoYXZpb3VyIG9mIHRoZSBrZXJuZWwsIGFzIGZhciBhcyB0aGUgQUNQSSBzcGVjIGdvZXMsIGlz
-IHRvIGJlIGJyb2tlbi4NCj4gDQo+IFRoZSBBQ1BJIHNwZWMgcmVxdWlyZXMgSVBNSSBmdW5jdGlv
-bmFsaXR5IGJlZm9yZSBhIG1vZHVsZSBsb2FkcyBhdA0KPiBib290IHRpbWU/ICBBbmQgdGhlIGtl
-cm5lbCBpcyAqYnJva2VuKiBpZiBpdCBkb2VzIG5vdCBzdXBwb3J0IEFDSVAgSVBNSQ0KPiBmdW5j
-dGlvbmFsaXR5IGJlZm9yZSBtb2R1bGUgbG9hZCB0aW1lPyAgUmVhbGx5Pw0KDQpUaGVyZSdzIG5v
-IG1lY2hhbmlzbSB0byBlbnN1cmUgdGhhdCBJUE1JIHN1cHBvcnQgd2lsbCBiZSBsb2FkZWQgYmVm
-b3JlDQpBQ1BJIGNhbGxzIGF0dGVtcHQgdG8gYWNjZXNzIElQTUkgb3BlcmF0aW9uIHJlZ2lvbnMu
-IFJlYWxseS4NCg0KPiA+IEFDUEkgNC4wIGluY2x1ZGVzIHN1cHBvcnQgZm9yIElQTUkgb3BlcmF0
-aW9uIHJlZ2lvbnMuIE1vZHVsYXIgSVBNSSBtZWFucw0KPiA+IHRoYXQgdGhlIGtlcm5lbCB3aWxs
-IHNwZW5kIGEgc2lnbmlmaWNhbnQgYW1vdW50IG9mIHRpbWUgKHBvdGVudGlhbGx5DQo+ID4gdW50
-aWwgYSB1c2VyIG1hbnVhbGx5IGxvYWRzIGEgZHJpdmVyKSBmYWlsaW5nIHRvIGltcGxlbWVudCBw
-YXJ0IG9mIHRoZQ0KPiA+IElQTUkgc3BlY2lmaWNhdGlvbi4gVGhhdCdzIGEgcHJvYmxlbSwgYW5k
-IHRoZSBjb3JyZWN0IGZpeCBpcyB0byBlbnN1cmUNCj4gPiB0aGF0IHRoZSBrZXJuZWwgYWx3YXlz
-IGltcGxlbWVudHMgSVBNSSBzdXBwb3J0Lg0KPiANCj4gVGhlIEFDUEkgc3BlYyBzYXlzIGlwbWlf
-c2kgY2Fubm90IGJlIGEgZHJpdmVyPyAgUmVhbGx5Pw0KPiBXaGF0IGlzIHRoZSByZWFsIHByb2Js
-ZW0geW91IGFyZSB0cnlpbmcgdG8gc29sdmU/DQoNClRoZSBtb3N0IHN0cmFpZ2h0Zm9yd2FyZCBj
-YXNlIGlzIHRoYXQgb2YgYW4gQUNQSSBwb3dlciBtZXRlci4gU2V2ZXJhbA0KdmVuZG9ycyBpbXBs
-ZW1lbnQgdGhpcyB3aXRoIGFuIElQTUkgb3BlcmF0aW9uIHJlZ2lvbi4gQ2FsbGluZyBhbnkgb2Yg
-dGhlDQpwb3dlciBtZXRlciBmdW5jdGlvbnMgd2lsbCB0cmlnZ2VyIGFjY2VzcyB0byB0aGF0IElQ
-TUkgb3BlcmF0aW9uIHJlZ2lvbiwNCndoaWNoIHdpbGwgZmFpbC4gVGhpcyBtYXkgcmVzdWx0IGlu
-IGRyaXZlciBpbml0aWFsaXNhdGlvbiBmYWlsaW5nLiBUaGVyZQ0KaXMgbm8gZXhwcmVzcyBkZXBl
-bmRlbmN5IGJldHdlZW4gdGhlIHBvd2VyIG1ldGVyIGRyaXZlciBhbmQgaXBtaV9zaSwNCmJlY2F1
-c2UgdGhlIHNwZWMgZW52aXNhZ2VzIElQTUkgc3VwcG9ydCBhcyBiYXNpYyBrZXJuZWwgZnVuY3Rp
-b25hbGl0eS4NCkl0J3MgbWVhbnQgdG8gYmUgdGhlcmUgYmVmb3JlIHlvdSBzdGFydCBsb2FkaW5n
-IGFueSBvdGhlciBkcml2ZXJzLg0KDQo+ID4gTm93LCB5b3UndmUgZGVzY3JpYmVkIHNvbWUgb3Ro
-ZXIgcHJvYmxlbXMuIEkgZG9uJ3QgZGlzYWdyZWUgdGhhdCB0aG9zZQ0KPiA+IGFyZSBwcm9ibGVt
-cy4gVGhlIGNvcnJlY3QgdGhpbmcgZm9yIHVzIHRvIGRvIHdpdGggdGhvc2UgcHJvYmxlbXMgaXMg
-dG8NCj4gPiBmaXggdGhlbSwgbm90IHRvIHNpbXBseSBjaGFuZ2UgdGhlIGtlcm5lbCBkZWZhdWx0
-cyBzdWNoIHRoYXQgaXQncw0KPiA+IHBvc3NpYmxlIGZvciB1c2VycyB0byBjaG9vc2UgYmV0d2Vl
-biB0d28gZGlmZmVyZW50bHkgYnJva2VuIHN0YXRlcy4gSSdtDQo+ID4gYWJzb2x1dGVseSB3aWxs
-aW5nIHRvIGhlbHAsIGFzIGxvbmcgYXMgeW91J3JlIHdpbGxpbmcgdG8gcHV0IHNvbWUNCj4gPiBy
-ZWFzb25hYmxlIGFtb3VudCBvZiBlZmZvcnQgaW50byBkZXNjcmliaW5nIHRoZW0uDQo+IA0KPiBI
-b3cgYWJvdXQgQUNQSSBJUE1JIGZ1bmN0aW9uYWxpdHkgc3RhcnRzIHdoZW4gdGhlIGlwbWlfc2kN
-Cj4gbW9kdWxlIGxvYWRzIGF0IGJvb3QgdGltZS4gIA0KDQpJJ3ZlIHJlcGVhdGVkbHkgYXNrZWQg
-Zm9yIHlvdSB0byBwcm92aWRlIGRldGFpbGVkIGRlc2NyaXB0aW9ucyBvZiB0aGUNCnByb2JsZW1z
-IHlvdSd2ZSBzZWVuIGJlY2F1c2UgSSBoYXZlIGEgZ2VudWluZSBpbnRlcmVzdCBpbiBmaXhpbmcg
-dGhlbS4NCklmIHlvdSdyZSBqdXN0IGdvaW5nIHRvIGNoaWxkaXNobHkgcmVmdXNlIHRoZW4gdGhp
-cyBkaXNjdXNzaW9uIGlzDQpwb2ludGxlc3MuIA0KDQotLSANCk1hdHRoZXcgR2FycmV0dCA8bWF0
-dGhldy5nYXJyZXR0QG5lYnVsYS5jb20+DQo=
+On Thursday, February 20, 2014 09:26:39 AM Tejun Heo wrote:
+> On Thu, Feb 20, 2014 at 02:47:19AM +0100, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > Modify the SATA subsystem to add hotplug contexts to ACPI companions
+> > of SATA devices and ports instead of registering special ACPI dock
+> > operations using register_hotplug_dock_device().
+> > 
+> > That change will allow the entire code handling those special ACPI
+> > dock operations to be dropped in the next commit.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> > 
+> > As noted by Aaron, the hotplug contexts are not freed during ATA device
+> > unregistration, but that is not necessary, because the struct acpi_device
+> > things they are attached to never go away.  However, they obviously should
+> > not be created more than once per struct acpi_device, so I've modified the
+> > patch to skip the creation of hotplug contexts for devices that already
+> > have them.
+> 
+> Please feel free to route with the rest of acpi changes.
+
+I will.
+
+>  Acked-by: Tejun Heo <tj@kernel.org>
+
+Thanks!
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
