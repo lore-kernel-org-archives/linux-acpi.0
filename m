@@ -1,43 +1,71 @@
-From: Russ Anderson <rja@sgi.com>
+From: Matthew Garrett <matthew.garrett@nebula.com>
 Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Thu, 20 Feb 2014 17:01:26 -0600
-Message-ID: <20140220230126.GA13558@sgi.com>
-References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>
-Reply-To: Russ Anderson <rja@sgi.com>
+Date: Thu, 20 Feb 2014 23:09:42 +0000
+Message-ID: <1392937781.20109.24.camel@x230>
+References: <20140220201458.GA7099@sgi.com> <1392927381.20109.0.camel@x230>
+	 <20140220204028.GJ17949@sgi.com> <1392929163.20109.5.camel@x230>
+	 <20140220205901.GM17949@sgi.com> <1392930047.20109.6.camel@x230>
+	 <20140220212854.GO17949@sgi.com> <1392932363.20109.11.camel@x230>
+	 <20140220220656.GT17949@sgi.com> <1392935204.20109.17.camel@x230>
+	 <20140220224529.GV17949@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay3.sgi.com ([192.48.152.1]:34041 "EHLO relay.sgi.com"
+Received: from mail-bn1blp0184.outbound.protection.outlook.com ([207.46.163.184]:25671
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751862AbaBTXBa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Feb 2014 18:01:30 -0500
-Content-Disposition: inline
-In-Reply-To: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>
+	id S1753770AbaBTXJs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Feb 2014 18:09:48 -0500
+In-Reply-To: <20140220224529.GV17949@sgi.com>
+Content-Language: en-US
+Content-ID: <A9FBAACA72062D4C9A931BA5299C4AAE@namprd05.prod.outlook.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: minyard@acm.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rja@sgi.com
+To: "rja@sgi.com" <rja@sgi.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Feb 18, 2014 at 11:28:29AM -0500, Matthew Garrett wrote:
-> The ACPI IPMI driver implements IPMI operation region support for the ACPI
-> core. Systems that declare ACPI operation regions may reference them at any
-> time, including during kernel initialisation. These accesses will fail
-> unless the ACPI IPMI driver is present, and undesirable system behaviour
-> may result. 
-
-Could you be more specific?  Is the problem kernel code
-trying to use IPMI functionality before the ipmi_si driver
-is loaded?  Or something else?
-
-What is the "undesirable system behaviour"?
-
-
-> Set the default to Y in order to encourage distributions and
-> users to configure kernels to avoid awkward surprises.
-
-What are the "awkward surprises"?
-
-Thanks,
--- 
-Russ Anderson,  Kernel and Performance Software Team Manager
-SGI - Silicon Graphics Inc          rja@sgi.com
+T24gVGh1LCAyMDE0LTAyLTIwIGF0IDE2OjQ1IC0wNjAwLCBSdXNzIEFuZGVyc29uIHdyb3RlOg0K
+PiBPbiBUaHUsIEZlYiAyMCwgMjAxNCBhdCAxMDoyNjo0NVBNICswMDAwLCBNYXR0aGV3IEdhcnJl
+dHQgd3JvdGU6DQoNCj4gPiBCZWNhdXNlIEknbSB0cnlpbmcgdG8gZW5zdXJlIHRoYXQgdGhlIGRl
+ZmF1bHQgYmVoYXZpb3VyIG9mIHRoZSBrZXJuZWwgaXMNCj4gPiB0byAqd29yayouIERlZmF1bHRp
+bmcgdG8gaGF2aW5nIElQTUkgYmUgbW9kdWxhciBtZWFucyB0aGF0IHRoZSBkZWZhdWx0DQo+ID4g
+YmVoYXZpb3VyIG9mIHRoZSBrZXJuZWwsIGFzIGZhciBhcyB0aGUgQUNQSSBzcGVjIGdvZXMsIGlz
+IHRvIGJlIGJyb2tlbi4NCj4gDQo+IFRoZSBBQ1BJIHNwZWMgcmVxdWlyZXMgSVBNSSBmdW5jdGlv
+bmFsaXR5IGJlZm9yZSBhIG1vZHVsZSBsb2FkcyBhdA0KPiBib290IHRpbWU/ICBBbmQgdGhlIGtl
+cm5lbCBpcyAqYnJva2VuKiBpZiBpdCBkb2VzIG5vdCBzdXBwb3J0IEFDSVAgSVBNSQ0KPiBmdW5j
+dGlvbmFsaXR5IGJlZm9yZSBtb2R1bGUgbG9hZCB0aW1lPyAgUmVhbGx5Pw0KDQpUaGVyZSdzIG5v
+IG1lY2hhbmlzbSB0byBlbnN1cmUgdGhhdCBJUE1JIHN1cHBvcnQgd2lsbCBiZSBsb2FkZWQgYmVm
+b3JlDQpBQ1BJIGNhbGxzIGF0dGVtcHQgdG8gYWNjZXNzIElQTUkgb3BlcmF0aW9uIHJlZ2lvbnMu
+IFJlYWxseS4NCg0KPiA+IEFDUEkgNC4wIGluY2x1ZGVzIHN1cHBvcnQgZm9yIElQTUkgb3BlcmF0
+aW9uIHJlZ2lvbnMuIE1vZHVsYXIgSVBNSSBtZWFucw0KPiA+IHRoYXQgdGhlIGtlcm5lbCB3aWxs
+IHNwZW5kIGEgc2lnbmlmaWNhbnQgYW1vdW50IG9mIHRpbWUgKHBvdGVudGlhbGx5DQo+ID4gdW50
+aWwgYSB1c2VyIG1hbnVhbGx5IGxvYWRzIGEgZHJpdmVyKSBmYWlsaW5nIHRvIGltcGxlbWVudCBw
+YXJ0IG9mIHRoZQ0KPiA+IElQTUkgc3BlY2lmaWNhdGlvbi4gVGhhdCdzIGEgcHJvYmxlbSwgYW5k
+IHRoZSBjb3JyZWN0IGZpeCBpcyB0byBlbnN1cmUNCj4gPiB0aGF0IHRoZSBrZXJuZWwgYWx3YXlz
+IGltcGxlbWVudHMgSVBNSSBzdXBwb3J0Lg0KPiANCj4gVGhlIEFDUEkgc3BlYyBzYXlzIGlwbWlf
+c2kgY2Fubm90IGJlIGEgZHJpdmVyPyAgUmVhbGx5Pw0KPiBXaGF0IGlzIHRoZSByZWFsIHByb2Js
+ZW0geW91IGFyZSB0cnlpbmcgdG8gc29sdmU/DQoNClRoZSBtb3N0IHN0cmFpZ2h0Zm9yd2FyZCBj
+YXNlIGlzIHRoYXQgb2YgYW4gQUNQSSBwb3dlciBtZXRlci4gU2V2ZXJhbA0KdmVuZG9ycyBpbXBs
+ZW1lbnQgdGhpcyB3aXRoIGFuIElQTUkgb3BlcmF0aW9uIHJlZ2lvbi4gQ2FsbGluZyBhbnkgb2Yg
+dGhlDQpwb3dlciBtZXRlciBmdW5jdGlvbnMgd2lsbCB0cmlnZ2VyIGFjY2VzcyB0byB0aGF0IElQ
+TUkgb3BlcmF0aW9uIHJlZ2lvbiwNCndoaWNoIHdpbGwgZmFpbC4gVGhpcyBtYXkgcmVzdWx0IGlu
+IGRyaXZlciBpbml0aWFsaXNhdGlvbiBmYWlsaW5nLiBUaGVyZQ0KaXMgbm8gZXhwcmVzcyBkZXBl
+bmRlbmN5IGJldHdlZW4gdGhlIHBvd2VyIG1ldGVyIGRyaXZlciBhbmQgaXBtaV9zaSwNCmJlY2F1
+c2UgdGhlIHNwZWMgZW52aXNhZ2VzIElQTUkgc3VwcG9ydCBhcyBiYXNpYyBrZXJuZWwgZnVuY3Rp
+b25hbGl0eS4NCkl0J3MgbWVhbnQgdG8gYmUgdGhlcmUgYmVmb3JlIHlvdSBzdGFydCBsb2FkaW5n
+IGFueSBvdGhlciBkcml2ZXJzLg0KDQo+ID4gTm93LCB5b3UndmUgZGVzY3JpYmVkIHNvbWUgb3Ro
+ZXIgcHJvYmxlbXMuIEkgZG9uJ3QgZGlzYWdyZWUgdGhhdCB0aG9zZQ0KPiA+IGFyZSBwcm9ibGVt
+cy4gVGhlIGNvcnJlY3QgdGhpbmcgZm9yIHVzIHRvIGRvIHdpdGggdGhvc2UgcHJvYmxlbXMgaXMg
+dG8NCj4gPiBmaXggdGhlbSwgbm90IHRvIHNpbXBseSBjaGFuZ2UgdGhlIGtlcm5lbCBkZWZhdWx0
+cyBzdWNoIHRoYXQgaXQncw0KPiA+IHBvc3NpYmxlIGZvciB1c2VycyB0byBjaG9vc2UgYmV0d2Vl
+biB0d28gZGlmZmVyZW50bHkgYnJva2VuIHN0YXRlcy4gSSdtDQo+ID4gYWJzb2x1dGVseSB3aWxs
+aW5nIHRvIGhlbHAsIGFzIGxvbmcgYXMgeW91J3JlIHdpbGxpbmcgdG8gcHV0IHNvbWUNCj4gPiBy
+ZWFzb25hYmxlIGFtb3VudCBvZiBlZmZvcnQgaW50byBkZXNjcmliaW5nIHRoZW0uDQo+IA0KPiBI
+b3cgYWJvdXQgQUNQSSBJUE1JIGZ1bmN0aW9uYWxpdHkgc3RhcnRzIHdoZW4gdGhlIGlwbWlfc2kN
+Cj4gbW9kdWxlIGxvYWRzIGF0IGJvb3QgdGltZS4gIA0KDQpJJ3ZlIHJlcGVhdGVkbHkgYXNrZWQg
+Zm9yIHlvdSB0byBwcm92aWRlIGRldGFpbGVkIGRlc2NyaXB0aW9ucyBvZiB0aGUNCnByb2JsZW1z
+IHlvdSd2ZSBzZWVuIGJlY2F1c2UgSSBoYXZlIGEgZ2VudWluZSBpbnRlcmVzdCBpbiBmaXhpbmcg
+dGhlbS4NCklmIHlvdSdyZSBqdXN0IGdvaW5nIHRvIGNoaWxkaXNobHkgcmVmdXNlIHRoZW4gdGhp
+cyBkaXNjdXNzaW9uIGlzDQpwb2ludGxlc3MuIA0KDQotLSANCk1hdHRoZXcgR2FycmV0dCA8bWF0
+dGhldy5nYXJyZXR0QG5lYnVsYS5jb20+DQo=
