@@ -1,180 +1,92 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [Update][PATCH 6/9] ACPI / ATA: Add hotplug contexts to ACPI companions of SATA devices
-Date: Thu, 20 Feb 2014 02:47:19 +0100
-Message-ID: <5317534.79aoyQFAO7@vostro.rjw.lan>
-References: <3011875.q18rCmXyYX@vostro.rjw.lan> <1707532.0BItEHDuFB@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH v4 5/5] ACPI: Replace printk with pr_* in
+ tables.c
+Date: Thu, 20 Feb 2014 10:10:49 +0800
+Message-ID: <53056429.8030705@linaro.org>
+References: <1392731700-10992-1-git-send-email-hanjun.guo@linaro.org> <2341500.Z47JjkFCMP@vostro.rjw.lan> <5304DFDB.6020202@arm.com> <1624648.FYgVXnCCsW@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1707532.0BItEHDuFB@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lu@intel.com>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:65084 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752095AbaBTCK5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Feb 2014 21:10:57 -0500
+Received: by mail-pa0-f47.google.com with SMTP id kp14so1225871pab.34
+        for <linux-acpi@vger.kernel.org>; Wed, 19 Feb 2014 18:10:56 -0800 (PST)
+In-Reply-To: <1624648.FYgVXnCCsW@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <Sudeep.Holla@arm.com>, Lan Tianyu <tianyu.lan@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 2014=E5=B9=B402=E6=9C=8820=E6=97=A5 08:37, Rafael J. Wysocki wrote:
+> On Wednesday, February 19, 2014 04:46:19 PM Sudeep Holla wrote:
+>> On 19/02/14 16:49, Rafael J. Wysocki wrote:
+>>> On Wednesday, February 19, 2014 04:32:34 PM Sudeep Holla wrote:
+>>>> On 18/02/14 13:55, Hanjun Guo wrote:
+>>>>> This patch just do some clean up to replace printk with pr_*,
+>>>>> no functional change.
+>>>>>
+>>>> Any particular reason for choosing just this file in this series ?
 
-Modify the SATA subsystem to add hotplug contexts to ACPI companions
-of SATA devices and ports instead of registering special ACPI dock
-operations using register_hotplug_dock_device().
+Yes, the reason is that I will update this file in my next patch set=20
+(ARM64 ACPI core) with
+pr_*, in order to keep  consistency, I updated them all in this file fi=
+rst.
 
-That change will allow the entire code handling those special ACPI
-dock operations to be dropped in the next commit.
+>>>> It seems but off-topic in this series. The printk format is same i=
+n almost all
+>>>> other acpi files and it's better to change all or none for consist=
+ency.
+>>> Well, it's fine, I can put it into a different branch in any case. =
+:-)
+>>>
+>>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>> ---
+>>>>>   drivers/acpi/tables.c |   51 +++++++++++++++++++---------------=
+---------------
+>>>>>   1 file changed, 20 insertions(+), 31 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+>>>>> index 5837f85..97bc6df 100644
+>>>>> --- a/drivers/acpi/tables.c
+>>>>> +++ b/drivers/acpi/tables.c
+>>>>> @@ -55,8 +55,7 @@ void acpi_table_print_madt_entry(struct acpi_su=
+btable_header *header)
+>>>>>   		{
+>>>>>   			struct acpi_madt_local_apic *p =3D
+>>>>>   			    (struct acpi_madt_local_apic *)header;
+>>>>> -			printk(KERN_INFO PREFIX
+>>>>> -			       "LAPIC (acpi_id[0x%02x] lapic_id[0x%02x] %s)\n",
+>>>>> +			pr_info(PREFIX "LAPIC (acpi_id[0x%02x] lapic_id[0x%02x] %s)\n=
+",
+>>>> You can even get rid of PREFIX by defining pr_fmt instead.
+>>> But this is a good point.
+>>>
+>>>> If the intention is to move to pr_* format it's better to have thi=
+s as separate
+>>>> patch and convert all of them.
+>>> Well, not really.  One file at a time is OK too.
+>>>
+>> No what I meant was to convert all for consistency, not in a single =
+patch.
+>> As I was playing with regex for few minutes, with few patterns was a=
+ble to fix
+>> most(not all) of them. It even compiles :) for x86. But turns out to=
+ be a big
+>> churn :( [43 files changed, 253 insertions(+), 329 deletions(-)]
+> Well, precisely.  That's why I'd prefer doing that gradually.
+>
+> That said I'll just drop the patch for now due to the PREFIX thing.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+I will update this patch accordingly and send it out soon.
 
-As noted by Aaron, the hotplug contexts are not freed during ATA device
-unregistration, but that is not necessary, because the struct acpi_device
-things they are attached to never go away.  However, they obviously should
-not be created more than once per struct acpi_device, so I've modified the
-patch to skip the creation of hotplug contexts for devices that already
-have them.
-
-Thanks,
-Rafael
-
----
- drivers/ata/libata-acpi.c |   76 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 49 insertions(+), 27 deletions(-)
-
-Index: linux-pm/drivers/ata/libata-acpi.c
-===================================================================
---- linux-pm.orig/drivers/ata/libata-acpi.c
-+++ linux-pm/drivers/ata/libata-acpi.c
-@@ -38,6 +38,16 @@ static void ata_acpi_clear_gtf(struct at
- 	dev->gtf_cache = NULL;
- }
- 
-+struct ata_acpi_hotplug_context {
-+	struct acpi_hotplug_context hp;
-+	union {
-+		struct ata_port *ap;
-+		struct ata_device *dev;
-+	} data;
-+};
-+
-+#define ata_hotplug_data(context) (container_of((context), struct ata_acpi_hotplug_context, hp)->data)
-+
- /**
-  * ata_dev_acpi_handle - provide the acpi_handle for an ata_device
-  * @dev: the acpi_handle returned will correspond to this device
-@@ -121,18 +131,17 @@ static void ata_acpi_handle_hotplug(stru
- 		ata_port_wait_eh(ap);
- }
- 
--static void ata_acpi_dev_notify_dock(acpi_handle handle, u32 event, void *data)
-+static int ata_acpi_dev_notify_dock(struct acpi_device *adev, u32 event)
- {
--	struct ata_device *dev = data;
--
-+	struct ata_device *dev = ata_hotplug_data(adev->hp).dev;
- 	ata_acpi_handle_hotplug(dev->link->ap, dev, event);
-+	return 0;
- }
- 
--static void ata_acpi_ap_notify_dock(acpi_handle handle, u32 event, void *data)
-+static int ata_acpi_ap_notify_dock(struct acpi_device *adev, u32 event)
- {
--	struct ata_port *ap = data;
--
--	ata_acpi_handle_hotplug(ap, NULL, event);
-+	ata_acpi_handle_hotplug(ata_hotplug_data(adev->hp).ap, NULL, event);
-+	return 0;
- }
- 
- static void ata_acpi_uevent(struct ata_port *ap, struct ata_device *dev,
-@@ -154,31 +163,23 @@ static void ata_acpi_uevent(struct ata_p
- 	}
- }
- 
--static void ata_acpi_ap_uevent(acpi_handle handle, u32 event, void *data)
-+static void ata_acpi_ap_uevent(struct acpi_device *adev, u32 event)
- {
--	ata_acpi_uevent(data, NULL, event);
-+	ata_acpi_uevent(ata_hotplug_data(adev->hp).ap, NULL, event);
- }
- 
--static void ata_acpi_dev_uevent(acpi_handle handle, u32 event, void *data)
-+static void ata_acpi_dev_uevent(struct acpi_device *adev, u32 event)
- {
--	struct ata_device *dev = data;
-+	struct ata_device *dev = ata_hotplug_data(adev->hp).dev;
- 	ata_acpi_uevent(dev->link->ap, dev, event);
- }
- 
--static const struct acpi_dock_ops ata_acpi_dev_dock_ops = {
--	.handler = ata_acpi_dev_notify_dock,
--	.uevent = ata_acpi_dev_uevent,
--};
--
--static const struct acpi_dock_ops ata_acpi_ap_dock_ops = {
--	.handler = ata_acpi_ap_notify_dock,
--	.uevent = ata_acpi_ap_uevent,
--};
--
- /* bind acpi handle to pata port */
- void ata_acpi_bind_port(struct ata_port *ap)
- {
- 	struct acpi_device *host_companion = ACPI_COMPANION(ap->host->dev);
-+	struct acpi_device *adev;
-+	struct ata_acpi_hotplug_context *context;
- 
- 	if (libata_noacpi || ap->flags & ATA_FLAG_ACPI_SATA || !host_companion)
- 		return;
-@@ -188,9 +189,19 @@ void ata_acpi_bind_port(struct ata_port
- 	if (ata_acpi_gtm(ap, &ap->__acpi_init_gtm) == 0)
- 		ap->pflags |= ATA_PFLAG_INIT_GTM_VALID;
- 
--	/* we might be on a docking station */
--	register_hotplug_dock_device(ACPI_HANDLE(&ap->tdev),
--				     &ata_acpi_ap_dock_ops, ap, NULL, NULL);
-+	adev = ACPI_COMPANION(&ap->tdev);
-+	if (!adev || adev->hp)
-+		return;
-+
-+	context = kzalloc(sizeof(*context), GFP_KERNEL);
-+	if (!context)
-+		return;
-+
-+	context->data.ap = ap;
-+	acpi_lock_hp_context();
-+	acpi_set_hp_context(adev, &context->hp, ata_acpi_ap_notify_dock,
-+			    ata_acpi_ap_uevent, NULL);
-+	acpi_unlock_hp_context();
- }
- 
- void ata_acpi_bind_dev(struct ata_device *dev)
-@@ -198,7 +209,8 @@ void ata_acpi_bind_dev(struct ata_device
- 	struct ata_port *ap = dev->link->ap;
- 	struct acpi_device *port_companion = ACPI_COMPANION(&ap->tdev);
- 	struct acpi_device *host_companion = ACPI_COMPANION(ap->host->dev);
--	struct acpi_device *parent;
-+	struct acpi_device *parent, *adev;
-+	struct ata_acpi_hotplug_context *context;
- 	u64 adr;
- 
- 	/*
-@@ -221,9 +233,19 @@ void ata_acpi_bind_dev(struct ata_device
- 	}
- 
- 	acpi_preset_companion(&dev->tdev, parent, adr);
-+	adev = ACPI_COMPANION(&dev->tdev);
-+	if (!adev || adev->hp)
-+		return;
-+
-+	context = kzalloc(sizeof(*context), GFP_KERNEL);
-+	if (!context)
-+		return;
- 
--	register_hotplug_dock_device(ata_dev_acpi_handle(dev),
--				     &ata_acpi_dev_dock_ops, dev, NULL, NULL);
-+	context->data.dev = dev;
-+	acpi_lock_hp_context();
-+	acpi_set_hp_context(adev, &context->hp, ata_acpi_dev_notify_dock,
-+			    ata_acpi_dev_uevent, NULL);
-+	acpi_unlock_hp_context();
- }
- 
- /**
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
