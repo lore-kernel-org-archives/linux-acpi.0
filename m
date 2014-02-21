@@ -1,84 +1,71 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Fri, 21 Feb 2014 00:13:13 +0000
-Message-ID: <1392941592.20109.36.camel@x230>
-References: <20140220204028.GJ17949@sgi.com> <1392929163.20109.5.camel@x230>
-	 <20140220205901.GM17949@sgi.com> <1392930047.20109.6.camel@x230>
-	 <20140220212854.GO17949@sgi.com> <1392932363.20109.11.camel@x230>
-	 <20140220220656.GT17949@sgi.com> <1392935204.20109.17.camel@x230>
-	 <20140220224529.GV17949@sgi.com> <1392937781.20109.24.camel@x230>
-	 <20140220235904.GZ17949@sgi.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / FAN: do nothing in suspend and poweroff callback
+Date: Fri, 21 Feb 2014 01:45:51 +0100
+Message-ID: <4727691.h3NruXEQIo@vostro.rjw.lan>
+References: <20140219041648.GA3974@aaronlu.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140220235904.GZ17949@sgi.com>
-Content-Language: en-US
-Content-ID: <AB318AF0FCA1AB4481A2AF41E908ECFD@namprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "rja@sgi.com" <rja@sgi.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:55518 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932328AbaBUAa6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Feb 2014 19:30:58 -0500
+In-Reply-To: <20140219041648.GA3974@aaronlu.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-T24gVGh1LCAyMDE0LTAyLTIwIGF0IDE3OjU5IC0wNjAwLCBSdXNzIEFuZGVyc29uIHdyb3RlOg0K
-PiBPbiBUaHUsIEZlYiAyMCwgMjAxNCBhdCAxMTowOTo0MlBNICswMDAwLCBNYXR0aGV3IEdhcnJl
-dHQgd3JvdGU6DQo+ID4gT24gVGh1LCAyMDE0LTAyLTIwIGF0IDE2OjQ1IC0wNjAwLCBSdXNzIEFu
-ZGVyc29uIHdyb3RlOg0KPiA+ID4gDQo+ID4gPiBUaGUgQUNQSSBzcGVjIHJlcXVpcmVzIElQTUkg
-ZnVuY3Rpb25hbGl0eSBiZWZvcmUgYSBtb2R1bGUgbG9hZHMgYXQNCj4gPiA+IGJvb3QgdGltZT8g
-IEFuZCB0aGUga2VybmVsIGlzICpicm9rZW4qIGlmIGl0IGRvZXMgbm90IHN1cHBvcnQgQUNJUCBJ
-UE1JDQo+ID4gPiBmdW5jdGlvbmFsaXR5IGJlZm9yZSBtb2R1bGUgbG9hZCB0aW1lPyAgUmVhbGx5
-Pw0KPiA+IA0KPiA+IFRoZXJlJ3Mgbm8gbWVjaGFuaXNtIHRvIGVuc3VyZSB0aGF0IElQTUkgc3Vw
-cG9ydCB3aWxsIGJlIGxvYWRlZCBiZWZvcmUNCj4gPiBBQ1BJIGNhbGxzIGF0dGVtcHQgdG8gYWNj
-ZXNzIElQTUkgb3BlcmF0aW9uIHJlZ2lvbnMuIFJlYWxseS4NCj4gDQo+IEFuZCBubyBtZWNoYW5p
-c20gY2FuIGJlIGFkZGVkIHRvIGVuc3VyZSB0aGF0IEFDUEkgY2FsbCBhcmUNCj4gbm90IGF0dGVt
-cHRlZCBiZWZvcmUgSVBNSSBpcyBpbml0aWFsaXplZD8gIEEgZmxhZyBvciBsb2NrDQo+IG9yIGV4
-cG9ydGVkIHN5bWJvbCBpbmRpY2F0aW5nIElQTUkgc3VwcG9ydCBpcyByZWFkeS4NCg0KQUNQSSBm
-dW5jdGlvbnMgYXJlIGEgYmxhY2sgYm94IHRvIGRyaXZlcnMuIFlvdSBtYWtlIGFuIEFDUEkgY2Fs
-bCwgdGhlDQpBTUwgY29kZSBkb2VzIHNvbWV0aGluZy4gV2UgY291bGQgYmxvY2sgdGhlcmUsIGJ1
-dCB3aGF0J3MgdGhlIGRyaXZlcg0Kc3VwcG9zZWQgdG8gZG8gYXQgdGhhdCBwb2ludD8gVGhlIGNv
-cmUgY291bGQgY2FsbCBvdXQgdG8gYSBtb2R1bGUNCmxvYWRlciwgYnV0IGlmIHRoZSBkcml2ZXIg
-aXMgYnVpbHQgaW4gYW5kIElQTUkgaXNuJ3QgdGhlbiB5b3UnbGwgZW5kIHVwDQp3aXRoIGEgNjAg
-c2Vjb25kIHBhdXNlIGluIGJvb3QgYW5kIGEgZHJpdmVyIHRoYXQgZG9lc24ndCB3b3JrLiANCg0K
-PiA+ID4gPiBBQ1BJIDQuMCBpbmNsdWRlcyBzdXBwb3J0IGZvciBJUE1JIG9wZXJhdGlvbiByZWdp
-b25zLiBNb2R1bGFyIElQTUkgbWVhbnMNCj4gPiA+ID4gdGhhdCB0aGUga2VybmVsIHdpbGwgc3Bl
-bmQgYSBzaWduaWZpY2FudCBhbW91bnQgb2YgdGltZSAocG90ZW50aWFsbHkNCj4gPiA+ID4gdW50
-aWwgYSB1c2VyIG1hbnVhbGx5IGxvYWRzIGEgZHJpdmVyKSBmYWlsaW5nIHRvIGltcGxlbWVudCBw
-YXJ0IG9mIHRoZQ0KPiA+ID4gPiBJUE1JIHNwZWNpZmljYXRpb24uIFRoYXQncyBhIHByb2JsZW0s
-IGFuZCB0aGUgY29ycmVjdCBmaXggaXMgdG8gZW5zdXJlDQo+ID4gPiA+IHRoYXQgdGhlIGtlcm5l
-bCBhbHdheXMgaW1wbGVtZW50cyBJUE1JIHN1cHBvcnQuDQo+ID4gPiANCj4gPiA+IFRoZSBBQ1BJ
-IHNwZWMgc2F5cyBpcG1pX3NpIGNhbm5vdCBiZSBhIGRyaXZlcj8gIFJlYWxseT8NCj4gPiA+IFdo
-YXQgaXMgdGhlIHJlYWwgcHJvYmxlbSB5b3UgYXJlIHRyeWluZyB0byBzb2x2ZT8NCj4gPiANCj4g
-PiBUaGUgbW9zdCBzdHJhaWdodGZvcndhcmQgY2FzZSBpcyB0aGF0IG9mIGFuIEFDUEkgcG93ZXIg
-bWV0ZXIuDQo+IA0KPiBTbyBpdCBpcyBqdXN0IGEgbWF0dGVyIG9mIG1ha2luZyBzdXJlIGlwbWlf
-c2kgbW9kdWxlcyBsb2FkcyBiZWZvcmUNCj4gdGhlIEFDUEkgcG93ZXIgbWV0ZXIgbW9kdWxlIGxv
-YWRzLCByaWdodD8gIG1vZHVsZSBkZXBlbmRlbmN5IGlzc3VlLg0KDQpObywgYmVjYXVzZSB0aGUg
-cG93ZXIgbWV0ZXIgZHJpdmVyIGhhcyBubyB3YXkgb2Yga25vd2luZyB0aGF0IGEgdmVuZG9yDQpo
-YXMgaW1wbGVtZW50ZWQgdGhpcyBpbnRlcmZhY2UgdmlhIElQTUkuICpBbnkqIEFDUEkgZW50cnkg
-cG9pbnQgY291bGQNCnRoZW9yZXRpY2FsbHkgcmVmZXJlbmNlIElQTUkgY29kZSwgZXZlbiB0aGUg
-X0lOSSBtZXRob2QgdGhhdCdzIGNhbGxlZA0KZHVyaW5nIEFDUEkgY29yZSBpbml0LiBJZiBpdCBk
-b2VzLCBhbmQgaWYgeW91IGRvbid0IGhhdmUgYnVpbHQtaW4gQUNQSQ0Kc3VwcG9ydCwgeW91J2Qg
-ZmFpbCBBQ1BJIGluaXRpYWxpc2F0aW9uIGFuZCB0aGluZ3Mgd291bGQgZ28gZG93bmhpbGwNCmZy
-b20gdGhlcmUuDQoNCihJIGRvbid0IHRoaW5rIGZhaWx1cmUgb2YgdGhpcyBtYWduaXR1ZGUgaXMg
-YWN0dWFsbHkgKmxpa2VseSosIGJ1dCBpdA0Kd291bGQgYmUgc3BlYy1jb21wbGlhbnQpDQoNCj4g
-PiBJJ3ZlIHJlcGVhdGVkbHkgYXNrZWQgZm9yIHlvdSB0byBwcm92aWRlIGRldGFpbGVkIGRlc2Ny
-aXB0aW9ucyBvZiB0aGUNCj4gPiBwcm9ibGVtcyB5b3UndmUgc2VlbiBiZWNhdXNlIEkgaGF2ZSBh
-IGdlbnVpbmUgaW50ZXJlc3QgaW4gZml4aW5nIHRoZW0uDQo+ID4gSWYgeW91J3JlIGp1c3QgZ29p
-bmcgdG8gY2hpbGRpc2hseSByZWZ1c2UgdGhlbiB0aGlzIGRpc2N1c3Npb24gaXMNCj4gPiBwb2lu
-dGxlc3MuIA0KPiANCj4gVGhlIGRpc3RybyBjYXNlcyBJIHdvdWxkIHBvaW50IHlvdSBhdCBhcmUg
-bWFya2VkIHByaXZhdGUuIA0KPiBBbmQgeW91IGRvIG5vdCBoYXZlIGFjY2VzcyB0byBvdXIgaW50
-ZXJuYWwgc3VwcG9ydCBzeXN0ZW0uDQo+IEEgc2ltcGxlIGdvb2dsZSBzZWFyY2ggZm9yICJraXBt
-aTAiIHNob3dzIGEgbG90IG9mIHJlcG9ydHMgb2YNCj4gaGlnaCBjcHUgdXRpbGl6YXRpb24uICAN
-Cg0KQW5kIG5vYm9keSBzZWVtcyB0byBoYXZlIHB1dCBhbnkgZWZmb3J0IGludG8gZmlndXJpbmcg
-b3V0IHdoYXQgdGhlDQp1bmRlcmx5aW5nIGNhdXNlIGlzLiBJcyBpdCBzcGlubmluZyBiZWNhdXNl
-IHRoZXJlIGFyZSBtZXNzYWdlcz8gSWYgc28sDQppcyBpdCBiZWNhdXNlIHRoZSBCTUMgd291bGQg
-cmVhbGx5IGxpa2Ugc29tZSBraW5kIG9mIHJlc3BvbnNlIHRvIHRob3NlDQptZXNzYWdlcz8gSXMg
-aXQgc3Bpbm5pbmcgYmVjYXVzZSB0aGUgQk1DIGlzIHdlZGdlZD8gSWYgc28sIGNhbiB3ZSBkZXRl
-Y3QNCnRoYXQgY2FzZSwgZmxhZyBpdCBhcyBicm9rZW4gYW5kIGNsZWFubHkgZGlzZW5nYWdlPw0K
-DQpXZSdyZSBydW5uaW5nIHN5c3RlbXMgZnJvbSBhIHdpZGUgcmFuZ2Ugb2YgdmVuZG9ycyAoaW5j
-bHVkaW5nIGJhc2ljYWxseQ0KYWxsIHRoZSBUaWVyIDEgc2VydmVyIG1hbnVmYWN0dXJlcnMsIHBs
-dXMgc29tZSB3aGl0ZWJveCksIHVzZSBJUE1JDQpmdW5jdGlvbmFsaXR5IGhlYXZpbHkgYW5kIGdl
-bnVpbmVseSBkbyBub3Qgc2VlIHRoZSBkZXNjcmliZWQgcHJvYmxlbXMuIEkNCmRvbid0IHRoaW5r
-IHRoZXJlJ3MgZXZpZGVuY2Ugb2Ygd2lkZXNwcmVhZCBicmVha2FnZSwgYW5kIHdoZXJlIGl0IGRv
-ZXMNCmV4aXN0IHdlIHNob3VsZCB0cmVhdCBpdCBhcyB3ZSB3b3VsZCBhbnkgb3RoZXIgYnVnIC0g
-ZGlhZ25vc2UgdGhlDQp1bmRlcmx5aW5nIHByb2JsZW0gYW5kIGZpeCBpdC4NCg0KLS0gDQpNYXR0
-aGV3IEdhcnJldHQgPG1hdHRoZXcuZ2FycmV0dEBuZWJ1bGEuY29tPg0K
+On Wednesday, February 19, 2014 12:16:48 PM Aaron Lu wrote:
+> We put FAN to full speed in acpi_fan_suspend but that is only needed
+> in the hibernation case when we are generating hibernation image, so
+> this patch removes that when we are to suspend or poweroff.
+> 
+> Link: http://www.spinics.net/lists/linux-acpi/msg48636.html
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+
+Queued up for 3.15, thanks!
+
+> ---
+>  drivers/acpi/fan.c | 13 +++++++++----
+>  1 file changed, 9 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+> index 09e423f3d8ad..8acf53e62966 100644
+> --- a/drivers/acpi/fan.c
+> +++ b/drivers/acpi/fan.c
+> @@ -55,11 +55,16 @@ MODULE_DEVICE_TABLE(acpi, fan_device_ids);
+>  #ifdef CONFIG_PM_SLEEP
+>  static int acpi_fan_suspend(struct device *dev);
+>  static int acpi_fan_resume(struct device *dev);
+> +static struct dev_pm_ops acpi_fan_pm = {
+> +	.resume = acpi_fan_resume,
+> +	.freeze = acpi_fan_suspend,
+> +	.thaw = acpi_fan_resume,
+> +	.restore = acpi_fan_resume,
+> +};
+> +#define FAN_PM_OPS_PTR (&acpi_fan_pm)
+>  #else
+> -#define acpi_fan_suspend NULL
+> -#define acpi_fan_resume NULL
+> +#define FAN_PM_OPS_PTR NULL
+>  #endif
+> -static SIMPLE_DEV_PM_OPS(acpi_fan_pm, acpi_fan_suspend, acpi_fan_resume);
+>  
+>  static struct acpi_driver acpi_fan_driver = {
+>  	.name = "fan",
+> @@ -69,7 +74,7 @@ static struct acpi_driver acpi_fan_driver = {
+>  		.add = acpi_fan_add,
+>  		.remove = acpi_fan_remove,
+>  		},
+> -	.drv.pm = &acpi_fan_pm,
+> +	.drv.pm = FAN_PM_OPS_PTR,
+>  };
+>  
+>  /* thermal cooling device callbacks */
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
