@@ -1,91 +1,91 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 1/1] ACPI, PCI, ISA: Call ISA-specific code only for architectures which support ISA.
-Date: Fri, 21 Feb 2014 01:02:34 +0100
-Message-ID: <2537267.YMHbG84COY@vostro.rjw.lan>
-References: <1392902866-5256-1-git-send-email-tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
+Date: Fri, 21 Feb 2014 01:10:21 +0100
+Message-ID: <1473995.mOCKVf8skD@vostro.rjw.lan>
+References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com> <20140220201458.GA7099@sgi.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58655 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754026AbaBTXrl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Feb 2014 18:47:41 -0500
-In-Reply-To: <1392902866-5256-1-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140220201458.GA7099@sgi.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russ Anderson <rja@sgi.com>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, minyard@acm.org, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Thursday, February 20, 2014 02:27:46 PM Tomasz Nowicki wrote:
-> This commit moves ISA-specific code to separate function and makes that
-> function depend on CONFIG_{E}ISA so that we do not have to maintain
-> acpi_isa_irq_to_gsi() function for architectures which do not support ISA.
+On Thursday, February 20, 2014 02:14:58 PM Russ Anderson wrote:
+> On Tue, Feb 18, 2014 at 11:28:29AM -0500, Matthew Garrett wrote:
+> > The ACPI IPMI driver implements IPMI operation region support for the ACPI
+> > core. Systems that declare ACPI operation regions may reference them at any
+> > time, including during kernel initialisation. These accesses will fail
+> > unless the ACPI IPMI driver is present, and undesirable system behaviour
+> > may result. Set the default to Y in order to encourage distributions and
+> > users to configure kernels to avoid awkward surprises.
 > 
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-
-Queued up for 3.15, thanks!
-
-> ---
->  drivers/acpi/pci_irq.c |   36 +++++++++++++++++++++++++-----------
->  1 file changed, 25 insertions(+), 11 deletions(-)
+> No, please do not build the ipmi_si driver into the kernel.
+> Not all systems want, or need, the ipmi_si driver.  
 > 
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index 361b40c..9c62340 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -370,6 +370,30 @@ static struct acpi_prt_entry *acpi_pci_irq_lookup(struct pci_dev *dev, int pin)
->  	return NULL;
->  }
->  
-> +#if IS_ENABLED(CONFIG_ISA) || IS_ENABLED(CONFIG_EISA)
-> +static int acpi_isa_register_gsi(struct pci_dev *dev)
-> +{
-> +	u32 dev_gsi;
-> +
-> +	/* Interrupt Line values above 0xF are forbidden */
-> +	if (dev->irq > 0 && (dev->irq <= 0xF) &&
-> +	    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
-> +		dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
-> +			 pin_name(dev->pin), dev->irq);
-> +		acpi_register_gsi(&dev->dev, dev_gsi,
-> +				  ACPI_LEVEL_SENSITIVE,
-> +				  ACPI_ACTIVE_LOW);
-> +		return 0;
-> +	}
-> +	return -EINVAL;
-> +}
-> +#else
-> +static inline int acpi_isa_register_gsi(struct pci_dev *dev)
-> +{
-> +	return -ENODEV;
-> +}
-> +#endif
-> +
->  int acpi_pci_irq_enable(struct pci_dev *dev)
->  {
->  	struct acpi_prt_entry *entry;
-> @@ -416,19 +440,9 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
->  	 * driver reported one, then use it. Exit in any case.
->  	 */
->  	if (gsi < 0) {
-> -		u32 dev_gsi;
-> -		/* Interrupt Line values above 0xF are forbidden */
-> -		if (dev->irq > 0 && (dev->irq <= 0xF) &&
-> -		    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
-> -			dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
-> -				 pin_name(pin), dev->irq);
-> -			acpi_register_gsi(&dev->dev, dev_gsi,
-> -					  ACPI_LEVEL_SENSITIVE,
-> -					  ACPI_ACTIVE_LOW);
-> -		} else {
-> +		if (acpi_isa_register_gsi(dev))
->  			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
->  				 pin_name(pin));
-> -		}
->  
->  		kfree(entry);
->  		return 0;
+> The distro that added this change created all sorts of support
+> problems.
+
+Which distro was that?
+
+Do you have any pointers to specific bug reports related to that?
+
+Rafael
+
+
+> Problems include kipmi0 spinning at 100% of cpu
+> (creating a performance hit) and long boot delays (as the
+> kernel tries to talk to a BMC that will never respond).
+> It has been a big mess.
+> 
+> Nacked-by: Russ Anderson <rja@sgi.com>
+> 
+> 
+> > Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
+> > ---
+> > Actually, I guess we also want this on CONFIG_IPMI_HANDLER for least
+> > surprise
+> > 
+> >  drivers/acpi/Kconfig      | 2 +-
+> >  drivers/char/ipmi/Kconfig | 2 ++
+> >  2 files changed, 3 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> > index 4770de5..0e6aab9 100644
+> > --- a/drivers/acpi/Kconfig
+> > +++ b/drivers/acpi/Kconfig
+> > @@ -162,7 +162,7 @@ config ACPI_PROCESSOR
+> >  config ACPI_IPMI
+> >  	tristate "IPMI"
+> >  	depends on IPMI_SI
+> > -	default n
+> > +	default y
+> >  	help
+> >  	  This driver enables the ACPI to access the BMC controller. And it
+> >  	  uses the IPMI request/response message to communicate with BMC
+> > diff --git a/drivers/char/ipmi/Kconfig b/drivers/char/ipmi/Kconfig
+> > index 0baa8fa..eea8464 100644
+> > --- a/drivers/char/ipmi/Kconfig
+> > +++ b/drivers/char/ipmi/Kconfig
+> > @@ -5,6 +5,7 @@
+> >  menuconfig IPMI_HANDLER
+> >         tristate 'IPMI top-level message handler'
+> >         depends on HAS_IOMEM
+> > +       default y if ACPI
+> >         help
+> >           This enables the central IPMI message handler, required for IPMI
+> >  	 to work.
+> > @@ -45,6 +46,7 @@ config IPMI_DEVICE_INTERFACE
+> >  
+> >  config IPMI_SI
+> >         tristate 'IPMI System Interface handler'
+> > +       default y if ACPI
+> >         help
+> >           Provides a driver for System Interfaces (KCS, SMIC, BT).
+> >  	 Currently, only KCS and SMIC are supported.  If
+> 
 > 
 
 -- 
