@@ -1,178 +1,175 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH] ACPI/Processor: Rework processor throttling with work_on_cpu()
-Date: Fri, 21 Feb 2014 13:35:45 +0800
-Message-ID: <1392960945-30741-1-git-send-email-tianyu.lan@intel.com>
-References: <20140220151721.GB32719@redhat.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [PATCH] ACPI: Drop acpi_evaluate_hotplug_ost() and ACPI_HOTPLUG_OST
+Date: Fri, 21 Feb 2014 13:58:24 +0800
+Message-ID: <5306EB00.1090108@linux.intel.com>
+References: <1392789739-32317-1-git-send-email-jiang.liu@linux.intel.com> <60567343.brKB2SuRkR@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:4673 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:48176 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752241AbaBUFgB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Feb 2014 00:36:01 -0500
-In-Reply-To: <20140220151721.GB32719@redhat.com>
+	id S1751230AbaBUF61 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Feb 2014 00:58:27 -0500
+In-Reply-To: <60567343.brKB2SuRkR@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tj@kernel.org, jolsa@redhat.com, oleg@redhat.com, lenb@kernel.org, rjw@rjwysocki.net
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Toshi Kani <toshi.kani@hp.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
 
-acpi_processor_set_throttling() uses set_cpus_allowed_ptr() to make
-sure struct acpi_processor->acpi_processor_set_throttling() callback
-run on associated cpu. But the function maybe called in a worker which
-has been bound to a cpu. The patch is to replace set_cpus_allowed_ptr()
-with work_on_cpu().
+Hi Rafael,
+	I failed to get the point to kill ACPI_HOTPLUG_OST altogether:(
+Should I merge it into my series and resend?
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- drivers/acpi/processor_throttling.c | 70 +++++++++++++++++--------------------
- 1 file changed, 33 insertions(+), 37 deletions(-)
+Hi Toshi,
+	Any comments here?
 
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index 28baa05..2db105a 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -56,6 +56,12 @@ struct throttling_tstate {
- 	int target_state;		/* target T-state */
- };
- 
-+struct acpi_processor_throttling_arg {
-+	struct acpi_processor *pr;
-+	int target_state;
-+	bool force;
-+};
-+
- #define THROTTLING_PRECHANGE       (1)
- #define THROTTLING_POSTCHANGE      (2)
- 
-@@ -1060,16 +1066,25 @@ static int acpi_processor_set_throttling_ptc(struct acpi_processor *pr,
- 	return 0;
- }
- 
-+static long acpi_processor_throttling_fn(void *data)
-+{
-+	struct acpi_processor_throttling_arg *arg = data;
-+	struct acpi_processor *pr = arg->pr;
-+	struct acpi_processor_throttling *p_throttling = &pr->throttling;
-+
-+	return p_throttling->acpi_processor_set_throttling(pr,
-+			arg->target_state, arg->force);
-+}
-+
- int acpi_processor_set_throttling(struct acpi_processor *pr,
- 						int state, bool force)
- {
--	cpumask_var_t saved_mask;
- 	int ret = 0;
- 	unsigned int i;
- 	struct acpi_processor *match_pr;
- 	struct acpi_processor_throttling *p_throttling;
-+	struct acpi_processor_throttling_arg arg;
- 	struct throttling_tstate t_state;
--	cpumask_var_t online_throttling_cpus;
- 
- 	if (!pr)
- 		return -EINVAL;
-@@ -1080,14 +1095,6 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
- 	if ((state < 0) || (state > (pr->throttling.state_count - 1)))
- 		return -EINVAL;
- 
--	if (!alloc_cpumask_var(&saved_mask, GFP_KERNEL))
--		return -ENOMEM;
--
--	if (!alloc_cpumask_var(&online_throttling_cpus, GFP_KERNEL)) {
--		free_cpumask_var(saved_mask);
--		return -ENOMEM;
--	}
--
- 	if (cpu_is_offline(pr->id)) {
- 		/*
- 		 * the cpu pointed by pr->id is offline. Unnecessary to change
-@@ -1096,17 +1103,15 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
- 		return -ENODEV;
- 	}
- 
--	cpumask_copy(saved_mask, &current->cpus_allowed);
- 	t_state.target_state = state;
- 	p_throttling = &(pr->throttling);
--	cpumask_and(online_throttling_cpus, cpu_online_mask,
--		    p_throttling->shared_cpu_map);
-+
- 	/*
- 	 * The throttling notifier will be called for every
- 	 * affected cpu in order to get one proper T-state.
- 	 * The notifier event is THROTTLING_PRECHANGE.
- 	 */
--	for_each_cpu(i, online_throttling_cpus) {
-+	for_each_cpu_and(i, cpu_online_mask, p_throttling->shared_cpu_map) {
- 		t_state.cpu = i;
- 		acpi_processor_throttling_notifier(THROTTLING_PRECHANGE,
- 							&t_state);
-@@ -1118,21 +1123,18 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
- 	 * it can be called only for the cpu pointed by pr.
- 	 */
- 	if (p_throttling->shared_type == DOMAIN_COORD_TYPE_SW_ANY) {
--		/* FIXME: use work_on_cpu() */
--		if (set_cpus_allowed_ptr(current, cpumask_of(pr->id))) {
--			/* Can't migrate to the pr->id CPU. Exit */
--			ret = -ENODEV;
--			goto exit;
--		}
--		ret = p_throttling->acpi_processor_set_throttling(pr,
--						t_state.target_state, force);
-+		arg.pr = pr;
-+		arg.target_state = state;
-+		arg.force = force;
-+		ret = work_on_cpu(pr->id, acpi_processor_throttling_fn, &arg);
- 	} else {
- 		/*
- 		 * When the T-state coordination is SW_ALL or HW_ALL,
- 		 * it is necessary to set T-state for every affected
- 		 * cpus.
- 		 */
--		for_each_cpu(i, online_throttling_cpus) {
-+		for_each_cpu_and(i, cpu_online_mask,
-+		    p_throttling->shared_cpu_map) {
- 			match_pr = per_cpu(processors, i);
- 			/*
- 			 * If the pointer is invalid, we will report the
-@@ -1153,13 +1155,12 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
- 					"on CPU %d\n", i));
- 				continue;
- 			}
--			t_state.cpu = i;
--			/* FIXME: use work_on_cpu() */
--			if (set_cpus_allowed_ptr(current, cpumask_of(i)))
--				continue;
--			ret = match_pr->throttling.
--				acpi_processor_set_throttling(
--				match_pr, t_state.target_state, force);
-+
-+			arg.pr = match_pr;
-+			arg.target_state = state;
-+			arg.force = force;
-+			ret = work_on_cpu(pr->id, acpi_processor_throttling_fn,
-+				&arg);
- 		}
- 	}
- 	/*
-@@ -1168,17 +1169,12 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
- 	 * affected cpu to update the T-states.
- 	 * The notifier event is THROTTLING_POSTCHANGE
- 	 */
--	for_each_cpu(i, online_throttling_cpus) {
-+	for_each_cpu_and(i, cpu_online_mask, p_throttling->shared_cpu_map) {
- 		t_state.cpu = i;
- 		acpi_processor_throttling_notifier(THROTTLING_POSTCHANGE,
- 							&t_state);
- 	}
--	/* restore the previous state */
--	/* FIXME: use work_on_cpu() */
--	set_cpus_allowed_ptr(current, saved_mask);
--exit:
--	free_cpumask_var(online_throttling_cpus);
--	free_cpumask_var(saved_mask);
-+
- 	return ret;
- }
- 
--- 
-1.8.2.1
-
+On 2014/2/21 8:19, Rafael J. Wysocki wrote:
+> On Wednesday, February 19, 2014 02:02:15 PM Jiang Liu wrote:
+>> Rename acpi_evaluate_hotplug_ost() to acpi_evaluate_ost() for later resue.
+>>
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> 
+> Below is a patch replacing acpi_evaluate_hotplug_ost() with acpi_evaluate_ost()
+> and dropping the ACPI_HOTPLUG_OST which I don't believe is necessary at all.
+> 
+> On top of the current linux-next and your series.
+> 
+> Thanks,
+> Rafael
+> 
+> ---
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: ACPI: Drop acpi_evaluate_hotplug_ost() and ACPI_HOTPLUG_OST
+> 
+> Replace acpi_evaluate_hotplug_ost() with acpi_evaluate_ost()
+> everywhere and drop the ACPI_HOTPLUG_OST symbol so that hotplug
+> _OST is supported unconditionally.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/bus.c                |    4 +---
+>  drivers/acpi/scan.c               |   10 +++++-----
+>  drivers/acpi/utils.c              |    2 +-
+>  drivers/xen/xen-acpi-cpuhotplug.c |    2 +-
+>  drivers/xen/xen-acpi-memhotplug.c |    2 +-
+>  include/acpi/acpi_bus.h           |    8 --------
+>  6 files changed, 9 insertions(+), 19 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/bus.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/bus.c
+> +++ linux-pm/drivers/acpi/bus.c
+> @@ -311,9 +311,7 @@ static void acpi_bus_osc_support(void)
+>  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PPC_OST_SUPPORT;
+>  #endif
+>  
+> -#ifdef ACPI_HOTPLUG_OST
+>  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
+> -#endif
+>  
+>  	if (!ghes_disable)
+>  		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
+> @@ -410,7 +408,7 @@ static void acpi_bus_notify(acpi_handle
+>  	return;
+>  
+>   err:
+> -	acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
+> +	acpi_evaluate_ost(handle, type, ost_code, NULL);
+>  }
+>  
+>  /* --------------------------------------------------------------------------
+> Index: linux-pm/include/acpi/acpi_bus.h
+> ===================================================================
+> --- linux-pm.orig/include/acpi/acpi_bus.h
+> +++ linux-pm/include/acpi/acpi_bus.h
+> @@ -51,14 +51,6 @@ acpi_evaluate_reference(acpi_handle hand
+>  acpi_status
+>  acpi_evaluate_ost(acpi_handle handle, u32 source_event, u32 status_code,
+>  		  struct acpi_buffer *status_buf);
+> -#ifdef ACPI_HOTPLUG_OST
+> -#define	acpi_evaluate_hotplug_ost	acpi_evaluate_ost
+> -#else
+> -static inline acpi_status
+> -acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+> -			u32 status_code, struct acpi_buffer *status_buf)
+> -{ return AE_OK; }
+> -#endif
+>  
+>  acpi_status
+>  acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld);
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -463,8 +463,8 @@ static int acpi_generic_hotplug_event(st
+>  			dev_info(&adev->dev, "Eject disabled\n");
+>  			return -EPERM;
+>  		}
+> -		acpi_evaluate_hotplug_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
+> -					  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+> +		acpi_evaluate_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
+> +				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+>  		return acpi_scan_hot_remove(adev);
+>  	}
+>  	return -EINVAL;
+> @@ -514,7 +514,7 @@ void acpi_device_hotplug(void *data, u32
+>  		ost_code = ACPI_OST_SC_SUCCESS;
+>  
+>   err_out:
+> -	acpi_evaluate_hotplug_ost(adev->handle, src, ost_code, NULL);
+> +	acpi_evaluate_ost(adev->handle, src, ost_code, NULL);
+>  
+>   out:
+>  	acpi_bus_put_acpi_device(adev);
+> @@ -574,8 +574,8 @@ acpi_eject_store(struct device *d, struc
+>  		return count;
+>  
+>  	put_device(&acpi_device->dev);
+> -	acpi_evaluate_hotplug_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
+> -				  ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
+> +	acpi_evaluate_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
+> +			  ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
+>  	return status == AE_NO_MEMORY ? -ENOMEM : -EAGAIN;
+>  }
+>  
+> Index: linux-pm/drivers/acpi/utils.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/utils.c
+> +++ linux-pm/drivers/acpi/utils.c
+> @@ -422,7 +422,7 @@ out:
+>  EXPORT_SYMBOL(acpi_get_physical_device_location);
+>  
+>  /**
+> - * acpi_evaluate_hotplug_ost: Evaluate _OST for hotplug operations
+> + * acpi_evaluate_ost: Evaluate _OST for hotplug operations
+>   * @handle: ACPI device handle
+>   * @source_event: source event code
+>   * @status_code: status code
+> Index: linux-pm/drivers/xen/xen-acpi-cpuhotplug.c
+> ===================================================================
+> --- linux-pm.orig/drivers/xen/xen-acpi-cpuhotplug.c
+> +++ linux-pm/drivers/xen/xen-acpi-cpuhotplug.c
+> @@ -313,7 +313,7 @@ static void acpi_processor_hotplug_notif
+>  		goto out;
+>  	}
+>  
+> -	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
+> +	(void) acpi_evaluate_ost(handle, event, ost_code, NULL);
+>  
+>  out:
+>  	acpi_scan_lock_release();
+> Index: linux-pm/drivers/xen/xen-acpi-memhotplug.c
+> ===================================================================
+> --- linux-pm.orig/drivers/xen/xen-acpi-memhotplug.c
+> +++ linux-pm/drivers/xen/xen-acpi-memhotplug.c
+> @@ -285,7 +285,7 @@ static void acpi_memory_device_notify(ac
+>  		return;
+>  	}
+>  
+> -	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
+> +	(void) acpi_evaluate_ost(handle, event, ost_code, NULL);
+>  	return;
+>  }
+>  
+> 
