@@ -1,54 +1,182 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Fri, 21 Feb 2014 16:12:52 +0000
-Message-ID: <1392999172.20109.47.camel@x230>
-References: <20140220204028.GJ17949@sgi.com> <1392929163.20109.5.camel@x230>
-	 <20140220205901.GM17949@sgi.com> <1392930047.20109.6.camel@x230>
-	 <20140220212854.GO17949@sgi.com> <1392932363.20109.11.camel@x230>
-	 <20140220220656.GT17949@sgi.com> <1392935204.20109.17.camel@x230>
-	 <20140220224529.GV17949@sgi.com> <1392937781.20109.24.camel@x230>
-	 <20140220235904.GZ17949@sgi.com>
-	 <1AE640813FDE7649BE1B193DEA596E88024B228C@SHSMSX101.ccr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: Drop acpi_evaluate_hotplug_ost() and ACPI_HOTPLUG_OST
+Date: Fri, 21 Feb 2014 17:44:04 +0100
+Message-ID: <2288001.mCzAGKvxFb@vostro.rjw.lan>
+References: <1392789739-32317-1-git-send-email-jiang.liu@linux.intel.com> <60567343.brKB2SuRkR@vostro.rjw.lan> <5306EB00.1090108@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1blp0187.outbound.protection.outlook.com ([207.46.163.187]:12759
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754370AbaBUQM6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Feb 2014 11:12:58 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88024B228C@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <09101956F3F9C84EABBADE2BBCAE1C2F@namprd05.prod.outlook.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:53326 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932460AbaBUQ3K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Feb 2014 11:29:10 -0500
+In-Reply-To: <5306EB00.1090108@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "lv.zheng@intel.com" <lv.zheng@intel.com>
-Cc: "rja@sgi.com" <rja@sgi.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
 
-T24gRnJpLCAyMDE0LTAyLTIxIGF0IDAyOjE3ICswMDAwLCBaaGVuZywgTHYgd3JvdGU6DQoNCj4g
-SW4gZmFjdCB0aGVyZSBpcyBhIHdvcmthcm91bmQgc29sdXRpb24gSSd2ZSBwb3N0ZWQgaGVyZToN
-Cj4gaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC8yODMxODUxLw0KPiBUaGUgdXBk
-YXRlZCB2ZXJzaW9uIG9mIHRoaXMgcGF0Y2ggY2FuIGJlIGZvdW5kIGF0Og0KPiBodHRwczovL2J1
-Z3ppbGxhLmtlcm5lbC5vcmcvYXR0YWNobWVudC5jZ2k/aWQ9MTEyNjExDQo+IEl0IGlzIHRoZSBh
-Y3BpLWlwbWkxMy5wYXRjaCBmaWxlLg0KDQpJIGRvbid0IHRoaW5rIHRoYXQgc29sdmVzIHRoZSB1
-bmRlcmx5aW5nIHByb2JsZW0/IFdlJ3JlIHN0aWxsIGxlZnQgd2l0aA0Kbm8gZ3VhcmFudGVlIG9m
-IG9yZGVyaW5nIGJldHdlZW4gQUNQSSBJUE1JIG9wZXJhdGlvbiByZWdpb24gc3VwcG9ydA0KYmVp
-bmcgYXZhaWxhYmxlIGFuZCB0aGUgbG9hZGluZyBvZiBhIGRyaXZlciB0aGF0IG1heSByZWx5IG9u
-IGl0Lg0KDQo+IEkgdGhpbmsgdGhlcmUgc2hvdWxkIGJlIHJlbGF0aW9uc2hpcCBiZXR3ZWVuIEFD
-UEkgcmVnaW9uIGFuZCBMaW51eCBrZXJuZWwgbW9kdWxlcy4NCj4gSW4gZmFjdCBvbiB0aGUgd2Vs
-bC1rbm93biBvcGVyYXRpbmcgc3lzdGVtLCBfUkVHIGlzIGFsd2F5cyBpbnZva2VkIGF0IHRoZSBl
-bmQgb2YgdGhlIElSUF9QTlBfU1RBUlRfREVWSUNFIGNvbXBsZXRpb25zLg0KPiBCdXQgd2UgbWF5
-IHN0aWxsIGJlIGFibGUgdG8gcmV0dXJuIC1FUFJPQkVfREVGRVIgaW4gdGhlIHBvd2VyIG1ldGVy
-IGRyaXZlciB3aGVuIGl0IGRldGVjdHMgZmFpbHVyZXMgY2F1c2VkIGJ5IHRoZSByZWFkaW5lc3Mg
-c3RhdGUgb2YgdGhlIHJlZ2lvbiBoYW5kbGVycy4NCg0KV2UgZG9uJ3QgaGF2ZSBhIGd1YXJhbnRl
-ZSB0aGF0IGl0J2xsIGhhcHBlbiBhdCBwcm9iZSB0aW1lLiBUaGUNCmNhcGFiaWxpdGllcyBsaXN0
-IG1heSBiZSBzdGF0aWMsIGFuZCBzbyB3ZSdsbCBnZXQgb3VyIGZpcnN0IGZhaWx1cmUgb24NCmFu
-IGF0dGVtcHRlZCB1c2Vyc3BhY2UgYWNjZXNzIGluc3RlYWQuDQoNCkl0IG1heSBiZSB0aGF0IENv
-cmV5J3Mgc3VnZ2VzdGlvbiBzYXRpc2ZpZXMgdGhlIGNvbmNlcm5zIFJ1c3MgcmFpc2VkLg0KQnVp
-bGRpbmcgSVBNSSBpbiBidXQgb25seSBwcm9iaW5nIGJ5IGRlZmF1bHQgb24gc3lzdGVtcyB0aGF0
-IGRlY2xhcmUgYQ0KQk1DIGluIEFDUEkgb3IgRE1JIHNob3VsZCBhdm9pZCBib290LXRpbWUgZGVs
-YXlzIHdoaWxlIHN0aWxsIGVuc3VyaW5nDQp0aGF0IHRoZSBmdW5jdGlvbmFsaXR5IGlzIGF2YWls
-YWJsZSBvbiBzeXN0ZW1zIHdoZXJlIHRoZXJlJ3MgYSByZWFsDQpjaGFuY2UgdGhhdCB0aGUgZmly
-bXdhcmUgZXhwZWN0cyB0aGUgT1MgdG8gcHJvdmlkZSBzdXBwb3J0Lg0KDQotLSANCk1hdHRoZXcg
-R2FycmV0dCA8bWF0dGhldy5nYXJyZXR0QG5lYnVsYS5jb20+DQo=
+On Friday, February 21, 2014 01:58:24 PM Jiang Liu wrote:
+> Hi Rafael,
+> 	I failed to get the point to kill ACPI_HOTPLUG_OST altogether:(
+> Should I merge it into my series and resend?
+
+No, thanks, I can handle it.
+
+> Hi Toshi,
+> 	Any comments here?
+> 
+> On 2014/2/21 8:19, Rafael J. Wysocki wrote:
+> > On Wednesday, February 19, 2014 02:02:15 PM Jiang Liu wrote:
+> >> Rename acpi_evaluate_hotplug_ost() to acpi_evaluate_ost() for later resue.
+> >>
+> >> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> > 
+> > Below is a patch replacing acpi_evaluate_hotplug_ost() with acpi_evaluate_ost()
+> > and dropping the ACPI_HOTPLUG_OST which I don't believe is necessary at all.
+> > 
+> > On top of the current linux-next and your series.
+> > 
+> > Thanks,
+> > Rafael
+> > 
+> > ---
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Subject: ACPI: Drop acpi_evaluate_hotplug_ost() and ACPI_HOTPLUG_OST
+> > 
+> > Replace acpi_evaluate_hotplug_ost() with acpi_evaluate_ost()
+> > everywhere and drop the ACPI_HOTPLUG_OST symbol so that hotplug
+> > _OST is supported unconditionally.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/acpi/bus.c                |    4 +---
+> >  drivers/acpi/scan.c               |   10 +++++-----
+> >  drivers/acpi/utils.c              |    2 +-
+> >  drivers/xen/xen-acpi-cpuhotplug.c |    2 +-
+> >  drivers/xen/xen-acpi-memhotplug.c |    2 +-
+> >  include/acpi/acpi_bus.h           |    8 --------
+> >  6 files changed, 9 insertions(+), 19 deletions(-)
+> > 
+> > Index: linux-pm/drivers/acpi/bus.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/bus.c
+> > +++ linux-pm/drivers/acpi/bus.c
+> > @@ -311,9 +311,7 @@ static void acpi_bus_osc_support(void)
+> >  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PPC_OST_SUPPORT;
+> >  #endif
+> >  
+> > -#ifdef ACPI_HOTPLUG_OST
+> >  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
+> > -#endif
+> >  
+> >  	if (!ghes_disable)
+> >  		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
+> > @@ -410,7 +408,7 @@ static void acpi_bus_notify(acpi_handle
+> >  	return;
+> >  
+> >   err:
+> > -	acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
+> > +	acpi_evaluate_ost(handle, type, ost_code, NULL);
+> >  }
+> >  
+> >  /* --------------------------------------------------------------------------
+> > Index: linux-pm/include/acpi/acpi_bus.h
+> > ===================================================================
+> > --- linux-pm.orig/include/acpi/acpi_bus.h
+> > +++ linux-pm/include/acpi/acpi_bus.h
+> > @@ -51,14 +51,6 @@ acpi_evaluate_reference(acpi_handle hand
+> >  acpi_status
+> >  acpi_evaluate_ost(acpi_handle handle, u32 source_event, u32 status_code,
+> >  		  struct acpi_buffer *status_buf);
+> > -#ifdef ACPI_HOTPLUG_OST
+> > -#define	acpi_evaluate_hotplug_ost	acpi_evaluate_ost
+> > -#else
+> > -static inline acpi_status
+> > -acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+> > -			u32 status_code, struct acpi_buffer *status_buf)
+> > -{ return AE_OK; }
+> > -#endif
+> >  
+> >  acpi_status
+> >  acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld);
+> > Index: linux-pm/drivers/acpi/scan.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/scan.c
+> > +++ linux-pm/drivers/acpi/scan.c
+> > @@ -463,8 +463,8 @@ static int acpi_generic_hotplug_event(st
+> >  			dev_info(&adev->dev, "Eject disabled\n");
+> >  			return -EPERM;
+> >  		}
+> > -		acpi_evaluate_hotplug_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
+> > -					  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+> > +		acpi_evaluate_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
+> > +				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+> >  		return acpi_scan_hot_remove(adev);
+> >  	}
+> >  	return -EINVAL;
+> > @@ -514,7 +514,7 @@ void acpi_device_hotplug(void *data, u32
+> >  		ost_code = ACPI_OST_SC_SUCCESS;
+> >  
+> >   err_out:
+> > -	acpi_evaluate_hotplug_ost(adev->handle, src, ost_code, NULL);
+> > +	acpi_evaluate_ost(adev->handle, src, ost_code, NULL);
+> >  
+> >   out:
+> >  	acpi_bus_put_acpi_device(adev);
+> > @@ -574,8 +574,8 @@ acpi_eject_store(struct device *d, struc
+> >  		return count;
+> >  
+> >  	put_device(&acpi_device->dev);
+> > -	acpi_evaluate_hotplug_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
+> > -				  ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
+> > +	acpi_evaluate_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
+> > +			  ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
+> >  	return status == AE_NO_MEMORY ? -ENOMEM : -EAGAIN;
+> >  }
+> >  
+> > Index: linux-pm/drivers/acpi/utils.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/utils.c
+> > +++ linux-pm/drivers/acpi/utils.c
+> > @@ -422,7 +422,7 @@ out:
+> >  EXPORT_SYMBOL(acpi_get_physical_device_location);
+> >  
+> >  /**
+> > - * acpi_evaluate_hotplug_ost: Evaluate _OST for hotplug operations
+> > + * acpi_evaluate_ost: Evaluate _OST for hotplug operations
+> >   * @handle: ACPI device handle
+> >   * @source_event: source event code
+> >   * @status_code: status code
+> > Index: linux-pm/drivers/xen/xen-acpi-cpuhotplug.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/xen/xen-acpi-cpuhotplug.c
+> > +++ linux-pm/drivers/xen/xen-acpi-cpuhotplug.c
+> > @@ -313,7 +313,7 @@ static void acpi_processor_hotplug_notif
+> >  		goto out;
+> >  	}
+> >  
+> > -	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
+> > +	(void) acpi_evaluate_ost(handle, event, ost_code, NULL);
+> >  
+> >  out:
+> >  	acpi_scan_lock_release();
+> > Index: linux-pm/drivers/xen/xen-acpi-memhotplug.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/xen/xen-acpi-memhotplug.c
+> > +++ linux-pm/drivers/xen/xen-acpi-memhotplug.c
+> > @@ -285,7 +285,7 @@ static void acpi_memory_device_notify(ac
+> >  		return;
+> >  	}
+> >  
+> > -	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
+> > +	(void) acpi_evaluate_ost(handle, event, ost_code, NULL);
+> >  	return;
+> >  }
+> >  
+> > 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
