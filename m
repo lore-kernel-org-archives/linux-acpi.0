@@ -1,182 +1,154 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: Drop acpi_evaluate_hotplug_ost() and ACPI_HOTPLUG_OST
-Date: Fri, 21 Feb 2014 17:44:04 +0100
-Message-ID: <2288001.mCzAGKvxFb@vostro.rjw.lan>
-References: <1392789739-32317-1-git-send-email-jiang.liu@linux.intel.com> <60567343.brKB2SuRkR@vostro.rjw.lan> <5306EB00.1090108@linux.intel.com>
+From: Russ Anderson <rja@sgi.com>
+Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
+Date: Fri, 21 Feb 2014 10:33:02 -0600
+Message-ID: <20140221163302.GN16114@sgi.com>
+References: <20140220205901.GM17949@sgi.com> <1392930047.20109.6.camel@x230> <20140220212854.GO17949@sgi.com> <1392932363.20109.11.camel@x230> <20140220220656.GT17949@sgi.com> <1392935204.20109.17.camel@x230> <20140220224529.GV17949@sgi.com> <1392937781.20109.24.camel@x230> <20140220235904.GZ17949@sgi.com> <1AE640813FDE7649BE1B193DEA596E88024B228C@SHSMSX101.ccr.corp.intel.com>
+Reply-To: Russ Anderson <rja@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53326 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932460AbaBUQ3K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Feb 2014 11:29:10 -0500
-In-Reply-To: <5306EB00.1090108@linux.intel.com>
+Received: from relay2.sgi.com ([192.48.179.30]:35694 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932264AbaBUQdE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Feb 2014 11:33:04 -0500
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88024B228C@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Friday, February 21, 2014 01:58:24 PM Jiang Liu wrote:
-> Hi Rafael,
-> 	I failed to get the point to kill ACPI_HOTPLUG_OST altogether:(
-> Should I merge it into my series and resend?
-
-No, thanks, I can handle it.
-
-> Hi Toshi,
-> 	Any comments here?
+On Fri, Feb 21, 2014 at 02:17:12AM +0000, Zheng, Lv wrote:
+> Hi,
 > 
-> On 2014/2/21 8:19, Rafael J. Wysocki wrote:
-> > On Wednesday, February 19, 2014 02:02:15 PM Jiang Liu wrote:
-> >> Rename acpi_evaluate_hotplug_ost() to acpi_evaluate_ost() for later resue.
-> >>
-> >> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> Sorry for interrupting you.
+> I have some information that may be helpful for your discussion.
+> Please find them in the inlined replies.
+> Well, I don't want to join the fight, just for your informations. :-)
+
+I don't want to join the fight, either.
+
+I have not looked at your code changes but the description
+looks like the right direction.
+
+
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Russ Anderson
+> > Sent: Friday, February 21, 2014 7:59 AM
 > > 
-> > Below is a patch replacing acpi_evaluate_hotplug_ost() with acpi_evaluate_ost()
-> > and dropping the ACPI_HOTPLUG_OST which I don't believe is necessary at all.
+> > On Thu, Feb 20, 2014 at 11:09:42PM +0000, Matthew Garrett wrote:
+> > > On Thu, 2014-02-20 at 16:45 -0600, Russ Anderson wrote:
+> > > > On Thu, Feb 20, 2014 at 10:26:45PM +0000, Matthew Garrett wrote:
+> > >
+> > > > > Because I'm trying to ensure that the default behaviour of the kernel is
+> > > > > to *work*. Defaulting to having IPMI be modular means that the default
+> > > > > behaviour of the kernel, as far as the ACPI spec goes, is to be broken.
+> > > >
+> > > > The ACPI spec requires IPMI functionality before a module loads at
+> > > > boot time?  And the kernel is *broken* if it does not support ACIP IPMI
+> > > > functionality before module load time?  Really?
+> > >
+> > > There's no mechanism to ensure that IPMI support will be loaded before
+> > > ACPI calls attempt to access IPMI operation regions. Really.
 > > 
-> > On top of the current linux-next and your series.
+> > And no mechanism can be added to ensure that ACPI call are
+> > not attempted before IPMI is initialized?  A flag or lock
+> > or exported symbol indicating IPMI support is ready.
+> 
+> In fact there is a workaround solution I've posted here:
+> https://patchwork.kernel.org/patch/2831851/
+> The updated version of this patch can be found at:
+> https://bugzilla.kernel.org/attachment.cgi?id=112611
+> It is the acpi-ipmi13.patch file.
+> 
+> This solution may change the meaning of ACPI spec defined _REG.
+> So we may need a better solution.
+> 
+> But after merging this patch, it is safe to unload acpi_ipmi at users' wishes.
+> Without solutions to solve region handler uninstallation races, it is not safe to unload acpi_ipmi module.
+> You can see crashes in the description of this patch.
+> 
+> The ipmi_si module is using a different way to unload itself which has not been tested by me.
+> You can find it in Documentation/IPMI.txt by searching "hot and remove of interfaces" in this file.
+> 
 > > 
-> > Thanks,
-> > Rafael
+> > > > > ACPI 4.0 includes support for IPMI operation regions. Modular IPMI means
+> > > > > that the kernel will spend a significant amount of time (potentially
+> > > > > until a user manually loads a driver) failing to implement part of the
+> > > > > IPMI specification. That's a problem, and the correct fix is to ensure
+> > > > > that the kernel always implements IPMI support.
+> > > >
+> > > > The ACPI spec says ipmi_si cannot be a driver?  Really?
+> > > > What is the real problem you are trying to solve?
+> > >
+> > > The most straightforward case is that of an ACPI power meter.
 > > 
-> > ---
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Subject: ACPI: Drop acpi_evaluate_hotplug_ost() and ACPI_HOTPLUG_OST
+> > So it is just a matter of making sure ipmi_si modules loads before
+> > the ACPI power meter module loads, right?  module dependency issue.
+> 
+> I agree.
+> I think there should be relationship between ACPI region and Linux kernel modules.
+> In fact on the well-known operating system, _REG is always invoked at the end of the IRP_PNP_START_DEVICE completions.
+> But we may still be able to return -EPROBE_DEFER in the power meter driver when it detects failures caused by the readiness state of the region handlers.
+> 
+> I didn't work further on this issue when solving the reported bug:
+> https://bugzilla.kernel.org/show_bug.cgi?id=46741
+> 
 > > 
-> > Replace acpi_evaluate_hotplug_ost() with acpi_evaluate_ost()
-> > everywhere and drop the ACPI_HOTPLUG_OST symbol so that hotplug
-> > _OST is supported unconditionally.
+> > >                                                                Several
+> > > vendors implement this with an IPMI operation region. Calling any of the
+> > > power meter functions will trigger access to that IPMI operation region,
+> > > which will fail. This may result in driver initialisation failing. There
+> > > is no express dependency between the power meter driver and ipmi_si,
+> > > because the spec envisages IPMI support as basic kernel functionality.
+> > > It's meant to be there before you start loading any other drivers.
 > > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/acpi/bus.c                |    4 +---
-> >  drivers/acpi/scan.c               |   10 +++++-----
-> >  drivers/acpi/utils.c              |    2 +-
-> >  drivers/xen/xen-acpi-cpuhotplug.c |    2 +-
-> >  drivers/xen/xen-acpi-memhotplug.c |    2 +-
-> >  include/acpi/acpi_bus.h           |    8 --------
-> >  6 files changed, 9 insertions(+), 19 deletions(-)
+> > The spec "envisages"?  I get there is a dependency, that IPMI driver
+> > needs to be loaded before ACIP power meter.  This isn't the first
+> > case of a driver being dependent on another driver.  That doesn't
+> > mean IPMI driver must be built into the kernel.
 > > 
-> > Index: linux-pm/drivers/acpi/bus.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/bus.c
-> > +++ linux-pm/drivers/acpi/bus.c
-> > @@ -311,9 +311,7 @@ static void acpi_bus_osc_support(void)
-> >  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PPC_OST_SUPPORT;
-> >  #endif
-> >  
-> > -#ifdef ACPI_HOTPLUG_OST
-> >  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
-> > -#endif
-> >  
-> >  	if (!ghes_disable)
-> >  		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
-> > @@ -410,7 +408,7 @@ static void acpi_bus_notify(acpi_handle
-> >  	return;
-> >  
-> >   err:
-> > -	acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
-> > +	acpi_evaluate_ost(handle, type, ost_code, NULL);
-> >  }
-> >  
-> >  /* --------------------------------------------------------------------------
-> > Index: linux-pm/include/acpi/acpi_bus.h
-> > ===================================================================
-> > --- linux-pm.orig/include/acpi/acpi_bus.h
-> > +++ linux-pm/include/acpi/acpi_bus.h
-> > @@ -51,14 +51,6 @@ acpi_evaluate_reference(acpi_handle hand
-> >  acpi_status
-> >  acpi_evaluate_ost(acpi_handle handle, u32 source_event, u32 status_code,
-> >  		  struct acpi_buffer *status_buf);
-> > -#ifdef ACPI_HOTPLUG_OST
-> > -#define	acpi_evaluate_hotplug_ost	acpi_evaluate_ost
-> > -#else
-> > -static inline acpi_status
-> > -acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
-> > -			u32 status_code, struct acpi_buffer *status_buf)
-> > -{ return AE_OK; }
-> > -#endif
-> >  
-> >  acpi_status
-> >  acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld);
-> > Index: linux-pm/drivers/acpi/scan.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/scan.c
-> > +++ linux-pm/drivers/acpi/scan.c
-> > @@ -463,8 +463,8 @@ static int acpi_generic_hotplug_event(st
-> >  			dev_info(&adev->dev, "Eject disabled\n");
-> >  			return -EPERM;
-> >  		}
-> > -		acpi_evaluate_hotplug_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
-> > -					  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
-> > +		acpi_evaluate_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
-> > +				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
-> >  		return acpi_scan_hot_remove(adev);
-> >  	}
-> >  	return -EINVAL;
-> > @@ -514,7 +514,7 @@ void acpi_device_hotplug(void *data, u32
-> >  		ost_code = ACPI_OST_SC_SUCCESS;
-> >  
-> >   err_out:
-> > -	acpi_evaluate_hotplug_ost(adev->handle, src, ost_code, NULL);
-> > +	acpi_evaluate_ost(adev->handle, src, ost_code, NULL);
-> >  
-> >   out:
-> >  	acpi_bus_put_acpi_device(adev);
-> > @@ -574,8 +574,8 @@ acpi_eject_store(struct device *d, struc
-> >  		return count;
-> >  
-> >  	put_device(&acpi_device->dev);
-> > -	acpi_evaluate_hotplug_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
-> > -				  ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
-> > +	acpi_evaluate_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
-> > +			  ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
-> >  	return status == AE_NO_MEMORY ? -ENOMEM : -EAGAIN;
-> >  }
-> >  
-> > Index: linux-pm/drivers/acpi/utils.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/utils.c
-> > +++ linux-pm/drivers/acpi/utils.c
-> > @@ -422,7 +422,7 @@ out:
-> >  EXPORT_SYMBOL(acpi_get_physical_device_location);
-> >  
-> >  /**
-> > - * acpi_evaluate_hotplug_ost: Evaluate _OST for hotplug operations
-> > + * acpi_evaluate_ost: Evaluate _OST for hotplug operations
-> >   * @handle: ACPI device handle
-> >   * @source_event: source event code
-> >   * @status_code: status code
-> > Index: linux-pm/drivers/xen/xen-acpi-cpuhotplug.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/xen/xen-acpi-cpuhotplug.c
-> > +++ linux-pm/drivers/xen/xen-acpi-cpuhotplug.c
-> > @@ -313,7 +313,7 @@ static void acpi_processor_hotplug_notif
-> >  		goto out;
-> >  	}
-> >  
-> > -	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
-> > +	(void) acpi_evaluate_ost(handle, event, ost_code, NULL);
-> >  
-> >  out:
-> >  	acpi_scan_lock_release();
-> > Index: linux-pm/drivers/xen/xen-acpi-memhotplug.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/xen/xen-acpi-memhotplug.c
-> > +++ linux-pm/drivers/xen/xen-acpi-memhotplug.c
-> > @@ -285,7 +285,7 @@ static void acpi_memory_device_notify(ac
-> >  		return;
-> >  	}
-> >  
-> > -	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
-> > +	(void) acpi_evaluate_ost(handle, event, ost_code, NULL);
-> >  	return;
-> >  }
-> >  
+> > > > > Now, you've described some other problems. I don't disagree that those
+> > > > > are problems. The correct thing for us to do with those problems is to
+> > > > > fix them, not to simply change the kernel defaults such that it's
+> > > > > possible for users to choose between two differently broken states. I'm
+> > > > > absolutely willing to help, as long as you're willing to put some
+> > > > > reasonable amount of effort into describing them.
+> > > >
+> > > > How about ACPI IPMI functionality starts when the ipmi_si
+> > > > module loads at boot time.
+> 
+> Actually, I have a solution implemented this.
+> You can find it at:
+> https://bugzilla.kernel.org/attachment.cgi?id=112611
+> It is the acpi-ipmi14.patch file.
+> 
+> The patch will hand the maintenance-ship of acpi_ipmi to IPMI community.
+> I'm not sure it is proper to merge it by Linux upstreams.
+> 
+> Thanks and best regards
+> -Lv
+> 
+> > >
+> > > I've repeatedly asked for you to provide detailed descriptions of the
+> > > problems you've seen because I have a genuine interest in fixing them.
+> > > If you're just going to childishly refuse then this discussion is
+> > > pointless.
 > > 
+> > The distro cases I would point you at are marked private.
+> > And you do not have access to our internal support system.
+> > A simple google search for "kipmi0" shows a lot of reports of
+> > high cpu utilization.
+> > 
+> > And I'm old enough to appreciate being called childishly.  :-)
+> > 
+> > --
+> > Russ Anderson,  Kernel and Performance Software Team Manager
+> > SGI - Silicon Graphics Inc          rja@sgi.com
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Russ Anderson,  Kernel and Performance Software Team Manager
+SGI - Silicon Graphics Inc          rja@sgi.com
