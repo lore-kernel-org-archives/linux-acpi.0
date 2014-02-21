@@ -1,54 +1,73 @@
-From: Corey Minyard <minyard@acm.org>
+From: Matthew Garrett <matthew.garrett@nebula.com>
 Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Fri, 21 Feb 2014 07:37:16 -0600
-Message-ID: <5307568C.3020701@acm.org>
-References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>	 <20140220201458.GA7099@sgi.com> <1392927381.20109.0.camel@x230>	 <20140220204028.GJ17949@sgi.com> <1392929163.20109.5.camel@x230>	 <20140220205901.GM17949@sgi.com> <1392930047.20109.6.camel@x230>
-Reply-To: minyard@acm.org
+Date: Fri, 21 Feb 2014 15:51:53 +0000
+Message-ID: <1392997912.20109.41.camel@x230>
+References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>
+	 <20140220201458.GA7099@sgi.com> <1392927381.20109.0.camel@x230>
+	 <20140220204028.GJ17949@sgi.com> <1392929163.20109.5.camel@x230>
+	 <20140220205901.GM17949@sgi.com> <1392930047.20109.6.camel@x230>
+	 <5307568C.3020701@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1392930047.20109.6.camel@x230>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>, "rja@sgi.com" <rja@sgi.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bn1lp0152.outbound.protection.outlook.com ([207.46.163.152]:56589
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932343AbaBUPv4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Feb 2014 10:51:56 -0500
+In-Reply-To: <5307568C.3020701@acm.org>
+Content-Language: en-US
+Content-ID: <780159190972554FB352146F7C52319F@namprd05.prod.outlook.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "minyard@acm.org" <minyard@acm.org>
+Cc: "rja@sgi.com" <rja@sgi.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 02/20/2014 03:00 PM, Matthew Garrett wrote:
-> On Thu, 2014-02-20 at 14:59 -0600, Russ Anderson wrote:
->> On Thu, Feb 20, 2014 at 08:46:04PM +0000, Matthew Garrett wrote:
->>> On Thu, 2014-02-20 at 14:40 -0600, Russ Anderson wrote:
->>>
->>>> This is also a problem for systems with functional BMCs.  Our
->>>> large cluster systems do all IPMI traffic (monitoring) through
->>>> a system controller back door.  We do not want the kernel
->>>> doing IPMI commands on those systems.
->>> Why not?
->> Because some customers want to use cpu cycles for their
->> application and let the ipmi monitoring go on through
->> the system controller network.
-> Why is it generating any significant amount of CPU load? We're not
-> talking about a high-bandwidth interface here.
->
-
-I believe that problem is fixed now, at least the one with kipmid using
-lots of CPU.
-
-However, the basic problem is that hardware vendors produce hardware
-that sucks and then expect software to fix all the problems.  Most IPMI
-interfaces don't have interrupts, so they have to be polled.  Then they
-add important interfaces on top of it like firmware upgrade and ACPI and
-expect it to perform well.  If vendors would just have an interrupt for
-IPMI, 99% of these problems would go away.
-
-If there are still issues with lots of CPU being used, then the problem
-is most likely non-compliant or just broken hardware.  I've seen enough
-of that.
-
-One thing we can do is remove the default interface probing for IPMI. 
-Even though the spec has it, all modern hardware should have it
-specified in ACPI or device tree.  That should fix all the slow boot
-problems, at least.  If a user wants to add a default interface, they
-can use the interface to dynamically add it after boot time.
-
--corey
+T24gRnJpLCAyMDE0LTAyLTIxIGF0IDA3OjM3IC0wNjAwLCBDb3JleSBNaW55YXJkIHdyb3RlOg0K
+DQo+IEhvd2V2ZXIsIHRoZSBiYXNpYyBwcm9ibGVtIGlzIHRoYXQgaGFyZHdhcmUgdmVuZG9ycyBw
+cm9kdWNlIGhhcmR3YXJlDQo+IHRoYXQgc3Vja3MgYW5kIHRoZW4gZXhwZWN0IHNvZnR3YXJlIHRv
+IGZpeCBhbGwgdGhlIHByb2JsZW1zLiAgTW9zdCBJUE1JDQo+IGludGVyZmFjZXMgZG9uJ3QgaGF2
+ZSBpbnRlcnJ1cHRzLCBzbyB0aGV5IGhhdmUgdG8gYmUgcG9sbGVkLiAgVGhlbiB0aGV5DQo+IGFk
+ZCBpbXBvcnRhbnQgaW50ZXJmYWNlcyBvbiB0b3Agb2YgaXQgbGlrZSBmaXJtd2FyZSB1cGdyYWRl
+IGFuZCBBQ1BJIGFuZA0KPiBleHBlY3QgaXQgdG8gcGVyZm9ybSB3ZWxsLiAgSWYgdmVuZG9ycyB3
+b3VsZCBqdXN0IGhhdmUgYW4gaW50ZXJydXB0IGZvcg0KPiBJUE1JLCA5OSUgb2YgdGhlc2UgcHJv
+YmxlbXMgd291bGQgZ28gYXdheS4NCg0KTm90IGdvaW5nIHRvIGRpc2FncmVlLiBUaGUgaW1wYWN0
+IG9uIHBvd2VyIGNvbnN1bXB0aW9uIGlzIGFsc28gcHJldHR5DQphd2Z1bC4gSSBzaG91bGQgcmUt
+cmVhZCB0aGUgc3BlYyB0byBmaWd1cmUgb3V0IHdoZXRoZXIgd2UgY2FuDQpsZWdpdGltYXRlbHkg
+Z2V0IGF3YXkgd2l0aCBub3QgZG9pbmcgdGhhdC4NCg0KPiBPbmUgdGhpbmcgd2UgY2FuIGRvIGlz
+IHJlbW92ZSB0aGUgZGVmYXVsdCBpbnRlcmZhY2UgcHJvYmluZyBmb3IgSVBNSS4gDQo+IEV2ZW4g
+dGhvdWdoIHRoZSBzcGVjIGhhcyBpdCwgYWxsIG1vZGVybiBoYXJkd2FyZSBzaG91bGQgaGF2ZSBp
+dA0KPiBzcGVjaWZpZWQgaW4gQUNQSSBvciBkZXZpY2UgdHJlZS4gIFRoYXQgc2hvdWxkIGZpeCBh
+bGwgdGhlIHNsb3cgYm9vdA0KPiBwcm9ibGVtcywgYXQgbGVhc3QuICBJZiBhIHVzZXIgd2FudHMg
+dG8gYWRkIGEgZGVmYXVsdCBpbnRlcmZhY2UsIHRoZXkNCj4gY2FuIHVzZSB0aGUgaW50ZXJmYWNl
+IHRvIGR5bmFtaWNhbGx5IGFkZCBpdCBhZnRlciBib290IHRpbWUuDQoNClNvbWV0aGluZyBsaWtl
+IHRoaXMgKHVudGVzdGVkKT8NCg0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvY2hhci9pcG1pL0tjb25m
+aWcgYi9kcml2ZXJzL2NoYXIvaXBtaS9LY29uZmlnDQppbmRleCBlZWE4NDY0Li41MTI2MjMwIDEw
+MDY0NA0KLS0tIGEvZHJpdmVycy9jaGFyL2lwbWkvS2NvbmZpZw0KKysrIGIvZHJpdmVycy9jaGFy
+L2lwbWkvS2NvbmZpZw0KQEAgLTUyLDYgKzUyLDE2IEBAIGNvbmZpZyBJUE1JX1NJDQogICAgICAg
+ICBDdXJyZW50bHksIG9ubHkgS0NTIGFuZCBTTUlDIGFyZSBzdXBwb3J0ZWQuICBJZg0KICAgICAg
+ICAgeW91IGFyZSB1c2luZyBJUE1JLCB5b3Ugc2hvdWxkIHByb2JhYmx5IHNheSAieSIgaGVyZS4N
+CiANCitjb25maWcgSVBNSV9QUk9CRV9ERUZBVUxUUw0KKyAgICAgICBib29sICdQcm9iZSBmb3Ig
+YWxsIHBvc3NpYmxlIElQTUkgaW50ZXJmYWNlcyBieSBkZWZhdWx0Jw0KKyAgICAgICBoZWxwDQor
+ICAgICAgICAgTW9kZXJuIHN5c3RlbXMgd2lsbCB1c3VhbGx5IGV4cG9zZSBJUE1JIGludGVyZmFj
+ZXMgdmlhIGEgZGlzY292ZXJhYmxlDQorICAgICAgICBmaXJtd2FyZSBtZWNoYW5pc20gc3VjaCBh
+cyBBQ1BJIG9yIERNSS4gT2xkZXIgc3lzdGVtcyBkbyBub3QsIGFuZCBzbw0KKyAgICAgICAgdGhl
+IGRyaXZlciBpcyBmb3JjZWQgdG8gcHJvYmUgaGFyZHdhcmUgbWFudWFsbHkuIFRoaXMgbWF5IGNh
+dXNlIGJvb3QNCisgICAgICAgIGRlbGF5cy4gU2F5ICJuIiBoZXJlIHRvIGRpc2FibGUgdGhpcyBt
+YW51YWwgcHJvYmluZy4gSVBNSSB3aWxsIHRoZW4NCisgICAgICAgIG9ubHkgYmUgYXZhaWxhYmxl
+IG9uIG9sZGVyIHN5c3RlbXMgaWYgdGhlICJpcG1pX3NpX2ludGYudHJ5ZGVmYXVsdHM9MSINCisg
+ICAgICAgIGJvb3QgYXJndW1lbnQgaXMgcGFzc2VkLg0KKw0KIGNvbmZpZyBJUE1JX1dBVENIRE9H
+DQogICAgICAgIHRyaXN0YXRlICdJUE1JIFdhdGNoZG9nIFRpbWVyJw0KICAgICAgICBoZWxwDQpk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9jaGFyL2lwbWkvaXBtaV9zaV9pbnRmLmMgYi9kcml2ZXJzL2No
+YXIvaXBtaS9pcG1pX3NpX2ludGYuYw0KaW5kZXggMDNmNDE4OS4uODJjN2Q1NiAxMDA2NDQNCi0t
+LSBhL2RyaXZlcnMvY2hhci9pcG1pL2lwbWlfc2lfaW50Zi5jDQorKysgYi9kcml2ZXJzL2NoYXIv
+aXBtaS9pcG1pX3NpX2ludGYuYw0KQEAgLTEyMzAsNyArMTIzMCwxMSBAQCBzdGF0aWMgYm9vbCAg
+ICAgICAgICBzaV90cnlwbGF0Zm9ybSA9IDE7DQogI2lmZGVmIENPTkZJR19QQ0kNCiBzdGF0aWMg
+Ym9vbCAgICAgICAgICBzaV90cnlwY2kgPSAxOw0KICNlbmRpZg0KKyNpZmRlZiBDT05GSUdfSVBN
+SV9QUk9CRV9ERUZBVUxUUw0KIHN0YXRpYyBib29sICAgICAgICAgIHNpX3RyeWRlZmF1bHRzID0g
+MTsNCisjZWxzZQ0KK3N0YXRpYyBib29sICAgICAgICAgIHNpX3RyeWRlZmF1bHRzOw0KKyNlbmRp
+Zg0KIHN0YXRpYyBjaGFyICAgICAgICAgICpzaV90eXBlW1NJX01BWF9QQVJNU107DQogI2RlZmlu
+ZSBNQVhfU0lfVFlQRV9TVFIgMzANCiBzdGF0aWMgY2hhciAgICAgICAgICBzaV90eXBlX3N0cltN
+QVhfU0lfVFlQRV9TVFJdOw0KDQoNCi0tIA0KTWF0dGhldyBHYXJyZXR0IDxtYXR0aGV3LmdhcnJl
+dHRAbmVidWxhLmNvbT4NCg==
