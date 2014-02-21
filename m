@@ -1,175 +1,107 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [PATCH] ACPI: Drop acpi_evaluate_hotplug_ost() and ACPI_HOTPLUG_OST
-Date: Fri, 21 Feb 2014 13:58:24 +0800
-Message-ID: <5306EB00.1090108@linux.intel.com>
-References: <1392789739-32317-1-git-send-email-jiang.liu@linux.intel.com> <60567343.brKB2SuRkR@vostro.rjw.lan>
+Subject: Re: [PATCH v5 02/33] genirq: Add irq_alloc_reserved_desc()
+Date: Fri, 21 Feb 2014 14:45:57 +0800
+Message-ID: <5306F625.5050007@linux.intel.com>
+References: <1388707565-16535-1-git-send-email-yinghai@kernel.org> <1388707565-16535-3-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:48176 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751230AbaBUF61 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Feb 2014 00:58:27 -0500
-In-Reply-To: <60567343.brKB2SuRkR@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1388707565-16535-3-git-send-email-yinghai@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Toshi Kani <toshi.kani@hp.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
 
-Hi Rafael,
-	I failed to get the point to kill ACPI_HOTPLUG_OST altogether:(
-Should I merge it into my series and resend?
 
-Hi Toshi,
-	Any comments here?
 
-On 2014/2/21 8:19, Rafael J. Wysocki wrote:
-> On Wednesday, February 19, 2014 02:02:15 PM Jiang Liu wrote:
->> Rename acpi_evaluate_hotplug_ost() to acpi_evaluate_ost() for later resue.
->>
->> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+On 2014/1/3 8:05, Yinghai Lu wrote:
+> For ioapic hot-add support, it would be easy if we have continuous
+> irq numbers for hot added ioapic controller.
 > 
-> Below is a patch replacing acpi_evaluate_hotplug_ost() with acpi_evaluate_ost()
-> and dropping the ACPI_HOTPLUG_OST which I don't believe is necessary at all.
+> We can reserve irq range at first, and later allocate desc for those
+> pre-reserved irqs when they are needed.
 > 
-> On top of the current linux-next and your series.
+> The reasons for not allocating them during reserving:
+> 1. only several pins of one ioapic are used, allocate for all pins, will
+>    waste memory for not used pins.
+> 2. allocate later when is needed could make sure irq_desc is allocated
+>    on local node ram, as dev->node is set at that point.
 > 
-> Thanks,
-> Rafael
+> -v2: update changelog by adding reasons, requested by Konrad.
+> -v3: according to tglx:
+>        separate core code change with arch code change.
+>        change function name to irq_alloc_reserved_desc.
+>        kill __irq_is_reserved().
+>        remove not need exports.
+>      according to Sebastian:
+>        spare one comments by put two functions together.
 > 
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Cc: Joerg Roedel <joro@8bytes.org>
+> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 > ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI: Drop acpi_evaluate_hotplug_ost() and ACPI_HOTPLUG_OST
+>  include/linux/irq.h  |  3 +++
+>  kernel/irq/irqdesc.c | 23 +++++++++++++++++++++++
+>  2 files changed, 26 insertions(+)
 > 
-> Replace acpi_evaluate_hotplug_ost() with acpi_evaluate_ost()
-> everywhere and drop the ACPI_HOTPLUG_OST symbol so that hotplug
-> _OST is supported unconditionally.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/bus.c                |    4 +---
->  drivers/acpi/scan.c               |   10 +++++-----
->  drivers/acpi/utils.c              |    2 +-
->  drivers/xen/xen-acpi-cpuhotplug.c |    2 +-
->  drivers/xen/xen-acpi-memhotplug.c |    2 +-
->  include/acpi/acpi_bus.h           |    8 --------
->  6 files changed, 9 insertions(+), 19 deletions(-)
-> 
-> Index: linux-pm/drivers/acpi/bus.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/bus.c
-> +++ linux-pm/drivers/acpi/bus.c
-> @@ -311,9 +311,7 @@ static void acpi_bus_osc_support(void)
->  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PPC_OST_SUPPORT;
->  #endif
+> diff --git a/include/linux/irq.h b/include/linux/irq.h
+> index 0229caf..e5f6493 100644
+> --- a/include/linux/irq.h
+> +++ b/include/linux/irq.h
+> @@ -595,10 +595,13 @@ static inline u32 irq_get_trigger_type(unsigned int irq)
 >  
-> -#ifdef ACPI_HOTPLUG_OST
->  	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
-> -#endif
+>  int __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
+>  		struct module *owner);
+> +int __irq_alloc_reserved_desc(int at, int node, struct module *owner);
 >  
->  	if (!ghes_disable)
->  		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
-> @@ -410,7 +408,7 @@ static void acpi_bus_notify(acpi_handle
->  	return;
+>  /* use macros to avoid needing export.h for THIS_MODULE */
+>  #define irq_alloc_descs(irq, from, cnt, node)	\
+>  	__irq_alloc_descs(irq, from, cnt, node, THIS_MODULE)
+> +#define irq_alloc_reserved_desc_at(at, node)	\
+> +	__irq_alloc_reserved_desc(at, node, THIS_MODULE)
 >  
->   err:
-> -	acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
-> +	acpi_evaluate_ost(handle, type, ost_code, NULL);
->  }
->  
->  /* --------------------------------------------------------------------------
-> Index: linux-pm/include/acpi/acpi_bus.h
-> ===================================================================
-> --- linux-pm.orig/include/acpi/acpi_bus.h
-> +++ linux-pm/include/acpi/acpi_bus.h
-> @@ -51,14 +51,6 @@ acpi_evaluate_reference(acpi_handle hand
->  acpi_status
->  acpi_evaluate_ost(acpi_handle handle, u32 source_event, u32 status_code,
->  		  struct acpi_buffer *status_buf);
-> -#ifdef ACPI_HOTPLUG_OST
-> -#define	acpi_evaluate_hotplug_ost	acpi_evaluate_ost
-> -#else
-> -static inline acpi_status
-> -acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
-> -			u32 status_code, struct acpi_buffer *status_buf)
-> -{ return AE_OK; }
-> -#endif
->  
->  acpi_status
->  acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld);
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -463,8 +463,8 @@ static int acpi_generic_hotplug_event(st
->  			dev_info(&adev->dev, "Eject disabled\n");
->  			return -EPERM;
->  		}
-> -		acpi_evaluate_hotplug_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
-> -					  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
-> +		acpi_evaluate_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
-> +				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
->  		return acpi_scan_hot_remove(adev);
->  	}
->  	return -EINVAL;
-> @@ -514,7 +514,7 @@ void acpi_device_hotplug(void *data, u32
->  		ost_code = ACPI_OST_SC_SUCCESS;
->  
->   err_out:
-> -	acpi_evaluate_hotplug_ost(adev->handle, src, ost_code, NULL);
-> +	acpi_evaluate_ost(adev->handle, src, ost_code, NULL);
->  
->   out:
->  	acpi_bus_put_acpi_device(adev);
-> @@ -574,8 +574,8 @@ acpi_eject_store(struct device *d, struc
->  		return count;
->  
->  	put_device(&acpi_device->dev);
-> -	acpi_evaluate_hotplug_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
-> -				  ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
-> +	acpi_evaluate_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
-> +			  ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
->  	return status == AE_NO_MEMORY ? -ENOMEM : -EAGAIN;
->  }
->  
-> Index: linux-pm/drivers/acpi/utils.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/utils.c
-> +++ linux-pm/drivers/acpi/utils.c
-> @@ -422,7 +422,7 @@ out:
->  EXPORT_SYMBOL(acpi_get_physical_device_location);
+>  #define irq_alloc_desc(node)			\
+>  	irq_alloc_descs(-1, 0, 1, node)
+> diff --git a/kernel/irq/irqdesc.c b/kernel/irq/irqdesc.c
+> index a151db6..1166545 100644
+> --- a/kernel/irq/irqdesc.c
+> +++ b/kernel/irq/irqdesc.c
+> @@ -410,6 +410,29 @@ __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
+>  EXPORT_SYMBOL_GPL(__irq_alloc_descs);
 >  
 >  /**
-> - * acpi_evaluate_hotplug_ost: Evaluate _OST for hotplug operations
-> + * acpi_evaluate_ost: Evaluate _OST for hotplug operations
->   * @handle: ACPI device handle
->   * @source_event: source event code
->   * @status_code: status code
-> Index: linux-pm/drivers/xen/xen-acpi-cpuhotplug.c
-> ===================================================================
-> --- linux-pm.orig/drivers/xen/xen-acpi-cpuhotplug.c
-> +++ linux-pm/drivers/xen/xen-acpi-cpuhotplug.c
-> @@ -313,7 +313,7 @@ static void acpi_processor_hotplug_notif
->  		goto out;
->  	}
->  
-> -	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
-> +	(void) acpi_evaluate_ost(handle, event, ost_code, NULL);
->  
->  out:
->  	acpi_scan_lock_release();
-> Index: linux-pm/drivers/xen/xen-acpi-memhotplug.c
-> ===================================================================
-> --- linux-pm.orig/drivers/xen/xen-acpi-memhotplug.c
-> +++ linux-pm/drivers/xen/xen-acpi-memhotplug.c
-> @@ -285,7 +285,7 @@ static void acpi_memory_device_notify(ac
->  		return;
->  	}
->  
-> -	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
-> +	(void) acpi_evaluate_ost(handle, event, ost_code, NULL);
->  	return;
->  }
->  
+> + * __irq_alloc_reserved_desc - allocate irq descriptor for irq that is already reserved
+> + * @irq:	Allocate for specific irq number if irq >= 0
+Hi Yinghai
+	Should we skip "if irq >= 0" here because irq should have already been
+reserved? Or should we add range check for irq?
+Thanks!
+Gerry
+
+> + * @node:	Preferred node on which the irq descriptor should be allocated
+> + * @owner:	Owning module (can be NULL)
+> + *
+> + * Returns the irq number or error code
+> + */
+> +int __ref __irq_alloc_reserved_desc(int irq, int node, struct module *owner)
+> +{
+> +	mutex_lock(&sparse_irq_lock);
+> +	if (!test_bit(irq, allocated_irqs)) {
+> +		mutex_unlock(&sparse_irq_lock);
+> +		return -EINVAL;
+> +	}
+> +	mutex_unlock(&sparse_irq_lock);
+> +
+> +	if (irq_to_desc(irq))
+> +		return irq;
+> +
+> +	return alloc_descs(irq, 1, node, owner);
+> +}
+> +
+> +/**
+>   * irq_reserve_irqs - mark irqs allocated
+>   * @from:	mark from irq number
+>   * @cnt:	number of irqs to mark
 > 
