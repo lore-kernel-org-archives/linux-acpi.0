@@ -1,162 +1,84 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI: Drop acpi_evaluate_hotplug_ost() and ACPI_HOTPLUG_OST
-Date: Fri, 21 Feb 2014 01:19:52 +0100
-Message-ID: <60567343.brKB2SuRkR@vostro.rjw.lan>
-References: <1392789739-32317-1-git-send-email-jiang.liu@linux.intel.com>
+From: Matthew Garrett <matthew.garrett@nebula.com>
+Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
+Date: Fri, 21 Feb 2014 00:13:13 +0000
+Message-ID: <1392941592.20109.36.camel@x230>
+References: <20140220204028.GJ17949@sgi.com> <1392929163.20109.5.camel@x230>
+	 <20140220205901.GM17949@sgi.com> <1392930047.20109.6.camel@x230>
+	 <20140220212854.GO17949@sgi.com> <1392932363.20109.11.camel@x230>
+	 <20140220220656.GT17949@sgi.com> <1392935204.20109.17.camel@x230>
+	 <20140220224529.GV17949@sgi.com> <1392937781.20109.24.camel@x230>
+	 <20140220235904.GZ17949@sgi.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1392789739-32317-1-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <20140220235904.GZ17949@sgi.com>
+Content-Language: en-US
+Content-ID: <AB318AF0FCA1AB4481A2AF41E908ECFD@namprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
+To: "rja@sgi.com" <rja@sgi.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, February 19, 2014 02:02:15 PM Jiang Liu wrote:
-> Rename acpi_evaluate_hotplug_ost() to acpi_evaluate_ost() for later resue.
-> 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-
-Below is a patch replacing acpi_evaluate_hotplug_ost() with acpi_evaluate_ost()
-and dropping the ACPI_HOTPLUG_OST which I don't believe is necessary at all.
-
-On top of the current linux-next and your series.
-
-Thanks,
-Rafael
-
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI: Drop acpi_evaluate_hotplug_ost() and ACPI_HOTPLUG_OST
-
-Replace acpi_evaluate_hotplug_ost() with acpi_evaluate_ost()
-everywhere and drop the ACPI_HOTPLUG_OST symbol so that hotplug
-_OST is supported unconditionally.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/bus.c                |    4 +---
- drivers/acpi/scan.c               |   10 +++++-----
- drivers/acpi/utils.c              |    2 +-
- drivers/xen/xen-acpi-cpuhotplug.c |    2 +-
- drivers/xen/xen-acpi-memhotplug.c |    2 +-
- include/acpi/acpi_bus.h           |    8 --------
- 6 files changed, 9 insertions(+), 19 deletions(-)
-
-Index: linux-pm/drivers/acpi/bus.c
-===================================================================
---- linux-pm.orig/drivers/acpi/bus.c
-+++ linux-pm/drivers/acpi/bus.c
-@@ -311,9 +311,7 @@ static void acpi_bus_osc_support(void)
- 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PPC_OST_SUPPORT;
- #endif
- 
--#ifdef ACPI_HOTPLUG_OST
- 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
--#endif
- 
- 	if (!ghes_disable)
- 		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
-@@ -410,7 +408,7 @@ static void acpi_bus_notify(acpi_handle
- 	return;
- 
-  err:
--	acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
-+	acpi_evaluate_ost(handle, type, ost_code, NULL);
- }
- 
- /* --------------------------------------------------------------------------
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -51,14 +51,6 @@ acpi_evaluate_reference(acpi_handle hand
- acpi_status
- acpi_evaluate_ost(acpi_handle handle, u32 source_event, u32 status_code,
- 		  struct acpi_buffer *status_buf);
--#ifdef ACPI_HOTPLUG_OST
--#define	acpi_evaluate_hotplug_ost	acpi_evaluate_ost
--#else
--static inline acpi_status
--acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
--			u32 status_code, struct acpi_buffer *status_buf)
--{ return AE_OK; }
--#endif
- 
- acpi_status
- acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld);
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -463,8 +463,8 @@ static int acpi_generic_hotplug_event(st
- 			dev_info(&adev->dev, "Eject disabled\n");
- 			return -EPERM;
- 		}
--		acpi_evaluate_hotplug_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
--					  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
-+		acpi_evaluate_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
-+				  ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
- 		return acpi_scan_hot_remove(adev);
- 	}
- 	return -EINVAL;
-@@ -514,7 +514,7 @@ void acpi_device_hotplug(void *data, u32
- 		ost_code = ACPI_OST_SC_SUCCESS;
- 
-  err_out:
--	acpi_evaluate_hotplug_ost(adev->handle, src, ost_code, NULL);
-+	acpi_evaluate_ost(adev->handle, src, ost_code, NULL);
- 
-  out:
- 	acpi_bus_put_acpi_device(adev);
-@@ -574,8 +574,8 @@ acpi_eject_store(struct device *d, struc
- 		return count;
- 
- 	put_device(&acpi_device->dev);
--	acpi_evaluate_hotplug_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
--				  ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
-+	acpi_evaluate_ost(acpi_device->handle, ACPI_OST_EC_OSPM_EJECT,
-+			  ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
- 	return status == AE_NO_MEMORY ? -ENOMEM : -EAGAIN;
- }
- 
-Index: linux-pm/drivers/acpi/utils.c
-===================================================================
---- linux-pm.orig/drivers/acpi/utils.c
-+++ linux-pm/drivers/acpi/utils.c
-@@ -422,7 +422,7 @@ out:
- EXPORT_SYMBOL(acpi_get_physical_device_location);
- 
- /**
-- * acpi_evaluate_hotplug_ost: Evaluate _OST for hotplug operations
-+ * acpi_evaluate_ost: Evaluate _OST for hotplug operations
-  * @handle: ACPI device handle
-  * @source_event: source event code
-  * @status_code: status code
-Index: linux-pm/drivers/xen/xen-acpi-cpuhotplug.c
-===================================================================
---- linux-pm.orig/drivers/xen/xen-acpi-cpuhotplug.c
-+++ linux-pm/drivers/xen/xen-acpi-cpuhotplug.c
-@@ -313,7 +313,7 @@ static void acpi_processor_hotplug_notif
- 		goto out;
- 	}
- 
--	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
-+	(void) acpi_evaluate_ost(handle, event, ost_code, NULL);
- 
- out:
- 	acpi_scan_lock_release();
-Index: linux-pm/drivers/xen/xen-acpi-memhotplug.c
-===================================================================
---- linux-pm.orig/drivers/xen/xen-acpi-memhotplug.c
-+++ linux-pm/drivers/xen/xen-acpi-memhotplug.c
-@@ -285,7 +285,7 @@ static void acpi_memory_device_notify(ac
- 		return;
- 	}
- 
--	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
-+	(void) acpi_evaluate_ost(handle, event, ost_code, NULL);
- 	return;
- }
- 
+T24gVGh1LCAyMDE0LTAyLTIwIGF0IDE3OjU5IC0wNjAwLCBSdXNzIEFuZGVyc29uIHdyb3RlOg0K
+PiBPbiBUaHUsIEZlYiAyMCwgMjAxNCBhdCAxMTowOTo0MlBNICswMDAwLCBNYXR0aGV3IEdhcnJl
+dHQgd3JvdGU6DQo+ID4gT24gVGh1LCAyMDE0LTAyLTIwIGF0IDE2OjQ1IC0wNjAwLCBSdXNzIEFu
+ZGVyc29uIHdyb3RlOg0KPiA+ID4gDQo+ID4gPiBUaGUgQUNQSSBzcGVjIHJlcXVpcmVzIElQTUkg
+ZnVuY3Rpb25hbGl0eSBiZWZvcmUgYSBtb2R1bGUgbG9hZHMgYXQNCj4gPiA+IGJvb3QgdGltZT8g
+IEFuZCB0aGUga2VybmVsIGlzICpicm9rZW4qIGlmIGl0IGRvZXMgbm90IHN1cHBvcnQgQUNJUCBJ
+UE1JDQo+ID4gPiBmdW5jdGlvbmFsaXR5IGJlZm9yZSBtb2R1bGUgbG9hZCB0aW1lPyAgUmVhbGx5
+Pw0KPiA+IA0KPiA+IFRoZXJlJ3Mgbm8gbWVjaGFuaXNtIHRvIGVuc3VyZSB0aGF0IElQTUkgc3Vw
+cG9ydCB3aWxsIGJlIGxvYWRlZCBiZWZvcmUNCj4gPiBBQ1BJIGNhbGxzIGF0dGVtcHQgdG8gYWNj
+ZXNzIElQTUkgb3BlcmF0aW9uIHJlZ2lvbnMuIFJlYWxseS4NCj4gDQo+IEFuZCBubyBtZWNoYW5p
+c20gY2FuIGJlIGFkZGVkIHRvIGVuc3VyZSB0aGF0IEFDUEkgY2FsbCBhcmUNCj4gbm90IGF0dGVt
+cHRlZCBiZWZvcmUgSVBNSSBpcyBpbml0aWFsaXplZD8gIEEgZmxhZyBvciBsb2NrDQo+IG9yIGV4
+cG9ydGVkIHN5bWJvbCBpbmRpY2F0aW5nIElQTUkgc3VwcG9ydCBpcyByZWFkeS4NCg0KQUNQSSBm
+dW5jdGlvbnMgYXJlIGEgYmxhY2sgYm94IHRvIGRyaXZlcnMuIFlvdSBtYWtlIGFuIEFDUEkgY2Fs
+bCwgdGhlDQpBTUwgY29kZSBkb2VzIHNvbWV0aGluZy4gV2UgY291bGQgYmxvY2sgdGhlcmUsIGJ1
+dCB3aGF0J3MgdGhlIGRyaXZlcg0Kc3VwcG9zZWQgdG8gZG8gYXQgdGhhdCBwb2ludD8gVGhlIGNv
+cmUgY291bGQgY2FsbCBvdXQgdG8gYSBtb2R1bGUNCmxvYWRlciwgYnV0IGlmIHRoZSBkcml2ZXIg
+aXMgYnVpbHQgaW4gYW5kIElQTUkgaXNuJ3QgdGhlbiB5b3UnbGwgZW5kIHVwDQp3aXRoIGEgNjAg
+c2Vjb25kIHBhdXNlIGluIGJvb3QgYW5kIGEgZHJpdmVyIHRoYXQgZG9lc24ndCB3b3JrLiANCg0K
+PiA+ID4gPiBBQ1BJIDQuMCBpbmNsdWRlcyBzdXBwb3J0IGZvciBJUE1JIG9wZXJhdGlvbiByZWdp
+b25zLiBNb2R1bGFyIElQTUkgbWVhbnMNCj4gPiA+ID4gdGhhdCB0aGUga2VybmVsIHdpbGwgc3Bl
+bmQgYSBzaWduaWZpY2FudCBhbW91bnQgb2YgdGltZSAocG90ZW50aWFsbHkNCj4gPiA+ID4gdW50
+aWwgYSB1c2VyIG1hbnVhbGx5IGxvYWRzIGEgZHJpdmVyKSBmYWlsaW5nIHRvIGltcGxlbWVudCBw
+YXJ0IG9mIHRoZQ0KPiA+ID4gPiBJUE1JIHNwZWNpZmljYXRpb24uIFRoYXQncyBhIHByb2JsZW0s
+IGFuZCB0aGUgY29ycmVjdCBmaXggaXMgdG8gZW5zdXJlDQo+ID4gPiA+IHRoYXQgdGhlIGtlcm5l
+bCBhbHdheXMgaW1wbGVtZW50cyBJUE1JIHN1cHBvcnQuDQo+ID4gPiANCj4gPiA+IFRoZSBBQ1BJ
+IHNwZWMgc2F5cyBpcG1pX3NpIGNhbm5vdCBiZSBhIGRyaXZlcj8gIFJlYWxseT8NCj4gPiA+IFdo
+YXQgaXMgdGhlIHJlYWwgcHJvYmxlbSB5b3UgYXJlIHRyeWluZyB0byBzb2x2ZT8NCj4gPiANCj4g
+PiBUaGUgbW9zdCBzdHJhaWdodGZvcndhcmQgY2FzZSBpcyB0aGF0IG9mIGFuIEFDUEkgcG93ZXIg
+bWV0ZXIuDQo+IA0KPiBTbyBpdCBpcyBqdXN0IGEgbWF0dGVyIG9mIG1ha2luZyBzdXJlIGlwbWlf
+c2kgbW9kdWxlcyBsb2FkcyBiZWZvcmUNCj4gdGhlIEFDUEkgcG93ZXIgbWV0ZXIgbW9kdWxlIGxv
+YWRzLCByaWdodD8gIG1vZHVsZSBkZXBlbmRlbmN5IGlzc3VlLg0KDQpObywgYmVjYXVzZSB0aGUg
+cG93ZXIgbWV0ZXIgZHJpdmVyIGhhcyBubyB3YXkgb2Yga25vd2luZyB0aGF0IGEgdmVuZG9yDQpo
+YXMgaW1wbGVtZW50ZWQgdGhpcyBpbnRlcmZhY2UgdmlhIElQTUkuICpBbnkqIEFDUEkgZW50cnkg
+cG9pbnQgY291bGQNCnRoZW9yZXRpY2FsbHkgcmVmZXJlbmNlIElQTUkgY29kZSwgZXZlbiB0aGUg
+X0lOSSBtZXRob2QgdGhhdCdzIGNhbGxlZA0KZHVyaW5nIEFDUEkgY29yZSBpbml0LiBJZiBpdCBk
+b2VzLCBhbmQgaWYgeW91IGRvbid0IGhhdmUgYnVpbHQtaW4gQUNQSQ0Kc3VwcG9ydCwgeW91J2Qg
+ZmFpbCBBQ1BJIGluaXRpYWxpc2F0aW9uIGFuZCB0aGluZ3Mgd291bGQgZ28gZG93bmhpbGwNCmZy
+b20gdGhlcmUuDQoNCihJIGRvbid0IHRoaW5rIGZhaWx1cmUgb2YgdGhpcyBtYWduaXR1ZGUgaXMg
+YWN0dWFsbHkgKmxpa2VseSosIGJ1dCBpdA0Kd291bGQgYmUgc3BlYy1jb21wbGlhbnQpDQoNCj4g
+PiBJJ3ZlIHJlcGVhdGVkbHkgYXNrZWQgZm9yIHlvdSB0byBwcm92aWRlIGRldGFpbGVkIGRlc2Ny
+aXB0aW9ucyBvZiB0aGUNCj4gPiBwcm9ibGVtcyB5b3UndmUgc2VlbiBiZWNhdXNlIEkgaGF2ZSBh
+IGdlbnVpbmUgaW50ZXJlc3QgaW4gZml4aW5nIHRoZW0uDQo+ID4gSWYgeW91J3JlIGp1c3QgZ29p
+bmcgdG8gY2hpbGRpc2hseSByZWZ1c2UgdGhlbiB0aGlzIGRpc2N1c3Npb24gaXMNCj4gPiBwb2lu
+dGxlc3MuIA0KPiANCj4gVGhlIGRpc3RybyBjYXNlcyBJIHdvdWxkIHBvaW50IHlvdSBhdCBhcmUg
+bWFya2VkIHByaXZhdGUuIA0KPiBBbmQgeW91IGRvIG5vdCBoYXZlIGFjY2VzcyB0byBvdXIgaW50
+ZXJuYWwgc3VwcG9ydCBzeXN0ZW0uDQo+IEEgc2ltcGxlIGdvb2dsZSBzZWFyY2ggZm9yICJraXBt
+aTAiIHNob3dzIGEgbG90IG9mIHJlcG9ydHMgb2YNCj4gaGlnaCBjcHUgdXRpbGl6YXRpb24uICAN
+Cg0KQW5kIG5vYm9keSBzZWVtcyB0byBoYXZlIHB1dCBhbnkgZWZmb3J0IGludG8gZmlndXJpbmcg
+b3V0IHdoYXQgdGhlDQp1bmRlcmx5aW5nIGNhdXNlIGlzLiBJcyBpdCBzcGlubmluZyBiZWNhdXNl
+IHRoZXJlIGFyZSBtZXNzYWdlcz8gSWYgc28sDQppcyBpdCBiZWNhdXNlIHRoZSBCTUMgd291bGQg
+cmVhbGx5IGxpa2Ugc29tZSBraW5kIG9mIHJlc3BvbnNlIHRvIHRob3NlDQptZXNzYWdlcz8gSXMg
+aXQgc3Bpbm5pbmcgYmVjYXVzZSB0aGUgQk1DIGlzIHdlZGdlZD8gSWYgc28sIGNhbiB3ZSBkZXRl
+Y3QNCnRoYXQgY2FzZSwgZmxhZyBpdCBhcyBicm9rZW4gYW5kIGNsZWFubHkgZGlzZW5nYWdlPw0K
+DQpXZSdyZSBydW5uaW5nIHN5c3RlbXMgZnJvbSBhIHdpZGUgcmFuZ2Ugb2YgdmVuZG9ycyAoaW5j
+bHVkaW5nIGJhc2ljYWxseQ0KYWxsIHRoZSBUaWVyIDEgc2VydmVyIG1hbnVmYWN0dXJlcnMsIHBs
+dXMgc29tZSB3aGl0ZWJveCksIHVzZSBJUE1JDQpmdW5jdGlvbmFsaXR5IGhlYXZpbHkgYW5kIGdl
+bnVpbmVseSBkbyBub3Qgc2VlIHRoZSBkZXNjcmliZWQgcHJvYmxlbXMuIEkNCmRvbid0IHRoaW5r
+IHRoZXJlJ3MgZXZpZGVuY2Ugb2Ygd2lkZXNwcmVhZCBicmVha2FnZSwgYW5kIHdoZXJlIGl0IGRv
+ZXMNCmV4aXN0IHdlIHNob3VsZCB0cmVhdCBpdCBhcyB3ZSB3b3VsZCBhbnkgb3RoZXIgYnVnIC0g
+ZGlhZ25vc2UgdGhlDQp1bmRlcmx5aW5nIHByb2JsZW0gYW5kIGZpeCBpdC4NCg0KLS0gDQpNYXR0
+aGV3IEdhcnJldHQgPG1hdHRoZXcuZ2FycmV0dEBuZWJ1bGEuY29tPg0K
