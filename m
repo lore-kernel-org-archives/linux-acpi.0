@@ -1,16 +1,18 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v5 2/5] ACPI / processor_core: Rework _PDC related stuff
- to make it more arch-independent
-Date: Sat, 22 Feb 2014 10:33:25 +0000
-Message-ID: <F980FA86-6705-4A71-956C-EA2DBD787199@arm.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v5 3/5] ACPI / processor: Introduce
+ =?UTF-8?Q?map=5Fgic=5Fid=28=29=20to=20get=20apic=20id=20from=20MADT=20or?=
+ =?UTF-8?Q?=20=5FMAT=20method?=
+Date: Sat, 22 Feb 2014 11:30:25 +0000
+Message-ID: <d2ad8ee5d9a7875fe121a30beb8d2e8c@www.loen.fr>
 References: <1392740638-2479-1-git-send-email-hanjun.guo@linaro.org>
- <3459962.GkY99aHQbc@vostro.rjw.lan> <20140221182424.GA5751@arm.com>
- <1408521.4TEdKhuRp5@vostro.rjw.lan>
-Mime-Version: 1.0 (Mac OS X Mail 7.1 \(1827\))
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+ <1392740638-2479-4-git-send-email-hanjun.guo@linaro.org>
+ <5304C0C4.3080601@arm.com> <53057DA9.3010307@linaro.org>
+ <5307487F.6000308@arm.com> <53087A0F.6010302@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1408521.4TEdKhuRp5@vostro.rjw.lan>
+In-Reply-To: <53087A0F.6010302@linaro.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,65 +22,85 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Joe Perches <joe@perches.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linaro-acpi@lists.linaro.org, patches@linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>, Joe Perches <joe@perches.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 21 Feb 2014, at 23:35, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Friday, February 21, 2014 06:24:24 PM Catalin Marinas wrote:
->> On Wed, Feb 19, 2014 at 01:50:22AM +0100, Rafael J. Wysocki wrote:
->>> On Wednesday, February 19, 2014 12:23:55 AM Hanjun Guo wrote:
->>>> _PDC related stuff in processor_core.c is little bit X86/IA64 dependen=
-t,
->>>> rework the code to make it more arch-independent, no functional change
->>>> in this patch.
->>>> =
-
->>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
->>> =
-
->>> I've queued up patches [1,3-5/5] from this series for 3.15 (modulo chan=
-gelog
->>> modifications), but this one should be CCed to the x86 and ia64 maintai=
-ners.
->> =
-
->> Thanks for taking these patches. I would however hold onto patch 3/5 as
->> this is still under discussion. Basically for patches specific to ARM
->> ACPI I would really like to see more acks before being merged as that's
->> a new thing for us.
-> =
-
-> OK, I'll drop [3/5] for now, then.
-
-Thanks (it=92s only temporary ;)).
-
-> I'm wondering, though, whose ACKs I should be waiting for before applying=
- those
-> patches?
-
-Good question ;). In this particular case, there is an ongoing
-discussion between Hanjun and Sudeep. While there isn=92t anything
-major, I would like to see some agreement and potentially an Ack from
-the other party involved in the discussion (Sudeep).
-
-There are other patches that are not specific to ARM, so it=92s
-really your decision. As for the general ARM(64) ACPI case, I don=92t
-think we have anyone in charge with deciding what=92s correct or not
-(BTW, who are the people active both in the _ARM_ Linux kernel community
-and the ACPI standardisation forum?).
-
-In the mean-time, I would like to see at least an ack from the arm-soc
-team (Arnd and Olof) or them collecting those ARM-specific patches and
-sending pull request to you. My biggest worry is how the ACPI standard
-is interpreted by vendors and how (non-standard) features get into the =
-
-Linux kernel.
-
-Anyway, I=92ll meet the Linaro guys in a week time and we=92ll agree on
-a way forward.
-
-Thanks,
-
-Catalin
+T24gMjAxNC0wMi0yMiAxMDoyMSwgSGFuanVuIEd1byB3cm90ZToKPiBPbiAyMDE0LTItMjEgMjA6
+MzcsIFN1ZGVlcCBIb2xsYSB3cm90ZToKPj4gSGkgSGFuanVuLAo+Pgo+PiAoQWRkaW5nIE1hcmNa
+IGZvciBoaXMgdmlld3Mgb24gR0lDKQo+Pgo+PiBPbiAyMC8wMi8xNCAwMzo1OSwgSGFuanVuIEd1
+byB3cm90ZToKPj4+IEhpIFN1ZGVlcCwKPj4+Cj4+PiBUaGFua3MgZm9yIHlvdXIgY29tbWVudHMs
+IHBsZWFzZSByZWZlciB0byB0aGUgcmVwbGllcyBiZWxvdy4gOikKPj4+Cj4+PiBPbiAyMDE05bm0
+MDLmnIgxOeaXpSAyMjozMywgU3VkZWVwIEhvbGxhIHdyb3RlOgo+Pj4+IEhpIEhhbmp1biwKPj4+
+Pgo+Pj4+IE9uIDE4LzAyLzE0IDE2OjIzLCBIYW5qdW4gR3VvIHdyb3RlOgo+Pj4+PiBHZXQgYXBp
+YyBpZCBmcm9tIE1BRFQgb3IgX01BVCBtZXRob2QgaXMgbm90IGltcGxlbWVudGVkIG9uIAo+Pj4+
+PiBhcm0vYXJtNjQsCj4+Pj4+IGFuZCBBQ1BJIDUuMCBpbnRyb2R1Y2VzIEdJQyBTdHJ1Y3R1cmUg
+Zm9yIGl0LCBzbyB0aGlzIHBhdGNoIAo+Pj4+PiBpbnRyb2R1Y2VzCj4+Pj4+IG1hcF9naWNfaWQo
+KSB0byBnZXQgYXBpYyBpZCBmb2xsb3dlZCB0aGUgQUNQSSA1LjAgc3BlYy4KPj4+Pj4KPj4+Pj4g
+U2lnbmVkLW9mZi1ieTogSGFuanVuIEd1byA8aGFuanVuLmd1b0BsaW5hcm8ub3JnPgo+Pj4+PiAt
+LS0KPj4+Pj4gICBkcml2ZXJzL2FjcGkvcHJvY2Vzc29yX2NvcmUuYyB8ICAgMjYgKysrKysrKysr
+KysrKysrKysrKysrKysrKysKPj4+Pj4gICAxIGZpbGUgY2hhbmdlZCwgMjYgaW5zZXJ0aW9ucygr
+KQo+Pj4+Pgo+Pj4+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9jb3JlLmMg
+Cj4+Pj4+IGIvZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9jb3JlLmMKPj4+Pj4gaW5kZXggNGRjZjc3
+Ni4uZDMxNmQ5YiAxMDA2NDQKPj4+Pj4gLS0tIGEvZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9jb3Jl
+LmMKPj4+Pj4gKysrIGIvZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9jb3JlLmMKPj4+Pj4gQEAgLTcx
+LDYgKzcxLDI3IEBAIHN0YXRpYyBpbnQgbWFwX2xzYXBpY19pZChzdHJ1Y3QgCj4+Pj4+IGFjcGlf
+c3VidGFibGVfaGVhZGVyICplbnRyeSwKPj4+Pj4gICAJcmV0dXJuIDA7Cj4+Pj4+ICAgfQo+Pj4+
+Pgo+Pj4+PiArc3RhdGljIGludCBtYXBfZ2ljX2lkKHN0cnVjdCBhY3BpX3N1YnRhYmxlX2hlYWRl
+ciAqZW50cnksCj4+Pj4+ICsJCWludCBkZXZpY2VfZGVjbGFyYXRpb24sIHUzMiBhY3BpX2lkLCBp
+bnQgKmFwaWNfaWQpCj4+Pj4+ICt7Cj4+Pj4+ICsJc3RydWN0IGFjcGlfbWFkdF9nZW5lcmljX2lu
+dGVycnVwdCAqZ2ljID0KPj4+Pj4gKwkJKHN0cnVjdCBhY3BpX21hZHRfZ2VuZXJpY19pbnRlcnJ1
+cHQgKillbnRyeTsKPj4+Pj4gKwo+Pj4+PiArCWlmICghKGdpYy0+ZmxhZ3MgJiBBQ1BJX01BRFRf
+RU5BQkxFRCkpCj4+Pj4+ICsJCXJldHVybiAtRU5PREVWOwo+Pj4+PiArCj4+Pj4+ICsJLyogSW4g
+dGhlIEdJQyBpbnRlcnJ1cHQgbW9kZWwsIGxvZ2ljYWwgcHJvY2Vzc29ycyBhcmUKPj4+Pj4gKwkg
+KiByZXF1aXJlZCB0byBoYXZlIGEgUHJvY2Vzc29yIERldmljZSBvYmplY3QgaW4gdGhlIERTRFQs
+Cj4+Pj4+ICsJICogc28gd2Ugc2hvdWxkIGNoZWNrIGRldmljZV9kZWNsYXJhdGlvbiBoZXJlCj4+
+Pj4+ICsJICovCj4+Pj4+ICsJaWYgKGRldmljZV9kZWNsYXJhdGlvbiAmJiAoZ2ljLT51aWQgPT0g
+YWNwaV9pZCkpIHsKPj4+Pj4gKwkJKmFwaWNfaWQgPSBnaWMtPmdpY19pZDsKPj4+PiBJIGhhdmUg
+bWVudGlvbmVkIHRoaXMgZWFybGllciwgaXQncyBub3QgY2xlYXIgeWV0IHRvIG1lIGhvdyBkb2Vz
+IAo+Pj4+IHRoaXMgd29yayA/Cj4+Pj4gSXQgbmVlZHMgbW9yZSBjbGFyaXR5IGluIHRoZSBmb3Jt
+IG9mIGNvbW1lbnQgaGVyZSBhdC1sZWFzdCBhcyB0aGUgCj4+Pj4gQUNQSXY1LjAgaXMKPj4+PiBh
+bHNvIG5vdCBzbyBjbGVhciBvciBleHBsaWNpdCBvbiBob3cgdG8gaGFuZGxlIHRoaXMuCj4+Pgo+
+Pj4gWWVzLCBJIG5vdGljZWQgeW91ciBjb21tZW50cyBhbmQgaGFkIGEgcmVwbHkgZm9yIHRoYXQs
+IGFmdGVyIGEKPj4+IGxvbmcgY29uc2lkZXJhdGlvbiBmb3IgdGhpcywgSSB3b3VsZCB3aXRoZHJh
+dyBteSBwcmV2aW91cyBjb21tZW50cwo+Pj4gYmVmb3JlLCBwbGVhc2UgcmVmZXIgdG8gdGhlIGNv
+bW1lbnRzIGJlbG93Lgo+Pj4KPj4+Pgo+Pj4+IEhlcmUgeW91IGFyZSBleHBlY3RpbmcgZ2ljLT51
+aWQgPSBhY3BpX2lkIHdoaWNoIGlzIGZpbmUsIHdoaWxlIAo+Pj4+IGFjcGlfbWFwX2NwdWlkCj4+
+Pj4gbWF0Y2hlcyBhcGljX2lkIHdpdGggY3B1X3BoeXNpY2FsX2lkKHdoaWNoIG11c3QgYmUgTVBJ
+RFIgaW4gCj4+Pj4gQVJNezMyLDY0fSkuIFRoZQo+Pj4+IGxhdHRlciBpbXBvc2VzIHJlc3RyaWN0
+aW9uIHRoYXQgZ2ljLT5naWNfaWQgaGFzIHRvIGJlIE1QSURSLiBEb2VzIAo+Pj4+IHRoYXQgbWVh
+biB3ZQo+Pj4+IGFyZSBpbXBvc2luZyByZXN0cmljdGlvbiBvbiBHSUMgSUQgdG8gYmUgTVBJRFIg
+PyBJZiBzbyBwbGVhc2UgCj4+Pj4gZG9jdW1lbnQgaXQgaGVyZQo+Pj4+IGFuZCBwbGVhc2UgZXhw
+bGFpbiB0aGUgcmVhc29uIGJlaGluZCB0aGF0IGNob2ljZS4KPj4+Cj4+PiBPbiB4ODYgYW5kIElB
+NjQsIEFQSUMvU0FQSUMgSUQgaXMgdGhlIGhhcmR3YXJlIGlkIG9mIHRoZSBsb2dpY2FsCj4+PiBw
+cm9jZXNzb3IsIGFuZCBVSUQgaXMganVzdCBhIHVuaXF1ZSBJRCB0byBpZGVudGlmeSB0aGUgcHJv
+Y2Vzc29yIGluIAo+Pj4gRFNEVCwgaXQKPj4+IGNhbiBiZSBhbnkgdmFsdWUsIGFuZCBldmVuIGNh
+biBiZSBzdHJpbmdzIGRlZmluZWQgaW4gQVNMIGlmIEkgCj4+PiByZW1lbWJlcgo+Pj4gdGhhdCBj
+b3JyZWN0bHkuCj4+Pgo+PiBPSywgYnV0IHRoYXQncyBub3QgdGhlIGNhc2Ugb24gQVJNezMyLDY0
+fS4gTXkgbWFpbiBjb25jZXJuIGhlcmUgaXMgCj4+IGlmIHdlIGRvbid0Cj4+IG1ha2UgdGhpcyBk
+ZWZpbml0aW9ucyBjbGVhciBlbm91Z2gsIHRoZSB2ZW5kb3JzIG1pZ2h0IHByb2R1Y2UgQUNQSSAK
+Pj4gdGFibGVzIHdpdGgKPj4gd2hhdGV2ZXIgc3VpdHMgdGhlbSBhbmQgd2UgbWF5IGVuZCB1cCBz
+dXBwb3J0aW5nIHRoZW0uIFNpbmNlIHdlIGFyZSAKPj4gc3RhcnRpbmcKPj4gd2l0aCBjbGVhbiBz
+bGF0ZSwgd2UgY2FuIGF2b2lkIGdldHRpbmcgaW50byBzdWNoIHNpdHVhdGlvbnMuIEkgd2lsbCAK
+Pj4gYmUgdG8gYmUKPj4gbW9yZSBlbGFib3JhdGUgdGhpcyB0aW1lLgo+Cj4gSSBhZ3JlZS4KPgo+
+Pgo+PiBUaGUgR0lDIElEIGlzIHJlZmVycmVkIGFzIHRoZSBsb2NhbCBHSUPigJlzIGhhcmR3YXJl
+IElEIGluIEFDUEl2NS4wLgo+PiBJSVVDLCBzaW5jZSBHSUNDIGlzIHBlci1jcHUgZW50cnksIGl0
+IGhhcyB0byBHSUMgQ1BVIGludGVyZmFjZSBJRC4KPj4KPj4gTm93IGhvdyBkb2VzIGl0IGRpZmZl
+ciBmcm9tIE1QSURSID8gZS5nLiBBUk0gVEMyKG11bHRpIGNsdXN0ZXIgCj4+IHN5c3RlbSkKPj4g
+CUdJQyBJRAkJTVBJRFIJCQlDb21tZW50Cj4+IAkwCQkweDAwMAkJCUNBMTVfMAo+PiAJMQkJMHgw
+MDEJCQlDQTE1XzEKPj4gCTIJCTB4MTAwCQkJQ0E3XzAKPj4gCTMJCTB4MTAxCQkJQ0E3XzEKPj4g
+CTQJCTB4MTAyCQkJQ0E3XzIKPgo+IFllcywgb2J2aW91cyBkaWZmZXJlbnQuIEkga25vdyBHSUMg
+SUQgY2FuIG1hdGNoZSB0aGUgYml0IGluZGV4IG9mIHRoZQo+IGFzc29jaWF0ZWQgcHJvY2Vzc29y
+Cj4gaW4gdGhlIGRpc3RyaWJ1dG9yJ3MgR0lDRF9JVEFSR0VUU1IgcmVnaXN0ZXIsIGFuZCBpdCBh
+IGNsZWFyCj4gc3RhdGVtZW50IGluIEdJQ3YxL0dJQ3YyLCBteQo+IHF1ZXN0aW9uIGlzIHRoYXQg
+aXMgdGhpcyBjb25zaXN0ZW50IGluIEdJQ3YzL3Y0IHRvbz8gdGhpcyB3aWxsIGhhdmUKPiBzb21l
+IGltcGFjdCBvbiB0aGUKPiBjb2RlIGltcGxlbWVudGF0aW9uLgoKRm9yIEdJQ3YzL3Y0LCB0aGUg
+b25seSB3YXkgeW91IGNhbiBtYXRjaCBhIENQVSB3aXRoIGl0cyBsb2NhbCAKcmVkaXN0cmlidXRv
+ciBpcyBieSB1c2luZyB0aGUgQ1BVIE1QSURSLiBUaGUgR0lDIENQVSBJRCBpcyBhbiAKaW1wbGVt
+ZW50YXRpb24gY2hvaWNlIHRoYXQgbWF5IG5vdCBleGlzdCAoaXQgZG9lc24ndCBpbiBhIGRpc3Ry
+aWJ1dGVkIAppbXBsZW1lbnRhdGlvbiksIHNvIGFueXRoaW5nIHRoYXQgcmVsaWVzIG9uIGEgR0lD
+IENQVSBJRCBpcyBicm9rZW4gZm9yIApHSUN2My4KCiAgICAgICAgIE0uCi0tIApGYXN0LCBjaGVh
+cCwgcmVsaWFibGUuIFBpY2sgdHdvLgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtl
+cm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxt
+YW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
