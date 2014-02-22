@@ -1,106 +1,52 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v5 3/5] ACPI / processor: Introduce
- =?UTF-8?Q?map=5Fgic=5Fid=28=29=20to=20get=20apic=20id=20from=20MADT=20or?=
- =?UTF-8?Q?=20=5FMAT=20method?=
-Date: Sat, 22 Feb 2014 11:30:25 +0000
-Message-ID: <d2ad8ee5d9a7875fe121a30beb8d2e8c@www.loen.fr>
-References: <1392740638-2479-1-git-send-email-hanjun.guo@linaro.org>
- <1392740638-2479-4-git-send-email-hanjun.guo@linaro.org>
- <5304C0C4.3080601@arm.com> <53057DA9.3010307@linaro.org>
- <5307487F.6000308@arm.com> <53087A0F.6010302@linaro.org>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [PATCH v5 10/33] iommu, irq: Allocate irq_desc for dmar_msi with
+ local node
+Date: Sat, 22 Feb 2014 23:33:23 +0800
+Message-ID: <5308C343.5040102@linux.intel.com>
+References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>	<1388707565-16535-11-git-send-email-yinghai@kernel.org>	<53070393.5020005@linux.intel.com>	<CAE9FiQV8B271XCJQV=80S6pZDOVxG9LG0gaj9G98dCRetjkMUg@mail.gmail.com>	<53081614.4020503@linux.intel.com> <CAE9FiQXnMgG=mOmcSK9ZwKR6tFAkJX2dVnGTj9Mmg3daDhPmEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <53087A0F.6010302@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linaro-acpi@lists.linaro.org, patches@linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>, Joe Perches <joe@perches.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQXnMgG=mOmcSK9ZwKR6tFAkJX2dVnGTj9Mmg3daDhPmEA@mail.gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Joerg Roedel <joro@8bytes.org>, Donald Dutile <ddutile@redhat.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMjAxNC0wMi0yMiAxMDoyMSwgSGFuanVuIEd1byB3cm90ZToKPiBPbiAyMDE0LTItMjEgMjA6
-MzcsIFN1ZGVlcCBIb2xsYSB3cm90ZToKPj4gSGkgSGFuanVuLAo+Pgo+PiAoQWRkaW5nIE1hcmNa
-IGZvciBoaXMgdmlld3Mgb24gR0lDKQo+Pgo+PiBPbiAyMC8wMi8xNCAwMzo1OSwgSGFuanVuIEd1
-byB3cm90ZToKPj4+IEhpIFN1ZGVlcCwKPj4+Cj4+PiBUaGFua3MgZm9yIHlvdXIgY29tbWVudHMs
-IHBsZWFzZSByZWZlciB0byB0aGUgcmVwbGllcyBiZWxvdy4gOikKPj4+Cj4+PiBPbiAyMDE05bm0
-MDLmnIgxOeaXpSAyMjozMywgU3VkZWVwIEhvbGxhIHdyb3RlOgo+Pj4+IEhpIEhhbmp1biwKPj4+
-Pgo+Pj4+IE9uIDE4LzAyLzE0IDE2OjIzLCBIYW5qdW4gR3VvIHdyb3RlOgo+Pj4+PiBHZXQgYXBp
-YyBpZCBmcm9tIE1BRFQgb3IgX01BVCBtZXRob2QgaXMgbm90IGltcGxlbWVudGVkIG9uIAo+Pj4+
-PiBhcm0vYXJtNjQsCj4+Pj4+IGFuZCBBQ1BJIDUuMCBpbnRyb2R1Y2VzIEdJQyBTdHJ1Y3R1cmUg
-Zm9yIGl0LCBzbyB0aGlzIHBhdGNoIAo+Pj4+PiBpbnRyb2R1Y2VzCj4+Pj4+IG1hcF9naWNfaWQo
-KSB0byBnZXQgYXBpYyBpZCBmb2xsb3dlZCB0aGUgQUNQSSA1LjAgc3BlYy4KPj4+Pj4KPj4+Pj4g
-U2lnbmVkLW9mZi1ieTogSGFuanVuIEd1byA8aGFuanVuLmd1b0BsaW5hcm8ub3JnPgo+Pj4+PiAt
-LS0KPj4+Pj4gICBkcml2ZXJzL2FjcGkvcHJvY2Vzc29yX2NvcmUuYyB8ICAgMjYgKysrKysrKysr
-KysrKysrKysrKysrKysrKysKPj4+Pj4gICAxIGZpbGUgY2hhbmdlZCwgMjYgaW5zZXJ0aW9ucygr
-KQo+Pj4+Pgo+Pj4+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9jb3JlLmMg
-Cj4+Pj4+IGIvZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9jb3JlLmMKPj4+Pj4gaW5kZXggNGRjZjc3
-Ni4uZDMxNmQ5YiAxMDA2NDQKPj4+Pj4gLS0tIGEvZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9jb3Jl
-LmMKPj4+Pj4gKysrIGIvZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9jb3JlLmMKPj4+Pj4gQEAgLTcx
-LDYgKzcxLDI3IEBAIHN0YXRpYyBpbnQgbWFwX2xzYXBpY19pZChzdHJ1Y3QgCj4+Pj4+IGFjcGlf
-c3VidGFibGVfaGVhZGVyICplbnRyeSwKPj4+Pj4gICAJcmV0dXJuIDA7Cj4+Pj4+ICAgfQo+Pj4+
-Pgo+Pj4+PiArc3RhdGljIGludCBtYXBfZ2ljX2lkKHN0cnVjdCBhY3BpX3N1YnRhYmxlX2hlYWRl
-ciAqZW50cnksCj4+Pj4+ICsJCWludCBkZXZpY2VfZGVjbGFyYXRpb24sIHUzMiBhY3BpX2lkLCBp
-bnQgKmFwaWNfaWQpCj4+Pj4+ICt7Cj4+Pj4+ICsJc3RydWN0IGFjcGlfbWFkdF9nZW5lcmljX2lu
-dGVycnVwdCAqZ2ljID0KPj4+Pj4gKwkJKHN0cnVjdCBhY3BpX21hZHRfZ2VuZXJpY19pbnRlcnJ1
-cHQgKillbnRyeTsKPj4+Pj4gKwo+Pj4+PiArCWlmICghKGdpYy0+ZmxhZ3MgJiBBQ1BJX01BRFRf
-RU5BQkxFRCkpCj4+Pj4+ICsJCXJldHVybiAtRU5PREVWOwo+Pj4+PiArCj4+Pj4+ICsJLyogSW4g
-dGhlIEdJQyBpbnRlcnJ1cHQgbW9kZWwsIGxvZ2ljYWwgcHJvY2Vzc29ycyBhcmUKPj4+Pj4gKwkg
-KiByZXF1aXJlZCB0byBoYXZlIGEgUHJvY2Vzc29yIERldmljZSBvYmplY3QgaW4gdGhlIERTRFQs
-Cj4+Pj4+ICsJICogc28gd2Ugc2hvdWxkIGNoZWNrIGRldmljZV9kZWNsYXJhdGlvbiBoZXJlCj4+
-Pj4+ICsJICovCj4+Pj4+ICsJaWYgKGRldmljZV9kZWNsYXJhdGlvbiAmJiAoZ2ljLT51aWQgPT0g
-YWNwaV9pZCkpIHsKPj4+Pj4gKwkJKmFwaWNfaWQgPSBnaWMtPmdpY19pZDsKPj4+PiBJIGhhdmUg
-bWVudGlvbmVkIHRoaXMgZWFybGllciwgaXQncyBub3QgY2xlYXIgeWV0IHRvIG1lIGhvdyBkb2Vz
-IAo+Pj4+IHRoaXMgd29yayA/Cj4+Pj4gSXQgbmVlZHMgbW9yZSBjbGFyaXR5IGluIHRoZSBmb3Jt
-IG9mIGNvbW1lbnQgaGVyZSBhdC1sZWFzdCBhcyB0aGUgCj4+Pj4gQUNQSXY1LjAgaXMKPj4+PiBh
-bHNvIG5vdCBzbyBjbGVhciBvciBleHBsaWNpdCBvbiBob3cgdG8gaGFuZGxlIHRoaXMuCj4+Pgo+
-Pj4gWWVzLCBJIG5vdGljZWQgeW91ciBjb21tZW50cyBhbmQgaGFkIGEgcmVwbHkgZm9yIHRoYXQs
-IGFmdGVyIGEKPj4+IGxvbmcgY29uc2lkZXJhdGlvbiBmb3IgdGhpcywgSSB3b3VsZCB3aXRoZHJh
-dyBteSBwcmV2aW91cyBjb21tZW50cwo+Pj4gYmVmb3JlLCBwbGVhc2UgcmVmZXIgdG8gdGhlIGNv
-bW1lbnRzIGJlbG93Lgo+Pj4KPj4+Pgo+Pj4+IEhlcmUgeW91IGFyZSBleHBlY3RpbmcgZ2ljLT51
-aWQgPSBhY3BpX2lkIHdoaWNoIGlzIGZpbmUsIHdoaWxlIAo+Pj4+IGFjcGlfbWFwX2NwdWlkCj4+
-Pj4gbWF0Y2hlcyBhcGljX2lkIHdpdGggY3B1X3BoeXNpY2FsX2lkKHdoaWNoIG11c3QgYmUgTVBJ
-RFIgaW4gCj4+Pj4gQVJNezMyLDY0fSkuIFRoZQo+Pj4+IGxhdHRlciBpbXBvc2VzIHJlc3RyaWN0
-aW9uIHRoYXQgZ2ljLT5naWNfaWQgaGFzIHRvIGJlIE1QSURSLiBEb2VzIAo+Pj4+IHRoYXQgbWVh
-biB3ZQo+Pj4+IGFyZSBpbXBvc2luZyByZXN0cmljdGlvbiBvbiBHSUMgSUQgdG8gYmUgTVBJRFIg
-PyBJZiBzbyBwbGVhc2UgCj4+Pj4gZG9jdW1lbnQgaXQgaGVyZQo+Pj4+IGFuZCBwbGVhc2UgZXhw
-bGFpbiB0aGUgcmVhc29uIGJlaGluZCB0aGF0IGNob2ljZS4KPj4+Cj4+PiBPbiB4ODYgYW5kIElB
-NjQsIEFQSUMvU0FQSUMgSUQgaXMgdGhlIGhhcmR3YXJlIGlkIG9mIHRoZSBsb2dpY2FsCj4+PiBw
-cm9jZXNzb3IsIGFuZCBVSUQgaXMganVzdCBhIHVuaXF1ZSBJRCB0byBpZGVudGlmeSB0aGUgcHJv
-Y2Vzc29yIGluIAo+Pj4gRFNEVCwgaXQKPj4+IGNhbiBiZSBhbnkgdmFsdWUsIGFuZCBldmVuIGNh
-biBiZSBzdHJpbmdzIGRlZmluZWQgaW4gQVNMIGlmIEkgCj4+PiByZW1lbWJlcgo+Pj4gdGhhdCBj
-b3JyZWN0bHkuCj4+Pgo+PiBPSywgYnV0IHRoYXQncyBub3QgdGhlIGNhc2Ugb24gQVJNezMyLDY0
-fS4gTXkgbWFpbiBjb25jZXJuIGhlcmUgaXMgCj4+IGlmIHdlIGRvbid0Cj4+IG1ha2UgdGhpcyBk
-ZWZpbml0aW9ucyBjbGVhciBlbm91Z2gsIHRoZSB2ZW5kb3JzIG1pZ2h0IHByb2R1Y2UgQUNQSSAK
-Pj4gdGFibGVzIHdpdGgKPj4gd2hhdGV2ZXIgc3VpdHMgdGhlbSBhbmQgd2UgbWF5IGVuZCB1cCBz
-dXBwb3J0aW5nIHRoZW0uIFNpbmNlIHdlIGFyZSAKPj4gc3RhcnRpbmcKPj4gd2l0aCBjbGVhbiBz
-bGF0ZSwgd2UgY2FuIGF2b2lkIGdldHRpbmcgaW50byBzdWNoIHNpdHVhdGlvbnMuIEkgd2lsbCAK
-Pj4gYmUgdG8gYmUKPj4gbW9yZSBlbGFib3JhdGUgdGhpcyB0aW1lLgo+Cj4gSSBhZ3JlZS4KPgo+
-Pgo+PiBUaGUgR0lDIElEIGlzIHJlZmVycmVkIGFzIHRoZSBsb2NhbCBHSUPigJlzIGhhcmR3YXJl
-IElEIGluIEFDUEl2NS4wLgo+PiBJSVVDLCBzaW5jZSBHSUNDIGlzIHBlci1jcHUgZW50cnksIGl0
-IGhhcyB0byBHSUMgQ1BVIGludGVyZmFjZSBJRC4KPj4KPj4gTm93IGhvdyBkb2VzIGl0IGRpZmZl
-ciBmcm9tIE1QSURSID8gZS5nLiBBUk0gVEMyKG11bHRpIGNsdXN0ZXIgCj4+IHN5c3RlbSkKPj4g
-CUdJQyBJRAkJTVBJRFIJCQlDb21tZW50Cj4+IAkwCQkweDAwMAkJCUNBMTVfMAo+PiAJMQkJMHgw
-MDEJCQlDQTE1XzEKPj4gCTIJCTB4MTAwCQkJQ0E3XzAKPj4gCTMJCTB4MTAxCQkJQ0E3XzEKPj4g
-CTQJCTB4MTAyCQkJQ0E3XzIKPgo+IFllcywgb2J2aW91cyBkaWZmZXJlbnQuIEkga25vdyBHSUMg
-SUQgY2FuIG1hdGNoZSB0aGUgYml0IGluZGV4IG9mIHRoZQo+IGFzc29jaWF0ZWQgcHJvY2Vzc29y
-Cj4gaW4gdGhlIGRpc3RyaWJ1dG9yJ3MgR0lDRF9JVEFSR0VUU1IgcmVnaXN0ZXIsIGFuZCBpdCBh
-IGNsZWFyCj4gc3RhdGVtZW50IGluIEdJQ3YxL0dJQ3YyLCBteQo+IHF1ZXN0aW9uIGlzIHRoYXQg
-aXMgdGhpcyBjb25zaXN0ZW50IGluIEdJQ3YzL3Y0IHRvbz8gdGhpcyB3aWxsIGhhdmUKPiBzb21l
-IGltcGFjdCBvbiB0aGUKPiBjb2RlIGltcGxlbWVudGF0aW9uLgoKRm9yIEdJQ3YzL3Y0LCB0aGUg
-b25seSB3YXkgeW91IGNhbiBtYXRjaCBhIENQVSB3aXRoIGl0cyBsb2NhbCAKcmVkaXN0cmlidXRv
-ciBpcyBieSB1c2luZyB0aGUgQ1BVIE1QSURSLiBUaGUgR0lDIENQVSBJRCBpcyBhbiAKaW1wbGVt
-ZW50YXRpb24gY2hvaWNlIHRoYXQgbWF5IG5vdCBleGlzdCAoaXQgZG9lc24ndCBpbiBhIGRpc3Ry
-aWJ1dGVkIAppbXBsZW1lbnRhdGlvbiksIHNvIGFueXRoaW5nIHRoYXQgcmVsaWVzIG9uIGEgR0lD
-IENQVSBJRCBpcyBicm9rZW4gZm9yIApHSUN2My4KCiAgICAgICAgIE0uCi0tIApGYXN0LCBjaGVh
-cCwgcmVsaWFibGUuIFBpY2sgdHdvLgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtl
-cm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxt
-YW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+Hi Yinghai,
+	I have a plan to test this patch set once I have reviewed
+all patches in coming weeks. Do you have a plan to update to latest
+kernel or is it ok to test this version?
+Thanks!
+Gerry
+
+On 2014/2/22 15:44, Yinghai Lu wrote:
+> On Fri, Feb 21, 2014 at 7:14 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> 
+>>         Seems there is no such protection on IA64 side. I feel create_irq_nr()
+>> returns 0 for error is a little risky, 0 may be
+>> a valid IRQ number on other platforms(no sure about this).
+>> Thanks!
+> 
+> in [PATCH] ia64, irq: Add dummy create_irq_nr()
+> 
+> +unsigned int create_irq_nr(unsigned int from, int node)
+> +{
+> +       int irq = create_irq();
+> +
+> +       if (irq < 0)
+> +               irq = 0;
+> +
+> +       return irq;
+> +}
+> +
+> 
+> so that from is ignored.
+> 
+> create_irq_nr() is only with x86 and ia64.
+> 
+> Thanks
+> 
+> Yinghai
+> 
