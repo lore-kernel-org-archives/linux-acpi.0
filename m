@@ -1,52 +1,51 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [PATCH v5 10/33] iommu, irq: Allocate irq_desc for dmar_msi with
- local node
-Date: Sat, 22 Feb 2014 23:33:23 +0800
-Message-ID: <5308C343.5040102@linux.intel.com>
-References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>	<1388707565-16535-11-git-send-email-yinghai@kernel.org>	<53070393.5020005@linux.intel.com>	<CAE9FiQV8B271XCJQV=80S6pZDOVxG9LG0gaj9G98dCRetjkMUg@mail.gmail.com>	<53081614.4020503@linux.intel.com> <CAE9FiQXnMgG=mOmcSK9ZwKR6tFAkJX2dVnGTj9Mmg3daDhPmEA@mail.gmail.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v5 02/33] genirq: Add irq_alloc_reserved_desc()
+Date: Sat, 22 Feb 2014 09:28:33 -0800
+Message-ID: <CAE9FiQVf2L-FjkXR3WC=0iHNY73D2G4jyMeko4f4DPuxAXTK+Q@mail.gmail.com>
+References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
+	<1388707565-16535-3-git-send-email-yinghai@kernel.org>
+	<alpine.DEB.2.02.1401222241100.24986@ionos.tec.linutronix.de>
+	<CAE9FiQUo9NGbjiZbMsf2yBFbn=iLJ-jc3QtZ8K6qwVuhmqzq=Q@mail.gmail.com>
+	<alpine.DEB.2.02.1402221104440.21251@ionos.tec.linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQXnMgG=mOmcSK9ZwKR6tFAkJX2dVnGTj9Mmg3daDhPmEA@mail.gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Joerg Roedel <joro@8bytes.org>, Donald Dutile <ddutile@redhat.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f41.google.com ([209.85.219.41]:52072 "EHLO
+	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751527AbaBVR2e (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Feb 2014 12:28:34 -0500
+In-Reply-To: <alpine.DEB.2.02.1402221104440.21251@ionos.tec.linutronix.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 
-Hi Yinghai,
-	I have a plan to test this patch set once I have reviewed
-all patches in coming weeks. Do you have a plan to update to latest
-kernel or is it ok to test this version?
-Thanks!
-Gerry
+On Sat, Feb 22, 2014 at 2:08 AM, Thomas Gleixner <tglx@linutronix.de> wrote:
+>
+> As I said before irq_reserve_irq() is a misnomer and a
+> misconception. Of course this needs to be fixed as well.
+>
+> And you cannot just blindly change it because !SPARSE can use the
+> allocation. We are not creating stupid corner cases just to support
+> your sloppyness. Its not rocket science to do it the right way.
+>
+> That said, it might be worthwhile to get rid of the !SPARSE case
+> completely. That would probably make quite some stuff simpler.
 
-On 2014/2/22 15:44, Yinghai Lu wrote:
-> On Fri, Feb 21, 2014 at 7:14 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> 
->>         Seems there is no such protection on IA64 side. I feel create_irq_nr()
->> returns 0 for error is a little risky, 0 may be
->> a valid IRQ number on other platforms(no sure about this).
->> Thanks!
-> 
-> in [PATCH] ia64, irq: Add dummy create_irq_nr()
-> 
-> +unsigned int create_irq_nr(unsigned int from, int node)
-> +{
-> +       int irq = create_irq();
-> +
-> +       if (irq < 0)
-> +               irq = 0;
-> +
-> +       return irq;
-> +}
-> +
-> 
-> so that from is ignored.
-> 
-> create_irq_nr() is only with x86 and ia64.
-> 
-> Thanks
-> 
-> Yinghai
-> 
+So we need to make all arches support SPARSE_IRQ at first?
+
+Now we have arm, arm64, c6x, metag, powerpc, sh, x86 support SPARSE_IRQ.
+
+The following  are not with SPARSE_IRQ yet:
+alpha, arc, avr32, blackfin, cris, frv, hexagon, m32r, m68k, microblaze,
+mips, mn10300, openrisc, parisc, s390, score, sparc, tile, um,
+unicore32, xtensa.
+
+Thanks
+
+Yinghai
+
+
+Thanks
+
+Yinghai
