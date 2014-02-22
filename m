@@ -1,72 +1,50 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
+From: Yinghai Lu <yinghai@kernel.org>
 Subject: Re: [PATCH v5 10/33] iommu, irq: Allocate irq_desc for dmar_msi with
  local node
-Date: Sat, 22 Feb 2014 11:14:28 +0800
-Message-ID: <53081614.4020503@linux.intel.com>
-References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>	<1388707565-16535-11-git-send-email-yinghai@kernel.org>	<53070393.5020005@linux.intel.com> <CAE9FiQV8B271XCJQV=80S6pZDOVxG9LG0gaj9G98dCRetjkMUg@mail.gmail.com>
+Date: Fri, 21 Feb 2014 23:44:40 -0800
+Message-ID: <CAE9FiQXnMgG=mOmcSK9ZwKR6tFAkJX2dVnGTj9Mmg3daDhPmEA@mail.gmail.com>
+References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
+	<1388707565-16535-11-git-send-email-yinghai@kernel.org>
+	<53070393.5020005@linux.intel.com>
+	<CAE9FiQV8B271XCJQV=80S6pZDOVxG9LG0gaj9G98dCRetjkMUg@mail.gmail.com>
+	<53081614.4020503@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQV8B271XCJQV=80S6pZDOVxG9LG0gaj9G98dCRetjkMUg@mail.gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Joerg Roedel <joro@8bytes.org>, Donald Dutile <ddutile@redhat.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f53.google.com ([209.85.219.53]:45655 "EHLO
+	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751163AbaBVHok (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Feb 2014 02:44:40 -0500
+In-Reply-To: <53081614.4020503@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Joerg Roedel <joro@8bytes.org>, Donald Dutile <ddutile@redhat.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 
+On Fri, Feb 21, 2014 at 7:14 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
 
+>         Seems there is no such protection on IA64 side. I feel create_irq_nr()
+> returns 0 for error is a little risky, 0 may be
+> a valid IRQ number on other platforms(no sure about this).
+> Thanks!
 
-On 2014/2/22 7:18, Yinghai Lu wrote:
-> On Thu, Feb 20, 2014 at 11:43 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
->>
->>
->> On 2014/1/3 8:05, Yinghai Lu wrote:
->>> iommu irq's irq_desc should be on local node ram.
->>>
->>> Fix the return value checking problem.
->>>   create_irq() will return -1 when fail to allocate.
->>>   create_irq_nr() will return 0 when fail to allocate.
->>> here only check !irq, so need to change it to use create_irq_nr instead.
->>>
->>> -v2: According to Sebastian, add cc to stable.
->>>
->>> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->>> Cc: Joerg Roedel <joro@8bytes.org>
->>> Cc: Donald Dutile <ddutile@redhat.com>
->>> Acked-by: Donald Dutile <ddutile@redhat.com>
->>> Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
->>> Cc: stable@vger.kernel.org
->>> ---
->>>  drivers/iommu/dmar.c | 2 +-
->>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/iommu/dmar.c b/drivers/iommu/dmar.c
->>> index 8b452c9..f4eaa50 100644
->>> --- a/drivers/iommu/dmar.c
->>> +++ b/drivers/iommu/dmar.c
->>> @@ -1277,7 +1277,7 @@ int dmar_set_interrupt(struct intel_iommu *iommu)
->>>       if (iommu->irq)
->>>               return 0;
->>>
->>> -     irq = create_irq();
->>> +     irq = create_irq_nr(0, iommu->node);
->> Hi Yinghai,
->>         How about create_irq_nrq(1, iommu->node) here to clearly state
->> that 0 is not a valid irq number for dmar here?
-> 
-> Should be the same. that 0 or 1 will be from in __create_irqs().
-> 
-> And we have
->         if (from < nr_irqs_gsi)
->                 from = nr_irqs_gsi;
-> in __create_irqs().
-Hi Yinghai,
-	Seems there is no such protection on IA64 side. I feel create_irq_nr()
-returns 0 for error is a little risky, 0 may be
-a valid IRQ number on other platforms(no sure about this).
-Thanks!
-> 
-> Thanks
-> 
-> Yinghai
-> 
+in [PATCH] ia64, irq: Add dummy create_irq_nr()
+
++unsigned int create_irq_nr(unsigned int from, int node)
++{
++       int irq = create_irq();
++
++       if (irq < 0)
++               irq = 0;
++
++       return irq;
++}
++
+
+so that from is ignored.
+
+create_irq_nr() is only with x86 and ia64.
+
+Thanks
+
+Yinghai
