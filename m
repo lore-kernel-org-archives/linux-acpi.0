@@ -1,71 +1,31 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v5 02/33] genirq: Add irq_alloc_reserved_desc()
-Date: Sun, 23 Feb 2014 00:38:55 +0100 (CET)
-Message-ID: <alpine.DEB.2.02.1402222338420.21251@ionos.tec.linutronix.de>
-References: <1388707565-16535-1-git-send-email-yinghai@kernel.org> <1388707565-16535-3-git-send-email-yinghai@kernel.org> <alpine.DEB.2.02.1401222241100.24986@ionos.tec.linutronix.de> <CAE9FiQUo9NGbjiZbMsf2yBFbn=iLJ-jc3QtZ8K6qwVuhmqzq=Q@mail.gmail.com>
- <alpine.DEB.2.02.1402221104440.21251@ionos.tec.linutronix.de> <CAE9FiQVf2L-FjkXR3WC=0iHNY73D2G4jyMeko4f4DPuxAXTK+Q@mail.gmail.com> <CAE9FiQVf7u62S4puc2iMqiFO2YU-Kf35XVB9mC+SEP6Z73x7Zw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: Using intel_pstate
+Date: Sun, 23 Feb 2014 02:23:20 +0100
+Message-ID: <9891809.rXh9YKnm5H@vostro.rjw.lan>
+References: <5309294E.2090706@ubuntu.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQVf7u62S4puc2iMqiFO2YU-Kf35XVB9mC+SEP6Z73x7Zw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:54284 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752070AbaBWBIZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Feb 2014 20:08:25 -0500
+In-Reply-To: <5309294E.2090706@ubuntu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Phillip Susi <psusi@ubuntu.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sat, 22 Feb 2014, Yinghai Lu wrote:
-> On Sat, Feb 22, 2014 at 9:28 AM, Yinghai Lu <yinghai@kernel.org> wrote:
-> > On Sat, Feb 22, 2014 at 2:08 AM, Thomas Gleixner <tglx@linutronix.de> wrote:
-> >>
-> >> As I said before irq_reserve_irq() is a misnomer and a
-> >> misconception. Of course this needs to be fixed as well.
-> >>
-> >> And you cannot just blindly change it because !SPARSE can use the
-> >> allocation. We are not creating stupid corner cases just to support
-> >> your sloppyness. Its not rocket science to do it the right way.
-> >>
-> >> That said, it might be worthwhile to get rid of the !SPARSE case
-> >> completely. That would probably make quite some stuff simpler.
-> >
-> > So we need to make all arches support SPARSE_IRQ at first?
-> >
-> > Now we have arm, arm64, c6x, metag, powerpc, sh, x86 support SPARSE_IRQ.
-> >
-> > The following  are not with SPARSE_IRQ yet:
-> > alpha, arc, avr32, blackfin, cris, frv, hexagon, m32r, m68k, microblaze,
-> > mips, mn10300, openrisc, parisc, s390, score, sparc, tile, um,
-> > unicore32, xtensa.
-> 
-> or add calling irq_alloc_desc_at() before irq_set_chip... for !SPARSE_IRQ.
-> 
-> Please check attached partial patch if you like it.
+On Saturday, February 22, 2014 05:48:46 PM Phillip Susi wrote:
+> The intel_pstate driver says it should be the preferred driver on
+> sandy bridge systems, but my system is using the acpi p state driver
+> instead.  According to the cpufreq Makefile this appears to be
+> intended as it is placed first in the link order.  Why is this and how
+> can I make sure the intel_pstate driver is used instead?
 
-OMG, you really mean that:
+Do you have CONFIG_X86_INTEL_PSTATE=y set in your .config?
 
-+++ b/arch/alpha/kernel/irq_i8259.c
-@@ -92,6 +92,7 @@ init_i8259a_irqs(void)
- 	outb(0xff, 0xA1);	/* mask all of 8259A-2 */
- 
- 	for (i = 0; i < 16; i++) {
-+		irq_alloc_desc_at(i, 0);
- 		irq_set_chip_and_handler(i, &i8259a_irq_type, handle_level_irq);
- 	}
-
-You can't be serious about that. There are tons of ways to call into
-the core and access an irq descriptor aside of irq_set_chip* before it
-is potentially allocated.
-
-Are you going to analyze all of them and add an irq_alloc_desc_at()
-before that call?
-
-HELL, NO!
-
-I'm really tired of that.
-
-Stay away from kernel/irq/* and wait for people who are competent
-enough and willing to spend the extra thoughts to come up with
-solutions which are not completely ass backwards.
-
-Thanks,
-
-	tglx
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
