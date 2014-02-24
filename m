@@ -1,51 +1,36 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH] ACPI/Processor: Rework processor throttling with work_on_cpu()
-Date: Mon, 24 Feb 2014 17:27:55 +0800
-Message-ID: <530B109B.5020901@intel.com>
-References: <20140220151721.GB32719@redhat.com> <1392960945-30741-1-git-send-email-tianyu.lan@intel.com> <20140221100630.GA1121@krava.brq.redhat.com> <20140221170709.GC1121@krava.brq.redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/3] ipmi: Cleanups for allowing IPMI support to always be "y"
+Date: Mon, 24 Feb 2014 13:43:14 +0100
+Message-ID: <3293311.NLXg2udD5E@vostro.rjw.lan>
+References: <1393208616-16500-1-git-send-email-minyard@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:31818 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751509AbaBXJdw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Feb 2014 04:33:52 -0500
-In-Reply-To: <20140221170709.GC1121@krava.brq.redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1393208616-16500-1-git-send-email-minyard@acm.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: minyard@acm.org
+Cc: OpenIPMI Developers <openipmi-developer@lists.sourceforge.net>, Linux Kernel <linux-kernel@vger.kernel.org>, Russ Anderson <rja@sgi.com>, Matthew Garrett <matthew.garrett@nebula.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Olsa <jolsa@redhat.com>
-Cc: tj@kernel.org, oleg@redhat.com, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2014=E5=B9=B402=E6=9C=8822=E6=97=A5 01:07, Jiri Olsa wrote:
-> On Fri, Feb 21, 2014 at 11:06:30AM +0100, Jiri Olsa wrote:
->> On Fri, Feb 21, 2014 at 01:35:45PM +0800, Lan Tianyu wrote:
->>> acpi_processor_set_throttling() uses set_cpus_allowed_ptr() to make
->>> sure struct acpi_processor->acpi_processor_set_throttling() callbac=
-k
->>> run on associated cpu. But the function maybe called in a worker wh=
-ich
->>> has been bound to a cpu. The patch is to replace set_cpus_allowed_p=
-tr()
->>> with work_on_cpu().
->>
->> testing the new patch.. so far so good ;-)
->=20
-> ook.. survived whole day under the test workload without the warning =
-;-)
->=20
-> jirka
->=20
+On Sunday, February 23, 2014 08:23:33 PM minyard@acm.org wrote:
+> Three patches to remove issues with probing interface default, to make
+> sure the driver is completely idle if nothing is happening on it, and to
+> compile the IPMI driver into the kernel if ACPI is enabled.
+> 
+> The ACPI spec really requires that the IPMI driver be built into the
+> kernel because ACPI uses IPMI for some operations.  But some people
+> do not want the driver even using the mimimal amount of CPU it uses
+> when idle.  And the default probing, even though sort of implied to
+> be required by the spec, is really a bad idea and can result in hangs
+> on systems with other hardware at those location.
+> 
+> Hopefully these patches make everyone happy.
 
-Hi Jirka:
-	Great. Thanks for test:).
+No objections from my side.
 
+I'll drop the Matthew's patch ([3/3] in this series) from my tree, then, so
+please carry it along will any followups if needed.
 
---=20
-Best regards
-Tianyu Lan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
