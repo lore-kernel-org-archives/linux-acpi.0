@@ -1,73 +1,27 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Mon, 24 Feb 2014 00:48:42 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88024B2897@SHSMSX101.ccr.corp.intel.com>
-References: <20140220204028.GJ17949@sgi.com> <1392929163.20109.5.camel@x230>
-	 <20140220205901.GM17949@sgi.com> <1392930047.20109.6.camel@x230>
-	 <20140220212854.GO17949@sgi.com> <1392932363.20109.11.camel@x230>
-	 <20140220220656.GT17949@sgi.com> <1392935204.20109.17.camel@x230>
-	 <20140220224529.GV17949@sgi.com> <1392937781.20109.24.camel@x230>
-	 <20140220235904.GZ17949@sgi.com>
-	 <1AE640813FDE7649BE1B193DEA596E88024B228C@SHSMSX101.ccr.corp.intel.com>
- <1392999172.20109.47.camel@x230>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: minyard@acm.org
+Subject: [PATCH 0/3] ipmi: Cleanups for allowing IPMI support to always be "y"
+Date: Sun, 23 Feb 2014 20:23:33 -0600
+Message-ID: <1393208616-16500-1-git-send-email-minyard@acm.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:12272 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751550AbaBXAs7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Feb 2014 19:48:59 -0500
-In-Reply-To: <1392999172.20109.47.camel@x230>
-Content-Language: en-US
+Received: from mail-oa0-f52.google.com ([209.85.219.52]:47018 "EHLO
+	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751042AbaBXCXr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Feb 2014 21:23:47 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: "rja@sgi.com" <rja@sgi.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: OpenIPMI Developers <openipmi-developer@lists.sourceforge.net>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, Russ Anderson <rja@sgi.com>, Matthew Garrett <matthew.garrett@nebula.com>, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIE1hdHRoZXcgR2Fy
-cmV0dA0KPiBTZW50OiBTYXR1cmRheSwgRmVicnVhcnkgMjIsIDIwMTQgMTI6MTMgQU0NCj4gDQo+
-IE9uIEZyaSwgMjAxNC0wMi0yMSBhdCAwMjoxNyArMDAwMCwgWmhlbmcsIEx2IHdyb3RlOg0KPiAN
-Cj4gPiBJbiBmYWN0IHRoZXJlIGlzIGEgd29ya2Fyb3VuZCBzb2x1dGlvbiBJJ3ZlIHBvc3RlZCBo
-ZXJlOg0KPiA+IGh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvMjgzMTg1MS8NCj4g
-PiBUaGUgdXBkYXRlZCB2ZXJzaW9uIG9mIHRoaXMgcGF0Y2ggY2FuIGJlIGZvdW5kIGF0Og0KPiA+
-IGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9hdHRhY2htZW50LmNnaT9pZD0xMTI2MTENCj4g
-PiBJdCBpcyB0aGUgYWNwaS1pcG1pMTMucGF0Y2ggZmlsZS4NCj4gDQo+IEkgZG9uJ3QgdGhpbmsg
-dGhhdCBzb2x2ZXMgdGhlIHVuZGVybHlpbmcgcHJvYmxlbT8gV2UncmUgc3RpbGwgbGVmdCB3aXRo
-DQo+IG5vIGd1YXJhbnRlZSBvZiBvcmRlcmluZyBiZXR3ZWVuIEFDUEkgSVBNSSBvcGVyYXRpb24g
-cmVnaW9uIHN1cHBvcnQNCj4gYmVpbmcgYXZhaWxhYmxlIGFuZCB0aGUgbG9hZGluZyBvZiBhIGRy
-aXZlciB0aGF0IG1heSByZWx5IG9uIGl0Lg0KDQpZZXMuIEFzIGl0IGlzIGEgYml0IGZhciBiZXlv
-bmQgdGhlIGJ1ZyByZXBvcnQsIEkgZGlkbid0IHdvcmsgb24gaXQuDQpCdXQgYWN0dWFsbHksIEkg
-aGF2ZSBzb2x1dGlvbiB0byBhY2hpZXZlIHRoaXMuDQoNCj4gPiBJIHRoaW5rIHRoZXJlIHNob3Vs
-ZCBiZSByZWxhdGlvbnNoaXAgYmV0d2VlbiBBQ1BJIHJlZ2lvbiBhbmQgTGludXgga2VybmVsIG1v
-ZHVsZXMuDQo+ID4gSW4gZmFjdCBvbiB0aGUgd2VsbC1rbm93biBvcGVyYXRpbmcgc3lzdGVtLCBf
-UkVHIGlzIGFsd2F5cyBpbnZva2VkIGF0IHRoZSBlbmQgb2YgdGhlIElSUF9QTlBfU1RBUlRfREVW
-SUNFIGNvbXBsZXRpb25zLg0KPiA+IEJ1dCB3ZSBtYXkgc3RpbGwgYmUgYWJsZSB0byByZXR1cm4g
-LUVQUk9CRV9ERUZFUiBpbiB0aGUgcG93ZXIgbWV0ZXIgZHJpdmVyIHdoZW4gaXQgZGV0ZWN0cyBm
-YWlsdXJlcyBjYXVzZWQgYnkgdGhlIHJlYWRpbmVzcyBzdGF0ZQ0KPiBvZiB0aGUgcmVnaW9uIGhh
-bmRsZXJzLg0KPiANCj4gV2UgZG9uJ3QgaGF2ZSBhIGd1YXJhbnRlZSB0aGF0IGl0J2xsIGhhcHBl
-biBhdCBwcm9iZSB0aW1lLiBUaGUNCj4gY2FwYWJpbGl0aWVzIGxpc3QgbWF5IGJlIHN0YXRpYywg
-YW5kIHNvIHdlJ2xsIGdldCBvdXIgZmlyc3QgZmFpbHVyZSBvbg0KPiBhbiBhdHRlbXB0ZWQgdXNl
-cnNwYWNlIGFjY2VzcyBpbnN0ZWFkLg0KDQpUaGlzIGlzIHRoZSBpc3N1ZSByZWxhdGVkIHRvIHRo
-ZSBJUE1JIG9wZXJhdGlvbiByZWdpb24sIGFuZCBpdCBjYW4gYmUgc29sdmVkIGJ5IGEgInJlcXVl
-c3RfbW9kdWxlKCkiIGNhbGwuDQpUaGUgLUVQUk9CRV9ERUZFUiBJIG1lbnRpb25lZCBpcyBhYm91
-dCB0aGUgcXVhbGl0eSBvZiAgYWNwaSBwb3dlciBtZXRlciBkcml2ZXIgaXRzZWxmLg0KDQo+IEl0
-IG1heSBiZSB0aGF0IENvcmV5J3Mgc3VnZ2VzdGlvbiBzYXRpc2ZpZXMgdGhlIGNvbmNlcm5zIFJ1
-c3MgcmFpc2VkLg0KPiBCdWlsZGluZyBJUE1JIGluIGJ1dCBvbmx5IHByb2JpbmcgYnkgZGVmYXVs
-dCBvbiBzeXN0ZW1zIHRoYXQgZGVjbGFyZSBhDQo+IEJNQyBpbiBBQ1BJIG9yIERNSSBzaG91bGQg
-YXZvaWQgYm9vdC10aW1lIGRlbGF5cyB3aGlsZSBzdGlsbCBlbnN1cmluZw0KPiB0aGF0IHRoZSBm
-dW5jdGlvbmFsaXR5IGlzIGF2YWlsYWJsZSBvbiBzeXN0ZW1zIHdoZXJlIHRoZXJlJ3MgYSByZWFs
-DQo+IGNoYW5jZSB0aGF0IHRoZSBmaXJtd2FyZSBleHBlY3RzIHRoZSBPUyB0byBwcm92aWRlIHN1
-cHBvcnQuDQoNCklmIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIHBhdGNoIChodHRwczovL3BhdGNo
-d29yay5rZXJuZWwub3JnL3BhdGNoLzI4MzE4NTEvKSwgeW91J2xsIHNlZSBpdCBpcyBwb3NzaWJs
-ZSB0byBhZGQgcmVxdWVzdF9tb2R1bGUoKSBpbiBhY3BpX3JlZ2lvbl9kZWZhdWx0X2hhbmRsZXIo
-KS4NClRoZSBjYWxsYmFjayBpcyBpbnZva2VkIHdoZW4gdGhlIGZpcnN0IElQTUkgcmVnaW9uIGFj
-Y2VzcyBoYXBwZW5zIGFuZCBpdCBpcyBpbiB0aGUgcHJvY2VzcyBjb250ZXh0IHdpdGhvdXQgYW55
-IGxvY2tpbmcuDQpJJ2QgcmF0aGVyIHRvIGVtYmVkIGFjcGlfaXBtaSBpbnRvIGlwbWlfc2kgbW9k
-dWxlIHdpdGggdGhpcyBmaXg6DQpodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvYXR0YWNobWVu
-dC5jZ2k/aWQ9MTEyNjExIChhY3BpLWlwbWkxNC5wYXRjaCkuDQpBZnRlciB0aGF0LCBhIHJlcXVl
-c3RfbW9kdWxlKCkgaW52b2NhdGlvbiBvZiBpcG1pX3NpIGluIGFjcGlfcmVnaW9uX2RlZmF1bHRf
-aGFuZGxlcigpIGNhbiBzb2x2ZSB3aGF0IHlvdSBhcmUgd29ycnlpbmcgYWJvdXQuDQoNCldoYXQn
-cyB5b3VyIG9waW5pb24/DQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiAtLQ0K
-PiBNYXR0aGV3IEdhcnJldHQgPG1hdHRoZXcuZ2FycmV0dEBuZWJ1bGEuY29tPg0K
+Three patches to remove issues with probing interface default, to make
+sure the driver is completely idle if nothing is happening on it, and to
+compile the IPMI driver into the kernel if ACPI is enabled.
+
+The ACPI spec really requires that the IPMI driver be built into the
+kernel because ACPI uses IPMI for some operations.  But some people
+do not want the driver even using the mimimal amount of CPU it uses
+when idle.  And the default probing, even though sort of implied to
+be required by the spec, is really a bad idea and can result in hangs
+on systems with other hardware at those location.
+
+Hopefully these patches make everyone happy.
+
