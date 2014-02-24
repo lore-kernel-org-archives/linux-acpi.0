@@ -1,79 +1,49 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v5 2/5] ACPI / processor_core: Rework _PDC related stuff
- to make it more arch-independent
-Date: Mon, 24 Feb 2014 14:57:05 +0800
-Message-ID: <530AED41.4060407@linaro.org>
-References: <1392740638-2479-1-git-send-email-hanjun.guo@linaro.org> <3459962.GkY99aHQbc@vostro.rjw.lan> <20140221182424.GA5751@arm.com> <1408521.4TEdKhuRp5@vostro.rjw.lan> <F980FA86-6705-4A71-956C-EA2DBD787199@arm.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH] ACPI/Processor: Rework processor throttling with work_on_cpu()
+Date: Mon, 24 Feb 2014 17:27:55 +0800
+Message-ID: <530B109B.5020901@intel.com>
+References: <20140220151721.GB32719@redhat.com> <1392960945-30741-1-git-send-email-tianyu.lan@intel.com> <20140221100630.GA1121@krava.brq.redhat.com> <20140221170709.GC1121@krava.brq.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:51606 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757AbaBXG5M (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Feb 2014 01:57:12 -0500
-Received: by mail-pb0-f50.google.com with SMTP id rq2so6169164pbb.9
-        for <linux-acpi@vger.kernel.org>; Sun, 23 Feb 2014 22:57:12 -0800 (PST)
-In-Reply-To: <F980FA86-6705-4A71-956C-EA2DBD787199@arm.com>
+Received: from mga09.intel.com ([134.134.136.24]:31818 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751509AbaBXJdw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Feb 2014 04:33:52 -0500
+In-Reply-To: <20140221170709.GC1121@krava.brq.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Joe Perches <joe@perches.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>
+To: Jiri Olsa <jolsa@redhat.com>
+Cc: tj@kernel.org, oleg@redhat.com, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2014-2-22 18:33, Catalin Marinas wrote:
-> On 21 Feb 2014, at 23:35, Rafael J. Wysocki <rjw@rjwysocki.net> wrote=
-:
->> On Friday, February 21, 2014 06:24:24 PM Catalin Marinas wrote:
->>> On Wed, Feb 19, 2014 at 01:50:22AM +0100, Rafael J. Wysocki wrote:
->>>> On Wednesday, February 19, 2014 12:23:55 AM Hanjun Guo wrote:
->>>>> _PDC related stuff in processor_core.c is little bit X86/IA64 dep=
-endent,
->>>>> rework the code to make it more arch-independent, no functional c=
-hange
->>>>> in this patch.
->>>>>
->>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>>> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
->>>>
->>>> I've queued up patches [1,3-5/5] from this series for 3.15 (modulo=
- changelog
->>>> modifications), but this one should be CCed to the x86 and ia64 ma=
-intainers.
->>>
->>> Thanks for taking these patches. I would however hold onto patch 3/=
-5 as
->>> this is still under discussion. Basically for patches specific to A=
-RM
->>> ACPI I would really like to see more acks before being merged as th=
-at's
->>> a new thing for us.
+On 2014=E5=B9=B402=E6=9C=8822=E6=97=A5 01:07, Jiri Olsa wrote:
+> On Fri, Feb 21, 2014 at 11:06:30AM +0100, Jiri Olsa wrote:
+>> On Fri, Feb 21, 2014 at 01:35:45PM +0800, Lan Tianyu wrote:
+>>> acpi_processor_set_throttling() uses set_cpus_allowed_ptr() to make
+>>> sure struct acpi_processor->acpi_processor_set_throttling() callbac=
+k
+>>> run on associated cpu. But the function maybe called in a worker wh=
+ich
+>>> has been bound to a cpu. The patch is to replace set_cpus_allowed_p=
+tr()
+>>> with work_on_cpu().
 >>
->> OK, I'll drop [3/5] for now, then.
+>> testing the new patch.. so far so good ;-)
 >=20
-> Thanks (it=92s only temporary ;)).
+> ook.. survived whole day under the test workload without the warning =
+;-)
 >=20
->> I'm wondering, though, whose ACKs I should be waiting for before app=
-lying those
->> patches?
+> jirka
 >=20
-> Good question ;). In this particular case, there is an ongoing
-> discussion between Hanjun and Sudeep. While there isn=92t anything
-> major, I would like to see some agreement and potentially an Ack from
-> the other party involved in the discussion (Sudeep).
->=20
-> There are other patches that are not specific to ARM, so it=92s
-> really your decision. As for the general ARM(64) ACPI case, I don=92t
-> think we have anyone in charge with deciding what=92s correct or not
-> (BTW, who are the people active both in the _ARM_ Linux kernel commun=
-ity
-> and the ACPI standardisation forum?).
 
-I'm in ASWG (ACPI spec working group) under UEFI, and Al Stone and Char=
-les
-(+cc Charles) are also in this forum.
+Hi Jirka:
+	Great. Thanks for test:).
 
-Thanks
-Hanjun
+
+--=20
+Best regards
+Tianyu Lan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
