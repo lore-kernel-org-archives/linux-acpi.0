@@ -1,81 +1,187 @@
-From: minyard@acm.org
-Subject: [PATCH 3/3] Change ACPI IPMI support to
-	"default y"
-Date: Sun, 23 Feb 2014 20:23:36 -0600
-Message-ID: <1393208616-16500-4-git-send-email-minyard@acm.org>
-References: <1393208616-16500-1-git-send-email-minyard@acm.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v5 3/5] ACPI / processor: Introduce map_gic_id() to get
+ apic id from MADT or _MAT method
+Date: Mon, 24 Feb 2014 14:48:13 +0800
+Message-ID: <530AEB2D.6050801@linaro.org>
+References: <1392740638-2479-1-git-send-email-hanjun.guo@linaro.org> <1392740638-2479-4-git-send-email-hanjun.guo@linaro.org> <5304C0C4.3080601@arm.com> <53057DA9.3010307@linaro.org> <5307487F.6000308@arm.com> <53087A0F.6010302@linaro.org> <d2ad8ee5d9a7875fe121a30beb8d2e8c@www.loen.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
-In-Reply-To: <1393208616-16500-1-git-send-email-minyard@acm.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
-List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
-List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: openipmi-developer-bounces@lists.sourceforge.net
-To: OpenIPMI Developers <openipmi-developer@lists.sourceforge.net>
-Cc: Russ Anderson <rja@sgi.com>, Matthew Garrett <matthew.garrett@nebula.com>, rjw@rjwysocki.net, Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, lenb@kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:37644 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751326AbaBXGsV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Feb 2014 01:48:21 -0500
+Received: by mail-pb0-f51.google.com with SMTP id un15so6101790pbc.24
+        for <linux-acpi@vger.kernel.org>; Sun, 23 Feb 2014 22:48:21 -0800 (PST)
+In-Reply-To: <d2ad8ee5d9a7875fe121a30beb8d2e8c@www.loen.fr>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Sudeep Holla <sudeep.holla@arm.com>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linaro-acpi@lists.linaro.org, patches@linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Joe Perches <joe@perches.com>, linux-arm-kernel@lists.infradead.org
 
-From: Matthew Garrett <matthew.garrett@nebula.com>
+On 2014-2-22 19:30, Marc Zyngier wrote:
+> On 2014-02-22 10:21, Hanjun Guo wrote:
+>> On 2014-2-21 20:37, Sudeep Holla wrote:
+>>> Hi Hanjun,
+>>>
+>>> (Adding MarcZ for his views on GIC)
+>>>
+>>> On 20/02/14 03:59, Hanjun Guo wrote:
+>>>> Hi Sudeep,
+>>>>
+>>>> Thanks for your comments, please refer to the replies below. :)
+>>>>
+>>>> On 2014=E5=B9=B402=E6=9C=8819=E6=97=A5 22:33, Sudeep Holla wrote:
+>>>>> Hi Hanjun,
+>>>>>
+>>>>> On 18/02/14 16:23, Hanjun Guo wrote:
+>>>>>> Get apic id from MADT or _MAT method is not implemented on arm/a=
+rm64,
+>>>>>> and ACPI 5.0 introduces GIC Structure for it, so this patch intr=
+oduces
+>>>>>> map_gic_id() to get apic id followed the ACPI 5.0 spec.
+>>>>>>
+>>>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>>> ---
+>>>>>>   drivers/acpi/processor_core.c |   26 +++++++++++++++++++++++++=
++
+>>>>>>   1 file changed, 26 insertions(+)
+>>>>>>
+>>>>>> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/proces=
+sor_core.c
+>>>>>> index 4dcf776..d316d9b 100644
+>>>>>> --- a/drivers/acpi/processor_core.c
+>>>>>> +++ b/drivers/acpi/processor_core.c
+>>>>>> @@ -71,6 +71,27 @@ static int map_lsapic_id(struct acpi_subtable=
+_header *entry,
+>>>>>>       return 0;
+>>>>>>   }
+>>>>>>
+>>>>>> +static int map_gic_id(struct acpi_subtable_header *entry,
+>>>>>> +        int device_declaration, u32 acpi_id, int *apic_id)
+>>>>>> +{
+>>>>>> +    struct acpi_madt_generic_interrupt *gic =3D
+>>>>>> +        (struct acpi_madt_generic_interrupt *)entry;
+>>>>>> +
+>>>>>> +    if (!(gic->flags & ACPI_MADT_ENABLED))
+>>>>>> +        return -ENODEV;
+>>>>>> +
+>>>>>> +    /* In the GIC interrupt model, logical processors are
+>>>>>> +     * required to have a Processor Device object in the DSDT,
+>>>>>> +     * so we should check device_declaration here
+>>>>>> +     */
+>>>>>> +    if (device_declaration && (gic->uid =3D=3D acpi_id)) {
+>>>>>> +        *apic_id =3D gic->gic_id;
+>>>>> I have mentioned this earlier, it's not clear yet to me how does =
+this work ?
+>>>>> It needs more clarity in the form of comment here at-least as the=
+ ACPIv5.0 is
+>>>>> also not so clear or explicit on how to handle this.
+>>>>
+>>>> Yes, I noticed your comments and had a reply for that, after a
+>>>> long consideration for this, I would withdraw my previous comments
+>>>> before, please refer to the comments below.
+>>>>
+>>>>>
+>>>>> Here you are expecting gic->uid =3D acpi_id which is fine, while =
+acpi_map_cpuid
+>>>>> matches apic_id with cpu_physical_id(which must be MPIDR in ARM{3=
+2,64}). The
+>>>>> latter imposes restriction that gic->gic_id has to be MPIDR. Does=
+ that mean we
+>>>>> are imposing restriction on GIC ID to be MPIDR ? If so please doc=
+ument it here
+>>>>> and please explain the reason behind that choice.
+>>>>
+>>>> On x86 and IA64, APIC/SAPIC ID is the hardware id of the logical
+>>>> processor, and UID is just a unique ID to identify the processor i=
+n DSDT, it
+>>>> can be any value, and even can be strings defined in ASL if I reme=
+mber
+>>>> that correctly.
+>>>>
+>>> OK, but that's not the case on ARM{32,64}. My main concern here is =
+if we don't
+>>> make this definitions clear enough, the vendors might produce ACPI =
+tables with
+>>> whatever suits them and we may end up supporting them. Since we are=
+ starting
+>>> with clean slate, we can avoid getting into such situations. I will=
+ be to be
+>>> more elaborate this time.
+>>
+>> I agree.
+>>
+>>>
+>>> The GIC ID is referred as the local GIC=E2=80=99s hardware ID in AC=
+PIv5.0.
+>>> IIUC, since GICC is per-cpu entry, it has to GIC CPU interface ID.
+>>>
+>>> Now how does it differ from MPIDR ? e.g. ARM TC2(multi cluster syst=
+em)
+>>>     GIC ID        MPIDR            Comment
+>>>     0        0x000            CA15_0
+>>>     1        0x001            CA15_1
+>>>     2        0x100            CA7_0
+>>>     3        0x101            CA7_1
+>>>     4        0x102            CA7_2
+>>
+>> Yes, obvious different. I know GIC ID can matche the bit index of th=
+e
+>> associated processor
+>> in the distributor's GICD_ITARGETSR register, and it a clear
+>> statement in GICv1/GICv2, my
+>> question is that is this consistent in GICv3/v4 too? this will have
+>> some impact on the
+>> code implementation.
+>=20
+> For GICv3/v4, the only way you can match a CPU with its local redistr=
+ibutor is by using the CPU MPIDR. The GIC CPU ID is an implementation c=
+hoice that may not exist (it doesn't in a distributed
+> implementation), so anything that relies on a GIC CPU ID is broken fo=
+r GICv3.
 
-The ACPI IPMI driver implements IPMI operation region support for the ACPI
-core. Systems that declare ACPI operation regions may reference them at any
-time, including during kernel initialisation. These accesses will fail
-unless the ACPI IPMI driver is present, and undesirable system behaviour
-may result. Set the default to Y in order to encourage distributions and
-users to configure kernels to avoid awkward surprises.
+So that's the broken part, it seems that GIC ID is useless both
+in GICv1/v2 and GICv3/v4 if it represents GIC CPU interface ID,
+the only reliable one is the MPIDR.
 
-Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
----
- drivers/acpi/Kconfig      | 2 +-
- drivers/char/ipmi/Kconfig | 2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+I agree UID should be MPIDR for future usage, so how about this solutio=
+n:
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 4770de5..0e6aab9 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -162,7 +162,7 @@ config ACPI_PROCESSOR
- config ACPI_IPMI
- 	tristate "IPMI"
- 	depends on IPMI_SI
--	default n
-+	default y
- 	help
- 	  This driver enables the ACPI to access the BMC controller. And it
- 	  uses the IPMI request/response message to communicate with BMC
-diff --git a/drivers/char/ipmi/Kconfig b/drivers/char/ipmi/Kconfig
-index 8e14360..5eb7e85 100644
---- a/drivers/char/ipmi/Kconfig
-+++ b/drivers/char/ipmi/Kconfig
-@@ -5,6 +5,7 @@
- menuconfig IPMI_HANDLER
-        tristate 'IPMI top-level message handler'
-        depends on HAS_IOMEM
-+       default y if ACPI
-        help
-          This enables the central IPMI message handler, required for IPMI
- 	 to work.
-@@ -45,6 +46,7 @@ config IPMI_DEVICE_INTERFACE
- 
- config IPMI_SI
-        tristate 'IPMI System Interface handler'
-+       default y if ACPI
-        help
-          Provides a driver for System Interfaces (KCS, SMIC, BT).
- 	 Currently, only KCS and SMIC are supported.  If
--- 
-1.8.3.1
++static int map_gic_id(struct acpi_subtable_header *entry,
++		int device_declaration, u32 acpi_id, int *apic_id)
++{
++	struct acpi_madt_generic_interrupt *gic =3D
++		(struct acpi_madt_generic_interrupt *)entry;
++
++	if (!(gic->flags & ACPI_MADT_ENABLED))
++		return -ENODEV;
++
++	/* In the GIC interrupt model, logical processors are
++	 * required to have a Processor Device object in the DSDT,
++	 * so we should check device_declaration here
++	 */
++	if (device_declaration && (gic->uid =3D=3D acpi_id)) {
+		/*
+		 * this is the special case for ARM/ARM64, gic->uid
+		 * should be MPIDR which represents the CPU hardware
+		 * id, so use gic->uid instead of gic->gic_id here
+		 * to get the physical processor ID. (...)
+		 */
++		*apic_id =3D gic->uid;
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
 
+Thanks
+Hanjun
 
-------------------------------------------------------------------------------
-Flow-based real-time traffic analytics software. Cisco certified tool.
-Monitor traffic, SLAs, QoS, Medianet, WAAS etc. with NetFlow Analyzer
-Customize your own dashboards, set traffic alerts and generate reports.
-Network behavioral analysis & security monitoring. All-in-one tool.
-http://pubads.g.doubleclick.net/gampad/clk?id=126839071&iu=/4140/ostg.clktrk
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
