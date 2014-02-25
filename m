@@ -1,288 +1,155 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 6/6] gpio / ACPI: Add support for ACPI GPIO operation regions
-Date: Tue, 25 Feb 2014 15:55:02 +0100
-Message-ID: <2863081.yf9Ke2teV0@vostro.rjw.lan>
-References: <1393257611-18031-1-git-send-email-mika.westerberg@linux.intel.com> <1393257611-18031-7-git-send-email-mika.westerberg@linux.intel.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/3] PM / sleep: New flag to speed up suspend-resume of
+ suspended devices
+Date: Tue, 25 Feb 2014 12:08:14 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1402251010190.1294-100000@iolanthe.rowland.org>
+References: <10187724.x3fLnu1cYV@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1393257611-18031-7-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <10187724.x3fLnu1cYV@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, February 24, 2014 06:00:11 PM Mika Westerberg wrote:
-> GPIO operation regions is a new feature introduced in ACPI 5.0
-> specification. This feature adds a way for platform ASL code to call back
-> to OS GPIO driver and toggle GPIO pins.
-> 
-> An example ASL code from Lenovo Miix 2 tablet with only relevant part
-> listed:
-> 
->  Device (\_SB.GPO0)
->  {
->      Name (AVBL, Zero)
->      Method (_REG, 2, NotSerialized)
->      {
->          If (LEqual (Arg0, 0x08))
->          {
->              // Marks the region available
->              Store (Arg1, AVBL)
->          }
->      }
-> 
->      OperationRegion (GPOP, GeneralPurposeIo, Zero, 0x0C)
->      Field (GPOP, ByteAcc, NoLock, Preserve)
->      {
->          Connection (
->              GpioIo (Exclusive, PullDefault, 0, 0, IoRestrictionOutputOnly,
->                      "\\_SB.GPO0", 0x00, ResourceConsumer,,)
->              {
->                  0x003B
->              }
->          ),
->          SHD3,   1,
->      }
->  }
-> 
->  Device (SHUB)
->  {
->      Method (_PS0, 0, Serialized)
->      {
->          If (LEqual (\_SB.GPO0.AVBL, One))
->          {
->              Store (One, \_SB.GPO0.SHD3)
->              Sleep (0x32)
->          }
->      }
->      Method (_PS3, 0, Serialized)
->      {
->          If (LEqual (\_SB.GPO0.AVBL, One))
->          {
->              Store (Zero, \_SB.GPO0.SHD3)
->          }
->      }
->  }
-> 
-> The sensor hub (SHUB) device uses GPIO connection SHD3 to power the device
-> whenever the GPIO operation region is available.
+On Tue, 25 Feb 2014, Rafael J. Wysocki wrote:
 
-I would add more explanation of the ASL above here.  Basically, how it is
-supposed to work and what's the handler's role in it.
-
-> Implement the support by registering GPIO operation region handlers for all
-> GPIO devices that have an ACPI handle. First time the GPIO is used by the
-> ASL code we make sure that the GPIO stays requested until the GPIO chip
-> driver itself is unloaded. If we find out that the GPIO is already
-> requested we just toggle it according to the value got from ASL code.
-
-The patch itself looks good to me.
-
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
->  drivers/gpio/gpiolib-acpi.c | 156 ++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 156 insertions(+)
+> > This discussion is getting a little messy.  Let's try to clarify it.
+> > Here is the major point:
+> > 
+> > 	We would like to save time during system suspend/resume by
 > 
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> index 275735f390af..0133d38c447f 100644
-> --- a/drivers/gpio/gpiolib-acpi.c
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> @@ -16,6 +16,7 @@
->  #include <linux/export.h>
->  #include <linux/acpi.h>
->  #include <linux/interrupt.h>
-> +#include <linux/mutex.h>
->  
->  #include "gpiolib.h"
->  
-> @@ -26,7 +27,20 @@ struct acpi_gpio_event {
->  	unsigned int irq;
->  };
->  
-> +struct acpi_gpio_connection {
-> +	struct list_head node;
-> +	struct gpio_desc *desc;
-> +};
-> +
->  struct acpi_gpio_chip {
-> +	/*
-> +	 * ACPICA requires that the first field of the context parameter
-> +	 * passed to acpi_install_address_space_handler() is large enough
-> +	 * to hold struct acpi_connection_info.
-> +	 */
-> +	struct acpi_connection_info conn_info;
-> +	struct list_head conns;
-> +	struct mutex conn_lock;
->  	struct gpio_chip *chip;
->  	struct list_head events;
->  };
-> @@ -334,6 +348,146 @@ struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
->  	return lookup.desc ? lookup.desc : ERR_PTR(-ENOENT);
->  }
->  
-> +static acpi_status
-> +acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
-> +			    u32 bits, u64 *value, void *handler_context,
-> +			    void *region_context)
-> +{
-> +	struct acpi_gpio_chip *achip = region_context;
-> +	struct gpio_chip *chip = achip->chip;
-> +	struct acpi_resource_gpio *agpio;
-> +	struct acpi_resource *ares;
-> +	acpi_status status;
-> +	bool pull;
-> +	int i;
-> +
-> +	status = acpi_buffer_to_resource(achip->conn_info.connection,
-> +					 achip->conn_info.length, &ares);
-> +	if (ACPI_FAILURE(status))
-> +		return status;
-> +
-> +	if (WARN_ON(ares->type != ACPI_RESOURCE_TYPE_GPIO)) {
-> +		ACPI_FREE(ares);
-> +		return AE_BAD_PARAMETER;
-> +	}
-> +
-> +	agpio = &ares->data.gpio;
-> +	pull = agpio->pin_config == ACPI_PIN_CONFIG_PULLUP;
-> +
-> +	if (WARN_ON(agpio->io_restriction == ACPI_IO_RESTRICT_INPUT &&
-> +	    function == ACPI_WRITE)) {
-> +		ACPI_FREE(ares);
-> +		return AE_BAD_PARAMETER;
-> +	}
-> +
-> +	for (i = 0; i < agpio->pin_table_length; i++) {
-> +		unsigned pin = agpio->pin_table[i];
-> +		struct acpi_gpio_connection *conn;
-> +		struct gpio_desc *desc;
-> +		bool found;
-> +
-> +		desc = gpiochip_get_desc(chip, pin);
-> +		if (IS_ERR(desc)) {
-> +			status = AE_ERROR;
-> +			goto out;
-> +		}
-> +
-> +		mutex_lock(&achip->conn_lock);
-> +
-> +		found = false;
-> +		list_for_each_entry(conn, &achip->conns, node) {
-> +			if (conn->desc == desc) {
-> +				found = true;
-> +				break;
-> +			}
-> +		}
-> +		if (!found) {
-> +			int ret;
-> +
-> +			ret = gpiochip_request_own_desc(desc, "ACPI:OpRegion");
-> +			if (ret) {
-> +				status = AE_ERROR;
-> +				mutex_unlock(&achip->conn_lock);
-> +				goto out;
-> +			}
-> +
-> +			switch (agpio->io_restriction) {
-> +			case ACPI_IO_RESTRICT_INPUT:
-> +				gpiod_direction_input(desc);
-> +				break;
-> +			case ACPI_IO_RESTRICT_OUTPUT:
-> +				gpiod_direction_output(desc, pull);
-> +				break;
-> +			default:
-> +				/*
-> +				 * Assume that the BIOS has configured the
-> +				 * direction and pull accordingly.
-> +				 */
-> +				break;
-> +			}
-> +
-> +			conn = kzalloc(sizeof(*conn), GFP_KERNEL);
-> +			if (!conn) {
-> +				status = AE_NO_MEMORY;
-> +				mutex_unlock(&achip->conn_lock);
-> +				goto out;
-> +			}
-> +
-> +			conn->desc = desc;
-> +
-> +			list_add_tail(&conn->node, &achip->conns);
-> +		}
-> +
-> +		mutex_unlock(&achip->conn_lock);
-> +
-> +
-> +		if (function == ACPI_WRITE)
-> +			gpiod_set_raw_value(desc, !!((1 << i) & *value));
-> +		else
-> +			*value |= gpiod_get_raw_value(desc) << i;
-> +	}
-> +
-> +out:
-> +	ACPI_FREE(ares);
-> +	return status;
-> +}
-> +
-> +static void acpi_gpiochip_request_regions(struct acpi_gpio_chip *achip)
-> +{
-> +	struct gpio_chip *chip = achip->chip;
-> +	acpi_handle handle = ACPI_HANDLE(chip->dev);
-> +	acpi_status status;
-> +
-> +	INIT_LIST_HEAD(&achip->conns);
-> +	mutex_init(&achip->conn_lock);
-> +	status = acpi_install_address_space_handler(handle, ACPI_ADR_SPACE_GPIO,
-> +						    acpi_gpio_adr_space_handler,
-> +						    NULL, achip);
-> +	if (ACPI_FAILURE(status))
-> +		dev_err(chip->dev, "Failed to install GPIO OpRegion handler\n");
-> +}
-> +
-> +static void acpi_gpiochip_free_regions(struct acpi_gpio_chip *achip)
-> +{
-> +	struct gpio_chip *chip = achip->chip;
-> +	acpi_handle handle = ACPI_HANDLE(chip->dev);
-> +	struct acpi_gpio_connection *conn, *tmp;
-> +	acpi_status status;
-> +
-> +	status = acpi_remove_address_space_handler(handle, ACPI_ADR_SPACE_GPIO,
-> +						   acpi_gpio_adr_space_handler);
-> +	if (ACPI_FAILURE(status)) {
-> +		dev_err(chip->dev, "Failed to remove GPIO OpRegion handler\n");
-> +		return;
-> +	}
-> +
-> +	list_for_each_entry_safe_reverse(conn, tmp, &achip->conns, node) {
-> +		gpiochip_free_own_desc(conn->desc);
-> +		list_del(&conn->node);
-> +		kfree(conn);
-> +	}
-> +}
-> +
->  void acpi_gpiochip_add(struct gpio_chip *chip)
->  {
->  	struct acpi_gpio_chip *achip;
-> @@ -361,6 +515,7 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
->  	}
->  
->  	acpi_gpiochip_request_interrupts(achip);
-> +	acpi_gpiochip_request_regions(achip);
->  }
->  
->  void acpi_gpiochip_remove(struct gpio_chip *chip)
-> @@ -379,6 +534,7 @@ void acpi_gpiochip_remove(struct gpio_chip *chip)
->  		return;
->  	}
->  
-> +	acpi_gpiochip_free_regions(achip);
->  	acpi_gpiochip_free_interrupts(achip);
->  
->  	acpi_detach_data(handle, acpi_gpio_chip_dh);
-> 
+> Actually, that's not only about saving time, but also about saving energy.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Sure.
+
+> > 	skipping over devices that are already in runtime suspend,
+> > 	whenever it is safe to do so.
+> > 
+> > Of course, the "it is safe to do so" part is what makes this difficult.  
+> > It boils down to three characteristics for each device.
+> > 
+> >     (a) The device uses the same power state for runtime suspend and
+> > 	system suspend.  Therefore, if the device is already in runtime
+> > 	suspend and the wakeup settings are correct, there is no need
+> > 	for the PM core to invoke the device's ->suspend callbacks.
+> > 
+> > This requires a few comments.  The matter of whether the same power
+> > state is used for both types of suspend is generally known beforehand,
+> > because it is decided by the subsystem or driver.  The matter of
+> > whether the wakeup settings are correct often can't be known until the
+> > system suspend starts, because userspace can select whether or not
+> > wakeup should be enabled during a system sleep.
+> > 
+> > Also, if the PM core is going to skip the ->suspend callbacks then it 
+> > is obliged to skip the ->resume callbacks as well (we mustn't call one 
+> > without the other).  Therefore, in cases where (a) holds, the device 
+> > will necessarily emerge from the system resume in a runtime-suspended 
+> > state.
+> 
+> The "emerge from system resume" requires a bit of clarification in my
+> opinion.  Do you refer to the status of the device when user space is
+> thawed or earlier?  If earlier, then when exactly?
+
+The status of the device when its ->resume callback returns.  Or in 
+the context of your patch, when the ->resume callback is skipped.
+
+> > This may or may not cause problems for the device's children; 
+> > see below.
+> > 
+> >     (b) It's okay for the device's parent to be in runtime suspend
+> > 	when the device's ->suspend callbacks are invoked.
+> > 
+> > I included this just to be thorough.  In fact, I expect (b) to be true 
+> > for pretty much every device already.
+> 
+> I don't quite understand this.  What if the parent is a bridge and the
+> child's ->suspend tries to access the child's registers?  That surely won't
+> work if the parent is in a low-power state at that point.
+
+It _does_ work on all current systems -- but only because the question 
+never arises if the device's parent is never in runtime suspend when 
+the device's ->suspend callbacks are invoked.
+
+I admit, there most likely _are_ devices that would get into trouble if
+the question ever did arise.
+
+> > In the absence of any sort of special arrangement, if (b) wasn't true 
+> > for some device then that device would already be experiencing problems 
+> > going into system suspend.
+> 
+> Unless, of course, its parent is a PCI device, because in that case it will
+> always be resumed by the PCI bus type.  And if the "always resumed" is going
+> to be changed to "only resumed if the parent's configuration needs to change",
+> there may be some regressions here and there.
+
+Okay, so you want to take a problem involving PCI and some other
+subsystems, and solve it by getting the PM core involved.  And you want
+to mix it in with the idea of "fast suspend".  Is that really the best
+approach?
+
+Here's another approach.  Add an "okay for my parent to be
+runtime-suspended when my ->suspend and ->resume callbacks are invoked"  
+flag to dev->power.  Make pci_pm_prepare(dev) check this flag in every
+child of dev; if there are any children where the flag isn't set then
+call pm_runtime_resume(dev) (and print a message in the kernel log so 
+that you know which driver needs to be fixed).
+
+This is appropriate because it adjusts the PCI core in a way that can
+safely avoid regressions, without getting the PM core involved in
+matters that should remain strictly between the PCI subsystem and the
+subsystems of children of PCI devices.
+
+It also allows the "fast suspend" change to be cleanly separated out 
+into a second patch.  In that patch, all you do is set 
+dev->power.fast_suspend if ->prepare returns > 0, and then you skip 
+->suspend and ->resume if fast_suspend is set and the device is
+runtime-suspended.
+
+> I agree with the idea, but I have a certain view on how to achieve it.
+> Which is by allowing the "good" ones to mark themselves as "good", then
+> go through the ones that aren't marked as "good" yet, fix them up and
+> mark them as "good".  Finally, when everyone is marked "good", we can
+> drop the marking.
+
+How will you know when nothing remains unmarked?
+
+> The reasoning was basically to set fast_suspend for a device if your condition
+> (a) held *and* if fast_suspend was set for all of the device's children.  Then
+> we would know that all those children would be RPM_SUSPENDED during system
+> resume as well and the resume part might be "streamlined" as well.  There was
+> nothing about (c) anywhere in that patchset. :-)
+
+This seems like getting the answer to the wrong question.  You want to
+know whether the children are okay with the parent being
+runtime-suspended during the child's suspend and resume callbacks, but
+instead you are asking if the children can remain runtime-suspended
+through the entire system suspend.  Those are two different questions.
+
+They seem related, because if the parent is in runtime suspend then the
+child must also be in runtime suspend (disregarding the possibility of
+ignore_children).  But this is a red herring.  It's entirely possible
+for the child to be RPM_ACTIVE during one of these callback even if the
+parent is RPM_SUSPENDED when the callback starts.  The child's driver
+merely needs to call pm_runtime_resume(dev) at the beginning of the
+callback.
+
+If the child's driver does this, it would be perfectly okay for the
+parent to use fast_suspend without the child using it too.  You could
+skip calling the parent's suspend and resume callbacks, and the child
+would work just fine.
+
+> That would be a different optimization from the one I'm thinking about.
+> 
+> For now, I'm focusing on one problem, which is when resuming runtime-suspended
+> devices during system suspend may be avoided and how to make that generally
+> work for different parent-child arrangements.
+> 
+> The resume part changes in my patchset were consequences of that only.
+
+See, I think that by considering this as a single problem, you aren't 
+getting down to the fundamental issues.
+
+Alan Stern
+
