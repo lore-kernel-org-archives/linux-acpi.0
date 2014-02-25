@@ -1,92 +1,195 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v5 02/33] genirq: Add irq_alloc_reserved_desc()
-Date: Mon, 24 Feb 2014 17:31:43 -0800
-Message-ID: <CAE9FiQUbWrAeavs-9Ze19FxWWn7dC1JA-69FfVhZSgwYCcohhA@mail.gmail.com>
-References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
-	<1388707565-16535-3-git-send-email-yinghai@kernel.org>
-	<alpine.DEB.2.02.1401222241100.24986@ionos.tec.linutronix.de>
-	<CAE9FiQUo9NGbjiZbMsf2yBFbn=iLJ-jc3QtZ8K6qwVuhmqzq=Q@mail.gmail.com>
-	<alpine.DEB.2.02.1402221104440.21251@ionos.tec.linutronix.de>
-	<CAE9FiQVf2L-FjkXR3WC=0iHNY73D2G4jyMeko4f4DPuxAXTK+Q@mail.gmail.com>
-	<CAE9FiQVf7u62S4puc2iMqiFO2YU-Kf35XVB9mC+SEP6Z73x7Zw@mail.gmail.com>
-	<alpine.DEB.2.02.1402222338420.21251@ionos.tec.linutronix.de>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/6] gpiolib: Allow GPIO chips to request their own GPIOs
+Date: Tue, 25 Feb 2014 15:10:24 +0100
+Message-ID: <1491992.y6nTRlJ009@vostro.rjw.lan>
+References: <1393257611-18031-1-git-send-email-mika.westerberg@linux.intel.com> <1393257611-18031-2-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1402222338420.21251@ionos.tec.linutronix.de>
-Sender: linux-pci-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:55103 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752595AbaBYN4B (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Feb 2014 08:56:01 -0500
+In-Reply-To: <1393257611-18031-2-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Feb 22, 2014 at 3:38 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
->
-> OMG, you really mean that:
->
-> +++ b/arch/alpha/kernel/irq_i8259.c
-> @@ -92,6 +92,7 @@ init_i8259a_irqs(void)
->         outb(0xff, 0xA1);       /* mask all of 8259A-2 */
->
->         for (i = 0; i < 16; i++) {
-> +               irq_alloc_desc_at(i, 0);
->                 irq_set_chip_and_handler(i, &i8259a_irq_type, handle_level_irq);
->         }
->
-> You can't be serious about that. There are tons of ways to call into
-> the core and access an irq descriptor aside of irq_set_chip* before it
-> is potentially allocated.
->
-> Are you going to analyze all of them and add an irq_alloc_desc_at()
-> before that call?
->
-> HELL, NO!
->
-> I'm really tired of that.
->
-> Stay away from kernel/irq/* and wait for people who are competent
-> enough and willing to spend the extra thoughts to come up with
-> solutions which are not completely ass backwards.
+On Monday, February 24, 2014 06:00:06 PM Mika Westerberg wrote:
+> Sometimes it is useful to allow GPIO chips themselves to request GPIOs they
+> own through gpiolib API. One usecase is ACPI ASL code that should be able
+> to toggle GPIOs through GPIO operation regions.
+> 
+> We can't really use gpio_request() and its counterparts because it will pin
+> the module to the kernel forever (as it calls module_get()). Instead we
+> provide a gpiolib internal functions gpiochip_request/free_own_desc() that
+> work the same as gpio_request() but don't manipulate module refrence count.
+> 
+> Since it's the GPIO chip driver who requests the GPIOs in the first place
+> we can be sure that it cannot be unloaded without the driver knowing about
+> that. Furthermore we only limit this functionality to be available only
+> inside gpiolib.
+> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+>  drivers/gpio/gpiolib.c | 57 +++++++++++++++++++++++++++++++++++++++++++-------
+>  drivers/gpio/gpiolib.h |  3 +++
+>  2 files changed, 53 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+> index f60d74bc2fce..489a63524eb6 100644
+> --- a/drivers/gpio/gpiolib.c
+> +++ b/drivers/gpio/gpiolib.c
+> @@ -1458,7 +1458,8 @@ EXPORT_SYMBOL_GPL(gpiochip_remove_pin_ranges);
+>   * on each other, and help provide better diagnostics in debugfs.
+>   * They're called even less than the "set direction" calls.
+>   */
+> -static int gpiod_request(struct gpio_desc *desc, const char *label)
+> +static int __gpiod_request(struct gpio_desc *desc, const char *label,
+> +			   bool module_refcount)
+>  {
+>  	struct gpio_chip	*chip;
+>  	int			status = -EPROBE_DEFER;
+> @@ -1475,8 +1476,10 @@ static int gpiod_request(struct gpio_desc *desc, const char *label)
+>  	if (chip == NULL)
+>  		goto done;
+>  
+> -	if (!try_module_get(chip->owner))
+> -		goto done;
+> +	if (module_refcount) {
+> +		if (!try_module_get(chip->owner))
+> +			goto done;
+> +	}
 
-oh, no, sorry for annoying you again.
+I'm wondering why you're not moving the module refcount manipulation entirely
+to gpiod_request()?
 
-In the irq_alloc_desc_at() path for !SPARSE_IRQ, it should not touch anything
-except setting that bit in allocated_irqs bitmap.
+I guess that's because of the locking, but I suppose that desc->chip will never
+be NULL in gpiochip_request_own_desc(), so you don't even need to check it there?
 
-Or could just replace irq_reserve_irq in irq_set_chip(), in that way will avoid
-touching arch codes.
+So it looks like gpiochip_request_own_desc() can do something like
 
-like
+	lock
+	__gpiod_request(stuff)
+	unlock
 
-diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-index dc04c16..02d6ad0 100644
---- a/kernel/irq/chip.c
-+++ b/kernel/irq/chip.c
-@@ -28,8 +28,13 @@
- int irq_set_chip(unsigned int irq, struct irq_chip *chip)
- {
-     unsigned long flags;
--    struct irq_desc *desc = irq_get_desc_lock(irq, &flags, 0);
-+    struct irq_desc *desc;
-+
-+#ifndef CONFIG_SPARSE_IRQ
-+    irq_alloc_desc_at(irq, 0);
-+#endif
+where __gpiod_request() is just the internal part starting at the "NOTE" comment.
 
-+    desc = irq_get_desc_lock(irq, &flags, 0);
-     if (!desc)
-         return -EINVAL;
+>  
+>  	/* NOTE:  gpio_request() can be called in early boot,
+>  	 * before IRQs are enabled, for non-sleeping (SOC) GPIOs.
+> @@ -1487,7 +1490,8 @@ static int gpiod_request(struct gpio_desc *desc, const char *label)
+>  		status = 0;
+>  	} else {
+>  		status = -EBUSY;
+> -		module_put(chip->owner);
+> +		if (module_refcount)
+> +			module_put(chip->owner);
+>  		goto done;
+>  	}
+>  
+> @@ -1499,7 +1503,8 @@ static int gpiod_request(struct gpio_desc *desc, const char *label)
+>  
+>  		if (status < 0) {
+>  			desc_set_label(desc, NULL);
+> -			module_put(chip->owner);
+> +			if (module_refcount)
+> +				module_put(chip->owner);
+>  			clear_bit(FLAG_REQUESTED, &desc->flags);
+>  			goto done;
+>  		}
+> @@ -1517,13 +1522,18 @@ done:
+>  	return status;
+>  }
+>  
+> +static int gpiod_request(struct gpio_desc *desc, const char *label)
+> +{
+> +	return __gpiod_request(desc, label, true);
+> +}
+> +
+>  int gpio_request(unsigned gpio, const char *label)
+>  {
+>  	return gpiod_request(gpio_to_desc(gpio), label);
+>  }
+>  EXPORT_SYMBOL_GPL(gpio_request);
+>  
+> -static void gpiod_free(struct gpio_desc *desc)
+> +static void __gpiod_free(struct gpio_desc *desc, bool module_refcount)
+>  {
+>  	unsigned long		flags;
+>  	struct gpio_chip	*chip;
+> @@ -1548,7 +1558,8 @@ static void gpiod_free(struct gpio_desc *desc)
+>  			spin_lock_irqsave(&gpio_lock, flags);
+>  		}
+>  		desc_set_label(desc, NULL);
+> -		module_put(desc->chip->owner);
+> +		if (module_refcount)
+> +			module_put(desc->chip->owner);
+>  		clear_bit(FLAG_ACTIVE_LOW, &desc->flags);
+>  		clear_bit(FLAG_REQUESTED, &desc->flags);
+>  		clear_bit(FLAG_OPEN_DRAIN, &desc->flags);
+> @@ -1559,6 +1570,11 @@ static void gpiod_free(struct gpio_desc *desc)
+>  	spin_unlock_irqrestore(&gpio_lock, flags);
+>  }
+>  
+> +static void gpiod_free(struct gpio_desc *desc)
+> +{
+> +	__gpiod_free(desc, true);
+> +}
+> +
+>  void gpio_free(unsigned gpio)
+>  {
+>  	gpiod_free(gpio_to_desc(gpio));
+> @@ -1678,6 +1694,33 @@ const char *gpiochip_is_requested(struct gpio_chip *chip, unsigned offset)
+>  }
+>  EXPORT_SYMBOL_GPL(gpiochip_is_requested);
+>  
+> +/**
+> + * gpiochip_request_own_desc - Allow GPIO chip to request its own descriptor
+> + * @desc: GPIO descriptor to request
+> + * @label: label for the GPIO
+> + *
+> + * Function allows GPIO chip drivers to request and use their own GPIO
+> + * descriptors via gpiolib API. Difference to gpiod_request() is that this
+> + * function will not increase reference count of the GPIO chip module. This
+> + * allows the GPIO chip module to be unloaded as needed (we assume that the
+> + * GPIO chip driver handles freeing the GPIOs it has requested).
+> + */
+> +int gpiochip_request_own_desc(struct gpio_desc *desc, const char *label)
+> +{
+> +	return __gpiod_request(desc, label, false);
+> +}
+> +
+> +/**
+> + * gpiochip_free_own_desc - Free GPIO requested by the chip driver
+> + * @desc: GPIO descriptor to free
+> + *
+> + * Function frees the given GPIO requested previously with
+> + * gpiochip_request_own_desc().
+> + */
+> +void gpiochip_free_own_desc(struct gpio_desc *desc)
+> +{
+> +	__gpiod_free(desc, false);
+> +}
+>  
+>  /* Drivers MUST set GPIO direction before making get/set calls.  In
+>   * some cases this is done in early boot, before IRQs are enabled.
+> diff --git a/drivers/gpio/gpiolib.h b/drivers/gpio/gpiolib.h
+> index 82be586c1f90..cf092941a9fd 100644
+> --- a/drivers/gpio/gpiolib.h
+> +++ b/drivers/gpio/gpiolib.h
+> @@ -43,4 +43,7 @@ acpi_get_gpiod_by_index(struct device *dev, int index,
+>  }
+>  #endif
+>  
+> +int gpiochip_request_own_desc(struct gpio_desc *desc, const char *label);
+> +void gpiochip_free_own_desc(struct gpio_desc *desc);
+> +
+>  #endif /* GPIOLIB_H */
+> 
 
-@@ -38,12 +43,7 @@ int irq_set_chip(unsigned int irq, struct irq_chip *chip)
-
-     desc->irq_data.chip = chip;
-     irq_put_desc_unlock(desc, flags);
--    /*
--     * For !CONFIG_SPARSE_IRQ make the irq show up in
--     * allocated_irqs. For the CONFIG_SPARSE_IRQ case, it is
--     * already marked, and this call is harmless.
--     */
--    irq_reserve_irq(irq);
-+
-     return 0;
- }
- EXPORT_SYMBOL(irq_set_chip);
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
