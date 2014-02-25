@@ -1,225 +1,92 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/3] PM / sleep: New flag to speed up suspend-resume of suspended devices
-Date: Tue, 25 Feb 2014 01:07:49 +0100
-Message-ID: <10187724.x3fLnu1cYV@vostro.rjw.lan>
-References: <Pine.LNX.4.44L0.1402241124350.1427-100000@iolanthe.rowland.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v5 02/33] genirq: Add irq_alloc_reserved_desc()
+Date: Mon, 24 Feb 2014 17:31:43 -0800
+Message-ID: <CAE9FiQUbWrAeavs-9Ze19FxWWn7dC1JA-69FfVhZSgwYCcohhA@mail.gmail.com>
+References: <1388707565-16535-1-git-send-email-yinghai@kernel.org>
+	<1388707565-16535-3-git-send-email-yinghai@kernel.org>
+	<alpine.DEB.2.02.1401222241100.24986@ionos.tec.linutronix.de>
+	<CAE9FiQUo9NGbjiZbMsf2yBFbn=iLJ-jc3QtZ8K6qwVuhmqzq=Q@mail.gmail.com>
+	<alpine.DEB.2.02.1402221104440.21251@ionos.tec.linutronix.de>
+	<CAE9FiQVf2L-FjkXR3WC=0iHNY73D2G4jyMeko4f4DPuxAXTK+Q@mail.gmail.com>
+	<CAE9FiQVf7u62S4puc2iMqiFO2YU-Kf35XVB9mC+SEP6Z73x7Zw@mail.gmail.com>
+	<alpine.DEB.2.02.1402222338420.21251@ionos.tec.linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54527 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752957AbaBXXww (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Feb 2014 18:52:52 -0500
-In-Reply-To: <Pine.LNX.4.44L0.1402241124350.1427-100000@iolanthe.rowland.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1402222338420.21251@ionos.tec.linutronix.de>
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Joerg Roedel <joro@8bytes.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Monday, February 24, 2014 02:36:02 PM Alan Stern wrote:
-> On Mon, 24 Feb 2014, Rafael J. Wysocki wrote:
-> 
-> > Also, it may not do that today and I'd like to introduce a mechanism by which
-> > that optimizatiom may be enabled by subsystems/drivers when ready.
-> > 
-> > So for example today there is no guarantee that each device will be resumed
-> > as appropriate by whoever handles its children when necessary, because that
-> > code may expect the device to be operational when it is running (precisely
-> > because we used to resume that device in .prepare()).
-> 
-> > Yes.  In particular, I'd like the "child" subsystem to be able to let the
-> > core know that it is fine to leave the parent suspended.
-> 
-> > That said the patchset doesn't really do both.  It only really is about
-> > skipping the ->suspend callbacks if possible, but the *consequence* of that
-> > is that *system* resume ->resume callbacks cannot be used to resume the
-> > device any more in general.  That's because ->resume_early may try to
-> > reverse the ->suspend_late's actions and so on, so if ->suspend_late hasn't
-> > run, it would be a bug to run ->resume_early for that device.
-> 
-> > I agree.  For this reason, I think that the core has no choice but to treat
-> > power.ignore_children set as "well, that device may need to be operational
-> > going forward".
-> 
-> This discussion is getting a little messy.  Let's try to clarify it.
-> Here is the major point:
-> 
-> 	We would like to save time during system suspend/resume by
+On Sat, Feb 22, 2014 at 3:38 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
+>
+> OMG, you really mean that:
+>
+> +++ b/arch/alpha/kernel/irq_i8259.c
+> @@ -92,6 +92,7 @@ init_i8259a_irqs(void)
+>         outb(0xff, 0xA1);       /* mask all of 8259A-2 */
+>
+>         for (i = 0; i < 16; i++) {
+> +               irq_alloc_desc_at(i, 0);
+>                 irq_set_chip_and_handler(i, &i8259a_irq_type, handle_level_irq);
+>         }
+>
+> You can't be serious about that. There are tons of ways to call into
+> the core and access an irq descriptor aside of irq_set_chip* before it
+> is potentially allocated.
+>
+> Are you going to analyze all of them and add an irq_alloc_desc_at()
+> before that call?
+>
+> HELL, NO!
+>
+> I'm really tired of that.
+>
+> Stay away from kernel/irq/* and wait for people who are competent
+> enough and willing to spend the extra thoughts to come up with
+> solutions which are not completely ass backwards.
 
-Actually, that's not only about saving time, but also about saving energy.
+oh, no, sorry for annoying you again.
 
-> 	skipping over devices that are already in runtime suspend,
-> 	whenever it is safe to do so.
-> 
-> Of course, the "it is safe to do so" part is what makes this difficult.  
-> It boils down to three characteristics for each device.
-> 
->     (a) The device uses the same power state for runtime suspend and
-> 	system suspend.  Therefore, if the device is already in runtime
-> 	suspend and the wakeup settings are correct, there is no need
-> 	for the PM core to invoke the device's ->suspend callbacks.
-> 
-> This requires a few comments.  The matter of whether the same power
-> state is used for both types of suspend is generally known beforehand,
-> because it is decided by the subsystem or driver.  The matter of
-> whether the wakeup settings are correct often can't be known until the
-> system suspend starts, because userspace can select whether or not
-> wakeup should be enabled during a system sleep.
-> 
-> Also, if the PM core is going to skip the ->suspend callbacks then it 
-> is obliged to skip the ->resume callbacks as well (we mustn't call one 
-> without the other).  Therefore, in cases where (a) holds, the device 
-> will necessarily emerge from the system resume in a runtime-suspended 
-> state.
+In the irq_alloc_desc_at() path for !SPARSE_IRQ, it should not touch anything
+except setting that bit in allocated_irqs bitmap.
 
-The "emerge from system resume" requires a bit of clarification in my
-opinion.  Do you refer to the status of the device when user space is
-thawed or earlier?  If earlier, then when exactly?
+Or could just replace irq_reserve_irq in irq_set_chip(), in that way will avoid
+touching arch codes.
 
-> This may or may not cause problems for the device's children; 
-> see below.
-> 
->     (b) It's okay for the device's parent to be in runtime suspend
-> 	when the device's ->suspend callbacks are invoked.
-> 
-> I included this just to be thorough.  In fact, I expect (b) to be true 
-> for pretty much every device already.
+like
 
-I don't quite understand this.  What if the parent is a bridge and the
-child's ->suspend tries to access the child's registers?  That surely won't
-work if the parent is in a low-power state at that point.
+diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+index dc04c16..02d6ad0 100644
+--- a/kernel/irq/chip.c
++++ b/kernel/irq/chip.c
+@@ -28,8 +28,13 @@
+ int irq_set_chip(unsigned int irq, struct irq_chip *chip)
+ {
+     unsigned long flags;
+-    struct irq_desc *desc = irq_get_desc_lock(irq, &flags, 0);
++    struct irq_desc *desc;
++
++#ifndef CONFIG_SPARSE_IRQ
++    irq_alloc_desc_at(irq, 0);
++#endif
 
-> Or if it isn't true for some 
-> devices, this is because of a special arrangement between the device's 
-> subsystem and the parent's subsystem.  For example, the parent might 
-> always be runtime-resumed by its subsystem at the start of a system 
-> suspend (which is what PCI does now; I don't know if it is necessary).
-> 
-> In the absence of any sort of special arrangement, if (b) wasn't true 
-> for some device then that device would already be experiencing problems 
-> going into system suspend.
++    desc = irq_get_desc_lock(irq, &flags, 0);
+     if (!desc)
+         return -EINVAL;
 
-Unless, of course, its parent is a PCI device, because in that case it will
-always be resumed by the PCI bus type.  And if the "always resumed" is going
-to be changed to "only resumed if the parent's configuration needs to change",
-there may be some regressions here and there.
+@@ -38,12 +43,7 @@ int irq_set_chip(unsigned int irq, struct irq_chip *chip)
 
-> So (b) should not cause much difficulty.
-
-I disagree.
-
-> And if a special arrangement is present, it is a private matter between 
-> the two subsystems, not involving the PM core.
-> 
->     (c) It's okay for the device's parent to be in runtime suspend
-> 	when the device's ->resume callbacks are invoked.
-> 
-> Unlike (b), I expect that (c) does _not_ hold for quite a few devices
-> currently.  The reason is historical: When runtime PM was first
-> implemented, we decided that all devices should emerge from system
-> resume in the RPM_ACTIVE state, even if they were in runtime suspend
-> when the system suspend started.  Therefore drivers could depend on the
-> parent not being in runtime suspend while the device's ->resume
-> callback was running.
-
-That's correct.
-
-> I don't think it is a good idea to perpetuate an accident of history.  
-> Instead of adding a special mechanism to the PM core for accomodating 
-> devices where (c) doesn't hold, I think we should fix up the drivers 
-> so that (c) _does_ hold everywhere.  Maybe you disagree.
-
-I agree with the idea, but I have a certain view on how to achieve it.
-Which is by allowing the "good" ones to mark themselves as "good", then
-go through the ones that aren't marked as "good" yet, fix them up and
-mark them as "good".  Finally, when everyone is marked "good", we can
-drop the marking.
-
-> Anyway, let's assume first that things are all fixed up, and (b) and
-> (c) hold for every device.  This means we can go back and consider (a).
-> 
-> Since the "same power state for both types of suspend" answer is known 
-> beforehand, let's concentrate on devices where it is true (other 
-> devices will simply continue to operate as they do today).  For these 
-> devices, the driver or subsystem will have to compute a flag value --
-> let's call it "same_wakeup_setting".  The PM core can't do this because 
-> it doesn't understand the device-specific details of wakeup settings.
-> 
-> Then your proposal comes down to this:
-> 
-> 	If ->prepare returns > 0, the PM core sets the
-> 	same_wakeup_setting flag.
-> 
-> 	If same_wakeup_setting is on and the device is in runtime
-> 	suspend, the PM core skips the various ->suspend and ->resume 
-> 	callbacks.
-> 
-> My proposal was never made explicit, but it would take a form something 
-> like this:
-> 
-> 	During ->prepare, the subsystem sets the same_wakeup_setting
-> 	flag appropriately.
-> 
-> 	If same_wakeup_setting is on and the device is in runtime
-> 	suspend, the subsystem's ->suspend and ->resume callbacks
-> 	return immediately.
-> 
-> There isn't very much difference between the two proposals.  Mine is a 
-> little more flexible; for example, it allows the subsystem to return 
-> immediately from ->suspend but have ->resume put the device back in the 
-> RPM_ACTIVE state.
-
-Your version is fine by me, I only made the PM core set the flag, because it
-would clear that flag afterward in some cases.
-
-> Now let's change course and suppose that (c) _doesn't_ hold for a large
-> selection of devices.  As a simple consequence, if (c) doesn't hold for
-> some device then (a) can't be allowed to hold for any ancestor of that
-> device.  (I'm disregarding the power.ignore_children flag.)
-> 
-> Your proposal would take the same_wakeup_setting flag (you called it
-> "fast_suspend"), used for answering (a), and combine it with the answer
-> to (c).  That is, you would have ->prepare return > 0 only if (a) and
-> (c) both hold -- and in addition, you turn off the flag if it is off in
-> any child.
-> 
-> In practice, I suspect this means fast_suspend will end up affecting
-> only leaf devices: those with no children.  This is partly because many
-> devices don't have a .prepare method; there are plenty of entries in
-> the device tree that don't correspond to physical devices (e.g., class
-> devices, or devices present only for their sysfs attributes) and hence
-> have no PM support at all.  Even though (c) does hold for such devices,
-> the PM core won't realize it.
-> 
-> In addition, I don't like the way your proposal mixes together the
-> answers to (a) and (c).
-
-It really doesn't and I tried to explain that in my previous message, but
-that apparently wasn't clear enough.
-
-The reasoning was basically to set fast_suspend for a device if your condition
-(a) held *and* if fast_suspend was set for all of the device's children.  Then
-we would know that all those children would be RPM_SUSPENDED during system
-resume as well and the resume part might be "streamlined" as well.  There was
-nothing about (c) anywhere in that patchset. :-)
-
-> If they could be kept separate, I think you could do a better job.
-> 
-> For instance, suppose (a) is true for some device, but (c) is false for
-> one of its children.  Then the PM core could skip the ->suspend and
-> ->resume callbacks for that device, and it could do a pm_runtime_resume
-> on the device before resuming the child.  The end result would be a
-> single ->runtime_resume call, instead of ->runtime_resume followed by
-> ->suspend and then ->resume.
-
-That would be a different optimization from the one I'm thinking about.
-
-For now, I'm focusing on one problem, which is when resuming runtime-suspended
-devices during system suspend may be avoided and how to make that generally
-work for different parent-child arrangements.
-
-The resume part changes in my patchset were consequences of that only.
-
-Rafael
-
+     desc->irq_data.chip = chip;
+     irq_put_desc_unlock(desc, flags);
+-    /*
+-     * For !CONFIG_SPARSE_IRQ make the irq show up in
+-     * allocated_irqs. For the CONFIG_SPARSE_IRQ case, it is
+-     * already marked, and this call is harmless.
+-     */
+-    irq_reserve_irq(irq);
++
+     return 0;
+ }
+ EXPORT_SYMBOL(irq_set_chip);
