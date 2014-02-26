@@ -1,97 +1,57 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 11/18] ACPICA: Add global option to disable method auto-serialization.
-Date: Wed, 26 Feb 2014 10:31:45 +0800
-Message-ID: <b7bc76511ab62b7d06a71792bf0fe6857a414e13.1393379348.git.lv.zheng@intel.com>
+Subject: [PATCH 10/18] ACPICA: Add additional named objects for the auto-serialize method scan.
+Date: Wed, 26 Feb 2014 10:31:31 +0800
+Message-ID: <c8d46274263035699e0981509bf523c24ca200f5.1393379348.git.lv.zheng@intel.com>
 References: <cover.1393379348.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:37309 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:41320 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750800AbaBZCcA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Feb 2014 21:32:00 -0500
+	id S1751605AbaBZCcI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Feb 2014 21:32:08 -0500
 In-Reply-To: <cover.1393379348.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
-
-This change adds an option to disable the auto-serialization of
-methods that create named objects.
+This change adds some additional opcodes that are detected and will
+cause a method to be auto-serialized. These opcodes are the various
+CreateXField and the FieldUnit opcodes. Lv Zheng.
 
 Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=52191
-Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h |    9 +++++++++
- drivers/acpi/acpica/dsinit.c   |   18 +++++++++++-------
- include/acpi/acpixf.h          |    1 +
- 3 files changed, 21 insertions(+), 7 deletions(-)
+ drivers/acpi/acpica/dsmethod.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 203b2dc..7da6573 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -87,6 +87,15 @@
- u8 ACPI_INIT_GLOBAL(acpi_gbl_enable_interpreter_slack, FALSE);
+diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+index f51d8a4..73764c7 100644
+--- a/drivers/acpi/acpica/dsmethod.c
++++ b/drivers/acpi/acpica/dsmethod.c
+@@ -163,9 +163,11 @@ acpi_ds_detect_named_opcodes(struct acpi_walk_state *walk_state,
  
- /*
-+ * Automatically serialize all methods that create named objects? Default
-+ * is TRUE, meaning that all non_serialized methods are scanned once at
-+ * table load time to determine those that create named objects. Methods
-+ * that create named objects are marked Serialized in order to prevent
-+ * possible run-time problems if they are entered by more than one thread.
-+ */
-+u8 ACPI_INIT_GLOBAL(acpi_gbl_auto_serialize_methods, TRUE);
-+
-+/*
-  * Automatically serialize ALL control methods? Default is FALSE, meaning
-  * to use the Serialized/not_serialized method flags on a per method basis.
-  * Only change this if the ASL code is poorly written and cannot handle
-diff --git a/drivers/acpi/acpica/dsinit.c b/drivers/acpi/acpica/dsinit.c
-index eb46874..aee5e45 100644
---- a/drivers/acpi/acpica/dsinit.c
-+++ b/drivers/acpi/acpica/dsinit.c
-@@ -136,16 +136,20 @@ acpi_ds_init_one_object(acpi_handle obj_handle,
- 			break;
- 		}
+ 	ACPI_FUNCTION_NAME(acpi_ds_detect_named_opcodes);
  
--		/* Parse/scan method and serialize it if necessary */
-+		if (acpi_gbl_auto_serialize_methods) {
+-	/* We are only interested in opcodes that have an associated name */
++	/* We are only interested in opcodes that create a new name */
  
--		acpi_ds_auto_serialize_method(node, obj_desc);
--		if (obj_desc->method.info_flags & ACPI_METHOD_SERIALIZED) {
-+			/* Parse/scan method and serialize it if necessary */
+-	if (!(walk_state->op_info->flags & AML_NAMED)) {
++	if (!
++	    (walk_state->op_info->
++	     flags & (AML_NAMED | AML_CREATE | AML_FIELD))) {
+ 		return (AE_OK);
+ 	}
  
--			/* Method was just converted to Serialized */
-+			acpi_ds_auto_serialize_method(node, obj_desc);
-+			if (obj_desc->method.
-+			    info_flags & ACPI_METHOD_SERIALIZED) {
+@@ -184,7 +186,7 @@ acpi_ds_detect_named_opcodes(struct acpi_walk_state *walk_state,
  
--			info->serial_method_count++;
--			info->serialized_method_count++;
--			break;
-+				/* Method was just converted to Serialized */
-+
-+				info->serial_method_count++;
-+				info->serialized_method_count++;
-+				break;
-+			}
- 		}
+ 	/* Abort the parse, no need to examine this method any further */
  
- 		info->non_serial_method_count++;
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index bf2c274..3587768 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -73,6 +73,7 @@ extern u32 acpi_dbg_layer;
+-	return_ACPI_STATUS(AE_CTRL_TERMINATE);
++	return (AE_CTRL_TERMINATE);
+ }
  
- /* ACPICA runtime options */
- 
-+extern u8 acpi_gbl_auto_serialize_methods;
- extern u8 acpi_gbl_all_methods_serialized;
- extern u8 acpi_gbl_copy_dsdt_locally;
- extern u8 acpi_gbl_create_osi_method;
+ /*******************************************************************************
 -- 
 1.7.10
 
