@@ -1,82 +1,186 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 1/6] gpiolib: Allow GPIO chips to request their own GPIOs
-Date: Wed, 26 Feb 2014 11:05:42 +0200
-Message-ID: <20140226090542.GT5018@intel.com>
+Subject: Re: [PATCH 2/6] gpio / ACPI: Allocate ACPI specific data directly in
+ acpi_gpiochip_add()
+Date: Wed, 26 Feb 2014 11:08:32 +0200
+Message-ID: <20140226090832.GU5018@intel.com>
 References: <1393257611-18031-1-git-send-email-mika.westerberg@linux.intel.com>
- <1393257611-18031-2-git-send-email-mika.westerberg@linux.intel.com>
- <1491992.y6nTRlJ009@vostro.rjw.lan>
+ <1393257611-18031-3-git-send-email-mika.westerberg@linux.intel.com>
+ <8173498.UxWM4NERsQ@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:38452 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751621AbaBZJBE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Feb 2014 04:01:04 -0500
 Content-Disposition: inline
-In-Reply-To: <1491992.y6nTRlJ009@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <8173498.UxWM4NERsQ@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 25, 2014 at 03:10:24PM +0100, Rafael J. Wysocki wrote:
-> On Monday, February 24, 2014 06:00:06 PM Mika Westerberg wrote:
-> > Sometimes it is useful to allow GPIO chips themselves to request GPIOs they
-> > own through gpiolib API. One usecase is ACPI ASL code that should be able
-> > to toggle GPIOs through GPIO operation regions.
+On Tue, Feb 25, 2014 at 03:21:55PM +0100, Rafael J. Wysocki wrote:
+> On Monday, February 24, 2014 06:00:07 PM Mika Westerberg wrote:
+> > We are going to add more ACPI specific data to accompany GPIO chip so
+> > instead of allocating it per each use-case we allocate it once when
+> > acpi_gpiochip_add() is called and release it when acpi_gpiochip_remove() is
+> > called.
 > > 
-> > We can't really use gpio_request() and its counterparts because it will pin
-> > the module to the kernel forever (as it calls module_get()). Instead we
-> > provide a gpiolib internal functions gpiochip_request/free_own_desc() that
-> > work the same as gpio_request() but don't manipulate module refrence count.
-> > 
-> > Since it's the GPIO chip driver who requests the GPIOs in the first place
-> > we can be sure that it cannot be unloaded without the driver knowing about
-> > that. Furthermore we only limit this functionality to be available only
-> > inside gpiolib.
+> > Doing this allows us to add more ACPI specific data by merely adding new
+> > fields to struct acpi_gpio_chip.
 > > 
 > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > > ---
-> >  drivers/gpio/gpiolib.c | 57 +++++++++++++++++++++++++++++++++++++++++++-------
-> >  drivers/gpio/gpiolib.h |  3 +++
-> >  2 files changed, 53 insertions(+), 7 deletions(-)
+> >  drivers/gpio/gpiolib-acpi.c | 83 ++++++++++++++++++++++++++++++++-------------
+> >  1 file changed, 59 insertions(+), 24 deletions(-)
 > > 
-> > diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-> > index f60d74bc2fce..489a63524eb6 100644
-> > --- a/drivers/gpio/gpiolib.c
-> > +++ b/drivers/gpio/gpiolib.c
-> > @@ -1458,7 +1458,8 @@ EXPORT_SYMBOL_GPL(gpiochip_remove_pin_ranges);
-> >   * on each other, and help provide better diagnostics in debugfs.
-> >   * They're called even less than the "set direction" calls.
-> >   */
-> > -static int gpiod_request(struct gpio_desc *desc, const char *label)
-> > +static int __gpiod_request(struct gpio_desc *desc, const char *label,
-> > +			   bool module_refcount)
-> >  {
-> >  	struct gpio_chip	*chip;
-> >  	int			status = -EPROBE_DEFER;
-> > @@ -1475,8 +1476,10 @@ static int gpiod_request(struct gpio_desc *desc, const char *label)
-> >  	if (chip == NULL)
-> >  		goto done;
+> > diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> > index b7db098ba060..5f5f107c2099 100644
+> > --- a/drivers/gpio/gpiolib-acpi.c
+> > +++ b/drivers/gpio/gpiolib-acpi.c
+> > @@ -26,6 +26,11 @@ struct acpi_gpio_evt_pin {
+> >  	unsigned int irq;
+> >  };
 > >  
-> > -	if (!try_module_get(chip->owner))
-> > -		goto done;
-> > +	if (module_refcount) {
-> > +		if (!try_module_get(chip->owner))
-> > +			goto done;
-> > +	}
+> > +struct acpi_gpio_chip {
+> > +	struct gpio_chip *chip;
+> > +	struct list_head *evt_pins;
 > 
-> I'm wondering why you're not moving the module refcount manipulation entirely
-> to gpiod_request()?
+> Hmm.  Why exactly evt_pins has to be a pointer?
 > 
-> I guess that's because of the locking, but I suppose that desc->chip will never
-> be NULL in gpiochip_request_own_desc(), so you don't even need to check it there?
+> > +};
+> > +
+> >  static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
+> >  {
+> >  	if (!gc->dev)
+> > @@ -81,14 +86,14 @@ static irqreturn_t acpi_gpio_irq_handler_evt(int irq, void *data)
+> >  	return IRQ_HANDLED;
+> >  }
+> >  
+> > -static void acpi_gpio_evt_dh(acpi_handle handle, void *data)
+> > +static void acpi_gpio_chip_dh(acpi_handle handle, void *data)
+> >  {
+> >  	/* The address of this function is used as a key. */
+> >  }
+> >  
+> >  /**
+> >   * acpi_gpiochip_request_interrupts() - Register isr for gpio chip ACPI events
+> > - * @chip:      gpio chip
+> > + * @achip:      ACPI GPIO chip
+> >   *
+> >   * ACPI5 platforms can use GPIO signaled ACPI events. These GPIO interrupts are
+> >   * handled by ACPI event methods which need to be called from the GPIO
+> > @@ -96,9 +101,10 @@ static void acpi_gpio_evt_dh(acpi_handle handle, void *data)
+> >   * gpio pins have acpi event methods and assigns interrupt handlers that calls
+> >   * the acpi event methods for those pins.
+> >   */
+> > -static void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
+> > +static void acpi_gpiochip_request_interrupts(struct acpi_gpio_chip *achip)
 > 
-> So it looks like gpiochip_request_own_desc() can do something like
-> 
-> 	lock
-> 	__gpiod_request(stuff)
-> 	unlock
-> 
-> where __gpiod_request() is just the internal part starting at the "NOTE" comment.
+> I would call the argument "acpi_gpio" instead of achip (and analogously below),
+> because the structure is a "chip plus some additional info".
 
-Sounds good. Only thing I'm not sure about is the fact that
-__gpiod_request() releases the lock when it calls chip driver callbacks
-(and takes it back of course). Is that acceptable practice to take the lock
-outside of a function and release it inside for a while?
+OK.
+
+> 
+> >  {
+> >  	struct acpi_buffer buf = {ACPI_ALLOCATE_BUFFER, NULL};
+> > +	struct gpio_chip *chip = achip->chip;
+> >  	struct acpi_resource *res;
+> >  	acpi_handle handle, evt_handle;
+> >  	struct list_head *evt_pins = NULL;
+> > @@ -123,12 +129,7 @@ static void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
+> >  		evt_pins = kzalloc(sizeof(*evt_pins), GFP_KERNEL);
+> >  		if (evt_pins) {
+> >  			INIT_LIST_HEAD(evt_pins);
+> > -			status = acpi_attach_data(handle, acpi_gpio_evt_dh,
+> > -						  evt_pins);
+> > -			if (ACPI_FAILURE(status)) {
+> > -				kfree(evt_pins);
+> > -				evt_pins = NULL;
+> > -			}
+> > +			achip->evt_pins = evt_pins;
+> 
+> What about doing INIT_LIST_HEAD(&acpi_gpio->evt_pins) instead (if it's not a
+> pointer)?
+> 
+> >  		}
+> >  	}
+> >  
+> > @@ -197,30 +198,24 @@ static void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
+> >  
+> >  /**
+> >   * acpi_gpiochip_free_interrupts() - Free GPIO _EVT ACPI event interrupts.
+> > - * @chip:      gpio chip
+> > + * @achip:      ACPI GPIO chip
+> >   *
+> >   * Free interrupts associated with the _EVT method for the given GPIO chip.
+> >   *
+> >   * The remaining ACPI event interrupts associated with the chip are freed
+> >   * automatically.
+> >   */
+> > -static void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
+> > +static void acpi_gpiochip_free_interrupts(struct acpi_gpio_chip *achip)
+> 
+> 
+> 
+> >  {
+> > -	acpi_handle handle;
+> > -	acpi_status status;
+> >  	struct list_head *evt_pins;
+> >  	struct acpi_gpio_evt_pin *evt_pin, *ep;
+> > +	struct gpio_chip *chip = achip->chip;
+> >  
+> > -	if (!chip->dev || !chip->to_irq)
+> > -		return;
+> > -
+> > -	handle = ACPI_HANDLE(chip->dev);
+> > -	if (!handle)
+> > +	if (!chip->dev || !chip->to_irq || !achip->evt_pins)
+> >  		return;
+> >  
+> > -	status = acpi_get_data(handle, acpi_gpio_evt_dh, (void **)&evt_pins);
+> > -	if (ACPI_FAILURE(status))
+> > -		return;
+> > +	evt_pins = achip->evt_pins;
+> > +	achip->evt_pins = NULL;
+> >  
+> >  	list_for_each_entry_safe_reverse(evt_pin, ep, evt_pins, node) {
+> >  		devm_free_irq(chip->dev, evt_pin->irq, evt_pin);
+> > @@ -228,7 +223,6 @@ static void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
+> >  		kfree(evt_pin);
+> >  	}
+> >  
+> > -	acpi_detach_data(handle, acpi_gpio_evt_dh);
+> >  	kfree(evt_pins);
+> >  }
+> >  
+> > @@ -312,10 +306,51 @@ struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
+> >  
+> >  void acpi_gpiochip_add(struct gpio_chip *chip)
+> >  {
+> > -	acpi_gpiochip_request_interrupts(chip);
+> > +	struct acpi_gpio_chip *achip;
+> > +	acpi_handle handle;
+> > +	acpi_status status;
+> > +
+> > +	handle = ACPI_HANDLE(chip->dev);
+> > +	if (!handle)
+> > +		return;
+> > +
+> > +	achip = kzalloc(sizeof(*achip), GFP_KERNEL);
+> > +	if (!achip) {
+> > +		dev_err(chip->dev,
+> > +			"Failed to allocate memory for ACPI GPIO chip\n");
+> > +		return;
+> > +	}
+> > +
+> > +	achip->chip = chip;
+> > +
+> > +	status = acpi_attach_data(handle, acpi_gpio_chip_dh, achip);
+> 
+> To be honest, I'd prefer that to be associated with struct acpi_device rather
+> than with the handle, but that's not a big deal for now.
+
+OK, we can do that later if needed.
