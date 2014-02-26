@@ -1,81 +1,57 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 05/18] ACPICA: Restore code that repairs NULL package elements in return values.
-Date: Wed, 26 Feb 2014 10:29:40 +0800
-Message-ID: <c301a9a7b1a82f33b4f9bf7278400025a1de4007.1393379348.git.lv.zheng@intel.com>
+Subject: [PATCH 06/18] ACPICA: Harden _PRT repair code; check for minimum package length.
+Date: Wed, 26 Feb 2014 10:30:25 +0800
+Message-ID: <3f0cbc48d77573009afbc116798307603a8e5f45.1393379348.git.lv.zheng@intel.com>
 References: <cover.1393379348.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:19044 "EHLO mga14.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:38603 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751163AbaBZCaV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Feb 2014 21:30:21 -0500
+	id S1751163AbaBZCah (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Feb 2014 21:30:37 -0500
 In-Reply-To: <cover.1393379348.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-The original code was lost accidently, it was not generated along with the
-following commit of mechanism improvements and thus not get merged:
+From: Bob Moore <robert.moore@intel.com>
 
-  Commit: d5a36100f62fa6db5541344e08b361b34e9114c5
-  Subject: ACPICA: Add mechanism for early object repairs on a per-name basis
+This change prevents a fault during the repair by checking up
+front if the _PRT subpackage contains the minimum number of
+elements (4).
 
-  Adds the framework to allow object repairs very early in the
-  return object analysis. Enables repairs like string->unicode,
-  etc.
-
-This patch restores the implementation of the NULL element repair code for
-ACPI_RTYPE_NONE.  In the original design, ACPI_RTYPE_NONE is defined to
-collect simple NULL object repairs.
-Lv Zheng.
-
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=67901
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
-Cc: <stable@vger.kernel.org> # 3.10.x
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/nsrepair.c |   25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
+ drivers/acpi/acpica/nsrepair2.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/nsrepair.c b/drivers/acpi/acpica/nsrepair.c
-index 904f7c3..21b6402 100644
---- a/drivers/acpi/acpica/nsrepair.c
-+++ b/drivers/acpi/acpica/nsrepair.c
-@@ -207,13 +207,30 @@ acpi_ns_simple_repair(struct acpi_evaluate_info *info,
- 	 * this predefined name. Either one return value is expected, or none,
- 	 * for both methods and other objects.
- 	 *
--	 * Exit now if there is no return object. Warning if one was expected.
-+	 * Try to fix if there was no return object. Warning if failed to fix.
- 	 */
- 	if (!return_object) {
- 		if (expected_btypes && (!(expected_btypes & ACPI_RTYPE_NONE))) {
--			ACPI_WARN_PREDEFINED((AE_INFO, info->full_pathname,
--					      ACPI_WARN_ALWAYS,
--					      "Missing expected return value"));
-+			if (package_index != ACPI_NOT_PACKAGE_ELEMENT) {
-+				ACPI_WARN_PREDEFINED((AE_INFO,
-+						      info->full_pathname,
-+						      ACPI_WARN_ALWAYS,
-+						      "Found unexpected NULL package element"));
-+
-+				status =
-+				    acpi_ns_repair_null_element(info,
-+								expected_btypes,
-+								package_index,
-+								return_object_ptr);
-+				if (ACPI_SUCCESS(status)) {
-+					return (AE_OK);	/* Repair was successful */
-+				}
-+			} else {
-+				ACPI_WARN_PREDEFINED((AE_INFO,
-+						      info->full_pathname,
-+						      ACPI_WARN_ALWAYS,
-+						      "Missing expected return value"));
-+			}
+diff --git a/drivers/acpi/acpica/nsrepair2.c b/drivers/acpi/acpica/nsrepair2.c
+index 53b4b42..c57cd4a 100644
+--- a/drivers/acpi/acpica/nsrepair2.c
++++ b/drivers/acpi/acpica/nsrepair2.c
+@@ -611,6 +611,7 @@ acpi_ns_repair_PRT(struct acpi_evaluate_info *info,
+ 	union acpi_operand_object **top_object_list;
+ 	union acpi_operand_object **sub_object_list;
+ 	union acpi_operand_object *obj_desc;
++	union acpi_operand_object *sub_package;
+ 	u32 element_count;
+ 	u32 index;
  
- 			return (AE_AML_NO_RETURN_VALUE);
- 		}
+@@ -620,7 +621,12 @@ acpi_ns_repair_PRT(struct acpi_evaluate_info *info,
+ 	element_count = package_object->package.count;
+ 
+ 	for (index = 0; index < element_count; index++) {
+-		sub_object_list = (*top_object_list)->package.elements;
++		sub_package = *top_object_list;
++		sub_object_list = sub_package->package.elements;
++
++		if (sub_package->package.count < 4) {	/* Minimum required element count */
++			return (AE_OK);
++		}
+ 
+ 		/*
+ 		 * If the BIOS has erroneously reversed the _PRT source_name (index 2)
 -- 
 1.7.10
 
