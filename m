@@ -1,188 +1,191 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/3] PM / sleep: New flag to speed up suspend-resume of suspended devices
-Date: Wed, 26 Feb 2014 00:56:25 +0100
-Message-ID: <1473124.o9vSBYk3be@vostro.rjw.lan>
-References: <Pine.LNX.4.44L0.1402251010190.1294-100000@iolanthe.rowland.org>
+Subject: Re: [PATCH] ACPI/Processor: Rework processor throttling with work_on_cpu()
+Date: Wed, 26 Feb 2014 02:23:35 +0100
+Message-ID: <3890679.FyyHKXfXOb@vostro.rjw.lan>
+References: <20140220151721.GB32719@redhat.com> <1392960945-30741-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1402251010190.1294-100000@iolanthe.rowland.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:51396 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751036AbaBZBIg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Feb 2014 20:08:36 -0500
+In-Reply-To: <1392960945-30741-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: tj@kernel.org, jolsa@redhat.com, oleg@redhat.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, February 25, 2014 12:08:14 PM Alan Stern wrote:
-> On Tue, 25 Feb 2014, Rafael J. Wysocki wrote:
+On Friday, February 21, 2014 01:35:45 PM Lan Tianyu wrote:
+> acpi_processor_set_throttling() uses set_cpus_allowed_ptr() to make
+> sure struct acpi_processor->acpi_processor_set_throttling() callback
+> run on associated cpu. But the function maybe called in a worker which
+> has been bound to a cpu. The patch is to replace set_cpus_allowed_ptr()
+> with work_on_cpu().
 > 
-> > > This discussion is getting a little messy.  Let's try to clarify it.
-> > > Here is the major point:
-> > > 
-> > > 	We would like to save time during system suspend/resume by
-> > 
-> > Actually, that's not only about saving time, but also about saving energy.
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> ---
+>  drivers/acpi/processor_throttling.c | 70 +++++++++++++++++--------------------
+>  1 file changed, 33 insertions(+), 37 deletions(-)
 > 
-> Sure.
-> 
-> > > 	skipping over devices that are already in runtime suspend,
-> > > 	whenever it is safe to do so.
-> > > 
-> > > Of course, the "it is safe to do so" part is what makes this difficult.  
-> > > It boils down to three characteristics for each device.
-> > > 
-> > >     (a) The device uses the same power state for runtime suspend and
-> > > 	system suspend.  Therefore, if the device is already in runtime
-> > > 	suspend and the wakeup settings are correct, there is no need
-> > > 	for the PM core to invoke the device's ->suspend callbacks.
-> > > 
-> > > This requires a few comments.  The matter of whether the same power
-> > > state is used for both types of suspend is generally known beforehand,
-> > > because it is decided by the subsystem or driver.  The matter of
-> > > whether the wakeup settings are correct often can't be known until the
-> > > system suspend starts, because userspace can select whether or not
-> > > wakeup should be enabled during a system sleep.
-> > > 
-> > > Also, if the PM core is going to skip the ->suspend callbacks then it 
-> > > is obliged to skip the ->resume callbacks as well (we mustn't call one 
-> > > without the other).  Therefore, in cases where (a) holds, the device 
-> > > will necessarily emerge from the system resume in a runtime-suspended 
-> > > state.
-> > 
-> > The "emerge from system resume" requires a bit of clarification in my
-> > opinion.  Do you refer to the status of the device when user space is
-> > thawed or earlier?  If earlier, then when exactly?
-> 
-> The status of the device when its ->resume callback returns.  Or in 
-> the context of your patch, when the ->resume callback is skipped.
-> 
-> > > This may or may not cause problems for the device's children; 
-> > > see below.
-> > > 
-> > >     (b) It's okay for the device's parent to be in runtime suspend
-> > > 	when the device's ->suspend callbacks are invoked.
-> > > 
-> > > I included this just to be thorough.  In fact, I expect (b) to be true 
-> > > for pretty much every device already.
-> > 
-> > I don't quite understand this.  What if the parent is a bridge and the
-> > child's ->suspend tries to access the child's registers?  That surely won't
-> > work if the parent is in a low-power state at that point.
-> 
-> It _does_ work on all current systems -- but only because the question 
-> never arises if the device's parent is never in runtime suspend when 
-> the device's ->suspend callbacks are invoked.
-> 
-> I admit, there most likely _are_ devices that would get into trouble if
-> the question ever did arise.
+> diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+> index 28baa05..2db105a 100644
+> --- a/drivers/acpi/processor_throttling.c
+> +++ b/drivers/acpi/processor_throttling.c
+> @@ -56,6 +56,12 @@ struct throttling_tstate {
+>  	int target_state;		/* target T-state */
+>  };
+>  
+> +struct acpi_processor_throttling_arg {
+> +	struct acpi_processor *pr;
+> +	int target_state;
+> +	bool force;
+> +};
+> +
+>  #define THROTTLING_PRECHANGE       (1)
+>  #define THROTTLING_POSTCHANGE      (2)
+>  
+> @@ -1060,16 +1066,25 @@ static int acpi_processor_set_throttling_ptc(struct acpi_processor *pr,
+>  	return 0;
+>  }
+>  
+> +static long acpi_processor_throttling_fn(void *data)
+> +{
+> +	struct acpi_processor_throttling_arg *arg = data;
+> +	struct acpi_processor *pr = arg->pr;
+> +	struct acpi_processor_throttling *p_throttling = &pr->throttling;
+> +
+> +	return p_throttling->acpi_processor_set_throttling(pr,
+> +			arg->target_state, arg->force);
 
-Well, I kind of put that to a test by posting these two patches:
+What about doing
 
-https://patchwork.kernel.org/patch/3705261/
-https://patchwork.kernel.org/patch/3705271/
+	return pr->throttling.acpi_processor_set_throttling(...);
 
-We'll see if they lead to any regressions, but I'm going to work on top of
-them going forward anyway.
+directly without using the extra p_throttling pointer?
 
-> > > In the absence of any sort of special arrangement, if (b) wasn't true 
-> > > for some device then that device would already be experiencing problems 
-> > > going into system suspend.
-> > 
-> > Unless, of course, its parent is a PCI device, because in that case it will
-> > always be resumed by the PCI bus type.  And if the "always resumed" is going
-> > to be changed to "only resumed if the parent's configuration needs to change",
-> > there may be some regressions here and there.
+> +}
+> +
+>  int acpi_processor_set_throttling(struct acpi_processor *pr,
+>  						int state, bool force)
+>  {
+> -	cpumask_var_t saved_mask;
+>  	int ret = 0;
+>  	unsigned int i;
+>  	struct acpi_processor *match_pr;
+>  	struct acpi_processor_throttling *p_throttling;
+> +	struct acpi_processor_throttling_arg arg;
+>  	struct throttling_tstate t_state;
+> -	cpumask_var_t online_throttling_cpus;
+>  
+>  	if (!pr)
+>  		return -EINVAL;
+> @@ -1080,14 +1095,6 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
+>  	if ((state < 0) || (state > (pr->throttling.state_count - 1)))
+>  		return -EINVAL;
+>  
+> -	if (!alloc_cpumask_var(&saved_mask, GFP_KERNEL))
+> -		return -ENOMEM;
+> -
+> -	if (!alloc_cpumask_var(&online_throttling_cpus, GFP_KERNEL)) {
+> -		free_cpumask_var(saved_mask);
+> -		return -ENOMEM;
+> -	}
+> -
+>  	if (cpu_is_offline(pr->id)) {
+>  		/*
+>  		 * the cpu pointed by pr->id is offline. Unnecessary to change
+> @@ -1096,17 +1103,15 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
+>  		return -ENODEV;
+>  	}
+>  
+> -	cpumask_copy(saved_mask, &current->cpus_allowed);
+>  	t_state.target_state = state;
+>  	p_throttling = &(pr->throttling);
+> -	cpumask_and(online_throttling_cpus, cpu_online_mask,
+> -		    p_throttling->shared_cpu_map);
+> +
+>  	/*
+>  	 * The throttling notifier will be called for every
+>  	 * affected cpu in order to get one proper T-state.
+>  	 * The notifier event is THROTTLING_PRECHANGE.
+>  	 */
+> -	for_each_cpu(i, online_throttling_cpus) {
+> +	for_each_cpu_and(i, cpu_online_mask, p_throttling->shared_cpu_map) {
+>  		t_state.cpu = i;
+>  		acpi_processor_throttling_notifier(THROTTLING_PRECHANGE,
+>  							&t_state);
+> @@ -1118,21 +1123,18 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
+>  	 * it can be called only for the cpu pointed by pr.
+>  	 */
+>  	if (p_throttling->shared_type == DOMAIN_COORD_TYPE_SW_ANY) {
+> -		/* FIXME: use work_on_cpu() */
+> -		if (set_cpus_allowed_ptr(current, cpumask_of(pr->id))) {
+> -			/* Can't migrate to the pr->id CPU. Exit */
+> -			ret = -ENODEV;
+> -			goto exit;
+> -		}
+> -		ret = p_throttling->acpi_processor_set_throttling(pr,
+> -						t_state.target_state, force);
+> +		arg.pr = pr;
+> +		arg.target_state = state;
+> +		arg.force = force;
+> +		ret = work_on_cpu(pr->id, acpi_processor_throttling_fn, &arg);
+>  	} else {
+>  		/*
+>  		 * When the T-state coordination is SW_ALL or HW_ALL,
+>  		 * it is necessary to set T-state for every affected
+>  		 * cpus.
+>  		 */
+> -		for_each_cpu(i, online_throttling_cpus) {
+> +		for_each_cpu_and(i, cpu_online_mask,
+> +		    p_throttling->shared_cpu_map) {
+>  			match_pr = per_cpu(processors, i);
+>  			/*
+>  			 * If the pointer is invalid, we will report the
+> @@ -1153,13 +1155,12 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
+>  					"on CPU %d\n", i));
+>  				continue;
+>  			}
+> -			t_state.cpu = i;
+> -			/* FIXME: use work_on_cpu() */
+> -			if (set_cpus_allowed_ptr(current, cpumask_of(i)))
+> -				continue;
+> -			ret = match_pr->throttling.
+> -				acpi_processor_set_throttling(
+> -				match_pr, t_state.target_state, force);
+> +
+> +			arg.pr = match_pr;
+> +			arg.target_state = state;
+> +			arg.force = force;
+> +			ret = work_on_cpu(pr->id, acpi_processor_throttling_fn,
+> +				&arg);
+>  		}
+>  	}
+>  	/*
+> @@ -1168,17 +1169,12 @@ int acpi_processor_set_throttling(struct acpi_processor *pr,
+>  	 * affected cpu to update the T-states.
+>  	 * The notifier event is THROTTLING_POSTCHANGE
+>  	 */
+> -	for_each_cpu(i, online_throttling_cpus) {
+> +	for_each_cpu_and(i, cpu_online_mask, p_throttling->shared_cpu_map) {
+>  		t_state.cpu = i;
+>  		acpi_processor_throttling_notifier(THROTTLING_POSTCHANGE,
+>  							&t_state);
+>  	}
+> -	/* restore the previous state */
+> -	/* FIXME: use work_on_cpu() */
+> -	set_cpus_allowed_ptr(current, saved_mask);
+> -exit:
+> -	free_cpumask_var(online_throttling_cpus);
+> -	free_cpumask_var(saved_mask);
+> +
+>  	return ret;
+>  }
+>  
 > 
-> Okay, so you want to take a problem involving PCI and some other
-> subsystems, and solve it by getting the PM core involved.  And you want
-> to mix it in with the idea of "fast suspend".  Is that really the best
-> approach?
-> 
-> Here's another approach.  Add an "okay for my parent to be
-> runtime-suspended when my ->suspend and ->resume callbacks are invoked"  
-> flag to dev->power.  Make pci_pm_prepare(dev) check this flag in every
-> child of dev; if there are any children where the flag isn't set then
-> call pm_runtime_resume(dev) (and print a message in the kernel log so 
-> that you know which driver needs to be fixed).
-> 
-> This is appropriate because it adjusts the PCI core in a way that can
-> safely avoid regressions, without getting the PM core involved in
-> matters that should remain strictly between the PCI subsystem and the
-> subsystems of children of PCI devices.
-> 
-> It also allows the "fast suspend" change to be cleanly separated out 
-> into a second patch.  In that patch, all you do is set 
-> dev->power.fast_suspend if ->prepare returns > 0, and then you skip 
-> ->suspend and ->resume if fast_suspend is set and the device is
-> runtime-suspended.
 
-Actually, on top of the two patches mentioned above (and for devices
-without power.ignore_children set) the question reduces to whether or not
-(i) the device itself is runtime-suspended when its .suspend() callback is
-running and (ii) its power state is such that it can remain suspended.
-If both (i) and (ii) are met, the device may be left suspended safely,
-because if any of its children had depended on it, they would have resumed
-it already.
-
-Still, I think that something like power.fast_suspend is needed to indicate
-that .suspend_late(), .suspend_noirq(), .resume_noirq() and .resume_early()
-should be skipped for it (in my opinion the core may very well skip them then)
-and so that .resume() knows how to handle the device.
-
-I'll prepare a new series working along these lines.
-
-> > I agree with the idea, but I have a certain view on how to achieve it.
-> > Which is by allowing the "good" ones to mark themselves as "good", then
-> > go through the ones that aren't marked as "good" yet, fix them up and
-> > mark them as "good".  Finally, when everyone is marked "good", we can
-> > drop the marking.
-> 
-> How will you know when nothing remains unmarked?
-> 
-> > The reasoning was basically to set fast_suspend for a device if your condition
-> > (a) held *and* if fast_suspend was set for all of the device's children.  Then
-> > we would know that all those children would be RPM_SUSPENDED during system
-> > resume as well and the resume part might be "streamlined" as well.  There was
-> > nothing about (c) anywhere in that patchset. :-)
-> 
-> This seems like getting the answer to the wrong question.  You want to
-> know whether the children are okay with the parent being
-> runtime-suspended during the child's suspend and resume callbacks, but
-> instead you are asking if the children can remain runtime-suspended
-> through the entire system suspend.  Those are two different questions.
-> 
-> They seem related, because if the parent is in runtime suspend then the
-> child must also be in runtime suspend (disregarding the possibility of
-> ignore_children).  But this is a red herring.  It's entirely possible
-> for the child to be RPM_ACTIVE during one of these callback even if the
-> parent is RPM_SUSPENDED when the callback starts.  The child's driver
-> merely needs to call pm_runtime_resume(dev) at the beginning of the
-> callback.
-> 
-> If the child's driver does this, it would be perfectly okay for the
-> parent to use fast_suspend without the child using it too.  You could
-> skip calling the parent's suspend and resume callbacks, and the child
-> would work just fine.
-> 
-> > That would be a different optimization from the one I'm thinking about.
-> > 
-> > For now, I'm focusing on one problem, which is when resuming runtime-suspended
-> > devices during system suspend may be avoided and how to make that generally
-> > work for different parent-child arrangements.
-> > 
-> > The resume part changes in my patchset were consequences of that only.
-> 
-> See, I think that by considering this as a single problem, you aren't 
-> getting down to the fundamental issues.
-
-Well, I'm not sure what exactly you mean.
-
-I generally agree that whether or not a device may be left suspended during and
-after system resume and whether or not a device may be left suspended during
-system suspend are two different questions.  However, when it *is* left
-suspended during system suspend, then that implies certain way of handling it
-during the subsequent system resume.  After which it still may not be left
-suspended.
-
-Rafael
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
