@@ -1,45 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V2] ACPI/Processor: Rework processor throttling with work_on_cpu()
-Date: Thu, 27 Feb 2014 00:49:24 +0100
-Message-ID: <1578601.f4RF6O7QVQ@vostro.rjw.lan>
-References: <1393419786-5275-1-git-send-email-tianyu.lan@intel.com> <9984522.UXi6hmLF20@vostro.rjw.lan> <530DF035.2090703@intel.com>
+Subject: Re: [PATCH] ACPI/Sleep: pm_power_off need more sanity check to be installed
+Date: Thu, 27 Feb 2014 00:50:05 +0100
+Message-ID: <1853937.5e0COHhnpP@vostro.rjw.lan>
+References: <530D558D.6090607@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51468 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:54353 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750891AbaBZXeX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Feb 2014 18:34:23 -0500
-In-Reply-To: <530DF035.2090703@intel.com>
+	with SMTP id S1751685AbaBZXfE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Feb 2014 18:35:04 -0500
+In-Reply-To: <530D558D.6090607@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: tj@kernel.org, jolsa@redhat.com, oleg@redhat.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Li, Aubrey" <aubrey.li@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len.Brown@intel.com, "alan@linux.intel.com" <alan@linux.intel.com>, "Raj, Ashok" <ashok.raj@intel.com>
 
-On Wednesday, February 26, 2014 09:46:29 PM Lan Tianyu wrote:
-> On 02/26/2014 09:30 PM, Rafael J. Wysocki wrote:
-> > On Wednesday, February 26, 2014 09:03:05 PM Lan Tianyu wrote:
-> >> acpi_processor_set_throttling() uses set_cpus_allowed_ptr() to make
-> >> sure struct acpi_processor->acpi_processor_set_throttling() callback
-> >> run on associated cpu. But the function maybe called in a worker which
-> >> has been bound to a cpu. The patch is to replace set_cpus_allowed_ptr()
-> >> with work_on_cpu().
-> >>
-> >> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> >
-> > OK
-> >
-> > I suppose we need this in -stable?
+On Wednesday, February 26, 2014 10:46:37 AM Li, Aubrey wrote:
+> Sleep control and status registers need santity check before ACPI
+> install acpi_power_off to pm_power_off hook. The checking code in
+> acpi_enter_sleep_state() is too late, we should not allow a not-working
+> pm_power_off function hooked.
 > 
-> Yes.
+> Signed-off-by: Aubrey Li <aubrey.li@intel.com>
+> ---
+>  drivers/acpi/sleep.c |    7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
 > 
-> >
-> > Which series of -stable should it go to?  All of them or just recent?
-> 
-> I think it should be all of them.
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index b718806..0284d22 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -809,8 +809,11 @@ int __init acpi_sleep_init(void)
+>  	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+>  	if (ACPI_SUCCESS(status)) {
+>  		sleep_states[ACPI_STATE_S5] = 1;
 
-OK, queued up as a fix for 3.14, thanks!
+Do we still want to set this if the check below fails?  If so, then why?
+
+> -		pm_power_off_prepare = acpi_power_off_prepare;
+> -		pm_power_off = acpi_power_off;
+> +		if (acpi_gbl_FADT.sleep_control.address &&
+> +			acpi_gbl_FADT.sleep_status.address) {
+> +			pm_power_off_prepare = acpi_power_off_prepare;
+> +			pm_power_off = acpi_power_off;
+> +		}
+>  	}
+> 
+>  	supported[0] = 0;
+> 
 
 -- 
 I speak only for myself.
