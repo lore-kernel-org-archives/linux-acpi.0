@@ -1,93 +1,117 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 6/6] gpio / ACPI: Add support for ACPI GPIO operation
- regions
-Date: Wed, 26 Feb 2014 11:11:53 +0200
-Message-ID: <20140226091153.GY5018@intel.com>
-References: <1393257611-18031-1-git-send-email-mika.westerberg@linux.intel.com>
- <1393257611-18031-7-git-send-email-mika.westerberg@linux.intel.com>
- <2863081.yf9Ke2teV0@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [RFC PATCH 0/8] ACPI: change the way of enumerating PNPACPI/Platform devices
+Date: Wed, 26 Feb 2014 17:11:06 +0800
+Message-ID: <1393405874-3266-1-git-send-email-rui.zhang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:9873 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:7547 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752245AbaBZJFd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Feb 2014 04:05:33 -0500
-Content-Disposition: inline
-In-Reply-To: <2863081.yf9Ke2teV0@vostro.rjw.lan>
+	id S1750849AbaBZJLS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Feb 2014 04:11:18 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, Zhang Rui <rui.zhang@intel.com>
 
-On Tue, Feb 25, 2014 at 03:55:02PM +0100, Rafael J. Wysocki wrote:
-> On Monday, February 24, 2014 06:00:11 PM Mika Westerberg wrote:
-> > GPIO operation regions is a new feature introduced in ACPI 5.0
-> > specification. This feature adds a way for platform ASL code to call back
-> > to OS GPIO driver and toggle GPIO pins.
-> > 
-> > An example ASL code from Lenovo Miix 2 tablet with only relevant part
-> > listed:
-> > 
-> >  Device (\_SB.GPO0)
-> >  {
-> >      Name (AVBL, Zero)
-> >      Method (_REG, 2, NotSerialized)
-> >      {
-> >          If (LEqual (Arg0, 0x08))
-> >          {
-> >              // Marks the region available
-> >              Store (Arg1, AVBL)
-> >          }
-> >      }
-> > 
-> >      OperationRegion (GPOP, GeneralPurposeIo, Zero, 0x0C)
-> >      Field (GPOP, ByteAcc, NoLock, Preserve)
-> >      {
-> >          Connection (
-> >              GpioIo (Exclusive, PullDefault, 0, 0, IoRestrictionOutputOnly,
-> >                      "\\_SB.GPO0", 0x00, ResourceConsumer,,)
-> >              {
-> >                  0x003B
-> >              }
-> >          ),
-> >          SHD3,   1,
-> >      }
-> >  }
-> > 
-> >  Device (SHUB)
-> >  {
-> >      Method (_PS0, 0, Serialized)
-> >      {
-> >          If (LEqual (\_SB.GPO0.AVBL, One))
-> >          {
-> >              Store (One, \_SB.GPO0.SHD3)
-> >              Sleep (0x32)
-> >          }
-> >      }
-> >      Method (_PS3, 0, Serialized)
-> >      {
-> >          If (LEqual (\_SB.GPO0.AVBL, One))
-> >          {
-> >              Store (Zero, \_SB.GPO0.SHD3)
-> >          }
-> >      }
-> >  }
-> > 
-> > The sensor hub (SHUB) device uses GPIO connection SHD3 to power the device
-> > whenever the GPIO operation region is available.
-> 
-> I would add more explanation of the ASL above here.  Basically, how it is
-> supposed to work and what's the handler's role in it.
+Hi, all,
 
-OK, I will do that in the next revision.
+Currently, PNP bus is used as the default bus for for enumerating ACPI
+devices with _HID/_CID.
+For a device that needs to be enumerated to platform bus, we need to add
+its _HID/_CID to the platform scan handler white list explicitly.
 
-> > Implement the support by registering GPIO operation region handlers for all
-> > GPIO devices that have an ACPI handle. First time the GPIO is used by the
-> > ASL code we make sure that the GPIO stays requested until the GPIO chip
-> > driver itself is unloaded. If we find out that the GPIO is already
-> > requested we just toggle it according to the value got from ASL code.
-> 
-> The patch itself looks good to me.
+This becomes a problem as more and more _HID devices need to be
+enumerated to platform bus nowadays, thus the list is continuously growing.
 
-Thanks for reviewing this :)
+So, a solution that uses platform bus for _HID enumeration by default
+is preferred.
+
+In order to do this, this patch set
+first, changes the way of enumerating PNP devices. We introduce a white list
+to create PNP devices instead. The white list contains all the pnp_device_id
+strings in all the pnp drivers, thus this change is transparent to PNP core
+and all the PNP drivers.
+second, changes the code to enumerate ACPI devices with _HID/_CID to platform
+bus by default, unless the device already has a scan handler attached.
+
+The patches of this patch set has been tested on my desktop machine,
+I can see that there are four PNP devices disappeared from PNP bus
+/sys/bus/pnp/devices/00:01/id:PNP0200
+/sys/bus/pnp/devices/00:02/id:INT0800
+/sys/bus/pnp/devices/00:03/id:PNP0103
+/sys/bus/pnp/devices/00:0a/id:PNP0c04
+and all of these devices has no driver attached.
+
+At the same time there are 21 more platform devices created,
+/sys/bus/platform/devices/INT0800:00  
+/sys/bus/platform/devices/INT3F0D:00  
+/sys/bus/platform/devices/LNXSYSTM:00 (ACPI system bus/root node)
+/sys/bus/platform/devices/LNXTHERM:00 (ACPI thermal zone)
+/sys/bus/platform/devices/LNXTHERM:01 (ACPI thermal zone)
+/sys/bus/platform/devices/PNP0000:00  (PIC)
+/sys/bus/platform/devices/PNP0100:00  (system timer?)
+/sys/bus/platform/devices/PNP0103:00  (HPET)
+/sys/bus/platform/devices/PNP0B00:00  (CMOS RTC)
+/sys/bus/platform/devices/PNP0C01:00  (system board)
+/sys/bus/platform/devices/PNP0C01:00  (system board)
+/sys/bus/platform/devices/PNP0C02:00  (General ID for reserving resources)
+/sys/bus/platform/devices/PNP0C02:03  (General ID for reserving resources)
+/sys/bus/platform/devices/PNP0C04:00  (Numeric data processor?)
+/sys/bus/platform/devices/PNP0C0B:00  (ACPI fan)
+/sys/bus/platform/devices/PNP0C0B:01  (ACPI fan)
+/sys/bus/platform/devices/PNP0C0B:02  (ACPI fan)
+/sys/bus/platform/devices/PNP0C0B:03  (ACPI fan)
+/sys/bus/platform/devices/PNP0C0B:04  (ACPI fan)
+/sys/bus/platform/devices/PNP0C0D:00  (ACPI lid)
+/sys/bus/platform/devices/PNP0C14:00  (ACPI wmi)
+
+Clarification:
+Although it seems that we are introducing a much bigger white list to replace
+a small one, the benefit is that
+1. without the patch, the acpi_platform scan handler white list is
+   continuously growing.
+2. with the patch set, the PNPACPI scan handler white list will become
+   smaller and smaller by
+   a) remove the ids from the PNPACPI white list, for the devices
+      that are never enumerated via ACPI
+   b) remove the ids from the PNPACPI whilte list and convert the drivers to
+      platform bus drivers, for the devices that are not PNP devices in nature.
+   which will be done later.
+
+Known Issue:
+PNP bus does not check the device resources when adding a new PNP device,
+while Platform bus does by invoking insert_resource() in platform_device_add().
+This results in failure when creating platform device node for some ACPI
+device objects in case there is resource conflict.
+In my desktop, I can see that
+Creating PNP0200:00 (DMA controller) fails because its resource (IO: 0x81 ~ 0x91)
+conflicts with "0080-008f : dma page reg"
+and
+Creating PNP0C02:02 fails because its resource (IO: 0x72 ~ 0x7f)
+conflicts with "0070-0077 : PNP0B00:00" (CMOS RTC).
+
+But anyway, IMO, this specific problem does not mean the proposal of this patch
+is wrong, thus I send this patch out for early review to see if I'm in the right
+direction.
+Any comments are really welcome.
+
+thanks,
+rui
+
+----------------------------------------------------------------
+Zhang Rui (8):
+      ACPI: introduce .match() callback for ACPI scan handler
+      PNPACPI: use whilte list for pnpacpi device enumeration
+      PNPACPI: remove ids that does not comply with the ACPI PNP id rule
+      PNPACPI: remove unsupported serial PNP ids from PNPACPI id list
+      PNPACPI: check and enumerate CMOS RTC devices explicitly
+      ACPI: use platform bus as the default bus for _HID enumeration
+      Revert "ACPI / PNP: skip ACPI device nodes associated with physical nodes already"
+      PNPACPI: create both PNP and Platform device nodes for PNP0C01/PNP0C02
+
+ drivers/acpi/acpi_platform.c |   28 ---
+ drivers/acpi/scan.c          |   31 ++--
+ drivers/pnp/pnpacpi/core.c   |  417 ++++++++++++++++++++++++++++++++++++++----
+ include/acpi/acpi_bus.h      |    1 +
+ include/linux/pnp.h          |    3 +
+ 5 files changed, 402 insertions(+), 78 deletions(-)
+
