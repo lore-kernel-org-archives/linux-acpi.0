@@ -1,41 +1,75 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [RFC PATCH 4/8] PNPACPI: remove unsupported serial PNP ids from PNPACPI id list
-Date: Wed, 26 Feb 2014 17:11:10 +0800
-Message-ID: <1393405874-3266-5-git-send-email-rui.zhang@intel.com>
+Subject: [RFC PATCH 5/8] PNPACPI: check and enumerate CMOS RTC devices explicitly
+Date: Wed, 26 Feb 2014 17:11:11 +0800
+Message-ID: <1393405874-3266-6-git-send-email-rui.zhang@intel.com>
 References: <1393405874-3266-1-git-send-email-rui.zhang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:52394 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751914AbaBZJLm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Feb 2014 04:11:42 -0500
 In-Reply-To: <1393405874-3266-1-git-send-email-rui.zhang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, Zhang Rui <rui.zhang@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-The "serial" pnp driver supports some unknown PNP modems (PNPCXXX/PNPDXXX)
-by matching magic strings in the pnp device name or the pnp device card name.
-
-ACPI enumerated PNP device neither supports pnp card,
-nor supports those magic strings in its device name,
-which means this mechamism never works for ACPI enumerated
-PNPCXXX/PNPDXXX devices.
-So it is safe to remove those two ids from the PNPACPI id list.
+For CMOS RTC devices, the pnpacpi scan handler does not work because
+there is already a cmos rtc scan handler installed, thus we need to
+check those devices and enumerate them to PNP bus explicitly.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/pnp/pnpacpi/core.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/pnp/pnpacpi/core.c |   22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index d47fbdf..36dda39 100644
+index 36dda39..1ee7eb7 100644
 --- a/drivers/pnp/pnpacpi/core.c
 +++ b/drivers/pnp/pnpacpi/core.c
-@@ -341,8 +341,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[]= {
- 	{"LTS0001"}, /* LG C1 EXPRESS DUAL (C1-PB11A3) touch screen (actually a FUJ02E6 in disguise) */
- 	{"WCI0003"}, /* Rockwell's (PORALiNK) 33600 INT PNP */
- 	{"WEC1022"}, /* Winbond CIR port, should not be probed. We should keep track of it to prevent the legacy serial driver from probing it */
--	{"PNPCXXX"}, /* Unknown PnP modems */
--	{"PNPDXXX"}, /* More unknown PnP modems */
- 	/* scl200wdt */
- 	{"NSC0800"}, /* National Semiconductor PC87307/PC97307 watchdog component */
- 	/* mpu401 */
+@@ -176,10 +176,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[]= {
+ 	/* system */
+ 	{"PNP0c02"}, /* General ID for reserving resources */
+ 	{"PNP0c01"}, /* memory controller */
+-	/* rtc_cmos */
+-	{"PNP0b00"},
+-	{"PNP0b01"},
+-	{"PNP0b02"},
+ 	/* c6xdigio */
+         {"PNP0400"}, /* Standard LPT Printer Port */
+         {"PNP0401"}, /* ECP Printer Port */
+@@ -669,6 +665,22 @@ void __init acpi_pnp_init(void)
+ 	acpi_scan_add_handler(&pnpacpi_handler);
+ }
+ 
++/*
++ * For CMOS RTC devices, the pnpacpi scan handler does not work because
++ * there is already a cmos rtc scan handler installed, thus we need to
++ * check those devices and enumerate them to PNP bus explicitly.
++ */
++static int is_cmos_rtc_device(struct acpi_device *adev)
++{
++	struct acpi_device_id ids[] = {
++		{ "PNP0B00" },
++		{ "PNP0B01" },
++		{ "PNP0B02" },
++		{""},
++	};
++	return !acpi_match_device_ids(adev, ids);
++}
++
+ static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
+ 						     u32 lvl, void *context,
+ 						     void **rv)
+@@ -677,7 +689,7 @@ static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
+ 
+ 	if (acpi_bus_get_device(handle, &device))
+ 		return AE_CTRL_DEPTH;
+-	if (device->handler == &pnpacpi_handler)
++	if (device->handler == &pnpacpi_handler || is_cmos_rtc_device(device))
+ 		pnpacpi_add_device(device);
+ 	return AE_OK;
+ }
 -- 
 1.7.9.5
+
