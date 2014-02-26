@@ -1,7 +1,7 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [RFC PATCH 1/8] ACPI: introduce .match() callback for ACPI scan handler
-Date: Wed, 26 Feb 2014 17:11:07 +0800
-Message-ID: <1393405874-3266-2-git-send-email-rui.zhang@intel.com>
+Subject: [RFC PATCH 4/8] PNPACPI: remove unsupported serial PNP ids from PNPACPI id list
+Date: Wed, 26 Feb 2014 17:11:10 +0800
+Message-ID: <1393405874-3266-5-git-send-email-rui.zhang@intel.com>
 References: <1393405874-3266-1-git-send-email-rui.zhang@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1393405874-3266-1-git-send-email-rui.zhang@intel.com>
@@ -10,64 +10,32 @@ To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Currently, acpi scan handler uses strcmp() to match device ids
-and scan handler ids.
+The "serial" pnp driver supports some unknown PNP modems (PNPCXXX/PNPDXXX)
+by matching magic strings in the pnp device name or the pnp device card name.
 
-When converting PNPACPI enumeration into a scan handler, which I will do
-later in this patch set, the current code becomes not flexible enough
-because PNP acpi scan handler requires wildcase and case insensitive support.
-
-Thus a per scan handler .match() callback is introduced in this patch,
-so that specified scan handler can have more flexible matching mechanism
-by introduce its own .match() callback.
+ACPI enumerated PNP device neither supports pnp card,
+nor supports those magic strings in its device name,
+which means this mechamism never works for ACPI enumerated
+PNPCXXX/PNPDXXX devices.
+So it is safe to remove those two ids from the PNPACPI id list.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/scan.c     |   17 +++++++++++------
- include/acpi/acpi_bus.h |    1 +
- 2 files changed, 12 insertions(+), 6 deletions(-)
+ drivers/pnp/pnpacpi/core.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 57b053f..dca22eb 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1907,14 +1907,19 @@ static bool acpi_scan_handler_matching(struct acpi_scan_handler *handler,
- 	const struct acpi_device_id *devid;
- 
- 	for (devid = handler->ids; devid->id[0]; devid++)
--		if (!strcmp((char *)devid->id, idstr)) {
--			if (matchid)
--				*matchid = devid;
--
--			return true;
--		}
-+		if (handler->match) {
-+			if (handler->match(idstr, (char *)devid->id))
-+				goto success;
-+		} else
-+			if (!strcmp((char *)devid->id, idstr))
-+				goto success;
- 
- 	return false;
-+
-+success:
-+	if (matchid)
-+		*matchid = devid;
-+	return true;
- }
- 
- static struct acpi_scan_handler *acpi_scan_match_handler(char *idstr,
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 8256eb4..8c5e235 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -131,6 +131,7 @@ static inline struct acpi_hotplug_profile *to_acpi_hotplug_profile(
- struct acpi_scan_handler {
- 	const struct acpi_device_id *ids;
- 	struct list_head list_node;
-+	int (*match)(char *devid, char *handler_id);
- 	int (*attach)(struct acpi_device *dev, const struct acpi_device_id *id);
- 	void (*detach)(struct acpi_device *dev);
- 	struct acpi_hotplug_profile hotplug;
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index d47fbdf..36dda39 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -341,8 +341,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[]= {
+ 	{"LTS0001"}, /* LG C1 EXPRESS DUAL (C1-PB11A3) touch screen (actually a FUJ02E6 in disguise) */
+ 	{"WCI0003"}, /* Rockwell's (PORALiNK) 33600 INT PNP */
+ 	{"WEC1022"}, /* Winbond CIR port, should not be probed. We should keep track of it to prevent the legacy serial driver from probing it */
+-	{"PNPCXXX"}, /* Unknown PnP modems */
+-	{"PNPDXXX"}, /* More unknown PnP modems */
+ 	/* scl200wdt */
+ 	{"NSC0800"}, /* National Semiconductor PC87307/PC97307 watchdog component */
+ 	/* mpu401 */
 -- 
 1.7.9.5
