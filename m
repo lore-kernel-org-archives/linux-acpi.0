@@ -1,43 +1,58 @@
-From: Juan Manuel Cabo <juanmanuel.cabo@gmail.com>
-Subject: Hello Kieran
-Date: Thu, 27 Feb 2014 10:41:57 -0300
-Message-ID: <530F40A5.5060202@gmail.com>
-References: <1393429360-4344-1-git-send-email-clancy.kieran@gmail.com> <530E9BEF.8080601@cn.fujitsu.com> <CAGf84Q+Xd9EUjOEMe3+EMRhdPaFgnAjNDOoPZmf=gn8mi=FhWw@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/3] PM / sleep: New flag to speed up suspend-resume of
+ suspended devices
+Date: Thu, 27 Feb 2014 10:02:05 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1402271001190.1150-100000@iolanthe.rowland.org>
+References: <4633671.dBN1DXCk1F@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yh0-f51.google.com ([209.85.213.51]:47429 "EHLO
-	mail-yh0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751759AbaB0NmA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Feb 2014 08:42:00 -0500
-In-Reply-To: <CAGf84Q+Xd9EUjOEMe3+EMRhdPaFgnAjNDOoPZmf=gn8mi=FhWw@mail.gmail.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:42638 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752522AbaB0PCI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Feb 2014 10:02:08 -0500
+In-Reply-To: <4633671.dBN1DXCk1F@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kieran Clancy <clancy.kieran@gmail.com>, Li Guang <lig.fnst@cn.fujitsu.com>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>, Dennis Jansen <dennis.jansen@web.de>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hello Kieran!!
+On Thu, 27 Feb 2014, Rafael J. Wysocki wrote:
 
-Dennis has an AMD laptop, NP535U3C-A04DE, and found it to be 9
-(which I guess was an off by one in his modification
-of the userspace workaround and was really 8):
-        https://bugzilla.kernel.org/show_bug.cgi?id=44161#c146
+> > If the child knows about the problem beforehand, it can runtime-resume 
+> > the parent during its ->suspend.
+> 
+> Well, it even should do that in those cases.  We may need to deal with children
+> that don't do that, though.
+> 
+> > > Well, if power.fast_suspend set guarantees that ->suspend_late, ->suspend_noirq,
+> > > ->resume_noirq, and ->resume_early will be skipped for a device, then we may
+> > > restrict setting it for devices whose children have it set (or that have no
+> > > children).  Initially, that will be equivalent to setting it for leaf devices
+> > > only, but it might be extended over time in a natural way.
+> > 
+> > Initially, maybe.
+> 
+> Of course initially.
+> 
+> > But it's the wrong approach in general.
+> 
+> In the long run - I agree.
+> 
+> > The right approach is to restrict setting fast_suspend for devices whose
+> > children don't mind their parent being suspended when their resume callbacks 
+> > run -- not for devices whose children also have fast_suspend set.
+> 
+> I agree, but we need to know which children are OK with the parent being
+> suspended.  Having fast_suspend set is a good indication of that. :-)
+> 
+> Of course, we may introduce a separate flag for that just fine if you prefer.
+> 
+> > That's the point I've been trying to express all along.
+> 
+> I see.
 
-I found it to be 8 for me, both in the patch and in my new userspace workaround
-(which doesn't ask for the same event twice now that it pauses for 1ms,
-as the kernel does too):
-      https://bugzilla.kernel.org/show_bug.cgi?id=44161#c162
+Okay.  I'll wait to see the next version.
 
-ANd I think I saw someone else with 8 too but don't remember where.
-
-BUT, there might be more laptops existing or future, samsung or other,
-that might queue more than 8. Li Guang (lig.fnst@cn.fujitsu.com)
-said that he saw EC firmware's with 32, and that true maximum is 255.
-
-
-So in my opinion it's best to put max. iters. at 255.
-
-Cheers!
---jm
+Alan Stern
 
