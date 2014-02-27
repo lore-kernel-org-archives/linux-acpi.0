@@ -1,109 +1,30 @@
-From: Li Guang <lig.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH] ACPI / EC: Clear stale EC events on Samsung systems
-Date: Thu, 27 Feb 2014 12:47:28 +0800
-Message-ID: <530EC360.6010209@cn.fujitsu.com>
-References: <1393429360-4344-1-git-send-email-clancy.kieran@gmail.com> <530E9BEF.8080601@cn.fujitsu.com> <CAGf84Q+Xd9EUjOEMe3+EMRhdPaFgnAjNDOoPZmf=gn8mi=FhWw@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/6] gpiolib: Allow GPIO chips to request their own GPIOs
+Date: Thu, 27 Feb 2014 11:48:02 +0200
+Message-ID: <20140227094802.GI5018@intel.com>
+References: <1393257611-18031-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1491992.y6nTRlJ009@vostro.rjw.lan>
+ <20140226090542.GT5018@intel.com>
+ <1566118.4zS0BNjL3A@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:33639 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751929AbaB0EsH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Feb 2014 23:48:07 -0500
-In-Reply-To: <CAGf84Q+Xd9EUjOEMe3+EMRhdPaFgnAjNDOoPZmf=gn8mi=FhWw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1566118.4zS0BNjL3A@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kieran Clancy <clancy.kieran@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>, Juan Manuel Cabo <juanmanuel.cabo@gmail.com>, Dennis Jansen <dennis.jansen@web.de>
 
-Kieran Clancy wrote:
-> On Thu, Feb 27, 2014 at 12:29 PM, Li Guang<lig.fnst@cn.fujitsu.com>  wrote:
->    
->>> +#define ACPI_EC_CLEAR_MAX      20      /* Maximum number of events to
->>> query
->>> +                                        * when trying to clear the EC */
->>>
->>>        
->>
->> 20 is enough?
->> the query index is length of a byte.
->>      
-> On my machine, 8 seems to be enough, so 20 seems to be a conservative
-> maximum. Just reading your other email, maybe we should set this to
-> 32? or 40? 100?
->
-> If it's not enough, hopefully anyone seeing bugs will notice the
-> warning "maximum of X stale EC events cleared".
->
-> Here's what happens if I plug/replug the AC lots of times (more than
-> 8) during suspend:
->
-> [ 8807.019800] ACPI : EC: --->  status = 0x29
-> [ 8807.019804] ACPI : EC: --->  data = 0x66
-> [ 8807.020790] ACPI : EC: --->  status = 0x29
-> [ 8807.020793] ACPI : EC: --->  data = 0x66
-> [ 8807.021793] ACPI : EC: --->  status = 0x29
-> [ 8807.021798] ACPI : EC: --->  data = 0x66
-> [ 8807.022831] ACPI : EC: --->  status = 0x29
-> [ 8807.022834] ACPI : EC: --->  data = 0x66
-> [ 8807.023788] ACPI : EC: --->  status = 0x29
-> [ 8807.023792] ACPI : EC: --->  data = 0x66
-> [ 8807.024787] ACPI : EC: --->  status = 0x29
-> [ 8807.024791] ACPI : EC: --->  data = 0x66
-> [ 8807.025787] ACPI : EC: --->  status = 0x29
-> [ 8807.025790] ACPI : EC: --->  data = 0x66
-> [ 8807.026787] ACPI : EC: --->  status = 0x29
-> [ 8807.026790] ACPI : EC: --->  data = 0x66
-> [ 8807.027786] ACPI : EC: --->  status = 0x09
-> [ 8807.027790] ACPI : EC: --->  data = 0x00
-> [ 8807.027792] ACPI : EC: 8 stale EC events cleared
->
-> Note that most of these have SCI_EVT set, but the OS is not notified
-> according to ACPI specs (seemingly because these events happened
-> during sleep).
->
-> The _Q66 method in my DSDT, is:
->
->                          P8XH (Zero, 0x66)
->                          If (LEqual (B1EX, One))
->                          {
->                              Notify (BAT1, 0x80)
->                          }
->
-> So, basically, this is supposed to notify that the battery (BAT1 =
-> PNP0C0A) has changed state, but they are stale events so we don't run
-> the handlers.
->
->    
->>> +static int EC_FLAGS_CLEAR_ON_RESUME; /* EC should be polled on
->>> boot/resume */
->>>        
->> seems name is implicit, what about EC_FLAGS_QEVENT_CLR_ON_RESUME?
->> seems too long :-)
->>      
-> In my mind this is referring to the function name (acpi_ec_)clear.
-> Perhaps we could just make the connection more explicit in the
-> comment:
->
-> /* needs acpi_ec_clear() on boot/resume */
->
-> Not sure if this is better?
->
->    
->>> +       /* Some hardware may need the EC to be cleared before use */
->>>        
->> description is implicit, should specify what we clear is Q event, not EC.
->>      
-> Are Q events the only thing we can get from the EC data port? I've
-> read the relevant parts of the ACPI spec and I can't say I am 100%
-> sure.
->
->    
-I guess you want to clear Q events here,
-EC usually has ACPI space to be read by cmd 80.
+On Wed, Feb 26, 2014 at 02:47:58PM +0100, Rafael J. Wysocki wrote:
+> > Sounds good. Only thing I'm not sure about is the fact that
+> > __gpiod_request() releases the lock when it calls chip driver callbacks
+> > (and takes it back of course). Is that acceptable practice to take the lock
+> > outside of a function and release it inside for a while?
+> 
+> Yes, you can do that.
+> 
+> There even are sparse annotations for that: __releases() and __acquires()
+> (__rpm_callback() in drivers/base/power/runtime.c uses them among other things).
 
-Thanks!
-
-
-
+Ah, good to know. Thanks!
