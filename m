@@ -1,18 +1,18 @@
 From: Zhang Rui <rui.zhang@intel.com>
 Subject: [PATCH] ACPI: ignore invalid acpi device resources
-Date: Thu, 27 Feb 2014 11:32:41 +0800
-Message-ID: <1393471961.2637.1.camel@rzhang1-mobl4>
+Date: Thu, 27 Feb 2014 11:37:15 +0800
+Message-ID: <1393472235.2637.3.camel@rzhang1-mobl4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:51469 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:60942 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754612AbaB0Dcn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Feb 2014 22:32:43 -0500
+	id S1751929AbaB0DhY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Feb 2014 22:37:24 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
 >From f49c218f40d66b72b8f8288dcae7e6010c253bc0 Mon Sep 17 00:00:00 2001
