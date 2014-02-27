@@ -1,30 +1,43 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 1/6] gpiolib: Allow GPIO chips to request their own GPIOs
-Date: Thu, 27 Feb 2014 11:48:02 +0200
-Message-ID: <20140227094802.GI5018@intel.com>
-References: <1393257611-18031-1-git-send-email-mika.westerberg@linux.intel.com>
- <1491992.y6nTRlJ009@vostro.rjw.lan>
- <20140226090542.GT5018@intel.com>
- <1566118.4zS0BNjL3A@vostro.rjw.lan>
+From: Juan Manuel Cabo <juanmanuel.cabo@gmail.com>
+Subject: Hello Kieran
+Date: Thu, 27 Feb 2014 10:41:57 -0300
+Message-ID: <530F40A5.5060202@gmail.com>
+References: <1393429360-4344-1-git-send-email-clancy.kieran@gmail.com> <530E9BEF.8080601@cn.fujitsu.com> <CAGf84Q+Xd9EUjOEMe3+EMRhdPaFgnAjNDOoPZmf=gn8mi=FhWw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1566118.4zS0BNjL3A@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yh0-f51.google.com ([209.85.213.51]:47429 "EHLO
+	mail-yh0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751759AbaB0NmA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Feb 2014 08:42:00 -0500
+In-Reply-To: <CAGf84Q+Xd9EUjOEMe3+EMRhdPaFgnAjNDOoPZmf=gn8mi=FhWw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kieran Clancy <clancy.kieran@gmail.com>, Li Guang <lig.fnst@cn.fujitsu.com>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>, Dennis Jansen <dennis.jansen@web.de>
 
-On Wed, Feb 26, 2014 at 02:47:58PM +0100, Rafael J. Wysocki wrote:
-> > Sounds good. Only thing I'm not sure about is the fact that
-> > __gpiod_request() releases the lock when it calls chip driver callbacks
-> > (and takes it back of course). Is that acceptable practice to take the lock
-> > outside of a function and release it inside for a while?
-> 
-> Yes, you can do that.
-> 
-> There even are sparse annotations for that: __releases() and __acquires()
-> (__rpm_callback() in drivers/base/power/runtime.c uses them among other things).
+Hello Kieran!!
 
-Ah, good to know. Thanks!
+Dennis has an AMD laptop, NP535U3C-A04DE, and found it to be 9
+(which I guess was an off by one in his modification
+of the userspace workaround and was really 8):
+        https://bugzilla.kernel.org/show_bug.cgi?id=44161#c146
+
+I found it to be 8 for me, both in the patch and in my new userspace workaround
+(which doesn't ask for the same event twice now that it pauses for 1ms,
+as the kernel does too):
+      https://bugzilla.kernel.org/show_bug.cgi?id=44161#c162
+
+ANd I think I saw someone else with 8 too but don't remember where.
+
+BUT, there might be more laptops existing or future, samsung or other,
+that might queue more than 8. Li Guang (lig.fnst@cn.fujitsu.com)
+said that he saw EC firmware's with 32, and that true maximum is 255.
+
+
+So in my opinion it's best to put max. iters. at 255.
+
+Cheers!
+--jm
+
