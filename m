@@ -1,41 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / EC: Clear stale EC events on Samsung systems
-Date: Thu, 27 Feb 2014 23:02:38 +0100
-Message-ID: <10729829.62LVQtDGOg@vostro.rjw.lan>
-References: <1393429360-4344-1-git-send-email-clancy.kieran@gmail.com> <2283771.eQo0eImXtS@vostro.rjw.lan> <CAGf84Q+kHgfx6OaiEWFKs6kMmj_JiHLooeRxpXs7a64iC40zFw@mail.gmail.com>
+From: "Li, Aubrey" <aubrey.li@linux.intel.com>
+Subject: Re: [PATCH] ACPI/Sleep: pm_power_off need more sanity check to be
+ installed
+Date: Fri, 28 Feb 2014 13:33:31 +0800
+Message-ID: <53101FAB.3080609@linux.intel.com>
+References: <530D558D.6090607@linux.intel.com> <1853937.5e0COHhnpP@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62690 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752347AbaB0Vrf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Feb 2014 16:47:35 -0500
-In-Reply-To: <CAGf84Q+kHgfx6OaiEWFKs6kMmj_JiHLooeRxpXs7a64iC40zFw@mail.gmail.com>
+Received: from mga14.intel.com ([143.182.124.37]:2011 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750719AbaB1Fdf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Feb 2014 00:33:35 -0500
+In-Reply-To: <1853937.5e0COHhnpP@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kieran Clancy <clancy.kieran@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>, Juan Manuel Cabo <juanmanuel.cabo@gmail.com>, Dennis Jansen <dennis.jansen@web.de>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len.Brown@intel.com, "alan@linux.intel.com" <alan@linux.intel.com>, "Raj, Ashok" <ashok.raj@intel.com>
 
-On Thursday, February 27, 2014 11:39:42 AM Kieran Clancy wrote:
-> On Thu, Feb 27, 2014 at 11:46 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Thursday, February 27, 2014 11:29:53 AM Kieran Clancy wrote:
-> >>
-> >> Oh, and I should add that Juan and Dennis both helped to test the
-> >> patch extensively.
-> >
-> > You can use Tested-by or Reported-and-tested-by for that.
+On 2014/2/27 7:50, Rafael J. Wysocki wrote:
+> On Wednesday, February 26, 2014 10:46:37 AM Li, Aubrey wrote:
+>> Sleep control and status registers need santity check before ACPI
+>> install acpi_power_off to pm_power_off hook. The checking code in
+>> acpi_enter_sleep_state() is too late, we should not allow a not-working
+>> pm_power_off function hooked.
+>>
+>> Signed-off-by: Aubrey Li <aubrey.li@intel.com>
+>> ---
+>>  drivers/acpi/sleep.c |    7 +++++--
+>>  1 file changed, 5 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+>> index b718806..0284d22 100644
+>> --- a/drivers/acpi/sleep.c
+>> +++ b/drivers/acpi/sleep.c
+>> @@ -809,8 +809,11 @@ int __init acpi_sleep_init(void)
+>>  	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+>>  	if (ACPI_SUCCESS(status)) {
+>>  		sleep_states[ACPI_STATE_S5] = 1;
 > 
-> Is it okay to have someone listed as both 'Reviewed-by' and
-> 'Tested-by', or both 'Suggested-by' and 'Tested-by'?
+> Do we still want to set this if the check below fails?  If so, then why?
 
-Yes, these are different things essentially and each of them requires time
-and effort on its own.
+We know \_S5_ is valid. The fault is sleep registers, not S5 ACPI object
 
-> Thank you for your help. Once I fix up these things, I will send a patch v2.
+Thanks,
+-Aubrey
 
-Thanks!
+> 
+>> -		pm_power_off_prepare = acpi_power_off_prepare;
+>> -		pm_power_off = acpi_power_off;
+>> +		if (acpi_gbl_FADT.sleep_control.address &&
+>> +			acpi_gbl_FADT.sleep_status.address) {
+>> +			pm_power_off_prepare = acpi_power_off_prepare;
+>> +			pm_power_off = acpi_power_off;
+>> +		}
+>>  	}
+>>
+>>  	supported[0] = 0;
+>>
+> 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
