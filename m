@@ -1,66 +1,71 @@
-From: "Li, Aubrey" <aubrey.li@linux.intel.com>
-Subject: Re: [PATCH] ACPI/Sleep: pm_power_off need more sanity check to be
- installed
-Date: Sat, 01 Mar 2014 06:24:23 +0800
-Message-ID: <53110C97.3040207@linux.intel.com>
-References: <530D558D.6090607@linux.intel.com> <1853937.5e0COHhnpP@vostro.rjw.lan> <53101FAB.3080609@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI and power management fixes for v3.14-rc5
+Date: Sat, 1 Mar 2014 00:16:05 +0100
+Message-ID: <CAJZ5v0jgsEYh8KTUDPmxP5=XSgqDr15hDCWATqE-FT9vS7v_BA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:13142 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752402AbaB1WY3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Feb 2014 17:24:29 -0500
-In-Reply-To: <53101FAB.3080609@linux.intel.com>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:58804 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752124AbaB1XQH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Feb 2014 18:16:07 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len.Brown@intel.com, "alan@linux.intel.com" <alan@linux.intel.com>, "Raj, Ashok" <ashok.raj@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-On 2014/2/28 13:33, Li, Aubrey wrote:
-> On 2014/2/27 7:50, Rafael J. Wysocki wrote:
->> On Wednesday, February 26, 2014 10:46:37 AM Li, Aubrey wrote:
->>> Sleep control and status registers need santity check before ACPI
->>> install acpi_power_off to pm_power_off hook. The checking code in
->>> acpi_enter_sleep_state() is too late, we should not allow a not-working
->>> pm_power_off function hooked.
->>>
->>> Signed-off-by: Aubrey Li <aubrey.li@intel.com>
->>> ---
->>>  drivers/acpi/sleep.c |    7 +++++--
->>>  1 file changed, 5 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
->>> index b718806..0284d22 100644
->>> --- a/drivers/acpi/sleep.c
->>> +++ b/drivers/acpi/sleep.c
->>> @@ -809,8 +809,11 @@ int __init acpi_sleep_init(void)
->>>  	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
->>>  	if (ACPI_SUCCESS(status)) {
->>>  		sleep_states[ACPI_STATE_S5] = 1;
->>
->> Do we still want to set this if the check below fails?  If so, then why?
-> 
-> We know \_S5_ is valid. The fault is sleep registers, not S5 ACPI object
+Hi Linus,
 
-Hi Rafael, do you still have any concern?
+Please pull from the git repository at
 
-Thanks,
--Aubrey
-> 
->>
->>> -		pm_power_off_prepare = acpi_power_off_prepare;
->>> -		pm_power_off = acpi_power_off;
->>> +		if (acpi_gbl_FADT.sleep_control.address &&
->>> +			acpi_gbl_FADT.sleep_status.address) {
->>> +			pm_power_off_prepare = acpi_power_off_prepare;
->>> +			pm_power_off = acpi_power_off;
->>> +		}
->>>  	}
->>>
->>>  	supported[0] = 0;
->>>
->>
-> 
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-3.14-rc5
 
+to receive ACPI and power management fixes for v3.14-rc5
+with top-most commit 6c09ea49ceb8a3b2b709718f6acdb1edd92ea899
+
+  Merge branches 'pm-cpufreq', 'pm-hibernate' and 'acpi-processor'
+
+on top of commit cfbf8d4857c26a8a307fb7cd258074c9dcd8c691
+
+  Linux 3.14-rc4
+
+These three commits fix a recent intel_pstate regression and two old
+bugs that should be fixed in -stable too, one in the ACPI processor
+driver and one in the firmare loader.
+
+Specifics:
+
+ - One of the recent intel_pstate driver fixes introduced a rounding
+   error that on some systems causes the frequency to be stuck at the
+   lowest level forever.  Fix from Dirk Brandewie.
+
+ - The firmware_class driver's PM notifier doesn't handle the
+   PM_RESTORE_PREPARE event during hibernation image restore and that
+   leads to a deadlock on umhelper_sem in __usermodehelper_disable().
+   Fix from Sebastian Capella.
+
+ - acpi_processor_set_throttling() abuses set_cpus_allowed_ptr() in a
+   nasty way which triggers the WARN_ON_ONCE() in wq_worker_waking_up()
+   among other things.  Fix from Lan Tianyu.
+
+Thanks!
+
+
+---------------
+
+Dirk Brandewie (1):
+      intel_pstate: Change busy calculation to use fixed point math.
+
+Lan Tianyu (1):
+      ACPI / processor: Rework processor throttling with work_on_cpu()
+
+Sebastian Capella (1):
+      PM / hibernate: Fix restore hang in freeze_processes()
+
+---------------
+
+ drivers/acpi/processor_throttling.c | 69 +++++++++++++++++--------------------
+ drivers/base/firmware_class.c       |  1 +
+ drivers/cpufreq/intel_pstate.c      | 28 +++++++++------
+ 3 files changed, 51 insertions(+), 47 deletions(-)
