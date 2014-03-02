@@ -1,204 +1,94 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI / EC: Clear stale EC events on Samsung systems
-Date: Sun, 02 Mar 2014 01:40:18 +0100
-Message-ID: <46477345.qa7vICjmDi@vostro.rjw.lan>
-References: <1393429360-4344-1-git-send-email-clancy.kieran@gmail.com> <1393596748-3656-1-git-send-email-clancy.kieran@gmail.com>
+Subject: Re: [PATCH] ACPI: ignore invalid acpi device resources
+Date: Sun, 02 Mar 2014 01:41:05 +0100
+Message-ID: <17662021.YUUVaMWjfB@vostro.rjw.lan>
+References: <1393472235.2637.3.camel@rzhang1-mobl4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49575 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:49383 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753429AbaCBAZP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Mar 2014 19:25:15 -0500
-In-Reply-To: <1393596748-3656-1-git-send-email-clancy.kieran@gmail.com>
+	with SMTP id S1753328AbaCBA0A (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Mar 2014 19:26:00 -0500
+In-Reply-To: <1393472235.2637.3.camel@rzhang1-mobl4>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kieran Clancy <clancy.kieran@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Li Guang <lig.fnst@cn.fujitsu.com>, Lan Tianyu <tianyu.lan@intel.com>, Juan Manuel Cabo <juanmanuel.cabo@gmail.com>, Dennis Jansen <dennis.jansen@web.de>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Saturday, March 01, 2014 12:42:28 AM Kieran Clancy wrote:
-> A number of Samsung notebooks (530Uxx/535Uxx/540Uxx/550Pxx/900Xxx/etc)
-> continue to log events during sleep (lid open/close, AC plug/unplug,
-> battery level change), which accumulate in the EC until a buffer fills.
-> After the buffer is full (tests suggest it holds 8 events), GPEs stop
-> being triggered for new events. This state persists on wake or even on
-> power cycle, and prevents new events from being registered until the EC
-> is manually polled.
+On Thursday, February 27, 2014 11:37:15 AM Zhang Rui wrote:
+> From f49c218f40d66b72b8f8288dcae7e6010c253bc0 Mon Sep 17 00:00:00 2001
+> From: Zhang Rui <rui.zhang@intel.com>
+> Date: Thu, 27 Feb 2014 11:03:50 +0800
+> Subject: [PATCH] ACPI: ignore invalid acpi device resources
 > 
-> This is the root cause of a number of bugs, including AC not being
-> detected properly, lid close not triggering suspend, and low ambient
-> light not triggering the keyboard backlight. The bug also seemed to be
-> responsible for performance issues on at least one user's machine.
+> ACPI table may export resource entry with 0 length.
+> But the current code interprets this kind of resource in a wrong way.
+> It will create a resource structure with
+> res->end = acpi_resource->start + acpi_resource->len - 1;
 > 
-> Juan Manuel Cabo found the cause of bug and the workaround of polling
-> the EC manually on wake.
+> This patch fixes a problem on my machine that
+> a platform device fails to be created because one of its
+> acpi io resource entry (start = 0, end = 0, length = 0) is translated into
+> a generic resource with start = 0, end = 0xffffffff.
 > 
-> The loop which clears the stale events is based on an earlier patch by
-> Lan Tianyu (see referenced attachment).
-> 
-> This patch:
->  - Adds a function acpi_ec_clear() which polls the EC for stale _Q
->    events at most ACPI_EC_CLEAR_MAX (currently 100) times. A warning is
->    logged if this limit is reached.
->  - Adds a flag EC_FLAGS_CLEAR_ON_RESUME which is set to 1 if the DMI
->    system vendor is Samsung. This check could be replaced by several
->    more specific DMI vendor/product pairs, but it's likely that the bug
->    affects more Samsung products than just the five series mentioned
->    above. Further, it should not be harmful to run acpi_ec_clear() on
->    systems without the bug; it will return immediately after finding no
->    data waiting.
->  - Runs acpi_ec_clear() on initialisation (boot), from acpi_ec_add()
->  - Runs acpi_ec_clear() on wake, from acpi_ec_unblock_transactions()
-> 
-> References: https://bugzilla.kernel.org/show_bug.cgi?id=44161
-> References: https://bugzilla.kernel.org/show_bug.cgi?id=45461
-> References: https://bugzilla.kernel.org/show_bug.cgi?id=57271
-> References: https://bugzilla.kernel.org/attachment.cgi?id=126801
-> Signed-off-by: Kieran Clancy <clancy.kieran@gmail.com>
-> Suggested-by: Juan Manuel Cabo <juanmanuel.cabo@gmail.com>
-> Reviewed-by: Lan Tianyu <tianyu.lan@intel.com>
-> Reviewed-by: Dennis Jansen <dennis.jansen@web.de>
-> Tested-by: Kieran Clancy <clancy.kieran@gmail.com>
-> Tested-by: Juan Manuel Cabo <juanmanuel.cabo@gmail.com>
-> Tested-by: Dennis Jansen <dennis.jansen@web.de>
-> Tested-by: Maurizio D'Addona <mauritiusdadd@gmail.com>
-> Tested-by: San Zamoyski <san@plusnet.pl>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
-Queued up for 3.15, thanks!
+Applied, thanks!
+
+I have a plan to push this for 3.14.
 
 > ---
+>  drivers/acpi/resource.c |   10 ++++++++++
+>  1 file changed, 10 insertions(+)
 > 
-> Changes in PATCH v2:
->  - Changed some of the 'Signed-off-by' lines to better reflect contributions,
->    as suggested by Rafael J. Wysocki <rjw@rjwysocki.net>.
->  - Directly reference prior work by Lan Tianyu.
->  - Increase ACPI_EC_CLEAR_MAX to 100, after discussion with
->    Li Guang <lig.fnst@cn.fujitsu.com> and Juan Manuel Cabo.
->  - Made source comments more explicit, thanks to suggestions by Li Guang.
->  - Marked warning for hitting ACPI_EC_CLEAR_MAX as unlikely(), as suggested by
->    Dennis Jansen.
-> 
->  drivers/acpi/ec.c | 64 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 64 insertions(+)
-> 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index 959d41a..d7d32c2 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -67,6 +67,8 @@ enum ec_command {
->  #define ACPI_EC_DELAY		500	/* Wait 500ms max. during EC ops */
->  #define ACPI_EC_UDELAY_GLK	1000	/* Wait 1ms max. to get global lock */
->  #define ACPI_EC_MSI_UDELAY	550	/* Wait 550us for MSI EC */
-> +#define ACPI_EC_CLEAR_MAX	100	/* Maximum number of events to query
-> +					 * when trying to clear the EC */
->  
->  enum {
->  	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
-> @@ -116,6 +118,7 @@ EXPORT_SYMBOL(first_ec);
->  static int EC_FLAGS_MSI; /* Out-of-spec MSI controller */
->  static int EC_FLAGS_VALIDATE_ECDT; /* ASUStec ECDTs need to be validated */
->  static int EC_FLAGS_SKIP_DSDT_SCAN; /* Not all BIOS survive early DSDT scan */
-> +static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on boot/resume */
->  
->  /* --------------------------------------------------------------------------
->                               Transaction Management
-> @@ -440,6 +443,29 @@ acpi_handle ec_get_handle(void)
->  
->  EXPORT_SYMBOL(ec_get_handle);
->  
-> +static int acpi_ec_query_unlocked(struct acpi_ec *ec, u8 *data);
-> +
-> +/*
-> + * Clears stale _Q events that might have accumulated in the EC.
-> + * Run with locked ec mutex.
-> + */
-> +static void acpi_ec_clear(struct acpi_ec *ec)
-> +{
-> +	int i, status;
-> +	u8 value = 0;
-> +
-> +	for (i = 0; i < ACPI_EC_CLEAR_MAX; i++) {
-> +		status = acpi_ec_query_unlocked(ec, &value);
-> +		if (status || !value)
-> +			break;
-> +	}
-> +
-> +	if (unlikely(i == ACPI_EC_CLEAR_MAX))
-> +		pr_warn("Warning: Maximum of %d stale EC events cleared\n", i);
-> +	else
-> +		pr_info("%d stale EC events cleared\n", i);
-> +}
-> +
->  void acpi_ec_block_transactions(void)
->  {
->  	struct acpi_ec *ec = first_ec;
-> @@ -463,6 +489,10 @@ void acpi_ec_unblock_transactions(void)
->  	mutex_lock(&ec->mutex);
->  	/* Allow transactions to be carried out again */
->  	clear_bit(EC_FLAGS_BLOCKED, &ec->flags);
-> +
-> +	if (EC_FLAGS_CLEAR_ON_RESUME)
-> +		acpi_ec_clear(ec);
-> +
->  	mutex_unlock(&ec->mutex);
->  }
->  
-> @@ -821,6 +851,13 @@ static int acpi_ec_add(struct acpi_device *device)
->  
->  	/* EC is fully operational, allow queries */
->  	clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
-> +
-> +	/* Clear stale _Q events if hardware might require that */
-> +	if (EC_FLAGS_CLEAR_ON_RESUME) {
-> +		mutex_lock(&ec->mutex);
-> +		acpi_ec_clear(ec);
-> +		mutex_unlock(&ec->mutex);
-> +	}
->  	return ret;
->  }
->  
-> @@ -922,6 +959,30 @@ static int ec_enlarge_storm_threshold(const struct dmi_system_id *id)
->  	return 0;
->  }
->  
-> +/*
-> + * On some hardware it is necessary to clear events accumulated by the EC during
-> + * sleep. These ECs stop reporting GPEs until they are manually polled, if too
-> + * many events are accumulated. (e.g. Samsung Series 5/9 notebooks)
-> + *
-> + * https://bugzilla.kernel.org/show_bug.cgi?id=44161
-> + *
-> + * Ideally, the EC should also be instructed NOT to accumulate events during
-> + * sleep (which Windows seems to do somehow), but the interface to control this
-> + * behaviour is not known at this time.
-> + *
-> + * Models known to be affected are Samsung 530Uxx/535Uxx/540Uxx/550Pxx/900Xxx,
-> + * however it is very likely that other Samsung models are affected.
-> + *
-> + * On systems which don't accumulate _Q events during sleep, this extra check
-> + * should be harmless.
-> + */
-> +static int ec_clear_on_resume(const struct dmi_system_id *id)
-> +{
-> +	pr_debug("Detected system needing EC poll on resume.\n");
-> +	EC_FLAGS_CLEAR_ON_RESUME = 1;
-> +	return 0;
-> +}
-> +
->  static struct dmi_system_id ec_dmi_table[] __initdata = {
->  	{
->  	ec_skip_dsdt_scan, "Compal JFL92", {
-> @@ -965,6 +1026,9 @@ static struct dmi_system_id ec_dmi_table[] __initdata = {
->  	ec_validate_ecdt, "ASUS hardware", {
->  	DMI_MATCH(DMI_SYS_VENDOR, "ASUSTek Computer Inc."),
->  	DMI_MATCH(DMI_PRODUCT_NAME, "L4R"),}, NULL},
-> +	{
-> +	ec_clear_on_resume, "Samsung hardware", {
-> +	DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD.")}, NULL},
->  	{},
->  };
->  
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index b7201fc..0bdacc5 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -77,18 +77,24 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+>  	switch (ares->type) {
+>  	case ACPI_RESOURCE_TYPE_MEMORY24:
+>  		memory24 = &ares->data.memory24;
+> +		if (!memory24->address_length)
+> +			return false;
+>  		acpi_dev_get_memresource(res, memory24->minimum,
+>  					 memory24->address_length,
+>  					 memory24->write_protect);
+>  		break;
+>  	case ACPI_RESOURCE_TYPE_MEMORY32:
+>  		memory32 = &ares->data.memory32;
+> +		if (!memory32->address_length)
+> +			return false;
+>  		acpi_dev_get_memresource(res, memory32->minimum,
+>  					 memory32->address_length,
+>  					 memory32->write_protect);
+>  		break;
+>  	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+>  		fixed_memory32 = &ares->data.fixed_memory32;
+> +		if (!fixed_memory32->address_length)
+> +			return false;
+>  		acpi_dev_get_memresource(res, fixed_memory32->address,
+>  					 fixed_memory32->address_length,
+>  					 fixed_memory32->write_protect);
+> @@ -144,12 +150,16 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
+>  	switch (ares->type) {
+>  	case ACPI_RESOURCE_TYPE_IO:
+>  		io = &ares->data.io;
+> +		if (!io->address_length)
+> +			return false;
+>  		acpi_dev_get_ioresource(res, io->minimum,
+>  					io->address_length,
+>  					io->io_decode);
+>  		break;
+>  	case ACPI_RESOURCE_TYPE_FIXED_IO:
+>  		fixed_io = &ares->data.fixed_io;
+> +		if (!fixed_io->address_length)
+> +			return false;
+>  		acpi_dev_get_ioresource(res, fixed_io->address,
+>  					fixed_io->address_length,
+>  					ACPI_DECODE_10);
 > 
 
 -- 
