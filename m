@@ -1,170 +1,135 @@
-From: Shuduo Sang <shuduo.sang@canonical.com>
-Subject: [PATCH V2] support Thinkpad X1 Carbon's adaptive keyboard
-Date: Tue, 04 Mar 2014 00:31:08 +0800
-Message-ID: <5314AE4C.4090502@canonical.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RFC PATCH 6/8] ACPI: use platform bus as the default bus for _HID enumeration
+Date: Tue, 04 Mar 2014 00:23:24 +0100
+Message-ID: <1440720.MRPxuLKXmI@vostro.rjw.lan>
+References: <1393405874-3266-1-git-send-email-rui.zhang@intel.com> <22144944.rXupLb1rjo@vostro.rjw.lan> <1393855908.2193.16.camel@rzhang1-mobl4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:41930 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754290AbaCCQbX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Mar 2014 11:31:23 -0500
-Received: by mail-pb0-f53.google.com with SMTP id rp16so3932091pbb.26
-        for <linux-acpi@vger.kernel.org>; Mon, 03 Mar 2014 08:31:22 -0800 (PST)
+Received: from v094114.home.net.pl ([79.96.170.134]:56184 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755254AbaCCXIP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Mar 2014 18:08:15 -0500
+In-Reply-To: <1393855908.2193.16.camel@rzhang1-mobl4>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bjorn@mork.no, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, ibm-acpi@hmh.eng.br, matthew.garrett@nebula.net, platform-driver-x86@vger.kernel.org
-Cc: bruce.ma@canonical.com
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com
 
-Hi,
+On Monday, March 03, 2014 10:11:48 PM Zhang Rui wrote:
+> On Mon, 2014-03-03 at 00:51 +0100, Rafael J. Wysocki wrote:
+> > On Wednesday, February 26, 2014 05:11:12 PM Zhang Rui wrote:
+> > > Because of the growing demand for enumerating ACPI devices to platform bus,
+> > > this patch changes the code to enumerate ACPI devices with _HID/_CID to
+> > > platform bus by default, unless the device already has a scan handler attached.
+> > > 
+> > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > > ---
+> > >  drivers/acpi/acpi_platform.c |   28 ----------------------------
+> > >  drivers/acpi/scan.c          |   12 ++++++------
+> > >  2 files changed, 6 insertions(+), 34 deletions(-)
+> > > 
+> > > diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+> > > index dbfe49e..33376a9 100644
+> > > --- a/drivers/acpi/acpi_platform.c
+> > > +++ b/drivers/acpi/acpi_platform.c
+> > > @@ -22,24 +22,6 @@
+> > >  
+> > >  ACPI_MODULE_NAME("platform");
+> > >  
+> > > -/*
+> > > - * The following ACPI IDs are known to be suitable for representing as
+> > > - * platform devices.
+> > > - */
+> > > -static const struct acpi_device_id acpi_platform_device_ids[] = {
+> > > -
+> > > -	{ "PNP0D40" },
+> > > -	{ "ACPI0003" },
+> > > -	{ "VPC2004" },
+> > > -	{ "BCM4752" },
+> > > -
+> > > -	/* Intel Smart Sound Technology */
+> > > -	{ "INT33C8" },
+> > > -	{ "80860F28" },
+> > > -
+> > > -	{ }
+> > > -};
+> > > -
+> > >  /**
+> > >   * acpi_create_platform_device - Create platform device for ACPI device node
+> > >   * @adev: ACPI device node to create a platform device for.
+> > > @@ -125,13 +107,3 @@ int acpi_create_platform_device(struct acpi_device *adev,
+> > >  	kfree(resources);
+> > >  	return 1;
+> > >  }
+> > > -
+> > > -static struct acpi_scan_handler platform_handler = {
+> > > -	.ids = acpi_platform_device_ids,
+> > > -	.attach = acpi_create_platform_device,
+> > > -};
+> > > -
+> > > -void __init acpi_platform_init(void)
+> > > -{
+> > > -	acpi_scan_add_handler(&platform_handler);
+> > > -}
+> > > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > > index 5967338..61af32e 100644
+> > > --- a/drivers/acpi/scan.c
+> > > +++ b/drivers/acpi/scan.c
+> > > @@ -2022,14 +2022,15 @@ static int acpi_scan_attach_handler(struct acpi_device *device)
+> > >  		handler = acpi_scan_match_handler(hwid->id, &devid);
+> > >  		if (handler) {
+> > >  			ret = handler->attach(device, devid);
+> > > -			if (ret > 0) {
+> > > +			if (ret > 0)
+> > >  				device->handler = handler;
+> > > -				break;
+> > > -			} else if (ret < 0) {
+> > > -				break;
+> > > -			}
+> > > +			if (ret)
+> > > +				goto end;
+> > >  		}
+> > >  	}
+> > > +end:
+> > > +	if (!list_empty(&device->pnp.ids) && !device->handler)
+> > 
+> > I'm a bit concerned that this check will create platform devices for too many
+> > ACPI device objects.
+> 
+> agreed. there are some devices created unexpected by this patch, e.g. on
+> my test machine, I can see
+>  
+> /sys/bus/platform/devices/LNXSYSTM:00 (ACPI system bus/root node)
+> /sys/bus/platform/devices/PNP0000:00  (PIC)
+> /sys/bus/platform/devices/PNP0100:00  (system timer?)
+> 
+> >   Shouldn't we require that _HID or at least _CID is
+> > present for that?
+> > 
+> I do not think so.
+> only devices that invoke acpi_add_ids() may have pnp.ids but no
+> _HID/_CID, right?
+> I did a check in the code, those devices include:
 
-Support Thinkpad X1 Carbon's Adaptive keyboard patch version 2 is here.
+Well, I did that too.
 
-Modified V1 patch's code according to Bjorn's comment.
+> ACPI root node
+> ACPI video
+> ACPI bay
+> ACPI dock
+> IBM SMBus
+> ACPI Power resource
+> ACPI processor
+> ACPI thermal
+> ACPI fixed power/sleep button
+> 
+> IMO, only the ACPI root node, ACPI power resource, possibly ACPI
+> processor are the ones that we do not want to see in platform bus.
 
+No, we don't want any of them.  So pretty much as I said, only if _HID/_CID
+is present, please?
 
-Thanks,
-Shuduo
-
-
->From fd2ab11002f3e5cb7fb9b26452db170e9835cde1 Mon Sep 17 00:00:00 2001
-From: Shuduo Sang <sangshuduo@gmail.com>
-Date: Mon, 3 Mar 2014 14:29:32 +0800
-Subject: [PATCH] support thinkpad X1 Carbon's adaptive keyboard
-
-Thinkpad X1 Carbon's adaptive keyboard has five modes including Home
-mode, Web browser mode, Web conference mode, Function mode and Lay-flat
-mode. We support Home mode and Function mode currently.
-
-Signed-off-by: Bruce Ma <bruce.ma@canonical.com>
-Signed-off-by: Shuduo Sang <shuduo.sang@canonical.com>
----
- drivers/platform/x86/thinkpad_acpi.c | 102
-+++++++++++++++++++++++++++++++++++
- 1 file changed, 102 insertions(+)
-
-diff --git a/drivers/platform/x86/thinkpad_acpi.c
-b/drivers/platform/x86/thinkpad_acpi.c
-index defb6af..fe2db4d 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -3437,6 +3437,106 @@ err_exit:
- 	return (res < 0)? res : 1;
- }
-
-+/* Thinkpad X1 Carbon support 5 modes including Home mode, Web browser
-+ * mode, Web conference mode, Function mode and Lay-flat mode.
-+ * We support Home mode and Function mode currently.
-+ *
-+ * Will consider support rest of modes in future.
-+ *
-+ */
-+enum ADAPTIVE_KEY_MODE {
-+	HOME_MODE,
-+	WEB_BROWSER_MODE,
-+	WEB_CONFERENCE_MODE,
-+	FUNCTION_MODE,
-+	LAYFLAT_MODE
-+};
-+
-+int adaptive_keyboard_modes[] = {
-+	HOME_MODE,
-+/*	WEB_BROWSER_MODE = 2,
-+	WEB_CONFERENCE_MODE = 3, */
-+	FUNCTION_MODE
-+};
-+
-+#define DFR_CHANGE_ROW			0x101
-+#define DFR_SHOW_QUICKVIEW_ROW		0x102
-+
-+/* press Fn key a while second, it will switch to Function Mode. Then
-+ * release Fn key, previous mode be restored.
-+ */
-+bool adaptive_keyboard_mode_is_saved;
-+int adaptive_keybarod_prev_mode;
-+
-+static int adaptive_keyboard_get_next_mode(int mode)
-+{
-+	int i;
-+	int max_mode = ARRAY_SIZE(adaptive_keyboard_modes) - 1;
-+
-+	for (i = 0; i <= max_mode; i++) {
-+		if (adaptive_keyboard_modes[i] == mode)
-+			break;
-+	}
-+
-+	if (i >= max_mode)
-+		i = 0;
-+	else
-+		i++;
-+
-+	return adaptive_keyboard_modes[i];
-+}
-+
-+static bool adaptive_keyboard_hotkey_notify_hotkey(unsigned int scancode)
-+{
-+	u32 current_mode = 0;
-+	int new_mode = 0;
-+
-+	switch (scancode) {
-+	case DFR_CHANGE_ROW:
-+		if (adaptive_keyboard_mode_is_saved) {
-+			new_mode = adaptive_keybarod_prev_mode;
-+			adaptive_keyboard_mode_is_saved = false;
-+		} else {
-+			if (!acpi_evalf(
-+					hkey_handle, &current_mode,
-+					"GTRW", "dd", 0)) {
-+				pr_err("Cannot read adaptive keyboard mode\n");
-+				return false;
-+			} else {
-+				new_mode = adaptive_keyboard_get_next_mode(
-+						current_mode);
-+			}
-+		}
-+
-+		if (!acpi_evalf(hkey_handle, NULL, "STRW", "vd", new_mode)) {
-+			pr_err("Cannot set adaptive keyboard mode\n");
-+			return false;
-+		}
-+
-+		return true;
-+
-+	case DFR_SHOW_QUICKVIEW_ROW:
-+		if (!acpi_evalf(hkey_handle,
-+				&adaptive_keybarod_prev_mode,
-+				"GTRW", "dd", 0)) {
-+			pr_err("Cannot read adaptive keyboard mode\n");
-+			return false;
-+		} else {
-+			adaptive_keyboard_mode_is_saved = true;
-+
-+			if (!acpi_evalf(hkey_handle,
-+					NULL, "STRW", "vd", FUNCTION_MODE)) {
-+				pr_err("Cannot set adaptive keyboard mode\n");
-+				return false;
-+			}
-+		}
-+		return true;
-+
-+	default:
-+		return false;
-+	}
-+}
-+
- static bool hotkey_notify_hotkey(const u32 hkey,
- 				 bool *send_acpi_ev,
- 				 bool *ignore_acpi_ev)
-@@ -3456,6 +3556,8 @@ static bool hotkey_notify_hotkey(const u32 hkey,
- 			*ignore_acpi_ev = true;
- 		}
- 		return true;
-+	} else {
-+		return adaptive_keyboard_hotkey_notify_hotkey(scancode);
- 	}
- 	return false;
- }
--- 
-1.9.0
+Rafael
 
