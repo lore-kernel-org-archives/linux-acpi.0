@@ -1,149 +1,129 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC PATCH 6/8] ACPI: use platform bus as the default bus for
- _HID enumeration
-Date: Mon, 03 Mar 2014 22:11:48 +0800
-Message-ID: <1393855908.2193.16.camel@rzhang1-mobl4>
+Subject: Re: [RFC PATCH 8/8] PNPACPI: create both PNP and Platform device
+ nodes for PNP0C01/PNP0C02
+Date: Mon, 03 Mar 2014 22:17:46 +0800
+Message-ID: <1393856266.2193.18.camel@rzhang1-mobl4>
 References: <1393405874-3266-1-git-send-email-rui.zhang@intel.com>
-	 <1393405874-3266-7-git-send-email-rui.zhang@intel.com>
-	 <22144944.rXupLb1rjo@vostro.rjw.lan>
+	 <1393405874-3266-9-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:51725 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:19280 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754441AbaCCOLw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Mar 2014 09:11:52 -0500
-In-Reply-To: <22144944.rXupLb1rjo@vostro.rjw.lan>
+	id S1754037AbaCCORu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Mar 2014 09:17:50 -0500
+In-Reply-To: <1393405874-3266-9-git-send-email-rui.zhang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com
 
-On Mon, 2014-03-03 at 00:51 +0100, Rafael J. Wysocki wrote:
-> On Wednesday, February 26, 2014 05:11:12 PM Zhang Rui wrote:
-> > Because of the growing demand for enumerating ACPI devices to platform bus,
-> > this patch changes the code to enumerate ACPI devices with _HID/_CID to
-> > platform bus by default, unless the device already has a scan handler attached.
-> > 
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > ---
-> >  drivers/acpi/acpi_platform.c |   28 ----------------------------
-> >  drivers/acpi/scan.c          |   12 ++++++------
-> >  2 files changed, 6 insertions(+), 34 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-> > index dbfe49e..33376a9 100644
-> > --- a/drivers/acpi/acpi_platform.c
-> > +++ b/drivers/acpi/acpi_platform.c
-> > @@ -22,24 +22,6 @@
-> >  
-> >  ACPI_MODULE_NAME("platform");
-> >  
-> > -/*
-> > - * The following ACPI IDs are known to be suitable for representing as
-> > - * platform devices.
-> > - */
-> > -static const struct acpi_device_id acpi_platform_device_ids[] = {
-> > -
-> > -	{ "PNP0D40" },
-> > -	{ "ACPI0003" },
-> > -	{ "VPC2004" },
-> > -	{ "BCM4752" },
-> > -
-> > -	/* Intel Smart Sound Technology */
-> > -	{ "INT33C8" },
-> > -	{ "80860F28" },
-> > -
-> > -	{ }
-> > -};
-> > -
-> >  /**
-> >   * acpi_create_platform_device - Create platform device for ACPI device node
-> >   * @adev: ACPI device node to create a platform device for.
-> > @@ -125,13 +107,3 @@ int acpi_create_platform_device(struct acpi_device *adev,
-> >  	kfree(resources);
-> >  	return 1;
-> >  }
-> > -
-> > -static struct acpi_scan_handler platform_handler = {
-> > -	.ids = acpi_platform_device_ids,
-> > -	.attach = acpi_create_platform_device,
-> > -};
-> > -
-> > -void __init acpi_platform_init(void)
-> > -{
-> > -	acpi_scan_add_handler(&platform_handler);
-> > -}
-> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > index 5967338..61af32e 100644
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -2022,14 +2022,15 @@ static int acpi_scan_attach_handler(struct acpi_device *device)
-> >  		handler = acpi_scan_match_handler(hwid->id, &devid);
-> >  		if (handler) {
-> >  			ret = handler->attach(device, devid);
-> > -			if (ret > 0) {
-> > +			if (ret > 0)
-> >  				device->handler = handler;
-> > -				break;
-> > -			} else if (ret < 0) {
-> > -				break;
-> > -			}
-> > +			if (ret)
-> > +				goto end;
-> >  		}
-> >  	}
-> > +end:
-> > +	if (!list_empty(&device->pnp.ids) && !device->handler)
-> 
-> I'm a bit concerned that this check will create platform devices for too many
-> ACPI device objects.
+Hi, Bjorn,
 
-agreed. there are some devices created unexpected by this patch, e.g. on
-my test machine, I can see
- 
-/sys/bus/platform/devices/LNXSYSTM:00 (ACPI system bus/root node)
-/sys/bus/platform/devices/PNP0000:00  (PIC)
-/sys/bus/platform/devices/PNP0100:00  (system timer?)
-
->   Shouldn't we require that _HID or at least _CID is
-> present for that?
-> 
-I do not think so.
-only devices that invoke acpi_add_ids() may have pnp.ids but no
-_HID/_CID, right?
-I did a check in the code, those devices include:
-ACPI root node
-ACPI video
-ACPI bay
-ACPI dock
-IBM SMBus
-ACPI Power resource
-ACPI processor
-ACPI thermal
-ACPI fixed power/sleep button
-
-IMO, only the ACPI root node, ACPI power resource, possibly ACPI
-processor are the ones that we do not want to see in platform bus.
-
-Thus IMO, we can have an exclude list for those devices.
+do you have comments for this particular patch?
 
 thanks,
 rui
-> > +		acpi_create_platform_device(device, NULL);
-> >  	return ret;
-> >  }
-> >  
-> > @@ -2185,7 +2186,6 @@ int __init acpi_scan_init(void)
-> >  	acpi_pci_root_init();
-> >  	acpi_pci_link_init();
-> >  	acpi_processor_init();
-> > -	acpi_platform_init();
-> >  	acpi_lpss_init();
-> >  	acpi_cmos_rtc_init();
-> >  	acpi_container_init();
-> > 
+
+On Wed, 2014-02-26 at 17:11 +0800, Zhang Rui wrote:
+> ACPI devices with id "PNP0C01/PNP0C02" means that we need to
+> protect their resources from being allocated by others.
 > 
+> Currently, this is done in drivers/pnp/system.c.
+> 
+> But the problem is that, there are some devices with extra ids besides
+> PNP0C01/PNP0C02, and for these devices,
+> 1) PNP0C01/PNP0C02 suggest that resource reservation is still needed.
+> 2) the other ids suggest that we should enumerate them to platform bus
+> 
+> To reserve resources for those devices, we should either use the current code
+> by exporting the device to PNP bus, or introduce resource reservation support
+> in platform bus/ACPI.
+> 
+> This patch follows the first way by enumerating an ACPI device to platform bus
+> AND pnp bus at the same time.
+> Its PNP device node will be probed by drivers/pnp/system.c and do
+> everything as we do today.
+> Its platform device node will also be created so that a platform bus
+> driver can be probed.
+> 
+> The advantage is that, it brings little change to the current code,
+> the patch itself looks safe and clear.
+> The disadvantage is that
+> 1) we create two physical device nodes for the same ACPI node,
+>    this is against our effort that has been doing recently.
+> 2) we still depend on PNP bus to do this (resouce reservation) for us,
+>    which is still a problem we need to fix sooner or later.
+> 
+> An alternative proposal is to remove the depedency of PNP bus and
+> do resource management in ACPI for all PNP0C01/PNP0C02 devices instead,
+> no matter what bus they are enumerated to.
+> To do this, we need to
+> 1) introduce a fs_initcall() in ACPI, to reserve all PNP0C01/PNP0C02 resources
+> in ACPI, something like we did via drivers/acpi/motherboard.c before
+> (but the code needs to follow drivers/pnp/quirks.c and system.c strictly).
+> This initcall will be run after PCI claiming BARs and before PCI assigning
+> resources for uninitialized devices.
+> 2) skip drivers/pnp/quirks.c and drivers/pnp/system.c for ACPI
+>    enumerted PNP devices, by checking pnp_device->protocal.
+> 3) remove PNP0C01/PNP0C02 from PNPACPI white list.
+> 
+> By doing this, we can remove the depedency of PNP bus, but this requires
+> a lot of code duplication(need to copy quirks.c and system.c logic into ACPI),
+> which does not look good neither.
+> 
+> Any comments will be appreciated.
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/pnp/pnpacpi/core.c |   20 ++++++++++++++++----
+>  1 file changed, 16 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+> index 739fa24..5b13600 100644
+> --- a/drivers/pnp/pnpacpi/core.c
+> +++ b/drivers/pnp/pnpacpi/core.c
+> @@ -173,9 +173,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[]= {
+>  	{"FUJ02bf"},
+>  	{"FUJ02B1"},
+>  	{"FUJ02E3"},
+> -	/* system */
+> -	{"PNP0c02"}, /* General ID for reserving resources */
+> -	{"PNP0c01"}, /* memory controller */
+>  	/* c6xdigio */
+>          {"PNP0400"}, /* Standard LPT Printer Port */
+>          {"PNP0401"}, /* ECP Printer Port */
+> @@ -677,6 +674,20 @@ static int is_cmos_rtc_device(struct acpi_device *adev)
+>  	return !acpi_match_device_ids(adev, ids);
+>  }
+>  
+> +/*
+> + * For devices with id "PNP0C01"/"PNP0C02", they will be enumerated
+> + * to PNP bus anyway to do resource reservation.
+> + */
+> +static int is_system_device(struct acpi_device *adev)
+> +{
+> +	struct acpi_device_id ids[] = {
+> +		{"PNP0C02"},
+> +		{"PNP0C01"},
+> +		{""},
+> +	};
+> +	return !acpi_match_device_ids(adev, ids);
+> +}
+> +
+>  static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
+>  						     u32 lvl, void *context,
+>  						     void **rv)
+> @@ -685,7 +696,8 @@ static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
+>  
+>  	if (acpi_bus_get_device(handle, &device))
+>  		return AE_CTRL_DEPTH;
+> -	if (device->handler == &pnpacpi_handler || is_cmos_rtc_device(device))
+> +	if (device->handler == &pnpacpi_handler || is_system_device(device) ||
+> +	    is_cmos_rtc_device(device))
+>  		pnpacpi_add_device(device);
+>  	return AE_OK;
+>  }
 
 
