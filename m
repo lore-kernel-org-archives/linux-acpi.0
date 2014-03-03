@@ -1,130 +1,170 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [RFC PATCH 8/8] PNPACPI: create both PNP and Platform device
- nodes for PNP0C01/PNP0C02
-Date: Mon, 3 Mar 2014 09:17:16 -0700
-Message-ID: <CAErSpo79kE86azt-3GXE+E2AniCU1vzmQtvG66YN1wau5ams=g@mail.gmail.com>
-References: <1393405874-3266-1-git-send-email-rui.zhang@intel.com>
- <1393405874-3266-9-git-send-email-rui.zhang@intel.com> <1393856266.2193.18.camel@rzhang1-mobl4>
+From: Shuduo Sang <shuduo.sang@canonical.com>
+Subject: [PATCH V2] support Thinkpad X1 Carbon's adaptive keyboard
+Date: Tue, 04 Mar 2014 00:31:08 +0800
+Message-ID: <5314AE4C.4090502@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:61603 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753620AbaCCQRh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Mar 2014 11:17:37 -0500
-Received: by mail-ie0-f182.google.com with SMTP id y20so3515392ier.41
-        for <linux-acpi@vger.kernel.org>; Mon, 03 Mar 2014 08:17:36 -0800 (PST)
-In-Reply-To: <1393856266.2193.18.camel@rzhang1-mobl4>
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:41930 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754290AbaCCQbX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Mar 2014 11:31:23 -0500
+Received: by mail-pb0-f53.google.com with SMTP id rp16so3932091pbb.26
+        for <linux-acpi@vger.kernel.org>; Mon, 03 Mar 2014 08:31:22 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: bjorn@mork.no, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, ibm-acpi@hmh.eng.br, matthew.garrett@nebula.net, platform-driver-x86@vger.kernel.org
+Cc: bruce.ma@canonical.com
 
-On Mon, Mar 3, 2014 at 7:17 AM, Zhang Rui <rui.zhang@intel.com> wrote:
-> Hi, Bjorn,
->
-> do you have comments for this particular patch?
+Hi,
 
-Nope, I'm not paying attention to this area any more.
+Support Thinkpad X1 Carbon's Adaptive keyboard patch version 2 is here.
 
-> On Wed, 2014-02-26 at 17:11 +0800, Zhang Rui wrote:
->> ACPI devices with id "PNP0C01/PNP0C02" means that we need to
->> protect their resources from being allocated by others.
->>
->> Currently, this is done in drivers/pnp/system.c.
->>
->> But the problem is that, there are some devices with extra ids besides
->> PNP0C01/PNP0C02, and for these devices,
->> 1) PNP0C01/PNP0C02 suggest that resource reservation is still needed.
->> 2) the other ids suggest that we should enumerate them to platform bus
->>
->> To reserve resources for those devices, we should either use the current code
->> by exporting the device to PNP bus, or introduce resource reservation support
->> in platform bus/ACPI.
->>
->> This patch follows the first way by enumerating an ACPI device to platform bus
->> AND pnp bus at the same time.
->> Its PNP device node will be probed by drivers/pnp/system.c and do
->> everything as we do today.
->> Its platform device node will also be created so that a platform bus
->> driver can be probed.
->>
->> The advantage is that, it brings little change to the current code,
->> the patch itself looks safe and clear.
->> The disadvantage is that
->> 1) we create two physical device nodes for the same ACPI node,
->>    this is against our effort that has been doing recently.
->> 2) we still depend on PNP bus to do this (resouce reservation) for us,
->>    which is still a problem we need to fix sooner or later.
->>
->> An alternative proposal is to remove the depedency of PNP bus and
->> do resource management in ACPI for all PNP0C01/PNP0C02 devices instead,
->> no matter what bus they are enumerated to.
->> To do this, we need to
->> 1) introduce a fs_initcall() in ACPI, to reserve all PNP0C01/PNP0C02 resources
->> in ACPI, something like we did via drivers/acpi/motherboard.c before
->> (but the code needs to follow drivers/pnp/quirks.c and system.c strictly).
->> This initcall will be run after PCI claiming BARs and before PCI assigning
->> resources for uninitialized devices.
->> 2) skip drivers/pnp/quirks.c and drivers/pnp/system.c for ACPI
->>    enumerted PNP devices, by checking pnp_device->protocal.
->> 3) remove PNP0C01/PNP0C02 from PNPACPI white list.
->>
->> By doing this, we can remove the depedency of PNP bus, but this requires
->> a lot of code duplication(need to copy quirks.c and system.c logic into ACPI),
->> which does not look good neither.
->>
->> Any comments will be appreciated.
->>
->> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
->> ---
->>  drivers/pnp/pnpacpi/core.c |   20 ++++++++++++++++----
->>  1 file changed, 16 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
->> index 739fa24..5b13600 100644
->> --- a/drivers/pnp/pnpacpi/core.c
->> +++ b/drivers/pnp/pnpacpi/core.c
->> @@ -173,9 +173,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[]= {
->>       {"FUJ02bf"},
->>       {"FUJ02B1"},
->>       {"FUJ02E3"},
->> -     /* system */
->> -     {"PNP0c02"}, /* General ID for reserving resources */
->> -     {"PNP0c01"}, /* memory controller */
->>       /* c6xdigio */
->>          {"PNP0400"}, /* Standard LPT Printer Port */
->>          {"PNP0401"}, /* ECP Printer Port */
->> @@ -677,6 +674,20 @@ static int is_cmos_rtc_device(struct acpi_device *adev)
->>       return !acpi_match_device_ids(adev, ids);
->>  }
->>
->> +/*
->> + * For devices with id "PNP0C01"/"PNP0C02", they will be enumerated
->> + * to PNP bus anyway to do resource reservation.
->> + */
->> +static int is_system_device(struct acpi_device *adev)
->> +{
->> +     struct acpi_device_id ids[] = {
->> +             {"PNP0C02"},
->> +             {"PNP0C01"},
->> +             {""},
->> +     };
->> +     return !acpi_match_device_ids(adev, ids);
->> +}
->> +
->>  static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
->>                                                    u32 lvl, void *context,
->>                                                    void **rv)
->> @@ -685,7 +696,8 @@ static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
->>
->>       if (acpi_bus_get_device(handle, &device))
->>               return AE_CTRL_DEPTH;
->> -     if (device->handler == &pnpacpi_handler || is_cmos_rtc_device(device))
->> +     if (device->handler == &pnpacpi_handler || is_system_device(device) ||
->> +         is_cmos_rtc_device(device))
->>               pnpacpi_add_device(device);
->>       return AE_OK;
->>  }
->
->
+Modified V1 patch's code according to Bjorn's comment.
+
+
+Thanks,
+Shuduo
+
+
+>From fd2ab11002f3e5cb7fb9b26452db170e9835cde1 Mon Sep 17 00:00:00 2001
+From: Shuduo Sang <sangshuduo@gmail.com>
+Date: Mon, 3 Mar 2014 14:29:32 +0800
+Subject: [PATCH] support thinkpad X1 Carbon's adaptive keyboard
+
+Thinkpad X1 Carbon's adaptive keyboard has five modes including Home
+mode, Web browser mode, Web conference mode, Function mode and Lay-flat
+mode. We support Home mode and Function mode currently.
+
+Signed-off-by: Bruce Ma <bruce.ma@canonical.com>
+Signed-off-by: Shuduo Sang <shuduo.sang@canonical.com>
+---
+ drivers/platform/x86/thinkpad_acpi.c | 102
++++++++++++++++++++++++++++++++++++
+ 1 file changed, 102 insertions(+)
+
+diff --git a/drivers/platform/x86/thinkpad_acpi.c
+b/drivers/platform/x86/thinkpad_acpi.c
+index defb6af..fe2db4d 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -3437,6 +3437,106 @@ err_exit:
+ 	return (res < 0)? res : 1;
+ }
+
++/* Thinkpad X1 Carbon support 5 modes including Home mode, Web browser
++ * mode, Web conference mode, Function mode and Lay-flat mode.
++ * We support Home mode and Function mode currently.
++ *
++ * Will consider support rest of modes in future.
++ *
++ */
++enum ADAPTIVE_KEY_MODE {
++	HOME_MODE,
++	WEB_BROWSER_MODE,
++	WEB_CONFERENCE_MODE,
++	FUNCTION_MODE,
++	LAYFLAT_MODE
++};
++
++int adaptive_keyboard_modes[] = {
++	HOME_MODE,
++/*	WEB_BROWSER_MODE = 2,
++	WEB_CONFERENCE_MODE = 3, */
++	FUNCTION_MODE
++};
++
++#define DFR_CHANGE_ROW			0x101
++#define DFR_SHOW_QUICKVIEW_ROW		0x102
++
++/* press Fn key a while second, it will switch to Function Mode. Then
++ * release Fn key, previous mode be restored.
++ */
++bool adaptive_keyboard_mode_is_saved;
++int adaptive_keybarod_prev_mode;
++
++static int adaptive_keyboard_get_next_mode(int mode)
++{
++	int i;
++	int max_mode = ARRAY_SIZE(adaptive_keyboard_modes) - 1;
++
++	for (i = 0; i <= max_mode; i++) {
++		if (adaptive_keyboard_modes[i] == mode)
++			break;
++	}
++
++	if (i >= max_mode)
++		i = 0;
++	else
++		i++;
++
++	return adaptive_keyboard_modes[i];
++}
++
++static bool adaptive_keyboard_hotkey_notify_hotkey(unsigned int scancode)
++{
++	u32 current_mode = 0;
++	int new_mode = 0;
++
++	switch (scancode) {
++	case DFR_CHANGE_ROW:
++		if (adaptive_keyboard_mode_is_saved) {
++			new_mode = adaptive_keybarod_prev_mode;
++			adaptive_keyboard_mode_is_saved = false;
++		} else {
++			if (!acpi_evalf(
++					hkey_handle, &current_mode,
++					"GTRW", "dd", 0)) {
++				pr_err("Cannot read adaptive keyboard mode\n");
++				return false;
++			} else {
++				new_mode = adaptive_keyboard_get_next_mode(
++						current_mode);
++			}
++		}
++
++		if (!acpi_evalf(hkey_handle, NULL, "STRW", "vd", new_mode)) {
++			pr_err("Cannot set adaptive keyboard mode\n");
++			return false;
++		}
++
++		return true;
++
++	case DFR_SHOW_QUICKVIEW_ROW:
++		if (!acpi_evalf(hkey_handle,
++				&adaptive_keybarod_prev_mode,
++				"GTRW", "dd", 0)) {
++			pr_err("Cannot read adaptive keyboard mode\n");
++			return false;
++		} else {
++			adaptive_keyboard_mode_is_saved = true;
++
++			if (!acpi_evalf(hkey_handle,
++					NULL, "STRW", "vd", FUNCTION_MODE)) {
++				pr_err("Cannot set adaptive keyboard mode\n");
++				return false;
++			}
++		}
++		return true;
++
++	default:
++		return false;
++	}
++}
++
+ static bool hotkey_notify_hotkey(const u32 hkey,
+ 				 bool *send_acpi_ev,
+ 				 bool *ignore_acpi_ev)
+@@ -3456,6 +3556,8 @@ static bool hotkey_notify_hotkey(const u32 hkey,
+ 			*ignore_acpi_ev = true;
+ 		}
+ 		return true;
++	} else {
++		return adaptive_keyboard_hotkey_notify_hotkey(scancode);
+ 	}
+ 	return false;
+ }
+-- 
+1.9.0
+
