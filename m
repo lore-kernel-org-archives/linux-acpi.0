@@ -1,180 +1,69 @@
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: Re: [PATCH V3] support Thinkpad X1 Carbon 2nd generation's
- adaptive keyboard
-Date: Tue, 4 Mar 2014 14:51:20 +0100
-Message-ID: <20140304135120.GF1883@distanz.ch>
-References: <5314AE4C.4090502@canonical.com>
- <20140304091916.GE1883@distanz.ch>
- <5315B572.1000403@canonical.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH] drm/i915/opregion: work around buggy firmware that
+ provides 8+ output devices
+Date: Tue, 4 Mar 2014 15:45:04 +0100
+Message-ID: <20140304144504.GE17001@phenom.ffwll.local>
+References: <52FAE504.8020001@intel.com>
+ <20140212103156.GC5298@nuc-i3427.alporthouse.com>
+ <52FC8C01.1040002@intel.com>
+ <20140213100814.GM14909@nuc-i3427.alporthouse.com>
+ <CAKMK7uGN3Of2VU6_LsSLh041kkx4TrhyH0H8zvE-PRvOtzJgfg@mail.gmail.com>
+ <53045DD1.5010406@intel.com>
+ <20140219073339.GA30685@srcf.ucam.org>
+ <5304725A.3020909@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sym2.noone.org ([178.63.92.236]:55100 "EHLO sym2.noone.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757202AbaCDNvW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Mar 2014 08:51:22 -0500
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:35772 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757187AbaCDOpL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2014 09:45:11 -0500
+Received: by mail-ea0-f174.google.com with SMTP id f15so394005eak.5
+        for <linux-acpi@vger.kernel.org>; Tue, 04 Mar 2014 06:45:10 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <5315B572.1000403@canonical.com>
+In-Reply-To: <5304725A.3020909@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shuduo Sang <shuduo.sang@canonical.com>
-Cc: bjorn@mork.no, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, ibm-acpi@hmh.eng.br, matthew.garrett@nebula.net, platform-driver-x86@vger.kernel.org, bruce.ma@canonical.com
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Chris Wilson <chris@chris-wilson.co.uk>, Jani Nikula <jani.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Oleksij Rempel <linux@rempel-privat.de>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On 2014-03-04 at 12:13:54 +0100, Shuduo Sang <shuduo.sang@canonical.com> wrote:
+On Wed, Feb 19, 2014 at 04:59:06PM +0800, Aaron Lu wrote:
+> On 02/19/2014 03:33 PM, Matthew Garrett wrote:
+> > On Wed, Feb 19, 2014 at 03:31:29PM +0800, Aaron Lu wrote:
+> > 
+> >> DID2 is in system memory region and has some assigned value like 0x400
+> >> when we read it. For this case it is easy since there is only one output
+> >> device that is of type LVDS so we can match it to connector of type eDP
+> >> or LVDS, suppose there is only one such connector. But for output
+> >> devices' whose _ADR has the value of 0x301, 0x302, etc. I have no idea
+> >> how to match them up to the connectors of that type as we can't be sure
+> >> the probe order we have used in i915 driver is the same as BIOS'.
+> > 
+> > Non-standard _ADR values are assigend by the GPU vendor, so Intel should 
+> > be able to provide you with the correct interpretations.
 > 
-> Submit patch V3 to support Adaptive Keyboard on Thinkpad X1 Carbon 2nd
-> generation according to Tobias's comments.
+> It doesn't seem the _ADR value has to be the format defined by _DOD, as
+> the example of the ACPI spec gives:
+> Method (_ADR, 0) {
+>     return(0x0100)
+> }
+> So that is not the problem here.
+> 
+> The problem is, we don't have any way of matching an ACPI output device
+> node to a drm connector of the same type when there are more than 1 of
+> those with the same type, i.e. we don't know how the index value are
+> assigned by BIOS.
 
-It seems like I missed one in the previous comment, sorry. Also one
-of the previous comments was only partially addressed in this updated
-patch. See below for the comments...
+I've thought the OpRegion spec has some additional fields in there
+indicating the port number, which we could match up at least on modern
+platforms (where there's only ever port A-E). But that's very hazy
+recollection from a really old OpRegion spec, i.e. I have no bloody clue
+at all ;-)
 
-> Thanks,
-> Shuduo
-> 
-> From 2b8175e69deee661d97d371b2422a9c192fefd52 Mon Sep 17 00:00:00 2001
-> From: Shuduo Sang <sangshuduo@gmail.com>
-> Date: Mon, 3 Mar 2014 14:29:32 +0800
-> Subject: [PATCH] support thinkpad X1 Carbon's adaptive keyboard
-> 
-> Thinkpad X1 Carbon's adaptive keyboard has five modes including Home
-> mode, Web browser mode, Web conference mode, Function mode and Lay-flat
-> mode. We support Home mode and Function mode currently.
-> 
-> Signed-off-by: Bruce Ma <bruce.ma@canonical.com>
-> Signed-off-by: Shuduo Sang <shuduo.sang@canonical.com>
-> ---
->  drivers/platform/x86/thinkpad_acpi.c | 102
-> +++++++++++++++++++++++++++++++++++
->  1 file changed, 102 insertions(+)
-> 
-> diff --git a/drivers/platform/x86/thinkpad_acpi.c
-> b/drivers/platform/x86/thinkpad_acpi.c
-> index defb6af..6664dcd 100644
-> --- a/drivers/platform/x86/thinkpad_acpi.c
-> +++ b/drivers/platform/x86/thinkpad_acpi.c
-> @@ -3437,6 +3437,106 @@ err_exit:
->  	return (res < 0)? res : 1;
->  }
-> 
-> +/* Thinkpad X1 Carbon support 5 modes including Home mode, Web browser
-> + * mode, Web conference mode, Function mode and Lay-flat mode.
-> + * We support Home mode and Function mode currently.
-> + *
-> + * Will consider support rest of modes in future.
-> + *
-> + */
-> +enum ADAPTIVE_KEY_MODE {
-> +	HOME_MODE,
-> +	WEB_BROWSER_MODE,
-> +	WEB_CONFERENCE_MODE,
-> +	FUNCTION_MODE,
-> +	LAYFLAT_MODE
-> +};
-> +
-> +int adaptive_keyboard_modes[] = {
-> +	HOME_MODE,
-> +/*	WEB_BROWSER_MODE = 2,
-> +	WEB_CONFERENCE_MODE = 3, */
-> +	FUNCTION_MODE
-> +};
-
-This array can be made be static const.
-
-> +
-> +#define DFR_CHANGE_ROW			0x101
-> +#define DFR_SHOW_QUICKVIEW_ROW		0x102
-> +
-> +/* press Fn key a while second, it will switch to Function Mode. Then
-> + * release Fn key, previous mode be restored.
-> + */
-> +static bool adaptive_keyboard_mode_is_saved;
-> +static int adaptive_keyboard_prev_mode;
-> +
-> +static int adaptive_keyboard_get_next_mode(int mode)
-> +{
-> +	int i;
-
-This should be size_t as well, as mentioned in the previous comment.
-
-> +	size_t max_mode = ARRAY_SIZE(adaptive_keyboard_modes) - 1;
-> +
-> +	for (i = 0; i <= max_mode; i++) {
-> +		if (adaptive_keyboard_modes[i] == mode)
-> +			break;
-> +	}
-> +
-> +	if (i >= max_mode)
-> +		i = 0;
-> +	else
-> +		i++;
-> +
-> +	return adaptive_keyboard_modes[i];
-> +}
-> +
-> +static bool adaptive_keyboard_hotkey_notify_hotkey(unsigned int scancode)
-> +{
-> +	u32 current_mode = 0;
-> +	int new_mode = 0;
-> +
-> +	switch (scancode) {
-> +	case DFR_CHANGE_ROW:
-> +		if (adaptive_keyboard_mode_is_saved) {
-> +			new_mode = adaptive_keyboard_prev_mode;
-> +			adaptive_keyboard_mode_is_saved = false;
-> +		} else {
-> +			if (!acpi_evalf(
-> +					hkey_handle, &current_mode,
-> +					"GTRW", "dd", 0)) {
-> +				pr_err("Cannot read adaptive keyboard mode\n");
-> +				return false;
-> +			} else {
-> +				new_mode = adaptive_keyboard_get_next_mode(
-> +						current_mode);
-> +			}
-> +		}
-> +
-> +		if (!acpi_evalf(hkey_handle, NULL, "STRW", "vd", new_mode)) {
-> +			pr_err("Cannot set adaptive keyboard mode\n");
-> +			return false;
-> +		}
-> +
-> +		return true;
-> +
-> +	case DFR_SHOW_QUICKVIEW_ROW:
-> +		if (!acpi_evalf(hkey_handle,
-> +				&adaptive_keyboard_prev_mode,
-> +				"GTRW", "dd", 0)) {
-> +			pr_err("Cannot read adaptive keyboard mode\n");
-> +			return false;
-> +		} else {
-> +			adaptive_keyboard_mode_is_saved = true;
-> +
-> +			if (!acpi_evalf(hkey_handle,
-> +					NULL, "STRW", "vd", FUNCTION_MODE)) {
-> +				pr_err("Cannot set adaptive keyboard mode\n");
-> +				return false;
-> +			}
-> +		}
-> +		return true;
-> +
-> +	default:
-> +		return false;
-> +	}
-> +}
-> +
->  static bool hotkey_notify_hotkey(const u32 hkey,
->  				 bool *send_acpi_ev,
->  				 bool *ignore_acpi_ev)
-> @@ -3456,6 +3556,8 @@ static bool hotkey_notify_hotkey(const u32 hkey,
->  			*ignore_acpi_ev = true;
->  		}
->  		return true;
-> +	} else {
-> +		return adaptive_keyboard_hotkey_notify_hotkey(scancode);
->  	}
->  	return false;
->  }
-> -- 
-> 1.9.0
-> 
+If I misremember this then we need to start on a begging tour again and
+ask the windows guys how this is all supposed to work ...
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
