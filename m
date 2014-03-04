@@ -1,106 +1,176 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: [RFC PATCH 6/8] ACPI: use platform bus as the default bus for
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [RFC PATCH 6/8] ACPI: use platform bus as the default bus for
  _HID enumeration
-Date: Tue, 4 Mar 2014 00:27:19 +0000
-Message-ID: <744357E9AAD1214791ACBA4B0B909263011E907E@SHSMSX101.ccr.corp.intel.com>
-References: <1393405874-3266-1-git-send-email-rui.zhang@intel.com>
- <22144944.rXupLb1rjo@vostro.rjw.lan>
- <1393855908.2193.16.camel@rzhang1-mobl4> <1440720.MRPxuLKXmI@vostro.rjw.lan>
+Date: Tue, 04 Mar 2014 01:35:00 +0100
+Message-ID: <53151FB4.60502@intel.com>
+References: <1393405874-3266-1-git-send-email-rui.zhang@intel.com> <22144944.rXupLb1rjo@vostro.rjw.lan> <1393855908.2193.16.camel@rzhang1-mobl4> <1440720.MRPxuLKXmI@vostro.rjw.lan> <744357E9AAD1214791ACBA4B0B909263011E907E@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:6716 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:20537 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755301AbaCDA11 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Mar 2014 19:27:27 -0500
-In-Reply-To: <1440720.MRPxuLKXmI@vostro.rjw.lan>
-Content-Language: en-US
+	id S1755301AbaCDAfF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Mar 2014 19:35:05 -0500
+In-Reply-To: <744357E9AAD1214791ACBA4B0B909263011E907E@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "matthew.garrett@nebula.com" <matthew.garrett@nebula.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>
+To: "Zhang, Rui" <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "matthew.garrett@nebula.com" <matthew.garrett@nebula.com>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
-a2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gU2VudDogVHVlc2RheSwgTWFyY2ggMDQs
-IDIwMTQgNzoyMyBBTQ0KPiBUbzogWmhhbmcsIFJ1aQ0KPiBDYzogbGludXgtYWNwaUB2Z2VyLmtl
-cm5lbC5vcmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7DQo+IGJoZWxnYWFzQGdvb2ds
-ZS5jb207IG1hdHRoZXcuZ2FycmV0dEBuZWJ1bGEuY29tOyBXeXNvY2tpLCBSYWZhZWwgSjsNCj4g
-ZG1pdHJ5LnRvcm9raG92QGdtYWlsLmNvbQ0KPiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSCA2Lzhd
-IEFDUEk6IHVzZSBwbGF0Zm9ybSBidXMgYXMgdGhlIGRlZmF1bHQgYnVzDQo+IGZvciBfSElEIGVu
-dW1lcmF0aW9uDQo+IEltcG9ydGFuY2U6IEhpZ2gNCj4gDQo+IE9uIE1vbmRheSwgTWFyY2ggMDMs
-IDIwMTQgMTA6MTE6NDggUE0gWmhhbmcgUnVpIHdyb3RlOg0KPiA+IE9uIE1vbiwgMjAxNC0wMy0w
-MyBhdCAwMDo1MSArMDEwMCwgUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6DQo+ID4gPiBPbiBXZWRu
-ZXNkYXksIEZlYnJ1YXJ5IDI2LCAyMDE0IDA1OjExOjEyIFBNIFpoYW5nIFJ1aSB3cm90ZToNCj4g
-PiA+ID4gQmVjYXVzZSBvZiB0aGUgZ3Jvd2luZyBkZW1hbmQgZm9yIGVudW1lcmF0aW5nIEFDUEkg
-ZGV2aWNlcyB0bw0KPiA+ID4gPiBwbGF0Zm9ybSBidXMsIHRoaXMgcGF0Y2ggY2hhbmdlcyB0aGUg
-Y29kZSB0byBlbnVtZXJhdGUgQUNQSQ0KPiA+ID4gPiBkZXZpY2VzIHdpdGggX0hJRC9fQ0lEIHRv
-IHBsYXRmb3JtIGJ1cyBieSBkZWZhdWx0LCB1bmxlc3MgdGhlDQo+IGRldmljZSBhbHJlYWR5IGhh
-cyBhIHNjYW4gaGFuZGxlciBhdHRhY2hlZC4NCj4gPiA+ID4NCj4gPiA+ID4gU2lnbmVkLW9mZi1i
-eTogWmhhbmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29tPg0KPiA+ID4gPiAtLS0NCj4gPiA+ID4g
-IGRyaXZlcnMvYWNwaS9hY3BpX3BsYXRmb3JtLmMgfCAgIDI4IC0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0NCj4gPiA+ID4gIGRyaXZlcnMvYWNwaS9zY2FuLmMgICAgICAgICAgfCAgIDEyICsr
-KysrKy0tLS0tLQ0KPiA+ID4gPiAgMiBmaWxlcyBjaGFuZ2VkLCA2IGluc2VydGlvbnMoKyksIDM0
-IGRlbGV0aW9ucygtKQ0KPiA+ID4gPg0KPiA+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3Bp
-L2FjcGlfcGxhdGZvcm0uYw0KPiA+ID4gPiBiL2RyaXZlcnMvYWNwaS9hY3BpX3BsYXRmb3JtLmMg
-aW5kZXggZGJmZTQ5ZS4uMzMzNzZhOSAxMDA2NDQNCj4gPiA+ID4gLS0tIGEvZHJpdmVycy9hY3Bp
-L2FjcGlfcGxhdGZvcm0uYw0KPiA+ID4gPiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaV9wbGF0Zm9y
-bS5jDQo+ID4gPiA+IEBAIC0yMiwyNCArMjIsNiBAQA0KPiA+ID4gPg0KPiA+ID4gPiAgQUNQSV9N
-T0RVTEVfTkFNRSgicGxhdGZvcm0iKTsNCj4gPiA+ID4NCj4gPiA+ID4gLS8qDQo+ID4gPiA+IC0g
-KiBUaGUgZm9sbG93aW5nIEFDUEkgSURzIGFyZSBrbm93biB0byBiZSBzdWl0YWJsZSBmb3INCj4g
-PiA+ID4gcmVwcmVzZW50aW5nIGFzDQo+ID4gPiA+IC0gKiBwbGF0Zm9ybSBkZXZpY2VzLg0KPiA+
-ID4gPiAtICovDQo+ID4gPiA+IC1zdGF0aWMgY29uc3Qgc3RydWN0IGFjcGlfZGV2aWNlX2lkIGFj
-cGlfcGxhdGZvcm1fZGV2aWNlX2lkc1tdID0NCj4gew0KPiA+ID4gPiAtDQo+ID4gPiA+IC0JeyAi
-UE5QMEQ0MCIgfSwNCj4gPiA+ID4gLQl7ICJBQ1BJMDAwMyIgfSwNCj4gPiA+ID4gLQl7ICJWUEMy
-MDA0IiB9LA0KPiA+ID4gPiAtCXsgIkJDTTQ3NTIiIH0sDQo+ID4gPiA+IC0NCj4gPiA+ID4gLQkv
-KiBJbnRlbCBTbWFydCBTb3VuZCBUZWNobm9sb2d5ICovDQo+ID4gPiA+IC0JeyAiSU5UMzNDOCIg
-fSwNCj4gPiA+ID4gLQl7ICI4MDg2MEYyOCIgfSwNCj4gPiA+ID4gLQ0KPiA+ID4gPiAtCXsgfQ0K
-PiA+ID4gPiAtfTsNCj4gPiA+ID4gLQ0KPiA+ID4gPiAgLyoqDQo+ID4gPiA+ICAgKiBhY3BpX2Ny
-ZWF0ZV9wbGF0Zm9ybV9kZXZpY2UgLSBDcmVhdGUgcGxhdGZvcm0gZGV2aWNlIGZvciBBQ1BJDQo+
-IGRldmljZSBub2RlDQo+ID4gPiA+ICAgKiBAYWRldjogQUNQSSBkZXZpY2Ugbm9kZSB0byBjcmVh
-dGUgYSBwbGF0Zm9ybSBkZXZpY2UgZm9yLg0KPiA+ID4gPiBAQCAtMTI1LDEzICsxMDcsMyBAQCBp
-bnQgYWNwaV9jcmVhdGVfcGxhdGZvcm1fZGV2aWNlKHN0cnVjdA0KPiBhY3BpX2RldmljZSAqYWRl
-diwNCj4gPiA+ID4gIAlrZnJlZShyZXNvdXJjZXMpOw0KPiA+ID4gPiAgCXJldHVybiAxOw0KPiA+
-ID4gPiAgfQ0KPiA+ID4gPiAtDQo+ID4gPiA+IC1zdGF0aWMgc3RydWN0IGFjcGlfc2Nhbl9oYW5k
-bGVyIHBsYXRmb3JtX2hhbmRsZXIgPSB7DQo+ID4gPiA+IC0JLmlkcyA9IGFjcGlfcGxhdGZvcm1f
-ZGV2aWNlX2lkcywNCj4gPiA+ID4gLQkuYXR0YWNoID0gYWNwaV9jcmVhdGVfcGxhdGZvcm1fZGV2
-aWNlLA0KPiA+ID4gPiAtfTsNCj4gPiA+ID4gLQ0KPiA+ID4gPiAtdm9pZCBfX2luaXQgYWNwaV9w
-bGF0Zm9ybV9pbml0KHZvaWQpIC17DQo+ID4gPiA+IC0JYWNwaV9zY2FuX2FkZF9oYW5kbGVyKCZw
-bGF0Zm9ybV9oYW5kbGVyKTsNCj4gPiA+ID4gLX0NCj4gPiA+ID4gZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvYWNwaS9zY2FuLmMgYi9kcml2ZXJzL2FjcGkvc2Nhbi5jIGluZGV4DQo+ID4gPiA+IDU5Njcz
-MzguLjYxYWYzMmUgMTAwNjQ0DQo+ID4gPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9zY2FuLmMNCj4g
-PiA+ID4gKysrIGIvZHJpdmVycy9hY3BpL3NjYW4uYw0KPiA+ID4gPiBAQCAtMjAyMiwxNCArMjAy
-MiwxNSBAQCBzdGF0aWMgaW50DQo+IGFjcGlfc2Nhbl9hdHRhY2hfaGFuZGxlcihzdHJ1Y3QgYWNw
-aV9kZXZpY2UgKmRldmljZSkNCj4gPiA+ID4gIAkJaGFuZGxlciA9IGFjcGlfc2Nhbl9tYXRjaF9o
-YW5kbGVyKGh3aWQtPmlkLCAmZGV2aWQpOw0KPiA+ID4gPiAgCQlpZiAoaGFuZGxlcikgew0KPiA+
-ID4gPiAgCQkJcmV0ID0gaGFuZGxlci0+YXR0YWNoKGRldmljZSwgZGV2aWQpOw0KPiA+ID4gPiAt
-CQkJaWYgKHJldCA+IDApIHsNCj4gPiA+ID4gKwkJCWlmIChyZXQgPiAwKQ0KPiA+ID4gPiAgCQkJ
-CWRldmljZS0+aGFuZGxlciA9IGhhbmRsZXI7DQo+ID4gPiA+IC0JCQkJYnJlYWs7DQo+ID4gPiA+
-IC0JCQl9IGVsc2UgaWYgKHJldCA8IDApIHsNCj4gPiA+ID4gLQkJCQlicmVhazsNCj4gPiA+ID4g
-LQkJCX0NCj4gPiA+ID4gKwkJCWlmIChyZXQpDQo+ID4gPiA+ICsJCQkJZ290byBlbmQ7DQo+ID4g
-PiA+ICAJCX0NCj4gPiA+ID4gIAl9DQo+ID4gPiA+ICtlbmQ6DQo+ID4gPiA+ICsJaWYgKCFsaXN0
-X2VtcHR5KCZkZXZpY2UtPnBucC5pZHMpICYmICFkZXZpY2UtPmhhbmRsZXIpDQo+ID4gPg0KPiA+
-ID4gSSdtIGEgYml0IGNvbmNlcm5lZCB0aGF0IHRoaXMgY2hlY2sgd2lsbCBjcmVhdGUgcGxhdGZv
-cm0gZGV2aWNlcw0KPiBmb3INCj4gPiA+IHRvbyBtYW55IEFDUEkgZGV2aWNlIG9iamVjdHMuDQo+
-ID4NCj4gPiBhZ3JlZWQuIHRoZXJlIGFyZSBzb21lIGRldmljZXMgY3JlYXRlZCB1bmV4cGVjdGVk
-IGJ5IHRoaXMgcGF0Y2gsIGUuZy4NCj4gPiBvbiBteSB0ZXN0IG1hY2hpbmUsIEkgY2FuIHNlZQ0K
-PiA+DQo+ID4gL3N5cy9idXMvcGxhdGZvcm0vZGV2aWNlcy9MTlhTWVNUTTowMCAoQUNQSSBzeXN0
-ZW0gYnVzL3Jvb3Qgbm9kZSkNCj4gPiAvc3lzL2J1cy9wbGF0Zm9ybS9kZXZpY2VzL1BOUDAwMDA6
-MDAgIChQSUMpDQo+ID4gL3N5cy9idXMvcGxhdGZvcm0vZGV2aWNlcy9QTlAwMTAwOjAwICAoc3lz
-dGVtIHRpbWVyPykNCj4gPg0KPiA+ID4gICBTaG91bGRuJ3Qgd2UgcmVxdWlyZSB0aGF0IF9ISUQg
-b3IgYXQgbGVhc3QgX0NJRCBpcyBwcmVzZW50IGZvcg0KPiA+ID4gdGhhdD8NCj4gPiA+DQo+ID4g
-SSBkbyBub3QgdGhpbmsgc28uDQo+ID4gb25seSBkZXZpY2VzIHRoYXQgaW52b2tlIGFjcGlfYWRk
-X2lkcygpIG1heSBoYXZlIHBucC5pZHMgYnV0IG5vDQo+ID4gX0hJRC9fQ0lELCByaWdodD8NCj4g
-PiBJIGRpZCBhIGNoZWNrIGluIHRoZSBjb2RlLCB0aG9zZSBkZXZpY2VzIGluY2x1ZGU6DQo+IA0K
-PiBXZWxsLCBJIGRpZCB0aGF0IHRvby4NCj4gDQo+ID4gQUNQSSByb290IG5vZGUNCj4gPiBBQ1BJ
-IHZpZGVvDQo+ID4gQUNQSSBiYXkNCj4gPiBBQ1BJIGRvY2sNCj4gPiBJQk0gU01CdXMNCj4gPiBB
-Q1BJIFBvd2VyIHJlc291cmNlDQo+ID4gQUNQSSBwcm9jZXNzb3INCj4gPiBBQ1BJIHRoZXJtYWwN
-Cj4gPiBBQ1BJIGZpeGVkIHBvd2VyL3NsZWVwIGJ1dHRvbg0KPiA+DQo+ID4gSU1PLCBvbmx5IHRo
-ZSBBQ1BJIHJvb3Qgbm9kZSwgQUNQSSBwb3dlciByZXNvdXJjZSwgcG9zc2libHkgQUNQSQ0KPiA+
-IHByb2Nlc3NvciBhcmUgdGhlIG9uZXMgdGhhdCB3ZSBkbyBub3Qgd2FudCB0byBzZWUgaW4gcGxh
-dGZvcm0gYnVzLg0KPiANCj4gTm8sIHdlIGRvbid0IHdhbnQgYW55IG9mIHRoZW0uICBTbyBwcmV0
-dHkgbXVjaCBhcyBJIHNhaWQsIG9ubHkgaWYNCj4gX0hJRC9fQ0lEIGlzIHByZXNlbnQsIHBsZWFz
-ZT8NCj4gDQoNCldoeT8gV2Ugd2lsbCBjb252ZXJ0IHRoZSBkcml2ZXJzIGZvciBtb3N0IG9mIHRo
-b3NlIGRldmljZXMgZnJvbSBBQ1BJIGJ1cyB0byBwbGF0Zm9ybSBidXMgc29vbmVyIG9yIGxhdGVy
-Lg0KV2UgbmVlZCB0byBzZWUgdGhlbSBpbiBwbGF0Zm9ybSBidXMuLi4NCg0KVGhhbmtzLA0KcnVp
-DQoNCj4gUmFmYWVsDQoNCg==
+On 3/4/2014 1:27 AM, Zhang, Rui wrote:
+>
+>> -----Original Message-----
+>> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+>> Sent: Tuesday, March 04, 2014 7:23 AM
+>> To: Zhang, Rui
+>> Cc: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
+>> bhelgaas@google.com; matthew.garrett@nebula.com; Wysocki, Rafael J;
+>> dmitry.torokhov@gmail.com
+>> Subject: Re: [RFC PATCH 6/8] ACPI: use platform bus as the default bus
+>> for _HID enumeration
+>> Importance: High
+>>
+>> On Monday, March 03, 2014 10:11:48 PM Zhang Rui wrote:
+>>> On Mon, 2014-03-03 at 00:51 +0100, Rafael J. Wysocki wrote:
+>>>> On Wednesday, February 26, 2014 05:11:12 PM Zhang Rui wrote:
+>>>>> Because of the growing demand for enumerating ACPI devices to
+>>>>> platform bus, this patch changes the code to enumerate ACPI
+>>>>> devices with _HID/_CID to platform bus by default, unless the
+>> device already has a scan handler attached.
+>>>>> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+>>>>> ---
+>>>>>   drivers/acpi/acpi_platform.c |   28 ----------------------------
+>>>>>   drivers/acpi/scan.c          |   12 ++++++------
+>>>>>   2 files changed, 6 insertions(+), 34 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/acpi/acpi_platform.c
+>>>>> b/drivers/acpi/acpi_platform.c index dbfe49e..33376a9 100644
+>>>>> --- a/drivers/acpi/acpi_platform.c
+>>>>> +++ b/drivers/acpi/acpi_platform.c
+>>>>> @@ -22,24 +22,6 @@
+>>>>>
+>>>>>   ACPI_MODULE_NAME("platform");
+>>>>>
+>>>>> -/*
+>>>>> - * The following ACPI IDs are known to be suitable for
+>>>>> representing as
+>>>>> - * platform devices.
+>>>>> - */
+>>>>> -static const struct acpi_device_id acpi_platform_device_ids[] =
+>> {
+>>>>> -
+>>>>> -	{ "PNP0D40" },
+>>>>> -	{ "ACPI0003" },
+>>>>> -	{ "VPC2004" },
+>>>>> -	{ "BCM4752" },
+>>>>> -
+>>>>> -	/* Intel Smart Sound Technology */
+>>>>> -	{ "INT33C8" },
+>>>>> -	{ "80860F28" },
+>>>>> -
+>>>>> -	{ }
+>>>>> -};
+>>>>> -
+>>>>>   /**
+>>>>>    * acpi_create_platform_device - Create platform device for ACPI
+>> device node
+>>>>>    * @adev: ACPI device node to create a platform device for.
+>>>>> @@ -125,13 +107,3 @@ int acpi_create_platform_device(struct
+>> acpi_device *adev,
+>>>>>   	kfree(resources);
+>>>>>   	return 1;
+>>>>>   }
+>>>>> -
+>>>>> -static struct acpi_scan_handler platform_handler = {
+>>>>> -	.ids = acpi_platform_device_ids,
+>>>>> -	.attach = acpi_create_platform_device,
+>>>>> -};
+>>>>> -
+>>>>> -void __init acpi_platform_init(void) -{
+>>>>> -	acpi_scan_add_handler(&platform_handler);
+>>>>> -}
+>>>>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c index
+>>>>> 5967338..61af32e 100644
+>>>>> --- a/drivers/acpi/scan.c
+>>>>> +++ b/drivers/acpi/scan.c
+>>>>> @@ -2022,14 +2022,15 @@ static int
+>> acpi_scan_attach_handler(struct acpi_device *device)
+>>>>>   		handler = acpi_scan_match_handler(hwid->id, &devid);
+>>>>>   		if (handler) {
+>>>>>   			ret = handler->attach(device, devid);
+>>>>> -			if (ret > 0) {
+>>>>> +			if (ret > 0)
+>>>>>   				device->handler = handler;
+>>>>> -				break;
+>>>>> -			} else if (ret < 0) {
+>>>>> -				break;
+>>>>> -			}
+>>>>> +			if (ret)
+>>>>> +				goto end;
+>>>>>   		}
+>>>>>   	}
+>>>>> +end:
+>>>>> +	if (!list_empty(&device->pnp.ids) && !device->handler)
+>>>> I'm a bit concerned that this check will create platform devices
+>> for
+>>>> too many ACPI device objects.
+>>> agreed. there are some devices created unexpected by this patch, e.g.
+>>> on my test machine, I can see
+>>>
+>>> /sys/bus/platform/devices/LNXSYSTM:00 (ACPI system bus/root node)
+>>> /sys/bus/platform/devices/PNP0000:00  (PIC)
+>>> /sys/bus/platform/devices/PNP0100:00  (system timer?)
+>>>
+>>>>    Shouldn't we require that _HID or at least _CID is present for
+>>>> that?
+>>>>
+>>> I do not think so.
+>>> only devices that invoke acpi_add_ids() may have pnp.ids but no
+>>> _HID/_CID, right?
+>>> I did a check in the code, those devices include:
+>> Well, I did that too.
+>>
+>>> ACPI root node
+>>> ACPI video
+>>> ACPI bay
+>>> ACPI dock
+>>> IBM SMBus
+>>> ACPI Power resource
+>>> ACPI processor
+>>> ACPI thermal
+>>> ACPI fixed power/sleep button
+>>>
+>>> IMO, only the ACPI root node, ACPI power resource, possibly ACPI
+>>> processor are the ones that we do not want to see in platform bus.
+>> No, we don't want any of them.  So pretty much as I said, only if
+>> _HID/_CID is present, please?
+>>
+> Why? We will convert the drivers for most of those devices from ACPI bus to platform bus sooner or later.
+> We need to see them in platform bus...
+
+No, we don't.
+
+I'm not sure about IBM SMBus to be honest, but as for the rest:
+
+Why would we want one for the ACPI root?
+
+And for video?  Those things are PCI usually devices anyway and we just 
+add "artificial" HIDs for them.
+
+ACPI docks and bays are handled by the dock driver which creates 
+platform devices for them already if needed and we don't want duplicates 
+there.
+
+ACPI processor has its own scan handler that binds those objects to 
+system devices.
+
+Power resources - no need.
+
+Do we need platform devices for ACPI thermal zones?
+
+Yes, we will need them for fixed buttons, but that's a special case anyway.
+
+Thanks,
+Rafael
+
