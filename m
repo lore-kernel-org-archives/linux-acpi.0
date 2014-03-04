@@ -1,213 +1,149 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RESEND][PATCH v5 2/5] ACPI / processor_core: Rework _PDC related
- stuff to make it more arch-independent
-Date: Tue, 04 Mar 2014 10:28:59 +0800
-Message-ID: <53153A6B.1060205@linaro.org>
-References: <1392786649-5516-1-git-send-email-hanjun.guo@linaro.org>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] ACPI / Thermal: make acpi_thermal_check asynchronous on resume
+Date: Tue, 04 Mar 2014 14:24:46 +0800
+Message-ID: <531571AE.30408@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1392786649-5516-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, Joe Perches <joe@perches.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, x86@kernel.org, linux-ia64@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2014=E5=B9=B402=E6=9C=8819=E6=97=A5 13:10, Hanjun Guo wrote:
-> _PDC related stuff in processor_core.c is little bit X86/IA64
-> dependent, macros of ACPI_PDC_* are _PDC bit definitions for
-> Intel processors, if we use these macros in processor_core.c,
-> we can not compile it when ACPI is enabled on ARM/ARM64.
->
-> This patch reworks the code to make it more arch-independent,
-> moving Intel related _PDC bits into architecture directory,
-> no functional change.
->
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Fenghua Yu <fenghua.yu@intel.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: "H. Peter Anvin" <hpa@zytor.com>
-> Cc: x86@kernel.org
-> Cc: linux-ia64@vger.kernel.org
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> ---
-> Hi Tony, Fenghua, Thomas, Peter, this patch was reviewed
-> in ACPI mailling list, and updated for serveral versions,
-> Rafael needs your opinion on this patch, could you please
-> review and ack it?
+On resume we do not need to wait for acpi_thermal_check to finish.
+Instead, we can run it asynchronously and not block the whole system
+resume. Also, we make sure when we are suspending again, previously
+queued work for acpi_thermal_check is done.
 
-Ping...
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+ drivers/acpi/thermal.c | 37 +++++++++++++++++++++++++++++++++----
+ 1 file changed, 33 insertions(+), 4 deletions(-)
 
->
-> Thanks
-> Hanjun
-> ---
->   arch/ia64/include/asm/acpi.h  |    5 +----
->   arch/ia64/kernel/acpi.c       |   14 ++++++++++++++
->   arch/x86/include/asm/acpi.h   |   19 +------------------
->   arch/x86/kernel/acpi/cstate.c |   29 +++++++++++++++++++++++++++++
->   drivers/acpi/processor_core.c |   19 +------------------
->   5 files changed, 46 insertions(+), 40 deletions(-)
->
-> diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acp=
-i.h
-> index d651102..d2b8b9d 100644
-> --- a/arch/ia64/include/asm/acpi.h
-> +++ b/arch/ia64/include/asm/acpi.h
-> @@ -152,10 +152,7 @@ extern int __initdata nid_to_pxm_map[MAX_NUMNODE=
-S];
->   #endif
->  =20
->   static inline bool arch_has_acpi_pdc(void) { return true; }
-> -static inline void arch_acpi_set_pdc_bits(u32 *buf)
-> -{
-> -	buf[2] |=3D ACPI_PDC_EST_CAPABILITY_SMP;
-> -}
-> +extern void arch_acpi_set_pdc_bits(u32 *buf);
->  =20
->   #define acpi_unlazy_tlb(x)
->  =20
-> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-> index 07d209c..af9d9e4 100644
-> --- a/arch/ia64/kernel/acpi.c
-> +++ b/arch/ia64/kernel/acpi.c
-> @@ -1014,3 +1014,17 @@ EXPORT_SYMBOL(acpi_unregister_ioapic);
->    * TBD when when IA64 starts to support suspend...
->    */
->   int acpi_suspend_lowlevel(void) { return 0; }
-> +
-> +void arch_acpi_set_pdc_bits(u32 *buf)
-> +{
-> +	/* Enable coordination with firmware's _TSD info */
-> +	buf[2] |=3D ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_EST_CAPABILITY_SMP;
-> +	if (boot_option_idle_override =3D=3D IDLE_NOMWAIT) {
-> +		/*
-> +		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-> +		 * mode will be disabled in the parameter of _PDC object.
-> +		 * Of course C1_FFH access mode will also be disabled.
-> +		 */
-> +		buf[2] &=3D ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
-> +	}
-> +}
-> diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.=
-h
-> index c8c1e70..e9f71bc 100644
-> --- a/arch/x86/include/asm/acpi.h
-> +++ b/arch/x86/include/asm/acpi.h
-> @@ -147,24 +147,7 @@ static inline bool arch_has_acpi_pdc(void)
->   		c->x86_vendor =3D=3D X86_VENDOR_CENTAUR);
->   }
->  =20
-> -static inline void arch_acpi_set_pdc_bits(u32 *buf)
-> -{
-> -	struct cpuinfo_x86 *c =3D &cpu_data(0);
-> -
-> -	buf[2] |=3D ACPI_PDC_C_CAPABILITY_SMP;
-> -
-> -	if (cpu_has(c, X86_FEATURE_EST))
-> -		buf[2] |=3D ACPI_PDC_EST_CAPABILITY_SWSMP;
-> -
-> -	if (cpu_has(c, X86_FEATURE_ACPI))
-> -		buf[2] |=3D ACPI_PDC_T_FFH;
-> -
-> -	/*
-> -	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
-> -	 */
-> -	if (!cpu_has(c, X86_FEATURE_MWAIT))
-> -		buf[2] &=3D ~(ACPI_PDC_C_C2C3_FFH);
-> -}
-> +extern void arch_acpi_set_pdc_bits(u32 *buf);
->  =20
->   #else /* !CONFIG_ACPI */
->  =20
-> diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cst=
-ate.c
-> index e69182f..a36638f 100644
-> --- a/arch/x86/kernel/acpi/cstate.c
-> +++ b/arch/x86/kernel/acpi/cstate.c
-> @@ -16,6 +16,35 @@
->   #include <asm/mwait.h>
->   #include <asm/special_insns.h>
->  =20
-> +void arch_acpi_set_pdc_bits(u32 *buf)
-> +{
-> +	struct cpuinfo_x86 *c =3D &cpu_data(0);
-> +
-> +	/* Enable coordination with firmware's _TSD info */
-> +	buf[2] |=3D ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_C_CAPABILITY_SMP;
-> +
-> +	if (cpu_has(c, X86_FEATURE_EST))
-> +		buf[2] |=3D ACPI_PDC_EST_CAPABILITY_SWSMP;
-> +
-> +	if (cpu_has(c, X86_FEATURE_ACPI))
-> +		buf[2] |=3D ACPI_PDC_T_FFH;
-> +
-> +	/*
-> +	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
-> +	 */
-> +	if (!cpu_has(c, X86_FEATURE_MWAIT))
-> +		buf[2] &=3D ~(ACPI_PDC_C_C2C3_FFH);
-> +
-> +	if (boot_option_idle_override =3D=3D IDLE_NOMWAIT) {
-> +		/*
-> +		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-> +		 * mode will be disabled in the parameter of _PDC object.
-> +		 * Of course C1_FFH access mode will also be disabled.
-> +		 */
-> +		buf[2] &=3D ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
-> +	}
-> +}
-> +
->   /*
->    * Initialize bm_flags based on the CPU cache properties
->    * On SMP it depends on cache configuration
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_c=
-ore.c
-> index 4d91b32..4dcf776 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -255,9 +255,6 @@ static void acpi_set_pdc_bits(u32 *buf)
->   	buf[0] =3D ACPI_PDC_REVISION_ID;
->   	buf[1] =3D 1;
->  =20
-> -	/* Enable coordination with firmware's _TSD info */
-> -	buf[2] =3D ACPI_PDC_SMP_T_SWCOORD;
-> -
->   	/* Twiddle arch-specific bits needed for _PDC */
->   	arch_acpi_set_pdc_bits(buf);
->   }
-> @@ -282,7 +279,7 @@ static struct acpi_object_list *acpi_processor_al=
-loc_pdc(void)
->   		return NULL;
->   	}
->  =20
-> -	buf =3D kmalloc(12, GFP_KERNEL);
-> +	buf =3D kzalloc(12, GFP_KERNEL);
->   	if (!buf) {
->   		printk(KERN_ERR "Memory allocation error\n");
->   		kfree(obj);
-> @@ -310,20 +307,6 @@ acpi_processor_eval_pdc(acpi_handle handle, stru=
-ct acpi_object_list *pdc_in)
->   {
->   	acpi_status status =3D AE_OK;
->  =20
-> -	if (boot_option_idle_override =3D=3D IDLE_NOMWAIT) {
-> -		/*
-> -		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-> -		 * mode will be disabled in the parameter of _PDC object.
-> -		 * Of course C1_FFH access mode will also be disabled.
-> -		 */
-> -		union acpi_object *obj;
-> -		u32 *buffer =3D NULL;
-> -
-> -		obj =3D pdc_in->pointer;
-> -		buffer =3D (u32 *)(obj->buffer.pointer);
-> -		buffer[2] &=3D ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
-> -
-> -	}
->   	status =3D acpi_evaluate_object(handle, "_PDC", pdc_in, NULL);
->  =20
->   	if (ACPI_FAILURE(status))
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 08626c851be7..964068553334 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -43,6 +43,7 @@
+ #include <linux/device.h>
+ #include <linux/thermal.h>
+ #include <linux/acpi.h>
++#include <linux/workqueue.h>
+ #include <asm/uaccess.h>
+ 
+ #define PREFIX "ACPI: "
+@@ -90,6 +91,8 @@ static int psv;
+ module_param(psv, int, 0644);
+ MODULE_PARM_DESC(psv, "Disable or override all passive trip points.");
+ 
++static struct workqueue_struct *acpi_thermal_pm_queue;
++
+ static int acpi_thermal_add(struct acpi_device *device);
+ static int acpi_thermal_remove(struct acpi_device *device);
+ static void acpi_thermal_notify(struct acpi_device *device, u32 event);
+@@ -101,11 +104,13 @@ static const struct acpi_device_id  thermal_device_ids[] = {
+ MODULE_DEVICE_TABLE(acpi, thermal_device_ids);
+ 
+ #ifdef CONFIG_PM_SLEEP
++static int acpi_thermal_suspend(struct device *dev);
+ static int acpi_thermal_resume(struct device *dev);
+ #else
++#define acpi_thermal_suspend NULL
+ #define acpi_thermal_resume NULL
+ #endif
+-static SIMPLE_DEV_PM_OPS(acpi_thermal_pm, NULL, acpi_thermal_resume);
++static SIMPLE_DEV_PM_OPS(acpi_thermal_pm, acpi_thermal_suspend, acpi_thermal_resume);
+ 
+ static struct acpi_driver acpi_thermal_driver = {
+ 	.name = "thermal",
+@@ -186,6 +191,7 @@ struct acpi_thermal {
+ 	struct thermal_zone_device *thermal_zone;
+ 	int tz_enabled;
+ 	int kelvin_offset;
++	struct work_struct thermal_check_work;
+ };
+ 
+ /* --------------------------------------------------------------------------
+@@ -1064,6 +1070,13 @@ static void acpi_thermal_guess_offset(struct acpi_thermal *tz)
+ 		tz->kelvin_offset = 2732;
+ }
+ 
++static void acpi_thermal_check_fn(struct work_struct *work)
++{
++	struct acpi_thermal *tz = container_of(work, struct acpi_thermal,
++					       thermal_check_work);
++	acpi_thermal_check(tz);
++}
++
+ static int acpi_thermal_add(struct acpi_device *device)
+ {
+ 	int result = 0;
+@@ -1093,6 +1106,8 @@ static int acpi_thermal_add(struct acpi_device *device)
+ 	if (result)
+ 		goto free_memory;
+ 
++	INIT_WORK(&tz->thermal_check_work, acpi_thermal_check_fn);
++
+ 	pr_info(PREFIX "%s [%s] (%ld C)\n", acpi_device_name(device),
+ 		acpi_device_bid(device), KELVIN_TO_CELSIUS(tz->temperature));
+ 	goto end;
+@@ -1110,6 +1125,7 @@ static int acpi_thermal_remove(struct acpi_device *device)
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
++	flush_workqueue(acpi_thermal_pm_queue);
+ 	tz = acpi_driver_data(device);
+ 
+ 	acpi_thermal_unregister_thermal_zone(tz);
+@@ -1118,6 +1134,13 @@ static int acpi_thermal_remove(struct acpi_device *device)
+ }
+ 
+ #ifdef CONFIG_PM_SLEEP
++static int acpi_thermal_suspend(struct device *dev)
++{
++	/* Make sure the previously queued thermal check work has been done */
++	flush_workqueue(acpi_thermal_pm_queue);
++	return 0;
++}
++
+ static int acpi_thermal_resume(struct device *dev)
+ {
+ 	struct acpi_thermal *tz;
+@@ -1148,7 +1171,7 @@ static int acpi_thermal_resume(struct device *dev)
+ 		tz->state.active |= tz->trips.active[i].flags.enabled;
+ 	}
+ 
+-	acpi_thermal_check(tz);
++	queue_work(acpi_thermal_pm_queue, &tz->thermal_check_work);
+ 
+ 	return AE_OK;
+ }
+@@ -1240,16 +1263,22 @@ static int __init acpi_thermal_init(void)
+ 		return -ENODEV;
+ 	}
+ 
++	acpi_thermal_pm_queue = create_workqueue("acpi_thermal_pm");
++	if (!acpi_thermal_pm_queue)
++		return -ENODEV;
++
+ 	result = acpi_bus_register_driver(&acpi_thermal_driver);
+-	if (result < 0)
++	if (result < 0) {
++		destroy_workqueue(acpi_thermal_pm_queue);
+ 		return -ENODEV;
++	}
+ 
+ 	return 0;
+ }
+ 
+ static void __exit acpi_thermal_exit(void)
+ {
+-
++	destroy_workqueue(acpi_thermal_pm_queue);
+ 	acpi_bus_unregister_driver(&acpi_thermal_driver);
+ 
+ 	return;
+-- 
+1.8.5.3
+
