@@ -1,25 +1,120 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI / hotplug / PCI: Use pci_device_is_present()
-Date: Tue, 4 Mar 2014 10:23:58 +0200
-Message-ID: <20140304082358.GV5018@intel.com>
-References: <1505390.MlpMqG8COu@vostro.rjw.lan>
+From: Tobias Klauser <tklauser@distanz.ch>
+Subject: Re: [PATCH V2] support Thinkpad X1 Carbon's adaptive keyboard
+Date: Tue, 4 Mar 2014 10:19:16 +0100
+Message-ID: <20140304091916.GE1883@distanz.ch>
+References: <5314AE4C.4090502@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1505390.MlpMqG8COu@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+In-Reply-To: <5314AE4C.4090502@canonical.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Shuduo Sang <shuduo.sang@canonical.com>
+Cc: bjorn@mork.no, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, ibm-acpi@hmh.eng.br, matthew.garrett@nebula.net, platform-driver-x86@vger.kernel.org, bruce.ma@canonical.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 03, 2014 at 01:19:25AM +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Make the ACPI-based PCI hotplug (ACPIPHP) code use
-> pci_device_is_present() for checking if devices are present instead
-> of open coding the same thing.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 2014-03-03 at 17:31:08 +0100, Shuduo Sang <shuduo.sang@canonical.com> wrote:
+[...]
+> +/* press Fn key a while second, it will switch to Function Mode. Then
+> + * release Fn key, previous mode be restored.
+> + */
+> +bool adaptive_keyboard_mode_is_saved;
+> +int adaptive_keybarod_prev_mode;
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+These should probably be made static, since they're only used inside the
+module.
+
+> +static int adaptive_keyboard_get_next_mode(int mode)
+> +{
+> +	int i;
+> +	int max_mode = ARRAY_SIZE(adaptive_keyboard_modes) - 1;
+
+sizeof and thus ARRAY_SIZE returns a size_t, so i and max_mode could be
+of type size_t as well.
+
+> +
+> +	for (i = 0; i <= max_mode; i++) {
+> +		if (adaptive_keyboard_modes[i] == mode)
+> +			break;
+> +	}
+> +
+> +	if (i >= max_mode)
+> +		i = 0;
+> +	else
+> +		i++;
+> +
+> +	return adaptive_keyboard_modes[i];
+> +}
+> +
+> +static bool adaptive_keyboard_hotkey_notify_hotkey(unsigned int scancode)
+> +{
+> +	u32 current_mode = 0;
+> +	int new_mode = 0;
+> +
+> +	switch (scancode) {
+> +	case DFR_CHANGE_ROW:
+> +		if (adaptive_keyboard_mode_is_saved) {
+> +			new_mode = adaptive_keybarod_prev_mode;
+> +			adaptive_keyboard_mode_is_saved = false;
+> +		} else {
+> +			if (!acpi_evalf(
+> +					hkey_handle, &current_mode,
+> +					"GTRW", "dd", 0)) {
+> +				pr_err("Cannot read adaptive keyboard mode\n");
+> +				return false;
+> +			} else {
+> +				new_mode = adaptive_keyboard_get_next_mode(
+> +						current_mode);
+> +			}
+> +		}
+> +
+> +		if (!acpi_evalf(hkey_handle, NULL, "STRW", "vd", new_mode)) {
+> +			pr_err("Cannot set adaptive keyboard mode\n");
+> +			return false;
+> +		}
+> +
+> +		return true;
+> +
+> +	case DFR_SHOW_QUICKVIEW_ROW:
+> +		if (!acpi_evalf(hkey_handle,
+> +				&adaptive_keybarod_prev_mode,
+> +				"GTRW", "dd", 0)) {
+> +			pr_err("Cannot read adaptive keyboard mode\n");
+> +			return false;
+> +		} else {
+> +			adaptive_keyboard_mode_is_saved = true;
+> +
+> +			if (!acpi_evalf(hkey_handle,
+> +					NULL, "STRW", "vd", FUNCTION_MODE)) {
+> +				pr_err("Cannot set adaptive keyboard mode\n");
+> +				return false;
+> +			}
+> +		}
+> +		return true;
+> +
+> +	default:
+> +		return false;
+> +	}
+> +}
+> +
+>  static bool hotkey_notify_hotkey(const u32 hkey,
+>  				 bool *send_acpi_ev,
+>  				 bool *ignore_acpi_ev)
+> @@ -3456,6 +3556,8 @@ static bool hotkey_notify_hotkey(const u32 hkey,
+>  			*ignore_acpi_ev = true;
+>  		}
+>  		return true;
+> +	} else {
+> +		return adaptive_keyboard_hotkey_notify_hotkey(scancode);
+>  	}
+>  	return false;
+>  }
+> -- 
+> 1.9.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
