@@ -1,40 +1,32 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH] MAINTAINERS: add maintainers for arm64 acpi
-Date: Tue, 4 Mar 2014 23:50:44 +0000
-Message-ID: <20140304235044.GB11418@arm.com>
-References: <1393899345-7397-1-git-send-email-graeme.gregory@linaro.org>
- <1393899345-7397-2-git-send-email-graeme.gregory@linaro.org>
- <20140304102316.GG30596@arm.com>
- <20140304190318.GE28736@xora-yoga13>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / hotplug / PCI: Use pci_device_is_present()
+Date: Wed, 05 Mar 2014 01:34:29 +0100
+Message-ID: <4033818.pd6BkAIJKt@vostro.rjw.lan>
+References: <1505390.MlpMqG8COu@vostro.rjw.lan> <20140304082358.GV5018@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fw-tnat.austin.arm.com ([217.140.110.23]:59563 "EHLO
-	collaborate-mta1.arm.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754105AbaCDXu6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2014 18:50:58 -0500
-Content-Disposition: inline
-In-Reply-To: <20140304190318.GE28736@xora-yoga13>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140304082358.GV5018@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Graeme Gregory <graeme@xora.org.uk>
-Cc: "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Tue, Mar 04, 2014 at 07:03:18PM +0000, Graeme Gregory wrote:
-> On Tue, Mar 04, 2014 at 10:23:16AM +0000, Catalin Marinas wrote:
-> > On Tue, Mar 04, 2014 at 02:15:45AM +0000, Graeme Gregory wrote:
-> > > +ACPI ARM64
+On Tuesday, March 04, 2014 10:23:58 AM Mika Westerberg wrote:
+> On Mon, Mar 03, 2014 at 01:19:25AM +0100, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > > 
-> > That's a pretty broad statement for a single file. Is it core support,
-> > architected peripherals, SoC?
+> > Make the ACPI-based PCI hotplug (ACPIPHP) code use
+> > pci_device_is_present() for checking if devices are present instead
+> > of open coding the same thing.
 > > 
-> Hi Catalin would changing the title to ACPI ARM64 Core Support be better
-> in your mind. I do intend for the maintainership to cover just the
-> plat/arm-core.c file.
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-See my reply to Grant. If that's the only thing you guys are aiming for,
-who's in charge of the other bits? Face-to-face meeting in 3 hours
-anyway, so we can get back here with the conclusion.
+Thanks!
 
 -- 
-Catalin
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
