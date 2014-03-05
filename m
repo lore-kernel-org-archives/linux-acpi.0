@@ -1,102 +1,49 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPI: Rename kernel parameter "acpi_serialize" to "acpi_no_auto_serialize" to avoid confusions.
-Date: Wed,  5 Mar 2014 08:46:58 +0800
-Message-ID: <cbb0f3a67357b1ecdae4ee679b3bb36d940787b7.1393980325.git.lv.zheng@intel.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/6] gpiolib: Allow GPIO chips to request their own GPIOs
+Date: Wed, 5 Mar 2014 10:49:41 +0800
+Message-ID: <CACRpkdZSdb_xn=swV3owEr0YwCiYVXp-90iyc=9yi-M_P=+L+Q@mail.gmail.com>
+References: <1393257611-18031-1-git-send-email-mika.westerberg@linux.intel.com>
+	<1393257611-18031-2-git-send-email-mika.westerberg@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:17889 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754490AbaCEArc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Mar 2014 19:47:32 -0500
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:61775 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755385AbaCECtl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Mar 2014 21:49:41 -0500
+Received: by mail-oa0-f46.google.com with SMTP id i7so449615oag.19
+        for <linux-acpi@vger.kernel.org>; Tue, 04 Mar 2014 18:49:41 -0800 (PST)
+In-Reply-To: <1393257611-18031-2-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Alexandre Courbot <gnurou@gmail.com>, Alexandre Courbot <acourbot@nvidia.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-The new method auto-serialization feature has re-used old "acpi_serialize"
-kernel parameter to complete the story of upgrading the original
-implementation.  While these 2 features actually have slight differences.
-In order not to confuse the users who are familiar with the behavior of the
-old feature, this patch changes the name of the kernel parameter that is
-used for the new feature into "acpi_no_auto_serialize".
+On Tue, Feb 25, 2014 at 12:00 AM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- Documentation/kernel-parameters.txt |   18 ++++++++----------
- drivers/acpi/osl.c                  |   16 +++++-----------
- 2 files changed, 13 insertions(+), 21 deletions(-)
+> Sometimes it is useful to allow GPIO chips themselves to request GPIOs they
+> own through gpiolib API. One usecase is ACPI ASL code that should be able
+> to toggle GPIOs through GPIO operation regions.
+>
+> We can't really use gpio_request() and its counterparts because it will pin
+> the module to the kernel forever (as it calls module_get()). Instead we
+> provide a gpiolib internal functions gpiochip_request/free_own_desc() that
+> work the same as gpio_request() but don't manipulate module refrence count.
+>
+> Since it's the GPIO chip driver who requests the GPIOs in the first place
+> we can be sure that it cannot be unloaded without the driver knowing about
+> that. Furthermore we only limit this functionality to be available only
+> inside gpiolib.
+>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 3ca3167..91f0be8 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -229,6 +229,14 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 			use by PCI
- 			Format: <irq>,<irq>...
- 
-+	acpi_no_auto_serialize	[HW,ACPI]
-+			Disable auto-serialization of AML methods
-+			AML control methods that contain the opcodes to create
-+			named objects will be marked as "Serialized" by the
-+			auto-serialization feature.
-+			This feature is enabled by default.
-+			This option allows to turn off the feature.
-+
- 	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
- 
- 	acpica_no_return_repair [HW, ACPI]
-@@ -306,16 +314,6 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 	acpi_sci=	[HW,ACPI] ACPI System Control Interrupt trigger mode
- 			Format: { level | edge | high | low }
- 
--	acpi_serialize=	[HW,ACPI] configure auto-serialization of AML methods
--			Format: { on | off }
--			on -- enable auto-serialization of AML methods
--			off -- disable auto-serialization of AML methods
--			AML control methods that contain the opcodes to create
--			named objects will be marked as "Serialized" by the
--			auto-serialization feature.
--			This feature is enabled by default.
--			This option allows to turn on/off the feature.
--
- 	acpi_skip_timer_override [HW,ACPI]
- 			Recognize and ignore IRQ0/pin2 Interrupt Override.
- 			For broken nForce2 BIOS resulting in XT-PIC timer.
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index a35928f..a3109ff 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1540,26 +1540,20 @@ static int __init osi_setup(char *str)
- __setup("acpi_osi=", osi_setup);
- 
- /*
-- * Configure the auto-serialization of named objects creation methods.
-+ * Disable the auto-serialization of named objects creation methods.
-  *
-  * This feature is enabled by default.  It marks the AML control methods
-  * that contain the opcodes to create named objects as "Serialized".
-  */
--static int __init acpi_serialize_setup(char *str)
-+static int __init acpi_no_auto_serialize_setup(char *str)
- {
--
--	if (str && !strcmp("on", str)) {
--		acpi_gbl_auto_serialize_methods = TRUE;
--		pr_info("ACPI: auto-serialization enabled\n");
--	} else if (str && !strcmp("off", str)) {
--		acpi_gbl_auto_serialize_methods = FALSE;
--		pr_info("ACPI: auto-serialization disabled\n");
--	}
-+	acpi_gbl_auto_serialize_methods = FALSE;
-+	pr_info("ACPI: auto-serialization disabled\n");
- 
- 	return 1;
- }
- 
--__setup("acpi_serialize=", acpi_serialize_setup);
-+__setup("acpi_no_auto_serialize", acpi_no_auto_serialize_setup);
- 
- /* Check of resource interference between native drivers and ACPI
-  * OperationRegions (SystemIO and System Memory only).
--- 
-1.7.10
+I fully trust you in doing the ACPI stuff in patches 2-n but on this patch
+in particular I want Alexandre's review tag as well, as he's working
+actively with the descriptor API and I don't want to add too many quirks
+without his consent.
 
+So Alexandre, what do you say about this?
+
+Yours,
+Linus Walleij
