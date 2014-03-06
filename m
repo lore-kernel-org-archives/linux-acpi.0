@@ -1,114 +1,159 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI / battery: trigger rechecking of AC adapter state when battery state changes.
-Date: Thu, 06 Mar 2014 14:15:29 +0100
-Message-ID: <1820321.2G4Ojtj5V1@vostro.rjw.lan>
-References: <1393758159-6934-1-git-send-email-mezin.alexander@gmail.com>
+Subject: Re: [PATCH v2] ACPI: Adds sysfs "ddn" attribute of the ACPI device objects to export its _DDN object.
+Date: Thu, 06 Mar 2014 14:17:09 +0100
+Message-ID: <60613889.YO9Qifkoq6@vostro.rjw.lan>
+References: <663e3209957959e78611238a9679af3a2af0a600.1393549042.git.lv.zheng@intel.com> <84bd79a1bc330c840d3ccb2b1b10db5cf5de242f.1394068491.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59623 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:64794 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751210AbaCFNAT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Mar 2014 08:00:19 -0500
-In-Reply-To: <1393758159-6934-1-git-send-email-mezin.alexander@gmail.com>
+	with SMTP id S1751095AbaCFNB6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Mar 2014 08:01:58 -0500
+In-Reply-To: <84bd79a1bc330c840d3ccb2b1b10db5cf5de242f.1394068491.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexander Mezin <mezin.alexander@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>
 
-On Sunday, March 02, 2014 06:02:39 PM Alexander Mezin wrote:
-> On HP Pavilion dv6-6179er there are no notifications when AC adapter
-> is plugged/unplugged.
+On Thursday, March 06, 2014 09:16:15 AM Lv Zheng wrote:
+> The information contained in _DDN (Dos Device Name) might be useful
+> for userspace utilities, this patch thus exports such information
+> using "ddn" attribute.
+> Note that the "ddn" attribute will be created as long as the _DDN
+> identifying object exists, whatever its evaluation succeeds or not.
 > 
-> Output of acpi_listen, adapter is unplugged and then plugged in back:
+> This patch must modify the code which is using "struct acpi_buffer"
+> as the buffer.length must be reset to ACPI_ALLOCATE_BUFFER before
+> reusing it to invoke acpi_evaluate_object() again.
 > 
-> battery PNP0C0A:00 00000001 00000001
-> battery PNP0C0A:00 00000080 00000001
->  PNP0C14:00 00000080 00000000
-> processor LNXCPU:00 00000082 00000000
-> battery PNP0C0A:00 00000000 00000001
-> battery PNP0C0A:00 00000080 00000001
->  PNP0C14:00 00000080 00000000
-> processor LNXCPU:00 00000082 00000000
-> battery PNP0C0A:00 00000080 00000001
-> 
-> The only way to trigger the notification is to read "online"
-> property in sysfs (/sys/class/power_supply/AC/online).
-> 
-> This patch triggers the notification by calling get_property for
-> every mains power supply.
-> 
-> Output of acpi_listen with this patch applied:
-> 
-> battery PNP0C0A:00 00000001 00000001
-> battery PNP0C0A:00 00000080 00000001
->  PNP0C14:00 00000080 00000000
-> ac_adapter ACPI0003:00 00000000 00000000
-> processor LNXCPU:00 00000082 00000000
-> battery PNP0C0A:00 00000000 00000001
-> battery PNP0C0A:00 00000080 00000001
->  PNP0C14:00 00000080 00000000
-> ac_adapter ACPI0003:00 00000000 00000001
-> processor LNXCPU:00 00000082 00000000
-> battery PNP0C0A:00 00000080 00000001
-> 
-> I'm using this patch for about a month, and didn't notice any
-> problems. I've tested it on top of both 3.13.5 and 3.14-rc4.
-> 
-> Signed-off-by: Alexander Mezin <mezin.alexander@gmail.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Cc: Arjan van de Ven <arjan@linux.intel.com>
 
-Tiany, do you have any more comments here?
+Queued up for 3.15, thanks!
 
-> 
 > ---
->  v2: more verbose description
+>  Documentation/ABI/testing/sysfs-bus-acpi |    7 +++++
+>  drivers/acpi/scan.c                      |   44 +++++++++++++++++++++++++++++-
+>  include/acpi/acpi_bus.h                  |    1 +
+>  3 files changed, 51 insertions(+), 1 deletion(-)
 > 
->  drivers/acpi/battery.c | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
-> 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 797a693..fb548f0 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -671,9 +671,22 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
->  	}
->  }
+> diff --git a/Documentation/ABI/testing/sysfs-bus-acpi b/Documentation/ABI/testing/sysfs-bus-acpi
+> index 7fa9cbc..db376b8 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-acpi
+> +++ b/Documentation/ABI/testing/sysfs-bus-acpi
+> @@ -49,6 +49,13 @@ Description:
+>  		This attribute contains the output of the device object's
+>  		_UID control method, if present.
 >  
-> +static int acpi_battery_check_ac_state(struct device *dev, void *unused)
-> +{
-> +	struct power_supply *ps = dev_get_drvdata(dev);
-> +	union power_supply_propval temp;
+> +What:		/sys/bus/acpi/devices/.../ddn
+> +Date:		February 2014
+> +Contact:	Rafael J. Wysocki <rjw@rjwysocki.net>
+> +Description:
+> +		This attribute contains the output of the device object's
+> +		_DDN control method, if present.
 > +
-> +	if (ps->type != POWER_SUPPLY_TYPE_MAINS)
-> +		return 0;
-> +
-> +	ps->get_property(ps, POWER_SUPPLY_PROP_ONLINE, &temp);
-> +	return 0;
-> +}
-> +
->  static int acpi_battery_update(struct acpi_battery *battery)
->  {
->  	int result, old_present = acpi_battery_present(battery);
-> +	int old_state = battery->state;
->  	result = acpi_battery_get_status(battery);
->  	if (result)
->  		return result;
-> @@ -696,6 +709,15 @@ static int acpi_battery_update(struct acpi_battery *battery)
->  	}
->  	result = acpi_battery_get_state(battery);
->  	acpi_battery_quirks(battery);
-> +	if (old_state != battery->state)
-> +		/*
-> +		 * Some BIOSes don't send notifications when AC adapter
-> +		 * is plugged or unplugged.
-> +		 * If battery changes its state, this could indicate that
-> +		 * AC adapter's state has changed too.
-> +		 */
-> +		class_for_each_device(power_supply_class, NULL, NULL,
-> +				      &acpi_battery_check_ac_state);
->  	return result;
+>  What:		/sys/bus/acpi/devices/.../eject
+>  Date:		December 2006
+>  Contact:	Rafael J. Wysocki <rjw@rjwysocki.net>
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 7efe546..604b3bc 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -660,6 +660,16 @@ static ssize_t description_show(struct device *dev,
 >  }
+>  static DEVICE_ATTR(description, 0444, description_show, NULL);
+>  
+> +/* sysfs file that shows DOS device name text from the ACPI _DDN method */
+> +static ssize_t ddn_show(struct device *dev, struct device_attribute *attr,
+> +			char *buf) {
+> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
+> +
+> +	return acpi_dev->pnp.ddn ?
+> +	       snprintf(buf, PAGE_SIZE, "%s\n", acpi_dev->pnp.ddn) : 0;
+> +}
+> +static DEVICE_ATTR(ddn, 0444, ddn_show, NULL);
+> +
+>  static ssize_t
+>  acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
+>  		     char *buf) {
+> @@ -685,10 +695,11 @@ static DEVICE_ATTR_RO(status);
+>  
+>  static int acpi_device_setup_files(struct acpi_device *dev)
+>  {
+> -	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+> +	struct acpi_buffer buffer;
+>  	acpi_status status;
+>  	unsigned long long sun;
+>  	int result = 0;
+> +	union acpi_object *object;
+>  
+>  	/*
+>  	 * Devices gotten from FADT don't have a "path" attribute
+> @@ -713,6 +724,8 @@ static int acpi_device_setup_files(struct acpi_device *dev)
+>  	 * If device has _STR, 'description' file is created
+>  	 */
+>  	if (acpi_has_method(dev->handle, "_STR")) {
+> +		buffer.length = ACPI_ALLOCATE_BUFFER;
+> +		buffer.pointer = NULL;
+>  		status = acpi_evaluate_object(dev->handle, "_STR",
+>  					NULL, &buffer);
+>  		if (ACPI_FAILURE(status))
+> @@ -723,6 +736,28 @@ static int acpi_device_setup_files(struct acpi_device *dev)
+>  			goto end;
+>  	}
+>  
+> +	/*
+> +	 * If device has _DDN, 'ddn' file is created
+> +	 */
+> +	if (acpi_has_method(dev->handle, "_DDN")) {
+> +		buffer.length = ACPI_ALLOCATE_BUFFER;
+> +		buffer.pointer = NULL;
+> +		status = acpi_evaluate_object_typed(dev->handle, "_DDN",
+> +						    NULL, &buffer,
+> +						    ACPI_TYPE_STRING);
+> +		if (ACPI_FAILURE(status))
+> +			buffer.pointer = NULL;
+> +		object = buffer.pointer;
+> +		if (object) {
+> +			dev->pnp.ddn = kstrdup(object->string.pointer,
+> +					       GFP_KERNEL);
+> +			kfree(object);
+> +		}
+> +		result = device_create_file(&dev->dev, &dev_attr_ddn);
+> +		if (result)
+> +			goto end;
+> +	}
+> +
+>  	if (dev->pnp.type.bus_address)
+>  		result = device_create_file(&dev->dev, &dev_attr_adr);
+>  	if (dev->pnp.unique_id)
+> @@ -785,6 +820,13 @@ static void acpi_device_remove_files(struct acpi_device *dev)
+>  		device_remove_file(&dev->dev, &dev_attr_description);
+>  	}
+>  	/*
+> +	 * If device has _DDN, remove 'ddn' file
+> +	 */
+> +	if (acpi_has_method(dev->handle, "_DDN")) {
+> +		device_remove_file(&dev->dev, &dev_attr_ddn);
+> +		kfree(dev->pnp.ddn);
+> +	}
+> +	/*
+>  	 * If device has _EJ0, remove 'eject' file.
+>  	 */
+>  	if (acpi_has_method(dev->handle, "_EJ0"))
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 84a2e29..7bc77d9 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -244,6 +244,7 @@ struct acpi_device_pnp {
+>  	acpi_device_name device_name;	/* Driver-determined */
+>  	acpi_device_class device_class;	/*        "          */
+>  	union acpi_object *str_obj;	/* unicode string for _STR method */
+> +	char *ddn;			/* _DDN */
+>  	unsigned long sun;		/* _SUN */
+>  };
 >  
 > 
 
