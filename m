@@ -1,48 +1,87 @@
-From: Juan Manuel Cabo <juanmanuel.cabo@gmail.com>
-Subject: Re: [PATCH v2] ACPI / EC: Clear stale EC events on Samsung systems
-Date: Wed, 05 Mar 2014 22:36:05 -0300
-Message-ID: <5317D105.6050206@gmail.com>
-References: <1393429360-4344-1-git-send-email-clancy.kieran@gmail.com> <53176D59.3030602@canonical.com> <CAGf84Q+7=abgk78WuhNWdy+3kgXma1fHj6OPk9ytQ4kFzcoFJA@mail.gmail.com> <1885040.WKp5oRmh5C@vostro.rjw.lan> <CAGf84QK-N+C6eHct4XDzOCHwfN649F2okJ1y2V70wWz-wHFKEA@mail.gmail.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH 0/3] amd/pci: Add AMD hostbridge supports for newer AMD
+ systems
+Date: Wed, 5 Mar 2014 20:13:04 -0600
+Message-ID: <5317D9B0.1080502@amd.com>
+References: <1394053603-3724-1-git-send-email-suravee.suthikulpanit@amd.com> <CAErSpo4MMJh9b0aivwGSbxCMVw24He1+Vo_LH0R0E+fYM5aThg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAGf84QK-N+C6eHct4XDzOCHwfN649F2okJ1y2V70wWz-wHFKEA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kieran Clancy <clancy.kieran@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Joseph Salisbury <joseph.salisbury@canonical.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Li Guang <lig.fnst@cn.fujitsu.com>, Lan Tianyu <tianyu.lan@intel.com>, Dennis Jansen <dennis.jansen@web.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ch1ehsobe004.messaging.microsoft.com ([216.32.181.184]:30788
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755769AbaCFCNK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Mar 2014 21:13:10 -0500
+In-Reply-To: <CAErSpo4MMJh9b0aivwGSbxCMVw24He1+Vo_LH0R0E+fYM5aThg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Beware, the context line:        
-             static struct dmi_system_id ec_dmi_table[] __initdata = {
-has changed in recent kernels, so that line of the patch would need
-to be different for it to apply older kernels.
-It used to be this:
-             static struct dmi_system_id __initdata ec_dmi_table[] = {
-until 3.11 I guess.
-
-It is just a context line and is not important for the patch itself.
-
-See:
-http://lxr.free-electrons.com/source/drivers/acpi/ec.c?v=3.11
-http://lxr.free-electrons.com/source/drivers/acpi/ec.c?v=3.12
-
-Cheers!
---Juan Manuel Cabo
-
-
-On 03/05/2014 10:24 PM, Kieran Clancy wrote:
-> On Thu, Mar 6, 2014 at 11:22 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> On Thursday, March 06, 2014 11:04:14 AM Kieran Clancy wrote:
->>> Rafael, is it a separate process to get this in the stable tree or
->>> will it naturally happen after being merged into the mainline?
->> I need to add a proper "CC stable" tag to your patch for this to happen.
+On 3/5/2014 3:24 PM, Bjorn Helgaas wrote:
+> [+cc linux-acpi]
+>
+> On Wed, Mar 5, 2014 at 2:06 PM,  <suravee.suthikulpanit@amd.com> wrote:
+>> From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
 >>
->> Which -stable kernels should it go to?
-> 3.2 and 3.10 seem like natural choices (3.4?), but I don't know the
-> norm for this kind of fix. Would there be any reason not to include it
-> in some particular stable kernels?
+>> The current code only supports upto AMD hostbridge for family11h.
+>> This causes PCI numa_node information to be reported incorrectly
+>> for newer family with multi sockets.
 >
-> Cheers,
-> Kieran.
+> Where is the incorrect reporting?  In ACPI tables?  Is this patch a
+> way to cover up firmware defects in the ACPI description?  Or is this
+> for machines without ACPI (it seems unlikely that machines with new
+> AMD processors would not have ACPI)?
+
+This is incorrectly reported in the sysfs for each PCI device (e.g. 
+/devices/pci0000:50/0000:50:00.2/numa_node). Without the patch, they 
+return -1.
+
+In file arch/x86/pci/acpi.c, in function pci_acpi_scan_root(), it is 
+queries the node information as following:
+
+#ifdef CONFIG_ACPI_NUMA
+	pxm = acpi_get_pxm(device->handle);
+	if (pxm >= 0)
+		node = pxm_to_node(pxm);
+	if (node != -1)
+		set_mp_bus_to_node(busnum, node);
+	else
+#endif
+		node = get_mp_bus_to_node(busnum);
+
+In this case, I see that the acpi_get_pxm() returns -1.  Therefore, it 
+falls back to using the node information in mp_bus_to_node[].  So, 
+without this patch, it would also returning -1.
+
+Also, the spec mentioned that the _PXM is optional, so I am not sure if 
+this is a firmware bug.
+
+Suravee
+
 >
+> The whole point of ACPI is that we shouldn't need to update the kernel
+> for new hardware, so if there's a firmware bug, it should be fixed, or
+> if the ACPI spec isn't powerful enough, it should be extended.
+>
+>> This patch set introduces the logic to discover AMD hostbridges.
+>>
+>> Note:
+>>      * Patch 1 and 2 are functional changes.
+>>      * Patch 3 is code clean up/restructuring
+>>
+>> Suravee Suthikulpanit (3):
+>>    amd/pci: Add supports for generic AMD hostbridges
+>>    amd/pci: Support additional MMIO ranges capabilities
+>>    amd/pci: Miscellaneous code clean up for early_fillup_mp_bus_info
+>>
+>>   arch/x86/pci/amd_bus.c |  376 ++++++++++++++++++++++++++++++++----------------
+>>   1 file changed, 251 insertions(+), 125 deletions(-)
+>>
+>> --
+>> 1.7.10.4
+>>
+>>
+>
+
+
