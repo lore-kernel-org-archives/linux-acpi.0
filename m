@@ -1,50 +1,134 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 0/3] amd/pci: Add AMD hostbridge supports for newer AMD systems
-Date: Wed, 5 Mar 2014 14:24:12 -0700
-Message-ID: <CAErSpo4MMJh9b0aivwGSbxCMVw24He1+Vo_LH0R0E+fYM5aThg@mail.gmail.com>
-References: <1394053603-3724-1-git-send-email-suravee.suthikulpanit@amd.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI: Adds sysfs "ddn" attribute of the ACPI device
+ objects to export its _DDN object.
+Date: Thu, 6 Mar 2014 00:27:46 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88024C4700@SHSMSX101.ccr.corp.intel.com>
+References: <53090AC1.6030507@linux.intel.com>
+ <663e3209957959e78611238a9679af3a2af0a600.1393549042.git.lv.zheng@intel.com>
+ <4147065.ulhc0R4z6p@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1394053603-3724-1-git-send-email-suravee.suthikulpanit@amd.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: suravee.suthikulpanit@amd.com
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:15838 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756227AbaCFA1u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Mar 2014 19:27:50 -0500
+In-Reply-To: <4147065.ulhc0R4z6p@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@linux.intel.com>
 
-[+cc linux-acpi]
-
-On Wed, Mar 5, 2014 at 2:06 PM,  <suravee.suthikulpanit@amd.com> wrote:
-> From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
->
-> The current code only supports upto AMD hostbridge for family11h.
-> This causes PCI numa_node information to be reported incorrectly
-> for newer family with multi sockets.
-
-Where is the incorrect reporting?  In ACPI tables?  Is this patch a
-way to cover up firmware defects in the ACPI description?  Or is this
-for machines without ACPI (it seems unlikely that machines with new
-AMD processors would not have ACPI)?
-
-The whole point of ACPI is that we shouldn't need to update the kernel
-for new hardware, so if there's a firmware bug, it should be fixed, or
-if the ACPI spec isn't powerful enough, it should be extended.
-
-> This patch set introduces the logic to discover AMD hostbridges.
->
-> Note:
->     * Patch 1 and 2 are functional changes.
->     * Patch 3 is code clean up/restructuring
->
-> Suravee Suthikulpanit (3):
->   amd/pci: Add supports for generic AMD hostbridges
->   amd/pci: Support additional MMIO ranges capabilities
->   amd/pci: Miscellaneous code clean up for early_fillup_mp_bus_info
->
->  arch/x86/pci/amd_bus.c |  376 ++++++++++++++++++++++++++++++++----------------
->  1 file changed, 251 insertions(+), 125 deletions(-)
->
-> --
-> 1.7.10.4
->
->
+SEksIFJhZmFlbA0KDQpUaGFua3MgZm9yIGNvbW1lbnRpbmcuDQoNCj4gRnJvbTogUmFmYWVsIEou
+IFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gU2VudDogTW9uZGF5LCBNYXJj
+aCAwMywgMjAxNCA5OjE3IFBNDQo+IA0KPiBPbiBNb25kYXksIE1hcmNoIDAzLCAyMDE0IDAzOjE5
+OjM2IFBNIEx2IFpoZW5nIHdyb3RlOg0KPiA+DQo+ID4gVGhlIGluZm9ybWF0aW9uIGNvbnRhaW5l
+ZCBpbiBfREROIChEb3MgRGV2aWNlIE5hbWUpIG1pZ2h0IGJlIHVzZWZ1bA0KPiA+IGZvciB1c2Vy
+c3BhY2UgdXRpbGl0aWVzLCB0aGlzIHBhdGNoIHRodXMgZXhwb3J0cyBzdWNoIGluZm9ybWF0aW9u
+DQo+ID4gdXNpbmcgImRkbiIgYXR0cmlidXRlLg0KPiA+IE5vdGUgdGhhdCB0aGUgImRkbiIgYXR0
+cmlidXRlIHdpbGwgYmUgY3JlYXRlZCBhcyBsb25nIGFzIHRoZSBfRERODQo+ID4gaWRlbnRpZnlp
+bmcgb2JqZWN0IGV4aXN0cywgd2hhdGV2ZXIgaXRzIGV2YWx1YXRpb24gc3VjY2VlZHMgb3Igbm90
+Lg0KPiA+DQo+ID4gVGhpcyBwYXRjaCBtdXN0IG1vZGlmeSB0aGUgY29kZSB3aGljaCBpcyB1c2lu
+ZyAic3RydWN0IGFjcGlfYnVmZmVyIg0KPiA+IGFzIHRoZSBidWZmZXIubGVuZ3RoIG11c3QgYmUg
+cmVzZXQgdG8gQUNQSV9BTExPQ0FURV9CVUZGRVIgYmVmb3JlDQo+ID4gcmV1c2luZyBpdCB0byBp
+bnZva2UgYWNwaV9ldmFsdWF0ZV9vYmplY3QoKSBhZ2Fpbi4NCj4gPg0KPiA+IFNpZ25lZC1vZmYt
+Ynk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4gQ2M6IEFyamFuIHZhbiBkZSBW
+ZW4gPGFyamFuQGxpbnV4LmludGVsLmNvbT4NCj4gPiAtLS0NCj4gPg0KPiA+ICBEb2N1bWVudGF0
+aW9uL0FCSS90ZXN0aW5nL3N5c2ZzLWJ1cy1hY3BpIHwgICAgNyArKysrKw0KPiA+ICBkcml2ZXJz
+L2FjcGkvc2Nhbi5jICAgICAgICAgICAgICAgICAgICAgIHwgICA0Nw0KPiA+ICArKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKy0gaW5jbHVkZS9hY3BpL2FjcGlfYnVzLmggICAgICAgICAgICAg
+ICAgICB8DQo+ID4gICAgMSArDQo+ID4gIDMgZmlsZXMgY2hhbmdlZCwgNTQgaW5zZXJ0aW9ucygr
+KSwgMSBkZWxldGlvbigtKQ0KPiA+DQo+ID4gUGF0Y2gNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9E
+b2N1bWVudGF0aW9uL0FCSS90ZXN0aW5nL3N5c2ZzLWJ1cy1hY3BpDQo+ID4gYi9Eb2N1bWVudGF0
+aW9uL0FCSS90ZXN0aW5nL3N5c2ZzLWJ1cy1hY3BpIGluZGV4IDdmYTljYmMuLmRiMzc2YjggMTAw
+NjQ0DQo+ID4gLS0tIGEvRG9jdW1lbnRhdGlvbi9BQkkvdGVzdGluZy9zeXNmcy1idXMtYWNwaQ0K
+PiA+ICsrKyBiL0RvY3VtZW50YXRpb24vQUJJL3Rlc3Rpbmcvc3lzZnMtYnVzLWFjcGkNCj4gPg0K
+PiA+IEBAIC00OSw2ICs0OSwxMyBAQCAgRGVzY3JpcHRpb246DQo+ID4gIAkJVGhpcyBhdHRyaWJ1
+dGUgY29udGFpbnMgdGhlIG91dHB1dCBvZiB0aGUgZGV2aWNlIG9iamVjdCdzDQo+ID4gIAkJX1VJ
+RCBjb250cm9sIG1ldGhvZCwgaWYgcHJlc2VudC4NCj4gPg0KPiA+ICtXaGF0OgkJL3N5cy9idXMv
+YWNwaS9kZXZpY2VzLy4uLi9kZG4NCj4gPiArRGF0ZToJCUZlYnJ1YXJ5IDIwMTQNCj4gPiArQ29u
+dGFjdDoJUmFmYWVsIEouIFd5c29ja2kgPHJqd0Byand5c29ja2kubmV0Pg0KPiA+ICtEZXNjcmlw
+dGlvbjoNCj4gPiArCQlUaGlzIGF0dHJpYnV0ZSBjb250YWlucyB0aGUgb3V0cHV0IG9mIHRoZSBk
+ZXZpY2Ugb2JqZWN0J3MNCj4gPiArCQlfREROIGNvbnRyb2wgbWV0aG9kLCBpZiBwcmVzZW50Lg0K
+PiA+ICsNCj4gPg0KPiA+ICBXaGF0OgkJL3N5cy9idXMvYWNwaS9kZXZpY2VzLy4uLi9lamVjdA0K
+PiA+ICBEYXRlOgkJRGVjZW1iZXIgMjAwNg0KPiA+ICBDb250YWN0OglSYWZhZWwgSi4gV3lzb2Nr
+aSA8cmp3QHJqd3lzb2NraS5uZXQ+DQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3Bp
+L3NjYW4uYyBiL2RyaXZlcnMvYWNwaS9zY2FuLmMNCj4gPiBpbmRleCA0Nzg5YzliLi41ZjAzOWE2
+IDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9zY2FuLmMNCj4gPiArKysgYi9kcml2ZXJz
+L2FjcGkvc2Nhbi5jDQo+ID4gQEAgLTY2Miw2ICs2NjIsMTggQEAgIHN0YXRpYyBzc2l6ZV90IGRl
+c2NyaXB0aW9uX3Nob3coc3RydWN0IGRldmljZSAqZGV2LA0KPiA+DQo+ID4gIH0NCj4gPiAgc3Rh
+dGljIERFVklDRV9BVFRSKGRlc2NyaXB0aW9uLCAwNDQ0LCBkZXNjcmlwdGlvbl9zaG93LCBOVUxM
+KTsNCj4gPg0KPiA+ICsvKiBzeXNmcyBmaWxlIHRoYXQgc2hvd3MgRE9TIGRldmljZSBuYW1lIHRl
+eHQgZnJvbSB0aGUgQUNQSSBfREROIG1ldGhvZCAqLw0KPiA+ICtzdGF0aWMgc3NpemVfdCBkZG5f
+c2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLA0K
+PiA+ICsJCQljaGFyICpidWYpIHsNCj4gPiArCXN0cnVjdCBhY3BpX2RldmljZSAqYWNwaV9kZXYg
+PSB0b19hY3BpX2RldmljZShkZXYpOw0KPiA+ICsNCj4gPiArCWlmIChhY3BpX2Rldi0+cG5wLmRk
+biA9PSBOVUxMKQ0KPiANCj4gUGxlYXNlIHVzZSAiaWYgKCFhY3BpX2Rldi0+cG5wLmRkbikiDQo+
+IA0KPiBBbHNvLCB5b3UgY2FuIGRvDQo+IA0KPiAJcmV0dXJuIGFjcGlfZGV2LT5wbnAuZGRuID8g
+c25wcmludGYoYnVmLCBQQUdFX1NJWkUsICIlc1xuIiwgYWNwaV9kZXYtPnBucC5kZG4pIDogMDsN
+Cg0KT0ssIEknbGwgdXBkYXRlIHRoaXMuDQoNCj4gDQo+ID4gKwkJcmV0dXJuIDA7DQo+ID4gKw0K
+PiA+ICsJcmV0dXJuIHNucHJpbnRmKGJ1ZiwgUEFHRV9TSVpFLCAiJXNcbiIsIGFjcGlfZGV2LT5w
+bnAuZGRuKTsNCj4gPiArfQ0KPiA+ICtzdGF0aWMgREVWSUNFX0FUVFIoZGRuLCAwNDQ0LCBkZG5f
+c2hvdywgTlVMTCk7DQo+ID4gKw0KPiA+DQo+ID4gIHN0YXRpYyBzc2l6ZV90DQo+ID4gIGFjcGlf
+ZGV2aWNlX3N1bl9zaG93KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1
+dGUgKmF0dHIsDQo+ID4NCj4gPiAgCQkgICAgIGNoYXIgKmJ1Zikgew0KPiA+DQo+ID4gQEAgLTY4
+NywxMCArNjk5LDExIEBAICBzdGF0aWMgREVWSUNFX0FUVFJfUk8oc3RhdHVzKTsNCj4gPg0KPiA+
+ICBzdGF0aWMgaW50IGFjcGlfZGV2aWNlX3NldHVwX2ZpbGVzKHN0cnVjdCBhY3BpX2RldmljZSAq
+ZGV2KQ0KPiA+ICB7DQo+ID4NCj4gPiAtCXN0cnVjdCBhY3BpX2J1ZmZlciBidWZmZXIgPSB7QUNQ
+SV9BTExPQ0FURV9CVUZGRVIsIE5VTEx9Ow0KPiA+ICsJc3RydWN0IGFjcGlfYnVmZmVyIGJ1ZmZl
+cjsNCj4gPg0KPiA+ICAJYWNwaV9zdGF0dXMgc3RhdHVzOw0KPiA+ICAJdW5zaWduZWQgbG9uZyBs
+b25nIHN1bjsNCj4gPiAgCWludCByZXN1bHQgPSAwOw0KPiA+DQo+ID4gKwl1bmlvbiBhY3BpX29i
+amVjdCAqb2JqZWN0Ow0KPiA+DQo+ID4gIAkvKg0KPiA+DQo+ID4gIAkgKiBEZXZpY2VzIGdvdHRl
+biBmcm9tIEZBRFQgZG9uJ3QgaGF2ZSBhICJwYXRoIiBhdHRyaWJ1dGUNCj4gPg0KPiA+IEBAIC03
+MTUsNiArNzI4LDggQEAgIHN0YXRpYyBpbnQgYWNwaV9kZXZpY2Vfc2V0dXBfZmlsZXMoc3RydWN0
+IGFjcGlfZGV2aWNlDQo+ID4gKmRldik+DQo+ID4gIAkgKiBJZiBkZXZpY2UgaGFzIF9TVFIsICdk
+ZXNjcmlwdGlvbicgZmlsZSBpcyBjcmVhdGVkDQo+ID4gIAkgKi8NCj4gPg0KPiA+ICAJaWYgKGFj
+cGlfaGFzX21ldGhvZChkZXYtPmhhbmRsZSwgIl9TVFIiKSkgew0KPiA+DQo+ID4gKwkJYnVmZmVy
+Lmxlbmd0aCA9IEFDUElfQUxMT0NBVEVfQlVGRkVSOw0KPiA+ICsJCWJ1ZmZlci5wb2ludGVyID0g
+TlVMTDsNCj4gPg0KPiA+ICAJCXN0YXR1cyA9IGFjcGlfZXZhbHVhdGVfb2JqZWN0KGRldi0+aGFu
+ZGxlLCAiX1NUUiIsDQo+ID4NCj4gPiAgCQkJCQlOVUxMLCAmYnVmZmVyKTsNCj4gPg0KPiA+ICAJ
+CWlmIChBQ1BJX0ZBSUxVUkUoc3RhdHVzKSkNCj4gPg0KPiA+IEBAIC03MjUsNiArNzQwLDI5IEBA
+ICBzdGF0aWMgaW50IGFjcGlfZGV2aWNlX3NldHVwX2ZpbGVzKHN0cnVjdCBhY3BpX2RldmljZQ0K
+PiA+ICpkZXYpPg0KPiA+ICAJCQlnb3RvIGVuZDsNCj4gPg0KPiA+ICAJfQ0KPiA+DQo+ID4gKwkv
+Kg0KPiA+ICsJICogSWYgZGV2aWNlIGhhcyBfREROLCAnZGRuJyBmaWxlIGlzIGNyZWF0ZWQNCj4g
+PiArCSAqLw0KPiA+ICsJaWYgKGFjcGlfaGFzX21ldGhvZChkZXYtPmhhbmRsZSwgIl9ERE4iKSkg
+ew0KPiA+ICsJCWJ1ZmZlci5sZW5ndGggPSBBQ1BJX0FMTE9DQVRFX0JVRkZFUjsNCj4gPiArCQli
+dWZmZXIucG9pbnRlciA9IE5VTEw7DQo+ID4gKwkJc3RhdHVzID0gYWNwaV9ldmFsdWF0ZV9vYmpl
+Y3RfdHlwZWQoZGV2LT5oYW5kbGUsICJfREROIiwNCj4gPiArCQkJCQkJICAgIE5VTEwsICZidWZm
+ZXIsDQo+ID4gKwkJCQkJCSAgICBBQ1BJX1RZUEVfU1RSSU5HKTsNCj4gPiArCQlpZiAoQUNQSV9G
+QUlMVVJFKHN0YXR1cykpDQo+ID4gKwkJCWJ1ZmZlci5wb2ludGVyID0gTlVMTDsNCj4gPiArCQlv
+YmplY3QgPSBidWZmZXIucG9pbnRlcjsNCj4gPiArCQlpZiAob2JqZWN0KSB7DQo+ID4gKwkJCWRl
+di0+cG5wLmRkbiA9IGtzdHJuZHVwKG9iamVjdC0+c3RyaW5nLnBvaW50ZXIsDQo+ID4gKwkJCQkJ
+CW9iamVjdC0+c3RyaW5nLmxlbmd0aCwNCj4gPiArCQkJCQkJR0ZQX0tFUk5FTCk7DQo+IA0KPiBJ
+cyB0aGUgc3RyaW5nIGd1YXJhbnRlZWQgdG8gYmUgbnVsbC10ZXJtaW5hdGVkIGFmdGVyIHRoYXQ/
+DQoNClllcywgQUNQSUNBIGludGVybmFsIHJvdXRpbmVzIHdpbGwgdXNlIEFDUElfU1RSTkNQWSBh
+bmQgbGlrZXdpc2UgdG8gZW5zdXJlIHRoaXMuDQpJJ2xsIGNoYW5nZSBpdCB0byBrc3RyZHVwLg0K
+DQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gDQo+ID4gKwkJCWtmcmVlKG9iamVj
+dCk7DQo+ID4gKwkJfQ0KPiA+ICsJCXJlc3VsdCA9IGRldmljZV9jcmVhdGVfZmlsZSgmZGV2LT5k
+ZXYsICZkZXZfYXR0cl9kZG4pOw0KPiA+ICsJCWlmIChyZXN1bHQpDQo+ID4gKwkJCWdvdG8gZW5k
+Ow0KPiA+ICsJfQ0KPiA+ICsNCj4gPg0KPiA+ICAJaWYgKGRldi0+cG5wLnR5cGUuYnVzX2FkZHJl
+c3MpDQo+ID4NCj4gPiAgCQlyZXN1bHQgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoJmRldi0+ZGV2LCAm
+ZGV2X2F0dHJfYWRyKTsNCj4gPg0KPiA+ICAJaWYgKGRldi0+cG5wLnVuaXF1ZV9pZCkNCj4gPg0K
+PiA+IEBAIC03ODcsNiArODI1LDEzIEBAICBzdGF0aWMgdm9pZCBhY3BpX2RldmljZV9yZW1vdmVf
+ZmlsZXMoc3RydWN0DQo+ID4gYWNwaV9kZXZpY2UgKmRldik+DQo+ID4gIAkJZGV2aWNlX3JlbW92
+ZV9maWxlKCZkZXYtPmRldiwgJmRldl9hdHRyX2Rlc2NyaXB0aW9uKTsNCj4gPg0KPiA+ICAJfQ0K
+PiA+ICAJLyoNCj4gPg0KPiA+ICsJICogSWYgZGV2aWNlIGhhcyBfREROLCByZW1vdmUgJ2Rkbicg
+ZmlsZQ0KPiA+ICsJICovDQo+ID4gKwlpZiAoYWNwaV9oYXNfbWV0aG9kKGRldi0+aGFuZGxlLCAi
+X0RETiIpKSB7DQo+ID4gKwkJZGV2aWNlX3JlbW92ZV9maWxlKCZkZXYtPmRldiwgJmRldl9hdHRy
+X2Rkbik7DQo+ID4gKwkJa2ZyZWUoZGV2LT5wbnAuZGRuKTsNCj4gPiArCX0NCj4gPiArCS8qDQo+
+ID4NCj4gPiAgCSAqIElmIGRldmljZSBoYXMgX0VKMCwgcmVtb3ZlICdlamVjdCcgZmlsZS4NCj4g
+PiAgCSAqLw0KPiA+DQo+ID4gIAlpZiAoYWNwaV9oYXNfbWV0aG9kKGRldi0+aGFuZGxlLCAiX0VK
+MCIpKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvYWNwaS9hY3BpX2J1cy5oIGIvaW5j
+bHVkZS9hY3BpL2FjcGlfYnVzLmgNCj4gPiBpbmRleCA5ZDgyNDgyLi45MmNhYjM1IDEwMDY0NA0K
+PiA+IC0tLSBhL2luY2x1ZGUvYWNwaS9hY3BpX2J1cy5oDQo+ID4gKysrIGIvaW5jbHVkZS9hY3Bp
+L2FjcGlfYnVzLmgNCj4gPiBAQCAtMjQ0LDYgKzI0NCw3IEBAICBzdHJ1Y3QgYWNwaV9kZXZpY2Vf
+cG5wIHsNCj4gPg0KPiA+ICAJYWNwaV9kZXZpY2VfbmFtZSBkZXZpY2VfbmFtZTsJLyogRHJpdmVy
+LWRldGVybWluZWQgKi8NCj4gPiAgCWFjcGlfZGV2aWNlX2NsYXNzIGRldmljZV9jbGFzczsJLyog
+ICAgICAgICIgICAgICAgICAgKi8NCj4gPiAgCXVuaW9uIGFjcGlfb2JqZWN0ICpzdHJfb2JqOwkv
+KiB1bmljb2RlIHN0cmluZyBmb3IgX1NUUiBtZXRob2QgKi8NCj4gPg0KPiA+ICsJY2hhciAqZGRu
+OwkJCS8qIF9ERE4gKi8NCj4gPg0KPiA+ICAJdW5zaWduZWQgbG9uZyBzdW47CQkvKiBfU1VOICov
+DQo+ID4NCj4gPiAgfTsNCj4gDQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4N
+Cj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVy
+Lg0K
