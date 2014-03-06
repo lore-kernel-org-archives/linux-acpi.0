@@ -1,161 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / Thermal: make acpi_thermal_check asynchronous on resume
-Date: Thu, 06 Mar 2014 14:17:43 +0100
-Message-ID: <1523951.yUmLCOPu6K@vostro.rjw.lan>
-References: <531571AE.30408@intel.com>
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 1/2] trace, RAS: Add basic RAS trace event
+Date: Thu, 06 Mar 2014 10:06:53 -0300
+Message-ID: <20140306100653.46249ea1@samsung.com>
+References: <1393924997-8992-1-git-send-email-gong.chen@linux.intel.com>
+ <1393924997-8992-2-git-send-email-gong.chen@linux.intel.com>
+ <20140306111852.GA24629@pd.tnic> <20140306084320.539ec76e@samsung.com>
+ <20140306121714.GC24629@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53889 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751095AbaCFNCb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Mar 2014 08:02:31 -0500
-In-Reply-To: <531571AE.30408@intel.com>
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:22342 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750829AbaCFNG7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Mar 2014 08:06:59 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N2000GD0N3YM260@mailout2.w2.samsung.com> for
+ linux-acpi@vger.kernel.org; Thu, 06 Mar 2014 08:07:10 -0500 (EST)
+In-reply-to: <20140306121714.GC24629@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com, arozansk@redhat.com, linux-acpi@vger.kernel.org
 
-On Tuesday, March 04, 2014 02:24:46 PM Aaron Lu wrote:
-> On resume we do not need to wait for acpi_thermal_check to finish.
-> Instead, we can run it asynchronously and not block the whole system
-> resume. Also, we make sure when we are suspending again, previously
-> queued work for acpi_thermal_check is done.
+Em Thu, 06 Mar 2014 13:17:14 +0100
+Borislav Petkov <bp@alien8.de> escreveu:
+
+> On Thu, Mar 06, 2014 at 08:43:20AM -0300, Mauro Carvalho Chehab wrote:
+> > I would prefer to keep this out of arch/, because there are some parts
+> > of the ras infra that aren't x86 specific.
 > 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> Those are?
 
-Queued up for 3.15, thanks!
+For example PCIe and memory errors are not x86-specific. Also, as ACPI 
+may also be used on ARM, we may also start to have APEI errors there:
+	https://lwn.net/Articles/574439/
+	https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI
 
-> ---
->  drivers/acpi/thermal.c | 37 +++++++++++++++++++++++++++++++++----
->  1 file changed, 33 insertions(+), 4 deletions(-)
+So, better to think on that on a long term.
+
+> > Going further, it also make sense to move the EDAC drivers into it.
 > 
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 08626c851be7..964068553334 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -43,6 +43,7 @@
->  #include <linux/device.h>
->  #include <linux/thermal.h>
->  #include <linux/acpi.h>
-> +#include <linux/workqueue.h>
->  #include <asm/uaccess.h>
->  
->  #define PREFIX "ACPI: "
-> @@ -90,6 +91,8 @@ static int psv;
->  module_param(psv, int, 0644);
->  MODULE_PARM_DESC(psv, "Disable or override all passive trip points.");
->  
-> +static struct workqueue_struct *acpi_thermal_pm_queue;
-> +
->  static int acpi_thermal_add(struct acpi_device *device);
->  static int acpi_thermal_remove(struct acpi_device *device);
->  static void acpi_thermal_notify(struct acpi_device *device, u32 event);
-> @@ -101,11 +104,13 @@ static const struct acpi_device_id  thermal_device_ids[] = {
->  MODULE_DEVICE_TABLE(acpi, thermal_device_ids);
->  
->  #ifdef CONFIG_PM_SLEEP
-> +static int acpi_thermal_suspend(struct device *dev);
->  static int acpi_thermal_resume(struct device *dev);
->  #else
-> +#define acpi_thermal_suspend NULL
->  #define acpi_thermal_resume NULL
->  #endif
-> -static SIMPLE_DEV_PM_OPS(acpi_thermal_pm, NULL, acpi_thermal_resume);
-> +static SIMPLE_DEV_PM_OPS(acpi_thermal_pm, acpi_thermal_suspend, acpi_thermal_resume);
->  
->  static struct acpi_driver acpi_thermal_driver = {
->  	.name = "thermal",
-> @@ -186,6 +191,7 @@ struct acpi_thermal {
->  	struct thermal_zone_device *thermal_zone;
->  	int tz_enabled;
->  	int kelvin_offset;
-> +	struct work_struct thermal_check_work;
->  };
->  
->  /* --------------------------------------------------------------------------
-> @@ -1064,6 +1070,13 @@ static void acpi_thermal_guess_offset(struct acpi_thermal *tz)
->  		tz->kelvin_offset = 2732;
->  }
->  
-> +static void acpi_thermal_check_fn(struct work_struct *work)
-> +{
-> +	struct acpi_thermal *tz = container_of(work, struct acpi_thermal,
-> +					       thermal_check_work);
-> +	acpi_thermal_check(tz);
-> +}
-> +
->  static int acpi_thermal_add(struct acpi_device *device)
->  {
->  	int result = 0;
-> @@ -1093,6 +1106,8 @@ static int acpi_thermal_add(struct acpi_device *device)
->  	if (result)
->  		goto free_memory;
->  
-> +	INIT_WORK(&tz->thermal_check_work, acpi_thermal_check_fn);
-> +
->  	pr_info(PREFIX "%s [%s] (%ld C)\n", acpi_device_name(device),
->  		acpi_device_bid(device), KELVIN_TO_CELSIUS(tz->temperature));
->  	goto end;
-> @@ -1110,6 +1125,7 @@ static int acpi_thermal_remove(struct acpi_device *device)
->  	if (!device || !acpi_driver_data(device))
->  		return -EINVAL;
->  
-> +	flush_workqueue(acpi_thermal_pm_queue);
->  	tz = acpi_driver_data(device);
->  
->  	acpi_thermal_unregister_thermal_zone(tz);
-> @@ -1118,6 +1134,13 @@ static int acpi_thermal_remove(struct acpi_device *device)
->  }
->  
->  #ifdef CONFIG_PM_SLEEP
-> +static int acpi_thermal_suspend(struct device *dev)
-> +{
-> +	/* Make sure the previously queued thermal check work has been done */
-> +	flush_workqueue(acpi_thermal_pm_queue);
-> +	return 0;
-> +}
-> +
->  static int acpi_thermal_resume(struct device *dev)
->  {
->  	struct acpi_thermal *tz;
-> @@ -1148,7 +1171,7 @@ static int acpi_thermal_resume(struct device *dev)
->  		tz->state.active |= tz->trips.active[i].flags.enabled;
->  	}
->  
-> -	acpi_thermal_check(tz);
-> +	queue_work(acpi_thermal_pm_queue, &tz->thermal_check_work);
->  
->  	return AE_OK;
->  }
-> @@ -1240,16 +1263,22 @@ static int __init acpi_thermal_init(void)
->  		return -ENODEV;
->  	}
->  
-> +	acpi_thermal_pm_queue = create_workqueue("acpi_thermal_pm");
-> +	if (!acpi_thermal_pm_queue)
-> +		return -ENODEV;
-> +
->  	result = acpi_bus_register_driver(&acpi_thermal_driver);
-> -	if (result < 0)
-> +	if (result < 0) {
-> +		destroy_workqueue(acpi_thermal_pm_queue);
->  		return -ENODEV;
-> +	}
->  
->  	return 0;
->  }
->  
->  static void __exit acpi_thermal_exit(void)
->  {
-> -
-> +	destroy_workqueue(acpi_thermal_pm_queue);
->  	acpi_bus_unregister_driver(&acpi_thermal_driver);
->  
->  	return;
-> 
+> Why?
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+In order to put all RAS drivers under the same place. We may eventually
+have a subdir there for EDAC, and one per RAS report mechanism, in order
+to keep it cleaner.
+
+Regards,
+Mauro
