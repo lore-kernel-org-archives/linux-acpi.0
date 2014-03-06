@@ -1,50 +1,74 @@
-From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: [PATCH 1/6] gpiolib: Allow GPIO chips to request their own GPIOs
-Date: Thu, 6 Mar 2014 11:16:28 +0900
-Message-ID: <CAAVeFuKUESAXqnMpMY02_1Vg+p1FcPBpFp6_APc3=vkQDaktqw@mail.gmail.com>
-References: <1393257611-18031-1-git-send-email-mika.westerberg@linux.intel.com>
- <1393257611-18031-2-git-send-email-mika.westerberg@linux.intel.com> <CACRpkdZSdb_xn=swV3owEr0YwCiYVXp-90iyc=9yi-M_P=+L+Q@mail.gmail.com>
+From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH 0/3] amd/pci: Add AMD hostbridge supports for newer AMD
+ systems
+Date: Thu, 6 Mar 2014 00:30:37 -0600
+Message-ID: <5318160D.8070305@amd.com>
+References: <1394053603-3724-1-git-send-email-suravee.suthikulpanit@amd.com> <CAErSpo4MMJh9b0aivwGSbxCMVw24He1+Vo_LH0R0E+fYM5aThg@mail.gmail.com> <5317D9B0.1080502@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f178.google.com ([209.85.220.178]:55428 "EHLO
-	mail-vc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755704AbaCFCQt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Mar 2014 21:16:49 -0500
-In-Reply-To: <CACRpkdZSdb_xn=swV3owEr0YwCiYVXp-90iyc=9yi-M_P=+L+Q@mail.gmail.com>
+Received: from ch1ehsobe006.messaging.microsoft.com ([216.32.181.186]:23318
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750919AbaCFGbE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Mar 2014 01:31:04 -0500
+In-Reply-To: <5317D9B0.1080502@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, Mar 5, 2014 at 11:49 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
-> On Tue, Feb 25, 2014 at 12:00 AM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
->
->> Sometimes it is useful to allow GPIO chips themselves to request GPIOs they
->> own through gpiolib API. One usecase is ACPI ASL code that should be able
->> to toggle GPIOs through GPIO operation regions.
+On 3/5/2014 8:13 PM, Suravee Suthikulanit wrote:
+> On 3/5/2014 3:24 PM, Bjorn Helgaas wrote:
+>> [+cc linux-acpi]
 >>
->> We can't really use gpio_request() and its counterparts because it will pin
->> the module to the kernel forever (as it calls module_get()). Instead we
->> provide a gpiolib internal functions gpiochip_request/free_own_desc() that
->> work the same as gpio_request() but don't manipulate module refrence count.
+>> On Wed, Mar 5, 2014 at 2:06 PM,  <suravee.suthikulpanit@amd.com> wrote:
+>>> From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+>>>
+>>> The current code only supports upto AMD hostbridge for family11h.
+>>> This causes PCI numa_node information to be reported incorrectly
+>>> for newer family with multi sockets.
 >>
->> Since it's the GPIO chip driver who requests the GPIOs in the first place
->> we can be sure that it cannot be unloaded without the driver knowing about
->> that. Furthermore we only limit this functionality to be available only
->> inside gpiolib.
->>
->> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>> Where is the incorrect reporting?  In ACPI tables?  Is this patch a
+>> way to cover up firmware defects in the ACPI description?  Or is this
+>> for machines without ACPI (it seems unlikely that machines with new
+>> AMD processors would not have ACPI)?
 >
-> I fully trust you in doing the ACPI stuff in patches 2-n but on this patch
-> in particular I want Alexandre's review tag as well, as he's working
-> actively with the descriptor API and I don't want to add too many quirks
-> without his consent.
+> This is incorrectly reported in the sysfs for each PCI device (e.g.
+> /devices/pci0000:50/0000:50:00.2/numa_node). Without the patch, they
+> return -1.
 >
-> So Alexandre, what do you say about this?
+> In file arch/x86/pci/acpi.c, in function pci_acpi_scan_root(), it is
+> queries the node information as following:
+>
+> #ifdef CONFIG_ACPI_NUMA
+>      pxm = acpi_get_pxm(device->handle);
+>      if (pxm >= 0)
+>          node = pxm_to_node(pxm);
+>      if (node != -1)
+>          set_mp_bus_to_node(busnum, node);
+>      else
+> #endif
+>          node = get_mp_bus_to_node(busnum);
+>
+> In this case, I see that the acpi_get_pxm() returns -1.  Therefore, it
+> falls back to using the node information in mp_bus_to_node[].  So,
+> without this patch, it would also returning -1.
+>
+> Also, the spec mentioned that the _PXM is optional, so I am not sure if
+> this is a firmware bug.
+>
+> Suravee
 
-I will wait for v2 to give it a real review, but since the new
-functions are not exposed outside of gpiolib and the patch seems to
-serve a real purpose I have no objection to it. Especially if Rafael's
-suggestions can be applied.
+I am not quite familiar with the ACPI for this part.  However, after 
+taking a look at the code (in driver/acpi/pci_root.c: 
+acpi_pci_root_add()), I believe it's trying to locate _PXM method in the 
+DSDT table, in which I don't see any _PXM methods.
+
+I'm still trying to debug this issue, any suggestions would be appreciated.
+
+Thank you,
+
+Suravee
+
+
