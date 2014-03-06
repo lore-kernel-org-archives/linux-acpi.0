@@ -1,178 +1,67 @@
-From: Shuduo Sang <shuduo.sang-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Subject: [PATCH V4] support Thinkpad X1 Carbon 2nd
-	generation's adaptive keyboard
-Date: Thu, 06 Mar 2014 18:20:46 +0800
-Message-ID: <53184BFE.5080007@canonical.com>
-References: <5314AE4C.4090502@canonical.com> <20140304091916.GE1883@distanz.ch>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 1/2] trace, RAS: Add basic RAS trace event
+Date: Thu, 6 Mar 2014 12:18:52 +0100
+Message-ID: <20140306111852.GA24629@pd.tnic>
+References: <1393924997-8992-1-git-send-email-gong.chen@linux.intel.com>
+ <1393924997-8992-2-git-send-email-gong.chen@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20140304091916.GE1883-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Tobias Klauser <tklauser-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org>, bjorn-yOkvZcmFvRU@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org, matthew.garrett-+LlxwbBB2+6sTnJN9+BGXg@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: bruce.ma-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:33371 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752730AbaCFLS7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Mar 2014 06:18:59 -0500
+Content-Disposition: inline
+In-Reply-To: <1393924997-8992-2-git-send-email-gong.chen@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Chen, Gong" <gong.chen@linux.intel.com>
+Cc: tony.luck@intel.com, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org
 
+On Tue, Mar 04, 2014 at 04:23:16AM -0500, Chen, Gong wrote:
+> To avoid the confuision of usage for RAS related trace event, add
+> an unified RAS trace event stub.
+> 
+> Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+> ---
+>  drivers/edac/edac_mc.c    |  3 ---
+>  kernel/trace/Makefile     |  1 +
+>  kernel/trace/ras-traces.c | 12 ++++++++++++
+>  3 files changed, 13 insertions(+), 3 deletions(-)
+>  create mode 100644 kernel/trace/ras-traces.c
+> 
+> diff --git a/drivers/edac/edac_mc.c b/drivers/edac/edac_mc.c
+> index 33edd67..28c1695 100644
+> --- a/drivers/edac/edac_mc.c
+> +++ b/drivers/edac/edac_mc.c
+> @@ -33,9 +33,6 @@
+>  #include <asm/edac.h>
+>  #include "edac_core.h"
+>  #include "edac_module.h"
+> -
+> -#define CREATE_TRACE_POINTS
+> -#define TRACE_INCLUDE_PATH ../../include/ras
+>  #include <ras/ras_event.h>
+>  
+>  /* lock to memory controller's control array */
+> diff --git a/kernel/trace/Makefile b/kernel/trace/Makefile
+> index 1378e84..167193a 100644
+> --- a/kernel/trace/Makefile
+> +++ b/kernel/trace/Makefile
+> @@ -52,6 +52,7 @@ endif
+>  obj-$(CONFIG_EVENT_TRACING) += trace_events_filter.o
+>  obj-$(CONFIG_EVENT_TRACING) += trace_events_trigger.o
+>  obj-$(CONFIG_KPROBE_EVENT) += trace_kprobe.o
+> +obj-$(CONFIG_TRACEPOINTS) += ras-traces.o
 
-Submit patch V4 to support Adaptive Keyboard on Thinkpad X1 Carbon 2nd
-generation according to Tobias's comments.
+Actually I was thinking of slowly concentrating all the RAS stuff into
+arch/x86/ras/.
 
-Thanks,
-Shuduo
+Just add arch/x86/ras/trace.c instead please.
 
-
->From b153a7b14791c6e01892c0e274e23eefd625fb8d Mon Sep 17 00:00:00 2001
-From: Shuduo Sang <shuduo.sang-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Date: Mon, 3 Mar 2014 14:29:32 +0800
-Subject: [PATCH] support thinkpad X1 Carbon's adaptive keyboard
-
-Thinkpad X1 Carbon's adaptive keyboard has five modes including Home
-mode, Web browser mode, Web conference mode, Function mode and Lay-flat
-mode. We support Home mode and Function mode currently.
-
-Signed-off-by: Bruce Ma <bruce.ma-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Signed-off-by: Shuduo Sang <shuduo.sang-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
----
- drivers/platform/x86/thinkpad_acpi.c | 102
-+++++++++++++++++++++++++++++++++++
- 1 file changed, 102 insertions(+)
-
-diff --git a/drivers/platform/x86/thinkpad_acpi.c
-b/drivers/platform/x86/thinkpad_acpi.c
-index defb6af..f4978fa 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -3437,6 +3437,106 @@ err_exit:
- 	return (res < 0)? res : 1;
- }
-
-+/* Thinkpad X1 Carbon support 5 modes including Home mode, Web browser
-+ * mode, Web conference mode, Function mode and Lay-flat mode.
-+ * We support Home mode and Function mode currently.
-+ *
-+ * Will consider support rest of modes in future.
-+ *
-+ */
-+enum ADAPTIVE_KEY_MODE {
-+	HOME_MODE,
-+	WEB_BROWSER_MODE,
-+	WEB_CONFERENCE_MODE,
-+	FUNCTION_MODE,
-+	LAYFLAT_MODE
-+};
-+
-+const int adaptive_keyboard_modes[] = {
-+	HOME_MODE,
-+/*	WEB_BROWSER_MODE = 2,
-+	WEB_CONFERENCE_MODE = 3, */
-+	FUNCTION_MODE
-+};
-+
-+#define DFR_CHANGE_ROW			0x101
-+#define DFR_SHOW_QUICKVIEW_ROW		0x102
-+
-+/* press Fn key a while second, it will switch to Function Mode. Then
-+ * release Fn key, previous mode be restored.
-+ */
-+static bool adaptive_keyboard_mode_is_saved;
-+static int adaptive_keyboard_prev_mode;
-+
-+static int adaptive_keyboard_get_next_mode(int mode)
-+{
-+	size_t i;
-+	size_t max_mode = ARRAY_SIZE(adaptive_keyboard_modes) - 1;
-+
-+	for (i = 0; i <= max_mode; i++) {
-+		if (adaptive_keyboard_modes[i] == mode)
-+			break;
-+	}
-+
-+	if (i >= max_mode)
-+		i = 0;
-+	else
-+		i++;
-+
-+	return adaptive_keyboard_modes[i];
-+}
-+
-+static bool adaptive_keyboard_hotkey_notify_hotkey(unsigned int scancode)
-+{
-+	u32 current_mode = 0;
-+	int new_mode = 0;
-+
-+	switch (scancode) {
-+	case DFR_CHANGE_ROW:
-+		if (adaptive_keyboard_mode_is_saved) {
-+			new_mode = adaptive_keyboard_prev_mode;
-+			adaptive_keyboard_mode_is_saved = false;
-+		} else {
-+			if (!acpi_evalf(
-+					hkey_handle, &current_mode,
-+					"GTRW", "dd", 0)) {
-+				pr_err("Cannot read adaptive keyboard mode\n");
-+				return false;
-+			} else {
-+				new_mode = adaptive_keyboard_get_next_mode(
-+						current_mode);
-+			}
-+		}
-+
-+		if (!acpi_evalf(hkey_handle, NULL, "STRW", "vd", new_mode)) {
-+			pr_err("Cannot set adaptive keyboard mode\n");
-+			return false;
-+		}
-+
-+		return true;
-+
-+	case DFR_SHOW_QUICKVIEW_ROW:
-+		if (!acpi_evalf(hkey_handle,
-+				&adaptive_keyboard_prev_mode,
-+				"GTRW", "dd", 0)) {
-+			pr_err("Cannot read adaptive keyboard mode\n");
-+			return false;
-+		} else {
-+			adaptive_keyboard_mode_is_saved = true;
-+
-+			if (!acpi_evalf(hkey_handle,
-+					NULL, "STRW", "vd", FUNCTION_MODE)) {
-+				pr_err("Cannot set adaptive keyboard mode\n");
-+				return false;
-+			}
-+		}
-+		return true;
-+
-+	default:
-+		return false;
-+	}
-+}
-+
- static bool hotkey_notify_hotkey(const u32 hkey,
- 				 bool *send_acpi_ev,
- 				 bool *ignore_acpi_ev)
-@@ -3456,6 +3556,8 @@ static bool hotkey_notify_hotkey(const u32 hkey,
- 			*ignore_acpi_ev = true;
- 		}
- 		return true;
-+	} else {
-+		return adaptive_keyboard_hotkey_notify_hotkey(scancode);
- 	}
- 	return false;
- }
 -- 
-1.9.0
+Regards/Gruss,
+    Boris.
 
-
-------------------------------------------------------------------------------
-Subversion Kills Productivity. Get off Subversion & Make the Move to Perforce.
-With Perforce, you get hassle-free workflows. Merge that actually works. 
-Faster operations. Version large binaries.  Built-in WAN optimization and the
-freedom to use Git, Perforce or both. Make the move to Perforce.
-http://pubads.g.doubleclick.net/gampad/clk?id=122218951&iu=/4140/ostg.clktrk
+Sent from a fat crate under my desk. Formatting is fine.
+--
