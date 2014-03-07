@@ -1,180 +1,179 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH 6/8] ACPI: use platform bus as the default bus for _HID enumeration
-Date: Fri, 07 Mar 2014 02:46:29 +0100
-Message-ID: <2388303.C1BkYjz7xX@vostro.rjw.lan>
-References: <1393405874-3266-1-git-send-email-rui.zhang@intel.com> <744357E9AAD1214791ACBA4B0B909263011E907E@SHSMSX101.ccr.corp.intel.com> <53151FB4.60502@intel.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH v2] ACPI / battery: trigger rechecking of AC adapter state
+ when battery state changes.
+Date: Fri, 07 Mar 2014 11:43:10 +0800
+Message-ID: <5319404E.10509@intel.com>
+References: <1393758159-6934-1-git-send-email-mezin.alexander@gmail.com> <1820321.2G4Ojtj5V1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49233 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751143AbaCGBbR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Mar 2014 20:31:17 -0500
-In-Reply-To: <53151FB4.60502@intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:59088 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752356AbaCGDlZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Mar 2014 22:41:25 -0500
+In-Reply-To: <1820321.2G4Ojtj5V1@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "matthew.garrett@nebula.com" <matthew.garrett@nebula.com>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexander Mezin <mezin.alexander@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tuesday, March 04, 2014 01:35:00 AM Rafael J. Wysocki wrote:
-> On 3/4/2014 1:27 AM, Zhang, Rui wrote:
-> >
-> >> -----Original Message-----
-> >> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> >> Sent: Tuesday, March 04, 2014 7:23 AM
-> >> To: Zhang, Rui
-> >> Cc: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
-> >> bhelgaas@google.com; matthew.garrett@nebula.com; Wysocki, Rafael J;
-> >> dmitry.torokhov@gmail.com
-> >> Subject: Re: [RFC PATCH 6/8] ACPI: use platform bus as the default bus
-> >> for _HID enumeration
-> >> Importance: High
-> >>
-> >> On Monday, March 03, 2014 10:11:48 PM Zhang Rui wrote:
-> >>> On Mon, 2014-03-03 at 00:51 +0100, Rafael J. Wysocki wrote:
-> >>>> On Wednesday, February 26, 2014 05:11:12 PM Zhang Rui wrote:
-> >>>>> Because of the growing demand for enumerating ACPI devices to
-> >>>>> platform bus, this patch changes the code to enumerate ACPI
-> >>>>> devices with _HID/_CID to platform bus by default, unless the
-> >> device already has a scan handler attached.
-> >>>>> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> >>>>> ---
-> >>>>>   drivers/acpi/acpi_platform.c |   28 ----------------------------
-> >>>>>   drivers/acpi/scan.c          |   12 ++++++------
-> >>>>>   2 files changed, 6 insertions(+), 34 deletions(-)
-> >>>>>
-> >>>>> diff --git a/drivers/acpi/acpi_platform.c
-> >>>>> b/drivers/acpi/acpi_platform.c index dbfe49e..33376a9 100644
-> >>>>> --- a/drivers/acpi/acpi_platform.c
-> >>>>> +++ b/drivers/acpi/acpi_platform.c
-> >>>>> @@ -22,24 +22,6 @@
-> >>>>>
-> >>>>>   ACPI_MODULE_NAME("platform");
-> >>>>>
-> >>>>> -/*
-> >>>>> - * The following ACPI IDs are known to be suitable for
-> >>>>> representing as
-> >>>>> - * platform devices.
-> >>>>> - */
-> >>>>> -static const struct acpi_device_id acpi_platform_device_ids[] =
-> >> {
-> >>>>> -
-> >>>>> -	{ "PNP0D40" },
-> >>>>> -	{ "ACPI0003" },
-> >>>>> -	{ "VPC2004" },
-> >>>>> -	{ "BCM4752" },
-> >>>>> -
-> >>>>> -	/* Intel Smart Sound Technology */
-> >>>>> -	{ "INT33C8" },
-> >>>>> -	{ "80860F28" },
-> >>>>> -
-> >>>>> -	{ }
-> >>>>> -};
-> >>>>> -
-> >>>>>   /**
-> >>>>>    * acpi_create_platform_device - Create platform device for ACPI
-> >> device node
-> >>>>>    * @adev: ACPI device node to create a platform device for.
-> >>>>> @@ -125,13 +107,3 @@ int acpi_create_platform_device(struct
-> >> acpi_device *adev,
-> >>>>>   	kfree(resources);
-> >>>>>   	return 1;
-> >>>>>   }
-> >>>>> -
-> >>>>> -static struct acpi_scan_handler platform_handler = {
-> >>>>> -	.ids = acpi_platform_device_ids,
-> >>>>> -	.attach = acpi_create_platform_device,
-> >>>>> -};
-> >>>>> -
-> >>>>> -void __init acpi_platform_init(void) -{
-> >>>>> -	acpi_scan_add_handler(&platform_handler);
-> >>>>> -}
-> >>>>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c index
-> >>>>> 5967338..61af32e 100644
-> >>>>> --- a/drivers/acpi/scan.c
-> >>>>> +++ b/drivers/acpi/scan.c
-> >>>>> @@ -2022,14 +2022,15 @@ static int
-> >> acpi_scan_attach_handler(struct acpi_device *device)
-> >>>>>   		handler = acpi_scan_match_handler(hwid->id, &devid);
-> >>>>>   		if (handler) {
-> >>>>>   			ret = handler->attach(device, devid);
-> >>>>> -			if (ret > 0) {
-> >>>>> +			if (ret > 0)
-> >>>>>   				device->handler = handler;
-> >>>>> -				break;
-> >>>>> -			} else if (ret < 0) {
-> >>>>> -				break;
-> >>>>> -			}
-> >>>>> +			if (ret)
-> >>>>> +				goto end;
-> >>>>>   		}
-> >>>>>   	}
-> >>>>> +end:
-> >>>>> +	if (!list_empty(&device->pnp.ids) && !device->handler)
-> >>>> I'm a bit concerned that this check will create platform devices
-> >> for
-> >>>> too many ACPI device objects.
-> >>> agreed. there are some devices created unexpected by this patch, e.g.
-> >>> on my test machine, I can see
-> >>>
-> >>> /sys/bus/platform/devices/LNXSYSTM:00 (ACPI system bus/root node)
-> >>> /sys/bus/platform/devices/PNP0000:00  (PIC)
-> >>> /sys/bus/platform/devices/PNP0100:00  (system timer?)
-> >>>
-> >>>>    Shouldn't we require that _HID or at least _CID is present for
-> >>>> that?
-> >>>>
-> >>> I do not think so.
-> >>> only devices that invoke acpi_add_ids() may have pnp.ids but no
-> >>> _HID/_CID, right?
-> >>> I did a check in the code, those devices include:
-> >> Well, I did that too.
-> >>
-> >>> ACPI root node
-> >>> ACPI video
-> >>> ACPI bay
-> >>> ACPI dock
-> >>> IBM SMBus
-> >>> ACPI Power resource
-> >>> ACPI processor
-> >>> ACPI thermal
-> >>> ACPI fixed power/sleep button
-> >>>
-> >>> IMO, only the ACPI root node, ACPI power resource, possibly ACPI
-> >>> processor are the ones that we do not want to see in platform bus.
-> >> No, we don't want any of them.  So pretty much as I said, only if
-> >> _HID/_CID is present, please?
-> >>
-> > Why? We will convert the drivers for most of those devices from ACPI bus to platform bus sooner or later.
-> > We need to see them in platform bus...
-> 
-> No, we don't.
-> 
-> I'm not sure about IBM SMBus to be honest, but as for the rest:
-> 
-> Why would we want one for the ACPI root?
-> 
-> And for video?  Those things are PCI usually devices anyway and we just 
-> add "artificial" HIDs for them.
-> 
-> ACPI docks and bays are handled by the dock driver which creates 
-> platform devices for them already if needed and we don't want duplicates 
-> there.
-> 
-> ACPI processor has its own scan handler that binds those objects to 
-> system devices.
-> 
-> Power resources - no need.
-> 
-> Do we need platform devices for ACPI thermal zones?
-> 
-> Yes, we will need them for fixed buttons, but that's a special case anyway.
+On 03/06/2014 09:15 PM, Rafael J. Wysocki wrote:
+> On Sunday, March 02, 2014 06:02:39 PM Alexander Mezin wrote:
+>> On HP Pavilion dv6-6179er there are no notifications when AC adapter
+>> is plugged/unplugged.
+>>
+>> Output of acpi_listen, adapter is unplugged and then plugged in back:
+>>
+>> battery PNP0C0A:00 00000001 00000001
+>> battery PNP0C0A:00 00000080 00000001
+>>   PNP0C14:00 00000080 00000000
+>> processor LNXCPU:00 00000082 00000000
+>> battery PNP0C0A:00 00000000 00000001
+>> battery PNP0C0A:00 00000080 00000001
+>>   PNP0C14:00 00000080 00000000
+>> processor LNXCPU:00 00000082 00000000
+>> battery PNP0C0A:00 00000080 00000001
+>>
+>> The only way to trigger the notification is to read "online"
+>> property in sysfs (/sys/class/power_supply/AC/online).
+>>
+>> This patch triggers the notification by calling get_property for
+>> every mains power supply.
+>>
+>> Output of acpi_listen with this patch applied:
+>>
+>> battery PNP0C0A:00 00000001 00000001
+>> battery PNP0C0A:00 00000080 00000001
+>>   PNP0C14:00 00000080 00000000
+>> ac_adapter ACPI0003:00 00000000 00000000
+>> processor LNXCPU:00 00000082 00000000
+>> battery PNP0C0A:00 00000000 00000001
+>> battery PNP0C0A:00 00000080 00000001
+>>   PNP0C14:00 00000080 00000000
+>> ac_adapter ACPI0003:00 00000000 00000001
+>> processor LNXCPU:00 00000082 00000000
+>> battery PNP0C0A:00 00000080 00000001
+>>
+>> I'm using this patch for about a month, and didn't notice any
+>> problems. I've tested it on top of both 3.13.5 and 3.14-rc4.
+>>
+>> Signed-off-by: Alexander Mezin <mezin.alexander@gmail.com>
+>
+> Tiany, do you have any more comments here?
+>
 
-So, why don't we add an ACPI device object flag, say hid_device, such that if
-set, the ACPI core will create a struct platform device for that device object.
-Then, we can set hid_device for buttons and other stuff we care about.
+Sorry for later response due to be busy on other things.
 
-Thanks,
-Rafael
+Hi Alexander:
 
+ From the DSDT table, _Q08 is in change of notifying AC driver.
+So you can check "/sys/firmware/acpi/interrupts/gpe08". Whether the 
+count increases or not during plugging or unplugging AC.
+
+According the description, the _Q08 wasn't triggered.
+
+ >> The only way to trigger the notification is to read "online"
+ >> property in sysfs (/sys/class/power_supply/AC/online).
+
+The AC status is read and _PSR() is invoked during "online" file is 
+accessed.
+
+_PSR() compares EC AC status with previous stored value and notify AC 
+driver if these values are not equal. This is why there is AC event 
+after accessing "online" sysfs interface.
+
+Method (_PSR, 0, NotSerialized)  // _PSR: Power Source
+{
+     Store (ACP, Local0)
+     If (^^PCI0.LPCB.EC.ECOK)
+     {
+         Store (^^PCI0.LPCB.EC.ADP, Local0)
+         If (LNotEqual (Local0, ACP))
+         {
+             FLPA ()
+         }
+     }
+	.....
+}
+
+
+Method (FLPA, 0, NotSerialized)
+{
+     If (ACP)
+     {
+         Store (Zero, ACP)
+     }
+     Else
+     {
+         Store (One, ACP)
+     }
+
+     Notify (AC, Zero)
+}
+
+
+>>
+>> ---
+>>   v2: more verbose description
+>>
+>>   drivers/acpi/battery.c | 22 ++++++++++++++++++++++
+>>   1 file changed, 22 insertions(+)
+>>
+>> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+>> index 797a693..fb548f0 100644
+>> --- a/drivers/acpi/battery.c
+>> +++ b/drivers/acpi/battery.c
+>> @@ -671,9 +671,22 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
+>>   	}
+>>   }
+>>
+>> +static int acpi_battery_check_ac_state(struct device *dev, void *unused)
+>> +{
+>> +	struct power_supply *ps = dev_get_drvdata(dev);
+>> +	union power_supply_propval temp;
+>> +
+>> +	if (ps->type != POWER_SUPPLY_TYPE_MAINS)
+>> +		return 0;
+>> +
+>> +	ps->get_property(ps, POWER_SUPPLY_PROP_ONLINE, &temp);
+>> +	return 0;
+>> +}
+>> +
+>>   static int acpi_battery_update(struct acpi_battery *battery)
+>>   {
+>>   	int result, old_present = acpi_battery_present(battery);
+>> +	int old_state = battery->state;
+>>   	result = acpi_battery_get_status(battery);
+>>   	if (result)
+>>   		return result;
+>> @@ -696,6 +709,15 @@ static int acpi_battery_update(struct acpi_battery *battery)
+>>   	}
+>>   	result = acpi_battery_get_state(battery);
+>>   	acpi_battery_quirks(battery);
+>> +	if (old_state != battery->state)
+>> +		/*
+>> +		 * Some BIOSes don't send notifications when AC adapter
+>> +		 * is plugged or unplugged.
+>> +		 * If battery changes its state, this could indicate that
+>> +		 * AC adapter's state has changed too.
+>> +		 */
+>> +		class_for_each_device(power_supply_class, NULL, NULL,
+>> +				      &acpi_battery_check_ac_state);
+
+I think you can use acpi_notifier_call_chain() here and register acpi 
+notifier in the AC driver. When get the Battery change event, call 
+acpi_ac_get_state(ac). From my view, this is more general than traverse 
+all power supply device and call AC's get_property() callback in battery 
+driver.
+
+>>   	return result;
+>>   }
+>>
+>>
+>
+
+
+-- 
+Best Regards
+Tianyu Lan
