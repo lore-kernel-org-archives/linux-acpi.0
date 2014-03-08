@@ -1,98 +1,95 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: My Kernel bug is celebrating 2 years. Can you help me fix it?
-Date: Fri, 07 Mar 2014 10:44:36 -0500
-Message-ID: <5319E964.2070802@hurleysoftware.com>
-References: <CA+MoWDrTNtAHKsiBHz=W4=eJRO=m9EK_HZ7zLxb=4fg5riUQeg@mail.gmail.com>	<CAErSpo4wdYDgTUTBDLimbviLh54C9ELXKfQ2y5qeUR1FKN8fpw@mail.gmail.com>	<5318C7B9.8040408@hurleysoftware.com> <CA+MoWDpN7qK6m8fdhjjO7J6zNPm+NQSkZipQn5vmHSELXu3D_w@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI and power management fixes for v3.14-rc6
+Date: Sat, 8 Mar 2014 02:51:09 +0100
+Message-ID: <CAJZ5v0hwn2L5sFiNYgDu1yLypaKOS9RD7=xfUuqXU6QnfbT3QA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CA+MoWDpN7qK6m8fdhjjO7J6zNPm+NQSkZipQn5vmHSELXu3D_w@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, "kernelnewbies@kernelnewbies.org" <kernelnewbies@kernelnewbies.org>, kernel-janitors@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stoney Wang <song-bo.wang@hp.com>, Yinghai Lu <yinghai@kernel.org>, Suresh Siddha <suresh.b.siddha@intel.com>, Joerg Roedel <joro@8bytes.org>, Jiang Liu <jiang.liu@linux.intel.com>, Linux PM list <linux-pm@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-acpi <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-[ +cc linux-acpi ]
+Hi Linus,
 
-On 03/07/2014 10:01 AM, Peter Senna Tschudin wrote:
-> On Thu, Mar 6, 2014 at 8:08 PM, Peter Hurley <peter@hurleysoftware.com> wrote:
->> On 03/06/2014 01:27 PM, Bjorn Helgaas wrote:
->>>
->>> [+cc Stoney, Yinghai, Suresh, Joerg, Jiang, Pavel, Rafael, linux-pm]
->>>
->>> Let's add some folks who know about x2apic and VT-d.  It's hard for
->>> people to magically pick stuff out of the LKML firehose :)
->>>
->>> On Tue, Mar 4, 2014 at 2:26 PM, Peter Senna Tschudin
->>> <peter.senna@gmail.com> wrote:
->>>>
->>>> I have reported a bug more than two years ago and it is still
->>>> affecting me. The bug report gives some information:
->>>>
->>>> https://bugzilla.redhat.com/show_bug.cgi?id=787299
->>>>
->>>> I have tried basic debug instructions from:
->>>> https://www.kernel.org/doc/Documentation/power/basic-pm-debugging.txt
->>>>
->>>> And everything works as expected when:
->>>> # echo freeze > /sys/power/state
->>>> # echo disk > /sys/power/state
->>>>
->>>> I have asked for help for fixing it:
->>>> https://lkml.org/lkml/2013/11/1/186
->>>>
->>>> But I don't have a serial port. How can I debug this issue without a
->>>> "real" serial port? Or what else can I try? How can I explore the hint
->>>> about the problem only happening with VT-d enabled in BIOS? How can I
->>>> explore the hint about the problem not happening if the option
->>>> nox2apic is passed to the Kernel?
->>>>
->>>> Thank you,
->>>>
->>>> Peter
->>>>
->>>> P.S Yes, it works on Windows.
->>
->>
->> Windows 7 doesn't use x2apic mode.
->> Windows 8 does and this same problem happened with this model: see
->> http://forums.toshiba.com/t5/Windows-8-8-1/Resume-from-standby-issue-on-R830-PT321A-01K002/td-p/330110
-> Thank you for the information. The model is similar to mine, probably
-> the same motherboard. My tests were with Windows 7.
+Please pull from the git repository at
 
-And more importantly, probably the same system firmware.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-3.14-rc6
 
+to receive ACPI and power management fixes for v3.14-rc6
+with top-most commit 19bc45a59caf0ed2c2576da4d89c0ef8a8be1f63
 
->> Seems like your model was recently added to Toshiba's Windows 8
->> compatibility list: http://support.toshiba-tie.co.jp/windows8/list_au.htm
->>
->> Check for a more recent BIOS update that may fix this problem.
-> I do that weekly since February last year, and there are no updates
-> available.  The bad news is that the model was discontinued, so it is
-> possible that there will be no more BIOS updates. I'll write to
-> Toshiba Europe GmbH asking for a fix, by my hopes in getting an answer
-> are low.
+  Merge branch 'pm-cpufreq'
 
-Ok.
+on top of commit 0414855fdc4a40da05221fc6062cccbc0c30f169
 
->>
->> Regards,
->> Peter Hurley
->>
->> PS - kernel bugs are better filed on the kernel bugzilla
->> https://bugzilla.kernel.org/
-> Thank you!
+  Linux 3.14-rc5
 
-I would file it under ACPI; perhaps a simple means of determining this
-system firmware does not reliably support x2apic can be found (or perhaps not).
+These fix bugs that have been present for quite some time, but either
+they took a lot of effort to debug and address, or they have been
+spotted recently and the fixes are rather straightforward, so it
+doesn't seem useful to wait with them for the next couple of weeks.
+Two of them fix the ACPI core, one fixes the Embedded Controller (EC)
+driver and three fix concurrency-related issues in cpufreq.
 
-Please read REPORTING-BUGS; the latest is here
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/REPORTING-BUGS?id=refs/tags/v3.14-rc5
+Specifics:
 
-Good luck,
-Peter Hurley
+ - ACPI tables in some BIOSes list device resources with size equal
+   to 0, which doesn't make sense, so we should ignore them, but
+   instead we try to use them and mangle things completely.  Fix
+   from Zhang Rui.
+
+ - Several models of Samsung laptops accumulate EC events when they
+   are in sleep states which leads to EC buffer overflows that prevent
+   new events from being signaled after system resume or reboot.  This
+   has been affecting many users for quite a while and is addressed
+   by clearing the EC buffer during system resume and system startup on
+   those machines.  From Kieran Clancy.
+
+ - If the ACPI sleep control and status registers are not present
+   (which  happens if the Hardware Reduced ACPI mode bit is set in
+   the ACPI tables, but also may result from BIOS bugs), we should
+   not try to use ACPI to power off the system and ACPI S5 should
+   not be listed as supported.  Fix from Aubrey Li.
+
+ - There's a race condition in cpufreq_get() that leads to a kernel
+   crash if that function is called at a wrong time.  Fix from
+   Aaron Plattner.
+
+ - cpufreq policy objects have to be initialized entirely before
+   they are first accessed by their users which isn't the case
+   currently and that potentially leads to various kinds of
+   breakage that is difficult to debug.  Fix from Viresh Kumar.
+
+ - Locking is missing in __cpufreq_add_dev() which leads to a race
+   condition that may trigger a kernel crash.  Fix from Viresh Kumar.
+
+Thanks!
 
 
+---------------
 
+Aaron Plattner (1):
+      cpufreq: use cpufreq_cpu_get() to avoid cpufreq_get() race conditions
 
+Kieran Clancy (1):
+      ACPI / EC: Clear stale EC events on Samsung systems
+
+Li, Aubrey (1):
+      ACPI / sleep: pm_power_off needs more sanity checks to be installed
+
+Viresh Kumar (2):
+      cpufreq: Initialize policy before making it available for others to use
+      cpufreq: Initialize governor for a new policy under policy->rwsem
+
+Zhang Rui (1):
+      ACPI / resources: ignore invalid ACPI device resources
+
+---------------
+
+ drivers/acpi/ec.c         | 64 +++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/resource.c   | 10 ++++++++
+ drivers/acpi/sleep.c      |  7 +++++-
+ drivers/cpufreq/cpufreq.c | 51 +++++++++++++++++--------------------
+ 4 files changed, 103 insertions(+), 29 deletions(-)
