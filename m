@@ -1,48 +1,62 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [regression] linux-3.14.0-rc5-.. kernel does not switch power off
-Date: Sun, 09 Mar 2014 18:15:38 +0100
-Message-ID: <34025658.DfioqOCCn3@vostro.rjw.lan>
+Subject: [PATCH] Revert "ACPI / sleep: pm_power_off needs more sanity checks to be installed"
+Date: Sun, 09 Mar 2014 18:30:50 +0100
+Message-ID: <2617726.ByJ3yc2hCY@vostro.rjw.lan>
 References: <CADDKRnCTBiGC2fkd1Utp7BY7vjORcHh4O9GgqfMP7iDfFkNKuw@mail.gmail.com> <4129487.hPye7CfaJv@vostro.rjw.lan> <4824481.V0Gqxh5Nec@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55029 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:58256 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751207AbaCIRAV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Mar 2014 13:00:21 -0400
+	with SMTP id S1752258AbaCIRPe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Mar 2014 13:15:34 -0400
 In-Reply-To: <4824481.V0Gqxh5Nec@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aubrey Li <aubrey.li@intel.com>
 
-On Sunday, March 09, 2014 05:58:59 PM Rafael J. Wysocki wrote:
-> On Sunday, March 09, 2014 05:55:28 PM Rafael J. Wysocki wrote:
-> > On Sunday, March 09, 2014 05:12:56 PM J=C3=B6rg Otte wrote:
-> > > On shutdown power is not switched off. The harddisk is already do=
-wn.
-> > > Reboot is working.
-> > >=20
-> > > Last known good kernel is: 3.14.0-rc5-00265-gb01d4e6
-> > > First known bad kernel is: 3.14.0-rc5-00287-gca62eec
-> >=20
-> > Can you please tell me which commits those two kernels correspond t=
-o?
->=20
-> And please post a boot log from the failing one.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Never mind, I know what the problem is, commit 3130497f5bab (ACPI / sle=
-ep:
-pm_power_off needs more sanity checks to be installed) has to be revert=
-ed.
+Revert commit 3130497f5bab (ACPI / sleep: pm_power_off needs more
+sanity checks to be installed) that breaks power ACPI power off on a
+lot of systems, because it checks wrong registers.
 
-Sorry about the breakage and I'll send a revert patch shortly.
+Fixes: 3130497f5bab (ACPI / sleep: pm_power_off needs more sanity checks to be installed)
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+Hi Linus,
+
+Can you take this for 3.14-rc6 directly so that the breakage is not present
+in that -rc, please?
+
+I obviously trusted the author of commit 3130497f5bab too much which I shouldn't
+have done.  My bad and sorry about this mess.
 
 Rafael
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---
+ drivers/acpi/sleep.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+Index: linux-pm/drivers/acpi/sleep.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/sleep.c
++++ linux-pm/drivers/acpi/sleep.c
+@@ -807,12 +807,7 @@ int __init acpi_sleep_init(void)
+ 	acpi_sleep_hibernate_setup();
+ 
+ 	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+-	/*
+-	 * Check both ACPI S5 object and ACPI sleep registers to
+-	 * install pm_power_off_prepare/pm_power_off hook
+-	 */
+-	if (ACPI_SUCCESS(status) && acpi_gbl_FADT.sleep_control.address
+-	    && acpi_gbl_FADT.sleep_status.address) {
++	if (ACPI_SUCCESS(status)) {
+ 		sleep_states[ACPI_STATE_S5] = 1;
+ 		pm_power_off_prepare = acpi_power_off_prepare;
+ 		pm_power_off = acpi_power_off;
+
