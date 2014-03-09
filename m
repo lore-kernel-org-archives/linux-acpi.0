@@ -1,51 +1,90 @@
-From: Alexander Mezin <mezin.alexander@gmail.com>
-Subject: Re: [PATCH v2] ACPI / battery: trigger rechecking of AC adapter state
- when battery state changes.
-Date: Sat, 8 Mar 2014 12:45:03 +0700
-Message-ID: <CADnvcfKLsqXxVu+5n+B-OpF1aNRq-bj6f_bNzRShH7J=FXfyzA@mail.gmail.com>
-References: <1393758159-6934-1-git-send-email-mezin.alexander@gmail.com>
-	<1820321.2G4Ojtj5V1@vostro.rjw.lan>
-	<5319404E.10509@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [RFC PATCH 2/8] PNPACPI: use whilte list for pnpacpi device
+ enumeration
+Date: Sun, 09 Mar 2014 13:29:30 +0800
+Message-ID: <1394342970.9294.2.camel@rzhang1-mobl4>
+References: <1393405874-3266-1-git-send-email-rui.zhang@intel.com>
+	 <1393405874-3266-3-git-send-email-rui.zhang@intel.com>
+	 <5270164.5tzAny1Rxt@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:40370 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191AbaCHFpD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Mar 2014 00:45:03 -0500
-Received: by mail-pd0-f179.google.com with SMTP id w10so4903083pde.24
-        for <linux-acpi@vger.kernel.org>; Fri, 07 Mar 2014 21:45:03 -0800 (PST)
-In-Reply-To: <5319404E.10509@intel.com>
+Received: from mga09.intel.com ([134.134.136.24]:51948 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750777AbaCIFaC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 9 Mar 2014 00:30:02 -0500
+In-Reply-To: <5270164.5tzAny1Rxt@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com
 
-2014-03-07 10:43 GMT+07:00 Lan Tianyu <tianyu.lan@intel.com>:
-> Sorry for later response due to be busy on other things.
->
-> Hi Alexander:
->
-> From the DSDT table, _Q08 is in change of notifying AC driver.
-> So you can check "/sys/firmware/acpi/interrupts/gpe08". Whether the count
-> increases or not during plugging or unplugging AC.
->
-> According the description, the _Q08 wasn't triggered.
+On Fri, 2014-03-07 at 02:44 +0100, Rafael J. Wysocki wrote:
+> On Wednesday, February 26, 2014 05:11:08 PM Zhang Rui wrote:
+> > +
+> > +static int __init acpi_pnp_scan_handler_attach(struct acpi_device *adev,
+> 
+> This can't be __init.
+> 
+> > +                                   const struct acpi_device_id *id)
+> > +{
+> > +	return 1;
+> > +}
+> > +
+> > +static int __init acpi_pnp_scan_handler_match(char *devid, char *handlerid)
+> 
+> And this too.
+> 
+> > +{
+> > +	int i;
+> > +
+> > +	if (!ispnpidacpi(devid))
+> > +		return 0;
+> > +
+> > +	if (memcmp(devid, handlerid, 3))
+> > +		return 0;
+> > +
+> > +        for (i = 3; i < 7; i++) {
+> > +                if (handlerid[i] != 'X' &&
+> > +		    toupper(devid[i]) != toupper(handlerid[i]))
+> > +                        return 0;
+> > +        }
+> > +	return 1;
+> > +}
+> > +
+> > +static struct acpi_scan_handler pnpacpi_handler __initdata = {
+> 
+> And this cannot be __initdata, because the list of ACPI scan handlers is
+> walked during hotplug.
+> 
+right. will update it in next version.
 
-cat /sys/firmware/acpi/interrupts/gpe08
-       0   invalid
+> > +	.ids = acpi_pnp_device_ids,
+> > +	.match = acpi_pnp_scan_handler_match,
+> > +	.attach = acpi_pnp_scan_handler_attach,
+> > +};
+> > +
+> > +void __init acpi_pnp_init(void)
+> > +{
+> > +	acpi_scan_add_handler(&pnpacpi_handler);
+> > +}
+> > +
+> > +static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
+> > +						     u32 lvl, void *context,
+> > +						     void **rv)
+> > +{
+> > +	struct acpi_device *device;
+> > +
+> > +	if (acpi_bus_get_device(handle, &device))
+> > +		return AE_CTRL_DEPTH;
+> > +	if (device->handler == &pnpacpi_handler)
+> > +		pnpacpi_add_device(device);
+> 
+> Why don't you do that in acpi_pnp_scan_handler_attach() ?
+> 
+because the PNP bus is not ready at that time.
 
-Always.
+thanks,
+rui
 
-> I think you can use acpi_notifier_call_chain() here and register acpi
-> notifier in the AC driver. When get the Battery change event, call
-> acpi_ac_get_state(ac). From my view, this is more general than traverse all
-> power supply device and call AC's get_property() callback in battery driver.
-
-Thanks for this suggestion. This looks like better solution for me
-too. I'll prepare v3 soon.
-
->
-> --
-> Best Regards
-> Tianyu Lan
