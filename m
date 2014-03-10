@@ -1,54 +1,40 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/1] ACPI: Fix the incorrect behavior of the disabled
- ASPM on Haswell CPU
-Date: Mon, 10 Mar 2014 16:24:10 +0000
-Message-ID: <20140310162410.GA30930@srcf.ucam.org>
-References: <6366A95FCFBB78419E783DDD020ED2ECB2F134@APMAILMBX03.lenovo.com>
- <20140310154530.GA27699@srcf.ucam.org>
- <6366A95FCFBB78419E783DDD020ED2ECB2F179@APMAILMBX03.lenovo.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH 2/2] trace, RAS: Add eMCA trace event interface
+Date: Mon, 10 Mar 2014 17:37:19 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F31DE8ADA@ORSMSX106.amr.corp.intel.com>
+References: <1393924997-8992-1-git-send-email-gong.chen@linux.intel.com>
+ <1393924997-8992-3-git-send-email-gong.chen@linux.intel.com>
+ <20140307114416.GA5255@pd.tnic> <20140310082241.GA873@gchen.bj.intel.com>
+ <20140310070435.1981ddd5@samsung.com> <20140310103129.GC14808@pd.tnic>
+ <20140310084113.7be77602@samsung.com> <20140310132948.GF14808@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:56163 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753378AbaCJQYP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Mar 2014 12:24:15 -0400
-Content-Disposition: inline
-In-Reply-To: <6366A95FCFBB78419E783DDD020ED2ECB2F179@APMAILMBX03.lenovo.com>
+Received: from mga09.intel.com ([134.134.136.24]:34798 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751689AbaCJRhc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Mar 2014 13:37:32 -0400
+In-Reply-To: <20140310132948.GF14808@pd.tnic>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Huang12 <ahuang12@lenovo.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Borislav Petkov <bp@alien8.de>, Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: "Chen, Gong" <gong.chen@linux.intel.com>, "arozansk@redhat.com" <arozansk@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Mar 10, 2014 at 04:17:05PM +0000, Adrian Huang12 wrote:
-> On Mon, 2014-03-10 at 15:45 +0000, Matthew Garrett wrote:
-> > On Mon, Mar 10, 2014 at 09:56:25AM +0000, Adrian Huang12 wrote:
-> > > +		if (status == AE_NOT_FOUND &&
-> > 
-> > Why limit it to not found? 
-> 
-> Just for the undefined _OSC object in order to follow ACPI5.0.
-> Looks like another approach should be implemented to address
-> this issue. Is this what you were thinking of: we should never
-> evaluate the _OSC object if it is the PCI root bridge?
-
-No, I meant we should never set no_aspm because _OSC fails for any 
-reason on a non-PCIe root bridge. But thinking about it, I suspect that 
-the whole way we handle _OSC in this case is wrong. If a PCI host bridge 
-does implement _OSC then there's still a good chance that it'll refuse 
-to grant us control over ASPM, and so we may still end up with failure 
-cases.
-
-> > I suspect that we should never be basing our 
-> > ASPM policy on the behaviour of PCI (rather than PCIe) bridges.
-> 
-> Yes, agree since the ASPM functionality is supported only for PCIe.
-> Do you agree we should never evaluate the _OSC object if it is
-> the PCI root bridge? 
-
-Just skipping _OSC entirely in that case would certainly fix the issue, 
-but it doesn't sound like the best fix. I think we need to revisit some 
-assumptions in this code.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Pj4gVHJ1ZSwgYnV0IGlmIHdlIGRlY2lkZSB0byBnbyBvbiB0aGF0IGRpcmVjdGlvbiwgYSBjaGFu
+Z2UgbGlrZSB0aGF0DQo+PiBzaG91bGQgdGhlbiBiZSBkb25lIG9uIGFsbCBFREFDIGRyaXZlcnMs
+IGFuZCB0aGF0J3MgYW4gQVBJIGNoYW5nZS4NCj4+DQo+PiBXZSBhbHNvIG5lZWQgdG8gYmUgc3Vy
+ZSB0aGF0IHVzZXJzcGFjZSB3aWxsIGhhbmRsZSB0aGlzIGNoYW5nZQ0KPj4gcHJvcGVybHkuDQo+
+DQo+IFdlIGRvbid0IGhhdmUgYSBjaG9pY2U6DQo+DQo+IFsgICAgMC4wMDAwMDBdIGU4MjA6IEJJ
+T1MtcHJvdmlkZWQgcGh5c2ljYWwgUkFNIG1hcDoNCj4gWyAgICAwLjAwMDAwMF0gQklPUy1lODIw
+OiBbbWVtIDB4MDAwMDAwMDAwMDAwMDAwMC0weDAwMDAwMDAwMDAwOWU3ZmZdIHVzYWJsZQ0KDQpT
+aW5jZSB3ZSBoYXZlIHNlcGFyYXRlIHRyYWNlIHBvaW50cyBmb3IgRURDQSBhbmQgZXh0bG9nIC0g
+d2UgY2FuIHVzZSBkaWZmZXJlbnQNCmNvbnZlbnRpb25zIGZvciAiaW52YWxpZCIuICBJZiB5b3Ug
+dGhpbmsgdGhhdCBjaGFuZ2luZyB0aGUgQUJJIGluIEVEQUMgd291bGQgYmUgYQ0KcHJvYmxlbSAt
+IHRoZW4geW91IGNhbiBrZWVwIHJ1bm5pbmcgdGhlIGFsbW9zdCBpbmZpbml0ZXNpbWFsIGNoYW5j
+ZSB0aGF0IHlvdSBoYXZlDQphIHJlYWwgZXJyb3IgYXQgMHgwMDAwMDAwMDAwMDAwMCB0aGF0IHlv
+dSB0cmVhdCBhcyB1bmtub3duIGFkZHJlc3MuDQoNCkRvZXMgWDg2IGFjdHVhbGx5IGFsbG9jYXRl
+IHRoYXQgcGFnZSBmb3IgdXNlPyAtIEkga25vdyBvbiBJdGFuaXVtIGl0IGdvdCB0aHJvd24gb3V0
+DQp3aGVuIHJvdW5kaW5nIHVzYWJsZSBibG9ja3Mgb2YgbWVtb3J5IHRvIDE2TUIgYm91bmRhcmll
+cyBmb3IgY2FjaGUgY29oZXJlbmN5DQpyZWFzb25zLg0KDQotVG9ueQ0K
