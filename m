@@ -1,8 +1,8 @@
 From: Zhang Rui <rui.zhang@intel.com>
 Subject: Re: [RFC PATCH 6/8] ACPI: use platform bus as the default bus for
  _HID enumeration
-Date: Mon, 10 Mar 2014 10:45:03 +0800
-Message-ID: <1394419503.10554.21.camel@rzhang1-mobl4>
+Date: Mon, 10 Mar 2014 10:44:28 +0800
+Message-ID: <1394419468.10554.20.camel@rzhang1-mobl4>
 References: <1393405874-3266-1-git-send-email-rui.zhang@intel.com>
 	 <1393405874-3266-7-git-send-email-rui.zhang@intel.com>
 	 <1394380237.9269.31.camel@rzhang1-mobl4>
@@ -10,12 +10,16 @@ References: <1393405874-3266-1-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:37228 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752771AbaCJCwp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 9 Mar 2014 22:52:45 -0400
 In-Reply-To: <6354388.qLqPjcP6yZ@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com
-List-Id: linux-acpi@vger.kernel.org
 
 On Sun, 2014-03-09 at 19:04 +0100, Rafael J. Wysocki wrote:
 > On Sunday, March 09, 2014 11:50:37 PM Zhang Rui wrote:
@@ -130,3 +134,5 @@ rui
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
