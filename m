@@ -1,78 +1,90 @@
 From: Alexander Mezin <mezin.alexander@gmail.com>
-Subject: [PATCH 1/3] ACPI / battery: move definition ACPI_BATTERY_CLASS to header
-Date: Mon, 10 Mar 2014 18:47:39 +0700
-Message-ID: <1394452061-27777-1-git-send-email-mezin.alexander@gmail.com>
+Subject: [PATCH 3/3] ACPI / AC: recheck adapter status upon battery notifications
+Date: Mon, 10 Mar 2014 18:47:41 +0700
+Message-ID: <1394452061-27777-3-git-send-email-mezin.alexander@gmail.com>
+References: <1394452061-27777-1-git-send-email-mezin.alexander@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:55240 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752829AbaCJLuD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Mar 2014 07:50:03 -0400
-Received: by mail-la0-f41.google.com with SMTP id gl10so4637541lab.0
-        for <linux-acpi@vger.kernel.org>; Mon, 10 Mar 2014 04:50:01 -0700 (PDT)
+Received: from mail-la0-f51.google.com ([209.85.215.51]:55409 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753135AbaCJLuG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Mar 2014 07:50:06 -0400
+Received: by mail-la0-f51.google.com with SMTP id pv20so4500609lab.38
+        for <linux-acpi@vger.kernel.org>; Mon, 10 Mar 2014 04:50:05 -0700 (PDT)
+In-Reply-To: <1394452061-27777-1-git-send-email-mezin.alexander@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: Alexander Mezin <mezin.alexander@gmail.com>
 
-ACPI_BATTERY_CLASS is used in multiple places.
-Create a header file for it, and replace copies with #include.
+On HP Pavilion dv6-6179er there are no notifications when AC adapter
+is plugged/unplugged.
+However, when AC status is read (acpi_ac_get_state), and if AC status
+has changed, AML code triggers the notification.
+
+This patch solves the problem by re-reading AC adapter status upon
+battery notifications.
 
 Signed-off-by: Alexander Mezin <mezin.alexander@gmail.com>
 ---
- drivers/acpi/battery.c | 3 ++-
- drivers/acpi/battery.h | 6 ++++++
- drivers/acpi/sbs.c     | 2 +-
- 3 files changed, 9 insertions(+), 2 deletions(-)
- create mode 100644 drivers/acpi/battery.h
+ drivers/acpi/ac.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 797a693..0a19c8f 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -39,11 +39,12 @@
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 6f190bc..e3f9862 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -33,6 +33,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/power_supply.h>
  #include <linux/acpi.h>
- #include <linux/power_supply.h>
- 
-+#include "battery.h"
-+
- #define PREFIX "ACPI: "
- 
- #define ACPI_BATTERY_VALUE_UNKNOWN 0xFFFFFFFF
- 
--#define ACPI_BATTERY_CLASS		"battery"
- #define ACPI_BATTERY_DEVICE_NAME	"Battery"
- #define ACPI_BATTERY_NOTIFY_STATUS	0x80
- #define ACPI_BATTERY_NOTIFY_INFO	0x81
-diff --git a/drivers/acpi/battery.h b/drivers/acpi/battery.h
-new file mode 100644
-index 0000000..785373c
---- /dev/null
-+++ b/drivers/acpi/battery.h
-@@ -0,0 +1,6 @@
-+#ifndef __ACPI_BATTERY_H
-+#define __ACPI_BATTERY_H
-+
-+#define ACPI_BATTERY_CLASS "battery"
-+
-+#endif
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index dbd4849..366ca40 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -37,12 +37,12 @@
- #include <linux/power_supply.h>
- 
- #include "sbshc.h"
 +#include "battery.h"
  
  #define PREFIX "ACPI: "
  
- #define ACPI_SBS_CLASS			"sbs"
- #define ACPI_AC_CLASS			"ac_adapter"
--#define ACPI_BATTERY_CLASS		"battery"
- #define ACPI_SBS_DEVICE_NAME		"Smart Battery System"
- #define ACPI_SBS_FILE_INFO		"info"
- #define ACPI_SBS_FILE_STATE		"state"
+@@ -57,6 +58,7 @@ struct acpi_ac {
+ 	struct power_supply charger;
+ 	struct platform_device *pdev;
+ 	unsigned long long state;
++	struct notifier_block battery_nb;
+ };
+ 
+ #define to_acpi_ac(x) container_of(x, struct acpi_ac, charger)
+@@ -152,6 +154,18 @@ static void acpi_ac_notify_handler(acpi_handle handle, u32 event, void *data)
+ 	return;
+ }
+ 
++static int acpi_ac_battery_notify(struct notifier_block *nb,
++				  unsigned long action, void *data)
++{
++	struct acpi_ac *ac = container_of(nb, struct acpi_ac, battery_nb);
++	struct acpi_bus_event *event = (struct acpi_bus_event *)data;
++
++	if (strcmp(event->device_class, ACPI_BATTERY_CLASS) == 0)
++		acpi_ac_get_state(ac);
++
++	return NOTIFY_OK;
++}
++
+ static int thinkpad_e530_quirk(const struct dmi_system_id *d)
+ {
+ 	ac_sleep_before_get_state_ms = 1000;
+@@ -215,6 +229,8 @@ static int acpi_ac_probe(struct platform_device *pdev)
+ 	       acpi_device_name(adev), acpi_device_bid(adev),
+ 	       ac->state ? "on-line" : "off-line");
+ 
++	ac->battery_nb.notifier_call = acpi_ac_battery_notify;
++	register_acpi_notifier(&ac->battery_nb);
+ end:
+ 	if (result)
+ 		kfree(ac);
+@@ -261,6 +277,7 @@ static int acpi_ac_remove(struct platform_device *pdev)
+ 	ac = platform_get_drvdata(pdev);
+ 	if (ac->charger.dev)
+ 		power_supply_unregister(&ac->charger);
++	unregister_acpi_notifier(&ac->battery_nb);
+ 
+ 	kfree(ac);
+ 
 -- 
 1.9.0
 
