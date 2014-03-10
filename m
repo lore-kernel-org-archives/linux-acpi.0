@@ -1,90 +1,60 @@
-From: Alexander Mezin <mezin.alexander@gmail.com>
-Subject: [PATCH 3/3] ACPI / AC: recheck adapter status upon battery notifications
-Date: Mon, 10 Mar 2014 18:47:41 +0700
-Message-ID: <1394452061-27777-3-git-send-email-mezin.alexander@gmail.com>
-References: <1394452061-27777-1-git-send-email-mezin.alexander@gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 0/5] gpio / ACPI: Rework ACPI GPIO events and add support for operation regions
+Date: Mon, 10 Mar 2014 14:54:49 +0200
+Message-ID: <1394456094-21671-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:55409 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753135AbaCJLuG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Mar 2014 07:50:06 -0400
-Received: by mail-la0-f51.google.com with SMTP id pv20so4500609lab.38
-        for <linux-acpi@vger.kernel.org>; Mon, 10 Mar 2014 04:50:05 -0700 (PDT)
-In-Reply-To: <1394452061-27777-1-git-send-email-mezin.alexander@gmail.com>
+Received: from mga11.intel.com ([192.55.52.93]:61169 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752628AbaCJMy7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Mar 2014 08:54:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Alexander Mezin <mezin.alexander@gmail.com>
+To: Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On HP Pavilion dv6-6179er there are no notifications when AC adapter
-is plugged/unplugged.
-However, when AC status is read (acpi_ac_get_state), and if AC status
-has changed, AML code triggers the notification.
+This is second revision of the patch series. The first version is available
+for example here [1].
 
-This patch solves the problem by re-reading AC adapter status upon
-battery notifications.
+This series tries to add support for two new ACPI 5.0 features that were
+either missing on incomplete in the current Linux kernel:
 
-Signed-off-by: Alexander Mezin <mezin.alexander@gmail.com>
----
- drivers/acpi/ac.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ * ACPI GPIO signaled events
+ * ACPI GPIO operation regions
 
-diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index 6f190bc..e3f9862 100644
---- a/drivers/acpi/ac.c
-+++ b/drivers/acpi/ac.c
-@@ -33,6 +33,7 @@
- #include <linux/platform_device.h>
- #include <linux/power_supply.h>
- #include <linux/acpi.h>
-+#include "battery.h"
- 
- #define PREFIX "ACPI: "
- 
-@@ -57,6 +58,7 @@ struct acpi_ac {
- 	struct power_supply charger;
- 	struct platform_device *pdev;
- 	unsigned long long state;
-+	struct notifier_block battery_nb;
- };
- 
- #define to_acpi_ac(x) container_of(x, struct acpi_ac, charger)
-@@ -152,6 +154,18 @@ static void acpi_ac_notify_handler(acpi_handle handle, u32 event, void *data)
- 	return;
- }
- 
-+static int acpi_ac_battery_notify(struct notifier_block *nb,
-+				  unsigned long action, void *data)
-+{
-+	struct acpi_ac *ac = container_of(nb, struct acpi_ac, battery_nb);
-+	struct acpi_bus_event *event = (struct acpi_bus_event *)data;
-+
-+	if (strcmp(event->device_class, ACPI_BATTERY_CLASS) == 0)
-+		acpi_ac_get_state(ac);
-+
-+	return NOTIFY_OK;
-+}
-+
- static int thinkpad_e530_quirk(const struct dmi_system_id *d)
- {
- 	ac_sleep_before_get_state_ms = 1000;
-@@ -215,6 +229,8 @@ static int acpi_ac_probe(struct platform_device *pdev)
- 	       acpi_device_name(adev), acpi_device_bid(adev),
- 	       ac->state ? "on-line" : "off-line");
- 
-+	ac->battery_nb.notifier_call = acpi_ac_battery_notify;
-+	register_acpi_notifier(&ac->battery_nb);
- end:
- 	if (result)
- 		kfree(ac);
-@@ -261,6 +277,7 @@ static int acpi_ac_remove(struct platform_device *pdev)
- 	ac = platform_get_drvdata(pdev);
- 	if (ac->charger.dev)
- 		power_supply_unregister(&ac->charger);
-+	unregister_acpi_notifier(&ac->battery_nb);
- 
- 	kfree(ac);
- 
+The current ACPI GPIO support code already added preliminary support for
+GPIO signaled events but at the time we didn't have real hardware with real
+GPIO triggered events so it was never properly tested. Now there are
+devices like Asus T100TA transformer that uses these events so we were able
+to see that the ASL code is being executed when a GPIO interrupt is
+triggered.
+
+Changes to the previous version:
+
+ * Moved module refcount manipulation to gpiod_request().
+ * Call achip acpi_gpio instead.
+ * Fold patches [2,4/6] into one [2/5].
+ * Update changelog for [3/5] to state that no functional changes, it is
+   rename only.
+ * Explain ACPI operations regions a bit better in [5/5].
+
+These patches apply on top of two patches from Alexandre Courbot [2] which
+introduce gpiochip_get_desc() function.
+
+[1] http://linux-kernel.2935.n7.nabble.com/PATCH-0-6-gpio-ACPI-Rework-ACPI-GPIO-events-and-add-support-for-operation-regions-td811694.html
+[2] https://lkml.org/lkml/2014/2/9/24
+
+Mika Westerberg (5):
+  gpiolib: Allow GPIO chips to request their own GPIOs
+  gpio / ACPI: Allocate ACPI specific data directly in acpi_gpiochip_add()
+  gpio / ACPI: Rename acpi_gpio_evt_pin to acpi_gpio_event
+  gpio / ACPI: Rework ACPI GPIO event handling
+  gpio / ACPI: Add support for ACPI GPIO operation regions
+
+ drivers/gpio/gpiolib-acpi.c | 465 ++++++++++++++++++++++++++++++++------------
+ drivers/gpio/gpiolib.c      | 103 +++++++---
+ drivers/gpio/gpiolib.h      |   3 +
+ 3 files changed, 421 insertions(+), 150 deletions(-)
+
 -- 
 1.9.0
 
