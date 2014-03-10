@@ -1,57 +1,41 @@
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH 2/2] trace, RAS: Add eMCA trace event interface
-Date: Mon, 10 Mar 2014 08:41:13 -0300
-Message-ID: <20140310084113.7be77602@samsung.com>
-References: <1393924997-8992-1-git-send-email-gong.chen@linux.intel.com>
- <1393924997-8992-3-git-send-email-gong.chen@linux.intel.com>
- <20140307114416.GA5255@pd.tnic> <20140310082241.GA873@gchen.bj.intel.com>
- <20140310070435.1981ddd5@samsung.com> <20140310103129.GC14808@pd.tnic>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Alexander Mezin <mezin.alexander@gmail.com>
+Subject: [PATCH 2/3] ACPI / battery: call ACPI notifier chain in acpi_battery_notify
+Date: Mon, 10 Mar 2014 18:47:40 +0700
+Message-ID: <1394452061-27777-2-git-send-email-mezin.alexander@gmail.com>
+References: <1394452061-27777-1-git-send-email-mezin.alexander@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:55621 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752105AbaCJLlU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Mar 2014 07:41:20 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N2700KORXSVWC50@usmailout4.samsung.com> for
- linux-acpi@vger.kernel.org; Mon, 10 Mar 2014 07:41:19 -0400 (EDT)
-In-reply-to: <20140310103129.GC14808@pd.tnic>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:43688 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753135AbaCJLuE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Mar 2014 07:50:04 -0400
+Received: by mail-lb0-f169.google.com with SMTP id l4so4617715lbv.0
+        for <linux-acpi@vger.kernel.org>; Mon, 10 Mar 2014 04:50:03 -0700 (PDT)
+In-Reply-To: <1394452061-27777-1-git-send-email-mezin.alexander@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com, arozansk@redhat.com, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Alexander Mezin <mezin.alexander@gmail.com>
 
-Em Mon, 10 Mar 2014 11:31:29 +0100
-Borislav Petkov <bp@alien8.de> escreveu:
+Allow other drivers to subscribe to battery status notifications.
+Just like AC driver does.
 
-> On Mon, Mar 10, 2014 at 07:04:35AM -0300, Mauro Carvalho Chehab wrote:
-> > Changing the format breaks any userspace application that relies on
-> > parsing them. That's an API breakage. Adding more data could be
-> > fine, if we take enough care when doing it, and properly document
-> > how userspace is supposed to parse it.
-> 
-> Yes, we don't want code duplication if it can be helped. Besides, having
-> one function doing the error format issual keeps us from the case when
-> having two or more diverge from one another.
-> 
-> > Well, actually, EDAC drivers use 0 to indicate an unknown physical address.
-> > The better is to use the same standard used there.
-> 
-> However, physical address 0 is a valid address... all FFF...Fs is hardly valid.
+Signed-off-by: Alexander Mezin <mezin.alexander@gmail.com>
+---
+ drivers/acpi/battery.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-True, but if we decide to go on that direction, a change like that should
-then be done on all EDAC drivers, and that's an API change. 
-
-We also need to be sure that userspace will handle this change properly.
-
-Regards,
-Mauro
-
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 0a19c8f..861e585 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -737,6 +737,7 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
+ 	acpi_bus_generate_netlink_event(device->pnp.device_class,
+ 					dev_name(&device->dev), event,
+ 					acpi_battery_present(battery));
++	acpi_notifier_call_chain(device, event, acpi_battery_present(battery));
+ 	/* acpi_battery_update could remove power_supply object */
+ 	if (old && battery->bat.dev)
+ 		power_supply_changed(&battery->bat);
 -- 
+1.9.0
 
-Regards,
-Mauro
