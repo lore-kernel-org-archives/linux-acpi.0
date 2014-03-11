@@ -1,59 +1,82 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: [PATCH 3/3] ACPI: Don't re-select SBS battery if it's already selected
-Date: Tue, 11 Mar 2014 18:20:02 -0400
-Message-ID: <1394576402-2910-4-git-send-email-matthew.garrett@nebula.com>
-References: <1394576402-2910-1-git-send-email-matthew.garrett@nebula.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1394576402-2910-1-git-send-email-matthew.garrett@nebula.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net, Matthew Garrett <matthew.garrett@nebula.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] PNPACPI: proper handling ACPI IO/Memory resources
+Date: Wed, 12 Mar 2014 00:38:39 +0100
+Message-ID: <3883740.St1mC7IYnm@vostro.rjw.lan>
+References: <1394548827-15172-1-git-send-email-rui.zhang@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:55050 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755900AbaCKXXU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2014 19:23:20 -0400
+In-Reply-To: <1394548827-15172-1-git-send-email-rui.zhang@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rafael.j.wysocki@intel.com, jwollrath@web.de, markus@trippelsdorf.de, pebolle@tiscali.nl
 
-The existing SBS code explicitly sets the selected battery in the SBS
-manager regardless of whether the battery in question is already selected.
-This causes bus timeouts on Apple hardware. Check for this case and avoid
-it.
+On Tuesday, March 11, 2014 10:40:27 PM Zhang Rui wrote:
+> Before commit b355cee88e3b1a193f0e9a81db810f6f83ad728b,
+> if acpi_dev_resource_memory()/acpi_dev_resource_io() returns false,
+> it means the the resource is not a memeory/IO resource.
+> 
+> But after commit b355cee88e3b1a193f0e9a81db810f6f83ad728b,
+> if the memory/IO resource is invalid (the length of the resource is zero),
+> acpi_dev_resource_memory()/acpi_dev_resource_io() returns false as well.
+> 
+> This breaks pnpacpi_allocated_resource(), because the current code would
+> recognize the invalid memory/io resource as unknown resource type.
+> Thus users will get warning messages on machines with zero length
+> ACPI memeory/IO resources.
+> 
+> This patch fixes the problem by invoking acpi_dev_resource_memory()/
+> acpi_dev_resource_io() for ACPI memory/IO resources only.
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
-Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
----
- drivers/acpi/sbs.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+Applied, thanks Rui!
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index dbd4849..c386505 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -470,17 +470,25 @@ static struct device_attribute alarm_attr = {
- static int acpi_battery_read(struct acpi_battery *battery)
- {
- 	int result = 0, saved_present = battery->present;
--	u16 state;
-+	u16 state, selected, desired;
- 
- 	if (battery->sbs->manager_present) {
- 		result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
- 				ACPI_SBS_MANAGER, 0x01, (u8 *)&state);
- 		if (!result)
- 			battery->present = state & (1 << battery->id);
--		state &= 0x0fff;
--		state |= 1 << (battery->id + 12);
--		acpi_smbus_write(battery->sbs->hc, SMBUS_WRITE_WORD,
--				  ACPI_SBS_MANAGER, 0x01, (u8 *)&state, 2);
-+		/*
-+		 * Don't switch battery if the correct one is already selected
-+		 */
-+		selected = state & 0xf000;
-+		desired = 1 << (battery->id + 12);
-+		if (selected != desired) {
-+			state &= 0x0fff;
-+			state |= desired;
-+			acpi_smbus_write(battery->sbs->hc, SMBUS_WRITE_WORD,
-+					 ACPI_SBS_MANAGER, 0x01,
-+					 (u8 *)&state, 2);
-+		}
- 	} else if (battery->id == 0)
- 		battery->present = 1;
- 	if (result || !battery->present)
+> ---
+>  drivers/pnp/pnpacpi/rsparser.c |   15 ++++++++++++---
+>  1 file changed, 12 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+> index 167f3d0..66977eb 100644
+> --- a/drivers/pnp/pnpacpi/rsparser.c
+> +++ b/drivers/pnp/pnpacpi/rsparser.c
+> @@ -183,9 +183,7 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+>  	struct resource r = {0};
+>  	int i, flags;
+>  
+> -	if (acpi_dev_resource_memory(res, &r)
+> -	    || acpi_dev_resource_io(res, &r)
+> -	    || acpi_dev_resource_address_space(res, &r)
+> +	if (acpi_dev_resource_address_space(res, &r)
+>  	    || acpi_dev_resource_ext_address_space(res, &r)) {
+>  		pnp_add_resource(dev, &r);
+>  		return AE_OK;
+> @@ -217,6 +215,17 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+>  	}
+>  
+>  	switch (res->type) {
+> +	case ACPI_RESOURCE_TYPE_MEMORY24:
+> +	case ACPI_RESOURCE_TYPE_MEMORY32:
+> +	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+> +		if (acpi_dev_resource_memory(res, &r))
+> +			pnp_add_resource(dev, &r);
+> +		break;
+> +	case ACPI_RESOURCE_TYPE_IO:
+> +	case ACPI_RESOURCE_TYPE_FIXED_IO:
+> +		if (acpi_dev_resource_io(res, &r))
+> +			pnp_add_resource(dev, &r);
+> +		break;
+>  	case ACPI_RESOURCE_TYPE_DMA:
+>  		dma = &res->data.dma;
+>  		if (dma->channel_count > 0 && dma->channels[0] != (u8) -1)
+> 
+
 -- 
-1.8.5.3
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
