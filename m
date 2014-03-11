@@ -1,125 +1,57 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 0/3] amd/pci: Add AMD hostbridge supports for newer AMD systems
-Date: Tue, 11 Mar 2014 12:12:29 -0600
-Message-ID: <CAErSpo5Dq3M5ik=dgF5dLsZV87XJeT3nEiYptPBXPCyLZ9xhgA@mail.gmail.com>
-References: <1394053603-3724-1-git-send-email-suravee.suthikulpanit@amd.com>
- <CAErSpo4MMJh9b0aivwGSbxCMVw24He1+Vo_LH0R0E+fYM5aThg@mail.gmail.com>
- <5317D9B0.1080502@amd.com> <5318160D.8070305@amd.com> <CAErSpo59=52bqgyvqk1x7kcgFmRtdZhT6faYTi3wy7KDtk5=Pw@mail.gmail.com>
- <5318D475.9040701@amd.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: Re: [PATCH] PNPACPI: proper handling ACPI IO/Memory resources
+Date: Tue, 11 Mar 2014 20:15:57 +0100
+Message-ID: <1394565357.2043.4.camel@x41>
+References: <1394548827-15172-1-git-send-email-rui.zhang@intel.com>
+	 <744357E9AAD1214791ACBA4B0B90926301203865@SHSMSX103.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5318D475.9040701@amd.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cpsmtpb-ews10.kpnxchange.com ([213.75.39.15]:62552 "EHLO
+	cpsmtpb-ews10.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755258AbaCKTQB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Mar 2014 15:16:01 -0400
+In-Reply-To: <744357E9AAD1214791ACBA4B0B90926301203865@SHSMSX103.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "jwollrath@web.de" <jwollrath@web.de>, "markus@trippelsdorf.de" <markus@trippelsdorf.de>
 
-On Thu, Mar 6, 2014 at 1:03 PM, Suravee Suthikulpanit
-<suravee.suthikulpanit@amd.com> wrote:
-> On 3/6/2014 11:40 AM, Bjorn Helgaas wrote:
->>
->> [+cc Yinghai, sorry I didn't think of it before]
->>
->> On Wed, Mar 5, 2014 at 11:30 PM, Suravee Suthikulpanit
->> <suravee.suthikulpanit@amd.com> wrote:
->>>
->>> On 3/5/2014 8:13 PM, Suravee Suthikulanit wrote:
->>>>
->>>>
->>>> On 3/5/2014 3:24 PM, Bjorn Helgaas wrote:
->>>>>
->>>>>
->>>>> [+cc linux-acpi]
->>>>>
->>>>> On Wed, Mar 5, 2014 at 2:06 PM,  <suravee.suthikulpanit@amd.com> wrote:
->>>>>>
->>>>>>
->>>>>> From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
->>>>>>
->>>>>> The current code only supports upto AMD hostbridge for family11h.
->>>>>> This causes PCI numa_node information to be reported incorrectly
->>>>>> for newer family with multi sockets.
->>>>>
->>>>>
->>>>>
->>>>> Where is the incorrect reporting?  In ACPI tables?  Is this patch a
->>>>> way to cover up firmware defects in the ACPI description?  Or is this
->>>>> for machines without ACPI (it seems unlikely that machines with new
->>>>> AMD processors would not have ACPI)?
->>>>
->>>>
->>>>
->>>> This is incorrectly reported in the sysfs for each PCI device (e.g.
->>>> /devices/pci0000:50/0000:50:00.2/numa_node). Without the patch, they
->>>> return -1.
->>>>
->>>> In file arch/x86/pci/acpi.c, in function pci_acpi_scan_root(), it is
->>>> queries the node information as following:
->>>>
->>>> #ifdef CONFIG_ACPI_NUMA
->>>>       pxm = acpi_get_pxm(device->handle);
->>>>       if (pxm >= 0)
->>>>           node = pxm_to_node(pxm);
->>>>       if (node != -1)
->>>>           set_mp_bus_to_node(busnum, node);
->>>>       else
->>>> #endif
->>>>           node = get_mp_bus_to_node(busnum);
->>>>
->>>> In this case, I see that the acpi_get_pxm() returns -1.  Therefore, it
->>>> falls back to using the node information in mp_bus_to_node[].  So,
->>>> without this patch, it would also returning -1.
->>>>
->>>> Also, the spec mentioned that the _PXM is optional, so I am not sure if
->>>> this is a firmware bug.
->>>
->>>
->>> I am not quite familiar with the ACPI for this part.  However, after
->>> taking
->>> a look at the code (in driver/acpi/pci_root.c: acpi_pci_root_add()), I
->>> believe it's trying to locate _PXM method in the DSDT table, in which I
->>> don't see any _PXM methods.
->>
->>
->> This sure looks like a firmware bug.  True, _PXM is optional, but if
->> the firmware doesn't provide it, nobody should be surprised that the
->> OS thinks everything is in the same proximity domain.
->>
->> I would not endorse extending amd_bus.c for new CPUs.  That just
->> covers up firmware problems like this, and if you ever run a different
->> OS on the box, you'll trip over them again.  And I don't think a patch
->> like this will even be a possibility for Windows.
->
-> I understand and am trying to verify this with the BIOS engineers. However,
-> this is currently affecting family15h servers out in the field.  We can try
-> to fix ACPI for newer generation of machines, but it won't be practical to
-> push this BIOS fix to all the BIOS vendors and system vendors for older
-> platforms, as they tend to.
->
-> What if I localize the extension to the changes to access node information
-> in the hostbridge for just the famil15h which is mostly used in our main
-> server products? Would that be acceptable?
+Rui,
 
-I assume the system is fully functional even without these patches,
-right?  The only effect of these changes should be a performance
-improvement.
+Zhang, Rui schreef op di 11-03-2014 om 14:50 [+0000]:
+> Can you please check if this patch fixes the problem for you or not?
 
-So the choices are:
+Yes, the two messages (one error and one warning) about "_CRS" are gone
+with this patch applied on top of v3.14-rc6.
 
-  1) Change the BIOS to provide _PXM
-  2) Change Linux with your patches
+> > Before commit b355cee88e3b1a193f0e9a81db810f6f83ad728b,
+> > if acpi_dev_resource_memory()/acpi_dev_resource_io() returns false, it
+> > means the the resource is not a memeory/IO resource.
 
-Either way, the customer has to upgrade something.  Choice 1) gets you
-the performance improvement on all Linux and Windows releases, even
-the ones that are already in the field.  Choice 2) fixes future Linux
-distros and whatever old releases you can convince the distro to
-backport to, and doesn't help Windows at all.  It makes work for all
-the distros and we (i.e., I) have to worry about maintaining this in
-the future.
+memeory?
 
-I'm curious to see what your BIOS folks say.  It seems strange that
-after all these years, they wouldn't provide something relatively
-simple like _PXM, so I wonder if there's more to the story.
+> > But after commit b355cee88e3b1a193f0e9a81db810f6f83ad728b,
+> > if the memory/IO resource is invalid (the length of the resource is
+> > zero),
+> > acpi_dev_resource_memory()/acpi_dev_resource_io() returns false as well.
+> > 
+> > This breaks pnpacpi_allocated_resource(), because the current code
+> > would recognize the invalid memory/io resource as unknown resource type.
+> > Thus users will get warning messages on machines with zero length ACPI
+> > memeory/IO resources.
 
-Bjorn
+Ditto.
+ 
+> > This patch fixes the problem by invoking acpi_dev_resource_memory()/
+> > acpi_dev_resource_io() for ACPI memory/IO resources only.
+> > 
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+
+Thanks,
+
+
+Paul Bolle
+
