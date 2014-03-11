@@ -1,117 +1,61 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: "can't evaluate _CRS: 1" messages since b355cee [ACPI /
- resources: ignore invalid ACPI device resources]
-Date: Tue, 11 Mar 2014 13:11:19 +0000
-Message-ID: <744357E9AAD1214791ACBA4B0B909263012037C7@SHSMSX103.ccr.corp.intel.com>
-References: <20140311084409.GA282@x4> <1586607.L4KMXXX471@vostro.rjw.lan>
- <744357E9AAD1214791ACBA4B0B9092630120179D@SHSMSX103.ccr.corp.intel.com>
- <1978112.3xSLQoOaC0@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: "can't evaluate _CRS: 1" messages since b355cee [ACPI / resources: ignore invalid ACPI device resources]
+Date: Tue, 11 Mar 2014 14:27:52 +0100
+Message-ID: <3023989.nMBYR9I9r3@vostro.rjw.lan>
+References: <20140311084409.GA282@x4> <1978112.3xSLQoOaC0@vostro.rjw.lan> <744357E9AAD1214791ACBA4B0B909263012037C7@SHSMSX103.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:26208 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752058AbaCKNMG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Mar 2014 09:12:06 -0400
-In-Reply-To: <1978112.3xSLQoOaC0@vostro.rjw.lan>
-Content-Language: en-US
+Received: from v094114.home.net.pl ([79.96.170.134]:57471 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753371AbaCKNMd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2014 09:12:33 -0400
+In-Reply-To: <744357E9AAD1214791ACBA4B0B909263012037C7@SHSMSX103.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: "Zhang, Rui" <rui.zhang@intel.com>
 Cc: Markus Trippelsdorf <markus@trippelsdorf.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
-a2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gU2VudDogVHVlc2RheSwgTWFyY2ggMTEs
-IDIwMTQgOToyMyBQTQ0KPiBUbzogWmhhbmcsIFJ1aQ0KPiBDYzogTWFya3VzIFRyaXBwZWxzZG9y
-ZjsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IFd5c29ja2ksIFJhZmFlbCBKOw0KPiBsaW51
-eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiAiY2FuJ3QgZXZhbHVhdGUg
-X0NSUzogMSIgbWVzc2FnZXMgc2luY2UgYjM1NWNlZSBbQUNQSSAvDQo+IHJlc291cmNlczogaWdu
-b3JlIGludmFsaWQgQUNQSSBkZXZpY2UgcmVzb3VyY2VzXQ0KPiBJbXBvcnRhbmNlOiBIaWdoDQo+
-IA0KPiBPbiBUdWVzZGF5LCBNYXJjaCAxMSwgMjAxNCAxMjo1OTo0NyBQTSBaaGFuZywgUnVpIHdy
-b3RlOg0KPiA+IEkgdGhpbmsgdGhlIHJlYXNvbiBwcm9ibGVtIGlzIHRoYXQ6DQo+ID4gMS4gdGhl
-cmUgYXJlIHplcm8gbGVuZ3RoIElPL01lbW9yeSByZXNvdXJjZXMgZm9yIHRoZXNlIG1hY2hpbmVz
-LCBhbmQNCj4gZm9yIHRob3NlIHJlc291cmNlcw0KPiA+ICAgIGEpIHcvbyBjb21taXQgYjM1NWNl
-ZTg4ZTNiMWExOTNmMGU5YTgxZGI4MTBmNmY4M2FkNzI4YiwNCj4gYWNwaV9kZXZfcmVzb3VyY2Vf
-bWVtb3J5L2lvIHJldHVybnMgdHJ1ZQ0KPiA+ICAgIGIpIHcgY29tbWl0IGIzNTVjZWU4OGUzYjFh
-MTkzZjBlOWE4MWRiODEwZjZmODNhZDcyOGIsDQo+ID4gYWNwaV9kZXZfcmVzb3VyY2VfbWVtb3J5
-L2lvIHJldHVybnMgZmFsc2UgMi4gaW4NCj4gcG5wYWNwaV9hbGxvY2F0ZWRfcmVzb3VyY2UoKSwg
-d2hlbiBhY3BpX2Rldl9yZXNvdXJjZV9tZW1vcnkvaW8oKQ0KPiByZXR1cm5zIGZhbHNlLCBpdCB0
-cmFuc2xhdGVzIGludG8gInRoZSByZXNvdXJjZSBpcyBub3QgSU8vTWVtb3J5DQo+IHJlc291cmNl
-Ii4NCj4gPg0KPiA+IElNTywgdGhlIHJvb3QgY2F1c2UgaXMgdGhhdCB0aGUgQk9PTCByZXR1cm4g
-dmFsdWUgb2YNCj4gPiBhY3BpX2Rldl9yZXNvdXJjZV9tZW1vcnkvaW8oKSBjYW4gbm90IHJlcHJl
-c2VudCB0aGUgZm9sbG93aW5nIHRocmVlDQo+ID4gc2l0dWF0aW9ucw0KPiA+IDEpIGEgdmFsaWQg
-SU8vTWVtb3J5IHJlc291cmNlDQo+ID4gMikgYW4gaW52YWxpZCBJTy9NZW1vcnkgcmVzb3VyY2UN
-Cj4gPiAzKSBub3QgYW4gSU8vTWVtb3J5IHJlc291cmNlDQo+IA0KPiBXZWxsLCBjYW4gd2UgbWFr
-ZSBhY3BpX2Rldl9yZXNvdXJjZV9tZW1vcnkvaW8gcmV0dXJuIGFuIGludCwgdGhlbiwgc28NCj4g
-dGhhdCBpdCBjYW4gY292ZXIgYWxsIG9mIHRoZSBjYXNlcyBpdCBuZWVkcyB0byBjb3ZlciBjb3Jy
-ZWN0bHkgYW5kIHNvDQo+IHRoYXQgd2UgY2FuIGdldCByaWQgb2YgdGhvc2UgY29uZnVzaW5nIG1l
-c3NhZ2VzPw0KPiANClN1cmUsIEkgd2lsbCBzdWJtaXQgYSBwYXRjaCBzb29uLg0KDQpUaGFua3Ms
-DQpydWkNCj4gUmFmYWVsDQo+IA0KPiANCj4gPiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0t
-DQo+ID4gPiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxp
-bnV4LWFjcGktDQo+ID4gPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBSYWZh
-ZWwgSi4gV3lzb2NraQ0KPiA+ID4gU2VudDogVHVlc2RheSwgTWFyY2ggMTEsIDIwMTQgOTowMCBQ
-TQ0KPiA+ID4gVG86IE1hcmt1cyBUcmlwcGVsc2RvcmYNCj4gPiA+IENjOiBsaW51eC1hY3BpQHZn
-ZXIua2VybmVsLm9yZzsgWmhhbmcsIFJ1aTsgV3lzb2NraSwgUmFmYWVsIEo7DQo+ID4gPiBsaW51
-eC0ga2VybmVsQHZnZXIua2VybmVsLm9yZw0KPiA+ID4gU3ViamVjdDogUmU6ICJjYW4ndCBldmFs
-dWF0ZSBfQ1JTOiAxIiBtZXNzYWdlcyBzaW5jZSBiMzU1Y2VlIFtBQ1BJDQo+IC8NCj4gPiA+IHJl
-c291cmNlczogaWdub3JlIGludmFsaWQgQUNQSSBkZXZpY2UgcmVzb3VyY2VzXQ0KPiA+ID4gSW1w
-b3J0YW5jZTogSGlnaA0KPiA+ID4NCj4gPiA+IE9uIFR1ZXNkYXksIE1hcmNoIDExLCAyMDE0IDA5
-OjQ0OjA5IEFNIE1hcmt1cyBUcmlwcGVsc2RvcmYgd3JvdGU6DQo+ID4gPiA+IFNpbmNlOg0KPiA+
-ID4gPiAgY29tbWl0IGIzNTVjZWU4OGUzYjFhMTkzZjBlOWE4MWRiODEwZjZmODNhZDcyOGINCj4g
-PiA+ID4gIEF1dGhvcjogWmhhbmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29tPg0KPiA+ID4gPiAg
-RGF0ZTogICBUaHUgRmViIDI3IDExOjM3OjE1IDIwMTQgKzA4MDANCj4gPiA+ID4NCj4gPiA+ID4g
-ICAgICBBQ1BJIC8gcmVzb3VyY2VzOiBpZ25vcmUgaW52YWxpZCBBQ1BJIGRldmljZSByZXNvdXJj
-ZXMNCj4gPiA+ID4NCj4gPiA+ID4gVGhlIGZvbGxvd2luZyBlcnJvciBtZXNzYWdlIGlzIHByaW50
-ZWQgdGhyZWUgdGltZXMgZHVyaW5nIGJvb3Qgb24NCj4gPiA+ID4gbXkNCj4gPiA+ID4gbWFjaGlu
-ZTogImNhbid0IGV2YWx1YXRlIF9DUlM6IDEiDQo+ID4gPg0KPiA+ID4gSXQgbWF5IGJlIGNhdGNo
-aW5nIGEgQklPUyBidWcgYWN0dWFsbHkuDQo+ID4gPg0KPiA+ID4gUGxlYXNlIGF0dGFjaCB0aGUg
-b3V0cHV0IG9mIGFjcGlkdW1wIGZyb20gdGhhdCBzeXN0ZW0uDQo+ID4gPg0KPiA+ID4gPiBIZXJl
-J3MgdGhlIGRtZXNnIGRpZmY6DQo+ID4gPiA+DQo+ID4gPiA+IEBAIC0zMDgsNiArMzA4LDggQEAN
-Cj4gPiA+ID4gIFN3aXRjaGVkIHRvIGNsb2Nrc291cmNlIGhwZXQNCj4gPiA+ID4gIHBucDogUG5Q
-IEFDUEkgaW5pdA0KPiA+ID4gPiAgQUNQSTogYnVzIHR5cGUgUE5QIHJlZ2lzdGVyZWQNCj4gPiA+
-ID4gK3BucCAwMDowMDogdW5rbm93biByZXNvdXJjZSB0eXBlIDEwIGluIF9DUlMgcG5wIDAwOjAw
-OiBjYW4ndA0KPiA+ID4gZXZhbHVhdGUNCj4gPiA+ID4gK19DUlM6IDENCj4gPiA+ID4gIHN5c3Rl
-bSAwMDowMDogUGx1ZyBhbmQgUGxheSBBQ1BJIGRldmljZSwgSURzIFBOUDBjMDIgKGFjdGl2ZSkN
-Cj4gPiA+ID4gcG5wDQo+ID4gPiA+IDAwOjAxOiBbZG1hIDRdICBwbnAgMDA6MDE6IFBsdWcgYW5k
-IFBsYXkgQUNQSSBkZXZpY2UsIElEcyBQTlAwMjAwDQo+ID4gPiA+IChhY3RpdmUpIEBAIC0zMTgs
-NiArMzIwLDggQEAgIHN5c3RlbSAwMDowNjogW21lbQ0KPiA+ID4gPiAweGZlYzAwMDAwLTB4ZmVj
-MDBmZmZdIGNvdWxkIG5vdCBiZSByZXNlcnZlZCAgc3lzdGVtIDAwOjA2OiBbbWVtDQo+ID4gPiA+
-IDB4ZmVlMDAwMDAtMHhmZWUwMGZmZl0gaGFzIGJlZW4gcmVzZXJ2ZWQgIHN5c3RlbSAwMDowNjog
-UGx1ZyBhbmQNCj4gPiA+ID4gUGxheSBBQ1BJIGRldmljZSwgSURzIFBOUDBjMDIgKGFjdGl2ZSkN
-Cj4gPiA+ID4gK3BucCAwMDowNzogdW5rbm93biByZXNvdXJjZSB0eXBlIDQgaW4gX0NSUyBwbnAg
-MDA6MDc6IGNhbid0DQo+ID4gPiA+ICtldmFsdWF0ZQ0KPiA+ID4gPiArX0NSUzogMQ0KPiA+ID4g
-PiAgc3lzdGVtIDAwOjA3OiBbaW8gIDB4MDRkMC0weDA0ZDFdIGhhcyBiZWVuIHJlc2VydmVkICBz
-eXN0ZW0NCj4gMDA6MDc6DQo+ID4gPiA+IFtpbyAgMHgwNDBiXSBoYXMgYmVlbiByZXNlcnZlZCAg
-c3lzdGVtIDAwOjA3OiBbaW8gIDB4MDRkNl0gaGFzDQo+ID4gPiA+IGJlZW4gcmVzZXJ2ZWQgQEAg
-LTMzNCwxOSArMzM4LDkgQEAgIHN5c3RlbSAwMDowNzogW2lvDQo+ID4gPiA+IDB4MGNkOC0weDBj
-ZGZdIGhhcyBiZWVuIHJlc2VydmVkICBzeXN0ZW0gMDA6MDc6IFtpbw0KPiA+ID4gPiAweDBiMDAt
-MHgwYjNmXSBoYXMgYmVlbiByZXNlcnZlZCBzeXN0ZW0gMDA6MDc6IFtpbyAgMHgwODAwLTB4MDg5
-Zl0NCj4gY291bGQgbm90IGJlIHJlc2VydmVkIC1zeXN0ZW0gMDA6MDc6DQo+ID4gPiA+IFtpbyAg
-MHgwYjAwLTB4MGIwZl0gaGFzIGJlZW4gcmVzZXJ2ZWQgLXN5c3RlbSAwMDowNzogW2lvDQo+ID4g
-PiA+IDB4MGIyMC0weDBiM2ZdIGhhcyBiZWVuIHJlc2VydmVkIC1zeXN0ZW0gMDA6MDc6IFtpbw0K
-PiA+ID4gPiAweDA5MDAtMHgwOTBmXSBoYXMgYmVlbiByZXNlcnZlZCAtc3lzdGVtIDAwOjA3OiBb
-aW8NCj4gPiA+ID4gMHgwOTEwLTB4MDkxZl0gaGFzIGJlZW4NCj4gPiA+IHJlc2VydmVkDQo+ID4g
-PiA+IC1zeXN0ZW0gMDA6MDc6IFtpbyAgMHhmZTAwLTB4ZmVmZV0gaGFzIGJlZW4gcmVzZXJ2ZWQg
-LXN5c3RlbQ0KPiAwMDowNzoNCj4gPiA+ID4gW21lbSAweGRmZjAwMDAwLTB4ZGZmZmZmZmZdIGhh
-cyBiZWVuIHJlc2VydmVkIC1zeXN0ZW0gMDA6MDc6IFttZW0NCj4gPiA+ID4gMHhmZmI4MDAwMC0w
-eGZmYmZmZmZmXSBoYXMgYmVlbiByZXNlcnZlZCAtc3lzdGVtIDAwOjA3OiBbbWVtDQo+ID4gPiA+
-IDB4ZmVjMTAwMDAtMHhmZWMxMDAxZl0gaGFzIGJlZW4gcmVzZXJ2ZWQgIHN5c3RlbSAwMDowNzog
-UGx1ZyBhbmQNCj4gPiA+ID4gUGxheSBBQ1BJIGRldmljZSwgSURzIFBOUDBjMDIgKGFjdGl2ZSkg
-LXN5c3RlbSAwMDowODogW2lvDQo+ID4gPiA+IDB4MDIzMC0weDAyM2ZdIGhhcyBiZWVuIHJlc2Vy
-dmVkIC1zeXN0ZW0gMDA6MDg6IFtpbw0KPiA+ID4gPiAweDAyOTAtMHgwMjlmXSBoYXMgYmVlbg0K
-PiA+ID4gcmVzZXJ2ZWQNCj4gPiA+ID4gLXN5c3RlbSAwMDowODogW2lvICAweDBmNDAtMHgwZjRm
-XSBoYXMgYmVlbiByZXNlcnZlZCAtc3lzdGVtDQo+IDAwOjA4Og0KPiA+ID4gPiBbaW8gIDB4MGEz
-MC0weDBhM2ZdIGhhcyBiZWVuIHJlc2VydmVkDQo+ID4gPiA+ICtwbnAgMDA6MDg6IHVua25vd24g
-cmVzb3VyY2UgdHlwZSA0IGluIF9DUlMgcG5wIDAwOjA4OiBjYW4ndA0KPiA+ID4gPiArZXZhbHVh
-dGUNCj4gPiA+ID4gK19DUlM6IDENCj4gPiA+ID4gIHN5c3RlbSAwMDowODogUGx1ZyBhbmQgUGxh
-eSBBQ1BJIGRldmljZSwgSURzIFBOUDBjMDIgKGFjdGl2ZSkNCj4gPiA+IHN5c3RlbQ0KPiA+ID4g
-PiAwMDowOTogW21lbSAweGUwMDAwMDAwLTB4ZWZmZmZmZmZdIGhhcyBiZWVuIHJlc2VydmVkICBz
-eXN0ZW0NCj4gMDA6MDk6DQo+ID4gPiA+IFBsdWcgYW5kIFBsYXkgQUNQSSBkZXZpY2UsIElEcyBQ
-TlAwYzAyIChhY3RpdmUpDQo+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPg0KPiA+ID4gLS0NCj4gPiA+
-IEkgc3BlYWsgb25seSBmb3IgbXlzZWxmLg0KPiA+ID4gUmFmYWVsIEouIFd5c29ja2ksIEludGVs
-IE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLg0KPiA+ID4gLS0NCj4gPiA+IFRvIHVuc3Vi
-c2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC0N
-Cj4gYWNwaSINCj4gPiA+IGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdl
-ci5rZXJuZWwub3JnIE1vcmUNCj4gbWFqb3Jkb21vDQo+ID4gPiBpbmZvIGF0ICBodHRwOi8vdmdl
-ci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4gPg0K
+On Tuesday, March 11, 2014 01:11:19 PM Zhang, Rui wrote:
+> 
+> > -----Original Message-----
+> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > Sent: Tuesday, March 11, 2014 9:23 PM
+> > To: Zhang, Rui
+> > Cc: Markus Trippelsdorf; linux-acpi@vger.kernel.org; Wysocki, Rafael J;
+> > linux-kernel@vger.kernel.org
+> > Subject: Re: "can't evaluate _CRS: 1" messages since b355cee [ACPI /
+> > resources: ignore invalid ACPI device resources]
+> > Importance: High
+> > 
+> > On Tuesday, March 11, 2014 12:59:47 PM Zhang, Rui wrote:
+> > > I think the reason problem is that:
+> > > 1. there are zero length IO/Memory resources for these machines, and
+> > for those resources
+> > >    a) w/o commit b355cee88e3b1a193f0e9a81db810f6f83ad728b,
+> > acpi_dev_resource_memory/io returns true
+> > >    b) w commit b355cee88e3b1a193f0e9a81db810f6f83ad728b,
+> > > acpi_dev_resource_memory/io returns false 2. in
+> > pnpacpi_allocated_resource(), when acpi_dev_resource_memory/io()
+> > returns false, it translates into "the resource is not IO/Memory
+> > resource".
+> > >
+> > > IMO, the root cause is that the BOOL return value of
+> > > acpi_dev_resource_memory/io() can not represent the following three
+> > > situations
+> > > 1) a valid IO/Memory resource
+> > > 2) an invalid IO/Memory resource
+> > > 3) not an IO/Memory resource
+> > 
+> > Well, can we make acpi_dev_resource_memory/io return an int, then, so
+> > that it can cover all of the cases it needs to cover correctly and so
+> > that we can get rid of those confusing messages?
+> > 
+> Sure, I will submit a patch soon.
+
+Thanks!
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
