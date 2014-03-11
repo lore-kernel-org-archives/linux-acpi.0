@@ -1,7 +1,7 @@
 From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: [PATCH 1/3] ACPI: Support _OSI("Darwin") correctly
-Date: Tue, 11 Mar 2014 18:20:00 -0400
-Message-ID: <1394576402-2910-2-git-send-email-matthew.garrett@nebula.com>
+Subject: [PATCH 3/3] ACPI: Don't re-select SBS battery if it's already selected
+Date: Tue, 11 Mar 2014 18:20:02 -0400
+Message-ID: <1394576402-2910-4-git-send-email-matthew.garrett@nebula.com>
 References: <1394576402-2910-1-git-send-email-matthew.garrett@nebula.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1394576402-2910-1-git-send-email-matthew.garrett@nebula.com>
@@ -10,99 +10,50 @@ To: linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net, Matthew Garrett <matthew.garrett@nebula.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Apple hardware queries _OSI("Darwin") in order to determine whether the
-system is running OS X, and changes firmware behaviour based on the answer.
-The most obvious difference in behaviour is that Thunderbolt hardware is
-forcibly powered down unless the system is running OS X. The obvious solution
-would be to simply add Darwin to the list of supported _OSI strings, but this
-causes problems.
-
-Recent Apple hardware includes two separate methods for checking _OSI
-strings. The first will check whether Darwin is supported, and if so will
-exit. The second will check whether Darwin is supported, but will then
-continue to check for further operating systems. If a further operating
-system is found then later firmware code will assume that the OS is not OS X.
-This results in the unfortunate situation where the Thunderbolt controller is
-available at boot time but remains powered down after suspend.
-
-The easiest way to handle this is to special-case it in the Linux-specific
-OSI handling code. If we see Darwin, we should answer true and then disable
-all other _OSI vendor strings.
+The existing SBS code explicitly sets the selected battery in the SBS
+manager regardless of whether the battery in question is already selected.
+This causes bus timeouts on Apple hardware. Check for this case and avoid
+it.
 
 Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
 ---
- drivers/acpi/acpica/utosi.c |  1 +
- drivers/acpi/osl.c          | 10 ++++++++++
- include/acpi/actypes.h      | 25 +++++++++++++------------
- 3 files changed, 24 insertions(+), 12 deletions(-)
+ drivers/acpi/sbs.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/utosi.c b/drivers/acpi/acpica/utosi.c
-index 8856bd3..202b4da 100644
---- a/drivers/acpi/acpica/utosi.c
-+++ b/drivers/acpi/acpica/utosi.c
-@@ -62,6 +62,7 @@ ACPI_MODULE_NAME("utosi")
- static struct acpi_interface_info acpi_default_supported_interfaces[] = {
- 	/* Operating System Vendor Strings */
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index dbd4849..c386505 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -470,17 +470,25 @@ static struct device_attribute alarm_attr = {
+ static int acpi_battery_read(struct acpi_battery *battery)
+ {
+ 	int result = 0, saved_present = battery->present;
+-	u16 state;
++	u16 state, selected, desired;
  
-+	{"Darwin", NULL, 0, ACPI_OSI_DARWIN},	/* OS X */
- 	{"Windows 2000", NULL, 0, ACPI_OSI_WIN_2000},	/* Windows 2000 */
- 	{"Windows 2001", NULL, 0, ACPI_OSI_WIN_XP},	/* Windows XP */
- 	{"Windows 2001 SP1", NULL, 0, ACPI_OSI_WIN_XP_SP1},	/* Windows XP SP1 */
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index fc1aa79..5bf45c06 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -152,6 +152,16 @@ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
- 			osi_linux.dmi ? " via DMI" : "");
- 	}
- 
-+	if (!strcmp("Darwin", interface)) {
+ 	if (battery->sbs->manager_present) {
+ 		result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
+ 				ACPI_SBS_MANAGER, 0x01, (u8 *)&state);
+ 		if (!result)
+ 			battery->present = state & (1 << battery->id);
+-		state &= 0x0fff;
+-		state |= 1 << (battery->id + 12);
+-		acpi_smbus_write(battery->sbs->hc, SMBUS_WRITE_WORD,
+-				  ACPI_SBS_MANAGER, 0x01, (u8 *)&state, 2);
 +		/*
-+		 * Apple firmware will behave poorly if it receives positive
-+		 * answers to "Darwin" and any other OS. Respond positively
-+		 * to Darwin and then disable all other vendor strings.
++		 * Don't switch battery if the correct one is already selected
 +		 */
-+		acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
-+		supported = ACPI_UINT32_MAX;
-+	}
-+
- 	return supported;
- }
- 
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 68a3ada..4580c67 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -1210,17 +1210,18 @@ struct acpi_memory_list {
- #define ACPI_ENABLE_ALL_FEATURE_STRINGS     (ACPI_ENABLE_INTERFACES | ACPI_FEATURE_STRINGS)
- #define ACPI_ENABLE_ALL_STRINGS             (ACPI_ENABLE_INTERFACES | ACPI_VENDOR_STRINGS | ACPI_FEATURE_STRINGS)
- 
--#define ACPI_OSI_WIN_2000               0x01
--#define ACPI_OSI_WIN_XP                 0x02
--#define ACPI_OSI_WIN_XP_SP1             0x03
--#define ACPI_OSI_WINSRV_2003            0x04
--#define ACPI_OSI_WIN_XP_SP2             0x05
--#define ACPI_OSI_WINSRV_2003_SP1        0x06
--#define ACPI_OSI_WIN_VISTA              0x07
--#define ACPI_OSI_WINSRV_2008            0x08
--#define ACPI_OSI_WIN_VISTA_SP1          0x09
--#define ACPI_OSI_WIN_VISTA_SP2          0x0A
--#define ACPI_OSI_WIN_7                  0x0B
--#define ACPI_OSI_WIN_8                  0x0C
-+#define ACPI_OSI_DARWIN                 0x01
-+#define ACPI_OSI_WIN_2000               0x02
-+#define ACPI_OSI_WIN_XP                 0x03
-+#define ACPI_OSI_WIN_XP_SP1             0x04
-+#define ACPI_OSI_WINSRV_2003            0x05
-+#define ACPI_OSI_WIN_XP_SP2             0x06
-+#define ACPI_OSI_WINSRV_2003_SP1        0x07
-+#define ACPI_OSI_WIN_VISTA              0x08
-+#define ACPI_OSI_WINSRV_2008            0x09
-+#define ACPI_OSI_WIN_VISTA_SP1          0x0A
-+#define ACPI_OSI_WIN_VISTA_SP2          0x0B
-+#define ACPI_OSI_WIN_7                  0x0C
-+#define ACPI_OSI_WIN_8                  0x0D
- 
- #endif				/* __ACTYPES_H__ */
++		selected = state & 0xf000;
++		desired = 1 << (battery->id + 12);
++		if (selected != desired) {
++			state &= 0x0fff;
++			state |= desired;
++			acpi_smbus_write(battery->sbs->hc, SMBUS_WRITE_WORD,
++					 ACPI_SBS_MANAGER, 0x01,
++					 (u8 *)&state, 2);
++		}
+ 	} else if (battery->id == 0)
+ 		battery->present = 1;
+ 	if (result || !battery->present)
 -- 
 1.8.5.3
