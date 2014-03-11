@@ -1,41 +1,100 @@
 From: Alexander Mezin <mezin.alexander@gmail.com>
-Subject: [PATCH 2/3] ACPI / battery: call ACPI notifier chain in acpi_battery_notify
-Date: Wed, 12 Mar 2014 00:58:47 +0700
-Message-ID: <1394560728-14048-2-git-send-email-mezin.alexander@gmail.com>
+Subject: [PATCH v2 3/3] ACPI / AC: recheck adapter status upon battery status changes
+Date: Wed, 12 Mar 2014 00:58:48 +0700
+Message-ID: <1394560728-14048-3-git-send-email-mezin.alexander@gmail.com>
 References: <1394560728-14048-1-git-send-email-mezin.alexander@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:52755 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753189AbaCKSBm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2014 14:01:42 -0400
-Received: by mail-lb0-f180.google.com with SMTP id 10so5945524lbg.11
-        for <linux-acpi@vger.kernel.org>; Tue, 11 Mar 2014 11:01:40 -0700 (PDT)
+Received: from mail-lb0-f172.google.com ([209.85.217.172]:41291 "EHLO
+	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753668AbaCKSBn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2014 14:01:43 -0400
+Received: by mail-lb0-f172.google.com with SMTP id c11so5916589lbj.31
+        for <linux-acpi@vger.kernel.org>; Tue, 11 Mar 2014 11:01:42 -0700 (PDT)
 In-Reply-To: <1394560728-14048-1-git-send-email-mezin.alexander@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: Alexander Mezin <mezin.alexander@gmail.com>
 
-Allow other drivers to subscribe to battery status notifications.
-Just like AC driver does.
+On HP Pavilion dv6-6179er there are no notifications when AC adapter
+is plugged/unplugged.
+However, when AC status is read (acpi_ac_get_state), and if AC status
+has changed, AML code triggers the notification.
+
+This patch solves the problem by re-reading AC adapter status upon
+ACPI_BATTERY_NOTIFY_STATUS notification.
 
 Signed-off-by: Alexander Mezin <mezin.alexander@gmail.com>
 ---
- drivers/acpi/battery.c | 1 +
- 1 file changed, 1 insertion(+)
+ v2: watch only for ACPI_BATTERY_NOTIFY_STATUS, add comment
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index bfec70f..9a2c63b 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -734,6 +734,7 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
- 	acpi_bus_generate_netlink_event(device->pnp.device_class,
- 					dev_name(&device->dev), event,
- 					acpi_battery_present(battery));
-+	acpi_notifier_call_chain(device, event, acpi_battery_present(battery));
- 	/* acpi_battery_update could remove power_supply object */
- 	if (old && battery->bat.dev)
- 		power_supply_changed(&battery->bat);
+ drivers/acpi/ac.c | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 6f190bc..2c01c1d 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -33,6 +33,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/power_supply.h>
+ #include <linux/acpi.h>
++#include "battery.h"
+ 
+ #define PREFIX "ACPI: "
+ 
+@@ -57,6 +58,7 @@ struct acpi_ac {
+ 	struct power_supply charger;
+ 	struct platform_device *pdev;
+ 	unsigned long long state;
++	struct notifier_block battery_nb;
+ };
+ 
+ #define to_acpi_ac(x) container_of(x, struct acpi_ac, charger)
+@@ -152,6 +154,26 @@ static void acpi_ac_notify_handler(acpi_handle handle, u32 event, void *data)
+ 	return;
+ }
+ 
++static int acpi_ac_battery_notify(struct notifier_block *nb,
++				  unsigned long action, void *data)
++{
++	struct acpi_ac *ac = container_of(nb, struct acpi_ac, battery_nb);
++	struct acpi_bus_event *event = (struct acpi_bus_event *)data;
++
++	/*
++	 * On HP Pavilion dv6-6179er AC status notifications aren't triggered
++	 * when adapter is plugged/unplugged. However, battery status
++	 * notifcations are triggered when battery starts charging or
++	 * discharging. Re-reading AC status triggers lost AC notifications,
++	 * if AC status has changed.
++	 */
++	if (strcmp(event->device_class, ACPI_BATTERY_CLASS) == 0 &&
++	    event->type == ACPI_BATTERY_NOTIFY_STATUS)
++		acpi_ac_get_state(ac);
++
++	return NOTIFY_OK;
++}
++
+ static int thinkpad_e530_quirk(const struct dmi_system_id *d)
+ {
+ 	ac_sleep_before_get_state_ms = 1000;
+@@ -215,6 +237,8 @@ static int acpi_ac_probe(struct platform_device *pdev)
+ 	       acpi_device_name(adev), acpi_device_bid(adev),
+ 	       ac->state ? "on-line" : "off-line");
+ 
++	ac->battery_nb.notifier_call = acpi_ac_battery_notify;
++	register_acpi_notifier(&ac->battery_nb);
+ end:
+ 	if (result)
+ 		kfree(ac);
+@@ -261,6 +285,7 @@ static int acpi_ac_remove(struct platform_device *pdev)
+ 	ac = platform_get_drvdata(pdev);
+ 	if (ac->charger.dev)
+ 		power_supply_unregister(&ac->charger);
++	unregister_acpi_notifier(&ac->battery_nb);
+ 
+ 	kfree(ac);
+ 
 -- 
 1.9.0
 
