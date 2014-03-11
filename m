@@ -1,34 +1,33 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: Re: "can't evaluate _CRS: 1" messages since b355cee [ACPI /
- resources: ignore invalid ACPI device resources]
-Date: Tue, 11 Mar 2014 10:02:35 +0100
-Message-ID: <1394528555.8352.4.camel@x41>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: "can't evaluate _CRS: 1" messages since b355cee [ACPI / resources: ignore invalid ACPI device resources]
+Date: Tue, 11 Mar 2014 13:59:39 +0100
+Message-ID: <1586607.L4KMXXX471@vostro.rjw.lan>
 References: <20140311084409.GA282@x4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20140311084409.GA282@x4>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Markus Trippelsdorf <markus@trippelsdorf.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-[+cc Bjorn]
-
-Markus Trippelsdorf schreef op di 11-03-2014 om 09:44 [+0100]:
+On Tuesday, March 11, 2014 09:44:09 AM Markus Trippelsdorf wrote:
 > Since:
 >  commit b355cee88e3b1a193f0e9a81db810f6f83ad728b
 >  Author: Zhang Rui <rui.zhang@intel.com>
 >  Date:   Thu Feb 27 11:37:15 2014 +0800
 > 
 >      ACPI / resources: ignore invalid ACPI device resources
-
-Which is included in v3.14-rc6.
-
+> 
 > The following error message is printed three times during boot on my
 > machine: "can't evaluate _CRS: 1"
-> 
+
+It may be catching a BIOS bug actually.
+
+Please attach the output of acpidump from that system.
+
 > Here's the dmesg diff:
 > 
 > @@ -308,6 +308,8 @@
@@ -37,10 +36,6 @@ Which is included in v3.14-rc6.
 >  ACPI: bus type PNP registered
 > +pnp 00:00: unknown resource type 10 in _CRS
 > +pnp 00:00: can't evaluate _CRS: 1
-
-I see these two messages too, when booting v3.14-rc6 on an (outdated)
-ThinkPad X41.
-
 >  system 00:00: Plug and Play ACPI device, IDs PNP0c02 (active)
 >  pnp 00:01: [dma 4]
 >  pnp 00:01: Plug and Play ACPI device, IDs PNP0200 (active)
@@ -75,8 +70,9 @@ ThinkPad X41.
 >  system 00:08: Plug and Play ACPI device, IDs PNP0c02 (active)
 >  system 00:09: [mem 0xe0000000-0xefffffff] has been reserved
 >  system 00:09: Plug and Play ACPI device, IDs PNP0c02 (active)
+> 
+> 
 
-But the messages about "resource type 4" do not appear.
-
-
-Paul Bolle
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
