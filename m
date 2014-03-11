@@ -1,83 +1,71 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 2/2] trace, RAS: Add eMCA trace event interface
-Date: Tue, 11 Mar 2014 15:27:11 +0100
-Message-ID: <20140311142711.GB4773@pd.tnic>
-References: <1393924997-8992-1-git-send-email-gong.chen@linux.intel.com>
- <1393924997-8992-3-git-send-email-gong.chen@linux.intel.com>
- <20140307114416.GA5255@pd.tnic>
- <20140310082241.GA873@gchen.bj.intel.com>
- <20140310070435.1981ddd5@samsung.com>
- <20140310103129.GC14808@pd.tnic>
- <20140310084113.7be77602@samsung.com>
- <20140310132948.GF14808@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F31DE8ADA@ORSMSX106.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] PNPACPI: proper handling ACPI IO/Memory resources
+Date: Tue, 11 Mar 2014 22:40:27 +0800
+Message-ID: <1394548827-15172-1-git-send-email-rui.zhang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:47343 "EHLO mail.skyhub.de"
+Received: from mga01.intel.com ([192.55.52.88]:64019 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751490AbaCKO1O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Mar 2014 10:27:14 -0400
-Content-Disposition: inline
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F31DE8ADA@ORSMSX106.amr.corp.intel.com>
+	id S1751590AbaCKOlc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Mar 2014 10:41:32 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "arozansk@redhat.com" <arozansk@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: rafael.j.wysocki@intel.com, jwollrath@web.de, markus@trippelsdorf.de, pebolle@tiscali.nl, Zhang Rui <rui.zhang@intel.com>
 
-On Mon, Mar 10, 2014 at 05:37:19PM +0000, Luck, Tony wrote:
-> Since we have separate trace points for EDCA and extlog - we can use
-> different conventions for "invalid". If you think that changing the
-> ABI in EDAC would be a problem - then you can keep running the almost
-> infinitesimal chance that you have a real error at 0x00000000000000
-> that you treat as unknown address.
+Before commit b355cee88e3b1a193f0e9a81db810f6f83ad728b,
+if acpi_dev_resource_memory()/acpi_dev_resource_io() returns false,
+it means the the resource is not a memeory/IO resource.
 
-I hardly believe changing that would be noticed by anyone.
+But after commit b355cee88e3b1a193f0e9a81db810f6f83ad728b,
+if the memory/IO resource is invalid (the length of the resource is zero),
+acpi_dev_resource_memory()/acpi_dev_resource_io() returns false as well.
 
-> Does X86 actually allocate that page for use? - I know on Itanium
-> it got thrown out when rounding usable blocks of memory to 16MB
-> boundaries for cache coherency reasons.
+This breaks pnpacpi_allocated_resource(), because the current code would
+recognize the invalid memory/io resource as unknown resource type.
+Thus users will get warning messages on machines with zero length
+ACPI memeory/IO resources.
 
-Yeah, it turns out we reserve at least the first page - 64K by default
-though - because BIOS likes to make love to that range. Detailed
-explanation from Kconfig text below.
+This patch fixes the problem by invoking acpi_dev_resource_memory()/
+acpi_dev_resource_io() for ACPI memory/IO resources only.
 
-Still, for correctness sake at least, I think we should use a value
-which denotes an invalid memory address, i.e. ~0x0, for example, and not
-a valid one.
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/pnp/pnpacpi/rsparser.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-config X86_RESERVE_LOW
-	int "Amount of low memory, in kilobytes, to reserve for the BIOS"
-	default 64
-	range 4 640
-	---help---
-	  Specify the amount of low memory to reserve for the BIOS.
-
-	  The first page contains BIOS data structures that the kernel
-	  must not use, so that page must always be reserved.
-
-	  By default we reserve the first 64K of physical RAM, as a
-	  number of BIOSes are known to corrupt that memory range
-	  during events such as suspend/resume or monitor cable
-	  insertion, so it must not be used by the kernel.
-
-	  You can set this to 4 if you are absolutely sure that you
-	  trust the BIOS to get all its memory reservations and usages
-	  right.  If you know your BIOS have problems beyond the
-	  default 64K area, you can set this to 640 to avoid using the
-	  entire low memory range.
-
-	  If you have doubts about the BIOS (e.g. suspend/resume does
-	  not work or there's kernel crashes after certain hardware
-	  hotplug events) then you might want to enable
-	  X86_CHECK_BIOS_CORRUPTION=y to allow the kernel to check
-	  typical corruption patterns.
-
-	  Leave this to the default value of 64 if you are unsure.
-
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+index 167f3d0..66977eb 100644
+--- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -183,9 +183,7 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 	struct resource r = {0};
+ 	int i, flags;
+ 
+-	if (acpi_dev_resource_memory(res, &r)
+-	    || acpi_dev_resource_io(res, &r)
+-	    || acpi_dev_resource_address_space(res, &r)
++	if (acpi_dev_resource_address_space(res, &r)
+ 	    || acpi_dev_resource_ext_address_space(res, &r)) {
+ 		pnp_add_resource(dev, &r);
+ 		return AE_OK;
+@@ -217,6 +215,17 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 	}
+ 
+ 	switch (res->type) {
++	case ACPI_RESOURCE_TYPE_MEMORY24:
++	case ACPI_RESOURCE_TYPE_MEMORY32:
++	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
++		if (acpi_dev_resource_memory(res, &r))
++			pnp_add_resource(dev, &r);
++		break;
++	case ACPI_RESOURCE_TYPE_IO:
++	case ACPI_RESOURCE_TYPE_FIXED_IO:
++		if (acpi_dev_resource_io(res, &r))
++			pnp_add_resource(dev, &r);
++		break;
+ 	case ACPI_RESOURCE_TYPE_DMA:
+ 		dma = &res->data.dma;
+ 		if (dma->channel_count > 0 && dma->channels[0] != (u8) -1)
 -- 
-Regards/Gruss,
-    Boris.
+1.7.9.5
 
-Sent from a fat crate under my desk. Formatting is fine.
---
