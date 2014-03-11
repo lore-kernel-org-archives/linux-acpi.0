@@ -1,96 +1,27 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: [PATCH] PNPACPI: proper handling ACPI IO/Memory resources
-Date: Tue, 11 Mar 2014 14:50:42 +0000
-Message-ID: <744357E9AAD1214791ACBA4B0B90926301203865@SHSMSX103.ccr.corp.intel.com>
+From: "markus@trippelsdorf.de" <markus@trippelsdorf.de>
+Subject: Re: [PATCH] PNPACPI: proper handling ACPI IO/Memory resources
+Date: Tue, 11 Mar 2014 16:07:43 +0100
+Message-ID: <20140311150743.GA281@x4>
 References: <1394548827-15172-1-git-send-email-rui.zhang@intel.com>
+ <744357E9AAD1214791ACBA4B0B90926301203865@SHSMSX103.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:61312 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751831AbaCKOvs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Mar 2014 10:51:48 -0400
-In-Reply-To: <1394548827-15172-1-git-send-email-rui.zhang@intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <744357E9AAD1214791ACBA4B0B90926301203865@SHSMSX103.ccr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "jwollrath@web.de" <jwollrath@web.de>, "pebolle@tiscali.nl" <pebolle@tiscali.nl>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "jwollrath@web.de" <jwollrath@web.de>, "markus@trippelsdorf.de" <markus@trippelsdorf.de>, "pebolle@tiscali.nl" <pebolle@tiscali.nl>
 
-Julian, Markus and Paul,
+On 2014.03.11 at 14:50 +0000, Zhang, Rui wrote:
+> Julian, Markus and Paul,
+> 
+> Can you please check if this patch fixes the problem for you or not?
 
-Can you please check if this patch fixes the problem for you or not?
+Your patch fixes the issue for me.
 
-Thanks,
-rui
+Thanks.
 
-> -----Original Message-----
-> From: Zhang, Rui
-> Sent: Tuesday, March 11, 2014 10:40 PM
-> To: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org
-> Cc: Wysocki, Rafael J; jwollrath@web.de; markus@trippelsdorf.de;
-> pebolle@tiscali.nl; Zhang, Rui
-> Subject: [PATCH] PNPACPI: proper handling ACPI IO/Memory resources
-> Importance: High
-> 
-> Before commit b355cee88e3b1a193f0e9a81db810f6f83ad728b,
-> if acpi_dev_resource_memory()/acpi_dev_resource_io() returns false, it
-> means the the resource is not a memeory/IO resource.
-> 
-> But after commit b355cee88e3b1a193f0e9a81db810f6f83ad728b,
-> if the memory/IO resource is invalid (the length of the resource is
-> zero),
-> acpi_dev_resource_memory()/acpi_dev_resource_io() returns false as well.
-> 
-> This breaks pnpacpi_allocated_resource(), because the current code
-> would recognize the invalid memory/io resource as unknown resource type.
-> Thus users will get warning messages on machines with zero length ACPI
-> memeory/IO resources.
-> 
-> This patch fixes the problem by invoking acpi_dev_resource_memory()/
-> acpi_dev_resource_io() for ACPI memory/IO resources only.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/pnp/pnpacpi/rsparser.c |   15 ++++++++++++---
->  1 file changed, 12 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/pnp/pnpacpi/rsparser.c
-> b/drivers/pnp/pnpacpi/rsparser.c index 167f3d0..66977eb 100644
-> --- a/drivers/pnp/pnpacpi/rsparser.c
-> +++ b/drivers/pnp/pnpacpi/rsparser.c
-> @@ -183,9 +183,7 @@ static acpi_status
-> pnpacpi_allocated_resource(struct acpi_resource *res,
->  	struct resource r = {0};
->  	int i, flags;
-> 
-> -	if (acpi_dev_resource_memory(res, &r)
-> -	    || acpi_dev_resource_io(res, &r)
-> -	    || acpi_dev_resource_address_space(res, &r)
-> +	if (acpi_dev_resource_address_space(res, &r)
->  	    || acpi_dev_resource_ext_address_space(res, &r)) {
->  		pnp_add_resource(dev, &r);
->  		return AE_OK;
-> @@ -217,6 +215,17 @@ static acpi_status
-> pnpacpi_allocated_resource(struct acpi_resource *res,
->  	}
-> 
->  	switch (res->type) {
-> +	case ACPI_RESOURCE_TYPE_MEMORY24:
-> +	case ACPI_RESOURCE_TYPE_MEMORY32:
-> +	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
-> +		if (acpi_dev_resource_memory(res, &r))
-> +			pnp_add_resource(dev, &r);
-> +		break;
-> +	case ACPI_RESOURCE_TYPE_IO:
-> +	case ACPI_RESOURCE_TYPE_FIXED_IO:
-> +		if (acpi_dev_resource_io(res, &r))
-> +			pnp_add_resource(dev, &r);
-> +		break;
->  	case ACPI_RESOURCE_TYPE_DMA:
->  		dma = &res->data.dma;
->  		if (dma->channel_count > 0 && dma->channels[0] != (u8) -1)
-> --
-> 1.7.9.5
-
+-- 
+Markus
