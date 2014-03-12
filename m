@@ -1,118 +1,143 @@
-From: Lan Tianyu <lantianyu1986@gmail.com>
-Subject: Re: [PATCH v2 3/3] ACPI / AC: recheck adapter status upon battery
- status changes
-Date: Wed, 12 Mar 2014 10:32:16 -0400
-Message-ID: <CAOLK0pyiRQGjmHv0KooiQA1D2ZbjTPZe9AChFB8RJbS=AkViuQ@mail.gmail.com>
-References: <1394560728-14048-1-git-send-email-mezin.alexander@gmail.com>
-	<1394560728-14048-3-git-send-email-mezin.alexander@gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 0/3] amd/pci: Add AMD hostbridge supports for newer AMD systems
+Date: Wed, 12 Mar 2014 15:13:49 -0600
+Message-ID: <CAErSpo6ZbKFMgcm4upR7gTnYwZ15UJpxzctOwWMsGyONipq8aw@mail.gmail.com>
+References: <1394053603-3724-1-git-send-email-suravee.suthikulpanit@amd.com>
+ <CAErSpo4MMJh9b0aivwGSbxCMVw24He1+Vo_LH0R0E+fYM5aThg@mail.gmail.com>
+ <5317D9B0.1080502@amd.com> <5318160D.8070305@amd.com> <CAErSpo59=52bqgyvqk1x7kcgFmRtdZhT6faYTi3wy7KDtk5=Pw@mail.gmail.com>
+ <5318D475.9040701@amd.com> <CAErSpo5Dq3M5ik=dgF5dLsZV87XJeT3nEiYptPBXPCyLZ9xhgA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qg0-f42.google.com ([209.85.192.42]:33404 "EHLO
-	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752841AbaCLOcR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Mar 2014 10:32:17 -0400
-Received: by mail-qg0-f42.google.com with SMTP id q107so15975208qgd.1
-        for <linux-acpi@vger.kernel.org>; Wed, 12 Mar 2014 07:32:16 -0700 (PDT)
-In-Reply-To: <1394560728-14048-3-git-send-email-mezin.alexander@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo5Dq3M5ik=dgF5dLsZV87XJeT3nEiYptPBXPCyLZ9xhgA@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alexander Mezin <mezin.alexander@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-2014-03-11 13:58 GMT-04:00 Alexander Mezin <mezin.alexander@gmail.com>:
-> On HP Pavilion dv6-6179er there are no notifications when AC adapter
-> is plugged/unplugged.
-> However, when AC status is read (acpi_ac_get_state), and if AC status
-> has changed, AML code triggers the notification.
+On Tue, Mar 11, 2014 at 12:12 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> On Thu, Mar 6, 2014 at 1:03 PM, Suravee Suthikulpanit
+> <suravee.suthikulpanit@amd.com> wrote:
+>> On 3/6/2014 11:40 AM, Bjorn Helgaas wrote:
+>>>
+>>> [+cc Yinghai, sorry I didn't think of it before]
+>>>
+>>> On Wed, Mar 5, 2014 at 11:30 PM, Suravee Suthikulpanit
+>>> <suravee.suthikulpanit@amd.com> wrote:
+>>>>
+>>>> On 3/5/2014 8:13 PM, Suravee Suthikulanit wrote:
+>>>>>
+>>>>>
+>>>>> On 3/5/2014 3:24 PM, Bjorn Helgaas wrote:
+>>>>>>
+>>>>>>
+>>>>>> [+cc linux-acpi]
+>>>>>>
+>>>>>> On Wed, Mar 5, 2014 at 2:06 PM,  <suravee.suthikulpanit@amd.com> wrote:
+>>>>>>>
+>>>>>>>
+>>>>>>> From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+>>>>>>>
+>>>>>>> The current code only supports upto AMD hostbridge for family11h.
+>>>>>>> This causes PCI numa_node information to be reported incorrectly
+>>>>>>> for newer family with multi sockets.
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> Where is the incorrect reporting?  In ACPI tables?  Is this patch a
+>>>>>> way to cover up firmware defects in the ACPI description?  Or is this
+>>>>>> for machines without ACPI (it seems unlikely that machines with new
+>>>>>> AMD processors would not have ACPI)?
+>>>>>
+>>>>>
+>>>>>
+>>>>> This is incorrectly reported in the sysfs for each PCI device (e.g.
+>>>>> /devices/pci0000:50/0000:50:00.2/numa_node). Without the patch, they
+>>>>> return -1.
+>>>>>
+>>>>> In file arch/x86/pci/acpi.c, in function pci_acpi_scan_root(), it is
+>>>>> queries the node information as following:
+>>>>>
+>>>>> #ifdef CONFIG_ACPI_NUMA
+>>>>>       pxm = acpi_get_pxm(device->handle);
+>>>>>       if (pxm >= 0)
+>>>>>           node = pxm_to_node(pxm);
+>>>>>       if (node != -1)
+>>>>>           set_mp_bus_to_node(busnum, node);
+>>>>>       else
+>>>>> #endif
+>>>>>           node = get_mp_bus_to_node(busnum);
+>>>>>
+>>>>> In this case, I see that the acpi_get_pxm() returns -1.  Therefore, it
+>>>>> falls back to using the node information in mp_bus_to_node[].  So,
+>>>>> without this patch, it would also returning -1.
+>>>>>
+>>>>> Also, the spec mentioned that the _PXM is optional, so I am not sure if
+>>>>> this is a firmware bug.
+>>>>
+>>>>
+>>>> I am not quite familiar with the ACPI for this part.  However, after
+>>>> taking
+>>>> a look at the code (in driver/acpi/pci_root.c: acpi_pci_root_add()), I
+>>>> believe it's trying to locate _PXM method in the DSDT table, in which I
+>>>> don't see any _PXM methods.
+>>>
+>>>
+>>> This sure looks like a firmware bug.  True, _PXM is optional, but if
+>>> the firmware doesn't provide it, nobody should be surprised that the
+>>> OS thinks everything is in the same proximity domain.
+>>>
+>>> I would not endorse extending amd_bus.c for new CPUs.  That just
+>>> covers up firmware problems like this, and if you ever run a different
+>>> OS on the box, you'll trip over them again.  And I don't think a patch
+>>> like this will even be a possibility for Windows.
+>>
+>> I understand and am trying to verify this with the BIOS engineers. However,
+>> this is currently affecting family15h servers out in the field.  We can try
+>> to fix ACPI for newer generation of machines, but it won't be practical to
+>> push this BIOS fix to all the BIOS vendors and system vendors for older
+>> platforms, as they tend to.
+>>
+>> What if I localize the extension to the changes to access node information
+>> in the hostbridge for just the famil15h which is mostly used in our main
+>> server products? Would that be acceptable?
 >
-> This patch solves the problem by re-reading AC adapter status upon
-> ACPI_BATTERY_NOTIFY_STATUS notification.
+> I assume the system is fully functional even without these patches,
+> right?  The only effect of these changes should be a performance
+> improvement.
 >
+> So the choices are:
+>
+>   1) Change the BIOS to provide _PXM
+>   2) Change Linux with your patches
+>
+> Either way, the customer has to upgrade something.  Choice 1) gets you
+> the performance improvement on all Linux and Windows releases, even
+> the ones that are already in the field.  Choice 2) fixes future Linux
+> distros and whatever old releases you can convince the distro to
+> backport to, and doesn't help Windows at all.  It makes work for all
+> the distros and we (i.e., I) have to worry about maintaining this in
+> the future.
+>
+> I'm curious to see what your BIOS folks say.  It seems strange that
+> after all these years, they wouldn't provide something relatively
+> simple like _PXM, so I wonder if there's more to the story.
 
-Acked-by: Lan Tianyu <tianyu.lan@intel.com>
+I looked at this a bit more.  Your patches fill in the
+mp_bus_to_node[] table, and pci_acpi_scan_root() uses
+get_mp_bus_to_node() to get that information back out.  But
+pci_acpi_scan_root() only uses get_mp_bus_to_node() if acpi_get_pxm()
+fails, or if pxm_to_node() returns -1.
 
-> Signed-off-by: Alexander Mezin <mezin.alexander@gmail.com>
-> ---
->  v2: watch only for ACPI_BATTERY_NOTIFY_STATUS, add comment
->
->  drivers/acpi/ac.c | 25 +++++++++++++++++++++++++
->  1 file changed, 25 insertions(+)
->
-> diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-> index 6f190bc..2c01c1d 100644
-> --- a/drivers/acpi/ac.c
-> +++ b/drivers/acpi/ac.c
-> @@ -33,6 +33,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/power_supply.h>
->  #include <linux/acpi.h>
-> +#include "battery.h"
->
->  #define PREFIX "ACPI: "
->
-> @@ -57,6 +58,7 @@ struct acpi_ac {
->         struct power_supply charger;
->         struct platform_device *pdev;
->         unsigned long long state;
-> +       struct notifier_block battery_nb;
->  };
->
->  #define to_acpi_ac(x) container_of(x, struct acpi_ac, charger)
-> @@ -152,6 +154,26 @@ static void acpi_ac_notify_handler(acpi_handle handle, u32 event, void *data)
->         return;
->  }
->
-> +static int acpi_ac_battery_notify(struct notifier_block *nb,
-> +                                 unsigned long action, void *data)
-> +{
-> +       struct acpi_ac *ac = container_of(nb, struct acpi_ac, battery_nb);
-> +       struct acpi_bus_event *event = (struct acpi_bus_event *)data;
-> +
-> +       /*
-> +        * On HP Pavilion dv6-6179er AC status notifications aren't triggered
-> +        * when adapter is plugged/unplugged. However, battery status
-> +        * notifcations are triggered when battery starts charging or
-> +        * discharging. Re-reading AC status triggers lost AC notifications,
-> +        * if AC status has changed.
-> +        */
-> +       if (strcmp(event->device_class, ACPI_BATTERY_CLASS) == 0 &&
-> +           event->type == ACPI_BATTERY_NOTIFY_STATUS)
-> +               acpi_ac_get_state(ac);
-> +
-> +       return NOTIFY_OK;
-> +}
-> +
->  static int thinkpad_e530_quirk(const struct dmi_system_id *d)
->  {
->         ac_sleep_before_get_state_ms = 1000;
-> @@ -215,6 +237,8 @@ static int acpi_ac_probe(struct platform_device *pdev)
->                acpi_device_name(adev), acpi_device_bid(adev),
->                ac->state ? "on-line" : "off-line");
->
-> +       ac->battery_nb.notifier_call = acpi_ac_battery_notify;
-> +       register_acpi_notifier(&ac->battery_nb);
->  end:
->         if (result)
->                 kfree(ac);
-> @@ -261,6 +285,7 @@ static int acpi_ac_remove(struct platform_device *pdev)
->         ac = platform_get_drvdata(pdev);
->         if (ac->charger.dev)
->                 power_supply_unregister(&ac->charger);
-> +       unregister_acpi_notifier(&ac->battery_nb);
->
->         kfree(ac);
->
-> --
-> 1.9.0
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If acpi_get_pxm() failed, that's pretty good indication that the _PXM
+method is missing or broken.  If pxm_to_node() failed, it looks like
+that could mean the SRAT table is missing or broken, and we didn't
+fill in the relevant pxm_to_node_map[] entry.  So it's possible that
+we do have a _PXM method, but there's something wrong with the SRAT.
 
+Can you collect an acpidump and complete dmesg log from a system with
+the problem?  They might be too big for the mailing list; if so, you
+can attach them to a kernel.org bugzilla and just include the URL
+here.
 
-
--- 
-Best regards
-Tianyu Lan
+Bjorn
