@@ -1,41 +1,35 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Matthew Garrett <matthew.garrett@nebula.com>
 Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Thu, 13 Mar 2014 00:00:08 +0100
-Message-ID: <20140312230007.GA1817@amd.pavel.ucw.cz>
+Date: Wed, 12 Mar 2014 23:22:49 +0000
+Message-ID: <1394666568.25122.1.camel@x230>
 References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>
- <1511662.Ly2fOjCGKz@vostro.rjw.lan>
- <1392765307.3488.1.camel@x230.lan>
+	 <1511662.Ly2fOjCGKz@vostro.rjw.lan> <1392765307.3488.1.camel@x230.lan>
+	 <20140312230007.GA1817@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1392765307.3488.1.camel@x230.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-by2lp0243.outbound.protection.outlook.com ([207.46.163.243]:10299
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751191AbaCLXyU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Mar 2014 19:54:20 -0400
+In-Reply-To: <20140312230007.GA1817@amd.pavel.ucw.cz>
+Content-Language: en-US
+Content-ID: <38AEFFA628B0AC40BD4EA7B9EC5D7C5F@namprd05.prod.outlook.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "pavel@ucw.cz" <pavel@ucw.cz>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue 2014-02-18 23:15:08, Matthew Garrett wrote:
-> On Wed, 2014-02-19 at 00:26 +0100, Rafael J. Wysocki wrote:
-> > On Tuesday, February 18, 2014 11:28:29 AM Matthew Garrett wrote:
-> > > 
-> > > The ACPI IPMI driver implements IPMI operation region support for the ACPI
-> > > core. Systems that declare ACPI operation regions may reference them at any
-> > > time, including during kernel initialisation. These accesses will fail
-> > > unless the ACPI IPMI driver is present, and undesirable system behaviour
-> > > may result. Set the default to Y in order to encourage distributions and
-> > > users to configure kernels to avoid awkward surprises.
-> > 
-> > Do you have any examples of problems caused by that or is this just theoretical
-> > at the moment?
-> 
-> For example, if you load the ACPI power meter driver before you've
-> installed the ACPI IPMI driver you'll typically get failures (most
-> vendors implement it via IPMI).
-
-Would the right solution be to implement dependency between power
-meter and IMPI?
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+T24gVGh1LCAyMDE0LTAzLTEzIGF0IDAwOjAwICswMTAwLCBQYXZlbCBNYWNoZWsgd3JvdGU6DQo+
+IE9uIFR1ZSAyMDE0LTAyLTE4IDIzOjE1OjA4LCBNYXR0aGV3IEdhcnJldHQgd3JvdGU6DQo+ID4g
+Rm9yIGV4YW1wbGUsIGlmIHlvdSBsb2FkIHRoZSBBQ1BJIHBvd2VyIG1ldGVyIGRyaXZlciBiZWZv
+cmUgeW91J3ZlDQo+ID4gaW5zdGFsbGVkIHRoZSBBQ1BJIElQTUkgZHJpdmVyIHlvdSdsbCB0eXBp
+Y2FsbHkgZ2V0IGZhaWx1cmVzIChtb3N0DQo+ID4gdmVuZG9ycyBpbXBsZW1lbnQgaXQgdmlhIElQ
+TUkpLg0KPiANCj4gV291bGQgdGhlIHJpZ2h0IHNvbHV0aW9uIGJlIHRvIGltcGxlbWVudCBkZXBl
+bmRlbmN5IGJldHdlZW4gcG93ZXINCj4gbWV0ZXIgYW5kIElNUEk/DQoNCk5vLiBUaGUgcG93ZXIg
+bWV0ZXIgZHJpdmVyIGtub3dzIG5vdGhpbmcgYWJvdXQgSVBNSS4gSXQgbWFrZXMgbm8gSVBNSQ0K
+Y2FsbHMuIFRoZXJlJ3Mgbm8gcmVxdWlyZW1lbnQgdGhhdCBhIHZlbmRvciBpbXBsZW1lbnQgaXQg
+dmlhIElQTUkuDQoNCi0tIA0KTWF0dGhldyBHYXJyZXR0IDxtYXR0aGV3LmdhcnJldHRAbmVidWxh
+LmNvbT4NCg==
