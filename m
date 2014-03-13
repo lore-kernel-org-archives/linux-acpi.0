@@ -1,53 +1,35 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Thu, 13 Mar 2014 09:38:32 +0100
-Message-ID: <20140313083832.GA8902@amd.pavel.ucw.cz>
-References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>
- <1511662.Ly2fOjCGKz@vostro.rjw.lan>
- <1392765307.3488.1.camel@x230.lan>
- <20140312230007.GA1817@amd.pavel.ucw.cz>
- <1394666568.25122.1.camel@x230>
- <20140313072204.GA7181@amd.pavel.ucw.cz>
- <1394695475.25122.4.camel@x230>
+From: Adrian Huang12 <ahuang12@lenovo.com>
+Subject: Re: [PATCH 1/1] ACPI: Fix the incorrect behavior of the disabled
+ ASPM on Haswell CPU
+Date: Thu, 13 Mar 2014 12:22:36 +0000
+Message-ID: <6366A95FCFBB78419E783DDD020ED2ECB2F698@APMAILMBX03.lenovo.com>
+References: <6366A95FCFBB78419E783DDD020ED2ECB2F134@APMAILMBX03.lenovo.com>
+ <20140310154530.GA27699@srcf.ucam.org>
+ <6366A95FCFBB78419E783DDD020ED2ECB2F179@APMAILMBX03.lenovo.com>
+ <20140310162410.GA30930@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54573 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751286AbaCMIie (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Mar 2014 04:38:34 -0400
-Content-Disposition: inline
-In-Reply-To: <1394695475.25122.4.camel@x230>
+Received: from mail1.bemta12.messagelabs.com ([216.82.251.6]:16669 "EHLO
+	mail1.bemta12.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754137AbaCMM3p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Mar 2014 08:29:45 -0400
+In-Reply-To: <20140310162410.GA30930@srcf.ucam.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Adrian Huang12 <ahuang12@lenovo.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu 2014-03-13 07:24:36, Matthew Garrett wrote:
-> On Thu, 2014-03-13 at 08:22 +0100, Pavel Machek wrote:
-> > On Wed 2014-03-12 23:22:49, Matthew Garrett wrote:
-> > > No. The power meter driver knows nothing about IPMI. It makes no IPMI
-> > > calls. There's no requirement that a vendor implement it via IPMI.
-> > 
-> > Yet you claim that IMPI is needed for that, and that's why you made
-> > IMPI default.
-> 
-> I claim that the ACPI spec defines the behaviour of IPMI operation
-> regions, and so we should default IPMI to Y in order to (by default)
-> implement the ACPI spec.
-> 
-> > So ... do we need dmi-based blacklist?
-> 
-> I don't see why.
-
-Your reasoning for default y was that "power meter depends on
-this". Then, claim that "power meter does not officially depend on it"
-so it would be wrong to have a dependency.
-
-Defaults are not right solution; system should still work if I select
-non-default settings. Which you claim is not a case, but you don't see
-why you should fix it.
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+T24gTW9uLCAyMDE0LTAzLTEwIGF0IDE2OjI0ICswMDAwLCBNYXR0aGV3IEdhcnJldHQgd3JvdGU6
+Cj4gT24gTW9uLCBNYXIgMTAsIDIwMTQgYXQgMDQ6MTc6MDVQTSArMDAwMCwgQWRyaWFuIEh1YW5n
+MTIgd3JvdGU6Cj4gPiBPbiBNb24sIDIwMTQtMDMtMTAgYXQgMTU6NDUgKzAwMDAsIE1hdHRoZXcg
+R2FycmV0dCB3cm90ZToKPiA+ID4gT24gTW9uLCBNYXIgMTAsIDIwMTQgYXQgMDk6NTY6MjVBTSAr
+MDAwMCwgQWRyaWFuIEh1YW5nMTIgd3JvdGU6Cj4gCj4gSnVzdCBza2lwcGluZyBfT1NDIGVudGly
+ZWx5IGluIHRoYXQgY2FzZSB3b3VsZCBjZXJ0YWlubHkgZml4IHRoZSBpc3N1ZSwgCj4gYnV0IGl0
+IGRvZXNuJ3Qgc291bmQgbGlrZSB0aGUgYmVzdCBmaXguIEkgdGhpbmsgd2UgbmVlZCB0byByZXZp
+c2l0IHNvbWUgCj4gYXNzdW1wdGlvbnMgaW4gdGhpcyBjb2RlLgo+IApUaGFua3MgZm9yIHRoZSBj
+b21tZW50cy4gSSdsbCB0cnkgdG8gZmlndXJlIG91dCB0aGUgYmVzdCBmaXguIAoKLS0gQWRyaWFu
+Cg==
