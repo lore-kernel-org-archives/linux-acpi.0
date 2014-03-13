@@ -1,58 +1,33 @@
-From: Corey Minyard <minyard@acm.org>
-Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Thu, 13 Mar 2014 08:29:22 -0500
-Message-ID: <5321B2B2.9060109@acm.org>
-References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com> <1511662.Ly2fOjCGKz@vostro.rjw.lan> <1392765307.3488.1.camel@x230.lan> <20140312230007.GA1817@amd.pavel.ucw.cz> <1394666568.25122.1.camel@x230> <20140313072204.GA7181@amd.pavel.ucw.cz> <1394695475.25122.4.camel@x230> <20140313083832.GA8902@amd.pavel.ucw.cz>
-Reply-To: minyard@acm.org
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2 0/5] gpio / ACPI: Rework ACPI GPIO events and add
+ support for operation regions
+Date: Thu, 13 Mar 2014 15:17:29 +0100
+Message-ID: <CACRpkdYKpA0URPr2mAUehqoGmwARH4pdMBMrBrXJmN_m2Kd1cA@mail.gmail.com>
+References: <1394456094-21671-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:36528 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750960AbaCMN3Z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Mar 2014 09:29:25 -0400
-In-Reply-To: <20140313083832.GA8902@amd.pavel.ucw.cz>
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:60601 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753054AbaCMORa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Mar 2014 10:17:30 -0400
+Received: by mail-ob0-f176.google.com with SMTP id wp18so1076556obc.21
+        for <linux-acpi@vger.kernel.org>; Thu, 13 Mar 2014 07:17:29 -0700 (PDT)
+In-Reply-To: <1394456094-21671-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Matthew Garrett <matthew.garrett@nebula.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 03/13/2014 03:38 AM, Pavel Machek wrote:
-> On Thu 2014-03-13 07:24:36, Matthew Garrett wrote:
->> On Thu, 2014-03-13 at 08:22 +0100, Pavel Machek wrote:
->>> On Wed 2014-03-12 23:22:49, Matthew Garrett wrote:
->>>> No. The power meter driver knows nothing about IPMI. It makes no IPMI
->>>> calls. There's no requirement that a vendor implement it via IPMI.
->>> Yet you claim that IMPI is needed for that, and that's why you made
->>> IMPI default.
->> I claim that the ACPI spec defines the behaviour of IPMI operation
->> regions, and so we should default IPMI to Y in order to (by default)
->> implement the ACPI spec.
->>
->>> So ... do we need dmi-based blacklist?
->> I don't see why.
-> Your reasoning for default y was that "power meter depends on
-> this". Then, claim that "power meter does not officially depend on it"
-> so it would be wrong to have a dependency.
+On Mon, Mar 10, 2014 at 1:54 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
 
-I believe the correct statement is "On some systems power meter depends
-on it".
+> This is second revision of the patch series. The first version is available
+> for example here [1].
 
->
-> Defaults are not right solution; system should still work if I select
-> non-default settings. Which you claim is not a case, but you don't see
-> why you should fix it.
+I have applied patche 1 thru 4.
 
-If something is implemented using IPMI, then IPMI has to be there to
-use it.  Matthew's statement was:
+Let's discuss patch 5 a bit before we continue.
 
-For example, if you load the ACPI power meter driver before you've
-installed the ACPI IPMI driver you'll typically get failures (most
-vendors implement it via IPMI).
-
-Other things besides the power meter can be implemented using IPMI, it's
-up to the vendor.  How will those things work if IPMI is not available?
-
--corey
-
+Yours,
+Linus Walleij
