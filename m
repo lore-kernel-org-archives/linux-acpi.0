@@ -1,77 +1,103 @@
-From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Subject: next-20140312 - build error in drivers/acpi/sleep.c
-Date: Thu, 13 Mar 2014 14:48:31 -0400
-Message-ID: <22429.1394736511@turing-police.cc.vt.edu>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: next-20140312 - build error in drivers/acpi/sleep.c
+Date: Thu, 13 Mar 2014 22:23:51 +0100
+Message-ID: <1431943.FB4azhDoEG@vostro.rjw.lan>
+References: <22429.1394736511@turing-police.cc.vt.edu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1394736511_1654P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: multipart/signed; boundary="nextPart92991788.Aykl3nDkE4"; micalg="pgp-sha256"; protocol="application/pgp-signature"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:51596 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750890AbaCMVIf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Mar 2014 17:08:35 -0400
+In-Reply-To: <22429.1394736511@turing-police.cc.vt.edu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
---==_Exmh_1394736511_1654P
-Content-Type: text/plain; charset=us-ascii
-
-Seen in the most recent linux-next with a CONFIG_SUSPEND=n .config:
-
-  CC      drivers/acpi/sleep.o
-drivers/acpi/sleep.c: In function 'acpi_sleep_init':
-drivers/acpi/sleep.c:808:2: error: implicit declaration of function 'acpi_sleep_state_supported' [-Werror=implicit-function-declaration]
-  if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
-  ^
-cc1: some warnings being treated as errors
-make[2]: *** [drivers/acpi/sleep.o] Error 1
-make[1]: *** [drivers/acpi] Error 2
-make: *** [drivers] Error 2
-
-Function is defined inside a #ifdef CONFIG_SUSPEND, but used outside of
-one in acpi_sleep_init().
-
-git blame points at commit eaa54ccbc:
-
-commit eaa54ccbcf81de987e6978ad457cc9e425b7a8db
-Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Date:   Tue Mar 11 14:08:58 2014 +0100
-
-    ACPI / sleep: Add extra checks for HW Reduced ACPI mode sleep states
-
-    If the HW Reduced ACPI mode bit is set in the FADT, ACPICA uses
-    the optional sleep control and sleep status registers for making
-    the system enter sleep states (including S5), so it is not possible
-    to use system sleep states or power it off using ACPI if the HW
-    Reduced ACPI mode bit is set and those registers are not available.
-
-    For this reason, add a new function, acpi_sleep_state_supported(),
-    checking if the HW Reduced ACPI mode bit is set and whether or not
-    system sleep states are usable in that case in addition to checking
-    the return value of acpi_get_sleep_type_data() and make the ACPI
-    sleep setup routines use that function to check the availability of
-    system sleep states.
+To: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Wu Fengguang <fengguang.wu@intel.com>
 
 
---==_Exmh_1394736511_1654P
-Content-Type: application/pgp-signature
+--nextPart92991788.Aykl3nDkE4
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+
+On Thursday, March 13, 2014 02:48:31 PM Valdis Kletnieks wrote:
+> Seen in the most recent linux-next with a CONFIG_SUSPEND=3Dn .config:=
+
+>=20
+>   CC      drivers/acpi/sleep.o
+> drivers/acpi/sleep.c: In function 'acpi_sleep_init':
+> drivers/acpi/sleep.c:808:2: error: implicit declaration of function '=
+acpi_sleep_state_supported' [-Werror=3Dimplicit-function-declaration]
+>   if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
+>   ^
+> cc1: some warnings being treated as errors
+> make[2]: *** [drivers/acpi/sleep.o] Error 1
+> make[1]: *** [drivers/acpi] Error 2
+> make: *** [drivers] Error 2
+>=20
+> Function is defined inside a #ifdef CONFIG_SUSPEND, but used outside =
+of
+> one in acpi_sleep_init().
+
+This isn't caught by the build test robot.  Care to submit that .config=
+ to
+Fengguang so that you don't have to report such failures again?
+
+> git blame points at commit eaa54ccbc:
+>=20
+> commit eaa54ccbcf81de987e6978ad457cc9e425b7a8db
+> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Date:   Tue Mar 11 14:08:58 2014 +0100
+>=20
+>     ACPI / sleep: Add extra checks for HW Reduced ACPI mode sleep sta=
+tes
+>=20
+>     If the HW Reduced ACPI mode bit is set in the FADT, ACPICA uses
+>     the optional sleep control and sleep status registers for making
+>     the system enter sleep states (including S5), so it is not possib=
+le
+>     to use system sleep states or power it off using ACPI if the HW
+>     Reduced ACPI mode bit is set and those registers are not availabl=
+e.
+>=20
+>     For this reason, add a new function, acpi_sleep_state_supported()=
+,
+>     checking if the HW Reduced ACPI mode bit is set and whether or no=
+t
+>     system sleep states are usable in that case in addition to checki=
+ng
+>     the return value of acpi_get_sleep_type_data() and make the ACPI
+>     sleep setup routines use that function to check the availability =
+of
+>     system sleep states.
+>=20
+
+=2D-=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+--nextPart92991788.Aykl3nDkE4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-Comment: Exmh version 2.5 07/13/2001
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIVAwUBUyH9fgdmEQWDXROgAQJ44A/8DdPmfycJj10J17fhHCKfu6Cv20zcx0IH
-OfsCatKlhvfw4ifOvlzCw4lHMl7XhR3F6fVwh7HW6vTau1aD//7acHvZ9vyp9hEO
-nr0WZrjnd7E5lR/lq0tB91jGnNzsoHkdqxT/z3yHdc/ql5Yus6/b8uDGLrnUtkLD
-4tvGCY6BXy4nVJqxGkh63ddbtt4ZqghA191NFXTB0TsSg5NPba345IKai32Dmqsu
-G6E4fIi4qDMx5ggbChJuHIfNlAyuGWaCvjX+LffnrWrh2eFGlKYZrf99bC41h2yg
-H9PazTMkWnpw+uUbA2dRylqrI/q7XoaeSPXxM/8T2LYuqy31hWQuhTh9Q9vnzjpl
-/iTT4jC+ulATYxHzdaK3YN8R4XnMEi86LSwqUWgu1xHOSNV0K8en2ZD/Q1INqv8e
-2qSiFbNuxZQtWLjxudoHUbxqvswRXrZM2tKl5M8r9GfSYZp84fFNcT5Q4yxhEBDA
-78AOTMKaKFd7MfcB32k7NPw+MybcGqz4gSnriDAtqJQH+GteePenb+xNp5dcCfOX
-8lUVnIboG7NgbzYwgHOlpG7nMRKiU87YLBMWSXAbR/b1eQVOQQUcz00g5habrzbQ
-s3KgtA1Mq8y9MaSvLimgPE1OxYGSC0/Dz4Sqa+IlKrzkOD3f4dS+XaT9+RCwfZ3E
-J1ZCV+QhmGg=
-=COpF
+iQIcBAABCAAGBQJTIiHtAAoJEILEb/54YlRxD+8QALU0ZihUefr5sI3FUoLke9yB
+QAxXaiHLMfqkkzTNnRwbM72r5i5C74iMcBGE3TRGU4ztmYWx37u98/3cnqTGCCec
+uIkK+gxPOY6TilqVyY+2egfvzQb/e38lblHlLzyl5RxiyKPNwJwGik77rPtqJVze
+IozlleM3ntY3tcMSpfiXXxwIBUVu7q4Sf9P9mfjv/b87VVk8AI4RxSmsmyTxK2fZ
+h0zFG5K9GfYt/OUzwfuVFE0Tr8sLwvhe0Wbsl50Cp5y2VzFhgKGaUan+0A9zK8g7
+oHL7IDrYYB5Rwj51DV2BrtTxtTavlyTEmSjpjH43OQloOYrW2wPRusfgVHbmYzJj
+dBVEGCl7/yKPgsNYzNRMiTwgvuLoTbaDDPxTabdfrlN0vy0MO5063WVLvhb4Yfzo
+U6o9gJm4h9RNwq+9noTrpLrImkSDqbcLG6x9fyrICF7M9SwupPwzRner20C+g2N0
+JFh6vso1lGrwqvi5ZTCNnA4PBHE87gBA8vnVsc0eLhc/55ntIfGU19yzFhNDOFzn
+fmzUQJnrFRFWJBmfVAgbdC1D2DXp7OvpPEdMmFL8erByX0P7q4X8utEaWKwyRtTp
+EjqvziR39xsqn0IXYoYrqroctOwp1JOInQK2KspEbdjLtyxmIzUCjyRuGhTAI1tk
+e5B/ouhmUQrmmdM0y5A7
+=UGOu
 -----END PGP SIGNATURE-----
 
---==_Exmh_1394736511_1654P--
+--nextPart92991788.Aykl3nDkE4--
+
