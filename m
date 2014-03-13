@@ -1,174 +1,108 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH V2 08/13] ACPI: introduce dummy lpss scan handler
-Date: Fri, 14 Mar 2014 00:16:48 +0800
-Message-ID: <1394727413-3587-9-git-send-email-rui.zhang@intel.com>
+Subject: [RFC PATCH V2 11/13] ACPI: create both PNP and Platform device nodes for PNP0C01/PNP0C02
+Date: Fri, 14 Mar 2014 00:16:51 +0800
+Message-ID: <1394727413-3587-12-git-send-email-rui.zhang@intel.com>
 References: <1394727413-3587-1-git-send-email-rui.zhang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:65316 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754449AbaCMQSY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Mar 2014 12:18:24 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1394727413-3587-1-git-send-email-rui.zhang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, Zhang Rui <rui.zhang@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-When the lpss scan handler is compiled out, aka, CONFIG_X86_INTEL_LPSS
-is cleared, those ACPI device objects will be recgonized as regular
-_HID devices, and a platform device would be created for each of them.
-This is wrong because the platform drivers for those devices would
-be loaded, but with broken behavior.
+ACPI devices with id "PNP0C01/PNP0C02" means that we need to
+protect their resources from being allocated by others.
 
-In order to fix this, a dummy lpss scan handler is introduced
-to prevent those platform devices from being created.
-Plus, this dummy scan handler is needed as well if lpt_clk_init() fails.
+Currently, this is done in drivers/pnp/system.c.
+
+But the problem is that, there are some devices with extra ids besides
+PNP0C01/PNP0C02, and for these devices,
+1) PNP0C01/PNP0C02 suggest that resource reservation is still needed.
+2) the other ids suggest that we should enumerate them to platform bus
+
+To reserve resources for those devices, we should either use the current code
+by exporting the device to PNP bus, or introduce resource reservation support
+in platform bus/ACPI.
+
+This patch follows the first way by enumerating an ACPI device to platform bus
+AND pnp bus at the same time.
+Its PNP device node will be probed by drivers/pnp/system.c and do
+everything as we do today.
+Its platform device node will also be created so that a platform bus
+driver can be probed.
+
+The advantage is that, it brings little change to the current code,
+the patch itself looks safe and clear.
+The disadvantage is that
+1) we create two physical device nodes for the same ACPI node,
+   this is against our effort that has been doing recently.
+2) we still depend on PNP bus to do this (resouce reservation) for us,
+   which is still a problem we need to fix sooner or later.
+
+An alternative proposal is to remove the depedency of PNP bus and
+do resource management in ACPI for all PNP0C01/PNP0C02 devices instead,
+no matter what bus they are enumerated to.
+To do this, we need to
+1) introduce a fs_initcall() in ACPI, to reserve all PNP0C01/PNP0C02 resources
+in ACPI, something like we did via drivers/acpi/motherboard.c before
+(but the code needs to follow drivers/pnp/quirks.c and system.c strictly).
+This initcall will be run after PCI claiming BARs and before PCI assigning
+resources for uninitialized devices.
+2) skip drivers/pnp/quirks.c and drivers/pnp/system.c for ACPI
+   enumerted PNP devices, by checking pnp_device->protocal.
+3) remove PNP0C01/PNP0C02 from PNPACPI white list.
+
+By doing this, we can remove the depedency of PNP bus, but this requires
+a lot of code duplication(need to copy quirks.c and system.c logic into ACPI),
+which does not look good neither.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/Makefile    |    2 +-
- drivers/acpi/acpi_lpss.c |   66 +++++++++++++++++++++++++++++++++-------------
- drivers/acpi/internal.h  |    4 ---
- 3 files changed, 48 insertions(+), 24 deletions(-)
+ drivers/acpi/acpi_pnp.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 9a43893..2173e30 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -39,7 +39,7 @@ acpi-y				+= processor_core.o
- acpi-y				+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
- acpi-y				+= pci_root.o pci_link.o pci_irq.o
--acpi-$(CONFIG_X86_INTEL_LPSS)	+= acpi_lpss.o
-+acpi-y				+= acpi_lpss.o
- acpi-y				+= acpi_platform.o
- acpi-y				+= acpi_pnp.o
- acpi-y				+= power.o
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 6745fe1..6f753fe 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -24,6 +24,8 @@
+diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
+index 6fa482a..ad84f4e 100644
+--- a/drivers/acpi/acpi_pnp.c
++++ b/drivers/acpi/acpi_pnp.c
+@@ -132,9 +132,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[]= {
+ 	{"FUJ02bf"},
+ 	{"FUJ02B1"},
+ 	{"FUJ02E3"},
+-	/* system */
+-	{"PNP0c02"}, /* General ID for reserving resources */
+-	{"PNP0c01"}, /* memory controller */
+ 	/* rtc_cmos */
+ 	{"PNP0b00"},
+ 	{"PNP0b01"},
+@@ -365,12 +362,28 @@ static int is_cmos_rtc_device(struct acpi_device *adev)
+ 	return !acpi_match_device_ids(adev, ids);
+ }
  
- ACPI_MODULE_NAME("acpi_lpss");
- 
-+#ifdef CONFIG_X86_INTEL_LPSS
-+
- #define LPSS_CLK_SIZE	0x04
- #define LPSS_LTR_SIZE	0x18
- 
-@@ -142,39 +144,48 @@ static struct lpss_device_desc byt_i2c_dev_desc = {
- 	.shared_clock = &i2c_clock,
- };
- 
-+#define LPSS_PTR(desc) (unsigned long)&desc
-+
-+#else
-+
-+#define LPSS_PTR(desc) 0
-+
-+#endif
-+
- static const struct acpi_device_id acpi_lpss_device_ids[] = {
- 	/* Generic LPSS devices */
--	{ "INTL9C60", (unsigned long)&lpss_dma_desc },
-+	{ "INTL9C60", LPSS_PTR(lpss_dma_desc) },
- 
- 	/* Lynxpoint LPSS devices */
--	{ "INT33C0", (unsigned long)&lpt_dev_desc },
--	{ "INT33C1", (unsigned long)&lpt_dev_desc },
--	{ "INT33C2", (unsigned long)&lpt_dev_desc },
--	{ "INT33C3", (unsigned long)&lpt_dev_desc },
--	{ "INT33C4", (unsigned long)&lpt_uart_dev_desc },
--	{ "INT33C5", (unsigned long)&lpt_uart_dev_desc },
--	{ "INT33C6", (unsigned long)&lpt_sdio_dev_desc },
-+	{ "INT33C0", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT33C1", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT33C2", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT33C3", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT33C4", LPSS_PTR(lpt_uart_dev_desc) },
-+	{ "INT33C5", LPSS_PTR(lpt_uart_dev_desc) },
-+	{ "INT33C6", LPSS_PTR(lpt_sdio_dev_desc) },
- 	{ "INT33C7", },
- 
- 	/* BayTrail LPSS devices */
--	{ "80860F0A", (unsigned long)&byt_uart_dev_desc },
--	{ "80860F0E", (unsigned long)&byt_spi_dev_desc },
--	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
--	{ "80860F41", (unsigned long)&byt_i2c_dev_desc },
-+	{ "80860F0A", LPSS_PTR(byt_uart_dev_desc) },
-+	{ "80860F0E", LPSS_PTR(byt_spi_dev_desc) },
-+	{ "80860F14", LPSS_PTR(byt_sdio_dev_desc) },
-+	{ "80860F41", LPSS_PTR(byt_i2c_dev_desc) },
- 	{ "INT33B2", },
- 
--	{ "INT3430", (unsigned long)&lpt_dev_desc },
--	{ "INT3431", (unsigned long)&lpt_dev_desc },
--	{ "INT3432", (unsigned long)&lpt_dev_desc },
--	{ "INT3433", (unsigned long)&lpt_dev_desc },
--	{ "INT3434", (unsigned long)&lpt_uart_dev_desc },
--	{ "INT3435", (unsigned long)&lpt_uart_dev_desc },
--	{ "INT3436", (unsigned long)&lpt_sdio_dev_desc },
-+	{ "INT3430", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT3431", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT3432", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT3433", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT3434", LPSS_PTR(lpt_uart_dev_desc) },
-+	{ "INT3435", LPSS_PTR(lpt_uart_dev_desc) },
-+	{ "INT3436", LPSS_PTR(lpt_sdio_dev_desc) },
- 	{ "INT3437", },
- 
- 	{ }
- };
- 
-+#ifdef CONFIG_X86_INTEL_LPSS
- static int is_memory(struct acpi_resource *res, void *not_used)
- {
- 	struct resource r;
-@@ -431,10 +442,27 @@ static struct acpi_scan_handler lpss_handler = {
- 	.attach = acpi_lpss_create_device,
- };
- 
-+#endif /* CONFIG_X86_INTEL_LPSS */
-+
-+static int acpi_lpss_dummy_attach(struct acpi_device *adev,
-+				const struct acpi_device_id *id)
++/*
++ * For devices with id "PNP0C01"/"PNP0C02", they will be enumerated
++ * to PNP bus anyway to do resource reservation.
++ */
++static int is_system_device(struct acpi_device *adev)
 +{
-+	return 1;
++	struct acpi_device_id ids[] = {
++		{"PNP0C02"},
++		{"PNP0C01"},
++		{""},
++	};
++	return !acpi_match_device_ids(adev, ids);
 +}
 +
-+static struct acpi_scan_handler lpss_dummy_handler = {
-+	.ids = acpi_lpss_device_ids,
-+	.attach = acpi_lpss_dummy_attach,
-+};
-+
- void __init acpi_lpss_init(void)
+ bool acpi_is_pnp_device(struct acpi_device *device)
  {
-+#ifdef CONFIG_X86_INTEL_LPSS 
- 	if (!lpt_clk_init()) {
- 		bus_register_notifier(&platform_bus_type, &acpi_lpss_nb);
- 		acpi_scan_add_handler(&lpss_handler);
-+		return;
- 	}
-+#endif
-+	acpi_scan_add_handler(&lpss_dummy_handler);
+ 	if (device->handler == &acpi_pnp_handler)
+ 		return true;
+ 	if (is_cmos_rtc_device(device))
+ 		return true;
++	if (is_system_device(device))
++		return true;
+ 	return false;
  }
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 74ea3f1..a0c9368 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -67,11 +67,7 @@ int acpi_debugfs_init(void);
- #else
- static inline void acpi_debugfs_init(void) { return; }
- #endif
--#ifdef CONFIG_X86_INTEL_LPSS
- void acpi_lpss_init(void);
--#else
--static inline void acpi_lpss_init(void) {}
--#endif
- 
- bool acpi_queue_hotplug_work(struct work_struct *work);
- bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent);
+ EXPORT_SYMBOL_GPL(acpi_is_pnp_device);
 -- 
 1.7.9.5
-
