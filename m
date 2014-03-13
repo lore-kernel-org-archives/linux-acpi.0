@@ -1,31 +1,77 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 0/5] gpio / ACPI: Rework ACPI GPIO events and add
- support for operation regions
-Date: Thu, 13 Mar 2014 19:14:21 +0200
-Message-ID: <20140313171421.GW5018@intel.com>
-References: <1394456094-21671-1-git-send-email-mika.westerberg@linux.intel.com>
- <CACRpkdYKpA0URPr2mAUehqoGmwARH4pdMBMrBrXJmN_m2Kd1cA@mail.gmail.com>
+From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Subject: next-20140312 - build error in drivers/acpi/sleep.c
+Date: Thu, 13 Mar 2014 14:48:31 -0400
+Message-ID: <22429.1394736511@turing-police.cc.vt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:14323 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753804AbaCMRIQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Mar 2014 13:08:16 -0400
-Content-Disposition: inline
-In-Reply-To: <CACRpkdYKpA0URPr2mAUehqoGmwARH4pdMBMrBrXJmN_m2Kd1cA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; boundary="==_Exmh_1394736511_1654P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Mar 13, 2014 at 03:17:29PM +0100, Linus Walleij wrote:
-> On Mon, Mar 10, 2014 at 1:54 PM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> 
-> > This is second revision of the patch series. The first version is available
-> > for example here [1].
-> 
-> I have applied patche 1 thru 4.
+--==_Exmh_1394736511_1654P
+Content-Type: text/plain; charset=us-ascii
 
-Thanks!
+Seen in the most recent linux-next with a CONFIG_SUSPEND=n .config:
+
+  CC      drivers/acpi/sleep.o
+drivers/acpi/sleep.c: In function 'acpi_sleep_init':
+drivers/acpi/sleep.c:808:2: error: implicit declaration of function 'acpi_sleep_state_supported' [-Werror=implicit-function-declaration]
+  if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
+  ^
+cc1: some warnings being treated as errors
+make[2]: *** [drivers/acpi/sleep.o] Error 1
+make[1]: *** [drivers/acpi] Error 2
+make: *** [drivers] Error 2
+
+Function is defined inside a #ifdef CONFIG_SUSPEND, but used outside of
+one in acpi_sleep_init().
+
+git blame points at commit eaa54ccbc:
+
+commit eaa54ccbcf81de987e6978ad457cc9e425b7a8db
+Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Date:   Tue Mar 11 14:08:58 2014 +0100
+
+    ACPI / sleep: Add extra checks for HW Reduced ACPI mode sleep states
+
+    If the HW Reduced ACPI mode bit is set in the FADT, ACPICA uses
+    the optional sleep control and sleep status registers for making
+    the system enter sleep states (including S5), so it is not possible
+    to use system sleep states or power it off using ACPI if the HW
+    Reduced ACPI mode bit is set and those registers are not available.
+
+    For this reason, add a new function, acpi_sleep_state_supported(),
+    checking if the HW Reduced ACPI mode bit is set and whether or not
+    system sleep states are usable in that case in addition to checking
+    the return value of acpi_get_sleep_type_data() and make the ACPI
+    sleep setup routines use that function to check the availability of
+    system sleep states.
+
+
+--==_Exmh_1394736511_1654P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+Comment: Exmh version 2.5 07/13/2001
+
+iQIVAwUBUyH9fgdmEQWDXROgAQJ44A/8DdPmfycJj10J17fhHCKfu6Cv20zcx0IH
+OfsCatKlhvfw4ifOvlzCw4lHMl7XhR3F6fVwh7HW6vTau1aD//7acHvZ9vyp9hEO
+nr0WZrjnd7E5lR/lq0tB91jGnNzsoHkdqxT/z3yHdc/ql5Yus6/b8uDGLrnUtkLD
+4tvGCY6BXy4nVJqxGkh63ddbtt4ZqghA191NFXTB0TsSg5NPba345IKai32Dmqsu
+G6E4fIi4qDMx5ggbChJuHIfNlAyuGWaCvjX+LffnrWrh2eFGlKYZrf99bC41h2yg
+H9PazTMkWnpw+uUbA2dRylqrI/q7XoaeSPXxM/8T2LYuqy31hWQuhTh9Q9vnzjpl
+/iTT4jC+ulATYxHzdaK3YN8R4XnMEi86LSwqUWgu1xHOSNV0K8en2ZD/Q1INqv8e
+2qSiFbNuxZQtWLjxudoHUbxqvswRXrZM2tKl5M8r9GfSYZp84fFNcT5Q4yxhEBDA
+78AOTMKaKFd7MfcB32k7NPw+MybcGqz4gSnriDAtqJQH+GteePenb+xNp5dcCfOX
+8lUVnIboG7NgbzYwgHOlpG7nMRKiU87YLBMWSXAbR/b1eQVOQQUcz00g5habrzbQ
+s3KgtA1Mq8y9MaSvLimgPE1OxYGSC0/Dz4Sqa+IlKrzkOD3f4dS+XaT9+RCwfZ3E
+J1ZCV+QhmGg=
+=COpF
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1394736511_1654P--
