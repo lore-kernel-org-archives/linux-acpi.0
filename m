@@ -1,37 +1,53 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: [PATCH V2] Change ACPI IPMI support to "default y"
-Date: Thu, 13 Mar 2014 07:24:36 +0000
-Message-ID: <1394695475.25122.4.camel@x230>
+Date: Thu, 13 Mar 2014 09:38:32 +0100
+Message-ID: <20140313083832.GA8902@amd.pavel.ucw.cz>
 References: <1392740909-2079-1-git-send-email-matthew.garrett@nebula.com>
-	 <1511662.Ly2fOjCGKz@vostro.rjw.lan> <1392765307.3488.1.camel@x230.lan>
-	 <20140312230007.GA1817@amd.pavel.ucw.cz> <1394666568.25122.1.camel@x230>
-	 <20140313072204.GA7181@amd.pavel.ucw.cz>
+ <1511662.Ly2fOjCGKz@vostro.rjw.lan>
+ <1392765307.3488.1.camel@x230.lan>
+ <20140312230007.GA1817@amd.pavel.ucw.cz>
+ <1394666568.25122.1.camel@x230>
+ <20140313072204.GA7181@amd.pavel.ucw.cz>
+ <1394695475.25122.4.camel@x230>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1lp0141.outbound.protection.outlook.com ([207.46.163.141]:18865
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751388AbaCMHYj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Mar 2014 03:24:39 -0400
-In-Reply-To: <20140313072204.GA7181@amd.pavel.ucw.cz>
-Content-Language: en-US
-Content-ID: <180642F4A74F50458ABED3351E139E4F@namprd05.prod.outlook.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54573 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751286AbaCMIie (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Mar 2014 04:38:34 -0400
+Content-Disposition: inline
+In-Reply-To: <1394695475.25122.4.camel@x230>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "pavel@ucw.cz" <pavel@ucw.cz>
+To: Matthew Garrett <matthew.garrett@nebula.com>
 Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-T24gVGh1LCAyMDE0LTAzLTEzIGF0IDA4OjIyICswMTAwLCBQYXZlbCBNYWNoZWsgd3JvdGU6DQo+
-IE9uIFdlZCAyMDE0LTAzLTEyIDIzOjIyOjQ5LCBNYXR0aGV3IEdhcnJldHQgd3JvdGU6DQo+ID4g
-Tm8uIFRoZSBwb3dlciBtZXRlciBkcml2ZXIga25vd3Mgbm90aGluZyBhYm91dCBJUE1JLiBJdCBt
-YWtlcyBubyBJUE1JDQo+ID4gY2FsbHMuIFRoZXJlJ3Mgbm8gcmVxdWlyZW1lbnQgdGhhdCBhIHZl
-bmRvciBpbXBsZW1lbnQgaXQgdmlhIElQTUkuDQo+IA0KPiBZZXQgeW91IGNsYWltIHRoYXQgSU1Q
-SSBpcyBuZWVkZWQgZm9yIHRoYXQsIGFuZCB0aGF0J3Mgd2h5IHlvdSBtYWRlDQo+IElNUEkgZGVm
-YXVsdC4NCg0KSSBjbGFpbSB0aGF0IHRoZSBBQ1BJIHNwZWMgZGVmaW5lcyB0aGUgYmVoYXZpb3Vy
-IG9mIElQTUkgb3BlcmF0aW9uDQpyZWdpb25zLCBhbmQgc28gd2Ugc2hvdWxkIGRlZmF1bHQgSVBN
-SSB0byBZIGluIG9yZGVyIHRvIChieSBkZWZhdWx0KQ0KaW1wbGVtZW50IHRoZSBBQ1BJIHNwZWMu
-DQoNCj4gU28gLi4uIGRvIHdlIG5lZWQgZG1pLWJhc2VkIGJsYWNrbGlzdD8NCg0KSSBkb24ndCBz
-ZWUgd2h5Lg0KDQotLSANCk1hdHRoZXcgR2FycmV0dCA8bWF0dGhldy5nYXJyZXR0QG5lYnVsYS5j
-b20+DQo=
+On Thu 2014-03-13 07:24:36, Matthew Garrett wrote:
+> On Thu, 2014-03-13 at 08:22 +0100, Pavel Machek wrote:
+> > On Wed 2014-03-12 23:22:49, Matthew Garrett wrote:
+> > > No. The power meter driver knows nothing about IPMI. It makes no IPMI
+> > > calls. There's no requirement that a vendor implement it via IPMI.
+> > 
+> > Yet you claim that IMPI is needed for that, and that's why you made
+> > IMPI default.
+> 
+> I claim that the ACPI spec defines the behaviour of IPMI operation
+> regions, and so we should default IPMI to Y in order to (by default)
+> implement the ACPI spec.
+> 
+> > So ... do we need dmi-based blacklist?
+> 
+> I don't see why.
+
+Your reasoning for default y was that "power meter depends on
+this". Then, claim that "power meter does not officially depend on it"
+so it would be wrong to have a dependency.
+
+Defaults are not right solution; system should still work if I select
+non-default settings. Which you claim is not a case, but you don't see
+why you should fix it.
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
