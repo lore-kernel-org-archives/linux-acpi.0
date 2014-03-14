@@ -1,28 +1,204 @@
-From: Ilia Mirkin <imirkin@alum.mit.edu>
-Subject: Re: 3.14-rc: /proc/acpi/battery gone?
-Date: Fri, 14 Mar 2014 17:29:41 -0400
-Message-ID: <CAKb7Uvi-GfOu3_3BMU_Cu4qYS8PQRWzxVm1XETY7y_TJjGPs_A@mail.gmail.com>
-References: <20140314211456.GA23213@amd.pavel.ucw.cz>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: ACPICA 20140214 auto-serialize weirds my machine...
+Date: Fri, 14 Mar 2014 21:29:45 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37C7F995F@ORSMSX103.amr.corp.intel.com>
+References: <14866.1394813101@turing-police.cc.vt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140314211456.GA23213@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: rjw@rjwysocki.net, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:12017 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756180AbaCNV3s convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Mar 2014 17:29:48 -0400
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
 
-On Fri, Mar 14, 2014 at 5:14 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> Hi!
->
-> It seems /proc/acpi/battery interface is gone, and I don't see any
-> option to reintroduce it... what is going on?
+We have a fix for this and will send out a patch next week after additional testing.
 
-The interface went away in a semi-recent kernel release (3.13 or
-3.12), breaking pretty much every battery app. (Admittedly the
-interface was marked as deprecated for quite some time, but that
-didn't stop everyone from using it and not caring about the new
-thing.) I've yet to find a windowmaker dock app that works with the
-current sysfs API :(
+Thanks,
+Bob
 
-  -ilia
+
+> -----Original Message-----
+> From: Moore, Robert
+> Sent: Friday, March 14, 2014 2:03 PM
+> To: 'Valdis Kletnieks'; Zheng, Lv; Wysocki, Rafael J; Len Brown
+> Cc: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
+> Subject: RE: ACPICA 20140214 auto-serialize weirds my machine...
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: Valdis Kletnieks [mailto:Valdis.Kletnieks@vt.edu]
+> > Sent: Friday, March 14, 2014 9:05 AM
+> > To: Zheng, Lv; Wysocki, Rafael J; Moore, Robert; Len Brown
+> > Cc: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
+> > Subject: ACPICA 20140214 auto-serialize weirds my machine...
+> >
+> > Surprisingly enough, this hasn't seemed to have bitten many Linux
+> > people yet, Google only finds a BSD thread (where the same ACPICA code
+> > is in
+> > use):
+> 
+> 
+> Yes, and the reason that it is rare to see this error is because the
+> problem is related to the use of the ASL Sync Level mechanism, which is
+> rarely used.
+> 
+> Bob
+> 
+> 
+> 
+> 
+> 
+> >
+> > http://comments.gmane.org/gmane.os.dragonfly-bsd.user/1817
+> >
+> > I found this, but haven't tried it yet:
+> >
+> > commit 5f1cb4a92e4c4aabd139ff9ca1e11c0e2db2ac59
+> > Author: Lv Zheng <lv.zheng@intel.com>
+> > Date:   Wed Feb 26 10:32:01 2014 +0800
+> >
+> >     ACPICA: Remove global option to serialize all control methods.
+> >
+> >     With the addition of the auto-serialization feature, this option
+> >     is obsolete and is completely removed. Lv Zheng.
+> >
+> >     This patch also updates acpi_serialize kernel parameter using the
+> >     new auto-serialization feature - acpi_gbl_auto_serialize_methods.
+> >
+> > This looks like a user nightmare waiting to happen, because:
+> >
+> > -   	acpi_serialize	[HW,ACPI] force serialization of AML methods
+> > +	acpi_serialize=	[HW,ACPI] configure auto-serialization of AML
+> > methods
+> >
+> > Re-using a kernel parameter name with different semantics is just
+> > asking for trouble.
+> >
+> > I get this in my dmesg, and then I end up with all sorts of
+> > ACPI-related weirdness - everything from 4 or 5 temperature sensors
+> > evaporating to it claiming that my laptop doesn't have a battery bay
+> > (it may also be related to an issue I'm seeing with multiple graphics
+> > monitors as well, but I haven't verified that yet).
+> >
+> > We're going to need a better way to deal with this before it gets to
+> > mainline....
+> >
+> > [    0.119344] ACPI: Executed 1 blocks of module-level executable AML
+> code
+> > [    0.135282] ACPI Error: Cannot acquire Mutex for method [SNVC],
+> current
+> > SyncLevel is too large (1) (20140214/dsmethod-362)
+> > [    0.135288] ACPI Error: Method parse/execution failed [\SMBF] (Node
+> > ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.135298] ACPI Error: Method parse/execution failed [\GENS] (Node
+> > ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.135307] ACPI Error: Method parse/execution failed [\EISC] (Node
+> > ffff88012d02d560), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.135320] ACPI Error: Method parse/execution failed
+> > [\_SB_.PCI0.LPCB.ECDV.ECR1] (Node ffff88012d02d470),
+> > AE_AML_MUTEX_ORDER
+> > (20140214/psparse-536)
+> > [    0.135328] ACPI Error: Method parse/execution failed [\ECRB] (Node
+> > ffff88012d02d5d8), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.135336] ACPI Error: Method parse/execution failed [\ECG5] (Node
+> > ffff88012d02d740), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.135343] ACPI Error: Method parse/execution failed
+> > [\_SB_.PCI0.LPCB.EINI] (Node ffff88012d02db00), AE_AML_MUTEX_ORDER
+> > (20140214/psparse-536)
+> > [    0.135351] ACPI Error: Method parse/execution failed [\EV3_] (Node
+> > ffff88012d0314c0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.135359] ACPI Error: Method parse/execution failed
+> [\_SB_.PCI0._INI]
+> > (Node ffff88012d026920), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.135574] [Firmware Bug]: ACPI: BIOS _OSI(Linux) query ignored
+> > [    0.136283] ACPI: SSDT 0x00000000CE789598 000523 (v01 PmRef  Cpu0Cst
+> > 00003001 INTL 20051117)
+> > [    0.138312] ACPI: Dynamic OEM Table Load:
+> > [    0.138316] ACPI: SSDT 0x0000000000000000 000523 (v01 PmRef  Cpu0Cst
+> > 00003001 INTL 20051117)
+> > [    0.141483] ACPI: SSDT 0x00000000CE78AA98 000303 (v01 PmRef  ApIst
+> > 00003000 INTL 20051117)
+> > [    0.143683] ACPI: Dynamic OEM Table Load:
+> > [    0.143687] ACPI: SSDT 0x0000000000000000 000303 (v01 PmRef  ApIst
+> > 00003000 INTL 20051117)
+> > [    0.146215] ACPI: SSDT 0x00000000CE790C18 000119 (v01 PmRef  ApCst
+> > 00003000 INTL 20051117)
+> > [    0.148279] ACPI: Dynamic OEM Table Load:
+> > [    0.148282] ACPI: SSDT 0x0000000000000000 000119 (v01 PmRef  ApCst
+> > 00003000 INTL 20051117)
+> > [    0.152678] ACPI Error: Cannot acquire Mutex for method [SNVC],
+> current
+> > SyncLevel is too large (1) (20140214/dsmethod-362)
+> > [    0.152684] ACPI Error: Method parse/execution failed [\SMBF] (Node
+> > ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.152693] ACPI Error: Method parse/execution failed [\GENS] (Node
+> > ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.152702] ACPI Error: Method parse/execution failed [\EISC] (Node
+> > ffff88012d02d560), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.152714] ACPI Error: Method parse/execution failed
+> > [\_SB_.PCI0.LPCB.ECDV.ECR1] (Node ffff88012d02d470),
+> > AE_AML_MUTEX_ORDER
+> > (20140214/psparse-536)
+> > [    0.152722] ACPI Error: Method parse/execution failed [\ECBT] (Node
+> > ffff88012d02d588), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.152730] ACPI Error: Method parse/execution failed [\ECG3] (Node
+> > ffff88012d02d6c8), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.152737] ACPI Error: Method parse/execution failed
+> > [\_SB_.PCI0.LPCB.ECDV.ECIN] (Node ffff88012d02d3d0),
+> > AE_AML_MUTEX_ORDER
+> > (20140214/psparse-536)
+> > [    0.152745] ACPI Error: Method parse/execution failed
+> > [\_SB_.PCI0.LPCB.ECDV._REG] (Node ffff88012d02d3f8),
+> > AE_AML_MUTEX_ORDER
+> > (20140214/psparse-536)
+> > [    0.152818] ACPI: Interpreter enabled
+> > [    0.152828] ACPI: (supports S0)
+> > [    0.152830] ACPI: Using IOAPIC for interrupt routing
+> > [    0.152883] PCI: Using host bridge windows from ACPI; if necessary,
+> use
+> > "pci=nocrs" and report a bug
+> > [    0.156479] ACPI Error: Cannot acquire Mutex for method [SNVC],
+> current
+> > SyncLevel is too large (1) (20140214/dsmethod-362)
+> > [    0.156485] ACPI Error: Method parse/execution failed [\SMBF] (Node
+> > ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.156494] ACPI Error: Method parse/execution failed [\GENS] (Node
+> > ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.156504] ACPI Error: Method parse/execution failed
+> > [\_SB_.PCI0.LPCB.UAR1._STA] (Node ffff88012d02fb28),
+> > AE_AML_MUTEX_ORDER
+> > (20140214/psparse-536)
+> > [    0.156666] ACPI Error: Cannot acquire Mutex for method [SNVC],
+> current
+> > SyncLevel is too large (1) (20140214/dsmethod-362)
+> > [    0.156671] ACPI Error: Method parse/execution failed [\SMBF] (Node
+> > ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.156680] ACPI Error: Method parse/execution failed [\GENS] (Node
+> > ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.156689] ACPI Error: Method parse/execution failed
+> > [\_SB_.PCI0.LPCB.LPTE.CLPS] (Node ffff88012d02fcb8),
+> > AE_AML_MUTEX_ORDER
+> > (20140214/psparse-536)
+> > [    0.156702] ACPI Error: Method parse/execution failed
+> > [\_SB_.PCI0.LPCB.LPTE._STA] (Node ffff88012d02fce0),
+> > AE_AML_MUTEX_ORDER
+> > (20140214/psparse-536)
+> > [    0.162229] ACPI Error: Cannot acquire Mutex for method [SNVC],
+> current
+> > SyncLevel is too large (1) (20140214/dsmethod-362)
+> > [    0.162234] ACPI Error: Method parse/execution failed [\SMBF] (Node
+> > ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.162244] ACPI Error: Method parse/execution failed [\GENS] (Node
+> > ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> > [    0.162254] ACPI Error: Method parse/execution failed [\EISC] (Node
+> > ffff88012d02d560), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+> >
+> > (you get the idea.  I get a total of 172 'ACPI Error:' messages before
+> > I get to a single-user prompt)
