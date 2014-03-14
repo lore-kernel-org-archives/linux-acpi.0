@@ -1,26 +1,68 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v3 5/5] gpio / ACPI: Add support for ACPI GPIO operation regions
-Date: Fri, 14 Mar 2014 17:25:39 +0100
-Message-ID: <CACRpkdYyBgL0W5cYpAEQZzc7u5K4yEBOr5hD5gDFFPBYvxkgqQ@mail.gmail.com>
-References: <1394456094-21671-6-git-send-email-mika.westerberg@linux.intel.com>
-	<1394812687-12715-1-git-send-email-mika.westerberg@linux.intel.com>
+From: Valdis.Kletnieks@vt.edu
+Subject: Re: ACPICA 20140214 auto-serialize weirds my machine...
+Date: Fri, 14 Mar 2014 13:24:00 -0400
+Message-ID: <21867.1394817840@turing-police.cc.vt.edu>
+References: <14866.1394813101@turing-police.cc.vt.edu>
+            <53232A06.9010201@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1394812687-12715-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: multipart/signed; boundary="==_Exmh_1394817840_1735P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lennier.cc.vt.edu ([198.82.162.213]:56262 "EHLO
+	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755504AbaCNRYI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Mar 2014 13:24:08 -0400
+In-Reply-To: Your message of "Fri, 14 Mar 2014 17:10:46 +0100."
+             <53232A06.9010201@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, Mar 14, 2014 at 4:58 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
+--==_Exmh_1394817840_1735P
+Content-Type: text/plain; charset=us-ascii
 
-> GPIO operation regions is a new feature introduced in ACPI 5.0
-> specification. This feature adds a way for platform ASL code to call back
-> to OS GPIO driver and toggle GPIO pins.
+On Fri, 14 Mar 2014 17:10:46 +0100, "Rafael J. Wysocki" said:
 
-OK this version of the patch applied!
+> We have a commit that removes this command line argument already.
 
-Yours,
-Linus Walleij
+Oh, OK..
+
+> But those messages:
+>
+> >
+> > [    0.119344] ACPI: Executed 1 blocks of module-level executable AML code
+> > [    0.135282] ACPI Error: Cannot acquire Mutex for method [SNVC], current SyncLevel is too large (1) (20140214/dsmethod-362)
+
+> shouldn't be there regardless.
+>
+> I'm going to look at this issue later today.
+
+OK. I've got a 'git bisect' down to about 75 commits already, I'll finish
+that up if it will help.  And feel free to toss me a patch if you need
+something tested...
+
+--==_Exmh_1394817840_1735P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+Comment: Exmh version 2.5 07/13/2001
+
+iQIVAwUBUyM7MAdmEQWDXROgAQIoWQ/+OjudDjTAFto+R0nbbFuJQm949UtWNLms
+0xbkZLEIXH2vxkKMYRGcj4bK411wN2kAGfpX+Yaw5B7Ufe1hEGZ1AAFdJbC0Q/x5
+gAW8Rg+0LQ/C2eJ2QgpxEOeMvvb2JFNbZra6sKn+DuYFilGx3+/xaKYaCIM4W74H
+MWAphJ9ZfTt3FA7OSOgEXwZB4NbEyKt7gcwYRVNyc5qKmELpqEmBL3+DRI1dj+Oq
+aqSxl/q/oyNhAu6APZLs4kwCeLjiJu2S9TvpEzc9BzszwyMWBPZ8UPMekTTAdqh6
+cOONGm75K9CKjMl/BV1UKwg4kHvIbgzhrXLpysoQtgj65SHqERsb9Rw9q0Vs7bTS
+AX6IUZsIjyomJpSxvJmTyC5kBkT1wLcrlsone1mlhs+6OMkTevO84EIxNFSkttE1
+3IOnAD/sBfY3fomrWv6RaND1/NBdxC8NiAL6ueYR3wxxg2HHw5vIetXSv+sQJIcc
+aBnHnSvQ4G476H1z5TvC9PVPcLsgz3wpY8a8LF7ImdtSyMOXPuLuANdLcznCCim/
+IGBwYX7gxukASfLz5K+kOT662QKKQm6dskGRjV7w0+w2CQYYh7BsE6VbyGQ3YmMz
+qeEBwg8vgZ/rpAnWS5t/NZX+8djH7CzYCvQMNxXI0iHkOZ/8jxEdxmrWLvTGNxqu
+2Cj6xEz3TmQ=
+=xXxi
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1394817840_1735P--
