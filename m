@@ -1,299 +1,130 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v3 5/5] gpio / ACPI: Add support for ACPI GPIO operation regions
-Date: Fri, 14 Mar 2014 17:58:07 +0200
-Message-ID: <1394812687-12715-1-git-send-email-mika.westerberg@linux.intel.com>
-References: <1394456094-21671-6-git-send-email-mika.westerberg@linux.intel.com>
+From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Subject: ACPICA 20140214 auto-serialize weirds my machine...
+Date: Fri, 14 Mar 2014 12:05:01 -0400
+Message-ID: <14866.1394813101@turing-police.cc.vt.edu>
+Mime-Version: 1.0
+Content-Type: multipart/signed; boundary="==_Exmh_1394813101_1735P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:29386 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754809AbaCNP6N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Mar 2014 11:58:13 -0400
-In-Reply-To: <1394456094-21671-6-git-send-email-mika.westerberg@linux.intel.com>
+Received: from lennier.cc.vt.edu ([198.82.162.213]:41048 "EHLO
+	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754727AbaCNQGI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Mar 2014 12:06:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-GPIO operation regions is a new feature introduced in ACPI 5.0
-specification. This feature adds a way for platform ASL code to call back
-to OS GPIO driver and toggle GPIO pins.
+--==_Exmh_1394813101_1735P
+Content-Type: text/plain; charset=us-ascii
 
-An example ASL code from Lenovo Miix 2 tablet with only relevant part
-listed:
+Surprisingly enough, this hasn't seemed to have bitten many Linux people yet,
+Google only finds a BSD thread (where the same ACPICA code is in use):
 
- Device (\_SB.GPO0)
- {
-     Name (AVBL, Zero)
-     Method (_REG, 2, NotSerialized)
-     {
-         If (LEqual (Arg0, 0x08))
-         {
-             // Marks the region available
-             Store (Arg1, AVBL)
-         }
-     }
+http://comments.gmane.org/gmane.os.dragonfly-bsd.user/1817
 
-     OperationRegion (GPOP, GeneralPurposeIo, Zero, 0x0C)
-     Field (GPOP, ByteAcc, NoLock, Preserve)
-     {
-         Connection (
-             GpioIo (Exclusive, PullDefault, 0, 0, IoRestrictionOutputOnly,
-                     "\\_SB.GPO0", 0x00, ResourceConsumer,,)
-             {
-                 0x003B
-             }
-         ),
-         SHD3,   1,
-     }
- }
+I found this, but haven't tried it yet:
 
- Device (SHUB)
- {
-     Method (_PS0, 0, Serialized)
-     {
-         If (LEqual (\_SB.GPO0.AVBL, One))
-         {
-             Store (One, \_SB.GPO0.SHD3)
-             Sleep (0x32)
-         }
-     }
-     Method (_PS3, 0, Serialized)
-     {
-         If (LEqual (\_SB.GPO0.AVBL, One))
-         {
-             Store (Zero, \_SB.GPO0.SHD3)
-         }
-     }
- }
+commit 5f1cb4a92e4c4aabd139ff9ca1e11c0e2db2ac59
+Author: Lv Zheng <lv.zheng@intel.com>
+Date:   Wed Feb 26 10:32:01 2014 +0800
 
-How this works is that whenever _PS0 or _PS3 method is run (typically when
-SHUB device is transitioned to D0 or D3 respectively), ASL code checks if
-the GPIO operation region is available (\_SB.GPO0.AVBL). If it is we go and
-store either 0 or 1 to \_SB.GPO0.SHD3.
+    ACPICA: Remove global option to serialize all control methods.
 
-Now, when ACPICA notices ACPI GPIO operation region access (the store
-above) it will call acpi_gpio_adr_space_handler() that then toggles the
-GPIO accordingly using standard gpiolib interfaces.
+    With the addition of the auto-serialization feature, this option
+    is obsolete and is completely removed. Lv Zheng.
 
-Implement the support by registering GPIO operation region handlers for all
-GPIO devices that have an ACPI handle. First time the GPIO is used by the
-ASL code we make sure that the GPIO stays requested until the GPIO chip
-driver itself is unloaded. If we find out that the GPIO is already
-requested we just toggle it according to the value got from ASL code.
+    This patch also updates acpi_serialize kernel parameter using the
+    new auto-serialization feature - acpi_gbl_auto_serialize_methods.
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
-Changes to v2:
- * pull -> pull_up
- * Add comment explaining why pull_up is used setting initial value
- * Free the GPIO descriptor if connection memory allocation fails.
+This looks like a user nightmare waiting to happen, because:
 
- drivers/gpio/gpiolib-acpi.c | 163 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 163 insertions(+)
+-   	acpi_serialize	[HW,ACPI] force serialization of AML methods
++	acpi_serialize=	[HW,ACPI] configure auto-serialization of AML methods
 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 092ea4e5c9a8..bf0f8b476696 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -16,6 +16,7 @@
- #include <linux/export.h>
- #include <linux/acpi.h>
- #include <linux/interrupt.h>
-+#include <linux/mutex.h>
- 
- #include "gpiolib.h"
- 
-@@ -26,7 +27,20 @@ struct acpi_gpio_event {
- 	unsigned int irq;
- };
- 
-+struct acpi_gpio_connection {
-+	struct list_head node;
-+	struct gpio_desc *desc;
-+};
-+
- struct acpi_gpio_chip {
-+	/*
-+	 * ACPICA requires that the first field of the context parameter
-+	 * passed to acpi_install_address_space_handler() is large enough
-+	 * to hold struct acpi_connection_info.
-+	 */
-+	struct acpi_connection_info conn_info;
-+	struct list_head conns;
-+	struct mutex conn_lock;
- 	struct gpio_chip *chip;
- 	struct list_head events;
- };
-@@ -334,6 +348,153 @@ struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
- 	return lookup.desc ? lookup.desc : ERR_PTR(-ENOENT);
- }
- 
-+static acpi_status
-+acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
-+			    u32 bits, u64 *value, void *handler_context,
-+			    void *region_context)
-+{
-+	struct acpi_gpio_chip *achip = region_context;
-+	struct gpio_chip *chip = achip->chip;
-+	struct acpi_resource_gpio *agpio;
-+	struct acpi_resource *ares;
-+	acpi_status status;
-+	bool pull_up;
-+	int i;
-+
-+	status = acpi_buffer_to_resource(achip->conn_info.connection,
-+					 achip->conn_info.length, &ares);
-+	if (ACPI_FAILURE(status))
-+		return status;
-+
-+	if (WARN_ON(ares->type != ACPI_RESOURCE_TYPE_GPIO)) {
-+		ACPI_FREE(ares);
-+		return AE_BAD_PARAMETER;
-+	}
-+
-+	agpio = &ares->data.gpio;
-+	pull_up = agpio->pin_config == ACPI_PIN_CONFIG_PULLUP;
-+
-+	if (WARN_ON(agpio->io_restriction == ACPI_IO_RESTRICT_INPUT &&
-+	    function == ACPI_WRITE)) {
-+		ACPI_FREE(ares);
-+		return AE_BAD_PARAMETER;
-+	}
-+
-+	for (i = 0; i < agpio->pin_table_length; i++) {
-+		unsigned pin = agpio->pin_table[i];
-+		struct acpi_gpio_connection *conn;
-+		struct gpio_desc *desc;
-+		bool found;
-+
-+		desc = gpiochip_get_desc(chip, pin);
-+		if (IS_ERR(desc)) {
-+			status = AE_ERROR;
-+			goto out;
-+		}
-+
-+		mutex_lock(&achip->conn_lock);
-+
-+		found = false;
-+		list_for_each_entry(conn, &achip->conns, node) {
-+			if (conn->desc == desc) {
-+				found = true;
-+				break;
-+			}
-+		}
-+		if (!found) {
-+			int ret;
-+
-+			ret = gpiochip_request_own_desc(desc, "ACPI:OpRegion");
-+			if (ret) {
-+				status = AE_ERROR;
-+				mutex_unlock(&achip->conn_lock);
-+				goto out;
-+			}
-+
-+			switch (agpio->io_restriction) {
-+			case ACPI_IO_RESTRICT_INPUT:
-+				gpiod_direction_input(desc);
-+				break;
-+			case ACPI_IO_RESTRICT_OUTPUT:
-+				/*
-+				 * ACPI GPIO resources don't contain an
-+				 * initial value for the GPIO. Therefore we
-+				 * deduce that value from the pull field
-+				 * instead. If the pin is pulled up we
-+				 * assume default to be high, otherwise
-+				 * low.
-+				 */
-+				gpiod_direction_output(desc, pull_up);
-+				break;
-+			default:
-+				/*
-+				 * Assume that the BIOS has configured the
-+				 * direction and pull accordingly.
-+				 */
-+				break;
-+			}
-+
-+			conn = kzalloc(sizeof(*conn), GFP_KERNEL);
-+			if (!conn) {
-+				status = AE_NO_MEMORY;
-+				gpiochip_free_own_desc(desc);
-+				mutex_unlock(&achip->conn_lock);
-+				goto out;
-+			}
-+
-+			conn->desc = desc;
-+			list_add_tail(&conn->node, &achip->conns);
-+		}
-+
-+		mutex_unlock(&achip->conn_lock);
-+
-+		if (function == ACPI_WRITE)
-+			gpiod_set_raw_value(desc, !!((1 << i) & *value));
-+		else
-+			*value |= gpiod_get_raw_value(desc) << i;
-+	}
-+
-+out:
-+	ACPI_FREE(ares);
-+	return status;
-+}
-+
-+static void acpi_gpiochip_request_regions(struct acpi_gpio_chip *achip)
-+{
-+	struct gpio_chip *chip = achip->chip;
-+	acpi_handle handle = ACPI_HANDLE(chip->dev);
-+	acpi_status status;
-+
-+	INIT_LIST_HEAD(&achip->conns);
-+	mutex_init(&achip->conn_lock);
-+	status = acpi_install_address_space_handler(handle, ACPI_ADR_SPACE_GPIO,
-+						    acpi_gpio_adr_space_handler,
-+						    NULL, achip);
-+	if (ACPI_FAILURE(status))
-+		dev_err(chip->dev, "Failed to install GPIO OpRegion handler\n");
-+}
-+
-+static void acpi_gpiochip_free_regions(struct acpi_gpio_chip *achip)
-+{
-+	struct gpio_chip *chip = achip->chip;
-+	acpi_handle handle = ACPI_HANDLE(chip->dev);
-+	struct acpi_gpio_connection *conn, *tmp;
-+	acpi_status status;
-+
-+	status = acpi_remove_address_space_handler(handle, ACPI_ADR_SPACE_GPIO,
-+						   acpi_gpio_adr_space_handler);
-+	if (ACPI_FAILURE(status)) {
-+		dev_err(chip->dev, "Failed to remove GPIO OpRegion handler\n");
-+		return;
-+	}
-+
-+	list_for_each_entry_safe_reverse(conn, tmp, &achip->conns, node) {
-+		gpiochip_free_own_desc(conn->desc);
-+		list_del(&conn->node);
-+		kfree(conn);
-+	}
-+}
-+
- void acpi_gpiochip_add(struct gpio_chip *chip)
- {
- 	struct acpi_gpio_chip *acpi_gpio;
-@@ -361,6 +522,7 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
- 	}
- 
- 	acpi_gpiochip_request_interrupts(acpi_gpio);
-+	acpi_gpiochip_request_regions(acpi_gpio);
- }
- 
- void acpi_gpiochip_remove(struct gpio_chip *chip)
-@@ -379,6 +541,7 @@ void acpi_gpiochip_remove(struct gpio_chip *chip)
- 		return;
- 	}
- 
-+	acpi_gpiochip_free_regions(acpi_gpio);
- 	acpi_gpiochip_free_interrupts(acpi_gpio);
- 
- 	acpi_detach_data(handle, acpi_gpio_chip_dh);
--- 
-1.9.0
+Re-using a kernel parameter name with different semantics is just asking for trouble.
 
+I get this in my dmesg, and then I end up with all sorts of ACPI-related
+weirdness - everything from 4 or 5 temperature sensors evaporating to it
+claiming that my laptop doesn't have a battery bay (it may also be related to
+an issue I'm seeing with multiple graphics monitors as well, but I haven't
+verified that yet).
+
+We're going to need a better way to deal with this before it gets to
+mainline....
+
+[    0.119344] ACPI: Executed 1 blocks of module-level executable AML code
+[    0.135282] ACPI Error: Cannot acquire Mutex for method [SNVC], current SyncLevel is too large (1) (20140214/dsmethod-362)
+[    0.135288] ACPI Error: Method parse/execution failed [\SMBF] (Node ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.135298] ACPI Error: Method parse/execution failed [\GENS] (Node ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.135307] ACPI Error: Method parse/execution failed [\EISC] (Node ffff88012d02d560), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.135320] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.ECDV.ECR1] (Node ffff88012d02d470), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.135328] ACPI Error: Method parse/execution failed [\ECRB] (Node ffff88012d02d5d8), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.135336] ACPI Error: Method parse/execution failed [\ECG5] (Node ffff88012d02d740), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.135343] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EINI] (Node ffff88012d02db00), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.135351] ACPI Error: Method parse/execution failed [\EV3_] (Node ffff88012d0314c0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.135359] ACPI Error: Method parse/execution failed [\_SB_.PCI0._INI] (Node ffff88012d026920), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.135574] [Firmware Bug]: ACPI: BIOS _OSI(Linux) query ignored
+[    0.136283] ACPI: SSDT 0x00000000CE789598 000523 (v01 PmRef  Cpu0Cst  00003001 INTL 20051117)
+[    0.138312] ACPI: Dynamic OEM Table Load:
+[    0.138316] ACPI: SSDT 0x0000000000000000 000523 (v01 PmRef  Cpu0Cst  00003001 INTL 20051117)
+[    0.141483] ACPI: SSDT 0x00000000CE78AA98 000303 (v01 PmRef  ApIst    00003000 INTL 20051117)
+[    0.143683] ACPI: Dynamic OEM Table Load:
+[    0.143687] ACPI: SSDT 0x0000000000000000 000303 (v01 PmRef  ApIst    00003000 INTL 20051117)
+[    0.146215] ACPI: SSDT 0x00000000CE790C18 000119 (v01 PmRef  ApCst    00003000 INTL 20051117)
+[    0.148279] ACPI: Dynamic OEM Table Load:
+[    0.148282] ACPI: SSDT 0x0000000000000000 000119 (v01 PmRef  ApCst    00003000 INTL 20051117)
+[    0.152678] ACPI Error: Cannot acquire Mutex for method [SNVC], current SyncLevel is too large (1) (20140214/dsmethod-362)
+[    0.152684] ACPI Error: Method parse/execution failed [\SMBF] (Node ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.152693] ACPI Error: Method parse/execution failed [\GENS] (Node ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.152702] ACPI Error: Method parse/execution failed [\EISC] (Node ffff88012d02d560), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.152714] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.ECDV.ECR1] (Node ffff88012d02d470), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.152722] ACPI Error: Method parse/execution failed [\ECBT] (Node ffff88012d02d588), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.152730] ACPI Error: Method parse/execution failed [\ECG3] (Node ffff88012d02d6c8), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.152737] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.ECDV.ECIN] (Node ffff88012d02d3d0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.152745] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.ECDV._REG] (Node ffff88012d02d3f8), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.152818] ACPI: Interpreter enabled
+[    0.152828] ACPI: (supports S0)
+[    0.152830] ACPI: Using IOAPIC for interrupt routing
+[    0.152883] PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
+[    0.156479] ACPI Error: Cannot acquire Mutex for method [SNVC], current SyncLevel is too large (1) (20140214/dsmethod-362)
+[    0.156485] ACPI Error: Method parse/execution failed [\SMBF] (Node ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.156494] ACPI Error: Method parse/execution failed [\GENS] (Node ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.156504] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.UAR1._STA] (Node ffff88012d02fb28), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.156666] ACPI Error: Cannot acquire Mutex for method [SNVC], current SyncLevel is too large (1) (20140214/dsmethod-362)
+[    0.156671] ACPI Error: Method parse/execution failed [\SMBF] (Node ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.156680] ACPI Error: Method parse/execution failed [\GENS] (Node ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.156689] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.LPTE.CLPS] (Node ffff88012d02fcb8), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.156702] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.LPTE._STA] (Node ffff88012d02fce0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.162229] ACPI Error: Cannot acquire Mutex for method [SNVC], current SyncLevel is too large (1) (20140214/dsmethod-362)
+[    0.162234] ACPI Error: Method parse/execution failed [\SMBF] (Node ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.162244] ACPI Error: Method parse/execution failed [\GENS] (Node ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+[    0.162254] ACPI Error: Method parse/execution failed [\EISC] (Node ffff88012d02d560), AE_AML_MUTEX_ORDER (20140214/psparse-536)
+
+(you get the idea.  I get a total of 172 'ACPI Error:' messages before I get to
+a single-user prompt)
+
+--==_Exmh_1394813101_1735P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+Comment: Exmh version 2.5 07/13/2001
+
+iQIVAwUBUyMorQdmEQWDXROgAQLLkQ//Ysr9UDcUBpgDqFRmO+bj0lExeHJJ4kZK
+neHeysDcGUijBB7gHwK+miuo7Ld/1dUTiGZMf6WikSEFJsz3y7fieB5Wkl74RLhB
+EXlk4bKuEcvBo5Xo90aBxbg1AqUUq+r6zwrBSAp9sskGyf9mS6VazjVhQ2SRHXJz
+IhI+6HsrRzwjvAfyT4kC2JD0v5FsVFixnXDZp8YnhpNlgLft++2Vh55GwyTHALCK
+jE0DaEMIs1ZQ29jiosiTEpu/IJDjl/ZubFPzEa113EyNRauhDA5UQFJRJZ3W61Mp
+j4TvT9BfKqXePU79B6w8O7XfoCSGAywRPHO7fUq+gTf/68yJHsWdGXcO+XeeEVcv
+5SXINGkKK//8Rl0Pv8V5YQ/JghGAezDuDWT2KLIZh4BF6lC/RHgsuuCA5yCyn5ZC
+IVBXJxpXN5ewnrWyiKwHzakvyTh8ixOB/zSUzkWdI+F1StfRRh4JJgc2ggjMBeHi
+OV+WnOQ4M0ZOP017W6YkJ9rqp+E3tPCLH+X6mC7TiWqS7gYt6aHfIHBEp5a3vZHc
+I4ZaVYqgtWt0LXeHMxkcmhatEcU47YlOUvRqq2GBg1g9xDbk0KOP7SDQ7Ve3xg0O
+IESbktkXJ+gFgfW1TXuhS9exFRPMuipfjbW2Xo+rqkncLXb/S7KlIrlAihFI1bxN
+Hk1WcQbGXB4=
+=ntYI
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1394813101_1735P--
