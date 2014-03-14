@@ -1,204 +1,81 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: ACPICA 20140214 auto-serialize weirds my machine...
-Date: Fri, 14 Mar 2014 21:29:45 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37C7F995F@ORSMSX103.amr.corp.intel.com>
-References: <14866.1394813101@turing-police.cc.vt.edu>
+From: Valdis.Kletnieks@vt.edu
+Subject: Re: next-20140312 - build error in drivers/acpi/sleep.c
+Date: Fri, 14 Mar 2014 16:56:49 -0400
+Message-ID: <72679.1394830609@turing-police.cc.vt.edu>
+References: <22429.1394736511@turing-police.cc.vt.edu>
+            <1431943.FB4azhDoEG@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:12017 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756180AbaCNV3s convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Mar 2014 17:29:48 -0400
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; boundary="==_Exmh_1394830609_14626P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: Your message of "Thu, 13 Mar 2014 22:23:51 +0100."
+             <1431943.FB4azhDoEG@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Wu Fengguang <fengguang.wu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
 
-We have a fix for this and will send out a patch next week after additional testing.
+--==_Exmh_1394830609_14626P
+Content-Type: text/plain; charset=us-ascii
 
-Thanks,
-Bob
+On Thu, 13 Mar 2014 22:23:51 +0100, "Rafael J. Wysocki" said:
+
+> On Thursday, March 13, 2014 02:48:31 PM Valdis Kletnieks wrote:
+> > Seen in the most recent linux-next with a CONFIG_SUSPEND=n .config:
+> >   CC      drivers/acpi/sleep.o
+> > drivers/acpi/sleep.c: In function 'acpi_sleep_init':
+> > drivers/acpi/sleep.c:808:2: error: implicit declaration of function 'acpi_sleep_state_supported' [-Werror=implicit-function-declaration]
+> >   if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
+> >   ^
+> > cc1: some warnings being treated as errors
+> > make[2]: *** [drivers/acpi/sleep.o] Error 1
+> > make[1]: *** [drivers/acpi] Error 2
+> > make: *** [drivers] Error 2
+
+> > Function is defined inside a #ifdef CONFIG_SUSPEND, but used outside of
+> > one in acpi_sleep_init().
+
+> git blame points at commit eaa54ccbc:
+>
+> commit eaa54ccbcf81de987e6978ad457cc9e425b7a8db
+> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Date:   Tue Mar 11 14:08:58 2014 +0100
+>
+>     ACPI / sleep: Add extra checks for HW Reduced ACPI mode sleep states
+
+This appears to be fixed in next-20140314, with updated commit:
+
+commit a4e90bed511220ff601d064c9e5d583e91308f65
+Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Date:   Thu Mar 13 22:11:39 2014 +0100
+
+    ACPI / sleep: Add extra checks for HW Reduced ACPI mode sleep states
 
 
-> -----Original Message-----
-> From: Moore, Robert
-> Sent: Friday, March 14, 2014 2:03 PM
-> To: 'Valdis Kletnieks'; Zheng, Lv; Wysocki, Rafael J; Len Brown
-> Cc: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
-> Subject: RE: ACPICA 20140214 auto-serialize weirds my machine...
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: Valdis Kletnieks [mailto:Valdis.Kletnieks@vt.edu]
-> > Sent: Friday, March 14, 2014 9:05 AM
-> > To: Zheng, Lv; Wysocki, Rafael J; Moore, Robert; Len Brown
-> > Cc: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
-> > Subject: ACPICA 20140214 auto-serialize weirds my machine...
-> >
-> > Surprisingly enough, this hasn't seemed to have bitten many Linux
-> > people yet, Google only finds a BSD thread (where the same ACPICA code
-> > is in
-> > use):
-> 
-> 
-> Yes, and the reason that it is rare to see this error is because the
-> problem is related to the use of the ASL Sync Level mechanism, which is
-> rarely used.
-> 
-> Bob
-> 
-> 
-> 
-> 
-> 
-> >
-> > http://comments.gmane.org/gmane.os.dragonfly-bsd.user/1817
-> >
-> > I found this, but haven't tried it yet:
-> >
-> > commit 5f1cb4a92e4c4aabd139ff9ca1e11c0e2db2ac59
-> > Author: Lv Zheng <lv.zheng@intel.com>
-> > Date:   Wed Feb 26 10:32:01 2014 +0800
-> >
-> >     ACPICA: Remove global option to serialize all control methods.
-> >
-> >     With the addition of the auto-serialization feature, this option
-> >     is obsolete and is completely removed. Lv Zheng.
-> >
-> >     This patch also updates acpi_serialize kernel parameter using the
-> >     new auto-serialization feature - acpi_gbl_auto_serialize_methods.
-> >
-> > This looks like a user nightmare waiting to happen, because:
-> >
-> > -   	acpi_serialize	[HW,ACPI] force serialization of AML methods
-> > +	acpi_serialize=	[HW,ACPI] configure auto-serialization of AML
-> > methods
-> >
-> > Re-using a kernel parameter name with different semantics is just
-> > asking for trouble.
-> >
-> > I get this in my dmesg, and then I end up with all sorts of
-> > ACPI-related weirdness - everything from 4 or 5 temperature sensors
-> > evaporating to it claiming that my laptop doesn't have a battery bay
-> > (it may also be related to an issue I'm seeing with multiple graphics
-> > monitors as well, but I haven't verified that yet).
-> >
-> > We're going to need a better way to deal with this before it gets to
-> > mainline....
-> >
-> > [    0.119344] ACPI: Executed 1 blocks of module-level executable AML
-> code
-> > [    0.135282] ACPI Error: Cannot acquire Mutex for method [SNVC],
-> current
-> > SyncLevel is too large (1) (20140214/dsmethod-362)
-> > [    0.135288] ACPI Error: Method parse/execution failed [\SMBF] (Node
-> > ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.135298] ACPI Error: Method parse/execution failed [\GENS] (Node
-> > ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.135307] ACPI Error: Method parse/execution failed [\EISC] (Node
-> > ffff88012d02d560), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.135320] ACPI Error: Method parse/execution failed
-> > [\_SB_.PCI0.LPCB.ECDV.ECR1] (Node ffff88012d02d470),
-> > AE_AML_MUTEX_ORDER
-> > (20140214/psparse-536)
-> > [    0.135328] ACPI Error: Method parse/execution failed [\ECRB] (Node
-> > ffff88012d02d5d8), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.135336] ACPI Error: Method parse/execution failed [\ECG5] (Node
-> > ffff88012d02d740), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.135343] ACPI Error: Method parse/execution failed
-> > [\_SB_.PCI0.LPCB.EINI] (Node ffff88012d02db00), AE_AML_MUTEX_ORDER
-> > (20140214/psparse-536)
-> > [    0.135351] ACPI Error: Method parse/execution failed [\EV3_] (Node
-> > ffff88012d0314c0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.135359] ACPI Error: Method parse/execution failed
-> [\_SB_.PCI0._INI]
-> > (Node ffff88012d026920), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.135574] [Firmware Bug]: ACPI: BIOS _OSI(Linux) query ignored
-> > [    0.136283] ACPI: SSDT 0x00000000CE789598 000523 (v01 PmRef  Cpu0Cst
-> > 00003001 INTL 20051117)
-> > [    0.138312] ACPI: Dynamic OEM Table Load:
-> > [    0.138316] ACPI: SSDT 0x0000000000000000 000523 (v01 PmRef  Cpu0Cst
-> > 00003001 INTL 20051117)
-> > [    0.141483] ACPI: SSDT 0x00000000CE78AA98 000303 (v01 PmRef  ApIst
-> > 00003000 INTL 20051117)
-> > [    0.143683] ACPI: Dynamic OEM Table Load:
-> > [    0.143687] ACPI: SSDT 0x0000000000000000 000303 (v01 PmRef  ApIst
-> > 00003000 INTL 20051117)
-> > [    0.146215] ACPI: SSDT 0x00000000CE790C18 000119 (v01 PmRef  ApCst
-> > 00003000 INTL 20051117)
-> > [    0.148279] ACPI: Dynamic OEM Table Load:
-> > [    0.148282] ACPI: SSDT 0x0000000000000000 000119 (v01 PmRef  ApCst
-> > 00003000 INTL 20051117)
-> > [    0.152678] ACPI Error: Cannot acquire Mutex for method [SNVC],
-> current
-> > SyncLevel is too large (1) (20140214/dsmethod-362)
-> > [    0.152684] ACPI Error: Method parse/execution failed [\SMBF] (Node
-> > ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.152693] ACPI Error: Method parse/execution failed [\GENS] (Node
-> > ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.152702] ACPI Error: Method parse/execution failed [\EISC] (Node
-> > ffff88012d02d560), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.152714] ACPI Error: Method parse/execution failed
-> > [\_SB_.PCI0.LPCB.ECDV.ECR1] (Node ffff88012d02d470),
-> > AE_AML_MUTEX_ORDER
-> > (20140214/psparse-536)
-> > [    0.152722] ACPI Error: Method parse/execution failed [\ECBT] (Node
-> > ffff88012d02d588), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.152730] ACPI Error: Method parse/execution failed [\ECG3] (Node
-> > ffff88012d02d6c8), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.152737] ACPI Error: Method parse/execution failed
-> > [\_SB_.PCI0.LPCB.ECDV.ECIN] (Node ffff88012d02d3d0),
-> > AE_AML_MUTEX_ORDER
-> > (20140214/psparse-536)
-> > [    0.152745] ACPI Error: Method parse/execution failed
-> > [\_SB_.PCI0.LPCB.ECDV._REG] (Node ffff88012d02d3f8),
-> > AE_AML_MUTEX_ORDER
-> > (20140214/psparse-536)
-> > [    0.152818] ACPI: Interpreter enabled
-> > [    0.152828] ACPI: (supports S0)
-> > [    0.152830] ACPI: Using IOAPIC for interrupt routing
-> > [    0.152883] PCI: Using host bridge windows from ACPI; if necessary,
-> use
-> > "pci=nocrs" and report a bug
-> > [    0.156479] ACPI Error: Cannot acquire Mutex for method [SNVC],
-> current
-> > SyncLevel is too large (1) (20140214/dsmethod-362)
-> > [    0.156485] ACPI Error: Method parse/execution failed [\SMBF] (Node
-> > ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.156494] ACPI Error: Method parse/execution failed [\GENS] (Node
-> > ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.156504] ACPI Error: Method parse/execution failed
-> > [\_SB_.PCI0.LPCB.UAR1._STA] (Node ffff88012d02fb28),
-> > AE_AML_MUTEX_ORDER
-> > (20140214/psparse-536)
-> > [    0.156666] ACPI Error: Cannot acquire Mutex for method [SNVC],
-> current
-> > SyncLevel is too large (1) (20140214/dsmethod-362)
-> > [    0.156671] ACPI Error: Method parse/execution failed [\SMBF] (Node
-> > ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.156680] ACPI Error: Method parse/execution failed [\GENS] (Node
-> > ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.156689] ACPI Error: Method parse/execution failed
-> > [\_SB_.PCI0.LPCB.LPTE.CLPS] (Node ffff88012d02fcb8),
-> > AE_AML_MUTEX_ORDER
-> > (20140214/psparse-536)
-> > [    0.156702] ACPI Error: Method parse/execution failed
-> > [\_SB_.PCI0.LPCB.LPTE._STA] (Node ffff88012d02fce0),
-> > AE_AML_MUTEX_ORDER
-> > (20140214/psparse-536)
-> > [    0.162229] ACPI Error: Cannot acquire Mutex for method [SNVC],
-> current
-> > SyncLevel is too large (1) (20140214/dsmethod-362)
-> > [    0.162234] ACPI Error: Method parse/execution failed [\SMBF] (Node
-> > ffff88012d026ec0), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.162244] ACPI Error: Method parse/execution failed [\GENS] (Node
-> > ffff88012d026e70), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> > [    0.162254] ACPI Error: Method parse/execution failed [\EISC] (Node
-> > ffff88012d02d560), AE_AML_MUTEX_ORDER (20140214/psparse-536)
-> >
-> > (you get the idea.  I get a total of 172 'ACPI Error:' messages before
-> > I get to a single-user prompt)
+Thanks...
+
+
+--==_Exmh_1394830609_14626P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+Comment: Exmh version 2.5 07/13/2001
+
+iQIVAwUBUyNtEQdmEQWDXROgAQKqaBAAh3ZVZdXX8nv2638OoWgUWnu4O/UCGrb/
+a+XtslcZe3AX/JGyw3C5rLnkmwmY/JYdEXuwAPTug5phcb+0lzd9nAS/NC+aB28E
+JYZRTwKcp2PjxjBwyAfL1LhiHYfHd2fOPvJk3XNrpZSvIJfQsxKAqDg8UmU3rBCT
+dIIlrVS2AGOhhMlC7L32oQ0yxoqGGiZMIv7YJpbowVm0TWHF3kMtbRIDIjOCC+a9
+F6Q0p1dDcGe6bDXmLhswH9NYjUK91JV61NjQiw7VJsFsGwnSMIw7cP6eDyy7xD3O
+u1VnPGPxTvMeXHk7EjxJ9PJxoLD17k1mJ/knjDvCCd+KLFiKexztPQpmkpHB6LTw
+1qdFSKE2sg5C45TsBp8HujG6qlVBLleeEp4F84oEKPYPzKZvYXu/7RDAzeSq/05D
+IqiEnIUZvCH0fZUhQz99cOQtwgB4Pz2x09MlfXtJSjZeMrNB2WjeKadOCxfXPquV
+926y3CDSqLf6eqXYZ97vms0RKWlCHnPSL2fiwpoID1j0gStQxjDZBz4KsTDXctIm
+1YiOMOJLIQs4HyVoKsXmCTFpgLkzhihe9QFOISxiDVsZGxjM2GGCGdNVuR7yZk7r
+LsIDZvuTw2p7UzF6Uvh6hPVID/6UH5mi+rUiniPepA9dMz021az9lAjIYUb7HXuT
+YhOJ02FuxaM=
+=4CgH
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1394830609_14626P--
