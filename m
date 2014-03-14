@@ -1,45 +1,299 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 5/5] gpio / ACPI: Add support for ACPI GPIO operation
- regions
-Date: Fri, 14 Mar 2014 13:11:51 +0200
-Message-ID: <20140314111151.GH5018@intel.com>
-References: <1394456094-21671-1-git-send-email-mika.westerberg@linux.intel.com>
- <1394456094-21671-6-git-send-email-mika.westerberg@linux.intel.com>
- <CACRpkdY3z-XGHwn5sQKM-8cKYHzr3_40h53032ETN6PaDW779w@mail.gmail.com>
- <20140313151816.GR5018@intel.com>
- <CACRpkdZfeGkHp8kc-Uv+5Q6xRN1NwiZD-kLWS93x0jV=kn30MA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH v3 5/5] gpio / ACPI: Add support for ACPI GPIO operation regions
+Date: Fri, 14 Mar 2014 17:58:07 +0200
+Message-ID: <1394812687-12715-1-git-send-email-mika.westerberg@linux.intel.com>
+References: <1394456094-21671-6-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:29125 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:29386 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751618AbaCNLEt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Mar 2014 07:04:49 -0400
-Content-Disposition: inline
-In-Reply-To: <CACRpkdZfeGkHp8kc-Uv+5Q6xRN1NwiZD-kLWS93x0jV=kn30MA@mail.gmail.com>
+	id S1754809AbaCNP6N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Mar 2014 11:58:13 -0400
+In-Reply-To: <1394456094-21671-6-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Fri, Mar 14, 2014 at 11:53:30AM +0100, Linus Walleij wrote:
-> On Thu, Mar 13, 2014 at 4:18 PM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> > On Thu, Mar 13, 2014 at 03:32:01PM +0100, Linus Walleij wrote:
-> 
-> >> > +                       case ACPI_IO_RESTRICT_OUTPUT:
-> >> > +                               gpiod_direction_output(desc, pull);
-> >>
-> >> Can you explain why the fact that the line is pulled down affects the
-> >> default output value like this? I don't get it.
-> >
-> > That's the thing - ACPI doesn't tell us what is the initial value of the
-> > pin. There is no such field in GpioIo() resource.
-> >
-> > So I'm assuming here that if it says that the pin is pulled up, the default
-> > value will be high.
-> 
-> OK! So exactly that statement is what I want to see as a comment
-> in this switch case.
+GPIO operation regions is a new feature introduced in ACPI 5.0
+specification. This feature adds a way for platform ASL code to call back
+to OS GPIO driver and toggle GPIO pins.
 
-Sure. I'll add that comment to the next version of this patch.
+An example ASL code from Lenovo Miix 2 tablet with only relevant part
+listed:
+
+ Device (\_SB.GPO0)
+ {
+     Name (AVBL, Zero)
+     Method (_REG, 2, NotSerialized)
+     {
+         If (LEqual (Arg0, 0x08))
+         {
+             // Marks the region available
+             Store (Arg1, AVBL)
+         }
+     }
+
+     OperationRegion (GPOP, GeneralPurposeIo, Zero, 0x0C)
+     Field (GPOP, ByteAcc, NoLock, Preserve)
+     {
+         Connection (
+             GpioIo (Exclusive, PullDefault, 0, 0, IoRestrictionOutputOnly,
+                     "\\_SB.GPO0", 0x00, ResourceConsumer,,)
+             {
+                 0x003B
+             }
+         ),
+         SHD3,   1,
+     }
+ }
+
+ Device (SHUB)
+ {
+     Method (_PS0, 0, Serialized)
+     {
+         If (LEqual (\_SB.GPO0.AVBL, One))
+         {
+             Store (One, \_SB.GPO0.SHD3)
+             Sleep (0x32)
+         }
+     }
+     Method (_PS3, 0, Serialized)
+     {
+         If (LEqual (\_SB.GPO0.AVBL, One))
+         {
+             Store (Zero, \_SB.GPO0.SHD3)
+         }
+     }
+ }
+
+How this works is that whenever _PS0 or _PS3 method is run (typically when
+SHUB device is transitioned to D0 or D3 respectively), ASL code checks if
+the GPIO operation region is available (\_SB.GPO0.AVBL). If it is we go and
+store either 0 or 1 to \_SB.GPO0.SHD3.
+
+Now, when ACPICA notices ACPI GPIO operation region access (the store
+above) it will call acpi_gpio_adr_space_handler() that then toggles the
+GPIO accordingly using standard gpiolib interfaces.
+
+Implement the support by registering GPIO operation region handlers for all
+GPIO devices that have an ACPI handle. First time the GPIO is used by the
+ASL code we make sure that the GPIO stays requested until the GPIO chip
+driver itself is unloaded. If we find out that the GPIO is already
+requested we just toggle it according to the value got from ASL code.
+
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+Changes to v2:
+ * pull -> pull_up
+ * Add comment explaining why pull_up is used setting initial value
+ * Free the GPIO descriptor if connection memory allocation fails.
+
+ drivers/gpio/gpiolib-acpi.c | 163 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 163 insertions(+)
+
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index 092ea4e5c9a8..bf0f8b476696 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -16,6 +16,7 @@
+ #include <linux/export.h>
+ #include <linux/acpi.h>
+ #include <linux/interrupt.h>
++#include <linux/mutex.h>
+ 
+ #include "gpiolib.h"
+ 
+@@ -26,7 +27,20 @@ struct acpi_gpio_event {
+ 	unsigned int irq;
+ };
+ 
++struct acpi_gpio_connection {
++	struct list_head node;
++	struct gpio_desc *desc;
++};
++
+ struct acpi_gpio_chip {
++	/*
++	 * ACPICA requires that the first field of the context parameter
++	 * passed to acpi_install_address_space_handler() is large enough
++	 * to hold struct acpi_connection_info.
++	 */
++	struct acpi_connection_info conn_info;
++	struct list_head conns;
++	struct mutex conn_lock;
+ 	struct gpio_chip *chip;
+ 	struct list_head events;
+ };
+@@ -334,6 +348,153 @@ struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
+ 	return lookup.desc ? lookup.desc : ERR_PTR(-ENOENT);
+ }
+ 
++static acpi_status
++acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
++			    u32 bits, u64 *value, void *handler_context,
++			    void *region_context)
++{
++	struct acpi_gpio_chip *achip = region_context;
++	struct gpio_chip *chip = achip->chip;
++	struct acpi_resource_gpio *agpio;
++	struct acpi_resource *ares;
++	acpi_status status;
++	bool pull_up;
++	int i;
++
++	status = acpi_buffer_to_resource(achip->conn_info.connection,
++					 achip->conn_info.length, &ares);
++	if (ACPI_FAILURE(status))
++		return status;
++
++	if (WARN_ON(ares->type != ACPI_RESOURCE_TYPE_GPIO)) {
++		ACPI_FREE(ares);
++		return AE_BAD_PARAMETER;
++	}
++
++	agpio = &ares->data.gpio;
++	pull_up = agpio->pin_config == ACPI_PIN_CONFIG_PULLUP;
++
++	if (WARN_ON(agpio->io_restriction == ACPI_IO_RESTRICT_INPUT &&
++	    function == ACPI_WRITE)) {
++		ACPI_FREE(ares);
++		return AE_BAD_PARAMETER;
++	}
++
++	for (i = 0; i < agpio->pin_table_length; i++) {
++		unsigned pin = agpio->pin_table[i];
++		struct acpi_gpio_connection *conn;
++		struct gpio_desc *desc;
++		bool found;
++
++		desc = gpiochip_get_desc(chip, pin);
++		if (IS_ERR(desc)) {
++			status = AE_ERROR;
++			goto out;
++		}
++
++		mutex_lock(&achip->conn_lock);
++
++		found = false;
++		list_for_each_entry(conn, &achip->conns, node) {
++			if (conn->desc == desc) {
++				found = true;
++				break;
++			}
++		}
++		if (!found) {
++			int ret;
++
++			ret = gpiochip_request_own_desc(desc, "ACPI:OpRegion");
++			if (ret) {
++				status = AE_ERROR;
++				mutex_unlock(&achip->conn_lock);
++				goto out;
++			}
++
++			switch (agpio->io_restriction) {
++			case ACPI_IO_RESTRICT_INPUT:
++				gpiod_direction_input(desc);
++				break;
++			case ACPI_IO_RESTRICT_OUTPUT:
++				/*
++				 * ACPI GPIO resources don't contain an
++				 * initial value for the GPIO. Therefore we
++				 * deduce that value from the pull field
++				 * instead. If the pin is pulled up we
++				 * assume default to be high, otherwise
++				 * low.
++				 */
++				gpiod_direction_output(desc, pull_up);
++				break;
++			default:
++				/*
++				 * Assume that the BIOS has configured the
++				 * direction and pull accordingly.
++				 */
++				break;
++			}
++
++			conn = kzalloc(sizeof(*conn), GFP_KERNEL);
++			if (!conn) {
++				status = AE_NO_MEMORY;
++				gpiochip_free_own_desc(desc);
++				mutex_unlock(&achip->conn_lock);
++				goto out;
++			}
++
++			conn->desc = desc;
++			list_add_tail(&conn->node, &achip->conns);
++		}
++
++		mutex_unlock(&achip->conn_lock);
++
++		if (function == ACPI_WRITE)
++			gpiod_set_raw_value(desc, !!((1 << i) & *value));
++		else
++			*value |= gpiod_get_raw_value(desc) << i;
++	}
++
++out:
++	ACPI_FREE(ares);
++	return status;
++}
++
++static void acpi_gpiochip_request_regions(struct acpi_gpio_chip *achip)
++{
++	struct gpio_chip *chip = achip->chip;
++	acpi_handle handle = ACPI_HANDLE(chip->dev);
++	acpi_status status;
++
++	INIT_LIST_HEAD(&achip->conns);
++	mutex_init(&achip->conn_lock);
++	status = acpi_install_address_space_handler(handle, ACPI_ADR_SPACE_GPIO,
++						    acpi_gpio_adr_space_handler,
++						    NULL, achip);
++	if (ACPI_FAILURE(status))
++		dev_err(chip->dev, "Failed to install GPIO OpRegion handler\n");
++}
++
++static void acpi_gpiochip_free_regions(struct acpi_gpio_chip *achip)
++{
++	struct gpio_chip *chip = achip->chip;
++	acpi_handle handle = ACPI_HANDLE(chip->dev);
++	struct acpi_gpio_connection *conn, *tmp;
++	acpi_status status;
++
++	status = acpi_remove_address_space_handler(handle, ACPI_ADR_SPACE_GPIO,
++						   acpi_gpio_adr_space_handler);
++	if (ACPI_FAILURE(status)) {
++		dev_err(chip->dev, "Failed to remove GPIO OpRegion handler\n");
++		return;
++	}
++
++	list_for_each_entry_safe_reverse(conn, tmp, &achip->conns, node) {
++		gpiochip_free_own_desc(conn->desc);
++		list_del(&conn->node);
++		kfree(conn);
++	}
++}
++
+ void acpi_gpiochip_add(struct gpio_chip *chip)
+ {
+ 	struct acpi_gpio_chip *acpi_gpio;
+@@ -361,6 +522,7 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
+ 	}
+ 
+ 	acpi_gpiochip_request_interrupts(acpi_gpio);
++	acpi_gpiochip_request_regions(acpi_gpio);
+ }
+ 
+ void acpi_gpiochip_remove(struct gpio_chip *chip)
+@@ -379,6 +541,7 @@ void acpi_gpiochip_remove(struct gpio_chip *chip)
+ 		return;
+ 	}
+ 
++	acpi_gpiochip_free_regions(acpi_gpio);
+ 	acpi_gpiochip_free_interrupts(acpi_gpio);
+ 
+ 	acpi_detach_data(handle, acpi_gpio_chip_dh);
+-- 
+1.9.0
+
