@@ -1,80 +1,26 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI and power management fixes for v3.14-rc7
-Date: Fri, 14 Mar 2014 17:17:48 +0100
-Message-ID: <CAJZ5v0jzME8pYhfRLheOKVgo9beeYk9wnG6-N=kdVNM2e9LJCA@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v3 5/5] gpio / ACPI: Add support for ACPI GPIO operation regions
+Date: Fri, 14 Mar 2014 17:25:39 +0100
+Message-ID: <CACRpkdYyBgL0W5cYpAEQZzc7u5K4yEBOr5hD5gDFFPBYvxkgqQ@mail.gmail.com>
+References: <1394456094-21671-6-git-send-email-mika.westerberg@linux.intel.com>
+	<1394812687-12715-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1394812687-12715-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Fri, Mar 14, 2014 at 4:58 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
 
-Please pull from the git repository at
+> GPIO operation regions is a new feature introduced in ACPI 5.0
+> specification. This feature adds a way for platform ASL code to call back
+> to OS GPIO driver and toggle GPIO pins.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-3.14-rc7
+OK this version of the patch applied!
 
-to receive ACPI and power management fixes for v3.14-rc7
-with top-most commit d5af40d6b34d9d1ba39a27f657948cbce4e0b0e7
-
-  Merge branches 'pnp', 'acpi-init', 'acpi-sleep' and 'pm-cpufreq'
-
-on top of commit fa389e220254c69ffae0d403eac4146171062d08
-
-  Linux 3.14-rc6
-
-Three of these are regression fixes, for two recent regressions and one
-introduced during the 3.13 cycle, and the fourth one is a working version
-of the fix that had to be reverted last time.
-
-Specifics:
-
- - A recent ACPI resources handling fix overlooked the fact that it had
-   to update the ACPI PNP subsystem's resources parsing too and caused
-   confusing warning messages to be printed during system intialization
-   on some systems (with arguably buggy ACPI tables).  Fix from Zhang Rui.
-
- - Moving the early ACPI initialization before timekeeping_init() earlier
-   in this cycle broke fast TSC calibration on at least one system, so it
-   needs to be done later, but still before efi_enter_virtual_mode() to
-   allow the EFI initialization to refer to ACPI.
-
- - A change related to code duplication reduction in the cpufreq core
-   inadvertently caused cpufreq intialization to fail for some CPUs
-   handled by intel_pstate by adding checks that may fail for that
-   driver, but aren't even necessary when it is used.  The issue is
-   addressed by preventing those checks from run in the configurations
-   in which they aren't needed.
-
- - If the Hardware Reduced ACPI flag is set in the ACPI tables, system
-   suspend, hibernation and ACPI power off will only work when special
-   sleep control and sleep status registeres are provided (their
-   addresses in the ACPI tables are not zero).  If those registers are
-   not available, the features in question have no chances to work,
-   so they shouldn't even be regarded as supported.  That helps with
-   power off in particular, because alternative power off methods may
-   be used then and they may actually work.
-
-Thanks!
-
-
----------------
-
-Rafael J. Wysocki (3):
-      cpufreq: Skip current frequency initialization for ->setpolicy drivers
-      ACPI / init: Invoke early ACPI initialization later
-      ACPI / sleep: Add extra checks for HW Reduced ACPI mode sleep states
-
-Zhang Rui (1):
-      PNP / ACPI: proper handling of ACPI IO/Memory resource parsing failures
-
----------------
-
- drivers/acpi/sleep.c           | 32 +++++++++++++++-----------------
- drivers/cpufreq/cpufreq.c      |  4 ++--
- drivers/pnp/pnpacpi/rsparser.c | 15 ++++++++++++---
- init/main.c                    |  2 +-
- 4 files changed, 30 insertions(+), 23 deletions(-)
+Yours,
+Linus Walleij
