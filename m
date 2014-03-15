@@ -1,125 +1,52 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: [PATCH V2 06/13] ACPI: introduce enumerable_id flag
-Date: Sat, 15 Mar 2014 01:12:09 +0000
-Message-ID: <744357E9AAD1214791ACBA4B0B90926301207EF6@SHSMSX103.ccr.corp.intel.com>
-References: <1394727413-3587-1-git-send-email-rui.zhang@intel.com>
- <1394727413-3587-7-git-send-email-rui.zhang@intel.com>
- <5323A6D9.5070005@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: 3.14-rc: /proc/acpi/battery gone?
+Date: Sat, 15 Mar 2014 02:46:19 +0100
+Message-ID: <1677000.FsvVVRjEvo@vostro.rjw.lan>
+References: <20140314211456.GA23213@amd.pavel.ucw.cz> <20140314221143.GA26621@amd.pavel.ucw.cz> <CAKb7Uvh1TaNLmi0YVBPmCD571ZU_sM1DpbYUSA8xQZnS5xUbCA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:18088 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754752AbaCOBM2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Mar 2014 21:12:28 -0400
-In-Reply-To: <5323A6D9.5070005@intel.com>
-Content-Language: en-US
+Received: from v094114.home.net.pl ([79.96.170.134]:53748 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754780AbaCOBaz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Mar 2014 21:30:55 -0400
+In-Reply-To: <CAKb7Uvh1TaNLmi0YVBPmCD571ZU_sM1DpbYUSA8xQZnS5xUbCA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "matthew.garrett@nebula.com" <matthew.garrett@nebula.com>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>
+To: Ilia Mirkin <imirkin@alum.mit.edu>, Lan Tianyu <tianyu.lan@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
 
-
-
-> -----Original Message-----
-> From: Wysocki, Rafael J
-> Sent: Saturday, March 15, 2014 9:03 AM
-> To: Zhang, Rui
-> Cc: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
-> bhelgaas@google.com; matthew.garrett@nebula.com;
-> dmitry.torokhov@gmail.com
-> Subject: Re: [PATCH V2 06/13] ACPI: introduce enumerable_id flag
-> Importance: High
-> 
-> On 3/13/2014 5:16 PM, Zhang Rui wrote:
-> > Only certain kind of ACPI device objects can be enumerated via ACPI.
-> > These ACPI device objects include
-> > 1. ACPI device objects that have _HID control method.
-> > 2. some ACPI device objects that have Linux specified HID strings.
+On Friday, March 14, 2014 06:14:12 PM Ilia Mirkin wrote:
+> On Fri, Mar 14, 2014 at 6:11 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> > On Fri 2014-03-14 17:29:41, Ilia Mirkin wrote:
+> >> On Fri, Mar 14, 2014 at 5:14 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> >> > Hi!
+> >> >
+> >> > It seems /proc/acpi/battery interface is gone, and I don't see any
+> >> > option to reintroduce it... what is going on?
+> >>
+> >> The interface went away in a semi-recent kernel release (3.13 or
+> >> 3.12), breaking pretty much every battery app. (Admittedly the
+> >> interface was marked as deprecated for quite some time, but that
+> >> didn't stop everyone from using it and not caring about the new
+> >> thing.) I've yet to find a windowmaker dock app that works with the
+> >> current sysfs API :(
 > >
-> > In order to distinguish those device objects from the others, a new
-> > flag enumerable_id and a new function acpi_add_eid() are introduced
-> in this patch.
+> > Name one application it broke, and we'll get it reverted. It broke my
+> > by-hand journalling, at the very least.
 > 
-> I don't really like the name of the new flag.  What about calling it
-> platform_id (it is supposed to indicate that the core should create a
-> platform device for it)?
->
-I concerned about the same problem, but could not get a better name.
-Yes, platform_id sounds much better.
-
-> > Currently, only devices with _HID method have this flag set.
-> > And in the future, if a device that has Linux specified HID strings
-> > wants to be enumerated to platform bus, acpi_add_eid() should be used
+> wmbattery
 > 
-> And what about calling the new function acpi_add_platform_id()
-> accordingly?
->
-Agreed.
- 
-> > instead of acpi_add_id() when adding its Linux specified HID string.
-> 
-> And I don't quite understand the last paragraph as a whole.  Is it
-> supposed to mean "if you want platform devices to be created for device
-> objects without _HID, use acpi_add_platform_id() when adding artificial
-> Linux-specific ID strings to them"?
-> 
-Yes.
-Currently, we use acpi_add_id() for devices like video, thermal, etc,
-If we want to see them in platform bus, we just a one line change to
-replace acpi_add_id() with acpi_add_platform_id().
+> They have attempted to use the sysfs api, but apparently that
+> integration was done with an older version of that API. There's also
+> some attempt to get it to work with upower, but I couldn't figure out
+> how to make that work either on my (up-to-date gentoo) box. (TBH I
+> didn't spend more than an hour or two on it, so it may not be
+> impossible.)
 
-Thanks,
-rui
+Tianyu, can you please have a look at this?
 
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > ---
-> >   drivers/acpi/scan.c     |    8 +++++++-
-> >   include/acpi/acpi_bus.h |    3 ++-
-> >   2 files changed, 9 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c index
-> > 399257e..768f81d 100644
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -1679,6 +1679,12 @@ static void acpi_add_id(struct acpi_device_pnp
-> *pnp, const char *dev_id)
-> >   	pnp->type.hardware_id = 1;
-> >   }
-> >
-> > +static void acpi_add_eid(struct acpi_device_pnp *pnp, const char
-> > +*dev_id) {
-> > +	acpi_add_id(pnp, dev_id);
-> > +	pnp->type.enumerable_id = 1;
-> > +}
-> > +
-> >   /*
-> >    * Old IBM workstations have a DSDT bug wherein the SMBus object
-> >    * lacks the SMBUS01 HID and the methods do not have the necessary
-> "_"
-> > @@ -1729,7 +1735,7 @@ static void acpi_set_pnp_ids(acpi_handle handle,
-> struct acpi_device_pnp *pnp,
-> >   		}
-> >
-> >   		if (info->valid & ACPI_VALID_HID)
-> > -			acpi_add_id(pnp, info->hardware_id.string);
-> > +			acpi_add_eid(pnp, info->hardware_id.string);
-> >   		if (info->valid & ACPI_VALID_CID) {
-> >   			cid_list = &info->compatible_id_list;
-> >   			for (i = 0; i < cid_list->count; i++) diff --git
-> > a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h index
-> > 8c5e235..688ca44 100644
-> > --- a/include/acpi/acpi_bus.h
-> > +++ b/include/acpi/acpi_bus.h
-> > @@ -217,7 +217,8 @@ struct acpi_hardware_id {
-> >   struct acpi_pnp_type {
-> >   	u32 hardware_id:1;
-> >   	u32 bus_address:1;
-> > -	u32 reserved:30;
-> > +	u32 enumerable_id:1;
-> > +	u32 reserved:29;
-> >   };
-> >
-> >   struct acpi_device_pnp {
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
