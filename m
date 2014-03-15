@@ -1,51 +1,93 @@
 From: Lan Tianyu <tianyu.lan@intel.com>
 Subject: Re: 3.14-rc: /proc/acpi/battery gone?
-Date: Sat, 15 Mar 2014 11:10:36 -0400
-Message-ID: <53246D6C.5060704@intel.com>
-References: <20140314211456.GA23213@amd.pavel.ucw.cz> <CAKb7Uvi-GfOu3_3BMU_Cu4qYS8PQRWzxVm1XETY7y_TJjGPs_A@mail.gmail.com> <CAFLxGvz1Egbg1=Kxfc2DGw8OZUEootr5E=Uh7rW6qTSC8N9+Wg@mail.gmail.com>
+Date: Sat, 15 Mar 2014 11:29:48 -0400
+Message-ID: <532471EC.1070107@intel.com>
+References: <20140314211456.GA23213@amd.pavel.ucw.cz> <CAKb7Uvh1TaNLmi0YVBPmCD571ZU_sM1DpbYUSA8xQZnS5xUbCA@mail.gmail.com> <1677000.FsvVVRjEvo@vostro.rjw.lan> <201403150217.50526.s.L-H@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:30653 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:34226 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754113AbaCOPKq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 15 Mar 2014 11:10:46 -0400
-In-Reply-To: <CAFLxGvz1Egbg1=Kxfc2DGw8OZUEootr5E=Uh7rW6qTSC8N9+Wg@mail.gmail.com>
+	id S1756181AbaCOP3p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 15 Mar 2014 11:29:45 -0400
+In-Reply-To: <201403150217.50526.s.L-H@gmx.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Weinberger <richard.weinberger@gmail.com>
-Cc: Ilia Mirkin <imirkin@alum.mit.edu>, Pavel Machek <pavel@ucw.cz>, rjw@rjwysocki.net, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>, rafael.j.wysocki@intel.com, Linus Torvalds <torvalds@linux-foundation.org>
+To: Stefan Lippers-Hollmann <s.L-H@gmx.de>, Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ilia Mirkin <imirkin@alum.mit.edu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
 
-On 03/14/2014 05:45 PM, Richard Weinberger wrote:
-> On Fri, Mar 14, 2014 at 10:29 PM, Ilia Mirkin <imirkin@alum.mit.edu> wrote:
->> On Fri, Mar 14, 2014 at 5:14 PM, Pavel Machek <pavel@ucw.cz> wrote:
->>> Hi!
+On 03/14/2014 10:17 PM, Stefan Lippers-Hollmann wrote:
+> Hi
+>
+> On Saturday 15 March 2014, Rafael J. Wysocki wrote:
+>> On Friday, March 14, 2014 06:14:12 PM Ilia Mirkin wrote:
+>>> On Fri, Mar 14, 2014 at 6:11 PM, Pavel Machek <pavel@ucw.cz> wrote:
+>>>> On Fri 2014-03-14 17:29:41, Ilia Mirkin wrote:
+>>>>> On Fri, Mar 14, 2014 at 5:14 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> [...]
+>>> wmbattery
 >>>
->>> It seems /proc/acpi/battery interface is gone, and I don't see any
->>> option to reintroduce it... what is going on?
+>>> They have attempted to use the sysfs api, but apparently that
+>>> integration was done with an older version of that API. There's also
+>>> some attempt to get it to work with upower, but I couldn't figure out
+>>> how to make that work either on my (up-to-date gentoo) box. (TBH I
+>>> didn't spend more than an hour or two on it, so it may not be
+>>> impossible.)
 >>
->> The interface went away in a semi-recent kernel release (3.13 or
->> 3.12), breaking pretty much every battery app. (Admittedly the
->> interface was marked as deprecated for quite some time, but that
->> didn't stop everyone from using it and not caring about the new
->> thing.) I've yet to find a windowmaker dock app that works with the
->> current sysfs API :(
->>
+>> Tianyu, can you please have a look at this?
 >
-> commit 1e2d9cdfb4494fce682b4ae010d86a2766816d36
-> Author: Lan Tianyu <tianyu.lan@intel.com>
-> Date:   Fri Oct 11 09:54:08 2013 +0800
+> Disclaimer, I've never used wmbattery so far.
 >
->      ACPI / Battery: Remove battery's proc directory
+> The current upstream version (2.42, released in early december 2013)
+> of wmbattery[1] no longer reads from /proc/acpi/ at all. Apparently
+> it changed to using upower by default, with non-default fall-backs for
+> reading from sysfs.
 >
->      The battery's proc directory isn't useded and remove it.
+> The only change required for building upower with wmbattery 2.42
+> appears to be a new build-dependency on libupower-glib-dev (at least
+> on Debian, built from the upower source package). Given that this
+> version is present in Debian testing and unstable, I'd assume that it's
+> supposed to work using upower, although I haven't confirmed that myself.
 >
->      Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->      Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Looks like this one is the said commit.
-> If it breaks userspace we have to revert it IMHO.
+> Judging from the Gentoo ebuild, you probably just have to add
+> "sys-power/upower" to the RDEPEND variable and make sure to build
+> wmbattery 2.42; this is untested.
 >
 
-Yes, we will revert the commit if it really breaks some APPs.
+Hi Stefan:
+	I just glance wmbattery code. I find the code in the acpi.c is already 
+using the new sysfs battery interfaces, right?
+
+...
+
+#define SYSFS_PATH "/sys/class/power_supply"
+
+...
+char *acpi_labels[] = {
+	"uevent",
+	"status",
+	"BAT",
+	"AC",
+	"POWER_SUPPLY_CAPACITY=",
+	"POWER_SUPPLY_??????_FULL_DESIGN=", /* CHARGE or ENERGY */
+	"POWER_SUPPLY_PRESENT=",
+	"POWER_SUPPLY_??????_NOW=",
+	"POWER_SUPPLY_CURRENT_NOW=",
+	"POWER_SUPPLY_STATUS=",
+#if ACPI_THERMAL
+	"thermal_zone",
+#endif
+	"POWER_SUPPLY_ONLINE=",
+	"POWER_SUPPLY_??????_FULL=",
+	NULL
+};
+
+
+> Regards
+> 	Stefan Lippers-Hollmann
+>
+> [1]	Homepage: http://kitenet.net/~joey/code/wmbattery/
+> 	Vcs-Git: git://git.kitenet.net/wmbattery
+>
+
