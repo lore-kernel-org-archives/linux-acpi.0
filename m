@@ -1,112 +1,48 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [RFC PATCH 2/2] ACPI: Default disable auto-serialization.
-Date: Mon, 17 Mar 2014 13:09:12 +0100
-Message-ID: <5326E5E8.4070804@intel.com>
-References: <14866.1394813101@turing-police.cc.vt.edu> <cover.1395028738.git.lv.zheng@intel.com> <fdc47fb7d89d984a164531b316e8b56f73ed05c9.1395028738.git.lv.zheng@intel.com>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: [PATCH 1/4] ACPI: fix ACPI_VIDEO dependencies
+Date: Mon, 17 Mar 2014 15:46:44 +0100
+Message-ID: <20140317154644.15065deb@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:1990 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932767AbaCQMJa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Mar 2014 08:09:30 -0400
-In-Reply-To: <fdc47fb7d89d984a164531b316e8b56f73ed05c9.1395028738.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 3/17/2014 5:14 AM, Lv Zheng wrote:
-> This feature enabled by the following commit is still under development.
->
->    Commit: cd52379678785b02d7a357988cfba214fdaf92f4
->    Subject: ACPICA: Add global option to disable method auto-serialization.
->    This change adds an option to disable the auto-serialization of
->    methods that create named objects.
->
-> This patch disables it by default temporarily according to the bug reports.
+From: Jean Delvare <jdelvare@suse.de>
+Subject: ACPI: fix ACPI_VIDEO dependencies
 
-Well, it doesn't restore the 3.14 behavior of acpi_auto_serialize, as 
-far as I can say, so we can't apply it.
+ACPI_VIDEO stopped depending on VIDEO_OUTPUT_CONTROL over 3 years ago
+(see commit 677bd810, "ACPI video: remove output switching control".)
+So it's about time to remove the Kconfig dependency between these two
+options.
 
-I still can drop the commits related to auto-serialization from my 
-acpica branch.  Which commits are they?
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+---
+It would be great if this patch could go upstream quickly, as
+system-wide cleanups depend on it.
 
-> References: http://www.spinics.net/lists/linux-acpi/msg49496.html
-> Reported-by: Valdis Kletnieks <validis.kletnieks@vt.edu>
-> Reported-by: Sabrina Dubroka <sd@queasysnail.net>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> ---
->   Documentation/kernel-parameters.txt |    8 ++++----
->   drivers/acpi/acpica/acglobal.h      |    2 +-
->   drivers/acpi/osl.c                  |   12 ++++++------
->   3 files changed, 11 insertions(+), 11 deletions(-)
->
-> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-> index 91f0be8..a159537 100644
-> --- a/Documentation/kernel-parameters.txt
-> +++ b/Documentation/kernel-parameters.txt
-> @@ -229,13 +229,13 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
->   			use by PCI
->   			Format: <irq>,<irq>...
->   
-> -	acpi_no_auto_serialize	[HW,ACPI]
-> -			Disable auto-serialization of AML methods
-> +	acpi_auto_serialize	[HW,ACPI]
-> +			Enable auto-serialization of AML methods
->   			AML control methods that contain the opcodes to create
->   			named objects will be marked as "Serialized" by the
->   			auto-serialization feature.
-> -			This feature is enabled by default.
-> -			This option allows to turn off the feature.
-> +			This feature is disabled by default.
-> +			This option allows to turn on the feature.
->   
->   	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
->   
-> diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-> index 49bbc71..ea0f838 100644
-> --- a/drivers/acpi/acpica/acglobal.h
-> +++ b/drivers/acpi/acpica/acglobal.h
-> @@ -99,7 +99,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_enable_interpreter_slack, FALSE);
->    * that create named objects are marked Serialized in order to prevent
->    * possible run-time problems if they are entered by more than one thread.
->    */
-> -ACPI_INIT_GLOBAL(u8, acpi_gbl_auto_serialize_methods, TRUE);
-> +ACPI_INIT_GLOBAL(u8, acpi_gbl_auto_serialize_methods, FALSE);
->   
->   /*
->    * Create the predefined _OSI method in the namespace? Default is TRUE
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index d40d6dc..928f0c2 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -1538,20 +1538,20 @@ static int __init osi_setup(char *str)
->   __setup("acpi_osi=", osi_setup);
->   
->   /*
-> - * Disable the auto-serialization of named objects creation methods.
-> + * Enable the auto-serialization of named objects creation methods.
->    *
-> - * This feature is enabled by default.  It marks the AML control methods
-> + * This feature is disabled by default.  It marks the AML control methods
->    * that contain the opcodes to create named objects as "Serialized".
->    */
-> -static int __init acpi_no_auto_serialize_setup(char *str)
-> +static int __init acpi_auto_serialize_setup(char *str)
->   {
-> -	acpi_gbl_auto_serialize_methods = FALSE;
-> -	pr_info("ACPI: auto-serialization disabled\n");
-> +	acpi_gbl_auto_serialize_methods = TRUE;
-> +	pr_info("ACPI: auto-serialization enabled\n");
->   
->   	return 1;
->   }
->   
-> -__setup("acpi_no_auto_serialize", acpi_no_auto_serialize_setup);
-> +__setup("acpi_auto_serialize", acpi_auto_serialize_setup);
->   
->   /* Check of resource interference between native drivers and ACPI
->    * OperationRegions (SystemIO and System Memory only).
+ drivers/acpi/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+--- linux-3.14-rc7.orig/drivers/acpi/Kconfig	2014-01-20 03:40:07.000000000 +0100
++++ linux-3.14-rc7/drivers/acpi/Kconfig	2014-03-17 14:13:33.312716554 +0100
+@@ -115,7 +115,7 @@ config ACPI_BUTTON
+ 
+ config ACPI_VIDEO
+ 	tristate "Video"
+-	depends on X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL
++	depends on X86 && BACKLIGHT_CLASS_DEVICE
+ 	depends on INPUT
+ 	select THERMAL
+ 	help
+
+
+-- 
+Jean Delvare
+SUSE L3 Support
