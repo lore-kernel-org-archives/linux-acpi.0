@@ -1,7 +1,7 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH V4 11/11] ACPI: introduce dummy memory hotplug scan handler
-Date: Mon, 17 Mar 2014 15:49:40 +0800
-Message-ID: <1395042580-3344-12-git-send-email-rui.zhang@intel.com>
+Subject: [PATCH V4 03/11] ACPI: remove ids that does not comply with the ACPI PNP id rule
+Date: Mon, 17 Mar 2014 15:49:32 +0800
+Message-ID: <1395042580-3344-4-git-send-email-rui.zhang@intel.com>
 References: <1395042580-3344-1-git-send-email-rui.zhang@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1395042580-3344-1-git-send-email-rui.zhang@intel.com>
@@ -10,126 +10,32 @@ To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-If CONFIG_ACPI_HOTPLUG_MEMORY is cleared, platform devices would be
-created for ACPI hotplug memory device objects.
+The acpi pnp scan handler id list just copies all the ids from all the
+struct pnp_device_id instances, but some of them do not
+comply with the ACPI PNP id rule (3 Alpha Charactors + 4 Hex numbers).
 
-Introduce a dummy memory hotplug scan handler in this patch,
-to prevent those platform devices from being created.
+For those ids, the coressponding devices will never be enumerated
+via ACPI, so it is safe to remove those ids from the PNPACPI white list.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/Makefile          |    2 +-
- drivers/acpi/acpi_memhotplug.c |   45 ++++++++++++++++++++++++++++------------
- drivers/acpi/internal.h        |    6 +-----
- 3 files changed, 34 insertions(+), 19 deletions(-)
+ drivers/acpi/acpi_pnp.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 871d70d..605eff7 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -65,7 +65,7 @@ obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
- obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-y				+= container.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
--obj-$(CONFIG_ACPI_HOTPLUG_MEMORY) += acpi_memhotplug.o
-+obj-y				+= acpi_memhotplug.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
- obj-$(CONFIG_ACPI_SBS)		+= sbs.o
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index b67be85..ed2f6a7 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -44,6 +44,13 @@
- 
- ACPI_MODULE_NAME("acpi_memhotplug");
- 
-+static const struct acpi_device_id memory_device_ids[] = {
-+	{ACPI_MEMORY_DEVICE_HID, 0},
-+	{"", 0},
-+};
-+
-+#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
-+
- /* Memory Device States */
- #define MEMORY_INVALID_STATE	0
- #define MEMORY_POWER_ON_STATE	1
-@@ -53,11 +60,6 @@ static int acpi_memory_device_add(struct acpi_device *device,
- 				  const struct acpi_device_id *not_used);
- static void acpi_memory_device_remove(struct acpi_device *device);
- 
--static const struct acpi_device_id memory_device_ids[] = {
--	{ACPI_MEMORY_DEVICE_HID, 0},
--	{"", 0},
--};
--
- static struct acpi_scan_handler memory_device_handler = {
- 	.ids = memory_device_ids,
- 	.attach = acpi_memory_device_add,
-@@ -362,17 +364,34 @@ static void acpi_memory_device_remove(struct acpi_device *device)
- 
- static bool __initdata acpi_no_memhotplug;
- 
--void __init acpi_memory_hotplug_init(void)
--{
--	if (acpi_no_memhotplug)
--		return;
--
--	acpi_scan_add_handler_with_hotplug(&memory_device_handler, "memory");
--}
--
- static int __init disable_acpi_memory_hotplug(char *str)
- {
- 	acpi_no_memhotplug = true;
- 	return 1;
- }
- __setup("acpi_no_memhotplug", disable_acpi_memory_hotplug);
-+
-+#endif
-+
-+static int acpi_memory_dummy_add(struct acpi_device *device,
-+				 const struct acpi_device_id *not_used)
-+{
-+	return 1;
-+}
-+
-+static struct acpi_scan_handler memory_dummy_handler = {
-+	.ids = memory_device_ids,
-+	.attach = acpi_memory_dummy_add,
-+};
-+
-+void __init acpi_memory_hotplug_init(void)
-+{
-+#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
-+	if (!acpi_no_memhotplug) {
-+		acpi_scan_add_handler_with_hotplug(&memory_device_handler,
-+						"memory");
-+		return;
-+	}
-+#endif
-+	acpi_scan_add_handler(&memory_dummy_handler);
-+}
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 253758a..4e96e84 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -33,16 +33,12 @@ void acpi_platform_init(void);
- void acpi_pnp_init(void);
- int acpi_sysfs_init(void);
- void acpi_container_init(void);
-+void acpi_memory_hotplug_init(void);
- #ifdef CONFIG_ACPI_DOCK
- void acpi_dock_init(void);
- #else
- static inline void acpi_dock_init(void) {}
- #endif
--#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
--void acpi_memory_hotplug_init(void);
--#else
--static inline void acpi_memory_hotplug_init(void) {}
--#endif
- #ifdef CONFIG_X86
- void acpi_cmos_rtc_init(void);
- #else
+diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
+index 5971934..8c14006 100644
+--- a/drivers/acpi/acpi_pnp.c
++++ b/drivers/acpi/acpi_pnp.c
+@@ -33,10 +33,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[] = {
+ 	/* ide   */
+ 	{"PNP0600"},		/* Generic ESDI/IDE/ATA compatible hard disk controller */
+ 	/* ns558 */
+-	{"@P@0001"},		/* ALS 100 */
+-	{"@P@0020"},		/* ALS 200 */
+-	{"@P@1001"},		/* ALS 100+ */
+-	{"@P@2001"},		/* ALS 120 */
+ 	{"ASB16fd"},		/* AdLib NSC16 */
+ 	{"AZT3001"},		/* AZT1008 */
+ 	{"CDC0001"},		/* Opl3-SAx */
 -- 
 1.7.9.5
