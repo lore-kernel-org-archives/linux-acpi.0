@@ -1,86 +1,131 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH 2/4 v2] gpu/drm: Stop selecting VIDEO_OUTPUT_CONTROL
-Date: Mon, 17 Mar 2014 18:19:31 +0100
-Message-ID: <20140317171931.GW30571@phenom.ffwll.local>
-References: <20140317154733.173b78ce@endymion.delvare>
- <20140317161749.4e884581@endymion.delvare>
+From: Ilia Mirkin <imirkin@alum.mit.edu>
+Subject: Re: 3.14-rc: /proc/acpi/battery gone?
+Date: Mon, 17 Mar 2014 13:28:17 -0400
+Message-ID: <CAKb7UvjeW_vKQn_WjCawD7HDe7BKMYdH_HauFxFvUySkj1yvew@mail.gmail.com>
+References: <20140314211456.GA23213@amd.pavel.ucw.cz>
+	<201403150217.50526.s.L-H@gmx.de>
+	<532471EC.1070107@intel.com>
+	<201403160357.53858.s.L-H@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140317161749.4e884581@endymion.delvare>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Jean Delvare <jdelvare@suse.de>
-Cc: linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201403160357.53858.s.L-H@gmx.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stefan Lippers-Hollmann <s.L-H@gmx.de>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 17, 2014 at 04:17:49PM +0100, Jean Delvare wrote:
-> ACPI_VIDEO no longer depends on VIDEO_OUTPUT_CONTROL, so drivers which
-> want to select ACPI_VIDEO no longer have to select
-> VIDEO_OUTPUT_CONTROL.
-> 
-> Signed-off-by: Jean Delvare <jdelvare@suse.de>
-> Cc: David Airlie <airlied@linux.ie>
-> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-> Cc: Jani Nikula <jani.nikula@linux.intel.com>
+On Sat, Mar 15, 2014 at 11:57 PM, Stefan Lippers-Hollmann <s.L-H@gmx.de> wrote:
+> Hi
+>
+> On Saturday 15 March 2014, Lan Tianyu wrote:
+>> On 03/14/2014 10:17 PM, Stefan Lippers-Hollmann wrote:
+>> > Hi
+>> >
+>> > On Saturday 15 March 2014, Rafael J. Wysocki wrote:
+>> >> On Friday, March 14, 2014 06:14:12 PM Ilia Mirkin wrote:
+>> >>> On Fri, Mar 14, 2014 at 6:11 PM, Pavel Machek <pavel@ucw.cz> wrote:
+>> >>>> On Fri 2014-03-14 17:29:41, Ilia Mirkin wrote:
+>> >>>>> On Fri, Mar 14, 2014 at 5:14 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> [...]
+>> Hi Stefan:
+>>       I just glance wmbattery code. I find the code in the acpi.c is already
+>> using the new sysfs battery interfaces, right?
+>
+> By default, wmbattery appears to default to using upower as abstraction
+> level, instead of querying sysfs itself directly.
+>
+> http://git.kitenet.net/?p=wmbattery.git;a=blob;f=autoconf/makeinfo.in;hb=HEAD
+>
+> which sets USE_UPOWER=1 by default.
+>
+> If USE_UPOWER=0 is set explicitly for the build, it reverts back to
+> direct sysfs parsing - and yes, it does appear to adhere to the current
+> sysfs API properly.
+>
+> The last remains, and the ability to parse procfs (which hasn't been
+> default for quite some time already, in favour of using hal as
+> abstraction layer) has finally been removed in
+>
+> http://git.kitenet.net/?p=wmbattery.git;a=commitdiff;h=833eb63a5ce4f2fb712a201b1db4f2db1700fddb
+>
+> The switch from procfs parsing to hal (by default at least) in turn
+> happened with
+>
+> http://git.kitenet.net/?p=wmbattery.git;a=commitdiff;h=63c3d1a0b11e8ade1a5612bb5baa3d92e153bbbe
+>
+> in 2008 (before Debian squeeze/ oldstable). I have not investigated if
+> hal then read from procfs or sysfs, but wmbattery at least didn't read
+> from procfs itself, unless explicitly told to do so (USE_HAL=0) during
+> the build since mid 2008.
+>
+> The current version of wmbattery however will never try to access
+> /proc/acpi, the current version no longer knows of its existence.
+>
+> [Again, I'm not familiar with wmbattery myself and have never run it]
 
-Ack.
--Daniel
+Stefan,
 
-> ---
-> Changes since v1:
->  * Chunk missing for the nouveau driver, sorry.
-> 
->  drivers/gpu/drm/gma500/Kconfig  |    1 -
->  drivers/gpu/drm/i915/Kconfig    |    1 -
->  drivers/gpu/drm/nouveau/Kconfig |    3 +--
->  3 files changed, 1 insertion(+), 4 deletions(-)
-> 
-> --- linux-3.14-rc7.orig/drivers/gpu/drm/gma500/Kconfig	2014-03-17 15:47:47.522826767 +0100
-> +++ linux-3.14-rc7/drivers/gpu/drm/gma500/Kconfig	2014-03-17 16:04:15.310821089 +0100
-> @@ -10,7 +10,6 @@ config DRM_GMA500
->  	# GMA500 depends on ACPI_VIDEO when ACPI is enabled, just like i915
->  	select ACPI_VIDEO if ACPI
->  	select BACKLIGHT_CLASS_DEVICE if ACPI
-> -	select VIDEO_OUTPUT_CONTROL if ACPI
->  	select INPUT if ACPI
->  	help
->  	  Say yes for an experimental 2D KMS framebuffer driver for the
-> --- linux-3.14-rc7.orig/drivers/gpu/drm/i915/Kconfig	2014-03-17 15:47:47.522826767 +0100
-> +++ linux-3.14-rc7/drivers/gpu/drm/i915/Kconfig	2014-03-17 16:04:15.311821112 +0100
-> @@ -14,7 +14,6 @@ config DRM_I915
->  	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
->  	select BACKLIGHT_LCD_SUPPORT if ACPI
->  	select BACKLIGHT_CLASS_DEVICE if ACPI
-> -	select VIDEO_OUTPUT_CONTROL if ACPI
->  	select INPUT if ACPI
->  	select ACPI_VIDEO if ACPI
->  	select ACPI_BUTTON if ACPI
-> --- linux-3.14-rc7.orig/drivers/gpu/drm/nouveau/Kconfig	2014-03-17 15:47:47.522826767 +0100
-> +++ linux-3.14-rc7/drivers/gpu/drm/nouveau/Kconfig	2014-03-17 16:15:52.335899212 +0100
-> @@ -11,7 +11,7 @@ config DRM_NOUVEAU
->  	select FB
->  	select FRAMEBUFFER_CONSOLE if !EXPERT
->  	select FB_BACKLIGHT if DRM_NOUVEAU_BACKLIGHT
-> -	select ACPI_VIDEO if ACPI && X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL && INPUT
-> +	select ACPI_VIDEO if ACPI && X86 && BACKLIGHT_CLASS_DEVICE && INPUT
->  	select X86_PLATFORM_DEVICES if ACPI && X86
->  	select ACPI_WMI if ACPI && X86
->  	select MXM_WMI if ACPI && X86
-> @@ -19,7 +19,6 @@ config DRM_NOUVEAU
->  	# Similar to i915, we need to select ACPI_VIDEO and it's dependencies
->  	select BACKLIGHT_LCD_SUPPORT if ACPI && X86
->  	select BACKLIGHT_CLASS_DEVICE if ACPI && X86
-> -	select VIDEO_OUTPUT_CONTROL if ACPI && X86
->  	select INPUT if ACPI && X86
->  	select THERMAL if ACPI && X86
->  	select ACPI_VIDEO if ACPI && X86
-> 
-> -- 
-> Jean Delvare
-> SUSE L3 Support
+Thanks for looking into this. The newest wmbattery version indeed
+supports upower. However, I haven't figured out how to get it to work.
+That's obviously not the kernel's fault, but an unfortunate reality.
+It seems to really want dbus to be running, but when I start dbus
+(which nothing else on my system needs, apparently), it just hangs. My
+knowledge of these things is, (un)fortunately non-existent, so I just
+gave up on the upower approach. Running something as heavy as dbus
+just for a silly dock app seems... silly as well.
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Doing a build with USE_UPOWER=0 does indeed seem to work a little bit,
+in that it notices AC plug/unplug events, but the actual battery info
+isn't updated properly. Could be a wmbattery bug for all I know (quite
+likely, in fact). Older versions used to work just fine. I never had
+HAL enabled, so I think it used procfs. I'm guessing that they removed
+the proc code in response to it being removed from the kernel... and I
+guess the sysfs-handling code atrophied over time, or perhaps never
+worked? With the version that's marked as 'stable' in gentoo, 2.40, it
+still very much tries to access /proc/acpi:
+
+open("/dev/apm_bios", O_WRONLY)         = -1 ENOENT (No such file or directory)
+access("/proc/apm", R_OK)               = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/proc/acpi", O_RDONLY|O_NONBLOCK|O_DIRECTORY|O_CLOEXEC) = 4
+open("/sys/module/acpi/parameters/acpica_version", O_RDONLY) = 4
+openat(AT_FDCWD, "/proc/acpi/battery",
+O_RDONLY|O_NONBLOCK|O_DIRECTORY|O_CLOEXEC) = -1 ENOENT (No such file
+or directory)
+openat(AT_FDCWD, "/proc/acpi/ac_adapter",
+O_RDONLY|O_NONBLOCK|O_DIRECTORY|O_CLOEXEC) = -1 ENOENT (No such file
+or directory)
+open("/dev/sonypi", O_RDWR)             = -1 ENOENT (No such file or directory)
+Error: No APM, ACPI, HAL or SPIC support detected.
+
+Other programs I've tried:
+
+wmacpi-2.2-rc1:
+open("/sys/module/acpi/parameters/acpica_version", O_RDONLY) = 3
+openat(AT_FDCWD, "/proc/acpi/battery",
+O_RDONLY|O_NONBLOCK|O_DIRECTORY|O_CLOEXEC) = -1 ENOENT (No such file
+or directory)
+No batteries or ACPI not supported
+
+wmpower-0.4.3:
+Welcome to wmpower version 0.4.3...
+open("/proc/version", O_RDONLY)         = 3
+open("/proc/omnibook/dmi", O_RDONLY)    = -1 ENOENT (No such file or directory)
+open("/proc/i8k", O_RDONLY)             = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/proc/acpi/toshiba",
+O_RDONLY|O_NONBLOCK|O_DIRECTORY|O_CLOEXEC) = -1 ENOENT (No such file
+or directory)
+open("/dev/toshiba", O_RDWR)            = -1 ENOENT (No such file or directory)
+CPU frequency scaling NOT available
+access("/proc/acpi/info", R_OK)         = -1 ENOENT (No such file or directory)
+access("/proc/apm", R_OK)               = -1 ENOENT (No such file or directory)
+No power management subsystem detected
+No power management support...
+
+Now, I'm in no position to say whether it's reasonable to keep the
+/proc/acpi interface around, but the current situation is that what's
+out there doesn't quite seem to know how to deal with /sys/.
+
+Cheers,
+
+  -ilia
