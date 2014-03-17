@@ -1,41 +1,258 @@
 From: Jean Delvare <jdelvare@suse.de>
-Subject: [PATCH 3/4] acer-wmi: Stop selecting VIDEO_OUTPUT_CONTROL
-Date: Mon, 17 Mar 2014 15:48:23 +0100
-Message-ID: <20140317154823.1e822687@endymion.delvare>
+Subject: [PATCH 4/4] output: Drop display output class support
+Date: Mon, 17 Mar 2014 15:49:10 +0100
+Message-ID: <20140317154910.2016bf57@endymion.delvare>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:41961 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:41984 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933490AbaCQOs0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Mar 2014 10:48:26 -0400
+	id S1754221AbaCQOtN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Mar 2014 10:49:13 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>
+To: linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>
 
-ACPI_VIDEO no longer depends on VIDEO_OUTPUT_CONTROL, so drivers which
-want to select ACPI_VIDEO no longer have to select
-VIDEO_OUTPUT_CONTROL.
+It was only ever used by the ACPI video driver, and that only use case
+vanished over 3 years ago (see commit 677bd810, "ACPI video: remove
+output switching control".) So this is dead code and I guess we can
+remove it now.
 
 Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Cc: "Lee, Chun-Yi" <jlee@suse.com>
-Cc: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 ---
- drivers/platform/x86/Kconfig |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/video/Kconfig        |    6 -
+ drivers/video/Makefile       |    2 
+ drivers/video/output.c       |  133 -------------------------------------------
+ include/linux/video_output.h |   57 ------------------
+ 4 files changed, 198 deletions(-)
 
---- linux-3.14-rc7.orig/drivers/platform/x86/Kconfig	2014-03-17 14:23:31.511815259 +0100
-+++ linux-3.14-rc7/drivers/platform/x86/Kconfig	2014-03-17 14:24:32.100155709 +0100
-@@ -27,8 +27,6 @@ config ACER_WMI
- 	depends on ACPI_WMI
- 	select INPUT_SPARSEKMAP
- 	# Acer WMI depends on ACPI_VIDEO when ACPI is enabled
--	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
--        select VIDEO_OUTPUT_CONTROL if ACPI
-         select ACPI_VIDEO if ACPI
- 	---help---
- 	  This is a driver for newer Acer (and Wistron) laptops. It adds
+--- linux-3.14-rc7.orig/drivers/video/Kconfig	2014-02-17 15:22:14.704636928 +0100
++++ linux-3.14-rc7/drivers/video/Kconfig	2014-03-17 14:37:39.274887482 +0100
+@@ -27,12 +27,6 @@ config VGASTATE
+        tristate
+        default n
+ 
+-config VIDEO_OUTPUT_CONTROL
+-	tristate "Lowlevel video output switch controls"
+-	help
+-	  This framework adds support for low-level control of the video 
+-	  output switch.
+-
+ config VIDEOMODE_HELPERS
+ 	bool
+ 
+--- linux-3.14-rc7.orig/drivers/video/Makefile	2014-02-09 16:53:05.791694131 +0100
++++ linux-3.14-rc7/drivers/video/Makefile	2014-03-17 14:37:56.910247231 +0100
+@@ -172,8 +172,6 @@ obj-$(CONFIG_FB_SIMPLE)           += sim
+ # the test framebuffer is last
+ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
+ 
+-#video output switch sysfs driver
+-obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
+ obj-$(CONFIG_VIDEOMODE_HELPERS) += display_timing.o videomode.o
+ ifeq ($(CONFIG_OF),y)
+ obj-$(CONFIG_VIDEOMODE_HELPERS) += of_display_timing.o of_videomode.o
+--- linux-3.14-rc7.orig/drivers/video/output.c	2014-01-20 03:40:07.000000000 +0100
++++ /dev/null	1970-01-01 00:00:00.000000000 +0000
+@@ -1,133 +0,0 @@
+-/*
+- *  output.c - Display Output Switch driver
+- *
+- *  Copyright (C) 2006 Luming Yu <luming.yu@intel.com>
+- *
+- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation; either version 2 of the License, or (at
+- *  your option) any later version.
+- *
+- *  This program is distributed in the hope that it will be useful, but
+- *  WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- *  General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License along
+- *  with this program; if not, write to the Free Software Foundation, Inc.,
+- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+- *
+- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- */
+-#include <linux/module.h>
+-#include <linux/video_output.h>
+-#include <linux/slab.h>
+-#include <linux/err.h>
+-#include <linux/ctype.h>
+-
+-
+-MODULE_DESCRIPTION("Display Output Switcher Lowlevel Control Abstraction");
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Luming Yu <luming.yu@intel.com>");
+-
+-static ssize_t state_show(struct device *dev, struct device_attribute *attr,
+-			  char *buf)
+-{
+-	ssize_t ret_size = 0;
+-	struct output_device *od = to_output_device(dev);
+-	if (od->props)
+-		ret_size = sprintf(buf,"%.8x\n",od->props->get_status(od));
+-	return ret_size;
+-}
+-
+-static ssize_t state_store(struct device *dev, struct device_attribute *attr,
+-			   const char *buf,size_t count)
+-{
+-	char *endp;
+-	struct output_device *od = to_output_device(dev);
+-	int request_state = simple_strtoul(buf,&endp,0);
+-	size_t size = endp - buf;
+-
+-	if (isspace(*endp))
+-		size++;
+-	if (size != count)
+-		return -EINVAL;
+-
+-	if (od->props) {
+-		od->request_state = request_state;
+-		od->props->set_state(od);
+-	}
+-	return count;
+-}
+-static DEVICE_ATTR_RW(state);
+-
+-static void video_output_release(struct device *dev)
+-{
+-	struct output_device *od = to_output_device(dev);
+-	kfree(od);
+-}
+-
+-static struct attribute *video_output_attrs[] = {
+-	&dev_attr_state.attr,
+-	NULL,
+-};
+-ATTRIBUTE_GROUPS(video_output);
+-
+-static struct class video_output_class = {
+-	.name = "video_output",
+-	.dev_release = video_output_release,
+-	.dev_groups = video_output_groups,
+-};
+-
+-struct output_device *video_output_register(const char *name,
+-	struct device *dev,
+-	void *devdata,
+-	struct output_properties *op)
+-{
+-	struct output_device *new_dev;
+-	int ret_code = 0;
+-
+-	new_dev = kzalloc(sizeof(struct output_device),GFP_KERNEL);
+-	if (!new_dev) {
+-		ret_code = -ENOMEM;
+-		goto error_return;
+-	}
+-	new_dev->props = op;
+-	new_dev->dev.class = &video_output_class;
+-	new_dev->dev.parent = dev;
+-	dev_set_name(&new_dev->dev, "%s", name);
+-	dev_set_drvdata(&new_dev->dev, devdata);
+-	ret_code = device_register(&new_dev->dev);
+-	if (ret_code) {
+-		kfree(new_dev);
+-		goto error_return;
+-	}
+-	return new_dev;
+-
+-error_return:
+-	return ERR_PTR(ret_code);
+-}
+-EXPORT_SYMBOL(video_output_register);
+-
+-void video_output_unregister(struct output_device *dev)
+-{
+-	if (!dev)
+-		return;
+-	device_unregister(&dev->dev);
+-}
+-EXPORT_SYMBOL(video_output_unregister);
+-
+-static void __exit video_output_class_exit(void)
+-{
+-	class_unregister(&video_output_class);
+-}
+-
+-static int __init video_output_class_init(void)
+-{
+-	return class_register(&video_output_class);
+-}
+-
+-postcore_initcall(video_output_class_init);
+-module_exit(video_output_class_exit);
+--- linux-3.14-rc7.orig/include/linux/video_output.h	2014-01-20 03:40:07.000000000 +0100
++++ /dev/null	1970-01-01 00:00:00.000000000 +0000
+@@ -1,57 +0,0 @@
+-/*
+- *
+- *  Copyright (C) 2006 Luming Yu <luming.yu@intel.com>
+- *
+- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation; either version 2 of the License, or (at
+- *  your option) any later version.
+- *
+- *  This program is distributed in the hope that it will be useful, but
+- *  WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- *  General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License along
+- *  with this program; if not, write to the Free Software Foundation, Inc.,
+- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+- *
+- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- */
+-#ifndef _LINUX_VIDEO_OUTPUT_H
+-#define _LINUX_VIDEO_OUTPUT_H
+-#include <linux/device.h>
+-#include <linux/err.h>
+-struct output_device;
+-struct output_properties {
+-	int (*set_state)(struct output_device *);
+-	int (*get_status)(struct output_device *);
+-};
+-struct output_device {
+-	int request_state;
+-	struct output_properties *props;
+-	struct device dev;
+-};
+-#define to_output_device(obj) container_of(obj, struct output_device, dev)
+-#if	defined(CONFIG_VIDEO_OUTPUT_CONTROL) || defined(CONFIG_VIDEO_OUTPUT_CONTROL_MODULE)
+-struct output_device *video_output_register(const char *name,
+-	struct device *dev,
+-	void *devdata,
+-	struct output_properties *op);
+-void video_output_unregister(struct output_device *dev);
+-#else
+-static struct output_device *video_output_register(const char *name,
+-        struct device *dev,
+-        void *devdata,
+-        struct output_properties *op)
+-{
+-	return ERR_PTR(-ENODEV);
+-}
+-static void video_output_unregister(struct output_device *dev)
+-{
+-	return;
+-}
+-#endif
+-#endif
 
 
 -- 
