@@ -1,107 +1,86 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 0/3] amd/pci: Add AMD hostbridge supports for newer AMD systems
-Date: Mon, 17 Mar 2014 11:18:37 -0600
-Message-ID: <CAErSpo6=pr4rouacs29ZpN2EbgPiUFWwSXVE+uUL+-H4CeTdzQ@mail.gmail.com>
-References: <1394053603-3724-1-git-send-email-suravee.suthikulpanit@amd.com>
- <CAErSpo4MMJh9b0aivwGSbxCMVw24He1+Vo_LH0R0E+fYM5aThg@mail.gmail.com>
- <5317D9B0.1080502@amd.com> <5318160D.8070305@amd.com> <CAErSpo59=52bqgyvqk1x7kcgFmRtdZhT6faYTi3wy7KDtk5=Pw@mail.gmail.com>
- <5318D475.9040701@amd.com> <CAErSpo5Dq3M5ik=dgF5dLsZV87XJeT3nEiYptPBXPCyLZ9xhgA@mail.gmail.com>
- <CAErSpo6ZbKFMgcm4upR7gTnYwZ15UJpxzctOwWMsGyONipq8aw@mail.gmail.com> <53226433.3090803@amd.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH 2/4 v2] gpu/drm: Stop selecting VIDEO_OUTPUT_CONTROL
+Date: Mon, 17 Mar 2014 18:19:31 +0100
+Message-ID: <20140317171931.GW30571@phenom.ffwll.local>
+References: <20140317154733.173b78ce@endymion.delvare>
+ <20140317161749.4e884581@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f176.google.com ([209.85.223.176]:62056 "EHLO
-	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751448AbaCQRS6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Mar 2014 13:18:58 -0400
-Received: by mail-ie0-f176.google.com with SMTP id rd18so5762626iec.35
-        for <linux-acpi@vger.kernel.org>; Mon, 17 Mar 2014 10:18:58 -0700 (PDT)
-In-Reply-To: <53226433.3090803@amd.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140317161749.4e884581@endymion.delvare>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Jean Delvare <jdelvare@suse.de>
+Cc: linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-[+cc Rafael]
+On Mon, Mar 17, 2014 at 04:17:49PM +0100, Jean Delvare wrote:
+> ACPI_VIDEO no longer depends on VIDEO_OUTPUT_CONTROL, so drivers which
+> want to select ACPI_VIDEO no longer have to select
+> VIDEO_OUTPUT_CONTROL.
+> 
+> Signed-off-by: Jean Delvare <jdelvare@suse.de>
+> Cc: David Airlie <airlied@linux.ie>
+> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+> Cc: Jani Nikula <jani.nikula@linux.intel.com>
 
-On Thu, Mar 13, 2014 at 8:06 PM, Suravee Suthikulpanit
-<suravee.suthikulpanit@amd.com> wrote:
-> On 3/12/2014 4:13 PM, Bjorn Helgaas wrote:
->>>
->>> I assume the system is fully functional even without these patches,
->>> >right?  The only effect of these changes should be a performance
->>> >improvement.
->
-> [Suravee] Yes, the system is fully functional except the numa information
-> for PCI ethernet adapters is returning -1.
+Ack.
+-Daniel
 
-This would normally be determined by the _PXM of the PCI host bridge
-leading to the NIC.  The DSDT you attached to the bug report contains
-no _PXM methods at all, so we have no idea what the NUMA information
-should be.
+> ---
+> Changes since v1:
+>  * Chunk missing for the nouveau driver, sorry.
+> 
+>  drivers/gpu/drm/gma500/Kconfig  |    1 -
+>  drivers/gpu/drm/i915/Kconfig    |    1 -
+>  drivers/gpu/drm/nouveau/Kconfig |    3 +--
+>  3 files changed, 1 insertion(+), 4 deletions(-)
+> 
+> --- linux-3.14-rc7.orig/drivers/gpu/drm/gma500/Kconfig	2014-03-17 15:47:47.522826767 +0100
+> +++ linux-3.14-rc7/drivers/gpu/drm/gma500/Kconfig	2014-03-17 16:04:15.310821089 +0100
+> @@ -10,7 +10,6 @@ config DRM_GMA500
+>  	# GMA500 depends on ACPI_VIDEO when ACPI is enabled, just like i915
+>  	select ACPI_VIDEO if ACPI
+>  	select BACKLIGHT_CLASS_DEVICE if ACPI
+> -	select VIDEO_OUTPUT_CONTROL if ACPI
+>  	select INPUT if ACPI
+>  	help
+>  	  Say yes for an experimental 2D KMS framebuffer driver for the
+> --- linux-3.14-rc7.orig/drivers/gpu/drm/i915/Kconfig	2014-03-17 15:47:47.522826767 +0100
+> +++ linux-3.14-rc7/drivers/gpu/drm/i915/Kconfig	2014-03-17 16:04:15.311821112 +0100
+> @@ -14,7 +14,6 @@ config DRM_I915
+>  	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
+>  	select BACKLIGHT_LCD_SUPPORT if ACPI
+>  	select BACKLIGHT_CLASS_DEVICE if ACPI
+> -	select VIDEO_OUTPUT_CONTROL if ACPI
+>  	select INPUT if ACPI
+>  	select ACPI_VIDEO if ACPI
+>  	select ACPI_BUTTON if ACPI
+> --- linux-3.14-rc7.orig/drivers/gpu/drm/nouveau/Kconfig	2014-03-17 15:47:47.522826767 +0100
+> +++ linux-3.14-rc7/drivers/gpu/drm/nouveau/Kconfig	2014-03-17 16:15:52.335899212 +0100
+> @@ -11,7 +11,7 @@ config DRM_NOUVEAU
+>  	select FB
+>  	select FRAMEBUFFER_CONSOLE if !EXPERT
+>  	select FB_BACKLIGHT if DRM_NOUVEAU_BACKLIGHT
+> -	select ACPI_VIDEO if ACPI && X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL && INPUT
+> +	select ACPI_VIDEO if ACPI && X86 && BACKLIGHT_CLASS_DEVICE && INPUT
+>  	select X86_PLATFORM_DEVICES if ACPI && X86
+>  	select ACPI_WMI if ACPI && X86
+>  	select MXM_WMI if ACPI && X86
+> @@ -19,7 +19,6 @@ config DRM_NOUVEAU
+>  	# Similar to i915, we need to select ACPI_VIDEO and it's dependencies
+>  	select BACKLIGHT_LCD_SUPPORT if ACPI && X86
+>  	select BACKLIGHT_CLASS_DEVICE if ACPI && X86
+> -	select VIDEO_OUTPUT_CONTROL if ACPI && X86
+>  	select INPUT if ACPI && X86
+>  	select THERMAL if ACPI && X86
+>  	select ACPI_VIDEO if ACPI && X86
+> 
+> -- 
+> Jean Delvare
+> SUSE L3 Support
 
->>> >So the choices are:
->>> >
->>> >   1) Change the BIOS to provide _PXM
->>> >   2) Change Linux with your patches
->>> >
->>> >Either way, the customer has to upgrade something.  Choice 1) gets you
->>> >the performance improvement on all Linux and Windows releases, even
->>> >the ones that are already in the field.
->
-> [Suravee] I agree with you on both cases and I am working with the BIOS team
-> to see if they can look into this and provide fixes for the future.  My only
-> concern is the device _PXM information might be specific to each platform
-> vendors since they are the one deciding the number of northbridge to be put
-> on the systems. Also, it's quite difficult to influence HW/BIOS vendor to
-> provide fixes for older platforms unless some important customers are
-> complaining to them.
-
-Yes, you're right that _PXM describes platform topology and can't be
-implemented by the CPU vendor because it doesn't know the topology of
-the system where the CPUs will end up.
-
->>> >Choice 2) fixes future Linux
->>> >distros and whatever old releases you can convince the distro to
->>> >backport to, and doesn't help Windows at all.  It makes work for all
->>> >the distros and we (i.e., I) have to worry about maintaining this in
->>> >the future.
->
-> [Suravee] Actually, this was originally reported by Redhat (please see
-> https://bugzilla.redhat.com/show_bug.cgi?id=1040440), and they are waiting
-> for the fixes if we decide to fix it in the upstream Linux code base.
-
-This RH bugzilla is private, so I can't see it.
-
-> [Suravee] I am not sure which table is the _PXM method supposed to be apart
-> of.
-
-It would be in the DSDT (or an SSDT).  In this case, the PCI host
-bridges (the PNP0A08 devices) are described in the DSDT you posted, so
-_PXM would normally be there, too.
-
->> Can you collect an acpidump and complete dmesg log from a system with
->> the problem?
->
-> [Suravee] Please see https://bugzilla.kernel.org/show_bug.cgi?id=72051
-> I have included SRAT, SLIT and DSDT table as part of the bug. Please let me
-> know if you are looking for more information.
-
-One of my objections to your patches is that if we include them, it
-will reinforce the perception that the BIOS is doing things correctly,
-so there will be less incentive to actually fix the problem by
-following the spec.  This has happened several times in the past,
-e.g., quirk_amd_nb_node() and amd_bus.c itself.
-
-Another is more of a question: as coded, your patch assumes *all* AMD
-host bridge devices will have these registers at those locations
-forever.  Are those registers documented as being architected?
-
-Finally, your patch extracts a 3-bit number from a CPU register and
-uses it as the node number.  The node numbers used by Linux are
-logical and there's no reason they need to be identical to settings in
-the CPU registers.  So if we got some node information in the normal
-way (from _PXM, SLIT, SRAT, etc.) and some from your patch, there's no
-reason to believe they would be compatible.
-
-Bjorn
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
