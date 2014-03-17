@@ -1,33 +1,112 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v3 5/5] gpio / ACPI: Add support for ACPI GPIO operation
- regions
-Date: Mon, 17 Mar 2014 11:44:34 +0200
-Message-ID: <20140317094434.GA19349@intel.com>
-References: <1394456094-21671-6-git-send-email-mika.westerberg@linux.intel.com>
- <1394812687-12715-1-git-send-email-mika.westerberg@linux.intel.com>
- <CACRpkdYyBgL0W5cYpAEQZzc7u5K4yEBOr5hD5gDFFPBYvxkgqQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [RFC PATCH 2/2] ACPI: Default disable auto-serialization.
+Date: Mon, 17 Mar 2014 13:09:12 +0100
+Message-ID: <5326E5E8.4070804@intel.com>
+References: <14866.1394813101@turing-police.cc.vt.edu> <cover.1395028738.git.lv.zheng@intel.com> <fdc47fb7d89d984a164531b316e8b56f73ed05c9.1395028738.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:62319 "EHLO mga02.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:1990 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932485AbaCQJhA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Mar 2014 05:37:00 -0400
-Content-Disposition: inline
-In-Reply-To: <CACRpkdYyBgL0W5cYpAEQZzc7u5K4yEBOr5hD5gDFFPBYvxkgqQ@mail.gmail.com>
+	id S932767AbaCQMJa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Mar 2014 08:09:30 -0400
+In-Reply-To: <fdc47fb7d89d984a164531b316e8b56f73ed05c9.1395028738.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Lv Zheng <lv.zheng@intel.com>, Alan Cox <alan.cox@intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, Mar 14, 2014 at 05:25:39PM +0100, Linus Walleij wrote:
-> On Fri, Mar 14, 2014 at 4:58 PM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> 
-> > GPIO operation regions is a new feature introduced in ACPI 5.0
-> > specification. This feature adds a way for platform ASL code to call back
-> > to OS GPIO driver and toggle GPIO pins.
-> 
-> OK this version of the patch applied!
+On 3/17/2014 5:14 AM, Lv Zheng wrote:
+> This feature enabled by the following commit is still under development.
+>
+>    Commit: cd52379678785b02d7a357988cfba214fdaf92f4
+>    Subject: ACPICA: Add global option to disable method auto-serialization.
+>    This change adds an option to disable the auto-serialization of
+>    methods that create named objects.
+>
+> This patch disables it by default temporarily according to the bug reports.
 
-Thanks!
+Well, it doesn't restore the 3.14 behavior of acpi_auto_serialize, as 
+far as I can say, so we can't apply it.
+
+I still can drop the commits related to auto-serialization from my 
+acpica branch.  Which commits are they?
+
+> References: http://www.spinics.net/lists/linux-acpi/msg49496.html
+> Reported-by: Valdis Kletnieks <validis.kletnieks@vt.edu>
+> Reported-by: Sabrina Dubroka <sd@queasysnail.net>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>   Documentation/kernel-parameters.txt |    8 ++++----
+>   drivers/acpi/acpica/acglobal.h      |    2 +-
+>   drivers/acpi/osl.c                  |   12 ++++++------
+>   3 files changed, 11 insertions(+), 11 deletions(-)
+>
+> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+> index 91f0be8..a159537 100644
+> --- a/Documentation/kernel-parameters.txt
+> +++ b/Documentation/kernel-parameters.txt
+> @@ -229,13 +229,13 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+>   			use by PCI
+>   			Format: <irq>,<irq>...
+>   
+> -	acpi_no_auto_serialize	[HW,ACPI]
+> -			Disable auto-serialization of AML methods
+> +	acpi_auto_serialize	[HW,ACPI]
+> +			Enable auto-serialization of AML methods
+>   			AML control methods that contain the opcodes to create
+>   			named objects will be marked as "Serialized" by the
+>   			auto-serialization feature.
+> -			This feature is enabled by default.
+> -			This option allows to turn off the feature.
+> +			This feature is disabled by default.
+> +			This option allows to turn on the feature.
+>   
+>   	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
+>   
+> diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+> index 49bbc71..ea0f838 100644
+> --- a/drivers/acpi/acpica/acglobal.h
+> +++ b/drivers/acpi/acpica/acglobal.h
+> @@ -99,7 +99,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_enable_interpreter_slack, FALSE);
+>    * that create named objects are marked Serialized in order to prevent
+>    * possible run-time problems if they are entered by more than one thread.
+>    */
+> -ACPI_INIT_GLOBAL(u8, acpi_gbl_auto_serialize_methods, TRUE);
+> +ACPI_INIT_GLOBAL(u8, acpi_gbl_auto_serialize_methods, FALSE);
+>   
+>   /*
+>    * Create the predefined _OSI method in the namespace? Default is TRUE
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index d40d6dc..928f0c2 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -1538,20 +1538,20 @@ static int __init osi_setup(char *str)
+>   __setup("acpi_osi=", osi_setup);
+>   
+>   /*
+> - * Disable the auto-serialization of named objects creation methods.
+> + * Enable the auto-serialization of named objects creation methods.
+>    *
+> - * This feature is enabled by default.  It marks the AML control methods
+> + * This feature is disabled by default.  It marks the AML control methods
+>    * that contain the opcodes to create named objects as "Serialized".
+>    */
+> -static int __init acpi_no_auto_serialize_setup(char *str)
+> +static int __init acpi_auto_serialize_setup(char *str)
+>   {
+> -	acpi_gbl_auto_serialize_methods = FALSE;
+> -	pr_info("ACPI: auto-serialization disabled\n");
+> +	acpi_gbl_auto_serialize_methods = TRUE;
+> +	pr_info("ACPI: auto-serialization enabled\n");
+>   
+>   	return 1;
+>   }
+>   
+> -__setup("acpi_no_auto_serialize", acpi_no_auto_serialize_setup);
+> +__setup("acpi_auto_serialize", acpi_auto_serialize_setup);
+>   
+>   /* Check of resource interference between native drivers and ACPI
+>    * OperationRegions (SystemIO and System Memory only).
+
