@@ -1,79 +1,64 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH V3 05/11] ACPI: check and enumerate CMOS RTC devices explicitly
-Date: Mon, 17 Mar 2014 01:03:11 +0800
-Message-ID: <1394989397-2733-6-git-send-email-rui.zhang@intel.com>
-References: <1394989397-2733-1-git-send-email-rui.zhang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1394989397-2733-1-git-send-email-rui.zhang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, Zhang Rui <rui.zhang@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
+Date: Mon, 17 Mar 2014 01:09:39 +0100
+Message-ID: <1425376.F2qgSAxAbW@vostro.rjw.lan>
+References: <20140224162400.GE16457@pd.tnic> <20140316115546.GA11935@nazgul.tnic> <CABPqkBSmes+ee19iVh0EHvMQ=7TAzN3Fx1BKdOZ-2iuk5L0ugw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CABPqkBSmes+ee19iVh0EHvMQ=7TAzN3Fx1BKdOZ-2iuk5L0ugw@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Stephane Eranian <eranian@google.com>
+Cc: Borislav Petkov <bp@alien8.de>, lkml <linux-kernel@vger.kernel.org>, x86 <x86@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
 List-Id: linux-acpi@vger.kernel.org
 
-For CMOS RTC devices, the acpi pnp scan handler does not work because
-there is already a cmos rtc scan handler installed, thus we need to
-check those devices and enumerate them to PNP bus explicitly.
-Plus, the cmos rtc scan handler needs to return 1 so that it will not
-be enumerated to platform bus.
+On Sunday, March 16, 2014 02:08:16 PM Stephane Eranian wrote:
+> Rafael,
+> 
+> Thanks for the analysis.
+> 
+> On Sun, Mar 16, 2014 at 12:55 PM, Borislav Petkov <bp@alien8.de> wrote:
+> > On Sat, Mar 15, 2014 at 03:15:04PM +0100, Rafael J. Wysocki wrote:
+> >> I've just gone throught this.
+> >
+> > Thanks.
+> >
+> >> So the problem is that we have the PNP "system" driver whose only purpose seems
+> >> to be to reserve system resources so that the PCI layer doesn't assign them to
+> >> new devices on hotplug (disclaimer: I didn't invent it, I only read the code and
+> >> comments in there).
+> >>
+> >> It does that for ACPI device objects having the "PNP0C02" and "PNP0C01" IDs.
+> >
+> > Right, pnp 00:01 is PNP0C02.
+> >
+> >> Apparently, snb_uncore_imc_init_box() steps on a range already reserved by that
+> >> driver on your box.  And this doesn't seem to be a coincidence, because the ACPI
+> >> device object in question probably *does* correspond to the memory controller
+> >> that the uncore driver attempts to use.
+> >>
+> >> I'm not sure how to address that right now to be honest.  Arguably, the PNP
+> >> "system" driver should be replaced with something saner, but still the
+> >> resources it claims need to be kept out of reach of the PCI's resource
+> >> allocation code.
+> >
+> > Well, I'm only conjecturing here but there should be a way for the
+> > uncore code to tell the PNP "system" driver to free this resource
+> > because uncore is going to use it now. Or something to that effect.
+> >
+> I agree. The snb_uncore_imc() is making real (good) use of the device.
+> It needs to own it. So we need a way to free the resource from the PNP
+> system or  a way to tell PNP need to grab it on systems with the
+> snb_uncore_imc() support. Does that kind of API exist?
+> 
+> Where do I look to prevent PNP from grabbing the IMC?
 
-Note: the CMOS RTC device id is not removed from ACPI pnp scan handler
-      id list, thus, if cmos rtc scan handler is compiled out, the ACPI
-      pnp scan handler will be attached to the CMOS RTC devices instead,
-      to prevent these devices from being created to platform bus.
+drivers/pnp/system.c is the driver in question and system_pnp_probe() makes
+the reservations via reserve_resources_of_dev(), so you'd need to modify that.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/acpi_cmos_rtc.c |    2 +-
- drivers/acpi/acpi_pnp.c      |   22 +++++++++++++++++++++-
- 2 files changed, 22 insertions(+), 2 deletions(-)
+I'm not sure what's the right way to go here, though.
 
-diff --git a/drivers/acpi/acpi_cmos_rtc.c b/drivers/acpi/acpi_cmos_rtc.c
-index 84190ed..a19b0b3 100644
---- a/drivers/acpi/acpi_cmos_rtc.c
-+++ b/drivers/acpi/acpi_cmos_rtc.c
-@@ -70,7 +70,7 @@ static int acpi_install_cmos_rtc_space_handler(struct acpi_device *adev,
- 		return -ENODEV;
- 	}
- 
--	return 0;
-+	return 1;
- }
- 
- static void acpi_remove_cmos_rtc_space_handler(struct acpi_device *adev)
-diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
-index 2a7f86f..6fa482a 100644
---- a/drivers/acpi/acpi_pnp.c
-+++ b/drivers/acpi/acpi_pnp.c
-@@ -349,9 +349,29 @@ static struct acpi_scan_handler acpi_pnp_handler = {
- 	.attach = acpi_pnp_scan_handler_attach,
- };
- 
-+/*
-+ * For CMOS RTC devices, the acpi pnp spcan handler does not work because
-+ * there is already a cmos rtc scan handler installed, thus we need to
-+ * check those devices and enumerate them to PNP bus explicitly.
-+ */
-+static int is_cmos_rtc_device(struct acpi_device *adev)
-+{
-+	struct acpi_device_id ids[] = {
-+		{ "PNP0B00" },
-+		{ "PNP0B01" },
-+		{ "PNP0B02" },
-+		{""},
-+	};
-+	return !acpi_match_device_ids(adev, ids);
-+}
-+
- bool acpi_is_pnp_device(struct acpi_device *device)
- {
--	return !!(device->handler == &acpi_pnp_handler);
-+	if (device->handler == &acpi_pnp_handler)
-+		return true;
-+	if (is_cmos_rtc_device(device))
-+		return true;
-+	return false;
- }
- EXPORT_SYMBOL_GPL(acpi_is_pnp_device);
- 
 -- 
-1.7.9.5
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
