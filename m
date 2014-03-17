@@ -1,104 +1,98 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 2/2] ACPI: Default disable auto-serialization.
-Date: Mon, 17 Mar 2014 12:14:58 +0800
-Message-ID: <fdc47fb7d89d984a164531b316e8b56f73ed05c9.1395028738.git.lv.zheng@intel.com>
+Subject: [RFC PATCH 1/2] ACPICA: Dispatcher: Ignore SyncLevel for auto-serialization mechanism.
+Date: Mon, 17 Mar 2014 12:14:42 +0800
+Message-ID: <bf7078d77da8d24ff11337673c6f0ea9442f294a.1395028738.git.lv.zheng@intel.com>
 References: <14866.1394813101@turing-police.cc.vt.edu> <cover.1395028738.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:45621 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750755AbaCQEPO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Mar 2014 00:15:14 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1395028738.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-This feature enabled by the following commit is still under development.
+From: Robert Moore <robert.moore@intel.com>
 
-  Commit: cd52379678785b02d7a357988cfba214fdaf92f4
-  Subject: ACPICA: Add global option to disable method auto-serialization.
-  This change adds an option to disable the auto-serialization of
-  methods that create named objects.
-
-This patch disables it by default temporarily according to the bug reports.
+It is reported that the auto-serialization mechanism has broken some
+machine.  This patch fixes the issues by igoring the SyncLevel
+attribute of the marked Method.
 
 References: http://www.spinics.net/lists/linux-acpi/msg49496.html
 Reported-by: Valdis Kletnieks <validis.kletnieks@vt.edu>
 Reported-by: Sabrina Dubroka <sd@queasysnail.net>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- Documentation/kernel-parameters.txt |    8 ++++----
- drivers/acpi/acpica/acglobal.h      |    2 +-
- drivers/acpi/osl.c                  |   12 ++++++------
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/acpi/acpica/acobject.h |    3 ++-
+ drivers/acpi/acpica/dsmethod.c |   24 +++++++++++++++++++-----
+ 2 files changed, 21 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 91f0be8..a159537 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -229,13 +229,13 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 			use by PCI
- 			Format: <irq>,<irq>...
+diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
+index 1a4d618..22fb644 100644
+--- a/drivers/acpi/acpica/acobject.h
++++ b/drivers/acpi/acpica/acobject.h
+@@ -193,7 +193,8 @@ struct acpi_object_method {
+ #define ACPI_METHOD_INTERNAL_ONLY       0x02	/* Method is implemented internally (_OSI) */
+ #define ACPI_METHOD_SERIALIZED          0x04	/* Method is serialized */
+ #define ACPI_METHOD_SERIALIZED_PENDING  0x08	/* Method is to be marked serialized */
+-#define ACPI_METHOD_MODIFIED_NAMESPACE  0x10	/* Method modified the namespace */
++#define ACPI_METHOD_IGNORE_SYNC_LEVEL   0x10	/* Method was auto-serialized at table load time */
++#define ACPI_METHOD_MODIFIED_NAMESPACE  0x20	/* Method modified the namespace */
  
--	acpi_no_auto_serialize	[HW,ACPI]
--			Disable auto-serialization of AML methods
-+	acpi_auto_serialize	[HW,ACPI]
-+			Enable auto-serialization of AML methods
- 			AML control methods that contain the opcodes to create
- 			named objects will be marked as "Serialized" by the
- 			auto-serialization feature.
--			This feature is enabled by default.
--			This option allows to turn off the feature.
-+			This feature is disabled by default.
-+			This option allows to turn on the feature.
- 
- 	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
- 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 49bbc71..ea0f838 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -99,7 +99,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_enable_interpreter_slack, FALSE);
-  * that create named objects are marked Serialized in order to prevent
-  * possible run-time problems if they are entered by more than one thread.
-  */
--ACPI_INIT_GLOBAL(u8, acpi_gbl_auto_serialize_methods, TRUE);
-+ACPI_INIT_GLOBAL(u8, acpi_gbl_auto_serialize_methods, FALSE);
- 
- /*
-  * Create the predefined _OSI method in the namespace? Default is TRUE
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index d40d6dc..928f0c2 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1538,20 +1538,20 @@ static int __init osi_setup(char *str)
- __setup("acpi_osi=", osi_setup);
- 
- /*
-- * Disable the auto-serialization of named objects creation methods.
-+ * Enable the auto-serialization of named objects creation methods.
+ /******************************************************************************
   *
-- * This feature is enabled by default.  It marks the AML control methods
-+ * This feature is disabled by default.  It marks the AML control methods
-  * that contain the opcodes to create named objects as "Serialized".
-  */
--static int __init acpi_no_auto_serialize_setup(char *str)
-+static int __init acpi_auto_serialize_setup(char *str)
- {
--	acpi_gbl_auto_serialize_methods = FALSE;
--	pr_info("ACPI: auto-serialization disabled\n");
-+	acpi_gbl_auto_serialize_methods = TRUE;
-+	pr_info("ACPI: auto-serialization enabled\n");
+diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+index 73764c7..3c7f737 100644
+--- a/drivers/acpi/acpica/dsmethod.c
++++ b/drivers/acpi/acpica/dsmethod.c
+@@ -175,8 +175,15 @@ acpi_ds_detect_named_opcodes(struct acpi_walk_state *walk_state,
+ 	 * At this point, we know we have a Named object opcode.
+ 	 * Mark the method as serialized. Later code will create a mutex for
+ 	 * this method to enforce serialization.
++	 *
++	 * Note, ACPI_METHOD_IGNORE_SYNC_LEVEL flag means that we will ignore the
++	 * Sync Level mechanism for this method, even though it is now serialized.
++	 * Otherwise, there can be conflicts with existing ASL code that actually
++	 * uses sync levels.
+ 	 */
+-	walk_state->method_desc->method.info_flags |= ACPI_METHOD_SERIALIZED;
++	walk_state->method_desc->method.sync_level = 0;
++	walk_state->method_desc->method.info_flags |=
++	    (ACPI_METHOD_SERIALIZED | ACPI_METHOD_IGNORE_SYNC_LEVEL);
  
- 	return 1;
- }
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "Method serialized [%4.4s] %p - [%s] (%4.4X)\n",
+@@ -349,13 +356,19 @@ acpi_ds_begin_method_execution(struct acpi_namespace_node *method_node,
+ 		/*
+ 		 * The current_sync_level (per-thread) must be less than or equal to
+ 		 * the sync level of the method. This mechanism provides some
+-		 * deadlock prevention
++		 * deadlock prevention.
++		 *
++		 * If the method was auto-serialized, we just ignore the sync level
++		 * mechanism, because auto-serialization of methods can interfere
++		 * with ASL code that actually uses sync levels.
+ 		 *
+ 		 * Top-level method invocation has no walk state at this point
+ 		 */
+ 		if (walk_state &&
+-		    (walk_state->thread->current_sync_level >
+-		     obj_desc->method.mutex->mutex.sync_level)) {
++		    (!(obj_desc->method.
++		       info_flags & ACPI_METHOD_IGNORE_SYNC_LEVEL))
++		    && (walk_state->thread->current_sync_level >
++			obj_desc->method.mutex->mutex.sync_level)) {
+ 			ACPI_ERROR((AE_INFO,
+ 				    "Cannot acquire Mutex for method [%4.4s], current SyncLevel is too large (%u)",
+ 				    acpi_ut_get_node_name(method_node),
+@@ -800,7 +813,8 @@ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
+ 			method_desc->method.info_flags &=
+ 			    ~ACPI_METHOD_SERIALIZED_PENDING;
+ 			method_desc->method.info_flags |=
+-			    ACPI_METHOD_SERIALIZED;
++			    (ACPI_METHOD_SERIALIZED |
++			     ACPI_METHOD_IGNORE_SYNC_LEVEL);
+ 			method_desc->method.sync_level = 0;
+ 		}
  
--__setup("acpi_no_auto_serialize", acpi_no_auto_serialize_setup);
-+__setup("acpi_auto_serialize", acpi_auto_serialize_setup);
- 
- /* Check of resource interference between native drivers and ACPI
-  * OperationRegions (SystemIO and System Memory only).
 -- 
 1.7.10
-
