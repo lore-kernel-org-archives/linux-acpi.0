@@ -1,75 +1,130 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH 2/2] ACPI: Default disable auto-serialization.
-Date: Tue, 18 Mar 2014 01:29:55 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88024E1BA1@SHSMSX101.ccr.corp.intel.com>
-References: <14866.1394813101@turing-police.cc.vt.edu>
- <5326E5E8.4070804@intel.com>
- <1AE640813FDE7649BE1B193DEA596E88024E1AE0@SHSMSX101.ccr.corp.intel.com>
- <2040389.QPkIWC2M7W@vostro.rjw.lan>
+From: "GOOGLE Gewinnbenachrichtigung!!!" <gogle.promuk@live.com>
+Subject: GOOGLE Gewinnbenachrichtigung!!!
+Date: Tue, 18 Mar 2014 12:47:59 -0000
+Message-ID: <16805e39f71fda956e3e1395d47bbafc.squirrel__48576.6249396422$1395147854$gmane$org@23.96.39.92>
+Reply-To: gogle.eurolotto@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:47402 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751180AbaCRBaI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Mar 2014 21:30:08 -0400
-In-Reply-To: <2040389.QPkIWC2M7W@vostro.rjw.lan>
-Content-Language: en-US
+Received: from [23.96.39.92] ([23.96.39.92]:1160 "EHLO mail.kopa.com"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755379AbaCRNDb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Mar 2014 09:03:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFJhZmFlbCBKLiBX
-eXNvY2tpDQo+IFNlbnQ6IFR1ZXNkYXksIE1hcmNoIDE4LCAyMDE0IDk6MTMgQU0NCj4gDQo+IE9u
-IFR1ZXNkYXksIE1hcmNoIDE4LCAyMDE0IDEyOjMxOjU0IEFNIFpoZW5nLCBMdiB3cm90ZToNCj4g
-PiBIaSwgUmFmYWVsDQo+ID4NCj4gPiA+IEZyb206IFd5c29ja2ksIFJhZmFlbCBKDQo+ID4gPiBT
-ZW50OiBNb25kYXksIE1hcmNoIDE3LCAyMDE0IDg6MDkgUE0NCj4gPiA+DQo+ID4gPiBPbiAzLzE3
-LzIwMTQgNToxNCBBTSwgTHYgWmhlbmcgd3JvdGU6DQo+ID4gPiA+IFRoaXMgZmVhdHVyZSBlbmFi
-bGVkIGJ5IHRoZSBmb2xsb3dpbmcgY29tbWl0IGlzIHN0aWxsIHVuZGVyIGRldmVsb3BtZW50Lg0K
-PiA+ID4gPg0KPiA+ID4gPiAgICBDb21taXQ6IGNkNTIzNzk2Nzg3ODViMDJkN2EzNTc5ODhjZmJh
-MjE0ZmRhZjkyZjQNCj4gPiA+ID4gICAgU3ViamVjdDogQUNQSUNBOiBBZGQgZ2xvYmFsIG9wdGlv
-biB0byBkaXNhYmxlIG1ldGhvZCBhdXRvLXNlcmlhbGl6YXRpb24uDQo+ID4gPiA+ICAgIFRoaXMg
-Y2hhbmdlIGFkZHMgYW4gb3B0aW9uIHRvIGRpc2FibGUgdGhlIGF1dG8tc2VyaWFsaXphdGlvbiBv
-Zg0KPiA+ID4gPiAgICBtZXRob2RzIHRoYXQgY3JlYXRlIG5hbWVkIG9iamVjdHMuDQo+ID4gPiA+
-DQo+ID4gPiA+IFRoaXMgcGF0Y2ggZGlzYWJsZXMgaXQgYnkgZGVmYXVsdCB0ZW1wb3JhcmlseSBh
-Y2NvcmRpbmcgdG8gdGhlIGJ1ZyByZXBvcnRzLg0KPiA+ID4NCj4gPiA+IFdlbGwsIGl0IGRvZXNu
-J3QgcmVzdG9yZSB0aGUgMy4xNCBiZWhhdmlvciBvZiBhY3BpX2F1dG9fc2VyaWFsaXplLCBhcw0K
-PiA+ID4gZmFyIGFzIEkgY2FuIHNheSwgc28gd2UgY2FuJ3QgYXBwbHkgaXQuDQo+ID4gPg0KPiA+
-ID4gSSBzdGlsbCBjYW4gZHJvcCB0aGUgY29tbWl0cyByZWxhdGVkIHRvIGF1dG8tc2VyaWFsaXph
-dGlvbiBmcm9tIG15DQo+ID4gPiBhY3BpY2EgYnJhbmNoLiAgV2hpY2ggY29tbWl0cyBhcmUgdGhl
-eT8NCj4gPg0KPiA+IEZyb20gbGludXgtcG0vYmxlZWRpbmctZWRnZSBicmFuY2gsIEkgZm91bmQg
-dGhpcyBzZXJpZXMgaW5jbHVkZXMgdGhlIGZvbGxvd2luZyBjb21taXRzOg0KPiA+DQo+ID4gQ29t
-bWl0OiBhMGZkMTA4ZjJkYTU2Yjc2OTQ3MmZjMDA5NTYxNmZiMzcwOTg4NTE2DQo+ID4gQXV0aG9y
-OiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPg0KPiA+IFN1YmplY3Q6IEFDUEk6IFJlbmFt
-ZSBrZXJuZWwgcGFyYW1ldGVyICJhY3BpX3NlcmlhbGl6ZSIgdG8gImFjcGlfbm9fYXV0b19zZXJp
-YWxpemUiDQo+ID4NCj4gPiBDb21taXQ6IDVmMWNiNGE5MmU0YzRhYWJkMTM5ZmY5Y2ExZTExYzBl
-MmRiMmFjNTkNCj4gPiBBdXRob3I6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4g
-U3ViamVjdDogQUNQSUNBOiBSZW1vdmUgZ2xvYmFsIG9wdGlvbiB0byBzZXJpYWxpemUgYWxsIGNv
-bnRyb2wgbWV0aG9kcy4NCj4gPg0KPiA+IENvbW1pdDogY2Q1MjM3OTY3ODc4NWIwMmQ3YTM1Nzk4
-OGNmYmEyMTRmZGFmOTJmNA0KPiA+IEF1dGhvcjogQm9iIE1vb3JlIDxyb2JlcnQubW9vcmVAaW50
-ZWwuY29tPg0KPiA+IFN1YmplY3Q6IEFDUElDQTogQWRkIGdsb2JhbCBvcHRpb24gdG8gZGlzYWJs
-ZSBtZXRob2QgYXV0by1zZXJpYWxpemF0aW9uLg0KPiA+DQo+ID4gQ29tbWl0OiBmNTZiMDViZDEx
-MWIwMTE0MWVmNzQ1NjhkYzRkMjYyYzcwMjk1ZDAzDQo+ID4gQXV0aG9yOiBMdiBaaGVuZyA8bHYu
-emhlbmdAaW50ZWwuY29tPg0KPiA+IFN1YmplY3Q6IEFDUElDQTogQWRkIGFkZGl0aW9uYWwgbmFt
-ZWQgb2JqZWN0cyBmb3IgdGhlIGF1dG8tc2VyaWFsaXplIG1ldGhvZCBzY2FuLg0KPiA+DQo+ID4g
-Q29tbWl0OiAyN2YxODk5MzUwYTFkNmJhYWIxMTdjMDNjODdmMGUzNzczMDA0N2JkDQo+ID4gQXV0
-aG9yOiBCb2IgTW9vcmUgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+DQo+ID4gU3ViamVjdDogQUNQ
-SUNBOiBBZGQgYXV0by1zZXJpYWxpemF0aW9uIHN1cHBvcnQgZm9yIGlsbC1iZWhhdmVkIGNvbnRy
-b2wgbWV0aG9kcy4NCj4gPg0KPiA+IFJldmVydGluZyB0aGVzZSBjb21taXRzIGNhbiByZXN0b3Jl
-IG9yaWdpbmFsIExpbnV4IGJlaGF2aW9yLg0KPiA+IFBsZWFzZSBjaGVjay4NCj4gDQo+IE9LLCBJ
-IGRyb3BwZWQgdGhlIGZpdmUgY29tbWl0cyBhYm92ZSBmcm9tIHRoZSBhY3BpY2EgYnJhbmNoLg0K
-PiANCj4gUGxlYXNlIGNoZWNrIGlmIHRoZSBjdXJyZW50IEFDUElDQSBtYXRlcmlhbCBpbiB0aGUg
-YmxlZWRpbmctZWRnZSBicmFuY2ggb2YNCj4gbGludXgtcG0uZ2l0IGxvb2tzIE9LIChhbmQgbGV0
-IG1lIGtub3cgZWl0aGVyIHdheSkuDQoNCkl0IHRvb2sgbWUgc29tZSB0aW1lIHRvIGNvbmZpcm0u
-DQpJIGp1c3QgY2hlY2tlZCBBQ1BJQ0EgY29kZSB1c2luZyB0aGUgQUNQSUNBIGRpdmVyZ2VuY2Ug
-c2NyaXB0Lg0KQW5kIGNoZWNrZWQgdGhlIExpbnV4IHNpZGUgcmV2ZXJzYWwgaW4gb3NsLmMva2Vy
-bmVsLXBhcmFtZXRlci50eHQuDQpBbGwgc2VlbSB0byBiZSBPSy4NCg0KQmVzdCByZWdhcmRzDQot
-THYNCg0KPiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBX
-eXNvY2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCj4gLS0NCj4gVG8g
-dW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxp
-bnV4LWFjcGkiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5r
-ZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5v
-cmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+GOOGLE INTERNATIONALE F=F6rderung-GEWINNZUTEILUNG
+           GOOGLE  F=F6rderung
+
+GOOGLE Einarbeitung=A9
+UROPA INTERLOTTO/EUROMILLINEN LOTTO BONUS-PROGRAMM
+BEL-GRAVE HOUSE, 76 BUCKINGHAM PALACE ROAD,
+LONDON SW1W 9TQ, UNITED KINGDOM.OFFICE;
+VOM SCHREIBTISCH VON VICE PRESIDENT INTERNATIONAL
+PROMOTION/PREISVERLEIHUNG AKTENZEICHEN: ANA/BCL654560010/ESP.
+OFFIZIELLE GEWINNBENACHRITIGUNG.
+DATUM: 18/03/2014.
+
+ACHTUNG! DER BEG=DCNSTIGTE,
+
+GOOGLE Gewinnbenachrichtigung!!!
+
+Wir freuen uns,Ihnen noch einmal gratulieren zu dieser Notiz, die Teil
+unserer gl=FCcklichen Gewinner ausgew=E4hlt diesem Jahr. Diese Aktion w=
+urde im
+Anschluss an die aktive Nutzung des Google-Suchmaschine und im
+Google-Hilfsdienste anzukurbeln. Daher machen wir mit Ihren Preis zu
+gewinnen glauben, werden Sie weiterhin aktiv zu sein und Schirmherrscha=
+ft
+f=FCr dieses Unternehmen. Google ist heute der weltweit f=FChrende
+Suchmaschine weltweit und in dem Bestreben, sicherzustellen, dass sie d=
+ie
+am weitesten verbreitete Suchmaschinen bleibt, ein Online-E-Mail
+Stimmabgabe aus wurde am 13/03/2014 ohne Ihr Wissen ausgef=FChrt wurde
+offiziell freigegeben am 18/03/2014. Wir m=F6chten Ihnen f=F6rmlich mit=
+teilen,
+dass Ihre E-Mail-Adresse zu einem Pauschalbetrag von:(=80450,000,00)(VI=
+ER
+HUNDERT UND F=DCNFZIG TAUSEND Euro.)Die summe ergibt sich einer
+gewinnausschuttung von.(=8018,000,000:00)(ACHTZEHN MILLIONEN EURO.)Die =
+summe
+wurde durch 40 gewinnern aus der gleichen kategorie geteilt.HERZLICHEN
+GLUCKWUNSCH!!! befestigt war
+
+Wir m=F6chten Ihnen mitteilen, dass Sie erfolgreich den Anforderungen, =
+den
+gesetzlichen Auflagen, =DCberpr=FCfungen und unsere zufriedenstellenden
+Bericht Test f=FCr alle unsere Online-Gewinner durchgef=FChrt weitergeg=
+eben.
+Eine gewinnende Scheck wird in Ihrem Namen von Google F=F6rderpreis Tea=
+m
+erteilt werden, und auch eine Bescheinigung =FCber die Auszeichnung
+Anspr=FCche werden an der Seite Ihrer gewinnenden Scheck zugesandt.
+
+Dies sind Ihre Auszeichnung Details.
+Security Code Nummer: GU/N/3642375G
+Ticket Nr.: GU/K/699/33/2014
+Gewinnzahlen: UK/877/798/2014
+
+Erforderliche Angaben von Ihnen Teil unserer vorsorglich  zu verdoppeln
+behaupten und ungerechtfertigten Missbrauch von diesem  Programm  zu
+vermeiden. Um Ihren Preis gewonnen, bitte, sind die Mittel unserer
+ausl=E4ndischen  Transfer Manager Mr. Audrew C. Nielsen korrekt, Pr=FCf=
+ung und
+Genehmigung  gef=FCllt
+
+        Bitte vollst=E4ndige =DCberpr=FCfung und Mittel freizugeben For=
+m
+
+(1) Ihr vollst=E4ndiger Name ...............................
+(2) Kontakt-Adresse ........................................
+(3) Tel. Zahlen ...............................................
+(4) Mobile ......................................................
+(5) Nationalit=E4t / Land .....................................
+(6) Beruf .......................................................
+(7) Sex /Geschlecht........................................
+(8) Alter ........................................................
+(9) jemals gewonnen eine Online-Lotterie? .............
+(10) Mode von Preisgeld nach Hause: Courier Lieferung oder Bank=FCberwe=
+isung
+=2E.........
+Die oben genannten Anforderungen sind erforderlich.
+
+Gl=FCckw=FCnsche noch einmal.
+
+    Mode des Geldpreises Transfer
+(1) =DCberweisung / Courier Lieferung Ihrer Certified Winning Scheck Na=
+me
+und andere Dokumente, um sicherzustellen, Sie gewinnen. Wir empfehlen,
+dass Ihr ausw=E4rtige Transfer Manager, Mr. Audrew C. Nielsen mit seine=
+r
+privaten E-Mail unten, um unn=F6tige Verz=F6gerungen und Komplikationen=
+:
+***********************************************
+AUSLANDSFORDERUNGEN MANAGER
+Dr. Mrs. ROSALINE CHARLES
+GOOGLE Sicherheitsabteilung [London]
+
+Kontakt E-Mail: gogle.eurolotto@gmail.com
+                Google-Verwaltung@linuxmail.org
+                Google-Verwaltung@planetmail.net
+***********************************************
+Security Code Nummer: GU/N/3642375G
+Ticket Nr.: GU/K/699/33/2014
+Gewinnzahlen: UK/877/798/2014
+***********************************************
+Herzlichen Gl=FCckwunsch noch einmal von Mitgliedern und Personal der
+Lotterie Bord.
+
+Herzlichst,
+Mr. larry Page.
+Chief Executive Officer (C.E.O)
+GOOGLE zonale Koordinator
+LONDON, UNITED KINGDOM.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
