@@ -1,130 +1,328 @@
-From: "GOOGLE Gewinnbenachrichtigung!!!" <gogle.promuk@live.com>
-Subject: GOOGLE Gewinnbenachrichtigung!!!
-Date: Tue, 18 Mar 2014 12:47:59 -0000
-Message-ID: <16805e39f71fda956e3e1395d47bbafc.squirrel__48576.6249396422$1395147854$gmane$org@23.96.39.92>
-Reply-To: gogle.eurolotto@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [23.96.39.92] ([23.96.39.92]:1160 "EHLO mail.kopa.com"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755379AbaCRNDb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Mar 2014 09:03:31 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [RFC Patch 1/2] i2c/ACPI: Support for multiple serial bus addresses
+Date: Tue, 18 Mar 2014 13:59:20 -0700
+Message-ID: <1395176361-3956-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, jdelvare-l3A5Bk7waGM@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-GOOGLE INTERNATIONALE F=F6rderung-GEWINNZUTEILUNG
-           GOOGLE  F=F6rderung
+ACPI specification allows multiple i2c addresses defined under one
+ACPI device object. These addresses are defined using _CRS method.
+The current implementation will pickup the last entry in _CRS, and
+create an i2C device, ignoring all other previous entries for addresses.
 
-GOOGLE Einarbeitung=A9
-UROPA INTERLOTTO/EUROMILLINEN LOTTO BONUS-PROGRAMM
-BEL-GRAVE HOUSE, 76 BUCKINGHAM PALACE ROAD,
-LONDON SW1W 9TQ, UNITED KINGDOM.OFFICE;
-VOM SCHREIBTISCH VON VICE PRESIDENT INTERNATIONAL
-PROMOTION/PREISVERLEIHUNG AKTENZEICHEN: ANA/BCL654560010/ESP.
-OFFIZIELLE GEWINNBENACHRITIGUNG.
-DATUM: 18/03/2014.
+The ACPI specification does not define, whether these addresses for one
+i2c device or for multiple i2c devices, which are defined under the same
+ACPI device object. We need some appoach where i2c clients can enumerate
+on each of the i2C address and/or have access to those extra addresses.
 
-ACHTUNG! DER BEG=DCNSTIGTE,
+This change addresses both cases:
+- Create a new i2c device for each i2c address
+- Allow each i2 client to get addresses of all other devices under
+the same ACPI device object (companions or siblings)
 
-GOOGLE Gewinnbenachrichtigung!!!
+Example:
+Here in the following example, there are two i2C address in _CRS.
+They belong to two different physical chipsets, with two different i2c
+address but part of a module.
+Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+{
+        Name (RBUF, ResourceTemplate ()
+        {
+		I2cSerialBus (0x0068, ControllerInitiated, 0x00061A80,
+			AddressingMode7Bit, "\\_SB.I2C5",
+			0x00, ResourceConsumer, ,
+		)
+		I2cSerialBus (0x000C, ControllerInitiated, 0x00061A80,
+			AddressingMode7Bit, "\\_SB.I2C5",
+			0x00, ResourceConsumer, ,
+		)
+		Interrupt (ResourceConsumer, Level, ActiveHigh, Shared, ,, )
+		{
+			0x00000044,
+		}
+	})
+	Return (RBUF)
+}
+This change adds i2c_new_device for each i2c address. Here contents of
+/sys/bus/i2c/devices will
+	i2c-some_acpi_dev_name:00:068
+	i2c-some_acpi_dev_name::00:00c
+Here any i2c client driver simply need to add ACPI bindings. They will
+be probed multiple times, the client will bind to correct i2c device,
+based on checking its identity and returning error for other.
+At the same time, this change also gives any device to see presence of
+multiple devices, by addition of comp_addrs in the i2c_client struct.
+This list of additional address is referred as companion addresses.
+So any client, which needs specification of multiple addresses, they
+can use all available addresses. To get i2c_client instance, they
+can use i2c_get_comp_client() for an companion address. By using this
+i2c_client instance, a client can use i2c interface to send/receive
+over this companion address.
 
-Wir freuen uns,Ihnen noch einmal gratulieren zu dieser Notiz, die Teil
-unserer gl=FCcklichen Gewinner ausgew=E4hlt diesem Jahr. Diese Aktion w=
-urde im
-Anschluss an die aktive Nutzung des Google-Suchmaschine und im
-Google-Hilfsdienste anzukurbeln. Daher machen wir mit Ihren Preis zu
-gewinnen glauben, werden Sie weiterhin aktiv zu sein und Schirmherrscha=
-ft
-f=FCr dieses Unternehmen. Google ist heute der weltweit f=FChrende
-Suchmaschine weltweit und in dem Bestreben, sicherzustellen, dass sie d=
-ie
-am weitesten verbreitete Suchmaschinen bleibt, ein Online-E-Mail
-Stimmabgabe aus wurde am 13/03/2014 ohne Ihr Wissen ausgef=FChrt wurde
-offiziell freigegeben am 18/03/2014. Wir m=F6chten Ihnen f=F6rmlich mit=
-teilen,
-dass Ihre E-Mail-Adresse zu einem Pauschalbetrag von:(=80450,000,00)(VI=
-ER
-HUNDERT UND F=DCNFZIG TAUSEND Euro.)Die summe ergibt sich einer
-gewinnausschuttung von.(=8018,000,000:00)(ACHTZEHN MILLIONEN EURO.)Die =
-summe
-wurde durch 40 gewinnern aus der gleichen kategorie geteilt.HERZLICHEN
-GLUCKWUNSCH!!! befestigt war
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+ drivers/i2c/i2c-core.c | 105 +++++++++++++++++++++++++++++++++++++++++--------
+ include/linux/i2c.h    |  30 ++++++++++++++
+ 2 files changed, 119 insertions(+), 16 deletions(-)
 
-Wir m=F6chten Ihnen mitteilen, dass Sie erfolgreich den Anforderungen, =
-den
-gesetzlichen Auflagen, =DCberpr=FCfungen und unsere zufriedenstellenden
-Bericht Test f=FCr alle unsere Online-Gewinner durchgef=FChrt weitergeg=
-eben.
-Eine gewinnende Scheck wird in Ihrem Namen von Google F=F6rderpreis Tea=
-m
-erteilt werden, und auch eine Bescheinigung =FCber die Auszeichnung
-Anspr=FCche werden an der Seite Ihrer gewinnenden Scheck zugesandt.
-
-Dies sind Ihre Auszeichnung Details.
-Security Code Nummer: GU/N/3642375G
-Ticket Nr.: GU/K/699/33/2014
-Gewinnzahlen: UK/877/798/2014
-
-Erforderliche Angaben von Ihnen Teil unserer vorsorglich  zu verdoppeln
-behaupten und ungerechtfertigten Missbrauch von diesem  Programm  zu
-vermeiden. Um Ihren Preis gewonnen, bitte, sind die Mittel unserer
-ausl=E4ndischen  Transfer Manager Mr. Audrew C. Nielsen korrekt, Pr=FCf=
-ung und
-Genehmigung  gef=FCllt
-
-        Bitte vollst=E4ndige =DCberpr=FCfung und Mittel freizugeben For=
-m
-
-(1) Ihr vollst=E4ndiger Name ...............................
-(2) Kontakt-Adresse ........................................
-(3) Tel. Zahlen ...............................................
-(4) Mobile ......................................................
-(5) Nationalit=E4t / Land .....................................
-(6) Beruf .......................................................
-(7) Sex /Geschlecht........................................
-(8) Alter ........................................................
-(9) jemals gewonnen eine Online-Lotterie? .............
-(10) Mode von Preisgeld nach Hause: Courier Lieferung oder Bank=FCberwe=
-isung
-=2E.........
-Die oben genannten Anforderungen sind erforderlich.
-
-Gl=FCckw=FCnsche noch einmal.
-
-    Mode des Geldpreises Transfer
-(1) =DCberweisung / Courier Lieferung Ihrer Certified Winning Scheck Na=
-me
-und andere Dokumente, um sicherzustellen, Sie gewinnen. Wir empfehlen,
-dass Ihr ausw=E4rtige Transfer Manager, Mr. Audrew C. Nielsen mit seine=
-r
-privaten E-Mail unten, um unn=F6tige Verz=F6gerungen und Komplikationen=
-:
-***********************************************
-AUSLANDSFORDERUNGEN MANAGER
-Dr. Mrs. ROSALINE CHARLES
-GOOGLE Sicherheitsabteilung [London]
-
-Kontakt E-Mail: gogle.eurolotto@gmail.com
-                Google-Verwaltung@linuxmail.org
-                Google-Verwaltung@planetmail.net
-***********************************************
-Security Code Nummer: GU/N/3642375G
-Ticket Nr.: GU/K/699/33/2014
-Gewinnzahlen: UK/877/798/2014
-***********************************************
-Herzlichen Gl=FCckwunsch noch einmal von Mitgliedern und Personal der
-Lotterie Bord.
-
-Herzlichst,
-Mr. larry Page.
-Chief Executive Officer (C.E.O)
-GOOGLE zonale Koordinator
-LONDON, UNITED KINGDOM.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 5fb80b8..2d9b4bd 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -395,7 +395,9 @@ static int i2c_device_pm_restore(struct device *dev)
+ 
+ static void i2c_client_dev_release(struct device *dev)
+ {
+-	kfree(to_i2c_client(dev));
++	struct i2c_client *client = to_i2c_client(dev);
++	kfree(client->comp_addrs);
++	kfree(client);
+ }
+ 
+ static ssize_t
+@@ -627,7 +629,7 @@ static void i2c_dev_set_name(struct i2c_adapter *adap,
+ 	struct acpi_device *adev = ACPI_COMPANION(&client->dev);
+ 
+ 	if (adev) {
+-		dev_set_name(&client->dev, "i2c-%s", acpi_dev_name(adev));
++		dev_set_name(&client->dev, "i2c-%s", client->name);
+ 		return;
+ 	}
+ 
+@@ -673,6 +675,8 @@ i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
+ 	client->flags = info->flags;
+ 	client->addr = info->addr;
+ 	client->irq = info->irq;
++	client->comp_addr_count = info->comp_addr_count;
++	client->comp_addrs = info->comp_addrs;
+ 
+ 	strlcpy(client->name, info->type, sizeof(client->name));
+ 
+@@ -726,6 +730,36 @@ void i2c_unregister_device(struct i2c_client *client)
+ }
+ EXPORT_SYMBOL_GPL(i2c_unregister_device);
+ 
++static int i2c_find_client_addr(struct device *dev, void *addrp)
++{
++	struct i2c_client *client = i2c_verify_client(dev);
++	unsigned short addr = *(unsigned short *)addrp;
++
++	if (client && client->addr == addr)
++		return 1;
++
++	return 0;
++}
++
++struct i2c_client *i2c_get_comp_client(struct i2c_client *client,
++						unsigned short addr)
++{
++	struct device *dev = NULL;
++
++	if (!client)
++		return NULL;
++
++	if (client->addr == addr)
++		return client;
++
++	dev = device_find_child(&client->adapter->dev, &addr,
++						i2c_find_client_addr);
++	if (dev)
++		return to_i2c_client(dev);
++
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(i2c_get_comp_client);
+ 
+ static const struct i2c_device_id dummy_id[] = {
+ 	{ "dummy", 0 },
+@@ -1080,24 +1114,37 @@ static void of_i2c_register_devices(struct i2c_adapter *adap) { }
+ /* ACPI support code */
+ 
+ #if IS_ENABLED(CONFIG_ACPI)
++/* Using some arbitary limit for max adresses in resource */
++#define MAX_CRS_ELEMENTS	20
++struct i2c_resource_info {
++	struct i2c_comp_address addrs[MAX_CRS_ELEMENTS];
++	int count;
++	int common_irq;
++};
++
+ static int acpi_i2c_add_resource(struct acpi_resource *ares, void *data)
+ {
+-	struct i2c_board_info *info = data;
++	struct i2c_resource_info *rcs_info = data;
+ 
+ 	if (ares->type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
+ 		struct acpi_resource_i2c_serialbus *sb;
+ 
+ 		sb = &ares->data.i2c_serial_bus;
+ 		if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_I2C) {
+-			info->addr = sb->slave_address;
++			if (rcs_info->count >= MAX_CRS_ELEMENTS)
++				return 1;
++			rcs_info->addrs[rcs_info->count].addr =
++							sb->slave_address;
+ 			if (sb->access_mode == ACPI_I2C_10BIT_MODE)
+-				info->flags |= I2C_CLIENT_TEN;
++				rcs_info->addrs[rcs_info->count].flags =
++								I2C_CLIENT_TEN;
++			rcs_info->count++;
+ 		}
+-	} else if (info->irq < 0) {
++	} else if (rcs_info->common_irq < 0) {
+ 		struct resource r;
+ 
+ 		if (acpi_dev_resource_interrupt(ares, 0, &r))
+-			info->irq = r.start;
++			rcs_info->common_irq = r.start;
+ 	}
+ 
+ 	/* Tell the ACPI core to skip this resource */
+@@ -1111,7 +1158,10 @@ static acpi_status acpi_i2c_add_device(acpi_handle handle, u32 level,
+ 	struct list_head resource_list;
+ 	struct i2c_board_info info;
+ 	struct acpi_device *adev;
++	struct i2c_resource_info rcs_info;
++	struct i2c_client *i2c_client;
+ 	int ret;
++	int i;
+ 
+ 	if (acpi_bus_get_device(handle, &adev))
+ 		return AE_OK;
+@@ -1120,23 +1170,46 @@ static acpi_status acpi_i2c_add_device(acpi_handle handle, u32 level,
+ 
+ 	memset(&info, 0, sizeof(info));
+ 	info.acpi_node.companion = adev;
+-	info.irq = -1;
++
++	memset(&rcs_info, 0, sizeof(rcs_info));
++	rcs_info.common_irq = -1;
+ 
+ 	INIT_LIST_HEAD(&resource_list);
+ 	ret = acpi_dev_get_resources(adev, &resource_list,
+-				     acpi_i2c_add_resource, &info);
++				     acpi_i2c_add_resource, &rcs_info);
+ 	acpi_dev_free_resource_list(&resource_list);
+ 
+-	if (ret < 0 || !info.addr)
++	if (ret < 0)
+ 		return AE_OK;
+ 
+ 	adev->power.flags.ignore_parent = true;
+-	strlcpy(info.type, dev_name(&adev->dev), sizeof(info.type));
+-	if (!i2c_new_device(adapter, &info)) {
+-		adev->power.flags.ignore_parent = false;
+-		dev_err(&adapter->dev,
+-			"failed to add I2C device %s from ACPI\n",
+-			dev_name(&adev->dev));
++	info.irq = rcs_info.common_irq;
++	info.comp_addr_count = rcs_info.count;
++	for (i = 0; i < rcs_info.count; ++i) {
++		if (!rcs_info.addrs[i].addr)
++			continue;
++		info.addr = rcs_info.addrs[i].addr;
++		info.flags = rcs_info.addrs[i].flags;
++		snprintf(info.type, sizeof(info.type), "%s:%03x",
++						dev_name(&adev->dev),
++						info.addr);
++		info.comp_addrs = kmemdup(rcs_info.addrs,
++					rcs_info.count *
++					sizeof(struct i2c_comp_address),
++					GFP_ATOMIC);
++		if (!info.comp_addrs)
++			return AE_OK; /* silently ignore */
++
++		i2c_client = i2c_new_device(adapter, &info);
++		if (!i2c_client) {
++			if (!i)
++				adev->power.flags.ignore_parent = false;
++			dev_err(&adapter->dev,
++				"failed to add I2C device %s from ACPI\n",
++					dev_name(&adev->dev));
++			kfree(info.comp_addrs);
++			break;
++		}
+ 	}
+ 
+ 	return AE_OK;
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index deddeb8..4197a0d 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -198,6 +198,19 @@ struct i2c_driver {
+ #define to_i2c_driver(d) container_of(d, struct i2c_driver, driver)
+ 
+ /**
++ * struct i2c_comp_address - represent an I2C companion address
++ * @addr: i2c 7/10 bit address
++ * @flags: Same meaning as i2c_client flags field
++ *
++ * Some i2c devices specifies multiple addresses on which it can operate.
++ * This structure is used to represent such address along with flags.
++ */
++struct i2c_comp_address {
++	unsigned short addr;
++	unsigned short flags;
++};
++
++/**
+  * struct i2c_client - represent an I2C slave device
+  * @flags: I2C_CLIENT_TEN indicates the device uses a ten bit chip address;
+  *	I2C_CLIENT_PEC indicates it uses SMBus Packet Error Checking
+@@ -209,6 +222,9 @@ struct i2c_driver {
+  * @irq: indicates the IRQ generated by this device (if any)
+  * @detected: member of an i2c_driver.clients list or i2c-core's
+  *	userspace_devices list
++ * @comp_addr_count: Number of addresses in comp_addrs pointer
++ * @comp_addrs: Pointer to companion list of i2c addresses and
++ *	associated flags.
+  *
+  * An i2c_client identifies a single device (i.e. chip) connected to an
+  * i2c bus. The behaviour exposed to Linux is defined by the driver
+@@ -224,6 +240,8 @@ struct i2c_client {
+ 	struct device dev;		/* the device structure		*/
+ 	int irq;			/* irq issued by device		*/
+ 	struct list_head detected;
++	int comp_addr_count;
++	struct i2c_comp_address *comp_addrs;
+ };
+ #define to_i2c_client(d) container_of(d, struct i2c_client, dev)
+ 
+@@ -256,6 +274,9 @@ static inline void i2c_set_clientdata(struct i2c_client *dev, void *data)
+  * @of_node: pointer to OpenFirmware device node
+  * @acpi_node: ACPI device node
+  * @irq: stored in i2c_client.irq
++ * @comp_addr_count: Number of addresses in comp_addrs pointer
++ * @comp_addrs: Pointer to companion list of i2c addresses and
++ *	associated flags.
+  *
+  * I2C doesn't actually support hardware probing, although controllers and
+  * devices may be able to use I2C_SMBUS_QUICK to tell whether or not there's
+@@ -277,6 +298,8 @@ struct i2c_board_info {
+ 	struct device_node *of_node;
+ 	struct acpi_dev_node acpi_node;
+ 	int		irq;
++	int comp_addr_count;
++	struct i2c_comp_address *comp_addrs;
+ };
+ 
+ /**
+@@ -323,6 +346,13 @@ extern struct i2c_client *
+ i2c_new_dummy(struct i2c_adapter *adap, u16 address);
+ 
+ extern void i2c_unregister_device(struct i2c_client *);
++
++/* Get i2c_client instance from an address, used for getting companion
++ * i2c_client instances from the same i2c adapter
++ */
++extern struct i2c_client *i2c_get_comp_client(struct i2c_client *client,
++							unsigned short addr);
++
+ #endif /* I2C */
+ 
+ /* Mainboard arch_initcall() code should register all its I2C devices.
+-- 
+1.8.3.2
