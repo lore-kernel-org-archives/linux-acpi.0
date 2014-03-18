@@ -1,99 +1,40 @@
-From: Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [RFC Patch 2/2] i2c/ACPI: Don't ignore IRQ flags
-Date: Tue, 18 Mar 2014 13:59:21 -0700
-Message-ID: <1395176361-3956-2-git-send-email-srinivas.pandruvada@linux.intel.com>
-References: <1395176361-3956-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1395176361-3956-1-git-send-email-srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mika.westerberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, jdelvare-l3A5Bk7waGM@public.gmane.org
+From: Sabrina Dubroca <sd@queasysnail.net>
+Subject: Re: [RFC PATCH 1/2] ACPICA: Dispatcher: Ignore SyncLevel for
+ auto-serialization mechanism.
+Date: Tue, 18 Mar 2014 23:58:42 +0100
+Message-ID: <20140318225842.GA25669@kria>
+References: <14866.1394813101@turing-police.cc.vt.edu>
+ <cover.1395028738.git.lv.zheng@intel.com>
+ <bf7078d77da8d24ff11337673c6f0ea9442f294a.1395028738.git.lv.zheng@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E88024E1B17@SHSMSX101.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp4-g21.free.fr ([212.27.42.4]:43441 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932595AbaCRW7B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Mar 2014 18:59:01 -0400
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88024E1B17@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Valdis Kletnieks <validis.kletnieks@vt.edu>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
 
-Currently irq flags from IRQ resources are ignored. They have important
-IRQ configuration for level, trigger and sharable.
+Hi,
 
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
----
- drivers/i2c/i2c-core.c | 7 ++++++-
- include/linux/i2c.h    | 4 ++++
- 2 files changed, 10 insertions(+), 1 deletion(-)
+2014-03-18, 00:50:04 +0000, Zheng, Lv wrote:
+> Hi, Sabrina and Valdis
+> 
+> Could you give this patch a try to see if this patch is working?
+> 
+> Thanks and best regards
+> -Lv
 
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 2d9b4bd..6217d80 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -675,6 +675,7 @@ i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
- 	client->flags = info->flags;
- 	client->addr = info->addr;
- 	client->irq = info->irq;
-+	client->irq_flags = info->irq_flags;
- 	client->comp_addr_count = info->comp_addr_count;
- 	client->comp_addrs = info->comp_addrs;
- 
-@@ -1120,6 +1121,7 @@ struct i2c_resource_info {
- 	struct i2c_comp_address addrs[MAX_CRS_ELEMENTS];
- 	int count;
- 	int common_irq;
-+	unsigned long irq_flags;
- };
- 
- static int acpi_i2c_add_resource(struct acpi_resource *ares, void *data)
-@@ -1143,8 +1145,10 @@ static int acpi_i2c_add_resource(struct acpi_resource *ares, void *data)
- 	} else if (rcs_info->common_irq < 0) {
- 		struct resource r;
- 
--		if (acpi_dev_resource_interrupt(ares, 0, &r))
-+		if (acpi_dev_resource_interrupt(ares, 0, &r)) {
- 			rcs_info->common_irq = r.start;
-+			rcs_info->irq_flags = r.flags;
-+		}
- 	}
- 
- 	/* Tell the ACPI core to skip this resource */
-@@ -1184,6 +1188,7 @@ static acpi_status acpi_i2c_add_device(acpi_handle handle, u32 level,
- 
- 	adev->power.flags.ignore_parent = true;
- 	info.irq = rcs_info.common_irq;
-+	info.irq_flags = rcs_info.irq_flags;
- 	info.comp_addr_count = rcs_info.count;
- 	for (i = 0; i < rcs_info.count; ++i) {
- 		if (!rcs_info.addrs[i].addr)
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index 4197a0d..63b511b 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -225,6 +225,7 @@ struct i2c_comp_address {
-  * @comp_addr_count: Number of addresses in comp_addrs pointer
-  * @comp_addrs: Pointer to companion list of i2c addresses and
-  *	associated flags.
-+ * @irq_flags: indicates the IRQ flags (format: IORESOURCE_IRQ_XXXX)
-  *
-  * An i2c_client identifies a single device (i.e. chip) connected to an
-  * i2c bus. The behaviour exposed to Linux is defined by the driver
-@@ -242,6 +243,7 @@ struct i2c_client {
- 	struct list_head detected;
- 	int comp_addr_count;
- 	struct i2c_comp_address *comp_addrs;
-+	unsigned long irq_flags;
- };
- #define to_i2c_client(d) container_of(d, struct i2c_client, dev)
- 
-@@ -277,6 +279,7 @@ static inline void i2c_set_clientdata(struct i2c_client *dev, void *data)
-  * @comp_addr_count: Number of addresses in comp_addrs pointer
-  * @comp_addrs: Pointer to companion list of i2c addresses and
-  *	associated flags.
-+ * @irq_flags: indicates the IRQ flags (format: IORESOURCE_IRQ_XXXX)
-  *
-  * I2C doesn't actually support hardware probing, although controllers and
-  * devices may be able to use I2C_SMBUS_QUICK to tell whether or not there's
-@@ -300,6 +303,7 @@ struct i2c_board_info {
- 	int		irq;
- 	int comp_addr_count;
- 	struct i2c_comp_address *comp_addrs;
-+	unsigned long irq_flags;
- };
- 
- /**
+I applied the two patches. The laptop boots and there is no ACPI
+error in the logs, both with auto-serialization enabled and disabled.
+
+Thanks,
+
 -- 
-1.8.3.2
+Sabrina
