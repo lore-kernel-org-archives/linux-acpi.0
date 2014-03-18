@@ -1,74 +1,75 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH 2/2] ACPI: Default disable auto-serialization.
-Date: Tue, 18 Mar 2014 02:13:14 +0100
-Message-ID: <2040389.QPkIWC2M7W@vostro.rjw.lan>
-References: <14866.1394813101@turing-police.cc.vt.edu> <5326E5E8.4070804@intel.com> <1AE640813FDE7649BE1B193DEA596E88024E1AE0@SHSMSX101.ccr.corp.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH 2/2] ACPI: Default disable auto-serialization.
+Date: Tue, 18 Mar 2014 01:29:55 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88024E1BA1@SHSMSX101.ccr.corp.intel.com>
+References: <14866.1394813101@turing-police.cc.vt.edu>
+ <5326E5E8.4070804@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E88024E1AE0@SHSMSX101.ccr.corp.intel.com>
+ <2040389.QPkIWC2M7W@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61284 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752624AbaCRA5q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Mar 2014 20:57:46 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88024E1AE0@SHSMSX101.ccr.corp.intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:47402 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751180AbaCRBaI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Mar 2014 21:30:08 -0400
+In-Reply-To: <2040389.QPkIWC2M7W@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tuesday, March 18, 2014 12:31:54 AM Zheng, Lv wrote:
-> Hi, Rafael
-> 
-> > From: Wysocki, Rafael J
-> > Sent: Monday, March 17, 2014 8:09 PM
-> > 
-> > On 3/17/2014 5:14 AM, Lv Zheng wrote:
-> > > This feature enabled by the following commit is still under development.
-> > >
-> > >    Commit: cd52379678785b02d7a357988cfba214fdaf92f4
-> > >    Subject: ACPICA: Add global option to disable method auto-serialization.
-> > >    This change adds an option to disable the auto-serialization of
-> > >    methods that create named objects.
-> > >
-> > > This patch disables it by default temporarily according to the bug reports.
-> > 
-> > Well, it doesn't restore the 3.14 behavior of acpi_auto_serialize, as
-> > far as I can say, so we can't apply it.
-> > 
-> > I still can drop the commits related to auto-serialization from my
-> > acpica branch.  Which commits are they?
-> 
-> From linux-pm/bleeding-edge branch, I found this series includes the following commits:
-> 
-> Commit: a0fd108f2da56b769472fc0095616fb370988516
-> Author: Lv Zheng <lv.zheng@intel.com>
-> Subject: ACPI: Rename kernel parameter "acpi_serialize" to "acpi_no_auto_serialize"
-> 
-> Commit: 5f1cb4a92e4c4aabd139ff9ca1e11c0e2db2ac59
-> Author: Lv Zheng <lv.zheng@intel.com>
-> Subject: ACPICA: Remove global option to serialize all control methods.
-> 
-> Commit: cd52379678785b02d7a357988cfba214fdaf92f4
-> Author: Bob Moore <robert.moore@intel.com>
-> Subject: ACPICA: Add global option to disable method auto-serialization.
-> 
-> Commit: f56b05bd111b01141ef74568dc4d262c70295d03
-> Author: Lv Zheng <lv.zheng@intel.com>
-> Subject: ACPICA: Add additional named objects for the auto-serialize method scan.
-> 
-> Commit: 27f1899350a1d6baab117c03c87f0e37730047bd
-> Author: Bob Moore <robert.moore@intel.com>
-> Subject: ACPICA: Add auto-serialization support for ill-behaved control methods.
-> 
-> Reverting these commits can restore original Linux behavior.
-> Please check.
-
-OK, I dropped the five commits above from the acpica branch.
-
-Please check if the current ACPICA material in the bleeding-edge branch of
-linux-pm.git looks OK (and let me know either way).
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
+aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFJhZmFlbCBKLiBX
+eXNvY2tpDQo+IFNlbnQ6IFR1ZXNkYXksIE1hcmNoIDE4LCAyMDE0IDk6MTMgQU0NCj4gDQo+IE9u
+IFR1ZXNkYXksIE1hcmNoIDE4LCAyMDE0IDEyOjMxOjU0IEFNIFpoZW5nLCBMdiB3cm90ZToNCj4g
+PiBIaSwgUmFmYWVsDQo+ID4NCj4gPiA+IEZyb206IFd5c29ja2ksIFJhZmFlbCBKDQo+ID4gPiBT
+ZW50OiBNb25kYXksIE1hcmNoIDE3LCAyMDE0IDg6MDkgUE0NCj4gPiA+DQo+ID4gPiBPbiAzLzE3
+LzIwMTQgNToxNCBBTSwgTHYgWmhlbmcgd3JvdGU6DQo+ID4gPiA+IFRoaXMgZmVhdHVyZSBlbmFi
+bGVkIGJ5IHRoZSBmb2xsb3dpbmcgY29tbWl0IGlzIHN0aWxsIHVuZGVyIGRldmVsb3BtZW50Lg0K
+PiA+ID4gPg0KPiA+ID4gPiAgICBDb21taXQ6IGNkNTIzNzk2Nzg3ODViMDJkN2EzNTc5ODhjZmJh
+MjE0ZmRhZjkyZjQNCj4gPiA+ID4gICAgU3ViamVjdDogQUNQSUNBOiBBZGQgZ2xvYmFsIG9wdGlv
+biB0byBkaXNhYmxlIG1ldGhvZCBhdXRvLXNlcmlhbGl6YXRpb24uDQo+ID4gPiA+ICAgIFRoaXMg
+Y2hhbmdlIGFkZHMgYW4gb3B0aW9uIHRvIGRpc2FibGUgdGhlIGF1dG8tc2VyaWFsaXphdGlvbiBv
+Zg0KPiA+ID4gPiAgICBtZXRob2RzIHRoYXQgY3JlYXRlIG5hbWVkIG9iamVjdHMuDQo+ID4gPiA+
+DQo+ID4gPiA+IFRoaXMgcGF0Y2ggZGlzYWJsZXMgaXQgYnkgZGVmYXVsdCB0ZW1wb3JhcmlseSBh
+Y2NvcmRpbmcgdG8gdGhlIGJ1ZyByZXBvcnRzLg0KPiA+ID4NCj4gPiA+IFdlbGwsIGl0IGRvZXNu
+J3QgcmVzdG9yZSB0aGUgMy4xNCBiZWhhdmlvciBvZiBhY3BpX2F1dG9fc2VyaWFsaXplLCBhcw0K
+PiA+ID4gZmFyIGFzIEkgY2FuIHNheSwgc28gd2UgY2FuJ3QgYXBwbHkgaXQuDQo+ID4gPg0KPiA+
+ID4gSSBzdGlsbCBjYW4gZHJvcCB0aGUgY29tbWl0cyByZWxhdGVkIHRvIGF1dG8tc2VyaWFsaXph
+dGlvbiBmcm9tIG15DQo+ID4gPiBhY3BpY2EgYnJhbmNoLiAgV2hpY2ggY29tbWl0cyBhcmUgdGhl
+eT8NCj4gPg0KPiA+IEZyb20gbGludXgtcG0vYmxlZWRpbmctZWRnZSBicmFuY2gsIEkgZm91bmQg
+dGhpcyBzZXJpZXMgaW5jbHVkZXMgdGhlIGZvbGxvd2luZyBjb21taXRzOg0KPiA+DQo+ID4gQ29t
+bWl0OiBhMGZkMTA4ZjJkYTU2Yjc2OTQ3MmZjMDA5NTYxNmZiMzcwOTg4NTE2DQo+ID4gQXV0aG9y
+OiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPg0KPiA+IFN1YmplY3Q6IEFDUEk6IFJlbmFt
+ZSBrZXJuZWwgcGFyYW1ldGVyICJhY3BpX3NlcmlhbGl6ZSIgdG8gImFjcGlfbm9fYXV0b19zZXJp
+YWxpemUiDQo+ID4NCj4gPiBDb21taXQ6IDVmMWNiNGE5MmU0YzRhYWJkMTM5ZmY5Y2ExZTExYzBl
+MmRiMmFjNTkNCj4gPiBBdXRob3I6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4g
+U3ViamVjdDogQUNQSUNBOiBSZW1vdmUgZ2xvYmFsIG9wdGlvbiB0byBzZXJpYWxpemUgYWxsIGNv
+bnRyb2wgbWV0aG9kcy4NCj4gPg0KPiA+IENvbW1pdDogY2Q1MjM3OTY3ODc4NWIwMmQ3YTM1Nzk4
+OGNmYmEyMTRmZGFmOTJmNA0KPiA+IEF1dGhvcjogQm9iIE1vb3JlIDxyb2JlcnQubW9vcmVAaW50
+ZWwuY29tPg0KPiA+IFN1YmplY3Q6IEFDUElDQTogQWRkIGdsb2JhbCBvcHRpb24gdG8gZGlzYWJs
+ZSBtZXRob2QgYXV0by1zZXJpYWxpemF0aW9uLg0KPiA+DQo+ID4gQ29tbWl0OiBmNTZiMDViZDEx
+MWIwMTE0MWVmNzQ1NjhkYzRkMjYyYzcwMjk1ZDAzDQo+ID4gQXV0aG9yOiBMdiBaaGVuZyA8bHYu
+emhlbmdAaW50ZWwuY29tPg0KPiA+IFN1YmplY3Q6IEFDUElDQTogQWRkIGFkZGl0aW9uYWwgbmFt
+ZWQgb2JqZWN0cyBmb3IgdGhlIGF1dG8tc2VyaWFsaXplIG1ldGhvZCBzY2FuLg0KPiA+DQo+ID4g
+Q29tbWl0OiAyN2YxODk5MzUwYTFkNmJhYWIxMTdjMDNjODdmMGUzNzczMDA0N2JkDQo+ID4gQXV0
+aG9yOiBCb2IgTW9vcmUgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+DQo+ID4gU3ViamVjdDogQUNQ
+SUNBOiBBZGQgYXV0by1zZXJpYWxpemF0aW9uIHN1cHBvcnQgZm9yIGlsbC1iZWhhdmVkIGNvbnRy
+b2wgbWV0aG9kcy4NCj4gPg0KPiA+IFJldmVydGluZyB0aGVzZSBjb21taXRzIGNhbiByZXN0b3Jl
+IG9yaWdpbmFsIExpbnV4IGJlaGF2aW9yLg0KPiA+IFBsZWFzZSBjaGVjay4NCj4gDQo+IE9LLCBJ
+IGRyb3BwZWQgdGhlIGZpdmUgY29tbWl0cyBhYm92ZSBmcm9tIHRoZSBhY3BpY2EgYnJhbmNoLg0K
+PiANCj4gUGxlYXNlIGNoZWNrIGlmIHRoZSBjdXJyZW50IEFDUElDQSBtYXRlcmlhbCBpbiB0aGUg
+YmxlZWRpbmctZWRnZSBicmFuY2ggb2YNCj4gbGludXgtcG0uZ2l0IGxvb2tzIE9LIChhbmQgbGV0
+IG1lIGtub3cgZWl0aGVyIHdheSkuDQoNCkl0IHRvb2sgbWUgc29tZSB0aW1lIHRvIGNvbmZpcm0u
+DQpJIGp1c3QgY2hlY2tlZCBBQ1BJQ0EgY29kZSB1c2luZyB0aGUgQUNQSUNBIGRpdmVyZ2VuY2Ug
+c2NyaXB0Lg0KQW5kIGNoZWNrZWQgdGhlIExpbnV4IHNpZGUgcmV2ZXJzYWwgaW4gb3NsLmMva2Vy
+bmVsLXBhcmFtZXRlci50eHQuDQpBbGwgc2VlbSB0byBiZSBPSy4NCg0KQmVzdCByZWdhcmRzDQot
+THYNCg0KPiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBX
+eXNvY2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCj4gLS0NCj4gVG8g
+dW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxp
+bnV4LWFjcGkiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5r
+ZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5v
+cmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
