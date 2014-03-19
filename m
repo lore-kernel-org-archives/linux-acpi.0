@@ -1,115 +1,49 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [Patch v1 3/4] iio: imu: Enable checking of presence of device
-Date: Wed, 19 Mar 2014 09:56:42 -0700
-Message-ID: <1395248203-17027-3-git-send-email-srinivas.pandruvada@linux.intel.com>
-References: <1395248203-17027-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: Re: [PATCH 4/4] output: Drop display output class support
+Date: Wed, 19 Mar 2014 19:36:51 +0100
+Message-ID: <20140319193651.3cd089dc@endymion.delvare>
+References: <20140317154910.2016bf57@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:15624 "EHLO mga09.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:36773 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934049AbaCSQyQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Mar 2014 12:54:16 -0400
-In-Reply-To: <1395248203-17027-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+	id S1750943AbaCSSgz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Mar 2014 14:36:55 -0400
+In-Reply-To: <20140317154910.2016bf57@endymion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: jic23@kernel.org
-Cc: linux-iio@vger.kernel.org, linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, Zhang Rui <rui.zhang@intel.com>
 
-Added logic to check presence of MPU6050 before continuing. Currently
-only i2c writes are used in the initialzation path, which don't return
-any error, if some i2c device responds. In this case it continues to
-create iio devices, which don't work.
-This can be reproduced in a PC like platform, where ACPI definition
-of this defines multiple i2c addresses. We need to check for an valid
-i2c address by checking some id before continuing.
+On Mon, 17 Mar 2014 15:49:10 +0100, Jean Delvare wrote:
+> It was only ever used by the ACPI video driver, and that only use case
+> vanished over 3 years ago (see commit 677bd810, "ACPI video: remove
+> output switching control".) So this is dead code and I guess we can
+> remove it now.
+> 
+> Signed-off-by: Jean Delvare <jdelvare@suse.de>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> ---
+>  drivers/video/Kconfig        |    6 -
+>  drivers/video/Makefile       |    2 
+>  drivers/video/output.c       |  133 -------------------------------------------
+>  include/linux/video_output.h |   57 ------------------
+>  4 files changed, 198 deletions(-)
+> (...)
 
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
- drivers/iio/imu/inv_mpu6050/inv_mpu_core.c | 27 +++++++++++++++++++++++++++
- drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h  |  5 +++++
- 2 files changed, 32 insertions(+)
+Rafael, wait a minute. I just remembered that this last patch depends
+on another clean-up patch of mine which is not upstream yet:
+[PATCH 1/2] fujitsu-laptop: Drop unneeded include
 
-diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
-index 744eba4..200163d 100644
---- a/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
-+++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
-@@ -54,6 +54,7 @@ static const struct inv_mpu6050_reg_map reg_set_6050 = {
- 	.pwr_mgmt_1             = INV_MPU6050_REG_PWR_MGMT_1,
- 	.pwr_mgmt_2             = INV_MPU6050_REG_PWR_MGMT_2,
- 	.int_pin_cfg		= INV_MPU6050_REG_INT_PIN_CFG,
-+	.who_am_i		= INV_MPU6050_REG_WHOAMI,
- };
- 
- static const struct inv_mpu6050_chip_config chip_config_6050 = {
-@@ -74,6 +75,12 @@ static const struct inv_mpu6050_hw hw_info[INV_NUM_PARTS] = {
- 	},
- };
- 
-+static const u16 inv_mpu_unique_ids[] = {
-+	INV_MPU60X0_UNIQUE_ID,
-+	INV_MPU6500_UNIQUE_ID,
-+	0x0000,
-+};
-+
- int inv_mpu6050_write_reg(struct inv_mpu6050_state *st, int reg, u8 d)
- {
- 	return i2c_smbus_write_i2c_block_data(st->client, reg, 1, &d);
-@@ -630,6 +637,8 @@ static int inv_check_and_setup_chip(struct inv_mpu6050_state *st,
- 		const struct i2c_device_id *id)
- {
- 	int result;
-+	bool matched = false;
-+	int i = 0;
- 
- 	st->chip_type = INV_MPU6050;
- 	st->hw  = &hw_info[st->chip_type];
-@@ -641,6 +650,24 @@ static int inv_check_and_setup_chip(struct inv_mpu6050_state *st,
- 	if (result)
- 		return result;
- 	msleep(INV_MPU6050_POWER_UP_TIME);
-+
-+	result = i2c_smbus_read_byte_data(st->client, st->reg->who_am_i);
-+	if (result < 0) {
-+		dev_err(&st->client->dev, "Error reading WhoAmI\n");
-+		return result;
-+	}
-+
-+	while (inv_mpu_unique_ids[i] != 0x0000) {
-+		if (inv_mpu_unique_ids[i++] == result)
-+			matched = true;
-+	}
-+
-+	if (!matched) {
-+		dev_err(&st->client->dev, "Not a valid MPU6XXX device %x\n",
-+								result);
-+		return -ENOSYS;
-+	}
-+
- 	/* toggle power state. After reset, the sleep bit could be on
- 		or off depending on the OTP settings. Toggling power would
- 		make it in a definite state as well as making the hardware
-diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h b/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h
-index 591ac2e..41196c5 100644
---- a/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h
-+++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h
-@@ -55,6 +55,7 @@ struct inv_mpu6050_reg_map {
- 	u8 pwr_mgmt_1;
- 	u8 pwr_mgmt_2;
- 	u8 int_pin_cfg;
-+	u8 who_am_i;
- };
- 
- /*device enum */
-@@ -190,6 +191,10 @@ struct inv_mpu6050_state {
- #define INV_MPU6050_REG_INT_PIN_CFG		0x37
- #define INV_MPU6050_BIT_BYPASS_EN		0x2
- 
-+#define INV_MPU6050_REG_WHOAMI			0x75
-+#define INV_MPU6500_UNIQUE_ID			0x70
-+#define INV_MPU60X0_UNIQUE_ID			0x68
-+
- /* scan element definition */
- enum inv_mpu6050_scan {
- 	INV_MPU6050_SCAN_ACCL_X,
+List platform-driver-x86 doesn't seem to be archived anywhere so I
+can't point you to it. I will resend the patch with you in Cc so that
+you can include it in the series.
+
+Thanks,
 -- 
-1.7.11.7
-
+Jean Delvare
+SUSE L3 Support
