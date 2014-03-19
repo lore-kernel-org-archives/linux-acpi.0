@@ -1,49 +1,77 @@
-From: Jean Delvare <jdelvare@suse.de>
-Subject: Re: [PATCH 4/4] output: Drop display output class support
-Date: Wed, 19 Mar 2014 19:36:51 +0100
-Message-ID: <20140319193651.3cd089dc@endymion.delvare>
-References: <20140317154910.2016bf57@endymion.delvare>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] MAINTAINERS: Reorder maintainer addresses for PM and ACPI
+Date: Thu, 20 Mar 2014 00:00:14 +0100
+Message-ID: <1744772.yf52reTAmC@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:36773 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750943AbaCSSgz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Mar 2014 14:36:55 -0400
-In-Reply-To: <20140317154910.2016bf57@endymion.delvare>
+Received: from v094114.home.net.pl ([79.96.170.134]:53844 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755396AbaCSWon (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Mar 2014 18:44:43 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, Zhang Rui <rui.zhang@intel.com>
+To: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>
 
-On Mon, 17 Mar 2014 15:49:10 +0100, Jean Delvare wrote:
-> It was only ever used by the ACPI video driver, and that only use case
-> vanished over 3 years ago (see commit 677bd810, "ACPI video: remove
-> output switching control".) So this is dead code and I guess we can
-> remove it now.
-> 
-> Signed-off-by: Jean Delvare <jdelvare@suse.de>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> ---
->  drivers/video/Kconfig        |    6 -
->  drivers/video/Makefile       |    2 
->  drivers/video/output.c       |  133 -------------------------------------------
->  include/linux/video_output.h |   57 ------------------
->  4 files changed, 198 deletions(-)
-> (...)
+From: Rafael J. Wysocki <rjw@rjwysocki.net>
 
-Rafael, wait a minute. I just remembered that this last patch depends
-on another clean-up patch of mine which is not upstream yet:
-[PATCH 1/2] fujitsu-laptop: Drop unneeded include
+For a few subsystems I am the person who actually applies patches
+and people don't CC me on patch submissions, because my address is
+not the first one in the given MAINTAINERS item.
 
-List platform-driver-x86 doesn't seem to be archived anywhere so I
-can't point you to it. I will resend the patch with you in Cc so that
-you can include it in the series.
+Reorder PM and ACPI maintainer addresses in MAINTAINERS to make
+the probability of that a bit smaller.
 
-Thanks,
--- 
-Jean Delvare
-SUSE L3 Support
+Signed-off-by: Rafael J. Wysocki <rjw@rjwysocki.net>
+---
+ MAINTAINERS |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+Index: linux-pm/MAINTAINERS
+===================================================================
+--- linux-pm.orig/MAINTAINERS
++++ linux-pm/MAINTAINERS
+@@ -242,8 +242,8 @@ S:	Maintained
+ F:	drivers/platform/x86/acer-wmi.c
+ 
+ ACPI
+-M:	Len Brown <lenb@kernel.org>
+ M:	Rafael J. Wysocki <rjw@rjwysocki.net>
++M:	Len Brown <lenb@kernel.org>
+ L:	linux-acpi@vger.kernel.org
+ W:	https://01.org/linux-acpi
+ Q:	https://patchwork.kernel.org/project/linux-acpi/list/
+@@ -3657,8 +3657,8 @@ S:	Maintained
+ F:	fs/freevxfs/
+ 
+ FREEZER
++M:	Rafael J. Wysocki <rjw@rjwysocki.net>
+ M:	Pavel Machek <pavel@ucw.cz>
+-M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
+ L:	linux-pm@vger.kernel.org
+ S:	Supported
+ F:	Documentation/power/freezing-of-tasks.txt
+@@ -4022,8 +4022,8 @@ S:	Maintained
+ F:	drivers/video/hgafb.c
+ 
+ HIBERNATION (aka Software Suspend, aka swsusp)
++M:	Rafael J. Wysocki <rjw@rjwysocki.net>
+ M:	Pavel Machek <pavel@ucw.cz>
+-M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
+ L:	linux-pm@vger.kernel.org
+ S:	Supported
+ F:	arch/x86/power/
+@@ -8425,9 +8425,9 @@ F:	arch/sh/
+ F:	drivers/sh/
+ 
+ SUSPEND TO RAM
++M:	Rafael J. Wysocki <rjw@rjwysocki.net>
+ M:	Len Brown <len.brown@intel.com>
+ M:	Pavel Machek <pavel@ucw.cz>
+-M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
+ L:	linux-pm@vger.kernel.org
+ S:	Supported
+ F:	Documentation/power/
+
