@@ -1,107 +1,110 @@
 From: Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [Patch v1 2/2] iio: ak8975: Added ACPI enumeration
-Date: Wed, 19 Mar 2014 09:56:07 -0700
-Message-ID: <1395248167-16991-2-git-send-email-srinivas.pandruvada@linux.intel.com>
-References: <1395248167-16991-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Subject: [Patch v1 1/2] iio: ak8975 : Add AK8963 compatibility mode support
+Date: Wed, 19 Mar 2014 09:56:06 -0700
+Message-ID: <1395248167-16991-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1395248167-16991-1-git-send-email-srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Added capability so that this device can be enumerated via ACPI.
+AK8963 and AK8975 use same register definitions, except the range
+of X,Y,Z values. Added support of 8963 based on i2c_device_id.
+Unfortunately there is no way to detect the type via registers,
+both device registers return 0x48 as id of chipset.
 
 Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- drivers/iio/magnetometer/ak8975.c | 40 ++++++++++++++++++++++++++++++++++++---
- 1 file changed, 37 insertions(+), 3 deletions(-)
+ drivers/iio/magnetometer/Kconfig  |  3 ++-
+ drivers/iio/magnetometer/ak8975.c | 34 +++++++++++++++++++++++++++++-----
+ 2 files changed, 31 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/iio/magnetometer/Kconfig b/drivers/iio/magnetometer/Kconfig
+index d86d226..05a364c54 100644
+--- a/drivers/iio/magnetometer/Kconfig
++++ b/drivers/iio/magnetometer/Kconfig
+@@ -11,7 +11,8 @@ config AK8975
+ 	depends on GPIOLIB
+ 	help
+ 	  Say yes here to build support for Asahi Kasei AK8975 3-Axis
+-	  Magnetometer.
++	  Magnetometer. This driver can also support AK8963, if i2c
++	  device name is identified as ak8963.
+ 
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called ak8975.
 diff --git a/drivers/iio/magnetometer/ak8975.c b/drivers/iio/magnetometer/ak8975.c
-index aa7682d..09ea5c4 100644
+index 0542354..aa7682d 100644
 --- a/drivers/iio/magnetometer/ak8975.c
 +++ b/drivers/iio/magnetometer/ak8975.c
-@@ -31,6 +31,7 @@
- #include <linux/bitops.h>
- #include <linux/gpio.h>
- #include <linux/of_gpio.h>
-+#include <linux/acpi.h>
+@@ -85,7 +85,14 @@
+ #define AK8975_MAX_CONVERSION_TIMEOUT	500
+ #define AK8975_CONVERSION_DONE_POLL_TIME 10
+ #define AK8975_DATA_READY_TIMEOUT	((100*HZ)/1000)
+-#define RAW_TO_GAUSS(asa) ((((asa) + 128) * 3000) / 256)
++#define RAW_TO_GAUSS_8975(asa) ((((asa) + 128) * 3000) / 256)
++#define RAW_TO_GAUSS_8963(asa) ((((asa) + 128) * 6000) / 256)
++
++/* Compatible Asahi Kasei Compass parts */
++enum asahi_compass_chipset {
++	AK8975,
++	AK8963,
++};
  
- #include <linux/iio/iio.h>
- #include <linux/iio/sysfs.h>
-@@ -475,6 +476,27 @@ static const struct iio_info ak8975_info = {
- 	.driver_module = THIS_MODULE,
+ /*
+  * Per-instance context data for the device.
+@@ -101,6 +108,7 @@ struct ak8975_data {
+ 	int			eoc_irq;
+ 	wait_queue_head_t	data_ready_queue;
+ 	unsigned long		flags;
++	enum asahi_compass_chipset chipset;
  };
  
-+static const struct acpi_device_id ak_acpi_match[] = {
-+	{"AK8975", AK8975},
-+	{"AK8963", AK8963},
-+	{"INVN6500", AK8963},
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(acpi, ak_acpi_match);
-+
-+static char *ak8975_match_acpi_device(struct device *dev,
-+				enum asahi_compass_chipset *chipset)
-+{
-+	const struct acpi_device_id *id;
-+
-+	id = acpi_match_device(dev->driver->acpi_match_table, dev);
-+	if (!id)
-+		return NULL;
-+	*chipset = (int)id->driver_data;
-+
-+	return (char *)dev_name(dev);
-+}
-+
- static int ak8975_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
-@@ -482,6 +504,7 @@ static int ak8975_probe(struct i2c_client *client,
- 	struct iio_dev *indio_dev;
- 	int eoc_gpio;
- 	int err;
-+	char *name = NULL;
+ static const int ak8975_index_to_reg[] = {
+@@ -272,9 +280,21 @@ static int ak8975_setup(struct i2c_client *client)
+  * Since ASA doesn't change, we cache the resultant scale factor into the
+  * device context in ak8975_setup().
+  */
+-	data->raw_to_gauss[0] = RAW_TO_GAUSS(data->asa[0]);
+-	data->raw_to_gauss[1] = RAW_TO_GAUSS(data->asa[1]);
+-	data->raw_to_gauss[2] = RAW_TO_GAUSS(data->asa[2]);
++	if (data->chipset == AK8963) {
++		/*
++		 * H range is +-8190 and magnetometer range is +-4912.
++		 * So HuT using the above explanation for 8975,
++		 * 4912/8190 = ~ 6/10.
++		 * So the Hadj should use 6/10 instead of 3/10.
++		 */
++		data->raw_to_gauss[0] = RAW_TO_GAUSS_8963(data->asa[0]);
++		data->raw_to_gauss[1] = RAW_TO_GAUSS_8963(data->asa[1]);
++		data->raw_to_gauss[2] = RAW_TO_GAUSS_8963(data->asa[2]);
++	} else {
++		data->raw_to_gauss[0] = RAW_TO_GAUSS_8975(data->asa[0]);
++		data->raw_to_gauss[1] = RAW_TO_GAUSS_8975(data->asa[1]);
++		data->raw_to_gauss[2] = RAW_TO_GAUSS_8975(data->asa[2]);
++	}
  
- 	/* Grab and set up the supplied GPIO. */
- 	if (client->dev.platform_data)
-@@ -519,8 +542,18 @@ static int ak8975_probe(struct i2c_client *client,
+ 	return 0;
+ }
+@@ -499,6 +519,9 @@ static int ak8975_probe(struct i2c_client *client,
  	data->eoc_gpio = eoc_gpio;
  	data->eoc_irq = 0;
  
--	data->chipset = (enum asahi_compass_chipset)(id->driver_data);
--	dev_dbg(&client->dev, "Asahi compass chip %s\n", id->name);
-+	/* id will be NULL when enumerated via ACPI */
-+	if (id) {
-+		data->chipset =
-+			(enum asahi_compass_chipset)(id->driver_data);
-+		name = (char *) id->name;
-+	} else if (ACPI_HANDLE(&client->dev))
-+		name = ak8975_match_acpi_device(&client->dev, &data->chipset);
-+	else {
-+		err = -ENOSYS;
-+		goto exit_free_iio;
-+	}
-+	dev_dbg(&client->dev, "Asahi compass chip %s\n", name);
- 
++	data->chipset = (enum asahi_compass_chipset)(id->driver_data);
++	dev_dbg(&client->dev, "Asahi compass chip %s\n", id->name);
++
  	/* Perform some basic start-of-day setup of the device. */
  	err = ak8975_setup(client);
-@@ -537,7 +570,7 @@ static int ak8975_probe(struct i2c_client *client,
- 	indio_dev->num_channels = ARRAY_SIZE(ak8975_channels);
- 	indio_dev->info = &ak8975_info;
- 	indio_dev->modes = INDIO_DIRECT_MODE;
--
-+	indio_dev->name = name;
- 	err = iio_device_register(indio_dev);
- 	if (err < 0)
- 		goto exit_free_iio;
-@@ -592,6 +625,7 @@ static struct i2c_driver ak8975_driver = {
- 	.driver = {
- 		.name	= "ak8975",
- 		.of_match_table = ak8975_of_match,
-+		.acpi_match_table = ACPI_PTR(ak_acpi_match),
- 	},
- 	.probe		= ak8975_probe,
- 	.remove		= ak8975_remove,
+ 	if (err < 0) {
+@@ -551,7 +574,8 @@ static int ak8975_remove(struct i2c_client *client)
+ }
+ 
+ static const struct i2c_device_id ak8975_id[] = {
+-	{"ak8975", 0},
++	{"ak8975", AK8975},
++	{"ak8963", AK8963},
+ 	{}
+ };
+ 
 -- 
 1.7.11.7
