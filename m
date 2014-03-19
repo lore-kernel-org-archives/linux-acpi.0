@@ -1,63 +1,107 @@
-From: Jean Delvare <jdelvare@suse.de>
-Subject: Re: [PATCH 1/4] ACPI: fix ACPI_VIDEO dependencies
-Date: Wed, 19 Mar 2014 14:35:30 +0100
-Message-ID: <20140319143530.06af48e5@endymion.delvare>
-References: <20140317154644.15065deb@endymion.delvare>
-	<3419553.dABDqM4501@vostro.rjw.lan>
-	<20140319075145.2954e06f@endymion.delvare>
-	<24496062.xxuyBC0FZJ@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <24496062.xxuyBC0FZJ@vostro.rjw.lan>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, Zhang Rui <rui.zhang@intel.com>
+From: Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [Patch v1 2/2] iio: ak8975: Added ACPI enumeration
+Date: Wed, 19 Mar 2014 09:56:07 -0700
+Message-ID: <1395248167-16991-2-git-send-email-srinivas.pandruvada@linux.intel.com>
+References: <1395248167-16991-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1395248167-16991-1-git-send-email-srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 19 Mar 2014 14:10:53 +0100, Rafael J. Wysocki wrote:
-> On Wednesday, March 19, 2014 07:51:45 AM Jean Delvare wrote:
-> > Hi Rafael,
-> > 
-> > On Wed, 19 Mar 2014 02:26:52 +0100, Rafael J. Wysocki wrote:
-> > > On Monday, March 17, 2014 03:46:44 PM Jean Delvare wrote:
-> > > > From: Jean Delvare <jdelvare@suse.de>
-> > > > Subject: ACPI: fix ACPI_VIDEO dependencies
-> > > > 
-> > > > ACPI_VIDEO stopped depending on VIDEO_OUTPUT_CONTROL over 3 years ago
-> > > > (see commit 677bd810, "ACPI video: remove output switching control".)
-> > > > So it's about time to remove the Kconfig dependency between these two
-> > > > options.
-> > > > 
-> > > > Signed-off-by: Jean Delvare <jdelvare@suse.de>
-> > > > Cc: Zhang Rui <rui.zhang@intel.com>
-> > > > Cc: Len Brown <lenb@kernel.org>
-> > > > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > > 
-> > > Do you want me to take this series?
-> > 
-> > If other maintainers are OK with it, yes, I think that would be the
-> > easiest way. Thanks for proposing. All these patches depend on each
-> > other and must be applied in the right order, so pushing them through
-> > different trees would be slow at best, and risky.
-> 
-> OK, I'll queue them up for 3.15 then, as I haven't seen any objections.
+Added capability so that this device can be enumerated via ACPI.
 
-Thank you :-)
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+ drivers/iio/magnetometer/ak8975.c | 40 ++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 37 insertions(+), 3 deletions(-)
 
-> > Also, thinking about it, I wonder if the first 3 patches of the series
-> > could go to longterm kernel series? While they do not fix any build
-> > breakage nor run-time bug, without them everyone (on x86 at least) is
-> > forced to build dead code. This is kind of frustrating. They are simple
-> > and obvious enough that hopefully there won't be any objection.
-> 
-> I think it'll be best if you request the -stable people to pick
-> up those commits once they have reached the Linus' tree.
-
-Sure, I can do that.
-
-Thanks,
+diff --git a/drivers/iio/magnetometer/ak8975.c b/drivers/iio/magnetometer/ak8975.c
+index aa7682d..09ea5c4 100644
+--- a/drivers/iio/magnetometer/ak8975.c
++++ b/drivers/iio/magnetometer/ak8975.c
+@@ -31,6 +31,7 @@
+ #include <linux/bitops.h>
+ #include <linux/gpio.h>
+ #include <linux/of_gpio.h>
++#include <linux/acpi.h>
+ 
+ #include <linux/iio/iio.h>
+ #include <linux/iio/sysfs.h>
+@@ -475,6 +476,27 @@ static const struct iio_info ak8975_info = {
+ 	.driver_module = THIS_MODULE,
+ };
+ 
++static const struct acpi_device_id ak_acpi_match[] = {
++	{"AK8975", AK8975},
++	{"AK8963", AK8963},
++	{"INVN6500", AK8963},
++	{ },
++};
++MODULE_DEVICE_TABLE(acpi, ak_acpi_match);
++
++static char *ak8975_match_acpi_device(struct device *dev,
++				enum asahi_compass_chipset *chipset)
++{
++	const struct acpi_device_id *id;
++
++	id = acpi_match_device(dev->driver->acpi_match_table, dev);
++	if (!id)
++		return NULL;
++	*chipset = (int)id->driver_data;
++
++	return (char *)dev_name(dev);
++}
++
+ static int ak8975_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+@@ -482,6 +504,7 @@ static int ak8975_probe(struct i2c_client *client,
+ 	struct iio_dev *indio_dev;
+ 	int eoc_gpio;
+ 	int err;
++	char *name = NULL;
+ 
+ 	/* Grab and set up the supplied GPIO. */
+ 	if (client->dev.platform_data)
+@@ -519,8 +542,18 @@ static int ak8975_probe(struct i2c_client *client,
+ 	data->eoc_gpio = eoc_gpio;
+ 	data->eoc_irq = 0;
+ 
+-	data->chipset = (enum asahi_compass_chipset)(id->driver_data);
+-	dev_dbg(&client->dev, "Asahi compass chip %s\n", id->name);
++	/* id will be NULL when enumerated via ACPI */
++	if (id) {
++		data->chipset =
++			(enum asahi_compass_chipset)(id->driver_data);
++		name = (char *) id->name;
++	} else if (ACPI_HANDLE(&client->dev))
++		name = ak8975_match_acpi_device(&client->dev, &data->chipset);
++	else {
++		err = -ENOSYS;
++		goto exit_free_iio;
++	}
++	dev_dbg(&client->dev, "Asahi compass chip %s\n", name);
+ 
+ 	/* Perform some basic start-of-day setup of the device. */
+ 	err = ak8975_setup(client);
+@@ -537,7 +570,7 @@ static int ak8975_probe(struct i2c_client *client,
+ 	indio_dev->num_channels = ARRAY_SIZE(ak8975_channels);
+ 	indio_dev->info = &ak8975_info;
+ 	indio_dev->modes = INDIO_DIRECT_MODE;
+-
++	indio_dev->name = name;
+ 	err = iio_device_register(indio_dev);
+ 	if (err < 0)
+ 		goto exit_free_iio;
+@@ -592,6 +625,7 @@ static struct i2c_driver ak8975_driver = {
+ 	.driver = {
+ 		.name	= "ak8975",
+ 		.of_match_table = ak8975_of_match,
++		.acpi_match_table = ACPI_PTR(ak_acpi_match),
+ 	},
+ 	.probe		= ak8975_probe,
+ 	.remove		= ak8975_remove,
 -- 
-Jean Delvare
-SUSE L3 Support
+1.7.11.7
