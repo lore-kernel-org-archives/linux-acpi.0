@@ -1,46 +1,59 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH] MAINTAINERS: Reorder maintainer addresses for PM and ACPI
-Date: Thu, 20 Mar 2014 08:58:28 +0100
-Message-ID: <CAMuHMdXFkf0g15vY=PkeMgxhr4G2=tWhK+jd8ejiqT0bJVaxQQ@mail.gmail.com>
-References: <1744772.yf52reTAmC@vostro.rjw.lan>
-	<1395282105.8649.55.camel@joe-AO722>
+From: "Yan, Zheng" <zheng.z.yan@intel.com>
+Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
+Date: Thu, 20 Mar 2014 16:16:54 +0800
+Message-ID: <532AA3F6.9090402@intel.com>
+References: <20140224162400.GE16457@pd.tnic>	<4205942.Tp8ltEsv6e@vostro.rjw.lan>	<532A514C.5010106@intel.com>	<744357E9AAD1214791ACBA4B0B9092630121F201@SHSMSX101.ccr.corp.intel.com> <CABPqkBTyti0owCA_cWf9GcvYnOSvbMQpRC29rgpicjW1iYBjYQ@mail.gmail.com> <744357E9AAD1214791ACBA4B0B9092630121F3B7@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:64614 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751221AbaCTH62 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2014 03:58:28 -0400
-In-Reply-To: <1395282105.8649.55.camel@joe-AO722>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <744357E9AAD1214791ACBA4B0B9092630121F3B7@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>, Stephane Eranian <eranian@google.com>
+Cc: "Lu, Aaron" <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@alien8.de>, lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>
 
-Hi Joe,
+On 03/20/2014 03:53 PM, Zhang, Rui wrote:
+> The resource length is also hardcoded to 0x6000, right?
+> This is probably a problem, because
+> only if the resource length read from PCI config space is larger than 0x4000,
+> drivers/pnp/quirks.c will detect the conflict and disable the PNP0C02
+> resource 0xfed10000 - 0xfed13fff, and the PCI device can request this
+> resource successfully.
+> In order to check this, can you please attach the dmesg output after boot?
 
-On Thu, Mar 20, 2014 at 3:21 AM, Joe Perches <joe@perches.com> wrote:
->>  SUSPEND TO RAM
->> +M:   Rafael J. Wysocki <rjw@rjwysocki.net>
->> -M:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
->
-> Please keep the quotes around your name.
->
-> It makes it easier for some systems to accept
-> names with periods via copy/paste.
+maybe the issue can be fixed by below untested patch
 
-While for "git send-email", it's easier if I don't have to remove the one in
-the middle manually...
-
-Anyway, scripts/get_maintainer.pl re-adds them.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+---
+diff --git a/arch/x86/kernel/cpu/perf_event_intel_uncore.c b/arch/x86/kernel/cpu/perf_event_intel_uncore.c
+index fd5e883..2b3d834 100644
+--- a/arch/x86/kernel/cpu/perf_event_intel_uncore.c
++++ b/arch/x86/kernel/cpu/perf_event_intel_uncore.c
+@@ -1701,7 +1701,7 @@ static struct uncore_event_desc snb_uncore_imc_events[] = {
+ #define SNB_UNCORE_PCI_IMC_BAR_OFFSET		0x48
+ 
+ /* page size multiple covering all config regs */
+-#define SNB_UNCORE_PCI_IMC_MAP_SIZE		0x6000
++#define SNB_UNCORE_PCI_IMC_MAP_SIZE		0x8
+ 
+ #define SNB_UNCORE_PCI_IMC_DATA_READS		0x1
+ #define SNB_UNCORE_PCI_IMC_DATA_READS_BASE	0x5050
+@@ -1736,7 +1736,8 @@ static void snb_uncore_imc_init_box(struct intel_uncore_box *box)
+ 
+ 	addr &= ~(PAGE_SIZE - 1);
+ 
+-	box->io_addr = ioremap(addr, SNB_UNCORE_PCI_IMC_MAP_SIZE);
++	box->io_addr = ioremap(addr + SNB_UNCORE_PCI_IMC_CTR_BASE,
++			       SNB_UNCORE_PCI_IMC_MAP_SIZE);
+ 	box->hrtimer_duration = UNCORE_SNB_IMC_HRTIMER_INTERVAL;
+ }
+ 
+@@ -1832,7 +1833,7 @@ static int snb_uncore_imc_event_init(struct perf_event *event)
+ 	}
+ 
+ 	/* must be done before validate_group */
+-	event->hw.event_base = base;
++	event->hw.event_base = base - SNB_UNCORE_PCI_IMC_CTR_BASE;
+ 	event->hw.config = cfg;
+ 	event->hw.idx = idx;
+ 
