@@ -1,136 +1,57 @@
 From: Jonghwan Choi <jhbird.choi@samsung.com>
-Subject: [PATCH 1/2] ACPI: Use acpi_os_allocate_zeroed instead of
- acpi_os_allocate + memset
-Date: Thu, 20 Mar 2014 16:35:56 +0900
-Message-ID: <000101cf440f$07eb40d0$17c1c270$%choi@samsung.com>
+Subject: [PATCH 2/2] ACPI: Use kmalloc instead of kzalloc
+Date: Thu, 20 Mar 2014 16:36:36 +0900
+Message-ID: <000501cf440f$1ff0b2a0$5fd217e0$%choi@samsung.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="----=_NextPart_000_0002_01CF445A.77D2E8D0"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:33208 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751289AbaCTHgH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2014 03:36:07 -0400
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+Received: from mailout2.samsung.com ([203.254.224.25]:42493 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750870AbaCTHgi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2014 03:36:38 -0400
+Received: from epcpsbgr3.samsung.com
+ (u143.gpu120.samsung.co.kr [203.254.230.143])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
  (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0N2Q00NW753X43D0@mailout3.samsung.com> for
- linux-acpi@vger.kernel.org; Thu, 20 Mar 2014 16:35:57 +0900 (KST)
+ with ESMTP id <0N2Q00H2G551SGE0@mailout2.samsung.com> for
+ linux-acpi@vger.kernel.org; Thu, 20 Mar 2014 16:36:37 +0900 (KST)
 Content-language: ko
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: 'Len Brown' <lenb@kernel.org>, "'Rafael J. Wysocki'" <rjw@rjwysocki.net>
 
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0002_01CF445A.77D2E8D0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+All the members are initialized after kzalloc.
 
 Signed-off-by: Jonghwan Choi <jhbird.choi@samsung.com>
 ---
- drivers/acpi/osl.c   |    3 +--
- drivers/acpi/utils.c |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/acpi/osl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index fc1aa79..09e53be 100644
+index 09e53be..64a7a51 100644
 --- a/drivers/acpi/osl.c
 +++ b/drivers/acpi/osl.c
-@@ -1221,10 +1221,9 @@ acpi_os_create_semaphore(u32 max_units, u32
-initial_units, acpi_handle * handle)
- {
- 	struct semaphore *sem = NULL;
+@@ -378,7 +378,7 @@ acpi_os_map_memory(acpi_physical_address phys, acpi_size
+size)
+ 		goto out;
+ 	}
  
--	sem = acpi_os_allocate(sizeof(struct semaphore));
-+	sem = acpi_os_allocate_zeroed(sizeof(struct semaphore));
- 	if (!sem)
- 		return AE_NO_MEMORY;
--	memset(sem, 0, sizeof(struct semaphore));
- 
- 	sema_init(sem, initial_units);
- 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 85e3b61..84453fe 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -164,11 +164,10 @@ acpi_extract_package(union acpi_object *package,
- 	 * Validate output buffer.
+-	map = kzalloc(sizeof(*map), GFP_KERNEL);
++	map = kmalloc(sizeof(*map), GFP_KERNEL);
+ 	if (!map) {
+ 		mutex_unlock(&acpi_ioremap_lock);
+ 		return NULL;
+@@ -1121,7 +1121,7 @@ acpi_status acpi_os_execute(acpi_execute_type type,
+ 	 * having a static work_struct.
  	 */
- 	if (buffer->length == ACPI_ALLOCATE_BUFFER) {
--		buffer->pointer = ACPI_ALLOCATE(size_required);
-+		buffer->pointer = ACPI_ALLOCATE_ZEROED(size_required);
- 		if (!buffer->pointer)
- 			return AE_NO_MEMORY;
- 		buffer->length = size_required;
--		memset(buffer->pointer, 0, size_required);
- 	} else {
- 		if (buffer->length < size_required) {
- 			buffer->length = size_required;
+ 
+-	dpc = kzalloc(sizeof(struct acpi_os_dpc), GFP_ATOMIC);
++	dpc = kmalloc(sizeof(struct acpi_os_dpc), GFP_ATOMIC);
+ 	if (!dpc)
+ 		return AE_NO_MEMORY;
+ 
 -- 
 1.7.10.4
-
-------=_NextPart_000_0002_01CF445A.77D2E8D0
-Content-Type: application/ms-tnef;
-	name="winmail.dat"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="winmail.dat"
-
-eJ8+IjgHAQaQCAAEAAAAAAABAAEAAQeQBgAIAAAAtQMAAAAAAAC4AAEIgAcAGAAAAElQTS5NaWNy
-b3NvZnQgTWFpbC5Ob3RlADEIAQgABQAEAAAAAAAAAAAAAQkABAACAAAAAAAAAAEDkAYA4AoAADgA
-AAALAAIAAQAAAAMAJgAAAAAACwApAAAAAAALACsAAAAAAAMALgAAAAAAHgBNAAEAAAABAAAAAAAA
-AB4AcAABAAAAVAAAAFtQQVRDSCAxLzJdIEFDUEk6IFVzZSBhY3BpX29zX2FsbG9jYXRlX3plcm9l
-ZCBpbnN0ZWFkIG9mICBhY3BpX29zX2FsbG9jYXRlICsgbWVtc2V0AAIBcQABAAAAGwAAAAHPQ+Dj
-ZXcg44NuQE8jrPDg6f2vujUAC3s50AALABcMAAAAAAsAAQ4AAAAAAgEKDgEAAAAYAAAAAAAAAMtt
-TG2byNpBq6szGayuq+figAAAAwAUDgEAAAAeACgOAQAAADkAAAAwMDAwMDAwMgFqaGJpcmQuY2hv
-aUBzYW1zdW5nLmNvbQFqaGJpcmQuY2hvaUBzYW1zdW5nLmNvbQAAAAAeACkOAQAAADkAAAAwMDAw
-MDAwMgFqaGJpcmQuY2hvaUBzYW1zdW5nLmNvbQFqaGJpcmQuY2hvaUBzYW1zdW5nLmNvbQAAAAAD
-AN4/n04AAAMA8T8SBAAAAwAJWQEAAAADABCACCAGAAAAAADAAAAAAAAARgAAAAAQhQAAAAEAAAsA
-GYAIIAYAAAAAAMAAAAAAAABGAAAAAAOFAAAAAAAACwAagAMgBgAAAAAAwAAAAAAAAEYAAAAAHIEA
-AAAAAAADABuAAyAGAAAAAADAAAAAAAAARgAAAAABgQAAAAAAAAUAHIADIAYAAAAAAMAAAAAAAABG
-AAAAAAKBAAAAAAAAAAAAAAMAHYADIAYAAAAAAMAAAAAAAABGAAAAABCBAAAAAAAAAwAegAMgBgAA
-AAAAwAAAAAAAAEYAAAAAEYEAAAAAAAALAB+AAyAGAAAAAADAAAAAAAAARgAAAAAkgQAAAAAAAAsA
-IIADIAYAAAAAAMAAAAAAAABGAAAAACyBAAAAAAAAAwAhgAMgBgAAAAAAwAAAAAAAAEYAAAAAKYEA
-AAAAAAADACKAAyAGAAAAAADAAAAAAAAARgAAAAAqgQAAAAAAAB4AI4ADIAYAAAAAAMAAAAAAAABG
-AAAAACeBAAABAAAAAQAAAAAAAAADACSAAyAGAAAAAADAAAAAAAAARgAAAAASgQAAAQAAAAMAJYAD
-IAYAAAAAAMAAAAAAAABGAAAAABOBAAABAAAAHgAmgAMgBgAAAAAAwAAAAAAAAEYAAAAAIYEAAAEA
-AAABAAAAAAAAAAsAJ4ADIAYAAAAAAMAAAAAAAABGAAAAAAOBAAAAAAAAAwAogAMgBgAAAAAAwAAA
-AAAAAEYAAAAAI4EAAP///38LACmAAyAGAAAAAADAAAAAAAAARgAAAAAmgQAAAAAAAAsAKoAIIAYA
-AAAAAMAAAAAAAABGAAAAAAaFAAAAAAAAAwArgAggBgAAAAAAwAAAAAAAAEYAAAAAAYUAAAAAAAAL
-ACyACCAGAAAAAADAAAAAAAAARgAAAAAOhQAAAAAAAAMALYAIIAYAAAAAAMAAAAAAAABGAAAAABiF
-AAAAAAAACwAugAggBgAAAAAAwAAAAAAAAEYAAAAAgoUAAAEAAAACATqACCAGAAAAAADAAAAAAAAA
-RgAAAAAghQAAAQAAACgBAAACAQQAAAAAAAAABMi4vcUISVBNLk5vdGUGuN69w8H2AlJFBQAAAAAA
-AAAAAQAAAAAAAAACAAAAZgAAAAIAAAABAAAACcD8w7wgyLi9xQhJUE0uTm90ZQa43r3DwfYCUkUF
-AAAAAAAAAAABAAAAAAAAAAIAAABnAAAAAwAAAAIAAAAEwPy03ghJUE0uTm90ZQa43r3DwfYCRlcF
-AAAAAAAAAAABAAAAAAAAAAIAAABoAAAABAAAAAMAAAALxvq09b+hIMi4vcUISVBNLlBvc3QGsNS9
-w7mwAAUAAAAAAAAAAAEAAAAAAAAAAgAAAGwAAAAIAAAABAECjNbgwgJSAEUABQTItMwgAIzW4MIC
-UgBFAAIEyOyyAkYAVwAG9NNUs9DFIACM1uDCAAMAr4AIIAYAAAAAAMAAAAAAAABGAAAAAEKFAAAA
-AAAICwAfDgEAAAACAfgPAQAAABAAAADLbUxtm8jaQaurMxmsrqvnAgH6DwEAAAAQAAAAy21MbZvI
-2kGrqzMZrK6r5wMA/g8FAAAAAgEJEAEAAACDAwAAfwMAAHUHAABMWkZ1wrVl+gMACgByY3BnMTI1
-IjIDQ3RleAVCYmn+ZAQAAzABAwH3CoACpAPk/wcTAoAQcwBQBFYIVQeyEaUnDlEDAQIAY2gKwHNl
-3HQyBgAGwxGlMwRGFDfeMBKsEbMI7wn3OxifDjB2NRGiDGBjAFALCQFkM442FtALpgYAaWduCYAE
-LW8BIC1ieTogIkoCIGdodwORQ2jAb2kgPGpoDyALIAYuFFAfEEBzYW1zbnUegB+wA3A+CqIKgC1T
-ITAg1CBkBRB2BJBzAi8A0HBpL29zbBUfsCAi8Hwi8SAzIKYrIU8iU3V0AxBzItH7Iy8UwGYDEAeR
-FFEegAmAXiwmgQuAFJAAIGkCIHOoKCspJ4A0IcBlJtB5KBQtKSDUINQPQAEgIMkhMGdpBUBhLyHf
-IuC+YisfH7Ag1AuAAQB4JqABG2BhYTc5Li4wADllNTNiZSAx4DAwNjQ0INcq/y1YzisyACxPLVhA
-QCqQDiA4MjEsL2AjgDQjOSArM+EiUl8ioF8FAGVhbQ6wXxSQAMBwHwAYoCjMdTMUwADAeF8gUCrQ
-/nMngDbiC4Aq0AcxN1Y1U8UnIWQm0CAqIDlUKYUPAzAAADplAZEgc3RynxtQBUA2RzmwNkEgPQew
-+FVMTBmwOmUg5DtUPNNXNVYHQBgwYzYBKACQek5lHeBAADu9KSk9ZSv7Pl8/aF9AMANgCYBAD0Ee
-4ztEBpAgKCE2QTpHO2IbO1MYoHQIcAOgQUVfAE5PX01FTU9S/lk9ZT5EB4AgMBSgREA2UH0ngDAn
-gERfRW86+jZRX/84Ekq0OBtMzSpfJH8yTSUFkS2aODVlLyA2MS7A9jgvoC8QZi9PUW9T6jIP71O9
-M+NWQDRgMTSRWyIW0Es1Jg7BcgDQdF8KsGN8a2EnUDbQAwACIDVFYtZqBZAFQCpdBSw66jmxLlYH
-QA8wNgEgCGB0cFslADIwdQEgBJAuXzwvM0X+YSQtPibQHoB0aAM88D0AQUNQSV9BIT1AT0NBVEjQ
-QlXgRkZFUik6tz5EO1N9Y4ZwHxACMBMBZI1EQ1/5GKBxdR+ACYBBnGbvZ//FZVFaZcBPRURpL0de
-/0azaz1HP0f/SQ1xqWOOSzN/bedJi0oKaz1K923vcaV9viAo4BSQOr1i/2QFPHlNf3t/dC91P3ZK
-VvAg1FVgNyouVhAuVmV9hEAAAwANNP0/pQYDAA80/T+lBgIBFDQBAAAAEAAAAE5JVEH5v7gBAKoA
-N9luAAACAX8AAQAAADEAAAAwMDAwMDAwMENCNkQ0QzZEOUJDOERBNDFBQkFCMzMxOUFDQUVBQkU3
-MDQwOTY4MDAAAAAAAwAGEGHQIVADAAcQIQQAAAMAEBAAAAAAAwAREAAAAAAeAAgQAQAAAGUAAABT
-SUdORUQtT0ZGLUJZOkpPTkdIV0FOQ0hPSTxKSEJJUkRDSE9JQFNBTVNVTkdDT00tLS1EUklWRVJT
-L0FDUEkvT1NMQzMrLS1EUklWRVJTL0FDUEkvVVRJTFNDMystLTJGSUxFAAAAAA5X
-
-------=_NextPart_000_0002_01CF445A.77D2E8D0--
 
