@@ -1,61 +1,82 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [Linaro-acpi] [RFC] ACPI: Add new function to get table entries
-Date: Thu, 20 Mar 2014 15:59:46 +0100
-Message-ID: <532B0262.3040708@linaro.org>
-References: <1395270568-30021-1-git-send-email-ashwin.chaugule@linaro.org>	<532ABD83.9020003@linaro.org>	<532ABFF2.6080103@linaro.org>	<CAJ5Y-ebMtsdMPYsBo7h2hmDMnLks+b9wEgPX26EtHor+EFjs+g@mail.gmail.com>	<532AF5E9.2090208@linaro.org> <CAJ5Y-ebvg=Y0n9FUt2zx+ryCoqTD7kRnNy0A_55NCxaY9zKenA@mail.gmail.com>
+From: Stephane Eranian <eranian@google.com>
+Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
+Date: Thu, 20 Mar 2014 17:03:34 +0100
+Message-ID: <CABPqkBT4xmF-0Z_zk++KEtDzV7Z4zbisdG4uH7WKqw+kNF_nCA@mail.gmail.com>
+References: <20140224162400.GE16457@pd.tnic>
+	<4205942.Tp8ltEsv6e@vostro.rjw.lan>
+	<532A514C.5010106@intel.com>
+	<744357E9AAD1214791ACBA4B0B9092630121F201@SHSMSX101.ccr.corp.intel.com>
+	<CABPqkBTyti0owCA_cWf9GcvYnOSvbMQpRC29rgpicjW1iYBjYQ@mail.gmail.com>
+	<744357E9AAD1214791ACBA4B0B9092630121F3B7@SHSMSX101.ccr.corp.intel.com>
+	<532AA3F6.9090402@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:39786 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933542AbaCTO7F (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2014 10:59:05 -0400
-Received: by mail-wg0-f42.google.com with SMTP id y10so686718wgg.13
-        for <linux-acpi@vger.kernel.org>; Thu, 20 Mar 2014 07:59:04 -0700 (PDT)
-In-Reply-To: <CAJ5Y-ebvg=Y0n9FUt2zx+ryCoqTD7kRnNy0A_55NCxaY9zKenA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <532AA3F6.9090402@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Yan, Zheng" <zheng.z.yan@intel.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, "Lu, Aaron" <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@alien8.de>, lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, linux-acpi@vger.kernel.org, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>
 
-
-
-On 20.03.2014 15:39, Ashwin Chaugule wrote:
-> On 20 March 2014 10:06, Tomasz Nowicki <tomasz.nowicki@linaro.org> wrote:
->> On 20.03.2014 14:27, Ashwin Chaugule wrote:
->>>
->>> On 20 March 2014 06:16, Tomasz Nowicki <tomasz.nowicki@linaro.org> wrote:
->>>
->>>>>> +    return acpi_parse_entries(table_header->length, handler,
->>>>>> table_header,
->>>>>> +            entry_id, max_entries);
->>>>
->>>>
->>>> Also, first argument of acpi_parse_entries() expect subtable start point
->>>> offset, but now it points to the end of table.
->>>>
->>>
->>>
->>> Not sure what you mean. First arg of acpi_parse_entries expects
->>> table_size, not an offset.
->>
->>
->> As I mentioned in previous mail, first args of acpi_parse_entries will lead
->> us to first MADT entry list. By passing table_header->length we will get at
->> the end of MADT entry list. IMO, we should use table_size (snd argument of
->> acpi_table_parse_entries()) instead of table_header->length.
->>
+On Thu, Mar 20, 2014 at 9:16 AM, Yan, Zheng <zheng.z.yan@intel.com> wrote:
+> On 03/20/2014 03:53 PM, Zhang, Rui wrote:
+>> The resource length is also hardcoded to 0x6000, right?
+>> This is probably a problem, because
+>> only if the resource length read from PCI config space is larger than 0x4000,
+>> drivers/pnp/quirks.c will detect the conflict and disable the PNP0C02
+>> resource 0xfed10000 - 0xfed13fff, and the PCI device can request this
+>> resource successfully.
+>> In order to check this, can you please attach the dmesg output after boot?
 >
-> Right. I get the difference between tbl_size and table_header->length.
-> But we need to rethink this apci_parse_entries() function and its use
-> case again. If the caller is expected to pass tbl_size, then we're
-> back full circle to using acpi_get_table_with_size() in the caller,
-> which is kinda self defeating. :)
+> maybe the issue can be fixed by below untested patch
+>
+> ---
+> diff --git a/arch/x86/kernel/cpu/perf_event_intel_uncore.c b/arch/x86/kernel/cpu/perf_event_intel_uncore.c
+> index fd5e883..2b3d834 100644
+> --- a/arch/x86/kernel/cpu/perf_event_intel_uncore.c
+> +++ b/arch/x86/kernel/cpu/perf_event_intel_uncore.c
+> @@ -1701,7 +1701,7 @@ static struct uncore_event_desc snb_uncore_imc_events[] = {
+>  #define SNB_UNCORE_PCI_IMC_BAR_OFFSET          0x48
+>
+>  /* page size multiple covering all config regs */
+> -#define SNB_UNCORE_PCI_IMC_MAP_SIZE            0x6000
+> +#define SNB_UNCORE_PCI_IMC_MAP_SIZE            0x8
+>
+I assume ioremap() works on page boundaries.
+Eventually want to expose the other counters too, not just read and
+writes ( 8 bytes total).
 
-I believe that the most useful case for apci_parse_entries() is when you 
-already get table pointer and want to do many things on entries. Then 
-you don't have to traverse all ACPI tables list and do map/unmap dance 
-over and over again :) and that's what your changelog is saying too :)
+The size of 0x6000 comes from the counter offsets: BAR + 0x5040 to BAR + 0x5054.
+May be a better way of doing this would be to remap just the one page
+holding them
+instead of the 6 covering the entire BAR + counters. That would need
+changes in the
+read_counter() but that is okay.
 
-Tomasz
+So that would something along the line of:
+
+    addr = (addr + 0x5040) & (PAGE_SIZE - 1);
+    ioremap(addr, 0x1000);
+
+
+>  #define SNB_UNCORE_PCI_IMC_DATA_READS          0x1
+>  #define SNB_UNCORE_PCI_IMC_DATA_READS_BASE     0x5050
+> @@ -1736,7 +1736,8 @@ static void snb_uncore_imc_init_box(struct intel_uncore_box *box)
+>
+>         addr &= ~(PAGE_SIZE - 1);
+>
+> -       box->io_addr = ioremap(addr, SNB_UNCORE_PCI_IMC_MAP_SIZE);
+> +       box->io_addr = ioremap(addr + SNB_UNCORE_PCI_IMC_CTR_BASE,
+> +                              SNB_UNCORE_PCI_IMC_MAP_SIZE);
+>         box->hrtimer_duration = UNCORE_SNB_IMC_HRTIMER_INTERVAL;
+>  }
+>
+> @@ -1832,7 +1833,7 @@ static int snb_uncore_imc_event_init(struct perf_event *event)
+>         }
+>
+>         /* must be done before validate_group */
+> -       event->hw.event_base = base;
+> +       event->hw.event_base = base - SNB_UNCORE_PCI_IMC_CTR_BASE;
+>         event->hw.config = cfg;
+>         event->hw.idx = idx;
+>
