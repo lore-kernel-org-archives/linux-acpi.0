@@ -1,69 +1,123 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
-Date: Thu, 20 Mar 2014 10:45:52 -0600
-Message-ID: <CAErSpo55DjkGQB=7ksow34BpCObnY+o3eNnt0n5oQEh6Lfw1pw@mail.gmail.com>
-References: <20140224162400.GE16457@pd.tnic> <4205942.Tp8ltEsv6e@vostro.rjw.lan>
- <532A514C.5010106@intel.com> <744357E9AAD1214791ACBA4B0B9092630121F201@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [PATCH 0/3] amd/pci: Add AMD hostbridge supports for newer AMD systems
+Date: Thu, 20 Mar 2014 11:42:06 -0600
+Message-ID: <CAErSpo5LZ3ec9g=4UXxkmnxAoffx7DiKfGehSKr_cbAXOPP1zw@mail.gmail.com>
+References: <1394053603-3724-1-git-send-email-suravee.suthikulpanit@amd.com>
+ <CAErSpo4MMJh9b0aivwGSbxCMVw24He1+Vo_LH0R0E+fYM5aThg@mail.gmail.com>
+ <5317D9B0.1080502@amd.com> <5318160D.8070305@amd.com> <CAErSpo59=52bqgyvqk1x7kcgFmRtdZhT6faYTi3wy7KDtk5=Pw@mail.gmail.com>
+ <5318D475.9040701@amd.com> <CAErSpo5Dq3M5ik=dgF5dLsZV87XJeT3nEiYptPBXPCyLZ9xhgA@mail.gmail.com>
+ <CAErSpo6ZbKFMgcm4upR7gTnYwZ15UJpxzctOwWMsGyONipq8aw@mail.gmail.com>
+ <53226433.3090803@amd.com> <CAErSpo6=pr4rouacs29ZpN2EbgPiUFWwSXVE+uUL+-H4CeTdzQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <744357E9AAD1214791ACBA4B0B9092630121F201@SHSMSX101.ccr.corp.intel.com>
+In-Reply-To: <CAErSpo6=pr4rouacs29ZpN2EbgPiUFWwSXVE+uUL+-H4CeTdzQ@mail.gmail.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "Lu, Aaron" <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@alien8.de>, lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephane Eranian <eranian@google.com>, "Yan, Zheng Z" <zheng.z.yan@intel.com>
+To: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 19, 2014 at 9:03 PM, Zhang, Rui <rui.zhang@intel.com> wrote:
+On Mon, Mar 17, 2014 at 11:18 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> [+cc Rafael]
+>
+> On Thu, Mar 13, 2014 at 8:06 PM, Suravee Suthikulpanit
+> <suravee.suthikulpanit@amd.com> wrote:
+>> On 3/12/2014 4:13 PM, Bjorn Helgaas wrote:
+>>>>
+>>>> I assume the system is fully functional even without these patches,
+>>>> >right?  The only effect of these changes should be a performance
+>>>> >improvement.
+>>
+>> [Suravee] Yes, the system is fully functional except the numa information
+>> for PCI ethernet adapters is returning -1.
+>
+> This would normally be determined by the _PXM of the PCI host bridge
+> leading to the NIC.  The DSDT you attached to the bug report contains
+> no _PXM methods at all, so we have no idea what the NUMA information
+> should be.
+>
+>>>> >So the choices are:
+>>>> >
+>>>> >   1) Change the BIOS to provide _PXM
+>>>> >   2) Change Linux with your patches
+>>>> >
+>>>> >Either way, the customer has to upgrade something.  Choice 1) gets you
+>>>> >the performance improvement on all Linux and Windows releases, even
+>>>> >the ones that are already in the field.
+>>
+>> [Suravee] I agree with you on both cases and I am working with the BIOS team
+>> to see if they can look into this and provide fixes for the future.  My only
+>> concern is the device _PXM information might be specific to each platform
+>> vendors since they are the one deciding the number of northbridge to be put
+>> on the systems. Also, it's quite difficult to influence HW/BIOS vendor to
+>> provide fixes for older platforms unless some important customers are
+>> complaining to them.
+>
+> Yes, you're right that _PXM describes platform topology and can't be
+> implemented by the CPU vendor because it doesn't know the topology of
+> the system where the CPUs will end up.
+>
+>>>> >Choice 2) fixes future Linux
+>>>> >distros and whatever old releases you can convince the distro to
+>>>> >backport to, and doesn't help Windows at all.  It makes work for all
+>>>> >the distros and we (i.e., I) have to worry about maintaining this in
+>>>> >the future.
+>>
+>> [Suravee] Actually, this was originally reported by Redhat (please see
+>> https://bugzilla.redhat.com/show_bug.cgi?id=1040440), and they are waiting
+>> for the fixes if we decide to fix it in the upstream Linux code base.
+>
+> This RH bugzilla is private, so I can't see it.
+>
+>> [Suravee] I am not sure which table is the _PXM method supposed to be apart
+>> of.
+>
+> It would be in the DSDT (or an SSDT).  In this case, the PCI host
+> bridges (the PNP0A08 devices) are described in the DSDT you posted, so
+> _PXM would normally be there, too.
+>
+>>> Can you collect an acpidump and complete dmesg log from a system with
+>>> the problem?
+>>
+>> [Suravee] Please see https://bugzilla.kernel.org/show_bug.cgi?id=72051
+>> I have included SRAT, SLIT and DSDT table as part of the bug. Please let me
+>> know if you are looking for more information.
+>
+> One of my objections to your patches is that if we include them, it
+> will reinforce the perception that the BIOS is doing things correctly,
+> so there will be less incentive to actually fix the problem by
+> following the spec.  This has happened several times in the past,
+> e.g., quirk_amd_nb_node() and amd_bus.c itself.
+>
+> Another is more of a question: as coded, your patch assumes *all* AMD
+> host bridge devices will have these registers at those locations
+> forever.  Are those registers documented as being architected?
+>
+> Finally, your patch extracts a 3-bit number from a CPU register and
+> uses it as the node number.  The node numbers used by Linux are
+> logical and there's no reason they need to be identical to settings in
+> the CPU registers.  So if we got some node information in the normal
+> way (from _PXM, SLIT, SRAT, etc.) and some from your patch, there's no
+> reason to believe they would be compatible.
 
-> I've talked with Yan Zheng, and I was told that this resource "0xfed10000 - 0xfed15fff"
-> is got from PCI device register directly, which is not in its BAR range.
-> Thus IMO, it is impossible for PNP layer to be aware of this resource.
+So where do we go from here?  I'm willing to merge a patch to work
+around this BIOS defect, but I think we need to iterate on this a
+little bit.
 
-Slow down, this isn't quite correct.  The *base* address (0xfed10000)
-is from a PCI config register (MCHBAR, at PCI config offset 0x48) [1].
- This is a device-dependent register, so the PCI core knows neither
-the base nor the size.
+1) If these registers are publicly documented as architected for all
+AMD host bridges, your approach is fine.  Otherwise, I think we need
+to continue with the existing list of devices.
 
-The device consumes address space that is not reported via the
-architected PCI mechanism, so the only way to report that space is via
-the PNP0C02 ACPI device.  The BIOS has to determine the base and size
-based on its knowledge of the hardware.  On this hardware, per the
-spec in [1], the region described by MCHBAR is 32KB in size.
+2) The hardware node number space is distinct from the Linux node
+number space, and Linux doesn't know the mapping between them.  Since
+the patch assumes these spaces are identical, we need to log a message
+indicating that we're working around a BIOS defect, and the topology
+information may not be reliable.  Otherwise, we're setting ourselves
+up for nasty debugging efforts later.
 
-The 0x6000 (24KB) size of the region above comes from the driver and
-is actually less than what the device consumes.  It is legal for a
-driver to request only the area it requires, but the entire area
-consumed by the device should be reported via the PNP0C02 device.  The
-fact that PNP0C02 reports 16KB but the device actually consumes 32KB
-is a BIOS defect.  This probably happened because previous versions of
-this chip consumed only 16KB, and the BIOS didn't get updated for the
-change.
-
-> BTW, about drivers/pnp/system.c, if its ONLY purpose is to prevent those
-> resources from being allocated to uninitialized PCI devices, then IMO,
-> the best way to do this is make PCI bus handle those PNP0C01/PNP0C02
-> resources directly, probably via a platform callback, say,
-> 1. make drivers/pnp/system.c a no-op for PNPACPI, by checking pnp_dev->protocol.
-> 2. introduce acpi_check_reserved_resource() to parsing PNP0C01/PNP0C02 resources.
-> 3. in PCI bus, invoke acpi_check_reserved_resource() when assigning
->    resources to PCI devices.
-
-The purpose of system.c is indeed to prevent resources from being
-allocated to other devices.  This is really a question for Rafael, but
-in my opinion this function (reserving resources of PNP/ACPI devices
-to prevent their allocation to other devices) should be done for *all*
-PNP and ACPI devices, not just the PNP0C01/PNP0C02 devices handled by
-system.c.
-
-So I think the best solution would be to move that into the ACPI core
-somehow so it happens for all devices.  If we had that, we could get
-rid of system.c altogether, and we wouldn't have to do anything
-special in PCI.  This is much easier to say than to do, however,
-because there are all kinds of issues with legacy resource
-reservations, and we currently can't really deal with overlapping
-resources.
+3) I think we should take this opportunity to get rid of
+quirk_amd_nb_node(), as Myron mentioned.  This doesn't help for the
+bug you're working around, but it's related code that seems to be
+redundant.
 
 Bjorn
-
-[1] https://www-ssl.intel.com/content/www/us/en/processors/core/4th-gen-core-family-desktop-vol-2-datasheet,
-sec. 3.1.2 on p. 61
