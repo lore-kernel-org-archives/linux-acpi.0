@@ -1,20 +1,21 @@
 From: Jonghwan Choi <jhbird.choi@samsung.com>
-Subject: [PATCH 2/2] ACPI: Use kmalloc instead of kzalloc
+Subject: [PATCH 1/2] ACPI: Use acpi_os_allocate_zeroed instead of
+ acpi_os_allocate + memset
 Date: Thu, 20 Mar 2014 13:31:53 +0900
-Message-ID: <000101cf43f5$52b0f110$f812d330$%choi@samsung.com>
+Message-ID: <000201cf43f5$52e372c0$f8aa5840$%choi@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="----=_NextPart_000_0003_01CF4440.C2CB1AC0"
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mailout1.samsung.com ([203.254.224.24]:19460 "EHLO
 	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133AbaCTEb4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2014 00:31:56 -0400
+	with ESMTP id S1750854AbaCTEb5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2014 00:31:57 -0400
 Received: from epcpsbgr4.samsung.com
  (u144.gpu120.samsung.co.kr [203.254.230.144])
  by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
  (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0N2P00IYRWL7LR10@mailout1.samsung.com> for
+ with ESMTP id <0N2P00IP6WL7P810@mailout1.samsung.com> for
  linux-acpi@vger.kernel.org; Thu, 20 Mar 2014 13:31:55 +0900 (KST)
 Content-language: ko
 Sender: linux-acpi-owner@vger.kernel.org
@@ -22,36 +23,113 @@ List-Id: linux-acpi@vger.kernel.org
 To: "'open list:ACPI'" <linux-acpi@vger.kernel.org>
 Cc: 'Len Brown' <lenb@kernel.org>, "'Rafael J. Wysocki'" <rjw@rjwysocki.net>
 
-All the members are initialized after kzalloc.
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0003_01CF4440.C2CB1AC0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
 Signed-off-by: Jonghwan Choi <jhbird.choi@samsung.com>
 ---
- drivers/acpi/osl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/osl.c   |    3 +--
+ drivers/acpi/utils.c |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 09e53be..64a7a51 100644
+index fc1aa79..09e53be 100644
 --- a/drivers/acpi/osl.c
 +++ b/drivers/acpi/osl.c
-@@ -378,7 +378,7 @@ acpi_os_map_memory(acpi_physical_address phys, acpi_size
-size)
- 		goto out;
- 	}
+@@ -1221,10 +1221,9 @@ acpi_os_create_semaphore(u32 max_units, u32
+initial_units, acpi_handle * handle)
+ {
+ 	struct semaphore *sem = NULL;
  
--	map = kzalloc(sizeof(*map), GFP_KERNEL);
-+	map = kmalloc(sizeof(*map), GFP_KERNEL);
- 	if (!map) {
- 		mutex_unlock(&acpi_ioremap_lock);
- 		return NULL;
-@@ -1121,7 +1121,7 @@ acpi_status acpi_os_execute(acpi_execute_type type,
- 	 * having a static work_struct.
- 	 */
- 
--	dpc = kzalloc(sizeof(struct acpi_os_dpc), GFP_ATOMIC);
-+	dpc = kmalloc(sizeof(struct acpi_os_dpc), GFP_ATOMIC);
- 	if (!dpc)
+-	sem = acpi_os_allocate(sizeof(struct semaphore));
++	sem = acpi_os_allocate_zeroed(sizeof(struct semaphore));
+ 	if (!sem)
  		return AE_NO_MEMORY;
+-	memset(sem, 0, sizeof(struct semaphore));
  
+ 	sema_init(sem, initial_units);
+ 
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 85e3b61..84453fe 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -164,11 +164,10 @@ acpi_extract_package(union acpi_object *package,
+ 	 * Validate output buffer.
+ 	 */
+ 	if (buffer->length == ACPI_ALLOCATE_BUFFER) {
+-		buffer->pointer = ACPI_ALLOCATE(size_required);
++		buffer->pointer = ACPI_ALLOCATE_ZEROED(size_required);
+ 		if (!buffer->pointer)
+ 			return AE_NO_MEMORY;
+ 		buffer->length = size_required;
+-		memset(buffer->pointer, 0, size_required);
+ 	} else {
+ 		if (buffer->length < size_required) {
+ 			buffer->length = size_required;
 -- 
 1.7.10.4
+
+------=_NextPart_000_0003_01CF4440.C2CB1AC0
+Content-Type: application/ms-tnef;
+	name="winmail.dat"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="winmail.dat"
+
+eJ8+IjcEAQaQCAAEAAAAAAABAAEAAQeQBgAIAAAAtQMAAAAAAAC4AAEIgAcAGAAAAElQTS5NaWNy
+b3NvZnQgTWFpbC5Ob3RlADEIAQOQBgCUCgAAMwAAAAsAAgABAAAAAwAmAAAAAAALACkAAAAAAB4A
+cAABAAAAVAAAAFtQQVRDSCAxLzJdIEFDUEk6IFVzZSBhY3BpX29zX2FsbG9jYXRlX3plcm9lZCBp
+bnN0ZWFkIG9mICBhY3BpX29zX2FsbG9jYXRlICsgbWVtc2V0AAIBcQABAAAAFgAAAAHPQ+DjZXcg
+44NuQE8jrPDg6f2vujUAAAsAAQ4AAAAAAgEKDgEAAAAYAAAAAAAAAMttTG2byNpBq6szGayuq+fi
+gAAAAwAUDgEAAAAeACgOAQAAADkAAAAwMDAwMDAwMgFqaGJpcmQuY2hvaUBzYW1zdW5nLmNvbQFq
+aGJpcmQuY2hvaUBzYW1zdW5nLmNvbQAAAAAeACkOAQAAADkAAAAwMDAwMDAwMgFqaGJpcmQuY2hv
+aUBzYW1zdW5nLmNvbQFqaGJpcmQuY2hvaUBzYW1zdW5nLmNvbQAAAAADAN4/n04AAAMA8T8SBAAA
+AwAJWQEAAAADABCACCAGAAAAAADAAAAAAAAARgAAAAAQhQAAAAAAAAsAGYAIIAYAAAAAAMAAAAAA
+AABGAAAAAAOFAAAAAAAACwAagAMgBgAAAAAAwAAAAAAAAEYAAAAAHIEAAAAAAAADABuAAyAGAAAA
+AADAAAAAAAAARgAAAAABgQAAAAAAAAUAHIADIAYAAAAAAMAAAAAAAABGAAAAAAKBAAAAAAAAAAAA
+AAMAHYADIAYAAAAAAMAAAAAAAABGAAAAABCBAAAAAAAAAwAegAMgBgAAAAAAwAAAAAAAAEYAAAAA
+EYEAAAAAAAALAB+AAyAGAAAAAADAAAAAAAAARgAAAAAkgQAAAAAAAAsAIIADIAYAAAAAAMAAAAAA
+AABGAAAAACyBAAAAAAAAAwAhgAMgBgAAAAAAwAAAAAAAAEYAAAAAKYEAAAAAAAADACKAAyAGAAAA
+AADAAAAAAAAARgAAAAAqgQAAAAAAAB4AI4ADIAYAAAAAAMAAAAAAAABGAAAAACeBAAABAAAAAQAA
+AAAAAAADACSAAyAGAAAAAADAAAAAAAAARgAAAAASgQAAAQAAAAMAJYADIAYAAAAAAMAAAAAAAABG
+AAAAABOBAAABAAAAHgAmgAMgBgAAAAAAwAAAAAAAAEYAAAAAIYEAAAEAAAABAAAAAAAAAAsAJ4AD
+IAYAAAAAAMAAAAAAAABGAAAAAAOBAAAAAAAAAwAogAMgBgAAAAAAwAAAAAAAAEYAAAAAI4EAAP//
+/38LACmAAyAGAAAAAADAAAAAAAAARgAAAAAmgQAAAAAAAAsAKoAIIAYAAAAAAMAAAAAAAABGAAAA
+AAaFAAAAAAAAAwArgAggBgAAAAAAwAAAAAAAAEYAAAAAAYUAAAAAAAALACyACCAGAAAAAADAAAAA
+AAAARgAAAAAOhQAAAAAAAAMALYAIIAYAAAAAAMAAAAAAAABGAAAAABiFAAAAAAAACwAugAggBgAA
+AAAAwAAAAAAAAEYAAAAAgoUAAAEAAAACATqACCAGAAAAAADAAAAAAAAARgAAAAAghQAAAQAAACgB
+AAACAQQAAAAAAAAABMi4vcUISVBNLk5vdGUGuN69w8H2AlJFBQAAAAAAAAAAAQAAAAAAAAACAAAA
+ZgAAAAIAAAABAAAACcD8w7wgyLi9xQhJUE0uTm90ZQa43r3DwfYCUkUFAAAAAAAAAAABAAAAAAAA
+AAIAAABnAAAAAwAAAAIAAAAEwPy03ghJUE0uTm90ZQa43r3DwfYCRlcFAAAAAAAAAAABAAAAAAAA
+AAIAAABoAAAABAAAAAMAAAALxvq09b+hIMi4vcUISVBNLlBvc3QGsNS9w7mwAAUAAAAAAAAAAAEA
+AAAAAAAAAgAAAGwAAAAIAAAABAECjNbgwgJSAEUABQTItMwgAIzW4MICUgBFAAIEyOyyAkYAVwAG
+9NNUs9DFIACM1uDCAAsAHw4BAAAAAgH4DwEAAAAQAAAAy21MbZvI2kGrqzMZrK6r5wIB+g8BAAAA
+EAAAAMttTG2byNpBq6szGayuq+cDAP4PBQAAAAIBCRABAAAAgwMAAH8DAAB1BwAATFpGdcK1ZfoD
+AAoAcmNwZzEyNSIyA0N0ZXgFQmJp/mQEAAMwAQMB9wqAAqQD5P8HEwKAEHMAUARWCFUHshGlJw5R
+AwECAGNoCsBzZdx0MgYABsMRpTMERhQ33jASrBGzCO8J9zsYnw4wdjURogxgYwBQCwkBZDOONhbQ
+C6YGAGlnbgmABC1vASAtYnk6ICJKAiBnaHcDkUNowG9pIDxqaA8gCyAGLhRQHxBAc2Ftc251HoAf
+sANwPgqiCoAtUyEwINQgZAUQdgSQcwIvANBwaS9vc2wVH7AgIvB8IvEgMyCmKyFPIlN1dAMQcyLR
++yMvFMBmAxAHkRRRHoAJgF4sJoELgBSQACBpAiBzqCgrKSeANCHAZSbQeSgULSkg1CDUD0ABICDJ
+ITBnaQVAYS8h3yLgvmIrHx+wINQLgAEAeCagARtgYWE3OS4uMAA5ZTUzYmUgMeAwMDY0NCDXKv8t
+WM4rMgAsTy1YQEAqkA4gODIxLC9gI4A0IzkgKzPhIlJfIqBfBQBlYW0OsF8UkADAcB8AGKAozHUz
+FMAAwHhfIFAq0P5zJ4A24guAKtAHMTdWNVPFJyFkJtAgKiA5VCmFDwMwAAA6ZQGRIHN0cp8bUAVA
+Nkc5sDZBID0HsPhVTEwZsDplIOQ7VDzTVzVWB0AYMGM2ASgAkHpOZR3gQAA7vSkpPWUr+z5fP2hf
+QDADYAmAQA9BHuM7RAaQICghNkE6RztiGztTGKB0CHADoEFFXwBOT19NRU1PUv5ZPWU+RAeAIDAU
+oERANlB9J4AwJ4BEX0VvOvo2UV//OBJKtDgbTM0qXyR/Mk0lBZEtmjg1ZS8gNjEuwPY4L6AvEGYv
+T1FvU+oyD+9TvTPjVkA0YDE0kVsiFtBLNSYOwXIA0HRfCrBjfGthJ1A20AMAAiA1RWLWagWQBUAq
+XQUsOuo5sS5WB0APMDYBIAhgdHBbJQAyMHUBIASQLl88LzNF/mEkLT4m0B6AdGgDPPA9AEFDUElf
+QSE9QE9DQVRI0EJV4EZGRVIpOrc+RDtTfWOGcB8QAjATAWSNRENf+RigcXUfgAmAQZxm72f/xWVR
+WmXAT0VEaS9HXv9Gs2s9Rz9H/0kNcaljjkszf23nSYtKCms9Svdt73Glfb4gKOAUkDq9Yv9kBTx5
+TX97f3QvdT92SlbwINRVYDcqLlYQLlZlfYRAAAMADTT9P6UGAwAPNP0/pQYCARQ0AQAAABAAAABO
+SVRB+b+4AQCqADfZbgAAAgF/AAEAAAAxAAAAMDAwMDAwMDBDQjZENEM2RDlCQzhEQTQxQUJBQjMz
+MTlBQ0FFQUJFN0M0RDg2NzAwAAAAAAMABhBh0CFQAwAHECEEAAADABAQAAAAAAMAERAAAAAAHgAI
+EAEAAABlAAAAU0lHTkVELU9GRi1CWTpKT05HSFdBTkNIT0k8SkhCSVJEQ0hPSUBTQU1TVU5HQ09N
+LS0tRFJJVkVSUy9BQ1BJL09TTEMzKy0tRFJJVkVSUy9BQ1BJL1VUSUxTQzMrLS0yRklMRQAAAABi
+UQ==
+
+------=_NextPart_000_0003_01CF4440.C2CB1AC0--
 
