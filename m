@@ -1,131 +1,160 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: Info: mapping multiple BARs. Your kernel is fine.
-Date: Thu, 20 Mar 2014 03:03:45 +0000
-Message-ID: <744357E9AAD1214791ACBA4B0B9092630121F201@SHSMSX101.ccr.corp.intel.com>
+From: Stephane Eranian <eranian@google.com>
+Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
+Date: Thu, 20 Mar 2014 04:34:31 +0100
+Message-ID: <CABPqkBTyti0owCA_cWf9GcvYnOSvbMQpRC29rgpicjW1iYBjYQ@mail.gmail.com>
 References: <20140224162400.GE16457@pd.tnic>
- <4205942.Tp8ltEsv6e@vostro.rjw.lan> <532A514C.5010106@intel.com>
+	<4205942.Tp8ltEsv6e@vostro.rjw.lan>
+	<532A514C.5010106@intel.com>
+	<744357E9AAD1214791ACBA4B0B9092630121F201@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <532A514C.5010106@intel.com>
-Content-Language: en-US
+In-Reply-To: <744357E9AAD1214791ACBA4B0B9092630121F201@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: "Lu, Aaron" <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@alien8.de>
-Cc: lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephane Eranian <eranian@google.com>, "Yan, Zheng Z" <zheng.z.yan@intel.com>
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "Lu, Aaron" <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@alien8.de>, lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "Yan, Zheng Z" <zheng.z.yan@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTHUsIEFhcm9uDQo+IFNl
-bnQ6IFRodXJzZGF5LCBNYXJjaCAyMCwgMjAxNCAxMDoyNCBBTQ0KPiBUbzogUmFmYWVsIEouIFd5
-c29ja2k7IEJvcmlzbGF2IFBldGtvdg0KPiBDYzogbGttbDsgeDg2QGtlcm5lbC5vcmc7IEJqb3Ju
-IEhlbGdhYXM7IExpbnV4IFBDSTsgQUNQSSBEZXZlbCBNYWxpbmcNCj4gTGlzdDsgWmhhbmcsIFJ1
-aTsgWWluZ2hhaSBMdTsgSC4gUGV0ZXIgQW52aW47IFN0ZXBoYW5lIEVyYW5pYW4NCj4gU3ViamVj
-dDogUmU6IEluZm86IG1hcHBpbmcgbXVsdGlwbGUgQkFScy4gWW91ciBrZXJuZWwgaXMgZmluZS4N
-Cj4gSW1wb3J0YW5jZTogSGlnaA0KPiANCj4gT24gMDMvMTUvMjAxNCAxMDoxNSBQTSwgUmFmYWVs
-IEouIFd5c29ja2kgd3JvdGU6DQo+ID4gW0NDIGxpc3QgcmVhcnJhbmdlZF0NCj4gPg0KPiA+IE9u
-IE1vbmRheSwgRmVicnVhcnkgMjQsIDIwMTQgMDU6MjQ6MDAgUE0gQm9yaXNsYXYgUGV0a292IHdy
-b3RlOg0KPiA+PiBUaGlzIHN0YXJ0ZWQgaGFwcGVuaW5nIHRoaXMgbW9ybmluZyBhZnRlciBib290
-aW5nIC1yYzQrdGlwLCBsZXQncw0KPiBhZGQNCj4gPj4gKmV2ZXJ5Ym9keSogdG8gQ0MgOi0pDQo+
-ID4+DQo+ID4+IFdlIGhhdmUgaW50ZWxfdW5jb3JlX2luaXQsIHNuYl91bmNvcmVfaW1jX2luaXRf
-Ym94LCB1bmNvcmVfcGNpX3Byb2JlDQo+ID4+IGFuZCBvdGhlciBnb29kaWVzIG9uIHRoZSBzdGFj
-ay4NCj4gPg0KPiA+IEkndmUganVzdCBnb25lIHRocm91Z2h0IHRoaXMuDQo+ID4NCj4gPiBTbyB0
-aGUgcHJvYmxlbSBpcyB0aGF0IHdlIGhhdmUgdGhlIFBOUCAic3lzdGVtIiBkcml2ZXIgd2hvc2Ug
-b25seQ0KPiA+IHB1cnBvc2Ugc2VlbXMgdG8gYmUgdG8gcmVzZXJ2ZSBzeXN0ZW0gcmVzb3VyY2Vz
-IHNvIHRoYXQgdGhlIFBDSSBsYXllcg0KPiA+IGRvZXNuJ3QgYXNzaWduIHRoZW0gdG8gbmV3IGRl
-dmljZXMgb24gaG90cGx1ZyAoZGlzY2xhaW1lcjogSSBkaWRuJ3QNCj4gPiBpbnZlbnQgaXQsIEkg
-b25seSByZWFkIHRoZSBjb2RlIGFuZCBjb21tZW50cyBpbiB0aGVyZSkuDQo+IA0KPiBBbmQgdG8g
-UENJIGRldmljZXMgd2hpY2ggaGF2ZSB1bmluaXRpYWxpemVkIEJBUnMuDQo+IA0KPiA+DQo+ID4g
-SXQgZG9lcyB0aGF0IGZvciBBQ1BJIGRldmljZSBvYmplY3RzIGhhdmluZyB0aGUgIlBOUDBDMDIi
-IGFuZA0KPiAiUE5QMEMwMSIgSURzLg0KPiA+DQo+ID4gQXBwYXJlbnRseSwgc25iX3VuY29yZV9p
-bWNfaW5pdF9ib3goKSBzdGVwcyBvbiBhIHJhbmdlIGFscmVhZHkNCj4gPiByZXNlcnZlZCBieSB0
-aGF0IGRyaXZlciBvbiB5b3VyIGJveC4gIEFuZCB0aGlzIGRvZXNuJ3Qgc2VlbSB0byBiZSBhDQo+
-ID4gY29pbmNpZGVuY2UsIGJlY2F1c2UgdGhlIEFDUEkgZGV2aWNlIG9iamVjdCBpbiBxdWVzdGlv
-biBwcm9iYWJseQ0KPiA+ICpkb2VzKiBjb3JyZXNwb25kIHRvIHRoZSBtZW1vcnkgY29udHJvbGxl
-ciB0aGF0IHRoZSB1bmNvcmUgZHJpdmVyDQo+IGF0dGVtcHRzIHRvIHVzZS4NCj4gPg0KPiA+IEkn
-bSBub3Qgc3VyZSBob3cgdG8gYWRkcmVzcyB0aGF0IHJpZ2h0IG5vdyB0byBiZSBob25lc3QuICBB
-cmd1YWJseSwNCj4gPiB0aGUgUE5QICJzeXN0ZW0iIGRyaXZlciBzaG91bGQgYmUgcmVwbGFjZWQg
-d2l0aCBzb21ldGhpbmcgc2FuZXIsIGJ1dA0KPiA+IHN0aWxsIHRoZSByZXNvdXJjZXMgaXQgY2xh
-aW1zIG5lZWQgdG8gYmUga2VwdCBvdXQgb2YgcmVhY2ggb2YgdGhlDQo+ID4gUENJJ3MgcmVzb3Vy
-Y2UgYWxsb2NhdGlvbiBjb2RlLg0KPiANCj4gVGhlIHF1aXJrX3N5c3RlbV9wY2lfcmVzb3VyY2Vz
-IGlzIG1lYW50IHRvIGRpc2FibGUgUE5QIGRldmljZXMnDQo+IHJlc291cmNlIGlmIHRoZXkgY29s
-bGlkZSB3aXRoIGFueSBrbm93biBQQ0kgZGV2aWNlJ3MgQkFSLiBJJ20gbm90IHN1cmUNCj4gd2h5
-IGl0IGRvZXNuJ3Qgd29yayBoZXJlLCBwZXJoYXBzIHRoZSB1bmNvcmUgUENJIGRldmljZSBkb2Vz
-bid0IGhhdmUgYQ0KPiBCQVIgdGhhdCBmYWxscyBpbiB0aGUgUE5QIGRldmljZSdzIHJlc291cmNl
-IHdpbmRvdz8NCj4NCkkndmUgdGFsa2VkIHdpdGggWWFuIFpoZW5nLCBhbmQgSSB3YXMgdG9sZCB0
-aGF0IHRoaXMgcmVzb3VyY2UgIjB4ZmVkMTAwMDAgLSAweGZlZDE1ZmZmIg0KaXMgZ290IGZyb20g
-UENJIGRldmljZSByZWdpc3RlciBkaXJlY3RseSwgd2hpY2ggaXMgbm90IGluIGl0cyBCQVIgcmFu
-Z2UuDQpUaHVzIElNTywgaXQgaXMgaW1wb3NzaWJsZSBmb3IgUE5QIGxheWVyIHRvIGJlIGF3YXJl
-IG9mIHRoaXMgcmVzb3VyY2UuDQoNCkJUVywgYWJvdXQgZHJpdmVycy9wbnAvc3lzdGVtLmMsIGlm
-IGl0cyBPTkxZIHB1cnBvc2UgaXMgdG8gcHJldmVudCB0aG9zZQ0KcmVzb3VyY2VzIGZyb20gYmVp
-bmcgYWxsb2NhdGVkIHRvIHVuaW5pdGlhbGl6ZWQgUENJIGRldmljZXMsIHRoZW4gSU1PLA0KdGhl
-IGJlc3Qgd2F5IHRvIGRvIHRoaXMgaXMgbWFrZSBQQ0kgYnVzIGhhbmRsZSB0aG9zZSBQTlAwQzAx
-L1BOUDBDMDINCnJlc291cmNlcyBkaXJlY3RseSwgcHJvYmFibHkgdmlhIGEgcGxhdGZvcm0gY2Fs
-bGJhY2ssIHNheSwNCjEuIG1ha2UgZHJpdmVycy9wbnAvc3lzdGVtLmMgYSBuby1vcCBmb3IgUE5Q
-QUNQSSwgYnkgY2hlY2tpbmcgcG5wX2Rldi0+cHJvdG9jb2wuDQoyLiBpbnRyb2R1Y2UgYWNwaV9j
-aGVja19yZXNlcnZlZF9yZXNvdXJjZSgpIHRvIHBhcnNpbmcgUE5QMEMwMS9QTlAwQzAyIHJlc291
-cmNlcy4NCjMuIGluIFBDSSBidXMsIGludm9rZSBhY3BpX2NoZWNrX3Jlc2VydmVkX3Jlc291cmNl
-KCkgd2hlbiBhc3NpZ25pbmcNCiAgIHJlc291cmNlcyB0byBQQ0kgZGV2aWNlcy4NCg0KVGhhbmtz
-LA0KcnVpDQogDQo+IFRoYW5rcywNCj4gQWFyb24NCj4gDQo+ID4NCj4gPj4gLi4uDQo+ID4+IFsg
-ICAgMC40ODg5OThdIHNvZnR3YXJlIElPIFRMQiBbbWVtIDB4Y2FjMzAwMDAtMHhjZWMzMDAwMF0g
-KDY0TUIpDQo+IG1hcHBlZCBhdCBbZmZmZjg4MDBjYWMzMDAwMC1mZmZmODgwMGNlYzJmZmZmXQ0K
-PiA+PiBbICAgIDAuNDg5OTc1XSByZXNvdXJjZSBtYXAgc2FuaXR5IGNoZWNrIGNvbmZsaWN0OiAw
-eGZlZDEwMDAwDQo+IDB4ZmVkMTVmZmYgMHhmZWQxMDAwMCAweGZlZDEzZmZmIHBucCAwMDowMQ0K
-PiA+PiBbICAgIDAuNDkwMDc5XSAtLS0tLS0tLS0tLS1bIGN1dCBoZXJlIF0tLS0tLS0tLS0tLS0N
-Cj4gPj4gWyAgICAwLjQ5MDIwNF0gV0FSTklORzogQ1BVOiAyIFBJRDogMSBhdCBhcmNoL3g4Ni9t
-bS9pb3JlbWFwLmM6MTcxDQo+IF9faW9yZW1hcF9jYWxsZXIrMHgzNzIvMHgzODAoKQ0KPiA+PiBb
-ICAgIDAuNDkwMzA2XSBJbmZvOiBtYXBwaW5nIG11bHRpcGxlIEJBUnMuIFlvdXIga2VybmVsIGlz
-IGZpbmUuDQo+ID4+IFsgICAgMC40OTAzNzFdIE1vZHVsZXMgbGlua2VkIGluOg0KPiA+PiBbICAg
-IDAuNDkwNTU4XSBDUFU6IDIgUElEOiAxIENvbW06IHN3YXBwZXIvMCBOb3QgdGFpbnRlZCAzLjE0
-LjAtcmM0Kw0KPiAjMQ0KPiA+PiBbICAgIDAuNDkwNjQyXSBIYXJkd2FyZSBuYW1lOiBMRU5PVk8g
-MjMyMENUTy8yMzIwQ1RPLCBCSU9TIEcyRVQ4NldXDQo+ICgyLjA2ICkgMTEvMTMvMjAxMg0KPiA+
-PiBbICAgIDAuNDkwNzQyXSAgMDAwMDAwMDAwMDAwMDBhYiBmZmZmODgwMjEzZDAxYWQ4IGZmZmZm
-ZmZmODE2MTEyZTMNCj4gMDAwMDAwMDAwMDAwMDAwNg0KPiA+PiBbICAgIDAuNDkxMDMyXSAgZmZm
-Zjg4MDIxM2QwMWIyOCBmZmZmODgwMjEzZDAxYjE4IGZmZmZmZmZmODEwNGU5YmMNCj4gZmZmZjg4
-MDIxM2QwMWIwOA0KPiA+PiBbICAgIDAuNDkxMzQzXSAgZmZmZmM5MDAwMGM1ODAwMCAwMDAwMDAw
-MGZlZDEwMDAwIDAwMDAwMDAwZmVkMTAwMDANCj4gMDAwMDAwMDAwMDAwNjAwMA0KPiA+PiBbICAg
-IDAuNDkxNjMxXSBDYWxsIFRyYWNlOg0KPiA+PiBbICAgIDAuNDkzMzM3XSAgWzxmZmZmZmZmZjgx
-NjExMmUzPl0gZHVtcF9zdGFjaysweDRmLzB4N2MNCj4gPj4gWyAgICAwLjQ5MzQyMF0gIFs8ZmZm
-ZmZmZmY4MTA0ZTliYz5dIHdhcm5fc2xvd3BhdGhfY29tbW9uKzB4OGMvMHhjMA0KPiA+PiBbICAg
-IDAuNDkzNTAzXSAgWzxmZmZmZmZmZjgxMDRlYWE2Pl0gd2Fybl9zbG93cGF0aF9mbXQrMHg0Ni8w
-eDUwDQo+ID4+IFsgICAgMC40OTM1ODhdICBbPGZmZmZmZmZmODEwM2YxZTI+XSBfX2lvcmVtYXBf
-Y2FsbGVyKzB4MzcyLzB4MzgwDQo+ID4+IFsgICAgMC40OTM2NzRdICBbPGZmZmZmZmZmODEwMjEx
-YTI+XSA/DQo+IHNuYl91bmNvcmVfaW1jX2luaXRfYm94KzB4NjIvMHg5MA0KPiA+PiBbICAgIDAu
-NDkzNzYxXSAgWzxmZmZmZmZmZjgxMDNmMjQ3Pl0gaW9yZW1hcF9ub2NhY2hlKzB4MTcvMHgyMA0K
-PiA+PiBbICAgIDAuNDkzODQ2XSAgWzxmZmZmZmZmZjgxMDIxMWEyPl0NCj4gc25iX3VuY29yZV9p
-bWNfaW5pdF9ib3grMHg2Mi8weDkwDQo+ID4+IFsgICAgMC40OTM5MzNdICBbPGZmZmZmZmZmODEw
-MjI5MjU+XSB1bmNvcmVfcGNpX3Byb2JlKzB4ZTUvMHgxZTANCj4gPj4gWyAgICAwLjQ5NDAyMF0g
-IFs8ZmZmZmZmZmY4MTJkNDg3ZT5dIGxvY2FsX3BjaV9wcm9iZSsweDRlLzB4YTANCj4gPj4gWyAg
-ICAwLjQ5NDEwNF0gIFs8ZmZmZmZmZmY4MTQxOGE1OT5dID8gZ2V0X2RldmljZSsweDE5LzB4MjAN
-Cj4gPj4gWyAgICAwLjQ5NDIxM10gIFs8ZmZmZmZmZmY4MTJkNWNkMT5dIHBjaV9kZXZpY2VfcHJv
-YmUrMHhlMS8weDEzMA0KPiA+PiBbICAgIDAuNDk0MzAwXSAgWzxmZmZmZmZmZjgxNDFkM2NiPl0g
-ZHJpdmVyX3Byb2JlX2RldmljZSsweDdiLzB4MjQwDQo+ID4+IFsgICAgMC40OTQzODVdICBbPGZm
-ZmZmZmZmODE0MWQ2M2I+XSBfX2RyaXZlcl9hdHRhY2grMHhhYi8weGIwDQo+ID4+IFsgICAgMC40
-OTQ0NjldICBbPGZmZmZmZmZmODE0MWQ1OTA+XSA/DQo+IGRyaXZlcl9wcm9iZV9kZXZpY2UrMHgy
-NDAvMHgyNDANCj4gPj4gWyAgICAwLjQ5NDU1MV0gIFs8ZmZmZmZmZmY4MTQxYjcxZT5dIGJ1c19m
-b3JfZWFjaF9kZXYrMHg1ZS8weDkwDQo+ID4+IFsgICAgMC40OTQ2MzRdICBbPGZmZmZmZmZmODE0
-MWNlZGU+XSBkcml2ZXJfYXR0YWNoKzB4MWUvMHgyMA0KPiA+PiBbICAgIDAuNDk0NzE4XSAgWzxm
-ZmZmZmZmZjgxNDFjYTU3Pl0gYnVzX2FkZF9kcml2ZXIrMHgxMTcvMHgyMzANCj4gPj4gWyAgICAw
-LjQ5NDgwMl0gIFs8ZmZmZmZmZmY4MTQxZGQzND5dIGRyaXZlcl9yZWdpc3RlcisweDY0LzB4ZjAN
-Cj4gPj4gWyAgICAwLjQ5NDg4NF0gIFs8ZmZmZmZmZmY4MTJkNGMxND5dIF9fcGNpX3JlZ2lzdGVy
-X2RyaXZlcisweDY0LzB4NzANCj4gPj4gWyAgICAwLjQ5NDk3Ml0gIFs8ZmZmZmZmZmY4MWQwMzE5
-Yj5dID8gdW5jb3JlX3R5cGVzX2luaXQrMHgxOWMvMHgxOWMNCj4gPj4gWyAgICAwLjQ5NTA1Nl0g
-IFs8ZmZmZmZmZmY4MWQwMzMxMj5dIGludGVsX3VuY29yZV9pbml0KzB4MTc3LzB4NDFjDQo+ID4+
-IFsgICAgMC40OTUxNTVdICBbPGZmZmZmZmZmODFkMDMxOWI+XSA/IHVuY29yZV90eXBlc19pbml0
-KzB4MTljLzB4MTljDQo+ID4+IFsgICAgMC40OTUyNDJdICBbPGZmZmZmZmZmODEwMDAyOWU+XSBk
-b19vbmVfaW5pdGNhbGwrMHg0ZS8weDE3MA0KPiA+PiBbICAgIDAuNDk1MzI2XSAgWzxmZmZmZmZm
-ZjgxMDcxMTAwPl0gPyBwYXJzZV9hcmdzKzB4NjAvMHgzNjANCj4gPj4gWyAgICAwLjQ5NTQxMV0g
-IFs8ZmZmZmZmZmY4MWNmYmZiOD5dDQo+IGtlcm5lbF9pbml0X2ZyZWVhYmxlKzB4MTA2LzB4MTlh
-DQo+ID4+IFsgICAgMC40OTU0OTddICBbPGZmZmZmZmZmODFjZmI4M2I+XSA/IGRvX2Vhcmx5X3Bh
-cmFtKzB4ODYvMHg4Ng0KPiA+PiBbICAgIDAuNDk1NTgyXSAgWzxmZmZmZmZmZjgxNjA3ZWYwPl0g
-PyByZXN0X2luaXQrMHhkMC8weGQwDQo+ID4+IFsgICAgMC40OTU2NjZdICBbPGZmZmZmZmZmODE2
-MDdlZmU+XSBrZXJuZWxfaW5pdCsweGUvMHhmMA0KPiA+PiBbICAgIDAuNDk1NzQ5XSAgWzxmZmZm
-ZmZmZjgxNjIxZjZjPl0gcmV0X2Zyb21fZm9yaysweDdjLzB4YjANCj4gPj4gWyAgICAwLjQ5NTgz
-MV0gIFs8ZmZmZmZmZmY4MTYwN2VmMD5dID8gcmVzdF9pbml0KzB4ZDAvMHhkMA0KPiA+PiBbICAg
-IDAuNDk1OTIxXSAtLS1bIGVuZCB0cmFjZSA0MjhmMzY1YzA1NGQ5YTAxIF0tLS0NCj4gPj4gWyAg
-ICAwLjQ5NjE5Nl0gUkFQTCBQTVUgZGV0ZWN0ZWQsIGh3IHVuaXQgMl4tMTYgSm91bGVzLCBBUEkg
-dW5pdCBpcw0KPiAyXi0zMiBKb3VsZXMsIDMgZml4ZWQgY291bnRlcnMgMTYzODQwIG1zIG92Zmwg
-dGltZXINCj4gPj4gWyAgICAwLjQ5ODU5OF0gZnV0ZXggaGFzaCB0YWJsZSBlbnRyaWVzOiAxMDI0
-IChvcmRlcjogNSwgMTMxMDcyDQo+IGJ5dGVzKQ0KPiA+PiBbICAgIDAuNDk4ODMzXSBhdWRpdDog
-aW5pdGlhbGl6aW5nIG5ldGxpbmsgc3Vic3lzIChkaXNhYmxlZCkNCj4gPj4gWyAgICAwLjQ5OTAy
-NF0gYXVkaXQ6IHR5cGU9MjAwMCBhdWRpdCgxMzkzMjU5ODY2LjQ3NzoxKTogaW5pdGlhbGl6ZWQN
-Cj4gPj4gLi4uDQo+ID4+DQo+ID4+DQo+ID4NCg0K
+On Thu, Mar 20, 2014 at 4:03 AM, Zhang, Rui <rui.zhang@intel.com> wrote:
+>
+>
+>> -----Original Message-----
+>> From: Lu, Aaron
+>> Sent: Thursday, March 20, 2014 10:24 AM
+>> To: Rafael J. Wysocki; Borislav Petkov
+>> Cc: lkml; x86@kernel.org; Bjorn Helgaas; Linux PCI; ACPI Devel Maling
+>> List; Zhang, Rui; Yinghai Lu; H. Peter Anvin; Stephane Eranian
+>> Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
+>> Importance: High
+>>
+>> On 03/15/2014 10:15 PM, Rafael J. Wysocki wrote:
+>> > [CC list rearranged]
+>> >
+>> > On Monday, February 24, 2014 05:24:00 PM Borislav Petkov wrote:
+>> >> This started happening this morning after booting -rc4+tip, let's
+>> add
+>> >> *everybody* to CC :-)
+>> >>
+>> >> We have intel_uncore_init, snb_uncore_imc_init_box, uncore_pci_probe
+>> >> and other goodies on the stack.
+>> >
+>> > I've just gone throught this.
+>> >
+>> > So the problem is that we have the PNP "system" driver whose only
+>> > purpose seems to be to reserve system resources so that the PCI layer
+>> > doesn't assign them to new devices on hotplug (disclaimer: I didn't
+>> > invent it, I only read the code and comments in there).
+>>
+>> And to PCI devices which have uninitialized BARs.
+>>
+>> >
+>> > It does that for ACPI device objects having the "PNP0C02" and
+>> "PNP0C01" IDs.
+>> >
+>> > Apparently, snb_uncore_imc_init_box() steps on a range already
+>> > reserved by that driver on your box.  And this doesn't seem to be a
+>> > coincidence, because the ACPI device object in question probably
+>> > *does* correspond to the memory controller that the uncore driver
+>> attempts to use.
+>> >
+>> > I'm not sure how to address that right now to be honest.  Arguably,
+>> > the PNP "system" driver should be replaced with something saner, but
+>> > still the resources it claims need to be kept out of reach of the
+>> > PCI's resource allocation code.
+>>
+>> The quirk_system_pci_resources is meant to disable PNP devices'
+>> resource if they collide with any known PCI device's BAR. I'm not sure
+>> why it doesn't work here, perhaps the uncore PCI device doesn't have a
+>> BAR that falls in the PNP device's resource window?
+>>
+> I've talked with Yan Zheng, and I was told that this resource "0xfed10000 - 0xfed15fff"
+> is got from PCI device register directly, which is not in its BAR range.
+> Thus IMO, it is impossible for PNP layer to be aware of this resource.
+>
+That is not what the perf_event code does. Nothing is hardcoded except
+the IMC PCI device ids. The BAR offset is hardcoded that's all. The 0xfed10000
+is discovered.
+
+> BTW, about drivers/pnp/system.c, if its ONLY purpose is to prevent those
+> resources from being allocated to uninitialized PCI devices, then IMO,
+> the best way to do this is make PCI bus handle those PNP0C01/PNP0C02
+> resources directly, probably via a platform callback, say,
+> 1. make drivers/pnp/system.c a no-op for PNPACPI, by checking pnp_dev->protocol.
+> 2. introduce acpi_check_reserved_resource() to parsing PNP0C01/PNP0C02 resources.
+> 3. in PCI bus, invoke acpi_check_reserved_resource() when assigning
+>    resources to PCI devices.
+>
+> Thanks,
+> rui
+>
+>> Thanks,
+>> Aaron
+>>
+>> >
+>> >> ...
+>> >> [    0.488998] software IO TLB [mem 0xcac30000-0xcec30000] (64MB)
+>> mapped at [ffff8800cac30000-ffff8800cec2ffff]
+>> >> [    0.489975] resource map sanity check conflict: 0xfed10000
+>> 0xfed15fff 0xfed10000 0xfed13fff pnp 00:01
+>> >> [    0.490079] ------------[ cut here ]------------
+>> >> [    0.490204] WARNING: CPU: 2 PID: 1 at arch/x86/mm/ioremap.c:171
+>> __ioremap_caller+0x372/0x380()
+>> >> [    0.490306] Info: mapping multiple BARs. Your kernel is fine.
+>> >> [    0.490371] Modules linked in:
+>> >> [    0.490558] CPU: 2 PID: 1 Comm: swapper/0 Not tainted 3.14.0-rc4+
+>> #1
+>> >> [    0.490642] Hardware name: LENOVO 2320CTO/2320CTO, BIOS G2ET86WW
+>> (2.06 ) 11/13/2012
+>> >> [    0.490742]  00000000000000ab ffff880213d01ad8 ffffffff816112e3
+>> 0000000000000006
+>> >> [    0.491032]  ffff880213d01b28 ffff880213d01b18 ffffffff8104e9bc
+>> ffff880213d01b08
+>> >> [    0.491343]  ffffc90000c58000 00000000fed10000 00000000fed10000
+>> 0000000000006000
+>> >> [    0.491631] Call Trace:
+>> >> [    0.493337]  [<ffffffff816112e3>] dump_stack+0x4f/0x7c
+>> >> [    0.493420]  [<ffffffff8104e9bc>] warn_slowpath_common+0x8c/0xc0
+>> >> [    0.493503]  [<ffffffff8104eaa6>] warn_slowpath_fmt+0x46/0x50
+>> >> [    0.493588]  [<ffffffff8103f1e2>] __ioremap_caller+0x372/0x380
+>> >> [    0.493674]  [<ffffffff810211a2>] ?
+>> snb_uncore_imc_init_box+0x62/0x90
+>> >> [    0.493761]  [<ffffffff8103f247>] ioremap_nocache+0x17/0x20
+>> >> [    0.493846]  [<ffffffff810211a2>]
+>> snb_uncore_imc_init_box+0x62/0x90
+>> >> [    0.493933]  [<ffffffff81022925>] uncore_pci_probe+0xe5/0x1e0
+>> >> [    0.494020]  [<ffffffff812d487e>] local_pci_probe+0x4e/0xa0
+>> >> [    0.494104]  [<ffffffff81418a59>] ? get_device+0x19/0x20
+>> >> [    0.494213]  [<ffffffff812d5cd1>] pci_device_probe+0xe1/0x130
+>> >> [    0.494300]  [<ffffffff8141d3cb>] driver_probe_device+0x7b/0x240
+>> >> [    0.494385]  [<ffffffff8141d63b>] __driver_attach+0xab/0xb0
+>> >> [    0.494469]  [<ffffffff8141d590>] ?
+>> driver_probe_device+0x240/0x240
+>> >> [    0.494551]  [<ffffffff8141b71e>] bus_for_each_dev+0x5e/0x90
+>> >> [    0.494634]  [<ffffffff8141cede>] driver_attach+0x1e/0x20
+>> >> [    0.494718]  [<ffffffff8141ca57>] bus_add_driver+0x117/0x230
+>> >> [    0.494802]  [<ffffffff8141dd34>] driver_register+0x64/0xf0
+>> >> [    0.494884]  [<ffffffff812d4c14>] __pci_register_driver+0x64/0x70
+>> >> [    0.494972]  [<ffffffff81d0319b>] ? uncore_types_init+0x19c/0x19c
+>> >> [    0.495056]  [<ffffffff81d03312>] intel_uncore_init+0x177/0x41c
+>> >> [    0.495155]  [<ffffffff81d0319b>] ? uncore_types_init+0x19c/0x19c
+>> >> [    0.495242]  [<ffffffff8100029e>] do_one_initcall+0x4e/0x170
+>> >> [    0.495326]  [<ffffffff81071100>] ? parse_args+0x60/0x360
+>> >> [    0.495411]  [<ffffffff81cfbfb8>]
+>> kernel_init_freeable+0x106/0x19a
+>> >> [    0.495497]  [<ffffffff81cfb83b>] ? do_early_param+0x86/0x86
+>> >> [    0.495582]  [<ffffffff81607ef0>] ? rest_init+0xd0/0xd0
+>> >> [    0.495666]  [<ffffffff81607efe>] kernel_init+0xe/0xf0
+>> >> [    0.495749]  [<ffffffff81621f6c>] ret_from_fork+0x7c/0xb0
+>> >> [    0.495831]  [<ffffffff81607ef0>] ? rest_init+0xd0/0xd0
+>> >> [    0.495921] ---[ end trace 428f365c054d9a01 ]---
+>> >> [    0.496196] RAPL PMU detected, hw unit 2^-16 Joules, API unit is
+>> 2^-32 Joules, 3 fixed counters 163840 ms ovfl timer
+>> >> [    0.498598] futex hash table entries: 1024 (order: 5, 131072
+>> bytes)
+>> >> [    0.498833] audit: initializing netlink subsys (disabled)
+>> >> [    0.499024] audit: type=2000 audit(1393259866.477:1): initialized
+>> >> ...
+>> >>
+>> >>
+>> >
+>
