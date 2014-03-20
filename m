@@ -1,59 +1,83 @@
-From: "Yan, Zheng" <zheng.z.yan@intel.com>
-Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
-Date: Thu, 20 Mar 2014 16:16:54 +0800
-Message-ID: <532AA3F6.9090402@intel.com>
-References: <20140224162400.GE16457@pd.tnic>	<4205942.Tp8ltEsv6e@vostro.rjw.lan>	<532A514C.5010106@intel.com>	<744357E9AAD1214791ACBA4B0B9092630121F201@SHSMSX101.ccr.corp.intel.com> <CABPqkBTyti0owCA_cWf9GcvYnOSvbMQpRC29rgpicjW1iYBjYQ@mail.gmail.com> <744357E9AAD1214791ACBA4B0B9092630121F3B7@SHSMSX101.ccr.corp.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [Linaro-acpi] [RFC] ACPI: Add new function to get table entries
+Date: Thu, 20 Mar 2014 16:25:45 +0800
+Message-ID: <532AA609.8050400@linaro.org>
+References: <1395270568-30021-1-git-send-email-ashwin.chaugule@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <744357E9AAD1214791ACBA4B0B9092630121F3B7@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>, Stephane Eranian <eranian@google.com>
-Cc: "Lu, Aaron" <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@alien8.de>, lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:63241 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753654AbaCTIZy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2014 04:25:54 -0400
+Received: by mail-pa0-f49.google.com with SMTP id lj1so598673pab.36
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Mar 2014 01:25:53 -0700 (PDT)
+In-Reply-To: <1395270568-30021-1-git-send-email-ashwin.chaugule@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org
 
-On 03/20/2014 03:53 PM, Zhang, Rui wrote:
-> The resource length is also hardcoded to 0x6000, right?
-> This is probably a problem, because
-> only if the resource length read from PCI config space is larger than 0x4000,
-> drivers/pnp/quirks.c will detect the conflict and disable the PNP0C02
-> resource 0xfed10000 - 0xfed13fff, and the PCI device can request this
-> resource successfully.
-> In order to check this, can you please attach the dmesg output after boot?
+Hi Ashwin,
 
-maybe the issue can be fixed by below untested patch
+On 2014-3-20 7:09, Ashwin Chaugule wrote:
+> The acpi_table_parse() function has a callback that
+> passes a pointer to a table_header. Add a new function
+> which takes this pointer and parses its entries. This
+> eliminates the need to re-traverse all the tables for
+> each call. e.g. as in acpi_table_parse_madt() which is
+> normally called after acpi_table_parse().
+> 
+> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+> ---
+>  drivers/acpi/tables.c | 69 +++++++++++++++++++++++++++++++++++----------------
+>  include/linux/acpi.h  |  4 +++
+>  2 files changed, 51 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index 5837f85..b7bd6a3 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -199,19 +199,15 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>  	}
+>  }
+>  
+> -
+>  int __init
+> -acpi_table_parse_entries(char *id,
+> -			     unsigned long table_size,
+> -			     int entry_id,
+> -			     acpi_tbl_entry_handler handler,
+> -			     unsigned int max_entries)
+> +acpi_parse_entries(unsigned long table_size,
+> +		acpi_tbl_entry_handler handler,
+> +		struct acpi_table_header *table_header,
+> +		int entry_id, unsigned int max_entries)
+>  {
+> -	struct acpi_table_header *table_header = NULL;
+>  	struct acpi_subtable_header *entry;
+>  	unsigned int count = 0;
+>  	unsigned long table_end;
+> -	acpi_size tbl_size;
+>  
+>  	if (acpi_disabled)
+>  		return -ENODEV;
+> @@ -219,16 +215,14 @@ acpi_table_parse_entries(char *id,
+>  	if (!handler)
+>  		return -EINVAL;
+>  
+> -	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
+> -		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
+> -	else
+> -		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
+> -
+>  	if (!table_header) {
+> -		printk(KERN_WARNING PREFIX "%4.4s not present\n", id);
+> +		pr_warn(PREFIX "Table header not present\n");
 
----
-diff --git a/arch/x86/kernel/cpu/perf_event_intel_uncore.c b/arch/x86/kernel/cpu/perf_event_intel_uncore.c
-index fd5e883..2b3d834 100644
---- a/arch/x86/kernel/cpu/perf_event_intel_uncore.c
-+++ b/arch/x86/kernel/cpu/perf_event_intel_uncore.c
-@@ -1701,7 +1701,7 @@ static struct uncore_event_desc snb_uncore_imc_events[] = {
- #define SNB_UNCORE_PCI_IMC_BAR_OFFSET		0x48
- 
- /* page size multiple covering all config regs */
--#define SNB_UNCORE_PCI_IMC_MAP_SIZE		0x6000
-+#define SNB_UNCORE_PCI_IMC_MAP_SIZE		0x8
- 
- #define SNB_UNCORE_PCI_IMC_DATA_READS		0x1
- #define SNB_UNCORE_PCI_IMC_DATA_READS_BASE	0x5050
-@@ -1736,7 +1736,8 @@ static void snb_uncore_imc_init_box(struct intel_uncore_box *box)
- 
- 	addr &= ~(PAGE_SIZE - 1);
- 
--	box->io_addr = ioremap(addr, SNB_UNCORE_PCI_IMC_MAP_SIZE);
-+	box->io_addr = ioremap(addr + SNB_UNCORE_PCI_IMC_CTR_BASE,
-+			       SNB_UNCORE_PCI_IMC_MAP_SIZE);
- 	box->hrtimer_duration = UNCORE_SNB_IMC_HRTIMER_INTERVAL;
- }
- 
-@@ -1832,7 +1833,7 @@ static int snb_uncore_imc_event_init(struct perf_event *event)
- 	}
- 
- 	/* must be done before validate_group */
--	event->hw.event_base = base;
-+	event->hw.event_base = base - SNB_UNCORE_PCI_IMC_CTR_BASE;
- 	event->hw.config = cfg;
- 	event->hw.idx = idx;
- 
+Can you rebase this patch on the branch of linux-next of linux-pm tree?
+PREFIX was removed by me and I used pr_fmt() instead.
+
+Thanks
+Hanjun
