@@ -1,82 +1,57 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
-Date: Thu, 20 Mar 2014 21:43:03 +0800
-Message-ID: <1395322983.2721.12.camel@rzhang1-mobl4>
-References: <20140224162400.GE16457@pd.tnic>
-		<4205942.Tp8ltEsv6e@vostro.rjw.lan>	<532A514C.5010106@intel.com>
-		<744357E9AAD1214791ACBA4B0B9092630121F201@SHSMSX101.ccr.corp.intel.com>
-	 <CABPqkBTyti0owCA_cWf9GcvYnOSvbMQpRC29rgpicjW1iYBjYQ@mail.gmail.com>
-	 <744357E9AAD1214791ACBA4B0B9092630121F3B7@SHSMSX101.ccr.corp.intel.com>
-	 <532AA3F6.9090402@intel.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [Linaro-acpi] [RFC] ACPI: Add new function to get table entries
+Date: Thu, 20 Mar 2014 14:48:37 +0100
+Message-ID: <532AF1B5.7050409@linaro.org>
+References: <1395270568-30021-1-git-send-email-ashwin.chaugule@linaro.org>	<532ABD83.9020003@linaro.org> <CAJ5Y-eaw4PbBMerXQXjzuiW=wB8G6bJe8QmCxmUW_ya9+iun1Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:8210 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754614AbaCTNnO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Mar 2014 09:43:14 -0400
-In-Reply-To: <532AA3F6.9090402@intel.com>
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:50675 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751925AbaCTNr4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Mar 2014 09:47:56 -0400
+Received: by mail-wi0-f179.google.com with SMTP id f8so772535wiw.6
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Mar 2014 06:47:55 -0700 (PDT)
+In-Reply-To: <CAJ5Y-eaw4PbBMerXQXjzuiW=wB8G6bJe8QmCxmUW_ya9+iun1Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yan, Zheng" <zheng.z.yan@intel.com>
-Cc: Stephane Eranian <eranian@google.com>, "Lu, Aaron" <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@alien8.de>, lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, linux-acpi@vger.kernel.org, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>
 
-On Thu, 2014-03-20 at 16:16 +0800, Yan, Zheng wrote:
-> On 03/20/2014 03:53 PM, Zhang, Rui wrote:
-> > The resource length is also hardcoded to 0x6000, right?
-> > This is probably a problem, because
-> > only if the resource length read from PCI config space is larger than 0x4000,
-> > drivers/pnp/quirks.c will detect the conflict and disable the PNP0C02
-> > resource 0xfed10000 - 0xfed13fff, and the PCI device can request this
-> > resource successfully.
-> > In order to check this, can you please attach the dmesg output after boot?
-> 
-> maybe the issue can be fixed by below untested patch
-> 
-> ---
-> diff --git a/arch/x86/kernel/cpu/perf_event_intel_uncore.c b/arch/x86/kernel/cpu/perf_event_intel_uncore.c
-> index fd5e883..2b3d834 100644
-> --- a/arch/x86/kernel/cpu/perf_event_intel_uncore.c
-> +++ b/arch/x86/kernel/cpu/perf_event_intel_uncore.c
-> @@ -1701,7 +1701,7 @@ static struct uncore_event_desc snb_uncore_imc_events[] = {
->  #define SNB_UNCORE_PCI_IMC_BAR_OFFSET		0x48
->  
->  /* page size multiple covering all config regs */
-> -#define SNB_UNCORE_PCI_IMC_MAP_SIZE		0x6000
-> +#define SNB_UNCORE_PCI_IMC_MAP_SIZE		0x8
->  
->  #define SNB_UNCORE_PCI_IMC_DATA_READS		0x1
->  #define SNB_UNCORE_PCI_IMC_DATA_READS_BASE	0x5050
-> @@ -1736,7 +1736,8 @@ static void snb_uncore_imc_init_box(struct intel_uncore_box *box)
->  
->  	addr &= ~(PAGE_SIZE - 1);
->  
-> -	box->io_addr = ioremap(addr, SNB_UNCORE_PCI_IMC_MAP_SIZE);
-> +	box->io_addr = ioremap(addr + SNB_UNCORE_PCI_IMC_CTR_BASE,
-> +			       SNB_UNCORE_PCI_IMC_MAP_SIZE);
+On 20.03.2014 14:25, Ashwin Chaugule wrote:
+> Hi Tomasz,
+>
+> On 20 March 2014 06:05, Tomasz Nowicki <tomasz.nowicki@linaro.org> wrote:
+>
+>>> +       if (!table_size)
+>>> +               table_size = table_header->length;
+>>> +
+>>
+>>
+>> If table_size == 0, that would causes 'entry' and 'table_end' are equal and
+>> no entries at all. For that case I would suggest to print error and return.
+>>
+>
+> Hm. tbl_size and table_header->length are not the same. This needs to
+> be revisited.
+Indeed, table_size is used to find out where entry list starts.
+table_header->length in turn, is used to find out end of entry list. If 
+we pass table_size = 0, then we will parse none of entries.
+>
+>
+>>
+>> Changelog is saying that acpi_parse_entries() takes already mapped table and
+>> parses entries. IMO, caller should takes care about unmapping table. It can
+>> be still parsed using different ID later on.
+>>
+>
+> Although I generally agree that mapping/umapping should be done in the
+> caller, it seems umapping in this manner is baked in APCI core code
+> and I didn't want to change too many things at once without causing
+> unintentional side effects elsewhere.
 
-you're remapping 0xfed15050 - 0xfed1b04f instead of 0xfed10000 -
-0xfed15fff ?
-I do not quite understand this, but apparently this is not a FIX.
-If it works for this problem, it is because 0xfed15050 - 0xfed1b04f
-happens to be not conflict with any resource reserved by PNP system
-driver, on this machine.
+You will not cause any side effects if unmapping will stay in 
+acpi_table_parse_entries().
 
-thanks,
-rui
-
->  	box->hrtimer_duration = UNCORE_SNB_IMC_HRTIMER_INTERVAL;
->  }
->  
-> @@ -1832,7 +1833,7 @@ static int snb_uncore_imc_event_init(struct perf_event *event)
->  	}
->  
->  	/* must be done before validate_group */
-> -	event->hw.event_base = base;
-> +	event->hw.event_base = base - SNB_UNCORE_PCI_IMC_CTR_BASE;
->  	event->hw.config = cfg;
->  	event->hw.idx = idx;
->  
-
-
+Tomasz
