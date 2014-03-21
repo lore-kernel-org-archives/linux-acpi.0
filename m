@@ -1,94 +1,82 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] Fix northbridge quirk to assign correct NUMA node
-Date: Fri, 21 Mar 2014 10:11:31 -0600
-Message-ID: <CAErSpo4x+=EQ5h8DuzoRznZ_d8Roy4LHer7ELEVeHxDsKwDhzA@mail.gmail.com>
-References: <1394710981-3596-1-git-send-email-daniel@numascale.com>
- <CAErSpo6psgDr3XYh6m+vYcAOix2Vttrwz1jK7bS47Liy2Lw-=g@mail.gmail.com> <532BB431.7020501@numascale.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: ACPI and PM material for v3.15-rc1 (current queue)
+Date: Fri, 21 Mar 2014 17:40:26 +0100
+Message-ID: <4752174.DIeOl6EhdE@vostro.rjw.lan>
+References: <2611540.GrpzWjVQ7v@vostro.rjw.lan> <532B8A4B.9000808@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <532BB431.7020501@numascale.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Daniel J Blueman <daniel@numascale.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Borislav Petkov <bp@suse.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Steffen Persvold <sp@numascale.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, kim.naru@amd.com, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <532B8A4B.9000808@linaro.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
 List-Id: linux-acpi@vger.kernel.org
 
-[+cc Rafael, linux-acpi for _PXM questions]
+On Friday, March 21, 2014 08:39:39 AM Hanjun Guo wrote:
+> Hi Rafael,
 
-On Thu, Mar 20, 2014 at 9:38 PM, Daniel J Blueman <daniel@numascale.com> wrote:
-> On 21/03/2014 06:07, Bjorn Helgaas wrote:
->> On Thu, Mar 13, 2014 at 5:43 AM, Daniel J Blueman <daniel@numascale.com>
->> wrote:
->>>
->>> For systems with multiple servers and routed fabric, all northbridges get
->>> assigned to the first server. Fix this by also using the node reported
->>> from
->>> the PCI bus. For single-fabric systems, the northbriges are on PCI bus 0
->>> by definition, which are on NUMA node 0 by definition, so this is
->>> invarient
->>> on most systems.
->>>
->>> Tested on fam10h and fam15h single and multi-fabric systems and candidate
->>> for stable.
+Hi,
 
->> So I suspect the problem is more complicated, and maybe _PXM is
->> insufficient to describe the topology?  Are there subtrees that should
->> have nodes different from the host bridge?
->
-> Yes; see below.
-> ...
-> The _PXM method associates each northbridge with the first NUMA node, 0 in
-> single-fabric systems, and eg 4 for the second server in a multi-fabric
-> system with 2 dual-module Opterons (with 2 NUMA nodes internally) etc, since
-> the northbridges appear in the PCI tree, under the host bridge, not above it
-> [1].
->
-> With _PXM, the rest of the PCI bus hierarchy has the right NUMA node
-> associated, but the northbridge PCI devices should be associated with their
-> actual NUMA node, 0, 1, 2, 3 for the first server in this example. The quirk
-> fixes this up; irqbalance at least uses this NUMA data exposed in /sys.
+> On 2014=E5=B9=B403=E6=9C=8821=E6=97=A5 08:23, Rafael J. Wysocki wrote=
+:
+> > Hi All,
+> >
+> > My queue for the first pull request during the upcoming 3.15 merge =
+window
+> > contains the material below.  Following the rule that everything I =
+send
+> > pull requests for should spend at least one day in linux-next, I'm =
+not
+> > going to add any more new commits to it at this point.
+> >
+> > Most likely, there will be more ACPI+PM pull request during the 3.1=
+5 cycle,
+> > so if I missed something, it still may be possible to get that into=
+ that
+> > kernel, but there has to be a good reason for it.
+> >
+> > Kind regards,
+> > Rafael
+> >
+> >
+> > ---------------
+> >
+> > Hanjun Guo (2):
+> >        ACPI / tables: Replace printk with pr_*
+> >        ACPI: Remove duplicate definitions of PREFIX
+>=20
+> It seems that you missed some of my patches:
+> ACPI: Move BAD_MADT_ENTRY() to linux/acpi.h
+> ACPI / idle: Make idle_boot_override depend on x86 and ia64
+> ACPI / trivial: Fix the return value type of acpi_processor_eval_pdc(=
+)
+> ACPI / processor: Replace hard-coded "ACPI0007" with=20
+> ACPI_PROCESSOR_DEVICE_HID
+>=20
+> I think those 4 patches can be merged in 3.15 and you already accepte=
+d them.
 
-I'm confused about which devices we're talking about.  We currently
-look at _PXM for PNP0A08 (and PNP0A03) ACPI devices.  The resulting
-node is associated with every PCI device we enumerate below the
-PNP0A08 bridge.  This association is made in pci_device_add().
+Yes, I did not include the acpi-processor branch, sorry about that and =
+thanks
+for spotting it!
 
-When you say "northbridge PCI devices should be associated with their
-actual NUMA node," I assume you mean the 00:18.x and 00:19.x devices
-("AMD Family 10h Processor ..."), since those seem to be what the
-quirk applies to.  You are *not* talking about 00:00.0 ("ATI RD890
-Northbridge"), right?
+That branch was in linux-next before, though, so I'll push it for 3.15-=
+rc1.
 
-You mention irqbalance; is the NUMA node information for the 00:18.x
-and 00:19.x devices important because you get a lot of interrupts from
-those devices?  Or is the issue with actual I/O devices (NICs, SCSI
-adapters, etc.)?  If so, I don't see how this quirk would affect
-those, because the node information for them comes from the PNP0A08
-bridge (in pci_device_add()), not from the 00:00.0, 00:18.x, or
-00:19.x devices.
+> and this patch still need more acks and then you will accept it:
+> ACPI / processor_core: Rework _PDC related stuff to make it more=20
+> arch-independent
+>=20
+> and this patch was reverted from your tree suggested by Catalin and S=
+udeep,
+> ACPI / processor: Introduce map_gic_id() to get apic id from MADT or=20
+> _MAT method
+>=20
+> Sorry for the confusion if I missed something.
 
-> The alternative to the quirk may be to explicitly express the northbridge
-> PCI devices in the AML with their own _PXM methods. If it's valid, it may be
-> the honest approach, though the quirk may be needed for most BIOSs; I can
-> check the AML on a few servers to confirm if helpful.
+I don't think you missed anything, thanks!
 
-ACPI allows _PXM for any device, so this might be a possible approach.
- However, it looks like Linux only pays attention to _PXM for
-PNP0A08/03, CPUs, memory and IOAPICs (which seems like a Linux defect
-to me).
-
-I'm really worried about the approach here:
-
-        pci_read_config_dword(nb_ht, 0x60, &val);
-        node = pcibus_to_node(dev->bus) | (val & 7);
-
-because the pcibus_to_node() information comes indirectly from _PXM,
-and the "val" part comes from the hardware, and I don't think these
-are the same node number space.  If I understand correctly, the BIOS
-can synthesize whatever numbers it wants for _PXM, which returns a
-"proximity domain," and then Linux can make up its own mapping of
-"proximity domain" to "logical Linux node."  So I don't see why we can
-assume that it's valid to OR in the bits from a PCI config register to
-this logical Linux node number.
-
-> [1] http://quora.org/2014/lspci.txt
+--=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
