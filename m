@@ -1,66 +1,119 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: ACPI and PM material for v3.15-rc1 (current queue)
-Date: Sat, 22 Mar 2014 10:08:20 +0800
-Message-ID: <532CF094.5070606@linaro.org>
-References: <2611540.GrpzWjVQ7v@vostro.rjw.lan> <532B8A4B.9000808@linaro.org> <4752174.DIeOl6EhdE@vostro.rjw.lan>
+From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [Patch v1 1/2] iio: ak8975 : Add AK8963 compatibility mode support
+Date: Sat, 22 Mar 2014 12:42:08 +0000
+Message-ID: <532D8520.5010902@kernel.org>
+References: <1395248167-16991-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <4752174.DIeOl6EhdE@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1395248167-16991-1-git-send-email-srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2014=E5=B9=B403=E6=9C=8822=E6=97=A5 00:40, Rafael J. Wysocki wrote:
-> On Friday, March 21, 2014 08:39:39 AM Hanjun Guo wrote:
->> Hi Rafael,
-> Hi,
+On 19/03/14 16:56, Srinivas Pandruvada wrote:
+> AK8963 and AK8975 use same register definitions, except the range
+> of X,Y,Z values. Added support of 8963 based on i2c_device_id.
+> Unfortunately there is no way to detect the type via registers,
+> both device registers return 0x48 as id of chipset.
 >
->> On 2014=E5=B9=B403=E6=9C=8821=E6=97=A5 08:23, Rafael J. Wysocki wrot=
-e:
->>> Hi All,
->>>
->>> My queue for the first pull request during the upcoming 3.15 merge =
-window
->>> contains the material below.  Following the rule that everything I =
-send
->>> pull requests for should spend at least one day in linux-next, I'm =
-not
->>> going to add any more new commits to it at this point.
->>>
->>> Most likely, there will be more ACPI+PM pull request during the 3.1=
-5 cycle,
->>> so if I missed something, it still may be possible to get that into=
- that
->>> kernel, but there has to be a good reason for it.
->>>
->>> Kind regards,
->>> Rafael
->>>
->>>
->>> ---------------
->>>
->>> Hanjun Guo (2):
->>>         ACPI / tables: Replace printk with pr_*
->>>         ACPI: Remove duplicate definitions of PREFIX
->> It seems that you missed some of my patches:
->> ACPI: Move BAD_MADT_ENTRY() to linux/acpi.h
->> ACPI / idle: Make idle_boot_override depend on x86 and ia64
->> ACPI / trivial: Fix the return value type of acpi_processor_eval_pdc=
-()
->> ACPI / processor: Replace hard-coded "ACPI0007" with
->> ACPI_PROCESSOR_DEVICE_HID
->>
->> I think those 4 patches can be merged in 3.15 and you already accept=
-ed them.
-> Yes, I did not include the acpi-processor branch, sorry about that an=
-d thanks
-> for spotting it!
->
-> That branch was in linux-next before, though, so I'll push it for 3.1=
-5-rc1.
+> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Applied to the togreg branch of iio.git
 
-Thanks a lot !
+Thanks,
+
+> ---
+>   drivers/iio/magnetometer/Kconfig  |  3 ++-
+>   drivers/iio/magnetometer/ak8975.c | 34 +++++++++++++++++++++++++++++-----
+>   2 files changed, 31 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/iio/magnetometer/Kconfig b/drivers/iio/magnetometer/Kconfig
+> index d86d226..05a364c54 100644
+> --- a/drivers/iio/magnetometer/Kconfig
+> +++ b/drivers/iio/magnetometer/Kconfig
+> @@ -11,7 +11,8 @@ config AK8975
+>   	depends on GPIOLIB
+>   	help
+>   	  Say yes here to build support for Asahi Kasei AK8975 3-Axis
+> -	  Magnetometer.
+> +	  Magnetometer. This driver can also support AK8963, if i2c
+> +	  device name is identified as ak8963.
+>
+>   	  To compile this driver as a module, choose M here: the module
+>   	  will be called ak8975.
+> diff --git a/drivers/iio/magnetometer/ak8975.c b/drivers/iio/magnetometer/ak8975.c
+> index 0542354..aa7682d 100644
+> --- a/drivers/iio/magnetometer/ak8975.c
+> +++ b/drivers/iio/magnetometer/ak8975.c
+> @@ -85,7 +85,14 @@
+>   #define AK8975_MAX_CONVERSION_TIMEOUT	500
+>   #define AK8975_CONVERSION_DONE_POLL_TIME 10
+>   #define AK8975_DATA_READY_TIMEOUT	((100*HZ)/1000)
+> -#define RAW_TO_GAUSS(asa) ((((asa) + 128) * 3000) / 256)
+> +#define RAW_TO_GAUSS_8975(asa) ((((asa) + 128) * 3000) / 256)
+> +#define RAW_TO_GAUSS_8963(asa) ((((asa) + 128) * 6000) / 256)
+> +
+> +/* Compatible Asahi Kasei Compass parts */
+> +enum asahi_compass_chipset {
+> +	AK8975,
+> +	AK8963,
+> +};
+>
+>   /*
+>    * Per-instance context data for the device.
+> @@ -101,6 +108,7 @@ struct ak8975_data {
+>   	int			eoc_irq;
+>   	wait_queue_head_t	data_ready_queue;
+>   	unsigned long		flags;
+> +	enum asahi_compass_chipset chipset;
+>   };
+>
+>   static const int ak8975_index_to_reg[] = {
+> @@ -272,9 +280,21 @@ static int ak8975_setup(struct i2c_client *client)
+>    * Since ASA doesn't change, we cache the resultant scale factor into the
+>    * device context in ak8975_setup().
+>    */
+> -	data->raw_to_gauss[0] = RAW_TO_GAUSS(data->asa[0]);
+> -	data->raw_to_gauss[1] = RAW_TO_GAUSS(data->asa[1]);
+> -	data->raw_to_gauss[2] = RAW_TO_GAUSS(data->asa[2]);
+> +	if (data->chipset == AK8963) {
+> +		/*
+> +		 * H range is +-8190 and magnetometer range is +-4912.
+> +		 * So HuT using the above explanation for 8975,
+> +		 * 4912/8190 = ~ 6/10.
+> +		 * So the Hadj should use 6/10 instead of 3/10.
+> +		 */
+> +		data->raw_to_gauss[0] = RAW_TO_GAUSS_8963(data->asa[0]);
+> +		data->raw_to_gauss[1] = RAW_TO_GAUSS_8963(data->asa[1]);
+> +		data->raw_to_gauss[2] = RAW_TO_GAUSS_8963(data->asa[2]);
+> +	} else {
+> +		data->raw_to_gauss[0] = RAW_TO_GAUSS_8975(data->asa[0]);
+> +		data->raw_to_gauss[1] = RAW_TO_GAUSS_8975(data->asa[1]);
+> +		data->raw_to_gauss[2] = RAW_TO_GAUSS_8975(data->asa[2]);
+> +	}
+>
+>   	return 0;
+>   }
+> @@ -499,6 +519,9 @@ static int ak8975_probe(struct i2c_client *client,
+>   	data->eoc_gpio = eoc_gpio;
+>   	data->eoc_irq = 0;
+>
+> +	data->chipset = (enum asahi_compass_chipset)(id->driver_data);
+> +	dev_dbg(&client->dev, "Asahi compass chip %s\n", id->name);
+> +
+>   	/* Perform some basic start-of-day setup of the device. */
+>   	err = ak8975_setup(client);
+>   	if (err < 0) {
+> @@ -551,7 +574,8 @@ static int ak8975_remove(struct i2c_client *client)
+>   }
+>
+>   static const struct i2c_device_id ak8975_id[] = {
+> -	{"ak8975", 0},
+> +	{"ak8975", AK8975},
+> +	{"ak8963", AK8963},
+>   	{}
+>   };
+>
+>
