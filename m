@@ -1,105 +1,124 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 4/5] ACPICA: Ignore sync_level for methods that have been auto-serialized.
-Date: Mon, 24 Mar 2014 14:49:13 +0800
-Message-ID: <f7153a2d2e2ef83d54c0095d99607b5aaab23d34.1395638745.git.lv.zheng@intel.com>
-References: <cover.1395638745.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:64124 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750827AbaCXGt0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Mar 2014 02:49:26 -0400
-In-Reply-To: <cover.1395638745.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Daniel J Blueman <daniel@1degreenorth.com>
+Subject: Re: [PATCH] Fix northbridge quirk to assign correct NUMA node
+Date: Mon, 24 Mar 2014 14:03:07 +0800
+Message-ID: <532FCA9B.7080707@1degreenorth.com>
+References: <1394710981-3596-1-git-send-email-daniel@numascale.com> <CAErSpo6psgDr3XYh6m+vYcAOix2Vttrwz1jK7bS47Liy2Lw-=g@mail.gmail.com> <532BB431.7020501@numascale.com> <CAErSpo4x+=EQ5h8DuzoRznZ_d8Roy4LHer7ELEVeHxDsKwDhzA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo4x+=EQ5h8DuzoRznZ_d8Roy4LHer7ELEVeHxDsKwDhzA@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Borislav Petkov <bp@suse.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Steffen Persvold <sp@numascale.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, kim.naru@amd.com, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+On 03/22/2014 12:11 AM, Bjorn Helgaas wrote:
+> [+cc Rafael, linux-acpi for _PXM questions]
+>
+> On Thu, Mar 20, 2014 at 9:38 PM, Daniel J Blueman <daniel@numascale.com> wrote:
+>> On 21/03/2014 06:07, Bjorn Helgaas wrote:
+>>> On Thu, Mar 13, 2014 at 5:43 AM, Daniel J Blueman <daniel@numascale.com>
+>>> wrote:
+>>>>
+>>>> For systems with multiple servers and routed fabric, all northbridges get
+>>>> assigned to the first server. Fix this by also using the node reported
+>>>> from
+>>>> the PCI bus. For single-fabric systems, the northbriges are on PCI bus 0
+>>>> by definition, which are on NUMA node 0 by definition, so this is
+>>>> invarient
+>>>> on most systems.
+>>>>
+>>>> Tested on fam10h and fam15h single and multi-fabric systems and candidate
+>>>> for stable.
+>
+>>> So I suspect the problem is more complicated, and maybe _PXM is
+>>> insufficient to describe the topology?  Are there subtrees that should
+>>> have nodes different from the host bridge?
+>>
+>> Yes; see below.
+>> ...
+>> The _PXM method associates each northbridge with the first NUMA node, 0 in
+>> single-fabric systems, and eg 4 for the second server in a multi-fabric
+>> system with 2 dual-module Opterons (with 2 NUMA nodes internally) etc, since
+>> the northbridges appear in the PCI tree, under the host bridge, not above it
+>> [1].
+>>
+>> With _PXM, the rest of the PCI bus hierarchy has the right NUMA node
+>> associated, but the northbridge PCI devices should be associated with their
+>> actual NUMA node, 0, 1, 2, 3 for the first server in this example. The quirk
+>> fixes this up; irqbalance at least uses this NUMA data exposed in /sys.
+>
+> I'm confused about which devices we're talking about.  We currently
+> look at _PXM for PNP0A08 (and PNP0A03) ACPI devices.  The resulting
+> node is associated with every PCI device we enumerate below the
+> PNP0A08 bridge.  This association is made in pci_device_add().
+>
+> When you say "northbridge PCI devices should be associated with their
+> actual NUMA node," I assume you mean the 00:18.x and 00:19.x devices
+> ("AMD Family 10h Processor ..."), since those seem to be what the
+> quirk applies to.  You are *not* talking about 00:00.0 ("ATI RD890
+> Northbridge"), right?
 
-Cannot use a sync_level for methods that have been serialized at load-time
-or runtime because this may interfere with any existing use of sync_levels
-within the ASL code. So, we simply ignore the sync_level for these methods,
-thus preserving any existing sync_level priorities. Note, the use of
-sync_levels is actually rather rare within BIOS ASL code.
+Yes, on bus 0, devices 0x18 to 0x20 decode to the (up to) eight 
+Hypertransport devices in the processor fabric, normally all processor 
+northbridges.
 
-References: http://www.spinics.net/lists/linux-acpi/msg49496.html
-Reported-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
-Reported-by: Sabrina Dubroka <sd@queasysnail.net>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/acobject.h |    3 ++-
- drivers/acpi/acpica/dsmethod.c |   24 +++++++++++++++++++-----
- 2 files changed, 21 insertions(+), 6 deletions(-)
+> You mention irqbalance; is the NUMA node information for the 00:18.x
+> and 00:19.x devices important because you get a lot of interrupts from
+> those devices?  Or is the issue with actual I/O devices (NICs, SCSI
+> adapters, etc.)?  If so, I don't see how this quirk would affect
+> those, because the node information for them comes from the PNP0A08
+> bridge (in pci_device_add()), not from the 00:00.0, 00:18.x, or
+> 00:19.x devices.
 
-diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
-index 1a4d618..22fb644 100644
---- a/drivers/acpi/acpica/acobject.h
-+++ b/drivers/acpi/acpica/acobject.h
-@@ -193,7 +193,8 @@ struct acpi_object_method {
- #define ACPI_METHOD_INTERNAL_ONLY       0x02	/* Method is implemented internally (_OSI) */
- #define ACPI_METHOD_SERIALIZED          0x04	/* Method is serialized */
- #define ACPI_METHOD_SERIALIZED_PENDING  0x08	/* Method is to be marked serialized */
--#define ACPI_METHOD_MODIFIED_NAMESPACE  0x10	/* Method modified the namespace */
-+#define ACPI_METHOD_IGNORE_SYNC_LEVEL   0x10	/* Method was auto-serialized at table load time */
-+#define ACPI_METHOD_MODIFIED_NAMESPACE  0x20	/* Method modified the namespace */
- 
- /******************************************************************************
-  *
-diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index 73764c7..3c7f737 100644
---- a/drivers/acpi/acpica/dsmethod.c
-+++ b/drivers/acpi/acpica/dsmethod.c
-@@ -175,8 +175,15 @@ acpi_ds_detect_named_opcodes(struct acpi_walk_state *walk_state,
- 	 * At this point, we know we have a Named object opcode.
- 	 * Mark the method as serialized. Later code will create a mutex for
- 	 * this method to enforce serialization.
-+	 *
-+	 * Note, ACPI_METHOD_IGNORE_SYNC_LEVEL flag means that we will ignore the
-+	 * Sync Level mechanism for this method, even though it is now serialized.
-+	 * Otherwise, there can be conflicts with existing ASL code that actually
-+	 * uses sync levels.
- 	 */
--	walk_state->method_desc->method.info_flags |= ACPI_METHOD_SERIALIZED;
-+	walk_state->method_desc->method.sync_level = 0;
-+	walk_state->method_desc->method.info_flags |=
-+	    (ACPI_METHOD_SERIALIZED | ACPI_METHOD_IGNORE_SYNC_LEVEL);
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "Method serialized [%4.4s] %p - [%s] (%4.4X)\n",
-@@ -349,13 +356,19 @@ acpi_ds_begin_method_execution(struct acpi_namespace_node *method_node,
- 		/*
- 		 * The current_sync_level (per-thread) must be less than or equal to
- 		 * the sync level of the method. This mechanism provides some
--		 * deadlock prevention
-+		 * deadlock prevention.
-+		 *
-+		 * If the method was auto-serialized, we just ignore the sync level
-+		 * mechanism, because auto-serialization of methods can interfere
-+		 * with ASL code that actually uses sync levels.
- 		 *
- 		 * Top-level method invocation has no walk state at this point
- 		 */
- 		if (walk_state &&
--		    (walk_state->thread->current_sync_level >
--		     obj_desc->method.mutex->mutex.sync_level)) {
-+		    (!(obj_desc->method.
-+		       info_flags & ACPI_METHOD_IGNORE_SYNC_LEVEL))
-+		    && (walk_state->thread->current_sync_level >
-+			obj_desc->method.mutex->mutex.sync_level)) {
- 			ACPI_ERROR((AE_INFO,
- 				    "Cannot acquire Mutex for method [%4.4s], current SyncLevel is too large (%u)",
- 				    acpi_ut_get_node_name(method_node),
-@@ -800,7 +813,8 @@ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
- 			method_desc->method.info_flags &=
- 			    ~ACPI_METHOD_SERIALIZED_PENDING;
- 			method_desc->method.info_flags |=
--			    ACPI_METHOD_SERIALIZED;
-+			    (ACPI_METHOD_SERIALIZED |
-+			     ACPI_METHOD_IGNORE_SYNC_LEVEL);
- 			method_desc->method.sync_level = 0;
- 		}
- 
+I need to investigate the lockups irqbalance was causing on a customer 
+system, and am not sure what interrupt source that was rewritten which 
+causing hangs; disabling the daemon prevented the hangs.
+
+>> The alternative to the quirk may be to explicitly express the northbridge
+>> PCI devices in the AML with their own _PXM methods. If it's valid, it may be
+>> the honest approach, though the quirk may be needed for most BIOSs; I can
+>> check the AML on a few servers to confirm if helpful.
+>
+> ACPI allows _PXM for any device, so this might be a possible approach.
+>   However, it looks like Linux only pays attention to _PXM for
+> PNP0A08/03, CPUs, memory and IOAPICs (which seems like a Linux defect
+> to me).
+
+> I'm really worried about the approach here:
+>
+>          pci_read_config_dword(nb_ht, 0x60, &val);
+>          node = pcibus_to_node(dev->bus) | (val & 7);
+>
+> because the pcibus_to_node() information comes indirectly from _PXM,
+> and the "val" part comes from the hardware, and I don't think these
+> are the same node number space.  If I understand correctly, the BIOS
+> can synthesize whatever numbers it wants for _PXM, which returns a
+> "proximity domain," and then Linux can make up its own mapping of
+> "proximity domain" to "logical Linux node."  So I don't see why we can
+> assume that it's valid to OR in the bits from a PCI config register to
+> this logical Linux node number.
+
+pcibus_to_node uses the proximity domain values in the ACPI SRAT table, 
+which is thus correctly mapped to the linux NUMA node ID, so my oneliner 
+is still progress.
+
+Linux allocates NUMA node ids using the ordering of PXM values seen in 
+the SRAT table, ie first_unset_node(nodes_found_map). The APIC ids are 
+initialised using the HyperTransport NodeId [1, p263 and p465], but the 
+NodeId can be reprogrammed after the APIC ids are set (which also 
+changes the PCI configuration device id from 0x18 on bus 0 it responds 
+to), and the SRAT table needn't be emitted in order, perhaps except for 
+the bootstrap core.
+
+I guess fixing the original quirk depends on how important these cases 
+really are.
+
+Thanks,
+   Daniel
+
+[1] http://support.amd.com/TechDocs/42301_15h_Mod_00h-0Fh_BKDG.pdf
 -- 
-1.7.10
-
+Daniel J Blueman
+Principal Software Engineer, Numascale
