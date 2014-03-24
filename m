@@ -1,189 +1,96 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH][Resend] ACPI / processor_core: Rework _PDC related stuff to make it more arch-independent
-Date: Mon, 24 Mar 2014 17:51:42 +0800
-Message-ID: <1395654702-12846-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>
+From: Stefan Biereigel <security@biereigel-wb.de>
+Subject: Re: [REGRESSION 3.14-rc6] Samsung N150 lid does not "open" after
+ suspend to RAM.
+Date: Mon, 24 Mar 2014 12:19:13 +0100
+Message-ID: <533014B1.4030307@biereigel-wb.de>
+References: <532FE3B2.9060808@biereigel-wb.de> <CAOLK0pxh4b3uzjD4jaPssD66K8g33uqahV1SzOAJAmQmnY4XqQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.24]:50609 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750984AbaCXLTW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Mar 2014 07:19:22 -0400
+In-Reply-To: <CAOLK0pxh4b3uzjD4jaPssD66K8g33uqahV1SzOAJAmQmnY4XqQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Stefan Biereigel <stefan@biereigel.de>, lenb@kernel.org, rjw@rjwysocki.net, Lan Tianyu <lantianyu1986@gmail.com>
 
-_PDC related stuff in processor_core.c is little bit X86/IA64
-dependent, macros of ACPI_PDC_* are _PDC bit definitions for
-Intel processors, if we use these macros in processor_core.c,
-we will meet compile error when ACPI is enabled on ARM64.
+Hi,
+thank you for the suggestion. The patch resolves the issue on my N150
+when applied to a clean 3.14-rc7. Anyways I'm wondering if similar
+problems to mine now exist on the Samsung Series 7/9 notebooks?
 
-This patch reworks the code to make it more arch-independent,
-moving Intel related _PDC bits into architecture directory,
-no functional change.
+Is any further action from my part required?
 
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: x86@kernel.org
-Cc: linux-ia64@vger.kernel.org
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
----
- arch/ia64/include/asm/acpi.h  |    5 +----
- arch/ia64/kernel/acpi.c       |   15 +++++++++++++++
- arch/x86/include/asm/acpi.h   |   19 +------------------
- arch/x86/kernel/acpi/cstate.c |   27 +++++++++++++++++++++++++++
- drivers/acpi/processor_core.c |   19 +------------------
- 5 files changed, 45 insertions(+), 40 deletions(-)
+Regards,
+Stefan
 
-diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
-index d651102..d2b8b9d 100644
---- a/arch/ia64/include/asm/acpi.h
-+++ b/arch/ia64/include/asm/acpi.h
-@@ -152,10 +152,7 @@ extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
- #endif
- 
- static inline bool arch_has_acpi_pdc(void) { return true; }
--static inline void arch_acpi_set_pdc_bits(u32 *buf)
--{
--	buf[2] |= ACPI_PDC_EST_CAPABILITY_SMP;
--}
-+extern void arch_acpi_set_pdc_bits(u32 *buf);
- 
- #define acpi_unlazy_tlb(x)
- 
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index 467497a..7b15c2c 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -1010,3 +1010,18 @@ EXPORT_SYMBOL(acpi_unregister_ioapic);
-  * TBD when when IA64 starts to support suspend...
-  */
- int acpi_suspend_lowlevel(void) { return 0; }
-+
-+void arch_acpi_set_pdc_bits(u32 *buf)
-+{
-+	/* Enable coordination with firmware's _TSD info */
-+	buf[2] |= ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_EST_CAPABILITY_SMP;
-+
-+	if (boot_option_idle_override == IDLE_NOMWAIT) {
-+		/*
-+		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-+		 * mode will be disabled in the parameter of _PDC object.
-+		 * Of course C1_FFH access mode will also be disabled.
-+		 */
-+		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
-+	}
-+}
-diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-index c8c1e70..e9f71bc 100644
---- a/arch/x86/include/asm/acpi.h
-+++ b/arch/x86/include/asm/acpi.h
-@@ -147,24 +147,7 @@ static inline bool arch_has_acpi_pdc(void)
- 		c->x86_vendor == X86_VENDOR_CENTAUR);
- }
- 
--static inline void arch_acpi_set_pdc_bits(u32 *buf)
--{
--	struct cpuinfo_x86 *c = &cpu_data(0);
--
--	buf[2] |= ACPI_PDC_C_CAPABILITY_SMP;
--
--	if (cpu_has(c, X86_FEATURE_EST))
--		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
--
--	if (cpu_has(c, X86_FEATURE_ACPI))
--		buf[2] |= ACPI_PDC_T_FFH;
--
--	/*
--	 * If mwait/monitor is unsupported, C2/C3_FFH will be disabled
--	 */
--	if (!cpu_has(c, X86_FEATURE_MWAIT))
--		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
--}
-+extern void arch_acpi_set_pdc_bits(u32 *buf);
- 
- #else /* !CONFIG_ACPI */
- 
-diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
-index e69182f..035a4ea72 100644
---- a/arch/x86/kernel/acpi/cstate.c
-+++ b/arch/x86/kernel/acpi/cstate.c
-@@ -16,6 +16,33 @@
- #include <asm/mwait.h>
- #include <asm/special_insns.h>
- 
-+void arch_acpi_set_pdc_bits(u32 *buf)
-+{
-+	struct cpuinfo_x86 *c = &cpu_data(0);
-+
-+	/* Enable coordination with firmware's _TSD info */
-+	buf[2] |= ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_C_CAPABILITY_SMP;
-+
-+	if (cpu_has(c, X86_FEATURE_EST))
-+		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
-+
-+	if (cpu_has(c, X86_FEATURE_ACPI))
-+		buf[2] |= ACPI_PDC_T_FFH;
-+
-+	/* If mwait/monitor is unsupported, C2/C3_FFH will be disabled */
-+	if (!cpu_has(c, X86_FEATURE_MWAIT))
-+		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
-+
-+	if (boot_option_idle_override == IDLE_NOMWAIT) {
-+		/*
-+		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-+		 * mode will be disabled in the parameter of _PDC object.
-+		 * Of course C1_FFH access mode will also be disabled.
-+		 */
-+		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
-+	}
-+}
-+
- /*
-  * Initialize bm_flags based on the CPU cache properties
-  * On SMP it depends on cache configuration
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 86d73d5..30183eb 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -281,9 +281,6 @@ static void acpi_set_pdc_bits(u32 *buf)
- 	buf[0] = ACPI_PDC_REVISION_ID;
- 	buf[1] = 1;
- 
--	/* Enable coordination with firmware's _TSD info */
--	buf[2] = ACPI_PDC_SMP_T_SWCOORD;
--
- 	/* Twiddle arch-specific bits needed for _PDC */
- 	arch_acpi_set_pdc_bits(buf);
- }
-@@ -308,7 +305,7 @@ static struct acpi_object_list *acpi_processor_alloc_pdc(void)
- 		return NULL;
- 	}
- 
--	buf = kmalloc(12, GFP_KERNEL);
-+	buf = kzalloc(12, GFP_KERNEL);
- 	if (!buf) {
- 		printk(KERN_ERR "Memory allocation error\n");
- 		kfree(obj);
-@@ -336,20 +333,6 @@ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
- {
- 	acpi_status status = AE_OK;
- 
--	if (boot_option_idle_override == IDLE_NOMWAIT) {
--		/*
--		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
--		 * mode will be disabled in the parameter of _PDC object.
--		 * Of course C1_FFH access mode will also be disabled.
--		 */
--		union acpi_object *obj;
--		u32 *buffer = NULL;
--
--		obj = pdc_in->pointer;
--		buffer = (u32 *)(obj->buffer.pointer);
--		buffer[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
--
--	}
- 	status = acpi_evaluate_object(handle, "_PDC", pdc_in, NULL);
- 
- 	if (ACPI_FAILURE(status))
--- 
-1.7.9.5
-
+Am 24.03.2014 10:30, schrieb Lan Tianyu:
+> Please try the following patch.
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index d7d32c2..9239527 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -1027,8 +1027,13 @@ static struct dmi_system_id ec_dmi_table[] __initdata = {
+>         DMI_MATCH(DMI_SYS_VENDOR, "ASUSTek Computer Inc."),
+>         DMI_MATCH(DMI_PRODUCT_NAME, "L4R"),}, NULL},
+>         {
+> -       ec_clear_on_resume, "Samsung hardware", {
+> -       DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD.")}, NULL},
+> +       ec_clear_on_resume, "Samsung NP530U3B", {
+> +       DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+> +       DMI_MATCH(DMI_PRODUCT_NAME, "530U3BI/530U4BI/530U4BH"),}, NULL},
+> +       {
+> +       ec_clear_on_resume, "Samsung NP530U3C", {
+> +       DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+> +       DMI_MATCH(DMI_PRODUCT_NAME, "530U3C/530U4C/532U3C"),}, NULL},
+>         {},
+>  };
+> 
+> 
+> 
+> 
+> 2014-03-24 15:50 GMT+08:00 Stefan Biereigel <security@biereigel-wb.de>:
+>> Hi,
+>>
+>> starting with 3.14-rc6, the lid on my Samsung N150 behaves weird: My
+>> system is set up, so that it should suspend to RAM as soon as the lid is
+>> closed. Beginning with 3.14-rc6, the lid goes from "open" to "closed"
+>> correctly the first time (and the system suspends), but after resuming
+>> from standby (by opening the lid), the lid does not change to "open" again.
+>> Of course, closing the lid again does not induce suspend to RAM then.
+>> Opening the lid now (while not sleeping), makes ACPI notify the opening,
+>> so I guess ACPI "misses" or discards the lid open event from the EC when
+>> coming from sleep.
+>> Now, closing the lid again does induce suspend to RAM. This behaviour is
+>> reproducible: every other time, suspending works.
+>>
+>> This behaviour seems to be introduced by commit ad332c8a: ACPI / EC:
+>> Clear stale EC events on Samsung systems.
+>> Which was introduced after 3.14-rc5.
+>>
+>> When opening the lid to resume from standby, i see in dmesg:
+>> Mar 23 22:12:04 little1 kernel: [ 7630.932074] ACPI : EC: 1 stale EC
+>> events cleared
+>> (which comes from drivers/acpi/ec.c)
+>>
+>> Seems to me, that the "open" event is cleared from the EC, but also
+>> discarded instead of passed on. Shouldn't the correct behaviour be to
+>> report all the pending events, read from the EC, as ACPI events? Can you
+>> point me in a direction for fixing the issue cleanly, then I will try to
+>> find a solution and prepare a patch for this issue.
+>>
+>> Best regards,
+>> Stefan
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> 
