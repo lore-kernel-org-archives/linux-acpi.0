@@ -1,149 +1,77 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH V4 07/11] ACPI: use platform bus as the default bus for
- _HID enumeration
-Date: Mon, 24 Mar 2014 12:06:09 +0800
-Message-ID: <1395633969.2206.36.camel@rzhang1-mobl4>
-References: <1395042580-3344-1-git-send-email-rui.zhang@intel.com>
-	 <1395042580-3344-8-git-send-email-rui.zhang@intel.com>
-	 <28494711.6ccuzjUcKA@vostro.rjw.lan>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [asus-nb-wmi] thermal device detected by asus-nb-wmi platform
+ driver
+Date: Sun, 23 Mar 2014 21:15:16 -0700
+Message-ID: <532FB154.6020608@roeck-us.net>
+References: <532B8630.8030607@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:37242 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750790AbaCXEGg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Mar 2014 00:06:36 -0400
-In-Reply-To: <28494711.6ccuzjUcKA@vostro.rjw.lan>
+Received: from mail.active-venture.com ([67.228.131.205]:55566 "EHLO
+	mail.active-venture.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750714AbaCXEPV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Mar 2014 00:15:21 -0400
+In-Reply-To: <532B8630.8030607@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com
+To: "Lu, Baolu" <baolu.lu@linux.intel.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
 
-On Mon, 2014-03-24 at 03:00 +0100, Rafael J. Wysocki wrote:
-> On Monday, March 17, 2014 03:49:36 PM Zhang Rui wrote:
-> > Because of the growing demand for enumerating ACPI devices to platform bus,
-> > this patch changes the code to enumerate ACPI devices with _HID to
-> > platform bus by default, unless the device already has a scan handler attached.
-> 
-> I think we need to be more careful here still.
-> 
-> For example, we shouldn't create platform devices for ACPI device objects that
-> correspond to I2C devices (or any other "simple peripheral bus" devices for that
-> matter).
-> 
-agreed. Then how about the patch below?
-Note that I've just finished with build test.
+On 03/20/2014 05:22 PM, Lu, Baolu wrote:
+> Hi,
+>
+> I booted Ubuntu13.10 onto ASUS T100 Tablet and upgraded it with upstr=
+eam
+> kernel (3.14.0-rc7+). There is a thermal device under
+> /sys/devices/platform/asus-nb-wmi.
+>
+> root@t100:~/linux# tree /sys/class/hwmon/
+> /sys/class/hwmon/
+> =E2=94=9C=E2=94=80=E2=94=80 hwmon0 -> ../../devices/platform/coretemp=
+=2E0/hwmon/hwmon0
+> =E2=94=94=E2=94=80=E2=94=80 hwmon1 -> ../../devices/platform/asus-nb-=
+wmi/hwmon/hwmon1
+>
+> root@t100:/sys/devices/platform/asus-nb-wmi# ls
+> cpufv driver hwmon input modalias power subsystem uevent
+>
+> root@t100:~/linux# sensors
+> coretemp-isa-0000
+> Adapter: ISA adapter
+> Core 0: +38.0=C2=B0C (high =3D +90.0=C2=B0C, crit =3D +90.0=C2=B0C)
+> Core 1: +38.0=C2=B0C (high =3D +90.0=C2=B0C, crit =3D +90.0=C2=B0C)
+> Core 2: +39.0=C2=B0C (high =3D +90.0=C2=B0C, crit =3D +90.0=C2=B0C)
+> Core 3: +38.0=C2=B0C (high =3D +90.0=C2=B0C, crit =3D +90.0=C2=B0C)
+>
+> asus-isa-0000
+> Adapter: ISA adapter
+> temp1: +6280.0=C2=B0C
+>
 
-thanks,
-rui
+Pretty hot ;-). Not your problem, though - it looks like the temperatur=
+e
+is reported in Kelvin and the code converting from Kelvin to degrees C
+turns out to be buggy.
 
+> I didn't get any information about thermal interface in
+> "Documentation/ABI/testing/sysfs-platform-asus-wmi". Is this a therma=
+l
+> sensor? If it's the fact, how can I change the environment so that th=
+is
+> sensor gives me variable data?
+>
 
->From a21cef9a840d979362bfaac3feeae19236a93d22 Mon Sep 17 00:00:00 2001
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Mon, 24 Mar 2014 11:48:05 +0800
-Subject: [PATCH] ACPI: introduce .handle_children flag for acpi scan handler
+I don't think I understand your question. Yes, this is a thermal sensor=
+=2E
+What is it you want to do (in addition to having it report reasonable
+temperatures) ?
 
-For some devices with scan handler attached, their children devices
-are enumerated by the scan handler, indirectly, as well.
+Guenter
 
-In this case, we do not want to enumerate the children devices in
-acpi scan code explicitly.
-
-Thus a new flag .handle_children is introduced in this patch.
-
-For scan handlers with this flag set, we will do default enumeration neither
-for the attached devices nor for the children of the attached devices.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/acpi_lpss.c |    1 +
- drivers/acpi/scan.c      |   28 ++++++++++++++++++++++++++--
- include/acpi/acpi_bus.h  |    4 +++-
- 3 files changed, 30 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index cfbf2c0..9857343 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -453,6 +453,7 @@ static int acpi_lpss_dummy_attach(struct acpi_device *adev,
- static struct acpi_scan_handler lpss_dummy_handler = {
- 	.ids = acpi_lpss_device_ids,
- 	.attach = acpi_lpss_dummy_attach,
-+	.handle_children = true,
- };
- 
- void __init acpi_lpss_init(void)
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index c0456e7..cd833f4 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -2016,6 +2016,31 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl_not_used,
- 	return AE_OK;
- }
- 
-+static void acpi_do_default_enumeration(struct acpi_device *device)
-+{
-+	/*
-+	 * Do not do enumeration for device object that
-+	 * its parent doesn't want to
-+	 */
-+	if (device->parent && device->parent->flags.no_child_enumeration) {
-+		device->flags.no_child_enumeration = 1;
-+		return;
-+	}
-+
-+	/* Do not do enumeration for device object with scan handler attached */
-+	if (device->handler) {
-+		if (device->handler->handle_children)
-+			device->flags.no_child_enumeration = 1;
-+		return;
-+	}
-+
-+	/* Do not do enumeration for device object w/o platform_id */
-+	if (!device->pnp.type.platform_id)
-+		return;
-+
-+	acpi_create_platform_device(device, NULL);
-+}
-+
- static int acpi_scan_attach_handler(struct acpi_device *device)
- {
- 	struct acpi_hardware_id *hwid;
-@@ -2035,8 +2060,7 @@ static int acpi_scan_attach_handler(struct acpi_device *device)
- 		}
- 	}
- end:
--	if (device->pnp.type.platform_id && !device->handler)
--		acpi_create_platform_device(device, NULL);
-+	acpi_do_default_enumeration(device);
- 	return ret;
- }
- 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index f998746..bc7235f 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -135,6 +135,7 @@ struct acpi_scan_handler {
- 	int (*attach)(struct acpi_device *dev, const struct acpi_device_id *id);
- 	void (*detach)(struct acpi_device *dev);
- 	struct acpi_hotplug_profile hotplug;
-+	bool handle_children;
- };
- 
- /*
-@@ -191,7 +192,8 @@ struct acpi_device_flags {
- 	u32 initialized:1;
- 	u32 visited:1;
- 	u32 no_hotplug:1;
--	u32 reserved:24;
-+	u32 no_child_enumeration:1;
-+	u32 reserved:23;
- };
- 
- /* File System */
--- 
-1.7.9.5
-
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
