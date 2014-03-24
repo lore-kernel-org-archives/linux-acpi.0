@@ -1,50 +1,74 @@
-From: Stefan Biereigel <security@biereigel-wb.de>
-Subject: [REGRESSION 3.14-rc6] Samsung N150 lid does not "open" after suspend
- to RAM.
-Date: Mon, 24 Mar 2014 08:50:10 +0100
-Message-ID: <532FE3B2.9060808@biereigel-wb.de>
+From: "Lu, Baolu" <baolu.lu@linux.intel.com>
+Subject: Re: [asus-nb-wmi] thermal device detected by
+ asus-nb-wmi platform driver
+Date: Mon, 24 Mar 2014 15:55:59 +0800
+Message-ID: <532FE50F.8090909@linux.intel.com>
+References: <532B8630.8030607@linux.intel.com> <532FB154.6020608@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.131]:52537 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988AbaCXHuP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Mar 2014 03:50:15 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <lm-sensors-bounces@lm-sensors.org>
+In-Reply-To: <532FB154.6020608@roeck-us.net>
+List-Unsubscribe: <http://lists.lm-sensors.org/mailman/options/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
+List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors/>
+List-Post: <mailto:lm-sensors@lm-sensors.org>
+List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
+List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
+Sender: lm-sensors-bounces@lm-sensors.org
+Errors-To: lm-sensors-bounces@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Stefan Biereigel <stefan@biereigel.de>, lenb@kernel.org, rjw@rjwysocki.net
 
-Hi,
-
-starting with 3.14-rc6, the lid on my Samsung N150 behaves weird: My
-system is set up, so that it should suspend to RAM as soon as the lid is
-closed. Beginning with 3.14-rc6, the lid goes from "open" to "closed"
-correctly the first time (and the system suspends), but after resuming
-from standby (by opening the lid), the lid does not change to "open" again.
-Of course, closing the lid again does not induce suspend to RAM then.
-Opening the lid now (while not sleeping), makes ACPI notify the opening,
-so I guess ACPI "misses" or discards the lid open event from the EC when
-coming from sleep.
-Now, closing the lid again does induce suspend to RAM. This behaviour is
-reproducible: every other time, suspending works.
-
-This behaviour seems to be introduced by commit ad332c8a: ACPI / EC:
-Clear stale EC events on Samsung systems.
-Which was introduced after 3.14-rc5.
-
-When opening the lid to resume from standby, i see in dmesg:
-Mar 23 22:12:04 little1 kernel: [ 7630.932074] ACPI : EC: 1 stale EC
-events cleared
-(which comes from drivers/acpi/ec.c)
-
-Seems to me, that the "open" event is cleared from the EC, but also
-discarded instead of passed on. Shouldn't the correct behaviour be to
-report all the pending events, read from the EC, as ACPI events? Can you
-point me in a direction for fixing the issue cleanly, then I will try to
-find a solution and prepare a patch for this issue.
-
-Best regards,
-Stefan
-
+Ck9uIDIwMTQvMy8yNCAxMjoxNSwgR3VlbnRlciBSb2VjayB3cm90ZToKPiBPbiAwMy8yMC8yMDE0
+IDA1OjIyIFBNLCBMdSwgQmFvbHUgd3JvdGU6Cj4+IEhpLAo+Pgo+PiBJIGJvb3RlZCBVYnVudHUx
+My4xMCBvbnRvIEFTVVMgVDEwMCBUYWJsZXQgYW5kIHVwZ3JhZGVkIGl0IHdpdGggdXBzdHJlYW0K
+Pj4ga2VybmVsICgzLjE0LjAtcmM3KykuIFRoZXJlIGlzIGEgdGhlcm1hbCBkZXZpY2UgdW5kZXIK
+Pj4gL3N5cy9kZXZpY2VzL3BsYXRmb3JtL2FzdXMtbmItd21pLgo+Pgo+PiByb290QHQxMDA6fi9s
+aW51eCMgdHJlZSAvc3lzL2NsYXNzL2h3bW9uLwo+PiAvc3lzL2NsYXNzL2h3bW9uLwo+PiDilJzi
+lIDilIAgaHdtb24wIC0+IC4uLy4uL2RldmljZXMvcGxhdGZvcm0vY29yZXRlbXAuMC9od21vbi9o
+d21vbjAKPj4g4pSU4pSA4pSAIGh3bW9uMSAtPiAuLi8uLi9kZXZpY2VzL3BsYXRmb3JtL2FzdXMt
+bmItd21pL2h3bW9uL2h3bW9uMQo+Pgo+PiByb290QHQxMDA6L3N5cy9kZXZpY2VzL3BsYXRmb3Jt
+L2FzdXMtbmItd21pIyBscwo+PiBjcHVmdiBkcml2ZXIgaHdtb24gaW5wdXQgbW9kYWxpYXMgcG93
+ZXIgc3Vic3lzdGVtIHVldmVudAo+Pgo+PiByb290QHQxMDA6fi9saW51eCMgc2Vuc29ycwo+PiBj
+b3JldGVtcC1pc2EtMDAwMAo+PiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+PiBDb3JlIDA6ICszOC4w
+wrBDIChoaWdoID0gKzkwLjDCsEMsIGNyaXQgPSArOTAuMMKwQykKPj4gQ29yZSAxOiArMzguMMKw
+QyAoaGlnaCA9ICs5MC4wwrBDLCBjcml0ID0gKzkwLjDCsEMpCj4+IENvcmUgMjogKzM5LjDCsEMg
+KGhpZ2ggPSArOTAuMMKwQywgY3JpdCA9ICs5MC4wwrBDKQo+PiBDb3JlIDM6ICszOC4wwrBDICho
+aWdoID0gKzkwLjDCsEMsIGNyaXQgPSArOTAuMMKwQykKPj4KPj4gYXN1cy1pc2EtMDAwMAo+PiBB
+ZGFwdGVyOiBJU0EgYWRhcHRlcgo+PiB0ZW1wMTogKzYyODAuMMKwQwo+Pgo+Cj4gUHJldHR5IGhv
+dCA7LSkuIE5vdCB5b3VyIHByb2JsZW0sIHRob3VnaCAtIGl0IGxvb2tzIGxpa2UgdGhlIHRlbXBl
+cmF0dXJlCj4gaXMgcmVwb3J0ZWQgaW4gS2VsdmluIGFuZCB0aGUgY29kZSBjb252ZXJ0aW5nIGZy
+b20gS2VsdmluIHRvIGRlZ3JlZXMgQwo+IHR1cm5zIG91dCB0byBiZSBidWdneS4KPgo+PiBJIGRp
+ZG4ndCBnZXQgYW55IGluZm9ybWF0aW9uIGFib3V0IHRoZXJtYWwgaW50ZXJmYWNlIGluCj4+ICJE
+b2N1bWVudGF0aW9uL0FCSS90ZXN0aW5nL3N5c2ZzLXBsYXRmb3JtLWFzdXMtd21pIi4gSXMgdGhp
+cyBhIHRoZXJtYWwKPj4gc2Vuc29yPyBJZiBpdCdzIHRoZSBmYWN0LCBob3cgY2FuIEkgY2hhbmdl
+IHRoZSBlbnZpcm9ubWVudCBzbyB0aGF0IHRoaXMKPj4gc2Vuc29yIGdpdmVzIG1lIHZhcmlhYmxl
+IGRhdGE/Cj4+Cj4KPiBJIGRvbid0IHRoaW5rIEkgdW5kZXJzdGFuZCB5b3VyIHF1ZXN0aW9uLiBZ
+ZXMsIHRoaXMgaXMgYSB0aGVybWFsIHNlbnNvci4KPiBXaGF0IGlzIGl0IHlvdSB3YW50IHRvIGRv
+IChpbiBhZGRpdGlvbiB0byBoYXZpbmcgaXQgcmVwb3J0IHJlYXNvbmFibGUKPiB0ZW1wZXJhdHVy
+ZXMpID8KPgo+IEd1ZW50ZXIKClNvcnJ5IGZvciB0aGUgY29uZnVzaW5nIHF1ZXN0aW9uLiBJJ2Qg
+bGlrZSB0byB2ZXJpZnkgd2hldGhlciB0aGlzIHNlbnNvciAKd29ya3MuIFdoYXQgSSB3YW50IHRv
+IGRvIGlzIHRvIG1ha2Ugc29tZSBjaGFuZ2VzIHNvIHRoYXQgdGhlIHNlbnNvciAKY291bGQgZ2l2
+ZSBtZSBhIGRpZmZlcmVudCB0ZW1wZXJhdHVyZSB2YWx1ZSBvdGhlciB0aGFuIGFsd2F5cyArNjI4
+MC4wwrAuIApJIGhhdmUgbm8gaWRlYSBhYm91dCB3aGF0IGtpbmQgb2YgY2hhbmdlcyBzaG91bGQg
+SSBtYWtlLgoKRm9yIGV4YW1wbGUsIHdoZW4gSSB3b3JrIHdpdGggdGhlcm1hbCBzZW5zb3JzIGlu
+IENQVSBjb3JlLiBJIGNhbiBzZWUgCmRpZmZlcmVudCB0ZW1wZXJhdHVyZSB2YWx1ZXMgYXQgZGlm
+ZmVyZW50IGNvcmUgc3RhdGVzIChpZGxlIGFuZCBidXN5KS4KCltzeXN0ZW0gaWRsZV0KCnJvb3RA
+dDEwMDp+IyBzZW5zb3JzCgphc3VzLWlzYS0wMDAwCgpBZGFwdGVyOiBJU0EgYWRhcHRlcgoKdGVt
+cDE6ICs2MjgwLjDCsEMKCmNvcmV0ZW1wLWlzYS0wMDAwCgpBZGFwdGVyOiBJU0EgYWRhcHRlcgoK
+Q29yZSAwOiArMzkuMMKwQyAgKGhpZ2ggPSArOTAuMMKwQywgY3JpdCA9ICs5MC4wwrBDKQoKQ29y
+ZSAxOiArMzkuMMKwQyAgKGhpZ2ggPSArOTAuMMKwQywgY3JpdCA9ICs5MC4wwrBDKQoKQ29yZSAy
+OiArMzkuMMKwQyAgKGhpZ2ggPSArOTAuMMKwQywgY3JpdCA9ICs5MC4wwrBDKQoKQ29yZSAzOiAr
+MzkuMMKwQyAgKGhpZ2ggPSArOTAuMMKwQywgY3JpdCA9ICs5MC4wwrBDKQoKW3N5c3RlbSBidXN5
+XQoKcm9vdEB0MTAwOn4jIHNlbnNvcnMKCmFzdXMtaXNhLTAwMDAKCkFkYXB0ZXI6IElTQSBhZGFw
+dGVyCgp0ZW1wMTogKzYyODAuMMKwQwoKY29yZXRlbXAtaXNhLTAwMDAKCkFkYXB0ZXI6IElTQSBh
+ZGFwdGVyCgpDb3JlIDA6ICs0NS4wwrBDICAoaGlnaCA9ICs5MC4wwrBDLCBjcml0ID0gKzkwLjDC
+sEMpCgpDb3JlIDE6ICs0NS4wwrBDICAoaGlnaCA9ICs5MC4wwrBDLCBjcml0ID0gKzkwLjDCsEMp
+CgpDb3JlIDI6ICs0Ni4wwrBDICAoaGlnaCA9ICs5MC4wwrBDLCBjcml0ID0gKzkwLjDCsEMpCgpD
+b3JlIDM6ICs0Ni4wwrBDICAoaGlnaCA9ICs5MC4wwrBDLCBjcml0ID0gKzkwLjDCsEMpCgoKClRo
+YW5rcywKYmFvbHUKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRw
+Oi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
