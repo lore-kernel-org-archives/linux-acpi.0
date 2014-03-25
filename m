@@ -1,30 +1,42 @@
-From: Stefan Biereigel <stefan@biereigel.de>
+From: Stefan Biereigel <security@biereigel-wb.de>
 Subject: Re: [REGRESSION 3.14-rc6] Samsung N150 lid does not "open" after
  suspend to RAM.
-Date: Tue, 25 Mar 2014 17:38:39 +0100
-Message-ID: <5331B10F.3050402@biereigel.de>
+Date: Tue, 25 Mar 2014 21:24:11 +0100
+Message-ID: <5331E5EB.5000304@biereigel-wb.de>
 References: <532FE3B2.9060808@biereigel-wb.de> <CAOLK0pxh4b3uzjD4jaPssD66K8g33uqahV1SzOAJAmQmnY4XqQ@mail.gmail.com> <533014B1.4030307@biereigel-wb.de> <CAOLK0pyOV50Vqt+bX_QpH_tjL=8eWwvu+O70EvTOZ+ixWZmr3Q@mail.gmail.com> <CAGf84Q+9RcQqi=YYvF8X8EJzbtk7dJYTxScaZN4347U+POQ4AQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:59278 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751877AbaCYUYR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Mar 2014 16:24:17 -0400
 In-Reply-To: <CAGf84Q+9RcQqi=YYvF8X8EJzbtk7dJYTxScaZN4347U+POQ4AQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kieran Clancy <clancy.kieran@gmail.com>, Lan Tianyu <lantianyu1986@gmail.com>
-Cc: Stefan Biereigel <security@biereigel-wb.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, San Zamoyski <san@plusnet.pl>, Juan Manuel Cabo <juanmanuel.cabo@gmail.com>, "D. Jansen" <dennis.jansen@web.de>, Maurizio D'Addona <mauritiusdadd@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kieran Clancy <clancy.kieran@gmail.com>, Lan Tianyu <lantianyu1986@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, Stefan Biereigel <stefan@biereigel.de>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, San Zamoyski <san@plusnet.pl>, Juan Manuel Cabo <juanmanuel.cabo@gmail.com>, "D. Jansen" <dennis.jansen@web.de>, Maurizio D'Addona <mauritiusdadd@gmail.com>
 
-Hello Kieran,
+Alright - as I have some spare time tonight, here is the dmesg of one
+sleep/resume cycle on an unpatched 3.14-rc8 tree with my usual config +
+dynamic debug enabled. After resuming, lid state was still "closed", so
+the bug was triggered (and the stale event is removed as stated).
 
-thanks for the input. I use /proc/acpi/button/lid/LID0/state as an
-indicator - whenever I resume from sleep on a bad kernel, state is
-"closed" afterwards, until i close and re-open the lid.
+http://pastebin.ca/2679209
 
-I will build a kernel with dynamic debug enabled and grab the output if
-it is of any help. Until then - my DSDT is uploaded here:
-http://filebin.ca/1GkDaYm5U1lp/dsdt-samsung-n150
+You can find the "EC: 1 stale EC events cleared" Line @ Line 316. I
+really did not expect that much traffic from the EC, interesting to get
+some insight into that!
 
+Regarding other actions: The system notices removal of the AC cord when
+in sleep (xfce4-power-manager reports the correct symbol after the
+wakeup), so I guess this is working as it should (as it is handled by
+the _WAK-Routine??).
+
+Hope that helps!
 Stefan
+
 
 Am 25.03.2014 14:23, schrieb Kieran Clancy:
 > On Tue, Mar 25, 2014 at 8:04 PM, Lan Tianyu <lantianyu1986@gmail.com> wrote:
@@ -119,4 +131,9 @@ Am 25.03.2014 14:23, schrieb Kieran Clancy:
 > 
 > Thank you,
 > Kieran.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 > 
