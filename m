@@ -1,92 +1,35 @@
-From: Stefan Biereigel <stefan@biereigel.de>
-Subject: Re: [REGRESSION 3.14-rc6] Samsung N150 lid does not "open" after
- suspend to RAM.
-Date: Wed, 26 Mar 2014 20:56:06 +0100
-Message-ID: <533330D6.3070808@biereigel.de>
-References: <532FE3B2.9060808@biereigel-wb.de> <CAOLK0pxh4b3uzjD4jaPssD66K8g33uqahV1SzOAJAmQmnY4XqQ@mail.gmail.com> <533014B1.4030307@biereigel-wb.de> <CAOLK0pyOV50Vqt+bX_QpH_tjL=8eWwvu+O70EvTOZ+ixWZmr3Q@mail.gmail.com> <CAGf84Q+9RcQqi=YYvF8X8EJzbtk7dJYTxScaZN4347U+POQ4AQ@mail.gmail.com> <5331E5EB.5000304@biereigel-wb.de> <5331E9E4.4050201@gmail.com> <5332099B.8090305@gmail.com> <5332AF10.90109@biereigel.de> <CAGf84QJU+RKXV4AyQ7QBTKjpdPm3AYLtWTFio+-r3j8wyoEokA@mail.gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: RFC: APEI hardware reduced profile
+Date: Wed, 26 Mar 2014 21:36:50 +0100
+Message-ID: <20140326203650.GA3933@nazgul.tnic>
+References: <5332C32A.5070301@linaro.org>
+ <6220935.TPfvPdvLIs@vostro.rjw.lan>
+ <20140326121047.65176d7e@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.13]:50570 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755902AbaCZT4W (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2014 15:56:22 -0400
-In-Reply-To: <CAGf84QJU+RKXV4AyQ7QBTKjpdPm3AYLtWTFio+-r3j8wyoEokA@mail.gmail.com>
+Received: from mail.skyhub.de ([78.46.96.112]:45872 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755195AbaCZUhD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Mar 2014 16:37:03 -0400
+Content-Disposition: inline
+In-Reply-To: <20140326121047.65176d7e@samsung.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kieran Clancy <clancy.kieran@gmail.com>
-Cc: Juan Manuel Cabo <juanmanuel.cabo@gmail.com>, Stefan Biereigel <security@biereigel-wb.de>, Lan Tianyu <lantianyu1986@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, San Zamoyski <san@plusnet.pl>, "D. Jansen" <dennis.jansen@web.de>, Maurizio D'Addona <mauritiusdadd@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi <linaro-acpi@lists.linaro.org>, Tony <tony.luck@intel.com>, Borislav Petkov <bp@suse.de>, linux-edac@vger.kernel.org, x86@kernel.org
 
-Hi,
+On Wed, Mar 26, 2014 at 12:10:47PM -0300, Mauro Carvalho Chehab wrote:
+> Yet, it would be better if you could be a little more specific about
+> what are your plans and what are the common/not-common features that
+> you're mapping.
 
-I tested both of your patches. The processing of events works well on my
-N150, the lid is reported open correctly after resume.
-For the second patch (the whitelisting-approach), I had to change the
-Product Name to "N150/N210/N220" instead of "N150P", because that is
-what dmidecode reports for my netbook.
+Well, I don't see anything x86-specific in ghes.c on a quick scan - just
+the GHES gunk itself, which is the spec. Which begs the question, how
+much of the APEI spec is ARM going to implement and if it is a subset,
+this definitely needs to be handled cleanly. Judging by your text, it
+seems like you want to ignore the correctable errors part...?
 
-So, all three approaches work equally well for me (whitelisting my
-broken N150, blacklisting the broken Series 5/7/9, processing all the
-stale events). I personally would prefer a solution which needs to
-handle (best case) no custom cases, because there are always n+1 of
-them. But, as I don't know if there may be any problems with the
-approach that needs no special handling (processing all stale events) in
-the future, I'm not the one to decide the correct solution.
+So yes, Tomasz, you want to be much more specific here :-)
 
-What would you do? Do any of these patches create issues for you?
-
-Greetings
-Stefan
-
-Am 26.03.2014 15:38, schrieb Kieran Clancy:
-> On Wed, Mar 26, 2014 at 9:12 PM, Stefan Biereigel <stefan@biereigel.de> wrote:
->>
->> I don't know if it is a valid idea, but maybe it would be ok to process
->> events after resume in general, and only throw away events on those
->> platforms that continue to log events while in standby (Samsung 5/7/9)?
-> 
-> We can give it a shot!
-> 
-> It may even be that on Samsung 5/7/9 there is no harm in processing
-> the events instead of discarding them.
-> 
-> Here's a patch that we can try for that:
-> 
-> http://kieranclancy.com/tmp/2014/03/ec_clear_process.patch
-> 
-> I'm going to have to clear up some hard drive space before I can
-> compile a kernel with it (curse this tiny SSD), but if anyone else
-> wants to give it a shot please feel free.
-> 
-> One thing I am still trying to think about is that Stefan's system
-> must be about to check and process this EC event anyway, but we
-> discard it first. I wonder if there is some difference in state (e.g.
-> EC status bits) here that we might detect.
-> 
-> Failing all that, it might be easier to just whitelist this product
-> rather than try to find every series 5/7/9/?/... Samsung product name.
-> Something like this:
-> 
-> http://kieranclancy.com/tmp/2014/03/ec_clear_exclude_N150P.patch (not
-> intended for use with other patch, they are mutually exclusive
-> approaches)
-> 
->> But after all, it would be better to find the command to tell the EC to
->> stop recording events and issue that before going to sleep. Is there any
->> way to find that command (for example on Windows)? Maybe that one is so
->> generic that we can issue it to all ECs, regardless of if it would
->> continue to log events during sleep.
-> 
-> It would be great to know what Windows does here, but even then we
-> still need to be able to clear a jammed EC. You can still find posts
-> around the internet where Windows users who've never touched Linux
-> have these same kind of problems with their Samsung laptops. My guess
-> is it only takes one blue screen of death or something where the EC
-> isn't shut down properly, the EC fills up and then it's more or less a
-> permanent state until the EC is cleared manually.
-> 
-> Thanks again for your testing, Stefan.
-> 
-> Kieran.
-> 
+Thanks.
