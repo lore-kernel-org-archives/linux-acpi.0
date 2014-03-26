@@ -1,44 +1,40 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: RFC: APEI hardware reduced profile
-Date: Wed, 26 Mar 2014 15:55:07 +0100
-Message-ID: <6220935.TPfvPdvLIs@vostro.rjw.lan>
-References: <5332C32A.5070301@linaro.org>
+Subject: Re: [REGRESSION 3.14-rc6] Samsung N150 lid does not "open" after suspend to RAM.
+Date: Wed, 26 Mar 2014 16:01:56 +0100
+Message-ID: <4534478.UfDZjzQsar@vostro.rjw.lan>
+References: <532FE3B2.9060808@biereigel-wb.de> <5332AF10.90109@biereigel.de> <CAGf84QJU+RKXV4AyQ7QBTKjpdPm3AYLtWTFio+-r3j8wyoEokA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53114 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:58691 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753842AbaCZOko (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2014 10:40:44 -0400
-In-Reply-To: <5332C32A.5070301@linaro.org>
+	with SMTP id S1754857AbaCZOqS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2014 10:46:18 -0400
+In-Reply-To: <CAGf84QJU+RKXV4AyQ7QBTKjpdPm3AYLtWTFio+-r3j8wyoEokA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi <linaro-acpi@lists.linaro.org>, Tony <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Borislav Petkov <bp@suse.de>, Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Kieran Clancy <clancy.kieran@gmail.com>
+Cc: Stefan Biereigel <stefan@biereigel.de>, Juan Manuel Cabo <juanmanuel.cabo@gmail.com>, Stefan Biereigel <security@biereigel-wb.de>, Lan Tianyu <lantianyu1986@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, San Zamoyski <san@plusnet.pl>, "D. Jansen" <dennis.jansen@web.de>, Maurizio D'Addona <mauritiusdadd@gmail.com>
 
-On Wednesday, March 26, 2014 01:08:10 PM Tomasz Nowicki wrote:
-> Hi,
-
-Hi,
-
-This is a question for Tony, Boris and Mauro (CCed now).
-
-> Currently APEI depends on x86 architecture. It is because of many x86 
-> specific features like "IA-32 Architecture Corrected Machine Check
-> " error source or NMI hardware error notification. However, many other 
-> features like "PCI Express Device AER Structure" or GHES via external 
-> interrupt can be still used perfectly by other architectures. So my idea 
-> is to move x86 dependency away form Kconfig to APEI areas where it 
-> really applies to.
+On Thursday, March 27, 2014 01:08:58 AM Kieran Clancy wrote:
+> On Wed, Mar 26, 2014 at 9:12 PM, Stefan Biereigel <stefan@biereigel.de> wrote:
+> >
+> > I don't know if it is a valid idea, but maybe it would be ok to process
+> > events after resume in general, and only throw away events on those
+> > platforms that continue to log events while in standby (Samsung 5/7/9)?
 > 
-> I have started refactoring ghes.c driver in that direction. And here 
-> comes my confusion, how should we treat x86 related parts, as fixed 
-> profile? (which means we could use ACPI_REDUCED_HARDWARE or 
-> CONFIG_ACPI_REDUCED_HARDWARE_ONLY define). I would like to ask for your 
-> opinion.
+> We can give it a shot!
+> 
+> It may even be that on Samsung 5/7/9 there is no harm in processing
+> the events instead of discarding them.
+> 
+> Here's a patch that we can try for that:
+> 
+> http://kieranclancy.com/tmp/2014/03/ec_clear_process.patch
 
-Thanks!
+Can you please send patches inline so that it's more convenient to
+comment them if need be?
 
 -- 
 I speak only for myself.
