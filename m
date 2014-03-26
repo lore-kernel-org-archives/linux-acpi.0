@@ -1,41 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [REGRESSION 3.14-rc6] Samsung N150 lid does not "open" after suspend to RAM.
-Date: Wed, 26 Mar 2014 16:01:56 +0100
-Message-ID: <4534478.UfDZjzQsar@vostro.rjw.lan>
-References: <532FE3B2.9060808@biereigel-wb.de> <5332AF10.90109@biereigel.de> <CAGf84QJU+RKXV4AyQ7QBTKjpdPm3AYLtWTFio+-r3j8wyoEokA@mail.gmail.com>
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: RFC: APEI hardware reduced profile
+Date: Wed, 26 Mar 2014 12:10:47 -0300
+Message-ID: <20140326121047.65176d7e@samsung.com>
+References: <5332C32A.5070301@linaro.org> <6220935.TPfvPdvLIs@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58691 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754857AbaCZOqS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2014 10:46:18 -0400
-In-Reply-To: <CAGf84QJU+RKXV4AyQ7QBTKjpdPm3AYLtWTFio+-r3j8wyoEokA@mail.gmail.com>
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:47340 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750956AbaCZPK5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Mar 2014 11:10:57 -0400
+In-reply-to: <6220935.TPfvPdvLIs@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kieran Clancy <clancy.kieran@gmail.com>
-Cc: Stefan Biereigel <stefan@biereigel.de>, Juan Manuel Cabo <juanmanuel.cabo@gmail.com>, Stefan Biereigel <security@biereigel-wb.de>, Lan Tianyu <lantianyu1986@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, San Zamoyski <san@plusnet.pl>, "D. Jansen" <dennis.jansen@web.de>, Maurizio D'Addona <mauritiusdadd@gmail.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi <linaro-acpi@lists.linaro.org>, Tony <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Borislav Petkov <bp@suse.de>, linux-edac@vger.kernel.org, x86@kernel.org
 
-On Thursday, March 27, 2014 01:08:58 AM Kieran Clancy wrote:
-> On Wed, Mar 26, 2014 at 9:12 PM, Stefan Biereigel <stefan@biereigel.de> wrote:
-> >
-> > I don't know if it is a valid idea, but maybe it would be ok to process
-> > events after resume in general, and only throw away events on those
-> > platforms that continue to log events while in standby (Samsung 5/7/9)?
-> 
-> We can give it a shot!
-> 
-> It may even be that on Samsung 5/7/9 there is no harm in processing
-> the events instead of discarding them.
-> 
-> Here's a patch that we can try for that:
-> 
-> http://kieranclancy.com/tmp/2014/03/ec_clear_process.patch
+Em Wed, 26 Mar 2014 15:55:07 +0100
+"Rafael J. Wysocki" <rjw@rjwysocki.net> escreveu:
 
-Can you please send patches inline so that it's more convenient to
-comment them if need be?
+> On Wednesday, March 26, 2014 01:08:10 PM Tomasz Nowicki wrote:
+> > Hi,
+> 
+> Hi,
+> 
+> This is a question for Tony, Boris and Mauro (CCed now).
+> 
+> > Currently APEI depends on x86 architecture. It is because of many x86 
+> > specific features like "IA-32 Architecture Corrected Machine Check
+> > " error source or NMI hardware error notification. However, many other 
+> > features like "PCI Express Device AER Structure" or GHES via external 
+> > interrupt can be still used perfectly by other architectures. So my idea 
+> > is to move x86 dependency away form Kconfig to APEI areas where it 
+> > really applies to.
+> > 
+> > I have started refactoring ghes.c driver in that direction. And here 
+> > comes my confusion, how should we treat x86 related parts, as fixed 
+> > profile? (which means we could use ACPI_REDUCED_HARDWARE or 
+> > CONFIG_ACPI_REDUCED_HARDWARE_ONLY define). I would like to ask for your 
+> > opinion.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+That's a good question, and probably depends on how are you mapping the
+ACPI changes. For example, are you moving acpi out of /arch?
+
+As I answered to a similar questioning, IMHO, the better would be to 
+have the hardware error report mechanisms on /drivers/ras, and have 
+there some Kconfig items that would depend on X86 to enable certain
+drivers.
+
+Also, I don't like to have something like ACPI_REDUCED_foo. IMHO, the
+better would be to do the reverse: to have Kconfig symbols enabling the
+extra X86-specific functionality, and have them mapped into separate
+files/drivers, with proper KConfig names, like ACPI_X86 or ACPI_X86_NMI.
+
+Yet, it would be better if you could be a little more specific about
+what are your plans and what are the common/not-common features that
+you're mapping.
+
+Regards,
+Mauro
