@@ -1,44 +1,72 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: RFC: APEI hardware reduced profile
-Date: Thu, 27 Mar 2014 10:17:56 +0100
-Message-ID: <5333ECC4.5080208@linaro.org>
-References: <5332C32A.5070301@linaro.org> <6220935.TPfvPdvLIs@vostro.rjw.lan> <20140326121047.65176d7e@samsung.com> <20140326203650.GA3933@nazgul.tnic>
+From: paulmcquad <paulmcquad@gmail.com>
+Subject: [PATCH 1/3] acpi: Fixed code indent errors and use linux libs
+Date: Fri, 28 Mar 2014 00:44:25 +0000
+Message-ID: <5334C5E9.5080805@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:59454 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753406AbaC0JR5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Mar 2014 05:17:57 -0400
-Received: by mail-ee0-f53.google.com with SMTP id b57so2593850eek.12
-        for <linux-acpi@vger.kernel.org>; Thu, 27 Mar 2014 02:17:55 -0700 (PDT)
-In-Reply-To: <20140326203650.GA3933@nazgul.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: paul McQuade <paulmcquad@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jw@rjwysocki.net
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi <linaro-acpi@lists.linaro.org>, Tony <tony.luck@intel.com>, Borislav Petkov <bp@suse.de>, linux-edac@vger.kernel.org, x86@kernel.org
 
-On 03/26/14 21:36, Borislav Petkov wrote:
-> On Wed, Mar 26, 2014 at 12:10:47PM -0300, Mauro Carvalho Chehab wrote:
->> Yet, it would be better if you could be a little more specific about
->> what are your plans and what are the common/not-common features that
->> you're mapping.
->
-> Well, I don't see anything x86-specific in ghes.c on a quick scan - just
-> the GHES gunk itself, which is the spec. Which begs the question, how
-> much of the APEI spec is ARM going to implement and if it is a subset,
-> this definitely needs to be handled cleanly. Judging by your text, it
-> seems like you want to ignore the correctable errors part...?
->
-> So yes, Tomasz, you want to be much more specific here :-)
+>From 0196c4e34dd02d89833ef851c43973d81dfa4399 Mon Sep 17 00:00:00 2001
+From: Paul McQuade <paulmcquad@gmail.com>
+Date: Thu, 27 Mar 2014 22:55:28 +0000
+Subject: [PATCH 1/3] acpi: Fixed code indent errors and use linux libs
 
-Thanks for your comment. Please refer to my email to Mauro. I have put 
-more explanation there.
+ERROR: code indent should use tabs where possible.
+Use #include <linux/cpu.h> instead of <asm/cpu.h>.
 
-Correctable errors are fine for ARM. But ARM is not going to have NMI 
-ever. So as responded to Mauro, I am focusing on making NMI as the 
-feature for ghes.c.
+Signed-off-by: Paul McQuade <paulmcquad@gmail.com>
+---
+ drivers/acpi/ac.c          | 6 +++---
+ drivers/acpi/acpi_extlog.c | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-Thanks,
-Tomasz
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 6f190bc..078e969 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -62,7 +62,7 @@ struct acpi_ac {
+ #define to_acpi_ac(x) container_of(x, struct acpi_ac, charger)
+ 
+ /* --------------------------------------------------------------------------
+-                               AC Adapter Management
++                AC Adapter Management
+    -------------------------------------------------------------------------- */
+ 
+ static int acpi_ac_get_state(struct acpi_ac *ac)
+@@ -83,7 +83,7 @@ static int acpi_ac_get_state(struct acpi_ac *ac)
+ }
+ 
+ /* --------------------------------------------------------------------------
+-                            sysfs I/F
++                sysfs I/F
+    -------------------------------------------------------------------------- */
+ static int get_ac_property(struct power_supply *psy,
+                enum power_supply_property psp,
+@@ -112,7 +112,7 @@ static enum power_supply_property ac_props[] = {
+ };
+ 
+ /* --------------------------------------------------------------------------
+-                                   Driver Model
++                Driver Model
+    -------------------------------------------------------------------------- */
+ 
+ static void acpi_ac_notify_handler(acpi_handle handle, u32 event, void *data)
+diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
+index c4a5d87..7d9ae65 100644
+--- a/drivers/acpi/acpi_extlog.c
++++ b/drivers/acpi/acpi_extlog.c
+@@ -12,7 +12,7 @@
+ #include <linux/cper.h>
+ #include <linux/ratelimit.h>
+ #include <linux/edac.h>
+-#include <asm/cpu.h>
++#include <linux/cpu.h>
+ #include <asm/mce.h>
+ 
+ #include "apei/apei-internal.h"
+-- 
+1.8.3.2
