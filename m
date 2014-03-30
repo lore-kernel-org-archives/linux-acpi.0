@@ -1,83 +1,28 @@
-From: Parag Warudkar <parag.lkml@gmail.com>
-Subject: Re: BAR 14: can't assign mem (size 0x200000)
-Date: Sat, 29 Mar 2014 20:14:30 -0400
-Message-ID: <CAOULuOaUke-W1W0o=1rhhk43Fy_RAYLdfhXQjdhy2xjHxP0oWA@mail.gmail.com>
-References: <CAOULuOY5eryuH1KgaqiuGXyYiQd2h=TZoPe2M2+juts9XuzW6Q@mail.gmail.com>
-	<CAE9FiQXmO_sSCnd-0NvXKmyeLP0m4XGRRkAgqSiMkfeTcvXs+A@mail.gmail.com>
-	<CAOULuOaeBPpuiYc_Aru+awBDf=Ahbok-UjgY9o7gfO4VMctoqg@mail.gmail.com>
-	<CAE9FiQWpprkp_dzviD8wRpqosJq5Oe+8UTwhL87fbzFm3OknUw@mail.gmail.com>
-	<CA+55aFx_zAO0iJVi==4X-bYFTopgaOCopCdUBbqUwKfOrXRYqw@mail.gmail.com>
-	<20140329171903.GA10551@google.com>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: pci_hp_register failed with error -16 (3.10.33)
+Date: Sun, 30 Mar 2014 11:49:18 -0700
+Message-ID: <20140330114918.4f8cfcca@nehalam.linuxnetplumber.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140329171903.GA10551@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Yinghai Lu <yinghai@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:38165 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750882AbaC3StW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Mar 2014 14:49:22 -0400
+Received: by mail-pd0-f179.google.com with SMTP id w10so6960326pde.24
+        for <linux-acpi@vger.kernel.org>; Sun, 30 Mar 2014 11:49:21 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Neil Horman <nhorman@tuxdriver.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
 
-On Sat, Mar 29, 2014 at 1:19 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> [+cc Rafael, linux-pci, linux-acpi]
->
-> On Sat, Mar 29, 2014 at 09:41:20AM -0700, Linus Torvalds wrote:
+Looks like this error has already been fixed upstream.
 
->> Parag, can you add a WARN_ON_ONCE() to that message, so that we see
->> what the call chain is for it.
->
-> I think we likely get a Bus Check notification when resuming, so we're
-> probably in this path:
->
->     acpi_hotplug_notify_cb
->       acpi_hotplug_execute(acpi_device_hotplug, ...)
->         acpi_device_hotplug
->           acpi_scan_bus_check
->             acpi_pci_root_scan_dependent        # .hotplug.scan_dependent
->               acpiphp_check_host_bridge
->                 acpiphp_check_bridge
->                   enable_slot
->                     pcibios_resource_survey_bus
->                       dev_printk("Allocating resources")
->
-> It seems like we ought to do the equivalent of a Bus Check from the
-> root at boot-time, even if we don't receive an explicit Bus Check
-> notification then (ACPI 5.0, sec 5.6.6, says "OSPM will typically
-> perform a full enumeration automatically at boot time, but after
-> system initialization it is the responsibility of the ACPI AML code to
-> notify OSPM whenever a re-enumeration operation is required"), but I
-> don't think we do, which makes the resume path different from the boot
-> path.
->
-> Parag, would you mind collecting an acpidump and attaching it to the
-> bugzilla below?
+Should this fix be added to 3.10-stable kernel?
 
-I have attached a single acpidump to the bugzilla.
+commit 3dc48af310709b85d07c8b0d3aa8f1ead02829d3
+Author: Neil Horman <nhorman@tuxdriver.com>
+Date:   Thu Aug 29 16:17:05 2013 -0400
 
-I realized that I misspoke when I said VTd makes a difference.
-Actually on 3.14 exact same message appears on resume irrespective of
-whether or not VTd is enabled.
-
-However on 3.11 (3.11.0-18-generic Ubuntu LTS latest kernel) - I don't
-see those messages irrespective of VTd status.
-I must have accidentally booted into 3.11 kernel after disabling VTd
-and thought the messages went away because of disabling VTd.
-
-So we can ignore the VTd part.
-
->
-> Is this a regression?  I guess you said that the message (and the sec-
-> latency change, which I don't think is applicable to PCIe anyway) are
-> the only ill effects you see, so it might not be too serious even if
-> it is.
-
-Not sure if Ubuntu includes any patches on top of 3.11 mainline that
-make a difference to this issue - but in case they don't this might be
-a regression.
-About the seriousness part - I am not seeing any issues in my regular
-use. Not sure what that bridge does and if there are any specific
-devices involved - so it might just be that I am not using anything
-that could be problematic due to this issue.
-
-Thanks,
-
-Parag
+    PCI/ACPI: Fix _OSC ordering to allow PCIe hotplug use when available
