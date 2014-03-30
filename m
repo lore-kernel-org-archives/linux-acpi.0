@@ -1,78 +1,83 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
+From: Parag Warudkar <parag.lkml@gmail.com>
 Subject: Re: BAR 14: can't assign mem (size 0x200000)
-Date: Sat, 29 Mar 2014 11:19:03 -0600
-Message-ID: <20140329171903.GA10551@google.com>
+Date: Sat, 29 Mar 2014 20:14:30 -0400
+Message-ID: <CAOULuOaUke-W1W0o=1rhhk43Fy_RAYLdfhXQjdhy2xjHxP0oWA@mail.gmail.com>
 References: <CAOULuOY5eryuH1KgaqiuGXyYiQd2h=TZoPe2M2+juts9XuzW6Q@mail.gmail.com>
- <CAE9FiQXmO_sSCnd-0NvXKmyeLP0m4XGRRkAgqSiMkfeTcvXs+A@mail.gmail.com>
- <CAOULuOaeBPpuiYc_Aru+awBDf=Ahbok-UjgY9o7gfO4VMctoqg@mail.gmail.com>
- <CAE9FiQWpprkp_dzviD8wRpqosJq5Oe+8UTwhL87fbzFm3OknUw@mail.gmail.com>
- <CA+55aFx_zAO0iJVi==4X-bYFTopgaOCopCdUBbqUwKfOrXRYqw@mail.gmail.com>
+	<CAE9FiQXmO_sSCnd-0NvXKmyeLP0m4XGRRkAgqSiMkfeTcvXs+A@mail.gmail.com>
+	<CAOULuOaeBPpuiYc_Aru+awBDf=Ahbok-UjgY9o7gfO4VMctoqg@mail.gmail.com>
+	<CAE9FiQWpprkp_dzviD8wRpqosJq5Oe+8UTwhL87fbzFm3OknUw@mail.gmail.com>
+	<CA+55aFx_zAO0iJVi==4X-bYFTopgaOCopCdUBbqUwKfOrXRYqw@mail.gmail.com>
+	<20140329171903.GA10551@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CA+55aFx_zAO0iJVi==4X-bYFTopgaOCopCdUBbqUwKfOrXRYqw@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Yinghai Lu <yinghai@kernel.org>, Parag Warudkar <parag.lkml@gmail.com>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140329171903.GA10551@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Yinghai Lu <yinghai@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-[+cc Rafael, linux-pci, linux-acpi]
+On Sat, Mar 29, 2014 at 1:19 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> [+cc Rafael, linux-pci, linux-acpi]
+>
+> On Sat, Mar 29, 2014 at 09:41:20AM -0700, Linus Torvalds wrote:
 
-On Sat, Mar 29, 2014 at 09:41:20AM -0700, Linus Torvalds wrote:
-> On Sat, Mar 29, 2014 at 12:11 AM, Yinghai Lu <yinghai@kernel.org> wrote:
-> >
-> > Later during resuming, kernel try to assign resource 02:00.0 but it will fail
-> > as parent bridge 00:1c.3 has no resource.
-> > (Not sure how pci_configure_slot get called with this resume path).
-> 
-> I think that last comment is the most pertinent one: why does resume
-> try to assign resources to PCI devices? It should be *restoring* them,
-> not re-assigning any resources.
-> 
-> Parag, can you add a WARN_ON_ONCE() to that message, so that we see
-> what the call chain is for it.
+>> Parag, can you add a WARN_ON_ONCE() to that message, so that we see
+>> what the call chain is for it.
+>
+> I think we likely get a Bus Check notification when resuming, so we're
+> probably in this path:
+>
+>     acpi_hotplug_notify_cb
+>       acpi_hotplug_execute(acpi_device_hotplug, ...)
+>         acpi_device_hotplug
+>           acpi_scan_bus_check
+>             acpi_pci_root_scan_dependent        # .hotplug.scan_dependent
+>               acpiphp_check_host_bridge
+>                 acpiphp_check_bridge
+>                   enable_slot
+>                     pcibios_resource_survey_bus
+>                       dev_printk("Allocating resources")
+>
+> It seems like we ought to do the equivalent of a Bus Check from the
+> root at boot-time, even if we don't receive an explicit Bus Check
+> notification then (ACPI 5.0, sec 5.6.6, says "OSPM will typically
+> perform a full enumeration automatically at boot time, but after
+> system initialization it is the responsibility of the ACPI AML code to
+> notify OSPM whenever a re-enumeration operation is required"), but I
+> don't think we do, which makes the resume path different from the boot
+> path.
+>
+> Parag, would you mind collecting an acpidump and attaching it to the
+> bugzilla below?
 
-I think we likely get a Bus Check notification when resuming, so we're
-probably in this path:
+I have attached a single acpidump to the bugzilla.
 
-    acpi_hotplug_notify_cb
-      acpi_hotplug_execute(acpi_device_hotplug, ...)
-	acpi_device_hotplug
-	  acpi_scan_bus_check
-	    acpi_pci_root_scan_dependent        # .hotplug.scan_dependent
-	      acpiphp_check_host_bridge
-		acpiphp_check_bridge    
-		  enable_slot
-		    pcibios_resource_survey_bus
-		      dev_printk("Allocating resources")
+I realized that I misspoke when I said VTd makes a difference.
+Actually on 3.14 exact same message appears on resume irrespective of
+whether or not VTd is enabled.
 
-It seems like we ought to do the equivalent of a Bus Check from the
-root at boot-time, even if we don't receive an explicit Bus Check
-notification then (ACPI 5.0, sec 5.6.6, says "OSPM will typically
-perform a full enumeration automatically at boot time, but after
-system initialization it is the responsibility of the ACPI AML code to
-notify OSPM whenever a re-enumeration operation is required"), but I
-don't think we do, which makes the resume path different from the boot
-path.
+However on 3.11 (3.11.0-18-generic Ubuntu LTS latest kernel) - I don't
+see those messages irrespective of VTd status.
+I must have accidentally booted into 3.11 kernel after disabling VTd
+and thought the messages went away because of disabling VTd.
 
-Parag, would you mind collecting an acpidump and attaching it to the
-bugzilla below?
+So we can ignore the VTd part.
 
-Is this a regression?  I guess you said that the message (and the sec-
-latency change, which I don't think is applicable to PCIe anyway) are
-the only ill effects you see, so it might not be too serious even if
-it is.
+>
+> Is this a regression?  I guess you said that the message (and the sec-
+> latency change, which I don't think is applicable to PCIe anyway) are
+> the only ill effects you see, so it might not be too serious even if
+> it is.
 
-I am concerned about the VT-d connection and the sec-latency change.
-I wouldn't be surprised to find that the resume path doesn't restore
-sec-latency, but I don't know why VT-d would affect the resource
-allocation.  I guess it's possible that enabling VT-d might change
-the ACPI namespace; maybe you could collect *two* acpidumps: one with
-VT-d enabled and another with it disabled.
+Not sure if Ubuntu includes any patches on top of 3.11 mainline that
+make a difference to this issue - but in case they don't this might be
+a regression.
+About the seriousness part - I am not seeing any issues in my regular
+use. Not sure what that bridge does and if there are any specific
+devices involved - so it might just be that I am not using anything
+that could be problematic due to this issue.
 
-Let's continue the discussion in email, but I did open
-https://bugzilla.kernel.org/show_bug.cgi?id=73141 as a place to archive
-your logs.
+Thanks,
 
-Bjorn
+Parag
