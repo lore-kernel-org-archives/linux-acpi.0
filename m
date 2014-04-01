@@ -1,110 +1,56 @@
-From: Nicolas Porcel <nicolasporcel06@gmail.com>
+From: Kieran Clancy <clancy.kieran@gmail.com>
 Subject: Re: [REGRESSION 3.14-rc6] Samsung N150 lid does not "open" after
  suspend to RAM.
-Date: Tue, 01 Apr 2014 19:36:04 +0800
-Message-ID: <533AA4A4.1010101@gmail.com>
-References: <532FE3B2.9060808@biereigel-wb.de> <CAOLK0pxh4b3uzjD4jaPssD66K8g33uqahV1SzOAJAmQmnY4XqQ@mail.gmail.com> <533014B1.4030307@biereigel-wb.de> <CAOLK0pyOV50Vqt+bX_QpH_tjL=8eWwvu+O70EvTOZ+ixWZmr3Q@mail.gmail.com> <CAGf84Q+9RcQqi=YYvF8X8EJzbtk7dJYTxScaZN4347U+POQ4AQ@mail.gmail.com> <5331E5EB.5000304@biereigel-wb.de> <5331E9E4.4050201@gmail.com> <5332099B.8090305@gmail.com> <5332AF10.90109@biereigel.de> <CAGf84QJU+RKXV4AyQ7QBTKjpdPm3AYLtWTFio+-r3j8wyoEokA@mail.gmail.com> <CAM6oVw2v9ptr0c08uPiB_3z3e41VO+Vp3OhoHXiBxagAOfPBZA@mail.gmail.com> <CAGf84QLcXnmjRQFsb7z09xMrKXG0DiO7gT_10QZqGMN0CJYnLA@mail.gmail.com>
+Date: Tue, 1 Apr 2014 22:28:29 +1030
+Message-ID: <CAGf84QJyzDTjd3=XJBDANJgwh4mT5yxPLoCrsMRuq5ZA8XJkJg@mail.gmail.com>
+References: <532FE3B2.9060808@biereigel-wb.de> <CAOLK0pxh4b3uzjD4jaPssD66K8g33uqahV1SzOAJAmQmnY4XqQ@mail.gmail.com>
+ <533014B1.4030307@biereigel-wb.de> <CAOLK0pyOV50Vqt+bX_QpH_tjL=8eWwvu+O70EvTOZ+ixWZmr3Q@mail.gmail.com>
+ <CAGf84Q+9RcQqi=YYvF8X8EJzbtk7dJYTxScaZN4347U+POQ4AQ@mail.gmail.com>
+ <5331E5EB.5000304@biereigel-wb.de> <5331E9E4.4050201@gmail.com>
+ <5332099B.8090305@gmail.com> <5332AF10.90109@biereigel.de>
+ <CAGf84QJU+RKXV4AyQ7QBTKjpdPm3AYLtWTFio+-r3j8wyoEokA@mail.gmail.com>
+ <CAM6oVw2v9ptr0c08uPiB_3z3e41VO+Vp3OhoHXiBxagAOfPBZA@mail.gmail.com>
+ <CAGf84QLcXnmjRQFsb7z09xMrKXG0DiO7gT_10QZqGMN0CJYnLA@mail.gmail.com> <533AA4A4.1010101@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAGf84QLcXnmjRQFsb7z09xMrKXG0DiO7gT_10QZqGMN0CJYnLA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kieran Clancy <clancy.kieran@gmail.com>, "D. G. Jansen" <d.g.jansen@gmail.com>
-Cc: Stefan Biereigel <stefan@biereigel.de>, Juan Manuel Cabo <juanmanuel.cabo@gmail.com>, Stefan Biereigel <security@biereigel-wb.de>, Lan Tianyu <lantianyu1986@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, San Zamoyski <san@plusnet.pl>, "D. Jansen" <dennis.jansen@web.de>, Maurizio D'Addona <mauritiusdadd@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yh0-f43.google.com ([209.85.213.43]:54037 "EHLO
+	mail-yh0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752378AbaDAL7C (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Apr 2014 07:59:02 -0400
+In-Reply-To: <533AA4A4.1010101@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Nicolas Porcel <nicolasporcel06@gmail.com>
+Cc: "D. G. Jansen" <d.g.jansen@gmail.com>, Stefan Biereigel <stefan@biereigel.de>, Juan Manuel Cabo <juanmanuel.cabo@gmail.com>, Stefan Biereigel <security@biereigel-wb.de>, Lan Tianyu <lantianyu1986@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, San Zamoyski <san@plusnet.pl>, "D. Jansen" <dennis.jansen@web.de>, Maurizio D'Addona <mauritiusdadd@gmail.com>
 
-Hello,
+On Tue, Apr 1, 2014 at 10:06 PM, Nicolas Porcel
+<nicolasporcel06@gmail.com> wrote:
+> Do you have any idea of how much time will it take to merge it to the
+> mainline ?
 
-Thank you for the patch. Since the update from 3.13.6 to 3.13.7, I have 
-the same problem with the lid opening that is not detected on my Samsung 
-N210. This patch fixes the problem.
+Apologies for the breakage. The key here is that we want a patch which
+works 100% on all Samsung systems. If we rush a fix for this
+regression, we may risk breaking things on other systems.
 
-I think this problem may affect more Samsung netbooks with similar 
-hardware (N220, and maybe others).
+Fortunately, the work-around in the case of this regression is very
+simple (just repeat whatever event was ignored the first time, be it
+lid open, ac plug, etc) compared to the bug which the original patch
+fixed (which had no real workaround and caused near-permanent
+malfunction).
 
-Do you have any idea of how much time will it take to merge it to the 
-mainline ?
+This is why I am asking people with Samsung systems to test the patch
+(with the debug output I added in the kernel bugzilla attachment) and
+confirm that it is working. I am also asking them to report EC_SC data
+because we may be able to create a more targeted patch with this
+information.
 
-Thank you
+Speaking of which, can you please let me know the EC_SC bytes you see
+when you test it on your system, and if it is always the same?
 
-Regards
+Once I hear back from users on a range of Samsung systems, I will
+submit a patch. It should have enough time to land before 3.15. I will
+also ask for it to be included in other stable branches.
 
-Nicolas Porcel
-
-On 01/04/2014 17:53, Kieran Clancy wrote:
-> On Sat, Mar 29, 2014 at 1:51 AM, D. G. Jansen <d.g.jansen@gmail.com> wrote:
->> This patch (processing events) works for me on Samsung 535.
-> Hi Dennis and others,
->
-> Thank you for testing. I have also been testing this patch for a
-> couple of days, and have not encountered any problems.
->
-> I have now submitted a request for testing on the kernel bugzilla
-> entry for the bug fixed by the earlier patch in question:
->
-> https://bugzilla.kernel.org/show_bug.cgi?id=44161#c173
->
-> The CC list has 62 users, so hopefully we will get some more testers.
-> The comment I posted is repeated below:
->
-> --------------
->
-> Created attachment 131151 [details]
-> process rather than discard events in acpi_ec_clear
->
-> Hi all,
->
-> If you have a machine that was (previously) affected by this bug,
-> could you please take the time to try a new patch for this issue?
->
-> A user with an older Samsung machine found that the earlier patch
-> introduced some issues for them, so this is a new patch designed to be
-> a better solution to the problem.
->
-> Currently the new patch has only been tested on 2 affected machines
-> (to my knowledge), so I would be very grateful if anyone else can test
-> this patch (especially users with Samsung series 5 or 7 machines).
->
-> You will need to use a recent kernel source like 3. (one which
-> includes the earlier acpi_ec_clear patch), or otherwise apply the
-> previous patch first:
->
-> https://github.com/torvalds/linux/commit/ad332c8a45330d170bb38b95209de449b31cd1b4.patch
->
-> Then apply the attachment ec_process_stale_events.patch
->
-> Please test to see if your lid closing / suspending / etc. still work
-> as intended with this patch.
->
-> This new patch also provides some debug information after every
-> resume/boot which will show up in dmesg something like:
->
-> [ 1192.208056] ACPI : EC: acpi_ec_clear: EC_SC 0x28
-> [ 1192.217844] ACPI : EC: acpi_ec_clear: EC_SC 0x28
-> [ 1192.218844] ACPI : EC: acpi_ec_clear: EC_SC 0x28
-> [ 1192.222835] ACPI : EC: acpi_ec_clear: EC_SC 0x28
-> [ 1192.223834] ACPI : EC: acpi_ec_clear: EC_SC 0x28
-> [ 1192.224833] ACPI : EC: acpi_ec_clear: EC_SC 0x28
-> [ 1192.227833] ACPI : EC: acpi_ec_clear: EC_SC 0x28
-> [ 1192.228834] ACPI : EC: acpi_ec_clear: EC_SC 0x28
-> [ 1192.229832] ACPI : EC: acpi_ec_clear: EC_SC 0x28
-> [ 1192.230828] ACPI : EC: 8 stale EC events cleared
->
-> Please report if you get any EC_SC bytes here _other than_ 0x28. I
-> only get 0x28 on my machine but I am very interested to know if other
-> affected machines produce something else.
->
-> If you test it, please also report your system's product code, e.g.:
->
-> # dmidecode -s system-product-name
-> 900X3F
-> # dmidecode -s baseboard-product-name
-> NP900X3F-K01AU
->
-> Many thanks,
-> Kieran
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kind regards,
+Kieran
