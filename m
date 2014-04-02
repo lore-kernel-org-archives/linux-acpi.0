@@ -1,155 +1,40 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] linux/thermal.h: Rename KELVIN_TO_CELSIUS to
- DECI_KELVIN_TO_CELSIUS
-Date: Thu, 03 Apr 2014 10:42:11 +0800
-Message-ID: <1396492931.2357.22.camel@rzhang1-mobl4>
-References: <1395682149-16563-1-git-send-email-linux@rasmusvillemoes.dk>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: Problem with recognizing lid state from 3.13.7 on i686
+Date: Wed, 02 Apr 2014 21:23:31 +0200
+Message-ID: <2222641.cumF3Fyysl@vostro.rjw.lan>
+References: <CAN4dU3FyAO84RxttvTsmveOvxACXXf6=TP1ovEdT6dPd7KGQ8w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1395682149-16563-1-git-send-email-linux@rasmusvillemoes.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Corentin Chary <corentin.chary@gmail.com>, Matthew Garrett <matthew.garrett@nebula.com>, Sujith Thomas <sujith.thomas@intel.com>, Eduardo Valentin <eduardo.valentin@ti.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:63996 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1030216AbaDBTHm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Apr 2014 15:07:42 -0400
+In-Reply-To: <CAN4dU3FyAO84RxttvTsmveOvxACXXf6=TP1ovEdT6dPd7KGQ8w@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tobias Caspers <tcugma@gmail.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Mon, 2014-03-24 at 18:29 +0100, Rasmus Villemoes wrote:
-> The macros KELVIN_TO_CELSIUS and CELSIUS_TO_KELVIN actually work on
-> decikelvins, so rename them to reflect their actual semantics.
+On Wednesday, April 02, 2014 05:50:34 PM Tobias Caspers wrote:
 > 
-> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-
-applied on top of Guenter' "Fix KELVIN_TO_CELSIUS macro" patch.
-
-thanks,
-rui
-> ---
->  drivers/acpi/thermal.c              | 12 ++++++------
->  drivers/platform/x86/asus-wmi.c     |  2 +-
->  drivers/platform/x86/intel_menlow.c |  8 ++++----
->  include/linux/thermal.h             |  6 +++---
->  4 files changed, 14 insertions(+), 14 deletions(-)
+> --001a11c1d718bd39e404f6113eef
+> Content-Type: text/plain; charset=ISO-8859-1
 > 
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 08626c8..3742e64 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -313,7 +313,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
->  			if (crt == -1) {
->  				tz->trips.critical.flags.valid = 0;
->  			} else if (crt > 0) {
-> -				unsigned long crt_k = CELSIUS_TO_KELVIN(crt);
-> +				unsigned long crt_k = CELSIUS_TO_DECI_KELVIN(crt);
->  				/*
->  				 * Allow override critical threshold
->  				 */
-> @@ -349,7 +349,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
->  		if (psv == -1) {
->  			status = AE_SUPPORT;
->  		} else if (psv > 0) {
-> -			tmp = CELSIUS_TO_KELVIN(psv);
-> +			tmp = CELSIUS_TO_DECI_KELVIN(psv);
->  			status = AE_OK;
->  		} else {
->  			status = acpi_evaluate_integer(tz->device->handle,
-> @@ -429,7 +429,7 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
->  					break;
->  				if (i == 1)
->  					tz->trips.active[0].temperature =
-> -						CELSIUS_TO_KELVIN(act);
-> +						CELSIUS_TO_DECI_KELVIN(act);
->  				else
->  					/*
->  					 * Don't allow override higher than
-> @@ -437,9 +437,9 @@ static int acpi_thermal_trips_update(struct acpi_thermal *tz, int flag)
->  					 */
->  					tz->trips.active[i - 1].temperature =
->  						(tz->trips.active[i - 2].temperature <
-> -						CELSIUS_TO_KELVIN(act) ?
-> +						CELSIUS_TO_DECI_KELVIN(act) ?
->  						tz->trips.active[i - 2].temperature :
-> -						CELSIUS_TO_KELVIN(act));
-> +						CELSIUS_TO_DECI_KELVIN(act));
->  				break;
->  			} else {
->  				tz->trips.active[i].temperature = tmp;
-> @@ -1094,7 +1094,7 @@ static int acpi_thermal_add(struct acpi_device *device)
->  		goto free_memory;
->  
->  	pr_info(PREFIX "%s [%s] (%ld C)\n", acpi_device_name(device),
-> -		acpi_device_bid(device), KELVIN_TO_CELSIUS(tz->temperature));
-> +		acpi_device_bid(device), DECI_KELVIN_TO_CELSIUS(tz->temperature));
->  	goto end;
->  
->  free_memory:
-> diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-> index c5e082f..2d81d5a 100644
-> --- a/drivers/platform/x86/asus-wmi.c
-> +++ b/drivers/platform/x86/asus-wmi.c
-> @@ -1066,7 +1066,7 @@ static ssize_t asus_hwmon_temp1(struct device *dev,
->  	if (err < 0)
->  		return err;
->  
-> -	value = KELVIN_TO_CELSIUS((value & 0xFFFF)) * 1000;
-> +	value = DECI_KELVIN_TO_CELSIUS((value & 0xFFFF)) * 1000;
->  
->  	return sprintf(buf, "%d\n", value);
->  }
-> diff --git a/drivers/platform/x86/intel_menlow.c b/drivers/platform/x86/intel_menlow.c
-> index e8b46d2..0a919d8 100644
-> --- a/drivers/platform/x86/intel_menlow.c
-> +++ b/drivers/platform/x86/intel_menlow.c
-> @@ -315,7 +315,7 @@ static ssize_t aux0_show(struct device *dev,
->  
->  	result = sensor_get_auxtrip(attr->handle, 0, &value);
->  
-> -	return result ? result : sprintf(buf, "%lu", KELVIN_TO_CELSIUS(value));
-> +	return result ? result : sprintf(buf, "%lu", DECI_KELVIN_TO_CELSIUS(value));
->  }
->  
->  static ssize_t aux1_show(struct device *dev,
-> @@ -327,7 +327,7 @@ static ssize_t aux1_show(struct device *dev,
->  
->  	result = sensor_get_auxtrip(attr->handle, 1, &value);
->  
-> -	return result ? result : sprintf(buf, "%lu", KELVIN_TO_CELSIUS(value));
-> +	return result ? result : sprintf(buf, "%lu", DECI_KELVIN_TO_CELSIUS(value));
->  }
->  
->  static ssize_t aux0_store(struct device *dev,
-> @@ -345,7 +345,7 @@ static ssize_t aux0_store(struct device *dev,
->  	if (value < 0)
->  		return -EINVAL;
->  
-> -	result = sensor_set_auxtrip(attr->handle, 0, CELSIUS_TO_KELVIN(value));
-> +	result = sensor_set_auxtrip(attr->handle, 0, CELSIUS_TO_DECI_KELVIN(value));
->  	return result ? result : count;
->  }
->  
-> @@ -364,7 +364,7 @@ static ssize_t aux1_store(struct device *dev,
->  	if (value < 0)
->  		return -EINVAL;
->  
-> -	result = sensor_set_auxtrip(attr->handle, 1, CELSIUS_TO_KELVIN(value));
-> +	result = sensor_set_auxtrip(attr->handle, 1, CELSIUS_TO_DECI_KELVIN(value));
->  	return result ? result : count;
->  }
->  
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index f7e11c7..c978aa3 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -41,9 +41,9 @@
->  #define THERMAL_NO_LIMIT	THERMAL_CSTATE_INVALID
->  
->  /* Unit conversion macros */
-> -#define KELVIN_TO_CELSIUS(t)	(long)(((long)t-2732 >= 0) ?	\
-> -				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
-> -#define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
-> +#define DECI_KELVIN_TO_CELSIUS(t)	(long)(((long)t-2732 >= 0) ?	\
-> +					((long)t-2732+5)/10 : ((long)t-2732-5)/10)
-> +#define CELSIUS_TO_DECI_KELVIN(t)	((t)*10+2732)
->  
->  /* Adding event notification support elements */
->  #define THERMAL_GENL_FAMILY_NAME                "thermal_event"
+> Dear kernel developer,
+> 
+> there seems to be a problem with recognizing lid state on some i686
+> hardware from kernel 3.13.7 on.
+> For me with a Samsung N150 and arch linux it is as follows:
+> 
+> Monitoring lid by systemd: after first lid close, a endless chain of
+> suspends follows
+> Monitoring lid by XFCE: toggling suspend by lid close works sometimes.
+> 
+> For some more details see https://bbs.archlinux.org/viewtopic.php?id=179216
+
+Care to file a bug report for this problem at bugzilla.kernel.org against ACPI?
+
+Rafael
+
