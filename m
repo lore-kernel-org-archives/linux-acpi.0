@@ -1,68 +1,52 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: Coverity CID 134632: acpi_hw_build_pci_list() memory leak
-Date: Thu, 3 Apr 2014 11:27:47 -0600
-Message-ID: <CAErSpo7hZUQsLQw7WHes=_Sb-+Hv_aCZTix+NdpjfkEUAartEg@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: Coverity CID 134632: acpi_hw_build_pci_list() memory leak
+Date: Thu, 3 Apr 2014 17:21:13 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37C7FF0FF@ORSMSX103.amr.corp.intel.com>
 References: <CAErSpo4-c1Wb-gtaBGrVq557330PHKrB_mB3Hk+xdt_BtBYFVQ@mail.gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37C7FF0CD@ORSMSX103.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f170.google.com ([209.85.223.170]:50717 "EHLO
-	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752914AbaDCR2I (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Apr 2014 13:28:08 -0400
-Received: by mail-ie0-f170.google.com with SMTP id rd18so2182484iec.1
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Apr 2014 10:28:08 -0700 (PDT)
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37C7FF0CD@ORSMSX103.amr.corp.intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:15647 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752937AbaDCRdL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Apr 2014 13:33:11 -0400
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Box, David E" <david.e.box@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Bjorn Helgaas <bhelgaas@google.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Box, David E" <david.e.box@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Thu, Apr 3, 2014 at 11:03 AM, Moore, Robert <robert.moore@intel.com> wrote:
-> On second thought, did you notice that the caller always deletes the list, regardless of the return status?
-
-Hmm, no, I didn't notice that, and obviously Coverity didn't either.
-So I guess there's no actual bug, as long as every caller deletes the
-list regardless of status.  And there's only one caller.
-
-I wouldn't hold it up as good style, but I guess it's safe :)
-
->     /* Build a list of PCI devices, from PciRegion up to RootPciDevice */
->
->     Status = AcpiHwBuildPciList (RootPciDevice, PciRegion, &ListHead);
->     if (ACPI_SUCCESS (Status))
->     {
->         /* Walk the list, updating the PCI device/function/bus numbers */
->
->         Status = AcpiHwProcessPciList (PciId, ListHead);
->     }
->
->     /* Always delete the list */
->
->     AcpiHwDeletePciList (ListHead);
->     return_ACPI_STATUS (Status);
->
->> -----Original Message-----
->> From: Bjorn Helgaas [mailto:bhelgaas@google.com]
->> Sent: Thursday, April 03, 2014 9:22 AM
->> To: Moore, Robert; Zheng, Lv; Wysocki, Rafael J
->> Cc: linux-acpi@vger.kernel.org; devel@acpica.org
->> Subject: Coverity CID 134632: acpi_hw_build_pci_list() memory leak
->>
->> Coverity complains that acpi_hw_build_pci_list() leaks memory when it
->> returns here:
->>
->> 201                if (!list_element) {
->>
->> CID 134632 (#1 of 2): Resource leak (RESOURCE_LEAK) 13. leaked_storage:
->> Variable list_head going out of scope leaks the storage it points to.
->> 202                        return (AE_NO_MEMORY);
->> 203                }
->>
->> We're building up a list, and if we fail to allocate another element, we
->> return failure without deallocating the already built-up list.
->>
->> This is CID 134632.
->>
->> Bjorn
+QW55d2F5LCB3ZSdsbCBjaGFuZ2UgaXQgdG8gZG8gdGhpbmdzIHByb3Blcmx5Lg0KDQoNCj4gLS0t
+LS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTW9vcmUsIFJvYmVydA0KPiBTZW50OiBU
+aHVyc2RheSwgQXByaWwgMDMsIDIwMTQgMTA6MDQgQU0NCj4gVG86ICdCam9ybiBIZWxnYWFzJzsg
+WmhlbmcsIEx2OyBXeXNvY2tpLCBSYWZhZWwgSjsgQm94LCBEYXZpZCBFDQo+IENjOiBsaW51eC1h
+Y3BpQHZnZXIua2VybmVsLm9yZzsgZGV2ZWxAYWNwaWNhLm9yZw0KPiBTdWJqZWN0OiBSRTogQ292
+ZXJpdHkgQ0lEIDEzNDYzMjogYWNwaV9od19idWlsZF9wY2lfbGlzdCgpIG1lbW9yeSBsZWFrDQo+
+IA0KPiBPbiBzZWNvbmQgdGhvdWdodCwgZGlkIHlvdSBub3RpY2UgdGhhdCB0aGUgY2FsbGVyIGFs
+d2F5cyBkZWxldGVzIHRoZSBsaXN0LA0KPiByZWdhcmRsZXNzIG9mIHRoZSByZXR1cm4gc3RhdHVz
+Pw0KPiANCj4gICAgIC8qIEJ1aWxkIGEgbGlzdCBvZiBQQ0kgZGV2aWNlcywgZnJvbSBQY2lSZWdp
+b24gdXAgdG8gUm9vdFBjaURldmljZSAqLw0KPiANCj4gICAgIFN0YXR1cyA9IEFjcGlId0J1aWxk
+UGNpTGlzdCAoUm9vdFBjaURldmljZSwgUGNpUmVnaW9uLCAmTGlzdEhlYWQpOw0KPiAgICAgaWYg
+KEFDUElfU1VDQ0VTUyAoU3RhdHVzKSkNCj4gICAgIHsNCj4gICAgICAgICAvKiBXYWxrIHRoZSBs
+aXN0LCB1cGRhdGluZyB0aGUgUENJIGRldmljZS9mdW5jdGlvbi9idXMgbnVtYmVycyAqLw0KPiAN
+Cj4gICAgICAgICBTdGF0dXMgPSBBY3BpSHdQcm9jZXNzUGNpTGlzdCAoUGNpSWQsIExpc3RIZWFk
+KTsNCj4gICAgIH0NCj4gDQo+ICAgICAvKiBBbHdheXMgZGVsZXRlIHRoZSBsaXN0ICovDQo+IA0K
+PiAgICAgQWNwaUh3RGVsZXRlUGNpTGlzdCAoTGlzdEhlYWQpOw0KPiAgICAgcmV0dXJuX0FDUElf
+U1RBVFVTIChTdGF0dXMpOw0KPiANCj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+
+IEZyb206IEJqb3JuIEhlbGdhYXMgW21haWx0bzpiaGVsZ2Fhc0Bnb29nbGUuY29tXQ0KPiA+IFNl
+bnQ6IFRodXJzZGF5LCBBcHJpbCAwMywgMjAxNCA5OjIyIEFNDQo+ID4gVG86IE1vb3JlLCBSb2Jl
+cnQ7IFpoZW5nLCBMdjsgV3lzb2NraSwgUmFmYWVsIEoNCj4gPiBDYzogbGludXgtYWNwaUB2Z2Vy
+Lmtlcm5lbC5vcmc7IGRldmVsQGFjcGljYS5vcmcNCj4gPiBTdWJqZWN0OiBDb3Zlcml0eSBDSUQg
+MTM0NjMyOiBhY3BpX2h3X2J1aWxkX3BjaV9saXN0KCkgbWVtb3J5IGxlYWsNCj4gPg0KPiA+IENv
+dmVyaXR5IGNvbXBsYWlucyB0aGF0IGFjcGlfaHdfYnVpbGRfcGNpX2xpc3QoKSBsZWFrcyBtZW1v
+cnkgd2hlbiBpdA0KPiA+IHJldHVybnMgaGVyZToNCj4gPg0KPiA+IDIwMSAgICAgICAgICAgICAg
+ICBpZiAoIWxpc3RfZWxlbWVudCkgew0KPiA+DQo+ID4gQ0lEIDEzNDYzMiAoIzEgb2YgMik6IFJl
+c291cmNlIGxlYWsgKFJFU09VUkNFX0xFQUspIDEzLiBsZWFrZWRfc3RvcmFnZToNCj4gPiBWYXJp
+YWJsZSBsaXN0X2hlYWQgZ29pbmcgb3V0IG9mIHNjb3BlIGxlYWtzIHRoZSBzdG9yYWdlIGl0IHBv
+aW50cyB0by4NCj4gPiAyMDIgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gKEFFX05PX01F
+TU9SWSk7DQo+ID4gMjAzICAgICAgICAgICAgICAgIH0NCj4gPg0KPiA+IFdlJ3JlIGJ1aWxkaW5n
+IHVwIGEgbGlzdCwgYW5kIGlmIHdlIGZhaWwgdG8gYWxsb2NhdGUgYW5vdGhlciBlbGVtZW50LA0K
+PiA+IHdlIHJldHVybiBmYWlsdXJlIHdpdGhvdXQgZGVhbGxvY2F0aW5nIHRoZSBhbHJlYWR5IGJ1
+aWx0LXVwIGxpc3QuDQo+ID4NCj4gPiBUaGlzIGlzIENJRCAxMzQ2MzIuDQo+ID4NCj4gPiBCam9y
+bg0K
