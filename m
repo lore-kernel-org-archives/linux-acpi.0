@@ -1,38 +1,44 @@
-From: "Pallala, Ramakrishna" <ramakrishna.pallala@intel.com>
-Subject: How to pass I2C platform_data under ACPI
-Date: Thu, 3 Apr 2014 08:10:40 +0000
-Message-ID: <D854C92F57B1B347B57E531E78D05EAD57463568@BGSMSX104.gar.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:60732 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1162447AbaDCIKp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Apr 2014 04:10:45 -0400
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH] ACPI: Update the ownership and developers for ACPI in Kconfig
+Date: Thu,  3 Apr 2014 20:37:30 +0800
+Message-ID: <1396528650-7402-1-git-send-email-hanjun.guo@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Grant Likely <grant.likely@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi All,
+The UEFI Forum included the ACPI spec in its portfolio in October 2013
+and will host future spec iterations, following the ACPI v5.0a release.
 
-I am trying to enable a i2c client driver under ACPI. The device is being enumerated behind adapter device and I am getting IRQ resource as well.
+A UEFI Forum working group named ACPI Specification Working Group (ASWG)
+has been established to handle future ACPI developments, any UEFI member
+can join the group and contribute to ACPI specification.
 
-The problem I have now is, how do I pass the platform data to driver?
+So update the ownership and developers for ACPI in Kconfig accordingly,
+and update the website link to ACPI specification too.
 
-struct i2c_board_info {
-        char            type[I2C_NAME_SIZE];
-        unsigned short  flags;
-        unsigned short  addr;
-        void            *platform_data; ===========> how can I initialize this filed.
-        struct dev_archdata     *archdata;
-        struct device_node *of_node;
-        struct acpi_dev_node acpi_node;
-        int             irq;
-};
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ drivers/acpi/Kconfig |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index c205653..831e541 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -32,9 +32,10 @@ menuconfig ACPI
+ 	  <http://acpica.org/>
  
-In non ACPI environment I used to initialize the platform_data under board or platforms files. Under ACPI how do I do that?
-
-Thanks,
-Ram
+ 	  ACPI is an open industry specification co-developed by
+-	  Hewlett-Packard, Intel, Microsoft, Phoenix, and Toshiba.
++	  ACPI Specification Working Group (ASWG) under UEFI Forum, any
++	  UEFI member can join ASWG and contribute to ACPI specification.
+ 	  The specification is available at:
+-	  <http://www.acpi.info>
++	  <http://www.uefi.org/acpi/specs>
+ 
+ if ACPI
+ 
+-- 
+1.7.9.5
