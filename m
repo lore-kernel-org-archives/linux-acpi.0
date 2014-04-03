@@ -1,63 +1,40 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: Coverity CID 134632: acpi_hw_build_pci_list() memory leak
-Date: Thu, 3 Apr 2014 18:39:53 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37C7FF18B@ORSMSX103.amr.corp.intel.com>
-References: <CAErSpo4-c1Wb-gtaBGrVq557330PHKrB_mB3Hk+xdt_BtBYFVQ@mail.gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37C7FF0CD@ORSMSX103.amr.corp.intel.com>
- <CAErSpo7hZUQsLQw7WHes=_Sb-+Hv_aCZTix+NdpjfkEUAartEg@mail.gmail.com>
+From: Jernej Jakob <jernej.jakob@gmail.com>
+Subject: Problem: Fan speed bugs (serious)
+Date: Fri, 04 Apr 2014 01:41:03 +0200
+Message-ID: <533DF18F.7010300@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:7497 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753092AbaDCSkE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Apr 2014 14:40:04 -0400
-In-Reply-To: <CAErSpo7hZUQsLQw7WHes=_Sb-+Hv_aCZTix+NdpjfkEUAartEg@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-we0-f174.google.com ([74.125.82.174]:42030 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753960AbaDCXlP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Apr 2014 19:41:15 -0400
+Received: by mail-we0-f174.google.com with SMTP id t60so2566247wes.5
+        for <linux-acpi@vger.kernel.org>; Thu, 03 Apr 2014 16:41:14 -0700 (PDT)
+Received: from [10.1.0.211] (93-103-130-169.static.t-2.net. [93.103.130.169])
+        by mx.google.com with ESMTPSA id e42sm15391599eev.32.2014.04.03.16.41.08
+        for <linux-acpi@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Thu, 03 Apr 2014 16:41:08 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Box, David E" <david.e.box@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: linux-acpi@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQmpvcm4gSGVsZ2FhcyBb
-bWFpbHRvOmJoZWxnYWFzQGdvb2dsZS5jb21dDQo+IFNlbnQ6IFRodXJzZGF5LCBBcHJpbCAwMywg
-MjAxNCAxMDoyOCBBTQ0KPiBUbzogTW9vcmUsIFJvYmVydA0KPiBDYzogWmhlbmcsIEx2OyBXeXNv
-Y2tpLCBSYWZhZWwgSjsgQm94LCBEYXZpZCBFOyBsaW51eC0NCj4gYWNwaUB2Z2VyLmtlcm5lbC5v
-cmc7IGRldmVsQGFjcGljYS5vcmcNCj4gU3ViamVjdDogUmU6IENvdmVyaXR5IENJRCAxMzQ2MzI6
-IGFjcGlfaHdfYnVpbGRfcGNpX2xpc3QoKSBtZW1vcnkgbGVhaw0KPiANCj4gT24gVGh1LCBBcHIg
-MywgMjAxNCBhdCAxMTowMyBBTSwgTW9vcmUsIFJvYmVydCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNv
-bT4NCj4gd3JvdGU6DQo+ID4gT24gc2Vjb25kIHRob3VnaHQsIGRpZCB5b3Ugbm90aWNlIHRoYXQg
-dGhlIGNhbGxlciBhbHdheXMgZGVsZXRlcyB0aGUNCj4gbGlzdCwgcmVnYXJkbGVzcyBvZiB0aGUg
-cmV0dXJuIHN0YXR1cz8NCj4gDQo+IEhtbSwgbm8sIEkgZGlkbid0IG5vdGljZSB0aGF0LCBhbmQg
-b2J2aW91c2x5IENvdmVyaXR5IGRpZG4ndCBlaXRoZXIuDQo+IFNvIEkgZ3Vlc3MgdGhlcmUncyBu
-byBhY3R1YWwgYnVnLCBhcyBsb25nIGFzIGV2ZXJ5IGNhbGxlciBkZWxldGVzIHRoZSBsaXN0DQo+
-IHJlZ2FyZGxlc3Mgb2Ygc3RhdHVzLiAgQW5kIHRoZXJlJ3Mgb25seSBvbmUgY2FsbGVyLg0KPiAN
-Cj4gSSB3b3VsZG4ndCBob2xkIGl0IHVwIGFzIGdvb2Qgc3R5bGUsIGJ1dCBJIGd1ZXNzIGl0J3Mg
-c2FmZSA6KQ0KDQoNClllcywgbm8gcmVhbCBsZWFrLiBCdXQgd2Ugd2lsbCBjaGFuZ2UgaXQgYW55
-d2F5IG9uIHByaW5jaXBsZS4NClRoYW5rcywNCkJvYg0KDQoNCg0KPiANCj4gPiAgICAgLyogQnVp
-bGQgYSBsaXN0IG9mIFBDSSBkZXZpY2VzLCBmcm9tIFBjaVJlZ2lvbiB1cCB0byBSb290UGNpRGV2
-aWNlDQo+ID4gKi8NCj4gPg0KPiA+ICAgICBTdGF0dXMgPSBBY3BpSHdCdWlsZFBjaUxpc3QgKFJv
-b3RQY2lEZXZpY2UsIFBjaVJlZ2lvbiwgJkxpc3RIZWFkKTsNCj4gPiAgICAgaWYgKEFDUElfU1VD
-Q0VTUyAoU3RhdHVzKSkNCj4gPiAgICAgew0KPiA+ICAgICAgICAgLyogV2FsayB0aGUgbGlzdCwg
-dXBkYXRpbmcgdGhlIFBDSSBkZXZpY2UvZnVuY3Rpb24vYnVzIG51bWJlcnMNCj4gPiAqLw0KPiA+
-DQo+ID4gICAgICAgICBTdGF0dXMgPSBBY3BpSHdQcm9jZXNzUGNpTGlzdCAoUGNpSWQsIExpc3RI
-ZWFkKTsNCj4gPiAgICAgfQ0KPiA+DQo+ID4gICAgIC8qIEFsd2F5cyBkZWxldGUgdGhlIGxpc3Qg
-Ki8NCj4gPg0KPiA+ICAgICBBY3BpSHdEZWxldGVQY2lMaXN0IChMaXN0SGVhZCk7DQo+ID4gICAg
-IHJldHVybl9BQ1BJX1NUQVRVUyAoU3RhdHVzKTsNCj4gPg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1l
-c3NhZ2UtLS0tLQ0KPiA+PiBGcm9tOiBCam9ybiBIZWxnYWFzIFttYWlsdG86YmhlbGdhYXNAZ29v
-Z2xlLmNvbV0NCj4gPj4gU2VudDogVGh1cnNkYXksIEFwcmlsIDAzLCAyMDE0IDk6MjIgQU0NCj4g
-Pj4gVG86IE1vb3JlLCBSb2JlcnQ7IFpoZW5nLCBMdjsgV3lzb2NraSwgUmFmYWVsIEoNCj4gPj4g
-Q2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eub3JnDQo+ID4+IFN1
-YmplY3Q6IENvdmVyaXR5IENJRCAxMzQ2MzI6IGFjcGlfaHdfYnVpbGRfcGNpX2xpc3QoKSBtZW1v
-cnkgbGVhaw0KPiA+Pg0KPiA+PiBDb3Zlcml0eSBjb21wbGFpbnMgdGhhdCBhY3BpX2h3X2J1aWxk
-X3BjaV9saXN0KCkgbGVha3MgbWVtb3J5IHdoZW4gaXQNCj4gPj4gcmV0dXJucyBoZXJlOg0KPiA+
-Pg0KPiA+PiAyMDEgICAgICAgICAgICAgICAgaWYgKCFsaXN0X2VsZW1lbnQpIHsNCj4gPj4NCj4g
-Pj4gQ0lEIDEzNDYzMiAoIzEgb2YgMik6IFJlc291cmNlIGxlYWsgKFJFU09VUkNFX0xFQUspIDEz
-LiBsZWFrZWRfc3RvcmFnZToNCj4gPj4gVmFyaWFibGUgbGlzdF9oZWFkIGdvaW5nIG91dCBvZiBz
-Y29wZSBsZWFrcyB0aGUgc3RvcmFnZSBpdCBwb2ludHMgdG8uDQo+ID4+IDIwMiAgICAgICAgICAg
-ICAgICAgICAgICAgIHJldHVybiAoQUVfTk9fTUVNT1JZKTsNCj4gPj4gMjAzICAgICAgICAgICAg
-ICAgIH0NCj4gPj4NCj4gPj4gV2UncmUgYnVpbGRpbmcgdXAgYSBsaXN0LCBhbmQgaWYgd2UgZmFp
-bCB0byBhbGxvY2F0ZSBhbm90aGVyIGVsZW1lbnQsDQo+ID4+IHdlIHJldHVybiBmYWlsdXJlIHdp
-dGhvdXQgZGVhbGxvY2F0aW5nIHRoZSBhbHJlYWR5IGJ1aWx0LXVwIGxpc3QuDQo+ID4+DQo+ID4+
-IFRoaXMgaXMgQ0lEIDEzNDYzMi4NCj4gPj4NCj4gPj4gQmpvcm4NCg==
+Hi!
+
+I've posted a message on the linux-kernel list about some bugs (see 
+http://lkml.iu.edu//hypermail/linux/kernel/1404.0/02012.html) that I 
+think are also very similar, if not identical to:
+http://ubuntuforums.org/showthread.php?t=2060681
+https://bbs.archlinux.org/viewtopic.php?id=160627
+
+Interesting, they also have HP laptops... So either this is a bug in the 
+BIOS's (unlikely, as other OS's work OK) or it's a bug somewhere in the 
+kernel in combination with these laptops...
+
+P.S.: I'm new to the kernel mailing lists (or any lists for that matter) 
+so feel free to warn me if I'm doing something wrong.
+
+Thanks
+(I'm not subscribed, please CC me)
