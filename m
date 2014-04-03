@@ -1,35 +1,45 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Coverity CID 134632: acpi_hw_build_pci_list() memory leak
-Date: Thu, 3 Apr 2014 10:22:25 -0600
-Message-ID: <CAErSpo4-c1Wb-gtaBGrVq557330PHKrB_mB3Hk+xdt_BtBYFVQ@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: Coverity CID 134632: acpi_hw_build_pci_list() memory leak
+Date: Thu, 3 Apr 2014 17:03:52 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37C7FF0CD@ORSMSX103.amr.corp.intel.com>
+References: <CAErSpo4-c1Wb-gtaBGrVq557330PHKrB_mB3Hk+xdt_BtBYFVQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f176.google.com ([209.85.213.176]:44801 "EHLO
-	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752721AbaDCQWq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Apr 2014 12:22:46 -0400
-Received: by mail-ig0-f176.google.com with SMTP id uy17so7967260igb.3
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Apr 2014 09:22:46 -0700 (PDT)
+Received: from mga02.intel.com ([134.134.136.20]:30760 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752300AbaDCRJ6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Apr 2014 13:09:58 -0400
+In-Reply-To: <CAErSpo4-c1Wb-gtaBGrVq557330PHKrB_mB3Hk+xdt_BtBYFVQ@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: Bjorn Helgaas <bhelgaas@google.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Box, David E" <david.e.box@intel.com>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-Coverity complains that acpi_hw_build_pci_list() leaks memory when it
-returns here:
-
-201                if (!list_element) {
-
-CID 134632 (#1 of 2): Resource leak (RESOURCE_LEAK)
-13. leaked_storage: Variable list_head going out of scope leaks the
-storage it points to.
-202                        return (AE_NO_MEMORY);
-203                }
-
-We're building up a list, and if we fail to allocate another element,
-we return failure without deallocating the already built-up list.
-
-This is CID 134632.
-
-Bjorn
+T24gc2Vjb25kIHRob3VnaHQsIGRpZCB5b3Ugbm90aWNlIHRoYXQgdGhlIGNhbGxlciBhbHdheXMg
+ZGVsZXRlcyB0aGUgbGlzdCwgcmVnYXJkbGVzcyBvZiB0aGUgcmV0dXJuIHN0YXR1cz8NCg0KICAg
+IC8qIEJ1aWxkIGEgbGlzdCBvZiBQQ0kgZGV2aWNlcywgZnJvbSBQY2lSZWdpb24gdXAgdG8gUm9v
+dFBjaURldmljZSAqLw0KDQogICAgU3RhdHVzID0gQWNwaUh3QnVpbGRQY2lMaXN0IChSb290UGNp
+RGV2aWNlLCBQY2lSZWdpb24sICZMaXN0SGVhZCk7DQogICAgaWYgKEFDUElfU1VDQ0VTUyAoU3Rh
+dHVzKSkNCiAgICB7DQogICAgICAgIC8qIFdhbGsgdGhlIGxpc3QsIHVwZGF0aW5nIHRoZSBQQ0kg
+ZGV2aWNlL2Z1bmN0aW9uL2J1cyBudW1iZXJzICovDQoNCiAgICAgICAgU3RhdHVzID0gQWNwaUh3
+UHJvY2Vzc1BjaUxpc3QgKFBjaUlkLCBMaXN0SGVhZCk7DQogICAgfQ0KDQogICAgLyogQWx3YXlz
+IGRlbGV0ZSB0aGUgbGlzdCAqLw0KDQogICAgQWNwaUh3RGVsZXRlUGNpTGlzdCAoTGlzdEhlYWQp
+Ow0KICAgIHJldHVybl9BQ1BJX1NUQVRVUyAoU3RhdHVzKTsNCg0KPiAtLS0tLU9yaWdpbmFsIE1l
+c3NhZ2UtLS0tLQ0KPiBGcm9tOiBCam9ybiBIZWxnYWFzIFttYWlsdG86YmhlbGdhYXNAZ29vZ2xl
+LmNvbV0NCj4gU2VudDogVGh1cnNkYXksIEFwcmlsIDAzLCAyMDE0IDk6MjIgQU0NCj4gVG86IE1v
+b3JlLCBSb2JlcnQ7IFpoZW5nLCBMdjsgV3lzb2NraSwgUmFmYWVsIEoNCj4gQ2M6IGxpbnV4LWFj
+cGlAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eub3JnDQo+IFN1YmplY3Q6IENvdmVyaXR5
+IENJRCAxMzQ2MzI6IGFjcGlfaHdfYnVpbGRfcGNpX2xpc3QoKSBtZW1vcnkgbGVhaw0KPiANCj4g
+Q292ZXJpdHkgY29tcGxhaW5zIHRoYXQgYWNwaV9od19idWlsZF9wY2lfbGlzdCgpIGxlYWtzIG1l
+bW9yeSB3aGVuIGl0DQo+IHJldHVybnMgaGVyZToNCj4gDQo+IDIwMSAgICAgICAgICAgICAgICBp
+ZiAoIWxpc3RfZWxlbWVudCkgew0KPiANCj4gQ0lEIDEzNDYzMiAoIzEgb2YgMik6IFJlc291cmNl
+IGxlYWsgKFJFU09VUkNFX0xFQUspIDEzLiBsZWFrZWRfc3RvcmFnZToNCj4gVmFyaWFibGUgbGlz
+dF9oZWFkIGdvaW5nIG91dCBvZiBzY29wZSBsZWFrcyB0aGUgc3RvcmFnZSBpdCBwb2ludHMgdG8u
+DQo+IDIwMiAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiAoQUVfTk9fTUVNT1JZKTsNCj4g
+MjAzICAgICAgICAgICAgICAgIH0NCj4gDQo+IFdlJ3JlIGJ1aWxkaW5nIHVwIGEgbGlzdCwgYW5k
+IGlmIHdlIGZhaWwgdG8gYWxsb2NhdGUgYW5vdGhlciBlbGVtZW50LCB3ZQ0KPiByZXR1cm4gZmFp
+bHVyZSB3aXRob3V0IGRlYWxsb2NhdGluZyB0aGUgYWxyZWFkeSBidWlsdC11cCBsaXN0Lg0KPiAN
+Cj4gVGhpcyBpcyBDSUQgMTM0NjMyLg0KPiANCj4gQmpvcm4NCg==
