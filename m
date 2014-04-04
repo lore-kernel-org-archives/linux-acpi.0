@@ -1,115 +1,113 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 12/28] ACPICA: Remove indent divergences to reduce the difficulties of maintaining the revised ACPICA commits.
-Date: Fri,  4 Apr 2014 12:38:18 +0800
-Message-ID: <269c72a5a4e7c845d787f08069d16db03075628c.1396581591.git.lv.zheng@intel.com>
+Subject: [PATCH 13/28] ACPICA: Tables: Fix the issues in handling virtual addressed tables.
+Date: Fri,  4 Apr 2014 12:38:26 +0800
+Message-ID: <cd9962fe775357646153d2cdba0ed13b523f66a7.1396581591.git.lv.zheng@intel.com>
 References: <cover.1396581591.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:60599 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:36705 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751978AbaDDEiW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Apr 2014 00:38:22 -0400
+	id S1751983AbaDDEib (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Apr 2014 00:38:31 -0400
 In-Reply-To: <cover.1396581591.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-The divergences in the ACPICA files makes it difficult to maintain linuxize
-ACPICA table commits.  This patch reduces such divergences before applying
-table manager commits so that human interventions of patch rebasing can be
-reduced.
+When table is overridden or reloaded, acpi_tb_delete_table() is called where
+struct acpi_table_desc.Pointer will be NULL.  It thus is impossible for virtual
+addressed tables to obtain the .Pointer again in acpi_tb_verify_table().
+
+This patch stores virtual table addresses  (ACPI_TABLE_ORIGIN_ALLOCATED,
+ACPI_TABLE_ORIGIN_UNKNOWN, ACPI_TABLE_ORIGIN_OVERRIDE) in the
+struct acpi_table_desc.Address field and refills the struct acpi_table_desc.Pointer
+using these addresses in acpi_tb_verify_table(). Note that if a table with
+ACPI_TABLE_ORIGIN_ALLOCATED set is actually freed, the .Address field
+should be invalidated and thus must be replaced with NULL to avoid wrong
+future validations occuring in acpi_tb_verify_table().
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/tbinstal.c |    6 +++++-
- drivers/acpi/acpica/tbutils.c  |    4 ++--
- drivers/acpi/acpica/tbxface.c  |   10 +++++-----
- 3 files changed, 12 insertions(+), 8 deletions(-)
+ drivers/acpi/acpica/exconfig.c |    4 ++--
+ drivers/acpi/acpica/tbinstal.c |   20 ++++++++++++++++++--
+ drivers/acpi/acpica/tbutils.c  |    1 +
+ 3 files changed, 21 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
+index 1b734eb..649a8ef 100644
+--- a/drivers/acpi/acpica/exconfig.c
++++ b/drivers/acpi/acpica/exconfig.c
+@@ -435,7 +435,7 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
+ 			return_ACPI_STATUS(status);
+ 		}
+ 
+-		table_desc.address = obj_desc->region.address;
++		table_desc.address = ACPI_PTR_TO_PHYSADDR(table_desc.pointer);
+ 		break;
+ 
+ 	case ACPI_TYPE_BUFFER:	/* Buffer or resolved region_field */
+@@ -476,7 +476,7 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
+ 		}
+ 
+ 		ACPI_MEMCPY(table_desc.pointer, table, length);
+-		table_desc.address = ACPI_TO_INTEGER(table_desc.pointer);
++		table_desc.address = ACPI_PTR_TO_PHYSADDR(table_desc.pointer);
+ 		break;
+ 
+ 	default:
 diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
-index e304094..73fffb0 100644
+index 73fffb0..144076a 100644
 --- a/drivers/acpi/acpica/tbinstal.c
 +++ b/drivers/acpi/acpica/tbinstal.c
-@@ -75,6 +75,7 @@ acpi_status acpi_tb_verify_table(struct acpi_table_desc *table_desc)
+@@ -69,11 +69,26 @@ acpi_status acpi_tb_verify_table(struct acpi_table_desc *table_desc)
+ 	/* Map the table if necessary */
+ 
+ 	if (!table_desc->pointer) {
+-		if ((table_desc->flags & ACPI_TABLE_ORIGIN_MASK) ==
+-		    ACPI_TABLE_ORIGIN_MAPPED) {
++		switch (table_desc->flags & ACPI_TABLE_ORIGIN_MASK) {
++		case ACPI_TABLE_ORIGIN_MAPPED:
++
+ 			table_desc->pointer =
  			    acpi_os_map_memory(table_desc->address,
  					       table_desc->length);
- 		}
++			break;
 +
++		case ACPI_TABLE_ORIGIN_ALLOCATED:
++		case ACPI_TABLE_ORIGIN_UNKNOWN:
++		case ACPI_TABLE_ORIGIN_OVERRIDE:
++
++			table_desc->pointer =
++			    ACPI_CAST_PTR(struct acpi_table_header,
++					  table_desc->address);
++			break;
++
++		default:
++
++			break;
+ 		}
+ 
  		if (!table_desc->pointer) {
- 			return_ACPI_STATUS(AE_NO_MEMORY);
- 		}
-@@ -459,10 +460,13 @@ acpi_tb_store_table(acpi_physical_address address,
+@@ -476,6 +491,7 @@ void acpi_tb_delete_table(struct acpi_table_desc *table_desc)
+ 	case ACPI_TABLE_ORIGIN_ALLOCATED:
  
- void acpi_tb_delete_table(struct acpi_table_desc *table_desc)
- {
-+
- 	/* Table must be mapped or allocated */
-+
- 	if (!table_desc->pointer) {
- 		return;
- 	}
-+
- 	switch (table_desc->flags & ACPI_TABLE_ORIGIN_MASK) {
- 	case ACPI_TABLE_ORIGIN_MAPPED:
+ 		ACPI_FREE(table_desc->pointer);
++		table_desc->address = ACPI_PTR_TO_PHYSADDR(NULL);
+ 		break;
  
-@@ -657,7 +661,7 @@ acpi_status acpi_tb_release_owner_id(u32 table_index)
-  *
-  ******************************************************************************/
- 
--acpi_status acpi_tb_get_owner_id(u32 table_index, acpi_owner_id *owner_id)
-+acpi_status acpi_tb_get_owner_id(u32 table_index, acpi_owner_id * owner_id)
- {
- 	acpi_status status = AE_BAD_PARAMETER;
- 
+ 		/* Not mapped or allocated, there is nothing we can do */
 diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index a4702ee..3f1afca 100644
+index 3f1afca..9b6992d 100644
 --- a/drivers/acpi/acpica/tbutils.c
 +++ b/drivers/acpi/acpica/tbutils.c
-@@ -582,8 +582,8 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
- 			if (ACPI_FAILURE(status)) {
- 				ACPI_WARNING((AE_INFO,
- 					      "Truncating %u table entries!",
--					      (unsigned) (table_count -
--					       (acpi_gbl_root_table_list.
-+					      (unsigned)(table_count -
-+							 (acpi_gbl_root_table_list.
- 							  current_table_count -
- 							  2))));
- 				break;
-diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-index a159315..4debc12 100644
---- a/drivers/acpi/acpica/tbxface.c
-+++ b/drivers/acpi/acpica/tbxface.c
-@@ -206,8 +206,8 @@ acpi_status
- acpi_get_table_header(char *signature,
- 		      u32 instance, struct acpi_table_header *out_table_header)
- {
--       u32 i;
--       u32 j;
-+	u32 i;
-+	u32 j;
- 	struct acpi_table_header *header;
+@@ -179,6 +179,7 @@ struct acpi_table_header *acpi_tb_copy_dsdt(u32 table_index)
  
- 	/* Parameter validation */
-@@ -321,8 +321,8 @@ acpi_get_table_with_size(char *signature,
- 	       u32 instance, struct acpi_table_header **out_table,
- 	       acpi_size *tbl_size)
- {
--       u32 i;
--       u32 j;
-+	u32 i;
-+	u32 j;
- 	acpi_status status;
- 
- 	/* Parameter validation */
-@@ -390,7 +390,7 @@ ACPI_EXPORT_SYMBOL(acpi_get_table)
-  *
-  ******************************************************************************/
- acpi_status
--acpi_get_table_by_index(u32 table_index, struct acpi_table_header **table)
-+acpi_get_table_by_index(u32 table_index, struct acpi_table_header ** table)
- {
- 	acpi_status status;
+ 	ACPI_MEMCPY(new_table, table_desc->pointer, table_desc->length);
+ 	acpi_tb_delete_table(table_desc);
++	table_desc->address = ACPI_PTR_TO_PHYSADDR(new_table);
+ 	table_desc->pointer = new_table;
+ 	table_desc->flags = ACPI_TABLE_ORIGIN_ALLOCATED;
  
 -- 
 1.7.10
