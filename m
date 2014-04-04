@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 04/28] ACPICA: gcc-specific: Fix possible issue with the strchr function.
-Date: Fri,  4 Apr 2014 12:37:19 +0800
-Message-ID: <992acb48929fb24748d95de20808ff15e4c18fcc.1396581591.git.lv.zheng@intel.com>
+Subject: [PATCH 05/28] ACPICA: Unload operator: Emit a warning if and when it is ever used.
+Date: Fri,  4 Apr 2014 12:37:26 +0800
+Message-ID: <83aca8466faa7ada04965d13690aa0f687f8b8fe.1396581591.git.lv.zheng@intel.com>
 References: <cover.1396581591.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:18383 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:11859 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750860AbaDDEhX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Apr 2014 00:37:23 -0400
+	id S1750888AbaDDEhb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Apr 2014 00:37:31 -0400
 In-Reply-To: <cover.1396581591.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,37 +16,33 @@ Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger
 
 From: Bob Moore <robert.moore@intel.com>
 
-Some versions of gcc implement strchr via a macro, which either
-contains bugs or can provoke a bug in the compiler. This change
-fixes a possible compile-time error when using this function.
-The problem is usually seen when compiling the getopt.c module.
+We would like to see the ASL for any machine that uses this operator,
+so emit at least a warning to hopefully draw some attention.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/platform/acgcc.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/acpi/acpica/exconfig.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/include/acpi/platform/acgcc.h b/include/acpi/platform/acgcc.h
-index a476b91..384875d 100644
---- a/include/acpi/platform/acgcc.h
-+++ b/include/acpi/platform/acgcc.h
-@@ -64,4 +64,15 @@
-  */
- #define ACPI_UNUSED_VAR __attribute__ ((unused))
+diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
+index 8ba1464..1b734eb 100644
+--- a/drivers/acpi/acpica/exconfig.c
++++ b/drivers/acpi/acpica/exconfig.c
+@@ -576,6 +576,13 @@ acpi_status acpi_ex_unload_table(union acpi_operand_object *ddb_handle)
+ 	ACPI_FUNCTION_TRACE(ex_unload_table);
  
-+/*
-+ * Some versions of gcc implement strchr() with a buggy macro. So,
-+ * undef it here. Prevents error messages of this form (usually from the
-+ * file getopt.c):
-+ *
-+ * error: logical '&&' with non-zero constant will always evaluate as true
-+ */
-+#ifdef strchr
-+#undef strchr
-+#endif
+ 	/*
++	 * Temporarily emit a warning so that the ASL for the machine can be
++	 * hopefully obtained. This is to say that the Unload() operator is
++	 * extremely rare if not completely unused.
++	 */
++	ACPI_WARNING((AE_INFO, "Received request to unload an ACPI table"));
 +
- #endif				/* __ACGCC_H__ */
++	/*
+ 	 * Validate the handle
+ 	 * Although the handle is partially validated in acpi_ex_reconfiguration()
+ 	 * when it calls acpi_ex_resolve_operands(), the handle is more completely
 -- 
 1.7.10
 
