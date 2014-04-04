@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 06/28] ACPICA: Disassembler: Add support to decode _HID and _CID values.
-Date: Fri,  4 Apr 2014 12:37:35 +0800
-Message-ID: <5f8f55fca826849d41feb8c3ef860747a6e3dd18.1396581591.git.lv.zheng@intel.com>
+Subject: [PATCH 07/28] ACPICA: Disassembler: Add decoding of Notify() values.
+Date: Fri,  4 Apr 2014 12:37:44 +0800
+Message-ID: <1df6a00760c5da6fc93cf7bb083500503b570483.1396581591.git.lv.zheng@intel.com>
 References: <cover.1396581591.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:27544 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:22179 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750897AbaDDEhj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Apr 2014 00:37:39 -0400
+	id S1750937AbaDDEhr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Apr 2014 00:37:47 -0400
 In-Reply-To: <cover.1396581591.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,73 +16,147 @@ Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger
 
 From: Bob Moore <robert.moore@intel.com>
 
-For _HID and _CID, the disassembler will emit a string that describes
-the device if the _HID/_CID value is recognized. acpihelp updated also.
-acpihelp will now search for a specific ID as well as displaying
-the list of "known" (to ACPICA) IDs.
+For Notify operators, displays a comment that describe the meaning
+of the notify value.
 
-This patch does not affect Linux kernel behavior as the disassembler
-and the acpihelp are not shipped in Linux kernel.
+This patch updates the debugging information that is enabled for
+CONFIG_ACPI_DEBUG builds.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h |    1 +
- drivers/acpi/acpica/aclocal.h  |    8 +++++++-
- drivers/acpi/acpica/acutils.h  |    7 +++++++
- 3 files changed, 15 insertions(+), 1 deletion(-)
+ drivers/acpi/acpica/acutils.h  |    3 +-
+ drivers/acpi/acpica/evmisc.c   |    3 +-
+ drivers/acpi/acpica/utdecode.c |   74 ++++++++++++++++++++++++++++++++++------
+ 3 files changed, 66 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 11ce629..71bb5b5 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -509,5 +509,6 @@ ACPI_INIT_GLOBAL(ACPI_FILE, acpi_gbl_debug_file, NULL);
-  ****************************************************************************/
- 
- extern const struct ah_predefined_name asl_predefined_info[];
-+extern const AH_DEVICE_ID asl_device_ids[];
- 
- #endif				/* __ACGLOBAL_H__ */
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 52a21da..f68cb60 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -733,7 +733,8 @@ union acpi_parse_value {
- #define ACPI_DASM_MATCHOP               0x06	/* Parent opcode is a Match() operator */
- #define ACPI_DASM_LNOT_PREFIX           0x07	/* Start of a Lnot_equal (etc.) pair of opcodes */
- #define ACPI_DASM_LNOT_SUFFIX           0x08	/* End  of a Lnot_equal (etc.) pair of opcodes */
--#define ACPI_DASM_IGNORE                0x09	/* Not used at this time */
-+#define ACPI_DASM_HID_STRING            0x09	/* String is a _HID or _CID */
-+#define ACPI_DASM_IGNORE                0x0A	/* Not used at this time */
- 
- /*
-  * Generic operation (for example:  If, While, Store)
-@@ -1147,4 +1148,9 @@ struct ah_predefined_name {
- #endif
- };
- 
-+struct ah_device_id {
-+	char *name;
-+	char *description;
-+};
-+
- #endif				/* __ACLOCAL_H__ */
 diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-index ceeec0b..5328610 100644
+index 5328610..2cf8d2c 100644
 --- a/drivers/acpi/acpica/acutils.h
 +++ b/drivers/acpi/acpica/acutils.h
-@@ -737,4 +737,11 @@ acpi_ut_method_error(const char *module_name,
- 		     struct acpi_namespace_node *node,
- 		     const char *path, acpi_status lookup_status);
+@@ -176,8 +176,7 @@ acpi_status acpi_ut_init_globals(void);
  
-+/*
-+ * Utility functions for ACPI names and IDs
-+ */
-+const struct ah_predefined_name *acpi_ah_match_predefined_name(char *nameseg);
+ char *acpi_ut_get_mutex_name(u32 mutex_id);
+ 
+-const char *acpi_ut_get_notify_name(u32 notify_value);
+-
++const char *acpi_ut_get_notify_name(u32 notify_value, acpi_object_type type);
+ #endif
+ 
+ char *acpi_ut_get_type_name(acpi_object_type type);
+diff --git a/drivers/acpi/acpica/evmisc.c b/drivers/acpi/acpica/evmisc.c
+index 5d594eb..24ea342 100644
+--- a/drivers/acpi/acpica/evmisc.c
++++ b/drivers/acpi/acpica/evmisc.c
+@@ -167,7 +167,8 @@ acpi_ev_queue_notify_request(struct acpi_namespace_node * node,
+ 			  "Dispatching Notify on [%4.4s] (%s) Value 0x%2.2X (%s) Node %p\n",
+ 			  acpi_ut_get_node_name(node),
+ 			  acpi_ut_get_type_name(node->type), notify_value,
+-			  acpi_ut_get_notify_name(notify_value), node));
++			  acpi_ut_get_notify_name(notify_value, ACPI_TYPE_ANY),
++			  node));
+ 
+ 	status = acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_ev_notify_dispatch,
+ 				 info);
+diff --git a/drivers/acpi/acpica/utdecode.c b/drivers/acpi/acpica/utdecode.c
+index fbfa9ec..90ec37c 100644
+--- a/drivers/acpi/acpica/utdecode.c
++++ b/drivers/acpi/acpica/utdecode.c
+@@ -462,7 +462,7 @@ char *acpi_ut_get_mutex_name(u32 mutex_id)
+ 
+ /* Names for Notify() values, used for debug output */
+ 
+-static const char *acpi_gbl_notify_value_names[ACPI_NOTIFY_MAX + 1] = {
++static const char *acpi_gbl_generic_notify[ACPI_NOTIFY_MAX + 1] = {
+ 	/* 00 */ "Bus Check",
+ 	/* 01 */ "Device Check",
+ 	/* 02 */ "Device Wake",
+@@ -473,23 +473,75 @@ static const char *acpi_gbl_notify_value_names[ACPI_NOTIFY_MAX + 1] = {
+ 	/* 07 */ "Power Fault",
+ 	/* 08 */ "Capabilities Check",
+ 	/* 09 */ "Device PLD Check",
+-	/* 10 */ "Reserved",
+-	/* 11 */ "System Locality Update",
+-	/* 12 */ "Shutdown Request"
++	/* 0A */ "Reserved",
++	/* 0B */ "System Locality Update",
++	/* 0C */ "Shutdown Request"
+ };
+ 
+-const char *acpi_ut_get_notify_name(u32 notify_value)
++static const char *acpi_gbl_device_notify[4] = {
++	/* 80 */ "Status Change",
++	/* 81 */ "Information Change",
++	/* 82 */ "Device-Specific Change",
++	/* 83 */ "Device-Specific Change"
++};
 +
-+const AH_DEVICE_ID *acpi_ah_match_hardware_id(char *hid);
++static const char *acpi_gbl_processor_notify[4] = {
++	/* 80 */ "Performance Capability Change",
++	/* 81 */ "C-State Change",
++	/* 82 */ "Throttling Capability Change",
++	/* 83 */ "Device-Specific Change"
++};
 +
- #endif				/* _ACUTILS_H */
++static const char *acpi_gbl_thermal_notify[4] = {
++	/* 80 */ "Thermal Status Change",
++	/* 81 */ "Thermal Trip Point Change",
++	/* 82 */ "Thermal Device List Change",
++	/* 83 */ "Thermal Relationship Change"
++};
++
++const char *acpi_ut_get_notify_name(u32 notify_value, acpi_object_type type)
+ {
+ 
++	/* 00 - 0C are common to all object types */
++
+ 	if (notify_value <= ACPI_NOTIFY_MAX) {
+-		return (acpi_gbl_notify_value_names[notify_value]);
+-	} else if (notify_value <= ACPI_MAX_SYS_NOTIFY) {
++		return (acpi_gbl_generic_notify[notify_value]);
++	}
++
++	/* 0D - 7F are reserved */
++
++	if (notify_value <= ACPI_MAX_SYS_NOTIFY) {
+ 		return ("Reserved");
+-	} else if (notify_value <= ACPI_MAX_DEVICE_SPECIFIC_NOTIFY) {
+-		return ("Device Specific");
+-	} else {
+-		return ("Hardware Specific");
+ 	}
++
++	/* 80 - 83 are per-object-type */
++
++	if (notify_value <= 0x83) {
++		switch (type) {
++		case ACPI_TYPE_ANY:
++		case ACPI_TYPE_DEVICE:
++			return (acpi_gbl_device_notify[notify_value - 0x80]);
++
++		case ACPI_TYPE_PROCESSOR:
++			return (acpi_gbl_processor_notify[notify_value - 0x80]);
++
++		case ACPI_TYPE_THERMAL:
++			return (acpi_gbl_thermal_notify[notify_value - 0x80]);
++
++		default:
++			return ("Target object type does not support notifies");
++		}
++	}
++
++	/* 84 - BF are device-specific */
++
++	if (notify_value <= ACPI_MAX_DEVICE_SPECIFIC_NOTIFY) {
++		return ("Device-Specific");
++	}
++
++	/* C0 and above are hardware-specific */
++
++	return ("Hardware-Specific");
+ }
+ #endif
+ 
 -- 
 1.7.10
 
