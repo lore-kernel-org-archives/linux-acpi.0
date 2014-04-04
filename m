@@ -1,36 +1,68 @@
-From: Tony Luck <tony.luck@gmail.com>
-Subject: Re: [PATCH 4/5] trace, eMCA: Add a knob to adjust where to save event log
-Date: Thu, 3 Apr 2014 16:46:53 -0700
-Message-ID: <CA+8MBbKxeSB9oubne9p2YJYcEZYt1gKDuZf3K-CEDjpk-K_Kdw@mail.gmail.com>
-References: <1395985981-20476-1-git-send-email-gong.chen@linux.intel.com>
-	<1395985981-20476-5-git-send-email-gong.chen@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 01/28] ACPICA: Add EXPORT_SYMBOL macros for install/remove SCI handler interfaces.
+Date: Fri,  4 Apr 2014 12:36:47 +0800
+Message-ID: <bd1b59f2b4f1913f4b4f36f957e74b0f3d7896c3.1396581591.git.lv.zheng@intel.com>
+References: <cover.1396581591.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f179.google.com ([209.85.214.179]:42252 "EHLO
-	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754325AbaDCXqx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Apr 2014 19:46:53 -0400
-Received: by mail-ob0-f179.google.com with SMTP id va2so2796470obc.10
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Apr 2014 16:46:53 -0700 (PDT)
-In-Reply-To: <1395985981-20476-5-git-send-email-gong.chen@linux.intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:9162 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750723AbaDDEgx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Apr 2014 00:36:53 -0400
+In-Reply-To: <cover.1396581591.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Gong" <gong.chen@linux.intel.com>
-Cc: Borislav Petkov <bp@alien8.de>, "m.chehab@samsung.com" <m.chehab@samsung.com>, Steven Rostedt <rostedt@goodmis.org>, linux-acpi <linux-acpi@vger.kernel.org>, "arozansk@redhat.com" <arozansk@redhat.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-> +static int extlog_trace_show(struct seq_file *m, void *v)
-> +{
-> +       atomic_inc(&trace_on);
-> +       return 0;
-> +}
-> +
-> +static int trace_open(struct inode *inode, struct file *file)
-> +{
-> +       return single_open(file, extlog_trace_show, NULL);
-> +}
+From: Bob Moore <robert.moore@intel.com>
 
-Shouldn't this atomic_inc() be inside the trace_open() function
-... not the extlog_trace_show()?
+These recently added interfaces did not have these macros, used
+by some hosts.
 
--Tony
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/evxface.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
+index a734b27..a41a0e7 100644
+--- a/drivers/acpi/acpica/evxface.c
++++ b/drivers/acpi/acpica/evxface.c
+@@ -457,6 +457,8 @@ exit:
+ 	return_ACPI_STATUS(status);
+ }
+ 
++ACPI_EXPORT_SYMBOL(acpi_install_sci_handler)
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_remove_sci_handler
+@@ -468,7 +470,6 @@ exit:
+  * DESCRIPTION: Remove a handler for a System Control Interrupt.
+  *
+  ******************************************************************************/
+-
+ acpi_status acpi_remove_sci_handler(acpi_sci_handler address)
+ {
+ 	struct acpi_sci_handler_info *prev_sci_handler;
+@@ -522,6 +523,8 @@ unlock_and_exit:
+ 	return_ACPI_STATUS(status);
+ }
+ 
++ACPI_EXPORT_SYMBOL(acpi_remove_sci_handler)
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_install_global_event_handler
+@@ -537,7 +540,6 @@ unlock_and_exit:
+  *              Can be used to update event counters, etc.
+  *
+  ******************************************************************************/
+-
+ acpi_status
+ acpi_install_global_event_handler(acpi_gbl_event_handler handler, void *context)
+ {
+-- 
+1.7.10
+
