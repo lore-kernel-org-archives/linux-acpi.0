@@ -1,44 +1,46 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 10/28] ACPICA: Linux-specific header: Add support for PPC64 compilation.
-Date: Fri,  4 Apr 2014 12:38:05 +0800
-Message-ID: <7b43cd2a9fdbf9b49643c6584b0b548e49272cbc.1396581591.git.lv.zheng@intel.com>
+Subject: [PATCH 11/28] ACPICA: Add a missing field for debug dump of mutex objects.
+Date: Fri,  4 Apr 2014 12:38:12 +0800
+Message-ID: <e228900eb4911caa4dc8b363cac1f5a1edd45db2.1396581591.git.lv.zheng@intel.com>
 References: <cover.1396581591.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:36692 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:22769 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750965AbaDDEiI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Apr 2014 00:38:08 -0400
+	id S1751500AbaDDEiP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Apr 2014 00:38:15 -0400
 In-Reply-To: <cover.1396581591.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Colin Ian King <colin.king@canonical.com>, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Colin Ian King <colin.king@canonical.com>
+From: Bob Moore <robert.moore@intel.com>
 
-Adds PPC64 as a 64-bit architecture. Colin Ian King.
+Adds "OriginalSyncLevel" field to the output.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/platform/aclinux.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/acpica/exdump.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 0d94be8..f242909 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -106,7 +106,8 @@
- #define ACPI_FLUSH_CPU_CACHE()
- #define ACPI_CAST_PTHREAD_T(pthread) ((acpi_thread_id) (pthread))
+diff --git a/drivers/acpi/acpica/exdump.c b/drivers/acpi/acpica/exdump.c
+index 973fdae..925202a 100644
+--- a/drivers/acpi/acpica/exdump.c
++++ b/drivers/acpi/acpica/exdump.c
+@@ -134,9 +134,11 @@ static struct acpi_exdump_info acpi_ex_dump_method[9] = {
+ 	{ACPI_EXD_POINTER, ACPI_EXD_OFFSET(method.aml_start), "Aml Start"}
+ };
  
--#if defined(__ia64__) || defined(__x86_64__) || defined(__aarch64__)
-+#if defined(__ia64__)    || defined(__x86_64__) ||\
-+	defined(__aarch64__) || defined(__PPC64__)
- #define ACPI_MACHINE_WIDTH          64
- #define COMPILER_DEPENDENT_INT64    long
- #define COMPILER_DEPENDENT_UINT64   unsigned long
+-static struct acpi_exdump_info acpi_ex_dump_mutex[5] = {
++static struct acpi_exdump_info acpi_ex_dump_mutex[6] = {
+ 	{ACPI_EXD_INIT, ACPI_EXD_TABLE_SIZE(acpi_ex_dump_mutex), NULL},
+ 	{ACPI_EXD_UINT8, ACPI_EXD_OFFSET(mutex.sync_level), "Sync Level"},
++	{ACPI_EXD_UINT8, ACPI_EXD_OFFSET(mutex.original_sync_level),
++	 "Original Sync Level"},
+ 	{ACPI_EXD_POINTER, ACPI_EXD_OFFSET(mutex.owner_thread), "Owner Thread"},
+ 	{ACPI_EXD_UINT16, ACPI_EXD_OFFSET(mutex.acquisition_depth),
+ 	 "Acquire Depth"},
 -- 
 1.7.10
 
