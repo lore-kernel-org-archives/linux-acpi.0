@@ -1,47 +1,38 @@
-From: Stephen Chandler Paul <thatslyude@gmail.com>
-Subject: [PATCH] Favor native backlight interface for ThinkPad Helix
-Date: Fri,  4 Apr 2014 10:44:46 -0400
-Message-ID: <1396622686-6373-1-git-send-email-thatslyude@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:36213 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752748AbaDDOns (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Apr 2014 10:43:48 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Adding interrupt support to gpio-ich driver (possibly via SCI)
+Date: Fri, 04 Apr 2014 09:25:50 -0700
+Message-ID: <533EDD0E.8010304@roeck-us.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Peter Tyser <ptyser@xes-inc.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Shawn Rutledge <shawn.t.rutledge@gmail.com>
 
-Like many other Windows 8 laptops the ThinkPad Helix's backlight has a
-broken ACPI interface and can only be properly adjusted by using the
-video card's native backlight control. This adds the ThinkPad Helix to
-the list of laptops affected with this issue so that
-video.use_native_backlight is enabled by default.
+Hi all,
 
-Signed-off-by: Stephen Chandler Paul <thatslyude@gmail.com>
----
- drivers/acpi/video.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+I have an application where I would need interrupt support for the gpio-ich driver.
+More specifically, in my application some of the GPIO pins are used to report
+interrupt status from a couple of connected chips. This is with a Panther Point
+PCH (QM77).
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 48c7e8a..8b6990e 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -488,6 +488,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		},
- 	},
- 	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "Thinkpad Helix",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad Helix"),
-+		},
-+	},
-+	{
- 	 .callback = video_set_use_native_backlight,
- 	 .ident = "Dell Inspiron 7520",
- 	 .matches = {
--- 
-1.8.3.2
+I see that the gpio pins in question (in the 0..15 range) do support interrupts,
+but it looks like the only configuration options are to generate SMI, SCI, or NMI.
 
+Is there a clean way to use any of those to implement interrupt support
+for this driver ? I thought about hijacking the SCI interrupt by registering
+an interrupt handler with acpi_install_sci_handler(), but that would restrict
+the driver to kernel only (or the acpi function would have to be exported),
+and I have no idea if it would work or, more importantly, if it would be
+the best approach to solve the problem, or if the result would be acceptable.
+I can figure out the "working" part, but that would not help much if I would
+have to carry the patch locally because it is not acceptable for upstream
+integration.
+
+Side note: gpio-ich is not currently enabled for Panther Point; that will be
+a one-line separate patch for the mfd/lpc_ich driver.
+
+Thanks,
+Guenter
