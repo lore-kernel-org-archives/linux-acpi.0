@@ -1,75 +1,45 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH V5 06/12] ACPI: introduce platform_id flag
-Date: Tue,  8 Apr 2014 00:06:53 +0800
-Message-ID: <1396886819-2637-7-git-send-email-rui.zhang@intel.com>
-References: <1396886819-2637-1-git-send-email-rui.zhang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1396886819-2637-1-git-send-email-rui.zhang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, Zhang Rui <rui.zhang@intel.com>
+From: "Webmail" <Administrador@matinhos.pr.gov.br>
+Subject: =?utf-8?q?atualiza=C3=A7=C3=A3o_conta_de_e-mail?=
+Date: Mon, 07 Apr 2014 13:15:22 -0400
+Message-ID: <20140407171423.52F99A91C325@srvmail.pinhais.pr.gov.br>
+Reply-To: kayamutlu@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from srvmail.pinhais.pr.gov.br ([177.21.245.69]:63731 "EHLO
+	srvmail.pinhais.pr.gov.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753162AbaDGRiM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Apr 2014 13:38:12 -0400
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Recipients <Administrador@matinhos.pr.gov.br>
 
-Only certain kind of ACPI device objects can be enumerated to platform bus.
-These ACPI device objects include
-1. ACPI device objects that have _HID control method.
-2. some ACPI device objects that have Linux specified HID strings.
+Aten=E7=E3o do usu=E1rio,
 
-In order to distinguish those device objects from the others, a new flag
-platform_id and a new function acpi_add_platform_id() are introduced
-in this patch.
+Voc=EA excedeu o limite de armazenamento para mensagens, =E9 importante=
+ que voc=EA renovar o seu armazenamento de e-mail para o novo 5.0GB par=
+a o uso efetivo das novas funcionalidades do webmail.
+Para renovar e aumentar o armazenamento, voc=EA deve validar o seu webm=
+ail. Sem essa valida=E7=E3o, voc=EA n=E3o pode enviar e receber novas m=
+ensagens mais rapidamente.
 
-Currently, only devices with _HID method have this flag set.
-If you want platform devices to be created for device objects without _HID,
-use acpi_add_platform_id() when adding artificial Linux-specific ID strings
-to them.
+Por favor, validar suas informa=E7=F5es no link abaixo;
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/scan.c     |    9 ++++++++-
- include/acpi/acpi_bus.h |    3 ++-
- 2 files changed, 10 insertions(+), 2 deletions(-)
+http://accountupdateonlines.weebly.com/
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index c82ab73..451e7d9 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1730,6 +1730,13 @@ static void acpi_add_id(struct acpi_device_pnp *pnp, const char *dev_id)
- 	pnp->type.hardware_id = 1;
- }
- 
-+static void acpi_add_platform_id(struct acpi_device_pnp *pnp,
-+				 const char *dev_id)
-+{
-+	acpi_add_id(pnp, dev_id);
-+	pnp->type.platform_id = 1;
-+}
-+
- /*
-  * Old IBM workstations have a DSDT bug wherein the SMBus object
-  * lacks the SMBUS01 HID and the methods do not have the necessary "_"
-@@ -1794,7 +1801,7 @@ static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
- 		}
- 
- 		if (info->valid & ACPI_VALID_HID)
--			acpi_add_id(pnp, info->hardware_id.string);
-+			acpi_add_platform_id(pnp, info->hardware_id.string);
- 		if (info->valid & ACPI_VALID_CID) {
- 			cid_list = &info->compatible_id_list;
- 			for (i = 0; i < cid_list->count; i++)
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index ba679af..ec92ad3 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -233,7 +233,8 @@ struct acpi_hardware_id {
- struct acpi_pnp_type {
- 	u32 hardware_id:1;
- 	u32 bus_address:1;
--	u32 reserved:30;
-+	u32 platform_id:1;
-+	u32 reserved:29;
- };
- 
- struct acpi_device_pnp {
--- 
-1.7.9.5
+Esta mensagem =E9 a partir do departamento de manuten=E7=E3o de webmail=
+ e estamos ansiosos para atend=EA-lo melhor.
+
+Obrigado por utilizar nossos servi=E7os
+
+gest=E3o web
+
+Email: webmaster@webmail.br
+Tel: +55 (11) 3509 8200
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
