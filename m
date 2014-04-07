@@ -1,7 +1,7 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH V5 12/12] ACPI: introduce .handle_children flag for acpi scan handler
-Date: Tue,  8 Apr 2014 00:06:59 +0800
-Message-ID: <1396886819-2637-13-git-send-email-rui.zhang@intel.com>
+Subject: [PATCH V5 11/12] ACPI: introduce dummy memory hotplug scan handler
+Date: Tue,  8 Apr 2014 00:06:58 +0800
+Message-ID: <1396886819-2637-12-git-send-email-rui.zhang@intel.com>
 References: <1396886819-2637-1-git-send-email-rui.zhang@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1396886819-2637-1-git-send-email-rui.zhang@intel.com>
@@ -10,111 +10,128 @@ To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-For some devices with scan handler attached, their children devices
-are enumerated by the scan handler, indirectly.
+If CONFIG_ACPI_HOTPLUG_MEMORY is cleared, platform devices would be
+created for ACPI hotplug memory device objects.
 
-In this case, we do not want to enumerate the children devices in
-acpi scan code explicitly.
-
-Thus a new flag .handle_children is introduced in this patch.
-
-For scan handlers with this flag set, we will do default enumeration neither
-for the attached devices nor for the children of the attached devices.
+Introduce a dummy memory hotplug scan handler in this patch,
+to prevent those platform devices from being created.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/acpi_lpss.c |    2 ++
- drivers/acpi/scan.c      |   28 ++++++++++++++++++++++++++--
- include/acpi/acpi_bus.h  |    4 +++-
- 3 files changed, 31 insertions(+), 3 deletions(-)
+ drivers/acpi/Makefile          |    2 +-
+ drivers/acpi/acpi_memhotplug.c |   45 ++++++++++++++++++++++++++++------------
+ drivers/acpi/internal.h        |    6 +-----
+ 3 files changed, 34 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 965428f..da0a3d4 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -521,6 +521,7 @@ static struct acpi_scan_handler lpss_handler = {
- 	.attach = acpi_lpss_create_device,
- 	.bind = acpi_lpss_bind,
- 	.unbind = acpi_lpss_unbind,
-+	.handle_children = true,
- };
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 871d70d..605eff7 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -65,7 +65,7 @@ obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
+ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
+ obj-y				+= container.o
+ obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+-obj-$(CONFIG_ACPI_HOTPLUG_MEMORY) += acpi_memhotplug.o
++obj-y				+= acpi_memhotplug.o
+ obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+ obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
+ obj-$(CONFIG_ACPI_SBS)		+= sbs.o
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index b67be85..ed2f6a7 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -44,6 +44,13 @@
  
- #endif /* CONFIG_X86_INTEL_LPSS */
-@@ -534,6 +535,7 @@ static int acpi_lpss_dummy_attach(struct acpi_device *adev,
- static struct acpi_scan_handler lpss_dummy_handler = {
- 	.ids = acpi_lpss_device_ids,
- 	.attach = acpi_lpss_dummy_attach,
-+	.handle_children = true,
- };
+ ACPI_MODULE_NAME("acpi_memhotplug");
  
- void __init acpi_lpss_init(void)
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 44c4668..4ea867e 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -2073,6 +2073,31 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl_not_used,
- 	return AE_OK;
++static const struct acpi_device_id memory_device_ids[] = {
++	{ACPI_MEMORY_DEVICE_HID, 0},
++	{"", 0},
++};
++
++#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
++
+ /* Memory Device States */
+ #define MEMORY_INVALID_STATE	0
+ #define MEMORY_POWER_ON_STATE	1
+@@ -53,11 +60,6 @@ static int acpi_memory_device_add(struct acpi_device *device,
+ 				  const struct acpi_device_id *not_used);
+ static void acpi_memory_device_remove(struct acpi_device *device);
+ 
+-static const struct acpi_device_id memory_device_ids[] = {
+-	{ACPI_MEMORY_DEVICE_HID, 0},
+-	{"", 0},
+-};
+-
+ static struct acpi_scan_handler memory_device_handler = {
+ 	.ids = memory_device_ids,
+ 	.attach = acpi_memory_device_add,
+@@ -362,17 +364,34 @@ static void acpi_memory_device_remove(struct acpi_device *device)
+ 
+ static bool __initdata acpi_no_memhotplug;
+ 
+-void __init acpi_memory_hotplug_init(void)
+-{
+-	if (acpi_no_memhotplug)
+-		return;
+-
+-	acpi_scan_add_handler_with_hotplug(&memory_device_handler, "memory");
+-}
+-
+ static int __init disable_acpi_memory_hotplug(char *str)
+ {
+ 	acpi_no_memhotplug = true;
+ 	return 1;
  }
- 
-+static void acpi_do_default_enumeration(struct acpi_device *device)
+ __setup("acpi_no_memhotplug", disable_acpi_memory_hotplug);
++
++#endif
++
++static int acpi_memory_dummy_add(struct acpi_device *device,
++				 const struct acpi_device_id *not_used)
 +{
-+	/*
-+	 * Do not do enumeration for device object that
-+	 * its parent doesn't want to
-+	 */
-+	if (device->parent && device->parent->flags.no_child_enumeration) {
-+		device->flags.no_child_enumeration = 1;
-+		return;
-+	}
-+
-+	/* Do not do enumeration for device object with scan handler attached */
-+	if (device->handler) {
-+		if (device->handler->handle_children)
-+			device->flags.no_child_enumeration = 1;
-+		return;
-+	}
-+
-+	/* Do not do enumeration for device object w/o platform_id */
-+	if (!device->pnp.type.platform_id)
-+		return;
-+
-+	acpi_create_platform_device(device, NULL);
++	return 1;
 +}
 +
- static int acpi_scan_attach_handler(struct acpi_device *device)
- {
- 	struct acpi_hardware_id *hwid;
-@@ -2095,8 +2120,7 @@ static int acpi_scan_attach_handler(struct acpi_device *device)
- 		}
- 	}
- 
--	if (device->pnp.type.platform_id && !device->handler)
--		acpi_create_platform_device(device, NULL);
-+	acpi_do_default_enumeration(device);
- 
- 	return ret;
- }
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index ec92ad3..4724fe5 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -137,6 +137,7 @@ struct acpi_scan_handler {
- 	void (*bind)(struct device *phys_dev);
- 	void (*unbind)(struct device *phys_dev);
- 	struct acpi_hotplug_profile hotplug;
-+	bool handle_children;
- };
- 
- /*
-@@ -207,7 +208,8 @@ struct acpi_device_flags {
- 	u32 no_hotplug:1;
- 	u32 hotplug_notify:1;
- 	u32 is_dock_station:1;
--	u32 reserved:22;
-+	u32 no_child_enumeration:1;
-+	u32 reserved:21;
- };
- 
- /* File System */
++static struct acpi_scan_handler memory_dummy_handler = {
++	.ids = memory_device_ids,
++	.attach = acpi_memory_dummy_add,
++};
++
++void __init acpi_memory_hotplug_init(void)
++{
++#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
++	if (!acpi_no_memhotplug) {
++		acpi_scan_add_handler_with_hotplug(&memory_device_handler,
++						"memory");
++		return;
++	}
++#endif
++	acpi_scan_add_handler(&memory_dummy_handler);
++}
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index ce8204e..bc7d102 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -33,6 +33,7 @@ void acpi_platform_init(void);
+ void acpi_pnp_init(void);
+ int acpi_sysfs_init(void);
+ void acpi_container_init(void);
++void acpi_memory_hotplug_init(void);
+ #ifdef CONFIG_ACPI_DOCK
+ void register_dock_dependent_device(struct acpi_device *adev,
+ 				    acpi_handle dshandle);
+@@ -44,11 +45,6 @@ static inline void register_dock_dependent_device(struct acpi_device *adev,
+ static inline int dock_notify(struct acpi_device *adev, u32 event) { return -ENODEV; }
+ static inline void acpi_dock_add(struct acpi_device *adev) {}
+ #endif
+-#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
+-void acpi_memory_hotplug_init(void);
+-#else
+-static inline void acpi_memory_hotplug_init(void) {}
+-#endif
+ #ifdef CONFIG_X86
+ void acpi_cmos_rtc_init(void);
+ #else
 -- 
 1.7.9.5
