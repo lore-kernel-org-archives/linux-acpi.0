@@ -1,167 +1,71 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: [PATCH 4/5 v2] trace, eMCA: Add a knob to adjust where to save event log
-Date: Tue,  8 Apr 2014 03:59:22 -0400
-Message-ID: <1396943962-25624-1-git-send-email-gong.chen@linux.intel.com>
-References: <CA+8MBbKxeSB9oubne9p2YJYcEZYt1gKDuZf3K-CEDjpk-K_Kdw@mail.gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:19890 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756426AbaDHIYF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Apr 2014 04:24:05 -0400
-In-Reply-To: <CA+8MBbKxeSB9oubne9p2YJYcEZYt1gKDuZf3K-CEDjpk-K_Kdw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: Update the ownership and developers for ACPI in Kconfig
+Date: Tue, 08 Apr 2014 13:08:26 +0200
+Message-ID: <2050013.Bv5IMKBfN1@vostro.rjw.lan>
+References: <1396528650-7402-1-git-send-email-hanjun.guo@linaro.org> <1487377.07icAKoM8K@vostro.rjw.lan> <53435C0F.3090908@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53435C0F.3090908@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Grant Likely <grant.likely@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: tony.luck@gmail.com
-Cc: bp@alien8.de, m.chehab@samsung.com, rostedt@goodmis.org, linux-acpi@vger.kernel.org, arozansk@redhat.com, "Chen, Gong" <gong.chen@linux.intel.com>
 
-To avoid saving two copies for one H/W event, add a new
-file under debugfs to control how to save event log.
-Once this file is opened, the perf/trace will be used,
-in the meanwhile, kernel will stop to print event log
-to the console. On the other hand, if this file is closed,
-kernel will print event log to the console again.
+On Tuesday, April 08, 2014 10:16:47 AM Hanjun Guo wrote:
+> On 2014-4-7 20:21, Rafael J. Wysocki wrote:
+> > On Thursday, April 03, 2014 08:37:30 PM Hanjun Guo wrote:
+> >> The UEFI Forum included the ACPI spec in its portfolio in October 2013
+> >> and will host future spec iterations, following the ACPI v5.0a release.
+> >>
+> >> A UEFI Forum working group named ACPI Specification Working Group (ASWG)
+> >> has been established to handle future ACPI developments, any UEFI member
+> >> can join the group and contribute to ACPI specification.
+> >>
+> >> So update the ownership and developers for ACPI in Kconfig accordingly,
+> >> and update the website link to ACPI specification too.
+> >>
+> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >> ---
+> >>  drivers/acpi/Kconfig |    5 +++--
+> >>  1 file changed, 3 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> >> index c205653..831e541 100644
+> >> --- a/drivers/acpi/Kconfig
+> >> +++ b/drivers/acpi/Kconfig
+> >> @@ -32,9 +32,10 @@ menuconfig ACPI
+> >>  	  <http://acpica.org/>
+> >>  
+> >>  	  ACPI is an open industry specification co-developed by
+> >> -	  Hewlett-Packard, Intel, Microsoft, Phoenix, and Toshiba.
+> >> +	  ACPI Specification Working Group (ASWG) under UEFI Forum, any
+> >> +	  UEFI member can join ASWG and contribute to ACPI specification.
+> >>  	  The specification is available at:
+> >> -	  <http://www.acpi.info>
+> > 
+> > The spec is still available from here, so why are you removing this link?
+> 
+> My bad, I thought the link below is the replacement for the above one.
+> 
+> > 
+> >> +	  <http://www.uefi.org/acpi/specs>
+> 
+> How about the replacement below?
+> 
+> -	  <http://www.acpi.info>
+> +	  <http://www.acpi.info>, or:
 
-v2 -> v1: move counter operation from *read* function to *open* function
+The "or" is redundant I think, just add the new link below the old one.
 
-Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
----
- drivers/acpi/acpi_extlog.c | 74 ++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 59 insertions(+), 15 deletions(-)
+> +	  <http://www.uefi.org/acpi/specs>
+> 
+> Thanks
+> Hanjun
 
-diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
-index 0ee2c38..7e8f9ed 100644
---- a/drivers/acpi/acpi_extlog.c
-+++ b/drivers/acpi/acpi_extlog.c
-@@ -12,6 +12,7 @@
- #include <linux/cper.h>
- #include <linux/ratelimit.h>
- #include <linux/edac.h>
-+#include <linux/debugfs.h>
- #include <asm/cpu.h>
- #include <asm/mce.h>
- 
-@@ -62,6 +63,9 @@ static void *elog_buf;
- static u64 *l1_entry_base;
- static u32 l1_percpu_entry;
- 
-+static struct dentry *extlog_debug_dir;
-+static atomic_t trace_on;
-+
- #define ELOG_IDX(cpu, bank) \
- 	(cpu_physical_id(cpu) * l1_percpu_entry + (bank))
- 
-@@ -183,21 +187,24 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
- 	estatus->block_status = 0;
- 
- 	tmp = (struct acpi_generic_status *)elog_buf;
--	print_extlog_rcd(NULL, tmp, cpu);
--
--	/* log event via trace */
--	err_count++;
--	gdata = (struct acpi_generic_data *)(tmp + 1);
--	if (gdata->validation_bits & CPER_SEC_VALID_FRU_ID)
--		fru_id = (uuid_le *)gdata->fru_id;
--	if (gdata->validation_bits & CPER_SEC_VALID_FRU_TEXT)
--		fru_text = gdata->fru_text;
--	sec_type = (uuid_le *)gdata->section_type;
--	if (!uuid_le_cmp(*sec_type, CPER_SEC_PLATFORM_MEM)) {
--		struct cper_sec_mem_err *mem_err = (void *)(gdata + 1);
--		if (gdata->error_data_length >= sizeof(*mem_err))
--			__trace_mem_error(fru_id, fru_text, err_count,
--					  gdata->error_severity, mem_err);
-+	if (!atomic_read(&trace_on))
-+		print_extlog_rcd(NULL, tmp, cpu);
-+	else {
-+		/* log event via trace */
-+		err_count++;
-+		gdata = (struct acpi_generic_data *)(tmp + 1);
-+		if (gdata->validation_bits & CPER_SEC_VALID_FRU_ID)
-+			fru_id = (uuid_le *)gdata->fru_id;
-+		if (gdata->validation_bits & CPER_SEC_VALID_FRU_TEXT)
-+			fru_text = gdata->fru_text;
-+		sec_type = (uuid_le *)gdata->section_type;
-+		if (!uuid_le_cmp(*sec_type, CPER_SEC_PLATFORM_MEM)) {
-+			struct cper_sec_mem_err *mem_err = (void *)(gdata + 1);
-+			if (gdata->error_data_length >= sizeof(*mem_err))
-+				__trace_mem_error(fru_id, fru_text, err_count,
-+						  gdata->error_severity,
-+						  mem_err);
-+		}
- 	}
- 
- 	return NOTIFY_STOP;
-@@ -233,6 +240,31 @@ static bool __init extlog_get_l1addr(void)
- 
- 	return true;
- }
-+
-+static int extlog_trace_show(struct seq_file *m, void *v)
-+{
-+	return 0;
-+}
-+
-+static int trace_open(struct inode *inode, struct file *file)
-+{
-+	atomic_inc(&trace_on);
-+	return single_open(file, extlog_trace_show, NULL);
-+}
-+
-+static int trace_release(struct inode *inode, struct file *file)
-+{
-+	atomic_dec(&trace_on);
-+	return single_release(inode, file);
-+}
-+
-+static const struct file_operations trace_fops = {
-+	.open    = trace_open,
-+	.read    = seq_read,
-+	.llseek  = seq_lseek,
-+	.release = trace_release,
-+};
-+
- static struct notifier_block extlog_mce_dec = {
- 	.notifier_call	= extlog_print,
- };
-@@ -243,6 +275,7 @@ static int __init extlog_init(void)
- 	void __iomem *extlog_l1_hdr;
- 	size_t l1_hdr_size;
- 	struct resource *r;
-+	struct dentry *fentry;
- 	u64 cap;
- 	int rc;
- 
-@@ -306,6 +339,14 @@ static int __init extlog_init(void)
- 	if (elog_buf == NULL)
- 		goto err_release_elog;
- 
-+	extlog_debug_dir = debugfs_create_dir("extlog", NULL);
-+	if (!extlog_debug_dir)
-+		goto err_cleanup;
-+	fentry = debugfs_create_file("suppress_console", S_IRUSR,
-+				     extlog_debug_dir, NULL, &trace_fops);
-+	if (!fentry)
-+		goto err_cleanup;
-+
- 	/*
- 	 * eMCA event report method has higher priority than EDAC method,
- 	 * unless EDAC event report method is mandatory.
-@@ -318,6 +359,8 @@ static int __init extlog_init(void)
- 
- 	return 0;
- 
-+err_cleanup:
-+	debugfs_remove_recursive(extlog_debug_dir);
- err_release_elog:
- 	if (elog_addr)
- 		acpi_os_unmap_memory(elog_addr, elog_size);
-@@ -343,6 +386,7 @@ static void __exit extlog_exit(void)
- 	release_mem_region(elog_base, elog_size);
- 	release_mem_region(l1_dirbase, l1_size);
- 	kfree(elog_buf);
-+	debugfs_remove_recursive(extlog_debug_dir);
- }
- 
- module_init(extlog_init);
+Thanks!
+
 -- 
-1.9.0
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
