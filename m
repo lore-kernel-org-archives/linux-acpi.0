@@ -1,75 +1,66 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/2] ACPI: Use acpi_os_allocate_zeroed instead of acpi_os_allocate + memset
-Date: Tue, 08 Apr 2014 14:33:39 +0200
-Message-ID: <3860698.PuFggScD3D@vostro.rjw.lan>
-References: <000101cf440f$07eb40d0$17c1c270$%choi@samsung.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH V2] ACPI: Update the ownership and developers for ACPI
+ in Kconfig
+Date: Tue, 08 Apr 2014 20:21:18 +0800
+Message-ID: <5343E9BE.7030608@linaro.org>
+References: <1396956241-8337-1-git-send-email-hanjun.guo@linaro.org> <3442476.Y3PYFAt6A7@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55219 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756141AbaDHMRk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Apr 2014 08:17:40 -0400
-In-Reply-To: <000101cf440f$07eb40d0$17c1c270$%choi@samsung.com>
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:47822 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756227AbaDHMVc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Apr 2014 08:21:32 -0400
+Received: by mail-pb0-f49.google.com with SMTP id jt11so952256pbb.22
+        for <linux-acpi@vger.kernel.org>; Tue, 08 Apr 2014 05:21:32 -0700 (PDT)
+In-Reply-To: <3442476.Y3PYFAt6A7@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonghwan Choi <jhbird.choi@samsung.com>
-Cc: linux-acpi@vger.kernel.org, 'Len Brown' <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Grant Likely <grant.likely@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Thursday, March 20, 2014 04:35:56 PM Jonghwan Choi wrote:
-> This is a multi-part message in MIME format.
-> 
-> ------=_NextPart_000_0002_01CF445A.77D2E8D0
-> Content-Type: text/plain;
-> 	charset="us-ascii"
-> Content-Transfer-Encoding: 7bit
-> 
-> Signed-off-by: Jonghwan Choi <jhbird.choi@samsung.com>
+Hi Rafael,
 
-Queued up for the next ACPI pull request, thanks!
-
-> ---
->  drivers/acpi/osl.c   |    3 +--
->  drivers/acpi/utils.c |    3 +--
->  2 files changed, 2 insertions(+), 4 deletions(-)
+On 2014-4-8 20:01, Rafael J. Wysocki wrote:
+> On Tuesday, April 08, 2014 07:24:01 PM Hanjun Guo wrote:
+>> The UEFI Forum included the ACPI spec in its portfolio in October 2013
+>> and will host future spec iterations, following the ACPI v5.0a release.
+>>
+>> A UEFI Forum working group named ACPI Specification Working Group (ASWG)
+>> has been established to handle future ACPI developments, any UEFI member
+>> can join the group and contribute to ACPI specification.
+>>
+>> So update the ownership and developers for ACPI in Kconfig accordingly,
+>> and add another website link to ACPI specification too.
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>  drivers/acpi/Kconfig |    4 +++-
+>>  1 file changed, 3 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>> index c205653..6bbf36e 100644
+>> --- a/drivers/acpi/Kconfig
+>> +++ b/drivers/acpi/Kconfig
+>> @@ -32,9 +32,11 @@ menuconfig ACPI
+>>  	  <http://acpica.org/>
+>>  
+>>  	  ACPI is an open industry specification co-developed by
+>> -	  Hewlett-Packard, Intel, Microsoft, Phoenix, and Toshiba.
+>> +	  ACPI Specification Working Group (ASWG) under UEFI Forum, any
+>> +	  UEFI member can join ASWG and contribute to ACPI specification.
 > 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index fc1aa79..09e53be 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -1221,10 +1221,9 @@ acpi_os_create_semaphore(u32 max_units, u32
-> initial_units, acpi_handle * handle)
->  {
->  	struct semaphore *sem = NULL;
->  
-> -	sem = acpi_os_allocate(sizeof(struct semaphore));
-> +	sem = acpi_os_allocate_zeroed(sizeof(struct semaphore));
->  	if (!sem)
->  		return AE_NO_MEMORY;
-> -	memset(sem, 0, sizeof(struct semaphore));
->  
->  	sema_init(sem, initial_units);
->  
-> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> index 85e3b61..84453fe 100644
-> --- a/drivers/acpi/utils.c
-> +++ b/drivers/acpi/utils.c
-> @@ -164,11 +164,10 @@ acpi_extract_package(union acpi_object *package,
->  	 * Validate output buffer.
->  	 */
->  	if (buffer->length == ACPI_ALLOCATE_BUFFER) {
-> -		buffer->pointer = ACPI_ALLOCATE(size_required);
-> +		buffer->pointer = ACPI_ALLOCATE_ZEROED(size_required);
->  		if (!buffer->pointer)
->  			return AE_NO_MEMORY;
->  		buffer->length = size_required;
-> -		memset(buffer->pointer, 0, size_required);
->  	} else {
->  		if (buffer->length < size_required) {
->  			buffer->length = size_required;
+> Thinking a bit more about that, I'd prefer this wording:
 > 
+> 	ACPI is an open industry specification originally co-developed by
+> 	Hewlett-Packard, Intel, Microsoft, Phoenix, and Toshiba.  Currently,
+> 	it is developed by the ACPI Specification Working Group (ASWG) under
+> 	the UEFI Forum and any UEFI member can join the ASWG and contribute
+> 	to the ACPI specification.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Great, I like your wording very much, will sent another version shortly :)
+
+Thanks
+Hanjun
+
