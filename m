@@ -1,7 +1,7 @@
 From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: [PATCH 7/7] acpi, apei, ghes: Factor out ioremap virtual memory for IRQ and NMI context.
-Date: Wed,  9 Apr 2014 17:14:35 +0200
-Message-ID: <1397056476-9183-8-git-send-email-tomasz.nowicki@linaro.org>
+Subject: [PATCH 3/7] ACPI, APEI, GHES: Introduce ACPI_APEI_NMI to make NMI error notification a GHES feature.
+Date: Wed,  9 Apr 2014 17:14:31 +0200
+Message-ID: <1397056476-9183-4-git-send-email-tomasz.nowicki@linaro.org>
 References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
@@ -10,60 +10,54 @@ To: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, bp@su
 Cc: linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-GHES currently maps two pages with atomic_ioremap.  From now
-on, NMI is optional so there is no need to allocate an NMI page
-for platforms without NMI support.
+Currently APEI depends on x86 architecture. It is because of NMI hardware
+error notification of GHES which is currently supported by x86 only.
+However, many other APEI features can be still used perfectly by other
+architectures.
 
-To make it possible to not use a second page, swap the existing
-page order so that the IRQ context page is first, and the optional
-NMI context page is second.  Then, use CONFIG_ACPI_APEI_NMI to decide
-at runtime how many pages are to be allocated.  Finally, put in
-sanity checks to avoid accessing unallocated memory.
+This commit adds ACPI_APEI_NMI which will be used in next patches to isolate
+NMI related code in ghes.c file. Only NMI error notification feature
+depends on x86 and it is selected by default for x86 arch.
 
 Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 ---
- drivers/acpi/apei/ghes.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/acpi/apei/Kconfig |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 624878b..20377ac 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -109,12 +109,11 @@ static DEFINE_MUTEX(ghes_list_mutex);
-  */
+diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
+index c4dac71..3ae248a 100644
+--- a/drivers/acpi/apei/Kconfig
++++ b/drivers/acpi/apei/Kconfig
+@@ -3,7 +3,6 @@ config ACPI_APEI
+ 	select MISC_FILESYSTEMS
+ 	select PSTORE
+ 	select UEFI_CPER
+-	depends on X86
+ 	help
+ 	  APEI allows to report errors (for example from the chipset)
+ 	  to the operating system. This improves NMI handling
+@@ -16,6 +15,7 @@ config ACPI_APEI_GHES
+ 	select ACPI_HED
+ 	select IRQ_WORK
+ 	select GENERIC_ALLOCATOR
++	select ACPI_APEI_NMI if X86
+ 	help
+ 	  Generic Hardware Error Source provides a way to report
+ 	  platform hardware errors (such as that from chipset). It
+@@ -26,6 +26,14 @@ config ACPI_APEI_GHES
+ 	  by firmware to produce more valuable hardware error
+ 	  information for Linux.
  
- /*
-- * Two virtual pages are used, one for NMI context, the other for
-- * IRQ/PROCESS context
-+ * Two virtual pages are used, one for IRQ/PROCESS context, the other for
-+ * NMI context (optionally).
-  */
--#define GHES_IOREMAP_PAGES		2
--#define GHES_IOREMAP_NMI_PAGE(base)	(base)
--#define GHES_IOREMAP_IRQ_PAGE(base)	((base) + PAGE_SIZE)
-+#define GHES_IOREMAP_IRQ_PAGE(base)	(base)
-+#define GHES_IOREMAP_NMI_PAGE(base)	((base) + PAGE_SIZE)
- 
- /* virtual memory area for atomic ioremap */
- static struct vm_struct *ghes_ioremap_area;
-@@ -141,7 +140,8 @@ static struct ghes_notify_setup	ghes_notify_tab[];
- 
- static int ghes_ioremap_init(void)
- {
--	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
-+	ghes_ioremap_area = __get_vm_area(
-+		PAGE_SIZE * (IS_ENABLED(CONFIG_ACPI_APEI_NMI) ? 2 : 1),
- 		VM_IOREMAP, VMALLOC_START, VMALLOC_END);
- 	if (!ghes_ioremap_area) {
- 		pr_err(GHES_PFX "Failed to allocate virtual memory area for atomic ioremap.\n");
-@@ -310,6 +310,8 @@ static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
- 	u64 offset;
- 	u32 trunk;
- 
-+	BUG_ON(in_nmi && !IS_ENABLED(CONFIG_ACPI_APEI_NMI));
++config ACPI_APEI_NMI
++	bool "NMI error notification support"
++	depends on ACPI_APEI_GHES
++	help
++	  Firmware first mode can use NMI notification mechanism to report errors
++	  to operating system. This feature is currently supported by X86
++	  architecture only.
 +
- 	while (len > 0) {
- 		offset = paddr - (paddr & PAGE_MASK);
- 		if (in_nmi) {
+ config ACPI_APEI_PCIEAER
+ 	bool "APEI PCIe AER logging/recovering support"
+ 	depends on ACPI_APEI && PCIEAER
 -- 
 1.7.9.5
