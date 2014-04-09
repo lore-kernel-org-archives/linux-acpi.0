@@ -1,63 +1,47 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: [PATCH 3/7] ACPI, APEI, GHES: Introduce ACPI_APEI_NMI to make NMI error notification a GHES feature.
-Date: Wed,  9 Apr 2014 17:14:31 +0200
-Message-ID: <1397056476-9183-4-git-send-email-tomasz.nowicki@linaro.org>
-References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, bp@suse.de, m.chehab@samsung.com
-Cc: linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+From: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Haswell systems & i801 i2c driver
+Date: Wed, 09 Apr 2014 12:21:40 -0400
+Message-ID: <53457394.1020404@redhat.com>
+References: <5342E7C0.4050209@redhat.com> <CAErSpo5jjo0HBeQTtTkiLdqk6vg+K51rXSF+qEbkwmM+QY1Acw@mail.gmail.com> <1396902638.5276.2.camel@x230> <20140407225620.23d52a0c@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140407225620.23d52a0c-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>
+Cc: Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jamorgan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, seth.heasley-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, janet.morgan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mstowe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Currently APEI depends on x86 architecture. It is because of NMI hardware
-error notification of GHES which is currently supported by x86 only.
-However, many other APEI features can be still used perfectly by other
-architectures.
 
-This commit adds ACPI_APEI_NMI which will be used in next patches to isolate
-NMI related code in ghes.c file. Only NMI error notification feature
-depends on x86 and it is selected by default for x86 arch.
 
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
----
- drivers/acpi/apei/Kconfig |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+On 04/07/2014 04:56 PM, Jean Delvare wrote:
+> On Mon, 7 Apr 2014 20:30:39 +0000, Matthew Garrett wrote:
+>>> If this is on a shipping BIOS, we might need to figure out some way to
+>>> handle it.  I don't remember anything in the ACPI spec that talks
+>>> about issues like this, but maybe we should add something in PCI that
+>>> notices if there's an ACPI device with the same resources and marks
+>>> the PCI device to keep us from moving it or assigning a driver (maybe
+>>> the warning you're seeing already handles the driver part?)
+>>
+>> This is, sadly, pretty typical. SMBus devices are often exposed via PCI
+>> even though they're accessed directly via AML. The current behaviour
+>> seems about as good as it gets - we warn the user that this could cause
+>> problems, and they can pass a kernel parameter that allows them to do it
+>> anyway.
+> 
+> The proper way to handle it at the BIOS level is to expose the SMBus to
+> the OS by implementing the ACPI SMBus CMI as supported by the i2c-scmi
+> driver. Unfortunately most BIOS do not bother implementing that
+> interface, effectively locking the OS out of the SMBus controller and
+> everything behind it. This has been a major pain for years :(
 
-diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
-index c4dac71..3ae248a 100644
---- a/drivers/acpi/apei/Kconfig
-+++ b/drivers/acpi/apei/Kconfig
-@@ -3,7 +3,6 @@ config ACPI_APEI
- 	select MISC_FILESYSTEMS
- 	select PSTORE
- 	select UEFI_CPER
--	depends on X86
- 	help
- 	  APEI allows to report errors (for example from the chipset)
- 	  to the operating system. This improves NMI handling
-@@ -16,6 +15,7 @@ config ACPI_APEI_GHES
- 	select ACPI_HED
- 	select IRQ_WORK
- 	select GENERIC_ALLOCATOR
-+	select ACPI_APEI_NMI if X86
- 	help
- 	  Generic Hardware Error Source provides a way to report
- 	  platform hardware errors (such as that from chipset). It
-@@ -26,6 +26,14 @@ config ACPI_APEI_GHES
- 	  by firmware to produce more valuable hardware error
- 	  information for Linux.
- 
-+config ACPI_APEI_NMI
-+	bool "NMI error notification support"
-+	depends on ACPI_APEI_GHES
-+	help
-+	  Firmware first mode can use NMI notification mechanism to report errors
-+	  to operating system. This feature is currently supported by X86
-+	  architecture only.
-+
- config ACPI_APEI_PCIEAER
- 	bool "APEI PCIe AER logging/recovering support"
- 	depends on ACPI_APEI && PCIEAER
--- 
-1.7.9.5
+Hey Jean, Thanks for the info.
+
+I'm about to RFC an algorithm patch for the i801 ACPI SBUS.  I dunno if it is
+really a good thing to do outside of Intel or if we should wait for a CMI.  OTOH
+it seems to work and your comment that "This has been a major pain for years"
+worries me that we'll never see a solution.
+
+P.
+> 
