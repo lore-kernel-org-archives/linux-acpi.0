@@ -1,45 +1,166 @@
-From: Parag Warudkar <parag.lkml@gmail.com>
-Subject: Re: BAR 14: can't assign mem (size 0x200000)
-Date: Thu, 10 Apr 2014 18:51:18 -0400 (EDT)
-Message-ID: <alpine.DEB.2.10.1404101846120.4929@parag-Z230>
-References: <CAOULuOY5eryuH1KgaqiuGXyYiQd2h=TZoPe2M2+juts9XuzW6Q@mail.gmail.com> <CAE9FiQXmO_sSCnd-0NvXKmyeLP0m4XGRRkAgqSiMkfeTcvXs+A@mail.gmail.com> <CAOULuOaeBPpuiYc_Aru+awBDf=Ahbok-UjgY9o7gfO4VMctoqg@mail.gmail.com> <CAE9FiQWpprkp_dzviD8wRpqosJq5Oe+8UTwhL87fbzFm3OknUw@mail.gmail.com>
- <CA+55aFx_zAO0iJVi==4X-bYFTopgaOCopCdUBbqUwKfOrXRYqw@mail.gmail.com> <20140329171903.GA10551@google.com> <CAOULuOaUke-W1W0o=1rhhk43Fy_RAYLdfhXQjdhy2xjHxP0oWA@mail.gmail.com> <CAErSpo6XjtrzSJE6n5aCMzketKv+rPt5eVvrzOQgUnviiRTWnA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f170.google.com ([209.85.216.170]:42638 "EHLO
-	mail-qc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753896AbaDJWvU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Apr 2014 18:51:20 -0400
-In-Reply-To: <CAErSpo6XjtrzSJE6n5aCMzketKv+rPt5eVvrzOQgUnviiRTWnA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Paul McQuade <paulmcquad@gmail.com>
+Subject: [PATCH] include: replace asm headers to linux
+Date: Fri, 11 Apr 2014 00:28:05 +0100
+Message-ID: <1397172486-13214-1-git-send-email-paulmcquad@gmail.com>
+Return-path: <linux-arch-owner@vger.kernel.org>
+Sender: linux-arch-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, devel@acpica.org, linux-acpi@vger.kernel.org, al.stone@linaro.org, naresh.bhat@linaro.org, arnd@arndb.de, lv.zheng@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Parag Warudkar <parag.lkml@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Yinghai Lu <yinghai@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
+Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
+Use #include <linux/types.h> instead of <asm/types.h>
 
+Signed-off-by: Paul McQuade <paulmcquad@gmail.com>
+---
+ include/acpi/platform/aclinux.h           | 2 +-
+ include/asm-generic/bitops/__ffs.h        | 2 +-
+ include/asm-generic/bitops/__fls.h        | 2 +-
+ include/asm-generic/bitops/arch_hweight.h | 2 +-
+ include/asm-generic/bitops/atomic.h       | 6 +++---
+ include/asm-generic/bitops/count_zeros.h  | 2 +-
+ include/asm-generic/bitops/fls64.h        | 2 +-
+ include/asm-generic/bitops/le.h           | 2 +-
+ include/asm-generic/bitops/non-atomic.h   | 2 +-
+ include/asm-generic/bitops/sched.h        | 2 +-
+ 10 files changed, 12 insertions(+), 12 deletions(-)
 
-On Thu, 10 Apr 2014, Bjorn Helgaas wrote:
-
-> On Sat, Mar 29, 2014 at 6:14 PM, Parag Warudkar <parag.lkml@gmail.com> wrote:
-> >> On Sat, Mar 29, 2014 at 09:41:20AM -0700, Linus Torvalds wrote:
-> >
-> >>> Parag, can you add a WARN_ON_ONCE() to that message, so that we see
-> >>> what the call chain is for it.
-> 
-> Parag, did you ever try this?
-
-No I haven't so far - I assumed the call chain you posted initially was 
-the only possibility. I will give it a try.
-
-> I doubt that Ubuntu includes any patches relevant to this issue.
-> 
-> Even though it doesn't seem to cause any problems, we're going to get
-> a lot of complaints about these scary-looking messages when resuming,
-> so I think we should figure this out and fix it.
-
-Sure, since the resource assignments aren't an issue during fresh boot, it 
-might just be something worth fixing in the resume path.
-
-Thanks,
-Parag
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 93c55ed..d52317f 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -71,7 +71,7 @@
+ #ifdef EXPORT_ACPI_INTERFACES
+ #include <linux/export.h>
+ #endif
+-#include <asm/acpi.h>
++#include <linux/acpi.h>
+ 
+ /* Host-dependent types and defines for in-kernel ACPICA */
+ 
+diff --git a/include/asm-generic/bitops/__ffs.h b/include/asm-generic/bitops/__ffs.h
+index 937d7c4..8236f91 100644
+--- a/include/asm-generic/bitops/__ffs.h
++++ b/include/asm-generic/bitops/__ffs.h
+@@ -1,7 +1,7 @@
+ #ifndef _ASM_GENERIC_BITOPS___FFS_H_
+ #define _ASM_GENERIC_BITOPS___FFS_H_
+ 
+-#include <asm/types.h>
++#include <linux/types.h>
+ 
+ /**
+  * __ffs - find first bit in word.
+diff --git a/include/asm-generic/bitops/__fls.h b/include/asm-generic/bitops/__fls.h
+index a60a7cc..60e5360 100644
+--- a/include/asm-generic/bitops/__fls.h
++++ b/include/asm-generic/bitops/__fls.h
+@@ -1,7 +1,7 @@
+ #ifndef _ASM_GENERIC_BITOPS___FLS_H_
+ #define _ASM_GENERIC_BITOPS___FLS_H_
+ 
+-#include <asm/types.h>
++#include <linux/types.h>
+ 
+ /**
+  * __fls - find last (most-significant) set bit in a long word
+diff --git a/include/asm-generic/bitops/arch_hweight.h b/include/asm-generic/bitops/arch_hweight.h
+index 6a211f4..a9a48a8 100644
+--- a/include/asm-generic/bitops/arch_hweight.h
++++ b/include/asm-generic/bitops/arch_hweight.h
+@@ -1,7 +1,7 @@
+ #ifndef _ASM_GENERIC_BITOPS_ARCH_HWEIGHT_H_
+ #define _ASM_GENERIC_BITOPS_ARCH_HWEIGHT_H_
+ 
+-#include <asm/types.h>
++#include <linux/types.h>
+ 
+ static inline unsigned int __arch_hweight32(unsigned int w)
+ {
+diff --git a/include/asm-generic/bitops/atomic.h b/include/asm-generic/bitops/atomic.h
+index 9ae6c34..4469696 100644
+--- a/include/asm-generic/bitops/atomic.h
++++ b/include/asm-generic/bitops/atomic.h
+@@ -1,12 +1,12 @@
+ #ifndef _ASM_GENERIC_BITOPS_ATOMIC_H_
+ #define _ASM_GENERIC_BITOPS_ATOMIC_H_
+ 
+-#include <asm/types.h>
++#include <linux/types.h>
+ #include <linux/irqflags.h>
+ 
+ #ifdef CONFIG_SMP
+-#include <asm/spinlock.h>
+-#include <asm/cache.h>		/* we use L1_CACHE_BYTES */
++#include <linux/spinlock.h>
++#include <linux/cache.h>		/* we use L1_CACHE_BYTES */
+ 
+ /* Use an array of spinlocks for our atomic_ts.
+  * Hash function to index into a different SPINLOCK.
+diff --git a/include/asm-generic/bitops/count_zeros.h b/include/asm-generic/bitops/count_zeros.h
+index 97520d2..7f8e1d0 100644
+--- a/include/asm-generic/bitops/count_zeros.h
++++ b/include/asm-generic/bitops/count_zeros.h
+@@ -12,7 +12,7 @@
+ #ifndef _ASM_GENERIC_BITOPS_COUNT_ZEROS_H_
+ #define _ASM_GENERIC_BITOPS_COUNT_ZEROS_H_
+ 
+-#include <asm/bitops.h>
++#include <linux/bitops.h>
+ 
+ /**
+  * count_leading_zeros - Count the number of zeros from the MSB back
+diff --git a/include/asm-generic/bitops/fls64.h b/include/asm-generic/bitops/fls64.h
+index b097cf8..3999f5c 100644
+--- a/include/asm-generic/bitops/fls64.h
++++ b/include/asm-generic/bitops/fls64.h
+@@ -1,7 +1,7 @@
+ #ifndef _ASM_GENERIC_BITOPS_FLS64_H_
+ #define _ASM_GENERIC_BITOPS_FLS64_H_
+ 
+-#include <asm/types.h>
++#include <linux/types.h>
+ 
+ /**
+  * fls64 - find last set bit in a 64-bit word
+diff --git a/include/asm-generic/bitops/le.h b/include/asm-generic/bitops/le.h
+index 6173154..8f4f574 100644
+--- a/include/asm-generic/bitops/le.h
++++ b/include/asm-generic/bitops/le.h
+@@ -1,7 +1,7 @@
+ #ifndef _ASM_GENERIC_BITOPS_LE_H_
+ #define _ASM_GENERIC_BITOPS_LE_H_
+ 
+-#include <asm/types.h>
++#include <linux/types.h>
+ #include <asm/byteorder.h>
+ 
+ #if defined(__LITTLE_ENDIAN)
+diff --git a/include/asm-generic/bitops/non-atomic.h b/include/asm-generic/bitops/non-atomic.h
+index 697cc2b..4b04267 100644
+--- a/include/asm-generic/bitops/non-atomic.h
++++ b/include/asm-generic/bitops/non-atomic.h
+@@ -1,7 +1,7 @@
+ #ifndef _ASM_GENERIC_BITOPS_NON_ATOMIC_H_
+ #define _ASM_GENERIC_BITOPS_NON_ATOMIC_H_
+ 
+-#include <asm/types.h>
++#include <linux/types.h>
+ 
+ /**
+  * __set_bit - Set a bit in memory
+diff --git a/include/asm-generic/bitops/sched.h b/include/asm-generic/bitops/sched.h
+index 604fab7..65ad856 100644
+--- a/include/asm-generic/bitops/sched.h
++++ b/include/asm-generic/bitops/sched.h
+@@ -2,7 +2,7 @@
+ #define _ASM_GENERIC_BITOPS_SCHED_H_
+ 
+ #include <linux/compiler.h>	/* unlikely() */
+-#include <asm/types.h>
++#include <linux/types.h>
+ 
+ /*
+  * Every architecture must define this function. It's the fastest
+-- 
+1.8.3.2
