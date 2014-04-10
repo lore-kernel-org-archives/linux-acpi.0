@@ -1,71 +1,45 @@
-From: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH RFC] i2c algo, Add i2c-algo-i801 driver [v1]
-Date: Thu, 10 Apr 2014 15:15:54 -0400
-Message-ID: <5346EDEA.3070704@redhat.com>
-References: <1397060563-30431-1-git-send-email-prarit@redhat.com>  <1397061392.5276.11.camel@x230> <53457D0D.7020805@redhat.com> <1397063381.5276.17.camel@x230>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: BAR 14: can't assign mem (size 0x200000)
+Date: Thu, 10 Apr 2014 13:50:01 -0600
+Message-ID: <CAErSpo6XjtrzSJE6n5aCMzketKv+rPt5eVvrzOQgUnviiRTWnA@mail.gmail.com>
+References: <CAOULuOY5eryuH1KgaqiuGXyYiQd2h=TZoPe2M2+juts9XuzW6Q@mail.gmail.com>
+ <CAE9FiQXmO_sSCnd-0NvXKmyeLP0m4XGRRkAgqSiMkfeTcvXs+A@mail.gmail.com>
+ <CAOULuOaeBPpuiYc_Aru+awBDf=Ahbok-UjgY9o7gfO4VMctoqg@mail.gmail.com>
+ <CAE9FiQWpprkp_dzviD8wRpqosJq5Oe+8UTwhL87fbzFm3OknUw@mail.gmail.com>
+ <CA+55aFx_zAO0iJVi==4X-bYFTopgaOCopCdUBbqUwKfOrXRYqw@mail.gmail.com>
+ <20140329171903.GA10551@google.com> <CAOULuOaUke-W1W0o=1rhhk43Fy_RAYLdfhXQjdhy2xjHxP0oWA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1397063381.5276.17.camel@x230>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "seth.heasley-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <seth.heasley-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "janet.morgan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <janet.morgan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "mstowe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <mstowe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:39759 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030555AbaDJTuW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Apr 2014 15:50:22 -0400
+Received: by mail-ie0-f178.google.com with SMTP id lx4so4496820iec.9
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Apr 2014 12:50:21 -0700 (PDT)
+In-Reply-To: <CAOULuOaUke-W1W0o=1rhhk43Fy_RAYLdfhXQjdhy2xjHxP0oWA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Parag Warudkar <parag.lkml@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Yinghai Lu <yinghai@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
+On Sat, Mar 29, 2014 at 6:14 PM, Parag Warudkar <parag.lkml@gmail.com> wrote:
+>> On Sat, Mar 29, 2014 at 09:41:20AM -0700, Linus Torvalds wrote:
+>
+>>> Parag, can you add a WARN_ON_ONCE() to that message, so that we see
+>>> what the call chain is for it.
 
+Parag, did you ever try this?
 
-On 04/09/2014 01:09 PM, Matthew Garrett wrote:
-> On Wed, 2014-04-09 at 13:02 -0400, Prarit Bhargava wrote:
->>
->> On 04/09/2014 12:36 PM, Matthew Garrett wrote:
->>> On Wed, 2014-04-09 at 12:22 -0400, Prarit Bhargava wrote:
->>>> RFC and a work in progress ... I need to go through and do a bunch of error
->>>> condition checking, more testing, etc.  I'm just throwing this out there to see
->>>> if anyone has any major concerns about doing something like this.
->>>
->>> This isn't really a good approach. These aren't standardised ACPI
->>> methods, so you have no guarantee that they exist. The fact that a
->>
->> I've looked at the ACPI dump across six different systems (3 different vendors,
->> and an intel whitebox), and the data appears to be identical.  Could Intel
->> change these?  Yes, of course they could, but that's no different from any other
->> undocumented driver in the kernel.
-> 
-> Not really. These are an internal implementation detail, not an exported
-> interface. We try to write drivers for exported interfaces, even if
-> they're not documented.
+> ...
+> Not sure if Ubuntu includes any patches on top of 3.11 mainline that
+> make a difference to this issue - but in case they don't this might be
+> a regression.
 
-Aren't the methods the exported interface?  I'm obviously missing something :)
+I doubt that Ubuntu includes any patches relevant to this issue.
 
-> 
->>> method with one of these names exists is no guarantee that it has the
->>> same behaviour as the ones on your board. There's no guarantee that
->>> you're not racing against the firmware.
->>>
->>
->> I think there is -- AFAICT the operations are serialized; if they aren't that is
->> an associated risk.  Hopefully someone from Intel will lend a hand here and let
->> me know if I'm doing something horrible ;)
-> 
-> Imagine an i2c chip with indexed register access. What stops:
-> 
-> CPU0 (i2c):		CPU1 (ACPI):
-> SBWB register address
-> 			SBWB register address
-> SBRB register value
-> 			SBRB register value
-> 
-> and CPU0 getting back the wrong value?
+Even though it doesn't seem to cause any problems, we're going to get
+a lot of complaints about these scary-looking messages when resuming,
+so I think we should figure this out and fix it.
 
-I thought that the "Serialized" keyword in the methods specifically indicate
-that this cannot happen.
-
-/me could be confused but from the ACPI spec:
-
-SerializeRule is optional and is a flag that defines whether the method is
-serialized or not and is one of the following: Serialized or NotSerialized. A
-method that is serialized cannot be reentered by additional threads. If not
-specified, the default is NotSerialized.
-
-P.
+Bjorn
