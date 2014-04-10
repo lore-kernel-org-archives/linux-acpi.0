@@ -1,45 +1,44 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] Default to using the native backlight control
- on Windows 8 systems
-Date: Fri, 11 Apr 2014 19:31:02 +0800
-Message-ID: <5347D276.4070107@intel.com>
-References: <1397160803-24297-1-git-send-email-matthew.garrett@nebula.com> <534759CD.20405@intel.com> <87ppko6sjy.fsf@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Igor Mammedov <imammedo@redhat.com>
+Subject: [PATCH v3 2/5] x86: log error on secondary CPU wakeup failure at ERR level
+Date: Thu, 10 Apr 2014 19:14:18 +0200
+Message-ID: <1397150061-29735-3-git-send-email-imammedo@redhat.com>
+References: <1397150061-29735-1-git-send-email-imammedo@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:11200 "EHLO mga11.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:48679 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754170AbaDKLaV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Apr 2014 07:30:21 -0400
-In-Reply-To: <87ppko6sjy.fsf@intel.com>
+	id S1754818AbaDKMm6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Apr 2014 08:42:58 -0400
+In-Reply-To: <1397150061-29735-1-git-send-email-imammedo@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jani Nikula <jani.nikula@linux.intel.com>, Matthew Garrett <matthew.garrett@nebula.com>, dri-devel@lists.freedesktop.org
-Cc: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, imammedo@redhat.com, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
 
-On 04/11/2014 06:58 PM, Jani Nikula wrote:
-> On Fri, 11 Apr 2014, Aaron Lu <aaron.lu@intel.com> wrote:
->> On 04/11/2014 04:13 AM, Matthew Garrett wrote:
->>> The list of machines in the "Use native backlight" table is getting longer
->>> and longer, which is a solid indication that we're doing something wrong.
->>> Disable the ACPI backlight interface if the system claims to be Windows 8
->>> or later.
->>
->> And has a native backlight control interface.
-> 
-> This. One thing we were doing wrong in i915 was unconditionally
-> registering a native backlight interface even when it was not
-> functional. We can't really know whether that is the case except by
-> trusting the VBT, and although we've been let down in the past, trusting
-> the VBT on this one is probably a better approximation of the reality
-> than assuming it always works. Thus we've queued [1] and [2] for 3.15
-> which should help.
-> 
-> [1] http://cgit.freedesktop.org/drm-intel/commit/?id=39fbc9c8f6765959b55e0b127dd5c57df5a47d67
-> [2] http://cgit.freedesktop.org/drm-intel/commit/?id=c675949ec58ca50d5a3ae3c757892f1560f6e896
+If system is running without debug level logging,
+it will not log error if do_boot_cpu() failed to
+wakeup AP. It may lead to silent AP bringup
+failures at boot time.
+Change message level to KERN_ERR to make error
+visible to user as it's done on other architectures.
 
-That's pretty cool :-)
+Signed-off-by: Igor Mammedov <imammedo@redhat.com>
+---
+ arch/x86/kernel/smpboot.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Regards,
-Aaron
+diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
+index 5e57a0a..853473d 100644
+--- a/arch/x86/kernel/smpboot.c
++++ b/arch/x86/kernel/smpboot.c
+@@ -883,7 +883,7 @@ int native_cpu_up(unsigned int cpu, struct task_struct *tidle)
+ 
+ 	err = do_boot_cpu(apicid, cpu, tidle);
+ 	if (err) {
+-		pr_debug("do_boot_cpu failed %d\n", err);
++		pr_err("do_boot_cpu failed(%d) to wakeup CPU#%u\n", err, cpu);
+ 		return -EIO;
+ 	}
+ 
+-- 
+1.7.1
+
