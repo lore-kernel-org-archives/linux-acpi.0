@@ -1,26 +1,26 @@
-From: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH RFC] i2c algo, Add i2c-algo-i801 driver [v1]
-Date: Wed, 9 Apr 2014 22:27:08 +0200
-Message-ID: <20140409222708.1e4383aa@endymion.delvare>
-References: <1397060563-30431-1-git-send-email-prarit@redhat.com>
-	<20140409183732.5c8f6355@endymion.delvare>
-	<53457C00.1030400@redhat.com>
+From: ROYAL ASSURED LOAN <info@loans.com>
+Subject: Darlehen Angebot
+Date: Thu, 10 Apr 2014 14:26:57 +0100
+Message-ID: <8deff87e7bb507a2d59a5d98cc2d111d__14238.4835322902$1397136856$gmane$org@mentonehotel.com>
+Reply-To: osahhio@hotmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53457C00.1030400-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Seth Heasley <seth.heasley-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Janet Morgan <janet.morgan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Myron Stowe <mstowe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from webmail5.interdns.co.uk ([83.170.124.74]:46201 "EHLO
+	webmail5.interdns.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030551AbaDJNdk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Apr 2014 09:33:40 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 09 Apr 2014 12:57:36 -0400, Prarit Bhargava wrote:
-> I'll rework the patch with your suggestions.  I may have (possibly dumb)
-> questions and I hope that's okay ..
-
-No problem, I'll help as much as I can :)
-
--- 
-Jean Delvare
-SUSE L3 Support
+ Wir bieten privaten und gewerblichen Darlehen ohne Sicherheiten (nur=20
+ Identifikation) bei 3% Zinssatz, ab =E2=82=AC 10.000 bis =E2=82=AC 90.=
+000.000 in 1 Jahr=20
+ bis 20 Jahren Laufzeit =C3=BCberall in der Welt..
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
