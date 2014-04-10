@@ -1,76 +1,71 @@
-From: Igor Mammedov <imammedo@redhat.com>
-Subject: [PATCH v3 3/5] x86: fix list corruption on CPU hotplug
-Date: Thu, 10 Apr 2014 19:14:19 +0200
-Message-ID: <1397150061-29735-4-git-send-email-imammedo@redhat.com>
-References: <1397150061-29735-1-git-send-email-imammedo@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1397150061-29735-1-git-send-email-imammedo@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, imammedo@redhat.com, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+From: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH RFC] i2c algo, Add i2c-algo-i801 driver [v1]
+Date: Thu, 10 Apr 2014 15:15:54 -0400
+Message-ID: <5346EDEA.3070704@redhat.com>
+References: <1397060563-30431-1-git-send-email-prarit@redhat.com>  <1397061392.5276.11.camel@x230> <53457D0D.7020805@redhat.com> <1397063381.5276.17.camel@x230>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1397063381.5276.17.camel@x230>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matthew Garrett <matthew.garrett-05XSO3Yj/JvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "seth.heasley-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <seth.heasley-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "janet.morgan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <janet.morgan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "mstowe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <mstowe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-currently if AP wake up is failed, master CPU marks AP as not present
-in do_boot_cpu() by calling set_cpu_present(cpu, false).
-That leads to following list corruption on the next physical CPU
-hotplug:
 
-[  418.107336] WARNING: CPU: 1 PID: 45 at lib/list_debug.c:33 __list_add+0xbe/0xd0()
-[  418.115268] list_add corruption. prev->next should be next (ffff88003dc57600), but was ffff88003e20c3a0. (prev=ffff88003e20c3a0).
-[  418.123693] Modules linked in: nf_conntrack_netbios_ns nf_conntrack_broadcast ipt_MASQUERADE ip6t_REJECT ipt_REJECT cfg80211 xt_conntrack rfkill ee
-[  418.138979] CPU: 1 PID: 45 Comm: kworker/u10:1 Not tainted 3.14.0-rc6+ #387
-[  418.149989] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2007
-[  418.165750] Workqueue: kacpi_hotplug acpi_hotplug_work_fn
-[  418.166433]  0000000000000021 ffff880038ca7988 ffffffff8159b22d 0000000000000021
-[  418.176460]  ffff880038ca79d8 ffff880038ca79c8 ffffffff8106942c ffff880038ca79e8
-[  418.177453]  ffff88003e20c3a0 ffff88003dc57600 ffff88003e20c3a0 00000000ffffffea
-[  418.178445] Call Trace:
-[  418.185811]  [<ffffffff8159b22d>] dump_stack+0x49/0x5c
-[  418.186440]  [<ffffffff8106942c>] warn_slowpath_common+0x8c/0xc0
-[  418.187192]  [<ffffffff81069516>] warn_slowpath_fmt+0x46/0x50
-[  418.191231]  [<ffffffff8136ef51>] ? acpi_ns_get_node+0xb7/0xc7
-[  418.193889]  [<ffffffff812f796e>] __list_add+0xbe/0xd0
-[  418.196649]  [<ffffffff812e2aa9>] kobject_add_internal+0x79/0x200
-[  418.208610]  [<ffffffff812e2e18>] kobject_add_varg+0x38/0x60
-[  418.213831]  [<ffffffff812e2ef4>] kobject_add+0x44/0x70
-[  418.229961]  [<ffffffff813e2c60>] device_add+0xd0/0x550
-[  418.234991]  [<ffffffff813f0e95>] ? pm_runtime_init+0xe5/0xf0
-[  418.250226]  [<ffffffff813e32be>] device_register+0x1e/0x30
-[  418.255296]  [<ffffffff813e82a3>] register_cpu+0xe3/0x130
-[  418.266539]  [<ffffffff81592be5>] arch_register_cpu+0x65/0x150
-[  418.285845]  [<ffffffff81355c0d>] acpi_processor_hotadd_init+0x5a/0x9b
-...
-Which is caused by the fact that generic_processor_info() allocates
-logical CPU id by calling:
 
- cpu = cpumask_next_zero(-1, cpu_present_mask);
+On 04/09/2014 01:09 PM, Matthew Garrett wrote:
+> On Wed, 2014-04-09 at 13:02 -0400, Prarit Bhargava wrote:
+>>
+>> On 04/09/2014 12:36 PM, Matthew Garrett wrote:
+>>> On Wed, 2014-04-09 at 12:22 -0400, Prarit Bhargava wrote:
+>>>> RFC and a work in progress ... I need to go through and do a bunch of error
+>>>> condition checking, more testing, etc.  I'm just throwing this out there to see
+>>>> if anyone has any major concerns about doing something like this.
+>>>
+>>> This isn't really a good approach. These aren't standardised ACPI
+>>> methods, so you have no guarantee that they exist. The fact that a
+>>
+>> I've looked at the ACPI dump across six different systems (3 different vendors,
+>> and an intel whitebox), and the data appears to be identical.  Could Intel
+>> change these?  Yes, of course they could, but that's no different from any other
+>> undocumented driver in the kernel.
+> 
+> Not really. These are an internal implementation detail, not an exported
+> interface. We try to write drivers for exported interfaces, even if
+> they're not documented.
 
-which returns id of previously failed to wake up CPU, since its bit
-is cleared by do_boot_cpu() and as result register_cpu() tries to
-register another CPU with the same id as already present but failed
-to be onlined CPU.
+Aren't the methods the exported interface?  I'm obviously missing something :)
 
-Taking in account that AP will not do anything if master CPU failed to
-wake it up, there is no reason to mark that AP as not present and
-break next cpu hotplug attempts. As a side effect of not marking AP
-as not present, user would be allowed to online it again later.
+> 
+>>> method with one of these names exists is no guarantee that it has the
+>>> same behaviour as the ones on your board. There's no guarantee that
+>>> you're not racing against the firmware.
+>>>
+>>
+>> I think there is -- AFAICT the operations are serialized; if they aren't that is
+>> an associated risk.  Hopefully someone from Intel will lend a hand here and let
+>> me know if I'm doing something horrible ;)
+> 
+> Imagine an i2c chip with indexed register access. What stops:
+> 
+> CPU0 (i2c):		CPU1 (ACPI):
+> SBWB register address
+> 			SBWB register address
+> SBRB register value
+> 			SBRB register value
+> 
+> and CPU0 getting back the wrong value?
 
-Signed-off-by: Igor Mammedov <imammedo@redhat.com>
----
- arch/x86/kernel/smpboot.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+I thought that the "Serialized" keyword in the methods specifically indicate
+that this cannot happen.
 
-diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
-index 853473d..e7c15d7 100644
---- a/arch/x86/kernel/smpboot.c
-+++ b/arch/x86/kernel/smpboot.c
-@@ -822,7 +822,6 @@ static int do_boot_cpu(int apicid, int cpu, struct task_struct *idle)
- 			schedule();
- 		}
- 	} else {
--		set_cpu_present(cpu, false);
- 		per_cpu(x86_cpu_to_apicid, cpu) = BAD_APICID;
- 	}
- 
--- 
-1.7.1
+/me could be confused but from the ACPI spec:
+
+SerializeRule is optional and is a flag that defines whether the method is
+serialized or not and is one of the following: Serialized or NotSerialized. A
+method that is serialized cannot be reentered by additional threads. If not
+specified, the default is NotSerialized.
+
+P.
