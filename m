@@ -1,72 +1,65 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v3 3/5] x86: fix list corruption on CPU hotplug
-Date: Mon, 14 Apr 2014 12:56:05 +0200
-Message-ID: <20140414105605.GC3246@gmail.com>
+From: Igor Mammedov <imammedo@redhat.com>
+Subject: Re: [PATCH v3 1/5] x86: initialize secondary CPU only if master CPU
+ will wait for it
+Date: Mon, 14 Apr 2014 14:50:48 +0200
+Message-ID: <20140414145048.3d7cf907@nial.usersys.redhat.com>
 References: <1397150061-29735-1-git-send-email-imammedo@redhat.com>
- <1397150061-29735-4-git-send-email-imammedo@redhat.com>
- <20140414091954.GB19771@gmail.com>
- <20140414115600.0d5dbbb5@thinkpad>
- <20140414100457.GD731@gmail.com>
- <20140414122333.0908c2a2@thinkpad>
- <20140414103413.GB2846@gmail.com>
- <20140414124838.1acedd14@thinkpad>
+	<1397150061-29735-2-git-send-email-imammedo@redhat.com>
+	<20140414091600.GA19771@gmail.com>
+	<20140414115210.51193098@thinkpad>
+	<20140414100335.GC731@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140414124838.1acedd14@thinkpad>
+In-Reply-To: <20140414100335.GC731@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Igor Mammedov <imammedo@redhat.com>
+To: Ingo Molnar <mingo@kernel.org>
 Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Mon, 14 Apr 2014 12:03:35 +0200
+Ingo Molnar <mingo@kernel.org> wrote:
 
-* Igor Mammedov <imammedo@redhat.com> wrote:
-
-> On Mon, 14 Apr 2014 12:34:13 +0200
-> Ingo Molnar <mingo@kernel.org> wrote:
 > 
+> * Igor Mammedov <imammedo@redhat.com> wrote:
+> 
+> > On Mon, 14 Apr 2014 11:16:00 +0200
+> > Ingo Molnar <mingo@kernel.org> wrote:
 > > 
-> > * Igor Mammedov <imammedo@redhat.com> wrote:
-> > 
-> > > On Mon, 14 Apr 2014 12:04:57 +0200
-> > > Ingo Molnar <mingo@kernel.org> wrote:
 > > > 
-> > > > 
-> > > > * Igor Mammedov <imammedo@redhat.com> wrote:
-> > > > 
-> > > > > On Mon, 14 Apr 2014 11:19:54 +0200
-> > > > > Ingo Molnar <mingo@kernel.org> wrote:
-> > > > > 
-> > > > > > 
-> > > > > > * Igor Mammedov <imammedo@redhat.com> wrote:
-> > > > > > 
-> > > > > > > currently if AP wake up is failed, master CPU marks AP as not present
-> > > > > > > in do_boot_cpu() by calling set_cpu_present(cpu, false).
-> > > > > > > That leads to following list corruption on the next physical CPU
-> > > > > > > hotplug:
-> > > > > > 
-> > > > > > Shouldn't this fix precede the main change to the smp bootup logic?
-> > > > > > 
-> > > > > > Can this bug trigger with current upstream kernels?
-> > > > > That's not impossible, tests showed that with current kernel there will
-> > > > > be other problems due wild AP running around.
-> > > > > 
-> > > > > I'll reorder patch anyway.
-> > > > 
-> > > > So, could you please first make sure that with only the fixes applied 
-> > > > there's no problems left?
-> > >
-> > > Sure, I'll retest reordered series.
+> > > * Igor Mammedov <imammedo@redhat.com> wrote:
+> > > 
+> > > >  	/*
+> > > > +	 * wait for ACK from master CPU before continuing
+> > > > +	 * with AP initialization
+> > > > +	 */
+> > > > +	cpumask_set_cpu(cpu, cpu_initialized_mask);
+> > > > +	while (!cpumask_test_cpu(cpu, cpu_callout_mask))
+> > > > +		cpu_relax();
+> > > 
+> > > > +	/*
+> > > > +	 * wait for ACK from master CPU before continuing
+> > > > +	 * with AP initialization
+> > > > +	 */
+> > > > +	cpumask_set_cpu(cpu, cpu_initialized_mask);
+> > > > +	while (!cpumask_test_cpu(cpu, cpu_callout_mask))
+> > > > +		cpu_relax();
+> > > 
+> > > That repetitive pattern could be stuck into a properly named helper 
+> > > inline function.
+> > sure
 > > 
-> > Please don't jus test a reodered series, but a 'fixes only' series, 
-> > which does not include patch #1.
-> >
->
-> Yep, that's ^^^ what I've meant to do, I'm sorry for not being clear 
-> enough. I'll check that bugs, that patches fix, are fixed and they 
-> don't break something else except of issues #1 fixes of cause.
+> > > (Also, before the cpumask_set_cpu() we should probably do a WARN_ON() 
+> > > if the bit is already set.)
+WARN_ON will never be triggered here since bit is always cleared by master
+CPU before AP gets here. There is no harm keeping WARN_ON though,
+do you still want it be here?
 
-Great, thanks!
+It could be useful to put WARN_ON in do_boot_cpu() before bit is cleared,
+so that user would see that he tries to online AP which has failed
+previous time. It's not really necessary since failed to online attempt
+reported in logs at ERR level now, see patch 2/5.
 
-	Ingo
+Thanks,
+   Igor
