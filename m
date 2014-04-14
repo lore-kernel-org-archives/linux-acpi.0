@@ -1,43 +1,54 @@
 From: Igor Mammedov <imammedo@redhat.com>
-Subject: [PATCH v4 2/5] x86: fix memory corruption in acpi_unmap_lsapic()
-Date: Mon, 14 Apr 2014 17:11:14 +0200
-Message-ID: <1397488277-14865-3-git-send-email-imammedo@redhat.com>
+Subject: [PATCH v4 3/5] acpi_processor: do not mark present at boot but not onlined CPU as onlined
+Date: Mon, 14 Apr 2014 17:11:15 +0200
+Message-ID: <1397488277-14865-4-git-send-email-imammedo@redhat.com>
 References: <1397488277-14865-1-git-send-email-imammedo@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:34167 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751027AbaDNPov (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Apr 2014 11:44:51 -0400
 In-Reply-To: <1397488277-14865-1-git-send-email-imammedo@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, imammedo@redhat.com, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-if during CPU hotplug master CPU failed to wake up AP
-it set percpu x86_cpu_to_apicid to BAD_APICID=0xFFFF for AP.
+acpi_processor_add() assumes that present at boot CPUs
+are always onlined, it is not so if a CPU failed to become
+onlined. As result acpi_processor_add() will mark such CPU
+device as onlined in sysfs and following attempts to
+online/offline it using /sys/device/system/cpu/cpuX/online
+attribute will fail.
 
-However following attempt to unplug that CPU will lead to
-out of bound write access to __apicid_to_node[] which is
-32768 items long on x86_64 kernel.
-
-So drop setting x86_cpu_to_apicid to BAD_APICID in do_boot_cpu()
-and allow acpi_processor_remove()->acpi_unmap_lsapic() cleanly
-remove CPU.
+Do not poke into device internals in acpi_processor_add()
+and touch "struct device { .offline }" attribute, since
+for CPUs onlined at boot it's set by:
+  topology_init() -> arch_register_cpu() -> register_cpu()
+before ACPI device tree is parsed, and for hotplugged
+CPUs it's set when userspace onlines CPU via sysfs.
 
 Signed-off-by: Igor Mammedov <imammedo@redhat.com>
 ---
- arch/x86/kernel/smpboot.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+v2:
+ - fix regression in v1 leading to NULL pointer dereference
+   on CPU unplug, do not remove "pr->dev = dev;"
+---
+ drivers/acpi/acpi_processor.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
-index 6124f15..2988f69 100644
---- a/arch/x86/kernel/smpboot.c
-+++ b/arch/x86/kernel/smpboot.c
-@@ -859,8 +859,6 @@ static int do_boot_cpu(int apicid, int cpu, struct task_struct *idle)
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index c29c2c3..42d66f8 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -404,7 +404,6 @@ static int acpi_processor_add(struct acpi_device *device,
+ 		goto err;
  
- 		/* was set by cpu_init() */
- 		cpumask_clear_cpu(cpu, cpu_initialized_mask);
--
--		per_cpu(x86_cpu_to_apicid, cpu) = BAD_APICID;
- 	}
+ 	pr->dev = dev;
+-	dev->offline = pr->flags.need_hotplug_init;
  
- 	/* mark "stuck" area as not stuck */
+ 	/* Trigger the processor driver's .probe() if present. */
+ 	if (device_attach(dev) >= 0)
 -- 
 1.7.1
+
