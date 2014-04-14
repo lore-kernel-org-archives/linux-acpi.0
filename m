@@ -1,67 +1,46 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v3 3/5] x86: fix list corruption on CPU hotplug
-Date: Mon, 14 Apr 2014 12:34:13 +0200
-Message-ID: <20140414103413.GB2846@gmail.com>
-References: <1397150061-29735-1-git-send-email-imammedo@redhat.com>
- <1397150061-29735-4-git-send-email-imammedo@redhat.com>
- <20140414091954.GB19771@gmail.com>
- <20140414115600.0d5dbbb5@thinkpad>
- <20140414100457.GD731@gmail.com>
- <20140414122333.0908c2a2@thinkpad>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 1/5] trace, RAS: Add basic RAS trace event
+Date: Mon, 14 Apr 2014 12:46:46 +0200
+Message-ID: <20140414104646.GB3663@pd.tnic>
+References: <1395985981-20476-1-git-send-email-gong.chen@linux.intel.com>
+ <1395985981-20476-2-git-send-email-gong.chen@linux.intel.com>
+ <20140409194654.GR6529@pd.tnic>
+ <20140414032058.GA22584@gchen.bj.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:40461 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750872AbaDNKeT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Apr 2014 06:34:19 -0400
+Received: from mail.skyhub.de ([78.46.96.112]:55641 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751595AbaDNKrA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Apr 2014 06:47:00 -0400
 Content-Disposition: inline
-In-Reply-To: <20140414122333.0908c2a2@thinkpad>
+In-Reply-To: <20140414032058.GA22584@gchen.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Igor Mammedov <imammedo@redhat.com>
-Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+To: "Chen, Gong" <gong.chen@linux.intel.com>
+Cc: tony.luck@intel.com, m.chehab@samsung.com, rostedt@goodmis.org, linux-acpi@vger.kernel.org, arozansk@redhat.com
 
+On Sun, Apr 13, 2014 at 11:20:58PM -0400, Chen, Gong wrote:
+> I don't use a explicit menu for RAS because I'm not sure if it is
+> worth to add such a *heavy hammer* in the kernel tree.
 
-* Igor Mammedov <imammedo@redhat.com> wrote:
+We're going to be adding more stuff to it so a full menu will come
+sooner rather than later.
 
-> On Mon, 14 Apr 2014 12:04:57 +0200
-> Ingo Molnar <mingo@kernel.org> wrote:
-> 
-> > 
-> > * Igor Mammedov <imammedo@redhat.com> wrote:
-> > 
-> > > On Mon, 14 Apr 2014 11:19:54 +0200
-> > > Ingo Molnar <mingo@kernel.org> wrote:
-> > > 
-> > > > 
-> > > > * Igor Mammedov <imammedo@redhat.com> wrote:
-> > > > 
-> > > > > currently if AP wake up is failed, master CPU marks AP as not present
-> > > > > in do_boot_cpu() by calling set_cpu_present(cpu, false).
-> > > > > That leads to following list corruption on the next physical CPU
-> > > > > hotplug:
-> > > > 
-> > > > Shouldn't this fix precede the main change to the smp bootup logic?
-> > > > 
-> > > > Can this bug trigger with current upstream kernels?
-> > > That's not impossible, tests showed that with current kernel there will
-> > > be other problems due wild AP running around.
-> > > 
-> > > I'll reorder patch anyway.
-> > 
-> > So, could you please first make sure that with only the fixes applied 
-> > there's no problems left?
->
-> Sure, I'll retest reordered series.
+> Maybe some drivers don't call trace_mc_event directly/indirectly, but
+> edac_mc.c is the core of EDAC and must exist before any other drivers
+> are loaded, which means whether the drivers call trace_mc_event or
+> not, the trace interface in edac_mc should be there in advance. Do I
+> miss something?
 
-Please don't jus test a reodered series, but a 'fixes only' series, 
-which does not include patch #1.
+No, you're fine. I missed the fact that you've moved the mc_event
+tracepoint, sorry.
 
-We will apply that patch too, to improve the bootup of virtualized 
-environments, but we first want to know whether the 'baseline' is OK 
-and fixed 100%.
+Thanks.
 
-Thanks,
+-- 
+Regards/Gruss,
+    Boris.
 
-	Ingo
+Sent from a fat crate under my desk. Formatting is fine.
+--
