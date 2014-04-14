@@ -1,56 +1,83 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 2/5] CPER: Adjust code flow of some functions
-Date: Mon, 14 Apr 2014 16:05:14 +0200
-Message-ID: <20140414140514.GD3663@pd.tnic>
-References: <1395985981-20476-1-git-send-email-gong.chen@linux.intel.com>
- <1395985981-20476-3-git-send-email-gong.chen@linux.intel.com>
- <20140414133924.GC3663@pd.tnic>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH v3 1/5] x86: initialize secondary CPU only if master CPU
+ will wait for it
+Date: Mon, 14 Apr 2014 16:51:19 +0200
+Message-ID: <20140414145119.GA27683@gmail.com>
+References: <1397150061-29735-1-git-send-email-imammedo@redhat.com>
+ <1397150061-29735-2-git-send-email-imammedo@redhat.com>
+ <20140414091600.GA19771@gmail.com>
+ <20140414115210.51193098@thinkpad>
+ <20140414100335.GC731@gmail.com>
+ <20140414145048.3d7cf907@nial.usersys.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:42833 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755168AbaDNOF2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Apr 2014 10:05:28 -0400
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:60604 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751161AbaDNOvY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Apr 2014 10:51:24 -0400
 Content-Disposition: inline
-In-Reply-To: <20140414133924.GC3663@pd.tnic>
+In-Reply-To: <20140414145048.3d7cf907@nial.usersys.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Gong" <gong.chen@linux.intel.com>
-Cc: tony.luck@intel.com, m.chehab@samsung.com, rostedt@goodmis.org, linux-acpi@vger.kernel.org, arozansk@redhat.com
+To: Igor Mammedov <imammedo@redhat.com>
+Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
 
-On Mon, Apr 14, 2014 at 03:39:24PM +0200, Borislav Petkov wrote:
-> Definitely a bad idea to export a spinlock. If all you need is to sync
-> against multiple callers of cper_mem_err_location(), simply grab that
-> spinlock in the function itself, without exporting it.
+
+* Igor Mammedov <imammedo@redhat.com> wrote:
+
+> On Mon, 14 Apr 2014 12:03:35 +0200
+> Ingo Molnar <mingo@kernel.org> wrote:
 > 
-> > +
-> > +static char mem_location[CPER_REC_LEN];
-> > +static char dimm_location[CPER_REC_LEN];
+> > 
+> > * Igor Mammedov <imammedo@redhat.com> wrote:
+> > 
+> > > On Mon, 14 Apr 2014 11:16:00 +0200
+> > > Ingo Molnar <mingo@kernel.org> wrote:
+> > > 
+> > > > 
+> > > > * Igor Mammedov <imammedo@redhat.com> wrote:
+> > > > 
+> > > > >  	/*
+> > > > > +	 * wait for ACK from master CPU before continuing
+> > > > > +	 * with AP initialization
+> > > > > +	 */
+> > > > > +	cpumask_set_cpu(cpu, cpu_initialized_mask);
+> > > > > +	while (!cpumask_test_cpu(cpu, cpu_callout_mask))
+> > > > > +		cpu_relax();
+> > > > 
+> > > > > +	/*
+> > > > > +	 * wait for ACK from master CPU before continuing
+> > > > > +	 * with AP initialization
+> > > > > +	 */
+> > > > > +	cpumask_set_cpu(cpu, cpu_initialized_mask);
+> > > > > +	while (!cpumask_test_cpu(cpu, cpu_callout_mask))
+> > > > > +		cpu_relax();
+> > > > 
+> > > > That repetitive pattern could be stuck into a properly named helper 
+> > > > inline function.
+> > > sure
+> > > 
+> > > > (Also, before the cpumask_set_cpu() we should probably do a WARN_ON() 
+> > > > if the bit is already set.)
+>
+> WARN_ON will never be triggered here since bit is always cleared by 
+> master CPU before AP gets here. There is no harm keeping WARN_ON 
+> though, do you still want it be here?
 
-In thinking about this more, even with the proper synchronization,
-cper_dimm_err_location() returns a pointer to this dimm_location string.
-Now, imagine what happens if another caller grabs the lock and enters
-cper_dimm_err_location() while dimm_location is still being accessed by
-the tracepoint or the previous caller of cper_dimm_err_location...
+The previous code panic()ed on this condition - so it makes sense to 
+at least keep a WARN_ON(). That it won't ever trigger is good:
 
-IOW, you either need a synchronization at a higher level so that dumping
-of dimm locations can be serialized or the higher callers (interrupt
-handlers, etc) already give you that synchronization.
+> It could be useful to put WARN_ON in do_boot_cpu() before bit is 
+> cleared, so that user would see that he tries to online AP which has 
+> failed previous time. It's not really necessary since failed to 
+> online attempt reported in logs at ERR level now, see patch 2/5.
 
-So you have to think about all possible call paths ending here and
-*then* introduce proper sync.
+WARN_ON()s are not used to communicate with users, they are used to 
+show developers that there's a _bug_ in the code!
 
-Oh, and saying "No functional changes." in the commit message is a bit
-misleading, don't you think?
+So a WARN_ON() not triggering, ever, is a good thing.
 
-:-)
+Thanks,
 
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+	Ingo
