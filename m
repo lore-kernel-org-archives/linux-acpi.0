@@ -1,211 +1,72 @@
-From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH v3 2/5] I/O Hook: Help functions to manage the hook
-Date: Tue, 15 Apr 2014 21:48:08 +0800
-Message-ID: <1397569691-24691-3-git-send-email-rui.y.wang@intel.com>
-References: <1397569691-24691-1-git-send-email-rui.y.wang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1397569691-24691-1-git-send-email-rui.y.wang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com, tony.luck@intel.com, rafael.j.wysocki@intel.com
-Cc: ruiv.wang@gmail.com, chaohong.guo@intel.com, dave.hansen@intel.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Rui Wang <rui.y.wang@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v4 3/5] acpi_processor: do not mark present at boot but not onlined CPU as onlined
+Date: Tue, 15 Apr 2014 17:48:43 +0200
+Message-ID: <5009829.NmJUThsPMn@vostro.rjw.lan>
+References: <1397488277-14865-1-git-send-email-imammedo@redhat.com> <1612053.dzUdn6OW1L@vostro.rjw.lan> <20140415060411.GB29649@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:64921 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750999AbaDOPcf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2014 11:32:35 -0400
+In-Reply-To: <20140415060411.GB29649@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Igor Mammedov <imammedo@redhat.com>, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Add the following kernel helper functions used to add/delete/query Register
-Overrides, and to start/stop the I/O Hook:
-        iohook_add_ovrd
-        iohook_query_ovrd
-        iohook_cleanup_ovrd
-        iohook_start_ovrd
-        iohook_stop_ovrd
-        iohook_get_status
+On Tuesday, April 15, 2014 08:04:11 AM Ingo Molnar wrote:
+> 
+> * Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> 
+> > On Monday, April 14, 2014 05:11:15 PM Igor Mammedov wrote:
+> > > acpi_processor_add() assumes that present at boot CPUs
+> > > are always onlined, it is not so if a CPU failed to become
+> > > onlined. As result acpi_processor_add() will mark such CPU
+> > > device as onlined in sysfs and following attempts to
+> > > online/offline it using /sys/device/system/cpu/cpuX/online
+> > > attribute will fail.
+> > > 
+> > > Do not poke into device internals in acpi_processor_add()
+> > > and touch "struct device { .offline }" attribute, since
+> > > for CPUs onlined at boot it's set by:
+> > >   topology_init() -> arch_register_cpu() -> register_cpu()
+> > > before ACPI device tree is parsed, and for hotplugged
+> > > CPUs it's set when userspace onlines CPU via sysfs.
+> > > 
+> > > Signed-off-by: Igor Mammedov <imammedo@redhat.com>
+> > > ---
+> > > v2:
+> > >  - fix regression in v1 leading to NULL pointer dereference
+> > >    on CPU unplug, do not remove "pr->dev = dev;"
+> > 
+> > Yeah.
+> > 
+> > Does this patch depend on any other patches in the series?
+> > 
+> > I don't think so, but just asking.
+> > 
+> > If it doesn't, why is it part of this series at all?
+> 
+> I suspect because Igor was rigorously stress-testing CPU hotplug, and 
+> was fixing all the bugs he saw, before adding the one feature he is 
+> interested in.
+> 
+> The feature cannot be guaranteed to be correct, without having a 
+> stable base to work on.
+> 
+> As such this series makes sense, as long as the fixes precede the 
+> feature, and as long as the fixes are correct.
+> 
+> Consider it work in progress, with you being one of the reviewers who 
+> makes sure the fixes are correct.
 
-Signed-off-by: Rui Wang <rui.y.wang@intel.com>
----
- drivers/misc/iohook/iohook.c |  151 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 151 insertions(+), 0 deletions(-)
+Fair enough.
 
-diff --git a/drivers/misc/iohook/iohook.c b/drivers/misc/iohook/iohook.c
-index e6a626f..d8c41d0 100644
---- a/drivers/misc/iohook/iohook.c
-+++ b/drivers/misc/iohook/iohook.c
-@@ -6,6 +6,7 @@
- #include "iohook.h"
- 
- static DEFINE_RAW_SPINLOCK(io_hook_lock);
-+static DEFINE_RAW_SPINLOCK(engine_lock);
- 
- LIST_HEAD(ovrd_io_reg_map);
- LIST_HEAD(ovrd_mem_reg_map);
-@@ -14,6 +15,150 @@ LIST_HEAD(ovrd_pci_conf_reg_map);
- struct static_key ovrdhw_enabled = STATIC_KEY_INIT_FALSE;
- EXPORT_SYMBOL(ovrdhw_enabled);
- 
-+int	g_ovrd_on;
-+/* query a Register Override given spaceid and index */
-+struct reg_ovrd *iohook_query_ovrd(int spaceid, int idx)
-+{
-+	struct list_head *reg_ovrd;
-+	struct reg_ovrd *ovrdreg, *regentry;
-+	unsigned long lock_flags = 0;
-+	int n = 0;
-+
-+	if (spaceid == OVRD_SPACE_MEM)
-+		reg_ovrd = &ovrd_mem_reg_map;
-+	else if (spaceid == OVRD_SPACE_IO)
-+		reg_ovrd = &ovrd_io_reg_map;
-+	else
-+		reg_ovrd = &ovrd_pci_conf_reg_map;
-+
-+	regentry = NULL;
-+	raw_spin_lock_irqsave(&io_hook_lock, lock_flags);
-+	list_for_each_entry(ovrdreg, reg_ovrd, node) {
-+		if (n++ >= idx) {
-+			regentry = ovrdreg;
-+			break;
-+		}
-+	}
-+	raw_spin_unlock_irqrestore(&io_hook_lock, lock_flags);
-+
-+	pr_info("iohook_query_ovrd() returns %p, idx=%d\n",
-+		regentry, idx);
-+	return regentry;
-+
-+}
-+
-+/* delete all Register Overrides from one space (IO/mem/pciconf) */
-+void iohook_cleanup_ovrd(int spaceid)
-+{
-+	struct list_head *tmp, *next, *ovrd_list;
-+
-+	if (spaceid == OVRD_SPACE_MEM)
-+		ovrd_list = &ovrd_mem_reg_map;
-+	else if (spaceid == OVRD_SPACE_IO)
-+		ovrd_list = &ovrd_io_reg_map;
-+	else
-+		ovrd_list = &ovrd_pci_conf_reg_map;
-+
-+	list_for_each_safe(tmp, next, ovrd_list) {
-+		struct reg_ovrd *ovrdreg =
-+		    list_entry(tmp, struct reg_ovrd, node);
-+		list_del(tmp);
-+		kfree(ovrdreg);
-+	}
-+}
-+
-+/* for pci config space, address is encoded per PCI_ENCODE_ADDR() */
-+void iohook_add_ovrd(int spaceid, u64 address, u64 value, u64 mask,
-+		u32 length, u8 attrib)
-+{
-+	struct list_head *reg_ovrd;
-+	struct reg_ovrd *ovrdreg;
-+	unsigned long lock_flags = 0;
-+
-+	if (spaceid == OVRD_SPACE_MEM)
-+		reg_ovrd = &ovrd_mem_reg_map;
-+	else if (spaceid == OVRD_SPACE_IO)
-+		reg_ovrd = &ovrd_io_reg_map;
-+	else
-+		reg_ovrd = &ovrd_pci_conf_reg_map;
-+
-+	raw_spin_lock_irqsave(&io_hook_lock, lock_flags);
-+	list_for_each_entry(ovrdreg, reg_ovrd, node) {
-+		if (ovrdreg->address == address &&
-+			ovrdreg->attrib == attrib &&
-+			ovrdreg->length == length) {
-+			/* if already added the address, just change the bits */
-+			ovrdreg->bit_mask |= mask;
-+			ovrdreg->val |= value;
-+			pr_info("iohook_add_ovrd(): 0x%llx already added, changed to 0x%llx, mask:0x%llx, attrib:0x%x\n",
-+				address, ovrdreg->val, ovrdreg->bit_mask,
-+				attrib);
-+			goto out;
-+		} else if (address >= ovrdreg->address &&
-+			address < ovrdreg->address + ovrdreg->length) {
-+			pr_info("iohook_add_ovrd(): conflicting reg at 0x%llx, length:%llx, mask:0x%llx, attrib:0x%x\n",
-+				address, ovrdreg->val, ovrdreg->bit_mask,
-+				attrib);
-+			goto out;
-+		}
-+	}
-+
-+	raw_spin_unlock_irqrestore(&io_hook_lock, lock_flags);
-+
-+	ovrdreg = kmalloc(sizeof(struct reg_ovrd), GFP_ATOMIC);
-+	if (!ovrdreg) {
-+		pr_info("failed to alloc Reg Override!\n");
-+		return;
-+	}
-+
-+	ovrdreg->address = address;
-+	ovrdreg->val = value;
-+	ovrdreg->length = length;
-+	ovrdreg->bit_mask = mask;
-+	ovrdreg->attrib = attrib;
-+	raw_spin_lock_irqsave(&io_hook_lock, lock_flags);
-+	list_add_tail(&ovrdreg->node, reg_ovrd);
-+out:
-+	raw_spin_unlock_irqrestore(&io_hook_lock, lock_flags);
-+
-+}
-+
-+/* to start the hook */
-+void iohook_start_ovrd(void)
-+{
-+	unsigned long lock_flags = 0;
-+
-+	raw_spin_lock_irqsave(&engine_lock, lock_flags);
-+	if (g_ovrd_on)
-+		goto done;
-+
-+	static_key_slow_inc(&ovrdhw_enabled);
-+	g_ovrd_on = 1;
-+done:
-+	raw_spin_unlock_irqrestore(&engine_lock, lock_flags);
-+
-+}
-+
-+/* to stop the hook */
-+void iohook_stop_ovrd(void)
-+{
-+	unsigned long lock_flags = 0;
-+
-+	raw_spin_lock_irqsave(&engine_lock, lock_flags);
-+	if (!g_ovrd_on)
-+		goto done;
-+	g_ovrd_on = 0;
-+	static_key_slow_dec(&ovrdhw_enabled);
-+done:
-+	raw_spin_unlock_irqrestore(&engine_lock, lock_flags);
-+
-+}
-+
-+int iohook_get_status(void)
-+{
-+	return g_ovrd_on;
-+}
-+
- /* len should only be 1, 2, 4, 8 */
- static int mem_read(u64 address, int len, void *data)
- {
-@@ -170,6 +315,9 @@ int read_ovrd_common(int spaceid, u64 address, int len, void *value, void *bus)
- 
- 	ret = -EINVAL;
- 
-+	if (!g_ovrd_on)
-+		return ret;
-+
- 	if (spaceid == OVRD_SPACE_MEM) {
- 		/* in the case of memory, 'address' is virtual */
- 		vaddr = address;
-@@ -300,6 +448,9 @@ int write_ovrd_common(int spaceid, u64 address, int len, void *data, void *bus)
- 
- 	ret = -EINVAL;
- 
-+	if (!g_ovrd_on)
-+		return ret;
-+
- 	if (spaceid == OVRD_SPACE_MEM) {
- 		/* in the case of memory, 'address' is virtual */
- 		vaddr = address;
--- 
-1.7.5.4
+So perhaps the subject of the whole series should be changed, because x86 is
+not the only architecture affected by this particular patch?
+
+Rafael
+
