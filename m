@@ -1,53 +1,62 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 2/5] CPER: Adjust code flow of some functions
-Date: Tue, 15 Apr 2014 20:05:54 +0200
-Message-ID: <20140415180553.GF4826@pd.tnic>
-References: <1395985981-20476-1-git-send-email-gong.chen@linux.intel.com>
- <1395985981-20476-3-git-send-email-gong.chen@linux.intel.com>
- <20140414133924.GC3663@pd.tnic>
- <20140415091944.GB29868@gchen.bj.intel.com>
+From: isabelle <contact_claude@isabelle.de>
+Subject: spende /Donation
+Date: Tue, 15 Apr 2014 21:47:38 +0200
+Message-ID: <yx4Sef42JyeoopbQKx5pAipXLBt1prSNuXPiRcWu1Nis__1192.50418288193$1397597297$gmane$org@isabelle.de>
+Reply-To: isabelle.claude654@laposte.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:51509 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750930AbaDOSF4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Apr 2014 14:05:56 -0400
-Content-Disposition: inline
-In-Reply-To: <20140415091944.GB29868@gchen.bj.intel.com>
+Received: from vps22121.lws-hosting.com ([192.162.68.139]:51018 "EHLO
+	vps22121.lws-hosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750885AbaDOVYJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2014 17:24:09 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Gong" <gong.chen@linux.intel.com>
-Cc: tony.luck@intel.com, m.chehab@samsung.com, rostedt@goodmis.org, linux-acpi@vger.kernel.org, arozansk@redhat.com
 
-On Tue, Apr 15, 2014 at 05:19:44AM -0400, Chen, Gong wrote:
-> > Why the DMI handle? Why not say: "unable to find location" or "location
-> > not present in DMI" or something more user-friendly.
-> In essential, I use the suggestion from Tony Luck. DMI handle can't be found
-> so I just list the original info for it. Maybe I can merge them into one.
+Hallo
+Wenn ich diese Nachricht zu senden wollte, ist dies nicht einfach Zufal=
+l. Dies ist, weil Ihre e-Mail vom elektronischen Roboter gesichert mein=
+e WX.7AR BW ausgew=E4hlt wurde.
+Zun=E4chst m=F6chte ich mich f=FCr dieses Eindringen in Ihr Leben zu en=
+tschuldigen, obwohl ich zugeben, dass es mir sehr wichtig. Ich bin Isab=
+elle Vasudev. Ich leide an Krebs im Hals seit nun mehr als 3 Jahre und =
+eine halbe und es leider, mein Arzt hat gerade informiert mich, dass ic=
+h bin voller unheilbar und, dass meine Tage, wegen meinen etwas gez=E4h=
+lt sind abgebaut Zustand. Ich bin eine Witwe und ich habe keine Kind, d=
+as ich beginne zu bedauern.
+In der Tat ist der Grund, warum ich Sie kontaktieren bin, m=F6chte ich =
+einen Teil von meinem Grundst=FCck zu spenden, weil ich niemand, wer di=
+e Erben konnte. Ich habe fast mein ganzes Zeug, darunter ein Unternehme=
+n der Export von Holz, Gummi und Stahl-Industrie in Afrika, wo ich wohn=
+e nun mehr 10 Jahren, verkauft. Ein gro=DFer Teil der Gelder gesammelt =
+wurde mit unterschiedlichen Verb=E4nden humanit=E4ren Charakter =FCbera=
+ll in der Welt, aber besonders hier in Afrika bezahlt.
+Im Hinblick auf den Rest der Summe genau in H=F6he von 750.000, 00euros=
+ (sieben hundert und f=FCnfzig tausend Euro) auf eine gesperrte Mitarbe=
+iter-Account, meine letzte w=FCnschen w=FCrde Sie es spenden, so dass S=
+ie in Ihrer Branche und vor allem den humanit=E4ren investieren k=F6nne=
+n. Ich bin ganz bewusst was ich zu tun beabsichtigen, und ich denke, tr=
+otz der Tatsache, die wir nicht wissen, werdet ihr diese Summe gut nutz=
+en. Ich bitte Sie, bitte dieses Erbe zu akzeptieren, ohne jedoch Fragen=
+ Sie alles, was in zur=FCckgeben wenn es nicht immer denken, gutes zu t=
+un, um dich herum, was ich nicht getan habe, in meiner Existenz.
+Das hei=DFt, wird auf einer verantwortlichen Person und besonders gutem=
+ Glauben fallen zu lassen beruhigt, ich m=F6chte bitten, dass Sie bitte=
+ mich bei den meisten schnell kontaktieren, um weitere Erkl=E4rung =FCb=
+er die Gr=FCnde f=FCr meine Geste und den Verlauf der Dinge zu geben. B=
+itte kontaktieren Sie mich so bald wie m=F6glich, wenn Sie mein Angebot=
+ akzeptieren.
+Gott m=F6ge mit dir sein!
+Ich fordere Sie auf, mich =FCber meine pers=F6nliche e-Mail-Adresse zu =
+kontaktieren:
+Isabelle.claude654@laposte.net
+Der Frieden und Barmherzigkeit Gottes m=F6ge mit dir sein.
+Mrs Isabelle
 
-Yep. Make it user-friendly while showing the original info pls.
-
-> > > +#define CPER_REC_LEN				512
-> > 
-> > How did we come up with this? Some spec? 512 chars for an error record?
-> > That's a bit too much in my book.
-> > 
-> Because 128 is not enough once all fields in error record exist, and 256 looks
-> a little bit tough so I choose a bigger value. No spec for it. I just hope
-
-Tough? How? Not enough?
-
-> it can contain everything.
-
-Pls add a comment over this definition to state why we've chosen this
-number exactly.
-
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
 --
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
