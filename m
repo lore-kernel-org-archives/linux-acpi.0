@@ -1,50 +1,49 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: [PATCH] acpi: try to trust cpu_index from x86_cpu_to_apicid
-Date: Tue, 15 Apr 2014 07:55:54 +0800
-Message-ID: <1397519754-10205-1-git-send-email-bhe@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 5/5] acpi_processor: do not mark present at boot but not onlined CPU as onlined
+Date: Tue, 15 Apr 2014 07:36:59 +0200
+Message-ID: <2222668.lTbDVCqpmz@vostro.rjw.lan>
+References: <1397150061-29735-1-git-send-email-imammedo@redhat.com> <1397150061-29735-6-git-send-email-imammedo@redhat.com> <20140414092147.GD19771@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22794 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754607AbaDNX5X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Apr 2014 19:57:23 -0400
+Received: from v094114.home.net.pl ([79.96.170.134]:51532 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751157AbaDOFUw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Apr 2014 01:20:52 -0400
+In-Reply-To: <20140414092147.GD19771@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, jiang.liu@linux.intel.com, vgoyal@redhat.com, Baoquan He <bhe@redhat.com>
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Igor Mammedov <imammedo@redhat.com>, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-In smp with multi cpus, when enter into kdump kernel with only 1 cpu,
-a warning message is printed out:
+On Monday, April 14, 2014 11:21:47 AM Ingo Molnar wrote:
+> 
+> * Igor Mammedov <imammedo@redhat.com> wrote:
+> 
+> > acpi_processor_add() assumes that present at boot CPUs
+> > are always onlined, it is not so if a CPU failed to become
+> > onlined. As result acpi_processor_add() will mark such CPU
+> > device as onlined in sysfs and following attempts to
+> > online/offline it using /sys/device/system/cpu/cpuX/online
+> > attribute will fail.
+> > 
+> > Do not poke into device internals in acpi_processor_add()
+> > and touch "struct device { .offline }" attribute, since
+> > for CPUs onlined at boot it's set by:
+> >   topology_init() -> arch_register_cpu() -> register_cpu()
+> > before ACPI device tree is parsed, and for hotplugged
+> > CPUs it's set when userspace onlines CPU via sysfs.
+> > 
+> > Signed-off-by: Igor Mammedov <imammedo@redhat.com>
+> > ---
+> >  drivers/acpi/acpi_processor.c |    3 ---
+> >  1 files changed, 0 insertions(+), 3 deletions(-)
+> 
+> Can this fix be moved first too, or does it have undesirable side 
+> effects on unmodified kernels?
 
-acpi LNXCPU:0a: BIOS reported wrong ACPI id 0 for the processor
+This patch is not correct.
 
-In this case kdump kernel use the same ACPI tables as 1st kernel,
-means lapic information is got from MADT. The acpi_id related to
-this cpu index and lapic_id may not be 0, so the code to assign
-value to cpu_index is not correct in this case per cpu0_initialized.
-cpu index stored in x86_cpu_to_apicid need be respected.
-
-Now fix it in this patch per boot_cpu_physical_apicid. When cpu index
-related to boot_cpu_physical_apicid is not stored in x86_cpu_to_apicid,
-then we can say this is UP system running SMP kernel with no LAPIC in MADT
-
-Signed-off-by: Baoquan He <bhe@redhat.com>
----
- drivers/acpi/acpi_processor.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index c29c2c3..1ae460c 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -267,7 +267,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 	pr->apic_id = apic_id;
- 
- 	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
--	if (!cpu0_initialized) {
-+	if (!cpu0_initialized && (boot_cpu_physical_apicid == pr->apic_id)) {
- 		cpu0_initialized = 1;
- 		/* Handle UP system running SMP kernel, with no LAPIC in MADT */
- 		if ((cpu_index == -1) && (num_online_cpus() == 1))
--- 
-1.8.5.3
+Rafael
 
