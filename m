@@ -1,56 +1,43 @@
-From: Christoph Lameter <cl@linux.com>
-Subject: Re: BUG: using __this_cpu_write() in preemptible [00000000] code:
- systemd-udevd/497
-Date: Wed, 16 Apr 2014 10:03:23 -0500 (CDT)
-Message-ID: <alpine.DEB.2.10.1404160958440.9704@gentwo.org>
-References: <87mwfn4gah.fsf@canonical.com> <20140415155453.54d0ca97ca88905594b5100f@linux-foundation.org>
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
+Date: Wed, 16 Apr 2014 21:04:04 +0200
+Message-ID: <20140416190404.GA7070@pd.tnic>
+References: <20140224162400.GE16457@pd.tnic>
+ <744357E9AAD1214791ACBA4B0B9092630121F201@SHSMSX101.ccr.corp.intel.com>
+ <CAErSpo55DjkGQB=7ksow34BpCObnY+o3eNnt0n5oQEh6Lfw1pw@mail.gmail.com>
+ <1558044.S1G2VU7srO@vostro.rjw.lan>
+ <CAErSpo4pDYMhHo6e-1TN6XDRO0xy0u8H+=oucFnrEK+kbjZvzw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qmta14.emeryville.ca.mail.comcast.net ([76.96.27.212]:53034
-	"EHLO qmta14.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756279AbaDPPD0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Apr 2014 11:03:26 -0400
-In-Reply-To: <20140415155453.54d0ca97ca88905594b5100f@linux-foundation.org>
+Received: from mail.skyhub.de ([78.46.96.112]:52914 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756428AbaDPTEG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Apr 2014 15:04:06 -0400
+Content-Disposition: inline
+In-Reply-To: <CAErSpo4pDYMhHo6e-1TN6XDRO0xy0u8H+=oucFnrEK+kbjZvzw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Luis Henriques <luis.henriques@canonical.com>, Eric Piel <eric.piel@tremplin-utc.net>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Peter Ziljstra <peterz@infradead.org>
+To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, "Lu, Aaron" <aaron.lu@intel.com>, lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephane Eranian <eranian@google.com>, "Yan, Zheng Z" <zheng.z.yan@intel.com>
 
-On Tue, 15 Apr 2014, Andrew Morton wrote:
+On Thu, Mar 20, 2014 at 02:48:30PM -0600, Bjorn Helgaas wrote:
+> Right.  Even if we had this long-term solution, we'd still have
+> Stephane's current problem, because the PNP0C02 _CRS is still wrong.
+> 
+> We do have a drivers/pnp/quirks.c where we could conceivably adjust
+> the PNP resource if we found the matching PCI device and MCHBAR.  That
+> should solve Stephane's problem even with the current
+> drivers/pnp/system.c.
 
-> On Tue, 15 Apr 2014 00:55:50 +0100 Luis Henriques <luis.henriques@canonical.com> wrote:
->
-> > (Cc'ing both lis3lv02d and ACPI maintainers)
-> >
-> > Since commit 188a81409ff7de1c5aae947a96356ddd8ff4aaa3 ("percpu: add
-> > preemption checks to __this_cpu ops") I've been seeing the following:
-> >
-> > [   10.485588] hp_accel: hardware type HPB64xx found
-> > [   10.485772] BUG: using __this_cpu_write() in preemptible [00000000] code: systemd-udevd/497
-> > [   10.485777] caller is __this_cpu_preempt_check+0x13/0x20
-> > [   10.485781] CPU: 3 PID: 497 Comm: systemd-udevd Tainted: G        W     3.15.0-rc1 #9
-> > [   10.485783] Hardware name: Hewlett-Packard HP EliteBook 8470p/179B, BIOS 68ICF Ver. F.02 04/27/2012
-> > [   10.485785]  ffffffff81a14db5 ffff88022c80b8e0 ffffffff81604ba4 0000000000000003
-> > [   10.485789]  ffff88022c80b908 ffffffff81313431 0000000000000000 0000000000000032
-> > [   10.485793]  00000000000003e8 ffff88022c80b918 ffffffff81313473 ffff88022c80b928
-> > [   10.485796] Call Trace:
-> > [   10.485802]  [<ffffffff81604ba4>] dump_stack+0x4e/0x7a
-> > [   10.485805]  [<ffffffff81313431>] check_preemption_disabled+0xe1/0xf0
-> > [   10.485808]  [<ffffffff81313473>] __this_cpu_preempt_check+0x13/0x20
-> > [   10.485813]  [<ffffffff810e4eb8>] touch_nmi_watchdog+0x28/0x40
->
-> Presumably touch_softlockup_watchdog() being called with preemption
-> enabled.  Which is a legitimate thing to do and there's no point in
-> disabling preemption just to squish a runtime warning.
->
-> Christoph, this thing has iirc caught a couple of very minor bugs but
-> it is being quite a pain in the rear.   I'm inclined to revert?
+Guys, this still triggers in -rc1. Do we have a fix or something
+testable at least?
 
-Well this preemption check functionality was strongly desired by Peter
-Zilkstra and Ingo Molnar and made a precondition for more extensive use of
-the this_cpu operations. My patches to various subsystems were rejected
-because these operations were deemed unsafe without those checks.
+Thanks.
 
-The simple thing to do in these cases is to use switch from __this_cpu_*
-to raw_cpu ops to squish these warnings.
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
