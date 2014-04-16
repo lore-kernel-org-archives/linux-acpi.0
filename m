@@ -1,46 +1,182 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 2/5] CPER: Adjust code flow of some functions
-Date: Wed, 16 Apr 2014 15:14:52 +0200
-Message-ID: <20140416131452.GD16741@pd.tnic>
-References: <1395985981-20476-1-git-send-email-gong.chen@linux.intel.com>
- <1395985981-20476-3-git-send-email-gong.chen@linux.intel.com>
- <20140414133924.GC3663@pd.tnic>
- <20140414140514.GD3663@pd.tnic>
- <20140415092442.GC29868@gchen.bj.intel.com>
- <20140415180259.GE4826@pd.tnic>
- <20140416050158.GA11297@gchen.bj.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:51526 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754343AbaDPNO5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Apr 2014 09:14:57 -0400
-Content-Disposition: inline
-In-Reply-To: <20140416050158.GA11297@gchen.bj.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/9] ACPICA: Executer: Fix buffer allocation issue for generic_serial_bus region field accesses.
+Date: Wed, 16 Apr 2014 21:24:34 +0800
+Message-ID: <1397654682-7094-2-git-send-email-tianyu.lan@intel.com>
+References: <1397654682-7094-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1397654682-7094-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Gong" <gong.chen@linux.intel.com>
-Cc: tony.luck@intel.com, m.chehab@samsung.com, rostedt@goodmis.org, linux-acpi@vger.kernel.org, arozansk@redhat.com
 
-On Wed, Apr 16, 2014 at 01:01:58AM -0400, Chen, Gong wrote:
-> Yes, The sync can be avoided via separating buffers.
+From: Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-But why do we even need to sync? IOW, we can land here from GHES and
-EXTLOG, right? So we have two different paths, which means, we need
-synchronization.
+The size of the buffer allocated for generic_serial_bus region access
+is not correct.  This patch introduces acpi_ex_get_serial_access_length()
+to be invoked to obtain correct data buffer length.  Reported by
+Lan Tianyu, Fixed by Lv Zheng.
 
-And yes, separating the buffers by having GHES and EXTLOG hand down
-their own char buffers would make the whole thing very clean IMHO and
-lockless. So definitely worth a try.
+Signed-off-by: Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/acpi/acpica/exfield.c | 104 +++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 97 insertions(+), 7 deletions(-)
 
-:-)
-
-Thanks.
-
+diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
+index 68d9744..12878e1 100644
+--- a/drivers/acpi/acpica/exfield.c
++++ b/drivers/acpi/acpica/exfield.c
+@@ -45,10 +45,71 @@
+ #include "accommon.h"
+ #include "acdispat.h"
+ #include "acinterp.h"
++#include "amlcode.h"
+ 
+ #define _COMPONENT          ACPI_EXECUTER
+ ACPI_MODULE_NAME("exfield")
+ 
++/* Local prototypes */
++static u32
++acpi_ex_get_serial_access_length(u32 accessor_type, u32 access_length);
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_get_serial_access_bytes
++ *
++ * PARAMETERS:  accessor_type   - The type of the protocol indicated by region
++ *                                field access attributes
++ *              access_length   - The access length of the region field
++ *
++ * RETURN:      Decoded access length
++ *
++ * DESCRIPTION: This routine returns the length of the generic_serial_bus
++ *              protocol bytes
++ *
++ ******************************************************************************/
++
++static u32
++acpi_ex_get_serial_access_length(u32 accessor_type, u32 access_length)
++{
++	u32 length;
++
++	switch (accessor_type) {
++	case AML_FIELD_ATTRIB_QUICK:
++
++		length = 0;
++		break;
++
++	case AML_FIELD_ATTRIB_SEND_RCV:
++	case AML_FIELD_ATTRIB_BYTE:
++
++		length = 1;
++		break;
++
++	case AML_FIELD_ATTRIB_WORD:
++	case AML_FIELD_ATTRIB_WORD_CALL:
++
++		length = 2;
++		break;
++
++	case AML_FIELD_ATTRIB_MULTIBYTE:
++	case AML_FIELD_ATTRIB_RAW_BYTES:
++	case AML_FIELD_ATTRIB_RAW_PROCESS:
++
++		length = access_length;
++		break;
++
++	case AML_FIELD_ATTRIB_BLOCK:
++	case AML_FIELD_ATTRIB_BLOCK_CALL:
++	default:
++
++		length = ACPI_GSBUS_BUFFER_SIZE;
++		break;
++	}
++
++	return (length);
++}
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_ex_read_data_from_field
+@@ -63,8 +124,9 @@ ACPI_MODULE_NAME("exfield")
+  *              Buffer, depending on the size of the field.
+  *
+  ******************************************************************************/
++
+ acpi_status
+-acpi_ex_read_data_from_field(struct acpi_walk_state *walk_state,
++acpi_ex_read_data_from_field(struct acpi_walk_state * walk_state,
+ 			     union acpi_operand_object *obj_desc,
+ 			     union acpi_operand_object **ret_buffer_desc)
+ {
+@@ -73,6 +135,7 @@ acpi_ex_read_data_from_field(struct acpi_walk_state *walk_state,
+ 	acpi_size length;
+ 	void *buffer;
+ 	u32 function;
++	u16 accessor_type;
+ 
+ 	ACPI_FUNCTION_TRACE_PTR(ex_read_data_from_field, obj_desc);
+ 
+@@ -116,9 +179,22 @@ acpi_ex_read_data_from_field(struct acpi_walk_state *walk_state,
+ 			    ACPI_READ | (obj_desc->field.attribute << 16);
+ 		} else if (obj_desc->field.region_obj->region.space_id ==
+ 			   ACPI_ADR_SPACE_GSBUS) {
+-			length = ACPI_GSBUS_BUFFER_SIZE;
+-			function =
+-			    ACPI_READ | (obj_desc->field.attribute << 16);
++			accessor_type = obj_desc->field.attribute;
++			length = acpi_ex_get_serial_access_length(accessor_type,
++								  obj_desc->
++								  field.
++								  access_length);
++
++			/*
++			 * Add additional 2 bytes for modeled generic_serial_bus data buffer:
++			 * typedef struct {
++			 *     BYTEStatus; // Byte 0 of the data buffer
++			 *     BYTELength; // Byte 1 of the data buffer
++			 *     BYTE[x-1]Data; // Bytes 2-x of the arbitrary length data buffer,
++			 * }
++			 */
++			length += 2;
++			function = ACPI_READ | (accessor_type << 16);
+ 		} else {	/* IPMI */
+ 
+ 			length = ACPI_IPMI_BUFFER_SIZE;
+@@ -231,6 +307,7 @@ acpi_ex_write_data_to_field(union acpi_operand_object *source_desc,
+ 	void *buffer;
+ 	union acpi_operand_object *buffer_desc;
+ 	u32 function;
++	u16 accessor_type;
+ 
+ 	ACPI_FUNCTION_TRACE_PTR(ex_write_data_to_field, obj_desc);
+ 
+@@ -284,9 +361,22 @@ acpi_ex_write_data_to_field(union acpi_operand_object *source_desc,
+ 			    ACPI_WRITE | (obj_desc->field.attribute << 16);
+ 		} else if (obj_desc->field.region_obj->region.space_id ==
+ 			   ACPI_ADR_SPACE_GSBUS) {
+-			length = ACPI_GSBUS_BUFFER_SIZE;
+-			function =
+-			    ACPI_WRITE | (obj_desc->field.attribute << 16);
++			accessor_type = obj_desc->field.attribute;
++			length = acpi_ex_get_serial_access_length(accessor_type,
++								  obj_desc->
++								  field.
++								  access_length);
++
++			/*
++			 * Add additional 2 bytes for modeled generic_serial_bus data buffer:
++			 * typedef struct {
++			 *     BYTEStatus; // Byte 0 of the data buffer
++			 *     BYTELength; // Byte 1 of the data buffer
++			 *     BYTE[x-1]Data; // Bytes 2-x of the arbitrary length data buffer,
++			 * }
++			 */
++			length += 2;
++			function = ACPI_WRITE | (accessor_type << 16);
+ 		} else {	/* IPMI */
+ 
+ 			length = ACPI_IPMI_BUFFER_SIZE;
 -- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+1.8.4.rc0.1.g8f6a3e5.dirty
