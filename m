@@ -1,9 +1,8 @@
-From: Dave Jones <davej@redhat.com>
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
-Date: Thu, 17 Apr 2014 16:53:55 -0400
-Message-ID: <20140417205355.GA22191@redhat.com>
-References: <CAErSpo4pDYMhHo6e-1TN6XDRO0xy0u8H+=oucFnrEK+kbjZvzw@mail.gmail.com>
- <20140416190404.GA7070@pd.tnic>
+Date: Thu, 17 Apr 2014 23:01:01 +0200
+Message-ID: <20140417210101.GB27852@pd.tnic>
+References: <20140416190404.GA7070@pd.tnic>
  <20140416203138.GA17661@google.com>
  <20140416223122.GA2767@redhat.com>
  <20140416225600.GA23781@google.com>
@@ -12,40 +11,32 @@ References: <CAErSpo4pDYMhHo6e-1TN6XDRO0xy0u8H+=oucFnrEK+kbjZvzw@mail.gmail.com>
  <20140417195240.GA18876@redhat.com>
  <20140417200127.GH4321@pd.tnic>
  <20140417200352.GB18876@redhat.com>
+ <20140417205355.GA22191@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:54608 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753011AbaDQVBF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Apr 2014 17:01:05 -0400
 Content-Disposition: inline
-In-Reply-To: <20140417200352.GB18876@redhat.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zhang, Rui" <rui.zhang@intel.com>, "Lu, Aaron" <aaron.lu@intel.com>, lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephane Eranian <eranian@google.com>, "Yan, Zheng Z" <zheng.z.yan@intel.com>, daniel.vetter@ffwll.ch
+In-Reply-To: <20140417205355.GA22191@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zhang, Rui" <rui.zhang@intel.com>, "Lu, Aaron" <aaron.lu@intel.com>, lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephane Eranian <eranian@google.com>, "Yan, Zheng Z" <zheng.z.yan@intel.com>, daniel.vetter@ffwll.ch
 
-On Thu, Apr 17, 2014 at 04:03:52PM -0400, Dave Jones wrote:
- > On Thu, Apr 17, 2014 at 10:01:27PM +0200, Borislav Petkov wrote:
- >  > On Thu, Apr 17, 2014 at 03:52:40PM -0400, Dave Jones wrote:
- >  > > Just as X starts up, I see this in dmesg..
- >  > > 
- >  > > [   42.879049] [drm:cpt_serr_int_handler] *ERROR* PCH transcoder A FIFO underrun
- >  > 
- >  > FWIW, I have that too. It should be something i915-related:
- >  > 
- >  > [    0.617673] [drm] Memory usable by graphics device = 2048M
- >  > [    0.694445] i915 0000:00:02.0: irq 42 for MSI/MSI-X
- >  > [    0.694549] [drm] Supports vblank timestamp caching Rev 2 (21.10.2013).
- >  > [    0.694631] [drm] Driver supports precise vblank timestamp query.
- >  > [    0.695313] vgaarb: device changed decodes: PCI:0000:00:02.0,olddecodes=io+mem,decodes=io+mem:owns=io+mem
- >  > [    0.788300] [drm] GMBUS [i915 gmbus dpb] timed out, falling back to bit banging on pin 5
- >  > [    0.799829] fbcon: inteldrmfb (fb0) is primary device
- >  > [    1.176845] [drm:cpt_serr_int_handler] *ERROR* PCH transcoder A FIFO underrun
- > 
- > Can you send me your .config off-list ?
- > I wonder if this is something config specific that's causing me to see
- > this, and you not, given we've apparently got similar machines.
+On Thu, Apr 17, 2014 at 04:53:55PM -0400, Dave Jones wrote:
+> ok, with your config I get back to a console after the modesetting
+> switch, but then it hangs in USB init.
 
-ok, with your config I get back to a console after the modesetting
-switch, but then it hangs in USB init.
+Maybe because of our machines are not that similar there? Can you take
+my config but paste the usb part of yours and see whether it boots fine
+then? It could be yours and mine have different USB hw...
 
-Hrmm.
+-- 
+Regards/Gruss,
+    Boris.
 
-	Dave
+Sent from a fat crate under my desk. Formatting is fine.
+--
