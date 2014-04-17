@@ -1,122 +1,74 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
-Date: Thu, 17 Apr 2014 12:45:33 +0200
-Message-ID: <20140417104533.GB8215@pd.tnic>
-References: <20140224162400.GE16457@pd.tnic>
- <744357E9AAD1214791ACBA4B0B9092630121F201@SHSMSX101.ccr.corp.intel.com>
- <CAErSpo55DjkGQB=7ksow34BpCObnY+o3eNnt0n5oQEh6Lfw1pw@mail.gmail.com>
- <1558044.S1G2VU7srO@vostro.rjw.lan>
- <CAErSpo4pDYMhHo6e-1TN6XDRO0xy0u8H+=oucFnrEK+kbjZvzw@mail.gmail.com>
- <20140416190404.GA7070@pd.tnic>
- <20140416203138.GA17661@google.com>
- <20140416223122.GA2767@redhat.com>
- <20140416225600.GA23781@google.com>
+From: Semen Protsenko <semen.protsenko@linaro.org>
+Subject: [PATCH] acpi: respect const qualifier
+Date: Thu, 17 Apr 2014 18:53:26 +0300
+Message-ID: <1397750006-17463-1-git-send-email-semen.protsenko@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140416225600.GA23781@google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Dave Jones <davej@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zhang, Rui" <rui.zhang@intel.com>, "Lu, Aaron" <aaron.lu@intel.com>, lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephane Eranian <eranian@google.com>, "Yan, Zheng Z" <zheng.z.yan@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:45986 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752737AbaDQPxj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Apr 2014 11:53:39 -0400
+Received: by mail-ee0-f45.google.com with SMTP id d17so835187eek.32
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Apr 2014 08:53:37 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Bjorn,
+This patch fixes next warning:
 
-thanks for the patch, a couple of notes below:
+<------------------------------- cut here -----------------------------=
+---->
+drivers/acpi/property.c: In function =E2=80=98acpi_free_properties=E2=80=
+=99:
+drivers/acpi/property.c:35:2: warning: passing argument 1 of =E2=80=98a=
+cpi_os_free=E2=80=99
+                              discards =E2=80=98const=E2=80=99 qualifie=
+r from pointer
+                              target type [enabled by default]
 
-On Wed, Apr 16, 2014 at 04:56:00PM -0600, Bjorn Helgaas wrote:
-> PNP: Work around Haswell BIOS defect in MCH area reporting
-> 
-> From: Bjorn Helgaas <bhelgaas@google.com>
-> 
-> Work around a Haswell BIOS defect that causes part of the MCH area to be
-> unreported.
+  ACPI_FREE(adev->properties);
+<------------------------------- cut here -----------------------------=
+---->
 
-Yep, what Stephane said, this is not HSW only.
+The problem is next:
 
-> MCHBAR is not an architected PCI BAR, so MCH space is usually reported as a
-> PNP0C02 resource.  The MCH space was 16KB prior to Haswell, but it is 32KB
-> in Haswell.  Some Haswell BIOSes still report a PNP0C02 resource that is
-> only 16KB, which means the rest of the MCH space is consumed but
-> unreported.
-> 
-> This can cause resource map sanity check warnings or (theoretically) a
-> device conflict if we assigned the unreported space to another device.
-> 
-> The Intel perf event uncore driver tripped over this when it claimed the
-> MCH region:
-> 
->   resource map sanity check conflict: 0xfed10000 0xfed15fff 0xfed10000 0xfed13fff pnp 00:01
->   Info: mapping multiple BARs. Your kernel is fine.
-> 
-> To prevent this, if we find a PNP0C02 resource that covers part of the MCH
-> space, extend it to cover the entire space.
-> 
-> Link: http://lkml.kernel.org/r/20140224162400.GE16457@pd.tnic
-> Reported-by: Borislav Petkov <bp@alien8.de>
-> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> ---
->  drivers/pnp/quirks.c |   55 ++++++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 55 insertions(+)
-> 
-> diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
-> index 258fef272ea7..8402088d4145 100644
-> --- a/drivers/pnp/quirks.c
-> +++ b/drivers/pnp/quirks.c
-> @@ -334,6 +334,60 @@ static void quirk_amd_mmconfig_area(struct pnp_dev *dev)
->  }
->  #endif
->  
-> +static void quirk_intel_haswell_mch(struct pnp_dev *dev)
-> +{
-> +	struct pci_dev *host;
-> +	u32 addr_lo, addr_hi;
-> +	struct pci_bus_region region;
-> +	struct resource mch;
-> +	struct pnp_resource *pnp_res;
-> +	struct resource *res;
-> +
-> +	host = pci_get_device(PCI_VENDOR_ID_INTEL, 0x0c00, NULL);
+ - acpi_free_properties() calls ACPI_FREE(), passing "const *"
+   parameter to it
+ - ACPI_FREE() is macro for acpi_os_free()
+ - acpi_os_free() takes "void *" parameter
+ - acpi_os_free() calls kfree()
+ - but kfree() requires "const void *" parameter
 
-And because it is not HSW only, this PCI device ID doesn't match on my
-IVB system. On mine the hostbridge is
+So acpi_os_free() should require "const void *" parameter as well.
 
-00:00.0 Host bridge: Intel Corporation 3rd Gen Core processor DRAM Controller (rev 09)
-        Subsystem: Lenovo Device 21fa
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort+ >SERR- <PERR- INTx-
-        Latency: 0
-        Capabilities: <access denied>
-        Kernel driver in use: ivb_uncore
-00: 86 80 54 01 06 00 90 20 09 00 00 06 00 00 00 00
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 aa 17 fa 21
-30: 00 00 00 00 e0 00 00 00 00 00 00 00 00 00 00 00
+Signed-off-by: Semen Protsenko <semen.protsenko@linaro.org>
+---
+ include/acpi/platform/aclinux.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-and from looking at Dave's, it is the same one, so PCI device ID is
-0x154.
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/ac=
+linux.h
+index 93c55ed..c6fa763 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -174,7 +174,7 @@ static inline void *acpi_os_allocate_zeroed(acpi_si=
+ze size)
+ #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_allocate_zeroed
+ #define USE_NATIVE_ALLOCATE_ZEROED
+=20
+-static inline void acpi_os_free(void *memory)
++static inline void acpi_os_free(const void *memory)
+ {
+ 	kfree(memory);
+ }
+--=20
+1.9.1
 
-With that changed to
-
-	host = pci_get_device(PCI_VENDOR_ID_INTEL, 0x0154, NULL);
-
-and a bit of debugging code, it says now:
-
-[    0.235739] quirk_intel_haswell_mch: entry
-[    0.235800] quirk_intel_haswell_mch: got host: 0x0
-[    0.235860] quirk_intel_haswell_mch: mch: [mem 0xfed10000-0xfed17fff]
-[    0.235930] quirk_intel_haswell_mch: res: [mem 0xfed10000-0xfed13fff]
-[    0.235990] pnp 00:01: [Firmware Bug]: [mem 0xfed10000-0xfed13fff] covers only part of Intel Haswell MCH; extending to [mem 0xfed10000-0xfed17fff]
-
-So you probably want to have a list of hostbridge pci ids in the quirk
-or so.
-
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
 --
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
