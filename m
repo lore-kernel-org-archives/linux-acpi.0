@@ -1,230 +1,242 @@
 From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: [PATCH 2/5 v2] CPER: Adjust code flow of some functions
-Date: Thu, 17 Apr 2014 02:28:36 -0400
-Message-ID: <1397716119-6164-3-git-send-email-gong.chen@linux.intel.com>
+Subject: [PATCH 3/5 v2] trace, RAS: Add eMCA trace event interface
+Date: Thu, 17 Apr 2014 02:28:37 -0400
+Message-ID: <1397716119-6164-4-git-send-email-gong.chen@linux.intel.com>
 References: <1397716119-6164-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:42569 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:30938 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751090AbaDQGyD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Apr 2014 02:54:03 -0400
+	id S1751090AbaDQGyH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Apr 2014 02:54:07 -0400
 In-Reply-To: <1397716119-6164-1-git-send-email-gong.chen@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com
 Cc: rostedt@goodmis.org, linux-acpi@vger.kernel.org, arozansk@redhat.com, "Chen, Gong" <gong.chen@linux.intel.com>
 
-Some codes can be reorganzied as a common function for
-other usages.
+Add trace interface to elaborate all H/W error related information.
 
-v2 -> v1: Use scnprintf to simplify codes.
+v2 -> v1: spinlock is not needed anymore.
 
 Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
 ---
- drivers/firmware/efi/cper.c | 116 +++++++++++++++++++++++++++++++-------------
- include/linux/cper.h        |  12 +++++
- 2 files changed, 95 insertions(+), 33 deletions(-)
+ drivers/acpi/Kconfig       |  3 ++-
+ drivers/acpi/Makefile      |  1 +
+ drivers/acpi/acpi_extlog.c | 53 +++++++++++++++++++++++++++++++++++++---
+ drivers/ras/Kconfig        |  2 +-
+ drivers/ras/ras-traces.c   |  1 +
+ include/ras/ras_event.h    | 60 ++++++++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 115 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-index 1491dd4..951049b 100644
---- a/drivers/firmware/efi/cper.c
-+++ b/drivers/firmware/efi/cper.c
-@@ -34,6 +34,10 @@
- #include <linux/aer.h>
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index ab686b3..0023668 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -367,6 +367,7 @@ config ACPI_EXTLOG
  
- #define INDENT_SP	" "
-+
+ 	  Enhanced MCA Logging allows firmware to provide additional error
+ 	  information to system software, synchronous with MCE or CMCI. This
+-	  driver adds support for that functionality.
++	  driver adds support for that functionality with corresponding
++	  tracepoint which carries that information to userspace.
+ 
+ endif	# ACPI
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 0331f91..f6abc4a 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -82,4 +82,5 @@ obj-$(CONFIG_ACPI_PROCESSOR_AGGREGATOR) += acpi_pad.o
+ 
+ obj-$(CONFIG_ACPI_APEI)		+= apei/
+ 
++CFLAGS_acpi_extlog.o := -I$(src)
+ obj-$(CONFIG_ACPI_EXTLOG)	+= acpi_extlog.o
+diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
+index c4a5d87..6192ec1 100644
+--- a/drivers/acpi/acpi_extlog.c
++++ b/drivers/acpi/acpi_extlog.c
+@@ -16,6 +16,7 @@
+ #include <asm/mce.h>
+ 
+ #include "apei/apei-internal.h"
++#include <ras/ras_event.h>
+ 
+ #define EXT_ELOG_ENTRY_MASK	GENMASK_ULL(51, 0) /* elog entry address mask */
+ 
+@@ -43,7 +44,11 @@ struct extlog_l1_head {
+ 
+ static int old_edac_report_status;
+ 
 +static char mem_location[CPER_REC_LEN];
 +static char dimm_location[CPER_REC_LEN];
 +
- /*
-  * CPER record ID need to be unique even after reboot, because record
-  * ID is used as index for ERST storage, while CPER records from
-@@ -57,11 +61,12 @@ static const char *cper_severity_strs[] = {
- 	"info",
- };
+ static u8 extlog_dsm_uuid[] __initdata = "663E35AF-CC10-41A4-88EA-5470AF055295";
++static const uuid_le invalid_uuid = NULL_UUID_LE;
  
--static const char *cper_severity_str(unsigned int severity)
-+const char *cper_severity_str(unsigned int severity)
- {
- 	return severity < ARRAY_SIZE(cper_severity_strs) ?
- 		cper_severity_strs[severity] : "unknown";
- }
-+EXPORT_SYMBOL_GPL(cper_severity_str);
+ /* L1 table related physical address */
+ static u64 elog_base;
+@@ -69,6 +74,28 @@ static u32 l1_percpu_entry;
+ #define ELOG_ENTRY_ADDR(phyaddr) \
+ 	(phyaddr - elog_base + (u8 *)elog_addr)
  
- /*
-  * cper_print_bits - print strings for set bits
-@@ -196,55 +201,100 @@ static const char *cper_mem_err_type_strs[] = {
- 	"physical memory map-out event",
- };
- 
--static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
-+const char *cper_mem_err_type_str(unsigned int etype)
- {
--	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
--		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
--	if (mem->validation_bits & CPER_MEM_VALID_PA)
--		printk("%s""physical_address: 0x%016llx\n",
--		       pfx, mem->physical_addr);
--	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
--		printk("%s""physical_address_mask: 0x%016llx\n",
--		       pfx, mem->physical_addr_mask);
-+	return etype < ARRAY_SIZE(cper_mem_err_type_strs) ?
-+		cper_mem_err_type_strs[etype] : "unknown";
-+}
-+EXPORT_SYMBOL_GPL(cper_mem_err_type_str);
-+
-+void cper_mem_err_location(const struct cper_sec_mem_err *mem, char *msg)
++static void __trace_mem_error(const uuid_le *fru_id, char *fru_text,
++			       u64 err_count, u32 severity,
++			       struct cper_sec_mem_err *mem)
 +{
-+	u32 n = 0, len;
++	u32 etype = ~0U;
++	u64 phy_addr = ~0ull;
 +
-+	if (!msg)
-+		return;
++	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE)
++		etype = mem->error_type;
 +
-+	len = strlen(msg);
-+	memset(msg, 0, len);
++	if (mem->validation_bits & CPER_MEM_VALID_PA) {
++		phy_addr = mem->physical_addr;
++		if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
++			phy_addr &= mem->physical_addr_mask;
++	}
 +
- 	if (mem->validation_bits & CPER_MEM_VALID_NODE)
--		pr_debug("node: %d\n", mem->node);
-+		n += scnprintf(msg + n, len - n - 1, " node: %d", mem->node);
- 	if (mem->validation_bits & CPER_MEM_VALID_CARD)
--		pr_debug("card: %d\n", mem->card);
-+		n += scnprintf(msg + n, len - n - 1, " card: %d", mem->card);
- 	if (mem->validation_bits & CPER_MEM_VALID_MODULE)
--		pr_debug("module: %d\n", mem->module);
-+		n += scnprintf(msg + n, len - n - 1, " module: %d",
-+			       mem->module);
- 	if (mem->validation_bits & CPER_MEM_VALID_RANK_NUMBER)
--		pr_debug("rank: %d\n", mem->rank);
-+		n += scnprintf(msg + n, len - n - 1, " rank: %d", mem->rank);
- 	if (mem->validation_bits & CPER_MEM_VALID_BANK)
--		pr_debug("bank: %d\n", mem->bank);
-+		n += scnprintf(msg + n, len - n - 1, " bank: %d", mem->bank);
- 	if (mem->validation_bits & CPER_MEM_VALID_DEVICE)
--		pr_debug("device: %d\n", mem->device);
-+		n += scnprintf(msg + n, len - n - 1, " device: %d",
-+			       mem->device);
- 	if (mem->validation_bits & CPER_MEM_VALID_ROW)
--		pr_debug("row: %d\n", mem->row);
-+		n += scnprintf(msg + n, len - n - 1, " row: %d", mem->row);
- 	if (mem->validation_bits & CPER_MEM_VALID_COLUMN)
--		pr_debug("column: %d\n", mem->column);
-+		n += scnprintf(msg + n, len - n - 1, " column: %d",
-+			       mem->column);
- 	if (mem->validation_bits & CPER_MEM_VALID_BIT_POSITION)
--		pr_debug("bit_position: %d\n", mem->bit_pos);
-+		n += scnprintf(msg + n, len - n - 1, " bit_position: %d",
-+			       mem->bit_pos);
- 	if (mem->validation_bits & CPER_MEM_VALID_REQUESTOR_ID)
--		pr_debug("requestor_id: 0x%016llx\n", mem->requestor_id);
-+		n += scnprintf(msg + n, len - n - 1,
-+			       " requestor_id: 0x%016llx", mem->requestor_id);
- 	if (mem->validation_bits & CPER_MEM_VALID_RESPONDER_ID)
--		pr_debug("responder_id: 0x%016llx\n", mem->responder_id);
-+		n += scnprintf(msg + n, len - n - 1,
-+			       " responder_id: 0x%016llx", mem->responder_id);
- 	if (mem->validation_bits & CPER_MEM_VALID_TARGET_ID)
--		pr_debug("target_id: 0x%016llx\n", mem->target_id);
-+		scnprintf(msg + n, len - n - 1, " target_id: 0x%016llx",
-+			  mem->target_id);
-+}
-+EXPORT_SYMBOL_GPL(cper_mem_err_location);
-+
-+void cper_dimm_err_location(const struct cper_sec_mem_err *mem, char *msg)
-+{
-+	const char *bank = NULL, *device = NULL;
-+	int len;
-+
-+	if (!msg)
-+		return;
-+
-+	len = strlen(msg);
-+	memset(msg, 0, len);
-+
-+	if (!(mem->validation_bits & CPER_MEM_VALID_MODULE_HANDLE))
-+		return;
-+
-+	dmi_memdev_name(mem->mem_dev_handle, &bank, &device);
-+	if (bank && device)
-+		snprintf(msg, len - 1, "DIMM location: %s %s", bank, device);
-+	else
-+		snprintf(msg, len - 1,
-+			 "DIMM location: not present. DMI handle: 0x%.4x",
-+			 mem->mem_dev_handle);
-+}
-+EXPORT_SYMBOL_GPL(cper_dimm_err_location);
-+
-+static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
-+{
-+	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
-+		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
-+	if (mem->validation_bits & CPER_MEM_VALID_PA)
-+		printk("%s""physical_address: 0x%016llx\n",
-+		       pfx, mem->physical_addr);
-+	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
-+		printk("%s""physical_address_mask: 0x%016llx\n",
-+		       pfx, mem->physical_addr_mask);
 +	cper_mem_err_location(mem, mem_location);
-+	pr_debug("%s", mem_location);
- 	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE) {
- 		u8 etype = mem->error_type;
- 		printk("%s""error_type: %d, %s\n", pfx, etype,
--		       etype < ARRAY_SIZE(cper_mem_err_type_strs) ?
--		       cper_mem_err_type_strs[etype] : "unknown");
--	}
--	if (mem->validation_bits & CPER_MEM_VALID_MODULE_HANDLE) {
--		const char *bank = NULL, *device = NULL;
--		dmi_memdev_name(mem->mem_dev_handle, &bank, &device);
--		if (bank != NULL && device != NULL)
--			printk("%s""DIMM location: %s %s", pfx, bank, device);
--		else
--			printk("%s""DIMM DMI handle: 0x%.4x",
--			       pfx, mem->mem_dev_handle);
-+		       cper_mem_err_type_str(etype));
- 	}
 +	cper_dimm_err_location(mem, dimm_location);
-+	printk("%s%s", pfx, dimm_location);
- }
- 
- static const char *cper_pcie_port_type_strs[] = {
-diff --git a/include/linux/cper.h b/include/linux/cper.h
-index 2fc0ec3..038cc11 100644
---- a/include/linux/cper.h
-+++ b/include/linux/cper.h
-@@ -23,6 +23,8 @@
- 
- #include <linux/uuid.h>
- 
-+extern struct raw_spinlock cper_loc_lock;
++	trace_extlog_mem_event(etype, dimm_location, fru_id, fru_text,
++			       err_count, severity, phy_addr, mem_location);
++}
 +
- /* CPER record signature and the size */
- #define CPER_SIG_RECORD				"CPER"
- #define CPER_SIG_SIZE				4
-@@ -36,6 +38,12 @@
- #define CPER_RECORD_REV				0x0100
+ static struct acpi_generic_status *extlog_elog_entry_check(int cpu, int bank)
+ {
+ 	int idx;
+@@ -137,8 +164,12 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
+ 	struct mce *mce = (struct mce *)data;
+ 	int	bank = mce->bank;
+ 	int	cpu = mce->extcpu;
+-	struct acpi_generic_status *estatus;
+-	int rc;
++	struct acpi_generic_status *estatus, *tmp;
++	struct acpi_generic_data *gdata;
++	const uuid_le *fru_id = &invalid_uuid;
++	char *fru_text = "";
++	uuid_le *sec_type;
++	static u64 err_count;
+ 
+ 	estatus = extlog_elog_entry_check(cpu, bank);
+ 	if (estatus == NULL)
+@@ -148,7 +179,23 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
+ 	/* clear record status to enable BIOS to update it again */
+ 	estatus->block_status = 0;
+ 
+-	rc = print_extlog_rcd(NULL, (struct acpi_generic_status *)elog_buf, cpu);
++	tmp = (struct acpi_generic_status *)elog_buf;
++	print_extlog_rcd(NULL, tmp, cpu);
++
++	/* log event via trace */
++	err_count++;
++	gdata = (struct acpi_generic_data *)(tmp + 1);
++	if (gdata->validation_bits & CPER_SEC_VALID_FRU_ID)
++		fru_id = (uuid_le *)gdata->fru_id;
++	if (gdata->validation_bits & CPER_SEC_VALID_FRU_TEXT)
++		fru_text = gdata->fru_text;
++	sec_type = (uuid_le *)gdata->section_type;
++	if (!uuid_le_cmp(*sec_type, CPER_SEC_PLATFORM_MEM)) {
++		struct cper_sec_mem_err *mem_err = (void *)(gdata + 1);
++		if (gdata->error_data_length >= sizeof(*mem_err))
++			__trace_mem_error(fru_id, fru_text, err_count,
++					  gdata->error_severity, mem_err);
++	}
+ 
+ 	return NOTIFY_STOP;
+ }
+diff --git a/drivers/ras/Kconfig b/drivers/ras/Kconfig
+index 63e76a7..81cf0b2 100644
+--- a/drivers/ras/Kconfig
++++ b/drivers/ras/Kconfig
+@@ -32,6 +32,6 @@ menuconfig RAS
+ if RAS
+ config RAS_TRACE
+ 	def_bool y
+-	depends on EDAC_MM_EDAC
++	depends on EDAC_MM_EDAC || ACPI_EXTLOG
+ 
+ endif # RAS
+diff --git a/drivers/ras/ras-traces.c b/drivers/ras/ras-traces.c
+index b0c6ed1..197b1ea 100644
+--- a/drivers/ras/ras-traces.c
++++ b/drivers/ras/ras-traces.c
+@@ -9,4 +9,5 @@
+ #define TRACE_INCLUDE_PATH ../../include/ras
+ #include <ras/ras_event.h>
+ 
++EXPORT_TRACEPOINT_SYMBOL_GPL(extlog_mem_event);
+ EXPORT_TRACEPOINT_SYMBOL_GPL(mc_event);
+diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
+index 21cdb0b..dfda854 100644
+--- a/include/ras/ras_event.h
++++ b/include/ras/ras_event.h
+@@ -8,6 +8,66 @@
+ #include <linux/tracepoint.h>
+ #include <linux/edac.h>
+ #include <linux/ktime.h>
++#include <linux/cper.h>
++
++/*
++ * MCE Extended Error Log trace event
++ *
++ * These events are generated when hardware detects a corrected or
++ * uncorrected event.
++ *
++ */
++
++/* memory trace event */
++
++TRACE_EVENT(extlog_mem_event,
++	TP_PROTO(u32 etype,
++		 char *dimm_info,
++		 const uuid_le *fru_id,
++		 char *fru_text,
++		 u64 error_count,
++		 u32 severity,
++		 u64 phy_addr,
++		 char *mem_loc),
++
++	TP_ARGS(etype, dimm_info, fru_id, fru_text, error_count, severity,
++		phy_addr, mem_loc),
++
++	TP_STRUCT__entry(
++		__field(u32, etype)
++		__dynamic_array(char, dimm_info, CPER_REC_LEN)
++		__field(u64, error_count)
++		__field(u32, severity)
++		__field(u64, paddr)
++		__string(mem_loc, mem_loc)
++		__dynamic_array(char, fru, CPER_REC_LEN)
++	),
++
++	TP_fast_assign(
++		__entry->error_count = error_count;
++		__entry->severity = severity;
++		__entry->etype = etype;
++		if (dimm_info[0] != '\0')
++			snprintf(__get_dynamic_array(dimm_info),
++				 CPER_REC_LEN - 1, "%s", dimm_info);
++		else
++			__assign_str(dimm_info, "");
++		__entry->paddr = phy_addr;
++		__assign_str(mem_loc, mem_loc);
++		snprintf(__get_dynamic_array(fru), CPER_REC_LEN - 1,
++			 "FRU: %pUl %.20s", fru_id, fru_text);
++	),
++
++	TP_printk("%llu %s error%s: %s %s physical addr: 0x%016llx%s %s",
++		  __entry->error_count,
++		  cper_severity_str(__entry->severity),
++		  __entry->error_count > 1 ? "s" : "",
++		  cper_mem_err_type_str(__entry->etype),
++		  __get_str(dimm_info),
++		  __entry->paddr,
++		  __get_str(mem_loc),
++		  __get_str(fru))
++);
  
  /*
-+ * CPER record length is variable depending on differnet error type.
-+ * By now it is mainly used for memory error type. 256 bytes should
-+ * be enough. Increase this value once it is not enough.
-+ */
-+#define CPER_REC_LEN				256
-+/*
-  * Severity difinition for error_severity in struct cper_record_header
-  * and section_severity in struct cper_section_descriptor
-  */
-@@ -395,7 +403,11 @@ struct cper_sec_pcie {
- #pragma pack()
- 
- u64 cper_next_record_id(void);
-+const char *cper_severity_str(unsigned int);
-+const char *cper_mem_err_type_str(unsigned int);
- void cper_print_bits(const char *prefix, unsigned int bits,
- 		     const char * const strs[], unsigned int strs_size);
-+void cper_mem_err_location(const struct cper_sec_mem_err *mem, char *msg);
-+void cper_dimm_err_location(const struct cper_sec_mem_err *mem, char *msg);
- 
- #endif
+  * Hardware Events Report
 -- 
 1.9.0
 
