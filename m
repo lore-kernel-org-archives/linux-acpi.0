@@ -1,223 +1,122 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: [PATCH 5/5] trace, AER: Move trace into unified interface
-Date: Thu, 17 Apr 2014 02:28:39 -0400
-Message-ID: <1397716119-6164-6-git-send-email-gong.chen@linux.intel.com>
-References: <1397716119-6164-1-git-send-email-gong.chen@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:39251 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751090AbaDQGyO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Apr 2014 02:54:14 -0400
-In-Reply-To: <1397716119-6164-1-git-send-email-gong.chen@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
+Date: Thu, 17 Apr 2014 12:45:33 +0200
+Message-ID: <20140417104533.GB8215@pd.tnic>
+References: <20140224162400.GE16457@pd.tnic>
+ <744357E9AAD1214791ACBA4B0B9092630121F201@SHSMSX101.ccr.corp.intel.com>
+ <CAErSpo55DjkGQB=7ksow34BpCObnY+o3eNnt0n5oQEh6Lfw1pw@mail.gmail.com>
+ <1558044.S1G2VU7srO@vostro.rjw.lan>
+ <CAErSpo4pDYMhHo6e-1TN6XDRO0xy0u8H+=oucFnrEK+kbjZvzw@mail.gmail.com>
+ <20140416190404.GA7070@pd.tnic>
+ <20140416203138.GA17661@google.com>
+ <20140416223122.GA2767@redhat.com>
+ <20140416225600.GA23781@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140416225600.GA23781@google.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Dave Jones <davej@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zhang, Rui" <rui.zhang@intel.com>, "Lu, Aaron" <aaron.lu@intel.com>, lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephane Eranian <eranian@google.com>, "Yan, Zheng Z" <zheng.z.yan@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com
-Cc: rostedt@goodmis.org, linux-acpi@vger.kernel.org, arozansk@redhat.com, "Chen, Gong" <gong.chen@linux.intel.com>
 
-AER uses a separate trace interface by now. To make it
-consistent, move it into unified RAS trace interface.
+Hi Bjorn,
 
-Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
----
- drivers/pci/pcie/aer/aerdrv_errprint.c |  4 +-
- drivers/ras/Kconfig                    |  2 +-
- include/ras/ras_event.h                | 64 ++++++++++++++++++++++++++++
- include/trace/events/ras.h             | 77 ----------------------------------
- 4 files changed, 66 insertions(+), 81 deletions(-)
- delete mode 100644 include/trace/events/ras.h
+thanks for the patch, a couple of notes below:
 
-diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-index 34ff702..73e73b7 100644
---- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-+++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-@@ -22,9 +22,7 @@
- #include <linux/cper.h>
- 
- #include "aerdrv.h"
--
--#define CREATE_TRACE_POINTS
--#include <trace/events/ras.h>
-+#include <ras/ras_event.h>
- 
- #define AER_AGENT_RECEIVER		0
- #define AER_AGENT_REQUESTER		1
-diff --git a/drivers/ras/Kconfig b/drivers/ras/Kconfig
-index 81cf0b2..1b7a914 100644
---- a/drivers/ras/Kconfig
-+++ b/drivers/ras/Kconfig
-@@ -32,6 +32,6 @@ menuconfig RAS
- if RAS
- config RAS_TRACE
- 	def_bool y
--	depends on EDAC_MM_EDAC || ACPI_EXTLOG
-+	depends on EDAC_MM_EDAC || ACPI_EXTLOG || PCIEAER
- 
- endif # RAS
-diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
-index dfda854..375d318 100644
---- a/include/ras/ras_event.h
-+++ b/include/ras/ras_event.h
-@@ -9,6 +9,7 @@
- #include <linux/edac.h>
- #include <linux/ktime.h>
- #include <linux/cper.h>
-+#include <linux/aer.h>
- 
- /*
-  * MCE Extended Error Log trace event
-@@ -154,6 +155,69 @@ TRACE_EVENT(mc_event,
- 		  __get_str(driver_detail))
- );
- 
-+/*
-+ * PCIe AER Trace event
-+ *
-+ * These events are generated when hardware detects a corrected or
-+ * uncorrected event on a PCIe device. The event report has
-+ * the following structure:
-+ *
-+ * char * dev_name -	The name of the slot where the device resides
-+ *			([domain:]bus:device.function).
-+ * u32 status -		Either the correctable or uncorrectable register
-+ *			indicating what error or errors have been seen
-+ * u8 severity -	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
-+ */
-+
-+#define aer_correctable_errors		\
-+	{BIT(0),	"Receiver Error"},		\
-+	{BIT(6),	"Bad TLP"},			\
-+	{BIT(7),	"Bad DLLP"},			\
-+	{BIT(8),	"RELAY_NUM Rollover"},		\
-+	{BIT(12),	"Replay Timer Timeout"},	\
-+	{BIT(13),	"Advisory Non-Fatal"}
-+
-+#define aer_uncorrectable_errors		\
-+	{BIT(4),	"Data Link Protocol"},		\
-+	{BIT(12),	"Poisoned TLP"},		\
-+	{BIT(13),	"Flow Control Protocol"},	\
-+	{BIT(14),	"Completion Timeout"},		\
-+	{BIT(15),	"Completer Abort"},		\
-+	{BIT(16),	"Unexpected Completion"},	\
-+	{BIT(17),	"Receiver Overflow"},		\
-+	{BIT(18),	"Malformed TLP"},		\
-+	{BIT(19),	"ECRC"},			\
-+	{BIT(20),	"Unsupported Request"}
-+
-+TRACE_EVENT(aer_event,
-+	TP_PROTO(const char *dev_name,
-+		 const u32 status,
-+		 const u8 severity),
-+
-+	TP_ARGS(dev_name, status, severity),
-+
-+	TP_STRUCT__entry(
-+		__string(	dev_name,	dev_name	)
-+		__field(	u32,		status		)
-+		__field(	u8,		severity	)
-+	),
-+
-+	TP_fast_assign(
-+		__assign_str(dev_name, dev_name);
-+		__entry->status		= status;
-+		__entry->severity	= severity;
-+	),
-+
-+	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
-+		__get_str(dev_name),
-+		__entry->severity == AER_CORRECTABLE ? "Corrected" :
-+			__entry->severity == AER_FATAL ?
-+			"Fatal" : "Uncorrected, non-fatal",
-+		__entry->severity == AER_CORRECTABLE ?
-+		__print_flags(__entry->status, "|", aer_correctable_errors) :
-+		__print_flags(__entry->status, "|", aer_uncorrectable_errors))
-+);
-+
- #endif /* _TRACE_HW_EVENT_MC_H */
- 
- /* This part must be outside protection */
-diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
-deleted file mode 100644
-index 1c875ad..0000000
---- a/include/trace/events/ras.h
-+++ /dev/null
-@@ -1,77 +0,0 @@
--#undef TRACE_SYSTEM
--#define TRACE_SYSTEM ras
--
--#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
--#define _TRACE_AER_H
--
--#include <linux/tracepoint.h>
--#include <linux/aer.h>
--
--
--/*
-- * PCIe AER Trace event
-- *
-- * These events are generated when hardware detects a corrected or
-- * uncorrected event on a PCIe device. The event report has
-- * the following structure:
-- *
-- * char * dev_name -	The name of the slot where the device resides
-- *			([domain:]bus:device.function).
-- * u32 status -		Either the correctable or uncorrectable register
-- *			indicating what error or errors have been seen
-- * u8 severity -	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
-- */
--
--#define aer_correctable_errors		\
--	{BIT(0),	"Receiver Error"},		\
--	{BIT(6),	"Bad TLP"},			\
--	{BIT(7),	"Bad DLLP"},			\
--	{BIT(8),	"RELAY_NUM Rollover"},		\
--	{BIT(12),	"Replay Timer Timeout"},	\
--	{BIT(13),	"Advisory Non-Fatal"}
--
--#define aer_uncorrectable_errors		\
--	{BIT(4),	"Data Link Protocol"},		\
--	{BIT(12),	"Poisoned TLP"},		\
--	{BIT(13),	"Flow Control Protocol"},	\
--	{BIT(14),	"Completion Timeout"},		\
--	{BIT(15),	"Completer Abort"},		\
--	{BIT(16),	"Unexpected Completion"},	\
--	{BIT(17),	"Receiver Overflow"},		\
--	{BIT(18),	"Malformed TLP"},		\
--	{BIT(19),	"ECRC"},			\
--	{BIT(20),	"Unsupported Request"}
--
--TRACE_EVENT(aer_event,
--	TP_PROTO(const char *dev_name,
--		 const u32 status,
--		 const u8 severity),
--
--	TP_ARGS(dev_name, status, severity),
--
--	TP_STRUCT__entry(
--		__string(	dev_name,	dev_name	)
--		__field(	u32,		status		)
--		__field(	u8,		severity	)
--	),
--
--	TP_fast_assign(
--		__assign_str(dev_name, dev_name);
--		__entry->status		= status;
--		__entry->severity	= severity;
--	),
--
--	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
--		__get_str(dev_name),
--		__entry->severity == AER_CORRECTABLE ? "Corrected" :
--			__entry->severity == AER_FATAL ?
--			"Fatal" : "Uncorrected, non-fatal",
--		__entry->severity == AER_CORRECTABLE ?
--		__print_flags(__entry->status, "|", aer_correctable_errors) :
--		__print_flags(__entry->status, "|", aer_uncorrectable_errors))
--);
--
--#endif /* _TRACE_AER_H */
--
--/* This part must be outside protection */
--#include <trace/define_trace.h>
+On Wed, Apr 16, 2014 at 04:56:00PM -0600, Bjorn Helgaas wrote:
+> PNP: Work around Haswell BIOS defect in MCH area reporting
+> 
+> From: Bjorn Helgaas <bhelgaas@google.com>
+> 
+> Work around a Haswell BIOS defect that causes part of the MCH area to be
+> unreported.
+
+Yep, what Stephane said, this is not HSW only.
+
+> MCHBAR is not an architected PCI BAR, so MCH space is usually reported as a
+> PNP0C02 resource.  The MCH space was 16KB prior to Haswell, but it is 32KB
+> in Haswell.  Some Haswell BIOSes still report a PNP0C02 resource that is
+> only 16KB, which means the rest of the MCH space is consumed but
+> unreported.
+> 
+> This can cause resource map sanity check warnings or (theoretically) a
+> device conflict if we assigned the unreported space to another device.
+> 
+> The Intel perf event uncore driver tripped over this when it claimed the
+> MCH region:
+> 
+>   resource map sanity check conflict: 0xfed10000 0xfed15fff 0xfed10000 0xfed13fff pnp 00:01
+>   Info: mapping multiple BARs. Your kernel is fine.
+> 
+> To prevent this, if we find a PNP0C02 resource that covers part of the MCH
+> space, extend it to cover the entire space.
+> 
+> Link: http://lkml.kernel.org/r/20140224162400.GE16457@pd.tnic
+> Reported-by: Borislav Petkov <bp@alien8.de>
+> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> ---
+>  drivers/pnp/quirks.c |   55 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 55 insertions(+)
+> 
+> diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
+> index 258fef272ea7..8402088d4145 100644
+> --- a/drivers/pnp/quirks.c
+> +++ b/drivers/pnp/quirks.c
+> @@ -334,6 +334,60 @@ static void quirk_amd_mmconfig_area(struct pnp_dev *dev)
+>  }
+>  #endif
+>  
+> +static void quirk_intel_haswell_mch(struct pnp_dev *dev)
+> +{
+> +	struct pci_dev *host;
+> +	u32 addr_lo, addr_hi;
+> +	struct pci_bus_region region;
+> +	struct resource mch;
+> +	struct pnp_resource *pnp_res;
+> +	struct resource *res;
+> +
+> +	host = pci_get_device(PCI_VENDOR_ID_INTEL, 0x0c00, NULL);
+
+And because it is not HSW only, this PCI device ID doesn't match on my
+IVB system. On mine the hostbridge is
+
+00:00.0 Host bridge: Intel Corporation 3rd Gen Core processor DRAM Controller (rev 09)
+        Subsystem: Lenovo Device 21fa
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort+ >SERR- <PERR- INTx-
+        Latency: 0
+        Capabilities: <access denied>
+        Kernel driver in use: ivb_uncore
+00: 86 80 54 01 06 00 90 20 09 00 00 06 00 00 00 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 aa 17 fa 21
+30: 00 00 00 00 e0 00 00 00 00 00 00 00 00 00 00 00
+
+and from looking at Dave's, it is the same one, so PCI device ID is
+0x154.
+
+With that changed to
+
+	host = pci_get_device(PCI_VENDOR_ID_INTEL, 0x0154, NULL);
+
+and a bit of debugging code, it says now:
+
+[    0.235739] quirk_intel_haswell_mch: entry
+[    0.235800] quirk_intel_haswell_mch: got host: 0x0
+[    0.235860] quirk_intel_haswell_mch: mch: [mem 0xfed10000-0xfed17fff]
+[    0.235930] quirk_intel_haswell_mch: res: [mem 0xfed10000-0xfed13fff]
+[    0.235990] pnp 00:01: [Firmware Bug]: [mem 0xfed10000-0xfed13fff] covers only part of Intel Haswell MCH; extending to [mem 0xfed10000-0xfed17fff]
+
+So you probably want to have a list of hostbridge pci ids in the quirk
+or so.
+
+Thanks.
+
 -- 
-1.9.0
+Regards/Gruss,
+    Boris.
 
+Sent from a fat crate under my desk. Formatting is fine.
+--
