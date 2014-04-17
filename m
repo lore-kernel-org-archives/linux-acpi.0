@@ -1,133 +1,93 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH] PNP: Work around BIOS defects in Intel MCH area reporting
-Date: Thu, 17 Apr 2014 14:20:33 -0600
-Message-ID: <20140417202033.7057.98414.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: Luis Henriques <luis.henriques@canonical.com>
+Subject: Re: BUG: using __this_cpu_write() in preemptible [00000000] code: systemd-udevd/497
+Date: Thu, 17 Apr 2014 21:47:28 +0100
+Message-ID: <8761m7lm3j.fsf@canonical.com>
+References: <87mwfn4gah.fsf@canonical.com>
+	<20140415155453.54d0ca97ca88905594b5100f@linux-foundation.org>
+	<alpine.DEB.2.10.1404160958440.9704@gentwo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Aaron Lu <aaron.lu@intel.com>, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Stephane Eranian <eranian@google.com>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Zheng Z Yan <zheng.z.yan@intel.com>, Dave Jones <davej@redhat.com>, Rui Zhang <rui.zhang@intel.com>, Yinghai Lu <yinghai@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:33988 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751179AbaDQUrh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Apr 2014 16:47:37 -0400
+In-Reply-To: <alpine.DEB.2.10.1404160958440.9704@gentwo.org> (Christoph
+	Lameter's message of "Wed, 16 Apr 2014 10:03:23 -0500 (CDT)")
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Christoph Lameter <cl@linux.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Eric Piel <eric.piel@tremplin-utc.net>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Peter Ziljstra <peterz@infradead.org>
 
-Work around BIOSes that don't report the entire Intel MCH area.
+Christoph Lameter <cl@linux.com> writes:
 
-MCHBAR is not an architected PCI BAR, so MCH space is usually reported as a
-PNP0C02 resource.  The MCH space was once 16KB, but is 32KB in newer parts.
-Some BIOSes still report a PNP0C02 resource that is only 16KB, which means
-the rest of the MCH space is consumed but unreported.
+> On Tue, 15 Apr 2014, Andrew Morton wrote:
+>
+>> On Tue, 15 Apr 2014 00:55:50 +0100 Luis Henriques <luis.henriques@ca=
+nonical.com> wrote:
+>>
+>> > (Cc'ing both lis3lv02d and ACPI maintainers)
+>> >
+>> > Since commit 188a81409ff7de1c5aae947a96356ddd8ff4aaa3 ("percpu: ad=
+d
+>> > preemption checks to __this_cpu ops") I've been seeing the followi=
+ng:
+>> >
+>> > [   10.485588] hp_accel: hardware type HPB64xx found
+>> > [   10.485772] BUG: using __this_cpu_write() in preemptible [00000=
+000] code: systemd-udevd/497
+>> > [   10.485777] caller is __this_cpu_preempt_check+0x13/0x20
+>> > [   10.485781] CPU: 3 PID: 497 Comm: systemd-udevd Tainted: G     =
+   W     3.15.0-rc1 #9
+>> > [   10.485783] Hardware name: Hewlett-Packard HP EliteBook 8470p/1=
+79B, BIOS 68ICF Ver. F.02 04/27/2012
+>> > [   10.485785]  ffffffff81a14db5 ffff88022c80b8e0 ffffffff81604ba4=
+ 0000000000000003
+>> > [   10.485789]  ffff88022c80b908 ffffffff81313431 0000000000000000=
+ 0000000000000032
+>> > [   10.485793]  00000000000003e8 ffff88022c80b918 ffffffff81313473=
+ ffff88022c80b928
+>> > [   10.485796] Call Trace:
+>> > [   10.485802]  [<ffffffff81604ba4>] dump_stack+0x4e/0x7a
+>> > [   10.485805]  [<ffffffff81313431>] check_preemption_disabled+0xe=
+1/0xf0
+>> > [   10.485808]  [<ffffffff81313473>] __this_cpu_preempt_check+0x13=
+/0x20
+>> > [   10.485813]  [<ffffffff810e4eb8>] touch_nmi_watchdog+0x28/0x40
+>>
+>> Presumably touch_softlockup_watchdog() being called with preemption
+>> enabled.  Which is a legitimate thing to do and there's no point in
+>> disabling preemption just to squish a runtime warning.
+>>
+>> Christoph, this thing has iirc caught a couple of very minor bugs bu=
+t
+>> it is being quite a pain in the rear.   I'm inclined to revert?
+>
+> Well this preemption check functionality was strongly desired by Pete=
+r
+> Zilkstra and Ingo Molnar and made a precondition for more extensive u=
+se of
+> the this_cpu operations. My patches to various subsystems were reject=
+ed
+> because these operations were deemed unsafe without those checks.
+>
+> The simple thing to do in these cases is to use switch from __this_cp=
+u_*
+> to raw_cpu ops to squish these warnings.
 
-This can cause resource map sanity check warnings or (theoretically) a
-device conflict if we assigned the unreported space to another device.
+=46WIW, I just gave the -mm tree patch
+kernel-watchdogc-touch_softlockup_watchdog-use-raw_cpu_write.patch [1]
+a try and it looks like it fixes this issue.
 
-The Intel perf event uncore driver tripped over this when it claimed the
-MCH region:
+[1] http://ozlabs.org/~akpm/mmots/broken-out/kernel-watchdogc-touch_sof=
+tlockup_watchdog-use-raw_cpu_write.patch
 
-  resource map sanity check conflict: 0xfed10000 0xfed15fff 0xfed10000 0xfed13fff pnp 00:01
-  Info: mapping multiple BARs. Your kernel is fine.
-
-To prevent this, if we find a PNP0C02 resource that covers part of the MCH
-space, extend it to cover the entire space.
-
-Link: http://lkml.kernel.org/r/20140224162400.GE16457@pd.tnic
-Reported-by: Borislav Petkov <bp@alien8.de>
-Tested-by: Borislav Petkov <bp@suse.de>
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-Acked-by: Borislav Petkov <bp@suse.de>
----
- drivers/pnp/quirks.c |   74 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 74 insertions(+)
-
-diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
-index 258fef272ea7..90b8c12c220d 100644
---- a/drivers/pnp/quirks.c
-+++ b/drivers/pnp/quirks.c
-@@ -334,6 +334,79 @@ static void quirk_amd_mmconfig_area(struct pnp_dev *dev)
- }
- #endif
- 
-+/* Device IDs of parts that have 32KB MCH space */
-+static const unsigned int mch_quirk_devices[] = {
-+	0x0154,	/* Ivy Bridge */
-+	0x0c00,	/* Haswell */
-+};
-+
-+static struct pci_dev *get_intel_host(void)
-+{
-+	int i;
-+	struct pci_dev *host;
-+
-+	for (i = 0; i < ARRAY_SIZE(mch_quirk_devices); i++) {
-+		host = pci_get_device(PCI_VENDOR_ID_INTEL, mch_quirk_devices[i],
-+				      NULL);
-+		if (host)
-+			return host;
-+	}
-+	return NULL;
-+}
-+
-+static void quirk_intel_mch(struct pnp_dev *dev)
-+{
-+	struct pci_dev *host;
-+	u32 addr_lo, addr_hi;
-+	struct pci_bus_region region;
-+	struct resource mch;
-+	struct pnp_resource *pnp_res;
-+	struct resource *res;
-+
-+	host = get_intel_host();
-+	if (!host)
-+		return;
-+
-+	/*
-+	 * MCHBAR is not an architected PCI BAR, so MCH space is usually
-+	 * reported as a PNP0C02 resource.  The MCH space was originally
-+	 * 16KB, but is 32KB in newer parts.  Some BIOSes still report a
-+	 * PNP0C02 resource that is only 16KB, which means the rest of the
-+	 * MCH space is consumed but unreported.
-+	 */
-+
-+	/*
-+	 * Read MCHBAR for Host Member Mapped Register Range Base
-+	 * https://www-ssl.intel.com/content/www/us/en/processors/core/4th-gen-core-family-desktop-vol-2-datasheet
-+	 * Sec 3.1.12.
-+	 */
-+	pci_read_config_dword(host, 0x48, &addr_lo);
-+	region.start = addr_lo & ~0x7fff;
-+	pci_read_config_dword(host, 0x4c, &addr_hi);
-+	region.start |= (dma_addr_t) addr_hi << 32;
-+	region.end = region.start + 32*1024 - 1;
-+
-+	memset(&mch, 0, sizeof(mch));
-+	mch.flags = IORESOURCE_MEM;
-+	pcibios_bus_to_resource(host->bus, &mch, &region);
-+
-+	list_for_each_entry(pnp_res, &dev->resources, list) {
-+		res = &pnp_res->res;
-+		if (res->end < mch.start || res->start > mch.end)
-+			continue;	/* no overlap */
-+		if (res->start == mch.start && res->end == mch.end)
-+			continue;	/* exact match */
-+
-+		dev_info(&dev->dev, FW_BUG "PNP resource %pR covers only part of %s Intel MCH; extending to %pR\n",
-+			 res, pci_name(host), &mch);
-+		res->start = mch.start;
-+		res->end = mch.end;
-+		break;
-+	}
-+
-+	pci_dev_put(host);
-+}
-+
- /*
-  *  PnP Quirks
-  *  Cards or devices that need some tweaking due to incomplete resource info
-@@ -364,6 +437,7 @@ static struct pnp_fixup pnp_fixups[] = {
- #ifdef CONFIG_AMD_NB
- 	{"PNP0c01", quirk_amd_mmconfig_area},
- #endif
-+	{"PNP0c02", quirk_intel_mch},
- 	{""}
- };
- 
+Cheers,
+--=20
+Lu=C3=ADs
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
