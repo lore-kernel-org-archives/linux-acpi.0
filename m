@@ -1,17 +1,17 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
 Subject: RE: [PATCH] ACPICA: Tables: Skip NULL entries in RSDT and XSDT.
-Date: Fri, 18 Apr 2014 03:00:21 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802554BEC@SHSMSX101.ccr.corp.intel.com>
+Date: Fri, 18 Apr 2014 03:13:04 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802554C0C@SHSMSX101.ccr.corp.intel.com>
 References: <261e2207fab4a185b44fb27dbf9bc68588aea713.1397785844.git.lv.zheng@intel.com>
  <20140418024426.GA10084@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:42848 "EHLO mga03.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:2880 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750970AbaDRDA1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Apr 2014 23:00:27 -0400
+	id S1750970AbaDRDNR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Apr 2014 23:13:17 -0400
 In-Reply-To: <20140418024426.GA10084@kroah.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
@@ -19,7 +19,7 @@ List-Id: linux-acpi@vger.kernel.org
 To: Greg KH <gregkh@linuxfoundation.org>
 Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhao, Yakui" <yakui.zhao@intel.com>
 
-Hi, Greg
+Hi,
 
 > From: Greg KH [mailto:gregkh@linuxfoundation.org]
 > Sent: Friday, April 18, 2014 10:44 AM
@@ -30,19 +30,6 @@ Hi, Greg
 > > kernels shouldn't merge this commit.
 > 
 > What kernel commit fixed this issue in "upstream"?
-
-There is no kernel commit now has fixed this issue in "upstream".
-The fix commit need to go into ACPICA first, so I believe it will appear in 3.15-rc2 (ACPICA 201403xx release) or 3.15-rc3 (ACPICA 201404xx release).
-
-The back port of the fix commit will have many dependencies as we have a big change in ACPICA table manager in ACPICA 201403xx release.
-However this back port is very light and has been confirmed by the reporters.
-
-The bug seems to be urgent, it has broken many platforms shipped with AMI BIOSes versioning from F2 to F4.
-Someone may monitor here to find a valid fix.
-
-Best regards
--Lv
-
 > 
 > > It is reported that there are buggy BIOSes in the world: AMI uses a XSDt
 > > compiler for early BIOSes, this compiler will generate XSDT with a NULL
@@ -77,5 +64,12 @@ Best regards
 > > Cc: <stable@vger.kernel.org> # 3.14.x: 671cc68: ACPICA: Back port and refine validation of the XSDT root table.
 > 
 > So this fix is only needed for 3.14?  Or older?  I'm confused here...
-> 
+
+Only 3.14.1 - 3.15.1 kernels are affected.  Others are fine.
+Possibly this urgent commit is useful for the users currently running 3.14 on such broken platforms.
+I haven't obtained Rafael's ACKs on this.  We may discuss it in next week.
+
+Thanks and best regards
+-Lv
+
 > greg k-h
