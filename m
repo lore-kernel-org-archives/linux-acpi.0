@@ -1,83 +1,50 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: Tables: Skip NULL entries in RSDT and XSDT.
-Date: Fri, 18 Apr 2014 06:36:48 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802554D4E@SHSMSX101.ccr.corp.intel.com>
-References: <261e2207fab4a185b44fb27dbf9bc68588aea713.1397785844.git.lv.zheng@intel.com>
- <20140418024426.GA10084@kroah.com>
- <1AE640813FDE7649BE1B193DEA596E8802554BEC@SHSMSX101.ccr.corp.intel.com>
- <20140418033945.GA20137@kroah.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
+Date: Fri, 18 Apr 2014 12:38:54 +0200
+Message-ID: <20140418103854.GE4385@pd.tnic>
+References: <20140416223122.GA2767@redhat.com>
+ <20140416225600.GA23781@google.com>
+ <20140417104533.GB8215@pd.tnic>
+ <20140417182637.GA2098@google.com>
+ <20140417195240.GA18876@redhat.com>
+ <20140417200127.GH4321@pd.tnic>
+ <20140417200352.GB18876@redhat.com>
+ <20140417205355.GA22191@redhat.com>
+ <20140417210101.GB27852@pd.tnic>
+ <20140417213027.GA22412@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:38499 "EHLO mga09.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:33634 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750959AbaDRGg5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Apr 2014 02:36:57 -0400
-In-Reply-To: <20140418033945.GA20137@kroah.com>
-Content-Language: en-US
+	id S1750857AbaDRKi6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Apr 2014 06:38:58 -0400
+Content-Disposition: inline
+In-Reply-To: <20140417213027.GA22412@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhao, Yakui" <yakui.zhao@intel.com>
+To: Dave Jones <davej@redhat.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zhang, Rui" <rui.zhang@intel.com>, "Lu, Aaron" <aaron.lu@intel.com>, lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephane Eranian <eranian@google.com>, "Yan, Zheng Z" <zheng.z.yan@intel.com>, daniel.vetter@ffwll.ch
 
-Hi,
+On Thu, Apr 17, 2014 at 05:30:27PM -0400, Dave Jones wrote:
+> I think it's just implicated because that's the next thing that seems
+> to init after the modeswitch. The config differences are small, just
+> things like =m instead of =y or vice-versa.
+>
+> I'm about to head into a long weekend, so I'll get back to this on
+> Monday, but for now I'm out of ideas.
 
-> From: Greg KH [mailto:gregkh@linuxfoundation.org]
-> Sent: Friday, April 18, 2014 11:40 AM
-> 
-> On Fri, Apr 18, 2014 at 03:00:21AM +0000, Zheng, Lv wrote:
-> > Hi, Greg
-> >
-> > > From: Greg KH [mailto:gregkh@linuxfoundation.org]
-> > > Sent: Friday, April 18, 2014 10:44 AM
-> > >
-> > > On Fri, Apr 18, 2014 at 09:53:19AM +0800, Lv Zheng wrote:
-> > > > Note that this patch is only used for stable kernels, upstream kernels
-> > > > will have this problem fixed in ACPICA 201303-04 release.  So upstream
-> > > > kernels shouldn't merge this commit.
-> > >
-> > > What kernel commit fixed this issue in "upstream"?
-> >
-> > There is no kernel commit now has fixed this issue in "upstream".
-> > The fix commit need to go into ACPICA first, so I believe it will
-> > appear in 3.15-rc2 (ACPICA 201403xx release) or 3.15-rc3 (ACPICA
-> > 201404xx release).
-> 
-> Then I can't take this patch at all in any stable tree.  Please read
-> Documentation/stable_kernel_rules.txt for why and how to properly do
-> this.
-> 
-> Just mark the commit that fixes the issue in Linus's tree for stable,
-> and it will happen automatically.
-> 
+This is for when you get back: :-)
 
-OK.
+Can you debug that hang a bit more, like enable some sensible options
+under "Kernel Hacking" or somesuch, boot with initcall_debug, add
+more printks at key places? If the machine would tell us why exactly
+it hangs, we might have an idea, like corruption, transaction stall,
+whatever...
 
-> > The back port of the fix commit will have many dependencies as we have
-> > a big change in ACPICA table manager in ACPICA 201403xx release.
-> 
-> Why not just submit this fix first to Linus, for his tree now, and then
-> do the larger changes later?
-> 
+-- 
+Regards/Gruss,
+    Boris.
 
-OK.  It seems possible now.
-
-> > However this back port is very light and has been confirmed by the reporters.
-> >
-> > The bug seems to be urgent, it has broken many platforms shipped with
-> > AMI BIOSes versioning from F2 to F4.  Someone may monitor here to find
-> > a valid fix.
-> 
-> Not any stable maintainers, we can't take patches that aren't in Linus's
-> tree, sorry.
-> 
-
-OK.
-I was just a little worried about as I'm the culprit.
-Sorry for the noise.
-
-Thanks and best regards
--Lv
-
-> greg k-h
+Sent from a fat crate under my desk. Formatting is fine.
+--
