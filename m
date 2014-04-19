@@ -1,50 +1,58 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: Info: mapping multiple BARs. Your kernel is fine.
-Date: Fri, 18 Apr 2014 12:38:54 +0200
-Message-ID: <20140418103854.GE4385@pd.tnic>
-References: <20140416223122.GA2767@redhat.com>
- <20140416225600.GA23781@google.com>
- <20140417104533.GB8215@pd.tnic>
- <20140417182637.GA2098@google.com>
- <20140417195240.GA18876@redhat.com>
- <20140417200127.GH4321@pd.tnic>
- <20140417200352.GB18876@redhat.com>
- <20140417205355.GA22191@redhat.com>
- <20140417210101.GB27852@pd.tnic>
- <20140417213027.GA22412@redhat.com>
+From: Myron Stowe <myron.stowe@redhat.com>
+Subject: [PATCH v2 0/5] x86/PCI: Add AMD hostbridge support for newer AMD
+	systems
+Date: Fri, 18 Apr 2014 20:53:08 -0600
+Message-ID: <20140419025308.2408.51252.stgit@amt.stowe>
+References: <1394053603-3724-1-git-send-email-suravee.suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:33634 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750857AbaDRKi6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Apr 2014 06:38:58 -0400
-Content-Disposition: inline
-In-Reply-To: <20140417213027.GA22412@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1394053603-3724-1-git-send-email-suravee.suthikulpanit@amd.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: bhelgaas@google.com, linux-pci@vger.kernel.org
+Cc: suravee.suthikulpanit@amd.com, aravind.gopalakrishnan@amd.com, kim.naru@amd.com, andreas.herrmann3@amd.com, daniel@numascale.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, sp@numascale.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Jones <davej@redhat.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zhang, Rui" <rui.zhang@intel.com>, "Lu, Aaron" <aaron.lu@intel.com>, lkml <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephane Eranian <eranian@google.com>, "Yan, Zheng Z" <zheng.z.yan@intel.com>, daniel.vetter@ffwll.ch
 
-On Thu, Apr 17, 2014 at 05:30:27PM -0400, Dave Jones wrote:
-> I think it's just implicated because that's the next thing that seems
-> to init after the modeswitch. The config differences are small, just
-> things like =m instead of =y or vice-versa.
->
-> I'm about to head into a long weekend, so I'll get back to this on
-> Monday, but for now I'm out of ideas.
+Currently the kernel only supports AMD hostbridges up to Family 11h.
+This causes PCI numa_node information to be reported incorrectly
+for newer Families with multiple sockets.
 
-This is for when you get back: :-)
+This patch series augments the logic to discover newer AMD hostbridge types
+(Family 12h, 14h 15h and 16h).
 
-Can you debug that hang a bit more, like enable some sensible options
-under "Kernel Hacking" or somesuch, boot with initcall_debug, add
-more printks at key places? If the machine would tell us why exactly
-it hangs, we might have an idea, like corruption, transaction stall,
-whatever...
+Note:
+    * Patch 1 and 2 are functional changes for newer AMD Families
+    * Patch 3 is general clean up and restructuring
+    * Patch 4 warns when BIOS has not supplied an ACPI _PXM method for a
+      hostbridge and we "guess" a hostbridge's node value
+    * Patch 5 removes the now redundant 'quirk_amd_nb_node'
+
+-v2: This series was introduced by Suravee Suthikulanit but seems to have
+     stalled.  I would like to get this moving again and eventually pulled
+     upstream so I've taken Suravee's series and -
+       o  Rebased the original three patches to v3.15-rc1,
+       o  Added a warn if we "guess" a hostbridge's node value (patch 4),
+       o  I believe with the additional Family support that
+	  'quirk_amd_nb_node' is now redundant so I added patch 5 which
+          removes it.
+
+Reference:
+  https://bugzilla.kernel.org/show_bug.cgi?id=72051
+
+Myron Stowe (2):
+      PCI: Remove redundant 'quirk_amd_nb_node'
+      ACPI/PCI: Warn if we have to "guess" host bridge node information
+
+Suravee Suthikulpanit (3):
+      x86/PCI: Miscellaneous code clean up for early_fillup_mp_bus_info
+      x86/PCI: Support additional MMIO range capabilities
+      x86/PCI: Add support for generic AMD hostbridges
+
+
+ arch/x86/kernel/quirks.c |   58 -------
+ arch/x86/pci/acpi.c      |    6 +
+ arch/x86/pci/amd_bus.c   |  409 ++++++++++++++++++++++++++++++----------------
+ 3 files changed, 271 insertions(+), 202 deletions(-)
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
