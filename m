@@ -1,66 +1,84 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Hibernation problem with 3.14 kernel
-Date: Sun, 20 Apr 2014 01:26:13 +0200
-Message-ID: <1438736.ANSVkEtpCM@vostro.rjw.lan>
-References: <534EEE4D.7070203@gmail.com>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range
+ capabilities
+Date: Sun, 20 Apr 2014 09:59:37 +0200
+Message-ID: <20140420075936.GA19672@pd.tnic>
+References: <20140419025308.2408.51252.stgit@amt.stowe>
+ <20140419025323.2408.88764.stgit@amt.stowe>
+ <20140419135219.GC8109@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:65314 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751615AbaDSXJ5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Apr 2014 19:09:57 -0400
-In-Reply-To: <534EEE4D.7070203@gmail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:39643 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751494AbaDTH7q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Apr 2014 03:59:46 -0400
+Content-Disposition: inline
+In-Reply-To: <20140419135219.GC8109@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Faerbit <faerbit@gmail.com>
-Cc: linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+To: Myron Stowe <myron.stowe@redhat.com>
+Cc: bhelgaas@google.com, linux-pci@vger.kernel.org, suravee.suthikulpanit@amd.com, aravind.gopalakrishnan@amd.com, kim.naru@amd.com, daniel@numascale.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, sp@numascale.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, April 16, 2014 10:55:41 PM Faerbit wrote:
-> Hi everyone,
+Drop Andreas' old email address from CC as it keeps bouncing.
 
-Hi,
-
-> I hope I am posting in the right section.
-> Since the upgrade to kernel 3.14 I am unable to hibernate.
-> I am using Archlinux.
-> I am hibernating with "systemctl hibernate".
-> It always fails to freeze device 00:08:
+On Sat, Apr 19, 2014 at 03:52:20PM +0200, Borislav Petkov wrote:
+> > -static void __init pci_enable_pci_io_ecs(void)
+> > +static void __init pci_enable_pci_io_ecs(u8 bus, u8 slot)
+> >  {
+> >  #ifdef CONFIG_AMD_NB
+> >  	unsigned int i, n;
+> > +	u8 limit;
+> >  
+> >  	for (n = i = 0; !n && amd_nb_bus_dev_ranges[i].dev_limit; ++i) {
+> > -		u8 bus = amd_nb_bus_dev_ranges[i].bus;
+> > -		u8 slot = amd_nb_bus_dev_ranges[i].dev_base;
+> > -		u8 limit = amd_nb_bus_dev_ranges[i].dev_limit;
+> > +		/* Try matching for the bus range */
+> > +		if ((bus != amd_nb_bus_dev_ranges[i].bus) ||
+> > +		    (slot != amd_nb_bus_dev_ranges[i].dev_base))
+> > +			continue;
+> > +
+> > +		limit = amd_nb_bus_dev_ranges[i].dev_limit;
+> >  
+> > +		/* Setup all northbridges within the range */
+> >  		for (; slot < limit; ++slot) {
+> >  			u32 val = read_pci_config(bus, slot, 3, 0);
+> > -
+> > -			if (!early_is_amd_nb(val))
+> > +			if (!val)
+> >  				continue;
+> >  
+> >  			val = read_pci_config(bus, slot, 3, 0x8c);
+> > @@ -375,13 +457,14 @@ static void __init pci_enable_pci_io_ecs(void)
+> >  				val |= ENABLE_CF8_EXT_CFG >> 32;
 > 
-> journalctl tells me:
-> kernel: serial 00:08: disable failed
-> kernel: dpm_run_callback(): pnp_bus_freeze+0x0/0x20 returns -5
-> kernel: PM: Device 00:08 failed to freeze: error -5
+> What a fun shifting!
 > 
-> lspci -v tells me:
+> Maybe you should do
 > 
-> 0:08.0 PCI bridge: NVIDIA Corporation MCP78S [GeForce 8200] PCI Bridge
-> (rev a1) (prog-if 01 [Subtractive decode])
->     Flags: bus master, 66MHz, fast devsel, latency 0
->     Bus: primary=00, secondary=01, subordinate=01, sec-latency=64
->     Capabilities: [b8] Subsystem: ASUSTeK Computer Inc. Device 82e7
->     Capabilities: [8c] HyperTransport: MSI Mapping Enable+ Fixed-
+> #define ENABLE_CF8_EXT_CFG	BIT(46 - 32)
 > 
-> My mainboard is a ASUS M4N98TD EVO.
+> to show exactly what you mean and how the bit is defined in MSR NB_CFG1
+> and also show how the high 32-bits are mapped into F3x8c, while at it.
+> 
+> And then you can drop the shifting at the call site.
 
-It's not that device, what fails is a serial drvier.
+Ok, I see another fun with this ECS enabling:
 
-> What does error code -5 mean?
+There's a enable_pci_io_ecs() which enables ECS through the NB_CFG MSR
+which is called as part of the notifier *and* there's a PCI write to
+that same bit in pci_enable_pci_io_ecs() which iterates over all NBs.
 
-This is an error code returned by the driver, I'm not sure what it means
-for pnp_bus_freeze() from the top of my head (will check later).
+So, AFAICT, we do it twice and the second time is not needed. Which
+means, you probably can drop pci_enable_pci_io_ecs() completely and use
+solely the notifier?
 
-> How do I debug this further?
-
-If that's 100% reproducible, you can try to bisect.
-
-> Should I file a bug?
-
-Yes, please.  At bugzilla.kernel.org, against power management (hibernation/suspend).
-
-Thanks!
+Yes, no?
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
