@@ -1,64 +1,81 @@
-From: Myron Stowe <myron.stowe@gmail.com>
-Subject: Re: [PATCH v2 5/5] PCI: Remove redundant 'quirk_amd_nb_node'
-Date: Sun, 20 Apr 2014 07:44:15 -0600
-Message-ID: <CAL-B5D1_fns=mu7Cw6jeVHO0XPeKYakUrPv-JgO=ma1rjCoQvg@mail.gmail.com>
-References: <20140419025308.2408.51252.stgit@amt.stowe>
-	<20140419025345.2408.99229.stgit@amt.stowe>
-	<20140420105419.GB19676@pd.tnic>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: 3.14-rc: /proc/acpi/battery gone?
+Date: Mon, 21 Apr 2014 19:29:10 +0800
+Message-ID: <53550106.8080907@intel.com>
+References: <20140314211456.GA23213@amd.pavel.ucw.cz> <201403150217.50526.s.L-H@gmx.de> <532471EC.1070107@intel.com> <201403160357.53858.s.L-H@gmx.de> <CAKb7UvjeW_vKQn_WjCawD7HDe7BKMYdH_HauFxFvUySkj1yvew@mail.gmail.com> <20140420130930.GD12135@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140420105419.GB19676@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: Myron Stowe <myron.stowe@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci <linux-pci@vger.kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, daniel@numascale.com, Thomas Gleixner <tglx@linutronix.de>, mingo@redhat.com, hpa@zytor.com, x86 <x86@kernel.org>, sp@numascale.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:40049 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750906AbaDUL2K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Apr 2014 07:28:10 -0400
+In-Reply-To: <20140420130930.GD12135@amd.pavel.ucw.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, Ilia Mirkin <imirkin@alum.mit.edu>
+Cc: Stefan Lippers-Hollmann <s.L-H@gmx.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
 
-On Sun, Apr 20, 2014 at 4:54 AM, Borislav Petkov <bp@suse.de> wrote:
-> On Fri, Apr 18, 2014 at 08:53:46PM -0600, Myron Stowe wrote:
->> With the amd_bus.c updates to support additional AMD processors (11h, 12h,
->> 14h 15h  and 16h) 'quirk_amd_nb_node' seems to be redundant.  This patch
->> removes it.
+On 04/20/2014 09:09 PM, Pavel Machek wrote:
+> Hi!
+>
+>>>>        I just glance wmbattery code. I find the code in the acpi.c is already
+>>>> using the new sysfs battery interfaces, right?
+>>>
+>>> By default, wmbattery appears to default to using upower as abstraction
+>>> level, instead of querying sysfs itself directly.
+>>>
+>>> http://git.kitenet.net/?p=wmbattery.git;a=blob;f=autoconf/makeinfo.in;hb=HEAD
+>>>
+>>> which sets USE_UPOWER=1 by default.
+>>>
+>>> If USE_UPOWER=0 is set explicitly for the build, it reverts back to
+>>> direct sysfs parsing - and yes, it does appear to adhere to the current
+>>> sysfs API properly.
+>>>
+>>> The last remains, and the ability to parse procfs (which hasn't been
+>>> default for quite some time already, in favour of using hal as
+>>> abstraction layer) has finally been removed in
+>>>
+>>> http://git.kitenet.net/?p=wmbattery.git;a=commitdiff;h=833eb63a5ce4f2fb712a201b1db4f2db1700fddb
+>>>
+>>> The switch from procfs parsing to hal (by default at least) in turn
+>>> happened with
+>>>
+>>> http://git.kitenet.net/?p=wmbattery.git;a=commitdiff;h=63c3d1a0b11e8ade1a5612bb5baa3d92e153bbbe
+>>>
+>>> in 2008 (before Debian squeeze/ oldstable). I have not investigated if
+>>> hal then read from procfs or sysfs, but wmbattery at least didn't read
+>>> from procfs itself, unless explicitly told to do so (USE_HAL=0) during
+>>> the build since mid 2008.
+>>>
+>>> The current version of wmbattery however will never try to access
+>>> /proc/acpi, the current version no longer knows of its existence.
+>>>
+>>> [Again, I'm not familiar with wmbattery myself and have never run it]
 >>
->> Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
+>> Stefan,
+>>
+>> Thanks for looking into this. The newest wmbattery version indeed
+>> supports upower. However, I haven't figured out how to get it to work.
+>> That's obviously not the kernel's fault, but an unfortunate reality.
+>> It seems to really want dbus to be running, but when I start dbus
+>> (which nothing else on my system needs, apparently), it just hangs. My
+>> knowledge of these things is, (un)fortunately non-existent, so I just
+>> gave up on the upower approach. Running something as heavy as dbus
+>> just for a silly dock app seems... silly as well.
 >
-> Good idea. Has this been tested, though? There are a bunch of places
-> using dev_to_node() which this quirk corrects, especially 'local_cpus'
-> in a bunch of sysfs nodes in the PCI hierarchy /sys/devices/pci*.
-
-Borislav:
-
-Thanks for the review, suggestions, and comments.
-
-Just and FYI - I'll be gone until late in this coming week on a
-backpacking trip in remote Utah.  I'll work your suggestions when I
-get back.
-
-With respect to this patch and testing.  Yes, I did test and it worked
-for my situation.  I would like to hear from Daniel as I'm not exactly
-sure what his last change was specific to.
-
-Daniel: with the previous patches in this series applied do you still
-need this quirk for your situation?
-
-Thanks,
- Myron
+> Any news on this one?
 >
-> We want to make sure this doesn't break that and other dev_to_node()
-> callsites.
+> It seems that delaying fsck on battery power also relies on
+> /proc/acpi/battery...
 
-Agreed
+Ok. I will prepare a patch to recover /proc/acpi/battery.
 
 >
-> Thanks.
+> https://bbs.archlinux.org/viewtopic.php?id=12168
 >
-> --
-> Regards/Gruss,
->     Boris.
+> 									Pavel
 >
-> Sent from a fat crate under my desk. Formatting is fine.
-> --
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.
+
