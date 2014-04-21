@@ -1,162 +1,142 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] PNP: Work around BIOS defects in Intel MCH area reporting
-Date: Mon, 21 Apr 2014 14:57:20 -0600
-Message-ID: <CAErSpo4fvfXPJzC2=ixdXO_OO7_syBCC-hXQNRH4Cu-_EkV6Cg@mail.gmail.com>
-References: <20140417202033.7057.98414.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <1702309.mG1EHfKp35@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/2] ACPI: Fix the issue that auto SSDT loading is conflict with customized SSDT that is included by the customized DSDT.
+Date: Mon, 21 Apr 2014 23:14:13 +0200
+Message-ID: <10605546.pEf4E3AVn4@vostro.rjw.lan>
+References: <cover.1396925060.git.lv.zheng@intel.com> <963261691c067d99bd5afecb69bdbd5e83ab21d7.1396925060.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f170.google.com ([209.85.213.170]:62887 "EHLO
-	mail-ig0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754531AbaDUU5m (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Apr 2014 16:57:42 -0400
-Received: by mail-ig0-f170.google.com with SMTP id uq10so2143517igb.1
-        for <linux-acpi@vger.kernel.org>; Mon, 21 Apr 2014 13:57:42 -0700 (PDT)
-In-Reply-To: <1702309.mG1EHfKp35@vostro.rjw.lan>
+Received: from v094114.home.net.pl ([79.96.170.134]:58892 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754520AbaDUU54 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Apr 2014 16:57:56 -0400
+In-Reply-To: <963261691c067d99bd5afecb69bdbd5e83ab21d7.1396925060.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Aaron Lu <aaron.lu@intel.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephane Eranian <eranian@google.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Zheng Z Yan <zheng.z.yan@intel.com>, Dave Jones <davej@redhat.com>, Rui Zhang <rui.zhang@intel.com>, Yinghai Lu <yinghai@kernel.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Mon, Apr 21, 2014 at 2:44 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> Hi Bjorn,
->
-> On Thursday, April 17, 2014 02:20:33 PM Bjorn Helgaas wrote:
->> Work around BIOSes that don't report the entire Intel MCH area.
->>
->> MCHBAR is not an architected PCI BAR, so MCH space is usually reported as a
->> PNP0C02 resource.  The MCH space was once 16KB, but is 32KB in newer parts.
->> Some BIOSes still report a PNP0C02 resource that is only 16KB, which means
->> the rest of the MCH space is consumed but unreported.
->>
->> This can cause resource map sanity check warnings or (theoretically) a
->> device conflict if we assigned the unreported space to another device.
->>
->> The Intel perf event uncore driver tripped over this when it claimed the
->> MCH region:
->>
->>   resource map sanity check conflict: 0xfed10000 0xfed15fff 0xfed10000 0xfed13fff pnp 00:01
->>   Info: mapping multiple BARs. Your kernel is fine.
->>
->> To prevent this, if we find a PNP0C02 resource that covers part of the MCH
->> space, extend it to cover the entire space.
->>
->> Link: http://lkml.kernel.org/r/20140224162400.GE16457@pd.tnic
->> Reported-by: Borislav Petkov <bp@alien8.de>
->> Tested-by: Borislav Petkov <bp@suse.de>
->> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
->> Acked-by: Borislav Petkov <bp@suse.de>
->
-> Do you want me to take this patch for PNP, or are you planning to take it
-> into your tree?
+On Tuesday, April 08, 2014 10:49:06 AM Lv Zheng wrote:
+> This patch fixes the following issue:
+> User can specify a DSDT with SSDT embedded, in which case, no_static_ssdt
+> must be enforced.  If we don't do that, then:
+> 1. The namespace object conflicts will result in an AE_ALREADY_EXISTS
+>    exception;
+> 2. The namespace objects that are deleted from the original SSDT will be
+>    restored by the auto loading of the original SSDT.
+> 
+> Note that the DSDT customization is a compile-time feature, thus the SSDT
+> inclusion indication of the DSDT customization is also implemented as a
+> compile-time configurable.
+> 
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=69711
+> Original-by: Enrico Etxe Arte <goitizena.generoa@gmail.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>  drivers/acpi/Kconfig    |    8 ++++++++
+>  drivers/acpi/internal.h |    5 +++++
+>  drivers/acpi/osl.c      |   14 +++++++++++++-
+>  drivers/acpi/tables.c   |    2 ++
+>  4 files changed, 28 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index c205653..a0b8131 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -212,6 +212,14 @@ config ACPI_CUSTOM_DSDT
+>  	bool
+>  	default ACPI_CUSTOM_DSDT_FILE != ""
+>  
+> +config ACPI_CUSTOM_SSDT_INCLUDED
+> +	bool "Custom SSDT Tables included"
+> +	depends on ACPI_CUSTOM_DSDT
+> +	help
+> +	  This option turns on acpi.no_static_ssdt by default.
+> +
+> +	  If the SSDT code has been merged into the custom DSDT file, say Y.
 
-I figured it was more of a PNP thing than a PCI thing, so I was
-thinking you would take it.  But if you'd rather I take it, just let
-me know.
+I wonder what the benefit of having a separate .config option for that is?
 
->> ---
->>  drivers/pnp/quirks.c |   74 ++++++++++++++++++++++++++++++++++++++++++++++++++
->>  1 file changed, 74 insertions(+)
->>
->> diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
->> index 258fef272ea7..90b8c12c220d 100644
->> --- a/drivers/pnp/quirks.c
->> +++ b/drivers/pnp/quirks.c
->> @@ -334,6 +334,79 @@ static void quirk_amd_mmconfig_area(struct pnp_dev *dev)
->>  }
->>  #endif
->>
->> +/* Device IDs of parts that have 32KB MCH space */
->> +static const unsigned int mch_quirk_devices[] = {
->> +     0x0154, /* Ivy Bridge */
->> +     0x0c00, /* Haswell */
->> +};
->> +
->> +static struct pci_dev *get_intel_host(void)
->> +{
->> +     int i;
->> +     struct pci_dev *host;
->> +
->> +     for (i = 0; i < ARRAY_SIZE(mch_quirk_devices); i++) {
->> +             host = pci_get_device(PCI_VENDOR_ID_INTEL, mch_quirk_devices[i],
->> +                                   NULL);
->> +             if (host)
->> +                     return host;
->> +     }
->> +     return NULL;
->> +}
->> +
->> +static void quirk_intel_mch(struct pnp_dev *dev)
->> +{
->> +     struct pci_dev *host;
->> +     u32 addr_lo, addr_hi;
->> +     struct pci_bus_region region;
->> +     struct resource mch;
->> +     struct pnp_resource *pnp_res;
->> +     struct resource *res;
->> +
->> +     host = get_intel_host();
->> +     if (!host)
->> +             return;
->> +
->> +     /*
->> +      * MCHBAR is not an architected PCI BAR, so MCH space is usually
->> +      * reported as a PNP0C02 resource.  The MCH space was originally
->> +      * 16KB, but is 32KB in newer parts.  Some BIOSes still report a
->> +      * PNP0C02 resource that is only 16KB, which means the rest of the
->> +      * MCH space is consumed but unreported.
->> +      */
->> +
->> +     /*
->> +      * Read MCHBAR for Host Member Mapped Register Range Base
->> +      * https://www-ssl.intel.com/content/www/us/en/processors/core/4th-gen-core-family-desktop-vol-2-datasheet
->> +      * Sec 3.1.12.
->> +      */
->> +     pci_read_config_dword(host, 0x48, &addr_lo);
->> +     region.start = addr_lo & ~0x7fff;
->> +     pci_read_config_dword(host, 0x4c, &addr_hi);
->> +     region.start |= (dma_addr_t) addr_hi << 32;
->> +     region.end = region.start + 32*1024 - 1;
->> +
->> +     memset(&mch, 0, sizeof(mch));
->> +     mch.flags = IORESOURCE_MEM;
->> +     pcibios_bus_to_resource(host->bus, &mch, &region);
->> +
->> +     list_for_each_entry(pnp_res, &dev->resources, list) {
->> +             res = &pnp_res->res;
->> +             if (res->end < mch.start || res->start > mch.end)
->> +                     continue;       /* no overlap */
->> +             if (res->start == mch.start && res->end == mch.end)
->> +                     continue;       /* exact match */
->> +
->> +             dev_info(&dev->dev, FW_BUG "PNP resource %pR covers only part of %s Intel MCH; extending to %pR\n",
->> +                      res, pci_name(host), &mch);
->> +             res->start = mch.start;
->> +             res->end = mch.end;
->> +             break;
->> +     }
->> +
->> +     pci_dev_put(host);
->> +}
->> +
->>  /*
->>   *  PnP Quirks
->>   *  Cards or devices that need some tweaking due to incomplete resource info
->> @@ -364,6 +437,7 @@ static struct pnp_fixup pnp_fixups[] = {
->>  #ifdef CONFIG_AMD_NB
->>       {"PNP0c01", quirk_amd_mmconfig_area},
->>  #endif
->> +     {"PNP0c02", quirk_intel_mch},
->>       {""}
->>  };
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+Can't we just use CONFIG_ACPI_CUSTOM_DSDT instead of CONFIG_ACPI_CUSTOM_SSDT_INCLUDED
+everywhere instead?
+
+
+> +
+>  config ACPI_INITRD_TABLE_OVERRIDE
+>  	bool "ACPI tables override via initrd"
+>  	depends on BLK_DEV_INITRD && X86
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 9573913..0d127ab 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -57,6 +57,11 @@ void acpi_cmos_rtc_init(void);
+>  #else
+>  static inline void acpi_cmos_rtc_init(void) {}
+>  #endif
+> +#ifdef CONFIG_ACPI_CUSTOM_SSDT_INCLUDED
+> +void __init acpi_ssdt_customized(void);
+> +#else
+> +static inline void acpi_ssdt_customized(void) {}
+> +#endif
+>  
+>  extern bool acpi_force_hot_remove;
+>  
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 9aeae41..273b69a 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -1770,15 +1770,27 @@ acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object)
+>  }
+>  #endif
+>  
+> -static int __init acpi_no_static_ssdt_setup(char *s)
+> +static void __init acpi_set_no_static_ssdt(void)
+>  {
+>  	acpi_gbl_disable_ssdt_table_install = TRUE;
+>  	pr_info("ACPI: static SSDT installation disabled\n");
+> +}
+> +
+> +#ifdef CONFIG_ACPI_CUSTOM_SSDT_INCLUDED
+> +void __init acpi_ssdt_customized(void)
+> +{
+> +	acpi_set_no_static_ssdt();
+> +}
+> +#else
+> +static int __init acpi_no_static_ssdt_setup(char *s)
+> +{
+> +	acpi_set_no_static_ssdt();
+>  
+>  	return 0;
+>  }
+>  
+>  early_param("acpi_no_static_ssdt", acpi_no_static_ssdt_setup);
+> +#endif
+>  
+>  static int __init acpi_disable_return_repair(char *s)
+>  {
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index 2178229..aaf2177 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -184,6 +184,7 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>  	}
+>  }
+>  
+> +#include "internal.h"
+>  
+>  int __init
+>  acpi_table_parse_entries(char *id,
+> @@ -333,6 +334,7 @@ int __init acpi_table_init(void)
+>  {
+>  	acpi_status status;
+>  
+> +	acpi_ssdt_customized();
+>  	status = acpi_initialize_tables(initial_tables, ACPI_MAX_TABLES, 0);
+>  	if (ACPI_FAILURE(status))
+>  		return -EINVAL;
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
