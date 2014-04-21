@@ -1,221 +1,82 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/4] ACPICA: Add <acpi/platform/aclinuxxf.h> to remove mis-ordered inclusion of <acpi/actypes.h> from <acpi/platform/aclinux.h>.
-Date: Mon, 21 Apr 2014 22:58:47 +0200
-Message-ID: <3086544.JUcChlMM9C@vostro.rjw.lan>
-References: <cover.1385110130.git.lv.zheng@intel.com> <cover.1396930406.git.lv.zheng@intel.com> <330810301fa94a244fe1a755e99246a2a5778153.1396930406.git.lv.zheng@intel.com>
+Subject: Re: [PATCH 1/4] tools/power/acpi: Minor bugfixes
+Date: Mon, 21 Apr 2014 23:10:06 +0200
+Message-ID: <3288040.Ur0poF2ex1@vostro.rjw.lan>
+References: <1396876617-53345-1-git-send-email-trenn@suse.de> <1396876617-53345-2-git-send-email-trenn@suse.de> <1AE640813FDE7649BE1B193DEA596E8802546FA3@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51651 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:60575 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754210AbaDUUm2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Apr 2014 16:42:28 -0400
-In-Reply-To: <330810301fa94a244fe1a755e99246a2a5778153.1396930406.git.lv.zheng@intel.com>
+	with SMTP id S1753489AbaDUUxs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Apr 2014 16:53:48 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802546FA3@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tuesday, April 08, 2014 03:56:44 PM Lv Zheng wrote:
-> From ACPICA's perspective, <acpi/actypes.h> should be included after
-> inclusion of <acpi/platform/acenv.h>.  But currently in Linux,
-> <acpi/platform/aclinux.h> included by <acpi/platform/acenv.h> has
-> included <acpi/actypes.h> to find ACPICA types for inline functions.
+On Tuesday, April 08, 2014 02:19:20 AM Zheng, Lv wrote:
+> Hi, Thomas
 > 
-> This causes the following problem:
-> 1. Redundant code in <asm/acpi.h> and <acpi/platform/aclinux.h>:
->    Linux must be careful to keep conditions for <acpi/actypes.h> inclusion
->    consistent with the conditions for <acpi/platform/aclinux.h> inclusion.
->    Which finally leads to the issue that we have to keep many useless macro
->    definitions in <acpi/platform/aclinux.h> or <asm/acpi.h>.
->    Such conditions include:
->      COMPILER_DEPENDENT_UINT64
->      COMPILER_DEPENDENT_INT64
->      ACPI_INLINE
->      ACPI_SYSTEM_XFACE
->      ACPI_EXTERNAL_XFACE
->      ACPI_INTERNAL_XFACE
->      ACPI_INTERNAL_VAR_XFACE
->      ACPI_MUTEX_TYPE
->      DEBUGGER_THREADING
->      ACPI_ACQUIRE_GLOBAL_LOCK
->      ACPI_RELEASE_GLOBAL_LOCK
->      ACPI_FLUSH_CPU_CACHE
->    They have default implementations in <include/acpi/platform/acenv.h>
->    while Linux need to keep a copy in <asm/acpi.h> to avoid build errors.
->    Typical Linux build error if we deletes COMPILER_DEPENDENT_x and
->    ACPI_x_XFACE definitions from asm/acpi.h:
->       CC      init/main.o
->     In file included from include/acpi/platform/aclinux.h:293:0,
->                      from include/acpi/platform/acenv.h:149,
->                      from include/acpi/acpi.h:56,
->                      from include/linux/acpi.h:41,
->                      from init/main.c:27:
->     include/acpi/actypes.h:129:1: error: unknown type name 'COMPILER_DEPENDENT_UINT64'
->     include/acpi/actypes.h:130:1: error: unknown type name 'COMPILER_DEPENDENT_INT64'
->     In file included from include/acpi/platform/aclinux.h:293:0,
->                      from include/acpi/platform/acenv.h:149,
->                      from include/acpi/acpi.h:56,
->                      from include/linux/acpi.h:41,
->                      from init/main.c:27:
->     include/acpi/actypes.h:1025:21: error: expected ')' before '*' token
->     include/acpi/actypes.h:1028:21: error: expected ')' before '*' token
->     In file included from include/acpi/acpi.h:63:0,
->                      from include/linux/acpi.h:41,
->                      from init/main.c:27:
->     include/acpi/acpiosxf.h:240:7: error: unknown type name 'acpi_osd_handler'
->     include/acpi/acpiosxf.h:247:6: error: unknown type name 'acpi_osd_handler'
->     include/acpi/acpiosxf.h:260:3: error: unknown type name 'acpi_osd_exec_callback'
+> This one looks fine.
+> Build tests are all passed.
+> Thanks for fixing issues.
+
+OK, queued up for the next pull request, thanks!
+
+Rafael
+
+
+> > From: Thomas Renninger [mailto:trenn@suse.de]
+> > Sent: Monday, April 07, 2014 9:17 PM
+> > 
+> > - bindir is created, but sbindir is used -> fix that
+> > - the debug parts are there twice (copy paste bug?). Remove one of the
+> >   exact same parts
+> > 
+> > Signed-off-by: Thomas Renninger <trenn@suse.de>
+> > ---
+> >  tools/power/acpi/Makefile |   11 +----------
+> >  1 files changed, 1 insertions(+), 10 deletions(-)
+> > 
+> > diff --git a/tools/power/acpi/Makefile b/tools/power/acpi/Makefile
+> > index d9186a2..c2c0f20 100644
+> > --- a/tools/power/acpi/Makefile
+> > +++ b/tools/power/acpi/Makefile
+> > @@ -89,15 +89,6 @@ else
+> >  	STRIPCMD = $(STRIP) -s --remove-section=.note --remove-section=.comment
+> >  endif
+> > 
+> > -# if DEBUG is enabled, then we do not strip or optimize
+> > -ifeq ($(strip $(DEBUG)),true)
+> > -	CFLAGS += -O1 -g -DDEBUG
+> > -	STRIPCMD = /bin/true -Since_we_are_debugging
+> > -else
+> > -	CFLAGS += $(OPTIMIZATION) -fomit-frame-pointer
+> > -	STRIPCMD = $(STRIP) -s --remove-section=.note --remove-section=.comment
+> > -endif
+> > -
+> >  # --- ACPIDUMP BEGIN ---
+> > 
+> >  vpath %.c \
+> > @@ -128,7 +119,7 @@ clean:
+> >  	-rm -f $(OUTPUT)acpidump
+> > 
+> >  install-tools:
+> > -	$(INSTALL) -d $(DESTDIR)${bindir}
+> > +	$(INSTALL) -d $(DESTDIR)${sbindir}
+> >  	$(INSTALL_PROGRAM) $(OUTPUT)acpidump $(DESTDIR)${sbindir}
+> > 
+> >  install-man:
+> > --
+> > 1.7.6.1
 > 
-> This patch introduces <acpi/platform/aclinuxxf.h> to fix this issue by
-> splitting conditions and declarations (most of them are inline functions)
-> into 2 header files so that the wrong inclusion of <acpi/actypes.h> can be
-> removed from <acpi/platform/aclinux.h>.
-> 
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> ---
->  include/acpi/platform/aclinux.h   |  101 ++++--------------------------
->  include/acpi/platform/aclinuxxf.h |  122 +++++++++++++++++++++++++++++++++++++
->  2 files changed, 133 insertions(+), 90 deletions(-)
->  create mode 100644 include/acpi/platform/aclinuxxf.h
-> 
-> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-> index f242909..e3ac5a5 100644
-> --- a/include/acpi/platform/aclinux.h
-> +++ b/include/acpi/platform/aclinux.h
-> @@ -130,73 +130,6 @@
->  
->  #ifdef __KERNEL__
->  
-> -/*
-> - * FIXME: Inclusion of actypes.h
-> - * Linux kernel need this before defining inline OSL interfaces as
-> - * actypes.h need to be included to find ACPICA type definitions.
-> - * Since from ACPICA's perspective, the actypes.h should be included after
-> - * acenv.h (aclinux.h), this leads to a inclusion mis-ordering issue.
-> - */
-> -#include <acpi/actypes.h>
-> -
-> -/*
-> - * Overrides for in-kernel ACPICA
-> - */
-> -acpi_status __init acpi_os_initialize(void);
-> -#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_initialize
-> -
-> -acpi_status acpi_os_terminate(void);
-> -#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_terminate
-> -
-> -/*
-> - * Memory allocation/deallocation
-> - */
-> -
-> -/*
-> - * The irqs_disabled() check is for resume from RAM.
-> - * Interrupts are off during resume, just like they are for boot.
-> - * However, boot has  (system_state != SYSTEM_RUNNING)
-> - * to quiet __might_sleep() in kmalloc() and resume does not.
-> - */
-> -static inline void *acpi_os_allocate(acpi_size size)
-> -{
-> -	return kmalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-> -}
-> -
-> -#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_allocate
-> -
-> -/* Use native linux version of acpi_os_allocate_zeroed */
-> -
-> -static inline void *acpi_os_allocate_zeroed(acpi_size size)
-> -{
-> -	return kzalloc(size, irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-> -}
-> -
-> -#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_allocate_zeroed
-> -#define USE_NATIVE_ALLOCATE_ZEROED
-> -
-> -static inline void acpi_os_free(void *memory)
-> -{
-> -	kfree(memory);
-> -}
-> -
-> -#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_free
-> -
-> -static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
-> -{
-> -	return kmem_cache_zalloc(cache,
-> -				 irqs_disabled()? GFP_ATOMIC : GFP_KERNEL);
-> -}
-> -
-> -#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_acquire_object
-> -
-> -static inline acpi_thread_id acpi_os_get_thread_id(void)
-> -{
-> -	return (acpi_thread_id) (unsigned long)current;
-> -}
-> -
-> -#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_thread_id
-> -
->  #ifndef CONFIG_PREEMPT
->  
->  /*
-> @@ -212,27 +145,18 @@ static inline acpi_thread_id acpi_os_get_thread_id(void)
->  #endif
->  
->  /*
-> - * When lockdep is enabled, the spin_lock_init() macro stringifies it's
-> - * argument and uses that as a name for the lock in debugging.
-> - * By executing spin_lock_init() in a macro the key changes from "lock" for
-> - * all locks to the name of the argument of acpi_os_create_lock(), which
-> - * prevents lockdep from reporting false positives for ACPICA locks.
-> + * Overrides for in-kernel ACPICA
->   */
-> -#define acpi_os_create_lock(__handle) \
-> -	({ \
-> -		spinlock_t *lock = ACPI_ALLOCATE(sizeof(*lock)); \
-> -		if (lock) { \
-> -			*(__handle) = lock; \
-> -			spin_lock_init(*(__handle)); \
-> -		} \
-> -		lock ? AE_OK : AE_NO_MEMORY; \
-> -	})
-> +#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_initialize
-> +#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_terminate
-> +#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_allocate
-> +#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_allocate_zeroed
-> +#define USE_NATIVE_ALLOCATE_ZEROED
-> +#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_free
-> +#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_acquire_object
-> +#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_thread_id
->  #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_create_lock
-> -
-> -void __iomem *acpi_os_map_memory(acpi_physical_address where, acpi_size length);
->  #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_map_memory
-> -
-> -void acpi_os_unmap_memory(void __iomem * logical_address, acpi_size size);
->  #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_unmap_memory
->  
->  /*
-> @@ -253,11 +177,8 @@ void acpi_os_unmap_memory(void __iomem * logical_address, acpi_size size);
->  #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_next_filename
->  #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_close_directory
->  
-> -/*
-> - * OSL interfaces added by Linux
-> - */
-> -void early_acpi_os_unmap_memory(void __iomem * virt, acpi_size size);
-> -
->  #endif				/* __KERNEL__ */
->  
-> +#define ACPI_NATIVE_INTERFACE_HEADER	<acpi/platform/aclinuxxf.h>
-
-This is not good.
-
-We don't do things like this in the kernel, because they are confusing and hard
-to debug if necessary, so please find a different way to make this work.
-
-And the name aclinuxxf.h is not one of my favourite.
-
-Thanks!
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 I speak only for myself.
