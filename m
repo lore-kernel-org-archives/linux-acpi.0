@@ -1,67 +1,70 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [Resend Patch 9/9] I2C/ACPI: Add CONFIG_I2C_ACPI config
-Date: Tue, 22 Apr 2014 14:45:10 +0300
-Message-ID: <20140422114510.GM30677@intel.com>
-References: <1397654682-7094-1-git-send-email-tianyu.lan@intel.com>
- <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
- <1398147855-9868-10-git-send-email-tianyu.lan@intel.com>
+From: Akmal Richard <baskan@tsf.org.tr>
+Subject: Happy Easter og rigelig 2014
+Date: Tue, 22 Apr 2014 14:09:29 +0300 (EEST)
+Message-ID: <14337803.5059.1398164969640.JavaMail.root@ns3.palaswork.com>
+Reply-To: Akmal Richard <akmalrichard68@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:24150 "EHLO mga02.intel.com"
+Received: from ns3.palaswork.com ([85.111.0.220]:42157 "EHLO ns3.palaswork.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754967AbaDVLhg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Apr 2014 07:37:36 -0400
-Content-Disposition: inline
-In-Reply-To: <1398147855-9868-10-git-send-email-tianyu.lan@intel.com>
+	id S932195AbaDVM0i convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Apr 2014 08:26:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: wsa@the-dreams.de, rjw@rjwysocki.net, awilliam@redhat.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Apr 22, 2014 at 02:24:15PM +0800, Lan Tianyu wrote:
-> This patch is to add CONFIG_I2C_ACPI. Current there is a race between
-> removing I2C ACPI operation region and ACPI AML code accessing.
-> So make i2c core built-in if CONFIG_I2C_ACPI is set.
-> 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> ---
->  drivers/i2c/Kconfig  | 17 ++++++++++++++++-
->  drivers/i2c/Makefile |  2 +-
->  include/linux/i2c.h  |  2 +-
->  3 files changed, 18 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/i2c/Kconfig b/drivers/i2c/Kconfig
-> index 7b7ea32..c670d49 100644
-> --- a/drivers/i2c/Kconfig
-> +++ b/drivers/i2c/Kconfig
-> @@ -2,7 +2,9 @@
->  # I2C subsystem configuration
->  #
->  
-> -menuconfig I2C
-> +menu "I2C support"
-> +
-> +config I2C
->  	tristate "I2C support"
->  	select RT_MUTEXES
->  	---help---
-> @@ -21,6 +23,17 @@ menuconfig I2C
->  	  This I2C support can also be built as a module.  If so, the module
->  	  will be called i2c-core.
->  
-> +config I2C_ACPI
-> +	bool "I2C ACPI support"
-> +	select I2C
-> +	depends on ACPI
-> +	default y
-> +	help
-> +	  Say Y here if you want to enable I2C ACPI function. ACPI table
-> +	  provides I2C slave devices' information to enumerate these devices.
-> +	  This option also allows ACPI AML code to access I2C slave devices
-> +	  via I2C ACPI operation region to fulfill ACPI method.
-> +
+Opm=C3=A6rksomhed Chief Executive Officer
+  =20
+                            PARTNERSKAB / INVESTERING FORSLAG
 
-I'm wondering, can we provide some sort of wrapper function from ACPI core
-that is guaranteed to be built in to the kernel image and use it instead of
-adding new Kconfig options?
+Hvordan har du det i dag ? Jeg h=C3=A5ber, at alle er godt med dig og d=
+in familie? Jeg ved, at dette brev vil komme som en overraskelse for di=
+g , da vi ikke kender os selv f=C3=B8r nu , men v=C3=A6r sikker p=C3=A5=
+ det er et sp=C3=B8rgsm=C3=A5l af =C3=A6gte interesse . Jeg er Mr. Akma=
+l Richard, jeg enke og vil v=C3=A6re klar til at flytte , i =C3=B8jebli=
+kket er jeg leder af Barclays Bank Churchill gren og var den konto offi=
+cer til Late Mr. Rafik Hariri , libaneserne f=C3=B8dt million=C3=A6r , =
+var sent Rafik Hariri en libanesisk self-made milliard=C3=A6r og busine=
+ss tycoon, og var fem gange Libanons premierminister . Du kan se denne =
+side for bekr=C3=A6ftelse.
+
+http://www.rhariri.com/general.aspx?pagecontent=3Dbiography
+
+Jeg fik din mail via min private s=C3=B8gning og ud af desperation besl=
+uttede jeg at n=C3=A5 dig via dette medie. Late Mr. Rafik Hariri deposi=
+tum 70,759,000.00 million britiske pounds i min bank , f=C3=B8r han d=C3=
+=B8de , og p=C3=A5 grund af den nye lov vedtaget vedr=C3=B8rende hvilen=
+de fond , besluttede jeg at kontakte dig s=C3=A5 til partner med din vi=
+rksomhed for overf=C3=B8rsel og re- investering af pengene i dit land. =
+Behovet for at flytte disse penge opstod, da landet gjorde nye love om =
+sovende konti med finansielle agenturer.
+
+
+
+Send mig dine personlige oplysninger :
+Navn:
+Officiel adresse:
+Hjem Adresse:
+Direkte Mobilnummer :
+Skype identitet:
+
+Overvej venligst dette og komme tilbage til mig s=C3=A5 hurtigt som mul=
+igt for at f=C3=A5 flere oplysninger via min personlige e-mail -adresse=
+ nedenfor, eller kalde mine mobilnumre for en mundtlig dr=C3=B8ftelse o=
+g detaljerede oplysninger.
+
+Bem=C3=A6rk, at som leder af min bank nu denne transaktion vil blive ge=
+nnemf=C3=B8rt under en legaliseret ordning, der vil beskytte os mod lov
+
+
+Mange tak
+
+
+Mr. Akmal Richard
++447087641148
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
