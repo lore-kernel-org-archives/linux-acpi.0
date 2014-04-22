@@ -1,113 +1,234 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/2] ACPI: Fix the issue that auto SSDT loading is
- conflict with customized SSDT that is included by the customized DSDT.
-Date: Tue, 22 Apr 2014 00:50:37 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802556E6A@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1396925060.git.lv.zheng@intel.com>
- <963261691c067d99bd5afecb69bdbd5e83ab21d7.1396925060.git.lv.zheng@intel.com>
- <10605546.pEf4E3AVn4@vostro.rjw.lan>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH 1/9] ACPICA: Executer: Fix buffer allocation issue for
+ generic_serial_bus region field accesses.
+Date: Tue, 22 Apr 2014 09:14:47 +0800
+Message-ID: <5355C287.7040403@intel.com>
+References: <1397654682-7094-1-git-send-email-tianyu.lan@intel.com> <1397654682-7094-2-git-send-email-tianyu.lan@intel.com> <5269843.b915ubdT5E@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:65422 "EHLO mga11.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:22872 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751561AbaDVAum (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Apr 2014 20:50:42 -0400
-In-Reply-To: <10605546.pEf4E3AVn4@vostro.rjw.lan>
-Content-Language: en-US
+	id S1751156AbaDVBW2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Apr 2014 21:22:28 -0400
+In-Reply-To: <5269843.b915ubdT5E@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: wsa@the-dreams.de, lenb@kernel.org, mika.westerberg@linux.intel.com, awilliam@redhat.com, robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IFR1ZXNkYXksIEFwcmlsIDIyLCAyMDE0IDU6MTQgQU0NCj4gDQo+
-IE9uIFR1ZXNkYXksIEFwcmlsIDA4LCAyMDE0IDEwOjQ5OjA2IEFNIEx2IFpoZW5nIHdyb3RlOg0K
-PiA+IFRoaXMgcGF0Y2ggZml4ZXMgdGhlIGZvbGxvd2luZyBpc3N1ZToNCj4gPiBVc2VyIGNhbiBz
-cGVjaWZ5IGEgRFNEVCB3aXRoIFNTRFQgZW1iZWRkZWQsIGluIHdoaWNoIGNhc2UsIG5vX3N0YXRp
-Y19zc2R0DQo+ID4gbXVzdCBiZSBlbmZvcmNlZC4gIElmIHdlIGRvbid0IGRvIHRoYXQsIHRoZW46
-DQo+ID4gMS4gVGhlIG5hbWVzcGFjZSBvYmplY3QgY29uZmxpY3RzIHdpbGwgcmVzdWx0IGluIGFu
-IEFFX0FMUkVBRFlfRVhJU1RTDQo+ID4gICAgZXhjZXB0aW9uOw0KPiA+IDIuIFRoZSBuYW1lc3Bh
-Y2Ugb2JqZWN0cyB0aGF0IGFyZSBkZWxldGVkIGZyb20gdGhlIG9yaWdpbmFsIFNTRFQgd2lsbCBi
-ZQ0KPiA+ICAgIHJlc3RvcmVkIGJ5IHRoZSBhdXRvIGxvYWRpbmcgb2YgdGhlIG9yaWdpbmFsIFNT
-RFQuDQo+ID4NCj4gPiBOb3RlIHRoYXQgdGhlIERTRFQgY3VzdG9taXphdGlvbiBpcyBhIGNvbXBp
-bGUtdGltZSBmZWF0dXJlLCB0aHVzIHRoZSBTU0RUDQo+ID4gaW5jbHVzaW9uIGluZGljYXRpb24g
-b2YgdGhlIERTRFQgY3VzdG9taXphdGlvbiBpcyBhbHNvIGltcGxlbWVudGVkIGFzIGENCj4gPiBj
-b21waWxlLXRpbWUgY29uZmlndXJhYmxlLg0KPiA+DQo+ID4gQnVnbGluazogaHR0cHM6Ly9idWd6
-aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD02OTcxMQ0KPiA+IE9yaWdpbmFsLWJ5OiBF
-bnJpY28gRXR4ZSBBcnRlIDxnb2l0aXplbmEuZ2VuZXJvYUBnbWFpbC5jb20+DQo+ID4gU2lnbmVk
-LW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4gPiAtLS0NCj4gPiAgZHJp
-dmVycy9hY3BpL0tjb25maWcgICAgfCAgICA4ICsrKysrKysrDQo+ID4gIGRyaXZlcnMvYWNwaS9p
-bnRlcm5hbC5oIHwgICAgNSArKysrKw0KPiA+ICBkcml2ZXJzL2FjcGkvb3NsLmMgICAgICB8ICAg
-MTQgKysrKysrKysrKysrKy0NCj4gPiAgZHJpdmVycy9hY3BpL3RhYmxlcy5jICAgfCAgICAyICsr
-DQo+ID4gIDQgZmlsZXMgY2hhbmdlZCwgMjggaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQ0K
-PiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9LY29uZmlnIGIvZHJpdmVycy9hY3Bp
-L0tjb25maWcNCj4gPiBpbmRleCBjMjA1NjUzLi5hMGI4MTMxIDEwMDY0NA0KPiA+IC0tLSBhL2Ry
-aXZlcnMvYWNwaS9LY29uZmlnDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL0tjb25maWcNCj4gPiBA
-QCAtMjEyLDYgKzIxMiwxNCBAQCBjb25maWcgQUNQSV9DVVNUT01fRFNEVA0KPiA+ICAJYm9vbA0K
-PiA+ICAJZGVmYXVsdCBBQ1BJX0NVU1RPTV9EU0RUX0ZJTEUgIT0gIiINCj4gPg0KPiA+ICtjb25m
-aWcgQUNQSV9DVVNUT01fU1NEVF9JTkNMVURFRA0KPiA+ICsJYm9vbCAiQ3VzdG9tIFNTRFQgVGFi
-bGVzIGluY2x1ZGVkIg0KPiA+ICsJZGVwZW5kcyBvbiBBQ1BJX0NVU1RPTV9EU0RUDQo+ID4gKwlo
-ZWxwDQo+ID4gKwkgIFRoaXMgb3B0aW9uIHR1cm5zIG9uIGFjcGkubm9fc3RhdGljX3NzZHQgYnkg
-ZGVmYXVsdC4NCj4gPiArDQo+ID4gKwkgIElmIHRoZSBTU0RUIGNvZGUgaGFzIGJlZW4gbWVyZ2Vk
-IGludG8gdGhlIGN1c3RvbSBEU0RUIGZpbGUsIHNheSBZLg0KPiANCj4gSSB3b25kZXIgd2hhdCB0
-aGUgYmVuZWZpdCBvZiBoYXZpbmcgYSBzZXBhcmF0ZSAuY29uZmlnIG9wdGlvbiBmb3IgdGhhdCBp
-cz8NCj4gDQo+IENhbid0IHdlIGp1c3QgdXNlIENPTkZJR19BQ1BJX0NVU1RPTV9EU0RUIGluc3Rl
-YWQgb2YgQ09ORklHX0FDUElfQ1VTVE9NX1NTRFRfSU5DTFVERUQNCj4gZXZlcnl3aGVyZSBpbnN0
-ZWFkPw0KPiANCg0KSXQgaXMgYSBkaWZmZXJlbnQgdXNlIGNhc2UuDQpOb3JtYWxseSwgQUNQSV9D
-VVNUT01fRFNEVCBvbmx5IGFsbG93cyAxIHRhYmxlIHRvIGJlIGN1c3RvbWl6ZWQuDQpUaGUgb3Jp
-Z2luYWwgYnVnIHJlcG9ydGVyIGhhcyB0byBjdXN0b21pemUgdGhlIFNTRFQgdG8gbWFrZSBoaXMg
-cGxhdGZvcm0gYm9vdGFibGUuDQpIZSBhY2hpZXZlcyB0aGlzIGJ5IGNvcHlpbmcgdGhlIGVudGly
-ZSBTU0RUIGludG8gdGhlIERTRFQgYW5kIGNvbXBpbGUgdGhlIERTRFQgaW50byBhIGN1c3RvbWl6
-ZWQgYmluYXJ5IHRvIGJlIHVzZWQgZm9yIEFDUElfQ1VTVE9NX0RTRFQuDQpTbyB1c2VyIGNhbjoN
-Cg0KMS4gY3VzdG9taXplIERTRFQgd2l0aG91dCBTU0RUcyBjb3BpZWQgaW50byBpdDsNCjIuIGN1
-c3RvbWl6ZSBEU0RUIHdpdGggU1NEVHMgY29waWVkIGludG8gaXQuDQoNClRoZSBuZXcgY29uZmln
-IG9wdGlvbiBpcyB1c2VkIGZvciB0aGUgbmV3IHVzZSBjYXNlIC0gY2FzZSAyLg0KU28gaXQgc2Vl
-bXMgd2UgY2FuJ3QganVzdCB1c2UgQ09ORklHX0FDUElfQ1VTVE9NX0RTRFQuDQoNCkkgdGhpbmsg
-dGhlIG5hbWluZyBvZiB0aGUgbmV3IG9wdGlvbiBtaWdodCBiZSBjb25mdXNpbmcuDQpJdCAgY2Fu
-IGJlIEFDUElfQ1VTVE9NX0RTRFRfV0lUSF9TU0RUIHRvIGluZGljYXRlIHRoZSBmYWN0IHRoYXQg
-aXQgaXMgYSBzdWItb3B0aW9uIHRoYXQgZGVwZW5kcyBvbiB0aGUgQUNQSV9DVVNUT01fRFNEVC4N
-Cg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+IA0KPiA+ICsNCj4gPiAgY29uZmln
-IEFDUElfSU5JVFJEX1RBQkxFX09WRVJSSURFDQo+ID4gIAlib29sICJBQ1BJIHRhYmxlcyBvdmVy
-cmlkZSB2aWEgaW5pdHJkIg0KPiA+ICAJZGVwZW5kcyBvbiBCTEtfREVWX0lOSVRSRCAmJiBYODYN
-Cj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2ludGVybmFsLmggYi9kcml2ZXJzL2FjcGkv
-aW50ZXJuYWwuaA0KPiA+IGluZGV4IDk1NzM5MTMuLjBkMTI3YWIgMTAwNjQ0DQo+ID4gLS0tIGEv
-ZHJpdmVycy9hY3BpL2ludGVybmFsLmgNCj4gPiArKysgYi9kcml2ZXJzL2FjcGkvaW50ZXJuYWwu
-aA0KPiA+IEBAIC01Nyw2ICs1NywxMSBAQCB2b2lkIGFjcGlfY21vc19ydGNfaW5pdCh2b2lkKTsN
-Cj4gPiAgI2Vsc2UNCj4gPiAgc3RhdGljIGlubGluZSB2b2lkIGFjcGlfY21vc19ydGNfaW5pdCh2
-b2lkKSB7fQ0KPiA+ICAjZW5kaWYNCj4gPiArI2lmZGVmIENPTkZJR19BQ1BJX0NVU1RPTV9TU0RU
-X0lOQ0xVREVEDQo+ID4gK3ZvaWQgX19pbml0IGFjcGlfc3NkdF9jdXN0b21pemVkKHZvaWQpOw0K
-PiA+ICsjZWxzZQ0KPiA+ICtzdGF0aWMgaW5saW5lIHZvaWQgYWNwaV9zc2R0X2N1c3RvbWl6ZWQo
-dm9pZCkge30NCj4gPiArI2VuZGlmDQo+ID4NCj4gPiAgZXh0ZXJuIGJvb2wgYWNwaV9mb3JjZV9o
-b3RfcmVtb3ZlOw0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9vc2wuYyBiL2Ry
-aXZlcnMvYWNwaS9vc2wuYw0KPiA+IGluZGV4IDlhZWFlNDEuLjI3M2I2OWEgMTAwNjQ0DQo+ID4g
-LS0tIGEvZHJpdmVycy9hY3BpL29zbC5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL29zbC5jDQo+
-ID4gQEAgLTE3NzAsMTUgKzE3NzAsMjcgQEAgYWNwaV9zdGF0dXMgYWNwaV9vc19yZWxlYXNlX29i
-amVjdChhY3BpX2NhY2hlX3QgKiBjYWNoZSwgdm9pZCAqb2JqZWN0KQ0KPiA+ICB9DQo+ID4gICNl
-bmRpZg0KPiA+DQo+ID4gLXN0YXRpYyBpbnQgX19pbml0IGFjcGlfbm9fc3RhdGljX3NzZHRfc2V0
-dXAoY2hhciAqcykNCj4gPiArc3RhdGljIHZvaWQgX19pbml0IGFjcGlfc2V0X25vX3N0YXRpY19z
-c2R0KHZvaWQpDQo+ID4gIHsNCj4gPiAgCWFjcGlfZ2JsX2Rpc2FibGVfc3NkdF90YWJsZV9pbnN0
-YWxsID0gVFJVRTsNCj4gPiAgCXByX2luZm8oIkFDUEk6IHN0YXRpYyBTU0RUIGluc3RhbGxhdGlv
-biBkaXNhYmxlZFxuIik7DQo+ID4gK30NCj4gPiArDQo+ID4gKyNpZmRlZiBDT05GSUdfQUNQSV9D
-VVNUT01fU1NEVF9JTkNMVURFRA0KPiA+ICt2b2lkIF9faW5pdCBhY3BpX3NzZHRfY3VzdG9taXpl
-ZCh2b2lkKQ0KPiA+ICt7DQo+ID4gKwlhY3BpX3NldF9ub19zdGF0aWNfc3NkdCgpOw0KPiA+ICt9
-DQo+ID4gKyNlbHNlDQo+ID4gK3N0YXRpYyBpbnQgX19pbml0IGFjcGlfbm9fc3RhdGljX3NzZHRf
-c2V0dXAoY2hhciAqcykNCj4gPiArew0KPiA+ICsJYWNwaV9zZXRfbm9fc3RhdGljX3NzZHQoKTsN
-Cj4gPg0KPiA+ICAJcmV0dXJuIDA7DQo+ID4gIH0NCj4gPg0KPiA+ICBlYXJseV9wYXJhbSgiYWNw
-aV9ub19zdGF0aWNfc3NkdCIsIGFjcGlfbm9fc3RhdGljX3NzZHRfc2V0dXApOw0KPiA+ICsjZW5k
-aWYNCj4gPg0KPiA+ICBzdGF0aWMgaW50IF9faW5pdCBhY3BpX2Rpc2FibGVfcmV0dXJuX3JlcGFp
-cihjaGFyICpzKQ0KPiA+ICB7DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS90YWJsZXMu
-YyBiL2RyaXZlcnMvYWNwaS90YWJsZXMuYw0KPiA+IGluZGV4IDIxNzgyMjkuLmFhZjIxNzcgMTAw
-NjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL3RhYmxlcy5jDQo+ID4gKysrIGIvZHJpdmVycy9h
-Y3BpL3RhYmxlcy5jDQo+ID4gQEAgLTE4NCw2ICsxODQsNyBAQCB2b2lkIGFjcGlfdGFibGVfcHJp
-bnRfbWFkdF9lbnRyeShzdHJ1Y3QgYWNwaV9zdWJ0YWJsZV9oZWFkZXIgKmhlYWRlcikNCj4gPiAg
-CX0NCj4gPiAgfQ0KPiA+DQo+ID4gKyNpbmNsdWRlICJpbnRlcm5hbC5oIg0KPiA+DQo+ID4gIGlu
-dCBfX2luaXQNCj4gPiAgYWNwaV90YWJsZV9wYXJzZV9lbnRyaWVzKGNoYXIgKmlkLA0KPiA+IEBA
-IC0zMzMsNiArMzM0LDcgQEAgaW50IF9faW5pdCBhY3BpX3RhYmxlX2luaXQodm9pZCkNCj4gPiAg
-ew0KPiA+ICAJYWNwaV9zdGF0dXMgc3RhdHVzOw0KPiA+DQo+ID4gKwlhY3BpX3NzZHRfY3VzdG9t
-aXplZCgpOw0KPiA+ICAJc3RhdHVzID0gYWNwaV9pbml0aWFsaXplX3RhYmxlcyhpbml0aWFsX3Rh
-YmxlcywgQUNQSV9NQVhfVEFCTEVTLCAwKTsNCj4gPiAgCWlmIChBQ1BJX0ZBSUxVUkUoc3RhdHVz
-KSkNCj4gPiAgCQlyZXR1cm4gLUVJTlZBTDsNCj4gPg0KPiANCj4gLS0NCj4gSSBzcGVhayBvbmx5
-IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNvY2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNo
-bm9sb2d5IENlbnRlci4NCg==
+On 2014=E5=B9=B404=E6=9C=8822=E6=97=A5 05:38, Rafael J. Wysocki wrote:
+> Hi,
+>=20
+> On Wednesday, April 16, 2014 09:24:34 PM Lan Tianyu wrote:
+>> From: Lv Zheng <lv.zheng@intel.com>
+>>
+>> The size of the buffer allocated for generic_serial_bus region acces=
+s
+>> is not correct.  This patch introduces acpi_ex_get_serial_access_len=
+gth()
+>> to be invoked to obtain correct data buffer length.  Reported by
+>> Lan Tianyu, Fixed by Lv Zheng.
+>>
+>> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+>=20
+> I'm queueing up this patch as a fix for 3.15, but can you please rese=
+nd the
+> whole series with a CC to linux-acpi?
+>=20
+
+Ok. I will do that.
+
+>=20
+>> ---
+>>  drivers/acpi/acpica/exfield.c | 104 +++++++++++++++++++++++++++++++=
+++++++++---
+>>  1 file changed, 97 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exf=
+ield.c
+>> index 68d9744..12878e1 100644
+>> --- a/drivers/acpi/acpica/exfield.c
+>> +++ b/drivers/acpi/acpica/exfield.c
+>> @@ -45,10 +45,71 @@
+>>  #include "accommon.h"
+>>  #include "acdispat.h"
+>>  #include "acinterp.h"
+>> +#include "amlcode.h"
+>> =20
+>>  #define _COMPONENT          ACPI_EXECUTER
+>>  ACPI_MODULE_NAME("exfield")
+>> =20
+>> +/* Local prototypes */
+>> +static u32
+>> +acpi_ex_get_serial_access_length(u32 accessor_type, u32 access_leng=
+th);
+>> +
+>> +/******************************************************************=
+*************
+>> + *
+>> + * FUNCTION:    acpi_get_serial_access_bytes
+>> + *
+>> + * PARAMETERS:  accessor_type   - The type of the protocol indicate=
+d by region
+>> + *                                field access attributes
+>> + *              access_length   - The access length of the region f=
+ield
+>> + *
+>> + * RETURN:      Decoded access length
+>> + *
+>> + * DESCRIPTION: This routine returns the length of the generic_seri=
+al_bus
+>> + *              protocol bytes
+>> + *
+>> + ******************************************************************=
+************/
+>> +
+>> +static u32
+>> +acpi_ex_get_serial_access_length(u32 accessor_type, u32 access_leng=
+th)
+>> +{
+>> +	u32 length;
+>> +
+>> +	switch (accessor_type) {
+>> +	case AML_FIELD_ATTRIB_QUICK:
+>> +
+>> +		length =3D 0;
+>> +		break;
+>> +
+>> +	case AML_FIELD_ATTRIB_SEND_RCV:
+>> +	case AML_FIELD_ATTRIB_BYTE:
+>> +
+>> +		length =3D 1;
+>> +		break;
+>> +
+>> +	case AML_FIELD_ATTRIB_WORD:
+>> +	case AML_FIELD_ATTRIB_WORD_CALL:
+>> +
+>> +		length =3D 2;
+>> +		break;
+>> +
+>> +	case AML_FIELD_ATTRIB_MULTIBYTE:
+>> +	case AML_FIELD_ATTRIB_RAW_BYTES:
+>> +	case AML_FIELD_ATTRIB_RAW_PROCESS:
+>> +
+>> +		length =3D access_length;
+>> +		break;
+>> +
+>> +	case AML_FIELD_ATTRIB_BLOCK:
+>> +	case AML_FIELD_ATTRIB_BLOCK_CALL:
+>> +	default:
+>> +
+>> +		length =3D ACPI_GSBUS_BUFFER_SIZE;
+>> +		break;
+>> +	}
+>> +
+>> +	return (length);
+>> +}
+>> +
+>>  /******************************************************************=
+*************
+>>   *
+>>   * FUNCTION:    acpi_ex_read_data_from_field
+>> @@ -63,8 +124,9 @@ ACPI_MODULE_NAME("exfield")
+>>   *              Buffer, depending on the size of the field.
+>>   *
+>>   ******************************************************************=
+************/
+>> +
+>>  acpi_status
+>> -acpi_ex_read_data_from_field(struct acpi_walk_state *walk_state,
+>> +acpi_ex_read_data_from_field(struct acpi_walk_state * walk_state,
+>>  			     union acpi_operand_object *obj_desc,
+>>  			     union acpi_operand_object **ret_buffer_desc)
+>>  {
+>> @@ -73,6 +135,7 @@ acpi_ex_read_data_from_field(struct acpi_walk_sta=
+te *walk_state,
+>>  	acpi_size length;
+>>  	void *buffer;
+>>  	u32 function;
+>> +	u16 accessor_type;
+>> =20
+>>  	ACPI_FUNCTION_TRACE_PTR(ex_read_data_from_field, obj_desc);
+>> =20
+>> @@ -116,9 +179,22 @@ acpi_ex_read_data_from_field(struct acpi_walk_s=
+tate *walk_state,
+>>  			    ACPI_READ | (obj_desc->field.attribute << 16);
+>>  		} else if (obj_desc->field.region_obj->region.space_id =3D=3D
+>>  			   ACPI_ADR_SPACE_GSBUS) {
+>> -			length =3D ACPI_GSBUS_BUFFER_SIZE;
+>> -			function =3D
+>> -			    ACPI_READ | (obj_desc->field.attribute << 16);
+>> +			accessor_type =3D obj_desc->field.attribute;
+>> +			length =3D acpi_ex_get_serial_access_length(accessor_type,
+>> +								  obj_desc->
+>> +								  field.
+>> +								  access_length);
+>> +
+>> +			/*
+>> +			 * Add additional 2 bytes for modeled generic_serial_bus data bu=
+ffer:
+>> +			 * typedef struct {
+>> +			 *     BYTEStatus; // Byte 0 of the data buffer
+>> +			 *     BYTELength; // Byte 1 of the data buffer
+>> +			 *     BYTE[x-1]Data; // Bytes 2-x of the arbitrary length data =
+buffer,
+>> +			 * }
+>> +			 */
+>> +			length +=3D 2;
+>> +			function =3D ACPI_READ | (accessor_type << 16);
+>>  		} else {	/* IPMI */
+>> =20
+>>  			length =3D ACPI_IPMI_BUFFER_SIZE;
+>> @@ -231,6 +307,7 @@ acpi_ex_write_data_to_field(union acpi_operand_o=
+bject *source_desc,
+>>  	void *buffer;
+>>  	union acpi_operand_object *buffer_desc;
+>>  	u32 function;
+>> +	u16 accessor_type;
+>> =20
+>>  	ACPI_FUNCTION_TRACE_PTR(ex_write_data_to_field, obj_desc);
+>> =20
+>> @@ -284,9 +361,22 @@ acpi_ex_write_data_to_field(union acpi_operand_=
+object *source_desc,
+>>  			    ACPI_WRITE | (obj_desc->field.attribute << 16);
+>>  		} else if (obj_desc->field.region_obj->region.space_id =3D=3D
+>>  			   ACPI_ADR_SPACE_GSBUS) {
+>> -			length =3D ACPI_GSBUS_BUFFER_SIZE;
+>> -			function =3D
+>> -			    ACPI_WRITE | (obj_desc->field.attribute << 16);
+>> +			accessor_type =3D obj_desc->field.attribute;
+>> +			length =3D acpi_ex_get_serial_access_length(accessor_type,
+>> +								  obj_desc->
+>> +								  field.
+>> +								  access_length);
+>> +
+>> +			/*
+>> +			 * Add additional 2 bytes for modeled generic_serial_bus data bu=
+ffer:
+>> +			 * typedef struct {
+>> +			 *     BYTEStatus; // Byte 0 of the data buffer
+>> +			 *     BYTELength; // Byte 1 of the data buffer
+>> +			 *     BYTE[x-1]Data; // Bytes 2-x of the arbitrary length data =
+buffer,
+>> +			 * }
+>> +			 */
+>> +			length +=3D 2;
+>> +			function =3D ACPI_WRITE | (accessor_type << 16);
+>>  		} else {	/* IPMI */
+>> =20
+>>  			length =3D ACPI_IPMI_BUFFER_SIZE;
+>>
+>=20
+
+
+--=20
+Best regards
+Tianyu Lan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
