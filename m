@@ -1,141 +1,56 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 2] PNP: Work around BIOS defects in Intel MCH area reporting
-Date: Mon, 21 Apr 2014 16:17:21 -0600
-Message-ID: <20140421221721.26308.1891.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 2/2] ACPI: Fix the issue that the DSDT local copy is
+ conflict with the customized DSDT.
+Date: Tue, 22 Apr 2014 00:43:42 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802556E47@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1396925060.git.lv.zheng@intel.com>
+ <ca34942a48b4d7414b9524c7df84fe110b07c4f8.1396925060.git.lv.zheng@intel.com>
+ <3086547.jQZkA0Qj7E@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Aaron Lu <aaron.lu@intel.com>, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Stephane Eranian <eranian@google.com>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Zheng Z Yan <zheng.z.yan@intel.com>, Dave Jones <davej@redhat.com>, Rui Zhang <rui.zhang@intel.com>, Yinghai Lu <yinghai@kernel.org>
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:33443 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753249AbaDVAnw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Apr 2014 20:43:52 -0400
+In-Reply-To: <3086547.jQZkA0Qj7E@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Enrico Etxe Arte <goitizena.generoa@gmail.com>
 
-Work around BIOSes that don't report the entire Intel MCH area.
-
-MCHBAR is not an architected PCI BAR, so MCH space is usually reported as a
-PNP0C02 resource.  The MCH space was once 16KB, but is 32KB in newer parts.
-Some BIOSes still report a PNP0C02 resource that is only 16KB, which means
-the rest of the MCH space is consumed but unreported.
-
-This can cause resource map sanity check warnings or (theoretically) a
-device conflict if we assigned the unreported space to another device.
-
-The Intel perf event uncore driver tripped over this when it claimed the
-MCH region:
-
-  resource map sanity check conflict: 0xfed10000 0xfed15fff 0xfed10000 0xfed13fff pnp 00:01
-  Info: mapping multiple BARs. Your kernel is fine.
-
-To prevent this, if we find a PNP0C02 resource that covers part of the MCH
-space, extend it to cover the entire space.
-
-Link: http://lkml.kernel.org/r/20140224162400.GE16457@pd.tnic
-Reported-by: Borislav Petkov <bp@alien8.de>
-Tested-by: Borislav Petkov <bp@suse.de>
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-Acked-by: Borislav Petkov <bp@suse.de>
----
- drivers/pnp/quirks.c |   75 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 75 insertions(+)
-
-diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
-index 258fef272ea7..0d679068ef1b 100644
---- a/drivers/pnp/quirks.c
-+++ b/drivers/pnp/quirks.c
-@@ -15,6 +15,7 @@
- 
- #include <linux/types.h>
- #include <linux/kernel.h>
-+#include <linux/pci.h>
- #include <linux/string.h>
- #include <linux/slab.h>
- #include <linux/pnp.h>
-@@ -334,6 +335,79 @@ static void quirk_amd_mmconfig_area(struct pnp_dev *dev)
- }
- #endif
- 
-+/* Device IDs of parts that have 32KB MCH space */
-+static const unsigned int mch_quirk_devices[] = {
-+	0x0154,	/* Ivy Bridge */
-+	0x0c00,	/* Haswell */
-+};
-+
-+static struct pci_dev *get_intel_host(void)
-+{
-+	int i;
-+	struct pci_dev *host;
-+
-+	for (i = 0; i < ARRAY_SIZE(mch_quirk_devices); i++) {
-+		host = pci_get_device(PCI_VENDOR_ID_INTEL, mch_quirk_devices[i],
-+				      NULL);
-+		if (host)
-+			return host;
-+	}
-+	return NULL;
-+}
-+
-+static void quirk_intel_mch(struct pnp_dev *dev)
-+{
-+	struct pci_dev *host;
-+	u32 addr_lo, addr_hi;
-+	struct pci_bus_region region;
-+	struct resource mch;
-+	struct pnp_resource *pnp_res;
-+	struct resource *res;
-+
-+	host = get_intel_host();
-+	if (!host)
-+		return;
-+
-+	/*
-+	 * MCHBAR is not an architected PCI BAR, so MCH space is usually
-+	 * reported as a PNP0C02 resource.  The MCH space was originally
-+	 * 16KB, but is 32KB in newer parts.  Some BIOSes still report a
-+	 * PNP0C02 resource that is only 16KB, which means the rest of the
-+	 * MCH space is consumed but unreported.
-+	 */
-+
-+	/*
-+	 * Read MCHBAR for Host Member Mapped Register Range Base
-+	 * https://www-ssl.intel.com/content/www/us/en/processors/core/4th-gen-core-family-desktop-vol-2-datasheet
-+	 * Sec 3.1.12.
-+	 */
-+	pci_read_config_dword(host, 0x48, &addr_lo);
-+	region.start = addr_lo & ~0x7fff;
-+	pci_read_config_dword(host, 0x4c, &addr_hi);
-+	region.start |= (u64) addr_hi << 32;
-+	region.end = region.start + 32*1024 - 1;
-+
-+	memset(&mch, 0, sizeof(mch));
-+	mch.flags = IORESOURCE_MEM;
-+	pcibios_bus_to_resource(host->bus, &mch, &region);
-+
-+	list_for_each_entry(pnp_res, &dev->resources, list) {
-+		res = &pnp_res->res;
-+		if (res->end < mch.start || res->start > mch.end)
-+			continue;	/* no overlap */
-+		if (res->start == mch.start && res->end == mch.end)
-+			continue;	/* exact match */
-+
-+		dev_info(&dev->dev, FW_BUG "PNP resource %pR covers only part of %s Intel MCH; extending to %pR\n",
-+			 res, pci_name(host), &mch);
-+		res->start = mch.start;
-+		res->end = mch.end;
-+		break;
-+	}
-+
-+	pci_dev_put(host);
-+}
-+
- /*
-  *  PnP Quirks
-  *  Cards or devices that need some tweaking due to incomplete resource info
-@@ -364,6 +438,7 @@ static struct pnp_fixup pnp_fixups[] = {
- #ifdef CONFIG_AMD_NB
- 	{"PNP0c01", quirk_amd_mmconfig_area},
- #endif
-+	{"PNP0c02", quirk_intel_mch},
- 	{""}
- };
- 
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFNlbnQ6IFR1ZXNkYXksIEFwcmlsIDIyLCAyMDE0IDU6MTYgQU0NCj4gDQo+
+IE9uIFR1ZXNkYXksIEFwcmlsIDA4LCAyMDE0IDEwOjQ5OjEyIEFNIEx2IFpoZW5nIHdyb3RlOg0K
+PiA+IFRoaXMgcGF0Y2ggZml4ZXMgdGhlIGZvbGxvd2luZyBpc3N1ZToNCj4gPiBJZiBEU0RUIGlz
+IGN1c3RvbWl6ZWQsIG5vIGxvY2FsIERTRFQgY29weSBpcyBuZWVkZWQuDQo+ID4NCj4gPiBCdWds
+aW5rOiBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTY5NzExDQo+
+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4gPiBTaWdu
+ZWQtb2ZmLWJ5OiBFbnJpY28gRXR4ZSBBcnRlIDxnb2l0aXplbmEuZ2VuZXJvYUBnbWFpbC5jb20+
+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9idXMuYyB8ICAgIDkgKysrKysrKystDQo+ID4g
+IDEgZmlsZSBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4gPg0KPiA+
+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYnVzLmMgYi9kcml2ZXJzL2FjcGkvYnVzLmMNCj4g
+PiBpbmRleCBlN2U1ODQ0Li5jMTEzZTgyIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9i
+dXMuYw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9idXMuYw0KPiA+IEBAIC01MiwxMyArNTIsMjAg
+QEAgc3RydWN0IHByb2NfZGlyX2VudHJ5ICphY3BpX3Jvb3RfZGlyOw0KPiA+ICBFWFBPUlRfU1lN
+Qk9MKGFjcGlfcm9vdF9kaXIpOw0KPiA+DQo+ID4gICNpZmRlZiBDT05GSUdfWDg2DQo+ID4gKyNp
+Zm5kZWYgQ09ORklHX0FDUElfQ1VTVE9NX0RTRFQNCj4gDQo+IENhbiB5b3UgcGxlYXNlIHVzZSAj
+aWZkZWYgaW5zdGVhZCBvZiAjaWZuZGVmPw0KPiANCj4gU28gZG8NCj4gDQo+ICNpZmRlZiBDT05G
+SUdfQUNQSV9DVVNUT01fRFNEVA0KPiBzdGF0aWMgaW5saW5lIGludCBzZXRfY29weV9kc2R0KGNv
+bnN0IHN0cnVjdCBkbWlfc3lzdGVtX2lkICppZCkgeyByZXR1cm4gMDsgfQ0KPiAjZWxzZQ0KPiAN
+Cj4gZXRjLg0KDQpPSy4NCg0KPiANCj4gPiAgc3RhdGljIGludCBzZXRfY29weV9kc2R0KGNvbnN0
+IHN0cnVjdCBkbWlfc3lzdGVtX2lkICppZCkNCj4gPiAgew0KPiA+IC0JcHJpbnRrKEtFUk5fTk9U
+SUNFICIlcyBkZXRlY3RlZCAtICINCj4gPiArCXByX2luZm8oIkFDUEk6ICVzIGRldGVjdGVkIC0g
+Ig0KPiANCj4gQW5kIGhvdyBpcyB0aGlzIGNoYW5nZSByZWxhdGVkIHRvIHRoZSByZXN0IG9mIHRo
+ZSBwYXRjaD8NCg0KSXQgZG9lc24ndCBzZWVtIHRvIGJlIGEgcGFydCBvZiB0aGlzIGZpeC4NCk9L
+LCBJJ2xsIHJlbW92ZSBpdC4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+IA0K
+PiA+ICAJCSJmb3JjZSBjb3B5IG9mIERTRFQgdG8gbG9jYWwgbWVtb3J5XG4iLCBpZC0+aWRlbnQp
+Ow0KPiA+ICAJYWNwaV9nYmxfY29weV9kc2R0X2xvY2FsbHkgPSAxOw0KPiA+ICAJcmV0dXJuIDA7
+DQo+ID4gIH0NCj4gPiArI2Vsc2UNCj4gPiArc3RhdGljIGlubGluZSBpbnQgc2V0X2NvcHlfZHNk
+dChjb25zdCBzdHJ1Y3QgZG1pX3N5c3RlbV9pZCAqaWQpDQo+ID4gK3sNCj4gPiArCXJldHVybiAw
+Ow0KPiA+ICt9DQo+ID4gKyNlbmRpZg0KPiA+DQo+ID4gIHN0YXRpYyBzdHJ1Y3QgZG1pX3N5c3Rl
+bV9pZCBkc2R0X2RtaV90YWJsZVtdIF9faW5pdGRhdGEgPSB7DQo+ID4gIAkvKg0KPiA+DQo+IA0K
+PiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIElu
+dGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLg0K
