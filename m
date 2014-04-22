@@ -1,53 +1,45 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/4] ACPICA: Add <acpi/platform/aclinuxxf.h> to remove
- mis-ordered inclusion of <acpi/actypes.h> from <acpi/platform/aclinux.h>.
-Date: Tue, 22 Apr 2014 02:01:57 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802556F33@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1385110130.git.lv.zheng@intel.com>
- <cover.1396930406.git.lv.zheng@intel.com>
- <330810301fa94a244fe1a755e99246a2a5778153.1396930406.git.lv.zheng@intel.com>
- <3086544.JUcChlMM9C@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [Resend Patch 0/9] I2C ACPI operation region handler support
+Date: Tue, 22 Apr 2014 14:24:06 +0800
+Message-ID: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
+References: <1397654682-7094-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3086544.JUcChlMM9C@vostro.rjw.lan>
-Content-Language: en-US
+In-Reply-To: <1397654682-7094-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: wsa@the-dreams.de, rjw@rjwysocki.net, mika.westerberg@linux.intel.com, awilliam@redhat.com, lenb@kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tianyu.lan@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-SGksDQoNCjxza2lwPg0KDQo+ID4gKyNkZWZpbmUgQUNQSV9OQVRJVkVfSU5URVJGQUNFX0hFQURF
-Ugk8YWNwaS9wbGF0Zm9ybS9hY2xpbnV4eGYuaD4NCj4gDQo+IFRoaXMgaXMgbm90IGdvb2QuDQo+
-IA0KPiBXZSBkb24ndCBkbyB0aGluZ3MgbGlrZSB0aGlzIGluIHRoZSBrZXJuZWwsIGJlY2F1c2Ug
-dGhleSBhcmUgY29uZnVzaW5nIGFuZCBoYXJkDQo+IHRvIGRlYnVnIGlmIG5lY2Vzc2FyeSwgc28g
-cGxlYXNlIGZpbmQgYSBkaWZmZXJlbnQgd2F5IHRvIG1ha2UgdGhpcyB3b3JrLg0KDQpJIHVzZSB0
-aGlzIGV4dHJhIGhlYWRlciBmaWxlIHRvIGNvbGxlY3Q6DQoxLiBzdGF0aWMgaW5saW5lIE9TTCBm
-dW5jdGlvbnMNCjIuIGRpdmVyZ2VuY2VzIG9mIHByb3RvdHlwZXMgdGhhdCBoYXZlbid0IGJlZW4g
-YmFjayBwb3J0ZWQgdG8gQUNQSUNBLg0KVGhpcyBmaWxlIGlzIHVzZWZ1bCBmb3IgQUNQSUNBIHJl
-bGVhc2UgYXV0b21hdGlvbi4NCg0KVGhlcmUgYXJlIHRoZSBmb2xsb3dpbmcgY29uY2VybnMgdGhh
-dCBsZWFkIHRvIHRoZSB1c2Ugb2YgdGhpcyBzb2x1dGlvbjoNCjEuIGZvciB0aGlzIGV4dHJhIGhl
-YWRlciBmaWxlIGl0c2VsZg0KICAgIEEuIFRoZSBuZXcgaGVhZGVyIGZpbGUgaXMgT1NQTSBzcGVj
-aWZpYywgdGh1cyBpdCBuZWVkbid0IGJlIHVwc3RyZWFtZWQgdG8gQUNQSUNBOw0KICAgIEIuIFNp
-bmNlIGl0IG5lZWRuJ3QgYmUgdXBzdHJlYW1lZCB0byBBQ1BJQ0EsIEFDUElDQSBuZWVkbid0IGRl
-dGVybWluZSB0aGUgbmFtZSBvZiB0aGlzIGV4dHJhIGhlYWRlcjsNCiAgICBDLiBJdCBoYXMgdG8g
-YmUgdGhlIGxhc3QgZmlsZSBpbmNsdWRlZCBieSA8YWNwaS9hY3BpLmg+Lg0KMi4gZm9yIHRoZSBm
-aWxlIHRoYXQgaW5jbHVkZXMgdGhpcyBleHRyYSBoZWFkZXIgZmlsZQ0KICAgIEEuIEN1cnJlbnRs
-eSB0aGVyZSBpcyBubyBPU1BNIHNwZWNpZmljIGNvZGUgaW4gPGFjcGkvYWNwaS5oPi4NClRodXMg
-SSB1c2UgYSBtYWNybyBzbyB0aGF0IHRoZXJlIGlzIHN0aWxsIG5vIE9TUE0gc3BlY2lmaWMgY29k
-ZSBpbiA8YWNwaS9hY3BpLmg+IGFuZCB0aGUgbmFtZSBvZiB0aGUgZXh0cmEgaGVhZGVyIGNhbiBi
-ZSBkZXRlcm1pbmVkIGJ5IE9TUE0uDQoNCklmIHlvdSB3YW50IGFub3RoZXIgc29sdXRpb24sIGlz
-IHRoZSBmb2xsb3dpbmcgYWNjZXB0YWJsZT8NCjEuIEluIDxhY3BpL3BsYXRmb3JtL2FjbGludXgu
-aD4NCiAgICAjZGVmaW5lIEFDUElfSU5DTFVERV9FWFRSQV9OQVRJVkVfSEVBREVSCTENCjIuIElu
-IDxhY3BpL2FjcGkuaD4gPC0gdGhpcyBpcyBhbiBBQ1BJQ0EgaGVhZGVyIGZpbGUsIA0KICAgICNp
-ZmRlZiBBQ1BJX0lOQ0xVREVfRVhUUkFfTkFUSVZFX0hFQURFUg0KICAgICNpbmNsdWRlIDxhY3Bp
-L3BsYXRmb3JtL2FjZXh0cmEuaD4NCiAgICAjZW5kaWYNCk5vdGUgdGhhdCBpbiB0aGlzIHNvbHV0
-aW9uLCB0aGUgbmFtZSBvZiB0aGUgZXh0cmEgaGVhZGVyIGZpbGUgd2lsbCBiZSBkZXRlcm1pbmVk
-IGJ5IEFDUElDQS4NCg0KPiBBbmQgdGhlIG5hbWUgYWNsaW51eHhmLmggaXMgbm90IG9uZSBvZiBt
-eSBmYXZvdXJpdGUuDQoNClNpbmNlIHRoaXMgZmlsZSBuZWVkbid0IGJlIHVwc3RyZWFtZWQgaW50
-byBBQ1BJQ0EsIGNvdWxkIHlvdSBoZWxwIHRvIGRldGVybWluZSBpdCBpZiB0aGUgYWNleHRyYS5o
-IHdhcyBzdGlsbCBub3QgYWNjZXB0YWJsZT8NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1M
-dg0KDQo+IA0KPiBUaGFua3MhDQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4N
-Cj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVy
-Lg0K
+ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart) operation
+region. It allows ACPI aml code able to access such kind of devices to
+implement some ACPI standard method.
+
+On the Asus T100TA, Bios use GenericSerialBus operation region to access
+i2c device to get battery info. So battery function depends on the I2C
+operation region support. Here is the bug link.
+https://bugzilla.kernel.org/show_bug.cgi?id=69011
+
+This patchset is to add I2C ACPI operation region handler support.
+
+[Resend Patch 1/9] ACPICA: Executer: Fix buffer allocation issue for
+[Resend Patch 2/9] ACPICA: Export acpi_buffer_to_resource symbol
+[Resend Patch 3/9] ACPI: Add acpi_bus_attach_private_data() to
+[Resend Patch 4/9] ACPI/Thermal: Use acpi_bus_attach_private_data()
+[Resend Patch 5/9] I2C: Add smbus quick read/write helper function
+[Resend Patch 6/9] I2C: Add smbus word/block process call helper
+[Resend Patch 7/9] I2C/ACPI: Add i2c ACPI operation region support
+[Resend Patch 8/9] I2C/ACPI: Move ACPI related code to i2c-acpi.c
+[Resend Patch 9/9] I2C/ACPI: Add CONFIG_I2C_ACPI config
+
+ drivers/acpi/acpica/exfield.c  | 104 +++++++++++++++++++++++++++++++++++++++++++++----
+ drivers/acpi/acpica/rscreate.c |   1 +
+ drivers/acpi/bus.c             |  18 ++++++++-
+ drivers/acpi/thermal.c         |   9 ++---
+ drivers/i2c/Kconfig            |  17 +++++++-
+ drivers/i2c/Makefile           |   5 ++-
+ drivers/i2c/i2c-acpi.c         | 371 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/i2c/i2c-core.c         | 183 +++++++++++++++++++++++++++++++++++++++++--------------------------------------------
+ include/acpi/acpi_bus.h        |   1 +
+ include/linux/acpi.h           |  11 ++++++
+ include/linux/i2c.h            |  19 +++++++++
+ 11 files changed, 628 insertions(+), 111 deletions(-)
