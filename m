@@ -1,66 +1,95 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/4] ACPICA: Add <acpi/platform/aclinuxxf.h> to remove mis-ordered inclusion of <acpi/actypes.h> from <acpi/platform/aclinux.h>.
-Date: Tue, 22 Apr 2014 13:16:02 +0200
-Message-ID: <1465848.IEpXGNryLP@vostro.rjw.lan>
-References: <cover.1385110130.git.lv.zheng@intel.com> <3086544.JUcChlMM9C@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E8802556F33@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [PATCH 1/2] ACPI: Fix the issue that auto SSDT loading is conflict with customized SSDT that is included by the customized DSDT.
+Date: Tue, 22 Apr 2014 13:19:45 +0200
+Message-ID: <5046344.V68ybXiztI@vostro.rjw.lan>
+References: <cover.1396925060.git.lv.zheng@intel.com> <10605546.pEf4E3AVn4@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E8802556E6A@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802556F33@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:54541 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932165AbaDVLDZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Apr 2014 07:03:25 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802556E6A@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tuesday, April 22, 2014 02:01:57 AM Zheng, Lv wrote:
-> Hi,
+On Tuesday, April 22, 2014 12:50:37 AM Zheng, Lv wrote:
+> Hi, Rafael
 > 
-> <skip>
-> 
-> > > +#define ACPI_NATIVE_INTERFACE_HEADER	<acpi/platform/aclinuxxf.h>
+> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > Sent: Tuesday, April 22, 2014 5:14 AM
 > > 
-> > This is not good.
+> > On Tuesday, April 08, 2014 10:49:06 AM Lv Zheng wrote:
+> > > This patch fixes the following issue:
+> > > User can specify a DSDT with SSDT embedded, in which case, no_static_ssdt
+> > > must be enforced.  If we don't do that, then:
+> > > 1. The namespace object conflicts will result in an AE_ALREADY_EXISTS
+> > >    exception;
+> > > 2. The namespace objects that are deleted from the original SSDT will be
+> > >    restored by the auto loading of the original SSDT.
+> > >
+> > > Note that the DSDT customization is a compile-time feature, thus the SSDT
+> > > inclusion indication of the DSDT customization is also implemented as a
+> > > compile-time configurable.
+> > >
+> > > Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=69711
+> > > Original-by: Enrico Etxe Arte <goitizena.generoa@gmail.com>
+> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > > ---
+> > >  drivers/acpi/Kconfig    |    8 ++++++++
+> > >  drivers/acpi/internal.h |    5 +++++
+> > >  drivers/acpi/osl.c      |   14 +++++++++++++-
+> > >  drivers/acpi/tables.c   |    2 ++
+> > >  4 files changed, 28 insertions(+), 1 deletion(-)
+> > >
+> > > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> > > index c205653..a0b8131 100644
+> > > --- a/drivers/acpi/Kconfig
+> > > +++ b/drivers/acpi/Kconfig
+> > > @@ -212,6 +212,14 @@ config ACPI_CUSTOM_DSDT
+> > >  	bool
+> > >  	default ACPI_CUSTOM_DSDT_FILE != ""
+> > >
+> > > +config ACPI_CUSTOM_SSDT_INCLUDED
+> > > +	bool "Custom SSDT Tables included"
+> > > +	depends on ACPI_CUSTOM_DSDT
+> > > +	help
+> > > +	  This option turns on acpi.no_static_ssdt by default.
+> > > +
+> > > +	  If the SSDT code has been merged into the custom DSDT file, say Y.
 > > 
-> > We don't do things like this in the kernel, because they are confusing and hard
-> > to debug if necessary, so please find a different way to make this work.
+> > I wonder what the benefit of having a separate .config option for that is?
+> > 
+> > Can't we just use CONFIG_ACPI_CUSTOM_DSDT instead of CONFIG_ACPI_CUSTOM_SSDT_INCLUDED
+> > everywhere instead?
+> > 
 > 
-> I use this extra header file to collect:
-
-I was not talking about the new header, which is basically OK, but about the
-#define above, which is just too confusing to live.
-
-Please use header file paths directly with #include.
-
-> 1. static inline OSL functions
-> 2. divergences of prototypes that haven't been back ported to ACPICA.
-> This file is useful for ACPICA release automation.
+> It is a different use case.
+> Normally, ACPI_CUSTOM_DSDT only allows 1 table to be customized.
+> The original bug reporter has to customize the SSDT to make his platform bootable.
+> He achieves this by copying the entire SSDT into the DSDT and compile the DSDT
+> into a customized binary to be used for ACPI_CUSTOM_DSDT.
+> So user can:
 > 
-> There are the following concerns that lead to the use of this solution:
-> 1. for this extra header file itself
->     A. The new header file is OSPM specific, thus it needn't be upstreamed to ACPICA;
->     B. Since it needn't be upstreamed to ACPICA, ACPICA needn't determine the name of this extra header;
->     C. It has to be the last file included by <acpi/acpi.h>.
-> 2. for the file that includes this extra header file
->     A. Currently there is no OSPM specific code in <acpi/acpi.h>.
-> Thus I use a macro so that there is still no OSPM specific code in <acpi/acpi.h> and the name of the extra header can be determined by OSPM.
+> 1. customize DSDT without SSDTs copied into it;
+> 2. customize DSDT with SSDTs copied into it.
 > 
-> If you want another solution, is the following acceptable?
-> 1. In <acpi/platform/aclinux.h>
->     #define ACPI_INCLUDE_EXTRA_NATIVE_HEADER	1
-> 2. In <acpi/acpi.h> <- this is an ACPICA header file, 
->     #ifdef ACPI_INCLUDE_EXTRA_NATIVE_HEADER
->     #include <acpi/platform/acextra.h>
->     #endif
-> Note that in this solution, the name of the extra header file will be determined by ACPICA.
+> The new config option is used for the new use case - case 2.
+> So it seems we can't just use CONFIG_ACPI_CUSTOM_DSDT.
+> 
+> I think the naming of the new option might be confusing.
+> It  can be ACPI_CUSTOM_DSDT_WITH_SSDT to indicate the fact that
+> it is a sub-option that depends on the ACPI_CUSTOM_DSDT.
 
-I think I see what you're trying to do now.  And I see that this ACPI_NATIVE_INTERFACE_HEADER
-thing is already there in the Linus' tree which is not good at all.
+Well, it looks like the solution would be to allow SSDTs and DSDTs to be
+customized independently, wouldn't it?
 
-I probably would create an extra ACPICA header, something like <acpios_opt.h>,
-that would be empty for all hosts except for Linux and that would contain the
-stuff you want to put into acextra.h in Linux.
-
-That would be clean enough I suppose?
+So that the user in question actually can leave his DSDT as is and customize
+the SSDT only, no?
 
 Rafael
+
