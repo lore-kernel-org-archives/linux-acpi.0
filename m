@@ -1,74 +1,103 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [Resend Patch 3/9] ACPI: Add acpi_bus_attach_private_data() to facilitate to attach data to ACPI handle
-Date: Tue, 22 Apr 2014 14:24:09 +0800
-Message-ID: <1398147855-9868-4-git-send-email-tianyu.lan@intel.com>
-References: <1397654682-7094-1-git-send-email-tianyu.lan@intel.com>
- <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: wsa@the-dreams.de, rjw@rjwysocki.net, mika.westerberg@linux.intel.com, awilliam@redhat.com, lenb@kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tianyu.lan@intel.com
+From: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [Patch Part3 V1 17/22] pci, ACPI,
+	iommu: enhance pci_root to support DMAR device hotplug
+Date: Tue, 22 Apr 2014 15:07:28 +0800
+Message-ID: <1398150453-28141-18-git-send-email-jiang.liu@linux.intel.com>
+References: <1398150453-28141-1-git-send-email-jiang.liu@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1398150453-28141-1-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J . Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-There is already acpi_bus_get_private_data() to get ACPI handle data
-which is associated with acpi_bus_private_data_handler(). This patch
-is to add acpi_bus_attach_private_data() to make a pair and facilitate
-to attach and get data to/from ACPI handle.
+Finally enhance pci_root driver to support DMAR device hotplug when
+hot-plugging PCI host bridges.
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+Signed-off-by: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- drivers/acpi/bus.c      | 18 +++++++++++++++++-
- include/acpi/acpi_bus.h |  1 +
- 2 files changed, 18 insertions(+), 1 deletion(-)
+ drivers/acpi/pci_root.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index e7e5844..4ed8d48 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -132,6 +132,22 @@ void acpi_bus_private_data_handler(acpi_handle handle,
- }
- EXPORT_SYMBOL(acpi_bus_private_data_handler);
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index d388f13d48b4..aa8f549869f3 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -33,6 +33,7 @@
+ #include <linux/pci.h>
+ #include <linux/pci-acpi.h>
+ #include <linux/pci-aspm.h>
++#include <linux/dmar.h>
+ #include <linux/acpi.h>
+ #include <linux/slab.h>
+ #include <acpi/apei.h>	/* for acpi_hest_init() */
+@@ -511,6 +512,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	struct acpi_pci_root *root;
+ 	acpi_handle handle = device->handle;
+ 	int no_aspm = 0, clear_aspm = 0;
++	bool hotadd = (system_state != SYSTEM_BOOTING);
  
-+int acpi_bus_attach_private_data(acpi_handle handle, void *data)
-+{
-+	acpi_status status;
-+
-+	status = acpi_attach_data(handle,
-+			acpi_bus_private_data_handler, data);
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_ERROR((AE_INFO, "Error attaching device[%p] data\n",
-+				handle));
-+		return -ENODEV;
+ 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
+ 	if (!root)
+@@ -557,6 +559,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
+ 	device->driver_data = root;
+ 
++	if (hotadd && dmar_device_hotplug(handle, true)) {
++		result = -ENXIO;
++		goto end;
 +	}
 +
-+	return 0;
-+}
-+EXPORT_SYMBOL(acpi_bus_attach_private_data);
-+
- int acpi_bus_get_private_data(acpi_handle handle, void **data)
- {
- 	acpi_status status;
-@@ -141,7 +157,7 @@ int acpi_bus_get_private_data(acpi_handle handle, void **data)
- 
- 	status = acpi_get_data(handle, acpi_bus_private_data_handler, data);
- 	if (ACPI_FAILURE(status) || !*data) {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No context for object [%p]\n",
-+		ACPI_ERROR((AE_INFO, "No context for object [%p]\n",
- 				handle));
- 		return -ENODEV;
+ 	pr_info(PREFIX "%s [%s] (domain %04x %pR)\n",
+ 	       acpi_device_name(device), acpi_device_bid(device),
+ 	       root->segment, &root->secondary);
+@@ -583,7 +590,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 			root->segment, (unsigned int)root->secondary.start);
+ 		device->driver_data = NULL;
+ 		result = -ENODEV;
+-		goto end;
++		goto remove_dmar;
  	}
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 84a2e29..a1f6fec 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -406,6 +406,7 @@ extern struct kobject *acpi_kobj;
- extern int acpi_bus_generate_netlink_event(const char*, const char*, u8, int);
- void acpi_bus_private_data_handler(acpi_handle, void *);
- int acpi_bus_get_private_data(acpi_handle, void **);
-+int acpi_bus_attach_private_data(acpi_handle, void *);
- void acpi_bus_no_hotplug(acpi_handle handle);
- extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
- extern int register_acpi_notifier(struct notifier_block *);
+ 
+ 	if (clear_aspm) {
+@@ -597,7 +604,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	if (device->wakeup.flags.run_wake)
+ 		device_set_run_wake(root->bus->bridge, true);
+ 
+-	if (system_state != SYSTEM_BOOTING) {
++	if (hotadd) {
+ 		pcibios_resource_survey_bus(root->bus);
+ 		pci_assign_unassigned_root_bus_resources(root->bus);
+ 	}
+@@ -607,6 +614,9 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	pci_unlock_rescan_remove();
+ 	return 1;
+ 
++remove_dmar:
++	if (hotadd)
++		dmar_device_hotplug(handle, false);
+ end:
+ 	kfree(root);
+ 	return result;
+@@ -625,6 +635,8 @@ static void acpi_pci_root_remove(struct acpi_device *device)
+ 
+ 	pci_remove_root_bus(root->bus);
+ 
++	dmar_device_hotplug(device->handle, false);
++
+ 	pci_unlock_rescan_remove();
+ 
+ 	kfree(root);
 -- 
-1.8.4.rc0.1.g8f6a3e5.dirty
+1.7.10.4
