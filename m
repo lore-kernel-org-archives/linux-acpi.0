@@ -1,148 +1,46 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH v3] PNP: Work around BIOS defects in Intel MCH area reporting
-Date: Wed, 23 Apr 2014 10:21:06 -0600
-Message-ID: <20140423162106.16088.64454.stgit@bhelgaas-glaptop.roam.corp.google.com>
-References: <20140423161901.16088.46695.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: Adam Williamson <awilliam@redhat.com>
+Subject: Re: [Resend Patch 0/9] I2C ACPI operation region handler support
+Date: Wed, 23 Apr 2014 16:03:28 -0700
+Message-ID: <1398294208.2673.11.camel@adam.happyassassin.net>
+References: <1397654682-7094-1-git-send-email-tianyu.lan@intel.com>
+	 <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140423161901.16088.46695.stgit@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Aaron Lu <aaron.lu@intel.com>, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Stephane Eranian <eranian@google.com>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Zheng Z Yan <zheng.z.yan@intel.com>, Dave Jones <davej@redhat.com>, Rui Zhang <rui.zhang@intel.com>, Yinghai Lu <yinghai@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:17921 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751652AbaDWXDj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Apr 2014 19:03:39 -0400
+In-Reply-To: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: wsa@the-dreams.de, rjw@rjwysocki.net, mika.westerberg@linux.intel.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Work around BIOSes that don't report the entire Intel MCH area.
+On Tue, 2014-04-22 at 14:24 +0800, Lan Tianyu wrote:
+> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart) operation
+> region. It allows ACPI aml code able to access such kind of devices to
+> implement some ACPI standard method.
+> 
+> On the Asus T100TA, Bios use GenericSerialBus operation region to access
+> i2c device to get battery info. So battery function depends on the I2C
+> operation region support. Here is the bug link.
+> https://bugzilla.kernel.org/show_bug.cgi?id=69011
+> 
+> This patchset is to add I2C ACPI operation region handler support.
 
-MCHBAR is not an architected PCI BAR, so MCH space is usually reported as a
-PNP0C02 resource.  The MCH space was once 16KB, but is 32KB in newer parts.
-Some BIOSes still report a PNP0C02 resource that is only 16KB, which means
-the rest of the MCH space is consumed but unreported.
+For what it's worth, I've tested this patchset with the exception of
+patch 9/9 - which I leave out because it would require annoying fiddling
+with my kernel builds - and it gives apparently-accurate battery/AC
+information on my Venue 8 Pro.
 
-This can cause resource map sanity check warnings or (theoretically) a
-device conflict if we assigned the unreported space to another device.
+It doesn't *obviously* cause any other problems, though there are a few
+other issues I'm dealing with ATM. If any of them turn out to be related
+to this patch set, I'll send a follow-up.
+-- 
+Adam Williamson
+Fedora QA Community Monkey
+IRC: adamw | Twitter: AdamW_Fedora | XMPP: adamw AT happyassassin . net
+http://www.happyassassin.net
 
-The Intel perf event uncore driver tripped over this when it claimed the
-MCH region:
-
-  resource map sanity check conflict: 0xfed10000 0xfed15fff 0xfed10000 0xfed13fff pnp 00:01
-  Info: mapping multiple BARs. Your kernel is fine.
-
-To prevent this, if we find a PNP0C02 resource that covers part of the MCH
-space, extend it to cover the entire space.
-
-Link: http://lkml.kernel.org/r/20140224162400.GE16457@pd.tnic
-Reported-by: Borislav Petkov <bp@alien8.de>
-Tested-by: Borislav Petkov <bp@suse.de>
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-Acked-by: Borislav Petkov <bp@suse.de>
-Acked-by: Stephane Eranian <eranian@google.com>
----
- drivers/pnp/quirks.c |   79 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 79 insertions(+)
-
-diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
-index 258fef272ea7..3736bc408adb 100644
---- a/drivers/pnp/quirks.c
-+++ b/drivers/pnp/quirks.c
-@@ -15,6 +15,7 @@
- 
- #include <linux/types.h>
- #include <linux/kernel.h>
-+#include <linux/pci.h>
- #include <linux/string.h>
- #include <linux/slab.h>
- #include <linux/pnp.h>
-@@ -334,6 +335,81 @@ static void quirk_amd_mmconfig_area(struct pnp_dev *dev)
- }
- #endif
- 
-+#ifdef CONFIG_X86
-+/* Device IDs of parts that have 32KB MCH space */
-+static const unsigned int mch_quirk_devices[] = {
-+	0x0154,	/* Ivy Bridge */
-+	0x0c00,	/* Haswell */
-+};
-+
-+static struct pci_dev *get_intel_host(void)
-+{
-+	int i;
-+	struct pci_dev *host;
-+
-+	for (i = 0; i < ARRAY_SIZE(mch_quirk_devices); i++) {
-+		host = pci_get_device(PCI_VENDOR_ID_INTEL, mch_quirk_devices[i],
-+				      NULL);
-+		if (host)
-+			return host;
-+	}
-+	return NULL;
-+}
-+
-+static void quirk_intel_mch(struct pnp_dev *dev)
-+{
-+	struct pci_dev *host;
-+	u32 addr_lo, addr_hi;
-+	struct pci_bus_region region;
-+	struct resource mch;
-+	struct pnp_resource *pnp_res;
-+	struct resource *res;
-+
-+	host = get_intel_host();
-+	if (!host)
-+		return;
-+
-+	/*
-+	 * MCHBAR is not an architected PCI BAR, so MCH space is usually
-+	 * reported as a PNP0C02 resource.  The MCH space was originally
-+	 * 16KB, but is 32KB in newer parts.  Some BIOSes still report a
-+	 * PNP0C02 resource that is only 16KB, which means the rest of the
-+	 * MCH space is consumed but unreported.
-+	 */
-+
-+	/*
-+	 * Read MCHBAR for Host Member Mapped Register Range Base
-+	 * https://www-ssl.intel.com/content/www/us/en/processors/core/4th-gen-core-family-desktop-vol-2-datasheet
-+	 * Sec 3.1.12.
-+	 */
-+	pci_read_config_dword(host, 0x48, &addr_lo);
-+	region.start = addr_lo & ~0x7fff;
-+	pci_read_config_dword(host, 0x4c, &addr_hi);
-+	region.start |= (u64) addr_hi << 32;
-+	region.end = region.start + 32*1024 - 1;
-+
-+	memset(&mch, 0, sizeof(mch));
-+	mch.flags = IORESOURCE_MEM;
-+	pcibios_bus_to_resource(host->bus, &mch, &region);
-+
-+	list_for_each_entry(pnp_res, &dev->resources, list) {
-+		res = &pnp_res->res;
-+		if (res->end < mch.start || res->start > mch.end)
-+			continue;	/* no overlap */
-+		if (res->start == mch.start && res->end == mch.end)
-+			continue;	/* exact match */
-+
-+		dev_info(&dev->dev, FW_BUG "PNP resource %pR covers only part of %s Intel MCH; extending to %pR\n",
-+			 res, pci_name(host), &mch);
-+		res->start = mch.start;
-+		res->end = mch.end;
-+		break;
-+	}
-+
-+	pci_dev_put(host);
-+}
-+#endif
-+
- /*
-  *  PnP Quirks
-  *  Cards or devices that need some tweaking due to incomplete resource info
-@@ -364,6 +440,9 @@ static struct pnp_fixup pnp_fixups[] = {
- #ifdef CONFIG_AMD_NB
- 	{"PNP0c01", quirk_amd_mmconfig_area},
- #endif
-+#ifdef CONFIG_X86
-+	{"PNP0c02", quirk_intel_mch},
-+#endif
- 	{""}
- };
- 
