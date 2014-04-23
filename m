@@ -1,154 +1,120 @@
-From: Stephane Eranian <eranian@google.com>
-Subject: Re: [PATCH 2] PNP: Work around BIOS defects in Intel MCH area reporting
-Date: Wed, 23 Apr 2014 15:54:40 +0200
-Message-ID: <CABPqkBRVfajbeWeaZRmv6SSWcX7DAuGCxfmrHGiUTPkbfxVMWg@mail.gmail.com>
-References: <20140421221721.26308.1891.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: Baoquan He <bhe@redhat.com>
+Subject: Re: [PATCH] acpi: try to trust cpu_index from x86_cpu_to_apicid
+Date: Wed, 23 Apr 2014 22:40:53 +0800
+Message-ID: <20140423144053.GA1711@dhcp-17-102.nay.redhat.com>
+References: <1397519754-10205-1-git-send-email-bhe@redhat.com>
+ <11963454.DotWb00OAa@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f50.google.com ([209.85.219.50]:50117 "EHLO
-	mail-oa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755122AbaDWNyl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Apr 2014 09:54:41 -0400
-Received: by mail-oa0-f50.google.com with SMTP id i11so1024667oag.37
-        for <linux-acpi@vger.kernel.org>; Wed, 23 Apr 2014 06:54:41 -0700 (PDT)
-In-Reply-To: <20140421221721.26308.1891.stgit@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <11963454.DotWb00OAa@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, jiang.liu@linux.intel.com, vgoyal@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Linux PCI <linux-pci@vger.kernel.org>, x86 <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Zheng Z Yan <zheng.z.yan@intel.com>, Dave Jones <davej@redhat.com>, Rui Zhang <rui.zhang@intel.com>, Yinghai Lu <yinghai@kernel.org>
 
-On Tue, Apr 22, 2014 at 12:17 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> Work around BIOSes that don't report the entire Intel MCH area.
->
-> MCHBAR is not an architected PCI BAR, so MCH space is usually reported as a
-> PNP0C02 resource.  The MCH space was once 16KB, but is 32KB in newer parts.
-> Some BIOSes still report a PNP0C02 resource that is only 16KB, which means
-> the rest of the MCH space is consumed but unreported.
->
-> This can cause resource map sanity check warnings or (theoretically) a
-> device conflict if we assigned the unreported space to another device.
->
-> The Intel perf event uncore driver tripped over this when it claimed the
-> MCH region:
->
->   resource map sanity check conflict: 0xfed10000 0xfed15fff 0xfed10000 0xfed13fff pnp 00:01
->   Info: mapping multiple BARs. Your kernel is fine.
->
-> To prevent this, if we find a PNP0C02 resource that covers part of the MCH
-> space, extend it to cover the entire space.
->
-Works for me on my Levono IvyBridge laptop.
-Thanks for fixing this, Bjorn.
-Acked-by: Stephane Eranian <eranian@google.com>
+On 04/21/14 at 10:51pm, Rafael J. Wysocki wrote:
+> On Tuesday, April 15, 2014 07:55:54 AM Baoquan He wrote:
+> > In smp with multi cpus, when enter into kdump kernel with only 1 cpu,
+> > a warning message is printed out:
+> > 
+> > acpi LNXCPU:0a: BIOS reported wrong ACPI id 0 for the processor
+> > 
+> > In this case kdump kernel use the same ACPI tables as 1st kernel,
+> > means lapic information is got from MADT. The acpi_id related to
+> > this cpu index and lapic_id may not be 0, so the code to assign
+> > value to cpu_index is not correct in this case per cpu0_initialized.
+> > cpu index stored in x86_cpu_to_apicid need be respected.
+> > 
+> > Now fix it in this patch per boot_cpu_physical_apicid. When cpu index
+> > related to boot_cpu_physical_apicid is not stored in x86_cpu_to_apicid,
+> > then we can say this is UP system running SMP kernel with no LAPIC in MADT
+> 
+> Why don't you fix the warning message instead to cover this case too? 
 
-> Link: http://lkml.kernel.org/r/20140224162400.GE16457@pd.tnic
-> Reported-by: Borislav Petkov <bp@alien8.de>
-> Tested-by: Borislav Petkov <bp@suse.de>
-> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> Acked-by: Borislav Petkov <bp@suse.de>
-> ---
->  drivers/pnp/quirks.c |   75 ++++++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 75 insertions(+)
->
-> diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
-> index 258fef272ea7..0d679068ef1b 100644
-> --- a/drivers/pnp/quirks.c
-> +++ b/drivers/pnp/quirks.c
-> @@ -15,6 +15,7 @@
->
->  #include <linux/types.h>
->  #include <linux/kernel.h>
-> +#include <linux/pci.h>
->  #include <linux/string.h>
->  #include <linux/slab.h>
->  #include <linux/pnp.h>
-> @@ -334,6 +335,79 @@ static void quirk_amd_mmconfig_area(struct pnp_dev *dev)
->  }
->  #endif
->
-> +/* Device IDs of parts that have 32KB MCH space */
-> +static const unsigned int mch_quirk_devices[] = {
-> +       0x0154, /* Ivy Bridge */
-> +       0x0c00, /* Haswell */
-> +};
-> +
-> +static struct pci_dev *get_intel_host(void)
-> +{
-> +       int i;
-> +       struct pci_dev *host;
-> +
-> +       for (i = 0; i < ARRAY_SIZE(mch_quirk_devices); i++) {
-> +               host = pci_get_device(PCI_VENDOR_ID_INTEL, mch_quirk_devices[i],
-> +                                     NULL);
-> +               if (host)
-> +                       return host;
-> +       }
-> +       return NULL;
-> +}
-> +
-> +static void quirk_intel_mch(struct pnp_dev *dev)
-> +{
-> +       struct pci_dev *host;
-> +       u32 addr_lo, addr_hi;
-> +       struct pci_bus_region region;
-> +       struct resource mch;
-> +       struct pnp_resource *pnp_res;
-> +       struct resource *res;
-> +
-> +       host = get_intel_host();
-> +       if (!host)
-> +               return;
-> +
-> +       /*
-> +        * MCHBAR is not an architected PCI BAR, so MCH space is usually
-> +        * reported as a PNP0C02 resource.  The MCH space was originally
-> +        * 16KB, but is 32KB in newer parts.  Some BIOSes still report a
-> +        * PNP0C02 resource that is only 16KB, which means the rest of the
-> +        * MCH space is consumed but unreported.
-> +        */
-> +
-> +       /*
-> +        * Read MCHBAR for Host Member Mapped Register Range Base
-> +        * https://www-ssl.intel.com/content/www/us/en/processors/core/4th-gen-core-family-desktop-vol-2-datasheet
-> +        * Sec 3.1.12.
-> +        */
-> +       pci_read_config_dword(host, 0x48, &addr_lo);
-> +       region.start = addr_lo & ~0x7fff;
-> +       pci_read_config_dword(host, 0x4c, &addr_hi);
-> +       region.start |= (u64) addr_hi << 32;
-> +       region.end = region.start + 32*1024 - 1;
-> +
-> +       memset(&mch, 0, sizeof(mch));
-> +       mch.flags = IORESOURCE_MEM;
-> +       pcibios_bus_to_resource(host->bus, &mch, &region);
-> +
-> +       list_for_each_entry(pnp_res, &dev->resources, list) {
-> +               res = &pnp_res->res;
-> +               if (res->end < mch.start || res->start > mch.end)
-> +                       continue;       /* no overlap */
-> +               if (res->start == mch.start && res->end == mch.end)
-> +                       continue;       /* exact match */
-> +
-> +               dev_info(&dev->dev, FW_BUG "PNP resource %pR covers only part of %s Intel MCH; extending to %pR\n",
-> +                        res, pci_name(host), &mch);
-> +               res->start = mch.start;
-> +               res->end = mch.end;
-> +               break;
-> +       }
-> +
-> +       pci_dev_put(host);
-> +}
-> +
->  /*
->   *  PnP Quirks
->   *  Cards or devices that need some tweaking due to incomplete resource info
-> @@ -364,6 +438,7 @@ static struct pnp_fixup pnp_fixups[] = {
->  #ifdef CONFIG_AMD_NB
->         {"PNP0c01", quirk_amd_mmconfig_area},
->  #endif
-> +       {"PNP0c02", quirk_intel_mch},
->         {""}
->  };
->
->
+
+Hi Rafael,
+
+Thanks for replying.
+
+In kdump case, that warning message is printed out just because the
+assignation is not correct. 
+
+E.g on that machine where this bug was reported, there are 16 cpus. In
+normal kernel their information is stored in acpi MADT, and all of them
+is present in system. However when crash happened, the cpu which crash
+happened on will reboot. That reboot is a warm one, skip BIOS step.
+And currently "nr_cpus=1" is need be  added into cmdline of kdump
+kernel. The restriction of only 1 cpu is a long story for kdump, since
+if crash happend on AP, if multi-cpu is not disabled, that AP will
+reboot and send INIT IPI to BSP of 1st kernel, that will cause a
+immediate reboot to BIOS which is a cpu hw behavior.
+
+So when kdump kernel startup with "nr_cpus=1", it will use ACPI
+information stored by BIOS step of 1st kernel, there are 16 lapic.
+Below are message printed by acpi_register_lapic() when acpi handle MADT
+table related to cpu and lapic. From these printed message, the present
+cpu in kdump kernel has a acpi_id=0x0c and lapic_id=0x24. 
+
+Then when scan acpi device, all cpus detected by acpi will be handled by
+acpi_processor_add(). So the old code will directly assign the
+cpu_index as 0 per the variable cpu0_initialized though
+x86_cpu_to_apicid stored cpu 0 and its related apicid which is 0x24.
+This will cause two acpi_device (acpi_id 0 and acpi_id 0x0c) have the
+same cpu_index 0, then that warning message will be printed out since a
+check found  per_cpu(processor_device_array, 0) has been assigned.
+
+So I think it's a code bug, sould be fixed by correct checking.
+
+
+[    0.000000] ACPI: LAPIC (acpi_id[0x00] lapic_id[0x10] enabled)
+[    0.000000] ACPI: NR_CPUS/possible_cpus limit of 1 almost reached.
+Keeping one slot for boot cpu.  Processor 0/0x10 ignored.
+[    0.000000] ACPI: LAPIC (acpi_id[0x08] lapic_id[0x20] enabled)
+[    0.000000] ACPI: NR_CPUS/possible_cpus limit of 1 almost reached.
+Keeping one slot for boot cpu.  Processor 1/0x20 ig.
+[    0.000000] ACPI: LAPIC (acpi_id[0x01] lapic_id[0x11] enabled)
+[    0.000000] ACPI: NR_CPUS/possible_cpus limit of 1 almost reached.
+Keeping one slot for boot cpu.  Processor 2/0x11 ignored.
+[    0.000000] ACPI: LAPIC (acpi_id[0x09] lapic_id[0x21] enabled)
+[    0.000000] ACPI: NR_CPUS/possible_cpus limit of 1 almost reached.
+Keeping one slot for boot cpu.  Processor 3/0x21 ignored.
+[    0.000000] ACPI: LAPIC (acpi_id[0x02] lapic_id[0x12] enabled)
+[    0.000000] ACPI: NR_CPUS/possible_cpus limit of 1 almost reached.
+Keeping one slot for boot cp
+[    0.000000] ACPI: LAPIC (acpi_id[0x0a] lapic_id[0x22] enabled)
+[    0.000000] ACPI: NR_CPUS/possible_cpus limit of 1 almost reached.
+Keeping one slot for boot cpu.  Processor 5/0x22 ignored.
+[    0.000000] ACPI: LAPIC (acpi_id[0x03] lapic_id[0x13] enabled)
+[    0.000000] ACPI: NR_CPUS/possible_cpus limit of 1 almost reached.
+Keeping one slot for boot cpu.  Processor 6/0x13 ignored.
+[    0.000000] ACPI: LAPIC (acpi_id[0x0b] lapic_id[0x23] enabled)
+[    0.000000] ACPICPUS/possible_cpus limit of 1 almost reached. Keeping
+one slot for boot cpu.  Processor 7/0x23 ignored.
+[    0.000000] ACPI: LAPIC (acpi_id[0x04] lapic_id[0x14] enabled)
+[    0.000000] ACPI: NR_CPUS/possible_cpus limit of 1 almost reached.
+Keeping one slot for boot cpu.  Processor 8/0x14 ignored.
+
+[    0.000000] ACPI: LAPIC (acpi_id[0x0c] lapic_id[0x24] enabled)
+
+[    0.000000] ACPI: LAPIC (acpi_id[ lapic_id[0x15] enabled)
+[    0.000000] ACPI: NR_CPUS/possible_cpus limit of 1 reached.
+Processor 10/0x15 ignored.
+[    0.000000] ACPI: LAPIC (acpi_id[0x0d] lapic_id[0x25] enabled)
+[    0.000000] ACPI: NR_CPUS/possible_cpus limit of 1 reached.
+Processor 11/0x25 ignored.
+[    0.000000] ACPI: LAPIC (acpi_id[0x06] l 0.000000] ACPI:
+NR_CPUS/possible_cpus limit of 1 reached.  Processor 12/0x16 ignored.
+[    0.000000] ACPI: LAPIC (acpi_id[0x0e] lapic_id[0x26] enabled)
+[    0.000000] ACPI: NR_CPUS/possible_cpus limit of 1 reached.
+Processor 13/0x26 ignored.
+[    0.000000] ACPI: LAPIC (acpi_id[0x07] lapic_id[0x17] enabled)
+[    0.000000] ACPI: NR_CPUS/possible_cpus limit of 1 reached.
+Processor 14/0x17 ignored.
+[    0.000000] ACPI: LAPIC (acpi_id[0x0f] lapic_id[0x27] enabled)
+[    0.000000] ACPI: NR_CPUS/possible_cpus limit ofached.  Processor
+15/0x27 ignored.
+
+Thanks
+Baoquan
