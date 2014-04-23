@@ -1,43 +1,55 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 5/5] ACPICA: Remove deprecated _LINUX definitions for ACPICA.
-Date: Wed, 23 Apr 2014 14:54:22 +0800
-Message-ID: <8e6c90efc629b463709aef5da4957e916fdc0437.1398232409.git.lv.zheng@intel.com>
-References: <cover.1396930406.git.lv.zheng@intel.com> <cover.1398232408.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1398232408.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [Resend Patch 7/9] I2C/ACPI: Add i2c ACPI operation region
+ support
+Date: Wed, 23 Apr 2014 10:28:39 +0300
+Message-ID: <20140423072839.GT30677@intel.com>
+References: <1397654682-7094-1-git-send-email-tianyu.lan@intel.com>
+ <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
+ <1398147855-9868-8-git-send-email-tianyu.lan@intel.com>
+ <20140422113638.GK30677@intel.com>
+ <53571D11.3070808@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:59698 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754032AbaDWHWa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Apr 2014 03:22:30 -0400
+Content-Disposition: inline
+In-Reply-To: <53571D11.3070808@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: wsa@the-dreams.de, rjw@rjwysocki.net, awilliam@redhat.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-There are _LINUX defined so that when Linux kernel is compiled using broken
-compilers that having not __linux__ defined can still include
-<acpi/platform/aclinux.h> from <acpi/platform/acenv.h>.
+On Wed, Apr 23, 2014 at 09:53:21AM +0800, Lan Tianyu wrote:
+> Hi Mika:
+> 	Thanks a lot for your review.
+>=20
+> On 2014=E5=B9=B404=E6=9C=8822=E6=97=A5 19:36, Mika Westerberg wrote:
+> >> > +
+> >> > +	client.adapter =3D adapter;
+> >> > +	client.addr =3D sb->slave_address;
+> >> > +	client.flags =3D 0;
+> > I'm not sure if this is the correct way to use struct i2c_client
+> > (allocating it from stack and passing forward to functions that mig=
+ht
+> > expect a real i2c_client structure). It has ->dev and all.
+>=20
+> I check all i2c_smbus_xxx helper functions and they are simple wrappe=
+rs
+> of i2c_smbus_xfer(). Only adapter, addr and flags of struct client ar=
+e
+> used in these functions.
 
-This behavior is deprecated as all drivers/acpi/acpica files are compiled
-without including <linux/acpi.h>, thus without _LINUX defined.  As there is
-no issues encountered when we compile ACPICA code without _LINUX defined,
-it is OK to remove _LINUX from <linux/acpi.h> now.
+In that case I suppose it is OK to (ab)use the client structure like th=
+is.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- include/linux/acpi.h |    4 ----
- 1 file changed, 4 deletions(-)
-
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 7a8f2cd..9c559f7 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -31,10 +31,6 @@
- 
- #ifdef	CONFIG_ACPI
- 
--#ifndef _LINUX
--#define _LINUX
--#endif
--
- #include <linux/list.h>
- #include <linux/mod_devicetable.h>
- 
--- 
-1.7.10
+I think you still want to initialize the whole structure (unused fields
+with zero) before passing it to the wrappers.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
