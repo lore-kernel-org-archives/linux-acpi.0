@@ -1,100 +1,178 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/2] ACPI: Fix the issue that auto SSDT loading is
- conflict with customized SSDT that is included by the customized DSDT.
-Date: Wed, 23 Apr 2014 01:21:53 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802557632@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1396925060.git.lv.zheng@intel.com>
- <10605546.pEf4E3AVn4@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E8802556E6A@SHSMSX101.ccr.corp.intel.com>
- <5046344.V68ybXiztI@vostro.rjw.lan>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [PATCH 2/5 v2] CPER: Adjust code flow of some functions
+Date: Tue, 22 Apr 2014 21:28:18 -0400
+Message-ID: <20140423012818.GA3888@gchen.bj.intel.com>
+References: <1397716119-6164-1-git-send-email-gong.chen@linux.intel.com>
+ <1397716119-6164-3-git-send-email-gong.chen@linux.intel.com>
+ <20140422135421.GE15882@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zYM0uCDKw75PZbzx"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:3869 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:11918 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755834AbaDWBWK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Apr 2014 21:22:10 -0400
-In-Reply-To: <5046344.V68ybXiztI@vostro.rjw.lan>
-Content-Language: en-US
+	id S1751859AbaDWBxx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Apr 2014 21:53:53 -0400
+Content-Disposition: inline
+In-Reply-To: <20140422135421.GE15882@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Borislav Petkov <bp@alien8.de>
+Cc: tony.luck@intel.com, m.chehab@samsung.com, rostedt@goodmis.org, linux-acpi@vger.kernel.org, arozansk@redhat.com
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFJhZmFlbCBKLiBX
-eXNvY2tpDQo+IFNlbnQ6IFR1ZXNkYXksIEFwcmlsIDIyLCAyMDE0IDc6MjAgUE0NCj4gDQo+IE9u
-IFR1ZXNkYXksIEFwcmlsIDIyLCAyMDE0IDEyOjUwOjM3IEFNIFpoZW5nLCBMdiB3cm90ZToNCj4g
-PiBIaSwgUmFmYWVsDQo+ID4NCj4gPiA+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86
-cmp3QHJqd3lzb2NraS5uZXRdDQo+ID4gPiBTZW50OiBUdWVzZGF5LCBBcHJpbCAyMiwgMjAxNCA1
-OjE0IEFNDQo+ID4gPg0KPiA+ID4gT24gVHVlc2RheSwgQXByaWwgMDgsIDIwMTQgMTA6NDk6MDYg
-QU0gTHYgWmhlbmcgd3JvdGU6DQo+ID4gPiA+IFRoaXMgcGF0Y2ggZml4ZXMgdGhlIGZvbGxvd2lu
-ZyBpc3N1ZToNCj4gPiA+ID4gVXNlciBjYW4gc3BlY2lmeSBhIERTRFQgd2l0aCBTU0RUIGVtYmVk
-ZGVkLCBpbiB3aGljaCBjYXNlLCBub19zdGF0aWNfc3NkdA0KPiA+ID4gPiBtdXN0IGJlIGVuZm9y
-Y2VkLiAgSWYgd2UgZG9uJ3QgZG8gdGhhdCwgdGhlbjoNCj4gPiA+ID4gMS4gVGhlIG5hbWVzcGFj
-ZSBvYmplY3QgY29uZmxpY3RzIHdpbGwgcmVzdWx0IGluIGFuIEFFX0FMUkVBRFlfRVhJU1RTDQo+
-ID4gPiA+ICAgIGV4Y2VwdGlvbjsNCj4gPiA+ID4gMi4gVGhlIG5hbWVzcGFjZSBvYmplY3RzIHRo
-YXQgYXJlIGRlbGV0ZWQgZnJvbSB0aGUgb3JpZ2luYWwgU1NEVCB3aWxsIGJlDQo+ID4gPiA+ICAg
-IHJlc3RvcmVkIGJ5IHRoZSBhdXRvIGxvYWRpbmcgb2YgdGhlIG9yaWdpbmFsIFNTRFQuDQo+ID4g
-PiA+DQo+ID4gPiA+IE5vdGUgdGhhdCB0aGUgRFNEVCBjdXN0b21pemF0aW9uIGlzIGEgY29tcGls
-ZS10aW1lIGZlYXR1cmUsIHRodXMgdGhlIFNTRFQNCj4gPiA+ID4gaW5jbHVzaW9uIGluZGljYXRp
-b24gb2YgdGhlIERTRFQgY3VzdG9taXphdGlvbiBpcyBhbHNvIGltcGxlbWVudGVkIGFzIGENCj4g
-PiA+ID4gY29tcGlsZS10aW1lIGNvbmZpZ3VyYWJsZS4NCj4gPiA+ID4NCj4gPiA+ID4gQnVnbGlu
-azogaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD02OTcxMQ0KPiA+
-ID4gPiBPcmlnaW5hbC1ieTogRW5yaWNvIEV0eGUgQXJ0ZSA8Z29pdGl6ZW5hLmdlbmVyb2FAZ21h
-aWwuY29tPg0KPiA+ID4gPiBTaWduZWQtb2ZmLWJ5OiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwu
-Y29tPg0KPiA+ID4gPiAtLS0NCj4gPiA+ID4gIGRyaXZlcnMvYWNwaS9LY29uZmlnICAgIHwgICAg
-OCArKysrKysrKw0KPiA+ID4gPiAgZHJpdmVycy9hY3BpL2ludGVybmFsLmggfCAgICA1ICsrKysr
-DQo+ID4gPiA+ICBkcml2ZXJzL2FjcGkvb3NsLmMgICAgICB8ICAgMTQgKysrKysrKysrKysrKy0N
-Cj4gPiA+ID4gIGRyaXZlcnMvYWNwaS90YWJsZXMuYyAgIHwgICAgMiArKw0KPiA+ID4gPiAgNCBm
-aWxlcyBjaGFuZ2VkLCAyOCBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pDQo+ID4gPiA+DQo+
-ID4gPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvS2NvbmZpZyBiL2RyaXZlcnMvYWNwaS9L
-Y29uZmlnDQo+ID4gPiA+IGluZGV4IGMyMDU2NTMuLmEwYjgxMzEgMTAwNjQ0DQo+ID4gPiA+IC0t
-LSBhL2RyaXZlcnMvYWNwaS9LY29uZmlnDQo+ID4gPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9LY29u
-ZmlnDQo+ID4gPiA+IEBAIC0yMTIsNiArMjEyLDE0IEBAIGNvbmZpZyBBQ1BJX0NVU1RPTV9EU0RU
-DQo+ID4gPiA+ICAJYm9vbA0KPiA+ID4gPiAgCWRlZmF1bHQgQUNQSV9DVVNUT01fRFNEVF9GSUxF
-ICE9ICIiDQo+ID4gPiA+DQo+ID4gPiA+ICtjb25maWcgQUNQSV9DVVNUT01fU1NEVF9JTkNMVURF
-RA0KPiA+ID4gPiArCWJvb2wgIkN1c3RvbSBTU0RUIFRhYmxlcyBpbmNsdWRlZCINCj4gPiA+ID4g
-KwlkZXBlbmRzIG9uIEFDUElfQ1VTVE9NX0RTRFQNCj4gPiA+ID4gKwloZWxwDQo+ID4gPiA+ICsJ
-ICBUaGlzIG9wdGlvbiB0dXJucyBvbiBhY3BpLm5vX3N0YXRpY19zc2R0IGJ5IGRlZmF1bHQuDQo+
-ID4gPiA+ICsNCj4gPiA+ID4gKwkgIElmIHRoZSBTU0RUIGNvZGUgaGFzIGJlZW4gbWVyZ2VkIGlu
-dG8gdGhlIGN1c3RvbSBEU0RUIGZpbGUsIHNheSBZLg0KPiA+ID4NCj4gPiA+IEkgd29uZGVyIHdo
-YXQgdGhlIGJlbmVmaXQgb2YgaGF2aW5nIGEgc2VwYXJhdGUgLmNvbmZpZyBvcHRpb24gZm9yIHRo
-YXQgaXM/DQo+ID4gPg0KPiA+ID4gQ2FuJ3Qgd2UganVzdCB1c2UgQ09ORklHX0FDUElfQ1VTVE9N
-X0RTRFQgaW5zdGVhZCBvZiBDT05GSUdfQUNQSV9DVVNUT01fU1NEVF9JTkNMVURFRA0KPiA+ID4g
-ZXZlcnl3aGVyZSBpbnN0ZWFkPw0KPiA+ID4NCj4gPg0KPiA+IEl0IGlzIGEgZGlmZmVyZW50IHVz
-ZSBjYXNlLg0KPiA+IE5vcm1hbGx5LCBBQ1BJX0NVU1RPTV9EU0RUIG9ubHkgYWxsb3dzIDEgdGFi
-bGUgdG8gYmUgY3VzdG9taXplZC4NCj4gPiBUaGUgb3JpZ2luYWwgYnVnIHJlcG9ydGVyIGhhcyB0
-byBjdXN0b21pemUgdGhlIFNTRFQgdG8gbWFrZSBoaXMgcGxhdGZvcm0gYm9vdGFibGUuDQo+ID4g
-SGUgYWNoaWV2ZXMgdGhpcyBieSBjb3B5aW5nIHRoZSBlbnRpcmUgU1NEVCBpbnRvIHRoZSBEU0RU
-IGFuZCBjb21waWxlIHRoZSBEU0RUDQo+ID4gaW50byBhIGN1c3RvbWl6ZWQgYmluYXJ5IHRvIGJl
-IHVzZWQgZm9yIEFDUElfQ1VTVE9NX0RTRFQuDQo+ID4gU28gdXNlciBjYW46DQo+ID4NCj4gPiAx
-LiBjdXN0b21pemUgRFNEVCB3aXRob3V0IFNTRFRzIGNvcGllZCBpbnRvIGl0Ow0KPiA+IDIuIGN1
-c3RvbWl6ZSBEU0RUIHdpdGggU1NEVHMgY29waWVkIGludG8gaXQuDQo+ID4NCj4gPiBUaGUgbmV3
-IGNvbmZpZyBvcHRpb24gaXMgdXNlZCBmb3IgdGhlIG5ldyB1c2UgY2FzZSAtIGNhc2UgMi4NCj4g
-PiBTbyBpdCBzZWVtcyB3ZSBjYW4ndCBqdXN0IHVzZSBDT05GSUdfQUNQSV9DVVNUT01fRFNEVC4N
-Cj4gPg0KPiA+IEkgdGhpbmsgdGhlIG5hbWluZyBvZiB0aGUgbmV3IG9wdGlvbiBtaWdodCBiZSBj
-b25mdXNpbmcuDQo+ID4gSXQgIGNhbiBiZSBBQ1BJX0NVU1RPTV9EU0RUX1dJVEhfU1NEVCB0byBp
-bmRpY2F0ZSB0aGUgZmFjdCB0aGF0DQo+ID4gaXQgaXMgYSBzdWItb3B0aW9uIHRoYXQgZGVwZW5k
-cyBvbiB0aGUgQUNQSV9DVVNUT01fRFNEVC4NCj4gDQo+IFdlbGwsIGl0IGxvb2tzIGxpa2UgdGhl
-IHNvbHV0aW9uIHdvdWxkIGJlIHRvIGFsbG93IFNTRFRzIGFuZCBEU0RUcyB0byBiZQ0KPiBjdXN0
-b21pemVkIGluZGVwZW5kZW50bHksIHdvdWxkbid0IGl0Pw0KDQpGaXJzdCwgSSdtIG5vdCB0YWxr
-aW5nIGFib3V0IGluaXRyZCB0YWJsZSBvdmVycmlkZS4NCg0KRm9yIHRoZSBDT05GSUdfQUNQSV9D
-VVNUT01fRFNEVCBmZWF0dXJlLCBJJ20gYWZyYWlkIHRoZSBhbnN3ZXIgaXMgU1NEVCBjYW5ub3Qg
-YmUgaW5kZXBlbmRlbnRseSBjdXN0b21pemVkIHdpdGhvdXQgRFNEVCBjdXN0b21pemF0aW9uLg0K
-VGhlIFNTRFQgdGhhdCB0aGUgdXNlciB3YW50cyB0byBvdmVycmlkZSBzaG91bGQgYmUgZW1iZWRk
-ZWQgaW50byB0aGUgQ09ORklHX0FDUElfQ1VTVE9NX0RTRFRfRklMRS4NCg0KTGV0IG1lIHNob3cg
-eW91IHRoZSByZWxhdGVkIGNvZGUgYmVsb3cuDQoNCmRyaXZlcnMvYWNwaS9vc2wuYzoNCg0KI2lm
-ZGVmIENPTkZJR19BQ1BJX0NVU1RPTV9EU0RUDQojaW5jbHVkZSBDT05GSUdfQUNQSV9DVVNUT01f
-RFNEVF9GSUxFDQojZW5kaWYNCk5vdGUgdGhpcyBmaWxlIHdpbGwgY29udGFpbiBhbiBvdXRwdXQg
-b2YgaWFzbCAtdGMgZHNkdC5hc2wsIHdoaWNoIGRlZmluZXMgYSBieXRlIGFycmF5IG5hbWVkIGFz
-IEFtbENvZGUuDQoNCiNpZmRlZiBDT05GSUdfQUNQSV9DVVNUT01fRFNEVA0KCWlmIChzdHJuY21w
-KGV4aXN0aW5nX3RhYmxlLT5zaWduYXR1cmUsICJEU0RUIiwgNCkgPT0gMCkNCgkJKm5ld190YWJs
-ZSA9IChzdHJ1Y3QgYWNwaV90YWJsZV9oZWFkZXIgKilBbWxDb2RlOw0KI2VuZGlmDQpPbmx5IERT
-RFQgc2lnbmF0dXJlIGNhbiB0cmlnZ2VyIG92ZXJyaWRlIENPTkZJR19BQ1BJX0NVU1RPTV9EU0RU
-Lg0KDQpTbyB0aGlzIG5ldyB1c2UgY2FzZSBjdXJyZW50bHkgZGVwZW5kcyBvbiBDT05GSUdfQUNQ
-SV9DVVNUT01fRFNEVC4NCg0KPiBTbyB0aGF0IHRoZSB1c2VyIGluIHF1ZXN0aW9uIGFjdHVhbGx5
-IGNhbiBsZWF2ZSBoaXMgRFNEVCBhcyBpcyBhbmQgY3VzdG9taXplDQo+IHRoZSBTU0RUIG9ubHks
-IG5vPw0KDQpTbyB0aGUgYW5zd2VyIGlzIG5vIGhlcmUuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdh
-cmRzDQotTHYNCg0K
+
+--zYM0uCDKw75PZbzx
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Apr 22, 2014 at 03:54:22PM +0200, Borislav Petkov wrote:
+> > +void cper_mem_err_location(const struct cper_sec_mem_err *mem, char *m=
+sg)
+> > +{
+> > +	u32 n =3D 0, len;
+> > +
+> > +	if (!msg)
+> > +		return;
+> > +
+> > +	len =3D strlen(msg);
+> > +	memset(msg, 0, len);
+>=20
+> Have you even tested this???
+>=20
+> [    0.104006] ------------[ cut here ]------------
+> [    0.108012] WARNING: CPU: 0 PID: 1 at lib/vsprintf.c:1660 vsnprintf+0x=
+551/0x560()
+> [    0.112006] Modules linked in:
+> [    0.114167] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.15.0-rc1+ #13
+> [    0.116006] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIO=
+S Bochs 01/01/2011
+> [    0.120025]  0000000000000009 ffff88007bc4bd78 ffffffff815e3c68 000000=
+0000000000
+> [    0.130251]  ffff88007bc4bdb0 ffffffff8104d10c 00000000ffffffff 000000=
+0000000000
+> [    0.136006]  ffffffff82bd42c0 0000000000000000 0000000000000000 ffff88=
+007bc4bdc0
+> [    0.140881] Call Trace:
+> [    0.142555]  [<ffffffff815e3c68>] dump_stack+0x4e/0x7a
+> [    0.144009]  [<ffffffff8104d10c>] warn_slowpath_common+0x8c/0xc0
+> [    0.148034]  [<ffffffff8104d1fa>] warn_slowpath_null+0x1a/0x20
+> [    0.152013]  [<ffffffff812be301>] vsnprintf+0x551/0x560
+> [    0.156013]  [<ffffffff812be31d>] vscnprintf+0xd/0x30
+> [    0.160012]  [<ffffffff812be379>] scnprintf+0x39/0x40
+> [    0.164009]  [<ffffffff815e4f92>] cper_mem_err_location.part.1+0x6a/0x=
+253
+> [    0.168009]  [<ffffffff81496a11>] cper_print_mem+0x41/0x100
+> [    0.172018]  [<ffffffff815db7c0>] ? rest_init+0x140/0x140
+> [    0.176035]  [<ffffffff815db806>] kernel_init+0x46/0x120
+> [    0.180009]  [<ffffffff815ec8ec>] ret_from_fork+0x7c/0xb0
+> [    0.182780]  [<ffffffff815db7c0>] ? rest_init+0x140/0x140
+> [    0.184012] ---[ end trace d69126aad4cf21bf ]---
+>=20
+> Think about what happens the first time you call this function and
+> strlen returns 0 because the string is empty.
+>=20
+> I enforced the first call to that function in kvm just so that I can
+> test your stuff but I don't see why this won't happen on real hardware
+> either.
+
+When I have the first glance on the call trace, I feel strange because I
+have tested it for many times on real machine, until I noticed that once
+lenght is 0, the evaluation via scnprintf will be a disaster.
+
+BTW, because I can't figure out what field looks more important than
+others, I have to keep all of them until some guy tells me something new.
+
+>=20
+> Gong, I would strongly urge you to spend more time
+> and care on your patches instead of rushing them out.
+> ea431643d6c38728195e2c456801c3ef66bb9991 shouldnt've happened if you
+> tested your stuff more thoroughly and it cost me a whole day to dig out
+> what exactly was happening and talking to bug reporters.
+>=20
+Thanks very much for your help for it. I do need to be more careful to
+avoid similiar stupid thing happened again.
+
+> > +static void cper_print_mem(const char *pfx, const struct cper_sec_mem_=
+err *mem)
+> > +{
+> > +	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
+> > +		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
+> > +	if (mem->validation_bits & CPER_MEM_VALID_PA)
+> > +		printk("%s""physical_address: 0x%016llx\n",
+> > +		       pfx, mem->physical_addr);
+> > +	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
+> > +		printk("%s""physical_address_mask: 0x%016llx\n",
+> > +		       pfx, mem->physical_addr_mask);
+> > +	cper_mem_err_location(mem, mem_location);
+> > +	pr_debug("%s", mem_location);
+> >  	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE) {
+> >  		u8 etype =3D mem->error_type;
+> >  		printk("%s""error_type: %d, %s\n", pfx, etype,
+> > -		       etype < ARRAY_SIZE(cper_mem_err_type_strs) ?
+> > -		       cper_mem_err_type_strs[etype] : "unknown");
+> > -	}
+> > -	if (mem->validation_bits & CPER_MEM_VALID_MODULE_HANDLE) {
+> > -		const char *bank =3D NULL, *device =3D NULL;
+> > -		dmi_memdev_name(mem->mem_dev_handle, &bank, &device);
+> > -		if (bank !=3D NULL && device !=3D NULL)
+> > -			printk("%s""DIMM location: %s %s", pfx, bank, device);
+> > -		else
+> > -			printk("%s""DIMM DMI handle: 0x%.4x",
+> > -			       pfx, mem->mem_dev_handle);
+> > +		       cper_mem_err_type_str(etype));
+> >  	}
+> > +	cper_dimm_err_location(mem, dimm_location);
+> > +	printk("%s%s", pfx, dimm_location);
+>=20
+> ???
+Here you mean the last line?
+
+printk("%s%s", pfx, dimm_location);
+
+If so, I have to say I follow previous design style in APEI series drivers.
+pfx is a prefix to tell printk what priority for this print. It can be
+changed under different conditions.
+>=20
+> >  }
+> > =20
+> >  static const char *cper_pcie_port_type_strs[] =3D {
+> > diff --git a/include/linux/cper.h b/include/linux/cper.h
+> > index 2fc0ec3..038cc11 100644
+> > --- a/include/linux/cper.h
+> > +++ b/include/linux/cper.h
+> > @@ -23,6 +23,8 @@
+> > =20
+> >  #include <linux/uuid.h>
+> > =20
+> > +extern struct raw_spinlock cper_loc_lock;
+> > +
+>=20
+> Forgot to remove the spinlock.
+>=20
+OK, gotta it.
+
+
+--zYM0uCDKw75PZbzx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTVxcyAAoJEI01n1+kOSLHQD0P/Rcxim/SDjANioweG0zdypoy
+TNnWVv/BtSHbERG/Rb362sAbkaZk58nYJZXoKHTIRFhA1v16lp3rBwOYxeGPbAv4
+D9xi4ejFW0hkifR+IhxLllx6YO9NLnq7GgrGGLLtluB77ct4aUkea0VxMDRCUN4I
+5IMgNWJgUlb70/IzVpcv45lPsVriRSliDJopifM40QDYJ0vf5HbukcAjeHdEifAj
+j5d1R6Kd4xemZt3proYvl9GDLCXFa2rxkhaUpmPYTS+jpZsdBiKCBeaU79ESCGnl
+Kw3fGrRgGG/FiFF1agwhi4tj6UG0reI6qsFL5qGujFj0I7sC0O4BUGwVLBsclK4z
+CykfNK0btb+C47cgMxPy1CtNazmNvLWvCad3R7O71RTa/kMXeAwGx/gCj/0OAFJV
+yP/xkYcbvOSRdbr1wAlwpCYUL84uhgKxU1X4xxATBA9AFAw8mqizXVE8WjDlIxoZ
+AKahPKHxMPZ0je4f7BdeJizlQpLfKYE3aGeLEB8veDUTnUfWoOlp+40T8xtefPjH
+TVTIGP+hcqWl/CQX61HApFTl3JaXcrdeAlLm3gnttd7qx07AtXJaEfNfViBlMpWs
+INtK2iTMoHbc8AMphoW4ZW7cIupIV47cH56vQ10J8qorxdcuJS1k1eBObyVKlWSK
+2pKzl0mVCJNsM8MqsIpK
+=4/Es
+-----END PGP SIGNATURE-----
+
+--zYM0uCDKw75PZbzx--
