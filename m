@@ -1,71 +1,81 @@
-From: "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [Resend Patch 9/9] I2C/ACPI: Add CONFIG_I2C_ACPI config
-Date: Wed, 23 Apr 2014 06:47:05 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88025577CB@SHSMSX101.ccr.corp.intel.com>
-References: <1397654682-7094-1-git-send-email-tianyu.lan@intel.com>
- <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
- <1398147855-9868-10-git-send-email-tianyu.lan@intel.com>
- <20140422114510.GM30677@intel.com> <53575227.7080407@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53575227.7080407-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Lan, Tianyu" <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: "wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org" <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 0/5] ACPICA: Fix some mis-ordered inclusions.
+Date: Wed, 23 Apr 2014 14:53:33 +0800
+Message-ID: <cover.1398232408.git.lv.zheng@intel.com>
+References: <cover.1396930406.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:27710 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753442AbaDWGxv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Apr 2014 02:53:51 -0400
+In-Reply-To: <cover.1396930406.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-SGksIFRpYW55dQ0KDQo+IEZyb206IExhbiwgVGlhbnl1DQo+IFNlbnQ6IFdlZG5lc2RheSwgQXBy
-aWwgMjMsIDIwMTQgMTo0MCBQTQ0KPiANCj4gT24gMjAxNOW5tDA05pyIMjLml6UgMTk6NDUsIE1p
-a2EgV2VzdGVyYmVyZyB3cm90ZToNCj4gPiBPbiBUdWUsIEFwciAyMiwgMjAxNCBhdCAwMjoyNDox
-NVBNICswODAwLCBMYW4gVGlhbnl1IHdyb3RlOg0KPiA+PiBUaGlzIHBhdGNoIGlzIHRvIGFkZCBD
-T05GSUdfSTJDX0FDUEkuIEN1cnJlbnQgdGhlcmUgaXMgYSByYWNlIGJldHdlZW4NCj4gPj4gcmVt
-b3ZpbmcgSTJDIEFDUEkgb3BlcmF0aW9uIHJlZ2lvbiBhbmQgQUNQSSBBTUwgY29kZSBhY2Nlc3Np
-bmcuDQo+ID4+IFNvIG1ha2UgaTJjIGNvcmUgYnVpbHQtaW4gaWYgQ09ORklHX0kyQ19BQ1BJIGlz
-IHNldC4NCj4gPj4NCj4gPj4gU2lnbmVkLW9mZi1ieTogTGFuIFRpYW55dSA8dGlhbnl1LmxhbkBp
-bnRlbC5jb20+DQo+ID4+IC0tLQ0KPiA+PiAgZHJpdmVycy9pMmMvS2NvbmZpZyAgfCAxNyArKysr
-KysrKysrKysrKysrLQ0KPiA+PiAgZHJpdmVycy9pMmMvTWFrZWZpbGUgfCAgMiArLQ0KPiA+PiAg
-aW5jbHVkZS9saW51eC9pMmMuaCAgfCAgMiArLQ0KPiA+PiAgMyBmaWxlcyBjaGFuZ2VkLCAxOCBp
-bnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQ0KPiA+Pg0KPiA+PiBkaWZmIC0tZ2l0IGEvZHJp
-dmVycy9pMmMvS2NvbmZpZyBiL2RyaXZlcnMvaTJjL0tjb25maWcNCj4gPj4gaW5kZXggN2I3ZWEz
-Mi4uYzY3MGQ0OSAxMDA2NDQNCj4gPj4gLS0tIGEvZHJpdmVycy9pMmMvS2NvbmZpZw0KPiA+PiAr
-KysgYi9kcml2ZXJzL2kyYy9LY29uZmlnDQo+ID4+IEBAIC0yLDcgKzIsOSBAQA0KPiA+PiAgIyBJ
-MkMgc3Vic3lzdGVtIGNvbmZpZ3VyYXRpb24NCj4gPj4gICMNCj4gPj4NCj4gPj4gLW1lbnVjb25m
-aWcgSTJDDQo+ID4+ICttZW51ICJJMkMgc3VwcG9ydCINCj4gPj4gKw0KPiA+PiArY29uZmlnIEky
-Qw0KPiA+PiAgCXRyaXN0YXRlICJJMkMgc3VwcG9ydCINCj4gPj4gIAlzZWxlY3QgUlRfTVVURVhF
-Uw0KPiA+PiAgCS0tLWhlbHAtLS0NCj4gPj4gQEAgLTIxLDYgKzIzLDE3IEBAIG1lbnVjb25maWcg
-STJDDQo+ID4+ICAJICBUaGlzIEkyQyBzdXBwb3J0IGNhbiBhbHNvIGJlIGJ1aWx0IGFzIGEgbW9k
-dWxlLiAgSWYgc28sIHRoZSBtb2R1bGUNCj4gPj4gIAkgIHdpbGwgYmUgY2FsbGVkIGkyYy1jb3Jl
-Lg0KPiA+Pg0KPiA+PiArY29uZmlnIEkyQ19BQ1BJDQo+ID4+ICsJYm9vbCAiSTJDIEFDUEkgc3Vw
-cG9ydCINCj4gPj4gKwlzZWxlY3QgSTJDDQo+ID4+ICsJZGVwZW5kcyBvbiBBQ1BJDQo+ID4+ICsJ
-ZGVmYXVsdCB5DQo+ID4+ICsJaGVscA0KPiA+PiArCSAgU2F5IFkgaGVyZSBpZiB5b3Ugd2FudCB0
-byBlbmFibGUgSTJDIEFDUEkgZnVuY3Rpb24uIEFDUEkgdGFibGUNCj4gPj4gKwkgIHByb3ZpZGVz
-IEkyQyBzbGF2ZSBkZXZpY2VzJyBpbmZvcm1hdGlvbiB0byBlbnVtZXJhdGUgdGhlc2UgZGV2aWNl
-cy4NCj4gPj4gKwkgIFRoaXMgb3B0aW9uIGFsc28gYWxsb3dzIEFDUEkgQU1MIGNvZGUgdG8gYWNj
-ZXNzIEkyQyBzbGF2ZSBkZXZpY2VzDQo+ID4+ICsJICB2aWEgSTJDIEFDUEkgb3BlcmF0aW9uIHJl
-Z2lvbiB0byBmdWxmaWxsIEFDUEkgbWV0aG9kLg0KPiA+PiArDQo+ID4NCj4gPiBJJ20gd29uZGVy
-aW5nLCBjYW4gd2UgcHJvdmlkZSBzb21lIHNvcnQgb2Ygd3JhcHBlciBmdW5jdGlvbiBmcm9tIEFD
-UEkgY29yZQ0KPiA+IHRoYXQgaXMgZ3VhcmFudGVlZCB0byBiZSBidWlsdCBpbiB0byB0aGUga2Vy
-bmVsIGltYWdlIGFuZCB1c2UgaXQgaW5zdGVhZCBvZg0KPiA+IGFkZGluZyBuZXcgS2NvbmZpZyBv
-cHRpb25zPw0KPiA+DQo+IENjOiBMVg0KPiANCj4gTFYgdHJpZWQgdG8gZml4IHRoZSBpc3N1ZSB2
-aWEgd3JhcHBlciBzb2x1dGlvbiBpbiB0aGUgQUNQSSBjb2RlIGJlZm9yZS4NCj4gaHR0cHM6Ly9s
-a21sLm9yZy9sa21sLzIwMTMvNy8yMy84Nw0KPiANCj4gSGUgaGFzIGEgcGxhbiB0byByZXNvbHZl
-IHRoZSBpc3N1ZSBpbiBBQ1BJQ0EgbGF0ZXIuDQo+IA0KPiBPdGhlciBjaG9pY2UgaXMgdG8gaW5j
-cmVhc2UgdGhlIGkyYy1jb3JlIG1vZHVsZSBjb3VudCB0byBwcmV2ZW50IGl0DQo+IGJlaW5nIHVu
-bG9hZGVkIHdoZW4gaTJjIG9wZXJhdGlvbiByZWdpb24gaGFuZGxlciBpcyBpbnN0YWxsZWQuIFJl
-bW92ZQ0KPiB0aGUgY29kZSBXaGVuIExWIGZpbmlzaCBoaXMgam9iLg0KDQpZb3UgbWF5IHNlZSBp
-dCBpbXBsZW1lbnRlZCBpbiBBQ1BJQ0EgYWZ0ZXIgc2V2ZXJhbCByZWxlYXNlLg0KSWYgeW91IG5l
-ZWQgYSBmaXggZm9yIG5vdywgeW91IGNhbiB1c2UgdGhlIHBhdGNoIHBvaW50ZWQgdG8gYnkgdGhl
-IGxpbmsgeW91J3ZlIHByb3ZpZGVkLA0KT3IgeW91IGNvdWxkIGZpbmQgYW4gdXBkYXRlZCBvbmUg
-aGVyZToNCiBhY3BpLWlwbWkxMy5wYXRjaCBhcmNoaXZlZCBpbiAoaHR0cHM6Ly9idWd6aWxsYS5r
-ZXJuZWwub3JnL2F0dGFjaG1lbnQuY2dpP2lkPTExMjYxMSkNCg0KSSB0aGluayB0aGUgc29sdXRp
-b24geW91J3ZlIHByb3ZpZGVkIGluIHRoaXMgcGF0Y2ggaXMgYWxzbyByZWFzb25hYmxlIGZvciBu
-b3cuDQpJUE1JIGFsc28gdXNlcyBhIHNpbWlsYXIgc29sdXRpb24gdG8gc29sdmUgdGhpcyBpc3N1
-ZS4NClBsZWFzZSByZWZlciB0byB0aGUgQ09ORklHX0FDUElfSVBNSS4NCg0KVGhlIHN0b3J5IGNh
-biBiZSBmb3VuZCBhdDoNCmh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtYWNwaS9t
-c2c0OTA0NC5odG1sDQpBbmQgdGhlIHNpbWlsYXIgc29sdXRpb24gY2FuIGJlIGZvdW5kIGF0Og0K
-aHR0cDovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9saW51eC1hY3BpL21zZzQ5MTg0Lmh0bWwNCg0K
-VGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+IA0KPiAtLQ0KPiBCZXN0IHJlZ2FyZHMN
-Cj4gVGlhbnl1IExhbg0K
+This patch fixes some mis-ordered inclusions for Linux resident ACPICA.
+
+There is no real issue in the Linux kernel, but this can help to cleanup
+the code so that (benefits):
+1. Redundant environment definitions can be removed from <asm/acpi.h> and
+   <acpi/platform/aclinux.h>.
+2. Lift a burden off the ACPICA release automation - copying default ACPICA
+   environment setting to all <asm/acpi.h> file each time a new environment
+   is introduced just in order to avoid build errors.
+3. The wrong <acpi/actypes.h> inclusion can be removed from
+   <acpi/platform/aclinux.h>.
+4. Using ACPICA defined types in <asm/acpi.h> is possible.
+5. Using "static inline" to define ACPICA OSL functions is still possible
+   and won't cause build errors any longer.
+6. All non back ported prototypes are collected in a single file.
+
+The patch set has passed the following build/boot tests.
+Build tests are performed as follows:
+1. i386 + default + COFNIG_ACPI=y
+2. i386 + default + COFNIG_ACPI=n
+3. x86_64 + default + COFNIG_ACPI=y
+4. x86_64 + default + COFNIG_ACPI=n
+Boot tests are performed as follows:
+1. i386 + default + COFNIG_ACPI=y
+2. x86_64 + default + COFNIG_ACPI=y
+Where:
+1. i386: machine named as "Dell Inspiron Mini 1010"
+2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
+3. default: kernel configuration with following items enabled:
+   All hardware drivers related to the machines of i386/x86_64
+   All drivers/acpi configurations
+   All platform drivers
+   All ACPI drivers
+   4 DRM drivers that implement ACPI opregion
+   All buses with ACPI bindings
+   All cpufreq configurations
+   All xen configurations
+   All ACPI tabln drivers
+
+Lv Zheng (5):
+  ACPICA: OSL: Add direct inclusion of extra header.
+  ACPICA: Add <acpi/acpi_opt.h> to remove mis-ordered inclusion of
+    <acpi/actypes.h> from <acpi/platform/aclinux.h>.
+  ACPICA: Add <asm/acenv.h> to remove mis-ordered inclusion of
+    <asm/acpi.h> from <acpi/platform/aclinux.h>.
+  ACPICA: Cleanup redudant definitions that already have defaults in
+    <acpi/platform/acenv.h>.
+  ACPICA: Remove deprecated _LINUX definitions for ACPICA.
+
+ arch/ia64/include/asm/acenv.h   |   56 +++++++++++++++++++++
+ arch/ia64/include/asm/acpi.h    |   50 -------------------
+ arch/x86/include/asm/acenv.h    |   49 ++++++++++++++++++
+ arch/x86/include/asm/acpi.h     |   45 -----------------
+ include/acpi/acpi.h             |    4 +-
+ include/acpi/acpi_opt.h         |   90 +++++++++++++++++++++++++++++++++
+ include/acpi/platform/aclinux.h |  104 +++++----------------------------------
+ include/linux/acpi.h            |    4 --
+ 8 files changed, 209 insertions(+), 193 deletions(-)
+ create mode 100644 arch/ia64/include/asm/acenv.h
+ create mode 100644 arch/x86/include/asm/acenv.h
+ create mode 100644 include/acpi/acpi_opt.h
+
+-- 
+1.7.10
+
