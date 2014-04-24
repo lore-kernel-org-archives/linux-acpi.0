@@ -1,108 +1,71 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [REGRESSION] Media keys cause "ACPI: \_SB_.ATKD: Unsupported event" on ASUS laptop
-Date: Thu, 24 Apr 2014 19:06:03 +0200
-Message-ID: <2689604.Irr3FKRzyq@vostro.rjw.lan>
-References: <liocsk$le0$1@ger.gmane.org> <2784123.GhF2tcctEM@vostro.rjw.lan> <CAPWNY8X3fVAM3kcdWmg0BcQuNw84ROY+wQsh-JzfxGEt1uWFQQ@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Patch Part3 V1 17/22] pci, ACPI, iommu: enhance pci_root to
+	support DMAR device hotplug
+Date: Thu, 24 Apr 2014 11:33:48 -0600
+Message-ID: <20140424173348.GC29593@google.com>
+References: <1398150453-28141-1-git-send-email-jiang.liu@linux.intel.com>
+	<1398150453-28141-18-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59982 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932522AbaDXQtl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Apr 2014 12:49:41 -0400
-In-Reply-To: <CAPWNY8X3fVAM3kcdWmg0BcQuNw84ROY+wQsh-JzfxGEt1uWFQQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1398150453-28141-18-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Rafael J . Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mantas =?utf-8?B?TWlrdWzEl25hcw==?= <grawity@gmail.com>, Sitsofe Wheeler <sitsofe@yahoo.com>
-Cc: Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, April 24, 2014 04:31:19 PM Mantas Mikul=C4=97nas wrote:
-> On Thu, Apr 24, 2014 at 1:51 PM, Rafael J. Wysocki <rjw@rjwysocki.net=
-> wrote:
-> > On Thursday, April 24, 2014 06:21:52 AM Sitsofe Wheeler wrote:
-> >> On Thu, Apr 17, 2014 at 02:11:15PM +0300, Mantas Mikul=C4=97nas wr=
-ote:
-> >> > After commit 1a699476e258 [two months ago], Linux has stopped
-> >> > recognizing the media & function keys on my laptop's keyboard (t=
-he
-> >> > laptop is ASUS K52JT.206).
-> >> >
-> >> > When I press any of the Fn keys (Play/Pause, Stop, Prev, Next, V=
-ol+,
-> >> > Vol-, Mute, WiFi, Brightness +/-...), I get the following messag=
-es in dmesg:
-> >> >
-> >> > | ACPI: \_SB_.ATKD: Unsupported event type 0x45
-> >> > | ACPI: \_SB_.ATKD: Unsupported event type 0x43
-> >> > | ACPI: \_SB_.ATKD: Unsupported event type 0x40
-> >> > | etc.
-> >>
-> >> I'm seeing the same problem with an EeePC 900's volume and brightn=
-ess
-> >> keys:
-> >> [ 90.098518] ACPI: \_SB_.ATKD: Unsupported event type 0x14
-> >> [   90.785202] ACPI: \_SB_.ATKD: Unsupported event type 0x15
-> >> [  457.062072] ACPI: \_SB_.ATKD: Unsupported event type 0x2e
-> >> [  457.926754] ACPI: \_SB_.ATKD: Unsupported event type 0x2d
-> >> [  458.418740] ACPI: \_SB_.ATKD: Unsupported event type 0x2c
-> >> [  458.821482] ACPI: \_SB_.ATKD: Unsupported event type 0x2b
-> >> [  459.240896] ACPI: \_SB_.ATKD: Unsupported event type 0x2a
-> >
-> > Does this patch help:
-> >
-> > ---
-> >  drivers/acpi/bus.c |    5 ++---
-> >  1 file changed, 2 insertions(+), 3 deletions(-)
->=20
-> Yes, it seems to be working fine.
+On Tue, Apr 22, 2014 at 03:07:28PM +0800, Jiang Liu wrote:
+> Finally enhance pci_root driver to support DMAR device hotplug when
+> hot-plugging PCI host bridges.
+> 
+> Signed-off-by: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> ---
+>  drivers/acpi/pci_root.c |   16 ++++++++++++++--
+>  1 file changed, 14 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index d388f13d48b4..aa8f549869f3 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -33,6 +33,7 @@
+>  #include <linux/pci.h>
+>  #include <linux/pci-acpi.h>
+>  #include <linux/pci-aspm.h>
+> +#include <linux/dmar.h>
+>  #include <linux/acpi.h>
+>  #include <linux/slab.h>
+>  #include <acpi/apei.h>	/* for acpi_hest_init() */
+> @@ -511,6 +512,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  	struct acpi_pci_root *root;
+>  	acpi_handle handle = device->handle;
+>  	int no_aspm = 0, clear_aspm = 0;
+> +	bool hotadd = (system_state != SYSTEM_BOOTING);
+>  
+>  	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
+>  	if (!root)
+> @@ -557,6 +559,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
+>  	device->driver_data = root;
+>  
+> +	if (hotadd && dmar_device_hotplug(handle, true)) {
 
-OK, thanks for verifying, below it goes with a changelog and tags.
+Apparently "dmar_device_hotplug(handle, true)" means "add a DMAR device,"
+and "dmar_device_hotplug(device->handle, false)" means "remove a DMAR
+device."  I'm not really a fan of interfaces where one of the arguments
+selects between two completely different actions, because it's harder for a
+casual reader to see what's going on.
 
-Rafael
+I see how it simplifies your implementation a little bit, but I think it's
+more important to simplify for the reader.
 
-
----
-=46rom: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / notify: Do not block unknown type notifications in root=
- handler
-
-Commit 1a699476e258 "ACPI / hotplug / PCI: Hotplug notifications from
-acpi_bus_notify()" changed the root notify handler, acpi_bus_notify(),
-to block unknown type norifications, but it overlooked the fact that
-they might be propagated to drivers via the ->notify() callback.
-
-=46ix the problem by allowing drivers to receive unknown type
-notifications via ->notify() as before.
-
-Reported-and-tested-by: Mantas Mikul=C4=97nas <grawity@gmail.com>
-Reported-and-tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/bus.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-Index: linux-pm/drivers/acpi/bus.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-pm.orig/drivers/acpi/bus.c
-+++ linux-pm/drivers/acpi/bus.c
-@@ -380,9 +380,8 @@ static void acpi_bus_notify(acpi_handle
- 		break;
-=20
- 	default:
--		acpi_handle_warn(handle, "Unsupported event type 0x%x\n", type);
--		ost_code =3D ACPI_OST_SC_UNRECOGNIZED_NOTIFY;
--		goto err;
-+		acpi_handle_debug(handle, "Unknown event type 0x%x\n", type);
-+		break;
- 	}
-=20
- 	adev =3D acpi_bus_get_acpi_device(handle);
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bjorn
