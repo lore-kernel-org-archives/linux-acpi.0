@@ -1,71 +1,87 @@
-From: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Patch Part3 V1 17/22] pci, ACPI, iommu: enhance pci_root to
-	support DMAR device hotplug
-Date: Thu, 24 Apr 2014 11:33:48 -0600
-Message-ID: <20140424173348.GC29593@google.com>
-References: <1398150453-28141-1-git-send-email-jiang.liu@linux.intel.com>
-	<1398150453-28141-18-git-send-email-jiang.liu@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [RFC][PATCH 2/3][Resend] PM / runtime: Routine for checking device status during system suspend
+Date: Fri, 25 Apr 2014 00:39:19 +0200
+Message-ID: <2801565.1dAEgrXAm3@vostro.rjw.lan>
+References: <Pine.LNX.4.44L0.1402271001190.1150-100000@iolanthe.rowland.org> <5039115.7hOuWtlQhG@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1398150453-28141-18-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Rafael J . Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5039115.7hOuWtlQhG@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 22, 2014 at 03:07:28PM +0800, Jiang Liu wrote:
-> Finally enhance pci_root driver to support DMAR device hotplug when
-> hot-plugging PCI host bridges.
-> 
-> Signed-off-by: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> ---
->  drivers/acpi/pci_root.c |   16 ++++++++++++++--
->  1 file changed, 14 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index d388f13d48b4..aa8f549869f3 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -33,6 +33,7 @@
->  #include <linux/pci.h>
->  #include <linux/pci-acpi.h>
->  #include <linux/pci-aspm.h>
-> +#include <linux/dmar.h>
->  #include <linux/acpi.h>
->  #include <linux/slab.h>
->  #include <acpi/apei.h>	/* for acpi_hest_init() */
-> @@ -511,6 +512,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
->  	struct acpi_pci_root *root;
->  	acpi_handle handle = device->handle;
->  	int no_aspm = 0, clear_aspm = 0;
-> +	bool hotadd = (system_state != SYSTEM_BOOTING);
->  
->  	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
->  	if (!root)
-> @@ -557,6 +559,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
->  	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
->  	device->driver_data = root;
->  
-> +	if (hotadd && dmar_device_hotplug(handle, true)) {
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Apparently "dmar_device_hotplug(handle, true)" means "add a DMAR device,"
-and "dmar_device_hotplug(device->handle, false)" means "remove a DMAR
-device."  I'm not really a fan of interfaces where one of the arguments
-selects between two completely different actions, because it's harder for a
-casual reader to see what's going on.
+Add a new helper routine, pm_runtime_enabled_and_suspended(), to
+allow subsystems (or PM domains) to check the runtime PM status of
+devices during system suspend (possibly to avoid resuming those
+devices upfront at that time).
 
-I see how it simplifies your implementation a little bit, but I think it's
-more important to simplify for the reader.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/base/power/runtime.c |   28 ++++++++++++++++++++++++++++
+ include/linux/pm_runtime.h   |    2 ++
+ 2 files changed, 30 insertions(+)
 
-Bjorn
+Index: linux-pm/include/linux/pm_runtime.h
+===================================================================
+--- linux-pm.orig/include/linux/pm_runtime.h
++++ linux-pm/include/linux/pm_runtime.h
+@@ -57,6 +57,7 @@ extern unsigned long pm_runtime_autosusp
+ extern void pm_runtime_update_max_time_suspended(struct device *dev,
+ 						 s64 delta_ns);
+ extern void pm_runtime_set_memalloc_noio(struct device *dev, bool enable);
++extern bool pm_runtime_enabled_and_suspended(struct device *dev);
+ 
+ static inline bool pm_children_suspended(struct device *dev)
+ {
+@@ -165,6 +166,7 @@ static inline unsigned long pm_runtime_a
+ 				struct device *dev) { return 0; }
+ static inline void pm_runtime_set_memalloc_noio(struct device *dev,
+ 						bool enable){}
++static inline bool pm_runtime_enabled_and_suspended(struct device *dev) { return false; }
+ 
+ #endif /* !CONFIG_PM_RUNTIME */
+ 
+Index: linux-pm/drivers/base/power/runtime.c
+===================================================================
+--- linux-pm.orig/drivers/base/power/runtime.c
++++ linux-pm/drivers/base/power/runtime.c
+@@ -1195,6 +1195,34 @@ void pm_runtime_enable(struct device *de
+ EXPORT_SYMBOL_GPL(pm_runtime_enable);
+ 
+ /**
++ * pm_runtime_enabled_and_suspended - Check runtime PM status of a device.
++ * @dev: Device to handle.
++ *
++ * This routine is to be executed during system suspend only, after
++ * device_prepare() has been executed for @dev.
++ *
++ * Return false if runtime PM is disabled for the device.  Otherwise, wait
++ * for pending transitions to complete and check the runtime PM status of the
++ * device after that.  Return true if it is RPM_SUSPENDED.
++ */
++bool pm_runtime_enabled_and_suspended(struct device *dev)
++{
++	unsigned long flags;
++	bool ret;
++
++	spin_lock_irqsave(&dev->power.lock, flags);
++	if (dev->power.disable_depth) {
++		ret = false;
++	} else {
++		__pm_runtime_barrier(dev);
++		ret = pm_runtime_status_suspended(dev);
++	}
++	spin_unlock_irqrestore(&dev->power.lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(pm_runtime_enabled_and_suspended);
++
++/**
+  * pm_runtime_forbid - Block runtime PM of a device.
+  * @dev: Device to handle.
+  *
