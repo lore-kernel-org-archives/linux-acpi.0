@@ -1,46 +1,27 @@
-From: Adam Williamson <awilliam@redhat.com>
-Subject: Re: [Resend Patch 0/9] I2C ACPI operation region handler support
-Date: Wed, 23 Apr 2014 16:03:28 -0700
-Message-ID: <1398294208.2673.11.camel@adam.happyassassin.net>
-References: <1397654682-7094-1-git-send-email-tianyu.lan@intel.com>
-	 <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3] Intel MCH BIOS workaround
+Date: Thu, 24 Apr 2014 02:58:02 +0200
+Message-ID: <1643834.MGNKT7oDCE@vostro.rjw.lan>
+References: <20140423161901.16088.46695.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17921 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751652AbaDWXDj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Apr 2014 19:03:39 -0400
-In-Reply-To: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20140423161901.16088.46695.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Stephane Eranian <eranian@google.com>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Zheng Z Yan <zheng.z.yan@intel.com>, Dave Jones <davej@redhat.com>, Rui Zhang <rui.zhang@intel.com>, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: wsa@the-dreams.de, rjw@rjwysocki.net, mika.westerberg@linux.intel.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, 2014-04-22 at 14:24 +0800, Lan Tianyu wrote:
-> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart) operation
-> region. It allows ACPI aml code able to access such kind of devices to
-> implement some ACPI standard method.
-> 
-> On the Asus T100TA, Bios use GenericSerialBus operation region to access
-> i2c device to get battery info. So battery function depends on the I2C
-> operation region support. Here is the bug link.
-> https://bugzilla.kernel.org/show_bug.cgi?id=69011
-> 
-> This patchset is to add I2C ACPI operation region handler support.
+On Wednesday, April 23, 2014 10:20:57 AM Bjorn Helgaas wrote:
+> Hi Rafael,
 
-For what it's worth, I've tested this patchset with the exception of
-patch 9/9 - which I leave out because it would require annoying fiddling
-with my kernel builds - and it gives apparently-accurate battery/AC
-information on my Venue 8 Pro.
+Hi,
 
-It doesn't *obviously* cause any other problems, though there are a few
-other issues I'm dealing with ATM. If any of them turn out to be related
-to this patch set, I'll send a follow-up.
--- 
-Adam Williamson
-Fedora QA Community Monkey
-IRC: adamw | Twitter: AdamW_Fedora | XMPP: adamw AT happyassassin . net
-http://www.happyassassin.net
+> Relative to v2, this adds "#ifdef CONFIG_X86" around the quirk and adds
+> Stephane's ack.  Either v2 or v3 is fine with me; whatever seems best to
+> you.
 
+I've applied this one, thanks!
+
+Rafael
