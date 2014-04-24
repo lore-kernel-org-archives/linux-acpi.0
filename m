@@ -1,86 +1,55 @@
-From: Sitsofe Wheeler <sitsofe@yahoo.com>
-Subject: Re: [REGRESSION] Media keys cause "ACPI: \_SB_.ATKD: Unsupported
- event" on ASUS laptop
-Date: Thu, 24 Apr 2014 06:21:52 +0100
-Message-ID: <20140424052151.GA9449@sucs.org>
-References: <liocsk$le0$1@ger.gmane.org>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH 2] PNP: Work around BIOS defects in Intel MCH area
+ reporting
+Date: Thu, 24 Apr 2014 09:20:21 +0200
+Message-ID: <20140424072021.GA3396@gmail.com>
+References: <20140421221721.26308.1891.stgit@bhelgaas-glaptop.roam.corp.google.com>
+ <CABPqkBRVfajbeWeaZRmv6SSWcX7DAuGCxfmrHGiUTPkbfxVMWg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ee0-f47.google.com ([74.125.83.47]:48529 "EHLO
+	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468AbaDXHU1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Apr 2014 03:20:27 -0400
 Content-Disposition: inline
-In-Reply-To: <liocsk$le0$1@ger.gmane.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mantas =?utf-8?Q?Mikul=C4=97nas?= <grawity@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <CABPqkBRVfajbeWeaZRmv6SSWcX7DAuGCxfmrHGiUTPkbfxVMWg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-On Thu, Apr 17, 2014 at 02:11:15PM +0300, Mantas Mikul=C4=97nas wrote:
-> After commit 1a699476e258 [two months ago], Linux has stopped
-> recognizing the media & function keys on my laptop's keyboard (the
-> laptop is ASUS K52JT.206).
->=20
-> When I press any of the Fn keys (Play/Pause, Stop, Prev, Next, Vol+,
-> Vol-, Mute, WiFi, Brightness +/-...), I get the following messages in=
- dmesg:
->=20
-> | ACPI: \_SB_.ATKD: Unsupported event type 0x45
-> | ACPI: \_SB_.ATKD: Unsupported event type 0x43
-> | ACPI: \_SB_.ATKD: Unsupported event type 0x40
-> | etc.
-
-I'm seeing the same problem with an EeePC 900's volume and brightness
-keys:
-[   90.098518] ACPI: \_SB_.ATKD: Unsupported event type 0x14
-[   90.785202] ACPI: \_SB_.ATKD: Unsupported event type 0x15
-[  457.062072] ACPI: \_SB_.ATKD: Unsupported event type 0x2e
-[  457.926754] ACPI: \_SB_.ATKD: Unsupported event type 0x2d
-[  458.418740] ACPI: \_SB_.ATKD: Unsupported event type 0x2c
-[  458.821482] ACPI: \_SB_.ATKD: Unsupported event type 0x2b
-[  459.240896] ACPI: \_SB_.ATKD: Unsupported event type 0x2a
+To: Stephane Eranian <eranian@google.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Linux PCI <linux-pci@vger.kernel.org>, x86 <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Zheng Z Yan <zheng.z.yan@intel.com>, Dave Jones <davej@redhat.com>, Rui Zhang <rui.zhang@intel.com>, Yinghai Lu <yinghai@kernel.org>
 
 
-> In the past (v3.14 and earlier), those used to be reported as ACPI an=
-d
-> input events. From `acpi_listen` on a good kernel:
->=20
-> | hotkey ATK0100:00 00000045 00000000
-> | cd/play CDPLAY 00000080 00000000 K
-> |
-> | hotkey ATK0100:00 00000031 0000000d
-> | button/volumedown VOLDN 00000080 00000000 K
-> |
-> | hotkey ATK0100:00 00000016 00000000
-> |
-> | hotkey ATK0100:00 00000025 00000001
->=20
-> Bisect output:
->=20
-> 1a699476e25814343766342672c655fb135224cc is the first bad commit
-> commit 1a699476e25814343766342672c655fb135224cc
-> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Date:   Thu Feb 6 13:58:13 2014 +0100
->=20
->     ACPI / hotplug / PCI: Hotplug notifications from acpi_bus_notify(=
-)
->=20
->     Since acpi_bus_notify() is executed on all notifications for all
->     devices anyway, make it execute acpi_device_hotplug() for all
->     hotplug events instead of installing notify handlers pointing to
->     the same function for all hotplug devices.
->     [...]
->=20
-> * Linux 3.14.0-rc1-00023-g1a699476e258 (bad)
-> * Linux 3.14.0-rc1-00022-g5e6f236c2631 (good)
->=20
-> (I'm not quite sure why they show up as 3.14-rc1 if they're after 3.1=
-4?)
->=20
-> The kernel config is close to that of stock Arch Linux, except with
-> entirely irrelevant devices disabled (PATA, SCSI, tuner, etc.)
+* Stephane Eranian <eranian@google.com> wrote:
 
-Adding email addresses recommended by get_maintainer.pl to see if that
-helps this to get noticed...
+> On Tue, Apr 22, 2014 at 12:17 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> > Work around BIOSes that don't report the entire Intel MCH area.
+> >
+> > MCHBAR is not an architected PCI BAR, so MCH space is usually reported as a
+> > PNP0C02 resource.  The MCH space was once 16KB, but is 32KB in newer parts.
+> > Some BIOSes still report a PNP0C02 resource that is only 16KB, which means
+> > the rest of the MCH space is consumed but unreported.
+> >
+> > This can cause resource map sanity check warnings or (theoretically) a
+> > device conflict if we assigned the unreported space to another device.
+> >
+> > The Intel perf event uncore driver tripped over this when it claimed the
+> > MCH region:
+> >
+> >   resource map sanity check conflict: 0xfed10000 0xfed15fff 0xfed10000 0xfed13fff pnp 00:01
+> >   Info: mapping multiple BARs. Your kernel is fine.
+> >
+> > To prevent this, if we find a PNP0C02 resource that covers part of the MCH
+> > space, extend it to cover the entire space.
+> >
+> Works for me on my Levono IvyBridge laptop.
+> Thanks for fixing this, Bjorn.
+> Acked-by: Stephane Eranian <eranian@google.com>
 
---=20
-Sitsofe | http://sucs.org/~sits/
+Just curious, what problems triggered on your laptop: only the 
+warnings, or did something get mapped to the undeclared area,
+causing other misbehavor?
+
+Thanks,
+
+	Ingo
