@@ -1,189 +1,102 @@
-From: Graeme Gregory <graeme@xora.org.uk>
-Subject: Re: [PATCH v3 part1 04/11] ARM64 / ACPI: Introduce arm-core.c and
- its related head file
-Date: Fri, 25 Apr 2014 17:53:20 +0100
-Message-ID: <20140425165320.GD1186@xora-haswell>
-References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>
- <1398432017-8506-5-git-send-email-hanjun.guo@linaro.org>
- <20140425155147.GA28819@e106331-lin.cambridge.arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20140425155147.GA28819@e106331-lin.cambridge.arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Rob Herring <robh@kernel.org>, Al Stone <al.stone@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>
+From: Tony Camuso <tcamuso@redhat.com>
+Subject: [PATCH 1/1] apci_pad: in power_saving_thread(), call schedule() when need_resched is true
+Date: Fri, 25 Apr 2014 14:19:29 -0400
+Message-ID: <1398449969-10860-1-git-send-email-tcamuso@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:32660 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752586AbaDYSTe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Apr 2014 14:19:34 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: tcamuso@redhat.com, rjw@rjwysocki.net, lenb@kernel.org
 
-On Fri, Apr 25, 2014 at 04:51:47PM +0100, Mark Rutland wrote:
-> Hi Hanjun,
-> 
-> On Fri, Apr 25, 2014 at 02:20:10PM +0100, Hanjun Guo wrote:
-> > ACPI core need lots extern variables and functions which should
-> > be provided by arch dependent code to make itself compilable. so
-> > introduce arm_core.c and its related header file here.
-> > 
-> > acpi_boot_table_init() will be called in setup_arch() before
-> > paging_init(), so we should use eary_ioremap() mechanism here
-> > to get the RSDP and all the table pointers, with this patch,
-> > we can get ACPI boot-time tables from firmware on ARM64.
-> > 
-> > Signed-off-by: Al Stone <al.stone@linaro.org>
-> > Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> > ---
-> >  arch/arm64/include/asm/acpi.h |   53 +++++++++++++++++++
-> >  arch/arm64/kernel/setup.c     |    4 ++
-> >  drivers/acpi/Makefile         |    2 +
-> >  drivers/acpi/plat/Makefile    |    1 +
-> >  drivers/acpi/plat/arm-core.c  |  113 +++++++++++++++++++++++++++++++++++++++++
-> >  5 files changed, 173 insertions(+)
-> >  create mode 100644 drivers/acpi/plat/Makefile
-> >  create mode 100644 drivers/acpi/plat/arm-core.c
-> > 
-> > diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> > index e3e990e..3ac9dfb 100644
-> > --- a/arch/arm64/include/asm/acpi.h
-> > +++ b/arch/arm64/include/asm/acpi.h
-> > @@ -19,6 +19,43 @@
-> >  #ifndef _ASM_ACPI_H
-> >  #define _ASM_ACPI_H
-> >  
-> > +#include <asm/cacheflush.h>
-> > +
-> > +#include <linux/init.h>
-> > +
-> > +#define COMPILER_DEPENDENT_INT64	s64
-> > +#define COMPILER_DEPENDENT_UINT64	u64
-> 
-> Is there any reason this can't be in a common ACPI header shared be ia64
-> and x86 too? Given we already have generic types for this it seems
-> pointless to define this in each architecture.
-> 
-> It looks like include/acpi/actypes.h tries to do that already...
-> 
-Yes I think we can replace that with uint64_t and int64_t types.
+(from a bug report submitted by Stuart Hayes)
 
-> > +
-> > +/*
-> > + * Calling conventions:
-> > + *
-> > + * ACPI_SYSTEM_XFACE        - Interfaces to host OS (handlers, threads)
-> > + * ACPI_EXTERNAL_XFACE      - External ACPI interfaces
-> > + * ACPI_INTERNAL_XFACE      - Internal ACPI interfaces
-> > + * ACPI_INTERNAL_VAR_XFACE  - Internal variable-parameter list interfaces
-> > + */
-> > +#define ACPI_SYSTEM_XFACE
-> > +#define ACPI_EXTERNAL_XFACE
-> > +#define ACPI_INTERNAL_XFACE
-> > +#define ACPI_INTERNAL_VAR_XFACE
-> > +
-> > +/* Asm macros */
-> > +#define ACPI_FLUSH_CPU_CACHE() flush_cache_all()
-> 
-> This almost certainly does not do what you think it does.
-> 
-> flush_cache_all walks the architected levels of cache visible to the
-> current CPU (i.e. those in CLIDR_EL1), and walks over each cache line at
-> that level, cleaning and evicting it. It also flushes the I-cache (which
-> I don't think you care about here).
-> 
-> This is NOT safe if the cache is enabled. Lines can migrate between
-> levels in the middle of the sequence.
-> 
-> In an SMP system this does NOT guarantee that data is evicted to memory,
-> even if the cache is disabled. Other CPUs with caches enabled can
-> acquire a cacheline (even if dirty) and it can sit in their cache.
-> 
-> In a UP system or an SMP system where all other architected caches are
-> disabled (and flushed) this does NOT guarantee that data hits memory. In
-> the presence of a system-level cache this will simply flush the data out
-> to said system-level rather than memory.
-> 
-> I believe the intent here is to have something analogous to WBINVD for
-> use in idle. Unfortunately there simply isn't anything analogous.
-> Luckily in the presence of PSCI, the PSCI implementation should do all
-> of the cache maintenance required to prevent any data loss and/or
-> corruption, and anything we need to have visible to noncacheable
-> accesses (i.e. flushed out to memory) we should be able to flush by VA.
-> 
-> This maintenance is unsafe, and shouldn't be necessary on any sane
-> system. Please get rid of it. I would very much like to get rid of
-> flush_cache_all() before its misuse spreads further.
-> 
-Thanks for explanation Mark, you are correct on x86 it is defined as
-wbinvd().
+The purpose of the acpi_pad driver is to implement the "processor power
+aggregator" device as described in the ACPI 4.0 spec section 8.5. It
+takes requests from the BIOS (via ACPI) to put a specified number of
+CPUs into idle, in order to save power, until further notice.
 
-I think looking at where it is actually used we can make this an empty
-macro on arm64 for now. Where it used are areas we don't currently
-execute and need arm64 replacements or refactorising to remove x86isms.
+It does this by creating high-priority threads that try to keep the CPUs
+in a high C-state (using the monitor/mwait CPU instructions). The
+mwait() call is in a loop that checks periodically if the thread should
+end and a few other things.
 
-> > +/* Basic configuration for ACPI */
-> > +#ifdef	CONFIG_ACPI
-> > +extern int acpi_disabled;
-> > +extern int acpi_noirq;
-> > +extern int acpi_pci_disabled;
-> > +extern int acpi_strict;
-> 
-> This looks very odd. Why are these prototypes not coming from a header?
-> If they're defined in the same place, why not move the disable_acpi
-> function there?
-> 
+It was discovered through testing that the power_saving threads were
+causing the system to consume more power than the system was consuming
+before the threads were created. A counter in the main loop of
+power_saving_thread() revealed that it was spinning. The mwait()
+instruction was not keeping the CPU in a high C state very much if at
+all.
 
-This is a header :-)
+Here is a simplification of the loop in function power_saving_thread() in
+drivers/acpi/acpi_pad.c
 
-I think this is a peculiarity of how acpica is incorporated into linux
-but will check.
+    while (!kthread_should_stop()) {
+         :
+        try_to_freeze()
+         :
+        while (!need_resched()) {
+             :
+            if (!need_resched())
+                __mwait(power_saving_mwait_eax, 1);
+             :
+            if (jiffies > expire_time) {
+                do_sleep = 1;
+                break;
+            }
+        }
+    }
 
-> > +static inline void disable_acpi(void)
-> > +{
-> > +	acpi_disabled = 1;
-> > +	acpi_pci_disabled = 1;
-> > +	acpi_noirq = 1;
-> > +}
-> 
-> [...]
-> 
-> > +/*
-> > + * __acpi_map_table() will be called before page_init(), so early_ioremap()
-> > + * or early_memremap() should be called here.
-> > + */
-> > +char *__init __acpi_map_table(unsigned long phys, unsigned long size)
-> > +{
-> > +	if (!phys || !size)
-> > +		return NULL;
-> 
-> Is there any reason that tables can't exist at physical address 0? It's
-> entirely valid to have memory there.
-> 
-> [...]
-> 
-On ARM64 there is not, we can fix this.
+If need_resched() returns true, then mwait() is not called. It was
+returning true because of things like timer interrupts, as in the
+following sequence.
 
-> > +int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
-> > +{
-> > +	*irq = -1;
-> > +
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
-> 
-> This appears to be missing a giant warning that it does nothing useful.
-> 
-> I was under the impression that we were meant to use 0 to represent the
-> lack of an interrupt these days, too...
-> 
-We can fix this.
+hrtimer_interrupt->__run_hrtimer->tick_sched_timer-> update_process_times->
+rcu_check_callbacks->rcu_pending->__rcu_pending->set_need_resched
 
-Graeme
+Kernels 3.5.0-rc2+ do not exhibit this problem, because a patch to
+try_to_freeze() in include/linux/freezer.h introduces a call to
+might_sleep(), which ultimately calls schedule() to clear the reschedule
+flag and allows the the loop to execute the call to mwait().
+
+However, the changes to try_to_freeze are unrelated to acpi_pad, and it
+does not seem like a good idea to rely on an unrelated patch in a
+function that could later be changed and reintroduce this bug.
+
+Therefore, it seems better to make an explicit call to schedule() in the
+outer loop when the need_resched flag is set.
+
+Reported-by: Stuart Hayes <stuart_hayes@dell.com>
+Tested-by: Stuart Hayes <stuart_hayes@dell.com>
+Signed-off-by: Tony Camuso <tcamuso@redhat.com>
+---
+ drivers/acpi/acpi_pad.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+index 27bb6a9..447c55b 100644
+--- a/drivers/acpi/acpi_pad.c
++++ b/drivers/acpi/acpi_pad.c
+@@ -219,8 +219,15 @@ static int power_saving_thread(void *data)
+ 		 * borrow CPU time from this CPU and cause RT task use > 95%
+ 		 * CPU time. To make 'avoid starvation' work, takes a nap here.
+ 		 */
+-		if (do_sleep)
++		if (unlikely(do_sleep))
+ 			schedule_timeout_killable(HZ * idle_pct / 100);
++
++		/* If an external event has set the need_resched flag, then
++		 * we need to deal with it, or this loop will continue to
++		 * spin without calling __mwait().
++		 */
++		if (unlikely(need_resched()))
++			schedule();
+ 	}
+ 
+ 	exit_round_robin(tsk_index);
+-- 
+1.8.3.1
+
