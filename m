@@ -1,202 +1,104 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v3 part1 04/11] ARM64 / ACPI: Introduce arm-core.c and
- its related head file
-Date: Fri, 25 Apr 2014 19:38:48 +0100
-Message-ID: <20140425183848.GE28819@e106331-lin.cambridge.arm.com>
-References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>
- <1398432017-8506-5-git-send-email-hanjun.guo@linaro.org>
- <20140425155147.GA28819@e106331-lin.cambridge.arm.com>
- <20140425165320.GD1186@xora-haswell>
+From: Myron Stowe <myron.stowe@gmail.com>
+Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range capabilities
+Date: Fri, 25 Apr 2014 16:24:31 -0600
+Message-ID: <CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com>
+References: <20140419025308.2408.51252.stgit@amt.stowe>
+	<20140419025323.2408.88764.stgit@amt.stowe>
+	<20140419135219.GC8109@pd.tnic>
+	<20140420075936.GA19672@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:53396 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751680AbaDYSjD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Apr 2014 14:39:03 -0400
-Content-Disposition: inline
-In-Reply-To: <20140425165320.GD1186@xora-haswell>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20140420075936.GA19672@pd.tnic>
+Sender: linux-pci-owner@vger.kernel.org
+To: Borislav Petkov <bp@suse.de>
+Cc: Myron Stowe <myron.stowe@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci <linux-pci@vger.kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, daniel@numascale.com, Thomas Gleixner <tglx@linutronix.de>, mingo@redhat.com, hpa@zytor.com, x86 <x86@kernel.org>, sp@numascale.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Graeme Gregory <graeme@xora.org.uk>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Rob Herring <robh@kernel.org>, Al Stone <al.stone@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>
 
-On Fri, Apr 25, 2014 at 05:53:20PM +0100, Graeme Gregory wrote:
-> On Fri, Apr 25, 2014 at 04:51:47PM +0100, Mark Rutland wrote:
-> > Hi Hanjun,
-> > 
-> > On Fri, Apr 25, 2014 at 02:20:10PM +0100, Hanjun Guo wrote:
-> > > ACPI core need lots extern variables and functions which should
-> > > be provided by arch dependent code to make itself compilable. so
-> > > introduce arm_core.c and its related header file here.
-> > > 
-> > > acpi_boot_table_init() will be called in setup_arch() before
-> > > paging_init(), so we should use eary_ioremap() mechanism here
-> > > to get the RSDP and all the table pointers, with this patch,
-> > > we can get ACPI boot-time tables from firmware on ARM64.
-> > > 
-> > > Signed-off-by: Al Stone <al.stone@linaro.org>
-> > > Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> > > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > > Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> > > ---
-> > >  arch/arm64/include/asm/acpi.h |   53 +++++++++++++++++++
-> > >  arch/arm64/kernel/setup.c     |    4 ++
-> > >  drivers/acpi/Makefile         |    2 +
-> > >  drivers/acpi/plat/Makefile    |    1 +
-> > >  drivers/acpi/plat/arm-core.c  |  113 +++++++++++++++++++++++++++++++++++++++++
-> > >  5 files changed, 173 insertions(+)
-> > >  create mode 100644 drivers/acpi/plat/Makefile
-> > >  create mode 100644 drivers/acpi/plat/arm-core.c
-> > > 
-> > > diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> > > index e3e990e..3ac9dfb 100644
-> > > --- a/arch/arm64/include/asm/acpi.h
-> > > +++ b/arch/arm64/include/asm/acpi.h
-> > > @@ -19,6 +19,43 @@
-> > >  #ifndef _ASM_ACPI_H
-> > >  #define _ASM_ACPI_H
-> > >  
-> > > +#include <asm/cacheflush.h>
-> > > +
-> > > +#include <linux/init.h>
-> > > +
-> > > +#define COMPILER_DEPENDENT_INT64	s64
-> > > +#define COMPILER_DEPENDENT_UINT64	u64
-> > 
-> > Is there any reason this can't be in a common ACPI header shared be ia64
-> > and x86 too? Given we already have generic types for this it seems
-> > pointless to define this in each architecture.
-> > 
-> > It looks like include/acpi/actypes.h tries to do that already...
-> > 
-> Yes I think we can replace that with uint64_t and int64_t types.
-> 
-> > > +
-> > > +/*
-> > > + * Calling conventions:
-> > > + *
-> > > + * ACPI_SYSTEM_XFACE        - Interfaces to host OS (handlers, threads)
-> > > + * ACPI_EXTERNAL_XFACE      - External ACPI interfaces
-> > > + * ACPI_INTERNAL_XFACE      - Internal ACPI interfaces
-> > > + * ACPI_INTERNAL_VAR_XFACE  - Internal variable-parameter list interfaces
-> > > + */
-> > > +#define ACPI_SYSTEM_XFACE
-> > > +#define ACPI_EXTERNAL_XFACE
-> > > +#define ACPI_INTERNAL_XFACE
-> > > +#define ACPI_INTERNAL_VAR_XFACE
-> > > +
-> > > +/* Asm macros */
-> > > +#define ACPI_FLUSH_CPU_CACHE() flush_cache_all()
-> > 
-> > This almost certainly does not do what you think it does.
-> > 
-> > flush_cache_all walks the architected levels of cache visible to the
-> > current CPU (i.e. those in CLIDR_EL1), and walks over each cache line at
-> > that level, cleaning and evicting it. It also flushes the I-cache (which
-> > I don't think you care about here).
-> > 
-> > This is NOT safe if the cache is enabled. Lines can migrate between
-> > levels in the middle of the sequence.
-> > 
-> > In an SMP system this does NOT guarantee that data is evicted to memory,
-> > even if the cache is disabled. Other CPUs with caches enabled can
-> > acquire a cacheline (even if dirty) and it can sit in their cache.
-> > 
-> > In a UP system or an SMP system where all other architected caches are
-> > disabled (and flushed) this does NOT guarantee that data hits memory. In
-> > the presence of a system-level cache this will simply flush the data out
-> > to said system-level rather than memory.
-> > 
-> > I believe the intent here is to have something analogous to WBINVD for
-> > use in idle. Unfortunately there simply isn't anything analogous.
-> > Luckily in the presence of PSCI, the PSCI implementation should do all
-> > of the cache maintenance required to prevent any data loss and/or
-> > corruption, and anything we need to have visible to noncacheable
-> > accesses (i.e. flushed out to memory) we should be able to flush by VA.
-> > 
-> > This maintenance is unsafe, and shouldn't be necessary on any sane
-> > system. Please get rid of it. I would very much like to get rid of
-> > flush_cache_all() before its misuse spreads further.
-> > 
-> Thanks for explanation Mark, you are correct on x86 it is defined as
-> wbinvd().
-> 
-> I think looking at where it is actually used we can make this an empty
-> macro on arm64 for now. Where it used are areas we don't currently
-> execute and need arm64 replacements or refactorising to remove x86isms.
+On Sun, Apr 20, 2014 at 1:59 AM, Borislav Petkov <bp@suse.de> wrote:
+> Drop Andreas' old email address from CC as it keeps bouncing.
+>
+> On Sat, Apr 19, 2014 at 03:52:20PM +0200, Borislav Petkov wrote:
+>> > -static void __init pci_enable_pci_io_ecs(void)
+>> > +static void __init pci_enable_pci_io_ecs(u8 bus, u8 slot)
+>> >  {
+>> >  #ifdef CONFIG_AMD_NB
+>> >     unsigned int i, n;
+>> > +   u8 limit;
+>> >
+>> >     for (n = i = 0; !n && amd_nb_bus_dev_ranges[i].dev_limit; ++i) {
+>> > -           u8 bus = amd_nb_bus_dev_ranges[i].bus;
+>> > -           u8 slot = amd_nb_bus_dev_ranges[i].dev_base;
+>> > -           u8 limit = amd_nb_bus_dev_ranges[i].dev_limit;
+>> > +           /* Try matching for the bus range */
+>> > +           if ((bus != amd_nb_bus_dev_ranges[i].bus) ||
+>> > +               (slot != amd_nb_bus_dev_ranges[i].dev_base))
+>> > +                   continue;
+>> > +
+>> > +           limit = amd_nb_bus_dev_ranges[i].dev_limit;
+>> >
+>> > +           /* Setup all northbridges within the range */
+>> >             for (; slot < limit; ++slot) {
+>> >                     u32 val = read_pci_config(bus, slot, 3, 0);
+>> > -
+>> > -                   if (!early_is_amd_nb(val))
+>> > +                   if (!val)
+>> >                             continue;
+>> >
+>> >                     val = read_pci_config(bus, slot, 3, 0x8c);
+>> > @@ -375,13 +457,14 @@ static void __init pci_enable_pci_io_ecs(void)
+>> >                             val |= ENABLE_CF8_EXT_CFG >> 32;
+>>
+>> What a fun shifting!
+>>
+>> Maybe you should do
+>>
+>> #define ENABLE_CF8_EXT_CFG    BIT(46 - 32)
+>>
+>> to show exactly what you mean and how the bit is defined in MSR NB_CFG1
+>> and also show how the high 32-bits are mapped into F3x8c, while at it.
+>>
+>> And then you can drop the shifting at the call site.
+>
+> Ok, I see another fun with this ECS enabling:
+>
+> There's a enable_pci_io_ecs() which enables ECS through the NB_CFG MSR
+> which is called as part of the notifier *and* there's a PCI write to
+> that same bit in pci_enable_pci_io_ecs() which iterates over all NBs.
+>
+> So, AFAICT, we do it twice and the second time is not needed. Which
+> means, you probably can drop pci_enable_pci_io_ecs() completely and use
+> solely the notifier?
 
-That sounds good. Is it worth putting a warn or similar there just in
-case?
+It does look as if there is some duplication with respect to setting
+MSR_AMD64_NB_CFG's (which is aliased at D18F3x8c [1])
+ENABLE_CF8_EXT_CFG enable bit but there are at least a couple of
+differences.
 
-> 
-> > > +/* Basic configuration for ACPI */
-> > > +#ifdef	CONFIG_ACPI
-> > > +extern int acpi_disabled;
-> > > +extern int acpi_noirq;
-> > > +extern int acpi_pci_disabled;
-> > > +extern int acpi_strict;
-> > 
-> > This looks very odd. Why are these prototypes not coming from a header?
-> > If they're defined in the same place, why not move the disable_acpi
-> > function there?
-> > 
-> 
-> This is a header :-)
+enable_pci_io_ecs() only sets the bit on one NB whereas
+pci_enable_pci_io_ecs iterates over all the NBs (as you mentioned
+above).  The other difference has something to do with Xen; see the
+origin of pci_enable_pci_io_ecs - commit 24d9b70b8.
 
-True; I must get my eyes tested. :)
+>
+> Yes, no?
 
-Are these variables expected to be used by needed by other code, or are
-they just for the benefit of the static inlines in this header?
+Suravee, Kim - either of you want to chime in here?
 
-> I think this is a peculiarity of how acpica is incorporated into linux
-> but will check.
 
-Ok.
+[1] Read-write; Per-node. MSRC001_001F[31:0] is an alias of D18F3x88.
+MSRC001_001F[63:32] is an alias of
+D18F3x8C.
 
-> 
-> > > +static inline void disable_acpi(void)
-> > > +{
-> > > +	acpi_disabled = 1;
-> > > +	acpi_pci_disabled = 1;
-> > > +	acpi_noirq = 1;
-> > > +}
-> > 
-> > [...]
-> > 
-> > > +/*
-> > > + * __acpi_map_table() will be called before page_init(), so early_ioremap()
-> > > + * or early_memremap() should be called here.
-> > > + */
-> > > +char *__init __acpi_map_table(unsigned long phys, unsigned long size)
-> > > +{
-> > > +	if (!phys || !size)
-> > > +		return NULL;
-> > 
-> > Is there any reason that tables can't exist at physical address 0? It's
-> > entirely valid to have memory there.
-> > 
-> > [...]
-> > 
-> On ARM64 there is not, we can fix this.
-> 
-> > > +int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
-> > > +{
-> > > +	*irq = -1;
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
-> > 
-> > This appears to be missing a giant warning that it does nothing useful.
-> > 
-> > I was under the impression that we were meant to use 0 to represent the
-> > lack of an interrupt these days, too...
-> > 
-> We can fix this.
-
-Sounds good!
-
-Cheers,
-Mark.
+Myron
+>
+> --
+> Regards/Gruss,
+>     Boris.
+>
+> Sent from a fat crate under my desk. Formatting is fine.
+> --
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
