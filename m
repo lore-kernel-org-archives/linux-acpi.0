@@ -1,114 +1,106 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/2] ACPI: Fix the issue that auto SSDT loading is
- conflict with customized SSDT that is included by the customized DSDT.
-Date: Fri, 25 Apr 2014 00:37:17 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802557EE0@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1396925060.git.lv.zheng@intel.com>
- <5046344.V68ybXiztI@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E8802557632@SHSMSX101.ccr.corp.intel.com>
- <1974311.7I6ij48FLW@vostro.rjw.lan>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [RFC][PATCH 2/3][Resend] PM / runtime: Routine for checking
+ device status during system suspend
+Date: Fri, 25 Apr 2014 13:28:27 +0200
+Message-ID: <CAPDyKFqLBcj9qYA1jLO5rJBV0gqB8-G=G+M-WJSMJCvOBL671Q@mail.gmail.com>
+References: <Pine.LNX.4.44L0.1402271001190.1150-100000@iolanthe.rowland.org>
+	<5039115.7hOuWtlQhG@vostro.rjw.lan>
+	<2801565.1dAEgrXAm3@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:12418 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751454AbaDYAhW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Apr 2014 20:37:22 -0400
-In-Reply-To: <1974311.7I6ij48FLW@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2801565.1dAEgrXAm3@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IFdlZG5lc2RheSwgQXByaWwgMjMsIDIwMTQgNjo0OCBQTQ0KPiBU
-bzogWmhlbmcsIEx2DQo+IA0KPiBPbiBXZWRuZXNkYXksIEFwcmlsIDIzLCAyMDE0IDAxOjIxOjUz
-IEFNIFpoZW5nLCBMdiB3cm90ZToNCj4gPiBIaSwNCj4gPg0KPiA+ID4gRnJvbTogbGludXgtYWNw
-aS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLW93bmVyQHZnZXIua2Vy
-bmVsLm9yZ10gT24gQmVoYWxmIE9mIFJhZmFlbCBKLiBXeXNvY2tpDQo+ID4gPiBTZW50OiBUdWVz
-ZGF5LCBBcHJpbCAyMiwgMjAxNCA3OjIwIFBNDQo+ID4gPg0KPiA+ID4gT24gVHVlc2RheSwgQXBy
-aWwgMjIsIDIwMTQgMTI6NTA6MzcgQU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+ID4gPiBIaSwgUmFm
-YWVsDQo+ID4gPiA+DQo+ID4gPiA+ID4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpy
-andAcmp3eXNvY2tpLm5ldF0NCj4gPiA+ID4gPiBTZW50OiBUdWVzZGF5LCBBcHJpbCAyMiwgMjAx
-NCA1OjE0IEFNDQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBPbiBUdWVzZGF5LCBBcHJpbCAwOCwgMjAx
-NCAxMDo0OTowNiBBTSBMdiBaaGVuZyB3cm90ZToNCj4gPiA+ID4gPiA+IFRoaXMgcGF0Y2ggZml4
-ZXMgdGhlIGZvbGxvd2luZyBpc3N1ZToNCj4gPiA+ID4gPiA+IFVzZXIgY2FuIHNwZWNpZnkgYSBE
-U0RUIHdpdGggU1NEVCBlbWJlZGRlZCwgaW4gd2hpY2ggY2FzZSwgbm9fc3RhdGljX3NzZHQNCj4g
-PiA+ID4gPiA+IG11c3QgYmUgZW5mb3JjZWQuICBJZiB3ZSBkb24ndCBkbyB0aGF0LCB0aGVuOg0K
-PiA+ID4gPiA+ID4gMS4gVGhlIG5hbWVzcGFjZSBvYmplY3QgY29uZmxpY3RzIHdpbGwgcmVzdWx0
-IGluIGFuIEFFX0FMUkVBRFlfRVhJU1RTDQo+ID4gPiA+ID4gPiAgICBleGNlcHRpb247DQo+ID4g
-PiA+ID4gPiAyLiBUaGUgbmFtZXNwYWNlIG9iamVjdHMgdGhhdCBhcmUgZGVsZXRlZCBmcm9tIHRo
-ZSBvcmlnaW5hbCBTU0RUIHdpbGwgYmUNCj4gPiA+ID4gPiA+ICAgIHJlc3RvcmVkIGJ5IHRoZSBh
-dXRvIGxvYWRpbmcgb2YgdGhlIG9yaWdpbmFsIFNTRFQuDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+
-ID4gTm90ZSB0aGF0IHRoZSBEU0RUIGN1c3RvbWl6YXRpb24gaXMgYSBjb21waWxlLXRpbWUgZmVh
-dHVyZSwgdGh1cyB0aGUgU1NEVA0KPiA+ID4gPiA+ID4gaW5jbHVzaW9uIGluZGljYXRpb24gb2Yg
-dGhlIERTRFQgY3VzdG9taXphdGlvbiBpcyBhbHNvIGltcGxlbWVudGVkIGFzIGENCj4gPiA+ID4g
-PiA+IGNvbXBpbGUtdGltZSBjb25maWd1cmFibGUuDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4g
-QnVnbGluazogaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD02OTcx
-MQ0KPiA+ID4gPiA+ID4gT3JpZ2luYWwtYnk6IEVucmljbyBFdHhlIEFydGUgPGdvaXRpemVuYS5n
-ZW5lcm9hQGdtYWlsLmNvbT4NCj4gPiA+ID4gPiA+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxs
-di56aGVuZ0BpbnRlbC5jb20+DQo+ID4gPiA+ID4gPiAtLS0NCj4gPiA+ID4gPiA+ICBkcml2ZXJz
-L2FjcGkvS2NvbmZpZyAgICB8ICAgIDggKysrKysrKysNCj4gPiA+ID4gPiA+ICBkcml2ZXJzL2Fj
-cGkvaW50ZXJuYWwuaCB8ICAgIDUgKysrKysNCj4gPiA+ID4gPiA+ICBkcml2ZXJzL2FjcGkvb3Ns
-LmMgICAgICB8ICAgMTQgKysrKysrKysrKysrKy0NCj4gPiA+ID4gPiA+ICBkcml2ZXJzL2FjcGkv
-dGFibGVzLmMgICB8ICAgIDIgKysNCj4gPiA+ID4gPiA+ICA0IGZpbGVzIGNoYW5nZWQsIDI4IGlu
-c2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiBkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9hY3BpL0tjb25maWcgYi9kcml2ZXJzL2FjcGkvS2NvbmZpZw0KPiA+
-ID4gPiA+ID4gaW5kZXggYzIwNTY1My4uYTBiODEzMSAxMDA2NDQNCj4gPiA+ID4gPiA+IC0tLSBh
-L2RyaXZlcnMvYWNwaS9LY29uZmlnDQo+ID4gPiA+ID4gPiArKysgYi9kcml2ZXJzL2FjcGkvS2Nv
-bmZpZw0KPiA+ID4gPiA+ID4gQEAgLTIxMiw2ICsyMTIsMTQgQEAgY29uZmlnIEFDUElfQ1VTVE9N
-X0RTRFQNCj4gPiA+ID4gPiA+ICAJYm9vbA0KPiA+ID4gPiA+ID4gIAlkZWZhdWx0IEFDUElfQ1VT
-VE9NX0RTRFRfRklMRSAhPSAiIg0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ICtjb25maWcgQUNQ
-SV9DVVNUT01fU1NEVF9JTkNMVURFRA0KPiA+ID4gPiA+ID4gKwlib29sICJDdXN0b20gU1NEVCBU
-YWJsZXMgaW5jbHVkZWQiDQo+ID4gPiA+ID4gPiArCWRlcGVuZHMgb24gQUNQSV9DVVNUT01fRFNE
-VA0KPiA+ID4gPiA+ID4gKwloZWxwDQo+ID4gPiA+ID4gPiArCSAgVGhpcyBvcHRpb24gdHVybnMg
-b24gYWNwaS5ub19zdGF0aWNfc3NkdCBieSBkZWZhdWx0Lg0KPiA+ID4gPiA+ID4gKw0KPiA+ID4g
-PiA+ID4gKwkgIElmIHRoZSBTU0RUIGNvZGUgaGFzIGJlZW4gbWVyZ2VkIGludG8gdGhlIGN1c3Rv
-bSBEU0RUIGZpbGUsIHNheSBZLg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gSSB3b25kZXIgd2hhdCB0
-aGUgYmVuZWZpdCBvZiBoYXZpbmcgYSBzZXBhcmF0ZSAuY29uZmlnIG9wdGlvbiBmb3IgdGhhdCBp
-cz8NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IENhbid0IHdlIGp1c3QgdXNlIENPTkZJR19BQ1BJX0NV
-U1RPTV9EU0RUIGluc3RlYWQgb2YgQ09ORklHX0FDUElfQ1VTVE9NX1NTRFRfSU5DTFVERUQNCj4g
-PiA+ID4gPiBldmVyeXdoZXJlIGluc3RlYWQ/DQo+ID4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4g
-SXQgaXMgYSBkaWZmZXJlbnQgdXNlIGNhc2UuDQo+ID4gPiA+IE5vcm1hbGx5LCBBQ1BJX0NVU1RP
-TV9EU0RUIG9ubHkgYWxsb3dzIDEgdGFibGUgdG8gYmUgY3VzdG9taXplZC4NCj4gPiA+ID4gVGhl
-IG9yaWdpbmFsIGJ1ZyByZXBvcnRlciBoYXMgdG8gY3VzdG9taXplIHRoZSBTU0RUIHRvIG1ha2Ug
-aGlzIHBsYXRmb3JtIGJvb3RhYmxlLg0KPiA+ID4gPiBIZSBhY2hpZXZlcyB0aGlzIGJ5IGNvcHlp
-bmcgdGhlIGVudGlyZSBTU0RUIGludG8gdGhlIERTRFQgYW5kIGNvbXBpbGUgdGhlIERTRFQNCj4g
-PiA+ID4gaW50byBhIGN1c3RvbWl6ZWQgYmluYXJ5IHRvIGJlIHVzZWQgZm9yIEFDUElfQ1VTVE9N
-X0RTRFQuDQo+ID4gPiA+IFNvIHVzZXIgY2FuOg0KPiA+ID4gPg0KPiA+ID4gPiAxLiBjdXN0b21p
-emUgRFNEVCB3aXRob3V0IFNTRFRzIGNvcGllZCBpbnRvIGl0Ow0KPiA+ID4gPiAyLiBjdXN0b21p
-emUgRFNEVCB3aXRoIFNTRFRzIGNvcGllZCBpbnRvIGl0Lg0KPiA+ID4gPg0KPiA+ID4gPiBUaGUg
-bmV3IGNvbmZpZyBvcHRpb24gaXMgdXNlZCBmb3IgdGhlIG5ldyB1c2UgY2FzZSAtIGNhc2UgMi4N
-Cj4gPiA+ID4gU28gaXQgc2VlbXMgd2UgY2FuJ3QganVzdCB1c2UgQ09ORklHX0FDUElfQ1VTVE9N
-X0RTRFQuDQo+ID4gPiA+DQo+ID4gPiA+IEkgdGhpbmsgdGhlIG5hbWluZyBvZiB0aGUgbmV3IG9w
-dGlvbiBtaWdodCBiZSBjb25mdXNpbmcuDQo+ID4gPiA+IEl0ICBjYW4gYmUgQUNQSV9DVVNUT01f
-RFNEVF9XSVRIX1NTRFQgdG8gaW5kaWNhdGUgdGhlIGZhY3QgdGhhdA0KPiA+ID4gPiBpdCBpcyBh
-IHN1Yi1vcHRpb24gdGhhdCBkZXBlbmRzIG9uIHRoZSBBQ1BJX0NVU1RPTV9EU0RULg0KPiA+ID4N
-Cj4gPiA+IFdlbGwsIGl0IGxvb2tzIGxpa2UgdGhlIHNvbHV0aW9uIHdvdWxkIGJlIHRvIGFsbG93
-IFNTRFRzIGFuZCBEU0RUcyB0byBiZQ0KPiA+ID4gY3VzdG9taXplZCBpbmRlcGVuZGVudGx5LCB3
-b3VsZG4ndCBpdD8NCj4gPg0KPiA+IEZpcnN0LCBJJ20gbm90IHRhbGtpbmcgYWJvdXQgaW5pdHJk
-IHRhYmxlIG92ZXJyaWRlLg0KPiA+DQo+ID4gRm9yIHRoZSBDT05GSUdfQUNQSV9DVVNUT01fRFNE
-VCBmZWF0dXJlLCBJJ20gYWZyYWlkIHRoZSBhbnN3ZXIgaXMgU1NEVCBjYW5ub3QgYmUgaW5kZXBl
-bmRlbnRseSBjdXN0b21pemVkIHdpdGhvdXQgRFNEVA0KPiBjdXN0b21pemF0aW9uLg0KPiANCj4g
-SXMgdGhlcmUgYW55IGZ1bmRhbWVudGFsIHByb2JsZW0gd2l0aCB0aGF0IG9yIGlzIGl0IGp1c3Qg
-YSBsaW1pdGF0aW9uIGluIHRoZQ0KPiBjdXJyZW50IGNvZGU/DQoNClRoZSBTU0RUIG92ZXJyaWRl
-IHVzaW5nIERTRFQgaXMgbm90IGEgbmV3IGZlYXR1cmUsIGl0IGlzIHVzZWQgYWxvbmcgd2l0aCB0
-aGUgYWNwaS5ub19hdXRvX3NzZHQgYm9vdCBwYXJhbWV0ZXIuDQpUaGUgdXNlIGNhc2UgaXMgZG9j
-dW1lbnRlZCBoZXJlOg0KaHR0cHM6Ly8wMS5vcmcvemgvbGludXgtYWNwaS9kb2N1bWVudGF0aW9u
-L292ZXJyaWRpbmctZHNkdD9sYW5ncmVkaXJlY3Q9MQ0KU2VhcmNoaW5nIGluIHRoZSBpbnRlcm5l
-dCwgdGhlcmUgYXJlIGFsc28gbWFueSBwb3N0cyBmcm9tIExpbnV4IGNvbnRyaWJ1dGlvbiBzaXRl
-cyB0cmFpbmluZyBidWcgcmVwb3J0ZXJzIHVzaW5nIHRoaXMgZmFjaWxpdHkgdG8gcGVyZm9ybSBh
-biBTU0RUIG92ZXJyaWRlIHRvIGZpeCBCSU9TIHByb2JsZW1zLg0KDQpUaGlzIHBhdGNoIGlzIGEg
-dXNlZnVsIGZpeCBmb3Igb3ZlcnJpZGluZyBTU0RUIHVzaW5nIERTRFQuDQpJdCBjYW4gcHJldmVu
-dCBBQ1BJQ0EgZnJvbToNCjEuIGdlbmVyYXRpbmcgdW53ZWxjb21lZCBBRV9BTFJFQURZX0VYSVNU
-UyBvcg0KMi4gZXhlY3V0aW5nIGxvYWQtdGltZSBTU0RUIEFNTCB0d2ljZS4NClRoZSBsYXR0ZXIg
-aXNzdWUgY291bGQgYmUgYSBmdW5kYW1lbnRhbCBwcm9ibGVtLg0KQU1MIHdpbGwgYmUgZXhlY3V0
-ZWQgdXBvbiBsb2FkaW5nIGEgdGFibGUuICBJdCB3aWxsIGNhdXNlIHRoZSBsb2FkLXRpbWUgQU1M
-IGluIFNTRFQgYmVpbmcgZXhlY3V0ZWQgdHdpY2UuDQpBcyB0aGUgZXhlY3V0aW9uIGVudmlyb25t
-ZW50IGhhcyBiZWVuIGNoYW5nZWQgZm9yIHRoZSBzZWNvbmQgbG9hZCBleGVjdXRpb24sIHRoZXJl
-IGFyZSBwb3NzaWJpbGl0aWVzIHRvIHRyaWdnZXIgd3JvbmcgcmVzdWx0Lg0KDQpUaGFua3MgYW5k
-IGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gDQo+IC0tDQo+IEkgc3BlYWsgb25seSBmb3IgbXlzZWxm
-Lg0KPiBSYWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50
-ZXIuDQo=
+On 25 April 2014 00:39, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Add a new helper routine, pm_runtime_enabled_and_suspended(), to
+> allow subsystems (or PM domains) to check the runtime PM status of
+> devices during system suspend (possibly to avoid resuming those
+> devices upfront at that time).
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/base/power/runtime.c |   28 ++++++++++++++++++++++++++++
+>  include/linux/pm_runtime.h   |    2 ++
+>  2 files changed, 30 insertions(+)
+>
+> Index: linux-pm/include/linux/pm_runtime.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/pm_runtime.h
+> +++ linux-pm/include/linux/pm_runtime.h
+> @@ -57,6 +57,7 @@ extern unsigned long pm_runtime_autosusp
+>  extern void pm_runtime_update_max_time_suspended(struct device *dev,
+>                                                  s64 delta_ns);
+>  extern void pm_runtime_set_memalloc_noio(struct device *dev, bool enable);
+> +extern bool pm_runtime_enabled_and_suspended(struct device *dev);
+>
+>  static inline bool pm_children_suspended(struct device *dev)
+>  {
+> @@ -165,6 +166,7 @@ static inline unsigned long pm_runtime_a
+>                                 struct device *dev) { return 0; }
+>  static inline void pm_runtime_set_memalloc_noio(struct device *dev,
+>                                                 bool enable){}
+> +static inline bool pm_runtime_enabled_and_suspended(struct device *dev) { return false; }
+>
+>  #endif /* !CONFIG_PM_RUNTIME */
+>
+> Index: linux-pm/drivers/base/power/runtime.c
+> ===================================================================
+> --- linux-pm.orig/drivers/base/power/runtime.c
+> +++ linux-pm/drivers/base/power/runtime.c
+> @@ -1195,6 +1195,34 @@ void pm_runtime_enable(struct device *de
+>  EXPORT_SYMBOL_GPL(pm_runtime_enable);
+>
+>  /**
+> + * pm_runtime_enabled_and_suspended - Check runtime PM status of a device.
+> + * @dev: Device to handle.
+> + *
+> + * This routine is to be executed during system suspend only, after
+> + * device_prepare() has been executed for @dev.
+
+Hi Rafael,
+
+Do we really need to state the above constraints. Could we not leave
+it to be used in other scenarios as well? I am not sure those would
+exists though, but still. :-)
+
+Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
+
+Kind regards
+Ulf Hansson
+
+> + *
+> + * Return false if runtime PM is disabled for the device.  Otherwise, wait
+> + * for pending transitions to complete and check the runtime PM status of the
+> + * device after that.  Return true if it is RPM_SUSPENDED.
+> + */
+> +bool pm_runtime_enabled_and_suspended(struct device *dev)
+> +{
+> +       unsigned long flags;
+> +       bool ret;
+> +
+> +       spin_lock_irqsave(&dev->power.lock, flags);
+> +       if (dev->power.disable_depth) {
+> +               ret = false;
+> +       } else {
+> +               __pm_runtime_barrier(dev);
+> +               ret = pm_runtime_status_suspended(dev);
+> +       }
+> +       spin_unlock_irqrestore(&dev->power.lock, flags);
+> +       return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(pm_runtime_enabled_and_suspended);
+> +
+> +/**
+>   * pm_runtime_forbid - Block runtime PM of a device.
+>   * @dev: Device to handle.
+>   *
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
