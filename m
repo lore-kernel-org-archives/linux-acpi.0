@@ -1,94 +1,165 @@
-From: Sam Protsenko <semen.protsenko@linaro.org>
-Subject: Re: [PATCH] acpi: respect const qualifier
-Date: Fri, 25 Apr 2014 18:02:22 +0300
-Message-ID: <CAGBcZGc0vQG2W3-q2uLGLHSCm2jNXuW0EB293GZCkU7LJq8xqg@mail.gmail.com>
-References: <1397750006-17463-1-git-send-email-semen.protsenko@linaro.org>
-	<3334700.hi79274ifW@vostro.rjw.lan>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v3 part1 04/11] ARM64 / ACPI: Introduce arm-core.c and
+ its related head file
+Date: Fri, 25 Apr 2014 16:51:47 +0100
+Message-ID: <20140425155147.GA28819@e106331-lin.cambridge.arm.com>
+References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>
+ <1398432017-8506-5-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f181.google.com ([209.85.213.181]:41708 "EHLO
-	mail-ig0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751436AbaDYPCW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2014 11:02:22 -0400
-Received: by mail-ig0-f181.google.com with SMTP id h18so2305163igc.2
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Apr 2014 08:02:22 -0700 (PDT)
-In-Reply-To: <3334700.hi79274ifW@vostro.rjw.lan>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:47789 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751063AbaDYPvt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Apr 2014 11:51:49 -0400
+Content-Disposition: inline
+In-Reply-To: <1398432017-8506-5-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, Rob Herring <robh@kernel.org>, Will Deacon <Will.Deacon@arm.com>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Al Stone <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-> This is not a mainline kernel problem, surely?
+Hi Hanjun,
 
-Correct, this warning is just example of possible issue that can be
-occurred because of missing "const" qualifier. Actually I saw this
-warning in Linaro ACPI kernel (intended for ARMv8 AArch64
-architecture).
+On Fri, Apr 25, 2014 at 02:20:10PM +0100, Hanjun Guo wrote:
+> ACPI core need lots extern variables and functions which should
+> be provided by arch dependent code to make itself compilable. so
+> introduce arm_core.c and its related header file here.
+> 
+> acpi_boot_table_init() will be called in setup_arch() before
+> paging_init(), so we should use eary_ioremap() mechanism here
+> to get the RSDP and all the table pointers, with this patch,
+> we can get ACPI boot-time tables from firmware on ARM64.
+> 
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> ---
+>  arch/arm64/include/asm/acpi.h |   53 +++++++++++++++++++
+>  arch/arm64/kernel/setup.c     |    4 ++
+>  drivers/acpi/Makefile         |    2 +
+>  drivers/acpi/plat/Makefile    |    1 +
+>  drivers/acpi/plat/arm-core.c  |  113 +++++++++++++++++++++++++++++++++++++++++
+>  5 files changed, 173 insertions(+)
+>  create mode 100644 drivers/acpi/plat/Makefile
+>  create mode 100644 drivers/acpi/plat/arm-core.c
+> 
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index e3e990e..3ac9dfb 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -19,6 +19,43 @@
+>  #ifndef _ASM_ACPI_H
+>  #define _ASM_ACPI_H
+>  
+> +#include <asm/cacheflush.h>
+> +
+> +#include <linux/init.h>
+> +
+> +#define COMPILER_DEPENDENT_INT64	s64
+> +#define COMPILER_DEPENDENT_UINT64	u64
 
-But I believe that this issue should be fixed in mainline kernel,
-because it can cause the same warning in the future.
+Is there any reason this can't be in a common ACPI header shared be ia64
+and x86 too? Given we already have generic types for this it seems
+pointless to define this in each architecture.
 
-On 21 April 2014 23:44, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Thursday, April 17, 2014 06:53:26 PM Semen Protsenko wrote:
->> This patch fixes next warning:
->>
->> <------------------------------- cut here --------------------------=
-------->
->> drivers/acpi/property.c: In function =E2=80=98acpi_free_properties=E2=
-=80=99:
->> drivers/acpi/property.c:35:2: warning: passing argument 1 of =E2=80=98=
-acpi_os_free=E2=80=99
->>                               discards =E2=80=98const=E2=80=99 quali=
-fier from pointer
->>                               target type [enabled by default]
->>
->>   ACPI_FREE(adev->properties);
->> <------------------------------- cut here --------------------------=
-------->
->
-> This is not a mainline kernel problem, surely?
->
->>
->> The problem is next:
->>
->>  - acpi_free_properties() calls ACPI_FREE(), passing "const *"
->>    parameter to it
->>  - ACPI_FREE() is macro for acpi_os_free()
->>  - acpi_os_free() takes "void *" parameter
->>  - acpi_os_free() calls kfree()
->>  - but kfree() requires "const void *" parameter
->>
->> So acpi_os_free() should require "const void *" parameter as well.
->>
->> Signed-off-by: Semen Protsenko <semen.protsenko@linaro.org>
->> ---
->>  include/acpi/platform/aclinux.h | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform=
-/aclinux.h
->> index 93c55ed..c6fa763 100644
->> --- a/include/acpi/platform/aclinux.h
->> +++ b/include/acpi/platform/aclinux.h
->> @@ -174,7 +174,7 @@ static inline void *acpi_os_allocate_zeroed(acpi=
-_size size)
->>  #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_allocate_zeroed
->>  #define USE_NATIVE_ALLOCATE_ZEROED
->>
->> -static inline void acpi_os_free(void *memory)
->> +static inline void acpi_os_free(const void *memory)
->>  {
->>       kfree(memory);
->>  }
->>
->
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It looks like include/acpi/actypes.h tries to do that already...
+
+> +
+> +/*
+> + * Calling conventions:
+> + *
+> + * ACPI_SYSTEM_XFACE        - Interfaces to host OS (handlers, threads)
+> + * ACPI_EXTERNAL_XFACE      - External ACPI interfaces
+> + * ACPI_INTERNAL_XFACE      - Internal ACPI interfaces
+> + * ACPI_INTERNAL_VAR_XFACE  - Internal variable-parameter list interfaces
+> + */
+> +#define ACPI_SYSTEM_XFACE
+> +#define ACPI_EXTERNAL_XFACE
+> +#define ACPI_INTERNAL_XFACE
+> +#define ACPI_INTERNAL_VAR_XFACE
+> +
+> +/* Asm macros */
+> +#define ACPI_FLUSH_CPU_CACHE() flush_cache_all()
+
+This almost certainly does not do what you think it does.
+
+flush_cache_all walks the architected levels of cache visible to the
+current CPU (i.e. those in CLIDR_EL1), and walks over each cache line at
+that level, cleaning and evicting it. It also flushes the I-cache (which
+I don't think you care about here).
+
+This is NOT safe if the cache is enabled. Lines can migrate between
+levels in the middle of the sequence.
+
+In an SMP system this does NOT guarantee that data is evicted to memory,
+even if the cache is disabled. Other CPUs with caches enabled can
+acquire a cacheline (even if dirty) and it can sit in their cache.
+
+In a UP system or an SMP system where all other architected caches are
+disabled (and flushed) this does NOT guarantee that data hits memory. In
+the presence of a system-level cache this will simply flush the data out
+to said system-level rather than memory.
+
+I believe the intent here is to have something analogous to WBINVD for
+use in idle. Unfortunately there simply isn't anything analogous.
+Luckily in the presence of PSCI, the PSCI implementation should do all
+of the cache maintenance required to prevent any data loss and/or
+corruption, and anything we need to have visible to noncacheable
+accesses (i.e. flushed out to memory) we should be able to flush by VA.
+
+This maintenance is unsafe, and shouldn't be necessary on any sane
+system. Please get rid of it. I would very much like to get rid of
+flush_cache_all() before its misuse spreads further.
+
+> +/* Basic configuration for ACPI */
+> +#ifdef	CONFIG_ACPI
+> +extern int acpi_disabled;
+> +extern int acpi_noirq;
+> +extern int acpi_pci_disabled;
+> +extern int acpi_strict;
+
+This looks very odd. Why are these prototypes not coming from a header?
+If they're defined in the same place, why not move the disable_acpi
+function there?
+
+> +static inline void disable_acpi(void)
+> +{
+> +	acpi_disabled = 1;
+> +	acpi_pci_disabled = 1;
+> +	acpi_noirq = 1;
+> +}
+
+[...]
+
+> +/*
+> + * __acpi_map_table() will be called before page_init(), so early_ioremap()
+> + * or early_memremap() should be called here.
+> + */
+> +char *__init __acpi_map_table(unsigned long phys, unsigned long size)
+> +{
+> +	if (!phys || !size)
+> +		return NULL;
+
+Is there any reason that tables can't exist at physical address 0? It's
+entirely valid to have memory there.
+
+[...]
+
+> +int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+> +{
+> +	*irq = -1;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+
+This appears to be missing a giant warning that it does nothing useful.
+
+I was under the impression that we were meant to use 0 to represent the
+lack of an interrupt these days, too...
+
+Cheers,
+Mark.
