@@ -1,217 +1,83 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH 1/2] clk: new basic clk type for fractional divider
-Date: Fri, 25 Apr 2014 15:22:20 +0300
-Message-ID: <1398428541-912-2-git-send-email-heikki.krogerus@linux.intel.com>
-References: <1398428541-912-1-git-send-email-heikki.krogerus@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1398428541-912-1-git-send-email-heikki.krogerus@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mike Turquette <mturquette@linaro.org>
-Cc: Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Loic Poulain <loic.poulain@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH v3 part1 02/11] ARM64 / ACPI: Introduce the skeleton of _PDC related for ARM64
+Date: Fri, 25 Apr 2014 21:20:08 +0800
+Message-ID: <1398432017-8506-3-git-send-email-hanjun.guo@linaro.org>
+References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:54280 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751825AbaDYNVj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2014 09:21:39 -0400
+Received: by mail-pa0-f49.google.com with SMTP id lj1so3153105pab.22
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Apr 2014 06:21:38 -0700 (PDT)
+In-Reply-To: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Will Deacon <will.deacon@arm.com>, Charles.Garcia-Tobin@arm.com, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>
 
-Fractional divider clocks are fairly common. This adds basic
-type for them.
+The _PDC (Processor Driver Capabilities) object provides OSPM a
+mechanism to convey to the platform the capabilities supported
+by OSPM for processor power management.
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+OSPM evaluates _PDC prior to evaluating any other processor
+power management objects returning configuration information.
+
+This patch introduces the skeleton of _PDC related file to make
+ACPI core can be compiled on ARM64, and should be revisited when
+implementing CPU power control.
+
+Signed-off-by: Al Stone <al.stone@linaro.org>
+Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/clk/Makefile                 |   1 +
- drivers/clk/clk-fractional-divider.c | 132 +++++++++++++++++++++++++++++++++++
- include/linux/clk-provider.h         |  31 ++++++++
- 3 files changed, 164 insertions(+)
- create mode 100644 drivers/clk/clk-fractional-divider.c
+ arch/arm64/include/asm/acpi.h |   37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+ create mode 100644 arch/arm64/include/asm/acpi.h
 
-diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
-index 5f8a287..0745059 100644
---- a/drivers/clk/Makefile
-+++ b/drivers/clk/Makefile
-@@ -8,6 +8,7 @@ obj-$(CONFIG_COMMON_CLK)	+= clk-fixed-rate.o
- obj-$(CONFIG_COMMON_CLK)	+= clk-gate.o
- obj-$(CONFIG_COMMON_CLK)	+= clk-mux.o
- obj-$(CONFIG_COMMON_CLK)	+= clk-composite.o
-+obj-$(CONFIG_COMMON_CLK)	+= clk-fractional-divider.o
- 
- # hardware specific clock types
- # please keep this section sorted lexicographically by file/directory path name
-diff --git a/drivers/clk/clk-fractional-divider.c b/drivers/clk/clk-fractional-divider.c
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
 new file mode 100644
-index 0000000..a4dd873
+index 0000000..e3e990e
 --- /dev/null
-+++ b/drivers/clk/clk-fractional-divider.c
-@@ -0,0 +1,132 @@
++++ b/arch/arm64/include/asm/acpi.h
+@@ -0,0 +1,37 @@
 +/*
-+ * Copyright (C) 2014 Intel Corporation
++ *  Copyright (C) 2013~2014, Al Stone <al.stone@linaro.org>
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 + *
-+ * Adjustable fractional divider clock implementation.
-+ * Output rate = (m / n) * parent_rate.
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 + */
 +
-+#include <linux/clk-provider.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/gcd.h>
++#ifndef _ASM_ACPI_H
++#define _ASM_ACPI_H
 +
-+#define to_clk_fd(_hw) container_of(_hw, struct clk_fractional_divider, hw)
-+
-+static unsigned long clk_fd_recalc_rate(struct clk_hw *hw,
-+					unsigned long parent_rate)
++static inline bool arch_has_acpi_pdc(void)
 +{
-+	struct clk_fractional_divider *fd = to_clk_fd(hw);
-+	unsigned long flags = 0;
-+	unsigned n, m;
-+	u32 val;
-+
-+	if (fd->lock)
-+		spin_lock_irqsave(fd->lock, flags);
-+
-+	val = clk_readl(fd->reg);
-+
-+	if (fd->lock)
-+		spin_unlock_irqrestore(fd->lock, flags);
-+
-+	m = (val & fd->mmask) >> fd->mshift;
-+	n = (val & fd->nmask) >> fd->nshift;
-+
-+	return parent_rate / n * m;
++	/*
++	 * Always false for now, should be revisited when
++	 * implementing CPU power management
++	 */
++	return false;
 +}
 +
-+static long clk_fd_round_rate(struct clk_hw *hw, unsigned long rate,
-+			      unsigned long *prate)
++static inline void arch_acpi_set_pdc_bits(u32 *buf)
 +{
-+	struct clk_fractional_divider *fd = to_clk_fd(hw);
-+	unsigned maxdiv = (fd->nmask >> fd->nshift) + 1;
-+	unsigned div;
-+
-+	if (!rate || rate > *prate)
-+		return *prate;
-+
-+	div = gcd(*prate, rate);
-+
-+	while ((*prate / div) > maxdiv) {
-+		div <<= 1;
-+		rate <<= 1;
-+	}
-+
-+	return rate;
++	/* Should be revisited when implementing CPU power management */
++	return;
 +}
 +
-+static int clk_fd_set_rate(struct clk_hw *hw, unsigned long rate,
-+			   unsigned long parent_rate)
-+{
-+	struct clk_fractional_divider *fd = to_clk_fd(hw);
-+	unsigned long flags = 0;
-+	unsigned long div;
-+	unsigned n, m;
-+	u32 val;
-+
-+	div = gcd(parent_rate, rate);
-+	m = rate / div;
-+	n = parent_rate / div;
-+
-+	if (fd->lock)
-+		spin_lock_irqsave(fd->lock, flags);
-+
-+	val = clk_readl(fd->reg);
-+	val &= ~(fd->mmask | fd->nmask);
-+	val |= (m << fd->mshift) | (n << fd->nshift);
-+	clk_writel(val, fd->reg);
-+
-+	if (fd->lock)
-+		spin_unlock_irqrestore(fd->lock, flags);
-+
-+	return 0;
-+}
-+
-+const struct clk_ops clk_fractional_divider_ops = {
-+	.recalc_rate = clk_fd_recalc_rate,
-+	.round_rate = clk_fd_round_rate,
-+	.set_rate = clk_fd_set_rate,
-+};
-+EXPORT_SYMBOL_GPL(clk_fractional_divider_ops);
-+
-+struct clk *clk_register_fractional_divider(struct device *dev,
-+		const char *name, const char *parent_name, unsigned long flags,
-+		void __iomem *reg, u8 mshift, u8 mwidth, u8 nshift, u8 nwidth,
-+		u8 clk_divider_flags, spinlock_t *lock)
-+{
-+	struct clk_fractional_divider *fd;
-+	struct clk_init_data init;
-+	struct clk *clk;
-+
-+	fd = kzalloc(sizeof(*fd), GFP_KERNEL);
-+	if (!fd) {
-+		pr_err("%s: could not allocate fractional divider clk\n",
-+		       __func__);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	init.name = name;
-+	init.ops = &clk_fractional_divider_ops;
-+	init.flags = flags | CLK_IS_BASIC;
-+	init.parent_names = (parent_name ? &parent_name : NULL);
-+	init.num_parents = (parent_name ? 1 : 0);
-+
-+	fd->reg = reg;
-+	fd->mshift = mshift;
-+	fd->mmask = (BIT(mwidth) - 1) << mshift;
-+	fd->nshift = nshift;
-+	fd->nmask = (BIT(nwidth) - 1) << nshift;
-+	fd->flags = clk_divider_flags;
-+	fd->lock = lock;
-+	fd->hw.init = &init;
-+
-+	clk = clk_register(dev, &fd->hw);
-+	if (IS_ERR(clk))
-+		kfree(fd);
-+
-+	return clk;
-+}
-+EXPORT_SYMBOL_GPL(clk_register_fractional_divider);
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 5119174..fb4eca6 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -413,6 +413,37 @@ struct clk *clk_register_fixed_factor(struct device *dev, const char *name,
- 		const char *parent_name, unsigned long flags,
- 		unsigned int mult, unsigned int div);
- 
-+/**
-+ * struct clk_fractional_divider - adjustable fractional divider clock
-+ *
-+ * @hw:		handle between common and hardware-specific interfaces
-+ * @reg:	register containing the divider
-+ * @mshift:	shift to the numerator bit field
-+ * @mwidth:	width of the numerator bit field
-+ * @nshift:	shift to the denominator bit field
-+ * @nwidth:	width of the denominator bit field
-+ * @lock:	register lock
-+ *
-+ * Clock with adjustable fractional divider affecting its output frequency.
-+ */
-+
-+struct clk_fractional_divider {
-+	struct clk_hw	hw;
-+	void __iomem	*reg;
-+	u8		mshift;
-+	u32		mmask;
-+	u8		nshift;
-+	u32		nmask;
-+	u8		flags;
-+	spinlock_t	*lock;
-+};
-+
-+extern const struct clk_ops clk_fractional_divider_ops;
-+struct clk *clk_register_fractional_divider(struct device *dev,
-+		const char *name, const char *parent_name, unsigned long flags,
-+		void __iomem *reg, u8 mshift, u8 mwidth, u8 nshift, u8 nwidth,
-+		u8 clk_divider_flags, spinlock_t *lock);
-+
- /***
-  * struct clk_composite - aggregate clock of mux, divider and gate clocks
-  *
++#endif /*_ASM_ACPI_H*/
 -- 
-2.0.0.rc0
+1.7.9.5
+
