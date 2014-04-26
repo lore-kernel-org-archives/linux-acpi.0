@@ -1,104 +1,117 @@
-From: Myron Stowe <myron.stowe@gmail.com>
-Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range capabilities
-Date: Fri, 25 Apr 2014 16:24:31 -0600
-Message-ID: <CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com>
-References: <20140419025308.2408.51252.stgit@amt.stowe>
-	<20140419025323.2408.88764.stgit@amt.stowe>
-	<20140419135219.GC8109@pd.tnic>
-	<20140420075936.GA19672@pd.tnic>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI and power management fixes for v3.15-rc3
+Date: Sat, 26 Apr 2014 02:11:51 +0200
+Message-ID: <CAJZ5v0gkQH0=hGTpA0fF=tpAW_t3eCvLkZPQ-=ROPmzzDYssLg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20140420075936.GA19672@pd.tnic>
-Sender: linux-pci-owner@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: Myron Stowe <myron.stowe@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci <linux-pci@vger.kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, daniel@numascale.com, Thomas Gleixner <tglx@linutronix.de>, mingo@redhat.com, hpa@zytor.com, x86 <x86@kernel.org>, sp@numascale.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:64077 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750802AbaDZALx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Apr 2014 20:11:53 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Sun, Apr 20, 2014 at 1:59 AM, Borislav Petkov <bp@suse.de> wrote:
-> Drop Andreas' old email address from CC as it keeps bouncing.
->
-> On Sat, Apr 19, 2014 at 03:52:20PM +0200, Borislav Petkov wrote:
->> > -static void __init pci_enable_pci_io_ecs(void)
->> > +static void __init pci_enable_pci_io_ecs(u8 bus, u8 slot)
->> >  {
->> >  #ifdef CONFIG_AMD_NB
->> >     unsigned int i, n;
->> > +   u8 limit;
->> >
->> >     for (n = i = 0; !n && amd_nb_bus_dev_ranges[i].dev_limit; ++i) {
->> > -           u8 bus = amd_nb_bus_dev_ranges[i].bus;
->> > -           u8 slot = amd_nb_bus_dev_ranges[i].dev_base;
->> > -           u8 limit = amd_nb_bus_dev_ranges[i].dev_limit;
->> > +           /* Try matching for the bus range */
->> > +           if ((bus != amd_nb_bus_dev_ranges[i].bus) ||
->> > +               (slot != amd_nb_bus_dev_ranges[i].dev_base))
->> > +                   continue;
->> > +
->> > +           limit = amd_nb_bus_dev_ranges[i].dev_limit;
->> >
->> > +           /* Setup all northbridges within the range */
->> >             for (; slot < limit; ++slot) {
->> >                     u32 val = read_pci_config(bus, slot, 3, 0);
->> > -
->> > -                   if (!early_is_amd_nb(val))
->> > +                   if (!val)
->> >                             continue;
->> >
->> >                     val = read_pci_config(bus, slot, 3, 0x8c);
->> > @@ -375,13 +457,14 @@ static void __init pci_enable_pci_io_ecs(void)
->> >                             val |= ENABLE_CF8_EXT_CFG >> 32;
->>
->> What a fun shifting!
->>
->> Maybe you should do
->>
->> #define ENABLE_CF8_EXT_CFG    BIT(46 - 32)
->>
->> to show exactly what you mean and how the bit is defined in MSR NB_CFG1
->> and also show how the high 32-bits are mapped into F3x8c, while at it.
->>
->> And then you can drop the shifting at the call site.
->
-> Ok, I see another fun with this ECS enabling:
->
-> There's a enable_pci_io_ecs() which enables ECS through the NB_CFG MSR
-> which is called as part of the notifier *and* there's a PCI write to
-> that same bit in pci_enable_pci_io_ecs() which iterates over all NBs.
->
-> So, AFAICT, we do it twice and the second time is not needed. Which
-> means, you probably can drop pci_enable_pci_io_ecs() completely and use
-> solely the notifier?
+Hi Linus,
 
-It does look as if there is some duplication with respect to setting
-MSR_AMD64_NB_CFG's (which is aliased at D18F3x8c [1])
-ENABLE_CF8_EXT_CFG enable bit but there are at least a couple of
-differences.
+Please pull from
 
-enable_pci_io_ecs() only sets the bit on one NB whereas
-pci_enable_pci_io_ecs iterates over all the NBs (as you mentioned
-above).  The other difference has something to do with Xen; see the
-origin of pci_enable_pci_io_ecs - commit 24d9b70b8.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-3.15-rc3
 
->
-> Yes, no?
+to receive ACPI, power management and PNP fixes for v3.15-rc3
+with top-most commit d4c9c8a09cff85f69b2c224ca7dbeb42431da2b3
 
-Suravee, Kim - either of you want to chime in here?
+  Merge branches 'pnp' and 'acpi-hotplug'
+
+on top of commit a798c10faf62a505d24e5f6213fbaf904a39623f
+
+  Linux 3.15-rc2
+
+These include a fix for a recent ACPI regression related to
+device notifications, intel_idle fix related to IvyTown support,
+fix for a buffer size issue in ACPICA, PM core fix related to the
+"freeze" sleep state, four fixes for various types of breakage in
+cpufreq drivers, a PNP workaround for a wrong memory region size
+in ACPI tables, and a fix and cleanup for the ACPI tools Makefile.
+
+Specifics:
+
+ - Fix for broken ACPI notifications on some systems caused by
+   a recent ACPI hotplug commit that blocked the propagation of
+   unknown type notifications to device drivers inadvertently.
+
+ - intel_idle fix to make the IvyTown C-states handling (added
+   recently) work as intended which now is broken due to missing
+   braces.  From Christoph Jaeger.
+
+ - ACPICA fix to make it allocate buffers of the right sizes for
+   the Generic Serial Bus operation region access.  From Lv Zheng.
+
+ - PM core fix unblocking cpuidle before entering the "freeze"
+   sleep state which causes that state to be able to actually save
+   more energy than runtime idle.
+
+ - Configuration and build fixes for the highbank and powernv
+   cpufreq drivers from Kefeng Wang and Srivatsa S Bhat.
+
+ - Coccinelle warning fix related to error pointers for the
+   unicore32 cpufreq driver from Duan Jiong.
+
+ - Integer overflow fix for the ppc-corenet cpufreq driver from
+   Geert Uytterhoeven.
+
+ - Workaround for BIOSes that don't report the entire Intel MCH
+   area in their ACPI tables from Bjorn Helgaas.
+
+ - ACPI tools Makefile fix and cleanup from Thomas Renninger.
+
+Thanks!
 
 
-[1] Read-write; Per-node. MSRC001_001F[31:0] is an alias of D18F3x88.
-MSRC001_001F[63:32] is an alias of
-D18F3x8C.
+---------------
 
-Myron
->
-> --
-> Regards/Gruss,
->     Boris.
->
-> Sent from a fat crate under my desk. Formatting is fine.
-> --
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bjorn Helgaas (1):
+      PNP: Work around BIOS defects in Intel MCH area reporting
+
+Christoph Jaeger (1):
+      intel_idle: fix IVT idle state table setting
+
+Duan Jiong (1):
+      cpufreq: unicore32: replace IS_ERR and PTR_ERR with PTR_ERR_OR_ZERO
+
+Geert Uytterhoeven (1):
+      cpufreq: ppc: Fix integer overflow in expression
+
+Kefeng Wang (1):
+      cpufreq: highbank: fix ARM_HIGHBANK_CPUFREQ dependency warning
+
+Lv Zheng (1):
+      ACPICA: Fix buffer allocation issue for generic_serial_bus
+region accesses.
+
+Rafael J. Wysocki (2):
+      PM / suspend: Make cpuidle work in the "freeze" state
+      ACPI / notify: Do not block unknown type notifications in root handler
+
+Srivatsa S. Bhat (1):
+      cpufreq, powernv: Fix build failure on UP
+
+Thomas Renninger (1):
+      tools/power/acpi: Minor bugfixes
+
+---------------
+
+ drivers/acpi/acpica/exfield.c         | 104 +++++++++++++++++++++++++++++++---
+ drivers/acpi/bus.c                    |   5 +-
+ drivers/cpufreq/Kconfig.arm           |   6 +-
+ drivers/cpufreq/powernv-cpufreq.c     |   1 +
+ drivers/cpufreq/ppc-corenet-cpufreq.c |   2 +-
+ drivers/cpufreq/unicore2-cpufreq.c    |   4 +-
+ drivers/idle/intel_idle.c             |   3 +-
+ drivers/pnp/quirks.c                  |  79 ++++++++++++++++++++++++++
+ kernel/power/suspend.c                |   3 +
+ tools/power/acpi/Makefile             |  11 +---
+ 10 files changed, 188 insertions(+), 30 deletions(-)
