@@ -1,216 +1,74 @@
-From: Graeme Gregory <graeme@xora.org.uk>
-Subject: Re: [PATCH v3 part1 04/11] ARM64 / ACPI: Introduce arm-core.c and
- its related head file
-Date: Sat, 26 Apr 2014 13:09:39 +0100
-Message-ID: <20140426120939.GA9567@xora-haswell>
-References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>
- <1398432017-8506-5-git-send-email-hanjun.guo@linaro.org>
- <20140425155147.GA28819@e106331-lin.cambridge.arm.com>
- <20140425165320.GD1186@xora-haswell>
- <20140425183848.GE28819@e106331-lin.cambridge.arm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 1/5] ACPICA: OSL: Add direct inclusion of extra header.
+Date: Sun, 27 Apr 2014 23:33:38 +0200
+Message-ID: <3997362.yjEHqV8nv6@vostro.rjw.lan>
+References: <cover.1396930406.git.lv.zheng@intel.com> <cover.1398232408.git.lv.zheng@intel.com> <43884d194fd55ca9124078d3374ec4cf4a8026ef.1398232408.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.xora.org.uk ([80.68.91.202]:36511 "EHLO
-	xora.vm.bytemark.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752664AbaDZMJl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Apr 2014 08:09:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20140425183848.GE28819@e106331-lin.cambridge.arm.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:60978 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751402AbaD0VRM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Apr 2014 17:17:12 -0400
+In-Reply-To: <43884d194fd55ca9124078d3374ec4cf4a8026ef.1398232408.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Rob Herring <robh@kernel.org>, Al Stone <al.stone@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, Apr 25, 2014 at 07:38:48PM +0100, Mark Rutland wrote:
-> On Fri, Apr 25, 2014 at 05:53:20PM +0100, Graeme Gregory wrote:
-> > On Fri, Apr 25, 2014 at 04:51:47PM +0100, Mark Rutland wrote:
-> > > Hi Hanjun,
-> > > 
-> > > On Fri, Apr 25, 2014 at 02:20:10PM +0100, Hanjun Guo wrote:
-> > > > ACPI core need lots extern variables and functions which should
-> > > > be provided by arch dependent code to make itself compilable. so
-> > > > introduce arm_core.c and its related header file here.
-> > > > 
-> > > > acpi_boot_table_init() will be called in setup_arch() before
-> > > > paging_init(), so we should use eary_ioremap() mechanism here
-> > > > to get the RSDP and all the table pointers, with this patch,
-> > > > we can get ACPI boot-time tables from firmware on ARM64.
-> > > > 
-> > > > Signed-off-by: Al Stone <al.stone@linaro.org>
-> > > > Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> > > > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > > > Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> > > > ---
-> > > >  arch/arm64/include/asm/acpi.h |   53 +++++++++++++++++++
-> > > >  arch/arm64/kernel/setup.c     |    4 ++
-> > > >  drivers/acpi/Makefile         |    2 +
-> > > >  drivers/acpi/plat/Makefile    |    1 +
-> > > >  drivers/acpi/plat/arm-core.c  |  113 +++++++++++++++++++++++++++++++++++++++++
-> > > >  5 files changed, 173 insertions(+)
-> > > >  create mode 100644 drivers/acpi/plat/Makefile
-> > > >  create mode 100644 drivers/acpi/plat/arm-core.c
-> > > > 
-> > > > diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> > > > index e3e990e..3ac9dfb 100644
-> > > > --- a/arch/arm64/include/asm/acpi.h
-> > > > +++ b/arch/arm64/include/asm/acpi.h
-> > > > @@ -19,6 +19,43 @@
-> > > >  #ifndef _ASM_ACPI_H
-> > > >  #define _ASM_ACPI_H
-> > > >  
-> > > > +#include <asm/cacheflush.h>
-> > > > +
-> > > > +#include <linux/init.h>
-> > > > +
-> > > > +#define COMPILER_DEPENDENT_INT64	s64
-> > > > +#define COMPILER_DEPENDENT_UINT64	u64
-> > > 
-> > > Is there any reason this can't be in a common ACPI header shared be ia64
-> > > and x86 too? Given we already have generic types for this it seems
-> > > pointless to define this in each architecture.
-> > > 
-> > > It looks like include/acpi/actypes.h tries to do that already...
-> > > 
-> > Yes I think we can replace that with uint64_t and int64_t types.
-> > 
+On Wednesday, April 23, 2014 02:53:52 PM Lv Zheng wrote:
+> This is a linuxized result of an ACPICA commit to upgrade the extra
+> header mechanism.
+> 
+> This patch enhances the extra header solution to allow Linux to use
+> ACPI_USE_NATIVE_INTERFACE_HEADER and the file name can be automatically
+> replaced during ACPICA release process. Using this way, the rest of the
+> ACPICA users needn't know the name of the extra header file. Lv Zheng.
+> 
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>  include/acpi/acpi.h |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/acpi/acpi.h b/include/acpi/acpi.h
+> index ca0cb60..682398b 100644
+> --- a/include/acpi/acpi.h
+> +++ b/include/acpi/acpi.h
+> @@ -62,8 +62,8 @@
+>  #include <acpi/acrestyp.h>		/* Resource Descriptor structs */
+>  #include <acpi/acpiosxf.h>		/* OSL interfaces (ACPICA-to-OS) */
+>  #include <acpi/acpixf.h>		/* ACPI core subsystem external interfaces */
+> -#ifdef ACPI_NATIVE_INTERFACE_HEADER
+> -#include ACPI_NATIVE_INTERFACE_HEADER
+> +#ifdef ACPI_USE_NATIVE_INTERFACE_HEADER
+> +#include <acpi/acpi_opt.h>
+>  #endif
+>  
+>  #endif				/* __ACPI_H__ */
 
-I have dug into this deeper and since include/acpi/platform/aclinux.h
-defines ACPI_USE_SYSTEM_INTTYPES then these defines should not be used
-at all and it should be safe for us to just not have them in arm64
+Well, I still think there's a better way.
 
-I guess they are historic in x86/ia64
+Introduce <acpi/platform/acenvex.h> into ACPICA and put this into it:
 
-> > > > +
-> > > > +/*
-> > > > + * Calling conventions:
-> > > > + *
-> > > > + * ACPI_SYSTEM_XFACE        - Interfaces to host OS (handlers, threads)
-> > > > + * ACPI_EXTERNAL_XFACE      - External ACPI interfaces
-> > > > + * ACPI_INTERNAL_XFACE      - Internal ACPI interfaces
-> > > > + * ACPI_INTERNAL_VAR_XFACE  - Internal variable-parameter list interfaces
-> > > > + */
-> > > > +#define ACPI_SYSTEM_XFACE
-> > > > +#define ACPI_EXTERNAL_XFACE
-> > > > +#define ACPI_INTERNAL_XFACE
-> > > > +#define ACPI_INTERNAL_VAR_XFACE
-> > > > +
-> > > > +/* Asm macros */
-> > > > +#define ACPI_FLUSH_CPU_CACHE() flush_cache_all()
-> > > 
-> > > This almost certainly does not do what you think it does.
-> > > 
-> > > flush_cache_all walks the architected levels of cache visible to the
-> > > current CPU (i.e. those in CLIDR_EL1), and walks over each cache line at
-> > > that level, cleaning and evicting it. It also flushes the I-cache (which
-> > > I don't think you care about here).
-> > > 
-> > > This is NOT safe if the cache is enabled. Lines can migrate between
-> > > levels in the middle of the sequence.
-> > > 
-> > > In an SMP system this does NOT guarantee that data is evicted to memory,
-> > > even if the cache is disabled. Other CPUs with caches enabled can
-> > > acquire a cacheline (even if dirty) and it can sit in their cache.
-> > > 
-> > > In a UP system or an SMP system where all other architected caches are
-> > > disabled (and flushed) this does NOT guarantee that data hits memory. In
-> > > the presence of a system-level cache this will simply flush the data out
-> > > to said system-level rather than memory.
-> > > 
-> > > I believe the intent here is to have something analogous to WBINVD for
-> > > use in idle. Unfortunately there simply isn't anything analogous.
-> > > Luckily in the presence of PSCI, the PSCI implementation should do all
-> > > of the cache maintenance required to prevent any data loss and/or
-> > > corruption, and anything we need to have visible to noncacheable
-> > > accesses (i.e. flushed out to memory) we should be able to flush by VA.
-> > > 
-> > > This maintenance is unsafe, and shouldn't be necessary on any sane
-> > > system. Please get rid of it. I would very much like to get rid of
-> > > flush_cache_all() before its misuse spreads further.
-> > > 
-> > Thanks for explanation Mark, you are correct on x86 it is defined as
-> > wbinvd().
-> > 
-> > I think looking at where it is actually used we can make this an empty
-> > macro on arm64 for now. Where it used are areas we don't currently
-> > execute and need arm64 replacements or refactorising to remove x86isms.
-> 
-> That sounds good. Is it worth putting a warn or similar there just in
-> case?
-> 
-> > 
-> > > > +/* Basic configuration for ACPI */
-> > > > +#ifdef	CONFIG_ACPI
-> > > > +extern int acpi_disabled;
-> > > > +extern int acpi_noirq;
-> > > > +extern int acpi_pci_disabled;
-> > > > +extern int acpi_strict;
-> > > 
-> > > This looks very odd. Why are these prototypes not coming from a header?
-> > > If they're defined in the same place, why not move the disable_acpi
-> > > function there?
-> > > 
-> > 
-> > This is a header :-)
-> 
-> True; I must get my eyes tested. :)
-> 
-> Are these variables expected to be used by needed by other code, or are
-> they just for the benefit of the static inlines in this header?
-> 
-> > I think this is a peculiarity of how acpica is incorporated into linux
-> > but will check.
-> 
-> Ok.
-> 
-> > 
-> > > > +static inline void disable_acpi(void)
-> > > > +{
-> > > > +	acpi_disabled = 1;
-> > > > +	acpi_pci_disabled = 1;
-> > > > +	acpi_noirq = 1;
-> > > > +}
-> > > 
-> > > [...]
-> > > 
-> > > > +/*
-> > > > + * __acpi_map_table() will be called before page_init(), so early_ioremap()
-> > > > + * or early_memremap() should be called here.
-> > > > + */
-> > > > +char *__init __acpi_map_table(unsigned long phys, unsigned long size)
-> > > > +{
-> > > > +	if (!phys || !size)
-> > > > +		return NULL;
-> > > 
-> > > Is there any reason that tables can't exist at physical address 0? It's
-> > > entirely valid to have memory there.
-> > > 
-> > > [...]
-> > > 
-> > On ARM64 there is not, we can fix this.
-> > 
-> > > > +int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
-> > > > +{
-> > > > +	*irq = -1;
-> > > > +
-> > > > +	return 0;
-> > > > +}
-> > > > +EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
-> > > 
-> > > This appears to be missing a giant warning that it does nothing useful.
-> > > 
-> > > I was under the impression that we were meant to use 0 to represent the
-> > > lack of an interrupt these days, too...
-> > > 
-> > We can fix this.
-> 
-> Sounds good!
-> 
-> Cheers,
-> Mark.
-> 
+#if defined(_LINUX) || defined(__linux__)
+#include <acpi/platform/aclinuxex.h>
 
-Thanks
+#endif
 
-Graeme
+and then move stuff you want in acpi/acpi_opt.h into acpi/platform/aclinuxex.h.
 
+Then, you'll have in acpi.h:
+
+#include <acpi/acrestyp.h>		/* Resource Descriptor structs */
+#include <acpi/acpiosxf.h>		/* OSL interfaces (ACPICA-to-OS) */
+#include <acpi/acpixf.h>		/* ACPI core subsystem external interfaces */
+#include <acpi/platform/acenvex.h>	/* Extra environment-specific items */
+
+
+That should work I suppose, shouldn't it?
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
