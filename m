@@ -1,54 +1,73 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 5/5] ACPICA: Remove deprecated _LINUX definitions for ACPICA.
-Date: Sun, 27 Apr 2014 23:38:46 +0200
-Message-ID: <2215223.yYQsuKoaSF@vostro.rjw.lan>
-References: <cover.1396930406.git.lv.zheng@intel.com> <cover.1398232408.git.lv.zheng@intel.com> <8e6c90efc629b463709aef5da4957e916fdc0437.1398232409.git.lv.zheng@intel.com>
+Subject: Re: [PATCH V5 02/12] PNPACPI: use whilte list for pnpacpi device enumeration
+Date: Mon, 28 Apr 2014 00:01:26 +0200
+Message-ID: <34978551.c1lKBcQLqc@vostro.rjw.lan>
+References: <1396886819-2637-1-git-send-email-rui.zhang@intel.com> <1396886819-2637-3-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64236 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:49153 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751381AbaD0VWU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Apr 2014 17:22:20 -0400
-In-Reply-To: <8e6c90efc629b463709aef5da4957e916fdc0437.1398232409.git.lv.zheng@intel.com>
+	with SMTP id S1751994AbaD0Vo7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Apr 2014 17:44:59 -0400
+In-Reply-To: <1396886819-2637-3-git-send-email-rui.zhang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com
 
-On Wednesday, April 23, 2014 02:54:22 PM Lv Zheng wrote:
-> There are _LINUX defined so that when Linux kernel is compiled using broken
-> compilers that having not __linux__ defined can still include
-> <acpi/platform/aclinux.h> from <acpi/platform/acenv.h>.
-> 
-> This behavior is deprecated as all drivers/acpi/acpica files are compiled
-> without including <linux/acpi.h>, thus without _LINUX defined.  As there is
-> no issues encountered when we compile ACPICA code without _LINUX defined,
-> it is OK to remove _LINUX from <linux/acpi.h> now.
-> 
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> ---
->  include/linux/acpi.h |    4 ----
->  1 file changed, 4 deletions(-)
-> 
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 7a8f2cd..9c559f7 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -31,10 +31,6 @@
->  
->  #ifdef	CONFIG_ACPI
->  
-> -#ifndef _LINUX
-> -#define _LINUX
-> -#endif
-> -
->  #include <linux/list.h>
->  #include <linux/mod_devicetable.h>
+On Tuesday, April 08, 2014 12:06:49 AM Zhang Rui wrote:
 
-What about <acpi/platform/acenv.h>?  Should it still check if _LINUX is defined
-after this change?
+[...]
+
+> +
+> +static int acpi_pnp_scan_handler_attach(struct acpi_device *adev,
+> +					const struct acpi_device_id *id)
+> +{
+> +	return 1;
+> +}
+> +
+> +static int acpi_pnp_scan_handler_match(char *devid, char *handlerid)
+> +{
+> +	int i;
+> +
+> +	if (memcmp(devid, handlerid, 3))
+> +		return 0;
+> +
+> +	for (i = 3; i < 7; i++) {
+> +		/* Not a HEX value */
+> +		if (!((devid[i] >= '0' && devid[i] <= '9') ||
+> +		      (devid[i] > 'A' && devid[i] <= 'F')))
+> +			return 0;
+> +
+> +		if ((handlerid[i] != 'X') &&
+
+Hmm.  What exactly is the above check for?
+
+> +		    toupper(devid[i]) != toupper(handlerid[i]))
+> +			return 0;
+> +	}
+> +	return 1;
+> +}
+> +
+> +static struct acpi_scan_handler acpi_pnp_handler = {
+> +	.ids = acpi_pnp_device_ids,
+> +	.match = acpi_pnp_scan_handler_match,
+> +	.attach = acpi_pnp_scan_handler_attach,
+> +};
+> +
+> +bool acpi_is_pnp_device(struct acpi_device *device)
+> +{
+> +	return device->handler == &acpi_pnp_handler;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_is_pnp_device);
+> +
+> +void __init acpi_pnp_init(void)
+> +{
+> +	acpi_scan_add_handler(&acpi_pnp_handler);
+> +}
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
 
 
 -- 
