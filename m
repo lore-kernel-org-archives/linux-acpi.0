@@ -1,61 +1,52 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [Linaro-acpi] [PATCH v3 part1 06/11] ARM64 / ACPI: Introduce
- lowlevel suspend function
-Date: Mon, 28 Apr 2014 16:22:40 +0100
-Message-ID: <20140428152240.GD31782@e102568-lin.cambridge.arm.com>
-References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>
- <1398432017-8506-7-git-send-email-hanjun.guo@linaro.org>
+From: Adam Williamson <awilliam@redhat.com>
+Subject: Re: [Patch V2 1/9] ACPICA: Executer: Fix buffer allocation issue
+ for generic_serial_bus region field accesses.
+Date: Mon, 28 Apr 2014 11:08:25 -0700
+Message-ID: <1398708505.2843.17.camel@adam.happyassassin.net>
+References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
+	 <1398695268-28645-1-git-send-email-tianyu.lan@intel.com>
+	 <1398695268-28645-2-git-send-email-tianyu.lan@intel.com>
+	 <1398707520.2843.16.camel@adam.happyassassin.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:36765 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755333AbaD1PWp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2014 11:22:45 -0400
-In-Reply-To: <1398432017-8506-7-git-send-email-hanjun.guo@linaro.org>
-Content-Disposition: inline
+Received: from mx1.redhat.com ([209.132.183.28]:48565 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932521AbaD1TZO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Apr 2014 15:25:14 -0400
+In-Reply-To: <1398707520.2843.16.camel@adam.happyassassin.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Rob Herring <robh@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: wsa@the-dreams.de, rjw@rjwysocki.net, mika.westerberg@linux.intel.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
-On Fri, Apr 25, 2014 at 02:20:12PM +0100, Hanjun Guo wrote:
-> acpi_wakeup_address is used on x86 as the address bios jumps into
-> when machine wakes up from suspend. As arm64 does not have such a
-> bios this mechanism will be provided by other means. But the define
-> is still required inside the acpi core.
+On Mon, 2014-04-28 at 10:52 -0700, Adam Williamson wrote:
+> On Mon, 2014-04-28 at 22:27 +0800, Lan Tianyu wrote:
+> > From: Lv Zheng <lv.zheng@intel.com>
+> > 
+> > The size of the buffer allocated for generic_serial_bus region access
+> > is not correct.  This patch introduces acpi_ex_get_serial_access_length()
+> > to be invoked to obtain correct data buffer length.  Reported by
+> > Lan Tianyu, Fixed by Lv Zheng.
+> > 
+> > Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 > 
-> Introduce a null stub for acpi_suspend_lowlevel as this is also
-> required by core. This will be filled in when standards are
-> defined for arm64 ACPI global power states.
-> 
-> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/arm64/include/asm/acpi.h |    4 ++++
->  drivers/acpi/plat/arm-core.c  |    7 +++++++
->  2 files changed, 11 insertions(+)
-> 
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 3ac9dfb..60e3a72 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -85,6 +85,10 @@ static inline void acpi_disable_pci(void)
->   */ 
->  #define cpu_physical_id(cpu) -1
->  
-> +/* Low-level suspend routine. */
-> +extern int (*acpi_suspend_lowlevel)(void);
-> +#define acpi_wakeup_address (0)
+> Very superficial issue, and sorry I forgot to mention it for v1, but the
+> summary line for this patch (1/9) ends with a period - "...region field
+> accesses." - which I think is not the correct style?
 
-I understand you want code to compile, but as I mentioned in another
-thread, I would focus more on understanding if these macros/hooks are
-really needed for ARM rather than defining them _just_ to make code
-compile. The fact that you are forced to define them makes me think
-there is something to be changed in ACPI core code instead of adding
-empty and probably useless macros/hooks for ARM which I have no idea
-whatsoever whether will ever be needed or not.
+In fact, it seems this patch already got merged into Linus' tree
+somehow:
 
-Lorenzo
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/drivers/acpi/acpica/exfield.c?id=6273f00e6ecbd60494a979033b7e5271a29a0436
+
+the others do not seem to have been merged yet.
+-- 
+Adam Williamson
+Fedora QA Community Monkey
+IRC: adamw | Twitter: AdamW_Fedora | XMPP: adamw AT happyassassin . net
+http://www.happyassassin.net
 
