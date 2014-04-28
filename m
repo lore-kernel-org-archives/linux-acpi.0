@@ -1,61 +1,53 @@
-From: Myron Stowe <myron.stowe@gmail.com>
-Subject: Re: [PATCH v2 5/5] PCI: Remove redundant 'quirk_amd_nb_node'
-Date: Mon, 28 Apr 2014 15:28:43 -0600
-Message-ID: <CAL-B5D23T3fSr=s=2T2LN-CaJn0u5rUaUxPOq+xdSdTU5KqE6Q@mail.gmail.com>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range
+ capabilities
+Date: Mon, 28 Apr 2014 23:40:36 +0200
+Message-ID: <20140428214036.GA32143@pd.tnic>
 References: <20140419025308.2408.51252.stgit@amt.stowe>
-	<20140419025345.2408.99229.stgit@amt.stowe>
-	<20140420105419.GB19676@pd.tnic>
+ <20140419025323.2408.88764.stgit@amt.stowe>
+ <20140419135219.GC8109@pd.tnic>
+ <20140420075936.GA19672@pd.tnic>
+ <CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com>
+ <20140426091031.GA10166@pd.tnic>
+ <CAErSpo4Jqo_opj=QqjcquS_6HqckZfP5-oQHkmY5FSAyyLNYMg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f173.google.com ([209.85.214.173]:38591 "EHLO
-	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753024AbaD1V2n (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2014 17:28:43 -0400
-In-Reply-To: <20140420105419.GB19676@pd.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAErSpo4Jqo_opj=QqjcquS_6HqckZfP5-oQHkmY5FSAyyLNYMg@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, herrmann.der.user@gmail.com
+Cc: Myron Stowe <myron.stowe@gmail.com>, Myron Stowe <myron.stowe@redhat.com>, linux-pci <linux-pci@vger.kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, Daniel J Blueman <daniel@numascale.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 <x86@kernel.org>, Steffen Persvold <sp@numascale.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Robert Richter <rric@kernel.org>, Jan Beulich <JBeulich@suse.com>, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: Myron Stowe <myron.stowe@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci <linux-pci@vger.kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, daniel@numascale.com, Thomas Gleixner <tglx@linutronix.de>, mingo@redhat.com, hpa@zytor.com, x86 <x86@kernel.org>, sp@numascale.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Sun, Apr 20, 2014 at 4:54 AM, Borislav Petkov <bp@suse.de> wrote:
-> On Fri, Apr 18, 2014 at 08:53:46PM -0600, Myron Stowe wrote:
->> With the amd_bus.c updates to support additional AMD processors (11h, 12h,
->> 14h 15h  and 16h) 'quirk_amd_nb_node' seems to be redundant.  This patch
->> removes it.
->>
->> Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
->
-> Good idea. Has this been tested, though? There are a bunch of places
-> using dev_to_node() which this quirk corrects, especially 'local_cpus'
-> in a bunch of sysfs nodes in the PCI hierarchy /sys/devices/pci*.
+On Mon, Apr 28, 2014 at 02:50:29PM -0600, Bjorn Helgaas wrote:
+> This I/O ECS thing seems likely to cause future problems.  My
+> understanding (based on sec 2.8 of [1]) is that enable_pci_io_ecs()
+> and pci_enable_pci_io_ecs() are there to enable access to extended
+> config space (offsets 256-4095) via the 0xcf8/0xcfc I/O ports.
+> 
+> Per sec 4.1.1 of [2], we should be using ECAM (the memory-mapped
+> enhanced configuration mechanism, i.e., MMCONFIG) to access extended
+> config space, and the BIOS should supply an MCFG table.
+> 
+> So why do we need to enable I/O access to ECS on AMD chips at all?  Is
+> this a workaround for a broken BIOS that doesn't supply an MCFG table?
 
-My testing was related to the PCI hierarchy /sys/devices/pci* as this
-was the root issue I'm trying to get resolved.
+That's a good question. 831d991821dae doesn't say but I have a hunch
+Andreas and/or Robert should know. I seem to vaguely remember it
+might've been because of a missing MCFG but have flushed it out of the
+cache long time ago.
 
-Daniel also responded - Thanks Dan! - indicating that the changes are
-ok related to his concerns.
+Let's ask them.
 
->
-> We want to make sure this doesn't break that and other dev_to_node()
-> callsites.
+Andreas, Robert, guys, do you remember why we did the PCI IO ECS access?
+B0rked BIOSes?
 
-Agreed, which is at least in part why this is a separate patch.
+Thanks.
 
-I'm going to run some more testing and then post with most of your
-comments incorporated.  Thanks again for the review.
+-- 
+Regards/Gruss,
+    Boris.
 
-Myron
->
-> Thanks.
->
-> --
-> Regards/Gruss,
->     Boris.
->
-> Sent from a fat crate under my desk. Formatting is fine.
-> --
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sent from a fat crate under my desk. Formatting is fine.
+--
