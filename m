@@ -1,78 +1,97 @@
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH v2 5/5] ACPICA: Remove deprecated _LINUX definitions for
- ACPICA.
-Date: Mon, 28 Apr 2014 22:26:46 +0200
-Message-ID: <535EB986.9060802@intel.com>
-References: <cover.1396930406.git.lv.zheng@intel.com> <cover.1398232408.git.lv.zheng@intel.com> <8e6c90efc629b463709aef5da4957e916fdc0437.1398232409.git.lv.zheng@intel.com> <2215223.yYQsuKoaSF@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E88025586A7@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [PATCH v2 3/5] ACPICA: Add <asm/acenv.h> to remove mis-ordered
+ inclusion of <asm/acpi.h> from <acpi/platform/aclinux.h>.
+Date: Mon, 28 Apr 2014 22:30:03 +0200
+Message-ID: <535EBA4B.5090305@intel.com>
+References: <cover.1396930406.git.lv.zheng@intel.com> <cover.1398232408.git.lv.zheng@intel.com> <522ac0c3a52f1697d75363cc808a213773dca295.1398232409.git.lv.zheng@intel.com> <1469560.3p9s15HIYZ@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E880255865E@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:39888 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752338AbaD1U11 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Apr 2014 16:27:27 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88025586A7@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880255865E@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-ia64-owner@vger.kernel.org
 To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Luck, Tony" <tony.luck@intel.com>, "Yu, Fenghua" <fenghua.yu@intel.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On 4/28/2014 6:10 AM, Zheng, Lv wrote:
+On 4/28/2014 5:02 AM, Zheng, Lv wrote:
 > Hi, Rafael
 >
->> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
->> Sent: Monday, April 28, 2014 5:39 AM
+>> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
+>> Sent: Monday, April 28, 2014 5:37 AM
+>> To: Zheng, Lv
 >>
->> On Wednesday, April 23, 2014 02:54:22 PM Lv Zheng wrote:
->>> There are _LINUX defined so that when Linux kernel is compiled using broken
->>> compilers that having not __linux__ defined can still include
->>> <acpi/platform/aclinux.h> from <acpi/platform/acenv.h>.
+>> On Wednesday, April 23, 2014 02:54:06 PM Lv Zheng wrote:
+>>> There is a mis-order inclusion for <asm/acpi.h>.
 >>>
->>> This behavior is deprecated as all drivers/acpi/acpica files are compiled
->>> without including <linux/acpi.h>, thus without _LINUX defined.  As there is
->>> no issues encountered when we compile ACPICA code without _LINUX defined,
->>> it is OK to remove _LINUX from <linux/acpi.h> now.
+>>> As we will enforce including <linux/acpi.h> for all Linux ACPI users, we
+>>> can find the inclusion order is as follows:
+>>>
+>>> <linux/acpi.h>
+>>>    <acpi/acpi.h>
+>>>     <acpi/platform/acenv.h>
+>>>      (acenv.h before including aclinux.h)
+>>>      <acpi/platform/aclinux.h>
+>>> ...........................................................................
+>>>       (aclinux.h before including asm/acpi.h)
+>>>       <asm/acpi.h>                             @Redundant@
+>>>        (ACPICA specific stuff)
+>>> ...........................................................................
+>>> ...........................................................................
+>>>        (Linux ACPI specific stuff) ? - - - - - - - - - - - - +
+>>>       (aclinux.h after including asm/acpi.h)   @Invisible@   |
+>>>      (acenv.h after including aclinux.h)       @Invisible@   |
+>>>     other ACPICA headers                       @Invisible@   |
+>>> ............................................................|..............
+>>>    <acpi/acpi_bus.h>                                         |
+>>>    <acpi/acpi_drivers.h>                                     |
+>>>    <asm/acpi.h> (Excluded)                                   |
+>>>     (Linux ACPI specific stuff) ! <- - - - - - - - - - - - - +
+>>>
+>>> NOTE that, in ACPICA, <acpi/platform/acenv.h> is more like Kconfig
+>>> generated <generated/autoconf.h> for Linux, it is meant to be included
+>>> before including any ACPICA code.
+>>>
+>>> In the above figure, there is a question mark for "Linux ACPI specific
+>>> stuff" in <asm/acpi.h> which should be included after including all other
+>>> ACPICA header files.  Thus they really need to be moved to the position
+>>> marked with exclaimation mark or the definitions in the blocks marked with
+>>> "@Invisible@" will be invisible to such architecture specific "Linux ACPI
+>>> specific stuff" header blocks.  This leaves 2 issues:
+>>> 1. All environmental definitions in these blocks should have a copy in the
+>>>     area marked with "@Redundant@" if they are required by the "Linux ACPI
+>>>     specific stuff".
+>>> 2. We cannot use any ACPICA defined types in <asm/acpi.h>.
+>>>
+>>> This patch splits architecture specific ACPICA stuff from <asm/acpi.h> to
+>>> fix this issue.
 >>>
 >>> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+>>> Cc: Tony Luck <tony.luck@intel.com>
+>>> Cc: Fenghua Yu <fenghua.yu@intel.com>
+>>> Cc: linux-ia64@vger.kernel.org
+>>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>>> Cc: Ingo Molnar <mingo@redhat.com>
+>>> Cc: "H. Peter Anvin" <hpa@zytor.com>
+>>> Cc: x86@kernel.org
 >>> ---
->>>   include/linux/acpi.h |    4 ----
->>>   1 file changed, 4 deletions(-)
->>>
->>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->>> index 7a8f2cd..9c559f7 100644
->>> --- a/include/linux/acpi.h
->>> +++ b/include/linux/acpi.h
->>> @@ -31,10 +31,6 @@
->>>
->>>   #ifdef	CONFIG_ACPI
->>>
->>> -#ifndef _LINUX
->>> -#define _LINUX
->>> -#endif
->>> -
->>>   #include <linux/list.h>
->>>   #include <linux/mod_devicetable.h>
->> What about <acpi/platform/acenv.h>?  Should it still check if _LINUX is defined
->> after this change?
-> If you mean these lines:
->    #if defined(_LINUX) || defined(__linux__)
->    #include <acpi/platform/aclinux.h>
-> After deleting "_LINUX" from <linux/acpi.h>, acenv.h still can include aclinux.h because of "__linux__".
-> Actually all drivers/acpi/acpica source files are compiled without including <linux/acpi.h>, so "_LINUX" defined in this file is useless to Linux.
-> We needn't delete "_LINUX" from acenv.h.
->
-> "_LINUX" is only used in ACPICA makefiles, Linux never uses it:
->    https://github.com/acpica/acpica/blob/master/generate/unix/Makefile.config
-> ACPICA can be compiled using the following make command:
->    make HOST=_LINUX
-> I think this is the only usage of "_LINUX" for now.
+>>>   arch/ia64/include/asm/acenv.h   |   71 +++++++++++++++++++++++++++++++++++++++
+>>>   arch/ia64/include/asm/acpi.h    |   50 ---------------------------
+>>>   arch/x86/include/asm/acenv.h    |   65 +++++++++++++++++++++++++++++++++++
+>>>   arch/x86/include/asm/acpi.h     |   45 -------------------------
+>>>   include/acpi/platform/aclinux.h |    2 +-
+>> Please rename the files first (in a separate patch) and then modify the
+>> renamed ones.  That will make changes much easier to follow.
+> This patch doesn't provide a rename.
+> Currently, <asm/acpi.h> includes:
+> 1. arch specific ACPI stuff
+> 2. arch specific ACPICA stuff
+> This patch moves "2" to a separate file <asm/acenv.h>, thus no renaming happens here.
 
-Well, my point was: If we delete the definition of _LINUX, why don't we 
-drop the symbol itself from everywhere along with it?
+Ah, I overlooked that, sorry.
 
-It definitely is not useful to refer to a symbol that's never defined, 
-is it?
+Which I might not do if the changelog said what the patch was really doing.
 
+Thanks,
 Rafael
 
