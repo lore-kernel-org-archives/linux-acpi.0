@@ -1,61 +1,109 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 part1 07/11] ARM64 / ACPI: Introduce
- arch_fix_phys_package_id() for cpu topology
-Date: Mon, 28 Apr 2014 09:50:29 +0100
-Message-ID: <20140428085029.GB15125@sirena.org.uk>
-References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>
- <1398432017-8506-8-git-send-email-hanjun.guo@linaro.org>
- <20140425145249.GP12304@sirena.org.uk>
- <535DC431.4000900@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v3 part1 04/11] ARM64 / ACPI: Introduce arm-core.c and
+ its related head file
+Date: Mon, 28 Apr 2014 17:32:43 +0800
+Message-ID: <535E203B.70006@linaro.org>
+References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org> <1398432017-8506-5-git-send-email-hanjun.guo@linaro.org> <1AE640813FDE7649BE1B193DEA596E88025586F4@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZfOjI3PrQbgiZnxM"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:47531 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753657AbaD1Iu4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2014 04:50:56 -0400
-Content-Disposition: inline
-In-Reply-To: <535DC431.4000900@linaro.org>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:55184 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753604AbaD1JdG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2014 05:33:06 -0400
+Received: by mail-pd0-f178.google.com with SMTP id fp1so3359873pdb.23
+        for <linux-acpi@vger.kernel.org>; Mon, 28 Apr 2014 02:33:05 -0700 (PDT)
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88025586F4@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <catalin.marinas@arm.com>, linaro-acpi@lists.linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Sudeep Holla <Sudeep.Holla@arm.com>, Grant Likely <grant.likely@linaro.org>, Charles.Garcia-Tobin@arm.com
+To: "Zheng, Lv" <lv.zheng@intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Will Deacon <will.deacon@arm.com>, "Charles.Garcia-Tobin@arm.com" <Charles.Garcia-Tobin@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Al Stone <al.stone@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
+Hi Lv,
 
---ZfOjI3PrQbgiZnxM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 2014-4-28 12:54, Zheng, Lv wrote:
+> Hi,
+> 
+>> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Hanjun Guo
+>> Sent: Friday, April 25, 2014 9:20 PM
+>>
+>> ACPI core need lots extern variables and functions which should
+>> be provided by arch dependent code to make itself compilable. so
+>> introduce arm_core.c and its related header file here.
+>>
+>> acpi_boot_table_init() will be called in setup_arch() before
+>> paging_init(), so we should use eary_ioremap() mechanism here
+>> to get the RSDP and all the table pointers, with this patch,
+>> we can get ACPI boot-time tables from firmware on ARM64.
+>>
+>> Signed-off-by: Al Stone <al.stone@linaro.org>
+>> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> ---
+>>  arch/arm64/include/asm/acpi.h |   53 +++++++++++++++++++
+>>  arch/arm64/kernel/setup.c     |    4 ++
+>>  drivers/acpi/Makefile         |    2 +
+>>  drivers/acpi/plat/Makefile    |    1 +
+>>  drivers/acpi/plat/arm-core.c  |  113 +++++++++++++++++++++++++++++++++++++++++
+>>  5 files changed, 173 insertions(+)
+>>  create mode 100644 drivers/acpi/plat/Makefile
+>>  create mode 100644 drivers/acpi/plat/arm-core.c
+>>
+>> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+>> index e3e990e..3ac9dfb 100644
+>> --- a/arch/arm64/include/asm/acpi.h
+>> +++ b/arch/arm64/include/asm/acpi.h
+>> @@ -19,6 +19,43 @@
+>>  #ifndef _ASM_ACPI_H
+>>  #define _ASM_ACPI_H
+>>
+>> +#include <asm/cacheflush.h>
+>> +
+>> +#include <linux/init.h>
+>> +
+>> +#define COMPILER_DEPENDENT_INT64	s64
+>> +#define COMPILER_DEPENDENT_UINT64	u64
+>> +
+>> +/*
+>> + * Calling conventions:
+>> + *
+>> + * ACPI_SYSTEM_XFACE        - Interfaces to host OS (handlers, threads)
+>> + * ACPI_EXTERNAL_XFACE      - External ACPI interfaces
+>> + * ACPI_INTERNAL_XFACE      - Internal ACPI interfaces
+>> + * ACPI_INTERNAL_VAR_XFACE  - Internal variable-parameter list interfaces
+>> + */
+>> +#define ACPI_SYSTEM_XFACE
+>> +#define ACPI_EXTERNAL_XFACE
+>> +#define ACPI_INTERNAL_XFACE
+>> +#define ACPI_INTERNAL_VAR_XFACE
+> 
+> Just a reminder.
+> I'm going to sort such default definitions out.
+> The story can be found here:
+> https://lkml.org/lkml/2014/4/8/57
+> The patch to achieve this can be found here:
+> https://lkml.org/lkml/2014/4/23/71
+> 
+> If your series is merged after the above series, you don't need the above lines.
+> 
+>> +
+>> +/* Asm macros */
+>> +#define ACPI_FLUSH_CPU_CACHE() flush_cache_all()
+>> +
+> 
+> Another reminder.
+> I'm going to split this into <asm/acenv.h> in the same story.
+> The patch to achieve this can be found here:
+> https://lkml.org/lkml/2014/4/23/75
+> If your series is merged after the above series, you need to put this line into arch/arm/include/asm/acenv.h.
 
-On Mon, Apr 28, 2014 at 11:00:01AM +0800, Hanjun Guo wrote:
+It is ok to me, once your patches are accepted by Rafael and merged
+into linux-next, I will rebase my patch set.
 
-> Since platform software (firmware) knows the topology of the system, if
-> ACPI describes a slot number for this CPU, I think we can use it
-> unconditionally.
+Thanks a lot the reminding :)
 
-Right, the only concern with that is upsetting the scheduler but since
-x86 does the same thing presumably this is safe.
+Best regards
+Hanjun
 
---ZfOjI3PrQbgiZnxM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTXhZSAAoJELSic+t+oim9WJkP/A1iejSvdtMK5VCpJMlvjp+c
-2z9fwN70RY8p6nhOaX6IyYGRtYmZq3O+8llU2paYeEgLb/JQcIiZpemg8K/egqpQ
-gnp/CymH/AHAPa/M6Yi3EzkcIaZchvIxvtRx4qZfhNLofTa4mKScvvuK4HEZMW90
-w2XX4DEXL/bpnGNZeZ5dhzv/N4BGbj6pfiyCvMW+WDZ9pOQIVQZygRCeEdyG50A3
-OPZHo2KMbWkGmREHkF+EOXcUDR+dk5DBUfYLGw6LUJB3n1rdPAL6h2qTuCqJZUJV
-5533IiGdDCEGOQAx9fd/BXnrOYq3X1tx2TIWW9v35RZ8bP61+r+iN+oib26cgPMb
-rAa+gkhNJNfj25dz+TzzsGIr8UCEwxCOS6ZMzT1SRGWSXzqOtnPfdNCZwoXyzF7P
-RfAz9zC2iXTFZVUcaW1l1HqqqYxQ6Sa+/eTwqClQUnBUNCjW0ALzsnIK4YhG6tGB
-el4GyuY9eNtW3VYB+ROhHdPyhcFn58RqScRiC962LmUXWh9E/rXk5p9j/hV5wM1t
-+BebT+H2jCHNmq/OM4U0FanPsuAMgo7i5TiSdjCcIOOvm46+Sqe2i5++UAUywTE7
-fBdWZxrlaGpwsfsA8X2ioONa1WC+5Y/ZEDj82T5tK63xlgL2vYEpBxCUSL3FeHuj
-e0rqWrWaNEb21i9Y49vI
-=BUkA
------END PGP SIGNATURE-----
-
---ZfOjI3PrQbgiZnxM--
