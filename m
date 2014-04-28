@@ -1,151 +1,199 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range capabilities
-Date: Mon, 28 Apr 2014 14:50:29 -0600
-Message-ID: <CAErSpo4Jqo_opj=QqjcquS_6HqckZfP5-oQHkmY5FSAyyLNYMg@mail.gmail.com>
-References: <20140419025308.2408.51252.stgit@amt.stowe> <20140419025323.2408.88764.stgit@amt.stowe>
- <20140419135219.GC8109@pd.tnic> <20140420075936.GA19672@pd.tnic>
- <CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com> <20140426091031.GA10166@pd.tnic>
+From: Myron Stowe <myron.stowe@gmail.com>
+Subject: Re: [PATCH v2 1/5] x86/PCI: Add support for generic AMD hostbridges
+Date: Mon, 28 Apr 2014 15:10:55 -0600
+Message-ID: <CAL-B5D0j8JXPTC87wsaArHVGPJxKphW8i0LCMYHR_2ck2S7AXA@mail.gmail.com>
+References: <20140419025308.2408.51252.stgit@amt.stowe>
+	<20140419025316.2408.29771.stgit@amt.stowe>
+	<20140419113111.GA8109@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:47718 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756757AbaD1Uuu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2014 16:50:50 -0400
-Received: by mail-ie0-f175.google.com with SMTP id rl12so1040790iec.34
-        for <linux-acpi@vger.kernel.org>; Mon, 28 Apr 2014 13:50:50 -0700 (PDT)
-In-Reply-To: <20140426091031.GA10166@pd.tnic>
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:37195 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932415AbaD1VK4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2014 17:10:56 -0400
+In-Reply-To: <20140419113111.GA8109@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Borislav Petkov <bp@suse.de>
-Cc: Myron Stowe <myron.stowe@gmail.com>, Myron Stowe <myron.stowe@redhat.com>, linux-pci <linux-pci@vger.kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, Daniel J Blueman <daniel@numascale.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 <x86@kernel.org>, Steffen Persvold <sp@numascale.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Robert Richter <rric@kernel.org>, Jan Beulich <JBeulich@suse.com>, Yinghai Lu <yinghai@kernel.org>
+Cc: Myron Stowe <myron.stowe@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci <linux-pci@vger.kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, daniel@numascale.com, Thomas Gleixner <tglx@linutronix.de>, mingo@redhat.com, hpa@zytor.com, x86 <x86@kernel.org>, sp@numascale.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-[+cc Jan (24d9b70b8 author), Yinghai]
-
-On Sat, Apr 26, 2014 at 3:10 AM, Borislav Petkov <bp@suse.de> wrote:
-> + Robert.
->
-> On Fri, Apr 25, 2014 at 04:24:31PM -0600, Myron Stowe wrote:
->> On Sun, Apr 20, 2014 at 1:59 AM, Borislav Petkov <bp@suse.de> wrote:
->> > Drop Andreas' old email address from CC as it keeps bouncing.
->> >
->> > On Sat, Apr 19, 2014 at 03:52:20PM +0200, Borislav Petkov wrote:
->> >> > -static void __init pci_enable_pci_io_ecs(void)
->> >> > +static void __init pci_enable_pci_io_ecs(u8 bus, u8 slot)
->> >> >  {
->> >> >  #ifdef CONFIG_AMD_NB
->> >> >     unsigned int i, n;
->> >> > +   u8 limit;
->> >> >
->> >> >     for (n = i = 0; !n && amd_nb_bus_dev_ranges[i].dev_limit; ++i) {
->> >> > -           u8 bus = amd_nb_bus_dev_ranges[i].bus;
->> >> > -           u8 slot = amd_nb_bus_dev_ranges[i].dev_base;
->> >> > -           u8 limit = amd_nb_bus_dev_ranges[i].dev_limit;
->> >> > +           /* Try matching for the bus range */
->> >> > +           if ((bus != amd_nb_bus_dev_ranges[i].bus) ||
->> >> > +               (slot != amd_nb_bus_dev_ranges[i].dev_base))
->> >> > +                   continue;
->> >> > +
->> >> > +           limit = amd_nb_bus_dev_ranges[i].dev_limit;
->> >> >
->> >> > +           /* Setup all northbridges within the range */
->> >> >             for (; slot < limit; ++slot) {
->> >> >                     u32 val = read_pci_config(bus, slot, 3, 0);
->> >> > -
->> >> > -                   if (!early_is_amd_nb(val))
->> >> > +                   if (!val)
->> >> >                             continue;
->> >> >
->> >> >                     val = read_pci_config(bus, slot, 3, 0x8c);
->> >> > @@ -375,13 +457,14 @@ static void __init pci_enable_pci_io_ecs(void)
->> >> >                             val |= ENABLE_CF8_EXT_CFG >> 32;
->> >>
->> >> What a fun shifting!
->> >>
->> >> Maybe you should do
->> >>
->> >> #define ENABLE_CF8_EXT_CFG    BIT(46 - 32)
->> >>
->> >> to show exactly what you mean and how the bit is defined in MSR NB_CFG1
->> >> and also show how the high 32-bits are mapped into F3x8c, while at it.
->> >>
->> >> And then you can drop the shifting at the call site.
->> >
->> > Ok, I see another fun with this ECS enabling:
->> >
->> > There's a enable_pci_io_ecs() which enables ECS through the NB_CFG MSR
->> > which is called as part of the notifier *and* there's a PCI write to
->> > that same bit in pci_enable_pci_io_ecs() which iterates over all NBs.
->> >
->> > So, AFAICT, we do it twice and the second time is not needed. Which
->> > means, you probably can drop pci_enable_pci_io_ecs() completely and use
->> > solely the notifier?
+On Sat, Apr 19, 2014 at 5:31 AM, Borislav Petkov <bp@suse.de> wrote:
+> On Fri, Apr 18, 2014 at 08:53:16PM -0600, Myron Stowe wrote:
+>> From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
 >>
->> It does look as if there is some duplication with respect to setting
->> MSR_AMD64_NB_CFG's (which is aliased at D18F3x8c [1])
->> ENABLE_CF8_EXT_CFG enable bit but there are at least a couple of
->> differences.
+>> AMD hostbridges gnenerally show up as PCI device 0:18.0.  This patch adds
+>> logic to automatically probe the device at this location and check PCI
+>> device class code.
 >>
->> enable_pci_io_ecs() only sets the bit on one NB whereas
->> pci_enable_pci_io_ecs iterates over all the NBs (as you mentioned
->> above).  The other difference has something to do with Xen; see the
->> origin of pci_enable_pci_io_ecs - commit 24d9b70b8.
+>> This patch supports platforms with the following AMD hostbridge types:
+>> (K8, family10h, 11h, 12h, 14h 15h  and 16h processors).
+>>
+>> Reference(s):
+>>   https://bugzilla.kernel.org/show_bug.cgi?id=72051
+>>   Advanced Micro Devices (AMD), "BIOS and Kernel Developer's
+>>   Guide (BKDG) for AMD Family 15h Models 00h-0fh Processors."  Section
+>>   3.4 Device [1F:18]h Function 1 Configuration Registers; D18F1x[EC:E0]
+>>   Configuration Map, 42301 Rev 3.12 - October 11, 2012.
+>>
+>> Signed-off-by: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+>> Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
+>> Tested-by: Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>
+>> ---
+>>
+>>  arch/x86/pci/amd_bus.c |   71 ++++++++++++++++++++++++++++++++----------------
+>>  1 files changed, 47 insertions(+), 24 deletions(-)
+>>
+>> diff --git a/arch/x86/pci/amd_bus.c b/arch/x86/pci/amd_bus.c
+>> index e88f4c5..c8cd75c 100644
+>> --- a/arch/x86/pci/amd_bus.c
+>> +++ b/arch/x86/pci/amd_bus.c
+>> @@ -11,27 +11,34 @@
+>>
+>>  #include "bus_numa.h"
+>>
+>> +#define AMD_NB_F0_NODE_ID                    0x60
+>> +#define AMD_NB_F0_UNIT_ID                    0x64
+>> +#define AMD_NB_F1_CONFIG_MAP_REG             0xe0
+>> +
+>> +#define RANGE_NUM                            16
+>> +#define AMD_NB_F1_CONFIG_MAP_RANGES          4
+>> +
+>>  /*
+>> - * This discovers the pcibus <-> node mapping on AMD K8.
+>> - * also get peer root bus resource for io,mmio
+>> + * This discovers the pcibus <-> node mapping on AMD K8, Family 10h, 12h,
+>> + * 14h, 15h, and 16h processor based systems.  This also gets peer root bus
+>> + * resources corresponding to I/O and MMIO addresses.
+>>   */
+>>
+>> -struct pci_hostbridge_probe {
+>> +struct amd_hostbridge {
+>>       u32 bus;
+>>       u32 slot;
+>> -     u32 vendor;
+>>       u32 device;
+>>  };
+>>
+>> -static struct pci_hostbridge_probe pci_probes[] __initdata = {
+>> -     { 0, 0x18, PCI_VENDOR_ID_AMD, 0x1100 },
+>> -     { 0, 0x18, PCI_VENDOR_ID_AMD, 0x1200 },
+>> -     { 0xff, 0, PCI_VENDOR_ID_AMD, 0x1200 },
+>> -     { 0, 0x18, PCI_VENDOR_ID_AMD, 0x1300 },
+>> +static struct amd_hostbridge hb_probes[] __initdata = {
+>> +     /* Standard AMD Hostbriges are at bus 0x0 slot 0x18.
+>> +      * In case of PCI_ANY_ID, the logic will try matching
+>> +      * PCI_CLASS_BRIDGE_HOST instead.
+>> +      */
 >
-> Of course it is xen - what else?! We do have to carry special code in
-> baremetal just for it because it is special and we all can't seem to get
-> enough of its crap.
+> Standard kernel comment style:
 >
-> Oh well, I guess we should at least comment this and refer to 24d9b70b8
-> so that the explanation is right there, in the code.
+> /*
+>  * Something interesting for the code below.
+>  * This is the second comment line.
+>  */
+>
 
-This is probably obvious, but my interest here is to (1) make sure all
-systems in the field run well (so we need quirks to work around BIOS
-and other issues), and (2) eliminate the need for kernel changes to
-support future systems.  So far we seem to be concentrating on (1) and
-neglecting (2), which means we're always reacting to things that are
-broken.
+I went ahead and made this change in patch 1/5 (even though most
+non-functional changes are in patch 3/5) as it seems to belong here.
 
-This I/O ECS thing seems likely to cause future problems.  My
-understanding (based on sec 2.8 of [1]) is that enable_pci_io_ecs()
-and pci_enable_pci_io_ecs() are there to enable access to extended
-config space (offsets 256-4095) via the 0xcf8/0xcfc I/O ports.
+>> +     { 0x0 , 0x18, PCI_ANY_ID },
+>> +     { 0xff, 0   , PCI_DEVICE_ID_AMD_10H_NB_HT },
+>>  };
+>>
+>> -#define RANGE_NUM 16
+>> -
+>>  static struct pci_root_info __init *find_pci_root_info(int node, int link)
+>>  {
+>>       struct pci_root_info *info;
+>> @@ -75,31 +82,47 @@ static int __init early_fill_mp_bus_info(void)
+>
+> Btw, this function is huuuge. It could use a splitup some day.
+>
 
-Per sec 4.1.1 of [2], we should be using ECAM (the memory-mapped
-enhanced configuration mechanism, i.e., MMCONFIG) to access extended
-config space, and the BIOS should supply an MCFG table.
+Yes, Suravee did split this up in patch 3/5
 
-So why do we need to enable I/O access to ECS on AMD chips at all?  Is
-this a workaround for a broken BIOS that doesn't supply an MCFG table?
+>>               return -1;
+>>
+>>       found = false;
+>> -     for (i = 0; i < ARRAY_SIZE(pci_probes); i++) {
+>> +     for (i = 0; i < ARRAY_SIZE(hb_probes); i++) {
+>>               u32 id;
+>>               u16 device;
+>>               u16 vendor;
+>> +             u32 class;
+>>
+>> -             bus = pci_probes[i].bus;
+>> -             slot = pci_probes[i].slot;
+>> +             bus = hb_probes[i].bus;
+>> +             slot = hb_probes[i].slot;
+>>               id = read_pci_config(bus, slot, 0, PCI_VENDOR_ID);
+>> -
+>>               vendor = id & 0xffff;
+>>               device = (id>>16) & 0xffff;
+>> -             if (pci_probes[i].vendor == vendor &&
+>> -                 pci_probes[i].device == device) {
+>> -                     found = true;
+>> -                     break;
+>> +             class = read_pci_config(bus, slot, 0,
+>> +                     PCI_CLASS_REVISION) >> 16;
+>> +
+>> +             if (PCI_VENDOR_ID_AMD == vendor) {
+>
+> Flip comparison:
+>
+>                 if (vendor == PCI_VENDOR_ID_AMD)
+>
+> and then save yourself another indentation level:
+>
+>                 if (vendor != PCI_VENDOR_ID_AMD)
+>                         continue;
+>
 
->From reading the path below, I think raw_pci_read() will use
-pci_direct_conf1 for (domain 0 [cfg 0-255]).  For everything else, it
-will use (a) pci_mmcfg if there's a valid MCFG or (b) pci_direct_conf1
-if there's no MCFG and this is an AMD >= fam10h CPU, i.e.,
-PCI_HAS_IO_ECS is set.
+Yes, much better
 
-    pci_arch_init
-      type = pci_direct_probe
-      pci_mmcfg_early_init
-        __pci_mmcfg_init
-          pci_mmcfg_arch_init
-            raw_pci_ext_ops = &pci_mmcfg
-      pci_direct_init
-        if (type == 1)
-          raw_pci_ops = &pci_direct_conf1
-          if (raw_pci_ext_ops)
-            return
-          if (!pci_probe & PCI_HAS_IO_ECS)
-            return
-          raw_pci_ext_ops = &pci_direct_conf1
+>> +                     if (hb_probes[i].device == device) {
+>> +                             found = true;
+>> +                             break;
+>> +                     }
+>> +
+>> +                     if ((hb_probes[i].device == PCI_ANY_ID) &&
+>> +                         (class == PCI_CLASS_BRIDGE_HOST)) {
+>> +                             hb_probes[i].device = device;
+>> +                             found = true;
+>> +                             break;
+>> +                     }
+>>               }
+>>       }
+>>
+>> -     if (!found)
+>> +     if (!found) {
+>> +             pr_warn("AMD hostbridge not found\n");
+>>               return 0;
+>> +     }
+>
+> I guess this should return a negative value... Not that it matters much
+> from looking at the call site in the amd_postcore_init initcall.
+>
 
-I think we should try to get rid of amd_bus.c, e.g., only run
-amd_postcore_init() for BIOS dates < 2015.  It looks like a crutch
-that is perpetuating buggy BIOSes and costing us maintenance effort.
-We don't need anything similar for Intel CPUs, and I don't see a
-compelling reason why we need it for AMD.
+Patch 3/5 cleans this up.
 
-Bjorn
+>>
+>> -     for (i = 0; i < 4; i++) {
+>> +     pr_debug("Found AMD hostbridge at %x:%x.0\n", bus, slot);
+>
+> Why not pr_info? I think this is useful info we want to print out at
+> default level.
 
-[1] BIOS and Kernel Developer's Guide for AMD Family 15h Models
-00h-0Fh Processors Rev 3.14 (document number 42301)
-[2] PCI Firmware Specification, Rev 3.0, June 20, 2005
+Sure, ok  ;)
+>
+> --
+> Regards/Gruss,
+>     Boris.
+>
+> Sent from a fat crate under my desk. Formatting is fine.
+> --
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
