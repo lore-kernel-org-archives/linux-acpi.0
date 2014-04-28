@@ -1,64 +1,304 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 1/5] ACPICA: OSL: Add direct inclusion of extra
- header.
-Date: Mon, 28 Apr 2014 04:12:44 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88025586C7@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1396930406.git.lv.zheng@intel.com>
- <cover.1398232408.git.lv.zheng@intel.com>
- <43884d194fd55ca9124078d3374ec4cf4a8026ef.1398232408.git.lv.zheng@intel.com>
- <3997362.yjEHqV8nv6@vostro.rjw.lan>
+Subject: RE: [PATCH v3 part1 04/11] ARM64 / ACPI: Introduce arm-core.c and
+ its related head file
+Date: Mon, 28 Apr 2014 04:54:41 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88025586F4@SHSMSX101.ccr.corp.intel.com>
+References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>
+ <1398432017-8506-5-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:34877 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:54547 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753315AbaD1ENB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Apr 2014 00:13:01 -0400
-In-Reply-To: <3997362.yjEHqV8nv6@vostro.rjw.lan>
+	id S1751252AbaD1Eyq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2014 00:54:46 -0400
+In-Reply-To: <1398432017-8506-5-git-send-email-hanjun.guo@linaro.org>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Will Deacon <will.deacon@arm.com>, "Charles.Garcia-Tobin@arm.com" <Charles.Garcia-Tobin@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Al Stone <al.stone@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IE1vbmRheSwgQXByaWwgMjgsIDIwMTQgNTozNCBBTQ0KPiANCj4g
-T24gV2VkbmVzZGF5LCBBcHJpbCAyMywgMjAxNCAwMjo1Mzo1MiBQTSBMdiBaaGVuZyB3cm90ZToN
-Cj4gPiBUaGlzIGlzIGEgbGludXhpemVkIHJlc3VsdCBvZiBhbiBBQ1BJQ0EgY29tbWl0IHRvIHVw
-Z3JhZGUgdGhlIGV4dHJhDQo+ID4gaGVhZGVyIG1lY2hhbmlzbS4NCj4gPg0KPiA+IFRoaXMgcGF0
-Y2ggZW5oYW5jZXMgdGhlIGV4dHJhIGhlYWRlciBzb2x1dGlvbiB0byBhbGxvdyBMaW51eCB0byB1
-c2UNCj4gPiBBQ1BJX1VTRV9OQVRJVkVfSU5URVJGQUNFX0hFQURFUiBhbmQgdGhlIGZpbGUgbmFt
-ZSBjYW4gYmUgYXV0b21hdGljYWxseQ0KPiA+IHJlcGxhY2VkIGR1cmluZyBBQ1BJQ0EgcmVsZWFz
-ZSBwcm9jZXNzLiBVc2luZyB0aGlzIHdheSwgdGhlIHJlc3Qgb2YgdGhlDQo+ID4gQUNQSUNBIHVz
-ZXJzIG5lZWRuJ3Qga25vdyB0aGUgbmFtZSBvZiB0aGUgZXh0cmEgaGVhZGVyIGZpbGUuIEx2IFpo
-ZW5nLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNv
-bT4NCj4gPiAtLS0NCj4gPiAgaW5jbHVkZS9hY3BpL2FjcGkuaCB8ICAgIDQgKystLQ0KPiA+ICAx
-IGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4g
-ZGlmZiAtLWdpdCBhL2luY2x1ZGUvYWNwaS9hY3BpLmggYi9pbmNsdWRlL2FjcGkvYWNwaS5oDQo+
-ID4gaW5kZXggY2EwY2I2MC4uNjgyMzk4YiAxMDA2NDQNCj4gPiAtLS0gYS9pbmNsdWRlL2FjcGkv
-YWNwaS5oDQo+ID4gKysrIGIvaW5jbHVkZS9hY3BpL2FjcGkuaA0KPiA+IEBAIC02Miw4ICs2Miw4
-IEBADQo+ID4gICNpbmNsdWRlIDxhY3BpL2FjcmVzdHlwLmg+CQkvKiBSZXNvdXJjZSBEZXNjcmlw
-dG9yIHN0cnVjdHMgKi8NCj4gPiAgI2luY2x1ZGUgPGFjcGkvYWNwaW9zeGYuaD4JCS8qIE9TTCBp
-bnRlcmZhY2VzIChBQ1BJQ0EtdG8tT1MpICovDQo+ID4gICNpbmNsdWRlIDxhY3BpL2FjcGl4Zi5o
-PgkJLyogQUNQSSBjb3JlIHN1YnN5c3RlbSBleHRlcm5hbCBpbnRlcmZhY2VzICovDQo+ID4gLSNp
-ZmRlZiBBQ1BJX05BVElWRV9JTlRFUkZBQ0VfSEVBREVSDQo+ID4gLSNpbmNsdWRlIEFDUElfTkFU
-SVZFX0lOVEVSRkFDRV9IRUFERVINCj4gPiArI2lmZGVmIEFDUElfVVNFX05BVElWRV9JTlRFUkZB
-Q0VfSEVBREVSDQo+ID4gKyNpbmNsdWRlIDxhY3BpL2FjcGlfb3B0Lmg+DQo+ID4gICNlbmRpZg0K
-PiA+DQo+ID4gICNlbmRpZgkJCQkvKiBfX0FDUElfSF9fICovDQo+IA0KPiBXZWxsLCBJIHN0aWxs
-IHRoaW5rIHRoZXJlJ3MgYSBiZXR0ZXIgd2F5Lg0KPiANCj4gSW50cm9kdWNlIDxhY3BpL3BsYXRm
-b3JtL2FjZW52ZXguaD4gaW50byBBQ1BJQ0EgYW5kIHB1dCB0aGlzIGludG8gaXQ6DQo+IA0KPiAj
-aWYgZGVmaW5lZChfTElOVVgpIHx8IGRlZmluZWQoX19saW51eF9fKQ0KPiAjaW5jbHVkZSA8YWNw
-aS9wbGF0Zm9ybS9hY2xpbnV4ZXguaD4NCj4gDQo+ICNlbmRpZg0KPiANCj4gYW5kIHRoZW4gbW92
-ZSBzdHVmZiB5b3Ugd2FudCBpbiBhY3BpL2FjcGlfb3B0LmggaW50byBhY3BpL3BsYXRmb3JtL2Fj
-bGludXhleC5oLg0KPiANCj4gVGhlbiwgeW91J2xsIGhhdmUgaW4gYWNwaS5oOg0KPiANCj4gI2lu
-Y2x1ZGUgPGFjcGkvYWNyZXN0eXAuaD4JCS8qIFJlc291cmNlIERlc2NyaXB0b3Igc3RydWN0cyAq
-Lw0KPiAjaW5jbHVkZSA8YWNwaS9hY3Bpb3N4Zi5oPgkJLyogT1NMIGludGVyZmFjZXMgKEFDUElD
-QS10by1PUykgKi8NCj4gI2luY2x1ZGUgPGFjcGkvYWNwaXhmLmg+CQkvKiBBQ1BJIGNvcmUgc3Vi
-c3lzdGVtIGV4dGVybmFsIGludGVyZmFjZXMgKi8NCj4gI2luY2x1ZGUgPGFjcGkvcGxhdGZvcm0v
-YWNlbnZleC5oPgkvKiBFeHRyYSBlbnZpcm9ubWVudC1zcGVjaWZpYyBpdGVtcyAqLw0KPiANCj4g
-DQo+IFRoYXQgc2hvdWxkIHdvcmsgSSBzdXBwb3NlLCBzaG91bGRuJ3QgaXQ/DQoNCkkgdGhpbmsg
-dGhpcyBzaG91bGQgd29yay4NCkknbGwgbW9kaWZ5IHRoaXMgcGF0Y2ggYWNjb3JkaW5nIHRoZSBh
-Ym92ZSBzdWdnZXN0aW9uLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gLS0N
-Cj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNvY2tpLCBJbnRlbCBP
-cGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCg==
+Hi,
+
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Hanjun Guo
+> Sent: Friday, April 25, 2014 9:20 PM
+> 
+> ACPI core need lots extern variables and functions which should
+> be provided by arch dependent code to make itself compilable. so
+> introduce arm_core.c and its related header file here.
+> 
+> acpi_boot_table_init() will be called in setup_arch() before
+> paging_init(), so we should use eary_ioremap() mechanism here
+> to get the RSDP and all the table pointers, with this patch,
+> we can get ACPI boot-time tables from firmware on ARM64.
+> 
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> ---
+>  arch/arm64/include/asm/acpi.h |   53 +++++++++++++++++++
+>  arch/arm64/kernel/setup.c     |    4 ++
+>  drivers/acpi/Makefile         |    2 +
+>  drivers/acpi/plat/Makefile    |    1 +
+>  drivers/acpi/plat/arm-core.c  |  113 +++++++++++++++++++++++++++++++++++++++++
+>  5 files changed, 173 insertions(+)
+>  create mode 100644 drivers/acpi/plat/Makefile
+>  create mode 100644 drivers/acpi/plat/arm-core.c
+> 
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index e3e990e..3ac9dfb 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -19,6 +19,43 @@
+>  #ifndef _ASM_ACPI_H
+>  #define _ASM_ACPI_H
+> 
+> +#include <asm/cacheflush.h>
+> +
+> +#include <linux/init.h>
+> +
+> +#define COMPILER_DEPENDENT_INT64	s64
+> +#define COMPILER_DEPENDENT_UINT64	u64
+> +
+> +/*
+> + * Calling conventions:
+> + *
+> + * ACPI_SYSTEM_XFACE        - Interfaces to host OS (handlers, threads)
+> + * ACPI_EXTERNAL_XFACE      - External ACPI interfaces
+> + * ACPI_INTERNAL_XFACE      - Internal ACPI interfaces
+> + * ACPI_INTERNAL_VAR_XFACE  - Internal variable-parameter list interfaces
+> + */
+> +#define ACPI_SYSTEM_XFACE
+> +#define ACPI_EXTERNAL_XFACE
+> +#define ACPI_INTERNAL_XFACE
+> +#define ACPI_INTERNAL_VAR_XFACE
+
+Just a reminder.
+I'm going to sort such default definitions out.
+The story can be found here:
+https://lkml.org/lkml/2014/4/8/57
+The patch to achieve this can be found here:
+https://lkml.org/lkml/2014/4/23/71
+
+If your series is merged after the above series, you don't need the above lines.
+
+> +
+> +/* Asm macros */
+> +#define ACPI_FLUSH_CPU_CACHE() flush_cache_all()
+> +
+
+Another reminder.
+I'm going to split this into <asm/acenv.h> in the same story.
+The patch to achieve this can be found here:
+https://lkml.org/lkml/2014/4/23/75
+If your series is merged after the above series, you need to put this line into arch/arm/include/asm/acenv.h.
+
+Thanks and best regards
+-Lv
+
+> +/* Basic configuration for ACPI */
+> +#ifdef	CONFIG_ACPI
+> +extern int acpi_disabled;
+> +extern int acpi_noirq;
+> +extern int acpi_pci_disabled;
+> +extern int acpi_strict;
+> +
+> +static inline void disable_acpi(void)
+> +{
+> +	acpi_disabled = 1;
+> +	acpi_pci_disabled = 1;
+> +	acpi_noirq = 1;
+> +}
+> +
+>  static inline bool arch_has_acpi_pdc(void)
+>  {
+>  	/*
+> @@ -34,4 +71,20 @@ static inline void arch_acpi_set_pdc_bits(u32 *buf)
+>  	return;
+>  }
+> 
+> +static inline void acpi_noirq_set(void) { acpi_noirq = 1; }
+> +static inline void acpi_disable_pci(void)
+> +{
+> +	acpi_pci_disabled = 1;
+> +	acpi_noirq_set();
+> +}
+> +
+> +/*
+> + * The ACPI processor driver for ACPI core code needs this macro.
+> + * Temporarily define it to -1 so that the ACPI core can compile,
+> + * but update it when we get the hardware ID from the MADT table.
+> + */
+> +#define cpu_physical_id(cpu) -1
+> +
+> +#endif /* CONFIG_ACPI */
+> +
+>  #endif /*_ASM_ACPI_H*/
+> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+> index 720853f..70658e1 100644
+> --- a/arch/arm64/kernel/setup.c
+> +++ b/arch/arm64/kernel/setup.c
+> @@ -41,6 +41,7 @@
+>  #include <linux/memblock.h>
+>  #include <linux/of_fdt.h>
+>  #include <linux/of_platform.h>
+> +#include <linux/acpi.h>
+> 
+>  #include <asm/fixmap.h>
+>  #include <asm/cputype.h>
+> @@ -368,6 +369,9 @@ void __init setup_arch(char **cmdline_p)
+> 
+>  	arm64_memblock_init();
+> 
+> +	/* Parse the ACPI tables for possible boot-time configuration */
+> +	acpi_boot_table_init();
+> +
+>  	paging_init();
+>  	request_standard_resources();
+> 
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 0331f91..8521c97 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -83,3 +83,5 @@ obj-$(CONFIG_ACPI_PROCESSOR_AGGREGATOR) += acpi_pad.o
+>  obj-$(CONFIG_ACPI_APEI)		+= apei/
+> 
+>  obj-$(CONFIG_ACPI_EXTLOG)	+= acpi_extlog.o
+> +
+> +obj-y				+= plat/
+> diff --git a/drivers/acpi/plat/Makefile b/drivers/acpi/plat/Makefile
+> new file mode 100644
+> index 0000000..46bc65e
+> --- /dev/null
+> +++ b/drivers/acpi/plat/Makefile
+> @@ -0,0 +1 @@
+> +obj-$(CONFIG_ARM64)	+= arm-core.o
+> diff --git a/drivers/acpi/plat/arm-core.c b/drivers/acpi/plat/arm-core.c
+> new file mode 100644
+> index 0000000..47b5d9b
+> --- /dev/null
+> +++ b/drivers/acpi/plat/arm-core.c
+> @@ -0,0 +1,113 @@
+> +/*
+> + *  ARM/ARM64 Specific Low-Level ACPI Boot Support
+> + *
+> + *  Copyright (C) 2013~2014, Al Stone <al.stone@linaro.org>
+> + *  Copyright (C) 2013~2014, Graeme Gregory <graeme.gregory@linaro.org>
+> + *  Copyright (C) 2013~2014, Hanjun Guo <hanjun.guo@linaro.org>
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License as published by
+> + *  the Free Software Foundation; either version 2 of the License, or
+> + *  (at your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + */
+> +
+> +#include <linux/init.h>
+> +#include <linux/acpi.h>
+> +#include <linux/cpumask.h>
+> +#include <linux/memblock.h>
+> +#include <linux/module.h>
+> +#include <linux/irq.h>
+> +#include <linux/irqdomain.h>
+> +#include <linux/bootmem.h>
+> +#include <linux/smp.h>
+> +
+> +#include <asm/pgtable.h>
+> +
+> +/*
+> + * We never plan to use RSDT on arm/arm64 as its deprecated in spec but this
+> + * variable is still required by the ACPI core
+> + */
+> +u32 acpi_rsdt_forced;
+> +
+> +int acpi_noirq;			/* skip ACPI IRQ initialization */
+> +int acpi_strict;
+> +int acpi_disabled;
+> +EXPORT_SYMBOL(acpi_disabled);
+> +
+> +int acpi_pci_disabled;		/* skip ACPI PCI scan and IRQ initialization */
+> +EXPORT_SYMBOL(acpi_pci_disabled);
+> +
+> +enum acpi_irq_model_id acpi_irq_model = ACPI_IRQ_MODEL_PLATFORM;
+> +
+> +/*
+> + * __acpi_map_table() will be called before page_init(), so early_ioremap()
+> + * or early_memremap() should be called here.
+> + */
+> +char *__init __acpi_map_table(unsigned long phys, unsigned long size)
+> +{
+> +	if (!phys || !size)
+> +		return NULL;
+> +
+> +	return early_ioremap(phys, size);
+> +}
+> +
+> +void __init __acpi_unmap_table(char *map, unsigned long size)
+> +{
+> +	if (!map || !size)
+> +		return;
+> +
+> +	early_iounmap(map, size);
+> +}
+> +
+> +int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+> +{
+> +	*irq = -1;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+> +
+> +/*
+> + * success: return IRQ number (>0)
+> + * failure: return =< 0
+> + */
+> +int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
+> +{
+> +	return -1;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_register_gsi);
+> +
+> +void acpi_unregister_gsi(u32 gsi)
+> +{
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+> +
+> +/*
+> + * acpi_boot_table_init() called from setup_arch(), always.
+> + *	1. find RSDP and get its address, and then find XSDT
+> + *	2. extract all tables and checksums them all
+> + *
+> + * We can parse ACPI boot-time tables such as FADT, MADT after
+> + * this function is called.
+> + */
+> +void __init acpi_boot_table_init(void)
+> +{
+> +	/* If acpi_disabled, bail out */
+> +	if (acpi_disabled)
+> +		return;
+> +
+> +	/* Initialize the ACPI boot-time table parser. */
+> +	if (acpi_table_init()) {
+> +		disable_acpi();
+> +		return;
+> +	}
+> +}
+> --
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
