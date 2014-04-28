@@ -1,97 +1,38 @@
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH v2 3/5] ACPICA: Add <asm/acenv.h> to remove mis-ordered
- inclusion of <asm/acpi.h> from <acpi/platform/aclinux.h>.
-Date: Mon, 28 Apr 2014 22:30:03 +0200
-Message-ID: <535EBA4B.5090305@intel.com>
-References: <cover.1396930406.git.lv.zheng@intel.com> <cover.1398232408.git.lv.zheng@intel.com> <522ac0c3a52f1697d75363cc808a213773dca295.1398232409.git.lv.zheng@intel.com> <1469560.3p9s15HIYZ@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E880255865E@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [PATCH V5 09/12] ACPI: introduce acpi platform exclude id list
+Date: Mon, 28 Apr 2014 22:31:42 +0200
+Message-ID: <535EBAAE.5060309@intel.com>
+References: <1396886819-2637-1-git-send-email-rui.zhang@intel.com>	 <1396886819-2637-10-git-send-email-rui.zhang@intel.com>	 <5562797.vTJauiAbJc@vostro.rjw.lan> <1398650223.2443.12.camel@rzhang1-mobl4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880255865E@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Luck, Tony" <tony.luck@intel.com>, "Yu, Fenghua" <fenghua.yu@intel.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:52265 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752375AbaD1Ucp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Apr 2014 16:32:45 -0400
+In-Reply-To: <1398650223.2443.12.camel@rzhang1-mobl4>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, dmitry.torokhov@gmail.com
 
-On 4/28/2014 5:02 AM, Zheng, Lv wrote:
-> Hi, Rafael
->
->> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
->> Sent: Monday, April 28, 2014 5:37 AM
->> To: Zheng, Lv
+On 4/28/2014 3:57 AM, Zhang Rui wrote:
+> On Mon, 2014-04-28 at 00:21 +0200, Rafael J. Wysocki wrote:
+>> On Tuesday, April 08, 2014 12:06:56 AM Zhang Rui wrote:
+>>> For ACPI PIC (PNP0000) and Timer (PNP0100) device objects, although
+>>> they have _HID control method, but they should not be enumerated to
+>>> platform bus, because there will never be any platform drivers for them.
+>>>
+>>> Thus an exclude id list is introduced in this patch to prevent
+>>> those platform device nodes from being created.
+>>>
+>>> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+>> This should go into [6/12] as well.
 >>
->> On Wednesday, April 23, 2014 02:54:06 PM Lv Zheng wrote:
->>> There is a mis-order inclusion for <asm/acpi.h>.
->>>
->>> As we will enforce including <linux/acpi.h> for all Linux ACPI users, we
->>> can find the inclusion order is as follows:
->>>
->>> <linux/acpi.h>
->>>    <acpi/acpi.h>
->>>     <acpi/platform/acenv.h>
->>>      (acenv.h before including aclinux.h)
->>>      <acpi/platform/aclinux.h>
->>> ...........................................................................
->>>       (aclinux.h before including asm/acpi.h)
->>>       <asm/acpi.h>                             @Redundant@
->>>        (ACPICA specific stuff)
->>> ...........................................................................
->>> ...........................................................................
->>>        (Linux ACPI specific stuff) ? - - - - - - - - - - - - +
->>>       (aclinux.h after including asm/acpi.h)   @Invisible@   |
->>>      (acenv.h after including aclinux.h)       @Invisible@   |
->>>     other ACPICA headers                       @Invisible@   |
->>> ............................................................|..............
->>>    <acpi/acpi_bus.h>                                         |
->>>    <acpi/acpi_drivers.h>                                     |
->>>    <asm/acpi.h> (Excluded)                                   |
->>>     (Linux ACPI specific stuff) ! <- - - - - - - - - - - - - +
->>>
->>> NOTE that, in ACPICA, <acpi/platform/acenv.h> is more like Kconfig
->>> generated <generated/autoconf.h> for Linux, it is meant to be included
->>> before including any ACPICA code.
->>>
->>> In the above figure, there is a question mark for "Linux ACPI specific
->>> stuff" in <asm/acpi.h> which should be included after including all other
->>> ACPICA header files.  Thus they really need to be moved to the position
->>> marked with exclaimation mark or the definitions in the blocks marked with
->>> "@Invisible@" will be invisible to such architecture specific "Linux ACPI
->>> specific stuff" header blocks.  This leaves 2 issues:
->>> 1. All environmental definitions in these blocks should have a copy in the
->>>     area marked with "@Redundant@" if they are required by the "Linux ACPI
->>>     specific stuff".
->>> 2. We cannot use any ACPICA defined types in <asm/acpi.h>.
->>>
->>> This patch splits architecture specific ACPICA stuff from <asm/acpi.h> to
->>> fix this issue.
->>>
->>> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
->>> Cc: Tony Luck <tony.luck@intel.com>
->>> Cc: Fenghua Yu <fenghua.yu@intel.com>
->>> Cc: linux-ia64@vger.kernel.org
->>> Cc: Thomas Gleixner <tglx@linutronix.de>
->>> Cc: Ingo Molnar <mingo@redhat.com>
->>> Cc: "H. Peter Anvin" <hpa@zytor.com>
->>> Cc: x86@kernel.org
->>> ---
->>>   arch/ia64/include/asm/acenv.h   |   71 +++++++++++++++++++++++++++++++++++++++
->>>   arch/ia64/include/asm/acpi.h    |   50 ---------------------------
->>>   arch/x86/include/asm/acenv.h    |   65 +++++++++++++++++++++++++++++++++++
->>>   arch/x86/include/asm/acpi.h     |   45 -------------------------
->>>   include/acpi/platform/aclinux.h |    2 +-
->> Please rename the files first (in a separate patch) and then modify the
->> renamed ones.  That will make changes much easier to follow.
-> This patch doesn't provide a rename.
-> Currently, <asm/acpi.h> includes:
-> 1. arch specific ACPI stuff
-> 2. arch specific ACPICA stuff
-> This patch moves "2" to a separate file <asm/acenv.h>, thus no renaming happens here.
+> I think it is okay to keep them as separate patches because they do not
+> break bisect. And this patch is just a cleanup, it does not fix a real
+> BUG in patch 6/12.
 
-Ah, I overlooked that, sorry.
-
-Which I might not do if the changelog said what the patch was really doing.
-
-Thanks,
-Rafael
+OK
 
