@@ -1,145 +1,58 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH V5 12/12] ACPI: introduce .handle_children flag for acpi
- scan handler
-Date: Mon, 28 Apr 2014 10:07:50 +0800
-Message-ID: <1398650870.2443.22.camel@rzhang1-mobl4>
-References: <1396886819-2637-1-git-send-email-rui.zhang@intel.com>
-	 <1396886819-2637-13-git-send-email-rui.zhang@intel.com>
-	 <3580601.ADWiqFXU1h@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] ACPI / scan: do not scan fixed hardware on HW-reduced platform
+Date: Mon, 28 Apr 2014 10:38:04 +0800
+Message-ID: <535DBF0C.7080409@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3580601.ADWiqFXU1h@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:56639 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752290AbaD1ChO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 27 Apr 2014 22:37:14 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Mon, 2014-04-28 at 00:26 +0200, Rafael J. Wysocki wrote:
-> On Tuesday, April 08, 2014 12:06:59 AM Zhang Rui wrote:
-> > For some devices with scan handler attached, their children devices
-> > are enumerated by the scan handler, indirectly.
-> 
-> This isn't the case really.  They are enumerated by bus controller drivers
-> for the buses they are on.
-> 
-that's what I mean by saying "indirectly". :)
+Fixed hardware does not exist on HW-reduced ACPI platform since the
+programming interface for them is not implemented on those platforms,
+so no need to scan them.
+This patch avoids creating the fixed power button ACPI device and
+eliminates a probe error message from ACPI button driver on ASUS T100.
 
-> > In this case, we do not want to enumerate the children devices in
-> > acpi scan code explicitly.
-> > 
-> > Thus a new flag .handle_children is introduced in this patch.
-> > 
-> > For scan handlers with this flag set, we will do default enumeration neither
-> > for the attached devices nor for the children of the attached devices.
-> 
-> I'm not sure if that is the right approach.  I would prefer that to be
-> handled in a more fine-graind manner, like a flag per device ID or something
-> similar?
-> 
-hmmm, how about this,
-first, keep the device->flags.no_child_enumeration flag introduced in
-this patch
-second, set the flag explicitly, for specified devices, in the scan
-handler .attach() function.
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+ drivers/acpi/scan.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-thanks,
-rui
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > ---
-> >  drivers/acpi/acpi_lpss.c |    2 ++
-> >  drivers/acpi/scan.c      |   28 ++++++++++++++++++++++++++--
-> >  include/acpi/acpi_bus.h  |    4 +++-
-> >  3 files changed, 31 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> > index 965428f..da0a3d4 100644
-> > --- a/drivers/acpi/acpi_lpss.c
-> > +++ b/drivers/acpi/acpi_lpss.c
-> > @@ -521,6 +521,7 @@ static struct acpi_scan_handler lpss_handler = {
-> >  	.attach = acpi_lpss_create_device,
-> >  	.bind = acpi_lpss_bind,
-> >  	.unbind = acpi_lpss_unbind,
-> > +	.handle_children = true,
-> >  };
-> >  
-> >  #endif /* CONFIG_X86_INTEL_LPSS */
-> > @@ -534,6 +535,7 @@ static int acpi_lpss_dummy_attach(struct acpi_device *adev,
-> >  static struct acpi_scan_handler lpss_dummy_handler = {
-> >  	.ids = acpi_lpss_device_ids,
-> >  	.attach = acpi_lpss_dummy_attach,
-> > +	.handle_children = true,
-> >  };
-> >  
-> >  void __init acpi_lpss_init(void)
-> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > index 44c4668..4ea867e 100644
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -2073,6 +2073,31 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl_not_used,
-> >  	return AE_OK;
-> >  }
-> >  
-> > +static void acpi_do_default_enumeration(struct acpi_device *device)
-> > +{
-> > +	/*
-> > +	 * Do not do enumeration for device object that
-> > +	 * its parent doesn't want to
-> > +	 */
-> > +	if (device->parent && device->parent->flags.no_child_enumeration) {
-> > +		device->flags.no_child_enumeration = 1;
-> > +		return;
-> > +	}
-> > +
-> > +	/* Do not do enumeration for device object with scan handler attached */
-> > +	if (device->handler) {
-> > +		if (device->handler->handle_children)
-> > +			device->flags.no_child_enumeration = 1;
-> > +		return;
-> > +	}
-> > +
-> > +	/* Do not do enumeration for device object w/o platform_id */
-> > +	if (!device->pnp.type.platform_id)
-> > +		return;
-> > +
-> > +	acpi_create_platform_device(device, NULL);
-> > +}
-> > +
-> >  static int acpi_scan_attach_handler(struct acpi_device *device)
-> >  {
-> >  	struct acpi_hardware_id *hwid;
-> > @@ -2095,8 +2120,7 @@ static int acpi_scan_attach_handler(struct acpi_device *device)
-> >  		}
-> >  	}
-> >  
-> > -	if (device->pnp.type.platform_id && !device->handler)
-> > -		acpi_create_platform_device(device, NULL);
-> > +	acpi_do_default_enumeration(device);
-> >  
-> >  	return ret;
-> >  }
-> > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> > index ec92ad3..4724fe5 100644
-> > --- a/include/acpi/acpi_bus.h
-> > +++ b/include/acpi/acpi_bus.h
-> > @@ -137,6 +137,7 @@ struct acpi_scan_handler {
-> >  	void (*bind)(struct device *phys_dev);
-> >  	void (*unbind)(struct device *phys_dev);
-> >  	struct acpi_hotplug_profile hotplug;
-> > +	bool handle_children;
-> >  };
-> >  
-> >  /*
-> > @@ -207,7 +208,8 @@ struct acpi_device_flags {
-> >  	u32 no_hotplug:1;
-> >  	u32 hotplug_notify:1;
-> >  	u32 is_dock_station:1;
-> > -	u32 reserved:22;
-> > +	u32 no_child_enumeration:1;
-> > +	u32 reserved:21;
-> >  };
-> >  
-> >  /* File System */
-> > 
-> 
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 7efe546a8c42..db5fc6f9628e 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -2259,12 +2259,16 @@ int __init acpi_scan_init(void)
+ 	if (result)
+ 		goto out;
+ 
+-	result = acpi_bus_scan_fixed();
+-	if (result) {
+-		acpi_detach_data(acpi_root->handle, acpi_scan_drop_device);
+-		acpi_device_del(acpi_root);
+-		put_device(&acpi_root->dev);
+-		goto out;
++	/* Fixed feature devices do not exist on HW-reduced platform */
++	if (!acpi_gbl_reduced_hardware) {
++		result = acpi_bus_scan_fixed();
++		if (result) {
++			acpi_detach_data(acpi_root->handle,
++					 acpi_scan_drop_device);
++			acpi_device_del(acpi_root);
++			put_device(&acpi_root->dev);
++			goto out;
++		}
+ 	}
+ 
+ 	acpi_update_all_gpes();
+-- 
+1.9.0
+
