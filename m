@@ -1,80 +1,105 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH V5 02/12] PNPACPI: use whilte list for pnpacpi device
- enumeration
-Date: Mon, 28 Apr 2014 09:40:51 +0800
-Message-ID: <1398649251.2443.2.camel@rzhang1-mobl4>
+Subject: Re: [PATCH V5 05/12] ACPI: check and enumerate CMOS RTC devices
+ explicitly
+Date: Mon, 28 Apr 2014 09:50:33 +0800
+Message-ID: <1398649833.2443.6.camel@rzhang1-mobl4>
 References: <1396886819-2637-1-git-send-email-rui.zhang@intel.com>
-	 <1396886819-2637-3-git-send-email-rui.zhang@intel.com>
-	 <34978551.c1lKBcQLqc@vostro.rjw.lan>
+	 <1396886819-2637-6-git-send-email-rui.zhang@intel.com>
+	 <2272159.YQH4PJyHMe@vostro.rjw.lan> <1564965.tVxnMB4jPP@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <34978551.c1lKBcQLqc@vostro.rjw.lan>
+In-Reply-To: <1564965.tVxnMB4jPP@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2014-04-28 at 00:01 +0200, Rafael J. Wysocki wrote:
-> On Tuesday, April 08, 2014 12:06:49 AM Zhang Rui wrote:
+On Mon, 2014-04-28 at 00:19 +0200, Rafael J. Wysocki wrote:
+> On Monday, April 28, 2014 12:17:49 AM Rafael J. Wysocki wrote:
+> > On Tuesday, April 08, 2014 12:06:52 AM Zhang Rui wrote:
+> > > For CMOS RTC devices, the acpi pnp scan handler does not work because
+> > > there is already a cmos rtc scan handler installed, thus we need to
+> > > check those devices and enumerate them to PNP bus explicitly.
+> > > Plus, the cmos rtc scan handler needs to return 1 so that it will not
+> > > be enumerated to platform bus.
+> > > 
+> > > Note: the CMOS RTC device id is not removed from ACPI pnp scan handler
+> > >       id list, thus, if cmos rtc scan handler is compiled out, the ACPI
+> > >       pnp scan handler will be attached to the CMOS RTC devices instead,
+> > >       to prevent these devices from being created to platform bus.
+> > > 
+> > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > > ---
+> > >  drivers/acpi/acpi_cmos_rtc.c |    2 +-
+> > >  drivers/acpi/acpi_pnp.c      |   22 +++++++++++++++++++++-
+> > >  2 files changed, 22 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/acpi/acpi_cmos_rtc.c b/drivers/acpi/acpi_cmos_rtc.c
+> > > index 961b45d..2da8660 100644
+> > > --- a/drivers/acpi/acpi_cmos_rtc.c
+> > > +++ b/drivers/acpi/acpi_cmos_rtc.c
+> > > @@ -68,7 +68,7 @@ static int acpi_install_cmos_rtc_space_handler(struct acpi_device *adev,
+> > >  		return -ENODEV;
+> > >  	}
+> > >  
+> > > -	return 0;
+> > > +	return 1;
+> > >  }
+> > >  
+> > >  static void acpi_remove_cmos_rtc_space_handler(struct acpi_device *adev)
+> > > diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
+> > > index 8cf7d9d..387b150 100644
+> > > --- a/drivers/acpi/acpi_pnp.c
+> > > +++ b/drivers/acpi/acpi_pnp.c
+> > > @@ -349,9 +349,29 @@ static struct acpi_scan_handler acpi_pnp_handler = {
+> > >  	.attach = acpi_pnp_scan_handler_attach,
+> > >  };
+> > >  
+> > > +/*
+> > > + * For CMOS RTC devices, the acpi pnp spcan handler does not work because
+> > > + * there is already a cmos rtc scan handler installed, thus we need to
+> > > + * check those devices and enumerate them to PNP bus explicitly.
+> > > + */
+> > > +static int is_cmos_rtc_device(struct acpi_device *adev)
+> > > +{
+> > > +	struct acpi_device_id ids[] = {
+> > > +		{ "PNP0B00" },
+> > > +		{ "PNP0B01" },
+> > > +		{ "PNP0B02" },
+> > > +		{""},
+> > > +	};
+> > > +	return !acpi_match_device_ids(adev, ids);
+> > > +}
+> > > +
+> > >  bool acpi_is_pnp_device(struct acpi_device *device)
+> > >  {
+> > > -	return device->handler == &acpi_pnp_handler;
+> > > +	if (device->handler == &acpi_pnp_handler)
+> > > +		return true;
+> > > +	if (is_cmos_rtc_device(device))
+> > > +		return true;
+> > > +	return false;
+> > 
+> > What about doing
+> > 
+> > 	return device->handler == &acpi_pnp_handler || is_cmos_rtc_device(device);
+> > 
+> > instead?
+> > 
+okay.
+
+> > >  }
+> > >  EXPORT_SYMBOL_GPL(acpi_is_pnp_device);
 > 
-> [...]
+> Moreover, it looks like this patch should be folded into [2/12] to avoid
+> breaking bisection.
 > 
-> > +
-> > +static int acpi_pnp_scan_handler_attach(struct acpi_device *adev,
-> > +					const struct acpi_device_id *id)
-> > +{
-> > +	return 1;
-> > +}
-> > +
-> > +static int acpi_pnp_scan_handler_match(char *devid, char *handlerid)
-> > +{
-> > +	int i;
-> > +
-> > +	if (memcmp(devid, handlerid, 3))
-> > +		return 0;
-> > +
-> > +	for (i = 3; i < 7; i++) {
-> > +		/* Not a HEX value */
-> > +		if (!((devid[i] >= '0' && devid[i] <= '9') ||
-> > +		      (devid[i] > 'A' && devid[i] <= 'F')))
-> > +			return 0;
-> > +
-> > +		if ((handlerid[i] != 'X') &&
-> 
-> Hmm.  What exactly is the above check for?
-> 
-PNP bus supports wildcard in the drivers' id list.
-say, drivers/tty/serial/8250/8250_pnp.c
-      {"WACFXXX"},            /* Wacom tablets */
-means the driver wants to try to probe all the PNP devices start with
-"WACF".
+well, I wanted to make the patch clean and cleasr so I preferred to do
+one thing in one patch and fix the side effect in a later patch as long
+as it builds okay.
+But you're right, will merge them in next version.
 
 thanks,
 rui
-> > +		    toupper(devid[i]) != toupper(handlerid[i]))
-> > +			return 0;
-> > +	}
-> > +	return 1;
-> > +}
-> > +
-> > +static struct acpi_scan_handler acpi_pnp_handler = {
-> > +	.ids = acpi_pnp_device_ids,
-> > +	.match = acpi_pnp_scan_handler_match,
-> > +	.attach = acpi_pnp_scan_handler_attach,
-> > +};
-> > +
-> > +bool acpi_is_pnp_device(struct acpi_device *device)
-> > +{
-> > +	return device->handler == &acpi_pnp_handler;
-> > +}
-> > +EXPORT_SYMBOL_GPL(acpi_is_pnp_device);
-> > +
-> > +void __init acpi_pnp_init(void)
-> > +{
-> > +	acpi_scan_add_handler(&acpi_pnp_handler);
-> > +}
-> > diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> 
-> 
