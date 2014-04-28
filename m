@@ -1,109 +1,119 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v3 part1 04/11] ARM64 / ACPI: Introduce arm-core.c and
- its related head file
-Date: Mon, 28 Apr 2014 17:32:43 +0800
-Message-ID: <535E203B.70006@linaro.org>
-References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org> <1398432017-8506-5-git-send-email-hanjun.guo@linaro.org> <1AE640813FDE7649BE1B193DEA596E88025586F4@SHSMSX101.ccr.corp.intel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v3 part1 08/11] ARM64 / ACPI: Introduce PCI functions for ACPI on ARM64
+Date: Mon, 28 Apr 2014 15:49:50 +0200
+Message-ID: <201404281549.50738.arnd@arndb.de>
+References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org> <1398432017-8506-9-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:55184 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753604AbaD1JdG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2014 05:33:06 -0400
-Received: by mail-pd0-f178.google.com with SMTP id fp1so3359873pdb.23
-        for <linux-acpi@vger.kernel.org>; Mon, 28 Apr 2014 02:33:05 -0700 (PDT)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88025586F4@SHSMSX101.ccr.corp.intel.com>
+Received: from mout.kundenserver.de ([212.227.126.131]:59207 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751656AbaD1NuH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Apr 2014 09:50:07 -0400
+In-Reply-To: <1398432017-8506-9-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Will Deacon <will.deacon@arm.com>, "Charles.Garcia-Tobin@arm.com" <Charles.Garcia-Tobin@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Al Stone <al.stone@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Mark Brown <broonie@linaro.org>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Will Deacon <will.deacon@arm.com>, Charles.Garcia-Tobin@arm.com, linaro-acpi@lists.linaro.org, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>
 
-Hi Lv,
+On Friday 25 April 2014, Hanjun Guo wrote:
+> CONFIG_ACPI depends CONFIG_PCI now, and ACPI provides ACPI based
+> PCI hotplug and PCI host bridge hotplug, introduce some PCI
+> functions to make ACPI core can be compiled, some of the functions
+> should be revisited when implemented on ARM64.
 
-On 2014-4-28 12:54, Zheng, Lv wrote:
-> Hi,
-> 
->> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Hanjun Guo
->> Sent: Friday, April 25, 2014 9:20 PM
->>
->> ACPI core need lots extern variables and functions which should
->> be provided by arch dependent code to make itself compilable. so
->> introduce arm_core.c and its related header file here.
->>
->> acpi_boot_table_init() will be called in setup_arch() before
->> paging_init(), so we should use eary_ioremap() mechanism here
->> to get the RSDP and all the table pointers, with this patch,
->> we can get ACPI boot-time tables from firmware on ARM64.
->>
->> Signed-off-by: Al Stone <al.stone@linaro.org>
->> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->> ---
->>  arch/arm64/include/asm/acpi.h |   53 +++++++++++++++++++
->>  arch/arm64/kernel/setup.c     |    4 ++
->>  drivers/acpi/Makefile         |    2 +
->>  drivers/acpi/plat/Makefile    |    1 +
->>  drivers/acpi/plat/arm-core.c  |  113 +++++++++++++++++++++++++++++++++++++++++
->>  5 files changed, 173 insertions(+)
->>  create mode 100644 drivers/acpi/plat/Makefile
->>  create mode 100644 drivers/acpi/plat/arm-core.c
->>
->> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
->> index e3e990e..3ac9dfb 100644
->> --- a/arch/arm64/include/asm/acpi.h
->> +++ b/arch/arm64/include/asm/acpi.h
->> @@ -19,6 +19,43 @@
->>  #ifndef _ASM_ACPI_H
->>  #define _ASM_ACPI_H
->>
->> +#include <asm/cacheflush.h>
->> +
->> +#include <linux/init.h>
->> +
->> +#define COMPILER_DEPENDENT_INT64	s64
->> +#define COMPILER_DEPENDENT_UINT64	u64
->> +
->> +/*
->> + * Calling conventions:
->> + *
->> + * ACPI_SYSTEM_XFACE        - Interfaces to host OS (handlers, threads)
->> + * ACPI_EXTERNAL_XFACE      - External ACPI interfaces
->> + * ACPI_INTERNAL_XFACE      - Internal ACPI interfaces
->> + * ACPI_INTERNAL_VAR_XFACE  - Internal variable-parameter list interfaces
->> + */
->> +#define ACPI_SYSTEM_XFACE
->> +#define ACPI_EXTERNAL_XFACE
->> +#define ACPI_INTERNAL_XFACE
->> +#define ACPI_INTERNAL_VAR_XFACE
-> 
-> Just a reminder.
-> I'm going to sort such default definitions out.
-> The story can be found here:
-> https://lkml.org/lkml/2014/4/8/57
-> The patch to achieve this can be found here:
-> https://lkml.org/lkml/2014/4/23/71
-> 
-> If your series is merged after the above series, you don't need the above lines.
-> 
->> +
->> +/* Asm macros */
->> +#define ACPI_FLUSH_CPU_CACHE() flush_cache_all()
->> +
-> 
-> Another reminder.
-> I'm going to split this into <asm/acenv.h> in the same story.
-> The patch to achieve this can be found here:
-> https://lkml.org/lkml/2014/4/23/75
-> If your series is merged after the above series, you need to put this line into arch/arm/include/asm/acenv.h.
+> diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
+> index d93576f..0aa3607 100644
+> --- a/arch/arm64/include/asm/pci.h
+> +++ b/arch/arm64/include/asm/pci.h
+> @@ -21,6 +21,17 @@ struct pci_host_bridge *find_pci_host_bridge(struct pci_bus *bus);
+>  #define pcibios_assign_all_busses() \
+>  	(pci_has_flag(PCI_REASSIGN_ALL_BUS))
+>  
+> +static inline void pcibios_penalize_isa_irq(int irq, int active)
+> +{
+> +	/* we don't do dynamic pci irq allocation */
+> +}
+> +
+> +static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+> +{
+> +	/* no legacy IRQ on arm64 */
+> +	return -ENODEV;
+> +}
+> +
 
-It is ok to me, once your patches are accepted by Rafael and merged
-into linux-next, I will rebase my patch set.
+I think these would be better addressed in the caller. From what I can tell, they
+are only called by the ISAPNP code path for doing IRQ resource allocation, while
+the ACPIPNP code uses hardwired IRQ resources.
 
-Thanks a lot the reminding :)
+> @@ -171,3 +172,36 @@ unsigned long pci_ioremap_io(const struct resource *res, phys_addr_t phys_addr)
+>  	/* return io_offset */
+>  	return start * PAGE_SIZE - res->start;
+>  }
+> +
+> +/*
+> + * raw_pci_read - Platform-specific PCI config space access.
+> + *
+> + * Default empty implementation.  Replace with an architecture-specific setup
+> + * routine, if necessary.
+> + */
+> +int raw_pci_read(unsigned int domain, unsigned int bus,
+> +		  unsigned int devfn, int reg, int len, u32 *val)
+> +{
+> +	return -EINVAL;
+> +}
+> +
+> +int raw_pci_write(unsigned int domain, unsigned int bus,
+> +		  unsigned int devfn, int reg, int len, u32 val)
+> +{
+> +	return -EINVAL;
+> +}
+> +
+> +#ifdef CONFIG_ACPI
+> +/* Root bridge scanning */
+> +struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+> +{
+> +	/* TODO: Should be revisited when implementing PCI on ACPI */
+> +	return NULL;
+> +}
+> +
+> +void __init pci_acpi_crs_quirks(void)
+> +{
+> +	/* Do nothing on ARM64 */
+> +	return;
+> +}
+> +#endif
 
-Best regards
-Hanjun
+And these probably don't need to be done at the architecture level. I expect we
+will only have to worry about SBSA compliant PCI hosts, so this can be done in
+the host controller driver for compliant devices, which is probably the one
+that Will Deacon is working on already.
 
+Note that we are aiming for an empty PCI implementation in ARM64, doing everything
+in either the PCI core or in the individual host drivers.
+
+For pci_acpi_crs_quirks(), it's probably enough to stub out the declaration and
+to make it x86 specific. ia64 already doesn't use it, and we can hope we won't
+need it for arm64 either.
+
+For raw_pci_{read,write} we can have a trivial generic implementation in
+the PCI core, like
+
+int __weak raw_pci_read(unsigned int domain, unsigned int bus,
+		  unsigned int devfn, int reg, int len, u32 *val)
+{
+	struct pci_bus *bus = pci_find_bus(domain, bus);
+	if (!bus)
+		return -ENODEV;
+
+	return bus->ops->read(bus, devfn, reg, len, val);
+}
+
+which won't work on x86 or ia64, but should be fine everywhere else. Alternatively,
+you can change the ACPI code to do the above manually and call the architecture
+independent interfaces, either bus->ops->read, or pci_bus_read_config_{byte,word,dword},
+which would actually simplify the ACPI code.
+
+	Arnd
