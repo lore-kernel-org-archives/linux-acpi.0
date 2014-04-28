@@ -1,67 +1,56 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: [PATCH] acpi: try to trust cpu_index from x86_cpu_to_apicid
-Date: Mon, 28 Apr 2014 10:19:15 +0800
-Message-ID: <20140428021915.GA1625@dhcp-16-105.nay.redhat.com>
-References: <1397519754-10205-1-git-send-email-bhe@redhat.com>
- <11963454.DotWb00OAa@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v3 part1 07/11] ARM64 / ACPI: Introduce arch_fix_phys_package_id()
+ for cpu topology
+Date: Mon, 28 Apr 2014 11:00:01 +0800
+Message-ID: <535DC431.4000900@linaro.org>
+References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org> <1398432017-8506-8-git-send-email-hanjun.guo@linaro.org> <20140425145249.GP12304@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15130 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752276AbaD1CpL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Apr 2014 22:45:11 -0400
-Content-Disposition: inline
-In-Reply-To: <11963454.DotWb00OAa@vostro.rjw.lan>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:52582 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752419AbaD1DAU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Apr 2014 23:00:20 -0400
+Received: by mail-pa0-f45.google.com with SMTP id kq14so4608427pab.18
+        for <linux-acpi@vger.kernel.org>; Sun, 27 Apr 2014 20:00:19 -0700 (PDT)
+In-Reply-To: <20140425145249.GP12304@sirena.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, jiang.liu@linux.intel.com, vgoyal@redhat.com
+To: Mark Brown <broonie@kernel.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <catalin.marinas@arm.com>, linaro-acpi@lists.linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Sudeep Holla <Sudeep.Holla@arm.com>, Grant Likely <grant.likely@linaro.org>, Charles.Garcia-Tobin@arm.com
 
-On 04/21/14 at 10:51pm, Rafael J. Wysocki wrote:
-> On Tuesday, April 15, 2014 07:55:54 AM Baoquan He wrote:
-> > In smp with multi cpus, when enter into kdump kernel with only 1 cpu,
-> > a warning message is printed out:
-> > 
-> > acpi LNXCPU:0a: BIOS reported wrong ACPI id 0 for the processor
-> > 
-> > In this case kdump kernel use the same ACPI tables as 1st kernel,
-> > means lapic information is got from MADT. The acpi_id related to
-> > this cpu index and lapic_id may not be 0, so the code to assign
-> > value to cpu_index is not correct in this case per cpu0_initialized.
-> > cpu index stored in x86_cpu_to_apicid need be respected.
-> > 
-> > Now fix it in this patch per boot_cpu_physical_apicid. When cpu index
-> > related to boot_cpu_physical_apicid is not stored in x86_cpu_to_apicid,
-> > then we can say this is UP system running SMP kernel with no LAPIC in MADT
+Hi Mark,
+
+On 2014-4-25 22:52, Mark Brown wrote:
+> On Fri, Apr 25, 2014 at 09:20:13PM +0800, Hanjun Guo wrote:
 > 
-> Why don't you fix the warning message instead to cover this case too? 
+>> +/*
+>> + * Use the CPU slot number provided by ACPI to update the physical
+>> + * package id, then we can get the right value in the "physical id"
+>> + * field of /proc/cpuinfo.
+>> + */
+>> +void arch_fix_phys_package_id(int num, u32 slot)
+>> +{
+>> +	struct cpu_topology *cpuid_topo = &cpu_topology[num];
+>> +
+>> +	if (cpuid_topo->cluster_id == -1)
+>> +		cpuid_topo->cluster_id = slot;
+>> +}
+>> +EXPORT_SYMBOL_GPL(arch_fix_phys_package_id);
 > 
-> > Signed-off-by: Baoquan He <bhe@redhat.com>
-> > ---
-> >  drivers/acpi/acpi_processor.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-> > index c29c2c3..1ae460c 100644
-> > --- a/drivers/acpi/acpi_processor.c
-> > +++ b/drivers/acpi/acpi_processor.c
-> > @@ -267,7 +267,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
-> >  	pr->apic_id = apic_id;
-> >  
-> >  	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
-> > -	if (!cpu0_initialized) {
-> > +	if (!cpu0_initialized && (boot_cpu_physical_apicid == pr->apic_id)) {
+> This isn't going to work once we parse the MPIDR - we will always have a
+> cluster ID from MPIDR unless the system is uniprocessor (which doesn't
+> seem like it's going to be a common or useful case).  We'll either need
+> to have something in the topology parsing path which goes out and
+> queries ACPI before we try to parse MPIDR or this will need to just set
+> whatever it's told to set unconditionally.
 
-Self NACK this patch.
+I prefer the latter way.
 
-Since this check should be limited on no LAPIC in MADT, so acpi_lapic is
-better for this. Will repost after test.
-
-Hi Rafael,
-
-Do you have any suggestion on this fix?
+Since platform software (firmware) knows the topology of the system, if
+ACPI describes a slot number for this CPU, I think we can use it
+unconditionally.
 
 Thanks
-Baoquan
-
+Hanjun
