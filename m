@@ -1,99 +1,85 @@
-From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range capabilities
-Date: Mon, 28 Apr 2014 22:04:34 -0500
-Message-ID: <535F16C2.6010509@amd.com>
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range
+ capabilities
+Date: Tue, 29 Apr 2014 08:06:07 +0100
+Message-ID: <535F6B7F020000780000D2DB@nat28.tlf.novell.com>
 References: <20140419025308.2408.51252.stgit@amt.stowe>
-	<20140419025323.2408.88764.stgit@amt.stowe>	<20140419135219.GC8109@pd.tnic>
-	<20140420075936.GA19672@pd.tnic>
+ <20140419025323.2408.88764.stgit@amt.stowe>
+ <20140419135219.GC8109@pd.tnic> <20140420075936.GA19672@pd.tnic>
  <CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com>
+ <20140426091031.GA10166@pd.tnic>
+ <CAErSpo4Jqo_opj=QqjcquS_6HqckZfP5-oQHkmY5FSAyyLNYMg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1blp0188.outbound.protection.outlook.com ([207.46.163.188]:25131
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751613AbaD2DEl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Apr 2014 23:04:41 -0400
-In-Reply-To: <CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com>
+Received: from nat28.tlf.novell.com ([130.57.49.28]:35433 "EHLO
+	nat28.tlf.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754324AbaD2HGN convert rfc822-to-8bit (ORCPT
+	<rfc822;groupwise-linux-acpi@vger.kernel.org:9:1>);
+	Tue, 29 Apr 2014 03:06:13 -0400
+In-Reply-To: <CAErSpo4Jqo_opj=QqjcquS_6HqckZfP5-oQHkmY5FSAyyLNYMg@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Myron Stowe <myron.stowe@gmail.com>, Borislav Petkov <bp@suse.de>
-Cc: Myron Stowe <myron.stowe@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci <linux-pci@vger.kernel.org>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, daniel@numascale.com, Thomas Gleixner <tglx@linutronix.de>, mingo@redhat.com, hpa@zytor.com, x86 <x86@kernel.org>, sp@numascale.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Myron Stowe <myron.stowe@gmail.com>, Robert Richter <rric@kernel.org>, x86 <x86@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Daniel J Blueman <daniel@numascale.com>, Steffen Persvold <sp@numascale.com>, Ingo Molnar <mingo@redhat.com>, Myron Stowe <myron.stowe@redhat.com>, Borislav Petkov <bp@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
 
-On 4/25/2014 5:24 PM, Myron Stowe wrote:
-> On Sun, Apr 20, 2014 at 1:59 AM, Borislav Petkov <bp@suse.de> wrote:
->> Drop Andreas' old email address from CC as it keeps bouncing.
->>
->> On Sat, Apr 19, 2014 at 03:52:20PM +0200, Borislav Petkov wrote:
->>>> -static void __init pci_enable_pci_io_ecs(void)
->>>> +static void __init pci_enable_pci_io_ecs(u8 bus, u8 slot)
->>>>   {
->>>>   #ifdef CONFIG_AMD_NB
->>>>      unsigned int i, n;
->>>> +   u8 limit;
->>>>
->>>>      for (n = i = 0; !n && amd_nb_bus_dev_ranges[i].dev_limit; ++i) {
->>>> -           u8 bus = amd_nb_bus_dev_ranges[i].bus;
->>>> -           u8 slot = amd_nb_bus_dev_ranges[i].dev_base;
->>>> -           u8 limit = amd_nb_bus_dev_ranges[i].dev_limit;
->>>> +           /* Try matching for the bus range */
->>>> +           if ((bus != amd_nb_bus_dev_ranges[i].bus) ||
->>>> +               (slot != amd_nb_bus_dev_ranges[i].dev_base))
->>>> +                   continue;
->>>> +
->>>> +           limit = amd_nb_bus_dev_ranges[i].dev_limit;
->>>>
->>>> +           /* Setup all northbridges within the range */
->>>>              for (; slot < limit; ++slot) {
->>>>                      u32 val = read_pci_config(bus, slot, 3, 0);
->>>> -
->>>> -                   if (!early_is_amd_nb(val))
->>>> +                   if (!val)
->>>>                              continue;
->>>>
->>>>                      val = read_pci_config(bus, slot, 3, 0x8c);
->>>> @@ -375,13 +457,14 @@ static void __init pci_enable_pci_io_ecs(void)
->>>>                              val |= ENABLE_CF8_EXT_CFG >> 32;
+>>> On 28.04.14 at 22:50, <bhelgaas@google.com> wrote:
+>>> > There's a enable_pci_io_ecs() which enables ECS through the NB_CFG MSR
+>>> > which is called as part of the notifier *and* there's a PCI write to
+>>> > that same bit in pci_enable_pci_io_ecs() which iterates over all NBs.
+>>> >
+>>> > So, AFAICT, we do it twice and the second time is not needed. Which
+>>> > means, you probably can drop pci_enable_pci_io_ecs() completely and use
+>>> > solely the notifier?
 >>>
->>> What a fun shifting!
+>>> It does look as if there is some duplication with respect to setting
+>>> MSR_AMD64_NB_CFG's (which is aliased at D18F3x8c [1])
+>>> ENABLE_CF8_EXT_CFG enable bit but there are at least a couple of
+>>> differences.
 >>>
->>> Maybe you should do
->>>
->>> #define ENABLE_CF8_EXT_CFG    BIT(46 - 32)
->>>
->>> to show exactly what you mean and how the bit is defined in MSR NB_CFG1
->>> and also show how the high 32-bits are mapped into F3x8c, while at it.
->>>
->>> And then you can drop the shifting at the call site.
->>
->> Ok, I see another fun with this ECS enabling:
->>
->> There's a enable_pci_io_ecs() which enables ECS through the NB_CFG MSR
->> which is called as part of the notifier *and* there's a PCI write to
->> that same bit in pci_enable_pci_io_ecs() which iterates over all NBs.
->>
->> So, AFAICT, we do it twice and the second time is not needed. Which
->> means, you probably can drop pci_enable_pci_io_ecs() completely and use
->> solely the notifier?
->
-> It does look as if there is some duplication with respect to setting
-> MSR_AMD64_NB_CFG's (which is aliased at D18F3x8c [1])
-> ENABLE_CF8_EXT_CFG enable bit but there are at least a couple of
-> differences.
->
-> enable_pci_io_ecs() only sets the bit on one NB whereas
-> pci_enable_pci_io_ecs iterates over all the NBs (as you mentioned
-> above).  The other difference has something to do with Xen; see the
-> origin of pci_enable_pci_io_ecs - commit 24d9b70b8.
->
->>
->> Yes, no?
->
-> Suravee, Kim - either of you want to chime in here?
+>>> enable_pci_io_ecs() only sets the bit on one NB whereas
+>>> pci_enable_pci_io_ecs iterates over all the NBs (as you mentioned
+>>> above).  The other difference has something to do with Xen; see the
+>>> origin of pci_enable_pci_io_ecs - commit 24d9b70b8.
 
-I believe the notifier is mainly for the cores which are initially 
-offline, and then brought up online afterward.
+As stated there - Xen Dom0 is running on virtual CPUs, i.e. which
+physical CPU the code gets executed on is unknown, and hence the
+MSR based approach just does not reliably work there.
 
-Suravee
+Of course, with (since then) grown needs to access extended config
+space in Xen itself, this enabling could be moved into the hypervisor.
+Back then the hypervisor didn't have much need for this, so it seemed
+more reasonable (albeit I'm rather certain Borislav is going to disagree
+with this) to augment the Dom0 side code.
+
+> This is probably obvious, but my interest here is to (1) make sure all
+> systems in the field run well (so we need quirks to work around BIOS
+> and other issues), and (2) eliminate the need for kernel changes to
+> support future systems.  So far we seem to be concentrating on (1) and
+> neglecting (2), which means we're always reacting to things that are
+> broken.
+> 
+> This I/O ECS thing seems likely to cause future problems.  My
+> understanding (based on sec 2.8 of [1]) is that enable_pci_io_ecs()
+> and pci_enable_pci_io_ecs() are there to enable access to extended
+> config space (offsets 256-4095) via the 0xcf8/0xcfc I/O ports.
+> 
+> Per sec 4.1.1 of [2], we should be using ECAM (the memory-mapped
+> enhanced configuration mechanism, i.e., MMCONFIG) to access extended
+> config space, and the BIOS should supply an MCFG table.
+> 
+> So why do we need to enable I/O access to ECS on AMD chips at all?  Is
+> this a workaround for a broken BIOS that doesn't supply an MCFG table?
+
+Yes. Rather than leaving such systems entirely without access to
+extended config space, it seemed (and still seems to me) better to
+at least have this fallback in place. If after this discussion you decide
+to drop this code here, it would be nice if you could let us know up
+front, so we can decide whether to add the code to the hypervisor
+instead or - just like on Intel systems - rely on MCFG being properly
+exposed by the firmware.
+
+Jan
 
