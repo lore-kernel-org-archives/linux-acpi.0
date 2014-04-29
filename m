@@ -1,57 +1,100 @@
-From: Andreas Herrmann <herrmann.der.user@googlemail.com>
-Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range
- capabilities
-Date: Tue, 29 Apr 2014 09:33:09 +0200
-Message-ID: <20140429073309.GE10997@alberich>
-References: <20140419025308.2408.51252.stgit@amt.stowe>
- <20140419025323.2408.88764.stgit@amt.stowe>
- <20140419135219.GC8109@pd.tnic>
- <20140420075936.GA19672@pd.tnic>
- <CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com>
- <20140426091031.GA10166@pd.tnic>
- <CAErSpo4Jqo_opj=QqjcquS_6HqckZfP5-oQHkmY5FSAyyLNYMg@mail.gmail.com>
- <20140428214036.GA32143@pd.tnic>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2 3/5] ACPICA: Add <asm/acenv.h> to remove mis-ordered
+ inclusion of <asm/acpi.h> from <acpi/platform/aclinux.h>.
+Date: Tue, 29 Apr 2014 07:49:13 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802558BA5@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1396930406.git.lv.zheng@intel.com>
+ <cover.1398232408.git.lv.zheng@intel.com>
+ <522ac0c3a52f1697d75363cc808a213773dca295.1398232409.git.lv.zheng@intel.com>
+ <1469560.3p9s15HIYZ@vostro.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E880255865E@SHSMSX101.ccr.corp.intel.com>
+ <535EBA4B.5090305@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:53468 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752447AbaD2HdP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2014 03:33:15 -0400
-Content-Disposition: inline
-In-Reply-To: <20140428214036.GA32143@pd.tnic>
+Received: from mga03.intel.com ([143.182.124.21]:34164 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754070AbaD2Htf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Apr 2014 03:49:35 -0400
+In-Reply-To: <535EBA4B.5090305@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Robert Richter <rric@kernel.org>, herrmann.der.user@gmail.com, Myron Stowe <myron.stowe@gmail.com>, Myron Stowe <myron.stowe@redhat.com>, linux-pci <linux-pci@vger.kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, Daniel J Blueman <daniel@numascale.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 <x86@kernel.org>, Steffen Persvold <sp@numascale.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jan Beulich <JBeulich@suse.com>, Yinghai Lu <yinghai@kernel.org>
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Luck, Tony" <tony.luck@intel.com>, "Yu, Fenghua" <fenghua.yu@intel.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>
 
-On Mon, Apr 28, 2014 at 11:40:36PM +0200, Borislav Petkov wrote:
-> On Mon, Apr 28, 2014 at 02:50:29PM -0600, Bjorn Helgaas wrote:
-> > This I/O ECS thing seems likely to cause future problems.  My
-> > understanding (based on sec 2.8 of [1]) is that enable_pci_io_ecs()
-> > and pci_enable_pci_io_ecs() are there to enable access to extended
-> > config space (offsets 256-4095) via the 0xcf8/0xcfc I/O ports.
-> > 
-> > Per sec 4.1.1 of [2], we should be using ECAM (the memory-mapped
-> > enhanced configuration mechanism, i.e., MMCONFIG) to access extended
-> > config space, and the BIOS should supply an MCFG table.
-> > 
-> > So why do we need to enable I/O access to ECS on AMD chips at all?  Is
-> > this a workaround for a broken BIOS that doesn't supply an MCFG table?
-> 
-> That's a good question. 831d991821dae doesn't say but I have a hunch
-> Andreas and/or Robert should know. I seem to vaguely remember it
-> might've been because of a missing MCFG but have flushed it out of the
-> cache long time ago.
-> 
-> Let's ask them.
-> 
-> Andreas, Robert, guys, do you remember why we did the PCI IO ECS access?
-> B0rked BIOSes?
-
-
-I am sure, it's because some server systems had MMIO ECS access not
-enabled in BIOS. I can't remember which systems were affected.
-
-
-Andreas
+SGksIFJhZmFlbA0KDQo+IEZyb206IFd5c29ja2ksIFJhZmFlbCBKDQo+IFNlbnQ6IFR1ZXNkYXks
+IEFwcmlsIDI5LCAyMDE0IDQ6MzAgQU0NCj4gDQo+IE9uIDQvMjgvMjAxNCA1OjAyIEFNLCBaaGVu
+ZywgTHYgd3JvdGU6DQo+ID4gSGksIFJhZmFlbA0KPiA+DQo+ID4+IEZyb206IGxpbnV4LWFjcGkt
+b3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5l
+bC5vcmddIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4gV3lzb2NraQ0KPiA+PiBTZW50OiBNb25kYXks
+IEFwcmlsIDI4LCAyMDE0IDU6MzcgQU0NCj4gPj4gVG86IFpoZW5nLCBMdg0KPiA+Pg0KPiA+PiBP
+biBXZWRuZXNkYXksIEFwcmlsIDIzLCAyMDE0IDAyOjU0OjA2IFBNIEx2IFpoZW5nIHdyb3RlOg0K
+PiA+Pj4gVGhlcmUgaXMgYSBtaXMtb3JkZXIgaW5jbHVzaW9uIGZvciA8YXNtL2FjcGkuaD4uDQo+
+ID4+Pg0KPiA+Pj4gQXMgd2Ugd2lsbCBlbmZvcmNlIGluY2x1ZGluZyA8bGludXgvYWNwaS5oPiBm
+b3IgYWxsIExpbnV4IEFDUEkgdXNlcnMsIHdlDQo+ID4+PiBjYW4gZmluZCB0aGUgaW5jbHVzaW9u
+IG9yZGVyIGlzIGFzIGZvbGxvd3M6DQo+ID4+Pg0KPiA+Pj4gPGxpbnV4L2FjcGkuaD4NCj4gPj4+
+ICAgIDxhY3BpL2FjcGkuaD4NCj4gPj4+ICAgICA8YWNwaS9wbGF0Zm9ybS9hY2Vudi5oPg0KPiA+
+Pj4gICAgICAoYWNlbnYuaCBiZWZvcmUgaW5jbHVkaW5nIGFjbGludXguaCkNCj4gPj4+ICAgICAg
+PGFjcGkvcGxhdGZvcm0vYWNsaW51eC5oPg0KPiA+Pj4gLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uDQo+ID4+
+PiAgICAgICAoYWNsaW51eC5oIGJlZm9yZSBpbmNsdWRpbmcgYXNtL2FjcGkuaCkNCj4gPj4+ICAg
+ICAgIDxhc20vYWNwaS5oPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgQFJlZHVuZGFudEAN
+Cj4gPj4+ICAgICAgICAoQUNQSUNBIHNwZWNpZmljIHN0dWZmKQ0KPiA+Pj4gLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uDQo+ID4+PiAuLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4NCj4gPj4+ICAgICAgICAoTGludXggQUNQ
+SSBzcGVjaWZpYyBzdHVmZikgPyAtIC0gLSAtIC0gLSAtIC0gLSAtIC0gLSArDQo+ID4+PiAgICAg
+ICAoYWNsaW51eC5oIGFmdGVyIGluY2x1ZGluZyBhc20vYWNwaS5oKSAgIEBJbnZpc2libGVAICAg
+fA0KPiA+Pj4gICAgICAoYWNlbnYuaCBhZnRlciBpbmNsdWRpbmcgYWNsaW51eC5oKSAgICAgICBA
+SW52aXNpYmxlQCAgIHwNCj4gPj4+ICAgICBvdGhlciBBQ1BJQ0EgaGVhZGVycyAgICAgICAgICAg
+ICAgICAgICAgICAgQEludmlzaWJsZUAgICB8DQo+ID4+PiAuLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi58Li4uLi4uLi4uLi4uLi4NCj4g
+Pj4+ICAgIDxhY3BpL2FjcGlfYnVzLmg+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICB8DQo+ID4+PiAgICA8YWNwaS9hY3BpX2RyaXZlcnMuaD4gICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgfA0KPiA+Pj4gICAgPGFzbS9hY3BpLmg+IChFeGNsdWRlZCkg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwNCj4gPj4+ICAgICAoTGludXggQUNQ
+SSBzcGVjaWZpYyBzdHVmZikgISA8LSAtIC0gLSAtIC0gLSAtIC0gLSAtIC0gLSArDQo+ID4+Pg0K
+PiA+Pj4gTk9URSB0aGF0LCBpbiBBQ1BJQ0EsIDxhY3BpL3BsYXRmb3JtL2FjZW52Lmg+IGlzIG1v
+cmUgbGlrZSBLY29uZmlnDQo+ID4+PiBnZW5lcmF0ZWQgPGdlbmVyYXRlZC9hdXRvY29uZi5oPiBm
+b3IgTGludXgsIGl0IGlzIG1lYW50IHRvIGJlIGluY2x1ZGVkDQo+ID4+PiBiZWZvcmUgaW5jbHVk
+aW5nIGFueSBBQ1BJQ0EgY29kZS4NCj4gPj4+DQo+ID4+PiBJbiB0aGUgYWJvdmUgZmlndXJlLCB0
+aGVyZSBpcyBhIHF1ZXN0aW9uIG1hcmsgZm9yICJMaW51eCBBQ1BJIHNwZWNpZmljDQo+ID4+PiBz
+dHVmZiIgaW4gPGFzbS9hY3BpLmg+IHdoaWNoIHNob3VsZCBiZSBpbmNsdWRlZCBhZnRlciBpbmNs
+dWRpbmcgYWxsIG90aGVyDQo+ID4+PiBBQ1BJQ0EgaGVhZGVyIGZpbGVzLiAgVGh1cyB0aGV5IHJl
+YWxseSBuZWVkIHRvIGJlIG1vdmVkIHRvIHRoZSBwb3NpdGlvbg0KPiA+Pj4gbWFya2VkIHdpdGgg
+ZXhjbGFpbWF0aW9uIG1hcmsgb3IgdGhlIGRlZmluaXRpb25zIGluIHRoZSBibG9ja3MgbWFya2Vk
+IHdpdGgNCj4gPj4+ICJASW52aXNpYmxlQCIgd2lsbCBiZSBpbnZpc2libGUgdG8gc3VjaCBhcmNo
+aXRlY3R1cmUgc3BlY2lmaWMgIkxpbnV4IEFDUEkNCj4gPj4+IHNwZWNpZmljIHN0dWZmIiBoZWFk
+ZXIgYmxvY2tzLiAgVGhpcyBsZWF2ZXMgMiBpc3N1ZXM6DQo+ID4+PiAxLiBBbGwgZW52aXJvbm1l
+bnRhbCBkZWZpbml0aW9ucyBpbiB0aGVzZSBibG9ja3Mgc2hvdWxkIGhhdmUgYSBjb3B5IGluIHRo
+ZQ0KPiA+Pj4gICAgIGFyZWEgbWFya2VkIHdpdGggIkBSZWR1bmRhbnRAIiBpZiB0aGV5IGFyZSBy
+ZXF1aXJlZCBieSB0aGUgIkxpbnV4IEFDUEkNCj4gPj4+ICAgICBzcGVjaWZpYyBzdHVmZiIuDQo+
+ID4+PiAyLiBXZSBjYW5ub3QgdXNlIGFueSBBQ1BJQ0EgZGVmaW5lZCB0eXBlcyBpbiA8YXNtL2Fj
+cGkuaD4uDQo+ID4+Pg0KPiA+Pj4gVGhpcyBwYXRjaCBzcGxpdHMgYXJjaGl0ZWN0dXJlIHNwZWNp
+ZmljIEFDUElDQSBzdHVmZiBmcm9tIDxhc20vYWNwaS5oPiB0bw0KPiA+Pj4gZml4IHRoaXMgaXNz
+dWUuDQo+ID4+Pg0KPiA+Pj4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVs
+LmNvbT4NCj4gPj4+IENjOiBUb255IEx1Y2sgPHRvbnkubHVja0BpbnRlbC5jb20+DQo+ID4+PiBD
+YzogRmVuZ2h1YSBZdSA8ZmVuZ2h1YS55dUBpbnRlbC5jb20+DQo+ID4+PiBDYzogbGludXgtaWE2
+NEB2Z2VyLmtlcm5lbC5vcmcNCj4gPj4+IENjOiBUaG9tYXMgR2xlaXhuZXIgPHRnbHhAbGludXRy
+b25peC5kZT4NCj4gPj4+IENjOiBJbmdvIE1vbG5hciA8bWluZ29AcmVkaGF0LmNvbT4NCj4gPj4+
+IENjOiAiSC4gUGV0ZXIgQW52aW4iIDxocGFAenl0b3IuY29tPg0KPiA+Pj4gQ2M6IHg4NkBrZXJu
+ZWwub3JnDQo+ID4+PiAtLS0NCj4gPj4+ICAgYXJjaC9pYTY0L2luY2x1ZGUvYXNtL2FjZW52Lmgg
+ICB8ICAgNzEgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ID4+PiAg
+IGFyY2gvaWE2NC9pbmNsdWRlL2FzbS9hY3BpLmggICAgfCAgIDUwIC0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLQ0KPiA+Pj4gICBhcmNoL3g4Ni9pbmNsdWRlL2FzbS9hY2Vudi5oICAgIHwgICA2
+NSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiA+Pj4gICBhcmNoL3g4Ni9p
+bmNsdWRlL2FzbS9hY3BpLmggICAgIHwgICA0NSAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+
+ID4+PiAgIGluY2x1ZGUvYWNwaS9wbGF0Zm9ybS9hY2xpbnV4LmggfCAgICAyICstDQo+ID4+IFBs
+ZWFzZSByZW5hbWUgdGhlIGZpbGVzIGZpcnN0IChpbiBhIHNlcGFyYXRlIHBhdGNoKSBhbmQgdGhl
+biBtb2RpZnkgdGhlDQo+ID4+IHJlbmFtZWQgb25lcy4gIFRoYXQgd2lsbCBtYWtlIGNoYW5nZXMg
+bXVjaCBlYXNpZXIgdG8gZm9sbG93Lg0KPiA+IFRoaXMgcGF0Y2ggZG9lc24ndCBwcm92aWRlIGEg
+cmVuYW1lLg0KPiA+IEN1cnJlbnRseSwgPGFzbS9hY3BpLmg+IGluY2x1ZGVzOg0KPiA+IDEuIGFy
+Y2ggc3BlY2lmaWMgQUNQSSBzdHVmZg0KPiA+IDIuIGFyY2ggc3BlY2lmaWMgQUNQSUNBIHN0dWZm
+DQo+ID4gVGhpcyBwYXRjaCBtb3ZlcyAiMiIgdG8gYSBzZXBhcmF0ZSBmaWxlIDxhc20vYWNlbnYu
+aD4sIHRodXMgbm8gcmVuYW1pbmcgaGFwcGVucyBoZXJlLg0KPiANCj4gQWgsIEkgb3Zlcmxvb2tl
+ZCB0aGF0LCBzb3JyeS4NCj4gDQo+IFdoaWNoIEkgbWlnaHQgbm90IGRvIGlmIHRoZSBjaGFuZ2Vs
+b2cgc2FpZCB3aGF0IHRoZSBwYXRjaCB3YXMgcmVhbGx5IGRvaW5nLg0KDQpIbW0sIEknbGwgcmVm
+aW5lIHRoZSBjaGFuZ2Vsb2cgaW4gdGhlIG5leHQgcmV2aXNpb24uIDotKQ0KVGhhbmtzIGZvciB0
+aGUgaGVscGluZy4NCg0KQmVzdCByZWdhcmRzDQotTHYNCg==
