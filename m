@@ -1,39 +1,129 @@
-From: Steffen Persvold <sp@numascale.com>
-Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range capabilities
-Date: Tue, 29 Apr 2014 06:07:46 -0700
-Message-ID: <3CFA7164-1352-467D-951E-C9F8F35F3163@numascale.com>
-References: <20140419025308.2408.51252.stgit@amt.stowe> <20140419025323.2408.88764.stgit@amt.stowe> <20140419135219.GC8109@pd.tnic> <20140420075936.GA19672@pd.tnic> <CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com> <20140426091031.GA10166@pd.tnic> <CAErSpo4Jqo_opj=QqjcquS_6HqckZfP5-oQHkmY5FSAyyLNYMg@mail.gmail.com> <20140428214036.GA32143@pd.tnic> <20140429073309.GE10997@alberich> <20140429102013.GA4726@pd.tnic>
-Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from numascale.com ([213.162.240.84]:57826 "EHLO numascale.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757771AbaD2OPq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2014 10:15:46 -0400
-In-Reply-To: <20140429102013.GA4726@pd.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Kieran Clancy <clancy.kieran@gmail.com>
+Subject: [PATCH] ACPI / EC: Process rather than discard events in acpi_ec_clear
+Date: Wed, 30 Apr 2014 00:21:20 +0930
+Message-ID: <1398783080-24554-1-git-send-email-clancy.kieran@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Kieran Clancy <clancy.kieran@gmail.com>, Lan Tianyu <tianyu.lan@intel.com>, Stefan Biereigel <stefan@biereigel.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: Andreas Herrmann <herrmann.der.user@googlemail.com>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Bjorn Helgaas <bhelgaas@google.com>, Robert Richter <rric@kernel.org>, Myron Stowe <myron.stowe@gmail.com>, Myron Stowe <myron.stowe@redhat.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, linux-pci <linux-pci@vger.kernel.org>, kim.naru@amd.com, Daniel J Blueman <daniel@numascale.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jan Beulich <JBeulich@suse.com>, Yinghai Lu <yinghai@kernel.org>
 
-On 29 Apr 2014, at 3:20 , Borislav Petkov <bp@suse.de> wrote:
+Address a regression caused by commit ad332c8a4533:
+(ACPI / EC: Clear stale EC events on Samsung systems)
 
-> On Tue, Apr 29, 2014 at 09:33:09AM +0200, Andreas Herrmann wrote:
->> I am sure, it's because some server systems had MMIO ECS access not
->> enabled in BIOS. I can't remember which systems were affected.
-> 
-> Ok, now AMD people: what's the story with IO ECS, can we assume that on
-> everything after F10h, BIOS has a sensible MCFG and we can limit this to
-> F10h only? I like Bjorn's idea but we need to make sure a working MCFG
-> is ubiquitous.
-> 
-> Which begs the real question: Suravee, why are you even touching IO ECS
-> provided F15h and later have a MCFG? Or, do they?
-> 
+After the earlier patch, there was found to be a race condition on some
+earlier Samsung systems (N150/N210/N220). The function acpi_ec_clear was
+sometimes discarding a new EC event before its GPE was triggered by the
+system. In the case of these systems, this meant that the "lid open"
+event was not registered on resume if that was the cause of the wake,
+leading to problems when attempting to close the lid to suspend again.
 
-Our experience with this is that Fam10h and later have a very well working MCFG setup, earlier generations not so much (hence IO ECS was needed).
+After testing on a number of Samsung systems, both those affected by the
+previous EC bug and those affected by the race condition, it seemed that
+the best course of action was to process rather than discard the events.
+On Samsung systems which accumulate stale EC events, there does not seem
+to be any adverse side-effects of running the associated _Q methods.
 
-Cheers,
-Steffen
+This patch adds an argument to the static function acpi_ec_sync_query so
+that it may be used within the acpi_ec_clear loop in place of
+acpi_ec_query_unlocked which was used previously.
 
+With thanks to Stefan Biereigel for reporting the issue, and for all the
+people who helped test the new patch on affected systems.
+
+References: https://lkml.kernel.org/r/532FE3B2.9060808@biereigel-wb.de
+References: https://bugzilla.kernel.org/show_bug.cgi?id=44161#c173
+Reported-by: Stefan Biereigel <stefan@biereigel.de>
+Signed-off-by: Kieran Clancy <clancy.kieran@gmail.com>
+Tested-by: Stefan Biereigel <stefan@biereigel.de>
+Tested-by: Dennis Jansen <dennis.jansen@web.de>
+Tested-by: Nicolas Porcel <nicolasporcel06@gmail.com>
+Tested-by: Maurizio D'Addona <mauritiusdadd@gmail.com>
+Tested-by: Juan Manuel Cabo <juanmanuel.cabo@gmail.com>
+Tested-by: Giannis Koutsou <giannis.koutsou@gmail.com>
+Tested-by: Kieran Clancy <clancy.kieran@gmail.com>
+Cc: Lan Tianyu <tianyu.lan@intel.com>
+---
+
+To maintainers: Assuming this patch is accepted, please mark this for
+inclusion in all -stable trees. It should be noted that the previous
+patch (ad332c8a4533) was excluded from a number of stable trees after
+the regression was found, but should now be included again along with
+this patch. I am not sure of the correct way to annotate this above.
+
+ drivers/acpi/ec.c | 21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index d7d32c2..ad11ba4 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -206,13 +206,13 @@ unlock:
+ 	spin_unlock_irqrestore(&ec->lock, flags);
+ }
+ 
+-static int acpi_ec_sync_query(struct acpi_ec *ec);
++static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data);
+ 
+ static int ec_check_sci_sync(struct acpi_ec *ec, u8 state)
+ {
+ 	if (state & ACPI_EC_FLAG_SCI) {
+ 		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
+-			return acpi_ec_sync_query(ec);
++			return acpi_ec_sync_query(ec, NULL);
+ 	}
+ 	return 0;
+ }
+@@ -443,10 +443,8 @@ acpi_handle ec_get_handle(void)
+ 
+ EXPORT_SYMBOL(ec_get_handle);
+ 
+-static int acpi_ec_query_unlocked(struct acpi_ec *ec, u8 *data);
+-
+ /*
+- * Clears stale _Q events that might have accumulated in the EC.
++ * Process _Q events that might have accumulated in the EC.
+  * Run with locked ec mutex.
+  */
+ static void acpi_ec_clear(struct acpi_ec *ec)
+@@ -455,7 +453,7 @@ static void acpi_ec_clear(struct acpi_ec *ec)
+ 	u8 value = 0;
+ 
+ 	for (i = 0; i < ACPI_EC_CLEAR_MAX; i++) {
+-		status = acpi_ec_query_unlocked(ec, &value);
++		status = acpi_ec_sync_query(ec, &value);
+ 		if (status || !value)
+ 			break;
+ 	}
+@@ -582,13 +580,18 @@ static void acpi_ec_run(void *cxt)
+ 	kfree(handler);
+ }
+ 
+-static int acpi_ec_sync_query(struct acpi_ec *ec)
++static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data)
+ {
+ 	u8 value = 0;
+ 	int status;
+ 	struct acpi_ec_query_handler *handler, *copy;
+-	if ((status = acpi_ec_query_unlocked(ec, &value)))
++
++	status = acpi_ec_query_unlocked(ec, &value);
++	if (data)
++		*data = value;
++	if (status)
+ 		return status;
++
+ 	list_for_each_entry(handler, &ec->list, node) {
+ 		if (value == handler->query_bit) {
+ 			/* have custom handler for this bit */
+@@ -612,7 +615,7 @@ static void acpi_ec_gpe_query(void *ec_cxt)
+ 	if (!ec)
+ 		return;
+ 	mutex_lock(&ec->mutex);
+-	acpi_ec_sync_query(ec);
++	acpi_ec_sync_query(ec, NULL);
+ 	mutex_unlock(&ec->mutex);
+ }
+ 
+-- 
+1.9.0
