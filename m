@@ -1,96 +1,40 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v3 part1 02/11] ARM64 / ACPI: Introduce the skeleton of
- _PDC related for ARM64
-Date: Tue, 29 Apr 2014 10:39:40 +0100
-Message-ID: <20140429093941.02167C4095B@trevor.secretlab.ca>
-References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>
-	<1398432017-8506-3-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:53466 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993AbaD2Jjq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2014 05:39:46 -0400
-Received: by mail-ee0-f42.google.com with SMTP id d17so93891eek.29
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Apr 2014 02:39:44 -0700 (PDT)
-In-Reply-To: <1398432017-8506-3-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [GIT PULL] ACPI and power management fixes for v3.15-rc3
+Date: Tue, 29 Apr 2014 11:40:06 +0200
+Message-ID: <20140429094006.GA20064@xo-6d-61-c0.localdomain>
+References: <CAJZ5v0gkQH0=hGTpA0fF=tpAW_t3eCvLkZPQ-=ROPmzzDYssLg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0gkQH0=hGTpA0fF=tpAW_t3eCvLkZPQ-=ROPmzzDYssLg@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Will Deacon <will.deacon@arm.com>, Charles.Garcia-Tobin@arm.com, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>
 
-On Fri, 25 Apr 2014 21:20:08 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> The _PDC (Processor Driver Capabilities) object provides OSPM a
-> mechanism to convey to the platform the capabilities supported
-> by OSPM for processor power management.
+On Sat 2014-04-26 02:11:51, Rafael J. Wysocki wrote:
+> Hi Linus,
 > 
-> OSPM evaluates _PDC prior to evaluating any other processor
-> power management objects returning configuration information.
+> Please pull from
 > 
-> This patch introduces the skeleton of _PDC related file to make
-> ACPI core can be compiled on ARM64, and should be revisited when
-> implementing CPU power control.
+>  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+>  pm+acpi-3.15-rc3
 > 
-> Signed-off-by: Al Stone <al.stone@linaro.org>
-> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/arm64/include/asm/acpi.h |   37 +++++++++++++++++++++++++++++++++++++
->  1 file changed, 37 insertions(+)
->  create mode 100644 arch/arm64/include/asm/acpi.h
-> 
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> new file mode 100644
-> index 0000000..e3e990e
-> --- /dev/null
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -0,0 +1,37 @@
-> +/*
-> + *  Copyright (C) 2013~2014, Al Stone <al.stone@linaro.org>
+> to receive ACPI, power management and PNP fixes for v3.15-rc3
+> with top-most commit d4c9c8a09cff85f69b2c224ca7dbeb42431da2b3
 
-Not really a correct copyright assignement. The copyright is held by
-Linaro, but the author is Al. It should instead read:
+Actually... From 3.15-rc, I see occassional failure after resume.
 
- * Copyright (C0 2013-2014, Linaro Ltd.
- * Author: Al Stone <al.stone@linaro.org>
+Gnome2 dialog with "Do you want to suspend/hibernate/shutdown" stays on screen,
+and with "suspend" button depressed. .. X session is no longer usable.
 
-Acked-by: Grant Likely <grant.likely@linaro.org>
+I can switch to console, nothing too suspicious in dmesg. ps shows
+sh in "Zombie" state.
 
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License as published by
-> + *  the Free Software Foundation; either version 2 of the License, or
-> + *  (at your option) any later version.
-> + *
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> + */
-> +
-> +#ifndef _ASM_ACPI_H
-> +#define _ASM_ACPI_H
-> +
-> +static inline bool arch_has_acpi_pdc(void)
-> +{
-> +	/*
-> +	 * Always false for now, should be revisited when
-> +	 * implementing CPU power management
-> +	 */
-> +	return false;
-> +}
-> +
-> +static inline void arch_acpi_set_pdc_bits(u32 *buf)
-> +{
-> +	/* Should be revisited when implementing CPU power management */
-> +	return;
-> +}
-> +
-> +#endif /*_ASM_ACPI_H*/
-> -- 
-> 1.7.9.5
-> 
+Does anyone else see that? (Desktop x86 machine with i915.)
 
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
