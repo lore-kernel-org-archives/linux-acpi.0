@@ -1,50 +1,85 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Patch V2 0/9] I2C ACPI operation region handler support
-Date: Tue, 29 Apr 2014 17:47:11 +0200
-Message-ID: <1527127.pmk7LiQ709@vostro.rjw.lan>
-References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com> <43726986.W0L99n76oE@vostro.rjw.lan> <535F0666.1090409@intel.com>
+From: Robert Richter <rric@kernel.org>
+Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range
+ capabilities
+Date: Tue, 29 Apr 2014 19:17:20 +0200
+Message-ID: <20140429171720.GL32718@rric.localhost>
+References: <20140419025308.2408.51252.stgit@amt.stowe>
+ <20140419025323.2408.88764.stgit@amt.stowe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <535F0666.1090409@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: wsa@the-dreams.de, mika.westerberg@linux.intel.com, awilliam@redhat.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ee0-f41.google.com ([74.125.83.41]:40810 "EHLO
+	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757817AbaD2RRZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2014 13:17:25 -0400
+Content-Disposition: inline
+In-Reply-To: <20140419025323.2408.88764.stgit@amt.stowe>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Myron Stowe <myron.stowe@redhat.com>
+Cc: bhelgaas@google.com, linux-pci@vger.kernel.org, suravee.suthikulpanit@amd.com, aravind.gopalakrishnan@amd.com, kim.naru@amd.com, andreas.herrmann3@amd.com, daniel@numascale.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, sp@numascale.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, April 29, 2014 09:54:46 AM Lan Tianyu wrote:
-> On 2014=E5=B9=B404=E6=9C=8829=E6=97=A5 06:51, Rafael J. Wysocki wrote=
-:
-> > On Monday, April 28, 2014 10:27:39 PM Lan Tianyu wrote:
-> >> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart) =
-operation
-> >> region. It allows ACPI aml code able to access such kind of device=
-s to
-> >> implement some ACPI standard method.
-> >>
-> >> On the Asus T100TA, Bios use GenericSerialBus operation region to =
-access
-> >> i2c device to get battery info. So battery function depends on the=
- I2C
-> >> operation region support. Here is the bug link.
-> >> https://bugzilla.kernel.org/show_bug.cgi?id=3D69011
-> >>
-> >> This patchset is to add I2C ACPI operation region handler support.
-> >>
-> >> Change Since V1:
-> >>        Fix some code style and memory leak issues in Patch 7
-> >=20
-> > Is it the only patch that has changed from v1?
->=20
->=20
-> I also remove a redundant semicolon in the PATCH 8. Sorry. I didn't
-> notice these patches are already in your tree. I will produce diverge=
-nce
-> patches based on your bleeding-edge branch.
+In addition to Boris I have the following:
 
-No need for that, I'll use the new versions.
+On 18.04.14 20:53:23, Myron Stowe wrote:
+> +#define AMD_PCIE_CF8(bus, dev, fn, reg) \
+> +			(0x80000000 | \
+> +			((reg & 0xF00) << 16) | \
+> +			((bus & 0xF) << 16) | \
+> +			((dev & 0x1F) << 11) | \
+> +			((fn & 0x7) << 8) | \
+> +			((reg & 0xFC)))
 
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Make this a static function.
+
+> +/* This version of read_pci_config allows reading registers in the ECS area */
+> +static inline int _amd_read_pci_config(u8 bus, u8 slot, u8 fn, u32 offset)
+
+No need to inline this, no need for a single tailing underscore.
+
+> +{
+> +	u32 value;
+> +
+> +	if ((!amd_early_ecs_enabled) && (offset > 0xFF))
+> +		return -1;
+> +
+> +	outl(AMD_PCIE_CF8(bus, slot, fn, offset), 0xcf8);
+> +	value = inl(0xcfc);
+> +
+> +	return value;
+
+This design is broken. The return type does not match the functions
+return value and you can't do error checking as -1 can be a value too.
+
+Why reinventing this new instead of trying to reuse functions in
+arch/x86/pci/direct.c/early.c or so?
+
+Would an access via mmconfig space at this early stage possible? If so
+this code could be skipped as we wouln't need it for fam10h (no early
+access needed) nor fam15h or newer (mmconfig available).
+
+> +}
+> +
+>  static struct pci_root_info __init *find_pci_root_info(int node, int link)
+>  {
+>  	struct pci_root_info *info;
+> @@ -48,6 +81,9 @@ static struct pci_root_info __init *find_pci_root_info(int node, int link)
+>  		if (info->node == node && info->link == link)
+>  			return info;
+>  
+> +	pr_warn("AMD-Bus: WARNING: Failed to find root info for node %#x, link %#x\n",
+> +		node, link);
+
+As there might be (virtual) systems where this case is valid, I
+wouldn't print anything here. We should only print things that exist
+or error/warnings.
+
+-Robert
+
+> +
+>  	return NULL;
+>  }
+>  
+> @@ -118,6 +154,12 @@ static int __init early_fill_mp_bus_info(void)
+>  
+>  	pr_debug("Found AMD hostbridge at %x:%x.0\n", bus, slot);
