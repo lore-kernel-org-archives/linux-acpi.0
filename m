@@ -1,71 +1,59 @@
-From: Robert Richter <rric@kernel.org>
-Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range
- capabilities
-Date: Tue, 29 Apr 2014 13:19:19 +0200
-Message-ID: <20140429111919.GI32718@rric.localhost>
-References: <20140419025308.2408.51252.stgit@amt.stowe>
- <20140419025323.2408.88764.stgit@amt.stowe>
- <20140419135219.GC8109@pd.tnic>
- <20140420075936.GA19672@pd.tnic>
- <CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com>
- <20140426091031.GA10166@pd.tnic>
- <CAErSpo4Jqo_opj=QqjcquS_6HqckZfP5-oQHkmY5FSAyyLNYMg@mail.gmail.com>
- <20140428214036.GA32143@pd.tnic>
- <20140429073309.GE10997@alberich>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [Patch V2 1/9] ACPICA: Executer: Fix buffer allocation issue for
+ generic_serial_bus region field accesses.
+Date: Tue, 29 Apr 2014 13:31:28 +0200
+Message-ID: <20140429113128.GA3640@katana>
+References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
+ <1398707520.2843.16.camel@adam.happyassassin.net>
+ <1398708505.2843.17.camel@adam.happyassassin.net>
+ <8704550.LJW911OU1k@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3MwIy2ne0vdjdPXF"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sauhun.de ([89.238.76.85]:40662 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933455AbaD2Lbj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Apr 2014 07:31:39 -0400
 Content-Disposition: inline
-In-Reply-To: <20140429073309.GE10997@alberich>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Herrmann <herrmann.der.user@googlemail.com>
-Cc: Borislav Petkov <bp@suse.de>, Bjorn Helgaas <bhelgaas@google.com>, herrmann.der.user@gmail.com, Myron Stowe <myron.stowe@gmail.com>, Myron Stowe <myron.stowe@redhat.com>, linux-pci <linux-pci@vger.kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, Daniel J Blueman <daniel@numascale.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 <x86@kernel.org>, Steffen Persvold <sp@numascale.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jan Beulich <JBeulich@suse.com>, Yinghai Lu <yinghai@kernel.org>
+In-Reply-To: <8704550.LJW911OU1k@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Adam Williamson <awilliam@redhat.com>, Lan Tianyu <tianyu.lan@intel.com>, mika.westerberg@linux.intel.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
-On 29.04.14 09:33:09, Andreas Herrmann wrote:
-> On Mon, Apr 28, 2014 at 11:40:36PM +0200, Borislav Petkov wrote:
-> > On Mon, Apr 28, 2014 at 02:50:29PM -0600, Bjorn Helgaas wrote:
-> > > This I/O ECS thing seems likely to cause future problems.  My
-> > > understanding (based on sec 2.8 of [1]) is that enable_pci_io_ecs()
-> > > and pci_enable_pci_io_ecs() are there to enable access to extended
-> > > config space (offsets 256-4095) via the 0xcf8/0xcfc I/O ports.
-> > > 
-> > > Per sec 4.1.1 of [2], we should be using ECAM (the memory-mapped
-> > > enhanced configuration mechanism, i.e., MMCONFIG) to access extended
-> > > config space, and the BIOS should supply an MCFG table.
 
-This is due to the non-atomic access to 0xcf8/0xcfc.
+--3MwIy2ne0vdjdPXF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-IIRC, another problem with io cfg space access is that it is bound to
-register rax or so. The kernel implementation may not change here.
 
-Otherall mmconfig access is much better implemented and thus
-recommended to use by the os, while io cfg is used mainly by the bios.
+> The rest has been queued up for 3.16.
 
-> > > So why do we need to enable I/O access to ECS on AMD chips at all?  Is
-> > > this a workaround for a broken BIOS that doesn't supply an MCFG table?
-> > 
-> > That's a good question. 831d991821dae doesn't say but I have a hunch
-> > Andreas and/or Robert should know. I seem to vaguely remember it
-> > might've been because of a missing MCFG but have flushed it out of the
-> > cache long time ago.
-> > 
-> > Let's ask them.
-> > 
-> > Andreas, Robert, guys, do you remember why we did the PCI IO ECS access?
-> > B0rked BIOSes?
-> 
-> 
-> I am sure, it's because some server systems had MMIO ECS access not
-> enabled in BIOS. I can't remember which systems were affected.
+I also aim for 3.16, yet it may take 1 or 2 weeks more until I'll be
+able to review the I2C part of those patches.
 
-Yes, mmio ecs was not enabled on some systems by the bios. We needed
-to use cf8/cfc io access.
 
-If MMCONFIG is available it is the default, cf8/cfc is only used
-otherwise. Also, some kernel configs may disable MMCONFIG.
+--3MwIy2ne0vdjdPXF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-PCI ECS was especially needed to enable the IBS interrupt for hw
-profiling.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
 
--Robert
+iQIcBAEBAgAGBQJTX42QAAoJEBQN5MwUoCm214AQAJ0LWgQLyyWJ8tLlFUmMZnlV
+7g7J03Hlmj2CAIkn5IaOjtVlUq/4rnD3seN0vRlRK+fkS656QwNg96Gje8RXhtIC
+KNP+zAGwS5ClJndFv66FKH2EN662Miogbxblo4i0sbYGLw6xNmoo00X8Ablfr5Ii
+rmtqYn9A56RPrbEFj+lAn9M0elwgpLx6NDYz/d6U0/+dHT1flQC/oL0JBY0UQwDP
+PWzqeqMrm0lQhJKr0RtxqF/R9/mwUPlhmuNqsERZezezivjnmGOD8A/oqaJlpomb
+mKz0d94WC4bVkPg8Uiv54zRUfsjCC5wboS0dThCQn1yQ1BBPzWsBoCeSbnRkz9j7
+EpioTyH1zsWC+/FAazaZJghx/NRVjqIUNqrXTHT/fFiv76j425wAMK1vscWpDERO
+GtKFXt7Xdi247lg+tN6XYzMFn/fQqDMnXDccQz/JHLWG/W/a77iXY3XWFQirZaE5
+G3uM/4A7tEyAT4dyC32Lg/iqSJ5qefA5JJ6uaz3+3Rg+h6/T9CaiiVJ84+2R1GzN
+AR2N2pUXNxSmATvG+xbqW4Js5sEXBl5udaxlBcY7Sb+R0yHufrn1a/fgF7BLgH3B
+v3LKtsWOYzW9m3mKo3hb9NpyJ3CJtIgArVPasjAFFo4uBEykSqORkHcse0vKdMox
+hofuJLLJ5R9jrwKV5cbu
+=5XlD
+-----END PGP SIGNATURE-----
+
+--3MwIy2ne0vdjdPXF--
