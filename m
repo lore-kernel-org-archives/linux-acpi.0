@@ -1,52 +1,94 @@
-From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Patch V2 0/9] I2C ACPI operation region handler support
-Date: Tue, 29 Apr 2014 09:54:46 +0800
-Message-ID: <535F0666.1090409@intel.com>
-References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com> <1398695268-28645-1-git-send-email-tianyu.lan@intel.com> <43726986.W0L99n76oE@vostro.rjw.lan>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range capabilities
+Date: Mon, 28 Apr 2014 21:47:17 -0500
+Message-ID: <535F12B5.3080209@amd.com>
+References: <20140419025308.2408.51252.stgit@amt.stowe>
+	<20140419025323.2408.88764.stgit@amt.stowe>	<20140419135219.GC8109@pd.tnic>
+ <CAL-B5D1UH44DvTyz=FNM-yMnct05p41P_GriUi3fXVN424R2Gg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <43726986.W0L99n76oE-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAL-B5D1UH44DvTyz=FNM-yMnct05p41P_GriUi3fXVN424R2Gg@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Myron Stowe <myron.stowe@gmail.com>, Borislav Petkov <bp@alien8.de>
+Cc: Myron Stowe <myron.stowe@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci <linux-pci@vger.kernel.org>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, daniel@numascale.com, Thomas Gleixner <tglx@linutronix.de>, mingo@redhat.com, hpa@zytor.com, x86 <x86@kernel.org>, Borislav Petkov <bp@suse.de>, sp@numascale.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2014=E5=B9=B404=E6=9C=8829=E6=97=A5 06:51, Rafael J. Wysocki wrote:
-> On Monday, April 28, 2014 10:27:39 PM Lan Tianyu wrote:
->> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart) op=
-eration
->> region. It allows ACPI aml code able to access such kind of devices =
-to
->> implement some ACPI standard method.
+On 4/28/2014 4:19 PM, Myron Stowe wrote:
+> On Sat, Apr 19, 2014 at 7:52 AM, Borislav Petkov <bp@alien8.de> wrote:
+>> On Fri, Apr 18, 2014 at 08:53:23PM -0600, Myron Stowe wrote:
+>>> From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+
+.......
+
+>>> @@ -118,6 +154,12 @@ static int __init early_fill_mp_bus_info(void)
+>>>
+>>>        pr_debug("Found AMD hostbridge at %x:%x.0\n", bus, slot);
+>>>
+>>> +     /* We enable ECS mode prior to probing MMIO as MMIO related registers
+>>> +      * are in the ECS area.
+>>> +      */
+>>> +     pci_io_ecs_init(bus, slot);
 >>
->> On the Asus T100TA, Bios use GenericSerialBus operation region to ac=
-cess
->> i2c device to get battery info. So battery function depends on the I=
-2C
->> operation region support. Here is the bug link.
->> https://bugzilla.kernel.org/show_bug.cgi?id=3D69011
+>> Well, if enabling the ECS failed somehow, you probably want to save
+>> yourself the _amd_read_pci_config() calls further down.
 >>
->> This patchset is to add I2C ACPI operation region handler support.
+>> Which means:
 >>
->> Change Since V1:
->>        Fix some code style and memory leak issues in Patch 7
->=20
-> Is it the only patch that has changed from v1?
+>> * you should propagate an error code from that pci_io_ecs_init() function
+>>
+>> * you can carve out the huge loop iterating over AMD_NB_F1_MMIO_RANGES
+>> along with the pci ECS enablement call to pci_io_ecs_init into a
+>> separate function and thus slim down that huge early_fill_mp_bus_info()
+>> monster a bit.
+>>
+>
+> Yes but this was not trivial since most, if not all, usages ignore any
+> return value.
+>
+> I'm wanting to focus on just fixing the issue for the most part and
+> making as few changes as possible.  This is primarly due to:
+>    o  The lack of engagement by the AMD engineers (Suravee posted these
+> changes but has since been unresponsive),
+>    o  As Bjorn just mentioned, we would like to get rid of this entire
+> file (as we did in a similar manner with intel_bus) as it is just an
+> "endless treadmill" that needs attention with every new HW release,
+>    o  I want my name to be minimally related to this  ;)
+>
+[Suravee] Sorry for late reply and did not follow up on this patch in a 
+timely manner.  Also, thank you Myron for helping to follow up with the 
+patch set.
 
+Regarding the error code from pci_io_ecs_init(), it is currently always 
+return 0 (success).  I am not sure what error code should I 
+check/propagate.  Let me know if I am missing something here.
 
-I also remove a redundant semicolon in the PATCH 8. Sorry. I didn't
-notice these patches are already in your tree. I will produce divergenc=
-e
-patches based on your bleeding-edge branch.
+......
 
+>>> -static int __init pci_io_ecs_init(void)
+>>> +static int __init pci_io_ecs_init(u8 bus, u8 slot)
+>>>   {
+>>>        int cpu;
+>>>
+>>> @@ -389,9 +472,7 @@ static int __init pci_io_ecs_init(void)
+>>>           if (boot_cpu_data.x86 < 0x10)
+>>>                return 0;
+>>>
+>>> -     /* Try the PCI method first. */
+>>> -     if (early_pci_allowed())
+>>> -             pci_enable_pci_io_ecs();
+>>
+>> Where did the if-check go?
+>>
+>
+> Good catch.  I assume Suravee didn't drop this on purpose?
 
->=20
-> Rafael
->=20
+[SURAVEE] I dropped the "early_pci_allowed()" here since I have moved 
+the calling of "pci_io_ecs_init()" into the "early_fill_mp_bus_info()" 
+since I would like to enable PCI ecs access at earlier stage. The 
+"early_fill_mp_bus_info() has already check for "early_pci_allowed()" 
+already at the beginning of the function. So, this should not be needed 
+here.
 
-
---=20
-Best regards
-Tianyu Lan
+Suravee
