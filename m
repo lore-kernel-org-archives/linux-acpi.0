@@ -1,150 +1,82 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / EC: Process rather than discard events in acpi_ec_clear
-Date: Tue, 29 Apr 2014 23:42:30 +0200
-Message-ID: <24139858.4TxL0glm7k@vostro.rjw.lan>
-References: <1398783080-24554-1-git-send-email-clancy.kieran@gmail.com>
+From: Myron Stowe <myron.stowe@gmail.com>
+Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range capabilities
+Date: Tue, 29 Apr 2014 15:40:28 -0600
+Message-ID: <CAL-B5D2Z7AvJZ3G2JLY6ZOZBRe4DGgO27RVJ_HHotGrnKL7Y1A@mail.gmail.com>
+References: <20140419025323.2408.88764.stgit@amt.stowe>
+	<20140419135219.GC8109@pd.tnic>
+	<20140420075936.GA19672@pd.tnic>
+	<CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com>
+	<20140426091031.GA10166@pd.tnic>
+	<CAErSpo4Jqo_opj=QqjcquS_6HqckZfP5-oQHkmY5FSAyyLNYMg@mail.gmail.com>
+	<20140428214036.GA32143@pd.tnic>
+	<20140429073309.GE10997@alberich>
+	<20140429102013.GA4726@pd.tnic>
+	<535FC269.2000808@amd.com>
+	<20140429191454.GB4726@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55789 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755362AbaD2V0A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2014 17:26:00 -0400
-In-Reply-To: <1398783080-24554-1-git-send-email-clancy.kieran@gmail.com>
+Received: from mail-oa0-f54.google.com ([209.85.219.54]:42403 "EHLO
+	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932130AbaD2Vk2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2014 17:40:28 -0400
+In-Reply-To: <20140429191454.GB4726@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kieran Clancy <clancy.kieran@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>, Stefan Biereigel <stefan@biereigel.de>
+To: Borislav Petkov <bp@alien8.de>
+Cc: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, Borislav Petkov <bp@suse.de>, Andreas Herrmann <herrmann.der.user@googlemail.com>, Bjorn Helgaas <bhelgaas@google.com>, Robert Richter <rric@kernel.org>, Myron Stowe <myron.stowe@redhat.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, linux-pci <linux-pci@vger.kernel.org>, kim.naru@amd.com, Daniel J Blueman <daniel@numascale.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 <x86@kernel.org>, Steffen Persvold <sp@numascale.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jan Beulich <JBeulich@suse.com>, Yinghai Lu <yinghai@kernel.org>
 
-On Wednesday, April 30, 2014 12:21:20 AM Kieran Clancy wrote:
-> Address a regression caused by commit ad332c8a4533:
-> (ACPI / EC: Clear stale EC events on Samsung systems)
-> 
-> After the earlier patch, there was found to be a race condition on some
-> earlier Samsung systems (N150/N210/N220). The function acpi_ec_clear was
-> sometimes discarding a new EC event before its GPE was triggered by the
-> system. In the case of these systems, this meant that the "lid open"
-> event was not registered on resume if that was the cause of the wake,
-> leading to problems when attempting to close the lid to suspend again.
-> 
-> After testing on a number of Samsung systems, both those affected by the
-> previous EC bug and those affected by the race condition, it seemed that
-> the best course of action was to process rather than discard the events.
-> On Samsung systems which accumulate stale EC events, there does not seem
-> to be any adverse side-effects of running the associated _Q methods.
-> 
-> This patch adds an argument to the static function acpi_ec_sync_query so
-> that it may be used within the acpi_ec_clear loop in place of
-> acpi_ec_query_unlocked which was used previously.
-> 
-> With thanks to Stefan Biereigel for reporting the issue, and for all the
-> people who helped test the new patch on affected systems.
-> 
-> References: https://lkml.kernel.org/r/532FE3B2.9060808@biereigel-wb.de
-> References: https://bugzilla.kernel.org/show_bug.cgi?id=44161#c173
-> Reported-by: Stefan Biereigel <stefan@biereigel.de>
-> Signed-off-by: Kieran Clancy <clancy.kieran@gmail.com>
-> Tested-by: Stefan Biereigel <stefan@biereigel.de>
-> Tested-by: Dennis Jansen <dennis.jansen@web.de>
-> Tested-by: Nicolas Porcel <nicolasporcel06@gmail.com>
-> Tested-by: Maurizio D'Addona <mauritiusdadd@gmail.com>
-> Tested-by: Juan Manuel Cabo <juanmanuel.cabo@gmail.com>
-> Tested-by: Giannis Koutsou <giannis.koutsou@gmail.com>
-> Tested-by: Kieran Clancy <clancy.kieran@gmail.com>
-> Cc: Lan Tianyu <tianyu.lan@intel.com>
+On Tue, Apr 29, 2014 at 1:14 PM, Borislav Petkov <bp@alien8.de> wrote:
+> On Tue, Apr 29, 2014 at 10:16:57AM -0500, Suravee Suthikulanit wrote:
+>> In the new code, the IO ECS was needed to retrieve the
+>> AMD_NB_F1_MMIO_BASE_LIMIT_HI_REG (offset 0x180) during the early
+>> initialization as part of (2) logic. However, this register exists only on
+>> the newer systems.  However, as you mentioned, for (2) we can assume that
+>> the MCFG exists for most of the systems (family10h and later), and should be
+>> used instead.
+>>
+>> The main purpose of this patch set is mainly to deal with the the node
+>> information (1).  So, we might need to split these all up and handle them
+>> separately as needed where (2) and (3) will be used as fallback for older
+>> systems where MCFG does not exist.
+>
+> So sounds to me like we want to get rid of the whole IO ECS deal
+> altogether then.
+>
+> Now, I'm wondering whether we should kill it completely since I don't
+> think anyone cares about numa node info being correct on K8, or? I'm
+> specifically turning to our numascale friends who love to have a lot of
+> nodes. :-)
 
-Queued up for 3.15, thanks!
+I think we need to be careful here as there are two unrelated topics
+being discussed together.  What started this whole thread was the need
+for sysfs related numa_node information with respect to PCI devices
+(1).  Without patch 1, platforms with newer AMD CPUs end up having
+'-1' numa_node values for all PCI devices.
 
-> ---
-> 
-> To maintainers: Assuming this patch is accepted, please mark this for
-> inclusion in all -stable trees. It should be noted that the previous
-> patch (ad332c8a4533) was excluded from a number of stable trees after
-> the regression was found, but should now be included again along with
-> this patch. I am not sure of the correct way to annotate this above.
+IO ECS has no bearing on patch 1, it only comes into play with patch 2
+which is concerned with MMIO resource information when MCFG doesn't
+exist.  For the particular issue I'm trying to get resolved, patch 2
+is not needed.  However, since we have expended time and effort on
+this subject, perhaps we should get this cleaned up while it has our
+attention.
 
-I only can tag it for 3.14.y, because the mainline regression is in 3.14.
+I'm all for deleting as much of amd_bus.c as possible due to its
+"perennial maintenance headache".  The obvious choices seem to be all,
+or some combination, of:
+  o removing IO ECS logic,
+  o removing IO/MMIO logic (assuming MCFG issues were long enough ago
+to no longer be a concern),
+  o start deprecating amd_bus.c by adding logic to skip if BIOS >= 2015
 
-You'll need to ask the -stable maintainers in question to pick up both
-patches after this one reaches the Linus' tree.
+Myron
 
->  drivers/acpi/ec.c | 21 ++++++++++++---------
->  1 file changed, 12 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index d7d32c2..ad11ba4 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -206,13 +206,13 @@ unlock:
->  	spin_unlock_irqrestore(&ec->lock, flags);
->  }
->  
-> -static int acpi_ec_sync_query(struct acpi_ec *ec);
-> +static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data);
->  
->  static int ec_check_sci_sync(struct acpi_ec *ec, u8 state)
->  {
->  	if (state & ACPI_EC_FLAG_SCI) {
->  		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
-> -			return acpi_ec_sync_query(ec);
-> +			return acpi_ec_sync_query(ec, NULL);
->  	}
->  	return 0;
->  }
-> @@ -443,10 +443,8 @@ acpi_handle ec_get_handle(void)
->  
->  EXPORT_SYMBOL(ec_get_handle);
->  
-> -static int acpi_ec_query_unlocked(struct acpi_ec *ec, u8 *data);
-> -
->  /*
-> - * Clears stale _Q events that might have accumulated in the EC.
-> + * Process _Q events that might have accumulated in the EC.
->   * Run with locked ec mutex.
->   */
->  static void acpi_ec_clear(struct acpi_ec *ec)
-> @@ -455,7 +453,7 @@ static void acpi_ec_clear(struct acpi_ec *ec)
->  	u8 value = 0;
->  
->  	for (i = 0; i < ACPI_EC_CLEAR_MAX; i++) {
-> -		status = acpi_ec_query_unlocked(ec, &value);
-> +		status = acpi_ec_sync_query(ec, &value);
->  		if (status || !value)
->  			break;
->  	}
-> @@ -582,13 +580,18 @@ static void acpi_ec_run(void *cxt)
->  	kfree(handler);
->  }
->  
-> -static int acpi_ec_sync_query(struct acpi_ec *ec)
-> +static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data)
->  {
->  	u8 value = 0;
->  	int status;
->  	struct acpi_ec_query_handler *handler, *copy;
-> -	if ((status = acpi_ec_query_unlocked(ec, &value)))
-> +
-> +	status = acpi_ec_query_unlocked(ec, &value);
-> +	if (data)
-> +		*data = value;
-> +	if (status)
->  		return status;
-> +
->  	list_for_each_entry(handler, &ec->list, node) {
->  		if (value == handler->query_bit) {
->  			/* have custom handler for this bit */
-> @@ -612,7 +615,7 @@ static void acpi_ec_gpe_query(void *ec_cxt)
->  	if (!ec)
->  		return;
->  	mutex_lock(&ec->mutex);
-> -	acpi_ec_sync_query(ec);
-> +	acpi_ec_sync_query(ec, NULL);
->  	mutex_unlock(&ec->mutex);
->  }
->  
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+>
+> Daniel, Steffen?
+>
+> --
+> Regards/Gruss,
+>     Boris.
+>
+> Sent from a fat crate under my desk. Formatting is fine.
+> --
