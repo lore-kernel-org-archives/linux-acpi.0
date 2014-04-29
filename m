@@ -1,54 +1,122 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v3 part1 11/11] ACPI: Make EC depend on X86 || IA64 in
- Kconfig
-Date: Tue, 29 Apr 2014 10:56:38 +0100
-Message-ID: <20140429095638.D694AC4095B@trevor.secretlab.ca>
-References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>
-	<1398432017-8506-12-git-send-email-hanjun.guo@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [PATCH v3 part1 08/11] ARM64 / ACPI: Introduce PCI functions for ACPI on ARM64
+Date: Tue, 29 Apr 2014 12:01:30 +0200
+Message-ID: <8888740.lgd2Xkrtad@wuerfel>
+References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org> <201404281549.50738.arnd@arndb.de> <535F6675.1060109@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:39129 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751942AbaD2J4n (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2014 05:56:43 -0400
-Received: by mail-ee0-f54.google.com with SMTP id d49so116000eek.13
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Apr 2014 02:56:42 -0700 (PDT)
-In-Reply-To: <1398432017-8506-12-git-send-email-hanjun.guo@linaro.org>
+Received: from mout.kundenserver.de ([212.227.126.187]:63832 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933516AbaD2KCF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2014 06:02:05 -0400
+In-Reply-To: <535F6675.1060109@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Will Deacon <will.deacon@arm.com>, Charles.Garcia-Tobin@arm.com, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+To: linaro-acpi@lists.linaro.org
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Rob Herring <robh@kernel.org>, Mark Brown <broonie@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, 25 Apr 2014 21:20:17 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> Since EC (Embedded controller) needs SCI for the interupt which
-> is not available on ARM64, make it depend on X86 || IA64 only
-> in the Kconfig file.
+On Tuesday 29 April 2014 16:44:37 Hanjun Guo wrote:
+> On 2014-4-28 21:49, Arnd Bergmann wrote:
+> > On Friday 25 April 2014, Hanjun Guo wrote:
+> >> CONFIG_ACPI depends CONFIG_PCI now, and ACPI provides ACPI based
+> >> PCI hotplug and PCI host bridge hotplug, introduce some PCI
+> >> functions to make ACPI core can be compiled, some of the functions
+> >> should be revisited when implemented on ARM64.
+> > 
+> >> diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
+> >> index d93576f..0aa3607 100644
+> >> --- a/arch/arm64/include/asm/pci.h
+> >> +++ b/arch/arm64/include/asm/pci.h
+> >> @@ -21,6 +21,17 @@ struct pci_host_bridge *find_pci_host_bridge(struct pci_bus *bus);
+> >>  #define pcibios_assign_all_busses() \
+> >>  	(pci_has_flag(PCI_REASSIGN_ALL_BUS))
+> >>  
+> >> +static inline void pcibios_penalize_isa_irq(int irq, int active)
+> >> +{
+> >> +	/* we don't do dynamic pci irq allocation */
+> >> +}
+> >> +
+> >> +static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+> >> +{
+> >> +	/* no legacy IRQ on arm64 */
+> >> +	return -ENODEV;
+> >> +}
+> >> +
+> > 
+> > I think these would be better addressed in the caller. From what I can tell, they
+> > are only called by the ISAPNP code path for doing IRQ resource allocation, while
+> > the ACPIPNP code uses hardwired IRQ resources.
 > 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/acpi/Kconfig |    1 +
->  1 file changed, 1 insertion(+)
+> I agree. pcibios_penalize_isa_irq() is only used by x86 and I will send out a
+> patch to make pcibios_penalize_isa_irq() as __weak in PCI core and remove
+> all the stub function out except x86. For pci_get_legacy_ide_irq(), I think we
+> can fix it in the same way, does this make sense to you?
+
+Actually I had only looked at pci_get_legacy_ide_irq() and I'm pretty sure it's
+only needed for ISAPNP. I had missed the fact that pcibios_penalize_isa_irq()
+is used in other places as well, but it makes sense that it's also not needed,
+since we don't have legacy ISA IRQs.
+
+> > And these probably don't need to be done at the architecture level. I expect we
+> > will only have to worry about SBSA compliant PCI hosts, so this can be done in
+> > the host controller driver for compliant devices, which is probably the one
+> > that Will Deacon is working on already.
+> > 
+> > Note that we are aiming for an empty PCI implementation in ARM64, doing everything
+> > in either the PCI core or in the individual host drivers.
 > 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index ae45088..391325c 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -49,6 +49,7 @@ config ACPI_SLEEP
->  
->  config ACPI_EC_DEBUGFS
->  	tristate "EC read/write access through /sys/kernel/debug/ec"
-> +	depends on X86 || IA64
+> Ok, I will review Will Deacon's patch to find out the solution for
+> pci_acpi_scan_root().
 
-Nit: This patch and patch 10 should be applied before patch 9 which adds
-the option to enable ACPI, but otherwise this series looks reasonable to
-me and aside from the comments made by others is pretty much ready to be
-merged. Go ahead and add my reviewed-by tag to the whole series.
+Ok. Please ask if you have more questions about that. It's definitely a complex
+topic.
 
-Reviewed-by: Grant Likely <grant.likely@linaro.org>
-
->  	default n
->  	help
->  	  Say N to disable Embedded Controller /sys/kernel/debug interface
-> -- 
-> 1.7.9.5
+> > For raw_pci_{read,write} we can have a trivial generic implementation in
+> > the PCI core, like
+> > 
+> > int __weak raw_pci_read(unsigned int domain, unsigned int bus,
+> > 		  unsigned int devfn, int reg, int len, u32 *val)
+> > {
+> > 	struct pci_bus *bus = pci_find_bus(domain, bus);
+> > 	if (!bus)
+> > 		return -ENODEV;
+> > 
+> > 	return bus->ops->read(bus, devfn, reg, len, val);
+> > }
+> > 
+> > which won't work on x86 or ia64, but should be fine everywhere else. Alternatively,
+> > you can change the ACPI code to do the above manually and call the architecture
+> > independent interfaces, either bus->ops->read, or pci_bus_read_config_{byte,word,dword},
+> > which would actually simplify the ACPI code.
 > 
+> This may not work. ACPI needs to be able to access PCI config space before
+> we've done a PCI bus scan and created pci_bus structures, so the pointer
+> of bus will be NULL.
 
+Hmm, this is a serious issue, and I don't have a good idea for how
+to solve it yet, we need to discuss it some more I think.
+
+We are currently working on generic PCI support for ARM64 with DT, which
+will be based around the concept that all PCI host drivers can be loadable
+modules, and each host driver would supply its own config space access
+method.
+
+With ACPI, we probably don't need the flexibility, because hopefully all
+PCI host bridges will be SBSA compliant and have a regular ECAM config
+space implementation (as opposed to the proprietary methods used by
+e.g. APM X-Gene, Samsung GH7 or everything we have on ARM32).
+
+If we can rely on always having ECAM support available, it would be
+easy enough to add an implementation of that specifically for ACPI,
+outside of the architecture code or the PCI core, or we could have
+a global implementation of that, which gets used by both ACPI and
+the compliant PCI host bridge drivers and can be built-in even for
+loadable host drivers.
+
+Alternatively, you could try to see if it's possible to defer the PCI
+access to the time the host driver is loaded. Do you know what the access
+to config space is actually needed for?
+
+	Arnd
