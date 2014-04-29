@@ -1,71 +1,50 @@
-From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range capabilities
-Date: Tue, 29 Apr 2014 10:16:57 -0500
-Message-ID: <535FC269.2000808@amd.com>
-References: <20140419025308.2408.51252.stgit@amt.stowe>
- <20140419025323.2408.88764.stgit@amt.stowe> <20140419135219.GC8109@pd.tnic>
- <20140420075936.GA19672@pd.tnic>
- <CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com>
- <20140426091031.GA10166@pd.tnic>
- <CAErSpo4Jqo_opj=QqjcquS_6HqckZfP5-oQHkmY5FSAyyLNYMg@mail.gmail.com>
- <20140428214036.GA32143@pd.tnic> <20140429073309.GE10997@alberich>
- <20140429102013.GA4726@pd.tnic>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Patch V2 0/9] I2C ACPI operation region handler support
+Date: Tue, 29 Apr 2014 17:47:11 +0200
+Message-ID: <1527127.pmk7LiQ709@vostro.rjw.lan>
+References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com> <43726986.W0L99n76oE@vostro.rjw.lan> <535F0666.1090409@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2lp0240.outbound.protection.outlook.com ([207.46.163.240]:7231
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757927AbaD2PRF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Apr 2014 11:17:05 -0400
-In-Reply-To: <20140429102013.GA4726@pd.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <535F0666.1090409@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: wsa@the-dreams.de, mika.westerberg@linux.intel.com, awilliam@redhat.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>, Andreas Herrmann <herrmann.der.user@googlemail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Robert Richter <rric@kernel.org>, Myron Stowe <myron.stowe@gmail.com>, Myron Stowe <myron.stowe@redhat.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, linux-pci <linux-pci@vger.kernel.org>, kim.naru@amd.com, Daniel J Blueman <daniel@numascale.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 <x86@kernel.org>, Steffen Persvold <sp@numascale.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jan Beulich <JBeulich@suse.com>, Yinghai Lu <yinghai@kernel.org>
 
-On 4/29/2014 5:20 AM, Borislav Petkov wrote:
-> On Tue, Apr 29, 2014 at 09:33:09AM +0200, Andreas Herrmann wrote:
->> I am sure, it's because some server systems had MMIO ECS access not
->> enabled in BIOS. I can't remember which systems were affected.
->
-If you are referring to accessing PCI ECS ranges via 0xCF8, then yes, 
-BIOS disable this as described below in the BKDG.
+On Tuesday, April 29, 2014 09:54:46 AM Lan Tianyu wrote:
+> On 2014=E5=B9=B404=E6=9C=8829=E6=97=A5 06:51, Rafael J. Wysocki wrote=
+:
+> > On Monday, April 28, 2014 10:27:39 PM Lan Tianyu wrote:
+> >> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart) =
+operation
+> >> region. It allows ACPI aml code able to access such kind of device=
+s to
+> >> implement some ACPI standard method.
+> >>
+> >> On the Asus T100TA, Bios use GenericSerialBus operation region to =
+access
+> >> i2c device to get battery info. So battery function depends on the=
+ I2C
+> >> operation region support. Here is the bug link.
+> >> https://bugzilla.kernel.org/show_bug.cgi?id=3D69011
+> >>
+> >> This patchset is to add I2C ACPI operation region handler support.
+> >>
+> >> Change Since V1:
+> >>        Fix some code style and memory leak issues in Patch 7
+> >=20
+> > Is it the only patch that has changed from v1?
+>=20
+>=20
+> I also remove a redundant semicolon in the PATCH 8. Sorry. I didn't
+> notice these patches are already in your tree. I will produce diverge=
+nce
+> patches based on your bleeding-edge branch.
 
-"The BIOS may use either configuration space access mechanism during 
-boot. Before booting the OS, BIOS must disable IO access to ECS, enable 
-MMIO configuration and build an ACPI defined MCFG table. BIOS ACPI code 
-must use MMIO to access configuration space."
+No need for that, I'll use the new versions.
 
-> Ok, now AMD people: what's the story with IO ECS, can we assume that on
-> everything after F10h, BIOS has a sensible MCFG and we can limit this to
-> F10h only? I like Bjorn's idea but we need to make sure a working MCFG
-> is ubiquitous.
->
-> Which begs the real question: Suravee, why are you even touching IO ECS
-> provided F15h and later have a MCFG? Or, do they?
->
-
-As I was trying to generalize the logic inside amd_bus.c, which seems to 
-be used mainly as a fallback mechanism, I tried to maintain the existing 
-code, which does many things:
-     1. Setup numa_node information (if PXM doesn't exist)
-     2. Probe NB for MMIO resources (if MCFG doesn't exist)
-     3. Probe NB for IO resources
-     4. Setup IO ECS
-
-In the new code, the IO ECS was needed to retrieve the 
-AMD_NB_F1_MMIO_BASE_LIMIT_HI_REG (offset 0x180) during the early 
-initialization as part of (2) logic. However, this register exists only 
-on the newer systems.  However, as you mentioned, for (2) we can assume 
-that the MCFG exists for most of the systems (family10h and later), and 
-should be used instead.
-
-The main purpose of this patch set is mainly to deal with the the node 
-information (1).  So, we might need to split these all up and handle 
-them separately as needed where (2) and (3) will be used as fallback for 
-older systems where MCFG does not exist. I am not sure if where we need (4).
-
-Suravee
-
+--=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
