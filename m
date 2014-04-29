@@ -1,85 +1,58 @@
-From: Robert Richter <rric@kernel.org>
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range
  capabilities
-Date: Tue, 29 Apr 2014 19:17:20 +0200
-Message-ID: <20140429171720.GL32718@rric.localhost>
-References: <20140419025308.2408.51252.stgit@amt.stowe>
- <20140419025323.2408.88764.stgit@amt.stowe>
+Date: Tue, 29 Apr 2014 21:14:54 +0200
+Message-ID: <20140429191454.GB4726@pd.tnic>
+References: <20140419025323.2408.88764.stgit@amt.stowe>
+ <20140419135219.GC8109@pd.tnic>
+ <20140420075936.GA19672@pd.tnic>
+ <CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com>
+ <20140426091031.GA10166@pd.tnic>
+ <CAErSpo4Jqo_opj=QqjcquS_6HqckZfP5-oQHkmY5FSAyyLNYMg@mail.gmail.com>
+ <20140428214036.GA32143@pd.tnic>
+ <20140429073309.GE10997@alberich>
+ <20140429102013.GA4726@pd.tnic>
+ <535FC269.2000808@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f41.google.com ([74.125.83.41]:40810 "EHLO
-	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757817AbaD2RRZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2014 13:17:25 -0400
+Received: from mail.skyhub.de ([78.46.96.112]:50411 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751694AbaD2TO6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Apr 2014 15:14:58 -0400
 Content-Disposition: inline
-In-Reply-To: <20140419025323.2408.88764.stgit@amt.stowe>
+In-Reply-To: <535FC269.2000808@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Myron Stowe <myron.stowe@redhat.com>
-Cc: bhelgaas@google.com, linux-pci@vger.kernel.org, suravee.suthikulpanit@amd.com, aravind.gopalakrishnan@amd.com, kim.naru@amd.com, andreas.herrmann3@amd.com, daniel@numascale.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, sp@numascale.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Cc: Borislav Petkov <bp@suse.de>, Andreas Herrmann <herrmann.der.user@googlemail.com>, Bjorn Helgaas <bhelgaas@google.com>, Robert Richter <rric@kernel.org>, Myron Stowe <myron.stowe@gmail.com>, Myron Stowe <myron.stowe@redhat.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, linux-pci <linux-pci@vger.kernel.org>, kim.naru@amd.com, Daniel J Blueman <daniel@numascale.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 <x86@kernel.org>, Steffen Persvold <sp@numascale.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jan Beulich <JBeulich@suse.com>, Yinghai Lu <yinghai@kernel.org>
 
-In addition to Boris I have the following:
+On Tue, Apr 29, 2014 at 10:16:57AM -0500, Suravee Suthikulanit wrote:
+> In the new code, the IO ECS was needed to retrieve the
+> AMD_NB_F1_MMIO_BASE_LIMIT_HI_REG (offset 0x180) during the early
+> initialization as part of (2) logic. However, this register exists only on
+> the newer systems.  However, as you mentioned, for (2) we can assume that
+> the MCFG exists for most of the systems (family10h and later), and should be
+> used instead.
+> 
+> The main purpose of this patch set is mainly to deal with the the node
+> information (1).  So, we might need to split these all up and handle them
+> separately as needed where (2) and (3) will be used as fallback for older
+> systems where MCFG does not exist.
 
-On 18.04.14 20:53:23, Myron Stowe wrote:
-> +#define AMD_PCIE_CF8(bus, dev, fn, reg) \
-> +			(0x80000000 | \
-> +			((reg & 0xF00) << 16) | \
-> +			((bus & 0xF) << 16) | \
-> +			((dev & 0x1F) << 11) | \
-> +			((fn & 0x7) << 8) | \
-> +			((reg & 0xFC)))
+So sounds to me like we want to get rid of the whole IO ECS deal
+altogether then.
 
-Make this a static function.
+Now, I'm wondering whether we should kill it completely since I don't
+think anyone cares about numa node info being correct on K8, or? I'm
+specifically turning to our numascale friends who love to have a lot of
+nodes. :-)
 
-> +/* This version of read_pci_config allows reading registers in the ECS area */
-> +static inline int _amd_read_pci_config(u8 bus, u8 slot, u8 fn, u32 offset)
+Daniel, Steffen?
 
-No need to inline this, no need for a single tailing underscore.
+-- 
+Regards/Gruss,
+    Boris.
 
-> +{
-> +	u32 value;
-> +
-> +	if ((!amd_early_ecs_enabled) && (offset > 0xFF))
-> +		return -1;
-> +
-> +	outl(AMD_PCIE_CF8(bus, slot, fn, offset), 0xcf8);
-> +	value = inl(0xcfc);
-> +
-> +	return value;
-
-This design is broken. The return type does not match the functions
-return value and you can't do error checking as -1 can be a value too.
-
-Why reinventing this new instead of trying to reuse functions in
-arch/x86/pci/direct.c/early.c or so?
-
-Would an access via mmconfig space at this early stage possible? If so
-this code could be skipped as we wouln't need it for fam10h (no early
-access needed) nor fam15h or newer (mmconfig available).
-
-> +}
-> +
->  static struct pci_root_info __init *find_pci_root_info(int node, int link)
->  {
->  	struct pci_root_info *info;
-> @@ -48,6 +81,9 @@ static struct pci_root_info __init *find_pci_root_info(int node, int link)
->  		if (info->node == node && info->link == link)
->  			return info;
->  
-> +	pr_warn("AMD-Bus: WARNING: Failed to find root info for node %#x, link %#x\n",
-> +		node, link);
-
-As there might be (virtual) systems where this case is valid, I
-wouldn't print anything here. We should only print things that exist
-or error/warnings.
-
--Robert
-
-> +
->  	return NULL;
->  }
->  
-> @@ -118,6 +154,12 @@ static int __init early_fill_mp_bus_info(void)
->  
->  	pr_debug("Found AMD hostbridge at %x:%x.0\n", bus, slot);
+Sent from a fat crate under my desk. Formatting is fine.
+--
