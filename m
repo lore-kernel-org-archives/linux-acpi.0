@@ -1,122 +1,46 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [PATCH v3 part1 08/11] ARM64 / ACPI: Introduce PCI functions for ACPI on ARM64
-Date: Tue, 29 Apr 2014 12:01:30 +0200
-Message-ID: <8888740.lgd2Xkrtad@wuerfel>
-References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org> <201404281549.50738.arnd@arndb.de> <535F6675.1060109@linaro.org>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range
+ capabilities
+Date: Tue, 29 Apr 2014 12:20:13 +0200
+Message-ID: <20140429102013.GA4726@pd.tnic>
+References: <20140419025308.2408.51252.stgit@amt.stowe>
+ <20140419025323.2408.88764.stgit@amt.stowe>
+ <20140419135219.GC8109@pd.tnic>
+ <20140420075936.GA19672@pd.tnic>
+ <CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com>
+ <20140426091031.GA10166@pd.tnic>
+ <CAErSpo4Jqo_opj=QqjcquS_6HqckZfP5-oQHkmY5FSAyyLNYMg@mail.gmail.com>
+ <20140428214036.GA32143@pd.tnic>
+ <20140429073309.GE10997@alberich>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:63832 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933516AbaD2KCF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2014 06:02:05 -0400
-In-Reply-To: <535F6675.1060109@linaro.org>
+Received: from cantor2.suse.de ([195.135.220.15]:49405 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756462AbaD2KUT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Apr 2014 06:20:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20140429073309.GE10997@alberich>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linaro-acpi@lists.linaro.org
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Rob Herring <robh@kernel.org>, Mark Brown <broonie@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Andreas Herrmann <herrmann.der.user@googlemail.com>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Robert Richter <rric@kernel.org>, Myron Stowe <myron.stowe@gmail.com>, Myron Stowe <myron.stowe@redhat.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, linux-pci <linux-pci@vger.kernel.org>, kim.naru@amd.com, Daniel J Blueman <daniel@numascale.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 <x86@kernel.org>, Steffen Persvold <sp@numascale.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jan Beulich <JBeulich@suse.com>, Yinghai Lu <yinghai@kernel.org>
 
-On Tuesday 29 April 2014 16:44:37 Hanjun Guo wrote:
-> On 2014-4-28 21:49, Arnd Bergmann wrote:
-> > On Friday 25 April 2014, Hanjun Guo wrote:
-> >> CONFIG_ACPI depends CONFIG_PCI now, and ACPI provides ACPI based
-> >> PCI hotplug and PCI host bridge hotplug, introduce some PCI
-> >> functions to make ACPI core can be compiled, some of the functions
-> >> should be revisited when implemented on ARM64.
-> > 
-> >> diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
-> >> index d93576f..0aa3607 100644
-> >> --- a/arch/arm64/include/asm/pci.h
-> >> +++ b/arch/arm64/include/asm/pci.h
-> >> @@ -21,6 +21,17 @@ struct pci_host_bridge *find_pci_host_bridge(struct pci_bus *bus);
-> >>  #define pcibios_assign_all_busses() \
-> >>  	(pci_has_flag(PCI_REASSIGN_ALL_BUS))
-> >>  
-> >> +static inline void pcibios_penalize_isa_irq(int irq, int active)
-> >> +{
-> >> +	/* we don't do dynamic pci irq allocation */
-> >> +}
-> >> +
-> >> +static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
-> >> +{
-> >> +	/* no legacy IRQ on arm64 */
-> >> +	return -ENODEV;
-> >> +}
-> >> +
-> > 
-> > I think these would be better addressed in the caller. From what I can tell, they
-> > are only called by the ISAPNP code path for doing IRQ resource allocation, while
-> > the ACPIPNP code uses hardwired IRQ resources.
-> 
-> I agree. pcibios_penalize_isa_irq() is only used by x86 and I will send out a
-> patch to make pcibios_penalize_isa_irq() as __weak in PCI core and remove
-> all the stub function out except x86. For pci_get_legacy_ide_irq(), I think we
-> can fix it in the same way, does this make sense to you?
+On Tue, Apr 29, 2014 at 09:33:09AM +0200, Andreas Herrmann wrote:
+> I am sure, it's because some server systems had MMIO ECS access not
+> enabled in BIOS. I can't remember which systems were affected.
 
-Actually I had only looked at pci_get_legacy_ide_irq() and I'm pretty sure it's
-only needed for ISAPNP. I had missed the fact that pcibios_penalize_isa_irq()
-is used in other places as well, but it makes sense that it's also not needed,
-since we don't have legacy ISA IRQs.
+Ok, now AMD people: what's the story with IO ECS, can we assume that on
+everything after F10h, BIOS has a sensible MCFG and we can limit this to
+F10h only? I like Bjorn's idea but we need to make sure a working MCFG
+is ubiquitous.
 
-> > And these probably don't need to be done at the architecture level. I expect we
-> > will only have to worry about SBSA compliant PCI hosts, so this can be done in
-> > the host controller driver for compliant devices, which is probably the one
-> > that Will Deacon is working on already.
-> > 
-> > Note that we are aiming for an empty PCI implementation in ARM64, doing everything
-> > in either the PCI core or in the individual host drivers.
-> 
-> Ok, I will review Will Deacon's patch to find out the solution for
-> pci_acpi_scan_root().
+Which begs the real question: Suravee, why are you even touching IO ECS
+provided F15h and later have a MCFG? Or, do they?
 
-Ok. Please ask if you have more questions about that. It's definitely a complex
-topic.
+-- 
+Regards/Gruss,
+    Boris.
 
-> > For raw_pci_{read,write} we can have a trivial generic implementation in
-> > the PCI core, like
-> > 
-> > int __weak raw_pci_read(unsigned int domain, unsigned int bus,
-> > 		  unsigned int devfn, int reg, int len, u32 *val)
-> > {
-> > 	struct pci_bus *bus = pci_find_bus(domain, bus);
-> > 	if (!bus)
-> > 		return -ENODEV;
-> > 
-> > 	return bus->ops->read(bus, devfn, reg, len, val);
-> > }
-> > 
-> > which won't work on x86 or ia64, but should be fine everywhere else. Alternatively,
-> > you can change the ACPI code to do the above manually and call the architecture
-> > independent interfaces, either bus->ops->read, or pci_bus_read_config_{byte,word,dword},
-> > which would actually simplify the ACPI code.
-> 
-> This may not work. ACPI needs to be able to access PCI config space before
-> we've done a PCI bus scan and created pci_bus structures, so the pointer
-> of bus will be NULL.
-
-Hmm, this is a serious issue, and I don't have a good idea for how
-to solve it yet, we need to discuss it some more I think.
-
-We are currently working on generic PCI support for ARM64 with DT, which
-will be based around the concept that all PCI host drivers can be loadable
-modules, and each host driver would supply its own config space access
-method.
-
-With ACPI, we probably don't need the flexibility, because hopefully all
-PCI host bridges will be SBSA compliant and have a regular ECAM config
-space implementation (as opposed to the proprietary methods used by
-e.g. APM X-Gene, Samsung GH7 or everything we have on ARM32).
-
-If we can rely on always having ECAM support available, it would be
-easy enough to add an implementation of that specifically for ACPI,
-outside of the architecture code or the PCI core, or we could have
-a global implementation of that, which gets used by both ACPI and
-the compliant PCI host bridge drivers and can be built-in even for
-loadable host drivers.
-
-Alternatively, you could try to see if it's possible to defer the PCI
-access to the time the host driver is loaded. Do you know what the access
-to config space is actually needed for?
-
-	Arnd
+Sent from a fat crate under my desk. Formatting is fine.
+--
