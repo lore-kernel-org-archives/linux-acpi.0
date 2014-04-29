@@ -1,55 +1,81 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v2 5/5] PCI: Remove redundant 'quirk_amd_nb_node'
-Date: Tue, 29 Apr 2014 13:29:32 -0600
-Message-ID: <CAErSpo77c5F0vftHEOFFwvXLa7S2DZzPdTjO4v6zRGcpJmjj3w@mail.gmail.com>
-References: <20140419025308.2408.51252.stgit@amt.stowe> <20140419025345.2408.99229.stgit@amt.stowe>
- <20140420105419.GB19676@pd.tnic> <CAL-B5D1_fns=mu7Cw6jeVHO0XPeKYakUrPv-JgO=ma1rjCoQvg@mail.gmail.com>
- <53554D27.1010803@numascale.com> <535F0837.2020102@amd.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: bug: acpi ata_bay dock reminds undocked
+Date: Tue, 29 Apr 2014 22:16:41 +0200
+Message-ID: <201404292216.41256@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed;
+  boundary="nextPart2836586.KoBJUF4ueo";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:64807 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757251AbaD2T3w (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2014 15:29:52 -0400
-Received: by mail-ie0-f178.google.com with SMTP id lx4so767825iec.9
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Apr 2014 12:29:52 -0700 (PDT)
-In-Reply-To: <535F0837.2020102@amd.com>
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:36946 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932910AbaD2UQq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2014 16:16:46 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Cc: Daniel J Blueman <daniel@numascale.com>, Myron Stowe <myron.stowe@gmail.com>, Borislav Petkov <bp@suse.de>, Myron Stowe <myron.stowe@redhat.com>, linux-pci <linux-pci@vger.kernel.org>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, kim.naru@amd.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 <x86@kernel.org>, Steffen Persvold <sp@numascale.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Shaohua Li <shaohua.li@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Apr 28, 2014 at 8:02 PM, Suravee Suthikulanit
-<suravee.suthikulpanit@amd.com> wrote:
+--nextPart2836586.KoBJUF4ueo
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-> Sorry for late reply.  My concern is that removing the "quirk_amd_nb_node()"
-> will affect the value of "numa_node" of the host bridge devices (i.e.
-> X:00.[18|19|1a|1b|1c|1d|1e|1f].X).  I am not sure if any code is using this
-> information.  But in theory, these host-bridge devices are not on the same
-> node as where the PCI root complex lives (e.g. 0 and 4 from the example
-> above).
+Hello,
 
-I doubt anything in the kernel uses the node number for these devices
-(00:[18|19|...]).  The only place the PCI core uses it is to run a
-driver probe method on the same node as the device.  Are there even
-drivers for these devices?
+I have problem with sysfs entry docked
 
-They aren't PCI-to-PCI bridges, so there are no devices below them
-that would be affected by their node numbers.
+/sys/bus/platform/devices/dock.0/docked
 
-> If we want the "numa_node" to really representing the actual node, then the
-> quirk has to stay for now.  We might need to come up with a different logic
-> to replace the quirks here, which would automatically determine the actual
-> node value for these host-bridge devices.
+for my media bay DVD drive on notebook Dell Latitude E6440.
 
-It sounds like the numa_node for these devices in sysfs is misleading
-unless we have a quirk like this.  If that's important, I think it
-could be fixed by having the BIOS provide _PXM methods for them.  But
-I don't think it is, and I'm inclined to remove the quirk.
+After booting linux kernel docked is set to 1 (which is correct,=20
+DVD hw is inserted into sata dock). When I undock it via sysfs=20
+entry
 
-I'm pushing hard to get rid of CPU-specific code like this because
-there are generic methods to do it, e.g., _PXM, and the CPU-specific
-code is a perennial maintenance headache.
+/sys/bus/platform/devices/dock.0/undock
 
-Bjorn
+then kernel remove DVD device from system (no /dev/sr0 anymore)=20
+and docked sysfs entry is set to 0.
+
+When I press eject button on DVD drive, I hear some spin up and=20
+kernel detect DVD device again (also udev create /dev/sr0). But=20
+docked sysfs entry remains set to 0. It will never be set back to=20
+1 - only after reboot.
+
+So this looks like bug somewhere and probably in linux acpi dock=20
+driver... Do you know to solve this problem? More applications=20
+checking docked sysfs entry for dock presence and returning 0=20
+will mislead them.
+
+Here is some info from sysfs about dock:
+
+$ grep "" /sys/bus/platform/devices/dock.0/*
+/sys/bus/platform/devices/dock.0/docked:0
+/sys/bus/platform/devices/dock.0/flags:32
+/sys/bus/platform/devices/dock.0/modalias:acpi:LNXIOBAY:
+/sys/bus/platform/devices/dock.0/type:ata_bay
+/sys/bus/platform/devices/dock.0/uevent:MODALIAS=3Dacpi:LNXIOBAY:
+
+If you need some more info let me know. I would be happy to have=20
+working docked sysfs entry.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart2836586.KoBJUF4ueo
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlNgCKkACgkQi/DJPQPkQ1ITegCfdBVqg3M+onjtWXinn27oU1SN
+/kcAn2lLsPdGgUaBje+kEDIoSKeZobQs
+=WHKs
+-----END PGP SIGNATURE-----
+
+--nextPart2836586.KoBJUF4ueo--
