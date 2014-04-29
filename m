@@ -1,73 +1,25 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 5/5] ACPICA: Remove deprecated _LINUX definitions for
- ACPICA.
-Date: Tue, 29 Apr 2014 07:50:37 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802558BBD@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1396930406.git.lv.zheng@intel.com>
- <cover.1398232408.git.lv.zheng@intel.com>
- <8e6c90efc629b463709aef5da4957e916fdc0437.1398232409.git.lv.zheng@intel.com>
- <2215223.yYQsuKoaSF@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E88025586A7@SHSMSX101.ccr.corp.intel.com>
- <535EB986.9060802@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [Patch V2 7/9] I2C/ACPI: Add i2c ACPI operation region support
+Date: Tue, 29 Apr 2014 11:02:46 +0300
+Message-ID: <20140429080246.GE1684@lahna.fi.intel.com>
+References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
+ <1398695268-28645-1-git-send-email-tianyu.lan@intel.com>
+ <1398695268-28645-8-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:13492 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755126AbaD2HvN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Apr 2014 03:51:13 -0400
-In-Reply-To: <535EB986.9060802@intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1398695268-28645-8-git-send-email-tianyu.lan@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: wsa@the-dreams.de, rjw@rjwysocki.net, awilliam@redhat.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogV3lzb2NraSwgUmFmYWVsIEoNCj4gU2VudDogVHVlc2RheSwgQXByaWwg
-MjksIDIwMTQgNDoyNyBBTQ0KPiANCj4gT24gNC8yOC8yMDE0IDY6MTAgQU0sIFpoZW5nLCBMdiB3
-cm90ZToNCj4gPiBIaSwgUmFmYWVsDQo+ID4NCj4gPj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kg
-W21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gPj4gU2VudDogTW9uZGF5LCBBcHJpbCAyOCwg
-MjAxNCA1OjM5IEFNDQo+ID4+DQo+ID4+IE9uIFdlZG5lc2RheSwgQXByaWwgMjMsIDIwMTQgMDI6
-NTQ6MjIgUE0gTHYgWmhlbmcgd3JvdGU6DQo+ID4+PiBUaGVyZSBhcmUgX0xJTlVYIGRlZmluZWQg
-c28gdGhhdCB3aGVuIExpbnV4IGtlcm5lbCBpcyBjb21waWxlZCB1c2luZyBicm9rZW4NCj4gPj4+
-IGNvbXBpbGVycyB0aGF0IGhhdmluZyBub3QgX19saW51eF9fIGRlZmluZWQgY2FuIHN0aWxsIGlu
-Y2x1ZGUNCj4gPj4+IDxhY3BpL3BsYXRmb3JtL2FjbGludXguaD4gZnJvbSA8YWNwaS9wbGF0Zm9y
-bS9hY2Vudi5oPi4NCj4gPj4+DQo+ID4+PiBUaGlzIGJlaGF2aW9yIGlzIGRlcHJlY2F0ZWQgYXMg
-YWxsIGRyaXZlcnMvYWNwaS9hY3BpY2EgZmlsZXMgYXJlIGNvbXBpbGVkDQo+ID4+PiB3aXRob3V0
-IGluY2x1ZGluZyA8bGludXgvYWNwaS5oPiwgdGh1cyB3aXRob3V0IF9MSU5VWCBkZWZpbmVkLiAg
-QXMgdGhlcmUgaXMNCj4gPj4+IG5vIGlzc3VlcyBlbmNvdW50ZXJlZCB3aGVuIHdlIGNvbXBpbGUg
-QUNQSUNBIGNvZGUgd2l0aG91dCBfTElOVVggZGVmaW5lZCwNCj4gPj4+IGl0IGlzIE9LIHRvIHJl
-bW92ZSBfTElOVVggZnJvbSA8bGludXgvYWNwaS5oPiBub3cuDQo+ID4+Pg0KPiA+Pj4gU2lnbmVk
-LW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4gPj4+IC0tLQ0KPiA+Pj4g
-ICBpbmNsdWRlL2xpbnV4L2FjcGkuaCB8ICAgIDQgLS0tLQ0KPiA+Pj4gICAxIGZpbGUgY2hhbmdl
-ZCwgNCBkZWxldGlvbnMoLSkNCj4gPj4+DQo+ID4+PiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51
-eC9hY3BpLmggYi9pbmNsdWRlL2xpbnV4L2FjcGkuaA0KPiA+Pj4gaW5kZXggN2E4ZjJjZC4uOWM1
-NTlmNyAxMDA2NDQNCj4gPj4+IC0tLSBhL2luY2x1ZGUvbGludXgvYWNwaS5oDQo+ID4+PiArKysg
-Yi9pbmNsdWRlL2xpbnV4L2FjcGkuaA0KPiA+Pj4gQEAgLTMxLDEwICszMSw2IEBADQo+ID4+Pg0K
-PiA+Pj4gICAjaWZkZWYJQ09ORklHX0FDUEkNCj4gPj4+DQo+ID4+PiAtI2lmbmRlZiBfTElOVVgN
-Cj4gPj4+IC0jZGVmaW5lIF9MSU5VWA0KPiA+Pj4gLSNlbmRpZg0KPiA+Pj4gLQ0KPiA+Pj4gICAj
-aW5jbHVkZSA8bGludXgvbGlzdC5oPg0KPiA+Pj4gICAjaW5jbHVkZSA8bGludXgvbW9kX2Rldmlj
-ZXRhYmxlLmg+DQo+ID4+IFdoYXQgYWJvdXQgPGFjcGkvcGxhdGZvcm0vYWNlbnYuaD4/ICBTaG91
-bGQgaXQgc3RpbGwgY2hlY2sgaWYgX0xJTlVYIGlzIGRlZmluZWQNCj4gPj4gYWZ0ZXIgdGhpcyBj
-aGFuZ2U/DQo+ID4gSWYgeW91IG1lYW4gdGhlc2UgbGluZXM6DQo+ID4gICAgI2lmIGRlZmluZWQo
-X0xJTlVYKSB8fCBkZWZpbmVkKF9fbGludXhfXykNCj4gPiAgICAjaW5jbHVkZSA8YWNwaS9wbGF0
-Zm9ybS9hY2xpbnV4Lmg+DQo+ID4gQWZ0ZXIgZGVsZXRpbmcgIl9MSU5VWCIgZnJvbSA8bGludXgv
-YWNwaS5oPiwgYWNlbnYuaCBzdGlsbCBjYW4gaW5jbHVkZSBhY2xpbnV4LmggYmVjYXVzZSBvZiAi
-X19saW51eF9fIi4NCj4gPiBBY3R1YWxseSBhbGwgZHJpdmVycy9hY3BpL2FjcGljYSBzb3VyY2Ug
-ZmlsZXMgYXJlIGNvbXBpbGVkIHdpdGhvdXQgaW5jbHVkaW5nIDxsaW51eC9hY3BpLmg+LCBzbyAi
-X0xJTlVYIiBkZWZpbmVkIGluIHRoaXMgZmlsZSBpcyB1c2VsZXNzIHRvDQo+IExpbnV4Lg0KPiA+
-IFdlIG5lZWRuJ3QgZGVsZXRlICJfTElOVVgiIGZyb20gYWNlbnYuaC4NCj4gPg0KPiA+ICJfTElO
-VVgiIGlzIG9ubHkgdXNlZCBpbiBBQ1BJQ0EgbWFrZWZpbGVzLCBMaW51eCBuZXZlciB1c2VzIGl0
-Og0KPiA+ICAgIGh0dHBzOi8vZ2l0aHViLmNvbS9hY3BpY2EvYWNwaWNhL2Jsb2IvbWFzdGVyL2dl
-bmVyYXRlL3VuaXgvTWFrZWZpbGUuY29uZmlnDQo+ID4gQUNQSUNBIGNhbiBiZSBjb21waWxlZCB1
-c2luZyB0aGUgZm9sbG93aW5nIG1ha2UgY29tbWFuZDoNCj4gPiAgICBtYWtlIEhPU1Q9X0xJTlVY
-DQo+ID4gSSB0aGluayB0aGlzIGlzIHRoZSBvbmx5IHVzYWdlIG9mICJfTElOVVgiIGZvciBub3cu
-DQo+IA0KPiBXZWxsLCBteSBwb2ludCB3YXM6IElmIHdlIGRlbGV0ZSB0aGUgZGVmaW5pdGlvbiBv
-ZiBfTElOVVgsIHdoeSBkb24ndCB3ZQ0KPiBkcm9wIHRoZSBzeW1ib2wgaXRzZWxmIGZyb20gZXZl
-cnl3aGVyZSBhbG9uZyB3aXRoIGl0Pw0KPiANCj4gSXQgZGVmaW5pdGVseSBpcyBub3QgdXNlZnVs
-IHRvIHJlZmVyIHRvIGEgc3ltYm9sIHRoYXQncyBuZXZlciBkZWZpbmVkLA0KPiBpcyBpdD8NCg0K
-SXQgc291bmRzIGxpa2UgSSBzaG91bGQgY2xlYW4gdXAgYWNlbnYuaCBmaXJzdCB0aGFuIGRlbGV0
-aW5nIHRoaXMuDQpPSywgSSdsbCBkcm9wIHRoaXMgcGF0Y2ggZnJvbSB0aGlzIHNlcmllcy4NCkkg
-bWlnaHQgcmUtZG8gdGhlIGRlbGV0aW9uIGFmdGVyIGNsZWFuaW5nIHVwIHRoZSBhY2Vudi5oLg0K
-DQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gDQo+IFJhZmFlbA0KDQo=
+On Mon, Apr 28, 2014 at 10:27:46PM +0800, Lan Tianyu wrote:
+> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart) operation region.
+> It allows ACPI aml code able to access such kind of devices to implement
+> some ACPI standard method.
+
+Looks good to me now,
+
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
