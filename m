@@ -1,235 +1,119 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [RFC PATCH] acpi: mv models with win8 brightness problems from win8 blacklist to use_native_backlight
-Date: Wed, 30 Apr 2014 15:48:46 +0200
-Message-ID: <1398865726-15264-1-git-send-email-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43563 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758917AbaD3Nsz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Apr 2014 09:48:55 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] lib: check for strcpy() overflows to fixed length buffers
+Date: Wed, 30 Apr 2014 18:08:44 +0300
+Message-ID: <20140430150844.GA10621@mwanda>
+Reply-To: kernel-hardening@lists.openwall.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kernel-hardening-return-1809-glkh-kernel-hardening=m.gmane.org@lists.openwall.com>
+List-Post: <mailto:kernel-hardening@lists.openwall.com>
+List-Help: <mailto:kernel-hardening-help@lists.openwall.com>
+List-Unsubscribe: <mailto:kernel-hardening-unsubscribe@lists.openwall.com>
+List-Subscribe: <mailto:kernel-hardening-subscribe@lists.openwall.com>
+Content-Disposition: inline
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, kernel-hardening@lists.openwall.com, Kees Cook <keescook@chromium.org>, Dave Jones <davej@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Vincent Gerris <vgerris@gmail.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 
-When the windows8 related backlight problems became evident, 2 approaches
-were follow in paralellel, one was to stop claiming to be windows 8 / 2012,
-the other was to tell acpi_video to stop registering a backlight driver.
+There are sometimes where we know that we are doing an strcpy() into a
+fixed length buffer.  In those cases, we could verify that the strcpy()
+doesn't overflow.  This patch introduces DEBUG_STRICT_SLOW_STRCPY_CHECKS
+if you want to check for that.  The downside is that it makes strcpy
+slower.
 
-I've read all the threads and it seems that which approach ended up being
-applied to which model laptop was never really a concious decision (AFAIK).
+I introduced __compiletime_size() to make this work.  It returns the
+size of the destination buffer or zero if the size isn't known.  The
+__compiletime_object_size() is similar but if you pass it a struct
+member then it returns the size of everything from there to the end of
+the struct.  Another difference is __compiletime_object_size() returns
+-1 for unknown sizes.
 
-So lets move all the models which are only on the win8 blacklist because of
-brightness issues to the use_native_backlight list, which is the smaller
-hammer to use to solve the backlight issues.
+If you pass a char pointer to __compiletime_size() then it returns zero.
 
-Note: this is not tested on any of the affected models, this just seems like
-the sensible thing to do.
+The strcpy() check ignores buffers with just one byte because people
+often use those for variable length strings at the end of a struct.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/blacklist.c | 75 ------------------------------------------------
- drivers/acpi/video.c     | 72 +++++++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 68 insertions(+), 79 deletions(-)
+I have tested this patch lightly and created some bugs for it to detect
+but I have not detected any real life overflows.
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index afec452..51b8f64 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -156,12 +156,6 @@ static int __init dmi_disable_osi_win7(const struct dmi_system_id *d)
- 	acpi_osi_setup("!Windows 2009");
- 	return 0;
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+
+diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
+index e863dd5..5e0fc2b 100644
+--- a/include/acpi/platform/acenv.h
++++ b/include/acpi/platform/acenv.h
+@@ -320,7 +320,7 @@
+ #define ACPI_STRSTR(s1,s2)      strstr((s1), (s2))
+ #define ACPI_STRCHR(s1,c)       strchr((s1), (c))
+ #define ACPI_STRLEN(s)          (acpi_size) strlen((s))
+-#define ACPI_STRCPY(d,s)        (void) strcpy((d), (s))
++#define ACPI_STRCPY(d,s)        strcpy((d), (s))
+ #define ACPI_STRNCPY(d,s,n)     (void) strncpy((d), (s), (acpi_size)(n))
+ #define ACPI_STRNCMP(d,s,n)     strncmp((d), (s), (acpi_size)(n))
+ #define ACPI_STRCMP(d,s)        strcmp((d), (s))
+diff --git a/include/linux/compiler-gcc4.h b/include/linux/compiler-gcc4.h
+index 2507fd2..1fb7fd0 100644
+--- a/include/linux/compiler-gcc4.h
++++ b/include/linux/compiler-gcc4.h
+@@ -16,6 +16,9 @@
+ #if GCC_VERSION >= 40100 && GCC_VERSION < 40600
+ # define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
+ #endif
++#if GCC_VERSION > 40600
++# define __compiletime_size(obj) __builtin_object_size(obj, 3)
++#endif
+ 
+ #if GCC_VERSION >= 40300
+ /* Mark functions as cold. gcc will assume any path leading to a call
+diff --git a/include/linux/compiler.h b/include/linux/compiler.h
+index ee7239e..b615964 100644
+--- a/include/linux/compiler.h
++++ b/include/linux/compiler.h
+@@ -318,6 +318,9 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
+ #ifndef __compiletime_object_size
+ # define __compiletime_object_size(obj) -1
+ #endif
++#ifndef __compiletime_size
++# define __compiletime_size(obj) 0
++#endif
+ #ifndef __compiletime_warning
+ # define __compiletime_warning(message)
+ #endif
+diff --git a/include/linux/string.h b/include/linux/string.h
+index ac889c5..fc126a1 100644
+--- a/include/linux/string.h
++++ b/include/linux/string.h
+@@ -154,4 +154,13 @@ static inline const char *kbasename(const char *path)
+ 	return tail ? tail + 1 : path;
  }
--static int __init dmi_disable_osi_win8(const struct dmi_system_id *d)
--{
--	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
--	acpi_osi_setup("!Windows 2012");
--	return 0;
--}
  
- static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 	{
-@@ -247,75 +241,6 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 	},
++#if CONFIG_DEBUG_STRICT_SLOW_STRCPY_CHECKS
++#define strcpy(dest, src) do {						\
++	int len = __compiletime_size(dest);				\
++	if (len > 1 && strlen(src) >= len)				\
++		WARN_ONCE(1, "strcpy() overflow copying \"%s\"\n", src);	\
++	strcpy(dest, src);						\
++} while (0)
++#endif
++
+ #endif /* _LINUX_STRING_H_ */
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index 819ac51..94db086 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -1431,6 +1431,15 @@ config DEBUG_STRICT_USER_COPY_CHECKS
  
- 	/*
--	 * The following machines have broken backlight support when reporting
--	 * the Windows 2012 OSI, so disable it until their support is fixed.
--	 */
--	{
--	.callback = dmi_disable_osi_win8,
--	.ident = "ASUS Zenbook Prime UX31A",
--	.matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
--		     DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
--		},
--	},
--	{
--	.callback = dmi_disable_osi_win8,
--	.ident = "ThinkPad Edge E530",
--	.matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
--		},
--	},
--	{
--	.callback = dmi_disable_osi_win8,
--	.ident = "ThinkPad Edge E530",
--	.matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
--		},
--	},
--	{
--	.callback = dmi_disable_osi_win8,
--	.ident = "ThinkPad Edge E530",
--	.matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
--		},
--	},
--	{
--	.callback = dmi_disable_osi_win8,
--	.ident = "Acer Aspire V5-573G",
--	.matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
--		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
--		},
--	},
--	{
--	.callback = dmi_disable_osi_win8,
--	.ident = "Acer Aspire V5-572G",
--	.matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
--		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
--		},
--	},
--	{
--	.callback = dmi_disable_osi_win8,
--	.ident = "ThinkPad T431s",
--	.matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		     DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
--		},
--	},
--	{
--	.callback = dmi_disable_osi_win8,
--	.ident = "ThinkPad T430",
--	.matches = {
--		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
--		},
--	},
--
--	/*
- 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
- 	 * Linux ignores it, except for the machines enumerated below.
- 	 */
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index c688b77..6fd015b 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -457,18 +457,58 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 	},
- 	{
- 	 .callback = video_set_use_native_backlight,
--	 .ident = "ThinkPad T430s",
-+	 .ident = "ThinkPad X230",
- 	 .matches = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "ThinkPad T430",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
- 		},
- 	},
- 	{
- 	 .callback = video_set_use_native_backlight,
--	 .ident = "ThinkPad X230",
-+	 .ident = "ThinkPad T430s",
- 	 .matches = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "ThinkPad T431s",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		     DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "ThinkPad Edge E530",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "ThinkPad Edge E530",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "ThinkPad Edge E530",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
- 		},
- 	},
- 	{
-@@ -529,6 +569,22 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 	},
- 	{
- 	.callback = video_set_use_native_backlight,
-+	.ident = "Acer Aspire V5-572G",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
-+		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "Acer Aspire V5-573G",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
-+		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
-+		},
-+	},
-+	{
-+	.callback = video_set_use_native_backlight,
- 	.ident = "HP ProBook 4340s",
- 	.matches = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-@@ -585,6 +641,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8780w"),
- 		},
- 	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "ASUS Zenbook Prime UX31A",
-+	.matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
-+		},
-+	},
- 	{}
- };
+ 	  If unsure, say N.
  
--- 
-1.9.0
-
++config DEBUG_STRICT_SLOW_STRCPY_CHECKS
++	bool "Strict checks for strcpy() overflows"
++	depends on DEBUG_KERNEL
++	help
++	  Enabling this option adds some extra sanity checks when strcpy() is
++	  called().  This will slow down the kernel a bit.
++
++	  If unsure, say N.
++
+ source kernel/trace/Kconfig
+ 
+ menu "Runtime Testing"
