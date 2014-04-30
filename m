@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 19/27] ACPICA: Back port of improvements on exception code.
-Date: Wed, 30 Apr 2014 10:05:34 +0800
-Message-ID: <b7fe634868f694d9081a8a4a2178e4a1013ab819.1398817612.git.lv.zheng@intel.com>
+Subject: [PATCH 09/27] ACPICA: Comment updates - no functional change.
+Date: Wed, 30 Apr 2014 10:04:28 +0800
+Message-ID: <8df8575ba09810fe9a419c97c4284c52cefaf453.1398817612.git.lv.zheng@intel.com>
 References: <cover.1398817612.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1398817612.git.lv.zheng@intel.com>
@@ -12,34 +12,68 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-This is the linuxize result of the following commit:
-  Subject: ACPICA: Improve handling of exception code blocks.
-  Split exception codes into three distinct blocks; for the main
-  ASL compiler, Table compiler, and the preprocessor. This allows
-  easy addition of new codes into each block without disturbing
-  the others. Adds one new file, aslmessages.c
-
-The iASL changes are not in this patch as iASL currently is not
-shipped in the kernel.
+Change all instances of "sub-table" to "subtable" for
+consistency.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/acpixf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/acpi/actbl1.h |    4 ++--
+ include/acpi/actbl2.h |    6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index ac04985..2d074ba 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -207,7 +207,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_disable_ssdt_table_install, FALSE);
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 212c65d..4ad7da8 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -675,7 +675,7 @@ enum acpi_madt_type {
+ };
  
  /*
-  * We keep track of the latest version of Windows that has been requested by
-- * the BIOS.  ACPI 5.0.
-+ * the BIOS. ACPI 5.0.
+- * MADT Sub-tables, correspond to Type in struct acpi_subtable_header
++ * MADT Subtables, correspond to Type in struct acpi_subtable_header
   */
- ACPI_INIT_GLOBAL(u8, acpi_gbl_osi_data, 0);
  
+ /* 0: Processor Local APIC */
+@@ -918,7 +918,7 @@ enum acpi_srat_type {
+ };
+ 
+ /*
+- * SRAT Sub-tables, correspond to Type in struct acpi_subtable_header
++ * SRAT Subtables, correspond to Type in struct acpi_subtable_header
+  */
+ 
+ /* 0: Processor Local APIC/SAPIC Affinity */
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index 6874261..860e5c8 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -457,7 +457,7 @@ struct acpi_dmar_pci_path {
+ };
+ 
+ /*
+- * DMAR Sub-tables, correspond to Type in struct acpi_dmar_header
++ * DMAR Subtables, correspond to Type in struct acpi_dmar_header
+  */
+ 
+ /* 0: Hardware Unit Definition */
+@@ -885,7 +885,7 @@ struct acpi_lpit_io {
+ 
+ /*******************************************************************************
+  *
+- * MCFG - PCI Memory Mapped Configuration table and sub-table
++ * MCFG - PCI Memory Mapped Configuration table and subtable
+  *        Version 1
+  *
+  * Conforms to "PCI Firmware Specification", Revision 3.0, June 20, 2005
+@@ -988,7 +988,7 @@ enum acpi_slic_type {
+ };
+ 
+ /*
+- * SLIC Sub-tables, correspond to Type in struct acpi_slic_header
++ * SLIC Subtables, correspond to Type in struct acpi_slic_header
+  */
+ 
+ /* 0: Public Key Structure */
 -- 
 1.7.10
