@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 09/27] ACPICA: Comment updates - no functional change.
-Date: Wed, 30 Apr 2014 10:04:28 +0800
-Message-ID: <8df8575ba09810fe9a419c97c4284c52cefaf453.1398817612.git.lv.zheng@intel.com>
+Subject: [PATCH 21/27] ACPICA: acpidump: Add support to force using RSDT.
+Date: Wed, 30 Apr 2014 10:05:48 +0800
+Message-ID: <a947d03abc49bdd4493fbfaf9226ded7ea7a7996.1398817612.git.lv.zheng@intel.com>
 References: <cover.1398817612.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1398817612.git.lv.zheng@intel.com>
@@ -10,70 +10,203 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+This patch adds "-x" and "-x -x" options to disable XSDT for acpidump.
 
-Change all instances of "sub-table" to "subtable" for
-consistency.
+The single "-x" can be used to stop using XSDT, RSDT will be forced to find
+static tables, note that XSDT will still be dumped. The double "-x" can
+stop dumping XSDT, which is useful when the XSDT address reported by RSDP
+is pointing to an invalid address.
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+It is reported there are platforms having broken XSDT shipped, acpidump
+will stop working while accessing such XSDT. This patch adds new option so
+that users can force acpidump to dump tables listed in the RSDT. Lv Zheng.
+
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=73911
+Buglink: https://bugs.archlinux.org/task/39811
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Reported-and-tested-by: Bruce Chiarelli <mano155@gmail.com>
+Reported-and-tested-by: Spyros Stathopoulos <spystath@gmail.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- include/acpi/actbl1.h |    4 ++--
- include/acpi/actbl2.h |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ .../acpi/os_specific/service_layers/oslinuxtbl.c   |   32 +++++++++++++++++---
+ tools/power/acpi/tools/acpidump/acpidump.h         |   23 +++++++-------
+ tools/power/acpi/tools/acpidump/apmain.c           |   13 +++++++-
+ 3 files changed, 50 insertions(+), 18 deletions(-)
 
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 212c65d..4ad7da8 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -675,7 +675,7 @@ enum acpi_madt_type {
- };
+diff --git a/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c b/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
+index a8cd344..e0699e6 100644
+--- a/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
++++ b/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
+@@ -505,6 +505,28 @@ static acpi_status osl_load_rsdp(void)
  
- /*
-- * MADT Sub-tables, correspond to Type in struct acpi_subtable_header
-+ * MADT Subtables, correspond to Type in struct acpi_subtable_header
-  */
- 
- /* 0: Processor Local APIC */
-@@ -918,7 +918,7 @@ enum acpi_srat_type {
- };
- 
- /*
-- * SRAT Sub-tables, correspond to Type in struct acpi_subtable_header
-+ * SRAT Subtables, correspond to Type in struct acpi_subtable_header
-  */
- 
- /* 0: Processor Local APIC/SAPIC Affinity */
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index 6874261..860e5c8 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -457,7 +457,7 @@ struct acpi_dmar_pci_path {
- };
- 
- /*
-- * DMAR Sub-tables, correspond to Type in struct acpi_dmar_header
-+ * DMAR Subtables, correspond to Type in struct acpi_dmar_header
-  */
- 
- /* 0: Hardware Unit Definition */
-@@ -885,7 +885,7 @@ struct acpi_lpit_io {
- 
- /*******************************************************************************
+ /******************************************************************************
   *
-- * MCFG - PCI Memory Mapped Configuration table and sub-table
-+ * MCFG - PCI Memory Mapped Configuration table and subtable
-  *        Version 1
++ * FUNCTION:    osl_can_use_xsdt
++ *
++ * PARAMETERS:  None
++ *
++ * RETURN:      TRUE if XSDT is allowed to be used.
++ *
++ * DESCRIPTION: This function collects logic that can be used to determine if
++ *              XSDT should be used instead of RSDT.
++ *
++ *****************************************************************************/
++
++static u8 osl_can_use_xsdt(void)
++{
++	if (gbl_revision && !acpi_gbl_do_not_use_xsdt) {
++		return (TRUE);
++	} else {
++		return (FALSE);
++	}
++}
++
++/******************************************************************************
++ *
+  * FUNCTION:    osl_table_initialize
   *
-  * Conforms to "PCI Firmware Specification", Revision 3.0, June 20, 2005
-@@ -988,7 +988,7 @@ enum acpi_slic_type {
- };
+  * PARAMETERS:  None
+@@ -535,7 +557,7 @@ static acpi_status osl_table_initialize(void)
  
- /*
-- * SLIC Sub-tables, correspond to Type in struct acpi_slic_header
-+ * SLIC Subtables, correspond to Type in struct acpi_slic_header
+ 	/* Get XSDT from memory */
+ 
+-	if (gbl_rsdp.revision) {
++	if (gbl_rsdp.revision && !gbl_do_not_dump_xsdt) {
+ 		if (gbl_xsdt) {
+ 			free(gbl_xsdt);
+ 			gbl_xsdt = NULL;
+@@ -668,7 +690,7 @@ static acpi_status osl_list_bios_tables(void)
+ 	acpi_status status = AE_OK;
+ 	u32 i;
+ 
+-	if (gbl_revision) {
++	if (osl_can_use_xsdt()) {
+ 		item_size = sizeof(u64);
+ 		table_data =
+ 		    ACPI_CAST8(gbl_xsdt) + sizeof(struct acpi_table_header);
+@@ -690,7 +712,7 @@ static acpi_status osl_list_bios_tables(void)
+ 	/* Search RSDT/XSDT for the requested table */
+ 
+ 	for (i = 0; i < number_of_tables; ++i, table_data += item_size) {
+-		if (gbl_revision) {
++		if (osl_can_use_xsdt()) {
+ 			table_address =
+ 			    (acpi_physical_address) (*ACPI_CAST64(table_data));
+ 		} else {
+@@ -809,7 +831,7 @@ osl_get_bios_table(char *signature,
+ 		table_length = ap_get_table_length(mapped_table);
+ 	} else {		/* Case for a normal ACPI table */
+ 
+-		if (gbl_revision) {
++		if (osl_can_use_xsdt()) {
+ 			item_size = sizeof(u64);
+ 			table_data =
+ 			    ACPI_CAST8(gbl_xsdt) +
+@@ -833,7 +855,7 @@ osl_get_bios_table(char *signature,
+ 		/* Search RSDT/XSDT for the requested table */
+ 
+ 		for (i = 0; i < number_of_tables; ++i, table_data += item_size) {
+-			if (gbl_revision) {
++			if (osl_can_use_xsdt()) {
+ 				table_address =
+ 				    (acpi_physical_address) (*ACPI_CAST64
+ 							     (table_data));
+diff --git a/tools/power/acpi/tools/acpidump/acpidump.h b/tools/power/acpi/tools/acpidump/acpidump.h
+index 3361b9e..46f5195 100644
+--- a/tools/power/acpi/tools/acpidump/acpidump.h
++++ b/tools/power/acpi/tools/acpidump/acpidump.h
+@@ -41,32 +41,34 @@
+  * POSSIBILITY OF SUCH DAMAGES.
   */
  
- /* 0: Public Key Structure */
+-#include <acpi/acpi.h>
+-#include "accommon.h"
+-#include "actables.h"
+-
+-#include <stdio.h>
+-#include <fcntl.h>
+-#include <errno.h>
+-#include <sys/stat.h>
+-
+ /*
+  * Global variables. Defined in main.c only, externed in all other files
+  */
+ #ifdef _DECLARE_GLOBALS
+ #define EXTERN
+ #define INIT_GLOBAL(a,b)        a=b
++#define DEFINE_ACPI_GLOBALS     1
+ #else
+ #define EXTERN                  extern
+ #define INIT_GLOBAL(a,b)        a
+ #endif
+ 
++#include <acpi/acpi.h>
++#include "accommon.h"
++#include "actables.h"
++
++#include <stdio.h>
++#include <fcntl.h>
++#include <errno.h>
++#include <sys/stat.h>
++
+ /* Globals */
+ 
+ EXTERN u8 INIT_GLOBAL(gbl_summary_mode, FALSE);
+ EXTERN u8 INIT_GLOBAL(gbl_verbose_mode, FALSE);
+ EXTERN u8 INIT_GLOBAL(gbl_binary_mode, FALSE);
+ EXTERN u8 INIT_GLOBAL(gbl_dump_customized_tables, FALSE);
++EXTERN u8 INIT_GLOBAL(gbl_do_not_dump_xsdt, FALSE);
+ EXTERN FILE INIT_GLOBAL(*gbl_output_file, NULL);
+ EXTERN char INIT_GLOBAL(*gbl_output_filename, NULL);
+ EXTERN u64 INIT_GLOBAL(gbl_rsdp_base, 0);
+@@ -74,10 +76,7 @@ EXTERN u64 INIT_GLOBAL(gbl_rsdp_base, 0);
+ /* Globals required for use with ACPICA modules */
+ 
+ #ifdef _DECLARE_GLOBALS
+-u8 acpi_gbl_enable_interpreter_slack = FALSE;
+ u8 acpi_gbl_integer_byte_width = 8;
+-u32 acpi_dbg_level = 0;
+-u32 acpi_dbg_layer = 0;
+ #endif
+ 
+ /* Action table used to defer requested options */
+diff --git a/tools/power/acpi/tools/acpidump/apmain.c b/tools/power/acpi/tools/acpidump/apmain.c
+index 70d71ec..51e8d63 100644
+--- a/tools/power/acpi/tools/acpidump/apmain.c
++++ b/tools/power/acpi/tools/acpidump/apmain.c
+@@ -80,7 +80,7 @@ struct ap_dump_action action_table[AP_MAX_ACTIONS];
+ u32 current_action = 0;
+ 
+ #define AP_UTILITY_NAME             "ACPI Binary Table Dump Utility"
+-#define AP_SUPPORTED_OPTIONS        "?a:bcf:hn:o:r:svz"
++#define AP_SUPPORTED_OPTIONS        "?a:bcf:hn:o:r:svxz"
+ 
+ /******************************************************************************
+  *
+@@ -109,6 +109,8 @@ static void ap_display_usage(void)
+ 	ACPI_OPTION("-a <Address>", "Get table via a physical address");
+ 	ACPI_OPTION("-f <BinaryFile>", "Get table via a binary file");
+ 	ACPI_OPTION("-n <Signature>", "Get table via a name/signature");
++	ACPI_OPTION("-x", "Do not use but dump XSDT");
++	ACPI_OPTION("-x -x", "Do not use or dump XSDT");
+ 
+ 	printf("\n"
+ 	       "Invocation without parameters dumps all available tables\n"
+@@ -210,6 +212,15 @@ static int ap_do_options(int argc, char **argv)
+ 			gbl_summary_mode = TRUE;
+ 			continue;
+ 
++		case 'x':	/* Do not use XSDT */
++
++			if (!acpi_gbl_do_not_use_xsdt) {
++				acpi_gbl_do_not_use_xsdt = TRUE;
++			} else {
++				gbl_do_not_dump_xsdt = TRUE;
++			}
++			continue;
++
+ 		case 'v':	/* Revision/version */
+ 
+ 			printf(ACPI_COMMON_SIGNON(AP_UTILITY_NAME));
 -- 
 1.7.10
