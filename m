@@ -1,118 +1,78 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] PNP / ACPI: Do not return errors if _DIS or _SRS are not present
-Date: Wed, 30 Apr 2014 22:50:58 +0200
-Message-ID: <1492044.L41XNkFY4m@vostro.rjw.lan>
+Subject: Re: [PATCH V2] ACPI/Processor: Fix failure of loading acpi-cpufreq driver
+Date: Wed, 30 Apr 2014 23:22:15 +0200
+Message-ID: <4080464.bVVYp2L7f0@vostro.rjw.lan>
+References: <1398843993-26942-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Lan Tianyu <tianyu.lan@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, wxg4net <wxg4net@gmail.com>, nonproffessional@gmail.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:61136 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S933602AbaD3VFo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Apr 2014 17:05:44 -0400
+In-Reply-To: <1398843993-26942-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: lenb@kernel.org, katoh@mikage.ne.jp, smf.linux@ntlworld.com, jiang.liu@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Wednesday, April 30, 2014 03:46:33 PM Lan Tianyu wrote:
+> According commit d640113fe(ACPI: processor: fix acpi_get_cpuid for UP
+> processor),  Bios may not provide _MAT or MADT tables and acpi_get_apicid()
+> always returns -1. For these cases, original code will pass apic_id with
+> vaule of -1 to acpi_map_cpuid() and it will check the acpi_id. If acpi_id
+> is equal to zero, ignores apic_id and return zero for CPU0.
+> 
+> Commit b981513(ACPI / scan: bail out early if failed to parse APIC
+> ID for CPU) changed the behavior. Return ENODEV when find apic_id is
+> less than zero after calling acpi_get_apicid(). This causes acpi-cpufreq
+> driver fails to be loaded on some machines. This patch is to fix it.
+> 
+> Reference:https://bugzilla.kernel.org/show_bug.cgi?id=73781
+> Cc: stable@vger.kernel.org v3.14
+> Reported-and-tested-by: KATO Hiroshi <katoh@mikage.ne.jp>
+> Reported-and-tested-by: Stuart Foster <smf.linux@ntlworld.com>
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> ---
+> Change since V1:
+> 	Add a check for pr->apic_id in the acpi_processor_hotadd_init()
+> to avoid invalid memory access.
 
-The ACPI PNP subsystem returns errors from pnpacpi_set_resources()
-and pnpacpi_disable_resources() if the _SRS or _DIS methods are not
-present, respectively, but it should not do that, because those
-methods are optional.  For this reason, modify pnpacpi_set_resources()
-and pnpacpi_disable_resources(), respectively, to ignore missing _SRS
-or _DIS.
+Queued up for the next pull request, thanks!
 
-This problem has been uncovered by commit 202317a573b2 (ACPI / scan: Add
-acpi_device objects for all device nodes in the namespace) and manifested
-itself by causing serial port suspend to fail on some systems.
 
-Fixes: 202317a573b2 (ACPI / scan: Add acpi_device objects for all device nodes in the namespace)
-References: https://bugzilla.kernel.org/show_bug.cgi?id=74371
-Reported-by: wxg4net <wxg4net@gmail.com>
-Reported-and-tested-by: <nonproffessional@gmail.com>
-Cc: 3.14+ <stable@vger.kernel.org> # 3.14+
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/pnp/pnpacpi/core.c |   44 ++++++++++++++++++++++++++------------------
- 1 file changed, 26 insertions(+), 18 deletions(-)
+>  drivers/acpi/acpi_processor.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+> index c29c2c3..b06f5f5 100644
+> --- a/drivers/acpi/acpi_processor.c
+> +++ b/drivers/acpi/acpi_processor.c
+> @@ -170,6 +170,9 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
+>  	acpi_status status;
+>  	int ret;
+>  
+> +	if (pr->apic_id == -1)
+> +		return -ENODEV;
+> +
+>  	status = acpi_evaluate_integer(pr->handle, "_STA", NULL, &sta);
+>  	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_DEVICE_PRESENT))
+>  		return -ENODEV;
+> @@ -260,10 +263,8 @@ static int acpi_processor_get_info(struct acpi_device *device)
+>  	}
+>  
+>  	apic_id = acpi_get_apicid(pr->handle, device_declaration, pr->acpi_id);
+> -	if (apic_id < 0) {
+> +	if (apic_id < 0)
+>  		acpi_handle_debug(pr->handle, "failed to get CPU APIC ID.\n");
+> -		return -ENODEV;
+> -	}
+>  	pr->apic_id = apic_id;
+>  
+>  	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
+> 
 
-Index: linux-pm/drivers/pnp/pnpacpi/core.c
-===================================================================
---- linux-pm.orig/drivers/pnp/pnpacpi/core.c
-+++ linux-pm/drivers/pnp/pnpacpi/core.c
-@@ -83,8 +83,7 @@ static int pnpacpi_set_resources(struct
- {
- 	struct acpi_device *acpi_dev;
- 	acpi_handle handle;
--	struct acpi_buffer buffer;
--	int ret;
-+	int ret = 0;
- 
- 	pnp_dbg(&dev->dev, "set resources\n");
- 
-@@ -97,19 +96,26 @@ static int pnpacpi_set_resources(struct
- 	if (WARN_ON_ONCE(acpi_dev != dev->data))
- 		dev->data = acpi_dev;
- 
--	ret = pnpacpi_build_resource_template(dev, &buffer);
--	if (ret)
--		return ret;
--	ret = pnpacpi_encode_resources(dev, &buffer);
--	if (ret) {
-+	if (acpi_has_method(handle, METHOD_NAME__SRS)) {
-+		struct acpi_buffer buffer;
-+
-+		ret = pnpacpi_build_resource_template(dev, &buffer);
-+		if (ret)
-+			return ret;
-+
-+		ret = pnpacpi_encode_resources(dev, &buffer);
-+		if (!ret) {
-+			acpi_status status;
-+
-+			status = acpi_set_current_resources(handle, &buffer);
-+			if (ACPI_FAILURE(status))
-+				ret = -EIO;
-+		}
- 		kfree(buffer.pointer);
--		return ret;
- 	}
--	if (ACPI_FAILURE(acpi_set_current_resources(handle, &buffer)))
--		ret = -EINVAL;
--	else if (acpi_bus_power_manageable(handle))
-+	if (!ret && acpi_bus_power_manageable(handle))
- 		ret = acpi_bus_set_power(handle, ACPI_STATE_D0);
--	kfree(buffer.pointer);
-+
- 	return ret;
- }
- 
-@@ -117,7 +123,7 @@ static int pnpacpi_disable_resources(str
- {
- 	struct acpi_device *acpi_dev;
- 	acpi_handle handle;
--	int ret;
-+	acpi_status status;
- 
- 	dev_dbg(&dev->dev, "disable resources\n");
- 
-@@ -128,13 +134,15 @@ static int pnpacpi_disable_resources(str
- 	}
- 
- 	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
--	ret = 0;
- 	if (acpi_bus_power_manageable(handle))
- 		acpi_bus_set_power(handle, ACPI_STATE_D3_COLD);
--		/* continue even if acpi_bus_set_power() fails */
--	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_DIS", NULL, NULL)))
--		ret = -ENODEV;
--	return ret;
-+
-+	/* continue even if acpi_bus_set_power() fails */
-+	status = acpi_evaluate_object(handle, "_DIS", NULL, NULL);
-+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
-+		return -ENODEV;
-+
-+	return 0;
- }
- 
- #ifdef CONFIG_ACPI_SLEEP
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
