@@ -1,67 +1,51 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH V2] ACPI/Processor: Fix failure of loading acpi-cpufreq driver
-Date: Wed, 30 Apr 2014 15:46:33 +0800
-Message-ID: <1398843993-26942-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:65180 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756014AbaD3Hyj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Apr 2014 03:54:39 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: bug: acpi ata_bay dock reminds undocked
+Date: Wed, 30 Apr 2014 11:24:50 +0200
+Message-ID: <201404301124.51110@pali>
+References: <201404292216.41256@pali> <201404292300.01782@pali> <13218778.k5mvMTodWa@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart3119140.qY0vctzPpd";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <13218778.k5mvMTodWa@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, katoh@mikage.ne.jp, smf.linux@ntlworld.com, jiang.liu@linux.intel.com
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-According commit d640113fe(ACPI: processor: fix acpi_get_cpuid for UP
-processor),  Bios may not provide _MAT or MADT tables and acpi_get_apicid()
-always returns -1. For these cases, original code will pass apic_id with
-vaule of -1 to acpi_map_cpuid() and it will check the acpi_id. If acpi_id
-is equal to zero, ignores apic_id and return zero for CPU0.
+--nextPart3119140.qY0vctzPpd
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Commit b981513(ACPI / scan: bail out early if failed to parse APIC
-ID for CPU) changed the behavior. Return ENODEV when find apic_id is
-less than zero after calling acpi_get_apicid(). This causes acpi-cpufreq
-driver fails to be loaded on some machines. This patch is to fix it.
+On Tuesday 29 April 2014 23:35:42 Rafael J. Wysocki wrote:
+> On Tuesday, April 29, 2014 11:00:01 PM Pali Roh=C3=A1r wrote:
+> > On Tuesday 29 April 2014 22:55:07 Rafael J. Wysocki wrote:
+> > > Which kernel version(s) have you tried?
+> >=20
+> > 3.15-rc3
+>=20
+> Does it work with 3.14(.x) by chance?
 
-Reference:https://bugzilla.kernel.org/show_bug.cgi?id=73781
-Cc: stable@vger.kernel.org v3.14
-Reported-and-tested-by: KATO Hiroshi <katoh@mikage.ne.jp>
-Reported-and-tested-by: Stuart Foster <smf.linux@ntlworld.com>
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
-Change since V1:
-	Add a check for pr->apic_id in the acpi_processor_hotadd_init()
-to avoid invalid memory access.
+Tested with 3.14 and 3.8. Same problem, not working.
 
- drivers/acpi/acpi_processor.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index c29c2c3..b06f5f5 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -170,6 +170,9 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
- 	acpi_status status;
- 	int ret;
- 
-+	if (pr->apic_id == -1)
-+		return -ENODEV;
-+
- 	status = acpi_evaluate_integer(pr->handle, "_STA", NULL, &sta);
- 	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_DEVICE_PRESENT))
- 		return -ENODEV;
-@@ -260,10 +263,8 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 	}
- 
- 	apic_id = acpi_get_apicid(pr->handle, device_declaration, pr->acpi_id);
--	if (apic_id < 0) {
-+	if (apic_id < 0)
- 		acpi_handle_debug(pr->handle, "failed to get CPU APIC ID.\n");
--		return -ENODEV;
--	}
- 	pr->apic_id = apic_id;
- 
- 	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
--- 
-1.8.4.rc0.1.g8f6a3e5.dirty
+--nextPart3119140.qY0vctzPpd
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlNgwWMACgkQi/DJPQPkQ1IAuwCfbSsx1Za27qGoga2Vq4d62Z8E
+x24AoMuKRSI5l8JQ+5VoF5Z4KfYPakI4
+=3LNw
+-----END PGP SIGNATURE-----
+
+--nextPart3119140.qY0vctzPpd--
