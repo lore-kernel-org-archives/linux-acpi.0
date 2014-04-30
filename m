@@ -1,212 +1,188 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 21/27] ACPICA: acpidump: Add support to force using RSDT.
-Date: Wed, 30 Apr 2014 10:05:48 +0800
-Message-ID: <a947d03abc49bdd4493fbfaf9226ded7ea7a7996.1398817612.git.lv.zheng@intel.com>
+Subject: [PATCH 23/27] ACPICA: Tables: Remove old mechanism to validate if XSDT contains NULL entries.
+Date: Wed, 30 Apr 2014 10:06:02 +0800
+Message-ID: <6dcea27ee505707b2debab1c7ea793f24b68eb4b.1398817612.git.lv.zheng@intel.com>
 References: <cover.1398817612.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1398817612.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds "-x" and "-x -x" options to disable XSDT for acpidump.
+With the NULL entry sanity check implemented, the XSDT validation is
+useless because:
+1. If XSDT contains NULL entries, it can be bypassed by the new sanity
+   check mechanism;
+2. If RSDP contains a bad XSDT address, invoking XSDT validation will still
+   lead to a kernel crash.
 
-The single "-x" can be used to stop using XSDT, RSDT will be forced to find
-static tables, note that XSDT will still be dumped. The double "-x" can
-stop dumping XSDT, which is useful when the XSDT address reported by RSDP
-is pointing to an invalid address.
+This patch deletes the old XSDT validation solution and thus enables the
+new NULL entry sanity check solution.
 
-It is reported there are platforms having broken XSDT shipped, acpidump
-will stop working while accessing such XSDT. This patch adds new option so
-that users can force acpidump to dump tables listed in the RSDT. Lv Zheng.
+Note that if there are reports reporting regressions caused by the enabling
+of the new feature and disabling of the old feature, this commit should be
+bisected and reverted. Lv Zheng.
 
 Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=73911
 Buglink: https://bugs.archlinux.org/task/39811
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Reported-and-tested-by: Bruce Chiarelli <mano155@gmail.com>
 Reported-and-tested-by: Spyros Stathopoulos <spystath@gmail.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- .../acpi/os_specific/service_layers/oslinuxtbl.c   |   32 +++++++++++++++++---
- tools/power/acpi/tools/acpidump/acpidump.h         |   23 +++++++-------
- tools/power/acpi/tools/acpidump/apmain.c           |   13 +++++++-
- 3 files changed, 50 insertions(+), 18 deletions(-)
+ drivers/acpi/acpica/tbutils.c |  105 -----------------------------------------
+ 1 file changed, 105 deletions(-)
 
-diff --git a/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c b/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
-index a8cd344..e0699e6 100644
---- a/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
-+++ b/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
-@@ -505,6 +505,28 @@ static acpi_status osl_load_rsdp(void)
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index 801d196..e37a103 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -49,8 +49,6 @@
+ ACPI_MODULE_NAME("tbutils")
  
- /******************************************************************************
-  *
-+ * FUNCTION:    osl_can_use_xsdt
-+ *
-+ * PARAMETERS:  None
-+ *
-+ * RETURN:      TRUE if XSDT is allowed to be used.
-+ *
-+ * DESCRIPTION: This function collects logic that can be used to determine if
-+ *              XSDT should be used instead of RSDT.
-+ *
-+ *****************************************************************************/
-+
-+static u8 osl_can_use_xsdt(void)
-+{
-+	if (gbl_revision && !acpi_gbl_do_not_use_xsdt) {
-+		return (TRUE);
-+	} else {
-+		return (FALSE);
-+	}
-+}
-+
-+/******************************************************************************
-+ *
-  * FUNCTION:    osl_table_initialize
-  *
-  * PARAMETERS:  None
-@@ -535,7 +557,7 @@ static acpi_status osl_table_initialize(void)
- 
- 	/* Get XSDT from memory */
- 
--	if (gbl_rsdp.revision) {
-+	if (gbl_rsdp.revision && !gbl_do_not_dump_xsdt) {
- 		if (gbl_xsdt) {
- 			free(gbl_xsdt);
- 			gbl_xsdt = NULL;
-@@ -668,7 +690,7 @@ static acpi_status osl_list_bios_tables(void)
- 	acpi_status status = AE_OK;
- 	u32 i;
- 
--	if (gbl_revision) {
-+	if (osl_can_use_xsdt()) {
- 		item_size = sizeof(u64);
- 		table_data =
- 		    ACPI_CAST8(gbl_xsdt) + sizeof(struct acpi_table_header);
-@@ -690,7 +712,7 @@ static acpi_status osl_list_bios_tables(void)
- 	/* Search RSDT/XSDT for the requested table */
- 
- 	for (i = 0; i < number_of_tables; ++i, table_data += item_size) {
--		if (gbl_revision) {
-+		if (osl_can_use_xsdt()) {
- 			table_address =
- 			    (acpi_physical_address) (*ACPI_CAST64(table_data));
- 		} else {
-@@ -809,7 +831,7 @@ osl_get_bios_table(char *signature,
- 		table_length = ap_get_table_length(mapped_table);
- 	} else {		/* Case for a normal ACPI table */
- 
--		if (gbl_revision) {
-+		if (osl_can_use_xsdt()) {
- 			item_size = sizeof(u64);
- 			table_data =
- 			    ACPI_CAST8(gbl_xsdt) +
-@@ -833,7 +855,7 @@ osl_get_bios_table(char *signature,
- 		/* Search RSDT/XSDT for the requested table */
- 
- 		for (i = 0; i < number_of_tables; ++i, table_data += item_size) {
--			if (gbl_revision) {
-+			if (osl_can_use_xsdt()) {
- 				table_address =
- 				    (acpi_physical_address) (*ACPI_CAST64
- 							     (table_data));
-diff --git a/tools/power/acpi/tools/acpidump/acpidump.h b/tools/power/acpi/tools/acpidump/acpidump.h
-index 3361b9e..46f5195 100644
---- a/tools/power/acpi/tools/acpidump/acpidump.h
-+++ b/tools/power/acpi/tools/acpidump/acpidump.h
-@@ -41,32 +41,34 @@
-  * POSSIBILITY OF SUCH DAMAGES.
-  */
- 
--#include <acpi/acpi.h>
--#include "accommon.h"
--#include "actables.h"
+ /* Local prototypes */
+-static acpi_status acpi_tb_validate_xsdt(acpi_physical_address address);
 -
--#include <stdio.h>
--#include <fcntl.h>
--#include <errno.h>
--#include <sys/stat.h>
--
- /*
-  * Global variables. Defined in main.c only, externed in all other files
-  */
- #ifdef _DECLARE_GLOBALS
- #define EXTERN
- #define INIT_GLOBAL(a,b)        a=b
-+#define DEFINE_ACPI_GLOBALS     1
- #else
- #define EXTERN                  extern
- #define INIT_GLOBAL(a,b)        a
- #endif
+ static acpi_physical_address
+ acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size);
  
-+#include <acpi/acpi.h>
-+#include "accommon.h"
-+#include "actables.h"
-+
-+#include <stdio.h>
-+#include <fcntl.h>
-+#include <errno.h>
-+#include <sys/stat.h>
-+
- /* Globals */
+@@ -251,87 +249,6 @@ acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size)
  
- EXTERN u8 INIT_GLOBAL(gbl_summary_mode, FALSE);
- EXTERN u8 INIT_GLOBAL(gbl_verbose_mode, FALSE);
- EXTERN u8 INIT_GLOBAL(gbl_binary_mode, FALSE);
- EXTERN u8 INIT_GLOBAL(gbl_dump_customized_tables, FALSE);
-+EXTERN u8 INIT_GLOBAL(gbl_do_not_dump_xsdt, FALSE);
- EXTERN FILE INIT_GLOBAL(*gbl_output_file, NULL);
- EXTERN char INIT_GLOBAL(*gbl_output_filename, NULL);
- EXTERN u64 INIT_GLOBAL(gbl_rsdp_base, 0);
-@@ -74,10 +76,7 @@ EXTERN u64 INIT_GLOBAL(gbl_rsdp_base, 0);
- /* Globals required for use with ACPICA modules */
- 
- #ifdef _DECLARE_GLOBALS
--u8 acpi_gbl_enable_interpreter_slack = FALSE;
- u8 acpi_gbl_integer_byte_width = 8;
--u32 acpi_dbg_level = 0;
--u32 acpi_dbg_layer = 0;
- #endif
- 
- /* Action table used to defer requested options */
-diff --git a/tools/power/acpi/tools/acpidump/apmain.c b/tools/power/acpi/tools/acpidump/apmain.c
-index 70d71ec..51e8d63 100644
---- a/tools/power/acpi/tools/acpidump/apmain.c
-+++ b/tools/power/acpi/tools/acpidump/apmain.c
-@@ -80,7 +80,7 @@ struct ap_dump_action action_table[AP_MAX_ACTIONS];
- u32 current_action = 0;
- 
- #define AP_UTILITY_NAME             "ACPI Binary Table Dump Utility"
--#define AP_SUPPORTED_OPTIONS        "?a:bcf:hn:o:r:svz"
-+#define AP_SUPPORTED_OPTIONS        "?a:bcf:hn:o:r:svxz"
- 
- /******************************************************************************
+ /*******************************************************************************
   *
-@@ -109,6 +109,8 @@ static void ap_display_usage(void)
- 	ACPI_OPTION("-a <Address>", "Get table via a physical address");
- 	ACPI_OPTION("-f <BinaryFile>", "Get table via a binary file");
- 	ACPI_OPTION("-n <Signature>", "Get table via a name/signature");
-+	ACPI_OPTION("-x", "Do not use but dump XSDT");
-+	ACPI_OPTION("-x -x", "Do not use or dump XSDT");
+- * FUNCTION:    acpi_tb_validate_xsdt
+- *
+- * PARAMETERS:  address             - Physical address of the XSDT (from RSDP)
+- *
+- * RETURN:      Status. AE_OK if the table appears to be valid.
+- *
+- * DESCRIPTION: Validate an XSDT to ensure that it is of minimum size and does
+- *              not contain any NULL entries. A problem that is seen in the
+- *              field is that the XSDT exists, but is actually useless because
+- *              of one or more (or all) NULL entries.
+- *
+- ******************************************************************************/
+-
+-static acpi_status acpi_tb_validate_xsdt(acpi_physical_address xsdt_address)
+-{
+-	struct acpi_table_header *table;
+-	u8 *next_entry;
+-	acpi_physical_address address;
+-	u32 length;
+-	u32 entry_count;
+-	acpi_status status;
+-	u32 i;
+-
+-	/* Get the XSDT length */
+-
+-	table =
+-	    acpi_os_map_memory(xsdt_address, sizeof(struct acpi_table_header));
+-	if (!table) {
+-		return (AE_NO_MEMORY);
+-	}
+-
+-	length = table->length;
+-	acpi_os_unmap_memory(table, sizeof(struct acpi_table_header));
+-
+-	/*
+-	 * Minimum XSDT length is the size of the standard ACPI header
+-	 * plus one physical address entry
+-	 */
+-	if (length < (sizeof(struct acpi_table_header) + ACPI_XSDT_ENTRY_SIZE)) {
+-		return (AE_INVALID_TABLE_LENGTH);
+-	}
+-
+-	/* Map the entire XSDT */
+-
+-	table = acpi_os_map_memory(xsdt_address, length);
+-	if (!table) {
+-		return (AE_NO_MEMORY);
+-	}
+-
+-	/* Get the number of entries and pointer to first entry */
+-
+-	status = AE_OK;
+-	next_entry = ACPI_ADD_PTR(u8, table, sizeof(struct acpi_table_header));
+-	entry_count = (u32)((table->length - sizeof(struct acpi_table_header)) /
+-			    ACPI_XSDT_ENTRY_SIZE);
+-
+-	/* Validate each entry (physical address) within the XSDT */
+-
+-	for (i = 0; i < entry_count; i++) {
+-		address =
+-		    acpi_tb_get_root_table_entry(next_entry,
+-						 ACPI_XSDT_ENTRY_SIZE);
+-		if (!address) {
+-
+-			/* Detected a NULL entry, XSDT is invalid */
+-
+-			status = AE_NULL_ENTRY;
+-			break;
+-		}
+-
+-		next_entry += ACPI_XSDT_ENTRY_SIZE;
+-	}
+-
+-	/* Unmap table */
+-
+-	acpi_os_unmap_memory(table, length);
+-	return (status);
+-}
+-
+-/*******************************************************************************
+- *
+  * FUNCTION:    acpi_tb_parse_root_table
+  *
+  * PARAMETERS:  rsdp                    - Pointer to the RSDP
+@@ -355,7 +272,6 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+ 	u32 table_count;
+ 	struct acpi_table_header *table;
+ 	acpi_physical_address address;
+-	acpi_physical_address rsdt_address;
+ 	u32 length;
+ 	u8 *table_entry;
+ 	acpi_status status;
+@@ -384,14 +300,11 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+ 		 * as per the ACPI specification.
+ 		 */
+ 		address = (acpi_physical_address) rsdp->xsdt_physical_address;
+-		rsdt_address =
+-		    (acpi_physical_address) rsdp->rsdt_physical_address;
+ 		table_entry_size = ACPI_XSDT_ENTRY_SIZE;
+ 	} else {
+ 		/* Root table is an RSDT (32-bit physical addresses) */
  
- 	printf("\n"
- 	       "Invocation without parameters dumps all available tables\n"
-@@ -210,6 +212,15 @@ static int ap_do_options(int argc, char **argv)
- 			gbl_summary_mode = TRUE;
- 			continue;
+ 		address = (acpi_physical_address) rsdp->rsdt_physical_address;
+-		rsdt_address = address;
+ 		table_entry_size = ACPI_RSDT_ENTRY_SIZE;
+ 	}
  
-+		case 'x':	/* Do not use XSDT */
-+
-+			if (!acpi_gbl_do_not_use_xsdt) {
-+				acpi_gbl_do_not_use_xsdt = TRUE;
-+			} else {
-+				gbl_do_not_dump_xsdt = TRUE;
-+			}
-+			continue;
-+
- 		case 'v':	/* Revision/version */
+@@ -401,24 +314,6 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+ 	 */
+ 	acpi_os_unmap_memory(rsdp, sizeof(struct acpi_table_rsdp));
  
- 			printf(ACPI_COMMON_SIGNON(AP_UTILITY_NAME));
+-	/*
+-	 * If it is present and used, validate the XSDT for access/size
+-	 * and ensure that all table entries are at least non-NULL
+-	 */
+-	if (table_entry_size == ACPI_XSDT_ENTRY_SIZE) {
+-		status = acpi_tb_validate_xsdt(address);
+-		if (ACPI_FAILURE(status)) {
+-			ACPI_BIOS_WARNING((AE_INFO,
+-					   "XSDT is invalid (%s), using RSDT",
+-					   acpi_format_exception(status)));
+-
+-			/* Fall back to the RSDT */
+-
+-			address = rsdt_address;
+-			table_entry_size = ACPI_RSDT_ENTRY_SIZE;
+-		}
+-	}
+-
+ 	/* Map the RSDT/XSDT table header to get the full table length */
+ 
+ 	table = acpi_os_map_memory(address, sizeof(struct acpi_table_header));
 -- 
 1.7.10
