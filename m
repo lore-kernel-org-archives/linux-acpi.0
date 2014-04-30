@@ -1,113 +1,97 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 11/27] ACPICA: OSL: Add configurability for memory allocation macros.
-Date: Wed, 30 Apr 2014 10:04:42 +0800
-Message-ID: <e6fdf9c843dbb870f9f90511ab8ddf8485557075.1398817612.git.lv.zheng@intel.com>
+Subject: [PATCH 13/27] ACPICA: OSL: Add configurability for debug output functions.
+Date: Wed, 30 Apr 2014 10:04:55 +0800
+Message-ID: <b1eed4b8605f7ef43bae1720c106b1a6a558e11b.1398817612.git.lv.zheng@intel.com>
 References: <cover.1398817612.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:54555 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750827AbaD3CFD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Apr 2014 22:05:03 -0400
 In-Reply-To: <cover.1398817612.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-OSPMs like Linux trend to include all header files but leave empty stub
-macros for a feature that is not configured during build.
-
-For macros defined without other symbols referencesd it is safe to leave
-them without protections.
-
-By investigation, there are only the following internal/external
-symbols referenced by the ACPICA macros:
-1. C library symbols, including string, ctype, stdarg APIs.  Since such
-   symbols are always accessbile in the kernel source tree, it is safe to
-   leave macros referencing them without protected for Linux.
-2. ACPICA OSL symbols, such symbols are designed to be used only by ACPICA
-   internal APIs.  And there are macros directly referencing mutex and
-   memory allocation OSL symbols.  We need to examine the external usages
-   of such macros.
-   For macros referencing the mutex OSL symbols, fortunately, there is no
-   external user directly invoking such macros.
-   ========================================================================
-   !! IMPORTANT !!
-   ========================================================================
-   For macros referencing memory allocation OSL symbols -
-    1. 'free' - ACPI_FREE
-    2. 'alloc' - ACPI_ALLOCATE, ACPI_ALLOCATE_ZEROED, ACPI_ALLOCATE_BUFFER,
-                 ACPI_ALLOCATE_LOCAL_BUFFER
-   there are external users directly invoking 'alloc' macros.  And the more
-   complicated situation is the reversals of such macros are not ACPI_FREE
-   but acpi_os_free (or kfree) in Linux.  Though we can define such macros
-   into no-op, we in fact cannot define their reversals into no-op.
-   This patch adds mechanism to protect ACPICA memory allocation APIs for
-   Linux so that acpi_os_free (or kfree) invoked in Linux can have a zero
-   address returned by 'alloc' macros to free.  In this
-   way, acpi_os_free (or kfree) can be converted into no-op.
-   ========================================================================
-3. ACPI_OFFSET and other macros that would access structure members, we
-   need to check if such structure members are not accessible under a
-   specific configuration.  Fortunately, currently Linux doesn't use such
-   structure members when CONFIG_ACPI is disabled.
-
-This patch thus only adds mechanism useful for implementing stubs for
-ACPICA provided macros - the configurability of memory allocation APIs.
+This patch extends ACPI_HW_DEPENDENT_x mechanism to all debugging output
+related functions so that the OSPMs can have full control to configure
+them into stub functions.
 
 This patch doesn't include code for Linux to use this new mechanism, thus
-no functional changes.  Lv Zheng.
+no functional change.  Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- include/acpi/actypes.h |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ include/acpi/acpixf.h |   49 +++++++++++++++++++++++++++++++------------------
+ 1 file changed, 31 insertions(+), 18 deletions(-)
 
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index e763565..19b26bb 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -329,6 +329,15 @@ typedef u32 acpi_physical_address;
-  *
-  ******************************************************************************/
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 39f432e..923775a 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -256,6 +256,21 @@ ACPI_GLOBAL(u8, acpi_gbl_system_awake_and_running);
+ #endif				/* ACPI_NO_ERROR_MESSAGES */
  
-+#ifdef ACPI_NO_MEM_ALLOCATIONS
-+
-+#define ACPI_ALLOCATE(a)                NULL
-+#define ACPI_ALLOCATE_ZEROED(a)         NULL
-+#define ACPI_FREE(a)
-+#define ACPI_MEM_TRACKING(a)
-+
-+#else				/* ACPI_NO_MEM_ALLOCATIONS */
-+
- #ifdef ACPI_DBG_TRACK_ALLOCATIONS
  /*
-  * Memory allocation tracking (used by acpi_exec to detect memory leaks)
-@@ -350,6 +359,8 @@ typedef u32 acpi_physical_address;
- 
- #endif				/* ACPI_DBG_TRACK_ALLOCATIONS */
- 
-+#endif				/* ACPI_NO_MEM_ALLOCATIONS */
++ * Debugging-output prototypes. All interfaces that use these macros will
++ * be configured out of the ACPICA build if the ACPI_DEBUG_OUTPUT flag is
++ * not defined.
++ */
++#ifdef ACPI_DEBUG_OUTPUT
++#define ACPI_DBG_DEPENDENT_RETURN_VOID(prototype) \
++	prototype;
 +
- /******************************************************************************
-  *
-  * ACPI Specification constants (Do not change unless the specification changes)
-@@ -928,9 +939,19 @@ struct acpi_object_list {
-  * Miscellaneous common Data Structures used by the interfaces
++#else
++#define ACPI_DBG_DEPENDENT_RETURN_VOID(prototype) \
++	static ACPI_INLINE prototype {return;}
++
++#endif				/* ACPI_DEBUG_OUTPUT */
++
++/*
+  * Initialization
   */
- #define ACPI_NO_BUFFER              0
-+
-+#ifdef ACPI_NO_MEM_ALLOCATIONS
-+
-+#define ACPI_ALLOCATE_BUFFER        (acpi_size) (0)
-+#define ACPI_ALLOCATE_LOCAL_BUFFER  (acpi_size) (0)
-+
-+#else				/* ACPI_NO_MEM_ALLOCATIONS */
-+
- #define ACPI_ALLOCATE_BUFFER        (acpi_size) (-1)	/* Let ACPICA allocate buffer */
- #define ACPI_ALLOCATE_LOCAL_BUFFER  (acpi_size) (-2)	/* For internal use only (enables tracking) */
- 
-+#endif				/* ACPI_NO_MEM_ALLOCATIONS */
-+
- struct acpi_buffer {
- 	acpi_size length;	/* Length in bytes of the buffer */
- 	void *pointer;		/* pointer to buffer */
+ acpi_status __init
+@@ -716,22 +731,20 @@ ACPI_MSG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(3)
+ /*
+  * Debug output
+  */
+-#ifdef ACPI_DEBUG_OUTPUT
+-ACPI_PRINTF_LIKE(6)
+-void ACPI_INTERNAL_VAR_XFACE
+-acpi_debug_print(u32 requested_debug_level,
+-		 u32 line_number,
+-		 const char *function_name,
+-		 const char *module_name,
+-		 u32 component_id, const char *format, ...);
+-
+-ACPI_PRINTF_LIKE(6)
+-void ACPI_INTERNAL_VAR_XFACE
+-acpi_debug_print_raw(u32 requested_debug_level,
+-		     u32 line_number,
+-		     const char *function_name,
+-		     const char *module_name,
+-		     u32 component_id, const char *format, ...);
+-#endif
+-
++ACPI_DBG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(6)
++			       void ACPI_INTERNAL_VAR_XFACE
++			       acpi_debug_print(u32 requested_debug_level,
++						u32 line_number,
++						const char *function_name,
++						const char *module_name,
++						u32 component_id,
++						const char *format, ...))
++ACPI_DBG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(6)
++				void ACPI_INTERNAL_VAR_XFACE
++				acpi_debug_print_raw(u32 requested_debug_level,
++						     u32 line_number,
++						     const char *function_name,
++						     const char *module_name,
++						     u32 component_id,
++						     const char *format, ...))
+ #endif				/* __ACXFACE_H__ */
 -- 
 1.7.10
+
