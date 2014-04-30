@@ -1,119 +1,142 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] lib: check for strcpy() overflows to fixed length buffers
-Date: Wed, 30 Apr 2014 18:08:44 +0300
-Message-ID: <20140430150844.GA10621@mwanda>
-Reply-To: kernel-hardening@lists.openwall.com
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [patch] lib: check for strcpy() overflows to fixed length buffers
+Date: Wed, 30 Apr 2014 08:33:21 -0700
+Message-ID: <CAGXu5jL+VLb_+ZJd6-L5P+Bdxmw+i7j2cLyPOT4rwfE6iqHuRA@mail.gmail.com>
+References: <20140430150844.GA10621@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-hardening-return-1809-glkh-kernel-hardening=m.gmane.org@lists.openwall.com>
-List-Post: <mailto:kernel-hardening@lists.openwall.com>
-List-Help: <mailto:kernel-hardening-help@lists.openwall.com>
-List-Unsubscribe: <mailto:kernel-hardening-unsubscribe@lists.openwall.com>
-List-Subscribe: <mailto:kernel-hardening-subscribe@lists.openwall.com>
-Content-Disposition: inline
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, kernel-hardening@lists.openwall.com, Kees Cook <keescook@chromium.org>, Dave Jones <davej@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f54.google.com ([209.85.219.54]:38761 "EHLO
+	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759264AbaD3PdW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Apr 2014 11:33:22 -0400
+Received: by mail-oa0-f54.google.com with SMTP id i7so2163442oag.27
+        for <linux-acpi@vger.kernel.org>; Wed, 30 Apr 2014 08:33:21 -0700 (PDT)
+In-Reply-To: <20140430150844.GA10621@mwanda>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org, "kernel-hardening@lists.openwall.com" <kernel-hardening@lists.openwall.com>, Dave Jones <davej@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
 
-There are sometimes where we know that we are doing an strcpy() into a
-fixed length buffer.  In those cases, we could verify that the strcpy()
-doesn't overflow.  This patch introduces DEBUG_STRICT_SLOW_STRCPY_CHECKS
-if you want to check for that.  The downside is that it makes strcpy
-slower.
+On Wed, Apr 30, 2014 at 8:08 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> There are sometimes where we know that we are doing an strcpy() into a
+> fixed length buffer.  In those cases, we could verify that the strcpy()
+> doesn't overflow.  This patch introduces DEBUG_STRICT_SLOW_STRCPY_CHECKS
+> if you want to check for that.  The downside is that it makes strcpy
+> slower.
+>
+> I introduced __compiletime_size() to make this work.  It returns the
+> size of the destination buffer or zero if the size isn't known.  The
+> __compiletime_object_size() is similar but if you pass it a struct
+> member then it returns the size of everything from there to the end of
+> the struct.  Another difference is __compiletime_object_size() returns
+> -1 for unknown sizes.
+>
+> If you pass a char pointer to __compiletime_size() then it returns zero.
+>
+> The strcpy() check ignores buffers with just one byte because people
+> often use those for variable length strings at the end of a struct.
+>
+> I have tested this patch lightly and created some bugs for it to detect
+> but I have not detected any real life overflows.
 
-I introduced __compiletime_size() to make this work.  It returns the
-size of the destination buffer or zero if the size isn't known.  The
-__compiletime_object_size() is similar but if you pass it a struct
-member then it returns the size of everything from there to the end of
-the struct.  Another difference is __compiletime_object_size() returns
--1 for unknown sizes.
+Cool, we should absolutely have this. And that's good news that it
+didn't trip anything. :)
 
-If you pass a char pointer to __compiletime_size() then it returns zero.
+>
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>
+> diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
+> index e863dd5..5e0fc2b 100644
+> --- a/include/acpi/platform/acenv.h
+> +++ b/include/acpi/platform/acenv.h
+> @@ -320,7 +320,7 @@
+>  #define ACPI_STRSTR(s1,s2)      strstr((s1), (s2))
+>  #define ACPI_STRCHR(s1,c)       strchr((s1), (c))
+>  #define ACPI_STRLEN(s)          (acpi_size) strlen((s))
+> -#define ACPI_STRCPY(d,s)        (void) strcpy((d), (s))
+> +#define ACPI_STRCPY(d,s)        strcpy((d), (s))
+>  #define ACPI_STRNCPY(d,s,n)     (void) strncpy((d), (s), (acpi_size)(n))
+>  #define ACPI_STRNCMP(d,s,n)     strncmp((d), (s), (acpi_size)(n))
+>  #define ACPI_STRCMP(d,s)        strcmp((d), (s))
+> diff --git a/include/linux/compiler-gcc4.h b/include/linux/compiler-gcc4.h
+> index 2507fd2..1fb7fd0 100644
+> --- a/include/linux/compiler-gcc4.h
+> +++ b/include/linux/compiler-gcc4.h
+> @@ -16,6 +16,9 @@
+>  #if GCC_VERSION >= 40100 && GCC_VERSION < 40600
+>  # define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
+>  #endif
+> +#if GCC_VERSION > 40600
+> +# define __compiletime_size(obj) __builtin_object_size(obj, 3)
+> +#endif
+>
+>  #if GCC_VERSION >= 40300
+>  /* Mark functions as cold. gcc will assume any path leading to a call
+> diff --git a/include/linux/compiler.h b/include/linux/compiler.h
+> index ee7239e..b615964 100644
+> --- a/include/linux/compiler.h
+> +++ b/include/linux/compiler.h
+> @@ -318,6 +318,9 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
+>  #ifndef __compiletime_object_size
+>  # define __compiletime_object_size(obj) -1
+>  #endif
+> +#ifndef __compiletime_size
+> +# define __compiletime_size(obj) 0
+> +#endif
+>  #ifndef __compiletime_warning
+>  # define __compiletime_warning(message)
+>  #endif
+> diff --git a/include/linux/string.h b/include/linux/string.h
+> index ac889c5..fc126a1 100644
+> --- a/include/linux/string.h
+> +++ b/include/linux/string.h
+> @@ -154,4 +154,13 @@ static inline const char *kbasename(const char *path)
+>         return tail ? tail + 1 : path;
+>  }
+>
+> +#if CONFIG_DEBUG_STRICT_SLOW_STRCPY_CHECKS
+> +#define strcpy(dest, src) do {                                         \
+> +       int len = __compiletime_size(dest);                             \
+> +       if (len > 1 && strlen(src) >= len)                              \
+> +               WARN_ONCE(1, "strcpy() overflow copying \"%s\"\n", src);        \
 
-The strcpy() check ignores buffers with just one byte because people
-often use those for variable length strings at the end of a struct.
+This should probably BUG. An overflowing strcpy shouldn't be allowed
+to continue.
 
-I have tested this patch lightly and created some bugs for it to detect
-but I have not detected any real life overflows.
+> +       strcpy(dest, src);                                              \
+> +} while (0)
+> +#endif
+> +
+>  #endif /* _LINUX_STRING_H_ */
+> diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+> index 819ac51..94db086 100644
+> --- a/lib/Kconfig.debug
+> +++ b/lib/Kconfig.debug
+> @@ -1431,6 +1431,15 @@ config DEBUG_STRICT_USER_COPY_CHECKS
+>
+>           If unsure, say N.
+>
+> +config DEBUG_STRICT_SLOW_STRCPY_CHECKS
+> +       bool "Strict checks for strcpy() overflows"
+> +       depends on DEBUG_KERNEL
+> +       help
+> +         Enabling this option adds some extra sanity checks when strcpy() is
+> +         called().  This will slow down the kernel a bit.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Isn't this an entirely compile-time check? I would expect it to be
+entirely optimized by the compiler. In fact, could this be turned into
+a build failure instead?
 
-diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
-index e863dd5..5e0fc2b 100644
---- a/include/acpi/platform/acenv.h
-+++ b/include/acpi/platform/acenv.h
-@@ -320,7 +320,7 @@
- #define ACPI_STRSTR(s1,s2)      strstr((s1), (s2))
- #define ACPI_STRCHR(s1,c)       strchr((s1), (c))
- #define ACPI_STRLEN(s)          (acpi_size) strlen((s))
--#define ACPI_STRCPY(d,s)        (void) strcpy((d), (s))
-+#define ACPI_STRCPY(d,s)        strcpy((d), (s))
- #define ACPI_STRNCPY(d,s,n)     (void) strncpy((d), (s), (acpi_size)(n))
- #define ACPI_STRNCMP(d,s,n)     strncmp((d), (s), (acpi_size)(n))
- #define ACPI_STRCMP(d,s)        strcmp((d), (s))
-diff --git a/include/linux/compiler-gcc4.h b/include/linux/compiler-gcc4.h
-index 2507fd2..1fb7fd0 100644
---- a/include/linux/compiler-gcc4.h
-+++ b/include/linux/compiler-gcc4.h
-@@ -16,6 +16,9 @@
- #if GCC_VERSION >= 40100 && GCC_VERSION < 40600
- # define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
- #endif
-+#if GCC_VERSION > 40600
-+# define __compiletime_size(obj) __builtin_object_size(obj, 3)
-+#endif
- 
- #if GCC_VERSION >= 40300
- /* Mark functions as cold. gcc will assume any path leading to a call
-diff --git a/include/linux/compiler.h b/include/linux/compiler.h
-index ee7239e..b615964 100644
---- a/include/linux/compiler.h
-+++ b/include/linux/compiler.h
-@@ -318,6 +318,9 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
- #ifndef __compiletime_object_size
- # define __compiletime_object_size(obj) -1
- #endif
-+#ifndef __compiletime_size
-+# define __compiletime_size(obj) 0
-+#endif
- #ifndef __compiletime_warning
- # define __compiletime_warning(message)
- #endif
-diff --git a/include/linux/string.h b/include/linux/string.h
-index ac889c5..fc126a1 100644
---- a/include/linux/string.h
-+++ b/include/linux/string.h
-@@ -154,4 +154,13 @@ static inline const char *kbasename(const char *path)
- 	return tail ? tail + 1 : path;
- }
- 
-+#if CONFIG_DEBUG_STRICT_SLOW_STRCPY_CHECKS
-+#define strcpy(dest, src) do {						\
-+	int len = __compiletime_size(dest);				\
-+	if (len > 1 && strlen(src) >= len)				\
-+		WARN_ONCE(1, "strcpy() overflow copying \"%s\"\n", src);	\
-+	strcpy(dest, src);						\
-+} while (0)
-+#endif
-+
- #endif /* _LINUX_STRING_H_ */
-diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index 819ac51..94db086 100644
---- a/lib/Kconfig.debug
-+++ b/lib/Kconfig.debug
-@@ -1431,6 +1431,15 @@ config DEBUG_STRICT_USER_COPY_CHECKS
- 
- 	  If unsure, say N.
- 
-+config DEBUG_STRICT_SLOW_STRCPY_CHECKS
-+	bool "Strict checks for strcpy() overflows"
-+	depends on DEBUG_KERNEL
-+	help
-+	  Enabling this option adds some extra sanity checks when strcpy() is
-+	  called().  This will slow down the kernel a bit.
-+
-+	  If unsure, say N.
-+
- source kernel/trace/Kconfig
- 
- menu "Runtime Testing"
+> +
+> +         If unsure, say N.
+> +
+>  source kernel/trace/Kconfig
+>
+>  menu "Runtime Testing"
+
+-Kees
+
+-- 
+Kees Cook
+Chrome OS Security
