@@ -1,250 +1,64 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH] acpi: mv models with win8 brightness problems from win8 blacklist to use_native_backlight
-Date: Wed, 30 Apr 2014 21:56:21 +0200
-Message-ID: <1830718.4HYQu7bYo0@vostro.rjw.lan>
-References: <1398865726-15264-1-git-send-email-hdegoede@redhat.com>
+Subject: Re: [Patch v2] lapic need be checked if available when initialize acpi processor id
+Date: Wed, 30 Apr 2014 22:11:34 +0200
+Message-ID: <8303149.p62vWCFBDA@vostro.rjw.lan>
+References: <1397519754-10205-1-git-send-email-bhe@redhat.com> <20140430055503.GD4774@dhcp-16-105.nay.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50584 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1759310AbaD3Tjv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Apr 2014 15:39:51 -0400
-In-Reply-To: <1398865726-15264-1-git-send-email-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140430055503.GD4774@dhcp-16-105.nay.redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Baoquan He <bhe@redhat.com>
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, jiang.liu@linux.intel.com, vgoyal@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Vincent Gerris <vgerris@gmail.com>, linux-acpi@vger.kernel.org
 
-On Wednesday, April 30, 2014 03:48:46 PM Hans de Goede wrote:
-> When the windows8 related backlight problems became evident, 2 approaches
-> were follow in paralellel, one was to stop claiming to be windows 8 / 2012,
-> the other was to tell acpi_video to stop registering a backlight driver.
+On Wednesday, April 30, 2014 01:55:03 PM Baoquan He wrote:
+> In acpi_processor_get_info(), acpi processor info is initialized including
+> id, namely cpu index. Currently, if on UP system running SMP kerenl with
+> no LAPIC in MADT, cpu0_initialized is checked if acpi processor id is
+> initialized.
 > 
-> I've read all the threads and it seems that which approach ended up being
-> applied to which model laptop was never really a concious decision (AFAIK).
+> However this check maybe is not correct for kdump kernel. Most of time
+> only 1 CPU is supported because of known problems. So in 1st kernel
+> multiple CPUs are present, then crash happened in one specific CPU,
+> say 2nd CPU. Then it jump into kdump kernel with "nr_cpus=1" specified
+> in cmdline. In this situation, since kdump kernel is warm reset, it will
+> reuse the ACPI resource passed from crashed kernel directly, namely 1st
+> kernel. It means in MADT all LAPIC is enabled while only 1 CPU is
+> present in running system. The kdump kernel usually is the same as the
+> crashed 1st kernel. So now in kdump kernel, x86_cpu_to_apicid stored the
+> apicid and its related cpu id. If only check cpu0_initialized, it will
+> assign 0 to the acpi processor id of 1st CPU, it's not correct.
 > 
-> So lets move all the models which are only on the win8 blacklist because of
-> brightness issues to the use_native_backlight list, which is the smaller
-> hammer to use to solve the backlight issues.
+> So in this patch, check acpi_lapic too. If acpi_lapic is 0, then LAPIC in
+> MADT is not available, assigne 0 to the handling acpi processor. If
+> acpi_lapic is 1, then LAPIC in MADT is available, let's get apic processor
+> id from x86_cpu_to_apicid.
 > 
-> Note: this is not tested on any of the affected models, this just seems like
-> the sensible thing to do.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-
-Since commit 170269a9d3c0 (ACPI / video: Default to using native backlight
-control on Windows 8 systems) in linux-next is effectively removing the black
-list from video.c, I guess what you really would like to do would be to drop
-the items from blacklist.c.  If so, please submit a patch to remove them on
-top of commit 170269a9d3c0.
-
-Thanks!
-
+> Signed-off-by: Baoquan He <bhe@redhat.com>
 > ---
->  drivers/acpi/blacklist.c | 75 ------------------------------------------------
->  drivers/acpi/video.c     | 72 +++++++++++++++++++++++++++++++++++++++++++---
->  2 files changed, 68 insertions(+), 79 deletions(-)
+>  drivers/acpi/acpi_processor.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-> index afec452..51b8f64 100644
-> --- a/drivers/acpi/blacklist.c
-> +++ b/drivers/acpi/blacklist.c
-> @@ -156,12 +156,6 @@ static int __init dmi_disable_osi_win7(const struct dmi_system_id *d)
->  	acpi_osi_setup("!Windows 2009");
->  	return 0;
->  }
-> -static int __init dmi_disable_osi_win8(const struct dmi_system_id *d)
-> -{
-> -	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
-> -	acpi_osi_setup("!Windows 2012");
-> -	return 0;
-> -}
+> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+> index c29c2c3..33f934d 100644
+> --- a/drivers/acpi/acpi_processor.c
+> +++ b/drivers/acpi/acpi_processor.c
+> @@ -267,7 +267,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
+>  	pr->apic_id = apic_id;
 >  
->  static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
->  	{
-> @@ -247,75 +241,6 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
->  	},
->  
->  	/*
-> -	 * The following machines have broken backlight support when reporting
-> -	 * the Windows 2012 OSI, so disable it until their support is fixed.
-> -	 */
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "ASUS Zenbook Prime UX31A",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-> -		     DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "ThinkPad Edge E530",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "ThinkPad Edge E530",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "ThinkPad Edge E530",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "Acer Aspire V5-573G",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "Acer Aspire V5-572G",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "ThinkPad T431s",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "ThinkPad T430",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
-> -		},
-> -	},
-> -
-> -	/*
->  	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
->  	 * Linux ignores it, except for the machines enumerated below.
->  	 */
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index c688b77..6fd015b 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -457,18 +457,58 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  	},
->  	{
->  	 .callback = video_set_use_native_backlight,
-> -	 .ident = "ThinkPad T430s",
-> +	 .ident = "ThinkPad X230",
->  	 .matches = {
->  		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
-> +		},
-> +	},
-> +	{
-> +	.callback = video_set_use_native_backlight,
-> +	.ident = "ThinkPad T430",
-> +	.matches = {
-> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
->  		},
->  	},
->  	{
->  	 .callback = video_set_use_native_backlight,
-> -	 .ident = "ThinkPad X230",
-> +	 .ident = "ThinkPad T430s",
->  	 .matches = {
->  		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
-> +		},
-> +	},
-> +	{
-> +	.callback = video_set_use_native_backlight,
-> +	.ident = "ThinkPad T431s",
-> +	.matches = {
-> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
-> +		},
-> +	},
-> +	{
-> +	.callback = video_set_use_native_backlight,
-> +	.ident = "ThinkPad Edge E530",
-> +	.matches = {
-> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
-> +		},
-> +	},
-> +	{
-> +	.callback = video_set_use_native_backlight,
-> +	.ident = "ThinkPad Edge E530",
-> +	.matches = {
-> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
-> +		},
-> +	},
-> +	{
-> +	.callback = video_set_use_native_backlight,
-> +	.ident = "ThinkPad Edge E530",
-> +	.matches = {
-> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
->  		},
->  	},
->  	{
-> @@ -529,6 +569,22 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  	},
->  	{
->  	.callback = video_set_use_native_backlight,
-> +	.ident = "Acer Aspire V5-572G",
-> +	.matches = {
-> +		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
-> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
-> +		},
-> +	},
-> +	{
-> +	.callback = video_set_use_native_backlight,
-> +	.ident = "Acer Aspire V5-573G",
-> +	.matches = {
-> +		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
-> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
-> +		},
-> +	},
-> +	{
-> +	.callback = video_set_use_native_backlight,
->  	.ident = "HP ProBook 4340s",
->  	.matches = {
->  		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-> @@ -585,6 +641,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8780w"),
->  		},
->  	},
-> +	{
-> +	.callback = video_set_use_native_backlight,
-> +	.ident = "ASUS Zenbook Prime UX31A",
-> +	.matches = {
-> +		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-> +		     DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
-> +		},
-> +	},
->  	{}
->  };
->  
+>  	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
+> -	if (!cpu0_initialized) {
+> +	if (!cpu0_initialized && !acpi_lapic) {
+
+That doesn't compile:
+
+drivers/acpi/acpi_processor.c:271:28: error: 'acpi_lapic' undeclared (first use in this function)
+
+>  		cpu0_initialized = 1;
+>  		/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+>  		if ((cpu_index == -1) && (num_online_cpus() == 1))
 > 
 
 -- 
