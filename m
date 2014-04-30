@@ -1,92 +1,63 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [PATCH] ACPI/Processor: Fix failure of loading acpi-cpufreq driver
-Date: Wed, 30 Apr 2014 13:16:23 +0800
-Message-ID: <53608727.4080405@linux.intel.com>
-References: <1398827428-25540-1-git-send-email-tianyu.lan@intel.com> <53608551.8010208@linux.intel.com>
+From: Baoquan He <bhe@redhat.com>
+Subject: [Patch v2] lapic need be checked if available when initialize acpi
+ processor id
+Date: Wed, 30 Apr 2014 13:55:03 +0800
+Message-ID: <20140430055503.GD4774@dhcp-16-105.nay.redhat.com>
+References: <1397519754-10205-1-git-send-email-bhe@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53608551.8010208@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>, rjw@rjwysocki.net, lenb@kernel.org, katoh@mikage.ne.jp, smf.linux@ntlworld.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:1698 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751899AbaD3F4L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Apr 2014 01:56:11 -0400
+Content-Disposition: inline
+In-Reply-To: <1397519754-10205-1-git-send-email-bhe@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, jiang.liu@linux.intel.com, vgoyal@redhat.com
 
-Hi Tianyu,
-	Found another issue at the second glance.
-In case of x2apic, "if (apic_id < 0)" should be replaced
-by "if (apic_id == -1)" for safety.
-Best Regards!
-Gerry
+In acpi_processor_get_info(), acpi processor info is initialized including
+id, namely cpu index. Currently, if on UP system running SMP kerenl with
+no LAPIC in MADT, cpu0_initialized is checked if acpi processor id is
+initialized.
 
-On 2014/4/30 13:08, Jiang Liu wrote:
-> Hi Tianyu,
-> 	With the suggested fix, we still need to protect
-> acpi_processor_hotadd_init() when pr->apic_id is -1,
-> otherwise it may cause invalid memory access.
-> 
-> Best Regards!
-> Gerry
-> 
-> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-> index c29c2c3ec0ad..e17befc54c34 100644
-> --- a/drivers/acpi/acpi_processor.c
-> +++ b/drivers/acpi/acpi_processor.c
-> @@ -170,6 +170,9 @@ static int acpi_processor_hotadd_init(struct
-> acpi_processor *pr)
->         acpi_status status;
->         int ret;
-> 
-> +       if (pr->apic_id < 0)
-> +               return -ENODEV;
-> +
->         status = acpi_evaluate_integer(pr->handle, "_STA", NULL, &sta);
->         if (ACPI_FAILURE(status) || !(sta & ACPI_STA_DEVICE_PRESENT))
->                 return -ENODEV;
-> 
-> 
-> On 2014/4/30 11:10, Lan Tianyu wrote:
->> According commit d640113fe(ACPI: processor: fix acpi_get_cpuid for UP
->> processor),  Bios may not provide _MAT or MADT tables and acpi_get_apicid()
->> always returns -1. For these cases, original code will pass apic_id with
->> vaule of -1 to acpi_map_cpuid() and it will check the acpi_id. If acpi_id
->> is equal to zero, ignores apic_id and return zero for CPU0.
->>
->> Commit b981513(ACPI / scan: bail out early if failed to parse APIC
->> ID for CPU) changed the behavior. Return ENODEV when find apic_id is
->> less than zero after calling acpi_get_apicid(). This causes acpi-cpufreq
->> driver fails to be loaded on some machines. This patch is to fix it.
->>
->> Reference:https://bugzilla.kernel.org/show_bug.cgi?id=73781
->> Cc: stable@vger.kernel.org v3.14
->> Reported-and-tested-by: KATO Hiroshi <katoh@mikage.ne.jp>
->> Reported-and-tested-by: Stuart Foster <smf.linux@ntlworld.com>
->> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->> ---
->>  drivers/acpi/acpi_processor.c | 4 +---
->>  1 file changed, 1 insertion(+), 3 deletions(-)
->>
->> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
->> index c29c2c3..d55b603 100644
->> --- a/drivers/acpi/acpi_processor.c
->> +++ b/drivers/acpi/acpi_processor.c
->> @@ -260,10 +260,8 @@ static int acpi_processor_get_info(struct acpi_device *device)
->>  	}
->>  
->>  	apic_id = acpi_get_apicid(pr->handle, device_declaration, pr->acpi_id);
->> -	if (apic_id < 0) {
->> +	if (apic_id < 0)
->>  		acpi_handle_debug(pr->handle, "failed to get CPU APIC ID.\n");
->> -		return -ENODEV;
->> -	}
->>  	pr->apic_id = apic_id;
->>  
->>  	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+However this check maybe is not correct for kdump kernel. Most of time
+only 1 CPU is supported because of known problems. So in 1st kernel
+multiple CPUs are present, then crash happened in one specific CPU,
+say 2nd CPU. Then it jump into kdump kernel with "nr_cpus=1" specified
+in cmdline. In this situation, since kdump kernel is warm reset, it will
+reuse the ACPI resource passed from crashed kernel directly, namely 1st
+kernel. It means in MADT all LAPIC is enabled while only 1 CPU is
+present in running system. The kdump kernel usually is the same as the
+crashed 1st kernel. So now in kdump kernel, x86_cpu_to_apicid stored the
+apicid and its related cpu id. If only check cpu0_initialized, it will
+assign 0 to the acpi processor id of 1st CPU, it's not correct.
+
+So in this patch, check acpi_lapic too. If acpi_lapic is 0, then LAPIC in
+MADT is not available, assigne 0 to the handling acpi processor. If
+acpi_lapic is 1, then LAPIC in MADT is available, let's get apic processor
+id from x86_cpu_to_apicid.
+
+Signed-off-by: Baoquan He <bhe@redhat.com>
+---
+ drivers/acpi/acpi_processor.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index c29c2c3..33f934d 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -267,7 +267,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 	pr->apic_id = apic_id;
+ 
+ 	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
+-	if (!cpu0_initialized) {
++	if (!cpu0_initialized && !acpi_lapic) {
+ 		cpu0_initialized = 1;
+ 		/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+ 		if ((cpu_index == -1) && (num_online_cpus() == 1))
+-- 
+1.8.5.3
+
