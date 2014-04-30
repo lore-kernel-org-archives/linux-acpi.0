@@ -1,32 +1,47 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 0/1] acpi-video: Put the Acer Aspire V5-471G on the use_native_backlight dmi list
-Date: Wed, 30 Apr 2014 15:37:20 +0200
-Message-ID: <1398865041-12071-1-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH] acpi-video: Put the Acer Aspire V5-471G on the use_native_backlight dmi list
+Date: Wed, 30 Apr 2014 15:37:21 +0200
+Message-ID: <1398865041-12071-2-git-send-email-hdegoede@redhat.com>
+References: <1398865041-12071-1-git-send-email-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59788 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:38938 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964797AbaD3Nhb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Apr 2014 09:37:31 -0400
+	id S1758947AbaD3Nhc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Apr 2014 09:37:32 -0400
+In-Reply-To: <1398865041-12071-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Vincent Gerris <vgerris@gmail.com>, linux-acpi@vger.kernel.org
+Cc: Vincent Gerris <vgerris@gmail.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, stable@vger.kernel.org
 
-Hi All,
+This fixes the backlight control not working.
 
-I know that there are plans to enable use_native_backlight by default, so
-this may not be necessary:
-http://www.spinics.net/lists/dri-devel/msg57228.html
+Cc: stable@vger.kernel.org
+Reported-and-tested-by: Vincent Gerris <vgerris@gmail.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/video.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-But this is a problem right now, and those plans are for 3.16 which is still
-quite far away, so lets stick with quirks for now so we can at least give
-people something working. Moreover, that plan has been tried before and it
-did not end well:
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/drivers/
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 8b6990e..c688b77 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -520,6 +520,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 		},
+ 	},
+ 	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "Acer Aspire V5-471G",
++	 .matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-471G"),
++		},
++	},
++	{
+ 	.callback = video_set_use_native_backlight,
+ 	.ident = "HP ProBook 4340s",
+ 	.matches = {
+-- 
+1.9.0
 
-So lets just keep the quirk list up2date for now, until we've a better
-solution.
-
-Regards,
-
-Hans
