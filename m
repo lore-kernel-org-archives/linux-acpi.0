@@ -1,92 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Patch v2] lapic need be checked if available when initialize acpi processor id
-Date: Wed, 30 Apr 2014 22:13:57 +0200
-Message-ID: <20009828.4TTRJo9T7a@vostro.rjw.lan>
-References: <1397519754-10205-1-git-send-email-bhe@redhat.com> <20140430055503.GD4774@dhcp-16-105.nay.redhat.com> <20140430060303.GE4774@dhcp-16-105.nay.redhat.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [patch] lib: check for strcpy() overflows to fixed length buffers
+Date: Wed, 30 Apr 2014 23:15:29 +0300
+Message-ID: <20140430201529.GX4963@mwanda>
+References: <20140430150844.GA10621@mwanda>
+ <1507574.Y0KFKOdI6F@vostro.rjw.lan>
+Reply-To: kernel-hardening@lists.openwall.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56181 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752432AbaD3T50 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Apr 2014 15:57:26 -0400
-In-Reply-To: <20140430060303.GE4774@dhcp-16-105.nay.redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kernel-hardening-return-1814-glkh-kernel-hardening=m.gmane.org@lists.openwall.com>
+List-Post: <mailto:kernel-hardening@lists.openwall.com>
+List-Help: <mailto:kernel-hardening-help@lists.openwall.com>
+List-Unsubscribe: <mailto:kernel-hardening-unsubscribe@lists.openwall.com>
+List-Subscribe: <mailto:kernel-hardening-subscribe@lists.openwall.com>
+Content-Disposition: inline
+In-Reply-To: <1507574.Y0KFKOdI6F@vostro.rjw.lan>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, kernel-hardening@lists.openwall.com, Kees Cook <keescook@chromium.org>, Dave Jones <davej@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Baoquan He <bhe@redhat.com>
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, jiang.liu@linux.intel.com, vgoyal@redhat.com
 
-On Wednesday, April 30, 2014 02:03:03 PM Baoquan He wrote:
-> Hi Rafael,
-
-Hi,
-
-> Thanks for previous review for v1. Later on I thought acpi_lapic is
-> more suitable for checking whether LAPIC in MADT is available, and it can
-> hanlde both the UP system running SMP kernel with no LAPIC in MADT and kdump
-> kernel after multiple CPUs system crashed on non-1st CPU.
+On Wed, Apr 30, 2014 at 09:49:23PM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, April 30, 2014 06:08:44 PM Dan Carpenter wrote:
+> > There are sometimes where we know that we are doing an strcpy() into a
+> > fixed length buffer.  In those cases, we could verify that the strcpy()
+> > doesn't overflow.  This patch introduces DEBUG_STRICT_SLOW_STRCPY_CHECKS
+> > if you want to check for that.  The downside is that it makes strcpy
+> > slower.
+> > 
+> > I introduced __compiletime_size() to make this work.  It returns the
+> > size of the destination buffer or zero if the size isn't known.  The
+> > __compiletime_object_size() is similar but if you pass it a struct
+> > member then it returns the size of everything from there to the end of
+> > the struct.  Another difference is __compiletime_object_size() returns
+> > -1 for unknown sizes.
+> > 
+> > If you pass a char pointer to __compiletime_size() then it returns zero.
+> > 
+> > The strcpy() check ignores buffers with just one byte because people
+> > often use those for variable length strings at the end of a struct.
+> > 
+> > I have tested this patch lightly and created some bugs for it to detect
+> > but I have not detected any real life overflows.
+> > 
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > 
+> > diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
+> > index e863dd5..5e0fc2b 100644
+> > --- a/include/acpi/platform/acenv.h
+> > +++ b/include/acpi/platform/acenv.h
 > 
-> I tested the 1st case by addding "disableapic nr_cpus=1" into cmdline
-> of SMP kenrel, and it works. For 2nd case, it works too, below warning
-> message is not printed any more. 
+> This is an ACPICA header and changes to it need to be submitted to the ACPICA
+> maintainers (as per MAINTAINERS).  We only get ACPICA changes from the
+> upstream project (except for really special situations).
+
+Ok.  I should have added Robert and Lv to the CC list.  My guess is
+that the (void) is needed to avoid compile warnings but it's needed for
+us to avoid compile breakage with this change.
+
+Anyway, I'll wait for a couple days and resend that bit broken out.
+
+regards,
+dan carpenter
+
 > 
-> acpi LNXCPU:0a: BIOS reported wrong ACPI id 0 for the processor
+> > @@ -320,7 +320,7 @@
+> >  #define ACPI_STRSTR(s1,s2)      strstr((s1), (s2))
+> >  #define ACPI_STRCHR(s1,c)       strchr((s1), (c))
+> >  #define ACPI_STRLEN(s)          (acpi_size) strlen((s))
+> > -#define ACPI_STRCPY(d,s)        (void) strcpy((d), (s))
+> > +#define ACPI_STRCPY(d,s)        strcpy((d), (s))
+> >  #define ACPI_STRNCPY(d,s,n)     (void) strncpy((d), (s), (acpi_size)(n))
+> >  #define ACPI_STRNCMP(d,s,n)     strncmp((d), (s), (acpi_size)(n))
+> >  #define ACPI_STRCMP(d,s)        strcmp((d), (s))
 > 
-> Do you like this idea?
-
-Well, I don't hate it, but you need to make the code build in all
-configurations (including ia64).
-
-Thanks!
-
-
-> On 04/30/14 at 01:55pm, Baoquan He wrote:
-> > In acpi_processor_get_info(), acpi processor info is initialized including
-> > id, namely cpu index. Currently, if on UP system running SMP kerenl with
-> > no LAPIC in MADT, cpu0_initialized is checked if acpi processor id is
-> > initialized.
-> > 
-> > However this check maybe is not correct for kdump kernel. Most of time
-> > only 1 CPU is supported because of known problems. So in 1st kernel
-> > multiple CPUs are present, then crash happened in one specific CPU,
-> > say 2nd CPU. Then it jump into kdump kernel with "nr_cpus=1" specified
-> > in cmdline. In this situation, since kdump kernel is warm reset, it will
-> > reuse the ACPI resource passed from crashed kernel directly, namely 1st
-> > kernel. It means in MADT all LAPIC is enabled while only 1 CPU is
-> > present in running system. The kdump kernel usually is the same as the
-> > crashed 1st kernel. So now in kdump kernel, x86_cpu_to_apicid stored the
-> > apicid and its related cpu id. If only check cpu0_initialized, it will
-> > assign 0 to the acpi processor id of 1st CPU, it's not correct.
-> > 
-> > So in this patch, check acpi_lapic too. If acpi_lapic is 0, then LAPIC in
-> > MADT is not available, assigne 0 to the handling acpi processor. If
-> > acpi_lapic is 1, then LAPIC in MADT is available, let's get apic processor
-> > id from x86_cpu_to_apicid.
-> > 
-> > Signed-off-by: Baoquan He <bhe@redhat.com>
-> > ---
-> >  drivers/acpi/acpi_processor.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-> > index c29c2c3..33f934d 100644
-> > --- a/drivers/acpi/acpi_processor.c
-> > +++ b/drivers/acpi/acpi_processor.c
-> > @@ -267,7 +267,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
-> >  	pr->apic_id = apic_id;
-> >  
-> >  	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
-> > -	if (!cpu0_initialized) {
-> > +	if (!cpu0_initialized && !acpi_lapic) {
-> >  		cpu0_initialized = 1;
-> >  		/* Handle UP system running SMP kernel, with no LAPIC in MADT */
-> >  		if ((cpu_index == -1) && (num_online_cpus() == 1))
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> Thanks!
+> 
+> -- 
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
