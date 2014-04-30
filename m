@@ -1,155 +1,174 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 22/27] ACPICA: Tables: Add new mechanism to skip NULL entries in RSDT and XSDT.
-Date: Wed, 30 Apr 2014 10:05:56 +0800
-Message-ID: <bd6ce63704884742205c675af5dbc3c9ce8c4ee3.1398817612.git.lv.zheng@intel.com>
+Subject: [PATCH 24/27] ACPICA: Remove extraneous error message for large number of GPEs.
+Date: Wed, 30 Apr 2014 10:06:09 +0800
+Message-ID: <5cec58046257dde5fe9f1d9161039dc3c98a7c15.1398817612.git.lv.zheng@intel.com>
 References: <cover.1398817612.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1398817612.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-It is reported that there are buggy BIOSes in the world: AMI uses an XSDT
-compiler for early BIOSes, this compiler will generate XSDT with a NULL
-entry.  The affected BIOS versions are "AMI BIOS F2-F4".
+From: Bob Moore <robert.moore@intel.com>
 
-Original solution on Linux is to use an alternative heathy root table
-instead of the ill one.  This commit is:
-  Commit: 671cc68dc61f029d44b43a681356078e02d8dab8
-  Subject: ACPICA: Back port and refine validation of the XSDT root table.
+Fixes a problem where an extraneous error message was emitted during
+initialization if there is a GPE block larger than 255 bits. Any
+GPE block larger than 120 GPEs could generate the error.
 
-This is an example of such XSDT dumped from B85-HD3 (AMI F3 BIOS):
-[000h 0000   4]                    Signature : "XSDT"    [Extended System Description Table]
-[004h 0004   4]                 Table Length : 00000074
-[008h 0008   1]                     Revision : 01
-[009h 0009   1]                     Checksum : 18
-[00Ah 0010   6]                       Oem ID : "ALASKA"
-[010h 0016   8]                 Oem Table ID : "A M I"
-[018h 0024   4]                 Oem Revision : 01072009
-[01Ch 0028   4]              Asl Compiler ID : "AMI "
-[020h 0032   4]        Asl Compiler Revision : 00010013
-
-[024h 0036   8]       ACPI Table Address   0 : 00000000BA5F8180
-[02Ch 0044   8]       ACPI Table Address   1 : 00000000BA5F8290
-[034h 0052   8]       ACPI Table Address   2 : 00000000BA5F8308
-[03Ch 0060   8]       ACPI Table Address   3 : 00000000BA5F8848
-[044h 0068   8]       ACPI Table Address   4 : 00000000BA5F9320
-[04Ch 0076   8]       ACPI Table Address   5 : 00000000BA5F9360
-[054h 0084   8]       ACPI Table Address   6 : 00000000BA5F9398
-[05Ch 0092   8]       ACPI Table Address   7 : 00000000BA5F9708
-[064h d100   8]       ACPI Table Address   8 : 00000000BA5FC9A8
-[06Ch 0108   8]       ACPI Table Address   9 : 0000000000000000
-
-But according to the bug report, the XSDT in fact is not broken. In the
-above XSDT, ACPI Table Address 1-8 contains the same value as RSDT.  The
-differences can only be seen on the following 2 entries:
-1. The first entry points to a FADT whose Revision is 5 while the first
-   entry in RSDT points to a FADT whose Revision is 2.
-   The FADT dumped from the address indicated by the first entry of XSDT:
-    FACP @ 0x00000000BA5F8180
-      0000: 46 41 43 50 0C 01 00 00<05>4B 41 4C 41 53 4B 41  FACP.....KALASKA
-      ...
-   The FADT dumped from the address indicated by the first entry of RSDT:
-    FACP @ 0x00000000BA5ED0F0
-      0000: 46 41 43 50 84 00 00 00<02>A7 41 4C 41 53 4B 41  FACP......ALASKA
-      ...
-2. The last entry is a NULL terminator.
-According to the test result, the Revision 5 FADT is accessible.  Thus the
-original solution turns out to be a work around that is preventing the
-higher revision tables to be used for such platforms (they are all x86-64
-platforms, and should use XSDT and higher revision FADT).
-
-This patch offers a new solution, where a sanity check is performed before
-installing a table address from XSDT. If the entry is NULL, it is simply
-discarded.
-
-Note that, this patch doesn't remove the original solution, so for Linux
-kernel, this commit is actually a no-op, but it allows acpidump to be
-working on such platforms. By doing so, we allow another easy revertable
-commit to enable this feature so that when that commit is reverted, the
-useful sanity check will not be affected. Lv Zheng.
-
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=73911
-Buglink: https://bugs.archlinux.org/task/39811
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Reported-and-tested-by: Bruce Chiarelli <mano155@gmail.com>
-Reported-and-tested-by: Spyros Stathopoulos <spystath@gmail.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/tbutils.c                      |   21 ++++++++++++++------
- .../acpi/os_specific/service_layers/oslinuxtbl.c   |   12 +++++++++++
- 2 files changed, 27 insertions(+), 6 deletions(-)
+ drivers/acpi/acpica/tbfadt.c |   51 +++++++++++++++++++++++++++---------------
+ 1 file changed, 33 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index e1638ad..801d196 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -474,12 +474,19 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+index a37af16..41519a9 100644
+--- a/drivers/acpi/acpica/tbfadt.c
++++ b/drivers/acpi/acpica/tbfadt.c
+@@ -52,7 +52,8 @@ ACPI_MODULE_NAME("tbfadt")
+ static void
+ acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
+ 			     u8 space_id,
+-			     u8 byte_width, u64 address, char *register_name);
++			     u8 byte_width,
++			     u64 address, char *register_name, u8 flags);
  
- 		/* Get the table physical address (32-bit for RSDT, 64-bit for XSDT) */
+ static void acpi_tb_convert_fadt(void);
  
--		status =
--		    acpi_tb_install_standard_table(acpi_tb_get_root_table_entry
--						   (table_entry,
--						    table_entry_size),
--						   ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
--						   FALSE, TRUE, &table_index);
-+		address =
-+		    acpi_tb_get_root_table_entry(table_entry, table_entry_size);
-+
-+		/* Skip NULL entries in RSDT/XSDT */
-+
-+		if (!address) {
-+			goto next_table;
+@@ -69,13 +70,14 @@ typedef struct acpi_fadt_info {
+ 	u16 address32;
+ 	u16 length;
+ 	u8 default_length;
+-	u8 type;
++	u8 flags;
+ 
+ } acpi_fadt_info;
+ 
+ #define ACPI_FADT_OPTIONAL          0
+ #define ACPI_FADT_REQUIRED          1
+ #define ACPI_FADT_SEPARATE_LENGTH   2
++#define ACPI_FADT_GPE_REGISTER      4
+ 
+ static struct acpi_fadt_info fadt_info_table[] = {
+ 	{"Pm1aEventBlock",
+@@ -125,14 +127,14 @@ static struct acpi_fadt_info fadt_info_table[] = {
+ 	 ACPI_FADT_OFFSET(gpe0_block),
+ 	 ACPI_FADT_OFFSET(gpe0_block_length),
+ 	 0,
+-	 ACPI_FADT_SEPARATE_LENGTH},
++	 ACPI_FADT_SEPARATE_LENGTH | ACPI_FADT_GPE_REGISTER},
+ 
+ 	{"Gpe1Block",
+ 	 ACPI_FADT_OFFSET(xgpe1_block),
+ 	 ACPI_FADT_OFFSET(gpe1_block),
+ 	 ACPI_FADT_OFFSET(gpe1_block_length),
+ 	 0,
+-	 ACPI_FADT_SEPARATE_LENGTH}
++	 ACPI_FADT_SEPARATE_LENGTH | ACPI_FADT_GPE_REGISTER}
+ };
+ 
+ #define ACPI_FADT_INFO_ENTRIES \
+@@ -189,19 +191,29 @@ static struct acpi_fadt_pm_info fadt_pm_info_table[] = {
+ static void
+ acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
+ 			     u8 space_id,
+-			     u8 byte_width, u64 address, char *register_name)
++			     u8 byte_width,
++			     u64 address, char *register_name, u8 flags)
+ {
+ 	u8 bit_width;
+ 
+-	/* Bit width field in the GAS is only one byte long, 255 max */
+-
++	/*
++	 * Bit width field in the GAS is only one byte long, 255 max.
++	 * Check for bit_width overflow in GAS.
++	 */
+ 	bit_width = (u8)(byte_width * 8);
+-
+-	if (byte_width > 31) {	/* (31*8)=248 */
+-		ACPI_ERROR((AE_INFO,
+-			    "%s - 32-bit FADT register is too long (%u bytes, %u bits) "
+-			    "to convert to GAS struct - 255 bits max, truncating",
+-			    register_name, byte_width, (byte_width * 8)));
++	if (byte_width > 31) {	/* (31*8)=248, (32*8)=256 */
++		/*
++		 * No error for GPE blocks, because we do not use the bit_width
++		 * for GPEs, the legacy length (byte_width) is used instead to
++		 * allow for a large number of GPEs.
++		 */
++		if (!(flags & ACPI_FADT_GPE_REGISTER)) {
++			ACPI_ERROR((AE_INFO,
++				    "%s - 32-bit FADT register is too long (%u bytes, %u bits) "
++				    "to convert to GAS struct - 255 bits max, truncating",
++				    register_name, byte_width,
++				    (byte_width * 8)));
 +		}
-+
-+		status = acpi_tb_install_standard_table(address,
-+							ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
-+							FALSE, TRUE,
-+							&table_index);
  
- 		if (ACPI_SUCCESS(status) &&
- 		    ACPI_COMPARE_NAME(&acpi_gbl_root_table_list.
-@@ -488,6 +495,8 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
- 			acpi_tb_parse_fadt(table_index);
- 		}
- 
-+next_table:
-+
- 		table_entry += table_entry_size;
+ 		bit_width = 255;
  	}
+@@ -450,6 +462,7 @@ static void acpi_tb_convert_fadt(void)
+ 	struct acpi_generic_address *address64;
+ 	u32 address32;
+ 	u8 length;
++	u8 flags;
+ 	u32 i;
  
-diff --git a/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c b/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
-index e0699e6..ba7bad0 100644
---- a/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
-+++ b/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
-@@ -720,6 +720,12 @@ static acpi_status osl_list_bios_tables(void)
- 			    (acpi_physical_address) (*ACPI_CAST32(table_data));
+ 	/*
+@@ -515,6 +528,7 @@ static void acpi_tb_convert_fadt(void)
+ 				       fadt_info_table[i].length);
+ 
+ 		name = fadt_info_table[i].name;
++		flags = fadt_info_table[i].flags;
+ 
+ 		/*
+ 		 * Expand the ACPI 1.0 32-bit addresses to the ACPI 2.0 64-bit "X"
+@@ -554,7 +568,7 @@ static void acpi_tb_convert_fadt(void)
+ 									   [i].
+ 									   length),
+ 							     (u64)address32,
+-							     name);
++							     name, flags);
+ 			} else if (address64->address != (u64)address32) {
+ 
+ 				/* Address mismatch */
+@@ -582,7 +596,8 @@ static void acpi_tb_convert_fadt(void)
+ 								      length),
+ 								     (u64)
+ 								     address32,
+-								     name);
++								     name,
++								     flags);
+ 				}
+ 			}
+ 		}
+@@ -603,7 +618,7 @@ static void acpi_tb_convert_fadt(void)
+ 					   address64->bit_width));
  		}
  
-+		/* Skip NULL entries in RSDT/XSDT */
-+
-+		if (!table_address) {
-+			continue;
-+		}
-+
- 		status = osl_map_table(table_address, NULL, &mapped_table);
- 		if (ACPI_FAILURE(status)) {
- 			return (status);
-@@ -865,6 +871,12 @@ osl_get_bios_table(char *signature,
- 							     (table_data));
+-		if (fadt_info_table[i].type & ACPI_FADT_REQUIRED) {
++		if (fadt_info_table[i].flags & ACPI_FADT_REQUIRED) {
+ 			/*
+ 			 * Field is required (Pm1a_event, Pm1a_control).
+ 			 * Both the address and length must be non-zero.
+@@ -617,7 +632,7 @@ static void acpi_tb_convert_fadt(void)
+ 								    address),
+ 						 length));
  			}
- 
-+			/* Skip NULL entries in RSDT/XSDT */
-+
-+			if (!table_address) {
-+				continue;
-+			}
-+
- 			status =
- 			    osl_map_table(table_address, NULL, &mapped_table);
- 			if (ACPI_FAILURE(status)) {
+-		} else if (fadt_info_table[i].type & ACPI_FADT_SEPARATE_LENGTH) {
++		} else if (fadt_info_table[i].flags & ACPI_FADT_SEPARATE_LENGTH) {
+ 			/*
+ 			 * Field is optional (Pm2_control, GPE0, GPE1) AND has its own
+ 			 * length field. If present, both the address and length must
+@@ -726,7 +741,7 @@ static void acpi_tb_setup_fadt_registers(void)
+ 						     (fadt_pm_info_table[i].
+ 						      register_num *
+ 						      pm1_register_byte_width),
+-						     "PmRegisters");
++						     "PmRegisters", 0);
+ 		}
+ 	}
+ }
 -- 
 1.7.10
