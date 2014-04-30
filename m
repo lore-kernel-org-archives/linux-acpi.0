@@ -1,115 +1,81 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 06/27] ACPICA: Add support for LPIT table.
-Date: Wed, 30 Apr 2014 10:04:06 +0800
-Message-ID: <0c5546de38a826b99da3049fa6611fa701a40d5a.1398817612.git.lv.zheng@intel.com>
+Subject: [PATCH 05/27] ACPICA: Update acpi_buffer_to_resource interface.
+Date: Wed, 30 Apr 2014 10:03:58 +0800
+Message-ID: <f7a36f432663dd8697b97f711c77213f8d2963f9.1398817612.git.lv.zheng@intel.com>
 References: <cover.1398817612.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:14184 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753745AbaD3CEO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Apr 2014 22:04:14 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1398817612.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-Adds header, disassembler, table compiler, and template support
-for the Low Power Idle Table (LPIT).
-Note that the disassembler and table compiler are not shipped in
-the kernel.
+1) Add standard trace mechanism.
+2) Add ACPI_EXPORT_SYMBOL macro.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actbl2.h |   65 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
+ drivers/acpi/acpica/rscreate.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index c8adad9..6874261 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -70,6 +70,7 @@
- #define ACPI_SIG_HPET           "HPET"	/* High Precision Event Timer table */
- #define ACPI_SIG_IBFT           "IBFT"	/* iSCSI Boot Firmware Table */
- #define ACPI_SIG_IVRS           "IVRS"	/* I/O Virtualization Reporting Structure */
-+#define ACPI_SIG_LPIT           "LPIT"	/* Low Power Idle Table */
- #define ACPI_SIG_MCFG           "MCFG"	/* PCI Memory Mapped Configuration table */
- #define ACPI_SIG_MCHI           "MCHI"	/* Management Controller Host Interface table */
- #define ACPI_SIG_MTMR           "MTMR"	/* MID Timer table */
-@@ -820,6 +821,70 @@ struct acpi_ivrs_memory {
+diff --git a/drivers/acpi/acpica/rscreate.c b/drivers/acpi/acpica/rscreate.c
+index 75d3690..049d9c2 100644
+--- a/drivers/acpi/acpica/rscreate.c
++++ b/drivers/acpi/acpica/rscreate.c
+@@ -72,6 +72,8 @@ acpi_buffer_to_resource(u8 *aml_buffer,
+ 	void *resource;
+ 	void *current_resource_ptr;
  
++	ACPI_FUNCTION_TRACE(acpi_buffer_to_resource);
++
+ 	/*
+ 	 * Note: we allow AE_AML_NO_RESOURCE_END_TAG, since an end tag
+ 	 * is not required here.
+@@ -85,7 +87,7 @@ acpi_buffer_to_resource(u8 *aml_buffer,
+ 		status = AE_OK;
+ 	}
+ 	if (ACPI_FAILURE(status)) {
+-		return (status);
++		return_ACPI_STATUS(status);
+ 	}
+ 
+ 	/* Allocate a buffer for the converted resource */
+@@ -93,7 +95,7 @@ acpi_buffer_to_resource(u8 *aml_buffer,
+ 	resource = ACPI_ALLOCATE_ZEROED(list_size_needed);
+ 	current_resource_ptr = resource;
+ 	if (!resource) {
+-		return (AE_NO_MEMORY);
++		return_ACPI_STATUS(AE_NO_MEMORY);
+ 	}
+ 
+ 	/* Perform the AML-to-Resource conversion */
+@@ -110,9 +112,11 @@ acpi_buffer_to_resource(u8 *aml_buffer,
+ 		*resource_ptr = resource;
+ 	}
+ 
+-	return (status);
++	return_ACPI_STATUS(status);
+ }
+ 
++ACPI_EXPORT_SYMBOL(acpi_buffer_to_resource)
++
  /*******************************************************************************
   *
-+ * LPIT - Low Power Idle Table
-+ *
-+ * Conforms to "ACPI Low Power Idle Table (LPIT) and _LPD Proposal (DRAFT)"
-+ *
-+ ******************************************************************************/
-+
-+struct acpi_table_lpit {
-+	struct acpi_table_header header;	/* Common ACPI table header */
-+};
-+
-+/* LPIT subtable header */
-+
-+struct acpi_lpit_header {
-+	u32 type;		/* Subtable type */
-+	u32 length;		/* Subtable length */
-+	u16 unique_id;
-+	u16 reserved;
-+	u32 flags;
-+};
-+
-+/* Values for subtable Type above */
-+
-+enum acpi_lpit_type {
-+	ACPI_LPIT_TYPE_NATIVE_CSTATE = 0x00,
-+	ACPI_LPIT_TYPE_SIMPLE_IO = 0x01
-+};
-+
-+/* Masks for Flags field above  */
-+
-+#define ACPI_LPIT_STATE_DISABLED    (1)
-+#define ACPI_LPIT_NO_COUNTER        (1<<1)
-+
-+/*
-+ * LPIT subtables, correspond to Type in struct acpi_lpit_header
-+ */
-+
-+/* 0x00: Native C-state instruction based LPI structure */
-+
-+struct acpi_lpit_native {
-+	struct acpi_lpit_header header;
-+	struct acpi_generic_address entry_trigger;
-+	u32 residency;
-+	u32 latency;
-+	struct acpi_generic_address residency_counter;
-+	u64 counter_frequency;
-+};
-+
-+/* 0x01: Simple I/O based LPI structure */
-+
-+struct acpi_lpit_io {
-+	struct acpi_lpit_header header;
-+	struct acpi_generic_address entry_trigger;
-+	u32 trigger_action;
-+	u64 trigger_value;
-+	u64 trigger_mask;
-+	struct acpi_generic_address minimum_idle_state;
-+	u32 residency;
-+	u32 latency;
-+	struct acpi_generic_address residency_counter;
-+	u64 counter_frequency;
-+};
-+
-+/*******************************************************************************
-+ *
-  * MCFG - PCI Memory Mapped Configuration table and sub-table
-  *        Version 1
+  * FUNCTION:    acpi_rs_create_resource_list
+@@ -130,10 +134,9 @@ acpi_buffer_to_resource(u8 *aml_buffer,
+  *              of device resources.
   *
+  ******************************************************************************/
+-
+ acpi_status
+ acpi_rs_create_resource_list(union acpi_operand_object *aml_buffer,
+-			     struct acpi_buffer * output_buffer)
++			     struct acpi_buffer *output_buffer)
+ {
+ 
+ 	acpi_status status;
 -- 
 1.7.10
-
