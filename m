@@ -1,150 +1,53 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 00/27] ACPICA: 20140424 Release
-Date: Wed, 30 Apr 2014 10:03:22 +0800
-Message-ID: <cover.1398817612.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH] ACPI/Processor: Fix failure of loading acpi-cpufreq driver
+Date: Wed, 30 Apr 2014 11:10:28 +0800
+Message-ID: <1398827428-25540-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:48004 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751016AbaD3DSY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Apr 2014 23:18:24 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, katoh@mikage.ne.jp, smf.linux@ntlworld.com
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-ACPICA 20140424 Release Notes for kernel-resident subsystem:
+According commit d640113fe(ACPI: processor: fix acpi_get_cpuid for UP
+processor),  Bios may not provide _MAT or MADT tables and acpi_get_apicid()
+always returns -1. For these cases, original code will pass apic_id with
+vaule of -1 to acpi_map_cpuid() and it will check the acpi_id. If acpi_id
+is equal to zero, ignores apic_id and return zero for CPU0.
 
-Implemented support to skip/ignore NULL address entries in the RSDT/XSDT.
-Some of these tables are known to contain a trailing NULL entry. Lv Zheng.
+Commit b981513(ACPI / scan: bail out early if failed to parse APIC
+ID for CPU) changed the behavior. Return ENODEV when find apic_id is
+less than zero after calling acpi_get_apicid(). This causes acpi-cpufreq
+driver fails to be loaded on some machines. This patch is to fix it.
 
-Removed an extraneous error message for the case where there are a large
-number of system GPEs (> 124). This was the "32-bit FADT register is too
-long to convert to GAS struct" message, which is irrelevant for GPEs since
-the GPEx_BLK_LEN fields of the FADT are always used instead of the (limited
-capacity) GAS bit length. Also, several changes to ensure proper support
-for GPE numbers > 255, where some "GPE number" fields were 8-bits
-internally.
+Reference:https://bugzilla.kernel.org/show_bug.cgi?id=73781
+Cc: stable@vger.kernel.org v3.14
+Reported-and-tested-by: KATO Hiroshi <katoh@mikage.ne.jp>
+Reported-and-tested-by: Stuart Foster <smf.linux@ntlworld.com>
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/acpi/acpi_processor.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Implemented and deployed additional configuration support for the public
-ACPICA external interfaces. Entire classes of interfaces can now be easily
-modified or configured out, replaced by stubbed inline functions by
-default. Lv Zheng.
-
-Moved all public ACPICA runtime configuration globals to the public ACPICA
-external interface file for convenience. Also, removed some obsolete/unused
-globals. See the file acpixf.h. Lv Zheng.
-
-Documentation: Added a new section to the ACPICA reference describing the
-maximum number of GPEs that can be supported by the FADT-defined GPEs in
-block zero and one. About 1200 total. See section 4.4.1 of the ACPICA
-reference.
-
-Example Code and Data Size: These are the sizes for the OS-independent
-acpica.lib produced by the Microsoft Visual C++ 9.0 32-bit compiler. The
-debug version of the code includes the debug output trace mechanism and has
-a much larger code and data size.
-
-  Current Release:
-    Non-Debug Version:  96.8K Code, 27.2K Data, 124.0K Total
-    Debug Version:     189.5K Code, 79.7K Data, 269.2K Total
-  Previous Release:
-    Non-Debug Version:  97.0K Code, 27.2K Data, 124.2K Total
-    Debug Version:     189.7K Code, 79.5K Data, 269.2K Total
-
-===============
-
-The 20140424 ACPICA kernel-resident subsystem updates are linuxized based
-on the pm/linux-next branch to form this patchset.
-
-The patchset has passed the following build/boot tests.
-Build tests are performed as follows:
-1. i386 + default + COFNIG_ACPI=y
-2. i386 + allyes + CONFIG_ACPI=y
-3. i386 + default + COFNIG_ACPI=n
-4. i386 + allyes + CONFIG_ACPI=n
-5. x86_64 + default + COFNIG_ACPI=y
-6. x86_64 + allyes + CONFIG_ACPI=y
-7. x86_64 + default + COFNIG_ACPI=n
-8. x86_64 + allyes + CONFIG_ACPI=n
-Boot tests are performed as follows:
-1. i386 + default + COFNIG_ACPI=y
-2. x86_64 + default + COFNIG_ACPI=y
-Where:
-1. i386: machine named as "Dell Inspiron Mini 1010"
-2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
-3. default: kernel configuration with following items enabled:
-   All hardware drivers related to the machines of i386/x86_64
-   All drivers/acpi configurations
-   All platform drivers
-   All ACPI drivers
-   4 DRM drivers that implement ACPI opregion
-   All buses with ACPI bindings
-   All cpufreq configurations
-   All xen configurations
-   All ACPI table drivers
-4. allyes: kernel configuration generated by allyesconfig.
-
-After applying this series, the divergence result is:
- 952 Lines, 33.5 Kbytes.
-
-Bob Moore (10):
-  ACPICA: Update acpi_buffer_to_resource interface.
-  ACPICA: Add support for LPIT table.
-  ACPICA: Add support for _LPD and _PRP methods.
-  ACPICA: Comment updates - no functional change.
-  ACPICA: Back port of _PRP update.
-  ACPICA: Back port of improvements on exception code.
-  ACPICA: Remove extraneous error message for large number of GPEs.
-  ACPICA: Events: Update GPE handling and initialization code.
-  ACPICA: Comment/format update, no functional change.
-  ACPICA: Update version to 20140424.
-
-David E. Box (1):
-  ACPICA: Update handling of PCI ID lists.
-
-Lv Zheng (16):
-  ACPICA: Utilities: Cleanup obsoleted global variables.
-  ACPICA: Utilities: Deploy ACPI_DEBUGGER_EXEC for ACPI_DEBUGGER
-    enabled code in utglobal.c.
-  ACPICA: acpidump: Fix code issue in invoking fread in the loop.
-  ACPICA: Update global variable definitions. No functional change.
-  ACPICA: OSL: Move external globals from utglobal.c to acpixf.h using
-    ACPI_INIT_GLOBAL/ACPI_GLOBAL.
-  ACPICA: OSL: Add configurability for memory allocation macros.
-  ACPICA: OSL: Add configurability for error message functions.
-  ACPICA: OSL: Add configurability for debug output functions.
-  ACPICA: OSL: Add section to collect the divergence in acpixf.h.
-  ACPICA: OSL: Add configurability for generic external functions.
-  ACPICA: Linux header: Add support for stubbed externals.
-  ACPICA: acpidump: Fix truncated RSDP signature validation.
-  ACPICA: Tables: Fix invalid pointer accesses in
-    acpi_tb_parse_root_table().
-  ACPICA: acpidump: Add support to force using RSDT.
-  ACPICA: Tables: Add new mechanism to skip NULL entries in RSDT and
-    XSDT.
-  ACPICA: Tables: Remove old mechanism to validate if XSDT contains
-    NULL entries.
-
- drivers/acpi/acpica/acevents.h                     |    5 +-
- drivers/acpi/acpica/acglobal.h                     |  141 +---
- drivers/acpi/acpica/aclocal.h                      |    9 +-
- drivers/acpi/acpica/acpredef.h                     |    4 +
- drivers/acpi/acpica/evgpe.c                        |   13 +-
- drivers/acpi/acpica/evgpeblk.c                     |   34 +-
- drivers/acpi/acpica/evgpeinit.c                    |   12 +-
- drivers/acpi/acpica/evxfgpe.c                      |    7 +-
- drivers/acpi/acpica/hwpci.c                        |   15 +-
- drivers/acpi/acpica/rscreate.c                     |   13 +-
- drivers/acpi/acpica/tbfadt.c                       |   51 +-
- drivers/acpi/acpica/tbutils.c                      |  123 +--
- drivers/acpi/acpica/utglobal.c                     |   26 +-
- drivers/acpi/acpica/utxferror.c                    |    2 +
- include/acpi/acnames.h                             |    1 +
- include/acpi/acpixf.h                              |  834 +++++++++++++-------
- include/acpi/actbl1.h                              |    4 +-
- include/acpi/actbl2.h                              |   71 +-
- include/acpi/actypes.h                             |   21 +
- include/acpi/platform/aclinux.h                    |   31 +
- .../acpi/os_specific/service_layers/oslinuxtbl.c   |  102 ++-
- tools/power/acpi/tools/acpidump/acpidump.h         |   23 +-
- tools/power/acpi/tools/acpidump/apmain.c           |   13 +-
- 23 files changed, 900 insertions(+), 655 deletions(-)
-
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index c29c2c3..d55b603 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -260,10 +260,8 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 	}
+ 
+ 	apic_id = acpi_get_apicid(pr->handle, device_declaration, pr->acpi_id);
+-	if (apic_id < 0) {
++	if (apic_id < 0)
+ 		acpi_handle_debug(pr->handle, "failed to get CPU APIC ID.\n");
+-		return -ENODEV;
+-	}
+ 	pr->apic_id = apic_id;
+ 
+ 	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
 -- 
-1.7.10
+1.8.4.rc0.1.g8f6a3e5.dirty
+
