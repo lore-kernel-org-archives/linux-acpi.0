@@ -1,31 +1,76 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] Revert "ACPI / Battery: Remove battery's proc directory" and "ACPI: Remove CONFIG_ACPI_PROCFS_POWER and cm_sbsc.c"
-Date: Wed, 30 Apr 2014 23:58:58 +0200
-Message-ID: <3471256.NMmqNu6jmx@vostro.rjw.lan>
-References: <1398872369-2755-1-git-send-email-tianyu.lan@intel.com>
+Subject: [PATCH] ACPI / notify: Clean up handling of hotplug events
+Date: Thu, 01 May 2014 01:16:06 +0200
+Message-ID: <1731450.Q9aoSFhfhv@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1398872369-2755-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, pavel@ucw.cz, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, April 30, 2014 11:39:29 PM Lan Tianyu wrote:
-> The commit 1e2d9cd and 7d7ee95 remove ACPI Proc Battery
-> directory and breaks some old userspace tools. This patch
-> is to revert them.
-> 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Please split that into two patches so that each commit being reverted has
-its own revert patch.
+Make the handling of hotplug events in acpi_bus_notify() slightly
+cleaner by using an extra local variable to indicate when
+acpi_hotplug_schedule() should be called.
 
-Thanks!
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/bus.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/acpi/bus.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/bus.c
++++ linux-pm/drivers/acpi/bus.c
+@@ -340,16 +340,18 @@ static void acpi_bus_notify(acpi_handle
+ {
+ 	struct acpi_device *adev;
+ 	struct acpi_driver *driver;
+-	acpi_status status;
+ 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE;
++	bool hotplug_event = false;
+ 
+ 	switch (type) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+ 		acpi_handle_debug(handle, "ACPI_NOTIFY_BUS_CHECK event\n");
++		hotplug_event = true;
+ 		break;
+ 
+ 	case ACPI_NOTIFY_DEVICE_CHECK:
+ 		acpi_handle_debug(handle, "ACPI_NOTIFY_DEVICE_CHECK event\n");
++		hotplug_event = true;
+ 		break;
+ 
+ 	case ACPI_NOTIFY_DEVICE_WAKE:
+@@ -358,6 +360,7 @@ static void acpi_bus_notify(acpi_handle
+ 
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		acpi_handle_debug(handle, "ACPI_NOTIFY_EJECT_REQUEST event\n");
++		hotplug_event = true;
+ 		break;
+ 
+ 	case ACPI_NOTIFY_DEVICE_CHECK_LIGHT:
+@@ -393,16 +396,9 @@ static void acpi_bus_notify(acpi_handle
+ 	    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
+ 		driver->ops.notify(adev, type);
+ 
+-	switch (type) {
+-	case ACPI_NOTIFY_BUS_CHECK:
+-	case ACPI_NOTIFY_DEVICE_CHECK:
+-	case ACPI_NOTIFY_EJECT_REQUEST:
+-		status = acpi_hotplug_schedule(adev, type);
+-		if (ACPI_SUCCESS(status))
+-			return;
+-	default:
+-		break;
+-	}
++	if (hotplug_event && ACPI_SUCCESS(acpi_hotplug_schedule(adev, type)))
++		return;
++
+ 	acpi_bus_put_acpi_device(adev);
+ 	return;
+ 
