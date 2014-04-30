@@ -1,82 +1,60 @@
-From: Myron Stowe <myron.stowe@gmail.com>
-Subject: Re: [PATCH v2 2/5] x86/PCI: Support additional MMIO range capabilities
-Date: Tue, 29 Apr 2014 15:40:28 -0600
-Message-ID: <CAL-B5D2Z7AvJZ3G2JLY6ZOZBRe4DGgO27RVJ_HHotGrnKL7Y1A@mail.gmail.com>
-References: <20140419025323.2408.88764.stgit@amt.stowe>
-	<20140419135219.GC8109@pd.tnic>
-	<20140420075936.GA19672@pd.tnic>
-	<CAL-B5D1rJmf9vLSnV2izsXcbCu1idXsTsnSwoFRKFNTM7BnyfA@mail.gmail.com>
-	<20140426091031.GA10166@pd.tnic>
-	<CAErSpo4Jqo_opj=QqjcquS_6HqckZfP5-oQHkmY5FSAyyLNYMg@mail.gmail.com>
-	<20140428214036.GA32143@pd.tnic>
-	<20140429073309.GE10997@alberich>
-	<20140429102013.GA4726@pd.tnic>
-	<535FC269.2000808@amd.com>
-	<20140429191454.GB4726@pd.tnic>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 01/27] ACPICA: Utilities: Cleanup obsoleted global variables.
+Date: Wed, 30 Apr 2014 10:03:33 +0800
+Message-ID: <4035eaafd075f309cb2ca54ff0e68731be38ac7d.1398817612.git.lv.zheng@intel.com>
+References: <cover.1398817612.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f54.google.com ([209.85.219.54]:42403 "EHLO
-	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932130AbaD2Vk2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Apr 2014 17:40:28 -0400
-In-Reply-To: <20140429191454.GB4726@pd.tnic>
+Received: from mga03.intel.com ([143.182.124.21]:37681 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750813AbaD3CDl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Apr 2014 22:03:41 -0400
+In-Reply-To: <cover.1398817612.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, Borislav Petkov <bp@suse.de>, Andreas Herrmann <herrmann.der.user@googlemail.com>, Bjorn Helgaas <bhelgaas@google.com>, Robert Richter <rric@kernel.org>, Myron Stowe <myron.stowe@redhat.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, linux-pci <linux-pci@vger.kernel.org>, kim.naru@amd.com, Daniel J Blueman <daniel@numascale.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 <x86@kernel.org>, Steffen Persvold <sp@numascale.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jan Beulich <JBeulich@suse.com>, Yinghai Lu <yinghai@kernel.org>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-On Tue, Apr 29, 2014 at 1:14 PM, Borislav Petkov <bp@alien8.de> wrote:
-> On Tue, Apr 29, 2014 at 10:16:57AM -0500, Suravee Suthikulanit wrote:
->> In the new code, the IO ECS was needed to retrieve the
->> AMD_NB_F1_MMIO_BASE_LIMIT_HI_REG (offset 0x180) during the early
->> initialization as part of (2) logic. However, this register exists only on
->> the newer systems.  However, as you mentioned, for (2) we can assume that
->> the MCFG exists for most of the systems (family10h and later), and should be
->> used instead.
->>
->> The main purpose of this patch set is mainly to deal with the the node
->> information (1).  So, we might need to split these all up and handle them
->> separately as needed where (2) and (3) will be used as fallback for older
->> systems where MCFG does not exist.
->
-> So sounds to me like we want to get rid of the whole IO ECS deal
-> altogether then.
->
-> Now, I'm wondering whether we should kill it completely since I don't
-> think anyone cares about numa node info being correct on K8, or? I'm
-> specifically turning to our numascale friends who love to have a lot of
-> nodes. :-)
+This patch deletes global variable declarations that are no longer used by
+ACPICA.  No functional changes.  Lv Zheng.
 
-I think we need to be careful here as there are two unrelated topics
-being discussed together.  What started this whole thread was the need
-for sysfs related numa_node information with respect to PCI devices
-(1).  Without patch 1, platforms with newer AMD CPUs end up having
-'-1' numa_node values for all PCI devices.
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+---
+ drivers/acpi/acpica/acglobal.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
-IO ECS has no bearing on patch 1, it only comes into play with patch 2
-which is concerned with MMIO resource information when MCFG doesn't
-exist.  For the particular issue I'm trying to get resolved, patch 2
-is not needed.  However, since we have expended time and effort on
-this subject, perhaps we should get this cleaned up while it has our
-attention.
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index 1f60290..e7d73eb 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -279,7 +279,6 @@ ACPI_GLOBAL(acpi_exception_handler, acpi_gbl_exception_handler);
+ ACPI_GLOBAL(acpi_init_handler, acpi_gbl_init_handler);
+ ACPI_GLOBAL(acpi_table_handler, acpi_gbl_table_handler);
+ ACPI_GLOBAL(void *, acpi_gbl_table_handler_context);
+-ACPI_GLOBAL(struct acpi_walk_state *, acpi_gbl_breakpoint_walk);
+ ACPI_GLOBAL(acpi_interface_handler, acpi_gbl_interface_handler);
+ ACPI_GLOBAL(struct acpi_sci_handler_info *, acpi_gbl_sci_handler_list);
+ 
+@@ -296,7 +295,6 @@ ACPI_GLOBAL(u8, acpi_gbl_reg_methods_executed);
+ /* Misc */
+ 
+ ACPI_GLOBAL(u32, acpi_gbl_original_mode);
+-ACPI_GLOBAL(u32, acpi_gbl_rsdp_original_location);
+ ACPI_GLOBAL(u32, acpi_gbl_ns_lookup_count);
+ ACPI_GLOBAL(u32, acpi_gbl_ps_find_count);
+ ACPI_GLOBAL(u16, acpi_gbl_pm1_enable_register_save);
+@@ -483,11 +481,6 @@ ACPI_GLOBAL(u16, acpi_gbl_node_type_count_misc);
+ ACPI_GLOBAL(u32, acpi_gbl_num_nodes);
+ ACPI_GLOBAL(u32, acpi_gbl_num_objects);
+ 
+-ACPI_GLOBAL(u32, acpi_gbl_size_of_parse_tree);
+-ACPI_GLOBAL(u32, acpi_gbl_size_of_method_trees);
+-ACPI_GLOBAL(u32, acpi_gbl_size_of_node_entries);
+-ACPI_GLOBAL(u32, acpi_gbl_size_of_acpi_objects);
+-
+ #endif				/* ACPI_DEBUGGER */
+ 
+ /*****************************************************************************
+-- 
+1.7.10
 
-I'm all for deleting as much of amd_bus.c as possible due to its
-"perennial maintenance headache".  The obvious choices seem to be all,
-or some combination, of:
-  o removing IO ECS logic,
-  o removing IO/MMIO logic (assuming MCFG issues were long enough ago
-to no longer be a concern),
-  o start deprecating amd_bus.c by adding logic to skip if BIOS >= 2015
-
-Myron
-
->
-> Daniel, Steffen?
->
-> --
-> Regards/Gruss,
->     Boris.
->
-> Sent from a fat crate under my desk. Formatting is fine.
-> --
