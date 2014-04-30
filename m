@@ -1,56 +1,31 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v4 4/5] x86: log error on secondary CPU wakeup failure
- at ERR level
-Date: Wed, 30 Apr 2014 15:30:12 -0600
-Message-ID: <1398893412.1789.48.camel@misato.fc.hp.com>
-References: <1397488277-14865-1-git-send-email-imammedo@redhat.com>
-	 <1397488277-14865-5-git-send-email-imammedo@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] Revert "ACPI / Battery: Remove battery's proc directory" and "ACPI: Remove CONFIG_ACPI_PROCFS_POWER and cm_sbsc.c"
+Date: Wed, 30 Apr 2014 23:58:58 +0200
+Message-ID: <3471256.NMmqNu6jmx@vostro.rjw.lan>
+References: <1398872369-2755-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t1613g.houston.hp.com ([15.240.0.71]:33790 "EHLO
-	g9t1613g.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752219AbaD3Vjb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Apr 2014 17:39:31 -0400
-In-Reply-To: <1397488277-14865-5-git-send-email-imammedo@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1398872369-2755-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: lenb@kernel.org, pavel@ucw.cz, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Igor Mammedov <imammedo@redhat.com>
-Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
 
-On Mon, 2014-04-14 at 17:11 +0200, Igor Mammedov wrote:
-> If system is running without debug level logging,
-> it will not log error if do_boot_cpu() failed to
-> wakeup AP. It may lead to silent AP bringup
-> failures at boot time.
-> Change message level to KERN_ERR to make error
-> visible to user as it's done on other architectures.
+On Wednesday, April 30, 2014 11:39:29 PM Lan Tianyu wrote:
+> The commit 1e2d9cd and 7d7ee95 remove ACPI Proc Battery
+> directory and breaks some old userspace tools. This patch
+> is to revert them.
 > 
-> Signed-off-by: Igor Mammedov <imammedo@redhat.com>
-> ---
->  arch/x86/kernel/smpboot.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
-> index 2988f69..ae2fd97 100644
-> --- a/arch/x86/kernel/smpboot.c
-> +++ b/arch/x86/kernel/smpboot.c
-> @@ -918,7 +918,7 @@ int native_cpu_up(unsigned int cpu, struct task_struct *tidle)
->  
->  	err = do_boot_cpu(apicid, cpu, tidle);
->  	if (err) {
-> -		pr_debug("do_boot_cpu failed %d\n", err);
-> +		pr_err("do_boot_cpu failed(%d) to wakeup CPU#%u\n", err, cpu);
->  		return -EIO;
->  	}
->  
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 
-Looks good.
+Please split that into two patches so that each commit being reverted has
+its own revert patch.
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+Thanks!
 
-I will review patch 5/5 later (probably tomorrow).
-Thanks,
--Toshi
 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
