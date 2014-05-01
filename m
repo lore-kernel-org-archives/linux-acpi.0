@@ -1,58 +1,84 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH] acpi: mv models with win8 brightness problems from win8 blacklist to use_native_backlight
-Date: Thu, 01 May 2014 20:51:58 +0200
-Message-ID: <2095093.jbbehouB3C@vostro.rjw.lan>
-References: <1398865726-15264-1-git-send-email-hdegoede@redhat.com> <1830718.4HYQu7bYo0@vostro.rjw.lan> <536220E7.7010805@redhat.com>
+Subject: Re: [PATCH] acpi-video: Put the Acer Aspire V5-471G on the use_native_backlight dmi list
+Date: Thu, 01 May 2014 22:10:18 +0200
+Message-ID: <2332660.ry1qIif4gD@vostro.rjw.lan>
+References: <1398865041-12071-1-git-send-email-hdegoede@redhat.com> <27454870.5RW4VWSjWN@vostro.rjw.lan> <53622424.10000@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52154 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:54877 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750836AbaEASf0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 May 2014 14:35:26 -0400
-In-Reply-To: <536220E7.7010805@redhat.com>
+	with SMTP id S1751247AbaEATxq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 May 2014 15:53:46 -0400
+In-Reply-To: <53622424.10000@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Hans de Goede <hdegoede@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Vincent Gerris <vgerris@gmail.com>, linux-acpi@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Vincent Gerris <vgerris@gmail.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 
-On Thursday, May 01, 2014 12:24:39 PM Hans de Goede wrote:
+On Thursday, May 01, 2014 12:38:28 PM Hans de Goede wrote:
 > Hi,
 > 
-> On 04/30/2014 09:56 PM, Rafael J. Wysocki wrote:
-> > On Wednesday, April 30, 2014 03:48:46 PM Hans de Goede wrote:
-> >> When the windows8 related backlight problems became evident, 2 approaches
-> >> were follow in paralellel, one was to stop claiming to be windows 8 / 2012,
-> >> the other was to tell acpi_video to stop registering a backlight driver.
+> On 04/30/2014 09:52 PM, Rafael J. Wysocki wrote:
+> > On Wednesday, April 30, 2014 03:37:21 PM Hans de Goede wrote:
+> >> This fixes the backlight control not working.
 > >>
-> >> I've read all the threads and it seems that which approach ended up being
-> >> applied to which model laptop was never really a concious decision (AFAIK).
-> >>
-> >> So lets move all the models which are only on the win8 blacklist because of
-> >> brightness issues to the use_native_backlight list, which is the smaller
-> >> hammer to use to solve the backlight issues.
-> >>
-> >> Note: this is not tested on any of the affected models, this just seems like
-> >> the sensible thing to do.
-> >>
+> >> Cc: stable@vger.kernel.org
+> >> Reported-and-tested-by: Vincent Gerris <vgerris@gmail.com>
 > >> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> > 
-> > Since commit 170269a9d3c0 (ACPI / video: Default to using native backlight
-> > control on Windows 8 systems) in linux-next is effectively removing the black
-> > list from video.c, I guess what you really would like to do would be to drop
-> > the items from blacklist.c.  If so, please submit a patch to remove them on
-> > top of commit 170269a9d3c0.
+> >
+> > Sorry, this conflicts with commit 170269a9d3c0 (ACPI / video: Default to using
+> > native backlight control on Windows 8 systems) in linux-next, so I'm not going
+> > to apply it.
 > 
-> Right, the RFC was mostly for discussing what to do in case commit 170269a9d3c0
-> does not work out well and ends up being reverted (as this was tried before and
-> got reverted pretty quickly).
+> I strongly disagree, rejecting bug-fixes which conflict with more rigorous
+> (and dangerous) fixes -next, purely because the conflict with something -next
+> is not a good reason. TBH I find it a complete non reason to reject these fixes.
 > 
-> I'll send a patch just removing all the entries for -next for now, and I'll try
-> to remember that we need a patch like this RFC if we end up reverting.
+> > If you wanted to have this stuff in 3.15, there was a plenty of time to submit
+> > it earlier.
+> 
+> Heh, that assumes I was aware of this particular model needing this quirk earlier,
+> while I actually got the first report of it not working from Vincent on April 26th,
+> and got confirmation that the quirk fixes it on April 29th. I would say that 1 day
+> turn around time between getting the confirmation and sending the patch is not bad
+> at all.
+> 
+> I really believe it is important to get the quirk for this model (and others) into
+> 3.15, here us my decision tree leading to this:
+> 
+> -Do we want to fix these brightness issues -> Yes
+> -Do we expect our users to wait for 6 months for an upstream fix + many more months
+>  for the fixed kernel to hit distros -> No
+> -So we want to backport these fixes to stable -> Yes
+> -Is the proposed fix for 3.16 acceptable for stable -> No (too high change of
+>  regressions)
 
-OK, thanks!
+OK, this is a good argument.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> Conclusion: we want quirks for models known to need quirks added to 3.15 and
+> backported to the various stable series.
+> 
+> I actually want to go as far as to claim that once 3.15 is released we will want
+> to add quirks to 3.15.x, breaking the every fix must be upstream rule for the stable
+> series. But lets safe that discussion for later.
+
+Well, there's a way out of this.  Instead of doing commit 170269a9d3c0 as is, we
+can just switch the default without removing the blacklist just yet.  And remove
+the blacklist one we are reasonably confident that the new default actually works.
+
+In which case I'd go for your original series (along with the RFC moving stuff
+out of blacklist.c to the video.c blacklist) with a replacement of commit
+170269a9d3c0 that will simply flip the default.
+
+Does this make sense to you?
+
+> I've been doing triaging of (Fedora) brightness bugs for the last few days (I sort of
+> just rolled into this whole brightness business) and this really is a big problem,
+
+I'm very much aware of that.
+
+Thanks,
+Rafael
+
