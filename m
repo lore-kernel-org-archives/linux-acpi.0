@@ -1,93 +1,173 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v4 3/5] acpi_processor: do not mark present at boot but
- not onlined CPU as onlined
-Date: Fri, 02 May 2014 11:23:43 -0600
-Message-ID: <1399051423.1789.93.camel@misato.fc.hp.com>
-References: <1397488277-14865-1-git-send-email-imammedo@redhat.com>
-	 <1397488277-14865-4-git-send-email-imammedo@redhat.com>
-	 <1398893151.1789.46.camel@misato.fc.hp.com>
-	 <20140502133219.5de5c683@nial.usersys.redhat.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 1/3] PM / sleep: Flags to speed up suspend-resume
+ of runtime-suspended devices
+Date: Fri, 2 May 2014 14:44:43 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1405021340180.1225-100000@iolanthe.rowland.org>
+References: <6199158.2qqefUVTXs@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3426.houston.hp.com ([15.201.208.54]:6371 "EHLO
-	g4t3426.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752425AbaEBRcO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 May 2014 13:32:14 -0400
-In-Reply-To: <20140502133219.5de5c683@nial.usersys.redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <6199158.2qqefUVTXs@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Igor Mammedov <imammedo@redhat.com>
-Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
 
-On Fri, 2014-05-02 at 13:32 +0200, Igor Mammedov wrote:
-> On Wed, 30 Apr 2014 15:25:51 -0600
-> Toshi Kani <toshi.kani@hp.com> wrote:
+On Fri, 2 May 2014, Rafael J. Wysocki wrote:
+
+> Well, I have a second update.
 > 
-> > On Mon, 2014-04-14 at 17:11 +0200, Igor Mammedov wrote:
-> > > acpi_processor_add() assumes that present at boot CPUs
-> > > are always onlined, it is not so if a CPU failed to become
-> > > onlined. As result acpi_processor_add() will mark such CPU
-> > > device as onlined in sysfs and following attempts to
-> > > online/offline it using /sys/device/system/cpu/cpuX/online
-> > > attribute will fail.
-> > > 
-> > > Do not poke into device internals in acpi_processor_add()
-> > > and touch "struct device { .offline }" attribute, since
-> > > for CPUs onlined at boot it's set by:
-> > >   topology_init() -> arch_register_cpu() -> register_cpu()
-> > > before ACPI device tree is parsed, and for hotplugged
-> > > CPUs it's set when userspace onlines CPU via sysfs.
-> > > 
-> > > Signed-off-by: Igor Mammedov <imammedo@redhat.com>
-> > > ---
-> > > v2:
-> > >  - fix regression in v1 leading to NULL pointer dereference
-> > >    on CPU unplug, do not remove "pr->dev = dev;"
-> > > ---
-> > >  drivers/acpi/acpi_processor.c |    1 -
-> > >  1 files changed, 0 insertions(+), 1 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-> > > index c29c2c3..42d66f8 100644
-> > > --- a/drivers/acpi/acpi_processor.c
-> > > +++ b/drivers/acpi/acpi_processor.c:q
-> > > @@ -404,7 +404,6 @@ static int acpi_processor_add(struct acpi_device *device,
-> > >  		goto err;
-> > >  
-> > >  	pr->dev = dev;
-> > > -	dev->offline = pr->flags.need_hotplug_init;
-> > 
-> > IIRC, this change was necessary to handle the case when maxcpus=X is
-> > specified at boot.  In this case, excessive CPU's dev->offline needs to
-> > be set to 1.  Can you verify this?
-> Option 'maxcpus' works just fine without and with this patch since a bit
-> earlier in acpi_processor_add() it exits in case of extra present CPUs:
+> It has different flag names and changelog (that should explain things better
+> hopefully) and the purpose of both flags should be more clear now (patch [3/3]
+> would need to be reworked on top of this, but for now let's just discuss the
+> core changes).
+
+We've got patch descriptions passing in the night!  :-)
+
+This doesn't contain any changes to the patch itself, apart from the 
+flag names, right?  The description below is much better than the 
+earlier one, but I still feel this deserves to be split in two: one 
+patch for each new flag.
+
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: PM / sleep: Flags to speed up suspend-resume of runtime-suspended devices
 > 
-> #ifdef CONFIG_SMP
->         if (pr->id >= setup_max_cpus && pr->id != 0)
->                 return 0;
-> #endif
+> Currently, some subsystems (e.g. PCI and the ACPI PM domain) have to
+> resume all runtime-suspended devices during system suspend, mostly
+> because those devices may need to be reprogrammed due to different
+> wakeup settings for system sleep and for runtime PM.  However, at
+> least in some cases, that isn't really necessary, because the wakeup
+> settings may not be really different.
 > 
-> and execution doesn't get to the point the patch touches.
+> The idea here is that subsystems should know whether or not it is
+> necessary to resume a given device during system suspend as long as
+> they know that the device's children will not need it to be functional
+> during the late/early and noirq phases of their suspend and resume.
 
-This is a separate topic, but I feel that the above code should not be
-necessary...
+Perhaps the matter of the children's requirements should be discussed 
+more fully.  I skimmed over it in my suggested description too.
 
-> The point is that acpi_processor_add() shouldn't touch
-> dev->offline at all and allow register_cpu() handle it.
+Under what conditions will a child need the parent device to be 
+functional?  Let's start by assuming the parent's ignore_children 
+bit isn't set.
 
-Sorry, I had confused with cpu->dev.offline in register_cpu() in my
-recollection.  Yes, I agree that we should let register_cpu() to handle
-it.
+By this assumption, if the child was at full power during the suspend
+stages then the parent would have to be at full power too.  So let's
+assume that the child is in runtime suspend when its ->suspend()
+routine runs.  I can't think of any scenario where the child's driver
+would require the parent to be at full power without also needing the
+child to be at full power.  If the child really does need to be at full
+power then the driver will have to do a runtime resume, which would
+also bring the parent to full power.  Either way, we don't have to do
+anything special -- during the suspend stages, if the child needs the 
+parent to be at full power then it will be.
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+(As a variant of this case, maybe the child belongs to one of the
+subsystems like PCI, and its driver expects the subsystem to
+runtime-resume the child before invoking its ->suspend() callback.  
+When the subsystem does this, the parent will automatically be resumed
+as well.  Again there are no special requirements; the point is moot
+because the parent will never be runtime-suspended when its ->suspend()
+routine is ready to run.)
 
-Thanks,
--Toshi
+During the resume stages, if the child is going to be restored to full
+power then certainly the parent has to be at full power first.  
+Drivers expect this, so if we're going to leave the parent in runtime
+suspend during system resume, we have to get the child driver's
+permission first.  _That's_ what the parent_needed flag should mean.
 
+What about the case where ignore_children _is_ set?  Then the child's 
+driver might indeed need the parent to be at full power during system 
+suspend, since we could start off with the parent suspended and the 
+child active.
 
+Putting these arguments together, the result is that during system
+suspend we don't care about the children's needs unless the parent's
+ignore_children bit is set.  But during system resume, we must resume
+the parent unless the child's driver says we don't have to.
 
+As a corollary, if we don't have the child's permission to leave the
+parent suspended during system resume then we have to invoke all of the
+parent's resume callbacks, which means we also have to invoke all the
+suspend callbacks.  However, we still might be able to leave the parent
+in runtime suspend during the suspend stages.  The decision whether or
+not to do so should be up to the subsystem or driver, not the PM core; 
+the subsystem's callback routines can check the device's runtime status 
+and then do what they want.
 
+> To help them with that, introduce two new device PM flags:
+> power.parent_needed and power.leave_runtime_suspended supposed to work
+> as follows.
+> 
+> The PM core will clear power.leave_runtime_suspended and will set
+> power.parent_needed for all devices in dpm_prepare().  Next, the
+> subsystem (or driver) of a device that in principle may not need
+> to be resumed during system suspend, if runtume-suspended already,
+> will set power.leave_runtime_suspended in its ->prepare() callback.
+> Also the subsystems (or drivers) of devices whose parents need not
+> be resumed during system suspend, if runtime-suspended already,
+> are supposed to clear power.parent_needed for them.  The PM core
+> will then clear power.leave_runtime_suspended for the parents of
+> all devices having power.parent_needed set in __device_suspend().
+
+You are using leave_runtime_suspended to mean two different things:  
+remain runtime-suspended during the system suspend stages (i.e., no
+reprogramming is needed so don't go to full power), and remain
+runtime-suspended during both the system suspend and system resume
+stages.  Only the first meaning matters if all you want to accomplish
+is to avoid unnecessary runtime resumes during system suspend.
+
+For the first meaning -- and I claim that this is the appropriate
+meaning for this patch -- the leave_runtime_suspend flag doesn't depend
+on the children's needs, except in the case where the parent's
+ignore_children bit is set.  In that case, we could simply force the
+parent's leave_runtime_suspended flag to be always off.  Or we could 
+leave it set if it is set in all of the parent's children.
+
+The parent_needed flag is the one that really has to propagate up the
+device tree.  If this flag is set in a child then the PM core has to
+invoke all the suspend and resume callbacks, not just in the child's
+parent but in all its ancestors.  (Perhaps you could stop if you reach
+an ancestor with ignore_children set, but it's safer not to.)
+
+> Now, if the ->suspend() callback is executed for a device whose
+> power.leave_runtime_suspended is set, it can simply return 0 after
+> checking the device's state if that state is appropriate for
+> system suspend.  The PM core will then skip the late/early and
+> noirq system suspend/resume callbacks for that device and will
+> use pm_runtime_resume() to resume it in device_resume().
+
+By the discussion above, the PM core shouldn't skip anything
+unless the parent_needed flag is clear.
+
+> If the state of a device with power.leave_runtime_suspended is not
+> appropriate for system suspend, the ->suspend() callback should
+> resume it using pm_runtime_resume() and clear
+> power.leave_runtime_suspended for it.
+
+Oh yes, I forgot to discuss this earlier.  We have two choices for 
+handling this:
+
+	As you wrote above, require drivers not to set 
+	leave_runtime_suspended if the device isn't in an appropriate
+	state, and propagate the flag up the device tree.  (But as
+	I mentioned, in most cases the flag shouldn't need to be
+	propagated.)
+
+	Make the PM core automatically clear leave_runtime_suspended
+	whenever the device is (or becomes) runtime-active.  Then 
+	callbacks don't have to check whether the device actually is in
+	runtime suspend; they just have to check the flag.
+
+I prefer the second choice, because it is easier for drivers.
+
+> Note: Drivers (or bus types etc.) can reasonably expect that the
+> next PM callback executed after ->runtime_suspend() will be
+> ->runtime_resume() rather than ->resume_noirq() or ->resume_early().
+> This change is designed with that expectation in mind.
+
+Except, of course, that in the current kernel this isn't true.  And 
+there probably are a few cases where it can't ever be true.
+
+Alan Stern
 
