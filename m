@@ -1,54 +1,91 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Possible regression: sluggish inputs
-Date: Sat, 03 May 2014 10:00:38 +0200
-Message-ID: <5364A226.4040900@redhat.com>
-References: <trinity-3958d3e8-f087-4d8d-b313-b1318b5f54f9-1399050238997@msvc011>
+From: Josh Boyer <jwboyer@fedoraproject.org>
+Subject: Re: [PATCH 20/27] ACPICA: Tables: Fix invalid pointer accesses in acpi_tb_parse_root_table().
+Date: Sat, 3 May 2014 08:59:14 -0400
+Message-ID: <CA+5PVA58OC2dbk5oqTSQjOsCVzYfF+8nfat1Nbd2cCRTxbn5Pg@mail.gmail.com>
+References: <cover.1398817612.git.lv.zheng@intel.com>
+	<c226eed72699ee1934426074b9d1c902ccfa0b48.1398817612.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52499 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750917AbaECIbC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 May 2014 04:31:02 -0400
-In-Reply-To: <trinity-3958d3e8-f087-4d8d-b313-b1318b5f54f9-1399050238997@msvc011>
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:43673 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751012AbaECM7P (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 May 2014 08:59:15 -0400
+In-Reply-To: <c226eed72699ee1934426074b9d1c902ccfa0b48.1398817612.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tibor Billes <tbilles@gmx.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Bob Moore <robert.moore@intel.com>
 
-Hi,
+On Tue, Apr 29, 2014 at 10:05 PM, Lv Zheng <lv.zheng@intel.com> wrote:
+> The commit of back porting Linux XSDT validation mechanism has introduced
+> a regreession:
+>   Commit: 671cc68dc61f029d44b43a681356078e02d8dab8
+>   Subject: ACPICA: Back port and refine validation of the XSDT root table.
+> There is a pointer still accessed after unmapping.
+>
+> This patch fixes this issue.  Lv Zheng.
+>
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=73911
+> Buglink: https://bugs.archlinux.org/task/39811
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Reported-and-tested-by: Bruce Chiarelli <mano155@gmail.com>
+> Reported-and-tested-by: Spyros Stathopoulos <spystath@gmail.com>
+> Signed-off-by: Bob Moore <robert.moore@intel.com>
+> Cc: <stable@vger.kernel.org> # 3.14.x: 671cc68: ACPICA: Back port and refine validation of the XSDT root table.
 
-On 05/02/2014 07:03 PM, Tibor Billes wrote:
-> Hi,
-> 
-> I've upgraded my 3.13.5 kernel to 3.14.2 and I noticed that sometimes my mouse is slow to react.
-> By slow I mean the pointer on the screen doesn't follow its path smoothly, instead it jumps from one
-> position to the next at only a few jumps per second rate. Like if the kernel could only process 2 or 3
-> position updates per second from the mouse. (As far as I can tell, the machine is in idle.)
-> After experimenting a little I found out that the keyboard is also affected. Keystrokes are delayed,
-> letters appearing in bursts. This behaviour (for both the mouse and the keyboard) lasts only for a
-> couple of seconds, then it suddenly goes away and everything works as expected. I also noticed that
-> this behaviour shows up after I haven't touched the mouse or the keyboard for short time (around
-> 10 seconds, but I didn't measure this).
+This patch should get into 3.15-rcX soon.  It fixes a known regression
+that prevents booting on machines with AMI firmware, and that is
+present in 3.14 so we need it for stable as well.  Rafael?
 
-What I think is happening is that you've auto screen dimming on inactivity enabled in your
-desktop environment settings, which results in trying to change the backlight after 10 seconds
-of inactivity. Then the intel video driver likely directly writes to
-/sys/class/backlight/acpi_video0/brightness and gets stuck in that write because the acpi code
-gets stuck.
+josh
 
-I've seen this happen occasionally on my E6430 both with and without the patch the bisect
-points too. I can trigger it by pressing brightness up / down as fast as I can. Likely the
-dimming on inactivity code is doing a much better job at sending brightness change commands
-as fast as possible, making it easier to trigger this.
-
-As for the commit you've bisected it too, it may be that that subtly changes things to make
-the problem easier to trigger, but I distinctly remember having the same issue before I wrote
-that patch.
-
-Have you tried updating your BIOS ?
-
-Regards,
-
-Hans
+> ---
+>  drivers/acpi/acpica/tbutils.c |    7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+> index 6c31d77..e1638ad 100644
+> --- a/drivers/acpi/acpica/tbutils.c
+> +++ b/drivers/acpi/acpica/tbutils.c
+> @@ -355,6 +355,7 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+>         u32 table_count;
+>         struct acpi_table_header *table;
+>         acpi_physical_address address;
+> +       acpi_physical_address rsdt_address;
+>         u32 length;
+>         u8 *table_entry;
+>         acpi_status status;
+> @@ -383,11 +384,14 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+>                  * as per the ACPI specification.
+>                  */
+>                 address = (acpi_physical_address) rsdp->xsdt_physical_address;
+> +               rsdt_address =
+> +                   (acpi_physical_address) rsdp->rsdt_physical_address;
+>                 table_entry_size = ACPI_XSDT_ENTRY_SIZE;
+>         } else {
+>                 /* Root table is an RSDT (32-bit physical addresses) */
+>
+>                 address = (acpi_physical_address) rsdp->rsdt_physical_address;
+> +               rsdt_address = address;
+>                 table_entry_size = ACPI_RSDT_ENTRY_SIZE;
+>         }
+>
+> @@ -410,8 +414,7 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+>
+>                         /* Fall back to the RSDT */
+>
+> -                       address =
+> -                           (acpi_physical_address) rsdp->rsdt_physical_address;
+> +                       address = rsdt_address;
+>                         table_entry_size = ACPI_RSDT_ENTRY_SIZE;
+>                 }
+>         }
+> --
+> 1.7.10
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
