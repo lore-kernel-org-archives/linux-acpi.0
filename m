@@ -1,109 +1,54 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI and power management fixes for v3.15-rc4
-Date: Sat, 3 May 2014 01:34:01 +0200
-Message-ID: <CAJZ5v0gVEfcv6NeYwiNL8=0jtJXd3po_TK3+fP4q_3Rz0hBy_g@mail.gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Possible regression: sluggish inputs
+Date: Sat, 03 May 2014 10:00:38 +0200
+Message-ID: <5364A226.4040900@redhat.com>
+References: <trinity-3958d3e8-f087-4d8d-b313-b1318b5f54f9-1399050238997@msvc011>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:52499 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750917AbaECIbC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 May 2014 04:31:02 -0400
+In-Reply-To: <trinity-3958d3e8-f087-4d8d-b313-b1318b5f54f9-1399050238997@msvc011>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tibor Billes <tbilles@gmx.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Linus,
+Hi,
 
-Please pull from
+On 05/02/2014 07:03 PM, Tibor Billes wrote:
+> Hi,
+> 
+> I've upgraded my 3.13.5 kernel to 3.14.2 and I noticed that sometimes my mouse is slow to react.
+> By slow I mean the pointer on the screen doesn't follow its path smoothly, instead it jumps from one
+> position to the next at only a few jumps per second rate. Like if the kernel could only process 2 or 3
+> position updates per second from the mouse. (As far as I can tell, the machine is in idle.)
+> After experimenting a little I found out that the keyboard is also affected. Keystrokes are delayed,
+> letters appearing in bursts. This behaviour (for both the mouse and the keyboard) lasts only for a
+> couple of seconds, then it suddenly goes away and everything works as expected. I also noticed that
+> this behaviour shows up after I haven't touched the mouse or the keyboard for short time (around
+> 10 seconds, but I didn't measure this).
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-3.15-rc4
+What I think is happening is that you've auto screen dimming on inactivity enabled in your
+desktop environment settings, which results in trying to change the backlight after 10 seconds
+of inactivity. Then the intel video driver likely directly writes to
+/sys/class/backlight/acpi_video0/brightness and gets stuck in that write because the acpi code
+gets stuck.
 
-to receive ACPI, power management and PNP fixes for v3.15-rc4
-with top-most commit de3afce5336af3214374de6df360f9eb010a9a36
+I've seen this happen occasionally on my E6430 both with and without the patch the bisect
+points too. I can trigger it by pressing brightness up / down as fast as I can. Likely the
+dimming on inactivity code is doing a much better job at sending brightness change commands
+as fast as possible, making it easier to trigger this.
 
-  Merge branches 'acpi-ec' and 'acpi-processor'
+As for the commit you've bisected it too, it may be that that subtly changes things to make
+the problem easier to trigger, but I distinctly remember having the same issue before I wrote
+that patch.
 
-on top of commit d1db0eea852497762cab43b905b879dfcd3b8987
+Have you tried updating your BIOS ?
 
-  Linux 3.15-rc3
+Regards,
 
-A bunch of regression fixes this time.  They fix two regressions
-in the PNP subsystem, one in the ACPI processor driver and one in
-the ACPI EC driver, four cpufreq driver regressions and an unrelated
-bug in one of the drivers.  The regressions are recent or introduced
-in 3.14.
-
-Specifics:
-
- - There are two bugs in the ACPI PNP core that cause errors to
-   be returned if optional ACPI methods are not present.  After
-   an ACPI core change made in 3.14 one of those errors leads
-   to serial port suspend failures on some systems.  Fix from
-   yours truly.
-
- - A recently added PNP quirk related to Intel chipsets intorduced
-   a build error in unusual configurations (PNP without PCI).  Fix
-   from Bjorn Helgaas.
-
- - An ACPI EC workaround related to system suspend on Samsung machines
-   added in 3.14 introduced a race causing some valid EC events to be
-   discarded.  Fix from Kieran Clancy.
-
- - The acpi-cpufreq driver fails to load on some systems after a 3.14
-   commit related to APIC ID parsing that overlooked one corner case.
-   Fix from Lan Tianyu.
-
- - Fix for a recently introduced build problem in the ppc-corenet
-   cpufreq driver from Tim Gardner.
-
- - A recent cpufreq core change to ensure serialization of frequency
-   transitions for drivers with a ->target_index() callback overlooked
-   the fact that some of those drivers had been doing operations
-   introduced by it into the core already by themselves.  That resulted
-   in a mess in which the core and the drivers try to do the same thing
-   and block each other which leads to deadlocks.  Fixes for the
-   powernow-k7, powernow-k6, and longhaul cpufreq drivers from
-   Srivatsa S Bhat.
-
- - Fix for a computational error in the powernow-k6 cpufreq driver
-   from Srivatsa S Bhat.
-
-Thanks!
-
-
----------------
-
-Bjorn Helgaas (1):
-      PNP: Fix compile error in quirks.c
-
-Kieran Clancy (1):
-      ACPI / EC: Process rather than discard events in acpi_ec_clear
-
-Lan Tianyu (1):
-      ACPI / processor: Fix failure of loading acpi-cpufreq driver
-
-Rafael J. Wysocki (1):
-      PNP / ACPI: Do not return errors if _DIS or _SRS are not present
-
-Srivatsa S. Bhat (4):
-      cpufreq: longhaul: Fix double invocation of
-cpufreq_freq_transition_begin/end
-      cpufreq: powernow-k6: Fix incorrect comparison with max_multipler
-      cpufreq: powernow-k6: Fix double invocation of
-cpufreq_freq_transition_begin/end
-      cpufreq: powernow-k7: Fix double invocation of
-cpufreq_freq_transition_begin/end
-
-Tim Gardner (1):
-      cpufreq: ppc-corenet-cpufreq: Fix __udivdi3 modpost error
-
----------------
-
- drivers/acpi/acpi_processor.c         |  7 +++---
- drivers/acpi/ec.c                     | 21 ++++++++++-------
- drivers/cpufreq/longhaul.c            | 36 ++++++++++++++++++----------
- drivers/cpufreq/powernow-k6.c         | 23 ++++++++++--------
- drivers/cpufreq/powernow-k7.c         |  4 ----
- drivers/cpufreq/ppc-corenet-cpufreq.c |  5 +++-
- drivers/pnp/pnpacpi/core.c            | 44 +++++++++++++++++++++--------------
- drivers/pnp/quirks.c                  |  4 ++--
- 8 files changed, 85 insertions(+), 59 deletions(-)
+Hans
