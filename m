@@ -1,55 +1,94 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v3 part1 11/11] ACPI: Make EC depend on X86 || IA64 in
- Kconfig
-Date: Sun, 04 May 2014 17:03:39 +0800
-Message-ID: <5366026B.1020008@linaro.org>
-References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>	<1398432017-8506-12-git-send-email-hanjun.guo@linaro.org> <20140429095638.D694AC4095B@trevor.secretlab.ca>
+From: Himangi Saraogi <himangi774@gmail.com>
+Subject: [PATCH] ACPI / AC: Introduce the use of the managed version of
+ kzalloc
+Date: Sun, 4 May 2014 18:05:24 +0530
+Message-ID: <20140504123520.GA16892@himangi-Dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:52405 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753282AbaEDJEE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 May 2014 05:04:04 -0400
-Received: by mail-pd0-f176.google.com with SMTP id y13so4628101pdi.35
-        for <linux-acpi@vger.kernel.org>; Sun, 04 May 2014 02:04:03 -0700 (PDT)
-In-Reply-To: <20140429095638.D694AC4095B@trevor.secretlab.ca>
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:43113 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753359AbaEDMfo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 May 2014 08:35:44 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Will Deacon <will.deacon@arm.com>, Charles.Garcia-Tobin@arm.com, linaro-acpi@lists.linaro.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2014-4-29 17:56, Grant Likely wrote:
-> On Fri, 25 Apr 2014 21:20:17 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
->> Since EC (Embedded controller) needs SCI for the interupt which
->> is not available on ARM64, make it depend on X86 || IA64 only
->> in the Kconfig file.
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>  drivers/acpi/Kconfig |    1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index ae45088..391325c 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -49,6 +49,7 @@ config ACPI_SLEEP
->>  
->>  config ACPI_EC_DEBUGFS
->>  	tristate "EC read/write access through /sys/kernel/debug/ec"
->> +	depends on X86 || IA64
-> 
-> Nit: This patch and patch 10 should be applied before patch 9 which adds
-> the option to enable ACPI, but otherwise this series looks reasonable to
-> me and aside from the comments made by others is pretty much ready to be
-> merged. Go ahead and add my reviewed-by tag to the whole series.
-> 
-> Reviewed-by: Grant Likely <grant.likely@linaro.org>
+This patch moves data allocated using kzalloc to managed data allocated
+using devm_kzalloc and cleans now unnecessary kfrees in probe and remove
+functions.
 
-Great, we will address all the comments and send out another version.
+The following Coccinelle semantic patch was used for making the change:
+@platform@
+identifier p, probefn, removefn;
+@@
+struct platform_driver p = {
+  .probe = probefn,
+  .remove = removefn,
+};
 
-Thanks
-Hanjun
+@prb@
+identifier platform.probefn, pdev;
+expression e, e1, e2;
+@@
+probefn(struct platform_device *pdev, ...) {
+  <+...
+- e = kzalloc(e1, e2)
++ e = devm_kzalloc(&pdev->dev, e1, e2)
+  ...
+?-kfree(e);
+  ...+>
+}
+
+@rem depends on prb@
+identifier platform.removefn;
+expression e;
+@@
+removefn(...) {
+  <...
+- kfree(e);
+  ...>
+}
+
+Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
+---
+ drivers/acpi/ac.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 2c01c1d..98b613a 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -205,7 +205,7 @@ static int acpi_ac_probe(struct platform_device *pdev)
+ 	if (!adev)
+ 		return -ENODEV;
+ 
+-	ac = kzalloc(sizeof(struct acpi_ac), GFP_KERNEL);
++	ac = devm_kzalloc(&pdev->dev, sizeof(struct acpi_ac), GFP_KERNEL);
+ 	if (!ac)
+ 		return -ENOMEM;
+ 
+@@ -240,9 +240,6 @@ static int acpi_ac_probe(struct platform_device *pdev)
+ 	ac->battery_nb.notifier_call = acpi_ac_battery_notify;
+ 	register_acpi_notifier(&ac->battery_nb);
+ end:
+-	if (result)
+-		kfree(ac);
+-
+ 	dmi_check_system(ac_dmi_table);
+ 	return result;
+ }
+@@ -287,8 +284,6 @@ static int acpi_ac_remove(struct platform_device *pdev)
+ 		power_supply_unregister(&ac->charger);
+ 	unregister_acpi_notifier(&ac->battery_nb);
+ 
+-	kfree(ac);
+-
+ 	return 0;
+ }
+ 
+-- 
+1.9.1
 
