@@ -1,64 +1,54 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v3 part1 02/11] ARM64 / ACPI: Introduce the skeleton of
- _PDC related for ARM64
-Date: Sun, 04 May 2014 16:58:12 +0800
-Message-ID: <53660124.6020604@linaro.org>
-References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>	<1398432017-8506-3-git-send-email-hanjun.guo@linaro.org> <20140429093941.02167C4095B@trevor.secretlab.ca>
+Subject: Re: [PATCH v3 part1 11/11] ACPI: Make EC depend on X86 || IA64 in
+ Kconfig
+Date: Sun, 04 May 2014 17:03:39 +0800
+Message-ID: <5366026B.1020008@linaro.org>
+References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>	<1398432017-8506-12-git-send-email-hanjun.guo@linaro.org> <20140429095638.D694AC4095B@trevor.secretlab.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:43084 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753282AbaEDI6i (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 May 2014 04:58:38 -0400
-Received: by mail-pd0-f179.google.com with SMTP id g10so4673345pdj.10
-        for <linux-acpi@vger.kernel.org>; Sun, 04 May 2014 01:58:38 -0700 (PDT)
-In-Reply-To: <20140429093941.02167C4095B@trevor.secretlab.ca>
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:52405 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753282AbaEDJEE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 May 2014 05:04:04 -0400
+Received: by mail-pd0-f176.google.com with SMTP id y13so4628101pdi.35
+        for <linux-acpi@vger.kernel.org>; Sun, 04 May 2014 02:04:03 -0700 (PDT)
+In-Reply-To: <20140429095638.D694AC4095B@trevor.secretlab.ca>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Grant Likely <grant.likely@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Will Deacon <will.deacon@arm.com>, Charles.Garcia-Tobin@arm.com, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Will Deacon <will.deacon@arm.com>, Charles.Garcia-Tobin@arm.com, linaro-acpi@lists.linaro.org
 
-On 2014-4-29 17:39, Grant Likely wrote:
-> On Fri, 25 Apr 2014 21:20:08 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
->> The _PDC (Processor Driver Capabilities) object provides OSPM a
->> mechanism to convey to the platform the capabilities supported
->> by OSPM for processor power management.
+On 2014-4-29 17:56, Grant Likely wrote:
+> On Fri, 25 Apr 2014 21:20:17 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+>> Since EC (Embedded controller) needs SCI for the interupt which
+>> is not available on ARM64, make it depend on X86 || IA64 only
+>> in the Kconfig file.
 >>
->> OSPM evaluates _PDC prior to evaluating any other processor
->> power management objects returning configuration information.
->>
->> This patch introduces the skeleton of _PDC related file to make
->> ACPI core can be compiled on ARM64, and should be revisited when
->> implementing CPU power control.
->>
->> Signed-off-by: Al Stone <al.stone@linaro.org>
->> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 >> ---
->>  arch/arm64/include/asm/acpi.h |   37 +++++++++++++++++++++++++++++++++++++
->>  1 file changed, 37 insertions(+)
->>  create mode 100644 arch/arm64/include/asm/acpi.h
+>>  drivers/acpi/Kconfig |    1 +
+>>  1 file changed, 1 insertion(+)
 >>
->> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
->> new file mode 100644
->> index 0000000..e3e990e
->> --- /dev/null
->> +++ b/arch/arm64/include/asm/acpi.h
->> @@ -0,0 +1,37 @@
->> +/*
->> + *  Copyright (C) 2013~2014, Al Stone <al.stone@linaro.org>
+>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>> index ae45088..391325c 100644
+>> --- a/drivers/acpi/Kconfig
+>> +++ b/drivers/acpi/Kconfig
+>> @@ -49,6 +49,7 @@ config ACPI_SLEEP
+>>  
+>>  config ACPI_EC_DEBUGFS
+>>  	tristate "EC read/write access through /sys/kernel/debug/ec"
+>> +	depends on X86 || IA64
 > 
-> Not really a correct copyright assignement. The copyright is held by
-> Linaro, but the author is Al. It should instead read:
+> Nit: This patch and patch 10 should be applied before patch 9 which adds
+> the option to enable ACPI, but otherwise this series looks reasonable to
+> me and aside from the comments made by others is pretty much ready to be
+> merged. Go ahead and add my reviewed-by tag to the whole series.
 > 
->  * Copyright (C0 2013-2014, Linaro Ltd.
->  * Author: Al Stone <al.stone@linaro.org>
-> 
-> Acked-by: Grant Likely <grant.likely@linaro.org>
+> Reviewed-by: Grant Likely <grant.likely@linaro.org>
 
-We will update this patch accordingly.
+Great, we will address all the comments and send out another version.
 
 Thanks
 Hanjun
