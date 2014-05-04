@@ -1,73 +1,175 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: RFC: changing acpi-video brightness_switch_enabled default to
- 0
-Date: Sun, 04 May 2014 10:55:07 +0800
-Message-ID: <5365AC0B.4010300@intel.com>
-References: <5363661F.1050301@redhat.com> <4392622.hgzIWDcxEe@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:14467 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753512AbaEDCyT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 May 2014 22:54:19 -0400
-In-Reply-To: <4392622.hgzIWDcxEe@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH 1/2] ACPI: Revert "ACPI: Remove CONFIG_ACPI_PROCFS_POWER and cm_sbsc.c"
+Date: Sun,  4 May 2014 11:07:24 +0800
+Message-ID: <1399172845-2878-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hans de Goede <hdegoede@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Josh Boyer <jwboyer@fedoraproject.org>
 
-On 05/02/2014 07:56 PM, Rafael J. Wysocki wrote:
-> On Friday, May 02, 2014 11:32:15 AM Hans de Goede wrote:
->> Hi All,
->>
->> I was already considering asking for $subject for a while, but I did not see
->> any bug reports caused by it so I didn't ask. Until today I discovered that
->> I'm not seeing any bugs because Fedora is carrying a kernel patch
->> changing the default.
->>
->> A quick google search for brightness_switch_enabled OTOH reveals that for
->> other distros it is a serious problem, see ie:
->> https://bugs.launchpad.net/gnome-settings-daemon/+bug/527157
->> http://askubuntu.com/questions/173921/why-does-my-thinkpad-brightness-control-skip-steps
->>
->> The problem is that acpi-video is unique in that it not only generates
->> brightness up/down keypresses, but also (sometimes) actively changes the
->> brightness itself.
->>
->> This presents an inconsistent kernel interface to userspace, basically there
->> are 2 different scenarios, depending on the laptop model:
->>
->> 1) On some laptops a brightness up/down keypress means: show a brightness osd
->> with the current brightness, iow it is a brightness has changed notification.
->>
->> 2) Where as on (a lot of) other laptops it means a brightness up/down key was
->> pressed, deal with it.
->>
->> Most of the desktop environments interpret any press as in scenario 2, and
->> change the brightness up / down as a response to the key events, causing it
->> to be changed twice, once by acpi-video and once by the DE.
->>
->> With the new default for video.use_native_backlight we will be moving even
->> more laptops over to behaving as in scenario 2. Making the remaining laptops
->> even more of a weird exception. Also note that it is hard to detect scenario
->> 1 properly in userspace, and AFAIK none of the DE-s deasls with it.
->>
->> Therefor I would like to propose to change the brightness_switch_enabled
->> default to 0.
-> 
-> Aaron, what do you think about that?
+The commit 1e2d9cd and 7d7ee95 remove ACPI Proc Battery
+directory and breaks some old userspace tools. This patch
+is to revert 7d7ee95.
 
-Personally, I like this.
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/acpi/Kconfig  |  17 ++++++++
+ drivers/acpi/Makefile |   1 +
+ drivers/acpi/cm_sbs.c | 105 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 123 insertions(+)
+ create mode 100644 drivers/acpi/cm_sbs.c
 
-Last time I remembered, people who do not use GUI or use a simple GUI which
-does not provide handling of backlight events prefer to having this param
-default to 1(and they have a working acpi_video interface of course). But I
-suppose most people are using a GUI that handles such events and the in
-kernel handling of backlight events is indeed unique for acpi_video and
-cause in consistence with other backlight control interfaces, I think it is
-a good thing to set brightness_switch_enabled to 0 by default.
-
-Thanks,
-Aaron
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index ab686b3..c0160bb 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -47,6 +47,23 @@ config ACPI_SLEEP
+ 	depends on SUSPEND || HIBERNATION
+ 	default y
+ 
++config ACPI_PROCFS_POWER
++	bool "Deprecated power /proc/acpi directories"
++	depends on PROC_FS
++	help
++	  For backwards compatibility, this option allows
++          deprecated power /proc/acpi/ directories to exist, even when
++          they have been replaced by functions in /sys.
++          The deprecated directories (and their replacements) include:
++	  /proc/acpi/battery/* (/sys/class/power_supply/*)
++	  /proc/acpi/ac_adapter/* (sys/class/power_supply/*)
++	  This option has no effect on /proc/acpi/ directories
++	  and functions, which do not yet exist in /sys
++	  This option, together with the proc directories, will be
++	  deleted in 2.6.39.
++
++	  Say N to delete power /proc/acpi/ directories that have moved to /sys/
++
+ config ACPI_EC_DEBUGFS
+ 	tristate "EC read/write access through /sys/kernel/debug/ec"
+ 	default n
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 0331f91..bce34af 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -47,6 +47,7 @@ acpi-y				+= sysfs.o
+ acpi-$(CONFIG_X86)		+= acpi_cmos_rtc.o
+ acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
+ acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
++acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+ ifdef CONFIG_ACPI_VIDEO
+ acpi-y				+= video_detect.o
+ endif
+diff --git a/drivers/acpi/cm_sbs.c b/drivers/acpi/cm_sbs.c
+new file mode 100644
+index 0000000..6c9ee68
+--- /dev/null
++++ b/drivers/acpi/cm_sbs.c
+@@ -0,0 +1,105 @@
++/*
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/acpi.h>
++#include <linux/types.h>
++#include <linux/proc_fs.h>
++#include <linux/seq_file.h>
++#include <acpi/acpi_bus.h>
++#include <acpi/acpi_drivers.h>
++
++#define PREFIX "ACPI: "
++
++ACPI_MODULE_NAME("cm_sbs");
++#define ACPI_AC_CLASS		"ac_adapter"
++#define ACPI_BATTERY_CLASS	"battery"
++#define _COMPONENT		ACPI_SBS_COMPONENT
++static struct proc_dir_entry *acpi_ac_dir;
++static struct proc_dir_entry *acpi_battery_dir;
++
++static DEFINE_MUTEX(cm_sbs_mutex);
++
++static int lock_ac_dir_cnt;
++static int lock_battery_dir_cnt;
++
++struct proc_dir_entry *acpi_lock_ac_dir(void)
++{
++	mutex_lock(&cm_sbs_mutex);
++	if (!acpi_ac_dir)
++		acpi_ac_dir = proc_mkdir(ACPI_AC_CLASS, acpi_root_dir);
++	if (acpi_ac_dir) {
++		lock_ac_dir_cnt++;
++	} else {
++		printk(KERN_ERR PREFIX
++				  "Cannot create %s\n", ACPI_AC_CLASS);
++	}
++	mutex_unlock(&cm_sbs_mutex);
++	return acpi_ac_dir;
++}
++EXPORT_SYMBOL(acpi_lock_ac_dir);
++
++void acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir_param)
++{
++	mutex_lock(&cm_sbs_mutex);
++	if (acpi_ac_dir_param)
++		lock_ac_dir_cnt--;
++	if (lock_ac_dir_cnt == 0 && acpi_ac_dir_param && acpi_ac_dir) {
++		remove_proc_entry(ACPI_AC_CLASS, acpi_root_dir);
++		acpi_ac_dir = NULL;
++	}
++	mutex_unlock(&cm_sbs_mutex);
++}
++EXPORT_SYMBOL(acpi_unlock_ac_dir);
++
++struct proc_dir_entry *acpi_lock_battery_dir(void)
++{
++	mutex_lock(&cm_sbs_mutex);
++	if (!acpi_battery_dir) {
++		acpi_battery_dir =
++		    proc_mkdir(ACPI_BATTERY_CLASS, acpi_root_dir);
++	}
++	if (acpi_battery_dir) {
++		lock_battery_dir_cnt++;
++	} else {
++		printk(KERN_ERR PREFIX
++				  "Cannot create %s\n", ACPI_BATTERY_CLASS);
++	}
++	mutex_unlock(&cm_sbs_mutex);
++	return acpi_battery_dir;
++}
++EXPORT_SYMBOL(acpi_lock_battery_dir);
++
++void acpi_unlock_battery_dir(struct proc_dir_entry *acpi_battery_dir_param)
++{
++	mutex_lock(&cm_sbs_mutex);
++	if (acpi_battery_dir_param)
++		lock_battery_dir_cnt--;
++	if (lock_battery_dir_cnt == 0 && acpi_battery_dir_param
++	    && acpi_battery_dir) {
++		remove_proc_entry(ACPI_BATTERY_CLASS, acpi_root_dir);
++		acpi_battery_dir = NULL;
++	}
++	mutex_unlock(&cm_sbs_mutex);
++	return;
++}
++EXPORT_SYMBOL(acpi_unlock_battery_dir);
+-- 
+1.8.3.1
