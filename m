@@ -1,130 +1,112 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH] ACPI/Battery: Accelerate battery resume callback
-Date: Sun,  4 May 2014 14:07:06 +0800
-Message-ID: <1399183626-13152-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:61809 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751390AbaEDGHH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 4 May 2014 02:07:07 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v3 part1 01/11] ACPI / processor: Rework _PDC related
+ stuff to make it more arch-independent
+Date: Sun, 04 May 2014 16:56:28 +0800
+Message-ID: <536600BC.3060205@linaro.org>
+References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org>	<1398432017-8506-2-git-send-email-hanjun.guo@linaro.org> <20140429093637.75573C4095B@trevor.secretlab.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <20140429093637.75573C4095B@trevor.secretlab.ca>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Grant Likely <grant.likely@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh@kernel.org>, Will Deacon <will.deacon@arm.com>, Charles.Garcia-Tobin@arm.com, linaro-acpi@lists.linaro.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-ia64@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Most time of battery resume callback is spent on executing AML code
-_BTP, _BIF and _BIF to get battery info, status and set alarm. These
-AML methods may access EC operation regions several times and consumes
-time.
+Hi Grant,
 
-These operations are not necessary during devices resume and can run
-during POST_SUSPEND/HIBERNATION event when all processes are thawed.
+On 2014-4-29 17:36, Grant Likely wrote:
+> On Fri, 25 Apr 2014 21:20:07 +0800, Hanjun Guo <hanjun.guo@linaro.org=
+> wrote:
+>> _PDC related stuff in processor_core.c is little bit X86/IA64
+>> dependent, macros of ACPI_PDC_* are _PDC bit definitions for
+>> Intel processors, if we use these macros in processor_core.c,
+>> we will meet compile error when ACPI is enabled on ARM64.
+>>
+>> This patch reworks the code to make it more arch-independent,
+>> moving Intel related _PDC bits into architecture directory,
+>> no functional change.
+>>
+>> Cc: Tony Luck <tony.luck@intel.com>
+>> Cc: Fenghua Yu <fenghua.yu@intel.com>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> Cc: "H. Peter Anvin" <hpa@zytor.com>
+>> Cc: x86@kernel.org
+>> Cc: linux-ia64@vger.kernel.org
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+>> ---
+>>  arch/ia64/include/asm/acpi.h  |    5 +----
+>>  arch/ia64/kernel/acpi.c       |   15 +++++++++++++++
+>>  arch/x86/include/asm/acpi.h   |   19 +------------------
+>>  arch/x86/kernel/acpi/cstate.c |   27 +++++++++++++++++++++++++++
+>>  drivers/acpi/processor_core.c |   19 +------------------
+>>  5 files changed, 45 insertions(+), 40 deletions(-)
+>>
+>> diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/ac=
+pi.h
+>> index d651102..d2b8b9d 100644
+>> --- a/arch/ia64/include/asm/acpi.h
+>> +++ b/arch/ia64/include/asm/acpi.h
+>> @@ -152,10 +152,7 @@ extern int __initdata nid_to_pxm_map[MAX_NUMNOD=
+ES];
+>>  #endif
+>> =20
+>>  static inline bool arch_has_acpi_pdc(void) { return true; }
+>> -static inline void arch_acpi_set_pdc_bits(u32 *buf)
+>> -{
+>> -	buf[2] |=3D ACPI_PDC_EST_CAPABILITY_SMP;
+>> -}
+>> +extern void arch_acpi_set_pdc_bits(u32 *buf);
+>> =20
+>>  #define acpi_unlazy_tlb(x)
+>> =20
+>> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+>> index 0d407b3..23e9b40 100644
+>> --- a/arch/ia64/kernel/acpi.c
+>> +++ b/arch/ia64/kernel/acpi.c
+>> @@ -996,3 +996,18 @@ EXPORT_SYMBOL(acpi_unregister_ioapic);
+>>   * TBD when when IA64 starts to support suspend...
+>>   */
+>>  int acpi_suspend_lowlevel(void) { return 0; }
+>> +
+>> +void arch_acpi_set_pdc_bits(u32 *buf)
+>> +{
+>> +	/* Enable coordination with firmware's _TSD info */
+>> +	buf[2] |=3D ACPI_PDC_SMP_T_SWCOORD | ACPI_PDC_EST_CAPABILITY_SMP;
+>> +
+>> +	if (boot_option_idle_override =3D=3D IDLE_NOMWAIT) {
+>> +		/*
+>> +		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
+>> +		 * mode will be disabled in the parameter of _PDC object.
+>> +		 * Of course C1_FFH access mode will also be disabled.
+>> +		 */
+>> +		buf[2] &=3D ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
+>> +	}
+>> +}
+>=20
+> The commit text makes no comment about why this function is being mov=
+ed
+> from a static inline to an extern in the acpi.c file. I assume it is
+> because it needs access to the boot_option_idle_override global
+> variable, but it isn't immediately obvious, and should be described i=
+n
+> the commit text.
 
-This also can avoid removing and adding battery sysfs nodes every system
-resume even if the battery unit is not actually changed. The original code
-updates sysfs nodes without check and this seems not reasonable.
+Ok, we will update the commit text as you suggested.
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
-This patch is to base on the linux pm tree linux-next branch with
-patches "ACPI: Revert "ACPI / Battery: Remove battery's proc directory""
-and "ACPI: Revert "ACPI: Remove CONFIG_ACPI_PROCFS_POWER and cm_sbsc.c"".
+>=20
+> Otherwise, the patch looks sane.
+>=20
+> Reviewed-by: Grant Likely <grant.likely@linaro.org>
 
- drivers/acpi/battery.c | 36 +++++++++++++++++++++++++++---------
- 1 file changed, 27 insertions(+), 9 deletions(-)
+Thanks=EF=BC=81
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 6e7b2a1..3b4921e 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -696,7 +696,7 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
- 	}
- }
- 
--static int acpi_battery_update(struct acpi_battery *battery)
-+static int acpi_battery_update(struct acpi_battery *battery, bool resume)
- {
- 	int result, old_present = acpi_battery_present(battery);
- 	result = acpi_battery_get_status(battery);
-@@ -707,6 +707,10 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 		battery->update_time = 0;
- 		return 0;
- 	}
-+
-+	if (resume)
-+		return 0;
-+
- 	if (!battery->update_time ||
- 	    old_present != acpi_battery_present(battery)) {
- 		result = acpi_battery_get_info(battery);
-@@ -915,7 +919,7 @@ static print_func acpi_print_funcs[ACPI_BATTERY_NUMFILES] = {
- static int acpi_battery_read(int fid, struct seq_file *seq)
- {
- 	struct acpi_battery *battery = seq->private;
--	int result = acpi_battery_update(battery);
-+	int result = acpi_battery_update(battery, false);
- 	return acpi_print_funcs[fid](seq, result);
- }
- 
-@@ -1030,7 +1034,7 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
- 	old = battery->bat.dev;
- 	if (event == ACPI_BATTERY_NOTIFY_INFO)
- 		acpi_battery_refresh(battery);
--	acpi_battery_update(battery);
-+	acpi_battery_update(battery, false);
- 	acpi_bus_generate_netlink_event(device->pnp.device_class,
- 					dev_name(&device->dev), event,
- 					acpi_battery_present(battery));
-@@ -1045,13 +1049,27 @@ static int battery_notify(struct notifier_block *nb,
- {
- 	struct acpi_battery *battery = container_of(nb, struct acpi_battery,
- 						    pm_nb);
-+	int result;
-+
- 	switch (mode) {
- 	case PM_POST_HIBERNATION:
- 	case PM_POST_SUSPEND:
--		if (battery->bat.dev) {
--			sysfs_remove_battery(battery);
--			sysfs_add_battery(battery);
--		}
-+		if (!acpi_battery_present(battery))
-+			return 0;
-+
-+		if (!battery->bat.dev) {
-+			result = acpi_battery_get_info(battery);
-+			if (result)
-+				return result;
-+
-+			result = sysfs_add_battery(battery);
-+			if (result)
-+				return result;
-+		} else
-+			acpi_battery_refresh(battery);
-+
-+		acpi_battery_init_alarm(battery);
-+		acpi_battery_get_state(battery);
- 		break;
- 	}
- 
-@@ -1087,7 +1105,7 @@ static int acpi_battery_add(struct acpi_device *device)
- 	mutex_init(&battery->sysfs_lock);
- 	if (acpi_has_method(battery->device->handle, "_BIX"))
- 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
--	result = acpi_battery_update(battery);
-+	result = acpi_battery_update(battery, false);
- 	if (result)
- 		goto fail;
- #ifdef CONFIG_ACPI_PROCFS_POWER
-@@ -1149,7 +1167,7 @@ static int acpi_battery_resume(struct device *dev)
- 		return -EINVAL;
- 
- 	battery->update_time = 0;
--	acpi_battery_update(battery);
-+	acpi_battery_update(battery, true);
- 	return 0;
- }
- #else
--- 
-1.8.3.1
+Hanjun
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-ia64" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
