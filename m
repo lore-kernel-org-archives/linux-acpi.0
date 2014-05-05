@@ -1,59 +1,99 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: [Patch v3 2/2] lapic need be checked if available when initialize acpi processor id
-Date: Mon,  5 May 2014 12:48:26 +0800
-Message-ID: <1399265306-8553-2-git-send-email-bhe@redhat.com>
-References: <1399265306-8553-1-git-send-email-bhe@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11774 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750882AbaEEEt4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 May 2014 00:49:56 -0400
-In-Reply-To: <1399265306-8553-1-git-send-email-bhe@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 20/27] ACPICA: Tables: Fix invalid pointer accesses in acpi_tb_parse_root_table().
+Date: Mon, 05 May 2014 02:43:08 +0200
+Message-ID: <1717964.6jLQaaky5K@vostro.rjw.lan>
+References: <cover.1398817612.git.lv.zheng@intel.com> <c226eed72699ee1934426074b9d1c902ccfa0b48.1398817612.git.lv.zheng@intel.com> <CA+5PVA58OC2dbk5oqTSQjOsCVzYfF+8nfat1Nbd2cCRTxbn5Pg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CA+5PVA58OC2dbk5oqTSQjOsCVzYfF+8nfat1Nbd2cCRTxbn5Pg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Josh Boyer <jwboyer@fedoraproject.org>, Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, dyoung@redhat.com, Baoquan He <bhe@redhat.com>
 
-In acpi_processor_get_info(), acpi processor info is initialized including
-id, namely cpu index. Currently, if on UP system running SMP kerenl with
-no LAPIC in MADT, cpu0_initialized is checked if acpi processor id is
-initialized.
+On Saturday, May 03, 2014 08:59:14 AM Josh Boyer wrote:
+> On Tue, Apr 29, 2014 at 10:05 PM, Lv Zheng <lv.zheng@intel.com> wrote:
+> > The commit of back porting Linux XSDT validation mechanism has introduced
+> > a regreession:
+> >   Commit: 671cc68dc61f029d44b43a681356078e02d8dab8
+> >   Subject: ACPICA: Back port and refine validation of the XSDT root table.
+> > There is a pointer still accessed after unmapping.
+> >
+> > This patch fixes this issue.  Lv Zheng.
+> >
+> > Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=73911
+> > Buglink: https://bugs.archlinux.org/task/39811
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > Reported-and-tested-by: Bruce Chiarelli <mano155@gmail.com>
+> > Reported-and-tested-by: Spyros Stathopoulos <spystath@gmail.com>
+> > Signed-off-by: Bob Moore <robert.moore@intel.com>
+> > Cc: <stable@vger.kernel.org> # 3.14.x: 671cc68: ACPICA: Back port and refine validation of the XSDT root table.
+> 
+> This patch should get into 3.15-rcX soon.  It fixes a known regression
+> that prevents booting on machines with AMI firmware, and that is
+> present in 3.14 so we need it for stable as well.  Rafael?
 
-However this check maybe is not sufficient for kdump kernel. Most of time
-only 1 CPU is supported because of known problems in kdump kernel. So in
-1st kernel multiple CPUs are present, then crash happened in one specific
-CPU, say 2nd CPU. Then it jumped into kdump kernel with "nr_cpus=1" specified
-in cmdline. In this situation, since kdump kernel is warm reset, it will
-reuse the ACPI resource passed from crashed kernel directly, namely 1st
-kernel. It means in MADT all LAPIC is enabled while only 1 CPU is
-present in running system. The kdump kernel usually is the same as the
-crashed 1st kernel. So now in kdump kernel, x86_cpu_to_apicid stored the
-apicid and its related cpu id. If only check cpu0_initialized, it will
-assign 0 to the acpi processor id of 1st CPU, it's not correct.
+Lv, is it safe to take this patch alone into 3.15-rc?
 
-So in this patch, check acpi_lapic too. If acpi_lapic is 0, then LAPIC in
-MADT is not available, assigne 0 to the handling acpi processor id. If
-acpi_lapic is 1, then LAPIC in MADT is available, let's get apic processor
-id from x86_cpu_to_apicid.
+Rafael
 
-Signed-off-by: Baoquan He <bhe@redhat.com>
----
- drivers/acpi/acpi_processor.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index b06f5f5..bf0cce9 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -268,7 +268,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 	pr->apic_id = apic_id;
- 
- 	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
--	if (!cpu0_initialized) {
-+	if (!cpu0_initialized && !acpi_lapic) {
- 		cpu0_initialized = 1;
- 		/* Handle UP system running SMP kernel, with no LAPIC in MADT */
- 		if ((cpu_index == -1) && (num_online_cpus() == 1))
+> > ---
+> >  drivers/acpi/acpica/tbutils.c |    7 +++++--
+> >  1 file changed, 5 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+> > index 6c31d77..e1638ad 100644
+> > --- a/drivers/acpi/acpica/tbutils.c
+> > +++ b/drivers/acpi/acpica/tbutils.c
+> > @@ -355,6 +355,7 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+> >         u32 table_count;
+> >         struct acpi_table_header *table;
+> >         acpi_physical_address address;
+> > +       acpi_physical_address rsdt_address;
+> >         u32 length;
+> >         u8 *table_entry;
+> >         acpi_status status;
+> > @@ -383,11 +384,14 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+> >                  * as per the ACPI specification.
+> >                  */
+> >                 address = (acpi_physical_address) rsdp->xsdt_physical_address;
+> > +               rsdt_address =
+> > +                   (acpi_physical_address) rsdp->rsdt_physical_address;
+> >                 table_entry_size = ACPI_XSDT_ENTRY_SIZE;
+> >         } else {
+> >                 /* Root table is an RSDT (32-bit physical addresses) */
+> >
+> >                 address = (acpi_physical_address) rsdp->rsdt_physical_address;
+> > +               rsdt_address = address;
+> >                 table_entry_size = ACPI_RSDT_ENTRY_SIZE;
+> >         }
+> >
+> > @@ -410,8 +414,7 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+> >
+> >                         /* Fall back to the RSDT */
+> >
+> > -                       address =
+> > -                           (acpi_physical_address) rsdp->rsdt_physical_address;
+> > +                       address = rsdt_address;
+> >                         table_entry_size = ACPI_RSDT_ENTRY_SIZE;
+> >                 }
+> >         }
+> > --
+> > 1.7.10
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Please read the FAQ at  http://www.tux.org/lkml/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 -- 
-1.8.5.3
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
