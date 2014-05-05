@@ -1,90 +1,56 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [patch] lib: check for strcpy() overflows to fixed length
- buffers
-Date: Mon, 5 May 2014 00:19:42 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802559A8F@SHSMSX101.ccr.corp.intel.com>
-References: <20140430150844.GA10621@mwanda>
- <1507574.Y0KFKOdI6F@vostro.rjw.lan> <20140430201529.GX4963@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140430201529.GX4963@mwanda>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "kernel-hardening@lists.openwall.com" <kernel-hardening@lists.openwall.com>, Kees Cook <keescook@chromium.org>, Dave Jones <davej@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Moore, Robert" <robert.moore@intel.com>, "RobertBMoore@compuserve.com" <RobertBMoore@compuserve.com>, "Box, David E" <david.e.box@intel.com>
+From: Baoquan He <bhe@redhat.com>
+Subject: [Patch v3 1/2] introduce variable acpi_lapic into ia64
+Date: Mon,  5 May 2014 12:48:25 +0800
+Message-ID: <1399265306-8553-1-git-send-email-bhe@redhat.com>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, dyoung@redhat.com, Baoquan He <bhe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+This variable was defined and assigned in x86, is used to indicate
+whether LAPIC exists in MADT. Now introduce it into ia64 to help
+make correct judgment when get information for acpi processor later.
 
-> From: Dan Carpenter [mailto:dan.carpenter@oracle.com]
-> Sent: Thursday, May 01, 2014 4:15 AM
-> 
-> On Wed, Apr 30, 2014 at 09:49:23PM +0200, Rafael J. Wysocki wrote:
-> > On Wednesday, April 30, 2014 06:08:44 PM Dan Carpenter wrote:
-> > > There are sometimes where we know that we are doing an strcpy() into a
-> > > fixed length buffer.  In those cases, we could verify that the strcpy()
-> > > doesn't overflow.  This patch introduces DEBUG_STRICT_SLOW_STRCPY_CHECKS
-> > > if you want to check for that.  The downside is that it makes strcpy
-> > > slower.
-> > >
-> > > I introduced __compiletime_size() to make this work.  It returns the
-> > > size of the destination buffer or zero if the size isn't known.  The
-> > > __compiletime_object_size() is similar but if you pass it a struct
-> > > member then it returns the size of everything from there to the end of
-> > > the struct.  Another difference is __compiletime_object_size() returns
-> > > -1 for unknown sizes.
-> > >
-> > > If you pass a char pointer to __compiletime_size() then it returns zero.
-> > >
-> > > The strcpy() check ignores buffers with just one byte because people
-> > > often use those for variable length strings at the end of a struct.
-> > >
-> > > I have tested this patch lightly and created some bugs for it to detect
-> > > but I have not detected any real life overflows.
-> > >
-> > > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > >
-> > > diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
-> > > index e863dd5..5e0fc2b 100644
-> > > --- a/include/acpi/platform/acenv.h
-> > > +++ b/include/acpi/platform/acenv.h
-> >
-> > This is an ACPICA header and changes to it need to be submitted to the ACPICA
-> > maintainers (as per MAINTAINERS).  We only get ACPICA changes from the
-> > upstream project (except for really special situations).
-> 
-> Ok.  I should have added Robert and Lv to the CC list.  My guess is
-> that the (void) is needed to avoid compile warnings but it's needed for
-> us to avoid compile breakage with this change.
+Signed-off-by: Baoquan He <bhe@redhat.com>
+---
+ arch/ia64/include/asm/acpi.h | 1 +
+ arch/ia64/kernel/acpi.c      | 3 +++
+ 2 files changed, 4 insertions(+)
 
-In normal ACPICA build environment, I didn't suffer from new build errors after deleting this "void".
-But this might be required by lint users.
-You can split ACPICA changes into a separate patch so that it could be easily reverted if someone complained.
+diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
+index d651102..b478219 100644
+--- a/arch/ia64/include/asm/acpi.h
++++ b/arch/ia64/include/asm/acpi.h
+@@ -85,6 +85,7 @@ ia64_acpi_release_global_lock (unsigned int *lock)
+ 	((Acq) = ia64_acpi_release_global_lock(&facs->global_lock))
+ 
+ #ifdef	CONFIG_ACPI
++extern int acpi_lapic;
+ #define acpi_disabled 0	/* ACPI always enabled on IA64 */
+ #define acpi_noirq 0	/* ACPI always enabled on IA64 */
+ #define acpi_pci_disabled 0 /* ACPI PCI always enabled on IA64 */
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index 0d407b3..615ef81 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -56,6 +56,7 @@
+ 
+ #define PREFIX			"ACPI: "
+ 
++int acpi_lapic;
+ unsigned int acpi_cpei_override;
+ unsigned int acpi_cpei_phys_cpuid;
+ 
+@@ -676,6 +677,8 @@ int __init early_acpi_boot_init(void)
+ 	if (ret < 1)
+ 		printk(KERN_ERR PREFIX
+ 		       "Error parsing MADT - no LAPIC entries\n");
++	else
++		acpi_lapic = 1;
+ 
+ #ifdef CONFIG_SMP
+ 	if (available_cpus == 0) {
+-- 
+1.8.5.3
 
-Thanks
--Lv
-
-> 
-> Anyway, I'll wait for a couple days and resend that bit broken out.
-> 
-> regards,
-> dan carpenter
-> 
-> >
-> > > @@ -320,7 +320,7 @@
-> > >  #define ACPI_STRSTR(s1,s2)      strstr((s1), (s2))
-> > >  #define ACPI_STRCHR(s1,c)       strchr((s1), (c))
-> > >  #define ACPI_STRLEN(s)          (acpi_size) strlen((s))
-> > > -#define ACPI_STRCPY(d,s)        (void) strcpy((d), (s))
-> > > +#define ACPI_STRCPY(d,s)        strcpy((d), (s))
-> > >  #define ACPI_STRNCPY(d,s,n)     (void) strncpy((d), (s), (acpi_size)(n))
-> > >  #define ACPI_STRNCMP(d,s,n)     strncmp((d), (s), (acpi_size)(n))
-> > >  #define ACPI_STRCMP(d,s)        strcmp((d), (s))
-> >
-> > Thanks!
-> >
-> > --
-> > I speak only for myself.
-> > Rafael J. Wysocki, Intel Open Source Technology Center.
