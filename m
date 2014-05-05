@@ -1,55 +1,161 @@
-From: Igor Mammedov <imammedo@redhat.com>
-Subject: [PATCH v5 2/4] acpi_processor: do not mark present at boot but not onlined CPU as onlined
-Date: Mon,  5 May 2014 22:49:49 +0200
-Message-ID: <1399322991-19329-3-git-send-email-imammedo@redhat.com>
-References: <1399322991-19329-1-git-send-email-imammedo@redhat.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] acpi-video: Add 4 new models to the use_native_backlight
+ dmi list
+Date: Mon, 05 May 2014 16:32:07 +0800
+Message-ID: <53674C87.9090901@intel.com>
+References: <1398940879-6455-1-git-send-email-hdegoede@redhat.com> <1940276.byRRIda2Hg@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49581 "EHLO mx1.redhat.com"
+Received: from mga09.intel.com ([134.134.136.24]:7992 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755734AbaEEUvM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 May 2014 16:51:12 -0400
-In-Reply-To: <1399322991-19329-1-git-send-email-imammedo@redhat.com>
+	id S1754899AbaEEIbR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 May 2014 04:31:17 -0400
+In-Reply-To: <1940276.byRRIda2Hg@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, imammedo@redhat.com, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hans de Goede <hdegoede@redhat.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Vincent Gerris <vgerris@gmail.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org, edm <fuffi.il.fuffo@gmail.com>, AnAkkk <anakin.cs@gmail.com>
 
-acpi_processor_add() assumes that present at boot CPUs
-are always onlined, it is not so if a CPU failed to become
-onlined. As result acpi_processor_add() will mark such CPU
-device as onlined in sysfs and following attempts to
-online/offline it using /sys/device/system/cpu/cpuX/online
-attribute will fail.
+On 05/02/2014 04:16 AM, Rafael J. Wysocki wrote:
+> On Thursday, May 01, 2014 12:41:19 PM Hans de Goede wrote:
+>> Acer Aspire V5-171
+>> https://bugzilla.redhat.com/show_bug.cgi?id=983342
+>>
+>> Acer Aspire V5-471G
+>> Lenovo Yoga 2 11
+>> Reported-and-tested-by: Vincent Gerris <vgerris@gmail.com>
+>>
+>> HP EliteBook 8470p
+>> https://bugzilla.redhat.com/show_bug.cgi?id=1093120
+>>
+>> Cc: stable@vger.kernel.org
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> 
+> OK, I'll take this and drop commit 170269a9d3c0 for now.
 
-Do not poke into device internals in acpi_processor_add()
-and touch "struct device { .offline }" attribute, since
-for CPUs onlined at boot it's set by:
-  topology_init() -> arch_register_cpu() -> register_cpu()
-before ACPI device tree is parsed, and for hotplugged
-CPUs it's set when userspace onlines CPU via sysfs.
+There are two additional machines that need to go to the quirk table:
+ThinkPad T430 and Acer Aspire 5742G, I didn't find a proper branch
+to base the quirk patch on, is this patch going to be merged soon?
 
-Signed-off-by: Igor Mammedov <imammedo@redhat.com>
-Acked-by: Toshi Kani <toshi.kani@hp.com>
----
-v2:
- - fix regression in v1 leading to NULL pointer dereference
-   on CPU unplug, do not remove "pr->dev = dev;"
----
- drivers/acpi/acpi_processor.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+BTW, Hans, it would be great if you can take the two machines into
+your patch too(the below diff is on top of v3.15-rc4):
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index b06f5f5..52c81c4 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -405,7 +405,6 @@ static int acpi_processor_add(struct acpi_device *device,
- 		goto err;
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index b6ba88ed31ae..ddf9eeb6235b 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -459,10 +459,10 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 	},
+ 	{
+ 	 .callback = video_set_use_native_backlight,
+-	 .ident = "ThinkPad T430s",
++	 .ident = "ThinkPad T430 and T430s",
+ 	 .matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+-		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
++		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430"),
+ 		},
+ 	},
+ 	{
+@@ -571,6 +571,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8780w"),
+ 		},
+ 	},
++	{
++	.callback = video_set_use_native_backlight,
++	.ident = "Acer Aspire 5742G",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5742G"),
++		},
++	},
+ 	{}
+ };
  
- 	pr->dev = dev;
--	dev->offline = pr->flags.need_hotplug_init;
- 
- 	/* Trigger the processor driver's .probe() if present. */
- 	if (device_attach(dev) >= 0)
--- 
-1.7.1
+The T430 is reported-and-tested-by: edm <fuffi.il.fuffo@gmail.com>
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+The 5742G is reported-and-tested-by: AnAkkk <anakin.cs@gmail.com>
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=35622
+
+But if you do not want to do that, feel free to let me know, I'll
+prepare a patch then.
+
+Thanks,
+Aaron
+
+> 
+> Thanks!
+> 
+>> ---
+>>  drivers/acpi/video.c | 32 ++++++++++++++++++++++++++++++++
+>>  1 file changed, 32 insertions(+)
+>>
+>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>> index 8b6990e..48146fc 100644
+>> --- a/drivers/acpi/video.c
+>> +++ b/drivers/acpi/video.c
+>> @@ -488,6 +488,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>>  		},
+>>  	},
+>>  	{
+>> +	 .callback = video_set_use_native_backlight,
+>> +	 .ident = "Lenovo Yoga 2 11",
+>> +	 .matches = {
+>> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+>> +		DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo Yoga 2 11"),
+>> +		},
+>> +	},
+>> +	{
+>>  	.callback = video_set_use_native_backlight,
+>>  	.ident = "Thinkpad Helix",
+>>  	.matches = {
+>> @@ -513,6 +521,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>>  	},
+>>  	{
+>>  	 .callback = video_set_use_native_backlight,
+>> +	 .ident = "Acer Aspire V5-171",
+>> +	 .matches = {
+>> +		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+>> +		DMI_MATCH(DMI_PRODUCT_NAME, "V5-171"),
+>> +		},
+>> +	},
+>> +	{
+>> +	 .callback = video_set_use_native_backlight,
+>>  	 .ident = "Acer Aspire V5-431",
+>>  	 .matches = {
+>>  		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+>> @@ -520,6 +536,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>>  		},
+>>  	},
+>>  	{
+>> +	 .callback = video_set_use_native_backlight,
+>> +	 .ident = "Acer Aspire V5-471G",
+>> +	 .matches = {
+>> +		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
+>> +		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-471G"),
+>> +		},
+>> +	},
+>> +	{
+>>  	.callback = video_set_use_native_backlight,
+>>  	.ident = "HP ProBook 4340s",
+>>  	.matches = {
+>> @@ -571,6 +595,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>>  	},
+>>  	{
+>>  	.callback = video_set_use_native_backlight,
+>> +	.ident = "HP EliteBook 8470p",
+>> +	.matches = {
+>> +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+>> +		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8470p"),
+>> +		},
+>> +	},
+>> +	{
+>> +	.callback = video_set_use_native_backlight,
+>>  	.ident = "HP EliteBook 8780w",
+>>  	.matches = {
+>>  		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+>>
+> 
 
