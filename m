@@ -1,84 +1,110 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 1/3] acpi-video: Add use_native_backlight quirks for ThinkPad T430, T530 and Acer Aspire 5742G
-Date: Mon,  5 May 2014 11:38:08 +0200
-Message-ID: <1399282690-5381-1-git-send-email-hdegoede@redhat.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 1/7] apei, mce: Call MCE-specific code only for X86 architecture.
+Date: Mon, 05 May 2014 16:34:41 +0200
+Message-ID: <5367A181.3060300@linaro.org>
+References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org> <1397056476-9183-2-git-send-email-tomasz.nowicki@linaro.org> <20140505114445.GB4373@pd.tnic>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39617 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755571AbaEEJiW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 May 2014 05:38:22 -0400
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:60335 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932741AbaEEOe1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2014 10:34:27 -0400
+Received: by mail-ee0-f53.google.com with SMTP id b15so4361205eek.12
+        for <linux-acpi@vger.kernel.org>; Mon, 05 May 2014 07:34:26 -0700 (PDT)
+In-Reply-To: <20140505114445.GB4373@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Aaron Lu <aaron.lu@intel.com>, edm <fuffi.il.fuffo@gmail.com>, Balint Szigeti <balint.szgt@gmail.com>, AnAkkk <anakin.cs@gmail.com>, lou.cardone@gmail.com, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, stable@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-ThinkPad T430: extend the T430s entry to also cover the T430 (note we also
-have another entry for T430's with a different DMI_PRODUCT_VERSION).
+On 05.05.2014 13:44, Borislav Petkov wrote:
+> On Wed, Apr 09, 2014 at 05:14:29PM +0200, Tomasz Nowicki wrote:
+>> This commit is dealing with MCE code in:
+>> - hest.c
+>> Move acpi_disable_cmcff flag to hest_parse_cmc() and makes
+>> that depend on CONFIG_X86_MCE so that we do not have to maintain
+>> acpi_disable_cmcff for architectures which do not support MCE.
+>> Also, wrap architectural MCE header inside #ifdef CONFIG_X86_MCE.
+>>
+>> - ghes.c
+>> Wrap architectural MCE header inside #ifdef CONFIG_X86_MCE similar to rest
+>> of the MCE code in this file.
+>>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> ---
+>>   drivers/acpi/apei/ghes.c |    2 ++
+>>   drivers/acpi/apei/hest.c |    8 ++++++--
+>>   2 files changed, 8 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+>> index dab7cb7..f7edffc 100644
+>> --- a/drivers/acpi/apei/ghes.c
+>> +++ b/drivers/acpi/apei/ghes.c
+>> @@ -49,7 +49,9 @@
+>>   #include <linux/aer.h>
+>>
+>>   #include <acpi/ghes.h>
+>> +#ifdef CONFIG_X86_MCE
+>>   #include <asm/mce.h>
+>> +#endif
+>>   #include <asm/tlbflush.h>
+>>   #include <asm/nmi.h>
+>>
+>> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+>> index f5e37f3..98db702 100644
+>> --- a/drivers/acpi/apei/hest.c
+>> +++ b/drivers/acpi/apei/hest.c
+>> @@ -36,7 +36,9 @@
+>>   #include <linux/io.h>
+>>   #include <linux/platform_device.h>
+>>   #include <acpi/apei.h>
+>> +#ifdef CONFIG_X86_MCE
+>>   #include <asm/mce.h>
+>> +#endif
+>
+> Actually, I would prefer if you wrapped all the arch-specific calls into
+> arch-specific functions, say, convert
+>
+> apei_mce_report_mem_error -> apei_arch_report_mem_error
+>
+> and have default empty functions for arches which don't use that
+> functionality.
+>
+> This way you can save yourself the ugly ifdeffery around the place.
+>
+True, this can be improved as you suggested.
 
-Reported-and-tested-by: edm <fuffi.il.fuffo@gmail.com>
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+>>
+>>   #include "apei-internal.h"
+>>
+>> @@ -133,6 +135,9 @@ static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
+>>   	struct acpi_hest_ia_corrected *cmc;
+>>   	struct acpi_hest_ia_error_bank *mc_bank;
+>>
+>> +	if (acpi_disable_cmcff)
+>> +		return 1;
+>
+> This could be
+>
+> 	if (arch_disable_cmcff())
+> 		return 1;
+>
+> with the default stub being
+>
+> static inline bool arch_disable_cmcff(void)
+> {
+> 	return false;
+> }
+>
+> and so on, like it is done in many other places in the kernel.
 
-Thinkpad T530
-Reported-and-tested-by: Balint Szigeti <balint.szgt@gmail.com>
-Buglink: https://bugzilla.redhat.com/show_bug.cgi?id=1089545
+acpi_disable_cmcff as global value can switch off/on MC entries 
+analysing via kernel args. This glob value resides in x86 ACPI code and 
+has meaning only for MCE related mechanism, that is why I have moved it 
+under hest_parse_cmc.
 
-Acer Aspire 5742G
-Reported-and-tested-by: AnAkkk <anakin.cs@gmail.com>
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=35622
+Thanks.
 
-Cc: stable@vger.kernel.org
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/video.c | 20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index e7a1190..cebc74d 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -473,10 +473,10 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 	},
- 	{
- 	 .callback = video_set_use_native_backlight,
--	 .ident = "ThinkPad T430s",
-+	 .ident = "ThinkPad T430 and T430s",
- 	 .matches = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430"),
- 		},
- 	},
- 	{
-@@ -512,6 +512,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		},
- 	},
- 	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "ThinkPad T530",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T530"),
-+		},
-+	},
-+	{
- 	.callback = video_set_use_native_backlight,
- 	.ident = "ThinkPad X1 Carbon",
- 	.matches = {
-@@ -561,6 +569,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 	},
- 	{
- 	 .callback = video_set_use_native_backlight,
-+	 .ident = "Acer Aspire 5742G",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5742G"),
-+		},
-+	},
-+	{
-+	 .callback = video_set_use_native_backlight,
- 	 .ident = "Acer Aspire V5-171",
- 	 .matches = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
--- 
-1.9.0
-
+Tomasz
