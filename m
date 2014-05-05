@@ -1,47 +1,55 @@
-From: Edward Lin <yidi.lin@canonical.com>
-Subject: [PATCH] ACPI: blacklist win8 OSI for Dell Inspiron 7737
-Date: Mon,  5 May 2014 16:11:37 +0800
-Message-ID: <1399277497-15298-1-git-send-email-yidi.lin@canonical.com>
+From: Igor Mammedov <imammedo@redhat.com>
+Subject: [PATCH v5 2/4] acpi_processor: do not mark present at boot but not onlined CPU as onlined
+Date: Mon,  5 May 2014 22:49:49 +0200
+Message-ID: <1399322991-19329-3-git-send-email-imammedo@redhat.com>
+References: <1399322991-19329-1-git-send-email-imammedo@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:45288 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754881AbaEEILo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2014 04:11:44 -0400
-Received: by mail-vc0-f174.google.com with SMTP id ib6so8172954vcb.33
-        for <linux-acpi@vger.kernel.org>; Mon, 05 May 2014 01:11:43 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:49581 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755734AbaEEUvM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 May 2014 16:51:12 -0400
+In-Reply-To: <1399322991-19329-1-git-send-email-imammedo@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
-Cc: yidi.lin@canonical.com
+To: linux-kernel@vger.kernel.org
+Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, imammedo@redhat.com, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
 
-With win8 capabiltiy, the machine will boot itself immediately after shutdown command has executed.
-Work around this issue by diabling win8 capcability.
-This workaround also makes wireless hotkey workable.
+acpi_processor_add() assumes that present at boot CPUs
+are always onlined, it is not so if a CPU failed to become
+onlined. As result acpi_processor_add() will mark such CPU
+device as onlined in sysfs and following attempts to
+online/offline it using /sys/device/system/cpu/cpuX/online
+attribute will fail.
 
-Signed-off-by: Edward Lin <yidi.lin@canonical.com>
+Do not poke into device internals in acpi_processor_add()
+and touch "struct device { .offline }" attribute, since
+for CPUs onlined at boot it's set by:
+  topology_init() -> arch_register_cpu() -> register_cpu()
+before ACPI device tree is parsed, and for hotplugged
+CPUs it's set when userspace onlines CPU via sysfs.
+
+Signed-off-by: Igor Mammedov <imammedo@redhat.com>
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 ---
- drivers/acpi/blacklist.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+v2:
+ - fix regression in v1 leading to NULL pointer dereference
+   on CPU unplug, do not remove "pr->dev = dev;"
+---
+ drivers/acpi/acpi_processor.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index afec452..4fc6cf5 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -314,6 +314,14 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
- 		},
- 	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "Dell Inspiron 7737",
-+	.matches = {
-+		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		    DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7737"),
-+		},
-+	},
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index b06f5f5..52c81c4 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -405,7 +405,6 @@ static int acpi_processor_add(struct acpi_device *device,
+ 		goto err;
  
- 	/*
- 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
+ 	pr->dev = dev;
+-	dev->offline = pr->flags.need_hotplug_init;
+ 
+ 	/* Trigger the processor driver's .probe() if present. */
+ 	if (device_attach(dev) >= 0)
 -- 
-1.7.9.5
+1.7.1
 
