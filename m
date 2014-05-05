@@ -1,124 +1,98 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: [Patch v3 1/2] introduce variable acpi_lapic into ia64
-Date: Mon, 5 May 2014 14:57:39 +0800
-Message-ID: <20140505065739.GB1702@dhcp-16-105.nay.redhat.com>
-References: <1399265306-8553-1-git-send-email-bhe@redhat.com>
- <20140505051455.GA1702@dhcp-16-105.nay.redhat.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 20/27] ACPICA: Tables: Fix invalid pointer accesses in
+ acpi_tb_parse_root_table().
+Date: Mon, 5 May 2014 04:23:02 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802559B1C@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1398817612.git.lv.zheng@intel.com>
+ <c226eed72699ee1934426074b9d1c902ccfa0b48.1398817612.git.lv.zheng@intel.com>
+ <CA+5PVA58OC2dbk5oqTSQjOsCVzYfF+8nfat1Nbd2cCRTxbn5Pg@mail.gmail.com>
+ <1717964.6jLQaaky5K@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140505051455.GA1702@dhcp-16-105.nay.redhat.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, dyoung@redhat.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1717964.6jLQaaky5K@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Josh Boyer <jwboyer@fedoraproject.org>, Lv Zheng <zetalog@gmail.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/05/14 at 01:14pm, Baoquan He wrote:
-> Hi Rafael,
-> 
-> Thanks for previous comments and suggestions.
-> 
-> 
-> I added the acpi_lapic in ia64. However I didn't find ia64 machine to
-> test it. Could you or anyone please help test this 2 patches?
-> 
-> I don't know how to test UP system running SMP kernel with no LAPIC in
-> MADT when it's ia64 arch. 
-> 
-> Test steps for ia64 kdump:
-> 
-> 1) get a multi-cpus ia64 machine, build a upstream kernel with SMP and
-> ACPI
-> 2)install kexec-tools, and edit /etc/sysconfig/kdump to make sure
-> "nr_cpus=1" is in KDUMP_COMMANDLINE_APPEND. Then load the kdump kernel
-> by below command:
-> 
-> "kdumpctl restart" or "systemctl restart kdump"
-
-Sorry, here I assume people use fedora distros. The kdump execution
-command is like below string which is taken from my fedora automation
-script.
-
-/sbin/kexec -p
-'--command-line=BOOT_IMAGE=/vmlinuz-3.13.5-202.fc20.x86_64
-root=UUID=f170152e-de83-46ee-9546-8ccd53f9753b ro rd.md=0 rd.lvm=0
-rd.dm=0 vconsole.keymap=us rd.luks=0 vconsole.font=latarcyrheb-sun16
-console=tty0 rd.shell LANG=en_US.UTF-8 console=ttyS0,115200n8
-intel_iommu=on irqpoll nr_cpus=1 reset_devices cgroup_disable=memory
-mce=off numa=off udev.children-max=2 panic=10 rootflags=nofail
-disable_cpu_apicid=0'
---initrd=/boot/initramfs-3.13.5-202.fc20.x86_64kdump.img
-/boot/vmlinuz-3.13.5-202.fc20.x86_64
-
-Thanks
-Baoquan
-
-> 
-> 3) After kdump kernel loaded, execute below shell command. This can make
-> crash happen in 2nd cpu.
-> 
-> taskset -c 1 sh -c "echo c >/proc/sysrq-trigger"
-> 
-> 
-> 4) From console, below error message should not be printed any more. And
-> the cpu related to 2nd lapid is present, this can be checked by console
-> message and adding debugging code.
-> 
-> "acpi LNXCPU:0a: BIOS reported wrong ACPI id 0 for the processor."
-> 
-> --------
-> For x86_64, the UP test is taken by adding "disableapic nr_cpus=1" into
-> cmdline of grub. The test for kdump is the same as above ia64.
-> 
-> Thanks
-> Baoquan
-> 
-> 
-> On 05/05/14 at 12:48pm, Baoquan He wrote:
-> > This variable was defined and assigned in x86, is used to indicate
-> > whether LAPIC exists in MADT. Now introduce it into ia64 to help
-> > make correct judgment when get information for acpi processor later.
-> > 
-> > Signed-off-by: Baoquan He <bhe@redhat.com>
-> > ---
-> >  arch/ia64/include/asm/acpi.h | 1 +
-> >  arch/ia64/kernel/acpi.c      | 3 +++
-> >  2 files changed, 4 insertions(+)
-> > 
-> > diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
-> > index d651102..b478219 100644
-> > --- a/arch/ia64/include/asm/acpi.h
-> > +++ b/arch/ia64/include/asm/acpi.h
-> > @@ -85,6 +85,7 @@ ia64_acpi_release_global_lock (unsigned int *lock)
-> >  	((Acq) = ia64_acpi_release_global_lock(&facs->global_lock))
-> >  
-> >  #ifdef	CONFIG_ACPI
-> > +extern int acpi_lapic;
-> >  #define acpi_disabled 0	/* ACPI always enabled on IA64 */
-> >  #define acpi_noirq 0	/* ACPI always enabled on IA64 */
-> >  #define acpi_pci_disabled 0 /* ACPI PCI always enabled on IA64 */
-> > diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-> > index 0d407b3..615ef81 100644
-> > --- a/arch/ia64/kernel/acpi.c
-> > +++ b/arch/ia64/kernel/acpi.c
-> > @@ -56,6 +56,7 @@
-> >  
-> >  #define PREFIX			"ACPI: "
-> >  
-> > +int acpi_lapic;
-> >  unsigned int acpi_cpei_override;
-> >  unsigned int acpi_cpei_phys_cpuid;
-> >  
-> > @@ -676,6 +677,8 @@ int __init early_acpi_boot_init(void)
-> >  	if (ret < 1)
-> >  		printk(KERN_ERR PREFIX
-> >  		       "Error parsing MADT - no LAPIC entries\n");
-> > +	else
-> > +		acpi_lapic = 1;
-> >  
-> >  #ifdef CONFIG_SMP
-> >  	if (available_cpus == 0) {
-> > -- 
-> > 1.8.5.3
-> > 
+SGksIFJhZmFlbA0KDQo+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFtt
+YWlsdG86bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBSYWZh
+ZWwgSi4gV3lzb2NraQ0KPiBTZW50OiBNb25kYXksIE1heSAwNSwgMjAxNCA4OjQzIEFNDQo+IA0K
+PiBPbiBTYXR1cmRheSwgTWF5IDAzLCAyMDE0IDA4OjU5OjE0IEFNIEpvc2ggQm95ZXIgd3JvdGU6
+DQo+ID4gT24gVHVlLCBBcHIgMjksIDIwMTQgYXQgMTA6MDUgUE0sIEx2IFpoZW5nIDxsdi56aGVu
+Z0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+ID4gVGhlIGNvbW1pdCBvZiBiYWNrIHBvcnRpbmcgTGlu
+dXggWFNEVCB2YWxpZGF0aW9uIG1lY2hhbmlzbSBoYXMgaW50cm9kdWNlZA0KPiA+ID4gYSByZWdy
+ZWVzc2lvbjoNCj4gPiA+ICAgQ29tbWl0OiA2NzFjYzY4ZGM2MWYwMjlkNDRiNDNhNjgxMzU2MDc4
+ZTAyZDhkYWI4DQo+ID4gPiAgIFN1YmplY3Q6IEFDUElDQTogQmFjayBwb3J0IGFuZCByZWZpbmUg
+dmFsaWRhdGlvbiBvZiB0aGUgWFNEVCByb290IHRhYmxlLg0KPiA+ID4gVGhlcmUgaXMgYSBwb2lu
+dGVyIHN0aWxsIGFjY2Vzc2VkIGFmdGVyIHVubWFwcGluZy4NCj4gPiA+DQo+ID4gPiBUaGlzIHBh
+dGNoIGZpeGVzIHRoaXMgaXNzdWUuICBMdiBaaGVuZy4NCj4gPiA+DQo+ID4gPiBCdWdsaW5rOiBo
+dHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTczOTExDQo+ID4gPiBC
+dWdsaW5rOiBodHRwczovL2J1Z3MuYXJjaGxpbnV4Lm9yZy90YXNrLzM5ODExDQo+ID4gPiBTaWdu
+ZWQtb2ZmLWJ5OiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPg0KPiA+ID4gUmVwb3J0ZWQt
+YW5kLXRlc3RlZC1ieTogQnJ1Y2UgQ2hpYXJlbGxpIDxtYW5vMTU1QGdtYWlsLmNvbT4NCj4gPiA+
+IFJlcG9ydGVkLWFuZC10ZXN0ZWQtYnk6IFNweXJvcyBTdGF0aG9wb3Vsb3MgPHNweXN0YXRoQGdt
+YWlsLmNvbT4NCj4gPiA+IFNpZ25lZC1vZmYtYnk6IEJvYiBNb29yZSA8cm9iZXJ0Lm1vb3JlQGlu
+dGVsLmNvbT4NCj4gPiA+IENjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4gIyAzLjE0Lng6IDY3
+MWNjNjg6IEFDUElDQTogQmFjayBwb3J0IGFuZCByZWZpbmUgdmFsaWRhdGlvbiBvZiB0aGUgWFNE
+VCByb290IHRhYmxlLg0KPiA+DQo+ID4gVGhpcyBwYXRjaCBzaG91bGQgZ2V0IGludG8gMy4xNS1y
+Y1ggc29vbi4gIEl0IGZpeGVzIGEga25vd24gcmVncmVzc2lvbg0KPiA+IHRoYXQgcHJldmVudHMg
+Ym9vdGluZyBvbiBtYWNoaW5lcyB3aXRoIEFNSSBmaXJtd2FyZSwgYW5kIHRoYXQgaXMNCj4gPiBw
+cmVzZW50IGluIDMuMTQgc28gd2UgbmVlZCBpdCBmb3Igc3RhYmxlIGFzIHdlbGwuICBSYWZhZWw/
+DQo+IA0KPiBMdiwgaXMgaXQgc2FmZSB0byB0YWtlIHRoaXMgcGF0Y2ggYWxvbmUgaW50byAzLjE1
+LXJjPw0KDQpZZXMsIGl0J3Mgc2FmZSB0byBvbmx5IHRha2UgdGhpcyBwYXRjaCB0byBiZSBhIHJl
+Z3Jlc3Npb24gZml4Lg0KSSdtIHNvcnJ5IGZvciB0aGUgcmVncmVzc2lvbiBJIG1hZGUgaW4gdGhl
+IGJpc2VjdGVkIGNvbW1pdC4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+IA0K
+PiBSYWZhZWwNCj4gDQo+IA0KPiA+ID4gLS0tDQo+ID4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS90
+YnV0aWxzLmMgfCAgICA3ICsrKysrLS0NCj4gPiA+ICAxIGZpbGUgY2hhbmdlZCwgNSBpbnNlcnRp
+b25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiA+ID4NCj4gPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJz
+L2FjcGkvYWNwaWNhL3RidXRpbHMuYyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvdGJ1dGlscy5jDQo+
+ID4gPiBpbmRleCA2YzMxZDc3Li5lMTYzOGFkIDEwMDY0NA0KPiA+ID4gLS0tIGEvZHJpdmVycy9h
+Y3BpL2FjcGljYS90YnV0aWxzLmMNCj4gPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvdGJ1
+dGlscy5jDQo+ID4gPiBAQCAtMzU1LDYgKzM1NSw3IEBAIGFjcGlfc3RhdHVzIF9faW5pdCBhY3Bp
+X3RiX3BhcnNlX3Jvb3RfdGFibGUoYWNwaV9waHlzaWNhbF9hZGRyZXNzIHJzZHBfYWRkcmVzcykN
+Cj4gPiA+ICAgICAgICAgdTMyIHRhYmxlX2NvdW50Ow0KPiA+ID4gICAgICAgICBzdHJ1Y3QgYWNw
+aV90YWJsZV9oZWFkZXIgKnRhYmxlOw0KPiA+ID4gICAgICAgICBhY3BpX3BoeXNpY2FsX2FkZHJl
+c3MgYWRkcmVzczsNCj4gPiA+ICsgICAgICAgYWNwaV9waHlzaWNhbF9hZGRyZXNzIHJzZHRfYWRk
+cmVzczsNCj4gPiA+ICAgICAgICAgdTMyIGxlbmd0aDsNCj4gPiA+ICAgICAgICAgdTggKnRhYmxl
+X2VudHJ5Ow0KPiA+ID4gICAgICAgICBhY3BpX3N0YXR1cyBzdGF0dXM7DQo+ID4gPiBAQCAtMzgz
+LDExICszODQsMTQgQEAgYWNwaV9zdGF0dXMgX19pbml0IGFjcGlfdGJfcGFyc2Vfcm9vdF90YWJs
+ZShhY3BpX3BoeXNpY2FsX2FkZHJlc3MgcnNkcF9hZGRyZXNzKQ0KPiA+ID4gICAgICAgICAgICAg
+ICAgICAqIGFzIHBlciB0aGUgQUNQSSBzcGVjaWZpY2F0aW9uLg0KPiA+ID4gICAgICAgICAgICAg
+ICAgICAqLw0KPiA+ID4gICAgICAgICAgICAgICAgIGFkZHJlc3MgPSAoYWNwaV9waHlzaWNhbF9h
+ZGRyZXNzKSByc2RwLT54c2R0X3BoeXNpY2FsX2FkZHJlc3M7DQo+ID4gPiArICAgICAgICAgICAg
+ICAgcnNkdF9hZGRyZXNzID0NCj4gPiA+ICsgICAgICAgICAgICAgICAgICAgKGFjcGlfcGh5c2lj
+YWxfYWRkcmVzcykgcnNkcC0+cnNkdF9waHlzaWNhbF9hZGRyZXNzOw0KPiA+ID4gICAgICAgICAg
+ICAgICAgIHRhYmxlX2VudHJ5X3NpemUgPSBBQ1BJX1hTRFRfRU5UUllfU0laRTsNCj4gPiA+ICAg
+ICAgICAgfSBlbHNlIHsNCj4gPiA+ICAgICAgICAgICAgICAgICAvKiBSb290IHRhYmxlIGlzIGFu
+IFJTRFQgKDMyLWJpdCBwaHlzaWNhbCBhZGRyZXNzZXMpICovDQo+ID4gPg0KPiA+ID4gICAgICAg
+ICAgICAgICAgIGFkZHJlc3MgPSAoYWNwaV9waHlzaWNhbF9hZGRyZXNzKSByc2RwLT5yc2R0X3Bo
+eXNpY2FsX2FkZHJlc3M7DQo+ID4gPiArICAgICAgICAgICAgICAgcnNkdF9hZGRyZXNzID0gYWRk
+cmVzczsNCj4gPiA+ICAgICAgICAgICAgICAgICB0YWJsZV9lbnRyeV9zaXplID0gQUNQSV9SU0RU
+X0VOVFJZX1NJWkU7DQo+ID4gPiAgICAgICAgIH0NCj4gPiA+DQo+ID4gPiBAQCAtNDEwLDggKzQx
+NCw3IEBAIGFjcGlfc3RhdHVzIF9faW5pdCBhY3BpX3RiX3BhcnNlX3Jvb3RfdGFibGUoYWNwaV9w
+aHlzaWNhbF9hZGRyZXNzIHJzZHBfYWRkcmVzcykNCj4gPiA+DQo+ID4gPiAgICAgICAgICAgICAg
+ICAgICAgICAgICAvKiBGYWxsIGJhY2sgdG8gdGhlIFJTRFQgKi8NCj4gPiA+DQo+ID4gPiAtICAg
+ICAgICAgICAgICAgICAgICAgICBhZGRyZXNzID0NCj4gPiA+IC0gICAgICAgICAgICAgICAgICAg
+ICAgICAgICAoYWNwaV9waHlzaWNhbF9hZGRyZXNzKSByc2RwLT5yc2R0X3BoeXNpY2FsX2FkZHJl
+c3M7DQo+ID4gPiArICAgICAgICAgICAgICAgICAgICAgICBhZGRyZXNzID0gcnNkdF9hZGRyZXNz
+Ow0KPiA+ID4gICAgICAgICAgICAgICAgICAgICAgICAgdGFibGVfZW50cnlfc2l6ZSA9IEFDUElf
+UlNEVF9FTlRSWV9TSVpFOw0KPiA+ID4gICAgICAgICAgICAgICAgIH0NCj4gPiA+ICAgICAgICAg
+fQ0KPiA+ID4gLS0NCj4gPiA+IDEuNy4xMA0KPiA+ID4NCj4gPiA+IC0tDQo+ID4gPiBUbyB1bnN1
+YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgt
+a2VybmVsIiBpbg0KPiA+ID4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2Vy
+Lmtlcm5lbC5vcmcNCj4gPiA+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtl
+cm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0KPiA+ID4gUGxlYXNlIHJlYWQgdGhlIEZBUSBh
+dCAgaHR0cDovL3d3dy50dXgub3JnL2xrbWwvDQo+ID4gLS0NCj4gPiBUbyB1bnN1YnNjcmliZSBm
+cm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtYWNwaSIgaW4N
+Cj4gPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0K
+PiA+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jk
+b21vLWluZm8uaHRtbA0KPiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJh
+ZmFlbCBKLiBXeXNvY2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCj4g
+LS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vi
+c2NyaWJlIGxpbnV4LWFjcGkiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRv
+bW9Admdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2Vy
+Lmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
