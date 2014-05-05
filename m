@@ -1,69 +1,109 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH 0/7] APEI: Make APEI architecture independent.
-Date: Mon, 05 May 2014 11:25:57 +0200
-Message-ID: <53675925.4030203@linaro.org>
-References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Patch Part3 V1 17/22] pci, ACPI, iommu: enhance pci_root to
+ support DMAR device hotplug
+Date: Mon, 05 May 2014 16:31:42 +0800
+Message-ID: <53674C6E.1070909@linux.intel.com>
+References: <1398150453-28141-1-git-send-email-jiang.liu@linux.intel.com> <1398150453-28141-18-git-send-email-jiang.liu@linux.intel.com> <2370777.I1hYvaFUEg@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:57046 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755723AbaEEJZn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2014 05:25:43 -0400
-Received: by mail-ee0-f54.google.com with SMTP id b57so3270944eek.13
-        for <linux-acpi@vger.kernel.org>; Mon, 05 May 2014 02:25:42 -0700 (PDT)
-In-Reply-To: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <2370777.I1hYvaFUEg@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Ashok Raj <ashok.raj@intel.com>, Yijing Wang <wangyijing@huawei.com>, Tony Luck <tony.luck@intel.com>, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, bp@suse.de, m.chehab@samsung.com
-Cc: linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-Hi,
 
-I would like to kindly remind and request for some comments on this patches.
 
-Regards,
-Tomasz
+On 2014/4/22 17:49, Rafael J. Wysocki wrote:
+> On Tuesday, April 22, 2014 03:07:28 PM Jiang Liu wrote:
+>> Finally enhance pci_root driver to support DMAR device hotplug when
+>> hot-plugging PCI host bridges.
+>>
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>> ---
+>>  drivers/acpi/pci_root.c |   16 ++++++++++++++--
+>>  1 file changed, 14 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+>> index d388f13d48b4..aa8f549869f3 100644
+>> --- a/drivers/acpi/pci_root.c
+>> +++ b/drivers/acpi/pci_root.c
+>> @@ -33,6 +33,7 @@
+>>  #include <linux/pci.h>
+>>  #include <linux/pci-acpi.h>
+>>  #include <linux/pci-aspm.h>
+>> +#include <linux/dmar.h>
+>>  #include <linux/acpi.h>
+>>  #include <linux/slab.h>
+>>  #include <acpi/apei.h>	/* for acpi_hest_init() */
+>> @@ -511,6 +512,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>>  	struct acpi_pci_root *root;
+>>  	acpi_handle handle = device->handle;
+>>  	int no_aspm = 0, clear_aspm = 0;
+>> +	bool hotadd = (system_state != SYSTEM_BOOTING);
+> 
+> The parens are not necessary in the above instruction.
+Hi Rafael,
+	Thanks! Will fix it in next version.
 
-On 09.04.2014 17:14, Tomasz Nowicki wrote:
-> APEI is currently implemented so that it depends on x86 hardware.
-> The primary dependency is that GHES uses the x86 NMI for hardware
-> error notification. These patches remove that dependency.
->
-> Other APEI features such as error reporting via external IRQ, error
-> serialization, or error injection, do not require changes to use them
-> on non-x86 architectures.
->
-> The following patch set eliminates the APEI Kconfig x86 dependency
-> by making these changes:
-> - replace arch specific calls with more generic one
-> - treat NMI notification as GHES feature - CONFIG_ACPI_APEI_NMI
-> - isolate NMI related code
-> - reorganize function logic
->
-> NMI code is kept in ghes.c file since NMI and IRQ context are tightly coupled.
->
-> Note, these patches introduce no functional changes for x86. The NMI notification
-> feature is selected for x86 by default. Architectures that want to use this
-> feature should also provide NMI code infrastructure.
->
-> Tomasz Nowicki (7):
->    apei, mce: Call MCE-specific code only for X86 architecture.
->    acpi, apei, ghes: Introduce more generic mechanism to init/deinit
->      GHES error notifications.
->    ACPI, APEI, GHES: Introduce ACPI_NMI to make NMI error notification a
->      GHES feature.
->    acpi, apei, ghes: Factor out NMI error notification context.
->    acpi, apei, ghes: Attach NMI init/deinit functions while
->      CONFIG_ACPI_NMI is enabled.
->    acpi, apei, ghes: Make unmapping functionality independent from
->      architecture.
->    acpi, apei, ghes: Factor out ioremap virtual memory for IRQ and NMI
->      context.
->
->   drivers/acpi/apei/Kconfig |   10 +-
->   drivers/acpi/apei/ghes.c  |  329 ++++++++++++++++++++++++++++-----------------
->   drivers/acpi/apei/hest.c  |    8 +-
->   3 files changed, 218 insertions(+), 129 deletions(-)
->
+> 
+>>  	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
+>>  	if (!root)
+>> @@ -557,6 +559,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>>  	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
+>>  	device->driver_data = root;
+>>  
+>> +	if (hotadd && dmar_device_hotplug(handle, true)) {
+>> +		result = -ENXIO;
+>> +		goto end;
+>> +	}
+>> +
+>>  	pr_info(PREFIX "%s [%s] (domain %04x %pR)\n",
+>>  	       acpi_device_name(device), acpi_device_bid(device),
+>>  	       root->segment, &root->secondary);
+>> @@ -583,7 +590,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>>  			root->segment, (unsigned int)root->secondary.start);
+>>  		device->driver_data = NULL;
+>>  		result = -ENODEV;
+>> -		goto end;
+>> +		goto remove_dmar;
+>>  	}
+>>  
+>>  	if (clear_aspm) {
+>> @@ -597,7 +604,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>>  	if (device->wakeup.flags.run_wake)
+>>  		device_set_run_wake(root->bus->bridge, true);
+>>  
+>> -	if (system_state != SYSTEM_BOOTING) {
+>> +	if (hotadd) {
+>>  		pcibios_resource_survey_bus(root->bus);
+>>  		pci_assign_unassigned_root_bus_resources(root->bus);
+>>  	}
+>> @@ -607,6 +614,9 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>>  	pci_unlock_rescan_remove();
+>>  	return 1;
+>>  
+>> +remove_dmar:
+>> +	if (hotadd)
+>> +		dmar_device_hotplug(handle, false);
+> 
+> I suppose that works if dmar_device_hotplug() returned false before?
+Yes, it's for error recover only.
+
+> 
+>>  end:
+>>  	kfree(root);
+>>  	return result;
+>> @@ -625,6 +635,8 @@ static void acpi_pci_root_remove(struct acpi_device *device)
+>>  
+>>  	pci_remove_root_bus(root->bus);
+>>  
+>> +	dmar_device_hotplug(device->handle, false);
+>> +
+>>  	pci_unlock_rescan_remove();
+>>  
+>>  	kfree(root);
+>>
+> 
