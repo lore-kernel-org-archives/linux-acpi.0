@@ -1,281 +1,157 @@
-From: Igor Mammedov <imammedo@redhat.com>
-Subject: [PATCH v5 4/4] x86: initialize secondary CPU only if master CPU will wait for it
-Date: Mon,  5 May 2014 22:49:51 +0200
-Message-ID: <1399322991-19329-5-git-send-email-imammedo@redhat.com>
-References: <1399322991-19329-1-git-send-email-imammedo@redhat.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 1/3] PM / sleep: Flags to speed up suspend-resume
+ of runtime-suspended devices
+Date: Mon, 5 May 2014 11:46:47 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1405051018160.1443-100000@iolanthe.rowland.org>
+References: <7301393.PpWC4ERV6A@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37851 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755988AbaEEUvQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 May 2014 16:51:16 -0400
-In-Reply-To: <1399322991-19329-1-git-send-email-imammedo@redhat.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:42601 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754719AbaEEPqs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2014 11:46:48 -0400
+In-Reply-To: <7301393.PpWC4ERV6A@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, imammedo@redhat.com, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hang is observed on virtual machines during CPU hotplug,
-especially in big guests with many CPUs. (It reproducible
-more often if host is over-committed).
+I'll trim a lot of material and respond to the points that are 
+important comments or criticisms.
 
-It happens because master CPU gives up waiting on
-secondary CPU and allows it to run wild. As result
-AP causes locking or crashing system. For example
-as described here: https://lkml.org/lkml/2014/3/6/257
+On Mon, 5 May 2014, Rafael J. Wysocki wrote:
 
-If master CPU have sent STARTUP IPI successfully,
-and AP signalled to master CPU that it's ready
-to start initialization, make master CPU wait
-indefinitely till AP is onlined.
-To ensure that AP won't ever run wild, make it
-wait at early startup till master CPU confirms its
-intention to wait for AP. If AP doesn't respond in 10
-seconds, the master CPU will timeout and cancel
-AP onlining.
+> > The description below is much better than the earlier one, but I still feel
+> > this deserves to be split in two: one patch for each new flag.
+> 
+> Well, I guess I can introduce power.leave_runtime_suspended for leaf devices
+> first, but that would be somewhat artificial, because in that case some code
+> added by the first patch would be removed by the second one. :-)
 
-Signed-off-by: Igor Mammedov <imammedo@redhat.com>
----
-v2:
- - ammend comment in cpu_init()
-v3:
- - leave timeouts in do_boot_cpu(), so that master CPU
-   won't hang if AP doesn't respond, use cpu_initialized_mask
-   as a way for AP to signal to master CPU that it's ready
-   to start initialzation.
-v4:
- - move commont code in cpu_init() for x32/x64 in shared
-   helper function wait_formaster_cpu()
- - add WARN_ON(cpumask_test_and_set_cpu(cpu, cpu_initialized_mask))
-   to wait_formaster_cpu()
-v5:
- - add smp_mb() after clearing cpu_initialized_mask in do_boot_cpu()
- - add 10 sec timeout description into commit message.
----
- arch/x86/kernel/cpu/common.c |   27 +++++++-----
- arch/x86/kernel/smpboot.c    |   99 +++++++++++++-----------------------------
- 2 files changed, 47 insertions(+), 79 deletions(-)
+The "leaf devices" thing is a key point; see below.
 
-diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index a135239..a4bcbac 100644
---- a/arch/x86/kernel/cpu/common.c
-+++ b/arch/x86/kernel/cpu/common.c
-@@ -1221,6 +1221,17 @@ static void dbg_restore_debug_regs(void)
- #define dbg_restore_debug_regs()
- #endif /* ! CONFIG_KGDB */
- 
-+static void wait_for_master_cpu(int cpu)
-+{
-+	/*
-+	 * wait for ACK from master CPU before continuing
-+	 * with AP initialization
-+	 */
-+	WARN_ON(cpumask_test_and_set_cpu(cpu, cpu_initialized_mask));
-+	while (!cpumask_test_cpu(cpu, cpu_callout_mask))
-+		cpu_relax();
-+}
-+
- /*
-  * cpu_init() initializes state that is per-CPU. Some data is already
-  * initialized (naturally) in the bootstrap process, such as the GDT
-@@ -1236,16 +1247,17 @@ void cpu_init(void)
- 	struct task_struct *me;
- 	struct tss_struct *t;
- 	unsigned long v;
--	int cpu;
-+	int cpu = stack_smp_processor_id();
- 	int i;
- 
-+	wait_for_master_cpu(cpu);
-+
- 	/*
- 	 * Load microcode on this cpu if a valid microcode is available.
- 	 * This is early microcode loading procedure.
- 	 */
- 	load_ucode_ap();
- 
--	cpu = stack_smp_processor_id();
- 	t = &per_cpu(init_tss, cpu);
- 	oist = &per_cpu(orig_ist, cpu);
- 
-@@ -1257,9 +1269,6 @@ void cpu_init(void)
- 
- 	me = current;
- 
--	if (cpumask_test_and_set_cpu(cpu, cpu_initialized_mask))
--		panic("CPU#%d already initialized!\n", cpu);
--
- 	pr_debug("Initializing CPU#%d\n", cpu);
- 
- 	clear_in_cr4(X86_CR4_VME|X86_CR4_PVI|X86_CR4_TSD|X86_CR4_DE);
-@@ -1336,13 +1345,9 @@ void cpu_init(void)
- 	struct tss_struct *t = &per_cpu(init_tss, cpu);
- 	struct thread_struct *thread = &curr->thread;
- 
--	show_ucode_info_early();
-+	wait_for_master_cpu(cpu);
- 
--	if (cpumask_test_and_set_cpu(cpu, cpu_initialized_mask)) {
--		printk(KERN_WARNING "CPU#%d already initialized!\n", cpu);
--		for (;;)
--			local_irq_enable();
--	}
-+	show_ucode_info_early();
- 
- 	printk(KERN_INFO "Initializing CPU#%d\n", cpu);
- 
-diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
-index ae2fd97..bc52fac 100644
---- a/arch/x86/kernel/smpboot.c
-+++ b/arch/x86/kernel/smpboot.c
-@@ -111,7 +111,6 @@ atomic_t init_deasserted;
- static void smp_callin(void)
- {
- 	int cpuid, phys_id;
--	unsigned long timeout;
- 
- 	/*
- 	 * If waken up by an INIT in an 82489DX configuration
-@@ -130,37 +129,6 @@ static void smp_callin(void)
- 	 * (This works even if the APIC is not enabled.)
- 	 */
- 	phys_id = read_apic_id();
--	if (cpumask_test_cpu(cpuid, cpu_callin_mask)) {
--		panic("%s: phys CPU#%d, CPU#%d already present??\n", __func__,
--					phys_id, cpuid);
--	}
--	pr_debug("CPU#%d (phys ID: %d) waiting for CALLOUT\n", cpuid, phys_id);
--
--	/*
--	 * STARTUP IPIs are fragile beasts as they might sometimes
--	 * trigger some glue motherboard logic. Complete APIC bus
--	 * silence for 1 second, this overestimates the time the
--	 * boot CPU is spending to send the up to 2 STARTUP IPIs
--	 * by a factor of two. This should be enough.
--	 */
--
--	/*
--	 * Waiting 2s total for startup (udelay is not yet working)
--	 */
--	timeout = jiffies + 2*HZ;
--	while (time_before(jiffies, timeout)) {
--		/*
--		 * Has the boot CPU finished it's STARTUP sequence?
--		 */
--		if (cpumask_test_cpu(cpuid, cpu_callout_mask))
--			break;
--		cpu_relax();
--	}
--
--	if (!time_before(jiffies, timeout)) {
--		panic("%s: CPU%d started up but did not get a callout!\n",
--		      __func__, cpuid);
--	}
- 
- 	/*
- 	 * the boot CPU has finished the init stage and is spinning
-@@ -750,8 +718,8 @@ static int do_boot_cpu(int apicid, int cpu, struct task_struct *idle)
- 	unsigned long start_ip = real_mode_header->trampoline_start;
- 
- 	unsigned long boot_error = 0;
--	int timeout;
- 	int cpu0_nmi_registered = 0;
-+	unsigned long timeout;
- 
- 	/* Just in case we booted with a single CPU. */
- 	alternatives_enable_smp();
-@@ -799,6 +767,15 @@ static int do_boot_cpu(int apicid, int cpu, struct task_struct *idle)
- 	}
- 
- 	/*
-+	 * AP might wait on cpu_callout_mask in cpu_init() with
-+	 * cpu_initialized_mask set if previous attempt to online
-+	 * it timed-out. Clear cpu_initialized_mask so that after
-+	 * INIT/SIPI it could start with a clean state.
-+	 */
-+	cpumask_clear_cpu(cpu, cpu_initialized_mask);
-+	smp_mb();
-+
-+	/*
- 	 * Wake up a CPU in difference cases:
- 	 * - Use the method in the APIC driver if it's defined
- 	 * Otherwise,
-@@ -810,55 +787,41 @@ static int do_boot_cpu(int apicid, int cpu, struct task_struct *idle)
- 		boot_error = wakeup_cpu_via_init_nmi(cpu, start_ip, apicid,
- 						     &cpu0_nmi_registered);
- 
-+
- 	if (!boot_error) {
- 		/*
--		 * allow APs to start initializing.
-+		 * Wait 10s total for a response from AP
- 		 */
--		pr_debug("Before Callout %d\n", cpu);
--		cpumask_set_cpu(cpu, cpu_callout_mask);
--		pr_debug("After Callout %d\n", cpu);
-+		boot_error = -1;
-+		timeout = jiffies + 10*HZ;
-+		while (time_before(jiffies, timeout)) {
-+			if (cpumask_test_cpu(cpu, cpu_initialized_mask)) {
-+				/*
-+				 * Tell AP to proceed with initialization
-+				 */
-+				cpumask_set_cpu(cpu, cpu_callout_mask);
-+				boot_error = 0;
-+				break;
-+			}
-+			udelay(100);
-+			schedule();
-+		}
-+	}
- 
-+	if (!boot_error) {
- 		/*
--		 * Wait 5s total for a response
-+		 * Wait till AP completes initial initialization
- 		 */
--		for (timeout = 0; timeout < 50000; timeout++) {
--			if (cpumask_test_cpu(cpu, cpu_callin_mask))
--				break;	/* It has booted */
--			udelay(100);
-+		while (!cpumask_test_cpu(cpu, cpu_callin_mask)) {
- 			/*
- 			 * Allow other tasks to run while we wait for the
- 			 * AP to come online. This also gives a chance
- 			 * for the MTRR work(triggered by the AP coming online)
- 			 * to be completed in the stop machine context.
- 			 */
-+			udelay(100);
- 			schedule();
- 		}
--
--		if (cpumask_test_cpu(cpu, cpu_callin_mask)) {
--			print_cpu_msr(&cpu_data(cpu));
--			pr_debug("CPU%d: has booted.\n", cpu);
--		} else {
--			boot_error = 1;
--			if (*trampoline_status == 0xA5A5A5A5)
--				/* trampoline started but...? */
--				pr_err("CPU%d: Stuck ??\n", cpu);
--			else
--				/* trampoline code not run */
--				pr_err("CPU%d: Not responding\n", cpu);
--			if (apic->inquire_remote_apic)
--				apic->inquire_remote_apic(apicid);
--		}
--	}
--
--	if (boot_error) {
--		/* Try to put things back the way they were before ... */
--		numa_remove_cpu(cpu); /* was set by numa_add_cpu */
--
--		/* was set by do_boot_cpu() */
--		cpumask_clear_cpu(cpu, cpu_callout_mask);
--
--		/* was set by cpu_init() */
--		cpumask_clear_cpu(cpu, cpu_initialized_mask);
- 	}
- 
- 	/* mark "stuck" area as not stuck */
--- 
-1.7.1
+> There is a theoretical case where the child is runtime-suspended, but
+> not actually zero-power, and it doesn't have leave_runtime_suspended set,
+> but its driver doesn't implement ->suspend() at all and instead it waits
+> until ->suspend_late() or even ->suspend_noirq() and then attempts to do
+> something extra to the device.  Then, if the parent is a bridge and is
+> required to be functional for accessing the child, we can't leave it
+> runtime-suspended too.
+> 
+> I'm not sure how realistic that is, to be honest, but it does look like
+> a valid thing to do to my eyes, so in my opinion we may need to get the
+> child driver's permission to leave the parent in runtime suspend for
+> that reason too.
+
+The only time this would be a problem is if the driver changes the
+device's settings from the runtime-suspend values to the system-suspend
+values, without doing a runtime resume first.  For example, the driver
+might disable wakeup while the device remains at low power.
+
+I'm not sure how realistic this is, either -- although it's not hard to 
+imagine a PCI driver doing this sort of thing.  Still, if you think we 
+should worry about it then I agree, the parent_needed flag ought to be 
+present from the start.
+
+> I guess it is fair to simply say that "we need to get the child driver's
+> permission to leave the parent in runtime suspend".
+
+Okay.  But does it follow that we need permission from the child's
+descendants as well?  I don't see any reason why.  After all, if a
+grandchild needs the child to be at full power, then the parent will
+automatically end up at full power too.  Which means neither
+leave_runtime_suspended nor parent_needed has to be propagated up the
+tree.
+
+Hmmm, I just thought of something else.  What about non-parent-child 
+relationships?  Device B might depend on device A, even though A isn't 
+an ancestor of B.  I guess in this case, A's leave_runtime_suspended 
+flag should not be set.
+
+> > As a corollary, if we don't have the child's permission to leave the
+> > parent suspended during system resume then we have to invoke all of the
+> > parent's resume callbacks, which means we also have to invoke all the
+> > suspend callbacks.  However, we still might be able to leave the parent
+> > in runtime suspend during the suspend stages.  The decision whether or
+> > not to do so should be up to the subsystem or driver, not the PM core; 
+> > the subsystem's callback routines can check the device's runtime status 
+> > and then do what they want.
+> 
+> Yes, but they can do that anyway, can't they? :-)
+
+Yes, they can.  The point of this part of the patch is adding the
+leave_runtime_suspended flag (1) makes the subsystem's decision a
+little easier and (2) informs the subsystem when it can safely avoid
+perfoming a runtime resume in its ->suspend() callback.
+
+> > You are using leave_runtime_suspended to mean two different things:  
+> > remain runtime-suspended during the system suspend stages (i.e., no
+> > reprogramming is needed so don't go to full power), and remain
+> > runtime-suspended during both the system suspend and system resume
+> > stages.  Only the first meaning matters if all you want to accomplish
+> > is to avoid unnecessary runtime resumes during system suspend.
+> 
+> Well, this is not the case, becase you can't call ->resume_noirq() *after*
+> ->runtime_suspend() for a number of drivers, as they simply may not expect
+> that to happen (that covers all of the PCI drivers and the ACPI PM domain at
+> least).
+
+For some non-PCI, non-ACPI PM domain drivers, it _is_ okay to call
+->resume_noirq() after ->runtime_suspend().
+
+But forget about that; let's concentrate on PCI.  When a PCI driver
+sets leave_runtime_suspended, it is telling the PCI core that it
+doesn't mind having its ->resume_noirq() callback invoked after
+->runtime_suspend().  If a PCI driver doesn't set
+leave_runtime_suspended, the PCI core will continue to handle it
+exactly the same as now: do a runtime resume before invoking the
+driver's ->suspend() callback.
+
+> So you can't say "well, I'll skip your ->suspend_late and ->suspend_noirq,
+> but then I'll resume you traditionally" for those drivers, but this isn't
+> about remaining runtime-suspended during system resume too, but about
+> preserving the expected ordering of callbacks for them.
+
+For drivers that don't set leave_runtime_suspended, the ordering of 
+callbacks will be unchanged.  That's why you introduced this flag 
+originally, right?  So that the subsystem would know which drivers 
+don't mind doing things differently.
+
+> So yes, the goal is to "remain runtime-suspended during the system suspend stages",
+> but that *leads* *to* "do not execute system resume callbacks up to and including
+> ->resume()" either at least for an important subset of drivers.
+
+I disagree, for the reasons given above.
+
+Now, this raises a second issue: How should we handle devices that can
+remain runtime-suspended through both the system suspend and system
+resume stages?  Maybe we better discuss that in a separate email
+thread.
+
+> > > Note: Drivers (or bus types etc.) can reasonably expect that the
+> > > next PM callback executed after ->runtime_suspend() will be
+> > > ->runtime_resume() rather than ->resume_noirq() or ->resume_early().
+> > > This change is designed with that expectation in mind.
+> > 
+> > Except, of course, that in the current kernel this isn't true.
+> 
+> Well, what about PCI devices?  Their drivers surely can have such an expectation,
+> because all of the PCI devices *are* resumed today in either pci_pm_prepare() or
+> pci_pm_suspend(), before executing the driver's ->suspend() callback.
+
+Yes, of course.  But the USB subsystem, for example, doesn't expect it.
+
+> > And there probably are a few cases where it can't ever be true.
+> 
+> It is easy to say things like that without giving any examples.
+
+Sorry, what I meant was that _if_ a device is going to remain in 
+runtime suspend throughout the system suspend and system resume stages, 
+then there probably are cases where the device will have to come back 
+to full power during resume_early -- which means ->runtime_resume() 
+can't be used, because runtime PM is disabled during resume_early.  
+Isn't this true of PCI bridges?
+
+Alan Stern
 
