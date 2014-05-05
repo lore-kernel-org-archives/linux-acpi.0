@@ -1,107 +1,59 @@
 From: Baoquan He <bhe@redhat.com>
-Subject: Re: [Patch v3 1/2] introduce variable acpi_lapic into ia64
-Date: Mon, 5 May 2014 13:14:55 +0800
-Message-ID: <20140505051455.GA1702@dhcp-16-105.nay.redhat.com>
+Subject: [Patch v3 2/2] lapic need be checked if available when initialize acpi processor id
+Date: Mon,  5 May 2014 12:48:26 +0800
+Message-ID: <1399265306-8553-2-git-send-email-bhe@redhat.com>
 References: <1399265306-8553-1-git-send-email-bhe@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19420 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:11774 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754412AbaEEFQN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 May 2014 01:16:13 -0400
-Content-Disposition: inline
+	id S1750882AbaEEEt4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 May 2014 00:49:56 -0400
 In-Reply-To: <1399265306-8553-1-git-send-email-bhe@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, dyoung@redhat.com
+Cc: linux-kernel@vger.kernel.org, dyoung@redhat.com, Baoquan He <bhe@redhat.com>
 
-Hi Rafael,
+In acpi_processor_get_info(), acpi processor info is initialized including
+id, namely cpu index. Currently, if on UP system running SMP kerenl with
+no LAPIC in MADT, cpu0_initialized is checked if acpi processor id is
+initialized.
 
-Thanks for previous comments and suggestions.
+However this check maybe is not sufficient for kdump kernel. Most of time
+only 1 CPU is supported because of known problems in kdump kernel. So in
+1st kernel multiple CPUs are present, then crash happened in one specific
+CPU, say 2nd CPU. Then it jumped into kdump kernel with "nr_cpus=1" specified
+in cmdline. In this situation, since kdump kernel is warm reset, it will
+reuse the ACPI resource passed from crashed kernel directly, namely 1st
+kernel. It means in MADT all LAPIC is enabled while only 1 CPU is
+present in running system. The kdump kernel usually is the same as the
+crashed 1st kernel. So now in kdump kernel, x86_cpu_to_apicid stored the
+apicid and its related cpu id. If only check cpu0_initialized, it will
+assign 0 to the acpi processor id of 1st CPU, it's not correct.
 
+So in this patch, check acpi_lapic too. If acpi_lapic is 0, then LAPIC in
+MADT is not available, assigne 0 to the handling acpi processor id. If
+acpi_lapic is 1, then LAPIC in MADT is available, let's get apic processor
+id from x86_cpu_to_apicid.
 
-I added the acpi_lapic in ia64. However I didn't find ia64 machine to
-test it. Could you or anyone please help test this 2 patches?
+Signed-off-by: Baoquan He <bhe@redhat.com>
+---
+ drivers/acpi/acpi_processor.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I don't know how to test UP system running SMP kernel with no LAPIC in
-MADT when it's ia64 arch. 
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index b06f5f5..bf0cce9 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -268,7 +268,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 	pr->apic_id = apic_id;
+ 
+ 	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
+-	if (!cpu0_initialized) {
++	if (!cpu0_initialized && !acpi_lapic) {
+ 		cpu0_initialized = 1;
+ 		/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+ 		if ((cpu_index == -1) && (num_online_cpus() == 1))
+-- 
+1.8.5.3
 
-Test steps for ia64 kdump:
-
-1) get a multi-cpus ia64 machine, build a upstream kernel with SMP and
-ACPI
-2)install kexec-tools, and edit /etc/sysconfig/kdump to make sure
-"nr_cpus=1" is in KDUMP_COMMANDLINE_APPEND. Then load the kdump kernel
-by below command:
-
-"kdumpctl restart" or "systemctl restart kdump"
-
-3) After kdump kernel loaded, execute below shell command. This can make
-crash happen in 2nd cpu.
-
-taskset -c 1 sh -c "echo c >/proc/sysrq-trigger"
-
-
-4) From console, below error message should not be printed any more. And
-the cpu related to 2nd lapid is present, this can be checked by console
-message and adding debugging code.
-
-"acpi LNXCPU:0a: BIOS reported wrong ACPI id 0 for the processor."
-
---------
-For x86_64, the UP test is taken by adding "disableapic nr_cpus=1" into
-cmdline of grub. The test for kdump is the same as above ia64.
-
-Thanks
-Baoquan
-
-
-On 05/05/14 at 12:48pm, Baoquan He wrote:
-> This variable was defined and assigned in x86, is used to indicate
-> whether LAPIC exists in MADT. Now introduce it into ia64 to help
-> make correct judgment when get information for acpi processor later.
-> 
-> Signed-off-by: Baoquan He <bhe@redhat.com>
-> ---
->  arch/ia64/include/asm/acpi.h | 1 +
->  arch/ia64/kernel/acpi.c      | 3 +++
->  2 files changed, 4 insertions(+)
-> 
-> diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
-> index d651102..b478219 100644
-> --- a/arch/ia64/include/asm/acpi.h
-> +++ b/arch/ia64/include/asm/acpi.h
-> @@ -85,6 +85,7 @@ ia64_acpi_release_global_lock (unsigned int *lock)
->  	((Acq) = ia64_acpi_release_global_lock(&facs->global_lock))
->  
->  #ifdef	CONFIG_ACPI
-> +extern int acpi_lapic;
->  #define acpi_disabled 0	/* ACPI always enabled on IA64 */
->  #define acpi_noirq 0	/* ACPI always enabled on IA64 */
->  #define acpi_pci_disabled 0 /* ACPI PCI always enabled on IA64 */
-> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-> index 0d407b3..615ef81 100644
-> --- a/arch/ia64/kernel/acpi.c
-> +++ b/arch/ia64/kernel/acpi.c
-> @@ -56,6 +56,7 @@
->  
->  #define PREFIX			"ACPI: "
->  
-> +int acpi_lapic;
->  unsigned int acpi_cpei_override;
->  unsigned int acpi_cpei_phys_cpuid;
->  
-> @@ -676,6 +677,8 @@ int __init early_acpi_boot_init(void)
->  	if (ret < 1)
->  		printk(KERN_ERR PREFIX
->  		       "Error parsing MADT - no LAPIC entries\n");
-> +	else
-> +		acpi_lapic = 1;
->  
->  #ifdef CONFIG_SMP
->  	if (available_cpus == 0) {
-> -- 
-> 1.8.5.3
-> 
