@@ -1,82 +1,173 @@
-From: Igor Mammedov <imammedo@redhat.com>
-Subject: Re: [PATCH v4 5/5] x86: initialize secondary CPU only if master CPU
- will wait for it
-Date: Mon, 5 May 2014 22:26:25 +0200
-Message-ID: <20140505222625.56d5751b@thinkpad>
-References: <1397488277-14865-1-git-send-email-imammedo@redhat.com>
-	<1397488277-14865-6-git-send-email-imammedo@redhat.com>
-	<1398985916.1789.75.camel@misato.fc.hp.com>
-	<20140502102120.5415bf5b@nial.usersys.redhat.com>
-	<1399042342.1789.87.camel@misato.fc.hp.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] acpi-video: Add 4 new models to the use_native_backlight
+ dmi list
+Date: Mon, 05 May 2014 10:49:01 +0200
+Message-ID: <5367507D.70600@redhat.com>
+References: <1398940879-6455-1-git-send-email-hdegoede@redhat.com> <1940276.byRRIda2Hg@vostro.rjw.lan> <53674C87.9090901@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25974 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752411AbaEEU1I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 May 2014 16:27:08 -0400
-In-Reply-To: <1399042342.1789.87.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <53674C87.9090901@intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Vincent Gerris <vgerris@gmail.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org, edm <fuffi.il.fuffo@gmail.com>, AnAkkk <anakin.cs@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
 
-On Fri, 02 May 2014 08:52:22 -0600
-Toshi Kani <toshi.kani@hp.com> wrote:
+Hi Aaron,
 
-> On Fri, 2014-05-02 at 10:21 +0200, Igor Mammedov wrote:
-> > On Thu, 01 May 2014 17:11:56 -0600
-> > Toshi Kani <toshi.kani@hp.com> wrote:
->  :
-> > > When 10s passed, the master could set a new flag, ex.
-> > > cpu_callout_error_mask, which wait_for_master_cpu() checks and call
-> > > play_dead() when it is set.  This avoids AP to spin forever when 10s
-> > > becomes not long enough.  But it does not have to be part of this
-> > > patchset, though.
-> > I'm reluctant to add another to already too many cpu_*_mask,
-> > maybe we could reuse cpu_initialized_mask by clearing it on timeout.
-> > This way AP spinning on cpu_callout_mask could notice it and halt itself.
+On 05/05/2014 10:32 AM, Aaron Lu wrote:
+> On 05/02/2014 04:16 AM, Rafael J. Wysocki wrote:
+>> On Thursday, May 01, 2014 12:41:19 PM Hans de Goede wrote:
+>>> Acer Aspire V5-171
+>>> https://bugzilla.redhat.com/show_bug.cgi?id=983342
+>>>
+>>> Acer Aspire V5-471G
+>>> Lenovo Yoga 2 11
+>>> Reported-and-tested-by: Vincent Gerris <vgerris@gmail.com>
+>>>
+>>> HP EliteBook 8470p
+>>> https://bugzilla.redhat.com/show_bug.cgi?id=1093120
+>>>
+>>> Cc: stable@vger.kernel.org
+>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>
+>> OK, I'll take this and drop commit 170269a9d3c0 for now.
 > 
-> I agree that there are too many cpu_* masks.  IMHO, these cpu rendezvous
-> masks, initialized/callout/callin, should be combined into a per-cpu
-> flag.  There is not much point of being individual masks.
+> There are two additional machines that need to go to the quirk table:
+> ThinkPad T430 and Acer Aspire 5742G, I didn't find a proper branch
+> to base the quirk patch on, is this patch going to be merged soon?
 > 
-> Anyway, I do not think cpu_initialized_mask can be reused here.
-I'll look if we could use percpu here when writing patch to halt timed-out AP.
+> BTW, Hans, it would be great if you can take the two machines into
+> your patch too(the below diff is on top of v3.15-rc4):
+
+I was just preparing a patch adding a quirk for the T530, I'll add
+these 2 to the same patch.
+
+Note my new patch applies on top of:
+acpi-video: Add 4 new models to the use_native_backlight dmi list
+acpi: mv models with win8 brightness problems from win8 blacklist to use_native_backlight
+
+Thanks & Regards,
+
+Hans
+
 
 > 
-> > It would be better to make it separate patch on top of this series,
-> > to reduce delay of bugfixes in this series.
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index b6ba88ed31ae..ddf9eeb6235b 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -459,10 +459,10 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  	},
+>  	{
+>  	 .callback = video_set_use_native_backlight,
+> -	 .ident = "ThinkPad T430s",
+> +	 .ident = "ThinkPad T430 and T430s",
+>  	 .matches = {
+>  		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430"),
+>  		},
+>  	},
+>  	{
+> @@ -571,6 +571,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8780w"),
+>  		},
+>  	},
+> +	{
+> +	.callback = video_set_use_native_backlight,
+> +	.ident = "Acer Aspire 5742G",
+> +	.matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5742G"),
+> +		},
+> +	},
+>  	{}
+>  };
+>  
+> The T430 is reported-and-tested-by: edm <fuffi.il.fuffo@gmail.com>
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+> The 5742G is reported-and-tested-by: AnAkkk <anakin.cs@gmail.com>
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=35622
 > 
-> Agreed.
-> 
-> > > 
-> > > > +	if (!boot_error) {
-> > > >  		/*
-> > > > -		 * Wait 5s total for a response
-> > > > +		 * Wait till AP completes initial initialization
-> > > 
-> > > We should generally avoid such wait w/o a timeout condition, but since
-> > > native_cpu_up() waits till cpu_online(cpu) anyway after this point, this
-> > If we don't wait here and fall through into tight loop waiting on
-> > cpu_online(cpu) in native_cpu_up() or check_tsc_sync_source() then
-> > stop_task for syncing MTTRs initiated from AP won't have a chance
-> > to run on the master CPU.
-> > 
-> > > seems OK...  I wonder if we need touch_nmi_watchdog(), though.
-> > There wasn't any touch_nmi_watchdog() in the original code and I don't
-> > think we need it here since we are not just spinning on CPU but giving
-> > control back to kernel calling schedule(), which would allow watchdog_task
-> > to do the job if needed.
-> 
-> Agreed.
+> But if you do not want to do that, feel free to let me know, I'll
+> prepare a patch then.
 > 
 > Thanks,
-> -Toshi
+> Aaron
 > 
-
-
--- 
-Regards,
-  Igor
+>>
+>> Thanks!
+>>
+>>> ---
+>>>  drivers/acpi/video.c | 32 ++++++++++++++++++++++++++++++++
+>>>  1 file changed, 32 insertions(+)
+>>>
+>>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>>> index 8b6990e..48146fc 100644
+>>> --- a/drivers/acpi/video.c
+>>> +++ b/drivers/acpi/video.c
+>>> @@ -488,6 +488,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>>>  		},
+>>>  	},
+>>>  	{
+>>> +	 .callback = video_set_use_native_backlight,
+>>> +	 .ident = "Lenovo Yoga 2 11",
+>>> +	 .matches = {
+>>> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+>>> +		DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo Yoga 2 11"),
+>>> +		},
+>>> +	},
+>>> +	{
+>>>  	.callback = video_set_use_native_backlight,
+>>>  	.ident = "Thinkpad Helix",
+>>>  	.matches = {
+>>> @@ -513,6 +521,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>>>  	},
+>>>  	{
+>>>  	 .callback = video_set_use_native_backlight,
+>>> +	 .ident = "Acer Aspire V5-171",
+>>> +	 .matches = {
+>>> +		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+>>> +		DMI_MATCH(DMI_PRODUCT_NAME, "V5-171"),
+>>> +		},
+>>> +	},
+>>> +	{
+>>> +	 .callback = video_set_use_native_backlight,
+>>>  	 .ident = "Acer Aspire V5-431",
+>>>  	 .matches = {
+>>>  		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+>>> @@ -520,6 +536,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>>>  		},
+>>>  	},
+>>>  	{
+>>> +	 .callback = video_set_use_native_backlight,
+>>> +	 .ident = "Acer Aspire V5-471G",
+>>> +	 .matches = {
+>>> +		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
+>>> +		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-471G"),
+>>> +		},
+>>> +	},
+>>> +	{
+>>>  	.callback = video_set_use_native_backlight,
+>>>  	.ident = "HP ProBook 4340s",
+>>>  	.matches = {
+>>> @@ -571,6 +595,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>>>  	},
+>>>  	{
+>>>  	.callback = video_set_use_native_backlight,
+>>> +	.ident = "HP EliteBook 8470p",
+>>> +	.matches = {
+>>> +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+>>> +		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8470p"),
+>>> +		},
+>>> +	},
+>>> +	{
+>>> +	.callback = video_set_use_native_backlight,
+>>>  	.ident = "HP EliteBook 8780w",
+>>>  	.matches = {
+>>>  		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+>>>
+>>
+> 
