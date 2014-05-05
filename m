@@ -1,44 +1,36 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v5 4/4] x86: initialize secondary CPU only if master CPU
- will wait for it
-Date: Mon, 05 May 2014 15:35:10 -0600
-Message-ID: <1399325710.1789.95.camel@misato.fc.hp.com>
-References: <1399322991-19329-1-git-send-email-imammedo@redhat.com>
-	 <1399322991-19329-5-git-send-email-imammedo@redhat.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 1/7] apei, mce: Call MCE-specific code only for X86
+ architecture.
+Date: Mon, 5 May 2014 17:33:48 +0200
+Message-ID: <20140505153348.GD4373@pd.tnic>
+References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
+ <1397056476-9183-2-git-send-email-tomasz.nowicki@linaro.org>
+ <20140505114445.GB4373@pd.tnic>
+ <5367A181.3060300@linaro.org>
+ <20140505145331.GC4373@pd.tnic>
+ <5367AEF7.40804@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1399322991-19329-5-git-send-email-imammedo@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <5367AEF7.40804@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Igor Mammedov <imammedo@redhat.com>
-Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2014-05-05 at 22:49 +0200, Igor Mammedov wrote:
-> Hang is observed on virtual machines during CPU hotplug,
-> especially in big guests with many CPUs. (It reproducible
-> more often if host is over-committed).
-> 
-> It happens because master CPU gives up waiting on
-> secondary CPU and allows it to run wild. As result
-> AP causes locking or crashing system. For example
-> as described here: https://lkml.org/lkml/2014/3/6/257
-> 
-> If master CPU have sent STARTUP IPI successfully,
-> and AP signalled to master CPU that it's ready
-> to start initialization, make master CPU wait
-> indefinitely till AP is onlined.
-> To ensure that AP won't ever run wild, make it
-> wait at early startup till master CPU confirms its
-> intention to wait for AP. If AP doesn't respond in 10
-> seconds, the master CPU will timeout and cancel
-> AP onlining.
-> 
-> Signed-off-by: Igor Mammedov <imammedo@redhat.com>
+On Mon, May 05, 2014 at 05:32:07PM +0200, Tomasz Nowicki wrote:
+> You are right! I will fix that big misunderstanding from my side in
+> next patch version.
 
-Thanks for the update.
+Ok, but pls wait with resubmitting until I take a look at the rest of
+your patches.
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+Thanks.
 
--Toshi
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
