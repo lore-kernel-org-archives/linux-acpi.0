@@ -1,107 +1,98 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 1/7] apei, mce: Call MCE-specific code only for X86
- architecture.
-Date: Mon, 5 May 2014 13:44:45 +0200
-Message-ID: <20140505114445.GB4373@pd.tnic>
-References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
- <1397056476-9183-2-git-send-email-tomasz.nowicki@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:50029 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756180AbaEELos (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 May 2014 07:44:48 -0400
-Content-Disposition: inline
-In-Reply-To: <1397056476-9183-2-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Igor Mammedov <imammedo@redhat.com>
+Subject: [PATCH v5 1/4] x86: fix list/memory corruption on CPU hotplug
+Date: Mon,  5 May 2014 22:49:48 +0200
+Message-ID: <1399322991-19329-2-git-send-email-imammedo@redhat.com>
+References: <1399322991-19329-1-git-send-email-imammedo@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1399322991-19329-1-git-send-email-imammedo@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, imammedo@redhat.com, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Wed, Apr 09, 2014 at 05:14:29PM +0200, Tomasz Nowicki wrote:
-> This commit is dealing with MCE code in:
-> - hest.c
-> Move acpi_disable_cmcff flag to hest_parse_cmc() and makes
-> that depend on CONFIG_X86_MCE so that we do not have to maintain
-> acpi_disable_cmcff for architectures which do not support MCE.
-> Also, wrap architectural MCE header inside #ifdef CONFIG_X86_MCE.
-> 
-> - ghes.c
-> Wrap architectural MCE header inside #ifdef CONFIG_X86_MCE similar to rest
-> of the MCE code in this file.
-> 
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> ---
->  drivers/acpi/apei/ghes.c |    2 ++
->  drivers/acpi/apei/hest.c |    8 ++++++--
->  2 files changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index dab7cb7..f7edffc 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -49,7 +49,9 @@
->  #include <linux/aer.h>
->  
->  #include <acpi/ghes.h>
-> +#ifdef CONFIG_X86_MCE
->  #include <asm/mce.h>
-> +#endif
->  #include <asm/tlbflush.h>
->  #include <asm/nmi.h>
->  
-> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-> index f5e37f3..98db702 100644
-> --- a/drivers/acpi/apei/hest.c
-> +++ b/drivers/acpi/apei/hest.c
-> @@ -36,7 +36,9 @@
->  #include <linux/io.h>
->  #include <linux/platform_device.h>
->  #include <acpi/apei.h>
-> +#ifdef CONFIG_X86_MCE
->  #include <asm/mce.h>
-> +#endif
+currently if AP wake up is failed, master CPU marks AP as not present
+in do_boot_cpu() by calling set_cpu_present(cpu, false).
+That leads to following list corruption on the next physical CPU
+hotplug:
 
-Actually, I would prefer if you wrapped all the arch-specific calls into
-arch-specific functions, say, convert
+[  418.107336] WARNING: CPU: 1 PID: 45 at lib/list_debug.c:33 __list_add+0xbe/0xd0()
+[  418.115268] list_add corruption. prev->next should be next (ffff88003dc57600), but was ffff88003e20c3a0. (prev=ffff88003e20c3a0).
+[  418.123693] Modules linked in: nf_conntrack_netbios_ns nf_conntrack_broadcast ipt_MASQUERADE ip6t_REJECT ipt_REJECT cfg80211 xt_conntrack rfkill ee
+[  418.138979] CPU: 1 PID: 45 Comm: kworker/u10:1 Not tainted 3.14.0-rc6+ #387
+[  418.149989] Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2007
+[  418.165750] Workqueue: kacpi_hotplug acpi_hotplug_work_fn
+[  418.166433]  0000000000000021 ffff880038ca7988 ffffffff8159b22d 0000000000000021
+[  418.176460]  ffff880038ca79d8 ffff880038ca79c8 ffffffff8106942c ffff880038ca79e8
+[  418.177453]  ffff88003e20c3a0 ffff88003dc57600 ffff88003e20c3a0 00000000ffffffea
+[  418.178445] Call Trace:
+[  418.185811]  [<ffffffff8159b22d>] dump_stack+0x49/0x5c
+[  418.186440]  [<ffffffff8106942c>] warn_slowpath_common+0x8c/0xc0
+[  418.187192]  [<ffffffff81069516>] warn_slowpath_fmt+0x46/0x50
+[  418.191231]  [<ffffffff8136ef51>] ? acpi_ns_get_node+0xb7/0xc7
+[  418.193889]  [<ffffffff812f796e>] __list_add+0xbe/0xd0
+[  418.196649]  [<ffffffff812e2aa9>] kobject_add_internal+0x79/0x200
+[  418.208610]  [<ffffffff812e2e18>] kobject_add_varg+0x38/0x60
+[  418.213831]  [<ffffffff812e2ef4>] kobject_add+0x44/0x70
+[  418.229961]  [<ffffffff813e2c60>] device_add+0xd0/0x550
+[  418.234991]  [<ffffffff813f0e95>] ? pm_runtime_init+0xe5/0xf0
+[  418.250226]  [<ffffffff813e32be>] device_register+0x1e/0x30
+[  418.255296]  [<ffffffff813e82a3>] register_cpu+0xe3/0x130
+[  418.266539]  [<ffffffff81592be5>] arch_register_cpu+0x65/0x150
+[  418.285845]  [<ffffffff81355c0d>] acpi_processor_hotadd_init+0x5a/0x9b
+...
+Which is caused by the fact that generic_processor_info() allocates
+logical CPU id by calling:
 
-apei_mce_report_mem_error -> apei_arch_report_mem_error
+ cpu = cpumask_next_zero(-1, cpu_present_mask);
 
-and have default empty functions for arches which don't use that
-functionality.
+which returns id of previously failed to wake up CPU, since its bit
+is cleared by do_boot_cpu() and as result register_cpu() tries to
+register another CPU with the same id as already present but failed
+to be onlined CPU.
 
-This way you can save yourself the ugly ifdeffery around the place.
+Taking in account that AP will not do anything if master CPU failed to
+wake it up, there is no reason to mark that AP as not present and
+break next cpu hotplug attempts. As a side effect of not marking AP
+as not present, user would be allowed to online it again later.
 
->  
->  #include "apei-internal.h"
->  
-> @@ -133,6 +135,9 @@ static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
->  	struct acpi_hest_ia_corrected *cmc;
->  	struct acpi_hest_ia_error_bank *mc_bank;
->  
-> +	if (acpi_disable_cmcff)
-> +		return 1;
-
-This could be
-
-	if (arch_disable_cmcff())
-		return 1;
-
-with the default stub being
-
-static inline bool arch_disable_cmcff(void)
-{
-	return false;
-}
-
-and so on, like it is done in many other places in the kernel.
-
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
 --
+Also fix memory corruption in acpi_unmap_lsapic()
+
+if during CPU hotplug master CPU failed to wake up AP
+it set percpu x86_cpu_to_apicid to BAD_APICID=0xFFFF for AP.
+
+However following attempt to unplug that CPU will lead to
+out of bound write access to __apicid_to_node[] which is
+32768 items long on x86_64 kernel.
+
+So with above fix of cpu_present_mask make sure that a present
+CPU has a valid APIC ID by not setting x86_cpu_to_apicid
+to BAD_APICID in do_boot_cpu() on failure and allow
+acpi_processor_remove()->acpi_unmap_lsapic() cleanly remove CPU.
+
+Signed-off-by: Igor Mammedov <imammedo@redhat.com>
+Acked-by: Toshi Kani <toshi.kani@hp.com>
+---
+v2:
+ - squash "[v4 2/5] x86: fix memory corruption in acpi_unmap_lsapic()"
+   into "[v4 1/5]  x86: fix list corruption on CPU hotplug"
+---
+ arch/x86/kernel/smpboot.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
+
+diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
+index 3482693..2988f69 100644
+--- a/arch/x86/kernel/smpboot.c
++++ b/arch/x86/kernel/smpboot.c
+@@ -859,9 +859,6 @@ static int do_boot_cpu(int apicid, int cpu, struct task_struct *idle)
+ 
+ 		/* was set by cpu_init() */
+ 		cpumask_clear_cpu(cpu, cpu_initialized_mask);
+-
+-		set_cpu_present(cpu, false);
+-		per_cpu(x86_cpu_to_apicid, cpu) = BAD_APICID;
+ 	}
+ 
+ 	/* mark "stuck" area as not stuck */
+-- 
+1.7.1
