@@ -1,110 +1,57 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH 1/7] apei, mce: Call MCE-specific code only for X86 architecture.
-Date: Mon, 05 May 2014 16:34:41 +0200
-Message-ID: <5367A181.3060300@linaro.org>
-References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org> <1397056476-9183-2-git-send-email-tomasz.nowicki@linaro.org> <20140505114445.GB4373@pd.tnic>
+From: Josh Boyer <jwboyer@fedoraproject.org>
+Subject: Re: [PATCH 20/27] ACPICA: Tables: Fix invalid pointer accesses in acpi_tb_parse_root_table().
+Date: Mon, 5 May 2014 08:42:46 -0400
+Message-ID: <CA+5PVA58527N76yJ8yNZPAbOz6YepR3RHXtjaV6t0i1nCYwcXg@mail.gmail.com>
+References: <cover.1398817612.git.lv.zheng@intel.com>
+	<c226eed72699ee1934426074b9d1c902ccfa0b48.1398817612.git.lv.zheng@intel.com>
+	<CA+5PVA58OC2dbk5oqTSQjOsCVzYfF+8nfat1Nbd2cCRTxbn5Pg@mail.gmail.com>
+	<1717964.6jLQaaky5K@vostro.rjw.lan>
+	<1AE640813FDE7649BE1B193DEA596E8802559B1C@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:60335 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932741AbaEEOe1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2014 10:34:27 -0400
-Received: by mail-ee0-f53.google.com with SMTP id b15so4361205eek.12
-        for <linux-acpi@vger.kernel.org>; Mon, 05 May 2014 07:34:26 -0700 (PDT)
-In-Reply-To: <20140505114445.GB4373@pd.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802559B1C@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <zetalog@gmail.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 05.05.2014 13:44, Borislav Petkov wrote:
-> On Wed, Apr 09, 2014 at 05:14:29PM +0200, Tomasz Nowicki wrote:
->> This commit is dealing with MCE code in:
->> - hest.c
->> Move acpi_disable_cmcff flag to hest_parse_cmc() and makes
->> that depend on CONFIG_X86_MCE so that we do not have to maintain
->> acpi_disable_cmcff for architectures which do not support MCE.
->> Also, wrap architectural MCE header inside #ifdef CONFIG_X86_MCE.
->>
->> - ghes.c
->> Wrap architectural MCE header inside #ifdef CONFIG_X86_MCE similar to rest
->> of the MCE code in this file.
->>
->> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->> ---
->>   drivers/acpi/apei/ghes.c |    2 ++
->>   drivers/acpi/apei/hest.c |    8 ++++++--
->>   2 files changed, 8 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->> index dab7cb7..f7edffc 100644
->> --- a/drivers/acpi/apei/ghes.c
->> +++ b/drivers/acpi/apei/ghes.c
->> @@ -49,7 +49,9 @@
->>   #include <linux/aer.h>
->>
->>   #include <acpi/ghes.h>
->> +#ifdef CONFIG_X86_MCE
->>   #include <asm/mce.h>
->> +#endif
->>   #include <asm/tlbflush.h>
->>   #include <asm/nmi.h>
->>
->> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
->> index f5e37f3..98db702 100644
->> --- a/drivers/acpi/apei/hest.c
->> +++ b/drivers/acpi/apei/hest.c
->> @@ -36,7 +36,9 @@
->>   #include <linux/io.h>
->>   #include <linux/platform_device.h>
->>   #include <acpi/apei.h>
->> +#ifdef CONFIG_X86_MCE
->>   #include <asm/mce.h>
->> +#endif
+On Mon, May 5, 2014 at 12:23 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> Hi, Rafael
 >
-> Actually, I would prefer if you wrapped all the arch-specific calls into
-> arch-specific functions, say, convert
+>> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
+>> Sent: Monday, May 05, 2014 8:43 AM
+>>
+>> On Saturday, May 03, 2014 08:59:14 AM Josh Boyer wrote:
+>> > On Tue, Apr 29, 2014 at 10:05 PM, Lv Zheng <lv.zheng@intel.com> wrote:
+>> > > The commit of back porting Linux XSDT validation mechanism has introduced
+>> > > a regreession:
+>> > >   Commit: 671cc68dc61f029d44b43a681356078e02d8dab8
+>> > >   Subject: ACPICA: Back port and refine validation of the XSDT root table.
+>> > > There is a pointer still accessed after unmapping.
+>> > >
+>> > > This patch fixes this issue.  Lv Zheng.
+>> > >
+>> > > Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=73911
+>> > > Buglink: https://bugs.archlinux.org/task/39811
+>> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+>> > > Reported-and-tested-by: Bruce Chiarelli <mano155@gmail.com>
+>> > > Reported-and-tested-by: Spyros Stathopoulos <spystath@gmail.com>
+>> > > Signed-off-by: Bob Moore <robert.moore@intel.com>
+>> > > Cc: <stable@vger.kernel.org> # 3.14.x: 671cc68: ACPICA: Back port and refine validation of the XSDT root table.
+>> >
+>> > This patch should get into 3.15-rcX soon.  It fixes a known regression
+>> > that prevents booting on machines with AMI firmware, and that is
+>> > present in 3.14 so we need it for stable as well.  Rafael?
+>>
+>> Lv, is it safe to take this patch alone into 3.15-rc?
 >
-> apei_mce_report_mem_error -> apei_arch_report_mem_error
->
-> and have default empty functions for arches which don't use that
-> functionality.
->
-> This way you can save yourself the ugly ifdeffery around the place.
->
-True, this can be improved as you suggested.
+> Yes, it's safe to only take this patch to be a regression fix.
 
->>
->>   #include "apei-internal.h"
->>
->> @@ -133,6 +135,9 @@ static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
->>   	struct acpi_hest_ia_corrected *cmc;
->>   	struct acpi_hest_ia_error_bank *mc_bank;
->>
->> +	if (acpi_disable_cmcff)
->> +		return 1;
->
-> This could be
->
-> 	if (arch_disable_cmcff())
-> 		return 1;
->
-> with the default stub being
->
-> static inline bool arch_disable_cmcff(void)
-> {
-> 	return false;
-> }
->
-> and so on, like it is done in many other places in the kernel.
+FWIW, Fedora is carrying this on top of 3.14.2 already, and people
+with the impacted machines say it's working for them.  So I agree it
+should be safe.
 
-acpi_disable_cmcff as global value can switch off/on MC entries 
-analysing via kernel args. This glob value resides in x86 ACPI code and 
-has meaning only for MCE related mechanism, that is why I have moved it 
-under hest_parse_cmc.
+Thanks to the both of you.
 
-Thanks.
-
-Tomasz
+josh
