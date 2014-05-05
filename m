@@ -1,108 +1,30 @@
-From: Lan Tianyu <lantianyu1986@gmail.com>
-Subject: Re: [PATCH] ACPI / AC: Introduce the use of the managed version of kzalloc
-Date: Mon, 5 May 2014 11:30:49 +0800
-Message-ID: <CAOLK0pySpeXvnjikaMTugiM-9cLfPsKayUW3us+x4bmf6OBoKg@mail.gmail.com>
-References: <20140504123520.GA16892@himangi-Dell>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 1/7] apei, mce: Call MCE-specific code only for X86 architecture.
+Date: Mon, 05 May 2014 17:36:48 +0200
+Message-ID: <5367B010.9060506@linaro.org>
+References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org> <1397056476-9183-2-git-send-email-tomasz.nowicki@linaro.org> <20140505114445.GB4373@pd.tnic> <5367A181.3060300@linaro.org> <20140505145331.GC4373@pd.tnic> <5367AEF7.40804@linaro.org> <20140505153348.GD4373@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qg0-f52.google.com ([209.85.192.52]:52082 "EHLO
-	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754252AbaEEDat (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 May 2014 23:30:49 -0400
-In-Reply-To: <20140504123520.GA16892@himangi-Dell>
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:60112 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753530AbaEEPge (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2014 11:36:34 -0400
+Received: by mail-ee0-f43.google.com with SMTP id d17so885571eek.30
+        for <linux-acpi@vger.kernel.org>; Mon, 05 May 2014 08:36:32 -0700 (PDT)
+In-Reply-To: <20140505153348.GD4373@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Himangi Saraogi <himangi774@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>
+To: Borislav Petkov <bp@alien8.de>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-2014-05-04 20:35 GMT+08:00 Himangi Saraogi <himangi774@gmail.com>:
-> This patch moves data allocated using kzalloc to managed data allocated
-> using devm_kzalloc and cleans now unnecessary kfrees in probe and remove
-> functions.
+On 05.05.2014 17:33, Borislav Petkov wrote:
+> On Mon, May 05, 2014 at 05:32:07PM +0200, Tomasz Nowicki wrote:
+>> You are right! I will fix that big misunderstanding from my side in
+>> next patch version.
+>
+> Ok, but pls wait with resubmitting until I take a look at the rest of
+> your patches.
 
-Acked-by: Lan Tianyu <tianyu.lan@intel.com>
-
->
-> The following Coccinelle semantic patch was used for making the change:
-> @platform@
-> identifier p, probefn, removefn;
-> @@
-> struct platform_driver p = {
->   .probe = probefn,
->   .remove = removefn,
-> };
->
-> @prb@
-> identifier platform.probefn, pdev;
-> expression e, e1, e2;
-> @@
-> probefn(struct platform_device *pdev, ...) {
->   <+...
-> - e = kzalloc(e1, e2)
-> + e = devm_kzalloc(&pdev->dev, e1, e2)
->   ...
-> ?-kfree(e);
->   ...+>
-> }
->
-> @rem depends on prb@
-> identifier platform.removefn;
-> expression e;
-> @@
-> removefn(...) {
->   <...
-> - kfree(e);
->   ...>
-> }
->
-> Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
-> ---
->  drivers/acpi/ac.c | 7 +------
->  1 file changed, 1 insertion(+), 6 deletions(-)
->
-> diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-> index 2c01c1d..98b613a 100644
-> --- a/drivers/acpi/ac.c
-> +++ b/drivers/acpi/ac.c
-> @@ -205,7 +205,7 @@ static int acpi_ac_probe(struct platform_device *pdev)
->         if (!adev)
->                 return -ENODEV;
->
-> -       ac = kzalloc(sizeof(struct acpi_ac), GFP_KERNEL);
-> +       ac = devm_kzalloc(&pdev->dev, sizeof(struct acpi_ac), GFP_KERNEL);
->         if (!ac)
->                 return -ENOMEM;
->
-> @@ -240,9 +240,6 @@ static int acpi_ac_probe(struct platform_device *pdev)
->         ac->battery_nb.notifier_call = acpi_ac_battery_notify;
->         register_acpi_notifier(&ac->battery_nb);
->  end:
-> -       if (result)
-> -               kfree(ac);
-> -
->         dmi_check_system(ac_dmi_table);
->         return result;
->  }
-> @@ -287,8 +284,6 @@ static int acpi_ac_remove(struct platform_device *pdev)
->                 power_supply_unregister(&ac->charger);
->         unregister_acpi_notifier(&ac->battery_nb);
->
-> -       kfree(ac);
-> -
->         return 0;
->  }
->
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
--- 
-Best regards
-Tianyu Lan
+Sure, I will.
