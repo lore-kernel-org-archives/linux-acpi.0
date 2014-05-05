@@ -1,161 +1,61 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] acpi-video: Add 4 new models to the use_native_backlight
- dmi list
-Date: Mon, 05 May 2014 16:32:07 +0800
-Message-ID: <53674C87.9090901@intel.com>
-References: <1398940879-6455-1-git-send-email-hdegoede@redhat.com> <1940276.byRRIda2Hg@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 3/3] acpi-video: change acpi-video brightness_switch_enabled default to 0
+Date: Mon,  5 May 2014 11:38:10 +0200
+Message-ID: <1399282690-5381-3-git-send-email-hdegoede@redhat.com>
+References: <1399282690-5381-1-git-send-email-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:7992 "EHLO mga09.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:25366 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754899AbaEEIbR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 May 2014 04:31:17 -0400
-In-Reply-To: <1940276.byRRIda2Hg@vostro.rjw.lan>
+	id S1755620AbaEEJia (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 May 2014 05:38:30 -0400
+In-Reply-To: <1399282690-5381-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hans de Goede <hdegoede@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Vincent Gerris <vgerris@gmail.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org, edm <fuffi.il.fuffo@gmail.com>, AnAkkk <anakin.cs@gmail.com>
+To: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Aaron Lu <aaron.lu@intel.com>, edm <fuffi.il.fuffo@gmail.com>, Balint Szigeti <balint.szgt@gmail.com>, AnAkkk <anakin.cs@gmail.com>, lou.cardone@gmail.com, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 
-On 05/02/2014 04:16 AM, Rafael J. Wysocki wrote:
-> On Thursday, May 01, 2014 12:41:19 PM Hans de Goede wrote:
->> Acer Aspire V5-171
->> https://bugzilla.redhat.com/show_bug.cgi?id=983342
->>
->> Acer Aspire V5-471G
->> Lenovo Yoga 2 11
->> Reported-and-tested-by: Vincent Gerris <vgerris@gmail.com>
->>
->> HP EliteBook 8470p
->> https://bugzilla.redhat.com/show_bug.cgi?id=1093120
->>
->> Cc: stable@vger.kernel.org
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> 
-> OK, I'll take this and drop commit 170269a9d3c0 for now.
+acpi-video is unique in that it not only generates brightness up/down
+keypresses, but also (sometimes) actively changes the brightness itself.
 
-There are two additional machines that need to go to the quirk table:
-ThinkPad T430 and Acer Aspire 5742G, I didn't find a proper branch
-to base the quirk patch on, is this patch going to be merged soon?
+This presents an inconsistent kernel interface to userspace, basically there
+are 2 different scenarios, depending on the laptop model:
 
-BTW, Hans, it would be great if you can take the two machines into
-your patch too(the below diff is on top of v3.15-rc4):
+1) On some laptops a brightness up/down keypress means: show a brightness osd
+with the current brightness, iow it is a brightness has changed notification.
+
+2) Where as on (a lot of) other laptops it means a brightness up/down key was
+pressed, deal with it.
+
+Most of the desktop environments interpret any press as in scenario 2, and
+change the brightness up / down as a response to the key events, causing it
+to be changed twice, once by acpi-video and once by the DE.
+
+With the new default for video.use_native_backlight we will be moving even
+more laptops over to behaving as in scenario 2. Making the remaining laptops
+even more of a weird exception. Also note that it is hard to detect scenario
+1 properly in userspace, and AFAIK none of the DE-s deals with it.
+
+Therefor this commit changes the default of brightness_switch_enabled to 0
+making its behavior consistent with all the other backlight drivers.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index b6ba88ed31ae..ddf9eeb6235b 100644
+index cebc74d..34198b2 100644
 --- a/drivers/acpi/video.c
 +++ b/drivers/acpi/video.c
-@@ -459,10 +459,10 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 	},
- 	{
- 	 .callback = video_set_use_native_backlight,
--	 .ident = "ThinkPad T430s",
-+	 .ident = "ThinkPad T430 and T430s",
- 	 .matches = {
- 		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430"),
- 		},
- 	},
- 	{
-@@ -571,6 +571,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8780w"),
- 		},
- 	},
-+	{
-+	.callback = video_set_use_native_backlight,
-+	.ident = "Acer Aspire 5742G",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5742G"),
-+		},
-+	},
- 	{}
- };
+@@ -68,7 +68,7 @@ MODULE_AUTHOR("Bruno Ducrot");
+ MODULE_DESCRIPTION("ACPI Video Driver");
+ MODULE_LICENSE("GPL");
  
-The T430 is reported-and-tested-by: edm <fuffi.il.fuffo@gmail.com>
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=51231
-The 5742G is reported-and-tested-by: AnAkkk <anakin.cs@gmail.com>
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=35622
-
-But if you do not want to do that, feel free to let me know, I'll
-prepare a patch then.
-
-Thanks,
-Aaron
-
-> 
-> Thanks!
-> 
->> ---
->>  drivers/acpi/video.c | 32 ++++++++++++++++++++++++++++++++
->>  1 file changed, 32 insertions(+)
->>
->> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
->> index 8b6990e..48146fc 100644
->> --- a/drivers/acpi/video.c
->> +++ b/drivers/acpi/video.c
->> @@ -488,6 +488,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->>  		},
->>  	},
->>  	{
->> +	 .callback = video_set_use_native_backlight,
->> +	 .ident = "Lenovo Yoga 2 11",
->> +	 .matches = {
->> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
->> +		DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo Yoga 2 11"),
->> +		},
->> +	},
->> +	{
->>  	.callback = video_set_use_native_backlight,
->>  	.ident = "Thinkpad Helix",
->>  	.matches = {
->> @@ -513,6 +521,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->>  	},
->>  	{
->>  	 .callback = video_set_use_native_backlight,
->> +	 .ident = "Acer Aspire V5-171",
->> +	 .matches = {
->> +		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
->> +		DMI_MATCH(DMI_PRODUCT_NAME, "V5-171"),
->> +		},
->> +	},
->> +	{
->> +	 .callback = video_set_use_native_backlight,
->>  	 .ident = "Acer Aspire V5-431",
->>  	 .matches = {
->>  		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
->> @@ -520,6 +536,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->>  		},
->>  	},
->>  	{
->> +	 .callback = video_set_use_native_backlight,
->> +	 .ident = "Acer Aspire V5-471G",
->> +	 .matches = {
->> +		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
->> +		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-471G"),
->> +		},
->> +	},
->> +	{
->>  	.callback = video_set_use_native_backlight,
->>  	.ident = "HP ProBook 4340s",
->>  	.matches = {
->> @@ -571,6 +595,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->>  	},
->>  	{
->>  	.callback = video_set_use_native_backlight,
->> +	.ident = "HP EliteBook 8470p",
->> +	.matches = {
->> +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
->> +		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8470p"),
->> +		},
->> +	},
->> +	{
->> +	.callback = video_set_use_native_backlight,
->>  	.ident = "HP EliteBook 8780w",
->>  	.matches = {
->>  		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
->>
-> 
+-static bool brightness_switch_enabled = 1;
++static bool brightness_switch_enabled;
+ module_param(brightness_switch_enabled, bool, 0644);
+ 
+ /*
+-- 
+1.9.0
 
