@@ -1,71 +1,41 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch Part3 V1 17/22] pci, ACPI, iommu: enhance pci_root to
- support DMAR device hotplug
-Date: Mon, 05 May 2014 16:22:48 +0800
-Message-ID: <53674A58.3050702@linux.intel.com>
-References: <1398150453-28141-1-git-send-email-jiang.liu@linux.intel.com> <1398150453-28141-18-git-send-email-jiang.liu@linux.intel.com> <20140424173348.GC29593@google.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 1/7] apei, mce: Call MCE-specific code only for X86 architecture.
+Date: Mon, 05 May 2014 17:32:07 +0200
+Message-ID: <5367AEF7.40804@linaro.org>
+References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org> <1397056476-9183-2-git-send-email-tomasz.nowicki@linaro.org> <20140505114445.GB4373@pd.tnic> <5367A181.3060300@linaro.org> <20140505145331.GC4373@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:54639 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754778AbaEEIWx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 May 2014 04:22:53 -0400
-In-Reply-To: <20140424173348.GC29593@google.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140505145331.GC4373@pd.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Ashok Raj <ashok.raj@intel.com>, Yijing Wang <wangyijing@huawei.com>, Tony Luck <tony.luck@intel.com>, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-acpi@vger.kernel.org
 
+On 05.05.2014 16:53, Borislav Petkov wrote:
+> On Mon, May 05, 2014 at 04:34:41PM +0200, Tomasz Nowicki wrote:
+>> acpi_disable_cmcff as global value can switch off/on MC entries
+>> analysing via kernel args.
+>
+> No, it switches off firmware first mode for correctable errors because
+> of buggy BIOSes - 9ad95879cd1b2 (what else...)
+>
+>> This glob value resides in x86 ACPI code and has meaning only for MCE
+>> related mechanism,
+>
+> Of course it doesn't!
+>
+>> that is why I have moved it under hest_parse_cmc.
+>
+> See APEI section in the ACPI spec "18.4 Firmware First Error Handling."
+>
+> Regardless of what your version of APEI does, you actually shouldn't
+> need to touch acpi_disable_cmcff at all as it not arch-specific.
+>
 
+You are right! I will fix that big misunderstanding from my side in next 
+patch version.
 
-On 2014/4/25 1:33, Bjorn Helgaas wrote:
-> On Tue, Apr 22, 2014 at 03:07:28PM +0800, Jiang Liu wrote:
->> Finally enhance pci_root driver to support DMAR device hotplug when
->> hot-plugging PCI host bridges.
->>
->> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->> ---
->>  drivers/acpi/pci_root.c |   16 ++++++++++++++--
->>  1 file changed, 14 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->> index d388f13d48b4..aa8f549869f3 100644
->> --- a/drivers/acpi/pci_root.c
->> +++ b/drivers/acpi/pci_root.c
->> @@ -33,6 +33,7 @@
->>  #include <linux/pci.h>
->>  #include <linux/pci-acpi.h>
->>  #include <linux/pci-aspm.h>
->> +#include <linux/dmar.h>
->>  #include <linux/acpi.h>
->>  #include <linux/slab.h>
->>  #include <acpi/apei.h>	/* for acpi_hest_init() */
->> @@ -511,6 +512,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
->>  	struct acpi_pci_root *root;
->>  	acpi_handle handle = device->handle;
->>  	int no_aspm = 0, clear_aspm = 0;
->> +	bool hotadd = (system_state != SYSTEM_BOOTING);
->>  
->>  	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
->>  	if (!root)
->> @@ -557,6 +559,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
->>  	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
->>  	device->driver_data = root;
->>  
->> +	if (hotadd && dmar_device_hotplug(handle, true)) {
-> 
-> Apparently "dmar_device_hotplug(handle, true)" means "add a DMAR device,"
-> and "dmar_device_hotplug(device->handle, false)" means "remove a DMAR
-> device."  I'm not really a fan of interfaces where one of the arguments
-> selects between two completely different actions, because it's harder for a
-> casual reader to see what's going on.
-> 
-> I see how it simplifies your implementation a little bit, but I think it's
-> more important to simplify for the reader.
-Thanks Bjorn, I will rename it to dmar_device_add/remove() instead.
-
-> 
-> Bjorn
-> 
+Thanks,
+Tomasz
