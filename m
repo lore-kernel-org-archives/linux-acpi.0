@@ -1,36 +1,97 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 1/7] apei, mce: Call MCE-specific code only for X86
- architecture.
-Date: Mon, 5 May 2014 17:33:48 +0200
-Message-ID: <20140505153348.GD4373@pd.tnic>
-References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
- <1397056476-9183-2-git-send-email-tomasz.nowicki@linaro.org>
- <20140505114445.GB4373@pd.tnic>
- <5367A181.3060300@linaro.org>
- <20140505145331.GC4373@pd.tnic>
- <5367AEF7.40804@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v3 part1 08/11] ARM64 / ACPI: Introduce PCI functions
+ for ACPI on ARM64
+Date: Mon, 05 May 2014 16:35:46 +0800
+Message-ID: <53674D62.5020004@linaro.org>
+References: <1398432017-8506-1-git-send-email-hanjun.guo@linaro.org> <201404281549.50738.arnd@arndb.de> <535F6675.1060109@linaro.org> <8888740.lgd2Xkrtad@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5367AEF7.40804@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f50.google.com ([209.85.219.50]:46722 "EHLO
+	mail-oa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754859AbaEEIgT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2014 04:36:19 -0400
+Received: by mail-oa0-f50.google.com with SMTP id i7so2034485oag.37
+        for <linux-acpi@vger.kernel.org>; Mon, 05 May 2014 01:36:19 -0700 (PDT)
+In-Reply-To: <8888740.lgd2Xkrtad@wuerfel>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linaro-acpi@lists.linaro.org, Rob Herring <robh@kernel.org>, Mark Brown <broonie@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Olof Johansson <olof@lixom.net>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, May 05, 2014 at 05:32:07PM +0200, Tomasz Nowicki wrote:
-> You are right! I will fix that big misunderstanding from my side in
-> next patch version.
+Hi Arnd, Rafael,
 
-Ok, but pls wait with resubmitting until I take a look at the rest of
-your patches.
+Sorry for the late reply, I was on holidays...
 
-Thanks.
+I send this email directed to Rafael to ask for help, please
+refer to the comments below.
 
--- 
-Regards/Gruss,
-    Boris.
+On 2014-4-29 18:01, Arnd Bergmann wrote:
+[...]
+>>> For raw_pci_{read,write} we can have a trivial generic implementation in
+>>> the PCI core, like
+>>>
+>>> int __weak raw_pci_read(unsigned int domain, unsigned int bus,
+>>> 		  unsigned int devfn, int reg, int len, u32 *val)
+>>> {
+>>> 	struct pci_bus *bus = pci_find_bus(domain, bus);
+>>> 	if (!bus)
+>>> 		return -ENODEV;
+>>>
+>>> 	return bus->ops->read(bus, devfn, reg, len, val);
+>>> }
+>>>
+>>> which won't work on x86 or ia64, but should be fine everywhere else. Alternatively,
+>>> you can change the ACPI code to do the above manually and call the architecture
+>>> independent interfaces, either bus->ops->read, or pci_bus_read_config_{byte,word,dword},
+>>> which would actually simplify the ACPI code.
+>>
+>> This may not work. ACPI needs to be able to access PCI config space before
+>> we've done a PCI bus scan and created pci_bus structures, so the pointer
+>> of bus will be NULL.
+> 
+> Hmm, this is a serious issue, and I don't have a good idea for how
+> to solve it yet, we need to discuss it some more I think.
+> 
+> We are currently working on generic PCI support for ARM64 with DT, which
+> will be based around the concept that all PCI host drivers can be loadable
+> modules, and each host driver would supply its own config space access
+> method.
 
-Sent from a fat crate under my desk. Formatting is fine.
---
+this will be the problem, ACPI may access config space before modules are
+loaded.
+
+> 
+> With ACPI, we probably don't need the flexibility, because hopefully all
+> PCI host bridges will be SBSA compliant and have a regular ECAM config
+> space implementation (as opposed to the proprietary methods used by
+> e.g. APM X-Gene, Samsung GH7 or everything we have on ARM32).
+> 
+> If we can rely on always having ECAM support available, it would be
+> easy enough to add an implementation of that specifically for ACPI,
+> outside of the architecture code or the PCI core, or we could have
+> a global implementation of that, which gets used by both ACPI and
+> the compliant PCI host bridge drivers and can be built-in even for
+> loadable host drivers.
+> 
+> Alternatively, you could try to see if it's possible to defer the PCI
+> access to the time the host driver is loaded. Do you know what the access
+> to config space is actually needed for?
+
+There is a statement in ACPI 5.0a spec:
+OSPM must guarantee that the following operation regions must always be
+accessible (which means even before the driver is ready):
+PCI_Config operation regions on a PCI root bus containing a _BBN object.
+(invoke _BBN method will return PCI bus number)
+
+And raw_pci_{read,write} will be called in ACPICA to access the PCI_Config
+to get some information, so theoretic any device defined in DSDT with
+PCI_Config operation region which be enumerated before PCI host bridge will
+access config space before the PCI bus scan.
+
+But I haven't find any specific example, I must missed something, Rafael,
+could you please comment this?
+
+Thanks
+Hanjun
