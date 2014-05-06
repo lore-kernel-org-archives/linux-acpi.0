@@ -1,58 +1,59 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH] ACPI / PCI: Stub out pci_acpi_crs_quirks() and make it x86 specific
-Date: Tue,  6 May 2014 11:24:30 +0800
-Message-ID: <1399346670-6525-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:33735 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933794AbaEFDZb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 May 2014 23:25:31 -0400
-Received: by mail-pd0-f176.google.com with SMTP id y13so6578023pdi.21
-        for <linux-acpi@vger.kernel.org>; Mon, 05 May 2014 20:25:30 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 20/27] ACPICA: Tables: Fix invalid pointer accesses in acpi_tb_parse_root_table().
+Date: Tue, 06 May 2014 02:43:44 +0200
+Message-ID: <6913597.VSrPZ98ePF@vostro.rjw.lan>
+References: <cover.1398817612.git.lv.zheng@intel.com> <1AE640813FDE7649BE1B193DEA596E8802559B1C@SHSMSX101.ccr.corp.intel.com> <CA+5PVA58527N76yJ8yNZPAbOz6YepR3RHXtjaV6t0i1nCYwcXg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CA+5PVA58527N76yJ8yNZPAbOz6YepR3RHXtjaV6t0i1nCYwcXg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Josh Boyer <jwboyer@fedoraproject.org>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Arnd Bergmann <arnd@arndb.de>, Lv Zheng <lv.zheng@intel.com>, Tony Luck <tony.luck@intel.com>, Yijing Wang <wangyijing@huawei.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-For pci_acpi_crs_quirks(), ia64 already doesn't use it, and we can
-not foresee it should be used in ARM64, so stub out pci_acpi_crs_quirks()
-to avoid introducing platform specific dummy stub function.
+On Monday, May 05, 2014 08:42:46 AM Josh Boyer wrote:
+> On Mon, May 5, 2014 at 12:23 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> > Hi, Rafael
+> >
+> >> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
+> >> Sent: Monday, May 05, 2014 8:43 AM
+> >>
+> >> On Saturday, May 03, 2014 08:59:14 AM Josh Boyer wrote:
+> >> > On Tue, Apr 29, 2014 at 10:05 PM, Lv Zheng <lv.zheng@intel.com> wrote:
+> >> > > The commit of back porting Linux XSDT validation mechanism has introduced
+> >> > > a regreession:
+> >> > >   Commit: 671cc68dc61f029d44b43a681356078e02d8dab8
+> >> > >   Subject: ACPICA: Back port and refine validation of the XSDT root table.
+> >> > > There is a pointer still accessed after unmapping.
+> >> > >
+> >> > > This patch fixes this issue.  Lv Zheng.
+> >> > >
+> >> > > Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=73911
+> >> > > Buglink: https://bugs.archlinux.org/task/39811
+> >> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> >> > > Reported-and-tested-by: Bruce Chiarelli <mano155@gmail.com>
+> >> > > Reported-and-tested-by: Spyros Stathopoulos <spystath@gmail.com>
+> >> > > Signed-off-by: Bob Moore <robert.moore@intel.com>
+> >> > > Cc: <stable@vger.kernel.org> # 3.14.x: 671cc68: ACPICA: Back port and refine validation of the XSDT root table.
+> >> >
+> >> > This patch should get into 3.15-rcX soon.  It fixes a known regression
+> >> > that prevents booting on machines with AMI firmware, and that is
+> >> > present in 3.14 so we need it for stable as well.  Rafael?
+> >>
+> >> Lv, is it safe to take this patch alone into 3.15-rc?
+> >
+> > Yes, it's safe to only take this patch to be a regression fix.
+> 
+> FWIW, Fedora is carrying this on top of 3.14.2 already, and people
+> with the impacted machines say it's working for them.  So I agree it
+> should be safe.
+> 
+> Thanks to the both of you.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- arch/ia64/include/asm/acpi.h |    1 -
- include/acpi/acpi_drivers.h  |    5 +++++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+OK, queued up for 3.15, thanks!
 
-diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
-index d651102..97cb160 100644
---- a/arch/ia64/include/asm/acpi.h
-+++ b/arch/ia64/include/asm/acpi.h
-@@ -92,7 +92,6 @@ ia64_acpi_release_global_lock (unsigned int *lock)
- #endif
- #define acpi_processor_cstate_check(x) (x) /* no idle limits on IA64 :) */
- static inline void disable_acpi(void) { }
--static inline void pci_acpi_crs_quirks(void) { }
- 
- #ifdef CONFIG_IA64_GENERIC
- const char *acpi_get_sysname (void);
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index d504613..ea6428b 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -96,7 +96,12 @@ struct pci_dev *acpi_get_pci_dev(acpi_handle);
- /* Arch-defined function to add a bus to the system */
- 
- struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root);
-+
-+#ifdef CONFIG_X86
- void pci_acpi_crs_quirks(void);
-+#else
-+static inline void pci_acpi_crs_quirks(void) { }
-+#endif
- 
- /* --------------------------------------------------------------------------
-                                     Processor
 -- 
-1.7.9.5
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
