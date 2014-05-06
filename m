@@ -1,61 +1,69 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 3/3] acpi-video: change acpi-video brightness_switch_enabled
- default to 0
-Date: Tue, 06 May 2014 14:46:17 +0200
-Message-ID: <5368D999.9080700@redhat.com>
-References: <1399282690-5381-1-git-send-email-hdegoede@redhat.com> <1399282690-5381-3-git-send-email-hdegoede@redhat.com> <53684260.1050806@intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] ACPI / PCI: Stub out pci_acpi_crs_quirks() and make it
+ x86 specific
+Date: Tue, 6 May 2014 13:24:38 -0600
+Message-ID: <CAErSpo5q1dH1OURw23Qp313sDWPn61dzY5qfkpHB5JJvEQtrpg@mail.gmail.com>
+References: <1399346670-6525-1-git-send-email-hanjun.guo@linaro.org> <1758433.vFPxG3NoOj@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5428 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757646AbaEFMq3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 May 2014 08:46:29 -0400
-In-Reply-To: <53684260.1050806@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1758433.vFPxG3NoOj@vostro.rjw.lan>
+Sender: linux-ia64-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Lv Zheng <lv.zheng@intel.com>, Tony Luck <tony.luck@intel.com>, Yijing Wang <wangyijing@huawei.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: edm <fuffi.il.fuffo@gmail.com>, Balint Szigeti <balint.szgt@gmail.com>, AnAkkk <anakin.cs@gmail.com>, lou.cardone@gmail.com, linux-acpi@vger.kernel.org
 
-Hi,
+On Tue, May 6, 2014 at 5:28 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, May 06, 2014 11:24:30 AM Hanjun Guo wrote:
+>> For pci_acpi_crs_quirks(), ia64 already doesn't use it, and we can
+>> not foresee it should be used in ARM64, so stub out pci_acpi_crs_quirks()
+>> to avoid introducing platform specific dummy stub function.
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>
+> Bjorn, what do you think?
 
-On 05/06/2014 04:01 AM, Aaron Lu wrote:
-> On 05/05/2014 05:38 PM, Hans de Goede wrote:
->> acpi-video is unique in that it not only generates brightness up/down
->> keypresses, but also (sometimes) actively changes the brightness itself.
->>
->> This presents an inconsistent kernel interface to userspace, basically there
->> are 2 different scenarios, depending on the laptop model:
->>
->> 1) On some laptops a brightness up/down keypress means: show a brightness osd
->> with the current brightness, iow it is a brightness has changed notification.
->>
->> 2) Where as on (a lot of) other laptops it means a brightness up/down key was
->> pressed, deal with it.
->>
->> Most of the desktop environments interpret any press as in scenario 2, and
->> change the brightness up / down as a response to the key events, causing it
->> to be changed twice, once by acpi-video and once by the DE.
->>
->> With the new default for video.use_native_backlight we will be moving even
->> more laptops over to behaving as in scenario 2. Making the remaining laptops
->> even more of a weird exception. Also note that it is hard to detect scenario
->> 1 properly in userspace, and AFAIK none of the DE-s deals with it.
->>
->> Therefor this commit changes the default of brightness_switch_enabled to 0
->> making its behavior consistent with all the other backlight drivers.
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> 
-> Reviewed-by: Aaron Lu <aaron.lu@intel.com>
-> 
-> Note that the Documentation/kernel-parameters.txt has to be modified
-> accordingly to change the default value for video.brightness_switch_enabled
-> to 0.
+Looks OK to me.  If you want to avoid the ifdef, we could put an empty
+weak version in pci_root.c.  Either way,
 
-Good one, I'll send a v2 with this fixed.
+Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Regards,
-
-Hans
+>> ---
+>>  arch/ia64/include/asm/acpi.h |    1 -
+>>  include/acpi/acpi_drivers.h  |    5 +++++
+>>  2 files changed, 5 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
+>> index d651102..97cb160 100644
+>> --- a/arch/ia64/include/asm/acpi.h
+>> +++ b/arch/ia64/include/asm/acpi.h
+>> @@ -92,7 +92,6 @@ ia64_acpi_release_global_lock (unsigned int *lock)
+>>  #endif
+>>  #define acpi_processor_cstate_check(x) (x) /* no idle limits on IA64 :) */
+>>  static inline void disable_acpi(void) { }
+>> -static inline void pci_acpi_crs_quirks(void) { }
+>>
+>>  #ifdef CONFIG_IA64_GENERIC
+>>  const char *acpi_get_sysname (void);
+>> diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+>> index d504613..ea6428b 100644
+>> --- a/include/acpi/acpi_drivers.h
+>> +++ b/include/acpi/acpi_drivers.h
+>> @@ -96,7 +96,12 @@ struct pci_dev *acpi_get_pci_dev(acpi_handle);
+>>  /* Arch-defined function to add a bus to the system */
+>>
+>>  struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root);
+>> +
+>> +#ifdef CONFIG_X86
+>>  void pci_acpi_crs_quirks(void);
+>> +#else
+>> +static inline void pci_acpi_crs_quirks(void) { }
+>> +#endif
+>>
+>>  /* --------------------------------------------------------------------------
+>>                                      Processor
+>>
+>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
