@@ -1,59 +1,72 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 20/27] ACPICA: Tables: Fix invalid pointer accesses in acpi_tb_parse_root_table().
-Date: Tue, 06 May 2014 02:43:44 +0200
-Message-ID: <6913597.VSrPZ98ePF@vostro.rjw.lan>
-References: <cover.1398817612.git.lv.zheng@intel.com> <1AE640813FDE7649BE1B193DEA596E8802559B1C@SHSMSX101.ccr.corp.intel.com> <CA+5PVA58527N76yJ8yNZPAbOz6YepR3RHXtjaV6t0i1nCYwcXg@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 02/27] ACPICA: Utilities: Deploy ACPI_DEBUGGER_EXEC for
+ ACPI_DEBUGGER enabled code in utglobal.c.
+Date: Tue, 6 May 2014 08:58:36 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880255A03B@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1398817612.git.lv.zheng@intel.com>
+ <53dbe352c16de24ea99d00af21eb01750af90074.1398817612.git.lv.zheng@intel.com>
+ <20140506075353.GA20931@xo-6d-61-c0.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+5PVA58527N76yJ8yNZPAbOz6YepR3RHXtjaV6t0i1nCYwcXg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Josh Boyer <jwboyer@fedoraproject.org>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:64948 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934457AbaEFI6v convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 May 2014 04:58:51 -0400
+In-Reply-To: <20140506075353.GA20931@xo-6d-61-c0.localdomain>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Monday, May 05, 2014 08:42:46 AM Josh Boyer wrote:
-> On Mon, May 5, 2014 at 12:23 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
-> > Hi, Rafael
-> >
-> >> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
-> >> Sent: Monday, May 05, 2014 8:43 AM
-> >>
-> >> On Saturday, May 03, 2014 08:59:14 AM Josh Boyer wrote:
-> >> > On Tue, Apr 29, 2014 at 10:05 PM, Lv Zheng <lv.zheng@intel.com> wrote:
-> >> > > The commit of back porting Linux XSDT validation mechanism has introduced
-> >> > > a regreession:
-> >> > >   Commit: 671cc68dc61f029d44b43a681356078e02d8dab8
-> >> > >   Subject: ACPICA: Back port and refine validation of the XSDT root table.
-> >> > > There is a pointer still accessed after unmapping.
-> >> > >
-> >> > > This patch fixes this issue.  Lv Zheng.
-> >> > >
-> >> > > Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=73911
-> >> > > Buglink: https://bugs.archlinux.org/task/39811
-> >> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> >> > > Reported-and-tested-by: Bruce Chiarelli <mano155@gmail.com>
-> >> > > Reported-and-tested-by: Spyros Stathopoulos <spystath@gmail.com>
-> >> > > Signed-off-by: Bob Moore <robert.moore@intel.com>
-> >> > > Cc: <stable@vger.kernel.org> # 3.14.x: 671cc68: ACPICA: Back port and refine validation of the XSDT root table.
-> >> >
-> >> > This patch should get into 3.15-rcX soon.  It fixes a known regression
-> >> > that prevents booting on machines with AMI firmware, and that is
-> >> > present in 3.14 so we need it for stable as well.  Rafael?
-> >>
-> >> Lv, is it safe to take this patch alone into 3.15-rc?
-> >
-> > Yes, it's safe to only take this patch to be a regression fix.
+Hi,
+
+> From: Pavel Machek [mailto:pavel@ucw.cz]
+> Sent: Tuesday, May 06, 2014 3:54 PM
 > 
-> FWIW, Fedora is carrying this on top of 3.14.2 already, and people
-> with the impacted machines say it's working for them.  So I agree it
-> should be safe.
+> On Wed 2014-04-30 10:03:39, Lv Zheng wrote:
+> > This patch deploys ACPI_DEBUGGER_EXEC usage to utglobal.c to reduce "ifdef"
+> > of ACPI_DEBUGGER.  No functional changes.  Lv Zheng.
+> >
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > Signed-off-by: Bob Moore <robert.moore@intel.com>
+> > ---
+> >  drivers/acpi/acpica/utglobal.c |    4 +---
+> >  1 file changed, 1 insertion(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/acpi/acpica/utglobal.c b/drivers/acpi/acpica/utglobal.c
+> > index f3abeae..825b064 100644
+> > --- a/drivers/acpi/acpica/utglobal.c
+> > +++ b/drivers/acpi/acpica/utglobal.c
+> > @@ -377,9 +377,7 @@ acpi_status acpi_ut_init_globals(void)
+> >  	acpi_gbl_disable_mem_tracking = FALSE;
+> >  #endif
+> >
+> > -#ifdef ACPI_DEBUGGER
+> > -	acpi_gbl_db_terminate_threads = FALSE;
+> > -#endif
+> > +	ACPI_DEBUGGER_EXEC(acpi_gbl_db_terminate_threads = FALSE);
+> >
+> >  	return_ACPI_STATUS(AE_OK);
 > 
-> Thanks to the both of you.
+> Is it just me or is this incredibly ugly?
 
-OK, queued up for 3.15, thanks!
+This patch is no-op for Linux kernel.
+ACPI_DEBUGGER is not enabled for Linux kernel.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+This patch is here to reduce the source code differences between Linux and ACPICA.
+ACPICA release is done by a set of conversion utilities, the process is known as linuxizing.
+The generation result of the linuxizing will require more human interventions if such differences grow bigger.
+Thus one of our quality insurance step is to control  the divergences down to an acceptable level.
+I should add a document in the kernel source tree to describe the ACPICA release cycle.
+
+Thanks and best regards
+-Lv
+
+> 
+> 									Pavel
+> --
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
