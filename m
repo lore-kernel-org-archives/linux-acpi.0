@@ -1,61 +1,91 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 3/3] acpi-video: change acpi-video brightness_switch_enabled default to 0
-Date: Mon,  5 May 2014 11:38:10 +0200
-Message-ID: <1399282690-5381-3-git-send-email-hdegoede@redhat.com>
-References: <1399282690-5381-1-git-send-email-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25366 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755620AbaEEJia (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 May 2014 05:38:30 -0400
-In-Reply-To: <1399282690-5381-1-git-send-email-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch Part3 V2 21/21] pci, ACPI, iommu: enhance pci_root to support DMAR device hotplug
+Date: Tue,  6 May 2014 15:05:32 +0800
+Message-ID: <1399359932-28972-22-git-send-email-jiang.liu@linux.intel.com>
+References: <1399359932-28972-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1399359932-28972-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Ashok Raj <ashok.raj@intel.com>, Yijing Wang <wangyijing@huawei.com>, Tony Luck <tony.luck@intel.com>, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org, linux-hotplug@vger.kernel.org, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Aaron Lu <aaron.lu@intel.com>, edm <fuffi.il.fuffo@gmail.com>, Balint Szigeti <balint.szgt@gmail.com>, AnAkkk <anakin.cs@gmail.com>, lou.cardone@gmail.com, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 
-acpi-video is unique in that it not only generates brightness up/down
-keypresses, but also (sometimes) actively changes the brightness itself.
+Finally enhance pci_root driver to support DMAR device hotplug when
+hot-plugging PCI host bridges.
 
-This presents an inconsistent kernel interface to userspace, basically there
-are 2 different scenarios, depending on the laptop model:
-
-1) On some laptops a brightness up/down keypress means: show a brightness osd
-with the current brightness, iow it is a brightness has changed notification.
-
-2) Where as on (a lot of) other laptops it means a brightness up/down key was
-pressed, deal with it.
-
-Most of the desktop environments interpret any press as in scenario 2, and
-change the brightness up / down as a response to the key events, causing it
-to be changed twice, once by acpi-video and once by the DE.
-
-With the new default for video.use_native_backlight we will be moving even
-more laptops over to behaving as in scenario 2. Making the remaining laptops
-even more of a weird exception. Also note that it is hard to detect scenario
-1 properly in userspace, and AFAIK none of the DE-s deals with it.
-
-Therefor this commit changes the default of brightness_switch_enabled to 0
-making its behavior consistent with all the other backlight drivers.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/pci_root.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index cebc74d..34198b2 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -68,7 +68,7 @@ MODULE_AUTHOR("Bruno Ducrot");
- MODULE_DESCRIPTION("ACPI Video Driver");
- MODULE_LICENSE("GPL");
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index d388f13d48b4..99c2b9761c12 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -33,6 +33,7 @@
+ #include <linux/pci.h>
+ #include <linux/pci-acpi.h>
+ #include <linux/pci-aspm.h>
++#include <linux/dmar.h>
+ #include <linux/acpi.h>
+ #include <linux/slab.h>
+ #include <acpi/apei.h>	/* for acpi_hest_init() */
+@@ -511,6 +512,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	struct acpi_pci_root *root;
+ 	acpi_handle handle = device->handle;
+ 	int no_aspm = 0, clear_aspm = 0;
++	bool hotadd = system_state != SYSTEM_BOOTING;
  
--static bool brightness_switch_enabled = 1;
-+static bool brightness_switch_enabled;
- module_param(brightness_switch_enabled, bool, 0644);
+ 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
+ 	if (!root)
+@@ -557,6 +559,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
+ 	device->driver_data = root;
  
- /*
++	if (hotadd && dmar_device_add(handle)) {
++		result = -ENXIO;
++		goto end;
++	}
++
+ 	pr_info(PREFIX "%s [%s] (domain %04x %pR)\n",
+ 	       acpi_device_name(device), acpi_device_bid(device),
+ 	       root->segment, &root->secondary);
+@@ -583,7 +590,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 			root->segment, (unsigned int)root->secondary.start);
+ 		device->driver_data = NULL;
+ 		result = -ENODEV;
+-		goto end;
++		goto remove_dmar;
+ 	}
+ 
+ 	if (clear_aspm) {
+@@ -597,7 +604,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	if (device->wakeup.flags.run_wake)
+ 		device_set_run_wake(root->bus->bridge, true);
+ 
+-	if (system_state != SYSTEM_BOOTING) {
++	if (hotadd) {
+ 		pcibios_resource_survey_bus(root->bus);
+ 		pci_assign_unassigned_root_bus_resources(root->bus);
+ 	}
+@@ -607,6 +614,9 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	pci_unlock_rescan_remove();
+ 	return 1;
+ 
++remove_dmar:
++	if (hotadd)
++		dmar_device_remove(handle);
+ end:
+ 	kfree(root);
+ 	return result;
+@@ -625,6 +635,8 @@ static void acpi_pci_root_remove(struct acpi_device *device)
+ 
+ 	pci_remove_root_bus(root->bus);
+ 
++	dmar_device_remove(device->handle);
++
+ 	pci_unlock_rescan_remove();
+ 
+ 	kfree(root);
 -- 
-1.9.0
-
+1.7.10.4
