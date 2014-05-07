@@ -1,87 +1,63 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] acpi-video: change acpi-video brightness_switch_enabled default to 0
-Date: Thu, 08 May 2014 01:46:55 +0200
-Message-ID: <1465986.ilGBN51rxC@vostro.rjw.lan>
-References: <1399380383-29685-1-git-send-email-hdegoede@redhat.com>
+Subject: Re: [PATCH v5 2/4] acpi_processor: do not mark present at boot but not onlined CPU as onlined
+Date: Thu, 08 May 2014 01:48:33 +0200
+Message-ID: <20310348.uigSpUyQCR@vostro.rjw.lan>
+References: <1399322991-19329-1-git-send-email-imammedo@redhat.com> <1399322991-19329-3-git-send-email-imammedo@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62106 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:52899 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751318AbaEGXaP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 May 2014 19:30:15 -0400
-In-Reply-To: <1399380383-29685-1-git-send-email-hdegoede@redhat.com>
+	with SMTP id S1751851AbaEGXby (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 May 2014 19:31:54 -0400
+In-Reply-To: <1399322991-19329-3-git-send-email-imammedo@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Igor Mammedov <imammedo@redhat.com>
+Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday, May 06, 2014 02:46:23 PM Hans de Goede wrote:
-> acpi-video is unique in that it not only generates brightness up/down
-> keypresses, but also (sometimes) actively changes the brightness itself.
+On Monday, May 05, 2014 10:49:49 PM Igor Mammedov wrote:
+> acpi_processor_add() assumes that present at boot CPUs
+> are always onlined, it is not so if a CPU failed to become
+> onlined. As result acpi_processor_add() will mark such CPU
+> device as onlined in sysfs and following attempts to
+> online/offline it using /sys/device/system/cpu/cpuX/online
+> attribute will fail.
 > 
-> This presents an inconsistent kernel interface to userspace, basically there
-> are 2 different scenarios, depending on the laptop model:
+> Do not poke into device internals in acpi_processor_add()
+> and touch "struct device { .offline }" attribute, since
+> for CPUs onlined at boot it's set by:
+>   topology_init() -> arch_register_cpu() -> register_cpu()
+> before ACPI device tree is parsed, and for hotplugged
+> CPUs it's set when userspace onlines CPU via sysfs.
 > 
-> 1) On some laptops a brightness up/down keypress means: show a brightness osd
-> with the current brightness, iow it is a brightness has changed notification.
-> 
-> 2) Where as on (a lot of) other laptops it means a brightness up/down key was
-> pressed, deal with it.
-> 
-> Most of the desktop environments interpret any press as in scenario 2, and
-> change the brightness up / down as a response to the key events, causing it
-> to be changed twice, once by acpi-video and once by the DE.
-> 
-> With the new default for video.use_native_backlight we will be moving even
-> more laptops over to behaving as in scenario 2. Making the remaining laptops
-> even more of a weird exception. Also note that it is hard to detect scenario
-> 1 properly in userspace, and AFAIK none of the DE-s deals with it.
-> 
-> Therefor this commit changes the default of brightness_switch_enabled to 0
-> making its behavior consistent with all the other backlight drivers.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> Reviewed-by: Aaron Lu <aaron.lu@intel.com>
+> Signed-off-by: Igor Mammedov <imammedo@redhat.com>
+> Acked-by: Toshi Kani <toshi.kani@hp.com>
 
-I've queued this up for 3.16, thanks!
+Would there be a problem if I applied this separately from the rest of the
+series?
 
-> --
-> 
-> Changes in v2:
-> Also update Documentation/kernel-parameters.txt for the new default.
 > ---
->  Documentation/kernel-parameters.txt | 2 +-
->  drivers/acpi/video.c                | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
+> v2:
+>  - fix regression in v1 leading to NULL pointer dereference
+>    on CPU unplug, do not remove "pr->dev = dev;"
+> ---
+>  drivers/acpi/acpi_processor.c |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
 > 
-> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-> index 4384217..cc2c243 100644
-> --- a/Documentation/kernel-parameters.txt
-> +++ b/Documentation/kernel-parameters.txt
-> @@ -3461,7 +3461,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
->  			the allocated input device; If set to 0, video driver
->  			will only send out the event without touching backlight
->  			brightness level.
-> -			default: 1
-> +			default: 0
+> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+> index b06f5f5..52c81c4 100644
+> --- a/drivers/acpi/acpi_processor.c
+> +++ b/drivers/acpi/acpi_processor.c
+> @@ -405,7 +405,6 @@ static int acpi_processor_add(struct acpi_device *device,
+>  		goto err;
 >  
->  	virtio_mmio.device=
->  			[VMMIO] Memory mapped virtio (platform) device.
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index cebc74d..34198b2 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -68,7 +68,7 @@ MODULE_AUTHOR("Bruno Ducrot");
->  MODULE_DESCRIPTION("ACPI Video Driver");
->  MODULE_LICENSE("GPL");
+>  	pr->dev = dev;
+> -	dev->offline = pr->flags.need_hotplug_init;
 >  
-> -static bool brightness_switch_enabled = 1;
-> +static bool brightness_switch_enabled;
->  module_param(brightness_switch_enabled, bool, 0644);
->  
->  /*
+>  	/* Trigger the processor driver's .probe() if present. */
+>  	if (device_attach(dev) >= 0)
 > 
 
 -- 
