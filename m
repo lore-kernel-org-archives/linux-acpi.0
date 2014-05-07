@@ -1,169 +1,279 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC][PATCH 1/3] PM / sleep: Flags to speed up suspend-resume of runtime-suspended devices
-Date: Wed, 07 May 2014 02:36:45 +0200
-Message-ID: <8506078.MQGrQB8sAy@vostro.rjw.lan>
-References: <Pine.LNX.4.44L0.1405061035491.1312-100000@iolanthe.rowland.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: [RFC PATCH] Revert "ACPI / AC: convert ACPI ac driver to platform bus"
+Date: Tue,  6 May 2014 19:18:28 -0700
+Message-ID: <1399429108-15395-1-git-send-email-linux@roeck-us.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52470 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751876AbaEGAUH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 May 2014 20:20:07 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1405061035491.1312-100000@iolanthe.rowland.org>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:43779 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751228AbaEGCSj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 May 2014 22:18:39 -0400
+Received: by mail-pa0-f44.google.com with SMTP id ld10so402154pab.3
+        for <linux-acpi@vger.kernel.org>; Tue, 06 May 2014 19:18:39 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Zhang Rui <rui.zhang@intel.com>, Manuel Krause <manuelkrause@netscape.net>
 
-On Tuesday, May 06, 2014 03:31:02 PM Alan Stern wrote:
-> On Tue, 6 May 2014, Rafael J. Wysocki wrote:
-> 
-> > > > > You are using leave_runtime_suspended to mean two different things:  
-> > > > > remain runtime-suspended during the system suspend stages (i.e., no
-> > > > > reprogramming is needed so don't go to full power), and remain
-> > > > > runtime-suspended during both the system suspend and system resume
-> > > > > stages.  Only the first meaning matters if all you want to accomplish
-> > > > > is to avoid unnecessary runtime resumes during system suspend.
-> > > > 
-> > > > Well, this is not the case, becase you can't call ->resume_noirq() *after*
-> > > > ->runtime_suspend() for a number of drivers, as they simply may not expect
-> > > > that to happen (that covers all of the PCI drivers and the ACPI PM domain at
-> > > > least).
-> 
-> If you can't call ->resume_noirq() after ->runtime_suspend(), is it
-> okay to call ->suspend() after ->runtime_suspend()?
+This reverts commit cc8ef52707341e67a12067d6ead991d56ea017ca.
 
-For PCI devices, I don't know, because we've never done that for them.
+This is an attempt to fix (or at least track down)
+https://bugzilla.kernel.org/show_bug.cgi?id=71711.
 
-We've always resumed them during system suspend, so system suspend/resume
-callbacks have never been mixed with runtime PM callbacks for them.  And
-that is the whole point. :-)
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Manuel Krause <manuelkrause@netscape.net>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 
-> If it is okay, then there's no problem.  The subsystem invokes all of 
-> the driver's callbacks, even if leave_runtime_suspended is set.  The 
-> only difference is that the subsystem doesn't do a runtime-resume 
-> before invoking the ->suspend() callback.
-> 
-> It it's not okay...  Well, then the only option (aside from the runtime
-> resume we currently do) is to leave the device in runtime suspend all
-> the way up to the resume stage of system resume, and then do a
-> runtime-resume instead of calling ->resume().
+Conflicts:
+	drivers/acpi/ac.c
+	drivers/acpi/acpi_platform.c
+---
+Compile tested only.
+It might make sense to test this in a VM (if that is possible)
+before running it on a real system.
 
-Precisely. :-)
+ drivers/acpi/ac.c            | 117 +++++++++++++++++++++----------------------
+ drivers/acpi/acpi_platform.c |   1 -
+ 2 files changed, 58 insertions(+), 60 deletions(-)
 
-> > > For some non-PCI, non-ACPI PM domain drivers, it _is_ okay to call
-> > > ->resume_noirq() after ->runtime_suspend().
-> > 
-> > Yes, it may be OK to do that for some drivers, but not for all of them and
-> > that's the point.
-> > 
-> > > But forget about that; let's concentrate on PCI.  When a PCI driver
-> > > sets leave_runtime_suspended, it is telling the PCI core that it
-> > > doesn't mind having its ->resume_noirq() callback invoked after
-> > > ->runtime_suspend().
-> > 
-> > No, it doesn't.
-> > 
-> > First of all, you're assumig that drivers will set that flag, but PCI
-> > drivers have no idea about the wakeup settings which are taken care of by
-> > the PCI bus type.  This means that the bus type will also set
-> > leave_runtime_suspended.
-> 
-> How can the subsystem know whether the device is in a suitable state 
-> for system suspend?  Only the driver knows -- assuming there is a 
-> driver.  Agreed, if there is no driver then the subsystem might set
-> leave_runtime_suspended, but in that case it wouldn't cause any 
-> problem.
-
-Not really.  In ->runtime_suspend() a PCI driver (in particular, but I'd say
-that in general) is supposed to save the registers of the device it cares about
-and then it is not supposed to touch it until ->runtime_resume().  Now, for PCI
-drivers there's one additional twist: They don't put devices into low-power
-states and don't prepare them for wakeup.  The PCI bus type does that.  Hence,
-PCI drivers don't know whether or not the devices are in the right state for
-system suspend, in particular with respect to wakeup, but the PCI bus type
-knows that.  The same applies to devices in the ACPI PM domain.
-
-> > Second, even if a driver sets leave_runtime_suspended for a device, this
-> > doesn't have to mean that its ->resume_noirq() may be called directly
-> > after its ->runtime_suspend().  What it means is that (a) the state of
-> > the device is appropriate for system suspend and (b) there are no reasons
-> > known to it why the device should be resumed during system suspend.
-> 
-> It's not too late to change the meaning.  :-)
-
-Well, OK. :-)
-
-> > And yes, the subsystem can very well do it all by itself, but then the
-> > same approach will probably be duplicated in multiple subsystems and
-> > they won't be able to cross the bus type boundary, for example.
-> 
-> True.
-> 
-> > In fact, my original idea was to do that thing in the subsystems without
-> > involving the PM core, but then I would only be able to cover leaf devices.
-> > So I decided to do something more general, but the flag is exactly for what
-> > it does in the pach - to tell the PM core to skip a number of callbacks for
-> > a device, all of the high-level considerations notwithstanding.
-> > 
-> > So you may not like the idea that skipping suspend callbacks implies skipping
-> > the corresponding resume callbacks, but that's the simplest way to do it and
-> > quite frankly I don't see why this is a problem.
-> 
-> All right.  Then this seems to be what you want:
-> 
-> 	For some devices, it's okay to remain in runtime suspend 
-> 	throughout a complete system suspend/resume cycle (if the
-> 	device was in runtime suspend at the start of the cycle).
-> 	We would like to do this whenever possible, to avoid the
-> 	overhead of extra power-up and power-down events.
-
-Yes.
-
-> 	However, problems may arise because the device's descendants 
-> 	may require it to be at full power at various points during 
-> 	the cycle.  Therefore the only way to do this safely is if the 
-> 	device _and_ all its descendants can remain runtime suspended 
-> 	until the resume stage of system resume.
-
-It may not be the only way, but it is *a* way to do this safely.
-
-> 	To this end, introduce dev->power.leave_runtime_suspended.
-> 	If a subsystem or driver sets this flag during the ->prepare()
-> 	callback, and if the flag is set in all of the device's
-> 	descendants, and if the device is still in runtime suspend when
-> 	the ->suspend() callback would normally be invoked, then the PM
-> 	core will not invoke the device's ->suspend(), 
-> 	->suspend_late(), ->suspend_irq(), ->resume_irq(),
-> 	->resume_early(), or ->resume() callbacks.  Instead, it will 
-> 	invoke ->runtime_resume() during the resume stage of system
-> 	resume.
-
-Yes.
-
-> 	By setting this flag, a driver or subsystem tells the PM core
-> 	that the device is runtime suspended, it is in a suitable state
-> 	for system suspend (for example, the wakeup setting does not
-> 	need to be changed), and it does not need to return to full
-> 	power until the resume stage.
-
-Yes.
-
-> Does that correctly describe what you want to do, the potential
-> problems, and the proposed solution?
-
-Almost.  Devices with power.ignore_children set are not covered by this.
-
-> If so, then it appears the parent_needed flag is unnecessary.
-
-Well, I can agree with that.  It wasn't there in my first patchset and I added
-it kind of in the hope to be able to deal with the ignore_children devices
-with the help of it.
-
-OK, I guess I need to prepare a new version without the parent_needed flag for
-further discussion. :-)
-
-Rafael
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 2c01c1d..c67f6f5 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -52,11 +52,39 @@ MODULE_AUTHOR("Paul Diefenbaugh");
+ MODULE_DESCRIPTION("ACPI AC Adapter Driver");
+ MODULE_LICENSE("GPL");
+ 
++static int acpi_ac_add(struct acpi_device *device);
++static int acpi_ac_remove(struct acpi_device *device);
++static void acpi_ac_notify(struct acpi_device *device, u32 event);
++
++static const struct acpi_device_id ac_device_ids[] = {
++	{"ACPI0003", 0},
++	{"", 0},
++};
++MODULE_DEVICE_TABLE(acpi, ac_device_ids);
++
++#ifdef CONFIG_PM_SLEEP
++static int acpi_ac_resume(struct device *dev);
++#endif
++static SIMPLE_DEV_PM_OPS(acpi_ac_pm, NULL, acpi_ac_resume);
++
+ static int ac_sleep_before_get_state_ms;
+ 
++static struct acpi_driver acpi_ac_driver = {
++	.name = "ac",
++	.class = ACPI_AC_CLASS,
++	.ids = ac_device_ids,
++	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
++	.ops = {
++		.add = acpi_ac_add,
++		.remove = acpi_ac_remove,
++		.notify = acpi_ac_notify,
++		},
++	.drv.pm = &acpi_ac_pm,
++};
++
+ struct acpi_ac {
+ 	struct power_supply charger;
+-	struct platform_device *pdev;
++	struct acpi_device * device;
+ 	unsigned long long state;
+ 	struct notifier_block battery_nb;
+ };
+@@ -69,10 +97,12 @@ struct acpi_ac {
+ 
+ static int acpi_ac_get_state(struct acpi_ac *ac)
+ {
+-	acpi_status status;
+-	acpi_handle handle = ACPI_HANDLE(&ac->pdev->dev);
++	acpi_status status = AE_OK;
++
++	if (!ac)
++		return -EINVAL;
+ 
+-	status = acpi_evaluate_integer(handle, "_PSR", NULL,
++	status = acpi_evaluate_integer(ac->device->handle, "_PSR", NULL,
+ 				       &ac->state);
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_EXCEPTION((AE_INFO, status,
+@@ -117,10 +147,9 @@ static enum power_supply_property ac_props[] = {
+                                    Driver Model
+    -------------------------------------------------------------------------- */
+ 
+-static void acpi_ac_notify_handler(acpi_handle handle, u32 event, void *data)
++static void acpi_ac_notify(struct acpi_device *device, u32 event)
+ {
+-	struct acpi_ac *ac = data;
+-	struct acpi_device *adev;
++	struct acpi_ac *ac = acpi_driver_data(device);
+ 
+ 	if (!ac)
+ 		return;
+@@ -143,11 +172,10 @@ static void acpi_ac_notify_handler(acpi_handle handle, u32 event, void *data)
+ 			msleep(ac_sleep_before_get_state_ms);
+ 
+ 		acpi_ac_get_state(ac);
+-		adev = ACPI_COMPANION(&ac->pdev->dev);
+-		acpi_bus_generate_netlink_event(adev->pnp.device_class,
+-						dev_name(&ac->pdev->dev),
+-						event, (u32) ac->state);
+-		acpi_notifier_call_chain(adev, event, (u32) ac->state);
++		acpi_bus_generate_netlink_event(device->pnp.device_class,
++						  dev_name(&device->dev), event,
++						  (u32) ac->state);
++		acpi_notifier_call_chain(device, event, (u32) ac->state);
+ 		kobject_uevent(&ac->charger.dev->kobj, KOBJ_CHANGE);
+ 	}
+ 
+@@ -192,49 +220,39 @@ static struct dmi_system_id ac_dmi_table[] = {
+ 	{},
+ };
+ 
+-static int acpi_ac_probe(struct platform_device *pdev)
++static int acpi_ac_add(struct acpi_device *device)
+ {
+ 	int result = 0;
+ 	struct acpi_ac *ac = NULL;
+-	struct acpi_device *adev;
+ 
+-	if (!pdev)
+-		return -EINVAL;
+ 
+-	adev = ACPI_COMPANION(&pdev->dev);
+-	if (!adev)
+-		return -ENODEV;
++	if (!device)
++		return -EINVAL;
+ 
+ 	ac = kzalloc(sizeof(struct acpi_ac), GFP_KERNEL);
+ 	if (!ac)
+ 		return -ENOMEM;
+ 
+-	strcpy(acpi_device_name(adev), ACPI_AC_DEVICE_NAME);
+-	strcpy(acpi_device_class(adev), ACPI_AC_CLASS);
+-	ac->pdev = pdev;
+-	platform_set_drvdata(pdev, ac);
++	ac->device = device;
++	strcpy(acpi_device_name(device), ACPI_AC_DEVICE_NAME);
++	strcpy(acpi_device_class(device), ACPI_AC_CLASS);
++	device->driver_data = ac;
+ 
+ 	result = acpi_ac_get_state(ac);
+ 	if (result)
+ 		goto end;
+ 
+-	ac->charger.name = acpi_device_bid(adev);
++	ac->charger.name = acpi_device_bid(device);
+ 	ac->charger.type = POWER_SUPPLY_TYPE_MAINS;
+ 	ac->charger.properties = ac_props;
+ 	ac->charger.num_properties = ARRAY_SIZE(ac_props);
+ 	ac->charger.get_property = get_ac_property;
+-	result = power_supply_register(&pdev->dev, &ac->charger);
++	result = power_supply_register(&ac->device->dev, &ac->charger);
+ 	if (result)
+ 		goto end;
+ 
+-	result = acpi_install_notify_handler(ACPI_HANDLE(&pdev->dev),
+-			ACPI_ALL_NOTIFY, acpi_ac_notify_handler, ac);
+-	if (result) {
+-		power_supply_unregister(&ac->charger);
+-		goto end;
+-	}
+ 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
+-	       acpi_device_name(adev), acpi_device_bid(adev),
++	       acpi_device_name(device), acpi_device_bid(device),
+ 	       ac->state ? "on-line" : "off-line");
+ 
+ 	ac->battery_nb.notifier_call = acpi_ac_battery_notify;
+@@ -256,7 +274,7 @@ static int acpi_ac_resume(struct device *dev)
+ 	if (!dev)
+ 		return -EINVAL;
+ 
+-	ac = platform_get_drvdata(to_platform_device(dev));
++	ac = acpi_driver_data(to_acpi_device(dev));
+ 	if (!ac)
+ 		return -EINVAL;
+ 
+@@ -270,19 +288,17 @@ static int acpi_ac_resume(struct device *dev)
+ #else
+ #define acpi_ac_resume NULL
+ #endif
+-static SIMPLE_DEV_PM_OPS(acpi_ac_pm_ops, NULL, acpi_ac_resume);
+ 
+-static int acpi_ac_remove(struct platform_device *pdev)
++static int acpi_ac_remove(struct acpi_device *device)
+ {
+-	struct acpi_ac *ac;
++	struct acpi_ac *ac = NULL;
++
+ 
+-	if (!pdev)
++	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	acpi_remove_notify_handler(ACPI_HANDLE(&pdev->dev),
+-			ACPI_ALL_NOTIFY, acpi_ac_notify_handler);
++	ac = acpi_driver_data(device);
+ 
+-	ac = platform_get_drvdata(pdev);
+ 	if (ac->charger.dev)
+ 		power_supply_unregister(&ac->charger);
+ 	unregister_acpi_notifier(&ac->battery_nb);
+@@ -292,23 +308,6 @@ static int acpi_ac_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static const struct acpi_device_id acpi_ac_match[] = {
+-	{ "ACPI0003", 0 },
+-	{ }
+-};
+-MODULE_DEVICE_TABLE(acpi, acpi_ac_match);
+-
+-static struct platform_driver acpi_ac_driver = {
+-	.probe          = acpi_ac_probe,
+-	.remove         = acpi_ac_remove,
+-	.driver         = {
+-		.name   = "acpi-ac",
+-		.owner  = THIS_MODULE,
+-		.pm     = &acpi_ac_pm_ops,
+-		.acpi_match_table = ACPI_PTR(acpi_ac_match),
+-	},
+-};
+-
+ static int __init acpi_ac_init(void)
+ {
+ 	int result;
+@@ -316,7 +315,7 @@ static int __init acpi_ac_init(void)
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+ 
+-	result = platform_driver_register(&acpi_ac_driver);
++	result = acpi_bus_register_driver(&acpi_ac_driver);
+ 	if (result < 0)
+ 		return -ENODEV;
+ 
+@@ -325,7 +324,7 @@ static int __init acpi_ac_init(void)
+ 
+ static void __exit acpi_ac_exit(void)
+ {
+-	platform_driver_unregister(&acpi_ac_driver);
++	acpi_bus_unregister_driver(&acpi_ac_driver);
+ }
+ module_init(acpi_ac_init);
+ module_exit(acpi_ac_exit);
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index dbfe49e..1d49503 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -29,7 +29,6 @@ ACPI_MODULE_NAME("platform");
+ static const struct acpi_device_id acpi_platform_device_ids[] = {
+ 
+ 	{ "PNP0D40" },
+-	{ "ACPI0003" },
+ 	{ "VPC2004" },
+ 	{ "BCM4752" },
+ 
+-- 
+1.9.1
 
