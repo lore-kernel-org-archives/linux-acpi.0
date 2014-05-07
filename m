@@ -1,55 +1,96 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Question about FADT length
-Date: Wed, 07 May 2014 16:14:18 +0800
-Message-ID: <5369EB5A.6070906@linaro.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 1/3] PM / sleep: Flags to speed up suspend-resume
+ of runtime-suspended devices
+Date: Wed, 7 May 2014 11:43:39 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1405071126340.1325-100000@iolanthe.rowland.org>
+References: <8506078.MQGrQB8sAy@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:48300 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755217AbaEGIO3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 May 2014 04:14:29 -0400
-Received: by mail-pd0-f182.google.com with SMTP id v10so745712pde.13
-        for <linux-acpi@vger.kernel.org>; Wed, 07 May 2014 01:14:28 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <8506078.MQGrQB8sAy@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-Hi,
+On Wed, 7 May 2014, Rafael J. Wysocki wrote:
 
-I ran into some compile errors when I was prototyping the code
-for the proposals in ASWG, it turns out that some field in FADT is
-changed and "reserved4[0]" used in ACPI_FADT_V2_SIZE will
-cause the error.
+We seem to be in agreement that this is the way you want to go...
 
-So my question is that the length of very version of FADT is
-fixed, why not use a constant value for this puspose?
+> > All right.  Then this seems to be what you want:
+> > 
+> > 	For some devices, it's okay to remain in runtime suspend 
+> > 	throughout a complete system suspend/resume cycle (if the
+> > 	device was in runtime suspend at the start of the cycle).
+> > 	We would like to do this whenever possible, to avoid the
+> > 	overhead of extra power-up and power-down events.
+> 
+> Yes.
+> 
+> > 	However, problems may arise because the device's descendants 
+> > 	may require it to be at full power at various points during 
+> > 	the cycle.  Therefore the only way to do this safely is if the 
+> > 	device _and_ all its descendants can remain runtime suspended 
+> > 	until the resume stage of system resume.
+> 
+> It may not be the only way, but it is *a* way to do this safely.
+> 
+> > 	To this end, introduce dev->power.leave_runtime_suspended.
+> > 	If a subsystem or driver sets this flag during the ->prepare()
+> > 	callback, and if the flag is set in all of the device's
+> > 	descendants, and if the device is still in runtime suspend when
+> > 	the ->suspend() callback would normally be invoked, then the PM
+> > 	core will not invoke the device's ->suspend(), 
+> > 	->suspend_late(), ->suspend_irq(), ->resume_irq(),
+> > 	->resume_early(), or ->resume() callbacks.  Instead, it will 
+> > 	invoke ->runtime_resume() during the resume stage of system
+> > 	resume.
+> 
+> Yes.
+> 
+> > 	By setting this flag, a driver or subsystem tells the PM core
+> > 	that the device is runtime suspended, it is in a suitable state
+> > 	for system suspend (for example, the wakeup setting does not
+> > 	need to be changed), and it does not need to return to full
+> > 	power until the resume stage.
+> 
+> Yes.
+> 
+> > Does that correctly describe what you want to do, the potential
+> > problems, and the proposed solution?
+> 
+> Almost.  Devices with power.ignore_children set are not covered by this.
 
-Here is the code:
+I thought they were.  In what respect aren't they?  You mean because
+they can be runtime suspended while their children remain active?
 
-/*
-  * Sizes of the various flavors of FADT. We need to look closely
-  * at the FADT length because the version number essentially tells
-  * us nothing because of many BIOS bugs where the version does not
-  * match the expected length. In other words, the length of the
-  * FADT is the bottom line as to what the version really is.
-  *
-  * For reference, the values below are as follows:
-  *     FADT V1  size: 0x074
-  *     FADT V2  size: 0x084
-  *     FADT V3  size: 0x0F4
-  *     FADT V4  size: 0x0F4
-  *     FADT V5  size: 0x10C
-  */
-#define ACPI_FADT_V1_SIZE       (u32) (ACPI_FADT_OFFSET (flags) + 4)
-#define ACPI_FADT_V2_SIZE       (u32) (ACPI_FADT_OFFSET (reserved4[0]) + 3)
-#define ACPI_FADT_V3_SIZE       (u32) (ACPI_FADT_OFFSET (sleep_control))
-#define ACPI_FADT_V5_SIZE       (u32) (sizeof (struct acpi_table_fadt))
+I don't think that matters here.  Suppose a parent device's
+leave_runtime_suspended flag is set but one of its children isn't
+runtime suspended.  Then that child's leave_runtime_suspended flag
+won't be set, so the parent device won't meet the criterion for
+skipping the normal PM callbacks.
 
-Why not  #define ACPI_FADT_V1_SIZE 0x074 ?
-Did I miss something? any clarify will be appreciated :)
+Or do you mean that a child might expect the parent to be at full power
+when the child is resumed (plus the fact that doing a runtime resume on
+the child will not automatically resume the parent)?  That doesn't
+matter either, because the PM core will do a runtime-resume of the
+parent before the child's ->runtime_resume() is called.
 
-Thanks
-Hanjun
+> > If so, then it appears the parent_needed flag is unnecessary.
+> 
+> Well, I can agree with that.  It wasn't there in my first patchset and I added
+> it kind of in the hope to be able to deal with the ignore_children devices
+> with the help of it.
+
+Yeah.  I contributed to that, by not understanding exactly what you 
+were trying to accomplish.
+
+> OK, I guess I need to prepare a new version without the parent_needed flag for
+> further discussion. :-)
+
+Consider using the description above (or some variant of it) for the
+new Changelog.  IMNSHO it does a much better job of explaining the 
+patch than your original version.  :-)
+
+Alan Stern
+
