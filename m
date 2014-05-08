@@ -1,163 +1,122 @@
-From: Amit Daniel Kachhap <amit.daniel@samsung.com>
-Subject: [RFC PATCH 3/5] thermal: cpu_cooling: Add support to find nearby frequency levels.
-Date: Thu,  8 May 2014 20:07:58 +0530
-Message-ID: <1399559880-20562-4-git-send-email-amit.daniel@samsung.com>
-References: <1399559880-20562-1-git-send-email-amit.daniel@samsung.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 1/3] PM / sleep: Flag to speed up suspend-resume of
+ runtime-suspended devices
+Date: Thu, 8 May 2014 10:57:36 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1405081040330.1087-100000@iolanthe.rowland.org>
+References: <2703563.1xTcfTGG98@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1399559880-20562-1-git-send-email-amit.daniel@samsung.com>
+In-Reply-To: <2703563.1xTcfTGG98@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, rui.zhang@intel.com, eduardo.valentin@ti.com, rjw@rjwysocki.net
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds suuport to get P state ceil/floor level for nearest frequency.
-This will be used for consolidating ACPI cpufreq cooling via the generic cpu
-cooling framework.
+On Thu, 8 May 2014, Rafael J. Wysocki wrote:
 
-Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
----
- drivers/thermal/cpu_cooling.c                   |   42 +++++++++++++++++------
- drivers/thermal/samsung/exynos_thermal_common.c |    3 +-
- include/linux/cpu_cooling.h                     |   23 ++++++++++++-
- 3 files changed, 55 insertions(+), 13 deletions(-)
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Currently, some subsystems (e.g. PCI and the ACPI PM domain) have to
+> resume all runtime-suspended devices during system suspend, mostly
+> because those devices may need to be reprogrammed due to different
+> wakeup settings for system sleep and for runtime PM.
+> 
+> For some devices, though, it's OK to remain in runtime suspend 
+> throughout a complete system suspend/resume cycle (if the device was in
+> runtime suspend at the start of the cycle).  We would like to do this
+> whenever possible, to avoid the overhead of extra power-up and power-down
+> events.
+> 
+> However, problems may arise because the device's descendants may require
+> it to be at full power at various points during the cycle.  Therefore the
+> most straightforward way to do this safely is if the device and all its
+> descendants can remain runtime suspended until the resume stage of system
+> resume.
+> 
+> To this end, introduce dev->power.leave_runtime_suspended.
+> If a subsystem or driver sets this flag during the ->prepare() callback,
+> and if the flag is set in all of the device's descendants, and if the
+> device is still in runtime suspend at the beginning of the ->suspend()
+> callback, that callback is allowed to return 0 without clearing
+> power.leave_runtime_suspended and without changing the state of the
+> device, unless the current state of the device is not appropriate for
+> the upcoming system sleep state (for example, the device is supposed to
+> wake up the system from that state and its current wakeup settings are
+> not suitable for that).  Then, the PM core will not invoke the device's
+> ->suspend_late(), ->suspend_irq(), ->resume_irq(), ->resume_early(), or
+> ->resume() callbacks.  Instead, it will invoke ->runtime_resume() during
+> the device resume stage of system resume.
 
-diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
-index e2aeb36..6f5430e 100644
---- a/drivers/thermal/cpu_cooling.c
-+++ b/drivers/thermal/cpu_cooling.c
-@@ -120,12 +120,7 @@ static int is_cpufreq_valid(int cpu)
- 	return !cpufreq_get_policy(&policy, cpu);
- }
- 
--enum cpufreq_cooling_property {
--	GET_LEVEL,
--	GET_FREQ,
--	GET_MAXL,
--};
--
-+#define GET_FREQ (GET_MAXL + 1)
- /**
-  * get_property - fetch a property of interest for a give cpu.
-  * @cpu: cpu for which the property is required
-@@ -207,15 +202,37 @@ static int get_property(unsigned int cpu, unsigned long input,
- 		/* now we have a valid frequency entry */
- 		freq = table[i].frequency;
- 
--		if (property == GET_LEVEL && (unsigned int)input == freq) {
-+		if (property == GET_LEVEL_EXACT &&
-+					(unsigned int)input == freq) {
- 			/* get level by frequency */
- 			*output = descend ? j : (max_level - j);
- 			return 0;
--		}
--		if (property == GET_FREQ && level == j) {
-+		} else if (property == GET_FREQ && level == j) {
- 			/* get frequency by level */
- 			*output = freq;
- 			return 0;
-+		} else if (property == GET_LEVEL_FLOOR) {
-+			/* get minimum possible level by frequency */
-+			if (descend && freq <= input) {
-+				*output = j;
-+				return 0;
-+			} else if (!descend) {
-+				if (freq <= input)
-+					*output = (max_level - j);
-+				else
-+					return 0;
-+			}
-+		} else if (property == GET_LEVEL_CEIL) {
-+			/* get maximum possible level by frequency */
-+			if (!descend && freq >= input) {
-+				*output = (max_level - j);
-+				return 0;
-+			} else if (descend) {
-+				if (freq >= input)
-+					*output = j;
-+				else
-+					return 0;
-+			}
- 		}
- 		j++;
- 	}
-@@ -227,6 +244,8 @@ static int get_property(unsigned int cpu, unsigned long input,
-  * cpufreq_cooling_get_level - for a give cpu, return the cooling level.
-  * @cpu: cpu for which the level is required
-  * @freq: the frequency of interest
-+ * @property: can be GET_LEVEL_CEIL, GET_LEVEL_FLOOR, GET_LEVEL_EXACT or
-+ * GET_MAXL
-  *
-  * This function will match the cooling level corresponding to the
-  * requested @freq and return it.
-@@ -234,11 +253,12 @@ static int get_property(unsigned int cpu, unsigned long input,
-  * Return: The matched cooling level on success or THERMAL_CSTATE_INVALID
-  * otherwise.
-  */
--unsigned long cpufreq_cooling_get_level(unsigned int cpu, unsigned int freq)
-+unsigned long cpufreq_cooling_get_level(unsigned int cpu, unsigned int freq,
-+			enum cpufreq_cooling_property property)
- {
- 	unsigned int val;
- 
--	if (get_property(cpu, (unsigned long)freq, &val, GET_LEVEL))
-+	if (get_property(cpu, (unsigned long)freq, &val, property))
- 		return THERMAL_CSTATE_INVALID;
- 
- 	return (unsigned long)val;
-diff --git a/drivers/thermal/samsung/exynos_thermal_common.c b/drivers/thermal/samsung/exynos_thermal_common.c
-index a7306fa..aa4696b 100644
---- a/drivers/thermal/samsung/exynos_thermal_common.c
-+++ b/drivers/thermal/samsung/exynos_thermal_common.c
-@@ -156,7 +156,8 @@ static int exynos_bind(struct thermal_zone_device *thermal,
- 	/* Bind the thermal zone to the cpufreq cooling device */
- 	for (i = 0; i < tab_size; i++) {
- 		clip_data = (struct freq_clip_table *)&(tab_ptr[i]);
--		level = cpufreq_cooling_get_level(0, clip_data->freq_clip_max);
-+		level = cpufreq_cooling_get_level(0, clip_data->freq_clip_max,
-+						GET_LEVEL_EXACT);
- 		if (level == THERMAL_CSTATE_INVALID)
- 			return 0;
- 		switch (GET_ZONE(i)) {
-diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
-index f786935..f4d2b0e 100644
---- a/include/linux/cpu_cooling.h
-+++ b/include/linux/cpu_cooling.h
-@@ -44,6 +44,13 @@ struct cpufreq_cooling_status {
- 	void *devdata;
- };
- 
-+enum cpufreq_cooling_property {
-+	GET_LEVEL_CEIL,
-+	GET_LEVEL_FLOOR,
-+	GET_LEVEL_EXACT,
-+	GET_MAXL,
-+};
-+
- #ifdef CONFIG_CPU_THERMAL
- /**
-  * cpufreq_cooling_register - function to create cpufreq cooling device.
-@@ -77,7 +84,21 @@ of_cpufreq_cooling_register(struct device_node *np,
-  */
- void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev);
- 
--unsigned long cpufreq_cooling_get_level(unsigned int cpu, unsigned int freq);
-+/**
-+ * cpufreq_cooling_get_level - for a give cpu, return the cooling level.
-+ * @cpu: cpu for which the level is required
-+ * @freq: the frequency of interest
-+ * @property: can be GET_LEVEL_CEIL, GET_LEVEL_FLOOR, GET_LEVEL_EXACT or
-+ * GET_MAXL
-+ *
-+ * This function will match the cooling level corresponding to the
-+ * requested @freq and return it.
-+ *
-+ * Return: The matched cooling level on success or THERMAL_CSTATE_INVALID
-+ * otherwise.
-+ */
-+unsigned long cpufreq_cooling_get_level(unsigned int cpu, unsigned int freq,
-+					enum cpufreq_cooling_property);
- 
- /**
-  * cpufreq_cooling_register_notifier - register a driver with cpufreq cooling.
--- 
-1.7.1
+Wait a minute.  Following ->runtime_suspend(), you are going to call 
+->suspend() and then ->runtime_resume()?  That doesn't seem like what 
+you really want; a ->suspend() call should always have a matching 
+->resume().
+
+I guess you did it this way to allow for runtime-resumes and -suspends 
+between ->prepare() and ->suspend(), but it still seems wrong.
+
+How about asking drivers to set leave_runtime_suspended in their
+->runtime_suspend() callbacks, as well as during ->prepare()?  Then
+intervening runtime resume/suspend cycles wouldn't matter and you
+wouldn't need to call ->suspend(); you could skip it along with the
+other PM callbacks.
+
+> By leaving this flag set after ->suspend(), a driver or subsystem tells
+> the PM core that the device is runtime suspended, it is in a suitable
+> state for system suspend (for example, the wakeup setting does not
+> need to be changed), and it does not need to return to full
+> power until the resume stage.
+
+So: By setting this flag during ->runtime_suspend() and ->prepare(), a
+driver or subsystem tells the PM core that the device is in a suitable
+state for system suspend (for example, the wakeup setting would not
+need to be changed), if one should occur before the next runtime
+resume, and the device would not need to return to full power until the
+resume stage.
+
+> --- linux-pm.orig/include/linux/pm_runtime.h
+> +++ linux-pm/include/linux/pm_runtime.h
+> @@ -264,4 +264,20 @@ static inline void pm_runtime_dont_use_a
+>  	__pm_runtime_use_autosuspend(dev, false);
+>  }
+>  
+> +#ifdef CONFIG_PM_BOTH
+> +static inline void __set_leave_runtime_suspended(struct device *dev, bool val)
+> +{
+> +	dev->power.leave_runtime_suspended = val;
+> +}
+> +extern void pm_set_leave_runtime_suspended(struct device *dev, bool val);
+> +static inline bool pm_leave_runtime_suspended(struct device *dev)
+> +{
+> +	return dev->power.leave_runtime_suspended;
+> +}
+
+Is it generally your custom to use "set_" and "" rather than "set_" and 
+"get_"?
+
+>   End:
+>  	if (!error) {
+> +		struct device *parent = dev->parent;
+> +
+>  		dev->power.is_suspended = true;
+> -		if (dev->power.wakeup_path
+> -		    && dev->parent && !dev->parent->power.ignore_children)
+> -			dev->parent->power.wakeup_path = true;
+> +		if (parent) {
+> +			spin_lock_irq(&parent->power.lock);
+> +
+> +			if (dev->power.wakeup_path
+> +			    && !parent->power.ignore_children)
+> +				parent->power.wakeup_path = true;
+> +
+> +			if (!pm_leave_runtime_suspended(dev))
+> +				__set_leave_runtime_suspended(parent, false);
+> +
+> +			spin_unlock_irq(&parent->power.lock);
+> +		}
+
+Then of course, this code would move up, before the callback, and the 
+callback would be skipped if leave_runtime_suspended was set.
+
+Alan Stern
