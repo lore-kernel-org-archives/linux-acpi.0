@@ -1,38 +1,31 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [RESEND PATCH 1/2] ACPI / platform: add ID for GPS module on Lenovo Miix 2
-Date: Thu,  8 May 2014 14:30:24 +0300
-Message-ID: <1399548625-9775-2-git-send-email-heikki.krogerus@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RESEND PATCH 0/2] ACPI / platform: Bluetooth and GPS IDs for new Baytrail boards
+Date: Thu, 08 May 2014 13:53:29 +0200
+Message-ID: <1493747.SiZjVJL3KE@vostro.rjw.lan>
 References: <1399548625-9775-1-git-send-email-heikki.krogerus@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:57476 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753990AbaEHLa3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 May 2014 07:30:29 -0400
+Received: from v094114.home.net.pl ([79.96.170.134]:58154 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753106AbaEHLgt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 May 2014 07:36:49 -0400
 In-Reply-To: <1399548625-9775-1-git-send-email-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Cc: linux-acpi@vger.kernel.org
 
-On Lenovo Miix 2 8", BCM4752 is called LNV4752.
+On Thursday, May 08, 2014 02:30:23 PM Heikki Krogerus wrote:
+> 
+> Heikki Krogerus (2):
+>   ACPI / platform: add ID for GPS module on Lenovo Miix 2
+>   ACPI / platform: add IDs for Broadcom Bluetooth chip
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/acpi/acpi_platform.c | 1 +
- 1 file changed, 1 insertion(+)
+Is there any particular reason why that can't be a single patch?
 
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index 1d49503..bff9ea5 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -31,6 +31,7 @@ static const struct acpi_device_id acpi_platform_device_ids[] = {
- 	{ "PNP0D40" },
- 	{ "VPC2004" },
- 	{ "BCM4752" },
-+	{ "LNV4752" },
- 
- 	/* Intel Smart Sound Technology */
- 	{ "INT33C8" },
+
 -- 
-2.0.0.rc2
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
