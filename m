@@ -1,12 +1,12 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH 2/2] ACPI / LPSS: custom power domain for LPSS
-Date: Thu,  8 May 2014 17:33:51 +0300
-Message-ID: <1399559631-24785-3-git-send-email-heikki.krogerus@linux.intel.com>
+Subject: [PATCH 1/2] ACPI / PM: Export rest of the subsys functions
+Date: Thu,  8 May 2014 17:33:50 +0300
+Message-ID: <1399559631-24785-2-git-send-email-heikki.krogerus@linux.intel.com>
 References: <1399559631-24785-1-git-send-email-heikki.krogerus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga09.intel.com ([134.134.136.24]:31300 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753663AbaEHOei (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1753657AbaEHOei (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 8 May 2014 10:34:38 -0400
 In-Reply-To: <1399559631-24785-1-git-send-email-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -14,246 +14,55 @@ List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, linux-acpi@vger.kernel.org
 
-A Power domain where we save the context of the additional
-LPSS registers. We need to do this or all LPSS devices are
-left in reset state when resuming from D3 on some Baytrails.
-The devices with the fractional clock divider also have
-zeros for N and M values after resuming unless they are
-reset.
+No reason for excluding those two.
 
-Li Aubrey found the root cause for the issue. The idea of
-using power domain for LPSS came from Mika Westerberg.
-
-Reported-by: Jin Yao <yao.jin@linux.intel.com>
-Suggested-by: Li Aubrey <aubrey.li@linux.intel.com>
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/acpi/acpi_lpss.c | 133 ++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 126 insertions(+), 7 deletions(-)
+ drivers/acpi/device_pm.c | 2 ++
+ include/linux/acpi.h     | 4 ++++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index d79c6d7..c314d70 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -19,6 +19,7 @@
- #include <linux/platform_device.h>
- #include <linux/platform_data/clk-lpss.h>
- #include <linux/pm_runtime.h>
-+#include <linux/delay.h>
- 
- #include "internal.h"
- 
-@@ -43,6 +44,8 @@ ACPI_MODULE_NAME("acpi_lpss");
- #define LPSS_TX_INT			0x20
- #define LPSS_TX_INT_MASK		BIT(1)
- 
-+#define LPSS_PRV_REG_COUNT		9
-+
- struct lpss_shared_clock {
- 	const char *name;
- 	unsigned long rate;
-@@ -58,6 +61,7 @@ struct lpss_device_desc {
- 	unsigned int prv_offset;
- 	size_t prv_size_override;
- 	bool clk_gate;
-+	bool save_ctx;
- 	struct lpss_shared_clock *shared_clock;
- 	void (*setup)(struct lpss_private_data *pdata);
- };
-@@ -72,6 +76,7 @@ struct lpss_private_data {
- 	resource_size_t mmio_size;
- 	struct clk *clk;
- 	const struct lpss_device_desc *dev_desc;
-+	u32 prv_reg_ctx[LPSS_PRV_REG_COUNT];
- };
- 
- static void lpss_uart_setup(struct lpss_private_data *pdata)
-@@ -116,6 +121,7 @@ static struct lpss_shared_clock pwm_clock = {
- 
- static struct lpss_device_desc byt_pwm_dev_desc = {
- 	.clk_required = true,
-+	.save_ctx = true,
- 	.shared_clock = &pwm_clock,
- };
- 
-@@ -128,6 +134,7 @@ static struct lpss_device_desc byt_uart_dev_desc = {
- 	.clk_required = true,
- 	.prv_offset = 0x800,
- 	.clk_gate = true,
-+	.save_ctx = true,
- 	.shared_clock = &uart_clock,
- 	.setup = lpss_uart_setup,
- };
-@@ -141,6 +148,7 @@ static struct lpss_device_desc byt_spi_dev_desc = {
- 	.clk_required = true,
- 	.prv_offset = 0x400,
- 	.clk_gate = true,
-+	.save_ctx = true,
- 	.shared_clock = &spi_clock,
- };
- 
-@@ -156,6 +164,7 @@ static struct lpss_shared_clock i2c_clock = {
- static struct lpss_device_desc byt_i2c_dev_desc = {
- 	.clk_required = true,
- 	.prv_offset = 0x800,
-+	.save_ctx = true,
- 	.shared_clock = &i2c_clock,
- };
- 
-@@ -450,6 +459,102 @@ static void acpi_lpss_set_ltr(struct device *dev, s32 val)
- 	}
+diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+index d047739..7dae90b 100644
+--- a/drivers/acpi/device_pm.c
++++ b/drivers/acpi/device_pm.c
+@@ -923,6 +923,7 @@ int acpi_subsys_suspend(struct device *dev)
+ 	pm_runtime_resume(dev);
+ 	return pm_generic_suspend(dev);
  }
++EXPORT_SYMBOL_GPL(acpi_subsys_suspend);
  
-+#ifdef CONFIG_PM
-+static void acpi_lpss_save_ctx(struct device *dev)
-+{
-+	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
-+	int i;
-+
-+	for (i = 0; i < LPSS_PRV_REG_COUNT; i++) {
-+		pdata->prv_reg_ctx[i] = __lpss_reg_read(pdata, i * sizeof(u32));
-+		dev_dbg(dev, "saving 0x%08x from LPSS reg at offset 0x%02x\n",
-+			pdata->prv_reg_ctx[i], (unsigned int)(i * sizeof(u32)));
-+	}
-+}
-+
-+static void acpi_lpss_restore_ctx(struct device *dev)
-+{
-+	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
-+	int i;
-+
-+	/* PCI spec expects 10ms delay when resuming from D3 to D0 */
-+	msleep(10);
-+
-+	for (i = 0; i < LPSS_PRV_REG_COUNT; i++) {
-+		__lpss_reg_write(pdata->prv_reg_ctx[i], pdata, i * sizeof(u32));
-+		dev_dbg(dev, "restoring 0x%08x to LPSS reg at offset 0x%02x\n",
-+			pdata->prv_reg_ctx[i], (unsigned int)(i * sizeof(u32)));
-+	}
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int acpi_lpss_suspend_late(struct device *dev)
-+{
-+	int ret = pm_generic_suspend_late(dev);
-+
-+	if (ret)
-+		return ret;
-+
-+	acpi_lpss_save_ctx(dev);
-+	return acpi_dev_suspend_late(dev);
-+}
-+
-+static int acpi_lpss_restore_early(struct device *dev)
-+{
-+	int ret = acpi_dev_resume_early(dev);
-+
-+	if (ret)
-+		return ret;
-+
-+	acpi_lpss_restore_ctx(dev);
-+	return pm_generic_resume_early(dev);
-+}
-+#endif /* CONFIG_PM_SLEEP */
-+
-+#ifdef CONFIG_PM_RUNTIME
-+static int acpi_lpss_runtime_suspend(struct device *dev)
-+{
-+	int ret = pm_generic_runtime_suspend(dev);
-+
-+	if (ret)
-+		return ret;
-+
-+	acpi_lpss_save_ctx(dev);
-+	return acpi_dev_runtime_suspend(dev);
-+}
-+
-+static int acpi_lpss_runtime_resume(struct device *dev)
-+{
-+	int ret = acpi_dev_runtime_resume(dev);
-+
-+	if (ret)
-+		return ret;
-+
-+	acpi_lpss_restore_ctx(dev);
-+	return pm_generic_runtime_resume(dev);
-+}
-+#endif /* CONFIG_PM_RUNTIME */
-+#endif /* CONFIG_PM */
-+
-+static struct dev_pm_domain acpi_lpss_pm_domain = {
-+	.ops = {
-+#ifdef CONFIG_PM_SLEEP
-+		.suspend_late = acpi_lpss_suspend_late,
-+		.restore_early = acpi_lpss_restore_early,
-+		.prepare = acpi_subsys_prepare,
-+		.suspend = acpi_subsys_suspend,
-+		.resume_early = acpi_subsys_resume_early,
-+		.freeze = acpi_subsys_freeze,
-+		.poweroff = acpi_subsys_suspend,
-+		.poweroff_late = acpi_subsys_suspend_late,
-+#endif
-+#ifdef CONFIG_PM_RUNTIME
-+		.runtime_suspend = acpi_lpss_runtime_suspend,
-+		.runtime_resume = acpi_lpss_runtime_resume,
-+#endif
-+	},
-+};
-+
- static int acpi_lpss_platform_notify(struct notifier_block *nb,
- 				     unsigned long action, void *data)
- {
-@@ -457,7 +562,6 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
- 	struct lpss_private_data *pdata;
- 	struct acpi_device *adev;
- 	const struct acpi_device_id *id;
--	int ret = 0;
- 
- 	id = acpi_match_device(acpi_lpss_device_ids, &pdev->dev);
- 	if (!id || !id->driver_data)
-@@ -467,7 +571,7 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
- 		return 0;
- 
- 	pdata = acpi_driver_data(adev);
--	if (!pdata || !pdata->mmio_base || !pdata->dev_desc->ltr_required)
-+	if (!pdata || !pdata->mmio_base)
- 		return 0;
- 
- 	if (pdata->mmio_size < pdata->dev_desc->prv_offset + LPSS_LTR_SIZE) {
-@@ -475,12 +579,27 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
- 		return 0;
- 	}
- 
--	if (action == BUS_NOTIFY_ADD_DEVICE)
--		ret = sysfs_create_group(&pdev->dev.kobj, &lpss_attr_group);
--	else if (action == BUS_NOTIFY_DEL_DEVICE)
--		sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
-+	switch (action) {
-+	case BUS_NOTIFY_BOUND_DRIVER:
-+		if (pdata->dev_desc->save_ctx)
-+			pdev->dev.pm_domain = &acpi_lpss_pm_domain;
-+		break;
-+	case BUS_NOTIFY_UNBOUND_DRIVER:
-+		if (pdata->dev_desc->save_ctx)
-+			pdev->dev.pm_domain = NULL;
-+		break;
-+	case BUS_NOTIFY_ADD_DEVICE:
-+		if (pdata->dev_desc->ltr_required)
-+			return sysfs_create_group(&pdev->dev.kobj,
-+						  &lpss_attr_group);
-+	case BUS_NOTIFY_DEL_DEVICE:
-+		if (pdata->dev_desc->ltr_required)
-+			sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
-+	default:
-+		break;
-+	}
- 
--	return ret;
-+	return 0;
+ /**
+  * acpi_subsys_suspend_late - Suspend device using ACPI.
+@@ -968,6 +969,7 @@ int acpi_subsys_freeze(struct device *dev)
+ 	pm_runtime_resume(dev);
+ 	return pm_generic_freeze(dev);
  }
++EXPORT_SYMBOL_GPL(acpi_subsys_freeze);
  
- static struct notifier_block acpi_lpss_nb = {
+ #endif /* CONFIG_PM_SLEEP */
+ 
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 7a8f2cd..47dcc0e 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -556,12 +556,16 @@ int acpi_dev_resume_early(struct device *dev);
+ int acpi_subsys_prepare(struct device *dev);
+ int acpi_subsys_suspend_late(struct device *dev);
+ int acpi_subsys_resume_early(struct device *dev);
++int acpi_subsys_suspend(struct device *dev);
++int acpi_subsys_freeze(struct device *dev);
+ #else
+ static inline int acpi_dev_suspend_late(struct device *dev) { return 0; }
+ static inline int acpi_dev_resume_early(struct device *dev) { return 0; }
+ static inline int acpi_subsys_prepare(struct device *dev) { return 0; }
+ static inline int acpi_subsys_suspend_late(struct device *dev) { return 0; }
+ static inline int acpi_subsys_resume_early(struct device *dev) { return 0; }
++static inline int acpi_subsys_suspend(struct device *dev) { return 0; }
++static inline int acpi_subsys_freeze(struct device *dev) { return 0; }
+ #endif
+ 
+ #if defined(CONFIG_ACPI) && defined(CONFIG_PM)
 -- 
 2.0.0.rc2
 
