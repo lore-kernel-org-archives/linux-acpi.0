@@ -1,33 +1,47 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH 0/2] ACPI / LPSS: fix for a Baytrail PM issue
-Date: Thu,  8 May 2014 17:33:49 +0300
-Message-ID: <1399559631-24785-1-git-send-email-heikki.krogerus@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:31300 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753205AbaEHOeh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 May 2014 10:34:37 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 1/3] PM / sleep: Flag to speed up suspend-resume of
+ runtime-suspended devices
+Date: Thu, 8 May 2014 10:36:24 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1405081028370.1087-100000@iolanthe.rowland.org>
+References: <CAPDyKFoPxXVYfK2ytGVJ8fYQDJXiSuaRX_6QtRYzffZVtKJfeA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFoPxXVYfK2ytGVJ8fYQDJXiSuaRX_6QtRYzffZVtKJfeA@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, linux-acpi@vger.kernel.org
 
-Hi,
+On Thu, 8 May 2014, Ulf Hansson wrote:
 
-These will fix the issue with some BYT boards, where resuming from D3
-fails. The root cause turned out to be because we loose the context of
-the private registers.
+> >> Should we not depend on PM_RUNTIME only? Thus we don't need the new
+> >> Kconfig,
+> >
+> > Well, OK.  I guess we can tolerate one useless statement in rpm_resume()
+> > in case CONFIG_PM_SLEEP is unset.
 
+It isn't a big deal.  However, Ulf, you need to understand that this 
+API belongs to _both_ PM_SLEEP _and_ PM_RUNTIME.  It doesn't mean 
+anything unless both are present.
 
-Heikki Krogerus (2):
-  ACPI / PM: Export rest of the subsys functions
-  ACPI / LPSS: custom power domain for LPSS
+But as Rafael said, the extra overhead if !CONFIG_PM_SLEEP is minimal.  
+(Although I would move the new flag to be next to the other bitflags, 
+so that it doesn't add an entire extra word to the dev_pm_info 
+structure.)
 
- drivers/acpi/acpi_lpss.c | 133 ++++++++++++++++++++++++++++++++++++++++++++---
- drivers/acpi/device_pm.c |   2 +
- include/linux/acpi.h     |   4 ++
- 3 files changed, 132 insertions(+), 7 deletions(-)
+> >> and then we could rename the new APIs to pm_runtime_* instead.
+> >
+> > That would just make the name longer - for what value?
+> 
+> Only "__set_leave_runtime_suspended" will be a bit longer.
+> 
+> The idea I had was to clearly indicate, these functions is a part of
+> PM_RUNTIME API.
 
--- 
-2.0.0.rc2
+Not so.  They are part of both PM_SLEEP and PM_RUNTIME, which means
+they are really just part of PM.  You can tell by the fact that they 
+are used in both main.c and runtime.c.
+
+Alan Stern
 
