@@ -1,52 +1,53 @@
-From: Manuel Krause <manuelkrause@netscape.net>
-Subject: Re: [RFC PATCH] Revert "ACPI / AC: convert ACPI ac driver to platform
- bus"
-Date: Thu, 08 May 2014 03:32:32 +0200
-Message-ID: <536ADEB0.90706@netscape.net>
-References: <1399429108-15395-1-git-send-email-linux@roeck-us.net> <6536976.HgJVm3ut0E@vostro.rjw.lan> <20140507233155.GA14406@roeck-us.net> <2440587.zkE99e14QY@vostro.rjw.lan>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH v5 2/4] acpi_processor: do not mark present at boot but
+ not onlined CPU as onlined
+Date: Thu, 8 May 2014 08:09:35 +0200
+Message-ID: <20140508060935.GA31184@gmail.com>
+References: <1399322991-19329-1-git-send-email-imammedo@redhat.com>
+ <1399322991-19329-3-git-send-email-imammedo@redhat.com>
+ <20310348.uigSpUyQCR@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from omr-d02.mx.aol.com ([205.188.109.194]:64761 "EHLO
-	omr-d02.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752573AbaEHBdH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 May 2014 21:33:07 -0400
-In-Reply-To: <2440587.zkE99e14QY@vostro.rjw.lan>
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:50451 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751055AbaEHGJl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 May 2014 02:09:41 -0400
+Content-Disposition: inline
+In-Reply-To: <20310348.uigSpUyQCR@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Guenter Roeck <linux@roeck-us.net>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Igor Mammedov <imammedo@redhat.com>, linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, bp@suse.de, paul.gortmaker@windriver.com, JBeulich@suse.com, prarit@redhat.com, drjones@redhat.com, toshi.kani@hp.com, riel@redhat.com, gong.chen@linux.intel.com, andi@firstfloor.org, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On 2014-05-08 01:50, Rafael J. Wysocki wrote:
-> On Wednesday, May 07, 2014 04:31:55 PM Guenter Roeck wrote:
->> On Thu, May 08, 2014 at 01:43:55AM +0200, Rafael J. Wysocki wrote:
->>> On Tuesday, May 06, 2014 07:18:28 PM Guenter Roeck wrote:
->>>> This reverts commit cc8ef52707341e67a12067d6ead991d56ea017ca.
->>>>
->>>> This is an attempt to fix (or at least track down)
->>>> https://bugzilla.kernel.org/show_bug.cgi?id=71711.
->>>>
->>>> Cc: Zhang Rui <rui.zhang@intel.com>
->>>> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
->>>> Cc: Manuel Krause <manuelkrause@netscape.net>
->>>> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->>>>
->>>> Conflicts:
->>>> 	drivers/acpi/ac.c
->>>> 	drivers/acpi/acpi_platform.c
->>>
->>> Queued up as a fix for 3.15, thanks!
->>>
->>
->> It should also find its way into 3.14.
->
-> I've marked it for -stable too.  Thanks!
->
->
 
-Thank you all for your work! Guenters patch also works for me 
-with kernel 3.14.3 + BFS/CK + BFQ.
-And, please, let me know when further testing/evaluation is needed.
+* Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
 
-Manuel
+> On Monday, May 05, 2014 10:49:49 PM Igor Mammedov wrote:
+> > acpi_processor_add() assumes that present at boot CPUs
+> > are always onlined, it is not so if a CPU failed to become
+> > onlined. As result acpi_processor_add() will mark such CPU
+> > device as onlined in sysfs and following attempts to
+> > online/offline it using /sys/device/system/cpu/cpuX/online
+> > attribute will fail.
+> > 
+> > Do not poke into device internals in acpi_processor_add()
+> > and touch "struct device { .offline }" attribute, since
+> > for CPUs onlined at boot it's set by:
+> >   topology_init() -> arch_register_cpu() -> register_cpu()
+> > before ACPI device tree is parsed, and for hotplugged
+> > CPUs it's set when userspace onlines CPU via sysfs.
+> > 
+> > Signed-off-by: Igor Mammedov <imammedo@redhat.com>
+> > Acked-by: Toshi Kani <toshi.kani@hp.com>
+> 
+> Would there be a problem if I applied this separately from the rest 
+> of the series?
+
+If you push the fix upstream for v3.15 then it would be fine and I 
+could base the other patches on top of your (soon to be upstream) 
+commit.
+
+Thanks,
+
+	Ingo
