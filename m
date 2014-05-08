@@ -1,36 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / PM: Export acpi_target_system_state() to modules
-Date: Thu, 08 May 2014 23:22:15 +0200
-Message-ID: <2489711.iF4O31YnBD@vostro.rjw.lan>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 1/3] PM / sleep: Flag to speed up suspend-resume of
+ runtime-suspended devices
+Date: Thu, 8 May 2014 17:08:16 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1405081700480.995-100000@iolanthe.rowland.org>
+References: <3058268.hrHgpxktTP@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3058268.hrHgpxktTP@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Thu, 8 May 2014, Rafael J. Wysocki wrote:
 
-Export the acpi_target_system_state() function to modules so that
-modular drivers can use it to check what the target ACPI sleep state
-of the system is (that is needed for i915 mostly at this point).
+> > Wait a minute.  Following ->runtime_suspend(), you are going to call 
+> > ->suspend() and then ->runtime_resume()?  That doesn't seem like what 
+> > you really want; a ->suspend() call should always have a matching 
+> > ->resume().
+> 
+> Yes, it should, but I didn't see any other way to do that.
+> 
+> > I guess you did it this way to allow for runtime-resumes and -suspends 
+> > between ->prepare() and ->suspend(), but it still seems wrong.
+> 
+> No.  I did that to allow ->suspend() to check whether or not the device is
+> in the right state.  ->prepare() could do that, arguably, but then there's
+> the case when ->runtime_suspend() may still be running in parallel with it.
+> And the device may be runtime-suspended immediately before its ->suspend()
+> in theory if its children do pm_runtime_put_sync(parent).
+> 
+> Also, this is a bus type ->suspend(), so the *driver* ->suspend()
+> won't be called at this point in the ACPI PM domain case for example.
+> 
+> > How about asking drivers to set leave_runtime_suspended in their
+> > ->runtime_suspend() callbacks, as well as during ->prepare()?  Then
+> > intervening runtime resume/suspend cycles wouldn't matter and you
+> > wouldn't need to call ->suspend(); you could skip it along with the
+> > other PM callbacks.
+> 
+> That wouldn't work, because they cannot know the target sleep state of the
+> system in advance.  This only is known during the given suspend sequence.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/sleep.c |    1 +
- 1 file changed, 1 insertion(+)
+Argh!  We're both being foolish.  Runtime suspends can't occur between 
+->prepare() and ->suspend(), because device_prepare() does a 
+pm_runtime_get_noresume.
 
-Index: linux-pm/drivers/acpi/sleep.c
-===================================================================
---- linux-pm.orig/drivers/acpi/sleep.c
-+++ linux-pm/drivers/acpi/sleep.c
-@@ -89,6 +89,7 @@ u32 acpi_target_system_state(void)
- {
- 	return acpi_target_sleep_state;
- }
-+EXPORT_SYMBOL_GPL(acpi_target_system_state);
- 
- static bool pwr_btn_event_pending;
- 
+You might still have to worry about a runtime suspend concurrent with
+->prepare(), though.  An appropriate barrier could fix that.
+
+Alan Stern
