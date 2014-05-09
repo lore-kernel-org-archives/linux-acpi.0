@@ -1,38 +1,45 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC][PATCH 1/3] PM / sleep: Flag to speed up suspend-resume of runtime-suspended devices
-Date: Fri, 09 May 2014 13:33:02 +0200
-Message-ID: <5011531.ltexPOCSJ9@vostro.rjw.lan>
-References: <Pine.LNX.4.44L0.1405081718200.995-100000@iolanthe.rowland.org> <3786444.hNhCASz73P@vostro.rjw.lan> <CAPDyKFo7zODwqHxzTuLcnF5sOXNRh5-VHvRdOidBnkPs+airDg@mail.gmail.com>
+Subject: Re: linux-pm build failure
+Date: Fri, 09 May 2014 23:36:03 +0200
+Message-ID: <12185110.9TpRMrqnbe@vostro.rjw.lan>
+References: <536BBAF8.6040601@semaphore.gr> <2930403.UViFFypGRj@vostro.rjw.lan> <536C3337.40402@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFo7zODwqHxzTuLcnF5sOXNRh5-VHvRdOidBnkPs+airDg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <536C3337.40402@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: Stratos Karafotis <stratosk@semaphore.gr>, Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, May 09, 2014 09:23:50 AM Ulf Hansson wrote:
-> Hi Rafael,
-> 
-> > @@ -1485,3 +1486,10 @@ out:
-> >         return ret;
-> >  }
-> >  EXPORT_SYMBOL_GPL(pm_runtime_force_resume);
-> > +
-> > +void pm_set_direct_resume(struct device *dev, bool val)
-> > +{
-> > +       spin_lock_irq(&dev->power.lock);
-> > +       __set_direct_resume(dev, val);
-> > +       spin_unlock_irq(&dev->power.lock);
-> > +}
-> 
-> I believe you have to move the implementation of this function inside
-> #ifdef CONFIG_PM_RUNTIME.
+On Friday, May 09, 2014 09:45:27 AM Lan Tianyu wrote:
+> On 2014=E5=B9=B405=E6=9C=8809=E6=97=A5 03:44, Rafael J. Wysocki wrote=
+:
+> > On Thursday, May 08, 2014 08:12:24 PM Stratos Karafotis wrote:
+> >> Hi all,
+> >=20
+> > Hi,
+> >=20
+> > Thanks for the report!
+> >=20
+> > This is caused by commit
+> >=20
+> > 0e23847d5ee4 ACPICA: Export acpi_buffer_to_resource symbol
+> >=20
+> > merged on top of the recent ACPICA material.
+> >=20
+> > Lv, Tianyu, care to take care of this?
+>=20
+> Hi Rafael:
+> 	Just check commit 51e35823eb57 and find it also exports
+> acpi_buffer_to_resource symbol which commit 0e23847d5ee4 has already
+> done. I think you can drop commit 0e23847d5ee4 which only exports sym=
+bol
+> without any other changes.
 
-You're right, I forgot about the recent change in there.
+Done, thanks!
 
--- 
+--=20
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
