@@ -1,105 +1,324 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [RFC][PATCH 1/3] PM / sleep: Flag to speed up suspend-resume of runtime-suspended devices
-Date: Fri, 09 May 2014 15:48:21 -0700
-Message-ID: <7hmweqmuve.fsf@paris.lan>
-References: <Pine.LNX.4.44L0.1405071126340.1325-100000@iolanthe.rowland.org>
-	<2333255.ofrK1CRRL4@vostro.rjw.lan>
-	<2703563.1xTcfTGG98@vostro.rjw.lan>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH] ACPICA: amlresrc.h: Neaten AML_<FOO> definitions and uses
+Date: Fri, 09 May 2014 16:25:47 -0700
+Message-ID: <1399677947.2912.41.camel@joe-AO725>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <2703563.1xTcfTGG98@vostro.rjw.lan> (Rafael J. Wysocki's message
-	of "Thu, 08 May 2014 01:29:47 +0200")
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, devel@acpica.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-"Rafael J. Wysocki" <rjw@rjwysocki.net> writes:
+Use a more normal style for these slightly odd #defines.
 
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Currently, some subsystems (e.g. PCI and the ACPI PM domain) have to
-> resume all runtime-suspended devices during system suspend, mostly
-> because those devices may need to be reprogrammed due to different
-> wakeup settings for system sleep and for runtime PM.
->
-> For some devices, though, it's OK to remain in runtime suspend 
-> throughout a complete system suspend/resume cycle (if the device was in
-> runtime suspend at the start of the cycle).  We would like to do this
-> whenever possible, to avoid the overhead of extra power-up and power-down
-> events.
->
-> However, problems may arise because the device's descendants may require
-> it to be at full power at various points during the cycle.  Therefore the
-> most straightforward way to do this safely is if the device and all its
-> descendants can remain runtime suspended until the resume stage of system
-> resume.
->
-> To this end, introduce dev->power.leave_runtime_suspended.
-> If a subsystem or driver sets this flag during the ->prepare() callback,
-> and if the flag is set in all of the device's descendants, and if the
-> device is still in runtime suspend at the beginning of the ->suspend()
-> callback, that callback is allowed to return 0 without clearing
-> power.leave_runtime_suspended and without changing the state of the
-> device, unless the current state of the device is not appropriate for
-> the upcoming system sleep state (for example, the device is supposed to
-> wake up the system from that state and its current wakeup settings are
-> not suitable for that).  Then, the PM core will not invoke the device's
-> ->suspend_late(), ->suspend_irq(), ->resume_irq(), ->resume_early(), or
-> ->resume() callbacks.  
+Remove trailing semicolons from #defines
+Add semicolon to uses.
 
-Up to here, this sounds great.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
 
-> Instead, it will invoke ->runtime_resume() during the device resume
-> stage of system resume.
+I think these are unnecessarily obfuscating and the #defines
+should be expanded in-place instead.
 
-But this part I'm not fully following...
+ drivers/acpi/acpica/amlresrc.h | 137 +++++++++++++++++++++++++----------------
+ 1 file changed, 84 insertions(+), 53 deletions(-)
 
-> By leaving this flag set after ->suspend(), a driver or subsystem tells
-> the PM core that the device is runtime suspended, it is in a suitable
-> state for system suspend (for example, the wakeup setting does not
-> need to be changed), and it does not need to return to full
-> power until the resume stage.
-
-But taking this "leave runtime suspended" idea the next logical step,
-why would/should a device need to return to full power at the ->resume()
-stage?  especially when it wasn't at full power when ->suspend()
-happened?
-
-IOW, why doesn't "leave runtime suspended" mean "leave runtime suspended
-until runtime resumed on demand."
-
-Forcing ->runtime_resume() during device resume means that in most
-cases, a device will be forcibly runtime resumed, only to have nothing
-to do but go idle and runtime suspend again, resulting in a(nother)
-unnessary power-up, power-down cycle this patch is trying to avoid
-during ->suspend().
-
-Hmm, but wait a minute...
-
-[...]
-
-> @@ -735,6 +735,11 @@ static int device_resume(struct device *
->  	if (dev->power.syscore)
->  		goto Complete;
->  
-> +	if (pm_leave_runtime_suspended(dev)) {
-> +		pm_runtime_resume(dev);
-> +		goto Complete;
-> +	}
-
-... maybe I'm forgetting how this works (since it's Friday and my brain
-is already shutting down for the week) but after pm_runtime_resume() is
-called, won't the device remain runtime active until
-pm_runtime_suspend() is called, or until a
-pm_runtime_get()/pm_runtime_put() cycle happens?
-
-That means that on device resume, the device is forced into full power
-state (even though it was runtime suspended when ->suspend() happened)
-and will stay there until its used again.  
-
-That seems like a rather unpleasant (and non-intuitive) side-effect of
-"leave runtime suspended".
-
-Kevin
+diff --git a/drivers/acpi/acpica/amlresrc.h b/drivers/acpi/acpica/amlresrc.h
+index f3f8344..fb1a1b5 100644
+--- a/drivers/acpi/acpica/amlresrc.h
++++ b/drivers/acpi/acpica/amlresrc.h
+@@ -133,38 +133,46 @@ struct asl_resource_node {
+ /*
+  * SMALL descriptors
+  */
+-#define AML_RESOURCE_SMALL_HEADER_COMMON \
+-	u8                              descriptor_type;
++#define AML_RESOURCE_SMALL_HEADER_COMMON	\
++	u8 descriptor_type
+ 
+ struct aml_resource_small_header {
+-AML_RESOURCE_SMALL_HEADER_COMMON};
++	AML_RESOURCE_SMALL_HEADER_COMMON;
++};
+ 
+ struct aml_resource_irq {
+-	AML_RESOURCE_SMALL_HEADER_COMMON u16 irq_mask;
++	AML_RESOURCE_SMALL_HEADER_COMMON;
++	u16 irq_mask;
+ 	u8 flags;
+ };
+ 
+ struct aml_resource_irq_noflags {
+-	AML_RESOURCE_SMALL_HEADER_COMMON u16 irq_mask;
++	AML_RESOURCE_SMALL_HEADER_COMMON;
++	u16 irq_mask;
+ };
+ 
+ struct aml_resource_dma {
+-	AML_RESOURCE_SMALL_HEADER_COMMON u8 dma_channel_mask;
++	AML_RESOURCE_SMALL_HEADER_COMMON;
++	u8 dma_channel_mask;
+ 	u8 flags;
+ };
+ 
+ struct aml_resource_start_dependent {
+-	AML_RESOURCE_SMALL_HEADER_COMMON u8 flags;
++	AML_RESOURCE_SMALL_HEADER_COMMON;
++	u8 flags;
+ };
+ 
+ struct aml_resource_start_dependent_noprio {
+-AML_RESOURCE_SMALL_HEADER_COMMON};
++	AML_RESOURCE_SMALL_HEADER_COMMON;
++};
+ 
+ struct aml_resource_end_dependent {
+-AML_RESOURCE_SMALL_HEADER_COMMON};
++	AML_RESOURCE_SMALL_HEADER_COMMON;
++};
+ 
+ struct aml_resource_io {
+-	AML_RESOURCE_SMALL_HEADER_COMMON u8 flags;
++	AML_RESOURCE_SMALL_HEADER_COMMON;
++	u8 flags;
+ 	u16 minimum;
+ 	u16 maximum;
+ 	u8 alignment;
+@@ -172,19 +180,23 @@ struct aml_resource_io {
+ };
+ 
+ struct aml_resource_fixed_io {
+-	AML_RESOURCE_SMALL_HEADER_COMMON u16 address;
++	AML_RESOURCE_SMALL_HEADER_COMMON;
++	u16 address;
+ 	u8 address_length;
+ };
+ 
+ struct aml_resource_vendor_small {
+-AML_RESOURCE_SMALL_HEADER_COMMON};
++	AML_RESOURCE_SMALL_HEADER_COMMON;
++};
+ 
+ struct aml_resource_end_tag {
+-	AML_RESOURCE_SMALL_HEADER_COMMON u8 checksum;
++	AML_RESOURCE_SMALL_HEADER_COMMON;
++	u8 checksum;
+ };
+ 
+ struct aml_resource_fixed_dma {
+-	AML_RESOURCE_SMALL_HEADER_COMMON u16 request_lines;
++	AML_RESOURCE_SMALL_HEADER_COMMON;
++	u16 request_lines;
+ 	u16 channels;
+ 	u8 width;
+ };
+@@ -192,12 +204,13 @@ struct aml_resource_fixed_dma {
+ /*
+  * LARGE descriptors
+  */
+-#define AML_RESOURCE_LARGE_HEADER_COMMON \
+-	u8                              descriptor_type;\
+-	u16                             resource_length;
++#define AML_RESOURCE_LARGE_HEADER_COMMON			\
++	u8 descriptor_type;					\
++	u16 resource_length
+ 
+ struct aml_resource_large_header {
+-AML_RESOURCE_LARGE_HEADER_COMMON};
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++};
+ 
+ /* General Flags for address space resource descriptors */
+ 
+@@ -206,7 +219,8 @@ AML_RESOURCE_LARGE_HEADER_COMMON};
+ #define ACPI_RESOURCE_FLAG_MAF      8
+ 
+ struct aml_resource_memory24 {
+-	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	u8 flags;
+ 	u16 minimum;
+ 	u16 maximum;
+ 	u16 alignment;
+@@ -214,10 +228,12 @@ struct aml_resource_memory24 {
+ };
+ 
+ struct aml_resource_vendor_large {
+-AML_RESOURCE_LARGE_HEADER_COMMON};
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++};
+ 
+ struct aml_resource_memory32 {
+-	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	u8 flags;
+ 	u32 minimum;
+ 	u32 maximum;
+ 	u32 alignment;
+@@ -225,22 +241,26 @@ struct aml_resource_memory32 {
+ };
+ 
+ struct aml_resource_fixed_memory32 {
+-	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	u8 flags;
+ 	u32 address;
+ 	u32 address_length;
+ };
+ 
+-#define AML_RESOURCE_ADDRESS_COMMON \
+-	u8                              resource_type; \
+-	u8                              flags; \
+-	u8                              specific_flags;
++#define AML_RESOURCE_ADDRESS_COMMON			\
++	u8 resource_type;				\
++	u8 flags;					\
++	u8 specific_flags
+ 
+ struct aml_resource_address {
+-AML_RESOURCE_LARGE_HEADER_COMMON AML_RESOURCE_ADDRESS_COMMON};
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	AML_RESOURCE_ADDRESS_COMMON;
++};
+ 
+ struct aml_resource_extended_address64 {
+-	AML_RESOURCE_LARGE_HEADER_COMMON
+-	    AML_RESOURCE_ADDRESS_COMMON u8 revision_ID;
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	AML_RESOURCE_ADDRESS_COMMON;
++	u8 revision_ID;
+ 	u8 reserved;
+ 	u64 granularity;
+ 	u64 minimum;
+@@ -253,8 +273,9 @@ struct aml_resource_extended_address64 {
+ #define AML_RESOURCE_EXTENDED_ADDRESS_REVISION          1	/* ACPI 3.0 */
+ 
+ struct aml_resource_address64 {
+-	AML_RESOURCE_LARGE_HEADER_COMMON
+-	    AML_RESOURCE_ADDRESS_COMMON u64 granularity;
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	AML_RESOURCE_ADDRESS_COMMON;
++	u64 granularity;
+ 	u64 minimum;
+ 	u64 maximum;
+ 	u64 translation_offset;
+@@ -262,8 +283,9 @@ struct aml_resource_address64 {
+ };
+ 
+ struct aml_resource_address32 {
+-	AML_RESOURCE_LARGE_HEADER_COMMON
+-	    AML_RESOURCE_ADDRESS_COMMON u32 granularity;
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	AML_RESOURCE_ADDRESS_COMMON;
++	u32 granularity;
+ 	u32 minimum;
+ 	u32 maximum;
+ 	u32 translation_offset;
+@@ -271,8 +293,9 @@ struct aml_resource_address32 {
+ };
+ 
+ struct aml_resource_address16 {
+-	AML_RESOURCE_LARGE_HEADER_COMMON
+-	    AML_RESOURCE_ADDRESS_COMMON u16 granularity;
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	AML_RESOURCE_ADDRESS_COMMON;
++	u16 granularity;
+ 	u16 minimum;
+ 	u16 maximum;
+ 	u16 translation_offset;
+@@ -280,14 +303,16 @@ struct aml_resource_address16 {
+ };
+ 
+ struct aml_resource_extended_irq {
+-	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	u8 flags;
+ 	u8 interrupt_count;
+ 	u32 interrupts[1];
+ 	/* res_source_index, res_source optional fields follow */
+ };
+ 
+ struct aml_resource_generic_register {
+-	AML_RESOURCE_LARGE_HEADER_COMMON u8 address_space_id;
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	u8 address_space_id;
+ 	u8 bit_width;
+ 	u8 bit_offset;
+ 	u8 access_size;		/* ACPI 3.0, was previously Reserved */
+@@ -297,7 +322,8 @@ struct aml_resource_generic_register {
+ /* Common descriptor for gpio_int and gpio_io (ACPI 5.0) */
+ 
+ struct aml_resource_gpio {
+-	AML_RESOURCE_LARGE_HEADER_COMMON u8 revision_id;
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	u8 revision_id;
+ 	u8 connection_type;
+ 	u16 flags;
+ 	u16 int_flags;
+@@ -327,14 +353,14 @@ struct aml_resource_gpio {
+ 
+ /* Common preamble for all serial descriptors (ACPI 5.0) */
+ 
+-#define AML_RESOURCE_SERIAL_COMMON \
+-	u8                              revision_id; \
+-	u8                              res_source_index; \
+-	u8                              type; \
+-	u8                              flags; \
+-	u16                             type_specific_flags; \
+-	u8                              type_revision_id; \
+-	u16                             type_data_length; \
++#define AML_RESOURCE_SERIAL_COMMON				\
++	u8 revision_id;						\
++	u8 res_source_index;					\
++	u8 type;						\
++	u8 flags;						\
++	u16 type_specific_flags;				\
++	u8 type_revision_id;					\
++	u16 type_data_length
+ 
+ /* Values for the type field above */
+ 
+@@ -345,11 +371,14 @@ struct aml_resource_gpio {
+ #define AML_RESOURCE_VENDOR_SERIALBUSTYPE       192	/* Vendor defined is 0xC0-0xFF (NOT SUPPORTED) */
+ 
+ struct aml_resource_common_serialbus {
+-AML_RESOURCE_LARGE_HEADER_COMMON AML_RESOURCE_SERIAL_COMMON};
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	AML_RESOURCE_SERIAL_COMMON;
++};
+ 
+ struct aml_resource_i2c_serialbus {
+-	AML_RESOURCE_LARGE_HEADER_COMMON
+-	    AML_RESOURCE_SERIAL_COMMON u32 connection_speed;
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	AML_RESOURCE_SERIAL_COMMON;
++	u32 connection_speed;
+ 	u16 slave_address;
+ 	/*
+ 	 * Optional fields follow immediately:
+@@ -363,8 +392,9 @@ struct aml_resource_i2c_serialbus {
+ #define AML_RESOURCE_I2C_MIN_DATA_LEN           6
+ 
+ struct aml_resource_spi_serialbus {
+-	AML_RESOURCE_LARGE_HEADER_COMMON
+-	    AML_RESOURCE_SERIAL_COMMON u32 connection_speed;
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	AML_RESOURCE_SERIAL_COMMON;
++	u32 connection_speed;
+ 	u8 data_bit_length;
+ 	u8 clock_phase;
+ 	u8 clock_polarity;
+@@ -381,8 +411,9 @@ struct aml_resource_spi_serialbus {
+ #define AML_RESOURCE_SPI_MIN_DATA_LEN           9
+ 
+ struct aml_resource_uart_serialbus {
+-	AML_RESOURCE_LARGE_HEADER_COMMON
+-	    AML_RESOURCE_SERIAL_COMMON u32 default_baud_rate;
++	AML_RESOURCE_LARGE_HEADER_COMMON;
++	AML_RESOURCE_SERIAL_COMMON;
++	u32 default_baud_rate;
+ 	u16 rx_fifo_size;
+ 	u16 tx_fifo_size;
+ 	u8 parity;
