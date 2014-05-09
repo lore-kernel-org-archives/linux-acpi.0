@@ -1,213 +1,135 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [RFC][PATCH 1/3] PM / sleep: Flag to speed up suspend-resume of runtime-suspended devices
-Date: Fri, 09 May 2014 00:41:18 +0200
-Message-ID: <3786444.hNhCASz73P@vostro.rjw.lan>
-References: <Pine.LNX.4.44L0.1405081718200.995-100000@iolanthe.rowland.org> <2356017.WpDFDYKWcr@vostro.rjw.lan> <4232134.uNVe9bptuo@vostro.rjw.lan>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: linux-pm build failure
+Date: Fri, 09 May 2014 09:45:27 +0800
+Message-ID: <536C3337.40402@intel.com>
+References: <536BBAF8.6040601@semaphore.gr> <2930403.UViFFypGRj@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <4232134.uNVe9bptuo@vostro.rjw.lan>
+In-Reply-To: <2930403.UViFFypGRj@vostro.rjw.lan>
 Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Stratos Karafotis <stratosk@semaphore.gr>, Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 2014=E5=B9=B405=E6=9C=8809=E6=97=A5 03:44, Rafael J. Wysocki wrote:
+> On Thursday, May 08, 2014 08:12:24 PM Stratos Karafotis wrote:
+>> Hi all,
+>=20
+> Hi,
+>=20
+> Thanks for the report!
+>=20
+> This is caused by commit
+>=20
+> 0e23847d5ee4 ACPICA: Export acpi_buffer_to_resource symbol
+>=20
+> merged on top of the recent ACPICA material.
+>=20
+> Lv, Tianyu, care to take care of this?
 
-Currently, some subsystems (e.g. PCI and the ACPI PM domain) have to
-resume all runtime-suspended devices during system suspend, mostly
-because those devices may need to be reprogrammed due to different
-wakeup settings for system sleep and for runtime PM.
+Hi Rafael:
+	Just check commit 51e35823eb57 and find it also exports
+acpi_buffer_to_resource symbol which commit 0e23847d5ee4 has already
+done. I think you can drop commit 0e23847d5ee4 which only exports symbo=
+l
+without any other changes.
 
-For some devices, though, it's OK to remain in runtime suspend 
-throughout a complete system suspend/resume cycle (if the device was in
-runtime suspend at the start of the cycle).  We would like to do this
-whenever possible, to avoid the overhead of extra power-up and power-down
-events.
+>=20
+>> There is a build failure in latest linux-pm bleeding-edge:
+>>
+>> In file included from include/linux/linkage.h:6:0,
+>>                  from include/linux/kernel.h:6,
+>>                  from include/acpi/platform/aclinux.h:64,
+>>                  from include/acpi/platform/acenv.h:150,
+>>                  from include/acpi/acpi.h:56,
+>>                  from drivers/acpi/acpica/rscreate.c:44:
+>> include/linux/export.h:59:20: error: redefinition of =E2=80=98__kstr=
+tab_acpi_buffer_to_resource=E2=80=99
+>>   static const char __kstrtab_##sym[]   \
+>>                     ^
+>> include/linux/export.h:69:2: note: in expansion of macro =E2=80=98__=
+EXPORT_SYMBOL=E2=80=99
+>>   __EXPORT_SYMBOL(sym, "")
+>>   ^
+>> include/acpi/platform/aclinux.h:110:37: note: in expansion of macro =
+=E2=80=98EXPORT_SYMBOL=E2=80=99
+>>  #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
+>>                                      ^
+>> drivers/acpi/acpica/rscreate.c:119:1: note: in expansion of macro =E2=
+=80=98ACPI_EXPORT_SYMBOL=E2=80=99
+>>  ACPI_EXPORT_SYMBOL(acpi_buffer_to_resource)
+>>  ^
+>> include/linux/export.h:59:20: note: previous definition of =E2=80=98=
+__kstrtab_acpi_buffer_to_resource=E2=80=99 was here
+>>   static const char __kstrtab_##sym[]   \
+>>                     ^
+>> include/linux/export.h:69:2: note: in expansion of macro =E2=80=98__=
+EXPORT_SYMBOL=E2=80=99
+>>   __EXPORT_SYMBOL(sym, "")
+>>   ^
+>> include/acpi/platform/aclinux.h:110:37: note: in expansion of macro =
+=E2=80=98EXPORT_SYMBOL=E2=80=99
+>>  #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
+>>                                      ^
+>> drivers/acpi/acpica/rscreate.c:117:1: note: in expansion of macro =E2=
+=80=98ACPI_EXPORT_SYMBOL=E2=80=99
+>>  ACPI_EXPORT_SYMBOL(acpi_buffer_to_resource);
+>>  ^
+>> include/linux/export.h:63:39: error: redefinition of =E2=80=98__ksym=
+tab_acpi_buffer_to_resource=E2=80=99
+>>   __visible const struct kernel_symbol __ksymtab_##sym \
+>>                                        ^
+>> include/linux/export.h:69:2: note: in expansion of macro =E2=80=98__=
+EXPORT_SYMBOL=E2=80=99
+>>   __EXPORT_SYMBOL(sym, "")
+>>   ^
+>> include/acpi/platform/aclinux.h:110:37: note: in expansion of macro =
+=E2=80=98EXPORT_SYMBOL=E2=80=99
+>>  #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
+>>                                      ^
+>> drivers/acpi/acpica/rscreate.c:119:1: note: in expansion of macro =E2=
+=80=98ACPI_EXPORT_SYMBOL=E2=80=99
+>>  ACPI_EXPORT_SYMBOL(acpi_buffer_to_resource)
+>>  ^
+>> include/linux/export.h:63:39: note: previous definition of =E2=80=98=
+__ksymtab_acpi_buffer_to_resource=E2=80=99 was here
+>>   __visible const struct kernel_symbol __ksymtab_##sym \
+>>                                        ^
+>> include/linux/export.h:69:2: note: in expansion of macro =E2=80=98__=
+EXPORT_SYMBOL=E2=80=99
+>>   __EXPORT_SYMBOL(sym, "")
+>>   ^
+>> include/acpi/platform/aclinux.h:110:37: note: in expansion of macro =
+=E2=80=98EXPORT_SYMBOL=E2=80=99
+>>  #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
+>>                                      ^
+>> drivers/acpi/acpica/rscreate.c:117:1: note: in expansion of macro =E2=
+=80=98ACPI_EXPORT_SYMBOL=E2=80=99
+>>  ACPI_EXPORT_SYMBOL(acpi_buffer_to_resource);
+>>  ^
+>> make[3]: *** [drivers/acpi/acpica/rscreate.o] Error 1
+>> make[2]: *** [drivers/acpi/acpica] Error 2
+>> make[1]: *** [drivers/acpi] Error 2
+>> make[1]: *** Waiting for unfinished jobs....
+>> make: *** [drivers] Error 2
+>>
+>>
+>> Reverting commit 51e35823eb57 ("ACPICA: Update acpi_buffer_to_resour=
+ce interface"), build completes fine.
+>>
+>>
+>> Thanks,
+>> Stratos Karafotis
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-pm" =
+in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
-However, problems may arise because the device's descendants may require
-it to be at full power at various points during the cycle.  Therefore the
-most straightforward way to do this safely is if the device and all its
-descendants can remain runtime suspended until the resume stage of system
-resume.
 
-To this end, introduce a new device PM flag, power.direct_resume.
-If a subsystem or driver sets this flag during the ->prepare()
-callback, and if the flag is set in all of the device's descendants,
-and if the device is still in runtime suspend at the beginning of the
-->suspend() callback, that callback is allowed to return 0 without
-clearing power.direct_resume and without changing the state of the
-device, unless the current state of the device is not appropriate for
-the upcoming system sleep state (for example, the device is supposed
-to wake up the system from that state and its current wakeup settings
-are not suitable for that).  Then, the PM core will not invoke the
-device's ->suspend_late(), ->suspend_irq(), ->resume_irq(), or
-->resume_early() callbacks.  Instead, it will only invoke ->resume()
-during the device resume stage of system resume and that callback
-will be entirely responsible for resuming the device as appropriate.
-
-By leaving this flag set after ->suspend(), a driver or subsystem tells
-the PM core that the device is runtime suspended, it is in a suitable
-state for system suspend (for example, the wakeup setting does not
-need to be changed), and it does not need to return to full power
-until the resume stage.
-
-Changelog based on an Alan Stern's description of the idea
-(http://marc.info/?l=linux-pm&m=139940466625569&w=2).
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/base/power/main.c    |   26 +++++++++++++++++++-------
- drivers/base/power/runtime.c |    8 ++++++++
- include/linux/pm.h           |    1 +
- include/linux/pm_runtime.h   |   13 +++++++++++++
- 4 files changed, 41 insertions(+), 7 deletions(-)
-
-Index: linux-pm/include/linux/pm.h
-===================================================================
---- linux-pm.orig/include/linux/pm.h
-+++ linux-pm/include/linux/pm.h
-@@ -574,6 +574,7 @@ struct dev_pm_info {
- 	unsigned int		use_autosuspend:1;
- 	unsigned int		timer_autosuspends:1;
- 	unsigned int		memalloc_noio:1;
-+	bool			direct_resume:1;	/* For system suspend */
- 	enum rpm_request	request;
- 	enum rpm_status		runtime_status;
- 	int			runtime_error;
-Index: linux-pm/include/linux/pm_runtime.h
-===================================================================
---- linux-pm.orig/include/linux/pm_runtime.h
-+++ linux-pm/include/linux/pm_runtime.h
-@@ -57,6 +57,7 @@ extern unsigned long pm_runtime_autosusp
- extern void pm_runtime_update_max_time_suspended(struct device *dev,
- 						 s64 delta_ns);
- extern void pm_runtime_set_memalloc_noio(struct device *dev, bool enable);
-+extern void pm_set_direct_resume(struct device *dev, bool val);
- 
- static inline bool pm_children_suspended(struct device *dev)
- {
-@@ -116,6 +117,15 @@ static inline void pm_runtime_mark_last_
- 	ACCESS_ONCE(dev->power.last_busy) = jiffies;
- }
- 
-+static inline void __set_direct_resume(struct device *dev, bool val)
-+{
-+	dev->power.direct_resume = val;
-+}
-+
-+static inline bool pm_direct_resume_is_set(struct device *dev)
-+{
-+	return dev->power.direct_resume;
-+}
- #else /* !CONFIG_PM_RUNTIME */
- 
- static inline int __pm_runtime_idle(struct device *dev, int rpmflags)
-@@ -165,6 +175,9 @@ static inline unsigned long pm_runtime_a
- 				struct device *dev) { return 0; }
- static inline void pm_runtime_set_memalloc_noio(struct device *dev,
- 						bool enable){}
-+static inline void __set_direct_resume(struct device *dev, bool val) {}
-+static inline void pm_set_direct_resume(struct device *dev, bool val) {}
-+static inline bool pm_direct_resume_is_set(struct device *dev) { return false; }
- 
- #endif /* !CONFIG_PM_RUNTIME */
- 
-Index: linux-pm/drivers/base/power/runtime.c
-===================================================================
---- linux-pm.orig/drivers/base/power/runtime.c
-+++ linux-pm/drivers/base/power/runtime.c
-@@ -732,6 +732,7 @@ static int rpm_resume(struct device *dev
- 	}
-  skip_parent:
- 
-+	__set_direct_resume(dev, false);
- 	if (dev->power.no_callbacks)
- 		goto no_callback;	/* Assume success. */
- 
-@@ -1485,3 +1486,10 @@ out:
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(pm_runtime_force_resume);
-+
-+void pm_set_direct_resume(struct device *dev, bool val)
-+{
-+	spin_lock_irq(&dev->power.lock);
-+	__set_direct_resume(dev, val);
-+	spin_unlock_irq(&dev->power.lock);
-+}
-Index: linux-pm/drivers/base/power/main.c
-===================================================================
---- linux-pm.orig/drivers/base/power/main.c
-+++ linux-pm/drivers/base/power/main.c
-@@ -479,7 +479,7 @@ static int device_resume_noirq(struct de
- 	TRACE_DEVICE(dev);
- 	TRACE_RESUME(0);
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || pm_direct_resume_is_set(dev))
- 		goto Out;
- 
- 	if (!dev->power.is_noirq_suspended)
-@@ -605,7 +605,7 @@ static int device_resume_early(struct de
- 	TRACE_DEVICE(dev);
- 	TRACE_RESUME(0);
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || pm_direct_resume_is_set(dev))
- 		goto Out;
- 
- 	if (!dev->power.is_late_suspended)
-@@ -1007,7 +1007,7 @@ static int __device_suspend_noirq(struct
- 		goto Complete;
- 	}
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || pm_direct_resume_is_set(dev))
- 		goto Complete;
- 
- 	dpm_wait_for_children(dev, async);
-@@ -1146,7 +1146,7 @@ static int __device_suspend_late(struct
- 		goto Complete;
- 	}
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || pm_direct_resume_is_set(dev))
- 		goto Complete;
- 
- 	dpm_wait_for_children(dev, async);
-@@ -1382,10 +1382,21 @@ static int __device_suspend(struct devic
- 
-  End:
- 	if (!error) {
-+		struct device *parent = dev->parent;
-+
- 		dev->power.is_suspended = true;
--		if (dev->power.wakeup_path
--		    && dev->parent && !dev->parent->power.ignore_children)
--			dev->parent->power.wakeup_path = true;
-+		if (parent) {
-+			spin_lock_irq(&parent->power.lock);
-+
-+			if (dev->power.wakeup_path
-+			    && !parent->power.ignore_children)
-+				parent->power.wakeup_path = true;
-+
-+			if (!pm_direct_resume_is_set(dev))
-+				__set_direct_resume(parent, false);
-+
-+			spin_unlock_irq(&parent->power.lock);
-+		}
- 	}
- 
- 	device_unlock(dev);
-@@ -1553,6 +1564,7 @@ int dpm_prepare(pm_message_t state)
- 		struct device *dev = to_device(dpm_list.next);
- 
- 		get_device(dev);
-+		pm_set_direct_resume(dev, false);
- 		mutex_unlock(&dpm_list_mtx);
- 
- 		error = device_prepare(dev, state);
-
+--=20
+Best regards
+Tianyu Lan
