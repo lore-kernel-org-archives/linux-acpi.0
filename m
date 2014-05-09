@@ -1,37 +1,36 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [RFC][PATCH 1/3] PM / sleep: Flag to speed up suspend-resume of
- runtime-suspended devices
-Date: Fri, 9 May 2014 09:23:50 +0200
-Message-ID: <CAPDyKFo7zODwqHxzTuLcnF5sOXNRh5-VHvRdOidBnkPs+airDg@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1405081718200.995-100000@iolanthe.rowland.org>
-	<2356017.WpDFDYKWcr@vostro.rjw.lan>
-	<4232134.uNVe9bptuo@vostro.rjw.lan>
-	<3786444.hNhCASz73P@vostro.rjw.lan>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ACPI/Battery: Accelerate battery resume callback
+Date: Fri, 9 May 2014 09:38:27 +0200
+Message-ID: <20140509073827.GA4965@xo-6d-61-c0.localdomain>
+References: <1399183626-13152-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <3786444.hNhCASz73P@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:41636 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752062AbaEIHid (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 May 2014 03:38:33 -0400
+Content-Disposition: inline
+In-Reply-To: <1399183626-13152-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Rafael,
+Hi!
 
-> @@ -1485,3 +1486,10 @@ out:
->         return ret;
->  }
->  EXPORT_SYMBOL_GPL(pm_runtime_force_resume);
-> +
-> +void pm_set_direct_resume(struct device *dev, bool val)
-> +{
-> +       spin_lock_irq(&dev->power.lock);
-> +       __set_direct_resume(dev, val);
-> +       spin_unlock_irq(&dev->power.lock);
-> +}
+> Most time of battery resume callback is spent on executing AML code
+> _BTP, _BIF and _BIF to get battery info, status and set alarm. These
+> AML methods may access EC operation regions several times and consumes
+> time.
+> 
+> These operations are not necessary during devices resume and can run
+> during POST_SUSPEND/HIBERNATION event when all processes are thawed.
 
-I believe you have to move the implementation of this function inside
-#ifdef CONFIG_PM_RUNTIME.
+Does it mean that userspace will see pre-hibernation battery level for a while 
+after resume?
 
-Kind regards
-Ulf Hansson
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
