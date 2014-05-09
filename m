@@ -1,43 +1,129 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH] ACPI/Battery: Accelerate battery resume callback
-Date: Fri, 09 May 2014 15:43:57 +0800
-Message-ID: <536C873D.8030405@intel.com>
-References: <1399183626-13152-1-git-send-email-tianyu.lan@intel.com> <20140509073827.GA4965@xo-6d-61-c0.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140509073827.GA4965@xo-6d-61-c0.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 1/2] ACPI: Fix the issue that auto SSDT loading is conflict with customized SSDT that is included by the customized DSDT.
+Date: Fri,  9 May 2014 16:44:12 +0800
+Message-ID: <f31e537e671ca01168e98e555cdee4154bb6c136.1399624932.git.lv.zheng@intel.com>
+References: <cover.1396925060.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:1712 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756424AbaEIIoR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 May 2014 04:44:17 -0400
+In-Reply-To: <cover.1396925060.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On 2014=E5=B9=B405=E6=9C=8809=E6=97=A5 15:38, Pavel Machek wrote:
-> Hi!
->=20
->> Most time of battery resume callback is spent on executing AML code
->> _BTP, _BIF and _BIF to get battery info, status and set alarm. These
->> AML methods may access EC operation regions several times and consum=
-es
->> time.
->>
->> These operations are not necessary during devices resume and can run
->> during POST_SUSPEND/HIBERNATION event when all processes are thawed.
->=20
-> Does it mean that userspace will see pre-hibernation battery level fo=
-r a while=20
-> after resume?
+This patch fixes the following issue:
+User can specify a DSDT with SSDT embedded, in which case, no_static_ssdt
+must be enforced.  If we don't do that, then:
+1. The namespace object conflicts will result in an AE_ALREADY_EXISTS
+   exception;
+2. The namespace objects that are deleted from the original SSDT will be
+   restored by the auto loading of the original SSDT.
 
-Hi Pavel:
-	Thanks for your review. No, when user access the battery sysfs
-interface, driver will read battery info and return new data.
+Note that the DSDT customization is a compile-time feature, thus the SSDT
+inclusion indication of the DSDT customization is also implemented as a
+compile-time configurable.
 
->=20
-> 									Pavel
->=20
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=69711
+Original-by: Enrico Etxe Arte <goitizena.generoa@gmail.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/Kconfig    |    8 ++++++++
+ drivers/acpi/internal.h |    5 +++++
+ drivers/acpi/osl.c      |   14 +++++++++++++-
+ drivers/acpi/tables.c   |    2 ++
+ 4 files changed, 28 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index c0160bb..6fef394 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -233,6 +233,14 @@ config ACPI_CUSTOM_DSDT
+ 	bool
+ 	default ACPI_CUSTOM_DSDT_FILE != ""
+ 
++config ACPI_CUSTOM_DSDT_WITH_SSDT
++	bool "Customize DSDT with SSDT tables included"
++	depends on ACPI_CUSTOM_DSDT
++	help
++	  This option turns on acpi.no_static_ssdt by default.
++
++	  If the SSDT tables has been merged into the custom DSDT file, say Y.
++
+ config ACPI_INITRD_TABLE_OVERRIDE
+ 	bool "ACPI tables override via initrd"
+ 	depends on BLK_DEV_INITRD && X86
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 9573913..f84ef59 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -57,6 +57,11 @@ void acpi_cmos_rtc_init(void);
+ #else
+ static inline void acpi_cmos_rtc_init(void) {}
+ #endif
++#ifdef CONFIG_ACPI_CUSTOM_DSDT_WITH_SSDT
++void __init acpi_ssdt_customized(void);
++#else
++static inline void acpi_ssdt_customized(void) {}
++#endif
+ 
+ extern bool acpi_force_hot_remove;
+ 
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 9aeae41..089e55d 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1770,15 +1770,27 @@ acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object)
+ }
+ #endif
+ 
+-static int __init acpi_no_static_ssdt_setup(char *s)
++static void __init acpi_set_no_static_ssdt(void)
+ {
+ 	acpi_gbl_disable_ssdt_table_install = TRUE;
+ 	pr_info("ACPI: static SSDT installation disabled\n");
++}
++
++#ifdef CONFIG_ACPI_CUSTOM_DSDT_WITH_SSDT
++void __init acpi_ssdt_customized(void)
++{
++	acpi_set_no_static_ssdt();
++}
++#else
++static int __init acpi_no_static_ssdt_setup(char *s)
++{
++	acpi_set_no_static_ssdt();
+ 
+ 	return 0;
+ }
+ 
+ early_param("acpi_no_static_ssdt", acpi_no_static_ssdt_setup);
++#endif
+ 
+ static int __init acpi_disable_return_repair(char *s)
+ {
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 2178229..aaf2177 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -184,6 +184,7 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+ 	}
+ }
+ 
++#include "internal.h"
+ 
+ int __init
+ acpi_table_parse_entries(char *id,
+@@ -333,6 +334,7 @@ int __init acpi_table_init(void)
+ {
+ 	acpi_status status;
+ 
++	acpi_ssdt_customized();
+ 	status = acpi_initialize_tables(initial_tables, ACPI_MAX_TABLES, 0);
+ 	if (ACPI_FAILURE(status))
+ 		return -EINVAL;
+-- 
+1.7.10
 
---=20
-Best regards
-Tianyu Lan
