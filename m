@@ -1,89 +1,141 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: Question about FADT length
-Date: Fri, 09 May 2014 16:44:36 +0800
-Message-ID: <536C9574.3040005@linaro.org>
-References: <5369EB5A.6070906@linaro.org> <1AE640813FDE7649BE1B193DEA596E880255ADFD@SHSMSX101.ccr.corp.intel.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH v2 1/2] ACPI: Fix the issue that auto SSDT loading is
+ conflict with customized SSDT that is included by the customized DSDT.
+Date: Fri, 09 May 2014 12:40:25 +0200
+Message-ID: <536CB099.6000104@intel.com>
+References: <cover.1396925060.git.lv.zheng@intel.com> <f31e537e671ca01168e98e555cdee4154bb6c136.1399624932.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:42655 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756250AbaEIIpA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 May 2014 04:45:00 -0400
-Received: by mail-pa0-f42.google.com with SMTP id rd3so4131175pab.1
-        for <linux-acpi@vger.kernel.org>; Fri, 09 May 2014 01:45:00 -0700 (PDT)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880255ADFD@SHSMSX101.ccr.corp.intel.com>
+Received: from mga09.intel.com ([134.134.136.24]:51231 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752673AbaEIKkb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 May 2014 06:40:31 -0400
+In-Reply-To: <f31e537e671ca01168e98e555cdee4154bb6c136.1399624932.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Lv Zheng <lv.zheng@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-Hi Lv,
+On 5/9/2014 10:44 AM, Lv Zheng wrote:
+> This patch fixes the following issue:
+> User can specify a DSDT with SSDT embedded, in which case, no_static_ssdt
+> must be enforced.  If we don't do that, then:
+> 1. The namespace object conflicts will result in an AE_ALREADY_EXISTS
+>     exception;
+> 2. The namespace objects that are deleted from the original SSDT will be
+>     restored by the auto loading of the original SSDT.
+>
+> Note that the DSDT customization is a compile-time feature, thus the SSDT
+> inclusion indication of the DSDT customization is also implemented as a
+> compile-time configurable.
+>
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=69711
+> Original-by: Enrico Etxe Arte <goitizena.generoa@gmail.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>   drivers/acpi/Kconfig    |    8 ++++++++
+>   drivers/acpi/internal.h |    5 +++++
+>   drivers/acpi/osl.c      |   14 +++++++++++++-
+>   drivers/acpi/tables.c   |    2 ++
+>   4 files changed, 28 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index c0160bb..6fef394 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -233,6 +233,14 @@ config ACPI_CUSTOM_DSDT
+>   	bool
+>   	default ACPI_CUSTOM_DSDT_FILE != ""
+>   
+> +config ACPI_CUSTOM_DSDT_WITH_SSDT
+> +	bool "Customize DSDT with SSDT tables included"
+> +	depends on ACPI_CUSTOM_DSDT
 
-On 2014-5-9 9:45, Zheng, Lv wrote:
-> Hi,
-> 
-> Using size instead of version field to determine FADT version has been talked for many times.
-> I didn't see a real case that was persuasive enough to introduce this change.
-> Do you have real platforms for us to examine?
+If you think that we really have to have a separate CONFIG_ option here, 
+I would prefer ACPI_CUSTOM_DSDT to become a menu with a choice to build 
+it either with or without embedded SSDTs.
 
-There are some changes for the FADT in the new coming ACPI spec
-which changed the field of "reserved4" into other useful information,
-and the name of that field was changed also. So if we want to accommodate
-that change, we should modify the "reserved4" in the macro of
-ACPI_FADT_V2_SIZE too. If any change to the FADT in the future, we may
-modify it again, so I think constant value for the macros would
-be better.
+> +	help
+> +	  This option turns on acpi.no_static_ssdt by default.
 
-Thanks
-Hanjun
+This description requires the user building the kernel to know what the 
+above command line option means which isn't very useful.
 
-> 
-> Thanks and best regards
-> -Lv
-> 
->> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Hanjun Guo
->> Sent: Wednesday, May 07, 2014 4:14 PM
->>
->> Hi,
->>
->> I ran into some compile errors when I was prototyping the code
->> for the proposals in ASWG, it turns out that some field in FADT is
->> changed and "reserved4[0]" used in ACPI_FADT_V2_SIZE will
->> cause the error.
->>
->> So my question is that the length of very version of FADT is
->> fixed, why not use a constant value for this puspose?
->>
->> Here is the code:
->>
->> /*
->>   * Sizes of the various flavors of FADT. We need to look closely
->>   * at the FADT length because the version number essentially tells
->>   * us nothing because of many BIOS bugs where the version does not
->>   * match the expected length. In other words, the length of the
->>   * FADT is the bottom line as to what the version really is.
->>   *
->>   * For reference, the values below are as follows:
->>   *     FADT V1  size: 0x074
->>   *     FADT V2  size: 0x084
->>   *     FADT V3  size: 0x0F4
->>   *     FADT V4  size: 0x0F4
->>   *     FADT V5  size: 0x10C
->>   */
->> #define ACPI_FADT_V1_SIZE       (u32) (ACPI_FADT_OFFSET (flags) + 4)
->> #define ACPI_FADT_V2_SIZE       (u32) (ACPI_FADT_OFFSET (reserved4[0]) + 3)
->> #define ACPI_FADT_V3_SIZE       (u32) (ACPI_FADT_OFFSET (sleep_control))
->> #define ACPI_FADT_V5_SIZE       (u32) (sizeof (struct acpi_table_fadt))
->>
->> Why not  #define ACPI_FADT_V1_SIZE 0x074 ?
->> Did I miss something? any clarify will be appreciated :)
->>
->> Thanks
->> Hanjun
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +
+> +	  If the SSDT tables has been merged into the custom DSDT file, say Y.
+> +
+>   config ACPI_INITRD_TABLE_OVERRIDE
+>   	bool "ACPI tables override via initrd"
+>   	depends on BLK_DEV_INITRD && X86
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 9573913..f84ef59 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -57,6 +57,11 @@ void acpi_cmos_rtc_init(void);
+>   #else
+>   static inline void acpi_cmos_rtc_init(void) {}
+>   #endif
+> +#ifdef CONFIG_ACPI_CUSTOM_DSDT_WITH_SSDT
+> +void __init acpi_ssdt_customized(void);
+> +#else
+> +static inline void acpi_ssdt_customized(void) {}
+> +#endif
+>   
+>   extern bool acpi_force_hot_remove;
+>   
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 9aeae41..089e55d 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -1770,15 +1770,27 @@ acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object)
+>   }
+>   #endif
+>   
+> -static int __init acpi_no_static_ssdt_setup(char *s)
+> +static void __init acpi_set_no_static_ssdt(void)
+>   {
+>   	acpi_gbl_disable_ssdt_table_install = TRUE;
+>   	pr_info("ACPI: static SSDT installation disabled\n");
+> +}
+> +
+> +#ifdef CONFIG_ACPI_CUSTOM_DSDT_WITH_SSDT
+> +void __init acpi_ssdt_customized(void)
+> +{
+> +	acpi_set_no_static_ssdt();
+> +}
+> +#else
+> +static int __init acpi_no_static_ssdt_setup(char *s)
+> +{
+> +	acpi_set_no_static_ssdt();
+>   
+>   	return 0;
+>   }
+>   
+>   early_param("acpi_no_static_ssdt", acpi_no_static_ssdt_setup);
+> +#endif
+>   
+>   static int __init acpi_disable_return_repair(char *s)
+>   {
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index 2178229..aaf2177 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -184,6 +184,7 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>   	}
+>   }
+>   
+> +#include "internal.h"
+>   
+>   int __init
+>   acpi_table_parse_entries(char *id,
+> @@ -333,6 +334,7 @@ int __init acpi_table_init(void)
+>   {
+>   	acpi_status status;
+>   
+> +	acpi_ssdt_customized();
+>   	status = acpi_initialize_tables(initial_tables, ACPI_MAX_TABLES, 0);
+>   	if (ACPI_FAILURE(status))
+>   		return -EINVAL;
 
