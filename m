@@ -1,72 +1,70 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: Question about FADT length
-Date: Fri, 9 May 2014 01:45:35 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880255ADFD@SHSMSX101.ccr.corp.intel.com>
-References: <5369EB5A.6070906@linaro.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 1/3] PM / sleep: Flag to speed up suspend-resume of
+ runtime-suspended devices
+Date: Thu, 8 May 2014 21:52:18 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1405082110330.13708-100000@netrider.rowland.org>
+References: <2356017.WpDFDYKWcr@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:39464 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754355AbaEIBp5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 May 2014 21:45:57 -0400
-In-Reply-To: <5369EB5A.6070906@linaro.org>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <2356017.WpDFDYKWcr@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-Hi,
+On Thu, 8 May 2014, Rafael J. Wysocki wrote:
 
-Using size instead of version field to determine FADT version has been talked for many times.
-I didn't see a real case that was persuasive enough to introduce this change.
-Do you have real platforms for us to examine?
+> Well, no.
+> 
+> The reason why that doesn't work is because ->prepare() callbacks are
+> executed in the reverse order, so the perent's ones will be run before
+> the ->prepare() of the children.  Thus if ->prepare() sets the flag
+> with the expectation that ->suspend() (and the subsequent callbacks)
+> won't be executed, that expectation may not be met actually.
 
-Thanks and best regards
--Lv
+That's true also if the flag gets set in ->suspend(), isn't it?  A
+driver may set direct_resume in its ->suspend() callback, expecting
+that the subsequent callbacks won't be executed.  But if a descendant
+hasn't also set its flag then the callbacks _will_ be executed.
 
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Hanjun Guo
-> Sent: Wednesday, May 07, 2014 4:14 PM
-> 
-> Hi,
-> 
-> I ran into some compile errors when I was prototyping the code
-> for the proposals in ASWG, it turns out that some field in FADT is
-> changed and "reserved4[0]" used in ACPI_FADT_V2_SIZE will
-> cause the error.
-> 
-> So my question is that the length of very version of FADT is
-> fixed, why not use a constant value for this puspose?
-> 
-> Here is the code:
-> 
-> /*
->   * Sizes of the various flavors of FADT. We need to look closely
->   * at the FADT length because the version number essentially tells
->   * us nothing because of many BIOS bugs where the version does not
->   * match the expected length. In other words, the length of the
->   * FADT is the bottom line as to what the version really is.
->   *
->   * For reference, the values below are as follows:
->   *     FADT V1  size: 0x074
->   *     FADT V2  size: 0x084
->   *     FADT V3  size: 0x0F4
->   *     FADT V4  size: 0x0F4
->   *     FADT V5  size: 0x10C
->   */
-> #define ACPI_FADT_V1_SIZE       (u32) (ACPI_FADT_OFFSET (flags) + 4)
-> #define ACPI_FADT_V2_SIZE       (u32) (ACPI_FADT_OFFSET (reserved4[0]) + 3)
-> #define ACPI_FADT_V3_SIZE       (u32) (ACPI_FADT_OFFSET (sleep_control))
-> #define ACPI_FADT_V5_SIZE       (u32) (sizeof (struct acpi_table_fadt))
-> 
-> Why not  #define ACPI_FADT_V1_SIZE 0x074 ?
-> Did I miss something? any clarify will be appreciated :)
-> 
-> Thanks
-> Hanjun
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> So I'm going to do what I said above.  I prefer it anyway. :-)
+
+In your most recent patch (and in the earlier ones too), after you call
+dev's ->suspend() routine, if dev->power.direct_resume isn't set then
+you clear dev->parent->direct_resume.  But what good will that do if
+dev->parent's ->suspend() routine turns the flag back on when it gets
+called later?
+
+I can think of two ways to make this work.
+
+	Expect subsystems and drivers to set the flag during 
+	->suspend().  Turn on the flag in every device during 
+	device_prepare().  Then in __device_suspend(), remember the
+	flag's value and turn it off before invoking the callback.  If 
+	the flag is on again when the callback returns, set the flag 
+	back to the remembered value.  If the flag ends up being off
+	then turn off the parent's flag.
+
+	Expect subsystems and drivers to set the flag during 
+	->prepare().  Whenever a callback returns with the flag not
+	set, clear the flag in all of the device's ancestors.
+
+Both are somewhat awkward, and both involve turning the flag off after 
+the callback has turned it on.
+
+Also, how do you expect direct_resume to work with the PCI subsystem?  
+Will the PCI core set the flag appropriately on behalf of the driver?  
+If the core does set the flag, will it invoke the driver's ->suspend()
+callback or skip the callback?  If it invokes the driver's callback but
+leaves the device in runtime suspend, what happens if the driver
+expects the device always to be at full power when its ->suspend()  
+routine runs?  If the core skips the driver's ->suspend() callback,
+what happens if one of the device's children did not set direct_resume 
+and so the later PM callbacks do get invoked?
+
+Several of these questions are a lot easier to answer if the flag gets 
+set during ->prepare() rather than ->suspend().
+
+Alan Stern
+
