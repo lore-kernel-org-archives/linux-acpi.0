@@ -1,48 +1,60 @@
-From: Stratos Karafotis <stratosk@semaphore.gr>
-Subject: Re: linux-pm build failure
-Date: Sat, 10 May 2014 09:22:05 +0300
-Message-ID: <536DC58D.6010707@semaphore.gr>
-References: <536BBAF8.6040601@semaphore.gr> <2930403.UViFFypGRj@vostro.rjw.lan> <536C3337.40402@intel.com> <12185110.9TpRMrqnbe@vostro.rjw.lan>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: bug: acpi ata_bay dock reminds undocked
+Date: Sun, 11 May 2014 17:49:17 +0200
+Message-ID: <201405111749.18796@pali>
+References: <201404292216.41256@pali> <13218778.k5mvMTodWa@vostro.rjw.lan> <201404301124.51110@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <12185110.9TpRMrqnbe@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lan Tianyu <tianyu.lan@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: multipart/signed;
+  boundary="nextPart2204083.pLeiedbUui";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:36053 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752082AbaEKPtZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 May 2014 11:49:25 -0400
+In-Reply-To: <201404301124.51110@pali>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 10/05/2014 12:36 =CF=80=CE=BC, Rafael J. Wysocki wrote:
-> On Friday, May 09, 2014 09:45:27 AM Lan Tianyu wrote:
->> On 2014=E5=B9=B405=E6=9C=8809=E6=97=A5 03:44, Rafael J. Wysocki wrot=
-e:
->>> On Thursday, May 08, 2014 08:12:24 PM Stratos Karafotis wrote:
->>>> Hi all,
->>>
->>> Hi,
->>>
->>> Thanks for the report!
->>>
->>> This is caused by commit
->>>
->>> 0e23847d5ee4 ACPICA: Export acpi_buffer_to_resource symbol
->>>
->>> merged on top of the recent ACPICA material.
->>>
->>> Lv, Tianyu, care to take care of this?
->>
->> Hi Rafael:
->> 	Just check commit 51e35823eb57 and find it also exports
->> acpi_buffer_to_resource symbol which commit 0e23847d5ee4 has already
->> done. I think you can drop commit 0e23847d5ee4 which only exports sy=
-mbol
->> without any other changes.
+--nextPart2204083.pLeiedbUui
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Wednesday 30 April 2014 11:24:50 Pali Roh=C3=A1r wrote:
+> On Tuesday 29 April 2014 23:35:42 Rafael J. Wysocki wrote:
+> > On Tuesday, April 29, 2014 11:00:01 PM Pali Roh=C3=A1r wrote:
+> > > On Tuesday 29 April 2014 22:55:07 Rafael J. Wysocki wrote:
+> > > > Which kernel version(s) have you tried?
+> > >=20
+> > > 3.15-rc3
+> >=20
+> > Does it work with 3.14(.x) by chance?
 >=20
-> Done, thanks!
->=20
+> Tested with 3.14 and 3.8. Same problem, not working.
 
-Now it builds fine!
+BUMP!
 
-Thank you!
-Stratos
+Rafael, do you need some other information?
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart2204083.pLeiedbUui
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlNvm/4ACgkQi/DJPQPkQ1IgwwCgvRIVC1uSR7W9mcqQIC4YG73Z
+gk4AoKtzEpx0DH/12Bsul+Cmax6bdbzr
+=y7gi
+-----END PGP SIGNATURE-----
+
+--nextPart2204083.pLeiedbUui--
