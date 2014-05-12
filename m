@@ -1,81 +1,84 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: bug: acpi ata_bay dock reminds undocked
-Date: Mon, 12 May 2014 07:48:16 +0200
-Message-ID: <201405120748.16464@pali>
-References: <201404292216.41256@pali> <201405111749.18796@pali> <2639498.hrETOnLRn5@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2915149.nAujJYNdua";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v2] nouveau: Don't check acpi_video_backlight_support() before registering backlight
+Date: Mon, 12 May 2014 09:32:23 +0200
+Message-ID: <1399879943-24383-1-git-send-email-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:45525 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751340AbaELFsW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 May 2014 01:48:22 -0400
-In-Reply-To: <2639498.hrETOnLRn5@vostro.rjw.lan>
+Received: from mx1.redhat.com ([209.132.183.28]:33789 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751490AbaELHce (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 May 2014 03:32:34 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>
+Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Aaron Lu <aaron.lu@intel.com>, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 
---nextPart2915149.nAujJYNdua
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+acpi_video_backlight_support() is supposed to be called by other (vendor
+specific) firmware backlight controls, not by native / raw backlight controls
+like nv_backlight.
 
-On Monday 12 May 2014 02:00:29 Rafael J. Wysocki wrote:
-> On Sunday, May 11, 2014 05:49:17 PM Pali Roh=C3=A1r wrote:
-> > --nextPart2204083.pLeiedbUui
-> > Content-Type: Text/Plain;
-> >=20
-> >   charset=3D"utf-8"
-> >=20
-> > Content-Transfer-Encoding: quoted-printable
-> >=20
-> > On Wednesday 30 April 2014 11:24:50 Pali Roh=3DC3=3DA1r wrote:
-> > > On Tuesday 29 April 2014 23:35:42 Rafael J. Wysocki wrote:
-> > > > On Tuesday, April 29, 2014 11:00:01 PM Pali Roh=3DC3=3DA1r=20
-wrote:
-> > > > > On Tuesday 29 April 2014 22:55:07 Rafael J. Wysocki=20
-wrote:
-> > > > > > Which kernel version(s) have you tried?
-> > > > >
-> > > > >=3D20
-> > > > >
-> > > > > 3.15-rc3
-> > > >
-> > > >=3D20
-> > > >
-> > > > Does it work with 3.14(.x) by chance?
-> > >
-> > >=3D20
-> > >
-> > > Tested with 3.14 and 3.8. Same problem, not working.
-> >=20
-> > BUMP!
-> >=20
-> > Rafael, do you need some other information?
->=20
-> I'll take care of this when I have the time, OK?
+Userspace will normally prefer firmware interfaces over raw interfaces, so
+if acpi_video backlight support is present it will use that even if
+nv_backlight is registered as well.
 
-Ok, I will wait.
+Except when video.use_native_backlight is present on the kernel cmdline
+(or enabled through a dmi based quirk). As the name indicates the goal here
+is to make only the raw interface available to userspace so that it will use
+that (it only does this when it sees a win8 compliant bios).
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+This is done by:
+1) Not registering any acpi_video# backlight devices; and
+2) Making acpi_video_backlight_support() return true so that other firmware
+drivers, ie acer_wmi, thinkpad_acpi, dell_laptop, etc. Don't register their
+own vender specific interfaces.
 
---nextPart2915149.nAujJYNdua
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+Currently nouveau breaks this setup, as when acpi_video_backlight_support()
+returns true, it does not register itself, resulting in no backlight control
+at all.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+This is esp. going to be a problem with 3.16 which will default to
+video.use_native_backlight=1, and thus nouveau based laptops with a win8 bios
+will get no backlight control at all.
 
-iEYEABECAAYFAlNwYKAACgkQi/DJPQPkQ1KIvwCgx7nr/T+zDmRFaFmaACLuxLm/
-IdoAn1FHXVAjlojpbR54B1R5d4hUJFvw
-=acIq
------END PGP SIGNATURE-----
+This also likely explains why the previous attempt to make
+video.use_native_backlight=1 the default was not a success, as without this
+patch having a default of video.use_native_backlight=1 will cause regressions.
 
---nextPart2915149.nAujJYNdua--
+Note this effectively reverts commit 5bead799
+
+Also see: https://bugzilla.redhat.com/show_bug.cgi?id=1093171
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/gpu/drm/nouveau/nouveau_backlight.c | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/drivers/gpu/drm/nouveau/nouveau_backlight.c b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+index 630f6e8..2c1e4aa 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_backlight.c
++++ b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+@@ -31,7 +31,6 @@
+  */
+ 
+ #include <linux/backlight.h>
+-#include <linux/acpi.h>
+ 
+ #include "nouveau_drm.h"
+ #include "nouveau_reg.h"
+@@ -222,14 +221,6 @@ nouveau_backlight_init(struct drm_device *dev)
+ 	struct nouveau_device *device = nv_device(drm->device);
+ 	struct drm_connector *connector;
+ 
+-#ifdef CONFIG_ACPI
+-	if (acpi_video_backlight_support()) {
+-		NV_INFO(drm, "ACPI backlight interface available, "
+-			     "not registering our own\n");
+-		return 0;
+-	}
+-#endif
+-
+ 	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
+ 		if (connector->connector_type != DRM_MODE_CONNECTOR_LVDS &&
+ 		    connector->connector_type != DRM_MODE_CONNECTOR_eDP)
+-- 
+1.9.0
+
