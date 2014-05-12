@@ -1,108 +1,81 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: Question about FADT length
-Date: Mon, 12 May 2014 05:32:16 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880255B50D@SHSMSX101.ccr.corp.intel.com>
-References: <5369EB5A.6070906@linaro.org>
- <1AE640813FDE7649BE1B193DEA596E880255ADFD@SHSMSX101.ccr.corp.intel.com>
- <536C9574.3040005@linaro.org>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: bug: acpi ata_bay dock reminds undocked
+Date: Mon, 12 May 2014 07:48:16 +0200
+Message-ID: <201405120748.16464@pali>
+References: <201404292216.41256@pali> <201405111749.18796@pali> <2639498.hrETOnLRn5@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed;
+  boundary="nextPart2915149.nAujJYNdua";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:35362 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751328AbaELFcV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 May 2014 01:32:21 -0400
-In-Reply-To: <536C9574.3040005@linaro.org>
-Content-Language: en-US
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:45525 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340AbaELFsW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 May 2014 01:48:22 -0400
+In-Reply-To: <2639498.hrETOnLRn5@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi,
+--nextPart2915149.nAujJYNdua
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
-> Sent: Friday, May 09, 2014 4:45 PM
-> 
-> Hi Lv,
-> 
-> On 2014-5-9 9:45, Zheng, Lv wrote:
-> > Hi,
-> >
-> > Using size instead of version field to determine FADT version has been talked for many times.
-> > I didn't see a real case that was persuasive enough to introduce this change.
-> > Do you have real platforms for us to examine?
-> 
-> There are some changes for the FADT in the new coming ACPI spec
-> which changed the field of "reserved4" into other useful information,
-> and the name of that field was changed also. So if we want to accommodate
-> that change, we should modify the "reserved4" in the macro of
-> ACPI_FADT_V2_SIZE too.
+On Monday 12 May 2014 02:00:29 Rafael J. Wysocki wrote:
+> On Sunday, May 11, 2014 05:49:17 PM Pali Roh=C3=A1r wrote:
+> > --nextPart2204083.pLeiedbUui
+> > Content-Type: Text/Plain;
+> >=20
+> >   charset=3D"utf-8"
+> >=20
+> > Content-Transfer-Encoding: quoted-printable
+> >=20
+> > On Wednesday 30 April 2014 11:24:50 Pali Roh=3DC3=3DA1r wrote:
+> > > On Tuesday 29 April 2014 23:35:42 Rafael J. Wysocki wrote:
+> > > > On Tuesday, April 29, 2014 11:00:01 PM Pali Roh=3DC3=3DA1r=20
+wrote:
+> > > > > On Tuesday 29 April 2014 22:55:07 Rafael J. Wysocki=20
+wrote:
+> > > > > > Which kernel version(s) have you tried?
+> > > > >
+> > > > >=3D20
+> > > > >
+> > > > > 3.15-rc3
+> > > >
+> > > >=3D20
+> > > >
+> > > > Does it work with 3.14(.x) by chance?
+> > >
+> > >=3D20
+> > >
+> > > Tested with 3.14 and 3.8. Same problem, not working.
+> >=20
+> > BUMP!
+> >=20
+> > Rafael, do you need some other information?
+>=20
+> I'll take care of this when I have the time, OK?
 
-Is it possible you just write a patch to change the reserved4 and the macro using the new field name after the release of the spec?
+Ok, I will wait.
 
-If not, you can write a patch to change the macros, but don't forget to update the comments for the macros.
-You could use the field names to replace the constant values in the comments. 
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-> If any change to the FADT in the future, we may
-> modify it again, so I think constant value for the macros would
-> be better.
+--nextPart2915149.nAujJYNdua
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-There might not be such change after the release of the spec.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Thanks
--Lv
+iEYEABECAAYFAlNwYKAACgkQi/DJPQPkQ1KIvwCgx7nr/T+zDmRFaFmaACLuxLm/
+IdoAn1FHXVAjlojpbR54B1R5d4hUJFvw
+=acIq
+-----END PGP SIGNATURE-----
 
-> 
-> Thanks
-> Hanjun
-> 
-> >
-> > Thanks and best regards
-> > -Lv
-> >
-> >> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Hanjun Guo
-> >> Sent: Wednesday, May 07, 2014 4:14 PM
-> >>
-> >> Hi,
-> >>
-> >> I ran into some compile errors when I was prototyping the code
-> >> for the proposals in ASWG, it turns out that some field in FADT is
-> >> changed and "reserved4[0]" used in ACPI_FADT_V2_SIZE will
-> >> cause the error.
-> >>
-> >> So my question is that the length of very version of FADT is
-> >> fixed, why not use a constant value for this puspose?
-> >>
-> >> Here is the code:
-> >>
-> >> /*
-> >>   * Sizes of the various flavors of FADT. We need to look closely
-> >>   * at the FADT length because the version number essentially tells
-> >>   * us nothing because of many BIOS bugs where the version does not
-> >>   * match the expected length. In other words, the length of the
-> >>   * FADT is the bottom line as to what the version really is.
-> >>   *
-> >>   * For reference, the values below are as follows:
-> >>   *     FADT V1  size: 0x074
-> >>   *     FADT V2  size: 0x084
-> >>   *     FADT V3  size: 0x0F4
-> >>   *     FADT V4  size: 0x0F4
-> >>   *     FADT V5  size: 0x10C
-> >>   */
-> >> #define ACPI_FADT_V1_SIZE       (u32) (ACPI_FADT_OFFSET (flags) + 4)
-> >> #define ACPI_FADT_V2_SIZE       (u32) (ACPI_FADT_OFFSET (reserved4[0]) + 3)
-> >> #define ACPI_FADT_V3_SIZE       (u32) (ACPI_FADT_OFFSET (sleep_control))
-> >> #define ACPI_FADT_V5_SIZE       (u32) (sizeof (struct acpi_table_fadt))
-> >>
-> >> Why not  #define ACPI_FADT_V1_SIZE 0x074 ?
-> >> Did I miss something? any clarify will be appreciated :)
-> >>
-> >> Thanks
-> >> Hanjun
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+--nextPart2915149.nAujJYNdua--
