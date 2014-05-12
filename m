@@ -1,65 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 2/2] ACPI: Fix the issue that the DSDT local copy is conflict with the customized DSDT.
-Date: Mon, 12 May 2014 02:29:08 +0200
-Message-ID: <2008560.oS81rPtGJG@vostro.rjw.lan>
-References: <cover.1396925060.git.lv.zheng@intel.com> <93e6bbbfb41fd514dc207b10b422fbc8afdfa432.1399624932.git.lv.zheng@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2 2/2] ACPI: Fix the issue that the DSDT local copy is
+ conflict with the customized DSDT.
+Date: Mon, 12 May 2014 00:30:50 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880255B3C7@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1396925060.git.lv.zheng@intel.com>
+ <93e6bbbfb41fd514dc207b10b422fbc8afdfa432.1399624932.git.lv.zheng@intel.com>
+ <2008560.oS81rPtGJG@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59207 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751506AbaELAMX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 May 2014 20:12:23 -0400
-In-Reply-To: <93e6bbbfb41fd514dc207b10b422fbc8afdfa432.1399624932.git.lv.zheng@intel.com>
+Received: from mga03.intel.com ([143.182.124.21]:10211 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750741AbaELAaz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 11 May 2014 20:30:55 -0400
+In-Reply-To: <2008560.oS81rPtGJG@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Enrico Etxe Arte <goitizena.generoa@gmail.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Enrico Etxe Arte <goitizena.generoa@gmail.com>
 
-On Friday, May 09, 2014 04:44:19 PM Lv Zheng wrote:
-> This patch fixes the following issue:
-> If DSDT is customized, no local DSDT copy is needed.
-> 
-> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=69711
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Signed-off-by: Enrico Etxe Arte <goitizena.generoa@gmail.com>
-
-This can go in without [1/2], right?
-
-If so, do we need it in -stable?
-
-> ---
->  drivers/acpi/bus.c |    7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 610261a..cfd2318 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -52,6 +52,12 @@ struct proc_dir_entry *acpi_root_dir;
->  EXPORT_SYMBOL(acpi_root_dir);
->  
->  #ifdef CONFIG_X86
-> +#ifdef CONFIG_ACPI_CUSTOM_DSDT
-> +static inline int set_copy_dsdt(const struct dmi_system_id *id)
-> +{
-> +	return 0;
-> +}
-> +#else
->  static int set_copy_dsdt(const struct dmi_system_id *id)
->  {
->  	printk(KERN_NOTICE "%s detected - "
-> @@ -59,6 +65,7 @@ static int set_copy_dsdt(const struct dmi_system_id *id)
->  	acpi_gbl_copy_dsdt_locally = 1;
->  	return 0;
->  }
-> +#endif
->  
->  static struct dmi_system_id dsdt_dmi_table[] __initdata = {
->  	/*
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFNlbnQ6IE1vbmRheSwgTWF5IDEyLCAyMDE0IDg6MjkgQU0NCj4gDQo+IE9u
+IEZyaWRheSwgTWF5IDA5LCAyMDE0IDA0OjQ0OjE5IFBNIEx2IFpoZW5nIHdyb3RlOg0KPiA+IFRo
+aXMgcGF0Y2ggZml4ZXMgdGhlIGZvbGxvd2luZyBpc3N1ZToNCj4gPiBJZiBEU0RUIGlzIGN1c3Rv
+bWl6ZWQsIG5vIGxvY2FsIERTRFQgY29weSBpcyBuZWVkZWQuDQo+ID4NCj4gPiBCdWdsaW5rOiBo
+dHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTY5NzExDQo+ID4gU2ln
+bmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4gPiBTaWduZWQtb2Zm
+LWJ5OiBFbnJpY28gRXR4ZSBBcnRlIDxnb2l0aXplbmEuZ2VuZXJvYUBnbWFpbC5jb20+DQo+IA0K
+PiBUaGlzIGNhbiBnbyBpbiB3aXRob3V0IFsxLzJdLCByaWdodD8NCg0KWWVzLg0KDQo+IElmIHNv
+LCBkbyB3ZSBuZWVkIGl0IGluIC1zdGFibGU/DQoNCkknbSBub3Qgc3VyZS4NCkFjY29yZGluZyB0
+byB0aGUgcmVwb3J0LCB0aGUgYnVnIGZpeCBpcyBmb3IgYSBzcGVjaWFsIHVzZSBjYXNlLg0KVXNl
+cnMgc3RpbGwgY2FuIGhhdmUgYSBydW5uaW5nIExpbnV4IGJ5IHVzaW5nIGluaXRyZCBTU0RUIGN1
+c3RvbWl6YXRpb24uDQpJZiB5b3UgdGhpbmsgaXQgaXMgYSBzdGFibGUgbWF0ZXJpYWwsIHRoZSBz
+dGFibGUgdGFnIHNob3VsZCBiZToNCkNDOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4gIyAyLjYu
+MzUueDogYWEyMTEwY2I6IEFDUEk6IGFkZCBib290IG9wdGlvbiBhY3BpPWNvcHlfZHNkdCB0byBm
+aXggY29ycnVwdCBEU0RUDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4g
+PiAtLS0NCj4gPiAgZHJpdmVycy9hY3BpL2J1cy5jIHwgICAgNyArKysrKysrDQo+ID4gIDEgZmls
+ZSBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKykNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJz
+L2FjcGkvYnVzLmMgYi9kcml2ZXJzL2FjcGkvYnVzLmMNCj4gPiBpbmRleCA2MTAyNjFhLi5jZmQy
+MzE4IDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9idXMuYw0KPiA+ICsrKyBiL2RyaXZl
+cnMvYWNwaS9idXMuYw0KPiA+IEBAIC01Miw2ICs1MiwxMiBAQCBzdHJ1Y3QgcHJvY19kaXJfZW50
+cnkgKmFjcGlfcm9vdF9kaXI7DQo+ID4gIEVYUE9SVF9TWU1CT0woYWNwaV9yb290X2Rpcik7DQo+
+ID4NCj4gPiAgI2lmZGVmIENPTkZJR19YODYNCj4gPiArI2lmZGVmIENPTkZJR19BQ1BJX0NVU1RP
+TV9EU0RUDQo+ID4gK3N0YXRpYyBpbmxpbmUgaW50IHNldF9jb3B5X2RzZHQoY29uc3Qgc3RydWN0
+IGRtaV9zeXN0ZW1faWQgKmlkKQ0KPiA+ICt7DQo+ID4gKwlyZXR1cm4gMDsNCj4gPiArfQ0KPiA+
+ICsjZWxzZQ0KPiA+ICBzdGF0aWMgaW50IHNldF9jb3B5X2RzZHQoY29uc3Qgc3RydWN0IGRtaV9z
+eXN0ZW1faWQgKmlkKQ0KPiA+ICB7DQo+ID4gIAlwcmludGsoS0VSTl9OT1RJQ0UgIiVzIGRldGVj
+dGVkIC0gIg0KPiA+IEBAIC01OSw2ICs2NSw3IEBAIHN0YXRpYyBpbnQgc2V0X2NvcHlfZHNkdChj
+b25zdCBzdHJ1Y3QgZG1pX3N5c3RlbV9pZCAqaWQpDQo+ID4gIAlhY3BpX2dibF9jb3B5X2RzZHRf
+bG9jYWxseSA9IDE7DQo+ID4gIAlyZXR1cm4gMDsNCj4gPiAgfQ0KPiA+ICsjZW5kaWYNCj4gPg0K
+PiA+ICBzdGF0aWMgc3RydWN0IGRtaV9zeXN0ZW1faWQgZHNkdF9kbWlfdGFibGVbXSBfX2luaXRk
+YXRhID0gew0KPiA+ICAJLyoNCj4gPg0KPiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNl
+bGYuDQo+IFJhZmFlbCBKLiBXeXNvY2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENl
+bnRlci4NCg==
