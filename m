@@ -1,43 +1,177 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [RFC 3/3] acer-wmi: Add Aspire 5741 to video_vendor_dmi_table
-Date: Mon, 12 May 2014 20:03:44 +0200
-Message-ID: <1399917824-10341-4-git-send-email-hdegoede@redhat.com>
+Subject: [RFC 1/3] acpi-video: Add an acpi_video_unregister_backlight function
+Date: Mon, 12 May 2014 20:03:42 +0200
+Message-ID: <1399917824-10341-2-git-send-email-hdegoede@redhat.com>
 References: <1399917824-10341-1-git-send-email-hdegoede@redhat.com>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:17112 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753990AbaELSkx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 May 2014 14:40:53 -0400
 In-Reply-To: <1399917824-10341-1-git-send-email-hdegoede@redhat.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Lee Chun-Yi <jlee@suse.com>, Aaron Lu <aaron.lu@intel.com>
 Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-List-Id: linux-acpi@vger.kernel.org
 
-The Aspire 5741 has broken acpi-video backlight control, so add it to the
-quirk table.
+Add an acpi_video_unregister_backlight function, which only unregisters
+the backlight device, and leaves the acpi_notifier in place. Some acpi_vendor
+driver need this as they don't want the acpi_video# backlight device, but do
+need the acpi-video driver for hotkey handling.
 
-https://bugzilla.redhat.com/show_bug.cgi?id=1012674
+Chances are that this new acpi_video_unregister_backlight() is actually
+what existing acpi_vendor drivers have wanted all along. Currently acpi_vendor
+drivers which want to disable the acpi_video# backlight device, make 2 calls:
+
+acpi_video_dmi_promote_vendor();
+acpi_video_unregister();
+
+The intention here is to make things independent of when acpi_video_register()
+gets called. As acpi_video_register() will get called on acpi-video load time
+on non intel gfx machines, while it gets called on i915 load time on intel
+gfx machines.
+
+This leads to the following 2 interesting scenarios:
+
+a) intel gfx:
+1) acpi-video module gets loaded (as it is a dependency of acpi_vendor and i915)
+2) acpi-video does NOT call acpi_video_register()
+3) acpi_vendor loads (lets assume it loads before i915), calls
+acpi_video_dmi_promote_vendor(); which sets ACPI_VIDEO_BACKLIGHT_DMI_VENDOR
+4) calls acpi_video_unregister -> not registered, nop
+5) i915 loads, calls acpi_video_register
+6) acpi_video_register registers the acpi_notifier for the hotkeys,
+   does NOT register a backlight device because of ACPI_VIDEO_BACKLIGHT_DMI_VENDOR
+
+b) non intel gfx
+1) acpi-video module gets loaded (as it is a dependency acpi_vendor)
+2) acpi-video calls acpi_video_register()
+3) acpi_video_register registers the acpi_notifier for the hotkeys,
+   and a backlight device
+4) acpi_vendor loads, calls acpi_video_dmi_promote_vendor()
+5) calls acpi_video_unregister, this unregisters BOTH the acpi_notifier for
+   the hotkeys AND the backlight device
+
+So here we have possibly the same acpi_vendor module, making the same calls,
+but with different results, in one cases acpi-video does handle hotkeys,
+in the other it does not.
+
+Note that the a) scenario turns into b) if we assume the i915 module loads
+before the vendor_acpi module, so we also have different behavior depending
+on module loading order!
+
+So as said I believe that quite a few existing acpi_vendor modules really
+always want the behavior of a), which calling acpi_video_unregister_backlight()
+instead of acpi_video_unregister() will give them.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/acer-wmi.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/acpi/video.c | 31 ++++++++++++++++++++++---------
+ include/acpi/video.h |  2 ++
+ 2 files changed, 24 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index 3a74699..bbf78b2 100644
---- a/drivers/platform/x86/acer-wmi.c
-+++ b/drivers/platform/x86/acer-wmi.c
-@@ -570,6 +570,14 @@ static const struct dmi_system_id video_vendor_dmi_table[] = {
- 			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5750"),
- 		},
- 	},
-+	{
-+		.callback = video_set_backlight_video_vendor,
-+		.ident = "Acer Aspire 5741",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5741"),
-+		},
-+	},
- 	{}
- };
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 6a2099d..80a6759 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -1843,7 +1843,7 @@ static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
+ 	}
+ }
  
+-static int acpi_video_bus_register_backlight(struct acpi_video_bus *video)
++static void acpi_video_bus_register_backlight(struct acpi_video_bus *video)
+ {
+ 	struct acpi_video_device *dev;
+ 
+@@ -1851,10 +1851,6 @@ static int acpi_video_bus_register_backlight(struct acpi_video_bus *video)
+ 	list_for_each_entry(dev, &video->video_device_list, entry)
+ 		acpi_video_dev_register_backlight(dev);
+ 	mutex_unlock(&video->device_list_lock);
+-
+-	video->pm_nb.notifier_call = acpi_video_resume;
+-	video->pm_nb.priority = 0;
+-	return register_pm_notifier(&video->pm_nb);
+ }
+ 
+ static void acpi_video_dev_unregister_backlight(struct acpi_video_device *device)
+@@ -1876,17 +1872,14 @@ static void acpi_video_dev_unregister_backlight(struct acpi_video_device *device
+ 	}
+ }
+ 
+-static int acpi_video_bus_unregister_backlight(struct acpi_video_bus *video)
++static void acpi_video_bus_unregister_backlight(struct acpi_video_bus *video)
+ {
+ 	struct acpi_video_device *dev;
+-	int error = unregister_pm_notifier(&video->pm_nb);
+ 
+ 	mutex_lock(&video->device_list_lock);
+ 	list_for_each_entry(dev, &video->video_device_list, entry)
+ 		acpi_video_dev_unregister_backlight(dev);
+ 	mutex_unlock(&video->device_list_lock);
+-
+-	return error;
+ }
+ 
+ static void acpi_video_dev_add_notify_handler(struct acpi_video_device *device)
+@@ -2059,6 +2052,11 @@ static int acpi_video_bus_add(struct acpi_device *device)
+ 	mutex_unlock(&video_list_lock);
+ 
+ 	acpi_video_bus_register_backlight(video);
++
++	video->pm_nb.notifier_call = acpi_video_resume;
++	video->pm_nb.priority = 0;
++	register_pm_notifier(&video->pm_nb);
++
+ 	acpi_video_bus_add_notify_handler(video);
+ 
+ 	return 0;
+@@ -2084,6 +2082,7 @@ static int acpi_video_bus_remove(struct acpi_device *device)
+ 	video = acpi_driver_data(device);
+ 
+ 	acpi_video_bus_remove_notify_handler(video);
++	unregister_pm_notifier(&video->pm_nb);
+ 	acpi_video_bus_unregister_backlight(video);
+ 	acpi_video_bus_put_devices(video);
+ 
+@@ -2173,6 +2172,20 @@ void acpi_video_unregister(void)
+ }
+ EXPORT_SYMBOL(acpi_video_unregister);
+ 
++void acpi_video_unregister_backlight(void)
++{
++	struct acpi_video_bus *video;
++
++	if (!register_count)
++		return;
++
++	mutex_lock(&video_list_lock);
++	list_for_each_entry(video, &video_bus_head, entry)
++		acpi_video_bus_unregister_backlight(video);
++	mutex_unlock(&video_list_lock);
++}
++EXPORT_SYMBOL(acpi_video_unregister_backlight);
++
+ /*
+  * This is kind of nasty. Hardware using Intel chipsets may require
+  * the video opregion code to be run first in order to initialise
+diff --git a/include/acpi/video.h b/include/acpi/video.h
+index 61109f2..4722c06 100644
+--- a/include/acpi/video.h
++++ b/include/acpi/video.h
+@@ -19,11 +19,13 @@ struct acpi_device;
+ #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
+ extern int acpi_video_register(void);
+ extern void acpi_video_unregister(void);
++extern void acpi_video_unregister_backlight(void);
+ extern int acpi_video_get_edid(struct acpi_device *device, int type,
+ 			       int device_id, void **edid);
+ #else
+ static inline int acpi_video_register(void) { return 0; }
+ static inline void acpi_video_unregister(void) { return; }
++extern inline void acpi_video_unregister_backlight(void); { return; }
+ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+ 				      int device_id, void **edid)
+ {
 -- 
 1.9.0
+
