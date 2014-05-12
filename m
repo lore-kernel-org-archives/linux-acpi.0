@@ -1,67 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: linux-pm bleeding-edge build failure
-Date: Mon, 12 May 2014 14:05:30 +0200
-Message-ID: <1955143.anCSeFYUq9@vostro.rjw.lan>
-References: <53703388.3010501@semaphore.gr>
+From: tbilles@gmx.com
+Subject: Re: Possible regression: sluggish inputs
+Date: Mon, 12 May 2014 15:26:21 +0200
+Message-ID: <trinity-5cd78acf-a478-4ae4-8901-60ccf65a80f1-1399901181699@msvc024>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <53703388.3010501@semaphore.gr>
-Sender: linux-pm-owner@vger.kernel.org
-To: Stratos Karafotis <stratosk@semaphore.gr>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.gmx.net ([212.227.17.20]:62656 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758263AbaELN0g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 May 2014 09:26:36 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday, May 12, 2014 05:35:52 AM Stratos Karafotis wrote:
-> Hi Rafael,
->=20
-> Building the latest bleeding edge (4881a46e969889ba1c20fed733e742bf19=
-d0591e),
-> I get this error:
->=20
-> drivers/acpi/acpica/tbfadt.c: In function =E2=80=98acpi_tb_convert_fa=
-dt=E2=80=99:
-> drivers/acpi/acpica/tbfadt.c:493:12: error: too few arguments to func=
-tion =E2=80=98acpi_tb_init_generic_address=E2=80=99
->             fadt_info_table[i].name);
->             ^
-> drivers/acpi/acpica/tbfadt.c:190:1: note: declared here
->  acpi_tb_init_generic_address(struct acpi_generic_address *generic_ad=
-dress,
->  ^
-> drivers/acpi/acpica/tbfadt.c:394:5: warning: unused variable =E2=80=98=
-flags=E2=80=99 [-Wunused-variable]
->   u8 flags;
->      ^
-> drivers/acpi/acpica/tbfadt.c:393:5: warning: unused variable =E2=80=98=
-length=E2=80=99 [-Wunused-variable]
->   u8 length;
->      ^
-> drivers/acpi/acpica/tbfadt.c: In function =E2=80=98acpi_tb_validate_f=
-adt=E2=80=99:
-> drivers/acpi/acpica/tbfadt.c:572:3: error: =E2=80=98flags=E2=80=99 un=
-declared (first use in this function)
->    flags =3D fadt_info_table[i].flags;
->    ^
-> drivers/acpi/acpica/tbfadt.c:572:3: note: each undeclared identifier =
-is reported only once for each function it appears in
-> drivers/acpi/acpica/tbfadt.c:599:7: error: =E2=80=98address32=E2=80=99=
- undeclared (first use in this function)
->    if (address32) {
->        ^
-> make[3]: *** [drivers/acpi/acpica/tbfadt.o] Error 1
-> make[2]: *** [drivers/acpi/acpica] Error 2
-> make[1]: *** [drivers/acpi] Error 2
-> make: *** [drivers] Error 2
-> make: *** Waiting for unfinished jobs....
+Hi,
 
-That's because of my merge conflict resolution that went wrong.
+On Saturday, 03 May 2014 at 20:14:03, Hans de Goede wrote:
+>On 05/03/2014 07:38 PM, tbilles@gmx.com wrote:
+>> On Saturday, 03 May 2014 at 10:00:38, Hans de Goede wrote:
+>>
+>>> I've seen this happen occasionally on my E6430 both with and without
+>>> the patch the bisect points too. I can trigger it by pressing
+>>> brightness up / down as fast as I can. Likely the dimming on
+>>> inactivity code is doing a much better job at sending brightness
+>>> change commands as fast as possible, making it easier to trigger this.
+>>> As for the commit you've bisected it too, it may be that that subtly
+>>> changes things to make the problem easier to trigger, 
+>> 
+>> I don't have auto screen dimming enabled, but there could be something
+>> else triggering it. Other than this, it all makes sense. The brightness
+>> up / down buttons always act slowly for me. I can too trigger the sluggish
+>> behaviour by pressing the brightness up or down buttons fast and
+>> simultaneously moving the mouse. So yes, your patch is not the cause
+>> of this, but for some reason it makes it easier to trigger. 
+>> 
+>>> but I distinctly remember having the same issue before I wrote that
+>>> patch.
+>> 
+>> Let me try this 'your patch reverted on top of 3.14.2' kernel for a few
+>> days to see if this behaviour shows up. Maybe I had it too, I just
+>> didn't notice, because it was less frequent.
 
-I guess I'll need to drop one commit from acpica-next.
+I didn't notice this behaviour since then, but I guess that doesn't prove
+it's not there. 
 
-Thanks!
+I will continue using my 3.13.x kernel for the time being.
 
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Thank you, Hans, for your time.
+
+Tibor
