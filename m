@@ -1,72 +1,85 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v2] nouveau: Don't check acpi_video_backlight_support()
- before registering backlight
-Date: Mon, 12 May 2014 09:42:21 +0200
-Message-ID: <53707B5D.4050605@redhat.com>
-References: <1399879943-24383-1-git-send-email-hdegoede@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v3 0/4] ACPICA: Cleanups for <acpi/platform/acenv.h> and <acpi/platform/aclinux.h>.
+Date: Mon, 12 May 2014 15:44:37 +0800
+Message-ID: <cover.1399880022.git.lv.zheng@intel.com>
+References: <cover.1396930406.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54196 "EHLO mx1.redhat.com"
+Received: from mga02.intel.com ([134.134.136.20]:10223 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751727AbaELHma (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 May 2014 03:42:30 -0400
-In-Reply-To: <1399879943-24383-1-git-send-email-hdegoede@redhat.com>
+	id S1751385AbaELHpu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 May 2014 03:45:50 -0400
+In-Reply-To: <cover.1396930406.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>
-Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Aaron Lu <aaron.lu@intel.com>, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
+This patch series cleans up <acpi/platform/acenv.h> and
+<acpi/platform/aclinux.h>.  it also fixes some mis-ordered inclusions for
+Linux resident ACPICA.
 
-On 05/12/2014 09:32 AM, Hans de Goede wrote:
-> acpi_video_backlight_support() is supposed to be called by other (vendor
-> specific) firmware backlight controls, not by native / raw backlight controls
-> like nv_backlight.
-> 
-> Userspace will normally prefer firmware interfaces over raw interfaces, so
-> if acpi_video backlight support is present it will use that even if
-> nv_backlight is registered as well.
-> 
-> Except when video.use_native_backlight is present on the kernel cmdline
-> (or enabled through a dmi based quirk). As the name indicates the goal here
-> is to make only the raw interface available to userspace so that it will use
-> that (it only does this when it sees a win8 compliant bios).
-> 
-> This is done by:
-> 1) Not registering any acpi_video# backlight devices; and
-> 2) Making acpi_video_backlight_support() return true so that other firmware
-> drivers, ie acer_wmi, thinkpad_acpi, dell_laptop, etc. Don't register their
-> own vender specific interfaces.
-> 
-> Currently nouveau breaks this setup, as when acpi_video_backlight_support()
-> returns true, it does not register itself, resulting in no backlight control
-> at all.
-> 
-> This is esp. going to be a problem with 3.16 which will default to
-> video.use_native_backlight=1, and thus nouveau based laptops with a win8 bios
-> will get no backlight control at all.
-> 
-> This also likely explains why the previous attempt to make
-> video.use_native_backlight=1 the default was not a success, as without this
-> patch having a default of video.use_native_backlight=1 will cause regressions.
-> 
-> Note this effectively reverts commit 5bead799
-> 
-> Also see: https://bugzilla.redhat.com/show_bug.cgi?id=1093171
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+There is no real issue in the Linux kernel, but this can help to cleanup
+the code so that (benefits):
+1. Redundant environment definitions can be removed from <asm/acpi.h> and
+   <acpi/platform/aclinux.h>.
+2. Lift a burden off the ACPICA release automation - copying default ACPICA
+   environment setting to all <asm/acpi.h> file each time a new environment
+   is introduced just in order to avoid build errors.
+3. The wrong <acpi/actypes.h> inclusion can be removed from
+   <acpi/platform/aclinux.h>.
+4. Using ACPICA defined types in <asm/acpi.h> is possible.
+5. Using "static inline" to define ACPICA OSL functions is still possible
+   and won't cause build errors any longer.
+6. All non back ported prototypes are collected in a single file.
 
-Ignore the v2 in the subject please it is bogus.
+The patch set has passed the following build/boot tests.
+Build tests are performed as follows:
+1. i386 + default + COFNIG_ACPI=y
+2. i386 + default + COFNIG_ACPI=n
+3. x86_64 + default + COFNIG_ACPI=y
+4. x86_64 + default + COFNIG_ACPI=n
+Boot tests are performed as follows:
+1. i386 + default + COFNIG_ACPI=y
+2. x86_64 + default + COFNIG_ACPI=y
+Where:
+1. i386: machine named as "Dell Inspiron Mini 1010"
+2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
+3. default: kernel configuration with following items enabled:
+   All hardware drivers related to the machines of i386/x86_64
+   All drivers/acpi configurations
+   All platform drivers
+   All ACPI drivers
+   4 DRM drivers that implement ACPI opregion
+   All buses with ACPI bindings
+   All cpufreq configurations
+   All xen configurations
+   All ACPI table drivers
 
-Question should this also go to stable ? I guess that for old / broken userspace
-it may lead to userspace doing the wrong thing in some cases. So that goes
-against adding it to stable. OTOH the intel driver has been always registering
-its native backlight interface for ages, so userspace should know better; and
-this fix is needed (together with a quirk to set video.use_native_backlight=1
-by default), to get the backlight control to work on the ThinkPad W530.
+Lv Zheng (4):
+  ACPICA: Linux headers: Remove ACPI_PREEMPTION_POINT() due to no
+    usages.
+  ACPICA: Linux headers: Add <acpi/platform/aclinuxex.h> to remove
+    mis-ordered inclusion of <acpi/actypes.h> from
+    <acpi/platform/aclinux.h>.
+  ACPICA: Linux headers: Add <asm/acenv.h> to remove mis-ordered
+    inclusion of <asm/acpi.h> from <acpi/platform/aclinux.h>.
+  ACPICA: Cleanup redudant definitions that already have defaults in
+    <acpi/platform/acenv.h>.
 
-Regards,
+ arch/ia64/include/asm/acenv.h     |   56 ++++++++++++
+ arch/ia64/include/asm/acpi.h      |   50 -----------
+ arch/x86/include/asm/acenv.h      |   49 +++++++++++
+ arch/x86/include/asm/acpi.h       |   45 ----------
+ include/acpi/acpi.h               |    4 +-
+ include/acpi/platform/acenvex.h   |   63 ++++++++++++++
+ include/acpi/platform/aclinux.h   |  171 ++++++++-----------------------------
+ include/acpi/platform/aclinuxex.h |  116 +++++++++++++++++++++++++
+ 8 files changed, 322 insertions(+), 232 deletions(-)
+ create mode 100644 arch/ia64/include/asm/acenv.h
+ create mode 100644 arch/x86/include/asm/acenv.h
+ create mode 100644 include/acpi/platform/acenvex.h
+ create mode 100644 include/acpi/platform/aclinuxex.h
 
-Hans
+-- 
+1.7.10
+
