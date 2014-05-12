@@ -1,85 +1,47 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 0/4] ACPICA: Cleanups for <acpi/platform/acenv.h> and <acpi/platform/aclinux.h>.
-Date: Mon, 12 May 2014 15:44:37 +0800
-Message-ID: <cover.1399880022.git.lv.zheng@intel.com>
-References: <cover.1396930406.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:10223 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751385AbaELHpu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 May 2014 03:45:50 -0400
-In-Reply-To: <cover.1396930406.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v3 1/4] ACPICA: Linux headers: Remove ACPI_PREEMPTION_POINT() due to no usages.
+Date: Mon, 12 May 2014 15:45:54 +0800
+Message-ID: <5fb6fe40cb0a91e454072d567695666dccac3e16.1399880022.git.lv.zheng@intel.com>
+References: <cover.1396930406.git.lv.zheng@intel.com> <cover.1399880022.git.lv.zheng@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1399880022.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-This patch series cleans up <acpi/platform/acenv.h> and
-<acpi/platform/aclinux.h>.  it also fixes some mis-ordered inclusions for
-Linux resident ACPICA.
+This patch deletes deprecated ACPI_PREEMPTION_POINT(), there is no user for
+it in Linux kernel now. Lv Zheng.
 
-There is no real issue in the Linux kernel, but this can help to cleanup
-the code so that (benefits):
-1. Redundant environment definitions can be removed from <asm/acpi.h> and
-   <acpi/platform/aclinux.h>.
-2. Lift a burden off the ACPICA release automation - copying default ACPICA
-   environment setting to all <asm/acpi.h> file each time a new environment
-   is introduced just in order to avoid build errors.
-3. The wrong <acpi/actypes.h> inclusion can be removed from
-   <acpi/platform/aclinux.h>.
-4. Using ACPICA defined types in <asm/acpi.h> is possible.
-5. Using "static inline" to define ACPICA OSL functions is still possible
-   and won't cause build errors any longer.
-6. All non back ported prototypes are collected in a single file.
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ include/acpi/platform/aclinux.h |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-The patch set has passed the following build/boot tests.
-Build tests are performed as follows:
-1. i386 + default + COFNIG_ACPI=y
-2. i386 + default + COFNIG_ACPI=n
-3. x86_64 + default + COFNIG_ACPI=y
-4. x86_64 + default + COFNIG_ACPI=n
-Boot tests are performed as follows:
-1. i386 + default + COFNIG_ACPI=y
-2. x86_64 + default + COFNIG_ACPI=y
-Where:
-1. i386: machine named as "Dell Inspiron Mini 1010"
-2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
-3. default: kernel configuration with following items enabled:
-   All hardware drivers related to the machines of i386/x86_64
-   All drivers/acpi configurations
-   All platform drivers
-   All ACPI drivers
-   4 DRM drivers that implement ACPI opregion
-   All buses with ACPI bindings
-   All cpufreq configurations
-   All xen configurations
-   All ACPI table drivers
-
-Lv Zheng (4):
-  ACPICA: Linux headers: Remove ACPI_PREEMPTION_POINT() due to no
-    usages.
-  ACPICA: Linux headers: Add <acpi/platform/aclinuxex.h> to remove
-    mis-ordered inclusion of <acpi/actypes.h> from
-    <acpi/platform/aclinux.h>.
-  ACPICA: Linux headers: Add <asm/acenv.h> to remove mis-ordered
-    inclusion of <asm/acpi.h> from <acpi/platform/aclinux.h>.
-  ACPICA: Cleanup redudant definitions that already have defaults in
-    <acpi/platform/acenv.h>.
-
- arch/ia64/include/asm/acenv.h     |   56 ++++++++++++
- arch/ia64/include/asm/acpi.h      |   50 -----------
- arch/x86/include/asm/acenv.h      |   49 +++++++++++
- arch/x86/include/asm/acpi.h       |   45 ----------
- include/acpi/acpi.h               |    4 +-
- include/acpi/platform/acenvex.h   |   63 ++++++++++++++
- include/acpi/platform/aclinux.h   |  171 ++++++++-----------------------------
- include/acpi/platform/aclinuxex.h |  116 +++++++++++++++++++++++++
- 8 files changed, 322 insertions(+), 232 deletions(-)
- create mode 100644 arch/ia64/include/asm/acenv.h
- create mode 100644 arch/x86/include/asm/acenv.h
- create mode 100644 include/acpi/platform/acenvex.h
- create mode 100644 include/acpi/platform/aclinuxex.h
-
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 4c2f9e7..3b8b52f 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -228,20 +228,6 @@ static inline acpi_thread_id acpi_os_get_thread_id(void)
+ 
+ #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_thread_id
+ 
+-#ifndef CONFIG_PREEMPT
+-
+-/*
+- * Used within ACPICA to show where it is safe to preempt execution
+- * when CONFIG_PREEMPT=n
+- */
+-#define ACPI_PREEMPTION_POINT() \
+-	do { \
+-		if (!irqs_disabled()) \
+-			cond_resched(); \
+-	} while (0)
+-
+-#endif
+-
+ /*
+  * When lockdep is enabled, the spin_lock_init() macro stringifies it's
+  * argument and uses that as a name for the lock in debugging.
 -- 
 1.7.10
-
