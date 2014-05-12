@@ -1,50 +1,45 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 2/2] ACPI: Fix the issue that the DSDT local copy is conflict with the customized DSDT.
-Date: Mon, 12 May 2014 15:50:16 +0800
-Message-ID: <e10c2a17e698dd9a2594320388b8aa4da6c28418.1399880919.git.lv.zheng@intel.com>
-References: <cover.1396925060.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1396925060.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Enrico Etxe Arte <goitizena.generoa@gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] acpi-video: Add use native backlight quirk for the ThinkPad W530
+Date: Mon, 12 May 2014 09:57:12 +0200
+Message-ID: <1399881432-26124-1-git-send-email-hdegoede@redhat.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch fixes the following issue:
-If DSDT is customized, no local DSDT copy is needed.
+Like all of the other *30 ThinkPad models, the W530 has a broken acpi-video
+backlight control. Note in order for this to actually fix things on the
+ThinkPad W530 the commit titled:
+"nouveau: Don't check acpi_video_backlight_support() before registering backlight"
+is also needed.
 
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=69711
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Signed-off-by: Enrico Etxe Arte <goitizena.generoa@gmail.com>
-Cc: <stable@vger.kernel.org> # 2.6.35.x: aa2110cb: ACPI: add boot option acpi=copy_dsdt to fix corrupt DSDT
+https://bugzilla.redhat.com/show_bug.cgi?id=1093171
+
+Cc: stable@vger.kernel.org
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/bus.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/acpi/video.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 610261a..cfd2318 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -52,6 +52,12 @@ struct proc_dir_entry *acpi_root_dir;
- EXPORT_SYMBOL(acpi_root_dir);
- 
- #ifdef CONFIG_X86
-+#ifdef CONFIG_ACPI_CUSTOM_DSDT
-+static inline int set_copy_dsdt(const struct dmi_system_id *id)
-+{
-+	return 0;
-+}
-+#else
- static int set_copy_dsdt(const struct dmi_system_id *id)
- {
- 	printk(KERN_NOTICE "%s detected - "
-@@ -59,6 +65,7 @@ static int set_copy_dsdt(const struct dmi_system_id *id)
- 	acpi_gbl_copy_dsdt_locally = 1;
- 	return 0;
- }
-+#endif
- 
- static struct dmi_system_id dsdt_dmi_table[] __initdata = {
- 	/*
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 34198b2..6a2099d 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -520,6 +520,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 		},
+ 	},
+ 	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "ThinkPad W530",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W530"),
++		},
++	},
++	{
+ 	.callback = video_set_use_native_backlight,
+ 	.ident = "ThinkPad X1 Carbon",
+ 	.matches = {
 -- 
-1.7.10
+1.9.0
