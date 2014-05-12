@@ -1,69 +1,65 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / TPM: Fix resume regression on Chromebooks
-Date: Mon, 12 May 2014 02:13:11 +0200
-Message-ID: <1815337.lCisGfjnvC@vostro.rjw.lan>
+Subject: Re: [PATCH v2 2/2] ACPI: Fix the issue that the DSDT local copy is conflict with the customized DSDT.
+Date: Mon, 12 May 2014 02:29:08 +0200
+Message-ID: <2008560.oS81rPtGJG@vostro.rjw.lan>
+References: <cover.1396925060.git.lv.zheng@intel.com> <93e6bbbfb41fd514dc207b10b422fbc8afdfa432.1399624932.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61868 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:59207 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753795AbaEKX41 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 May 2014 19:56:27 -0400
+	with SMTP id S1751506AbaELAMX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 May 2014 20:12:23 -0400
+In-Reply-To: <93e6bbbfb41fd514dc207b10b422fbc8afdfa432.1399624932.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>, James Duley <jagduley@gmail.com>, Phillip Dixon <phil@dixon.gen.nz>, Brandon Casey <drafnel@gmail.com>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Enrico Etxe Arte <goitizena.generoa@gmail.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Friday, May 09, 2014 04:44:19 PM Lv Zheng wrote:
+> This patch fixes the following issue:
+> If DSDT is customized, no local DSDT copy is needed.
+> 
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=69711
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Signed-off-by: Enrico Etxe Arte <goitizena.generoa@gmail.com>
 
-Chromebooks (at least Acer C720 and Pixel) implement an ACPI object
-for TPM, but don't implement the _DSM method to support PPI.  As
-a result, the TPM driver fails to load on those machines after
-commit 1569a4c4ceba (ACPI / TPM: detect PPI features by checking
-availability of _DSM functions) which causes them to fail to
-resume from system suspend, becuase they require the TPM hardware
-to be put into the right state during resume and the TPM driver
-is necessary for that.
+This can go in without [1/2], right?
 
-Fix the problem by making tpm_add_ppi() return 0 when tpm_ppi_handle
-is still NULL after walking the ACPI namespace in search for the PPI
-_DSM, which allows the TPM driver to load and operate the hardware
-(during system resume in particular), but avoid creating the PPI
-sysfs group in that case.
+If so, do we need it in -stable?
 
-This change is based on a prototype patch from Jiang Liu.
+> ---
+>  drivers/acpi/bus.c |    7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 610261a..cfd2318 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -52,6 +52,12 @@ struct proc_dir_entry *acpi_root_dir;
+>  EXPORT_SYMBOL(acpi_root_dir);
+>  
+>  #ifdef CONFIG_X86
+> +#ifdef CONFIG_ACPI_CUSTOM_DSDT
+> +static inline int set_copy_dsdt(const struct dmi_system_id *id)
+> +{
+> +	return 0;
+> +}
+> +#else
+>  static int set_copy_dsdt(const struct dmi_system_id *id)
+>  {
+>  	printk(KERN_NOTICE "%s detected - "
+> @@ -59,6 +65,7 @@ static int set_copy_dsdt(const struct dmi_system_id *id)
+>  	acpi_gbl_copy_dsdt_locally = 1;
+>  	return 0;
+>  }
+> +#endif
+>  
+>  static struct dmi_system_id dsdt_dmi_table[] __initdata = {
+>  	/*
+> 
 
-Fixes: 1569a4c4ceba (ACPI / TPM: detect PPI features by checking availability of _DSM functions)
-References: https://bugzilla.kernel.org/show_bug.cgi?id=74021
-Reported-by: James Duley <jagduley@gmail.com>
-Reported-by: Phillip Dixon <phil@dixon.gen.nz>
-Tested-by: Brandon Casey <drafnel@gmail.com>
-Cc: 3.14+ <stable@vger.kernel.org> # 3.14+
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/char/tpm/tpm_ppi.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
-
-Index: linux-pm/drivers/char/tpm/tpm_ppi.c
-===================================================================
---- linux-pm.orig/drivers/char/tpm/tpm_ppi.c
-+++ linux-pm/drivers/char/tpm/tpm_ppi.c
-@@ -328,13 +328,11 @@ int tpm_add_ppi(struct kobject *parent)
- 	/* Cache TPM ACPI handle and version string */
- 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT, ACPI_UINT32_MAX,
- 			    ppi_callback, NULL, NULL, &tpm_ppi_handle);
--	if (tpm_ppi_handle == NULL)
--		return -ENODEV;
--
--	return sysfs_create_group(parent, &ppi_attr_grp);
-+	return tpm_ppi_handle ? sysfs_create_group(parent, &ppi_attr_grp) : 0;
- }
- 
- void tpm_remove_ppi(struct kobject *parent)
- {
--	sysfs_remove_group(parent, &ppi_attr_grp);
-+	if (tpm_ppi_handle)
-+		sysfs_remove_group(parent, &ppi_attr_grp);
- }
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
