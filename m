@@ -1,72 +1,125 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: Revert "ACPICA: Add option to favor 32-bit FADT
- addresses."
-Date: Tue, 13 May 2014 01:05:59 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880255B8DD@SHSMSX101.ccr.corp.intel.com>
-References: <38907770.bupFXhytsS@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E880255B3F0@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E880255B72C@SHSMSX101.ccr.corp.intel.com>
- <2640573.uiu9DRCeSI@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [RFC][PATCH 3/3] ACPI / PM: Avoid resuming devices in ACPI PM domain during system suspend
+Date: Tue, 13 May 2014 03:10:52 +0200
+Message-ID: <4444971.gi2G37pP80@vostro.rjw.lan>
+References: <4649019.is79p6EySp@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:15232 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751541AbaEMBGF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 May 2014 21:06:05 -0400
-In-Reply-To: <2640573.uiu9DRCeSI@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <4649019.is79p6EySp@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "RobertBMoore@compuserve.com" <RobertBMoore@compuserve.com>, "Thomas Renninger (trenn@suse.de)" <trenn@suse.de>, Oswald Buddenhagen <ossi@kde.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
-dF0NCj4gU2VudDogVHVlc2RheSwgTWF5IDEzLCAyMDE0IDg6MDkgQU0NCj4gDQo+IE9uIE1vbmRh
-eSwgTWF5IDEyLCAyMDE0IDA4OjUxOjM2IEFNIFpoZW5nLCBMdiB3cm90ZToNCj4gPiBIaSwgUmFm
-YWVsDQo+ID4NCj4gPiBJIGNoZWNrZWQgdGhlIGJ1Zy4NCj4gPg0KPiA+IFRoZSBkbWVzZyBvZiB0
-aGUga2VybmVsIHdpdGhvdXQgdGhlIGJpc2VjdGVkIGNvbW1pdDoNCj4gPiBbICAgIDAuMDAwMDAw
-XSBBQ1BJIEJJT1MgV2FybmluZyAoYnVnKTogSW5jb3JyZWN0IGNoZWNrc3VtIGluIHRhYmxlIFtY
-U0RUXSAtIDB4QTAsIHNob3VsZCBiZSAweEM5ICgyMDE0MDIxNC90YnByaW50LTIxOCkNCj4gPiBb
-ICAgIDAuMDAwMDAwXSBBQ1BJIFdhcm5pbmc6IDMyLzY0IEZBQ1MgYWRkcmVzcyBtaXNtYXRjaCBp
-biBGQURUIC0gdHdvIEZBQ1MgdGFibGVzISAoMjAxNDAyMTQvdGJmYWR0LTM5NSkNCj4gPiBbICAg
-IDAuMDAwMDAwXSBBQ1BJIEJJT1MgV2FybmluZyAoYnVnKTogMzIvNjRYIEZBQ1MgYWRkcmVzcyBt
-aXNtYXRjaCBpbiBGQURUIC0gMHhDRjY2MUY0MC8weDAwMDAwMDAwQ0Y2NjdFNDAsIHVzaW5nIDMy
-DQo+ICgyMDE0MDIxNC90YmZhZHQtNTIyKQ0KPiA+DQo+ID4gVGhlIGRtZXNnIG9mIHRoZSBrZXJu
-ZWwgd2l0aCB0aGUgYmlzZWN0ZWQgY29tbWl0Og0KPiA+IFsgICAgMC4wMDAwMDBdIEFDUEkgQklP
-UyBXYXJuaW5nIChidWcpOiBJbmNvcnJlY3QgY2hlY2tzdW0gaW4gdGFibGUgW1hTRFRdIC0gMHhB
-MCwgc2hvdWxkIGJlIDB4QzkgKDIwMTMxMjE4L3RicHJpbnQtMjE0KQ0KPiA+IFsgICAgMC4wMDAw
-MDBdIEFDUEkgQklPUyBXYXJuaW5nIChidWcpOiAzMi82NFggRkFDUyBhZGRyZXNzIG1pc21hdGNo
-IGluIEZBRFQ6IDB4Q0Y2NjFGNDAvMHgwMDAwMDAwMENGNjY3RTQwLCB1c2luZyA2NC1iaXQNCj4g
-YWRkcmVzcyAoMjAxMzEyMTgvdGJmYWR0LTI3MSkNCj4gPg0KPiA+IFRoaXMgaXMgdGhlIHB1cnBv
-c2Ugb2YgdGhlIGJpc2VjdGVkIGNvbW1pdC4NCj4gPiBBY2NvcmRpbmcgdG8gdGhlIGxpbmsgYmVs
-b3c6DQo+ID4gaHR0cDovL2J1Z3MuYWNwaWNhLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9ODg1DQo+ID4g
-QW5kIFdpbmRvd3MgZG9jdW1lbnRhdGlvbjoNCj4gPiBodHRwOi8vZG93bmxvYWQubWljcm9zb2Z0
-LmNvbS9kb3dubG9hZC81L2IvOS81Yjk3MDE3Yi1lMjhhLTRiYWUtYmE0OC0xNzRjZjQ3ZDIzY2Qv
-Q1BBMDAyX1dIMDYucHB0DQo+ID4gV2UgYmVsaWV2ZSA2NC1iaXQgYWRkcmVzc2VzIHNob3VsZCBi
-ZSB1c2VkIGJ5IGRlZmF1bHQgc28gdGhhdCBuZXcgZmVhdHVyZXMgY2FuIGJlIGVuYWJsZWQgYWNj
-b3JkaW5nIHRvIHRoZSBwdWJsaWMga25vd2xlZGdlIG9mDQo+IFdpbmRvd3MgVmlzdGErIGJlaGF2
-aW9yLg0KPiA+IEZvciBvbGQgV2luZG93cywgaXQncyBoYXJkIGZvciB1cyB0byBndWVzcywgd2Ug
-c2hvdWxkIHdhaXQgZm9yIHRoZSByZXBvcnRzIGFuZCBhZGQgcXVpcmtzIGZvciB0aGVtLg0KPiA+
-DQo+ID4gVGh1cyB0aGlzIGNvbW1pdCBpcyBub3Qgd3JvbmcsIGl0IHNob3VsZG4ndCBiZSByZXZl
-cnRlZC4NCj4gDQo+IEl0IGlzIHdyb25nLCBiZWNhdXNlIGl0IGJyZWFrcyBhIHN5c3RlbSB0aGF0
-IHdvcmtlZCB3aXRob3V0IGl0Lg0KPiANCj4gSXQncyAqdGhhdCogc2ltcGxlLg0KDQpGb3IgdGhp
-cyBjb21taXQsIHdlIGtuZXcgdGhlcmUgd291bGQgYmUgc3lzdGVtcyBicm9rZW4uDQpBbmQgd2Fz
-IHByZXBhcmVkIHRvIGFkZCBxdWlya3MgZm9yIHRoZW0uDQpUaGUgcXVpcmtzIGFyZSBub3QgdGhl
-cmUganVzdCBiZWNhdXNlIHdlIHJlbHkgb24gZW5kIHVzZXJzIHRvIHJlcG9ydC4NCg0KPiANCj4g
-QW5kIGVpdGhlciB5b3UgaGF2ZSBhIGZpeCBmb3IgdGhhdCAod2hpY2ggaXMgbm90IGEgcXVpcmss
-IGJlY2F1c2UgdGhlcmUgbWF5IGJlDQo+IG1vcmUgbWFjaGluZXMgbGlrZSB0aGF0KSwgb3Igd2Ug
-aGF2ZSB0byByZXZlcnQgaXQuDQo+IA0KPiA+IFRob3VnaCB0aGlzIHBsYXRmb3JtIGlzIG5ld2Vy
-IHRoYW4gdmlzdGEsIHdlIHN0aWxsIHNob3VsZCBvZmZlciBhIHF1aXJrIG1lY2hhbmlzbQ0KPiA+
-IGZvciBpdCBhcyBhIHF1aWNrIGZpeDoNCj4gDQo+IFdlIGRpZG4ndCBuZWVkIGEgcXVpcmsgZm9y
-IGl0IGJlZm9yZSwgdGhvdWdoLg0KDQpCdXQgYWNjb3JkaW5nIHRvIEJaODg1LCB3ZSBuZWVkIG1v
-cmUgcXVpcmtzIGZvciBvdGhlciBtYWNoaW5lcyBiZWZvcmUuDQpGb3IgZXhhbXBsZSwgVGhpbmtQ
-YWQgNDBlIGFuZCBUaGlua1BhZCA1MWUgcmVwb3J0ZWQgaW4gdGhlIEJaODg1Lg0KDQo+IA0KPiBT
-byByZWFsbHksIEknbSByZXZlcnRpbmcgaXQuDQoNCk9LLg0KSSdsbCBmaXJzdCB0cnkgdG8gZmln
-dXJlIG91dCB0aGUgY2F1c2Ugb2YgdGhlIGlzc3VlIHRoYXQgaXMgaGFwcGVuaW5nIHRvIEludGVs
-IERQNDVTRy4NCkFuZCB0aGVuIHRyeSB0aGlzIGFwcHJvYWNoIGFnYWluIGluIGEgc21hcnRlciB3
-YXkgdGhhdCBpcyBtb3JlIHRvbGVyYW50IHRvcndhcmQgdGhlIHBvc3NpYmxlIHJlZ3Jlc3Npb25z
-Lg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gDQo+IFRoYW5rcyENCj4gDQo+
-IC0tDQo+IEkgc3BlYWsgb25seSBmb3IgbXlzZWxmLg0KPiBSYWZhZWwgSi4gV3lzb2NraSwgSW50
-ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50ZXIuDQo=
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Rework the ACPI PM domain's PM callbacks to avoid resuming devices
+during system suspend (in order to modify their wakeup settings etc.)
+if that isn't necessary.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/device_pm.c |   43 ++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 36 insertions(+), 7 deletions(-)
+
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -261,7 +261,8 @@ struct acpi_device_power_flags {
+ 	u32 inrush_current:1;	/* Serialize Dx->D0 */
+ 	u32 power_removed:1;	/* Optimize Dx->D0 */
+ 	u32 ignore_parent:1;	/* Power is independent of parent power state */
+-	u32 reserved:27;
++	u32 dsw_present:1;	/* _DSW present? */
++	u32 reserved:26;
+ };
+ 
+ struct acpi_device_power_state {
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1551,9 +1551,13 @@ static void acpi_bus_get_power_flags(str
+ 	 */
+ 	if (acpi_has_method(device->handle, "_PSC"))
+ 		device->power.flags.explicit_get = 1;
++
+ 	if (acpi_has_method(device->handle, "_IRC"))
+ 		device->power.flags.inrush_current = 1;
+ 
++	if (acpi_has_method(device->handle, "_DSW"))
++		device->power.flags.dsw_present = 1;
++
+ 	/*
+ 	 * Enumerate supported power management states
+ 	 */
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -900,18 +900,46 @@ EXPORT_SYMBOL_GPL(acpi_dev_resume_early)
+  */
+ int acpi_subsys_prepare(struct device *dev)
+ {
+-	/*
+-	 * Devices having power.ignore_children set may still be necessary for
+-	 * suspending their children in the next phase of device suspend.
+-	 */
+-	if (dev->power.ignore_children)
+-		pm_runtime_resume(dev);
++	struct acpi_device *adev = ACPI_COMPANION(dev);
++	u32 sys_target;
++	int ret, state;
++
++	ret = pm_generic_prepare(dev);
++	if (ret < 0)
++		return ret;
++
++	if (!adev || !pm_runtime_suspended(dev)
++	    || device_may_wakeup(dev) != !!adev->wakeup.prepare_count)
++		return 0;
++
++	sys_target = acpi_target_system_state();
++	if (sys_target == ACPI_STATE_S0)
++		return 1;
++
++	if (adev->power.flags.dsw_present)
++		return 0;
+ 
+-	return pm_generic_prepare(dev);
++	ret = acpi_dev_pm_get_state(dev, adev, sys_target, NULL, &state);
++	return !ret && state == adev->power.state;
+ }
+ EXPORT_SYMBOL_GPL(acpi_subsys_prepare);
+ 
+ /**
++ * acpi_subsys_complete - Finalize device's resume during system resume.
++ * @dev: Device to handle.
++ */
++void acpi_subsys_complete(struct device *dev)
++{
++	/*
++	 * If the device had been runtime-suspended before the system went into
++	 * the sleep state it is going out of and it has never been resumed till
++	 * now, resume it in case the firmware powered it up.
++	 */
++	if (dev->power.direct_complete)
++		pm_request_resume(dev);
++}
++
++/**
+  * acpi_subsys_suspend - Run the device driver's suspend callback.
+  * @dev: Device to handle.
+  *
+@@ -979,6 +1007,7 @@ static struct dev_pm_domain acpi_general
+ #endif
+ #ifdef CONFIG_PM_SLEEP
+ 		.prepare = acpi_subsys_prepare,
++		.complete = acpi_subsys_complete,
+ 		.suspend = acpi_subsys_suspend,
+ 		.suspend_late = acpi_subsys_suspend_late,
+ 		.resume_early = acpi_subsys_resume_early,
+
