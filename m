@@ -1,83 +1,82 @@
-From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Patch V2 0/9] I2C ACPI operation region handler support
-Date: Tue, 13 May 2014 22:06:56 +0800
-Message-ID: <53722700.6010001@intel.com>
-References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com> <1398695268-28645-1-git-send-email-tianyu.lan@intel.com> <3275231.ERSr3mUlis@devpool02>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 0/3] PM / sleep: Avoid resuming runtime-suspended
+ devices during system suspend
+Date: Tue, 13 May 2014 10:45:38 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1405131038220.1098-100000@iolanthe.rowland.org>
+References: <4649019.is79p6EySp@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3275231.ERSr3mUlis@devpool02>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rolf Eike Beer <eb-QdrG9jWwCLEAvxtiuMwx3w@public.gmane.org>
-Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:42584 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S933399AbaEMOpj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 May 2014 10:45:39 -0400
+In-Reply-To: <4649019.is79p6EySp@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>
 
-On 05/13/2014 09:09 PM, Rolf Eike Beer wrote:
-> Am Montag, 28. April 2014, 22:27:39 schrieb Lan Tianyu:
->> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart) operation
->> region. It allows ACPI aml code able to access such kind of devices to
->> implement some ACPI standard method.
->>
->> On the Asus T100TA, Bios use GenericSerialBus operation region to access
->> i2c device to get battery info. So battery function depends on the I2C
->> operation region support. Here is the bug link.
->> https://bugzilla.kernel.org/show_bug.cgi?id=69011
->
-> Hi all,
->
-> I have tested this series and got some errors, but no additional functionality:
->
+On Tue, 13 May 2014, Rafael J. Wysocki wrote:
 
-Hi Rolf:
-	Thanks for test. Could you attach the output of dmesg and acpidump?
-Which machine you are testing on?
+> Hi All,
+> 
+> We've discussed that at length here:
+> 
+> http://marc.info/?t=139950469000003&r=1&w=4
+> 
+> but I'm starting a new thread to refresh things a bit.
+> 
+> This is about adding a mechanism allowing us to avoid runtime-suspended
+> devices during system suspend.  The reason why it has to touch the PM core
+> is because that needs to be coordinated across the device hierarchy.
+> 
+> The idea is to add a new device PM flag and to modify the PM core as follows.
+> 
+>  - If ->prepare() returns a positive number for a device, that means "this
+>    device is runtime-suspended and you can leave it like that if you do the
+>    same for all of its descendants".
+> 
+>  - If that happens, the PM core sets the new flag for the device in
+>    question *if* the device is indeed runtime-suspended *and* *if*
+>    the transition is a suspend (and not hibernation, for example).
+>    Otherwise, it clears the flag for the device.  All of that happens in
+>    device_prepare().
+> 
+>  - In __device_suspend() the PM core clears the new flag for the device's
+>    parent if it is clear for the device to ensure that the flag will only
+>    be set for a device if it is also set for all of its descendants.
 
-> [    0.607442] ACPI Error: Error attaching device[f60238a0] data
-> [    0.607460]  (20140214/bus-143)
-> [    0.607708] ACPI Error: Error attaching device[f60238a0] data
-> [    0.607724]  (20140214/bus-143)
-> [    0.607987] ACPI Error: Error attaching device[f60238a0] data
-> [    0.608003]  (20140214/bus-143)
-> [    0.608251] ACPI Error: Error attaching device[f60238a0] data
-> [    0.608267]  (20140214/bus-143)
-> [    0.608515] ACPI Error: Error attaching device[f60238a0] data
-> [    0.608531]  (20140214/bus-143)
->
-> A bit more output, e.g. the error code if such is present or the device path,
-> could probably help when identifyint the device in question.
->
-> Also this still looks incomplete, as on other places one still gets those
-> warnings:
->
-> [    0.314944] pnp 00:08: Plug and Play ACPI device, IDs INT33fc (active)
-> [    0.316122] pnp 00:09: unknown resource type 19 in _CRS
-> [    0.316136] pnp 00:09: can't evaluate _CRS: 1
->
-> I don't know if looking on them at this place has any value, maybe something
-> like this is correct?
->
-> commit 52e2822c4c8b09180e5eb3dd94e4e9aea0d25eff
-> Author: Rolf Eike Beer <eb-QdrG9jWwCLEAvxtiuMwx3w@public.gmane.org>
-> Date:   Tue Feb 18 11:11:10 2014 +0100
->
->      ACPI: ignore GPIO and SERIAL_BUS resources in PNP init code
->
-> diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-> index 167f3d0..5b8459b 100644
-> --- a/drivers/pnp/pnpacpi/rsparser.c
-> +++ b/drivers/pnp/pnpacpi/rsparser.c
-> @@ -240,6 +240,8 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
->                  break;
->
->          case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
-> +       case ACPI_RESOURCE_TYPE_GPIO:
-> +       case ACPI_RESOURCE_TYPE_SERIAL_BUS:
->                  break;
->
->          default:
->
-> Greetings,
->
-> Eike
->
+There's nothing to prevent a runtime-suspended device from being 
+resumed in between the ->prepare() and ->suspend() callbacks.  (Ulf 
+mentioned this too.)
+
+Therefore it makes little sense to check the device's runtime status in 
+device_prepare().  The check should be done in __device_suspend().
+
+>  - PM core skips ->suspend/late/noirq and ->resume/early/noirq for all devices
+>    having the flag set - so the flag can be called "direct_complete" as it
+>    causes the PM core to go directy for the ->complete() callback when set.
+> 
+>  - The ->complete() callback has to check direct_complete if ->prepare()
+>    returned a positive number previously and is responsible for further
+>    handling of the device.
+> 
+> That is introduced by patch [2/3].
+> 
+> To simplify things slightly it is helpful to move the invocation of
+> pm_runtime_barrier() from __device_suspend() to device_prepare(), but still
+> under pm_runtime_get_noresume() beforehand (patch [1/3]).
+
+If the check is moved to __device_suspend() then the barrier can remain 
+where it is now.
+
+> Patch [3/3] shows how this can be used by adding support for it to the ACPI
+> PM comain.
+> 
+> Thanks!
+
+Aside from this one matter, everything seems pretty good.
+
+Alan Stern
+
