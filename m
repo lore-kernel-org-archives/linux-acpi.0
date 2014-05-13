@@ -1,192 +1,80 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [RFC][PATCH 2/3] PM / sleep: Mechanism to avoid resuming runtime-suspended devices unnecessarily
-Date: Tue, 13 May 2014 03:10:19 +0200
-Message-ID: <1752814.FckPkBGaUc@vostro.rjw.lan>
-References: <4649019.is79p6EySp@vostro.rjw.lan>
+Subject: Re: [PATCH] ACPICA: Revert "ACPICA: Add option to favor 32-bit FADT addresses."
+Date: Tue, 13 May 2014 03:30:39 +0200
+Message-ID: <3232280.ZxmcGHBhqB@vostro.rjw.lan>
+References: <38907770.bupFXhytsS@vostro.rjw.lan> <2640573.uiu9DRCeSI@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E880255B8DD@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <4649019.is79p6EySp@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880255B8DD@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "RobertBMoore@compuserve.com" <RobertBMoore@compuserve.com>, "Thomas Renninger (trenn@suse.de)" <trenn@suse.de>, Oswald Buddenhagen <ossi@kde.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Tuesday, May 13, 2014 01:05:59 AM Zheng, Lv wrote:
+> Hi,
+> 
+> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > Sent: Tuesday, May 13, 2014 8:09 AM
+> > 
+> > On Monday, May 12, 2014 08:51:36 AM Zheng, Lv wrote:
+> > > Hi, Rafael
+> > >
+> > > I checked the bug.
+> > >
+> > > The dmesg of the kernel without the bisected commit:
+> > > [    0.000000] ACPI BIOS Warning (bug): Incorrect checksum in table [XSDT] - 0xA0, should be 0xC9 (20140214/tbprint-218)
+> > > [    0.000000] ACPI Warning: 32/64 FACS address mismatch in FADT - two FACS tables! (20140214/tbfadt-395)
+> > > [    0.000000] ACPI BIOS Warning (bug): 32/64X FACS address mismatch in FADT - 0xCF661F40/0x00000000CF667E40, using 32
+> > (20140214/tbfadt-522)
+> > >
+> > > The dmesg of the kernel with the bisected commit:
+> > > [    0.000000] ACPI BIOS Warning (bug): Incorrect checksum in table [XSDT] - 0xA0, should be 0xC9 (20131218/tbprint-214)
+> > > [    0.000000] ACPI BIOS Warning (bug): 32/64X FACS address mismatch in FADT: 0xCF661F40/0x00000000CF667E40, using 64-bit
+> > address (20131218/tbfadt-271)
+> > >
+> > > This is the purpose of the bisected commit.
+> > > According to the link below:
+> > > http://bugs.acpica.org/show_bug.cgi?id=885
+> > > And Windows documentation:
+> > > http://download.microsoft.com/download/5/b/9/5b97017b-e28a-4bae-ba48-174cf47d23cd/CPA002_WH06.ppt
+> > > We believe 64-bit addresses should be used by default so that new features can be enabled according to the public knowledge of
+> > Windows Vista+ behavior.
+> > > For old Windows, it's hard for us to guess, we should wait for the reports and add quirks for them.
+> > >
+> > > Thus this commit is not wrong, it shouldn't be reverted.
+> > 
+> > It is wrong, because it breaks a system that worked without it.
+> > 
+> > It's *that* simple.
+> 
+> For this commit, we knew there would be systems broken.
+> And was prepared to add quirks for them.
+> The quirks are not there just because we rely on end users to report.
+> 
+> > 
+> > And either you have a fix for that (which is not a quirk, because there may be
+> > more machines like that), or we have to revert it.
+> > 
+> > > Though this platform is newer than vista, we still should offer a quirk mechanism
+> > > for it as a quick fix:
+> > 
+> > We didn't need a quirk for it before, though.
+> 
+> But according to BZ885, we need more quirks for other machines before.
+> For example, ThinkPad 40e and ThinkPad 51e reported in the BZ885.
+> 
+> > 
+> > So really, I'm reverting it.
+> 
+> OK.
+> I'll first try to figure out the cause of the issue that is happening to Intel DP45SG.
+> And then try this approach again in a smarter way that is more tolerant torward the possible regressions.
 
-Currently, some subsystems (e.g. PCI and the ACPI PM domain) have to
-resume all runtime-suspended devices during system suspend, mostly
-because those devices may need to be reprogrammed due to different
-wakeup settings for system sleep and for runtime PM.
+Great, thanks!
 
-For some devices, though, it's OK to remain in runtime suspend 
-throughout a complete system suspend/resume cycle (if the device was in
-runtime suspend at the start of the cycle).  We would like to do this
-whenever possible, to avoid the overhead of extra power-up and power-down
-events.
-
-However, problems may arise because the device's descendants may require
-it to be at full power at various points during the cycle.  Therefore the
-most straightforward way to do this safely is if the device and all its
-descendants can remain runtime suspended until the complete stage of
-system resume.
-
-To this end, introduce a new device PM flag, power.direct_complete
-and modify the PM core to use that flag as follows.
-
-If the ->prepare() callback of a device returns a positive number,
-the PM core will regard that as an indication that it may leave the
-device runtime-suspended.  It will then check if the system power
-transition in progress is a suspend (and not hibernation in particular)
-and if the device is, indeed, runtime-suspended.  In that case, the PM
-core will set the device's power.direct_complete flag.  Otherwise it
-will clear power.direct_complete for the device and it also will later
-clear it for the device's parent (if there's one).
-
-Next, the PM core will not invoke the ->suspend() ->suspend_late(),
-->suspend_irq(), ->resume_irq(), ->resume_early(), or ->resume()
-callbacks for all devices having power.direct_complete set.  It
-will invoke their ->complete() callbacks, however, and those
-callbacks are then responsible for resuming the devices as
-appropriate, if necessary.
-
-Changelog partly based on an Alan Stern's description of the idea
-(http://marc.info/?l=linux-pm&m=139940466625569&w=2).
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/base/power/main.c |   45 ++++++++++++++++++++++++++++-----------------
- include/linux/pm.h        |    1 +
- 2 files changed, 29 insertions(+), 17 deletions(-)
-
-Index: linux-pm/include/linux/pm.h
-===================================================================
---- linux-pm.orig/include/linux/pm.h
-+++ linux-pm/include/linux/pm.h
-@@ -546,6 +546,7 @@ struct dev_pm_info {
- 	bool			is_late_suspended:1;
- 	bool			ignore_children:1;
- 	bool			early_init:1;	/* Owned by the PM core */
-+	bool			direct_complete:1;	/* Owned by the PM core */
- 	spinlock_t		lock;
- #ifdef CONFIG_PM_SLEEP
- 	struct list_head	entry;
-Index: linux-pm/drivers/base/power/main.c
-===================================================================
---- linux-pm.orig/drivers/base/power/main.c
-+++ linux-pm/drivers/base/power/main.c
-@@ -479,7 +479,7 @@ static int device_resume_noirq(struct de
- 	TRACE_DEVICE(dev);
- 	TRACE_RESUME(0);
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || dev->power.direct_complete)
- 		goto Out;
- 
- 	if (!dev->power.is_noirq_suspended)
-@@ -605,7 +605,7 @@ static int device_resume_early(struct de
- 	TRACE_DEVICE(dev);
- 	TRACE_RESUME(0);
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || dev->power.direct_complete)
- 		goto Out;
- 
- 	if (!dev->power.is_late_suspended)
-@@ -732,7 +732,7 @@ static int device_resume(struct device *
- 	TRACE_DEVICE(dev);
- 	TRACE_RESUME(0);
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || dev->power.direct_complete)
- 		goto Complete;
- 
- 	dpm_wait(dev->parent, async);
-@@ -1007,7 +1007,7 @@ static int __device_suspend_noirq(struct
- 		goto Complete;
- 	}
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || dev->power.direct_complete)
- 		goto Complete;
- 
- 	dpm_wait_for_children(dev, async);
-@@ -1146,7 +1146,7 @@ static int __device_suspend_late(struct
- 		goto Complete;
- 	}
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || dev->power.direct_complete)
- 		goto Complete;
- 
- 	dpm_wait_for_children(dev, async);
-@@ -1312,7 +1312,7 @@ static int __device_suspend(struct devic
- 
- 	dpm_wait_for_children(dev, async);
- 
--	if (async_error || dev->power.syscore)
-+	if (async_error || dev->power.syscore || dev->power.direct_complete)
- 		goto Complete;
- 
- 	dpm_watchdog_set(&wd, dev);
-@@ -1365,10 +1365,19 @@ static int __device_suspend(struct devic
- 
-  End:
- 	if (!error) {
-+		struct device *parent = dev->parent;
-+
- 		dev->power.is_suspended = true;
--		if (dev->power.wakeup_path
--		    && dev->parent && !dev->parent->power.ignore_children)
--			dev->parent->power.wakeup_path = true;
-+		if (parent) {
-+			spin_lock_irq(&parent->power.lock);
-+
-+			dev->parent->power.direct_complete = false;
-+			if (dev->power.wakeup_path
-+			    && !dev->parent->power.ignore_children)
-+				dev->parent->power.wakeup_path = true;
-+
-+			spin_unlock_irq(&parent->power.lock);
-+		}
- 	}
- 
- 	device_unlock(dev);
-@@ -1470,7 +1479,7 @@ static int device_prepare(struct device
- {
- 	int (*callback)(struct device *) = NULL;
- 	char *info = NULL;
--	int error = 0;
-+	int ret = 0;
- 
- 	if (dev->power.syscore)
- 		return 0;
-@@ -1518,17 +1527,19 @@ static int device_prepare(struct device
- 		callback = dev->driver->pm->prepare;
- 	}
- 
--	if (callback) {
--		error = callback(dev);
--		suspend_report_result(callback, error);
--	}
-+	if (callback)
-+		ret = callback(dev);
- 
- 	device_unlock(dev);
- 
--	if (error)
-+	if (ret < 0) {
-+		suspend_report_result(callback, ret);
- 		pm_runtime_put(dev);
--
--	return error;
-+		return ret;
-+	}
-+	dev->power.direct_complete = ret > 0 && state.event == PM_EVENT_SUSPEND
-+					&& pm_runtime_suspended(dev);
-+	return 0;
- }
- 
- /**
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
