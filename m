@@ -1,52 +1,88 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH] ACPI / video: correct DMI tag for Dell Inspiron 7520
-Date: Tue, 13 May 2014 09:51:50 +0800
-Message-ID: <53717AB6.3020905@intel.com>
-References: <CAOrdFjM6RytffEPqd0VQ2ufrzauY70shf7K_gkdjY5t1o9UPzQ@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPICA: Revert "ACPICA: Add option to favor 32-bit FADT
+ addresses."
+Date: Tue, 13 May 2014 04:54:05 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880255BAB8@SHSMSX101.ccr.corp.intel.com>
+References: <38907770.bupFXhytsS@vostro.rjw.lan>
+ <2640573.uiu9DRCeSI@vostro.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E880255B8DD@SHSMSX101.ccr.corp.intel.com>
+ <3232280.ZxmcGHBhqB@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:12759 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:39919 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751420AbaEMBvw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 May 2014 21:51:52 -0400
-In-Reply-To: <CAOrdFjM6RytffEPqd0VQ2ufrzauY70shf7K_gkdjY5t1o9UPzQ@mail.gmail.com>
+	id S1751161AbaEMEyJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 May 2014 00:54:09 -0400
+In-Reply-To: <3232280.ZxmcGHBhqB@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?B?VMOpbyBNYXphcnM=?= <teomazars@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "RobertBMoore@compuserve.com" <RobertBMoore@compuserve.com>, "Thomas Renninger (trenn@suse.de)" <trenn@suse.de>, Oswald Buddenhagen <ossi@kde.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-The DMI tag used to identify Dell Inspiron 7520 should be product name
-instead of product version.
-
-Reported-and-tested-by: T=C3=A9o Mazars <teomazars@gmail.com>
-Buglink: https://bugzilla.redhat.com/show_bug.cgi?id=3D909552
-Cc: All applicable <stable@vger.kernel.org>
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/acpi/video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index fced27d8e42f..010d259a2466 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -508,7 +508,7 @@ static struct dmi_system_id video_dmi_table[] __ini=
-tdata =3D {
- 	 .ident =3D "Dell Inspiron 7520",
- 	 .matches =3D {
- 		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
--		DMI_MATCH(DMI_PRODUCT_VERSION, "Inspiron 7520"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7520"),
- 		},
- 	},
- 	{
---=20
-1.9.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFNlbnQ6IFR1ZXNkYXksIE1heSAxMywgMjAxNCA5OjMxIEFNDQo+IFRvOiBa
+aGVuZywgTHYNCj4gQ2M6IFJvYmVydEJNb29yZUBjb21wdXNlcnZlLmNvbTsgVGhvbWFzIFJlbm5p
+bmdlciAodHJlbm5Ac3VzZS5kZSk7IE9zd2FsZCBCdWRkZW5oYWdlbjsgQUNQSSBEZXZlbCBNYWxp
+bmcgTGlzdDsgTGludXgNCj4gS2VybmVsIE1haWxpbmcgTGlzdA0KPiBTdWJqZWN0OiBSZTogW1BB
+VENIXSBBQ1BJQ0E6IFJldmVydCAiQUNQSUNBOiBBZGQgb3B0aW9uIHRvIGZhdm9yIDMyLWJpdCBG
+QURUIGFkZHJlc3Nlcy4iDQo+IA0KPiBPbiBUdWVzZGF5LCBNYXkgMTMsIDIwMTQgMDE6MDU6NTkg
+QU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+IEhpLA0KPiA+DQo+ID4gPiBGcm9tOiBSYWZhZWwgSi4g
+V3lzb2NraSBbbWFpbHRvOnJqd0Byand5c29ja2kubmV0XQ0KPiA+ID4gU2VudDogVHVlc2RheSwg
+TWF5IDEzLCAyMDE0IDg6MDkgQU0NCj4gPiA+DQo+ID4gPiBPbiBNb25kYXksIE1heSAxMiwgMjAx
+NCAwODo1MTozNiBBTSBaaGVuZywgTHYgd3JvdGU6DQo+ID4gPiA+IEhpLCBSYWZhZWwNCj4gPiA+
+ID4NCj4gPiA+ID4gSSBjaGVja2VkIHRoZSBidWcuDQo+ID4gPiA+DQo+ID4gPiA+IFRoZSBkbWVz
+ZyBvZiB0aGUga2VybmVsIHdpdGhvdXQgdGhlIGJpc2VjdGVkIGNvbW1pdDoNCj4gPiA+ID4gWyAg
+ICAwLjAwMDAwMF0gQUNQSSBCSU9TIFdhcm5pbmcgKGJ1Zyk6IEluY29ycmVjdCBjaGVja3N1bSBp
+biB0YWJsZSBbWFNEVF0gLSAweEEwLCBzaG91bGQgYmUgMHhDOSAoMjAxNDAyMTQvdGJwcmludC0y
+MTgpDQo+ID4gPiA+IFsgICAgMC4wMDAwMDBdIEFDUEkgV2FybmluZzogMzIvNjQgRkFDUyBhZGRy
+ZXNzIG1pc21hdGNoIGluIEZBRFQgLSB0d28gRkFDUyB0YWJsZXMhICgyMDE0MDIxNC90YmZhZHQt
+Mzk1KQ0KPiA+ID4gPiBbICAgIDAuMDAwMDAwXSBBQ1BJIEJJT1MgV2FybmluZyAoYnVnKTogMzIv
+NjRYIEZBQ1MgYWRkcmVzcyBtaXNtYXRjaCBpbiBGQURUIC0gMHhDRjY2MUY0MC8weDAwMDAwMDAw
+Q0Y2NjdFNDAsIHVzaW5nIDMyDQo+ID4gPiAoMjAxNDAyMTQvdGJmYWR0LTUyMikNCj4gPiA+ID4N
+Cj4gPiA+ID4gVGhlIGRtZXNnIG9mIHRoZSBrZXJuZWwgd2l0aCB0aGUgYmlzZWN0ZWQgY29tbWl0
+Og0KPiA+ID4gPiBbICAgIDAuMDAwMDAwXSBBQ1BJIEJJT1MgV2FybmluZyAoYnVnKTogSW5jb3Jy
+ZWN0IGNoZWNrc3VtIGluIHRhYmxlIFtYU0RUXSAtIDB4QTAsIHNob3VsZCBiZSAweEM5ICgyMDEz
+MTIxOC90YnByaW50LTIxNCkNCj4gPiA+ID4gWyAgICAwLjAwMDAwMF0gQUNQSSBCSU9TIFdhcm5p
+bmcgKGJ1Zyk6IDMyLzY0WCBGQUNTIGFkZHJlc3MgbWlzbWF0Y2ggaW4gRkFEVDogMHhDRjY2MUY0
+MC8weDAwMDAwMDAwQ0Y2NjdFNDAsIHVzaW5nIDY0LWJpdA0KPiA+ID4gYWRkcmVzcyAoMjAxMzEy
+MTgvdGJmYWR0LTI3MSkNCj4gPiA+ID4NCj4gPiA+ID4gVGhpcyBpcyB0aGUgcHVycG9zZSBvZiB0
+aGUgYmlzZWN0ZWQgY29tbWl0Lg0KPiA+ID4gPiBBY2NvcmRpbmcgdG8gdGhlIGxpbmsgYmVsb3c6
+DQo+ID4gPiA+IGh0dHA6Ly9idWdzLmFjcGljYS5vcmcvc2hvd19idWcuY2dpP2lkPTg4NQ0KPiA+
+ID4gPiBBbmQgV2luZG93cyBkb2N1bWVudGF0aW9uOg0KPiA+ID4gPiBodHRwOi8vZG93bmxvYWQu
+bWljcm9zb2Z0LmNvbS9kb3dubG9hZC81L2IvOS81Yjk3MDE3Yi1lMjhhLTRiYWUtYmE0OC0xNzRj
+ZjQ3ZDIzY2QvQ1BBMDAyX1dIMDYucHB0DQo+ID4gPiA+IFdlIGJlbGlldmUgNjQtYml0IGFkZHJl
+c3NlcyBzaG91bGQgYmUgdXNlZCBieSBkZWZhdWx0IHNvIHRoYXQgbmV3IGZlYXR1cmVzIGNhbiBi
+ZSBlbmFibGVkIGFjY29yZGluZyB0byB0aGUgcHVibGljIGtub3dsZWRnZQ0KPiBvZg0KPiA+ID4g
+V2luZG93cyBWaXN0YSsgYmVoYXZpb3IuDQo+ID4gPiA+IEZvciBvbGQgV2luZG93cywgaXQncyBo
+YXJkIGZvciB1cyB0byBndWVzcywgd2Ugc2hvdWxkIHdhaXQgZm9yIHRoZSByZXBvcnRzIGFuZCBh
+ZGQgcXVpcmtzIGZvciB0aGVtLg0KPiA+ID4gPg0KPiA+ID4gPiBUaHVzIHRoaXMgY29tbWl0IGlz
+IG5vdCB3cm9uZywgaXQgc2hvdWxkbid0IGJlIHJldmVydGVkLg0KPiA+ID4NCj4gPiA+IEl0IGlz
+IHdyb25nLCBiZWNhdXNlIGl0IGJyZWFrcyBhIHN5c3RlbSB0aGF0IHdvcmtlZCB3aXRob3V0IGl0
+Lg0KPiA+ID4NCj4gPiA+IEl0J3MgKnRoYXQqIHNpbXBsZS4NCj4gPg0KPiA+IEZvciB0aGlzIGNv
+bW1pdCwgd2Uga25ldyB0aGVyZSB3b3VsZCBiZSBzeXN0ZW1zIGJyb2tlbi4NCj4gPiBBbmQgd2Fz
+IHByZXBhcmVkIHRvIGFkZCBxdWlya3MgZm9yIHRoZW0uDQo+ID4gVGhlIHF1aXJrcyBhcmUgbm90
+IHRoZXJlIGp1c3QgYmVjYXVzZSB3ZSByZWx5IG9uIGVuZCB1c2VycyB0byByZXBvcnQuDQo+ID4N
+Cj4gPiA+DQo+ID4gPiBBbmQgZWl0aGVyIHlvdSBoYXZlIGEgZml4IGZvciB0aGF0ICh3aGljaCBp
+cyBub3QgYSBxdWlyaywgYmVjYXVzZSB0aGVyZSBtYXkgYmUNCj4gPiA+IG1vcmUgbWFjaGluZXMg
+bGlrZSB0aGF0KSwgb3Igd2UgaGF2ZSB0byByZXZlcnQgaXQuDQo+ID4gPg0KPiA+ID4gPiBUaG91
+Z2ggdGhpcyBwbGF0Zm9ybSBpcyBuZXdlciB0aGFuIHZpc3RhLCB3ZSBzdGlsbCBzaG91bGQgb2Zm
+ZXIgYSBxdWlyayBtZWNoYW5pc20NCj4gPiA+ID4gZm9yIGl0IGFzIGEgcXVpY2sgZml4Og0KPiA+
+ID4NCj4gPiA+IFdlIGRpZG4ndCBuZWVkIGEgcXVpcmsgZm9yIGl0IGJlZm9yZSwgdGhvdWdoLg0K
+PiA+DQo+ID4gQnV0IGFjY29yZGluZyB0byBCWjg4NSwgd2UgbmVlZCBtb3JlIHF1aXJrcyBmb3Ig
+b3RoZXIgbWFjaGluZXMgYmVmb3JlLg0KPiA+IEZvciBleGFtcGxlLCBUaGlua1BhZCA0MGUgYW5k
+IFRoaW5rUGFkIDUxZSByZXBvcnRlZCBpbiB0aGUgQlo4ODUuDQo+ID4NCj4gPiA+DQo+ID4gPiBT
+byByZWFsbHksIEknbSByZXZlcnRpbmcgaXQuDQo+ID4NCj4gPiBPSy4NCj4gPiBJJ2xsIGZpcnN0
+IHRyeSB0byBmaWd1cmUgb3V0IHRoZSBjYXVzZSBvZiB0aGUgaXNzdWUgdGhhdCBpcyBoYXBwZW5p
+bmcgdG8gSW50ZWwgRFA0NVNHLg0KPiA+IEFuZCB0aGVuIHRyeSB0aGlzIGFwcHJvYWNoIGFnYWlu
+IGluIGEgc21hcnRlciB3YXkgdGhhdCBpcyBtb3JlIHRvbGVyYW50IHRvcndhcmQgdGhlIHBvc3Np
+YmxlIHJlZ3Jlc3Npb25zLg0KPiANCj4gR3JlYXQsIHRoYW5rcyENCg0KSWYgeW91IGhhdmUgdHJv
+dWJsZXMgaW4gcmV2ZXJ0aW5nIHRoaW5ncy4NCkkgY2FuIG9mZmVyIG9uZSBsaW5lIHBhdGNoIHRv
+IHJldmVydCB0aGUgZnVuY3Rpb25hbGl0eSBvZiB0aGUgYmlzZWN0ZWQgY29tbWl0IGJhY2sgdG8g
+dGhlIG9yaWdpbmFsIGJlaGF2aW9yLg0KSW4gYWNwaXhmLmgsIG1ha2UgYWNwaV9nYmxfdXNlMzJf
+Yml0X2ZhZHRfYWRkcmVzcyB0byBUUlVFIGNhbiBiZSBhIGZpeC4NCkknbGwgYXNrIGZvciB0aGUg
+dGVzdCBvbiB0aGUgYnVnemlsbGEuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0K
+PiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNvY2tp
+LCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCg==
