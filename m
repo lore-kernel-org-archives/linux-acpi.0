@@ -1,80 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPICA: Revert "ACPICA: Add option to favor 32-bit FADT addresses."
-Date: Tue, 13 May 2014 03:30:39 +0200
-Message-ID: <3232280.ZxmcGHBhqB@vostro.rjw.lan>
-References: <38907770.bupFXhytsS@vostro.rjw.lan> <2640573.uiu9DRCeSI@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E880255B8DD@SHSMSX101.ccr.corp.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] ACPI / video: correct DMI tag for Dell Inspiron 7520
+Date: Tue, 13 May 2014 09:51:50 +0800
+Message-ID: <53717AB6.3020905@intel.com>
+References: <CAOrdFjM6RytffEPqd0VQ2ufrzauY70shf7K_gkdjY5t1o9UPzQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880255B8DD@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "RobertBMoore@compuserve.com" <RobertBMoore@compuserve.com>, "Thomas Renninger (trenn@suse.de)" <trenn@suse.de>, Oswald Buddenhagen <ossi@kde.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:12759 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751420AbaEMBvw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 May 2014 21:51:52 -0400
+In-Reply-To: <CAOrdFjM6RytffEPqd0VQ2ufrzauY70shf7K_gkdjY5t1o9UPzQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?UTF-8?B?VMOpbyBNYXphcnM=?= <teomazars@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Tuesday, May 13, 2014 01:05:59 AM Zheng, Lv wrote:
-> Hi,
-> 
-> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > Sent: Tuesday, May 13, 2014 8:09 AM
-> > 
-> > On Monday, May 12, 2014 08:51:36 AM Zheng, Lv wrote:
-> > > Hi, Rafael
-> > >
-> > > I checked the bug.
-> > >
-> > > The dmesg of the kernel without the bisected commit:
-> > > [    0.000000] ACPI BIOS Warning (bug): Incorrect checksum in table [XSDT] - 0xA0, should be 0xC9 (20140214/tbprint-218)
-> > > [    0.000000] ACPI Warning: 32/64 FACS address mismatch in FADT - two FACS tables! (20140214/tbfadt-395)
-> > > [    0.000000] ACPI BIOS Warning (bug): 32/64X FACS address mismatch in FADT - 0xCF661F40/0x00000000CF667E40, using 32
-> > (20140214/tbfadt-522)
-> > >
-> > > The dmesg of the kernel with the bisected commit:
-> > > [    0.000000] ACPI BIOS Warning (bug): Incorrect checksum in table [XSDT] - 0xA0, should be 0xC9 (20131218/tbprint-214)
-> > > [    0.000000] ACPI BIOS Warning (bug): 32/64X FACS address mismatch in FADT: 0xCF661F40/0x00000000CF667E40, using 64-bit
-> > address (20131218/tbfadt-271)
-> > >
-> > > This is the purpose of the bisected commit.
-> > > According to the link below:
-> > > http://bugs.acpica.org/show_bug.cgi?id=885
-> > > And Windows documentation:
-> > > http://download.microsoft.com/download/5/b/9/5b97017b-e28a-4bae-ba48-174cf47d23cd/CPA002_WH06.ppt
-> > > We believe 64-bit addresses should be used by default so that new features can be enabled according to the public knowledge of
-> > Windows Vista+ behavior.
-> > > For old Windows, it's hard for us to guess, we should wait for the reports and add quirks for them.
-> > >
-> > > Thus this commit is not wrong, it shouldn't be reverted.
-> > 
-> > It is wrong, because it breaks a system that worked without it.
-> > 
-> > It's *that* simple.
-> 
-> For this commit, we knew there would be systems broken.
-> And was prepared to add quirks for them.
-> The quirks are not there just because we rely on end users to report.
-> 
-> > 
-> > And either you have a fix for that (which is not a quirk, because there may be
-> > more machines like that), or we have to revert it.
-> > 
-> > > Though this platform is newer than vista, we still should offer a quirk mechanism
-> > > for it as a quick fix:
-> > 
-> > We didn't need a quirk for it before, though.
-> 
-> But according to BZ885, we need more quirks for other machines before.
-> For example, ThinkPad 40e and ThinkPad 51e reported in the BZ885.
-> 
-> > 
-> > So really, I'm reverting it.
-> 
-> OK.
-> I'll first try to figure out the cause of the issue that is happening to Intel DP45SG.
-> And then try this approach again in a smarter way that is more tolerant torward the possible regressions.
+The DMI tag used to identify Dell Inspiron 7520 should be product name
+instead of product version.
 
-Great, thanks!
+Reported-and-tested-by: T=C3=A9o Mazars <teomazars@gmail.com>
+Buglink: https://bugzilla.redhat.com/show_bug.cgi?id=3D909552
+Cc: All applicable <stable@vger.kernel.org>
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+ drivers/acpi/video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index fced27d8e42f..010d259a2466 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -508,7 +508,7 @@ static struct dmi_system_id video_dmi_table[] __ini=
+tdata =3D {
+ 	 .ident =3D "Dell Inspiron 7520",
+ 	 .matches =3D {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+-		DMI_MATCH(DMI_PRODUCT_VERSION, "Inspiron 7520"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7520"),
+ 		},
+ 	},
+ 	{
+--=20
+1.9.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
