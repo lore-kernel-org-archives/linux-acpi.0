@@ -1,88 +1,44 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: Revert "ACPICA: Add option to favor 32-bit FADT
- addresses."
-Date: Tue, 13 May 2014 04:54:05 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880255BAB8@SHSMSX101.ccr.corp.intel.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH] Tables: Restore old behavor to favor 32-bit FADT addresses.
+Date: Tue, 13 May 2014 16:50:30 +0800
+Message-ID: <6018e562465c35d11cf98f181baedf3b8483e812.1399970899.git.lv.zheng@intel.com>
 References: <38907770.bupFXhytsS@vostro.rjw.lan>
- <2640573.uiu9DRCeSI@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E880255B8DD@SHSMSX101.ccr.corp.intel.com>
- <3232280.ZxmcGHBhqB@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:39919 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:64604 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751161AbaEMEyJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 May 2014 00:54:09 -0400
-In-Reply-To: <3232280.ZxmcGHBhqB@vostro.rjw.lan>
-Content-Language: en-US
+	id S1759058AbaEMIvA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 May 2014 04:51:00 -0400
+In-Reply-To: <38907770.bupFXhytsS@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "RobertBMoore@compuserve.com" <RobertBMoore@compuserve.com>, "Thomas Renninger (trenn@suse.de)" <trenn@suse.de>, Oswald Buddenhagen <ossi@kde.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IFR1ZXNkYXksIE1heSAxMywgMjAxNCA5OjMxIEFNDQo+IFRvOiBa
-aGVuZywgTHYNCj4gQ2M6IFJvYmVydEJNb29yZUBjb21wdXNlcnZlLmNvbTsgVGhvbWFzIFJlbm5p
-bmdlciAodHJlbm5Ac3VzZS5kZSk7IE9zd2FsZCBCdWRkZW5oYWdlbjsgQUNQSSBEZXZlbCBNYWxp
-bmcgTGlzdDsgTGludXgNCj4gS2VybmVsIE1haWxpbmcgTGlzdA0KPiBTdWJqZWN0OiBSZTogW1BB
-VENIXSBBQ1BJQ0E6IFJldmVydCAiQUNQSUNBOiBBZGQgb3B0aW9uIHRvIGZhdm9yIDMyLWJpdCBG
-QURUIGFkZHJlc3Nlcy4iDQo+IA0KPiBPbiBUdWVzZGF5LCBNYXkgMTMsIDIwMTQgMDE6MDU6NTkg
-QU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+IEhpLA0KPiA+DQo+ID4gPiBGcm9tOiBSYWZhZWwgSi4g
-V3lzb2NraSBbbWFpbHRvOnJqd0Byand5c29ja2kubmV0XQ0KPiA+ID4gU2VudDogVHVlc2RheSwg
-TWF5IDEzLCAyMDE0IDg6MDkgQU0NCj4gPiA+DQo+ID4gPiBPbiBNb25kYXksIE1heSAxMiwgMjAx
-NCAwODo1MTozNiBBTSBaaGVuZywgTHYgd3JvdGU6DQo+ID4gPiA+IEhpLCBSYWZhZWwNCj4gPiA+
-ID4NCj4gPiA+ID4gSSBjaGVja2VkIHRoZSBidWcuDQo+ID4gPiA+DQo+ID4gPiA+IFRoZSBkbWVz
-ZyBvZiB0aGUga2VybmVsIHdpdGhvdXQgdGhlIGJpc2VjdGVkIGNvbW1pdDoNCj4gPiA+ID4gWyAg
-ICAwLjAwMDAwMF0gQUNQSSBCSU9TIFdhcm5pbmcgKGJ1Zyk6IEluY29ycmVjdCBjaGVja3N1bSBp
-biB0YWJsZSBbWFNEVF0gLSAweEEwLCBzaG91bGQgYmUgMHhDOSAoMjAxNDAyMTQvdGJwcmludC0y
-MTgpDQo+ID4gPiA+IFsgICAgMC4wMDAwMDBdIEFDUEkgV2FybmluZzogMzIvNjQgRkFDUyBhZGRy
-ZXNzIG1pc21hdGNoIGluIEZBRFQgLSB0d28gRkFDUyB0YWJsZXMhICgyMDE0MDIxNC90YmZhZHQt
-Mzk1KQ0KPiA+ID4gPiBbICAgIDAuMDAwMDAwXSBBQ1BJIEJJT1MgV2FybmluZyAoYnVnKTogMzIv
-NjRYIEZBQ1MgYWRkcmVzcyBtaXNtYXRjaCBpbiBGQURUIC0gMHhDRjY2MUY0MC8weDAwMDAwMDAw
-Q0Y2NjdFNDAsIHVzaW5nIDMyDQo+ID4gPiAoMjAxNDAyMTQvdGJmYWR0LTUyMikNCj4gPiA+ID4N
-Cj4gPiA+ID4gVGhlIGRtZXNnIG9mIHRoZSBrZXJuZWwgd2l0aCB0aGUgYmlzZWN0ZWQgY29tbWl0
-Og0KPiA+ID4gPiBbICAgIDAuMDAwMDAwXSBBQ1BJIEJJT1MgV2FybmluZyAoYnVnKTogSW5jb3Jy
-ZWN0IGNoZWNrc3VtIGluIHRhYmxlIFtYU0RUXSAtIDB4QTAsIHNob3VsZCBiZSAweEM5ICgyMDEz
-MTIxOC90YnByaW50LTIxNCkNCj4gPiA+ID4gWyAgICAwLjAwMDAwMF0gQUNQSSBCSU9TIFdhcm5p
-bmcgKGJ1Zyk6IDMyLzY0WCBGQUNTIGFkZHJlc3MgbWlzbWF0Y2ggaW4gRkFEVDogMHhDRjY2MUY0
-MC8weDAwMDAwMDAwQ0Y2NjdFNDAsIHVzaW5nIDY0LWJpdA0KPiA+ID4gYWRkcmVzcyAoMjAxMzEy
-MTgvdGJmYWR0LTI3MSkNCj4gPiA+ID4NCj4gPiA+ID4gVGhpcyBpcyB0aGUgcHVycG9zZSBvZiB0
-aGUgYmlzZWN0ZWQgY29tbWl0Lg0KPiA+ID4gPiBBY2NvcmRpbmcgdG8gdGhlIGxpbmsgYmVsb3c6
-DQo+ID4gPiA+IGh0dHA6Ly9idWdzLmFjcGljYS5vcmcvc2hvd19idWcuY2dpP2lkPTg4NQ0KPiA+
-ID4gPiBBbmQgV2luZG93cyBkb2N1bWVudGF0aW9uOg0KPiA+ID4gPiBodHRwOi8vZG93bmxvYWQu
-bWljcm9zb2Z0LmNvbS9kb3dubG9hZC81L2IvOS81Yjk3MDE3Yi1lMjhhLTRiYWUtYmE0OC0xNzRj
-ZjQ3ZDIzY2QvQ1BBMDAyX1dIMDYucHB0DQo+ID4gPiA+IFdlIGJlbGlldmUgNjQtYml0IGFkZHJl
-c3NlcyBzaG91bGQgYmUgdXNlZCBieSBkZWZhdWx0IHNvIHRoYXQgbmV3IGZlYXR1cmVzIGNhbiBi
-ZSBlbmFibGVkIGFjY29yZGluZyB0byB0aGUgcHVibGljIGtub3dsZWRnZQ0KPiBvZg0KPiA+ID4g
-V2luZG93cyBWaXN0YSsgYmVoYXZpb3IuDQo+ID4gPiA+IEZvciBvbGQgV2luZG93cywgaXQncyBo
-YXJkIGZvciB1cyB0byBndWVzcywgd2Ugc2hvdWxkIHdhaXQgZm9yIHRoZSByZXBvcnRzIGFuZCBh
-ZGQgcXVpcmtzIGZvciB0aGVtLg0KPiA+ID4gPg0KPiA+ID4gPiBUaHVzIHRoaXMgY29tbWl0IGlz
-IG5vdCB3cm9uZywgaXQgc2hvdWxkbid0IGJlIHJldmVydGVkLg0KPiA+ID4NCj4gPiA+IEl0IGlz
-IHdyb25nLCBiZWNhdXNlIGl0IGJyZWFrcyBhIHN5c3RlbSB0aGF0IHdvcmtlZCB3aXRob3V0IGl0
-Lg0KPiA+ID4NCj4gPiA+IEl0J3MgKnRoYXQqIHNpbXBsZS4NCj4gPg0KPiA+IEZvciB0aGlzIGNv
-bW1pdCwgd2Uga25ldyB0aGVyZSB3b3VsZCBiZSBzeXN0ZW1zIGJyb2tlbi4NCj4gPiBBbmQgd2Fz
-IHByZXBhcmVkIHRvIGFkZCBxdWlya3MgZm9yIHRoZW0uDQo+ID4gVGhlIHF1aXJrcyBhcmUgbm90
-IHRoZXJlIGp1c3QgYmVjYXVzZSB3ZSByZWx5IG9uIGVuZCB1c2VycyB0byByZXBvcnQuDQo+ID4N
-Cj4gPiA+DQo+ID4gPiBBbmQgZWl0aGVyIHlvdSBoYXZlIGEgZml4IGZvciB0aGF0ICh3aGljaCBp
-cyBub3QgYSBxdWlyaywgYmVjYXVzZSB0aGVyZSBtYXkgYmUNCj4gPiA+IG1vcmUgbWFjaGluZXMg
-bGlrZSB0aGF0KSwgb3Igd2UgaGF2ZSB0byByZXZlcnQgaXQuDQo+ID4gPg0KPiA+ID4gPiBUaG91
-Z2ggdGhpcyBwbGF0Zm9ybSBpcyBuZXdlciB0aGFuIHZpc3RhLCB3ZSBzdGlsbCBzaG91bGQgb2Zm
-ZXIgYSBxdWlyayBtZWNoYW5pc20NCj4gPiA+ID4gZm9yIGl0IGFzIGEgcXVpY2sgZml4Og0KPiA+
-ID4NCj4gPiA+IFdlIGRpZG4ndCBuZWVkIGEgcXVpcmsgZm9yIGl0IGJlZm9yZSwgdGhvdWdoLg0K
-PiA+DQo+ID4gQnV0IGFjY29yZGluZyB0byBCWjg4NSwgd2UgbmVlZCBtb3JlIHF1aXJrcyBmb3Ig
-b3RoZXIgbWFjaGluZXMgYmVmb3JlLg0KPiA+IEZvciBleGFtcGxlLCBUaGlua1BhZCA0MGUgYW5k
-IFRoaW5rUGFkIDUxZSByZXBvcnRlZCBpbiB0aGUgQlo4ODUuDQo+ID4NCj4gPiA+DQo+ID4gPiBT
-byByZWFsbHksIEknbSByZXZlcnRpbmcgaXQuDQo+ID4NCj4gPiBPSy4NCj4gPiBJJ2xsIGZpcnN0
-IHRyeSB0byBmaWd1cmUgb3V0IHRoZSBjYXVzZSBvZiB0aGUgaXNzdWUgdGhhdCBpcyBoYXBwZW5p
-bmcgdG8gSW50ZWwgRFA0NVNHLg0KPiA+IEFuZCB0aGVuIHRyeSB0aGlzIGFwcHJvYWNoIGFnYWlu
-IGluIGEgc21hcnRlciB3YXkgdGhhdCBpcyBtb3JlIHRvbGVyYW50IHRvcndhcmQgdGhlIHBvc3Np
-YmxlIHJlZ3Jlc3Npb25zLg0KPiANCj4gR3JlYXQsIHRoYW5rcyENCg0KSWYgeW91IGhhdmUgdHJv
-dWJsZXMgaW4gcmV2ZXJ0aW5nIHRoaW5ncy4NCkkgY2FuIG9mZmVyIG9uZSBsaW5lIHBhdGNoIHRv
-IHJldmVydCB0aGUgZnVuY3Rpb25hbGl0eSBvZiB0aGUgYmlzZWN0ZWQgY29tbWl0IGJhY2sgdG8g
-dGhlIG9yaWdpbmFsIGJlaGF2aW9yLg0KSW4gYWNwaXhmLmgsIG1ha2UgYWNwaV9nYmxfdXNlMzJf
-Yml0X2ZhZHRfYWRkcmVzcyB0byBUUlVFIGNhbiBiZSBhIGZpeC4NCkknbGwgYXNrIGZvciB0aGUg
-dGVzdCBvbiB0aGUgYnVnemlsbGEuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0K
-PiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNvY2tp
-LCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCg==
+We need to find a smarter way to switch to 64-bit FADT addresses according
+to the bug report.  This patch reverts Linux to the original behavior.
+
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=74021
+Reported-by: Oswald Buddenhagen <ossi@kde.org>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Tested-by: Oswald Buddenhagen <ossi@kde.org>
+Cc: <stable@vger.kernel.org> # 3.14.x: 0249ed24: ACPICA: Add option to favor 32-bit FADT addresses
+---
+ include/acpi/acpixf.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 4e3044c..b66b6a8 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -190,7 +190,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_do_not_use_xsdt, FALSE);
+  * some machines have been found to have a corrupted non-zero 64-bit
+  * address. Default is FALSE, do not favor the 32-bit addresses.
+  */
+-ACPI_INIT_GLOBAL(u8, acpi_gbl_use32_bit_fadt_addresses, FALSE);
++ACPI_INIT_GLOBAL(u8, acpi_gbl_use32_bit_fadt_addresses, TRUE);
+ 
+ /*
+  * Optionally truncate I/O addresses to 16 bits. Provides compatibility
+-- 
+1.7.10
+
