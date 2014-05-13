@@ -1,90 +1,40 @@
-From: Rolf Eike Beer <eb-QdrG9jWwCLEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Patch V2 0/9] I2C ACPI operation region handler support
-Date: Tue, 13 May 2014 15:09:05 +0200
-Message-ID: <3275231.ERSr3mUlis@devpool02>
-References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com> <1398695268-28645-1-git-send-email-tianyu.lan@intel.com>
+From: Rolf Eike Beer <eb@emlix.com>
+Subject: Re: [PATCH] ACPI / platform: add IDs for Broadcom Bluetooth and GPS chips
+Date: Tue, 13 May 2014 15:14:01 +0200
+Message-ID: <17288023.xXIEp15spG@devpool02>
+References: <1399550344-26952-1-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart11294449.9SqiSqRQko"; micalg="pgp-sha1"; protocol="application/pgp-signature"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1398695268-28645-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; boundary="nextPart1535949.fR9zKMKHD7"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.emlix.com ([88.198.240.195]:39154 "EHLO mx1.emlix.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753360AbaEMNWb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 May 2014 09:22:31 -0400
+In-Reply-To: <1399550344-26952-1-git-send-email-heikki.krogerus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
 
---nextPart11294449.9SqiSqRQko
+--nextPart1535949.fR9zKMKHD7
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain; charset="iso-8859-1"
 
-Am Montag, 28. April 2014, 22:27:39 schrieb Lan Tianyu:
-> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart) ope=
-ration
-> region. It allows ACPI aml code able to access such kind of devices t=
-o
-> implement some ACPI standard method.
->=20
-> On the Asus T100TA, Bios use GenericSerialBus operation region to acc=
-ess
-> i2c device to get battery info. So battery function depends on the I2=
-C
-> operation region support. Here is the bug link.
-> https://bugzilla.kernel.org/show_bug.cgi?id=3D69011
+Am Donnerstag, 8. Mai 2014, 14:59:04 schrieb Heikki Krogerus:
+> These IDs are used on Baytrail boards such as Lenovo Miix 2
+> and Asus Transformer Book T100TA. On lenovo Miix 2 8",
+> BCM4752 is called LNV4752. All the rest of the IDs are for
+> Broadcom BCM43241 module with the ID referring to different
+> revision number.
 
-Hi all,
+Hi,
 
-I have tested this series and got some errors, but no additional functi=
-onality:
-
-[    0.607442] ACPI Error: Error attaching device[f60238a0] data
-[    0.607460]  (20140214/bus-143)
-[    0.607708] ACPI Error: Error attaching device[f60238a0] data
-[    0.607724]  (20140214/bus-143)
-[    0.607987] ACPI Error: Error attaching device[f60238a0] data
-[    0.608003]  (20140214/bus-143)
-[    0.608251] ACPI Error: Error attaching device[f60238a0] data
-[    0.608267]  (20140214/bus-143)
-[    0.608515] ACPI Error: Error attaching device[f60238a0] data
-[    0.608531]  (20140214/bus-143)
-
-A bit more output, e.g. the error code if such is present or the device=
- path,
-could probably help when identifyint the device in question.
-
-Also this still looks incomplete, as on other places one still gets tho=
-se
-warnings:
-
-[    0.314944] pnp 00:08: Plug and Play ACPI device, IDs INT33fc (activ=
-e)
-[    0.316122] pnp 00:09: unknown resource type 19 in _CRS
-[    0.316136] pnp 00:09: can't evaluate _CRS: 1
-
-I don't know if looking on them at this place has any value, maybe some=
-thing
-like this is correct?
-
-commit 52e2822c4c8b09180e5eb3dd94e4e9aea0d25eff
-Author: Rolf Eike Beer <eb-QdrG9jWwCLEAvxtiuMwx3w@public.gmane.org>
-Date:   Tue Feb 18 11:11:10 2014 +0100
-
-    ACPI: ignore GPIO and SERIAL_BUS resources in PNP init code
-
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rspar=
-ser.c
-index 167f3d0..5b8459b 100644
-=2D-- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -240,6 +240,8 @@ static acpi_status pnpacpi_allocated_resource(struc=
-t acpi_resource *res,
-                break;
+the AzureWave AW-AH691A module looks similar to me, it is identified as=
 =20
-        case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
-+       case ACPI_RESOURCE_TYPE_GPIO:
-+       case ACPI_RESOURCE_TYPE_SERIAL_BUS:
-                break;
-=20
-        default:
+AAM4752. However if I add it to that list I don't get anything, even wi=
+th the=20
+brcmfmac driver loaded. Is there any magic missing?
 
 Greetings,
 
@@ -98,7 +48,7 @@ Gesch=E4ftsf=FChrung: Dr. Uwe Kracke, Ust-IdNr.: DE 205 198 055
 
 emlix - smart embedded open source
 
---nextPart11294449.9SqiSqRQko
+--nextPart1535949.fR9zKMKHD7
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part.
 Content-Transfer-Encoding: 7Bit
@@ -106,11 +56,12 @@ Content-Transfer-Encoding: 7Bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.19 (GNU/Linux)
 
-iJwEAAECAAYFAlNyGXoACgkQq+RR+17trfxq4wP/bCGDCYJ/raM0eIWhU2/BQnWd
-pHEzKQ7+VFHU1zgPbtmpCwoJbf31dQJrmXE/Mwa8aGxgGWMVd5UpVHDXsbC5uFbj
-dRE1iHqT+dNdqQkk5Ljj91EF0UWeJeB9UGPY3V6I+bNiEtQwCTkhKd/2xriVCGjt
-kQwNnyDHrtPnmVaCtAs=
-=1A+f
+iJwEAAECAAYFAlNyGpkACgkQq+RR+17trfwjOAP+LGJmVTOy0G/S9Fg4CPc5Iuy/
+sFJsjDNjpLfMeRL9wnPi80fRD1sutA7VbtwwLP2mek5+aXp01d8PkHZofgomSPop
+ZXMyw49YxTAQbGOSlJIZMzB1Fz1mCCr1Rxl3Tdqc63Ri2Gp1dh7Y/R6UKuMSpNWU
+Ts+EpYNj3gCLxvdHT+Y=
+=vFgb
 -----END PGP SIGNATURE-----
 
---nextPart11294449.9SqiSqRQko--
+--nextPart1535949.fR9zKMKHD7--
+
