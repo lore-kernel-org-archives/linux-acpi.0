@@ -1,116 +1,47 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [RFC][PATCH 1/3] PM / sleep: Move runtime PM barrier invocation
- to device_prepare()
-Date: Tue, 13 May 2014 12:59:43 +0200
-Message-ID: <CAPDyKFrOwWzL5uFHQoYXWkATAUW6=u8Dxwm6y3Q3CWfD4Ru=Qw@mail.gmail.com>
-References: <4649019.is79p6EySp@vostro.rjw.lan>
-	<2675141.cAMB9masRU@vostro.rjw.lan>
-	<CAPDyKFrXaxwh9xGK7Zn2Be0ViQqZJeT3hLo12ptmrmZvjMSscQ@mail.gmail.com>
-	<2578127.8G0jVZIWmC@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2578127.8G0jVZIWmC@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: [PATCH 0/4] ACPI / LPSS: Solution for two issues seen on Asus T100
+Date: Tue, 13 May 2014 15:13:49 +0300
+Message-ID: <1399983233-18037-1-git-send-email-heikki.krogerus@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:55475 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759365AbaEMMN6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 May 2014 08:13:58 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mike Turquette <mturquette@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 13 May 2014 12:35, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Tuesday, May 13, 2014 11:16:34 AM Ulf Hansson wrote:
->> On 13 May 2014 03:03, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> >
->> > Move the invocation of the runtime PM barrier during system suspend
->> > (or hibernation) from __device_suspend() to device_prepare() to make
->> > all runtime PM transitions in progress complete before executing
->> > ->prepare() callbacks for devices.
->> >
->> > That will allow those callbacks to check if devices are runtime
->> > suspended in a non-racy way.
->> >
->> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> > ---
->> >  drivers/base/power/main.c |   31 +++++++++++++------------------
->> >  1 file changed, 13 insertions(+), 18 deletions(-)
->> >
->> > Index: linux-pm/drivers/base/power/main.c
->> > ===================================================================
->> > --- linux-pm.orig/drivers/base/power/main.c
->> > +++ linux-pm/drivers/base/power/main.c
->> > @@ -1312,24 +1312,7 @@ static int __device_suspend(struct devic
->> >
->> >         dpm_wait_for_children(dev, async);
->> >
->> > -       if (async_error)
->> > -               goto Complete;
->> > -
->> > -       /*
->> > -        * If a device configured to wake up the system from sleep states
->> > -        * has been suspended at run time and there's a resume request pending
->> > -        * for it, this is equivalent to the device signaling wakeup, so the
->> > -        * system suspend operation should be aborted.
->> > -        */
->> > -       if (pm_runtime_barrier(dev) && device_may_wakeup(dev))
->> > -               pm_wakeup_event(dev, 0);
->> > -
->> > -       if (pm_wakeup_pending()) {
->> > -               async_error = -EBUSY;
->> > -               goto Complete;
->> > -       }
->>
->> I suppose you went a bit too far here!?
->>
->> We can still have wakeup pending at this point, and thus we should
->> bail out, right?
->
-> That pm_wakeup_pending() is part of the barrier handling, so ->
->
->> > -
->> > -       if (dev->power.syscore)
->> > +       if (async_error || dev->power.syscore)
->> >                 goto Complete;
->> >
->> >         dpm_watchdog_set(&wd, dev);
->> > @@ -1500,6 +1483,18 @@ static int device_prepare(struct device
->> >          */
->> >         pm_runtime_get_noresume(dev);
->> >
->> > +       /*
->> > +        * If a device configured to wake up the system from sleep states
->> > +        * has been suspended at run time and there's a resume request pending
->> > +        * for it, this is equivalent to the device signaling wakeup, so the
->> > +        * system suspend operation should be aborted.
->> > +        */
->> > +       if (pm_runtime_barrier(dev) && device_may_wakeup(dev))
->> > +               pm_wakeup_event(dev, 0);
->> > +
->> > +       if (pm_wakeup_pending())
->> > +               return -EBUSY;
->> > +
->
-> -> it is done here now.
->
-> I don't see why it would be still necessary in __device_suspend().
+Hi,
 
-Can't we have wakeup configured for !CONFIG_PM_RUNTIME case?
-pm_runtime_barrier() won't handle those scenarios, right?
+This combines two patch sets for LPSS that I had already send for
+review separately. They conflicted with each other.
 
-Similar check for pm_wakeup_pending() is done at
-__device_suspend_noirq, __device_suspend_late - I assumed it was
-because of the same reasons.
+The first two patches will fix a problem were the context of the
+private LPSS registers is lost when entering D3. The last two will add
+support for the M/N dividers on LPSS by adding a new basic clock type
+for fractional dividers. The UART driver needs support for it in order
+to get clock rates that suit the requested baud rates.
 
-Kind regards
-Ulf Hansson
+I've updated the patch for the fractional divider support according to
+Andy's suggestions.
 
->
->> >         device_lock(dev);
->> >
->> >         dev->power.wakeup_path = device_may_wakeup(dev);
->> >
->
-> Thanks!
->
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+
+Heikki Krogerus (4):
+  ACPI / PM: Export rest of the subsys functions
+  ACPI / LPSS: custom power domain for LPSS
+  clk: new basic clk type for fractional divider
+  ACPI / LPSS: support for fractional divider clock
+
+ drivers/acpi/acpi_lpss.c             | 196 ++++++++++++++++++++++++++++++-----
+ drivers/acpi/device_pm.c             |   2 +
+ drivers/clk/Makefile                 |   1 +
+ drivers/clk/clk-fractional-divider.c | 132 +++++++++++++++++++++++
+ include/linux/acpi.h                 |   4 +
+ include/linux/clk-provider.h         |  31 ++++++
+ 6 files changed, 338 insertions(+), 28 deletions(-)
+ create mode 100644 drivers/clk/clk-fractional-divider.c
+
+-- 
+2.0.0.rc2
+
