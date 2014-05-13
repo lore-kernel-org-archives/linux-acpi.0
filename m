@@ -1,63 +1,116 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH 1/4] ACPI / PM: Export rest of the subsys functions
-Date: Tue, 13 May 2014 15:13:50 +0300
-Message-ID: <1399983233-18037-2-git-send-email-heikki.krogerus@linux.intel.com>
-References: <1399983233-18037-1-git-send-email-heikki.krogerus@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1399983233-18037-1-git-send-email-heikki.krogerus@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mike Turquette <mturquette@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Rolf Eike Beer <eb-QdrG9jWwCLEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Patch V2 0/9] I2C ACPI operation region handler support
+Date: Tue, 13 May 2014 15:09:05 +0200
+Message-ID: <3275231.ERSr3mUlis@devpool02>
+References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com> <1398695268-28645-1-git-send-email-tianyu.lan@intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; boundary="nextPart11294449.9SqiSqRQko"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1398695268-28645-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-No reason for excluding those two.
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/acpi/device_pm.c | 2 ++
- include/linux/acpi.h     | 4 ++++
- 2 files changed, 6 insertions(+)
+--nextPart11294449.9SqiSqRQko
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 
-diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-index d047739..7dae90b 100644
---- a/drivers/acpi/device_pm.c
-+++ b/drivers/acpi/device_pm.c
-@@ -923,6 +923,7 @@ int acpi_subsys_suspend(struct device *dev)
- 	pm_runtime_resume(dev);
- 	return pm_generic_suspend(dev);
- }
-+EXPORT_SYMBOL_GPL(acpi_subsys_suspend);
- 
- /**
-  * acpi_subsys_suspend_late - Suspend device using ACPI.
-@@ -968,6 +969,7 @@ int acpi_subsys_freeze(struct device *dev)
- 	pm_runtime_resume(dev);
- 	return pm_generic_freeze(dev);
- }
-+EXPORT_SYMBOL_GPL(acpi_subsys_freeze);
- 
- #endif /* CONFIG_PM_SLEEP */
- 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 7a8f2cd..47dcc0e 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -556,12 +556,16 @@ int acpi_dev_resume_early(struct device *dev);
- int acpi_subsys_prepare(struct device *dev);
- int acpi_subsys_suspend_late(struct device *dev);
- int acpi_subsys_resume_early(struct device *dev);
-+int acpi_subsys_suspend(struct device *dev);
-+int acpi_subsys_freeze(struct device *dev);
- #else
- static inline int acpi_dev_suspend_late(struct device *dev) { return 0; }
- static inline int acpi_dev_resume_early(struct device *dev) { return 0; }
- static inline int acpi_subsys_prepare(struct device *dev) { return 0; }
- static inline int acpi_subsys_suspend_late(struct device *dev) { return 0; }
- static inline int acpi_subsys_resume_early(struct device *dev) { return 0; }
-+static inline int acpi_subsys_suspend(struct device *dev) { return 0; }
-+static inline int acpi_subsys_freeze(struct device *dev) { return 0; }
- #endif
- 
- #if defined(CONFIG_ACPI) && defined(CONFIG_PM)
--- 
-2.0.0.rc2
+Am Montag, 28. April 2014, 22:27:39 schrieb Lan Tianyu:
+> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart) ope=
+ration
+> region. It allows ACPI aml code able to access such kind of devices t=
+o
+> implement some ACPI standard method.
+>=20
+> On the Asus T100TA, Bios use GenericSerialBus operation region to acc=
+ess
+> i2c device to get battery info. So battery function depends on the I2=
+C
+> operation region support. Here is the bug link.
+> https://bugzilla.kernel.org/show_bug.cgi?id=3D69011
+
+Hi all,
+
+I have tested this series and got some errors, but no additional functi=
+onality:
+
+[    0.607442] ACPI Error: Error attaching device[f60238a0] data
+[    0.607460]  (20140214/bus-143)
+[    0.607708] ACPI Error: Error attaching device[f60238a0] data
+[    0.607724]  (20140214/bus-143)
+[    0.607987] ACPI Error: Error attaching device[f60238a0] data
+[    0.608003]  (20140214/bus-143)
+[    0.608251] ACPI Error: Error attaching device[f60238a0] data
+[    0.608267]  (20140214/bus-143)
+[    0.608515] ACPI Error: Error attaching device[f60238a0] data
+[    0.608531]  (20140214/bus-143)
+
+A bit more output, e.g. the error code if such is present or the device=
+ path,
+could probably help when identifyint the device in question.
+
+Also this still looks incomplete, as on other places one still gets tho=
+se
+warnings:
+
+[    0.314944] pnp 00:08: Plug and Play ACPI device, IDs INT33fc (activ=
+e)
+[    0.316122] pnp 00:09: unknown resource type 19 in _CRS
+[    0.316136] pnp 00:09: can't evaluate _CRS: 1
+
+I don't know if looking on them at this place has any value, maybe some=
+thing
+like this is correct?
+
+commit 52e2822c4c8b09180e5eb3dd94e4e9aea0d25eff
+Author: Rolf Eike Beer <eb-QdrG9jWwCLEAvxtiuMwx3w@public.gmane.org>
+Date:   Tue Feb 18 11:11:10 2014 +0100
+
+    ACPI: ignore GPIO and SERIAL_BUS resources in PNP init code
+
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rspar=
+ser.c
+index 167f3d0..5b8459b 100644
+=2D-- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -240,6 +240,8 @@ static acpi_status pnpacpi_allocated_resource(struc=
+t acpi_resource *res,
+                break;
+=20
+        case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
++       case ACPI_RESOURCE_TYPE_GPIO:
++       case ACPI_RESOURCE_TYPE_SERIAL_BUS:
+                break;
+=20
+        default:
+
+Greetings,
+
+Eike
+=2D-=20
+Rolf Eike Beer, emlix GmbH, http://www.emlix.com
+Fon +49 551 30664-0, Fax +49 551 30664-11
+Bertha-von-Suttner-Str. 9, 37085 G=F6ttingen, Germany
+Sitz der Gesellschaft: G=F6ttingen, Amtsgericht G=F6ttingen HR B 3160
+Gesch=E4ftsf=FChrung: Dr. Uwe Kracke, Ust-IdNr.: DE 205 198 055
+
+emlix - smart embedded open source
+
+--nextPart11294449.9SqiSqRQko
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iJwEAAECAAYFAlNyGXoACgkQq+RR+17trfxq4wP/bCGDCYJ/raM0eIWhU2/BQnWd
+pHEzKQ7+VFHU1zgPbtmpCwoJbf31dQJrmXE/Mwa8aGxgGWMVd5UpVHDXsbC5uFbj
+dRE1iHqT+dNdqQkk5Ljj91EF0UWeJeB9UGPY3V6I+bNiEtQwCTkhKd/2xriVCGjt
+kQwNnyDHrtPnmVaCtAs=
+=1A+f
+-----END PGP SIGNATURE-----
+
+--nextPart11294449.9SqiSqRQko--
