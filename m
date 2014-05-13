@@ -1,36 +1,100 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/2] ACPI / LPSS: fix for a Baytrail PM issue
-Date: Tue, 13 May 2014 12:30:35 +0200
-Message-ID: <2980034.ipRqz1q2cT@vostro.rjw.lan>
-References: <1399559631-24785-1-git-send-email-heikki.krogerus@linux.intel.com> <20140513101236.GA4157@xps8300>
+Subject: Re: [RFC][PATCH 1/3] PM / sleep: Move runtime PM barrier invocation to device_prepare()
+Date: Tue, 13 May 2014 12:35:23 +0200
+Message-ID: <2578127.8G0jVZIWmC@vostro.rjw.lan>
+References: <4649019.is79p6EySp@vostro.rjw.lan> <2675141.cAMB9masRU@vostro.rjw.lan> <CAPDyKFrXaxwh9xGK7Zn2Be0ViQqZJeT3hLo12ptmrmZvjMSscQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51550 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1760989AbaEMKNv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 May 2014 06:13:51 -0400
-In-Reply-To: <20140513101236.GA4157@xps8300>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFrXaxwh9xGK7Zn2Be0ViQqZJeT3hLo12ptmrmZvjMSscQ@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, linux-acpi@vger.kernel.org
 
-On Tuesday, May 13, 2014 01:12:36 PM Heikki Krogerus wrote:
-> Hi,
+On Tuesday, May 13, 2014 11:16:34 AM Ulf Hansson wrote:
+> On 13 May 2014 03:03, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > Move the invocation of the runtime PM barrier during system suspend
+> > (or hibernation) from __device_suspend() to device_prepare() to make
+> > all runtime PM transitions in progress complete before executing
+> > ->prepare() callbacks for devices.
+> >
+> > That will allow those callbacks to check if devices are runtime
+> > suspended in a non-racy way.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/base/power/main.c |   31 +++++++++++++------------------
+> >  1 file changed, 13 insertions(+), 18 deletions(-)
+> >
+> > Index: linux-pm/drivers/base/power/main.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/base/power/main.c
+> > +++ linux-pm/drivers/base/power/main.c
+> > @@ -1312,24 +1312,7 @@ static int __device_suspend(struct devic
+> >
+> >         dpm_wait_for_children(dev, async);
+> >
+> > -       if (async_error)
+> > -               goto Complete;
+> > -
+> > -       /*
+> > -        * If a device configured to wake up the system from sleep states
+> > -        * has been suspended at run time and there's a resume request pending
+> > -        * for it, this is equivalent to the device signaling wakeup, so the
+> > -        * system suspend operation should be aborted.
+> > -        */
+> > -       if (pm_runtime_barrier(dev) && device_may_wakeup(dev))
+> > -               pm_wakeup_event(dev, 0);
+> > -
+> > -       if (pm_wakeup_pending()) {
+> > -               async_error = -EBUSY;
+> > -               goto Complete;
+> > -       }
 > 
-> On Thu, May 08, 2014 at 05:33:49PM +0300, Heikki Krogerus wrote:
-> > These will fix the issue with some BYT boards, where resuming from D3
-> > fails. The root cause turned out to be because we loose the context of
-> > the private registers.
+> I suppose you went a bit too far here!?
 > 
-> This serie will conflict with the fractional divider clock serie..
-> 
-> I'll prepare a new version and combine the two. They both will tackle
-> Asus T100 issues, so it kinda makes sense also because of that.
+> We can still have wakeup pending at this point, and thus we should
+> bail out, right?
 
-OK, thanks!
+That pm_wakeup_pending() is part of the barrier handling, so ->
+
+> > -
+> > -       if (dev->power.syscore)
+> > +       if (async_error || dev->power.syscore)
+> >                 goto Complete;
+> >
+> >         dpm_watchdog_set(&wd, dev);
+> > @@ -1500,6 +1483,18 @@ static int device_prepare(struct device
+> >          */
+> >         pm_runtime_get_noresume(dev);
+> >
+> > +       /*
+> > +        * If a device configured to wake up the system from sleep states
+> > +        * has been suspended at run time and there's a resume request pending
+> > +        * for it, this is equivalent to the device signaling wakeup, so the
+> > +        * system suspend operation should be aborted.
+> > +        */
+> > +       if (pm_runtime_barrier(dev) && device_may_wakeup(dev))
+> > +               pm_wakeup_event(dev, 0);
+> > +
+> > +       if (pm_wakeup_pending())
+> > +               return -EBUSY;
+> > +
+
+-> it is done here now.
+
+I don't see why it would be still necessary in __device_suspend().
+
+> >         device_lock(dev);
+> >
+> >         dev->power.wakeup_path = device_may_wakeup(dev);
+> >
+
+Thanks!
 
 -- 
 I speak only for myself.
