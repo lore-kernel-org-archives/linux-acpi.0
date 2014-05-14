@@ -1,286 +1,232 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC][PATCH 2/3] PM / sleep: Mechanism to avoid resuming runtime-suspended devices unnecessarily
-Date: Tue, 13 May 2014 23:29:06 +0200
-Message-ID: <16671603.abrivY8Odm@vostro.rjw.lan>
-References: <Pine.LNX.4.44L0.1405131211080.1098-100000@iolanthe.rowland.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [RFC 1/3] acpi-video: Add an acpi_video_unregister_backlight
+ function
+Date: Wed, 14 May 2014 11:08:17 +0200
+Message-ID: <53733281.6060707@redhat.com>
+References: <1399917824-10341-1-git-send-email-hdegoede@redhat.com> <1399917824-10341-2-git-send-email-hdegoede@redhat.com> <53723633.4030709@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64362 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753059AbaEMVMW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 May 2014 17:12:22 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1405131211080.1098-100000@iolanthe.rowland.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <53723633.4030709@intel.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>, Lee Chun-Yi <jlee@suse.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>
 
-On Tuesday, May 13, 2014 12:19:14 PM Alan Stern wrote:
-> On Tue, 13 May 2014, Rafael J. Wysocki wrote:
+Hi,
+
+On 05/13/2014 05:11 PM, Aaron Lu wrote:
+> On 05/13/2014 02:03 AM, Hans de Goede wrote:
+>> Add an acpi_video_unregister_backlight function, which only unregisters
+>> the backlight device, and leaves the acpi_notifier in place. Some acpi_vendor
+>> driver need this as they don't want the acpi_video# backlight device, but do
+>> need the acpi-video driver for hotkey handling.
+>>
+>> Chances are that this new acpi_video_unregister_backlight() is actually
+>> what existing acpi_vendor drivers have wanted all along. Currently acpi_vendor
+>> drivers which want to disable the acpi_video# backlight device, make 2 calls:
+>>
+>> acpi_video_dmi_promote_vendor();
+>> acpi_video_unregister();
+>>
+>> The intention here is to make things independent of when acpi_video_register()
+>> gets called. As acpi_video_register() will get called on acpi-video load time
+>> on non intel gfx machines, while it gets called on i915 load time on intel
+>> gfx machines.
+>>
+>> This leads to the following 2 interesting scenarios:
+>>
+>> a) intel gfx:
+>> 1) acpi-video module gets loaded (as it is a dependency of acpi_vendor and i915)
+>> 2) acpi-video does NOT call acpi_video_register()
+>> 3) acpi_vendor loads (lets assume it loads before i915), calls
+>> acpi_video_dmi_promote_vendor(); which sets ACPI_VIDEO_BACKLIGHT_DMI_VENDOR
+>> 4) calls acpi_video_unregister -> not registered, nop
+>> 5) i915 loads, calls acpi_video_register
+>> 6) acpi_video_register registers the acpi_notifier for the hotkeys,
+>>    does NOT register a backlight device because of ACPI_VIDEO_BACKLIGHT_DMI_VENDOR
+>>
+>> b) non intel gfx
+>> 1) acpi-video module gets loaded (as it is a dependency acpi_vendor)
+>> 2) acpi-video calls acpi_video_register()
+>> 3) acpi_video_register registers the acpi_notifier for the hotkeys,
+>>    and a backlight device
+>> 4) acpi_vendor loads, calls acpi_video_dmi_promote_vendor()
+>> 5) calls acpi_video_unregister, this unregisters BOTH the acpi_notifier for
+>>    the hotkeys AND the backlight device
+>>
+>> So here we have possibly the same acpi_vendor module, making the same calls,
+>> but with different results, in one cases acpi-video does handle hotkeys,
+>> in the other it does not.
+>>
+>> Note that the a) scenario turns into b) if we assume the i915 module loads
+>> before the vendor_acpi module, so we also have different behavior depending
+>> on module loading order!
+>>
+>> So as said I believe that quite a few existing acpi_vendor modules really
+>> always want the behavior of a), which calling acpi_video_unregister_backlight()
+>> instead of acpi_video_unregister() will give them.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>  drivers/acpi/video.c | 31 ++++++++++++++++++++++---------
+>>  include/acpi/video.h |  2 ++
+>>  2 files changed, 24 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>> index 6a2099d..80a6759 100644
+>> --- a/drivers/acpi/video.c
+>> +++ b/drivers/acpi/video.c
+>> @@ -1843,7 +1843,7 @@ static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
+>>  	}
+>>  }
+>>  
+>> -static int acpi_video_bus_register_backlight(struct acpi_video_bus *video)
+>> +static void acpi_video_bus_register_backlight(struct acpi_video_bus *video)
+>>  {
+>>  	struct acpi_video_device *dev;
+>>  
+>> @@ -1851,10 +1851,6 @@ static int acpi_video_bus_register_backlight(struct acpi_video_bus *video)
+>>  	list_for_each_entry(dev, &video->video_device_list, entry)
+>>  		acpi_video_dev_register_backlight(dev);
+>>  	mutex_unlock(&video->device_list_lock);
+>> -
+>> -	video->pm_nb.notifier_call = acpi_video_resume;
+>> -	video->pm_nb.priority = 0;
+>> -	return register_pm_notifier(&video->pm_nb);
 > 
-> > > Maybe the call to __pm_runtime_disable() should be moved from
-> > > __device_suspend_late() to __device_suspend(), after the callback has
-> > > been invoked (or skipped, as the case may be).  Then after runtime PM
-> > > has been disabled, you can check the device's status has changed and go
-> > > back to invoke the callback if necessary.
-> > 
-> > We moved __pm_runtime_disable() to __device_suspend_late() to be able to
-> > use pm_runtime_resume() in __device_suspend() (and we actually do that in
-> > some places now).
-> > 
-> > But, in principle, we can do __pm_runtime_disable() temporarily in some place
-> > between ->prepare() and ->suspend(), it doesn't matter if that's in
-> > device_prepare() in __device_suspend() really.
+> Hmm, I don't understand this. The pm notifier is used to restore
+> backlight level on system resume, so should be there when we have
+> created the backlight interface and gone when we unregistered the
+> backlight interface. It doesn't have anything to do with hotkey
+> processing.
+
+A valid point, I did things this way because I wanted the new
+acpi_video_unregister_backlight to result in the same behavior as
+having set the acpi_video=vendor / called acpi_video_dmi_promote_vendor()
+before acpi_video_register runs.
+
+So this means undoing what-ever acpi_video_register() does, which it
+would not have done if acpi_video_dmi_promote_vendor() came first.
+
+If you look at the current code (so without this patch) then
+the pm notifier gets installed unconditionally by
+acpi_video_bus_register_backlight() which gets called unconditionally
+by acpi_video_bus_add(). So even with acpi_video=vendor it still gets
+installed.
+
+acpi_video=vendor / acpi_video_dmi_promote_vendor() influences
+acpi_video_backlight_support() which only gets called by
+acpi_video_verify_backlight_support() which only gets called by
+acpi_video_dev_register_backlight(). So acpi_video=vendor only causes
+the backlight devices to not register, the pm notifier will still be
+installed. My intend was to behave the same independent of module
+loading / init order hence I moved the pm notifier install / uninstall
+to keep the pm notifier installed when calling the new
+acpi_video_unregister_backlight().
+
+Looking at the code you're right that this is not really sensible, since
+the acpi_video_resume call done by the notifier will be a nop when there
+are no backlight devices registered.
+
+So I can split this patch into 2 patches, 1 to not install the pm notifier
+if we're not going to register backlight devices anyways, and a 2nd patch
+adding the new acpi_video_unregister_backlight().
+
+Does that sound like a plan ?
+
+Regards,
+
+Hans
+
+
+
+
 > 
-> It should be as late as possible, to allow for detecting wakeup 
-> requests.
-
-I came to the same conclusion.  It has to be done in __device_suspend(), because
-a child's ->suspend() may need to resume the parent, so runtime PM for the parent
-cannot be disabled when the child's ->suspend() may be running.
-
-> >  Then, we can check the device's
-> > runtime PM status (that'd need to be done carefully to take the disabling into
-> > account) and
-> > (1) if the device is runtime-suspended, set direct_complete for it without
-> >     enabling runtime PM, or
-> > (2) if the device is not runtime-suspended, clear direct_complete for it
-> >     and re-enable runtime PM.
-> > and in case of (1) we would re-enable runtime PM in device_complete().
-> > 
-> > That should work I suppose?
+> Thanks,
+> Aaron
 > 
-> Yes; it's similar to what I proposed.  Note that this can be skipped if 
-> direct_complete is already clear.
-
-Sure.
-
-> > Of course, question is what ->prepare() is supposed to do then if it needs
-> > to check the state of the device before deciding whether or not to return 1.
-> > I guess it would need to disable runtime PM around that check too.
+>>  }
+>>  
+>>  static void acpi_video_dev_unregister_backlight(struct acpi_video_device *device)
+>> @@ -1876,17 +1872,14 @@ static void acpi_video_dev_unregister_backlight(struct acpi_video_device *device
+>>  	}
+>>  }
+>>  
+>> -static int acpi_video_bus_unregister_backlight(struct acpi_video_bus *video)
+>> +static void acpi_video_bus_unregister_backlight(struct acpi_video_bus *video)
+>>  {
+>>  	struct acpi_video_device *dev;
+>> -	int error = unregister_pm_notifier(&video->pm_nb);
+>>  
+>>  	mutex_lock(&video->device_list_lock);
+>>  	list_for_each_entry(dev, &video->video_device_list, entry)
+>>  		acpi_video_dev_unregister_backlight(dev);
+>>  	mutex_unlock(&video->device_list_lock);
+>> -
+>> -	return error;
+>>  }
+>>  
+>>  static void acpi_video_dev_add_notify_handler(struct acpi_video_device *device)
+>> @@ -2059,6 +2052,11 @@ static int acpi_video_bus_add(struct acpi_device *device)
+>>  	mutex_unlock(&video_list_lock);
+>>  
+>>  	acpi_video_bus_register_backlight(video);
+>> +
+>> +	video->pm_nb.notifier_call = acpi_video_resume;
+>> +	video->pm_nb.priority = 0;
+>> +	register_pm_notifier(&video->pm_nb);
+>> +
+>>  	acpi_video_bus_add_notify_handler(video);
+>>  
+>>  	return 0;
+>> @@ -2084,6 +2082,7 @@ static int acpi_video_bus_remove(struct acpi_device *device)
+>>  	video = acpi_driver_data(device);
+>>  
+>>  	acpi_video_bus_remove_notify_handler(video);
+>> +	unregister_pm_notifier(&video->pm_nb);
+>>  	acpi_video_bus_unregister_backlight(video);
+>>  	acpi_video_bus_put_devices(video);
+>>  
+>> @@ -2173,6 +2172,20 @@ void acpi_video_unregister(void)
+>>  }
+>>  EXPORT_SYMBOL(acpi_video_unregister);
+>>  
+>> +void acpi_video_unregister_backlight(void)
+>> +{
+>> +	struct acpi_video_bus *video;
+>> +
+>> +	if (!register_count)
+>> +		return;
+>> +
+>> +	mutex_lock(&video_list_lock);
+>> +	list_for_each_entry(video, &video_bus_head, entry)
+>> +		acpi_video_bus_unregister_backlight(video);
+>> +	mutex_unlock(&video_list_lock);
+>> +}
+>> +EXPORT_SYMBOL(acpi_video_unregister_backlight);
+>> +
+>>  /*
+>>   * This is kind of nasty. Hardware using Intel chipsets may require
+>>   * the video opregion code to be run first in order to initialise
+>> diff --git a/include/acpi/video.h b/include/acpi/video.h
+>> index 61109f2..4722c06 100644
+>> --- a/include/acpi/video.h
+>> +++ b/include/acpi/video.h
+>> @@ -19,11 +19,13 @@ struct acpi_device;
+>>  #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
+>>  extern int acpi_video_register(void);
+>>  extern void acpi_video_unregister(void);
+>> +extern void acpi_video_unregister_backlight(void);
+>>  extern int acpi_video_get_edid(struct acpi_device *device, int type,
+>>  			       int device_id, void **edid);
+>>  #else
+>>  static inline int acpi_video_register(void) { return 0; }
+>>  static inline void acpi_video_unregister(void) { return; }
+>> +extern inline void acpi_video_unregister_backlight(void); { return; }
+>>  static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+>>  				      int device_id, void **edid)
+>>  {
+>>
 > 
-> It would be surprising if ->prepare() needed to make any difficult
-> checks.  This would imply that the device could have multiple
-> runtime-suspend states, some of which are appropriate for system
-> suspend while others aren't.  Not impossible, but I wouldn't expect it
-> to come up often.
-
-That is the case for every device with ACPI power management in principle. :-)
-
-Please see patch [3/3] for details.
-
-> Besides, as I mentioned before, we never have to worry about status 
-> changes.  If one occurs while ->prepare() is running or afterward, it 
-> means the device is runtime-resumed and therefore the setting of 
-> direct_complete doesn't matter.
-
-That's correct.
-
-OK, I've updated the $subject patch in the meantime and the result is appended
-Former patch [1/3] is not necessary any more now and patch [3/3] is still valid.
-
-Rafael
-
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: PM / sleep: Mechanism to avoid resuming runtime-suspended devices unnecessarily
-
-Currently, some subsystems (e.g. PCI and the ACPI PM domain) have to
-resume all runtime-suspended devices during system suspend, mostly
-because those devices may need to be reprogrammed due to different
-wakeup settings for system sleep and for runtime PM.
-
-For some devices, though, it's OK to remain in runtime suspend 
-throughout a complete system suspend/resume cycle (if the device was in
-runtime suspend at the start of the cycle).  We would like to do this
-whenever possible, to avoid the overhead of extra power-up and power-down
-events.
-
-However, problems may arise because the device's descendants may require
-it to be at full power at various points during the cycle.  Therefore the
-most straightforward way to do this safely is if the device and all its
-descendants can remain runtime suspended until the complete stage of
-system resume.
-
-To this end, introduce a new device PM flag, power.direct_complete
-and modify the PM core to use that flag as follows.
-
-If the ->prepare() callback of a device returns a positive number,
-the PM core will regard that as an indication that it may leave the
-device runtime-suspended.  It will then check if the system power
-transition in progress is a suspend (and not hibernation in particular)
-and if the device is, indeed, runtime-suspended.  In that case, the PM
-core will set the device's power.direct_complete flag.  Otherwise it
-will clear power.direct_complete for the device and it also will later
-clear it for the device's parent (if there's one).
-
-Next, the PM core will not invoke the ->suspend() ->suspend_late(),
-->suspend_irq(), ->resume_irq(), ->resume_early(), or ->resume()
-callbacks for all devices having power.direct_complete set.  It
-will invoke their ->complete() callbacks, however, and those
-callbacks are then responsible for resuming the devices as
-appropriate, if necessary.  For example, in some cases they may
-need to queue up runtime resume requests for the devices with the
-help of pm_request_resume().
-
-Changelog partly based on an Alan Stern's description of the idea
-(http://marc.info/?l=linux-pm&m=139940466625569&w=2).
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/base/power/main.c |   65 +++++++++++++++++++++++++++++++++++-----------
- include/linux/pm.h        |    1 
- 2 files changed, 51 insertions(+), 15 deletions(-)
-
-Index: linux-pm/include/linux/pm.h
-===================================================================
---- linux-pm.orig/include/linux/pm.h
-+++ linux-pm/include/linux/pm.h
-@@ -546,6 +546,7 @@ struct dev_pm_info {
- 	bool			is_late_suspended:1;
- 	bool			ignore_children:1;
- 	bool			early_init:1;	/* Owned by the PM core */
-+	bool			direct_complete:1;	/* Owned by the PM core */
- 	spinlock_t		lock;
- #ifdef CONFIG_PM_SLEEP
- 	struct list_head	entry;
-Index: linux-pm/drivers/base/power/main.c
-===================================================================
---- linux-pm.orig/drivers/base/power/main.c
-+++ linux-pm/drivers/base/power/main.c
-@@ -479,7 +479,7 @@ static int device_resume_noirq(struct de
- 	TRACE_DEVICE(dev);
- 	TRACE_RESUME(0);
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || dev->power.direct_complete)
- 		goto Out;
- 
- 	if (!dev->power.is_noirq_suspended)
-@@ -605,7 +605,7 @@ static int device_resume_early(struct de
- 	TRACE_DEVICE(dev);
- 	TRACE_RESUME(0);
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || dev->power.direct_complete)
- 		goto Out;
- 
- 	if (!dev->power.is_late_suspended)
-@@ -735,6 +735,12 @@ static int device_resume(struct device *
- 	if (dev->power.syscore)
- 		goto Complete;
- 
-+	if (dev->power.direct_complete) {
-+		/* Match the pm_runtime_disable() in __device_suspend(). */
-+		pm_runtime_enable(dev);
-+		goto Complete;
-+	}
-+
- 	dpm_wait(dev->parent, async);
- 	dpm_watchdog_set(&wd, dev);
- 	device_lock(dev);
-@@ -1007,7 +1013,7 @@ static int __device_suspend_noirq(struct
- 		goto Complete;
- 	}
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || dev->power.direct_complete)
- 		goto Complete;
- 
- 	dpm_wait_for_children(dev, async);
-@@ -1146,7 +1152,7 @@ static int __device_suspend_late(struct
- 		goto Complete;
- 	}
- 
--	if (dev->power.syscore)
-+	if (dev->power.syscore || dev->power.direct_complete)
- 		goto Complete;
- 
- 	dpm_wait_for_children(dev, async);
-@@ -1332,6 +1338,16 @@ static int __device_suspend(struct devic
- 	if (dev->power.syscore)
- 		goto Complete;
- 
-+	if (dev->power.direct_complete) {
-+		pm_runtime_disable(dev);
-+		if (dev->power.disable_depth == 1
-+		    && pm_runtime_status_suspended(dev))
-+			goto Complete;
-+
-+		dev->power.direct_complete = false;
-+		pm_runtime_enable(dev);
-+	}
-+
- 	dpm_watchdog_set(&wd, dev);
- 	device_lock(dev);
- 
-@@ -1382,10 +1398,19 @@ static int __device_suspend(struct devic
- 
-  End:
- 	if (!error) {
-+		struct device *parent = dev->parent;
-+
- 		dev->power.is_suspended = true;
--		if (dev->power.wakeup_path
--		    && dev->parent && !dev->parent->power.ignore_children)
--			dev->parent->power.wakeup_path = true;
-+		if (parent) {
-+			spin_lock_irq(&parent->power.lock);
-+
-+			dev->parent->power.direct_complete = false;
-+			if (dev->power.wakeup_path
-+			    && !dev->parent->power.ignore_children)
-+				dev->parent->power.wakeup_path = true;
-+
-+			spin_unlock_irq(&parent->power.lock);
-+		}
- 	}
- 
- 	device_unlock(dev);
-@@ -1487,7 +1512,7 @@ static int device_prepare(struct device
- {
- 	int (*callback)(struct device *) = NULL;
- 	char *info = NULL;
--	int error = 0;
-+	int ret = 0;
- 
- 	if (dev->power.syscore)
- 		return 0;
-@@ -1523,17 +1548,27 @@ static int device_prepare(struct device
- 		callback = dev->driver->pm->prepare;
- 	}
- 
--	if (callback) {
--		error = callback(dev);
--		suspend_report_result(callback, error);
--	}
-+	if (callback)
-+		ret = callback(dev);
- 
- 	device_unlock(dev);
- 
--	if (error)
-+	if (ret < 0) {
-+		suspend_report_result(callback, ret);
- 		pm_runtime_put(dev);
--
--	return error;
-+		return ret;
-+	}
-+	/*
-+	 * A positive return value from ->prepare() means "this device appears
-+	 * to be runtime-suspended and its state is fine, so if it really is
-+	 * runtime-suspended, you can leave it in that state provided that you
-+	 * will do the same thing with all of its descendants".  This only
-+	 * applies to suspend transitions, however.
-+	 */
-+	spin_lock_irq(&dev->power.lock);
-+	dev->power.direct_complete = ret > 0 && state.event == PM_EVENT_SUSPEND;
-+	spin_unlock_irq(&dev->power.lock);
-+	return 0;
- }
- 
- /**
-
