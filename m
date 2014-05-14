@@ -1,78 +1,42 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] acpi-video: Add use native backlight quirk for the ThinkPad
- W530
-Date: Wed, 14 May 2014 15:03:20 +0200
-Message-ID: <53736998.3090101@redhat.com>
-References: <1399881432-26124-1-git-send-email-hdegoede@redhat.com> <5370AA2C.1080506@redhat.com> <53734EED.5070807@redhat.com> <10229147.lKkebpiMVB@vostro.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 6/7] acpi, apei, ghes: Make unmapping functionality
+ independent from architecture.
+Date: Wed, 14 May 2014 15:21:21 +0200
+Message-ID: <20140514132121.GF5231@pd.tnic>
+References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
+ <1397056476-9183-7-git-send-email-tomasz.nowicki@linaro.org>
+ <20140513201118.GF8760@pd.tnic>
+ <5373625B.4050401@linaro.org>
+ <20140514123542.GG10145@arm.com>
+ <20140514124505.GA19866@localhost>
+ <20140514124834.GH10145@arm.com>
+ <5373670D.5040603@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <10229147.lKkebpiMVB@vostro.rjw.lan>
-Sender: stable-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Aaron Lu <aaron.lu@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Dave Airlie <airlied@redhat.com>, Ben Skeggs <bskeggs@redhat.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:58321 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751070AbaENNVd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 May 2014 09:21:33 -0400
+Content-Disposition: inline
+In-Reply-To: <5373670D.5040603@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "bp@suse.de" <bp@suse.de>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-Hi,
+On Wed, May 14, 2014 at 02:52:29PM +0200, Tomasz Nowicki wrote:
+> I am aiming ARM64 but ideally it should work for x86, arm64 and arm.
 
-On 05/14/2014 02:07 PM, Rafael J. Wysocki wrote:
-> On Wednesday, May 14, 2014 01:09:33 PM Hans de Goede wrote:
->> Hi,
->>
->> On 05/12/2014 01:02 PM, Hans de Goede wrote:
->>> Hi,
->>>
->>> On 05/12/2014 10:16 AM, Aaron Lu wrote:
->>>> On 05/12/2014 03:57 PM, Hans de Goede wrote:
->>>>> Like all of the other *30 ThinkPad models, the W530 has a broken acpi-video
->>>>> backlight control. Note in order for this to actually fix things on the
->>>>> ThinkPad W530 the commit titled:
->>>>> "nouveau: Don't check acpi_video_backlight_support() before registering backlight"
->>>>> is also needed.
->>>>
->>>> Note that the backlight_device_registered(raw) may return false as when
->>>> acpi_video_verify_backlight_support is called, the nouveau driver may
->>>> not run yet.
->>>>
->>>> Previously, we don't know anything about how laptops with nvidia graphics
->>>> card alone control backlight in Win8, so the existing solution doesn't
->>>> consider this case. If nvidia graphics system also should favour native
->>>> backlight control interface in Win8, the current solution needs
->>>> modifications.
->>>
->>> Hmm, how is this dealt with in the case of the intel gfx driver ?
->>
->> Ok, I've figured out now how this is dealt with in the case of the intel gfx
->> drivers. That looks like something which will likely be hard to do for
->> nouveau, since it relies on some intel gfx specific ACPI calls being there,
->> which nouveau does not have. So this would require doing something like
->> duplicating the nouveau pci-ids or some such, which would be far from ideal.
->>
->> Still this bug: https://bugzilla.redhat.com/show_bug.cgi?id=1093171
->>
->> Shows that we need *working* video.use_native_brightness=1 support for
->> non intel too. Which the current loading order issues caused by the
->> backlight_device_registered(raw) breaks.
->>
->> So maybe we should simply drop the backlight_device_registered(raw) check?
->> I don't think we really need it any win8 supporting laptop will have
->> intel, nv or ati gfx, and all 3 of them have native backlight support,
->> which if our experiences so far is any indication we will likely want
->> to use instead of acpi_video.
-> 
-> We can try that, but if it turns out to break things for someone, we'll need
-> a different approach.
+I guess you can call it local_flush_tlb_one() which calls
+__flush_tlb_one() on x86 and flush_tlb_kernel_range() on arm*
 
-Ok, I'll write a patch for this tomorrow. As for trying a different approach,
-whatever the different approach may be, I strongly believe that we should get
-rid of the various module loading order dependencies we've now, not add more.
+A bunch of other arches have local_flush_tlb_one so going with that
+naming might be on the right track :)
 
-I also have a plan now on how to cleanup the code for deciding which
-backlight control interface to use, and remove the various ordering issues
-we've there. But I've run out of steam for today, so I'll go and write that
-up and post it tomorrow.
+-- 
+Regards/Gruss,
+    Boris.
 
-Regards,
-
-Hans
+Sent from a fat crate under my desk. Formatting is fine.
+--
