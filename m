@@ -1,90 +1,40 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH 2/3] PM / sleep: Mechanism to avoid resuming
- runtime-suspended devices unnecessarily
-Date: Wed, 14 May 2014 10:53:16 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1405141041360.1432-100000@iolanthe.rowland.org>
-References: <16671603.abrivY8Odm@vostro.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 7/7] acpi, apei, ghes: Factor out ioremap virtual memory
+ for IRQ and NMI context.
+Date: Wed, 14 May 2014 19:13:21 +0200
+Message-ID: <20140514171321.GG5231@pd.tnic>
+References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
+ <1397056476-9183-8-git-send-email-tomasz.nowicki@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:42543 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752625AbaENOxR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 May 2014 10:53:17 -0400
-In-Reply-To: <16671603.abrivY8Odm@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1397056476-9183-8-git-send-email-tomasz.nowicki@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>
 
-On Tue, 13 May 2014, Rafael J. Wysocki wrote:
-
-> > It would be surprising if ->prepare() needed to make any difficult
-> > checks.  This would imply that the device could have multiple
-> > runtime-suspend states, some of which are appropriate for system
-> > suspend while others aren't.  Not impossible, but I wouldn't expect it
-> > to come up often.
-> 
-> That is the case for every device with ACPI power management in principle. :-)
-> 
-> Please see patch [3/3] for details.
-
-I don't understand enough about the ACPI subsystem to follow the
-details of that patch.
-
-> OK, I've updated the $subject patch in the meantime and the result is appended
-> Former patch [1/3] is not necessary any more now and patch [3/3] is still valid.
-> 
-> Rafael
-> 
-> ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: PM / sleep: Mechanism to avoid resuming runtime-suspended devices unnecessarily
-> 
-> Currently, some subsystems (e.g. PCI and the ACPI PM domain) have to
-> resume all runtime-suspended devices during system suspend, mostly
-> because those devices may need to be reprogrammed due to different
-> wakeup settings for system sleep and for runtime PM.
-
-...
-
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-This is looking quite good.  I have one suggestion for a small 
-improvement...
-
-> @@ -1332,6 +1338,16 @@ static int __device_suspend(struct devic
->  	if (dev->power.syscore)
->  		goto Complete;
+On Wed, Apr 09, 2014 at 05:14:35PM +0200, Tomasz Nowicki wrote:
+> @@ -310,6 +310,8 @@ static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
+>  	u64 offset;
+>  	u32 trunk;
 >  
-> +	if (dev->power.direct_complete) {
-> +		pm_runtime_disable(dev);
-> +		if (dev->power.disable_depth == 1
-> +		    && pm_runtime_status_suspended(dev))
-> +			goto Complete;
+> +	BUG_ON(in_nmi && !IS_ENABLED(CONFIG_ACPI_APEI_NMI));
 > +
-> +		dev->power.direct_complete = false;
-> +		pm_runtime_enable(dev);
-> +	}
 
-Do we want to allow ->prepare() to return > 0 if the device isn't
-runtime suspended?  If we do then non-suspended devices may be a common
-case.  We should then avoid the extra overhead of disable + enable.  
-So I would write:
+That's a good idea but it should be in the NMI notifier
+ghes_notify_nmi() instead and simpler:
 
-	if (dev->power.direct_complete) {
-		if (pm_runtime_status_suspended(dev)) {
-			pm_runtime_disable(dev);
-			if (dev->power.disable_depth == 1
-			    && pm_runtime_status_suspended(dev))
-				goto Complete;
-			pm_runtime_enable(dev);
-		}
-		dev->power.direct_complete = false;
-	}
+	BUG_ON(!IS_ENABLED(CONFIG_ACPI_APEI_NMI));
 
-Also, now that we have finally settled on the appropriate API, there
-needs to ba a patch updating the PM documentation.
+>  	while (len > 0) {
+>  		offset = paddr - (paddr & PAGE_MASK);
+>  		if (in_nmi) {
 
-Alan Stern
+-- 
+Regards/Gruss,
+    Boris.
 
+Sent from a fat crate under my desk. Formatting is fine.
+--
