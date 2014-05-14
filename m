@@ -1,42 +1,50 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 6/7] acpi, apei, ghes: Make unmapping functionality
- independent from architecture.
-Date: Wed, 14 May 2014 15:21:21 +0200
-Message-ID: <20140514132121.GF5231@pd.tnic>
-References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
- <1397056476-9183-7-git-send-email-tomasz.nowicki@linaro.org>
- <20140513201118.GF8760@pd.tnic>
- <5373625B.4050401@linaro.org>
- <20140514123542.GG10145@arm.com>
- <20140514124505.GA19866@localhost>
- <20140514124834.GH10145@arm.com>
- <5373670D.5040603@linaro.org>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 3/4] clk: new basic clk type for fractional divider
+Date: Wed, 14 May 2014 16:55:49 +0300
+Message-ID: <20140514135548.GC12238@xps8300>
+References: <1399983233-18037-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <1399983233-18037-4-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:58321 "EHLO mail.skyhub.de"
+Received: from mga03.intel.com ([143.182.124.21]:10219 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751070AbaENNVd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 May 2014 09:21:33 -0400
+	id S1755605AbaENNzz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 May 2014 09:55:55 -0400
 Content-Disposition: inline
-In-Reply-To: <5373670D.5040603@linaro.org>
+In-Reply-To: <1399983233-18037-4-git-send-email-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "bp@suse.de" <bp@suse.de>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mike Turquette <mturquette@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, May 14, 2014 at 02:52:29PM +0200, Tomasz Nowicki wrote:
-> I am aiming ARM64 but ideally it should work for x86, arm64 and arm.
+On Tue, May 13, 2014 at 03:13:52PM +0300, Heikki Krogerus wrote:
+> +static unsigned long clk_fd_recalc_rate(struct clk_hw *hw,
+> +					unsigned long parent_rate)
+> +{
+> +	struct clk_fractional_divider *fd = to_clk_fd(hw);
+> +	unsigned long flags = 0;
+> +	u64 n, m;
+> +	u32 val;
+> +
+> +	if (fd->lock)
+> +		spin_lock_irqsave(fd->lock, flags);
+> +
+> +	val = clk_readl(fd->reg);
+> +
+> +	if (fd->lock)
+> +		spin_unlock_irqrestore(fd->lock, flags);
+> +
+> +	m = (val & fd->mmask) >> fd->mshift;
+> +	n = (val & fd->nmask) >> fd->nshift;
+> +
+> +	return parent_rate * m / n;
+> +}
 
-I guess you can call it local_flush_tlb_one() which calls
-__flush_tlb_one() on x86 and flush_tlb_kernel_range() on arm*
+Andy noticed an issue here but he commented it outside the list. I
+need to use do_div() here. He had also some nitpicks for the other
+patches, so I'll prepare a new version for all of these tomorrow.
 
-A bunch of other arches have local_flush_tlb_one so going with that
-naming might be on the right track :)
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+heikki
