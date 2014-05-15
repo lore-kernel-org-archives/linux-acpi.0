@@ -1,47 +1,245 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH 2/3] PM / sleep: Mechanism to avoid resuming
- runtime-suspended devices unnecessarily
-Date: Thu, 15 May 2014 10:29:42 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1405151024060.1415-100000@iolanthe.rowland.org>
-References: <20140515060924.69ae7486@ultegra>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 2/7] acpi, apei, ghes: Introduce more generic mechanism
+ to init/deinit GHES error notifications.
+Date: Thu, 15 May 2014 16:31:20 +0200
+Message-ID: <5374CFB8.3000107@linaro.org>
+References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org> <1397056476-9183-3-git-send-email-tomasz.nowicki@linaro.org> <20140513181353.GC8760@pd.tnic>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20140515060924.69ae7486@ultegra>
-Sender: linux-pm-owner@vger.kernel.org
-To: Jacob Pan <jacob.jun.pan@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140513181353.GC8760@pd.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 15 May 2014, Jacob Pan wrote:
+On 13.05.2014 20:13, Borislav Petkov wrote:
+> On Wed, Apr 09, 2014 at 05:14:30PM +0200, Tomasz Nowicki wrote:
+>> Init/deinit of GHES error notifications are moved to corresponding
+>> functions e.g. for SCI ghes_notify_init_sci{sci} and ghes_notify_remove_{sci}
+>> which in turn are gathered to ghes_notify_tab table.
+>> ghes_probe and ghes_remove check notification support based on
+>> function reference pointer in ghes_notify_tab and call it with ghes argument.
+>>
+>> This approach allows us to change address of a given error notification
+>> init/deinit function call in ghes_notify_tab in runtime. In turn,
+>> we can avoid #ifdef usage in common code e.g. for NMI which is currently
+>> supported by x86.
+>>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> ---
+>>   drivers/acpi/apei/ghes.c |  242 ++++++++++++++++++++++++++++------------------
+>>   1 file changed, 149 insertions(+), 93 deletions(-)
+>>
+>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+>> index f7edffc..ca8387e 100644
+>> --- a/drivers/acpi/apei/ghes.c
+>> +++ b/drivers/acpi/apei/ghes.c
+>> @@ -148,6 +148,14 @@ static struct irq_work ghes_proc_irq_work;
+>>   struct ghes_estatus_cache *ghes_estatus_caches[GHES_ESTATUS_CACHES_SIZE];
+>>   static atomic_t ghes_estatus_cache_alloced;
+>>
+>> +struct ghes_notify_setup {
+>> +	const char *notif_name;
+>> +	int 	   (*init_call)(struct ghes *ghes);
+>> +	void 	   (*remove_call)(struct ghes *ghes);
+>> +};
+>
+> Please run through checkpatch before submitting:
+>
+> WARNING: please, no space before tabs
+> #44: FILE: drivers/acpi/apei/ghes.c:153:
+> +^Iint ^I   (*init_call)(struct ghes *ghes);$
+>
+> WARNING: please, no space before tabs
+> #45: FILE: drivers/acpi/apei/ghes.c:154:
+> +^Ivoid ^I   (*remove_call)(struct ghes *ghes);$
 
-> > > should we respect ignore_children flag here? not all parent devices
-> > > create children with proper .prepare() function. this allows parents
-> > > override children.
-> > > I am looking at USB, a USB device could have logical children such
-> > > as ep_xx, they don't go through the same subsystem .prepare().
-> > 
-> > Well, I'm not sure about that.  Let me consider that for a while.
-> OK. let me be more clear about the situation i see in USB. Correct me
-> if I am wrong, a USB device will always has at least one endpoint/ep_00
-> as a kid for control pipe, it is a logical device. So when
-> device_prepare() is called, its call back is NULL which
-> makes .direct_complete = 0. Since children device suspend is called
-> before parents, the parents .direct_complete flag will always get
-> cleared.
-> 
-> What i am trying to achieve here is to see if we avoid resuming
-> built-in (hardwired connect_type) non-hub USB devices based on this new
-> patchset. E.g. we don't want to resume/suspend USB camera every time in
-> system suspend/resume cycle if they are already rpm suspended. We can
-> save ~100ms resume time for the devices we have tested.
+My bad, will run it before next submission.
 
-This is a good point, but I don't think it is at all related to 
-ignore_children.
+>
+>> +
+>> +static struct ghes_notify_setup	ghes_notify_tab[];
+>> +
+>>   static int ghes_ioremap_init(void)
+>>   {
+>>   	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
+>> @@ -879,10 +887,6 @@ out:
+>>   	return ret;
+>>   }
+>>
+>> -static struct notifier_block ghes_notifier_sci = {
+>> -	.notifier_call = ghes_notify_sci,
+>> -};
+>> -
+>>   static unsigned long ghes_esource_prealloc_size(
+>>   	const struct acpi_hest_generic *generic)
+>>   {
+>> @@ -898,33 +902,151 @@ static unsigned long ghes_esource_prealloc_size(
+>>   	return prealloc_size;
+>>   }
+>>
+>> +static int ghes_notify_init_nmi(struct ghes *ghes)
+>> +{
+>> +	unsigned long len;
+>> +
+>> +	len = ghes_esource_prealloc_size(ghes->generic);
+>> +	ghes_estatus_pool_expand(len);
+>> +	mutex_lock(&ghes_list_mutex);
+>> +	if (list_empty(&ghes_nmi))
+>> +		register_nmi_handler(NMI_LOCAL, ghes_notify_nmi, 0, "ghes");
+>> +	list_add_rcu(&ghes->list, &ghes_nmi);
+>> +	mutex_unlock(&ghes_list_mutex);
+>> +
+>> +	return 0;
+>
+> Unconditionally returning 0 seems kinda moot. At least
+> register_nmi_handler() retval could be returned...
+>
+> ...
 
-Instead, it seems that the best way to solve it would be to add a 
-->prepare() handler for usb_ep_device_type that would always turn 
-on direct_complete.
+Yes, it's worth returning register_nmi_handler() retval. Nice catch.
 
-Alan Stern
+>
+>> +static struct ghes_notify_setup
+>> +       ghes_notify_tab[ACPI_HEST_NOTIFY_RESERVED] = {
+>> +               [ACPI_HEST_NOTIFY_POLLED]   = {"POLLED",
+>> +                                              ghes_notify_init_polled,
+>> +                                              ghes_notify_remove_polled},
+>> +               [ACPI_HEST_NOTIFY_EXTERNAL] = {"EXT_IRQ",
+>> +                                              ghes_notify_init_external,
+>> +                                              ghes_notify_remove_external},
+>> +               [ACPI_HEST_NOTIFY_LOCAL]    = {"LOCAL_IRQ", NULL, NULL},
+>> +               [ACPI_HEST_NOTIFY_SCI]      = {"SCI",
+>> +                                              ghes_notify_init_sci,
+>> +                                              ghes_notify_remove_sci},
+>> +               [ACPI_HEST_NOTIFY_NMI]      = {"NMI",
+>> +                                              ghes_notify_init_nmi,
+>> +                                              ghes_notify_remove_nmi},
+>> +               [ACPI_HEST_NOTIFY_CMCI]     = {"CMCI", NULL, NULL},
+>> +               [ACPI_HEST_NOTIFY_MCE]      = {"MCE", NULL, NULL},
+>> +};
+>
+> I guess you don't need to save the ->notif_name strings but add
+> a function which maps ACPI_HEST_* to strings => smaller struct
+> ghes_notify_setup.
 
+Well, we need to keep these strings somewhere :) IMO, this is simpler 
+solution. What would be advantage of additional map function?
+
+>
+>
+>> @@ -944,48 +1066,10 @@ static int ghes_probe(struct platform_device *ghes_dev)
+>>   	if (rc < 0)
+>>   		goto err;
+>>
+>> -	switch (generic->notify.type) {
+>> -	case ACPI_HEST_NOTIFY_POLLED:
+>> -		ghes->timer.function = ghes_poll_func;
+>> -		ghes->timer.data = (unsigned long)ghes;
+>> -		init_timer_deferrable(&ghes->timer);
+>> -		ghes_add_timer(ghes);
+>> -		break;
+>> -	case ACPI_HEST_NOTIFY_EXTERNAL:
+>> -		/* External interrupt vector is GSI */
+>> -		rc = acpi_gsi_to_irq(generic->notify.vector, &ghes->irq);
+>> -		if (rc) {
+>> -			pr_err(GHES_PFX "Failed to map GSI to IRQ for generic hardware error source: %d\n",
+>> -			       generic->header.source_id);
+>> -			goto err_edac_unreg;
+>> -		}
+>> -		rc = request_irq(ghes->irq, ghes_irq_func, 0, "GHES IRQ", ghes);
+>> -		if (rc) {
+>> -			pr_err(GHES_PFX "Failed to register IRQ for generic hardware error source: %d\n",
+>> -			       generic->header.source_id);
+>> -			goto err_edac_unreg;
+>> -		}
+>> -		break;
+>> -	case ACPI_HEST_NOTIFY_SCI:
+>> -		mutex_lock(&ghes_list_mutex);
+>> -		if (list_empty(&ghes_sci))
+>> -			register_acpi_hed_notifier(&ghes_notifier_sci);
+>> -		list_add_rcu(&ghes->list, &ghes_sci);
+>> -		mutex_unlock(&ghes_list_mutex);
+>> -		break;
+>> -	case ACPI_HEST_NOTIFY_NMI:
+>> -		len = ghes_esource_prealloc_size(generic);
+>> -		ghes_estatus_pool_expand(len);
+>> -		mutex_lock(&ghes_list_mutex);
+>> -		if (list_empty(&ghes_nmi))
+>> -			register_nmi_handler(NMI_LOCAL, ghes_notify_nmi, 0,
+>> -						"ghes");
+>> -		list_add_rcu(&ghes->list, &ghes_nmi);
+>> -		mutex_unlock(&ghes_list_mutex);
+>> -		break;
+>> -	default:
+>> -		BUG();
+>
+> What happened to those BUG() catch-all stoppers?
+
+I am validating generic->notify.type at the begin of function and return 
+error in case of unknown value. I think there is no need to check that 
+again.
+
+>
+>> -	}
+>> +	rc = (*ghes_init_call)(ghes);
+>> +	if (rc)
+>> +		goto err_edac_unreg;
+>> +
+>>   	platform_set_drvdata(ghes_dev, ghes);
+>>
+>>   	return 0;
+>> @@ -1003,44 +1087,16 @@ static int ghes_remove(struct platform_device *ghes_dev)
+>>   {
+>>   	struct ghes *ghes;
+>>   	struct acpi_hest_generic *generic;
+>> -	unsigned long len;
+>> +	void (*ghes_remove_call)(struct ghes *ghes);
+>>
+>>   	ghes = platform_get_drvdata(ghes_dev);
+>> +	ghes->flags |= GHES_EXITING;
+>> +
+>>   	generic = ghes->generic;
+>> +	ghes_remove_call = ghes_notify_tab[generic->notify.type].remove_call;
+>>
+>> -	ghes->flags |= GHES_EXITING;
+>> -	switch (generic->notify.type) {
+>> -	case ACPI_HEST_NOTIFY_POLLED:
+>> -		del_timer_sync(&ghes->timer);
+>> -		break;
+>> -	case ACPI_HEST_NOTIFY_EXTERNAL:
+>> -		free_irq(ghes->irq, ghes);
+>> -		break;
+>> -	case ACPI_HEST_NOTIFY_SCI:
+>> -		mutex_lock(&ghes_list_mutex);
+>> -		list_del_rcu(&ghes->list);
+>> -		if (list_empty(&ghes_sci))
+>> -			unregister_acpi_hed_notifier(&ghes_notifier_sci);
+>> -		mutex_unlock(&ghes_list_mutex);
+>> -		break;
+>> -	case ACPI_HEST_NOTIFY_NMI:
+>> -		mutex_lock(&ghes_list_mutex);
+>> -		list_del_rcu(&ghes->list);
+>> -		if (list_empty(&ghes_nmi))
+>> -			unregister_nmi_handler(NMI_LOCAL, "ghes");
+>> -		mutex_unlock(&ghes_list_mutex);
+>> -		/*
+>> -		 * To synchronize with NMI handler, ghes can only be
+>> -		 * freed after NMI handler finishes.
+>> -		 */
+>> -		synchronize_rcu();
+>> -		len = ghes_esource_prealloc_size(generic);
+>> -		ghes_estatus_pool_shrink(len);
+>> -		break;
+>> -	default:
+>> -		BUG();
+>> -		break;
+>
+> This one too.
+>
+For this one I should provide generic->notify.type validation. Will 
+rethink and fix it.
+
+Tomasz
