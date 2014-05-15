@@ -1,74 +1,58 @@
-From: Jacob Pan <jacob.jun.pan@linux.intel.com>
-Subject: Re: [RFC][PATCH 2/3] PM / sleep: Mechanism to avoid resuming
- runtime-suspended devices unnecessarily
-Date: Thu, 15 May 2014 00:03:20 -0700
-Message-ID: <20140515000320.3c1c9256@jacob-desktop>
-References: <20140515060924.69ae7486@ultegra>
-	<Pine.LNX.4.44L0.1405151024060.1415-100000@iolanthe.rowland.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH 1/2] pinctrl: baytrail: Add back Baytrail-T ACPI ID
+Date: Thu, 15 May 2014 18:28:46 +0300
+Message-ID: <1400167727-20233-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:27438 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:60884 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754698AbaEOPEg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 May 2014 11:04:36 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1405151024060.1415-100000@iolanthe.rowland.org>
+	id S1752976AbaEOP3f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 May 2014 11:29:35 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Jin Yao <yao.jin@intel.com>, Aubrey Li <aubrey.li@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 15 May 2014 10:29:42 -0400 (EDT)
-Alan Stern <stern@rowland.harvard.edu> wrote:
+From: Jin Yao <yao.jin@intel.com>
 
-> On Thu, 15 May 2014, Jacob Pan wrote:
-> 
-> > > > should we respect ignore_children flag here? not all parent
-> > > > devices create children with proper .prepare() function. this
-> > > > allows parents override children.
-> > > > I am looking at USB, a USB device could have logical children
-> > > > such as ep_xx, they don't go through the same
-> > > > subsystem .prepare().
-> > > 
-> > > Well, I'm not sure about that.  Let me consider that for a while.
-> > OK. let me be more clear about the situation i see in USB. Correct
-> > me if I am wrong, a USB device will always has at least one
-> > endpoint/ep_00 as a kid for control pipe, it is a logical device.
-> > So when device_prepare() is called, its call back is NULL which
-> > makes .direct_complete = 0. Since children device suspend is called
-> > before parents, the parents .direct_complete flag will always get
-> > cleared.
-> > 
-> > What i am trying to achieve here is to see if we avoid resuming
-> > built-in (hardwired connect_type) non-hub USB devices based on this
-> > new patchset. E.g. we don't want to resume/suspend USB camera every
-> > time in system suspend/resume cycle if they are already rpm
-> > suspended. We can save ~100ms resume time for the devices we have
-> > tested.
-> 
-> This is a good point, but I don't think it is at all related to 
-> ignore_children.
-> 
-> Instead, it seems that the best way to solve it would be to add a 
-> ->prepare() handler for usb_ep_device_type that would always turn 
-> on direct_complete.
-> 
-yeah, that would solve the problem with EP device type. But what about
-other subdevices. e.g. for USB camera, uvcvideo device? We can add
-.prepare(return 1;) for each level but would it be better to have a
-flag similar to ignore_children if not ignore_children itself.
-Actually, I don't understand why this is not related to
-ignore_children. Could you explain?
+Now that the x86 dynamic IRQ allocation problem has been resolved with
+commmit 62a08ae2a576 (genirq: x86: Ensure that dynamic irq allocation does
+not conflict), we can add back Baytrail-T ACPI ID to the pinctrl driver.
 
-If the parent knows it can ignore children and already rpm suspended,
-why do we still ask children?
+This makes the driver to work on Asus T100 where it is needed for several
+things like ACPI GPIO events and SD card detection.
 
-> Alan Stern
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+References: https://bugzilla.kernel.org/show_bug.cgi?id=68291
+Signed-off-by: Jin Yao <yao.jin@intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/acpi/acpi_lpss.c           | 1 +
+ drivers/pinctrl/pinctrl-baytrail.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-[Jacob Pan]
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 24e49a52cefb..c314d709e5a6 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -189,6 +189,7 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+ 	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
+ 	{ "80860F41", (unsigned long)&byt_i2c_dev_desc },
+ 	{ "INT33B2", },
++	{ "INT33FC", },
+ 
+ 	{ "INT3430", (unsigned long)&lpt_dev_desc },
+ 	{ "INT3431", (unsigned long)&lpt_dev_desc },
+diff --git a/drivers/pinctrl/pinctrl-baytrail.c b/drivers/pinctrl/pinctrl-baytrail.c
+index 6e8301f77187..447f1dc25ea6 100644
+--- a/drivers/pinctrl/pinctrl-baytrail.c
++++ b/drivers/pinctrl/pinctrl-baytrail.c
+@@ -572,6 +572,7 @@ static const struct dev_pm_ops byt_gpio_pm_ops = {
+ 
+ static const struct acpi_device_id byt_gpio_acpi_match[] = {
+ 	{ "INT33B2", 0 },
++	{ "INT33FC", 0 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(acpi, byt_gpio_acpi_match);
+-- 
+2.0.0.rc2
+
