@@ -1,23 +1,43 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 0/4] Add acpi_video_unregister_backlight(), use in acer-wmi
-Date: Thu, 15 May 2014 13:22:32 +0200
-Message-ID: <1400152956-9053-1-git-send-email-hdegoede@redhat.com>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Lee Chun-Yi <jlee@suse.com>, Aaron Lu <aaron.lu@intel.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, Massimiliano <massi.ergosum@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [RFC][PATCH 2/3] PM / sleep: Mechanism to avoid resuming
+ runtime-suspended devices unnecessarily
+Date: Thu, 15 May 2014 14:06:59 +0200
+Message-ID: <CAPDyKFry+O=HvtFtvZh=sYqq9aaFJ78C=8x2euh6MbGExLyuWw@mail.gmail.com>
+References: <16671603.abrivY8Odm@vostro.rjw.lan>
+	<Pine.LNX.4.44L0.1405141041360.1432-100000@iolanthe.rowland.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1405141041360.1432-100000@iolanthe.rowland.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi All,
+> Do we want to allow ->prepare() to return > 0 if the device isn't
+> runtime suspended?  If we do then non-suspended devices may be a common
+> case.  We should then avoid the extra overhead of disable + enable.
+> So I would write:
+>
+>         if (dev->power.direct_complete) {
+>                 if (pm_runtime_status_suspended(dev)) {
+>                         pm_runtime_disable(dev);
+>                         if (dev->power.disable_depth == 1
+>                             && pm_runtime_status_suspended(dev))
+>                                 goto Complete;
+>                         pm_runtime_enable(dev);
+>                 }
+>                 dev->power.direct_complete = false;
+>         }
+>
 
-Here is a non RFC version of my patch series to fix:
+I am wondering whether the above pm_runtime_disable|enable actually
+belongs better in driver/subsystem in favour of the PM core?
 
-https://bugzilla.kernel.org/show_bug.cgi?id=35622
-https://bugzilla.redhat.com/show_bug.cgi?id=1012674
+Doesn't the driver/subsystem anyway needs to be on top of what goes
+on? Typically, while runtime PM has been disabled, that might affect
+it's wakeup handling? Or this case are already handled due to other
+circumstances?
 
-I think its best if the entire series goes upstream through the acpi
-tree since the platform/x86 patches depend on the acpi changes.
-
-Regards,
-
-Hans
+Kind regards
+Ulf Hansson
