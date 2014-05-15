@@ -1,155 +1,90 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: [PATCH 4/7 v2] RAS, debugfs: Add debugfs interface for RAS subsystem
-Date: Thu, 15 May 2014 04:30:43 -0400
-Message-ID: <1400142646-10127-5-git-send-email-gong.chen@linux.intel.com>
-References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: RFC: Cleanup firmware backlight control method selection
+Date: Thu, 15 May 2014 11:04:50 +0200
+Message-ID: <53748332.50909@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:24043 "EHLO mga11.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:51918 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751000AbaEOJEM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 May 2014 05:04:12 -0400
-In-Reply-To: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
+	id S1750786AbaEOJFA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 May 2014 05:05:00 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com
-Cc: linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
+To: Aaron Lu <aaron.lu@intel.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org
 
-Implement a new debugfs interface for RAS susbsystem.
-A file named daemon_active is added there accordingly.
-This file is used to track if user space daemon enables
-perf/trace interface or not. One can track which daemon
-opens it via "lsof /path/to/debugfs/ras/daemon_active".
+Hi All,
 
-v2 -> v1: Change file access mode from 0444 to 0400.
+There are various issues with how the linux kernel currently select which
+firmware backlight control (*) method to use:
 
-Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
----
- drivers/ras/Makefile  |  2 +-
- drivers/ras/debugfs.c | 57 +++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/ras/ras.c     | 14 +++++++++++++
- include/linux/ras.h   | 15 ++++++++++++++
- 4 files changed, 87 insertions(+), 1 deletion(-)
- create mode 100644 drivers/ras/debugfs.c
- create mode 100644 include/linux/ras.h
+1) There are various module loading ordering issues, leading to different
+behavior depending on module load ordering:
 
-diff --git a/drivers/ras/Makefile b/drivers/ras/Makefile
-index 223e806..d7f7334 100644
---- a/drivers/ras/Makefile
-+++ b/drivers/ras/Makefile
-@@ -1 +1 @@
--obj-$(CONFIG_RAS) += ras.o
-+obj-$(CONFIG_RAS) += ras.o debugfs.o
-diff --git a/drivers/ras/debugfs.c b/drivers/ras/debugfs.c
-new file mode 100644
-index 0000000..d0bc389
---- /dev/null
-+++ b/drivers/ras/debugfs.c
-@@ -0,0 +1,57 @@
-+#include <linux/debugfs.h>
-+
-+struct dentry *ras_debugfs_dir;
-+EXPORT_SYMBOL_GPL(ras_debugfs_dir);
-+
-+static atomic_t trace_count = ATOMIC_INIT(0);
-+
-+int ras_userspace_consumers(void)
-+{
-+	return atomic_read(&trace_count);
-+}
-+EXPORT_SYMBOL_GPL(ras_userspace_consumers);
-+
-+static int trace_show(struct seq_file *m, void *v)
-+{
-+	return atomic_read(&trace_count);
-+}
-+
-+static int trace_open(struct inode *inode, struct file *file)
-+{
-+	atomic_inc(&trace_count);
-+	return single_open(file, trace_show, NULL);
-+}
-+
-+static int trace_release(struct inode *inode, struct file *file)
-+{
-+	atomic_dec(&trace_count);
-+	return single_release(inode, file);
-+}
-+
-+static const struct file_operations trace_fops = {
-+	.open    = trace_open,
-+	.read    = seq_read,
-+	.llseek  = seq_lseek,
-+	.release = trace_release,
-+};
-+
-+int __init ras_add_daemon_trace(void)
-+{
-+	struct dentry *fentry;
-+
-+	if (!ras_debugfs_dir)
-+		return -ENOENT;
-+
-+	fentry = debugfs_create_file("daemon_active", S_IRUSR, ras_debugfs_dir,
-+				     NULL, &trace_fops);
-+	if (!fentry)
-+		return -ENODEV;
-+
-+	return 0;
-+
-+}
-+
-+void __init ras_debugfs_init(void)
-+{
-+	ras_debugfs_dir = debugfs_create_dir("ras", NULL);
-+}
-diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-index b0c6ed1..4cac43a 100644
---- a/drivers/ras/ras.c
-+++ b/drivers/ras/ras.c
-@@ -5,8 +5,22 @@
-  *	Chen, Gong <gong.chen@linux.intel.com>
-  */
- 
-+#include <linux/init.h>
-+#include <linux/ras.h>
-+
- #define CREATE_TRACE_POINTS
- #define TRACE_INCLUDE_PATH ../../include/ras
- #include <ras/ras_event.h>
- 
-+static int __init ras_init(void)
-+{
-+	int rc = 0;
-+
-+	ras_debugfs_init();
-+	rc = ras_add_daemon_trace();
-+
-+	return rc;
-+}
-+subsys_initcall(ras_init);
-+
- EXPORT_TRACEPOINT_SYMBOL_GPL(mc_event);
-diff --git a/include/linux/ras.h b/include/linux/ras.h
-new file mode 100644
-index 0000000..af53248
---- /dev/null
-+++ b/include/linux/ras.h
-@@ -0,0 +1,15 @@
-+#ifndef __RAS_H__
-+#define __RAS_H__
-+
-+#ifdef CONFIG_DEBUG_FS
-+extern struct dentry *ras_debugfs_dir;
-+int ras_userspace_consumers(void);
-+void ras_debugfs_init(void);
-+int ras_add_daemon_trace(void);
-+#else
-+static inline int ras_userspace_consumers(void) { return 0; }
-+static inline void ras_debugfs_init(void) { return; }
-+static inline int ras_add_daemon_trace(void) { return 0; }
-+#endif
-+
-+#endif
--- 
-2.0.0.rc0
+* http://www.spinics.net/lists/linux-acpi/msg50443.html
+* Sometimes we register and immediately unregister the acpi_video# backlight
+  devices, some ACPI implementations don't like this, so we've special
+  quirks to avoid the register + unregister on some machines
 
+2) There are 2 main kernel commandline options involved acpi_backlight and
+video.use_native_backlight. With the latter only working if certain firmware
+checks succeed *and* the former has the right value. This is confusing not
+only for end users but also for people trying to read the code in question.
+Note some vendor specific firmware backlight drivers, ie thinkpad_acpi.c
+have their own related options, leading to 3 kernel cmdline options coming
+into play.
+
+3) We have quirks everywhere. I'm afraid we cannot get rid of these, but
+at least we should try to clean up where they live and how they interact
+with each other. acpi_backlight=vendor quirks mostly live in vendor specific
+firmware backlight drivers. But we also have a couple in acpi/video_detect.c.
+video.use_native_backlight=1 quirks otoh live in acpi/video.c.
+
+In the end all these options and quirks all work together in a complicated
+manor to achieve one simple goal: decide which firmware interface to use
+for backlight control (*). Which comes down to choosing between the
+following 3 options:
+
+1 Native (raw) backlight control (so no firmware backlight control)
+2 Control by the standard acpi-video firmware backlight driver
+3 Control by a vendor specific firmware backlight driver
+
+So I would like to propose to give the acpi_backlight= kernel commandline
+option which currently accepts values "vendor" and "video" a third value
+"native", and to get rid of the video.use_native_backlight option.
+
+This would be combined with a major cleanup of the existing code for
+firmware backlight control method selection:
+
+1) Replace the ACPI_VIDEO_BACKLIGHT_* flags with an enum listing the 3 options
+2) Replace the acpi_video_support variable with
+   acpi_backlight_method_cmdline and acpi_backlight_method_dmi variables,
+   both initialzed to -1
+3) Add an acpi_backlight_method() function which will:
+  - return acpi_backlight_method_cmdline if not -1; else
+  - return acpi_backlight_method_dmi if not -1; else
+  - return ACPI_BACKLIGHT_NATIVE if acpi_osi_is_win8(); else
+  - return ACPI_BACKLIGHT_VIDEO if supported; else
+  - return ACPI_BACKLIGHT_VENDOR
+4) Have all drivers that use acpi_video_dmi_promote_vendor move their
+   quirks for this to acpi/video_detect.c, removing the need for them to
+   call acpi_video_dmi_promote_vendor() and acpi_video_unregister(), removing
+   the load ordering issues and removing them depending on video.ko
+5) Switch all drivers from acpi_video_backlight_support() to
+   acpi_backlight_method()
+
+The plan would be to do 1-3 in a single patch and ASAP and then do 4 and 5
+driver by driver, and once done remove acpi_video_dmi_promote_vendor() and
+acpi_video_backlight_support(), and mark acpi_video_register /
+acpi_video_unregister as "only for i915 use".
+
+Regards,
+
+Hans
+
+
+*) Note I'm only talking about controlling the actual brightness of the
+backlight, not detecting brighness/backlight hotkey presses, there are
+similar issues there. But I believe that that should be treated as an
+orthogonal problem which should be fixed independently of this.
