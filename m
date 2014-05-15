@@ -1,86 +1,139 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 1/4] nouveau: Don't check acpi_video_backlight_support() before registering backlight
-Date: Thu, 15 May 2014 20:34:23 +0200
-Message-ID: <1400178866-3659-2-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH 2/4] backlight: Add backlight device (un)registration notification
+Date: Thu, 15 May 2014 20:34:24 +0200
+Message-ID: <1400178866-3659-3-git-send-email-hdegoede@redhat.com>
 References: <1400178866-3659-1-git-send-email-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53126 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:55615 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754894AbaEOSes (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 May 2014 14:34:48 -0400
+	id S1755237AbaEOSev (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 May 2014 14:34:51 -0400
 In-Reply-To: <1400178866-3659-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Jingoo Han <jg1.han@samsung.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>
 Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans de Goede <hdegoede@redhat.com>
 
-acpi_video_backlight_support() is supposed to be called by other (vendor
-specific) firmware backlight controls, not by native / raw backlight controls
-like nv_backlight.
+Some firmware drivers, ie acpi-video want to get themselves out of the
+way (in some cases) when their also is a raw backlight device available.
 
-Userspace will normally prefer firmware interfaces over raw interfaces, so
-if acpi_video backlight support is present it will use that even if
-nv_backlight is registered as well.
+Due to module loading ordering being unknown, acpi-video cannot be certain
+that the backlight_device_registered(BACKLIGHT_RAW) it does for this is
+the final verdict wrt there being a BACKLIGHT_RAW device.
 
-Except when video.use_native_backlight is present on the kernel cmdline
-(or enabled through a dmi based quirk). As the name indicates the goal here
-is to make only the raw interface available to userspace so that it will use
-that (it only does this when it sees a win8 compliant bios).
-
-This is done by:
-1) Not registering any acpi_video# backlight devices; and
-2) Making acpi_video_backlight_support() return true so that other firmware
-drivers, ie acer_wmi, thinkpad_acpi, dell_laptop, etc. Don't register their
-own vender specific interfaces.
-
-Currently nouveau breaks this setup, as when acpi_video_backlight_support()
-returns true, it does not register itself, resulting in no backlight control
-at all.
-
-This is esp. going to be a problem with 3.16 which will default to
-video.use_native_backlight=1, and thus nouveau based laptops with a win8 bios
-will get no backlight control at all.
-
-This also likely explains why the previous attempt to make
-video.use_native_backlight=1 the default was not a success, as without this
-patch having a default of video.use_native_backlight=1 will cause regressions.
-
-Note this effectively reverts commit 5bead799
-
-Also see: https://bugzilla.redhat.com/show_bug.cgi?id=1093171
+By adding notification acpi-video can listen for backlight devices showing
+up after it has loaded, and unregister its backlight device if desired.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/gpu/drm/nouveau/nouveau_backlight.c | 9 ---------
- 1 file changed, 9 deletions(-)
+ drivers/video/backlight/backlight.c | 40 +++++++++++++++++++++++++++++++++++++
+ include/linux/backlight.h           |  7 +++++++
+ 2 files changed, 47 insertions(+)
 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_backlight.c b/drivers/gpu/drm/nouveau/nouveau_backlight.c
-index 630f6e8..2c1e4aa 100644
---- a/drivers/gpu/drm/nouveau/nouveau_backlight.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_backlight.c
-@@ -31,7 +31,6 @@
-  */
+diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
+index bd2172c..4280890 100644
+--- a/drivers/video/backlight/backlight.c
++++ b/drivers/video/backlight/backlight.c
+@@ -23,6 +23,7 @@
  
- #include <linux/backlight.h>
--#include <linux/acpi.h>
+ static struct list_head backlight_dev_list;
+ static struct mutex backlight_dev_list_mutex;
++static struct blocking_notifier_head backlight_notifier;
  
- #include "nouveau_drm.h"
- #include "nouveau_reg.h"
-@@ -222,14 +221,6 @@ nouveau_backlight_init(struct drm_device *dev)
- 	struct nouveau_device *device = nv_device(drm->device);
- 	struct drm_connector *connector;
+ static const char *const backlight_types[] = {
+ 	[BACKLIGHT_RAW] = "raw",
+@@ -370,6 +371,9 @@ struct backlight_device *backlight_device_register(const char *name,
+ 	list_add(&new_bd->entry, &backlight_dev_list);
+ 	mutex_unlock(&backlight_dev_list_mutex);
  
--#ifdef CONFIG_ACPI
--	if (acpi_video_backlight_support()) {
--		NV_INFO(drm, "ACPI backlight interface available, "
--			     "not registering our own\n");
--		return 0;
--	}
--#endif
--
- 	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
- 		if (connector->connector_type != DRM_MODE_CONNECTOR_LVDS &&
- 		    connector->connector_type != DRM_MODE_CONNECTOR_eDP)
++	blocking_notifier_call_chain(&backlight_notifier,
++				     BACKLIGHT_REGISTERED, new_bd);
++
+ 	return new_bd;
+ }
+ EXPORT_SYMBOL(backlight_device_register);
+@@ -413,6 +417,10 @@ void backlight_device_unregister(struct backlight_device *bd)
+ 		pmac_backlight = NULL;
+ 	mutex_unlock(&pmac_backlight_mutex);
+ #endif
++
++	blocking_notifier_call_chain(&backlight_notifier,
++				     BACKLIGHT_UNREGISTERED, bd);
++
+ 	mutex_lock(&bd->ops_lock);
+ 	bd->ops = NULL;
+ 	mutex_unlock(&bd->ops_lock);
+@@ -438,6 +446,36 @@ static int devm_backlight_device_match(struct device *dev, void *res,
+ }
+ 
+ /**
++ * backlight_register_notifier - get notified of backlight (un)registration
++ * @nb: notifier block with the notifier to call on backlight (un)registration
++ *
++ * @return 0 on success, otherwise a negative error code
++ *
++ * Register a notifier to get notified when backlight devices get registered
++ * or unregistered.
++ */
++int backlight_register_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_register(&backlight_notifier, nb);
++}
++EXPORT_SYMBOL(backlight_register_notifier);
++
++/**
++ * backlight_unregister_notifier - unregister a backlight notifier
++ * @nb: notifier block to unregister
++ *
++ * @return 0 on success, otherwise a negative error code
++ *
++ * Register a notifier to get notified when backlight devices get registered
++ * or unregistered.
++ */
++int backlight_unregister_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_unregister(&backlight_notifier, nb);
++}
++EXPORT_SYMBOL(backlight_unregister_notifier);
++
++/**
+  * devm_backlight_device_register - resource managed backlight_device_register()
+  * @dev: the device to register
+  * @name: the name of the device
+@@ -544,6 +582,8 @@ static int __init backlight_class_init(void)
+ 	backlight_class->pm = &backlight_class_dev_pm_ops;
+ 	INIT_LIST_HEAD(&backlight_dev_list);
+ 	mutex_init(&backlight_dev_list_mutex);
++	BLOCKING_INIT_NOTIFIER_HEAD(&backlight_notifier);
++
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/backlight.h b/include/linux/backlight.h
+index 7264742..adb14a8 100644
+--- a/include/linux/backlight.h
++++ b/include/linux/backlight.h
+@@ -40,6 +40,11 @@ enum backlight_type {
+ 	BACKLIGHT_TYPE_MAX,
+ };
+ 
++enum backlight_notification {
++	BACKLIGHT_REGISTERED,
++	BACKLIGHT_UNREGISTERED,
++};
++
+ struct backlight_device;
+ struct fb_info;
+ 
+@@ -133,6 +138,8 @@ extern void devm_backlight_device_unregister(struct device *dev,
+ extern void backlight_force_update(struct backlight_device *bd,
+ 				   enum backlight_update_reason reason);
+ extern bool backlight_device_registered(enum backlight_type type);
++extern int backlight_register_notifier(struct notifier_block *nb);
++extern int backlight_unregister_notifier(struct notifier_block *nb);
+ 
+ #define to_backlight_device(obj) container_of(obj, struct backlight_device, dev)
+ 
 -- 
 1.9.0
 
