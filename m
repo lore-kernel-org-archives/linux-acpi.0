@@ -1,254 +1,47 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCHv2 2/4] ACPI / LPSS: custom power domain for LPSS
-Date: Thu, 15 May 2014 16:40:24 +0300
-Message-ID: <1400161226-24067-3-git-send-email-heikki.krogerus@linux.intel.com>
-References: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mike Turquette <mturquette@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 2/3] PM / sleep: Mechanism to avoid resuming
+ runtime-suspended devices unnecessarily
+Date: Thu, 15 May 2014 10:29:42 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1405151024060.1415-100000@iolanthe.rowland.org>
+References: <20140515060924.69ae7486@ultegra>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20140515060924.69ae7486@ultegra>
+Sender: linux-pm-owner@vger.kernel.org
+To: Jacob Pan <jacob.jun.pan@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-A power domain where we save the context of the additional
-LPSS registers. We need to do this or all LPSS devices are
-left in reset state when resuming from D3 on some Baytrails.
-The devices with the fractional clock divider also have
-zeros for N and M values after resuming unless they are
-reset.
+On Thu, 15 May 2014, Jacob Pan wrote:
 
-Li Aubrey found the root cause for the issue. The idea of
-using power domain for LPSS came from Mika Westerberg.
+> > > should we respect ignore_children flag here? not all parent devices
+> > > create children with proper .prepare() function. this allows parents
+> > > override children.
+> > > I am looking at USB, a USB device could have logical children such
+> > > as ep_xx, they don't go through the same subsystem .prepare().
+> > 
+> > Well, I'm not sure about that.  Let me consider that for a while.
+> OK. let me be more clear about the situation i see in USB. Correct me
+> if I am wrong, a USB device will always has at least one endpoint/ep_00
+> as a kid for control pipe, it is a logical device. So when
+> device_prepare() is called, its call back is NULL which
+> makes .direct_complete = 0. Since children device suspend is called
+> before parents, the parents .direct_complete flag will always get
+> cleared.
+> 
+> What i am trying to achieve here is to see if we avoid resuming
+> built-in (hardwired connect_type) non-hub USB devices based on this new
+> patchset. E.g. we don't want to resume/suspend USB camera every time in
+> system suspend/resume cycle if they are already rpm suspended. We can
+> save ~100ms resume time for the devices we have tested.
 
-Reported-by: Jin Yao <yao.jin@linux.intel.com>
-Suggested-by: Li Aubrey <aubrey.li@linux.intel.com>
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/acpi/acpi_lpss.c | 133 ++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 126 insertions(+), 7 deletions(-)
+This is a good point, but I don't think it is at all related to 
+ignore_children.
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 69e29f4..24e49a5 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -19,6 +19,7 @@
- #include <linux/platform_device.h>
- #include <linux/platform_data/clk-lpss.h>
- #include <linux/pm_runtime.h>
-+#include <linux/delay.h>
- 
- #include "internal.h"
- 
-@@ -43,6 +44,8 @@ ACPI_MODULE_NAME("acpi_lpss");
- #define LPSS_TX_INT			0x20
- #define LPSS_TX_INT_MASK		BIT(1)
- 
-+#define LPSS_PRV_REG_COUNT		9
-+
- struct lpss_shared_clock {
- 	const char *name;
- 	unsigned long rate;
-@@ -58,6 +61,7 @@ struct lpss_device_desc {
- 	unsigned int prv_offset;
- 	size_t prv_size_override;
- 	bool clk_gate;
-+	bool save_ctx;
- 	struct lpss_shared_clock *shared_clock;
- 	void (*setup)(struct lpss_private_data *pdata);
- };
-@@ -72,6 +76,7 @@ struct lpss_private_data {
- 	resource_size_t mmio_size;
- 	struct clk *clk;
- 	const struct lpss_device_desc *dev_desc;
-+	u32 prv_reg_ctx[LPSS_PRV_REG_COUNT];
- };
- 
- static void lpss_uart_setup(struct lpss_private_data *pdata)
-@@ -116,6 +121,7 @@ static struct lpss_shared_clock pwm_clock = {
- 
- static struct lpss_device_desc byt_pwm_dev_desc = {
- 	.clk_required = true,
-+	.save_ctx = true,
- 	.shared_clock = &pwm_clock,
- };
- 
-@@ -128,6 +134,7 @@ static struct lpss_device_desc byt_uart_dev_desc = {
- 	.clk_required = true,
- 	.prv_offset = 0x800,
- 	.clk_gate = true,
-+	.save_ctx = true,
- 	.shared_clock = &uart_clock,
- 	.setup = lpss_uart_setup,
- };
-@@ -141,6 +148,7 @@ static struct lpss_device_desc byt_spi_dev_desc = {
- 	.clk_required = true,
- 	.prv_offset = 0x400,
- 	.clk_gate = true,
-+	.save_ctx = true,
- 	.shared_clock = &spi_clock,
- };
- 
-@@ -156,6 +164,7 @@ static struct lpss_shared_clock i2c_clock = {
- static struct lpss_device_desc byt_i2c_dev_desc = {
- 	.clk_required = true,
- 	.prv_offset = 0x800,
-+	.save_ctx = true,
- 	.shared_clock = &i2c_clock,
- };
- 
-@@ -449,6 +458,102 @@ static void acpi_lpss_set_ltr(struct device *dev, s32 val)
- 	}
- }
- 
-+#ifdef CONFIG_PM
-+static void acpi_lpss_save_ctx(struct device *dev)
-+{
-+	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
-+	int i;
-+
-+	for (i = 0; i < LPSS_PRV_REG_COUNT; i++) {
-+		pdata->prv_reg_ctx[i] = __lpss_reg_read(pdata, i * sizeof(u32));
-+		dev_dbg(dev, "saving 0x%08x from LPSS reg at offset 0x%02x\n",
-+			pdata->prv_reg_ctx[i], (unsigned int)(i * sizeof(u32)));
-+	}
-+}
-+
-+static void acpi_lpss_restore_ctx(struct device *dev)
-+{
-+	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
-+	int i;
-+
-+	/* PCI spec expects 10ms delay when resuming from D3 to D0 */
-+	msleep(10);
-+
-+	for (i = 0; i < LPSS_PRV_REG_COUNT; i++) {
-+		__lpss_reg_write(pdata->prv_reg_ctx[i], pdata, i * sizeof(u32));
-+		dev_dbg(dev, "restoring 0x%08x to LPSS reg at offset 0x%02x\n",
-+			pdata->prv_reg_ctx[i], (unsigned int)(i * sizeof(u32)));
-+	}
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int acpi_lpss_suspend_late(struct device *dev)
-+{
-+	int ret = pm_generic_suspend_late(dev);
-+
-+	if (ret)
-+		return ret;
-+
-+	acpi_lpss_save_ctx(dev);
-+	return acpi_dev_suspend_late(dev);
-+}
-+
-+static int acpi_lpss_restore_early(struct device *dev)
-+{
-+	int ret = acpi_dev_resume_early(dev);
-+
-+	if (ret)
-+		return ret;
-+
-+	acpi_lpss_restore_ctx(dev);
-+	return pm_generic_resume_early(dev);
-+}
-+#endif /* CONFIG_PM_SLEEP */
-+
-+#ifdef CONFIG_PM_RUNTIME
-+static int acpi_lpss_runtime_suspend(struct device *dev)
-+{
-+	int ret = pm_generic_runtime_suspend(dev);
-+
-+	if (ret)
-+		return ret;
-+
-+	acpi_lpss_save_ctx(dev);
-+	return acpi_dev_runtime_suspend(dev);
-+}
-+
-+static int acpi_lpss_runtime_resume(struct device *dev)
-+{
-+	int ret = acpi_dev_runtime_resume(dev);
-+
-+	if (ret)
-+		return ret;
-+
-+	acpi_lpss_restore_ctx(dev);
-+	return pm_generic_runtime_resume(dev);
-+}
-+#endif /* CONFIG_PM_RUNTIME */
-+#endif /* CONFIG_PM */
-+
-+static struct dev_pm_domain acpi_lpss_pm_domain = {
-+	.ops = {
-+#ifdef CONFIG_PM_SLEEP
-+		.suspend_late = acpi_lpss_suspend_late,
-+		.restore_early = acpi_lpss_restore_early,
-+		.prepare = acpi_subsys_prepare,
-+		.suspend = acpi_subsys_suspend,
-+		.resume_early = acpi_subsys_resume_early,
-+		.freeze = acpi_subsys_freeze,
-+		.poweroff = acpi_subsys_suspend,
-+		.poweroff_late = acpi_subsys_suspend_late,
-+#endif
-+#ifdef CONFIG_PM_RUNTIME
-+		.runtime_suspend = acpi_lpss_runtime_suspend,
-+		.runtime_resume = acpi_lpss_runtime_resume,
-+#endif
-+	},
-+};
-+
- static int acpi_lpss_platform_notify(struct notifier_block *nb,
- 				     unsigned long action, void *data)
- {
-@@ -456,7 +561,6 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
- 	struct lpss_private_data *pdata;
- 	struct acpi_device *adev;
- 	const struct acpi_device_id *id;
--	int ret = 0;
- 
- 	id = acpi_match_device(acpi_lpss_device_ids, &pdev->dev);
- 	if (!id || !id->driver_data)
-@@ -466,7 +570,7 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
- 		return 0;
- 
- 	pdata = acpi_driver_data(adev);
--	if (!pdata || !pdata->mmio_base || !pdata->dev_desc->ltr_required)
-+	if (!pdata || !pdata->mmio_base)
- 		return 0;
- 
- 	if (pdata->mmio_size < pdata->dev_desc->prv_offset + LPSS_LTR_SIZE) {
-@@ -474,12 +578,27 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
- 		return 0;
- 	}
- 
--	if (action == BUS_NOTIFY_ADD_DEVICE)
--		ret = sysfs_create_group(&pdev->dev.kobj, &lpss_attr_group);
--	else if (action == BUS_NOTIFY_DEL_DEVICE)
--		sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
-+	switch (action) {
-+	case BUS_NOTIFY_BOUND_DRIVER:
-+		if (pdata->dev_desc->save_ctx)
-+			pdev->dev.pm_domain = &acpi_lpss_pm_domain;
-+		break;
-+	case BUS_NOTIFY_UNBOUND_DRIVER:
-+		if (pdata->dev_desc->save_ctx)
-+			pdev->dev.pm_domain = NULL;
-+		break;
-+	case BUS_NOTIFY_ADD_DEVICE:
-+		if (pdata->dev_desc->ltr_required)
-+			return sysfs_create_group(&pdev->dev.kobj,
-+						  &lpss_attr_group);
-+	case BUS_NOTIFY_DEL_DEVICE:
-+		if (pdata->dev_desc->ltr_required)
-+			sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
-+	default:
-+		break;
-+	}
- 
--	return ret;
-+	return 0;
- }
- 
- static struct notifier_block acpi_lpss_nb = {
--- 
-2.0.0.rc2
+Instead, it seems that the best way to solve it would be to add a 
+->prepare() handler for usb_ep_device_type that would always turn 
+on direct_complete.
+
+Alan Stern
+
