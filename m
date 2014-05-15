@@ -1,7 +1,7 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH V6 06/11] ACPI: introduce dummy memory hotplug scan handler
-Date: Thu, 15 May 2014 14:44:11 +0800
-Message-ID: <1400136256-2218-7-git-send-email-rui.zhang@intel.com>
+Subject: [PATCH V6 09/11] ACPI: introduce flag .is_master_device
+Date: Thu, 15 May 2014 14:44:14 +0800
+Message-ID: <1400136256-2218-10-git-send-email-rui.zhang@intel.com>
 References: <1400136256-2218-1-git-send-email-rui.zhang@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1400136256-2218-1-git-send-email-rui.zhang@intel.com>
@@ -10,135 +10,195 @@ To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The new ACPI device enumeration mechanism, which will be introduced
-in a later patch, will enumerate the _HID devices w/o any scan
-handler attached to platform bus.
-This means that, for the devices that are attached to a configurable
-scan handler, we should make sure no platform devices would be
-created for them even if the scan handler is compiled out.
+For some ACPI device objects, they represent master devices,
+and their children devices are enumerated by bus controller drivers
+for the buses they are on.
 
-Fix this problem for memory hotplug devuces by introducing a dummy
-memory hotplug scan handler in this patch.
+In this case, we do not want to enumerate their children devices to
+platform bus explicitly in acpi scan code.
 
-Plus, the dummy memory hotplug scan handler is also needed when
-kernel parameter "acpi_no_memhotplug" is used.
+Thus a new flag .is_master_device is introduced in this patch.
+
+For devices with this flag set, we will not do default enumeration
+for their children.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/Makefile          |  2 +-
- drivers/acpi/acpi_memhotplug.c | 45 ++++++++++++++++++++++++++++++------------
- drivers/acpi/internal.h        |  6 +-----
- 3 files changed, 34 insertions(+), 19 deletions(-)
+ drivers/acpi/acpi_lpss.c | 62 +++++++++++++++++++++++++++++++++---------------
+ include/acpi/acpi_bus.h  |  3 ++-
+ 2 files changed, 45 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 5611a07..171efc2 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -65,7 +65,7 @@ obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
- obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-y				+= container.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
--obj-$(CONFIG_ACPI_HOTPLUG_MEMORY) += acpi_memhotplug.o
-+obj-y				+= acpi_memhotplug.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
- obj-$(CONFIG_ACPI_SBS)		+= sbs.o
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index b67be85..ed2f6a7 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -44,6 +44,13 @@
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 965428f..4ab0915 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -54,6 +54,7 @@ struct lpss_shared_clock {
+ struct lpss_private_data;
  
- ACPI_MODULE_NAME("acpi_memhotplug");
+ struct lpss_device_desc {
++	bool is_master_device;
+ 	bool clk_required;
+ 	const char *clkdev_name;
+ 	bool ltr_required;
+@@ -91,6 +92,7 @@ static void lpss_uart_setup(struct lpss_private_data *pdata)
+ }
  
-+static const struct acpi_device_id memory_device_ids[] = {
-+	{ACPI_MEMORY_DEVICE_HID, 0},
-+	{"", 0},
+ static struct lpss_device_desc lpt_dev_desc = {
++	.is_master_device = true,
+ 	.clk_required = true,
+ 	.prv_offset = 0x800,
+ 	.ltr_required = true,
+@@ -98,6 +100,7 @@ static struct lpss_device_desc lpt_dev_desc = {
+ };
+ 
+ static struct lpss_device_desc lpt_uart_dev_desc = {
++	.is_master_device = true,
+ 	.clk_required = true,
+ 	.prv_offset = 0x800,
+ 	.ltr_required = true,
+@@ -106,6 +109,7 @@ static struct lpss_device_desc lpt_uart_dev_desc = {
+ };
+ 
+ static struct lpss_device_desc lpt_sdio_dev_desc = {
++	.is_master_device = true,
+ 	.prv_offset = 0x1000,
+ 	.prv_size_override = 0x1018,
+ 	.ltr_required = true,
+@@ -127,6 +131,7 @@ static struct lpss_shared_clock uart_clock = {
+ };
+ 
+ static struct lpss_device_desc byt_uart_dev_desc = {
++	.is_master_device = true,
+ 	.clk_required = true,
+ 	.prv_offset = 0x800,
+ 	.clk_gate = true,
+@@ -140,6 +145,7 @@ static struct lpss_shared_clock spi_clock = {
+ };
+ 
+ static struct lpss_device_desc byt_spi_dev_desc = {
++	.is_master_device = true,
+ 	.clk_required = true,
+ 	.prv_offset = 0x400,
+ 	.clk_gate = true,
+@@ -147,6 +153,7 @@ static struct lpss_device_desc byt_spi_dev_desc = {
+ };
+ 
+ static struct lpss_device_desc byt_sdio_dev_desc = {
++	.is_master_device = true,
+ 	.clk_required = true,
+ };
+ 
+@@ -156,16 +163,24 @@ static struct lpss_shared_clock i2c_clock = {
+ };
+ 
+ static struct lpss_device_desc byt_i2c_dev_desc = {
++	.is_master_device = true,
+ 	.clk_required = true,
+ 	.prv_offset = 0x800,
+ 	.shared_clock = &i2c_clock,
+ };
+ 
+ #define LPSS_PTR(desc) ((unsigned long)&desc)
++#define LPSS_MASTER_PTR(desc) LPSS_PTR(desc)
+ 
+ #else
+ 
+-#define LPSS_PTR(desc) 0
++static struct lpss_device_desc lpss_dummy_desc;
++static struct lpss_device_desc lpss_dummy_master_desc = {
++	.is_master_device = true,
 +};
 +
-+#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
++#define LPSS_PTR(desc) (&lpss_dummy_desc)
++#define LPSS_MASTER_PTR(desc) (&lpss_dummy_master_desc)
+ 
+ #endif
+ 
+@@ -174,30 +189,30 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+ 	{ "INTL9C60", LPSS_PTR(lpss_dma_desc) },
+ 
+ 	/* Lynxpoint LPSS devices */
+-	{ "INT33C0", LPSS_PTR(lpt_dev_desc) },
+-	{ "INT33C1", LPSS_PTR(lpt_dev_desc) },
+-	{ "INT33C2", LPSS_PTR(lpt_dev_desc) },
+-	{ "INT33C3", LPSS_PTR(lpt_dev_desc) },
+-	{ "INT33C4", LPSS_PTR(lpt_uart_dev_desc) },
+-	{ "INT33C5", LPSS_PTR(lpt_uart_dev_desc) },
+-	{ "INT33C6", LPSS_PTR(lpt_sdio_dev_desc) },
++	{ "INT33C0", LPSS_MASTER_PTR(lpt_dev_desc) },
++	{ "INT33C1", LPSS_MASTER_PTR(lpt_dev_desc) },
++	{ "INT33C2", LPSS_MASTER_PTR(lpt_dev_desc) },
++	{ "INT33C3", LPSS_MASTER_PTR(lpt_dev_desc) },
++	{ "INT33C4", LPSS_MASTER_PTR(lpt_uart_dev_desc) },
++	{ "INT33C5", LPSS_MASTER_PTR(lpt_uart_dev_desc) },
++	{ "INT33C6", LPSS_MASTER_PTR(lpt_sdio_dev_desc) },
+ 	{ "INT33C7", },
+ 
+ 	/* BayTrail LPSS devices */
+ 	{ "80860F09", LPSS_PTR(byt_pwm_dev_desc) },
+-	{ "80860F0A", LPSS_PTR(byt_uart_dev_desc) },
+-	{ "80860F0E", LPSS_PTR(byt_spi_dev_desc) },
+-	{ "80860F14", LPSS_PTR(byt_sdio_dev_desc) },
+-	{ "80860F41", LPSS_PTR(byt_i2c_dev_desc) },
++	{ "80860F0A", LPSS_MASTER_PTR(byt_uart_dev_desc) },
++	{ "80860F0E", LPSS_MASTER_PTR(byt_spi_dev_desc) },
++	{ "80860F14", LPSS_MASTER_PTR(byt_sdio_dev_desc) },
++	{ "80860F41", LPSS_MASTER_PTR(byt_i2c_dev_desc) },
+ 	{ "INT33B2", },
+ 
+-	{ "INT3430", LPSS_PTR(lpt_dev_desc) },
+-	{ "INT3431", LPSS_PTR(lpt_dev_desc) },
+-	{ "INT3432", LPSS_PTR(lpt_dev_desc) },
+-	{ "INT3433", LPSS_PTR(lpt_dev_desc) },
+-	{ "INT3434", LPSS_PTR(lpt_uart_dev_desc) },
+-	{ "INT3435", LPSS_PTR(lpt_uart_dev_desc) },
+-	{ "INT3436", LPSS_PTR(lpt_sdio_dev_desc) },
++	{ "INT3430", LPSS_MASTER_PTR(lpt_dev_desc) },
++	{ "INT3431", LPSS_MASTER_PTR(lpt_dev_desc) },
++	{ "INT3432", LPSS_MASTER_PTR(lpt_dev_desc) },
++	{ "INT3433", LPSS_MASTER_PTR(lpt_dev_desc) },
++	{ "INT3434", LPSS_MASTER_PTR(lpt_uart_dev_desc) },
++	{ "INT3435", LPSS_MASTER_PTR(lpt_uart_dev_desc) },
++	{ "INT3436", LPSS_MASTER_PTR(lpt_sdio_dev_desc) },
+ 	{ "INT3437", },
+ 
+ 	{ }
+@@ -285,6 +300,8 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 	if (!dev_desc)
+ 		return acpi_create_platform_device(adev, id);
+ 
++	adev->flags.is_master_device = dev_desc->is_master_device;
 +
- /* Memory Device States */
- #define MEMORY_INVALID_STATE	0
- #define MEMORY_POWER_ON_STATE	1
-@@ -53,11 +60,6 @@ static int acpi_memory_device_add(struct acpi_device *device,
- 				  const struct acpi_device_id *not_used);
- static void acpi_memory_device_remove(struct acpi_device *device);
- 
--static const struct acpi_device_id memory_device_ids[] = {
--	{ACPI_MEMORY_DEVICE_HID, 0},
--	{"", 0},
--};
--
- static struct acpi_scan_handler memory_device_handler = {
- 	.ids = memory_device_ids,
- 	.attach = acpi_memory_device_add,
-@@ -362,17 +364,34 @@ static void acpi_memory_device_remove(struct acpi_device *device)
- 
- static bool __initdata acpi_no_memhotplug;
- 
--void __init acpi_memory_hotplug_init(void)
--{
--	if (acpi_no_memhotplug)
--		return;
--
--	acpi_scan_add_handler_with_hotplug(&memory_device_handler, "memory");
--}
--
- static int __init disable_acpi_memory_hotplug(char *str)
+ 	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+ 	if (!pdata)
+ 		return -ENOMEM;
+@@ -528,6 +545,13 @@ static struct acpi_scan_handler lpss_handler = {
+ static int acpi_lpss_dummy_attach(struct acpi_device *adev,
+ 				const struct acpi_device_id *id)
  {
- 	acpi_no_memhotplug = true;
++	struct lpss_device_desc *dev_desc;
++
++	dev_desc = (struct lpss_device_desc *)id->driver_data;
++	if (!dev_desc)
++		return 1;
++
++	adev->flags.is_master_device = dev_desc->is_master_device;
  	return 1;
  }
- __setup("acpi_no_memhotplug", disable_acpi_memory_hotplug);
-+
-+#endif
-+
-+static int acpi_memory_dummy_add(struct acpi_device *device,
-+				 const struct acpi_device_id *not_used)
-+{
-+	return 1;
-+}
-+
-+static struct acpi_scan_handler memory_dummy_handler = {
-+	.ids = memory_device_ids,
-+	.attach = acpi_memory_dummy_add,
-+};
-+
-+void __init acpi_memory_hotplug_init(void)
-+{
-+#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
-+	if (!acpi_no_memhotplug) {
-+		acpi_scan_add_handler_with_hotplug(&memory_device_handler,
-+						"memory");
-+		return;
-+	}
-+#endif
-+	acpi_scan_add_handler(&memory_dummy_handler);
-+}
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 499908e..4a9e999 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -33,6 +33,7 @@ void acpi_platform_init(void);
- void acpi_pnp_init(void);
- int acpi_sysfs_init(void);
- void acpi_container_init(void);
-+void acpi_memory_hotplug_init(void);
- #ifdef CONFIG_ACPI_DOCK
- void register_dock_dependent_device(struct acpi_device *adev,
- 				    acpi_handle dshandle);
-@@ -44,11 +45,6 @@ static inline void register_dock_dependent_device(struct acpi_device *adev,
- static inline int dock_notify(struct acpi_device *adev, u32 event) { return -ENODEV; }
- static inline void acpi_dock_add(struct acpi_device *adev) {}
- #endif
--#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
--void acpi_memory_hotplug_init(void);
--#else
--static inline void acpi_memory_hotplug_init(void) {}
--#endif
- #ifdef CONFIG_X86
- void acpi_cmos_rtc_init(void);
- #else
+ 
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index ec92ad3..13ac75f 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -207,7 +207,8 @@ struct acpi_device_flags {
+ 	u32 no_hotplug:1;
+ 	u32 hotplug_notify:1;
+ 	u32 is_dock_station:1;
+-	u32 reserved:22;
++	u32 is_master_device:1;
++	u32 reserved:21;
+ };
+ 
+ /* File System */
 -- 
 1.8.3.2
