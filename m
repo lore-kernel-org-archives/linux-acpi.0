@@ -1,137 +1,330 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 3/4] acpi-video: Unregister the backlight device if a raw one shows up later
-Date: Thu, 15 May 2014 20:34:25 +0200
-Message-ID: <1400178866-3659-4-git-send-email-hdegoede@redhat.com>
-References: <1400178866-3659-1-git-send-email-hdegoede@redhat.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [RFC PATCH 2/5] thermal: cpu_cooling: Add notifications support
+ for the clients
+Date: Thu, 15 May 2014 14:45:34 -0400
+Message-ID: <20140515184534.GB3138@developer>
+References: <1399559880-20562-1-git-send-email-amit.daniel@samsung.com>
+ <1399559880-20562-3-git-send-email-amit.daniel@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52476 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754698AbaEOSfC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 May 2014 14:35:02 -0400
-In-Reply-To: <1400178866-3659-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-yk0-f175.google.com ([209.85.160.175]:50488 "EHLO
+	mail-yk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754942AbaEOSkb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 May 2014 14:40:31 -0400
+Content-Disposition: inline
+In-Reply-To: <1399559880-20562-3-git-send-email-amit.daniel@samsung.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Jingoo Han <jg1.han@samsung.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans de Goede <hdegoede@redhat.com>
+To: Amit Daniel Kachhap <amit.daniel@samsung.com>
+Cc: linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rui.zhang@intel.com, eduardo.valentin@ti.com, rjw@rjwysocki.net
 
-When video.use_native_backlight=1 and non intel gfx are in use, the raw
-backlight device of the gfx driver will show up after acpi-video has done its
-acpi_video_verify_backlight_support() check.
+Hello Amit,
 
-This causes video.use_native_backlight=1 to not have the desired result.
 
-This patch fixes this by adding a backlight notifier and when a raw
-backlight is registered or unregistered re-doing the
-acpi_video_verify_backlight_support() check.
+On Thu, May 08, 2014 at 08:07:57PM +0530, Amit Daniel Kachhap wrote:
+> This patch adds notification support for those clients of cpu_cooling
+> APIs which may want to do something interesting after receiving these
+> cpu_cooling events. The notifier structure passed is of both Set/Get type.
+> The notfications events can be of type,
+> 1. CPU_COOLING_SET_STATE_PRE
+> 2. CPU_COOLING_SET_STATE_POST
+> 3. CPU_COOLING_GET_CUR_STATE
+> 4. CPU_COOLING_GET_MAX_STATE
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/video.c | 57 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 57 insertions(+)
+What do you think about expanding this feature to all cooling devices?
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index aee85c4..123f919 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -151,6 +151,7 @@ struct acpi_video_enumerated_device {
- struct acpi_video_bus {
- 	struct acpi_device *device;
- 	bool backlight_registered;
-+	bool backlight_notifier_registered;
- 	u8 dos_setting;
- 	struct acpi_video_enumerated_device *attached_array;
- 	u8 attached_count;
-@@ -162,6 +163,7 @@ struct acpi_video_bus {
- 	struct input_dev *input;
- 	char phys[32];	/* for input device */
- 	struct notifier_block pm_nb;
-+	struct notifier_block backlight_nb;
- };
- 
- struct acpi_video_device_flags {
-@@ -1836,6 +1838,9 @@ static int acpi_video_bus_register_backlight(struct acpi_video_bus *video)
- {
- 	struct acpi_video_device *dev;
- 
-+	if (video->backlight_registered)
-+		return 0;
-+
- 	if (!acpi_video_verify_backlight_support())
- 		return 0;
- 
-@@ -1980,6 +1985,56 @@ static void acpi_video_bus_remove_notify_handler(struct acpi_video_bus *video)
- 	video->input = NULL;
- }
- 
-+static int acpi_video_backlight_notify(struct notifier_block *nb,
-+					unsigned long val, void *bd)
-+{
-+	struct backlight_device *backlight = bd;
-+	struct acpi_video_bus *video;
-+
-+	/* acpi_video_verify_backlight_support only cares about raw devices */
-+	if (backlight->props.type != BACKLIGHT_RAW)
-+		return NOTIFY_DONE;
-+
-+	video = container_of(nb, struct acpi_video_bus, backlight_nb);
-+
-+	switch (val) {
-+	case BACKLIGHT_REGISTERED:
-+		if (!acpi_video_verify_backlight_support())
-+			acpi_video_bus_unregister_backlight(video);
-+		break;
-+	case BACKLIGHT_UNREGISTERED:
-+		acpi_video_bus_register_backlight(video);
-+		break;
-+	}
-+
-+	return NOTIFY_OK;
-+}
-+
-+static int acpi_video_bus_add_backlight_notify_handler(
-+						struct acpi_video_bus *video)
-+{
-+	int error;
-+
-+	video->backlight_nb.notifier_call = acpi_video_backlight_notify;
-+	video->backlight_nb.priority = 0;
-+	error = backlight_register_notifier(&video->backlight_nb);
-+	if (error == 0)
-+		video->backlight_notifier_registered = true;
-+
-+	return error;
-+}
-+
-+static int acpi_video_bus_remove_backlight_notify_handler(
-+						struct acpi_video_bus *video)
-+{
-+	if (!video->backlight_notifier_registered)
-+		return 0;
-+
-+	video->backlight_notifier_registered = false;
-+
-+	return backlight_unregister_notifier(&video->backlight_nb);
-+}
-+
- static int acpi_video_bus_put_devices(struct acpi_video_bus *video)
- {
- 	struct acpi_video_device *dev, *next;
-@@ -2061,6 +2116,7 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 
- 	acpi_video_bus_register_backlight(video);
- 	acpi_video_bus_add_notify_handler(video);
-+	acpi_video_bus_add_backlight_notify_handler(video);
- 
- 	return 0;
- 
-@@ -2084,6 +2140,7 @@ static int acpi_video_bus_remove(struct acpi_device *device)
- 
- 	video = acpi_driver_data(device);
- 
-+	acpi_video_bus_remove_backlight_notify_handler(video);
- 	acpi_video_bus_remove_notify_handler(video);
- 	acpi_video_bus_unregister_backlight(video);
- 	acpi_video_bus_put_devices(video);
--- 
-1.9.0
+I mean, why should we restrict to cpu(freq) cooling?
 
+The clock cooling device I posted (and that I plan to merge soon) should
+also benefit of this infrastructure. The clock cooling is for the
+context of other processing units, that do not benefit of cpufreq.
+
+
+> 
+> The advantages of these notfications is to differentiate between different
+> P states in the cpufreq table and the cooling states. The clients of these
+> events may group few P states into 1 cooling states. Also some more cooling
+> states can be enabled when the maximum of P state is reached. Post notifications
+> can be used for those cases.
+> 
+> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+> ---
+>  drivers/thermal/cpu_cooling.c |   99 +++++++++++++++++++++++++++++++++++++++-
+>  include/linux/cpu_cooling.h   |   55 +++++++++++++++++++++++
+>  2 files changed, 151 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
+> index 21f44d4..e2aeb36 100644
+> --- a/drivers/thermal/cpu_cooling.c
+> +++ b/drivers/thermal/cpu_cooling.c
+> @@ -50,6 +50,7 @@ struct cpufreq_cooling_device {
+>  	unsigned int cpufreq_state;
+>  	unsigned int cpufreq_val;
+>  	struct cpumask allowed_cpus;
+> +	struct cpufreq_cooling_status request_status;
+>  	struct list_head node;
+>  };
+>  static DEFINE_IDR(cpufreq_idr);
+> @@ -59,6 +60,8 @@ static DEFINE_MUTEX(cooling_cpufreq_lock);
+>  #define NOTIFY_INVALID NULL
+>  static struct cpufreq_cooling_device *notify_device;
+>  
+> +/* Notfier list to validates/updates the cpufreq cooling states */
+> +static BLOCKING_NOTIFIER_HEAD(cpufreq_cooling_state_notifier_list);
+>  /* A list to hold all the cpufreq cooling devices registered */
+>  static LIST_HEAD(cpufreq_cooling_list);
+>  
+> @@ -266,6 +269,21 @@ static unsigned int get_cpu_frequency(unsigned int cpu, unsigned long level)
+>  	return freq;
+>  }
+>  
+> +static int
+> +cpufreq_cooling_notify_states(struct cpufreq_cooling_status *request,
+> +			enum cpu_cooling_state_ops op)
+> +{
+> +	/* Invoke the notifiers which have registered for this state change */
+> +	if (op == CPU_COOLING_SET_STATE_PRE ||
+> +		op == CPU_COOLING_SET_STATE_POST ||
+> +		op == CPU_COOLING_GET_MAX_STATE ||
+> +		op == CPU_COOLING_GET_CUR_STATE) {
+> +		blocking_notifier_call_chain(
+> +			&cpufreq_cooling_state_notifier_list, op, request);
+> +	}
+> +	return 0;
+> +}
+> +
+>  /**
+>   * cpufreq_apply_cooling - function to apply frequency clipping.
+>   * @cpufreq_device: cpufreq_cooling_device pointer containing frequency
+> @@ -285,9 +303,18 @@ static int cpufreq_apply_cooling(struct cpufreq_cooling_device *cpufreq_device,
+>  	struct cpumask *mask = &cpufreq_device->allowed_cpus;
+>  	unsigned int cpu = cpumask_any(mask);
+>  
+> +	cpufreq_device->request_status.cur_state =
+> +						cpufreq_device->cpufreq_state;
+> +	cpufreq_device->request_status.new_state = cooling_state;
+> +
+> +	cpufreq_cooling_notify_states(&cpufreq_device->request_status,
+> +					CPU_COOLING_SET_STATE_PRE);
+> +
+
+Can a listener block/abort/postpone a state transition?
+
+> +	cooling_state = cpufreq_device->request_status.new_state;
+>  
+
+So you are proposing listeners can have control on target cpufreq state,
+right? Or did I get it wrong?
+
+I think we should have this better documented. Besides, if that is the
+case, what happens if we have several listeners?
+
+>  	/* Check if the old cooling action is same as new cooling action */
+> -	if (cpufreq_device->cpufreq_state == cooling_state)
+> +	if (cpufreq_device->cpufreq_state ==
+> +				cpufreq_device->request_status.new_state)
+>  		return 0;
+>  
+>  	clip_freq = get_cpu_frequency(cpu, cooling_state);
+> @@ -304,7 +331,8 @@ static int cpufreq_apply_cooling(struct cpufreq_cooling_device *cpufreq_device,
+>  	}
+>  
+>  	notify_device = NOTIFY_INVALID;
+> -
+> +	cpufreq_cooling_notify_states(&cpufreq_device->request_status,
+> +					CPU_COOLING_SET_STATE_POST);
+>  	return 0;
+>  }
+>  
+> @@ -383,6 +411,11 @@ static int cpufreq_get_max_state(struct thermal_cooling_device *cdev,
+>  	if (count > 0)
+>  		*state = count;
+>  
+> +	cpufreq_device->request_status.max_state = count;
+> +	cpufreq_cooling_notify_states(&cpufreq_device->request_status,
+> +					CPU_COOLING_GET_MAX_STATE);
+> +	*state = cpufreq_device->request_status.max_state;
+> +
+
+same question here, who determines the priorities when several listeners
+are present in the system?
+
+>  	return ret;
+>  }
+>  
+> @@ -410,8 +443,12 @@ static int cpufreq_get_cur_state(struct thermal_cooling_device *cdev,
+>  		/* Cooling device pointer not found */
+>  		return -EINVAL;
+>  	}
+> +	cpufreq_device->request_status.cur_state =
+> +						cpufreq_device->cpufreq_state;
+> +	cpufreq_cooling_notify_states(&cpufreq_device->request_status,
+> +					CPU_COOLING_GET_CUR_STATE);
+>  
+
+ditto.
+
+> -	*state = cpufreq_device->cpufreq_state;
+> +	*state = cpufreq_device->request_status.cur_state;
+>  
+>  	return 0;
+>  }
+> @@ -520,6 +557,7 @@ __cpufreq_cooling_register(struct device_node *np,
+>  	}
+>  	cpufreq_dev->cool_dev = cool_dev;
+>  	cpufreq_dev->cpufreq_state = 0;
+> +	cpufreq_dev->request_status.devdata = devdata;
+>  	mutex_lock(&cooling_cpufreq_lock);
+>  
+>  	/* Register the notifier for first cpufreq cooling device */
+> @@ -614,3 +652,58 @@ void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
+>  	kfree(cpufreq_dev);
+>  }
+>  EXPORT_SYMBOL_GPL(cpufreq_cooling_unregister);
+> +
+> +/**
+> + * cpufreq_cooling_register_notifier - register a driver with cpufreq cooling.
+> + * @nb:	notifier function to register.
+> + * @list: CPU_COOLING_STATE_NOTIFIER type.
+> + *
+> + * Add a driver to receive cpufreq cooling notifications like current state,
+> + * max state and set state. The drivers after reading the events can perform
+> + * some mapping between the P states and cooling states like grouping some P
+> + * states into 1 cooling state.
+> + *
+> + * Return: 0 (success)
+> + */
+> +int cpufreq_cooling_register_notifier(struct notifier_block *nb,
+> +					unsigned int list)
+> +{
+> +	int ret = 0;
+> +	switch (list) {
+> +	case CPU_COOLING_STATE_NOTIFIER:
+> +		ret = blocking_notifier_chain_register(
+> +				&cpufreq_cooling_state_notifier_list, nb);
+> +		break;
+> +	default:
+> +		ret = -EINVAL;
+> +	}
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(cpufreq_cooling_register_notifier);
+> +
+> +/**
+> + * cpufreq_cooling_unregister_notifier - unregisters a driver with cpufreq
+> + * cooling.
+> + * @nb:	notifier function to unregister.
+> + * @list: CPU_COOLING_STATE_NOTIFIER type.
+> + *
+> + * Removes a driver to receive further cpufreq cooling notifications.
+> + *
+> + * Return: 0 (success)
+> + */
+> +int cpufreq_cooling_unregister_notifier(struct notifier_block *nb,
+> +					unsigned int list)
+> +{
+> +	int ret = 0;
+> +	switch (list) {
+> +	case CPU_COOLING_STATE_NOTIFIER:
+> +		ret = blocking_notifier_chain_unregister(
+> +				&cpufreq_cooling_state_notifier_list, nb);
+> +		break;
+> +	default:
+> +		ret = -EINVAL;
+> +	}
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(cpufreq_cooling_unregister_notifier);
+
+The exported symbols must be documented under Documentation/ too.
+
+> diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
+> index aaef7d8..f786935 100644
+> --- a/include/linux/cpu_cooling.h
+> +++ b/include/linux/cpu_cooling.h
+> @@ -28,6 +28,22 @@
+>  #include <linux/thermal.h>
+>  #include <linux/cpumask.h>
+>  
+> +#define CPU_COOLING_STATE_NOTIFIER	(0)
+> +
+> +enum cpu_cooling_state_ops {
+> +	CPU_COOLING_SET_STATE_PRE,
+> +	CPU_COOLING_SET_STATE_POST,
+> +	CPU_COOLING_GET_CUR_STATE,
+> +	CPU_COOLING_GET_MAX_STATE,
+> +};
+> +
+> +struct cpufreq_cooling_status {
+> +	unsigned long cur_state;
+> +	unsigned long new_state;
+> +	unsigned long max_state;
+> +	void *devdata;
+> +};
+> +
+>  #ifdef CONFIG_CPU_THERMAL
+>  /**
+>   * cpufreq_cooling_register - function to create cpufreq cooling device.
+> @@ -62,6 +78,34 @@ of_cpufreq_cooling_register(struct device_node *np,
+>  void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev);
+>  
+>  unsigned long cpufreq_cooling_get_level(unsigned int cpu, unsigned int freq);
+> +
+> +/**
+> + * cpufreq_cooling_register_notifier - register a driver with cpufreq cooling.
+> + * @nb:	notifier function to register.
+> + * @list: CPU_COOLING_STATE_NOTIFIER type.
+> + *
+> + * Add a driver to receive cpufreq cooling notifications like current state,
+> + * max state and set state. The drivers after reading the events can perform
+> + * some mapping between the P states and cooling states like grouping some P
+> + * states into 1 cooling state.
+> + *
+> + * Return: 0 (success)
+> + */
+> +int cpufreq_cooling_register_notifier(struct notifier_block *nb,
+> +					unsigned int list);
+> +
+> +/**
+> + * cpufreq_cooling_unregister_notifier - unregisters a driver with cpufreq
+> + * cooling.
+> + * @nb:	notifier function to unregister.
+> + * @list: CPU_COOLING_STATE_NOTIFIER type.
+> + *
+> + * Removes a driver to receive further cpufreq cooling notifications.
+> + *
+> + * Return: 0 (success)
+> + */
+> +int cpufreq_cooling_unregister_notifier(struct notifier_block *nb,
+> +					unsigned int list);
+>  #else /* !CONFIG_CPU_THERMAL */
+>  static inline struct thermal_cooling_device *
+>  cpufreq_cooling_register(const struct cpumask *clip_cpus, void *devdata)
+> @@ -84,6 +128,17 @@ unsigned long cpufreq_cooling_get_level(unsigned int cpu, unsigned int freq)
+>  {
+>  	return THERMAL_CSTATE_INVALID;
+>  }
+> +static inline int
+> +cpufreq_cooling_register_notifier(struct notifier_block *nb, unsigned int list)
+> +{
+> +	return 0;
+> +}
+> +static inline int
+> +cpufreq_cooling_unregister_notifier(struct notifier_block *nb,
+> +					unsigned int list)
+> +{
+> +	return 0;
+> +}
+>  #endif	/* CONFIG_CPU_THERMAL */
+>  
+>  #endif /* __CPU_COOLING_H__ */
+> -- 
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
