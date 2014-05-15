@@ -1,72 +1,74 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCHv2 0/4] ACPI / LPSS: Solution for two issues seen on Asus
- T100
-Date: Thu, 15 May 2014 17:53:30 +0300
-Message-ID: <1400165610.3703.41.camel@smile.fi.intel.com>
-References: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com>
-	 <5374D0A8.2090407@linux.intel.com>
+From: Jacob Pan <jacob.jun.pan@linux.intel.com>
+Subject: Re: [RFC][PATCH 2/3] PM / sleep: Mechanism to avoid resuming
+ runtime-suspended devices unnecessarily
+Date: Thu, 15 May 2014 00:03:20 -0700
+Message-ID: <20140515000320.3c1c9256@jacob-desktop>
+References: <20140515060924.69ae7486@ultegra>
+	<Pine.LNX.4.44L0.1405151024060.1415-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:49178 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:27438 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751506AbaEOOxi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 May 2014 10:53:38 -0400
-In-Reply-To: <5374D0A8.2090407@linux.intel.com>
+	id S1754698AbaEOPEg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 May 2014 11:04:36 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1405151024060.1415-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Li, Aubrey" <aubrey.li@linux.intel.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mike Turquette <mturquette@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>
 
-On Thu, 2014-05-15 at 22:35 +0800, Li, Aubrey wrote:
-> On 2014/5/15 21:40, Heikki Krogerus wrote:
-> > Changes since v1:
-> > - now using do_div() in clk_fd_recalc_rate() as suggested by Andy
-> > - NULL checks for clk_name allocation in acpi_lpss.c
-> > 
-> > This combines two patch sets for LPSS that I had already send for
-> > review separately. They conflicted with each other.
-> > 
-> > The first two patches will fix a problem were the context of the
-> > private LPSS registers is lost when entering D3. The last two will add
-> > support for the M/N dividers on LPSS by adding a new basic clock type
-> > for fractional dividers. The UART driver needs support for it in order
-> > to get clock rates that suit the requested baud rates.
+On Thu, 15 May 2014 10:29:42 -0400 (EDT)
+Alan Stern <stern@rowland.harvard.edu> wrote:
+
+> On Thu, 15 May 2014, Jacob Pan wrote:
 > 
-> The major issue in my mind is, this proposal makes a couple between I2C
-> designware, HSUART, or probably DMA driver as well with LPSS driver.
-
-acpi_lpss driver creates platform devices for each found and enumerated
-device. If there no acpi_lpss enabled the drivers work as supposed
-without it. I didn't see any contradiction here.
-
-> That is, currently without LPSS driver, I2C/HSUART won't work properly.
-> So we at least need to describe this dependency in Kconfig.
+> > > > should we respect ignore_children flag here? not all parent
+> > > > devices create children with proper .prepare() function. this
+> > > > allows parents override children.
+> > > > I am looking at USB, a USB device could have logical children
+> > > > such as ep_xx, they don't go through the same
+> > > > subsystem .prepare().
+> > > 
+> > > Well, I'm not sure about that.  Let me consider that for a while.
+> > OK. let me be more clear about the situation i see in USB. Correct
+> > me if I am wrong, a USB device will always has at least one
+> > endpoint/ep_00 as a kid for control pipe, it is a logical device.
+> > So when device_prepare() is called, its call back is NULL which
+> > makes .direct_complete = 0. Since children device suspend is called
+> > before parents, the parents .direct_complete flag will always get
+> > cleared.
+> > 
+> > What i am trying to achieve here is to see if we avoid resuming
+> > built-in (hardwired connect_type) non-hub USB devices based on this
+> > new patchset. E.g. we don't want to resume/suspend USB camera every
+> > time in system suspend/resume cycle if they are already rpm
+> > suspended. We can save ~100ms resume time for the devices we have
+> > tested.
 > 
-> Thanks,
-> -Aubrey
-> > 
-> > 
-> > Heikki Krogerus (4):
-> >   ACPI / PM: Export rest of the subsys functions
-> >   ACPI / LPSS: custom power domain for LPSS
-> >   clk: new basic clk type for fractional divider
-> >   ACPI / LPSS: support for fractional divider clock
-> > 
-> >  drivers/acpi/acpi_lpss.c             | 204 ++++++++++++++++++++++++++++++-----
-> >  drivers/acpi/device_pm.c             |   2 +
-> >  drivers/clk/Makefile                 |   1 +
-> >  drivers/clk/clk-fractional-divider.c | 135 +++++++++++++++++++++++
-> >  include/linux/acpi.h                 |   4 +
-> >  include/linux/clk-provider.h         |  31 ++++++
-> >  6 files changed, 349 insertions(+), 28 deletions(-)
-> >  create mode 100644 drivers/clk/clk-fractional-divider.c
-> > 
+> This is a good point, but I don't think it is at all related to 
+> ignore_children.
 > 
+> Instead, it seems that the best way to solve it would be to add a 
+> ->prepare() handler for usb_ep_device_type that would always turn 
+> on direct_complete.
+> 
+yeah, that would solve the problem with EP device type. But what about
+other subdevices. e.g. for USB camera, uvcvideo device? We can add
+.prepare(return 1;) for each level but would it be better to have a
+flag similar to ignore_children if not ignore_children itself.
+Actually, I don't understand why this is not related to
+ignore_children. Could you explain?
 
+If the parent knows it can ignore children and already rpm suspended,
+why do we still ask children?
 
--- 
-Andy Shevchenko <andriy.shevchenko@intel.com>
-Intel Finland Oy
+> Alan Stern
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+[Jacob Pan]
