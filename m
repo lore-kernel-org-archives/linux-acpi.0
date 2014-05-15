@@ -1,73 +1,52 @@
-From: "Li, Aubrey" <aubrey.li@linux.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 Subject: Re: [PATCHv2 0/4] ACPI / LPSS: Solution for two issues seen on Asus
  T100
-Date: Thu, 15 May 2014 23:59:46 +0800
-Message-ID: <5374E472.9030001@linux.intel.com>
-References: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com>	 <5374D0A8.2090407@linux.intel.com> <1400165610.3703.41.camel@smile.fi.intel.com>
+Date: Thu, 15 May 2014 19:11:48 +0300
+Message-ID: <20140515161148.GM1674@lahna.fi.intel.com>
+References: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <5374D0A8.2090407@linux.intel.com>
+ <1400165610.3703.41.camel@smile.fi.intel.com>
+ <5374E472.9030001@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1400165610.3703.41.camel@smile.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mike Turquette <mturquette@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:23662 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751912AbaEOQMI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 May 2014 12:12:08 -0400
+Content-Disposition: inline
+In-Reply-To: <5374E472.9030001@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Li, Aubrey" <aubrey.li@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mike Turquette <mturquette@linaro.org>, Jin Yao <yao.jin@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2014/5/15 22:53, Andy Shevchenko wrote:
-> On Thu, 2014-05-15 at 22:35 +0800, Li, Aubrey wrote:
->> On 2014/5/15 21:40, Heikki Krogerus wrote:
->>> Changes since v1:
->>> - now using do_div() in clk_fd_recalc_rate() as suggested by Andy
->>> - NULL checks for clk_name allocation in acpi_lpss.c
->>>
->>> This combines two patch sets for LPSS that I had already send for
->>> review separately. They conflicted with each other.
->>>
->>> The first two patches will fix a problem were the context of the
->>> private LPSS registers is lost when entering D3. The last two will add
->>> support for the M/N dividers on LPSS by adding a new basic clock type
->>> for fractional dividers. The UART driver needs support for it in order
->>> to get clock rates that suit the requested baud rates.
->>
->> The major issue in my mind is, this proposal makes a couple between I2C
->> designware, HSUART, or probably DMA driver as well with LPSS driver.
+On Thu, May 15, 2014 at 11:59:46PM +0800, Li, Aubrey wrote:
+> On 2014/5/15 22:53, Andy Shevchenko wrote:
+> > On Thu, 2014-05-15 at 22:35 +0800, Li, Aubrey wrote:
+> >> On 2014/5/15 21:40, Heikki Krogerus wrote:
+> >>> Changes since v1:
+> >>> - now using do_div() in clk_fd_recalc_rate() as suggested by Andy
+> >>> - NULL checks for clk_name allocation in acpi_lpss.c
+> >>>
+> >>> This combines two patch sets for LPSS that I had already send for
+> >>> review separately. They conflicted with each other.
+> >>>
+> >>> The first two patches will fix a problem were the context of the
+> >>> private LPSS registers is lost when entering D3. The last two will add
+> >>> support for the M/N dividers on LPSS by adding a new basic clock type
+> >>> for fractional dividers. The UART driver needs support for it in order
+> >>> to get clock rates that suit the requested baud rates.
+> >>
+> >> The major issue in my mind is, this proposal makes a couple between I2C
+> >> designware, HSUART, or probably DMA driver as well with LPSS driver.
+> > 
+> > acpi_lpss driver creates platform devices for each found and enumerated
+> > device.
 > 
-> acpi_lpss driver creates platform devices for each found and enumerated
-> device.
-
-> If there no acpi_lpss enabled the drivers work as supposed without it.
-
-This is not true.
-
-Thanks,
--Aubrey
-
-
-> I didn't see any contradiction here.
+> > If there no acpi_lpss enabled the drivers work as supposed without it.
 > 
->> That is, currently without LPSS driver, I2C/HSUART won't work properly.
->> So we at least need to describe this dependency in Kconfig.
->>
->> Thanks,
->> -Aubrey
->>>
->>>
->>> Heikki Krogerus (4):
->>>   ACPI / PM: Export rest of the subsys functions
->>>   ACPI / LPSS: custom power domain for LPSS
->>>   clk: new basic clk type for fractional divider
->>>   ACPI / LPSS: support for fractional divider clock
->>>
->>>  drivers/acpi/acpi_lpss.c             | 204 ++++++++++++++++++++++++++++++-----
->>>  drivers/acpi/device_pm.c             |   2 +
->>>  drivers/clk/Makefile                 |   1 +
->>>  drivers/clk/clk-fractional-divider.c | 135 +++++++++++++++++++++++
->>>  include/linux/acpi.h                 |   4 +
->>>  include/linux/clk-provider.h         |  31 ++++++
->>>  6 files changed, 349 insertions(+), 28 deletions(-)
->>>  create mode 100644 drivers/clk/clk-fractional-divider.c
->>>
->>
-> 
-> 
+> This is not true.
+
+The drivers work fine on non-LPSS platform. If you make them depend on
+acpi_lpss, you break that.
