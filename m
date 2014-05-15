@@ -1,124 +1,226 @@
 From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: [PATCH 1/7 v5] trace, RAS: Add basic RAS trace event
-Date: Thu, 15 May 2014 04:30:40 -0400
-Message-ID: <1400142646-10127-2-git-send-email-gong.chen@linux.intel.com>
+Subject: [PATCH 2/7 v3] trace, AER: Move trace into unified interface
+Date: Thu, 15 May 2014 04:30:41 -0400
+Message-ID: <1400142646-10127-3-git-send-email-gong.chen@linux.intel.com>
 References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:47149 "EHLO mga02.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:39634 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751052AbaEOI7v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 May 2014 04:59:51 -0400
+	id S1751088AbaEOI7y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 May 2014 04:59:54 -0400
 In-Reply-To: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com
 Cc: linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
 
-To avoid confuision and conflict of usage for RAS related trace event,
-add an unified RAS trace event stub.
+AER uses a separate trace interface by now. To make it
+consistent, move it into unified RAS trace interface.
 
-v5 -> v4: remove explicit RAS menuconfig.
-v4 -> v3: change dependency rule of RAS_TRACE.
-v3 -> v2: fix dependency in Kconfig.
-v2 -> v1: adjust Kconfig to take RAS as a separate subsystem.
+v3 -> v2: change dependency rule of RAS_TRACE.
+v2 -> v1: remove unnecessary dependency in drivers/ras/Kconfig.
 
 Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
 ---
- drivers/Kconfig        |  2 ++
- drivers/Makefile       |  1 +
- drivers/edac/Kconfig   |  1 +
- drivers/edac/edac_mc.c |  3 ---
- drivers/ras/Kconfig    |  6 ++++++
- drivers/ras/Makefile   |  1 +
- drivers/ras/ras.c      | 12 ++++++++++++
- 7 files changed, 23 insertions(+), 3 deletions(-)
- create mode 100644 drivers/ras/Kconfig
- create mode 100644 drivers/ras/Makefile
- create mode 100644 drivers/ras/ras.c
+ drivers/pci/pcie/aer/Kconfig           |  1 +
+ drivers/pci/pcie/aer/aerdrv_errprint.c |  4 +-
+ include/ras/ras_event.h                | 64 ++++++++++++++++++++++++++++
+ include/trace/events/ras.h             | 77 ----------------------------------
+ 4 files changed, 66 insertions(+), 80 deletions(-)
+ delete mode 100644 include/trace/events/ras.h
 
-diff --git a/drivers/Kconfig b/drivers/Kconfig
-index 0a0a90f..547e73a 100644
---- a/drivers/Kconfig
-+++ b/drivers/Kconfig
-@@ -174,4 +174,6 @@ source "drivers/powercap/Kconfig"
- 
- source "drivers/mcb/Kconfig"
- 
-+source "drivers/ras/Kconfig"
-+
- endmenu
-diff --git a/drivers/Makefile b/drivers/Makefile
-index d05d81b..71a4985 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -157,3 +157,4 @@ obj-$(CONFIG_NTB)		+= ntb/
- obj-$(CONFIG_FMC)		+= fmc/
- obj-$(CONFIG_POWERCAP)		+= powercap/
- obj-$(CONFIG_MCB)		+= mcb/
-+obj-$(CONFIG_RAS)		+= ras/
-diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
-index 878f090..1589a86 100644
---- a/drivers/edac/Kconfig
-+++ b/drivers/edac/Kconfig
-@@ -72,6 +72,7 @@ config EDAC_MCE_INJ
- 
- config EDAC_MM_EDAC
- 	tristate "Main Memory EDAC (Error Detection And Correction) reporting"
+diff --git a/drivers/pci/pcie/aer/Kconfig b/drivers/pci/pcie/aer/Kconfig
+index 50e94e0..c611384 100644
+--- a/drivers/pci/pcie/aer/Kconfig
++++ b/drivers/pci/pcie/aer/Kconfig
+@@ -5,6 +5,7 @@
+ config PCIEAER
+ 	boolean "Root Port Advanced Error Reporting support"
+ 	depends on PCIEPORTBUS
 +	select RAS_TRACE
+ 	default y
  	help
- 	  Some systems are able to detect and correct errors in main
- 	  memory.  EDAC can report statistics on memory error
-diff --git a/drivers/edac/edac_mc.c b/drivers/edac/edac_mc.c
-index 33edd67..28c1695 100644
---- a/drivers/edac/edac_mc.c
-+++ b/drivers/edac/edac_mc.c
-@@ -33,9 +33,6 @@
- #include <asm/edac.h>
- #include "edac_core.h"
- #include "edac_module.h"
+ 	  This enables PCI Express Root Port Advanced Error Reporting
+diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
+index 34ff702..73e73b7 100644
+--- a/drivers/pci/pcie/aer/aerdrv_errprint.c
++++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
+@@ -22,9 +22,7 @@
+ #include <linux/cper.h>
+ 
+ #include "aerdrv.h"
 -
 -#define CREATE_TRACE_POINTS
--#define TRACE_INCLUDE_PATH ../../include/ras
- #include <ras/ras_event.h>
+-#include <trace/events/ras.h>
++#include <ras/ras_event.h>
  
- /* lock to memory controller's control array */
-diff --git a/drivers/ras/Kconfig b/drivers/ras/Kconfig
-new file mode 100644
-index 0000000..85febfd
---- /dev/null
-+++ b/drivers/ras/Kconfig
-@@ -0,0 +1,6 @@
-+config RAS_TRACE
-+	def_bool n
-+	select RAS
-+
-+config RAS
-+	bool
-diff --git a/drivers/ras/Makefile b/drivers/ras/Makefile
-new file mode 100644
-index 0000000..223e806
---- /dev/null
-+++ b/drivers/ras/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_RAS) += ras.o
-diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-new file mode 100644
-index 0000000..b0c6ed1
---- /dev/null
-+++ b/drivers/ras/ras.c
-@@ -0,0 +1,12 @@
+ #define AER_AGENT_RECEIVER		0
+ #define AER_AGENT_REQUESTER		1
+diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
+index 21cdb0b..acbcbb8 100644
+--- a/include/ras/ras_event.h
++++ b/include/ras/ras_event.h
+@@ -8,6 +8,7 @@
+ #include <linux/tracepoint.h>
+ #include <linux/edac.h>
+ #include <linux/ktime.h>
++#include <linux/aer.h>
+ 
+ /*
+  * Hardware Events Report
+@@ -94,6 +95,69 @@ TRACE_EVENT(mc_event,
+ 		  __get_str(driver_detail))
+ );
+ 
 +/*
-+ * Copyright (C) 2014 Intel Corporation
++ * PCIe AER Trace event
 + *
-+ * Authors:
-+ *	Chen, Gong <gong.chen@linux.intel.com>
++ * These events are generated when hardware detects a corrected or
++ * uncorrected event on a PCIe device. The event report has
++ * the following structure:
++ *
++ * char * dev_name -	The name of the slot where the device resides
++ *			([domain:]bus:device.function).
++ * u32 status -		Either the correctable or uncorrectable register
++ *			indicating what error or errors have been seen
++ * u8 severity -	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
 + */
 +
-+#define CREATE_TRACE_POINTS
-+#define TRACE_INCLUDE_PATH ../../include/ras
-+#include <ras/ras_event.h>
++#define aer_correctable_errors		\
++	{BIT(0),	"Receiver Error"},		\
++	{BIT(6),	"Bad TLP"},			\
++	{BIT(7),	"Bad DLLP"},			\
++	{BIT(8),	"RELAY_NUM Rollover"},		\
++	{BIT(12),	"Replay Timer Timeout"},	\
++	{BIT(13),	"Advisory Non-Fatal"}
 +
-+EXPORT_TRACEPOINT_SYMBOL_GPL(mc_event);
++#define aer_uncorrectable_errors		\
++	{BIT(4),	"Data Link Protocol"},		\
++	{BIT(12),	"Poisoned TLP"},		\
++	{BIT(13),	"Flow Control Protocol"},	\
++	{BIT(14),	"Completion Timeout"},		\
++	{BIT(15),	"Completer Abort"},		\
++	{BIT(16),	"Unexpected Completion"},	\
++	{BIT(17),	"Receiver Overflow"},		\
++	{BIT(18),	"Malformed TLP"},		\
++	{BIT(19),	"ECRC"},			\
++	{BIT(20),	"Unsupported Request"}
++
++TRACE_EVENT(aer_event,
++	TP_PROTO(const char *dev_name,
++		 const u32 status,
++		 const u8 severity),
++
++	TP_ARGS(dev_name, status, severity),
++
++	TP_STRUCT__entry(
++		__string(	dev_name,	dev_name	)
++		__field(	u32,		status		)
++		__field(	u8,		severity	)
++	),
++
++	TP_fast_assign(
++		__assign_str(dev_name, dev_name);
++		__entry->status		= status;
++		__entry->severity	= severity;
++	),
++
++	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
++		__get_str(dev_name),
++		__entry->severity == AER_CORRECTABLE ? "Corrected" :
++			__entry->severity == AER_FATAL ?
++			"Fatal" : "Uncorrected, non-fatal",
++		__entry->severity == AER_CORRECTABLE ?
++		__print_flags(__entry->status, "|", aer_correctable_errors) :
++		__print_flags(__entry->status, "|", aer_uncorrectable_errors))
++);
++
+ #endif /* _TRACE_HW_EVENT_MC_H */
+ 
+ /* This part must be outside protection */
+diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
+deleted file mode 100644
+index 1c875ad..0000000
+--- a/include/trace/events/ras.h
++++ /dev/null
+@@ -1,77 +0,0 @@
+-#undef TRACE_SYSTEM
+-#define TRACE_SYSTEM ras
+-
+-#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
+-#define _TRACE_AER_H
+-
+-#include <linux/tracepoint.h>
+-#include <linux/aer.h>
+-
+-
+-/*
+- * PCIe AER Trace event
+- *
+- * These events are generated when hardware detects a corrected or
+- * uncorrected event on a PCIe device. The event report has
+- * the following structure:
+- *
+- * char * dev_name -	The name of the slot where the device resides
+- *			([domain:]bus:device.function).
+- * u32 status -		Either the correctable or uncorrectable register
+- *			indicating what error or errors have been seen
+- * u8 severity -	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
+- */
+-
+-#define aer_correctable_errors		\
+-	{BIT(0),	"Receiver Error"},		\
+-	{BIT(6),	"Bad TLP"},			\
+-	{BIT(7),	"Bad DLLP"},			\
+-	{BIT(8),	"RELAY_NUM Rollover"},		\
+-	{BIT(12),	"Replay Timer Timeout"},	\
+-	{BIT(13),	"Advisory Non-Fatal"}
+-
+-#define aer_uncorrectable_errors		\
+-	{BIT(4),	"Data Link Protocol"},		\
+-	{BIT(12),	"Poisoned TLP"},		\
+-	{BIT(13),	"Flow Control Protocol"},	\
+-	{BIT(14),	"Completion Timeout"},		\
+-	{BIT(15),	"Completer Abort"},		\
+-	{BIT(16),	"Unexpected Completion"},	\
+-	{BIT(17),	"Receiver Overflow"},		\
+-	{BIT(18),	"Malformed TLP"},		\
+-	{BIT(19),	"ECRC"},			\
+-	{BIT(20),	"Unsupported Request"}
+-
+-TRACE_EVENT(aer_event,
+-	TP_PROTO(const char *dev_name,
+-		 const u32 status,
+-		 const u8 severity),
+-
+-	TP_ARGS(dev_name, status, severity),
+-
+-	TP_STRUCT__entry(
+-		__string(	dev_name,	dev_name	)
+-		__field(	u32,		status		)
+-		__field(	u8,		severity	)
+-	),
+-
+-	TP_fast_assign(
+-		__assign_str(dev_name, dev_name);
+-		__entry->status		= status;
+-		__entry->severity	= severity;
+-	),
+-
+-	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
+-		__get_str(dev_name),
+-		__entry->severity == AER_CORRECTABLE ? "Corrected" :
+-			__entry->severity == AER_FATAL ?
+-			"Fatal" : "Uncorrected, non-fatal",
+-		__entry->severity == AER_CORRECTABLE ?
+-		__print_flags(__entry->status, "|", aer_correctable_errors) :
+-		__print_flags(__entry->status, "|", aer_uncorrectable_errors))
+-);
+-
+-#endif /* _TRACE_AER_H */
+-
+-/* This part must be outside protection */
+-#include <trace/define_trace.h>
 -- 
 2.0.0.rc0
 
