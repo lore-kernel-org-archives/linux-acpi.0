@@ -1,383 +1,152 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [RFC PATCH 5/5] ACPI: thermal: processor: Use the generic
- cpufreq infrastructure
-Date: Thu, 15 May 2014 15:06:04 -0400
-Message-ID: <20140515190604.GE3138@developer>
-References: <1399559880-20562-1-git-send-email-amit.daniel@samsung.com>
- <1399559880-20562-6-git-send-email-amit.daniel@samsung.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / PM: Hold ACPI scan lock over the "freeze" sleep state
+Date: Thu, 15 May 2014 23:29:57 +0200
+Message-ID: <9592270.SopCIMyJ0g@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yh0-f42.google.com ([209.85.213.42]:56558 "EHLO
-	mail-yh0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751000AbaEOTBB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 May 2014 15:01:01 -0400
-Content-Disposition: inline
-In-Reply-To: <1399559880-20562-6-git-send-email-amit.daniel@samsung.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Amit Daniel Kachhap <amit.daniel@samsung.com>
-Cc: linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rui.zhang@intel.com, eduardo.valentin@ti.com, rjw@rjwysocki.net
 
-Hello Amit,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-On Thu, May 08, 2014 at 08:08:00PM +0530, Amit Daniel Kachhap wrote:
-> This patch upgrades the ACPI cpufreq cooling portions to use the generic
-> cpufreq cooling infrastructure. There should not be any functionality
-> related changes as the same behaviour is provided by the generic
-> cpufreq APIs with the notifier mechanism.
-> 
+The "freeze" sleep state suffers from the same issue that was
+addressed by commit ad07277e82de (ACPI / PM: Hold acpi_scan_lock over
+system PM transitions) for ACPI sleep states, that is, things break
+if ->remove() is called for devices whose system resume callbacks
+haven't been executed yet.
 
-This is a very good move as we are converging towards a more and more
-common infrastructure. How did you test this code?
+It also can be addressed in the same way, by holding the ACPI scan
+lock over the "freeze" sleep state and PM transitions to and from
+that state, but ->begin() and ->end() platform operations for the
+"freeze" sleep state are needed for this purpose.
 
-> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
-> ---
->  drivers/acpi/processor_driver.c  |    6 +-
->  drivers/acpi/processor_thermal.c |  210 +++++++++++++++++---------------------
->  2 files changed, 99 insertions(+), 117 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> index 7f70f31..10aba4a 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -36,6 +36,7 @@
->  #include <linux/cpuidle.h>
->  #include <linux/slab.h>
->  #include <linux/acpi.h>
-> +#include <linux/cpu_cooling.h>
->  
->  #include <acpi/processor.h>
->  
-> @@ -178,8 +179,7 @@ static int __acpi_processor_start(struct acpi_device *device)
->  	if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
->  		acpi_processor_power_init(pr);
->  
-> -	pr->cdev = thermal_cooling_device_register("Processor", device,
-> -						   &processor_cooling_ops);
-> +	pr->cdev = acpi_processor_cooling_register(device);
->  	if (IS_ERR(pr->cdev)) {
->  		result = PTR_ERR(pr->cdev);
->  		goto err_power_exit;
-> @@ -250,7 +250,7 @@ static int acpi_processor_stop(struct device *dev)
->  	if (pr->cdev) {
->  		sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
->  		sysfs_remove_link(&pr->cdev->device.kobj, "device");
-> -		thermal_cooling_device_unregister(pr->cdev);
-> +		cpufreq_cooling_unregister(pr->cdev);
->  		pr->cdev = NULL;
->  	}
->  	return 0;
-> diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
-> index e003663..c442a58 100644
-> --- a/drivers/acpi/processor_thermal.c
-> +++ b/drivers/acpi/processor_thermal.c
-> @@ -31,6 +31,7 @@
->  #include <linux/init.h>
->  #include <linux/cpufreq.h>
->  #include <linux/acpi.h>
-> +#include <linux/cpu_cooling.h>
->  #include <acpi/processor.h>
->  #include <asm/uaccess.h>
->  
-> @@ -53,28 +54,11 @@ ACPI_MODULE_NAME("processor_thermal");
->  
->  static DEFINE_PER_CPU(unsigned int, cpufreq_thermal_reduction_pctg);
->  static unsigned int acpi_thermal_cpufreq_is_init = 0;
-> +static struct notifier_block cpufreq_cooling_notifier_block;
->  
->  #define reduction_pctg(cpu) \
->  	per_cpu(cpufreq_thermal_reduction_pctg, phys_package_first_cpu(cpu))
->  
-> -/*
-> - * Emulate "per package data" using per cpu data (which should really be
-> - * provided elsewhere)
-> - *
-> - * Note we can lose a CPU on cpu hotunplug, in this case we forget the state
-> - * temporarily. Fortunately that's not a big issue here (I hope)
-> - */
-> -static int phys_package_first_cpu(int cpu)
-> -{
-> -	int i;
-> -	int id = topology_physical_package_id(cpu);
-> -
-> -	for_each_online_cpu(i)
-> -		if (topology_physical_package_id(i) == id)
-> -			return i;
-> -	return 0;
-> -}
-> -
->  static int cpu_has_cpufreq(unsigned int cpu)
->  {
->  	struct cpufreq_policy policy;
-> @@ -83,30 +67,6 @@ static int cpu_has_cpufreq(unsigned int cpu)
->  	return 1;
->  }
->  
-> -static int acpi_thermal_cpufreq_notifier(struct notifier_block *nb,
-> -					 unsigned long event, void *data)
-> -{
-> -	struct cpufreq_policy *policy = data;
-> -	unsigned long max_freq = 0;
-> -
-> -	if (event != CPUFREQ_ADJUST)
-> -		goto out;
-> -
-> -	max_freq = (
-> -	    policy->cpuinfo.max_freq *
-> -	    (100 - reduction_pctg(policy->cpu) * 20)
-> -	) / 100;
-> -
-> -	cpufreq_verify_within_limits(policy, 0, max_freq);
-> -
-> -      out:
-> -	return 0;
-> -}
-> -
-> -static struct notifier_block acpi_thermal_cpufreq_notifier_block = {
-> -	.notifier_call = acpi_thermal_cpufreq_notifier,
-> -};
-> -
->  static int cpufreq_get_max_state(unsigned int cpu)
->  {
->  	if (!cpu_has_cpufreq(cpu))
-> @@ -123,34 +83,32 @@ static int cpufreq_get_cur_state(unsigned int cpu)
->  	return reduction_pctg(cpu);
->  }
->  
-> -static int cpufreq_set_cur_state(unsigned int cpu, int state)
-> +static int acpi_processor_freq_level(unsigned int cpu, int state)
->  {
-> -	int i;
-> +	struct cpufreq_policy policy;
-> +	unsigned long max_freq = 0;
-> +	int level = 0;
->  
-> -	if (!cpu_has_cpufreq(cpu))
-> +	if (!acpi_thermal_cpufreq_is_init || cpufreq_get_policy(&policy, cpu))
->  		return 0;
->  
->  	reduction_pctg(cpu) = state;
-> +	max_freq = (
-> +	    policy.cpuinfo.max_freq *
-> +	    (100 - reduction_pctg(cpu) * 20)
-> +	) / 100;
->  
-> -	/*
-> -	 * Update all the CPUs in the same package because they all
-> -	 * contribute to the temperature and often share the same
-> -	 * frequency.
-> -	 */
-> -	for_each_online_cpu(i) {
-> -		if (topology_physical_package_id(i) ==
-> -		    topology_physical_package_id(cpu))
-> -			cpufreq_update_policy(i);
-> -	}
-> -	return 0;
-> +	level =  cpufreq_cooling_get_level(phys_package_first_cpu(cpu),
-> +						max_freq, GET_LEVEL_FLOOR);
-> +	return level;
->  }
->  
->  void acpi_thermal_cpufreq_init(void)
->  {
->  	int i;
->  
-> -	i = cpufreq_register_notifier(&acpi_thermal_cpufreq_notifier_block,
-> -				      CPUFREQ_POLICY_NOTIFIER);
-> +	i = cpufreq_cooling_register_notifier(&cpufreq_cooling_notifier_block,
-> +					CPU_COOLING_STATE_NOTIFIER);
->  	if (!i)
->  		acpi_thermal_cpufreq_is_init = 1;
->  }
-> @@ -158,9 +116,9 @@ void acpi_thermal_cpufreq_init(void)
->  void acpi_thermal_cpufreq_exit(void)
->  {
->  	if (acpi_thermal_cpufreq_is_init)
-> -		cpufreq_unregister_notifier
-> -		    (&acpi_thermal_cpufreq_notifier_block,
-> -		     CPUFREQ_POLICY_NOTIFIER);
-> +		cpufreq_cooling_unregister_notifier(
-> +						&cpufreq_cooling_notifier_block,
-> +						CPU_COOLING_STATE_NOTIFIER);
->  
->  	acpi_thermal_cpufreq_is_init = 0;
->  }
-> @@ -176,13 +134,31 @@ static int cpufreq_get_cur_state(unsigned int cpu)
->  	return 0;
->  }
->  
-> -static int cpufreq_set_cur_state(unsigned int cpu, int state)
-> +static int acpi_processor_freq_level(unsigned int cpu, int state)
->  {
->  	return 0;
->  }
->  
->  #endif
->  
-> +/*
-> + * Emulate "per package data" using per cpu data (which should really be
-> + * provided elsewhere)
-> + *
-> + * Note we can lose a CPU on cpu hotunplug, in this case we forget the state
-> + * temporarily. Fortunately that's not a big issue here (I hope)
-> + */
-> +static int phys_package_first_cpu(int cpu)
-> +{
-> +	int i;
-> +	int id = topology_physical_package_id(cpu);
-> +
-> +	for_each_online_cpu(i)
-> +		if (topology_physical_package_id(i) == id)
-> +			return i;
-> +	return 0;
-> +}
-> +
->  /* thermal cooling device callbacks */
->  static int acpi_processor_max_state(struct acpi_processor *pr)
->  {
-> @@ -198,57 +174,22 @@ static int acpi_processor_max_state(struct acpi_processor *pr)
->  
->  	return max_state;
->  }
-> -static int
-> -processor_get_max_state(struct thermal_cooling_device *cdev,
-> -			unsigned long *state)
-> -{
-> -	struct acpi_device *device = cdev->devdata;
-> -	struct acpi_processor *pr;
-> -
-> -	if (!device)
-> -		return -EINVAL;
-> -
-> -	pr = acpi_driver_data(device);
-> -	if (!pr)
-> -		return -EINVAL;
->  
-> -	*state = acpi_processor_max_state(pr);
-> -	return 0;
-> -}
-> -
-> -static int
-> -processor_get_cur_state(struct thermal_cooling_device *cdev,
-> -			unsigned long *cur_state)
-> +static int acpi_processor_cur_state(struct acpi_processor *pr)
->  {
-> -	struct acpi_device *device = cdev->devdata;
-> -	struct acpi_processor *pr;
-> -
-> -	if (!device)
-> -		return -EINVAL;
-> -
-> -	pr = acpi_driver_data(device);
-> -	if (!pr)
-> -		return -EINVAL;
-> -
-> -	*cur_state = cpufreq_get_cur_state(pr->id);
-> +	int cur_state = 0;
-> +	cur_state = cpufreq_get_cur_state(pr->id);
->  	if (pr->flags.throttling)
-> -		*cur_state += pr->throttling.state;
-> -	return 0;
-> +		cur_state += pr->throttling.state;
-> +	return cur_state;
->  }
->  
-> -static int
-> -processor_set_cur_state(struct thermal_cooling_device *cdev,
-> -			unsigned long state)
-> +static int acpi_processor_set_cur_state(struct acpi_processor *pr,
-> +		struct cpufreq_cooling_status *cooling,	unsigned long event)
->  {
-> -	struct acpi_device *device = cdev->devdata;
-> -	struct acpi_processor *pr;
-> -	int result = 0;
-> -	int max_pstate;
-> -
-> -	if (!device)
-> -		return -EINVAL;
-> +	int result = 0, level = 0;
-> +	int max_pstate, state = cooling->new_state;
->  
-> -	pr = acpi_driver_data(device);
->  	if (!pr)
->  		return -EINVAL;
->  
-> @@ -257,20 +198,61 @@ processor_set_cur_state(struct thermal_cooling_device *cdev,
->  	if (state > acpi_processor_max_state(pr))
->  		return -EINVAL;
->  
-> -	if (state <= max_pstate) {
-> +	if (state <= max_pstate && event == CPU_COOLING_SET_STATE_PRE) {
->  		if (pr->flags.throttling && pr->throttling.state)
->  			result = acpi_processor_set_throttling(pr, 0, false);
-> -		cpufreq_set_cur_state(pr->id, state);
-> -	} else {
-> -		cpufreq_set_cur_state(pr->id, max_pstate);
-> +	} else if (state > max_pstate && event == CPU_COOLING_SET_STATE_POST) {
->  		result = acpi_processor_set_throttling(pr,
->  				state - max_pstate, false);
->  	}
-> +
-> +	level = acpi_processor_freq_level(pr->id, state);
-> +	cooling->new_state = level;
-> +
->  	return result;
->  }
->  
-> -const struct thermal_cooling_device_ops processor_cooling_ops = {
-> -	.get_max_state = processor_get_max_state,
-> -	.get_cur_state = processor_get_cur_state,
-> -	.set_cur_state = processor_set_cur_state,
-> +static int acpi_cpufreq_cooling_notifier(struct notifier_block *nb,
-> +					 unsigned long event, void *data)
-> +{
-> +	struct cpufreq_cooling_status *cooling = data;
-> +	struct acpi_device *device = cooling->devdata;
-> +	struct acpi_processor *pr = acpi_driver_data(device);
-> +	switch (event) {
-> +	case CPU_COOLING_SET_STATE_PRE:
-> +	case CPU_COOLING_SET_STATE_POST:
-> +		acpi_processor_set_cur_state(pr, cooling, event);
-> +		break;
-> +	case CPU_COOLING_GET_MAX_STATE:
-> +		cooling->max_state = acpi_processor_max_state(pr);
-> +		break;
-> +	case CPU_COOLING_GET_CUR_STATE:
-> +		cooling->cur_state = acpi_processor_cur_state(pr);
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static struct notifier_block cpufreq_cooling_notifier_block = {
-> +	.notifier_call = acpi_cpufreq_cooling_notifier,
->  };
-> +
-> +struct thermal_cooling_device *
-> +acpi_processor_cooling_register(struct acpi_device *device)
-> +{
-> +	struct thermal_cooling_device *cdev;
-> +	struct acpi_processor *pr = acpi_driver_data(device);
-> +	int cpu = phys_package_first_cpu(pr->id);
-> +	int i;
-> +	int id = topology_physical_package_id(cpu);
-> +	struct cpumask cpus;
-> +
-> +	for_each_online_cpu(i)
-> +		if (topology_physical_package_id(i) == id)
-> +			cpumask_set_cpu(i, &cpus);
-> +
-> +	cdev = cpufreq_cooling_register(&cpus, (void *)device);
-> +	return cdev;
-> +}
-> -- 
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+This change has been tested on Acer Aspire S5 with Thunderbolt.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/sleep.c    |   18 ++++++++++++++++++
+ include/linux/suspend.h |    7 +++++++
+ kernel/power/suspend.c  |   15 +++++++++++++++
+ 3 files changed, 40 insertions(+)
+
+Index: linux-pm/include/linux/suspend.h
+===================================================================
+--- linux-pm.orig/include/linux/suspend.h
++++ linux-pm/include/linux/suspend.h
+@@ -187,6 +187,11 @@ struct platform_suspend_ops {
+ 	void (*recover)(void);
+ };
+ 
++struct platform_freeze_ops {
++	int (*begin)(void);
++	void (*end)(void);
++};
++
+ #ifdef CONFIG_SUSPEND
+ /**
+  * suspend_set_ops - set platform dependent suspend operations
+@@ -194,6 +199,7 @@ struct platform_suspend_ops {
+  */
+ extern void suspend_set_ops(const struct platform_suspend_ops *ops);
+ extern int suspend_valid_only_mem(suspend_state_t state);
++extern void freeze_set_ops(const struct platform_freeze_ops *ops);
+ extern void freeze_wake(void);
+ 
+ /**
+@@ -220,6 +226,7 @@ extern int pm_suspend(suspend_state_t st
+ 
+ static inline void suspend_set_ops(const struct platform_suspend_ops *ops) {}
+ static inline int pm_suspend(suspend_state_t state) { return -ENOSYS; }
++static inline void freeze_set_ops(const struct platform_freeze_ops *ops) {}
+ static inline void freeze_wake(void) {}
+ #endif /* !CONFIG_SUSPEND */
+ 
+Index: linux-pm/kernel/power/suspend.c
+===================================================================
+--- linux-pm.orig/kernel/power/suspend.c
++++ linux-pm/kernel/power/suspend.c
+@@ -38,6 +38,7 @@ const char *const pm_states[PM_SUSPEND_M
+ };
+ 
+ static const struct platform_suspend_ops *suspend_ops;
++static const struct platform_freeze_ops *freeze_ops;
+ 
+ static bool need_suspend_ops(suspend_state_t state)
+ {
+@@ -47,6 +48,13 @@ static bool need_suspend_ops(suspend_sta
+ static DECLARE_WAIT_QUEUE_HEAD(suspend_freeze_wait_head);
+ static bool suspend_freeze_wake;
+ 
++void freeze_set_ops(const struct platform_freeze_ops *ops)
++{
++	lock_system_sleep();
++	freeze_ops = ops;
++	unlock_system_sleep();
++}
++
+ static void freeze_begin(void)
+ {
+ 	suspend_freeze_wake = false;
+@@ -271,6 +279,10 @@ int suspend_devices_and_enter(suspend_st
+ 		error = suspend_ops->begin(state);
+ 		if (error)
+ 			goto Close;
++	} else if (state == PM_SUSPEND_FREEZE && freeze_ops->begin) {
++		error = freeze_ops->begin();
++		if (error)
++			goto Close;
+ 	}
+ 	suspend_console();
+ 	suspend_test_start();
+@@ -296,6 +308,9 @@ int suspend_devices_and_enter(suspend_st
+  Close:
+ 	if (need_suspend_ops(state) && suspend_ops->end)
+ 		suspend_ops->end();
++	else if (state == PM_SUSPEND_FREEZE && freeze_ops->end)
++		freeze_ops->end();
++
+ 	trace_machine_suspend(PWR_EVENT_EXIT);
+ 	return error;
+ 
+Index: linux-pm/drivers/acpi/sleep.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/sleep.c
++++ linux-pm/drivers/acpi/sleep.c
+@@ -611,6 +611,22 @@ static const struct platform_suspend_ops
+ 	.recover = acpi_pm_finish,
+ };
+ 
++static int acpi_freeze_begin(void)
++{
++	acpi_scan_lock_acquire();
++	return 0;
++}
++
++static void acpi_freeze_end(void)
++{
++	acpi_scan_lock_release();
++}
++
++static const struct platform_freeze_ops acpi_freeze_ops = {
++	.begin = acpi_freeze_begin,
++	.end = acpi_freeze_end,
++};
++
+ static void acpi_sleep_suspend_setup(void)
+ {
+ 	int i;
+@@ -621,7 +637,9 @@ static void acpi_sleep_suspend_setup(voi
+ 
+ 	suspend_set_ops(old_suspend_ordering ?
+ 		&acpi_suspend_ops_old : &acpi_suspend_ops);
++	freeze_set_ops(&acpi_freeze_ops);
+ }
++
+ #else /* !CONFIG_SUSPEND */
+ static inline void acpi_sleep_suspend_setup(void) {}
+ #endif /* !CONFIG_SUSPEND */
+
