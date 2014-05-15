@@ -1,59 +1,85 @@
-From: "Li, Aubrey" <aubrey.li@linux.intel.com>
-Subject: Re: [PATCHv2 0/4] ACPI / LPSS: Solution for two issues seen on Asus
- T100
-Date: Thu, 15 May 2014 22:35:20 +0800
-Message-ID: <5374D0A8.2090407@linux.intel.com>
-References: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com>
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Patch V2 0/9] I2C ACPI operation region handler support
+Date: Thu, 15 May 2014 22:49:37 +0800
+Message-ID: <5374D401.2010608@intel.com>
+References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com> <3275231.ERSr3mUlis@devpool02> <53722700.6010001@intel.com> <2676258.HXv5hGZIFG@devpool02>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:44586 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751956AbaEOOgV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 May 2014 10:36:21 -0400
-In-Reply-To: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------090301070001020905090202"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2676258.HXv5hGZIFG@devpool02>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rolf Eike Beer <eb-QdrG9jWwCLEAvxtiuMwx3w@public.gmane.org>
+Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mike Turquette <mturquette@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2014/5/15 21:40, Heikki Krogerus wrote:
-> Changes since v1:
-> - now using do_div() in clk_fd_recalc_rate() as suggested by Andy
-> - NULL checks for clk_name allocation in acpi_lpss.c
-> 
-> This combines two patch sets for LPSS that I had already send for
-> review separately. They conflicted with each other.
-> 
-> The first two patches will fix a problem were the context of the
-> private LPSS registers is lost when entering D3. The last two will add
-> support for the M/N dividers on LPSS by adding a new basic clock type
-> for fractional dividers. The UART driver needs support for it in order
-> to get clock rates that suit the requested baud rates.
+This is a multi-part message in MIME format.
+--------------090301070001020905090202
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The major issue in my mind is, this proposal makes a couple between I2C
-designware, HSUART, or probably DMA driver as well with LPSS driver.
-That is, currently without LPSS driver, I2C/HSUART won't work properly.
-So we at least need to describe this dependency in Kconfig.
+On 05/15/2014 03:50 PM, Rolf Eike Beer wrote:
+> Lan Tianyu wrote:
+>> On 05/13/2014 09:09 PM, Rolf Eike Beer wrote:
+>>> Am Montag, 28. April 2014, 22:27:39 schrieb Lan Tianyu:
+>>>> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart)
+>>>> operation
+>>>> region. It allows ACPI aml code able to access such kind of devices to
+>>>> implement some ACPI standard method.
+>>>>
+>>>> On the Asus T100TA, Bios use GenericSerialBus operation region to access
+>>>> i2c device to get battery info. So battery function depends on the I2C
+>>>> operation region support. Here is the bug link.
+>>>> https://bugzilla.kernel.org/show_bug.cgi?id=69011
+>>>
+>>> Hi all,
+>>
+>>> I have tested this series and got some errors, but no additional
+> functionality:
+>> Hi Rolf:
+>> 	Thanks for test. Could you attach the output of dmesg and acpidump?
+>> Which machine you are testing on?
+>
+> Hi,
+>
+> this is an Aava Inari 8 tablet (pre-release hardware). Please find the DSDT
+> and the dmesg.log attached.
+>
+> In case of any further questions don't hesitate to ask, I'll try to be more
+> responsible.
+>
 
-Thanks,
--Aubrey
-> 
-> 
-> Heikki Krogerus (4):
->   ACPI / PM: Export rest of the subsys functions
->   ACPI / LPSS: custom power domain for LPSS
->   clk: new basic clk type for fractional divider
->   ACPI / LPSS: support for fractional divider clock
-> 
->  drivers/acpi/acpi_lpss.c             | 204 ++++++++++++++++++++++++++++++-----
->  drivers/acpi/device_pm.c             |   2 +
->  drivers/clk/Makefile                 |   1 +
->  drivers/clk/clk-fractional-divider.c | 135 +++++++++++++++++++++++
->  include/linux/acpi.h                 |   4 +
->  include/linux/clk-provider.h         |  31 ++++++
->  6 files changed, 349 insertions(+), 28 deletions(-)
->  create mode 100644 drivers/clk/clk-fractional-divider.c
-> 
+Hi Eike:
+	Could you apply the patch in the attachment and attach the output of 	dmesg?
+					
 
+
+> Regards,
+>
+> Eike
+>
+
+
+--------------090301070001020905090202
+Content-Type: text/x-patch;
+ name="debug.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="debug.patch"
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 4ed8d48..cc8c132 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -139,8 +139,7 @@ int acpi_bus_attach_private_data(acpi_handle handle, void *data)
+ 	status = acpi_attach_data(handle,
+ 			acpi_bus_private_data_handler, data);
+ 	if (ACPI_FAILURE(status)) {
+-		ACPI_ERROR((AE_INFO, "Error attaching device[%p] data\n",
+-				handle));
++		acpi_handle_err(handle, "Error attaching device data %d\n", status);
+ 		return -ENODEV;
+ 	}
+ 
+
+--------------090301070001020905090202--
