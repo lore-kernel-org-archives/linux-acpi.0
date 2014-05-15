@@ -1,47 +1,137 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 4/4] acpi-video: Add use native backlight quirk for the ThinkPad W530
-Date: Thu, 15 May 2014 20:34:26 +0200
-Message-ID: <1400178866-3659-5-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH 3/4] acpi-video: Unregister the backlight device if a raw one shows up later
+Date: Thu, 15 May 2014 20:34:25 +0200
+Message-ID: <1400178866-3659-4-git-send-email-hdegoede@redhat.com>
 References: <1400178866-3659-1-git-send-email-hdegoede@redhat.com>
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:52476 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754698AbaEOSfC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 May 2014 14:35:02 -0400
 In-Reply-To: <1400178866-3659-1-git-send-email-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Jingoo Han <jg1.han@samsung.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans de Goede <hdegoede@redhat.com>, stable@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Jingoo Han <jg1.han@samsung.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans de Goede <hdegoede@redhat.com>
 
-Like all of the other *30 ThinkPad models, the W530 has a broken acpi-video
-backlight control. Note in order for this to actually fix things on the
-ThinkPad W530 the commit titled:
-"nouveau: Don't check acpi_video_backlight_support() before registering backlight"
-is also needed.
+When video.use_native_backlight=1 and non intel gfx are in use, the raw
+backlight device of the gfx driver will show up after acpi-video has done its
+acpi_video_verify_backlight_support() check.
 
-https://bugzilla.redhat.com/show_bug.cgi?id=1093171
+This causes video.use_native_backlight=1 to not have the desired result.
 
-Cc: stable@vger.kernel.org
+This patch fixes this by adding a backlight notifier and when a raw
+backlight is registered or unregistered re-doing the
+acpi_video_verify_backlight_support() check.
+
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/video.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/acpi/video.c | 57 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
 
 diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 123f919..0fec70d 100644
+index aee85c4..123f919 100644
 --- a/drivers/acpi/video.c
 +++ b/drivers/acpi/video.c
-@@ -523,6 +523,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		},
- 	},
- 	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "ThinkPad W530",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad W530"),
-+		},
-+	},
-+	{
- 	.callback = video_set_use_native_backlight,
- 	.ident = "ThinkPad X1 Carbon",
- 	.matches = {
+@@ -151,6 +151,7 @@ struct acpi_video_enumerated_device {
+ struct acpi_video_bus {
+ 	struct acpi_device *device;
+ 	bool backlight_registered;
++	bool backlight_notifier_registered;
+ 	u8 dos_setting;
+ 	struct acpi_video_enumerated_device *attached_array;
+ 	u8 attached_count;
+@@ -162,6 +163,7 @@ struct acpi_video_bus {
+ 	struct input_dev *input;
+ 	char phys[32];	/* for input device */
+ 	struct notifier_block pm_nb;
++	struct notifier_block backlight_nb;
+ };
+ 
+ struct acpi_video_device_flags {
+@@ -1836,6 +1838,9 @@ static int acpi_video_bus_register_backlight(struct acpi_video_bus *video)
+ {
+ 	struct acpi_video_device *dev;
+ 
++	if (video->backlight_registered)
++		return 0;
++
+ 	if (!acpi_video_verify_backlight_support())
+ 		return 0;
+ 
+@@ -1980,6 +1985,56 @@ static void acpi_video_bus_remove_notify_handler(struct acpi_video_bus *video)
+ 	video->input = NULL;
+ }
+ 
++static int acpi_video_backlight_notify(struct notifier_block *nb,
++					unsigned long val, void *bd)
++{
++	struct backlight_device *backlight = bd;
++	struct acpi_video_bus *video;
++
++	/* acpi_video_verify_backlight_support only cares about raw devices */
++	if (backlight->props.type != BACKLIGHT_RAW)
++		return NOTIFY_DONE;
++
++	video = container_of(nb, struct acpi_video_bus, backlight_nb);
++
++	switch (val) {
++	case BACKLIGHT_REGISTERED:
++		if (!acpi_video_verify_backlight_support())
++			acpi_video_bus_unregister_backlight(video);
++		break;
++	case BACKLIGHT_UNREGISTERED:
++		acpi_video_bus_register_backlight(video);
++		break;
++	}
++
++	return NOTIFY_OK;
++}
++
++static int acpi_video_bus_add_backlight_notify_handler(
++						struct acpi_video_bus *video)
++{
++	int error;
++
++	video->backlight_nb.notifier_call = acpi_video_backlight_notify;
++	video->backlight_nb.priority = 0;
++	error = backlight_register_notifier(&video->backlight_nb);
++	if (error == 0)
++		video->backlight_notifier_registered = true;
++
++	return error;
++}
++
++static int acpi_video_bus_remove_backlight_notify_handler(
++						struct acpi_video_bus *video)
++{
++	if (!video->backlight_notifier_registered)
++		return 0;
++
++	video->backlight_notifier_registered = false;
++
++	return backlight_unregister_notifier(&video->backlight_nb);
++}
++
+ static int acpi_video_bus_put_devices(struct acpi_video_bus *video)
+ {
+ 	struct acpi_video_device *dev, *next;
+@@ -2061,6 +2116,7 @@ static int acpi_video_bus_add(struct acpi_device *device)
+ 
+ 	acpi_video_bus_register_backlight(video);
+ 	acpi_video_bus_add_notify_handler(video);
++	acpi_video_bus_add_backlight_notify_handler(video);
+ 
+ 	return 0;
+ 
+@@ -2084,6 +2140,7 @@ static int acpi_video_bus_remove(struct acpi_device *device)
+ 
+ 	video = acpi_driver_data(device);
+ 
++	acpi_video_bus_remove_backlight_notify_handler(video);
+ 	acpi_video_bus_remove_notify_handler(video);
+ 	acpi_video_bus_unregister_backlight(video);
+ 	acpi_video_bus_put_devices(video);
 -- 
 1.9.0
+
