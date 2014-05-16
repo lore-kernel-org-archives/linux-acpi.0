@@ -1,78 +1,123 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCHv2 0/4] ACPI / LPSS: Solution for two issues seen on Asus
- T100
-Date: Fri, 16 May 2014 10:04:16 +0300
-Message-ID: <1400223856.3703.44.camel@smile.fi.intel.com>
-References: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com>
-	 <5374D0A8.2090407@linux.intel.com>
-	 <1400165610.3703.41.camel@smile.fi.intel.com>
-	 <5374E472.9030001@linux.intel.com>
-	 <20140515161148.GM1674@lahna.fi.intel.com> <53754DF4.10302@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:18368 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753894AbaEPHEY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 May 2014 03:04:24 -0400
-In-Reply-To: <53754DF4.10302@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [RFC Patch Part1 V1 00/30] use irqdomain to dynamically allocate IRQ for IOAPIC pin
+Date: Fri, 16 May 2014 16:05:20 +0800
+Message-ID: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sfi-devel@simplefirmware.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Li, Aubrey" <aubrey.li@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mike Turquette <mturquette@linaro.org>, Jin Yao <yao.jin@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 2014-05-16 at 07:29 +0800, Li, Aubrey wrote:
-> On 2014/5/16 0:11, Mika Westerberg wrote:
-> > On Thu, May 15, 2014 at 11:59:46PM +0800, Li, Aubrey wrote:
-> >> On 2014/5/15 22:53, Andy Shevchenko wrote:
-> >>> On Thu, 2014-05-15 at 22:35 +0800, Li, Aubrey wrote:
-> >>>> On 2014/5/15 21:40, Heikki Krogerus wrote:
-> >>>>> Changes since v1:
-> >>>>> - now using do_div() in clk_fd_recalc_rate() as suggested by Andy
-> >>>>> - NULL checks for clk_name allocation in acpi_lpss.c
-> >>>>>
-> >>>>> This combines two patch sets for LPSS that I had already send for
-> >>>>> review separately. They conflicted with each other.
-> >>>>>
-> >>>>> The first two patches will fix a problem were the context of the
-> >>>>> private LPSS registers is lost when entering D3. The last two will add
-> >>>>> support for the M/N dividers on LPSS by adding a new basic clock type
-> >>>>> for fractional dividers. The UART driver needs support for it in order
-> >>>>> to get clock rates that suit the requested baud rates.
-> >>>>
-> >>>> The major issue in my mind is, this proposal makes a couple between I2C
-> >>>> designware, HSUART, or probably DMA driver as well with LPSS driver.
-> >>>
-> >>> acpi_lpss driver creates platform devices for each found and enumerated
-> >>> device.
-> >>
-> >>> If there no acpi_lpss enabled the drivers work as supposed without it.
-> >>
-> >> This is not true.
-> > 
-> > The drivers work fine on non-LPSS platform. If you make them depend on
-> > acpi_lpss, you break that.
-> > 
-> 
-> People don't know the relationship between LPSS driver and I2C/HSUART,
-> there is nowhere to describe that. If LPSS driver is unchecked, they
-> will encounter a weird issue which is very hard to figure out what's
-> going on.
+On x86 platforms, IRQ number are statically allocated to IOAPIC pins at boot.
+There are two issues with this design. First it causes trouble to IOAPIC
+hotplug because we need to allocate a block of IRQ numbers for each IOAPIC.
+Second it may waste IRQ nubmers even if some IOAPIC pins are not used because
+IRQ numbers are statically assigned.
 
-Besides this discussion is off the topic, I could say that LPSS drivers
-are kinda optional (we won't enforce user to use them) even on some
-systems where they are present. Relationship is provided by the proper
-kernel configuration.
+This patchset tries to enable dynamic IRQ number allocation for IOAPIC
+by adopting the irqdomain framework, it solves the two issues mentioned
+above. It also simplifies the IOAPIC driver by consolidating ways to
+program IOAPIC pins with the irqdomain map interface.
 
-> 
-> Thanks,
-> -Aubrey
-> > 
-> 
+We will enhance the IOAPIC driver core to support ACPI based IOAPIC hotplug
+once the IOAPIC driver has been converted to irqdomain.
 
+This patchset applies to v3.15-rc4-260-g38583f095c5a and has been tested
+on a two socket 64 bit Intel platforms with:
+1) ACPI and mpparse enabled (boot successfully)
+2) Mpparse enabled with ACPI disabled (boot successfully)
+3) ACPI enabled with Mpparse disabled (boot successfully)
+
+It also builds successfully (but without booting due to hardware resource
+constraints) for 32 bit platforms with following configuraitons:
+1) IOAPIC diabled
+2) SFI enabled
+3) devicetree (CE4100) enabled
+
+TODO list:
+1) check whether it affects Xen or not
+
+Patch 1-17 are trivial code improvements, bugfixes and preparation.
+
+Patch 18-24 enable basic irqdomain support and IRQ number dynamic
+allocation.
+
+Patch 25-29 consoldate the way to program IOAPIC pins by using
+irqdomain map() interface.
+
+Patch 30 cleans up unused interfaces and functions in IOAPIC driver.
+
+Tests and comments are warmly welcomed!
+
+Jiang Liu (30):
+  genirq, trivial: improve documentation to match current
+    implementation
+  x86, mpparse: use pr_lvl() helper utilities to replace
+    printk(KERN_LVL)
+  x86, mpparse: simplify arch/x86/include/asm/mpspec.h
+  x86, PCI, ACPI: use kmalloc_node() to optimize for performance
+  x86, acpi, irq: kill static function irq_to_gsi()
+  x86, ACPI, trivial: minor improvements to arch/x86/kernel/acpi/boot.c
+  x86, ACPI, irq: enhance error handling in function
+    acpi_register_gsi()
+  x86, ACPI, irq: fix possible eror in GSI to IRQ mapping for legacy
+    IRQ
+  x86, irq, trivial: minor improvements of IRQ related code
+  x86, ioapic: kill unused global variable timer_through_8259
+  x86, ioapic: replace get_nr_irqs_gsi() with
+    arch_dynirq_lower_bound(0)
+  x86, ioapic: kill static variable nr_irqs_gsi
+  x86, ioapic: introduce helper utilities to walk ioapics and pins
+  x86, ioapic: use irq_cfg() instead of irq_get_chip_data() for better
+    readability
+  x86, irq: update high address field when updating affinity for MSI
+    IRQ
+  x86, irq: reorganize IO_APIC_get_PCI_irq_vector() to prepare for
+    irqdomain
+  x86, irq: introduce some helper utilities to improve readability
+  x86, ACPI, irq: consolidate algorithm of mapping (ioapic, pin) to IRQ
+    number
+  x86, irq: introduce mechanisms to support dynamically allocate IRQ
+    for IOAPIC
+  x86, irq: enhance mp_register_ioapic() to support irqdomain
+  x86, ACPI, irq: provide basic irqdomain support
+  x86, mpparse, irq: provide basic irqdomain support
+  x86, devicetree, irq: use common mechanism to support irqdomain
+  x86, SFI, irq: provide basic irqdomain support
+  x86, irq: introduce two helper functions to support irqdomain map
+    operation
+  x86, irq, ACPI: use common irqdomain map interface to program IOAPIC
+    pins
+  x86, irq, mpparse: use common irqdomain map interface to program
+    IOAPIC pins
+  x86, irq, SFI: use common irqdomain map interface to program IOAPIC
+    pins
+  x86, irq, devicetree: use common irqdomain map interface to program
+    IOAPIC pins
+  x86, irq: clean up unused IOAPIC interface
+
+ Documentation/IRQ-domain.txt      |    3 +-
+ arch/x86/include/asm/apic.h       |    4 +-
+ arch/x86/include/asm/hardirq.h    |    3 -
+ arch/x86/include/asm/io_apic.h    |   44 ++-
+ arch/x86/include/asm/mpspec.h     |   13 -
+ arch/x86/include/asm/prom.h       |    2 -
+ arch/x86/kernel/acpi/boot.c       |  205 ++++++------
+ arch/x86/kernel/apic/apic.c       |    2 +-
+ arch/x86/kernel/apic/io_apic.c    |  623 +++++++++++++++++++++----------------
+ arch/x86/kernel/devicetree.c      |   92 +-----
+ arch/x86/kernel/irqinit.c         |    6 -
+ arch/x86/kernel/mpparse.c         |   97 +++---
+ arch/x86/pci/acpi.c               |    6 +-
+ arch/x86/pci/intel_mid_pci.c      |   17 +-
+ arch/x86/pci/irq.c                |    2 -
+ arch/x86/platform/intel-mid/sfi.c |   18 +-
+ arch/x86/platform/sfi/sfi.c       |   12 +-
+ drivers/iommu/irq_remapping.c     |    4 +-
+ drivers/xen/events/events_base.c  |    2 +-
+ kernel/irq/internals.h            |    2 +-
+ kernel/irq/irqdomain.c            |    6 +-
+ 21 files changed, 581 insertions(+), 582 deletions(-)
 
 -- 
-Andy Shevchenko <andriy.shevchenko@intel.com>
-Intel Finland Oy
-
+1.7.10.4
