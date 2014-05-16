@@ -1,137 +1,223 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 3/3][update] ACPI / PM: Avoid resuming devices in ACPI PM domain during system suspend
-Date: Sat, 17 May 2014 00:18:13 +0200
-Message-ID: <37853320.Ciz4qVIJCi@vostro.rjw.lan>
-References: <Pine.LNX.4.44L0.1405141041360.1432-100000@iolanthe.rowland.org> <1596386.YnYCCm2UQG@vostro.rjw.lan> <1523744.XGJjEBjYbG@vostro.rjw.lan>
+Subject: Re: [RFC PATCH 1/5] thermal: cpu_cooling: Support passing driver private data.
+Date: Sat, 17 May 2014 00:31:34 +0200
+Message-ID: <1615618.km3VldYPyl@vostro.rjw.lan>
+References: <1399559880-20562-1-git-send-email-amit.daniel@samsung.com> <1399559880-20562-2-git-send-email-amit.daniel@samsung.com> <20140515183307.GA3138@developer>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50970 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:60018 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754475AbaEPWBX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 May 2014 18:01:23 -0400
-In-Reply-To: <1523744.XGJjEBjYbG@vostro.rjw.lan>
+	with SMTP id S1753207AbaEPWOo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 May 2014 18:14:44 -0400
+In-Reply-To: <20140515183307.GA3138@developer>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: Amit Daniel Kachhap <amit.daniel@samsung.com>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rui.zhang@intel.com, eduardo.valentin@ti.com
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / PM: Avoid resuming devices in ACPI PM domain during system suspend
+On Thursday, May 15, 2014 02:33:07 PM Eduardo Valentin wrote:
+> Hello Amit,
+> 
+> 
+> On Thu, May 08, 2014 at 08:07:56PM +0530, Amit Daniel Kachhap wrote:
+> > This patch is in preparation to add notfication support for cpufrequency
+> > cooling changes. This change also removes the unnecessary exposing of
+> > internal housekeeping structure via thermal_cooling_device->devdata to the
+> > users of cpufreq cooling APIs.
+> > 
+> > Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+> > ---
+> >  drivers/thermal/cpu_cooling.c                      |   79 +++++++++++++++----
+> >  drivers/thermal/db8500_cpufreq_cooling.c           |    2 +-
+> >  drivers/thermal/samsung/exynos_thermal_common.c    |    2 +-
+> >  drivers/thermal/ti-soc-thermal/ti-thermal-common.c |    2 +-
+> >  include/linux/cpu_cooling.h                        |    5 +-
+> >  5 files changed, 68 insertions(+), 22 deletions(-)
+> > 
+> > diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
+> > index 4246262..21f44d4 100644
+> > --- a/drivers/thermal/cpu_cooling.c
+> > +++ b/drivers/thermal/cpu_cooling.c
+> > @@ -50,16 +50,18 @@ struct cpufreq_cooling_device {
+> >  	unsigned int cpufreq_state;
+> >  	unsigned int cpufreq_val;
+> >  	struct cpumask allowed_cpus;
+> > +	struct list_head node;
+> >  };
+> >  static DEFINE_IDR(cpufreq_idr);
+> >  static DEFINE_MUTEX(cooling_cpufreq_lock);
+> >  
+> > -static unsigned int cpufreq_dev_count;
+> > -
+> >  /* notify_table passes value to the CPUFREQ_ADJUST callback function. */
+> >  #define NOTIFY_INVALID NULL
+> >  static struct cpufreq_cooling_device *notify_device;
+> >  
+> > +/* A list to hold all the cpufreq cooling devices registered */
+> > +static LIST_HEAD(cpufreq_cooling_list);
+> > +
+> >  /**
+> >   * get_idr - function to get a unique id.
+> >   * @idr: struct idr * handle used to create a id.
+> > @@ -357,12 +359,23 @@ static int cpufreq_thermal_notifier(struct notifier_block *nb,
+> >  static int cpufreq_get_max_state(struct thermal_cooling_device *cdev,
+> >  				 unsigned long *state)
+> >  {
+> > -	struct cpufreq_cooling_device *cpufreq_device = cdev->devdata;
+> > -	struct cpumask *mask = &cpufreq_device->allowed_cpus;
+> > +	struct cpufreq_cooling_device *cpufreq_device = NULL;
+> > +	struct cpumask *mask = NULL;
+> >  	unsigned int cpu;
+> >  	unsigned int count = 0;
+> >  	int ret;
+> >  
+> > +	mutex_lock(&cooling_cpufreq_lock);
+> > +	list_for_each_entry(cpufreq_device, &cpufreq_cooling_list, node)
+> > +		if (cpufreq_device->cool_dev == cdev)
+> > +			break;
+> > +	mutex_unlock(&cooling_cpufreq_lock);
+> > +	if (!cpufreq_device) {
+> > +		/* Cooling device pointer not found */
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	mask = &cpufreq_device->allowed_cpus;
+> >  	cpu = cpumask_any(mask);
+> >  
+> >  	ret = get_property(cpu, 0, &count, GET_MAXL);
+> > @@ -386,7 +399,17 @@ static int cpufreq_get_max_state(struct thermal_cooling_device *cdev,
+> >  static int cpufreq_get_cur_state(struct thermal_cooling_device *cdev,
+> >  				 unsigned long *state)
+> >  {
+> > -	struct cpufreq_cooling_device *cpufreq_device = cdev->devdata;
+> > +	struct cpufreq_cooling_device *cpufreq_device = NULL;
+> > +
+> > +	mutex_lock(&cooling_cpufreq_lock);
+> > +	list_for_each_entry(cpufreq_device, &cpufreq_cooling_list, node)
+> > +		if (cpufreq_device->cool_dev == cdev)
+> > +			break;
+> > +	mutex_unlock(&cooling_cpufreq_lock);
+> > +	if (!cpufreq_device) {
+> > +		/* Cooling device pointer not found */
+> > +		return -EINVAL;
+> > +	}
+> >  
+> >  	*state = cpufreq_device->cpufreq_state;
+> >  
+> > @@ -406,7 +429,17 @@ static int cpufreq_get_cur_state(struct thermal_cooling_device *cdev,
+> >  static int cpufreq_set_cur_state(struct thermal_cooling_device *cdev,
+> >  				 unsigned long state)
+> >  {
+> > -	struct cpufreq_cooling_device *cpufreq_device = cdev->devdata;
+> > +	struct cpufreq_cooling_device *cpufreq_device = NULL;
+> > +
+> > +	mutex_lock(&cooling_cpufreq_lock);
+> > +	list_for_each_entry(cpufreq_device, &cpufreq_cooling_list, node)
+> > +		if (cpufreq_device->cool_dev == cdev)
+> > +			break;
+> > +	mutex_unlock(&cooling_cpufreq_lock);
+> > +	if (!cpufreq_device) {
+> > +		/* Cooling device pointer not found */
+> > +		return -EINVAL;
+> > +	}
+> >  
+> >  	return cpufreq_apply_cooling(cpufreq_device, state);
+> >  }
+> > @@ -427,6 +460,7 @@ static struct notifier_block thermal_cpufreq_notifier_block = {
+> >   * __cpufreq_cooling_register - helper function to create cpufreq cooling device
+> >   * @np: a valid struct device_node to the cooling device device tree node
+> >   * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
+> > + * @devdata: driver data pointer
+> >   *
+> >   * This interface function registers the cpufreq cooling device with the name
+> >   * "thermal-cpufreq-%x". This api can support multiple instances of cpufreq
+> > @@ -438,7 +472,7 @@ static struct notifier_block thermal_cpufreq_notifier_block = {
+> >   */
+> >  static struct thermal_cooling_device *
+> >  __cpufreq_cooling_register(struct device_node *np,
+> > -			   const struct cpumask *clip_cpus)
+> > +			   const struct cpumask *clip_cpus, void *devdata)
+> >  {
+> >  	struct thermal_cooling_device *cool_dev;
+> >  	struct cpufreq_cooling_device *cpufreq_dev = NULL;
+> > @@ -477,7 +511,7 @@ __cpufreq_cooling_register(struct device_node *np,
+> >  	snprintf(dev_name, sizeof(dev_name), "thermal-cpufreq-%d",
+> >  		 cpufreq_dev->id);
+> >  
+> > -	cool_dev = thermal_of_cooling_device_register(np, dev_name, cpufreq_dev,
+> > +	cool_dev = thermal_of_cooling_device_register(np, dev_name, devdata,
+> >  						      &cpufreq_cooling_ops);
+> >  	if (IS_ERR(cool_dev)) {
+> >  		release_idr(&cpufreq_idr, cpufreq_dev->id);
+> > @@ -489,10 +523,11 @@ __cpufreq_cooling_register(struct device_node *np,
+> >  	mutex_lock(&cooling_cpufreq_lock);
+> >  
+> >  	/* Register the notifier for first cpufreq cooling device */
+> > -	if (cpufreq_dev_count == 0)
+> > +	if (list_empty(&cpufreq_cooling_list))
+> >  		cpufreq_register_notifier(&thermal_cpufreq_notifier_block,
+> >  					  CPUFREQ_POLICY_NOTIFIER);
+> > -	cpufreq_dev_count++;
+> > +
+> > +	list_add(&cpufreq_dev->node, &cpufreq_cooling_list);
+> >  
+> >  	mutex_unlock(&cooling_cpufreq_lock);
+> >  
+> > @@ -502,6 +537,7 @@ __cpufreq_cooling_register(struct device_node *np,
+> >  /**
+> >   * cpufreq_cooling_register - function to create cpufreq cooling device.
+> >   * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
+> > + * @devdata: driver data pointer
+> >   *
+> >   * This interface function registers the cpufreq cooling device with the name
+> >   * "thermal-cpufreq-%x". This api can support multiple instances of cpufreq
+> > @@ -511,9 +547,9 @@ __cpufreq_cooling_register(struct device_node *np,
+> >   * on failure, it returns a corresponding ERR_PTR().
+> >   */
+> >  struct thermal_cooling_device *
+> > -cpufreq_cooling_register(const struct cpumask *clip_cpus)
+> > +cpufreq_cooling_register(const struct cpumask *clip_cpus, void *devdata)
+> >  {
+> > -	return __cpufreq_cooling_register(NULL, clip_cpus);
+> > +	return __cpufreq_cooling_register(NULL, clip_cpus, devdata);
+> >  }
+> >  EXPORT_SYMBOL_GPL(cpufreq_cooling_register);
+> >  
+> > @@ -537,7 +573,7 @@ of_cpufreq_cooling_register(struct device_node *np,
+> >  	if (!np)
+> >  		return ERR_PTR(-EINVAL);
+> >  
+> > -	return __cpufreq_cooling_register(np, clip_cpus);
+> > +	return __cpufreq_cooling_register(np, clip_cpus, NULL);
+> >  }
+> >  EXPORT_SYMBOL_GPL(of_cpufreq_cooling_register);
+> >  
+> > @@ -554,17 +590,26 @@ void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
+> >  	if (!cdev)
+> >  		return;
+> >  
+> > -	cpufreq_dev = cdev->devdata;
+> >  	mutex_lock(&cooling_cpufreq_lock);
+> > -	cpufreq_dev_count--;
+> > +
+> > +	list_for_each_entry(cpufreq_dev, &cpufreq_cooling_list, node)
+> > +		if (cpufreq_dev->cool_dev == cdev)
+> > +			break;
+> > +
+> > +	if (!cpufreq_dev) {
+> > +		/* Cooling device pointer not found */
+> > +		mutex_unlock(&cooling_cpufreq_lock);
+> > +		return;
+> > +	}
+> 
+> Because you are adding several times the same code to search through
+> your list of cdevs, I recommend adding at least a helper function to
+> perform this recurring operation.
 
-Rework the ACPI PM domain's PM callbacks to avoid resuming devices
-during system suspend (in order to modify their wakeup settings etc.)
-if that isn't necessary.
+Violently agreed.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-I sent an outdated patch previously, sorry about that.  This is what was meant
-to be sent.
-
-Thanks!
-
----
- drivers/acpi/device_pm.c |   43 ++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 36 insertions(+), 7 deletions(-)
-
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -261,7 +261,8 @@ struct acpi_device_power_flags {
- 	u32 inrush_current:1;	/* Serialize Dx->D0 */
- 	u32 power_removed:1;	/* Optimize Dx->D0 */
- 	u32 ignore_parent:1;	/* Power is independent of parent power state */
--	u32 reserved:27;
-+	u32 dsw_present:1;	/* _DSW present? */
-+	u32 reserved:26;
- };
- 
- struct acpi_device_power_state {
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -1551,9 +1551,13 @@ static void acpi_bus_get_power_flags(str
- 	 */
- 	if (acpi_has_method(device->handle, "_PSC"))
- 		device->power.flags.explicit_get = 1;
-+
- 	if (acpi_has_method(device->handle, "_IRC"))
- 		device->power.flags.inrush_current = 1;
- 
-+	if (acpi_has_method(device->handle, "_DSW"))
-+		device->power.flags.dsw_present = 1;
-+
- 	/*
- 	 * Enumerate supported power management states
- 	 */
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -900,18 +900,46 @@ EXPORT_SYMBOL_GPL(acpi_dev_resume_early)
-  */
- int acpi_subsys_prepare(struct device *dev)
- {
--	/*
--	 * Devices having power.ignore_children set may still be necessary for
--	 * suspending their children in the next phase of device suspend.
--	 */
--	if (dev->power.ignore_children)
--		pm_runtime_resume(dev);
-+	struct acpi_device *adev = ACPI_COMPANION(dev);
-+	u32 sys_target;
-+	int ret, state;
-+
-+	ret = pm_generic_prepare(dev);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (!adev || !pm_runtime_suspended(dev)
-+	    || device_may_wakeup(dev) != !!adev->wakeup.prepare_count)
-+		return 0;
-+
-+	sys_target = acpi_target_system_state();
-+	if (sys_target == ACPI_STATE_S0)
-+		return 1;
-+
-+	if (adev->power.flags.dsw_present)
-+		return 0;
- 
--	return pm_generic_prepare(dev);
-+	ret = acpi_dev_pm_get_state(dev, adev, sys_target, NULL, &state);
-+	return !ret && state == adev->power.state;
- }
- EXPORT_SYMBOL_GPL(acpi_subsys_prepare);
- 
- /**
-+ * acpi_subsys_complete - Finalize device's resume during system resume.
-+ * @dev: Device to handle.
-+ */
-+void acpi_subsys_complete(struct device *dev)
-+{
-+	/*
-+	 * If the device had been runtime-suspended before the system went into
-+	 * the sleep state it is going out of and it has never been resumed till
-+	 * now, resume it in case the firmware powered it up.
-+	 */
-+	if (dev->power.direct_complete)
-+		pm_request_resume(dev);
-+}
-+
-+/**
-  * acpi_subsys_suspend - Run the device driver's suspend callback.
-  * @dev: Device to handle.
-  *
-@@ -979,6 +1007,7 @@ static struct dev_pm_domain acpi_general
- #endif
- #ifdef CONFIG_PM_SLEEP
- 		.prepare = acpi_subsys_prepare,
-+		.complete = acpi_subsys_complete,
- 		.suspend = acpi_subsys_suspend,
- 		.suspend_late = acpi_subsys_suspend_late,
- 		.resume_early = acpi_subsys_resume_early,
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
