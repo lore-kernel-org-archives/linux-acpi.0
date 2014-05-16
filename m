@@ -1,125 +1,66 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch Part1 V1 28/30] x86, irq, SFI: use common irqdomain map interface to program IOAPIC pins
-Date: Fri, 16 May 2014 16:05:48 +0800
-Message-ID: <1400227550-5935-29-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC Patch Part1 V1 21/30] x86, ACPI, irq: provide basic irqdomain support
+Date: Fri, 16 May 2014 16:05:41 +0800
+Message-ID: <1400227550-5935-22-git-send-email-jiang.liu@linux.intel.com>
 References: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Len Brown <lenb@kernel.org>, David Cohen <david.a.cohen@linux.intel.com>, Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sfi-devel@simplefirmware.org, "H. Peter Anvin" <hpa@linux.intel.com>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, x86@kernel.org
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sfi-devel@simplefirmware.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Refine SFI to use common irqdomain map interface to program IOAPIC pins,
-so we can unify the callsite to progam IOAPIC pins.
+Enhance ACPI driver to provide basic irqdomain support for IOAPIC.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/pci/intel_mid_pci.c      |   17 +++++++----------
- arch/x86/platform/intel-mid/sfi.c |   18 +++++++++---------
- arch/x86/platform/sfi/sfi.c       |    4 +++-
- 3 files changed, 19 insertions(+), 20 deletions(-)
+ arch/x86/kernel/acpi/boot.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff --git a/arch/x86/pci/intel_mid_pci.c b/arch/x86/pci/intel_mid_pci.c
-index 84b9d672843d..f6f3de857baa 100644
---- a/arch/x86/pci/intel_mid_pci.c
-+++ b/arch/x86/pci/intel_mid_pci.c
-@@ -208,23 +208,20 @@ static int pci_write(struct pci_bus *bus, unsigned int devfn, int where,
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index f70f4f318316..1ee639e74d50 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -31,6 +31,7 @@
+ #include <linux/module.h>
+ #include <linux/dmi.h>
+ #include <linux/irq.h>
++#include <linux/irqdomain.h>
+ #include <linux/slab.h>
+ #include <linux/bootmem.h>
+ #include <linux/ioport.h>
+@@ -331,6 +332,23 @@ static void  mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger,
+ static int mp_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 			   int polarity);
  
- static int intel_mid_pci_irq_enable(struct pci_dev *dev)
++static struct irq_domain_ops acpi_irqdomain_ops;
++
++static struct irq_domain *acpi_create_irqdomain(int idx, void *arg)
++{
++	struct mp_ioapic_gsi *gsi_cfg = mp_ioapic_gsi_routing(idx);
++
++	/*
++	 * Statically allocate IRQ number for legacy IRQs and all pins on the
++	 * first IOAPIC.
++	 */
++	if (gsi_cfg->gsi_base < NR_IRQS_LEGACY &&
++	    ioapic_dynirq_base < gsi_cfg->gsi_end)
++		ioapic_dynirq_base = gsi_cfg->gsi_end + 1;
++
++	return mp_irqdomain_create(idx, NULL, &acpi_irqdomain_ops);
++}
++
+ static int __init
+ acpi_parse_ioapic(struct acpi_subtable_header * header, const unsigned long end)
  {
--	u8 pin;
--	struct io_apic_irq_attr irq_attr;
--
--	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
-+	int ioapic, polarity;
+@@ -345,7 +363,7 @@ acpi_parse_ioapic(struct acpi_subtable_header * header, const unsigned long end)
  
- 	/*
- 	 * MRST only have IOAPIC, the PCI irq lines are 1:1 mapped to
- 	 * IOAPIC RTE entries, so we just enable RTE for the device.
- 	 */
--	irq_attr.ioapic = mp_find_ioapic(dev->irq);
--	irq_attr.ioapic_pin = dev->irq;
--	irq_attr.trigger = 1; /* level */
-+	ioapic = mp_find_ioapic(dev->irq);
- 	if (intel_mid_identify_cpu() == INTEL_MID_CPU_CHIP_TANGIER)
--		irq_attr.polarity = 0; /* active high */
-+		polarity = 0; /* active high */
- 	else
--		irq_attr.polarity = 1; /* active low */
--	io_apic_set_pci_routing(&dev->dev, dev->irq, &irq_attr);
-+		polarity = 1; /* active low */
-+	if (mp_set_pin_attr(ioapic, dev->irq, 1, polarity, dev_to_node(dev)))
-+		return -EBUSY;
-+	mp_map_gsi_to_irq(dev->irq, 1);
+ 	mp_register_ioapic(ioapic->id,
+ 			   ioapic->address, ioapic->global_irq_base,
+-			   NULL, NULL);
++			   acpi_create_irqdomain, NULL);
  
  	return 0;
  }
-diff --git a/arch/x86/platform/intel-mid/sfi.c b/arch/x86/platform/intel-mid/sfi.c
-index 994c40bd7cb7..3fe5c23ba1c5 100644
---- a/arch/x86/platform/intel-mid/sfi.c
-+++ b/arch/x86/platform/intel-mid/sfi.c
-@@ -434,6 +434,7 @@ static int __init sfi_parse_devs(struct sfi_table_header *table)
- 	struct devs_id *dev = NULL;
- 	int num, i;
- 	int ioapic;
-+	int polarity;
- 	struct io_apic_irq_attr irq_attr;
- 
- 	sb = (struct sfi_table_simple *)table;
-@@ -450,30 +451,29 @@ static int __init sfi_parse_devs(struct sfi_table_header *table)
- 			 */
- 			ioapic = mp_find_ioapic(irq);
- 			if (ioapic >= 0) {
--				irq_attr.ioapic = ioapic;
--				irq_attr.ioapic_pin = irq;
--				irq_attr.trigger = 1;
- 				if (intel_mid_identify_cpu() ==
- 						INTEL_MID_CPU_CHIP_TANGIER) {
- 					if (!strncmp(pentry->name,
- 							"r69001-ts-i2c", 13))
- 						/* active low */
--						irq_attr.polarity = 1;
-+						polarity = 1;
- 					else if (!strncmp(pentry->name,
- 							"synaptics_3202", 14))
- 						/* active low */
--						irq_attr.polarity = 1;
-+						polarity = 1;
- 					else if (irq == 41)
- 						/* fast_int_1 */
--						irq_attr.polarity = 1;
-+						polarity = 1;
- 					else
- 						/* active high */
--						irq_attr.polarity = 0;
-+						polarity = 0;
- 				} else {
- 					/* PNW and CLV go with active low */
--					irq_attr.polarity = 1;
-+					polarity = 1;
- 				}
--				io_apic_set_pci_routing(NULL, irq, &irq_attr);
-+				if (mp_set_pin_attr(ioapic, irq, 1, polarity, NUMA_NO_NODE))
-+					return -EBUSY;
-+				mp_map_gsi_to_irq(dev->irq, 1);
- 			}
- 		} else {
- 			irq = 0; /* No irq */
-diff --git a/arch/x86/platform/sfi/sfi.c b/arch/x86/platform/sfi/sfi.c
-index 2c3522dfa05d..91e5046efae9 100644
---- a/arch/x86/platform/sfi/sfi.c
-+++ b/arch/x86/platform/sfi/sfi.c
-@@ -71,7 +71,9 @@ static int __init sfi_parse_cpus(struct sfi_table_header *table)
- #endif /* CONFIG_X86_LOCAL_APIC */
- 
- #ifdef CONFIG_X86_IO_APIC
--static struct irq_domain_ops sfi_ioapic_irqdomain_ops;
-+static struct irq_domain_ops sfi_ioapic_irqdomain_ops = {
-+	.map = mp_irqdomain_map,
-+};
- 
- static struct irq_domain *sfi_ioapic_create_irqdomain(int ioapic, void *arg)
- {
 -- 
 1.7.10.4
