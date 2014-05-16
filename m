@@ -1,77 +1,66 @@
-From: "Li, Aubrey" <aubrey.li@linux.intel.com>
-Subject: Re: [PATCHv2 0/4] ACPI / LPSS: Solution for two issues seen on Asus
- T100
-Date: Fri, 16 May 2014 21:37:36 +0800
-Message-ID: <537614A0.1050908@linux.intel.com>
-References: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com>	 <5374D0A8.2090407@linux.intel.com>	 <1400165610.3703.41.camel@smile.fi.intel.com>	 <5374E472.9030001@linux.intel.com>	 <20140515161148.GM1674@lahna.fi.intel.com> <53754DF4.10302@linux.intel.com> <1400223856.3703.44.camel@smile.fi.intel.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/3] PM / sleep: Mechanism to avoid resuming runtime-suspended
+ devices unnecessarily
+Date: Fri, 16 May 2014 10:27:37 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1405161023110.1224-100000@iolanthe.rowland.org>
+References: <7183958.HCss1mGDD2@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1400223856.3703.44.camel@smile.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mike Turquette <mturquette@linaro.org>, Jin Yao <yao.jin@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <7183958.HCss1mGDD2@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2014/5/16 15:04, Andy Shevchenko wrote:
-> On Fri, 2014-05-16 at 07:29 +0800, Li, Aubrey wrote:
->> On 2014/5/16 0:11, Mika Westerberg wrote:
->>> On Thu, May 15, 2014 at 11:59:46PM +0800, Li, Aubrey wrote:
->>>> On 2014/5/15 22:53, Andy Shevchenko wrote:
->>>>> On Thu, 2014-05-15 at 22:35 +0800, Li, Aubrey wrote:
->>>>>> On 2014/5/15 21:40, Heikki Krogerus wrote:
->>>>>>> Changes since v1:
->>>>>>> - now using do_div() in clk_fd_recalc_rate() as suggested by Andy
->>>>>>> - NULL checks for clk_name allocation in acpi_lpss.c
->>>>>>>
->>>>>>> This combines two patch sets for LPSS that I had already send for
->>>>>>> review separately. They conflicted with each other.
->>>>>>>
->>>>>>> The first two patches will fix a problem were the context of the
->>>>>>> private LPSS registers is lost when entering D3. The last two will add
->>>>>>> support for the M/N dividers on LPSS by adding a new basic clock type
->>>>>>> for fractional dividers. The UART driver needs support for it in order
->>>>>>> to get clock rates that suit the requested baud rates.
->>>>>>
->>>>>> The major issue in my mind is, this proposal makes a couple between I2C
->>>>>> designware, HSUART, or probably DMA driver as well with LPSS driver.
->>>>>
->>>>> acpi_lpss driver creates platform devices for each found and enumerated
->>>>> device.
->>>>
->>>>> If there no acpi_lpss enabled the drivers work as supposed without it.
->>>>
->>>> This is not true.
->>>
->>> The drivers work fine on non-LPSS platform. If you make them depend on
->>> acpi_lpss, you break that.
->>>
->>
->> People don't know the relationship between LPSS driver and I2C/HSUART,
->> there is nowhere to describe that. If LPSS driver is unchecked, they
->> will encounter a weird issue which is very hard to figure out what's
->> going on.
+On Fri, 16 May 2014, Rafael J. Wysocki wrote:
+
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Besides this discussion is off the topic, I could say that LPSS drivers
-> are kinda optional (we won't enforce user to use them) even on some
-> systems where they are present. Relationship is provided by the proper
-> kernel configuration.
+> Currently, some subsystems (e.g. PCI and the ACPI PM domain) have to
+> resume all runtime-suspended devices during system suspend, mostly
+> because those devices may need to be reprogrammed due to different
+> wakeup settings for system sleep and for runtime PM.
 > 
-It is optional previously but definitely not optional after this patch.
-The user who uses I2C designeware driver without LPSS now, I2C won't
-work properly on Asus T100.
+> For some devices, though, it's OK to remain in runtime suspend 
+> throughout a complete system suspend/resume cycle (if the device was in
+> runtime suspend at the start of the cycle).  We would like to do this
+> whenever possible, to avoid the overhead of extra power-up and power-down
+> events.
+> 
+> However, problems may arise because the device's descendants may require
+> it to be at full power at various points during the cycle.  Therefore the
+> most straightforward way to do this safely is if the device and all its
+> descendants can remain runtime suspended until the complete stage of
+> system resume.
+> 
+> To this end, introduce a new device PM flag, power.direct_complete
+> and modify the PM core to use that flag as follows.
+> 
+> If the ->prepare() callback of a device returns a positive number,
+> the PM core will regard that as an indication that it may leave the
+> device runtime-suspended.  It will then check if the system power
+> transition in progress is a suspend (and not hibernation in particular)
+> and if the device is, indeed, runtime-suspended.  In that case, the PM
+> core will set the device's power.direct_complete flag.  Otherwise it
+> will clear power.direct_complete for the device and it also will later
+> clear it for the device's parent (if there's one).
+> 
+> Next, the PM core will not invoke the ->suspend() ->suspend_late(),
+> ->suspend_irq(), ->resume_irq(), ->resume_early(), or ->resume()
+> callbacks for all devices having power.direct_complete set.  It
+> will invoke their ->complete() callbacks, however, and those
+> callbacks are then responsible for resuming the devices as
+> appropriate, if necessary.  For example, in some cases they may
+> need to queue up runtime resume requests for the devices using
+> pm_request_resume().
+> 
+> Changelog partly based on an Alan Stern's description of the idea
+> (http://marc.info/?l=linux-pm&m=139940466625569&w=2).
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The proper configuration leads to a question, why a completed I2C
-controller driver doesn't work properly without another LPSS driver. I
-worry about this is hard to maintain in future.
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
 
-Do we have a platform configuration to specify LPSS is needed?
+And likewise for the documentation patches.
 
-BTW, do we have a system with I2C and HSUART but without LPSS?
-
-Thanks,
--Aubrey
-
-Thanks,
--Aubrey
