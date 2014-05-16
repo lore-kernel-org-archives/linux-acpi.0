@@ -1,193 +1,360 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: RFC: Cleanup firmware backlight control method selection
-Date: Fri, 16 May 2014 10:06:15 +0200
-Message-ID: <5375C6F7.7090305@redhat.com>
-References: <53748332.50909@redhat.com> <20140515222938.GA29253@taihen.jp>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25077 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754997AbaEPIGh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 May 2014 04:06:37 -0400
-In-Reply-To: <20140515222938.GA29253@taihen.jp>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [RFC Patch Part1 V1 19/30] x86, irq: introduce mechanisms to support dynamically allocate IRQ for IOAPIC
+Date: Fri, 16 May 2014 16:05:39 +0800
+Message-ID: <1400227550-5935-20-git-send-email-jiang.liu@linux.intel.com>
+References: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sfi-devel@simplefirmware.org, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Aaron Lu <aaron.lu@intel.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org
 
-Hi,
+Currently x86 support identity mapping between GSI(IOAPIC pin) and IRQ
+number, so continous IRQs at low end are statically allocated to IOAPICs
+at boot time. This design causes trouble to support IOAPIC hotplug.
 
-On 05/16/2014 12:29 AM, Mattia Dongili wrote:
-> On Thu, May 15, 2014 at 11:04:50AM +0200, Hans de Goede wrote:
->> Hi All,
->>
->> There are various issues with how the linux kernel currently select which
->> firmware backlight control (*) method to use:
->>
->> 1) There are various module loading ordering issues, leading to different
->> behavior depending on module load ordering:
->>
->> * http://www.spinics.net/lists/linux-acpi/msg50443.html
->> * Sometimes we register and immediately unregister the acpi_video# backlight
->>   devices, some ACPI implementations don't like this, so we've special
->>   quirks to avoid the register + unregister on some machines
->>
->> 2) There are 2 main kernel commandline options involved acpi_backlight and
->> video.use_native_backlight. With the latter only working if certain firmware
->> checks succeed *and* the former has the right value. This is confusing not
->> only for end users but also for people trying to read the code in question.
->> Note some vendor specific firmware backlight drivers, ie thinkpad_acpi.c
->> have their own related options, leading to 3 kernel cmdline options coming
->> into play.
->>
->> 3) We have quirks everywhere. I'm afraid we cannot get rid of these, but
->> at least we should try to clean up where they live and how they interact
->> with each other. acpi_backlight=vendor quirks mostly live in vendor specific
->> firmware backlight drivers. But we also have a couple in acpi/video_detect.c.
->> video.use_native_backlight=1 quirks otoh live in acpi/video.c.
->>
->> In the end all these options and quirks all work together in a complicated
->> manor to achieve one simple goal: decide which firmware interface to use
->> for backlight control (*). Which comes down to choosing between the
->> following 3 options:
->>
->> 1 Native (raw) backlight control (so no firmware backlight control)
->> 2 Control by the standard acpi-video firmware backlight driver
->> 3 Control by a vendor specific firmware backlight driver
->>
->> So I would like to propose to give the acpi_backlight= kernel commandline
->> option which currently accepts values "vendor" and "video" a third value
->> "native", and to get rid of the video.use_native_backlight option.
-> 
-> the "acpi_" prefix here sounds inappropriate at this point. And
-> descending from that, shouldn't a mechanism like you describe being
-> implemented in the backlight subsystem?
+This patch implements basic mechanism to dynamically allocate IRQ on
+demand for IOAPIC pins by using irqdomain framework.
 
-This is only a problem with crazy PC's which have multiple firmware
-API's (both standardized and custom ACPI) to control the backlight, which
-also are sometimes all broken. So this really is an acpi thing, and I believe
-this should stay in acpi/video_detect.c where it already lives, I just think
-the video.use_native_backlight option which clearly interacts with this needs
-to be moved to acpi/video_detect.c too.
+This patch enhances ioapic.c to provide basic mechanisms to support
+dynamically allocate IRQ number for IOAPIC by using irqdomain.
 
->> This would be combined with a major cleanup of the existing code for
->> firmware backlight control method selection:
->>
->> 1) Replace the ACPI_VIDEO_BACKLIGHT_* flags with an enum listing the 3 options
->> 2) Replace the acpi_video_support variable with
->>    acpi_backlight_method_cmdline and acpi_backlight_method_dmi variables,
->>    both initialzed to -1
->> 3) Add an acpi_backlight_method() function which will:
->>   - return acpi_backlight_method_cmdline if not -1; else
->>   - return acpi_backlight_method_dmi if not -1; else
->>   - return ACPI_BACKLIGHT_NATIVE if acpi_osi_is_win8(); else
->>   - return ACPI_BACKLIGHT_VIDEO if supported; else
->>   - return ACPI_BACKLIGHT_VENDOR
->> 4) Have all drivers that use acpi_video_dmi_promote_vendor move their
->>    quirks for this to acpi/video_detect.c, removing the need for them to
->>    call acpi_video_dmi_promote_vendor() and acpi_video_unregister(), removing
->>    the load ordering issues and removing them depending on video.ko
-> 
-> I think the whole idea of promote/demote_vendor was to avoid adding
-> vendor specific quirks to acpi's video code. If it was the right
-> implementation different story, but it sure sounded like a sensble idea.
-> We do have platform drivers that know if they should control backlight
-> or let it do to ACPI or even the native driver. Quirks in the patform
-> specific code _is_ IMO the right place to have those quirks.
+It first adds several fields into struct ioapic to support irqdomain.
+Then it implements an algorithm to dynamically allocate IRQ number
+on demand.
+1) Build identity mapping for GSIs below arch_dynirq_lower_bound(0).
+   This is typically used to support legacy IRQs and simple platforms.
+   There's an exception for overridden ISA IRQs, whose GSI number
+   may be different from assigned IRQ number.
+2) Dynamically allocate IRQs for GSIs above  arch_dynirq_lower_bound(0).
+   This may be used to support big system and IOAPIC hotplug.
 
-The problem with this is that it causes module load ordering issues where
-we get the acpi_video# device registered first, then a vendor specific
-custom acpi backlight driver (ie thinkpad_acpi) loads and unregisters it
-again. This is ugly and on some models makes the firmware unhappy
-(we currently have quirks for these models to work around this).
+Function arch_dynirq_lower_bound(0) will be enhanced in coming patch
+to enable dynamic IRQ allocation for IOAPIC. To ease our life,
+arch_dynirq_lower_bound(0) must be greater than or equal to
+NR_IRQS_LEGACY, otherwise it may break backward compatibilities.
 
-But I've recently learned that since for determining which firmware method to
-load / expose we need to know if the video driver will register a raw backlight
-interface or not, which introduces similar issues. So there is no way to
-avoid these ordering issues, so I agree that it is best to keep the quirks
-in the vendor specific acpi extension drivers where possible.
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ arch/x86/include/asm/io_apic.h |    9 ++-
+ arch/x86/kernel/acpi/boot.c    |   10 ++--
+ arch/x86/kernel/apic/io_apic.c |  125 +++++++++++++++++++++++++++++++---------
+ 3 files changed, 110 insertions(+), 34 deletions(-)
 
-> 
->> 5) Switch all drivers from acpi_video_backlight_support() to
->>    acpi_backlight_method()
->>
->> The plan would be to do 1-3 in a single patch and ASAP and then do 4 and 5
->> driver by driver, and once done remove acpi_video_dmi_promote_vendor() and
->> acpi_video_backlight_support(), and mark acpi_video_register /
->> acpi_video_unregister as "only for i915 use".
->>
->> Regards,
->>
->> Hans
->>
->>
->> *) Note I'm only talking about controlling the actual brightness of the
->> backlight, not detecting brighness/backlight hotkey presses, there are
->> similar issues there. But I believe that that should be treated as an
->> orthogonal problem which should be fixed independently of this.
-> 
-> Maybe I'm missing some recent evolution but except for some special
-> cases, backlight hotkeys generally result in an input event sent to
-> userspace and it then becomese a userspace problem to choose which
-> interface to use.
-
-Not sure if you're referring to the above discussion here, or to my remark
-about hotkey issues, so let me answer both:
-
-* As for why we cannot simply register all firmware backlight drivers
-and let userspace figure things out. There are 2 reasons:
-1) Userspace will pick the first firmware driver it sees, to avoid this
-causing issues we've historically always registered only one. So we're
-stuck with this approach to avoid causing regressions
-2) Having multiple pieces of firmware code frob the same hardware seems
-like a really really bad idea.
-
-* As for the hotkeys issue, the problem is actually very much the same as
-with the backlight control. laptop brightness hotkeys tend to generate 3
-events for each press:
-1) A ps2 atkbd scancode
-2) an acpi-video event
-3) a vendor-wmi event.
-
-1) may be mapped to generate input events through /lib/udev/hwdb.d/60-keyboard.hwdb
-2) will generate input events if the acpi-video driver is registered
-   (independent of it also exporting a backlight control interface)
-3) may or may not generate events depending on the vendor specific driver
-
-I know of at least one laptop where all 3 methods are hooked up, causing
-the brightness to go down 3 levels for each keypress. This is something else
-wrt backlight control which we clearly need to fix, to ensure that we only
-send one input event per key press.
-
-> Last, just to add another use case, vaio laptops in specific
-> configurations require both ACPI and vendor backlight to be registered
-> as the former will notify the latter to change the backlight rather than
-> doing it itself. It's explained here (with a potential implementation):
-> http://www.spinics.net/lists/platform-driver-x86/msg05191.html
-
-Hmm, that sounds like something which is going to turn very ugly very soon.
-Have tried using acpi_backlight=vendor, so that the acpi-video driver will
-only catch events and not try to do any backlight control? Then the
-vaio driver can register its own backlight device, and userspace gets the
-event from the acpi-video driver, and can change the brightness accordingly
-using the vaio driver backlight device.
-
-Or are you trying to make the buttons work without a userspace component
-being involved? Please forget about that, that ship has sailed a long time
-ago. acpi-video used to that, but it actually causes more issues then it
-fixes, and it is inconsistent with how things work on many other laptops.
-
-Userspace simply does not deal with this at all, it will still respond to
-the keypresses anyways, and you get the backlight level changing multiple
-steps at once for each keypress.
-
-Anyways I really think you need to find a different solution for this,
-simply have the one part which you now want to do the signalling only
-generate input events, and have the part with the working backlight control
-be the only one to register a firmware backlight device.
-
-Regards,
-
-Hans
+diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
+index f4fd0be26cec..13209bdf318d 100644
+--- a/arch/x86/include/asm/io_apic.h
++++ b/arch/x86/include/asm/io_apic.h
+@@ -169,9 +169,11 @@ struct mp_ioapic_gsi{
+ };
+ extern u32 gsi_top;
+ 
++typedef struct irq_domain *(*ioapic_create_domain_fn)(int idx, void *arg);
++
+ extern int mp_find_ioapic(u32 gsi);
+ extern int mp_find_ioapic_pin(int ioapic, u32 gsi);
+-extern int mp_map_pin_to_irq(int ioapic, int pin);
++extern int mp_map_pin_to_irq(int idx, int ioapic, int pin, int alloc);
+ extern void __init mp_register_ioapic(int id, u32 address, u32 gsi_base);
+ extern void __init pre_init_apic_IRQ0(void);
+ 
+@@ -213,7 +215,10 @@ extern void io_apic_eoi(unsigned int apic, unsigned int vector);
+ static inline void ioapic_insert_resources(void) { }
+ #define gsi_top (NR_IRQS_LEGACY)
+ static inline int mp_find_ioapic(u32 gsi) { return 0; }
+-static inline int mp_map_pin_to_irq(int ioapic, int pin) { return -1; }
++static inline int mp_map_pin_to_irq(int idx, int ioapic, int pin, int alloc)
++{
++	return -1;
++}
+ 
+ struct io_apic_irq_attr;
+ static inline int io_apic_set_pci_routing(struct device *dev, int irq,
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 6eae9a7231c4..cdf6908e9f75 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -99,7 +99,7 @@ static u32 isa_irq_to_gsi[NR_IRQS_LEGACY] __read_mostly = {
+ 
+ #define	ACPI_INVALID_GSI		INT_MIN
+ 
+-static int map_gsi_to_irq(unsigned int gsi)
++static int map_gsi_to_irq(unsigned int gsi, int alloc)
+ {
+ 	int i, ioapic, pin;
+ 
+@@ -110,7 +110,7 @@ static int map_gsi_to_irq(unsigned int gsi)
+ 	ioapic = mp_find_ioapic(gsi);
+ 	if (ioapic >= 0) {
+ 		pin = mp_find_ioapic_pin(ioapic, gsi);
+-		return mp_map_pin_to_irq(ioapic, pin);
++		return mp_map_pin_to_irq(-1, ioapic, pin, alloc);
+ 	}
+ 
+ 	pr_err("Failed to map GSI%d to IRQ number.\n", gsi);
+@@ -490,7 +490,7 @@ void __init acpi_pic_sci_set_trigger(unsigned int irq, u16 trigger)
+ 
+ int acpi_gsi_to_irq(u32 gsi, unsigned int *irqp)
+ {
+-	int irq = map_gsi_to_irq(gsi);
++	int irq = map_gsi_to_irq(gsi, 1);
+ 
+ 	if (irq >= 0) {
+ #ifdef CONFIG_X86_IO_APIC
+@@ -559,7 +559,7 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
+ 
+ 	plat_gsi = (*__acpi_register_gsi)(dev, gsi, trigger, polarity);
+ 	if (plat_gsi != ACPI_INVALID_GSI)
+-		return map_gsi_to_irq(plat_gsi);
++		return map_gsi_to_irq(plat_gsi, 0);
+ 
+ 	return -1;
+ }
+@@ -1041,7 +1041,7 @@ static int mp_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 	if (acpi_gbl_FADT.sci_interrupt == gsi)
+ 		return gsi;
+ 
+-	irq = map_gsi_to_irq(gsi);
++	irq = map_gsi_to_irq(gsi, 1);
+ 	if (irq < 0)
+ 		return ACPI_INVALID_GSI;
+ 
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index f55357bd0e07..fb87bdbb4307 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -31,6 +31,7 @@
+ #include <linux/acpi.h>
+ #include <linux/module.h>
+ #include <linux/syscore_ops.h>
++#include <linux/irqdomain.h>
+ #include <linux/msi.h>
+ #include <linux/htirq.h>
+ #include <linux/freezer.h>
+@@ -83,6 +84,7 @@ int sis_apic_bug = -1;
+ 
+ static DEFINE_RAW_SPINLOCK(ioapic_lock);
+ static DEFINE_RAW_SPINLOCK(vector_lock);
++static DEFINE_MUTEX(ioapic_mutex);
+ 
+ static struct ioapic {
+ 	/*
+@@ -97,6 +99,9 @@ static struct ioapic {
+ 	struct mpc_ioapic mp_config;
+ 	/* IO APIC gsi routing info */
+ 	struct mp_ioapic_gsi  gsi_config;
++	struct irq_domain *irqdomain;
++	ioapic_create_domain_fn irqdomain_cb;
++	void *irqdomain_arg;
+ 	DECLARE_BITMAP(pin_programmed, MP_MAX_IOAPIC_PIN + 1);
+ } ioapics[MAX_IO_APICS];
+ 
+@@ -137,6 +142,11 @@ static inline int mp_init_pin_at_boot(int ioapic, int pin)
+ 	return ioapic == 0 || gsi < NR_IRQS_LEGACY;
+ }
+ 
++static inline struct irq_domain *mp_ioapic_irqdomain(int ioapic)
++{
++	return ioapics[ioapic].irqdomain;
++}
++
+ int nr_ioapics;
+ 
+ /* The one past the highest gsi number used */
+@@ -980,19 +990,68 @@ static int irq_trigger(int idx)
+ 	return trigger;
+ }
+ 
+-int mp_map_pin_to_irq(int apic, int pin)
++/*
++ * Dynamically allocate IRQ for GSI above arch_dynirq_lower_bound(0),
++ * and build identity mapping for statically assigned IRQ, but need
++ * special handling for ISA IRQ overriden.
++ */
++static int alloc_irq_from_domain(struct irq_domain *domain,
++				 int idx, int apic, int pin, u32 gsi)
+ {
+-	struct mp_ioapic_gsi *gsi_cfg = mp_ioapic_gsi_routing(apic);
+-	u32 gsi = gsi_cfg->gsi_base + pin;
++	int irq;
++
++	if (gsi >= arch_dynirq_lower_bound(0))
++		return irq_create_mapping(domain, pin);
++
++	irq = irq_find_mapping(domain, pin);
++	if (irq > 0)
++		return irq;
++
++	if (idx < 0)
++		idx = find_irq_entry(apic, pin, mp_INT);
++
++	/* Handle ISA IRQ overridden */
++	if (idx >= 0 && test_bit(mp_irqs[idx].srcbus, mp_bus_not_pci))
++		irq = mp_irqs[idx].srcbusirq;
++	else
++		irq = gsi;
+ 
+ 	/*
+-	 * Provide an identity mapping of gsi == irq except on truly weird
+-	 * platforms that have non isa irqs in the first 16 gsis.
++	 * The first NR_IRQS_LEGACY irq descs are allocated in early_irq_init()
++	 * and need just a mapping. The remaining irqs need both.
+ 	 */
+-	return gsi >= NR_IRQS_LEGACY ? gsi : gsi_top + gsi;
++	if (irq < NR_IRQS_LEGACY)
++		return irq_domain_associate(domain, irq, pin);
++
++	return irq_create_strict_mappings(domain, irq, pin, 1) ? -1 : irq;
+ }
+ 
+-static int pin_2_irq(int idx, int apic, int pin)
++int mp_map_pin_to_irq(int idx, int ioapic, int pin, int alloc)
++{
++	int irq;
++	u32 gsi = mp_pin_2_gsi(ioapic, pin);
++	struct irq_domain *domain = mp_ioapic_irqdomain(ioapic);
++
++	if (!domain) {
++		/*
++		 * Provide an identity mapping of gsi == irq except on truly
++		 * weird platforms that have non isa irqs in the first 16 gsis.
++		 */
++		return gsi >= NR_IRQS_LEGACY ? gsi : gsi_top + gsi;
++	}
++
++	mutex_lock(&ioapic_mutex);
++	if (alloc) {
++		irq = alloc_irq_from_domain(domain, idx, ioapic, pin, gsi);
++	} else {
++		irq = irq_find_mapping(domain, pin);
++	}
++	mutex_unlock(&ioapic_mutex);
++
++	return irq > 0 ? irq : -1;
++}
++
++static int pin_2_irq(int idx, int apic, int pin, int alloc)
+ {
+ 	int irq;
+ 	int bus = mp_irqs[idx].srcbus;
+@@ -1026,7 +1085,7 @@ static int pin_2_irq(int idx, int apic, int pin)
+ 	if (test_bit(bus, mp_bus_not_pci))
+ 		irq = mp_irqs[idx].srcbusirq;
+ 	else
+-		irq = mp_map_pin_to_irq(apic, pin);
++		irq = mp_map_pin_to_irq(idx, apic, pin, alloc);
+ 
+ 	return irq;
+ }
+@@ -1038,7 +1097,7 @@ static int pin_2_irq(int idx, int apic, int pin)
+ int IO_APIC_get_PCI_irq_vector(int bus, int slot, int pin,
+ 				struct io_apic_irq_attr *irq_attr)
+ {
+-	int irq, i, best_guess = -1;
++	int irq, i, best_ioapic = -1, best_idx = -1;
+ 
+ 	apic_printk(APIC_DEBUG,
+ 		    "querying PCI -> IRQ mapping bus:%d, slot:%d, pin:%d.\n",
+@@ -1052,6 +1111,7 @@ int IO_APIC_get_PCI_irq_vector(int bus, int slot, int pin,
+ 	for (i = 0; i < mp_irq_entries; i++) {
+ 		int lbus = mp_irqs[i].srcbus;
+ 		int ioapic_idx, found = 0;
++		int gsi;
+ 
+ 		if (test_bit(lbus, mp_bus_not_pci) || (bus != lbus) ||
+ 		    mp_irqs[i].irqtype != mp_INT ||
+@@ -1068,30 +1128,36 @@ int IO_APIC_get_PCI_irq_vector(int bus, int slot, int pin,
+ 			continue;
+ 
+ 		/* Skip ISA IRQs */
+-		irq = pin_2_irq(i, ioapic_idx, mp_irqs[i].dstirq);
+-		if (ioapic_idx == 0 && !IO_APIC_IRQ(irq))
++		gsi = mp_pin_2_gsi(ioapic_idx, mp_irqs[i].dstirq);
++		if (gsi < arch_dynirq_lower_bound(0) && !IO_APIC_IRQ(gsi))
+ 			continue;
+ 
+ 		if (pin == (mp_irqs[i].srcbusirq & 3)) {
+-			set_io_apic_irq_attr(irq_attr, ioapic_idx,
+-					     mp_irqs[i].dstirq,
+-					     irq_trigger(i),
+-					     irq_polarity(i));
+-			return irq;
++			best_idx = i;
++			best_ioapic = ioapic_idx;
++			goto out;
+ 		}
++
+ 		/*
+ 		 * Use the first all-but-pin matching entry as a
+ 		 * best-guess fuzzy result for broken mptables.
+ 		 */
+-		if (best_guess < 0) {
+-			set_io_apic_irq_attr(irq_attr, ioapic_idx,
+-					     mp_irqs[i].dstirq,
+-					     irq_trigger(i),
+-					     irq_polarity(i));
+-			best_guess = irq;
++		if (best_idx < 0) {
++			best_idx = i;
++			best_ioapic = ioapic_idx;
+ 		}
+ 	}
+-	return best_guess;
++	if (best_idx < 0)
++		return -1;
++
++out:
++	irq = pin_2_irq(best_idx, best_ioapic, mp_irqs[best_idx].dstirq, 1);
++	if (irq > 0)
++		set_io_apic_irq_attr(irq_attr, best_ioapic,
++				     mp_irqs[best_idx].dstirq,
++				     irq_trigger(best_idx),
++				     irq_polarity(best_idx));
++	return irq;
+ }
+ EXPORT_SYMBOL(IO_APIC_get_PCI_irq_vector);
+ 
+@@ -1282,7 +1348,7 @@ static inline int IO_APIC_irq_trigger(int irq)
+ 
+ 	for_each_ioapic_pin(apic, pin) {
+ 		idx = find_irq_entry(apic, pin, mp_INT);
+-		if ((idx != -1) && (irq == pin_2_irq(idx, apic, pin)))
++		if ((idx != -1) && (irq == pin_2_irq(idx, apic, pin, 0)))
+ 			return irq_trigger(idx);
+ 	}
+ 	/*
+@@ -1411,7 +1477,9 @@ static void __init __io_apic_setup_irqs(unsigned int ioapic_idx)
+ 		if (io_apic_pin_not_connected(idx, ioapic_idx, pin))
+ 			continue;
+ 
+-		irq = pin_2_irq(idx, ioapic_idx, pin);
++		irq = pin_2_irq(idx, ioapic_idx, pin, 1);
++		if (irq < 0)
++			continue;
+ 
+ 		/*
+ 		 * Skip the timer IRQ if there's a quirk handler
+@@ -1463,7 +1531,7 @@ void setup_IO_APIC_irq_extra(u32 gsi)
+ 	if (idx == -1)
+ 		return;
+ 
+-	irq = pin_2_irq(idx, ioapic_idx, pin);
++	irq = pin_2_irq(idx, ioapic_idx, pin, 1);
+ 
+ 	set_io_apic_irq_attr(&attr, ioapic_idx, pin, irq_trigger(idx),
+ 			     irq_polarity(idx));
+@@ -3637,7 +3705,10 @@ void __init setup_ioapic_dest(void)
+ 		if (irq_entry == -1)
+ 			continue;
+ 
+-		irq = pin_2_irq(irq_entry, ioapic, pin);
++		irq = pin_2_irq(irq_entry, ioapic, pin, 0);
++		if (irq < 0)
++			continue;
++
+ 		idata = irq_get_irq_data(irq);
+ 
+ 		/*
+-- 
+1.7.10.4
