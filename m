@@ -1,160 +1,104 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch Part1 V1 03/30] x86, mpparse: simplify arch/x86/include/asm/mpspec.h
-Date: Fri, 16 May 2014 16:05:23 +0800
-Message-ID: <1400227550-5935-4-git-send-email-jiang.liu@linux.intel.com>
+From: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [RFC Patch Part1 V1 11/30] x86,
+	ioapic: replace get_nr_irqs_gsi() with arch_dynirq_lower_bound(0)
+Date: Fri, 16 May 2014 16:05:31 +0800
+Message-ID: <1400227550-5935-12-git-send-email-jiang.liu@linux.intel.com>
 References: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, David Rientjes <rientjes@google.com>, Seiji Aguchi <seiji.aguchi@hds.com>, Jiang Liu <jiang.liu@linux.intel.com>, HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Richard Weinberger <richard@nod.at>, Andi Kleen <ak@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sfi-devel@simplefirmware.org, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@linux.intel.com>, linux-pm@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1400227550-5935-1-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Konrad Rzeszutek Wilk <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, David Vrabel <david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, sfi-devel-yLnuTTp1/kvcsJTPyzm5gB2eb7JE58TQ@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Simplify arch/x86/include/asm/mpspec.h by
-1) Change max_physical_apicid to static as it's only used in apic.c.
-2) Kill declaration of mpc_default_type, it's never defined.
-3) Delete default_acpi_madt_oem_check(), it has already been declared
-   in apic.h.
-4) Change mp_override_legacy_irq(), mp_config_acpi_legacy_irqs() and
-   mp_register_gsi() as static because they are only used in acpi/boot.c.
+Currently all callers use get_nr_irqs_gsi() to get the lowest dynamic
+allocatable IRQ number, and arch_dynirq_lower_bound(0) achieves the same
+goal with a better name. So replace get_nr_irqs_gsi() with
+arch_dynirq_lower_bound(0). It will also help to support dynamic IRQ
+allocation for IOAPIC by using arch_dynirq_lower_bound().
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Signed-off-by: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- arch/x86/include/asm/apic.h    |    4 ++--
- arch/x86/include/asm/io_apic.h |    3 ---
- arch/x86/include/asm/mpspec.h  |   13 -------------
- arch/x86/kernel/acpi/boot.c    |   12 +++++++++---
- arch/x86/kernel/apic/apic.c    |    2 +-
- 5 files changed, 12 insertions(+), 22 deletions(-)
+ arch/x86/include/asm/io_apic.h   |    2 --
+ arch/x86/kernel/apic/io_apic.c   |    5 -----
+ drivers/iommu/irq_remapping.c    |    4 ++--
+ drivers/xen/events/events_base.c |    2 +-
+ 4 files changed, 3 insertions(+), 10 deletions(-)
 
-diff --git a/arch/x86/include/asm/apic.h b/arch/x86/include/asm/apic.h
-index 19b0ebafcd3e..69ed79aa9085 100644
---- a/arch/x86/include/asm/apic.h
-+++ b/arch/x86/include/asm/apic.h
-@@ -502,8 +502,6 @@ static inline unsigned default_get_apic_id(unsigned long x)
- #define DEFAULT_TRAMPOLINE_PHYS_HIGH		0x469
- 
- #ifdef CONFIG_X86_64
--extern int default_acpi_madt_oem_check(char *, char *);
--
- extern void apic_send_IPI_self(int vector);
- 
- DECLARE_PER_CPU(int, x2apic_extra_bits);
-@@ -552,6 +550,8 @@ static inline int default_apic_id_valid(int apicid)
- 	return (apicid < 255);
- }
- 
-+extern int default_acpi_madt_oem_check(char *, char *);
-+
- extern void default_setup_apic_routing(void);
- 
- extern struct apic apic_noop;
 diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-index 459e50a424d1..677e599c275e 100644
+index 0c448ac14abf..de3d8b04cf64 100644
 --- a/arch/x86/include/asm/io_apic.h
 +++ b/arch/x86/include/asm/io_apic.h
-@@ -118,9 +118,6 @@ extern int mp_irq_entries;
- /* MP IRQ source entries */
- extern struct mpc_intsrc mp_irqs[MAX_IRQ_SOURCES];
+@@ -160,8 +160,6 @@ extern int save_ioapic_entries(void);
+ extern void mask_ioapic_entries(void);
+ extern int restore_ioapic_entries(void);
  
--/* non-0 if default (table-less) MP configuration */
--extern int mpc_default_type;
+-extern int get_nr_irqs_gsi(void);
 -
- /* Older SiS APIC requires we rewrite the index register */
- extern int sis_apic_bug;
+ extern void setup_ioapic_ids_from_mpc(void);
+ extern void setup_ioapic_ids_from_mpc_nocheck(void);
  
-diff --git a/arch/x86/include/asm/mpspec.h b/arch/x86/include/asm/mpspec.h
-index f5a617956735..7bef40a01a1d 100644
---- a/arch/x86/include/asm/mpspec.h
-+++ b/arch/x86/include/asm/mpspec.h
-@@ -40,8 +40,6 @@ extern int mp_bus_id_to_type[MAX_MP_BUSSES];
- extern DECLARE_BITMAP(mp_bus_not_pci, MAX_MP_BUSSES);
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index a338d9601841..2c91a7fc9915 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -3417,11 +3417,6 @@ static void __init probe_nr_irqs_gsi(void)
+ 	printk(KERN_DEBUG "nr_irqs_gsi: %d\n", nr_irqs_gsi);
+ }
  
- extern unsigned int boot_cpu_physical_apicid;
--extern unsigned int max_physical_apicid;
--extern int mpc_default_type;
- extern unsigned long mp_lapic_addr;
+-int get_nr_irqs_gsi(void)
+-{
+-	return nr_irqs_gsi;
+-}
+-
+ unsigned int arch_dynirq_lower_bound(unsigned int from)
+ {
+ 	return from < nr_irqs_gsi ? nr_irqs_gsi : from;
+diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
+index 228632c99adb..f874344409df 100644
+--- a/drivers/iommu/irq_remapping.c
++++ b/drivers/iommu/irq_remapping.c
+@@ -62,7 +62,7 @@ static int do_setup_msi_irqs(struct pci_dev *dev, int nvec)
+ 	WARN_ON(msidesc->nvec_used);
  
- #ifdef CONFIG_X86_LOCAL_APIC
-@@ -88,15 +86,6 @@ static inline void early_reserve_e820_mpc_new(void) { }
+ 	node = dev_to_node(&dev->dev);
+-	irq = __create_irqs(get_nr_irqs_gsi(), nvec, node);
++	irq = __create_irqs(arch_dynirq_lower_bound(0), nvec, node);
+ 	if (irq == 0)
+ 		return -ENOSPC;
+ 
+@@ -109,7 +109,7 @@ static int do_setup_msix_irqs(struct pci_dev *dev, int nvec)
+ 	unsigned int irq;
+ 
+ 	node		= dev_to_node(&dev->dev);
+-	irq		= get_nr_irqs_gsi();
++	irq		= arch_dynirq_lower_bound(0);
+ 	sub_handle	= 0;
+ 
+ 	list_for_each_entry(msidesc, &dev->msi_list, list) {
+diff --git a/drivers/xen/events/events_base.c b/drivers/xen/events/events_base.c
+index dfa12a4a0a48..004e9bb293c6 100644
+--- a/drivers/xen/events/events_base.c
++++ b/drivers/xen/events/events_base.c
+@@ -402,7 +402,7 @@ static int __must_check xen_allocate_irqs_dynamic(int nvec)
+ 	 * collisions.
+ 	 */
+ 	if (xen_initial_domain() || xen_hvm_domain())
+-		first = get_nr_irqs_gsi();
++		first = arch_dynirq_lower_bound(0);
  #endif
  
- int generic_processor_info(int apicid, int version);
--#ifdef CONFIG_ACPI
--extern void mp_register_ioapic(int id, u32 address, u32 gsi_base);
--extern void mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger,
--				   u32 gsi);
--extern void mp_config_acpi_legacy_irqs(void);
--struct device;
--extern int mp_register_gsi(struct device *dev, u32 gsi, int edge_level,
--				 int active_high_low);
--#endif /* CONFIG_ACPI */
- 
- #define PHYSID_ARRAY_SIZE	BITS_TO_LONGS(MAX_LOCAL_APIC)
- 
-@@ -163,6 +152,4 @@ extern physid_mask_t phys_cpu_present_map;
- 
- extern int generic_mps_oem_check(struct mpc_table *, char *, char *);
- 
--extern int default_acpi_madt_oem_check(char *, char *);
--
- #endif /* _ASM_X86_MPSPEC_H */
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 86281ffb96d6..b41b47021f53 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -345,6 +345,10 @@ acpi_parse_lapic_nmi(struct acpi_subtable_header * header, const unsigned long e
- #endif				/*CONFIG_X86_LOCAL_APIC */
- 
- #ifdef CONFIG_X86_IO_APIC
-+static void  mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger,
-+				    u32 gsi);
-+static int mp_register_gsi(struct device *dev, u32 gsi, int trigger,
-+			   int polarity);
- 
- static int __init
- acpi_parse_ioapic(struct acpi_subtable_header * header, const unsigned long end)
-@@ -903,7 +907,8 @@ static int __init acpi_parse_madt_lapic_entries(void)
- #ifdef	CONFIG_X86_IO_APIC
- #define MP_ISA_BUS		0
- 
--void __init mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger, u32 gsi)
-+static void __init mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger,
-+					  u32 gsi)
- {
- 	int ioapic;
- 	int pin;
-@@ -938,7 +943,7 @@ void __init mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger, u32 gsi)
- 	isa_irq_to_gsi[bus_irq] = gsi;
- }
- 
--void __init mp_config_acpi_legacy_irqs(void)
-+static void __init mp_config_acpi_legacy_irqs(void)
- {
- 	int i;
- 	struct mpc_intsrc mp_irq;
-@@ -1040,7 +1045,8 @@ static int mp_config_acpi_gsi(struct device *dev, u32 gsi, int trigger,
- 	return 0;
- }
- 
--int mp_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
-+static int mp_register_gsi(struct device *dev, u32 gsi, int trigger,
-+			   int polarity)
- {
- 	int ioapic;
- 	int ioapic_pin;
-diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
-index ad28db7e6bde..ca1bd75e3de2 100644
---- a/arch/x86/kernel/apic/apic.c
-+++ b/arch/x86/kernel/apic/apic.c
-@@ -67,7 +67,7 @@ EXPORT_SYMBOL_GPL(boot_cpu_physical_apicid);
- /*
-  * The highest APIC ID seen during enumeration.
-  */
--unsigned int max_physical_apicid;
-+static unsigned int max_physical_apicid;
- 
- /*
-  * Bitmask of physically existing CPUs:
+ 	irq = irq_alloc_descs_from(first, nvec, -1);
 -- 
 1.7.10.4
