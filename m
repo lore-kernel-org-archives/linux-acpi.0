@@ -1,106 +1,79 @@
-From: Jacob Pan <jacob.jun.pan@linux.intel.com>
-Subject: Re: [RFC][PATCH 2/3] PM / sleep: Mechanism to avoid resuming
- runtime-suspended devices unnecessarily
-Date: Fri, 16 May 2014 08:20:55 -0700
-Message-ID: <20140516082055.40cd2bb4@ultegra>
-References: <20140515000320.3c1c9256@jacob-desktop>
-	<Pine.LNX.4.44L0.1405151151560.910-100000@iolanthe.rowland.org>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC Patch Part1 V1 00/30] use irqdomain to dynamically allocate
+ IRQ for IOAPIC pin
+Date: Fri, 16 May 2014 17:28:06 +0200 (CEST)
+Message-ID: <alpine.DEB.2.02.1405161601060.4039@ionos.tec.linutronix.de>
+References: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1405151151560.910-100000@iolanthe.rowland.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:34963 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932582AbaEPP2a (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 May 2014 11:28:30 -0400
+In-Reply-To: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sfi-devel@simplefirmware.org
 
-On Thu, 15 May 2014 11:58:55 -0400 (EDT)
-Alan Stern <stern@rowland.harvard.edu> wrote:
+Jiang,
 
-> On Thu, 15 May 2014, Jacob Pan wrote:
+On Fri, 16 May 2014, Jiang Liu wrote:
+
+> On x86 platforms, IRQ number are statically allocated to IOAPIC pins at boot.
+> There are two issues with this design. First it causes trouble to IOAPIC
+> hotplug because we need to allocate a block of IRQ numbers for each IOAPIC.
+> Second it may waste IRQ nubmers even if some IOAPIC pins are not used because
+> IRQ numbers are statically assigned.
 > 
-> > On Thu, 15 May 2014 10:29:42 -0400 (EDT)
-> > Alan Stern <stern@rowland.harvard.edu> wrote:
-> > 
-> > > On Thu, 15 May 2014, Jacob Pan wrote:
-> > > 
-> > > > > > should we respect ignore_children flag here? not all parent
-> > > > > > devices create children with proper .prepare() function.
-> > > > > > this allows parents override children.
-> > > > > > I am looking at USB, a USB device could have logical
-> > > > > > children such as ep_xx, they don't go through the same
-> > > > > > subsystem .prepare().
-> > > > > 
-> > > > > Well, I'm not sure about that.  Let me consider that for a
-> > > > > while.
-> > > > OK. let me be more clear about the situation i see in USB.
-> > > > Correct me if I am wrong, a USB device will always has at least
-> > > > one endpoint/ep_00 as a kid for control pipe, it is a logical
-> > > > device. So when device_prepare() is called, its call back is
-> > > > NULL which makes .direct_complete = 0. Since children device
-> > > > suspend is called before parents, the parents .direct_complete
-> > > > flag will always get cleared.
-> > > > 
-> > > > What i am trying to achieve here is to see if we avoid resuming
-> > > > built-in (hardwired connect_type) non-hub USB devices based on
-> > > > this new patchset. E.g. we don't want to resume/suspend USB
-> > > > camera every time in system suspend/resume cycle if they are
-> > > > already rpm suspended. We can save ~100ms resume time for the
-> > > > devices we have tested.
-> > > 
-> > > This is a good point, but I don't think it is at all related to 
-> > > ignore_children.
-> > > 
-> > > Instead, it seems that the best way to solve it would be to add a 
-> > > ->prepare() handler for usb_ep_device_type that would always turn 
-> > > on direct_complete.
-> > > 
-> > yeah, that would solve the problem with EP device type. But what
-> > about other subdevices. e.g. for USB camera, uvcvideo device? We
-> > can add .prepare(return 1;) for each level but would it be better
-> > to have a flag similar to ignore_children if not ignore_children
-> > itself.
+> This patchset tries to enable dynamic IRQ number allocation for IOAPIC
+> by adopting the irqdomain framework, it solves the two issues mentioned
+> above. It also simplifies the IOAPIC driver by consolidating ways to
+> program IOAPIC pins with the irqdomain map interface.
 > 
-> Something like that could always be added.
-or, how about if a device's .prepare() is NULL, we could
-assume .direct_resume() should be set. i.e.
+> We will enhance the IOAPIC driver core to support ACPI based IOAPIC hotplug
+> once the IOAPIC driver has been converted to irqdomain.
+
+Thanks for tackling this!
+ 
+> This patchset applies to v3.15-rc4-260-g38583f095c5a and has been tested
+
+That's a bit unfortunate, as there are conflicting changes in the tip
+tree irq/core branch. Can you please rebase on top of that.
+
+> TODO list:
+> 1) check whether it affects Xen or not
+> 
+> Patch 1-17 are trivial code improvements, bugfixes and preparation.
+
+Can you please move the bugfixes before the other changes, so we can
+pick them up independently from the outcome?
+ 
+> Patch 18-24 enable basic irqdomain support and IRQ number dynamic
+> allocation.
+> 
+> Patch 25-29 consoldate the way to program IOAPIC pins by using
+> irqdomain map() interface.
+> 
+> Patch 30 cleans up unused interfaces and functions in IOAPIC driver.
+> 
+> Tests and comments are warmly welcomed!
+
+I like the general approach, but we have now a mixture of legacy irq
+handling and irq domains. We really want to cleanup the legacy PIC no
+ioapic case as well. That will cleanup the code further.
+
+The other thing we discussed here: https://lkml.org/lkml/2014/5/7/901
+in several places of the thread is to move the vector allocation into
+a irqdomain with a generic matrix allocator as well. We have other use
+cases for this as well. It would be nice if you could look at that as
+well.
+
+Thanks,
+
+	tglx
 
 
---- a/drivers/base/power/main.c
-+++ b/drivers/base/power/main.c
-@@ -1539,7 +1539,7 @@ static int device_prepare(struct device *dev,
-pm_message_t state) pm_runtime_put(dev);
-                return ret;
-        }
--       dev->power.direct_complete = ret > 0 && state.event ==
-PM_EVENT_SUSPEND
-+       dev->power.direct_complete = (!callback || ret > 0) &&
-state.event == PM_EVENT_SUSPEND && pm_runtime_suspended(dev);
-        dev_dbg(dev, "%s:direct_complete %d, info %s\n", __func__,
-dev->power.direct_complete, info);
 
-> 
-> > Actually, I don't understand why this is not related to
-> > ignore_children. Could you explain?
-> 
-> It's hard to explain why two things are totally separate.  Much
-> better for you to describe why you think they _are_ related, so that
-> I can explain how you are wrong.
-> 
-> > If the parent knows it can ignore children and already rpm
-> > suspended, why do we still ask children?
-> 
-> The "ignore_children" flag doesn't mean that the parent can ignore
-> its children.  It means that the PM core is allowed to do a runtime
-> suspend of the parent while leaving the children at full power.
-> 
-> In particular, it doesn't mean that the children's ->suspend()
-> callback will work correctly if it is called while the parent is
-> runtime suspended.
-that explains my question about ignore_chilren flag. thanks.
-> 
-> Alan Stern
-> 
 
-[Jacob Pan]
