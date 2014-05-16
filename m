@@ -1,57 +1,51 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch Part1 V1 24/30] x86, SFI, irq: provide basic irqdomain support
-Date: Fri, 16 May 2014 16:05:44 +0800
-Message-ID: <1400227550-5935-25-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC Patch Part1 V1 27/30] x86, irq, mpparse: use common irqdomain map interface to program IOAPIC pins
+Date: Fri, 16 May 2014 16:05:47 +0800
+Message-ID: <1400227550-5935-28-git-send-email-jiang.liu@linux.intel.com>
 References: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, x86@kernel.org
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sfi-devel@simplefirmware.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sfi-devel@simplefirmware.org
 List-Id: linux-acpi@vger.kernel.org
 
-Enhance SFI to provide basic support of irqdomain with identity mapping
-between GSIs and IRQs.
+Refine mpparse to use common irqdomain map interface to program IOAPIC pins,
+so we can unify the callsite to progam IOAPIC pins.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/platform/sfi/sfi.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ arch/x86/kernel/mpparse.c |    4 +++-
+ arch/x86/pci/irq.c        |    2 --
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/platform/sfi/sfi.c b/arch/x86/platform/sfi/sfi.c
-index 3bd7cf642680..2c3522dfa05d 100644
---- a/arch/x86/platform/sfi/sfi.c
-+++ b/arch/x86/platform/sfi/sfi.c
-@@ -25,6 +25,7 @@
- #include <linux/init.h>
- #include <linux/sfi.h>
- #include <linux/io.h>
-+#include <linux/irqdomain.h>
+diff --git a/arch/x86/kernel/mpparse.c b/arch/x86/kernel/mpparse.c
+index b9823bea332a..55acf55b41e7 100644
+--- a/arch/x86/kernel/mpparse.c
++++ b/arch/x86/kernel/mpparse.c
+@@ -113,7 +113,9 @@ static void __init MP_bus_info(struct mpc_bus *m)
+ 		pr_warn("Unknown bustype %s - ignoring\n", str);
+ }
  
- #include <asm/io_apic.h>
- #include <asm/mpspec.h>
-@@ -70,6 +71,12 @@ static int __init sfi_parse_cpus(struct sfi_table_header *table)
- #endif /* CONFIG_X86_LOCAL_APIC */
+-static struct irq_domain_ops mp_ioapic_irqdomain_ops;
++static struct irq_domain_ops mp_ioapic_irqdomain_ops = {
++	.map = mp_irqdomain_map,
++};
  
- #ifdef CONFIG_X86_IO_APIC
-+static struct irq_domain_ops sfi_ioapic_irqdomain_ops;
-+
-+static struct irq_domain *sfi_ioapic_create_irqdomain(int ioapic, void *arg)
-+{
-+	return mp_irqdomain_create(ioapic, NULL, &sfi_ioapic_irqdomain_ops);
-+}
- 
- static int __init sfi_parse_ioapic(struct sfi_table_header *table)
+ static struct irq_domain *mp_ioapic_create_irqdomain(int ioapic, void *arg)
  {
-@@ -82,7 +89,8 @@ static int __init sfi_parse_ioapic(struct sfi_table_header *table)
- 	pentry = (struct sfi_apic_table_entry *)sb->pentry;
- 
- 	for (i = 0; i < num; i++) {
--		mp_register_ioapic(i, pentry->phys_addr, gsi_top, NULL, NULL);
-+		mp_register_ioapic(i, pentry->phys_addr, gsi_top,
-+				   sfi_ioapic_create_irqdomain, NULL);
- 		pentry++;
- 	}
- 
+diff --git a/arch/x86/pci/irq.c b/arch/x86/pci/irq.c
+index 84112f55dd7a..e4200e5e775e 100644
+--- a/arch/x86/pci/irq.c
++++ b/arch/x86/pci/irq.c
+@@ -1227,8 +1227,6 @@ static int pirq_enable_irq(struct pci_dev *dev)
+ 			}
+ 			dev = temp_dev;
+ 			if (irq >= 0) {
+-				io_apic_set_pci_routing(&dev->dev, irq,
+-							 &irq_attr);
+ 				dev->irq = irq;
+ 				dev_info(&dev->dev, "PCI->APIC IRQ transform: "
+ 					 "INT %c -> IRQ %d\n", 'A' + pin - 1, irq);
 -- 
 1.7.10.4
