@@ -1,125 +1,246 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: RFC: Cleanup firmware backlight control method selection
-Date: Fri, 16 May 2014 17:06:17 +0800
-Message-ID: <5375D509.60102@intel.com>
-References: <53748332.50909@redhat.com> <20140515222938.GA29253@taihen.jp> <5375C6F7.7090305@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi: mv models with win8 brightness problems from win8 blacklist to use_native_backlight
+Date: Fri, 16 May 2014 13:54:11 +0200
+Message-ID: <12075536.Y1QkyZAZU4@vostro.rjw.lan>
+References: <1399042252-14172-1-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:49871 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751233AbaEPJGW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 May 2014 05:06:22 -0400
-In-Reply-To: <5375C6F7.7090305@redhat.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:56946 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932152AbaEPLhV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 May 2014 07:37:21 -0400
+In-Reply-To: <1399042252-14172-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, Mattia Dongili <malattia@linux.it>
-Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On 05/16/2014 04:06 PM, Hans de Goede wrote:
-> Hi,
+On Friday, May 02, 2014 04:50:52 PM Hans de Goede wrote:
+> When the windows8 related backlight problems became evident, 2 approaches
+> were follow in parallel, one was to stop claiming to be windows 8 / 2012,
+> the other was to tell acpi_video to stop registering a backlight driver.
 > 
-> On 05/16/2014 12:29 AM, Mattia Dongili wrote:
->> On Thu, May 15, 2014 at 11:04:50AM +0200, Hans de Goede wrote:
->>> Hi All,
->>>
->>> There are various issues with how the linux kernel currently select which
->>> firmware backlight control (*) method to use:
->>>
->>> 1) There are various module loading ordering issues, leading to different
->>> behavior depending on module load ordering:
->>>
->>> * http://www.spinics.net/lists/linux-acpi/msg50443.html
->>> * Sometimes we register and immediately unregister the acpi_video# backlight
->>>   devices, some ACPI implementations don't like this, so we've special
->>>   quirks to avoid the register + unregister on some machines
->>>
->>> 2) There are 2 main kernel commandline options involved acpi_backlight and
->>> video.use_native_backlight. With the latter only working if certain firmware
->>> checks succeed *and* the former has the right value. This is confusing not
->>> only for end users but also for people trying to read the code in question.
->>> Note some vendor specific firmware backlight drivers, ie thinkpad_acpi.c
->>> have their own related options, leading to 3 kernel cmdline options coming
->>> into play.
->>>
->>> 3) We have quirks everywhere. I'm afraid we cannot get rid of these, but
->>> at least we should try to clean up where they live and how they interact
->>> with each other. acpi_backlight=vendor quirks mostly live in vendor specific
->>> firmware backlight drivers. But we also have a couple in acpi/video_detect.c.
->>> video.use_native_backlight=1 quirks otoh live in acpi/video.c.
->>>
->>> In the end all these options and quirks all work together in a complicated
->>> manor to achieve one simple goal: decide which firmware interface to use
->>> for backlight control (*). Which comes down to choosing between the
->>> following 3 options:
->>>
->>> 1 Native (raw) backlight control (so no firmware backlight control)
->>> 2 Control by the standard acpi-video firmware backlight driver
->>> 3 Control by a vendor specific firmware backlight driver
->>>
->>> So I would like to propose to give the acpi_backlight= kernel commandline
->>> option which currently accepts values "vendor" and "video" a third value
->>> "native", and to get rid of the video.use_native_backlight option.
->>
->> the "acpi_" prefix here sounds inappropriate at this point. And
->> descending from that, shouldn't a mechanism like you describe being
->> implemented in the backlight subsystem?
+> I've read all the threads and it seems that which approach ended up being
+> applied to which model laptop was never really a concious decision (AFAIK).
 > 
-> This is only a problem with crazy PC's which have multiple firmware
-> API's (both standardized and custom ACPI) to control the backlight, which
-> also are sometimes all broken. So this really is an acpi thing, and I believe
-> this should stay in acpi/video_detect.c where it already lives, I just think
-> the video.use_native_backlight option which clearly interacts with this needs
-> to be moved to acpi/video_detect.c too.
-
-The acpi_backlight= is used to tell the ACPI video module and the
-platform module, who should create a backlight control interface. Since
-the two modules both use ACPI to do the backlight control, hence the acpi
-prefix in the cmdline option(my personal explanation :-). The
-video.use_native_backlight is introduced to solve Win8 problem and
-involves the third interface, raw. I agree that the acpi_backlight= and
-video.use_native_backlight is confusing, I prefer the
-backlight=platform/firmware/raw cmdline option if we can get rid of the
-legacy.
-
-> Not sure if you're referring to the above discussion here, or to my remark
-> about hotkey issues, so let me answer both:
+> So lets move all the models which are only on the win8 blacklist because of
+> brightness issues to the use_native_backlight list, which is the smaller
+> hammer to use to solve the backlight issues.
 > 
-> * As for why we cannot simply register all firmware backlight drivers
-> and let userspace figure things out. There are 2 reasons:
-> 1) Userspace will pick the first firmware driver it sees, to avoid this
-> causing issues we've historically always registered only one. So we're
-> stuck with this approach to avoid causing regressions
-
-We shouldn't expose non-working interface from the kernel side, but if
-they all work, I don't think we should hide them. The i915 driver always
-creates its backlight control interface no matter what others did, I
-think this is the right thing as long as it makes sure it's not exposing
-a broken one. The vendor and video driver don't do things this way may
-be that there is little chance they will work well at the same time.
-
-> 2) Having multiple pieces of firmware code frob the same hardware seems
-> like a really really bad idea.
+> Note: this is not tested on any of the affected models, this just seems like
+> the sensible thing to do.
 > 
-> * As for the hotkeys issue, the problem is actually very much the same as
-> with the backlight control. laptop brightness hotkeys tend to generate 3
-> events for each press:
-> 1) A ps2 atkbd scancode
-> 2) an acpi-video event
-> 3) a vendor-wmi event.
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-What a mess...
-I thought the WMI event could be stopped by calling some ACPI control
-method and the vendor driver may already do this if it decides the
-backlight control should be done by ACPI video. For the scancode and
-video event, I thought it is the EC that does the decision - it should
-either generate a scancode or sends out an ACPI notification to the
-video output device and then have the video driver to send the event to
-user space, but not both! But yes, things can go wrong and the worst
-thing would be, a hotkey press gives three events as you have described.
-I don't know the case for WMI, but the majority ECs seem to work OK in
-this regard, i.e. it doesn't generate the two things but only one of them.
+This doesn't apply for me on top of current linux-next, care to rebase?
 
-Thanks,
-Aaron
+> ---
+>  drivers/acpi/blacklist.c | 75 ------------------------------------------------
+>  drivers/acpi/video.c     | 72 +++++++++++++++++++++++++++++++++++++++++++---
+>  2 files changed, 68 insertions(+), 79 deletions(-)
+> 
+> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+> index afec452..51b8f64 100644
+> --- a/drivers/acpi/blacklist.c
+> +++ b/drivers/acpi/blacklist.c
+> @@ -156,12 +156,6 @@ static int __init dmi_disable_osi_win7(const struct dmi_system_id *d)
+>  	acpi_osi_setup("!Windows 2009");
+>  	return 0;
+>  }
+> -static int __init dmi_disable_osi_win8(const struct dmi_system_id *d)
+> -{
+> -	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
+> -	acpi_osi_setup("!Windows 2012");
+> -	return 0;
+> -}
+>  
+>  static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+>  	{
+> @@ -247,75 +241,6 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+>  	},
+>  
+>  	/*
+> -	 * The following machines have broken backlight support when reporting
+> -	 * the Windows 2012 OSI, so disable it until their support is fixed.
+> -	 */
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "ASUS Zenbook Prime UX31A",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+> -		     DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "ThinkPad Edge E530",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "ThinkPad Edge E530",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "ThinkPad Edge E530",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "Acer Aspire V5-573G",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "Acer Aspire V5-572G",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "ThinkPad T431s",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "ThinkPad T430",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
+> -		},
+> -	},
+> -
+> -	/*
+>  	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
+>  	 * Linux ignores it, except for the machines enumerated below.
+>  	 */
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 48146fc..e7a1190 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -457,18 +457,58 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  	},
+>  	{
+>  	 .callback = video_set_use_native_backlight,
+> -	 .ident = "ThinkPad T430s",
+> +	 .ident = "ThinkPad X230",
+>  	 .matches = {
+>  		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
+> +		},
+> +	},
+> +	{
+> +	.callback = video_set_use_native_backlight,
+> +	.ident = "ThinkPad T430",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
+>  		},
+>  	},
+>  	{
+>  	 .callback = video_set_use_native_backlight,
+> -	 .ident = "ThinkPad X230",
+> +	 .ident = "ThinkPad T430s",
+>  	 .matches = {
+>  		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T430s"),
+> +		},
+> +	},
+> +	{
+> +	.callback = video_set_use_native_backlight,
+> +	.ident = "ThinkPad T431s",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
+> +		},
+> +	},
+> +	{
+> +	.callback = video_set_use_native_backlight,
+> +	.ident = "ThinkPad Edge E530",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
+> +		},
+> +	},
+> +	{
+> +	.callback = video_set_use_native_backlight,
+> +	.ident = "ThinkPad Edge E530",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
+> +		},
+> +	},
+> +	{
+> +	.callback = video_set_use_native_backlight,
+> +	.ident = "ThinkPad Edge E530",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
+>  		},
+>  	},
+>  	{
+> @@ -545,6 +585,22 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  	},
+>  	{
+>  	.callback = video_set_use_native_backlight,
+> +	.ident = "Acer Aspire V5-572G",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
+> +		},
+> +	},
+> +	{
+> +	.callback = video_set_use_native_backlight,
+> +	.ident = "Acer Aspire V5-573G",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
+> +		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
+> +		},
+> +	},
+> +	{
+> +	.callback = video_set_use_native_backlight,
+>  	.ident = "HP ProBook 4340s",
+>  	.matches = {
+>  		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+> @@ -609,6 +665,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8780w"),
+>  		},
+>  	},
+> +	{
+> +	.callback = video_set_use_native_backlight,
+> +	.ident = "ASUS Zenbook Prime UX31A",
+> +	.matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+> +		     DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
+> +		},
+> +	},
+>  	{}
+>  };
+>  
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
