@@ -1,72 +1,68 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 2/3] acer-wmi: Switch to acpi_video_unregister_backlight
-Date: Sat, 17 May 2014 10:48:02 +0200
-Message-ID: <1400316483-6356-3-git-send-email-hdegoede@redhat.com>
-References: <1400316483-6356-1-git-send-email-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:12227 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757260AbaEQItX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 17 May 2014 04:49:23 -0400
-In-Reply-To: <1400316483-6356-1-git-send-email-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [Patch V2 5/9] I2C: Add smbus quick read/write helper function
+Date: Sat, 17 May 2014 11:41:20 +0200
+Message-ID: <20140517094120.GA2602@katana>
+References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
+ <1398695268-28645-1-git-send-email-tianyu.lan@intel.com>
+ <1398695268-28645-6-git-send-email-tianyu.lan@intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1398695268-28645-6-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Lee Chun-Yi <jlee@suse.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>, platform-driver-x86@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 
-Switch from acpi_video_unregister(), to acpi_video_unregister_backlight(),
-so that the hotkeys handler registered by acpi-video stays in place.
 
-Since there are no mappings for the atkbd raw codes for the brightness
-keys used by newer Acer models in /lib/udev/hwdb.d/60-keyboard.hwdb, and
-since we map the wmi events with a code of KE_IGNORE, we rely on acpi-video
-to do the hotkey handling for us.
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-For laptops such as the Acer Aspire 5750 which uses intel gfx this works
-despite us calling acpi_video_unregister() because the following happens:
+On Mon, Apr 28, 2014 at 10:27:44PM +0800, Lan Tianyu wrote:
+> Add i2c_smbus_quick_write/read() helper function. These will be used
+> in the implementation of i2c ACPI address space handler.
+>=20
+> Reviewed-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-1) acpi-video module gets loaded (as it is a dependency of acer-wmi and i915)
-2) acpi-video does NOT call acpi_video_register()
-3) acer-wmi loads (assume it loads before i915), calls
-acpi_video_dmi_promote_vendor(); which sets ACPI_VIDEO_BACKLIGHT_DMI_VENDOR
-4) calls acpi_video_unregister -> not registered, nop
-5) i915 loads, calls acpi_video_register
-6) acpi_video_register registers the acpi_notifier for the hotkeys,
-   does NOT register a backlight device because of ACPI_VIDEO_BACKLIGHT_DMI_VENDOR
+We had such a function once but removed because of no users. Please
+check 67c2e66571c383404a5acd08189194da660da942 what it takes to bring
+them back. Especially missing are documentation updates...
 
-But on the Acer Aspire 5750G, which uses nvidia graphics the following happens:
-1) acpi-video module gets loaded (as it is a dependency of acer-wmi)
-2) acpi-video calls acpi_video_register()
-3) acpi_video_register registers the acpi_notifier for the hotkeys,
-   and a backlight device
-4) acer-wmi loads, calls acpi_video_dmi_promote_vendor()
-5) calls acpi_video_unregister, this unregisters BOTH the acpi_notifier for
-   the hotkeys AND the backlight device
+> +s32 i2c_smbus_quick_write(const struct i2c_client *client)
 
-And we end up without any handler for the brightness hotkeys. This patch fixes
-this by switching over to acpi_video_unregister_backlight() which keeps the
-hotkey handler in place.
+=2E.. and I like the original function much better.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=35622
+1) It is named *_write_quick which follows other function name patterns
+2) It uses a parameter for the r/w bit. Make sense to me, since this bit
+is the information we send to the device. quick_read doesn't make sense
+to me. We don't receive a bit from the device.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/platform/x86/acer-wmi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index c91f69b3..3a74699 100644
---- a/drivers/platform/x86/acer-wmi.c
-+++ b/drivers/platform/x86/acer-wmi.c
-@@ -2228,7 +2228,7 @@ static int __init acer_wmi_init(void)
- 		pr_info("Brightness must be controlled by acpi video driver\n");
- 	} else {
- 		pr_info("Disabling ACPI video driver\n");
--		acpi_video_unregister();
-+		acpi_video_unregister_backlight();
- 	}
- 
- 	if (wmi_has_guid(WMID_GUID3)) {
--- 
-1.9.0
+--oyUTqETQ0mS9luUI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTdy7AAAoJEBQN5MwUoCm2NSUP/2EZxG4n2opUpSHD0ZrcWkVY
+KRqmpf0RkmKo49EyPtZvF43kBzqKB4yFSHdVR8J7oAgQkn8v7v7YDcRKy7cPW0jN
+JR9eKSi8ETvoUCO6hyxtyT/C3gYuCk0QAAsWh3Gkn59an4slL3knOKPD0D+yEK7W
+1wmkWP0SuE40a2TikN627uw+Du2Wyh+v+EecRUcctAD6Xbg0SF5jdPK2jH/giHbh
+n0bfX15mPPdkCD4aGh39LnAQZqw7TbV5o/TrYKGLM0MRj0qiEWNd9HctrupTwcMW
+lJydAauSHTNJNZ3FBMSb79Q/fcsf3HzhLpcqBkv1bX/Ldmtb+uXPi460XLorMLaX
+MBPzPvnTIxjwu4GVuKjXxiiFwTpf1T9dSaUaOPKBmEjGcjxNGrEnRukwGqJFbllz
+VPm5YHRTBEeL74Zx8qvC7brqGk0ttBtN9qSKFfjy3YQ2whid96cLEEcq/VA/tYej
+Nngw5ho6zs4X+ReeVZDZJlmuwTWiamTGCXqhf81UBDXbTVwbQJmlH29fSWM8O5m8
+PlH/ZDC1i1kBPlCdqmJYQ5fW2WWu4OqO+R8d6ywNRV4c5o7z+V0iWvgybO58DUQD
+C6cv65MjEMAbn4V5sU5bgiuE0rUewuJgHm7Eec4dZV1ra/e/AjPnqZP1VUa1vTdJ
+L3XtiCzNndwg6onviNfP
+=4bzq
+-----END PGP SIGNATURE-----
+
+--oyUTqETQ0mS9luUI--
