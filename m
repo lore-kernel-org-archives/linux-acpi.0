@@ -1,59 +1,84 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCHv2 3/4] clk: new basic clk type for fractional divider
-Date: Sat, 17 May 2014 02:15:43 +0200
-Message-ID: <3823442.HzUarSqr07@vostro.rjw.lan>
-References: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com> <1454520.Q33DvSH0ns@vostro.rjw.lan> <20140516230905.9521.88763@quantum>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] acpi-video: Revert native brightness quirk for ThinkPad
+ T530
+Date: Sat, 17 May 2014 09:47:03 +0200
+Message-ID: <537713F7.4090000@redhat.com>
+References: <1400267441-6267-1-git-send-email-hdegoede@redhat.com> <13216709.cQDcpMa84k@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58595 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752143AbaEPX6x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 May 2014 19:58:53 -0400
-In-Reply-To: <20140516230905.9521.88763@quantum>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <13216709.cQDcpMa84k@vostro.rjw.lan>
+Sender: stable-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Aaron Lu <aaron.lu@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday, May 16, 2014 04:09:05 PM Mike Turquette wrote:
-> Quoting Rafael J. Wysocki (2014-05-16 15:38:05)
-> > On Thursday, May 15, 2014 09:53:49 AM Mike Turquette wrote:
-> > > Quoting Heikki Krogerus (2014-05-15 06:40:25)
-> > > > Fractional divider clocks are fairly common. This adds basic
-> > > > type for them.
-> > > > 
-> > > > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > > 
-> > > Taken into clk-next.
-> > > 
-> > > Just FYI, there was some talk at Embedded Linux Conference on providing
-> > > a better abstraction layer for some of these "basic" clock types. This
-> > > abstraction would allow the basic clock types to implement the
-> > > machine-agnostic logic (e.g. an incoming rate is divided by a value) and
-> > > then platforms and drivers could plug in the machine-specific parts
-> > > (e.g. divider is made up of m/n, or divider is power-of-two, or divider
-> > > is a simple integer with min == 1 and max == 5).
-> > > 
-> > > All of that is to say that in time this fractional divider could go away
-> > > once the abstraction layer allows us to fold the m/n divider stuff into
-> > > a core divider implementation.
-> > > 
-> > > Nothing wrong with the patch for now, so I've taken it for 3.16.
-> > 
-> > Well, OK, but I guess [4/4] depends on it and [4/4] also depends on
-> > [1-2/4], so how you're proposing to resolve this?
+Hi,
+
+On 05/16/2014 10:50 PM, Rafael J. Wysocki wrote:
+> On Friday, May 16, 2014 09:10:41 PM Hans de Goede wrote:
+>> Seems it helps some users, but causes issues for other users:
+>> https://bugzilla.redhat.com/show_bug.cgi?id=1089545
+>>
+>> So lets drop it for now until we've figured out a better fix.
 > 
-> I haven't yet published this patch to my tree, so no harm done. How
-> about the following Formal Proposals?
+> So you hadn't even waited for all of your users to have a chance to test the
+> blacklist patch and you asked me to push it for -rc5 nevertheless.  You don't
+> even realize how disappointing that is.
+
+That is not how it happened, after the patch going out a new user with a T530
+showed up, who did not have any problems before so never was part of the bug
+reports about this before, but got problems after the patch.
+So it seems that different T530's behave differently.
+
+This may have something todo with whether they were booted in EFI mode or not,
+or maybe there are just 2 different revisions out there.
+
+Note that this is all not in vain:
+
+1) We would have never heard from that user without the patch
+2) The behavior the patch causes is going to be the default in 3.16, so now we've
+caught it early and can work on a fix before 3.16-rc1.
+
+> I had to rebase this patch, so it has to go through autobuild testing and
+> I'll try to add it to my -rc6 pull request, but I'm not going to take any new
+> blacklist entries for anything later than -rc4 in the future.  And don't even
+> *try* to argue with that.
+
+I can see that being reasonable, although I believe this time it does actually work
+in out advantage, esp. with the default behavior change planned for 3.15.
+
+Regards,
+
+Hans
+
+
 > 
-> 1) I ack the patch and don't merge it through my tree. You take it.
-> 2) I provide a topic branch that we both merge.
+>> Cc: stable@vger.kernel.org
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>  drivers/acpi/video.c | 8 --------
+>>  1 file changed, 8 deletions(-)
+>>
+>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>> index 0fec70d..8309100 100644
+>> --- a/drivers/acpi/video.c
+>> +++ b/drivers/acpi/video.c
+>> @@ -516,14 +516,6 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>>  	},
+>>  	{
+>>  	 .callback = video_set_use_native_backlight,
+>> -	 .ident = "ThinkPad T530",
+>> -	 .matches = {
+>> -		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+>> -		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T530"),
+>> -		},
+>> -	},
+>> -	{
+>> -	 .callback = video_set_use_native_backlight,
+>>  	 .ident = "ThinkPad W530",
+>>  	 .matches = {
+>>  		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+>>
 > 
-> Your choice.
-
-Thanks!  I'd prefer 1) to be honest. :-)
-
-Rafael
-
