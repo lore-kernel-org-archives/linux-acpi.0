@@ -1,116 +1,69 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [Patch V2 6/9] I2C: Add smbus word/block process call helper
- function
-Date: Sat, 17 May 2014 21:59:14 +0800
-Message-ID: <53776B32.8010400@intel.com>
-References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com> <1398695268-28645-1-git-send-email-tianyu.lan@intel.com> <1398695268-28645-7-git-send-email-tianyu.lan@intel.com> <20140517102110.GB2602@katana>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [Patch V2 5/9] I2C: Add smbus quick read/write helper function
+Date: Sat, 17 May 2014 19:15:56 +0200
+Message-ID: <20140517171555.GA2597@katana>
+References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
+ <1398695268-28645-1-git-send-email-tianyu.lan@intel.com>
+ <1398695268-28645-6-git-send-email-tianyu.lan@intel.com>
+ <20140517094120.GA2602@katana>
+ <5377607F.9010800@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:25468 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756910AbaEQN7U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 17 May 2014 09:59:20 -0400
-In-Reply-To: <20140517102110.GB2602@katana>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5377607F.9010800@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
 Cc: rjw@rjwysocki.net, mika.westerberg@linux.intel.com, awilliam@redhat.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-
-On 05/17/2014 06:21 PM, Wolfram Sang wrote:
-> On Mon, Apr 28, 2014 at 10:27:45PM +0800, Lan Tianyu wrote:
->> Add i2c_smbus_word/block_proc_call() helper function. These will be used
->> in the implementation of i2c ACPI address space handler.
->>
->> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->> ---
->>   drivers/i2c/i2c-core.c | 56 ++++++++++++++++++++++++++++++++++++++++++++++++++
->>   include/linux/i2c.h    |  4 ++++
->>   2 files changed, 60 insertions(+)
->>
->> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
->> index 3bf0048..638befd 100644
->> --- a/drivers/i2c/i2c-core.c
->> +++ b/drivers/i2c/i2c-core.c
->> @@ -2306,6 +2306,30 @@ s32 i2c_smbus_write_word_data(const struct i2c_client *client, u8 command,
->>   EXPORT_SYMBOL(i2c_smbus_write_word_data);
->>
->>   /**
->> + * i2c_smbus_word_proc_call - SMBus "word proc call" protocol
->> + * @client: Handle to slave device
->> + * @command: Byte interpreted by slave
->> + * @value: 16-bit "word" being written
->> + *
->> + * This executes the SMBus "word proc all" protocol, returning negative errno
->> + * else a 16-bit unsigned "word" received from the device.
->> + */
->> +s32 i2c_smbus_word_proc_call(const struct i2c_client *client, u8 command,
->> +			      u16 value)
->> +{
->> +	union i2c_smbus_data data;
->> +	int status;
->> +
->> +	data.word = value;
->> +	status = i2c_smbus_xfer(client->adapter, client->addr, client->flags,
->> +			      I2C_SMBUS_READ, command,
->> +			      I2C_SMBUS_PROC_CALL, &data);
->> +
->> +	return (status < 0) ? status : data.word;
->> +}
->> +EXPORT_SYMBOL(i2c_smbus_word_proc_call);
->> +
->> +/**
->
-> Same as smbus_quick function before, documentation updates are missing.
-> Also similar, we had such a function before which was removed due to no
-> users? It looks very much like the function here, so we should stick to
-> the old naming IMO. Is it the old one? Such information would be nice
-> since it affects reviewing.
-
-Yes, there was an old function and commit c8110933 removed it. Sorry, I didn't 
-that before. I will bring the old one back.
-
->
->>    * i2c_smbus_read_block_data - SMBus "block read" protocol
->>    * @client: Handle to slave device
->>    * @command: Byte interpreted by slave
->> @@ -2362,6 +2386,38 @@ s32 i2c_smbus_write_block_data(const struct i2c_client *client, u8 command,
->>   }
->>   EXPORT_SYMBOL(i2c_smbus_write_block_data);
->>
->> +/**
->> + * i2c_smbus_block_proc_call - SMBus "block write" protocol
->> + * @client: Handle to slave device
->> + * @command: Byte interpreted by slave
->> + * @length: Size of data block; SMBus allows at most 32 bytes
->> + * @values: Byte array which will be written.
->> + *
->> + * This executes the SMBus "block proc call" protocol, returning negative errno
->> + * else the number of read bytes.
->> + */
->> +s32 i2c_smbus_block_proc_call(const struct i2c_client *client, u8 command,
->> +			       u8 length, u8 *values)
->
-> Please rename to "i2c_smbus_block_process_call" as the old function was
-> named. Needs documentation updates.
->
->> +	if (length > I2C_SMBUS_BLOCK_MAX)
->> +		length = I2C_SMBUS_BLOCK_MAX;
->
-> I think we should return an error here.
-
-Ok.
-
->
-> BTW what were your test scenarios for these functions and smbus quick?
->
-
- From ACPI spec, Read/Write quick and Word/Block process call protocol will be 
-used by Bios ACPI code. But so far, I don't find such machines. So these 
-functions has not been tested.
+List-Id: linux-acpi@vger.kernel.org
 
 
+--sm4nu43k4a2Rpi4c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 
+> >2) It uses a parameter for the r/w bit. Make sense to me, since this bit
+> >is the information we send to the device. quick_read doesn't make sense
+> >to me. We don't receive a bit from the device.
+> >
+>=20
+> Hi Wolfram:
+> 	Great thanks for your review. Ok. I will follow commit 67c2e665 to
+> bring i2c_smbus_write_quick(struct i2c_client *client, u8 value)
+> back.
+>=20
+> BTW, how about i2c_probe_func_quick_read()? Should we replace it
+> with the original i2c_smbus_write_quick()?
+
+As said above "quick_read doesn't make sense to me. We don't receive a
+bit from the device."
+
+Start implementing and you will see why we don't need it :)
+
+
+--sm4nu43k4a2Rpi4c
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTd5lLAAoJEBQN5MwUoCm29ocP/0n3kCnsZhboHNy58x9TY6oM
+yHYu7WtSUGREecAOE04gVdSaM2K2/ttfuBujdj2HPzLDAPZV9md4X1mO2VHRJdBJ
+xKhRxpJbfxnh9XqcjNe+jN6ila22zV1Iigp8VMHKNPDzjIhu/upUSomrVvFN80B7
+VHgWQDk8ReySiF2/zwlVlAI5QOPyhEb8GuS1ke0aM5IJKdOAPS5QlcfBVJAH3nbJ
+pvtWcL1PngHuqlYd2OWCUezWe46LpU3jyHslCZuEml+fuXa58cqXHffFR4aufvPa
+nYD5kFFxiC5AEwU5DW+bySXmTWEzOxwNg58tzsf12OLLf3/LvXLipYJBOFdi1/+O
+BsanvqM+qscs1x0w/NcB8p2Ab1g6dcr7dwxRPlw91mTdjPPOXbGMUDtEzhzhavqH
+Y8c78zsSA95AJdNp3XA69aEhutwk2lWh4VX7ra9Hk7Sr64Mk3AaRqO6nJ7vqWw1o
+ABMihCy2uCAn1W3opHno3CWeBVxvGugMuV168mMSO9KH+myYT/0dfQZvybSG63sf
+qjo2NE2hflvMXctoQflEqJtt5fntHn+ckFcz1zE8RmypU+4Y/KwnthQ0XumQy/wK
+Xl2GexRtvMpEkpUzIc/eTw41t8vXZuf2NsEshiNdvBbYMuN2j9fRNlLDZDzS4gVf
+sPIKhACEM5qfTrF74Qss
+=qtS1
+-----END PGP SIGNATURE-----
+
+--sm4nu43k4a2Rpi4c--
