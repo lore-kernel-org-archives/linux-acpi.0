@@ -1,65 +1,112 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [Patch V2 6/9] I2C: Add smbus word/block process call helper
- function
-Date: Sat, 17 May 2014 19:17:59 +0200
-Message-ID: <20140517171759.GB2597@katana>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [Patch V2 9/9] I2C/ACPI: Add CONFIG_I2C_ACPI config
+Date: Sat, 17 May 2014 19:48:34 +0200
+Message-ID: <20140517174834.GA2858@katana>
 References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
  <1398695268-28645-1-git-send-email-tianyu.lan@intel.com>
- <1398695268-28645-7-git-send-email-tianyu.lan@intel.com>
- <20140517102110.GB2602@katana>
- <53776B32.8010400@intel.com>
+ <1398695268-28645-10-git-send-email-tianyu.lan@intel.com>
+ <20140429081609.GF1684@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Bn2rw/3z4jIqBvZU"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="nFreZHaLTZJo0R7j"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sauhun.de ([89.238.76.85]:41183 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030241AbaEQRst (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 17 May 2014 13:48:49 -0400
 Content-Disposition: inline
-In-Reply-To: <53776B32.8010400-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20140429081609.GF1684@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, rjw@rjwysocki.net, awilliam@redhat.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
 
---Bn2rw/3z4jIqBvZU
+--nFreZHaLTZJo0R7j
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-
-> >BTW what were your test scenarios for these functions and smbus quick?
-> >
+On Tue, Apr 29, 2014 at 11:16:09AM +0300, Mika Westerberg wrote:
+> On Mon, Apr 28, 2014 at 10:27:48PM +0800, Lan Tianyu wrote:
+> > This patch is to add CONFIG_I2C_ACPI. Current there is a race between
+> > removing I2C ACPI operation region and ACPI AML code accessing.
+> > So make i2c core built-in if CONFIG_I2C_ACPI is set.
+> >=20
+> > Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> > ---
+> >  drivers/i2c/Kconfig  | 17 ++++++++++++++++-
+> >  drivers/i2c/Makefile |  2 +-
+> >  include/linux/i2c.h  |  2 +-
+> >  3 files changed, 18 insertions(+), 3 deletions(-)
+> >=20
+> > diff --git a/drivers/i2c/Kconfig b/drivers/i2c/Kconfig
+> > index 7b7ea32..c670d49 100644
+> > --- a/drivers/i2c/Kconfig
+> > +++ b/drivers/i2c/Kconfig
+> > @@ -2,7 +2,9 @@
+> >  # I2C subsystem configuration
+> >  #
+> > =20
+> > -menuconfig I2C
+> > +menu "I2C support"
+> > +
+> > +config I2C
+> >  	tristate "I2C support"
+> >  	select RT_MUTEXES
+> >  	---help---
+> > @@ -21,6 +23,17 @@ menuconfig I2C
+> >  	  This I2C support can also be built as a module.  If so, the module
+> >  	  will be called i2c-core.
+> > =20
+> > +config I2C_ACPI
+> > +	bool "I2C ACPI support"
+> > +	select I2C
+> > +	depends on ACPI
+> > +	default y
+> > +	help
+> > +	  Say Y here if you want to enable I2C ACPI function. ACPI table
+> > +	  provides I2C slave devices' information to enumerate these devices.
+> > +	  This option also allows ACPI AML code to access I2C slave devices
+> > +	  via I2C ACPI operation region to fulfill ACPI method.
 >=20
-> From ACPI spec, Read/Write quick and Word/Block process call
-> protocol will be used by Bios ACPI code. But so far, I don't find
-> such machines. So these functions has not been tested.
+> I would prefer something like:
+>=20
+> Say Y here if you want to enable ACPI I2C support. This includes support
+> for automatic enumeration of I2C slave devices and support for ACPI I2C
+> Operation Regions. Operation Regions allow firmware (BIOS) code to
+> access I2C slave devices, such as smart batteries through an I2C host
+> controller driver.
+>=20
+> But it is really up to you so,
+>=20
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Uh oh, I have some trouble adding untested code. Can't we add until we
-have a user to verify it?
-
-BTW I have to review the other patches later, so please wait before
-resending the series.
+How does this fit into the context of
+55e71edb81b2b45273e7b284cce13ff24bde846f ("i2c: move ACPI helpers into
+the core")?
 
 
---Bn2rw/3z4jIqBvZU
+--nFreZHaLTZJo0R7j
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJTd5nGAAoJEBQN5MwUoCm2oKsP/AzXQEsPi+RG05UtIYXCkIva
-hFs2MdBOcfqNpLuT5zn742q6+6xo7RUHFcz47aV4o+bvFjccOz1HLhDzpLnp9MV0
-FyNFGLQqp3d72y7UDhlO8x4k8InYTWFoTSEzEIOijXLILKZbdpNwsj2i517epX/p
-273QMKYfn5QhxwD4KmiPSHJviU7ti7cqGzxF1YSHyOxZpoufdjQZ2UPCwHR5532h
-z/RBCMfRGCtACm1uyKLKzhuXvDmbrC7TdpQ+o2NwFMOGEQYi2J1LmVQkl87wWrCg
-niwNRfDWu7dJhw8tzfVWWDRjGVJheZO/LJ0nMa4/iHToYN3IJk077dWdiubapLua
-/eijEiIonXxdJKB2Xu2tv7wE3j6KXCoDWz9tm4h5N9n/T5NOM+bE+p0Ts39ccNTV
-SMKknrt7RUyVXRQbI9fydQfy3Sn2g5GKhnrC4Hu0d0KivU3AQoNU/ZoxneNc+N14
-QIAjOUX3e+d6DJ6QwixiLgJ4VrZEIA/5u2UgVvS6FR2Jrt/yJUwQ3id+9Dn2bvxQ
-mL6KDIwxo6RZN2btrL+FgSdh4AN20xVCsqOI6wW+imfmb3xt4LnNveO8L2+kgQCJ
-WDCLTWU8xZpzqdMrKtuMfds9yd8k+BSzSdkB6/sgU1/vhQjftBLlaKNwy6aBVtIG
-MvFVxhHmw2cl9P+Ojq9s
-=60b/
+iQIcBAEBAgAGBQJTd6DyAAoJEBQN5MwUoCm2GPYP/iRp8a/7r/IFX03BkyZU5EbK
+dDtMBicmqvF6bmp9q5SZlrW6vjzK5aoLXtMgAwEYzkX10StDbEd34954sZB3VSl4
+BrPIJq/sFSkyk8L2IQWtvxmbdbXsC2vIz9TkgL9opmDEjWci5ZOrfXGBjrcDgtKS
+tQ71o0yDwPLcyTr2rfpgKVDaCcBjgI1+0Dzn58S/4otaBmDq5GdXK8E4/NjoBEUu
+Cq2bxGB9YmPvXzh9knbmJggfktAel5jVnY8FxOjI2dryCCrfnfSDJL7BeEBFf4XI
+aJIUhy3ZbkCagfkdaan4O+EQe6alUgZ3cS2aSmcvUMbsN1bnMAH3bkjXWRjc4kqW
+4Zcbqz4vG2MsLWI1NX0yOSmZwTK2Sc5ez+DAIqw/hTBOo6lv6MUfmYDsMLy4PGXA
+dnVT+zqdfaCN8O11Quu64Z1glgx9fflQStduPqRaeROLCnLb4Z7XOxSXPy0Q047n
+o5ZUIcS6e8QZ7oBYc8p4s5syfzQxOJnfbr49a8zIcCpyDLmCiC44ZxxsJeFu3O+6
+ZANvJDsIpExbipA/wa6ObRXBrIm0ur2clyaw/Jy8vaR8qzp6jR63sCV8wXS+gNPc
+ep//ddC+p2jNPXCg8vRaLKE6ChIx5/f+VWZVQRJI9yWlPeqITNabeWllCXouOrXB
+uHJA3zsTx4q/qOllfWpK
+=SXtj
 -----END PGP SIGNATURE-----
 
---Bn2rw/3z4jIqBvZU--
+--nFreZHaLTZJo0R7j--
