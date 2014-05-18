@@ -1,162 +1,198 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC Patch Part1 V1 00/30] use irqdomain to dynamically allocate
- IRQ for IOAPIC pin
-Date: Sun, 18 May 2014 17:36:09 +0800
-Message-ID: <53787F09.9000200@linux.intel.com>
-References: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.02.1405161601060.4039@ionos.tec.linutronix.de>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: RFC: Cleanup firmware backlight control method selection
+Date: Mon, 19 May 2014 08:24:42 +0900
+Message-ID: <20140518232442.GA2060@taihen.jp>
+References: <53748332.50909@redhat.com>
+ <20140515222938.GA29253@taihen.jp>
+ <5375C6F7.7090305@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:17147 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750743AbaERJgP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 18 May 2014 05:36:15 -0400
-In-Reply-To: <alpine.DEB.2.02.1405161601060.4039@ionos.tec.linutronix.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5375C6F7.7090305@redhat.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sfi-devel@simplefirmware.org
 
-Hi Thomas,
-	Thanks for review and please refer to inline comments below.
+On Fri, May 16, 2014 at 10:06:15AM +0200, Hans de Goede wrote:
+> Hi,
+> 
+> On 05/16/2014 12:29 AM, Mattia Dongili wrote:
+> > On Thu, May 15, 2014 at 11:04:50AM +0200, Hans de Goede wrote:
+> >> Hi All,
+> >>
+> >> There are various issues with how the linux kernel currently select which
+> >> firmware backlight control (*) method to use:
+> >>
+> >> 1) There are various module loading ordering issues, leading to different
+> >> behavior depending on module load ordering:
+> >>
+> >> * http://www.spinics.net/lists/linux-acpi/msg50443.html
+> >> * Sometimes we register and immediately unregister the acpi_video# backlight
+> >>   devices, some ACPI implementations don't like this, so we've special
+> >>   quirks to avoid the register + unregister on some machines
+> >>
+> >> 2) There are 2 main kernel commandline options involved acpi_backlight and
+> >> video.use_native_backlight. With the latter only working if certain firmware
+> >> checks succeed *and* the former has the right value. This is confusing not
+> >> only for end users but also for people trying to read the code in question.
+> >> Note some vendor specific firmware backlight drivers, ie thinkpad_acpi.c
+> >> have their own related options, leading to 3 kernel cmdline options coming
+> >> into play.
+> >>
+> >> 3) We have quirks everywhere. I'm afraid we cannot get rid of these, but
+> >> at least we should try to clean up where they live and how they interact
+> >> with each other. acpi_backlight=vendor quirks mostly live in vendor specific
+> >> firmware backlight drivers. But we also have a couple in acpi/video_detect.c.
+> >> video.use_native_backlight=1 quirks otoh live in acpi/video.c.
+> >>
+> >> In the end all these options and quirks all work together in a complicated
+> >> manor to achieve one simple goal: decide which firmware interface to use
+> >> for backlight control (*). Which comes down to choosing between the
+> >> following 3 options:
+> >>
+> >> 1 Native (raw) backlight control (so no firmware backlight control)
+> >> 2 Control by the standard acpi-video firmware backlight driver
+> >> 3 Control by a vendor specific firmware backlight driver
+> >>
+> >> So I would like to propose to give the acpi_backlight= kernel commandline
+> >> option which currently accepts values "vendor" and "video" a third value
+> >> "native", and to get rid of the video.use_native_backlight option.
+> > 
+> > the "acpi_" prefix here sounds inappropriate at this point. And
+> > descending from that, shouldn't a mechanism like you describe being
+> > implemented in the backlight subsystem?
+> 
+> This is only a problem with crazy PC's which have multiple firmware
+> API's (both standardized and custom ACPI) to control the backlight, which
+> also are sometimes all broken. So this really is an acpi thing, and I believe
+> this should stay in acpi/video_detect.c where it already lives, I just think
+> the video.use_native_backlight option which clearly interacts with this needs
+> to be moved to acpi/video_detect.c too.
 
-On 2014/5/16 23:28, Thomas Gleixner wrote:
-> Jiang,
-> 
-> On Fri, 16 May 2014, Jiang Liu wrote:
-> 
->> On x86 platforms, IRQ number are statically allocated to IOAPIC pins at boot.
->> There are two issues with this design. First it causes trouble to IOAPIC
->> hotplug because we need to allocate a block of IRQ numbers for each IOAPIC.
->> Second it may waste IRQ nubmers even if some IOAPIC pins are not used because
->> IRQ numbers are statically assigned.
->>
->> This patchset tries to enable dynamic IRQ number allocation for IOAPIC
->> by adopting the irqdomain framework, it solves the two issues mentioned
->> above. It also simplifies the IOAPIC driver by consolidating ways to
->> program IOAPIC pins with the irqdomain map interface.
->>
->> We will enhance the IOAPIC driver core to support ACPI based IOAPIC hotplug
->> once the IOAPIC driver has been converted to irqdomain.
-> 
-> Thanks for tackling this!
->  
->> This patchset applies to v3.15-rc4-260-g38583f095c5a and has been tested
-> 
-> That's a bit unfortunate, as there are conflicting changes in the tip
-> tree irq/core branch. Can you please rebase on top of that.
-I have rebased onto tip/irq/core. The conflict is easy to solve.
+I didn't realize the use_native_backlight option was in acpi/video.c.
+Nevemind what I said, leave this crazyness to stay in the acpi world
+only then.
+Don't you still have ordering issues though? can the raw device be
+loaded after video_detect runs?
 
-> 
->> TODO list:
->> 1) check whether it affects Xen or not
->>
->> Patch 1-17 are trivial code improvements, bugfixes and preparation.
-> 
-> Can you please move the bugfixes before the other changes, so we can
-> pick them up independently from the outcome?
-Sure, will reorder the patch set in next version.
+...
+> >> 3) Add an acpi_backlight_method() function which will:
+> >>   - return acpi_backlight_method_cmdline if not -1; else
+> >>   - return acpi_backlight_method_dmi if not -1; else
+> >>   - return ACPI_BACKLIGHT_NATIVE if acpi_osi_is_win8(); else
 
->  
->> Patch 18-24 enable basic irqdomain support and IRQ number dynamic
->> allocation.
->>
->> Patch 25-29 consoldate the way to program IOAPIC pins by using
->> irqdomain map() interface.
->>
->> Patch 30 cleans up unused interfaces and functions in IOAPIC driver.
->>
->> Tests and comments are warmly welcomed!
+this seems to be a way more wide case than today's code that combines it
+with quirks or the kernel option.
+
+> >>   - return ACPI_BACKLIGHT_VIDEO if supported; else
+> >>   - return ACPI_BACKLIGHT_VENDOR
+
+...
+> >> *) Note I'm only talking about controlling the actual brightness of the
+> >> backlight, not detecting brighness/backlight hotkey presses, there are
+> >> similar issues there. But I believe that that should be treated as an
+> >> orthogonal problem which should be fixed independently of this.
+> > 
+> > Maybe I'm missing some recent evolution but except for some special
+> > cases, backlight hotkeys generally result in an input event sent to
+> > userspace and it then becomese a userspace problem to choose which
+> > interface to use.
 > 
-> I like the general approach, but we have now a mixture of legacy irq
-> handling and irq domains. We really want to cleanup the legacy PIC no
-> ioapic case as well. That will cleanup the code further.
+> Not sure if you're referring to the above discussion here, or to my remark
+> about hotkey issues, so let me answer both:
 > 
-> The other thing we discussed here: https://lkml.org/lkml/2014/5/7/901
-> in several places of the thread is to move the vector allocation into
-> a irqdomain with a generic matrix allocator as well. We have other use
-> cases for this as well. It would be nice if you could look at that as
-> well.
-I have read through the thread, it's an interesting discussion.
+> * As for why we cannot simply register all firmware backlight drivers
+> and let userspace figure things out. There are 2 reasons:
+> 1) Userspace will pick the first firmware driver it sees, to avoid this
+> causing issues we've historically always registered only one. So we're
+> stuck with this approach to avoid causing regressions
 
-After my first thought, I have gotten some ideas about how to reorganize
-x86 interrupt subsystem using irqdomain framework based on ideas from
-the thread. Because I'm newbie to interrupt subsystem, I will share my
-naive ideas first and RFC for whether it's the right direction.
+well, in my limited experience I have seen userspace anyway blacklist
+the sony/acpi backlight control for the intel one since it is available
+regardless of acpi and gives (actually used to give) better granularity.
 
-We may build hierarchy irqdomains as below for x86,
-[IOAPIC]      [MSI/MSI-x]  [HPET]  [DMAR] [Legacy]
-    |            |           |       |       |
-    v            v           v       |       |
-[           Remapping           ]    |       |
-                 |                   |       |
-                 v                   v       v
-[                   Root/vector                ]
-
-The remapping domain is optional and used to support IRQ remapping unit.
-We abstract remapping entry as hardware interrupt pin and will extend
-irqdomain interface to support automatic assignment of hardware
-interrupt pin.
-
-The root/vector domain is used to manage per CPU vector numbers and
-CPU vector is abstracted as hardware interrupt pin. It will support
-automatic vector number assignment. To support root/vector domain,
-we need to extend irqdomain interface to pass down information
-or constraints about the IRQ allocation.
-
-So how about following extension to current irqdomain interfaces?
-diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-index c983ed18c332..2fd7e50cde32 100644
---- a/include/linux/irqdomain.h
-+++ b/include/linux/irqdomain.h
-@@ -42,6 +42,13 @@ struct of_device_id;
- /* Number of irqs reserved for a legacy isa controller */
- #define NUM_ISA_INTERRUPTS     16
-
-+#define        IRQDOMAIN_AUTO_ASSIGN_HWIRQ     ULONG_MAX
-+#ifdef arch_irq_alloc_info_t
-+typedef        arch_irq_alloc_info_t irq_alloc_info_t;
-+#else
-+typedef        void irq_alloc_info_t;
-+#endif
-+
- /**
-  * struct irq_domain_ops - Methods for irq_domain objects
-  * @match: Match an interrupt controller device node to a host, returns
-@@ -59,7 +66,11 @@ struct of_device_id;
-  */
- struct irq_domain_ops {
-        int (*match)(struct irq_domain *d, struct device_node *node);
--       int (*map)(struct irq_domain *d, unsigned int virq,
-irq_hw_number_t hw);
-+       int (*alloc)(struct irq_domain *d, irq_hw_number_t hw,
-+                    irq_alloc_info_t *info);
-+       int (*free)(struct irq_domain *d, unsigned int virq);
-+       int (*map)(struct irq_domain *d, unsigned int virq,
-irq_hw_number_t hw,
-+                  irq_alloc_info_t *info);
-        void (*unmap)(struct irq_domain *d, unsigned int virq);
-        int (*xlate)(struct irq_domain *d, struct device_node *node,
-                     const u32 *intspec, unsigned int intsize,
-
-alloc()/free() interfaces will be used allocate/free IRQ from parent
-domain. And irq_alloc_info_t structure is used to host parameters
-and constraints for IRQ allocation.
-
-For x86, irq_alloc_info_t structure will be used to host CPU mask,
-device pointer, IOAPIC pin attributes, NUMA node info etc.
-But I still more thoughts about how to convert set_affinity() to
-use irqdomain interfaces.
-
-Any comments about the proposal?
-Best regards!
-Gerry
+> 2) Having multiple pieces of firmware code frob the same hardware seems
+> like a really really bad idea.
 > 
-> Thanks,
+> * As for the hotkeys issue, the problem is actually very much the same as
+> with the backlight control. laptop brightness hotkeys tend to generate 3
+> events for each press:
+> 1) A ps2 atkbd scancode
+> 2) an acpi-video event
+> 3) a vendor-wmi event.
 > 
-> 	tglx
+> 1) may be mapped to generate input events through /lib/udev/hwdb.d/60-keyboard.hwdb
+> 2) will generate input events if the acpi-video driver is registered
+>    (independent of it also exporting a backlight control interface)
+> 3) may or may not generate events depending on the vendor specific driver
 > 
+> I know of at least one laptop where all 3 methods are hooked up, causing
+> the brightness to go down 3 levels for each keypress. This is something else
+> wrt backlight control which we clearly need to fix, to ensure that we only
+> send one input event per key press.
 > 
+> > Last, just to add another use case, vaio laptops in specific
+> > configurations require both ACPI and vendor backlight to be registered
+> > as the former will notify the latter to change the backlight rather than
+> > doing it itself. It's explained here (with a potential implementation):
+> > http://www.spinics.net/lists/platform-driver-x86/msg05191.html
 > 
-> 
+> Hmm, that sounds like something which is going to turn very ugly very soon.
+
+it is already... the problem is really the AML code, when the ALS device
+is enabled a different code path is run in _BCM[1]. A call to _BCM
+results in a Notify(SNC) rather than changing brigthenss level. SNC
+needs to be able to see what is the new brightness level and set it.
+I think having the backlight subsystem to allow drivers to cooperate
+nicely instead of stomping on each other is the best way to go around
+this.
+
+> Have tried using acpi_backlight=vendor, so that the acpi-video driver will
+> only catch events and not try to do any backlight control? Then the
+
+the hotkeys go through the vendor/platform driver for vaios.
+
+But anyway, I think the specific discussion about sony-laptop doesn't
+belong to here, what I wanted to mention was that there's other use
+cases and maybe changing approach to a runtime cooperation rather than
+being exclusive at load time may be a workable option. Of course there
+will be all sort corner cases with either approach.
+
+[1]: just for reference here is the snippet from a vaio SSDT:
+BRTL is the value returned in _BCQ, what SNC knows is that there was a
+brightness change request, not actioned.
+
+                    If (Local1)
+                    {
+                        Store (One, ALER)
+                        Store (Arg0, BRTL)
+                        Notify (\_SB.PCI0.LPCB.SNC, 0x93)
+                    }
+                    Else
+                    {
+                        Store (Zero, ALER)
+                        If (LAnd (LGreaterEqual (Arg0, Zero), LLessEqual (Arg0, 0xFF)))
+                        {
+                            If (LGreaterEqual (OSYS, 0x07DC))
+                            {
+                                Store (Subtract (Match (ICL1, MEQ, Arg0, MTR, Zero, 0x02), 0x02
+                                    ), Local0)
+                                Store (DerefOf (Index (RTL1, Local0)), Local0)
+                            }
+                            Else
+                            {
+                                Store (Subtract (Match (ICL0, MEQ, Arg0, MTR, Zero, 0x02), 0x02
+                                    ), Local0)
+                                Store (DerefOf (Index (RTL0, Local0)), Local0)
+                            }
+
+                            \_SB.PCI0.GFX0.AINT (One, Local0)
+                            Store (Arg0, BRTL)
+                        }
+                    }
+
+-- 
+mattia
+:wq!
