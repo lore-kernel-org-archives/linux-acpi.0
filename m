@@ -1,190 +1,40 @@
-From: amit daniel kachhap <amit.daniel@samsung.com>
-Subject: Re: [linux-pm] [RFC PATCH 3/5] thermal: cpu_cooling: Add support to
- find nearby frequency levels.
-Date: Mon, 19 May 2014 14:50:12 +0530
-Message-ID: <CADGdYn6F0ZWf+t4JcfwCmm71BUrm3eGe+U9bLc9a1hBMmb=e-Q@mail.gmail.com>
-References: <1399559880-20562-1-git-send-email-amit.daniel@samsung.com>
-	<1399559880-20562-4-git-send-email-amit.daniel@samsung.com>
-	<20140515185254.GC3138@developer>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [Patch V2 6/9] I2C: Add smbus word/block process call helper
+ function
+Date: Mon, 19 May 2014 17:23:29 +0800
+Message-ID: <5379CD91.2080709@intel.com>
+References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com> <1398695268-28645-1-git-send-email-tianyu.lan@intel.com> <1398695268-28645-7-git-send-email-tianyu.lan@intel.com> <20140517102110.GB2602@katana> <53776B32.8010400@intel.com> <20140517171759.GB2597@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yh0-f45.google.com ([209.85.213.45]:55636 "EHLO
-	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753100AbaESJUN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2014 05:20:13 -0400
-In-Reply-To: <20140515185254.GC3138@developer>
+Received: from mga09.intel.com ([134.134.136.24]:39350 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752589AbaESJXK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 May 2014 05:23:10 -0400
+In-Reply-To: <20140517171759.GB2597@katana>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: rjw@rjwysocki.net, mika.westerberg@linux.intel.com, awilliam@redhat.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, May 16, 2014 at 12:22 AM, Eduardo Valentin <edubezval@gmail.com> wrote:
-> Hello Amit,
+On 05/18/2014 01:17 AM, Wolfram Sang wrote:
 >
-> On Thu, May 08, 2014 at 08:07:58PM +0530, Amit Daniel Kachhap wrote:
->> This patch adds suuport to get P state ceil/floor level for nearest frequency.
->> This will be used for consolidating ACPI cpufreq cooling via the generic cpu
->> cooling framework.
+>>> BTW what were your test scenarios for these functions and smbus quick?
+>>>
 >>
->> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
->> ---
->>  drivers/thermal/cpu_cooling.c                   |   42 +++++++++++++++++------
->>  drivers/thermal/samsung/exynos_thermal_common.c |    3 +-
->>  include/linux/cpu_cooling.h                     |   23 ++++++++++++-
->>  3 files changed, 55 insertions(+), 13 deletions(-)
->>
->> diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
->> index e2aeb36..6f5430e 100644
->> --- a/drivers/thermal/cpu_cooling.c
->> +++ b/drivers/thermal/cpu_cooling.c
->> @@ -120,12 +120,7 @@ static int is_cpufreq_valid(int cpu)
->>       return !cpufreq_get_policy(&policy, cpu);
->>  }
->>
->> -enum cpufreq_cooling_property {
->> -     GET_LEVEL,
->> -     GET_FREQ,
->> -     GET_MAXL,
->> -};
->> -
->> +#define GET_FREQ (GET_MAXL + 1)
+>>  From ACPI spec, Read/Write quick and Word/Block process call
+>> protocol will be used by Bios ACPI code. But so far, I don't find
+>> such machines. So these functions has not been tested.
 >
-> What happens if we add another level manipulating after GET_MAXL? say,
-> GET_MINL?
-yes correct. Good catch.
+> Uh oh, I have some trouble adding untested code. Can't we add until we
+> have a user to verify it?
+
+Ok. I will remove these patches from this patchset since currently there are no 
+users.
+
 >
->>  /**
->>   * get_property - fetch a property of interest for a give cpu.
->>   * @cpu: cpu for which the property is required
->> @@ -207,15 +202,37 @@ static int get_property(unsigned int cpu, unsigned long input,
->>               /* now we have a valid frequency entry */
->>               freq = table[i].frequency;
->>
->> -             if (property == GET_LEVEL && (unsigned int)input == freq) {
->> +             if (property == GET_LEVEL_EXACT &&
->> +                                     (unsigned int)input == freq) {
->>                       /* get level by frequency */
->>                       *output = descend ? j : (max_level - j);
->>                       return 0;
->> -             }
->> -             if (property == GET_FREQ && level == j) {
->> +             } else if (property == GET_FREQ && level == j) {
->>                       /* get frequency by level */
->>                       *output = freq;
->>                       return 0;
->> +             } else if (property == GET_LEVEL_FLOOR) {
->> +                     /* get minimum possible level by frequency */
->> +                     if (descend && freq <= input) {
->> +                             *output = j;
->> +                             return 0;
->> +                     } else if (!descend) {
->> +                             if (freq <= input)
->> +                                     *output = (max_level - j);
->> +                             else
->> +                                     return 0;
->> +                     }
->> +             } else if (property == GET_LEVEL_CEIL) {
->> +                     /* get maximum possible level by frequency */
->> +                     if (!descend && freq >= input) {
->> +                             *output = (max_level - j);
->> +                             return 0;
->> +                     } else if (descend) {
->> +                             if (freq >= input)
->> +                                     *output = j;
->> +                             else
->> +                                     return 0;
->> +                     }
->>               }
->>               j++;
->>       }
->> @@ -227,6 +244,8 @@ static int get_property(unsigned int cpu, unsigned long input,
->>   * cpufreq_cooling_get_level - for a give cpu, return the cooling level.
->>   * @cpu: cpu for which the level is required
->>   * @freq: the frequency of interest
->> + * @property: can be GET_LEVEL_CEIL, GET_LEVEL_FLOOR, GET_LEVEL_EXACT or
->> + * GET_MAXL
->>   *
->>   * This function will match the cooling level corresponding to the
->>   * requested @freq and return it.
->> @@ -234,11 +253,12 @@ static int get_property(unsigned int cpu, unsigned long input,
->>   * Return: The matched cooling level on success or THERMAL_CSTATE_INVALID
->>   * otherwise.
->>   */
->> -unsigned long cpufreq_cooling_get_level(unsigned int cpu, unsigned int freq)
->> +unsigned long cpufreq_cooling_get_level(unsigned int cpu, unsigned int freq,
->> +                     enum cpufreq_cooling_property property)
->>  {
->>       unsigned int val;
->>
->> -     if (get_property(cpu, (unsigned long)freq, &val, GET_LEVEL))
->> +     if (get_property(cpu, (unsigned long)freq, &val, property))
->>               return THERMAL_CSTATE_INVALID;
->>
->>       return (unsigned long)val;
->> diff --git a/drivers/thermal/samsung/exynos_thermal_common.c b/drivers/thermal/samsung/exynos_thermal_common.c
->> index a7306fa..aa4696b 100644
->> --- a/drivers/thermal/samsung/exynos_thermal_common.c
->> +++ b/drivers/thermal/samsung/exynos_thermal_common.c
->> @@ -156,7 +156,8 @@ static int exynos_bind(struct thermal_zone_device *thermal,
->>       /* Bind the thermal zone to the cpufreq cooling device */
->>       for (i = 0; i < tab_size; i++) {
->>               clip_data = (struct freq_clip_table *)&(tab_ptr[i]);
->> -             level = cpufreq_cooling_get_level(0, clip_data->freq_clip_max);
->> +             level = cpufreq_cooling_get_level(0, clip_data->freq_clip_max,
->> +                                             GET_LEVEL_EXACT);
->>               if (level == THERMAL_CSTATE_INVALID)
->>                       return 0;
->>               switch (GET_ZONE(i)) {
->> diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
->> index f786935..f4d2b0e 100644
->> --- a/include/linux/cpu_cooling.h
->> +++ b/include/linux/cpu_cooling.h
->> @@ -44,6 +44,13 @@ struct cpufreq_cooling_status {
->>       void *devdata;
->>  };
->>
->> +enum cpufreq_cooling_property {
->> +     GET_LEVEL_CEIL,
->> +     GET_LEVEL_FLOOR,
->> +     GET_LEVEL_EXACT,
->> +     GET_MAXL,
->> +};
+> BTW I have to review the other patches later, so please wait before
+> resending the series.
 >
-> Please document this enum.
->
->> +
->>  #ifdef CONFIG_CPU_THERMAL
->>  /**
->>   * cpufreq_cooling_register - function to create cpufreq cooling device.
->> @@ -77,7 +84,21 @@ of_cpufreq_cooling_register(struct device_node *np,
->>   */
->>  void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev);
->>
->> -unsigned long cpufreq_cooling_get_level(unsigned int cpu, unsigned int freq);
->> +/**
->> + * cpufreq_cooling_get_level - for a give cpu, return the cooling level.
->> + * @cpu: cpu for which the level is required
->> + * @freq: the frequency of interest
->> + * @property: can be GET_LEVEL_CEIL, GET_LEVEL_FLOOR, GET_LEVEL_EXACT or
->> + * GET_MAXL
->> + *
->> + * This function will match the cooling level corresponding to the
->> + * requested @freq and return it.
->> + *
->> + * Return: The matched cooling level on success or THERMAL_CSTATE_INVALID
->> + * otherwise.
->> + */
->> +unsigned long cpufreq_cooling_get_level(unsigned int cpu, unsigned int freq,
->> +                                     enum cpufreq_cooling_property);
->>
->>  /**
->>   * cpufreq_cooling_register_notifier - register a driver with cpufreq cooling.
->> --
->> 1.7.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
+
