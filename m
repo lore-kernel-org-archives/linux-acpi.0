@@ -1,116 +1,226 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part1 V2 14/29] x86, ioapic: use irq_cfg() instead of irq_get_chip_data() for better readability
-Date: Tue, 20 May 2014 00:22:58 +0800
-Message-ID: <1400516594-11544-15-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part1 V2 17/29] x86, ACPI, irq: consolidate algorithm of mapping (ioapic, pin) to IRQ number
+Date: Tue, 20 May 2014 00:23:01 +0800
+Message-ID: <1400516594-11544-18-git-send-email-jiang.liu@linux.intel.com>
 References: <1400516594-11544-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1400516594-11544-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use defined helper function irq_cfg() instead of irq_get_chip_data() for
-better readability.
+Currently ACPI and ioapic both implement algorithms to map (ioapic, pin)
+to IRQ number. So consolidate the common part into one place, which is
+also preparing for irqdomain support.
+
+It introduces mp_map_pin_to_irq(), which will be used to allocate IRQ
+number IOAPIC pins when irqdomain is enabled.
+
+Also rename gsi_to_irq() to map_gsi_to_irq(), later we will introduce
+unmap_gsi_to_irq() when enabling IOAPIC hotplug.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/kernel/apic/io_apic.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ arch/x86/include/asm/io_apic.h |    2 ++
+ arch/x86/kernel/acpi/boot.c    |   52 +++++++++++++++++++++-------------------
+ arch/x86/kernel/apic/io_apic.c |   30 +++++++++++++----------
+ 3 files changed, 48 insertions(+), 36 deletions(-)
 
+diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
+index de3d8b04cf64..f4fd0be26cec 100644
+--- a/arch/x86/include/asm/io_apic.h
++++ b/arch/x86/include/asm/io_apic.h
+@@ -171,6 +171,7 @@ extern u32 gsi_top;
+ 
+ extern int mp_find_ioapic(u32 gsi);
+ extern int mp_find_ioapic_pin(int ioapic, u32 gsi);
++extern int mp_map_pin_to_irq(int ioapic, int pin);
+ extern void __init mp_register_ioapic(int id, u32 address, u32 gsi_base);
+ extern void __init pre_init_apic_IRQ0(void);
+ 
+@@ -212,6 +213,7 @@ extern void io_apic_eoi(unsigned int apic, unsigned int vector);
+ static inline void ioapic_insert_resources(void) { }
+ #define gsi_top (NR_IRQS_LEGACY)
+ static inline int mp_find_ioapic(u32 gsi) { return 0; }
++static inline int mp_map_pin_to_irq(int ioapic, int pin) { return -1; }
+ 
+ struct io_apic_irq_attr;
+ static inline int io_apic_set_pci_routing(struct device *dev, int irq,
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index dccf9e88db30..6eae9a7231c4 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -99,27 +99,22 @@ static u32 isa_irq_to_gsi[NR_IRQS_LEGACY] __read_mostly = {
+ 
+ #define	ACPI_INVALID_GSI		INT_MIN
+ 
+-static unsigned int gsi_to_irq(unsigned int gsi)
++static int map_gsi_to_irq(unsigned int gsi)
+ {
+-	unsigned int irq = gsi + NR_IRQS_LEGACY;
+-	unsigned int i;
++	int i, ioapic, pin;
+ 
+-	for (i = 0; i < NR_IRQS_LEGACY; i++) {
+-		if (isa_irq_to_gsi[i] == gsi) {
++	for (i = 0; i < NR_IRQS_LEGACY; i++)
++		if (isa_irq_to_gsi[i] == gsi)
+ 			return i;
+-		}
+-	}
+ 
+-	/* Provide an identity mapping of gsi == irq
+-	 * except on truly weird platforms that have
+-	 * non isa irqs in the first 16 gsis.
+-	 */
+-	if (gsi >= NR_IRQS_LEGACY)
+-		irq = gsi;
+-	else
+-		irq = gsi_top + gsi;
++	ioapic = mp_find_ioapic(gsi);
++	if (ioapic >= 0) {
++		pin = mp_find_ioapic_pin(ioapic, gsi);
++		return mp_map_pin_to_irq(ioapic, pin);
++	}
+ 
+-	return irq;
++	pr_err("Failed to map GSI%d to IRQ number.\n", gsi);
++	return -1;
+ }
+ 
+ /*
+@@ -493,16 +488,20 @@ void __init acpi_pic_sci_set_trigger(unsigned int irq, u16 trigger)
+ 	outb(new >> 8, 0x4d1);
+ }
+ 
+-int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
++int acpi_gsi_to_irq(u32 gsi, unsigned int *irqp)
+ {
+-	*irq = gsi_to_irq(gsi);
++	int irq = map_gsi_to_irq(gsi);
+ 
++	if (irq >= 0) {
+ #ifdef CONFIG_X86_IO_APIC
+-	if (acpi_irq_model == ACPI_IRQ_MODEL_IOAPIC)
+-		setup_IO_APIC_irq_extra(gsi);
++		if (acpi_irq_model == ACPI_IRQ_MODEL_IOAPIC)
++			setup_IO_APIC_irq_extra(gsi);
+ #endif
++		*irqp = irq;
++		return 0;
++	}
+ 
+-	return 0;
++	return -1;
+ }
+ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+ 
+@@ -556,11 +555,11 @@ int (*acpi_suspend_lowlevel)(void);
+  */
+ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
+ {
+-	unsigned int plat_gsi = gsi;
++	unsigned int plat_gsi;
+ 
+ 	plat_gsi = (*__acpi_register_gsi)(dev, gsi, trigger, polarity);
+ 	if (plat_gsi != ACPI_INVALID_GSI)
+-		return gsi_to_irq(plat_gsi);
++		return map_gsi_to_irq(plat_gsi);
+ 
+ 	return -1;
+ }
+@@ -1029,6 +1028,7 @@ static int mp_config_acpi_gsi(struct device *dev, u32 gsi, int trigger,
+ static int mp_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 			   int polarity)
+ {
++	int irq;
+ 	int ioapic;
+ 	int ioapic_pin;
+ 	struct io_apic_irq_attr irq_attr;
+@@ -1041,6 +1041,10 @@ static int mp_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 	if (acpi_gbl_FADT.sci_interrupt == gsi)
+ 		return gsi;
+ 
++	irq = map_gsi_to_irq(gsi);
++	if (irq < 0)
++		return ACPI_INVALID_GSI;
++
+ 	ioapic = mp_find_ioapic(gsi);
+ 	if (ioapic < 0) {
+ 		printk(KERN_WARNING "No IOAPIC for GSI %u\n", gsi);
+@@ -1062,7 +1066,7 @@ static int mp_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 	set_io_apic_irq_attr(&irq_attr, ioapic, ioapic_pin,
+ 			     trigger == ACPI_EDGE_SENSITIVE ? 0 : 1,
+ 			     polarity == ACPI_ACTIVE_HIGH ? 0 : 1);
+-	ret = io_apic_set_pci_routing(dev, gsi_to_irq(gsi), &irq_attr);
++	ret = io_apic_set_pci_routing(dev, irq, &irq_attr);
+ 	if (ret < 0)
+ 		gsi = ACPI_INVALID_GSI;
+ 
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 55fb3c1385c5..18d0e8a831c0 100644
+index 3b6e29d29903..2d776f69f4e8 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -230,7 +230,7 @@ int __init arch_early_irq_init(void)
- 	return 0;
+@@ -963,11 +963,22 @@ static int irq_trigger(int idx)
+ 	return trigger;
  }
  
--static struct irq_cfg *irq_cfg(unsigned int irq)
-+static inline struct irq_cfg *irq_cfg(unsigned int irq)
++int mp_map_pin_to_irq(int apic, int pin)
++{
++	struct mp_ioapic_gsi *gsi_cfg = mp_ioapic_gsi_routing(apic);
++	u32 gsi = gsi_cfg->gsi_base + pin;
++
++	/*
++	 * Provide an identity mapping of gsi == irq except on truly weird
++	 * platforms that have non isa irqs in the first 16 gsis.
++	 */
++	return gsi >= NR_IRQS_LEGACY ? gsi : gsi_top + gsi;
++}
++
+ static int pin_2_irq(int idx, int apic, int pin)
  {
- 	return irq_get_chip_data(irq);
- }
-@@ -272,7 +272,7 @@ static struct irq_cfg *alloc_irq_and_cfg_at(unsigned int at, int node)
- 	if (res < 0) {
- 		if (res != -EEXIST)
- 			return NULL;
--		cfg = irq_get_chip_data(at);
-+		cfg = irq_cfg(at);
- 		if (cfg)
- 			return cfg;
+ 	int irq;
+ 	int bus = mp_irqs[idx].srcbus;
+-	struct mp_ioapic_gsi *gsi_cfg = mp_ioapic_gsi_routing(apic);
+ 
+ 	/*
+ 	 * Debugging check, we are in big trouble if this message pops up!
+@@ -975,17 +986,6 @@ static int pin_2_irq(int idx, int apic, int pin)
+ 	if (mp_irqs[idx].dstirq != pin)
+ 		pr_err("broken BIOS or MPTABLE parser, ayiee!!\n");
+ 
+-	if (test_bit(bus, mp_bus_not_pci)) {
+-		irq = mp_irqs[idx].srcbusirq;
+-	} else {
+-		u32 gsi = gsi_cfg->gsi_base + pin;
+-
+-		if (gsi >= NR_IRQS_LEGACY)
+-			irq = gsi;
+-		else
+-			irq = gsi_top + gsi;
+-	}
+-
+ #ifdef CONFIG_X86_32
+ 	/*
+ 	 * PCI IRQ command line redirection. Yes, limits are hardcoded.
+@@ -1000,11 +1000,17 @@ static int pin_2_irq(int idx, int apic, int pin)
+ 				apic_printk(APIC_VERBOSE, KERN_DEBUG
+ 						"using PIRQ%d -> IRQ %d\n",
+ 						pin-16, irq);
++				return irq;
+ 			}
+ 		}
  	}
-@@ -1204,7 +1204,7 @@ void __setup_vector_irq(int cpu)
- 	raw_spin_lock(&vector_lock);
- 	/* Mark the inuse vectors */
- 	for_each_active_irq(irq) {
--		cfg = irq_get_chip_data(irq);
-+		cfg = irq_cfg(irq);
- 		if (!cfg)
- 			continue;
+ #endif
  
-@@ -1612,7 +1612,7 @@ __apicdebuginit(void) print_IO_APICs(void)
- 		if (chip != &ioapic_chip)
- 			continue;
++	if (test_bit(bus, mp_bus_not_pci))
++		irq = mp_irqs[idx].srcbusirq;
++	else
++		irq = mp_map_pin_to_irq(apic, pin);
++
+ 	return irq;
+ }
  
--		cfg = irq_get_chip_data(irq);
-+		cfg = irq_cfg(irq);
- 		if (!cfg)
- 			continue;
- 		entry = cfg->irq_2_pin;
-@@ -2253,7 +2253,7 @@ static void irq_complete_move(struct irq_cfg *cfg)
- 
- void irq_force_complete_move(int irq)
- {
--	struct irq_cfg *cfg = irq_get_chip_data(irq);
-+	struct irq_cfg *cfg = irq_cfg(irq);
- 
- 	if (!cfg)
- 		return;
-@@ -2526,7 +2526,7 @@ static inline void init_IO_APIC_traps(void)
- 	 * 0x80, because int 0x80 is hm, kind of importantish. ;)
- 	 */
- 	for_each_active_irq(irq) {
--		cfg = irq_get_chip_data(irq);
-+		cfg = irq_cfg(irq);
- 		if (IO_APIC_IRQ(irq) && cfg && !cfg->vector) {
- 			/*
- 			 * Hmm.. We don't have an entry for this,
-@@ -2659,7 +2659,7 @@ early_param("disable_timer_pin_1", disable_timer_pin_setup);
-  */
- static inline void __init check_timer(void)
- {
--	struct irq_cfg *cfg = irq_get_chip_data(0);
-+	struct irq_cfg *cfg = irq_cfg(0);
- 	int node = cpu_to_node(0);
- 	int apic1, pin1, apic2, pin2;
- 	unsigned long flags;
-@@ -2923,7 +2923,7 @@ int arch_setup_hwirq(unsigned int irq, int node)
- 
- void arch_teardown_hwirq(unsigned int irq)
- {
--	struct irq_cfg *cfg = irq_get_chip_data(irq);
-+	struct irq_cfg *cfg = irq_cfg(irq);
- 	unsigned long flags;
- 
- 	free_remapped_irq(irq);
-@@ -3052,7 +3052,7 @@ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
- 	if (!irq_offset)
- 		write_msi_msg(irq, &msg);
- 
--	setup_remapped_irq(irq, irq_get_chip_data(irq), chip);
-+	setup_remapped_irq(irq, irq_cfg(irq), chip);
- 
- 	irq_set_chip_and_handler_name(irq, chip, handle_edge_irq, "edge");
- 
-@@ -3187,7 +3187,7 @@ int default_setup_hpet_msi(unsigned int irq, unsigned int id)
- 
- 	hpet_msi_write(irq_get_handler_data(irq), &msg);
- 	irq_set_status_flags(irq, IRQ_MOVE_PCNTXT);
--	setup_remapped_irq(irq, irq_get_chip_data(irq), chip);
-+	setup_remapped_irq(irq, irq_cfg(irq), chip);
- 
- 	irq_set_chip_and_handler_name(irq, chip, handle_edge_irq, "edge");
- 	return 0;
 -- 
 1.7.10.4
