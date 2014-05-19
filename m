@@ -1,63 +1,89 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCHv2 3/4] clk: new basic clk type for fractional divider
-Date: Mon, 19 May 2014 02:15:52 +0200
-Message-ID: <1514106.ndh3ZJ8v0Y@vostro.rjw.lan>
-References: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com> <3823442.HzUarSqr07@vostro.rjw.lan> <20140517013403.9521.86191@quantum>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [Patch V2 9/9] I2C/ACPI: Add CONFIG_I2C_ACPI config
+Date: Mon, 19 May 2014 11:49:44 +0300
+Message-ID: <20140519084944.GH2067@lahna.fi.intel.com>
+References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com>
+ <1398695268-28645-1-git-send-email-tianyu.lan@intel.com>
+ <1398695268-28645-10-git-send-email-tianyu.lan@intel.com>
+ <20140429081609.GF1684@lahna.fi.intel.com>
+ <20140517174834.GA2858@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60409 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752335AbaERX67 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 18 May 2014 19:58:59 -0400
-In-Reply-To: <20140517013403.9521.86191@quantum>
+Received: from mga01.intel.com ([192.55.52.88]:43316 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752922AbaESIty (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 May 2014 04:49:54 -0400
+Content-Disposition: inline
+In-Reply-To: <20140517174834.GA2858@katana>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, rjw@rjwysocki.net, awilliam@redhat.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Friday, May 16, 2014 06:34:03 PM Mike Turquette wrote:
-> Quoting Rafael J. Wysocki (2014-05-16 17:15:43)
-> > On Friday, May 16, 2014 04:09:05 PM Mike Turquette wrote:
-> > > Quoting Rafael J. Wysocki (2014-05-16 15:38:05)
-> > > > On Thursday, May 15, 2014 09:53:49 AM Mike Turquette wrote:
-> > > > > Quoting Heikki Krogerus (2014-05-15 06:40:25)
-> > > > > > Fractional divider clocks are fairly common. This adds basic
-> > > > > > type for them.
-> > > > > > 
-> > > > > > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > > > > 
-> > > > > Taken into clk-next.
-> > > > > 
-> > > > > Just FYI, there was some talk at Embedded Linux Conference on providing
-> > > > > a better abstraction layer for some of these "basic" clock types. This
-> > > > > abstraction would allow the basic clock types to implement the
-> > > > > machine-agnostic logic (e.g. an incoming rate is divided by a value) and
-> > > > > then platforms and drivers could plug in the machine-specific parts
-> > > > > (e.g. divider is made up of m/n, or divider is power-of-two, or divider
-> > > > > is a simple integer with min == 1 and max == 5).
-> > > > > 
-> > > > > All of that is to say that in time this fractional divider could go away
-> > > > > once the abstraction layer allows us to fold the m/n divider stuff into
-> > > > > a core divider implementation.
-> > > > > 
-> > > > > Nothing wrong with the patch for now, so I've taken it for 3.16.
-> > > > 
-> > > > Well, OK, but I guess [4/4] depends on it and [4/4] also depends on
-> > > > [1-2/4], so how you're proposing to resolve this?
+On Sat, May 17, 2014 at 07:48:34PM +0200, Wolfram Sang wrote:
+> On Tue, Apr 29, 2014 at 11:16:09AM +0300, Mika Westerberg wrote:
+> > On Mon, Apr 28, 2014 at 10:27:48PM +0800, Lan Tianyu wrote:
+> > > This patch is to add CONFIG_I2C_ACPI. Current there is a race between
+> > > removing I2C ACPI operation region and ACPI AML code accessing.
+> > > So make i2c core built-in if CONFIG_I2C_ACPI is set.
 > > > 
-> > > I haven't yet published this patch to my tree, so no harm done. How
-> > > about the following Formal Proposals?
+> > > Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> > > ---
+> > >  drivers/i2c/Kconfig  | 17 ++++++++++++++++-
+> > >  drivers/i2c/Makefile |  2 +-
+> > >  include/linux/i2c.h  |  2 +-
+> > >  3 files changed, 18 insertions(+), 3 deletions(-)
 > > > 
-> > > 1) I ack the patch and don't merge it through my tree. You take it.
-> > > 2) I provide a topic branch that we both merge.
-> > > 
-> > > Your choice.
+> > > diff --git a/drivers/i2c/Kconfig b/drivers/i2c/Kconfig
+> > > index 7b7ea32..c670d49 100644
+> > > --- a/drivers/i2c/Kconfig
+> > > +++ b/drivers/i2c/Kconfig
+> > > @@ -2,7 +2,9 @@
+> > >  # I2C subsystem configuration
+> > >  #
+> > >  
+> > > -menuconfig I2C
+> > > +menu "I2C support"
+> > > +
+> > > +config I2C
+> > >  	tristate "I2C support"
+> > >  	select RT_MUTEXES
+> > >  	---help---
+> > > @@ -21,6 +23,17 @@ menuconfig I2C
+> > >  	  This I2C support can also be built as a module.  If so, the module
+> > >  	  will be called i2c-core.
+> > >  
+> > > +config I2C_ACPI
+> > > +	bool "I2C ACPI support"
+> > > +	select I2C
+> > > +	depends on ACPI
+> > > +	default y
+> > > +	help
+> > > +	  Say Y here if you want to enable I2C ACPI function. ACPI table
+> > > +	  provides I2C slave devices' information to enumerate these devices.
+> > > +	  This option also allows ACPI AML code to access I2C slave devices
+> > > +	  via I2C ACPI operation region to fulfill ACPI method.
 > > 
-> > Thanks!  I'd prefer 1) to be honest. :-)
+> > I would prefer something like:
+> > 
+> > Say Y here if you want to enable ACPI I2C support. This includes support
+> > for automatic enumeration of I2C slave devices and support for ACPI I2C
+> > Operation Regions. Operation Regions allow firmware (BIOS) code to
+> > access I2C slave devices, such as smart batteries through an I2C host
+> > controller driver.
+> > 
+> > But it is really up to you so,
+> > 
+> > Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > 
-> Acked-by: Mike Turquette <mturquette@linaro.org>
+> How does this fit into the context of
+> 55e71edb81b2b45273e7b284cce13ff24bde846f ("i2c: move ACPI helpers into
+> the core")?
 
-Thanks!
+With that commit we moved ACPI code to live inside I2C module (given
+that it was compiled as a module). However, you still can remove that
+module from userspace.
 
+With this patch we make sure that the I2C core can't be removed if you
+have ACPI enabled. This prevents the potential race.
