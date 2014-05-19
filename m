@@ -1,140 +1,63 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI/Battery: Accelerate battery resume callback
-Date: Tue, 20 May 2014 00:54:24 +0200
-Message-ID: <4288835.6SVZxzAble@vostro.rjw.lan>
-References: <1399183626-13152-1-git-send-email-tianyu.lan@intel.com>
+Subject: Re: [PATCH] ACPI/hotplug: Fix STARTING/DYING action in acpi_cpu_soft_notify()
+Date: Tue, 20 May 2014 00:55:51 +0200
+Message-ID: <2011129.WMiXDPUasW@vostro.rjw.lan>
+References: <1399557539-7282-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56460 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:62986 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750924AbaESWha (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2014 18:37:30 -0400
-In-Reply-To: <1399183626-13152-1-git-send-email-tianyu.lan@intel.com>
+	with SMTP id S1751707AbaESWi5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2014 18:38:57 -0400
+In-Reply-To: <1399557539-7282-1-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sunday, May 04, 2014 02:07:06 PM Lan Tianyu wrote:
-> Most time of battery resume callback is spent on executing AML code
-> _BTP, _BIF and _BIF to get battery info, status and set alarm. These
-> AML methods may access EC operation regions several times and consumes
-> time.
+On Thursday, May 08, 2014 07:58:59 AM Toshi Kani wrote:
+> During CPU online/offline testing on a large system, one of the
+> processors got stuck after the message "bad: scheduling from the
+> idle thread!".  The problem is that acpi_cpu_soft_notify() calls
+> acpi_bus_get_device() for all action types.  CPU_STARTING and
+> CPU_DYING do not allow the notify handlers to sleep.  However,
+> acpi_bus_get_device() can sleep in acpi_ut_acquire_mutex().
 > 
-> These operations are not necessary during devices resume and can run
-> during POST_SUSPEND/HIBERNATION event when all processes are thawed.
+> Change acpi_cpu_soft_notify() to return immediately for CPU_STARTING
+> and CPU_DYING as they have no action in this handler.
 > 
-> This also can avoid removing and adding battery sysfs nodes every system
-> resume even if the battery unit is not actually changed. The original code
-> updates sysfs nodes without check and this seems not reasonable.
-> 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 
 Queued up for 3.16, thanks!
 
 > ---
-> This patch is to base on the linux pm tree linux-next branch with
-> patches "ACPI: Revert "ACPI / Battery: Remove battery's proc directory""
-> and "ACPI: Revert "ACPI: Remove CONFIG_ACPI_PROCFS_POWER and cm_sbsc.c"".
+>  drivers/acpi/processor_driver.c |    7 +++++++
+>  1 file changed, 7 insertions(+)
 > 
->  drivers/acpi/battery.c | 36 +++++++++++++++++++++++++++---------
->  1 file changed, 27 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 6e7b2a1..3b4921e 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -696,7 +696,7 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
->  	}
->  }
+> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+> index 7f70f31..4fcbd67 100644
+> --- a/drivers/acpi/processor_driver.c
+> +++ b/drivers/acpi/processor_driver.c
+> @@ -121,6 +121,13 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
+>  	struct acpi_processor *pr = per_cpu(processors, cpu);
+>  	struct acpi_device *device;
 >  
-> -static int acpi_battery_update(struct acpi_battery *battery)
-> +static int acpi_battery_update(struct acpi_battery *battery, bool resume)
->  {
->  	int result, old_present = acpi_battery_present(battery);
->  	result = acpi_battery_get_status(battery);
-> @@ -707,6 +707,10 @@ static int acpi_battery_update(struct acpi_battery *battery)
->  		battery->update_time = 0;
->  		return 0;
->  	}
+> +	/*
+> +	 * CPU_STARTING and CPU_DYING must not sleep. Return here since
+> +	 * acpi_bus_get_device() may sleep.
+> +	 */
+> +	if (action == CPU_STARTING || action == CPU_DYING)
+> +		return NOTIFY_DONE;
 > +
-> +	if (resume)
-> +		return 0;
-> +
->  	if (!battery->update_time ||
->  	    old_present != acpi_battery_present(battery)) {
->  		result = acpi_battery_get_info(battery);
-> @@ -915,7 +919,7 @@ static print_func acpi_print_funcs[ACPI_BATTERY_NUMFILES] = {
->  static int acpi_battery_read(int fid, struct seq_file *seq)
->  {
->  	struct acpi_battery *battery = seq->private;
-> -	int result = acpi_battery_update(battery);
-> +	int result = acpi_battery_update(battery, false);
->  	return acpi_print_funcs[fid](seq, result);
->  }
+>  	if (!pr || acpi_bus_get_device(pr->handle, &device))
+>  		return NOTIFY_DONE;
 >  
-> @@ -1030,7 +1034,7 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
->  	old = battery->bat.dev;
->  	if (event == ACPI_BATTERY_NOTIFY_INFO)
->  		acpi_battery_refresh(battery);
-> -	acpi_battery_update(battery);
-> +	acpi_battery_update(battery, false);
->  	acpi_bus_generate_netlink_event(device->pnp.device_class,
->  					dev_name(&device->dev), event,
->  					acpi_battery_present(battery));
-> @@ -1045,13 +1049,27 @@ static int battery_notify(struct notifier_block *nb,
->  {
->  	struct acpi_battery *battery = container_of(nb, struct acpi_battery,
->  						    pm_nb);
-> +	int result;
-> +
->  	switch (mode) {
->  	case PM_POST_HIBERNATION:
->  	case PM_POST_SUSPEND:
-> -		if (battery->bat.dev) {
-> -			sysfs_remove_battery(battery);
-> -			sysfs_add_battery(battery);
-> -		}
-> +		if (!acpi_battery_present(battery))
-> +			return 0;
-> +
-> +		if (!battery->bat.dev) {
-> +			result = acpi_battery_get_info(battery);
-> +			if (result)
-> +				return result;
-> +
-> +			result = sysfs_add_battery(battery);
-> +			if (result)
-> +				return result;
-> +		} else
-> +			acpi_battery_refresh(battery);
-> +
-> +		acpi_battery_init_alarm(battery);
-> +		acpi_battery_get_state(battery);
->  		break;
->  	}
->  
-> @@ -1087,7 +1105,7 @@ static int acpi_battery_add(struct acpi_device *device)
->  	mutex_init(&battery->sysfs_lock);
->  	if (acpi_has_method(battery->device->handle, "_BIX"))
->  		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
-> -	result = acpi_battery_update(battery);
-> +	result = acpi_battery_update(battery, false);
->  	if (result)
->  		goto fail;
->  #ifdef CONFIG_ACPI_PROCFS_POWER
-> @@ -1149,7 +1167,7 @@ static int acpi_battery_resume(struct device *dev)
->  		return -EINVAL;
->  
->  	battery->update_time = 0;
-> -	acpi_battery_update(battery);
-> +	acpi_battery_update(battery, true);
->  	return 0;
->  }
->  #else
-> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 I speak only for myself.
