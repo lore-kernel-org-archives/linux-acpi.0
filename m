@@ -1,128 +1,38 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFC Patch Part1 V1 00/30] use irqdomain to dynamically allocate
- IRQ for IOAPIC pin
-Date: Mon, 19 May 2014 23:04:22 +0900 (JST)
-Message-ID: <alpine.DEB.2.02.1405192250170.22305@ionos.tec.linutronix.de>
-References: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.02.1405161601060.4039@ionos.tec.linutronix.de> <53787F09.9000200@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:48183 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753685AbaESOEs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2014 10:04:48 -0400
-In-Reply-To: <53787F09.9000200@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch Part1 V2 01/29] x86, irq: update high address field when updating affinity for MSI IRQ
+Date: Tue, 20 May 2014 00:22:45 +0800
+Message-ID: <1400516594-11544-2-git-send-email-jiang.liu@linux.intel.com>
+References: <1400516594-11544-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1400516594-11544-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sfi-devel@simplefirmware.org, Grant Likely <grant.likely@linaro.org>
 
-Jiang,
+If x2apic is enabled, the MSI high address field should also be aslo
+updated when setting affinity for MSI IRQ, otherwise the MSI IRQ may
+target wrong APIC IDs.
 
-On Sun, 18 May 2014, Jiang Liu wrote:
-> On 2014/5/16 23:28, Thomas Gleixner wrote:
-> >> Patch 1-17 are trivial code improvements, bugfixes and preparation.
-> > 
-> > Can you please move the bugfixes before the other changes, so we can
-> > pick them up independently from the outcome?
-> Sure, will reorder the patch set in next version.
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ arch/x86/kernel/apic/io_apic.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-Thanks.
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 9d0a9795a0f8..2de992501a1b 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -3007,6 +3007,10 @@ msi_set_affinity(struct irq_data *data, const struct cpumask *mask, bool force)
  
-> >  
-> >> Patch 18-24 enable basic irqdomain support and IRQ number dynamic
-> >> allocation.
-> >>
-> >> Patch 25-29 consoldate the way to program IOAPIC pins by using
-> >> irqdomain map() interface.
-> >>
-> >> Patch 30 cleans up unused interfaces and functions in IOAPIC driver.
-> >>
-> >> Tests and comments are warmly welcomed!
-> > 
-> > I like the general approach, but we have now a mixture of legacy irq
-> > handling and irq domains. We really want to cleanup the legacy PIC no
-> > ioapic case as well. That will cleanup the code further.
-> > 
-> > The other thing we discussed here: https://lkml.org/lkml/2014/5/7/901
-> > in several places of the thread is to move the vector allocation into
-> > a irqdomain with a generic matrix allocator as well. We have other use
-> > cases for this as well. It would be nice if you could look at that as
-> > well.
-> I have read through the thread, it's an interesting discussion.
-> 
-> After my first thought, I have gotten some ideas about how to reorganize
-> x86 interrupt subsystem using irqdomain framework based on ideas from
-> the thread. Because I'm newbie to interrupt subsystem, I will share my
-> naive ideas first and RFC for whether it's the right direction.
-> 
-> We may build hierarchy irqdomains as below for x86,
-> [IOAPIC]      [MSI/MSI-x]  [HPET]  [DMAR] [Legacy]
->     |            |           |       |       |
->     v            v           v       |       |
-> [           Remapping           ]    |       |
->                  |                   |       |
->                  v                   v       v
-> [                   Root/vector                ]
-> 
-> The remapping domain is optional and used to support IRQ remapping unit.
-> We abstract remapping entry as hardware interrupt pin and will extend
-> irqdomain interface to support automatic assignment of hardware
-> interrupt pin.
-> 
-> The root/vector domain is used to manage per CPU vector numbers and
-> CPU vector is abstracted as hardware interrupt pin. It will support
-> automatic vector number assignment. To support root/vector domain,
-> we need to extend irqdomain interface to pass down information
-> or constraints about the IRQ allocation.
-> 
-> So how about following extension to current irqdomain interfaces?
-
-I cc'ed Grant Likely. He might have some opinion on this as well.
-
-> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-> index c983ed18c332..2fd7e50cde32 100644
-> --- a/include/linux/irqdomain.h
-> +++ b/include/linux/irqdomain.h
-> @@ -42,6 +42,13 @@ struct of_device_id;
->  /* Number of irqs reserved for a legacy isa controller */
->  #define NUM_ISA_INTERRUPTS     16
-> 
-> +#define        IRQDOMAIN_AUTO_ASSIGN_HWIRQ     ULONG_MAX
-> +#ifdef arch_irq_alloc_info_t
-> +typedef        arch_irq_alloc_info_t irq_alloc_info_t;
-> +#else
-> +typedef        void irq_alloc_info_t;
-> +#endif
-> 
->  /**
->   * struct irq_domain_ops - Methods for irq_domain objects
->   * @match: Match an interrupt controller device node to a host, returns
-> @@ -59,7 +66,11 @@ struct of_device_id;
->   */
->  struct irq_domain_ops {
->         int (*match)(struct irq_domain *d, struct device_node *node);
-> -       int (*map)(struct irq_domain *d, unsigned int virq,
-> irq_hw_number_t hw);
-> +       int (*alloc)(struct irq_domain *d, irq_hw_number_t hw,
-> +                    irq_alloc_info_t *info);
-> +       int (*free)(struct irq_domain *d, unsigned int virq);
-> +       int (*map)(struct irq_domain *d, unsigned int virq,
-> irq_hw_number_t hw,
-> +                  irq_alloc_info_t *info);
->         void (*unmap)(struct irq_domain *d, unsigned int virq);
->         int (*xlate)(struct irq_domain *d, struct device_node *node,
->                      const u32 *intspec, unsigned int intsize,
-> 
-> alloc()/free() interfaces will be used allocate/free IRQ from parent
-> domain. And irq_alloc_info_t structure is used to host parameters
-> and constraints for IRQ allocation.
-> 
-> For x86, irq_alloc_info_t structure will be used to host CPU mask,
-> device pointer, IOAPIC pin attributes, NUMA node info etc.
-
-Do we really need to hand all of this down?
-
-Thanks,
-
-	tglx
+ 	__get_cached_msi_msg(data->msi_desc, &msg);
+ 
++	msg.address_hi = MSI_ADDR_BASE_HI;
++	if (x2apic_enabled())
++		msg.address_hi |= MSI_ADDR_EXT_DEST_ID(dest);
++
+ 	msg.data &= ~MSI_DATA_VECTOR_MASK;
+ 	msg.data |= MSI_DATA_VECTOR(cfg->vector);
+ 	msg.address_lo &= ~MSI_ADDR_DEST_ID_MASK;
+-- 
+1.7.10.4
