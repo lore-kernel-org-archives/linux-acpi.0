@@ -1,29 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/4] acpi-video: Don't register acpi_video_resume notifier without backlight devices
-Date: Tue, 20 May 2014 00:59:53 +0200
-Message-ID: <2307360.DSLu5vT7ji@vostro.rjw.lan>
-References: <1400152956-9053-1-git-send-email-hdegoede@redhat.com> <1400152956-9053-2-git-send-email-hdegoede@redhat.com> <53757730.4080101@intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH] ACPI/hotplug: Fix STARTING/DYING action in
+ acpi_cpu_soft_notify()
+Date: Mon, 19 May 2014 16:57:02 -0600
+Message-ID: <1400540222.18128.6.camel@misato.fc.hp.com>
+References: <1399557539-7282-1-git-send-email-toshi.kani@hp.com>
+	 <2011129.WMiXDPUasW@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <53757730.4080101@intel.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, Lee Chun-Yi <jlee@suse.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, Massimiliano <massi.ergosum@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3425.houston.hp.com ([15.201.208.53]:31535 "EHLO
+	g4t3425.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750981AbaESXFr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2014 19:05:47 -0400
+In-Reply-To: <2011129.WMiXDPUasW@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday, May 16, 2014 10:25:52 AM Aaron Lu wrote:
-> On 05/15/2014 07:22 PM, Hans de Goede wrote:
-> > If we're not going to be registering any backlight devices then
-> > acpi_video_resume is always nop, so don't register it in that case.
+On Tue, 2014-05-20 at 00:55 +0200, Rafael J. Wysocki wrote:
+> On Thursday, May 08, 2014 07:58:59 AM Toshi Kani wrote:
+> > During CPU online/offline testing on a large system, one of the
+> > processors got stuck after the message "bad: scheduling from the
+> > idle thread!".  The problem is that acpi_cpu_soft_notify() calls
+> > acpi_bus_get_device() for all action types.  CPU_STARTING and
+> > CPU_DYING do not allow the notify handlers to sleep.  However,
+> > acpi_bus_get_device() can sleep in acpi_ut_acquire_mutex().
 > > 
-> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> > Change acpi_cpu_soft_notify() to return immediately for CPU_STARTING
+> > and CPU_DYING as they have no action in this handler.
+> > 
+> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 > 
-> Reviewed-by: Aaron Lu <aaron.lu@intel.com>
+> Queued up for 3.16, thanks!
 
-Queued up for 3.16, thanks!
+Great! Thanks Rafael!
+-Toshi
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
