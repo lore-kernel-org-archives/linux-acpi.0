@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part1 V2 12/29] x86, ioapic: kill static variable nr_irqs_gsi
-Date: Tue, 20 May 2014 00:22:56 +0800
-Message-ID: <1400516594-11544-13-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part1 V2 16/29] x86, irq: introduce some helper utilities to improve readability
+Date: Tue, 20 May 2014 00:23:00 +0800
+Message-ID: <1400516594-11544-17-git-send-email-jiang.liu@linux.intel.com>
 References: <1400516594-11544-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1400516594-11544-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,77 +10,72 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Static variable nr_irqs_gsi is used to maintain the lowest dynamic
-allocatable IRQ number. It may cause trouble when enabling dynamic
-IRQ allocation for IOAPIC, so use arch_dynirq_lower_bound() to
-avoid directly accessing nr_irqs_gsi and kill nr_irqs_gsi.
-
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/kernel/apic/io_apic.c |   24 +++++-------------------
- 1 file changed, 5 insertions(+), 19 deletions(-)
+ arch/x86/kernel/apic/io_apic.c |   29 ++++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
 
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index e8dd12a04cea..397fb9a02e11 100644
+index bb013e4126c3..3b6e29d29903 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -118,9 +118,6 @@ struct mpc_intsrc mp_irqs[MAX_IRQ_SOURCES];
- /* # of MP IRQ source entries */
- int mp_irq_entries;
- 
--/* GSI interrupts */
--static int nr_irqs_gsi = NR_IRQS_LEGACY;
--
- #ifdef CONFIG_EISA
- int mp_bus_id_to_type[MAX_MP_BUSSES];
- #endif
-@@ -3333,20 +3330,11 @@ static int __init io_apic_get_redir_entries(int ioapic)
- 	return reg_01.bits.entries + 1;
+@@ -117,6 +117,24 @@ struct mp_ioapic_gsi *mp_ioapic_gsi_routing(int ioapic_idx)
+ 	return &ioapics[ioapic_idx].gsi_config;
  }
  
--static void __init probe_nr_irqs_gsi(void)
--{
--	int nr;
--
--	nr = gsi_top + NR_IRQS_LEGACY;
--	if (nr > nr_irqs_gsi)
--		nr_irqs_gsi = nr;
--
--	printk(KERN_DEBUG "nr_irqs_gsi: %d\n", nr_irqs_gsi);
--}
--
- unsigned int arch_dynirq_lower_bound(unsigned int from)
- {
--	return from < nr_irqs_gsi ? nr_irqs_gsi : from;
-+	unsigned int min = gsi_top + NR_IRQS_LEGACY;
++static inline int mp_ioapic_pin_count(int ioapic)
++{
++	struct mp_ioapic_gsi *gsi_cfg = mp_ioapic_gsi_routing(ioapic);
 +
-+	return from < min ? min : from;
- }
++	return gsi_cfg->gsi_end - gsi_cfg->gsi_base + 1;
++}
++
++static inline u32 mp_pin_2_gsi(int ioapic, int pin)
++{
++	return mp_ioapic_gsi_routing(ioapic)->gsi_base + pin;
++}
++
++/* Initialize all legacy IRQs and all pins on the first IOAPIC at boot */
++static inline int mp_init_irq_at_boot(int ioapic, int irq)
++{
++	return ioapic == 0 || (irq >= 0 && irq < NR_IRQS_LEGACY);
++}
++
+ int nr_ioapics;
  
- int __init arch_probe_nr_irqs(void)
-@@ -3356,12 +3344,12 @@ int __init arch_probe_nr_irqs(void)
- 	if (nr_irqs > (NR_VECTORS * nr_cpu_ids))
- 		nr_irqs = NR_VECTORS * nr_cpu_ids;
+ /* The one past the highest gsi number used */
+@@ -1368,8 +1386,7 @@ static void __init __io_apic_setup_irqs(unsigned int ioapic_idx)
+ 			continue;
  
--	nr = nr_irqs_gsi + 8 * nr_cpu_ids;
-+	nr = (gsi_top + NR_IRQS_LEGACY) + 8 * nr_cpu_ids;
- #if defined(CONFIG_PCI_MSI) || defined(CONFIG_HT_IRQ)
- 	/*
- 	 * for MSI and HT dyn irq
- 	 */
--	nr += nr_irqs_gsi * 16;
-+	nr += (gsi_top + NR_IRQS_LEGACY) * 16;
- #endif
- 	if (nr < nr_irqs)
- 		nr_irqs = nr;
-@@ -3634,8 +3622,6 @@ fake_ioapic_page:
- 		ioapic_res->end = ioapic_phys + IO_APIC_SLOT_SIZE - 1;
- 		ioapic_res++;
- 	}
+ 		irq = pin_2_irq(idx, ioapic_idx, pin);
 -
--	probe_nr_irqs_gsi();
- }
+-		if ((ioapic_idx > 0) && (irq > NR_IRQS_LEGACY))
++		if (!mp_init_irq_at_boot(ioapic_idx, irq))
+ 			continue;
  
- void __init ioapic_insert_resources(void)
+ 		/*
+@@ -1420,9 +1437,7 @@ void setup_IO_APIC_irq_extra(u32 gsi)
+ 		return;
+ 
+ 	irq = pin_2_irq(idx, ioapic_idx, pin);
+-
+-	/* Only handle the non legacy irqs on secondary ioapics */
+-	if (ioapic_idx == 0 || irq < NR_IRQS_LEGACY)
++	if (mp_init_irq_at_boot(ioapic_idx, irq))
+ 		return;
+ 
+ 	set_io_apic_irq_attr(&attr, ioapic_idx, pin, irq_trigger(idx),
+@@ -3536,9 +3551,9 @@ void __init setup_ioapic_dest(void)
+ 		irq_entry = find_irq_entry(ioapic, pin, mp_INT);
+ 		if (irq_entry == -1)
+ 			continue;
+-		irq = pin_2_irq(irq_entry, ioapic, pin);
+ 
+-		if ((ioapic > 0) && (irq > NR_IRQS_LEGACY))
++		irq = pin_2_irq(irq_entry, ioapic, pin);
++		if (!mp_init_irq_at_boot(ioapic, irq))
+ 			continue;
+ 
+ 		idata = irq_get_irq_data(irq);
 -- 
 1.7.10.4
