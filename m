@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part1 V2 15/29] x86, irq: reorganize IO_APIC_get_PCI_irq_vector() to prepare for irqdomain
-Date: Tue, 20 May 2014 00:22:59 +0800
-Message-ID: <1400516594-11544-16-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part1 V2 14/29] x86, ioapic: use irq_cfg() instead of irq_get_chip_data() for better readability
+Date: Tue, 20 May 2014 00:22:58 +0800
+Message-ID: <1400516594-11544-15-git-send-email-jiang.liu@linux.intel.com>
 References: <1400516594-11544-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1400516594-11544-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,101 +10,107 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Reorganize function IO_APIC_get_PCI_irq_vector() a bit to better support
-coming irqdomain.
+Use defined helper function irq_cfg() instead of irq_get_chip_data() for
+better readability.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/kernel/apic/io_apic.c |   62 ++++++++++++++++++++++------------------
- 1 file changed, 34 insertions(+), 28 deletions(-)
+ arch/x86/kernel/apic/io_apic.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 18d0e8a831c0..bb013e4126c3 100644
+index 55fb3c1385c5..18d0e8a831c0 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -997,7 +997,7 @@ static int pin_2_irq(int idx, int apic, int pin)
- int IO_APIC_get_PCI_irq_vector(int bus, int slot, int pin,
- 				struct io_apic_irq_attr *irq_attr)
+@@ -230,7 +230,7 @@ int __init arch_early_irq_init(void)
+ 	return 0;
+ }
+ 
+-static struct irq_cfg *irq_cfg(unsigned int irq)
++static inline struct irq_cfg *irq_cfg(unsigned int irq)
  {
--	int ioapic_idx, i, best_guess = -1;
-+	int irq, i, best_guess = -1;
- 
- 	apic_printk(APIC_DEBUG,
- 		    "querying PCI -> IRQ mapping bus:%d, slot:%d, pin:%d.\n",
-@@ -1007,41 +1007,47 @@ int IO_APIC_get_PCI_irq_vector(int bus, int slot, int pin,
- 			    "PCI BIOS passed nonexistent PCI bus %d!\n", bus);
- 		return -1;
+ 	return irq_get_chip_data(irq);
+ }
+@@ -272,7 +272,7 @@ static struct irq_cfg *alloc_irq_and_cfg_at(unsigned int at, int node)
+ 	if (res < 0) {
+ 		if (res != -EEXIST)
+ 			return NULL;
+-		cfg = irq_get_chip_data(at);
++		cfg = irq_cfg(at);
+ 		if (cfg)
+ 			return cfg;
  	}
-+
- 	for (i = 0; i < mp_irq_entries; i++) {
- 		int lbus = mp_irqs[i].srcbus;
-+		int ioapic_idx, found = 0;
-+
-+		if (test_bit(lbus, mp_bus_not_pci) || (bus != lbus) ||
-+		    mp_irqs[i].irqtype != mp_INT ||
-+		    (slot != ((mp_irqs[i].srcbusirq >> 2) & 0x1f)))
-+			continue;
+@@ -1204,7 +1204,7 @@ void __setup_vector_irq(int cpu)
+ 	raw_spin_lock(&vector_lock);
+ 	/* Mark the inuse vectors */
+ 	for_each_active_irq(irq) {
+-		cfg = irq_get_chip_data(irq);
++		cfg = irq_cfg(irq);
+ 		if (!cfg)
+ 			continue;
  
- 		for_each_ioapic(ioapic_idx)
- 			if (mpc_ioapic_id(ioapic_idx) == mp_irqs[i].dstapic ||
--			    mp_irqs[i].dstapic == MP_APIC_ALL)
-+			    mp_irqs[i].dstapic == MP_APIC_ALL) {
-+				found = 1;
- 				break;
-+			}
-+		if (!found)
-+			continue;
+@@ -1612,7 +1612,7 @@ __apicdebuginit(void) print_IO_APICs(void)
+ 		if (chip != &ioapic_chip)
+ 			continue;
  
--		if (!test_bit(lbus, mp_bus_not_pci) &&
--		    mp_irqs[i].irqtype == mp_INT &&
--		    (bus == lbus) &&
--		    (slot == ((mp_irqs[i].srcbusirq >> 2) & 0x1f))) {
--			int irq = pin_2_irq(i, ioapic_idx, mp_irqs[i].dstirq);
--
--			if (!(ioapic_idx || IO_APIC_IRQ(irq)))
--				continue;
-+		/* Skip ISA IRQs */
-+		irq = pin_2_irq(i, ioapic_idx, mp_irqs[i].dstirq);
-+		if (ioapic_idx == 0 && !IO_APIC_IRQ(irq))
-+			continue;
+-		cfg = irq_get_chip_data(irq);
++		cfg = irq_cfg(irq);
+ 		if (!cfg)
+ 			continue;
+ 		entry = cfg->irq_2_pin;
+@@ -2253,7 +2253,7 @@ static void irq_complete_move(struct irq_cfg *cfg)
  
--			if (pin == (mp_irqs[i].srcbusirq & 3)) {
--				set_io_apic_irq_attr(irq_attr, ioapic_idx,
--						     mp_irqs[i].dstirq,
--						     irq_trigger(i),
--						     irq_polarity(i));
--				return irq;
--			}
--			/*
--			 * Use the first all-but-pin matching entry as a
--			 * best-guess fuzzy result for broken mptables.
--			 */
--			if (best_guess < 0) {
--				set_io_apic_irq_attr(irq_attr, ioapic_idx,
--						     mp_irqs[i].dstirq,
--						     irq_trigger(i),
--						     irq_polarity(i));
--				best_guess = irq;
--			}
-+		if (pin == (mp_irqs[i].srcbusirq & 3)) {
-+			set_io_apic_irq_attr(irq_attr, ioapic_idx,
-+					     mp_irqs[i].dstirq,
-+					     irq_trigger(i),
-+					     irq_polarity(i));
-+			return irq;
-+		}
-+		/*
-+		 * Use the first all-but-pin matching entry as a
-+		 * best-guess fuzzy result for broken mptables.
-+		 */
-+		if (best_guess < 0) {
-+			set_io_apic_irq_attr(irq_attr, ioapic_idx,
-+					     mp_irqs[i].dstirq,
-+					     irq_trigger(i),
-+					     irq_polarity(i));
-+			best_guess = irq;
- 		}
- 	}
- 	return best_guess;
+ void irq_force_complete_move(int irq)
+ {
+-	struct irq_cfg *cfg = irq_get_chip_data(irq);
++	struct irq_cfg *cfg = irq_cfg(irq);
+ 
+ 	if (!cfg)
+ 		return;
+@@ -2526,7 +2526,7 @@ static inline void init_IO_APIC_traps(void)
+ 	 * 0x80, because int 0x80 is hm, kind of importantish. ;)
+ 	 */
+ 	for_each_active_irq(irq) {
+-		cfg = irq_get_chip_data(irq);
++		cfg = irq_cfg(irq);
+ 		if (IO_APIC_IRQ(irq) && cfg && !cfg->vector) {
+ 			/*
+ 			 * Hmm.. We don't have an entry for this,
+@@ -2659,7 +2659,7 @@ early_param("disable_timer_pin_1", disable_timer_pin_setup);
+  */
+ static inline void __init check_timer(void)
+ {
+-	struct irq_cfg *cfg = irq_get_chip_data(0);
++	struct irq_cfg *cfg = irq_cfg(0);
+ 	int node = cpu_to_node(0);
+ 	int apic1, pin1, apic2, pin2;
+ 	unsigned long flags;
+@@ -2923,7 +2923,7 @@ int arch_setup_hwirq(unsigned int irq, int node)
+ 
+ void arch_teardown_hwirq(unsigned int irq)
+ {
+-	struct irq_cfg *cfg = irq_get_chip_data(irq);
++	struct irq_cfg *cfg = irq_cfg(irq);
+ 	unsigned long flags;
+ 
+ 	free_remapped_irq(irq);
+@@ -3052,7 +3052,7 @@ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
+ 	if (!irq_offset)
+ 		write_msi_msg(irq, &msg);
+ 
+-	setup_remapped_irq(irq, irq_get_chip_data(irq), chip);
++	setup_remapped_irq(irq, irq_cfg(irq), chip);
+ 
+ 	irq_set_chip_and_handler_name(irq, chip, handle_edge_irq, "edge");
+ 
+@@ -3187,7 +3187,7 @@ int default_setup_hpet_msi(unsigned int irq, unsigned int id)
+ 
+ 	hpet_msi_write(irq_get_handler_data(irq), &msg);
+ 	irq_set_status_flags(irq, IRQ_MOVE_PCNTXT);
+-	setup_remapped_irq(irq, irq_get_chip_data(irq), chip);
++	setup_remapped_irq(irq, irq_cfg(irq), chip);
+ 
+ 	irq_set_chip_and_handler_name(irq, chip, handle_edge_irq, "edge");
+ 	return 0;
 -- 
 1.7.10.4
