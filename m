@@ -1,140 +1,387 @@
 From: amit daniel kachhap <amit.daniel@samsung.com>
-Subject: Re: [RFC PATCH 2/5] thermal: cpu_cooling: Add notifications support
- for the clients
-Date: Mon, 19 May 2014 14:31:14 +0530
-Message-ID: <CADGdYn7CvQqSEcHGgqLcBaW3XXQPO1ay5A03Ld1=eRqzLsBMkQ@mail.gmail.com>
+Subject: Re: [linux-pm] [RFC PATCH 5/5] ACPI: thermal: processor: Use the
+ generic cpufreq infrastructure
+Date: Mon, 19 May 2014 14:39:13 +0530
+Message-ID: <CADGdYn5YfUne1B_-8u+J-e0icPfPczpS_eAVNgmpArbGGCtE8w@mail.gmail.com>
 References: <1399559880-20562-1-git-send-email-amit.daniel@samsung.com>
-	<1399559880-20562-3-git-send-email-amit.daniel@samsung.com>
-	<20140516173226.GE2856@e102654-lin.cambridge.arm.com>
+	<1399559880-20562-6-git-send-email-amit.daniel@samsung.com>
+	<20140515190604.GE3138@developer>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f170.google.com ([209.85.160.170]:57685 "EHLO
-	mail-yk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752900AbaESJBO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2014 05:01:14 -0400
-In-Reply-To: <20140516173226.GE2856@e102654-lin.cambridge.arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140515190604.GE3138@developer>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Javi Merino <javi.merino@arm.com>
-Cc: "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "rui.zhang@intel.com" <rui.zhang@intel.com>, edubezval@gmail.com, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
 
-On Fri, May 16, 2014 at 11:02 PM, Javi Merino <javi.merino@arm.com> wrote:
-> Hi Amit,
+On Fri, May 16, 2014 at 12:36 AM, Eduardo Valentin <edubezval@gmail.com> wrote:
+> Hello Amit,
 >
-> On Thu, May 08, 2014 at 03:37:57PM +0100, Amit Daniel Kachhap wrote:
->> This patch adds notification support for those clients of cpu_cooling
->> APIs which may want to do something interesting after receiving these
->> cpu_cooling events. The notifier structure passed is of both Set/Get type.
->> The notfications events can be of type,
->> 1. CPU_COOLING_SET_STATE_PRE
->> 2. CPU_COOLING_SET_STATE_POST
->> 3. CPU_COOLING_GET_CUR_STATE
->> 4. CPU_COOLING_GET_MAX_STATE
+> On Thu, May 08, 2014 at 08:08:00PM +0530, Amit Daniel Kachhap wrote:
+>> This patch upgrades the ACPI cpufreq cooling portions to use the generic
+>> cpufreq cooling infrastructure. There should not be any functionality
+>> related changes as the same behaviour is provided by the generic
+>> cpufreq APIs with the notifier mechanism.
 >>
->> The advantages of these notfications is to differentiate between different
->> P states in the cpufreq table and the cooling states. The clients of these
->> events may group few P states into 1 cooling states. Also some more cooling
->> states can be enabled when the maximum of P state is reached. Post notifications
->> can be used for those cases.
->>
+>
+> This is a very good move as we are converging towards a more and more
+> common infrastructure. How did you test this code?
+Thanks.
+Actually with linaro acpi kernel I was able to enable acpi processor
+in my arndale(exynos5250) board. After that in some hacky way I
+enabled acpi __TMP method to read its tmu temperatures and able to
+test thermal cpufreq scaling. Ofcourse i am not able to test
+cputhrottling as it is not supported.
+
+>
 >> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
 >> ---
->>  drivers/thermal/cpu_cooling.c |   99 +++++++++++++++++++++++++++++++++++++++-
->>  include/linux/cpu_cooling.h   |   55 +++++++++++++++++++++++
->>  2 files changed, 151 insertions(+), 3 deletions(-)
+>>  drivers/acpi/processor_driver.c  |    6 +-
+>>  drivers/acpi/processor_thermal.c |  210 +++++++++++++++++---------------------
+>>  2 files changed, 99 insertions(+), 117 deletions(-)
 >>
->> diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
->> index 21f44d4..e2aeb36 100644
->> --- a/drivers/thermal/cpu_cooling.c
->> +++ b/drivers/thermal/cpu_cooling.c
->> @@ -50,6 +50,7 @@ struct cpufreq_cooling_device {
->>       unsigned int cpufreq_state;
->>       unsigned int cpufreq_val;
->>       struct cpumask allowed_cpus;
->> +     struct cpufreq_cooling_status request_status;
->>       struct list_head node;
->>  };
->>  static DEFINE_IDR(cpufreq_idr);
->> @@ -59,6 +60,8 @@ static DEFINE_MUTEX(cooling_cpufreq_lock);
->>  #define NOTIFY_INVALID NULL
->>  static struct cpufreq_cooling_device *notify_device;
+>> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+>> index 7f70f31..10aba4a 100644
+>> --- a/drivers/acpi/processor_driver.c
+>> +++ b/drivers/acpi/processor_driver.c
+>> @@ -36,6 +36,7 @@
+>>  #include <linux/cpuidle.h>
+>>  #include <linux/slab.h>
+>>  #include <linux/acpi.h>
+>> +#include <linux/cpu_cooling.h>
 >>
->> +/* Notfier list to validates/updates the cpufreq cooling states */
->> +static BLOCKING_NOTIFIER_HEAD(cpufreq_cooling_state_notifier_list);
->>  /* A list to hold all the cpufreq cooling devices registered */
->>  static LIST_HEAD(cpufreq_cooling_list);
+>>  #include <acpi/processor.h>
 >>
->> @@ -266,6 +269,21 @@ static unsigned int get_cpu_frequency(unsigned int cpu, unsigned long level)
->>       return freq;
+>> @@ -178,8 +179,7 @@ static int __acpi_processor_start(struct acpi_device *device)
+>>       if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
+>>               acpi_processor_power_init(pr);
+>>
+>> -     pr->cdev = thermal_cooling_device_register("Processor", device,
+>> -                                                &processor_cooling_ops);
+>> +     pr->cdev = acpi_processor_cooling_register(device);
+>>       if (IS_ERR(pr->cdev)) {
+>>               result = PTR_ERR(pr->cdev);
+>>               goto err_power_exit;
+>> @@ -250,7 +250,7 @@ static int acpi_processor_stop(struct device *dev)
+>>       if (pr->cdev) {
+>>               sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
+>>               sysfs_remove_link(&pr->cdev->device.kobj, "device");
+>> -             thermal_cooling_device_unregister(pr->cdev);
+>> +             cpufreq_cooling_unregister(pr->cdev);
+>>               pr->cdev = NULL;
+>>       }
+>>       return 0;
+>> diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
+>> index e003663..c442a58 100644
+>> --- a/drivers/acpi/processor_thermal.c
+>> +++ b/drivers/acpi/processor_thermal.c
+>> @@ -31,6 +31,7 @@
+>>  #include <linux/init.h>
+>>  #include <linux/cpufreq.h>
+>>  #include <linux/acpi.h>
+>> +#include <linux/cpu_cooling.h>
+>>  #include <acpi/processor.h>
+>>  #include <asm/uaccess.h>
+>>
+>> @@ -53,28 +54,11 @@ ACPI_MODULE_NAME("processor_thermal");
+>>
+>>  static DEFINE_PER_CPU(unsigned int, cpufreq_thermal_reduction_pctg);
+>>  static unsigned int acpi_thermal_cpufreq_is_init = 0;
+>> +static struct notifier_block cpufreq_cooling_notifier_block;
+>>
+>>  #define reduction_pctg(cpu) \
+>>       per_cpu(cpufreq_thermal_reduction_pctg, phys_package_first_cpu(cpu))
+>>
+>> -/*
+>> - * Emulate "per package data" using per cpu data (which should really be
+>> - * provided elsewhere)
+>> - *
+>> - * Note we can lose a CPU on cpu hotunplug, in this case we forget the state
+>> - * temporarily. Fortunately that's not a big issue here (I hope)
+>> - */
+>> -static int phys_package_first_cpu(int cpu)
+>> -{
+>> -     int i;
+>> -     int id = topology_physical_package_id(cpu);
+>> -
+>> -     for_each_online_cpu(i)
+>> -             if (topology_physical_package_id(i) == id)
+>> -                     return i;
+>> -     return 0;
+>> -}
+>> -
+>>  static int cpu_has_cpufreq(unsigned int cpu)
+>>  {
+>>       struct cpufreq_policy policy;
+>> @@ -83,30 +67,6 @@ static int cpu_has_cpufreq(unsigned int cpu)
+>>       return 1;
 >>  }
 >>
->> +static int
->> +cpufreq_cooling_notify_states(struct cpufreq_cooling_status *request,
->> +                     enum cpu_cooling_state_ops op)
+>> -static int acpi_thermal_cpufreq_notifier(struct notifier_block *nb,
+>> -                                      unsigned long event, void *data)
+>> -{
+>> -     struct cpufreq_policy *policy = data;
+>> -     unsigned long max_freq = 0;
+>> -
+>> -     if (event != CPUFREQ_ADJUST)
+>> -             goto out;
+>> -
+>> -     max_freq = (
+>> -         policy->cpuinfo.max_freq *
+>> -         (100 - reduction_pctg(policy->cpu) * 20)
+>> -     ) / 100;
+>> -
+>> -     cpufreq_verify_within_limits(policy, 0, max_freq);
+>> -
+>> -      out:
+>> -     return 0;
+>> -}
+>> -
+>> -static struct notifier_block acpi_thermal_cpufreq_notifier_block = {
+>> -     .notifier_call = acpi_thermal_cpufreq_notifier,
+>> -};
+>> -
+>>  static int cpufreq_get_max_state(unsigned int cpu)
+>>  {
+>>       if (!cpu_has_cpufreq(cpu))
+>> @@ -123,34 +83,32 @@ static int cpufreq_get_cur_state(unsigned int cpu)
+>>       return reduction_pctg(cpu);
+>>  }
+>>
+>> -static int cpufreq_set_cur_state(unsigned int cpu, int state)
+>> +static int acpi_processor_freq_level(unsigned int cpu, int state)
+>>  {
+>> -     int i;
+>> +     struct cpufreq_policy policy;
+>> +     unsigned long max_freq = 0;
+>> +     int level = 0;
+>>
+>> -     if (!cpu_has_cpufreq(cpu))
+>> +     if (!acpi_thermal_cpufreq_is_init || cpufreq_get_policy(&policy, cpu))
+>>               return 0;
+>>
+>>       reduction_pctg(cpu) = state;
+>> +     max_freq = (
+>> +         policy.cpuinfo.max_freq *
+>> +         (100 - reduction_pctg(cpu) * 20)
+>> +     ) / 100;
+>>
+>> -     /*
+>> -      * Update all the CPUs in the same package because they all
+>> -      * contribute to the temperature and often share the same
+>> -      * frequency.
+>> -      */
+>> -     for_each_online_cpu(i) {
+>> -             if (topology_physical_package_id(i) ==
+>> -                 topology_physical_package_id(cpu))
+>> -                     cpufreq_update_policy(i);
+>> -     }
+>> -     return 0;
+>> +     level =  cpufreq_cooling_get_level(phys_package_first_cpu(cpu),
+>> +                                             max_freq, GET_LEVEL_FLOOR);
+>> +     return level;
+>>  }
+>>
+>>  void acpi_thermal_cpufreq_init(void)
+>>  {
+>>       int i;
+>>
+>> -     i = cpufreq_register_notifier(&acpi_thermal_cpufreq_notifier_block,
+>> -                                   CPUFREQ_POLICY_NOTIFIER);
+>> +     i = cpufreq_cooling_register_notifier(&cpufreq_cooling_notifier_block,
+>> +                                     CPU_COOLING_STATE_NOTIFIER);
+>>       if (!i)
+>>               acpi_thermal_cpufreq_is_init = 1;
+>>  }
+>> @@ -158,9 +116,9 @@ void acpi_thermal_cpufreq_init(void)
+>>  void acpi_thermal_cpufreq_exit(void)
+>>  {
+>>       if (acpi_thermal_cpufreq_is_init)
+>> -             cpufreq_unregister_notifier
+>> -                 (&acpi_thermal_cpufreq_notifier_block,
+>> -                  CPUFREQ_POLICY_NOTIFIER);
+>> +             cpufreq_cooling_unregister_notifier(
+>> +                                             &cpufreq_cooling_notifier_block,
+>> +                                             CPU_COOLING_STATE_NOTIFIER);
+>>
+>>       acpi_thermal_cpufreq_is_init = 0;
+>>  }
+>> @@ -176,13 +134,31 @@ static int cpufreq_get_cur_state(unsigned int cpu)
+>>       return 0;
+>>  }
+>>
+>> -static int cpufreq_set_cur_state(unsigned int cpu, int state)
+>> +static int acpi_processor_freq_level(unsigned int cpu, int state)
+>>  {
+>>       return 0;
+>>  }
+>>
+>>  #endif
+>>
+>> +/*
+>> + * Emulate "per package data" using per cpu data (which should really be
+>> + * provided elsewhere)
+>> + *
+>> + * Note we can lose a CPU on cpu hotunplug, in this case we forget the state
+>> + * temporarily. Fortunately that's not a big issue here (I hope)
+>> + */
+>> +static int phys_package_first_cpu(int cpu)
 >> +{
->> +     /* Invoke the notifiers which have registered for this state change */
->> +     if (op == CPU_COOLING_SET_STATE_PRE ||
->> +             op == CPU_COOLING_SET_STATE_POST ||
->> +             op == CPU_COOLING_GET_MAX_STATE ||
->> +             op == CPU_COOLING_GET_CUR_STATE) {
->> +             blocking_notifier_call_chain(
->> +                     &cpufreq_cooling_state_notifier_list, op, request);
+>> +     int i;
+>> +     int id = topology_physical_package_id(cpu);
+>> +
+>> +     for_each_online_cpu(i)
+>> +             if (topology_physical_package_id(i) == id)
+>> +                     return i;
+>> +     return 0;
+>> +}
+>> +
+>>  /* thermal cooling device callbacks */
+>>  static int acpi_processor_max_state(struct acpi_processor *pr)
+>>  {
+>> @@ -198,57 +174,22 @@ static int acpi_processor_max_state(struct acpi_processor *pr)
+>>
+>>       return max_state;
+>>  }
+>> -static int
+>> -processor_get_max_state(struct thermal_cooling_device *cdev,
+>> -                     unsigned long *state)
+>> -{
+>> -     struct acpi_device *device = cdev->devdata;
+>> -     struct acpi_processor *pr;
+>> -
+>> -     if (!device)
+>> -             return -EINVAL;
+>> -
+>> -     pr = acpi_driver_data(device);
+>> -     if (!pr)
+>> -             return -EINVAL;
+>>
+>> -     *state = acpi_processor_max_state(pr);
+>> -     return 0;
+>> -}
+>> -
+>> -static int
+>> -processor_get_cur_state(struct thermal_cooling_device *cdev,
+>> -                     unsigned long *cur_state)
+>> +static int acpi_processor_cur_state(struct acpi_processor *pr)
+>>  {
+>> -     struct acpi_device *device = cdev->devdata;
+>> -     struct acpi_processor *pr;
+>> -
+>> -     if (!device)
+>> -             return -EINVAL;
+>> -
+>> -     pr = acpi_driver_data(device);
+>> -     if (!pr)
+>> -             return -EINVAL;
+>> -
+>> -     *cur_state = cpufreq_get_cur_state(pr->id);
+>> +     int cur_state = 0;
+>> +     cur_state = cpufreq_get_cur_state(pr->id);
+>>       if (pr->flags.throttling)
+>> -             *cur_state += pr->throttling.state;
+>> -     return 0;
+>> +             cur_state += pr->throttling.state;
+>> +     return cur_state;
+>>  }
+>>
+>> -static int
+>> -processor_set_cur_state(struct thermal_cooling_device *cdev,
+>> -                     unsigned long state)
+>> +static int acpi_processor_set_cur_state(struct acpi_processor *pr,
+>> +             struct cpufreq_cooling_status *cooling, unsigned long event)
+>>  {
+>> -     struct acpi_device *device = cdev->devdata;
+>> -     struct acpi_processor *pr;
+>> -     int result = 0;
+>> -     int max_pstate;
+>> -
+>> -     if (!device)
+>> -             return -EINVAL;
+>> +     int result = 0, level = 0;
+>> +     int max_pstate, state = cooling->new_state;
+>>
+>> -     pr = acpi_driver_data(device);
+>>       if (!pr)
+>>               return -EINVAL;
+>>
+>> @@ -257,20 +198,61 @@ processor_set_cur_state(struct thermal_cooling_device *cdev,
+>>       if (state > acpi_processor_max_state(pr))
+>>               return -EINVAL;
+>>
+>> -     if (state <= max_pstate) {
+>> +     if (state <= max_pstate && event == CPU_COOLING_SET_STATE_PRE) {
+>>               if (pr->flags.throttling && pr->throttling.state)
+>>                       result = acpi_processor_set_throttling(pr, 0, false);
+>> -             cpufreq_set_cur_state(pr->id, state);
+>> -     } else {
+>> -             cpufreq_set_cur_state(pr->id, max_pstate);
+>> +     } else if (state > max_pstate && event == CPU_COOLING_SET_STATE_POST) {
+>>               result = acpi_processor_set_throttling(pr,
+>>                               state - max_pstate, false);
+>>       }
+>> +
+>> +     level = acpi_processor_freq_level(pr->id, state);
+>> +     cooling->new_state = level;
+>> +
+>>       return result;
+>>  }
+>>
+>> -const struct thermal_cooling_device_ops processor_cooling_ops = {
+>> -     .get_max_state = processor_get_max_state,
+>> -     .get_cur_state = processor_get_cur_state,
+>> -     .set_cur_state = processor_set_cur_state,
+>> +static int acpi_cpufreq_cooling_notifier(struct notifier_block *nb,
+>> +                                      unsigned long event, void *data)
+>> +{
+>> +     struct cpufreq_cooling_status *cooling = data;
+>> +     struct acpi_device *device = cooling->devdata;
+>> +     struct acpi_processor *pr = acpi_driver_data(device);
+>> +     switch (event) {
+>> +     case CPU_COOLING_SET_STATE_PRE:
+>> +     case CPU_COOLING_SET_STATE_POST:
+>> +             acpi_processor_set_cur_state(pr, cooling, event);
+>> +             break;
+>> +     case CPU_COOLING_GET_MAX_STATE:
+>> +             cooling->max_state = acpi_processor_max_state(pr);
+>> +             break;
+>> +     case CPU_COOLING_GET_CUR_STATE:
+>> +             cooling->cur_state = acpi_processor_cur_state(pr);
+>> +             break;
+>> +     default:
+>> +             return -EINVAL;
 >> +     }
 >> +     return 0;
 >> +}
 >> +
->>  /**
->>   * cpufreq_apply_cooling - function to apply frequency clipping.
->>   * @cpufreq_device: cpufreq_cooling_device pointer containing frequency
->> @@ -285,9 +303,18 @@ static int cpufreq_apply_cooling(struct cpufreq_cooling_device *cpufreq_device,
->>       struct cpumask *mask = &cpufreq_device->allowed_cpus;
->>       unsigned int cpu = cpumask_any(mask);
->>
->> +     cpufreq_device->request_status.cur_state =
->> +                                             cpufreq_device->cpufreq_state;
->> +     cpufreq_device->request_status.new_state = cooling_state;
+>> +static struct notifier_block cpufreq_cooling_notifier_block = {
+>> +     .notifier_call = acpi_cpufreq_cooling_notifier,
+>>  };
 >> +
->> +     cpufreq_cooling_notify_states(&cpufreq_device->request_status,
->> +                                     CPU_COOLING_SET_STATE_PRE);
+>> +struct thermal_cooling_device *
+>> +acpi_processor_cooling_register(struct acpi_device *device)
+>> +{
+>> +     struct thermal_cooling_device *cdev;
+>> +     struct acpi_processor *pr = acpi_driver_data(device);
+>> +     int cpu = phys_package_first_cpu(pr->id);
+>> +     int i;
+>> +     int id = topology_physical_package_id(cpu);
+>> +     struct cpumask cpus;
 >> +
->> +     cooling_state = cpufreq_device->request_status.new_state;
->>
->>       /* Check if the old cooling action is same as new cooling action */
->> -     if (cpufreq_device->cpufreq_state == cooling_state)
->> +     if (cpufreq_device->cpufreq_state ==
->> +                             cpufreq_device->request_status.new_state)
->>               return 0;
->>
->>       clip_freq = get_cpu_frequency(cpu, cooling_state);
->> @@ -304,7 +331,8 @@ static int cpufreq_apply_cooling(struct cpufreq_cooling_device *cpufreq_device,
->>       }
->>
->>       notify_device = NOTIFY_INVALID;
->> -
->> +     cpufreq_cooling_notify_states(&cpufreq_device->request_status,
->> +                                     CPU_COOLING_SET_STATE_POST);
->>       return 0;
->>  }
->>
->> @@ -383,6 +411,11 @@ static int cpufreq_get_max_state(struct thermal_cooling_device *cdev,
->>       if (count > 0)
->>               *state = count;
->>
->> +     cpufreq_device->request_status.max_state = count;
->> +     cpufreq_cooling_notify_states(&cpufreq_device->request_status,
->> +                                     CPU_COOLING_GET_MAX_STATE);
->> +     *state = cpufreq_device->request_status.max_state;
+>> +     for_each_online_cpu(i)
+>> +             if (topology_physical_package_id(i) == id)
+>> +                     cpumask_set_cpu(i, &cpus);
 >> +
->
-> I think this should all be inside the "if (count > 0)".  If not, then
-> remove it, as it is dead code now.
-yes this looks buggy. Will remove them. thanks
->
-> Cheers,
-> Javi
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> +     cdev = cpufreq_cooling_register(&cpus, (void *)device);
+>> +     return cdev;
+>> +}
+>> --
+>> 1.7.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
