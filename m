@@ -1,40 +1,86 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [Patch V2 6/9] I2C: Add smbus word/block process call helper
- function
-Date: Mon, 19 May 2014 17:23:29 +0800
-Message-ID: <5379CD91.2080709@intel.com>
-References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com> <1398695268-28645-1-git-send-email-tianyu.lan@intel.com> <1398695268-28645-7-git-send-email-tianyu.lan@intel.com> <20140517102110.GB2602@katana> <53776B32.8010400@intel.com> <20140517171759.GB2597@katana>
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Patch V2 9/9] I2C/ACPI: Add CONFIG_I2C_ACPI config
+Date: Mon, 19 May 2014 17:44:47 +0800
+Message-ID: <5379D28F.1020200@intel.com>
+References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com> <1398695268-28645-1-git-send-email-tianyu.lan@intel.com> <1398695268-28645-10-git-send-email-tianyu.lan@intel.com> <20140429081609.GF1684@lahna.fi.intel.com> <20140517174834.GA2858@katana> <20140519084944.GH2067@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:39350 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752589AbaESJXK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 May 2014 05:23:10 -0400
-In-Reply-To: <20140517171759.GB2597@katana>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140519084944.GH2067-3PARRvDOhMZrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: rjw@rjwysocki.net, mika.westerberg@linux.intel.com, awilliam@redhat.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 05/18/2014 01:17 AM, Wolfram Sang wrote:
->
->>> BTW what were your test scenarios for these functions and smbus quick?
+On 05/19/2014 04:49 PM, Mika Westerberg wrote:
+> On Sat, May 17, 2014 at 07:48:34PM +0200, Wolfram Sang wrote:
+>> On Tue, Apr 29, 2014 at 11:16:09AM +0300, Mika Westerberg wrote:
+>>> On Mon, Apr 28, 2014 at 10:27:48PM +0800, Lan Tianyu wrote:
+>>>> This patch is to add CONFIG_I2C_ACPI. Current there is a race between
+>>>> removing I2C ACPI operation region and ACPI AML code accessing.
+>>>> So make i2c core built-in if CONFIG_I2C_ACPI is set.
+>>>>
+>>>> Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>>> ---
+>>>>   drivers/i2c/Kconfig  | 17 ++++++++++++++++-
+>>>>   drivers/i2c/Makefile |  2 +-
+>>>>   include/linux/i2c.h  |  2 +-
+>>>>   3 files changed, 18 insertions(+), 3 deletions(-)
+>>>>
+>>>> diff --git a/drivers/i2c/Kconfig b/drivers/i2c/Kconfig
+>>>> index 7b7ea32..c670d49 100644
+>>>> --- a/drivers/i2c/Kconfig
+>>>> +++ b/drivers/i2c/Kconfig
+>>>> @@ -2,7 +2,9 @@
+>>>>   # I2C subsystem configuration
+>>>>   #
+>>>>
+>>>> -menuconfig I2C
+>>>> +menu "I2C support"
+>>>> +
+>>>> +config I2C
+>>>>   	tristate "I2C support"
+>>>>   	select RT_MUTEXES
+>>>>   	---help---
+>>>> @@ -21,6 +23,17 @@ menuconfig I2C
+>>>>   	  This I2C support can also be built as a module.  If so, the module
+>>>>   	  will be called i2c-core.
+>>>>
+>>>> +config I2C_ACPI
+>>>> +	bool "I2C ACPI support"
+>>>> +	select I2C
+>>>> +	depends on ACPI
+>>>> +	default y
+>>>> +	help
+>>>> +	  Say Y here if you want to enable I2C ACPI function. ACPI table
+>>>> +	  provides I2C slave devices' information to enumerate these devices.
+>>>> +	  This option also allows ACPI AML code to access I2C slave devices
+>>>> +	  via I2C ACPI operation region to fulfill ACPI method.
 >>>
+>>> I would prefer something like:
+>>>
+>>> Say Y here if you want to enable ACPI I2C support. This includes support
+>>> for automatic enumeration of I2C slave devices and support for ACPI I2C
+>>> Operation Regions. Operation Regions allow firmware (BIOS) code to
+>>> access I2C slave devices, such as smart batteries through an I2C host
+>>> controller driver.
+>>>
+>>> But it is really up to you so,
+>>>
+>>> Reviewed-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 >>
->>  From ACPI spec, Read/Write quick and Word/Block process call
->> protocol will be used by Bios ACPI code. But so far, I don't find
->> such machines. So these functions has not been tested.
+>> How does this fit into the context of
+>> 55e71edb81b2b45273e7b284cce13ff24bde846f ("i2c: move ACPI helpers into
+>> the core")?
 >
-> Uh oh, I have some trouble adding untested code. Can't we add until we
-> have a user to verify it?
-
-Ok. I will remove these patches from this patchset since currently there are no 
-users.
-
+> With that commit we moved ACPI code to live inside I2C module (given
+> that it was compiled as a module). However, you still can remove that
+> module from userspace.
 >
-> BTW I have to review the other patches later, so please wait before
-> resending the series.
+> With this patch we make sure that the I2C core can't be removed if you
+> have ACPI enabled. This prevents the potential race.
 >
 
+Yes, these are the two patches' purposes. Thanks Mika's explanation. If you 
+like, I can merge them into one patch.
