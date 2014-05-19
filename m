@@ -1,63 +1,66 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI/hotplug: Fix STARTING/DYING action in acpi_cpu_soft_notify()
-Date: Tue, 20 May 2014 00:55:51 +0200
-Message-ID: <2011129.WMiXDPUasW@vostro.rjw.lan>
-References: <1399557539-7282-1-git-send-email-toshi.kani@hp.com>
+Subject: Re: [Patch v3 1/2] introduce variable acpi_lapic into ia64
+Date: Tue, 20 May 2014 00:57:19 +0200
+Message-ID: <18692765.A1lGfe6rx4@vostro.rjw.lan>
+References: <1399265306-8553-1-git-send-email-bhe@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62986 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751707AbaESWi5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2014 18:38:57 -0400
-In-Reply-To: <1399557539-7282-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1399265306-8553-1-git-send-email-bhe@redhat.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Baoquan He <bhe@redhat.com>
+Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, dyoung@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, May 08, 2014 07:58:59 AM Toshi Kani wrote:
-> During CPU online/offline testing on a large system, one of the
-> processors got stuck after the message "bad: scheduling from the
-> idle thread!".  The problem is that acpi_cpu_soft_notify() calls
-> acpi_bus_get_device() for all action types.  CPU_STARTING and
-> CPU_DYING do not allow the notify handlers to sleep.  However,
-> acpi_bus_get_device() can sleep in acpi_ut_acquire_mutex().
+On Monday, May 05, 2014 12:48:25 PM Baoquan He wrote:
+> This variable was defined and assigned in x86, is used to indicate
+> whether LAPIC exists in MADT. Now introduce it into ia64 to help
+> make correct judgment when get information for acpi processor later.
 > 
-> Change acpi_cpu_soft_notify() to return immediately for CPU_STARTING
-> and CPU_DYING as they have no action in this handler.
-> 
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> Signed-off-by: Baoquan He <bhe@redhat.com>
 
-Queued up for 3.16, thanks!
+This and [2/2] queued up for 3.16, thanks!
 
 > ---
->  drivers/acpi/processor_driver.c |    7 +++++++
->  1 file changed, 7 insertions(+)
+>  arch/ia64/include/asm/acpi.h | 1 +
+>  arch/ia64/kernel/acpi.c      | 3 +++
+>  2 files changed, 4 insertions(+)
 > 
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> index 7f70f31..4fcbd67 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -121,6 +121,13 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
->  	struct acpi_processor *pr = per_cpu(processors, cpu);
->  	struct acpi_device *device;
+> diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
+> index d651102..b478219 100644
+> --- a/arch/ia64/include/asm/acpi.h
+> +++ b/arch/ia64/include/asm/acpi.h
+> @@ -85,6 +85,7 @@ ia64_acpi_release_global_lock (unsigned int *lock)
+>  	((Acq) = ia64_acpi_release_global_lock(&facs->global_lock))
 >  
-> +	/*
-> +	 * CPU_STARTING and CPU_DYING must not sleep. Return here since
-> +	 * acpi_bus_get_device() may sleep.
-> +	 */
-> +	if (action == CPU_STARTING || action == CPU_DYING)
-> +		return NOTIFY_DONE;
-> +
->  	if (!pr || acpi_bus_get_device(pr->handle, &device))
->  		return NOTIFY_DONE;
+>  #ifdef	CONFIG_ACPI
+> +extern int acpi_lapic;
+>  #define acpi_disabled 0	/* ACPI always enabled on IA64 */
+>  #define acpi_noirq 0	/* ACPI always enabled on IA64 */
+>  #define acpi_pci_disabled 0 /* ACPI PCI always enabled on IA64 */
+> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+> index 0d407b3..615ef81 100644
+> --- a/arch/ia64/kernel/acpi.c
+> +++ b/arch/ia64/kernel/acpi.c
+> @@ -56,6 +56,7 @@
 >  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  #define PREFIX			"ACPI: "
+>  
+> +int acpi_lapic;
+>  unsigned int acpi_cpei_override;
+>  unsigned int acpi_cpei_phys_cpuid;
+>  
+> @@ -676,6 +677,8 @@ int __init early_acpi_boot_init(void)
+>  	if (ret < 1)
+>  		printk(KERN_ERR PREFIX
+>  		       "Error parsing MADT - no LAPIC entries\n");
+> +	else
+> +		acpi_lapic = 1;
+>  
+>  #ifdef CONFIG_SMP
+>  	if (available_cpus == 0) {
+> 
 
 -- 
 I speak only for myself.
