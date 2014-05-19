@@ -1,52 +1,56 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFC Patch Part1 V1 00/30] use irqdomain to dynamically allocate
- IRQ for IOAPIC pin
-Date: Tue, 20 May 2014 08:35:35 +0900 (JST)
-Message-ID: <alpine.DEB.2.02.1405200823300.5204@ionos.tec.linutronix.de>
-References: <1400227550-5935-1-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.02.1405161601060.4039@ionos.tec.linutronix.de> <53787F09.9000200@linux.intel.com> <alpine.DEB.2.02.1405192250170.22305@ionos.tec.linutronix.de>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH v2 3/3] acer-wmi: Add Aspire 5741 to
+ video_vendor_dmi_table
+Date: Tue, 20 May 2014 07:31:16 +0800
+Message-ID: <20140519233116.GB2038@linux-rxt1.site>
+References: <1400316483-6356-1-git-send-email-hdegoede@redhat.com>
+ <1400316483-6356-4-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1405192250170.22305@ionos.tec.linutronix.de>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sfi-devel@simplefirmware.org, Grant Likely <grant.likely@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1400316483-6356-4-git-send-email-hdegoede@redhat.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Jiang,
-
-On Mon, 19 May 2014, Thomas Gleixner wrote:
-> > We may build hierarchy irqdomains as below for x86,
-> > [IOAPIC]      [MSI/MSI-x]  [HPET]  [DMAR] [Legacy]
-> >     |            |           |       |       |
-> >     v            v           v       |       |
-> > [           Remapping           ]    |       |
-> >                  |                   |       |
-> >                  v                   v       v
-> > [                   Root/vector                ]
-> > 
-> > For x86, irq_alloc_info_t structure will be used to host CPU mask,
-> > device pointer, IOAPIC pin attributes, NUMA node info etc.
+On Sat, May 17, 2014 at 10:48:03AM +0200, Hans de Goede wrote:
+> The Aspire 5741 has broken acpi-video backlight control, so add it to the
+> quirk table.
 > 
-> Do we really need to hand all of this down?
+> https://bugzilla.redhat.com/show_bug.cgi?id=1012674
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-having recovered from a 24hr travel, I think we really only need to
-hand down cpumask.
+Reviewed-by: Lee, Chun-Yi <jlee@suse.com>
 
-If you want to allocate a vector, all the vector domain needs to know
-is the cpumask and the number of consecutive vectors you want to
-allocate.
+Thanks for your patch!
 
-The IOAPIC pin attribute is only interesting inside the ioapic domain,
-there is no need to have it elsewhere.
-
-Numa node is encoded in the cpumask, IOW the node info selects only
-bits for that node in the mask.
-
-Same for the device. It's only relevant for setting up MSI[x] or
-legacy PCI interrupts. But the underlying vector domain does not care
-at all about it.
-
-Thanks,
-
-	tglx
+> ---
+>  drivers/platform/x86/acer-wmi.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
+> index 3a74699..bbf78b2 100644
+> --- a/drivers/platform/x86/acer-wmi.c
+> +++ b/drivers/platform/x86/acer-wmi.c
+> @@ -570,6 +570,14 @@ static const struct dmi_system_id video_vendor_dmi_table[] = {
+>  			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5750"),
+>  		},
+>  	},
+> +	{
+> +		.callback = video_set_backlight_video_vendor,
+> +		.ident = "Acer Aspire 5741",
+> +		.matches = {
+> +			DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
+> +			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5741"),
+> +		},
+> +	},
+>  	{}
+>  };
+>  
+> -- 
+> 1.9.0
+> 
+Joey Lee
