@@ -1,104 +1,140 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 1/2] ACPI: Cleanup to convert acpi.no_static_ssdt into a compile-time configurable.
-Date: Tue, 20 May 2014 00:52:24 +0200
-Message-ID: <7128235.yLzY3DMMj5@vostro.rjw.lan>
-References: <cover.1396925060.git.lv.zheng@intel.com> <5a2b1a503fbc65f63a18ca28727e023e5f48efcd.1399880919.git.lv.zheng@intel.com> <3194723.o46ouvvENe@vostro.rjw.lan>
+Subject: Re: [PATCH] ACPI/Battery: Accelerate battery resume callback
+Date: Tue, 20 May 2014 00:54:24 +0200
+Message-ID: <4288835.6SVZxzAble@vostro.rjw.lan>
+References: <1399183626-13152-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63214 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:56460 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750868AbaESWfa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2014 18:35:30 -0400
-In-Reply-To: <3194723.o46ouvvENe@vostro.rjw.lan>
+	with SMTP id S1750924AbaESWha (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2014 18:37:30 -0400
+In-Reply-To: <1399183626-13152-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, May 20, 2014 12:49:04 AM Rafael J. Wysocki wrote:
-> On Monday, May 12, 2014 03:49:59 PM Lv Zheng wrote:
-> > User can specify a DSDT with SSDT embedded, in which case, no_static_ssdt
-> > must be enforced during compile-time.  If we don't do that and forget to
-> > specify acpi.no_static_ssdt as a boot parameter, then:
-> > 1. The AML executable will be executed twice, the second execution is
-> >    running under a changed environment.
-> > 2. The namespace object conflicts will result in an AE_ALREADY_EXISTS
-> >    exception;
-> > 3. The namespace objects that are deleted from the original SSDT will be
-> >    restored by the auto loading of the original SSDT.
-> > 
-> > Note that:
-> > 1. The DSDT customization is a compile-time feature, thus the SSDT
-> >    inclusion indication of the DSDT customization should also be
-> >    implemented as a compile-time configurable.
-> > 2. According to the commit log:
-> >     Commit: 67effe8fff32f60bdf51cba484766ba6003005bb
-> >     Subject: ACPI: add "acpi_no_auto_ssdt" bootparam
-> >    The acpi.no_static_ssdt (originally acpi.no_auto_ssdt) was introduced to
-> >    be used for this use case.  And over a long time, there is no other
-> >    situation than this requires this boot parameter.
-> > This patch thus converts the runtime kernel parameter into the compile-time
-> > configuration item.
-> > 
-> > References: https://bugzilla.kernel.org/show_bug.cgi?id=3774
-> > Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=69711
-> > Original-by: Enrico Etxe Arte <goitizena.generoa@gmail.com>
-> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > ---
-> >  Documentation/kernel-parameters.txt |   10 ----------
-> >  drivers/acpi/Kconfig                |   32 ++++++++++++++++++++++++++------
-> >  drivers/acpi/internal.h             |    5 +++++
-> >  drivers/acpi/osl.c                  |    8 +++-----
-> >  drivers/acpi/tables.c               |    2 ++
-> >  5 files changed, 36 insertions(+), 21 deletions(-)
-> > 
-> > diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-> > index 831fb1e..ceba0d6 100644
-> > --- a/Documentation/kernel-parameters.txt
-> > +++ b/Documentation/kernel-parameters.txt
-> > @@ -237,16 +237,6 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
-> >  			This feature is enabled by default.
-> >  			This option allows to turn off the feature.
-> >  
-> > -	acpi_no_static_ssdt	[HW,ACPI]
-> > -			Disable installation of static SSDTs at early boot time
-> > -			By default, SSDTs contained in the RSDT/XSDT will be
-> > -			installed automatically and they will appear under
-> > -			/sys/firmware/acpi/tables.
-> > -			This option turns off this feature.
-> > -			Note that specifying this option does not affect
-> > -			dynamic table installation which will install SSDT
-> > -			tables to /sys/firmware/acpi/tables/dynamic.
-> > -
-> >  	acpica_no_return_repair [HW, ACPI]
-> >  			Disable AML predefined validation mechanism
-> >  			This mechanism can repair the evaluation result to make
-> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> > index c0160bb..51dc3b8 100644
-> > --- a/drivers/acpi/Kconfig
-> > +++ b/drivers/acpi/Kconfig
-> > @@ -216,22 +216,40 @@ config ACPI_NUMA
-> >  	depends on (X86 || IA64)
-> >  	default y if IA64_GENERIC || IA64_SGI_SN2
-> >  
-> > -config ACPI_CUSTOM_DSDT_FILE
-> > -	string "Custom DSDT Table file to include"
-> > -	default ""
-> > +menu "Table override"
-> > +
-> > +menuconfig ACPI_CUSTOM_DSDT
+On Sunday, May 04, 2014 02:07:06 PM Lan Tianyu wrote:
+> Most time of battery resume callback is spent on executing AML code
+> _BTP, _BIF and _BIF to get battery info, status and set alarm. These
+> AML methods may access EC operation regions several times and consumes
+> time.
 > 
-> I would make this a choice, like the "Kernel compression mode" (in init/Kconfig).
+> These operations are not necessary during devices resume and can run
+> during POST_SUSPEND/HIBERNATION event when all processes are thawed.
 > 
-> Then ACPI_CUSTOM_DSDT_ONLY and ACPI_CUSTOM_DSDT_WITH_SSDT may be the options
-> and they both would select ACPI_CUSTOM_DSDT (otherwise invisible to the user),
+> This also can avoid removing and adding battery sysfs nodes every system
+> resume even if the battery unit is not actually changed. The original code
+> updates sysfs nodes without check and this seems not reasonable.
+> 
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 
-With the third (and default) option NO_ACPI_CUSTOM_DSDT that would not
-select ACPI_CUSTOM_DSDT.
+Queued up for 3.16, thanks!
 
-Thanks!
+> ---
+> This patch is to base on the linux pm tree linux-next branch with
+> patches "ACPI: Revert "ACPI / Battery: Remove battery's proc directory""
+> and "ACPI: Revert "ACPI: Remove CONFIG_ACPI_PROCFS_POWER and cm_sbsc.c"".
+> 
+>  drivers/acpi/battery.c | 36 +++++++++++++++++++++++++++---------
+>  1 file changed, 27 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 6e7b2a1..3b4921e 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -696,7 +696,7 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
+>  	}
+>  }
+>  
+> -static int acpi_battery_update(struct acpi_battery *battery)
+> +static int acpi_battery_update(struct acpi_battery *battery, bool resume)
+>  {
+>  	int result, old_present = acpi_battery_present(battery);
+>  	result = acpi_battery_get_status(battery);
+> @@ -707,6 +707,10 @@ static int acpi_battery_update(struct acpi_battery *battery)
+>  		battery->update_time = 0;
+>  		return 0;
+>  	}
+> +
+> +	if (resume)
+> +		return 0;
+> +
+>  	if (!battery->update_time ||
+>  	    old_present != acpi_battery_present(battery)) {
+>  		result = acpi_battery_get_info(battery);
+> @@ -915,7 +919,7 @@ static print_func acpi_print_funcs[ACPI_BATTERY_NUMFILES] = {
+>  static int acpi_battery_read(int fid, struct seq_file *seq)
+>  {
+>  	struct acpi_battery *battery = seq->private;
+> -	int result = acpi_battery_update(battery);
+> +	int result = acpi_battery_update(battery, false);
+>  	return acpi_print_funcs[fid](seq, result);
+>  }
+>  
+> @@ -1030,7 +1034,7 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
+>  	old = battery->bat.dev;
+>  	if (event == ACPI_BATTERY_NOTIFY_INFO)
+>  		acpi_battery_refresh(battery);
+> -	acpi_battery_update(battery);
+> +	acpi_battery_update(battery, false);
+>  	acpi_bus_generate_netlink_event(device->pnp.device_class,
+>  					dev_name(&device->dev), event,
+>  					acpi_battery_present(battery));
+> @@ -1045,13 +1049,27 @@ static int battery_notify(struct notifier_block *nb,
+>  {
+>  	struct acpi_battery *battery = container_of(nb, struct acpi_battery,
+>  						    pm_nb);
+> +	int result;
+> +
+>  	switch (mode) {
+>  	case PM_POST_HIBERNATION:
+>  	case PM_POST_SUSPEND:
+> -		if (battery->bat.dev) {
+> -			sysfs_remove_battery(battery);
+> -			sysfs_add_battery(battery);
+> -		}
+> +		if (!acpi_battery_present(battery))
+> +			return 0;
+> +
+> +		if (!battery->bat.dev) {
+> +			result = acpi_battery_get_info(battery);
+> +			if (result)
+> +				return result;
+> +
+> +			result = sysfs_add_battery(battery);
+> +			if (result)
+> +				return result;
+> +		} else
+> +			acpi_battery_refresh(battery);
+> +
+> +		acpi_battery_init_alarm(battery);
+> +		acpi_battery_get_state(battery);
+>  		break;
+>  	}
+>  
+> @@ -1087,7 +1105,7 @@ static int acpi_battery_add(struct acpi_device *device)
+>  	mutex_init(&battery->sysfs_lock);
+>  	if (acpi_has_method(battery->device->handle, "_BIX"))
+>  		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
+> -	result = acpi_battery_update(battery);
+> +	result = acpi_battery_update(battery, false);
+>  	if (result)
+>  		goto fail;
+>  #ifdef CONFIG_ACPI_PROCFS_POWER
+> @@ -1149,7 +1167,7 @@ static int acpi_battery_resume(struct device *dev)
+>  		return -EINVAL;
+>  
+>  	battery->update_time = 0;
+> -	acpi_battery_update(battery);
+> +	acpi_battery_update(battery, true);
+>  	return 0;
+>  }
+>  #else
+> 
 
 -- 
 I speak only for myself.
