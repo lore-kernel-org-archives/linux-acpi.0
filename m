@@ -1,72 +1,275 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [Patch V3 0/5] I2C ACPI operation region handler
-Date: Tue, 20 May 2014 23:25:46 +0200
-Message-ID: <6169981.jIBZPeBvRE@vostro.rjw.lan>
-References: <1400590764-11108-1-git-send-email-tianyu.lan@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCHv2 2/4] ACPI / LPSS: custom power domain for LPSS
+Date: Tue, 20 May 2014 23:33:09 +0200
+Message-ID: <3202918.AHHS8JP9gx@vostro.rjw.lan>
+References: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com> <1400161226-24067-3-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1400590764-11108-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:50348 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750706AbaETVQN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 May 2014 17:16:13 -0400
+In-Reply-To: <1400161226-24067-3-git-send-email-heikki.krogerus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, May 20, 2014 08:59:19 PM Lan Tianyu wrote:
-> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart) operation
-> region. It allows ACPI aml code able to access such kind of devices to
-> implement some ACPI standard method.
+On Thursday, May 15, 2014 04:40:24 PM Heikki Krogerus wrote:
+> A power domain where we save the context of the additional
+> LPSS registers. We need to do this or all LPSS devices are
+> left in reset state when resuming from D3 on some Baytrails.
+> The devices with the fractional clock divider also have
+> zeros for N and M values after resuming unless they are
+> reset.
 > 
-> On the Asus T100TA, Bios use GenericSerialBus operation region to access
-> i2c device to get battery info. So battery function depends on the I2C
-> operation region support. Here is the bug link.
-> https://bugzilla.kernel.org/show_bug.cgi?id=69011
+> Li Aubrey found the root cause for the issue. The idea of
+> using power domain for LPSS came from Mika Westerberg.
 > 
-> Change since V2:
->         Drop patchs of adding I2C smbus quick read/write and word/block
-> process call functions because not find machines supporting such protocols
-> so far and can't test these functions.
->         Merge patchs of "I2C ACPI related code clear up" and "Add CONFIG_I2C_ACPI
-> config"
-> 	Patch 2: Add acpi_bus_detach_private_data() function to detach data from
-> ACPI handle and replace ACPI_ERROR() with acpi_handle_debug() to avoid some redundant
-> error log.  
+> Reported-by: Jin Yao <yao.jin@linux.intel.com>
+> Suggested-by: Li Aubrey <aubrey.li@linux.intel.com>
+> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> ---
+>  drivers/acpi/acpi_lpss.c | 133 ++++++++++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 126 insertions(+), 7 deletions(-)
 > 
-> Change since V1:
->        Fix some code style issues. Change prefix i2c_acpi to acpi_i2c.
-> Move ACPI related code in the i2c core to i2c-acpi.c. Add CONFIG_I2C_ACPI
-> and make i2c core built-in when it's set to avoid i2c ACPI operation region
-> being removed.
-> 
-> Lan Tianyu (5):
->   ACPICA: Export acpi_buffer_to_resource symbol
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index 69e29f4..24e49a5 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/platform_data/clk-lpss.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/delay.h>
+>  
+>  #include "internal.h"
+>  
+> @@ -43,6 +44,8 @@ ACPI_MODULE_NAME("acpi_lpss");
+>  #define LPSS_TX_INT			0x20
+>  #define LPSS_TX_INT_MASK		BIT(1)
+>  
+> +#define LPSS_PRV_REG_COUNT		9
+> +
+>  struct lpss_shared_clock {
+>  	const char *name;
+>  	unsigned long rate;
+> @@ -58,6 +61,7 @@ struct lpss_device_desc {
+>  	unsigned int prv_offset;
+>  	size_t prv_size_override;
+>  	bool clk_gate;
+> +	bool save_ctx;
+>  	struct lpss_shared_clock *shared_clock;
+>  	void (*setup)(struct lpss_private_data *pdata);
+>  };
+> @@ -72,6 +76,7 @@ struct lpss_private_data {
+>  	resource_size_t mmio_size;
+>  	struct clk *clk;
+>  	const struct lpss_device_desc *dev_desc;
+> +	u32 prv_reg_ctx[LPSS_PRV_REG_COUNT];
+>  };
+>  
+>  static void lpss_uart_setup(struct lpss_private_data *pdata)
+> @@ -116,6 +121,7 @@ static struct lpss_shared_clock pwm_clock = {
+>  
+>  static struct lpss_device_desc byt_pwm_dev_desc = {
+>  	.clk_required = true,
+> +	.save_ctx = true,
+>  	.shared_clock = &pwm_clock,
+>  };
+>  
+> @@ -128,6 +134,7 @@ static struct lpss_device_desc byt_uart_dev_desc = {
+>  	.clk_required = true,
+>  	.prv_offset = 0x800,
+>  	.clk_gate = true,
+> +	.save_ctx = true,
+>  	.shared_clock = &uart_clock,
+>  	.setup = lpss_uart_setup,
+>  };
+> @@ -141,6 +148,7 @@ static struct lpss_device_desc byt_spi_dev_desc = {
+>  	.clk_required = true,
+>  	.prv_offset = 0x400,
+>  	.clk_gate = true,
+> +	.save_ctx = true,
+>  	.shared_clock = &spi_clock,
+>  };
+>  
+> @@ -156,6 +164,7 @@ static struct lpss_shared_clock i2c_clock = {
+>  static struct lpss_device_desc byt_i2c_dev_desc = {
+>  	.clk_required = true,
+>  	.prv_offset = 0x800,
+> +	.save_ctx = true,
+>  	.shared_clock = &i2c_clock,
+>  };
+>  
+> @@ -449,6 +458,102 @@ static void acpi_lpss_set_ltr(struct device *dev, s32 val)
+>  	}
+>  }
+>  
+> +#ifdef CONFIG_PM
 
-Redundant?
+It would be good to add a kerneldoc explaining what's being saved here and why.
 
->   ACPI: Add acpi_bus_attach_private_data() to facilitate to attach data
->     to ACPI handle
->   ACPI/Thermal: Use acpi_bus_attach_private_data() to attach private
->     data
+> +static void acpi_lpss_save_ctx(struct device *dev)
+> +{
+> +	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+> +	int i;
+> +
+> +	for (i = 0; i < LPSS_PRV_REG_COUNT; i++) {
+> +		pdata->prv_reg_ctx[i] = __lpss_reg_read(pdata, i * sizeof(u32));
+> +		dev_dbg(dev, "saving 0x%08x from LPSS reg at offset 0x%02x\n",
+> +			pdata->prv_reg_ctx[i], (unsigned int)(i * sizeof(u32)));
+> +	}
+> +}
+> +
+> +static void acpi_lpss_restore_ctx(struct device *dev)
+> +{
+> +	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+> +	int i;
+> +
+> +	/* PCI spec expects 10ms delay when resuming from D3 to D0 */
+> +	msleep(10);
 
-I can take the above two regardless of the I2C material below I guess?
+Two questions here.
 
->   I2C/ACPI: Add i2c ACPI operation region support
->   I2C/ACPI: Clean up I2C ACPI code and Add CONFIG_I2C_ACPI config
-> 
->  drivers/acpi/acpica/rscreate.c |   1 +
->  drivers/acpi/bus.c             |  28 +++-
->  drivers/acpi/thermal.c         |  11 +-
->  drivers/i2c/Kconfig            |  18 +-
->  drivers/i2c/Makefile           |   5 +-
->  drivers/i2c/i2c-acpi.c         | 362 +++++++++++++++++++++++++++++++++++++++++
->  drivers/i2c/i2c-core.c         |  97 +----------
->  include/acpi/acpi_bus.h        |   2 +
->  include/linux/acpi.h           |  11 ++
->  include/linux/i2c.h            |  12 ++
->  10 files changed, 439 insertions(+), 108 deletions(-)
->  create mode 100644 drivers/i2c/i2c-acpi.c
-> 
+First, is the 10 ms sleep really necessary?  I'd expect the AML to take care of
+such delays (this is not a PCI device formally).
+
+And because this is not a PCI device formally, why is the comment talking about
+the PCI spec?  Why is PCI relevant in any way here?
+
+> +
+> +	for (i = 0; i < LPSS_PRV_REG_COUNT; i++) {
+> +		__lpss_reg_write(pdata->prv_reg_ctx[i], pdata, i * sizeof(u32));
+> +		dev_dbg(dev, "restoring 0x%08x to LPSS reg at offset 0x%02x\n",
+> +			pdata->prv_reg_ctx[i], (unsigned int)(i * sizeof(u32)));
+> +	}
+> +}
+> +
+> +#ifdef CONFIG_PM_SLEEP
+> +static int acpi_lpss_suspend_late(struct device *dev)
+> +{
+> +	int ret = pm_generic_suspend_late(dev);
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	acpi_lpss_save_ctx(dev);
+> +	return acpi_dev_suspend_late(dev);
+> +}
+> +
+> +static int acpi_lpss_restore_early(struct device *dev)
+> +{
+> +	int ret = acpi_dev_resume_early(dev);
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	acpi_lpss_restore_ctx(dev);
+> +	return pm_generic_resume_early(dev);
+> +}
+> +#endif /* CONFIG_PM_SLEEP */
+> +
+> +#ifdef CONFIG_PM_RUNTIME
+> +static int acpi_lpss_runtime_suspend(struct device *dev)
+> +{
+> +	int ret = pm_generic_runtime_suspend(dev);
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	acpi_lpss_save_ctx(dev);
+> +	return acpi_dev_runtime_suspend(dev);
+> +}
+> +
+> +static int acpi_lpss_runtime_resume(struct device *dev)
+> +{
+> +	int ret = acpi_dev_runtime_resume(dev);
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	acpi_lpss_restore_ctx(dev);
+> +	return pm_generic_runtime_resume(dev);
+> +}
+> +#endif /* CONFIG_PM_RUNTIME */
+> +#endif /* CONFIG_PM */
+> +
+> +static struct dev_pm_domain acpi_lpss_pm_domain = {
+> +	.ops = {
+> +#ifdef CONFIG_PM_SLEEP
+> +		.suspend_late = acpi_lpss_suspend_late,
+> +		.restore_early = acpi_lpss_restore_early,
+> +		.prepare = acpi_subsys_prepare,
+> +		.suspend = acpi_subsys_suspend,
+> +		.resume_early = acpi_subsys_resume_early,
+> +		.freeze = acpi_subsys_freeze,
+> +		.poweroff = acpi_subsys_suspend,
+> +		.poweroff_late = acpi_subsys_suspend_late,
+> +#endif
+> +#ifdef CONFIG_PM_RUNTIME
+> +		.runtime_suspend = acpi_lpss_runtime_suspend,
+> +		.runtime_resume = acpi_lpss_runtime_resume,
+> +#endif
+> +	},
+> +};
+> +
+>  static int acpi_lpss_platform_notify(struct notifier_block *nb,
+>  				     unsigned long action, void *data)
+>  {
+> @@ -456,7 +561,6 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
+>  	struct lpss_private_data *pdata;
+>  	struct acpi_device *adev;
+>  	const struct acpi_device_id *id;
+> -	int ret = 0;
+>  
+>  	id = acpi_match_device(acpi_lpss_device_ids, &pdev->dev);
+>  	if (!id || !id->driver_data)
+> @@ -466,7 +570,7 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
+>  		return 0;
+>  
+>  	pdata = acpi_driver_data(adev);
+> -	if (!pdata || !pdata->mmio_base || !pdata->dev_desc->ltr_required)
+> +	if (!pdata || !pdata->mmio_base)
+>  		return 0;
+>  
+>  	if (pdata->mmio_size < pdata->dev_desc->prv_offset + LPSS_LTR_SIZE) {
+> @@ -474,12 +578,27 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
+>  		return 0;
+>  	}
+>  
+> -	if (action == BUS_NOTIFY_ADD_DEVICE)
+> -		ret = sysfs_create_group(&pdev->dev.kobj, &lpss_attr_group);
+> -	else if (action == BUS_NOTIFY_DEL_DEVICE)
+> -		sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
+> +	switch (action) {
+> +	case BUS_NOTIFY_BOUND_DRIVER:
+> +		if (pdata->dev_desc->save_ctx)
+> +			pdev->dev.pm_domain = &acpi_lpss_pm_domain;
+> +		break;
+> +	case BUS_NOTIFY_UNBOUND_DRIVER:
+> +		if (pdata->dev_desc->save_ctx)
+> +			pdev->dev.pm_domain = NULL;
+> +		break;
+> +	case BUS_NOTIFY_ADD_DEVICE:
+> +		if (pdata->dev_desc->ltr_required)
+> +			return sysfs_create_group(&pdev->dev.kobj,
+> +						  &lpss_attr_group);
+> +	case BUS_NOTIFY_DEL_DEVICE:
+> +		if (pdata->dev_desc->ltr_required)
+> +			sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
+> +	default:
+> +		break;
+> +	}
+>  
+> -	return ret;
+> +	return 0;
+>  }
+>  
+>  static struct notifier_block acpi_lpss_nb = {
 > 
 
 -- 
