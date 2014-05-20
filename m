@@ -1,40 +1,97 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI/hotplug: Fix STARTING/DYING action in
- acpi_cpu_soft_notify()
-Date: Mon, 19 May 2014 16:57:02 -0600
-Message-ID: <1400540222.18128.6.camel@misato.fc.hp.com>
-References: <1399557539-7282-1-git-send-email-toshi.kani@hp.com>
-	 <2011129.WMiXDPUasW@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v3 1/2] ACPI: Cleanup to convert acpi.no_static_ssdt
+ into a compile-time configurable.
+Date: Tue, 20 May 2014 02:01:11 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880256A2FF@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1396925060.git.lv.zheng@intel.com>
+ <5a2b1a503fbc65f63a18ca28727e023e5f48efcd.1399880919.git.lv.zheng@intel.com>
+ <3194723.o46ouvvENe@vostro.rjw.lan> <7128235.yLzY3DMMj5@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3425.houston.hp.com ([15.201.208.53]:31535 "EHLO
-	g4t3425.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750981AbaESXFr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 May 2014 19:05:47 -0400
-In-Reply-To: <2011129.WMiXDPUasW@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7128235.yLzY3DMMj5@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2014-05-20 at 00:55 +0200, Rafael J. Wysocki wrote:
-> On Thursday, May 08, 2014 07:58:59 AM Toshi Kani wrote:
-> > During CPU online/offline testing on a large system, one of the
-> > processors got stuck after the message "bad: scheduling from the
-> > idle thread!".  The problem is that acpi_cpu_soft_notify() calls
-> > acpi_bus_get_device() for all action types.  CPU_STARTING and
-> > CPU_DYING do not allow the notify handlers to sleep.  However,
-> > acpi_bus_get_device() can sleep in acpi_ut_acquire_mutex().
-> > 
-> > Change acpi_cpu_soft_notify() to return immediately for CPU_STARTING
-> > and CPU_DYING as they have no action in this handler.
-> > 
-> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> 
-> Queued up for 3.16, thanks!
-
-Great! Thanks Rafael!
--Toshi
-
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFNlbnQ6IFR1ZXNkYXksIE1heSAyMCwgMjAxNCA2OjUyIEFNDQo+IFN1Ympl
+Y3Q6IFJlOiBbUEFUQ0ggdjMgMS8yXSBBQ1BJOiBDbGVhbnVwIHRvIGNvbnZlcnQgYWNwaS5ub19z
+dGF0aWNfc3NkdCBpbnRvIGEgY29tcGlsZS10aW1lIGNvbmZpZ3VyYWJsZS4NCj4gDQo+IE9uIFR1
+ZXNkYXksIE1heSAyMCwgMjAxNCAxMjo0OTowNCBBTSBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToN
+Cj4gPiBPbiBNb25kYXksIE1heSAxMiwgMjAxNCAwMzo0OTo1OSBQTSBMdiBaaGVuZyB3cm90ZToN
+Cj4gPiA+IFVzZXIgY2FuIHNwZWNpZnkgYSBEU0RUIHdpdGggU1NEVCBlbWJlZGRlZCwgaW4gd2hp
+Y2ggY2FzZSwgbm9fc3RhdGljX3NzZHQNCj4gPiA+IG11c3QgYmUgZW5mb3JjZWQgZHVyaW5nIGNv
+bXBpbGUtdGltZS4gIElmIHdlIGRvbid0IGRvIHRoYXQgYW5kIGZvcmdldCB0bw0KPiA+ID4gc3Bl
+Y2lmeSBhY3BpLm5vX3N0YXRpY19zc2R0IGFzIGEgYm9vdCBwYXJhbWV0ZXIsIHRoZW46DQo+ID4g
+PiAxLiBUaGUgQU1MIGV4ZWN1dGFibGUgd2lsbCBiZSBleGVjdXRlZCB0d2ljZSwgdGhlIHNlY29u
+ZCBleGVjdXRpb24gaXMNCj4gPiA+ICAgIHJ1bm5pbmcgdW5kZXIgYSBjaGFuZ2VkIGVudmlyb25t
+ZW50Lg0KPiA+ID4gMi4gVGhlIG5hbWVzcGFjZSBvYmplY3QgY29uZmxpY3RzIHdpbGwgcmVzdWx0
+IGluIGFuIEFFX0FMUkVBRFlfRVhJU1RTDQo+ID4gPiAgICBleGNlcHRpb247DQo+ID4gPiAzLiBU
+aGUgbmFtZXNwYWNlIG9iamVjdHMgdGhhdCBhcmUgZGVsZXRlZCBmcm9tIHRoZSBvcmlnaW5hbCBT
+U0RUIHdpbGwgYmUNCj4gPiA+ICAgIHJlc3RvcmVkIGJ5IHRoZSBhdXRvIGxvYWRpbmcgb2YgdGhl
+IG9yaWdpbmFsIFNTRFQuDQo+ID4gPg0KPiA+ID4gTm90ZSB0aGF0Og0KPiA+ID4gMS4gVGhlIERT
+RFQgY3VzdG9taXphdGlvbiBpcyBhIGNvbXBpbGUtdGltZSBmZWF0dXJlLCB0aHVzIHRoZSBTU0RU
+DQo+ID4gPiAgICBpbmNsdXNpb24gaW5kaWNhdGlvbiBvZiB0aGUgRFNEVCBjdXN0b21pemF0aW9u
+IHNob3VsZCBhbHNvIGJlDQo+ID4gPiAgICBpbXBsZW1lbnRlZCBhcyBhIGNvbXBpbGUtdGltZSBj
+b25maWd1cmFibGUuDQo+ID4gPiAyLiBBY2NvcmRpbmcgdG8gdGhlIGNvbW1pdCBsb2c6DQo+ID4g
+PiAgICAgQ29tbWl0OiA2N2VmZmU4ZmZmMzJmNjBiZGY1MWNiYTQ4NDc2NmJhNjAwMzAwNWJiDQo+
+ID4gPiAgICAgU3ViamVjdDogQUNQSTogYWRkICJhY3BpX25vX2F1dG9fc3NkdCIgYm9vdHBhcmFt
+DQo+ID4gPiAgICBUaGUgYWNwaS5ub19zdGF0aWNfc3NkdCAob3JpZ2luYWxseSBhY3BpLm5vX2F1
+dG9fc3NkdCkgd2FzIGludHJvZHVjZWQgdG8NCj4gPiA+ICAgIGJlIHVzZWQgZm9yIHRoaXMgdXNl
+IGNhc2UuICBBbmQgb3ZlciBhIGxvbmcgdGltZSwgdGhlcmUgaXMgbm8gb3RoZXINCj4gPiA+ICAg
+IHNpdHVhdGlvbiB0aGFuIHRoaXMgcmVxdWlyZXMgdGhpcyBib290IHBhcmFtZXRlci4NCj4gPiA+
+IFRoaXMgcGF0Y2ggdGh1cyBjb252ZXJ0cyB0aGUgcnVudGltZSBrZXJuZWwgcGFyYW1ldGVyIGlu
+dG8gdGhlIGNvbXBpbGUtdGltZQ0KPiA+ID4gY29uZmlndXJhdGlvbiBpdGVtLg0KPiA+ID4NCj4g
+PiA+IFJlZmVyZW5jZXM6IGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/
+aWQ9Mzc3NA0KPiA+ID4gQnVnbGluazogaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3df
+YnVnLmNnaT9pZD02OTcxMQ0KPiA+ID4gT3JpZ2luYWwtYnk6IEVucmljbyBFdHhlIEFydGUgPGdv
+aXRpemVuYS5nZW5lcm9hQGdtYWlsLmNvbT4NCj4gPiA+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5n
+IDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4gPiAtLS0NCj4gPiA+ICBEb2N1bWVudGF0aW9uL2tl
+cm5lbC1wYXJhbWV0ZXJzLnR4dCB8ICAgMTAgLS0tLS0tLS0tLQ0KPiA+ID4gIGRyaXZlcnMvYWNw
+aS9LY29uZmlnICAgICAgICAgICAgICAgIHwgICAzMiArKysrKysrKysrKysrKysrKysrKysrKysr
+Ky0tLS0tLQ0KPiA+ID4gIGRyaXZlcnMvYWNwaS9pbnRlcm5hbC5oICAgICAgICAgICAgIHwgICAg
+NSArKysrKw0KPiA+ID4gIGRyaXZlcnMvYWNwaS9vc2wuYyAgICAgICAgICAgICAgICAgIHwgICAg
+OCArKystLS0tLQ0KPiA+ID4gIGRyaXZlcnMvYWNwaS90YWJsZXMuYyAgICAgICAgICAgICAgIHwg
+ICAgMiArKw0KPiA+ID4gIDUgZmlsZXMgY2hhbmdlZCwgMzYgaW5zZXJ0aW9ucygrKSwgMjEgZGVs
+ZXRpb25zKC0pDQo+ID4gPg0KPiA+ID4gZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24va2VybmVs
+LXBhcmFtZXRlcnMudHh0IGIvRG9jdW1lbnRhdGlvbi9rZXJuZWwtcGFyYW1ldGVycy50eHQNCj4g
+PiA+IGluZGV4IDgzMWZiMWUuLmNlYmEwZDYgMTAwNjQ0DQo+ID4gPiAtLS0gYS9Eb2N1bWVudGF0
+aW9uL2tlcm5lbC1wYXJhbWV0ZXJzLnR4dA0KPiA+ID4gKysrIGIvRG9jdW1lbnRhdGlvbi9rZXJu
+ZWwtcGFyYW1ldGVycy50eHQNCj4gPiA+IEBAIC0yMzcsMTYgKzIzNyw2IEBAIGJ5dGVzIHJlc3Bl
+Y3RpdmVseS4gU3VjaCBsZXR0ZXIgc3VmZml4ZXMgY2FuIGFsc28gYmUgZW50aXJlbHkgb21pdHRl
+ZC4NCj4gPiA+ICAJCQlUaGlzIGZlYXR1cmUgaXMgZW5hYmxlZCBieSBkZWZhdWx0Lg0KPiA+ID4g
+IAkJCVRoaXMgb3B0aW9uIGFsbG93cyB0byB0dXJuIG9mZiB0aGUgZmVhdHVyZS4NCj4gPiA+DQo+
+ID4gPiAtCWFjcGlfbm9fc3RhdGljX3NzZHQJW0hXLEFDUEldDQo+ID4gPiAtCQkJRGlzYWJsZSBp
+bnN0YWxsYXRpb24gb2Ygc3RhdGljIFNTRFRzIGF0IGVhcmx5IGJvb3QgdGltZQ0KPiA+ID4gLQkJ
+CUJ5IGRlZmF1bHQsIFNTRFRzIGNvbnRhaW5lZCBpbiB0aGUgUlNEVC9YU0RUIHdpbGwgYmUNCj4g
+PiA+IC0JCQlpbnN0YWxsZWQgYXV0b21hdGljYWxseSBhbmQgdGhleSB3aWxsIGFwcGVhciB1bmRl
+cg0KPiA+ID4gLQkJCS9zeXMvZmlybXdhcmUvYWNwaS90YWJsZXMuDQo+ID4gPiAtCQkJVGhpcyBv
+cHRpb24gdHVybnMgb2ZmIHRoaXMgZmVhdHVyZS4NCj4gPiA+IC0JCQlOb3RlIHRoYXQgc3BlY2lm
+eWluZyB0aGlzIG9wdGlvbiBkb2VzIG5vdCBhZmZlY3QNCj4gPiA+IC0JCQlkeW5hbWljIHRhYmxl
+IGluc3RhbGxhdGlvbiB3aGljaCB3aWxsIGluc3RhbGwgU1NEVA0KPiA+ID4gLQkJCXRhYmxlcyB0
+byAvc3lzL2Zpcm13YXJlL2FjcGkvdGFibGVzL2R5bmFtaWMuDQo+ID4gPiAtDQo+ID4gPiAgCWFj
+cGljYV9ub19yZXR1cm5fcmVwYWlyIFtIVywgQUNQSV0NCj4gPiA+ICAJCQlEaXNhYmxlIEFNTCBw
+cmVkZWZpbmVkIHZhbGlkYXRpb24gbWVjaGFuaXNtDQo+ID4gPiAgCQkJVGhpcyBtZWNoYW5pc20g
+Y2FuIHJlcGFpciB0aGUgZXZhbHVhdGlvbiByZXN1bHQgdG8gbWFrZQ0KPiA+ID4gZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvYWNwaS9LY29uZmlnIGIvZHJpdmVycy9hY3BpL0tjb25maWcNCj4gPiA+IGlu
+ZGV4IGMwMTYwYmIuLjUxZGMzYjggMTAwNjQ0DQo+ID4gPiAtLS0gYS9kcml2ZXJzL2FjcGkvS2Nv
+bmZpZw0KPiA+ID4gKysrIGIvZHJpdmVycy9hY3BpL0tjb25maWcNCj4gPiA+IEBAIC0yMTYsMjIg
+KzIxNiw0MCBAQCBjb25maWcgQUNQSV9OVU1BDQo+ID4gPiAgCWRlcGVuZHMgb24gKFg4NiB8fCBJ
+QTY0KQ0KPiA+ID4gIAlkZWZhdWx0IHkgaWYgSUE2NF9HRU5FUklDIHx8IElBNjRfU0dJX1NOMg0K
+PiA+ID4NCj4gPiA+IC1jb25maWcgQUNQSV9DVVNUT01fRFNEVF9GSUxFDQo+ID4gPiAtCXN0cmlu
+ZyAiQ3VzdG9tIERTRFQgVGFibGUgZmlsZSB0byBpbmNsdWRlIg0KPiA+ID4gLQlkZWZhdWx0ICIi
+DQo+ID4gPiArbWVudSAiVGFibGUgb3ZlcnJpZGUiDQo+ID4gPiArDQo+ID4gPiArbWVudWNvbmZp
+ZyBBQ1BJX0NVU1RPTV9EU0RUDQo+ID4NCj4gPiBJIHdvdWxkIG1ha2UgdGhpcyBhIGNob2ljZSwg
+bGlrZSB0aGUgIktlcm5lbCBjb21wcmVzc2lvbiBtb2RlIiAoaW4gaW5pdC9LY29uZmlnKS4NCj4g
+Pg0KPiA+IFRoZW4gQUNQSV9DVVNUT01fRFNEVF9PTkxZIGFuZCBBQ1BJX0NVU1RPTV9EU0RUX1dJ
+VEhfU1NEVCBtYXkgYmUgdGhlIG9wdGlvbnMNCj4gPiBhbmQgdGhleSBib3RoIHdvdWxkIHNlbGVj
+dCBBQ1BJX0NVU1RPTV9EU0RUIChvdGhlcndpc2UgaW52aXNpYmxlIHRvIHRoZSB1c2VyKSwNCj4g
+DQo+IFdpdGggdGhlIHRoaXJkIChhbmQgZGVmYXVsdCkgb3B0aW9uIE5PX0FDUElfQ1VTVE9NX0RT
+RFQgdGhhdCB3b3VsZCBub3QNCj4gc2VsZWN0IEFDUElfQ1VTVE9NX0RTRFQuDQoNCk9LLg0KDQpU
+aGFua3MNCi1Mdg0KDQo+IA0KPiBUaGFua3MhDQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9y
+IG15c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xv
+Z3kgQ2VudGVyLg0K
