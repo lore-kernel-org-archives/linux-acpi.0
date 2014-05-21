@@ -1,25 +1,86 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] Documentation / ACPI: Fix location of GPIO documentation
-Date: Wed, 21 May 2014 17:15:23 +0300
-Message-ID: <20140521141523.GY1651@lahna.fi.intel.com>
-References: <1400680705-11078-1-git-send-email-jarkko.nikula@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1400680705-11078-1-git-send-email-jarkko.nikula@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH resend 1/4] nouveau: Don't check acpi_video_backlight_support() before registering backlight
+Date: Wed, 21 May 2014 15:39:53 +0200
+Message-ID: <1400679596-19663-2-git-send-email-hdegoede@redhat.com>
+References: <1400679596-19663-1-git-send-email-hdegoede@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:58484 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751786AbaEUOQf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 May 2014 10:16:35 -0400
+In-Reply-To: <1400679596-19663-1-git-send-email-hdegoede@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Jingoo Han <jg1.han@samsung.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans de Goede <hdegoede@redhat.com>
 
-On Wed, May 21, 2014 at 04:58:25PM +0300, Jarkko Nikula wrote:
-> Commit fd8e198cfcaa ("Documentation: gpiolib: document new interface")
-> moved Documentation/gpio.txt to Documentation/gpio/gpio-legacy.txt and added
-> new documents for descriptor-based interface so fix the the location here to
-> point Documentation/gpio/ since that what commit ccb6fbb99020
-> ("Documentation / ACPI: update to GPIO descriptor API") was looking for.
-> 
-> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+acpi_video_backlight_support() is supposed to be called by other (vendor
+specific) firmware backlight controls, not by native / raw backlight controls
+like nv_backlight.
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Userspace will normally prefer firmware interfaces over raw interfaces, so
+if acpi_video backlight support is present it will use that even if
+nv_backlight is registered as well.
+
+Except when video.use_native_backlight is present on the kernel cmdline
+(or enabled through a dmi based quirk). As the name indicates the goal here
+is to make only the raw interface available to userspace so that it will use
+that (it only does this when it sees a win8 compliant bios).
+
+This is done by:
+1) Not registering any acpi_video# backlight devices; and
+2) Making acpi_video_backlight_support() return true so that other firmware
+drivers, ie acer_wmi, thinkpad_acpi, dell_laptop, etc. Don't register their
+own vender specific interfaces.
+
+Currently nouveau breaks this setup, as when acpi_video_backlight_support()
+returns true, it does not register itself, resulting in no backlight control
+at all.
+
+This is esp. going to be a problem with 3.16 which will default to
+video.use_native_backlight=1, and thus nouveau based laptops with a win8 bios
+will get no backlight control at all.
+
+This also likely explains why the previous attempt to make
+video.use_native_backlight=1 the default was not a success, as without this
+patch having a default of video.use_native_backlight=1 will cause regressions.
+
+Note this effectively reverts commit 5bead799
+
+Also see: https://bugzilla.redhat.com/show_bug.cgi?id=1093171
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/gpu/drm/nouveau/nouveau_backlight.c | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/drivers/gpu/drm/nouveau/nouveau_backlight.c b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+index 630f6e8..2c1e4aa 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_backlight.c
++++ b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+@@ -31,7 +31,6 @@
+  */
+ 
+ #include <linux/backlight.h>
+-#include <linux/acpi.h>
+ 
+ #include "nouveau_drm.h"
+ #include "nouveau_reg.h"
+@@ -222,14 +221,6 @@ nouveau_backlight_init(struct drm_device *dev)
+ 	struct nouveau_device *device = nv_device(drm->device);
+ 	struct drm_connector *connector;
+ 
+-#ifdef CONFIG_ACPI
+-	if (acpi_video_backlight_support()) {
+-		NV_INFO(drm, "ACPI backlight interface available, "
+-			     "not registering our own\n");
+-		return 0;
+-	}
+-#endif
+-
+ 	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
+ 		if (connector->connector_type != DRM_MODE_CONNECTOR_LVDS &&
+ 		    connector->connector_type != DRM_MODE_CONNECTOR_eDP)
+-- 
+1.9.0
+
