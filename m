@@ -1,54 +1,46 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH V6 09/11] ACPI: introduce flag .is_master_device
-Date: Wed, 21 May 2014 14:04:44 +0300
-Message-ID: <20140521110444.GU1651@lahna.fi.intel.com>
-References: <1400136256-2218-1-git-send-email-rui.zhang@intel.com>
- <1400136256-2218-10-git-send-email-rui.zhang@intel.com>
- <20140521085207.GR1651@lahna.fi.intel.com>
- <2394524.GkgpdWbBbP@vostro.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 3/7 v4] CPER: Adjust code flow of some functions
+Date: Wed, 21 May 2014 13:05:21 +0200
+Message-ID: <20140521110521.GF21205@pd.tnic>
+References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
+ <1400142646-10127-4-git-send-email-gong.chen@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:62934 "EHLO mga02.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:54315 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751018AbaEULFG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 May 2014 07:05:06 -0400
+	id S1752011AbaEULFo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 May 2014 07:05:44 -0400
 Content-Disposition: inline
-In-Reply-To: <2394524.GkgpdWbBbP@vostro.rjw.lan>
+In-Reply-To: <1400142646-10127-4-git-send-email-gong.chen@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com
+To: "Chen, Gong" <gong.chen@linux.intel.com>
+Cc: tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org
 
-On Wed, May 21, 2014 at 01:10:33PM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, May 21, 2014 11:52:07 AM Mika Westerberg wrote:
-> > On Thu, May 15, 2014 at 02:44:14PM +0800, Zhang Rui wrote:
-> > > For some ACPI device objects, they represent master devices,
-> > > and their children devices are enumerated by bus controller drivers
-> > > for the buses they are on.
-> > > 
-> > > In this case, we do not want to enumerate their children devices to
-> > > platform bus explicitly in acpi scan code.
-> > > 
-> > > Thus a new flag .is_master_device is introduced in this patch.
-> > > 
-> > > For devices with this flag set, we will not do default enumeration
-> > > for their children.
-> > 
-> > Is there any particular reason we would like to enumerate everything
-> > below the first device by default?
-> 
-> Yes, there is.  Device objects without _ADR under the PCI host bridge.
+On Thu, May 15, 2014 at 04:30:42AM -0400, Chen, Gong wrote:
+> +const char *cper_mem_err_type_str(unsigned int etype)
+>  {
+> -	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
+> -		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
+> -	if (mem->validation_bits & CPER_MEM_VALID_PA)
+> -		printk("%s""physical_address: 0x%016llx\n",
+> -		       pfx, mem->physical_addr);
+> -	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
+> -		printk("%s""physical_address_mask: 0x%016llx\n",
 
-OK.
+The physical address mask is still not part of the tracepoint as a u8 as
+we talked.
 
-> Or we can skip the children under every *platform* device created by this by
-> default and mark the ones where we want the children to be enumerated as
-> platform devices too in a special way if needed.
-> 
-> I guess we could try that (that was the Rui's original idea IIRC).
+> -		       pfx, mem->physical_addr_mask);
+> +	return etype < ARRAY_SIZE(mem_err_type_strs) ?
+> +		mem_err_type_strs[etype] : "unknown";
+> +}
+> +EXPORT_SYMBOL_GPL(cper_mem_err_type_str);
 
-That sounds better to me.
+-- 
+Regards/Gruss,
+    Boris.
 
-I wonder if we can do this analogous to of_platform_bus_probe() and
-friends?
+Sent from a fat crate under my desk. Formatting is fine.
+--
