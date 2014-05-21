@@ -1,148 +1,60 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH resend 2/4] backlight: Add backlight device (un)registration notification
-Date: Thu, 22 May 2014 01:31:11 +0200
-Message-ID: <82426680.ILvbY8i4gL@vostro.rjw.lan>
-References: <1400679596-19663-1-git-send-email-hdegoede@redhat.com> <1400679596-19663-3-git-send-email-hdegoede@redhat.com>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [PATCH 6/7 v3] trace, eMCA: Add a knob to adjust where to save
+ event log
+Date: Wed, 21 May 2014 19:46:26 -0400
+Message-ID: <20140521234626.GA1644@gchen.bj.intel.com>
+References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
+ <1400142646-10127-7-git-send-email-gong.chen@linux.intel.com>
+ <20140521110630.GG21205@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="azLHFNyN32YCQGCU"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64973 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752342AbaEUXOO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 May 2014 19:14:14 -0400
-In-Reply-To: <1400679596-19663-3-git-send-email-hdegoede@redhat.com>
+Received: from mga09.intel.com ([134.134.136.24]:28521 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753717AbaEVAOA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 May 2014 20:14:00 -0400
+Content-Disposition: inline
+In-Reply-To: <20140521110630.GG21205@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, Jingoo Han <jg1.han@samsung.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org
 
-On Wednesday, May 21, 2014 03:39:54 PM Hans de Goede wrote:
-> Some firmware drivers, ie acpi-video want to get themselves out of the
-> way (in some cases) when their also is a raw backlight device available.
-> 
-> Due to module loading ordering being unknown, acpi-video cannot be certain
-> that the backlight_device_registered(BACKLIGHT_RAW) it does for this is
-> the final verdict wrt there being a BACKLIGHT_RAW device.
-> 
-> By adding notification acpi-video can listen for backlight devices showing
-> up after it has loaded, and unregister its backlight device if desired.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-Backlight maintainer's ACK is requisite here.
+--azLHFNyN32YCQGCU
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> ---
->  drivers/video/backlight/backlight.c | 40 +++++++++++++++++++++++++++++++++++++
->  include/linux/backlight.h           |  7 +++++++
->  2 files changed, 47 insertions(+)
-> 
-> diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
-> index bd2172c..4280890 100644
-> --- a/drivers/video/backlight/backlight.c
-> +++ b/drivers/video/backlight/backlight.c
-> @@ -23,6 +23,7 @@
->  
->  static struct list_head backlight_dev_list;
->  static struct mutex backlight_dev_list_mutex;
-> +static struct blocking_notifier_head backlight_notifier;
->  
->  static const char *const backlight_types[] = {
->  	[BACKLIGHT_RAW] = "raw",
-> @@ -370,6 +371,9 @@ struct backlight_device *backlight_device_register(const char *name,
->  	list_add(&new_bd->entry, &backlight_dev_list);
->  	mutex_unlock(&backlight_dev_list_mutex);
->  
-> +	blocking_notifier_call_chain(&backlight_notifier,
-> +				     BACKLIGHT_REGISTERED, new_bd);
-> +
->  	return new_bd;
->  }
->  EXPORT_SYMBOL(backlight_device_register);
-> @@ -413,6 +417,10 @@ void backlight_device_unregister(struct backlight_device *bd)
->  		pmac_backlight = NULL;
->  	mutex_unlock(&pmac_backlight_mutex);
->  #endif
-> +
-> +	blocking_notifier_call_chain(&backlight_notifier,
-> +				     BACKLIGHT_UNREGISTERED, bd);
-> +
->  	mutex_lock(&bd->ops_lock);
->  	bd->ops = NULL;
->  	mutex_unlock(&bd->ops_lock);
-> @@ -438,6 +446,36 @@ static int devm_backlight_device_match(struct device *dev, void *res,
->  }
->  
->  /**
-> + * backlight_register_notifier - get notified of backlight (un)registration
-> + * @nb: notifier block with the notifier to call on backlight (un)registration
-> + *
-> + * @return 0 on success, otherwise a negative error code
-> + *
-> + * Register a notifier to get notified when backlight devices get registered
-> + * or unregistered.
-> + */
-> +int backlight_register_notifier(struct notifier_block *nb)
-> +{
-> +	return blocking_notifier_chain_register(&backlight_notifier, nb);
-> +}
-> +EXPORT_SYMBOL(backlight_register_notifier);
-> +
-> +/**
-> + * backlight_unregister_notifier - unregister a backlight notifier
-> + * @nb: notifier block to unregister
-> + *
-> + * @return 0 on success, otherwise a negative error code
-> + *
-> + * Register a notifier to get notified when backlight devices get registered
-> + * or unregistered.
-> + */
-> +int backlight_unregister_notifier(struct notifier_block *nb)
-> +{
-> +	return blocking_notifier_chain_unregister(&backlight_notifier, nb);
-> +}
-> +EXPORT_SYMBOL(backlight_unregister_notifier);
-> +
-> +/**
->   * devm_backlight_device_register - resource managed backlight_device_register()
->   * @dev: the device to register
->   * @name: the name of the device
-> @@ -544,6 +582,8 @@ static int __init backlight_class_init(void)
->  	backlight_class->pm = &backlight_class_dev_pm_ops;
->  	INIT_LIST_HEAD(&backlight_dev_list);
->  	mutex_init(&backlight_dev_list_mutex);
-> +	BLOCKING_INIT_NOTIFIER_HEAD(&backlight_notifier);
-> +
->  	return 0;
->  }
->  
-> diff --git a/include/linux/backlight.h b/include/linux/backlight.h
-> index 7264742..adb14a8 100644
-> --- a/include/linux/backlight.h
-> +++ b/include/linux/backlight.h
-> @@ -40,6 +40,11 @@ enum backlight_type {
->  	BACKLIGHT_TYPE_MAX,
->  };
->  
-> +enum backlight_notification {
-> +	BACKLIGHT_REGISTERED,
-> +	BACKLIGHT_UNREGISTERED,
-> +};
-> +
->  struct backlight_device;
->  struct fb_info;
->  
-> @@ -133,6 +138,8 @@ extern void devm_backlight_device_unregister(struct device *dev,
->  extern void backlight_force_update(struct backlight_device *bd,
->  				   enum backlight_update_reason reason);
->  extern bool backlight_device_registered(enum backlight_type type);
-> +extern int backlight_register_notifier(struct notifier_block *nb);
-> +extern int backlight_unregister_notifier(struct notifier_block *nb);
->  
->  #define to_backlight_device(obj) container_of(obj, struct backlight_device, dev)
->  
-> 
+On Wed, May 21, 2014 at 01:06:31PM +0200, Borislav Petkov wrote:
+> > +	if (ras_userspace_consumers() =3D=3D 0) {
+>=20
+> 	if (!ras_userspace_consumers())
+>=20
+No, it is not a pointer so I don't think it is very
+meaningful just to save some bytes.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--azLHFNyN32YCQGCU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTfTrSAAoJEI01n1+kOSLH1EwQALcU7gijLawdXbIf8XjCkIc8
+7q9ATnvNEKRTuuNKeVTwWHickcQgYqcN4JDWQYBlLZWj0zJMMVarsNcwyIXwL9od
+mw7mM1ONwqD9jGfoNTq/JN5BgeWaL1he9E1BzWjS43znmyvwrMoJZbe52/aSSv8C
+ji91Kjr0IhwLdltP38pOLfR9pHs1WnIMXxEsfkNrLTKAouyALdgj8HWoRR/M5P9w
+/N46Ahs2mFDdVlTdbR4sUcITHvn0+AkrFjpjb452y/y7xUkcoe/AAQCaeUMYj4V6
+r74LqO717EFlm5xm8x5Q6o8Jzlh35H0itSJDDHco719tpio2BCf65AOspZGnFNjc
+db0Skl5Rh3TfWM3v7QR0KMMUHrGWcx3t1ghyvkzlKo/UCK51V2hCymRAVuwT0jv8
+CkDQblnXdEO1qpI9PNm6Zxwt2xk8HIbRDr5Ao+ShAl71Qjlb+IE6UQv1VbiBLgjY
+0YSL3MD11L1A9HFCQomKOmITYh9mYQjlPddmgbX2S/SoDcgBpJXWW32UuuM0Up5e
+RmvxJVPVOka7lPDzSE+lvSpkbdRa8pPVEUrJcnRwR5rLNsP7Z7sfFzQICrumD1Mk
+R4NO+5vOO1vD87+iVBzfkeYdX1iX4PSFRpqiItsFZlVbPL98RzOYx2naWe1RkccS
+jCOVW4fezkQB/2P8kGB5
+=Dbma
+-----END PGP SIGNATURE-----
+
+--azLHFNyN32YCQGCU--
