@@ -1,67 +1,37 @@
-From: Kui Zhang <kuizhang@gmail.com>
-Subject: Re: rmmod thermal, unable to handle kernel NULL pointer dereference
-Date: Wed, 21 May 2014 08:38:54 -0700
-Message-ID: <CAKx2Y1k7WvCh4UYASzziKCLd-GcgfyZf7UbSBLOgzP16dczr2A@mail.gmail.com>
-References: <CAKx2Y1mzLesGFYz30fH8xCZTkvNGPUNYkHptYLYq_hVExoh_8g@mail.gmail.com>
-	<537C6262.5030500@intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 2/7] acpi, apei, ghes: Introduce more generic mechanism
+ to init/deinit GHES error notifications.
+Date: Wed, 21 May 2014 20:11:45 +0200
+Message-ID: <20140521181145.GO21205@pd.tnic>
+References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
+ <1397056476-9183-3-git-send-email-tomasz.nowicki@linaro.org>
+ <20140513181353.GC8760@pd.tnic>
+ <5374CFB8.3000107@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:58069 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752641AbaEUPiy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 May 2014 11:38:54 -0400
-In-Reply-To: <537C6262.5030500@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5374CFB8.3000107@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>
 
-Thanks, that fixed it.
+On Thu, May 15, 2014 at 04:31:20PM +0200, Tomasz Nowicki wrote:
+> Well, we need to keep these strings somewhere :) IMO, this is simpler
+> solution. What would be advantage of additional map function?
 
-On Wed, May 21, 2014 at 1:22 AM, Aaron Lu <aaron.lu@intel.com> wrote:
-> On 05/21/2014 01:57 PM, Kui Zhang wrote:
->> Hello,
->>
->> I get following error when rmmod thermal.
->>
->> rmmod  thermal
->> Killed
->
-> Thanks for the report. Here is a fix patch that should solve this
-> problem.
->
-> From: Aaron Lu <aaron.lu@intel.com>
-> Date: Wed, 21 May 2014 16:00:42 +0800
-> Subject: [PATCH] ACPI / thermal: fix workqueue destroy order
->
-> When the thermal module is to be removed, we should destroy the wq
-> acpi_thermal_pm_queue after the ACPI driver's remove callback is
-> executed as we will need to flush the workqueue there, or a NULL pointer
-> access will be hit.
->
-> Reported-by: Kui Zhang <kuizhang@gmail.com>
-> Reference: http://www.spinics.net/lists/kernel/msg1747251.html
-> Cc: All applicable <stable@vger.kernel.org>
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> ---
->  drivers/acpi/thermal.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index c1e31a41f949..25bbc55dca89 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -1278,8 +1278,8 @@ static int __init acpi_thermal_init(void)
->
->  static void __exit acpi_thermal_exit(void)
->  {
-> -       destroy_workqueue(acpi_thermal_pm_queue);
->         acpi_bus_unregister_driver(&acpi_thermal_driver);
-> +       destroy_workqueue(acpi_thermal_pm_queue);
->
->         return;
->  }
-> --
-> 1.9.0
->
+Nevermind, I got confused here.
+
+> I am validating generic->notify.type at the begin of function and
+> return error in case of unknown value. I think there is no need to
+> check that again.
+
+Yes, you do :)
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
