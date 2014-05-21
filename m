@@ -1,192 +1,95 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCHv2 2/4] ACPI / LPSS: custom power domain for LPSS
-Date: Thu, 22 May 2014 01:28:16 +0200
-Message-ID: <1484699.LPqrzmlevB@vostro.rjw.lan>
-References: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com> <4546817.Xm9e491t74@vostro.rjw.lan> <20140521105258.GB29349@xps8300>
+Subject: Re: [PATCH resend 1/4] nouveau: Don't check acpi_video_backlight_support() before registering backlight
+Date: Thu, 22 May 2014 01:30:12 +0200
+Message-ID: <2450872.0pLqjZcv9y@vostro.rjw.lan>
+References: <1400679596-19663-1-git-send-email-hdegoede@redhat.com> <1400679596-19663-2-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52273 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:52372 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752310AbaEUXLU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 May 2014 19:11:20 -0400
-In-Reply-To: <20140521105258.GB29349@xps8300>
+	with SMTP id S1752312AbaEUXNP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 May 2014 19:13:15 -0400
+In-Reply-To: <1400679596-19663-2-git-send-email-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Mike Turquette <mturquette@linaro.org>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, Jingoo Han <jg1.han@samsung.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-On Wednesday, May 21, 2014 01:52:58 PM Heikki Krogerus wrote:
-> On Wed, May 21, 2014 at 01:01:31PM +0200, Rafael J. Wysocki wrote:
-> > On Wednesday, May 21, 2014 01:05:11 PM Heikki Krogerus wrote:
-> > > On Tue, May 20, 2014 at 11:33:09PM +0200, Rafael J. Wysocki wrote:
-> > > > First, is the 10 ms sleep really necessary?  I'd expect the AML to take care of
-> > > > such delays (this is not a PCI device formally).
-> > > 
-> > > Unfortunately that is not the case. There is nothing in the AML for
-> > > this. Mika, correct me if I'm wrong.
-> > > 
-> > > > And because this is not a PCI device formally, why is the comment talking about
-> > > > the PCI spec?  Why is PCI relevant in any way here?
-> > > 
-> > > Under the hood the devices are still PCI devices, even if they
-> > > formally aren't. Maybe I should point that out in the comment..
-> > > 
-> > > We put the sleep there because without it there was no guarantee if
-> > > the device was properly resumed by the time the drivers resume hooks
-> > > were called. The symptom in case of a failure was simply that the
-> > > registers could not be written, which leads into timeouts at least in
-> > > case of the I2C and UART and making them unusable until the next
-> > > suspend followed by resume.
-> > 
-> > OK, so the msleep() is functionally necessary.  Instead of talking about the
-> > PCI in the comment, which will make a casual reader think "What the heck?",
-> > please say something like "the delay is necessary for the subsequent register
-> > writes to succeed on <example system>".
+On Wednesday, May 21, 2014 03:39:53 PM Hans de Goede wrote:
+> acpi_video_backlight_support() is supposed to be called by other (vendor
+> specific) firmware backlight controls, not by native / raw backlight controls
+> like nv_backlight.
 > 
-> OK.
+> Userspace will normally prefer firmware interfaces over raw interfaces, so
+> if acpi_video backlight support is present it will use that even if
+> nv_backlight is registered as well.
+> 
+> Except when video.use_native_backlight is present on the kernel cmdline
+> (or enabled through a dmi based quirk). As the name indicates the goal here
+> is to make only the raw interface available to userspace so that it will use
+> that (it only does this when it sees a win8 compliant bios).
+> 
+> This is done by:
+> 1) Not registering any acpi_video# backlight devices; and
+> 2) Making acpi_video_backlight_support() return true so that other firmware
+> drivers, ie acer_wmi, thinkpad_acpi, dell_laptop, etc. Don't register their
+> own vender specific interfaces.
+> 
+> Currently nouveau breaks this setup, as when acpi_video_backlight_support()
+> returns true, it does not register itself, resulting in no backlight control
+> at all.
+> 
+> This is esp. going to be a problem with 3.16 which will default to
+> video.use_native_backlight=1, and thus nouveau based laptops with a win8 bios
+> will get no backlight control at all.
+> 
+> This also likely explains why the previous attempt to make
+> video.use_native_backlight=1 the default was not a success, as without this
+> patch having a default of video.use_native_backlight=1 will cause regressions.
+> 
+> Note this effectively reverts commit 5bead799
+> 
+> Also see: https://bugzilla.redhat.com/show_bug.cgi?id=1093171
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-So I have one more concern.  Namely, async suspend is not enabled for the LPSS
-devices, so the delays will accumulate for them and that may become a big deal
-at one point.
+It would be good to have an ACK from the nouveau people for this one.
 
-This may be addressed either (1) by enabling async suspend for them or, which would
-be more complicated, by doing the msleep() once for the whole LPSS in .resume_early()
-and restoring the register values in .resume() without delaying.
+> ---
+>  drivers/gpu/drm/nouveau/nouveau_backlight.c | 9 ---------
+>  1 file changed, 9 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/nouveau/nouveau_backlight.c b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+> index 630f6e8..2c1e4aa 100644
+> --- a/drivers/gpu/drm/nouveau/nouveau_backlight.c
+> +++ b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+> @@ -31,7 +31,6 @@
+>   */
+>  
+>  #include <linux/backlight.h>
+> -#include <linux/acpi.h>
+>  
+>  #include "nouveau_drm.h"
+>  #include "nouveau_reg.h"
+> @@ -222,14 +221,6 @@ nouveau_backlight_init(struct drm_device *dev)
+>  	struct nouveau_device *device = nv_device(drm->device);
+>  	struct drm_connector *connector;
+>  
+> -#ifdef CONFIG_ACPI
+> -	if (acpi_video_backlight_support()) {
+> -		NV_INFO(drm, "ACPI backlight interface available, "
+> -			     "not registering our own\n");
+> -		return 0;
+> -	}
+> -#endif
+> -
+>  	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
+>  		if (connector->connector_type != DRM_MODE_CONNECTOR_LVDS &&
+>  		    connector->connector_type != DRM_MODE_CONNECTOR_eDP)
+> 
 
-For (1) I have the following untested patch (on top of my bleeding-edge branch, but
-it should apply to the mainline too if I haven't overlooked anything).  Can you
-please try it on boxes with LPSS and see if it doesn't break suspend/resume on them?
-
-Rafael
-
-
----
- drivers/acpi/acpi_lpss.c     |   10 +++++++---
- drivers/acpi/acpi_platform.c |   25 ++++++++++++++-----------
- drivers/acpi/internal.h      |    3 +--
- 3 files changed, 22 insertions(+), 16 deletions(-)
-
-Index: linux-pm/drivers/acpi/acpi_lpss.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpi_lpss.c
-+++ linux-pm/drivers/acpi/acpi_lpss.c
-@@ -276,6 +276,7 @@ static int acpi_lpss_create_device(struc
- 	struct lpss_private_data *pdata;
- 	struct resource_list_entry *rentry;
- 	struct list_head resource_list;
-+	struct platform_device *pdev;
- 	int ret;
- 
- 	dev_desc = (struct lpss_device_desc *)id->driver_data;
-@@ -331,10 +332,13 @@ static int acpi_lpss_create_device(struc
- 		dev_desc->setup(pdata);
- 
- 	adev->driver_data = pdata;
--	ret = acpi_create_platform_device(adev, id);
--	if (ret > 0)
--		return ret;
-+	pdev = acpi_create_platform_device(adev);
-+	if (!IS_ERR_OR_NULL(pdev)) {
-+		device_enable_async_suspend(&pdev->dev);
-+		return 1;
-+	}
- 
-+	ret = PTR_ERR(pdev);
- 	adev->driver_data = NULL;
- 
-  err_out:
-Index: linux-pm/drivers/acpi/acpi_platform.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpi_platform.c
-+++ linux-pm/drivers/acpi/acpi_platform.c
-@@ -43,7 +43,6 @@ static const struct acpi_device_id acpi_
- /**
-  * acpi_create_platform_device - Create platform device for ACPI device node
-  * @adev: ACPI device node to create a platform device for.
-- * @id: ACPI device ID used to match @adev.
-  *
-  * Check if the given @adev can be represented as a platform device and, if
-  * that's the case, create and register a platform device, populate its common
-@@ -51,8 +50,7 @@ static const struct acpi_device_id acpi_
-  *
-  * Name of the platform device will be the same as @adev's.
-  */
--int acpi_create_platform_device(struct acpi_device *adev,
--				const struct acpi_device_id *id)
-+struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
- {
- 	struct platform_device *pdev = NULL;
- 	struct acpi_device *acpi_parent;
-@@ -64,19 +62,19 @@ int acpi_create_platform_device(struct a
- 
- 	/* If the ACPI node already has a physical device attached, skip it. */
- 	if (adev->physical_node_count)
--		return 0;
-+		return NULL;
- 
- 	INIT_LIST_HEAD(&resource_list);
- 	count = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
- 	if (count < 0) {
--		return 0;
-+		return NULL;
- 	} else if (count > 0) {
- 		resources = kmalloc(count * sizeof(struct resource),
- 				    GFP_KERNEL);
- 		if (!resources) {
- 			dev_err(&adev->dev, "No memory for resources\n");
- 			acpi_dev_free_resource_list(&resource_list);
--			return -ENOMEM;
-+			return ERR_PTR(-ENOMEM);
- 		}
- 		count = 0;
- 		list_for_each_entry(rentry, &resource_list, node)
-@@ -113,22 +111,27 @@ int acpi_create_platform_device(struct a
- 	pdevinfo.num_res = count;
- 	pdevinfo.acpi_node.companion = adev;
- 	pdev = platform_device_register_full(&pdevinfo);
--	if (IS_ERR(pdev)) {
-+	if (IS_ERR(pdev))
- 		dev_err(&adev->dev, "platform device creation failed: %ld\n",
- 			PTR_ERR(pdev));
--		pdev = NULL;
--	} else {
-+	else
- 		dev_dbg(&adev->dev, "created platform device %s\n",
- 			dev_name(&pdev->dev));
--	}
- 
- 	kfree(resources);
-+	return pdev;
-+}
-+
-+static int acpi_platform_attach(struct acpi_device *adev,
-+				const struct acpi_device_id *id)
-+{
-+	acpi_create_platform_device(adev);
- 	return 1;
- }
- 
- static struct acpi_scan_handler platform_handler = {
- 	.ids = acpi_platform_device_ids,
--	.attach = acpi_create_platform_device,
-+	.attach = acpi_platform_attach,
- };
- 
- void __init acpi_platform_init(void)
-Index: linux-pm/drivers/acpi/internal.h
-===================================================================
---- linux-pm.orig/drivers/acpi/internal.h
-+++ linux-pm/drivers/acpi/internal.h
-@@ -180,8 +180,7 @@ static inline void suspend_nvs_restore(v
-   -------------------------------------------------------------------------- */
- struct platform_device;
- 
--int acpi_create_platform_device(struct acpi_device *adev,
--				const struct acpi_device_id *id);
-+struct platform_device *acpi_create_platform_device(struct acpi_device *adev);
- 
- /*--------------------------------------------------------------------------
- 					Video
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
