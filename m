@@ -1,137 +1,37 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH resend 3/4] acpi-video: Unregister the backlight device if a raw one shows up later
-Date: Wed, 21 May 2014 15:39:55 +0200
-Message-ID: <1400679596-19663-4-git-send-email-hdegoede@redhat.com>
-References: <1400679596-19663-1-git-send-email-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6654 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751927AbaEUNky (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 May 2014 09:40:54 -0400
-In-Reply-To: <1400679596-19663-1-git-send-email-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: [PATCH] Documentation / ACPI: Fix location of GPIO documentation
+Date: Wed, 21 May 2014 16:58:25 +0300
+Message-ID: <1400680705-11078-1-git-send-email-jarkko.nikula@linux.intel.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Jingoo Han <jg1.han@samsung.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans de Goede <hdegoede@redhat.com>
 
-When video.use_native_backlight=1 and non intel gfx are in use, the raw
-backlight device of the gfx driver will show up after acpi-video has done its
-acpi_video_verify_backlight_support() check.
+Commit fd8e198cfcaa ("Documentation: gpiolib: document new interface")
+moved Documentation/gpio.txt to Documentation/gpio/gpio-legacy.txt and added
+new documents for descriptor-based interface so fix the the location here to
+point Documentation/gpio/ since that what commit ccb6fbb99020
+("Documentation / ACPI: update to GPIO descriptor API") was looking for.
 
-This causes video.use_native_backlight=1 to not have the desired result.
-
-This patch fixes this by adding a backlight notifier and when a raw
-backlight is registered or unregistered re-doing the
-acpi_video_verify_backlight_support() check.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
 ---
- drivers/acpi/video.c | 57 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 57 insertions(+)
+ Documentation/acpi/enumeration.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index ba6e4d7..47b7e21 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -151,6 +151,7 @@ struct acpi_video_enumerated_device {
- struct acpi_video_bus {
- 	struct acpi_device *device;
- 	bool backlight_registered;
-+	bool backlight_notifier_registered;
- 	u8 dos_setting;
- 	struct acpi_video_enumerated_device *attached_array;
- 	u8 attached_count;
-@@ -162,6 +163,7 @@ struct acpi_video_bus {
- 	struct input_dev *input;
- 	char phys[32];	/* for input device */
- 	struct notifier_block pm_nb;
-+	struct notifier_block backlight_nb;
- };
+diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
+index 2a1519b87177..fd786ea13a1f 100644
+--- a/Documentation/acpi/enumeration.txt
++++ b/Documentation/acpi/enumeration.txt
+@@ -296,7 +296,7 @@ specifies the path to the controller. In order to use these GPIOs in Linux
+ we need to translate them to the corresponding Linux GPIO descriptors.
  
- struct acpi_video_device_flags {
-@@ -1828,6 +1830,9 @@ static int acpi_video_bus_register_backlight(struct acpi_video_bus *video)
- {
- 	struct acpi_video_device *dev;
+ There is a standard GPIO API for that and is documented in
+-Documentation/gpio.txt.
++Documentation/gpio/.
  
-+	if (video->backlight_registered)
-+		return 0;
-+
- 	if (!acpi_video_verify_backlight_support())
- 		return 0;
- 
-@@ -1972,6 +1977,56 @@ static void acpi_video_bus_remove_notify_handler(struct acpi_video_bus *video)
- 	video->input = NULL;
- }
- 
-+static int acpi_video_backlight_notify(struct notifier_block *nb,
-+					unsigned long val, void *bd)
-+{
-+	struct backlight_device *backlight = bd;
-+	struct acpi_video_bus *video;
-+
-+	/* acpi_video_verify_backlight_support only cares about raw devices */
-+	if (backlight->props.type != BACKLIGHT_RAW)
-+		return NOTIFY_DONE;
-+
-+	video = container_of(nb, struct acpi_video_bus, backlight_nb);
-+
-+	switch (val) {
-+	case BACKLIGHT_REGISTERED:
-+		if (!acpi_video_verify_backlight_support())
-+			acpi_video_bus_unregister_backlight(video);
-+		break;
-+	case BACKLIGHT_UNREGISTERED:
-+		acpi_video_bus_register_backlight(video);
-+		break;
-+	}
-+
-+	return NOTIFY_OK;
-+}
-+
-+static int acpi_video_bus_add_backlight_notify_handler(
-+						struct acpi_video_bus *video)
-+{
-+	int error;
-+
-+	video->backlight_nb.notifier_call = acpi_video_backlight_notify;
-+	video->backlight_nb.priority = 0;
-+	error = backlight_register_notifier(&video->backlight_nb);
-+	if (error == 0)
-+		video->backlight_notifier_registered = true;
-+
-+	return error;
-+}
-+
-+static int acpi_video_bus_remove_backlight_notify_handler(
-+						struct acpi_video_bus *video)
-+{
-+	if (!video->backlight_notifier_registered)
-+		return 0;
-+
-+	video->backlight_notifier_registered = false;
-+
-+	return backlight_unregister_notifier(&video->backlight_nb);
-+}
-+
- static int acpi_video_bus_put_devices(struct acpi_video_bus *video)
- {
- 	struct acpi_video_device *dev, *next;
-@@ -2053,6 +2108,7 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 
- 	acpi_video_bus_register_backlight(video);
- 	acpi_video_bus_add_notify_handler(video);
-+	acpi_video_bus_add_backlight_notify_handler(video);
- 
- 	return 0;
- 
-@@ -2076,6 +2132,7 @@ static int acpi_video_bus_remove(struct acpi_device *device)
- 
- 	video = acpi_driver_data(device);
- 
-+	acpi_video_bus_remove_backlight_notify_handler(video);
- 	acpi_video_bus_remove_notify_handler(video);
- 	acpi_video_bus_unregister_backlight(video);
- 	acpi_video_bus_put_devices(video);
+ In the above example we can get the corresponding two GPIO descriptors with
+ a code like this:
 -- 
-1.9.0
+2.0.0.rc2
 
