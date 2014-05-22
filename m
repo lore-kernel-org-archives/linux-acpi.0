@@ -1,73 +1,46 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH V7 01/11] ACPI: introduce .match() callback for ACPI scan handler
-Date: Fri, 23 May 2014 02:02:23 +0800
-Message-ID: <1400781753-2682-2-git-send-email-rui.zhang@intel.com>
+Subject: [PATCH V7 03/11] ACPI: remove ids that does not comply with the ACPI PNP id rule
+Date: Fri, 23 May 2014 02:02:25 +0800
+Message-ID: <1400781753-2682-4-git-send-email-rui.zhang@intel.com>
 References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:2881 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752247AbaEVSCv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 May 2014 14:02:51 -0400
 In-Reply-To: <1400781753-2682-1-git-send-email-rui.zhang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, mika.westerberg@linux.intel.com, Zhang Rui <rui.zhang@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-Currently, ACPI scan handler uses strcmp() to match device ids
-and scan handler ids.
+The acpi pnp scan handler id list just copies all the ids from all the
+struct pnp_device_id instances, but some of them do not
+comply with the ACPI PNP id rule (3 Alpha Charactors + 4 Hex numbers).
 
-When converting PNPACPI enumeration into a scan handler, which I will do
-later in this patch set, the current code becomes not flexible enough
-because ACPI pnp scan handler requires wildcase and case insensitive support.
-
-Thus a per scan handler .match() callback is introduced in this patch,
-so that specified scan handler can have more flexible matching mechanism
-by introduce its own .match() callback.
+For those ids, the coressponding devices will never be enumerated
+via ACPI, so it is safe to remove those ids from the PNPACPI white list.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/scan.c     | 17 +++++++++++------
- include/acpi/acpi_bus.h |  1 +
- 2 files changed, 12 insertions(+), 6 deletions(-)
+ drivers/acpi/acpi_pnp.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 7efe546..e46e51c 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1974,14 +1974,19 @@ static bool acpi_scan_handler_matching(struct acpi_scan_handler *handler,
- 	const struct acpi_device_id *devid;
- 
- 	for (devid = handler->ids; devid->id[0]; devid++)
--		if (!strcmp((char *)devid->id, idstr)) {
--			if (matchid)
--				*matchid = devid;
--
--			return true;
--		}
-+		if (handler->match) {
-+			if (handler->match(idstr, (char *)devid->id))
-+				goto success;
-+		} else
-+			if (!strcmp((char *)devid->id, idstr))
-+				goto success;
- 
- 	return false;
-+
-+success:
-+	if (matchid)
-+		*matchid = devid;
-+	return true;
- }
- 
- static struct acpi_scan_handler *acpi_scan_match_handler(char *idstr,
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 84a2e29..ba679af 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -131,6 +131,7 @@ static inline struct acpi_hotplug_profile *to_acpi_hotplug_profile(
- struct acpi_scan_handler {
- 	const struct acpi_device_id *ids;
- 	struct list_head list_node;
-+	int (*match)(char *devid, char *handler_id);
- 	int (*attach)(struct acpi_device *dev, const struct acpi_device_id *id);
- 	void (*detach)(struct acpi_device *dev);
- 	void (*bind)(struct device *phys_dev);
+diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
+index 57d14ed..d206616 100644
+--- a/drivers/acpi/acpi_pnp.c
++++ b/drivers/acpi/acpi_pnp.c
+@@ -33,10 +33,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[] = {
+ 	/* ide   */
+ 	{"PNP0600"},		/* Generic ESDI/IDE/ATA compatible hard disk controller */
+ 	/* ns558 */
+-	{"@P@0001"},		/* ALS 100 */
+-	{"@P@0020"},		/* ALS 200 */
+-	{"@P@1001"},		/* ALS 100+ */
+-	{"@P@2001"},		/* ALS 120 */
+ 	{"ASB16fd"},		/* AdLib NSC16 */
+ 	{"AZT3001"},		/* AZT1008 */
+ 	{"CDC0001"},		/* Opl3-SAx */
 -- 
 1.8.3.2
+
