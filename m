@@ -1,40 +1,20 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH V7 04/11] ACPI: remove unsupported serial PNP ids from acpi pnp scan handler id lsit
-Date: Fri, 23 May 2014 02:02:26 +0800
-Message-ID: <1400781753-2682-5-git-send-email-rui.zhang@intel.com>
-References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH V7 02/11] PNPACPI: use whilte list for pnpacpi device enumeration
+Date: Thu, 22 May 2014 12:14:44 -0600
+Message-ID: <CAErSpo7PjPf8AK1ectzE1Ep-AQKSXHY8TfZatrOC8ZzbAcxjow@mail.gmail.com>
+References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com> <1400781753-2682-3-git-send-email-rui.zhang@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1400781753-2682-1-git-send-email-rui.zhang@intel.com>
+In-Reply-To: <1400781753-2682-3-git-send-email-rui.zhang@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, mika.westerberg@linux.intel.com, Zhang Rui <rui.zhang@intel.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The "serial" pnp driver supports some unknown PNP modems (PNPCXXX/PNPDXXX)
-by matching magic strings in the pnp device name or the pnp device card name.
+"white" is misspelled in the subject line.  I mentioned this before.
 
-ACPI enumerated PNP device neither supports pnp card, nor supports those magic
-strings in its device name, which means this mechamism never works for ACPI
-enumerated PNPCXXX/PNPDXXX devices.
-So it is safe to remove those two ids from the ACPI pnp scan handler id list.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/acpi_pnp.c | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
-index d206616..a563a27 100644
---- a/drivers/acpi/acpi_pnp.c
-+++ b/drivers/acpi/acpi_pnp.c
-@@ -300,8 +300,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[] = {
- 	{"LTS0001"},		/* LG C1 EXPRESS DUAL (C1-PB11A3) touch screen (actually a FUJ02E6 in disguise) */
- 	{"WCI0003"},		/* Rockwell's (PORALiNK) 33600 INT PNP */
- 	{"WEC1022"},		/* Winbond CIR port, should not be probed. We should keep track of it to prevent the legacy serial driver from probing it */
--	{"PNPCXXX"},		/* Unknown PnP modems */
--	{"PNPDXXX"},		/* More unknown PnP modems */
- 	/* scl200wdt */
- 	{"NSC0800"},		/* National Semiconductor PC87307/PC97307 watchdog component */
- 	/* mpu401 */
--- 
-1.8.3.2
+On Thu, May 22, 2014 at 12:02 PM, Zhang Rui <rui.zhang@intel.com> wrote:
+> ACPI can be used to enumerate PNP devices, but the code does not
+> handle this in a good manner.
+> ...
