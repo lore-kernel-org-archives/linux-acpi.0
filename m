@@ -1,80 +1,57 @@
 From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 3/7 v4] CPER: Adjust code flow of some functions
-Date: Thu, 22 May 2014 12:52:42 +0200
-Message-ID: <20140522105242.GG4383@pd.tnic>
+Subject: Re: [PATCH 6/7 v3] trace, eMCA: Add a knob to adjust where to save
+ event log
+Date: Thu, 22 May 2014 13:11:40 +0200
+Message-ID: <20140522111140.GH4383@pd.tnic>
 References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
- <1400142646-10127-4-git-send-email-gong.chen@linux.intel.com>
- <20140521110521.GF21205@pd.tnic>
- <20140521235159.GB1644@gchen.bj.intel.com>
+ <1400142646-10127-7-git-send-email-gong.chen@linux.intel.com>
+ <20140521110630.GG21205@pd.tnic>
+ <20140521234626.GA1644@gchen.bj.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:59726 "EHLO mail.skyhub.de"
+Received: from mail.skyhub.de ([78.46.96.112]:35124 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752428AbaEVKwo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 May 2014 06:52:44 -0400
+	id S1752603AbaEVLLn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 May 2014 07:11:43 -0400
 Content-Disposition: inline
-In-Reply-To: <20140521235159.GB1644@gchen.bj.intel.com>
+In-Reply-To: <20140521234626.GA1644@gchen.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Chen, Gong" <gong.chen@linux.intel.com>
 Cc: tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org
 
-On Wed, May 21, 2014 at 07:51:59PM -0400, Chen, Gong wrote:
-> On Wed, May 21, 2014 at 01:05:21PM +0200, Borislav Petkov wrote:
-> > > +const char *cper_mem_err_type_str(unsigned int etype)
-> > >  {
-> > > -	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
-> > > -		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
-> > > -	if (mem->validation_bits & CPER_MEM_VALID_PA)
-> > > -		printk("%s""physical_address: 0x%016llx\n",
-> > > -		       pfx, mem->physical_addr);
-> > > -	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
-> > > -		printk("%s""physical_address_mask: 0x%016llx\n",
+On Wed, May 21, 2014 at 07:46:26PM -0400, Chen, Gong wrote:
+> On Wed, May 21, 2014 at 01:06:31PM +0200, Borislav Petkov wrote:
+> > > +	if (ras_userspace_consumers() == 0) {
 > > 
-> > The physical address mask is still not part of the tracepoint as a u8 as
-> > we talked.
+> > 	if (!ras_userspace_consumers())
 > > 
-> I thought out discussion is only for trace part. But it is OK to me to
-> make whole style aligned.
+> No, it is not a pointer so I don't think it is very
+> meaningful just to save some bytes.
 
-No, I'm not talking about style - I'm talking about adding the physical address
-mask to the tracepoint call:
+Btw, this is exactly why your patches take too long to review - you like
+to debate more instead of listening to the maintainers. Next time you
+want to speed up the process, just think about that.
 
-+TRACE_EVENT(extlog_mem_event,
-+       TP_PROTO(u32 etype,
-+                const uuid_le *fru_id,
-+                u64 error_count,
+I think the amount of time I wasted to explain all the crap to you is
+more than I've spent actually reviewing your patches. How about you
+do what you're told for a change, not change agreed upon stuff after
+review because then I have to go and review it all over again from the
+beginning and thus make both our lives easier?
 
-Btw, is that the error_count we're reporting?? You surely can't claim
-that we'll ever report 2^64-1 errors, right?
+As to the question why you should listen to the maintainers: that's
+because we get to maintain your code after you go and do something else
+so it better be readable to us.
 
-I'd make that u32 and I'd call it
+Now to answer your direct question:
 
-		u32 error_number;
+	if (!ras_userspace_consumers())
 
-as it is a counter we're incrementing.
+reads straight away as "if there are no ras userspace consumers" instead
+of "if the number of the ras userspace consumers is zero".
 
-+                u32 severity,
-
-That severity can surely be u8 - we can't have 2^32-1 severities in any
-normal case - I see only 5. I'm sure 256 is plenty.
-
-And now that we slimmed some of those insanely-sized members, we can add
-
-		u8 pa_mask_lsb
-
-or something to that effect.
-
-Makes sense?
-
-+                char *dimm_info,
-+                char *pa_info,
-+                char *mem_loc,
-+                char *fru_text),
-
-+TRACE_EVENT(extlog_mem_event,
-
+Got it?!
 
 -- 
 Regards/Gruss,
