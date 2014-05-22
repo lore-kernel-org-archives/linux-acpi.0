@@ -1,59 +1,68 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH V6 09/11] ACPI: introduce flag .is_master_device
-Date: Thu, 22 May 2014 11:08:22 +0300
-Message-ID: <20140522080822.GB1651@lahna.fi.intel.com>
-References: <1400136256-2218-1-git-send-email-rui.zhang@intel.com>
- <1400136256-2218-10-git-send-email-rui.zhang@intel.com>
- <20140521085207.GR1651@lahna.fi.intel.com>
- <2394524.GkgpdWbBbP@vostro.rjw.lan>
- <1400684982.13930.39.camel@rzhang1-toshiba>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH resend 1/4] nouveau: Don't check acpi_video_backlight_support()
+ before registering backlight
+Date: Thu, 22 May 2014 10:41:44 +0200
+Message-ID: <537DB848.3000203@redhat.com>
+References: <1400679596-19663-1-git-send-email-hdegoede@redhat.com> <1400679596-19663-2-git-send-email-hdegoede@redhat.com> <2450872.0pLqjZcv9y@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:37534 "EHLO mga01.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:3256 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752027AbaEVII1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 May 2014 04:08:27 -0400
-Content-Disposition: inline
-In-Reply-To: <1400684982.13930.39.camel@rzhang1-toshiba>
+	id S1751621AbaEVImF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 May 2014 04:42:05 -0400
+In-Reply-To: <2450872.0pLqjZcv9y@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Aaron Lu <aaron.lu@intel.com>, Jingoo Han <jg1.han@samsung.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-On Wed, May 21, 2014 at 11:09:42PM +0800, Zhang Rui wrote:
-> On =E4=B8=89, 2014-05-21 at 13:10 +0200, Rafael J. Wysocki wrote:
-> > On Wednesday, May 21, 2014 11:52:07 AM Mika Westerberg wrote:
-> > > On Thu, May 15, 2014 at 02:44:14PM +0800, Zhang Rui wrote:
-> > > > For some ACPI device objects, they represent master devices,
-> > > > and their children devices are enumerated by bus controller dri=
-vers
-> > > > for the buses they are on.
-> > > >=20
-> > > > In this case, we do not want to enumerate their children device=
-s to
-> > > > platform bus explicitly in acpi scan code.
-> > > >=20
-> > > > Thus a new flag .is_master_device is introduced in this patch.
-> > > >=20
-> > > > For devices with this flag set, we will not do default enumerat=
-ion
-> > > > for their children.
-> > >=20
-> > > Is there any particular reason we would like to enumerate everyth=
-ing
-> > > below the first device by default?
-> >=20
-> > Yes, there is.  Device objects without _ADR under the PCI host brid=
-ge.
-> >=20
-> I'm confused. Mika, what do you mean by saying "first device"?
+Hi,
 
-I mean the first level devices right below the host bridge, such as
-\_SB.PCI0.* but not \_SB.PCI0.*.FOO.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 05/22/2014 01:30 AM, Rafael J. Wysocki wrote:
+> On Wednesday, May 21, 2014 03:39:53 PM Hans de Goede wrote:
+>> acpi_video_backlight_support() is supposed to be called by other (vendor
+>> specific) firmware backlight controls, not by native / raw backlight controls
+>> like nv_backlight.
+>>
+>> Userspace will normally prefer firmware interfaces over raw interfaces, so
+>> if acpi_video backlight support is present it will use that even if
+>> nv_backlight is registered as well.
+>>
+>> Except when video.use_native_backlight is present on the kernel cmdline
+>> (or enabled through a dmi based quirk). As the name indicates the goal here
+>> is to make only the raw interface available to userspace so that it will use
+>> that (it only does this when it sees a win8 compliant bios).
+>>
+>> This is done by:
+>> 1) Not registering any acpi_video# backlight devices; and
+>> 2) Making acpi_video_backlight_support() return true so that other firmware
+>> drivers, ie acer_wmi, thinkpad_acpi, dell_laptop, etc. Don't register their
+>> own vender specific interfaces.
+>>
+>> Currently nouveau breaks this setup, as when acpi_video_backlight_support()
+>> returns true, it does not register itself, resulting in no backlight control
+>> at all.
+>>
+>> This is esp. going to be a problem with 3.16 which will default to
+>> video.use_native_backlight=1, and thus nouveau based laptops with a win8 bios
+>> will get no backlight control at all.
+>>
+>> This also likely explains why the previous attempt to make
+>> video.use_native_backlight=1 the default was not a success, as without this
+>> patch having a default of video.use_native_backlight=1 will cause regressions.
+>>
+>> Note this effectively reverts commit 5bead799
+>>
+>> Also see: https://bugzilla.redhat.com/show_bug.cgi?id=1093171
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> 
+> It would be good to have an ACK from the nouveau people for this one.
+
+Right, it could / should even go in through the drm tree I guess.
+
+Regards,
+
+Hans
