@@ -1,59 +1,39 @@
-From: =?UTF-8?q?Manuel=20Sch=C3=B6lling?= <manuel.schoelling@gmx.de>
-Subject: [PATCH] acpi: Use time_before() for time comparison
-Date: Thu, 22 May 2014 22:56:36 +0200
-Message-ID: <1400792196-28477-1-git-send-email-manuel.schoelling@gmx.de>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 2/2] pinctrl: baytrail: Register GPIO chip after
+ chip->to_irq is set
+Date: Thu, 22 May 2014 23:47:21 +0200
+Message-ID: <CACRpkda+hjtO=uPqurhx578ceHtf68kwJqhc15ZeR4JehqATPA@mail.gmail.com>
+References: <1400167727-20233-1-git-send-email-mika.westerberg@linux.intel.com>
+	<1400167727-20233-2-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, =?UTF-8?q?Manuel=20Sch=C3=B6lling?= <manuel.schoelling@gmx.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:50482 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751011AbaEVVrV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 May 2014 17:47:21 -0400
+Received: by mail-oa0-f49.google.com with SMTP id eb12so4623404oac.8
+        for <linux-acpi@vger.kernel.org>; Thu, 22 May 2014 14:47:21 -0700 (PDT)
+In-Reply-To: <1400167727-20233-2-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jin Yao <yao.jin@intel.com>, Aubrey Li <aubrey.li@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-To be future-proof and for better readability the time comparisons are =
-modified
-to use time_before() instead of plain, error-prone math.
+On Thu, May 15, 2014 at 5:28 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
 
-Signed-off-by: Manuel Sch=C3=B6lling <manuel.schoelling@gmx.de>
----
- drivers/acpi/acpi_pad.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+> From: Jin Yao <yao.jin@intel.com>
+>
+> If chip->to_irq is NULL ACPI GPIO helpers don't register GPIO event
+> handlers thus preventing any ACPI GPIO triggered events. Solve this by
+> calling gpiochip_add() after we have set up drivers chip->to_irq hook.
+>
+> Signed-off-by: Jin Yao <yao.jin@intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-index 37d7302..0a3bbf5 100644
---- a/drivers/acpi/acpi_pad.c
-+++ b/drivers/acpi/acpi_pad.c
-@@ -156,12 +156,13 @@ static int power_saving_thread(void *data)
-=20
- 	while (!kthread_should_stop()) {
- 		int cpu;
--		u64 expire_time;
-+		unsigned long expire_time;
-=20
- 		try_to_freeze();
-=20
- 		/* round robin to cpus */
--		if (last_jiffies + round_robin_time * HZ < jiffies) {
-+		expire_time =3D last_jiffies + round_robin_time * HZ;
-+		if (time_before(expire_time, jiffies)) {
- 			last_jiffies =3D jiffies;
- 			round_robin_cpu(tsk_index);
- 		}
-@@ -200,7 +201,7 @@ static int power_saving_thread(void *data)
- 					CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
- 			local_irq_enable();
-=20
--			if (jiffies > expire_time) {
-+			if (time_before(expire_time, jiffies)) {
- 				do_sleep =3D 1;
- 				break;
- 			}
---=20
-1.7.10.4
+Patch applied for fixes, sorry for running a bit late, we are
+late.
 
---
-To unsubscribe from this list: send the line "unsubscribe kernel-janito=
-rs" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yours,
+Linus Walleij
