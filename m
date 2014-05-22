@@ -1,63 +1,80 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH V6 09/11] ACPI: introduce flag .is_master_device
-Date: Thu, 22 May 2014 22:26:48 +0800
-Message-ID: <1400768808.27343.4.camel@rzhang1-toshiba>
-References: <1400136256-2218-1-git-send-email-rui.zhang@intel.com>
-	 <1400136256-2218-10-git-send-email-rui.zhang@intel.com>
-	 <20140521085207.GR1651@lahna.fi.intel.com>
-	 <1400683387.13930.26.camel@rzhang1-toshiba>
-	 <20140522085135.GC1651@lahna.fi.intel.com>
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Patch V2 0/9] I2C ACPI operation region handler support
+Date: Thu, 22 May 2014 23:14:07 +0800
+Message-ID: <537E143F.7060701@intel.com>
+References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com> <53722700.6010001@intel.com> <2676258.HXv5hGZIFG@devpool02> <4867018.HWMf8AlFN3@devpool02>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140522085135.GC1651@lahna.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, "Lan, Tianyu" <tianyu.lan@intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4867018.HWMf8AlFN3@devpool02>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rolf Eike Beer <eb-QdrG9jWwCLEAvxtiuMwx3w@public.gmane.org>
+Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2014-05-22 at 11:51 +0300, Mika Westerberg wrote:
-> On Wed, May 21, 2014 at 10:43:07PM +0800, Zhang Rui wrote:
-> > On =E4=B8=89, 2014-05-21 at 11:52 +0300, Mika Westerberg wrote:
-> > > On Thu, May 15, 2014 at 02:44:14PM +0800, Zhang Rui wrote:
-> > > > For some ACPI device objects, they represent master devices,
-> > > > and their children devices are enumerated by bus controller dri=
-vers
-> > > > for the buses they are on.
-> > > >=20
-> > > > In this case, we do not want to enumerate their children device=
-s to
-> > > > platform bus explicitly in acpi scan code.
-> > > >=20
-> > > > Thus a new flag .is_master_device is introduced in this patch.
-> > > >=20
-> > > > For devices with this flag set, we will not do default enumerat=
-ion
-> > > > for their children.
-> > >=20
-> > > Is there any particular reason we would like to enumerate everyth=
-ing
-> > > below the first device by default?
-> >=20
-> > we do not enumerate everything below the first device by default, w=
-e
-> > just enumerate all the devices with _HID.
->=20
-> OK.
->=20
-> > But if a device has _HID and it is enumerated by its parents to a
-> > separate bus, we need this flag set for its parent.
->=20
-> How about checking if the device has *SerialBus() connector and in su=
-ch
-> case skip the device (given that it is not listed in a special list,
-> like acpi_platform_device_ids)?
+On 05/20/2014 10:17 PM, Rolf Eike Beer wrote:
+> Rolf Eike Beer wrote:
+>> Lan Tianyu wrote:
+>>> On 05/13/2014 09:09 PM, Rolf Eike Beer wrote:
+>>>> Am Montag, 28. April 2014, 22:27:39 schrieb Lan Tianyu:
+>>>>> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart)
+>>>>> operation
+>>>>> region. It allows ACPI aml code able to access such kind of devices to
+>>>>> implement some ACPI standard method.
+>>>>>
+>>>>> On the Asus T100TA, Bios use GenericSerialBus operation region to
+>>>>> access
+>>>>> i2c device to get battery info. So battery function depends on the I2C
+>>>>> operation region support. Here is the bug link.
+>>>>> https://bugzilla.kernel.org/show_bug.cgi?id=69011
+>
+>>>> I have tested this series and got some errors, but no additional
+>>>> functionality:
+>
+>> this is an Aava Inari 8 tablet (pre-release hardware). Please find the DSDT
+>> and the dmesg.log attached.
+>
+> It may be that I have taken the wrong ACPI files. This is the result of a
+> fresh run of acpidump, together with the most recent dmesg.log, just in case
+> I messed it up.
 
-This sounds like a good idea.
-I think we can just ignore devices with ACPI_RESOURCE_TYPE_SERIAL_BUS
-resources, and this can be done in drivers/acpi/scan.c for all _HID
-devices w/o handler attached, right?
+Hi Rolf:
+	I have check the log. I2C ACPI operation region targets to I2C controller which 
+has one ACPI node in the ACPI table and is associated with one I2C adapter. 
+Graphic with one ACPI handle registers several I2C adapters. This causes attach 
+data to the ACPI handle with the same handler several time. The ACPICA function 
+will return ALREADY EXIST error code and causes the log you mentioned. There is 
+no I2C ACPI operation region under graphic device node and so not break 
+function. To avoid these noise logs, I make them only appear under dynamic debug 
+mode in the my V3 patchset.
 
-thanks,
-rui
+
+>
+> Kernel now is at 60b5f90+some patches:
+>
+> 8e7bd6f pinctrl: baytrail: Register GPIO chip after chip->to_irq is set
+> c4b2230 pinctrl: baytrail: Add back Baytrail-T ACPI ID
+> 32f3364 gpio: Add support for Intel SoC PMIC (Crystal Cove)
+> 088ee81 mfd: intel_soc_pmic: Build files
+> 5315135 mfd: intel_soc_pmic: Crystal Cove support
+> 8b5ed0b mfd: intel_soc_pmic: I2C interface
+> b18979f mfd: intel_soc_pmic: Core driver
+> 5200b75 add debugging
+>    (This is the debug patch Lan Tianyu sent as reply to the previous mail)
+> bd3e6c6 I2C/ACPI: Add CONFIG_I2C_ACPI config
+> 947f0a1 I2C/ACPI: Move ACPI related code to i2c-acpi.c
+> 534f182 I2C/ACPI: Add i2c ACPI operation region support
+> 32384d4 I2C: Add smbus word/block process call helper function
+> aa6459e I2C: Add smbus quick read/write helper function
+> 51825ed ACPI/Thermal: Use acpi_bus_attach_private_data() to attach private data
+> 95e9e92 ACPI: Add acpi_bus_attach_private_data() to facilitate to attach data to ACPI handle
+> cc6fecb ACPICA: Export acpi_buffer_to_resource symbol
+> ad38de6 ACPI / LPSS: custom power domain for LPSS
+> b0caadf ACPI / PM: Export rest of the subsys functions
+> 22a7210 ACPI / platform: add another ID for Broadcom Bluetooth and GPS chips
+>   (this just adds AAM4752 as another platform id)
+> 000627d ACPI / platform: add IDs for Broadcom Bluetooth and GPS chips
+>
+> Eike
+>
