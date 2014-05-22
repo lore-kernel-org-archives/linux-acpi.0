@@ -1,20 +1,40 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH V7 02/11] PNPACPI: use whilte list for pnpacpi device enumeration
-Date: Thu, 22 May 2014 12:14:44 -0600
-Message-ID: <CAErSpo7PjPf8AK1ectzE1Ep-AQKSXHY8TfZatrOC8ZzbAcxjow@mail.gmail.com>
-References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com> <1400781753-2682-3-git-send-email-rui.zhang@intel.com>
+Subject: [PATCH] MAINTAINERS: Remove Bjorn Helgaas as PNP maintainer
+Date: Thu, 22 May 2014 12:16:20 -0600
+Message-ID: <20140522181620.6221.84075.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1400781753-2682-3-git-send-email-rui.zhang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ig0-f176.google.com ([209.85.213.176]:57104 "EHLO
+	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752366AbaEVSQW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 May 2014 14:16:22 -0400
+Received: by mail-ig0-f176.google.com with SMTP id hl10so7955901igb.9
+        for <linux-acpi@vger.kernel.org>; Thu, 22 May 2014 11:16:22 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org
 
-"white" is misspelled in the subject line.  I mentioned this before.
+I don't have time or knowledge to add anything useful to PNP, so remove
+myself from the PNP entry.
 
-On Thu, May 22, 2014 at 12:02 PM, Zhang Rui <rui.zhang@intel.com> wrote:
-> ACPI can be used to enumerate PNP devices, but the code does not
-> handle this in a good manner.
-> ...
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 6dc67b1fdb50..88cabf5d885b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6924,7 +6924,6 @@ F:	drivers/power/
+ 
+ PNP SUPPORT
+ M:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+-M:	Bjorn Helgaas <bhelgaas@google.com>
+ S:	Maintained
+ F:	drivers/pnp/
+ 
+
