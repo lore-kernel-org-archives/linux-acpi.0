@@ -1,65 +1,71 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH 4/7] acpi, apei, ghes: Factor out NMI error notification
- context.
-Date: Fri, 23 May 2014 14:06:47 +0200
-Message-ID: <537F39D7.6090309@linaro.org>
-References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org> <1397056476-9183-5-git-send-email-tomasz.nowicki@linaro.org> <20140513194125.GD8760@pd.tnic>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCHv2 2/4] ACPI / LPSS: custom power domain for LPSS
+Date: Fri, 23 May 2014 15:30:53 +0300
+Message-ID: <20140523123052.GA18308@xps8300>
+References: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <4546817.Xm9e491t74@vostro.rjw.lan>
+ <20140521105258.GB29349@xps8300>
+ <1484699.LPqrzmlevB@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:64450 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751795AbaEWMGC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 May 2014 08:06:02 -0400
-Received: by mail-wg0-f42.google.com with SMTP id y10so4630690wgg.1
-        for <linux-acpi@vger.kernel.org>; Fri, 23 May 2014 05:06:00 -0700 (PDT)
-In-Reply-To: <20140513194125.GD8760@pd.tnic>
+Received: from mga09.intel.com ([134.134.136.24]:24097 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750981AbaEWMbF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 May 2014 08:31:05 -0400
+Content-Disposition: inline
+In-Reply-To: <1484699.LPqrzmlevB@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mike Turquette <mturquette@linaro.org>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 13.05.2014 21:41, Borislav Petkov wrote:
-> On Wed, Apr 09, 2014 at 05:14:32PM +0200, Tomasz Nowicki wrote:
->> Use CONFIG_ACPI_APEI_NMI to isolate NMI error notification path. NMI related
->> data and functions are grouped so they can be wrapped inside one
-I have missed end of sentence. I should goes like that:
+On Thu, May 22, 2014 at 01:28:16AM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, May 21, 2014 01:52:58 PM Heikki Krogerus wrote:
+> > On Wed, May 21, 2014 at 01:01:31PM +0200, Rafael J. Wysocki wrote:
+> > > On Wednesday, May 21, 2014 01:05:11 PM Heikki Krogerus wrote:
+> > > > On Tue, May 20, 2014 at 11:33:09PM +0200, Rafael J. Wysocki wrote:
+> > > > > First, is the 10 ms sleep really necessary?  I'd expect the AML to take care of
+> > > > > such delays (this is not a PCI device formally).
+> > > > 
+> > > > Unfortunately that is not the case. There is nothing in the AML for
+> > > > this. Mika, correct me if I'm wrong.
+> > > > 
+> > > > > And because this is not a PCI device formally, why is the comment talking about
+> > > > > the PCI spec?  Why is PCI relevant in any way here?
+> > > > 
+> > > > Under the hood the devices are still PCI devices, even if they
+> > > > formally aren't. Maybe I should point that out in the comment..
+> > > > 
+> > > > We put the sleep there because without it there was no guarantee if
+> > > > the device was properly resumed by the time the drivers resume hooks
+> > > > were called. The symptom in case of a failure was simply that the
+> > > > registers could not be written, which leads into timeouts at least in
+> > > > case of the I2C and UART and making them unusable until the next
+> > > > suspend followed by resume.
+> > > 
+> > > OK, so the msleep() is functionally necessary.  Instead of talking about the
+> > > PCI in the comment, which will make a casual reader think "What the heck?",
+> > > please say something like "the delay is necessary for the subsequent register
+> > > writes to succeed on <example system>".
+> > 
+> > OK.
+> 
+> So I have one more concern.  Namely, async suspend is not enabled for the LPSS
+> devices, so the delays will accumulate for them and that may become a big deal
+> at one point.
+> 
+> This may be addressed either (1) by enabling async suspend for them or, which would
+> be more complicated, by doing the msleep() once for the whole LPSS in .resume_early()
+> and restoring the register values in .resume() without delaying.
+> 
+> For (1) I have the following untested patch (on top of my bleeding-edge branch, but
+> it should apply to the mainline too if I haven't overlooked anything).  Can you
+> please try it on boxes with LPSS and see if it doesn't break suspend/resume on them?
 
-Use CONFIG_ACPI_APEI_NMI to isolate NMI error notification path. NMI 
-related data and functions are grouped so they can be wrapped inside one
-#ifdefs CONFIG_ACPI_APEI_NMI.
+Done, and there were no problems. I tested it with HSW, BYT and also BDW.
 
->>
->> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->> ---
->>   drivers/acpi/apei/ghes.c |   54 +++++++++++++++++++++++++---------------------
->>   1 file changed, 30 insertions(+), 24 deletions(-)
->>
->> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->> index ca8387e..7a0d66e 100644
->> --- a/drivers/acpi/apei/ghes.c
->> +++ b/drivers/acpi/apei/ghes.c
->> @@ -53,7 +53,9 @@
->>   #include <asm/mce.h>
->>   #endif
->>   #include <asm/tlbflush.h>
->> +#ifdef CONFIG_ACPI_APEI_NMI
->>   #include <asm/nmi.h>
->> +#endif
->
-> This, again, can be avoided with adding arch-specific versions and empty
-> default stubs.
->
+Thanks,
 
-I had that thoughts too. Looking at simple MCE calls, yes, it does make 
-sense to create corresponding arch-specific version and provide logic as 
-needed. I think that NMI is much more complicated. NMI context is 
-tightly coupled with the rest of GHES mechanisms like pool memory, list 
-locks etc. which are GHES locally available. I am not saying it is 
-impossible, I am just concerned if it makes sense to create e.g. 
-apei-nmi.c arch-specific file and export necessary GHES mechanisms just 
-for NMI purpose. Please let me know your opinion on this.
-
-Regards,
-Tomasz
+-- 
+heikki
