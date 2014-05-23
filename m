@@ -1,106 +1,76 @@
-From: Ben Skeggs <skeggsb@gmail.com>
-Subject: Re: [PATCH resend 1/4] nouveau: Don't check acpi_video_backlight_support()
- before registering backlight
-Date: Fri, 23 May 2014 14:13:47 +1000
-Message-ID: <CACAvsv5Ctejiu7Y6e_1bV5VqFuD5Ew77fr3ShBohS4gWDvduHA@mail.gmail.com>
-References: <1400679596-19663-1-git-send-email-hdegoede@redhat.com>
-	<1400679596-19663-2-git-send-email-hdegoede@redhat.com>
-	<2450872.0pLqjZcv9y@vostro.rjw.lan>
+From: Rolf Eike Beer <eb-QdrG9jWwCLEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Patch V2 0/9] I2C ACPI operation region handler support
+Date: Fri, 23 May 2014 08:55:55 +0200
+Message-ID: <1481506.mZgg6LykyH@devpool02>
+References: <1398147855-9868-1-git-send-email-tianyu.lan@intel.com> <4867018.HWMf8AlFN3@devpool02> <537E143F.7060701@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f176.google.com ([209.85.216.176]:56903 "EHLO
-	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750814AbaEWENs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 May 2014 00:13:48 -0400
-In-Reply-To: <2450872.0pLqjZcv9y@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; boundary="nextPart1922782.EugPuHskmN"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <537E143F.7060701-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Hans de Goede <hdegoede@redhat.com>, Aaron Lu <aaron.lu@intel.com>, linux-fbdev@vger.kernel.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Bryan Wu <cooloney@gmail.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Skeggs <bskeggs@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Lee Jones <lee.jones@linaro.org>, Len Brown <lenb@kernel.org>
 
-On Thu, May 22, 2014 at 9:30 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Wednesday, May 21, 2014 03:39:53 PM Hans de Goede wrote:
->> acpi_video_backlight_support() is supposed to be called by other (vendor
->> specific) firmware backlight controls, not by native / raw backlight controls
->> like nv_backlight.
->>
->> Userspace will normally prefer firmware interfaces over raw interfaces, so
->> if acpi_video backlight support is present it will use that even if
->> nv_backlight is registered as well.
->>
->> Except when video.use_native_backlight is present on the kernel cmdline
->> (or enabled through a dmi based quirk). As the name indicates the goal here
->> is to make only the raw interface available to userspace so that it will use
->> that (it only does this when it sees a win8 compliant bios).
->>
->> This is done by:
->> 1) Not registering any acpi_video# backlight devices; and
->> 2) Making acpi_video_backlight_support() return true so that other firmware
->> drivers, ie acer_wmi, thinkpad_acpi, dell_laptop, etc. Don't register their
->> own vender specific interfaces.
->>
->> Currently nouveau breaks this setup, as when acpi_video_backlight_support()
->> returns true, it does not register itself, resulting in no backlight control
->> at all.
->>
->> This is esp. going to be a problem with 3.16 which will default to
->> video.use_native_backlight=1, and thus nouveau based laptops with a win8 bios
->> will get no backlight control at all.
->>
->> This also likely explains why the previous attempt to make
->> video.use_native_backlight=1 the default was not a success, as without this
->> patch having a default of video.use_native_backlight=1 will cause regressions.
->>
->> Note this effectively reverts commit 5bead799
->>
->> Also see: https://bugzilla.redhat.com/show_bug.cgi?id=1093171
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->
-> It would be good to have an ACK from the nouveau people for this one.
-Acked-by: Ben Skeggs <bskeggs@redhat.com>
 
-;)
+--nextPart1922782.EugPuHskmN
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 
->
->> ---
->>  drivers/gpu/drm/nouveau/nouveau_backlight.c | 9 ---------
->>  1 file changed, 9 deletions(-)
->>
->> diff --git a/drivers/gpu/drm/nouveau/nouveau_backlight.c b/drivers/gpu/drm/nouveau/nouveau_backlight.c
->> index 630f6e8..2c1e4aa 100644
->> --- a/drivers/gpu/drm/nouveau/nouveau_backlight.c
->> +++ b/drivers/gpu/drm/nouveau/nouveau_backlight.c
->> @@ -31,7 +31,6 @@
->>   */
->>
->>  #include <linux/backlight.h>
->> -#include <linux/acpi.h>
->>
->>  #include "nouveau_drm.h"
->>  #include "nouveau_reg.h"
->> @@ -222,14 +221,6 @@ nouveau_backlight_init(struct drm_device *dev)
->>       struct nouveau_device *device = nv_device(drm->device);
->>       struct drm_connector *connector;
->>
->> -#ifdef CONFIG_ACPI
->> -     if (acpi_video_backlight_support()) {
->> -             NV_INFO(drm, "ACPI backlight interface available, "
->> -                          "not registering our own\n");
->> -             return 0;
->> -     }
->> -#endif
->> -
->>       list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
->>               if (connector->connector_type != DRM_MODE_CONNECTOR_LVDS &&
->>                   connector->connector_type != DRM_MODE_CONNECTOR_eDP)
->>
->
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+Lan Tianyu wrote:
+> On 05/20/2014 10:17 PM, Rolf Eike Beer wrote:
+
+> > It may be that I have taken the wrong ACPI files. This is the resul=
+t of a
+> > fresh run of acpidump, together with the most recent dmesg.log, jus=
+t in
+> > case I messed it up.
+>=20
+> =09I have check the log. I2C ACPI operation region targets to I2C con=
+troller
+> which has one ACPI node in the ACPI table and is associated with one =
+I2C
+> adapter. Graphic with one ACPI handle registers several I2C adapters.=
+ This
+> causes attach data to the ACPI handle with the same handler several t=
+ime.
+> The ACPICA function will return ALREADY EXIST error code and causes t=
+he log
+> you mentioned. There is no I2C ACPI operation region under graphic de=
+vice
+> node and so not break function. To avoid these noise logs, I make the=
+m only
+> appear under dynamic debug mode in the my V3 patchset.
+
+Hi,
+
+thanks for the clarification.
+
+Greetings,
+
+Eike
+=2D-=20
+Rolf Eike Beer, emlix GmbH, http://www.emlix.com
+Fon +49 551 30664-0, Fax +49 551 30664-11
+Bertha-von-Suttner-Str. 9, 37085 G=F6ttingen, Germany
+Sitz der Gesellschaft: G=F6ttingen, Amtsgericht G=F6ttingen HR B 3160
+Gesch=E4ftsf=FChrung: Dr. Uwe Kracke, Ust-IdNr.: DE 205 198 055
+
+emlix - smart embedded open source
+
+--nextPart1922782.EugPuHskmN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iJwEAAECAAYFAlN+8QAACgkQq+RR+17trfxx1wP8DoKWvPE+OkJHU9GNtZGvMc5O
+QB+oE0ze1TOja0pudZ0Dm1uQsu7tYwriyTf7mmeaVRs7dq4bhN9xKdbJgacKaLdd
+DlvaCU5dtvwpPEiAMdRvce+vDdeymXIMmwN5duuxg/q/bUFkUTjS3RFzTjBj8du1
+IiQakdk/fHAToXf8gMo=
+=xs/A
+-----END PGP SIGNATURE-----
+
+--nextPart1922782.EugPuHskmN--
