@@ -1,121 +1,92 @@
-From: Lewis Toohey <lewis@toohey.co.uk>
-Subject: Re: Bug Report - [Acer Aspire V5-122P] Unable to adjust screen brightness
-Date: Fri, 23 May 2014 14:38:04 +0100
-Message-ID: <CADNzsyPHfQHDyPKXJKb8vh7-N3Xi033N5PP5RFQjwCByOUhiMQ@mail.gmail.com>
-References: <CADNzsyM9qiWf_KV4uuNDnkcv7JvCSi00qHiNQTWfVN-pZtWqig@mail.gmail.com>
- <537BFF89.9010806@intel.com> <CADNzsyMn5viCQDc7HXqZiH92BYNp9TZAtMNbuQMAkZXy6hj0Dg@mail.gmail.com>
- <537C9DC5.5040408@intel.com> <CADNzsyO7gzhtng0WmKA9DGZAreEGVsbAJ+KGdgJu+9zr_LyR8g@mail.gmail.com>
- <537EA5B7.9050509@intel.com> <CADNzsyORVbpqUMsZmKzBn_=Ma99dbLhKo_bfw3bvOASLwTkLsA@mail.gmail.com>
- <537F4425.70205@redhat.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 4/7] acpi, apei, ghes: Factor out NMI error notification
+ context.
+Date: Fri, 23 May 2014 18:48:24 +0200
+Message-ID: <20140523164824.GG21332@pd.tnic>
+References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
+ <1397056476-9183-5-git-send-email-tomasz.nowicki@linaro.org>
+ <20140513194125.GD8760@pd.tnic>
+ <537F39D7.6090309@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailscan13.extendcp.co.uk ([79.170.45.22]:52195 "EHLO
-	mailscan1.extendcp.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751527AbaEWNqJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 May 2014 09:46:09 -0400
-Received: from lb1.hi.local ([10.0.1.197] helo=mailscan2.extendcp.co.uk)
-	by mailscan-g66.hi.local with esmtp (Exim 4.80.1)
-	(envelope-from <lewis@toohey.co.uk>)
-	id 1WnpnT-0002Oo-Nr
-	for linux-acpi@vger.kernel.org; Fri, 23 May 2014 14:46:07 +0100
-Received: from lb1.hi.local ([10.0.1.197] helo=mail44.extendcp.co.uk)
-	by mailscan2.extendcp.co.uk with esmtps (UNKNOWN:DHE-RSA-AES256-GCM-SHA384:256)
-	(Exim 4.80.1)
-	(envelope-from <lewis@toohey.co.uk>)
-	id 1Wnpg3-0004a7-CY
-	for linux-acpi@vger.kernel.org; Fri, 23 May 2014 14:38:29 +0100
-Received: from mail-qg0-f53.google.com ([209.85.192.53])
-	by mail44.extendcp.com with esmtpsa (TLSv1:RC4-SHA:128)
-	(Exim 4.80.1)
-	id 1Wnpg1-00006C-R4
-	for linux-acpi@vger.kernel.org; Fri, 23 May 2014 14:38:25 +0100
-Received: by mail-qg0-f53.google.com with SMTP id f51so7948709qge.26
-        for <linux-acpi@vger.kernel.org>; Fri, 23 May 2014 06:38:24 -0700 (PDT)
-In-Reply-To: <537F4425.70205@redhat.com>
+Received: from mail.skyhub.de ([78.46.96.112]:47378 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751605AbaEWQsa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 May 2014 12:48:30 -0400
+Content-Disposition: inline
+In-Reply-To: <537F39D7.6090309@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 23 May 2014 13:50, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi Lewis et all,
->
-> On 05/23/2014 02:07 PM, Lewis Toohey wrote:
->> On 23 May 2014 02:34, Aaron Lu <aaron.lu@intel.com> wrote:
->>> On 05/21/2014 09:02 PM, Lewis Toohey wrote:
->>>> Hi Aaron
->>>>
->>>> I followed your instructions and can report some limited success. I
->>>> have two interfaces listed in /sys/class/backlight namely:
->>>>   acpi_video0  radeon_bl0
->>>>
->>>> max_brightness for acpi_video0 is 11. Echo-ing new values to
->>>> brightness appears to have no effect.
->>>>
->>>> max_brightness for radeon_bl0 is 255. Echo-ing new values to
->>>> brightness does adjust the screen brightness as you would expect.
->>>>
->>>> Results are the same on both battery and powered.
->>>>
->>>> I hope that is useful.
->>>
->>> I think Hans' patchset should solve your problem, can you please give it
->>> a try? You will need to pass the video.use_native_backlight=1 to kernel
->>> cmdline when testing, thanks.
->>>
->>> [PATCH resend 0/4] Make video.use_native_backlight=1 work properly with nouveau
->>> http://www.spinics.net/lists/dri-devel/msg59941.html
->>>
->>> -Aaron
->>
->> Aaron
->>
->> Thank you for this. Unfortunately I am going to have to ask you for a
->> bit of help here as I am now, officially, "out of my depth". I
->> appreciate this is a pain as you will have to take time explaining it
->> to me and I apologise for that.
->>
->> I have figured out how to pass the kernel command line argument, this
->> is not an issue.
->>
->> I have located the patch you refer to here:
->> https://bugzilla.redhat.com/attachment.cgi?id=894577
->> (which I believe is correct) but I cannot figure out how to apply it.
->
-> That is not the right patch, you need a set of 2 patches. I've attached
-> them to this mail. Note please ignore the numbering starting at 6, these
-> are the 2 patches you need. You will need to build a Linux kernel with
-> these 2 patches applied, see your distributions documentation on how
-> to build a kernel from source.
->
-> I don't know which distro you are using, I've a Fedora kernel with this
-> patches included available here:
->
-> http://people.fedoraproject.org/~jwrdegoede/rhbz1093171/
->
-> Regards,
->
-> Hans
+On Fri, May 23, 2014 at 02:06:47PM +0200, Tomasz Nowicki wrote:
+> I had that thoughts too. Looking at simple MCE calls, yes, it does
+> make sense to create corresponding arch-specific version and provide
+> logic as needed. I think that NMI is much more complicated....
 
-Hans
+How about this ontop of your patches. It builds here but it is not
+trivial for me to try it on !X86. Maybe you can test it quicker than me
+finding some other arch box first... :)
 
-Thank you for this. Apparently my understanding was way off!
+Thanks.
 
-Building a kernel is new territory for me, however, there appears to
-be a relatively straightforward guide here:
-https://wiki.ubuntu.com/Kernel/BuildYourOwnKernel.
-
-I will attempt to follow this tonight and apply the patches that you
-have kindly provided. Assuming I manage it I will then report back to
-yourself and Aaron.
-
-Many thanks
-
+---
+Index: b/arch/x86/include/asm/nmi.h
+===================================================================
+--- a/arch/x86/include/asm/nmi.h	2014-05-23 17:17:08.192266007 +0200
++++ b/arch/x86/include/asm/nmi.h	2014-05-23 18:45:06.636178772 +0200
+@@ -57,7 +57,7 @@ struct nmiaction {
+ 
+ int __register_nmi_handler(unsigned int, struct nmiaction *);
+ 
+-void unregister_nmi_handler(unsigned int, const char *);
++void unregister_nmi_handler(unsigned int type, const char *name);
+ 
+ void stop_nmi(void);
+ void restart_nmi(void);
+Index: b/drivers/acpi/apei/ghes.c
+===================================================================
+--- a/drivers/acpi/apei/ghes.c	2014-05-23 17:17:27.680265685 +0200
++++ b/drivers/acpi/apei/ghes.c	2014-05-23 17:46:32.968236841 +0200
+@@ -47,15 +47,13 @@
+ #include <linux/genalloc.h>
+ #include <linux/pci.h>
+ #include <linux/aer.h>
++#include <linux/nmi.h>
+ 
+ #include <acpi/ghes.h>
+ #ifdef CONFIG_X86_MCE
+ #include <asm/mce.h>
+ #endif
+ #include <asm/tlbflush.h>
+-#ifdef CONFIG_ACPI_APEI_NMI
+-#include <asm/nmi.h>
+-#endif
+ 
+ #include "apei-internal.h"
+ 
+Index: b/include/linux/nmi.h
+===================================================================
+--- a/include/linux/nmi.h	2014-05-23 17:42:55.928240428 +0200
++++ b/include/linux/nmi.h	2014-05-23 18:44:41.244179192 +0200
+@@ -53,4 +53,11 @@ extern int proc_dowatchdog(struct ctl_ta
+ 			   void __user *, size_t *, loff_t *);
+ #endif
+ 
++#ifdef CONFIG_ACPI_APEI_NMI
++#include <asm/nmi.h>
++#else
++#define register_nmi_handler(t, fn, fg, n, init...) do { } while(0)
++void unregister_nmi_handler(unsigned int type, const char *name) {}
++#endif /* CONFIG_ACPI_APEI_NMI */
++
+ #endif
 
 -- 
-Lewis
+Regards/Gruss,
+    Boris.
 
-Lewis@Toohey.co.uk
-0782 588 4158
+Sent from a fat crate under my desk. Formatting is fine.
+--
