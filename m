@@ -1,97 +1,106 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 3/7 v4] CPER: Adjust code flow of some functions
-Date: Thu, 22 May 2014 21:49:10 -0400
-Message-ID: <20140523014910.GB16945@gchen.bj.intel.com>
-References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
- <1400142646-10127-4-git-send-email-gong.chen@linux.intel.com>
- <20140521110521.GF21205@pd.tnic>
- <20140521235159.GB1644@gchen.bj.intel.com>
- <20140522105242.GG4383@pd.tnic>
+From: Ben Skeggs <skeggsb@gmail.com>
+Subject: Re: [PATCH resend 1/4] nouveau: Don't check acpi_video_backlight_support()
+ before registering backlight
+Date: Fri, 23 May 2014 14:13:47 +1000
+Message-ID: <CACAvsv5Ctejiu7Y6e_1bV5VqFuD5Ew77fr3ShBohS4gWDvduHA@mail.gmail.com>
+References: <1400679596-19663-1-git-send-email-hdegoede@redhat.com>
+	<1400679596-19663-2-git-send-email-hdegoede@redhat.com>
+	<2450872.0pLqjZcv9y@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jq0ap7NbKX2Kqbes"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:13521 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750863AbaEWCQ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 May 2014 22:16:57 -0400
-Content-Disposition: inline
-In-Reply-To: <20140522105242.GG4383@pd.tnic>
+Received: from mail-qc0-f176.google.com ([209.85.216.176]:56903 "EHLO
+	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750814AbaEWENs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 May 2014 00:13:48 -0400
+In-Reply-To: <2450872.0pLqjZcv9y@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hans de Goede <hdegoede@redhat.com>, Aaron Lu <aaron.lu@intel.com>, linux-fbdev@vger.kernel.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Bryan Wu <cooloney@gmail.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Skeggs <bskeggs@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Lee Jones <lee.jones@linaro.org>, Len Brown <lenb@kernel.org>
 
+On Thu, May 22, 2014 at 9:30 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Wednesday, May 21, 2014 03:39:53 PM Hans de Goede wrote:
+>> acpi_video_backlight_support() is supposed to be called by other (vendor
+>> specific) firmware backlight controls, not by native / raw backlight controls
+>> like nv_backlight.
+>>
+>> Userspace will normally prefer firmware interfaces over raw interfaces, so
+>> if acpi_video backlight support is present it will use that even if
+>> nv_backlight is registered as well.
+>>
+>> Except when video.use_native_backlight is present on the kernel cmdline
+>> (or enabled through a dmi based quirk). As the name indicates the goal here
+>> is to make only the raw interface available to userspace so that it will use
+>> that (it only does this when it sees a win8 compliant bios).
+>>
+>> This is done by:
+>> 1) Not registering any acpi_video# backlight devices; and
+>> 2) Making acpi_video_backlight_support() return true so that other firmware
+>> drivers, ie acer_wmi, thinkpad_acpi, dell_laptop, etc. Don't register their
+>> own vender specific interfaces.
+>>
+>> Currently nouveau breaks this setup, as when acpi_video_backlight_support()
+>> returns true, it does not register itself, resulting in no backlight control
+>> at all.
+>>
+>> This is esp. going to be a problem with 3.16 which will default to
+>> video.use_native_backlight=1, and thus nouveau based laptops with a win8 bios
+>> will get no backlight control at all.
+>>
+>> This also likely explains why the previous attempt to make
+>> video.use_native_backlight=1 the default was not a success, as without this
+>> patch having a default of video.use_native_backlight=1 will cause regressions.
+>>
+>> Note this effectively reverts commit 5bead799
+>>
+>> Also see: https://bugzilla.redhat.com/show_bug.cgi?id=1093171
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>
+> It would be good to have an ACK from the nouveau people for this one.
+Acked-by: Ben Skeggs <bskeggs@redhat.com>
 
---jq0ap7NbKX2Kqbes
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+;)
 
-On Thu, May 22, 2014 at 12:52:42PM +0200, Borislav Petkov wrote:
-> > > > +const char *cper_mem_err_type_str(unsigned int etype)
-> > > >  {
-> > > > -	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
-> > > > -		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
-> > > > -	if (mem->validation_bits & CPER_MEM_VALID_PA)
-> > > > -		printk("%s""physical_address: 0x%016llx\n",
-> > > > -		       pfx, mem->physical_addr);
-> > > > -	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
-> > > > -		printk("%s""physical_address_mask: 0x%016llx\n",
-> > >=20
-> > > The physical address mask is still not part of the tracepoint as a u8=
- as
-> > > we talked.
-> > >=20
-> > I thought out discussion is only for trace part. But it is OK to me to
-> > make whole style aligned.
->=20
-> No, I'm not talking about style - I'm talking about adding the physical a=
-ddress
-> mask to the tracepoint call:
-
-If so, it has been there already. Maybe you should check patch 5/7. I merge
-pa/pa_mask into pa_info as a whole to avoid too much calculation/logic in
-trace.
-
-> +TRACE_EVENT(extlog_mem_event,
-> +       TP_PROTO(u32 etype,
-> +                const uuid_le *fru_id,
-> +                u64 error_count,
->=20
-> Btw, is that the error_count we're reporting?? You surely can't claim
-> that we'll ever report 2^64-1 errors, right?
->=20
-> I'd make that u32 and I'd call it
->=20
-> 		u32 error_number;
-Fine.
->=20
-> as it is a counter we're incrementing.
->=20
-> +                u32 severity,
-Fine.
-
---jq0ap7NbKX2Kqbes
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTfqkWAAoJEI01n1+kOSLHU+4P/RBAbP/GktSak+ifwnMTCLZG
-9zXjw42duJA3AU1Obh7C+OVXwRj6rrX38HRdD9YirieTh+qYOF1ffp16bQrvXIZe
-NSUOF7iqk0UOW36AyIWvM3mk+NlPHHP8pd1LwHL+JhNmz2AUjQakDoL8+N6aP69a
-I4oExvIPUUPA1K+0f72zLp25EM5dLY70sbrl8Dh3obiotdQoojn0JQcZwNonROVC
-0TbruEH70ft5OGLc/chnOwr+nsMAukLpzBtdz2FpPiLqRUbvC3RcSFWrQ7pqRio0
-qMRznniW2bSb1Au8ckSNas3oyPY1GettDmSJUeNJ/yiJDGhTbKAFT8S4JfpF3XIS
-3IF5T1BIv9gvF4NmnTre+pzHtihIabPMQ9K2lGrRpm3kZc1k/SrA8NiWYVfhN7kY
-MgjeaWWTgzBL16lSdQW1vCct0+3MG2hpwNvxrr+wHvzrmx2N0ChWdWw+IcE258qP
-IlvTWP9EnEYAW8vORVN2KYgSrDq6vDmwwk5DcOrpezFCDepwoKUo7PG86HJp0yRz
-Mf1Oj31MYs7mnCpX+xCu14Ckm5E5/U7PRXYRpk3+4odSIVWJoWiidJ5DgbiWx8s6
-JEiVQFM/Fyz+CrgmsSCPjmeXRCbf0ATl2/6VBVKyB3UsoRHA7Xm1DJhwyE2FIbor
-uufXJ7l+/klWS6H701XB
-=ZAxS
------END PGP SIGNATURE-----
-
---jq0ap7NbKX2Kqbes--
+>
+>> ---
+>>  drivers/gpu/drm/nouveau/nouveau_backlight.c | 9 ---------
+>>  1 file changed, 9 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/nouveau/nouveau_backlight.c b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+>> index 630f6e8..2c1e4aa 100644
+>> --- a/drivers/gpu/drm/nouveau/nouveau_backlight.c
+>> +++ b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+>> @@ -31,7 +31,6 @@
+>>   */
+>>
+>>  #include <linux/backlight.h>
+>> -#include <linux/acpi.h>
+>>
+>>  #include "nouveau_drm.h"
+>>  #include "nouveau_reg.h"
+>> @@ -222,14 +221,6 @@ nouveau_backlight_init(struct drm_device *dev)
+>>       struct nouveau_device *device = nv_device(drm->device);
+>>       struct drm_connector *connector;
+>>
+>> -#ifdef CONFIG_ACPI
+>> -     if (acpi_video_backlight_support()) {
+>> -             NV_INFO(drm, "ACPI backlight interface available, "
+>> -                          "not registering our own\n");
+>> -             return 0;
+>> -     }
+>> -#endif
+>> -
+>>       list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
+>>               if (connector->connector_type != DRM_MODE_CONNECTOR_LVDS &&
+>>                   connector->connector_type != DRM_MODE_CONNECTOR_eDP)
+>>
+>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
