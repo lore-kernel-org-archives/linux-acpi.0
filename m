@@ -1,71 +1,35 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCHv2 2/4] ACPI / LPSS: custom power domain for LPSS
-Date: Fri, 23 May 2014 15:30:53 +0300
-Message-ID: <20140523123052.GA18308@xps8300>
-References: <1400161226-24067-1-git-send-email-heikki.krogerus@linux.intel.com>
- <4546817.Xm9e491t74@vostro.rjw.lan>
- <20140521105258.GB29349@xps8300>
- <1484699.LPqrzmlevB@vostro.rjw.lan>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] Documentation / ACPI: Fix location of GPIO documentation
+Date: Fri, 23 May 2014 14:40:14 +0200
+Message-ID: <CACRpkdZ60ZyX751BZgU+c_RSQ67TEEyhGp0GySP5r=NS22GjGA@mail.gmail.com>
+References: <1400680705-11078-1-git-send-email-jarkko.nikula@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:24097 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750981AbaEWMbF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 May 2014 08:31:05 -0400
-Content-Disposition: inline
-In-Reply-To: <1484699.LPqrzmlevB@vostro.rjw.lan>
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:62462 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751452AbaEWMkP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 May 2014 08:40:15 -0400
+Received: by mail-ob0-f176.google.com with SMTP id wo20so5261633obc.21
+        for <linux-acpi@vger.kernel.org>; Fri, 23 May 2014 05:40:14 -0700 (PDT)
+In-Reply-To: <1400680705-11078-1-git-send-email-jarkko.nikula@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mike Turquette <mturquette@linaro.org>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Thu, May 22, 2014 at 01:28:16AM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, May 21, 2014 01:52:58 PM Heikki Krogerus wrote:
-> > On Wed, May 21, 2014 at 01:01:31PM +0200, Rafael J. Wysocki wrote:
-> > > On Wednesday, May 21, 2014 01:05:11 PM Heikki Krogerus wrote:
-> > > > On Tue, May 20, 2014 at 11:33:09PM +0200, Rafael J. Wysocki wrote:
-> > > > > First, is the 10 ms sleep really necessary?  I'd expect the AML to take care of
-> > > > > such delays (this is not a PCI device formally).
-> > > > 
-> > > > Unfortunately that is not the case. There is nothing in the AML for
-> > > > this. Mika, correct me if I'm wrong.
-> > > > 
-> > > > > And because this is not a PCI device formally, why is the comment talking about
-> > > > > the PCI spec?  Why is PCI relevant in any way here?
-> > > > 
-> > > > Under the hood the devices are still PCI devices, even if they
-> > > > formally aren't. Maybe I should point that out in the comment..
-> > > > 
-> > > > We put the sleep there because without it there was no guarantee if
-> > > > the device was properly resumed by the time the drivers resume hooks
-> > > > were called. The symptom in case of a failure was simply that the
-> > > > registers could not be written, which leads into timeouts at least in
-> > > > case of the I2C and UART and making them unusable until the next
-> > > > suspend followed by resume.
-> > > 
-> > > OK, so the msleep() is functionally necessary.  Instead of talking about the
-> > > PCI in the comment, which will make a casual reader think "What the heck?",
-> > > please say something like "the delay is necessary for the subsequent register
-> > > writes to succeed on <example system>".
-> > 
-> > OK.
-> 
-> So I have one more concern.  Namely, async suspend is not enabled for the LPSS
-> devices, so the delays will accumulate for them and that may become a big deal
-> at one point.
-> 
-> This may be addressed either (1) by enabling async suspend for them or, which would
-> be more complicated, by doing the msleep() once for the whole LPSS in .resume_early()
-> and restoring the register values in .resume() without delaying.
-> 
-> For (1) I have the following untested patch (on top of my bleeding-edge branch, but
-> it should apply to the mainline too if I haven't overlooked anything).  Can you
-> please try it on boxes with LPSS and see if it doesn't break suspend/resume on them?
+On Wed, May 21, 2014 at 3:58 PM, Jarkko Nikula
+<jarkko.nikula@linux.intel.com> wrote:
 
-Done, and there were no problems. I tested it with HSW, BYT and also BDW.
+> Commit fd8e198cfcaa ("Documentation: gpiolib: document new interface")
+> moved Documentation/gpio.txt to Documentation/gpio/gpio-legacy.txt and added
+> new documents for descriptor-based interface so fix the the location here to
+> point Documentation/gpio/ since that what commit ccb6fbb99020
+> ("Documentation / ACPI: update to GPIO descriptor API") was looking for.
+>
+> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-Thanks,
+Patch applied w/Mika's ACK.
 
--- 
-heikki
+Yours,
+Linus Walleij
