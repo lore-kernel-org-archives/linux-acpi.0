@@ -1,92 +1,76 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 4/7] acpi, apei, ghes: Factor out NMI error notification
- context.
-Date: Fri, 23 May 2014 18:48:24 +0200
-Message-ID: <20140523164824.GG21332@pd.tnic>
-References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org>
- <1397056476-9183-5-git-send-email-tomasz.nowicki@linaro.org>
- <20140513194125.GD8760@pd.tnic>
- <537F39D7.6090309@linaro.org>
+From: Baoquan He <bhe@redhat.com>
+Subject: Re: [Patch v3 1/2] introduce variable acpi_lapic into ia64
+Date: Sat, 24 May 2014 17:42:47 +0800
+Message-ID: <20140524094247.GA1873@dhcp-17-102.nay.redhat.com>
+References: <1399265306-8553-1-git-send-email-bhe@redhat.com>
+ <18692765.A1lGfe6rx4@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:47378 "EHLO mail.skyhub.de"
+Received: from mx1.redhat.com ([209.132.183.28]:33589 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751605AbaEWQsa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 May 2014 12:48:30 -0400
+	id S1750751AbaEXJmz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 24 May 2014 05:42:55 -0400
 Content-Disposition: inline
-In-Reply-To: <537F39D7.6090309@linaro.org>
+In-Reply-To: <18692765.A1lGfe6rx4@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, dyoung@redhat.com
 
-On Fri, May 23, 2014 at 02:06:47PM +0200, Tomasz Nowicki wrote:
-> I had that thoughts too. Looking at simple MCE calls, yes, it does
-> make sense to create corresponding arch-specific version and provide
-> logic as needed. I think that NMI is much more complicated....
+On 05/20/14 at 12:57am, Rafael J. Wysocki wrote:
+> On Monday, May 05, 2014 12:48:25 PM Baoquan He wrote:
+> > This variable was defined and assigned in x86, is used to indicate
+> > whether LAPIC exists in MADT. Now introduce it into ia64 to help
+> > make correct judgment when get information for acpi processor later.
+> > 
+> > Signed-off-by: Baoquan He <bhe@redhat.com>
+> 
+> This and [2/2] queued up for 3.16, thanks!
 
-How about this ontop of your patches. It builds here but it is not
-trivial for me to try it on !X86. Maybe you can test it quicker than me
-finding some other arch box first... :)
+Thanks, Rafael!
 
-Thanks.
-
----
-Index: b/arch/x86/include/asm/nmi.h
-===================================================================
---- a/arch/x86/include/asm/nmi.h	2014-05-23 17:17:08.192266007 +0200
-+++ b/arch/x86/include/asm/nmi.h	2014-05-23 18:45:06.636178772 +0200
-@@ -57,7 +57,7 @@ struct nmiaction {
- 
- int __register_nmi_handler(unsigned int, struct nmiaction *);
- 
--void unregister_nmi_handler(unsigned int, const char *);
-+void unregister_nmi_handler(unsigned int type, const char *name);
- 
- void stop_nmi(void);
- void restart_nmi(void);
-Index: b/drivers/acpi/apei/ghes.c
-===================================================================
---- a/drivers/acpi/apei/ghes.c	2014-05-23 17:17:27.680265685 +0200
-+++ b/drivers/acpi/apei/ghes.c	2014-05-23 17:46:32.968236841 +0200
-@@ -47,15 +47,13 @@
- #include <linux/genalloc.h>
- #include <linux/pci.h>
- #include <linux/aer.h>
-+#include <linux/nmi.h>
- 
- #include <acpi/ghes.h>
- #ifdef CONFIG_X86_MCE
- #include <asm/mce.h>
- #endif
- #include <asm/tlbflush.h>
--#ifdef CONFIG_ACPI_APEI_NMI
--#include <asm/nmi.h>
--#endif
- 
- #include "apei-internal.h"
- 
-Index: b/include/linux/nmi.h
-===================================================================
---- a/include/linux/nmi.h	2014-05-23 17:42:55.928240428 +0200
-+++ b/include/linux/nmi.h	2014-05-23 18:44:41.244179192 +0200
-@@ -53,4 +53,11 @@ extern int proc_dowatchdog(struct ctl_ta
- 			   void __user *, size_t *, loff_t *);
- #endif
- 
-+#ifdef CONFIG_ACPI_APEI_NMI
-+#include <asm/nmi.h>
-+#else
-+#define register_nmi_handler(t, fn, fg, n, init...) do { } while(0)
-+void unregister_nmi_handler(unsigned int type, const char *name) {}
-+#endif /* CONFIG_ACPI_APEI_NMI */
-+
- #endif
-
--- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+> 
+> > ---
+> >  arch/ia64/include/asm/acpi.h | 1 +
+> >  arch/ia64/kernel/acpi.c      | 3 +++
+> >  2 files changed, 4 insertions(+)
+> > 
+> > diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
+> > index d651102..b478219 100644
+> > --- a/arch/ia64/include/asm/acpi.h
+> > +++ b/arch/ia64/include/asm/acpi.h
+> > @@ -85,6 +85,7 @@ ia64_acpi_release_global_lock (unsigned int *lock)
+> >  	((Acq) = ia64_acpi_release_global_lock(&facs->global_lock))
+> >  
+> >  #ifdef	CONFIG_ACPI
+> > +extern int acpi_lapic;
+> >  #define acpi_disabled 0	/* ACPI always enabled on IA64 */
+> >  #define acpi_noirq 0	/* ACPI always enabled on IA64 */
+> >  #define acpi_pci_disabled 0 /* ACPI PCI always enabled on IA64 */
+> > diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+> > index 0d407b3..615ef81 100644
+> > --- a/arch/ia64/kernel/acpi.c
+> > +++ b/arch/ia64/kernel/acpi.c
+> > @@ -56,6 +56,7 @@
+> >  
+> >  #define PREFIX			"ACPI: "
+> >  
+> > +int acpi_lapic;
+> >  unsigned int acpi_cpei_override;
+> >  unsigned int acpi_cpei_phys_cpuid;
+> >  
+> > @@ -676,6 +677,8 @@ int __init early_acpi_boot_init(void)
+> >  	if (ret < 1)
+> >  		printk(KERN_ERR PREFIX
+> >  		       "Error parsing MADT - no LAPIC entries\n");
+> > +	else
+> > +		acpi_lapic = 1;
+> >  
+> >  #ifdef CONFIG_SMP
+> >  	if (available_cpus == 0) {
+> > 
+> 
+> -- 
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
