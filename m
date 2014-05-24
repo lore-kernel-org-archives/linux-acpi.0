@@ -1,76 +1,120 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: [Patch v3 1/2] introduce variable acpi_lapic into ia64
-Date: Sat, 24 May 2014 17:42:47 +0800
-Message-ID: <20140524094247.GA1873@dhcp-17-102.nay.redhat.com>
-References: <1399265306-8553-1-git-send-email-bhe@redhat.com>
- <18692765.A1lGfe6rx4@vostro.rjw.lan>
+From: Lewis Toohey <lewis@toohey.co.uk>
+Subject: Re: Bug Report - [Acer Aspire V5-122P] Unable to adjust screen brightness
+Date: Sat, 24 May 2014 12:23:25 +0100
+Message-ID: <CADNzsyPS-PyTER3RPMyxLi3A8izrxaOJQc1SDoeFgbRpTe9nDQ@mail.gmail.com>
+References: <CADNzsyM9qiWf_KV4uuNDnkcv7JvCSi00qHiNQTWfVN-pZtWqig@mail.gmail.com>
+ <537BFF89.9010806@intel.com> <CADNzsyMn5viCQDc7HXqZiH92BYNp9TZAtMNbuQMAkZXy6hj0Dg@mail.gmail.com>
+ <537C9DC5.5040408@intel.com> <CADNzsyO7gzhtng0WmKA9DGZAreEGVsbAJ+KGdgJu+9zr_LyR8g@mail.gmail.com>
+ <537EA5B7.9050509@intel.com> <CADNzsyORVbpqUMsZmKzBn_=Ma99dbLhKo_bfw3bvOASLwTkLsA@mail.gmail.com>
+ <537F4425.70205@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33589 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750751AbaEXJmz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 May 2014 05:42:55 -0400
-Content-Disposition: inline
-In-Reply-To: <18692765.A1lGfe6rx4@vostro.rjw.lan>
+Received: from mailscan22.extendcp.co.uk ([176.32.226.68]:33805 "EHLO
+	mailscan1.extendcp.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750748AbaEXLXw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 24 May 2014 07:23:52 -0400
+Received: from lb1.hi.local ([10.0.1.197] helo=mailscan2.extendcp.co.uk)
+	by mailscan-g64.hi.local with esmtp (Exim 4.80.1)
+	(envelope-from <lewis@toohey.co.uk>)
+	id 1WoA3K-0000zg-26
+	for linux-acpi@vger.kernel.org; Sat, 24 May 2014 12:23:50 +0100
+Received: from lb1.hi.local ([10.0.1.197] helo=mail44.extendcp.co.uk)
+	by mailscan2.extendcp.co.uk with esmtps (UNKNOWN:DHE-RSA-AES256-GCM-SHA384:256)
+	(Exim 4.80.1)
+	(envelope-from <lewis@toohey.co.uk>)
+	id 1WoA3I-0006fw-85
+	for linux-acpi@vger.kernel.org; Sat, 24 May 2014 12:23:50 +0100
+Received: from mail-qc0-f174.google.com ([209.85.216.174])
+	by mail44.extendcp.com with esmtpsa (TLSv1:RC4-SHA:128)
+	(Exim 4.80.1)
+	id 1WoA3H-00012s-Dx
+	for linux-acpi@vger.kernel.org; Sat, 24 May 2014 12:23:47 +0100
+Received: by mail-qc0-f174.google.com with SMTP id c9so1600387qcz.19
+        for <linux-acpi@vger.kernel.org>; Sat, 24 May 2014 04:23:45 -0700 (PDT)
+In-Reply-To: <537F4425.70205@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, dyoung@redhat.com
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
 
-On 05/20/14 at 12:57am, Rafael J. Wysocki wrote:
-> On Monday, May 05, 2014 12:48:25 PM Baoquan He wrote:
-> > This variable was defined and assigned in x86, is used to indicate
-> > whether LAPIC exists in MADT. Now introduce it into ia64 to help
-> > make correct judgment when get information for acpi processor later.
-> > 
-> > Signed-off-by: Baoquan He <bhe@redhat.com>
-> 
-> This and [2/2] queued up for 3.16, thanks!
+On 23 May 2014 13:50, Hans de Goede <hdegoede@redhat.com> wrote:
+> Hi Lewis et all,
+>
+> On 05/23/2014 02:07 PM, Lewis Toohey wrote:
+>> On 23 May 2014 02:34, Aaron Lu <aaron.lu@intel.com> wrote:
+>>> On 05/21/2014 09:02 PM, Lewis Toohey wrote:
+>>>> Hi Aaron
+>>>>
+>>>> I followed your instructions and can report some limited success. I
+>>>> have two interfaces listed in /sys/class/backlight namely:
+>>>>   acpi_video0  radeon_bl0
+>>>>
+>>>> max_brightness for acpi_video0 is 11. Echo-ing new values to
+>>>> brightness appears to have no effect.
+>>>>
+>>>> max_brightness for radeon_bl0 is 255. Echo-ing new values to
+>>>> brightness does adjust the screen brightness as you would expect.
+>>>>
+>>>> Results are the same on both battery and powered.
+>>>>
+>>>> I hope that is useful.
+>>>
+>>> I think Hans' patchset should solve your problem, can you please give it
+>>> a try? You will need to pass the video.use_native_backlight=1 to kernel
+>>> cmdline when testing, thanks.
+>>>
+>>> [PATCH resend 0/4] Make video.use_native_backlight=1 work properly with nouveau
+>>> http://www.spinics.net/lists/dri-devel/msg59941.html
+>>>
+>>> -Aaron
+>>
+>> Aaron
+>>
+>> Thank you for this. Unfortunately I am going to have to ask you for a
+>> bit of help here as I am now, officially, "out of my depth". I
+>> appreciate this is a pain as you will have to take time explaining it
+>> to me and I apologise for that.
+>>
+>> I have figured out how to pass the kernel command line argument, this
+>> is not an issue.
+>>
+>> I have located the patch you refer to here:
+>> https://bugzilla.redhat.com/attachment.cgi?id=894577
+>> (which I believe is correct) but I cannot figure out how to apply it.
+>
+> That is not the right patch, you need a set of 2 patches. I've attached
+> them to this mail. Note please ignore the numbering starting at 6, these
+> are the 2 patches you need. You will need to build a Linux kernel with
+> these 2 patches applied, see your distributions documentation on how
+> to build a kernel from source.
+>
+> I don't know which distro you are using, I've a Fedora kernel with this
+> patches included available here:
+>
+> http://people.fedoraproject.org/~jwrdegoede/rhbz1093171/
+>
+> Regards,
+>
+> Hans
 
-Thanks, Rafael!
+Hans / Aaron
 
-> 
-> > ---
-> >  arch/ia64/include/asm/acpi.h | 1 +
-> >  arch/ia64/kernel/acpi.c      | 3 +++
-> >  2 files changed, 4 insertions(+)
-> > 
-> > diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
-> > index d651102..b478219 100644
-> > --- a/arch/ia64/include/asm/acpi.h
-> > +++ b/arch/ia64/include/asm/acpi.h
-> > @@ -85,6 +85,7 @@ ia64_acpi_release_global_lock (unsigned int *lock)
-> >  	((Acq) = ia64_acpi_release_global_lock(&facs->global_lock))
-> >  
-> >  #ifdef	CONFIG_ACPI
-> > +extern int acpi_lapic;
-> >  #define acpi_disabled 0	/* ACPI always enabled on IA64 */
-> >  #define acpi_noirq 0	/* ACPI always enabled on IA64 */
-> >  #define acpi_pci_disabled 0 /* ACPI PCI always enabled on IA64 */
-> > diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-> > index 0d407b3..615ef81 100644
-> > --- a/arch/ia64/kernel/acpi.c
-> > +++ b/arch/ia64/kernel/acpi.c
-> > @@ -56,6 +56,7 @@
-> >  
-> >  #define PREFIX			"ACPI: "
-> >  
-> > +int acpi_lapic;
-> >  unsigned int acpi_cpei_override;
-> >  unsigned int acpi_cpei_phys_cpuid;
-> >  
-> > @@ -676,6 +677,8 @@ int __init early_acpi_boot_init(void)
-> >  	if (ret < 1)
-> >  		printk(KERN_ERR PREFIX
-> >  		       "Error parsing MADT - no LAPIC entries\n");
-> > +	else
-> > +		acpi_lapic = 1;
-> >  
-> >  #ifdef CONFIG_SMP
-> >  	if (available_cpus == 0) {
-> > 
-> 
-> -- 
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+Just by way of an update, I am trying to test this but have run into
+another gap in my knowledge. Essentially I can compile the standard
+ubuntu kernel (3.13) but the patch breaks this (I assume because the
+patch was written for a  more recent kernel version). I don't know how
+to compile upstream kernels for ubuntu and have asked for help here:
+
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1315834/comments/21
+
+I will let you know when I make some progress.
+
+Thank you again for your efforts here. Much appreciated.
+
+-- 
+Lewis
+
+Lewis@Toohey.co.uk
+0782 588 4158
