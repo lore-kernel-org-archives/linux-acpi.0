@@ -1,7 +1,7 @@
 From: Lewis Toohey <lewis@toohey.co.uk>
 Subject: Re: Bug Report - [Acer Aspire V5-122P] Unable to adjust screen brightness
-Date: Sat, 24 May 2014 12:23:25 +0100
-Message-ID: <CADNzsyPS-PyTER3RPMyxLi3A8izrxaOJQc1SDoeFgbRpTe9nDQ@mail.gmail.com>
+Date: Sun, 25 May 2014 21:42:54 +0100
+Message-ID: <CADNzsyMCnbNu6CbWfV73CM99Qs=Lw22Q8pSQ23O31sopNDpaig@mail.gmail.com>
 References: <CADNzsyM9qiWf_KV4uuNDnkcv7JvCSi00qHiNQTWfVN-pZtWqig@mail.gmail.com>
  <537BFF89.9010806@intel.com> <CADNzsyMn5viCQDc7HXqZiH92BYNp9TZAtMNbuQMAkZXy6hj0Dg@mail.gmail.com>
  <537C9DC5.5040408@intel.com> <CADNzsyO7gzhtng0WmKA9DGZAreEGVsbAJ+KGdgJu+9zr_LyR8g@mail.gmail.com>
@@ -10,29 +10,29 @@ References: <CADNzsyM9qiWf_KV4uuNDnkcv7JvCSi00qHiNQTWfVN-pZtWqig@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailscan22.extendcp.co.uk ([176.32.226.68]:33805 "EHLO
+Received: from mailscan22.extendcp.co.uk ([176.32.226.68]:35624 "EHLO
 	mailscan1.extendcp.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750748AbaEXLXw (ORCPT
+	by vger.kernel.org with ESMTP id S1751069AbaEYUnV (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 May 2014 07:23:52 -0400
+	Sun, 25 May 2014 16:43:21 -0400
 Received: from lb1.hi.local ([10.0.1.197] helo=mailscan2.extendcp.co.uk)
 	by mailscan-g64.hi.local with esmtp (Exim 4.80.1)
 	(envelope-from <lewis@toohey.co.uk>)
-	id 1WoA3K-0000zg-26
-	for linux-acpi@vger.kernel.org; Sat, 24 May 2014 12:23:50 +0100
+	id 1WofGJ-0001nZ-Cb
+	for linux-acpi@vger.kernel.org; Sun, 25 May 2014 21:43:19 +0100
 Received: from lb1.hi.local ([10.0.1.197] helo=mail44.extendcp.co.uk)
 	by mailscan2.extendcp.co.uk with esmtps (UNKNOWN:DHE-RSA-AES256-GCM-SHA384:256)
 	(Exim 4.80.1)
 	(envelope-from <lewis@toohey.co.uk>)
-	id 1WoA3I-0006fw-85
-	for linux-acpi@vger.kernel.org; Sat, 24 May 2014 12:23:50 +0100
-Received: from mail-qc0-f174.google.com ([209.85.216.174])
+	id 1WofGI-0007Bo-Hw
+	for linux-acpi@vger.kernel.org; Sun, 25 May 2014 21:43:19 +0100
+Received: from mail-qg0-f44.google.com ([209.85.192.44])
 	by mail44.extendcp.com with esmtpsa (TLSv1:RC4-SHA:128)
 	(Exim 4.80.1)
-	id 1WoA3H-00012s-Dx
-	for linux-acpi@vger.kernel.org; Sat, 24 May 2014 12:23:47 +0100
-Received: by mail-qc0-f174.google.com with SMTP id c9so1600387qcz.19
-        for <linux-acpi@vger.kernel.org>; Sat, 24 May 2014 04:23:45 -0700 (PDT)
+	id 1WofGG-0007mq-G9
+	for linux-acpi@vger.kernel.org; Sun, 25 May 2014 21:43:16 +0100
+Received: by mail-qg0-f44.google.com with SMTP id i50so11199713qgf.31
+        for <linux-acpi@vger.kernel.org>; Sun, 25 May 2014 13:43:15 -0700 (PDT)
 In-Reply-To: <537F4425.70205@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -99,19 +99,46 @@ On 23 May 2014 13:50, Hans de Goede <hdegoede@redhat.com> wrote:
 >
 > Hans
 
-Hans / Aaron
+Hans
 
-Just by way of an update, I am trying to test this but have run into
-another gap in my knowledge. Essentially I can compile the standard
-ubuntu kernel (3.13) but the patch breaks this (I assume because the
-patch was written for a  more recent kernel version). I don't know how
-to compile upstream kernels for ubuntu and have asked for help here:
+Unfortunately I am unable to apply these patches against the latest
+mainline kernel. I get two fails when applying the second patch file
+and then the kernel will not compile. Please see output information
+below.
 
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1315834/comments/21
+Can you advise?
 
-I will let you know when I make some progress.
+Many thanks
 
-Thank you again for your efforts here. Much appreciated.
+===APPLYING PATCHES TO LATEST MAINLINE KERNEL====
+
+lewis@HappyFunMeaowMeaow:~/KernelTesting/Kernel/linux$ patch -p1 <
+0006-backlight-Add-backlight-device-un-registration-notif.patch
+(Stripping trailing CRs from patch; use --binary to disable.)
+patching file drivers/video/backlight/backlight.c
+(Stripping trailing CRs from patch; use --binary to disable.)
+patching file include/linux/backlight.h
+lewis@HappyFunMeaowMeaow:~/KernelTesting/Kernel/linux$ patch -p1 <
+0007-acpi-video-Unregister-the-backlight-device-if-a-raw-.patch
+(Stripping trailing CRs from patch; use --binary to disable.)
+patching file drivers/acpi/video.c
+Hunk #1 FAILED at 151.
+Hunk #2 succeeded at 161 (offset -1 lines).
+Hunk #3 FAILED at 1837.
+Hunk #4 succeeded at 1868 (offset -113 lines).
+Hunk #5 succeeded at 1999 (offset -113 lines).
+Hunk #6 succeeded at 2023 (offset -113 lines).
+2 out of 6 hunks FAILED -- saving rejects to file drivers/acpi/video.c.rej
+
+
+==LAST LINES OF BUILD BEFORE FAIL===
+
+  CC [M]  fs/xfs/xfs_ioctl32.o
+  LD [M]  fs/xfs/xfs.o
+make[1]: Leaving directory `/home/lewis/KernelTesting/Kernel/linux'
+make: *** [debian/stamp/build/kernel] Error 2
+lewis@HappyFunMeaowMeaow:~/KernelTesting/Kernel/linux$
+
 
 -- 
 Lewis
