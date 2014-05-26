@@ -1,185 +1,79 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH V7 08/11] ACPI: always register memory hotplug scan
- handler even if CONFIG_X86_INTEL_LPSS is cleared
-Date: Mon, 26 May 2014 13:56:36 +0300
-Message-ID: <20140526105636.GC1765@lahna.fi.intel.com>
-References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com>
- <1400781753-2682-9-git-send-email-rui.zhang@intel.com>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [PATCH 3/7 v4] CPER: Adjust code flow of some functions
+Date: Mon, 26 May 2014 06:42:21 -0400
+Message-ID: <20140526104221.GA20940@gchen.bj.intel.com>
+References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
+ <1400142646-10127-4-git-send-email-gong.chen@linux.intel.com>
+ <20140521110521.GF21205@pd.tnic>
+ <20140521235159.GB1644@gchen.bj.intel.com>
+ <20140522105242.GG4383@pd.tnic>
+ <20140523014910.GB16945@gchen.bj.intel.com>
+ <20140523093703.GB21332@pd.tnic>
+ <20140523101143.GC21332@pd.tnic>
+ <20140526015944.GA31035@gchen.bj.intel.com>
+ <20140526102151.GE25732@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:42201 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752314AbaEZLJz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 May 2014 07:09:55 -0400
 Content-Disposition: inline
-In-Reply-To: <1400781753-2682-9-git-send-email-rui.zhang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com
+In-Reply-To: <20140526102151.GE25732@pd.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org
 
-On Fri, May 23, 2014 at 02:02:30AM +0800, Zhang Rui wrote:
-> The new ACPI device enumeration mechanism, which will be introduced
-> in a later patch, will enumerate the _HID devices w/o any scan
-> handler attached to platform bus.
-> This means that, for the devices that are attached to a configurable
-> scan handler, we should make sure no platform devices would be
-> created for them even if the scan handler is compiled out.
-> 
-> Fix this problem for lpss devices by always register the lpss scan handler,
-> but with meaningful callbacks only when CONFIG_X86_INTEL_LPSS is set.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/Makefile    |  2 +-
->  drivers/acpi/acpi_lpss.c | 63 ++++++++++++++++++++++++++++++------------------
->  drivers/acpi/internal.h  |  4 ---
->  3 files changed, 41 insertions(+), 28 deletions(-)
-> 
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 171efc2..605eff7 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -39,7 +39,7 @@ acpi-y				+= processor_core.o
->  acpi-y				+= ec.o
->  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
->  acpi-y				+= pci_root.o pci_link.o pci_irq.o
-> -acpi-$(CONFIG_X86_INTEL_LPSS)	+= acpi_lpss.o
-> +acpi-y				+= acpi_lpss.o
->  acpi-y				+= acpi_platform.o
->  acpi-y				+= acpi_pnp.o
->  acpi-y				+= power.o
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 69e29f4..bb5b3f2 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -24,6 +24,8 @@
->  
->  ACPI_MODULE_NAME("acpi_lpss");
->  
-> +#ifdef CONFIG_X86_INTEL_LPSS
-> +
->  #define LPSS_CLK_SIZE	0x04
->  #define LPSS_LTR_SIZE	0x18
->  
-> @@ -159,40 +161,50 @@ static struct lpss_device_desc byt_i2c_dev_desc = {
->  	.shared_clock = &i2c_clock,
->  };
->  
-> +#define LPSS_PTR(desc) ((unsigned long)&desc)
-> +
-> +#else
-> +
-> +#define LPSS_PTR(desc) 0
-> +
-> +#endif
-> +
->  static const struct acpi_device_id acpi_lpss_device_ids[] = {
->  	/* Generic LPSS devices */
-> -	{ "INTL9C60", (unsigned long)&lpss_dma_desc },
-> +	{ "INTL9C60", LPSS_PTR(lpss_dma_desc) },
->  
->  	/* Lynxpoint LPSS devices */
-> -	{ "INT33C0", (unsigned long)&lpt_dev_desc },
-> -	{ "INT33C1", (unsigned long)&lpt_dev_desc },
-> -	{ "INT33C2", (unsigned long)&lpt_dev_desc },
-> -	{ "INT33C3", (unsigned long)&lpt_dev_desc },
-> -	{ "INT33C4", (unsigned long)&lpt_uart_dev_desc },
-> -	{ "INT33C5", (unsigned long)&lpt_uart_dev_desc },
-> -	{ "INT33C6", (unsigned long)&lpt_sdio_dev_desc },
-> +	{ "INT33C0", LPSS_PTR(lpt_dev_desc) },
-> +	{ "INT33C1", LPSS_PTR(lpt_dev_desc) },
-> +	{ "INT33C2", LPSS_PTR(lpt_dev_desc) },
-> +	{ "INT33C3", LPSS_PTR(lpt_dev_desc) },
-> +	{ "INT33C4", LPSS_PTR(lpt_uart_dev_desc) },
-> +	{ "INT33C5", LPSS_PTR(lpt_uart_dev_desc) },
-> +	{ "INT33C6", LPSS_PTR(lpt_sdio_dev_desc) },
->  	{ "INT33C7", },
->  
->  	/* BayTrail LPSS devices */
-> -	{ "80860F09", (unsigned long)&byt_pwm_dev_desc },
-> -	{ "80860F0A", (unsigned long)&byt_uart_dev_desc },
-> -	{ "80860F0E", (unsigned long)&byt_spi_dev_desc },
-> -	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
-> -	{ "80860F41", (unsigned long)&byt_i2c_dev_desc },
-> +	{ "80860F09", LPSS_PTR(byt_pwm_dev_desc) },
-> +	{ "80860F0A", LPSS_PTR(byt_uart_dev_desc) },
-> +	{ "80860F0E", LPSS_PTR(byt_spi_dev_desc) },
-> +	{ "80860F14", LPSS_PTR(byt_sdio_dev_desc) },
-> +	{ "80860F41", LPSS_PTR(byt_i2c_dev_desc) },
->  	{ "INT33B2", },
->  
-> -	{ "INT3430", (unsigned long)&lpt_dev_desc },
-> -	{ "INT3431", (unsigned long)&lpt_dev_desc },
-> -	{ "INT3432", (unsigned long)&lpt_dev_desc },
-> -	{ "INT3433", (unsigned long)&lpt_dev_desc },
-> -	{ "INT3434", (unsigned long)&lpt_uart_dev_desc },
-> -	{ "INT3435", (unsigned long)&lpt_uart_dev_desc },
-> -	{ "INT3436", (unsigned long)&lpt_sdio_dev_desc },
-> +	{ "INT3430", LPSS_PTR(lpt_dev_desc) },
-> +	{ "INT3431", LPSS_PTR(lpt_dev_desc) },
-> +	{ "INT3432", LPSS_PTR(lpt_dev_desc) },
-> +	{ "INT3433", LPSS_PTR(lpt_dev_desc) },
-> +	{ "INT3434", LPSS_PTR(lpt_uart_dev_desc) },
-> +	{ "INT3435", LPSS_PTR(lpt_uart_dev_desc) },
-> +	{ "INT3436", LPSS_PTR(lpt_sdio_dev_desc) },
->  	{ "INT3437", },
->  
->  	{ }
->  };
->  
-> +#ifdef CONFIG_X86_INTEL_LPSS
-> +
->  static int is_memory(struct acpi_resource *res, void *not_used)
->  {
->  	struct resource r;
-> @@ -503,18 +515,23 @@ static void acpi_lpss_unbind(struct device *dev)
->  {
->  	dev->power.set_latency_tolerance = NULL;
->  }
-> +#endif /* CONFIG_X86_INTEL_LPSS */
->  
->  static struct acpi_scan_handler lpss_handler = {
->  	.ids = acpi_lpss_device_ids,
-> -	.attach = acpi_lpss_create_device,
-> -	.bind = acpi_lpss_bind,
-> -	.unbind = acpi_lpss_unbind,
->  };
->  
->  void __init acpi_lpss_init(void)
->  {
-> +#ifdef CONFIG_X86_INTEL_LPSS
->  	if (!lpt_clk_init()) {
->  		bus_register_notifier(&platform_bus_type, &acpi_lpss_nb);
-> +		lpss_handler.attach = acpi_lpss_create_device;
-> +		lpss_handler.bind = acpi_lpss_bind;
-> +		lpss_handler.unbind = acpi_lpss_unbind;
->  		acpi_scan_add_handler(&lpss_handler);
-> +		return;
->  	}
-> +#endif
-> +	acpi_scan_add_handler(&lpss_handler);
 
-I'm wondering whether it is worth the ugliness to get platform bus
-enumeration the default?
+--OXfL5xGRrasGEqWY
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Since you already have the PNP whitelist, can't we just use that for PNP
-and keep these files as they are? In other words, don't make any kind of
-physical device by default and let the scan handlers to decide.
+On Mon, May 26, 2014 at 12:21:51PM +0200, Borislav Petkov wrote:
+> Date: Mon, 26 May 2014 12:21:51 +0200
+> From: Borislav Petkov <bp@alien8.de>
+> To: "Chen, Gong" <gong.chen@linux.intel.com>
+> Cc: tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org
+> Subject: Re: [PATCH 3/7 v4] CPER: Adjust code flow of some functions
+> User-Agent: Mutt/1.5.23 (2014-03-12)
+>=20
+> On Sun, May 25, 2014 at 09:59:44PM -0400, Chen, Gong wrote:
+> > On Fri, May 23, 2014 at 12:11:43PM +0200, Borislav Petkov wrote:
+> > > +	TP_printk("%d %s error: %s %s %llx (mask lsb: %x), %s%s",
+> > What if pa_mask_lsb not existing?
+>=20
+> Then you make it the default which says that all bits in the mask are
+> invalid: -1, i.e. 255.
+>=20
+> This becomes part of the interface then, just like phys_addr is
+> 0xfffff... ,i.e. -1 in the invalid case.
+>=20
+OK, fine to me. I will update it soon.
 
->  }
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 4a9e999..bc7d102 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -65,11 +65,7 @@ int acpi_debugfs_init(void);
->  #else
->  static inline void acpi_debugfs_init(void) { return; }
->  #endif
-> -#ifdef CONFIG_X86_INTEL_LPSS
->  void acpi_lpss_init(void);
-> -#else
-> -static inline void acpi_lpss_init(void) {}
-> -#endif
->  
->  acpi_status acpi_hotplug_schedule(struct acpi_device *adev, u32 src);
->  bool acpi_queue_hotplug_work(struct work_struct *work);
-> -- 
-> 1.8.3.2
+--OXfL5xGRrasGEqWY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTgxqNAAoJEI01n1+kOSLH0KgP/itmuZnJbepFQkQF4FLIUsJZ
+161zTwRMghnywihETsvMuIBJ3vcz5m4CXnOpnTYDrBO6TT77rlemB7Zr9Q5D3nkj
+ovkwSAY7+qewR3V0zFPJwOMb7M9MynvW+P/sYOqxH6SzC7KyHg7Z7Mor29+ZDPSl
+WKH5TzI99QBSsoWKPOeXW79L5rEj8OmbqqgtA36FYxaJ0Q4c/R6V2nZDANwEs7dA
+cP48nTGo7TbHjHeyK3vVFoWMz0NM+k+0EgGnPHFUvwD6TeDic5dNKxPPQ1eb1LdX
+wZlRiRv/7FX7ygvgFJMjgVHiqxngh/F8B777zM4DlZFUTJk77/YJvbgQl1Hrin7p
+edRMZ6Z750w5cLqn51n2tnN3KwCOQde+TAupIE/68G07zXokQ4F00hEd/JfaHI6j
+JjnGBgeYQDZsah7G3uyJ47T5EERDfRQgaztlzDO0LeWVdROZiXhVStPSE3zbjJbo
+MvcU17NXQ001p5DcuofD070fJXY2yh5Hp6W4cYMgmh3+Ro1FNotnEy5/uHS3s1Ao
+rq9d+0M70IenRhoVNqHeP9TrTIWey3/VdlP3iWrZx+G50yFA2uP1HzEZO1e4iAKq
+ZLA1NIeIlQbvMXFDvctWBIU72VG+r+7FUgOnWn8com2cm4kCOIlqK5ait0kFgoA1
+EdjoDDTcgE8BTJafqtSo
+=zyhr
+-----END PGP SIGNATURE-----
+
+--OXfL5xGRrasGEqWY--
