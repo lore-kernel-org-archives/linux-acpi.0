@@ -1,64 +1,44 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH V7 10/11] ACPI: use platform bus as the default bus for
- _HID enumeration
-Date: Mon, 26 May 2014 13:21:45 +0300
-Message-ID: <20140526102145.GB1765@lahna.fi.intel.com>
-References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com>
- <1400781753-2682-11-git-send-email-rui.zhang@intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 3/7 v4] CPER: Adjust code flow of some functions
+Date: Mon, 26 May 2014 12:21:51 +0200
+Message-ID: <20140526102151.GE25732@pd.tnic>
+References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
+ <1400142646-10127-4-git-send-email-gong.chen@linux.intel.com>
+ <20140521110521.GF21205@pd.tnic>
+ <20140521235159.GB1644@gchen.bj.intel.com>
+ <20140522105242.GG4383@pd.tnic>
+ <20140523014910.GB16945@gchen.bj.intel.com>
+ <20140523093703.GB21332@pd.tnic>
+ <20140523101143.GC21332@pd.tnic>
+ <20140526015944.GA31035@gchen.bj.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:59514 "EHLO mga11.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:39214 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751501AbaEZKVt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 May 2014 06:21:49 -0400
+	id S1751947AbaEZKWA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 May 2014 06:22:00 -0400
 Content-Disposition: inline
-In-Reply-To: <1400781753-2682-11-git-send-email-rui.zhang@intel.com>
+In-Reply-To: <20140526015944.GA31035@gchen.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, Heikki Krogerus <heikki.krogerus@intel.com>
+To: "Chen, Gong" <gong.chen@linux.intel.com>
+Cc: tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org
 
-On Fri, May 23, 2014 at 02:02:32AM +0800, Zhang Rui wrote:
-> Because of the growing demand for enumerating ACPI devices to
-> platform bus, this patch changes the code to enumerate ACPI
-> devices to platform bus by default, if the device
-> 1. has _HID.
-> 2. does not have a scan handler attached.
-> 3. is not SPB slave device, which should be enumerated by its parent.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/acpi_platform.c | 28 ----------------------------
->  drivers/acpi/scan.c          | 43 ++++++++++++++++++++++++++++++++++++++++++-
->  2 files changed, 42 insertions(+), 29 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-> index dbfe49e..33376a9 100644
-> --- a/drivers/acpi/acpi_platform.c
-> +++ b/drivers/acpi/acpi_platform.c
-> @@ -22,24 +22,6 @@
->  
->  ACPI_MODULE_NAME("platform");
->  
-> -/*
-> - * The following ACPI IDs are known to be suitable for representing as
-> - * platform devices.
-> - */
-> -static const struct acpi_device_id acpi_platform_device_ids[] = {
-> -
-> -	{ "PNP0D40" },
-> -	{ "ACPI0003" },
-> -	{ "VPC2004" },
-> -	{ "BCM4752" },
+On Sun, May 25, 2014 at 09:59:44PM -0400, Chen, Gong wrote:
+> On Fri, May 23, 2014 at 12:11:43PM +0200, Borislav Petkov wrote:
+> > +	TP_printk("%d %s error: %s %s %llx (mask lsb: %x), %s%s",
+> What if pa_mask_lsb not existing?
 
-You can't remove this one as it is bluetooth connected to HS-UART and
-thus has UARTSerialBus() connector.
+Then you make it the default which says that all bits in the mask are
+invalid: -1, i.e. 255.
 
-> -
-> -	/* Intel Smart Sound Technology */
-> -	{ "INT33C8" },
-> -	{ "80860F28" },
-> -
-> -	{ }
-> -};
+This becomes part of the interface then, just like phys_addr is
+0xfffff... ,i.e. -1 in the invalid case.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
