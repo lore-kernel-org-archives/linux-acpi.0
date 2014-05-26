@@ -1,147 +1,174 @@
-From: Lewis Toohey <lewis@toohey.co.uk>
-Subject: Re: Bug Report - [Acer Aspire V5-122P] Unable to adjust screen brightness
-Date: Sun, 25 May 2014 21:42:54 +0100
-Message-ID: <CADNzsyMCnbNu6CbWfV73CM99Qs=Lw22Q8pSQ23O31sopNDpaig@mail.gmail.com>
-References: <CADNzsyM9qiWf_KV4uuNDnkcv7JvCSi00qHiNQTWfVN-pZtWqig@mail.gmail.com>
- <537BFF89.9010806@intel.com> <CADNzsyMn5viCQDc7HXqZiH92BYNp9TZAtMNbuQMAkZXy6hj0Dg@mail.gmail.com>
- <537C9DC5.5040408@intel.com> <CADNzsyO7gzhtng0WmKA9DGZAreEGVsbAJ+KGdgJu+9zr_LyR8g@mail.gmail.com>
- <537EA5B7.9050509@intel.com> <CADNzsyORVbpqUMsZmKzBn_=Ma99dbLhKo_bfw3bvOASLwTkLsA@mail.gmail.com>
- <537F4425.70205@redhat.com>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: Re: [PATCH resend 2/4] backlight: Add backlight device
+ (un)registration notification
+Date: Mon, 26 May 2014 12:03:43 +0900
+Message-ID: <000301cf788f$1a59e870$4f0db950$%han@samsung.com>
+References: <1400679596-19663-1-git-send-email-hdegoede@redhat.com>
+ <1400679596-19663-3-git-send-email-hdegoede@redhat.com>
+ <82426680.ILvbY8i4gL@vostro.rjw.lan> <537DB904.50901@redhat.com>
+ <20140522090215.GO6679@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailscan22.extendcp.co.uk ([176.32.226.68]:35624 "EHLO
-	mailscan1.extendcp.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751069AbaEYUnV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 25 May 2014 16:43:21 -0400
-Received: from lb1.hi.local ([10.0.1.197] helo=mailscan2.extendcp.co.uk)
-	by mailscan-g64.hi.local with esmtp (Exim 4.80.1)
-	(envelope-from <lewis@toohey.co.uk>)
-	id 1WofGJ-0001nZ-Cb
-	for linux-acpi@vger.kernel.org; Sun, 25 May 2014 21:43:19 +0100
-Received: from lb1.hi.local ([10.0.1.197] helo=mail44.extendcp.co.uk)
-	by mailscan2.extendcp.co.uk with esmtps (UNKNOWN:DHE-RSA-AES256-GCM-SHA384:256)
-	(Exim 4.80.1)
-	(envelope-from <lewis@toohey.co.uk>)
-	id 1WofGI-0007Bo-Hw
-	for linux-acpi@vger.kernel.org; Sun, 25 May 2014 21:43:19 +0100
-Received: from mail-qg0-f44.google.com ([209.85.192.44])
-	by mail44.extendcp.com with esmtpsa (TLSv1:RC4-SHA:128)
-	(Exim 4.80.1)
-	id 1WofGG-0007mq-G9
-	for linux-acpi@vger.kernel.org; Sun, 25 May 2014 21:43:16 +0100
-Received: by mail-qg0-f44.google.com with SMTP id i50so11199713qgf.31
-        for <linux-acpi@vger.kernel.org>; Sun, 25 May 2014 13:43:15 -0700 (PDT)
-In-Reply-To: <537F4425.70205@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-reply-to: <20140522090215.GO6679@lee--X1>
+Content-language: ko
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: 'Lee Jones' <lee.jones@linaro.org>, 'Hans de Goede' <hdegoede@redhat.com>
+Cc: 'Aaron Lu' <aaron.lu@intel.com>, linux-fbdev@vger.kernel.org, 'Bryan Wu' <cooloney@gmail.com>, "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, 'Tomi Valkeinen' <tomi.valkeinen@ti.com>, 'Ben Skeggs' <bskeggs@redhat.com>, 'Zhang Rui' <rui.zhang@intel.com>, 'Jean-Christophe Plagniol-Villard' <plagnioj@jcrosoft.com>, 'Len Brown' <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
 
-On 23 May 2014 13:50, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi Lewis et all,
->
-> On 05/23/2014 02:07 PM, Lewis Toohey wrote:
->> On 23 May 2014 02:34, Aaron Lu <aaron.lu@intel.com> wrote:
->>> On 05/21/2014 09:02 PM, Lewis Toohey wrote:
->>>> Hi Aaron
->>>>
->>>> I followed your instructions and can report some limited success. I
->>>> have two interfaces listed in /sys/class/backlight namely:
->>>>   acpi_video0  radeon_bl0
->>>>
->>>> max_brightness for acpi_video0 is 11. Echo-ing new values to
->>>> brightness appears to have no effect.
->>>>
->>>> max_brightness for radeon_bl0 is 255. Echo-ing new values to
->>>> brightness does adjust the screen brightness as you would expect.
->>>>
->>>> Results are the same on both battery and powered.
->>>>
->>>> I hope that is useful.
->>>
->>> I think Hans' patchset should solve your problem, can you please give it
->>> a try? You will need to pass the video.use_native_backlight=1 to kernel
->>> cmdline when testing, thanks.
->>>
->>> [PATCH resend 0/4] Make video.use_native_backlight=1 work properly with nouveau
->>> http://www.spinics.net/lists/dri-devel/msg59941.html
->>>
->>> -Aaron
->>
->> Aaron
->>
->> Thank you for this. Unfortunately I am going to have to ask you for a
->> bit of help here as I am now, officially, "out of my depth". I
->> appreciate this is a pain as you will have to take time explaining it
->> to me and I apologise for that.
->>
->> I have figured out how to pass the kernel command line argument, this
->> is not an issue.
->>
->> I have located the patch you refer to here:
->> https://bugzilla.redhat.com/attachment.cgi?id=894577
->> (which I believe is correct) but I cannot figure out how to apply it.
->
-> That is not the right patch, you need a set of 2 patches. I've attached
-> them to this mail. Note please ignore the numbering starting at 6, these
-> are the 2 patches you need. You will need to build a Linux kernel with
-> these 2 patches applied, see your distributions documentation on how
-> to build a kernel from source.
->
-> I don't know which distro you are using, I've a Fedora kernel with this
-> patches included available here:
->
-> http://people.fedoraproject.org/~jwrdegoede/rhbz1093171/
->
-> Regards,
->
-> Hans
+On Thursday, May 22, 2014 6:02 PM, Lee Jones wrote:
+> On Thursday, May 22, 2014 5:45 PM, Hans de Goede wrote:
+> > On Thursday, May 22, 2014 8:31 AM, Rafael J. Wysocki wrote:
+> > > On Wednesday, May 21, 2014 10:40 PM, Hans de Goede wrote:
+> > >> Some firmware drivers, ie acpi-video want to get themselves out of the
+> > >> way (in some cases) when their also is a raw backlight device available.
+> > >>
+> > >> Due to module loading ordering being unknown, acpi-video cannot be certain
+> > >> that the backlight_device_registered(BACKLIGHT_RAW) it does for this is
+> > >> the final verdict wrt there being a BACKLIGHT_RAW device.
+> > >>
+> > >> By adding notification acpi-video can listen for backlight devices showing
+> > >> up after it has loaded, and unregister its backlight device if desired.
+> > >>
+> > >> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> > >
+> > > Backlight maintainer's ACK is requisite here.
+> >
+> > Agreed, which is why I send this set to all 3 the backlight maintainers
+> > directly on both postings.
+> >
+> > What may be helpful for them is to hear from you if you're ok with the
+> > acpi-video bits which are actually going to use this, since those will
+> > be the only user of the new backlight api (for now).
+> 
+> I'm happy to apply any Backlight patches which have either Bryan or
+> Jingoo's Ack, as they are the reviewers for the BL subsystem.
 
-Hans
+Acked-by: Jingoo Han <jg1.han@samsung.com>
 
-Unfortunately I am unable to apply these patches against the latest
-mainline kernel. I get two fails when applying the second patch file
-and then the kernel will not compile. Please see output information
-below.
+Lee Jones,
+Would you merge this patch into your backlight git tree?
+Thank you.
 
-Can you advise?
+Best regards,
+Jingoo Han
 
-Many thanks
-
-===APPLYING PATCHES TO LATEST MAINLINE KERNEL====
-
-lewis@HappyFunMeaowMeaow:~/KernelTesting/Kernel/linux$ patch -p1 <
-0006-backlight-Add-backlight-device-un-registration-notif.patch
-(Stripping trailing CRs from patch; use --binary to disable.)
-patching file drivers/video/backlight/backlight.c
-(Stripping trailing CRs from patch; use --binary to disable.)
-patching file include/linux/backlight.h
-lewis@HappyFunMeaowMeaow:~/KernelTesting/Kernel/linux$ patch -p1 <
-0007-acpi-video-Unregister-the-backlight-device-if-a-raw-.patch
-(Stripping trailing CRs from patch; use --binary to disable.)
-patching file drivers/acpi/video.c
-Hunk #1 FAILED at 151.
-Hunk #2 succeeded at 161 (offset -1 lines).
-Hunk #3 FAILED at 1837.
-Hunk #4 succeeded at 1868 (offset -113 lines).
-Hunk #5 succeeded at 1999 (offset -113 lines).
-Hunk #6 succeeded at 2023 (offset -113 lines).
-2 out of 6 hunks FAILED -- saving rejects to file drivers/acpi/video.c.rej
-
-
-==LAST LINES OF BUILD BEFORE FAIL===
-
-  CC [M]  fs/xfs/xfs_ioctl32.o
-  LD [M]  fs/xfs/xfs.o
-make[1]: Leaving directory `/home/lewis/KernelTesting/Kernel/linux'
-make: *** [debian/stamp/build/kernel] Error 2
-lewis@HappyFunMeaowMeaow:~/KernelTesting/Kernel/linux$
-
-
--- 
-Lewis
-
-Lewis@Toohey.co.uk
-0782 588 4158
+> 
+> > >> ---
+> > >>  drivers/video/backlight/backlight.c | 40 +++++++++++++++++++++++++++++++++++++
+> > >>  include/linux/backlight.h           |  7 +++++++
+> > >>  2 files changed, 47 insertions(+)
+> > >>
+> > >> diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
+> > >> index bd2172c..4280890 100644
+> > >> --- a/drivers/video/backlight/backlight.c
+> > >> +++ b/drivers/video/backlight/backlight.c
+> > >> @@ -23,6 +23,7 @@
+> > >>
+> > >>  static struct list_head backlight_dev_list;
+> > >>  static struct mutex backlight_dev_list_mutex;
+> > >> +static struct blocking_notifier_head backlight_notifier;
+> > >>
+> > >>  static const char *const backlight_types[] = {
+> > >>  	[BACKLIGHT_RAW] = "raw",
+> > >> @@ -370,6 +371,9 @@ struct backlight_device *backlight_device_register(const char *name,
+> > >>  	list_add(&new_bd->entry, &backlight_dev_list);
+> > >>  	mutex_unlock(&backlight_dev_list_mutex);
+> > >>
+> > >> +	blocking_notifier_call_chain(&backlight_notifier,
+> > >> +				     BACKLIGHT_REGISTERED, new_bd);
+> > >> +
+> > >>  	return new_bd;
+> > >>  }
+> > >>  EXPORT_SYMBOL(backlight_device_register);
+> > >> @@ -413,6 +417,10 @@ void backlight_device_unregister(struct backlight_device *bd)
+> > >>  		pmac_backlight = NULL;
+> > >>  	mutex_unlock(&pmac_backlight_mutex);
+> > >>  #endif
+> > >> +
+> > >> +	blocking_notifier_call_chain(&backlight_notifier,
+> > >> +				     BACKLIGHT_UNREGISTERED, bd);
+> > >> +
+> > >>  	mutex_lock(&bd->ops_lock);
+> > >>  	bd->ops = NULL;
+> > >>  	mutex_unlock(&bd->ops_lock);
+> > >> @@ -438,6 +446,36 @@ static int devm_backlight_device_match(struct device *dev, void *res,
+> > >>  }
+> > >>
+> > >>  /**
+> > >> + * backlight_register_notifier - get notified of backlight (un)registration
+> > >> + * @nb: notifier block with the notifier to call on backlight (un)registration
+> > >> + *
+> > >> + * @return 0 on success, otherwise a negative error code
+> > >> + *
+> > >> + * Register a notifier to get notified when backlight devices get registered
+> > >> + * or unregistered.
+> > >> + */
+> > >> +int backlight_register_notifier(struct notifier_block *nb)
+> > >> +{
+> > >> +	return blocking_notifier_chain_register(&backlight_notifier, nb);
+> > >> +}
+> > >> +EXPORT_SYMBOL(backlight_register_notifier);
+> > >> +
+> > >> +/**
+> > >> + * backlight_unregister_notifier - unregister a backlight notifier
+> > >> + * @nb: notifier block to unregister
+> > >> + *
+> > >> + * @return 0 on success, otherwise a negative error code
+> > >> + *
+> > >> + * Register a notifier to get notified when backlight devices get registered
+> > >> + * or unregistered.
+> > >> + */
+> > >> +int backlight_unregister_notifier(struct notifier_block *nb)
+> > >> +{
+> > >> +	return blocking_notifier_chain_unregister(&backlight_notifier, nb);
+> > >> +}
+> > >> +EXPORT_SYMBOL(backlight_unregister_notifier);
+> > >> +
+> > >> +/**
+> > >>   * devm_backlight_device_register - resource managed backlight_device_register()
+> > >>   * @dev: the device to register
+> > >>   * @name: the name of the device
+> > >> @@ -544,6 +582,8 @@ static int __init backlight_class_init(void)
+> > >>  	backlight_class->pm = &backlight_class_dev_pm_ops;
+> > >>  	INIT_LIST_HEAD(&backlight_dev_list);
+> > >>  	mutex_init(&backlight_dev_list_mutex);
+> > >> +	BLOCKING_INIT_NOTIFIER_HEAD(&backlight_notifier);
+> > >> +
+> > >>  	return 0;
+> > >>  }
+> > >>
+> > >> diff --git a/include/linux/backlight.h b/include/linux/backlight.h
+> > >> index 7264742..adb14a8 100644
+> > >> --- a/include/linux/backlight.h
+> > >> +++ b/include/linux/backlight.h
+> > >> @@ -40,6 +40,11 @@ enum backlight_type {
+> > >>  	BACKLIGHT_TYPE_MAX,
+> > >>  };
+> > >>
+> > >> +enum backlight_notification {
+> > >> +	BACKLIGHT_REGISTERED,
+> > >> +	BACKLIGHT_UNREGISTERED,
+> > >> +};
+> > >> +
+> > >>  struct backlight_device;
+> > >>  struct fb_info;
+> > >>
+> > >> @@ -133,6 +138,8 @@ extern void devm_backlight_device_unregister(struct device *dev,
+> > >>  extern void backlight_force_update(struct backlight_device *bd,
+> > >>  				   enum backlight_update_reason reason);
+> > >>  extern bool backlight_device_registered(enum backlight_type type);
+> > >> +extern int backlight_register_notifier(struct notifier_block *nb);
+> > >> +extern int backlight_unregister_notifier(struct notifier_block *nb);
+> > >>
+> > >>  #define to_backlight_device(obj) container_of(obj, struct backlight_device, dev)
