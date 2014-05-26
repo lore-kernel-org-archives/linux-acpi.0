@@ -1,68 +1,287 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: rmmod thermal, unable to handle kernel NULL pointer dereference
-Date: Mon, 26 May 2014 14:53:16 +0200
-Message-ID: <1497452.gmjrTF0UzW@vostro.rjw.lan>
-References: <CAKx2Y1mzLesGFYz30fH8xCZTkvNGPUNYkHptYLYq_hVExoh_8g@mail.gmail.com> <537C6262.5030500@intel.com>
+Subject: Re: [PATCHv3 2/4] ACPI / LPSS: custom power domain for LPSS
+Date: Mon, 26 May 2014 15:03:27 +0200
+Message-ID: <11413734.64aCNVobNb@vostro.rjw.lan>
+References: <20140523130252.GH18308@xps8300> <1400850909-12146-1-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52792 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:58879 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751501AbaEZMgN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 May 2014 08:36:13 -0400
-In-Reply-To: <537C6262.5030500@intel.com>
+	with SMTP id S1751616AbaEZMqZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 May 2014 08:46:25 -0400
+In-Reply-To: <1400850909-12146-1-git-send-email-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Kui Zhang <kuizhang@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, May 21, 2014 04:22:58 PM Aaron Lu wrote:
-> On 05/21/2014 01:57 PM, Kui Zhang wrote:
-> > Hello,
-> > 
-> > I get following error when rmmod thermal.
-> > 
-> > rmmod  thermal
-> > Killed
+On Friday, May 23, 2014 04:15:09 PM Heikki Krogerus wrote:
+> A power domain where we save the context of the additional
+> LPSS registers. We need to do this or all LPSS devices are
+> left in reset state when resuming from D3 on some Baytrails.
+> The devices with the fractional clock divider also have
+> zeros for N and M values after resuming unless they are
+> reset.
 > 
-> Thanks for the report. Here is a fix patch that should solve this
-> problem.
+> Li Aubrey found the root cause for the issue. The idea of
+> using power domain for LPSS came from Mika Westerberg.
 > 
-> From: Aaron Lu <aaron.lu@intel.com>
-> Date: Wed, 21 May 2014 16:00:42 +0800
-> Subject: [PATCH] ACPI / thermal: fix workqueue destroy order
-> 
-> When the thermal module is to be removed, we should destroy the wq
-> acpi_thermal_pm_queue after the ACPI driver's remove callback is
-> executed as we will need to flush the workqueue there, or a NULL pointer
-> access will be hit.
-> 
-> Reported-by: Kui Zhang <kuizhang@gmail.com>
-> Reference: http://www.spinics.net/lists/kernel/msg1747251.html
-> Cc: All applicable <stable@vger.kernel.org>
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> Reported-by: Jin Yao <yao.jin@linux.intel.com>
+> Suggested-by: Li Aubrey <aubrey.li@linux.intel.com>
+> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 
-I'm going to push this as a fix for 3.15, thanks!
+Queued up for 3.16, but I needed to rebase it to take some other changes
+into account.  Can you please have a look and the bleeding-edge branch in
+my tree and see if everything looks good in there?
 
 > ---
->  drivers/acpi/thermal.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/acpi/acpi_lpss.c | 152 ++++++++++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 145 insertions(+), 7 deletions(-)
 > 
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index c1e31a41f949..25bbc55dca89 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -1278,8 +1278,8 @@ static int __init acpi_thermal_init(void)
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index 69e29f4..7fe8b6d 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/platform_data/clk-lpss.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/delay.h>
 >  
->  static void __exit acpi_thermal_exit(void)
->  {
-> -	destroy_workqueue(acpi_thermal_pm_queue);
->  	acpi_bus_unregister_driver(&acpi_thermal_driver);
-> +	destroy_workqueue(acpi_thermal_pm_queue);
+>  #include "internal.h"
 >  
->  	return;
+> @@ -43,6 +44,8 @@ ACPI_MODULE_NAME("acpi_lpss");
+>  #define LPSS_TX_INT			0x20
+>  #define LPSS_TX_INT_MASK		BIT(1)
+>  
+> +#define LPSS_PRV_REG_COUNT		9
+> +
+>  struct lpss_shared_clock {
+>  	const char *name;
+>  	unsigned long rate;
+> @@ -58,6 +61,7 @@ struct lpss_device_desc {
+>  	unsigned int prv_offset;
+>  	size_t prv_size_override;
+>  	bool clk_gate;
+> +	bool save_ctx;
+>  	struct lpss_shared_clock *shared_clock;
+>  	void (*setup)(struct lpss_private_data *pdata);
+>  };
+> @@ -72,6 +76,7 @@ struct lpss_private_data {
+>  	resource_size_t mmio_size;
+>  	struct clk *clk;
+>  	const struct lpss_device_desc *dev_desc;
+> +	u32 prv_reg_ctx[LPSS_PRV_REG_COUNT];
+>  };
+>  
+>  static void lpss_uart_setup(struct lpss_private_data *pdata)
+> @@ -116,6 +121,7 @@ static struct lpss_shared_clock pwm_clock = {
+>  
+>  static struct lpss_device_desc byt_pwm_dev_desc = {
+>  	.clk_required = true,
+> +	.save_ctx = true,
+>  	.shared_clock = &pwm_clock,
+>  };
+>  
+> @@ -128,6 +134,7 @@ static struct lpss_device_desc byt_uart_dev_desc = {
+>  	.clk_required = true,
+>  	.prv_offset = 0x800,
+>  	.clk_gate = true,
+> +	.save_ctx = true,
+>  	.shared_clock = &uart_clock,
+>  	.setup = lpss_uart_setup,
+>  };
+> @@ -141,6 +148,7 @@ static struct lpss_device_desc byt_spi_dev_desc = {
+>  	.clk_required = true,
+>  	.prv_offset = 0x400,
+>  	.clk_gate = true,
+> +	.save_ctx = true,
+>  	.shared_clock = &spi_clock,
+>  };
+>  
+> @@ -156,6 +164,7 @@ static struct lpss_shared_clock i2c_clock = {
+>  static struct lpss_device_desc byt_i2c_dev_desc = {
+>  	.clk_required = true,
+>  	.prv_offset = 0x800,
+> +	.save_ctx = true,
+>  	.shared_clock = &i2c_clock,
+>  };
+>  
+> @@ -449,6 +458,121 @@ static void acpi_lpss_set_ltr(struct device *dev, s32 val)
+>  	}
 >  }
+>  
+> +#ifdef CONFIG_PM
+> +/**
+> + * acpi_lpss_save_ctx() - Save the private registers of LPSS device
+> + * @dev: LPSS device
+> + *
+> + * Most LPSS devices have private registers which may loose their context when
+> + * the device is powered down. acpi_lpss_save_ctx() saves those registers into
+> + * prv_reg_ctx array.
+> + */
+> +static void acpi_lpss_save_ctx(struct device *dev)
+> +{
+> +	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < LPSS_PRV_REG_COUNT; i++) {
+> +		pdata->prv_reg_ctx[i] = __lpss_reg_read(pdata, i * sizeof(u32));
+> +		dev_dbg(dev, "saving 0x%08x from LPSS reg at offset 0x%02lx\n",
+> +			pdata->prv_reg_ctx[i], i * sizeof(u32));
+> +	}
+> +}
+> +
+> +/**
+> + * acpi_lpss_restore_ctx() - Restore the private registers of LPSS device
+> + * @dev: LPSS device
+> + *
+> + * Restores the registers that were previously stored with acpi_lpss_save_ctx().
+> + */
+> +static void acpi_lpss_restore_ctx(struct device *dev)
+> +{
+> +	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+> +	unsigned int i;
+> +
+> +	/*
+> +	 * The following delay is needed or the subsequent write operations may
+> +	 * fail. The LPSS devices are actually PCI devices and the PCI spec
+> +	 * expects 10ms delay before the device can be accessed after D3 to D0
+> +	 * transition.
+> +	 */
+> +	msleep(10);
+> +
+> +	for (i = 0; i < LPSS_PRV_REG_COUNT; i++) {
+> +		__lpss_reg_write(pdata->prv_reg_ctx[i], pdata, i * sizeof(u32));
+> +		dev_dbg(dev, "restoring 0x%08x to LPSS reg at offset 0x%02lx\n",
+> +			pdata->prv_reg_ctx[i], i * sizeof(u32));
+> +	}
+> +}
+> +
+> +#ifdef CONFIG_PM_SLEEP
+> +static int acpi_lpss_suspend_late(struct device *dev)
+> +{
+> +	int ret = pm_generic_suspend_late(dev);
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	acpi_lpss_save_ctx(dev);
+> +	return acpi_dev_suspend_late(dev);
+> +}
+> +
+> +static int acpi_lpss_restore_early(struct device *dev)
+> +{
+> +	int ret = acpi_dev_resume_early(dev);
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	acpi_lpss_restore_ctx(dev);
+> +	return pm_generic_resume_early(dev);
+> +}
+> +#endif /* CONFIG_PM_SLEEP */
+> +
+> +#ifdef CONFIG_PM_RUNTIME
+> +static int acpi_lpss_runtime_suspend(struct device *dev)
+> +{
+> +	int ret = pm_generic_runtime_suspend(dev);
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	acpi_lpss_save_ctx(dev);
+> +	return acpi_dev_runtime_suspend(dev);
+> +}
+> +
+> +static int acpi_lpss_runtime_resume(struct device *dev)
+> +{
+> +	int ret = acpi_dev_runtime_resume(dev);
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	acpi_lpss_restore_ctx(dev);
+> +	return pm_generic_runtime_resume(dev);
+> +}
+> +#endif /* CONFIG_PM_RUNTIME */
+> +#endif /* CONFIG_PM */
+> +
+> +static struct dev_pm_domain acpi_lpss_pm_domain = {
+> +	.ops = {
+> +#ifdef CONFIG_PM_SLEEP
+> +		.suspend_late = acpi_lpss_suspend_late,
+> +		.restore_early = acpi_lpss_restore_early,
+> +		.prepare = acpi_subsys_prepare,
+> +		.suspend = acpi_subsys_suspend,
+> +		.resume_early = acpi_subsys_resume_early,
+> +		.freeze = acpi_subsys_freeze,
+> +		.poweroff = acpi_subsys_suspend,
+> +		.poweroff_late = acpi_subsys_suspend_late,
+> +#endif
+> +#ifdef CONFIG_PM_RUNTIME
+> +		.runtime_suspend = acpi_lpss_runtime_suspend,
+> +		.runtime_resume = acpi_lpss_runtime_resume,
+> +#endif
+> +	},
+> +};
+> +
+>  static int acpi_lpss_platform_notify(struct notifier_block *nb,
+>  				     unsigned long action, void *data)
+>  {
+> @@ -456,7 +580,6 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
+>  	struct lpss_private_data *pdata;
+>  	struct acpi_device *adev;
+>  	const struct acpi_device_id *id;
+> -	int ret = 0;
+>  
+>  	id = acpi_match_device(acpi_lpss_device_ids, &pdev->dev);
+>  	if (!id || !id->driver_data)
+> @@ -466,7 +589,7 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
+>  		return 0;
+>  
+>  	pdata = acpi_driver_data(adev);
+> -	if (!pdata || !pdata->mmio_base || !pdata->dev_desc->ltr_required)
+> +	if (!pdata || !pdata->mmio_base)
+>  		return 0;
+>  
+>  	if (pdata->mmio_size < pdata->dev_desc->prv_offset + LPSS_LTR_SIZE) {
+> @@ -474,12 +597,27 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
+>  		return 0;
+>  	}
+>  
+> -	if (action == BUS_NOTIFY_ADD_DEVICE)
+> -		ret = sysfs_create_group(&pdev->dev.kobj, &lpss_attr_group);
+> -	else if (action == BUS_NOTIFY_DEL_DEVICE)
+> -		sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
+> +	switch (action) {
+> +	case BUS_NOTIFY_BOUND_DRIVER:
+> +		if (pdata->dev_desc->save_ctx)
+> +			pdev->dev.pm_domain = &acpi_lpss_pm_domain;
+> +		break;
+> +	case BUS_NOTIFY_UNBOUND_DRIVER:
+> +		if (pdata->dev_desc->save_ctx)
+> +			pdev->dev.pm_domain = NULL;
+> +		break;
+> +	case BUS_NOTIFY_ADD_DEVICE:
+> +		if (pdata->dev_desc->ltr_required)
+> +			return sysfs_create_group(&pdev->dev.kobj,
+> +						  &lpss_attr_group);
+> +	case BUS_NOTIFY_DEL_DEVICE:
+> +		if (pdata->dev_desc->ltr_required)
+> +			sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
+> +	default:
+> +		break;
+> +	}
+>  
+> -	return ret;
+> +	return 0;
+>  }
+>  
+>  static struct notifier_block acpi_lpss_nb = {
 > 
 
 -- 
