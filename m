@@ -1,21 +1,99 @@
 From: Hans de Goede <hdegoede@redhat.com>
 Subject: [PATCH resend] acpi-video: Add 4 new models to the use_native_backlight dmi list
-Date: Mon, 26 May 2014 13:44:28 +0200
-Message-ID: <1401104669-29103-1-git-send-email-hdegoede@redhat.com>
+Date: Mon, 26 May 2014 13:44:29 +0200
+Message-ID: <1401104669-29103-2-git-send-email-hdegoede@redhat.com>
+References: <1401104669-29103-1-git-send-email-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16967 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:63605 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751591AbaEZLoh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 May 2014 07:44:37 -0400
+	id S1751591AbaEZLoi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 May 2014 07:44:38 -0400
+In-Reply-To: <1401104669-29103-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, stable@vger.kernel.org
 
-Hi All,
+Acer Aspire V5-171
+https://bugzilla.redhat.com/show_bug.cgi?id=983342
 
-This one seems to have fallen through the cracks, hence this resend.
+Acer Aspire V5-471G
+Lenovo Yoga 2 11
+Reported-and-tested-by: Vincent Gerris <vgerris@gmail.com>
 
-Regards,
+HP EliteBook 8470p
+https://bugzilla.redhat.com/show_bug.cgi?id=1093120
 
-Hans
+Cc: stable@vger.kernel.org
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/video.c | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 5d99e61..7165cbc 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -499,6 +499,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 		},
+ 	},
+ 	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "Lenovo Yoga 2 11",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo Yoga 2 11"),
++		},
++	},
++	{
+ 	.callback = video_set_use_native_backlight,
+ 	.ident = "Thinkpad Helix",
+ 	.matches = {
+@@ -532,6 +540,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 	},
+ 	{
+ 	 .callback = video_set_use_native_backlight,
++	 .ident = "Acer Aspire V5-171",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "V5-171"),
++		},
++	},
++	{
++	 .callback = video_set_use_native_backlight,
+ 	 .ident = "Acer Aspire V5-431",
+ 	 .matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+@@ -539,6 +555,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 		},
+ 	},
+ 	{
++	 .callback = video_set_use_native_backlight,
++	 .ident = "Acer Aspire V5-471G",
++	 .matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-471G"),
++		},
++	},
++	{
+ 	.callback = video_set_use_native_backlight,
+ 	.ident = "HP ProBook 4340s",
+ 	.matches = {
+@@ -590,6 +614,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 	},
+ 	{
+ 	.callback = video_set_use_native_backlight,
++	.ident = "HP EliteBook 8470p",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook 8470p"),
++		},
++	},
++	{
++	.callback = video_set_use_native_backlight,
+ 	.ident = "HP EliteBook 8780w",
+ 	.matches = {
+ 		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-- 
+1.9.3
+
