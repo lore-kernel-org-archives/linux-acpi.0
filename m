@@ -1,73 +1,175 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH resend 2/4] backlight: Add backlight device (un)registration
- notification
-Date: Mon, 26 May 2014 13:21:07 +0200
-Message-ID: <538323A3.1050209@redhat.com>
-References: <1400679596-19663-1-git-send-email-hdegoede@redhat.com> <20140522090215.GO6679@lee--X1> <000301cf788f$1a59e870$4f0db950$%han@samsung.com> <2139692.XxRO5tdkik@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V7 08/11] ACPI: always register memory hotplug scan handler even if CONFIG_X86_INTEL_LPSS is cleared
+Date: Mon, 26 May 2014 13:53:39 +0200
+Message-ID: <4177604.8JWRhYqtaS@vostro.rjw.lan>
+References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com> <1400781753-2682-9-git-send-email-rui.zhang@intel.com> <20140526105636.GC1765@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24924 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751274AbaEZLV2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 May 2014 07:21:28 -0400
-In-Reply-To: <2139692.XxRO5tdkik@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140526105636.GC1765@lahna.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jingoo Han <jg1.han@samsung.com>
-Cc: 'Lee Jones' <lee.jones@linaro.org>, 'Aaron Lu' <aaron.lu@intel.com>, 'Bryan Wu' <cooloney@gmail.com>, 'Jean-Christophe Plagniol-Villard' <plagnioj@jcrosoft.com>, 'Tomi Valkeinen' <tomi.valkeinen@ti.com>, 'Ben Skeggs' <bskeggs@redhat.com>, 'David Airlie' <airlied@linux.ie>, 'Zhang Rui' <rui.zhang@intel.com>, 'Len Brown' <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-Hi,
-
-On 05/26/2014 01:03 PM, Rafael J. Wysocki wrote:
-> On Monday, May 26, 2014 12:03:43 PM Jingoo Han wrote:
->> On Thursday, May 22, 2014 6:02 PM, Lee Jones wrote:
->>> On Thursday, May 22, 2014 5:45 PM, Hans de Goede wrote:
->>>> On Thursday, May 22, 2014 8:31 AM, Rafael J. Wysocki wrote:
->>>>> On Wednesday, May 21, 2014 10:40 PM, Hans de Goede wrote:
->>>>>> Some firmware drivers, ie acpi-video want to get themselves out of the
->>>>>> way (in some cases) when their also is a raw backlight device available.
->>>>>>
->>>>>> Due to module loading ordering being unknown, acpi-video cannot be certain
->>>>>> that the backlight_device_registered(BACKLIGHT_RAW) it does for this is
->>>>>> the final verdict wrt there being a BACKLIGHT_RAW device.
->>>>>>
->>>>>> By adding notification acpi-video can listen for backlight devices showing
->>>>>> up after it has loaded, and unregister its backlight device if desired.
->>>>>>
->>>>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->>>>>
->>>>> Backlight maintainer's ACK is requisite here.
->>>>
->>>> Agreed, which is why I send this set to all 3 the backlight maintainers
->>>> directly on both postings.
->>>>
->>>> What may be helpful for them is to hear from you if you're ok with the
->>>> acpi-video bits which are actually going to use this, since those will
->>>> be the only user of the new backlight api (for now).
->>>
->>> I'm happy to apply any Backlight patches which have either Bryan or
->>> Jingoo's Ack, as they are the reviewers for the BL subsystem.
->>
->> Acked-by: Jingoo Han <jg1.han@samsung.com>
->>
->> Lee Jones,
->> Would you merge this patch into your backlight git tree?
+On Monday, May 26, 2014 01:56:36 PM Mika Westerberg wrote:
+> On Fri, May 23, 2014 at 02:02:30AM +0800, Zhang Rui wrote:
+> > The new ACPI device enumeration mechanism, which will be introduced
+> > in a later patch, will enumerate the _HID devices w/o any scan
+> > handler attached to platform bus.
+> > This means that, for the devices that are attached to a configurable
+> > scan handler, we should make sure no platform devices would be
+> > created for them even if the scan handler is compiled out.
+> > 
+> > Fix this problem for lpss devices by always register the lpss scan handler,
+> > but with meaningful callbacks only when CONFIG_X86_INTEL_LPSS is set.
+> > 
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > ---
+> >  drivers/acpi/Makefile    |  2 +-
+> >  drivers/acpi/acpi_lpss.c | 63 ++++++++++++++++++++++++++++++------------------
+> >  drivers/acpi/internal.h  |  4 ---
+> >  3 files changed, 41 insertions(+), 28 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> > index 171efc2..605eff7 100644
+> > --- a/drivers/acpi/Makefile
+> > +++ b/drivers/acpi/Makefile
+> > @@ -39,7 +39,7 @@ acpi-y				+= processor_core.o
+> >  acpi-y				+= ec.o
+> >  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
+> >  acpi-y				+= pci_root.o pci_link.o pci_irq.o
+> > -acpi-$(CONFIG_X86_INTEL_LPSS)	+= acpi_lpss.o
+> > +acpi-y				+= acpi_lpss.o
+> >  acpi-y				+= acpi_platform.o
+> >  acpi-y				+= acpi_pnp.o
+> >  acpi-y				+= power.o
+> > diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> > index 69e29f4..bb5b3f2 100644
+> > --- a/drivers/acpi/acpi_lpss.c
+> > +++ b/drivers/acpi/acpi_lpss.c
+> > @@ -24,6 +24,8 @@
+> >  
+> >  ACPI_MODULE_NAME("acpi_lpss");
+> >  
+> > +#ifdef CONFIG_X86_INTEL_LPSS
+> > +
+> >  #define LPSS_CLK_SIZE	0x04
+> >  #define LPSS_LTR_SIZE	0x18
+> >  
+> > @@ -159,40 +161,50 @@ static struct lpss_device_desc byt_i2c_dev_desc = {
+> >  	.shared_clock = &i2c_clock,
+> >  };
+> >  
+> > +#define LPSS_PTR(desc) ((unsigned long)&desc)
+> > +
+> > +#else
+> > +
+> > +#define LPSS_PTR(desc) 0
+> > +
+> > +#endif
+> > +
+> >  static const struct acpi_device_id acpi_lpss_device_ids[] = {
+> >  	/* Generic LPSS devices */
+> > -	{ "INTL9C60", (unsigned long)&lpss_dma_desc },
+> > +	{ "INTL9C60", LPSS_PTR(lpss_dma_desc) },
+> >  
+> >  	/* Lynxpoint LPSS devices */
+> > -	{ "INT33C0", (unsigned long)&lpt_dev_desc },
+> > -	{ "INT33C1", (unsigned long)&lpt_dev_desc },
+> > -	{ "INT33C2", (unsigned long)&lpt_dev_desc },
+> > -	{ "INT33C3", (unsigned long)&lpt_dev_desc },
+> > -	{ "INT33C4", (unsigned long)&lpt_uart_dev_desc },
+> > -	{ "INT33C5", (unsigned long)&lpt_uart_dev_desc },
+> > -	{ "INT33C6", (unsigned long)&lpt_sdio_dev_desc },
+> > +	{ "INT33C0", LPSS_PTR(lpt_dev_desc) },
+> > +	{ "INT33C1", LPSS_PTR(lpt_dev_desc) },
+> > +	{ "INT33C2", LPSS_PTR(lpt_dev_desc) },
+> > +	{ "INT33C3", LPSS_PTR(lpt_dev_desc) },
+> > +	{ "INT33C4", LPSS_PTR(lpt_uart_dev_desc) },
+> > +	{ "INT33C5", LPSS_PTR(lpt_uart_dev_desc) },
+> > +	{ "INT33C6", LPSS_PTR(lpt_sdio_dev_desc) },
+> >  	{ "INT33C7", },
+> >  
+> >  	/* BayTrail LPSS devices */
+> > -	{ "80860F09", (unsigned long)&byt_pwm_dev_desc },
+> > -	{ "80860F0A", (unsigned long)&byt_uart_dev_desc },
+> > -	{ "80860F0E", (unsigned long)&byt_spi_dev_desc },
+> > -	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
+> > -	{ "80860F41", (unsigned long)&byt_i2c_dev_desc },
+> > +	{ "80860F09", LPSS_PTR(byt_pwm_dev_desc) },
+> > +	{ "80860F0A", LPSS_PTR(byt_uart_dev_desc) },
+> > +	{ "80860F0E", LPSS_PTR(byt_spi_dev_desc) },
+> > +	{ "80860F14", LPSS_PTR(byt_sdio_dev_desc) },
+> > +	{ "80860F41", LPSS_PTR(byt_i2c_dev_desc) },
+> >  	{ "INT33B2", },
+> >  
+> > -	{ "INT3430", (unsigned long)&lpt_dev_desc },
+> > -	{ "INT3431", (unsigned long)&lpt_dev_desc },
+> > -	{ "INT3432", (unsigned long)&lpt_dev_desc },
+> > -	{ "INT3433", (unsigned long)&lpt_dev_desc },
+> > -	{ "INT3434", (unsigned long)&lpt_uart_dev_desc },
+> > -	{ "INT3435", (unsigned long)&lpt_uart_dev_desc },
+> > -	{ "INT3436", (unsigned long)&lpt_sdio_dev_desc },
+> > +	{ "INT3430", LPSS_PTR(lpt_dev_desc) },
+> > +	{ "INT3431", LPSS_PTR(lpt_dev_desc) },
+> > +	{ "INT3432", LPSS_PTR(lpt_dev_desc) },
+> > +	{ "INT3433", LPSS_PTR(lpt_dev_desc) },
+> > +	{ "INT3434", LPSS_PTR(lpt_uart_dev_desc) },
+> > +	{ "INT3435", LPSS_PTR(lpt_uart_dev_desc) },
+> > +	{ "INT3436", LPSS_PTR(lpt_sdio_dev_desc) },
+> >  	{ "INT3437", },
+> >  
+> >  	{ }
+> >  };
+> >  
+> > +#ifdef CONFIG_X86_INTEL_LPSS
+> > +
+> >  static int is_memory(struct acpi_resource *res, void *not_used)
+> >  {
+> >  	struct resource r;
+> > @@ -503,18 +515,23 @@ static void acpi_lpss_unbind(struct device *dev)
+> >  {
+> >  	dev->power.set_latency_tolerance = NULL;
+> >  }
+> > +#endif /* CONFIG_X86_INTEL_LPSS */
+> >  
+> >  static struct acpi_scan_handler lpss_handler = {
+> >  	.ids = acpi_lpss_device_ids,
+> > -	.attach = acpi_lpss_create_device,
+> > -	.bind = acpi_lpss_bind,
+> > -	.unbind = acpi_lpss_unbind,
+> >  };
+> >  
+> >  void __init acpi_lpss_init(void)
+> >  {
+> > +#ifdef CONFIG_X86_INTEL_LPSS
+> >  	if (!lpt_clk_init()) {
+> >  		bus_register_notifier(&platform_bus_type, &acpi_lpss_nb);
+> > +		lpss_handler.attach = acpi_lpss_create_device;
+> > +		lpss_handler.bind = acpi_lpss_bind;
+> > +		lpss_handler.unbind = acpi_lpss_unbind;
+> >  		acpi_scan_add_handler(&lpss_handler);
+> > +		return;
+> >  	}
+> > +#endif
+> > +	acpi_scan_add_handler(&lpss_handler);
 > 
-> Hans, does this series depend on things that I've applied already?  If so,
-> I'd very much prefer to take this series too as a whole.
+> I'm wondering whether it is worth the ugliness to get platform bus
+> enumeration the default?
+> 
+> Since you already have the PNP whitelist, can't we just use that for PNP
+> and keep these files as they are? In other words, don't make any kind of
+> physical device by default and let the scan handlers to decide.
 
-The 3th patch in this series:
-" acpi-video: Unregister the backlight device if a raw one shows up later"
-depends on my "acpi-video: Add an acpi_video_unregister_backlight function"
-patch, which you've applied to your linux-next branch already.
+Well, that's tempting, but then we'd get one more whitelist pretty much without
+any benefit, because we'd be still going to have the list in acpi_platform.c.
 
-As well as on the 2nd patch in this series:
-"backlight: Add backlight device (un)registration notification"
+The purpose of the whole exercise is not to prevent PNP devices from being
+created by default (which admittedly is a nice side effect), but to get rid
+of the white list in acpi_platform.c - and in particular, to avoid the
+necessity to add every ACPI-enumerated platform device to that list in the
+future.
 
-So I agree that it is a good idea to take the whole series through your tree.
-
-Thanks & Regards,
-
-Hans
+Rafael
