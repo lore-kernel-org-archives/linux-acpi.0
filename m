@@ -1,184 +1,53 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH 4/7] acpi, apei, ghes: Factor out NMI error notification
- context.
-Date: Mon, 26 May 2014 15:26:06 +0200
-Message-ID: <538340EE.7070408@linaro.org>
-References: <1397056476-9183-1-git-send-email-tomasz.nowicki@linaro.org> <1397056476-9183-5-git-send-email-tomasz.nowicki@linaro.org> <20140513194125.GD8760@pd.tnic> <537F39D7.6090309@linaro.org> <20140523164824.GG21332@pd.tnic>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCHv3 2/4] ACPI / LPSS: custom power domain for LPSS
+Date: Mon, 26 May 2014 16:42:34 +0300
+Message-ID: <20140526134234.GA12107@xps8300>
+References: <20140523130252.GH18308@xps8300>
+ <1400850909-12146-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <11413734.64aCNVobNb@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:43955 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751998AbaEZNZQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 May 2014 09:25:16 -0400
-Received: by mail-we0-f179.google.com with SMTP id q59so7880833wes.24
-        for <linux-acpi@vger.kernel.org>; Mon, 26 May 2014 06:25:14 -0700 (PDT)
-In-Reply-To: <20140523164824.GG21332@pd.tnic>
+Received: from mga03.intel.com ([143.182.124.21]:18632 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752589AbaEZNmk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 May 2014 09:42:40 -0400
+Content-Disposition: inline
+In-Reply-To: <11413734.64aCNVobNb@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@suse.de, m.chehab@samsung.com, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Jin Yao <yao.jin@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 23.05.2014 18:48, Borislav Petkov wrote:
-> On Fri, May 23, 2014 at 02:06:47PM +0200, Tomasz Nowicki wrote:
->> I had that thoughts too. Looking at simple MCE calls, yes, it does
->> make sense to create corresponding arch-specific version and provide
->> logic as needed. I think that NMI is much more complicated....
->
-> How about this ontop of your patches. It builds here but it is not
-> trivial for me to try it on !X86. Maybe you can test it quicker than me
-> finding some other arch box first... :)
->
+On Mon, May 26, 2014 at 03:03:27PM +0200, Rafael J. Wysocki wrote:
+> On Friday, May 23, 2014 04:15:09 PM Heikki Krogerus wrote:
+> > A power domain where we save the context of the additional
+> > LPSS registers. We need to do this or all LPSS devices are
+> > left in reset state when resuming from D3 on some Baytrails.
+> > The devices with the fractional clock divider also have
+> > zeros for N and M values after resuming unless they are
+> > reset.
+> > 
+> > Li Aubrey found the root cause for the issue. The idea of
+> > using power domain for LPSS came from Mika Westerberg.
+> > 
+> > Reported-by: Jin Yao <yao.jin@linux.intel.com>
+> > Suggested-by: Li Aubrey <aubrey.li@linux.intel.com>
+> > Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> 
+> Queued up for 3.16, but I needed to rebase it to take some other changes
+> into account.  Can you please have a look and the bleeding-edge branch in
+> my tree and see if everything looks good in there?
 
-Now I do follow :) Nicely done, I have applied your patch and indeed 
-there are more arch dependencies for !X86. I created another patch (it 
-can be applied on top of last patch set). Does it look reasonable?
+I checked the bleeding-edge and it looks good to me. Thanks for taking
+care of the issue with "%lx".
+
+About the sparse warning from the clk-fractional-divider.c. Since
+there is no real issue, let's follow the style in the other clock
+types and ignore the warning. So let's keep that patch as it is. OK?
 
 
-diff --git a/arch/x86/include/asm/nmi.h b/arch/x86/include/asm/nmi.h
-index 86f9301..0f03ab6 100644
---- a/arch/x86/include/asm/nmi.h
-+++ b/arch/x86/include/asm/nmi.h
-@@ -54,7 +54,18 @@ struct nmiaction {
 
-  int __register_nmi_handler(unsigned int, struct nmiaction *);
-
--void unregister_nmi_handler(unsigned int, const char *);
-+void unregister_nmi_handler(unsigned int type, const char *name);
-+
-+static inline int arch_apei_register_nmi(nmi_handler_t fn,
-+					 const char *name)
-+{
-+	return register_nmi_handler(NMI_LOCAL, fn, 0, name);
-+}
-+
-+static inline void arch_apei_unregister_nmi(const char *name)
-+{
-+	unregister_nmi_handler(NMI_LOCAL, name);
-+}
-
-  void stop_nmi(void);
-  void restart_nmi(void);
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 35a44d9..84c79af 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -47,13 +47,11 @@
-  #include <linux/genalloc.h>
-  #include <linux/pci.h>
-  #include <linux/aer.h>
-+#include <linux/nmi.h>
-
-  #include <acpi/ghes.h>
-  #include <asm/apei.h>
-  #include <asm/tlbflush.h>
--#ifdef CONFIG_ACPI_APEI_NMI
--#include <asm/nmi.h>
--#endif
-
-  #include "apei-internal.h"
-
-@@ -718,7 +716,6 @@ static int ghes_notify_sci(struct notifier_block *this,
-  	return ret;
-  }
-
--#ifdef CONFIG_ACPI_APEI_NMI
-  /*
-   * printk is not safe in NMI context.  So in NMI handler, we allocate
-   * required memory from lock-less memory allocator
-@@ -817,7 +814,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct 
-pt_regs *regs)
-  {
-  	struct ghes *ghes, *ghes_global = NULL;
-  	int sev, sev_global = -1;
--	int ret = NMI_DONE;
-+	int ret = APEI_NMI_DONE;
-
-  	BUG_ON(!IS_ENABLED(CONFIG_ACPI_APEI_NMI));
-
-@@ -832,14 +829,14 @@ static int ghes_notify_nmi(unsigned int cmd, 
-struct pt_regs *regs)
-  			sev_global = sev;
-  			ghes_global = ghes;
-  		}
--		ret = NMI_HANDLED;
-+		ret = APEI_NMI_HANDLED;
-  	}
-
--	if (ret == NMI_DONE)
-+	if (ret == APEI_NMI_DONE)
-  		goto out;
-
-  	if (sev_global >= GHES_SEV_PANIC) {
--		oops_begin();
-+		arch_apei_nmi_oops_begin();
-  		ghes_print_queued_estatus();
-  		__ghes_print_estatus(KERN_EMERG, ghes_global->generic,
-  				     ghes_global->estatus);
-@@ -914,7 +911,7 @@ static int ghes_notify_init_nmi(struct ghes *ghes)
-  	ghes_estatus_pool_expand(len);
-  	mutex_lock(&ghes_list_mutex);
-  	if (list_empty(&ghes_nmi))
--		status = register_nmi_handler(NMI_LOCAL, ghes_notify_nmi, 0, "ghes");
-+		status = arch_apei_register_nmi(ghes_notify_nmi, "ghes");
-  	list_add_rcu(&ghes->list, &ghes_nmi);
-  	mutex_unlock(&ghes_list_mutex);
-
-@@ -928,7 +925,7 @@ static void ghes_notify_remove_nmi(struct ghes *ghes)
-  	mutex_lock(&ghes_list_mutex);
-  	list_del_rcu(&ghes->list);
-  	if (list_empty(&ghes_nmi))
--		unregister_nmi_handler(NMI_LOCAL, "ghes");
-+		arch_apei_unregister_nmi("ghes");
-  	mutex_unlock(&ghes_list_mutex);
-  	/*
-  	 * To synchronize with NMI handler, ghes can only be
-@@ -941,17 +938,14 @@ static void ghes_notify_remove_nmi(struct ghes *ghes)
-
-  static void ghes_init_nmi(void)
-  {
-+	if (!IS_ENABLED(CONFIG_ACPI_APEI_NMI))
-+		return;
-+
-  	init_irq_work(&ghes_proc_irq_work, ghes_proc_in_irq);
-  	ghes_notify_tab[ACPI_HEST_NOTIFY_NMI].init_call = ghes_notify_init_nmi;
-  	ghes_notify_tab[ACPI_HEST_NOTIFY_NMI].remove_call =
-  							ghes_notify_remove_nmi;
-  }
--#else
--static inline void ghes_init_nmi(void)
--{
--
--}
--#endif
-
-  static int ghes_notify_init_polled(struct ghes *ghes)
-  {
-diff --git a/include/linux/nmi.h b/include/linux/nmi.h
-index 084b4c5..1aa351c 100644
---- a/include/linux/nmi.h
-+++ b/include/linux/nmi.h
-@@ -56,4 +56,19 @@ extern int proc_dowatchdog(struct ctl_table *, int ,
-  			   void __user *, size_t *, loff_t *);
-  #endif
-
-+#define APEI_NMI_DONE		0
-+#define APEI_NMI_HANDLED	1
-+
-+#ifdef CONFIG_ACPI_APEI_NMI
-+#include <asm/nmi.h>
-+#define arch_apei_nmi_oops_begin()	oops_begin()
-+#else
-+#define arch_apei_register_nmi(fn, n) ({		\
-+	void __attribute__((unused)) *dummy = fn;	\
-+	(-ENOSYS);					\
-+});
-+#define arch_apei_unregister_nmi(n)
-+#define arch_apei_nmi_oops_begin()
-+#endif /* CONFIG_ACPI_APEI_NMI */
-+
-  #endif
-
-Regards,
-Tomasz
+-- 
+heikki
