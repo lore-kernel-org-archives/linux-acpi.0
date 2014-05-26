@@ -1,79 +1,73 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 3/7 v4] CPER: Adjust code flow of some functions
-Date: Mon, 26 May 2014 06:42:21 -0400
-Message-ID: <20140526104221.GA20940@gchen.bj.intel.com>
-References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
- <1400142646-10127-4-git-send-email-gong.chen@linux.intel.com>
- <20140521110521.GF21205@pd.tnic>
- <20140521235159.GB1644@gchen.bj.intel.com>
- <20140522105242.GG4383@pd.tnic>
- <20140523014910.GB16945@gchen.bj.intel.com>
- <20140523093703.GB21332@pd.tnic>
- <20140523101143.GC21332@pd.tnic>
- <20140526015944.GA31035@gchen.bj.intel.com>
- <20140526102151.GE25732@pd.tnic>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH resend 2/4] backlight: Add backlight device (un)registration
+ notification
+Date: Mon, 26 May 2014 13:21:07 +0200
+Message-ID: <538323A3.1050209@redhat.com>
+References: <1400679596-19663-1-git-send-email-hdegoede@redhat.com> <20140522090215.GO6679@lee--X1> <000301cf788f$1a59e870$4f0db950$%han@samsung.com> <2139692.XxRO5tdkik@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:42201 "EHLO mga02.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:24924 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752314AbaEZLJz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 May 2014 07:09:55 -0400
-Content-Disposition: inline
-In-Reply-To: <20140526102151.GE25732@pd.tnic>
+	id S1751274AbaEZLV2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 May 2014 07:21:28 -0400
+In-Reply-To: <2139692.XxRO5tdkik@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jingoo Han <jg1.han@samsung.com>
+Cc: 'Lee Jones' <lee.jones@linaro.org>, 'Aaron Lu' <aaron.lu@intel.com>, 'Bryan Wu' <cooloney@gmail.com>, 'Jean-Christophe Plagniol-Villard' <plagnioj@jcrosoft.com>, 'Tomi Valkeinen' <tomi.valkeinen@ti.com>, 'Ben Skeggs' <bskeggs@redhat.com>, 'David Airlie' <airlied@linux.ie>, 'Zhang Rui' <rui.zhang@intel.com>, 'Len Brown' <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
 
+Hi,
 
---OXfL5xGRrasGEqWY
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 05/26/2014 01:03 PM, Rafael J. Wysocki wrote:
+> On Monday, May 26, 2014 12:03:43 PM Jingoo Han wrote:
+>> On Thursday, May 22, 2014 6:02 PM, Lee Jones wrote:
+>>> On Thursday, May 22, 2014 5:45 PM, Hans de Goede wrote:
+>>>> On Thursday, May 22, 2014 8:31 AM, Rafael J. Wysocki wrote:
+>>>>> On Wednesday, May 21, 2014 10:40 PM, Hans de Goede wrote:
+>>>>>> Some firmware drivers, ie acpi-video want to get themselves out of the
+>>>>>> way (in some cases) when their also is a raw backlight device available.
+>>>>>>
+>>>>>> Due to module loading ordering being unknown, acpi-video cannot be certain
+>>>>>> that the backlight_device_registered(BACKLIGHT_RAW) it does for this is
+>>>>>> the final verdict wrt there being a BACKLIGHT_RAW device.
+>>>>>>
+>>>>>> By adding notification acpi-video can listen for backlight devices showing
+>>>>>> up after it has loaded, and unregister its backlight device if desired.
+>>>>>>
+>>>>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>>>>
+>>>>> Backlight maintainer's ACK is requisite here.
+>>>>
+>>>> Agreed, which is why I send this set to all 3 the backlight maintainers
+>>>> directly on both postings.
+>>>>
+>>>> What may be helpful for them is to hear from you if you're ok with the
+>>>> acpi-video bits which are actually going to use this, since those will
+>>>> be the only user of the new backlight api (for now).
+>>>
+>>> I'm happy to apply any Backlight patches which have either Bryan or
+>>> Jingoo's Ack, as they are the reviewers for the BL subsystem.
+>>
+>> Acked-by: Jingoo Han <jg1.han@samsung.com>
+>>
+>> Lee Jones,
+>> Would you merge this patch into your backlight git tree?
+> 
+> Hans, does this series depend on things that I've applied already?  If so,
+> I'd very much prefer to take this series too as a whole.
 
-On Mon, May 26, 2014 at 12:21:51PM +0200, Borislav Petkov wrote:
-> Date: Mon, 26 May 2014 12:21:51 +0200
-> From: Borislav Petkov <bp@alien8.de>
-> To: "Chen, Gong" <gong.chen@linux.intel.com>
-> Cc: tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org
-> Subject: Re: [PATCH 3/7 v4] CPER: Adjust code flow of some functions
-> User-Agent: Mutt/1.5.23 (2014-03-12)
->=20
-> On Sun, May 25, 2014 at 09:59:44PM -0400, Chen, Gong wrote:
-> > On Fri, May 23, 2014 at 12:11:43PM +0200, Borislav Petkov wrote:
-> > > +	TP_printk("%d %s error: %s %s %llx (mask lsb: %x), %s%s",
-> > What if pa_mask_lsb not existing?
->=20
-> Then you make it the default which says that all bits in the mask are
-> invalid: -1, i.e. 255.
->=20
-> This becomes part of the interface then, just like phys_addr is
-> 0xfffff... ,i.e. -1 in the invalid case.
->=20
-OK, fine to me. I will update it soon.
+The 3th patch in this series:
+" acpi-video: Unregister the backlight device if a raw one shows up later"
+depends on my "acpi-video: Add an acpi_video_unregister_backlight function"
+patch, which you've applied to your linux-next branch already.
 
---OXfL5xGRrasGEqWY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+As well as on the 2nd patch in this series:
+"backlight: Add backlight device (un)registration notification"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+So I agree that it is a good idea to take the whole series through your tree.
 
-iQIcBAEBAgAGBQJTgxqNAAoJEI01n1+kOSLH0KgP/itmuZnJbepFQkQF4FLIUsJZ
-161zTwRMghnywihETsvMuIBJ3vcz5m4CXnOpnTYDrBO6TT77rlemB7Zr9Q5D3nkj
-ovkwSAY7+qewR3V0zFPJwOMb7M9MynvW+P/sYOqxH6SzC7KyHg7Z7Mor29+ZDPSl
-WKH5TzI99QBSsoWKPOeXW79L5rEj8OmbqqgtA36FYxaJ0Q4c/R6V2nZDANwEs7dA
-cP48nTGo7TbHjHeyK3vVFoWMz0NM+k+0EgGnPHFUvwD6TeDic5dNKxPPQ1eb1LdX
-wZlRiRv/7FX7ygvgFJMjgVHiqxngh/F8B777zM4DlZFUTJk77/YJvbgQl1Hrin7p
-edRMZ6Z750w5cLqn51n2tnN3KwCOQde+TAupIE/68G07zXokQ4F00hEd/JfaHI6j
-JjnGBgeYQDZsah7G3uyJ47T5EERDfRQgaztlzDO0LeWVdROZiXhVStPSE3zbjJbo
-MvcU17NXQ001p5DcuofD070fJXY2yh5Hp6W4cYMgmh3+Ro1FNotnEy5/uHS3s1Ao
-rq9d+0M70IenRhoVNqHeP9TrTIWey3/VdlP3iWrZx+G50yFA2uP1HzEZO1e4iAKq
-ZLA1NIeIlQbvMXFDvctWBIU72VG+r+7FUgOnWn8com2cm4kCOIlqK5ait0kFgoA1
-EdjoDDTcgE8BTJafqtSo
-=zyhr
------END PGP SIGNATURE-----
+Thanks & Regards,
 
---OXfL5xGRrasGEqWY--
+Hans
