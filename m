@@ -1,52 +1,34 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch V3 36/37] x86, irq, SFI: release IOAPIC pin when PCI device is disabled
-Date: Tue, 27 May 2014 16:08:11 +0800
-Message-ID: <1401178092-1228-37-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch V3 37/37] x86, irq, devicetree: release IOAPIC pin when PCI device is disabled
+Date: Tue, 27 May 2014 16:08:12 +0800
+Message-ID: <1401178092-1228-38-git-send-email-jiang.liu@linux.intel.com>
 References: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:52132 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752870AbaE0IMt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 May 2014 04:12:49 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Rob Herring <rob.herring@calxeda.com>, Michal Simek <monstr@monstr.eu>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Lindgren <tony@atomide.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
 Release IOAPIC pin associated with PCI device when the PCI device
 is disabled.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/pci/intel_mid_pci.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/x86/kernel/devicetree.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/x86/pci/intel_mid_pci.c b/arch/x86/pci/intel_mid_pci.c
-index 337d165c64f1..09fece368592 100644
---- a/arch/x86/pci/intel_mid_pci.c
-+++ b/arch/x86/pci/intel_mid_pci.c
-@@ -227,6 +227,12 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
- 	return 0;
- }
+diff --git a/arch/x86/kernel/devicetree.c b/arch/x86/kernel/devicetree.c
+index 17535c5bbe65..9beb9f28b5bd 100644
+--- a/arch/x86/kernel/devicetree.c
++++ b/arch/x86/kernel/devicetree.c
+@@ -305,6 +305,7 @@ static int ioapic_xlate(struct irq_domain *domain,
  
-+static void intel_mid_pci_irq_disable(struct pci_dev *dev)
-+{
-+	if (dev->irq > 0)
-+		mp_unmap_irq(dev->irq);
-+}
-+
- struct pci_ops intel_mid_pci_ops = {
- 	.read = pci_read,
- 	.write = pci_write,
-@@ -243,6 +249,7 @@ int __init intel_mid_pci_init(void)
- 	pr_info("Intel MID platform detected, using MID PCI ops\n");
- 	pci_mmcfg_late_init();
- 	pcibios_enable_irq = intel_mid_pci_irq_enable;
-+	pcibios_disable_irq = intel_mid_pci_irq_disable;
- 	pci_root_ops = intel_mid_pci_ops;
- 	pci_soc_mode = 1;
- 	/* Continue with standard init */
+ const struct irq_domain_ops ioapic_irq_domain_ops = {
+ 	.map = mp_irqdomain_map,
++	.unmap = mp_irqdomain_unmap,
+ 	.xlate = ioapic_xlate,
+ };
+ 
 -- 
 1.7.10.4
-
