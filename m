@@ -1,255 +1,75 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch V3 19/37] x86, irq: introduce mechanisms to support
- dynamically allocate IRQ for IOAPIC
-Date: Tue, 27 May 2014 21:58:34 +0200 (CEST)
-Message-ID: <alpine.DEB.2.02.1405271445050.21720@ionos.tec.linutronix.de>
-References: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com> <1401178092-1228-20-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1401178092-1228-20-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: [RFC 0/2] ACPI Platform Communication Channel driver
+Date: Tue, 27 May 2014 16:29:57 -0400
+Message-ID: <1401222599-12416-1-git-send-email-ashwin.chaugule@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:56204 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752050AbaE0UaJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 May 2014 16:30:09 -0400
+Received: by mail-pb0-f52.google.com with SMTP id rr13so9831754pbb.25
+        for <linux-acpi@vger.kernel.org>; Tue, 27 May 2014 13:30:08 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, patches@linaro.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-Jiang,
+Hello,
 
-On Tue, 27 May 2014, Jiang Liu wrote:
+This patchset adds initial support for the PCC (Platform Communication Channel)
+interface as described in the current ACPI 5.0a spec. See Section 14 of the
+ACPI spec - http://acpi.info/DOWNLOADS/ACPI_5_Errata%20A.pdf for more details on
+how PCC works.
 
-> +static int alloc_irq_from_domain(struct irq_domain *domain, u32 gsi, int pin)
->  {
-> +	int irq = -1;
-> +
-> +	if (gsi >= arch_dynirq_lower_bound(0)) {
-> +		irq = irq_create_mapping(domain, pin);
-> +	} else if (gsi < NR_IRQS_LEGACY) {
-> +		if (!ioapic_identity_map)
-> +			irq = irq_create_mapping(domain, pin);
-> +		else if (irq_domain_associate(domain, gsi, pin) == 0)
-> +			irq = gsi;
-> +	} else if (irq_create_strict_mappings(domain, gsi, pin, 1) == 0) {
-> +		irq = gsi;
-> +	}
+In brief PCC (Platform Communication Channel) is a generic means for PCC clients,
+to talk to the firmware. The PCC register space is typically memory mapped IO and
+uses a doorbell mechanism to communicate synchronously from the OS to the firmware.
+The PCC driver is completely agnostic to the protocol implemented by the PCC clients.
+It only implements the enumeration of PCC channels and the low level transport mechanism
+and leaves the rest to the PCC clients.
 
-So you have these cases covered here:
+The PCC is meant to be useable in the future by clients such as CPPC
+(Collaborative Processor Performance Control), RAS (Reliability,
+Availability and Serviceability) and MPST (Memory Power State Tables) and possibly others.
 
-1) The ACPI case of secondary ioapics. You only have the strict 1:1
-   mapping for the first ioapic
+While the PCC clients will come as following patches whenever they're ready, I wanted
+to get feedback on this common driver and hope that it could be merged upstream. This
+should hopefully help various folks that are working on drivers that rely on the PCC
+interface.
 
-2) The gsi < NR_IRQS_LEGACY case where you have two options:
+Cheers,
+Ashwin
 
-    a) Let the core create a random virq number if ioapic_identity_map
-       is 0
+=== Testing Methodology ===
 
-       ioapic_identity_map is only set by SFI and devicetree
+The PCC test driver in [2/2] is a simple driver that was used to
+demonstrate how PCC clients would use the PCC driver. The PCC driver was
+tested by sending multiple PCC READS and PCC WRITES across a shared memory
+region on an MSM ARMv7 platform. This memory is shared between an apps processor
+and a power controller processor. So, one end of the PCC channel is the PCC test driver
+running on the apps processor and the other end is a debugger script
+(running on a JTAG debugger) thats attached to the power processor. The debugger
+script is busy looping on the doorbell address waiting for a bit to flip. This bit
+indicates a synchronous communication from the apps processor. The doorbell is rung
+when the OS sends a PCC READ or PCC WRITE command. The PCC communication channel
+is simply a few fake 32 bit registers that are incremented by the OS and the debugger
+script. The OS increments the registers and then sends the PCC WRITE command. On a PCC
+READ, the script increments these registers and then OS reads them back. The values
+are always incremented by 1 by either end, so we know what value to expect for each
+PCC READ/WRITE.
 
-       So in all other cases we fall into that code path for all
-       legacy interrupts. So how is that supposed to work lets say for
-       i8042 which has hardcoded irq 1 and 12?
+Ashwin Chaugule (2):
+  ACPI: Add support for Platform Communication Channel
+  PCC Test driver
 
-       irq_create_mapping(1)
-       
-	    hint = 1 % nr_irqs; --> 1
-	    virq = irq_alloc_desc_from(hint, of_node_to_nid(domain->of_node));
+ drivers/acpi/Kconfig    |  10 +++
+ drivers/acpi/Makefile   |   2 +-
+ drivers/acpi/pcc-test.c | 172 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/pcc.c      | 192 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 375 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/acpi/pcc-test.c
+ create mode 100644 drivers/acpi/pcc.c
 
-	    This returns something >= 16, because the irq descriptors
-	    for 0-15 (LEGACY) are allocated already.
+-- 
+1.8.3.2
 
-       The pin association works, but how is the i8042 driver supposed
-       to figure out that it should request the virq >=16 which was
-       created instead of the hardcoded 1 ?
-	
-    b) Associate the gsi and the pin
-
-       This only works because the virqs are already allocated at boot
-       time unconditionally due to arch_probe_nr_irqs() returning
-       NR_IRQS_LEGACY. So irq_domain_associate() works.
-       Undocumented works by chance behaviour.
-
-3) The case where gsi < arch_dynirq_lower_bound()
-
-   You create a strict mapping here, fine.
-
-This is confusing at best.
-
-First of all, we should use legacy_pic->nr_legacy_irqs instead of
-NR_IRQS_LEGACY all over the place.
-
-mshyperv, ce4100 and intel-mid use the null_legacy_pic which has
-nr_legacy_irqs = 0 and everything else uses the real pic which has
-nr_legacy_irqs = NR_IRQS_LEGACY. So why do we even bother to allocate
-and deal with NR_IRQS_LEGACY in the cases where we have no legacy?
-
-ce4100 is an oddball though. The ioapic is registered way before the
-interrupt subsystem is initialized and I have a hard time to
-understand that comment:
-
-        /* We can't set this earlier, because we need to calibrate the timer */
-        legacy_pic = &null_legacy_pic;
-
-The timer calibration happens after the interrupts are set up. I
-assume it's check_timer() which wants that, but we know exactly how
-the ce4100 works, so we might be able to avoid that whole "testing"
-stuff. Sebastian, any input on this?
-
-If it turns out that ce4100 needs the inital real legacy pic for some
-magic reason we still can be clever by extending the legacy pic data
-structure to tell us about that change, i.e. instead of using
-legacy_pic->nr_legacy_irqs having a field "nr_allocated_irqs", which
-is set to NR_IRQS_LEGACY for the real pic and to 0 for the null_pic
-and let ce4100 set that field to NR_IRQS_LEGACY before switching the
-legacy_pic over to the null implementation.
-
-
-But what's really disgusting is the magic ioapic_identity_map and the
-extra ACPI specific ioapic_dynirq_base hackery.
-
-Why do we need strict mappings in the non ACPI case for all ioapic
-pins? What's so different about ACPI? Or is this just to avoid
-breaking the existing SFI/devicetree stuff. If that's the reason I'm
-fine with it, but ...
-
-independent of this question we want to be more clever about the
-handling of strict, legacy and freely associated linux irq numbers.
-
-So you have this weird ioapic_create_domain_fn callback in
-mp_register_ioapic, which is solely there so the different callers can
-hand in their domain ops and eventually set the magic
-ioapic_identity_map flag.
-
-+void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
-+                              ioapic_create_domain_fn cb, void *arg)
-
-What about having
-
-struct ioapic_domain {
-       struct irqdomain             *domain;
-       const struct irq_domain_ops  *ops;
-       void                         *arg;
-       enum domain_type             type;
-};
-
-and add this struct to the ioapic struct. type is:
-
-enum domain_type {
-       IOAPIC_STRICT,
-       IOAPIC_LEGACY,
-       IOAPIC_DYNAMIC,
-};     
-
-
-Now the register function changes to:
-
-void mp_register_ioapic(int id, u32 address, u32 gsi_base,
-     			const struct irq_domain_ops *ops,
-			int type)
-{
-	...
-
-        ioapics[idx].irqdomain.ops = ops;
-        ioapics[idx].irqdomain.arg = arg;
-	ioapics[idx].irqdomain.type = type;
-        ioapics[idx].irqdomain.domain = NULL;
-	
-	...
-}
-
-and you can use mp_irqdomain_create() unconditionally for creating all
-domains. And there you do:
-
-static int dynirq_lower_bound;
-
-mp_irqdomain_create()
-{
-       ioapic->irqdomain.domain = irq_domain_add_linear(...);
-       
-       switch (ioapic->irqdomain.type) {
-       case IOAPIC_LEGACY:
-       	    /*
-	     * Associate the legacy interrupts which have been
-	     * already allocated.
-	     */
-	    for (i = 0; i < legacy_pic->nr_allocated_irqs; i++)
-		irq_domain_associate(domain, i, i);
-
-       case IOAPIC_STRICT:
-       	    dynirq_lower_bound += ioapic->nr_gsis;
-
-       case IOAPIC_DYNAMIC:
-       	    break;
-       }
-}
-
-So arch_dynirq_lower_bound() gets simplified to:
-{
-     return dynirq_lower_bound;
-}
-
-And alloc_irq_from_domain() becomes:
-
-int alloc_irq_from_domain(struct ioapic_domain *domain, int gsi, int pin)
-{
-	switch (domain->type) {
-	case IOAPIC_DYNAMIC:
-	     return irq_create_mapping(domain->domain, pin);
-	case IOAPIC_LEGACY:
-	case IOAPIC_STRICT:     	    
-	     return irq_create_strict_mappings(domain, gsi, pin, 1);
-	}
-}
-
-At the call site of alloc_irq_from_domain() you have already:
-
-       irq = irq_find_mapping(domain, pin);
-       if (irq <=0 ....)
-       	       alloc_irq_from_domain(domain, gsi, pin);
-
-So because we associated the legacy_pic->nr_allocated_irqs in
-mp_irqdomain_create() already, you'll never call into
-alloc_irq_from_domain() for those and the remaining ones for that
-first ioapic are handled by the IOAPIC_STRICT fall through.
-
-For simplicity you can let SFI and devicetree register the ioapics
-with their specific domain ops plus IOAPIC_LEGACY for the first ioapic
-and IOAPIC_STRICT for all others. That also covers the case where the
-null_legacy_pic with legacy_pic->nr_allocated_irqs == 0 is used.
-
-In the ACPI case you register with the acpi domain ops and
-IOAPIC_LEGACY for the first and IOAPIC_DYNAMIC for the extra ioapics.
-
-Should be way cleaner and understandable, at least to me :)
-
-Now there is that last oddity which bugs me in mp_map_pin_to_irq()
-
- 	/*
-	 * Don't use irqdomain to manage ISA IRQs because there may be
-	 * multiple IOAPIC pins sharing the same ISA IRQ number and
-	 * irqdomain only supports 1:1 mapping between IOAPIC pin and
-	 * IRQ number.
- 	 */
-	if (idx >= 0 && test_bit(mp_irqs[idx].srcbus, mp_bus_not_pci)) {
- 		irq = mp_irqs[idx].srcbusirq;
-		if ((flags & IOAPIC_MAP_ALLOC) && info->count == 0 &&
-		    mp_irqdomain_map(domain, irq, pin) != 0)
-			irq = -1;
-
-That really looks like a hack. I'm aware that the current irqdomain
-code cannot deal with that oddball case.
-
-So what you are saying is that there are devices which have a separate
-physical wire to different ioapic pins, but the ioapic is supposed to
-bundle them to a shared interrupt.
-
-I agree that this is odd enough to handle at the ioapic level, but
-it'd be nice to have a more elaborative comment on this.
-
-Aside of the above I'm pretty happy about the progress of this patch
-set. One thing, which needs to be looked at are the usage sites of
-irq_data->irq, whether they are safe. I did not spot any unsafe ones,
-but a few functions which are called with irq_data->irq and make no
-use of it.
-
-Thanks,
-
-	tglx
