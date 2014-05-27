@@ -1,104 +1,67 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH resend 2/4] backlight: Add backlight device
- (un)registration notification
-Date: Tue, 27 May 2014 10:20:33 +0100
-Message-ID: <20140527092033.GF5875@lee--X1>
-References: <1400679596-19663-1-git-send-email-hdegoede@redhat.com>
- <20140522090215.GO6679@lee--X1>
- <000301cf788f$1a59e870$4f0db950$%han@samsung.com>
- <2139692.XxRO5tdkik@vostro.rjw.lan>
- <538323A3.1050209@redhat.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Patch V3 05/37] x86, PCI, ACPI: use kmalloc_node() to optimize
+ for performance
+Date: Tue, 27 May 2014 07:50:31 -0600
+Message-ID: <CAErSpo7A17+VfQ524-VpdpCCtf93d980h-u+z6DnBtR6BoNmPg@mail.gmail.com>
+References: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com> <1401178092-1228-6-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f173.google.com ([209.85.213.173]:33871 "EHLO
-	mail-ig0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751615AbaE0JU7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 May 2014 05:20:59 -0400
-Received: by mail-ig0-f173.google.com with SMTP id hn18so814936igb.12
-        for <linux-acpi@vger.kernel.org>; Tue, 27 May 2014 02:20:58 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <538323A3.1050209@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1401178092-1228-6-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, "x86@kernel.org" <x86@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jingoo Han <jg1.han@samsung.com>, 'Aaron Lu' <aaron.lu@intel.com>, 'Bryan Wu' <cooloney@gmail.com>, 'Jean-Christophe Plagniol-Villard' <plagnioj@jcrosoft.com>, 'Tomi Valkeinen' <tomi.valkeinen@ti.com>, 'Ben Skeggs' <bskeggs@redhat.com>, 'David Airlie' <airlied@linux.ie>, 'Zhang Rui' <rui.zhang@intel.com>, 'Len Brown' <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-> On 05/26/2014 01:03 PM, Rafael J. Wysocki wrote:
-> > On Monday, May 26, 2014 12:03:43 PM Jingoo Han wrote:
-> >> On Thursday, May 22, 2014 6:02 PM, Lee Jones wrote:
-> >>> On Thursday, May 22, 2014 5:45 PM, Hans de Goede wrote:
-> >>>> On Thursday, May 22, 2014 8:31 AM, Rafael J. Wysocki wrote:
-> >>>>> On Wednesday, May 21, 2014 10:40 PM, Hans de Goede wrote:
-> >>>>>> Some firmware drivers, ie acpi-video want to get themselves ou=
-t of the
-> >>>>>> way (in some cases) when their also is a raw backlight device =
-available.
-> >>>>>>
-> >>>>>> Due to module loading ordering being unknown, acpi-video canno=
-t be certain
-> >>>>>> that the backlight_device_registered(BACKLIGHT_RAW) it does fo=
-r this is
-> >>>>>> the final verdict wrt there being a BACKLIGHT_RAW device.
-> >>>>>>
-> >>>>>> By adding notification acpi-video can listen for backlight dev=
-ices showing
-> >>>>>> up after it has loaded, and unregister its backlight device if=
- desired.
-> >>>>>>
-> >>>>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> >>>>>
-> >>>>> Backlight maintainer's ACK is requisite here.
-> >>>>
-> >>>> Agreed, which is why I send this set to all 3 the backlight main=
-tainers
-> >>>> directly on both postings.
-> >>>>
-> >>>> What may be helpful for them is to hear from you if you're ok wi=
-th the
-> >>>> acpi-video bits which are actually going to use this, since thos=
-e will
-> >>>> be the only user of the new backlight api (for now).
-> >>>
-> >>> I'm happy to apply any Backlight patches which have either Bryan =
-or
-> >>> Jingoo's Ack, as they are the reviewers for the BL subsystem.
-> >>
-> >> Acked-by: Jingoo Han <jg1.han@samsung.com>
-> >>
-> >> Lee Jones,
-> >> Would you merge this patch into your backlight git tree?
-> >=20
-> > Hans, does this series depend on things that I've applied already? =
- If so,
-> > I'd very much prefer to take this series too as a whole.
->=20
-> The 3th patch in this series:
-> " acpi-video: Unregister the backlight device if a raw one shows up l=
-ater"
-> depends on my "acpi-video: Add an acpi_video_unregister_backlight fun=
-ction"
-> patch, which you've applied to your linux-next branch already.
->=20
-> As well as on the 2nd patch in this series:
-> "backlight: Add backlight device (un)registration notification"
->=20
-> So I agree that it is a good idea to take the whole series through yo=
-ur tree.
+On Tue, May 27, 2014 at 2:07 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> Use kmalloc_node() instead of kmalloc() when possible to optimize
+> for performance on NUMA platforms.
+>
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 
-I'm fine with that.
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Rafael, could you apply the set onto an immutable branch and send me a
-signed pull-request please?
+I think this is micro-optimization, because I don't think these
+structures are referenced often.  It might be nicer if we could
+arrange to run this path on the local node, as we do in
+pci_call_probe(), so all allocs would happen there.  But I'm OK with
+this as-is.
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  arch/x86/pci/acpi.c |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+> index 01edac6c5e18..91bef49df228 100644
+> --- a/arch/x86/pci/acpi.c
+> +++ b/arch/x86/pci/acpi.c
+> @@ -448,7 +448,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
+>                 return;
+>
+>         size = sizeof(*info->res) * info->res_num;
+> -       info->res = kzalloc(size, GFP_KERNEL);
+> +       info->res = kzalloc_node(size, GFP_KERNEL, info->sd.node);
+>         if (!info->res) {
+>                 info->res_num = 0;
+>                 return;
+> @@ -456,7 +456,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
+>
+>         size = sizeof(*info->res_offset) * info->res_num;
+>         info->res_num = 0;
+> -       info->res_offset = kzalloc(size, GFP_KERNEL);
+> +       info->res_offset = kzalloc_node(size, GFP_KERNEL, info->sd.node);
+>         if (!info->res_offset) {
+>                 kfree(info->res);
+>                 info->res = NULL;
+> @@ -495,7 +495,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>         if (node != NUMA_NO_NODE && !node_online(node))
+>                 node = NUMA_NO_NODE;
+>
+> -       info = kzalloc(sizeof(*info), GFP_KERNEL);
+> +       info = kzalloc_node(sizeof(*info), GFP_KERNEL, node);
+>         if (!info) {
+>                 printk(KERN_WARNING "pci_bus %04x:%02x: "
+>                        "ignored (out of memory)\n", domain, busnum);
+> --
+> 1.7.10.4
+>
