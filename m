@@ -1,177 +1,166 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: Bug Report - [Acer Aspire V5-122P] Unable to adjust screen brightness
-Date: Tue, 27 May 2014 09:12:44 +0800
-Message-ID: <5383E68C.9030000@intel.com>
-References: <CADNzsyM9qiWf_KV4uuNDnkcv7JvCSi00qHiNQTWfVN-pZtWqig@mail.gmail.com> <537BFF89.9010806@intel.com> <CADNzsyMn5viCQDc7HXqZiH92BYNp9TZAtMNbuQMAkZXy6hj0Dg@mail.gmail.com> <537C9DC5.5040408@intel.com> <CADNzsyO7gzhtng0WmKA9DGZAreEGVsbAJ+KGdgJu+9zr_LyR8g@mail.gmail.com> <537EA5B7.9050509@intel.com> <CADNzsyORVbpqUMsZmKzBn_=Ma99dbLhKo_bfw3bvOASLwTkLsA@mail.gmail.com> <537F4425.70205@redhat.com> <CADNzsyMCnbNu6CbWfV73CM99Qs=Lw22Q8pSQ23O31sopNDpaig@mail.gmail.com> <5382D5C6.5080001@intel.com> <CADNzsyNwvGeeLzM54_CkA4tWCYnNVoRyewuqXx0vXH3t4shWHw@mail.gmail.com> <CADNzsyMEi-e6d=zLET6YAtJxsyPmUdWRs6rEDt9xrf9R63uW0Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch V3 00/37] use irqdomain to dynamically allocate IRQ for IOAPIC
+Date: Tue, 27 May 2014 16:07:35 +0800
+Message-ID: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:3461 "EHLO mga14.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:59391 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751766AbaE0BMq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 May 2014 21:12:46 -0400
-In-Reply-To: <CADNzsyMEi-e6d=zLET6YAtJxsyPmUdWRs6rEDt9xrf9R63uW0Q@mail.gmail.com>
+	id S1751717AbaE0IFn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 May 2014 04:05:43 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lewis Toohey <lewis@toohey.co.uk>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 05/27/2014 03:09 AM, Lewis Toohey wrote:
-> On 26 May 2014 13:18, Lewis Toohey <lewis@toohey.co.uk> wrote:
->> On 26 May 2014 06:48, Aaron Lu <aaron.lu@intel.com> wrote:
->>> On 05/26/2014 04:42 AM, Lewis Toohey wrote:
->>>> On 23 May 2014 13:50, Hans de Goede <hdegoede@redhat.com> wrote:
->>>>> Hi Lewis et all,
->>>>>
->>>>> On 05/23/2014 02:07 PM, Lewis Toohey wrote:
->>>>>> On 23 May 2014 02:34, Aaron Lu <aaron.lu@intel.com> wrote:
->>>>>>> On 05/21/2014 09:02 PM, Lewis Toohey wrote:
->>>>>>>> Hi Aaron
->>>>>>>>
->>>>>>>> I followed your instructions and can report some limited success. I
->>>>>>>> have two interfaces listed in /sys/class/backlight namely:
->>>>>>>>   acpi_video0  radeon_bl0
->>>>>>>>
->>>>>>>> max_brightness for acpi_video0 is 11. Echo-ing new values to
->>>>>>>> brightness appears to have no effect.
->>>>>>>>
->>>>>>>> max_brightness for radeon_bl0 is 255. Echo-ing new values to
->>>>>>>> brightness does adjust the screen brightness as you would expect.
->>>>>>>>
->>>>>>>> Results are the same on both battery and powered.
->>>>>>>>
->>>>>>>> I hope that is useful.
->>>>>>>
->>>>>>> I think Hans' patchset should solve your problem, can you please give it
->>>>>>> a try? You will need to pass the video.use_native_backlight=1 to kernel
->>>>>>> cmdline when testing, thanks.
->>>>>>>
->>>>>>> [PATCH resend 0/4] Make video.use_native_backlight=1 work properly with nouveau
->>>>>>> http://www.spinics.net/lists/dri-devel/msg59941.html
->>>>>>>
->>>>>>> -Aaron
->>>>>>
->>>>>> Aaron
->>>>>>
->>>>>> Thank you for this. Unfortunately I am going to have to ask you for a
->>>>>> bit of help here as I am now, officially, "out of my depth". I
->>>>>> appreciate this is a pain as you will have to take time explaining it
->>>>>> to me and I apologise for that.
->>>>>>
->>>>>> I have figured out how to pass the kernel command line argument, this
->>>>>> is not an issue.
->>>>>>
->>>>>> I have located the patch you refer to here:
->>>>>> https://bugzilla.redhat.com/attachment.cgi?id=894577
->>>>>> (which I believe is correct) but I cannot figure out how to apply it.
->>>>>
->>>>> That is not the right patch, you need a set of 2 patches. I've attached
->>>>> them to this mail. Note please ignore the numbering starting at 6, these
->>>>> are the 2 patches you need. You will need to build a Linux kernel with
->>>>> these 2 patches applied, see your distributions documentation on how
->>>>> to build a kernel from source.
->>>>>
->>>>> I don't know which distro you are using, I've a Fedora kernel with this
->>>>> patches included available here:
->>>>>
->>>>> http://people.fedoraproject.org/~jwrdegoede/rhbz1093171/
->>>>>
->>>>> Regards,
->>>>>
->>>>> Hans
->>>>
->>>> Hans
->>>>
->>>> Unfortunately I am unable to apply these patches against the latest
->>>> mainline kernel. I get two fails when applying the second patch file
->>>> and then the kernel will not compile. Please see output information
->>>> below.
->>>
->>> I've prepared a git branch for you:
->>> https://github.com/aaronlu/linux.git for-lewis
->>>
->>> It's based on Rafael's linux-next plus Hans' patch 2 and 3.
->>>
->>> Thanks,
->>> Aaron
->>>
->>>>
->>>> Can you advise?
->>>>
->>>> Many thanks
->>>>
->>>> ===APPLYING PATCHES TO LATEST MAINLINE KERNEL====
->>>>
->>>> lewis@HappyFunMeaowMeaow:~/KernelTesting/Kernel/linux$ patch -p1 <
->>>> 0006-backlight-Add-backlight-device-un-registration-notif.patch
->>>> (Stripping trailing CRs from patch; use --binary to disable.)
->>>> patching file drivers/video/backlight/backlight.c
->>>> (Stripping trailing CRs from patch; use --binary to disable.)
->>>> patching file include/linux/backlight.h
->>>> lewis@HappyFunMeaowMeaow:~/KernelTesting/Kernel/linux$ patch -p1 <
->>>> 0007-acpi-video-Unregister-the-backlight-device-if-a-raw-.patch
->>>> (Stripping trailing CRs from patch; use --binary to disable.)
->>>> patching file drivers/acpi/video.c
->>>> Hunk #1 FAILED at 151.
->>>> Hunk #2 succeeded at 161 (offset -1 lines).
->>>> Hunk #3 FAILED at 1837.
->>>> Hunk #4 succeeded at 1868 (offset -113 lines).
->>>> Hunk #5 succeeded at 1999 (offset -113 lines).
->>>> Hunk #6 succeeded at 2023 (offset -113 lines).
->>>> 2 out of 6 hunks FAILED -- saving rejects to file drivers/acpi/video.c.rej
->>>>
->>>>
->>>> ==LAST LINES OF BUILD BEFORE FAIL===
->>>>
->>>>   CC [M]  fs/xfs/xfs_ioctl32.o
->>>>   LD [M]  fs/xfs/xfs.o
->>>> make[1]: Leaving directory `/home/lewis/KernelTesting/Kernel/linux'
->>>> make: *** [debian/stamp/build/kernel] Error 2
->>>> lewis@HappyFunMeaowMeaow:~/KernelTesting/Kernel/linux$
->>>>
->>>>
->>>
->>
->> Aaron
->>
->> Many thanks for this. I can confirm that booting with this kernel and
->> passing the video.use_native_backlight = 1 argument means that the
->> backlight works perfectly on my laptop (both using the keyboard hot
->> keys and the gnome/unity settings applet).
->>
->> I'll post to the ubuntu launchpad page later with instructions for
->> other people to do this. I assume its presence in the linux-next tree
->> means that it will be fixed in an upcoming kernel release? (sorry, I
->> don't know quite how the process works).
->>
->> If I can provide more information or do some more useful testing
->> please do not hesitate to let me know.
->>
->> Thank you both for your help - really appreciated.
->>
->> --
->> Lewis
->>
-> 
-> Aaron
-> 
-> Just one final point in case it is relevant / useful - although it
-> fixes the backlight issue this kernel version breaks the suspend
-> resume functionality for me (the system will suspend but cannot come
-> back from it).
+On x86 platforms, IRQ number are statically allocated to IOAPIC pins at boot.
+There are two issues with this design. First it causes trouble to IOAPIC
+hotplug because we need to allocate a block of IRQ numbers for each IOAPIC.
+Second it may waste IRQ nubmers even if some IOAPIC pins are not used because
+IRQ numbers are statically assigned.
 
-That sounds like a regression somewhere and a git bisect would be great
-if that's possible for you.
+This patchset tries to enable dynamic IRQ number allocation for IOAPIC
+by adopting the irqdomain framework, it solves the two issues mentioned
+above. It also simplifies the IOAPIC driver by consolidating ways to
+program IOAPIC pins with the irqdomain map interface.
 
-Thanks,
-Aaron
+We will enhance the IOAPIC driver core to support ACPI based IOAPIC hotplug
+once the IOAPIC driver has been converted to irqdomain.
 
-> 
-> Not asking for a fix (appreciate it is a testing base), just thought
-> it might be useful to know.
-> 
-> Thanks again
-> 
-> 
+This patchset applies to tip/irq/core and you may pull from
+https://github.com/jiangliu/linux.git ioapic/irqdomain
+
+The patchset has been tested on a two socket 64 bit Intel platforms with:
+1) ACPI and mpparse enabled (boot successfully)
+2) Mpparse enabled with ACPI disabled (boot successfully)
+3) ACPI enabled with Mpparse disabled (boot successfully)
+4) boot parameter "pci=nomsi"
+5) boot parameter "acpi=noirq"
+6) boot parameter "pci=noacpi"
+7) UP mode (SMP disabled)
+
+It has also been tested on an one socket laptop with 32bit Ubuntu with:
+1) ACPI and mpparse enabled (boot successfully)
+2) Mpparse enabled with ACPI disabled (boot successfully)
+3) ACPI enabled with Mpparse disabled (boot successfully)
+4) boot parameter "pci=nomsi"
+5) boot parameter "acpi=noirq"
+6) boot parameter "pci=noacpi"
+7) UP mode (SMP disabled)
+8) UP mode with IOAPIC disabled
+
+It also builds successfully (but without booting due to hardware resource
+constraints) for 32 bit platforms with following configuraitons:
+1) SFI enabled
+2) devicetree (CE4100) enabled
+
+V2->V3
+1) Implement irqdomain unmap() interface and free IRQ when it's not used
+2) Fix posssible conflicts with native and PV Xen IRQ management
+3) Fix build errors on CE4100
+4) Code quality and readability improvement
+
+V1->V2
+1) Rebase to tip/irq/core
+2) reorder patches to put bugfixes at the head
+3) fix bug in handling shared ISA IRQs
+4) refine commit messages
+
+Patch 1 is simple bugfix for MSI.
+
+Patch 2-16 are trivial code improvements, bugfixes and preparation.
+
+Patch 17-24 enable basic irqdomain support and IRQ number dynamic
+allocation.
+
+Patch 25-29 consoldate the way to program IOAPIC pins by using
+irqdomain map() interface.
+
+Patch 30-31 cleans up unused interfaces and functions in IOAPIC driver.
+
+Patch 32-37 implement irqdoamin unmap() interfaces and free IRQ when
+it's not used
+
+Tests and comments are warmly welcomed!
+
+Jiang Liu (37):
+  x86, irq: update high address field when updating affinity for MSI
+    IRQ
+  genirq, trivial: improve documentation to match current
+    implementation
+  x86, mpparse: use pr_lvl() helper utilities to replace
+    printk(KERN_LVL)
+  x86, mpparse: simplify arch/x86/include/asm/mpspec.h
+  x86, PCI, ACPI: use kmalloc_node() to optimize for performance
+  x86, acpi, irq: kill static function irq_to_gsi()
+  x86, ACPI, trivial: minor improvements to arch/x86/kernel/acpi/boot.c
+  x86, ACPI, irq: enhance error handling in function
+    acpi_register_gsi()
+  x86, ACPI, irq: fix possible eror in GSI to IRQ mapping for legacy
+    IRQ
+  x86, irq, trivial: minor improvements of IRQ related code
+  x86, ioapic: kill unused global variable timer_through_8259
+  x86, ioapic: kill static variable nr_irqs_gsi
+  x86, ioapic: introduce helper utilities to walk ioapics and pins
+  x86, ioapic: use irq_cfg() instead of irq_get_chip_data() for better
+    readability
+  x86, irq: reorganize IO_APIC_get_PCI_irq_vector() to prepare for
+    irqdomain
+  x86, irq: introduce some helper utilities to improve readability
+  x86, ACPI, irq: consolidate algorithm of mapping (ioapic, pin) to IRQ
+    number
+  x86, irq, ACPI: change __acpi_register_gsi to return IRQ number
+    instead of GSI
+  x86, irq: introduce mechanisms to support dynamically allocate IRQ
+    for IOAPIC
+  x86, irq: enhance mp_register_ioapic() to support irqdomain
+  x86, ACPI, irq: provide basic irqdomain support
+  x86, mpparse, irq: provide basic irqdomain support
+  x86, SFI, irq: provide basic irqdomain support
+  x86, devicetree, irq: use common mechanism to support irqdomain
+  x86, irq: introduce two helper functions to support irqdomain map
+    operation
+  x86, irq, ACPI: use common irqdomain map interface to program IOAPIC
+    pins
+  x86, irq, mpparse: use common irqdomain map interface to program
+    IOAPIC pins
+  x86, irq, SFI: use common irqdomain map interface to program IOAPIC
+    pins
+  x86, irq, devicetree: use common irqdomain map interface to program
+    IOAPIC pins
+  x86, irq: clean up unused IOAPIC interface
+  x86, irq: simplify the way to handle ISA IRQ
+  genirq: export irq_domain_disassociate() to architecture interrupt
+    drivers
+  x86, irq: introduce helper functions to release IOAPIC pin
+  x86, irq, ACPI: release IOAPIC pin when PCI device is disabled
+  x86, irq, mpparse: release IOAPIC pin when PCI device is disabled
+  x86, irq, SFI: release IOAPIC pin when PCI device is disabled
+  x86, irq, devicetree: release IOAPIC pin when PCI device is disabled
+
+ Documentation/IRQ-domain.txt      |    3 +-
+ arch/x86/Kconfig                  |    1 +
+ arch/x86/include/asm/apic.h       |    4 +-
+ arch/x86/include/asm/hardirq.h    |    3 -
+ arch/x86/include/asm/io_apic.h    |   49 +--
+ arch/x86/include/asm/mpspec.h     |   13 -
+ arch/x86/include/asm/prom.h       |    2 -
+ arch/x86/kernel/acpi/boot.c       |  231 ++++++-------
+ arch/x86/kernel/apic/apic.c       |    2 +-
+ arch/x86/kernel/apic/io_apic.c    |  681 +++++++++++++++++++++++--------------
+ arch/x86/kernel/devicetree.c      |   96 +-----
+ arch/x86/kernel/irqinit.c         |    6 -
+ arch/x86/kernel/mpparse.c         |   98 +++---
+ arch/x86/pci/acpi.c               |    6 +-
+ arch/x86/pci/intel_mid_pci.c      |   27 +-
+ arch/x86/pci/irq.c                |   15 +-
+ arch/x86/platform/intel-mid/sfi.c |   56 ++-
+ arch/x86/platform/sfi/sfi.c       |   13 +-
+ drivers/acpi/pci_irq.c            |    3 +-
+ include/linux/irqdomain.h         |    2 +
+ kernel/irq/internals.h            |    2 +-
+ kernel/irq/irqdomain.c            |    8 +-
+ 22 files changed, 715 insertions(+), 606 deletions(-)
+
+-- 
+1.7.10.4
 
