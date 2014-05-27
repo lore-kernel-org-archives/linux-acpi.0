@@ -1,101 +1,51 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch V1 3/4] x86, irq, ACPI: implement interface to support ACPI based IOAPIC hot-addition
-Date: Tue, 27 May 2014 16:24:36 +0800
-Message-ID: <1401179077-2020-4-git-send-email-jiang.liu@linux.intel.com>
-References: <1401179077-2020-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1401179077-2020-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
+Subject: Re: [Patch V3 01/37] x86, irq: update high address field when updating
+ affinity for MSI IRQ
+Date: Tue, 27 May 2014 16:50:47 +0800
+Message-ID: <538451E7.7030206@linux.intel.com>
+References: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com> <1401178092-1228-2-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.02.1405271010570.21720@ionos.tec.linutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1405271010570.21720@ionos.tec.linutronix.de>
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Implement acpi_register_ioapic() and enhance mp_register_ioapic()
-to support ACPI based IOAPIC hot-addition.
+Yes, I think it should be marked for stable branches.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/x86/kernel/acpi/boot.c    |   18 ++++++++++++++++--
- arch/x86/kernel/apic/io_apic.c |   24 +++++++++++++++++++++---
- 2 files changed, 37 insertions(+), 5 deletions(-)
-
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index a1b388e88bcb..d807e16f8fec 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -655,8 +655,22 @@ EXPORT_SYMBOL(acpi_unmap_lsapic);
- 
- int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
- {
--	/* TBD */
--	return -EINVAL;
-+	int ret = -ENOSYS;
-+#ifdef CONFIG_X86_IO_APIC
-+	unsigned long long uid;
-+	acpi_status status;
-+
-+	status = acpi_evaluate_integer(handle, METHOD_NAME__UID, NULL, &uid);
-+	if (ACPI_FAILURE(status))
-+		uid = 0;
-+
-+	down_write(&acpi_ioapic_rwsem);
-+	ret  = mp_register_ioapic((int)uid, phys_addr, gsi_base,
-+				  acpi_create_irqdomain, NULL);
-+	up_write(&acpi_ioapic_rwsem);
-+#endif
-+
-+	return ret;
- }
- 
- EXPORT_SYMBOL(acpi_register_ioapic);
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index f70fa239f34b..4bddff760ff4 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3802,7 +3802,13 @@ static int bad_ioapic_register(int idx)
- 
- static int find_free_ioapic_entry(void)
- {
--	return nr_ioapics;
-+	int idx;
-+
-+	for (idx = 0; idx < MAX_IO_APICS; idx++)
-+		if (ioapics[idx].nr_registers == 0)
-+			return idx;
-+
-+	return MAX_IO_APICS;
- }
- 
- int mp_register_ioapic(int id, u32 address, u32 gsi_base,
-@@ -3818,8 +3824,15 @@ int mp_register_ioapic(int id, u32 address, u32 gsi_base,
- 	}
- 	for_each_ioapic(ioapic)
- 		if (ioapics[ioapic].mp_config.apicaddr == address) {
--			pr_warn("address 0x%x conflicts with IOAPIC%d\n",
--				address, ioapic);
-+			/*
-+			 * IOAPIC unit may also be visible in PCI scope.
-+			 * When ioapic PCI driver's probe() is called,
-+			 * the IOAPIC unit may have already been initialized
-+			 * at boot time.
-+			 */
-+			if (!ioapic_initialized)
-+				pr_warn("address 0x%x conflicts with IOAPIC%d\n",
-+					address, ioapic);
- 			return -EEXIST;
- 		}
- 
-@@ -3875,6 +3888,11 @@ int mp_register_ioapic(int id, u32 address, u32 gsi_base,
- 	if (nr_ioapics <= idx)
- 		nr_ioapics = idx + 1;
- 
-+	if (ioapic_initialized && ioapic_create_irqdomain(idx)) {
-+		clear_fixmap(FIX_IO_APIC_BASE_0 + idx);
-+		return -ENOMEM;
-+	}
-+
- 	/* Set nr_registers to mark entry present */
- 	ioapics[idx].nr_registers = entries;
- 
--- 
-1.7.10.4
+On 2014/5/27 16:11, Thomas Gleixner wrote:
+> On Tue, 27 May 2014, Jiang Liu wrote:
+> 
+>> If x2apic is enabled, the MSI high address field should also be aslo
+>> updated when setting affinity for MSI IRQ, otherwise the MSI IRQ may
+>> target wrong APIC IDs.
+> 
+> That should be tagged for stable, right?
+>  
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>> ---
+>>  arch/x86/kernel/apic/io_apic.c |    4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+>> index 9d0a9795a0f8..2de992501a1b 100644
+>> --- a/arch/x86/kernel/apic/io_apic.c
+>> +++ b/arch/x86/kernel/apic/io_apic.c
+>> @@ -3007,6 +3007,10 @@ msi_set_affinity(struct irq_data *data, const struct cpumask *mask, bool force)
+>>  
+>>  	__get_cached_msi_msg(data->msi_desc, &msg);
+>>  
+>> +	msg.address_hi = MSI_ADDR_BASE_HI;
+>> +	if (x2apic_enabled())
+>> +		msg.address_hi |= MSI_ADDR_EXT_DEST_ID(dest);
+>> +
+>>  	msg.data &= ~MSI_DATA_VECTOR_MASK;
+>>  	msg.data |= MSI_DATA_VECTOR(cfg->vector);
+>>  	msg.address_lo &= ~MSI_ADDR_DEST_ID_MASK;
+>> -- 
+>> 1.7.10.4
+>>
+>>
