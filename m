@@ -1,212 +1,255 @@
-From: Lv Zheng <zetalog@gmail.com>
-Subject: [RFC PATCH 4/6] ACPICA: Tables: Enable both 32-bit and 64-bit FACS.
-Date: Wed, 28 May 2014 01:28:29 +0800
-Message-ID: <90363720a34ec0d7508882a0452aa5ac27ce5a09.1401210685.git.lv.zheng@intel.com>
-References: <38907770.bupFXhytsS@vostro.rjw.lan> <cover.1401210684.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1401210684.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Oswald Buddenhagen <ossi@kde.org>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [Patch V3 19/37] x86, irq: introduce mechanisms to support
+ dynamically allocate IRQ for IOAPIC
+Date: Tue, 27 May 2014 21:58:34 +0200 (CEST)
+Message-ID: <alpine.DEB.2.02.1405271445050.21720@ionos.tec.linutronix.de>
+References: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com> <1401178092-1228-20-git-send-email-jiang.liu@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1401178092-1228-20-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Lv Zheng <lv.zheng@intel.com>
+Jiang,
 
-The root cause of the reported bug might be one of the followings:
-1. BIOS may favor the 64-bit firmware waking vector address when the
-   version of the FACS is greater than 0 and Linux currently only supports
-   resuming from the real mode, so the 64-bit firmware waking vector has
-   never been set and might be invalid to BIOS while the commit enables
-   higher version FACS.
-2. BIOS may favor the FACS reported via the "FIRMWARE_CTRL" field in the
-   FADT while the commit doesn't set the firmware waking vector address of
-   the FACS reported by "FIRMWARE_CTRL", it only sets the firware waking
-   vector address of the FACS reported by "X_FIRMWARE_CTRL".
+On Tue, 27 May 2014, Jiang Liu wrote:
 
-This patch excludes the cases that can trigger the bugs caused by the root
-cause 2.
+> +static int alloc_irq_from_domain(struct irq_domain *domain, u32 gsi, int pin)
+>  {
+> +	int irq = -1;
+> +
+> +	if (gsi >= arch_dynirq_lower_bound(0)) {
+> +		irq = irq_create_mapping(domain, pin);
+> +	} else if (gsi < NR_IRQS_LEGACY) {
+> +		if (!ioapic_identity_map)
+> +			irq = irq_create_mapping(domain, pin);
+> +		else if (irq_domain_associate(domain, gsi, pin) == 0)
+> +			irq = gsi;
+> +	} else if (irq_create_strict_mappings(domain, gsi, pin, 1) == 0) {
+> +		irq = gsi;
+> +	}
 
-There is no handshaking mechanism can be used by OSPM to tell BIOS which
-FACS is currently used. Thus the FACS reported by "FIRMWARE_CTRL" may still
-be used by BIOS and the 0 value of the 32-bit firmware waking vector might
-trigger such failure.
+So you have these cases covered here:
 
-This patch tries to favor 32bit FACS address in another way where both the
-FACS reported by "FIRMWARE_CTRL" and the FACS reported by "X_FIRMWARE_CTRL"
-are loaded so that further commit can set firmware waking vector in the
-both tables to ensure we can exclude the cases that trigger the bugs caused
-by the root cause 2. The exclusion is split into 2 commits as this commit
-is also useful for dumping more ACPI tables, it won't get reverted when
-such exclusion is no longer necessary. Lv Zheng.
+1) The ACPI case of secondary ioapics. You only have the strict 1:1
+   mapping for the first ioapic
 
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=74021
-Reported-by: Oswald Buddenhagen <ossi@kde.org>
-Cc: Oswald Buddenhagen <ossi@kde.org>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/aclocal.h  |    1 +
- drivers/acpi/acpica/tbfadt.c   |   21 +++++++++++++--------
- drivers/acpi/acpica/tbutils.c  |   37 ++++++++++++++++++++++++++-----------
- drivers/acpi/acpica/tbxfload.c |    3 ++-
- include/acpi/acpixf.h          |    9 +++++++++
- 5 files changed, 51 insertions(+), 20 deletions(-)
+2) The gsi < NR_IRQS_LEGACY case where you have two options:
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 91f801a..c78761d 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -213,6 +213,7 @@ struct acpi_table_list {
- 
- #define ACPI_TABLE_INDEX_DSDT           (0)
- #define ACPI_TABLE_INDEX_FACS           (1)
-+#define ACPI_TABLE_INDEX_X_FACS         (2)
- 
- struct acpi_find_context {
- 	char *search_for;
-diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
-index 41519a9..dfa3f36 100644
---- a/drivers/acpi/acpica/tbfadt.c
-+++ b/drivers/acpi/acpica/tbfadt.c
-@@ -350,9 +350,18 @@ void acpi_tb_parse_fadt(u32 table_index)
- 	/* If Hardware Reduced flag is set, there is no FACS */
- 
- 	if (!acpi_gbl_reduced_hardware) {
--		acpi_tb_install_fixed_table((acpi_physical_address)
--					    acpi_gbl_FADT.Xfacs, ACPI_SIG_FACS,
--					    ACPI_TABLE_INDEX_FACS);
-+		if (acpi_gbl_FADT.facs) {
-+			acpi_tb_install_fixed_table((acpi_physical_address)
-+						    acpi_gbl_FADT.facs,
-+						    ACPI_SIG_FACS,
-+						    ACPI_TABLE_INDEX_FACS);
-+		}
-+		if (acpi_gbl_FADT.Xfacs) {
-+			acpi_tb_install_fixed_table((acpi_physical_address)
-+						    acpi_gbl_FADT.Xfacs,
-+						    ACPI_SIG_FACS,
-+						    ACPI_TABLE_INDEX_X_FACS);
-+		}
- 	}
- }
- 
-@@ -491,13 +500,9 @@ static void acpi_tb_convert_fadt(void)
- 	acpi_gbl_FADT.header.length = sizeof(struct acpi_table_fadt);
- 
+    a) Let the core create a random virq number if ioapic_identity_map
+       is 0
+
+       ioapic_identity_map is only set by SFI and devicetree
+
+       So in all other cases we fall into that code path for all
+       legacy interrupts. So how is that supposed to work lets say for
+       i8042 which has hardcoded irq 1 and 12?
+
+       irq_create_mapping(1)
+       
+	    hint = 1 % nr_irqs; --> 1
+	    virq = irq_alloc_desc_from(hint, of_node_to_nid(domain->of_node));
+
+	    This returns something >= 16, because the irq descriptors
+	    for 0-15 (LEGACY) are allocated already.
+
+       The pin association works, but how is the i8042 driver supposed
+       to figure out that it should request the virq >=16 which was
+       created instead of the hardcoded 1 ?
+	
+    b) Associate the gsi and the pin
+
+       This only works because the virqs are already allocated at boot
+       time unconditionally due to arch_probe_nr_irqs() returning
+       NR_IRQS_LEGACY. So irq_domain_associate() works.
+       Undocumented works by chance behaviour.
+
+3) The case where gsi < arch_dynirq_lower_bound()
+
+   You create a strict mapping here, fine.
+
+This is confusing at best.
+
+First of all, we should use legacy_pic->nr_legacy_irqs instead of
+NR_IRQS_LEGACY all over the place.
+
+mshyperv, ce4100 and intel-mid use the null_legacy_pic which has
+nr_legacy_irqs = 0 and everything else uses the real pic which has
+nr_legacy_irqs = NR_IRQS_LEGACY. So why do we even bother to allocate
+and deal with NR_IRQS_LEGACY in the cases where we have no legacy?
+
+ce4100 is an oddball though. The ioapic is registered way before the
+interrupt subsystem is initialized and I have a hard time to
+understand that comment:
+
+        /* We can't set this earlier, because we need to calibrate the timer */
+        legacy_pic = &null_legacy_pic;
+
+The timer calibration happens after the interrupts are set up. I
+assume it's check_timer() which wants that, but we know exactly how
+the ce4100 works, so we might be able to avoid that whole "testing"
+stuff. Sebastian, any input on this?
+
+If it turns out that ce4100 needs the inital real legacy pic for some
+magic reason we still can be clever by extending the legacy pic data
+structure to tell us about that change, i.e. instead of using
+legacy_pic->nr_legacy_irqs having a field "nr_allocated_irqs", which
+is set to NR_IRQS_LEGACY for the real pic and to 0 for the null_pic
+and let ce4100 set that field to NR_IRQS_LEGACY before switching the
+legacy_pic over to the null implementation.
+
+
+But what's really disgusting is the magic ioapic_identity_map and the
+extra ACPI specific ioapic_dynirq_base hackery.
+
+Why do we need strict mappings in the non ACPI case for all ioapic
+pins? What's so different about ACPI? Or is this just to avoid
+breaking the existing SFI/devicetree stuff. If that's the reason I'm
+fine with it, but ...
+
+independent of this question we want to be more clever about the
+handling of strict, legacy and freely associated linux irq numbers.
+
+So you have this weird ioapic_create_domain_fn callback in
+mp_register_ioapic, which is solely there so the different callers can
+hand in their domain ops and eventually set the magic
+ioapic_identity_map flag.
+
++void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
++                              ioapic_create_domain_fn cb, void *arg)
+
+What about having
+
+struct ioapic_domain {
+       struct irqdomain             *domain;
+       const struct irq_domain_ops  *ops;
+       void                         *arg;
+       enum domain_type             type;
+};
+
+and add this struct to the ioapic struct. type is:
+
+enum domain_type {
+       IOAPIC_STRICT,
+       IOAPIC_LEGACY,
+       IOAPIC_DYNAMIC,
+};     
+
+
+Now the register function changes to:
+
+void mp_register_ioapic(int id, u32 address, u32 gsi_base,
+     			const struct irq_domain_ops *ops,
+			int type)
+{
+	...
+
+        ioapics[idx].irqdomain.ops = ops;
+        ioapics[idx].irqdomain.arg = arg;
+	ioapics[idx].irqdomain.type = type;
+        ioapics[idx].irqdomain.domain = NULL;
+	
+	...
+}
+
+and you can use mp_irqdomain_create() unconditionally for creating all
+domains. And there you do:
+
+static int dynirq_lower_bound;
+
+mp_irqdomain_create()
+{
+       ioapic->irqdomain.domain = irq_domain_add_linear(...);
+       
+       switch (ioapic->irqdomain.type) {
+       case IOAPIC_LEGACY:
+       	    /*
+	     * Associate the legacy interrupts which have been
+	     * already allocated.
+	     */
+	    for (i = 0; i < legacy_pic->nr_allocated_irqs; i++)
+		irq_domain_associate(domain, i, i);
+
+       case IOAPIC_STRICT:
+       	    dynirq_lower_bound += ioapic->nr_gsis;
+
+       case IOAPIC_DYNAMIC:
+       	    break;
+       }
+}
+
+So arch_dynirq_lower_bound() gets simplified to:
+{
+     return dynirq_lower_bound;
+}
+
+And alloc_irq_from_domain() becomes:
+
+int alloc_irq_from_domain(struct ioapic_domain *domain, int gsi, int pin)
+{
+	switch (domain->type) {
+	case IOAPIC_DYNAMIC:
+	     return irq_create_mapping(domain->domain, pin);
+	case IOAPIC_LEGACY:
+	case IOAPIC_STRICT:     	    
+	     return irq_create_strict_mappings(domain, gsi, pin, 1);
+	}
+}
+
+At the call site of alloc_irq_from_domain() you have already:
+
+       irq = irq_find_mapping(domain, pin);
+       if (irq <=0 ....)
+       	       alloc_irq_from_domain(domain, gsi, pin);
+
+So because we associated the legacy_pic->nr_allocated_irqs in
+mp_irqdomain_create() already, you'll never call into
+alloc_irq_from_domain() for those and the remaining ones for that
+first ioapic are handled by the IOAPIC_STRICT fall through.
+
+For simplicity you can let SFI and devicetree register the ioapics
+with their specific domain ops plus IOAPIC_LEGACY for the first ioapic
+and IOAPIC_STRICT for all others. That also covers the case where the
+null_legacy_pic with legacy_pic->nr_allocated_irqs == 0 is used.
+
+In the ACPI case you register with the acpi domain ops and
+IOAPIC_LEGACY for the first and IOAPIC_DYNAMIC for the extra ioapics.
+
+Should be way cleaner and understandable, at least to me :)
+
+Now there is that last oddity which bugs me in mp_map_pin_to_irq()
+
  	/*
--	 * Expand the 32-bit FACS and DSDT addresses to 64-bit as necessary.
-+	 * Expand the 32-bit DSDT addresses to 64-bit as necessary.
- 	 * Later ACPICA code will always use the X 64-bit field.
+	 * Don't use irqdomain to manage ISA IRQs because there may be
+	 * multiple IOAPIC pins sharing the same ISA IRQ number and
+	 * irqdomain only supports 1:1 mapping between IOAPIC pin and
+	 * IRQ number.
  	 */
--	acpi_gbl_FADT.Xfacs = acpi_tb_select_address("FACS",
--						     acpi_gbl_FADT.facs,
--						     acpi_gbl_FADT.Xfacs);
--
- 	acpi_gbl_FADT.Xdsdt = acpi_tb_select_address("DSDT",
- 						     acpi_gbl_FADT.dsdt,
- 						     acpi_gbl_FADT.Xdsdt);
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index e37a103..d4552e8 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -68,7 +68,8 @@ acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size);
- 
- acpi_status acpi_tb_initialize_facs(void)
- {
--	acpi_status status;
-+	struct acpi_table_facs *facs32;
-+	struct acpi_table_facs *facs64;
- 
- 	/* If Hardware Reduced flag is set, there is no FACS */
- 
-@@ -77,11 +78,25 @@ acpi_status acpi_tb_initialize_facs(void)
- 		return (AE_OK);
- 	}
- 
--	status = acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
--					 ACPI_CAST_INDIRECT_PTR(struct
--								acpi_table_header,
--								&acpi_gbl_FACS));
--	return (status);
-+	(void)acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
-+				      ACPI_CAST_INDIRECT_PTR(struct
-+							     acpi_table_header,
-+							     &facs32));
-+	(void)acpi_get_table_by_index(ACPI_TABLE_INDEX_X_FACS,
-+				      ACPI_CAST_INDIRECT_PTR(struct
-+							     acpi_table_header,
-+							     &facs64));
-+	if (!facs32 && !facs64) {
-+		return (AE_NO_MEMORY);
-+	}
-+
-+	if (acpi_gbl_use32_bit_facs_addresses) {
-+		acpi_gbl_FACS = facs32 ? facs32 : facs64;
-+	} else {
-+		acpi_gbl_FACS = facs64 ? facs64 : facs32;
-+	}
-+
-+	return (AE_OK);
- }
- #endif				/* !ACPI_REDUCED_HARDWARE */
- 
-@@ -101,7 +116,7 @@ acpi_status acpi_tb_initialize_facs(void)
- u8 acpi_tb_tables_loaded(void)
- {
- 
--	if (acpi_gbl_root_table_list.current_table_count >= 3) {
-+	if (acpi_gbl_root_table_list.current_table_count >= 4) {
- 		return (TRUE);
- 	}
- 
-@@ -357,11 +372,11 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
- 	table_entry = ACPI_ADD_PTR(u8, table, sizeof(struct acpi_table_header));
- 
- 	/*
--	 * First two entries in the table array are reserved for the DSDT
--	 * and FACS, which are not actually present in the RSDT/XSDT - they
--	 * come from the FADT
-+	 * First three entries in the table array are reserved for the DSDT
-+	 * and 32bit/64bit FACS, which are not actually present in the
-+	 * RSDT/XSDT - they come from the FADT
- 	 */
--	acpi_gbl_root_table_list.current_table_count = 2;
-+	acpi_gbl_root_table_list.current_table_count = 3;
- 
- 	/* Initialize the root table array from the RSDT/XSDT */
- 
-diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-index ab5308b..435f716 100644
---- a/drivers/acpi/acpica/tbxfload.c
-+++ b/drivers/acpi/acpica/tbxfload.c
-@@ -166,7 +166,8 @@ static acpi_status acpi_tb_load_namespace(void)
- 
- 	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
- 	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
--		if ((!ACPI_COMPARE_NAME
-+		if (!acpi_gbl_root_table_list.tables[i].address ||
-+		    (!ACPI_COMPARE_NAME
- 		     (&(acpi_gbl_root_table_list.tables[i].signature),
- 		      ACPI_SIG_SSDT)
- 		     &&
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index cfa8782..0f79659 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -193,6 +193,15 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_do_not_use_xsdt, FALSE);
- ACPI_INIT_GLOBAL(u8, acpi_gbl_use32_bit_fadt_addresses, TRUE);
- 
- /*
-+ * Optionally use 32-bit FACS table addresses.
-+ * It is reported that some platforms fail to resume from system suspending
-+ * if 64-bit FACS table address is selected:
-+ * https://bugzilla.kernel.org/show_bug.cgi?id=74021
-+ * Default is TRUE, favor the 32-bit addresses.
-+ */
-+ACPI_INIT_GLOBAL(u8, acpi_gbl_use32_bit_facs_addresses, TRUE);
-+
-+/*
-  * Optionally truncate I/O addresses to 16 bits. Provides compatibility
-  * with other ACPI implementations. NOTE: During ACPICA initialization,
-  * this value is set to TRUE if any Windows OSI strings have been
--- 
-1.7.10
+	if (idx >= 0 && test_bit(mp_irqs[idx].srcbus, mp_bus_not_pci)) {
+ 		irq = mp_irqs[idx].srcbusirq;
+		if ((flags & IOAPIC_MAP_ALLOC) && info->count == 0 &&
+		    mp_irqdomain_map(domain, irq, pin) != 0)
+			irq = -1;
+
+That really looks like a hack. I'm aware that the current irqdomain
+code cannot deal with that oddball case.
+
+So what you are saying is that there are devices which have a separate
+physical wire to different ioapic pins, but the ioapic is supposed to
+bundle them to a shared interrupt.
+
+I agree that this is odd enough to handle at the ioapic level, but
+it'd be nice to have a more elaborative comment on this.
+
+Aside of the above I'm pretty happy about the progress of this patch
+set. One thing, which needs to be looked at are the usage sites of
+irq_data->irq, whether they are safe. I did not spot any unsafe ones,
+but a few functions which are called with irq_data->irq and make no
+use of it.
+
+Thanks,
+
+	tglx
