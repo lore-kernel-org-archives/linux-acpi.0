@@ -1,67 +1,45 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Patch V3 05/37] x86, PCI, ACPI: use kmalloc_node() to optimize
- for performance
-Date: Tue, 27 May 2014 07:50:31 -0600
-Message-ID: <CAErSpo7A17+VfQ524-VpdpCCtf93d980h-u+z6DnBtR6BoNmPg@mail.gmail.com>
-References: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com> <1401178092-1228-6-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1401178092-1228-6-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, "x86@kernel.org" <x86@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+From: Lv Zheng <zetalog@gmail.com>
+Subject: [PATCH] ACPICA: acpidump: Fix repetitive table dump in -n mode.
+Date: Wed, 28 May 2014 01:14:55 +0800
+Message-ID: <a30bdaa475e88783a01f055f56499904448a0f4e.1401210415.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:38115 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751984AbaE0RPM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 May 2014 13:15:12 -0400
+Received: by mail-pa0-f49.google.com with SMTP id lj1so9383729pab.8
+        for <linux-acpi@vger.kernel.org>; Tue, 27 May 2014 10:15:12 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
-On Tue, May 27, 2014 at 2:07 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> Use kmalloc_node() instead of kmalloc() when possible to optimize
-> for performance on NUMA platforms.
->
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+From: Lv Zheng <lv.zheng@intel.com>
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+In "-n" mode, reserved tables (RSDP/RSDT/XSDT/DSDT/FACS) are dumped
+multiple times due a missing instance check in osl_get_bios_table().
+This patch fixes this issue.
 
-I think this is micro-optimization, because I don't think these
-structures are referenced often.  It might be nicer if we could
-arrange to run this path on the local node, as we do in
-pci_call_probe(), so all allocs would happen there.  But I'm OK with
-this as-is.
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ tools/power/acpi/os_specific/service_layers/oslinuxtbl.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-> ---
->  arch/x86/pci/acpi.c |    6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index 01edac6c5e18..91bef49df228 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -448,7 +448,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
->                 return;
->
->         size = sizeof(*info->res) * info->res_num;
-> -       info->res = kzalloc(size, GFP_KERNEL);
-> +       info->res = kzalloc_node(size, GFP_KERNEL, info->sd.node);
->         if (!info->res) {
->                 info->res_num = 0;
->                 return;
-> @@ -456,7 +456,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
->
->         size = sizeof(*info->res_offset) * info->res_num;
->         info->res_num = 0;
-> -       info->res_offset = kzalloc(size, GFP_KERNEL);
-> +       info->res_offset = kzalloc_node(size, GFP_KERNEL, info->sd.node);
->         if (!info->res_offset) {
->                 kfree(info->res);
->                 info->res = NULL;
-> @@ -495,7 +495,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
->         if (node != NUMA_NO_NODE && !node_online(node))
->                 node = NUMA_NO_NODE;
->
-> -       info = kzalloc(sizeof(*info), GFP_KERNEL);
-> +       info = kzalloc_node(sizeof(*info), GFP_KERNEL, node);
->         if (!info) {
->                 printk(KERN_WARNING "pci_bus %04x:%02x: "
->                        "ignored (out of memory)\n", domain, busnum);
-> --
-> 1.7.10.4
->
+diff --git a/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c b/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
+index ba7bad0..28c5200 100644
+--- a/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
++++ b/tools/power/acpi/os_specific/service_layers/oslinuxtbl.c
+@@ -783,6 +783,10 @@ osl_get_bios_table(char *signature,
+ 	    ACPI_COMPARE_NAME(signature, ACPI_SIG_XSDT) ||
+ 	    ACPI_COMPARE_NAME(signature, ACPI_SIG_DSDT) ||
+ 	    ACPI_COMPARE_NAME(signature, ACPI_SIG_FACS)) {
++		if (instance > 0) {
++			return (AE_LIMIT);
++		}
++
+ 		/*
+ 		 * Get the appropriate address, either 32-bit or 64-bit. Be very
+ 		 * careful about the FADT length and validate table addresses.
+-- 
+1.7.10
+
