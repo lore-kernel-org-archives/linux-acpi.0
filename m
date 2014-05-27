@@ -1,116 +1,141 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch V3 14/37] x86, ioapic: use irq_cfg() instead of irq_get_chip_data() for better readability
-Date: Tue, 27 May 2014 16:07:49 +0800
-Message-ID: <1401178092-1228-15-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch V3 07/37] x86, ACPI, trivial: minor improvements to arch/x86/kernel/acpi/boot.c
+Date: Tue, 27 May 2014 16:07:42 +0800
+Message-ID: <1401178092-1228-8-git-send-email-jiang.liu@linux.intel.com>
 References: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, x86@kernel.org, Jiri Kosina <trivial@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use defined helper function irq_cfg() instead of irq_get_chip_data() for
-better readability.
+1) Remove out-of-date comment
+2) Kill unused function acpi_set_irq_model_pic()
+3) Use NR_IRQS_LEGACY instead of hard-coded 16
+4) Trivial syntax improvements
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/kernel/apic/io_apic.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ arch/x86/kernel/acpi/boot.c |   50 ++++++++++++++-----------------------------
+ 1 file changed, 16 insertions(+), 34 deletions(-)
 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 55fb3c1385c5..18d0e8a831c0 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -230,7 +230,7 @@ int __init arch_early_irq_init(void)
- 	return 0;
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 8390db1f7a93..6d65850f49e9 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -370,11 +370,6 @@ static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger,
+ 	if (acpi_sci_flags & ACPI_MADT_POLARITY_MASK)
+ 		polarity = acpi_sci_flags & ACPI_MADT_POLARITY_MASK;
+ 
+-	/*
+-	 * mp_config_acpi_legacy_irqs() already setup IRQs < 16
+-	 * If GSI is < 16, this will update its flags,
+-	 * else it will create a new mp_irqs[] entry.
+-	 */
+ 	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
+ 
+ 	/*
+@@ -573,14 +568,7 @@ void acpi_unregister_gsi(u32 gsi)
  }
+ EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
  
--static struct irq_cfg *irq_cfg(unsigned int irq)
-+static inline struct irq_cfg *irq_cfg(unsigned int irq)
+-void __init acpi_set_irq_model_pic(void)
+-{
+-	acpi_irq_model = ACPI_IRQ_MODEL_PIC;
+-	__acpi_register_gsi = acpi_register_gsi_pic;
+-	acpi_ioapic = 0;
+-}
+-
+-void __init acpi_set_irq_model_ioapic(void)
++static void __init acpi_set_irq_model_ioapic(void)
  {
- 	return irq_get_chip_data(irq);
- }
-@@ -272,7 +272,7 @@ static struct irq_cfg *alloc_irq_and_cfg_at(unsigned int at, int node)
- 	if (res < 0) {
- 		if (res != -EEXIST)
- 			return NULL;
--		cfg = irq_get_chip_data(at);
-+		cfg = irq_cfg(at);
- 		if (cfg)
- 			return cfg;
- 	}
-@@ -1204,7 +1204,7 @@ void __setup_vector_irq(int cpu)
- 	raw_spin_lock(&vector_lock);
- 	/* Mark the inuse vectors */
- 	for_each_active_irq(irq) {
--		cfg = irq_get_chip_data(irq);
-+		cfg = irq_cfg(irq);
- 		if (!cfg)
- 			continue;
- 
-@@ -1612,7 +1612,7 @@ __apicdebuginit(void) print_IO_APICs(void)
- 		if (chip != &ioapic_chip)
- 			continue;
- 
--		cfg = irq_get_chip_data(irq);
-+		cfg = irq_cfg(irq);
- 		if (!cfg)
- 			continue;
- 		entry = cfg->irq_2_pin;
-@@ -2253,7 +2253,7 @@ static void irq_complete_move(struct irq_cfg *cfg)
- 
- void irq_force_complete_move(int irq)
- {
--	struct irq_cfg *cfg = irq_get_chip_data(irq);
-+	struct irq_cfg *cfg = irq_cfg(irq);
- 
- 	if (!cfg)
- 		return;
-@@ -2526,7 +2526,7 @@ static inline void init_IO_APIC_traps(void)
- 	 * 0x80, because int 0x80 is hm, kind of importantish. ;)
+ 	acpi_irq_model = ACPI_IRQ_MODEL_IOAPIC;
+ 	__acpi_register_gsi = acpi_register_gsi_ioapic;
+@@ -819,9 +807,8 @@ static int __init early_acpi_parse_madt_lapic_addr_ovr(void)
+ 	 * and (optionally) overriden by a LAPIC_ADDR_OVR entry (64-bit value).
  	 */
- 	for_each_active_irq(irq) {
--		cfg = irq_get_chip_data(irq);
-+		cfg = irq_cfg(irq);
- 		if (IO_APIC_IRQ(irq) && cfg && !cfg->vector) {
- 			/*
- 			 * Hmm.. We don't have an entry for this,
-@@ -2659,7 +2659,7 @@ early_param("disable_timer_pin_1", disable_timer_pin_setup);
-  */
- static inline void __init check_timer(void)
- {
--	struct irq_cfg *cfg = irq_get_chip_data(0);
-+	struct irq_cfg *cfg = irq_cfg(0);
- 	int node = cpu_to_node(0);
- 	int apic1, pin1, apic2, pin2;
- 	unsigned long flags;
-@@ -2923,7 +2923,7 @@ int arch_setup_hwirq(unsigned int irq, int node)
  
- void arch_teardown_hwirq(unsigned int irq)
- {
--	struct irq_cfg *cfg = irq_get_chip_data(irq);
-+	struct irq_cfg *cfg = irq_cfg(irq);
- 	unsigned long flags;
+-	count =
+-	    acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC_OVERRIDE,
+-				  acpi_parse_lapic_addr_ovr, 0);
++	count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC_OVERRIDE,
++				      acpi_parse_lapic_addr_ovr, 0);
+ 	if (count < 0) {
+ 		printk(KERN_ERR PREFIX
+ 		       "Error parsing LAPIC address override entry\n");
+@@ -846,9 +833,8 @@ static int __init acpi_parse_madt_lapic_entries(void)
+ 	 * and (optionally) overriden by a LAPIC_ADDR_OVR entry (64-bit value).
+ 	 */
  
- 	free_remapped_irq(irq);
-@@ -3052,7 +3052,7 @@ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
- 	if (!irq_offset)
- 		write_msi_msg(irq, &msg);
+-	count =
+-	    acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC_OVERRIDE,
+-				  acpi_parse_lapic_addr_ovr, 0);
++	count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC_OVERRIDE,
++				      acpi_parse_lapic_addr_ovr, 0);
+ 	if (count < 0) {
+ 		printk(KERN_ERR PREFIX
+ 		       "Error parsing LAPIC address override entry\n");
+@@ -876,11 +862,10 @@ static int __init acpi_parse_madt_lapic_entries(void)
+ 		return count;
+ 	}
  
--	setup_remapped_irq(irq, irq_get_chip_data(irq), chip);
-+	setup_remapped_irq(irq, irq_cfg(irq), chip);
+-	x2count =
+-	    acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_X2APIC_NMI,
+-				  acpi_parse_x2apic_nmi, 0);
+-	count =
+-	    acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC_NMI, acpi_parse_lapic_nmi, 0);
++	x2count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_X2APIC_NMI,
++					acpi_parse_x2apic_nmi, 0);
++	count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC_NMI,
++				      acpi_parse_lapic_nmi, 0);
+ 	if (count < 0 || x2count < 0) {
+ 		printk(KERN_ERR PREFIX "Error parsing LAPIC NMI entry\n");
+ 		/* TBD: Cleanup to allow fallback to MPS */
+@@ -947,7 +932,7 @@ static void __init mp_config_acpi_legacy_irqs(void)
+ 	 * Use the default configuration for the IRQs 0-15.  Unless
+ 	 * overridden by (MADT) interrupt source override entries.
+ 	 */
+-	for (i = 0; i < 16; i++) {
++	for (i = 0; i < NR_IRQS_LEGACY; i++) {
+ 		int ioapic, pin;
+ 		unsigned int dstapic;
+ 		int idx;
+@@ -1103,9 +1088,8 @@ static int __init acpi_parse_madt_ioapic_entries(void)
+ 		return -ENODEV;
+ 	}
  
- 	irq_set_chip_and_handler_name(irq, chip, handle_edge_irq, "edge");
+-	count =
+-	    acpi_table_parse_madt(ACPI_MADT_TYPE_IO_APIC, acpi_parse_ioapic,
+-				  MAX_IO_APICS);
++	count = acpi_table_parse_madt(ACPI_MADT_TYPE_IO_APIC, acpi_parse_ioapic,
++				      MAX_IO_APICS);
+ 	if (!count) {
+ 		printk(KERN_ERR PREFIX "No IOAPIC entries present\n");
+ 		return -ENODEV;
+@@ -1114,9 +1098,8 @@ static int __init acpi_parse_madt_ioapic_entries(void)
+ 		return count;
+ 	}
  
-@@ -3187,7 +3187,7 @@ int default_setup_hpet_msi(unsigned int irq, unsigned int id)
+-	count =
+-	    acpi_table_parse_madt(ACPI_MADT_TYPE_INTERRUPT_OVERRIDE, acpi_parse_int_src_ovr,
+-				  nr_irqs);
++	count = acpi_table_parse_madt(ACPI_MADT_TYPE_INTERRUPT_OVERRIDE,
++				      acpi_parse_int_src_ovr, nr_irqs);
+ 	if (count < 0) {
+ 		printk(KERN_ERR PREFIX
+ 		       "Error parsing interrupt source overrides entry\n");
+@@ -1135,9 +1118,8 @@ static int __init acpi_parse_madt_ioapic_entries(void)
+ 	/* Fill in identity legacy mappings where no override */
+ 	mp_config_acpi_legacy_irqs();
  
- 	hpet_msi_write(irq_get_handler_data(irq), &msg);
- 	irq_set_status_flags(irq, IRQ_MOVE_PCNTXT);
--	setup_remapped_irq(irq, irq_get_chip_data(irq), chip);
-+	setup_remapped_irq(irq, irq_cfg(irq), chip);
- 
- 	irq_set_chip_and_handler_name(irq, chip, handle_edge_irq, "edge");
- 	return 0;
+-	count =
+-	    acpi_table_parse_madt(ACPI_MADT_TYPE_NMI_SOURCE, acpi_parse_nmi_src,
+-				  nr_irqs);
++	count = acpi_table_parse_madt(ACPI_MADT_TYPE_NMI_SOURCE,
++				      acpi_parse_nmi_src, nr_irqs);
+ 	if (count < 0) {
+ 		printk(KERN_ERR PREFIX "Error parsing NMI SRC entry\n");
+ 		/* TBD: Cleanup to allow fallback to MPS */
 -- 
 1.7.10.4
