@@ -1,51 +1,62 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch V3 01/37] x86, irq: update high address field when updating
- affinity for MSI IRQ
-Date: Tue, 27 May 2014 10:11:19 +0200 (CEST)
-Message-ID: <alpine.DEB.2.02.1405271010570.21720@ionos.tec.linutronix.de>
-References: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com> <1401178092-1228-2-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:51223 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752246AbaE0ILt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 May 2014 04:11:49 -0400
-In-Reply-To: <1401178092-1228-2-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch V3 29/37] x86, irq, devicetree: use common irqdomain map interface to program IOAPIC pins
+Date: Tue, 27 May 2014 16:08:04 +0800
+Message-ID: <1401178092-1228-30-git-send-email-jiang.liu@linux.intel.com>
+References: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Rob Herring <rob.herring@calxeda.com>, Michal Simek <monstr@monstr.eu>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Lindgren <tony@atomide.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 
-On Tue, 27 May 2014, Jiang Liu wrote:
+Refine devicetree to use common irqdomain map interface to program
+IOAPIC pins, so we can unify the callsite to progam IOAPIC pins.
 
-> If x2apic is enabled, the MSI high address field should also be aslo
-> updated when setting affinity for MSI IRQ, otherwise the MSI IRQ may
-> target wrong APIC IDs.
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ arch/x86/kernel/devicetree.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-That should be tagged for stable, right?
+diff --git a/arch/x86/kernel/devicetree.c b/arch/x86/kernel/devicetree.c
+index e2270343d3f0..17535c5bbe65 100644
+--- a/arch/x86/kernel/devicetree.c
++++ b/arch/x86/kernel/devicetree.c
+@@ -280,10 +280,8 @@ static int ioapic_xlate(struct irq_domain *domain,
+ 			const u32 *intspec, u32 intsize,
+ 			irq_hw_number_t *out_hwirq, u32 *out_type)
+ {
+-	struct io_apic_irq_attr attr;
+ 	struct of_ioapic_type *it;
+-	u32 line, idx;
+-	int rc;
++	u32 line, idx, gsi;
  
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
->  arch/x86/kernel/apic/io_apic.c |    4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-> index 9d0a9795a0f8..2de992501a1b 100644
-> --- a/arch/x86/kernel/apic/io_apic.c
-> +++ b/arch/x86/kernel/apic/io_apic.c
-> @@ -3007,6 +3007,10 @@ msi_set_affinity(struct irq_data *data, const struct cpumask *mask, bool force)
->  
->  	__get_cached_msi_msg(data->msi_desc, &msg);
->  
-> +	msg.address_hi = MSI_ADDR_BASE_HI;
-> +	if (x2apic_enabled())
-> +		msg.address_hi |= MSI_ADDR_EXT_DEST_ID(dest);
-> +
->  	msg.data &= ~MSI_DATA_VECTOR_MASK;
->  	msg.data |= MSI_DATA_VECTOR(cfg->vector);
->  	msg.address_lo &= ~MSI_ADDR_DEST_ID_MASK;
-> -- 
-> 1.7.10.4
-> 
-> 
+ 	if (WARN_ON(intsize < 2))
+ 		return -EINVAL;
+@@ -296,12 +294,9 @@ static int ioapic_xlate(struct irq_domain *domain,
+ 	it = &of_ioapic_type[intspec[1]];
+ 
+ 	idx = (u32)(long)domain->host_data;
+-	set_io_apic_irq_attr(&attr, idx, line, it->trigger, it->polarity);
+-
+-	rc = io_apic_setup_irq_pin_once(irq_find_mapping(domain, line),
+-					cpu_to_node(0), &attr);
+-	if (rc)
+-		return rc;
++	gsi = mp_pin_to_gsi(idx, line);
++	if (mp_set_gsi_attr(gsi, it->trigger, it->polarity, cpu_to_node(0)))
++		return -EBUSY;
+ 
+ 	*out_hwirq = line;
+ 	*out_type = it->out_type;
+@@ -309,6 +304,7 @@ static int ioapic_xlate(struct irq_domain *domain,
+ }
+ 
+ const struct irq_domain_ops ioapic_irq_domain_ops = {
++	.map = mp_irqdomain_map,
+ 	.xlate = ioapic_xlate,
+ };
+ 
+-- 
+1.7.10.4
