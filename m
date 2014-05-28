@@ -1,7 +1,7 @@
 From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: [PATCH v2 1/5] apei, mce: Factor out APEI architecture specific MCE calls.
-Date: Wed, 28 May 2014 09:39:26 +0200
-Message-ID: <1401262770-25343-2-git-send-email-tomasz.nowicki@linaro.org>
+Subject: [PATCH v2 5/5] acpi, apei, ghes: Factor out ioremap virtual memory for IRQ and NMI context.
+Date: Wed, 28 May 2014 09:39:30 +0200
+Message-ID: <1401262770-25343-6-git-send-email-tomasz.nowicki@linaro.org>
 References: <1401262770-25343-1-git-send-email-tomasz.nowicki@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1401262770-25343-1-git-send-email-tomasz.nowicki@linaro.org>
@@ -10,207 +10,96 @@ To: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.che
 Cc: linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This commit abstracts MCE calls and provides weak corresponding default
-implementation for those architectures which do not need arch specific
-actions. Each platform willing to do additional architectural actions
-should provides desired function definition. It allows us to avoid wrap
-code into #ifdef in generic code and prevent new platform from introducing
-dummy stub function too.
+GHES currently maps two pages with atomic_ioremap.  From now
+on, NMI is optional so there is no need to allocate an NMI page
+for platforms without NMI support.
 
-Initially, there are two APEI arch-specific calls:
-- apei_arch_enable_cmcff()
-- apei_arch_report_mem_error()
-Both interact with MCE driver for X86 architecture.
+To make it possible to not use a second page, swap the existing
+page order so that the IRQ context page is first, and the optional
+NMI context page is second.  Then, use CONFIG_ACPI_APEI_NMI to decide
+at runtime how many pages are to be allocated.  Finally, put in
+sanity checks to avoid accessing unallocated memory.
 
 Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 ---
- arch/x86/kernel/acpi/Makefile |    1 +
- arch/x86/kernel/acpi/apei.c   |   56 +++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/apei/apei-base.c |   13 ++++++++++
- drivers/acpi/apei/ghes.c      |    6 ++---
- drivers/acpi/apei/hest.c      |   26 +------------------
- include/acpi/apei.h           |    3 +++
- 6 files changed, 76 insertions(+), 29 deletions(-)
- create mode 100644 arch/x86/kernel/acpi/apei.c
+ arch/x86/kernel/acpi/apei.c |    6 ++++++
+ drivers/acpi/apei/ghes.c    |   16 ++++++++--------
+ include/acpi/apei.h         |    1 +
+ 3 files changed, 15 insertions(+), 8 deletions(-)
 
-diff --git a/arch/x86/kernel/acpi/Makefile b/arch/x86/kernel/acpi/Makefile
-index 163b225..3242e59 100644
---- a/arch/x86/kernel/acpi/Makefile
-+++ b/arch/x86/kernel/acpi/Makefile
-@@ -1,5 +1,6 @@
- obj-$(CONFIG_ACPI)		+= boot.o
- obj-$(CONFIG_ACPI_SLEEP)	+= sleep.o wakeup_$(BITS).o
-+obj-$(CONFIG_ACPI_APEI)		+= apei.o
- 
- ifneq ($(CONFIG_ACPI_PROCESSOR),)
- obj-y				+= cstate.o
 diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
-new file mode 100644
-index 0000000..dca2852
---- /dev/null
+index 221a3a6..842d158 100644
+--- a/arch/x86/kernel/acpi/apei.c
 +++ b/arch/x86/kernel/acpi/apei.c
-@@ -0,0 +1,56 @@
-+/*
-+ * Arch-specific APEI-related functions.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <acpi/apei.h>
-+
-+#include <asm/mce.h>
-+
-+int apei_arch_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data)
-+{
-+#ifdef CONFIG_X86_MCE
-+	int i;
-+	struct acpi_hest_ia_corrected *cmc;
-+	struct acpi_hest_ia_error_bank *mc_bank;
-+
-+	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
-+		return 0;
-+
-+	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
-+	if (!cmc->enabled)
-+		return 0;
-+
-+	/*
-+	 * We expect HEST to provide a list of MC banks that report errors
-+	 * in firmware first mode. Otherwise, return non-zero value to
-+	 * indicate that we are done parsing HEST.
-+	 */
-+	if (!(cmc->flags & ACPI_HEST_FIRMWARE_FIRST) ||
-+	    !cmc->num_hardware_banks)
-+		return 1;
-+
-+	pr_info("HEST: Enabling Firmware First mode for corrected errors.\n");
-+
-+	mc_bank = (struct acpi_hest_ia_error_bank *)(cmc + 1);
-+	for (i = 0; i < cmc->num_hardware_banks; i++, mc_bank++)
-+		mce_disable_bank(mc_bank->bank_number);
-+#endif
-+	return 1;
-+}
-+
-+void apei_arch_report_mem_error(int sev, struct cper_sec_mem_err *mem_err)
-+{
-+#ifdef CONFIG_X86_MCE
-+	apei_mce_report_mem_error(sev, mem_err);
-+#endif
-+}
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index 8678dfe..4a11c1a 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -745,6 +745,19 @@ struct dentry *apei_get_debugfs_dir(void)
- }
- EXPORT_SYMBOL_GPL(apei_get_debugfs_dir);
- 
-+int __weak apei_arch_enable_cmcff(struct acpi_hest_header *hest_hdr,
-+				  void *data)
-+{
-+	return 1;
-+}
-+EXPORT_SYMBOL_GPL(apei_arch_enable_cmcff);
-+
-+void __weak apei_arch_report_mem_error(int sev,
-+				       struct cper_sec_mem_err *mem_err)
-+{
-+}
-+EXPORT_SYMBOL_GPL(apei_arch_report_mem_error);
-+
- int apei_osc_setup(void)
+@@ -79,3 +79,9 @@ void arch_apei_nmi_oops_begin(void)
  {
- 	static u8 whea_uuid_str[] = "ed855e0c-6c90-47bf-a62a-26de0fc5ad5c";
+ 	oops_begin();
+ }
++
++void arch_apei_flush_tlb_one(unsigned long addr)
++{
++	__flush_tlb_one(addr);
++}
++EXPORT_SYMBOL_GPL(arch_apei_flush_tlb_one);
 diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index dab7cb7..e7dc5c6 100644
+index 3c42629..55bf47f 100644
 --- a/drivers/acpi/apei/ghes.c
 +++ b/drivers/acpi/apei/ghes.c
-@@ -49,7 +49,7 @@
- #include <linux/aer.h>
- 
- #include <acpi/ghes.h>
--#include <asm/mce.h>
-+#include <acpi/apei.h>
- #include <asm/tlbflush.h>
- #include <asm/nmi.h>
- 
-@@ -455,9 +455,7 @@ static void ghes_do_proc(struct ghes *ghes,
- 			mem_err = (struct cper_sec_mem_err *)(gdata+1);
- 			ghes_edac_report_mem_error(ghes, sev, mem_err);
- 
--#ifdef CONFIG_X86_MCE
--			apei_mce_report_mem_error(sev, mem_err);
--#endif
-+			apei_arch_report_mem_error(sev, mem_err);
- 			ghes_handle_memory_failure(gdata, sev);
- 		}
- #ifdef CONFIG_ACPI_APEI_PCIEAER
-diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-index f5e37f3..9084767 100644
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -36,7 +36,6 @@
- #include <linux/io.h>
- #include <linux/platform_device.h>
- #include <acpi/apei.h>
--#include <asm/mce.h>
- 
- #include "apei-internal.h"
- 
-@@ -128,32 +127,9 @@ EXPORT_SYMBOL_GPL(apei_hest_parse);
+@@ -113,12 +113,11 @@ static DEFINE_RAW_SPINLOCK(ghes_nmi_lock);
   */
- static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
- {
--#ifdef CONFIG_X86_MCE
--	int i;
--	struct acpi_hest_ia_corrected *cmc;
--	struct acpi_hest_ia_error_bank *mc_bank;
--
--	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
--		return 0;
--
--	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
--	if (!cmc->enabled)
-+	if (!apei_arch_enable_cmcff(hest_hdr, data))
- 		return 0;
  
--	/*
--	 * We expect HEST to provide a list of MC banks that report errors
--	 * in firmware first mode. Otherwise, return non-zero value to
--	 * indicate that we are done parsing HEST.
--	 */
--	if (!(cmc->flags & ACPI_HEST_FIRMWARE_FIRST) || !cmc->num_hardware_banks)
--		return 1;
--
--	pr_info(HEST_PFX "Enabling Firmware First mode for corrected errors.\n");
--
--	mc_bank = (struct acpi_hest_ia_error_bank *)(cmc + 1);
--	for (i = 0; i < cmc->num_hardware_banks; i++, mc_bank++)
--		mce_disable_bank(mc_bank->bank_number);
--#endif
- 	return 1;
+ /*
+- * Two virtual pages are used, one for NMI context, the other for
+- * IRQ/PROCESS context
++ * Two virtual pages are used, one for IRQ/PROCESS context, the other for
++ * NMI context (optionally).
+  */
+-#define GHES_IOREMAP_PAGES		2
+-#define GHES_IOREMAP_NMI_PAGE(base)	(base)
+-#define GHES_IOREMAP_IRQ_PAGE(base)	((base) + PAGE_SIZE)
++#define GHES_IOREMAP_IRQ_PAGE(base)	(base)
++#define GHES_IOREMAP_NMI_PAGE(base)	((base) + PAGE_SIZE)
+ 
+ /* virtual memory area for atomic ioremap */
+ static struct vm_struct *ghes_ioremap_area;
+@@ -155,7 +154,8 @@ static struct ghes_notify_setup	ghes_notify_tab[];
+ 
+ static int ghes_ioremap_init(void)
+ {
+-	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
++	ghes_ioremap_area = __get_vm_area(
++		PAGE_SIZE * (IS_ENABLED(CONFIG_ACPI_APEI_NMI) ? 2 : 1),
+ 		VM_IOREMAP, VMALLOC_START, VMALLOC_END);
+ 	if (!ghes_ioremap_area) {
+ 		pr_err(GHES_PFX "Failed to allocate virtual memory area for atomic ioremap.\n");
+@@ -199,7 +199,7 @@ static void ghes_iounmap_nmi(void __iomem *vaddr_ptr)
+ 
+ 	BUG_ON(vaddr != (unsigned long)GHES_IOREMAP_NMI_PAGE(base));
+ 	unmap_kernel_range_noflush(vaddr, PAGE_SIZE);
+-	__flush_tlb_one(vaddr);
++	arch_apei_flush_tlb_one(vaddr);
  }
  
+ static void ghes_iounmap_irq(void __iomem *vaddr_ptr)
+@@ -209,7 +209,7 @@ static void ghes_iounmap_irq(void __iomem *vaddr_ptr)
+ 
+ 	BUG_ON(vaddr != (unsigned long)GHES_IOREMAP_IRQ_PAGE(base));
+ 	unmap_kernel_range_noflush(vaddr, PAGE_SIZE);
+-	__flush_tlb_one(vaddr);
++	arch_apei_flush_tlb_one(vaddr);
+ }
+ 
+ static int ghes_estatus_pool_init(void)
 diff --git a/include/acpi/apei.h b/include/acpi/apei.h
-index 04f349d..62b9d1c 100644
+index 348e1ea..ff2bb7e 100644
 --- a/include/acpi/apei.h
 +++ b/include/acpi/apei.h
-@@ -42,5 +42,8 @@ ssize_t erst_read(u64 record_id, struct cper_record_header *record,
- 		  size_t buflen);
- int erst_clear(u64 record_id);
+@@ -51,6 +51,7 @@ int arch_apei_register_nmi(int (*nmi_handler)(unsigned int, struct pt_regs *),
+ 			   const char *name);
+ void arch_apei_unregister_nmi(const char *name);
+ void arch_apei_nmi_oops_begin(void);
++void arch_apei_flush_tlb_one(unsigned long addr);
  
-+int apei_arch_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data);
-+void apei_arch_report_mem_error(int sev, struct cper_sec_mem_err *mem_err);
-+
  #endif
  #endif
 -- 
