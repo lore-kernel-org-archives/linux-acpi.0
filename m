@@ -1,56 +1,86 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: [PATCH v2 2/5] acpi, apei, ghes: Introduce ACPI_APEI_NMI to make NMI error notification a GHES feature.
-Date: Wed, 28 May 2014 09:39:27 +0200
-Message-ID: <1401262770-25343-3-git-send-email-tomasz.nowicki@linaro.org>
-References: <1401262770-25343-1-git-send-email-tomasz.nowicki@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1401262770-25343-1-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de
-Cc: linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [Patch V3 19/37] x86, irq: introduce mechanisms to support dynamically
+ allocate IRQ for IOAPIC
+Date: Wed, 28 May 2014 10:01:52 +0200
+Message-ID: <538597F0.1040003@linutronix.de>
+References: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com> <1401178092-1228-20-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.02.1405271445050.21720@ionos.tec.linutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:60631 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754420AbaE1ICq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 May 2014 04:02:46 -0400
+In-Reply-To: <alpine.DEB.2.02.1405271445050.21720@ionos.tec.linutronix.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
 
-Currently APEI depends on x86 architecture. It is because of NMI hardware
-error notification of GHES which is currently supported by x86 only.
-However, many other APEI features can be still used perfectly by other
-architectures.
+On 05/27/2014 09:58 PM, Thomas Gleixner wrote:
+> ce4100 is an oddball though. The ioapic is registered way before the
+> interrupt subsystem is initialized and I have a hard time to
+> understand that comment:
+> 
+>         /* We can't set this earlier, because we need to calibrate the timer */
+>         legacy_pic = &null_legacy_pic;
+> 
+> The timer calibration happens after the interrupts are set up. I
+> assume it's check_timer() which wants that, but we know exactly how
+> the ce4100 works, so we might be able to avoid that whole "testing"
+> stuff. Sebastian, any input on this?
 
-This commit adds ACPI_APEI_NMI which will be used in next patches to isolate
-NMI related code in ghes.c file. Only NMI error notification feature
-depends on x86 and it is selected by default for x86 arch.
+According to my memory there was some PIC init we need but I don't
+recall the details. However, booting the system with "legacy_pic =
+&null_legacy_pic;" in x86_ce4100_early_setup() gives me this:
 
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
----
- drivers/acpi/apei/Kconfig |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+[    0.001000] Enabling APIC mode:  Flat.  Using 2 I/O APICs
+[    0.001000] leaving PIC mode, enabling APIC mode.
+[    0.001000] enabled ExtINT on CPU#0
+[    0.001000] ENABLING IO-APIC IRQs
+[    0.001000] Setting 1 in the phys_id_present_map
+[    0.001000] ...changing IO-APIC physical APIC ID to 1 ... ok.
+[    0.001000] Setting 2 in the phys_id_present_map
+[    0.001000] ...changing IO-APIC physical APIC ID to 2 ... ok.
+[    0.001000] smpboot: CPU0: Intel(R) Atom(TM) CPU CE4150   @ 1.20GHz
+(fam: 06, model: 1c, stepping: 0a)
+[    0.001000] Using local APIC timer interrupts.
+[    0.001000] calibrating APIC timer ...
 
-diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
-index c4dac71..4b734a2 100644
---- a/drivers/acpi/apei/Kconfig
-+++ b/drivers/acpi/apei/Kconfig
-@@ -3,7 +3,6 @@ config ACPI_APEI
- 	select MISC_FILESYSTEMS
- 	select PSTORE
- 	select UEFI_CPER
--	depends on X86
- 	help
- 	  APEI allows to report errors (for example from the chipset)
- 	  to the operating system. This improves NMI handling
-@@ -26,6 +25,15 @@ config ACPI_APEI_GHES
- 	  by firmware to produce more valuable hardware error
- 	  information for Linux.
- 
-+config ACPI_APEI_NMI
-+	bool "NMI error notification support"
-+	default y
-+	depends on ACPI_APEI_GHES && X86
-+	help
-+	  Firmware first mode can use NMI notification mechanism to report errors
-+	  to operating system. This feature is currently supported by X86
-+	  architecture only.
-+
- config ACPI_APEI_PCIEAER
- 	bool "APEI PCIe AER logging/recovering support"
- 	depends on ACPI_APEI && PCIEAER
--- 
-1.7.9.5
+and we stand still. With the assignment as it is now:
+
+[    0.001000] Enabling APIC mode:  Flat.  Using 2 I/O APICs
+[    0.001000] leaving PIC mode, enabling APIC mode.
+[    0.001000] enabled ExtINT on CPU#0
+[    0.002312] ENABLING IO-APIC IRQs
+[    0.003009] Setting 1 in the phys_id_present_map
+[    0.004007] ...changing IO-APIC physical APIC ID to 1 ... ok.
+[    0.005533] Setting 2 in the phys_id_present_map
+[    0.006006] ...changing IO-APIC physical APIC ID to 2 ... ok.
+[    0.008373] ..TIMER: vector=0x30 apic1=-1 pin1=-1 apic2=-1 pin2=-1
+[    0.009000] ...trying to set up timer as Virtual Wire IRQ...
+[    0.019490] ..... works.
+[    0.020005] smpboot: CPU0: Intel(R) Atom(TM) CPU CE4150   @ 1.20GHz
+(fam: 06, model: 1c, stepping: 0a)
+[    0.024005] Using local APIC timer interrupts.
+[    0.024005] calibrating APIC timer ...
+[    0.026000] ... lapic delta = 624992
+[    0.026000] ... PM-Timer delta = 0
+[    0.026000] ..... delta 624992
+[    0.026000] ..... mult: 26843202
+[    0.026000] ..... calibration result: 99998
+[    0.026000] ..... CPU clock speed is 1199.0984 MHz.
+[    0.026000] ..... host bus clock speed is 99.0998 MHz.
+[    0.026000] ... verify APIC timer
+[    0.128565] ... jiffies delta = 100
+[    0.129004] ... jiffies result ok
+
+and it goes on. As you see, "..TIMER:" is missing in the upper output.
+
+> 
+> Thanks,
+> 
+> 	tglx
+
+Sebastian
