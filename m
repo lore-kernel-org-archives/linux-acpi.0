@@ -1,230 +1,297 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
-Date: Tue, 27 May 2014 23:32:18 -0400
-Message-ID: <1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
-References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
- <1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:58420 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751713AbaE1D77 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 May 2014 23:59:59 -0400
-In-Reply-To: <1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Patch V3 19/37] x86, irq: introduce mechanisms to support dynamically
+ allocate IRQ for IOAPIC
+Date: Wed, 28 May 2014 13:01:02 +0800
+Message-ID: <53856D8E.3010401@linux.intel.com>
+References: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com> <1401178092-1228-20-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.02.1405271445050.21720@ionos.tec.linutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1405271445050.21720@ionos.tec.linutronix.de>
+Sender: linux-pm-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bp@alien8.de
-Cc: tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
 
-Add trace interface to elaborate all H/W error related information.
+Hi Thomas,
+	Thanks for your comments. Please refer to inline
+comments below.
 
-v6 -> v5: format adjustment.
-v5 -> v4: Add physical mask(LSB) in trace.
-v4 -> v3: change ras trace dependency rule.
-v3 -> v2: minor adjustment according to the suggestion from Boris.
-v2 -> v1: spinlock is not needed anymore.
+On 2014/5/28 3:58, Thomas Gleixner wrote:
+> Jiang,
+> 
+> On Tue, 27 May 2014, Jiang Liu wrote:
+> 
+>> +static int alloc_irq_from_domain(struct irq_domain *domain, u32 gsi, int pin)
+>>  {
+>> +	int irq = -1;
+>> +
+>> +	if (gsi >= arch_dynirq_lower_bound(0)) {
+>> +		irq = irq_create_mapping(domain, pin);
+>> +	} else if (gsi < NR_IRQS_LEGACY) {
+>> +		if (!ioapic_identity_map)
+>> +			irq = irq_create_mapping(domain, pin);
+>> +		else if (irq_domain_associate(domain, gsi, pin) == 0)
+>> +			irq = gsi;
+>> +	} else if (irq_create_strict_mappings(domain, gsi, pin, 1) == 0) {
+>> +		irq = gsi;
+>> +	}
+> 
+> So you have these cases covered here:
+> 
+> 1) The ACPI case of secondary ioapics. You only have the strict 1:1
+>    mapping for the first ioapic
+> 
+> 2) The gsi < NR_IRQS_LEGACY case where you have two options:
+> 
+>     a) Let the core create a random virq number if ioapic_identity_map
+>        is 0
+> 
+>        ioapic_identity_map is only set by SFI and devicetree
+> 
+>        So in all other cases we fall into that code path for all
+>        legacy interrupts. So how is that supposed to work lets say for
+>        i8042 which has hardcoded irq 1 and 12?
+> 
+>        irq_create_mapping(1)
+>        
+> 	    hint = 1 % nr_irqs; --> 1
+> 	    virq = irq_alloc_desc_from(hint, of_node_to_nid(domain->of_node));
+> 
+> 	    This returns something >= 16, because the irq descriptors
+> 	    for 0-15 (LEGACY) are allocated already.
+> 
+>        The pin association works, but how is the i8042 driver supposed
+>        to figure out that it should request the virq >=16 which was
+>        created instead of the hardcoded 1 ?
+This is used to work around special non-ISA interrupts with GSI below
+NR_IRQS_LEGACY. The original code for the special case is:
+/*
+ * Provide an identity mapping of gsi == irq except on truly
+ * weird platforms that have non isa irqs in the first 16 gsis.
+ */
+return gsi >= NR_IRQS_LEGACY ? gsi : gsi_top + gsi;
 
-Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
----
- drivers/acpi/Kconfig       |  4 +++-
- drivers/acpi/acpi_extlog.c | 54 +++++++++++++++++++++++++++++++++++++++---
- drivers/ras/ras.c          |  1 +
- include/ras/ras_event.h    | 59 ++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 114 insertions(+), 4 deletions(-)
+We have one path to handle ISA IRQs before calling
+alloc_irq_from_domain() as below:
+        if (idx >= 0 && test_bit(mp_irqs[idx].srcbus, mp_bus_not_pci))
+                return mp_irqs[idx].srcbusirq;
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index a34a228..099a2d5 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -370,6 +370,7 @@ config ACPI_EXTLOG
- 	tristate "Extended Error Log support"
- 	depends on X86_MCE && X86_LOCAL_APIC
- 	select UEFI_CPER
-+	select RAS_TRACE
- 	default n
- 	help
- 	  Certain usages such as Predictive Failure Analysis (PFA) require
-@@ -384,6 +385,7 @@ config ACPI_EXTLOG
- 
- 	  Enhanced MCA Logging allows firmware to provide additional error
- 	  information to system software, synchronous with MCE or CMCI. This
--	  driver adds support for that functionality.
-+	  driver adds support for that functionality with corresponding
-+	  tracepoint which carries that information to userspace.
- 
- endif	# ACPI
-diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
-index c4a5d87..8815b73 100644
---- a/drivers/acpi/acpi_extlog.c
-+++ b/drivers/acpi/acpi_extlog.c
-@@ -16,6 +16,7 @@
- #include <asm/mce.h>
- 
- #include "apei/apei-internal.h"
-+#include <ras/ras_event.h>
- 
- #define EXT_ELOG_ENTRY_MASK	GENMASK_ULL(51, 0) /* elog entry address mask */
- 
-@@ -43,6 +44,9 @@ struct extlog_l1_head {
- 
- static int old_edac_report_status;
- 
-+static char mem_location[CPER_REC_LEN];
-+static char dimm_location[CPER_REC_LEN];
-+
- static u8 extlog_dsm_uuid[] __initdata = "663E35AF-CC10-41A4-88EA-5470AF055295";
- 
- /* L1 table related physical address */
-@@ -69,6 +73,30 @@ static u32 l1_percpu_entry;
- #define ELOG_ENTRY_ADDR(phyaddr) \
- 	(phyaddr - elog_base + (u8 *)elog_addr)
- 
-+static void __trace_mem_error(const uuid_le *fru_id, char *fru_text,
-+			       u32 err_number, u8 severity,
-+			       struct cper_sec_mem_err *mem)
-+{
-+	u8 etype = ~0, pa_mask_lsb = ~0;
-+	u64 pa = ~0ull;
-+
-+	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE)
-+		etype = mem->error_type;
-+
-+	if (mem->validation_bits & CPER_MEM_VALID_PA)
-+		pa = mem->physical_addr;
-+
-+	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
-+		pa_mask_lsb = (u8)__ffs64(mem->physical_addr_mask);
-+
-+	memset(mem_location, 0, CPER_REC_LEN);
-+	cper_mem_err_location(mem, mem_location);
-+	memset(dimm_location, 0, CPER_REC_LEN);
-+	cper_dimm_err_location(mem, dimm_location);
-+	trace_extlog_mem_event(err_number, etype, severity, pa, pa_mask_lsb,
-+			       fru_id, dimm_location, mem_location, fru_text);
-+}
-+
- static struct acpi_generic_status *extlog_elog_entry_check(int cpu, int bank)
- {
- 	int idx;
-@@ -137,8 +165,12 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
- 	struct mce *mce = (struct mce *)data;
- 	int	bank = mce->bank;
- 	int	cpu = mce->extcpu;
--	struct acpi_generic_status *estatus;
--	int rc;
-+	struct acpi_generic_status *estatus, *tmp;
-+	struct acpi_generic_data *gdata;
-+	const uuid_le *fru_id = &NULL_UUID_LE;
-+	char *fru_text = "";
-+	uuid_le *sec_type;
-+	static u32 err_number;
- 
- 	estatus = extlog_elog_entry_check(cpu, bank);
- 	if (estatus == NULL)
-@@ -148,7 +180,23 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
- 	/* clear record status to enable BIOS to update it again */
- 	estatus->block_status = 0;
- 
--	rc = print_extlog_rcd(NULL, (struct acpi_generic_status *)elog_buf, cpu);
-+	tmp = (struct acpi_generic_status *)elog_buf;
-+	print_extlog_rcd(NULL, tmp, cpu);
-+
-+	/* log event via trace */
-+	err_number++;
-+	gdata = (struct acpi_generic_data *)(tmp + 1);
-+	if (gdata->validation_bits & CPER_SEC_VALID_FRU_ID)
-+		fru_id = (uuid_le *)gdata->fru_id;
-+	if (gdata->validation_bits & CPER_SEC_VALID_FRU_TEXT)
-+		fru_text = gdata->fru_text;
-+	sec_type = (uuid_le *)gdata->section_type;
-+	if (!uuid_le_cmp(*sec_type, CPER_SEC_PLATFORM_MEM)) {
-+		struct cper_sec_mem_err *mem_err = (void *)(gdata + 1);
-+		if (gdata->error_data_length >= sizeof(*mem_err))
-+			__trace_mem_error(fru_id, fru_text, err_number,
-+					  (u8)gdata->error_severity, mem_err);
-+	}
- 
- 	return NOTIFY_STOP;
- }
-diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-index 4cac43a..da227a3 100644
---- a/drivers/ras/ras.c
-+++ b/drivers/ras/ras.c
-@@ -23,4 +23,5 @@ static int __init ras_init(void)
- }
- subsys_initcall(ras_init);
- 
-+EXPORT_TRACEPOINT_SYMBOL_GPL(extlog_mem_event);
- EXPORT_TRACEPOINT_SYMBOL_GPL(mc_event);
-diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
-index acbcbb8..4d3bc92 100644
---- a/include/ras/ras_event.h
-+++ b/include/ras/ras_event.h
-@@ -9,6 +9,65 @@
- #include <linux/edac.h>
- #include <linux/ktime.h>
- #include <linux/aer.h>
-+#include <linux/cper.h>
-+
-+
-+/*
-+ * MCE Extended Error Log trace event
-+ *
-+ * These events are generated when hardware detects a corrected or
-+ * uncorrected event.
-+ */
-+
-+/* memory trace event */
-+
-+TRACE_EVENT(extlog_mem_event,
-+	TP_PROTO(u32 error_number,
-+		 u8 etype,
-+		 u8 severity,
-+		 u64 pa,
-+		 u8 pa_mask_lsb,
-+		 const uuid_le *fru_id,
-+		 const char *dimm_info,
-+		 const char *mem_loc,
-+		 const char *fru_text),
-+
-+	TP_ARGS(error_number, etype, severity, pa, pa_mask_lsb, fru_id,
-+		dimm_info, mem_loc, fru_text),
-+
-+	TP_STRUCT__entry(
-+		__field(u32, error_number)
-+		__field(u8, etype)
-+		__field(u8, severity)
-+		__field(u64, pa)
-+		__field(u8, pa_mask_lsb)
-+		__string(dimm_info, dimm_info)
-+		__string(mem_loc, mem_loc)
-+		__dynamic_array(char, fru, CPER_REC_LEN)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->error_number = error_number;
-+		__entry->etype = etype;
-+		__entry->severity = severity;
-+		__entry->pa = pa;
-+		__entry->pa_mask_lsb = pa_mask_lsb;
-+		__assign_str(dimm_info, dimm_info);
-+		__assign_str(mem_loc, mem_loc);
-+		snprintf(__get_dynamic_array(fru), CPER_REC_LEN - 1,
-+			 "FRU: %pUl %.20s", fru_id, fru_text);
-+	),
-+
-+	TP_printk("%d %s error: %s %s physical addr: %016llx (mask lsb: %x), %s%s",
-+		  __entry->error_number,
-+		  cper_severity_str(__entry->severity),
-+		  cper_mem_err_type_str(__entry->etype),
-+		  __get_str(dimm_info),
-+		  __entry->pa,
-+		  __entry->pa_mask_lsb,
-+		  __get_str(mem_loc),
-+		  __get_str(fru))
-+);
- 
- /*
-  * Hardware Events Report
--- 
-2.0.0.rc2
+> 	
+>     b) Associate the gsi and the pin
+> 
+>        This only works because the virqs are already allocated at boot
+>        time unconditionally due to arch_probe_nr_irqs() returning
+>        NR_IRQS_LEGACY. So irq_domain_associate() works.
+>        Undocumented works by chance behaviour.
+Yes. It's a good suggestion to enhance legacy_pic to make this
+code more clear.
 
+> 
+> 3) The case where gsi < arch_dynirq_lower_bound()
+> 
+>    You create a strict mapping here, fine.
+> 
+> This is confusing at best.
+> 
+> First of all, we should use legacy_pic->nr_legacy_irqs instead of
+> NR_IRQS_LEGACY all over the place.
+> 
+> mshyperv, ce4100 and intel-mid use the null_legacy_pic which has
+> nr_legacy_irqs = 0 and everything else uses the real pic which has
+> nr_legacy_irqs = NR_IRQS_LEGACY. So why do we even bother to allocate
+> and deal with NR_IRQS_LEGACY in the cases where we have no legacy?
+I'm not sure whether it works with ce4100, so used NR_IRQS_LEGACY
+instead of legacy_pic->nr_legacy_irqs for safety. Will try to refine
+it in next version.
+
+> 
+> ce4100 is an oddball though. The ioapic is registered way before the
+> interrupt subsystem is initialized and I have a hard time to
+> understand that comment:
+> 
+>         /* We can't set this earlier, because we need to calibrate the timer */
+>         legacy_pic = &null_legacy_pic;
+I haven't figured out the story behind the comment yet:(
+
+> 
+> The timer calibration happens after the interrupts are set up. I
+> assume it's check_timer() which wants that, but we know exactly how
+> the ce4100 works, so we might be able to avoid that whole "testing"
+> stuff. Sebastian, any input on this?
+> 
+> If it turns out that ce4100 needs the inital real legacy pic for some
+> magic reason we still can be clever by extending the legacy pic data
+> structure to tell us about that change, i.e. instead of using
+> legacy_pic->nr_legacy_irqs having a field "nr_allocated_irqs", which
+> is set to NR_IRQS_LEGACY for the real pic and to 0 for the null_pic
+> and let ce4100 set that field to NR_IRQS_LEGACY before switching the
+> legacy_pic over to the null implementation.
+Good suggestion, will try this way.
+
+> But what's really disgusting is the magic ioapic_identity_map and the
+> extra ACPI specific ioapic_dynirq_base hackery.
+> 
+> Why do we need strict mappings in the non ACPI case for all ioapic
+> pins? What's so different about ACPI? Or is this just to avoid
+> breaking the existing SFI/devicetree stuff. If that's the reason I'm
+> fine with it, but ...
+It's to avoid breaking SFI/intel_mid stuff. intel_mid assumes IRQ
+number equals to pin number and use pci_dev->irq to save both IRQ
+number and pin number.
+
+> 
+> independent of this question we want to be more clever about the
+> handling of strict, legacy and freely associated linux irq numbers.
+> 
+> So you have this weird ioapic_create_domain_fn callback in
+> mp_register_ioapic, which is solely there so the different callers can
+> hand in their domain ops and eventually set the magic
+> ioapic_identity_map flag.
+> 
+> +void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
+> +                              ioapic_create_domain_fn cb, void *arg)
+> 
+> What about having
+> 
+> struct ioapic_domain {
+>        struct irqdomain             *domain;
+>        const struct irq_domain_ops  *ops;
+>        void                         *arg;
+>        enum domain_type             type;
+> };
+> 
+> and add this struct to the ioapic struct. type is:
+> 
+> enum domain_type {
+>        IOAPIC_STRICT,
+>        IOAPIC_LEGACY,
+>        IOAPIC_DYNAMIC,
+> };     
+> 
+> 
+> Now the register function changes to:
+> 
+> void mp_register_ioapic(int id, u32 address, u32 gsi_base,
+>      			const struct irq_domain_ops *ops,
+> 			int type)
+> {
+> 	...
+> 
+>         ioapics[idx].irqdomain.ops = ops;
+>         ioapics[idx].irqdomain.arg = arg;
+> 	ioapics[idx].irqdomain.type = type;
+>         ioapics[idx].irqdomain.domain = NULL;
+> 	
+> 	...
+> }
+> 
+> and you can use mp_irqdomain_create() unconditionally for creating all
+> domains. And there you do:
+> 
+> static int dynirq_lower_bound;
+> 
+> mp_irqdomain_create()
+> {
+>        ioapic->irqdomain.domain = irq_domain_add_linear(...);
+>        
+>        switch (ioapic->irqdomain.type) {
+>        case IOAPIC_LEGACY:
+>        	    /*
+> 	     * Associate the legacy interrupts which have been
+> 	     * already allocated.
+> 	     */
+> 	    for (i = 0; i < legacy_pic->nr_allocated_irqs; i++)
+> 		irq_domain_associate(domain, i, i);
+> 
+>        case IOAPIC_STRICT:
+>        	    dynirq_lower_bound += ioapic->nr_gsis;
+> 
+>        case IOAPIC_DYNAMIC:
+>        	    break;
+>        }
+> }
+> 
+> So arch_dynirq_lower_bound() gets simplified to:
+> {
+>      return dynirq_lower_bound;
+> }
+> 
+> And alloc_irq_from_domain() becomes:
+> 
+> int alloc_irq_from_domain(struct ioapic_domain *domain, int gsi, int pin)
+> {
+> 	switch (domain->type) {
+> 	case IOAPIC_DYNAMIC:
+> 	     return irq_create_mapping(domain->domain, pin);
+> 	case IOAPIC_LEGACY:
+> 	case IOAPIC_STRICT:     	    
+> 	     return irq_create_strict_mappings(domain, gsi, pin, 1);
+> 	}
+> }
+> 
+> At the call site of alloc_irq_from_domain() you have already:
+> 
+>        irq = irq_find_mapping(domain, pin);
+>        if (irq <=0 ....)
+>        	       alloc_irq_from_domain(domain, gsi, pin);
+> 
+> So because we associated the legacy_pic->nr_allocated_irqs in
+> mp_irqdomain_create() already, you'll never call into
+> alloc_irq_from_domain() for those and the remaining ones for that
+> first ioapic are handled by the IOAPIC_STRICT fall through.
+> 
+> For simplicity you can let SFI and devicetree register the ioapics
+> with their specific domain ops plus IOAPIC_LEGACY for the first ioapic
+> and IOAPIC_STRICT for all others. That also covers the case where the
+> null_legacy_pic with legacy_pic->nr_allocated_irqs == 0 is used.
+> 
+> In the ACPI case you register with the acpi domain ops and
+> IOAPIC_LEGACY for the first and IOAPIC_DYNAMIC for the extra ioapics.
+> 
+> Should be way cleaner and understandable, at least to me :)
+Really good suggestions! Make thing much more clear.
+
+> 
+> Now there is that last oddity which bugs me in mp_map_pin_to_irq()
+> 
+>  	/*
+> 	 * Don't use irqdomain to manage ISA IRQs because there may be
+> 	 * multiple IOAPIC pins sharing the same ISA IRQ number and
+> 	 * irqdomain only supports 1:1 mapping between IOAPIC pin and
+> 	 * IRQ number.
+>  	 */
+> 	if (idx >= 0 && test_bit(mp_irqs[idx].srcbus, mp_bus_not_pci)) {
+>  		irq = mp_irqs[idx].srcbusirq;
+> 		if ((flags & IOAPIC_MAP_ALLOC) && info->count == 0 &&
+> 		    mp_irqdomain_map(domain, irq, pin) != 0)
+> 			irq = -1;
+> 
+> That really looks like a hack. I'm aware that the current irqdomain
+> code cannot deal with that oddball case.
+> 
+> So what you are saying is that there are devices which have a separate
+> physical wire to different ioapic pins, but the ioapic is supposed to
+> bundle them to a shared interrupt.
+> 
+> I agree that this is odd enough to handle at the ioapic level, but
+> it'd be nice to have a more elaborative comment on this.
+Will try to improve the comment.
+
+> 
+> Aside of the above I'm pretty happy about the progress of this patch
+> set. One thing, which needs to be looked at are the usage sites of
+> irq_data->irq, whether they are safe. I did not spot any unsafe ones,
+> but a few functions which are called with irq_data->irq and make no
+> use of it.
+Sure, will check usages of irq_data->irq.
+
+Really appreciate you suggestions, it will improve the code a lot.
+Thanks!
+Gerry
+> 
+> Thanks,
+> 
+> 	tglx
+> 
