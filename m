@@ -1,34 +1,65 @@
 From: Borislav Petkov <bp@alien8.de>
-Subject: Re: new trace output format
-Date: Wed, 28 May 2014 18:23:31 +0200
-Message-ID: <20140528162331.GE17196@pd.tnic>
+Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
+Date: Wed, 28 May 2014 18:34:52 +0200
+Message-ID: <20140528163452.GF17196@pd.tnic>
 References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
  <1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
+ <1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
+ <20140528112832.5f83c66b@gandalf.local.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:52422 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754003AbaE1QXf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 May 2014 12:23:35 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20140528112832.5f83c66b@gandalf.local.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Gong" <gong.chen@linux.intel.com>
-Cc: tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org
 
-On Tue, May 27, 2014 at 11:32:17PM -0400, Chen, Gong wrote:
-> Hi, Boris
+On Wed, May 28, 2014 at 11:28:32AM -0400, Steven Rostedt wrote:
+> > +static void __trace_mem_error(const uuid_le *fru_id, char *fru_text,
+> > +			       u32 err_number, u8 severity,
+> > +			       struct cper_sec_mem_err *mem)
+> > +{
+> > +	u8 etype = ~0, pa_mask_lsb = ~0;
+> > +	u64 pa = ~0ull;
+> > +
+> > +	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE)
+> > +		etype = mem->error_type;
+> > +
+> > +	if (mem->validation_bits & CPER_MEM_VALID_PA)
+> > +		pa = mem->physical_addr;
+> > +
+> > +	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
+> > +		pa_mask_lsb = (u8)__ffs64(mem->physical_addr_mask);
+> > +
+> > +	memset(mem_location, 0, CPER_REC_LEN);
+> > +	cper_mem_err_location(mem, mem_location);
+> > +	memset(dimm_location, 0, CPER_REC_LEN);
+> > +	cper_dimm_err_location(mem, dimm_location);
+> > +	trace_extlog_mem_event(err_number, etype, severity, pa, pa_mask_lsb,
+> > +			       fru_id, dimm_location, mem_location, fru_text);
 > 
-> Here is the new output format:
-> 
->           <idle>-0     [000] d.h.   242.340120: extlog_mem_event: 1 corrected error: unknown DIMM location: Memriser1 CHANNEL A DIMM 0 physical addr: 0000000441a07000 (mask lsb: ff), node: 0 card: 0 module: 0 rank: 0 bank: 0 row: 32336 column: 1056 FRU: 00000000-0000-0000-0000-000000000000
->           <idle>-0     [000] d.h.   349.380406: extlog_mem_event: 2 corrected error: unknown DIMM location: Memriser1 CHANNEL A DIMM 0 physical addr: 00000004416ae000 (mask lsb: ff), node: 0 card: 0 module: 0 rank: 0 bank: 0 row: 31802 column: 1064 FRU: 00000000-0000-0000-0000-000000000000
-> 
-> I add extra "physical addr:" as prefix. If you don't like it, please feel free to remove it.
+> This seems like a lot of work for a tracepoint. Why all the strings?
+> Ideally, you want to record in the fast path the minimum raw data and
+> reconstruct it at the time it is read.
 
-That's fine - it is not part of the error record anyway.
+Well, they're constructed from a bunch of values which are checked for
+validity first:
+
+http://lkml.kernel.org/r/1400142646-10127-4-git-send-email-gong.chen@linux.intel.com
+
+We probably could get rid of the fru* things by reading them out from
+ACPI and enumerating them and issuing only an index here which the slow
+path decodes.
+
+The others we can split into fields again which should definitely make
+the record smaller. Fields are defined in struct cper_sec_mem_err.
+
+The thing is, this TP needs to be designed properly before we expose it
+to the world and so that hoperfully most future uses are covered.
+
+Thanks.
 
 -- 
 Regards/Gruss,
