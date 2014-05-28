@@ -1,86 +1,35 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
-Date: Wed, 28 May 2014 12:56:25 -0400
-Message-ID: <20140528125625.6f6dcf7f@gandalf.local.home>
-References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
-	<1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
-	<1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
-	<20140528112832.5f83c66b@gandalf.local.home>
-	<20140528163452.GF17196@pd.tnic>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC Patch V1 1/4] x86, irq: refine mp_register_ioapic() to
+ prepare for IOAPIC hotplug
+Date: Wed, 28 May 2014 22:49:34 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1405282247530.3952@nanos>
+References: <1401179077-2020-1-git-send-email-jiang.liu@linux.intel.com> <1401179077-2020-2-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.229]:2981 "EHLO
-	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751550AbaE1Q41 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 May 2014 12:56:27 -0400
-In-Reply-To: <20140528163452.GF17196@pd.tnic>
+Received: from www.linutronix.de ([62.245.132.108]:40310 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751443AbaE1UuI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 May 2014 16:50:08 -0400
+In-Reply-To: <1401179077-2020-2-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 
-On Wed, 28 May 2014 18:34:52 +0200
-Borislav Petkov <bp@alien8.de> wrote:
- 
-> Well, they're constructed from a bunch of values which are checked for
-> validity first:
-> 
-> http://lkml.kernel.org/r/1400142646-10127-4-git-send-email-gong.chen@linux.intel.com
+On Tue, 27 May 2014, Jiang Liu wrote:
 
-OK, looks like you are saving a bunch of integers.
+> -static void ioapic_create_irqdomains(void)
+> +static int ioapic_create_irqdomain(int idx)
 
-> 
-> We probably could get rid of the fru* things by reading them out from
-> ACPI and enumerating them and issuing only an index here which the slow
-> path decodes.
-> 
-> The others we can split into fields again which should definitely make
-> the record smaller. Fields are defined in struct cper_sec_mem_err.
-> 
-> The thing is, this TP needs to be designed properly before we expose it
-> to the world and so that hoperfully most future uses are covered.
+...
 
-My concern is passing in a large string and wasting a lot of the ring
-buffer space. The max you can hold per event is just under a page size
-(4k). And all these strings add up. If it happens to be 512bytes, then
-you end up with one event per page.
+> -static int __init io_apic_get_redir_entries(int ioapic)
+> +static int io_apic_get_redir_entries(int ioapic)
 
-Instead of making that a huge string, what about a dynamic array of
-special structures?
+Can you please split the functional changes from the trivial __init
+removal ones?
 
+Thanks,
 
-struct __attribute__((__packed__)) cper_sec_mem_rec {
-	short type;
-	int data;
-};
-
-
-static struct cper_sec_mem_rec mem_location[CPER_REC_LEN];
-
-then have the:
-
- 	if (mem->validation_bits & CPER_MEM_VALID_NODE) {
-		msg[n].type = CPER_MEM_VALID_NODE_TYPE;
-		msg[n++].data = mem->node;
-	}
-	if (mem->validation_bits & CPER_MEM_VALID_CARD) {
-		msg[n].type = CPER_MEM_VALID_CARD_TYPE;
-		msg[n++].data = mem->card;
-	}
-	if (mem->validation_bits & CPER_MEM_VALID_MODULE) {
-[ and so on ]
-
-
-Then return the array of msg and the length and you can record this
-into the dynamic array in the tracepoint.
-
-Then you have the type and data saved, the TP_printk() can parse it.
-You can create your own handler for it to do it nicely (see the ftrace
-version of __print_symbol() and friends).
-
-Makes the tracepoint much more compact.
-
--- Steve
+	tglx
