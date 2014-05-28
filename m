@@ -1,69 +1,86 @@
-From: Borislav Petkov <bp@alien8.de>
+From: Steven Rostedt <rostedt@goodmis.org>
 Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
-Date: Wed, 28 May 2014 18:34:52 +0200
-Message-ID: <20140528163452.GF17196@pd.tnic>
+Date: Wed, 28 May 2014 12:56:25 -0400
+Message-ID: <20140528125625.6f6dcf7f@gandalf.local.home>
 References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
- <1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
- <1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
- <20140528112832.5f83c66b@gandalf.local.home>
+	<1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
+	<1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
+	<20140528112832.5f83c66b@gandalf.local.home>
+	<20140528163452.GF17196@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140528112832.5f83c66b@gandalf.local.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.229]:2981 "EHLO
+	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751550AbaE1Q41 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 May 2014 12:56:27 -0400
+In-Reply-To: <20140528163452.GF17196@pd.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On Wed, May 28, 2014 at 11:28:32AM -0400, Steven Rostedt wrote:
-> > +static void __trace_mem_error(const uuid_le *fru_id, char *fru_text,
-> > +			       u32 err_number, u8 severity,
-> > +			       struct cper_sec_mem_err *mem)
-> > +{
-> > +	u8 etype = ~0, pa_mask_lsb = ~0;
-> > +	u64 pa = ~0ull;
-> > +
-> > +	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE)
-> > +		etype = mem->error_type;
-> > +
-> > +	if (mem->validation_bits & CPER_MEM_VALID_PA)
-> > +		pa = mem->physical_addr;
-> > +
-> > +	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
-> > +		pa_mask_lsb = (u8)__ffs64(mem->physical_addr_mask);
-> > +
-> > +	memset(mem_location, 0, CPER_REC_LEN);
-> > +	cper_mem_err_location(mem, mem_location);
-> > +	memset(dimm_location, 0, CPER_REC_LEN);
-> > +	cper_dimm_err_location(mem, dimm_location);
-> > +	trace_extlog_mem_event(err_number, etype, severity, pa, pa_mask_lsb,
-> > +			       fru_id, dimm_location, mem_location, fru_text);
+On Wed, 28 May 2014 18:34:52 +0200
+Borislav Petkov <bp@alien8.de> wrote:
+ 
+> Well, they're constructed from a bunch of values which are checked for
+> validity first:
 > 
-> This seems like a lot of work for a tracepoint. Why all the strings?
-> Ideally, you want to record in the fast path the minimum raw data and
-> reconstruct it at the time it is read.
+> http://lkml.kernel.org/r/1400142646-10127-4-git-send-email-gong.chen@linux.intel.com
 
-Well, they're constructed from a bunch of values which are checked for
-validity first:
+OK, looks like you are saving a bunch of integers.
 
-http://lkml.kernel.org/r/1400142646-10127-4-git-send-email-gong.chen@linux.intel.com
+> 
+> We probably could get rid of the fru* things by reading them out from
+> ACPI and enumerating them and issuing only an index here which the slow
+> path decodes.
+> 
+> The others we can split into fields again which should definitely make
+> the record smaller. Fields are defined in struct cper_sec_mem_err.
+> 
+> The thing is, this TP needs to be designed properly before we expose it
+> to the world and so that hoperfully most future uses are covered.
 
-We probably could get rid of the fru* things by reading them out from
-ACPI and enumerating them and issuing only an index here which the slow
-path decodes.
+My concern is passing in a large string and wasting a lot of the ring
+buffer space. The max you can hold per event is just under a page size
+(4k). And all these strings add up. If it happens to be 512bytes, then
+you end up with one event per page.
 
-The others we can split into fields again which should definitely make
-the record smaller. Fields are defined in struct cper_sec_mem_err.
+Instead of making that a huge string, what about a dynamic array of
+special structures?
 
-The thing is, this TP needs to be designed properly before we expose it
-to the world and so that hoperfully most future uses are covered.
 
-Thanks.
+struct __attribute__((__packed__)) cper_sec_mem_rec {
+	short type;
+	int data;
+};
 
--- 
-Regards/Gruss,
-    Boris.
 
-Sent from a fat crate under my desk. Formatting is fine.
---
+static struct cper_sec_mem_rec mem_location[CPER_REC_LEN];
+
+then have the:
+
+ 	if (mem->validation_bits & CPER_MEM_VALID_NODE) {
+		msg[n].type = CPER_MEM_VALID_NODE_TYPE;
+		msg[n++].data = mem->node;
+	}
+	if (mem->validation_bits & CPER_MEM_VALID_CARD) {
+		msg[n].type = CPER_MEM_VALID_CARD_TYPE;
+		msg[n++].data = mem->card;
+	}
+	if (mem->validation_bits & CPER_MEM_VALID_MODULE) {
+[ and so on ]
+
+
+Then return the array of msg and the length and you can record this
+into the dynamic array in the tracepoint.
+
+Then you have the type and data saved, the TP_printk() can parse it.
+You can create your own handler for it to do it nicely (see the ftrace
+version of __print_symbol() and friends).
+
+Makes the tracepoint much more compact.
+
+-- Steve
