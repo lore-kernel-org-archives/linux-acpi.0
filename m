@@ -1,206 +1,66 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH V7 10/11] ACPI: use platform bus as the default bus for
- _HID enumeration
-Date: Wed, 28 May 2014 15:16:26 +0800
-Message-ID: <1401261386.2169.0.camel@rzhang1-toshiba>
-References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com>
-	 <1400781753-2682-11-git-send-email-rui.zhang@intel.com>
-	 <20140526102145.GB1765@lahna.fi.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: [PATCH v2 0/5] APEI: Make APEI architecture independent.
+Date: Wed, 28 May 2014 09:39:25 +0200
+Message-ID: <1401262770-25343-1-git-send-email-tomasz.nowicki@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:35046 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751873AbaE1HQb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 May 2014 03:16:31 -0400
-In-Reply-To: <20140526102145.GB1765@lahna.fi.intel.com>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:35433 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752882AbaE1Hjs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 May 2014 03:39:48 -0400
+Received: by mail-wi0-f174.google.com with SMTP id r20so3116060wiv.13
+        for <linux-acpi@vger.kernel.org>; Wed, 28 May 2014 00:39:47 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, rafael.j.wysocki@intel.com, dmitry.torokhov@gmail.com, Heikki Krogerus <heikki.krogerus@intel.com>
+To: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de
+Cc: linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-On Mon, 2014-05-26 at 13:21 +0300, Mika Westerberg wrote:
-> On Fri, May 23, 2014 at 02:02:32AM +0800, Zhang Rui wrote:
-> > Because of the growing demand for enumerating ACPI devices to
-> > platform bus, this patch changes the code to enumerate ACPI
-> > devices to platform bus by default, if the device
-> > 1. has _HID.
-> > 2. does not have a scan handler attached.
-> > 3. is not SPB slave device, which should be enumerated by its parent.
-> > 
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > ---
-> >  drivers/acpi/acpi_platform.c | 28 ----------------------------
-> >  drivers/acpi/scan.c          | 43 ++++++++++++++++++++++++++++++++++++++++++-
-> >  2 files changed, 42 insertions(+), 29 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-> > index dbfe49e..33376a9 100644
-> > --- a/drivers/acpi/acpi_platform.c
-> > +++ b/drivers/acpi/acpi_platform.c
-> > @@ -22,24 +22,6 @@
-> >  
-> >  ACPI_MODULE_NAME("platform");
-> >  
-> > -/*
-> > - * The following ACPI IDs are known to be suitable for representing as
-> > - * platform devices.
-> > - */
-> > -static const struct acpi_device_id acpi_platform_device_ids[] = {
-> > -
-> > -	{ "PNP0D40" },
-> > -	{ "ACPI0003" },
-> > -	{ "VPC2004" },
-> > -	{ "BCM4752" },
-> 
-> You can't remove this one as it is bluetooth connected to HS-UART and
-> thus has UARTSerialBus() connector.
+APEI is currently implemented so that it depends on x86 hardware.
+The primary dependency is that GHES uses the x86 NMI for hardware
+error notification and MCE for memory error handling. These patches
+remove that dependency.
 
-refreshed patch attached.
+Other APEI features such as error reporting via external IRQ, error
+serialization, or error injection, do not require changes to use them
+on non-x86 architectures.
 
->From 50f67c33fc686c8dc86507e478a5e7d6f01805c9 Mon Sep 17 00:00:00 2001
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Thu, 22 May 2014 21:30:37 +0800
-Subject: [PATCH 10/11] ACPI: use platform bus as the default bus for _HID
- enumeration
+The following patch set eliminates the APEI Kconfig x86 dependency
+by making these changes:
+- treat NMI notification as GHES feature - CONFIG_ACPI_APEI_NMI
+- reorganize GHES notification type init/deinitialization
+  so that we can decide in run time whether NMI is supported or not
+- identify architectural boxes and abstract it accordingly (NMI and MCE)
+- rework ioremap for both IRQ and NMI context
 
-Because of the growing demand for enumerating ACPI devices to
-platform bus, this patch changes the code to enumerate ACPI
-devices to platform bus by default, if the device
-1. has _HID.
-2. does not have a scan handler attached.
-3. is not SPI/I2C slave device, which should be enumerated
-   to SPI/I2C bus by its parent.
+NMI code is kept in ghes.c file since NMI and IRQ context are tightly coupled.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/acpi_platform.c | 28 ------------------------
- drivers/acpi/scan.c          | 51 +++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 50 insertions(+), 29 deletions(-)
+Note, these patches introduce no functional changes for x86. The NMI notification
+feature is selected for x86 by default. Architectures that want to use this
+feature should also provide NMI code infrastructure.
 
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index dbfe49e..33376a9 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -22,24 +22,6 @@
- 
- ACPI_MODULE_NAME("platform");
- 
--/*
-- * The following ACPI IDs are known to be suitable for representing as
-- * platform devices.
-- */
--static const struct acpi_device_id acpi_platform_device_ids[] = {
--
--	{ "PNP0D40" },
--	{ "ACPI0003" },
--	{ "VPC2004" },
--	{ "BCM4752" },
--
--	/* Intel Smart Sound Technology */
--	{ "INT33C8" },
--	{ "80860F28" },
--
--	{ }
--};
--
- /**
-  * acpi_create_platform_device - Create platform device for ACPI device node
-  * @adev: ACPI device node to create a platform device for.
-@@ -125,13 +107,3 @@ int acpi_create_platform_device(struct acpi_device *adev,
- 	kfree(resources);
- 	return 1;
- }
--
--static struct acpi_scan_handler platform_handler = {
--	.ids = acpi_platform_device_ids,
--	.attach = acpi_create_platform_device,
--};
--
--void __init acpi_platform_init(void)
--{
--	acpi_scan_add_handler(&platform_handler);
--}
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 6d50916..73417d6 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -2079,6 +2079,53 @@ static int acpi_scan_handler_dummy_attach(struct acpi_device *device,
- 	return 1;
- }
- 
-+static int acpi_check_spi_i2c_slave(struct acpi_resource *ares, void *data)
-+{
-+	struct acpi_resource_common_serialbus *res;
-+	int *is_spi_i2c_slave = data;
-+
-+	if (ares->type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
-+		res = &ares->data.common_serial_bus;
-+
-+		/*
-+		 * devices that are connected to UART still need to
-+		 * be enumerated to platform bus
-+		 */
-+		if (res->type != ACPI_RESOURCE_SERIAL_TYPE_UART)
-+			*is_spi_i2c_slave = 1;
-+		 /* no need to do more checking */
-+		return -1;
-+	}
-+	return 1;
-+}
-+
-+static void acpi_do_default_enumeration(struct acpi_device *device)
-+{
-+	struct list_head resource_list;
-+	int is_spi_i2c_slave = 0;
-+
-+	/* Do not do enumeration for device object w/o platform_id */
-+	if (!device->pnp.type.platform_id)
-+		return;
-+
-+	/* Do not do enumeration for device object with scan handler attached */
-+	if (device->handler)
-+		return;
-+
-+	/*
-+	 * Do not do enemeration for SPI/I2C slaves
-+	 * as they will be enuerated to SPI/I2C bus by their parents
-+	 */
-+	INIT_LIST_HEAD(&resource_list);
-+	acpi_dev_get_resources(device, &resource_list,
-+				acpi_check_spi_i2c_slave, &is_spi_i2c_slave);
-+	acpi_dev_free_resource_list(&resource_list);
-+	if (is_spi_i2c_slave)
-+		return;
-+
-+	acpi_create_platform_device(device, NULL);
-+}
-+
- static int acpi_scan_attach_handler(struct acpi_device *device)
- {
- 	struct acpi_hardware_id *hwid;
-@@ -2103,6 +2150,9 @@ static int acpi_scan_attach_handler(struct acpi_device *device)
- 				break;
- 		}
- 	}
-+
-+	acpi_do_default_enumeration(device);
-+
- 	return ret;
- }
- 
-@@ -2262,7 +2312,6 @@ int __init acpi_scan_init(void)
- 	acpi_pci_root_init();
- 	acpi_pci_link_init();
- 	acpi_processor_init();
--	acpi_platform_init();
- 	acpi_lpss_init();
- 	acpi_cmos_rtc_init();
- 	acpi_container_init();
+V1->V2
+- address Borislav comment
+- abstract arch-specific calls instead of wrapping into the #ifdef
+
+Tomasz Nowicki (5):
+  apei, mce: Factor out APEI architecture specific MCE calls.
+  acpi, apei, ghes: Introduce ACPI_APEI_NMI to make NMI error
+    notification a GHES feature.
+  acpi, apei, ghes: Introduce more generic mechanism to init/deinit
+    GHES error notifications.
+  apei, ghes, nmi: Factor out NMI arch-specific calls.
+  acpi, apei, ghes: Factor out ioremap virtual memory for IRQ and NMI
+    context.
+
+ arch/x86/kernel/acpi/Makefile |    1 +
+ arch/x86/kernel/acpi/apei.c   |   87 ++++++++++++
+ drivers/acpi/apei/Kconfig     |   10 +-
+ drivers/acpi/apei/apei-base.c |   32 +++++
+ drivers/acpi/apei/ghes.c      |  301 +++++++++++++++++++++++++----------------
+ drivers/acpi/apei/hest.c      |   26 +---
+ include/acpi/apei.h           |   11 ++
+ 7 files changed, 328 insertions(+), 140 deletions(-)
+ create mode 100644 arch/x86/kernel/acpi/apei.c
+
 -- 
-1.8.3.2
-
-
-
+1.7.9.5
 
