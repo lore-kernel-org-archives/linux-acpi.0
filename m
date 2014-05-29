@@ -1,81 +1,127 @@
-From: "Javi Merino" <javi.merino@arm.com>
-Subject: Re: [PATCH v1 6/6] ACPI: thermal: processor: Use the generic cpufreq
- infrastructure
-Date: Thu, 29 May 2014 13:42:49 +0100
-Message-ID: <20140529124248.GC2593@e104805>
-References: <1401351334-11210-1-git-send-email-amit.daniel@samsung.com>
- <1401351334-11210-7-git-send-email-amit.daniel@samsung.com>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
+Date: Thu, 29 May 2014 09:12:51 -0400
+Message-ID: <20140529091251.70178abe@gandalf.local.home>
+References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
+	<1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
+	<1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
+	<20140528112832.5f83c66b@gandalf.local.home>
+	<20140528163452.GF17196@pd.tnic>
+	<20140528125625.6f6dcf7f@gandalf.local.home>
+	<20140529074345.GA23484@gchen.bj.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:54302 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755908AbaE2Mmy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 May 2014 08:42:54 -0400
-In-Reply-To: <1401351334-11210-7-git-send-email-amit.daniel@samsung.com>
-Content-Disposition: inline
+Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.231]:38096 "EHLO
+	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757048AbaE2NMx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 May 2014 09:12:53 -0400
+In-Reply-To: <20140529074345.GA23484@gchen.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Amit Daniel Kachhap <amit.daniel@samsung.com>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "amit.kachhap@gmail.com" <amit.kachhap@gmail.com>, "edubezval@gmail.com" <edubezval@gmail.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: "Chen, Gong" <gong.chen@linux.intel.com>
+Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-Hi Amit,
+On Thu, 29 May 2014 03:43:45 -0400
+"Chen, Gong" <gong.chen@linux.intel.com> wrote:
 
-On Thu, May 29, 2014 at 09:15:34AM +0100, Amit Daniel Kachhap wrote:
-> This patch upgrades the ACPI cpufreq cooling portions to use the generic
-> cpufreq cooling infrastructure. There should not be any functionality
-> related changes as the same behaviour is provided by the generic
-> cpufreq APIs with the notifier mechanism.
+> On Wed, May 28, 2014 at 12:56:25PM -0400, Steven Rostedt wrote:
+> > My concern is passing in a large string and wasting a lot of the ring
+> > buffer space. The max you can hold per event is just under a page size
+> > (4k). And all these strings add up. If it happens to be 512bytes, then
+> > you end up with one event per page.
+> I just don't understand why you say wasting memory. I just pass
+> a char * not a string array. And most of time these strings are partial full,
+> about 1/5 ~ 1/4 spaces are used.
+
+What do you think gets recorded in the ring buffer? The pointer to the
+string? No! You copy the entire string into the ring buffer, with
+markers and all. How big is that string? 60 chars? 80? I see you
+recording meta data there too:
+
+ 	if (mem->validation_bits & CPER_MEM_VALID_BIT_POSITION)
+-		pr_debug("bit_position: %d\n", mem->bit_pos);
++		n += scnprintf(msg + n, len - n, "bit_position: %d ",
++			       mem->bit_pos);
+
+You record "bit_position: <number>\n"
+
+That by itself is 15 characters not counting the number of characters
+used to write the number. All you need to record for that is a two byte
+type (perhaps even one byte) and a int (4 bytes) for a total of 6
+bytes.  And this is just one example, you have this for all the cases.
+That will fill up fast!
+
 > 
-> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
-> ---
->  drivers/acpi/processor_driver.c  |    6 +-
->  drivers/acpi/processor_thermal.c |  235 ++++++++++++++++++--------------------
->  include/acpi/processor.h         |    3 +-
->  3 files changed, 115 insertions(+), 129 deletions(-)
+> > 
+> > Instead of making that a huge string, what about a dynamic array of
+> > special structures?
+> > 
+> > 
+> > struct __attribute__((__packed__)) cper_sec_mem_rec {
+> > 	short type;
+> > 	int data;
+> > };
+> > 
+> > 
+> > static struct cper_sec_mem_rec mem_location[CPER_REC_LEN];
+> > 
+> > then have the:
+> > 
+> >  	if (mem->validation_bits & CPER_MEM_VALID_NODE) {
+> > 		msg[n].type = CPER_MEM_VALID_NODE_TYPE;
+> > 		msg[n++].data = mem->node;
+> > 	}
+> > 	if (mem->validation_bits & CPER_MEM_VALID_CARD) {
+> > 		msg[n].type = CPER_MEM_VALID_CARD_TYPE;
+> > 		msg[n++].data = mem->card;
+> > 	}
+> > 	if (mem->validation_bits & CPER_MEM_VALID_MODULE) {
+> > [ and so on ]
+> > 
 > 
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> index 7f70f31..10aba4a 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -36,6 +36,7 @@
->  #include <linux/cpuidle.h>
->  #include <linux/slab.h>
->  #include <linux/acpi.h>
-> +#include <linux/cpu_cooling.h>
+> This function is not only for perf but for dmesg. So key is how
+> to handle two strings: dimm_location and mem_location.
 > 
->  #include <acpi/processor.h>
+> I read some __print_symbolic implementations like btrfs trace,
 > 
-> @@ -178,8 +179,7 @@ static int __acpi_processor_start(struct acpi_device *device)
->         if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
->                 acpi_processor_power_init(pr);
+> #define show_ref_type(type)                                     \
+>         __print_symbolic(type,                                  \
+>         { BTRFS_TREE_BLOCK_REF_KEY,     "TREE_BLOCK_REF" },     \
+>         { BTRFS_EXTENT_DATA_REF_KEY,    "EXTENT_DATA_REF" },    \
+>         { BTRFS_EXTENT_REF_V0_KEY,      "EXTENT_REF_V0" },      \
+>         { BTRFS_SHARED_BLOCK_REF_KEY,   "SHARED_BLOCK_REF" },   \
+>         { BTRFS_SHARED_DATA_REF_KEY,    "SHARED_DATA_REF" })
 > 
-> -       pr->cdev = thermal_cooling_device_register("Processor", device,
-> -                                                  &processor_cooling_ops);
-> +       pr->cdev = acpi_processor_cooling_register(device);
+> So for this case, maybe we need a macro like:
+> 
+> #define show_dimm_location(type)                                \
+>         __print_symbolic(type,                                  \
+>         { CPER_MEM_VALID_NODE,          "node" },               \
+>         { CPER_MEM_VALID_CARD,          "card" },               \
+>         { CPER_MEM_VALID_MODULE,        "module" },             \
+>         ...
+> 
+> IMO, it is just another implementation method, maybe more graceful,
+> but I don't know how it can save space. Again, original functions
+> work both for trace and dmesg. If we add such interface, it looks
+> a little bit repeated.
 
-With this you have removed the only cooling device whose type was
-"Processor".  There's special code for dealing with this cooling
-device in drivers/thermal/thermal_core.c:passive_store():
+I'm not sure you could use that, as you save an array of data. The
+print_symbolic() wont work with an array.
 
-		list_for_each_entry(cdev, &thermal_cdev_list, node) {
-			if (!strncmp("Processor", cdev->type,
-				     sizeof("Processor")))
-				thermal_zone_bind_cooling_device(tz,
-						THERMAL_TRIPS_NONE, cdev,
-						THERMAL_NO_LIMIT,
-						THERMAL_NO_LIMIT);
-		}
-		mutex_unlock(&thermal_list_lock);
-		if (!tz->passive_delay)
+You can still use the same code for both the tracepoint (perf and
+ftrace) and for dmesg. You need to write a packed array that is
+returned as well as a way to convert that array into a human readable
+string for later processing. The dmesg version would just have them
+both together where as the tracepoint records the packed version on the
+ring buffer and the TP_printk() will use the extraction.
 
-With your change, that code is now "dead" as it can't do anything.  No
-I don't know what should you do with it, either remove it or make it
-match the cpufreq cooling device.  But this patch should deal with
-that code as well.
+That is, dmesg has the compress and extraction in one place where the
+tracepoint has them in two different places.
 
-Cheers,
-Javi
+Understand?
 
-
+-- Steve
