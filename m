@@ -1,118 +1,57 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
-Date: Thu, 29 May 2014 03:43:45 -0400
-Message-ID: <20140529074345.GA23484@gchen.bj.intel.com>
-References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
- <1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
- <1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
- <20140528112832.5f83c66b@gandalf.local.home>
- <20140528163452.GF17196@pd.tnic>
- <20140528125625.6f6dcf7f@gandalf.local.home>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="45Z9DzgjV8m4Oswq"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:57468 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755249AbaE2IL1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 29 May 2014 04:11:27 -0400
-Content-Disposition: inline
-In-Reply-To: <20140528125625.6f6dcf7f@gandalf.local.home>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Amit Daniel Kachhap <amit.daniel@samsung.com>
+Subject: [PATCH v1 0/6] ACPI: thermal: Migrate cpufreq cooling to generic cpu_cooling layer
+Date: Thu, 29 May 2014 13:45:28 +0530
+Message-ID: <1401351334-11210-1-git-send-email-amit.daniel@samsung.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org, amit.kachhap@gmail.com, edubezval@gmail.com, rjw@rjwysocki.net, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
+Changes since RFC:
+* Moved the cooling state notification support to thermal core from cpu cooling
+  as suggested by Eduardo.
+* Used per cpu notifier structure in the cpufreq cooling implementation. This
+  is a fix for race condition.
+* One more comment from Eduardo was to take care when multiple listeners try to
+  modify the cooling state. This is however not implemented in this patch series.
+  One idea is to allow only 1 set type of clients and multiple get type of clients.
+  The point to consider in these case is that cooling state management logic is now
+  in control of client driver and thermal governor cooling state decisions can be
+  overriden.
+* Fixed other minor review comments and updated documentation section.
 
---45Z9DzgjV8m4Oswq
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch adds notification support for those clients of cpu_cooling
+APIs which may want to do something extra after receiving these
+cpu_cooling events shown below. The notifier structure passed is of both Set/Get type.
+The notfications events can be of the following type,
 
-On Wed, May 28, 2014 at 12:56:25PM -0400, Steven Rostedt wrote:
-> My concern is passing in a large string and wasting a lot of the ring
-> buffer space. The max you can hold per event is just under a page size
-> (4k). And all these strings add up. If it happens to be 512bytes, then
-> you end up with one event per page.
-I just don't understand why you say wasting memory. I just pass
-a char * not a string array. And most of time these strings are partial ful=
-l,
-about 1/5 ~ 1/4 spaces are used.
+1. COOLING_SET_STATE_PRE
+2. COOLING_SET_STATE_POST
+3. COOLING_GET_CUR_STATE
+4. COOLING_GET_MAX_STATE
 
->=20
-> Instead of making that a huge string, what about a dynamic array of
-> special structures?
->=20
->=20
-> struct __attribute__((__packed__)) cper_sec_mem_rec {
-> 	short type;
-> 	int data;
-> };
->=20
->=20
-> static struct cper_sec_mem_rec mem_location[CPER_REC_LEN];
->=20
-> then have the:
->=20
->  	if (mem->validation_bits & CPER_MEM_VALID_NODE) {
-> 		msg[n].type =3D CPER_MEM_VALID_NODE_TYPE;
-> 		msg[n++].data =3D mem->node;
-> 	}
-> 	if (mem->validation_bits & CPER_MEM_VALID_CARD) {
-> 		msg[n].type =3D CPER_MEM_VALID_CARD_TYPE;
-> 		msg[n++].data =3D mem->card;
-> 	}
-> 	if (mem->validation_bits & CPER_MEM_VALID_MODULE) {
-> [ and so on ]
->=20
+The advantages of these notfications is to differentiate between different
+P states in the cpufreq table and the cooling states. The clients of these
+events may group few P states into 1 cooling states as done by ACPI .
+Also some more cooling states can be enabled when the maximum of P state is
+reached. In case of ACPI processor throttling are enabled when minimum
+P-state is reached. Post notification events can be used for those cases.
 
-This function is not only for perf but for dmesg. So key is how
-to handle two strings: dimm_location and mem_location.
+All these changes are tested in samsung arndale(exynos5250) with Linaro ACPI
+kernel along with few tweaks. However only cpu frequency scaling down is tested
+for thermal cooling and throttling is untested as this feature is not supported
+in H/W. But since the functionality is not modified so expecting the changes to
+work in ACPI based platform also.  
 
-I read some __print_symbolic implementations like btrfs trace,
+Amit Daniel Kachhap (6):
+  thermal: cpu_cooling: Fix the notification mechanism by using per cpu
+    structure
+  thermal: cpu_cooling: Support passing driver private data.
+  thermal: thermal-core: Add notifications support for the cooling
+    states
+  thermal: cpu_cooling: Add support to find up/low frequency levels.
+  thermal: thermal_core: Remove the max cooling limit check in
+    registration
+  ACPI: thermal: processor: Use the generic cpufreq infrastructure
 
-#define show_ref_type(type)                                     \
-        __print_symbolic(type,                                  \
-        { BTRFS_TREE_BLOCK_REF_KEY,     "TREE_BLOCK_REF" },     \
-        { BTRFS_EXTENT_DATA_REF_KEY,    "EXTENT_DATA_REF" },    \
-        { BTRFS_EXTENT_REF_V0_KEY,      "EXTENT_REF_V0" },      \
-        { BTRFS_SHARED_BLOCK_REF_KEY,   "SHARED_BLOCK_REF" },   \
-        { BTRFS_SHARED_DATA_REF_KEY,    "SHARED_DATA_REF" })
-
-So for this case, maybe we need a macro like:
-
-#define show_dimm_location(type)                                \
-        __print_symbolic(type,                                  \
-        { CPER_MEM_VALID_NODE,          "node" },               \
-        { CPER_MEM_VALID_CARD,          "card" },               \
-        { CPER_MEM_VALID_MODULE,        "module" },             \
-        ...
-
-IMO, it is just another implementation method, maybe more graceful,
-but I don't know how it can save space. Again, original functions
-work both for trace and dmesg. If we add such interface, it looks
-a little bit repeated.
-
---45Z9DzgjV8m4Oswq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJThuUxAAoJEI01n1+kOSLH40oQAKFZParhigH7MAHDsgsXaqXH
-zGqzV5X8eaGeBFYAEaiICJa5L9jhTlnZg2kas1ODEoJUqLb+BSmQ9A/4JfDx9dk6
-ZfLBRCDvffMe8EN8FVU8TQTz81KIm7NDiHnhbys6Bxgn4ZuhgtdA95RCC3o+lKsi
-XU619oI5THKOm9ib0k+9kF5XZmkpp+YOqjNix43MtiRHsPqHYCcqWnGkiY78OzFW
-GufpYL2YZnGMV/igbVIfYqnTG7atf71BBRUjhzUpphymJarF0PGC6cFgc5s879Cs
-mf5ljdPJLwW+mu4hFJuiJDrMVNftoch5N18h6jKSs9wAmTU/UeYqVH5bkVVxABWp
-xDSLRdNDbqc8Z5xRIyLDRRiR6P7WXDX0rSUQ5WiX50A5r9aOXT75XrbiwyOou5Jg
-WrTGOhUgFqNHEdeIZynAWMaoblYwCge474ce6GbiyoL648FuCKoOUXqtQACPmLIF
-huJzpPrtplpRb1UdFs4HsjCQGJJnmdjxdIrIxd/xxRzo7XCHDuYZWMSrz+laaoZ/
-vVeZncH6b1eo3w5Ny60pUBlAYa1TC9Rq4GKysN5B7yz/jmbzunGCrbOfJOm0kqUm
-/lNKeTFuD63lFcYrO5b7zwb2EOKHoimIXISXF7XWYTqeDlYVyG3GLbqkwvnIMhpf
-95IeM7TAXyPF1S5Xk2sm
-=1cQQ
------END PGP SIGNATURE-----
-
---45Z9DzgjV8m4Oswq--
