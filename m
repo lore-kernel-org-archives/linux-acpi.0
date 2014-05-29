@@ -1,41 +1,118 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch V3 19/37] x86, irq: introduce mechanisms to support
- dynamically allocate IRQ for IOAPIC
-Date: Wed, 28 May 2014 23:22:06 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1405282320430.3952@nanos>
-References: <1401178092-1228-1-git-send-email-jiang.liu@linux.intel.com> <1401178092-1228-20-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.02.1405271445050.21720@ionos.tec.linutronix.de> <53856D8E.3010401@linux.intel.com>
- <alpine.DEB.2.10.1405282301310.3952@nanos>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
+Date: Thu, 29 May 2014 03:43:45 -0400
+Message-ID: <20140529074345.GA23484@gchen.bj.intel.com>
+References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
+ <1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
+ <1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
+ <20140528112832.5f83c66b@gandalf.local.home>
+ <20140528163452.GF17196@pd.tnic>
+ <20140528125625.6f6dcf7f@gandalf.local.home>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.10.1405282301310.3952@nanos>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="45Z9DzgjV8m4Oswq"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:57468 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755249AbaE2IL1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 May 2014 04:11:27 -0400
+Content-Disposition: inline
+In-Reply-To: <20140528125625.6f6dcf7f@gandalf.local.home>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On Wed, 28 May 2014, Thomas Gleixner wrote:
-> On Wed, 28 May 2014, Jiang Liu wrote:
-> > This is used to work around special non-ISA interrupts with GSI below
-> > NR_IRQS_LEGACY. The original code for the special case is:
-> > /*
-> >  * Provide an identity mapping of gsi == irq except on truly
-> >  * weird platforms that have non isa irqs in the first 16 gsis.
-> >  */
-> > return gsi >= NR_IRQS_LEGACY ? gsi : gsi_top + gsi;
-> 
-> That looks really, really wrong. What's wrong with assigning that irq
-> irq number on those platforms?
-> 
-> The weird stuff is SFI and devicetree, if I understand your code
-> correctly.
-> 
-> So if those platforms do not have actual legacy irqs, what's wrong
-> with giving out the legacy numbers?
 
-Though if it's a real issue, we can simply mark the ioapic on those
-devices as DYNAMIC and avoid that whole magic.
+--45Z9DzgjV8m4Oswq
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
+On Wed, May 28, 2014 at 12:56:25PM -0400, Steven Rostedt wrote:
+> My concern is passing in a large string and wasting a lot of the ring
+> buffer space. The max you can hold per event is just under a page size
+> (4k). And all these strings add up. If it happens to be 512bytes, then
+> you end up with one event per page.
+I just don't understand why you say wasting memory. I just pass
+a char * not a string array. And most of time these strings are partial ful=
+l,
+about 1/5 ~ 1/4 spaces are used.
 
-	tglx
+>=20
+> Instead of making that a huge string, what about a dynamic array of
+> special structures?
+>=20
+>=20
+> struct __attribute__((__packed__)) cper_sec_mem_rec {
+> 	short type;
+> 	int data;
+> };
+>=20
+>=20
+> static struct cper_sec_mem_rec mem_location[CPER_REC_LEN];
+>=20
+> then have the:
+>=20
+>  	if (mem->validation_bits & CPER_MEM_VALID_NODE) {
+> 		msg[n].type =3D CPER_MEM_VALID_NODE_TYPE;
+> 		msg[n++].data =3D mem->node;
+> 	}
+> 	if (mem->validation_bits & CPER_MEM_VALID_CARD) {
+> 		msg[n].type =3D CPER_MEM_VALID_CARD_TYPE;
+> 		msg[n++].data =3D mem->card;
+> 	}
+> 	if (mem->validation_bits & CPER_MEM_VALID_MODULE) {
+> [ and so on ]
+>=20
+
+This function is not only for perf but for dmesg. So key is how
+to handle two strings: dimm_location and mem_location.
+
+I read some __print_symbolic implementations like btrfs trace,
+
+#define show_ref_type(type)                                     \
+        __print_symbolic(type,                                  \
+        { BTRFS_TREE_BLOCK_REF_KEY,     "TREE_BLOCK_REF" },     \
+        { BTRFS_EXTENT_DATA_REF_KEY,    "EXTENT_DATA_REF" },    \
+        { BTRFS_EXTENT_REF_V0_KEY,      "EXTENT_REF_V0" },      \
+        { BTRFS_SHARED_BLOCK_REF_KEY,   "SHARED_BLOCK_REF" },   \
+        { BTRFS_SHARED_DATA_REF_KEY,    "SHARED_DATA_REF" })
+
+So for this case, maybe we need a macro like:
+
+#define show_dimm_location(type)                                \
+        __print_symbolic(type,                                  \
+        { CPER_MEM_VALID_NODE,          "node" },               \
+        { CPER_MEM_VALID_CARD,          "card" },               \
+        { CPER_MEM_VALID_MODULE,        "module" },             \
+        ...
+
+IMO, it is just another implementation method, maybe more graceful,
+but I don't know how it can save space. Again, original functions
+work both for trace and dmesg. If we add such interface, it looks
+a little bit repeated.
+
+--45Z9DzgjV8m4Oswq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJThuUxAAoJEI01n1+kOSLH40oQAKFZParhigH7MAHDsgsXaqXH
+zGqzV5X8eaGeBFYAEaiICJa5L9jhTlnZg2kas1ODEoJUqLb+BSmQ9A/4JfDx9dk6
+ZfLBRCDvffMe8EN8FVU8TQTz81KIm7NDiHnhbys6Bxgn4ZuhgtdA95RCC3o+lKsi
+XU619oI5THKOm9ib0k+9kF5XZmkpp+YOqjNix43MtiRHsPqHYCcqWnGkiY78OzFW
+GufpYL2YZnGMV/igbVIfYqnTG7atf71BBRUjhzUpphymJarF0PGC6cFgc5s879Cs
+mf5ljdPJLwW+mu4hFJuiJDrMVNftoch5N18h6jKSs9wAmTU/UeYqVH5bkVVxABWp
+xDSLRdNDbqc8Z5xRIyLDRRiR6P7WXDX0rSUQ5WiX50A5r9aOXT75XrbiwyOou5Jg
+WrTGOhUgFqNHEdeIZynAWMaoblYwCge474ce6GbiyoL648FuCKoOUXqtQACPmLIF
+huJzpPrtplpRb1UdFs4HsjCQGJJnmdjxdIrIxd/xxRzo7XCHDuYZWMSrz+laaoZ/
+vVeZncH6b1eo3w5Ny60pUBlAYa1TC9Rq4GKysN5B7yz/jmbzunGCrbOfJOm0kqUm
+/lNKeTFuD63lFcYrO5b7zwb2EOKHoimIXISXF7XWYTqeDlYVyG3GLbqkwvnIMhpf
+95IeM7TAXyPF1S5Xk2sm
+=1cQQ
+-----END PGP SIGNATURE-----
+
+--45Z9DzgjV8m4Oswq--
