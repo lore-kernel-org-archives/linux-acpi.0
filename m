@@ -1,95 +1,67 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
-Date: Thu, 29 May 2014 22:56:32 -0400
-Message-ID: <20140530025632.GA16788@gchen.bj.intel.com>
-References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
- <1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
- <1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
- <20140528112832.5f83c66b@gandalf.local.home>
- <20140528163452.GF17196@pd.tnic>
- <20140528125625.6f6dcf7f@gandalf.local.home>
- <20140529074345.GA23484@gchen.bj.intel.com>
- <20140529091251.70178abe@gandalf.local.home>
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Patch V3 0/5] I2C ACPI operation region handler
+Date: Fri, 30 May 2014 14:00:39 +0800
+Message-ID: <53881E87.9070706@intel.com>
+References: <1400590764-11108-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BOKacYhQ+x31HxR3"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:32114 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752421AbaE3DYT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 29 May 2014 23:24:19 -0400
-Content-Disposition: inline
-In-Reply-To: <20140529091251.70178abe@gandalf.local.home>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1400590764-11108-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
+On 05/20/2014 08:59 PM, Lan Tianyu wrote:
+> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart) operation
+> region. It allows ACPI aml code able to access such kind of devices to
+> implement some ACPI standard method.
+>
+> On the Asus T100TA, Bios use GenericSerialBus operation region to access
+> i2c device to get battery info. So battery function depends on the I2C
+> operation region support. Here is the bug link.
+> https://bugzilla.kernel.org/show_bug.cgi?id=69011
+>
 
---BOKacYhQ+x31HxR3
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Wolfram:
+	Since this version resolved all comments, it's ok for you?
 
-On Thu, May 29, 2014 at 09:12:51AM -0400, Steven Rostedt wrote:
-> What do you think gets recorded in the ring buffer? The pointer to the
-> string? No! You copy the entire string into the ring buffer, with
-> markers and all. How big is that string? 60 chars? 80? I see you
-> recording meta data there too:
-I'm not the expert of trace. If I am wrong please fix me. So it looks
-like all trace data shhould be pushed into the ring buffer as raw
-material and when it is needed to be printed via TP_printk, these
-raw data will be expanded(unzip them as you told) into another
-temp buffer, maybe kernel printk buffer directly.
-
-[...]
-> > #define show_dimm_location(type)                                \
-> >         __print_symbolic(type,                                  \
-> >         { CPER_MEM_VALID_NODE,          "node" },               \
-> >         { CPER_MEM_VALID_CARD,          "card" },               \
-> >         { CPER_MEM_VALID_MODULE,        "module" },             \
-> >         ...
-> >=20
->=20
-> I'm not sure you could use that, as you save an array of data. The
-> print_symbolic() wont work with an array.
-Just FWIW, call it again and again. But it looks too awkward I will
-use other style.
-
->=20
-> You can still use the same code for both the tracepoint (perf and
-> ftrace) and for dmesg. You need to write a packed array that is
-> returned as well as a way to convert that array into a human readable
-> string for later processing. The dmesg version would just have them
-> both together where as the tracepoint records the packed version on the
-> ring buffer and the TP_printk() will use the extraction.
->=20
-> That is, dmesg has the compress and extraction in one place where the
-> tracepoint has them in two different places.
->=20
-> Understand?
-Yes, I feel the same way. Zip/unzip is unavoidable.
-
---BOKacYhQ+x31HxR3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTh/NgAAoJEI01n1+kOSLHBgEP/03l+cSTiUrtyZbnCA0Zm3Xo
-ZxRjhzuDpB35j8uny8TnXgDUsfYFConwyk7n4/GCejzWSN16jQ1HgxC4pgP3HFY+
-bdBWKuaSCo03Lg/zc1Y6JoOcBAmYdZbGzbQmTqrGJ56cOoS/KSP7gbyND1bt3Gp7
-8aY9qfo2fxmtr/OPN5G/px4hCP46UZMWWcZGW7NwoMbjetGWnS0whF8jO6XfIPH+
-bxCwMEkmMxkuaNdlOL272tenw9zRj0mTKaVuc4MdACoUMHz1KPuLyEIcyaKItg9F
-i+flHBquixyKtiad97YNA9NA4ECmL1XpmwEl0ZLp3rqh+5cp/ERDd3+s4B0mkJTI
-VQF5vF4v5RFWKrqp0mn9Y6kYT/yPM9xbHfy2LE8Jt81EdxdzcAjH/8LHa03YfWs5
-Iul6C9quzMoj8J3MqSla6JGQVnRyPbSS/lWtK5r+ZeUUh5UO9xWfRQgpOGrwquMe
-LdYfOWLM6wjvVhc5WpnVs7uHvhI7mycyHj0GFXsH0zzXaTbObQNwnwAmMrysXJ68
-ly+7ozWuPrv9cTWcZCTAw7E+fEWHI5gRbjuYw94RK8Q/4cXNSwHI3tYek/5x3C9S
-9GmELUvKIQzKW6eE+KXckK+kGFS3oEEcBftWMFrxDJCGg6e7CiNqc27SwXoIw134
-Q/XuKE+mpx4u5AKFPNEG
-=+rFN
------END PGP SIGNATURE-----
-
---BOKacYhQ+x31HxR3--
+> Change since V2:
+>          Drop patchs of adding I2C smbus quick read/write and word/block
+> process call functions because not find machines supporting such protocols
+> so far and can't test these functions.
+>          Merge patchs of "I2C ACPI related code clear up" and "Add CONFIG_I2C_ACPI
+> config"
+> 	Patch 2: Add acpi_bus_detach_private_data() function to detach data from
+> ACPI handle and replace ACPI_ERROR() with acpi_handle_debug() to avoid some redundant
+> error log.
+>
+> Change since V1:
+>         Fix some code style issues. Change prefix i2c_acpi to acpi_i2c.
+> Move ACPI related code in the i2c core to i2c-acpi.c. Add CONFIG_I2C_ACPI
+> and make i2c core built-in when it's set to avoid i2c ACPI operation region
+> being removed.
+>
+> Lan Tianyu (5):
+>    ACPICA: Export acpi_buffer_to_resource symbol
+>    ACPI: Add acpi_bus_attach_private_data() to facilitate to attach data
+>      to ACPI handle
+>    ACPI/Thermal: Use acpi_bus_attach_private_data() to attach private
+>      data
+>    I2C/ACPI: Add i2c ACPI operation region support
+>    I2C/ACPI: Clean up I2C ACPI code and Add CONFIG_I2C_ACPI config
+>
+>   drivers/acpi/acpica/rscreate.c |   1 +
+>   drivers/acpi/bus.c             |  28 +++-
+>   drivers/acpi/thermal.c         |  11 +-
+>   drivers/i2c/Kconfig            |  18 +-
+>   drivers/i2c/Makefile           |   5 +-
+>   drivers/i2c/i2c-acpi.c         | 362 +++++++++++++++++++++++++++++++++++++++++
+>   drivers/i2c/i2c-core.c         |  97 +----------
+>   include/acpi/acpi_bus.h        |   2 +
+>   include/linux/acpi.h           |  11 ++
+>   include/linux/i2c.h            |  12 ++
+>   10 files changed, 439 insertions(+), 108 deletions(-)
+>   create mode 100644 drivers/i2c/i2c-acpi.c
+>
