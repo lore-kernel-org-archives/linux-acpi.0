@@ -1,67 +1,53 @@
-From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Patch V3 0/5] I2C ACPI operation region handler
-Date: Fri, 30 May 2014 14:00:39 +0800
-Message-ID: <53881E87.9070706@intel.com>
-References: <1400590764-11108-1-git-send-email-tianyu.lan@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 0/10] ACPI enumeration rework (was: Re: [PATCH V7 00/11]
+ ACPI: ACPI enumeration rework)
+Date: Fri, 30 May 2014 11:33:25 +0300
+Message-ID: <20140530083325.GB1645@lahna.fi.intel.com>
+References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com>
+ <35042328.kk6ZUUdfyN@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1400590764-11108-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:2927 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753792AbaE3Id3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 May 2014 04:33:29 -0400
+Content-Disposition: inline
+In-Reply-To: <35042328.kk6ZUUdfyN@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, matthew.garrett@nebula.com
 
-On 05/20/2014 08:59 PM, Lan Tianyu wrote:
-> ACPI 5.0 spec(5.5.2.4.5) defines GenericSerialBus(i2c, spi, uart) operation
-> region. It allows ACPI aml code able to access such kind of devices to
-> implement some ACPI standard method.
->
-> On the Asus T100TA, Bios use GenericSerialBus operation region to access
-> i2c device to get battery info. So battery function depends on the I2C
-> operation region support. Here is the bug link.
-> https://bugzilla.kernel.org/show_bug.cgi?id=69011
->
+On Fri, May 30, 2014 at 04:20:41AM +0200, Rafael J. Wysocki wrote:
+> On Friday, May 23, 2014 02:02:22 AM Zhang Rui wrote:
+> > Hi, all,
+> > 
+> > Currently, PNP bus is used as the default bus for for enumerating ACPI
+> > devices with _HID/_CID.
+> > For a device that needs to be enumerated to platform bus, we need to add
+> > its id string to the platform scan handler white list explicitly.
+> > 
+> > This becomes a problem as more and more _HID devices need to be
+> > enumerated to platform bus nowadays, thus the list is continuously growing.
+> > 
+> > So, a solution that uses platform bus for _HID enumeration by default
+> > is preferred.
+> > 
+> 
+> OK, this has had several rounds of review already and we're really starting
+> to run out of time with it, so my version of this patchset follows.
+> 
+> It is mostly based on your patches, but reordered and with some major
+> changes.  Compiled only for now, so please let me know if there's any
+> breakage in it.  [The last patch will not apply without update of the
+> device list being removed, but generally this is on top of linux-next
+> material.]
 
-Hi Wolfram:
-	Since this version resolved all comments, it's ok for you?
+The series looks good to me now.
 
-> Change since V2:
->          Drop patchs of adding I2C smbus quick read/write and word/block
-> process call functions because not find machines supporting such protocols
-> so far and can't test these functions.
->          Merge patchs of "I2C ACPI related code clear up" and "Add CONFIG_I2C_ACPI
-> config"
-> 	Patch 2: Add acpi_bus_detach_private_data() function to detach data from
-> ACPI handle and replace ACPI_ERROR() with acpi_handle_debug() to avoid some redundant
-> error log.
->
-> Change since V1:
->         Fix some code style issues. Change prefix i2c_acpi to acpi_i2c.
-> Move ACPI related code in the i2c core to i2c-acpi.c. Add CONFIG_I2C_ACPI
-> and make i2c core built-in when it's set to avoid i2c ACPI operation region
-> being removed.
->
-> Lan Tianyu (5):
->    ACPICA: Export acpi_buffer_to_resource symbol
->    ACPI: Add acpi_bus_attach_private_data() to facilitate to attach data
->      to ACPI handle
->    ACPI/Thermal: Use acpi_bus_attach_private_data() to attach private
->      data
->    I2C/ACPI: Add i2c ACPI operation region support
->    I2C/ACPI: Clean up I2C ACPI code and Add CONFIG_I2C_ACPI config
->
->   drivers/acpi/acpica/rscreate.c |   1 +
->   drivers/acpi/bus.c             |  28 +++-
->   drivers/acpi/thermal.c         |  11 +-
->   drivers/i2c/Kconfig            |  18 +-
->   drivers/i2c/Makefile           |   5 +-
->   drivers/i2c/i2c-acpi.c         | 362 +++++++++++++++++++++++++++++++++++++++++
->   drivers/i2c/i2c-core.c         |  97 +----------
->   include/acpi/acpi_bus.h        |   2 +
->   include/linux/acpi.h           |  11 ++
->   include/linux/i2c.h            |  12 ++
->   10 files changed, 439 insertions(+), 108 deletions(-)
->   create mode 100644 drivers/i2c/i2c-acpi.c
->
+You can add
+
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+
+to all the patches if you like.
