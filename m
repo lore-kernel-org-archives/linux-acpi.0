@@ -1,16 +1,16 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 6/10] ACPI / scan: Change the meaning of missing .attach() in scan handlers
-Date: Fri, 30 May 2014 04:27:31 +0200
-Message-ID: <15578215.2gMiGqcPEe@vostro.rjw.lan>
+Subject: [PATCH 5/10] ACPI / scan: introduce platform_id device PNP type flag
+Date: Fri, 30 May 2014 04:26:18 +0200
+Message-ID: <1831678.FWIeOcOJpB@vostro.rjw.lan>
 References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com> <35042328.kk6ZUUdfyN@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58320 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:60111 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932276AbaE3COb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 May 2014 22:14:31 -0400
+	with SMTP id S932298AbaE3COc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 May 2014 22:14:32 -0400
 In-Reply-To: <35042328.kk6ZUUdfyN@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -19,52 +19,49 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, matthew.garrett@ne
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Currently, some scan handlers can be compiled out entirely, which
-leaves the device objects they normally attach to without a scan
-handler.  This isn't a problem as long as we don't have any default
-enumeration mechanism that applies to all devices without a scan
-handler.  However, if such a default enumeration is added, it still
-should not be applied to devices that are normally attached to by
-scan handlers, because that may result in creating "physical" device
-objects of a wrong type for them.
+Only certain types of ACPI device objects can be enumerated as
+platform devices, so in order to distinguish them from the others
+introduce a new ACPI device PNP type flag, platform_id, and set it
+for devices with a valid _HID to start with.
 
-Since we are going to create platform device objects for all ACPI
-device objects with pnp.type.platform_id set by default, clear
-pnp.type.platform_id where there is a matching scan handler without
-an .attach() callback and otherwise simply treat that scan handler
-as though the .attach() callback was present but always returned 0.
-
-This will allow us to compile out scan handler callbacks and leave
-the device ID lists used by them so as to prevent creating platform
-device objects for the matching ACPI devices.
+This change is based on a Zhang Rui's prototype.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
 ---
- drivers/acpi/scan.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+drivers/acpi/scan.c     | 9 ++++++++-
+ drivers/acpi/scan.c     |    4 +++-
+ include/acpi/acpi_bus.h |    3 ++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
 Index: linux-pm/drivers/acpi/scan.c
 ===================================================================
 --- linux-pm.orig/drivers/acpi/scan.c
 +++ linux-pm/drivers/acpi/scan.c
-@@ -84,7 +84,7 @@ EXPORT_SYMBOL_GPL(acpi_initialize_hp_con
+@@ -1797,8 +1797,10 @@ static void acpi_set_pnp_ids(acpi_handle
+ 			return;
+ 		}
  
- int acpi_scan_add_handler(struct acpi_scan_handler *handler)
- {
--	if (!handler || !handler->attach)
-+	if (!handler)
- 		return -EINVAL;
+-		if (info->valid & ACPI_VALID_HID)
++		if (info->valid & ACPI_VALID_HID) {
+ 			acpi_add_id(pnp, info->hardware_id.string);
++			pnp->type.platform_id = 1;
++		}
+ 		if (info->valid & ACPI_VALID_CID) {
+ 			cid_list = &info->compatible_id_list;
+ 			for (i = 0; i < cid_list->count; i++)
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -233,7 +233,8 @@ struct acpi_hardware_id {
+ struct acpi_pnp_type {
+ 	u32 hardware_id:1;
+ 	u32 bus_address:1;
+-	u32 reserved:30;
++	u32 platform_id:1;
++	u32 reserved:29;
+ };
  
- 	list_add_tail(&handler->list_node, &acpi_scan_handlers_list);
-@@ -2081,6 +2081,10 @@ static int acpi_scan_attach_handler(stru
- 
- 		handler = acpi_scan_match_handler(hwid->id, &devid);
- 		if (handler) {
-+			if (!handler->attach) {
-+				device->pnp.type.platform_id = 0;
-+				continue;
-+			}
- 			device->handler = handler;
- 			ret = handler->attach(device, devid);
- 			if (ret > 0)
+ struct acpi_device_pnp {
 
