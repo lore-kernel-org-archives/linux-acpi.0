@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 7/10] ACPI / scan: always register container scan handler
-Date: Fri, 30 May 2014 04:28:20 +0200
-Message-ID: <1675270.ytJvVT7ZzR@vostro.rjw.lan>
+Subject: [PATCH 8/10] ACPI / scan: always register memory hotplug scan handler
+Date: Fri, 30 May 2014 04:29:14 +0200
+Message-ID: <3467205.0cf3CnYQpp@vostro.rjw.lan>
 References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com> <35042328.kk6ZUUdfyN@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,81 +15,123 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Prevent platform devices from being created for ACPI containers
-if CONFIG_ACPI_CONTAINER is unset by compiling out the container
-scan handler's callbacks only in that case and still compiling
-its device ID list in and registering the scan handler in either
-case.
+Prevent platform devices from being created for ACPI memory device
+objects if CONFIG_ACPI_HOTPLUG_MEMORY is unset by compiling out the
+memory hotplug scan handler's callbacks only in that case and still
+compiling its device ID list in and registering the scan handler in
+either case.
+
+Also unset the memory hotplug scan handler's .attach() callback
+if acpi_no_memhotplug is set, but still register the scan handler to
+avoid creating platform devices for ACPI memory devices in that case
+too.
 
 This change is based on a prototype from Zhang Rui.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
 ---
-drivers/acpi/Makefile    |  2 +-
- drivers/acpi/Makefile    |    2 +-
- drivers/acpi/container.c |   15 +++++++++++++++
- drivers/acpi/internal.h  |    4 ----
- 3 files changed, 16 insertions(+), 5 deletions(-)
+drivers/acpi/Makefile          |  2 +-
+ drivers/acpi/Makefile          |    2 +-
+ drivers/acpi/acpi_memhotplug.c |   31 ++++++++++++++++++++++++-------
+ drivers/acpi/internal.h        |    6 +-----
+ 3 files changed, 26 insertions(+), 13 deletions(-)
 
 Index: linux-pm/drivers/acpi/Makefile
 ===================================================================
 --- linux-pm.orig/drivers/acpi/Makefile
 +++ linux-pm/drivers/acpi/Makefile
-@@ -64,7 +64,7 @@ obj-$(CONFIG_ACPI_FAN)		+= fan.o
- obj-$(CONFIG_ACPI_VIDEO)	+= video.o
- obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
+@@ -66,7 +66,7 @@ obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.
  obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
--obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
-+obj-y				+= container.o
+ obj-y				+= container.o
  obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
- obj-$(CONFIG_ACPI_HOTPLUG_MEMORY) += acpi_memhotplug.o
+-obj-$(CONFIG_ACPI_HOTPLUG_MEMORY) += acpi_memhotplug.o
++obj-y				+= acpi_memhotplug.o
  obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
-Index: linux-pm/drivers/acpi/container.c
-===================================================================
---- linux-pm.orig/drivers/acpi/container.c
-+++ linux-pm/drivers/acpi/container.c
-@@ -41,6 +41,8 @@ static const struct acpi_device_id conta
- 	{"", 0},
- };
- 
-+#ifdef CONFIG_ACPI_CONTAINER
-+
- static int acpi_container_offline(struct container_dev *cdev)
- {
- 	struct acpi_device *adev = ACPI_COMPANION(&cdev->dev);
-@@ -109,5 +111,18 @@ static struct acpi_scan_handler containe
- 
- void __init acpi_container_init(void)
- {
-+	acpi_scan_add_handler(&container_handler);
-+}
-+
-+#else
-+
-+static struct acpi_scan_handler container_handler = {
-+	.ids = container_device_ids,
-+};
-+
-+void __init acpi_container_init(void)
-+{
- 	acpi_scan_add_handler_with_hotplug(&container_handler, "container");
- }
-+
-+#endif /* CONFIG_ACPI_CONTAINER */
+ obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
+ obj-$(CONFIG_ACPI_SBS)		+= sbs.o
 Index: linux-pm/drivers/acpi/internal.h
 ===================================================================
 --- linux-pm.orig/drivers/acpi/internal.h
 +++ linux-pm/drivers/acpi/internal.h
-@@ -32,11 +32,7 @@ void acpi_processor_init(void);
- void acpi_platform_init(void);
+@@ -33,6 +33,7 @@ void acpi_platform_init(void);
  void acpi_pnp_init(void);
  int acpi_sysfs_init(void);
--#ifdef CONFIG_ACPI_CONTAINER
  void acpi_container_init(void);
--#else
--static inline void acpi_container_init(void) {}
--#endif
++void acpi_memory_hotplug_init(void);
  #ifdef CONFIG_ACPI_DOCK
  void register_dock_dependent_device(struct acpi_device *adev,
  				    acpi_handle dshandle);
+@@ -44,11 +45,6 @@ static inline void register_dock_depende
+ static inline int dock_notify(struct acpi_device *adev, u32 event) { return -ENODEV; }
+ static inline void acpi_dock_add(struct acpi_device *adev) {}
+ #endif
+-#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
+-void acpi_memory_hotplug_init(void);
+-#else
+-static inline void acpi_memory_hotplug_init(void) {}
+-#endif
+ #ifdef CONFIG_X86
+ void acpi_cmos_rtc_init(void);
+ #else
+Index: linux-pm/drivers/acpi/acpi_memhotplug.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpi_memhotplug.c
++++ linux-pm/drivers/acpi/acpi_memhotplug.c
+@@ -44,6 +44,13 @@
+ 
+ ACPI_MODULE_NAME("acpi_memhotplug");
+ 
++static const struct acpi_device_id memory_device_ids[] = {
++	{ACPI_MEMORY_DEVICE_HID, 0},
++	{"", 0},
++};
++
++#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
++
+ /* Memory Device States */
+ #define MEMORY_INVALID_STATE	0
+ #define MEMORY_POWER_ON_STATE	1
+@@ -53,11 +60,6 @@ static int acpi_memory_device_add(struct
+ 				  const struct acpi_device_id *not_used);
+ static void acpi_memory_device_remove(struct acpi_device *device);
+ 
+-static const struct acpi_device_id memory_device_ids[] = {
+-	{ACPI_MEMORY_DEVICE_HID, 0},
+-	{"", 0},
+-};
+-
+ static struct acpi_scan_handler memory_device_handler = {
+ 	.ids = memory_device_ids,
+ 	.attach = acpi_memory_device_add,
+@@ -364,9 +366,11 @@ static bool __initdata acpi_no_memhotplu
+ 
+ void __init acpi_memory_hotplug_init(void)
+ {
+-	if (acpi_no_memhotplug)
++	if (acpi_no_memhotplug) {
++		memory_device_handler.attach = NULL;
++		acpi_scan_add_handler(&memory_device_handler);
+ 		return;
+-
++	}
+ 	acpi_scan_add_handler_with_hotplug(&memory_device_handler, "memory");
+ }
+ 
+@@ -376,3 +380,16 @@ static int __init disable_acpi_memory_ho
+ 	return 1;
+ }
+ __setup("acpi_no_memhotplug", disable_acpi_memory_hotplug);
++
++#else
++
++static struct acpi_scan_handler memory_device_handler = {
++	.ids = memory_device_ids,
++};
++
++void __init acpi_memory_hotplug_init(void)
++{
++	acpi_scan_add_handler(&memory_device_handler);
++}
++
++#endif /* CONFIG_ACPI_HOTPLUG_MEMORY */
