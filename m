@@ -1,60 +1,56 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
-Date: Fri, 30 May 2014 23:26:53 +0200
-Message-ID: <20140530212653.GK28131@pd.tnic>
-References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
- <1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
- <1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
- <20140528112832.5f83c66b@gandalf.local.home>
- <20140528163452.GF17196@pd.tnic>
- <20140528125625.6f6dcf7f@gandalf.local.home>
- <20140530092232.GA13495@gchen.bj.intel.com>
- <20140530100716.GE28131@pd.tnic>
- <CA+8MBbK7JO=+adEAuAQSBroL5133bA0U6J+yfx4sqVhzR4iVBA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/2] ACPICA: Tables: Add mechanism to control early table checksum verification.
+Date: Sat, 31 May 2014 00:29:52 +0200
+Message-ID: <5036363.2JsBlNKmXC@vostro.rjw.lan>
+References: <e28682572e0736657b0120aeec5f64ac21159faf.1401415540.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:35633 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754611AbaE3V1D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 May 2014 17:27:03 -0400
-Content-Disposition: inline
-In-Reply-To: <CA+8MBbK7JO=+adEAuAQSBroL5133bA0U6J+yfx4sqVhzR4iVBA@mail.gmail.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:62837 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932299AbaE3WMn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2014 18:12:43 -0400
+In-Reply-To: <e28682572e0736657b0120aeec5f64ac21159faf.1401415540.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Luck <tony.luck@gmail.com>
-Cc: "Chen, Gong" <gong.chen@linux.intel.com>, Steven Rostedt <rostedt@goodmis.org>, "m.chehab@samsung.com" <m.chehab@samsung.com>, linux-acpi <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, lkp@vger.linux-kernel.cn, x86@kernel.org
 
-On Fri, May 30, 2014 at 02:16:06PM -0700, Tony Luck wrote:
-> On Fri, May 30, 2014 at 3:07 AM, Borislav Petkov <bp@alien8.de> wrote:
-> > Please elaborate, what conditions? DIMM silk screen labels or so? Maybe
-> > we can generate a mapping between text labels and indices and we can
-> > dump the indices in the tracepoint and do the mapping back to strings in
-> > userspace...?
-> 
-> The UEFI error record gives us the SMBIOS "handle" (2-byte index). We
-> use that to look up the bank and device locator strings ... which should be
-> the silk-screen labels (in a correctly written BIOS).
+On Friday, May 30, 2014 10:07:31 AM Lv Zheng wrote:
 
-Ok, sounds straightforward.
+[cut]
 
-> So we could just have the tracepoint save the "handle" and do the
-> decode later. If we want to keep doing mappings in the kernel (so
-> console logs can say "DIMM location: CPU 0 DIMM_C1" rather than
-> "SMBIOS handle 0x0015") - and would like to make things easier for
-> ourselves - we could have dmi_memdev_walk() do a bit more work
-> so we can just index an allocated array of strings that are the
-> concatenation of the bank/device locators.
+> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+> index b5f7132..380828d 100644
+> --- a/include/acpi/acpixf.h
+> +++ b/include/acpi/acpixf.h
+> @@ -162,6 +162,14 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_create_osi_method, TRUE);
+>  ACPI_INIT_GLOBAL(u8, acpi_gbl_use_default_register_widths, TRUE);
+>  
+>  /*
+> + * Optionally verify the table checksum before installation. Set this to
 
-Right, we probably would need both: if a userspace agent is active, it'd
-need to resolve the handle and otherwise we'll be doing it in the kernel
-with dmi.
+What about "Whether or not to verify ..." instead of "Optionally verify ..."?
 
-But it all sounds very doable and nice to me.
+> + * TRUE to verify the table checksum before install it to the table
+> + * manager. Note that some OSPMs cannot do large mappings during the
+> + * certain stages.
+
+The "Note that ..." thing is completely unuseful here, because it is not
+particularly clear why being unable to use large mappings is related to
+this option (I know it is, but a casual reader may not know that).
+
+What about "Note that enabling this option causes errors to happen in
+some OSPMs during early initialization stages" instead?
+
+> Default is behavior is to do such verification.
+> + */
+
+Please fix the double "is".
+
+Thanks!
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
