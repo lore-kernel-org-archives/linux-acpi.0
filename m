@@ -1,53 +1,88 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 0/10] ACPI enumeration rework (was: Re: [PATCH V7 00/11]
- ACPI: ACPI enumeration rework)
-Date: Fri, 30 May 2014 11:33:25 +0300
-Message-ID: <20140530083325.GB1645@lahna.fi.intel.com>
-References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com>
- <35042328.kk6ZUUdfyN@vostro.rjw.lan>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
+Date: Fri, 30 May 2014 05:22:32 -0400
+Message-ID: <20140530092232.GA13495@gchen.bj.intel.com>
+References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
+ <1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
+ <1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
+ <20140528112832.5f83c66b@gandalf.local.home>
+ <20140528163452.GF17196@pd.tnic>
+ <20140528125625.6f6dcf7f@gandalf.local.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:2927 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:40711 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753792AbaE3Id3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 May 2014 04:33:29 -0400
+	id S932685AbaE3JuU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 May 2014 05:50:20 -0400
 Content-Disposition: inline
-In-Reply-To: <35042328.kk6ZUUdfyN@vostro.rjw.lan>
+In-Reply-To: <20140528125625.6f6dcf7f@gandalf.local.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, matthew.garrett@nebula.com
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On Fri, May 30, 2014 at 04:20:41AM +0200, Rafael J. Wysocki wrote:
-> On Friday, May 23, 2014 02:02:22 AM Zhang Rui wrote:
-> > Hi, all,
-> > 
-> > Currently, PNP bus is used as the default bus for for enumerating ACPI
-> > devices with _HID/_CID.
-> > For a device that needs to be enumerated to platform bus, we need to add
-> > its id string to the platform scan handler white list explicitly.
-> > 
-> > This becomes a problem as more and more _HID devices need to be
-> > enumerated to platform bus nowadays, thus the list is continuously growing.
-> > 
-> > So, a solution that uses platform bus for _HID enumeration by default
-> > is preferred.
-> > 
-> 
-> OK, this has had several rounds of review already and we're really starting
-> to run out of time with it, so my version of this patchset follows.
-> 
-> It is mostly based on your patches, but reordered and with some major
-> changes.  Compiled only for now, so please let me know if there's any
-> breakage in it.  [The last patch will not apply without update of the
-> device list being removed, but generally this is on top of linux-next
-> material.]
 
-The series looks good to me now.
+--mYCpIKhGyMATD0i+
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You can add
+On Wed, May 28, 2014 at 12:56:25PM -0400, Steven Rostedt wrote:
+> Instead of making that a huge string, what about a dynamic array of
+> special structures?
+>=20
+>=20
+> struct __attribute__((__packed__)) cper_sec_mem_rec {
+> 	short type;
+> 	int data;
+> };
+>=20
+>=20
+HI, Steven & Boris
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+We have two big chunk string. One for memory error location, the other
+for DIMM error location. Since DIMM error location depends on some
+other conditions, how about just converting memory error location
+to a compact mode but leaving DIMM error location alone?=20
 
-to all the patches if you like.
+For memory error location, I will utilize type offset to save one
+more byte, furthermore, I want to drop requestor_id, responder_id
+and target_id. 1) They are very rare (I've never seen them by now)
+2) They are u64 but not u16. So to keep whole struct clean I want
+to use following struct. We can extend it later when necessary.
+
+struct __attribute__((__packed__)) cper_sec_mem_rec {
+	u8 type;
+	u16 data;
+};
+
+So whole struct is just 3 bytes. Even if all fields are valid, we
+have 3 * 9 =3D 27 bytes in total for a record in the ring buffer.
+
+Make sense?
+
+--mYCpIKhGyMATD0i+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTiE3YAAoJEI01n1+kOSLH6XkP/3xmspuz1m4VaEux5kkIiiP3
+TD7xiE7GCFDOK50amJ61VGyI8HvMwG6zEHUj6ntPv070SddgCK6P36QF0OmbHiSa
+FwsZanT/ie/O7nqnvzLwB+XH48nf+k4mbR4e3hfCsx8+2UfEEVePpHlnETMWiU80
+h7Huy2ECSNIk7rJpc/bJusEB7vVNSa9gIUIUSULl3q7ulfdmraKd7TFsKOnR8KgA
+FEOuCs8qjrYiiBlzwPGyd2UmXLrQrArKknVvhkAxBDA9Ng2DVSgLCYVsUhoJreqy
+F3YdtB3KT4kWJPuR2sur7U3W/Q3pZ9ivdvhTsxCXOK5eXinlYpu7eOuv+NhB/W+/
+8TSFAmHX8D/jKf9fi/xDJnCdHY5q8bPK3uBrvm11F6wILxKZuCQywlvyVLsNqPZj
+qrK5BilDzPsnR4LvYi2Zq3p7p9+1HJLUJFyOaNTTasfbkIcXHYljfhN3b1EkZBqk
+n2OWj8oWM83toC2nakMUMZFqNOzO5x2WQTCUJyPqyYjQOthhmP+QTz01mPcLWC5/
+D0ZuiTXfulR1mkwz4WOoCYm+myBNoLpRl8uyYb4L1KJ7GBWudTTaqMgJH3IyYDOg
+0s6Zm4qkPWgxHDFkETw72fOP0nKN073NBrOClb57tCzGk8w0L4VZk+yQdsUMXVIz
+jPE4rcUjz9siPfFWXIcO
+=DaMg
+-----END PGP SIGNATURE-----
+
+--mYCpIKhGyMATD0i+--
