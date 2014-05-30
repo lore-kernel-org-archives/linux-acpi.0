@@ -1,53 +1,175 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [Patch V3 0/5] I2C ACPI operation region handler
-Date: Fri, 30 May 2014 14:10:46 +0200
-Message-ID: <20140530121046.GB2742@katana>
-References: <1400590764-11108-1-git-send-email-tianyu.lan@intel.com>
- <53881E87.9070706@intel.com>
- <10091506.iBigojlNVE@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [Update][PATCH 9/10] ACPI / scan: always register ACPI LPSS scan handler
+Date: Fri, 30 May 2014 14:34:05 +0200
+Message-ID: <3179821.jDG3aYfPjD@vostro.rjw.lan>
+References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com> <35042328.kk6ZUUdfyN@vostro.rjw.lan> <8202338.Lrn5CAprz1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VrqPEDrXMn8OVzN4"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <10091506.iBigojlNVE-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:53394 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752579AbaE3MQ5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2014 08:16:57 -0400
+In-Reply-To: <8202338.Lrn5CAprz1@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, matthew.garrett@nebula.com, mika.westerberg@linux.intel.com
 
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
---VrqPEDrXMn8OVzN4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Prevent platform devices from being created for ACPI LPSS devices
+if CONFIG_X86_INTEL_LPSS is unset by compiling out the LPSS scan
+handler's callbacks only in that case and still compiling its device
+ID list in and registering the scan handler in either case.
 
-> > Hi Wolfram:
-> > 	Since this version resolved all comments, it's ok for you?
+This change is based on a prototype from Zhang Rui.
 
-Sorry, I misunderstood. I thought a V4 was needed, but it isn't. I'll
-try to have a look this weekend.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
+---
 
---VrqPEDrXMn8OVzN4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+The LPSS_PTR macro has been renamed to LPSS_ADDR (because it returns a number,
+not a pointer) and the "trivial" version is now (OUL).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Thanks!
 
-iQIcBAEBAgAGBQJTiHVFAAoJEBQN5MwUoCm2Ee0QAJj7ltdh8fIkDBPr3EP7BtV6
-g35DzYj8uYC2SZlFt+3TFhfemBvw25ORO75U1xlP3DB3EtYKIBUJyLD5iuMZ4cXp
-eXS5rN8yAz9j+cqIEA5ZwCHczb0Q+Rx3BTNpByzbNie17+sSzDQhc0Uc8nM3mMip
-hopDjpk/mANly6jpR9br+JTTEDFcrnRgQPUviSEhePxiU2XrolMibPDMcFgZjibP
-Wozshf6Y28nxIZEzZ/uX19IORlD7LwOc8mcteo5Z4xmtl9QVRxyV2QRXvffWfaS/
-O1MAP02bQUa1Ve6TKPK7M8DuRnH/cTo7Y9oEKr+NXIpqvJ+hYQtGKLu8IfR7Rkyd
-PkKe9yA/UTXeppr56gk98FNpi/NswiLPEd+8t8WYv7zMhJz4VGtFrK6MQZ7zJqxd
-wLC3rlshVWrfIuPCR6G5Hn3jvTs5HFKqsljpefw6nvNPcFumZfOW4M9PKPKAX2w4
-WkOsaf9YWDX3YliFzZHLBk66n09cKxiJn038aOc07ZK4lhT/YXRoyrXTb3R0kS+A
-AKXEtSzCiqa1OCtiCIKtspp06hAwiQ+cE5WHwiNQ3vIm/VUtNbKtpimbTKOsNwrv
-IIPIm4EK2+cVMJtSwxyBboV33PTWytHGTbsXkNnVhy3XyHjLAjiNEUXx4W3Un9OW
-s1oSy85MyLrdJGl3M94M
-=DUvS
------END PGP SIGNATURE-----
+---
+drivers/acpi/Makefile    |  2 +-
+ drivers/acpi/Makefile    |    2 -
+ drivers/acpi/acpi_lpss.c |   65 ++++++++++++++++++++++++++++++++---------------
+ drivers/acpi/internal.h  |    4 --
+ 3 files changed, 46 insertions(+), 25 deletions(-)
 
---VrqPEDrXMn8OVzN4--
+Index: linux-pm/drivers/acpi/Makefile
+===================================================================
+--- linux-pm.orig/drivers/acpi/Makefile
++++ linux-pm/drivers/acpi/Makefile
+@@ -39,7 +39,7 @@ acpi-y				+= processor_core.o
+ acpi-y				+= ec.o
+ acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
+ acpi-y				+= pci_root.o pci_link.o pci_irq.o
+-acpi-$(CONFIG_X86_INTEL_LPSS)	+= acpi_lpss.o
++acpi-y				+= acpi_lpss.o
+ acpi-y				+= acpi_platform.o
+ acpi-y				+= acpi_pnp.o
+ acpi-y				+= power.o
+Index: linux-pm/drivers/acpi/acpi_lpss.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpi_lpss.c
++++ linux-pm/drivers/acpi/acpi_lpss.c
+@@ -25,6 +25,10 @@
+ 
+ ACPI_MODULE_NAME("acpi_lpss");
+ 
++#ifdef CONFIG_X86_INTEL_LPSS
++
++#define LPSS_ADDR(desc) ((unsigned long)&desc)
++
+ #define LPSS_CLK_SIZE	0x04
+ #define LPSS_LTR_SIZE	0x18
+ 
+@@ -168,40 +172,48 @@ static struct lpss_device_desc byt_i2c_d
+ 	.shared_clock = &i2c_clock,
+ };
+ 
++#else
++
++#define LPSS_ADDR(desc) (0UL)
++
++#endif /* CONFIG_X86_INTEL_LPSS */
++
+ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+ 	/* Generic LPSS devices */
+-	{ "INTL9C60", (unsigned long)&lpss_dma_desc },
++	{ "INTL9C60", LPSS_ADDR(lpss_dma_desc) },
+ 
+ 	/* Lynxpoint LPSS devices */
+-	{ "INT33C0", (unsigned long)&lpt_dev_desc },
+-	{ "INT33C1", (unsigned long)&lpt_dev_desc },
+-	{ "INT33C2", (unsigned long)&lpt_dev_desc },
+-	{ "INT33C3", (unsigned long)&lpt_dev_desc },
+-	{ "INT33C4", (unsigned long)&lpt_uart_dev_desc },
+-	{ "INT33C5", (unsigned long)&lpt_uart_dev_desc },
+-	{ "INT33C6", (unsigned long)&lpt_sdio_dev_desc },
++	{ "INT33C0", LPSS_ADDR(lpt_dev_desc) },
++	{ "INT33C1", LPSS_ADDR(lpt_dev_desc) },
++	{ "INT33C2", LPSS_ADDR(lpt_dev_desc) },
++	{ "INT33C3", LPSS_ADDR(lpt_dev_desc) },
++	{ "INT33C4", LPSS_ADDR(lpt_uart_dev_desc) },
++	{ "INT33C5", LPSS_ADDR(lpt_uart_dev_desc) },
++	{ "INT33C6", LPSS_ADDR(lpt_sdio_dev_desc) },
+ 	{ "INT33C7", },
+ 
+ 	/* BayTrail LPSS devices */
+-	{ "80860F09", (unsigned long)&byt_pwm_dev_desc },
+-	{ "80860F0A", (unsigned long)&byt_uart_dev_desc },
+-	{ "80860F0E", (unsigned long)&byt_spi_dev_desc },
+-	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
+-	{ "80860F41", (unsigned long)&byt_i2c_dev_desc },
++	{ "80860F09", LPSS_ADDR(byt_pwm_dev_desc) },
++	{ "80860F0A", LPSS_ADDR(byt_uart_dev_desc) },
++	{ "80860F0E", LPSS_ADDR(byt_spi_dev_desc) },
++	{ "80860F14", LPSS_ADDR(byt_sdio_dev_desc) },
++	{ "80860F41", LPSS_ADDR(byt_i2c_dev_desc) },
+ 	{ "INT33B2", },
+ 
+-	{ "INT3430", (unsigned long)&lpt_dev_desc },
+-	{ "INT3431", (unsigned long)&lpt_dev_desc },
+-	{ "INT3432", (unsigned long)&lpt_dev_desc },
+-	{ "INT3433", (unsigned long)&lpt_dev_desc },
+-	{ "INT3434", (unsigned long)&lpt_uart_dev_desc },
+-	{ "INT3435", (unsigned long)&lpt_uart_dev_desc },
+-	{ "INT3436", (unsigned long)&lpt_sdio_dev_desc },
++	{ "INT3430", LPSS_ADDR(lpt_dev_desc) },
++	{ "INT3431", LPSS_ADDR(lpt_dev_desc) },
++	{ "INT3432", LPSS_ADDR(lpt_dev_desc) },
++	{ "INT3433", LPSS_ADDR(lpt_dev_desc) },
++	{ "INT3434", LPSS_ADDR(lpt_uart_dev_desc) },
++	{ "INT3435", LPSS_ADDR(lpt_uart_dev_desc) },
++	{ "INT3436", LPSS_ADDR(lpt_sdio_dev_desc) },
+ 	{ "INT3437", },
+ 
+ 	{ }
+ };
+ 
++#ifdef CONFIG_X86_INTEL_LPSS
++
+ static int is_memory(struct acpi_resource *res, void *not_used)
+ {
+ 	struct resource r;
+@@ -666,3 +678,16 @@ void __init acpi_lpss_init(void)
+ 		acpi_scan_add_handler(&lpss_handler);
+ 	}
+ }
++
++#else
++
++static struct acpi_scan_handler lpss_handler = {
++	.ids = acpi_lpss_device_ids,
++};
++
++void __init acpi_lpss_init(void)
++{
++	acpi_scan_add_handler(&lpss_handler);
++}
++
++#endif /* CONFIG_X86_INTEL_LPSS */
+Index: linux-pm/drivers/acpi/internal.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/internal.h
++++ linux-pm/drivers/acpi/internal.h
+@@ -65,11 +65,7 @@ int acpi_debugfs_init(void);
+ #else
+ static inline void acpi_debugfs_init(void) { return; }
+ #endif
+-#ifdef CONFIG_X86_INTEL_LPSS
+ void acpi_lpss_init(void);
+-#else
+-static inline void acpi_lpss_init(void) {}
+-#endif
+ 
+ acpi_status acpi_hotplug_schedule(struct acpi_device *adev, u32 src);
+ bool acpi_queue_hotplug_work(struct work_struct *work);
+
