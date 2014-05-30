@@ -1,43 +1,44 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [RFC 1/2] ACPI: Add support for Platform Communication Channel
-Date: Fri, 30 May 2014 13:32:14 -0400
-Message-ID: <CAJ5Y-eb=9JLJn4YwDV7evYsd0FDNGu=Fj5RucjEz-PtdJVNZ+w@mail.gmail.com>
-References: <1401222599-12416-1-git-send-email-ashwin.chaugule@linaro.org>
-	<1401222599-12416-2-git-send-email-ashwin.chaugule@linaro.org>
-	<20140530101704.GS5099@sirena.org.uk>
-	<CABb+yY0cQw3ZvkK37TkHuMdeOrxckJU-TNFsdiFzBHdUgaBxgg@mail.gmail.com>
-	<CAJ5Y-eYmGKj3uvUwSYkJ3DBA=wS9LTgjG56XCmQWH0-Ax_gBaQ@mail.gmail.com>
-	<CAJe_ZhcRgrHCED-TA-NOJF6Njv-Z=ttTXO=wfn1VZjcCbiR6aA@mail.gmail.com>
+From: Tony Luck <tony.luck@gmail.com>
+Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
+Date: Fri, 30 May 2014 14:16:06 -0700
+Message-ID: <CA+8MBbK7JO=+adEAuAQSBroL5133bA0U6J+yfx4sqVhzR4iVBA@mail.gmail.com>
+References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
+	<1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
+	<1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
+	<20140528112832.5f83c66b@gandalf.local.home>
+	<20140528163452.GF17196@pd.tnic>
+	<20140528125625.6f6dcf7f@gandalf.local.home>
+	<20140530092232.GA13495@gchen.bj.intel.com>
+	<20140530100716.GE28131@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:48489 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754389AbaE3RcR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2014 13:32:17 -0400
-Received: by mail-we0-f175.google.com with SMTP id p10so2365430wes.34
-        for <linux-acpi@vger.kernel.org>; Fri, 30 May 2014 10:32:15 -0700 (PDT)
-In-Reply-To: <CAJe_ZhcRgrHCED-TA-NOJF6Njv-Z=ttTXO=wfn1VZjcCbiR6aA@mail.gmail.com>
+Received: from mail-vc0-f173.google.com ([209.85.220.173]:38265 "EHLO
+	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754324AbaE3VQH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 May 2014 17:16:07 -0400
+In-Reply-To: <20140530100716.GE28131@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, Mark Brown <broonie@kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, Patch Tracking <patches@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Chen, Gong" <gong.chen@linux.intel.com>, Steven Rostedt <rostedt@goodmis.org>, "m.chehab@samsung.com" <m.chehab@samsung.com>, linux-acpi <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Jassi,
+On Fri, May 30, 2014 at 3:07 AM, Borislav Petkov <bp@alien8.de> wrote:
+> Please elaborate, what conditions? DIMM silk screen labels or so? Maybe
+> we can generate a mapping between text labels and indices and we can
+> dump the indices in the tracepoint and do the mapping back to strings in
+> userspace...?
 
-On 30 May 2014 09:40, Jassi Brar <jaswinder.singh@linaro.org> wrote:
->>
-> Please scrape it from https://lkml.org/lkml/2014/5/15/49
-> My platform also uses the doorbell mechanism with request and response
-> written in shared-memory, so I am confident the mailbox api should
-> work for PCC.
+The UEFI error record gives us the SMBIOS "handle" (2-byte index). We
+use that to look up the bank and device locator strings ... which should be
+the silk-screen labels (in a correctly written BIOS).
 
-Just had a quick look. PCC integration appears doable and the queuing
-and async notification stuff also looks useful. I'll play around with
-it a bit more to see if it really works. Meanwhile, the one thing that
-comes to mind is the DT bindings. For an ACPI-only kernel, we'll
-probably need another function (at least) to register mbox controllers
-and clients.
+So we could just have the tracepoint save the "handle" and do the
+decode later.  If we want to keep doing mappings in the kernel (so console
+logs can say "DIMM location: CPU 0 DIMM_C1" rather than
+"SMBIOS handle 0x0015") - and would like to make things easier
+for ourselves - we could have dmi_memdev_walk() do a bit more
+work so we can just index an allocated array of strings that are
+the concatenation of the bank/device locators.
 
-Cheers,
-Ashwin
+-Tony
