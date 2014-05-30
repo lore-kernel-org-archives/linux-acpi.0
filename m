@@ -1,168 +1,95 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 9/10] ACPI / scan: always register ACPI LPSS scan handler
-Date: Fri, 30 May 2014 04:30:12 +0200
-Message-ID: <8202338.Lrn5CAprz1@vostro.rjw.lan>
-References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com> <35042328.kk6ZUUdfyN@vostro.rjw.lan>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
+Date: Thu, 29 May 2014 22:56:32 -0400
+Message-ID: <20140530025632.GA16788@gchen.bj.intel.com>
+References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
+ <1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
+ <1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
+ <20140528112832.5f83c66b@gandalf.local.home>
+ <20140528163452.GF17196@pd.tnic>
+ <20140528125625.6f6dcf7f@gandalf.local.home>
+ <20140529074345.GA23484@gchen.bj.intel.com>
+ <20140529091251.70178abe@gandalf.local.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BOKacYhQ+x31HxR3"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51630 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753989AbaE3CO3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 May 2014 22:14:29 -0400
-In-Reply-To: <35042328.kk6ZUUdfyN@vostro.rjw.lan>
+Received: from mga14.intel.com ([192.55.52.115]:32114 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752421AbaE3DYT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 May 2014 23:24:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20140529091251.70178abe@gandalf.local.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, matthew.garrett@nebula.com, mika.westerberg@linux.intel.com
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Borislav Petkov <bp@alien8.de>, tony.luck@intel.com, m.chehab@samsung.com, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Prevent platform devices from being created for ACPI LPSS devices
-if CONFIG_X86_INTEL_LPSS is unset by compiling out the LPSS scan
-handler's callbacks only in that case and still compiling its device
-ID list in and registering the scan handler in either case.
+--BOKacYhQ+x31HxR3
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This change is based on a prototype from Zhang Rui.
+On Thu, May 29, 2014 at 09:12:51AM -0400, Steven Rostedt wrote:
+> What do you think gets recorded in the ring buffer? The pointer to the
+> string? No! You copy the entire string into the ring buffer, with
+> markers and all. How big is that string? 60 chars? 80? I see you
+> recording meta data there too:
+I'm not the expert of trace. If I am wrong please fix me. So it looks
+like all trace data shhould be pushed into the ring buffer as raw
+material and when it is needed to be printed via TP_printk, these
+raw data will be expanded(unzip them as you told) into another
+temp buffer, maybe kernel printk buffer directly.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+[...]
+> > #define show_dimm_location(type)                                \
+> >         __print_symbolic(type,                                  \
+> >         { CPER_MEM_VALID_NODE,          "node" },               \
+> >         { CPER_MEM_VALID_CARD,          "card" },               \
+> >         { CPER_MEM_VALID_MODULE,        "module" },             \
+> >         ...
+> >=20
+>=20
+> I'm not sure you could use that, as you save an array of data. The
+> print_symbolic() wont work with an array.
+Just FWIW, call it again and again. But it looks too awkward I will
+use other style.
 
----
-drivers/acpi/Makefile    |  2 +-
- drivers/acpi/Makefile    |    2 -
- drivers/acpi/acpi_lpss.c |   65 ++++++++++++++++++++++++++++++++---------------
- drivers/acpi/internal.h  |    4 --
- 3 files changed, 46 insertions(+), 25 deletions(-)
+>=20
+> You can still use the same code for both the tracepoint (perf and
+> ftrace) and for dmesg. You need to write a packed array that is
+> returned as well as a way to convert that array into a human readable
+> string for later processing. The dmesg version would just have them
+> both together where as the tracepoint records the packed version on the
+> ring buffer and the TP_printk() will use the extraction.
+>=20
+> That is, dmesg has the compress and extraction in one place where the
+> tracepoint has them in two different places.
+>=20
+> Understand?
+Yes, I feel the same way. Zip/unzip is unavoidable.
 
-Index: linux-pm/drivers/acpi/Makefile
-===================================================================
---- linux-pm.orig/drivers/acpi/Makefile
-+++ linux-pm/drivers/acpi/Makefile
-@@ -39,7 +39,7 @@ acpi-y				+= processor_core.o
- acpi-y				+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
- acpi-y				+= pci_root.o pci_link.o pci_irq.o
--acpi-$(CONFIG_X86_INTEL_LPSS)	+= acpi_lpss.o
-+acpi-y				+= acpi_lpss.o
- acpi-y				+= acpi_platform.o
- acpi-y				+= acpi_pnp.o
- acpi-y				+= power.o
-Index: linux-pm/drivers/acpi/acpi_lpss.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpi_lpss.c
-+++ linux-pm/drivers/acpi/acpi_lpss.c
-@@ -25,6 +25,10 @@
- 
- ACPI_MODULE_NAME("acpi_lpss");
- 
-+#ifdef CONFIG_X86_INTEL_LPSS
-+
-+#define LPSS_PTR(desc) ((unsigned long)&desc)
-+
- #define LPSS_CLK_SIZE	0x04
- #define LPSS_LTR_SIZE	0x18
- 
-@@ -168,40 +172,48 @@ static struct lpss_device_desc byt_i2c_d
- 	.shared_clock = &i2c_clock,
- };
- 
-+#else
-+
-+#define LPSS_PTR(desc) (NULL)
-+
-+#endif /* CONFIG_X86_INTEL_LPSS */
-+
- static const struct acpi_device_id acpi_lpss_device_ids[] = {
- 	/* Generic LPSS devices */
--	{ "INTL9C60", (unsigned long)&lpss_dma_desc },
-+	{ "INTL9C60", LPSS_PTR(lpss_dma_desc) },
- 
- 	/* Lynxpoint LPSS devices */
--	{ "INT33C0", (unsigned long)&lpt_dev_desc },
--	{ "INT33C1", (unsigned long)&lpt_dev_desc },
--	{ "INT33C2", (unsigned long)&lpt_dev_desc },
--	{ "INT33C3", (unsigned long)&lpt_dev_desc },
--	{ "INT33C4", (unsigned long)&lpt_uart_dev_desc },
--	{ "INT33C5", (unsigned long)&lpt_uart_dev_desc },
--	{ "INT33C6", (unsigned long)&lpt_sdio_dev_desc },
-+	{ "INT33C0", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT33C1", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT33C2", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT33C3", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT33C4", LPSS_PTR(lpt_uart_dev_desc) },
-+	{ "INT33C5", LPSS_PTR(lpt_uart_dev_desc) },
-+	{ "INT33C6", LPSS_PTR(lpt_sdio_dev_desc) },
- 	{ "INT33C7", },
- 
- 	/* BayTrail LPSS devices */
--	{ "80860F09", (unsigned long)&byt_pwm_dev_desc },
--	{ "80860F0A", (unsigned long)&byt_uart_dev_desc },
--	{ "80860F0E", (unsigned long)&byt_spi_dev_desc },
--	{ "80860F14", (unsigned long)&byt_sdio_dev_desc },
--	{ "80860F41", (unsigned long)&byt_i2c_dev_desc },
-+	{ "80860F09", LPSS_PTR(byt_pwm_dev_desc) },
-+	{ "80860F0A", LPSS_PTR(byt_uart_dev_desc) },
-+	{ "80860F0E", LPSS_PTR(byt_spi_dev_desc) },
-+	{ "80860F14", LPSS_PTR(byt_sdio_dev_desc) },
-+	{ "80860F41", LPSS_PTR(byt_i2c_dev_desc) },
- 	{ "INT33B2", },
- 
--	{ "INT3430", (unsigned long)&lpt_dev_desc },
--	{ "INT3431", (unsigned long)&lpt_dev_desc },
--	{ "INT3432", (unsigned long)&lpt_dev_desc },
--	{ "INT3433", (unsigned long)&lpt_dev_desc },
--	{ "INT3434", (unsigned long)&lpt_uart_dev_desc },
--	{ "INT3435", (unsigned long)&lpt_uart_dev_desc },
--	{ "INT3436", (unsigned long)&lpt_sdio_dev_desc },
-+	{ "INT3430", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT3431", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT3432", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT3433", LPSS_PTR(lpt_dev_desc) },
-+	{ "INT3434", LPSS_PTR(lpt_uart_dev_desc) },
-+	{ "INT3435", LPSS_PTR(lpt_uart_dev_desc) },
-+	{ "INT3436", LPSS_PTR(lpt_sdio_dev_desc) },
- 	{ "INT3437", },
- 
- 	{ }
- };
- 
-+#ifdef CONFIG_X86_INTEL_LPSS
-+
- static int is_memory(struct acpi_resource *res, void *not_used)
- {
- 	struct resource r;
-@@ -666,3 +678,16 @@ void __init acpi_lpss_init(void)
- 		acpi_scan_add_handler(&lpss_handler);
- 	}
- }
-+
-+#else
-+
-+static struct acpi_scan_handler lpss_handler = {
-+	.ids = acpi_lpss_device_ids,
-+};
-+
-+void __init acpi_lpss_init(void)
-+{
-+	acpi_scan_add_handler(&lpss_handler);
-+}
-+
-+#endif /* CONFIG_X86_INTEL_LPSS */
-Index: linux-pm/drivers/acpi/internal.h
-===================================================================
---- linux-pm.orig/drivers/acpi/internal.h
-+++ linux-pm/drivers/acpi/internal.h
-@@ -65,11 +65,7 @@ int acpi_debugfs_init(void);
- #else
- static inline void acpi_debugfs_init(void) { return; }
- #endif
--#ifdef CONFIG_X86_INTEL_LPSS
- void acpi_lpss_init(void);
--#else
--static inline void acpi_lpss_init(void) {}
--#endif
- 
- acpi_status acpi_hotplug_schedule(struct acpi_device *adev, u32 src);
- bool acpi_queue_hotplug_work(struct work_struct *work);
+--BOKacYhQ+x31HxR3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTh/NgAAoJEI01n1+kOSLHBgEP/03l+cSTiUrtyZbnCA0Zm3Xo
+ZxRjhzuDpB35j8uny8TnXgDUsfYFConwyk7n4/GCejzWSN16jQ1HgxC4pgP3HFY+
+bdBWKuaSCo03Lg/zc1Y6JoOcBAmYdZbGzbQmTqrGJ56cOoS/KSP7gbyND1bt3Gp7
+8aY9qfo2fxmtr/OPN5G/px4hCP46UZMWWcZGW7NwoMbjetGWnS0whF8jO6XfIPH+
+bxCwMEkmMxkuaNdlOL272tenw9zRj0mTKaVuc4MdACoUMHz1KPuLyEIcyaKItg9F
+i+flHBquixyKtiad97YNA9NA4ECmL1XpmwEl0ZLp3rqh+5cp/ERDd3+s4B0mkJTI
+VQF5vF4v5RFWKrqp0mn9Y6kYT/yPM9xbHfy2LE8Jt81EdxdzcAjH/8LHa03YfWs5
+Iul6C9quzMoj8J3MqSla6JGQVnRyPbSS/lWtK5r+ZeUUh5UO9xWfRQgpOGrwquMe
+LdYfOWLM6wjvVhc5WpnVs7uHvhI7mycyHj0GFXsH0zzXaTbObQNwnwAmMrysXJ68
+ly+7ozWuPrv9cTWcZCTAw7E+fEWHI5gRbjuYw94RK8Q/4cXNSwHI3tYek/5x3C9S
+9GmELUvKIQzKW6eE+KXckK+kGFS3oEEcBftWMFrxDJCGg6e7CiNqc27SwXoIw134
+Q/XuKE+mpx4u5AKFPNEG
+=+rFN
+-----END PGP SIGNATURE-----
+
+--BOKacYhQ+x31HxR3--
