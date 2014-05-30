@@ -1,67 +1,46 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 5/10] ACPI / scan: introduce platform_id device PNP type flag
-Date: Fri, 30 May 2014 04:26:18 +0200
-Message-ID: <1831678.FWIeOcOJpB@vostro.rjw.lan>
-References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com> <35042328.kk6ZUUdfyN@vostro.rjw.lan>
+Subject: [PATCH 0/10] ACPI enumeration rework (was: Re: [PATCH V7 00/11] ACPI: ACPI enumeration rework)
+Date: Fri, 30 May 2014 04:20:41 +0200
+Message-ID: <35042328.kk6ZUUdfyN@vostro.rjw.lan>
+References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60111 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:57299 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932298AbaE3COc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 May 2014 22:14:32 -0400
-In-Reply-To: <35042328.kk6ZUUdfyN@vostro.rjw.lan>
+	with SMTP id S1754498AbaE3COg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 May 2014 22:14:36 -0400
+In-Reply-To: <1400781753-2682-1-git-send-email-rui.zhang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, matthew.garrett@nebula.com, mika.westerberg@linux.intel.com
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Friday, May 23, 2014 02:02:22 AM Zhang Rui wrote:
+> Hi, all,
+> 
+> Currently, PNP bus is used as the default bus for for enumerating ACPI
+> devices with _HID/_CID.
+> For a device that needs to be enumerated to platform bus, we need to add
+> its id string to the platform scan handler white list explicitly.
+> 
+> This becomes a problem as more and more _HID devices need to be
+> enumerated to platform bus nowadays, thus the list is continuously growing.
+> 
+> So, a solution that uses platform bus for _HID enumeration by default
+> is preferred.
+> 
 
-Only certain types of ACPI device objects can be enumerated as
-platform devices, so in order to distinguish them from the others
-introduce a new ACPI device PNP type flag, platform_id, and set it
-for devices with a valid _HID to start with.
+OK, this has had several rounds of review already and we're really starting
+to run out of time with it, so my version of this patchset follows.
 
-This change is based on a Zhang Rui's prototype.
+It is mostly based on your patches, but reordered and with some major
+changes.  Compiled only for now, so please let me know if there's any
+breakage in it.  [The last patch will not apply without update of the
+device list being removed, but generally this is on top of linux-next
+material.]
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
----
-drivers/acpi/scan.c     | 9 ++++++++-
- drivers/acpi/scan.c     |    4 +++-
- include/acpi/acpi_bus.h |    3 ++-
- 2 files changed, 5 insertions(+), 2 deletions(-)
-
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -1797,8 +1797,10 @@ static void acpi_set_pnp_ids(acpi_handle
- 			return;
- 		}
- 
--		if (info->valid & ACPI_VALID_HID)
-+		if (info->valid & ACPI_VALID_HID) {
- 			acpi_add_id(pnp, info->hardware_id.string);
-+			pnp->type.platform_id = 1;
-+		}
- 		if (info->valid & ACPI_VALID_CID) {
- 			cid_list = &info->compatible_id_list;
- 			for (i = 0; i < cid_list->count; i++)
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -233,7 +233,8 @@ struct acpi_hardware_id {
- struct acpi_pnp_type {
- 	u32 hardware_id:1;
- 	u32 bus_address:1;
--	u32 reserved:30;
-+	u32 platform_id:1;
-+	u32 reserved:29;
- };
- 
- struct acpi_device_pnp {
+Thanks,
+Rafael
 
