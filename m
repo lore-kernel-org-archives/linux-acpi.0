@@ -1,41 +1,189 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
-Date: Fri, 30 May 2014 21:07:59 -0400
-Message-ID: <20140530210759.267a854e@gandalf.local.home>
-References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
-	<1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
-	<1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
-	<20140528112832.5f83c66b@gandalf.local.home>
-	<20140528163452.GF17196@pd.tnic>
-	<20140528125625.6f6dcf7f@gandalf.local.home>
-	<20140530092232.GA13495@gchen.bj.intel.com>
-	<20140530100716.GE28131@pd.tnic>
-	<3908561D78D1C84285E8C5FCA982C28F32823D2B@ORSMSX114.amr.corp.intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [Update][PATCH 10/10] ACPI / scan: use platform bus type by
+ default for _HID enumeration
+Date: Sat, 31 May 2014 13:56:56 +0800
+Message-ID: <1401515816.6021.15.camel@rzhang1-toshiba>
+References: <1400781753-2682-1-git-send-email-rui.zhang@intel.com>
+	 <35042328.kk6ZUUdfyN@vostro.rjw.lan> <6979141.yBBhMfGMhk@vostro.rjw.lan>
+	 <7971916.hcjclMBqJX@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.226]:10036 "EHLO
-	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754575AbaEaBID (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 May 2014 21:08:03 -0400
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F32823D2B@ORSMSX114.amr.corp.intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:11052 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751121AbaEaF5D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 31 May 2014 01:57:03 -0400
+In-Reply-To: <7971916.hcjclMBqJX@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@alien8.de>, "Chen, Gong" <gong.chen@linux.intel.com>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, matthew.garrett@nebula.com, mika.westerberg@linux.intel.com
 
-On Fri, 30 May 2014 23:03:27 +0000
-"Luck, Tony" <tony.luck@intel.com> wrote:
+On Fri, 2014-05-30 at 14:35 +0200, Rafael J. Wysocki wrote:
+> From: Zhang Rui <rui.zhang@intel.com>
+> 
+> Because of the growing demand for enumerating ACPI devices to
+> platform bus, change the code to enumerate ACPI device objects to
+> platform bus by default.  Namely, create platform devices for the
+> ACPI device objects that
+>  1. Have pnp.type.platform_id set (device objects with _HID currently).
+>  2. Do not have a scan handler attached.
+>  3. Are not SPI/I2C slave devices (that should be enumerated to the
+>     appropriate buses bus by their parent).
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> [rjw: Subject and changelog, rebase and code cleanup]
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+> 
+> Changelog rework and minor cleanups.
+> 
+> Thanks!
+> 
+> ---
+>  drivers/acpi/acpi_platform.c |   40 ++++++++--------------------------------
+>  drivers/acpi/scan.c          |   42 +++++++++++++++++++++++++++++++++++++++++-
+>  2 files changed, 49 insertions(+), 33 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/acpi_platform.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/acpi_platform.c
+> +++ linux-pm/drivers/acpi/acpi_platform.c
+> @@ -22,21 +22,11 @@
+>  
+>  ACPI_MODULE_NAME("platform");
+>  
+> -/*
+> - * The following ACPI IDs are known to be suitable for representing as
+> - * platform devices.
+> - */
+> -static const struct acpi_device_id acpi_platform_device_ids[] = {
+> -
+> -	{ "PNP0D40" },
+> -	{ "VPC2004" },
+> -	{ "BCM4752" },
+> -
+> -	/* Intel Smart Sound Technology */
+> -	{ "INT33C8" },
+> -	{ "80860F28" },
+> -
+> -	{ }
+> +static const struct acpi_device_id forbidden_id_list[] = {
+> +	{"PNP0000", 0},	/* PIC */
+> +	{"PNP0100", 0},	/* Timer */
+> +	{"PNP0200", 0},	/* AT DMA Controller */
+> +	{"", 0},
+>  };
+>  
+>  /**
+> @@ -63,6 +53,9 @@ struct platform_device *acpi_create_plat
+>  	if (adev->physical_node_count)
+>  		return NULL;
+>  
+> +	if (!acpi_match_device_ids(adev, forbidden_id_list))
+> +		return ERR_PTR(-EINVAL);
+> +
+>  	INIT_LIST_HEAD(&resource_list);
+>  	count = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
+>  	if (count < 0) {
+> @@ -120,20 +113,3 @@ struct platform_device *acpi_create_plat
+>  	kfree(resources);
+>  	return pdev;
+>  }
+> -
+> -static int acpi_platform_attach(struct acpi_device *adev,
+> -				const struct acpi_device_id *id)
+> -{
+> -	acpi_create_platform_device(adev);
+> -	return 1;
+> -}
+> -
+this patch does not apply.
+we do not have the above code in drivers/acpi/acpi_platform.c.
 
- 
-> All of this stuff only applies to server systems - so quibbling over
-> a handful of *bytes* in an error record on a system that has tens,
-> hundreds or even thousands of *gigabytes* of memory seems
-> a bit pointless.
+thanks,
+rui
+> -static struct acpi_scan_handler platform_handler = {
+> -	.ids = acpi_platform_device_ids,
+> -	.attach = acpi_platform_attach,
+> -};
+> -
+> -void __init acpi_platform_init(void)
+> -{
+> -	acpi_scan_add_handler(&platform_handler);
+> -}
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -2070,6 +2070,44 @@ static acpi_status acpi_bus_check_add(ac
+>  	return AE_OK;
+>  }
+>  
+> +static int acpi_check_spi_i2c_slave(struct acpi_resource *ares, void *data)
+> +{
+> +	bool *is_spi_i2c_slave_p = data;
+> +
+> +	if (ares->type != ACPI_RESOURCE_TYPE_SERIAL_BUS)
+> +		return 1;
+> +
+> +	/*
+> +	 * devices that are connected to UART still need to be enumerated to
+> +	 * platform bus
+> +	 */
+> +	if (ares->data.common_serial_bus.type != ACPI_RESOURCE_SERIAL_TYPE_UART)
+> +		*is_spi_i2c_slave_p = true;
+> +
+> +	 /* no need to do more checking */
+> +	return -1;
+> +}
+> +
+> +static void acpi_default_enumeration(struct acpi_device *device)
+> +{
+> +	struct list_head resource_list;
+> +	bool is_spi_i2c_slave = false;
+> +
+> +	if (!device->pnp.type.platform_id || device->handler)
+> +		return;
+> +
+> +	/*
+> +	 * Do not enemerate SPI/I2C slaves as they will be enuerated by their
+> +	 * respective parents.
+> +	 */
+> +	INIT_LIST_HEAD(&resource_list);
+> +	acpi_dev_get_resources(device, &resource_list, acpi_check_spi_i2c_slave,
+> +			       &is_spi_i2c_slave);
+> +	acpi_dev_free_resource_list(&resource_list);
+> +	if (!is_spi_i2c_slave)
+> +		acpi_create_platform_device(device);
+> +}
+> +
+>  static int acpi_scan_attach_handler(struct acpi_device *device)
+>  {
+>  	struct acpi_hardware_id *hwid;
+> @@ -2095,6 +2133,9 @@ static int acpi_scan_attach_handler(stru
+>  				break;
+>  		}
+>  	}
+> +	if (!ret)
+> +		acpi_default_enumeration(device);
+> +
+>  	return ret;
+>  }
+>  
+> @@ -2254,7 +2295,6 @@ int __init acpi_scan_init(void)
+>  	acpi_pci_root_init();
+>  	acpi_pci_link_init();
+>  	acpi_processor_init();
+> -	acpi_platform_init();
+>  	acpi_lpss_init();
+>  	acpi_cmos_rtc_init();
+>  	acpi_container_init();
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-But there's still only a limited number of bytes in the ring buffer no
-matter what the system, thus we still need to quibble over it.
 
--- Steve
