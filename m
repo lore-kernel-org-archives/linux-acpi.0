@@ -1,60 +1,108 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 0/2] ACPI: Fix a regression of the table checksum verification.
-Date: Sun, 01 Jun 2014 00:49:57 +0200
-Message-ID: <26459685.K8HWMtpZlE@vostro.rjw.lan>
-References: <e28682572e0736657b0120aeec5f64ac21159faf.1401415540.git.lv.zheng@intel.com> <cover.1401494652.git.lv.zheng@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51361 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753399AbaEaWcq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 31 May 2014 18:32:46 -0400
-In-Reply-To: <cover.1401494652.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Matthew Garrett <matthew.garrett@nebula.com>
+Subject: [PATCH 1/4] ACPI: Support _OSI("Darwin") correctly
+Date: Sun,  1 Jun 2014 12:33:53 -0400
+Message-ID: <1401640436-1947-2-git-send-email-matthew.garrett@nebula.com>
+References: <1401640436-1947-1-git-send-email-matthew.garrett@nebula.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1401640436-1947-1-git-send-email-matthew.garrett@nebula.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com, Matthew Garrett <matthew.garrett@nebula.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <zetalog@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
 
-On Saturday, May 31, 2014 08:14:26 AM Lv Zheng wrote:
-> From: Lv Zheng <lv.zheng@intel.com>
-> 
-> There is a warning message triggered by the early table chekcusm
-> verification during boot. Large tables cannot be installed on x86 platforms
-> due to this failure. The root cause is the size limitation of the current
-> x86 early mapping implementation, it's thus not suitable to be used to map
-> ACPI tables.
-> 
-> This patchset fixes this regression by stopping verifying table checksums
-> during the early boot stage.
+Apple hardware queries _OSI("Darwin") in order to determine whether the
+system is running OS X, and changes firmware behaviour based on the answer.
+The most obvious difference in behaviour is that Thunderbolt hardware is
+forcibly powered down unless the system is running OS X. The obvious solution
+would be to simply add Darwin to the list of supported _OSI strings, but this
+causes problems.
 
-Both queued up for 3.16.
+Recent Apple hardware includes two separate methods for checking _OSI
+strings. The first will check whether Darwin is supported, and if so will
+exit. The second will check whether Darwin is supported, but will then
+continue to check for further operating systems. If a further operating
+system is found then later firmware code will assume that the OS is not OS X.
+This results in the unfortunate situation where the Thunderbolt controller is
+available at boot time but remains powered down after suspend.
 
-If they are needed in -stable, please take care of sending an appropriate
-inclusion request to stable@vger.kernel.org after they have been merged into
-the Linus' tree.
+The easiest way to handle this is to special-case it in the Linux-specific
+OSI handling code. If we see Darwin, we should answer true and then disable
+all other _OSI vendor strings.
 
-Thanks!
+Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
+---
+ drivers/acpi/acpica/utosi.c |  1 +
+ drivers/acpi/osl.c          | 10 ++++++++++
+ include/acpi/actypes.h      | 25 +++++++++++++------------
+ 3 files changed, 24 insertions(+), 12 deletions(-)
 
-> Lv Zheng (2):
->   ACPICA: Tables: Add mechanism to control early table checksum
->     verification.
->   ACPI: Fix regressions that x86 Linux kernel suffers from early
->     mapping size limitation.
-> 
->  Documentation/kernel-parameters.txt |    5 +++
->  drivers/acpi/acpica/actables.h      |    8 +++--
->  drivers/acpi/acpica/tbdata.c        |   67 +++++++++++++++++++++++++++--------
->  drivers/acpi/acpica/tbinstal.c      |    8 ++---
->  drivers/acpi/acpica/tbutils.c       |    4 ---
->  drivers/acpi/bus.c                  |    3 ++
->  drivers/acpi/tables.c               |   23 ++++++++++++
->  include/acpi/acpixf.h               |    9 +++++
->  8 files changed, 101 insertions(+), 26 deletions(-)
-> 
-> 
-
+diff --git a/drivers/acpi/acpica/utosi.c b/drivers/acpi/acpica/utosi.c
+index 685766f..63b0a3b 100644
+--- a/drivers/acpi/acpica/utosi.c
++++ b/drivers/acpi/acpica/utosi.c
+@@ -87,6 +87,7 @@ ACPI_MODULE_NAME("utosi")
+ static struct acpi_interface_info acpi_default_supported_interfaces[] = {
+ 	/* Operating System Vendor Strings */
+ 
++	{"Darwin", NULL, 0, ACPI_OSI_DARWIN},	/* OS X */
+ 	{"Windows 2000", NULL, 0, ACPI_OSI_WIN_2000},	/* Windows 2000 */
+ 	{"Windows 2001", NULL, 0, ACPI_OSI_WIN_XP},	/* Windows XP */
+ 	{"Windows 2001 SP1", NULL, 0, ACPI_OSI_WIN_XP_SP1},	/* Windows XP SP1 */
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 6776c59..312ab5c 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -152,6 +152,16 @@ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
+ 			osi_linux.dmi ? " via DMI" : "");
+ 	}
+ 
++	if (!strcmp("Darwin", interface)) {
++		/*
++		 * Apple firmware will behave poorly if it receives positive
++		 * answers to "Darwin" and any other OS. Respond positively
++		 * to Darwin and then disable all other vendor strings.
++		 */
++		acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
++		supported = ACPI_UINT32_MAX;
++	}
++
+ 	return supported;
+ }
+ 
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index e763565..1c2ef56 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -1210,17 +1210,18 @@ struct acpi_memory_list {
+ #define ACPI_ENABLE_ALL_FEATURE_STRINGS     (ACPI_ENABLE_INTERFACES | ACPI_FEATURE_STRINGS)
+ #define ACPI_ENABLE_ALL_STRINGS             (ACPI_ENABLE_INTERFACES | ACPI_VENDOR_STRINGS | ACPI_FEATURE_STRINGS)
+ 
+-#define ACPI_OSI_WIN_2000               0x01
+-#define ACPI_OSI_WIN_XP                 0x02
+-#define ACPI_OSI_WIN_XP_SP1             0x03
+-#define ACPI_OSI_WINSRV_2003            0x04
+-#define ACPI_OSI_WIN_XP_SP2             0x05
+-#define ACPI_OSI_WINSRV_2003_SP1        0x06
+-#define ACPI_OSI_WIN_VISTA              0x07
+-#define ACPI_OSI_WINSRV_2008            0x08
+-#define ACPI_OSI_WIN_VISTA_SP1          0x09
+-#define ACPI_OSI_WIN_VISTA_SP2          0x0A
+-#define ACPI_OSI_WIN_7                  0x0B
+-#define ACPI_OSI_WIN_8                  0x0C
++#define ACPI_OSI_DARWIN                 0x01
++#define ACPI_OSI_WIN_2000               0x02
++#define ACPI_OSI_WIN_XP                 0x03
++#define ACPI_OSI_WIN_XP_SP1             0x04
++#define ACPI_OSI_WINSRV_2003            0x05
++#define ACPI_OSI_WIN_XP_SP2             0x06
++#define ACPI_OSI_WINSRV_2003_SP1        0x07
++#define ACPI_OSI_WIN_VISTA              0x08
++#define ACPI_OSI_WINSRV_2008            0x09
++#define ACPI_OSI_WIN_VISTA_SP1          0x0A
++#define ACPI_OSI_WIN_VISTA_SP2          0x0B
++#define ACPI_OSI_WIN_7                  0x0C
++#define ACPI_OSI_WIN_8                  0x0D
+ 
+ #endif				/* __ACTYPES_H__ */
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.8.5.3
