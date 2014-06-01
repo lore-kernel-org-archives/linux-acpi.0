@@ -1,138 +1,92 @@
 From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: [PATCH 4/4] ACPI: Disable smart battery manager on Apple
-Date: Sun,  1 Jun 2014 12:33:56 -0400
-Message-ID: <1401640436-1947-5-git-send-email-matthew.garrett@nebula.com>
+Subject: [PATCH 3/4] ACPI: Don't assume the existence of an SBS charger
+Date: Sun,  1 Jun 2014 12:33:55 -0400
+Message-ID: <1401640436-1947-4-git-send-email-matthew.garrett@nebula.com>
 References: <1401640436-1947-1-git-send-email-matthew.garrett@nebula.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1401640436-1947-1-git-send-email-matthew.garrett@nebula.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net
 Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com, Matthew Garrett <matthew.garrett@nebula.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Touching the smart battery manager at all on Apple hardware appears to make
-it unhappy - unplugging the AC adapter triggers accesses that hang the
-controller for several minutes. Quirk it out via DMI in order to avoid this.
-Compensate by changing battery presence if we fail to communicate with the
-battery.
+Apple hardware continues to expose an ACPI AC charger even when using SBS
+to report battery state. The charger status byte returns all 0s in this case.
+Since the spec requires that bit 4 be 1 at all times, assume that there's not
+really a charger if it's set to zero.
 
 Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
 ---
- drivers/acpi/sbs.c | 51 +++++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 43 insertions(+), 8 deletions(-)
+ drivers/acpi/sbs.c | 29 ++++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index b1df4ee..32aecea 100644
+index 366ca40..b1df4ee 100644
 --- a/drivers/acpi/sbs.c
 +++ b/drivers/acpi/sbs.c
-@@ -35,6 +35,7 @@
- #include <linux/jiffies.h>
- #include <linux/delay.h>
- #include <linux/power_supply.h>
-+#include <linux/dmi.h>
+@@ -109,6 +109,7 @@ struct acpi_sbs {
+ 	u8 batteries_supported:4;
+ 	u8 manager_present:1;
+ 	u8 charger_present:1;
++	u8 charger_exists:1;
+ };
  
- #include "sbshc.h"
- #include "battery.h"
-@@ -61,6 +62,8 @@ static unsigned int cache_time = 1000;
- module_param(cache_time, uint, 0644);
- MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+ #define to_acpi_sbs(x) container_of(x, struct acpi_sbs, charger)
+@@ -429,9 +430,19 @@ static int acpi_ac_get_present(struct acpi_sbs *sbs)
  
-+static bool sbs_manager_broken;
+ 	result = acpi_smbus_read(sbs->hc, SMBUS_READ_WORD, ACPI_SBS_CHARGER,
+ 				 0x13, (u8 *) & status);
+-	if (!result)
+-		sbs->charger_present = (status >> 15) & 0x1;
+-	return result;
 +
- #define MAX_SBS_BAT			4
- #define ACPI_SBS_BLOCK_MAX		32
- 
-@@ -494,16 +497,21 @@ static int acpi_battery_read(struct acpi_battery *battery)
- 				  ACPI_SBS_MANAGER, 0x01, (u8 *)&state, 2);
- 	} else if (battery->id == 0)
- 		battery->present = 1;
-+
- 	if (result || !battery->present)
- 		return result;
- 
- 	if (saved_present != battery->present) {
- 		battery->update_time = 0;
- 		result = acpi_battery_get_info(battery);
--		if (result)
-+		if (result) {
-+			battery->present = 0;
- 			return result;
-+		}
- 	}
- 	result = acpi_battery_get_state(battery);
 +	if (result)
-+		battery->present = 0;
- 	return result;
- }
- 
-@@ -535,6 +543,7 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int id)
- 	result = power_supply_register(&sbs->device->dev, &battery->bat);
- 	if (result)
- 		goto end;
++		return result;
 +
- 	result = device_create_file(battery->bat.dev, &alarm_attr);
- 	if (result)
- 		goto end;
-@@ -613,12 +622,31 @@ static void acpi_sbs_callback(void *context)
- 	}
- }
- 
-+static int disable_sbs_manager(const struct dmi_system_id *d)
-+{
-+	sbs_manager_broken = true;
++	/*
++	 * The spec requires that bit 4 always be 1. If it's not set, assume
++	 * that the implementation doesn't support an SBS charger
++	 */
++	if (!(status >> 4) & 0x1)
++		return -ENODEV;
++
++	sbs->charger_present = (status >> 15) & 0x1;
 +	return 0;
-+}
-+
-+static struct dmi_system_id acpi_sbs_dmi_table[] = {
-+	{
-+		.callback = disable_sbs_manager,
-+		.ident = "Apple",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc.")
-+		},
-+	},
-+	{ },
-+};
-+
- static int acpi_sbs_add(struct acpi_device *device)
- {
- 	struct acpi_sbs *sbs;
- 	int result = 0;
- 	int id;
+ }
  
-+	dmi_check_system(acpi_sbs_dmi_table);
-+
- 	sbs = kzalloc(sizeof(struct acpi_sbs), GFP_KERNEL);
- 	if (!sbs) {
- 		result = -ENOMEM;
-@@ -637,14 +665,21 @@ static int acpi_sbs_add(struct acpi_device *device)
- 	if (result && result != -ENODEV)
+ static ssize_t acpi_battery_alarm_show(struct device *dev,
+@@ -554,6 +565,7 @@ static int acpi_charger_add(struct acpi_sbs *sbs)
+ 	if (result)
  		goto end;
  
--	result = acpi_manager_get_info(sbs);
--	if (!result) {
--		sbs->manager_present = 1;
--		for (id = 0; id < MAX_SBS_BAT; ++id)
--			if ((sbs->batteries_supported & (1 << id)))
--				acpi_battery_add(sbs, id);
--	} else
-+	result = 0;
++	sbs->charger_exists = 1;
+ 	sbs->charger.name = "sbs-charger";
+ 	sbs->charger.type = POWER_SUPPLY_TYPE_MAINS;
+ 	sbs->charger.properties = sbs_ac_props;
+@@ -580,9 +592,12 @@ static void acpi_sbs_callback(void *context)
+ 	struct acpi_battery *bat;
+ 	u8 saved_charger_state = sbs->charger_present;
+ 	u8 saved_battery_state;
+-	acpi_ac_get_present(sbs);
+-	if (sbs->charger_present != saved_charger_state)
+-		kobject_uevent(&sbs->charger.dev->kobj, KOBJ_CHANGE);
 +
-+	if (!sbs_manager_broken) {
-+		result = acpi_manager_get_info(sbs);
-+		if (!result) {
-+			sbs->manager_present = 0;
-+			for (id = 0; id < MAX_SBS_BAT; ++id)
-+				if ((sbs->batteries_supported & (1 << id)))
-+					acpi_battery_add(sbs, id);
-+		}
++	if (sbs->charger_exists) {
++		acpi_ac_get_present(sbs);
++		if (sbs->charger_present != saved_charger_state)
++			kobject_uevent(&sbs->charger.dev->kobj, KOBJ_CHANGE);
 +	}
-+
-+	if (!sbs->manager_present)
- 		acpi_battery_add(sbs, 0);
-+
- 	acpi_smbus_register_callback(sbs->hc, acpi_sbs_callback, sbs);
-       end:
- 	if (result)
+ 
+ 	if (sbs->manager_present) {
+ 		for (id = 0; id < MAX_SBS_BAT; ++id) {
+@@ -619,7 +634,7 @@ static int acpi_sbs_add(struct acpi_device *device)
+ 	device->driver_data = sbs;
+ 
+ 	result = acpi_charger_add(sbs);
+-	if (result)
++	if (result && result != -ENODEV)
+ 		goto end;
+ 
+ 	result = acpi_manager_get_info(sbs);
 -- 
 1.8.5.3
