@@ -1,92 +1,77 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: [PATCH 3/4] ACPI: Don't assume the existence of an SBS charger
-Date: Sun,  1 Jun 2014 12:33:55 -0400
-Message-ID: <1401640436-1947-4-git-send-email-matthew.garrett@nebula.com>
-References: <1401640436-1947-1-git-send-email-matthew.garrett@nebula.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1401640436-1947-1-git-send-email-matthew.garrett@nebula.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com, Matthew Garrett <matthew.garrett@nebula.com>
+From: Fabian Frederick <fabf@skynet.be>
+Subject: [PATCH 1/1] include/acpi/processor.h: replace __attribute__((packed)) by __packed
+Date: Sun,  1 Jun 2014 19:16:17 +0200
+Message-ID: <1401642977-3745-1-git-send-email-fabf@skynet.be>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailrelay002.isp.belgacom.be ([195.238.6.175]:47511 "EHLO
+	mailrelay002.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752103AbaFARRb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Jun 2014 13:17:31 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Fabian Frederick <fabf@skynet.be>, Robert Moore <robert.moore@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Apple hardware continues to expose an ACPI AC charger even when using SBS
-to report battery state. The charger status byte returns all 0s in this case.
-Since the spec requires that bit 4 be 1 at all times, assume that there's not
-really a charger if it's set to zero.
+This patch fixes checkpatch warnings:
 
-Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
+"WARNING: __packed is preferred over __attribute__((packed))"
+
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 ---
- drivers/acpi/sbs.c | 29 ++++++++++++++++++++++-------
- 1 file changed, 22 insertions(+), 7 deletions(-)
+ include/acpi/processor.h | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 366ca40..b1df4ee 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -109,6 +109,7 @@ struct acpi_sbs {
- 	u8 batteries_supported:4;
- 	u8 manager_present:1;
- 	u8 charger_present:1;
-+	u8 charger_exists:1;
- };
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 6eb1d3c..9b9b6f2 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -53,7 +53,7 @@ struct acpi_power_register {
+ 	u8 bit_offset;
+ 	u8 access_size;
+ 	u64 address;
+-} __attribute__ ((packed));
++} __packed;
  
- #define to_acpi_sbs(x) container_of(x, struct acpi_sbs, charger)
-@@ -429,9 +430,19 @@ static int acpi_ac_get_present(struct acpi_sbs *sbs)
+ struct acpi_processor_cx {
+ 	u8 valid;
+@@ -83,7 +83,7 @@ struct acpi_psd_package {
+ 	u64 domain;
+ 	u64 coord_type;
+ 	u64 num_processors;
+-} __attribute__ ((packed));
++} __packed;
  
- 	result = acpi_smbus_read(sbs->hc, SMBUS_READ_WORD, ACPI_SBS_CHARGER,
- 				 0x13, (u8 *) & status);
--	if (!result)
--		sbs->charger_present = (status >> 15) & 0x1;
--	return result;
-+
-+	if (result)
-+		return result;
-+
-+	/*
-+	 * The spec requires that bit 4 always be 1. If it's not set, assume
-+	 * that the implementation doesn't support an SBS charger
-+	 */
-+	if (!(status >> 4) & 0x1)
-+		return -ENODEV;
-+
-+	sbs->charger_present = (status >> 15) & 0x1;
-+	return 0;
- }
+ struct acpi_pct_register {
+ 	u8 descriptor;
+@@ -93,7 +93,7 @@ struct acpi_pct_register {
+ 	u8 bit_offset;
+ 	u8 reserved;
+ 	u64 address;
+-} __attribute__ ((packed));
++} __packed;
  
- static ssize_t acpi_battery_alarm_show(struct device *dev,
-@@ -554,6 +565,7 @@ static int acpi_charger_add(struct acpi_sbs *sbs)
- 	if (result)
- 		goto end;
+ struct acpi_processor_px {
+ 	u64 core_frequency;	/* megahertz */
+@@ -124,7 +124,7 @@ struct acpi_tsd_package {
+ 	u64 domain;
+ 	u64 coord_type;
+ 	u64 num_processors;
+-} __attribute__ ((packed));
++} __packed;
  
-+	sbs->charger_exists = 1;
- 	sbs->charger.name = "sbs-charger";
- 	sbs->charger.type = POWER_SUPPLY_TYPE_MAINS;
- 	sbs->charger.properties = sbs_ac_props;
-@@ -580,9 +592,12 @@ static void acpi_sbs_callback(void *context)
- 	struct acpi_battery *bat;
- 	u8 saved_charger_state = sbs->charger_present;
- 	u8 saved_battery_state;
--	acpi_ac_get_present(sbs);
--	if (sbs->charger_present != saved_charger_state)
--		kobject_uevent(&sbs->charger.dev->kobj, KOBJ_CHANGE);
-+
-+	if (sbs->charger_exists) {
-+		acpi_ac_get_present(sbs);
-+		if (sbs->charger_present != saved_charger_state)
-+			kobject_uevent(&sbs->charger.dev->kobj, KOBJ_CHANGE);
-+	}
+ struct acpi_ptc_register {
+ 	u8 descriptor;
+@@ -134,7 +134,7 @@ struct acpi_ptc_register {
+ 	u8 bit_offset;
+ 	u8 reserved;
+ 	u64 address;
+-} __attribute__ ((packed));
++} __packed;
  
- 	if (sbs->manager_present) {
- 		for (id = 0; id < MAX_SBS_BAT; ++id) {
-@@ -619,7 +634,7 @@ static int acpi_sbs_add(struct acpi_device *device)
- 	device->driver_data = sbs;
- 
- 	result = acpi_charger_add(sbs);
--	if (result)
-+	if (result && result != -ENODEV)
- 		goto end;
- 
- 	result = acpi_manager_get_info(sbs);
+ struct acpi_processor_tx_tss {
+ 	u64 freqpercentage;	/* */
 -- 
-1.8.5.3
+1.8.4.5
+
