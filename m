@@ -1,52 +1,115 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
-Date: Mon, 2 Jun 2014 12:57:48 -0400
-Message-ID: <20140602125748.7093ced8@gandalf.local.home>
-References: <1400142646-10127-1-git-send-email-gong.chen@linux.intel.com>
-	<1401247938-22125-1-git-send-email-gong.chen@linux.intel.com>
-	<1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
-	<20140528112832.5f83c66b@gandalf.local.home>
-	<20140528163452.GF17196@pd.tnic>
-	<20140528125625.6f6dcf7f@gandalf.local.home>
-	<20140530092232.GA13495@gchen.bj.intel.com>
-	<20140530100716.GE28131@pd.tnic>
-	<3908561D78D1C84285E8C5FCA982C28F32823D2B@ORSMSX114.amr.corp.intel.com>
-	<20140530210759.267a854e@gandalf.local.home>
-	<3908561D78D1C84285E8C5FCA982C28F3282545B@ORSMSX114.amr.corp.intel.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCH v1 6/6] ACPI: thermal: processor: Use the generic cpufreq
+ infrastructure
+Date: Mon, 2 Jun 2014 13:36:02 -0400
+Message-ID: <20140602173602.GB5902@developer>
+References: <1401351334-11210-1-git-send-email-amit.daniel@samsung.com>
+ <1401351334-11210-7-git-send-email-amit.daniel@samsung.com>
+ <20140529124248.GC2593@e104805>
+ <CADGdYn7FZCjhzbFMtNPFtQV_naQhVk+nR1VFNH88M92_NQmfsA@mail.gmail.com>
+ <20140602102047.GB2795@e104805>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.231]:31953 "EHLO
-	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755269AbaFBQ5v (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Jun 2014 12:57:51 -0400
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F3282545B@ORSMSX114.amr.corp.intel.com>
+Received: from mail-yh0-f43.google.com ([209.85.213.43]:42768 "EHLO
+	mail-yh0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752866AbaFBSyV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Jun 2014 14:54:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20140602102047.GB2795@e104805>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@alien8.de>, "Chen, Gong" <gong.chen@linux.intel.com>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Javi Merino <javi.merino@arm.com>
+Cc: Amit Kachhap <amit.kachhap@gmail.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Mon, 2 Jun 2014 16:22:19 +0000
-"Luck, Tony" <tony.luck@intel.com> wrote:
+Hello Amit, Javi,
 
- 
-> To which I'll counter that the trace ring buffer can handle tracing of
-> events like page faults and context switches (can't it?) that happen
-> at a rate of thousands per second.  Our eMCA records will normally
-> happen at a rate of X per month (where X may well be less than one).
-> If there is a storm of errors - we disable CMCI interrupts and revert
-> to polling.  We declare a "storm" as just 15 events in a second. If we
-> switch to polling, then we won't poll faster than once per second.
+On Mon, Jun 02, 2014 at 11:20:48AM +0100, Javi Merino wrote:
+> On Mon, Jun 02, 2014 at 10:21:48AM +0100, Amit Kachhap wrote:
+> > Hi Javi,
+> > 
+> > On 5/29/14, Javi Merino <javi.merino@arm.com> wrote:
+> > > Hi Amit,
+> > >
+> > > On Thu, May 29, 2014 at 09:15:34AM +0100, Amit Daniel Kachhap wrote:
+> > >> This patch upgrades the ACPI cpufreq cooling portions to use the generic
+> > >> cpufreq cooling infrastructure. There should not be any functionality
+> > >> related changes as the same behaviour is provided by the generic
+> > >> cpufreq APIs with the notifier mechanism.
+> > >>
+> > >> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+> > >> ---
+> > >>  drivers/acpi/processor_driver.c  |    6 +-
+> > >>  drivers/acpi/processor_thermal.c |  235
+> > >> ++++++++++++++++++--------------------
+> > >>  include/acpi/processor.h         |    3 +-
+> > >>  3 files changed, 115 insertions(+), 129 deletions(-)
+> > >>
+> > >> diff --git a/drivers/acpi/processor_driver.c
+> > >> b/drivers/acpi/processor_driver.c
+> > >> index 7f70f31..10aba4a 100644
+> > >> --- a/drivers/acpi/processor_driver.c
+> > >> +++ b/drivers/acpi/processor_driver.c
+> > >> @@ -36,6 +36,7 @@
+> > >>  #include <linux/cpuidle.h>
+> > >>  #include <linux/slab.h>
+> > >>  #include <linux/acpi.h>
+> > >> +#include <linux/cpu_cooling.h>
+> > >>
+> > >>  #include <acpi/processor.h>
+> > >>
+> > >> @@ -178,8 +179,7 @@ static int __acpi_processor_start(struct acpi_device
+> > >> *device)
+> > >>         if (!cpuidle_get_driver() || cpuidle_get_driver() ==
+> > >> &acpi_idle_driver)
+> > >>                 acpi_processor_power_init(pr);
+> > >>
+> > >> -       pr->cdev = thermal_cooling_device_register("Processor", device,
+> > >> -
+> > >> &processor_cooling_ops);
+> > >> +       pr->cdev = acpi_processor_cooling_register(device);
+> > >
+> > > With this you have removed the only cooling device whose type was
+> > > "Processor".  There's special code for dealing with this cooling
+> > > device in drivers/thermal/thermal_core.c:passive_store():
+> > >
+> > > 		list_for_each_entry(cdev, &thermal_cdev_list, node) {
+> > > 			if (!strncmp("Processor", cdev->type,
+> > > 				     sizeof("Processor")))
+> > > 				thermal_zone_bind_cooling_device(tz,
+> > > 						THERMAL_TRIPS_NONE, cdev,
+> > > 						THERMAL_NO_LIMIT,
+> > > 						THERMAL_NO_LIMIT);
+> > > 		}
+> > > 		mutex_unlock(&thermal_list_lock);
+> > > 		if (!tz->passive_delay)
+> > >
+> > > With your change, that code is now "dead" as it can't do anything.  No
+> > > I don't know what should you do with it, either remove it or make it
+> > > match the cpufreq cooling device.  But this patch should deal with
+> > > that code as well.
+> > nice catch. I somehow missed modifying this section.
+> > I think the following changes should fix this,
+> > -                       if (!strncmp("Processor", cdev->type,
+> > -                                    sizeof("Processor")))
+> > +                       if (!strncmp("thermal-cpufreq", cdev->type,
+> > +                                    sizeof("thermal-cpufreq")))
+> >                                 thermal_zone_bind_cooling_device(tz,
+> > 
 > 
-> So worst case is that we are seeing some steady flow of events that
-> don't quite trigger the storm detector ... about 14 events per second.
+> That should do it.  I don't really understand why this code is
+> specifically looking for ACPI processor cooling devices but I guess
+> that's the least disrupting change you can make.
 
-Also matters how big you expect these events to be. If you get a
-"christmas tree" set of flags, how big will that event grow with all
-the descriptions attached?
+Well, I suggest we move slightly carefuly here. The problem is that this
+change actually breaks ABI. If so, we need to follow the kernel ABI
+change rules. We should never break userspace.
 
-The max event size after all headers is 4056 bytes. If you go over
-that, the event is ignored.
+Rui, Do you recall what users are aware of this sysfs entry?
 
--- Steve
+Cheers,
+
+> 
+> Cheers,
+> Javi
+> 
