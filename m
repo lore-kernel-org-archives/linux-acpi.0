@@ -1,57 +1,59 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 0/2] ACPI: Fix a regression of the table checksum
- verification.
-Date: Tue, 3 Jun 2014 02:36:46 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802574758@SHSMSX103.ccr.corp.intel.com>
-References: <e28682572e0736657b0120aeec5f64ac21159faf.1401415540.git.lv.zheng@intel.com>
- <cover.1401494652.git.lv.zheng@intel.com>
- <26459685.K8HWMtpZlE@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH] ACPICA: Namespace: Remove _PRP method support.
+Date: Tue,  3 Jun 2014 13:20:32 +0800
+Message-ID: <f55cebd888fc7073d133e202450f70f9f24bd902.1401772199.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:12282 "EHLO mga11.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:42515 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751518AbaFCCgv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Jun 2014 22:36:51 -0400
-In-Reply-To: <26459685.K8HWMtpZlE@vostro.rjw.lan>
-Content-Language: en-US
+	id S1751318AbaFCFVA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Jun 2014 01:21:00 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <zetalog@gmail.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IFN1bmRheSwgSnVuZSAwMSwgMjAxNCA2OjUwIEFNDQo+IA0KPiBP
-biBTYXR1cmRheSwgTWF5IDMxLCAyMDE0IDA4OjE0OjI2IEFNIEx2IFpoZW5nIHdyb3RlOg0KPiA+
-IEZyb206IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4NCj4gPiBUaGVyZSBpcyBh
-IHdhcm5pbmcgbWVzc2FnZSB0cmlnZ2VyZWQgYnkgdGhlIGVhcmx5IHRhYmxlIGNoZWtjdXNtDQo+
-ID4gdmVyaWZpY2F0aW9uIGR1cmluZyBib290LiBMYXJnZSB0YWJsZXMgY2Fubm90IGJlIGluc3Rh
-bGxlZCBvbiB4ODYgcGxhdGZvcm1zDQo+ID4gZHVlIHRvIHRoaXMgZmFpbHVyZS4gVGhlIHJvb3Qg
-Y2F1c2UgaXMgdGhlIHNpemUgbGltaXRhdGlvbiBvZiB0aGUgY3VycmVudA0KPiA+IHg4NiBlYXJs
-eSBtYXBwaW5nIGltcGxlbWVudGF0aW9uLCBpdCdzIHRodXMgbm90IHN1aXRhYmxlIHRvIGJlIHVz
-ZWQgdG8gbWFwDQo+ID4gQUNQSSB0YWJsZXMuDQo+ID4NCj4gPiBUaGlzIHBhdGNoc2V0IGZpeGVz
-IHRoaXMgcmVncmVzc2lvbiBieSBzdG9wcGluZyB2ZXJpZnlpbmcgdGFibGUgY2hlY2tzdW1zDQo+
-ID4gZHVyaW5nIHRoZSBlYXJseSBib290IHN0YWdlLg0KPiANCj4gQm90aCBxdWV1ZWQgdXAgZm9y
-IDMuMTYuDQo+IA0KPiBJZiB0aGV5IGFyZSBuZWVkZWQgaW4gLXN0YWJsZSwgcGxlYXNlIHRha2Ug
-Y2FyZSBvZiBzZW5kaW5nIGFuIGFwcHJvcHJpYXRlDQo+IGluY2x1c2lvbiByZXF1ZXN0IHRvIHN0
-YWJsZUB2Z2VyLmtlcm5lbC5vcmcgYWZ0ZXIgdGhleSBoYXZlIGJlZW4gbWVyZ2VkIGludG8NCj4g
-dGhlIExpbnVzJyB0cmVlLg0KDQpJIGNoZWNrZWQuDQpUaGUgYWZmZWN0ZWQgY29kZSBjYW4gb25s
-eSBiZSBmb3VuZCBpbiBsaW51eC1wbS5naXQvbGludXgtbmV4dC4NClNvIHRoZXkgYXJlIG5vdCBu
-ZWVkZWQgaW4gLXN0YWJsZS4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+IA0K
-PiBUaGFua3MhDQo+IA0KPiA+IEx2IFpoZW5nICgyKToNCj4gPiAgIEFDUElDQTogVGFibGVzOiBB
-ZGQgbWVjaGFuaXNtIHRvIGNvbnRyb2wgZWFybHkgdGFibGUgY2hlY2tzdW0NCj4gPiAgICAgdmVy
-aWZpY2F0aW9uLg0KPiA+ICAgQUNQSTogRml4IHJlZ3Jlc3Npb25zIHRoYXQgeDg2IExpbnV4IGtl
-cm5lbCBzdWZmZXJzIGZyb20gZWFybHkNCj4gPiAgICAgbWFwcGluZyBzaXplIGxpbWl0YXRpb24u
-DQo+ID4NCj4gPiAgRG9jdW1lbnRhdGlvbi9rZXJuZWwtcGFyYW1ldGVycy50eHQgfCAgICA1ICsr
-Kw0KPiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL2FjdGFibGVzLmggICAgICB8ICAgIDggKysrLS0N
-Cj4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS90YmRhdGEuYyAgICAgICAgfCAgIDY3ICsrKysrKysr
-KysrKysrKysrKysrKysrKysrKy0tLS0tLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvdGJp
-bnN0YWwuYyAgICAgIHwgICAgOCArKy0tLQ0KPiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL3RidXRp
-bHMuYyAgICAgICB8ICAgIDQgLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9idXMuYyAgICAgICAgICAg
-ICAgICAgIHwgICAgMyArKw0KPiA+ICBkcml2ZXJzL2FjcGkvdGFibGVzLmMgICAgICAgICAgICAg
-ICB8ICAgMjMgKysrKysrKysrKysrDQo+ID4gIGluY2x1ZGUvYWNwaS9hY3BpeGYuaCAgICAgICAg
-ICAgICAgIHwgICAgOSArKysrKw0KPiA+ICA4IGZpbGVzIGNoYW5nZWQsIDEwMSBpbnNlcnRpb25z
-KCspLCAyNiBkZWxldGlvbnMoLSkNCj4gPg0KPiA+DQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkg
-Zm9yIG15c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hu
-b2xvZ3kgQ2VudGVyLg0K
+The _PRP method is not going to be a part of the ACPI standard. This patch
+removes its support code introduced by the following commits:
+ 1. ACPICA: Predefined names: Add support for the _PRP method.
+ 2. ACPICA: Update for _PRP predefined name.
+ 3. ACPICA: Add support for _LPD and _PRP methods.
+ 4. ACPICA: Back port of _PRP update.
+
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/acpredef.h |    6 ------
+ include/acpi/acnames.h         |    1 -
+ 2 files changed, 7 deletions(-)
+
+diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
+index 34001a9..bd08817 100644
+--- a/drivers/acpi/acpica/acpredef.h
++++ b/drivers/acpi/acpica/acpredef.h
+@@ -702,12 +702,6 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
+ 	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Variable-length (Refs) */
+ 	PACKAGE_INFO(ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0, 0, 0, 0),
+ 
+-	{{"_PRP", METHOD_0ARGS,
+-	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Variable-length (Pkgs) each: 1 Str, 1 Int/Str/Pkg */
+-	PACKAGE_INFO(ACPI_PTYPE2, ACPI_RTYPE_STRING, 1,
+-		     ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING |
+-		     ACPI_RTYPE_PACKAGE | ACPI_RTYPE_REFERENCE, 1, 0),
+-
+ 	{{"_PRS", METHOD_0ARGS,
+ 	  METHOD_RETURNS(ACPI_RTYPE_BUFFER)}},
+ 
+diff --git a/include/acpi/acnames.h b/include/acpi/acnames.h
+index f0e713f..3dd6e83 100644
+--- a/include/acpi/acnames.h
++++ b/include/acpi/acnames.h
+@@ -55,7 +55,6 @@
+ #define METHOD_NAME__HID        "_HID"
+ #define METHOD_NAME__INI        "_INI"
+ #define METHOD_NAME__PLD        "_PLD"
+-#define METHOD_NAME__PRP        "_PRP"
+ #define METHOD_NAME__PRS        "_PRS"
+ #define METHOD_NAME__PRT        "_PRT"
+ #define METHOD_NAME__PRW        "_PRW"
+-- 
+1.7.10
+
