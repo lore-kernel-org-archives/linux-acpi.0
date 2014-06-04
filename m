@@ -1,107 +1,46 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
-Date: Wed, 4 Jun 2014 14:32:09 -0400
-Message-ID: <20140604143209.28ccc4e3@gandalf.local.home>
-References: <1401247938-22125-2-git-send-email-gong.chen@linux.intel.com>
-	<20140528112832.5f83c66b@gandalf.local.home>
-	<20140528163452.GF17196@pd.tnic>
-	<20140528125625.6f6dcf7f@gandalf.local.home>
-	<20140530092232.GA13495@gchen.bj.intel.com>
-	<20140530100716.GE28131@pd.tnic>
-	<3908561D78D1C84285E8C5FCA982C28F32823D2B@ORSMSX114.amr.corp.intel.com>
-	<20140530210759.267a854e@gandalf.local.home>
-	<3908561D78D1C84285E8C5FCA982C28F3282545B@ORSMSX114.amr.corp.intel.com>
-	<20140602125748.7093ced8@gandalf.local.home>
-	<20140603083606.GA15476@gchen.bj.intel.com>
-	<20140603103544.207eaa6e@gandalf.local.home>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH 1/7] ACPICA: Only include ACPI asm files if ACPI is enabled
+Date: Wed, 04 Jun 2014 23:29:33 +0200
+Message-ID: <1603851.9SBouhvdWS@vostro.rjw.lan>
+References: <1401883796-17841-1-git-send-email-lee.jones@linaro.org> <3061297.feg5DGUjIt@vostro.rjw.lan> <20140604125137.GA18171@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.231]:50573 "EHLO
-	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751129AbaFDScM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Jun 2014 14:32:12 -0400
-In-Reply-To: <20140603103544.207eaa6e@gandalf.local.home>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140604125137.GA18171@lee--X1>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: "Chen, Gong" <gong.chen@linux.intel.com>, "Luck, Tony" <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Tue, 3 Jun 2014 10:35:44 -0400
-Steven Rostedt <rostedt@goodmis.org> wrote:
-
-
-> I'll still need to add that __get_dynamic_array_len() helper. I'll send
-> you something tonight.
+On Wednesday, June 04, 2014 01:51:37 PM Lee Jones wrote:
+> On Wed, 04 Jun 2014, Rafael J. Wysocki wrote:
 > 
+> > On Wednesday, June 04, 2014 01:09:50 PM Lee Jones wrote:
+> > > Any drivers which support ACPI and Device Tree probing need to include
+> > > both respective header files.  Without this patch, if a driver is being
+> > > used on a platform which does not support ACPI and subsequently does not
+> > > have the config option enabled, but includes linux/acpi.h the build
+> > > breaks with:
+> > > 
+> > >   In file included from ../include/acpi/platform/acenv.h:150:0,
+> > >                    from ../include/acpi/acpi.h:56,
+> > >                    from ../include/linux/match.h:2,
+> > >                    from ../drivers/i2c/i2c-core.c:43:
+> > >   ../include/acpi/platform/aclinux.h:73:23:
+> > >    fatal error: asm/acenv.h: No such file or directory
+> > >    #include <asm/acenv.h>
+> > >                        ^
+> > 
+> > Which kernel does this happen with?
+> 
+> a0a962d (tag: refs/tags/next-20140602, refs/remotes/next/master)
+>   Add linux-next specific files for 20140602
 
-I got caught up in other work, but I wrote it this morning and I'm
-adding it to my 3.16 queue. Thus, you can use this:
+It looks like the problem is with include/linux/match.h that should not
+include acpi/acpi.h directly.
 
--- Steve
+But I can't find this file in the Linus' next branch even, so I guess it's
+on its way to that branch?
 
->From beba4bb096201ceec0e8cfb7ce3172a53015bdaf Mon Sep 17 00:00:00 2001
-From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
-Date: Wed, 4 Jun 2014 14:29:33 -0400
-Subject: [PATCH] tracing: Add __get_dynamic_array_len() macro for trace events
-
-If a trace event uses a dynamic array for something other than a string
-then there's currently no way the TP_printk() can figure out what size
-it is. A __get_dynamic_array_len() is required to know the length.
-
-This also simplifies the __get_bitmask() macro which required it as well,
-but instead just hardcoded it.
-
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
----
- include/trace/ftrace.h | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
-
-diff --git a/include/trace/ftrace.h b/include/trace/ftrace.h
-index 9b7a989..0fd06fe 100644
---- a/include/trace/ftrace.h
-+++ b/include/trace/ftrace.h
-@@ -203,6 +203,10 @@
- #define __get_dynamic_array(field)	\
- 		((void *)__entry + (__entry->__data_loc_##field & 0xffff))
- 
-+#undef __get_dynamic_array_len
-+#define __get_dynamic_array_len(field)	\
-+		((__entry->__data_loc_##field >> 16) & 0xffff)
-+
- #undef __get_str
- #define __get_str(field) (char *)__get_dynamic_array(field)
- 
-@@ -211,7 +215,7 @@
- 	({								\
- 		void *__bitmask = __get_dynamic_array(field);		\
- 		unsigned int __bitmask_size;				\
--		__bitmask_size = (__entry->__data_loc_##field >> 16) & 0xffff; \
-+		__bitmask_size = __get_dynamic_array_len(field);	\
- 		ftrace_print_bitmask_seq(p, __bitmask, __bitmask_size);	\
- 	})
- 
-@@ -636,6 +640,7 @@ static inline void ftrace_test_probe_##call(void)			\
- #undef __print_symbolic
- #undef __print_hex
- #undef __get_dynamic_array
-+#undef __get_dynamic_array_len
- #undef __get_str
- #undef __get_bitmask
- 
-@@ -700,6 +705,10 @@ __attribute__((section("_ftrace_events"))) *__event_##call = &event_##call
- #define __get_dynamic_array(field)	\
- 		((void *)__entry + (__entry->__data_loc_##field & 0xffff))
- 
-+#undef __get_dynamic_array_len
-+#define __get_dynamic_array_len(field)	\
-+		((__entry->__data_loc_##field >> 16) & 0xffff)
-+
- #undef __get_str
- #define __get_str(field) (char *)__get_dynamic_array(field)
- 
--- 
-1.8.1.4
-
+Rafael
