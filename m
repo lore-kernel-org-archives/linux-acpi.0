@@ -1,60 +1,52 @@
-From: Aaron Lu <aaron.lu@intel.com>
+From: Jeremie Tamburini <jeremie.tamburini@gmail.com>
 Subject: Re: BUG REPORT backlight acpi: Brightness shortcuts don't work on
  Fujitsu
-Date: Wed, 04 Jun 2014 10:34:47 +0800
-Message-ID: <538E85C7.5030809@intel.com>
-References: <538D7845.9010305@gmail.com> <538D80C4.5080901@intel.com> <538D91B4.7050209@gmail.com>
+Date: Wed, 04 Jun 2014 11:15:42 +0200
+Message-ID: <538EE3BE.4010809@gmail.com>
+References: <538D7845.9010305@gmail.com> <538D80C4.5080901@intel.com> <538D91B4.7050209@gmail.com> <538E85C7.5030809@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:24496 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755214AbaFDCeu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Jun 2014 22:34:50 -0400
-In-Reply-To: <538D91B4.7050209@gmail.com>
+Received: from mail-we0-f172.google.com ([74.125.82.172]:63524 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751908AbaFDJPp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Jun 2014 05:15:45 -0400
+Received: by mail-we0-f172.google.com with SMTP id k48so8218051wev.3
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Jun 2014 02:15:44 -0700 (PDT)
+In-Reply-To: <538E85C7.5030809@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremie Tamburini <jeremie.tamburini@gmail.com>, linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
 
-On 06/03/2014 05:13 PM, Jeremie Tamburini wrote:
-> Il 03/06/2014 10:01, Aaron Lu ha scritto:
->> On 06/03/2014 03:24 PM, Jeremie Tamburini wrote:
->>>
->>> On Fujitsu Lifebook A512 pressing Fn+F6 or Fn+F7 the brightness doesn't
->>> change.
->>
->> Sounds like the notification isn't sent on hotkey press.
->> Please attach your acpidump:
->> # acpidump > acpidump.txt
->> either to your original bug report or create a new one at:
->> https://bugzilla.kernel.org under category ACPI/Power-Video.
-> 
-> In some ways the system is able to understand that I'm pressing 
-> Fn+F6/Fn+F7. The pop-up indicator (this one 
-> http://s1.postimg.org/dly8ordov/Brightness.png) is showing the 
-> brightness level adjustment. Unfortunately the brightness itself doesn't 
-> change.
+Il 04/06/2014 04:34, Aaron Lu ha scritto:
+> Ah, OK, I think I have misunderstood you.
+> So you already have a workaround with a xorg.conf file and everything
+> works now, right?
 
-Ah, OK, I think I have misunderstood you.
-So you already have a workaround with a xorg.conf file and everything
-works now, right? If that is the case, the only thing that needs to be
-done is to add your system into the video module's DMI table so that the
-acpi_video interface will not be created. This can be verified by adding
-video.use_native_backlight=1 to kernel cmdline.
+Yes, there=E2=80=99s already the xorg workaround which makes the bright=
+ness hot=20
+keys work. In any case I've collected all the hardware/software infos=20
+without any workaround, so to get informations related to the original=20
+system setup.
 
-Thanks,
-Aaron
+> If that is the case, the only thing that needs to be
+> done is to add your system into the video module's DMI table so that =
+the
+> acpi_video interface will not be created. This can be verified by add=
+ing
+> video.use_native_backlight=3D1 to kernel cmdline.
 
-> 
-> Here is the acpidump.txt: 
-> https://launchpadlibrarian.net/176842546/acpidump.txt
-> 
-> Best regards
-> Jeremie
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Good, just tried video.use_native_backlight=3D1 parameter and it works.=
+ It=20
+makes the Fn+F6/Fn+F7 work.
 
+
+Regards
+Jeremie
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
