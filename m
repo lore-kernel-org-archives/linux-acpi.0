@@ -1,72 +1,82 @@
-From: "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/7] ACPICA: Only include ACPI asm files if ACPI is
- enabled
-Date: Thu, 5 Jun 2014 01:14:54 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880262042C@SHSMSX101.ccr.corp.intel.com>
-References: <1401883796-17841-1-git-send-email-lee.jones@linaro.org>
- <1401883796-17841-2-git-send-email-lee.jones@linaro.org>
- <3061297.feg5DGUjIt@vostro.rjw.lan> <20140604125137.GA18171@lee--X1>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 1/7] ACPICA: Only include ACPI asm files if ACPI is enabled
+Date: Thu, 05 Jun 2014 12:06:43 +0800
+Message-ID: <538FECD3.2000700@linaro.org>
+References: <1401883796-17841-1-git-send-email-lee.jones@linaro.org> <1401883796-17841-2-git-send-email-lee.jones@linaro.org> <1AE640813FDE7649BE1B193DEA596E88026203D0@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140604125137.GA18171@lee--X1>
-Content-Language: en-US
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org" <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Wysocki, Rafael J" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:42465 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750743AbaFEEHW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jun 2014 00:07:22 -0400
+Received: by mail-pb0-f54.google.com with SMTP id jt11so494484pbb.13
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Jun 2014 21:07:21 -0700 (PDT)
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026203D0@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, Lee Jones <lee.jones@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "wsa@the-dreams.de" <wsa@the-dreams.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-SGksIExlZQ0KDQo+IEZyb206IExlZSBKb25lcyBbbWFpbHRvOmxlZS5qb25lc0BsaW5hcm8ub3Jn
-XQ0KPiBTZW50OiBXZWRuZXNkYXksIEp1bmUgMDQsIDIwMTQgODo1MiBQTQ0KPiBUbzogUmFmYWVs
-IEouIFd5c29ja2kNCj4gDQo+IE9uIFdlZCwgMDQgSnVuIDIwMTQsIFJhZmFlbCBKLiBXeXNvY2tp
-IHdyb3RlOg0KPiANCj4gPiBPbiBXZWRuZXNkYXksIEp1bmUgMDQsIDIwMTQgMDE6MDk6NTAgUE0g
-TGVlIEpvbmVzIHdyb3RlOg0KPiA+ID4gQW55IGRyaXZlcnMgd2hpY2ggc3VwcG9ydCBBQ1BJIGFu
-ZCBEZXZpY2UgVHJlZSBwcm9iaW5nIG5lZWQgdG8gaW5jbHVkZQ0KPiA+ID4gYm90aCByZXNwZWN0
-aXZlIGhlYWRlciBmaWxlcy4gIFdpdGhvdXQgdGhpcyBwYXRjaCwgaWYgYSBkcml2ZXIgaXMgYmVp
-bmcNCj4gPiA+IHVzZWQgb24gYSBwbGF0Zm9ybSB3aGljaCBkb2VzIG5vdCBzdXBwb3J0IEFDUEkg
-YW5kIHN1YnNlcXVlbnRseSBkb2VzIG5vdA0KPiA+ID4gaGF2ZSB0aGUgY29uZmlnIG9wdGlvbiBl
-bmFibGVkLCBidXQgaW5jbHVkZXMgbGludXgvYWNwaS5oIHRoZSBidWlsZA0KPiA+ID4gYnJlYWtz
-IHdpdGg6DQo+ID4gPg0KPiA+ID4gICBJbiBmaWxlIGluY2x1ZGVkIGZyb20gLi4vaW5jbHVkZS9h
-Y3BpL3BsYXRmb3JtL2FjZW52Lmg6MTUwOjAsDQo+ID4gPiAgICAgICAgICAgICAgICAgICAgZnJv
-bSAuLi9pbmNsdWRlL2FjcGkvYWNwaS5oOjU2LA0KPiA+ID4gICAgICAgICAgICAgICAgICAgIGZy
-b20gLi4vaW5jbHVkZS9saW51eC9tYXRjaC5oOjIsDQo+ID4gPiAgICAgICAgICAgICAgICAgICAg
-ZnJvbSAuLi9kcml2ZXJzL2kyYy9pMmMtY29yZS5jOjQzOg0KPiA+ID4gICAuLi9pbmNsdWRlL2Fj
-cGkvcGxhdGZvcm0vYWNsaW51eC5oOjczOjIzOg0KPiA+ID4gICAgZmF0YWwgZXJyb3I6IGFzbS9h
-Y2Vudi5oOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5DQo+ID4gPiAgICAjaW5jbHVkZSA8YXNt
-L2FjZW52Lmg+DQo+ID4gPiAgICAgICAgICAgICAgICAgICAgICAgIF4NCg0KTm90ZSB0aGF0Og0K
-SW4gb3VyIHRyZWU6DQo8YXNtL2FjZW52Lmg+IGlzIG9ubHkgaW5jbHVkZWQgYnkgPGFjcGkvYWNw
-aS5oPi4NCkFuZCA8YWNwaS9hY3BpLmg+IGlzIG9ubHkgaW5jbHVkZWQgYnkNCjEuIDxsaW51eC9h
-Y3BpLmg+IHdoZW4gQ09ORklHX0FDUEkgZW5hYmxlZA0KMi4gPGxpbnV4L3NmaV9hY3BpLmg+IC0g
-dGhpcyBpcyB4ODYgc3BlY2lmaWMsIHdlJ2xsIGNsZWFuIGl0IHVwIGJ5IGltcGxlbWVudGluZyBz
-dHVicyBmb3IgYWxsIEFDUEkgZXh0ZXJuYWwgaW50ZXJmYWNlcy4NClNvIHRoZXJlIGlzIG5vIGNh
-c2Ugd2UgbmVlZCB0byBleGNsdWRlIDxhc20vYWNlbnYuaD4gd2hlbiBDT05GSUdfQUNQSSBpcyBu
-b3QgZW5hYmxlZC4NCg0KSSBjYW5ub3QgZmluZCBsaW51eC9tYXRjaC5oIGhlcmUuDQpJZiA8bGlu
-dXgvbWF0Y2guaD4gd2FudCB0byBpbmNsdWRlIEFDUEkgZmVhdHVyZXMsIGl0IHNob3VsZG4ndCBp
-bmNsdWRlIDxhY3BpL2FjcGkuaD4sIGJ1dCBzaG91bGQgaW5jbHVkZSA8bGludXgvYWNwaS5oPi4N
-ClBsZWFzZSByZWZlciB0bzoNCmh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvY2dpdC9saW51eC9rZXJu
-ZWwvZ2l0L3RvcnZhbGRzL2xpbnV4LmdpdC9jb21taXQvP2lkPThiNDg0NjNmDQpBbmQgc3RvcCBp
-bmNsdWRpbmcgPGFjcGkvYWNwaS5oPiBkaXJlY3RseSBpbiBhbnkgY2FzZXMuDQoNClRoYW5rcyBh
-bmQgYmVzdCByZWdhcmRzDQotTHYNCg0KDQo+ID4NCj4gPiBXaGljaCBrZXJuZWwgZG9lcyB0aGlz
-IGhhcHBlbiB3aXRoPw0KPiANCj4gYTBhOTYyZCAodGFnOiByZWZzL3RhZ3MvbmV4dC0yMDE0MDYw
-MiwgcmVmcy9yZW1vdGVzL25leHQvbWFzdGVyKQ0KPiAgIEFkZCBsaW51eC1uZXh0IHNwZWNpZmlj
-IGZpbGVzIGZvciAyMDE0MDYwMg0KPiANCj4gPiA+IENjOiBMdiBaaGVuZyA8bHYuemhlbmdAaW50
-ZWwuY29tPg0KPiA+ID4gQ2M6IFJhZmFlbCBKLiBXeXNvY2tpIDxyYWZhZWwuai53eXNvY2tpQGlu
-dGVsLmNvbT4NCj4gPiA+IENjOiBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZw0KPiA+ID4gQ2M6
-IGRldmVsQGFjcGljYS5vcmcNCj4gPiA+IFNpZ25lZC1vZmYtYnk6IExlZSBKb25lcyA8bGVlLmpv
-bmVzQGxpbmFyby5vcmc+DQo+ID4gPiAtLS0NCj4gPiA+ICBpbmNsdWRlL2FjcGkvcGxhdGZvcm0v
-YWNsaW51eC5oIHwgNSArKystLQ0KPiA+ID4gIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMo
-KyksIDIgZGVsZXRpb25zKC0pDQo+ID4gPg0KPiA+ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvYWNw
-aS9wbGF0Zm9ybS9hY2xpbnV4LmggYi9pbmNsdWRlL2FjcGkvcGxhdGZvcm0vYWNsaW51eC5oDQo+
-ID4gPiBpbmRleCBjZDFmMDUyLi5mZGY3NjYzIDEwMDY0NA0KPiA+ID4gLS0tIGEvaW5jbHVkZS9h
-Y3BpL3BsYXRmb3JtL2FjbGludXguaA0KPiA+ID4gKysrIGIvaW5jbHVkZS9hY3BpL3BsYXRmb3Jt
-L2FjbGludXguaA0KPiA+ID4gQEAgLTcwLDkgKzcwLDEwIEBADQo+ID4gPiAgI2lmZGVmIEVYUE9S
-VF9BQ1BJX0lOVEVSRkFDRVMNCj4gPiA+ICAjaW5jbHVkZSA8bGludXgvZXhwb3J0Lmg+DQo+ID4g
-PiAgI2VuZGlmDQo+ID4gPiAtI2luY2x1ZGUgPGFzbS9hY2Vudi5oPg0KPiA+ID4NCj4gPiA+IC0j
-aWZuZGVmIENPTkZJR19BQ1BJDQo+ID4gPiArI2lmZGVmIENPTkZJR19BQ1BJDQo+ID4gPiArI2lu
-Y2x1ZGUgPGFzbS9hY2Vudi5oPg0KPiA+ID4gKyNlbHNlDQo+ID4gPg0KPiA+ID4gIC8qIEV4dGVy
-bmFsIGdsb2JhbHMgZm9yIF9fS0VSTkVMX18sIHN0dWJzIGlzIG5lZWRlZCAqLw0KPiA+ID4NCj4g
-PiA+DQo+ID4NCj4gDQo+IC0tDQo+IExlZSBKb25lcw0KPiBMaW5hcm8gU1RNaWNyb2VsZWN0cm9u
-aWNzIExhbmRpbmcgVGVhbSBMZWFkDQo+IExpbmFyby5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3
-YXJlIGZvciBBUk0gU29Dcw0KPiBGb2xsb3cgTGluYXJvOiBGYWNlYm9vayB8IFR3aXR0ZXIgfCBC
-bG9nDQo=
+Hi Lv,
+
+On 2014-6-5 8:56, Zheng, Lv wrote:
+> Hi, Lee
+> 
+>> From: Lee Jones [mailto:lee.jones@linaro.org]
+>> Sent: Wednesday, June 04, 2014 8:10 PM
+>>
+>> Any drivers which support ACPI and Device Tree probing need to include
+>> both respective header files.  Without this patch, if a driver is being
+>> used on a platform which does not support ACPI and subsequently does not
+>> have the config option enabled, but includes linux/acpi.h the build
+>> breaks with:
+>>
+>>   In file included from ../include/acpi/platform/acenv.h:150:0,
+>>                    from ../include/acpi/acpi.h:56,
+>>                    from ../include/linux/match.h:2,
+>>                    from ../drivers/i2c/i2c-core.c:43:
+>>   ../include/acpi/platform/aclinux.h:73:23:
+>>    fatal error: asm/acenv.h: No such file or directory
+>>    #include <asm/acenv.h>
+>>                        ^
+>> Cc: Lv Zheng <lv.zheng@intel.com>
+>> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> Cc: linux-acpi@vger.kernel.org
+>> Cc: devel@acpica.org
+>> Signed-off-by: Lee Jones <lee.jones@linaro.org>
+>> ---
+>>  include/acpi/platform/aclinux.h | 5 +++--
+>>  1 file changed, 3 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+>> index cd1f052..fdf7663 100644
+>> --- a/include/acpi/platform/aclinux.h
+>> +++ b/include/acpi/platform/aclinux.h
+>> @@ -70,9 +70,10 @@
+>>  #ifdef EXPORT_ACPI_INTERFACES
+>>  #include <linux/export.h>
+>>  #endif
+>> -#include <asm/acenv.h>
+>>
+>> -#ifndef CONFIG_ACPI
+>> +#ifdef CONFIG_ACPI
+>> +#include <asm/acenv.h>
+>> +#else
+> 
+> This is exactly what I want to do in the next step.
+> But you are a bit faster here.
+> I believe:
+> The miss-ordered inclusions of <asm/acpi.h> is the culprit of all of the miss-ordered inclusions in arch/x86/include/asm.
+> You should have noted that <asm/acpi.h> was originally unexpected included by some x86 specific headers.
+> Simply doing <asm/acenv.h> exlusion in this way might be able to fix your issue for your architecture, but it could be very likely breaking x86 builds.
+> You might be able to find another way to solve your build issue - for example, creating an empty <asm/acenv.h> for arch/arm.
+
+Yes, we solve this issue as you suggested for arch/arm64.
+since ARM32 will not support ACPI in the near future,
+we may find another way to fix it.
+
+Thanks
+Hanjun
+
