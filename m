@@ -1,33 +1,56 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] Revert "ACPI / Battery: Remove battery's proc
- directory" and "ACPI: Remove CONFIG_ACPI_PROCFS_POWER and cm_sbsc.c"
-Date: Thu, 5 Jun 2014 15:47:30 +0200
-Message-ID: <20140605134730.GA13859@amd.pavel.ucw.cz>
-References: <1398872369-2755-1-git-send-email-tianyu.lan@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / video: Change the default for video.use_native_backlight to 1
+Date: Thu, 05 Jun 2014 22:27:05 +0200
+Message-ID: <8608294.Ycsy0EoIBs@vostro.rjw.lan>
+References: <1397160803-24297-1-git-send-email-matthew.garrett@nebula.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33170 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751507AbaFENrd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jun 2014 09:47:33 -0400
-Content-Disposition: inline
-In-Reply-To: <1398872369-2755-1-git-send-email-tianyu.lan@intel.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:61872 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750840AbaFEUJv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jun 2014 16:09:51 -0400
+In-Reply-To: <1397160803-24297-1-git-send-email-matthew.garrett@nebula.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Matthew Garrett <matthew.garrett@nebula.com>, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jani Nikula <jani.nikula@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>
 
-Hi!
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> The commit 1e2d9cd and 7d7ee95 remove ACPI Proc Battery
-> directory and breaks some old userspace tools. This patch
-> is to revert them.
+Now that we're hoping to have resolved all of the problems with
+video.use_native_backlight=1 make that the default at last.
 
-Quick test shows that battery files are back in 3.15-rc8. Thanks!
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-								Pavel
+Having forgotten that the Hans' patches didn't actually flip the
+default for this I kind of pre-anounced it in my last pull request,
+which was a mistake that I apologize for.  That said, since everyone
+involved seemed to be supportive, I'm going to apply this one and
+push it to Linus next week.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Please let me know if there are any objections.
+
+Rafael
+
+
+---
+ drivers/acpi/video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-pm/drivers/acpi/video.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/video.c
++++ linux-pm/drivers/acpi/video.c
+@@ -82,7 +82,7 @@ module_param(allow_duplicates, bool, 064
+  * For Windows 8 systems: used to decide if video module
+  * should skip registering backlight interface of its own.
+  */
+-static int use_native_backlight_param = -1;
++static int use_native_backlight_param = 1;
+ module_param_named(use_native_backlight, use_native_backlight_param, int, 0444);
+ static bool use_native_backlight_dmi = false;
+ 
+
