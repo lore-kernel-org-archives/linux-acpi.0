@@ -1,68 +1,77 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/7] ACPICA: Only include ACPI asm files if ACPI is
- enabled
-Date: Thu, 5 Jun 2014 04:46:31 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802621528@SHSMSX101.ccr.corp.intel.com>
-References: <1401883796-17841-1-git-send-email-lee.jones@linaro.org>
- <1401883796-17841-2-git-send-email-lee.jones@linaro.org>
- <3061297.feg5DGUjIt@vostro.rjw.lan> <20140604125137.GA18171@lee--X1>
- <1AE640813FDE7649BE1B193DEA596E880262042C@SHSMSX101.ccr.corp.intel.com>
- <538FEDE9.4010603@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: Fix bug when acpi reset register is implemented in system memory
+Date: Thu, 05 Jun 2014 14:58:22 +0200
+Message-ID: <7970700.XBb1Ob3tCb@vostro.rjw.lan>
+References: <1401897359-28873-1-git-send-email-david.e.box@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <538FEDE9.4010603@linaro.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Lee Jones <lee.jones@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "wsa@the-dreams.de" <wsa@the-dreams.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:51294 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751015AbaFEMlH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jun 2014 08:41:07 -0400
+In-Reply-To: <1401897359-28873-1-git-send-email-david.e.box@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "David E. Box" <david.e.box@linux.intel.com>
+Cc: lenb@kernel.org, Randy Wright <rwright@hp.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-SGksIA0KDQo+IEZyb206IEhhbmp1biBHdW8gW21haWx0bzpoYW5qdW4uZ3VvQGxpbmFyby5vcmdd
-DQo+IFNlbnQ6IFRodXJzZGF5LCBKdW5lIDA1LCAyMDE0IDEyOjExIFBNDQo+IFRvOiBaaGVuZywg
-THY7IExlZSBKb25lczsgUmFmYWVsIEouIFd5c29ja2kNCj4gDQo+IE9uIDIwMTQtNi01IDk6MTQs
-IFpoZW5nLCBMdiB3cm90ZToNCj4gPiBIaSwgTGVlDQo+ID4NCj4gPj4gRnJvbTogTGVlIEpvbmVz
-IFttYWlsdG86bGVlLmpvbmVzQGxpbmFyby5vcmddDQo+ID4+IFNlbnQ6IFdlZG5lc2RheSwgSnVu
-ZSAwNCwgMjAxNCA4OjUyIFBNDQo+ID4+IFRvOiBSYWZhZWwgSi4gV3lzb2NraQ0KPiA+Pg0KPiA+
-PiBPbiBXZWQsIDA0IEp1biAyMDE0LCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToNCj4gPj4NCj4g
-Pj4+IE9uIFdlZG5lc2RheSwgSnVuZSAwNCwgMjAxNCAwMTowOTo1MCBQTSBMZWUgSm9uZXMgd3Jv
-dGU6DQo+ID4+Pj4gQW55IGRyaXZlcnMgd2hpY2ggc3VwcG9ydCBBQ1BJIGFuZCBEZXZpY2UgVHJl
-ZSBwcm9iaW5nIG5lZWQgdG8gaW5jbHVkZQ0KPiA+Pj4+IGJvdGggcmVzcGVjdGl2ZSBoZWFkZXIg
-ZmlsZXMuICBXaXRob3V0IHRoaXMgcGF0Y2gsIGlmIGEgZHJpdmVyIGlzIGJlaW5nDQo+ID4+Pj4g
-dXNlZCBvbiBhIHBsYXRmb3JtIHdoaWNoIGRvZXMgbm90IHN1cHBvcnQgQUNQSSBhbmQgc3Vic2Vx
-dWVudGx5IGRvZXMgbm90DQo+ID4+Pj4gaGF2ZSB0aGUgY29uZmlnIG9wdGlvbiBlbmFibGVkLCBi
-dXQgaW5jbHVkZXMgbGludXgvYWNwaS5oIHRoZSBidWlsZA0KPiA+Pj4+IGJyZWFrcyB3aXRoOg0K
-PiA+Pj4+DQo+ID4+Pj4gICBJbiBmaWxlIGluY2x1ZGVkIGZyb20gLi4vaW5jbHVkZS9hY3BpL3Bs
-YXRmb3JtL2FjZW52Lmg6MTUwOjAsDQo+ID4+Pj4gICAgICAgICAgICAgICAgICAgIGZyb20gLi4v
-aW5jbHVkZS9hY3BpL2FjcGkuaDo1NiwNCj4gPj4+PiAgICAgICAgICAgICAgICAgICAgZnJvbSAu
-Li9pbmNsdWRlL2xpbnV4L21hdGNoLmg6MiwNCj4gPj4+PiAgICAgICAgICAgICAgICAgICAgZnJv
-bSAuLi9kcml2ZXJzL2kyYy9pMmMtY29yZS5jOjQzOg0KPiA+Pj4+ICAgLi4vaW5jbHVkZS9hY3Bp
-L3BsYXRmb3JtL2FjbGludXguaDo3MzoyMzoNCj4gPj4+PiAgICBmYXRhbCBlcnJvcjogYXNtL2Fj
-ZW52Lmg6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkNCj4gPj4+PiAgICAjaW5jbHVkZSA8YXNt
-L2FjZW52Lmg+DQo+ID4+Pj4gICAgICAgICAgICAgICAgICAgICAgICBeDQo+ID4NCj4gPiBOb3Rl
-IHRoYXQ6DQo+ID4gSW4gb3VyIHRyZWU6DQo+ID4gPGFzbS9hY2Vudi5oPiBpcyBvbmx5IGluY2x1
-ZGVkIGJ5IDxhY3BpL2FjcGkuaD4uDQo+ID4gQW5kIDxhY3BpL2FjcGkuaD4gaXMgb25seSBpbmNs
-dWRlZCBieQ0KPiA+IDEuIDxsaW51eC9hY3BpLmg+IHdoZW4gQ09ORklHX0FDUEkgZW5hYmxlZA0K
-PiA+IDIuIDxsaW51eC9zZmlfYWNwaS5oPiAtIHRoaXMgaXMgeDg2IHNwZWNpZmljLCB3ZSdsbCBj
-bGVhbiBpdCB1cCBieSBpbXBsZW1lbnRpbmcgc3R1YnMgZm9yIGFsbCBBQ1BJIGV4dGVybmFsIGlu
-dGVyZmFjZXMuDQo+ID4gU28gdGhlcmUgaXMgbm8gY2FzZSB3ZSBuZWVkIHRvIGV4Y2x1ZGUgPGFz
-bS9hY2Vudi5oPiB3aGVuIENPTkZJR19BQ1BJIGlzIG5vdCBlbmFibGVkLg0KPiA+DQo+ID4gSSBj
-YW5ub3QgZmluZCBsaW51eC9tYXRjaC5oIGhlcmUuDQo+ID4gSWYgPGxpbnV4L21hdGNoLmg+IHdh
-bnQgdG8gaW5jbHVkZSBBQ1BJIGZlYXR1cmVzLCBpdCBzaG91bGRuJ3QgaW5jbHVkZSA8YWNwaS9h
-Y3BpLmg+LCBidXQgc2hvdWxkIGluY2x1ZGUgPGxpbnV4L2FjcGkuaD4uDQo+ID4gUGxlYXNlIHJl
-ZmVyIHRvOg0KPiA+IGh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvY2dpdC9saW51eC9rZXJuZWwvZ2l0
-L3RvcnZhbGRzL2xpbnV4LmdpdC9jb21taXQvP2lkPThiNDg0NjNmDQo+ID4gQW5kIHN0b3AgaW5j
-bHVkaW5nIDxhY3BpL2FjcGkuaD4gZGlyZWN0bHkgaW4gYW55IGNhc2VzLg0KPiANCj4gQWgsIEkg
-YWdyZWUsIHBsZWFzZSBpZ25vcmUgbXkgcHJldmlvdXMgZW1haWwsDQo+IHNvcnJ5IGZvciB0aGUg
-bm9pc2UuDQo+IA0KPiBTaW5jZSBpdCBpcyB2ZXJ5IGltcG9ydGFudCB0byBpbmNsdWRlIDxsaW51
-eC9hY3BpLmg+IGJ1dCBub3QgPGFjcGkvYWNwaS5oPiwNCj4gY2FuIHdlIGRvY3VtZW50IGl0IHNv
-bWV3aGVyZSBhcyB0aGUgZ3VpZGFuY2U/IFRoZW4gcGVvcGxlIHdpbGwgbm90DQo+IG1ha2Ugc3Vj
-aCBtaXN0YWtlIDopDQoNCkFmdGVyIEkgdGVzdCB0aGUgQUNQSUNBIHN0dWJzIGFuZCByZW1vdmUg
-dGhlIG9ubHkgYWJub3JtYWwgZGlyZWN0IDxhY3BpL2FjcGkuaD4gaW5jbHVzaW9uIGZyb20gPGxp
-bnV4L3NmaV9hY3BpLmg+Lg0KV2UgY291bGQgaGF2ZSBhIGNvbW1pdCB0byBhZGQgc29tZXRoaW5n
-IGxpa2U6DQoNCiNpZm5kZWYgX0xJTlVYX0FDUElfSA0KI2Vycm9yIC4uLi4NCiNlbmRpZg0KVG8g
-dGhlIDxhY3BpL3BsYXRmb3JtL2FjbGludXguaD4gKHRoZSBMaW51eCBPU0wgZm9yIEFDUElDQSBo
-ZWFkZXJzLCBpdCBpcyBpbmNsdWRlZCBieSA8YWNwaS9hY3BpLmg+KS4NCkhvcGUgdGhpcyBjYW4g
-YmUgdGhlIGhpbnQgdG8gcHJldmVudCBmdXR1cmUgbWlzdGFrZXMuDQoNClRoYW5rcyBhbmQgYmVz
-dCByZWdhcmRzDQotTHYNCg0KDQo+IA0KPiBUaGFua3MNCj4gSGFuanVuDQoNCg==
+On Wednesday, June 04, 2014 08:55:59 AM David E. Box wrote:
+> From: Randy Wright <rwright@hp.com>
+> 
+> Use acpi_os_map_generic_address to pre-map the reset register if it is memory
+> mapped, thereby preventing https://bugzilla.kernel.org/show_bug.cgi?id=77131
+> 
+> Signed-off-by: Randy Wright <rwright@hp.com>
+> Signed-off-by: David E. Box <david.e.box@linux.intel.com>
+
+Applied with minor changes, thanks!.
+
+Please check the bleeding-edge branch of the linux-pm.git tree.
+
+Rafael
+
+
+> ---
+>  drivers/acpi/osl.c |   15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 6776c59..5325844 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -1798,6 +1798,19 @@ acpi_status __init acpi_os_initialize(void)
+>  	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
+>  	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
+>  	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
+> +	if (acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) {
+> +		/*
+> +		 * Use acpi_os_map_generic_address to pre-map the reset
+> +		 * register if it's in system memory, thereby preventing
+> +		 * https://bugzilla.kernel.org/show_bug.cgi?id=77131
+> +		 */
+> +		int rv;
+> +		struct acpi_generic_address *reset_reg
+> +			= &acpi_gbl_FADT.reset_register;
+> +		rv = acpi_os_map_generic_address(reset_reg);
+> +		pr_info(PREFIX
+> +			"%s: map reset_reg status %d\n", __func__, rv);
+> +	}
+>  
+>  	return AE_OK;
+>  }
+> @@ -1826,6 +1839,8 @@ acpi_status acpi_os_terminate(void)
+>  	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
+>  	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
+>  	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
+> +	if (acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER)
+> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.reset_register);
+>  
+>  	destroy_workqueue(kacpid_wq);
+>  	destroy_workqueue(kacpi_notify_wq);
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
