@@ -1,77 +1,33 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: Fix bug when acpi reset register is implemented in system memory
-Date: Thu, 05 Jun 2014 14:58:22 +0200
-Message-ID: <7970700.XBb1Ob3tCb@vostro.rjw.lan>
-References: <1401897359-28873-1-git-send-email-david.e.box@linux.intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] Revert "ACPI / Battery: Remove battery's proc
+ directory" and "ACPI: Remove CONFIG_ACPI_PROCFS_POWER and cm_sbsc.c"
+Date: Thu, 5 Jun 2014 15:47:30 +0200
+Message-ID: <20140605134730.GA13859@amd.pavel.ucw.cz>
+References: <1398872369-2755-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51294 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751015AbaFEMlH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jun 2014 08:41:07 -0400
-In-Reply-To: <1401897359-28873-1-git-send-email-david.e.box@linux.intel.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33170 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751507AbaFENrd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jun 2014 09:47:33 -0400
+Content-Disposition: inline
+In-Reply-To: <1398872369-2755-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "David E. Box" <david.e.box@linux.intel.com>
-Cc: lenb@kernel.org, Randy Wright <rwright@hp.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, June 04, 2014 08:55:59 AM David E. Box wrote:
-> From: Randy Wright <rwright@hp.com>
-> 
-> Use acpi_os_map_generic_address to pre-map the reset register if it is memory
-> mapped, thereby preventing https://bugzilla.kernel.org/show_bug.cgi?id=77131
-> 
-> Signed-off-by: Randy Wright <rwright@hp.com>
-> Signed-off-by: David E. Box <david.e.box@linux.intel.com>
+Hi!
 
-Applied with minor changes, thanks!.
+> The commit 1e2d9cd and 7d7ee95 remove ACPI Proc Battery
+> directory and breaks some old userspace tools. This patch
+> is to revert them.
 
-Please check the bleeding-edge branch of the linux-pm.git tree.
+Quick test shows that battery files are back in 3.15-rc8. Thanks!
 
-Rafael
-
-
-> ---
->  drivers/acpi/osl.c |   15 +++++++++++++++
->  1 file changed, 15 insertions(+)
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 6776c59..5325844 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -1798,6 +1798,19 @@ acpi_status __init acpi_os_initialize(void)
->  	acpi_os_map_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
->  	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe0_block);
->  	acpi_os_map_generic_address(&acpi_gbl_FADT.xgpe1_block);
-> +	if (acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER) {
-> +		/*
-> +		 * Use acpi_os_map_generic_address to pre-map the reset
-> +		 * register if it's in system memory, thereby preventing
-> +		 * https://bugzilla.kernel.org/show_bug.cgi?id=77131
-> +		 */
-> +		int rv;
-> +		struct acpi_generic_address *reset_reg
-> +			= &acpi_gbl_FADT.reset_register;
-> +		rv = acpi_os_map_generic_address(reset_reg);
-> +		pr_info(PREFIX
-> +			"%s: map reset_reg status %d\n", __func__, rv);
-> +	}
->  
->  	return AE_OK;
->  }
-> @@ -1826,6 +1839,8 @@ acpi_status acpi_os_terminate(void)
->  	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xgpe0_block);
->  	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1b_event_block);
->  	acpi_os_unmap_generic_address(&acpi_gbl_FADT.xpm1a_event_block);
-> +	if (acpi_gbl_FADT.flags & ACPI_FADT_RESET_REGISTER)
-> +		acpi_os_unmap_generic_address(&acpi_gbl_FADT.reset_register);
->  
->  	destroy_workqueue(kacpid_wq);
->  	destroy_workqueue(kacpi_notify_wq);
-> 
+								Pavel
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
