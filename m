@@ -1,67 +1,122 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [Patch V3 0/5] I2C ACPI operation region handler
-Date: Fri, 6 Jun 2014 14:28:58 +0200
-Message-ID: <20140606122858.GA2810@katana>
-References: <1400590764-11108-1-git-send-email-tianyu.lan@intel.com>
- <53881E87.9070706@intel.com>
- <10091506.iBigojlNVE@vostro.rjw.lan>
- <20140530121046.GB2742@katana>
- <53887B77.7060907@intel.com>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
+Date: Fri, 6 Jun 2014 11:21:27 -0400
+Message-ID: <20140606112127.37d2cf95@gandalf.local.home>
+References: <20140528163452.GF17196@pd.tnic>
+	<20140528125625.6f6dcf7f@gandalf.local.home>
+	<20140530092232.GA13495@gchen.bj.intel.com>
+	<20140530100716.GE28131@pd.tnic>
+	<3908561D78D1C84285E8C5FCA982C28F32823D2B@ORSMSX114.amr.corp.intel.com>
+	<20140530210759.267a854e@gandalf.local.home>
+	<3908561D78D1C84285E8C5FCA982C28F3282545B@ORSMSX114.amr.corp.intel.com>
+	<20140602125748.7093ced8@gandalf.local.home>
+	<20140603083606.GA15476@gchen.bj.intel.com>
+	<20140603103544.207eaa6e@gandalf.local.home>
+	<20140606065141.GA10998@gchen.bj.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="azLHFNyN32YCQGCU"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:54138 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750908AbaFFM3I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Jun 2014 08:29:08 -0400
-Content-Disposition: inline
-In-Reply-To: <53887B77.7060907@intel.com>
+Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.230]:58862 "EHLO
+	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752175AbaFFPVb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Jun 2014 11:21:31 -0400
+In-Reply-To: <20140606065141.GA10998@gchen.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, mika.westerberg@linux.intel.com, awilliam@redhat.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Chen, Gong" <gong.chen@linux.intel.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+
+On Fri, 6 Jun 2014 02:51:41 -0400
+"Chen, Gong" <gong.chen@linux.intel.com> wrote:
 
 
---azLHFNyN32YCQGCU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> +/*
+> + * MCE Extended Error Log trace event
+> + *
+> + * These events are generated when hardware detects a corrected or
+> + * uncorrected event.
+> + */
+> +
+> +/* memory trace event */
+> +
+> +TRACE_EVENT(extlog_mem_event,
+> +	TP_PROTO(struct cper_sec_mem_err *mem,
+> +		 u32 err_seq,
+> +		 const uuid_le *fru_id,
+> +		 const char *fru_text,
+> +		 u8 sev),
+> +
+> +	TP_ARGS(mem, err_seq, fru_id, fru_text, sev),
+> +
+> +	TP_STRUCT__entry(
+> +		__field(u32, err_seq)
+> +		__field(u8, etype)
+> +		__field(u8, sev)
+> +		__field(u64, pa)
+> +		__field(u8, pa_mask_lsb)
+> +		__dynamic_array(char, fru, 48)
+> +		__dynamic_array(u8, data, sizeof(struct cper_mem_err_compact))
 
-On Fri, May 30, 2014 at 08:37:11PM +0800, Lan Tianyu wrote:
-> On 05/30/2014 08:10 PM, Wolfram Sang wrote:
-> >>>Hi Wolfram:
-> >>>	Since this version resolved all comments, it's ok for you?
-> >
-> >Sorry, I misunderstood. I thought a V4 was needed, but it isn't. I'll
-> >try to have a look this weekend.
-> >
-> OK. Thanks.
+For constant size arrays, don't use __dynamic_array() just use
+__array().
 
-Sorry, I didn't manage to get a deeper look into this as I wanted. Let
-me assure that your (and the other) ACPI changes have high priority for
-the next release cycle.
+Although I'd get rid of the fru and replace that with:
+
+		__field(unsigned long, fru_id)
+		__string(fru_text, fru_text)
 
 
---azLHFNyN32YCQGCU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> +	),
+> +
+> +	TP_fast_assign(
+> +		__entry->err_seq = err_seq;
+> +		if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE)
+> +			__entry->etype = mem->error_type;
+> +		else
+> +			__entry->etype = ~0;
+> +		__entry->sev = sev;
+> +		if (mem->validation_bits & CPER_MEM_VALID_PA)
+> +			__entry->pa = mem->physical_addr;
+> +		else
+> +			__entry->pa = ~0ull;
+> +
+> +		if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
+> +			__entry->pa_mask_lsb =
+> +				(u8)__ffs64(mem->physical_addr_mask);
+> +		else
+> +			__entry->pa_mask_lsb = ~0;
+> +		snprintf(__get_dynamic_array(fru), 47,
+> +			 "FRU: %pUl %.20s", fru_id, fru_text);
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Although, why not just save the id and text straight? Why format it
+here?
 
-iQIcBAEBAgAGBQJTkbQKAAoJEBQN5MwUoCm2H+EP/0gsdRZ1hTD+u05RlzIR0xXb
-5gqzMK6JTiV+U1O+468pHU1Nzi1DLbDroFrhEfqWlWOYXYl/hlyKdiq2exQYE71r
-1OMBtyYzGYqAFhyjI1eRxJ/pYed5FgUtZWaGQep3JS6sLHLqiWXVgJvOrQPHHkzL
-xQpHARJh4zpzci0uMdHuYZapMbYbMxHMzhInf0lM5X4cTgfBC0StS/sKhEJrYD7l
-/49PUg9U0bUKLJwATCLrUApGpGkxd6/uHh3jt6/0dR3IOjlr2c5YmetwwJ6xZ7IG
-Is7gjWGLUI8ZRJrPyDCYBcyQQGg2aHI8zQk4EJT9tGEbJjaBYdS23jgi5IS/Ttoh
-4OFcCvEHEAYip5vD4tfhjRSV4srRX5rpUyUpkvNnO29QQpO9igAS1QRq6nVkun7t
-9ahzmwYAOSdDJoNBjP1aGMEW2/0xwPXXQ5t+MAizMxk9aZJKs8NW50NORDkQVaps
-yWJ/oegXFVxbbwVFaek6Ws+lmXIgSXXdiVWNWiiDmH4sGsBSpUXePsP7h14oFbx5
-s2r0lPMmoqPgP9A0x5XMmSd7fUSTCr28u8TvbqT206UMGZ2/dLx8e4g+5URwh42r
-8rlM4gya8kivNJ+ritMwfXVbaidV/Y5pfrHyNa3rhC4tVDR6VEyQTmLr7XGeHEWc
-Kq8rj/Klg5SKQDh/G3oP
-=Mezk
------END PGP SIGNATURE-----
+	__entry->fru_id = fru_id;
+	__assign_str(fru_text, fru_text);
 
---azLHFNyN32YCQGCU--
+> +		cper_mem_err_pack(mem, __get_dynamic_array(data));
+> +	),
+> +
+> +	TP_printk("{%d} %s error: %s physical addr: %016llx (mask lsb: %x) %s%s",
+
+	TP_printk("{%d} %s error: %s physical addr: %016llx (mask lsb: %x) %s FRU: %pUl %.20s",
+
+> +		  __entry->err_seq,
+> +		  cper_severity_str(__entry->sev),
+> +		  cper_mem_err_type_str(__entry->etype),
+> +		  __entry->pa,
+> +		  __entry->pa_mask_lsb,
+> +		  cper_mem_err_unpack(p, __get_dynamic_array(data)),
+> +		  __get_str(fru))
+
+		__entry->fru_id,
+		__get_str(fru_text))
+
+-- Steve
+
+> +);
+>  
+>  /*
+>   * Hardware Events Report
+
