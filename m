@@ -1,108 +1,125 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
-Date: Sun, 8 Jun 2014 21:10:15 -0400
-Message-ID: <20140609011015.GA26536@gchen.bj.intel.com>
-References: <20140530092232.GA13495@gchen.bj.intel.com>
- <20140530100716.GE28131@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F32823D2B@ORSMSX114.amr.corp.intel.com>
- <20140530210759.267a854e@gandalf.local.home>
- <3908561D78D1C84285E8C5FCA982C28F3282545B@ORSMSX114.amr.corp.intel.com>
- <20140602125748.7093ced8@gandalf.local.home>
- <20140603083606.GA15476@gchen.bj.intel.com>
- <20140603103544.207eaa6e@gandalf.local.home>
- <20140606065141.GA10998@gchen.bj.intel.com>
- <20140606112127.37d2cf95@gandalf.local.home>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jRHKVT23PllUwdXP"
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: [PATCH] ACPICA: Add mutex to avoid race condition of reference count of notify object
+Date: Mon,  9 Jun 2014 12:14:06 +0800
+Message-ID: <1402287246-10669-1-git-send-email-jlee@suse.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:6523 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753487AbaFIBie (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 8 Jun 2014 21:38:34 -0400
-Content-Disposition: inline
-In-Reply-To: <20140606112127.37d2cf95@gandalf.local.home>
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:46809 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750729AbaFIESG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jun 2014 00:18:06 -0400
+Received: by mail-pa0-f43.google.com with SMTP id rd3so312224pab.16
+        for <linux-acpi@vger.kernel.org>; Sun, 08 Jun 2014 21:18:06 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Cc: linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>
 
+This issue found on v3.0 kernel, unfortunately there was no chance
+to test latest kernel on issue mchine. This patch tested on v3.0 kernel
+then sent to linux-acpi for review and note, maybe latest kernel also need.
 
---jRHKVT23PllUwdXP
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The problem happened when acpi thermal driver evaluate _PSL, but acpi
+processor driver install notify handler at the same time. In the
+code path of evaluate _PSL, it updates reference count of processor
+and its notify objects. When the notify handler installation done
+after the reference count of processor updated, it causes the
+ref_count of processor doesn't sync with its notify object's
+ref_count value.
 
-On Fri, Jun 06, 2014 at 11:21:27AM -0400, Steven Rostedt wrote:
-> Date: Fri, 6 Jun 2014 11:21:27 -0400
-> From: Steven Rostedt <rostedt@goodmis.org>
-> To: "Chen, Gong" <gong.chen@linux.intel.com>
-> Cc: "Luck, Tony" <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
->  "m.chehab@samsung.com" <m.chehab@samsung.com>,
->  "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML
->  <linux-kernel@vger.kernel.org>
-> Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
-> X-Mailer: Claws Mail 3.9.3 (GTK+ 2.24.23; x86_64-pc-linux-gnu)
->=20
-> On Fri, 6 Jun 2014 02:51:41 -0400
-> "Chen, Gong" <gong.chen@linux.intel.com> wrote:
->=20
->=20
-> > +/*
-> > + * MCE Extended Error Log trace event
-> > + *
-> > + * These events are generated when hardware detects a corrected or
-> > + * uncorrected event.
-> > + */
-> > +
-> > +/* memory trace event */
-> > +
-> > +TRACE_EVENT(extlog_mem_event,
-> > +	TP_PROTO(struct cper_sec_mem_err *mem,
-> > +		 u32 err_seq,
-> > +		 const uuid_le *fru_id,
-> > +		 const char *fru_text,
-> > +		 u8 sev),
-> > +
-> > +	TP_ARGS(mem, err_seq, fru_id, fru_text, sev),
-> > +
-> > +	TP_STRUCT__entry(
-> > +		__field(u32, err_seq)
-> > +		__field(u8, etype)
-> > +		__field(u8, sev)
-> > +		__field(u64, pa)
-> > +		__field(u8, pa_mask_lsb)
-> > +		__dynamic_array(char, fru, 48)
-> > +		__dynamic_array(u8, data, sizeof(struct cper_mem_err_compact))
->=20
-> For constant size arrays, don't use __dynamic_array() just use
-> __array().
->=20
-Thanks a lot! I will update it.
+Here is an debugging log when issue reproduced:
 
-BTW, any comments from other guys? Boris, Tony? If not, I will send out the
-new version tomorrow.
+[    3.481773] ACPI_TYPE_PROCESSOR set ACPI_DEVICE_NOTIFY, object_desc->common.reference_count: 3, notify_obj->common.reference_count: 1
+[    3.481958] PROCESSOR device_hid: LNXCPU
+...
+[    3.487427] ACPI_TYPE_PROCESSOR, action = 1
+[    3.487428] Update device_notify ref_count
+[    3.487429] REF_DECREMENT ACPI_TYPE_LOCAL_NOTIFY original_count: 0
+[    3.487431] ACPI Warning: Obj ffff8800b0f40b28, Reference Count is already zero, cannot decrement
+[    3.487433]  (20110413/utdelete-431)
+[    3.487434] REF_DECREMENT ACPI_TYPE_PROCESSOR original_count: 2
 
---jRHKVT23PllUwdXP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Accroding log, found the reference_count of parent object
+(it's processor in this case) is 3, it doesn't match with notify_object's
+reference_count, value is 1. It triggered "Reference Count is already zero"
+warning, then happen object double free issue later.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+To avoid rece condition, this patch introded ACPI_MTX_NOTIFY_REF_COUNT
+mutex to keep the ref_count of notify object sync with its parent
+object. And, it also set the reference_count value of new notify object
+equals to its parent object's reference_count.
 
-iQIcBAEBAgAGBQJTlQl3AAoJEI01n1+kOSLHJDoQAJR275d+5yxWI3uD87vKSwYd
-KtlCCOYPLnufEsCXWtHgxctTyKljD50q+6davMeirPRg6ZMAtG2FoM3p+3GcDVg8
-tf50E6ZLPZmK8Do96uJ51mMBoGke3bUWNWVz2T4iMnqEWAPA3cGXuDC2vnJc81A4
-BexV8ic1boPe4B9qSOr7xDfqjff5R95EhVmmuSCnc7mIXPKT8FbMmAHNPSGRmA2y
-Wv20dQRc9Gl7Jkrk3MvUcjkvNlCLJho3PsNZtM8figPVigOrrm3oimd/NEzJmaYs
-A063W5fMn0UcBVxy8Eyv5GyVNC9DMGOw6VrqXOl1lWpKuP/7kU1bZ056eZxAGtlg
-rgEPlEMSeEjnpX5XqxcwhlRU8bD0wJf6Mfvp2lBngbNlKOamPHhGIDPFD7BNNZ8A
-unK6RWu4bOpWO5oYyP8gnV5B3B5ztng5FzGfnMB9MayZqQT/9oXkBwwlDKQz5/GE
-uHFdIhZLvyZQ0C99AAVCkvNSjz4T78+MMIP/ZnWl654ljAaUbqsCsybn36x9x7FL
-EfATmXRW9KHCY/REnyG/VRythH7rpu3Y4uqw3ONRHSVO8vtWRyPyw25Qqp1T25x7
-MUF5r48XckiLpbK5ilj4VfXCCgS0SDaa9r2osf5cy8dEFPYvcydjmkZpAkRQMfK5
-SneuHpoFiHpHvAdT/CH2
-=8yEV
------END PGP SIGNATURE-----
+Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+---
+ drivers/acpi/acpica/aclocal.h  | 3 ++-
+ drivers/acpi/acpica/evxface.c  | 7 ++++++-
+ drivers/acpi/acpica/utdelete.c | 6 ++++++
+ 3 files changed, 14 insertions(+), 2 deletions(-)
 
---jRHKVT23PllUwdXP--
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index c7f743c..e25a4af 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -85,8 +85,9 @@ union acpi_parse_object;
+ #define ACPI_MTX_MEMORY                 5	/* Debug memory tracking lists */
+ #define ACPI_MTX_DEBUG_CMD_COMPLETE     6	/* AML debugger */
+ #define ACPI_MTX_DEBUG_CMD_READY        7	/* AML debugger */
++#define ACPI_MTX_NOTIFY_REF_COUNT	8	/* Reference count of notify object */
+ 
+-#define ACPI_MAX_MUTEX                  7
++#define ACPI_MAX_MUTEX                  8
+ #define ACPI_NUM_MUTEX                  ACPI_MAX_MUTEX+1
+ 
+ /* Lock structure for reader/writer interfaces */
+diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
+index e114140..213fe1a 100644
+--- a/drivers/acpi/acpica/evxface.c
++++ b/drivers/acpi/acpica/evxface.c
+@@ -495,6 +495,10 @@ acpi_install_notify_handler(acpi_handle device,
+ 						handler, context,
+ 						NULL);
+ 
++		acpi_ut_acquire_mutex(ACPI_MTX_NOTIFY_REF_COUNT);
++
++		notify_obj->common.reference_count = obj_desc->common.reference_count;
++
+ 		if (handler_type & ACPI_SYSTEM_NOTIFY) {
+ 			obj_desc->common_notify.system_notify = notify_obj;
+ 		}
+@@ -503,8 +507,9 @@ acpi_install_notify_handler(acpi_handle device,
+ 			obj_desc->common_notify.device_notify = notify_obj;
+ 		}
+ 
+-		if (handler_type == ACPI_ALL_NOTIFY) {
++		acpi_ut_release_mutex(ACPI_MTX_NOTIFY_REF_COUNT);
+ 
++		if (handler_type == ACPI_ALL_NOTIFY) {
+ 			/* Extra ref if installed in both */
+ 
+ 			acpi_ut_add_reference(notify_obj);
+diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
+index 31f5a78..7559813 100644
+--- a/drivers/acpi/acpica/utdelete.c
++++ b/drivers/acpi/acpica/utdelete.c
+@@ -504,6 +504,7 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+ 
+ 			/* Update the notify objects for these types (if present) */
+ 
++			acpi_ut_acquire_mutex(ACPI_MTX_NOTIFY_REF_COUNT);
+ 			acpi_ut_update_ref_count(object->common_notify.
+ 						 system_notify, action);
+ 			acpi_ut_update_ref_count(object->common_notify.
+@@ -592,6 +593,11 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+ 		 * main object to be deleted.
+ 		 */
+ 		acpi_ut_update_ref_count(object, action);
++		if (object->common.type == ACPI_TYPE_PROCESSOR ||
++		    object->common.type == ACPI_TYPE_DEVICE ||
++		    object->common.type == ACPI_TYPE_POWER ||
++		    object->common.type == ACPI_TYPE_THERMAL)
++			acpi_ut_release_mutex(ACPI_MTX_NOTIFY_REF_COUNT);
+ 		object = NULL;
+ 
+ 		/* Move on to the next object to be updated */
+-- 
+1.8.4.5
+
