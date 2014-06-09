@@ -1,94 +1,137 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch V4 42/42] x86, irq: clean up irqdomain transition code
-Date: Mon,  9 Jun 2014 16:20:11 +0800
-Message-ID: <1402302011-23642-43-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch V4 37/42] x86, irq: introduce helper functions to release IOAPIC pin
+Date: Mon,  9 Jun 2014 16:20:06 +0800
+Message-ID: <1402302011-23642-38-git-send-email-jiang.liu@linux.intel.com>
 References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:59321 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754016AbaFIIZC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Jun 2014 04:25:02 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-Now we have completely switched to irqdomain, so clean up transition code
-in IOAPIC drivers.
+Introduce function mp_unmap_irq() to release IOAPIC IRQ when IRQ is not
+used any more, which will typically called by pcibios_disabled_irq.
+
+And function mp_irqdomain_unmap() is a common implementation of
+irq_domain_ops.unmap for IOAPIC.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/kernel/apic/io_apic.c |   28 +++++++++++-----------------
- 1 file changed, 11 insertions(+), 17 deletions(-)
+ arch/x86/include/asm/io_apic.h |    3 ++
+ arch/x86/kernel/apic/io_apic.c |   61 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+)
 
+diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
+index af6f9d4309bf..0aeed5ca356e 100644
+--- a/arch/x86/include/asm/io_apic.h
++++ b/arch/x86/include/asm/io_apic.h
+@@ -187,10 +187,12 @@ extern int mp_find_ioapic(u32 gsi);
+ extern int mp_find_ioapic_pin(int ioapic, u32 gsi);
+ extern u32 mp_pin_to_gsi(int ioapic, int pin);
+ extern int mp_map_gsi_to_irq(u32 gsi, unsigned int flags);
++extern void mp_unmap_irq(int irq);
+ extern void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
+ 				      struct ioapic_domain_cfg *cfg);
+ extern int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
+ 			    irq_hw_number_t hwirq);
++extern void mp_irqdomain_unmap(struct irq_domain *domain, unsigned int virq);
+ extern int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node);
+ extern void __init pre_init_apic_IRQ0(void);
+ 
+@@ -234,6 +236,7 @@ static inline void ioapic_insert_resources(void) { }
+ static inline int mp_find_ioapic(u32 gsi) { return 0; }
+ static inline u32 mp_pin_to_gsi(int ioapic, int pin) { return UINT_MAX; }
+ static inline int mp_map_gsi_to_irq(u32 gsi, unsigned int flags) { return gsi; }
++static inline void mp_unmap_irq(int irq) { }
+ 
+ static inline int save_ioapic_entries(void)
+ {
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 60555354b331..26490336ef6f 100644
+index 5fc76cf51e44..60555354b331 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -86,6 +86,7 @@ static DEFINE_RAW_SPINLOCK(ioapic_lock);
- static DEFINE_RAW_SPINLOCK(vector_lock);
- static DEFINE_MUTEX(ioapic_mutex);
- static unsigned int ioapic_dynirq_base;
-+static int ioapic_initialized;
+@@ -467,6 +467,21 @@ static int __add_pin_to_irq_node(struct irq_cfg *cfg, int node, int apic, int pi
+ 	return 0;
+ }
  
- struct mp_pin_info {
- 	int trigger;
-@@ -1034,13 +1035,8 @@ static int mp_map_pin_to_irq(u32 gsi, int idx, int ioapic, int pin,
- 	struct irq_domain *domain = mp_ioapic_irqdomain(ioapic);
- 	struct mp_pin_info *info = mp_pin_info(ioapic, pin);
- 
--	if (!domain) {
--		/*
--		 * Provide an identity mapping of gsi == irq except on truly
--		 * weird platforms that have non isa irqs in the first 16 gsis.
--		 */
--		return gsi >= nr_legacy_irqs() ? gsi : gsi_top + gsi;
--	}
-+	if (!domain)
-+		return -1;
- 
- 	mutex_lock(&ioapic_mutex);
- 
-@@ -2986,6 +2982,8 @@ void __init setup_IO_APIC(void)
- 	init_IO_APIC_traps();
- 	if (nr_legacy_irqs())
- 		check_timer();
++static void __remove_pin_from_irq(struct irq_cfg *cfg, int apic, int pin)
++{
++	struct irq_pin_list **last, *entry;
 +
-+	ioapic_initialized = 1;
- }
- 
- /*
-@@ -3457,12 +3455,11 @@ static int __init io_apic_get_redir_entries(int ioapic)
- 
- unsigned int arch_dynirq_lower_bound(unsigned int from)
++	last = &cfg->irq_2_pin;
++	for_each_irq_pin(entry, cfg->irq_2_pin)
++		if (entry->apic == apic && entry->pin == pin) {
++			*last = entry->next;
++			kfree(entry);
++			return;
++		} else {
++			last = &entry->next;
++		}
++}
++
+ static void add_pin_to_irq_node(struct irq_cfg *cfg, int node, int apic, int pin)
  {
--	unsigned int min = gsi_top + nr_legacy_irqs();
--
--	if (ioapic_dynirq_base)
--		return ioapic_dynirq_base;
--
--	return from < min ? min : from;
-+	/*
-+	 * dmar_alloc_hwirq() may be called before setup_IO_APIC(), so use
-+	 * gsi_top if ioapic_dynirq_base hasn't been initialized yet.
-+	 */
-+	return ioapic_initialized ? ioapic_dynirq_base : gsi_top;
+ 	if (__add_pin_to_irq_node(cfg, node, apic, pin))
+@@ -1119,6 +1134,31 @@ int mp_map_gsi_to_irq(u32 gsi, unsigned int flags)
+ 	return mp_map_pin_to_irq(gsi, idx, ioapic, pin, flags);
  }
  
- int __init arch_probe_nr_irqs(void)
-@@ -3837,10 +3834,7 @@ void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
- 	ioapics[idx].mp_config.flags = MPC_APIC_USABLE;
- 	ioapics[idx].mp_config.apicaddr = address;
- 	ioapics[idx].irqdomain = NULL;
--	if (cfg)
--		ioapics[idx].irqdomain_cfg = *cfg;
--	else
--		ioapics[idx].irqdomain_cfg.type = IOAPIC_DOMAIN_INVALID;
-+	ioapics[idx].irqdomain_cfg = *cfg;
++void mp_unmap_irq(int irq)
++{
++	struct irq_data *data = irq_get_irq_data(irq);
++	struct mp_pin_info *info;
++	int ioapic, pin;
++
++	if (!data || !data->domain)
++		return;
++
++	ioapic = (int)(long)data->domain->host_data;
++	pin = (int)data->hwirq;
++	info = mp_pin_info(ioapic, pin);
++
++	mutex_lock(&ioapic_mutex);
++	if (--info->count == 0) {
++		info->set = 0;
++		if (irq < nr_legacy_irqs() &&
++		    ioapics[ioapic].irqdomain_cfg.type == IOAPIC_DOMAIN_LEGACY)
++			mp_irqdomain_unmap(data->domain, irq);
++		else
++			irq_dispose_mapping(irq);
++	}
++	mutex_unlock(&ioapic_mutex);
++}
++
+ /*
+  * Find a specific PCI IRQ entry.
+  * Not an __init, possibly needed by modules
+@@ -3874,6 +3914,27 @@ int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
+ 	return io_apic_setup_irq_pin(virq, info->node, &attr);
+ }
  
- 	set_fixmap_nocache(FIX_IO_APIC_BASE_0 + idx, address);
- 
++void mp_irqdomain_unmap(struct irq_domain *domain, unsigned int virq)
++{
++	struct irq_data *data = irq_get_irq_data(virq);
++	struct irq_cfg *cfg = irq_cfg(virq);
++	int ioapic = (int)(long)domain->host_data;
++	int pin = (int)data->hwirq;
++
++	/*
++	 * Skip the timer IRQ if there's a quirk handler installed and if it
++	 * returns 1:
++	 */
++	if (apic->multi_timer_check &&
++	    apic->multi_timer_check(ioapic, virq))
++		return;
++
++	ioapic_mask_entry(ioapic, pin);
++	__remove_pin_from_irq(cfg, ioapic, pin);
++	WARN_ON(cfg->irq_2_pin != NULL);
++	arch_teardown_hwirq(virq);
++}
++
+ int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node)
+ {
+ 	int ret = 0;
 -- 
 1.7.10.4
-
