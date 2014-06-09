@@ -1,43 +1,108 @@
-From: John Hupp <linux-acpi@prpcompany.com>
-Subject: Permission denied when trying to edit/create acpi thermal trip points
-Date: Sat, 07 Jun 2014 12:05:24 -0400
-Message-ID: <53933844.3090409@prpcompany.com>
-References: <53908132.3060105@prpcompany.com>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
+Date: Sun, 8 Jun 2014 21:10:15 -0400
+Message-ID: <20140609011015.GA26536@gchen.bj.intel.com>
+References: <20140530092232.GA13495@gchen.bj.intel.com>
+ <20140530100716.GE28131@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F32823D2B@ORSMSX114.amr.corp.intel.com>
+ <20140530210759.267a854e@gandalf.local.home>
+ <3908561D78D1C84285E8C5FCA982C28F3282545B@ORSMSX114.amr.corp.intel.com>
+ <20140602125748.7093ced8@gandalf.local.home>
+ <20140603083606.GA15476@gchen.bj.intel.com>
+ <20140603103544.207eaa6e@gandalf.local.home>
+ <20140606065141.GA10998@gchen.bj.intel.com>
+ <20140606112127.37d2cf95@gandalf.local.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jRHKVT23PllUwdXP"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from p3plsmtpa09-03.prod.phx3.secureserver.net ([173.201.193.232]:56797
-	"EHLO p3plsmtpa09-03.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752973AbaFGQNk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jun 2014 12:13:40 -0400
-In-Reply-To: <53908132.3060105@prpcompany.com>
+Received: from mga09.intel.com ([134.134.136.24]:6523 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753487AbaFIBie (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 8 Jun 2014 21:38:34 -0400
+Content-Disposition: inline
+In-Reply-To: <20140606112127.37d2cf95@gandalf.local.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Trying to edit an acpi thermal trip point from /sys/class/thermal/thermal_zone0:
 
-$ echo 75000 > trip_point_1_temp
-bash: trip_point_1_temp: Permission denied
+--jRHKVT23PllUwdXP
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I get the same result using sudo.
+On Fri, Jun 06, 2014 at 11:21:27AM -0400, Steven Rostedt wrote:
+> Date: Fri, 6 Jun 2014 11:21:27 -0400
+> From: Steven Rostedt <rostedt@goodmis.org>
+> To: "Chen, Gong" <gong.chen@linux.intel.com>
+> Cc: "Luck, Tony" <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
+>  "m.chehab@samsung.com" <m.chehab@samsung.com>,
+>  "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML
+>  <linux-kernel@vger.kernel.org>
+> Subject: Re: [PATCH 5/7 v6] trace, RAS: Add eMCA trace event interface
+> X-Mailer: Claws Mail 3.9.3 (GTK+ 2.24.23; x86_64-pc-linux-gnu)
+>=20
+> On Fri, 6 Jun 2014 02:51:41 -0400
+> "Chen, Gong" <gong.chen@linux.intel.com> wrote:
+>=20
+>=20
+> > +/*
+> > + * MCE Extended Error Log trace event
+> > + *
+> > + * These events are generated when hardware detects a corrected or
+> > + * uncorrected event.
+> > + */
+> > +
+> > +/* memory trace event */
+> > +
+> > +TRACE_EVENT(extlog_mem_event,
+> > +	TP_PROTO(struct cper_sec_mem_err *mem,
+> > +		 u32 err_seq,
+> > +		 const uuid_le *fru_id,
+> > +		 const char *fru_text,
+> > +		 u8 sev),
+> > +
+> > +	TP_ARGS(mem, err_seq, fru_id, fru_text, sev),
+> > +
+> > +	TP_STRUCT__entry(
+> > +		__field(u32, err_seq)
+> > +		__field(u8, etype)
+> > +		__field(u8, sev)
+> > +		__field(u64, pa)
+> > +		__field(u8, pa_mask_lsb)
+> > +		__dynamic_array(char, fru, 48)
+> > +		__dynamic_array(u8, data, sizeof(struct cper_mem_err_compact))
+>=20
+> For constant size arrays, don't use __dynamic_array() just use
+> __array().
+>=20
+Thanks a lot! I will update it.
 
-I also tried with the same result:
+BTW, any comments from other guys? Boris, Tony? If not, I will send out the
+new version tomorrow.
 
-$ echo 75000 | sudo tee trip_point_1_temp
-and
-$ sudo sh -c "echo 75000 > trip_point_1_temp"
+--jRHKVT23PllUwdXP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-I also tried "echo -n" instead of just "echo" with the same result.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-I also tried echo "75000" instead of just echo 75000.
+iQIcBAEBAgAGBQJTlQl3AAoJEI01n1+kOSLHJDoQAJR275d+5yxWI3uD87vKSwYd
+KtlCCOYPLnufEsCXWtHgxctTyKljD50q+6davMeirPRg6ZMAtG2FoM3p+3GcDVg8
+tf50E6ZLPZmK8Do96uJ51mMBoGke3bUWNWVz2T4iMnqEWAPA3cGXuDC2vnJc81A4
+BexV8ic1boPe4B9qSOr7xDfqjff5R95EhVmmuSCnc7mIXPKT8FbMmAHNPSGRmA2y
+Wv20dQRc9Gl7Jkrk3MvUcjkvNlCLJho3PsNZtM8figPVigOrrm3oimd/NEzJmaYs
+A063W5fMn0UcBVxy8Eyv5GyVNC9DMGOw6VrqXOl1lWpKuP/7kU1bZ056eZxAGtlg
+rgEPlEMSeEjnpX5XqxcwhlRU8bD0wJf6Mfvp2lBngbNlKOamPHhGIDPFD7BNNZ8A
+unK6RWu4bOpWO5oYyP8gnV5B3B5ztng5FzGfnMB9MayZqQT/9oXkBwwlDKQz5/GE
+uHFdIhZLvyZQ0C99AAVCkvNSjz4T78+MMIP/ZnWl654ljAaUbqsCsybn36x9x7FL
+EfATmXRW9KHCY/REnyG/VRythH7rpu3Y4uqw3ONRHSVO8vtWRyPyw25Qqp1T25x7
+MUF5r48XckiLpbK5ilj4VfXCCgS0SDaa9r2osf5cy8dEFPYvcydjmkZpAkRQMfK5
+SneuHpoFiHpHvAdT/CH2
+=8yEV
+-----END PGP SIGNATURE-----
 
-I also tried the above commands from /sys/devices/virtual/thermal/thermal_zone0 (where the links from /sys/class/thermal point), all with the same result.
-
-These thermal attributes are supposed to be editable by the user, and this is confirmed byhttp://www.kernel.org/doc/Documentation/thermal/x86_pkg_temperature_thermal
-
-I have read that there was one or more kernel bugs in the past that behaved this way.  Is this a bug, or is there a proper way to edit/create/save these thermal attributes?
-
-This is under Lubuntu 14.04 32-bit desktop version, with kernel 3.13.0-27.50-generic.  But I get the same results going back to Lubuntu 12.04, also with Kubuntu and Ubuntu.
-
+--jRHKVT23PllUwdXP--
