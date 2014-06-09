@@ -1,47 +1,82 @@
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
-Subject: Re: [Patch V4 11/42] x86, ioapic: kill unused global variable
- timer_through_8259
-Date: Mon, 9 Jun 2014 15:41:12 +0100 (BST)
-Message-ID: <alpine.LFD.2.11.1406091538320.14982@eddie.linux-mips.org>
-References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com> <1402302011-23642-12-git-send-email-jiang.liu@linux.intel.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [Patch V4 08/42] x86, ACPI, irq: enhance error handling in
+ function acpi_register_gsi()
+Date: Tue, 10 Jun 2014 01:19:11 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1406100113070.3830@nanos>
+References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com> <1402302011-23642-9-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-Received: from localhost.localdomain ([127.0.0.1]:35751 "EHLO
-        localhost.localdomain" rhost-flags-OK-OK-OK-OK)
-        by eddie.linux-mips.org with ESMTP id S6822318AbaFIOlMtHKhH (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org> + 2 others);
-        Mon, 9 Jun 2014 16:41:12 +0200
-In-Reply-To: <1402302011-23642-12-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1402302011-23642-9-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
 To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 On Mon, 9 Jun 2014, Jiang Liu wrote:
 
-> index d4aba16e6bbf..94a56c233e87 100644
-> --- a/arch/x86/kernel/apic/io_apic.c
-> +++ b/arch/x86/kernel/apic/io_apic.c
-> @@ -2638,8 +2638,6 @@ static int __init disable_timer_pin_setup(char *arg)
->  }
->  early_param("disable_timer_pin_1", disable_timer_pin_setup);
+> Function mp_register_gsi() may return invalid GSI if error happens,
+> so enhance acpi_register_gsi() to handle possible error cases.
+
+Can you please explain how that happens? I think I know it, but it'd
+be nice if it would be documented.
+
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  arch/x86/kernel/acpi/boot.c |   10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> index 392360c607dc..f201579cd0df 100644
+> --- a/arch/x86/kernel/acpi/boot.c
+> +++ b/arch/x86/kernel/acpi/boot.c
+> @@ -97,6 +97,8 @@ static u32 isa_irq_to_gsi[NR_IRQS_LEGACY] __read_mostly = {
+>  	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+>  };
 >  
-> -int timer_through_8259 __initdata;
-> -
->  /*
->   * This code may look a bit paranoid, but it's supposed to cooperate with
->   * a wide range of boards and BIOS bugs.  Fortunately only the timer IRQ
-> @@ -2744,7 +2742,6 @@ static inline void __init check_timer(void)
->  		legacy_pic->unmask(0);
->  		if (timer_irq_works()) {
->  			apic_printk(APIC_QUIET, KERN_INFO "....... works.\n");
-> -			timer_through_8259 = 1;
->  			goto out;
->  		}
->  		/*
+> +#define	ACPI_INVALID_GSI		INT_MIN
+> +
+>  static unsigned int gsi_to_irq(unsigned int gsi)
+>  {
+>  	unsigned int irq = gsi + NR_IRQS_LEGACY;
+> @@ -441,7 +443,7 @@ static int mp_register_gsi(struct device *dev, u32 gsi, int trigger,
+>  			     polarity == ACPI_ACTIVE_HIGH ? 0 : 1);
+>  	ret = io_apic_set_pci_routing(dev, gsi_to_irq(gsi), &irq_attr);
+>  	if (ret < 0)
+> -		gsi = INT_MIN;
+> +		gsi = ACPI_INVALID_GSI;
+>  
+>  	return gsi;
+>  }
+> @@ -666,13 +668,13 @@ int (*acpi_suspend_lowlevel)(void);
+>   */
+>  int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
+>  {
+> -	unsigned int irq;
+>  	unsigned int plat_gsi = gsi;
 
- So how does the new NMI watchdog handle systems that use this '8259A 
-Virtual Wire' mode, pretty common on pre-P6 computers?
+The assignemend of gsi to plat_gsi is pointless
+  
+>  	plat_gsi = (*__acpi_register_gsi)(dev, gsi, trigger, polarity);
 
-  Maciej
+__acpi_register_gsi is a function pointer, so
+
+  	plat_gsi = __acpi_register_gsi(dev, gsi, trigger, polarity);
+
+is completely correct and way simpler to read.
+
+> -	irq = gsi_to_irq(plat_gsi);
+> +	if (plat_gsi != ACPI_INVALID_GSI)
+> +		return gsi_to_irq(plat_gsi);
+>  
+> -	return irq;
+> +	return -1;
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_register_gsi);
+
+No need to repost the whole series. Just reply with a new version to
+this.
+
+Thanks,
+
+	tglx
