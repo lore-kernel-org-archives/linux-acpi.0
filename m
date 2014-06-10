@@ -1,140 +1,171 @@
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
-Subject: Re: [Patch V4 11/42] x86, ioapic: kill unused global variable
- timer_through_8259
-Date: Tue, 10 Jun 2014 22:57:36 +0100 (BST)
-Message-ID: <alpine.LFD.2.11.1406100651500.14982@eddie.linux-mips.org>
-References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com> <1402302011-23642-12-git-send-email-jiang.liu@linux.intel.com> <alpine.LFD.2.11.1406091538320.14982@eddie.linux-mips.org> <53967992.2020808@linux.intel.com>
+From: Ben Widawsky <ben@bwidawsk.net>
+Subject: Re: Sluggish performance after resume//Re: Bug Report -
+ [Acer Aspire V5-122P] Unable to adjust screen brightness
+Date: Tue, 10 Jun 2014 15:54:57 -0700
+Message-ID: <20140610225457.GB12721@bwidawsk.net>
+References: <5382D5C6.5080001@intel.com>
+ <CADNzsyNwvGeeLzM54_CkA4tWCYnNVoRyewuqXx0vXH3t4shWHw@mail.gmail.com>
+ <CADNzsyMEi-e6d=zLET6YAtJxsyPmUdWRs6rEDt9xrf9R63uW0Q@mail.gmail.com>
+ <5383E68C.9030000@intel.com>
+ <CADNzsyMmEtvPeoKgsRyeNrxY2hH8ZJ_xhH5nLmVTtey3ad=jSg@mail.gmail.com>
+ <538D2359.4080102@intel.com>
+ <CADNzsyPQFwYwfPkFDX5BtpiGBGJM75KK-AJPE-O6YYWehGxUow@mail.gmail.com>
+ <539698BF.2010406@intel.com> <20140610165816.GA24290@bwidawsk.net>
+ <CADNzsyOZEAitYd5CPAn6eSgRso9ezPFP14ojpsB81LcYn4J96A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-Received: from localhost.localdomain ([127.0.0.1]:40459 "EHLO
-        localhost.localdomain" rhost-flags-OK-OK-OK-OK)
-        by eddie.linux-mips.org with ESMTP id S6825074AbaFJV5gmSqMo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org> + 2 others);
-        Tue, 10 Jun 2014 23:57:36 +0200
-In-Reply-To: <53967992.2020808@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Don Zickus <dzickus@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <CADNzsyOZEAitYd5CPAn6eSgRso9ezPFP14ojpsB81LcYn4J96A@mail.gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Lewis Toohey <lewis@toohey.co.uk>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, Aaron Lu <aaron.lu@intel.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 10 Jun 2014, Jiang Liu wrote:
+On Tue, Jun 10, 2014 at 08:59:32PM +0100, Lewis Toohey wrote:
+> On 10 June 2014 17:58, Ben Widawsky <ben@bwidawsk.net> wrote:
+> > On Tue, Jun 10, 2014 at 01:33:51PM +0800, Aaron Lu wrote:
+> >> +Ben Widawsky & Daniel Vetter
+> >>
+> >> On 06/09/2014 03:38 PM, Lewis Toohey wrote:
+> >> > On 3 June 2014 02:22, Aaron Lu <aaron.lu@intel.com> wrote:
+> >> >> On 05/30/2014 09:12 PM, Lewis Toohey wrote:
+> >> >>> Aaron
+> >> >>>
+> >> >>> I am in the process of performing this bisection, however, I need a
+> >> >>> bit of advice.
+> >> >>>
+> >> >>> I have got a mix of results following suspend right through from (i)
+> >> >>> system reboot; (ii) "low graphics mode" error; (iii) restore but
+> >> >>> sluggish performance; and (iv) restore but *very* sluggish
+> >> >>> performance.
+> >> >>
+> >> >> Is the sluggish performance experienced with a GUI environment?
+> >> >>
+> >> >>>
+> >> >>> What should qualify as a bad commit? Anything other than a "perfect" restore?
+> >> >>
+> >> >> I think ii/iii/iv all qualify as bad, if there is no such problem
+> >> >> in previous kernels. And yes, a perfect restore is expected, assume
+> >> >> the system is able to do a perfect restore with old kernels.
+> >> >>
+> >> >> Thanks,
+> >> >> Aaron
+> >> >>
+> >> >>>
+> >> >>> Many thanks
+> >> >>>
+> >> >
+> >> > Hi Aaron
+> >> >
+> >> > Firstly, yes the sluggish performance I was referring to is
+> >> > experienced in the GUI environment. Jerky graphics and CPU fan appears
+> >> > to max out and stay there. Old kernels (e.g. the Ubuntu default
+> >> > kernel) do not do this and just restore perfectly.
+> >> >
+> >> > I have completed the bisect as requested. Please find the full log
+> >> > below. I am slightly unconvinced, as building the previous commit in
+> >> > the log still seems to have the same problem, however, that commit is
+> >> > a "merge" and I don't really know what this means.
+> >> >
+> >> > Many thanks
+> >> >
+> >> > Bisect Log:
+> >> > git bisect start
+> >> > # good: [455c6fdbd219161bd09b1165f11699d6d73de11c] Linux 3.14
+> >> > git bisect good 455c6fdbd219161bd09b1165f11699d6d73de11c
+> >> > # bad: [c9eaa447e77efe77b7fa4c953bd62de8297fd6c5] Linux 3.15-rc1
+> >> > git bisect bad c9eaa447e77efe77b7fa4c953bd62de8297fd6c5
+> >> > # good: [cd6362befe4cc7bf589a5236d2a780af2d47bcc9] Merge
+> >> > git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next
+> >> > git bisect good cd6362befe4cc7bf589a5236d2a780af2d47bcc9
+> >> > # good: [d2b150d0647e055d7a71b1c33140280550b27dd6] Merge tag 'sh-3.15'
+> >> > of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc
+> >> > git bisect good d2b150d0647e055d7a71b1c33140280550b27dd6
+> >> > # good: [5fb6b953bb7aa86a9c8ea760934982cedc45c52b]
+> >> > include/linux/syscalls.h: add sys_renameat2() prototype
+> >> > git bisect good 5fb6b953bb7aa86a9c8ea760934982cedc45c52b
+> >> > # bad: [ffddc5fd19b219f557fd4a81168ce8784a4faced] fs/ncpfs/dir.c: fix
+> >> > indenting in ncp_lookup()
+> >> > git bisect bad ffddc5fd19b219f557fd4a81168ce8784a4faced
+> >> > # bad: [978c6050165bba52eab7ef3581d447eb215def77] Merge branch
+> >> > 'drm-docs' of ssh://people.freedesktop.org/~danvet/drm into drm-next
+> >> > git bisect bad 978c6050165bba52eab7ef3581d447eb215def77
+> >> > # bad: [262de1453184f65e5ccfe45790f93d41f7339d49] drm/i915: Directly
+> >> > return the vma from bind_to_vm
+> >> > git bisect bad 262de1453184f65e5ccfe45790f93d41f7339d49
+> >> > # bad: [031994ee8dedfa69d3a7caa43e93f3c282bc38f9] drm/i915: Implement
+> >> > WaIncreaseL3CreditsForVLVB0:vlv
+> >> > git bisect bad 031994ee8dedfa69d3a7caa43e93f3c282bc38f9
+> >> > # bad: [f72d21eddfa900bfa2674195dcc0203e18d0cc62] drm/i915: Place the
+> >> > Global GTT VM first in the list of VM
+> >> > git bisect bad f72d21eddfa900bfa2674195dcc0203e18d0cc62
+> >> > # bad: [d6660add648d10e7e35085d8c7d2653e0f9f61b7] drm/i915: Generalize
+> >> > PPGTT init
+> >> > git bisect bad d6660add648d10e7e35085d8c7d2653e0f9f61b7
+> >> > # bad: [b731d33d05dd5ce6b387cbadb0d9d24cb3732b40] drm/i915: relax
+> >> > context alignment
+> >> > git bisect bad b731d33d05dd5ce6b387cbadb0d9d24cb3732b40
+> >> > # bad: [a7b910789f77afa40ae0816d22339e9d25723c6e] drm/i915: Add vm to
+> >> > error BO capture
+> >> > git bisect bad a7b910789f77afa40ae0816d22339e9d25723c6e
+> >> > # bad: [6e164c3382314a1f63526fa7a4322a17318d0e32] drm/i915: Allow ggtt
+> >> > lookups to not WARN
+> >> > git bisect bad 6e164c3382314a1f63526fa7a4322a17318d0e32
+> >> > # bad: [6f425321e02a1b6c5e90b70f8fab7c140fcaeefb] drm/i915: Don't
+> >> > unconditionally try to deref aliasing ppgtt
+> >> > git bisect bad 6f425321e02a1b6c5e90b70f8fab7c140fcaeefb
+> >> > # bad: [e178f7057b81c87a7ceaae0ca204487b6f7eedcf] drm/i915: Provide
+> >> > PDP updates via MMIO
+> >> > git bisect bad e178f7057b81c87a7ceaae0ca204487b6f7eedcf
+> >> > # first bad commit: [e178f7057b81c87a7ceaae0ca204487b6f7eedcf]
+> >> > drm/i915: Provide PDP updates via MMIO
+> >> >
+> >>
+> >> The commit looks like related, I've added the commit author.
+> >>
+> >> Ben,
+> >> Do you have any suggestions? Does the above commit have any chance of
+> >> causing sluggish performance problem after a resume?
+> >>
+> >> Thanks,
+> >> Aaron
+> >
+> > What this comment actually does is use MMIO writes for the page tables
+> > after a GPU hang/reset. (What a poorly named commit message).
+> >
+> > Can you please provide the full dmesg with the drm.debug=0x2?
+> >
+> 
+> Hi Ben
+> 
+> Thank you for responding.
+> 
+> Just to verify that I have done this correctly, I added
+> "drm.debug=0x2" to the kernel command line (in Grub), booted,
+> suspended and resumed, and then ran Dmesg.
+> 
+> I wasn't sure exactly where to put it, so please find a copy of the output here:
+> http://www.toohey.co.uk/dmesg
+> 
+> I hope that is helpful. If you need any further information please let me know.
+> 
+> Many thanks
+> 
+> 
+> 
 
-> >> index d4aba16e6bbf..94a56c233e87 100644
-> >> --- a/arch/x86/kernel/apic/io_apic.c
-> >> +++ b/arch/x86/kernel/apic/io_apic.c
-> >> @@ -2638,8 +2638,6 @@ static int __init disable_timer_pin_setup(char *arg)
-> >>  }
-> >>  early_param("disable_timer_pin_1", disable_timer_pin_setup);
-> >>  
-> >> -int timer_through_8259 __initdata;
-> >> -
-> >>  /*
-> >>   * This code may look a bit paranoid, but it's supposed to cooperate with
-> >>   * a wide range of boards and BIOS bugs.  Fortunately only the timer IRQ
-> >> @@ -2744,7 +2742,6 @@ static inline void __init check_timer(void)
-> >>  		legacy_pic->unmask(0);
-> >>  		if (timer_irq_works()) {
-> >>  			apic_printk(APIC_QUIET, KERN_INFO "....... works.\n");
-> >> -			timer_through_8259 = 1;
-> >>  			goto out;
-> >>  		}
-> >>  		/*
-> > 
-> >  So how does the new NMI watchdog handle systems that use this '8259A 
-> > Virtual Wire' mode, pretty common on pre-P6 computers?
-> Hi Maciej,
-> 	We just kill the useless variable "timer_through_8259", 8259 virtual
-> wire mode is still supported.
+I only see radeon stuff in that dmesg. But you did the right thing to
+grub.
 
- No doubt it is useless, the question is why it is unused.  If you tracked 
-it down, you'd come up with this change of mine:
-
-commit 35542c5ebced864776d90d83d1e255016fd4c084
-Author: Maciej W. Rozycki <macro@linux-mips.org>
-Date:   Wed May 21 22:10:22 2008 +0100
-
-    x86: I/O APIC: clean up the 8259A on a NMI watchdog failure
-
-    There is no point in keeping the 8259A enabled if the I/O APIC NMI
-    watchdog has failed and the 8259A is not used to pass through regular
-    timer interrupts.  This fixes problems with some systems where some logic
-    gets confused.
-
-    Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
-
-that introduced that variable.  And to answer myself:
-
-commit 072b198a4ad48bd722ec6d203d65422a4698eae7
-Author: Don Zickus <dzickus@redhat.com>
-Date:   Fri Nov 12 11:22:24 2010 -0500
-
-    x86, nmi_watchdog: Remove all stub function calls from old nmi_watchdog
-
-    Now that the bulk of the old nmi_watchdog is gone, remove all
-    the stub variables and hooks associated with it.
-
-    This touches lots of files mainly because of how the io_apic
-    nmi_watchdog was implemented.  Now that the io_apic nmi_watchdog
-    is forever gone, remove all its fingers.
-
-    Most of this code was not being exercised by virtue of
-    nmi_watchdog != NMI_IO_APIC, so there shouldn't be anything to
-    risky here.
-
-    Signed-off-by: Don Zickus <dzickus@redhat.com>
-    Cc: fweisbec@gmail.com
-    Cc: gorcunov@openvz.org
-    LKML-Reference: <1289578944-28564-3-git-send-email-dzickus@redhat.com>
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
-
-So the I/O APIC watchdog is gone and '8259A Virtual Wire' mode systems are 
-not handled anymore.  Well, I guess it was a useful hack for its days, but 
-I understand that maintaining that rather hairy code to support a 
-minuscule set of old SMP systems (P5 or even i486 UP systems virtually 
-never had an I/O APIC, unless you just didn't populate additional 
-processor sockets; P5 SMPs were usually only DP though) still in existence 
-(mine is still all right, thanks, after 17 years; even the original boxed 
-CPU fans work great :) ) was considered not worth it.  Oh well...
-
- In that case though I think we should clean up some stale comment 
-references to that watchdog in arch/x86/kernel/apic/io_apic.c too.  It may 
-be worthwhile if code was scrutinised at that time too WRT implicit 
-hardware setup dependencies as indicated by these comments, as these 
-comments having been left behind clearly indicate that such a step has 
-never been made.
-
- And for the record, your clean-up logically belongs to this change:
-
-commit 5f2b0ba4d94b3ac23cbc4b7f675d98eb677a760a
-Author: Don Zickus <dzickus@redhat.com>
-Date:   Fri Nov 12 11:22:23 2010 -0500
-
-    x86, nmi_watchdog: Remove the old nmi_watchdog
-
-    Now that we have a new nmi_watchdog that is more generic and
-    sits on top of the perf subsystem, we really do not need the old
-    nmi_watchdog any more.
-
-    In addition, the old nmi_watchdog doesn't really work if you are
-    using the default clocksource, hpet.  The old nmi_watchdog code
-    relied on local apic interrupts to determine if the cpu is still
-    alive.  With hpet as the clocksource, these interrupts don't
-    increment any more and the old nmi_watchdog triggers false
-    postives.
-
-    This piece removes the old nmi_watchdog code and stubs out any
-    variables and functions calls.  The stubs are the same ones used
-    by the new nmi_watchdog code, so it should be well tested.
-
-    Signed-off-by: Don Zickus <dzickus@redhat.com>
-    Cc: fweisbec@gmail.com
-    Cc: gorcunov@openvz.org
-    LKML-Reference: <1289578944-28564-2-git-send-email-dzickus@redhat.com>
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
-
-that removed the lone use of `timer_through_8259'.  So it's been lingering 
-out there for some 3.5 years.  Thanks for sorting this out.
-
-  Maciej
+-- 
+Ben Widawsky, Intel Open Source Technology Center
