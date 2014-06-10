@@ -1,165 +1,140 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / hotplug / PCI: Add hotplug contexts to PCI host bridges
-Date: Tue, 10 Jun 2014 22:51:51 +0200
-Message-ID: <1986515.ZPZrccsmiq@vostro.rjw.lan>
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: Re: [Patch V4 11/42] x86, ioapic: kill unused global variable
+ timer_through_8259
+Date: Tue, 10 Jun 2014 22:57:36 +0100 (BST)
+Message-ID: <alpine.LFD.2.11.1406100651500.14982@eddie.linux-mips.org>
+References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com> <1402302011-23642-12-git-send-email-jiang.liu@linux.intel.com> <alpine.LFD.2.11.1406091538320.14982@eddie.linux-mips.org> <53967992.2020808@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+Received: from localhost.localdomain ([127.0.0.1]:40459 "EHLO
+        localhost.localdomain" rhost-flags-OK-OK-OK-OK)
+        by eddie.linux-mips.org with ESMTP id S6825074AbaFJV5gmSqMo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org> + 2 others);
+        Tue, 10 Jun 2014 23:57:36 +0200
+In-Reply-To: <53967992.2020808@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Don Zickus <dzickus@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Tue, 10 Jun 2014, Jiang Liu wrote:
 
-After relatively recent changes in the ACPI-based PCI hotplug
-(ACPIPHP) code, the acpiphp_check_host_bridge() executed for PCI
-host bridges via acpi_pci_root_scan_dependent() doesn't do anything
-useful, because those bridges do not have hotplug contexts.  That
-happens by mistake, so fix it by making acpiphp_enumerate_slots()
-add hotplug contexts to PCI host bridges too and modify
-acpiphp_remove_slots() to drop those contexts for host bridges
-as appropriate.
+> >> index d4aba16e6bbf..94a56c233e87 100644
+> >> --- a/arch/x86/kernel/apic/io_apic.c
+> >> +++ b/arch/x86/kernel/apic/io_apic.c
+> >> @@ -2638,8 +2638,6 @@ static int __init disable_timer_pin_setup(char *arg)
+> >>  }
+> >>  early_param("disable_timer_pin_1", disable_timer_pin_setup);
+> >>  
+> >> -int timer_through_8259 __initdata;
+> >> -
+> >>  /*
+> >>   * This code may look a bit paranoid, but it's supposed to cooperate with
+> >>   * a wide range of boards and BIOS bugs.  Fortunately only the timer IRQ
+> >> @@ -2744,7 +2742,6 @@ static inline void __init check_timer(void)
+> >>  		legacy_pic->unmask(0);
+> >>  		if (timer_irq_works()) {
+> >>  			apic_printk(APIC_QUIET, KERN_INFO "....... works.\n");
+> >> -			timer_through_8259 = 1;
+> >>  			goto out;
+> >>  		}
+> >>  		/*
+> > 
+> >  So how does the new NMI watchdog handle systems that use this '8259A 
+> > Virtual Wire' mode, pretty common on pre-P6 computers?
+> Hi Maciej,
+> 	We just kill the useless variable "timer_through_8259", 8259 virtual
+> wire mode is still supported.
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=76901
-Fixes: 2d8b1d566a5f (ACPI / hotplug / PCI: Get rid of check_sub_bridges())
-Reported-and-tested-by: Gavin Guo <gavin.guo@canonical.com>
-Cc: 3.15+ <stable@vger.kernel.org> # 3.15+
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/pci/hotplug/acpiphp.h      |   10 ++++++
- drivers/pci/hotplug/acpiphp_glue.c |   60 +++++++++++++++++++++++++------------
- 2 files changed, 52 insertions(+), 18 deletions(-)
+ No doubt it is useless, the question is why it is unused.  If you tracked 
+it down, you'd come up with this change of mine:
 
-Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -373,17 +373,13 @@ static acpi_status acpiphp_add_context(a
- 
- static struct acpiphp_bridge *acpiphp_dev_to_bridge(struct acpi_device *adev)
- {
--	struct acpiphp_context *context;
- 	struct acpiphp_bridge *bridge = NULL;
- 
- 	acpi_lock_hp_context();
--	context = acpiphp_get_context(adev);
--	if (context) {
--		bridge = context->bridge;
-+	if (adev->hp) {
-+		bridge = to_acpiphp_root_context(adev->hp)->root_bridge;
- 		if (bridge)
- 			get_bridge(bridge);
--
--		acpiphp_put_context(context);
- 	}
- 	acpi_unlock_hp_context();
- 	return bridge;
-@@ -881,7 +877,17 @@ void acpiphp_enumerate_slots(struct pci_
- 	 */
- 	get_device(&bus->dev);
- 
--	if (!pci_is_root_bus(bridge->pci_bus)) {
-+	acpi_lock_hp_context();
-+	if (pci_is_root_bus(bridge->pci_bus)) {
-+		struct acpiphp_root_context *root_context;
-+
-+		root_context = kzalloc(sizeof(*root_context), GFP_KERNEL);
-+		if (!root_context)
-+			goto err;
-+
-+		root_context->root_bridge = bridge;
-+		acpi_set_hp_context(adev, &root_context->hp, NULL, NULL, NULL);
-+	} else {
- 		struct acpiphp_context *context;
- 
- 		/*
-@@ -890,21 +896,16 @@ void acpiphp_enumerate_slots(struct pci_
- 		 * parent is going to be handled by pciehp, in which case this
- 		 * bridge is not interesting to us either.
- 		 */
--		acpi_lock_hp_context();
- 		context = acpiphp_get_context(adev);
--		if (!context) {
--			acpi_unlock_hp_context();
--			put_device(&bus->dev);
--			pci_dev_put(bridge->pci_dev);
--			kfree(bridge);
--			return;
--		}
-+		if (!context)
-+			goto err;
-+
- 		bridge->context = context;
- 		context->bridge = bridge;
- 		/* Get a reference to the parent bridge. */
- 		get_bridge(context->func.parent);
--		acpi_unlock_hp_context();
- 	}
-+	acpi_unlock_hp_context();
- 
- 	/* Must be added to the list prior to calling acpiphp_add_context(). */
- 	mutex_lock(&bridge_mutex);
-@@ -919,6 +920,30 @@ void acpiphp_enumerate_slots(struct pci_
- 		cleanup_bridge(bridge);
- 		put_bridge(bridge);
- 	}
-+	return;
-+
-+ err:
-+	acpi_unlock_hp_context();
-+	put_device(&bus->dev);
-+	pci_dev_put(bridge->pci_dev);
-+	kfree(bridge);
-+}
-+
-+void acpiphp_drop_bridge(struct acpiphp_bridge *bridge)
-+{
-+	if (pci_is_root_bus(bridge->pci_bus)) {
-+		struct acpiphp_root_context *root_context;
-+		struct acpi_device *adev;
-+
-+		acpi_lock_hp_context();
-+		adev = ACPI_COMPANION(bridge->pci_bus->bridge);
-+		root_context = to_acpiphp_root_context(adev->hp);
-+		adev->hp = NULL;
-+		acpi_unlock_hp_context();
-+		kfree(root_context);
-+	}
-+	cleanup_bridge(bridge);
-+	put_bridge(bridge);
- }
- 
- /**
-@@ -936,8 +961,7 @@ void acpiphp_remove_slots(struct pci_bus
- 	list_for_each_entry(bridge, &bridge_list, list)
- 		if (bridge->pci_bus == bus) {
- 			mutex_unlock(&bridge_mutex);
--			cleanup_bridge(bridge);
--			put_bridge(bridge);
-+			acpiphp_drop_bridge(bridge);
- 			return;
- 		}
- 
-Index: linux-pm/drivers/pci/hotplug/acpiphp.h
-===================================================================
---- linux-pm.orig/drivers/pci/hotplug/acpiphp.h
-+++ linux-pm/drivers/pci/hotplug/acpiphp.h
-@@ -142,6 +142,16 @@ static inline acpi_handle func_to_handle
- 	return func_to_acpi_device(func)->handle;
- }
- 
-+struct acpiphp_root_context {
-+	struct acpi_hotplug_context hp;
-+	struct acpiphp_bridge *root_bridge;
-+};
-+
-+static inline struct acpiphp_root_context *to_acpiphp_root_context(struct acpi_hotplug_context *hp)
-+{
-+	return container_of(hp, struct acpiphp_root_context, hp);
-+}
-+
- /*
-  * struct acpiphp_attention_info - device specific attention registration
-  *
+commit 35542c5ebced864776d90d83d1e255016fd4c084
+Author: Maciej W. Rozycki <macro@linux-mips.org>
+Date:   Wed May 21 22:10:22 2008 +0100
+
+    x86: I/O APIC: clean up the 8259A on a NMI watchdog failure
+
+    There is no point in keeping the 8259A enabled if the I/O APIC NMI
+    watchdog has failed and the 8259A is not used to pass through regular
+    timer interrupts.  This fixes problems with some systems where some logic
+    gets confused.
+
+    Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+    Signed-off-by: Ingo Molnar <mingo@elte.hu>
+
+that introduced that variable.  And to answer myself:
+
+commit 072b198a4ad48bd722ec6d203d65422a4698eae7
+Author: Don Zickus <dzickus@redhat.com>
+Date:   Fri Nov 12 11:22:24 2010 -0500
+
+    x86, nmi_watchdog: Remove all stub function calls from old nmi_watchdog
+
+    Now that the bulk of the old nmi_watchdog is gone, remove all
+    the stub variables and hooks associated with it.
+
+    This touches lots of files mainly because of how the io_apic
+    nmi_watchdog was implemented.  Now that the io_apic nmi_watchdog
+    is forever gone, remove all its fingers.
+
+    Most of this code was not being exercised by virtue of
+    nmi_watchdog != NMI_IO_APIC, so there shouldn't be anything to
+    risky here.
+
+    Signed-off-by: Don Zickus <dzickus@redhat.com>
+    Cc: fweisbec@gmail.com
+    Cc: gorcunov@openvz.org
+    LKML-Reference: <1289578944-28564-3-git-send-email-dzickus@redhat.com>
+    Signed-off-by: Ingo Molnar <mingo@elte.hu>
+
+So the I/O APIC watchdog is gone and '8259A Virtual Wire' mode systems are 
+not handled anymore.  Well, I guess it was a useful hack for its days, but 
+I understand that maintaining that rather hairy code to support a 
+minuscule set of old SMP systems (P5 or even i486 UP systems virtually 
+never had an I/O APIC, unless you just didn't populate additional 
+processor sockets; P5 SMPs were usually only DP though) still in existence 
+(mine is still all right, thanks, after 17 years; even the original boxed 
+CPU fans work great :) ) was considered not worth it.  Oh well...
+
+ In that case though I think we should clean up some stale comment 
+references to that watchdog in arch/x86/kernel/apic/io_apic.c too.  It may 
+be worthwhile if code was scrutinised at that time too WRT implicit 
+hardware setup dependencies as indicated by these comments, as these 
+comments having been left behind clearly indicate that such a step has 
+never been made.
+
+ And for the record, your clean-up logically belongs to this change:
+
+commit 5f2b0ba4d94b3ac23cbc4b7f675d98eb677a760a
+Author: Don Zickus <dzickus@redhat.com>
+Date:   Fri Nov 12 11:22:23 2010 -0500
+
+    x86, nmi_watchdog: Remove the old nmi_watchdog
+
+    Now that we have a new nmi_watchdog that is more generic and
+    sits on top of the perf subsystem, we really do not need the old
+    nmi_watchdog any more.
+
+    In addition, the old nmi_watchdog doesn't really work if you are
+    using the default clocksource, hpet.  The old nmi_watchdog code
+    relied on local apic interrupts to determine if the cpu is still
+    alive.  With hpet as the clocksource, these interrupts don't
+    increment any more and the old nmi_watchdog triggers false
+    postives.
+
+    This piece removes the old nmi_watchdog code and stubs out any
+    variables and functions calls.  The stubs are the same ones used
+    by the new nmi_watchdog code, so it should be well tested.
+
+    Signed-off-by: Don Zickus <dzickus@redhat.com>
+    Cc: fweisbec@gmail.com
+    Cc: gorcunov@openvz.org
+    LKML-Reference: <1289578944-28564-2-git-send-email-dzickus@redhat.com>
+    Signed-off-by: Ingo Molnar <mingo@elte.hu>
+
+that removed the lone use of `timer_through_8259'.  So it's been lingering 
+out there for some 3.5 years.  Thanks for sorting this out.
+
+  Maciej
