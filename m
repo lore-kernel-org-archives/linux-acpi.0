@@ -1,65 +1,56 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch V4 01/42] x86, irq: update high address field when updating
- affinity for MSI IRQ
-Date: Tue, 10 Jun 2014 10:54:59 +0800
-Message-ID: <53967383.1000908@linux.intel.com>
-References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com>	<1402302011-23642-2-git-send-email-jiang.liu@linux.intel.com> <CAE9FiQXiZZG=FdafLVEBM_ENO50xxOZ19M3k5KwzsR7M0b2P=w@mail.gmail.com>
+Subject: Re: [Patch V4 11/42] x86, ioapic: kill unused global variable timer_through_8259
+Date: Tue, 10 Jun 2014 11:20:50 +0800
+Message-ID: <53967992.2020808@linux.intel.com>
+References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com> <1402302011-23642-12-git-send-email-jiang.liu@linux.intel.com> <alpine.LFD.2.11.1406091538320.14982@eddie.linux-mips.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQXiZZG=FdafLVEBM_ENO50xxOZ19M3k5KwzsR7M0b2P=w@mail.gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, the arch/x86 maintainers <x86@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:46155 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932844AbaFJDVE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Jun 2014 23:21:04 -0400
+In-Reply-To: <alpine.LFD.2.11.1406091538320.14982@eddie.linux-mips.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 
 
 
-On 2014/6/10 7:46, Yinghai Lu wrote:
-> On Mon, Jun 9, 2014 at 1:19 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
->> If x2apic is enabled, the MSI high address field should also be aslo
->> updated when setting affinity for MSI IRQ, otherwise the MSI IRQ may
->> target wrong APIC IDs.
+On 2014/6/9 22:41, Maciej W. Rozycki wrote:
+> On Mon, 9 Jun 2014, Jiang Liu wrote:
 > 
-> Do you have any test case to reveal the problem?
-Just by code inspection.
-
-> 
->>
->> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->> Cc: stable@vger.kernel.org
->> ---
->>  arch/x86/kernel/apic/io_apic.c |    4 ++++
->>  1 file changed, 4 insertions(+)
->>
->> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
->> index 9d0a9795a0f8..2de992501a1b 100644
+>> index d4aba16e6bbf..94a56c233e87 100644
 >> --- a/arch/x86/kernel/apic/io_apic.c
 >> +++ b/arch/x86/kernel/apic/io_apic.c
->> @@ -3007,6 +3007,10 @@ msi_set_affinity(struct irq_data *data, const struct cpumask *mask, bool force)
->>
->>         __get_cached_msi_msg(data->msi_desc, &msg);
->>
->> +       msg.address_hi = MSI_ADDR_BASE_HI;
->> +       if (x2apic_enabled())
->> +               msg.address_hi |= MSI_ADDR_EXT_DEST_ID(dest);
->> +
->>         msg.data &= ~MSI_DATA_VECTOR_MASK;
->>         msg.data |= MSI_DATA_VECTOR(cfg->vector);
->>         msg.address_lo &= ~MSI_ADDR_DEST_ID_MASK;
+>> @@ -2638,8 +2638,6 @@ static int __init disable_timer_pin_setup(char *arg)
+>>  }
+>>  early_param("disable_timer_pin_1", disable_timer_pin_setup);
+>>  
+>> -int timer_through_8259 __initdata;
+>> -
+>>  /*
+>>   * This code may look a bit paranoid, but it's supposed to cooperate with
+>>   * a wide range of boards and BIOS bugs.  Fortunately only the timer IRQ
+>> @@ -2744,7 +2742,6 @@ static inline void __init check_timer(void)
+>>  		legacy_pic->unmask(0);
+>>  		if (timer_irq_works()) {
+>>  			apic_printk(APIC_QUIET, KERN_INFO "....... works.\n");
+>> -			timer_through_8259 = 1;
+>>  			goto out;
+>>  		}
+>>  		/*
 > 
-> No. This change is not needed.
-> 
-> When x2apic is used, and apicid > 255, irq remapping is used.
-> 
-> msi_chip.irq_set_affinity will be changed from msi_set_affinity to
-> x86_io_apic_ops.set_affinity (aka intel_setup_ioapic_entry),  via
-> irq_remap_modify_chip_defaults().
-Thanks for explanation, will drop this patch.
+>  So how does the new NMI watchdog handle systems that use this '8259A 
+> Virtual Wire' mode, pretty common on pre-P6 computers?
+Hi Maciej,
+	We just kill the useless variable "timer_through_8259", 8259 virtual
+wire mode is still supported.
+Thanks!
 Gerry
+
 > 
-> Thanks
-> 
-> Yinghai
+>   Maciej
 > 
