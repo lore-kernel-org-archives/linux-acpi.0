@@ -1,34 +1,148 @@
-From: David Vrabel <david.vrabel@citrix.com>
-Subject: Re: [Xen-devel] [Patch V4 19/42] x86, irq: count legacy IRQs by legacy_pic->nr_legacy_irqs
- instead of NR_IRQS_LEGACY
-Date: Tue, 10 Jun 2014 15:18:26 +0100
-Message-ID: <539713B2.1010506@citrix.com>
-References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com> <1402302011-23642-20-git-send-email-jiang.liu@linux.intel.com>
+From: Ben Widawsky <ben@bwidawsk.net>
+Subject: Re: Sluggish performance after resume//Re: Bug Report -
+ [Acer Aspire V5-122P] Unable to adjust screen brightness
+Date: Tue, 10 Jun 2014 09:58:16 -0700
+Message-ID: <20140610165816.GA24290@bwidawsk.net>
+References: <537F4425.70205@redhat.com>
+ <CADNzsyMCnbNu6CbWfV73CM99Qs=Lw22Q8pSQ23O31sopNDpaig@mail.gmail.com>
+ <5382D5C6.5080001@intel.com>
+ <CADNzsyNwvGeeLzM54_CkA4tWCYnNVoRyewuqXx0vXH3t4shWHw@mail.gmail.com>
+ <CADNzsyMEi-e6d=zLET6YAtJxsyPmUdWRs6rEDt9xrf9R63uW0Q@mail.gmail.com>
+ <5383E68C.9030000@intel.com>
+ <CADNzsyMmEtvPeoKgsRyeNrxY2hH8ZJ_xhH5nLmVTtey3ad=jSg@mail.gmail.com>
+ <538D2359.4080102@intel.com>
+ <CADNzsyPQFwYwfPkFDX5BtpiGBGJM75KK-AJPE-O6YYWehGxUow@mail.gmail.com>
+ <539698BF.2010406@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp02.citrix.com ([66.165.176.63]:25735 "EHLO
-	SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834AbaFJOSd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jun 2014 10:18:33 -0400
-In-Reply-To: <1402302011-23642-20-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <539698BF.2010406@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Lewis Toohey <lewis@toohey.co.uk>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Rob Herring <rob.herring@calxeda.com>, Michal Simek <monstr@monstr.eu>, Tony Lindgren <tony@atomide.com>
-Cc: Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Joerg Roedel <joro@8bytes.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-pci@vger.kernel.org, xen-devel@lists.xenproject.org, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>
 
-On 09/06/14 09:19, Jiang Liu wrote:
-> Some platforms, such as Intel MID and mshypv, do not support legacy
-> interrupt controllers. So count legacy IRQs by legacy_pic->nr_legacy_irqs
-> instead of hard-coded NR_IRQS_LEGACY.
+On Tue, Jun 10, 2014 at 01:33:51PM +0800, Aaron Lu wrote:
+> +Ben Widawsky & Daniel Vetter
+>  
+> On 06/09/2014 03:38 PM, Lewis Toohey wrote:
+> > On 3 June 2014 02:22, Aaron Lu <aaron.lu@intel.com> wrote:
+> >> On 05/30/2014 09:12 PM, Lewis Toohey wrote:
+> >>> Aaron
+> >>>
+> >>> I am in the process of performing this bisection, however, I need a
+> >>> bit of advice.
+> >>>
+> >>> I have got a mix of results following suspend right through from (i)
+> >>> system reboot; (ii) "low graphics mode" error; (iii) restore but
+> >>> sluggish performance; and (iv) restore but *very* sluggish
+> >>> performance.
+> >>
+> >> Is the sluggish performance experienced with a GUI environment?
+> >>
+> >>>
+> >>> What should qualify as a bad commit? Anything other than a "perfect" restore?
+> >>
+> >> I think ii/iii/iv all qualify as bad, if there is no such problem
+> >> in previous kernels. And yes, a perfect restore is expected, assume
+> >> the system is able to do a perfect restore with old kernels.
+> >>
+> >> Thanks,
+> >> Aaron
+> >>
+> >>>
+> >>> Many thanks
+> >>>
+> > 
+> > Hi Aaron
+> > 
+> > Firstly, yes the sluggish performance I was referring to is
+> > experienced in the GUI environment. Jerky graphics and CPU fan appears
+> > to max out and stay there. Old kernels (e.g. the Ubuntu default
+> > kernel) do not do this and just restore perfectly.
+> > 
+> > I have completed the bisect as requested. Please find the full log
+> > below. I am slightly unconvinced, as building the previous commit in
+> > the log still seems to have the same problem, however, that commit is
+> > a "merge" and I don't really know what this means.
+> > 
+> > Many thanks
+> > 
+> > Bisect Log:
+> > git bisect start
+> > # good: [455c6fdbd219161bd09b1165f11699d6d73de11c] Linux 3.14
+> > git bisect good 455c6fdbd219161bd09b1165f11699d6d73de11c
+> > # bad: [c9eaa447e77efe77b7fa4c953bd62de8297fd6c5] Linux 3.15-rc1
+> > git bisect bad c9eaa447e77efe77b7fa4c953bd62de8297fd6c5
+> > # good: [cd6362befe4cc7bf589a5236d2a780af2d47bcc9] Merge
+> > git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next
+> > git bisect good cd6362befe4cc7bf589a5236d2a780af2d47bcc9
+> > # good: [d2b150d0647e055d7a71b1c33140280550b27dd6] Merge tag 'sh-3.15'
+> > of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc
+> > git bisect good d2b150d0647e055d7a71b1c33140280550b27dd6
+> > # good: [5fb6b953bb7aa86a9c8ea760934982cedc45c52b]
+> > include/linux/syscalls.h: add sys_renameat2() prototype
+> > git bisect good 5fb6b953bb7aa86a9c8ea760934982cedc45c52b
+> > # bad: [ffddc5fd19b219f557fd4a81168ce8784a4faced] fs/ncpfs/dir.c: fix
+> > indenting in ncp_lookup()
+> > git bisect bad ffddc5fd19b219f557fd4a81168ce8784a4faced
+> > # bad: [978c6050165bba52eab7ef3581d447eb215def77] Merge branch
+> > 'drm-docs' of ssh://people.freedesktop.org/~danvet/drm into drm-next
+> > git bisect bad 978c6050165bba52eab7ef3581d447eb215def77
+> > # bad: [262de1453184f65e5ccfe45790f93d41f7339d49] drm/i915: Directly
+> > return the vma from bind_to_vm
+> > git bisect bad 262de1453184f65e5ccfe45790f93d41f7339d49
+> > # bad: [031994ee8dedfa69d3a7caa43e93f3c282bc38f9] drm/i915: Implement
+> > WaIncreaseL3CreditsForVLVB0:vlv
+> > git bisect bad 031994ee8dedfa69d3a7caa43e93f3c282bc38f9
+> > # bad: [f72d21eddfa900bfa2674195dcc0203e18d0cc62] drm/i915: Place the
+> > Global GTT VM first in the list of VM
+> > git bisect bad f72d21eddfa900bfa2674195dcc0203e18d0cc62
+> > # bad: [d6660add648d10e7e35085d8c7d2653e0f9f61b7] drm/i915: Generalize
+> > PPGTT init
+> > git bisect bad d6660add648d10e7e35085d8c7d2653e0f9f61b7
+> > # bad: [b731d33d05dd5ce6b387cbadb0d9d24cb3732b40] drm/i915: relax
+> > context alignment
+> > git bisect bad b731d33d05dd5ce6b387cbadb0d9d24cb3732b40
+> > # bad: [a7b910789f77afa40ae0816d22339e9d25723c6e] drm/i915: Add vm to
+> > error BO capture
+> > git bisect bad a7b910789f77afa40ae0816d22339e9d25723c6e
+> > # bad: [6e164c3382314a1f63526fa7a4322a17318d0e32] drm/i915: Allow ggtt
+> > lookups to not WARN
+> > git bisect bad 6e164c3382314a1f63526fa7a4322a17318d0e32
+> > # bad: [6f425321e02a1b6c5e90b70f8fab7c140fcaeefb] drm/i915: Don't
+> > unconditionally try to deref aliasing ppgtt
+> > git bisect bad 6f425321e02a1b6c5e90b70f8fab7c140fcaeefb
+> > # bad: [e178f7057b81c87a7ceaae0ca204487b6f7eedcf] drm/i915: Provide
+> > PDP updates via MMIO
+> > git bisect bad e178f7057b81c87a7ceaae0ca204487b6f7eedcf
+> > # first bad commit: [e178f7057b81c87a7ceaae0ca204487b6f7eedcf]
+> > drm/i915: Provide PDP updates via MMIO
+> > 
 > 
-[...]
-> --- a/arch/x86/pci/xen.c
-> +++ b/arch/x86/pci/xen.c
+> The commit looks like related, I've added the commit author.
+> 
+> Ben,
+> Do you have any suggestions? Does the above commit have any chance of
+> causing sluggish performance problem after a resume?
+> 
+> Thanks,
+> Aaron
 
-Xen bits:
+What this comment actually does is use MMIO writes for the page tables
+after a GPU hang/reset. (What a poorly named commit message).
 
-Acked-by: David Vrabel <david.vrabel@citrix.com>
+Can you please provide the full dmesg with the drm.debug=0x2?
 
-David
+-- 
+Ben Widawsky, Intel Open Source Technology Center
