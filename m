@@ -1,155 +1,325 @@
 From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: [PATCH 4/7 v2] RAS, debugfs: Add debugfs interface for RAS subsystem
-Date: Wed, 11 Jun 2014 04:34:48 -0400
-Message-ID: <1402475691-30045-5-git-send-email-gong.chen@linux.intel.com>
+Subject: [PATCH 3/7 v5] CPER: Adjust code flow of some functions
+Date: Wed, 11 Jun 2014 04:34:47 -0400
+Message-ID: <1402475691-30045-4-git-send-email-gong.chen@linux.intel.com>
 References: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga11.intel.com ([192.55.52.93]:28831 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753933AbaFKJDm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Jun 2014 05:03:42 -0400
+	id S1755842AbaFKJDn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Jun 2014 05:03:43 -0400
 In-Reply-To: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, rostedt@goodmis.org
 Cc: linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
 
-Implement a new debugfs interface for RAS susbsystem.
-A file named daemon_active is added there accordingly.
-This file is used to track if user space daemon enables
-perf/trace interface or not. One can track which daemon
-opens it via "lsof /path/to/debugfs/ras/daemon_active".
+Some codes can be reorganzied as a common function for other usages.
 
-v2 -> v1: Change file access mode from 0444 to 0400.
+v5 -> v4: minor adjustment for mem/DIMM error record organization.
+v4 -> v3: minor adjustment to make output format more gracefully.
+v3 -> v2: Fix a bug when calculating string length & minor fix.
+v2 -> v1: Use scnprintf to simplify codes.
 
 Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
 ---
- drivers/ras/Makefile  |  2 +-
- drivers/ras/debugfs.c | 57 +++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/ras/ras.c     | 14 +++++++++++++
- include/linux/ras.h   | 15 ++++++++++++++
- 4 files changed, 87 insertions(+), 1 deletion(-)
- create mode 100644 drivers/ras/debugfs.c
- create mode 100644 include/linux/ras.h
+ drivers/firmware/efi/cper.c | 155 ++++++++++++++++++++++++++++----------------
+ include/linux/cper.h        |   9 +++
+ 2 files changed, 109 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/ras/Makefile b/drivers/ras/Makefile
-index 223e806..d7f7334 100644
---- a/drivers/ras/Makefile
-+++ b/drivers/ras/Makefile
-@@ -1 +1 @@
--obj-$(CONFIG_RAS) += ras.o
-+obj-$(CONFIG_RAS) += ras.o debugfs.o
-diff --git a/drivers/ras/debugfs.c b/drivers/ras/debugfs.c
-new file mode 100644
-index 0000000..d0bc389
---- /dev/null
-+++ b/drivers/ras/debugfs.c
-@@ -0,0 +1,57 @@
-+#include <linux/debugfs.h>
+diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+index 1491dd4..83b56b61 100644
+--- a/drivers/firmware/efi/cper.c
++++ b/drivers/firmware/efi/cper.c
+@@ -34,6 +34,9 @@
+ #include <linux/aer.h>
+ 
+ #define INDENT_SP	" "
 +
-+struct dentry *ras_debugfs_dir;
-+EXPORT_SYMBOL_GPL(ras_debugfs_dir);
++static char rcd_decode_str[CPER_REC_LEN];
 +
-+static atomic_t trace_count = ATOMIC_INIT(0);
-+
-+int ras_userspace_consumers(void)
-+{
-+	return atomic_read(&trace_count);
+ /*
+  * CPER record ID need to be unique even after reboot, because record
+  * ID is used as index for ERST storage, while CPER records from
+@@ -50,18 +53,19 @@ u64 cper_next_record_id(void)
+ }
+ EXPORT_SYMBOL_GPL(cper_next_record_id);
+ 
+-static const char *cper_severity_strs[] = {
++static const char * const severity_strs[] = {
+ 	"recoverable",
+ 	"fatal",
+ 	"corrected",
+ 	"info",
+ };
+ 
+-static const char *cper_severity_str(unsigned int severity)
++const char *cper_severity_str(unsigned int severity)
+ {
+-	return severity < ARRAY_SIZE(cper_severity_strs) ?
+-		cper_severity_strs[severity] : "unknown";
++	return severity < ARRAY_SIZE(severity_strs) ?
++		severity_strs[severity] : "unknown";
+ }
++EXPORT_SYMBOL_GPL(cper_severity_str);
+ 
+ /*
+  * cper_print_bits - print strings for set bits
+@@ -100,32 +104,32 @@ void cper_print_bits(const char *pfx, unsigned int bits,
+ 		printk("%s\n", buf);
+ }
+ 
+-static const char * const cper_proc_type_strs[] = {
++static const char * const proc_type_strs[] = {
+ 	"IA32/X64",
+ 	"IA64",
+ };
+ 
+-static const char * const cper_proc_isa_strs[] = {
++static const char * const proc_isa_strs[] = {
+ 	"IA32",
+ 	"IA64",
+ 	"X64",
+ };
+ 
+-static const char * const cper_proc_error_type_strs[] = {
++static const char * const proc_error_type_strs[] = {
+ 	"cache error",
+ 	"TLB error",
+ 	"bus error",
+ 	"micro-architectural error",
+ };
+ 
+-static const char * const cper_proc_op_strs[] = {
++static const char * const proc_op_strs[] = {
+ 	"unknown or generic",
+ 	"data read",
+ 	"data write",
+ 	"instruction execution",
+ };
+ 
+-static const char * const cper_proc_flag_strs[] = {
++static const char * const proc_flag_strs[] = {
+ 	"restartable",
+ 	"precise IP",
+ 	"overflow",
+@@ -137,26 +141,26 @@ static void cper_print_proc_generic(const char *pfx,
+ {
+ 	if (proc->validation_bits & CPER_PROC_VALID_TYPE)
+ 		printk("%s""processor_type: %d, %s\n", pfx, proc->proc_type,
+-		       proc->proc_type < ARRAY_SIZE(cper_proc_type_strs) ?
+-		       cper_proc_type_strs[proc->proc_type] : "unknown");
++		       proc->proc_type < ARRAY_SIZE(proc_type_strs) ?
++		       proc_type_strs[proc->proc_type] : "unknown");
+ 	if (proc->validation_bits & CPER_PROC_VALID_ISA)
+ 		printk("%s""processor_isa: %d, %s\n", pfx, proc->proc_isa,
+-		       proc->proc_isa < ARRAY_SIZE(cper_proc_isa_strs) ?
+-		       cper_proc_isa_strs[proc->proc_isa] : "unknown");
++		       proc->proc_isa < ARRAY_SIZE(proc_isa_strs) ?
++		       proc_isa_strs[proc->proc_isa] : "unknown");
+ 	if (proc->validation_bits & CPER_PROC_VALID_ERROR_TYPE) {
+ 		printk("%s""error_type: 0x%02x\n", pfx, proc->proc_error_type);
+ 		cper_print_bits(pfx, proc->proc_error_type,
+-				cper_proc_error_type_strs,
+-				ARRAY_SIZE(cper_proc_error_type_strs));
++				proc_error_type_strs,
++				ARRAY_SIZE(proc_error_type_strs));
+ 	}
+ 	if (proc->validation_bits & CPER_PROC_VALID_OPERATION)
+ 		printk("%s""operation: %d, %s\n", pfx, proc->operation,
+-		       proc->operation < ARRAY_SIZE(cper_proc_op_strs) ?
+-		       cper_proc_op_strs[proc->operation] : "unknown");
++		       proc->operation < ARRAY_SIZE(proc_op_strs) ?
++		       proc_op_strs[proc->operation] : "unknown");
+ 	if (proc->validation_bits & CPER_PROC_VALID_FLAGS) {
+ 		printk("%s""flags: 0x%02x\n", pfx, proc->flags);
+-		cper_print_bits(pfx, proc->flags, cper_proc_flag_strs,
+-				ARRAY_SIZE(cper_proc_flag_strs));
++		cper_print_bits(pfx, proc->flags, proc_flag_strs,
++				ARRAY_SIZE(proc_flag_strs));
+ 	}
+ 	if (proc->validation_bits & CPER_PROC_VALID_LEVEL)
+ 		printk("%s""level: %d\n", pfx, proc->level);
+@@ -177,7 +181,7 @@ static void cper_print_proc_generic(const char *pfx,
+ 		printk("%s""IP: 0x%016llx\n", pfx, proc->ip);
+ }
+ 
+-static const char *cper_mem_err_type_strs[] = {
++static const char * const mem_err_type_strs[] = {
+ 	"unknown",
+ 	"no error",
+ 	"single-bit ECC",
+@@ -196,58 +200,99 @@ static const char *cper_mem_err_type_strs[] = {
+ 	"physical memory map-out event",
+ };
+ 
+-static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
++const char *cper_mem_err_type_str(unsigned int etype)
+ {
+-	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
+-		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
+-	if (mem->validation_bits & CPER_MEM_VALID_PA)
+-		printk("%s""physical_address: 0x%016llx\n",
+-		       pfx, mem->physical_addr);
+-	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
+-		printk("%s""physical_address_mask: 0x%016llx\n",
+-		       pfx, mem->physical_addr_mask);
++	return etype < ARRAY_SIZE(mem_err_type_strs) ?
++		mem_err_type_strs[etype] : "unknown";
 +}
-+EXPORT_SYMBOL_GPL(ras_userspace_consumers);
++EXPORT_SYMBOL_GPL(cper_mem_err_type_str);
 +
-+static int trace_show(struct seq_file *m, void *v)
++int cper_mem_err_location(const struct cper_sec_mem_err *mem, char *msg)
 +{
-+	return atomic_read(&trace_count);
++	u32 len, n;
++
++	if (!msg)
++		return 0;
++
++	n = 0;
++	len = CPER_REC_LEN - 1;
+ 	if (mem->validation_bits & CPER_MEM_VALID_NODE)
+-		pr_debug("node: %d\n", mem->node);
++		n += scnprintf(msg + n, len - n, "node: %d ", mem->node);
+ 	if (mem->validation_bits & CPER_MEM_VALID_CARD)
+-		pr_debug("card: %d\n", mem->card);
++		n += scnprintf(msg + n, len - n, "card: %d ", mem->card);
+ 	if (mem->validation_bits & CPER_MEM_VALID_MODULE)
+-		pr_debug("module: %d\n", mem->module);
++		n += scnprintf(msg + n, len - n, "module: %d ", mem->module);
+ 	if (mem->validation_bits & CPER_MEM_VALID_RANK_NUMBER)
+-		pr_debug("rank: %d\n", mem->rank);
++		n += scnprintf(msg + n, len - n, "rank: %d ", mem->rank);
+ 	if (mem->validation_bits & CPER_MEM_VALID_BANK)
+-		pr_debug("bank: %d\n", mem->bank);
++		n += scnprintf(msg + n, len - n, "bank: %d ", mem->bank);
+ 	if (mem->validation_bits & CPER_MEM_VALID_DEVICE)
+-		pr_debug("device: %d\n", mem->device);
++		n += scnprintf(msg + n, len - n, "device: %d ", mem->device);
+ 	if (mem->validation_bits & CPER_MEM_VALID_ROW)
+-		pr_debug("row: %d\n", mem->row);
++		n += scnprintf(msg + n, len - n, "row: %d ", mem->row);
+ 	if (mem->validation_bits & CPER_MEM_VALID_COLUMN)
+-		pr_debug("column: %d\n", mem->column);
++		n += scnprintf(msg + n, len - n, "column: %d ", mem->column);
+ 	if (mem->validation_bits & CPER_MEM_VALID_BIT_POSITION)
+-		pr_debug("bit_position: %d\n", mem->bit_pos);
++		n += scnprintf(msg + n, len - n, "bit_position: %d ",
++			       mem->bit_pos);
+ 	if (mem->validation_bits & CPER_MEM_VALID_REQUESTOR_ID)
+-		pr_debug("requestor_id: 0x%016llx\n", mem->requestor_id);
++		n += scnprintf(msg + n, len - n, "requestor_id: 0x%016llx ",
++			       mem->requestor_id);
+ 	if (mem->validation_bits & CPER_MEM_VALID_RESPONDER_ID)
+-		pr_debug("responder_id: 0x%016llx\n", mem->responder_id);
++		n += scnprintf(msg + n, len - n, "responder_id: 0x%016llx ",
++			       mem->responder_id);
+ 	if (mem->validation_bits & CPER_MEM_VALID_TARGET_ID)
+-		pr_debug("target_id: 0x%016llx\n", mem->target_id);
++		scnprintf(msg + n, len - n, "target_id: 0x%016llx ",
++			  mem->target_id);
++
++	msg[n] = '\0';
++	return n;
 +}
 +
-+static int trace_open(struct inode *inode, struct file *file)
++int cper_dimm_err_location(const struct cper_sec_mem_err *mem, char *msg)
 +{
-+	atomic_inc(&trace_count);
-+	return single_open(file, trace_show, NULL);
++	u32 len, n;
++	const char *bank = NULL, *device = NULL;
++
++	if (!msg || !(mem->validation_bits & CPER_MEM_VALID_MODULE_HANDLE))
++		return 0;
++
++	n = 0;
++	len = CPER_REC_LEN - 1;
++	dmi_memdev_name(mem->mem_dev_handle, &bank, &device);
++	if (bank && device)
++		n = snprintf(msg, len, "DIMM location: %s %s ", bank, device);
++	else
++		n = snprintf(msg, len,
++			     "DIMM location: not present. DMI handle: 0x%.4x ",
++			     mem->mem_dev_handle);
++
++	msg[n] = '\0';
++	return n;
 +}
 +
-+static int trace_release(struct inode *inode, struct file *file)
++static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
 +{
-+	atomic_dec(&trace_count);
-+	return single_release(inode, file);
-+}
-+
-+static const struct file_operations trace_fops = {
-+	.open    = trace_open,
-+	.read    = seq_read,
-+	.llseek  = seq_lseek,
-+	.release = trace_release,
-+};
-+
-+int __init ras_add_daemon_trace(void)
-+{
-+	struct dentry *fentry;
-+
-+	if (!ras_debugfs_dir)
-+		return -ENOENT;
-+
-+	fentry = debugfs_create_file("daemon_active", S_IRUSR, ras_debugfs_dir,
-+				     NULL, &trace_fops);
-+	if (!fentry)
-+		return -ENODEV;
-+
-+	return 0;
-+
-+}
-+
-+void __init ras_debugfs_init(void)
-+{
-+	ras_debugfs_dir = debugfs_create_dir("ras", NULL);
-+}
-diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-index b0c6ed1..4cac43a 100644
---- a/drivers/ras/ras.c
-+++ b/drivers/ras/ras.c
-@@ -5,8 +5,22 @@
-  *	Chen, Gong <gong.chen@linux.intel.com>
++	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
++		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
++	if (mem->validation_bits & CPER_MEM_VALID_PA)
++		printk("%s""physical_address: 0x%016llx\n",
++		       pfx, mem->physical_addr);
++	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
++		printk("%s""physical_address_mask: 0x%016llx\n",
++		       pfx, mem->physical_addr_mask);
++	if (cper_mem_err_location(mem, rcd_decode_str))
++		printk("%s%s\n", pfx, rcd_decode_str);
+ 	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE) {
+ 		u8 etype = mem->error_type;
+ 		printk("%s""error_type: %d, %s\n", pfx, etype,
+-		       etype < ARRAY_SIZE(cper_mem_err_type_strs) ?
+-		       cper_mem_err_type_strs[etype] : "unknown");
+-	}
+-	if (mem->validation_bits & CPER_MEM_VALID_MODULE_HANDLE) {
+-		const char *bank = NULL, *device = NULL;
+-		dmi_memdev_name(mem->mem_dev_handle, &bank, &device);
+-		if (bank != NULL && device != NULL)
+-			printk("%s""DIMM location: %s %s", pfx, bank, device);
+-		else
+-			printk("%s""DIMM DMI handle: 0x%.4x",
+-			       pfx, mem->mem_dev_handle);
++		       cper_mem_err_type_str(etype));
+ 	}
++	if (cper_dimm_err_location(mem, rcd_decode_str))
++		printk("%s%s\n", pfx, rcd_decode_str);
+ }
+ 
+-static const char *cper_pcie_port_type_strs[] = {
++static const char * const pcie_port_type_strs[] = {
+ 	"PCIe end point",
+ 	"legacy PCI end point",
+ 	"unknown",
+@@ -266,8 +311,8 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
+ {
+ 	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
+ 		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
+-		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
+-		       cper_pcie_port_type_strs[pcie->port_type] : "unknown");
++		       pcie->port_type < ARRAY_SIZE(pcie_port_type_strs) ?
++		       pcie_port_type_strs[pcie->port_type] : "unknown");
+ 	if (pcie->validation_bits & CPER_PCIE_VALID_VERSION)
+ 		printk("%s""version: %d.%d\n", pfx,
+ 		       pcie->version.major, pcie->version.minor);
+diff --git a/include/linux/cper.h b/include/linux/cper.h
+index 2fc0ec3..ed088b9 100644
+--- a/include/linux/cper.h
++++ b/include/linux/cper.h
+@@ -36,6 +36,13 @@
+ #define CPER_RECORD_REV				0x0100
+ 
+ /*
++ * CPER record length contains the CPER fields which are relevant for further
++ * handling of a memory error in userspace (we don't carry all the fields
++ * defined in the UEFI spec because some of them don't make any sense.)
++ * Currently, a length of 256 should be more than enough.
++ */
++#define CPER_REC_LEN					256
++/*
+  * Severity difinition for error_severity in struct cper_record_header
+  * and section_severity in struct cper_section_descriptor
   */
+@@ -395,6 +402,8 @@ struct cper_sec_pcie {
+ #pragma pack()
  
-+#include <linux/init.h>
-+#include <linux/ras.h>
-+
- #define CREATE_TRACE_POINTS
- #define TRACE_INCLUDE_PATH ../../include/ras
- #include <ras/ras_event.h>
+ u64 cper_next_record_id(void);
++const char *cper_severity_str(unsigned int);
++const char *cper_mem_err_type_str(unsigned int);
+ void cper_print_bits(const char *prefix, unsigned int bits,
+ 		     const char * const strs[], unsigned int strs_size);
  
-+static int __init ras_init(void)
-+{
-+	int rc = 0;
-+
-+	ras_debugfs_init();
-+	rc = ras_add_daemon_trace();
-+
-+	return rc;
-+}
-+subsys_initcall(ras_init);
-+
- EXPORT_TRACEPOINT_SYMBOL_GPL(mc_event);
-diff --git a/include/linux/ras.h b/include/linux/ras.h
-new file mode 100644
-index 0000000..af53248
---- /dev/null
-+++ b/include/linux/ras.h
-@@ -0,0 +1,15 @@
-+#ifndef __RAS_H__
-+#define __RAS_H__
-+
-+#ifdef CONFIG_DEBUG_FS
-+extern struct dentry *ras_debugfs_dir;
-+int ras_userspace_consumers(void);
-+void ras_debugfs_init(void);
-+int ras_add_daemon_trace(void);
-+#else
-+static inline int ras_userspace_consumers(void) { return 0; }
-+static inline void ras_debugfs_init(void) { return; }
-+static inline int ras_add_daemon_trace(void) { return 0; }
-+#endif
-+
-+#endif
 -- 
 2.0.0.rc2
 
