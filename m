@@ -1,56 +1,37 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: [PATCH 7/7] RAS, extlog: Adjust init flow
-Date: Wed, 11 Jun 2014 04:34:51 -0400
-Message-ID: <1402475691-30045-8-git-send-email-gong.chen@linux.intel.com>
-References: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:47285 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755855AbaFKJDz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Jun 2014 05:03:55 -0400
-In-Reply-To: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI / hotplug / PCI: Add hotplug contexts to PCI host
+ bridges
+Date: Wed, 11 Jun 2014 12:16:36 +0300
+Message-ID: <20140611091636.GB1657@lahna.fi.intel.com>
+References: <1986515.ZPZrccsmiq@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1986515.ZPZrccsmiq@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, rostedt@goodmis.org
-Cc: linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
 
-Unless the platform has eMCA related capability, don't
-need to check if there is conflict with EDAC driver.
+On Tue, Jun 10, 2014 at 10:51:51PM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> After relatively recent changes in the ACPI-based PCI hotplug
+> (ACPIPHP) code, the acpiphp_check_host_bridge() executed for PCI
+> host bridges via acpi_pci_root_scan_dependent() doesn't do anything
+> useful, because those bridges do not have hotplug contexts.  That
+> happens by mistake, so fix it by making acpiphp_enumerate_slots()
+> add hotplug contexts to PCI host bridges too and modify
+> acpiphp_remove_slots() to drop those contexts for host bridges
+> as appropriate.
+> 
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=76901
+> Fixes: 2d8b1d566a5f (ACPI / hotplug / PCI: Get rid of check_sub_bridges())
+> Reported-and-tested-by: Gavin Guo <gavin.guo@canonical.com>
+> Cc: 3.15+ <stable@vger.kernel.org> # 3.15+
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
----
- drivers/acpi/acpi_extlog.c | 13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
-index a99d4a6..0ad6f38 100644
---- a/drivers/acpi/acpi_extlog.c
-+++ b/drivers/acpi/acpi_extlog.c
-@@ -223,19 +223,16 @@ static int __init extlog_init(void)
- 	u64 cap;
- 	int rc;
- 
-+	rdmsrl(MSR_IA32_MCG_CAP, cap);
-+
-+	if (!(cap & MCG_ELOG_P) || !extlog_get_l1addr())
-+		return -ENODEV;
-+
- 	if (get_edac_report_status() == EDAC_REPORTING_FORCE) {
- 		pr_warn("Not loading eMCA, error reporting force-enabled through EDAC.\n");
- 		return -EPERM;
- 	}
- 
--	rc = -ENODEV;
--	rdmsrl(MSR_IA32_MCG_CAP, cap);
--	if (!(cap & MCG_ELOG_P))
--		return rc;
--
--	if (!extlog_get_l1addr())
--		return rc;
--
- 	rc = -EINVAL;
- 	/* get L1 header to fetch necessary information */
- 	l1_hdr_size = sizeof(struct extlog_l1_head);
--- 
-2.0.0.rc2
-
+Thanks for taking care of this!
