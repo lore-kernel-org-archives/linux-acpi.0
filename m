@@ -1,173 +1,124 @@
-From: Lewis Toohey <lewis@toohey.co.uk>
-Subject: Re: Sluggish performance after resume//Re: Bug Report - [Acer Aspire
- V5-122P] Unable to adjust screen brightness
-Date: Wed, 11 Jun 2014 08:41:27 +0100
-Message-ID: <CADNzsyOCsYRJFM1p_6MZJXMfg1c4-ecQg=USz3Y5Dcx1=mPB-g@mail.gmail.com>
-References: <CADNzsyNwvGeeLzM54_CkA4tWCYnNVoRyewuqXx0vXH3t4shWHw@mail.gmail.com>
- <CADNzsyMEi-e6d=zLET6YAtJxsyPmUdWRs6rEDt9xrf9R63uW0Q@mail.gmail.com>
- <5383E68C.9030000@intel.com> <CADNzsyMmEtvPeoKgsRyeNrxY2hH8ZJ_xhH5nLmVTtey3ad=jSg@mail.gmail.com>
- <538D2359.4080102@intel.com> <CADNzsyPQFwYwfPkFDX5BtpiGBGJM75KK-AJPE-O6YYWehGxUow@mail.gmail.com>
- <539698BF.2010406@intel.com> <20140610165816.GA24290@bwidawsk.net>
- <CADNzsyOZEAitYd5CPAn6eSgRso9ezPFP14ojpsB81LcYn4J96A@mail.gmail.com>
- <20140610225457.GB12721@bwidawsk.net> <20140611070312.GA15274@debian>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: [PATCH 1/7 v5] trace, RAS: Add basic RAS trace event
+Date: Wed, 11 Jun 2014 04:34:45 -0400
+Message-ID: <1402475691-30045-2-git-send-email-gong.chen@linux.intel.com>
+References: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailscan3.extendcp.co.uk ([79.170.43.23]:54212 "EHLO
-	mailscan1.extendcp.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751161AbaFKHlw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Jun 2014 03:41:52 -0400
-Received: from lb1.hi.local ([10.0.1.197] helo=mailscan4.hi.local)
-	by mailscan-g64.hi.local with esmtp (Exim 4.80.1)
-	(envelope-from <lewis@toohey.co.uk>)
-	id 1WudAM-00048w-FI
-	for linux-acpi@vger.kernel.org; Wed, 11 Jun 2014 08:41:50 +0100
-Received: from lb1.hi.local ([10.0.1.197] helo=mail44.extendcp.co.uk)
-	by mailscan4.hi.local with esmtps (UNKNOWN:DHE-RSA-AES256-GCM-SHA384:256)
-	(Exim 4.80.1)
-	(envelope-from <lewis@toohey.co.uk>)
-	id 1WudAM-0000OM-3A
-	for linux-acpi@vger.kernel.org; Wed, 11 Jun 2014 08:41:50 +0100
-Received: from mail-qc0-f171.google.com ([209.85.216.171])
-	by mail44.extendcp.com with esmtpsa (TLSv1:RC4-SHA:128)
-	(Exim 4.80.1)
-	id 1WudAL-0006fC-3A
-	for linux-acpi@vger.kernel.org; Wed, 11 Jun 2014 08:41:49 +0100
-Received: by mail-qc0-f171.google.com with SMTP id w7so2297990qcr.30
-        for <linux-acpi@vger.kernel.org>; Wed, 11 Jun 2014 00:41:47 -0700 (PDT)
-In-Reply-To: <20140611070312.GA15274@debian>
+Received: from mga09.intel.com ([134.134.136.24]:31757 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755821AbaFKJDh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Jun 2014 05:03:37 -0400
+In-Reply-To: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Ben Widawsky <ben@bwidawsk.net>, Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>
+To: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, rostedt@goodmis.org
+Cc: linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
 
-On 11 June 2014 08:03, Aaron Lu <aaron.lu@intel.com> wrote:
-> On 06/11/2014 06:54 AM, Ben Widawsky wrote:
->> On Tue, Jun 10, 2014 at 08:59:32PM +0100, Lewis Toohey wrote:
->>> On 10 June 2014 17:58, Ben Widawsky <ben@bwidawsk.net> wrote:
->>>> On Tue, Jun 10, 2014 at 01:33:51PM +0800, Aaron Lu wrote:
->>>>> +Ben Widawsky & Daniel Vetter
->>>>>
->>>>> On 06/09/2014 03:38 PM, Lewis Toohey wrote:
->>>>>>
->>>>>> Hi Aaron
->>>>>>
->>>>>> Firstly, yes the sluggish performance I was referring to is
->>>>>> experienced in the GUI environment. Jerky graphics and CPU fan appears
->>>>>> to max out and stay there. Old kernels (e.g. the Ubuntu default
->>>>>> kernel) do not do this and just restore perfectly.
->>>>>>
->>>>>> I have completed the bisect as requested. Please find the full log
->>>>>> below. I am slightly unconvinced, as building the previous commit in
->>>>>> the log still seems to have the same problem, however, that commit is
->>>>>> a "merge" and I don't really know what this means.
->>>>>>
->>>>>> Many thanks
->>>>>>
->>>>>> Bisect Log:
->>>>>> git bisect start
->>>>>> # good: [455c6fdbd219161bd09b1165f11699d6d73de11c] Linux 3.14
->>>>>> git bisect good 455c6fdbd219161bd09b1165f11699d6d73de11c
->>>>>> # bad: [c9eaa447e77efe77b7fa4c953bd62de8297fd6c5] Linux 3.15-rc1
->>>>>> git bisect bad c9eaa447e77efe77b7fa4c953bd62de8297fd6c5
->>>>>> # good: [cd6362befe4cc7bf589a5236d2a780af2d47bcc9] Merge
->>>>>> git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next
->>>>>> git bisect good cd6362befe4cc7bf589a5236d2a780af2d47bcc9
->>>>>> # good: [d2b150d0647e055d7a71b1c33140280550b27dd6] Merge tag 'sh-3.15'
->>>>>> of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc
->>>>>> git bisect good d2b150d0647e055d7a71b1c33140280550b27dd6
->>>>>> # good: [5fb6b953bb7aa86a9c8ea760934982cedc45c52b]
->>>>>> include/linux/syscalls.h: add sys_renameat2() prototype
->>>>>> git bisect good 5fb6b953bb7aa86a9c8ea760934982cedc45c52b
->>>>>> # bad: [ffddc5fd19b219f557fd4a81168ce8784a4faced] fs/ncpfs/dir.c: fix
->>>>>> indenting in ncp_lookup()
->>>>>> git bisect bad ffddc5fd19b219f557fd4a81168ce8784a4faced
->>>>>> # bad: [978c6050165bba52eab7ef3581d447eb215def77] Merge branch
->>>>>> 'drm-docs' of ssh://people.freedesktop.org/~danvet/drm into drm-next
->>>>>> git bisect bad 978c6050165bba52eab7ef3581d447eb215def77
->>>>>> # bad: [262de1453184f65e5ccfe45790f93d41f7339d49] drm/i915: Directly
->>>>>> return the vma from bind_to_vm
->>>>>> git bisect bad 262de1453184f65e5ccfe45790f93d41f7339d49
->>>>>> # bad: [031994ee8dedfa69d3a7caa43e93f3c282bc38f9] drm/i915: Implement
->>>>>> WaIncreaseL3CreditsForVLVB0:vlv
->>>>>> git bisect bad 031994ee8dedfa69d3a7caa43e93f3c282bc38f9
->>>>>> # bad: [f72d21eddfa900bfa2674195dcc0203e18d0cc62] drm/i915: Place the
->>>>>> Global GTT VM first in the list of VM
->>>>>> git bisect bad f72d21eddfa900bfa2674195dcc0203e18d0cc62
->>>>>> # bad: [d6660add648d10e7e35085d8c7d2653e0f9f61b7] drm/i915: Generalize
->>>>>> PPGTT init
->>>>>> git bisect bad d6660add648d10e7e35085d8c7d2653e0f9f61b7
->>>>>> # bad: [b731d33d05dd5ce6b387cbadb0d9d24cb3732b40] drm/i915: relax
->>>>>> context alignment
->>>>>> git bisect bad b731d33d05dd5ce6b387cbadb0d9d24cb3732b40
->>>>>> # bad: [a7b910789f77afa40ae0816d22339e9d25723c6e] drm/i915: Add vm to
->>>>>> error BO capture
->>>>>> git bisect bad a7b910789f77afa40ae0816d22339e9d25723c6e
->>>>>> # bad: [6e164c3382314a1f63526fa7a4322a17318d0e32] drm/i915: Allow ggtt
->>>>>> lookups to not WARN
->>>>>> git bisect bad 6e164c3382314a1f63526fa7a4322a17318d0e32
->>>>>> # bad: [6f425321e02a1b6c5e90b70f8fab7c140fcaeefb] drm/i915: Don't
->>>>>> unconditionally try to deref aliasing ppgtt
->>>>>> git bisect bad 6f425321e02a1b6c5e90b70f8fab7c140fcaeefb
->>>>>> # bad: [e178f7057b81c87a7ceaae0ca204487b6f7eedcf] drm/i915: Provide
->>>>>> PDP updates via MMIO
->>>>>> git bisect bad e178f7057b81c87a7ceaae0ca204487b6f7eedcf
->>>>>> # first bad commit: [e178f7057b81c87a7ceaae0ca204487b6f7eedcf]
->>>>>> drm/i915: Provide PDP updates via MMIO
->>>>>>
->>>>>
->>>>> The commit looks like related, I've added the commit author.
->>>>>
->>>>> Ben,
->>>>> Do you have any suggestions? Does the above commit have any chance of
->>>>> causing sluggish performance problem after a resume?
->>>>
->>>> What this comment actually does is use MMIO writes for the page tables
->>>> after a GPU hang/reset. (What a poorly named commit message).
->>>>
->>>> Can you please provide the full dmesg with the drm.debug=0x2?
->>>>
->>>
->>> Hi Ben
->>>
->>> Thank you for responding.
->>>
->>> Just to verify that I have done this correctly, I added
->>> "drm.debug=0x2" to the kernel command line (in Grub), booted,
->>> suspended and resumed, and then ran Dmesg.
->>>
->>> I wasn't sure exactly where to put it, so please find a copy of the output here:
->>> http://www.toohey.co.uk/dmesg
->>>
->>> I hope that is helpful. If you need any further information please let me know.
->>>
->>> Many thanks
->>
->> I only see radeon stuff in that dmesg. But you did the right thing to
->> grub.
->
-> Oh yes, this is a AMD graphics card so the bisected commit can't
-> be the culprit.
->
-> No ideas now, Lewis, I'm afraid you will need try harder to find the bad
-> commit.
->
-> Thanks,
-> Aaron
+To avoid confuision and conflict of usage for RAS related trace event,
+add an unified RAS trace event stub.
 
-OK, thank you both.
+v5 -> v4: remove explicit RAS menuconfig.
+v4 -> v3: change dependency rule of RAS_TRACE.
+v3 -> v2: fix dependency in Kconfig.
+v2 -> v1: adjust Kconfig to take RAS as a separate subsystem.
 
-I have a definite good point (v3.14) and a definite bad point
-(v3.15-rc1), so I just need to figure out why my bisection didn't
-yield the correct result... let me do some more experimentation and
-come back you.
+Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+---
+ drivers/Kconfig        |  2 ++
+ drivers/Makefile       |  1 +
+ drivers/edac/Kconfig   |  1 +
+ drivers/edac/edac_mc.c |  3 ---
+ drivers/ras/Kconfig    |  6 ++++++
+ drivers/ras/Makefile   |  1 +
+ drivers/ras/ras.c      | 12 ++++++++++++
+ 7 files changed, 23 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/ras/Kconfig
+ create mode 100644 drivers/ras/Makefile
+ create mode 100644 drivers/ras/ras.c
 
-Many thanks
-
-
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index 0e87a34..4e6e66c 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -176,4 +176,6 @@ source "drivers/powercap/Kconfig"
+ 
+ source "drivers/mcb/Kconfig"
+ 
++source "drivers/ras/Kconfig"
++
+ endmenu
+diff --git a/drivers/Makefile b/drivers/Makefile
+index f98b50d..65c32b1 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -158,3 +158,4 @@ obj-$(CONFIG_NTB)		+= ntb/
+ obj-$(CONFIG_FMC)		+= fmc/
+ obj-$(CONFIG_POWERCAP)		+= powercap/
+ obj-$(CONFIG_MCB)		+= mcb/
++obj-$(CONFIG_RAS)		+= ras/
+diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
+index 878f090..1589a86 100644
+--- a/drivers/edac/Kconfig
++++ b/drivers/edac/Kconfig
+@@ -72,6 +72,7 @@ config EDAC_MCE_INJ
+ 
+ config EDAC_MM_EDAC
+ 	tristate "Main Memory EDAC (Error Detection And Correction) reporting"
++	select RAS_TRACE
+ 	help
+ 	  Some systems are able to detect and correct errors in main
+ 	  memory.  EDAC can report statistics on memory error
+diff --git a/drivers/edac/edac_mc.c b/drivers/edac/edac_mc.c
+index 2c694b5..9f134823 100644
+--- a/drivers/edac/edac_mc.c
++++ b/drivers/edac/edac_mc.c
+@@ -33,9 +33,6 @@
+ #include <asm/edac.h>
+ #include "edac_core.h"
+ #include "edac_module.h"
+-
+-#define CREATE_TRACE_POINTS
+-#define TRACE_INCLUDE_PATH ../../include/ras
+ #include <ras/ras_event.h>
+ 
+ /* lock to memory controller's control array */
+diff --git a/drivers/ras/Kconfig b/drivers/ras/Kconfig
+new file mode 100644
+index 0000000..85febfd
+--- /dev/null
++++ b/drivers/ras/Kconfig
+@@ -0,0 +1,6 @@
++config RAS_TRACE
++	def_bool n
++	select RAS
++
++config RAS
++	bool
+diff --git a/drivers/ras/Makefile b/drivers/ras/Makefile
+new file mode 100644
+index 0000000..223e806
+--- /dev/null
++++ b/drivers/ras/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_RAS) += ras.o
+diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
+new file mode 100644
+index 0000000..b0c6ed1
+--- /dev/null
++++ b/drivers/ras/ras.c
+@@ -0,0 +1,12 @@
++/*
++ * Copyright (C) 2014 Intel Corporation
++ *
++ * Authors:
++ *	Chen, Gong <gong.chen@linux.intel.com>
++ */
++
++#define CREATE_TRACE_POINTS
++#define TRACE_INCLUDE_PATH ../../include/ras
++#include <ras/ras_event.h>
++
++EXPORT_TRACEPOINT_SYMBOL_GPL(mc_event);
 -- 
-Lewis
+2.0.0.rc2
 
-Lewis@Toohey.co.uk
-0782 588 4158
