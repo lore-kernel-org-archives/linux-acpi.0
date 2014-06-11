@@ -1,191 +1,141 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] ACPI / hotplug / PCI: Add hotplug contexts to PCI host bridges
-Date: Tue, 10 Jun 2014 20:29:15 -0600
-Message-ID: <CAErSpo5rpdb985tS91BOEGJePwU3OSzKp_KgrrZfRqaxKBgPMw@mail.gmail.com>
-References: <1986515.ZPZrccsmiq@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: Sluggish performance after resume//Re: Bug Report - [Acer Aspire
+ V5-122P] Unable to adjust screen brightness
+Date: Wed, 11 Jun 2014 15:03:20 +0800
+Message-ID: <20140611070312.GA15274@debian>
+References: <CADNzsyNwvGeeLzM54_CkA4tWCYnNVoRyewuqXx0vXH3t4shWHw@mail.gmail.com>
+ <CADNzsyMEi-e6d=zLET6YAtJxsyPmUdWRs6rEDt9xrf9R63uW0Q@mail.gmail.com>
+ <5383E68C.9030000@intel.com>
+ <CADNzsyMmEtvPeoKgsRyeNrxY2hH8ZJ_xhH5nLmVTtey3ad=jSg@mail.gmail.com>
+ <538D2359.4080102@intel.com>
+ <CADNzsyPQFwYwfPkFDX5BtpiGBGJM75KK-AJPE-O6YYWehGxUow@mail.gmail.com>
+ <539698BF.2010406@intel.com>
+ <20140610165816.GA24290@bwidawsk.net>
+ <CADNzsyOZEAitYd5CPAn6eSgRso9ezPFP14ojpsB81LcYn4J96A@mail.gmail.com>
+ <20140610225457.GB12721@bwidawsk.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:64064 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752756AbaFKC3f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jun 2014 22:29:35 -0400
-Received: by mail-ie0-f174.google.com with SMTP id lx4so4637264iec.5
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Jun 2014 19:29:35 -0700 (PDT)
-In-Reply-To: <1986515.ZPZrccsmiq@vostro.rjw.lan>
+Received: from mga11.intel.com ([192.55.52.93]:11546 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750740AbaFKHDp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Jun 2014 03:03:45 -0400
+Content-Disposition: inline
+In-Reply-To: <20140610225457.GB12721@bwidawsk.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux PCI <linux-pci@vger.kernel.org>
+To: Ben Widawsky <ben@bwidawsk.net>, Lewis Toohey <lewis@toohey.co.uk>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>
 
-On Tue, Jun 10, 2014 at 2:51 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> After relatively recent changes in the ACPI-based PCI hotplug
-> (ACPIPHP) code, the acpiphp_check_host_bridge() executed for PCI
-> host bridges via acpi_pci_root_scan_dependent() doesn't do anything
-> useful, because those bridges do not have hotplug contexts.  That
-> happens by mistake, so fix it by making acpiphp_enumerate_slots()
-> add hotplug contexts to PCI host bridges too and modify
-> acpiphp_remove_slots() to drop those contexts for host bridges
-> as appropriate.
->
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=76901
-> Fixes: 2d8b1d566a5f (ACPI / hotplug / PCI: Get rid of check_sub_bridges())
-> Reported-and-tested-by: Gavin Guo <gavin.guo@canonical.com>
-> Cc: 3.15+ <stable@vger.kernel.org> # 3.15+
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 06/11/2014 06:54 AM, Ben Widawsky wrote:
+> On Tue, Jun 10, 2014 at 08:59:32PM +0100, Lewis Toohey wrote:
+>> On 10 June 2014 17:58, Ben Widawsky <ben@bwidawsk.net> wrote:
+>>> On Tue, Jun 10, 2014 at 01:33:51PM +0800, Aaron Lu wrote:
+>>>> +Ben Widawsky & Daniel Vetter
+>>>>
+>>>> On 06/09/2014 03:38 PM, Lewis Toohey wrote:
+>>>>>
+>>>>> Hi Aaron
+>>>>>
+>>>>> Firstly, yes the sluggish performance I was referring to is
+>>>>> experienced in the GUI environment. Jerky graphics and CPU fan appears
+>>>>> to max out and stay there. Old kernels (e.g. the Ubuntu default
+>>>>> kernel) do not do this and just restore perfectly.
+>>>>>
+>>>>> I have completed the bisect as requested. Please find the full log
+>>>>> below. I am slightly unconvinced, as building the previous commit in
+>>>>> the log still seems to have the same problem, however, that commit is
+>>>>> a "merge" and I don't really know what this means.
+>>>>>
+>>>>> Many thanks
+>>>>>
+>>>>> Bisect Log:
+>>>>> git bisect start
+>>>>> # good: [455c6fdbd219161bd09b1165f11699d6d73de11c] Linux 3.14
+>>>>> git bisect good 455c6fdbd219161bd09b1165f11699d6d73de11c
+>>>>> # bad: [c9eaa447e77efe77b7fa4c953bd62de8297fd6c5] Linux 3.15-rc1
+>>>>> git bisect bad c9eaa447e77efe77b7fa4c953bd62de8297fd6c5
+>>>>> # good: [cd6362befe4cc7bf589a5236d2a780af2d47bcc9] Merge
+>>>>> git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next
+>>>>> git bisect good cd6362befe4cc7bf589a5236d2a780af2d47bcc9
+>>>>> # good: [d2b150d0647e055d7a71b1c33140280550b27dd6] Merge tag 'sh-3.15'
+>>>>> of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc
+>>>>> git bisect good d2b150d0647e055d7a71b1c33140280550b27dd6
+>>>>> # good: [5fb6b953bb7aa86a9c8ea760934982cedc45c52b]
+>>>>> include/linux/syscalls.h: add sys_renameat2() prototype
+>>>>> git bisect good 5fb6b953bb7aa86a9c8ea760934982cedc45c52b
+>>>>> # bad: [ffddc5fd19b219f557fd4a81168ce8784a4faced] fs/ncpfs/dir.c: fix
+>>>>> indenting in ncp_lookup()
+>>>>> git bisect bad ffddc5fd19b219f557fd4a81168ce8784a4faced
+>>>>> # bad: [978c6050165bba52eab7ef3581d447eb215def77] Merge branch
+>>>>> 'drm-docs' of ssh://people.freedesktop.org/~danvet/drm into drm-next
+>>>>> git bisect bad 978c6050165bba52eab7ef3581d447eb215def77
+>>>>> # bad: [262de1453184f65e5ccfe45790f93d41f7339d49] drm/i915: Directly
+>>>>> return the vma from bind_to_vm
+>>>>> git bisect bad 262de1453184f65e5ccfe45790f93d41f7339d49
+>>>>> # bad: [031994ee8dedfa69d3a7caa43e93f3c282bc38f9] drm/i915: Implement
+>>>>> WaIncreaseL3CreditsForVLVB0:vlv
+>>>>> git bisect bad 031994ee8dedfa69d3a7caa43e93f3c282bc38f9
+>>>>> # bad: [f72d21eddfa900bfa2674195dcc0203e18d0cc62] drm/i915: Place the
+>>>>> Global GTT VM first in the list of VM
+>>>>> git bisect bad f72d21eddfa900bfa2674195dcc0203e18d0cc62
+>>>>> # bad: [d6660add648d10e7e35085d8c7d2653e0f9f61b7] drm/i915: Generalize
+>>>>> PPGTT init
+>>>>> git bisect bad d6660add648d10e7e35085d8c7d2653e0f9f61b7
+>>>>> # bad: [b731d33d05dd5ce6b387cbadb0d9d24cb3732b40] drm/i915: relax
+>>>>> context alignment
+>>>>> git bisect bad b731d33d05dd5ce6b387cbadb0d9d24cb3732b40
+>>>>> # bad: [a7b910789f77afa40ae0816d22339e9d25723c6e] drm/i915: Add vm to
+>>>>> error BO capture
+>>>>> git bisect bad a7b910789f77afa40ae0816d22339e9d25723c6e
+>>>>> # bad: [6e164c3382314a1f63526fa7a4322a17318d0e32] drm/i915: Allow ggtt
+>>>>> lookups to not WARN
+>>>>> git bisect bad 6e164c3382314a1f63526fa7a4322a17318d0e32
+>>>>> # bad: [6f425321e02a1b6c5e90b70f8fab7c140fcaeefb] drm/i915: Don't
+>>>>> unconditionally try to deref aliasing ppgtt
+>>>>> git bisect bad 6f425321e02a1b6c5e90b70f8fab7c140fcaeefb
+>>>>> # bad: [e178f7057b81c87a7ceaae0ca204487b6f7eedcf] drm/i915: Provide
+>>>>> PDP updates via MMIO
+>>>>> git bisect bad e178f7057b81c87a7ceaae0ca204487b6f7eedcf
+>>>>> # first bad commit: [e178f7057b81c87a7ceaae0ca204487b6f7eedcf]
+>>>>> drm/i915: Provide PDP updates via MMIO
+>>>>>
+>>>>
+>>>> The commit looks like related, I've added the commit author.
+>>>>
+>>>> Ben,
+>>>> Do you have any suggestions? Does the above commit have any chance of
+>>>> causing sluggish performance problem after a resume?
+>>>
+>>> What this comment actually does is use MMIO writes for the page tables
+>>> after a GPU hang/reset. (What a poorly named commit message).
+>>>
+>>> Can you please provide the full dmesg with the drm.debug=0x2?
+>>>
+>>
+>> Hi Ben
+>>
+>> Thank you for responding.
+>>
+>> Just to verify that I have done this correctly, I added
+>> "drm.debug=0x2" to the kernel command line (in Grub), booted,
+>> suspended and resumed, and then ran Dmesg.
+>>
+>> I wasn't sure exactly where to put it, so please find a copy of the output here:
+>> http://www.toohey.co.uk/dmesg
+>>
+>> I hope that is helpful. If you need any further information please let me know.
+>>
+>> Many thanks
+> 
+> I only see radeon stuff in that dmesg. But you did the right thing to
+> grub.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Oh yes, this is a AMD graphics card so the bisected commit can't
+be the culprit.
 
-Rafael, do you want to merge this via your tree, since you merged the
-original acpiphp rework?
+No ideas now, Lewis, I'm afraid you will need try harder to find the bad
+commit.
 
-I do have a small cleanup of acpiphp_glue.c in my queue, but it won't
-conflict with this.
-
-Thanks a lot for fixing this!
-
-Bjorn
-
-> ---
->  drivers/pci/hotplug/acpiphp.h      |   10 ++++++
->  drivers/pci/hotplug/acpiphp_glue.c |   60 +++++++++++++++++++++++++------------
->  2 files changed, 52 insertions(+), 18 deletions(-)
->
-> Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-> +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-> @@ -373,17 +373,13 @@ static acpi_status acpiphp_add_context(a
->
->  static struct acpiphp_bridge *acpiphp_dev_to_bridge(struct acpi_device *adev)
->  {
-> -       struct acpiphp_context *context;
->         struct acpiphp_bridge *bridge = NULL;
->
->         acpi_lock_hp_context();
-> -       context = acpiphp_get_context(adev);
-> -       if (context) {
-> -               bridge = context->bridge;
-> +       if (adev->hp) {
-> +               bridge = to_acpiphp_root_context(adev->hp)->root_bridge;
->                 if (bridge)
->                         get_bridge(bridge);
-> -
-> -               acpiphp_put_context(context);
->         }
->         acpi_unlock_hp_context();
->         return bridge;
-> @@ -881,7 +877,17 @@ void acpiphp_enumerate_slots(struct pci_
->          */
->         get_device(&bus->dev);
->
-> -       if (!pci_is_root_bus(bridge->pci_bus)) {
-> +       acpi_lock_hp_context();
-> +       if (pci_is_root_bus(bridge->pci_bus)) {
-> +               struct acpiphp_root_context *root_context;
-> +
-> +               root_context = kzalloc(sizeof(*root_context), GFP_KERNEL);
-> +               if (!root_context)
-> +                       goto err;
-> +
-> +               root_context->root_bridge = bridge;
-> +               acpi_set_hp_context(adev, &root_context->hp, NULL, NULL, NULL);
-> +       } else {
->                 struct acpiphp_context *context;
->
->                 /*
-> @@ -890,21 +896,16 @@ void acpiphp_enumerate_slots(struct pci_
->                  * parent is going to be handled by pciehp, in which case this
->                  * bridge is not interesting to us either.
->                  */
-> -               acpi_lock_hp_context();
->                 context = acpiphp_get_context(adev);
-> -               if (!context) {
-> -                       acpi_unlock_hp_context();
-> -                       put_device(&bus->dev);
-> -                       pci_dev_put(bridge->pci_dev);
-> -                       kfree(bridge);
-> -                       return;
-> -               }
-> +               if (!context)
-> +                       goto err;
-> +
->                 bridge->context = context;
->                 context->bridge = bridge;
->                 /* Get a reference to the parent bridge. */
->                 get_bridge(context->func.parent);
-> -               acpi_unlock_hp_context();
->         }
-> +       acpi_unlock_hp_context();
->
->         /* Must be added to the list prior to calling acpiphp_add_context(). */
->         mutex_lock(&bridge_mutex);
-> @@ -919,6 +920,30 @@ void acpiphp_enumerate_slots(struct pci_
->                 cleanup_bridge(bridge);
->                 put_bridge(bridge);
->         }
-> +       return;
-> +
-> + err:
-> +       acpi_unlock_hp_context();
-> +       put_device(&bus->dev);
-> +       pci_dev_put(bridge->pci_dev);
-> +       kfree(bridge);
-> +}
-> +
-> +void acpiphp_drop_bridge(struct acpiphp_bridge *bridge)
-> +{
-> +       if (pci_is_root_bus(bridge->pci_bus)) {
-> +               struct acpiphp_root_context *root_context;
-> +               struct acpi_device *adev;
-> +
-> +               acpi_lock_hp_context();
-> +               adev = ACPI_COMPANION(bridge->pci_bus->bridge);
-> +               root_context = to_acpiphp_root_context(adev->hp);
-> +               adev->hp = NULL;
-> +               acpi_unlock_hp_context();
-> +               kfree(root_context);
-> +       }
-> +       cleanup_bridge(bridge);
-> +       put_bridge(bridge);
->  }
->
->  /**
-> @@ -936,8 +961,7 @@ void acpiphp_remove_slots(struct pci_bus
->         list_for_each_entry(bridge, &bridge_list, list)
->                 if (bridge->pci_bus == bus) {
->                         mutex_unlock(&bridge_mutex);
-> -                       cleanup_bridge(bridge);
-> -                       put_bridge(bridge);
-> +                       acpiphp_drop_bridge(bridge);
->                         return;
->                 }
->
-> Index: linux-pm/drivers/pci/hotplug/acpiphp.h
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/hotplug/acpiphp.h
-> +++ linux-pm/drivers/pci/hotplug/acpiphp.h
-> @@ -142,6 +142,16 @@ static inline acpi_handle func_to_handle
->         return func_to_acpi_device(func)->handle;
->  }
->
-> +struct acpiphp_root_context {
-> +       struct acpi_hotplug_context hp;
-> +       struct acpiphp_bridge *root_bridge;
-> +};
-> +
-> +static inline struct acpiphp_root_context *to_acpiphp_root_context(struct acpi_hotplug_context *hp)
-> +{
-> +       return container_of(hp, struct acpiphp_root_context, hp);
-> +}
-> +
->  /*
->   * struct acpiphp_attention_info - device specific attention registration
->   *
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Aaron
