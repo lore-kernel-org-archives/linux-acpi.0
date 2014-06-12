@@ -1,68 +1,68 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch V4 12/42] x86, ioapic: kill static variable nr_irqs_gsi
-Date: Thu, 12 Jun 2014 20:40:02 +0800
-Message-ID: <53999FA2.4000600@linux.intel.com>
-References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com> <1402302011-23642-13-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1406100121090.3830@nanos> <53969834.3040404@linux.intel.com> <alpine.DEB.2.10.1406121256090.5170@nanos>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH v2 1/5] apei, mce: Factor out APEI architecture specific
+ MCE calls.
+Date: Thu, 12 Jun 2014 15:07:02 +0200
+Message-ID: <5399A5F6.8010905@linaro.org>
+References: <1401262770-25343-1-git-send-email-tomasz.nowicki@linaro.org> <1401262770-25343-2-git-send-email-tomasz.nowicki@linaro.org> <20140612102319.GA22583@rric.localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:40657 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752742AbaFLMkJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Jun 2014 08:40:09 -0400
-In-Reply-To: <alpine.DEB.2.10.1406121256090.5170@nanos>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140612102319.GA22583@rric.localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Robert Richter <rric@kernel.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 
-Hi Thomas,
-	With all patches applied, we have following code and comments
-for this case:
-        switch (type) {
-        case IOAPIC_DOMAIN_LEGACY:
-                /*
-                 * Dynamically allocate IRQ number for non-ISA IRQs in
-the first 16
-                 * GSIs on some weird platforms.
-                 */
-                if (gsi < nr_legacy_irqs())
-                        irq = irq_create_mapping(domain, pin);
-                else if (irq_create_strict_mappings(domain, gsi, pin, 1)
-== 0)
-                        irq = gsi;
-                break;
+On 12.06.2014 12:23, Robert Richter wrote:
+> On 28.05.14 09:39:26, Tomasz Nowicki wrote:
+>> This commit abstracts MCE calls and provides weak corresponding default
+>> implementation for those architectures which do not need arch specific
+>> actions. Each platform willing to do additional architectural actions
+>> should provides desired function definition. It allows us to avoid wrap
+>> code into #ifdef in generic code and prevent new platform from introducing
+>> dummy stub function too.
+>>
+>> Initially, there are two APEI arch-specific calls:
+>> - apei_arch_enable_cmcff()
+>> - apei_arch_report_mem_error()
+>> Both interact with MCE driver for X86 architecture.
+>>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> ---
+>>   arch/x86/kernel/acpi/Makefile |    1 +
+>>   arch/x86/kernel/acpi/apei.c   |   56 +++++++++++++++++++++++++++++++++++++++++
+>>   drivers/acpi/apei/apei-base.c |   13 ++++++++++
+>>   drivers/acpi/apei/ghes.c      |    6 ++---
+>>   drivers/acpi/apei/hest.c      |   26 +------------------
+>>   include/acpi/apei.h           |    3 +++
+>>   6 files changed, 76 insertions(+), 29 deletions(-)
+>>   create mode 100644 arch/x86/kernel/acpi/apei.c
+>
+>>   static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
+>>   {
+>> -#ifdef CONFIG_X86_MCE
+>> -	int i;
+>> -	struct acpi_hest_ia_corrected *cmc;
+>> -	struct acpi_hest_ia_error_bank *mc_bank;
+>> -
+>> -	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
+>> -		return 0;
+>> -
+>> -	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
+>> -	if (!cmc->enabled)
+>> +	if (!apei_arch_enable_cmcff(hest_hdr, data))
+>>   		return 0;
+>
+> This could be a tail call:
+>
+> 	return apei_arch_enable_cmcff(...);
 
+Right. Will fix that.
 
-On 2014/6/12 18:58, Thomas Gleixner wrote:
-> On Tue, 10 Jun 2014, Jiang Liu wrote:
-> 
->> Hi Thomas,
->> 	This piece of code is inherited from current IOAPIC driver
->> and I think it's a workaround for some weird platforms.
->> 	For normal platforms with both 8259A and IOAPIC controllers,
->> legacy ISA IRQs should be connected to both 8259A and IOAPIC pins
->> (ignore timer and cascade IRQs for simplicity). According to comments
->>  in current kernel, there are some platforms on which:
->> 1) some ISA IRQs are only connected to 8259A controllers.
->> 2) the corresponding IOAPIC pins are connected to some non-ISA IRQs.
->> 	For such platforms, IRQ0-15 are used for ISA IRQs and another
->> 16 IRQs just above gsi_top are reserved for IOAPIC pins 0-15 which
->> are connected to non-ISA IRQs.
->> 	I have no real experience with such a platform, but just
->> guessing possible cases according to kernel comments and "Multiple
->> Processor Specification". Please look at these two pictures for quick
->> reference.
->> http://www.manualslib.com/manual/77733/Intel-Multiprocessor.html?page=31#manual
->> http://www.manualslib.com/manual/77733/Intel-Multiprocessor.html?page=63#manual
-> 
-> Duh. I completely forgot about the 82489 mess.
-> 
-> We probably want a comment somewhere why we have this gsi + legacy
-> thing.
-> 
-> Thanks,
-> 
-> 	tglx
-> 
+>
+> Otherwise the patch looks good to me.
+
+Thanks.
+
+Tomasz
