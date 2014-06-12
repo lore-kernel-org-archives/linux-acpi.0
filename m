@@ -1,319 +1,264 @@
 From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: [RFC v2 1/3] Mailbox: Add support for ACPI
-Date: Thu, 12 Jun 2014 12:48:10 -0400
-Message-ID: <1402591692-7736-2-git-send-email-ashwin.chaugule@linaro.org>
+Subject: [RFC v2 3/3] PCC test driver
+Date: Thu, 12 Jun 2014 12:48:12 -0400
+Message-ID: <1402591692-7736-4-git-send-email-ashwin.chaugule@linaro.org>
 References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:57167 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756173AbaFLQsX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2014 12:48:23 -0400
-Received: by mail-pa0-f54.google.com with SMTP id et14so1184515pad.27
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Jun 2014 09:48:23 -0700 (PDT)
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:54387 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753161AbaFLQsa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2014 12:48:30 -0400
+Received: by mail-pb0-f47.google.com with SMTP id un15so1179501pbc.20
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Jun 2014 09:48:29 -0700 (PDT)
 In-Reply-To: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: linaro-acpi@lists.linaro.org, broonie@kernel.org, jassisinghbrar@gmail.com, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, patches@linaro.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-The current mailbox framework only supports DT based bindings.
-Add another mechanism for mailbox clients to register with mailbox
-controllers and request for specific mailbox channels. This enables
-usage of the mailbox framework on kernels with ACPI support.
+A simple test driver to register as a PCC mailbox client and
+send PCC reads/writes via the PCC mailbox controller.
+
+echo 2 > /proc/pcc_test to register client.
+
+echo 1 > /proc/pcc_test for PCC writes.
+
+echo 0 > /proc/pcc_test for PCC reads.
 
 Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 ---
- drivers/mailbox/mailbox.c          | 155 ++++++++++++++++++++++++-------------
- include/linux/mailbox_client.h     |   3 +
- include/linux/mailbox_controller.h |   6 ++
- 3 files changed, 112 insertions(+), 52 deletions(-)
+ drivers/acpi/Makefile   |   2 +-
+ drivers/acpi/pcc-test.c | 208 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 209 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/acpi/pcc-test.c
 
-diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-index d83d12c..c7d17f8 100644
---- a/drivers/mailbox/mailbox.c
-+++ b/drivers/mailbox/mailbox.c
-@@ -273,100 +273,143 @@ int mbox_send_message(struct mbox_chan *chan, void *mssg)
- }
- EXPORT_SYMBOL_GPL(mbox_send_message);
- 
--/**
-- * mbox_request_channel - Request a mailbox channel.
-- * @cl: Identity of the client requesting the channel.
-- *
-- * The Client specifies its requirements and capabilities while asking for
-- * a mailbox channel by name. It can't be called from atomic context.
-- * The channel is exclusively allocated and can't be used by another
-- * client before the owner calls mbox_free_channel.
-- * After assignment, any packet received on this channel will be
-- * handed over to the client via the 'rx_callback'.
-- *
-- * Return: Pointer to the channel assigned to the client if successful.
-- *		ERR_PTR for request failure.
-- */
--struct mbox_chan *mbox_request_channel(struct mbox_client *cl)
-+static int init_channel(struct mbox_chan *chan,
-+		struct mbox_client *cl)
-+{
-+	unsigned long flags;
-+	int ret;
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+	chan->msg_free = 0;
-+	chan->msg_count = 0;
-+	chan->active_req = NULL;
-+	chan->cl = cl;
-+
-+	if (!cl->tx_tout) /* wait for ever */
-+		cl->tx_tout = msecs_to_jiffies(3600000);
-+	else
-+		cl->tx_tout = msecs_to_jiffies(cl->tx_tout);
-+	if (chan->txdone_method	== TXDONE_BY_POLL
-+			&& cl->knows_txdone)
-+		chan->txdone_method |= TXDONE_BY_ACK;
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+
-+	ret = chan->mbox->ops->startup(chan);
-+	if (ret) {
-+		pr_err("Unable to startup the chan\n");
-+		mbox_free_channel(chan);
-+		chan = ERR_PTR(ret);
-+	}
-+
-+	return ret;
-+}
-+
-+#ifdef CONFIG_ACPI
-+static int get_acpi_mbox_chan(struct mbox_client *cl,
-+		struct mbox_chan **chan)
-+{
-+	struct mbox_controller *mbox;
-+	int i;
-+
-+	list_for_each_entry(mbox, &mbox_cons, node) {
-+		if (!strcmp(cl->ctrl_name, mbox->name)) {
-+			for (i = 0; i < mbox->num_chans; i++) {
-+				*chan = &mbox->chans[i];
-+				if (!strcmp(cl->chan_name, (*chan)->name))
-+					return init_channel(*chan, cl);
-+			}
-+		}
-+	}
-+
-+	return -ENODEV;
-+}
-+#endif
-+
-+static int get_of_mbox_chan(struct mbox_client *cl,
-+		struct mbox_chan **chan)
- {
- 	struct device *dev = cl->dev;
- 	struct mbox_controller *mbox;
- 	struct of_phandle_args spec;
--	struct mbox_chan *chan;
--	unsigned long flags;
- 	int count, i, ret;
- 
- 	if (!dev || !dev->of_node) {
- 		pr_err("%s: No owner device node\n", __func__);
--		return ERR_PTR(-ENODEV);
-+		return -ENODEV;
- 	}
- 
- 	count = of_property_count_strings(dev->of_node, "mbox-names");
- 	if (count < 0) {
- 		pr_err("%s: mbox-names property of node '%s' missing\n",
- 			__func__, dev->of_node->full_name);
--		return ERR_PTR(-ENODEV);
-+		return -ENODEV;
- 	}
--
--	mutex_lock(&con_mutex);
--
--	ret = -ENODEV;
- 	for (i = 0; i < count; i++) {
- 		const char *s;
- 
- 		if (of_property_read_string_index(dev->of_node,
--						"mbox-names", i, &s))
-+					"mbox-names", i, &s))
- 			continue;
- 
- 		if (strcmp(cl->chan_name, s))
- 			continue;
- 
- 		if (of_parse_phandle_with_args(dev->of_node,
--					 "mbox", "#mbox-cells",	i, &spec))
-+					"mbox", "#mbox-cells",	i, &spec))
- 			continue;
- 
--		chan = NULL;
- 		list_for_each_entry(mbox, &mbox_cons, node)
- 			if (mbox->dev->of_node == spec.np) {
--				chan = mbox->of_xlate(mbox, &spec);
-+				*chan = mbox->of_xlate(mbox, &spec);
- 				break;
- 			}
- 
- 		of_node_put(spec.np);
- 
--		if (!chan)
-+		if (!(*chan))
- 			continue;
- 
- 		ret = -EBUSY;
--		if (!chan->cl && try_module_get(mbox->dev->driver->owner))
-+		if (!(*chan)->cl && try_module_get(mbox->dev->driver->owner))
- 			break;
- 	}
- 
- 	if (i == count) {
- 		mutex_unlock(&con_mutex);
--		return ERR_PTR(ret);
-+		return ret;
- 	}
- 
--	spin_lock_irqsave(&chan->lock, flags);
--	chan->msg_free = 0;
--	chan->msg_count = 0;
--	chan->active_req = NULL;
--	chan->cl = cl;
--	if (!cl->tx_tout) /* wait for ever */
--		cl->tx_tout = msecs_to_jiffies(3600000);
--	else
--		cl->tx_tout = msecs_to_jiffies(cl->tx_tout);
--	if (chan->txdone_method	== TXDONE_BY_POLL
--			&& cl->knows_txdone)
--		chan->txdone_method |= TXDONE_BY_ACK;
--	spin_unlock_irqrestore(&chan->lock, flags);
-+	return init_channel(*chan, cl);
-+}
- 
--	ret = chan->mbox->ops->startup(chan);
--	if (ret) {
--		pr_err("Unable to startup the chan\n");
--		mbox_free_channel(chan);
--		chan = ERR_PTR(ret);
--	}
-+/**
-+ * mbox_request_channel - Request a mailbox channel.
-+ * @cl: Identity of the client requesting the channel.
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index d8aa613..f7bbbe9 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -74,7 +74,7 @@ obj-$(CONFIG_ACPI_HED)		+= hed.o
+ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
+ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
+ obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
+-obj-$(CONFIG_ACPI_PCC)		+= pcc.o
++obj-$(CONFIG_ACPI_PCC)		+= pcc.o pcc-test.o
+ # processor has its own "processor." module_param namespace
+ processor-y			:= processor_driver.o processor_throttling.o
+ processor-y			+= processor_idle.o processor_thermal.o
+diff --git a/drivers/acpi/pcc-test.c b/drivers/acpi/pcc-test.c
+new file mode 100644
+index 0000000..4ba8c1f
+--- /dev/null
++++ b/drivers/acpi/pcc-test.c
+@@ -0,0 +1,208 @@
++/*
++ *	Copyright (C) 2014 Linaro Ltd.
++ *	Author:	Ashwin Chaugule <ashwin.chaugule@linaro.org>
 + *
-+ * The Client specifies its requirements and capabilities while asking for
-+ * a mailbox channel by name. It can't be called from atomic context.
-+ * The channel is exclusively allocated and can't be used by another
-+ * client before the owner calls mbox_free_channel.
-+ * After assignment, any packet received on this channel will be
-+ * handed over to the client via the 'rx_callback'.
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
 + *
-+ * Return: Pointer to the channel assigned to the client if successful.
-+ *		ERR_PTR for request failure.
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
 + */
-+struct mbox_chan *mbox_request_channel(struct mbox_client *cl)
++
++#include <linux/acpi.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
++#include <linux/init.h>
++#include <linux/cpufreq.h>
++#include <linux/proc_fs.h>
++#include <linux/seq_file.h>
++#include <linux/mailbox_client.h>
++#include <linux/mailbox_controller.h>
++
++#include <asm/uaccess.h>
++
++#include <acpi/actbl.h>
++
++static void __iomem *comm_base_addr; 	/* For use after ioremap */
++
++extern int mbox_controller_register(struct mbox_controller *mbox);
++extern struct mbox_chan *mbox_request_channel(struct mbox_client *cl);
++extern int mbox_send_message(struct mbox_chan *chan, void *mssg);
++
++
++/* XXX: The PCC Subspace id is hard coded here only for test purposes.
++ * In reality it should be parsed from the PCC package as described
++ * in the PCC client table. e.g. CPC for CPPC 
++ */
++#define PCC_SUBSPACE_IDX 	0
++#define CMD_COMPLETE    	1
++
++struct mbox_chan *pcc_test_chan;
++enum ppc_cmds {
++	CMD_READ,
++	CMD_WRITE,
++	RESERVED,
++};
++
++static u32 reg1, reg2;
++
++static void run_pcc_test_read(void)
 +{
-+	struct mbox_chan *chan = NULL;
++	u32 reg1_addr = (u32)comm_base_addr + 0x100;
++	u32 reg2_addr = (u32)comm_base_addr + 0x110;
++	char mssg[2];
 +	int ret;
 +
-+	mutex_lock(&con_mutex);
++	/* READ part of the test */
++	pr_info("Sending PCC read req from Channel base addr: %x\n", (u32)comm_base_addr);
 +
-+	ret = get_of_mbox_chan(cl, &chan);
++	snprintf(mssg, sizeof(short), "%d", CMD_READ);
++	ret = mbox_send_message(pcc_test_chan, &mssg);
++	if (ret >= 0) {
++		pr_info("Read updated values from Platform.\n");
++		reg1 = ioread32((void*)reg1_addr);
++		reg2 = ioread32((void*)reg2_addr);
++		pr_info("updated value of reg1:%x\n", reg1);
++		pr_info("updated value of reg2:%x\n", reg2);
++	} else
++		pr_err("Failed to read PCC parameters: ret=%d\n", ret);
++}
 +
-+#ifdef CONFIG_ACPI
-+	ret = get_acpi_mbox_chan(cl, &chan);
-+#endif
-+	if (ret)
-+		pr_err("No mailbox channels found\n");
- 
- 	mutex_unlock(&con_mutex);
- 	return chan;
-@@ -394,11 +437,14 @@ void mbox_free_channel(struct mbox_chan *chan)
- 	if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
- 		chan->txdone_method = TXDONE_BY_POLL;
- 
-+#ifndef CONFIG_ACPI
- 	module_put(chan->mbox->dev->driver->owner);
-+#endif
- 	spin_unlock_irqrestore(&chan->lock, flags);
- }
- EXPORT_SYMBOL_GPL(mbox_free_channel);
- 
-+#ifndef CONFIG_ACPI
- static struct mbox_chan *
- of_mbox_index_xlate(struct mbox_controller *mbox,
- 				const struct of_phandle_args *sp)
-@@ -410,7 +456,7 @@ of_mbox_index_xlate(struct mbox_controller *mbox,
- 
- 	return &mbox->chans[ind];
- }
--
-+#endif
- /**
-  * mbox_controller_register - Register the mailbox controller
-  * @mbox:	Pointer to the mailbox controller.
-@@ -422,9 +468,13 @@ int mbox_controller_register(struct mbox_controller *mbox)
- 	int i, txdone;
- 
- 	/* Sanity check */
--	if (!mbox || !mbox->dev || !mbox->ops || !mbox->num_chans)
-+	if (!mbox || !mbox->ops || !mbox->num_chans)
- 		return -EINVAL;
- 
-+#ifndef CONFIG_ACPI
-+	if (!mbox->dev)
++static void run_pcc_test_write(void)
++{
++	u32 reg1_addr = (u32)comm_base_addr + 0x100;
++	u32 reg2_addr = (u32)comm_base_addr + 0x110;
++	char mssg[2];
++	int ret;
++
++	/* WRITE part of the test */
++	reg1++;
++	reg2++;
++
++	iowrite32(reg1, (void *)reg1_addr);
++	iowrite32(reg2, (void *)reg2_addr);
++
++	pr_info("Sending PCC write req from Channel base addr: %x\n", (u32)comm_base_addr);
++	snprintf(mssg, sizeof(short), "%d", CMD_WRITE);
++
++	ret = mbox_send_message(pcc_test_chan, &mssg);
++
++	if (ret >= 0)
++		pr_info("OSPM successfully sent PCC write cmd to platform\n");
++	else
++		pr_err("Failed to write PCC parameters. ret= %d\n", ret);
++}
++
++static void pcc_chan_tx_done(struct mbox_client *cl, void *mssg, enum mbox_result r)
++{
++	if (r == MBOX_OK)
++		pr_info("PCC channel TX successfully completed. CMD sent = %s\n", (char*)mssg);
++	else
++		pr_warn("PCC channel TX did not complete: CMD sent = %s\n", (char*)mssg);
++}
++
++struct mbox_client pcc_mbox_cl = {
++	.chan_name	=	"0",
++	.ctrl_name	=	"PCCT",
++	.tx_done	=	pcc_chan_tx_done,
++};
++
++void get_pcc_comm(void)
++{
++	u32 base_addr;
++	u32 len;
++	struct acpi_pcct_subspace *pcc_ss;
++
++	pcc_test_chan = mbox_request_channel(&pcc_mbox_cl);
++
++	if (!pcc_test_chan) {
++		pr_err("PCC Channel not found!\n");
++		return;
++	}
++
++	pcc_ss = pcc_test_chan->con_priv;
++
++	base_addr = pcc_ss->base_address;
++	len = pcc_ss->length;
++
++	pr_info("ioremapping: %x, len: %x\n", base_addr, len);
++
++	comm_base_addr = ioremap_nocache(base_addr, len);
++
++	if (!comm_base_addr) {
++		pr_err("Could not ioremap channel\n");
++		return;
++	}
++
++	pcc_ss->base_address = (u32)comm_base_addr;
++
++	pr_info("Comm_base_addr: %x\n", (u32)comm_base_addr);
++}
++
++static ssize_t pcc_test_write(struct file *file, const char __user *buf,
++		size_t count, loff_t *offs)
++{
++	char ctl[2];
++
++	if (count != 2 || *offs)
 +		return -EINVAL;
-+#endif
- 	if (mbox->txdone_irq)
- 		txdone = TXDONE_BY_IRQ;
- 	else if (mbox->txdone_poll)
-@@ -446,9 +496,10 @@ int mbox_controller_register(struct mbox_controller *mbox)
- 		spin_lock_init(&chan->lock);
- 	}
- 
-+#ifndef CONFIG_ACPI
- 	if (!mbox->of_xlate)
- 		mbox->of_xlate = of_mbox_index_xlate;
--
-+#endif
- 	mutex_lock(&con_mutex);
- 	list_add_tail(&mbox->node, &mbox_cons);
- 	mutex_unlock(&con_mutex);
-diff --git a/include/linux/mailbox_client.h b/include/linux/mailbox_client.h
-index bbac2d2..21568a1 100644
---- a/include/linux/mailbox_client.h
-+++ b/include/linux/mailbox_client.h
-@@ -35,6 +35,9 @@ struct mbox_client {
- 	bool tx_block;
- 	unsigned long tx_tout;
- 	bool knows_txdone;
-+#ifdef CONFIG_ACPI
-+	const char *ctrl_name;
-+#endif
- };
- 
- struct mbox_chan *mbox_request_channel(struct mbox_client *cl);
-diff --git a/include/linux/mailbox_controller.h b/include/linux/mailbox_controller.h
-index cf81e80..dc9d290 100644
---- a/include/linux/mailbox_controller.h
-+++ b/include/linux/mailbox_controller.h
-@@ -78,6 +78,9 @@ struct mbox_controller {
- 	unsigned period;
- 	/* Hook to add to the global controller list */
- 	struct list_head node;
-+#ifdef CONFIG_ACPI
-+	char *name;
-+#endif
- } __aligned(32);
- 
- /*
-@@ -111,6 +114,9 @@ struct mbox_chan {
- 
- 	/* Private data for controller */
- 	void *con_priv;
-+#ifdef CONFIG_ACPI
-+	char *name;
-+#endif
- } __aligned(32);
- 
- int mbox_controller_register(struct mbox_controller *mbox);
++
++	if (copy_from_user(ctl, buf, count))
++		return -EFAULT;
++
++	switch (ctl[0]) {
++		case '0':
++			/* PCC read */
++			run_pcc_test_read();
++			break;
++		case '1':
++			/* PCC write */
++			run_pcc_test_write();
++			break;
++		case '2':
++			/* Get PCC channel */
++			get_pcc_comm();
++			break;
++		default:
++			pr_err("Unknown val\n");
++			break;
++	}
++
++	return count;
++}
++
++static int pcc_test_open(struct inode *inode, struct file *filp)
++{
++	return 0;
++}
++
++static int pcc_test_release(struct inode *inode, struct file *filp)
++{
++	return 0;
++}
++
++static const struct file_operations pcc_test_fops = {
++	.open		= pcc_test_open,
++//	.read		= seq_read,
++	.write		= pcc_test_write,
++	.release	= pcc_test_release,
++};
++
++static int __init pcc_test(void)
++{
++	struct proc_dir_entry *pe;
++
++	pe = proc_create("pcc_test", 0644, NULL, &pcc_test_fops);
++
++	if (!pe)
++		return -ENOMEM;
++
++	return 0;
++}
++
++late_initcall(pcc_test);
 -- 
 1.8.3.2
 
