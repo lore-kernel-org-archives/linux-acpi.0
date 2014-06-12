@@ -1,45 +1,40 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [RFC v2 1/3] Mailbox: Add support for ACPI
-Date: Thu, 12 Jun 2014 13:14:17 -0400
-Message-ID: <CAJ5Y-eZ0z-SPSn9oxced2GOAw+OA5rC+uq4pCSXh5H2JujPm1g@mail.gmail.com>
-References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org>
-	<1402591692-7736-2-git-send-email-ashwin.chaugule@linaro.org>
-	<4476889.LvjMyVbGZ8@wuerfel>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH] ACPI/Battery: Retry to get Battery information if failed
+ during probing
+Date: Thu, 12 Jun 2014 14:17:02 -0700 (PDT)
+Message-ID: <alpine.DEB.2.02.1406121415150.8305@chino.kir.corp.google.com>
+References: <1402552946-14704-1-git-send-email-tianyu.lan@intel.com> <alpine.DEB.2.02.1406112354070.23724@chino.kir.corp.google.com> <53995488.20308@intel.com> <alpine.DEB.2.02.1406120025050.23724@chino.kir.corp.google.com> <53996152.2000407@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f182.google.com ([74.125.82.182]:45881 "EHLO
-	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753089AbaFLROS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2014 13:14:18 -0400
-Received: by mail-we0-f182.google.com with SMTP id q59so1656291wes.27
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Jun 2014 10:14:17 -0700 (PDT)
-In-Reply-To: <4476889.LvjMyVbGZ8@wuerfel>
+Received: from mail-ig0-f175.google.com ([209.85.213.175]:53531 "EHLO
+	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752290AbaFLVRF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2014 17:17:05 -0400
+Received: by mail-ig0-f175.google.com with SMTP id uq10so8178166igb.14
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Jun 2014 14:17:04 -0700 (PDT)
+In-Reply-To: <53996152.2000407@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Patch Tracking <patches@linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Mark Brown <broonie@kernel.org>
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, naszar@ya.ru, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 
-On 12 June 2014 13:02, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Thursday 12 June 2014 12:48:10 Ashwin Chaugule wrote:
->>
->> +#ifndef CONFIG_ACPI
->>         if (!mbox->of_xlate)
->>                 mbox->of_xlate = of_mbox_index_xlate;
->> -
->> +#endif
->>         mutex_lock(&con_mutex);
->>         list_add_tail(&mbox->node, &mbox_cons);
->>         mutex_unlock(&con_mutex);
->>
->
-> You can't do #ifndef here, the driver must still work if
-> both OF and ACPI are enabled.
+On Thu, 12 Jun 2014, Lan Tianyu wrote:
 
-Ok. Here we could skip the macro altogether, since of_xlate wont be
-called with ACPI anyway.
+> The retry time is set by randomly and not accurate because don't know
+> when EC will work normally. Set the retry time to 5 just in order to
+> make sure battery driver probing sucessfully every time,
+> 
 
-Will need to look into using/faking mbox->dev to remove the other ifndefs.
+Ok, I was hoping to avoid the excessive wait if it will never actually 
+succeed but I assume there's some evidence that it can succeed after 40ms, 
+60ms, etc.  Please consider the following instead:
 
-Cheers,
-Ashwin
+	for (i = 0; i < 5; i++) {
+		/* Comment on why we need a delay in between retries */
+		if (i)
+			msleep(20);
+		result = acpi_battery_update(battery, false);
+		if (!result)
+			break;
+	}
