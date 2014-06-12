@@ -1,69 +1,59 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH] ACPI/Battery: Retry to get Battery information if failed during probing
-Date: Thu, 12 Jun 2014 14:02:26 +0800
-Message-ID: <1402552946-14704-1-git-send-email-tianyu.lan@intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH] ACPICA: Restore error table definitions to reduce source
+ code differences between Linux and ACPICA upstream.
+Date: Thu, 12 Jun 2014 08:23:30 +0200
+Message-ID: <20140612062329.GA4857@pd.tnic>
+References: <1401784373-8599-1-git-send-email-lv.zheng@intel.com>
+ <2787139.OIeHFv9Bzc@vostro.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E880262CC89@SHSMSX101.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:2922 "EHLO mga09.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:44142 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754586AbaFLGDu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Jun 2014 02:03:50 -0400
+	id S1751325AbaFLG0w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Jun 2014 02:26:52 -0400
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880262CC89@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, naszar@ya.ru
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "Luck, Tony" <tony.luck@intel.com>
 
-Some machines'(E,G Lenovo Z480) ECs are not stable during boot up
-and causes battery driver fails to be probed due to failure of getting
-battery information from EC sometimes. After several retries, the
-operation will work. This patch is to retry to get battery information 5
-times if the first try fails.
+On Thu, Jun 12, 2014 at 02:33:13AM +0000, Zheng, Lv wrote:
+> Hi, Ping Rafael and Boris
+> 
+> Could this patch be accepted?
+> It's easier than asking all OSPMs to do changes in their drivers.
+> 
+> Thanks and best regards
+> -Lv
+> 
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
+> > Sent: Tuesday, June 03, 2014 9:31 PM
+> > 
+> > CC: Boris.
+> > 
+> > On Tuesday, June 03, 2014 04:32:53 PM Lv Zheng wrote:
+> > > The following commit has changed ACPICA table header definitions:
+> > >  Commit: 88f074f4871a8c212b212b725e4dcdcdb09613c1
+> > >  Subject: ACPI, CPER: Update cper info
+> > > While such definitions are currently maintained in ACPICA. As the
+> > > modifications applying to the table definitions affect other OSPMs'
+> > > drivers, it is very difficult for ACPICA to initiate a process to complete
+> > > the merge. Thus this commit finally only leaves us divergences.
+> > >
+> > > This patch reverts such naming modifications to reduce the source code
+> > > differecnes between Linux and ACPICA upstream. No functional changes.
 
-Reported-and-tested-by: naszar <naszar@ya.ru>
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=75581
-Cc: stable@vger.kernel.org
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- drivers/acpi/battery.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+Well, it sounds to me like we don't have a choice, do we? In that case,
+I'm fine with it.
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index e48fc98..485009d 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -34,6 +34,7 @@
- #include <linux/dmi.h>
- #include <linux/slab.h>
- #include <linux/suspend.h>
-+#include <linux/delay.h>
- #include <asm/unaligned.h>
- 
- #ifdef CONFIG_ACPI_PROCFS_POWER
-@@ -1119,7 +1120,7 @@ static struct dmi_system_id bat_dmi_table[] = {
- 
- static int acpi_battery_add(struct acpi_device *device)
- {
--	int result = 0;
-+	int result = 0, retry = 5;
- 	struct acpi_battery *battery = NULL;
- 
- 	if (!device)
-@@ -1135,7 +1136,16 @@ static int acpi_battery_add(struct acpi_device *device)
- 	mutex_init(&battery->sysfs_lock);
- 	if (acpi_has_method(battery->device->handle, "_BIX"))
- 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
-+
-+retry_get_info:
- 	result = acpi_battery_update(battery, false);
-+
-+	if (result && retry) {
-+		msleep(20);
-+		retry--;
-+		goto retry_get_info;
-+	}
-+
- 	if (result)
- 		goto fail;
- #ifdef CONFIG_ACPI_PROCFS_POWER
+Thanks.
+
 -- 
-1.8.4.rc0.1.g8f6a3e5.dirty
+Regards/Gruss,
+    Boris.
 
+Sent from a fat crate under my desk. Formatting is fine.
+--
