@@ -1,325 +1,84 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: [PATCH 5/7 REVISION] trace, RAS: Add eMCA trace event interface
-Date: Thu, 12 Jun 2014 02:11:57 -0400
-Message-ID: <1402553517-30208-1-git-send-email-gong.chen@linux.intel.com>
-References: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH] ACPI/Battery: Retry to get Battery information if failed
+ during probing
+Date: Wed, 11 Jun 2014 23:55:49 -0700 (PDT)
+Message-ID: <alpine.DEB.2.02.1406112354070.23724@chino.kir.corp.google.com>
+References: <1402552946-14704-1-git-send-email-tianyu.lan@intel.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:19410 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932111AbaFLGlG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Jun 2014 02:41:06 -0400
-In-Reply-To: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:50031 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755734AbaFLGzw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2014 02:55:52 -0400
+Received: by mail-ie0-f180.google.com with SMTP id rl12so761854iec.39
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Jun 2014 23:55:52 -0700 (PDT)
+In-Reply-To: <1402552946-14704-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tony.luck@intel.com
-Cc: bp@alien8.de, m.chehab@samsung.com, rostedt@goodmis.org, linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, naszar@ya.ru, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 
-Add trace interface to elaborate all H/W error related information.
+On Thu, 12 Jun 2014, Lan Tianyu wrote:
 
-v7 -> v6: compact trace info to save trace buffer space.
-v6 -> v5: format adjustment.
-v5 -> v4: Add physical mask(LSB) in trace.
-v4 -> v3: change ras trace dependency rule.
-v3 -> v2: minor adjustment according to the suggestion from Boris.
-v2 -> v1: spinlock is not needed anymore.
+> Some machines'(E,G Lenovo Z480) ECs are not stable during boot up
+> and causes battery driver fails to be probed due to failure of getting
+> battery information from EC sometimes. After several retries, the
+> operation will work. This patch is to retry to get battery information 5
+> times if the first try fails.
+> 
+> Reported-and-tested-by: naszar <naszar@ya.ru>
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=75581
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> ---
+>  drivers/acpi/battery.c | 12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index e48fc98..485009d 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -34,6 +34,7 @@
+>  #include <linux/dmi.h>
+>  #include <linux/slab.h>
+>  #include <linux/suspend.h>
+> +#include <linux/delay.h>
+>  #include <asm/unaligned.h>
+>  
+>  #ifdef CONFIG_ACPI_PROCFS_POWER
+> @@ -1119,7 +1120,7 @@ static struct dmi_system_id bat_dmi_table[] = {
+>  
+>  static int acpi_battery_add(struct acpi_device *device)
+>  {
+> -	int result = 0;
+> +	int result = 0, retry = 5;
+>  	struct acpi_battery *battery = NULL;
+>  
+>  	if (!device)
+> @@ -1135,7 +1136,16 @@ static int acpi_battery_add(struct acpi_device *device)
+>  	mutex_init(&battery->sysfs_lock);
+>  	if (acpi_has_method(battery->device->handle, "_BIX"))
+>  		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
+> +
+> +retry_get_info:
+>  	result = acpi_battery_update(battery, false);
+> +
+> +	if (result && retry) {
+> +		msleep(20);
 
-Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
----
- drivers/acpi/Kconfig        |  4 ++-
- drivers/acpi/acpi_extlog.c  | 27 +++++++++++++++++---
- drivers/firmware/efi/cper.c | 46 ++++++++++++++++++++++++++++++---
- drivers/ras/ras.c           |  1 +
- include/linux/cper.h        | 21 +++++++++++++++
- include/ras/ras_event.h     | 62 +++++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 153 insertions(+), 8 deletions(-)
+We're really going to wait up to 20 * 5 = 100ms for acpi_battery_update() 
+to succeed?  How are these the numbers that are determined to be optimal 
+for probing?
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index a34a228..099a2d5 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -370,6 +370,7 @@ config ACPI_EXTLOG
- 	tristate "Extended Error Log support"
- 	depends on X86_MCE && X86_LOCAL_APIC
- 	select UEFI_CPER
-+	select RAS
- 	default n
- 	help
- 	  Certain usages such as Predictive Failure Analysis (PFA) require
-@@ -384,6 +385,7 @@ config ACPI_EXTLOG
- 
- 	  Enhanced MCA Logging allows firmware to provide additional error
- 	  information to system software, synchronous with MCE or CMCI. This
--	  driver adds support for that functionality.
-+	  driver adds support for that functionality with corresponding
-+	  tracepoint which carries that information to userspace.
- 
- endif	# ACPI
-diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
-index c4a5d87..3c4a8aa 100644
---- a/drivers/acpi/acpi_extlog.c
-+++ b/drivers/acpi/acpi_extlog.c
-@@ -16,6 +16,7 @@
- #include <asm/mce.h>
- 
- #include "apei/apei-internal.h"
-+#include <ras/ras_event.h>
- 
- #define EXT_ELOG_ENTRY_MASK	GENMASK_ULL(51, 0) /* elog entry address mask */
- 
-@@ -137,8 +138,12 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
- 	struct mce *mce = (struct mce *)data;
- 	int	bank = mce->bank;
- 	int	cpu = mce->extcpu;
--	struct acpi_generic_status *estatus;
--	int rc;
-+	struct acpi_generic_status *estatus, *tmp;
-+	struct acpi_generic_data *gdata;
-+	const uuid_le *fru_id = &NULL_UUID_LE;
-+	char *fru_text = "";
-+	uuid_le *sec_type;
-+	static u32 err_seq;
- 
- 	estatus = extlog_elog_entry_check(cpu, bank);
- 	if (estatus == NULL)
-@@ -148,7 +153,23 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
- 	/* clear record status to enable BIOS to update it again */
- 	estatus->block_status = 0;
- 
--	rc = print_extlog_rcd(NULL, (struct acpi_generic_status *)elog_buf, cpu);
-+	tmp = (struct acpi_generic_status *)elog_buf;
-+	print_extlog_rcd(NULL, tmp, cpu);
-+
-+	/* log event via trace */
-+	err_seq++;
-+	gdata = (struct acpi_generic_data *)(tmp + 1);
-+	if (gdata->validation_bits & CPER_SEC_VALID_FRU_ID)
-+		fru_id = (uuid_le *)gdata->fru_id;
-+	if (gdata->validation_bits & CPER_SEC_VALID_FRU_TEXT)
-+		fru_text = gdata->fru_text;
-+	sec_type = (uuid_le *)gdata->section_type;
-+	if (!uuid_le_cmp(*sec_type, CPER_SEC_PLATFORM_MEM)) {
-+		struct cper_sec_mem_err *mem = (void *)(gdata + 1);
-+		if (gdata->error_data_length >= sizeof(*mem))
-+			trace_extlog_mem_event(mem, err_seq, fru_id, fru_text,
-+					       (u8)gdata->error_severity);
-+	}
- 
- 	return NOTIFY_STOP;
- }
-diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-index 83b56b61..c084a24 100644
---- a/drivers/firmware/efi/cper.c
-+++ b/drivers/firmware/efi/cper.c
-@@ -207,7 +207,7 @@ const char *cper_mem_err_type_str(unsigned int etype)
- }
- EXPORT_SYMBOL_GPL(cper_mem_err_type_str);
- 
--int cper_mem_err_location(const struct cper_sec_mem_err *mem, char *msg)
-+int cper_mem_err_location(struct cper_mem_err_compact *mem, char *msg)
- {
- 	u32 len, n;
- 
-@@ -249,7 +249,7 @@ int cper_mem_err_location(const struct cper_sec_mem_err *mem, char *msg)
- 	return n;
- }
- 
--int cper_dimm_err_location(const struct cper_sec_mem_err *mem, char *msg)
-+int cper_dimm_err_location(struct cper_mem_err_compact *mem, char *msg)
- {
- 	u32 len, n;
- 	const char *bank = NULL, *device = NULL;
-@@ -271,8 +271,45 @@ int cper_dimm_err_location(const struct cper_sec_mem_err *mem, char *msg)
- 	return n;
- }
- 
-+void cper_mem_err_pack(const struct cper_sec_mem_err *mem, void *data)
-+{
-+	struct cper_mem_err_compact *cmem = (struct cper_mem_err_compact *)data;
-+
-+	cmem->validation_bits = mem->validation_bits;
-+	cmem->node = mem->node;
-+	cmem->card = mem->card;
-+	cmem->module = mem->module;
-+	cmem->bank = mem->bank;
-+	cmem->device = mem->device;
-+	cmem->row = mem->row;
-+	cmem->column = mem->column;
-+	cmem->bit_pos = mem->bit_pos;
-+	cmem->requestor_id = mem->requestor_id;
-+	cmem->responder_id = mem->responder_id;
-+	cmem->target_id = mem->target_id;
-+	cmem->rank = mem->rank;
-+	cmem->mem_array_handle = mem->mem_array_handle;
-+	cmem->mem_dev_handle = mem->mem_dev_handle;
-+}
-+
-+const char *cper_mem_err_unpack(struct trace_seq *p, void *data)
-+{
-+	struct cper_mem_err_compact *cmem = (struct cper_mem_err_compact *)data;
-+	const char *ret = p->buffer + p->len;
-+
-+	if (cper_mem_err_location(cmem, rcd_decode_str))
-+		trace_seq_printf(p, "%s", rcd_decode_str);
-+	if (cper_dimm_err_location(cmem, rcd_decode_str))
-+		trace_seq_printf(p, "%s", rcd_decode_str);
-+	trace_seq_putc(p, '\0');
-+
-+	return ret;
-+}
-+
- static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
- {
-+	struct cper_mem_err_compact cmem;
-+
- 	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
- 		printk("%s""error_status: 0x%016llx\n", pfx, mem->error_status);
- 	if (mem->validation_bits & CPER_MEM_VALID_PA)
-@@ -281,14 +318,15 @@ static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem)
- 	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
- 		printk("%s""physical_address_mask: 0x%016llx\n",
- 		       pfx, mem->physical_addr_mask);
--	if (cper_mem_err_location(mem, rcd_decode_str))
-+	cper_mem_err_pack(mem, &cmem);
-+	if (cper_mem_err_location(&cmem, rcd_decode_str))
- 		printk("%s%s\n", pfx, rcd_decode_str);
- 	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE) {
- 		u8 etype = mem->error_type;
- 		printk("%s""error_type: %d, %s\n", pfx, etype,
- 		       cper_mem_err_type_str(etype));
- 	}
--	if (cper_dimm_err_location(mem, rcd_decode_str))
-+	if (cper_dimm_err_location(&cmem, rcd_decode_str))
- 		printk("%s%s\n", pfx, rcd_decode_str);
- }
- 
-diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-index 4cac43a..da227a3 100644
---- a/drivers/ras/ras.c
-+++ b/drivers/ras/ras.c
-@@ -23,4 +23,5 @@ static int __init ras_init(void)
- }
- subsys_initcall(ras_init);
- 
-+EXPORT_TRACEPOINT_SYMBOL_GPL(extlog_mem_event);
- EXPORT_TRACEPOINT_SYMBOL_GPL(mc_event);
-diff --git a/include/linux/cper.h b/include/linux/cper.h
-index ed088b9..3548160 100644
---- a/include/linux/cper.h
-+++ b/include/linux/cper.h
-@@ -22,6 +22,7 @@
- #define LINUX_CPER_H
- 
- #include <linux/uuid.h>
-+#include <linux/trace_seq.h>
- 
- /* CPER record signature and the size */
- #define CPER_SIG_RECORD				"CPER"
-@@ -363,6 +364,24 @@ struct cper_sec_mem_err {
- 	__u16	mem_dev_handle;		/* module handle in UEFI 2.4 */
- };
- 
-+struct cper_mem_err_compact {
-+	__u64	validation_bits;
-+	__u16	node;
-+	__u16	card;
-+	__u16	module;
-+	__u16	bank;
-+	__u16	device;
-+	__u16	row;
-+	__u16	column;
-+	__u16	bit_pos;
-+	__u64	requestor_id;
-+	__u64	responder_id;
-+	__u64	target_id;
-+	__u16	rank;
-+	__u16	mem_array_handle;
-+	__u16	mem_dev_handle;
-+};
-+
- struct cper_sec_pcie {
- 	__u64		validation_bits;
- 	__u32		port_type;
-@@ -406,5 +425,7 @@ const char *cper_severity_str(unsigned int);
- const char *cper_mem_err_type_str(unsigned int);
- void cper_print_bits(const char *prefix, unsigned int bits,
- 		     const char * const strs[], unsigned int strs_size);
-+void cper_mem_err_pack(const struct cper_sec_mem_err *, void *);
-+const char *cper_mem_err_unpack(struct trace_seq *, void *);
- 
- #endif
-diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
-index acbcbb8..f66142b 100644
---- a/include/ras/ras_event.h
-+++ b/include/ras/ras_event.h
-@@ -9,6 +9,68 @@
- #include <linux/edac.h>
- #include <linux/ktime.h>
- #include <linux/aer.h>
-+#include <linux/cper.h>
-+
-+/*
-+ * MCE Extended Error Log trace event
-+ *
-+ * These events are generated when hardware detects a corrected or
-+ * uncorrected event.
-+ */
-+
-+/* memory trace event */
-+
-+TRACE_EVENT(extlog_mem_event,
-+	TP_PROTO(struct cper_sec_mem_err *mem,
-+		 u32 err_seq,
-+		 const uuid_le *fru_id,
-+		 const char *fru_text,
-+		 u8 sev),
-+
-+	TP_ARGS(mem, err_seq, fru_id, fru_text, sev),
-+
-+	TP_STRUCT__entry(
-+		__field(u32, err_seq)
-+		__field(u8, etype)
-+		__field(u8, sev)
-+		__field(u64, pa)
-+		__field(u8, pa_mask_lsb)
-+		__array(u8, fru_id, sizeof(uuid_le))
-+		__string(fru_text, fru_text)
-+		__array(u8, data, sizeof(struct cper_mem_err_compact))
-+	),
-+
-+	TP_fast_assign(
-+		__entry->err_seq = err_seq;
-+		if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE)
-+			__entry->etype = mem->error_type;
-+		else
-+			__entry->etype = ~0;
-+		__entry->sev = sev;
-+		if (mem->validation_bits & CPER_MEM_VALID_PA)
-+			__entry->pa = mem->physical_addr;
-+		else
-+			__entry->pa = ~0ull;
-+
-+		if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
-+			__entry->pa_mask_lsb = (u8)__ffs64(mem->physical_addr_mask);
-+		else
-+			__entry->pa_mask_lsb = ~0;
-+		memcpy(__entry->fru_id, fru_id, sizeof(uuid_le));
-+		__assign_str(fru_text, fru_text);
-+		cper_mem_err_pack(mem, __entry->data);
-+	),
-+
-+	TP_printk("{%d} %s error: %s physical addr: %016llx (mask lsb: %x) %sFRU: %pUl %.20s",
-+		  __entry->err_seq,
-+		  cper_severity_str(__entry->sev),
-+		  cper_mem_err_type_str(__entry->etype),
-+		  __entry->pa,
-+		  __entry->pa_mask_lsb,
-+		  cper_mem_err_unpack(p, __entry->data),
-+		  __entry->fru_id,
-+		  __get_str(fru_text))
-+);
- 
- /*
-  * Hardware Events Report
--- 
-2.0.0.rc2
+> +		retry--;
+> +		goto retry_get_info;
+> +	}
 
+This most certainly could be rewritten as a for-loop and remove the ugly 
+goto.
+
+> +
+>  	if (result)
+>  		goto fail;
+>  #ifdef CONFIG_ACPI_PROCFS_POWER
