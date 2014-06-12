@@ -1,70 +1,85 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH v2 0/5] APEI: Make APEI architecture independent.
-Date: Thu, 12 Jun 2014 10:34:23 +0200
-Message-ID: <5399660F.1020800@linaro.org>
+From: Robert Richter <rric@kernel.org>
+Subject: Re: [PATCH v2 1/5] apei, mce: Factor out APEI architecture specific
+ MCE calls.
+Date: Thu, 12 Jun 2014 12:23:19 +0200
+Message-ID: <20140612102319.GA22583@rric.localhost>
 References: <1401262770-25343-1-git-send-email-tomasz.nowicki@linaro.org>
+ <1401262770-25343-2-git-send-email-tomasz.nowicki@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1401262770-25343-1-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de
-Cc: linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.19.201]:40908 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932894AbaFLKX2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Jun 2014 06:23:28 -0400
+Content-Disposition: inline
+In-Reply-To: <1401262770-25343-2-git-send-email-tomasz.nowicki@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-Hi,
+On 28.05.14 09:39:26, Tomasz Nowicki wrote:
+> This commit abstracts MCE calls and provides weak corresponding default
+> implementation for those architectures which do not need arch specific
+> actions. Each platform willing to do additional architectural actions
+> should provides desired function definition. It allows us to avoid wrap
+> code into #ifdef in generic code and prevent new platform from introducing
+> dummy stub function too.
+> 
+> Initially, there are two APEI arch-specific calls:
+> - apei_arch_enable_cmcff()
+> - apei_arch_report_mem_error()
+> Both interact with MCE driver for X86 architecture.
+> 
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> ---
+>  arch/x86/kernel/acpi/Makefile |    1 +
+>  arch/x86/kernel/acpi/apei.c   |   56 +++++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/apei/apei-base.c |   13 ++++++++++
+>  drivers/acpi/apei/ghes.c      |    6 ++---
+>  drivers/acpi/apei/hest.c      |   26 +------------------
+>  include/acpi/apei.h           |    3 +++
+>  6 files changed, 76 insertions(+), 29 deletions(-)
+>  create mode 100644 arch/x86/kernel/acpi/apei.c
 
-I would like to kindly remind and request for comments on this patches.
+>  static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
+>  {
+> -#ifdef CONFIG_X86_MCE
+> -	int i;
+> -	struct acpi_hest_ia_corrected *cmc;
+> -	struct acpi_hest_ia_error_bank *mc_bank;
+> -
+> -	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
+> -		return 0;
+> -
+> -	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
+> -	if (!cmc->enabled)
+> +	if (!apei_arch_enable_cmcff(hest_hdr, data))
+>  		return 0;
 
-Regards,
-Tomasz
+This could be a tail call:
 
-On 28.05.2014 09:39, Tomasz Nowicki wrote:
-> APEI is currently implemented so that it depends on x86 hardware.
-> The primary dependency is that GHES uses the x86 NMI for hardware
-> error notification and MCE for memory error handling. These patches
-> remove that dependency.
->
-> Other APEI features such as error reporting via external IRQ, error
-> serialization, or error injection, do not require changes to use them
-> on non-x86 architectures.
->
-> The following patch set eliminates the APEI Kconfig x86 dependency
-> by making these changes:
-> - treat NMI notification as GHES feature - CONFIG_ACPI_APEI_NMI
-> - reorganize GHES notification type init/deinitialization
->    so that we can decide in run time whether NMI is supported or not
-> - identify architectural boxes and abstract it accordingly (NMI and MCE)
-> - rework ioremap for both IRQ and NMI context
->
-> NMI code is kept in ghes.c file since NMI and IRQ context are tightly coupled.
->
-> Note, these patches introduce no functional changes for x86. The NMI notification
-> feature is selected for x86 by default. Architectures that want to use this
-> feature should also provide NMI code infrastructure.
->
-> V1->V2
-> - address Borislav comment
-> - abstract arch-specific calls instead of wrapping into the #ifdef
->
-> Tomasz Nowicki (5):
->    apei, mce: Factor out APEI architecture specific MCE calls.
->    acpi, apei, ghes: Introduce ACPI_APEI_NMI to make NMI error
->      notification a GHES feature.
->    acpi, apei, ghes: Introduce more generic mechanism to init/deinit
->      GHES error notifications.
->    apei, ghes, nmi: Factor out NMI arch-specific calls.
->    acpi, apei, ghes: Factor out ioremap virtual memory for IRQ and NMI
->      context.
->
->   arch/x86/kernel/acpi/Makefile |    1 +
->   arch/x86/kernel/acpi/apei.c   |   87 ++++++++++++
->   drivers/acpi/apei/Kconfig     |   10 +-
->   drivers/acpi/apei/apei-base.c |   32 +++++
->   drivers/acpi/apei/ghes.c      |  301 +++++++++++++++++++++++++----------------
->   drivers/acpi/apei/hest.c      |   26 +---
->   include/acpi/apei.h           |   11 ++
->   7 files changed, 328 insertions(+), 140 deletions(-)
->   create mode 100644 arch/x86/kernel/acpi/apei.c
->
+	return apei_arch_enable_cmcff(...);
+
+Otherwise the patch looks good to me.
+
+-Robert
+
+>  
+> -	/*
+> -	 * We expect HEST to provide a list of MC banks that report errors
+> -	 * in firmware first mode. Otherwise, return non-zero value to
+> -	 * indicate that we are done parsing HEST.
+> -	 */
+> -	if (!(cmc->flags & ACPI_HEST_FIRMWARE_FIRST) || !cmc->num_hardware_banks)
+> -		return 1;
+> -
+> -	pr_info(HEST_PFX "Enabling Firmware First mode for corrected errors.\n");
+> -
+> -	mc_bank = (struct acpi_hest_ia_error_bank *)(cmc + 1);
+> -	for (i = 0; i < cmc->num_hardware_banks; i++, mc_bank++)
+> -		mce_disable_bank(mc_bank->bank_number);
+> -#endif
+>  	return 1;
+>  }
