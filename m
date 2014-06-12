@@ -1,41 +1,35 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [RFC v2 1/3] Mailbox: Add support for ACPI
-Date: Thu, 12 Jun 2014 12:52:24 -0400
-Message-ID: <CAJ5Y-ea6teac4xksRTxrt5bxEHpUXumgypD5PJwnn39oYxN4Fg@mail.gmail.com>
-References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org>
-	<1402591692-7736-2-git-send-email-ashwin.chaugule@linaro.org>
+Date: Thu, 12 Jun 2014 19:02:53 +0200
+Message-ID: <4476889.LvjMyVbGZ8@wuerfel>
+References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org> <1402591692-7736-2-git-send-email-ashwin.chaugule@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:63430 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753017AbaFLQw3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2014 12:52:29 -0400
-Received: by mail-wi0-f173.google.com with SMTP id cc10so6027088wib.6
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Jun 2014 09:52:25 -0700 (PDT)
+Received: from mout.kundenserver.de ([212.227.17.13]:54310 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933648AbaFLRC6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2014 13:02:58 -0400
 In-Reply-To: <1402591692-7736-2-git-send-email-ashwin.chaugule@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Mark Brown <broonie@kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, rjw@rjwysocki.net, Patch Tracking <patches@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-acpi@vger.kernel.org, patches@linaro.org, jassisinghbrar@gmail.com, rjw@rjwysocki.net, linaro-acpi@lists.linaro.org, broonie@kernel.org
 
-Hi Jassi,
+On Thursday 12 June 2014 12:48:10 Ashwin Chaugule wrote:
+> 
+> +#ifndef CONFIG_ACPI
+>         if (!mbox->of_xlate)
+>                 mbox->of_xlate = of_mbox_index_xlate;
+> -
+> +#endif
+>         mutex_lock(&con_mutex);
+>         list_add_tail(&mbox->node, &mbox_cons);
+>         mutex_unlock(&con_mutex);
+> 
 
-On 12 June 2014 12:48, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
-> The current mailbox framework only supports DT based bindings.
-> Add another mechanism for mailbox clients to register with mailbox
-> controllers and request for specific mailbox channels. This enables
-> usage of the mailbox framework on kernels with ACPI support.
->
-> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> ---
->  drivers/mailbox/mailbox.c          | 155 ++++++++++++++++++++++++-------------
->  include/linux/mailbox_client.h     |   3 +
->  include/linux/mailbox_controller.h |   6 ++
->  3 files changed, 112 insertions(+), 52 deletions(-)
->
+You can't do #ifndef here, the driver must still work if
+both OF and ACPI are enabled.
 
-Can you please try this change on your platform(s) with DT support?
-
-Cheers,
-Ashwin
+	Arnd
