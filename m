@@ -1,79 +1,69 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 5/7 v7] trace, RAS: Add eMCA trace event interface
-Date: Wed, 11 Jun 2014 22:42:52 -0400
-Message-ID: <20140612024252.GA18991@gchen.bj.intel.com>
-References: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
- <1402475691-30045-6-git-send-email-gong.chen@linux.intel.com>
- <20140611190214.GE14923@pd.tnic>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TB36FDmn/VVEgNH/"
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH] ACPI/Battery: Retry to get Battery information if failed during probing
+Date: Thu, 12 Jun 2014 14:02:26 +0800
+Message-ID: <1402552946-14704-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:44031 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:2922 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752457AbaFLDL1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Jun 2014 23:11:27 -0400
-Content-Disposition: inline
-In-Reply-To: <20140611190214.GE14923@pd.tnic>
+	id S1754586AbaFLGDu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Jun 2014 02:03:50 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: tony.luck@intel.com, m.chehab@samsung.com, rostedt@goodmis.org, linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
+To: rjw@rjwysocki.net, lenb@kernel.org, naszar@ya.ru
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 
+Some machines'(E,G Lenovo Z480) ECs are not stable during boot up
+and causes battery driver fails to be probed due to failure of getting
+battery information from EC sometimes. After several retries, the
+operation will work. This patch is to retry to get battery information 5
+times if the first try fails.
 
---TB36FDmn/VVEgNH/
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Reported-and-tested-by: naszar <naszar@ya.ru>
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=75581
+Cc: stable@vger.kernel.org
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/acpi/battery.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-On Wed, Jun 11, 2014 at 09:02:15PM +0200, Borislav Petkov wrote:
-> > +EXPORT_SYMBOL_GPL(cper_mem_err_pack);
->=20
-> Why do we export this one and the one below? What .config warrants this?
->=20
-> CONFIG_ACPI_EXTLOG=3Dm doesn't need them, AFAICT.
->=20
-Right. acpi_extlog doesn't use it. They can be exported later until needed.
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index e48fc98..485009d 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -34,6 +34,7 @@
+ #include <linux/dmi.h>
+ #include <linux/slab.h>
+ #include <linux/suspend.h>
++#include <linux/delay.h>
+ #include <asm/unaligned.h>
+ 
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+@@ -1119,7 +1120,7 @@ static struct dmi_system_id bat_dmi_table[] = {
+ 
+ static int acpi_battery_add(struct acpi_device *device)
+ {
+-	int result = 0;
++	int result = 0, retry = 5;
+ 	struct acpi_battery *battery = NULL;
+ 
+ 	if (!device)
+@@ -1135,7 +1136,16 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	mutex_init(&battery->sysfs_lock);
+ 	if (acpi_has_method(battery->device->handle, "_BIX"))
+ 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
++
++retry_get_info:
+ 	result = acpi_battery_update(battery, false);
++
++	if (result && retry) {
++		msleep(20);
++		retry--;
++		goto retry_get_info;
++	}
++
+ 	if (result)
+ 		goto fail;
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+-- 
+1.8.4.rc0.1.g8f6a3e5.dirty
 
-> > +	TP_STRUCT__entry(
-> > +		__field(u32, err_seq)
-> > +		__field(u8, etype)
-> > +		__field(u8, sev)
-> > +		__field(u64, pa)
-> > +		__field(u8, pa_mask_lsb)
-> > +		__array(u8, fru_id, 40)
->=20
-> How did you come up with this magic number? Why isn't that sizeof(uuid_le=
-)?
-Cause I want to convert it into a string.
-
-> > +		snprintf(__entry->fru_id, 39, "%pUl", fru_id);
->=20
-> Yeah, I didn't catch the reasoning behind why we need to convert the FRU
-> into a string and not leave it simply as u8[16]...
-Fair enough. It can be compressed a little bit more.
-
-
---TB36FDmn/VVEgNH/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTmROsAAoJEI01n1+kOSLHc9gP/jD7NraoIoZOq+Bv/l69ecIt
-ig2I1iSQAYgqtOTMp5J2jEY2rXqsJcDKGUnC1cvF10OUNBDH0aQ83IdzkWnQ6wPx
-qqTa4XTSMsn1dfRLaE0VAn9SUUXxMoOwHKdsMaAmbWnwAI5XHJ5SBFzMNkAqbFr6
-+OFj/B3zxdGahrrHplmO4MG7pExL10ZJCGsKp4BNsjHe2r58I+C9FKX6iVI6ktGw
-1PtoUilV2f2+/iPG6Z3/4apxxSEPhyKuIiGfteo51FsXHeN1r8+V9S2tvge9n+37
-PttCCzanVHFnDVKOeL/3w2SIOU0dVjQHpWEyokRd+vIEHeKyLa1c6c5g1ZbwzS3j
-Inj9+W4XRzz5pN0/2jzeJIGBRKDsQ08UV8WZBQIquaOd54NDzMoljxBgfDxL2+cd
-DUuaNgpMT5G7jJhcjTnx3MbeJq5tbO+S2jrD70zcIOvNaIHS0SlJPnVrTKaaq10M
-rK41ka+bRPpvOYqeV1jWp7ANANbh1TdNzwOAu7l7R6xYCHY9iOiB1o0zw3B4L3Xs
-yCcm3TmNp6vLlLlos71KmbqKVdnzDQo1IQH8wXc9FBSW5YTw50PJAXQQwb8Rp8HB
-bK9q18n55Qlm6Zc9gGl6trjuUN7NF+l/AP27v7PmyjA7APv7GlpVQLPUFP20MdIV
-KZ8tlDQCXy/zQnOWku+y
-=1XHG
------END PGP SIGNATURE-----
-
---TB36FDmn/VVEgNH/--
