@@ -1,49 +1,87 @@
-From: Josef Gajdusek <atx@atx.name>
-Subject: [PATCH] acpi/battery: fix wrong value of capacity_now reported by
- few battery types when fully charged (resend)
-Date: Thu, 12 Jun 2014 16:58:13 +0200
-Message-ID: <20140612145813.GB14085@dashie>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: [RFC v2 0/3] ACPI Platform Communication Channel driver
+Date: Thu, 12 Jun 2014 12:48:09 -0400
+Message-ID: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from w-smtp-out-7.wedos.net ([46.28.106.5]:55646 "EHLO
-	we2-f167.wedos.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752898AbaFLO6b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2014 10:58:31 -0400
-Content-Disposition: inline
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:54494 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753096AbaFLQsU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2014 12:48:20 -0400
+Received: by mail-pa0-f45.google.com with SMTP id rd3so593849pab.18
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Jun 2014 09:48:19 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linaro-acpi@lists.linaro.org, broonie@kernel.org, jassisinghbrar@gmail.com, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, patches@linaro.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-It seems that some batteries (noticed on DELL JYPJ136) assume 
-capacity_now = design_capacity when fully charged. This causes 
-reported capacity to suddenly jump to >full_charge_capacity (and that 
-means capacity reported to userspace is >100% and incorrect) 
-values after 99%. This patch attempts to detect this bug and trims 
-capacity_now properly.
+Hello,
 
-Signed-off-by: Josef Gajdusek <atx@atx.name>
----
-Oops, I forgot to sign the previous one.
+This patchset adds initial support for the PCC (Platform Communication Channel)
+interface as described in the current ACPI 5.0a spec. See Section 14 of the
+ACPI spec - http://acpi.info/DOWNLOADS/ACPI_5_Errata%20A.pdf for more details on
+how PCC works.
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index e48fc98..3338dd5 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -532,6 +532,14 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
- 			" invalid.\n");
- 	}
- 
-+	/* When fully charged, some batteries wrongly report
-+	 * capacity_now = design_capacity instead of = full_charge_capacity
-+	 */
-+	if (battery->capacity_now == battery->design_capacity &&
-+	    battery->full_charge_capacity != ACPI_BATTERY_VALUE_UNKNOWN)
-+		battery->capacity_now = battery->full_charge_capacity;
-+
-+
- 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags)
- 	    && battery->capacity_now >= 0 && battery->capacity_now <= 100)
- 		battery->capacity_now = (battery->capacity_now *
+In brief PCC (Platform Communication Channel) is a generic means for PCC clients,
+to talk to the firmware. The PCC register space is typically memory mapped IO and
+uses a doorbell mechanism to communicate synchronously from the OS to the firmware.
+The PCC driver is completely agnostic to the protocol implemented by the PCC clients.
+It only implements the enumeration of PCC channels and the low level transport mechanism
+and leaves the rest to the PCC clients.
+
+The PCC is meant to be useable in the future by clients such as CPPC
+(Collaborative Processor Performance Control), RAS (Reliability,
+Availability and Serviceability) and MPST (Memory Power State Tables) and possibly others.
+
+While the PCC clients will come as following patches whenever they're ready, I wanted
+to get feedback on this common driver and hope that it could be merged upstream. This
+should hopefully help various folks that are working on drivers that rely on the PCC
+interface.
+
+Cheers,
+Ashwin
+
+=== Testing Methodology ===
+
+The PCC test driver in [2/2] is a simple driver that was used to
+demonstrate how PCC clients would use the PCC driver. The PCC driver was
+tested by sending multiple PCC READS and PCC WRITES across a shared memory
+region on an MSM ARMv7 platform. This memory is shared between an apps processor
+and a power controller processor. So, one end of the PCC channel is the PCC test driver
+running on the apps processor and the other end is a debugger script
+(running on a JTAG debugger) thats attached to the power processor. The debugger
+script is busy looping on the doorbell address waiting for a bit to flip. This bit
+indicates a synchronous communication from the apps processor. The doorbell is rung
+when the OS sends a PCC READ or PCC WRITE command. The PCC communication channel
+is simply a few fake 32 bit registers that are incremented by the OS and the debugger
+script. The OS increments the registers and then sends the PCC WRITE command. On a PCC
+READ, the script increments these registers and then OS reads them back. The values
+are always incremented by 1 by either end, so we know what value to expect for each
+PCC READ/WRITE.
+
+
+=== Changelog ===
+
+Changes since V1:
+
+-	Integration with Mailbox framework - https://lkml.org/lkml/2014/5/15/49
+
+
+Ashwin Chaugule (3):
+  Mailbox: Add support for ACPI
+  ACPI: Add support for Platform Communication Channel
+  PCC test driver
+
+ drivers/acpi/Makefile              |   2 +-
+ drivers/acpi/pcc-test.c            | 208 ++++++++++++++++++++++++++++++++++
+ drivers/acpi/pcc.c                 | 225 +++++++++++++++++++++++++++++++++++++
+ drivers/mailbox/Kconfig            |  11 ++
+ drivers/mailbox/mailbox.c          | 155 ++++++++++++++++---------
+ include/linux/mailbox_client.h     |   3 +
+ include/linux/mailbox_controller.h |   6 +
+ 7 files changed, 557 insertions(+), 53 deletions(-)
+ create mode 100644 drivers/acpi/pcc-test.c
+ create mode 100644 drivers/acpi/pcc.c
+
+-- 
+1.8.3.2
 
