@@ -1,68 +1,43 @@
 From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH v2 1/5] apei, mce: Factor out APEI architecture specific
- MCE calls.
-Date: Thu, 12 Jun 2014 15:07:02 +0200
-Message-ID: <5399A5F6.8010905@linaro.org>
-References: <1401262770-25343-1-git-send-email-tomasz.nowicki@linaro.org> <1401262770-25343-2-git-send-email-tomasz.nowicki@linaro.org> <20140612102319.GA22583@rric.localhost>
+Subject: Re: [PATCH v2 2/5] acpi, apei, ghes: Introduce ACPI_APEI_NMI to make
+ NMI error notification a GHES feature.
+Date: Thu, 12 Jun 2014 15:08:32 +0200
+Message-ID: <5399A650.2020602@linaro.org>
+References: <1401262770-25343-1-git-send-email-tomasz.nowicki@linaro.org> <1401262770-25343-3-git-send-email-tomasz.nowicki@linaro.org> <20140612103238.GB22583@rric.localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140612102319.GA22583@rric.localhost>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-we0-f181.google.com ([74.125.82.181]:40304 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933385AbaFLNIV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2014 09:08:21 -0400
+Received: by mail-we0-f181.google.com with SMTP id q59so1221621wes.26
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Jun 2014 06:08:20 -0700 (PDT)
+In-Reply-To: <20140612103238.GB22583@rric.localhost>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Robert Richter <rric@kernel.org>
 Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
-List-Id: linux-acpi@vger.kernel.org
 
-On 12.06.2014 12:23, Robert Richter wrote:
-> On 28.05.14 09:39:26, Tomasz Nowicki wrote:
->> This commit abstracts MCE calls and provides weak corresponding default
->> implementation for those architectures which do not need arch specific
->> actions. Each platform willing to do additional architectural actions
->> should provides desired function definition. It allows us to avoid wrap
->> code into #ifdef in generic code and prevent new platform from introducing
->> dummy stub function too.
->>
->> Initially, there are two APEI arch-specific calls:
->> - apei_arch_enable_cmcff()
->> - apei_arch_report_mem_error()
->> Both interact with MCE driver for X86 architecture.
->>
->> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->> ---
->>   arch/x86/kernel/acpi/Makefile |    1 +
->>   arch/x86/kernel/acpi/apei.c   |   56 +++++++++++++++++++++++++++++++++++++++++
->>   drivers/acpi/apei/apei-base.c |   13 ++++++++++
->>   drivers/acpi/apei/ghes.c      |    6 ++---
->>   drivers/acpi/apei/hest.c      |   26 +------------------
->>   include/acpi/apei.h           |    3 +++
->>   6 files changed, 76 insertions(+), 29 deletions(-)
->>   create mode 100644 arch/x86/kernel/acpi/apei.c
+On 12.06.2014 12:32, Robert Richter wrote:
+> On 28.05.14 09:39:27, Tomasz Nowicki wrote:
+>> +config ACPI_APEI_NMI
+>> +	bool "NMI error notification support"
+>> +	default y
+>> +	depends on ACPI_APEI_GHES && X86
+>> +	help
+>> +	  Firmware first mode can use NMI notification mechanism to report errors
+>> +	  to operating system. This feature is currently supported by X86
+>> +	  architecture only.
+>> +
 >
->>   static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
->>   {
->> -#ifdef CONFIG_X86_MCE
->> -	int i;
->> -	struct acpi_hest_ia_corrected *cmc;
->> -	struct acpi_hest_ia_error_bank *mc_bank;
->> -
->> -	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
->> -		return 0;
->> -
->> -	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
->> -	if (!cmc->enabled)
->> +	if (!apei_arch_enable_cmcff(hest_hdr, data))
->>   		return 0;
+> This selection is not necessary. I don't see why one should select
+> this at all. It's either there for an arch or not. Just use ARCH_HAS_
+> style and and hard select ARCH_HAS_ACPI_APEI_NMI for x86. There is no
+> need for the ACPI_APEI_GHES dependency then.
 >
-> This could be a tail call:
->
-> 	return apei_arch_enable_cmcff(...);
 
-Right. Will fix that.
-
->
-> Otherwise the patch looks good to me.
-
-Thanks.
+It does make sense to me, will address your comment appropriately.
 
 Tomasz
