@@ -1,33 +1,43 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v3 0/5] APEI: Make APEI architecture independent.
-Date: Fri, 13 Jun 2014 15:20:03 +0200
-Message-ID: <20140613132003.GF4751@pd.tnic>
+From: Robert Richter <rric@kernel.org>
+Subject: Re: [PATCH v3 4/5] apei, ghes, nmi: Factor out NMI arch-specific
+ calls.
+Date: Fri, 13 Jun 2014 15:29:24 +0200
+Message-ID: <20140613132924.GA27560@rric.localhost>
 References: <1402657380-18539-1-git-send-email-tomasz.nowicki@linaro.org>
- <20140613131423.GZ27560@rric.localhost>
+ <1402657380-18539-5-git-send-email-tomasz.nowicki@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:49658 "EHLO mail.skyhub.de"
+Received: from mail.kernel.org ([198.145.19.201]:35338 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750784AbaFMNUI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Jun 2014 09:20:08 -0400
+	id S1751007AbaFMN3f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Jun 2014 09:29:35 -0400
 Content-Disposition: inline
-In-Reply-To: <20140613131423.GZ27560@rric.localhost>
+In-Reply-To: <1402657380-18539-5-git-send-email-tomasz.nowicki@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Richter <rric@kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Fri, Jun 13, 2014 at 03:14:23PM +0200, Robert Richter wrote:
-> Btw, it would be easier to wait a bit with reposting a new patch set
-> until there are no further comments expected for *all* patches (I
-> didn't have the time to look through all patches yet).
+On 13.06.14 13:02:59, Tomasz Nowicki wrote:
+> Similar to MCE related patch, all NMI architectural calls are abstracted.
+> Also, we are providing corresponding X86 functions' content.
 
-Yes, a patchset version a week roughly should be fine.
+We don't need to abstract nmi calls for archs that don't support
+nmis. Just disable the code with #ifdefs depending on
+ARCH_HAS_ACPI_APEI_NMI. Most changes in this patch, esp. all __weak
+functions are obsolete then.
 
--- 
-Regards/Gruss,
-    Boris.
+The remainings of this patch could probably merged with earlier
+patches.
 
-Sent from a fat crate under my desk. Formatting is fine.
---
+-Robert
+
+> 
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> ---
+>  arch/x86/kernel/acpi/apei.c   |   25 +++++++++++++++++++++++++
+>  drivers/acpi/apei/apei-base.c |   19 +++++++++++++++++++
+>  drivers/acpi/apei/ghes.c      |   14 ++++++--------
+>  include/acpi/apei.h           |    7 +++++++
+>  4 files changed, 57 insertions(+), 8 deletions(-)
