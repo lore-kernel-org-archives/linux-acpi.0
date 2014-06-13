@@ -1,71 +1,42 @@
-From: Christoph Jaeger <christophjaeger@linux.com>
-Subject: [PATCH] ACPI: use kstrto*() instead of simple_strto*()
-Date: Fri, 13 Jun 2014 21:49:58 +0200
-Message-ID: <1402688998-20142-1-git-send-email-christophjaeger@linux.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtprelay01.ispgateway.de ([80.67.31.39]:53425 "EHLO
-	smtprelay01.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752101AbaFMUAO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jun 2014 16:00:14 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH] ACPI/Battery: Retry to get Battery information if failed
+ during probing
+Date: Fri, 13 Jun 2014 14:46:11 -0700 (PDT)
+Message-ID: <alpine.DEB.2.02.1406131445130.31981@chino.kir.corp.google.com>
+References: <1402552946-14704-1-git-send-email-tianyu.lan@intel.com> <alpine.DEB.2.02.1406112354070.23724@chino.kir.corp.google.com> <53995488.20308@intel.com> <alpine.DEB.2.02.1406120025050.23724@chino.kir.corp.google.com> <53996152.2000407@intel.com>
+ <alpine.DEB.2.02.1406121415150.8305@chino.kir.corp.google.com> <539A60FC.1050301@intel.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <539A60FC.1050301@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, naszar@ya.ru, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Christoph Jaeger <christophjaeger@linux.com>
 
-simple_strto*() are obsolete; use kstrto*() instead. Add proper error
-checking.
+On Fri, 13 Jun 2014, Lan Tianyu wrote:
 
-Signed-off-by: Christoph Jaeger <christophjaeger@linux.com>
----
- drivers/acpi/battery.c | 5 ++++-
- drivers/acpi/osl.c     | 3 ++-
- drivers/acpi/tables.c  | 3 ++-
- 3 files changed, 8 insertions(+), 3 deletions(-)
+> How about this?
+> 
+> -       result = acpi_battery_update(battery, false);
+> -       if (result)
+> +
+> +       /*
+> +        * Some machines'(E,G Lenovo Z480) ECs are not stable
+> +        * during boot up and this causes battery driver fails to be
+> +        * probed due to failure of getting battery information
+> +        * from EC sometimes. After several retries, the operation
+> +        * may work. So add retry code here and 20ms sleep between
+> +        * every retries.
+> +        */
+> +       while (acpi_battery_update(battery, false) && retry--)
+> +               msleep(20);
+> +       if (!retry) {
+> +               result = -ENODEV;
+>                 goto fail;
+> +       }
+> +
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index e48fc98..5963e6f 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -930,7 +930,10 @@ static ssize_t acpi_battery_write_alarm(struct file *file,
- 		goto end;
- 	}
- 	alarm_string[count] = '\0';
--	battery->alarm = simple_strtol(alarm_string, NULL, 0);
-+	if (kstrtoint(alarm_string, 0, &battery->alarm)) {
-+		result = -EINVAL;
-+		goto end;
-+	}
- 	result = acpi_battery_set_alarm(battery);
-       end:
- 	if (!result)
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 3f2bdc8..bad25b0 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -235,7 +235,8 @@ void acpi_os_vprintf(const char *fmt, va_list args)
- static unsigned long acpi_rsdp;
- static int __init setup_acpi_rsdp(char *arg)
- {
--	acpi_rsdp = simple_strtoul(arg, NULL, 16);
-+	if (kstrtoul(arg, 16, &acpi_rsdp))
-+		return -EINVAL;
- 	return 0;
- }
- early_param("acpi_rsdp", setup_acpi_rsdp);
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 05550ba..6d5a6cd 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -360,7 +360,8 @@ static int __init acpi_parse_apic_instance(char *str)
- 	if (!str)
- 		return -EINVAL;
- 
--	acpi_apic_instance = simple_strtoul(str, NULL, 0);
-+	if (kstrtoint(str, 0, &acpi_apic_instance))
-+		return -EINVAL;
- 
- 	pr_notice("Shall use APIC/MADT table %d\n", acpi_apic_instance);
- 
--- 
-1.9.3
-
+I think you want --retry and not retry--.  Otherwise it's possible for the 
+final call to acpi_battery_update() to succeed and now it's returning 
+-ENODEV.
