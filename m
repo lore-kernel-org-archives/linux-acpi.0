@@ -1,61 +1,104 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: Restore error table definitions to reduce
- source code differences between Linux and ACPICA upstream.
-Date: Fri, 13 Jun 2014 00:41:50 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880262D241@SHSMSX101.ccr.corp.intel.com>
-References: <1401784373-8599-1-git-send-email-lv.zheng@intel.com>
- <2787139.OIeHFv9Bzc@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E880262CC89@SHSMSX101.ccr.corp.intel.com>
- <20140612062329.GA4857@pd.tnic>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: video: X sets brightness to zero after resume
+Date: Fri, 13 Jun 2014 09:28:19 +0800
+Message-ID: <539A53B3.6030902@intel.com>
+References: <871tuu1epc.fsf@purkki.adurom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44324 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754374AbaFMAly (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Jun 2014 20:41:54 -0400
-In-Reply-To: <20140612062329.GA4857@pd.tnic>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <871tuu1epc.fsf@purkki.adurom.net>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Kalle Valo <kvalo@adurom.com>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "Luck, Tony" <tony.luck@intel.com>
 
-SGksIEJvcmlzDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21h
-aWx0bzpsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEJvcmlz
-bGF2IFBldGtvdg0KPiBTZW50OiBUaHVyc2RheSwgSnVuZSAxMiwgMjAxNCAyOjI0IFBNDQo+IA0K
-PiBPbiBUaHUsIEp1biAxMiwgMjAxNCBhdCAwMjozMzoxM0FNICswMDAwLCBaaGVuZywgTHYgd3Jv
-dGU6DQo+ID4gSGksIFBpbmcgUmFmYWVsIGFuZCBCb3Jpcw0KPiA+DQo+ID4gQ291bGQgdGhpcyBw
-YXRjaCBiZSBhY2NlcHRlZD8NCj4gPiBJdCdzIGVhc2llciB0aGFuIGFza2luZyBhbGwgT1NQTXMg
-dG8gZG8gY2hhbmdlcyBpbiB0aGVpciBkcml2ZXJzLg0KPiA+DQo+ID4gVGhhbmtzIGFuZCBiZXN0
-IHJlZ2FyZHMNCj4gPiAtTHYNCj4gPg0KPiA+ID4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2Vy
-Lmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24g
-QmVoYWxmIE9mIFJhZmFlbCBKLiBXeXNvY2tpDQo+ID4gPiBTZW50OiBUdWVzZGF5LCBKdW5lIDAz
-LCAyMDE0IDk6MzEgUE0NCj4gPiA+DQo+ID4gPiBDQzogQm9yaXMuDQo+ID4gPg0KPiA+ID4gT24g
-VHVlc2RheSwgSnVuZSAwMywgMjAxNCAwNDozMjo1MyBQTSBMdiBaaGVuZyB3cm90ZToNCj4gPiA+
-ID4gVGhlIGZvbGxvd2luZyBjb21taXQgaGFzIGNoYW5nZWQgQUNQSUNBIHRhYmxlIGhlYWRlciBk
-ZWZpbml0aW9uczoNCj4gPiA+ID4gIENvbW1pdDogODhmMDc0ZjQ4NzFhOGMyMTJiMjEyYjcyNWU0
-ZGNkY2RiMDk2MTNjMQ0KPiA+ID4gPiAgU3ViamVjdDogQUNQSSwgQ1BFUjogVXBkYXRlIGNwZXIg
-aW5mbw0KPiA+ID4gPiBXaGlsZSBzdWNoIGRlZmluaXRpb25zIGFyZSBjdXJyZW50bHkgbWFpbnRh
-aW5lZCBpbiBBQ1BJQ0EuIEFzIHRoZQ0KPiA+ID4gPiBtb2RpZmljYXRpb25zIGFwcGx5aW5nIHRv
-IHRoZSB0YWJsZSBkZWZpbml0aW9ucyBhZmZlY3Qgb3RoZXIgT1NQTXMnDQo+ID4gPiA+IGRyaXZl
-cnMsIGl0IGlzIHZlcnkgZGlmZmljdWx0IGZvciBBQ1BJQ0EgdG8gaW5pdGlhdGUgYSBwcm9jZXNz
-IHRvIGNvbXBsZXRlDQo+ID4gPiA+IHRoZSBtZXJnZS4gVGh1cyB0aGlzIGNvbW1pdCBmaW5hbGx5
-IG9ubHkgbGVhdmVzIHVzIGRpdmVyZ2VuY2VzLg0KPiA+ID4gPg0KPiA+ID4gPiBUaGlzIHBhdGNo
-IHJldmVydHMgc3VjaCBuYW1pbmcgbW9kaWZpY2F0aW9ucyB0byByZWR1Y2UgdGhlIHNvdXJjZSBj
-b2RlDQo+ID4gPiA+IGRpZmZlcmVjbmVzIGJldHdlZW4gTGludXggYW5kIEFDUElDQSB1cHN0cmVh
-bS4gTm8gZnVuY3Rpb25hbCBjaGFuZ2VzLg0KPiANCj4gV2VsbCwgaXQgc291bmRzIHRvIG1lIGxp
-a2Ugd2UgZG9uJ3QgaGF2ZSBhIGNob2ljZSwgZG8gd2U/IEluIHRoYXQgY2FzZSwNCj4gSSdtIGZp
-bmUgd2l0aCBpdC4NCg0KVGhpcyBraW5kIG9mIGRpdmVyZ2VuY2VzIGp1c3QgbWFrZSBtZSBkaXp6
-eSBpZiB0aGV5IGNhbm5vdCBiZSB1cHN0cmVhbWVkIHRvIEFDUElDQSByZXBvLg0KQmVpbmcgdG9v
-IG11Y2ggZGl6enkgY2F1c2VzIHNvbWUgZW50cm9waWVzIHRvIGJlIGVzY2FwZWQgZnJvbSBteSBl
-eWVzLiA6LSkNCkl0IHdvdWxkIGJlIGdyZWF0IGlmIHN1Y2ggaW1wcm92ZW1lbnRzIGNhbiBiZSBk
-b25lIGRpcmVjdGx5IGluIHRoZSBBQ1BJQ0EgdXBzdHJlYW0uDQpUaGFua3MgZm9yIHVuZGVyc3Rh
-bmRpbmcgdGhpcy4NCg0KQmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gVGhhbmtzLg0KPiANCj4g
-LS0NCj4gUmVnYXJkcy9HcnVzcywNCj4gICAgIEJvcmlzLg0KPiANCj4gU2VudCBmcm9tIGEgZmF0
-IGNyYXRlIHVuZGVyIG15IGRlc2suIEZvcm1hdHRpbmcgaXMgZmluZS4NCj4gLS0NCj4gLS0NCj4g
-VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJl
-IGxpbnV4LWFjcGkiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdl
-ci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5l
-bC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+On 06/12/2014 08:42 PM, Kalle Valo wrote:
+> Hi Aaron,
+> 
+> after your commit 0e9f81d3b7c ("ACPI / video: Add systems that should
+> favour native backlight interface") I have had an regression that every
+> time after resume the display brightness has been set to zero and I need
+> to manually set it to non-zero to see something again.
+> 
+> Finally I started to investigate this more closely and it seems that X
+> sets it to zero for some reason. I added a WARN_ON() and few printks to
+> brightness_store() in drivers/video/backlight/backlight.c and this is
+> what I see during resume:
+> 
+> [   49.228221] ------------[ cut here ]------------
+> [   49.228229] WARNING: CPU: 1 PID: 1133 at
+> drivers/video/backlight/backlight.c:173 brightness_store+0x3c/0x120(
+> )
+> [   49.228230] Modules linked in: ctr ccm uvcvideo videobuf2_core
+> videodev videobuf2_vmalloc videobuf2_memops fu
+> se arc4 iwldvm sha256_generic kvm_intel kvm mac80211 snd_hda_codec_hdmi
+> snd_hda_codec_realtek snd_hda_codec_gene
+> ric iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 snd_hda_intel
+> snd_hda_controller nf_nat_ipv4 nf_nat snd_hda_cod
+> ec nf_conntrack snd_hwdep snd_pcm_oss iwlwifi snd_mixer_oss snd_pcm
+> ip_tables x_tables thinkpad_acpi snd_seq_dum
+> my snd_seq_oss snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq
+> cfg80211 snd_timer snd_seq_device snd bnep rfcomm bluetooth psmouse
+> soundcore nvram ehci_pci ehci_hcd rfkill wmi binfmt_misc ext4 jbd2
+> mbcache sd_mod fbcon tileblit font bitblit softcursor i915
+> drm_kms_helper drm cfbcopyarea i2c_algo_bit intel_gtt agpgart i2c_core
+> video xhci_hcd cfbimgblt cfbfillrect e1000e sdhci_pci sdhci ptp pps_core
+> mmc_core ahci libahci
+> [   49.228281] CPU: 1 PID: 1133 Comm: Xorg Tainted: G        W
+> 3.15.0-rc7-wl-ath+ #259
+> [   49.228282] Hardware name: LENOVO 2324JB2/2324JB2, BIOS G2ET82WW
+> (2.02 ) 09/11/2012
+> [   49.228283]  0000000000000000 ffffffff817e4000 ffffffff814cbee3
+> 0000000000000000
+> [   49.228285]  ffffffff810493bc ffff88020e2d1c98 ffff880213bc9f10
+> 0000000000000002
+> [   49.228287]  ffff8800c5dfc198 ffff88020d7cbf50 ffffffff81290a1c
+> ffff88020e792800
+> [   49.228288] Call Trace:
+> [   49.228293]  [<ffffffff814cbee3>] ? dump_stack+0x41/0x51
+> [   49.228296]  [<ffffffff810493bc>] ? warn_slowpath_common+0x8c/0xc0
+> [   49.228298]  [<ffffffff81290a1c>] ? brightness_store+0x3c/0x120
+> [   49.228301]  [<ffffffff811d7242>] ? kernfs_fop_write+0x112/0x170
+> [   49.228304]  [<ffffffff8116791b>] ? vfs_write+0xcb/0x1f0
+> [   49.228306]  [<ffffffff81167e20>] ? SyS_write+0x50/0xb0
+> [   49.228308]  [<ffffffff814dd312>] ? system_call_fastpath+0x16/0x1b
+> [   49.228309] ---[ end trace a1f60d12df64bdbe ]---
+> [   49.228310] brightness=0
+> [   49.228310] set brightness to 0
+> 
+> And this is PID 1133:
+> 
+> root      1133  0.7  0.2 131504 20192 tty7     Ss+  15:16   0:00
+> /usr/bin/X :0 -auth /var/run/lightdm/root/:0 -nolisten tcp vt7
+> -novtswitch -background none
+> 
+> If I set video.use_native_backlight=0 in kernel command line the problem
+> goes away. Or if I revert your commit 0e9f81d3b7c the problem also goes
+> away. Any ideas?
+
+Not really...
+I've added i915 people maybe they have an idea.
+
+BTW, there is a simpler way to see who did the brightness store:
+# echo 'module backlight +pft' > /sys/kernel/debug/dynamic_debug/control
+
+Thanks,
+Aaron
+
+> 
+> My setup is:
+> 
+> Thinkpad X230
+> Ubuntu 12.04 64-bit
+> i3 window manager
+> xserver-xorg 1:7.6+12ubuntu2
+> 
