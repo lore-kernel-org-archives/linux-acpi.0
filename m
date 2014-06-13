@@ -1,40 +1,61 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: [PATCH] ACPI/Battery: Retry to get Battery information if failed
- during probing
-Date: Thu, 12 Jun 2014 14:17:02 -0700 (PDT)
-Message-ID: <alpine.DEB.2.02.1406121415150.8305@chino.kir.corp.google.com>
-References: <1402552946-14704-1-git-send-email-tianyu.lan@intel.com> <alpine.DEB.2.02.1406112354070.23724@chino.kir.corp.google.com> <53995488.20308@intel.com> <alpine.DEB.2.02.1406120025050.23724@chino.kir.corp.google.com> <53996152.2000407@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPICA: Restore error table definitions to reduce
+ source code differences between Linux and ACPICA upstream.
+Date: Fri, 13 Jun 2014 00:41:50 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880262D241@SHSMSX101.ccr.corp.intel.com>
+References: <1401784373-8599-1-git-send-email-lv.zheng@intel.com>
+ <2787139.OIeHFv9Bzc@vostro.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E880262CC89@SHSMSX101.ccr.corp.intel.com>
+ <20140612062329.GA4857@pd.tnic>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f175.google.com ([209.85.213.175]:53531 "EHLO
-	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752290AbaFLVRF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jun 2014 17:17:05 -0400
-Received: by mail-ig0-f175.google.com with SMTP id uq10so8178166igb.14
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Jun 2014 14:17:04 -0700 (PDT)
-In-Reply-To: <53996152.2000407@intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:44324 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754374AbaFMAly (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Jun 2014 20:41:54 -0400
+In-Reply-To: <20140612062329.GA4857@pd.tnic>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, naszar@ya.ru, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "Luck, Tony" <tony.luck@intel.com>
 
-On Thu, 12 Jun 2014, Lan Tianyu wrote:
-
-> The retry time is set by randomly and not accurate because don't know
-> when EC will work normally. Set the retry time to 5 just in order to
-> make sure battery driver probing sucessfully every time,
-> 
-
-Ok, I was hoping to avoid the excessive wait if it will never actually 
-succeed but I assume there's some evidence that it can succeed after 40ms, 
-60ms, etc.  Please consider the following instead:
-
-	for (i = 0; i < 5; i++) {
-		/* Comment on why we need a delay in between retries */
-		if (i)
-			msleep(20);
-		result = acpi_battery_update(battery, false);
-		if (!result)
-			break;
-	}
+SGksIEJvcmlzDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21h
+aWx0bzpsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEJvcmlz
+bGF2IFBldGtvdg0KPiBTZW50OiBUaHVyc2RheSwgSnVuZSAxMiwgMjAxNCAyOjI0IFBNDQo+IA0K
+PiBPbiBUaHUsIEp1biAxMiwgMjAxNCBhdCAwMjozMzoxM0FNICswMDAwLCBaaGVuZywgTHYgd3Jv
+dGU6DQo+ID4gSGksIFBpbmcgUmFmYWVsIGFuZCBCb3Jpcw0KPiA+DQo+ID4gQ291bGQgdGhpcyBw
+YXRjaCBiZSBhY2NlcHRlZD8NCj4gPiBJdCdzIGVhc2llciB0aGFuIGFza2luZyBhbGwgT1NQTXMg
+dG8gZG8gY2hhbmdlcyBpbiB0aGVpciBkcml2ZXJzLg0KPiA+DQo+ID4gVGhhbmtzIGFuZCBiZXN0
+IHJlZ2FyZHMNCj4gPiAtTHYNCj4gPg0KPiA+ID4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2Vy
+Lmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24g
+QmVoYWxmIE9mIFJhZmFlbCBKLiBXeXNvY2tpDQo+ID4gPiBTZW50OiBUdWVzZGF5LCBKdW5lIDAz
+LCAyMDE0IDk6MzEgUE0NCj4gPiA+DQo+ID4gPiBDQzogQm9yaXMuDQo+ID4gPg0KPiA+ID4gT24g
+VHVlc2RheSwgSnVuZSAwMywgMjAxNCAwNDozMjo1MyBQTSBMdiBaaGVuZyB3cm90ZToNCj4gPiA+
+ID4gVGhlIGZvbGxvd2luZyBjb21taXQgaGFzIGNoYW5nZWQgQUNQSUNBIHRhYmxlIGhlYWRlciBk
+ZWZpbml0aW9uczoNCj4gPiA+ID4gIENvbW1pdDogODhmMDc0ZjQ4NzFhOGMyMTJiMjEyYjcyNWU0
+ZGNkY2RiMDk2MTNjMQ0KPiA+ID4gPiAgU3ViamVjdDogQUNQSSwgQ1BFUjogVXBkYXRlIGNwZXIg
+aW5mbw0KPiA+ID4gPiBXaGlsZSBzdWNoIGRlZmluaXRpb25zIGFyZSBjdXJyZW50bHkgbWFpbnRh
+aW5lZCBpbiBBQ1BJQ0EuIEFzIHRoZQ0KPiA+ID4gPiBtb2RpZmljYXRpb25zIGFwcGx5aW5nIHRv
+IHRoZSB0YWJsZSBkZWZpbml0aW9ucyBhZmZlY3Qgb3RoZXIgT1NQTXMnDQo+ID4gPiA+IGRyaXZl
+cnMsIGl0IGlzIHZlcnkgZGlmZmljdWx0IGZvciBBQ1BJQ0EgdG8gaW5pdGlhdGUgYSBwcm9jZXNz
+IHRvIGNvbXBsZXRlDQo+ID4gPiA+IHRoZSBtZXJnZS4gVGh1cyB0aGlzIGNvbW1pdCBmaW5hbGx5
+IG9ubHkgbGVhdmVzIHVzIGRpdmVyZ2VuY2VzLg0KPiA+ID4gPg0KPiA+ID4gPiBUaGlzIHBhdGNo
+IHJldmVydHMgc3VjaCBuYW1pbmcgbW9kaWZpY2F0aW9ucyB0byByZWR1Y2UgdGhlIHNvdXJjZSBj
+b2RlDQo+ID4gPiA+IGRpZmZlcmVjbmVzIGJldHdlZW4gTGludXggYW5kIEFDUElDQSB1cHN0cmVh
+bS4gTm8gZnVuY3Rpb25hbCBjaGFuZ2VzLg0KPiANCj4gV2VsbCwgaXQgc291bmRzIHRvIG1lIGxp
+a2Ugd2UgZG9uJ3QgaGF2ZSBhIGNob2ljZSwgZG8gd2U/IEluIHRoYXQgY2FzZSwNCj4gSSdtIGZp
+bmUgd2l0aCBpdC4NCg0KVGhpcyBraW5kIG9mIGRpdmVyZ2VuY2VzIGp1c3QgbWFrZSBtZSBkaXp6
+eSBpZiB0aGV5IGNhbm5vdCBiZSB1cHN0cmVhbWVkIHRvIEFDUElDQSByZXBvLg0KQmVpbmcgdG9v
+IG11Y2ggZGl6enkgY2F1c2VzIHNvbWUgZW50cm9waWVzIHRvIGJlIGVzY2FwZWQgZnJvbSBteSBl
+eWVzLiA6LSkNCkl0IHdvdWxkIGJlIGdyZWF0IGlmIHN1Y2ggaW1wcm92ZW1lbnRzIGNhbiBiZSBk
+b25lIGRpcmVjdGx5IGluIHRoZSBBQ1BJQ0EgdXBzdHJlYW0uDQpUaGFua3MgZm9yIHVuZGVyc3Rh
+bmRpbmcgdGhpcy4NCg0KQmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gVGhhbmtzLg0KPiANCj4g
+LS0NCj4gUmVnYXJkcy9HcnVzcywNCj4gICAgIEJvcmlzLg0KPiANCj4gU2VudCBmcm9tIGEgZmF0
+IGNyYXRlIHVuZGVyIG15IGRlc2suIEZvcm1hdHRpbmcgaXMgZmluZS4NCj4gLS0NCj4gLS0NCj4g
+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJl
+IGxpbnV4LWFjcGkiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdl
+ci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5l
+bC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
