@@ -1,75 +1,96 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 6/7] ACPICA: Events: Fix edge-triggered GPE by disabling before acknowledging it.
-Date: Fri, 13 Jun 2014 14:51:54 +0800
-Message-ID: <1bae7754d30f72caaedcddd9fb2f1f90bbd9c630.1402641700.git.lv.zheng@intel.com>
-References: <cover.1402641700.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1402641700.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [Intel-gfx] video: X sets brightness to zero after resume
+Date: Fri, 13 Jun 2014 09:29:39 +0200
+Message-ID: <539AA863.6070806@redhat.com>
+References: <871tuu1epc.fsf@purkki.adurom.net> <539A53B3.6030902@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:45715 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751151AbaFMH3s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Jun 2014 03:29:48 -0400
+In-Reply-To: <539A53B3.6030902@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>, Kalle Valo <kvalo@adurom.com>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, linux-kernel@vger.kernel.org
 
-Due to ACPI specificiation 5, chapter 5.6.4 General-Purpose Event Hnadling,
-OSPMs need to disable GPE before clearing the status bit for edge-triggered
-GPEs.
+Hi,
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Tested-by: Gareth Williams <gareth@garethwilliams.me.uk>
-Tested-by: Steffen Weber <steffen.weber@gmail.com>
----
- drivers/acpi/acpica/evgpe.c |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+On 06/13/2014 03:28 AM, Aaron Lu wrote:
+> On 06/12/2014 08:42 PM, Kalle Valo wrote:
+>> Hi Aaron,
+>>
+>> after your commit 0e9f81d3b7c ("ACPI / video: Add systems that should
+>> favour native backlight interface") I have had an regression that every
+>> time after resume the display brightness has been set to zero and I need
+>> to manually set it to non-zero to see something again.
+>>
+>> Finally I started to investigate this more closely and it seems that X
+>> sets it to zero for some reason. I added a WARN_ON() and few printks to
+>> brightness_store() in drivers/video/backlight/backlight.c and this is
+>> what I see during resume:
+>>
+>> [   49.228221] ------------[ cut here ]------------
+>> [   49.228229] WARNING: CPU: 1 PID: 1133 at
+>> drivers/video/backlight/backlight.c:173 brightness_store+0x3c/0x120(
+>> )
+>> [   49.228230] Modules linked in: ctr ccm uvcvideo videobuf2_core
+>> videodev videobuf2_vmalloc videobuf2_memops fu
+>> se arc4 iwldvm sha256_generic kvm_intel kvm mac80211 snd_hda_codec_hdmi
+>> snd_hda_codec_realtek snd_hda_codec_gene
+>> ric iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 snd_hda_intel
+>> snd_hda_controller nf_nat_ipv4 nf_nat snd_hda_cod
+>> ec nf_conntrack snd_hwdep snd_pcm_oss iwlwifi snd_mixer_oss snd_pcm
+>> ip_tables x_tables thinkpad_acpi snd_seq_dum
+>> my snd_seq_oss snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq
+>> cfg80211 snd_timer snd_seq_device snd bnep rfcomm bluetooth psmouse
+>> soundcore nvram ehci_pci ehci_hcd rfkill wmi binfmt_misc ext4 jbd2
+>> mbcache sd_mod fbcon tileblit font bitblit softcursor i915
+>> drm_kms_helper drm cfbcopyarea i2c_algo_bit intel_gtt agpgart i2c_core
+>> video xhci_hcd cfbimgblt cfbfillrect e1000e sdhci_pci sdhci ptp pps_core
+>> mmc_core ahci libahci
+>> [   49.228281] CPU: 1 PID: 1133 Comm: Xorg Tainted: G        W
+>> 3.15.0-rc7-wl-ath+ #259
+>> [   49.228282] Hardware name: LENOVO 2324JB2/2324JB2, BIOS G2ET82WW
+>> (2.02 ) 09/11/2012
+>> [   49.228283]  0000000000000000 ffffffff817e4000 ffffffff814cbee3
+>> 0000000000000000
+>> [   49.228285]  ffffffff810493bc ffff88020e2d1c98 ffff880213bc9f10
+>> 0000000000000002
+>> [   49.228287]  ffff8800c5dfc198 ffff88020d7cbf50 ffffffff81290a1c
+>> ffff88020e792800
+>> [   49.228288] Call Trace:
+>> [   49.228293]  [<ffffffff814cbee3>] ? dump_stack+0x41/0x51
+>> [   49.228296]  [<ffffffff810493bc>] ? warn_slowpath_common+0x8c/0xc0
+>> [   49.228298]  [<ffffffff81290a1c>] ? brightness_store+0x3c/0x120
+>> [   49.228301]  [<ffffffff811d7242>] ? kernfs_fop_write+0x112/0x170
+>> [   49.228304]  [<ffffffff8116791b>] ? vfs_write+0xcb/0x1f0
+>> [   49.228306]  [<ffffffff81167e20>] ? SyS_write+0x50/0xb0
+>> [   49.228308]  [<ffffffff814dd312>] ? system_call_fastpath+0x16/0x1b
+>> [   49.228309] ---[ end trace a1f60d12df64bdbe ]---
+>> [   49.228310] brightness=0
+>> [   49.228310] set brightness to 0
+>>
+>> And this is PID 1133:
+>>
+>> root      1133  0.7  0.2 131504 20192 tty7     Ss+  15:16   0:00
+>> /usr/bin/X :0 -auth /var/run/lightdm/root/:0 -nolisten tcp vt7
+>> -novtswitch -background none
+>>
+>> If I set video.use_native_backlight=0 in kernel command line the problem
+>> goes away. Or if I revert your commit 0e9f81d3b7c the problem also goes
+>> away. Any ideas?
+> 
+> Not really...
+> I've added i915 people maybe they have an idea.
 
-diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index 48f7001..e4ba4de 100644
---- a/drivers/acpi/acpica/evgpe.c
-+++ b/drivers/acpi/acpica/evgpe.c
-@@ -698,21 +698,6 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
- 	}
- 
- 	/*
--	 * If edge-triggered, clear the GPE status bit now. Note that
--	 * level-triggered events are cleared after the GPE is serviced.
--	 */
--	if ((gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
--	    ACPI_GPE_EDGE_TRIGGERED) {
--		status = acpi_hw_clear_gpe(gpe_event_info);
--		if (ACPI_FAILURE(status)) {
--			ACPI_EXCEPTION((AE_INFO, status,
--					"Unable to clear GPE %02X",
--					gpe_number));
--			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
--		}
--	}
--
--	/*
- 	 * Always disable the GPE so that it does not keep firing before
- 	 * any asynchronous activity completes (either from the execution
- 	 * of a GPE method or an asynchronous GPE handler.)
-@@ -729,6 +714,23 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
- 	}
- 
- 	/*
-+	 * If edge-triggered, clear the GPE status bit now. Note that
-+	 * level-triggered events are cleared after the GPE is serviced.
-+	 */
-+	if ((gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
-+	    ACPI_GPE_EDGE_TRIGGERED) {
-+		status = acpi_hw_clear_gpe(gpe_event_info);
-+		if (ACPI_FAILURE(status)) {
-+			ACPI_EXCEPTION((AE_INFO, status,
-+					"Unable to clear GPE %02X",
-+					gpe_number));
-+			(void)acpi_hw_low_set_gpe(gpe_event_info,
-+						  ACPI_GPE_CONDITIONAL_ENABLE);
-+			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
-+		}
-+	}
-+
-+	/*
- 	 * Dispatch the GPE to either an installed handler or the control
- 	 * method associated with this GPE (_Lxx or _Exx). If a handler
- 	 * exists, we invoke it and do not attempt to run the method.
--- 
-1.7.10
+This is a known issue in xf86-video-intel, which gets exposed due to the
+video.use_native_backlight=1 option. This should be fixed in the latest 2.99.912
+xf86-video-intel release.
+
+Regards,
+
+Hans
