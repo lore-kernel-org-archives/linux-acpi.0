@@ -1,44 +1,54 @@
 From: Robert Richter <rric@kernel.org>
-Subject: Re: [PATCH v3 1/5] apei, mce: Factor out APEI architecture specific
- MCE calls.
-Date: Fri, 13 Jun 2014 15:54:02 +0200
-Message-ID: <20140613135402.GD27560@rric.localhost>
+Subject: Re: [PATCH v3 2/5] acpi, apei, ghes: Introduce
+ ARCH_HAS_ACPI_APEI_NMI to make NMI error notification a GHES feature.
+Date: Fri, 13 Jun 2014 16:01:55 +0200
+Message-ID: <20140613140155.GE27560@rric.localhost>
 References: <1402657380-18539-1-git-send-email-tomasz.nowicki@linaro.org>
- <1402657380-18539-2-git-send-email-tomasz.nowicki@linaro.org>
+ <1402657380-18539-3-git-send-email-tomasz.nowicki@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.19.201]:37502 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751082AbaFMOCG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Jun 2014 10:02:06 -0400
 Content-Disposition: inline
-In-Reply-To: <1402657380-18539-2-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1402657380-18539-3-git-send-email-tomasz.nowicki@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
-List-Id: linux-acpi@vger.kernel.org
 
-On 13.06.14 13:02:56, Tomasz Nowicki wrote:
-> This commit abstracts MCE calls and provides weak corresponding default
-> implementation for those architectures which do not need arch specific
-> actions. Each platform willing to do additional architectural actions
-> should provides desired function definition. It allows us to avoid wrap
-> code into #ifdef in generic code and prevent new platform from introducing
-> dummy stub function too.
+On 13.06.14 13:02:57, Tomasz Nowicki wrote:
+> Currently APEI depends on x86 architecture. It is because of NMI hardware
+> error notification of GHES which is currently supported by x86 only.
+> However, many other APEI features can be still used perfectly by other
+> architectures.
 > 
-> Initially, there are two APEI arch-specific calls:
-> - apei_arch_enable_cmcff()
-> - apei_arch_report_mem_error()
-> Both interact with MCE driver for X86 architecture.
+> This commit adds ARCH_HAS_ACPI_APEI_NMI which will be used in next patches
+> for NMI related code isolation in ghes.c file. Only NMI error notification
+> feature depends on x86 so let it be hard selected for x86 arch.
 > 
 > Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 > ---
->  arch/x86/kernel/acpi/Makefile |    1 +
->  arch/x86/kernel/acpi/apei.c   |   56 +++++++++++++++++++++++++++++++++++++++++
->  drivers/acpi/apei/apei-base.c |   13 ++++++++++
->  drivers/acpi/apei/ghes.c      |    6 ++---
->  drivers/acpi/apei/hest.c      |   29 +--------------------
->  include/acpi/apei.h           |    3 +++
->  6 files changed, 76 insertions(+), 32 deletions(-)
->  create mode 100644 arch/x86/kernel/acpi/apei.c
+>  arch/x86/Kconfig          |    1 +
+>  drivers/acpi/apei/Kconfig |    8 +++++++-
+>  2 files changed, 8 insertions(+), 1 deletion(-)
 
-Looks fine to me.
+Apart from merging the patch with later ones this change looks fine to
+me
+
+> +config ARCH_HAS_ACPI_APEI_NMI
+> +	bool
+> +	help
+> +	  Firmware first mode can use NMI notification mechanism to report errors
+> +	  to operating system. This feature is currently supported by X86
+> +	  architecture only.
+> +
+
+Maybe the help description could be removed, it is not used anywhere
+in a dialog. At least the reference to x86 should be removed (if the
+option is used for another arch the text will be wrong and need to be
+changed again).
 
 -Robert
