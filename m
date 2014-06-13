@@ -1,145 +1,133 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 5/7 REVISION] trace, RAS: Add eMCA trace event interface
-Date: Fri, 13 Jun 2014 03:09:28 -0400
-Message-ID: <20140613070928.GA29351@gchen.bj.intel.com>
-References: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
- <1402553517-30208-1-git-send-email-gong.chen@linux.intel.com>
- <20140612092808.5f7bec5e@gandalf.local.home>
- <20140613021956.GA17509@gchen.bj.intel.com>
- <20140612230117.46758e3c@gandalf.local.home>
- <20140612230833.3c0f41b2@gandalf.local.home>
+From: Lan Tianyu <lantianyu1986@gmail.com>
+Subject: Re: [PATCH 2/2] ACPI / battery: add quirk for Acer Aspire V5-573G
+Date: Fri, 13 Jun 2014 16:46:27 +0800
+Message-ID: <CAOLK0pyx=F0WnKMwt=uYnyK_tn1Hs8oBUus5+iWfcC0B=WYD0Q@mail.gmail.com>
+References: <1401822083-4866-1-git-send-email-mezin.alexander@gmail.com>
+	<1401822083-4866-2-git-send-email-mezin.alexander@gmail.com>
+	<CAOLK0py=+4AWKSzoLdELsanDayvE5oVcqiCQJo+RtgDtj=kTyA@mail.gmail.com>
+	<CADnvcf+L+OAv=2i7Zj1Sc0sEFmWJVy_g8jSs1ZPLhALO4XDmCw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zYM0uCDKw75PZbzx"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:58125 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752410AbaFMHiV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Jun 2014 03:38:21 -0400
-Content-Disposition: inline
-In-Reply-To: <20140612230833.3c0f41b2@gandalf.local.home>
+Received: from mail-qa0-f42.google.com ([209.85.216.42]:57137 "EHLO
+	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752151AbaFMIq2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jun 2014 04:46:28 -0400
+Received: by mail-qa0-f42.google.com with SMTP id dc16so3090052qab.15
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Jun 2014 01:46:27 -0700 (PDT)
+In-Reply-To: <CADnvcf+L+OAv=2i7Zj1Sc0sEFmWJVy_g8jSs1ZPLhALO4XDmCw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, linux-acpi@vger.kernel.org
+To: Alexander Mezin <mezin.alexander@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+
+2014-06-10 22:38 GMT+08:00 Alexander Mezin <mezin.alexander@gmail.com>:
+> 2014-06-10 9:15 GMT+07:00 Lan Tianyu <lantianyu1986@gmail.com>:
+>> 2014-06-04 3:01 GMT+08:00 Alexander Mezin <mezin.alexander@gmail.com>:
+>>> On Acer Aspire V5-573G battery notifications are sometimes
+>>> triggered too early. For example, when AC is unplugged and
+>>> notification is triggered, battery state is still reported as
+>>> "Full", and changes to "Discharging" only after short delay,
+>>> without any notification.
+>>>
+>>> This patch solves the problem by adding 1 second sleep.
+>>> Similar quirk is already implemented in AC driver for other laptop.
+>>
+
+>From the ACPI table, battery status is read from EC and the notification is
+also triggered from EC Query event. The status should be updated at that
+point but ... Have no better idea.
+
+Acked-by: Lan Tianyu <tianyu.lan@intel.com>
+
+>> Could you provide the output of acpidump?
+> Attached
+>>
+>>>
+>>> Signed-off-by: Alexander Mezin <mezin.alexander@gmail.com>
+>>> ---
+>>>  drivers/acpi/battery.c | 24 ++++++++++++++++++++++++
+>>>  1 file changed, 24 insertions(+)
+>>>
+>>> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+>>> index f17bc7e..87d26c3 100644
+>>> --- a/drivers/acpi/battery.c
+>>> +++ b/drivers/acpi/battery.c
+>>> @@ -32,6 +32,7 @@
+>>>  #include <linux/jiffies.h>
+>>>  #include <linux/async.h>
+>>>  #include <linux/dmi.h>
+>>> +#include <linux/delay.h>
+>>>  #include <linux/slab.h>
+>>>  #include <linux/suspend.h>
+>>>  #include <asm/unaligned.h>
+>>> @@ -66,6 +67,7 @@ MODULE_DESCRIPTION("ACPI Battery Driver");
+>>>  MODULE_LICENSE("GPL");
+>>>
+>>>  static int battery_bix_broken_package;
+>>> +static int battery_notification_delay_ms;
+>>>  static unsigned int cache_time = 1000;
+>>>  module_param(cache_time, uint, 0644);
+>>>  MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+>>> @@ -1028,6 +1030,14 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
+>>>         if (!battery)
+>>>                 return;
+>>>         old = battery->bat.dev;
+>>> +       /*
+>>> +       * On Acer Aspire V5-573G notifications are sometimes triggered too
+>>> +       * early. For example, when AC is unplugged and notification is
+>>> +       * triggered, battery state is still reported as "Full", and changes to
+>>> +       * "Discharging" only after short delay, without any notification.
+>>> +       */
+>>> +       if (battery_notification_delay_ms > 0)
+>>> +               msleep(battery_notification_delay_ms);
+>>>         if (event == ACPI_BATTERY_NOTIFY_INFO)
+>>>                 acpi_battery_refresh(battery);
+>>>         acpi_battery_update(battery);
+>>> @@ -1064,6 +1074,12 @@ static int battery_bix_broken_package_quirk(const struct dmi_system_id *d)
+>>>         return 0;
+>>>  }
+>>>
+>>> +static int battery_notification_delay_quirk(const struct dmi_system_id *d)
+>>> +{
+>>> +       battery_notification_delay_ms = 1000;
+>>> +       return 0;
+>>> +}
+>>> +
+>>>  static struct dmi_system_id bat_dmi_table[] = {
+>>>         {
+>>>                 .callback = battery_bix_broken_package_quirk,
+>>> @@ -1073,6 +1089,14 @@ static struct dmi_system_id bat_dmi_table[] = {
+>>>                         DMI_MATCH(DMI_PRODUCT_NAME, "PC-LZ750LS"),
+>>>                 },
+>>>         },
+>>> +       {
+>>> +               .callback = battery_notification_delay_quirk,
+>>> +               .ident = "Acer Aspire V5-573G",
+>>> +               .matches = {
+>>> +                       DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+>>> +                       DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-573G"),
+>>> +               },
+>>> +       },
+>>>         {},
+>>>  };
+>>>
+>>> --
+>>> 2.0.0
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>>
+>> --
+>> Best regards
+>> Tianyu Lan
 
 
---zYM0uCDKw75PZbzx
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jun 12, 2014 at 11:08:33PM -0400, Steven Rostedt wrote:
-> > > > The above array works, but I'm wondering why you don't just use the
-> > > > types themselves?
-> > > >=20
-> > > > That is:
-> > > >=20
-> > > > 		__field(uuid_le, fru_id)
-> > > > 		__field(struct cper_mem_err_compact, data)
-> > > >=20
-> > > Every time when I use above codes I will hit some compiler error like
-> > > "error: conversion to non-scalar type requested". It looks some
-> > > data types like above (unless typedef) can't be used in __field.
-> > > Is it true? How to fix that?
-> > >=20
-> >=20
-> > Ah, that's a bug in the ftrace.h file. I'll need to test this against
-> > it to see what error it gives. I'll work on that tomorrow as it's
-> > bedtime for me now.
->=20
-> Wait, I take that back. I was thinking the error was with the
-> __array(). A __field() should work fine!
->=20
-> Can you post me the patch you did and the error you get when you
-> compile.
-
-Here is the incremented patch & compiler error.
-PS: the same issue for __field(struct cper_mem_err_compact, data)
-
-diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
-index a794691..174aac1 100644
---- a/include/ras/ras_event.h
-+++ b/include/ras/ras_event.h
-@@ -35,7 +35,7 @@ TRACE_EVENT(extlog_mem_event,
-                __field(u8, sev)
-                __field(u64, pa)
-                __field(u8, pa_mask_lsb)
--               __array(u8, fru_id, sizeof(uuid_le))
-+               __field(uuid_le, fru_id)
-                __string(fru_text, fru_text)
-                __array(u8, data, sizeof(struct cper_mem_err_compact))
-        ),
-@@ -56,7 +56,7 @@ TRACE_EVENT(extlog_mem_event,
-                        __entry->pa_mask_lsb =3D (u8)__ffs64(mem->physical_=
-addr_mask);
-                else
-                        __entry->pa_mask_lsb =3D ~0;
--               memcpy(__entry->fru_id, fru_id, sizeof(uuid_le));
-+               __entry->fru_id =3D *fru_id;
-                __assign_str(fru_text, fru_text);
-                cper_mem_err_pack(mem, __entry->data);
-        ),
-@@ -68,7 +68,7 @@ TRACE_EVENT(extlog_mem_event,
-                  __entry->pa,
-                  __entry->pa_mask_lsb,
-                  cper_mem_err_unpack(p, __entry->data),
--                 __entry->fru_id,
-+                 &__entry->fru_id,
-                  __get_str(fru_text))
- );
-
-
-In file included from include/trace/define_trace.h:90:0,
-                 from include/ras/ras_event.h:226,
-                 from drivers/ras/ras.c:13:
-include/trace/../../include/ras/ras_event.h: In function =E2=80=98ftrace_de=
-fine_fields_extlog_mem_event=E2=80=99:
-include/trace/ftrace.h:330:9: error: conversion to non-scalar type requested
-  struct ftrace_raw_##call field;     \
-         ^
-include/trace/ftrace.h:32:2: note: in expansion of macro =E2=80=98DECLARE_E=
-VENT_CLASS=E2=80=99
-  DECLARE_EVENT_CLASS(name,          \
-  ^
-include/trace/../../include/ras/ras_event.h:23:1: note: in expansion of mac=
-ro =E2=80=98TRACE_EVENT=E2=80=99
- TRACE_EVENT(extlog_mem_event,
- ^
-include/trace/ftrace.h:330:9: error: conversion to non-scalar type requested
-  struct ftrace_raw_##call field;     \
-         ^
-include/trace/ftrace.h:32:2: note: in expansion of macro =E2=80=98DECLARE_E=
-VENT_CLASS=E2=80=99
-  DECLARE_EVENT_CLASS(name,          \
-  ^
-include/trace/../../include/ras/ras_event.h:23:1: note: in expansion of mac=
-ro =E2=80=98TRACE_EVENT=E2=80=99
- TRACE_EVENT(extlog_mem_event,
- ^
-scripts/Makefile.build:318: recipe for target 'drivers/ras/ras.o' failed
-
-
---zYM0uCDKw75PZbzx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTmqOoAAoJEI01n1+kOSLHZ4EP/1+wh6UXbgJQWzEytLJxxnpl
-+nIFP1RCbZD+fhe+2TE6dAdQOFLXizo0a3j7F8YSm/a7mspbIxMvgXmj/P+/bZ4P
-06kXnX07ZCDXP/eDCyVEN4qpA3c5id0YC3jyVugafWPWPw5Pz9vHx0eViV8RraD0
-nOA4emAeOEXk7Br1VuUi5dQPpqQxtVcqJq5toXzkdLF6U6yiZdFmD91+eNigZK8T
-qOA4MWyGixzdgvLmmdj8GE5VAlMgy4uisKE4lPlrto01BjLw0Bn5TwjrMTJ3bJtP
-TObMxK1cCz0HbmxCJUAld9T70AjekNU9GGZ3LI+x0hVtG/uhj6hZEZ4pgwrKtkJ8
-HpRYXkLM085iaDEyFpcpIkqaO3Wp/w5Cslge9bcVBIdV6P8BExJRIwLGAuBw2COJ
-M1UuQ8IXByl5OpacyhiUTEmuY/636yJ0gtIGvcQpZU5pKtUE8hbzDxXZ4i1Db4l2
-qPJfM+qOjAlOoE5B6VfBWfFmvpNScRdORq528XJ8ydBxhMd9rSbeZhKd/xI7K2Jp
-9cg2aSFihMl4YhCJ09s1FGNkTI1pD0r3G8HUh5ROf3wgXSA682t85NzhqEUIUTnB
-wF05l3FqH9JhoIOgk9FNusNZRuct2279O5OMtzE3UWIE0yJ3J8JSXGh1W5bwHHiA
-itYX2D+PswweOwoButEy
-=h4vQ
------END PGP SIGNATURE-----
-
---zYM0uCDKw75PZbzx--
+-- 
+Best regards
+Tianyu Lan
