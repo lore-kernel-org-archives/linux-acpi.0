@@ -1,133 +1,72 @@
-From: Lan Tianyu <lantianyu1986@gmail.com>
-Subject: Re: [PATCH 2/2] ACPI / battery: add quirk for Acer Aspire V5-573G
-Date: Fri, 13 Jun 2014 16:46:27 +0800
-Message-ID: <CAOLK0pyx=F0WnKMwt=uYnyK_tn1Hs8oBUus5+iWfcC0B=WYD0Q@mail.gmail.com>
-References: <1401822083-4866-1-git-send-email-mezin.alexander@gmail.com>
-	<1401822083-4866-2-git-send-email-mezin.alexander@gmail.com>
-	<CAOLK0py=+4AWKSzoLdELsanDayvE5oVcqiCQJo+RtgDtj=kTyA@mail.gmail.com>
-	<CADnvcf+L+OAv=2i7Zj1Sc0sEFmWJVy_g8jSs1ZPLhALO4XDmCw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: [PATCH v3 0/5] APEI: Make APEI architecture independent.
+Date: Fri, 13 Jun 2014 13:02:55 +0200
+Message-ID: <1402657380-18539-1-git-send-email-tomasz.nowicki@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f42.google.com ([209.85.216.42]:57137 "EHLO
-	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752151AbaFMIq2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jun 2014 04:46:28 -0400
-Received: by mail-qa0-f42.google.com with SMTP id dc16so3090052qab.15
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Jun 2014 01:46:27 -0700 (PDT)
-In-Reply-To: <CADnvcf+L+OAv=2i7Zj1Sc0sEFmWJVy_g8jSs1ZPLhALO4XDmCw@mail.gmail.com>
+Received: from mail-we0-f182.google.com ([74.125.82.182]:54360 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750874AbaFMLDW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jun 2014 07:03:22 -0400
+Received: by mail-we0-f182.google.com with SMTP id q59so2640623wes.27
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Jun 2014 04:03:21 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexander Mezin <mezin.alexander@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de
+Cc: linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, rric@kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-2014-06-10 22:38 GMT+08:00 Alexander Mezin <mezin.alexander@gmail.com>:
-> 2014-06-10 9:15 GMT+07:00 Lan Tianyu <lantianyu1986@gmail.com>:
->> 2014-06-04 3:01 GMT+08:00 Alexander Mezin <mezin.alexander@gmail.com>:
->>> On Acer Aspire V5-573G battery notifications are sometimes
->>> triggered too early. For example, when AC is unplugged and
->>> notification is triggered, battery state is still reported as
->>> "Full", and changes to "Discharging" only after short delay,
->>> without any notification.
->>>
->>> This patch solves the problem by adding 1 second sleep.
->>> Similar quirk is already implemented in AC driver for other laptop.
->>
+APEI is currently implemented so that it depends on x86 hardware.
+The primary dependency is that GHES uses the x86 NMI for hardware
+error notification and MCE for memory error handling. These patches
+remove that dependency.
 
->From the ACPI table, battery status is read from EC and the notification is
-also triggered from EC Query event. The status should be updated at that
-point but ... Have no better idea.
+Other APEI features such as error reporting via external IRQ, error
+serialization, or error injection, do not require changes to use them
+on non-x86 architectures.
 
-Acked-by: Lan Tianyu <tianyu.lan@intel.com>
+The following patch set eliminates the APEI Kconfig x86 dependency
+by making these changes:
+- treat NMI notification as GHES feature - ARCH_HAS_ACPI_APEI_NMI
+- reorganize GHES notification type init/deinitialization
+  so that we can decide in run time whether NMI is supported or not
+- identify architectural boxes and abstract it accordingly (NMI and MCE)
+- rework ioremap for both IRQ and NMI context
 
->> Could you provide the output of acpidump?
-> Attached
->>
->>>
->>> Signed-off-by: Alexander Mezin <mezin.alexander@gmail.com>
->>> ---
->>>  drivers/acpi/battery.c | 24 ++++++++++++++++++++++++
->>>  1 file changed, 24 insertions(+)
->>>
->>> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
->>> index f17bc7e..87d26c3 100644
->>> --- a/drivers/acpi/battery.c
->>> +++ b/drivers/acpi/battery.c
->>> @@ -32,6 +32,7 @@
->>>  #include <linux/jiffies.h>
->>>  #include <linux/async.h>
->>>  #include <linux/dmi.h>
->>> +#include <linux/delay.h>
->>>  #include <linux/slab.h>
->>>  #include <linux/suspend.h>
->>>  #include <asm/unaligned.h>
->>> @@ -66,6 +67,7 @@ MODULE_DESCRIPTION("ACPI Battery Driver");
->>>  MODULE_LICENSE("GPL");
->>>
->>>  static int battery_bix_broken_package;
->>> +static int battery_notification_delay_ms;
->>>  static unsigned int cache_time = 1000;
->>>  module_param(cache_time, uint, 0644);
->>>  MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
->>> @@ -1028,6 +1030,14 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
->>>         if (!battery)
->>>                 return;
->>>         old = battery->bat.dev;
->>> +       /*
->>> +       * On Acer Aspire V5-573G notifications are sometimes triggered too
->>> +       * early. For example, when AC is unplugged and notification is
->>> +       * triggered, battery state is still reported as "Full", and changes to
->>> +       * "Discharging" only after short delay, without any notification.
->>> +       */
->>> +       if (battery_notification_delay_ms > 0)
->>> +               msleep(battery_notification_delay_ms);
->>>         if (event == ACPI_BATTERY_NOTIFY_INFO)
->>>                 acpi_battery_refresh(battery);
->>>         acpi_battery_update(battery);
->>> @@ -1064,6 +1074,12 @@ static int battery_bix_broken_package_quirk(const struct dmi_system_id *d)
->>>         return 0;
->>>  }
->>>
->>> +static int battery_notification_delay_quirk(const struct dmi_system_id *d)
->>> +{
->>> +       battery_notification_delay_ms = 1000;
->>> +       return 0;
->>> +}
->>> +
->>>  static struct dmi_system_id bat_dmi_table[] = {
->>>         {
->>>                 .callback = battery_bix_broken_package_quirk,
->>> @@ -1073,6 +1089,14 @@ static struct dmi_system_id bat_dmi_table[] = {
->>>                         DMI_MATCH(DMI_PRODUCT_NAME, "PC-LZ750LS"),
->>>                 },
->>>         },
->>> +       {
->>> +               .callback = battery_notification_delay_quirk,
->>> +               .ident = "Acer Aspire V5-573G",
->>> +               .matches = {
->>> +                       DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
->>> +                       DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-573G"),
->>> +               },
->>> +       },
->>>         {},
->>>  };
->>>
->>> --
->>> 2.0.0
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->>
->> --
->> Best regards
->> Tianyu Lan
+NMI code is kept in ghes.c file since NMI and IRQ context are tightly coupled.
 
+Note, these patches introduce no functional changes for x86. The NMI notification
+feature is hard selected for x86. Architectures that want to use this
+feature should also provide NMI code infrastructure.
 
+V1->V2
+- address Borislav's comment
+- abstract arch-specific calls instead of wrapping into the #ifdef
+
+V2->V3
+- address Robert's comment
+- disable ACPI_APEI_NMI selection so that it is hard selected by arch Kconfig
+- rename ACPI_APEI_NMI to ARCH_HAS_ACPI_APEI_NMI
+
+Tomasz Nowicki (5):
+  apei, mce: Factor out APEI architecture specific MCE calls.
+  acpi, apei, ghes: Introduce ARCH_HAS_ACPI_APEI_NMI to make NMI error
+    notification a GHES feature.
+  acpi, apei, ghes: Introduce more generic mechanism to init/deinit
+    GHES error notifications.
+  apei, ghes, nmi: Factor out NMI arch-specific calls.
+  acpi, apei, ghes: Factor out ioremap virtual memory for IRQ and NMI
+    context.
+
+ arch/x86/Kconfig              |    1 +
+ arch/x86/kernel/acpi/Makefile |    1 +
+ arch/x86/kernel/acpi/apei.c   |   87 ++++++++++++
+ drivers/acpi/apei/Kconfig     |    8 +-
+ drivers/acpi/apei/apei-base.c |   32 +++++
+ drivers/acpi/apei/ghes.c      |  301 +++++++++++++++++++++++++----------------
+ drivers/acpi/apei/hest.c      |   29 +---
+ include/acpi/apei.h           |   11 ++
+ 8 files changed, 327 insertions(+), 143 deletions(-)
+ create mode 100644 arch/x86/kernel/acpi/apei.c
 
 -- 
-Best regards
-Tianyu Lan
+1.7.9.5
+
