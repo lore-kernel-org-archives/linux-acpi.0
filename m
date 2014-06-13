@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 3/7] ACPI/EC: Remove duplicated ec_wait_ibf0() waiter.
-Date: Fri, 13 Jun 2014 14:51:32 +0800
-Message-ID: <1a3d791afd4f381c7aed3415f02b9a23597b64bf.1402641700.git.lv.zheng@intel.com>
+Subject: [PATCH 2/7] ACPI/EC: Add asynchronous command byte write support.
+Date: Fri, 13 Jun 2014 14:51:22 +0800
+Message-ID: <4ce7215ec00edf357fa898bdf537880fbef90869.1402641700.git.lv.zheng@intel.com>
 References: <cover.1402641700.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1402641700.git.lv.zheng@intel.com>
@@ -10,15 +10,28 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-After we've added first command byte write into advance_transaction(), the
-IBF=0 waiter is duplicated with the command completion waiter implemented
-in the ec_poll() because:
-   If IBF=1 blocked the first command byte write invoked in the task
-   context ec_poll(), it would be kicked off upon IBF=0 interrupt or timed
-   out and retried again in the task context.
-This patch removes this seperate and duplicate IBF=0 waiter, by doing so,
-we can reduce the overall number of times to access the EC_SC(R) status
-register.
+This patch adds asynchronous command byte write into advance_transaction()
+so that all state machine affecting EC register accesses can happen in this
+state machine advancement function.
+
+This is achieved by moving the first command write code into
+advance_transaction(). This function then can be a complete implementation
+of an asyncrhonous transaction for a single command so that:
+1. The first command byte can be written in the interrupt context;
+2. The command completion waiter can also be used to wait the first command
+   byte's timeout;
+3. In BURST mode, the follow-up command bytes can be written in the
+   interrupt context directly, so that it doesn't need to return to the
+   task context. Returning to the task context reduces the throughput of
+   the BURST mode and in the worst cases where the system workload is very
+   high, this leads to the hardware driven automatic BURST mode exit.
+In order not to increase memory consumptions, this patch converts 'done'
+into 'flags' to contain multiple indications:
+1. ACPI_EC_COMMAND_COMPLETE: converting from original 'done' condition,
+   indicating the completion of the command transaction.
+2. ACPI_EC_COMMAND_POLL: indicating the availability of writing the first
+   command byte. A new command can utilize this flag to compete for the
+   right of accessing the underlying hardware.
 
 Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=70891
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
@@ -29,67 +42,166 @@ Cc: <stable@vger.kernel.org> # 2.6.11: 7c6db4e0: ACPI: EC: do transaction from i
 [zetalog: cleanly applying to:]
 Cc: <stable@vger.kernel.org> # 3.14.x: 42b946bb: ACPI / EC: disable GPE before removing GPE handler
 ---
- drivers/acpi/ec.c |   27 +--------------------------
- 1 file changed, 1 insertion(+), 26 deletions(-)
+ drivers/acpi/ec.c |   83 +++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 48 insertions(+), 35 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index f09386e..d016ea3 100644
+index 762b4cc..f09386e 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -281,23 +281,6 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+@@ -78,6 +78,9 @@ enum {
+ 	EC_FLAGS_BLOCKED,		/* Transactions are blocked */
+ };
+ 
++#define ACPI_EC_COMMAND_POLL		0x01 /* Available for command byte */
++#define ACPI_EC_COMMAND_COMPLETE	0x02 /* Completed last byte */
++
+ /* ec.c is compiled in acpi namespace so this shows up as acpi.ec_delay param */
+ static unsigned int ec_delay __read_mostly = ACPI_EC_DELAY;
+ module_param(ec_delay, uint, 0644);
+@@ -109,7 +112,7 @@ struct transaction {
+ 	u8 ri;
+ 	u8 wlen;
+ 	u8 rlen;
+-	bool done;
++	u8 flags;
+ };
+ 
+ struct acpi_ec *boot_ec, *first_ec;
+@@ -150,63 +153,68 @@ static inline void acpi_ec_write_data(struct acpi_ec *ec, u8 data)
+ 	outb(data, ec->data_addr);
+ }
+ 
+-static int ec_transaction_done(struct acpi_ec *ec)
++static int ec_transaction_completed(struct acpi_ec *ec)
+ {
+ 	unsigned long flags;
+ 	int ret = 0;
+ 	spin_lock_irqsave(&ec->lock, flags);
+-	if (!ec->curr || ec->curr->done)
++	if (!ec->curr || (ec->curr->flags & ACPI_EC_COMMAND_COMPLETE))
+ 		ret = 1;
+ 	spin_unlock_irqrestore(&ec->lock, flags);
  	return ret;
  }
  
--static int ec_check_ibf0(struct acpi_ec *ec)
+-static void start_transaction(struct acpi_ec *ec)
 -{
--	u8 status = acpi_ec_read_status(ec);
--	return (status & ACPI_EC_FLAG_IBF) == 0;
+-	ec->curr->irq_count = ec->curr->wi = ec->curr->ri = 0;
+-	ec->curr->done = false;
+-	acpi_ec_write_cmd(ec, ec->curr->command);
 -}
 -
--static int ec_wait_ibf0(struct acpi_ec *ec)
--{
--	unsigned long delay = jiffies + msecs_to_jiffies(ec_delay);
--	/* interrupt wait manually if GPE mode is not active */
--	while (time_before(jiffies, delay))
--		if (wait_event_timeout(ec->wait, ec_check_ibf0(ec),
--					msecs_to_jiffies(1)))
--			return 0;
--	return -ETIME;
--}
--
- static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
+ static void advance_transaction(struct acpi_ec *ec)
  {
- 	int status;
-@@ -318,12 +301,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 			goto unlock;
- 		}
- 	}
--	if (ec_wait_ibf0(ec)) {
--		pr_err("input buffer is not empty, "
--				"aborting transaction\n");
--		status = -ETIME;
--		goto end;
--	}
- 	pr_debug("transaction start (cmd=0x%02x, addr=0x%02x)\n",
- 			t->command, t->wdata ? t->wdata[0] : 0);
- 	/* disable GPE during transaction if storm is detected */
-@@ -347,7 +324,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
- 	}
- 	pr_debug("transaction end\n");
--end:
- 	if (ec->global_lock)
- 		acpi_release_global_lock(glk);
- unlock:
-@@ -653,8 +629,7 @@ static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
- 	spin_lock_irqsave(&ec->lock, flags);
+-	unsigned long flags;
+ 	struct transaction *t;
+ 	u8 status;
+ 
+-	spin_lock_irqsave(&ec->lock, flags);
+ 	pr_debug("===== %s =====\n", in_interrupt() ? "IRQ" : "TASK");
+ 	status = acpi_ec_read_status(ec);
+ 	t = ec->curr;
+ 	if (!t)
+-		goto unlock;
+-	if (t->wlen > t->wi) {
+-		if ((status & ACPI_EC_FLAG_IBF) == 0)
+-			acpi_ec_write_data(ec,
+-				t->wdata[t->wi++]);
+-		else
+-			goto err;
+-	} else if (t->rlen > t->ri) {
+-		if ((status & ACPI_EC_FLAG_OBF) == 1) {
+-			t->rdata[t->ri++] = acpi_ec_read_data(ec);
+-			if (t->rlen == t->ri)
+-				t->done = true;
++		goto err;
++	if (t->flags & ACPI_EC_COMMAND_POLL) {
++		if (t->wlen > t->wi) {
++			if ((status & ACPI_EC_FLAG_IBF) == 0)
++				acpi_ec_write_data(ec, t->wdata[t->wi++]);
++			else
++				goto err;
++		} else if (t->rlen > t->ri) {
++			if ((status & ACPI_EC_FLAG_OBF) == 1) {
++				t->rdata[t->ri++] = acpi_ec_read_data(ec);
++				if (t->rlen == t->ri)
++					t->flags |= ACPI_EC_COMMAND_COMPLETE;
++			} else
++				goto err;
++		} else if (t->wlen == t->wi &&
++			   (status & ACPI_EC_FLAG_IBF) == 0)
++			t->flags |= ACPI_EC_COMMAND_COMPLETE;
++		return;
++	} else {
++		if ((status & ACPI_EC_FLAG_IBF) == 0) {
++			acpi_ec_write_cmd(ec, t->command);
++			t->flags |= ACPI_EC_COMMAND_POLL;
+ 		} else
+ 			goto err;
+-	} else if (t->wlen == t->wi &&
+-		   (status & ACPI_EC_FLAG_IBF) == 0)
+-		t->done = true;
+-	goto unlock;
++		return;
++	}
+ err:
+ 	/*
+ 	 * If SCI bit is set, then don't think it's a false IRQ
+ 	 * otherwise will take a not handled IRQ as a false one.
+ 	 */
+-	if (in_interrupt() && !(status & ACPI_EC_FLAG_SCI))
+-		++t->irq_count;
++	if (!(status & ACPI_EC_FLAG_SCI)) {
++		if (in_interrupt() && t)
++			++t->irq_count;
++	}
++}
+ 
+-unlock:
+-	spin_unlock_irqrestore(&ec->lock, flags);
++static void start_transaction(struct acpi_ec *ec)
++{
++	ec->curr->irq_count = ec->curr->wi = ec->curr->ri = 0;
++	ec->curr->flags = 0;
++	advance_transaction(ec);
+ }
+ 
+ static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data);
+@@ -231,15 +239,17 @@ static int ec_poll(struct acpi_ec *ec)
+ 			/* don't sleep with disabled interrupts */
+ 			if (EC_FLAGS_MSI || irqs_disabled()) {
+ 				udelay(ACPI_EC_MSI_UDELAY);
+-				if (ec_transaction_done(ec))
++				if (ec_transaction_completed(ec))
+ 					return 0;
+ 			} else {
+ 				if (wait_event_timeout(ec->wait,
+-						ec_transaction_done(ec),
++						ec_transaction_completed(ec),
+ 						msecs_to_jiffies(1)))
+ 					return 0;
+ 			}
++			spin_lock_irqsave(&ec->lock, flags);
+ 			advance_transaction(ec);
++			spin_unlock_irqrestore(&ec->lock, flags);
+ 		} while (time_before(jiffies, delay));
+ 		pr_debug("controller reset, restart transaction\n");
+ 		spin_lock_irqsave(&ec->lock, flags);
+@@ -637,10 +647,13 @@ static int ec_check_sci(struct acpi_ec *ec, u8 state)
+ static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
+ 	u32 gpe_number, void *data)
+ {
++	unsigned long flags;
+ 	struct acpi_ec *ec = data;
+ 
++	spin_lock_irqsave(&ec->lock, flags);
  	advance_transaction(ec);
- 	spin_unlock_irqrestore(&ec->lock, flags);
--	if (ec_transaction_completed(ec) &&
--	    (acpi_ec_read_status(ec) & ACPI_EC_FLAG_IBF) == 0) {
-+	if (ec_transaction_completed(ec)) {
+-	if (ec_transaction_done(ec) &&
++	spin_unlock_irqrestore(&ec->lock, flags);
++	if (ec_transaction_completed(ec) &&
+ 	    (acpi_ec_read_status(ec) & ACPI_EC_FLAG_IBF) == 0) {
  		wake_up(&ec->wait);
  		ec_check_sci(ec, acpi_ec_read_status(ec));
- 	}
 -- 
 1.7.10
