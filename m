@@ -1,218 +1,129 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: [PATCH v3 1/5] apei, mce: Factor out APEI architecture specific MCE calls.
-Date: Fri, 13 Jun 2014 13:02:56 +0200
-Message-ID: <1402657380-18539-2-git-send-email-tomasz.nowicki@linaro.org>
+From: Robert Richter <rric@kernel.org>
+Subject: Re: [PATCH v3 3/5] acpi, apei, ghes: Introduce more generic
+ mechanism to init/deinit GHES error notifications.
+Date: Fri, 13 Jun 2014 15:10:51 +0200
+Message-ID: <20140613131051.GY27560@rric.localhost>
 References: <1402657380-18539-1-git-send-email-tomasz.nowicki@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1402657380-18539-1-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de
-Cc: linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, rric@kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+ <1402657380-18539-4-git-send-email-tomasz.nowicki@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.19.201]:34084 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751512AbaFMNLD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Jun 2014 09:11:03 -0400
+Content-Disposition: inline
+In-Reply-To: <1402657380-18539-4-git-send-email-tomasz.nowicki@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-This commit abstracts MCE calls and provides weak corresponding default
-implementation for those architectures which do not need arch specific
-actions. Each platform willing to do additional architectural actions
-should provides desired function definition. It allows us to avoid wrap
-code into #ifdef in generic code and prevent new platform from introducing
-dummy stub function too.
+On 13.06.14 13:02:58, Tomasz Nowicki wrote:
 
-Initially, there are two APEI arch-specific calls:
-- apei_arch_enable_cmcff()
-- apei_arch_report_mem_error()
-Both interact with MCE driver for X86 architecture.
+> @@ -811,6 +819,8 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+>  	int sev, sev_global = -1;
+>  	int ret = NMI_DONE;
+>  
+> +	BUG_ON(!IS_ENABLED(ARCH_HAS_ACPI_APEI_NMI));
+> +
 
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
----
- arch/x86/kernel/acpi/Makefile |    1 +
- arch/x86/kernel/acpi/apei.c   |   56 +++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/apei/apei-base.c |   13 ++++++++++
- drivers/acpi/apei/ghes.c      |    6 ++---
- drivers/acpi/apei/hest.c      |   29 +--------------------
- include/acpi/apei.h           |    3 +++
- 6 files changed, 76 insertions(+), 32 deletions(-)
- create mode 100644 arch/x86/kernel/acpi/apei.c
+Now that we have the ARCH_HAS_ACPI_APEI_NMI option, group nmi code,
+put it in an #ifdef ... and make function stubs for the !nmi case
+where necessary. That code should moved to patch #2. If an arch does
+not support nmi code, we don't want to compile it into the kernel.
 
-diff --git a/arch/x86/kernel/acpi/Makefile b/arch/x86/kernel/acpi/Makefile
-index 163b225..3242e59 100644
---- a/arch/x86/kernel/acpi/Makefile
-+++ b/arch/x86/kernel/acpi/Makefile
-@@ -1,5 +1,6 @@
- obj-$(CONFIG_ACPI)		+= boot.o
- obj-$(CONFIG_ACPI_SLEEP)	+= sleep.o wakeup_$(BITS).o
-+obj-$(CONFIG_ACPI_APEI)		+= apei.o
- 
- ifneq ($(CONFIG_ACPI_PROCESSOR),)
- obj-y				+= cstate.o
-diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
-new file mode 100644
-index 0000000..dca2852
---- /dev/null
-+++ b/arch/x86/kernel/acpi/apei.c
-@@ -0,0 +1,56 @@
-+/*
-+ * Arch-specific APEI-related functions.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <acpi/apei.h>
-+
-+#include <asm/mce.h>
-+
-+int apei_arch_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data)
-+{
-+#ifdef CONFIG_X86_MCE
-+	int i;
-+	struct acpi_hest_ia_corrected *cmc;
-+	struct acpi_hest_ia_error_bank *mc_bank;
-+
-+	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
-+		return 0;
-+
-+	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
-+	if (!cmc->enabled)
-+		return 0;
-+
-+	/*
-+	 * We expect HEST to provide a list of MC banks that report errors
-+	 * in firmware first mode. Otherwise, return non-zero value to
-+	 * indicate that we are done parsing HEST.
-+	 */
-+	if (!(cmc->flags & ACPI_HEST_FIRMWARE_FIRST) ||
-+	    !cmc->num_hardware_banks)
-+		return 1;
-+
-+	pr_info("HEST: Enabling Firmware First mode for corrected errors.\n");
-+
-+	mc_bank = (struct acpi_hest_ia_error_bank *)(cmc + 1);
-+	for (i = 0; i < cmc->num_hardware_banks; i++, mc_bank++)
-+		mce_disable_bank(mc_bank->bank_number);
-+#endif
-+	return 1;
-+}
-+
-+void apei_arch_report_mem_error(int sev, struct cper_sec_mem_err *mem_err)
-+{
-+#ifdef CONFIG_X86_MCE
-+	apei_mce_report_mem_error(sev, mem_err);
-+#endif
-+}
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index 8678dfe..4a11c1a 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -745,6 +745,19 @@ struct dentry *apei_get_debugfs_dir(void)
- }
- EXPORT_SYMBOL_GPL(apei_get_debugfs_dir);
- 
-+int __weak apei_arch_enable_cmcff(struct acpi_hest_header *hest_hdr,
-+				  void *data)
-+{
-+	return 1;
-+}
-+EXPORT_SYMBOL_GPL(apei_arch_enable_cmcff);
-+
-+void __weak apei_arch_report_mem_error(int sev,
-+				       struct cper_sec_mem_err *mem_err)
-+{
-+}
-+EXPORT_SYMBOL_GPL(apei_arch_report_mem_error);
-+
- int apei_osc_setup(void)
- {
- 	static u8 whea_uuid_str[] = "ed855e0c-6c90-47bf-a62a-26de0fc5ad5c";
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index dab7cb7..e7dc5c6 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -49,7 +49,7 @@
- #include <linux/aer.h>
- 
- #include <acpi/ghes.h>
--#include <asm/mce.h>
-+#include <acpi/apei.h>
- #include <asm/tlbflush.h>
- #include <asm/nmi.h>
- 
-@@ -455,9 +455,7 @@ static void ghes_do_proc(struct ghes *ghes,
- 			mem_err = (struct cper_sec_mem_err *)(gdata+1);
- 			ghes_edac_report_mem_error(ghes, sev, mem_err);
- 
--#ifdef CONFIG_X86_MCE
--			apei_mce_report_mem_error(sev, mem_err);
--#endif
-+			apei_arch_report_mem_error(sev, mem_err);
- 			ghes_handle_memory_failure(gdata, sev);
- 		}
- #ifdef CONFIG_ACPI_APEI_PCIEAER
-diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-index f5e37f3..edf26bc 100644
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -36,7 +36,6 @@
- #include <linux/io.h>
- #include <linux/platform_device.h>
- #include <acpi/apei.h>
--#include <asm/mce.h>
- 
- #include "apei-internal.h"
- 
-@@ -128,33 +127,7 @@ EXPORT_SYMBOL_GPL(apei_hest_parse);
-  */
- static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
- {
--#ifdef CONFIG_X86_MCE
--	int i;
--	struct acpi_hest_ia_corrected *cmc;
--	struct acpi_hest_ia_error_bank *mc_bank;
--
--	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
--		return 0;
--
--	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
--	if (!cmc->enabled)
--		return 0;
--
--	/*
--	 * We expect HEST to provide a list of MC banks that report errors
--	 * in firmware first mode. Otherwise, return non-zero value to
--	 * indicate that we are done parsing HEST.
--	 */
--	if (!(cmc->flags & ACPI_HEST_FIRMWARE_FIRST) || !cmc->num_hardware_banks)
--		return 1;
--
--	pr_info(HEST_PFX "Enabling Firmware First mode for corrected errors.\n");
--
--	mc_bank = (struct acpi_hest_ia_error_bank *)(cmc + 1);
--	for (i = 0; i < cmc->num_hardware_banks; i++, mc_bank++)
--		mce_disable_bank(mc_bank->bank_number);
--#endif
--	return 1;
-+	return apei_arch_enable_cmcff(hest_hdr, data);
- }
- 
- struct ghes_arr {
-diff --git a/include/acpi/apei.h b/include/acpi/apei.h
-index 04f349d..62b9d1c 100644
---- a/include/acpi/apei.h
-+++ b/include/acpi/apei.h
-@@ -42,5 +42,8 @@ ssize_t erst_read(u64 record_id, struct cper_record_header *record,
- 		  size_t buflen);
- int erst_clear(u64 record_id);
- 
-+int apei_arch_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data);
-+void apei_arch_report_mem_error(int sev, struct cper_sec_mem_err *mem_err);
-+
- #endif
- #endif
--- 
-1.7.9.5
+Also this patch is quit a bit large and should further split into
+moving functional code into separate functions and the introduction of
+the notifier setup. This makes review much easier.
+
+I did not yet took a deep look into your notifier framework, but I
+don't really see a reason for the dynamic collection of function
+pointers in ghes_notify_tab. See below.
+
+>  	raw_spin_lock(&ghes_nmi_lock);
+>  	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
+>  		if (ghes_read_estatus(ghes, 1)) {
+> @@ -875,10 +885,6 @@ out:
+>  	return ret;
+>  }
+
+> +static int ghes_notify_init_nmi(struct ghes *ghes)
+> +{
+> +	unsigned long len;
+> +	int status = 0;
+> +
+> +	len = ghes_esource_prealloc_size(ghes->generic);
+> +	ghes_estatus_pool_expand(len);
+> +	mutex_lock(&ghes_list_mutex);
+> +	if (list_empty(&ghes_nmi))
+> +		status = register_nmi_handler(NMI_LOCAL, ghes_notify_nmi, 0,
+> +					      "ghes");
+> +	list_add_rcu(&ghes->list, &ghes_nmi);
+> +	mutex_unlock(&ghes_list_mutex);
+> +
+> +	return status;
+> +}
+> +
+> +static void ghes_notify_remove_nmi(struct ghes *ghes)
+> +{
+> +	unsigned long len;
+> +
+> +	mutex_lock(&ghes_list_mutex);
+> +	list_del_rcu(&ghes->list);
+> +	if (list_empty(&ghes_nmi))
+> +		unregister_nmi_handler(NMI_LOCAL, "ghes");
+> +	mutex_unlock(&ghes_list_mutex);
+> +	/*
+> +	 * To synchronize with NMI handler, ghes can only be
+> +	 * freed after NMI handler finishes.
+> +	 */
+> +	synchronize_rcu();
+> +	len = ghes_esource_prealloc_size(ghes->generic);
+> +	ghes_estatus_pool_shrink(len);
+> +}
+> +
+> +static void ghes_init_nmi(void)
+> +{
+> +	if (!IS_ENABLED(ARCH_HAS_ACPI_APEI_NMI))
+> +		return;
+> +
+> +	init_irq_work(&ghes_proc_irq_work, ghes_proc_in_irq);
+> +	ghes_notify_tab[ACPI_HEST_NOTIFY_NMI].init_call = ghes_notify_init_nmi;
+> +	ghes_notify_tab[ACPI_HEST_NOTIFY_NMI].remove_call =
+> +							ghes_notify_remove_nmi;
+> +}
+> +
+
+So this is the only code of your whole patch set that actually changes
+an entry, and just one time only during nmi init. Thus, there is no
+need at all for ghes_notify_tab. Just create function stubs for
+ghes_notify_{init,remove}_nmi for the !nmi case with the error message
+in it and call the functions directly in the switch/cases.
+
+> +static struct ghes_notify_setup
+> +	ghes_notify_tab[ACPI_HEST_NOTIFY_RESERVED] = {
+> +		[ACPI_HEST_NOTIFY_POLLED]   = {"POLLED",
+> +					       ghes_notify_init_polled,
+> +					       ghes_notify_remove_polled},
+> +		[ACPI_HEST_NOTIFY_EXTERNAL] = {"EXT_IRQ",
+> +					       ghes_notify_init_external,
+> +					       ghes_notify_remove_external},
+> +		[ACPI_HEST_NOTIFY_LOCAL]    = {"LOCAL_IRQ", NULL, NULL},
+> +		[ACPI_HEST_NOTIFY_SCI]      = {"SCI",
+> +					       ghes_notify_init_sci,
+> +					       ghes_notify_remove_sci},
+> +		[ACPI_HEST_NOTIFY_NMI]      = {"NMI", NULL, NULL},
+> +		[ACPI_HEST_NOTIFY_CMCI]     = {"CMCI", NULL, NULL},
+> +		[ACPI_HEST_NOTIFY_MCE]      = {"MCE", NULL, NULL},
+> +};
+
+Again, just keep the switch/case statements in the probe and removal
+function and call the init/remove functions directly in them. This is
+much easier.
+
+If we need dynamic registration of handlers (which I don't see yet)
+for the error sources above we could do this with an acpi notify
+handler or so.
+
+-Robert
