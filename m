@@ -1,66 +1,54 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH 5/7 REVISION] trace, RAS: Add eMCA trace event interface
-Date: Thu, 12 Jun 2014 23:08:33 -0400
-Message-ID: <20140612230833.3c0f41b2@gandalf.local.home>
-References: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
-	<1402553517-30208-1-git-send-email-gong.chen@linux.intel.com>
-	<20140612092808.5f7bec5e@gandalf.local.home>
-	<20140613021956.GA17509@gchen.bj.intel.com>
-	<20140612230117.46758e3c@gandalf.local.home>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 0/7] ACPI/EC: Critical bug fixes related to EC and event handling.
+Date: Fri, 13 Jun 2014 14:51:06 +0800
+Message-ID: <cover.1402641700.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.228]:58210 "EHLO
-	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750913AbaFMDIg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Jun 2014 23:08:36 -0400
-In-Reply-To: <20140612230117.46758e3c@gandalf.local.home>
+Received: from mga09.intel.com ([134.134.136.24]:50763 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752653AbaFMGvV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Jun 2014 02:51:21 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, 12 Jun 2014 23:01:17 -0400
-Steven Rostedt <rostedt@goodmis.org> wrote:
+This patchset fixes the following issues:
+1. There are 2 race conditions in current EC driver.
+2. Cleanup the first command byte write as one of the race condition fix
+   requires additional cleanup for first command byte write. And this also
+   helps us to do improvements in the BURST mode in the future.
+3. ACPICA event not handled in the correct way.
 
-> On Thu, 12 Jun 2014 22:19:57 -0400
-> "Chen, Gong" <gong.chen@linux.intel.com> wrote:
-> 
-> > On Thu, Jun 12, 2014 at 09:28:08AM -0400, Steven Rostedt wrote:
-> > > > +	TP_STRUCT__entry(
-> > > > +		__field(u32, err_seq)
-> > > > +		__field(u8, etype)
-> > > > +		__field(u8, sev)
-> > > > +		__field(u64, pa)
-> > > > +		__field(u8, pa_mask_lsb)
-> > > > +		__array(u8, fru_id, sizeof(uuid_le))
-> > > > +		__string(fru_text, fru_text)
-> > > > +		__array(u8, data, sizeof(struct cper_mem_err_compact))
-> > > 
-> > > The above array works, but I'm wondering why you don't just use the
-> > > types themselves?
-> > > 
-> > > That is:
-> > > 
-> > > 		__field(uuid_le, fru_id)
-> > > 		__field(struct cper_mem_err_compact, data)
-> > > 
-> > Every time when I use above codes I will hit some compiler error like
-> > "error: conversion to non-scalar type requested". It looks some
-> > data types like above (unless typedef) can't be used in __field.
-> > Is it true? How to fix that?
-> > 
-> 
-> Ah, that's a bug in the ftrace.h file. I'll need to test this against
-> it to see what error it gives. I'll work on that tomorrow as it's
-> bedtime for me now.
+This patchset also improves debugging message, register details can be
+enabled by defining DEBUG. And bug fixes and reports are based on this
+improvement.
 
-Wait, I take that back. I was thinking the error was with the
-__array(). A __field() should work fine!
+All patches are tested to be valid fixes for the following bug:
+https://bugzilla.kernel.org/show_bug.cgi?id=70891
 
-Can you post me the patch you did and the error you get when you
-compile.
+The EC driver version is upgraded to 2.2.
 
--- Steve
+The first 4 patches are useful stable materials. But the culprit of the bug
+appears so long time ago that patches cannot be applied cleanly any more.
+Thus 2 commit IDs are listed for the stable reviewers, one for the culprit,
+the other for the kernel versions that can have these stable materials
+cleanly applied.
+
+Lv Zheng (7):
+  ACPI/EC: Fix an issue that advance_transaction() processes stale
+    hardware status.
+  ACPI/EC: Add asynchronous command byte write support.
+  ACPI/EC: Remove duplicated ec_wait_ibf0() waiter.
+  ACPI/EC: Fix a race condition in ec_transaction_completed().
+  ACPI/EC: Update revision due to full asynchrnous command support.
+  ACPICA: Events: Fix edge-triggered GPE by disabling before
+    acknowledging it.
+  ACPI/EC: Add detailed fields debugging support of EC_SC(R).
+
+ drivers/acpi/acpica/evgpe.c |   32 +++++----
+ drivers/acpi/ec.c           |  161 ++++++++++++++++++++++---------------------
+ 2 files changed, 100 insertions(+), 93 deletions(-)
+
+-- 
+1.7.10
+
