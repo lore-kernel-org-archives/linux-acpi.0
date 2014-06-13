@@ -1,32 +1,33 @@
-From: Robert Richter <rric@kernel.org>
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH v3 0/5] APEI: Make APEI architecture independent.
-Date: Fri, 13 Jun 2014 15:14:23 +0200
-Message-ID: <20140613131423.GZ27560@rric.localhost>
+Date: Fri, 13 Jun 2014 15:20:03 +0200
+Message-ID: <20140613132003.GF4751@pd.tnic>
 References: <1402657380-18539-1-git-send-email-tomasz.nowicki@linaro.org>
+ <20140613131423.GZ27560@rric.localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:34484 "EHLO mail.kernel.org"
+Received: from mail.skyhub.de ([78.46.96.112]:49658 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750902AbaFMNOd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Jun 2014 09:14:33 -0400
+	id S1750784AbaFMNUI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Jun 2014 09:20:08 -0400
 Content-Disposition: inline
-In-Reply-To: <1402657380-18539-1-git-send-email-tomasz.nowicki@linaro.org>
+In-Reply-To: <20140613131423.GZ27560@rric.localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Robert Richter <rric@kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 13.06.14 13:02:55, Tomasz Nowicki wrote:
-> V2->V3
-> - address Robert's comment
-> - disable ACPI_APEI_NMI selection so that it is hard selected by arch Kconfig
-> - rename ACPI_APEI_NMI to ARCH_HAS_ACPI_APEI_NMI
+On Fri, Jun 13, 2014 at 03:14:23PM +0200, Robert Richter wrote:
+> Btw, it would be easier to wait a bit with reposting a new patch set
+> until there are no further comments expected for *all* patches (I
+> didn't have the time to look through all patches yet).
 
-Btw, it would be easier to wait a bit with reposting a new patch set
-until there are no further comments expected for *all* patches (I
-didn't have the time to look through all patches yet).
+Yes, a patchset version a week roughly should be fine.
 
-Thanks,
+-- 
+Regards/Gruss,
+    Boris.
 
--Robert
+Sent from a fat crate under my desk. Formatting is fine.
+--
