@@ -1,54 +1,71 @@
-From: Robert Richter <rric@kernel.org>
-Subject: Re: [PATCH v3 2/5] acpi, apei, ghes: Introduce
- ARCH_HAS_ACPI_APEI_NMI to make NMI error notification a GHES feature.
-Date: Fri, 13 Jun 2014 16:01:55 +0200
-Message-ID: <20140613140155.GE27560@rric.localhost>
-References: <1402657380-18539-1-git-send-email-tomasz.nowicki@linaro.org>
- <1402657380-18539-3-git-send-email-tomasz.nowicki@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Christoph Jaeger <christophjaeger@linux.com>
+Subject: [PATCH] ACPI: use kstrto*() instead of simple_strto*()
+Date: Fri, 13 Jun 2014 21:49:58 +0200
+Message-ID: <1402688998-20142-1-git-send-email-christophjaeger@linux.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:37502 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751082AbaFMOCG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Jun 2014 10:02:06 -0400
-Content-Disposition: inline
-In-Reply-To: <1402657380-18539-3-git-send-email-tomasz.nowicki@linaro.org>
+Received: from smtprelay01.ispgateway.de ([80.67.31.39]:53425 "EHLO
+	smtprelay01.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752101AbaFMUAO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jun 2014 16:00:14 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Christoph Jaeger <christophjaeger@linux.com>
 
-On 13.06.14 13:02:57, Tomasz Nowicki wrote:
-> Currently APEI depends on x86 architecture. It is because of NMI hardware
-> error notification of GHES which is currently supported by x86 only.
-> However, many other APEI features can be still used perfectly by other
-> architectures.
-> 
-> This commit adds ARCH_HAS_ACPI_APEI_NMI which will be used in next patches
-> for NMI related code isolation in ghes.c file. Only NMI error notification
-> feature depends on x86 so let it be hard selected for x86 arch.
-> 
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> ---
->  arch/x86/Kconfig          |    1 +
->  drivers/acpi/apei/Kconfig |    8 +++++++-
->  2 files changed, 8 insertions(+), 1 deletion(-)
+simple_strto*() are obsolete; use kstrto*() instead. Add proper error
+checking.
 
-Apart from merging the patch with later ones this change looks fine to
-me
+Signed-off-by: Christoph Jaeger <christophjaeger@linux.com>
+---
+ drivers/acpi/battery.c | 5 ++++-
+ drivers/acpi/osl.c     | 3 ++-
+ drivers/acpi/tables.c  | 3 ++-
+ 3 files changed, 8 insertions(+), 3 deletions(-)
 
-> +config ARCH_HAS_ACPI_APEI_NMI
-> +	bool
-> +	help
-> +	  Firmware first mode can use NMI notification mechanism to report errors
-> +	  to operating system. This feature is currently supported by X86
-> +	  architecture only.
-> +
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index e48fc98..5963e6f 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -930,7 +930,10 @@ static ssize_t acpi_battery_write_alarm(struct file *file,
+ 		goto end;
+ 	}
+ 	alarm_string[count] = '\0';
+-	battery->alarm = simple_strtol(alarm_string, NULL, 0);
++	if (kstrtoint(alarm_string, 0, &battery->alarm)) {
++		result = -EINVAL;
++		goto end;
++	}
+ 	result = acpi_battery_set_alarm(battery);
+       end:
+ 	if (!result)
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 3f2bdc8..bad25b0 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -235,7 +235,8 @@ void acpi_os_vprintf(const char *fmt, va_list args)
+ static unsigned long acpi_rsdp;
+ static int __init setup_acpi_rsdp(char *arg)
+ {
+-	acpi_rsdp = simple_strtoul(arg, NULL, 16);
++	if (kstrtoul(arg, 16, &acpi_rsdp))
++		return -EINVAL;
+ 	return 0;
+ }
+ early_param("acpi_rsdp", setup_acpi_rsdp);
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 05550ba..6d5a6cd 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -360,7 +360,8 @@ static int __init acpi_parse_apic_instance(char *str)
+ 	if (!str)
+ 		return -EINVAL;
+ 
+-	acpi_apic_instance = simple_strtoul(str, NULL, 0);
++	if (kstrtoint(str, 0, &acpi_apic_instance))
++		return -EINVAL;
+ 
+ 	pr_notice("Shall use APIC/MADT table %d\n", acpi_apic_instance);
+ 
+-- 
+1.9.3
 
-Maybe the help description could be removed, it is not used anywhere
-in a dialog. At least the reference to x86 should be removed (if the
-option is used for another arch the text will be wrong and need to be
-changed again).
-
--Robert
