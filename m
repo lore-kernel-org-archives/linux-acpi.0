@@ -1,81 +1,76 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH] ACPI/Battery: Retry to get Battery information if failed
- during probing
-Date: Fri, 13 Jun 2014 10:25:00 +0800
-Message-ID: <539A60FC.1050301@intel.com>
-References: <1402552946-14704-1-git-send-email-tianyu.lan@intel.com> <alpine.DEB.2.02.1406112354070.23724@chino.kir.corp.google.com> <53995488.20308@intel.com> <alpine.DEB.2.02.1406120025050.23724@chino.kir.corp.google.com> <53996152.2000407@intel.com> <alpine.DEB.2.02.1406121415150.8305@chino.kir.corp.google.com>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [PATCH 5/7 REVISION] trace, RAS: Add eMCA trace event interface
+Date: Thu, 12 Jun 2014 22:19:57 -0400
+Message-ID: <20140613021956.GA17509@gchen.bj.intel.com>
+References: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
+ <1402553517-30208-1-git-send-email-gong.chen@linux.intel.com>
+ <20140612092808.5f7bec5e@gandalf.local.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TB36FDmn/VVEgNH/"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:41752 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:14176 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750862AbaFMCZs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Jun 2014 22:25:48 -0400
-In-Reply-To: <alpine.DEB.2.02.1406121415150.8305@chino.kir.corp.google.com>
+	id S1751017AbaFMCs2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Jun 2014 22:48:28 -0400
+Content-Disposition: inline
+In-Reply-To: <20140612092808.5f7bec5e@gandalf.local.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Rientjes <rientjes@google.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, naszar@ya.ru, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, linux-acpi@vger.kernel.org
 
-On 2014=E5=B9=B406=E6=9C=8813=E6=97=A5 05:17, David Rientjes wrote:
-> On Thu, 12 Jun 2014, Lan Tianyu wrote:
+
+--TB36FDmn/VVEgNH/
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Jun 12, 2014 at 09:28:08AM -0400, Steven Rostedt wrote:
+> > +	TP_STRUCT__entry(
+> > +		__field(u32, err_seq)
+> > +		__field(u8, etype)
+> > +		__field(u8, sev)
+> > +		__field(u64, pa)
+> > +		__field(u8, pa_mask_lsb)
+> > +		__array(u8, fru_id, sizeof(uuid_le))
+> > +		__string(fru_text, fru_text)
+> > +		__array(u8, data, sizeof(struct cper_mem_err_compact))
 >=20
->> The retry time is set by randomly and not accurate because don't kno=
-w
->> when EC will work normally. Set the retry time to 5 just in order to
->> make sure battery driver probing sucessfully every time,
->>
+> The above array works, but I'm wondering why you don't just use the
+> types themselves?
 >=20
-> Ok, I was hoping to avoid the excessive wait if it will never actuall=
-y=20
-> succeed
-
-Ok. The battery driver has used async init and so this will not affect
-the speed of boot up.
-
-> but I assume there's some evidence that it can succeed after 40ms,=20
-> 60ms, etc.  Please consider the following instead:
+> That is:
 >=20
-> 	for (i =3D 0; i < 5; i++) {
-> 		/* Comment on why we need a delay in between retries */
-> 		if (i)
-> 			msleep(20);
-> 		result =3D acpi_battery_update(battery, false);
-> 		if (!result)
-> 			break;
-> 	}
+> 		__field(uuid_le, fru_id)
+> 		__field(struct cper_mem_err_compact, data)
 >=20
-
-How about this?
-
--       result =3D acpi_battery_update(battery, false);
--       if (result)
-+
-+       /*
-+        * Some machines'(E,G Lenovo Z480) ECs are not stable
-+        * during boot up and this causes battery driver fails to be
-+        * probed due to failure of getting battery information
-+        * from EC sometimes. After several retries, the operation
-+        * may work. So add retry code here and 20ms sleep between
-+        * every retries.
-+        */
-+       while (acpi_battery_update(battery, false) && retry--)
-+               msleep(20);
-+       if (!retry) {
-+               result =3D -ENODEV;
-                goto fail;
-+       }
-+
+Every time when I use above codes I will hit some compiler error like
+"error: conversion to non-scalar type requested". It looks some
+data types like above (unless typedef) can't be used in __field.
+Is it true? How to fix that?
 
 
+--TB36FDmn/VVEgNH/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
---=20
-Best regards
-Tianyu Lan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBAgAGBQJTml/MAAoJEI01n1+kOSLH2wwP/3YG6qZMEPdlkH8NBStZBg0t
+oEteXA9YuqhXMKApFjnibKnff/3XWbkxvIEkJqcUwzJnviz2fT5ZxtmS7W5pKB52
+t/xTiu+0cNQLzyGW2+2AcS6Z6KvsnEKNC65c7t8zW6jvBDwjafxWsR8/0DlJAvIh
+D4DApQ4lDMzIEjJsGtyqkMhuxFBWVps69G0i2+p+2ANTVK38hC8NLlySzMJd05Dk
+utMZixZxopiqLQXq9inyOX9/GuT6xR9AOq7OXISAz4AizJI+JaC0V+4JoMPy1PKv
+5/2xFXKJGAfjOGEh1DO9VfnW5tIgj7sQjKMOWmqFY9U14/rrgRdkzO1j9nOY/Y38
+4Eo4ML8D+3QlWwyPrktS+f5GB6hs1+aoWBOg0nqWw50dggWG+dWedqE1xRybuRcJ
+yuSkp9Yz7HiBK+RAxMLXMalqA50SxEBRdcRd/Z8T7cAXOs3V76ATjjNTkh2Rl4Wb
+vRxssGqUUF6S1cIPyDzFYJTRS3rUOMR+x2A/yaG5+uYj/3CO/SE+E/tkdIS1MW7Q
+vgko/lUf4uamEqh7k9ai2CcURsLsaK83mkzB5PTSRha6isNjWqEOWOJG8hbEVFOs
+FBsavSSXppfuqlcvq318M3KXDS0ExT0EiyzRC5C0fsxlzg8mLhSIiPcEXDSD5nl0
+rWNzKaTZQ/UMmtgo6o+c
+=/TBM
+-----END PGP SIGNATURE-----
+
+--TB36FDmn/VVEgNH/--
