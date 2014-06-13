@@ -1,43 +1,58 @@
 From: Robert Richter <rric@kernel.org>
-Subject: Re: [PATCH v3 4/5] apei, ghes, nmi: Factor out NMI arch-specific
- calls.
-Date: Fri, 13 Jun 2014 15:29:24 +0200
-Message-ID: <20140613132924.GA27560@rric.localhost>
+Subject: Re: [PATCH v3 5/5] acpi, apei, ghes: Factor out ioremap virtual
+ memory for IRQ and NMI context.
+Date: Fri, 13 Jun 2014 15:35:59 +0200
+Message-ID: <20140613133559.GB27560@rric.localhost>
 References: <1402657380-18539-1-git-send-email-tomasz.nowicki@linaro.org>
- <1402657380-18539-5-git-send-email-tomasz.nowicki@linaro.org>
+ <1402657380-18539-6-git-send-email-tomasz.nowicki@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:35338 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751007AbaFMN3f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Jun 2014 09:29:35 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1402657380-18539-5-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <1402657380-18539-6-git-send-email-tomasz.nowicki@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+List-Id: linux-acpi@vger.kernel.org
 
-On 13.06.14 13:02:59, Tomasz Nowicki wrote:
-> Similar to MCE related patch, all NMI architectural calls are abstracted.
-> Also, we are providing corresponding X86 functions' content.
+On 13.06.14 13:03:00, Tomasz Nowicki wrote:
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 21aeac5..93a4d0b 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -113,12 +113,11 @@ static DEFINE_RAW_SPINLOCK(ghes_nmi_lock);
+>   */
+>  
+>  /*
+> - * Two virtual pages are used, one for NMI context, the other for
+> - * IRQ/PROCESS context
+> + * Two virtual pages are used, one for IRQ/PROCESS context, the other for
+> + * NMI context (optionally).
+>   */
+> -#define GHES_IOREMAP_PAGES		2
+> -#define GHES_IOREMAP_NMI_PAGE(base)	(base)
+> -#define GHES_IOREMAP_IRQ_PAGE(base)	((base) + PAGE_SIZE)
+> +#define GHES_IOREMAP_IRQ_PAGE(base)	(base)
+> +#define GHES_IOREMAP_NMI_PAGE(base)	((base) + PAGE_SIZE)
+>  
+>  /* virtual memory area for atomic ioremap */
+>  static struct vm_struct *ghes_ioremap_area;
+> @@ -155,7 +154,8 @@ static struct ghes_notify_setup	ghes_notify_tab[];
+>  
+>  static int ghes_ioremap_init(void)
+>  {
+> -	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
+> +	ghes_ioremap_area = __get_vm_area(
+> +		PAGE_SIZE * (IS_ENABLED(ARCH_HAS_ACPI_APEI_NMI) ? 2 : 1),
 
-We don't need to abstract nmi calls for archs that don't support
-nmis. Just disable the code with #ifdefs depending on
-ARCH_HAS_ACPI_APEI_NMI. Most changes in this patch, esp. all __weak
-functions are obsolete then.
+Use this instead above:
 
-The remainings of this patch could probably merged with earlier
-patches.
+#ifdef ARCH_HAS_ACPI_APEI_NMI
+#define GHES_IOREMAP_PAGES           2
+#else
+#define GHES_IOREMAP_PAGES           1
+#endif
+
+Otherwise this patch looks fine to me.
 
 -Robert
-
-> 
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> ---
->  arch/x86/kernel/acpi/apei.c   |   25 +++++++++++++++++++++++++
->  drivers/acpi/apei/apei-base.c |   19 +++++++++++++++++++
->  drivers/acpi/apei/ghes.c      |   14 ++++++--------
->  include/acpi/apei.h           |    7 +++++++
->  4 files changed, 57 insertions(+), 8 deletions(-)
