@@ -1,76 +1,71 @@
-From: Lv Zheng <zetalog@gmail.com>
-Subject: [PATCH v2 7/7] ACPI/EC: Add detailed fields debugging support of EC_SC(R).
-Date: Sun, 15 Jun 2014 08:42:42 +0800
-Message-ID: <2a8af368df76ec52e4114c23e685a10c4eeb8a3e.1402792240.git.lv.zheng@intel.com>
-References: <cover.1402543079.git.lv.zheng@intel.com> <cover.1402792240.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1402792240.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH] ACPI/Battery: Retry to get Battery information if failed
+ during probing
+Date: Mon, 16 Jun 2014 10:12:27 +0800
+Message-ID: <539E528B.90908@intel.com>
+References: <1402552946-14704-1-git-send-email-tianyu.lan@intel.com> <alpine.DEB.2.02.1406112354070.23724@chino.kir.corp.google.com> <53995488.20308@intel.com> <alpine.DEB.2.02.1406120025050.23724@chino.kir.corp.google.com> <53996152.2000407@intel.com> <alpine.DEB.2.02.1406121415150.8305@chino.kir.corp.google.com> <539A60FC.1050301@intel.com> <alpine.DEB.2.02.1406131445130.31981@chino.kir.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:57340 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752542AbaFPCNU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Jun 2014 22:13:20 -0400
+In-Reply-To: <alpine.DEB.2.02.1406131445130.31981@chino.kir.corp.google.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: David Rientjes <rientjes@google.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, naszar@ya.ru, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Lv Zheng <lv.zheng@intel.com>
+On 2014=E5=B9=B406=E6=9C=8814=E6=97=A5 05:46, David Rientjes wrote:
+> On Fri, 13 Jun 2014, Lan Tianyu wrote:
+>=20
+>> How about this?
+>>
+>> -       result =3D acpi_battery_update(battery, false);
+>> -       if (result)
+>> +
+>> +       /*
+>> +        * Some machines'(E,G Lenovo Z480) ECs are not stable
+>> +        * during boot up and this causes battery driver fails to be
+>> +        * probed due to failure of getting battery information
+>> +        * from EC sometimes. After several retries, the operation
+>> +        * may work. So add retry code here and 20ms sleep between
+>> +        * every retries.
+>> +        */
+>> +       while (acpi_battery_update(battery, false) && retry--)
+>> +               msleep(20);
+>> +       if (!retry) {
+>> +               result =3D -ENODEV;
+>>                 goto fail;
+>> +       }
+>> +
+>=20
+> I think you want --retry and not retry--.
 
-Developers really don't need to translate EC_SC(R) in mind as long as the
-field details are decoded in the debugging message.
+My original purpose is to retry 5 times after the first try fails.
+If use "--retry" here, it just retries 4 times.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Tested-by: Gareth Williams <gareth@garethwilliams.me.uk>
-Tested-by: Steffen Weber <steffen.weber@gmail.com>
----
- drivers/acpi/ec.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+>  Otherwise it's possible for the=20
+> final call to acpi_battery_update() to succeed and now it's returning=
+=20
+> -ENODEV.
+>=20
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 051ac47..c3299f6 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -55,6 +55,7 @@
- /* EC status register */
- #define ACPI_EC_FLAG_OBF	0x01	/* Output buffer full */
- #define ACPI_EC_FLAG_IBF	0x02	/* Input buffer full */
-+#define ACPI_EC_FLAG_CMD	0x08	/* Input buffer contains a command */
- #define ACPI_EC_FLAG_BURST	0x10	/* burst mode */
- #define ACPI_EC_FLAG_SCI	0x20	/* EC-SCI occurred */
- 
-@@ -133,26 +134,33 @@ static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on boot/resume */
- static inline u8 acpi_ec_read_status(struct acpi_ec *ec)
- {
- 	u8 x = inb(ec->command_addr);
--	pr_debug("---> status = 0x%2.2x\n", x);
-+	pr_debug("EC_SC(R) = 0x%2.2x "
-+		 "SCI_EVT=%d BURST=%d CMD=%d IBF=%d OBF=%d\n",
-+		 x,
-+		 !!(x & ACPI_EC_FLAG_SCI),
-+		 !!(x & ACPI_EC_FLAG_BURST),
-+		 !!(x & ACPI_EC_FLAG_CMD),
-+		 !!(x & ACPI_EC_FLAG_IBF),
-+		 !!(x & ACPI_EC_FLAG_OBF));
- 	return x;
- }
- 
- static inline u8 acpi_ec_read_data(struct acpi_ec *ec)
- {
- 	u8 x = inb(ec->data_addr);
--	pr_debug("---> data = 0x%2.2x\n", x);
-+	pr_debug("EC_DATA(R) = 0x%2.2x\n", x);
- 	return x;
- }
- 
- static inline void acpi_ec_write_cmd(struct acpi_ec *ec, u8 command)
- {
--	pr_debug("<--- command = 0x%2.2x\n", command);
-+	pr_debug("EC_SC(W) = 0x%2.2x\n", command);
- 	outb(command, ec->command_addr);
- }
- 
- static inline void acpi_ec_write_data(struct acpi_ec *ec, u8 data)
- {
--	pr_debug("<--- data = 0x%2.2x\n", data);
-+	pr_debug("EC_DATA(W) = 0x%2.2x\n", data);
- 	outb(data, ec->data_addr);
- }
- 
--- 
-1.7.10
+Yes, it maybe and I will change code like the following.
+
+while ((result =3D acpi_battery_update(battery, false)) && retry--)
+       msleep(20);
+if (result)
+       goto fail;
+
+
+--=20
+Best regards
+Tianyu Lan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
