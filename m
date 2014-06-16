@@ -1,71 +1,125 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH] ACPI/Battery: Retry to get Battery information if failed
- during probing
-Date: Mon, 16 Jun 2014 10:12:27 +0800
-Message-ID: <539E528B.90908@intel.com>
-References: <1402552946-14704-1-git-send-email-tianyu.lan@intel.com> <alpine.DEB.2.02.1406112354070.23724@chino.kir.corp.google.com> <53995488.20308@intel.com> <alpine.DEB.2.02.1406120025050.23724@chino.kir.corp.google.com> <53996152.2000407@intel.com> <alpine.DEB.2.02.1406121415150.8305@chino.kir.corp.google.com> <539A60FC.1050301@intel.com> <alpine.DEB.2.02.1406131445130.31981@chino.kir.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: [PATCH] ACPICA: Add mutex to avoid race condition of reference count of notify object
+Date: Mon, 16 Jun 2014 10:11:55 +0800
+Message-ID: <1402884715-25049-1-git-send-email-jlee@suse.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:57340 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752542AbaFPCNU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Jun 2014 22:13:20 -0400
-In-Reply-To: <alpine.DEB.2.02.1406131445130.31981@chino.kir.corp.google.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:34681 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752478AbaFPCQF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Jun 2014 22:16:05 -0400
+Received: by mail-pb0-f46.google.com with SMTP id md12so3089030pbc.33
+        for <linux-acpi@vger.kernel.org>; Sun, 15 Jun 2014 19:16:03 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Rientjes <rientjes@google.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, naszar@ya.ru, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Cc: linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>
 
-On 2014=E5=B9=B406=E6=9C=8814=E6=97=A5 05:46, David Rientjes wrote:
-> On Fri, 13 Jun 2014, Lan Tianyu wrote:
->=20
->> How about this?
->>
->> -       result =3D acpi_battery_update(battery, false);
->> -       if (result)
->> +
->> +       /*
->> +        * Some machines'(E,G Lenovo Z480) ECs are not stable
->> +        * during boot up and this causes battery driver fails to be
->> +        * probed due to failure of getting battery information
->> +        * from EC sometimes. After several retries, the operation
->> +        * may work. So add retry code here and 20ms sleep between
->> +        * every retries.
->> +        */
->> +       while (acpi_battery_update(battery, false) && retry--)
->> +               msleep(20);
->> +       if (!retry) {
->> +               result =3D -ENODEV;
->>                 goto fail;
->> +       }
->> +
->=20
-> I think you want --retry and not retry--.
+This issue found on v3.0 kernel, unfortunately there was no chance
+to test latest kernel on issue mchine. This patch tested on v3.0 kernel
+then sent to linux-acpi for review and note, maybe latest kernel also need.
 
-My original purpose is to retry 5 times after the first try fails.
-If use "--retry" here, it just retries 4 times.
+The problem happened when acpi thermal driver evaluate _PSL, but acpi
+processor driver install notify handler at the same time. In the
+code path of evaluate _PSL, it updates reference count of processor
+and its notify objects. When the notify handler installation done
+after the reference count of processor updated, it causes the
+ref_count of processor doesn't sync with its notify object's
+ref_count value.
 
->  Otherwise it's possible for the=20
-> final call to acpi_battery_update() to succeed and now it's returning=
-=20
-> -ENODEV.
->=20
+Here is an debugging log when issue reproduced:
 
-Yes, it maybe and I will change code like the following.
+[    3.481773] ACPI_TYPE_PROCESSOR set ACPI_DEVICE_NOTIFY, object_desc->common.reference_count: 3, notify_obj->common.reference_count: 1
+[    3.481958] PROCESSOR device_hid: LNXCPU
+...
+[    3.487427] ACPI_TYPE_PROCESSOR, action = 1
+[    3.487428] Update device_notify ref_count
+[    3.487429] REF_DECREMENT ACPI_TYPE_LOCAL_NOTIFY original_count: 0
+[    3.487431] ACPI Warning: Obj ffff8800b0f40b28, Reference Count is already zero, cannot decrement
+[    3.487433]  (20110413/utdelete-431)
+[    3.487434] REF_DECREMENT ACPI_TYPE_PROCESSOR original_count: 2
 
-while ((result =3D acpi_battery_update(battery, false)) && retry--)
-       msleep(20);
-if (result)
-       goto fail;
+Accroding log, found the reference_count of parent object
+(it's processor in this case) is 3, it doesn't match with notify_object's
+reference_count, value is 1. It triggered "Reference Count is already zero"
+warning, then happen object double free issue later.
 
+To avoid rece condition, this patch introded ACPI_MTX_NOTIFY_REF_COUNT
+mutex to keep the ref_count of notify object sync with its parent
+object. And, it also set the reference_count value of new notify object
+equals to its parent object's reference_count.
 
---=20
-Best regards
-Tianyu Lan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+---
+ drivers/acpi/acpica/aclocal.h  | 3 ++-
+ drivers/acpi/acpica/evxface.c  | 7 ++++++-
+ drivers/acpi/acpica/utdelete.c | 6 ++++++
+ 3 files changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index c7f743c..e25a4af 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -85,8 +85,9 @@ union acpi_parse_object;
+ #define ACPI_MTX_MEMORY                 5	/* Debug memory tracking lists */
+ #define ACPI_MTX_DEBUG_CMD_COMPLETE     6	/* AML debugger */
+ #define ACPI_MTX_DEBUG_CMD_READY        7	/* AML debugger */
++#define ACPI_MTX_NOTIFY_REF_COUNT	8	/* Reference count of notify object */
+ 
+-#define ACPI_MAX_MUTEX                  7
++#define ACPI_MAX_MUTEX                  8
+ #define ACPI_NUM_MUTEX                  ACPI_MAX_MUTEX+1
+ 
+ /* Lock structure for reader/writer interfaces */
+diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
+index e114140..213fe1a 100644
+--- a/drivers/acpi/acpica/evxface.c
++++ b/drivers/acpi/acpica/evxface.c
+@@ -495,6 +495,10 @@ acpi_install_notify_handler(acpi_handle device,
+ 						handler, context,
+ 						NULL);
+ 
++		acpi_ut_acquire_mutex(ACPI_MTX_NOTIFY_REF_COUNT);
++
++		notify_obj->common.reference_count = obj_desc->common.reference_count;
++
+ 		if (handler_type & ACPI_SYSTEM_NOTIFY) {
+ 			obj_desc->common_notify.system_notify = notify_obj;
+ 		}
+@@ -503,8 +507,9 @@ acpi_install_notify_handler(acpi_handle device,
+ 			obj_desc->common_notify.device_notify = notify_obj;
+ 		}
+ 
+-		if (handler_type == ACPI_ALL_NOTIFY) {
++		acpi_ut_release_mutex(ACPI_MTX_NOTIFY_REF_COUNT);
+ 
++		if (handler_type == ACPI_ALL_NOTIFY) {
+ 			/* Extra ref if installed in both */
+ 
+ 			acpi_ut_add_reference(notify_obj);
+diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
+index 31f5a78..7559813 100644
+--- a/drivers/acpi/acpica/utdelete.c
++++ b/drivers/acpi/acpica/utdelete.c
+@@ -504,6 +504,7 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+ 
+ 			/* Update the notify objects for these types (if present) */
+ 
++			acpi_ut_acquire_mutex(ACPI_MTX_NOTIFY_REF_COUNT);
+ 			acpi_ut_update_ref_count(object->common_notify.
+ 						 system_notify, action);
+ 			acpi_ut_update_ref_count(object->common_notify.
+@@ -592,6 +593,11 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+ 		 * main object to be deleted.
+ 		 */
+ 		acpi_ut_update_ref_count(object, action);
++		if (object->common.type == ACPI_TYPE_PROCESSOR ||
++		    object->common.type == ACPI_TYPE_DEVICE ||
++		    object->common.type == ACPI_TYPE_POWER ||
++		    object->common.type == ACPI_TYPE_THERMAL)
++			acpi_ut_release_mutex(ACPI_MTX_NOTIFY_REF_COUNT);
+ 		object = NULL;
+ 
+ 		/* Move on to the next object to be updated */
+-- 
+1.8.4.5
+
