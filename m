@@ -1,125 +1,69 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [PATCH] ACPICA: Add mutex to avoid race condition of reference count of notify object
-Date: Mon, 16 Jun 2014 10:11:55 +0800
-Message-ID: <1402884715-25049-1-git-send-email-jlee@suse.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI/Battery: Retry to get Battery information if
+ failed during probing
+Date: Mon, 16 Jun 2014 02:35:00 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880262DA59@SHSMSX101.ccr.corp.intel.com>
+References: <1402552946-14704-1-git-send-email-tianyu.lan@intel.com>
+ <alpine.DEB.2.02.1406112354070.23724@chino.kir.corp.google.com>
+ <53995488.20308@intel.com>
+ <alpine.DEB.2.02.1406120025050.23724@chino.kir.corp.google.com>
+ <53996152.2000407@intel.com>
+ <alpine.DEB.2.02.1406121415150.8305@chino.kir.corp.google.com>
+ <539A60FC.1050301@intel.com>
+ <alpine.DEB.2.02.1406131445130.31981@chino.kir.corp.google.com>
+ <539E528B.90908@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:34681 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752478AbaFPCQF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Jun 2014 22:16:05 -0400
-Received: by mail-pb0-f46.google.com with SMTP id md12so3089030pbc.33
-        for <linux-acpi@vger.kernel.org>; Sun, 15 Jun 2014 19:16:03 -0700 (PDT)
+Received: from mga03.intel.com ([143.182.124.21]:60169 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752596AbaFPCfN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Jun 2014 22:35:13 -0400
+In-Reply-To: <539E528B.90908@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
-Cc: linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>
+To: "Lan, Tianyu" <tianyu.lan@intel.com>, David Rientjes <rientjes@google.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "naszar@ya.ru" <naszar@ya.ru>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-This issue found on v3.0 kernel, unfortunately there was no chance
-to test latest kernel on issue mchine. This patch tested on v3.0 kernel
-then sent to linux-acpi for review and note, maybe latest kernel also need.
-
-The problem happened when acpi thermal driver evaluate _PSL, but acpi
-processor driver install notify handler at the same time. In the
-code path of evaluate _PSL, it updates reference count of processor
-and its notify objects. When the notify handler installation done
-after the reference count of processor updated, it causes the
-ref_count of processor doesn't sync with its notify object's
-ref_count value.
-
-Here is an debugging log when issue reproduced:
-
-[    3.481773] ACPI_TYPE_PROCESSOR set ACPI_DEVICE_NOTIFY, object_desc->common.reference_count: 3, notify_obj->common.reference_count: 1
-[    3.481958] PROCESSOR device_hid: LNXCPU
-...
-[    3.487427] ACPI_TYPE_PROCESSOR, action = 1
-[    3.487428] Update device_notify ref_count
-[    3.487429] REF_DECREMENT ACPI_TYPE_LOCAL_NOTIFY original_count: 0
-[    3.487431] ACPI Warning: Obj ffff8800b0f40b28, Reference Count is already zero, cannot decrement
-[    3.487433]  (20110413/utdelete-431)
-[    3.487434] REF_DECREMENT ACPI_TYPE_PROCESSOR original_count: 2
-
-Accroding log, found the reference_count of parent object
-(it's processor in this case) is 3, it doesn't match with notify_object's
-reference_count, value is 1. It triggered "Reference Count is already zero"
-warning, then happen object double free issue later.
-
-To avoid rece condition, this patch introded ACPI_MTX_NOTIFY_REF_COUNT
-mutex to keep the ref_count of notify object sync with its parent
-object. And, it also set the reference_count value of new notify object
-equals to its parent object's reference_count.
-
-Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
----
- drivers/acpi/acpica/aclocal.h  | 3 ++-
- drivers/acpi/acpica/evxface.c  | 7 ++++++-
- drivers/acpi/acpica/utdelete.c | 6 ++++++
- 3 files changed, 14 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index c7f743c..e25a4af 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -85,8 +85,9 @@ union acpi_parse_object;
- #define ACPI_MTX_MEMORY                 5	/* Debug memory tracking lists */
- #define ACPI_MTX_DEBUG_CMD_COMPLETE     6	/* AML debugger */
- #define ACPI_MTX_DEBUG_CMD_READY        7	/* AML debugger */
-+#define ACPI_MTX_NOTIFY_REF_COUNT	8	/* Reference count of notify object */
- 
--#define ACPI_MAX_MUTEX                  7
-+#define ACPI_MAX_MUTEX                  8
- #define ACPI_NUM_MUTEX                  ACPI_MAX_MUTEX+1
- 
- /* Lock structure for reader/writer interfaces */
-diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
-index e114140..213fe1a 100644
---- a/drivers/acpi/acpica/evxface.c
-+++ b/drivers/acpi/acpica/evxface.c
-@@ -495,6 +495,10 @@ acpi_install_notify_handler(acpi_handle device,
- 						handler, context,
- 						NULL);
- 
-+		acpi_ut_acquire_mutex(ACPI_MTX_NOTIFY_REF_COUNT);
-+
-+		notify_obj->common.reference_count = obj_desc->common.reference_count;
-+
- 		if (handler_type & ACPI_SYSTEM_NOTIFY) {
- 			obj_desc->common_notify.system_notify = notify_obj;
- 		}
-@@ -503,8 +507,9 @@ acpi_install_notify_handler(acpi_handle device,
- 			obj_desc->common_notify.device_notify = notify_obj;
- 		}
- 
--		if (handler_type == ACPI_ALL_NOTIFY) {
-+		acpi_ut_release_mutex(ACPI_MTX_NOTIFY_REF_COUNT);
- 
-+		if (handler_type == ACPI_ALL_NOTIFY) {
- 			/* Extra ref if installed in both */
- 
- 			acpi_ut_add_reference(notify_obj);
-diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
-index 31f5a78..7559813 100644
---- a/drivers/acpi/acpica/utdelete.c
-+++ b/drivers/acpi/acpica/utdelete.c
-@@ -504,6 +504,7 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
- 
- 			/* Update the notify objects for these types (if present) */
- 
-+			acpi_ut_acquire_mutex(ACPI_MTX_NOTIFY_REF_COUNT);
- 			acpi_ut_update_ref_count(object->common_notify.
- 						 system_notify, action);
- 			acpi_ut_update_ref_count(object->common_notify.
-@@ -592,6 +593,11 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
- 		 * main object to be deleted.
- 		 */
- 		acpi_ut_update_ref_count(object, action);
-+		if (object->common.type == ACPI_TYPE_PROCESSOR ||
-+		    object->common.type == ACPI_TYPE_DEVICE ||
-+		    object->common.type == ACPI_TYPE_POWER ||
-+		    object->common.type == ACPI_TYPE_THERMAL)
-+			acpi_ut_release_mutex(ACPI_MTX_NOTIFY_REF_COUNT);
- 		object = NULL;
- 
- 		/* Move on to the next object to be updated */
--- 
-1.8.4.5
-
+SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
+aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIExhbiBUaWFueXUN
+Cj4gU2VudDogTW9uZGF5LCBKdW5lIDE2LCAyMDE0IDEwOjEyIEFNDQo+IFRvOiBEYXZpZCBSaWVu
+dGplcw0KPiBDYzogcmp3QHJqd3lzb2NraS5uZXQ7IGxlbmJAa2VybmVsLm9yZzsgbmFzemFyQHlh
+LnJ1OyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVs
+Lm9yZw0KPiBTdWJqZWN0OiBSZTogW1BBVENIXSBBQ1BJL0JhdHRlcnk6IFJldHJ5IHRvIGdldCBC
+YXR0ZXJ5IGluZm9ybWF0aW9uIGlmIGZhaWxlZCBkdXJpbmcgcHJvYmluZw0KPiANCj4gT24gMjAx
+NOW5tDA25pyIMTTml6UgMDU6NDYsIERhdmlkIFJpZW50amVzIHdyb3RlOg0KPiA+IE9uIEZyaSwg
+MTMgSnVuIDIwMTQsIExhbiBUaWFueXUgd3JvdGU6DQo+ID4NCj4gPj4gSG93IGFib3V0IHRoaXM/
+DQo+ID4+DQo+ID4+IC0gICAgICAgcmVzdWx0ID0gYWNwaV9iYXR0ZXJ5X3VwZGF0ZShiYXR0ZXJ5
+LCBmYWxzZSk7DQo+ID4+IC0gICAgICAgaWYgKHJlc3VsdCkNCj4gPj4gKw0KPiA+PiArICAgICAg
+IC8qDQo+ID4+ICsgICAgICAgICogU29tZSBtYWNoaW5lcycoRSxHIExlbm92byBaNDgwKSBFQ3Mg
+YXJlIG5vdCBzdGFibGUNCg0KSnVzdCBhIHJlbWluZGVyLg0KDQpUaGlzIHN0YXRlbWVudCBtYXkg
+bm90IGJlIHRydWUuDQpUaGUgaXNzdWUgbWF5IGJlIGNhdXNlZCBieSB0aGUgRUMgZHJpdmVyIGl0
+c2VsZi4NClNvIHdlIG5lZWQgdG8gaW52ZXN0aWdhdGUuDQoNCj4gPj4gKyAgICAgICAgKiBkdXJp
+bmcgYm9vdCB1cCBhbmQgdGhpcyBjYXVzZXMgYmF0dGVyeSBkcml2ZXIgZmFpbHMgdG8gYmUNCj4g
+Pj4gKyAgICAgICAgKiBwcm9iZWQgZHVlIHRvIGZhaWx1cmUgb2YgZ2V0dGluZyBiYXR0ZXJ5IGlu
+Zm9ybWF0aW9uDQo+ID4+ICsgICAgICAgICogZnJvbSBFQyBzb21ldGltZXMuIEFmdGVyIHNldmVy
+YWwgcmV0cmllcywgdGhlIG9wZXJhdGlvbg0KPiA+PiArICAgICAgICAqIG1heSB3b3JrLiBTbyBh
+ZGQgcmV0cnkgY29kZSBoZXJlIGFuZCAyMG1zIHNsZWVwIGJldHdlZW4NCj4gPj4gKyAgICAgICAg
+KiBldmVyeSByZXRyaWVzLg0KPiA+PiArICAgICAgICAqLw0KPiA+PiArICAgICAgIHdoaWxlIChh
+Y3BpX2JhdHRlcnlfdXBkYXRlKGJhdHRlcnksIGZhbHNlKSAmJiByZXRyeS0tKQ0KDQpJZiBFQyBo
+YXJkd2FyZSBpcyBzdGFibGUsIHdoeSB3ZSBuZWVkIHRvIGRvIHJldHJ5IGhlcmU/DQoNClRoYW5r
+cyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiA+PiArICAgICAgICAgICAgICAgbXNsZWVwKDIw
+KTsNCj4gPj4gKyAgICAgICBpZiAoIXJldHJ5KSB7DQo+ID4+ICsgICAgICAgICAgICAgICByZXN1
+bHQgPSAtRU5PREVWOw0KPiA+PiAgICAgICAgICAgICAgICAgZ290byBmYWlsOw0KPiA+PiArICAg
+ICAgIH0NCj4gPj4gKw0KPiA+DQo+ID4gSSB0aGluayB5b3Ugd2FudCAtLXJldHJ5IGFuZCBub3Qg
+cmV0cnktLS4NCj4gDQo+IE15IG9yaWdpbmFsIHB1cnBvc2UgaXMgdG8gcmV0cnkgNSB0aW1lcyBh
+ZnRlciB0aGUgZmlyc3QgdHJ5IGZhaWxzLg0KPiBJZiB1c2UgIi0tcmV0cnkiIGhlcmUsIGl0IGp1
+c3QgcmV0cmllcyA0IHRpbWVzLg0KPiANCj4gPiAgT3RoZXJ3aXNlIGl0J3MgcG9zc2libGUgZm9y
+IHRoZQ0KPiA+IGZpbmFsIGNhbGwgdG8gYWNwaV9iYXR0ZXJ5X3VwZGF0ZSgpIHRvIHN1Y2NlZWQg
+YW5kIG5vdyBpdCdzIHJldHVybmluZw0KPiA+IC1FTk9ERVYuDQo+ID4NCj4gDQo+IFllcywgaXQg
+bWF5YmUgYW5kIEkgd2lsbCBjaGFuZ2UgY29kZSBsaWtlIHRoZSBmb2xsb3dpbmcuDQo+IA0KPiB3
+aGlsZSAoKHJlc3VsdCA9IGFjcGlfYmF0dGVyeV91cGRhdGUoYmF0dGVyeSwgZmFsc2UpKSAmJiBy
+ZXRyeS0tKQ0KPiAgICAgICAgbXNsZWVwKDIwKTsNCj4gaWYgKHJlc3VsdCkNCj4gICAgICAgIGdv
+dG8gZmFpbDsNCj4gDQo+IA0KPiAtLQ0KPiBCZXN0IHJlZ2FyZHMNCj4gVGlhbnl1IExhbg0KPiAt
+LQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJz
+Y3JpYmUgbGludXgtYWNwaSIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9t
+b0B2Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIu
+a2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
