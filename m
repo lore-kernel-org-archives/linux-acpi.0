@@ -1,69 +1,114 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPI/Battery: Retry to get Battery information if
- failed during probing
-Date: Mon, 16 Jun 2014 02:35:00 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880262DA59@SHSMSX101.ccr.corp.intel.com>
-References: <1402552946-14704-1-git-send-email-tianyu.lan@intel.com>
- <alpine.DEB.2.02.1406112354070.23724@chino.kir.corp.google.com>
- <53995488.20308@intel.com>
- <alpine.DEB.2.02.1406120025050.23724@chino.kir.corp.google.com>
- <53996152.2000407@intel.com>
- <alpine.DEB.2.02.1406121415150.8305@chino.kir.corp.google.com>
- <539A60FC.1050301@intel.com>
- <alpine.DEB.2.02.1406131445130.31981@chino.kir.corp.google.com>
- <539E528B.90908@intel.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH] ACPI/Battery: Retry to get Battery information if failed
+ during probing
+Date: Mon, 16 Jun 2014 10:43:31 +0800
+Message-ID: <539E59D3.7080508@intel.com>
+References: <1402552946-14704-1-git-send-email-tianyu.lan@intel.com> <alpine.DEB.2.02.1406112354070.23724@chino.kir.corp.google.com> <53995488.20308@intel.com> <alpine.DEB.2.02.1406120025050.23724@chino.kir.corp.google.com> <53996152.2000407@intel.com> <alpine.DEB.2.02.1406121415150.8305@chino.kir.corp.google.com> <539A60FC.1050301@intel.com> <alpine.DEB.2.02.1406131445130.31981@chino.kir.corp.google.com> <539E528B.90908@intel.com> <1AE640813FDE7649BE1B193DEA596E880262DA59@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:60169 "EHLO mga03.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:8227 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752596AbaFPCfN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Jun 2014 22:35:13 -0400
-In-Reply-To: <539E528B.90908@intel.com>
-Content-Language: en-US
+	id S1752495AbaFPCof (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Jun 2014 22:44:35 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880262DA59@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lan, Tianyu" <tianyu.lan@intel.com>, David Rientjes <rientjes@google.com>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "naszar@ya.ru" <naszar@ya.ru>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: David Rientjes <rientjes@google.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "naszar@ya.ru" <naszar@ya.ru>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIExhbiBUaWFueXUN
-Cj4gU2VudDogTW9uZGF5LCBKdW5lIDE2LCAyMDE0IDEwOjEyIEFNDQo+IFRvOiBEYXZpZCBSaWVu
-dGplcw0KPiBDYzogcmp3QHJqd3lzb2NraS5uZXQ7IGxlbmJAa2VybmVsLm9yZzsgbmFzemFyQHlh
-LnJ1OyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVs
-Lm9yZw0KPiBTdWJqZWN0OiBSZTogW1BBVENIXSBBQ1BJL0JhdHRlcnk6IFJldHJ5IHRvIGdldCBC
-YXR0ZXJ5IGluZm9ybWF0aW9uIGlmIGZhaWxlZCBkdXJpbmcgcHJvYmluZw0KPiANCj4gT24gMjAx
-NOW5tDA25pyIMTTml6UgMDU6NDYsIERhdmlkIFJpZW50amVzIHdyb3RlOg0KPiA+IE9uIEZyaSwg
-MTMgSnVuIDIwMTQsIExhbiBUaWFueXUgd3JvdGU6DQo+ID4NCj4gPj4gSG93IGFib3V0IHRoaXM/
-DQo+ID4+DQo+ID4+IC0gICAgICAgcmVzdWx0ID0gYWNwaV9iYXR0ZXJ5X3VwZGF0ZShiYXR0ZXJ5
-LCBmYWxzZSk7DQo+ID4+IC0gICAgICAgaWYgKHJlc3VsdCkNCj4gPj4gKw0KPiA+PiArICAgICAg
-IC8qDQo+ID4+ICsgICAgICAgICogU29tZSBtYWNoaW5lcycoRSxHIExlbm92byBaNDgwKSBFQ3Mg
-YXJlIG5vdCBzdGFibGUNCg0KSnVzdCBhIHJlbWluZGVyLg0KDQpUaGlzIHN0YXRlbWVudCBtYXkg
-bm90IGJlIHRydWUuDQpUaGUgaXNzdWUgbWF5IGJlIGNhdXNlZCBieSB0aGUgRUMgZHJpdmVyIGl0
-c2VsZi4NClNvIHdlIG5lZWQgdG8gaW52ZXN0aWdhdGUuDQoNCj4gPj4gKyAgICAgICAgKiBkdXJp
-bmcgYm9vdCB1cCBhbmQgdGhpcyBjYXVzZXMgYmF0dGVyeSBkcml2ZXIgZmFpbHMgdG8gYmUNCj4g
-Pj4gKyAgICAgICAgKiBwcm9iZWQgZHVlIHRvIGZhaWx1cmUgb2YgZ2V0dGluZyBiYXR0ZXJ5IGlu
-Zm9ybWF0aW9uDQo+ID4+ICsgICAgICAgICogZnJvbSBFQyBzb21ldGltZXMuIEFmdGVyIHNldmVy
-YWwgcmV0cmllcywgdGhlIG9wZXJhdGlvbg0KPiA+PiArICAgICAgICAqIG1heSB3b3JrLiBTbyBh
-ZGQgcmV0cnkgY29kZSBoZXJlIGFuZCAyMG1zIHNsZWVwIGJldHdlZW4NCj4gPj4gKyAgICAgICAg
-KiBldmVyeSByZXRyaWVzLg0KPiA+PiArICAgICAgICAqLw0KPiA+PiArICAgICAgIHdoaWxlIChh
-Y3BpX2JhdHRlcnlfdXBkYXRlKGJhdHRlcnksIGZhbHNlKSAmJiByZXRyeS0tKQ0KDQpJZiBFQyBo
-YXJkd2FyZSBpcyBzdGFibGUsIHdoeSB3ZSBuZWVkIHRvIGRvIHJldHJ5IGhlcmU/DQoNClRoYW5r
-cyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiA+PiArICAgICAgICAgICAgICAgbXNsZWVwKDIw
-KTsNCj4gPj4gKyAgICAgICBpZiAoIXJldHJ5KSB7DQo+ID4+ICsgICAgICAgICAgICAgICByZXN1
-bHQgPSAtRU5PREVWOw0KPiA+PiAgICAgICAgICAgICAgICAgZ290byBmYWlsOw0KPiA+PiArICAg
-ICAgIH0NCj4gPj4gKw0KPiA+DQo+ID4gSSB0aGluayB5b3Ugd2FudCAtLXJldHJ5IGFuZCBub3Qg
-cmV0cnktLS4NCj4gDQo+IE15IG9yaWdpbmFsIHB1cnBvc2UgaXMgdG8gcmV0cnkgNSB0aW1lcyBh
-ZnRlciB0aGUgZmlyc3QgdHJ5IGZhaWxzLg0KPiBJZiB1c2UgIi0tcmV0cnkiIGhlcmUsIGl0IGp1
-c3QgcmV0cmllcyA0IHRpbWVzLg0KPiANCj4gPiAgT3RoZXJ3aXNlIGl0J3MgcG9zc2libGUgZm9y
-IHRoZQ0KPiA+IGZpbmFsIGNhbGwgdG8gYWNwaV9iYXR0ZXJ5X3VwZGF0ZSgpIHRvIHN1Y2NlZWQg
-YW5kIG5vdyBpdCdzIHJldHVybmluZw0KPiA+IC1FTk9ERVYuDQo+ID4NCj4gDQo+IFllcywgaXQg
-bWF5YmUgYW5kIEkgd2lsbCBjaGFuZ2UgY29kZSBsaWtlIHRoZSBmb2xsb3dpbmcuDQo+IA0KPiB3
-aGlsZSAoKHJlc3VsdCA9IGFjcGlfYmF0dGVyeV91cGRhdGUoYmF0dGVyeSwgZmFsc2UpKSAmJiBy
-ZXRyeS0tKQ0KPiAgICAgICAgbXNsZWVwKDIwKTsNCj4gaWYgKHJlc3VsdCkNCj4gICAgICAgIGdv
-dG8gZmFpbDsNCj4gDQo+IA0KPiAtLQ0KPiBCZXN0IHJlZ2FyZHMNCj4gVGlhbnl1IExhbg0KPiAt
-LQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJz
-Y3JpYmUgbGludXgtYWNwaSIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9t
-b0B2Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIu
-a2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+On 2014=E5=B9=B406=E6=9C=8816=E6=97=A5 10:35, Zheng, Lv wrote:
+> Hi,
+>=20
+>> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger=
+=2Ekernel.org] On Behalf Of Lan Tianyu
+>> Sent: Monday, June 16, 2014 10:12 AM
+>> To: David Rientjes
+>> Cc: rjw@rjwysocki.net; lenb@kernel.org; naszar@ya.ru; linux-acpi@vge=
+r.kernel.org; linux-kernel@vger.kernel.org
+>> Subject: Re: [PATCH] ACPI/Battery: Retry to get Battery information =
+if failed during probing
+>>
+>> On 2014=E5=B9=B406=E6=9C=8814=E6=97=A5 05:46, David Rientjes wrote:
+>>> On Fri, 13 Jun 2014, Lan Tianyu wrote:
+>>>
+>>>> How about this?
+>>>>
+>>>> -       result =3D acpi_battery_update(battery, false);
+>>>> -       if (result)
+>>>> +
+>>>> +       /*
+>>>> +        * Some machines'(E,G Lenovo Z480) ECs are not stable
+>=20
+> Just a reminder.
+>=20
+> This statement may not be true.
+> The issue may be caused by the EC driver itself.
+> So we need to investigate.
+
+Not sure. The bug doesn't happen every time. 5-10% during boot up.
+
+>=20
+>>>> +        * during boot up and this causes battery driver fails to =
+be
+>>>> +        * probed due to failure of getting battery information
+>>>> +        * from EC sometimes. After several retries, the operation
+>>>> +        * may work. So add retry code here and 20ms sleep between
+>>>> +        * every retries.
+>>>> +        */
+>>>> +       while (acpi_battery_update(battery, false) && retry--)
+>=20
+> If EC hardware is stable, why we need to do retry here?
+>=20
+
+Yes, if it can work normally every time, we don't need retry here.
+
+
+> Thanks and best regards
+> -Lv
+>=20
+>>>> +               msleep(20);
+>>>> +       if (!retry) {
+>>>> +               result =3D -ENODEV;
+>>>>                 goto fail;
+>>>> +       }
+>>>> +
+>>>
+>>> I think you want --retry and not retry--.
+>>
+>> My original purpose is to retry 5 times after the first try fails.
+>> If use "--retry" here, it just retries 4 times.
+>>
+>>>  Otherwise it's possible for the
+>>> final call to acpi_battery_update() to succeed and now it's returni=
+ng
+>>> -ENODEV.
+>>>
+>>
+>> Yes, it maybe and I will change code like the following.
+>>
+>> while ((result =3D acpi_battery_update(battery, false)) && retry--)
+>>        msleep(20);
+>> if (result)
+>>        goto fail;
+>>
+>>
+>> --
+>> Best regards
+>> Tianyu Lan
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--=20
+Best regards
+Tianyu Lan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
