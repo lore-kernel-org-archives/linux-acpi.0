@@ -1,75 +1,61 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [RFC Patch V2 08/16] PCI: kill wrong warning message in pcieport driver
-Date: Tue, 17 Jun 2014 10:11:44 -0600
-Message-ID: <CAErSpo7pAv=v7JQp2UoNxYN8Pdj788NPP8OsLkM3p8NuwL_6Wg@mail.gmail.com>
-References: <1402982995-13747-1-git-send-email-jiang.liu@linux.intel.com> <1402982995-13747-9-git-send-email-jiang.liu@linux.intel.com>
+From: Josef Gajdusek <atx@atx.name>
+Subject: Re: [PATCH] acpi/battery: fix wrong value of capacity_now reported
+ by few battery types when fully charged (resend)
+Date: Tue, 17 Jun 2014 18:41:54 +0200
+Message-ID: <20140617164154.GA21113@dashie>
+References: <20140612145813.GB14085@dashie>
+ <3564280.IKKn41NV0x@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f173.google.com ([209.85.223.173]:45998 "EHLO
-	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756389AbaFQQMF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2014 12:12:05 -0400
-Received: by mail-ie0-f173.google.com with SMTP id y20so6481829ier.4
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jun 2014 09:12:04 -0700 (PDT)
-In-Reply-To: <1402982995-13747-9-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <3564280.IKKn41NV0x@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Please pay attention to the existing convention of changelog summaries
-(email subject lines), including spacing and capitalization.  "git log
---oneline drivers/pci/pcie" is a good way to see the pattern.  In this
-case, you could use something like this:
+It seems that some batteries (noticed on DELL JYPJ136) assume 
+capacity_now = design_capacity when fully charged. This causes 
+reported capacity to suddenly jump to >full_charge_capacity (and that 
+means capacity reported to userspace is >100% and incorrect) 
+values after 99%. This patch attempts to detect this bug, notifies 
+userspace and trims the value to full_charge_capacity.
 
-  PCI/portdrv: Remove warning about invalid IRQ
+Signed-off-by: Josef Gajdusek <atx@atx.name>
+---
+Relaxed the check as you suggested and added printk_once.
 
-On Mon, Jun 16, 2014 at 11:29 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> For hot-added PCIe ports, it always generates a warning message on x86
-> platforms when binding to pcieport driver as:
->         "device [8086:0e0b] has invalid IRQ; check vendor BIOS".
+> Why don't you use the
 >
-> It's due to that we check pci_dev->irq before actually allocating IRQ
-> number for the PCI device:
->         if (!dev->irq && dev->pin) {
->                 dev_warn(&dev->dev, "device [%04x:%04x] has invalid IRQ; "
->                          "check vendor BIOS\n", dev->vendor, dev->device);
->         }
->         status = pcie_port_device_register(dev);
->                 -->pci_enable_device(dev);
->                         -->pci_enable_device_flags()
->                                 -->do_pci_enable_device()
->                                         -->pcibios_enable_device()
->                                                 -->pcibios_enable_irq()
+>    battery->capacity_now > battery->full_charge_capacity
 >
-> This warning message isn't generated for PCIe ports present at boot time
-> because x86 arch code has called acpi_pci_irq_enable() in pci_acpi_init()
-> for each PCI device for safety.
->
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
->  drivers/pci/pcie/portdrv_pci.c |    4 ----
->  1 file changed, 4 deletions(-)
->
-> diff --git a/drivers/pci/pcie/portdrv_pci.c b/drivers/pci/pcie/portdrv_pci.c
-> index 0d8fdc48e642..0e35f9670066 100644
-> --- a/drivers/pci/pcie/portdrv_pci.c
-> +++ b/drivers/pci/pcie/portdrv_pci.c
-> @@ -203,10 +203,6 @@ static int pcie_portdrv_probe(struct pci_dev *dev,
->              (pci_pcie_type(dev) != PCI_EXP_TYPE_DOWNSTREAM)))
->                 return -ENODEV;
->
-> -       if (!dev->irq && dev->pin) {
-> -               dev_warn(&dev->dev, "device [%04x:%04x] has invalid IRQ; "
-> -                        "check vendor BIOS\n", dev->vendor, dev->device);
-> -       }
+> check here?  That would be more robust, wouldn't it?
 
-This needs to be rebased to v3.16-rc1.
+To allow userspace to see that there is some unknown bug we do not know yet 
+with the battery. This is taken care of much more elegantly by the printk 
+now.
 
->         status = pcie_port_device_register(dev);
->         if (status)
->                 return status;
-> --
-> 1.7.10.4
->
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index e48fc98..57a800c 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -532,6 +532,18 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
+ 			" invalid.\n");
+ 	}
+ 
++	/* When fully charged, some batteries wrongly report
++	 * capacity_now = design_capacity instead of = full_charge_capacity
++	 */
++	if (battery->capacity_now > battery->full_charge_capacity) {
++		battery->capacity_now = battery->full_charge_capacity;
++		printk_once(KERN_WARNING FW_BUG
++			"battery: reported current charge level (%d) "
++			"is higher than reported maximum charge level (%d)."
++			"This is normal on some systems.\n",
++			battery->capacity_now, battery->full_charge_capacity);
++	}
++
+ 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags)
+ 	    && battery->capacity_now >= 0 && battery->capacity_now <= 100)
+ 		battery->capacity_now = (battery->capacity_now *
