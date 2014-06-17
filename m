@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch V2 02/16] x86, ioapic: Find usable ioapic id for 64bit.
-Date: Tue, 17 Jun 2014 13:29:41 +0800
-Message-ID: <1402982995-13747-3-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC Patch V2 01/16] x86, irq: Split out alloc_ioapic_save_registers()
+Date: Tue, 17 Jun 2014 13:29:40 +0800
+Message-ID: <1402982995-13747-2-git-send-email-jiang.liu@linux.intel.com>
 References: <1402982995-13747-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1402982995-13747-1-git-send-email-jiang.liu@linux.intel.com>
@@ -12,89 +12,59 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Yinghai Lu <yinghai@kernel.org>
 
-Checking the id in register, if that is duplicated, will pick one and
-update id register.
+Split alloc_ioapic_save_registers() from early_irq_init(),
+so it will be used per ioapic.
+
+Will call that later for hot-added ioapic controller.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Joerg Roedel <joro@8bytes.org>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/kernel/apic/io_apic.c |   38 +++++++++++++++++++++++++++++++++-----
- 1 file changed, 33 insertions(+), 5 deletions(-)
+ arch/x86/kernel/apic/io_apic.c |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index e97ec28f5269..e56bb94cd32a 100644
+index 26490336ef6f..e97ec28f5269 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3566,26 +3566,54 @@ static int __init io_apic_get_unique_id(int ioapic, int apic_id)
- 	return apic_id;
+@@ -237,6 +237,19 @@ static struct irq_pin_list *alloc_irq_pin_list(int node)
+ 	return kzalloc_node(sizeof(struct irq_pin_list), GFP_KERNEL, node);
  }
  
--static u8 __init io_apic_unique_id(u8 id)
-+static u8 io_apic_unique_id(int idx, u8 id)
++static void alloc_ioapic_saved_registers(int idx)
++{
++	size_t size;
++
++	if (ioapics[idx].saved_registers)
++		return;
++
++	size = sizeof(struct IO_APIC_route_entry) * ioapics[idx].nr_registers;
++	ioapics[idx].saved_registers = kzalloc(size, GFP_KERNEL);
++	if (!ioapics[idx].saved_registers)
++		pr_err("IOAPIC %d: suspend/resume impossible!\n", idx);
++}
++
+ int __init arch_early_irq_init(void)
  {
- 	if ((boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) &&
- 	    !APIC_XAPIC(apic_version[boot_cpu_physical_apicid]))
--		return io_apic_get_unique_id(nr_ioapics, id);
-+		return io_apic_get_unique_id(idx, id);
- 	else
- 		return id;
- }
- #else
--static u8 __init io_apic_unique_id(u8 id)
-+static u8 io_apic_unique_id(int idx, u8 id)
- {
- 	int i;
-+	u8 new_id;
-+	unsigned long flags;
- 	DECLARE_BITMAP(used, 256);
-+	union IO_APIC_reg_00 reg_00;
+ 	struct irq_cfg *cfg;
+@@ -245,13 +258,8 @@ int __init arch_early_irq_init(void)
+ 	if (!nr_legacy_irqs())
+ 		io_apic_irqs = ~0UL;
  
- 	bitmap_zero(used, 256);
- 	for_each_ioapic(i)
- 		__set_bit(mpc_ioapic_id(i), used);
- 	if (!test_bit(id, used))
- 		return id;
--	return find_first_zero_bit(used, 256);
-+
-+	/* check register at first */
-+	raw_spin_lock_irqsave(&ioapic_lock, flags);
-+	reg_00.raw = io_apic_read(idx, 0);
-+	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
-+	new_id = reg_00.bits.ID;
-+	if (!test_bit(new_id, used)) {
-+		apic_printk(APIC_VERBOSE, KERN_INFO
-+			"IOAPIC[%d]: Using reg apic_id %d instead of %d\n",
-+			 idx, new_id, id);
-+		return new_id;
-+	}
-+
-+	new_id = find_first_zero_bit(used, 256);
-+	reg_00.bits.ID = new_id;
-+	raw_spin_lock_irqsave(&ioapic_lock, flags);
-+	io_apic_write(idx, 0, reg_00.raw);
-+	reg_00.raw = io_apic_read(idx, 0);
-+	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
-+
-+	/* Sanity check */
-+	if (reg_00.bits.ID != new_id)
-+		pr_warn("IOAPIC[%d]: Unable to change apic_id to %d!\n",
-+			idx, new_id);
-+
-+	return new_id;
- }
- #endif
- 
-@@ -3851,7 +3879,7 @@ void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
- 		return;
- 	}
- 
--	ioapics[idx].mp_config.apicid = io_apic_unique_id(id);
-+	ioapics[idx].mp_config.apicid = io_apic_unique_id(idx, id);
- 	ioapics[idx].mp_config.apicver = io_apic_get_version(idx);
+-	for_each_ioapic(i) {
+-		ioapics[i].saved_registers =
+-			kzalloc(sizeof(struct IO_APIC_route_entry) *
+-				ioapics[i].nr_registers, GFP_KERNEL);
+-		if (!ioapics[i].saved_registers)
+-			pr_err("IOAPIC %d: suspend/resume impossible!\n", i);
+-	}
++	for_each_ioapic(i)
++		alloc_ioapic_saved_registers(i);
  
  	/*
+ 	 * For legacy IRQ's, start with assigning irq0 to irq15 to
 -- 
 1.7.10.4
