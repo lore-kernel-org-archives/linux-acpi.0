@@ -1,117 +1,52 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH 5/7 REVISION] trace, RAS: Add eMCA trace event interface
-Date: Tue, 17 Jun 2014 08:59:16 -0400
-Message-ID: <20140617085916.33a3a428@gandalf.local.home>
-References: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
-	<1402553517-30208-1-git-send-email-gong.chen@linux.intel.com>
-	<20140612092808.5f7bec5e@gandalf.local.home>
-	<20140613021956.GA17509@gchen.bj.intel.com>
-	<20140612230117.46758e3c@gandalf.local.home>
-	<20140612230833.3c0f41b2@gandalf.local.home>
-	<20140613070928.GA29351@gchen.bj.intel.com>
-	<20140617020937.GA14404@gchen.bj.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 1/4] ACPI: Support _OSI("Darwin") correctly
+Date: Tue, 17 Jun 2014 15:46:15 +0100
+Message-ID: <20140617144614.GA16934@srcf.ucam.org>
+References: <1401640436-1947-1-git-send-email-matthew.garrett@nebula.com>
+ <1401640436-1947-2-git-send-email-matthew.garrett@nebula.com>
+ <7712179.sDPAd6Ubry@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.229]:27039 "EHLO
-	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755936AbaFQM7Z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jun 2014 08:59:25 -0400
-In-Reply-To: <20140617020937.GA14404@gchen.bj.intel.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:54985 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932972AbaFQOqd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2014 10:46:33 -0400
+Content-Disposition: inline
+In-Reply-To: <7712179.sDPAd6Ubry@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Gong" <gong.chen@linux.intel.com>
-Cc: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com
 
-On Mon, 16 Jun 2014 22:09:37 -0400
-"Chen, Gong" <gong.chen@linux.intel.com> wrote:
-
-
+On Tue, Jun 17, 2014 at 02:11:36PM +0200, Rafael J. Wysocki wrote:
+> On Sunday, June 01, 2014 12:33:53 PM Matthew Garrett wrote:
+> > Apple hardware queries _OSI("Darwin") in order to determine whether the
+> > system is running OS X, and changes firmware behaviour based on the answer.
+> > The most obvious difference in behaviour is that Thunderbolt hardware is
+> > forcibly powered down unless the system is running OS X. The obvious solution
+> > would be to simply add Darwin to the list of supported _OSI strings, but this
+> > causes problems.
+> > 
+> > Recent Apple hardware includes two separate methods for checking _OSI
+> > strings. The first will check whether Darwin is supported, and if so will
+> > exit. The second will check whether Darwin is supported, but will then
+> > continue to check for further operating systems. If a further operating
+> > system is found then later firmware code will assume that the OS is not OS X.
+> > This results in the unfortunate situation where the Thunderbolt controller is
+> > available at boot time but remains powered down after suspend.
+> > 
+> > The easiest way to handle this is to special-case it in the Linux-specific
+> > OSI handling code. If we see Darwin, we should answer true and then disable
+> > all other _OSI vendor strings.
+> > 
+> > Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
 > 
-> Any update, Steven?
+> Does applying this patch without the rest of the series makes things worse
+> or better on the machines in question (or perhaps it doesn't matter at all
+> alone)?
 
+On its own, I think this will do nothing.
 
-Here, apply the below patch and then use "__field_struct()" instead of
-"__field()". That should work. If so, I can add it to my repo (needs
-some cleanup and documentation) in a separate branch that can be pulled
-to base your patches on top of.
-
--- Steve
-
-diff --git a/include/trace/ftrace.h b/include/trace/ftrace.h
-index 0fd06fe..26b4f2e 100644
---- a/include/trace/ftrace.h
-+++ b/include/trace/ftrace.h
-@@ -44,6 +44,12 @@
- #undef __field_ext
- #define __field_ext(type, item, filter_type)	type	item;
- 
-+#undef __field_struct
-+#define __field_struct(type, item)	type	item;
-+
-+#undef __field_struct_ext
-+#define __field_struct_ext(type, item, filter_type)	type	item;
-+
- #undef __array
- #define __array(type, item, len)	type	item[len];
- 
-@@ -122,6 +128,12 @@
- #undef __field_ext
- #define __field_ext(type, item, filter_type)
- 
-+#undef __field_struct
-+#define __field_struct(type, item)
-+
-+#undef __field_struct_ext
-+#define __field_struct_ext(type, item, filter_type)
-+
- #undef __array
- #define __array(type, item, len)
- 
-@@ -315,9 +327,21 @@ static struct trace_event_functions ftrace_event_type_funcs_##call = {	\
- 	if (ret)							\
- 		return ret;
- 
-+#undef __field_struct_ext
-+#define __field_struct_ext(type, item, filter_type)			\
-+	ret = trace_define_field(event_call, #type, #item,		\
-+				 offsetof(typeof(field), item),		\
-+				 sizeof(field.item),			\
-+				 0, filter_type);			\
-+	if (ret)							\
-+		return ret;
-+
- #undef __field
- #define __field(type, item)	__field_ext(type, item, FILTER_OTHER)
- 
-+#undef __field_struct
-+#define __field_struct(type, item) __field_struct_ext(type, item, FILTER_OTHER)
-+
- #undef __array
- #define __array(type, item, len)					\
- 	do {								\
-@@ -379,6 +403,12 @@ ftrace_define_fields_##call(struct ftrace_event_call *event_call)	\
- #undef __field_ext
- #define __field_ext(type, item, filter_type)
- 
-+#undef __field_struct
-+#define __field_struct(type, item)
-+
-+#undef __field_struct_ext
-+#define __field_struct_ext(type, item, filter_type)
-+
- #undef __array
- #define __array(type, item, len)
- 
-@@ -550,6 +580,9 @@ static inline notrace int ftrace_get_offsets_##call(			\
- #undef __field
- #define __field(type, item)
- 
-+#undef __field_struct
-+#define __field_struct(type, item)
-+
- #undef __array
- #define __array(type, item, len)
- 
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
