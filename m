@@ -1,55 +1,54 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch V2 08/16] PCI: kill wrong warning message in pcieport driver
-Date: Tue, 17 Jun 2014 13:29:47 +0800
-Message-ID: <1402982995-13747-9-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC Patch V2 07/16] x86, irq, ACPI: protect acpi_pci_irq_enable() from reentrance
+Date: Tue, 17 Jun 2014 13:29:46 +0800
+Message-ID: <1402982995-13747-8-git-send-email-jiang.liu@linux.intel.com>
 References: <1402982995-13747-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1402982995-13747-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-For hot-added PCIe ports, it always generates a warning message on x86
-platforms when binding to pcieport driver as:
-	"device [8086:0e0b] has invalid IRQ; check vendor BIOS".
+Function acpi_pci_irq_enable() may be called twice for each PCI device
+present at boot time as below:
+1) pci_acpi_init()
+	--> acpi_pci_irq_enable()
+2) pci_enable_device()
+	--> pcibios_enable_device()
+		--> acpi_pci_irq_enable()
 
-It's due to that we check pci_dev->irq before actually allocating IRQ
-number for the PCI device:
-	if (!dev->irq && dev->pin) {
-		dev_warn(&dev->dev, "device [%04x:%04x] has invalid IRQ; "
-			 "check vendor BIOS\n", dev->vendor, dev->device);
-	}
- 	status = pcie_port_device_register(dev);
-		-->pci_enable_device(dev);
-			-->pci_enable_device_flags()
-				-->do_pci_enable_device()
-					-->pcibios_enable_device()
-						-->pcibios_enable_irq()
-
-This warning message isn't generated for PCIe ports present at boot time
-because x86 arch code has called acpi_pci_irq_enable() in pci_acpi_init()
-for each PCI device for safety.
+So protect acpi_pci_irq_enable() from reentrance to correctly manage
+IOAPIC pin reference count.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/pci/pcie/portdrv_pci.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/acpi/pci_irq.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/pci/pcie/portdrv_pci.c b/drivers/pci/pcie/portdrv_pci.c
-index 0d8fdc48e642..0e35f9670066 100644
---- a/drivers/pci/pcie/portdrv_pci.c
-+++ b/drivers/pci/pcie/portdrv_pci.c
-@@ -203,10 +203,6 @@ static int pcie_portdrv_probe(struct pci_dev *dev,
- 	     (pci_pcie_type(dev) != PCI_EXP_TYPE_DOWNSTREAM)))
- 		return -ENODEV;
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 6ba463ceccc6..9d2ebd5fd9aa 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -413,6 +413,9 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 		return 0;
+ 	}
  
--	if (!dev->irq && dev->pin) {
--		dev_warn(&dev->dev, "device [%04x:%04x] has invalid IRQ; "
--			 "check vendor BIOS\n", dev->vendor, dev->device);
--	}
- 	status = pcie_port_device_register(dev);
- 	if (status)
- 		return status;
++	if (dev->irq > 0)
++		return 0;
++
+ 	entry = acpi_pci_irq_lookup(dev, pin);
+ 	if (!entry) {
+ 		/*
+@@ -498,6 +501,8 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
+ 	 */
+ 
+ 	dev_dbg(&dev->dev, "PCI INT %c disabled\n", pin_name(pin));
+-	if (gsi >= 0 && dev->irq > 0)
++	if (gsi >= 0 && dev->irq > 0) {
+ 		acpi_unregister_gsi(gsi);
++		dev->irq = 0;
++	}
+ }
 -- 
 1.7.10.4
