@@ -1,52 +1,99 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/4] ACPI: Support _OSI("Darwin") correctly
-Date: Tue, 17 Jun 2014 15:46:15 +0100
-Message-ID: <20140617144614.GA16934@srcf.ucam.org>
-References: <1401640436-1947-1-git-send-email-matthew.garrett@nebula.com>
- <1401640436-1947-2-git-send-email-matthew.garrett@nebula.com>
- <7712179.sDPAd6Ubry@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [RFC Patch V2 03/16] ACPI, x86/PCI: Move resource_to_addr() to
+ acpi generic
+Date: Tue, 17 Jun 2014 10:05:33 -0600
+Message-ID: <CAErSpo4y9HQB-OcX8XwpXHW=xCvDQOJZgokG5iMqg705XZnevg@mail.gmail.com>
+References: <1402982995-13747-1-git-send-email-jiang.liu@linux.intel.com> <1402982995-13747-4-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:54985 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932972AbaFQOqd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2014 10:46:33 -0400
-Content-Disposition: inline
-In-Reply-To: <7712179.sDPAd6Ubry@vostro.rjw.lan>
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:60898 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933600AbaFQQFy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2014 12:05:54 -0400
+Received: by mail-ie0-f171.google.com with SMTP id x19so6562824ier.30
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jun 2014 09:05:53 -0700 (PDT)
+In-Reply-To: <1402982995-13747-4-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, "x86@kernel.org" <x86@kernel.org>, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Jun 17, 2014 at 02:11:36PM +0200, Rafael J. Wysocki wrote:
-> On Sunday, June 01, 2014 12:33:53 PM Matthew Garrett wrote:
-> > Apple hardware queries _OSI("Darwin") in order to determine whether the
-> > system is running OS X, and changes firmware behaviour based on the answer.
-> > The most obvious difference in behaviour is that Thunderbolt hardware is
-> > forcibly powered down unless the system is running OS X. The obvious solution
-> > would be to simply add Darwin to the list of supported _OSI strings, but this
-> > causes problems.
-> > 
-> > Recent Apple hardware includes two separate methods for checking _OSI
-> > strings. The first will check whether Darwin is supported, and if so will
-> > exit. The second will check whether Darwin is supported, but will then
-> > continue to check for further operating systems. If a further operating
-> > system is found then later firmware code will assume that the OS is not OS X.
-> > This results in the unfortunate situation where the Thunderbolt controller is
-> > available at boot time but remains powered down after suspend.
-> > 
-> > The easiest way to handle this is to special-case it in the Linux-specific
-> > OSI handling code. If we see Darwin, we should answer true and then disable
-> > all other _OSI vendor strings.
-> > 
-> > Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
-> 
-> Does applying this patch without the rest of the series makes things worse
-> or better on the machines in question (or perhaps it doesn't matter at all
-> alone)?
+On Mon, Jun 16, 2014 at 11:29 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> From: Yinghai Lu <yinghai@kernel.org>
+>
+> Rui Wang reported ioapic hot-add does not work on his machine
+> that _CRS have MEMORY_FIXED.
+> He also proposed to expose resource_to_addr() and use it for ioapic.
+>
+> We should move it to acpi generic, as ioapi.c current is in
 
-On its own, I think this will do nothing.
+s/ioapi.c/ioapic.c/
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> drivers/pci/.
+>
+> Or should move it to acpica?
+>
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 0bdacc5e26a3..e91deebf0930 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -424,6 +424,52 @@ void acpi_dev_free_resource_list(struct list_head *list)
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_dev_free_resource_list);
+>
+> +acpi_status acpi_mem_addr_resource_to_address64(struct acpi_resource *resource,
+> +                       struct acpi_resource_address64 *addr)
+> +{
+> +       acpi_status status;
+> +       struct acpi_resource_memory24 *memory24;
+> +       struct acpi_resource_memory32 *memory32;
+> +       struct acpi_resource_fixed_memory32 *fixed_memory32;
+> +
+> +       memset(addr, 0, sizeof(*addr));
+> +       switch (resource->type) {
+> +       case ACPI_RESOURCE_TYPE_MEMORY24:
+> +               memory24 = &resource->data.memory24;
+> +               addr->resource_type = ACPI_MEMORY_RANGE;
+> +               addr->minimum = memory24->minimum;
+> +               addr->address_length = memory24->address_length;
+> +               addr->maximum = addr->minimum + addr->address_length - 1;
+> +               return AE_OK;
+> +       case ACPI_RESOURCE_TYPE_MEMORY32:
+> +               memory32 = &resource->data.memory32;
+> +               addr->resource_type = ACPI_MEMORY_RANGE;
+> +               addr->minimum = memory32->minimum;
+> +               addr->address_length = memory32->address_length;
+> +               addr->maximum = addr->minimum + addr->address_length - 1;
+> +               return AE_OK;
+> +       case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+> +               fixed_memory32 = &resource->data.fixed_memory32;
+> +               addr->resource_type = ACPI_MEMORY_RANGE;
+> +               addr->minimum = fixed_memory32->address;
+> +               addr->address_length = fixed_memory32->address_length;
+> +               addr->maximum = addr->minimum + addr->address_length - 1;
+> +               return AE_OK;
+> +       case ACPI_RESOURCE_TYPE_ADDRESS16:
+> +       case ACPI_RESOURCE_TYPE_ADDRESS32:
+> +       case ACPI_RESOURCE_TYPE_ADDRESS64:
+> +               status = acpi_resource_to_address64(resource, addr);
+> +               if (ACPI_SUCCESS(status) &&
+> +                   (addr->resource_type == ACPI_MEMORY_RANGE ||
+> +                   addr->resource_type == ACPI_IO_RANGE) &&
+> +                   addr->address_length > 0) {
+> +                       return AE_OK;
+> +               }
+> +               break;
+> +       }
+> +       return AE_ERROR;
+> +}
+
+There's already very similar-looking code in acpi/resource.c, e.g.,
+acpi_dev_resource_address_space() and acpi_dev_resource_memory().  Can
+you use that existing code instead of adding new code that's mostly a
+duplication?
+
+Bjorn
