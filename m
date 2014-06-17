@@ -1,127 +1,117 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/4] ACPI: Support _OSI("Darwin") correctly
-Date: Tue, 17 Jun 2014 14:11:36 +0200
-Message-ID: <7712179.sDPAd6Ubry@vostro.rjw.lan>
-References: <1401640436-1947-1-git-send-email-matthew.garrett@nebula.com> <1401640436-1947-2-git-send-email-matthew.garrett@nebula.com>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH 5/7 REVISION] trace, RAS: Add eMCA trace event interface
+Date: Tue, 17 Jun 2014 08:59:16 -0400
+Message-ID: <20140617085916.33a3a428@gandalf.local.home>
+References: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
+	<1402553517-30208-1-git-send-email-gong.chen@linux.intel.com>
+	<20140612092808.5f7bec5e@gandalf.local.home>
+	<20140613021956.GA17509@gchen.bj.intel.com>
+	<20140612230117.46758e3c@gandalf.local.home>
+	<20140612230833.3c0f41b2@gandalf.local.home>
+	<20140613070928.GA29351@gchen.bj.intel.com>
+	<20140617020937.GA14404@gchen.bj.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54795 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753608AbaFQLyE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2014 07:54:04 -0400
-In-Reply-To: <1401640436-1947-2-git-send-email-matthew.garrett@nebula.com>
+Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.229]:27039 "EHLO
+	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755936AbaFQM7Z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jun 2014 08:59:25 -0400
+In-Reply-To: <20140617020937.GA14404@gchen.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com
+To: "Chen, Gong" <gong.chen@linux.intel.com>
+Cc: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, linux-acpi@vger.kernel.org
 
-On Sunday, June 01, 2014 12:33:53 PM Matthew Garrett wrote:
-> Apple hardware queries _OSI("Darwin") in order to determine whether the
-> system is running OS X, and changes firmware behaviour based on the answer.
-> The most obvious difference in behaviour is that Thunderbolt hardware is
-> forcibly powered down unless the system is running OS X. The obvious solution
-> would be to simply add Darwin to the list of supported _OSI strings, but this
-> causes problems.
+On Mon, 16 Jun 2014 22:09:37 -0400
+"Chen, Gong" <gong.chen@linux.intel.com> wrote:
+
+
 > 
-> Recent Apple hardware includes two separate methods for checking _OSI
-> strings. The first will check whether Darwin is supported, and if so will
-> exit. The second will check whether Darwin is supported, but will then
-> continue to check for further operating systems. If a further operating
-> system is found then later firmware code will assume that the OS is not OS X.
-> This results in the unfortunate situation where the Thunderbolt controller is
-> available at boot time but remains powered down after suspend.
-> 
-> The easiest way to handle this is to special-case it in the Linux-specific
-> OSI handling code. If we see Darwin, we should answer true and then disable
-> all other _OSI vendor strings.
-> 
-> Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
-
-Does applying this patch without the rest of the series makes things worse
-or better on the machines in question (or perhaps it doesn't matter at all
-alone)?
-
-Rafael
+> Any update, Steven?
 
 
-> ---
->  drivers/acpi/acpica/utosi.c |  1 +
->  drivers/acpi/osl.c          | 10 ++++++++++
->  include/acpi/actypes.h      | 25 +++++++++++++------------
->  3 files changed, 24 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/utosi.c b/drivers/acpi/acpica/utosi.c
-> index 685766f..63b0a3b 100644
-> --- a/drivers/acpi/acpica/utosi.c
-> +++ b/drivers/acpi/acpica/utosi.c
-> @@ -87,6 +87,7 @@ ACPI_MODULE_NAME("utosi")
->  static struct acpi_interface_info acpi_default_supported_interfaces[] = {
->  	/* Operating System Vendor Strings */
->  
-> +	{"Darwin", NULL, 0, ACPI_OSI_DARWIN},	/* OS X */
->  	{"Windows 2000", NULL, 0, ACPI_OSI_WIN_2000},	/* Windows 2000 */
->  	{"Windows 2001", NULL, 0, ACPI_OSI_WIN_XP},	/* Windows XP */
->  	{"Windows 2001 SP1", NULL, 0, ACPI_OSI_WIN_XP_SP1},	/* Windows XP SP1 */
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 6776c59..312ab5c 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -152,6 +152,16 @@ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
->  			osi_linux.dmi ? " via DMI" : "");
->  	}
->  
-> +	if (!strcmp("Darwin", interface)) {
-> +		/*
-> +		 * Apple firmware will behave poorly if it receives positive
-> +		 * answers to "Darwin" and any other OS. Respond positively
-> +		 * to Darwin and then disable all other vendor strings.
-> +		 */
-> +		acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
-> +		supported = ACPI_UINT32_MAX;
-> +	}
-> +
->  	return supported;
->  }
->  
-> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-> index e763565..1c2ef56 100644
-> --- a/include/acpi/actypes.h
-> +++ b/include/acpi/actypes.h
-> @@ -1210,17 +1210,18 @@ struct acpi_memory_list {
->  #define ACPI_ENABLE_ALL_FEATURE_STRINGS     (ACPI_ENABLE_INTERFACES | ACPI_FEATURE_STRINGS)
->  #define ACPI_ENABLE_ALL_STRINGS             (ACPI_ENABLE_INTERFACES | ACPI_VENDOR_STRINGS | ACPI_FEATURE_STRINGS)
->  
-> -#define ACPI_OSI_WIN_2000               0x01
-> -#define ACPI_OSI_WIN_XP                 0x02
-> -#define ACPI_OSI_WIN_XP_SP1             0x03
-> -#define ACPI_OSI_WINSRV_2003            0x04
-> -#define ACPI_OSI_WIN_XP_SP2             0x05
-> -#define ACPI_OSI_WINSRV_2003_SP1        0x06
-> -#define ACPI_OSI_WIN_VISTA              0x07
-> -#define ACPI_OSI_WINSRV_2008            0x08
-> -#define ACPI_OSI_WIN_VISTA_SP1          0x09
-> -#define ACPI_OSI_WIN_VISTA_SP2          0x0A
-> -#define ACPI_OSI_WIN_7                  0x0B
-> -#define ACPI_OSI_WIN_8                  0x0C
-> +#define ACPI_OSI_DARWIN                 0x01
-> +#define ACPI_OSI_WIN_2000               0x02
-> +#define ACPI_OSI_WIN_XP                 0x03
-> +#define ACPI_OSI_WIN_XP_SP1             0x04
-> +#define ACPI_OSI_WINSRV_2003            0x05
-> +#define ACPI_OSI_WIN_XP_SP2             0x06
-> +#define ACPI_OSI_WINSRV_2003_SP1        0x07
-> +#define ACPI_OSI_WIN_VISTA              0x08
-> +#define ACPI_OSI_WINSRV_2008            0x09
-> +#define ACPI_OSI_WIN_VISTA_SP1          0x0A
-> +#define ACPI_OSI_WIN_VISTA_SP2          0x0B
-> +#define ACPI_OSI_WIN_7                  0x0C
-> +#define ACPI_OSI_WIN_8                  0x0D
->  
->  #endif				/* __ACTYPES_H__ */
-> 
+Here, apply the below patch and then use "__field_struct()" instead of
+"__field()". That should work. If so, I can add it to my repo (needs
+some cleanup and documentation) in a separate branch that can be pulled
+to base your patches on top of.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+-- Steve
+
+diff --git a/include/trace/ftrace.h b/include/trace/ftrace.h
+index 0fd06fe..26b4f2e 100644
+--- a/include/trace/ftrace.h
++++ b/include/trace/ftrace.h
+@@ -44,6 +44,12 @@
+ #undef __field_ext
+ #define __field_ext(type, item, filter_type)	type	item;
+ 
++#undef __field_struct
++#define __field_struct(type, item)	type	item;
++
++#undef __field_struct_ext
++#define __field_struct_ext(type, item, filter_type)	type	item;
++
+ #undef __array
+ #define __array(type, item, len)	type	item[len];
+ 
+@@ -122,6 +128,12 @@
+ #undef __field_ext
+ #define __field_ext(type, item, filter_type)
+ 
++#undef __field_struct
++#define __field_struct(type, item)
++
++#undef __field_struct_ext
++#define __field_struct_ext(type, item, filter_type)
++
+ #undef __array
+ #define __array(type, item, len)
+ 
+@@ -315,9 +327,21 @@ static struct trace_event_functions ftrace_event_type_funcs_##call = {	\
+ 	if (ret)							\
+ 		return ret;
+ 
++#undef __field_struct_ext
++#define __field_struct_ext(type, item, filter_type)			\
++	ret = trace_define_field(event_call, #type, #item,		\
++				 offsetof(typeof(field), item),		\
++				 sizeof(field.item),			\
++				 0, filter_type);			\
++	if (ret)							\
++		return ret;
++
+ #undef __field
+ #define __field(type, item)	__field_ext(type, item, FILTER_OTHER)
+ 
++#undef __field_struct
++#define __field_struct(type, item) __field_struct_ext(type, item, FILTER_OTHER)
++
+ #undef __array
+ #define __array(type, item, len)					\
+ 	do {								\
+@@ -379,6 +403,12 @@ ftrace_define_fields_##call(struct ftrace_event_call *event_call)	\
+ #undef __field_ext
+ #define __field_ext(type, item, filter_type)
+ 
++#undef __field_struct
++#define __field_struct(type, item)
++
++#undef __field_struct_ext
++#define __field_struct_ext(type, item, filter_type)
++
+ #undef __array
+ #define __array(type, item, len)
+ 
+@@ -550,6 +580,9 @@ static inline notrace int ftrace_get_offsets_##call(			\
+ #undef __field
+ #define __field(type, item)
+ 
++#undef __field_struct
++#define __field_struct(type, item)
++
+ #undef __array
+ #define __array(type, item, len)
+ 
