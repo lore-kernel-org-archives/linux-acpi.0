@@ -1,81 +1,100 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch V2 00/16] Enable support of IOAPIC hotplug on x86 platforms
-Date: Tue, 17 Jun 2014 13:29:39 +0800
-Message-ID: <1402982995-13747-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:25172 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754472AbaFQF0r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jun 2014 01:26:47 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Subject: [RFC Patch V2 02/16] x86, ioapic: Find usable ioapic id for 64bit.
+Date: Tue, 17 Jun 2014 13:29:41 +0800
+Message-ID: <1402982995-13747-3-git-send-email-jiang.liu@linux.intel.com>
+References: <1402982995-13747-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1402982995-13747-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This patch set enhances IOAPIC core and ACPI drivers to support IOAPIC
-hotplug on x86 platforms. It's based on another patch set "use irqdomain
-to dynamically allocate IRQ for IOAPIC" at
-https://lkml.org/lkml/2014/6/9/44
+From: Yinghai Lu <yinghai@kernel.org>
 
-You may pull it from 
-https://github.com/jiangliu/linux.git ioapic/hotplug_v2
+Checking the id in register, if that is duplicated, will pick one and
+update id register.
 
-We have pick up several patches from Yinghai's original IOAPIC hotplug
-patch set and reimplemented IOAPIC driver as an ACPI driver instead of
-a PCI driver.
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ arch/x86/kernel/apic/io_apic.c |   38 +++++++++++++++++++++++++++++++++-----
+ 1 file changed, 33 insertions(+), 5 deletions(-)
 
-It has been tested on a 4-socket Intel SDV with socket hot-addition
-capability. Any suggestions are welcomed!
-
-Jiang Liu (10):
-  x86, irq, ACPI: protect acpi_pci_irq_enable() from reentrance
-  PCI: kill wrong warning message in pcieport driver
-  x86, irq: remove __init marker for functions will be used by IOAPIC
-    hotplug
-  x86, irq: refine mp_register_ioapic() to prepare for IOAPIC hotplug
-  x86, irq, ACPI: introduce a rwsem to protect IOAPIC operations from
-    hotplug
-  x86, irq, ACPI: implement interface to support ACPI based IOAPIC
-    hot-addition
-  x86, irq, ACPI: implement interface to support ACPI based IOAPIC
-    hot-removal
-  x86, irq: introduce helper to check whether an IOAPIC has been
-    registered
-  pci, ioapic: kill ioapic PCI driver
-  x86, irq, ACPI: implement ACPI driver to support IOAPIC hotplug
-
-Yinghai Lu (6):
-  x86, irq: Split out alloc_ioapic_save_registers()
-  x86, ioapic: Find usable ioapic id for 64bit.
-  ACPI, x86/PCI: Move resource_to_addr() to acpi generic
-  ACPI: Make map_mat_entry handle x2apic entry
-  ACPI: Move acpi_get_cpuid() to separated file
-  ACPI, ioapic: Add acpi_get_ioapic_id()
-
- arch/x86/include/asm/io_apic.h |    6 +-
- arch/x86/kernel/acpi/boot.c    |   74 +++++++++-
- arch/x86/kernel/apic/io_apic.c |  235 +++++++++++++++++++++++++-------
- arch/x86/pci/acpi.c            |   50 +------
- drivers/acpi/Kconfig           |    6 +
- drivers/acpi/Makefile          |    2 +
- drivers/acpi/apic_id.c         |  295 ++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/internal.h        |    7 +
- drivers/acpi/ioapic.c          |  231 +++++++++++++++++++++++++++++++
- drivers/acpi/pci_irq.c         |    7 +-
- drivers/acpi/pci_root.c        |    3 +
- drivers/acpi/processor_core.c  |  191 --------------------------
- drivers/acpi/resource.c        |   46 +++++++
- drivers/pci/Kconfig            |    7 -
- drivers/pci/Makefile           |    2 -
- drivers/pci/ioapic.c           |  121 ----------------
- drivers/pci/pcie/portdrv_pci.c |    4 -
- include/acpi/processor.h       |    3 -
- include/linux/acpi.h           |   11 ++
- 19 files changed, 868 insertions(+), 433 deletions(-)
- create mode 100644 drivers/acpi/apic_id.c
- create mode 100644 drivers/acpi/ioapic.c
- delete mode 100644 drivers/pci/ioapic.c
-
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index e97ec28f5269..e56bb94cd32a 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -3566,26 +3566,54 @@ static int __init io_apic_get_unique_id(int ioapic, int apic_id)
+ 	return apic_id;
+ }
+ 
+-static u8 __init io_apic_unique_id(u8 id)
++static u8 io_apic_unique_id(int idx, u8 id)
+ {
+ 	if ((boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) &&
+ 	    !APIC_XAPIC(apic_version[boot_cpu_physical_apicid]))
+-		return io_apic_get_unique_id(nr_ioapics, id);
++		return io_apic_get_unique_id(idx, id);
+ 	else
+ 		return id;
+ }
+ #else
+-static u8 __init io_apic_unique_id(u8 id)
++static u8 io_apic_unique_id(int idx, u8 id)
+ {
+ 	int i;
++	u8 new_id;
++	unsigned long flags;
+ 	DECLARE_BITMAP(used, 256);
++	union IO_APIC_reg_00 reg_00;
+ 
+ 	bitmap_zero(used, 256);
+ 	for_each_ioapic(i)
+ 		__set_bit(mpc_ioapic_id(i), used);
+ 	if (!test_bit(id, used))
+ 		return id;
+-	return find_first_zero_bit(used, 256);
++
++	/* check register at first */
++	raw_spin_lock_irqsave(&ioapic_lock, flags);
++	reg_00.raw = io_apic_read(idx, 0);
++	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
++	new_id = reg_00.bits.ID;
++	if (!test_bit(new_id, used)) {
++		apic_printk(APIC_VERBOSE, KERN_INFO
++			"IOAPIC[%d]: Using reg apic_id %d instead of %d\n",
++			 idx, new_id, id);
++		return new_id;
++	}
++
++	new_id = find_first_zero_bit(used, 256);
++	reg_00.bits.ID = new_id;
++	raw_spin_lock_irqsave(&ioapic_lock, flags);
++	io_apic_write(idx, 0, reg_00.raw);
++	reg_00.raw = io_apic_read(idx, 0);
++	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
++
++	/* Sanity check */
++	if (reg_00.bits.ID != new_id)
++		pr_warn("IOAPIC[%d]: Unable to change apic_id to %d!\n",
++			idx, new_id);
++
++	return new_id;
+ }
+ #endif
+ 
+@@ -3851,7 +3879,7 @@ void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
+ 		return;
+ 	}
+ 
+-	ioapics[idx].mp_config.apicid = io_apic_unique_id(id);
++	ioapics[idx].mp_config.apicid = io_apic_unique_id(idx, id);
+ 	ioapics[idx].mp_config.apicver = io_apic_get_version(idx);
+ 
+ 	/*
 -- 
 1.7.10.4
-
