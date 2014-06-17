@@ -1,69 +1,66 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] ACPI / LPSS: Take I2C host controllers out of reset
-Date: Tue, 17 Jun 2014 14:33:39 +0300
-Message-ID: <1403004819-8906-1-git-send-email-mika.westerberg@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi/battery: fix wrong value of capacity_now reported by few battery types when fully charged (resend)
+Date: Tue, 17 Jun 2014 14:09:22 +0200
+Message-ID: <3564280.IKKn41NV0x@vostro.rjw.lan>
+References: <20140612145813.GB14085@dashie>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:12508 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752049AbaFQLdm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jun 2014 07:33:42 -0400
+Received: from v094114.home.net.pl ([79.96.170.134]:62152 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753608AbaFQLvu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2014 07:51:50 -0400
+In-Reply-To: <20140612145813.GB14085@dashie>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
+To: Josef Gajdusek <atx@atx.name>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Intel Baytrail, some I2C host controllers are held in reset when the OS
-gets control. This causes the driver to fail to detect the hardware
-properly.
+On Thursday, June 12, 2014 04:58:13 PM Josef Gajdusek wrote:
+> It seems that some batteries (noticed on DELL JYPJ136) assume 
+> capacity_now = design_capacity when fully charged. This causes 
+> reported capacity to suddenly jump to >full_charge_capacity (and that 
+> means capacity reported to userspace is >100% and incorrect) 
+> values after 99%. This patch attempts to detect this bug and trims 
+> capacity_now properly.
+> 
+> Signed-off-by: Josef Gajdusek <atx@atx.name>
+> ---
+> Oops, I forgot to sign the previous one.
+> 
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index e48fc98..3338dd5 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -532,6 +532,14 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
+>  			" invalid.\n");
+>  	}
+>  
+> +	/* When fully charged, some batteries wrongly report
+> +	 * capacity_now = design_capacity instead of = full_charge_capacity
+> +	 */
+> +	if (battery->capacity_now == battery->design_capacity &&
 
-Fix this so that we make sure that the I2C host controller is not in reset
-when the driver gets probe'd.
+Why don't you use the
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/acpi/acpi_lpss.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+	battery->capacity_now > battery->full_charge_capacity
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 63407d264885..9cb65b0e7597 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -34,6 +34,9 @@ ACPI_MODULE_NAME("acpi_lpss");
- 
- /* Offsets relative to LPSS_PRIVATE_OFFSET */
- #define LPSS_CLK_DIVIDER_DEF_MASK	(BIT(1) | BIT(16))
-+#define LPSS_RESETS			0x04
-+#define LPSS_RESETS_RESET_FUNC		BIT(0)
-+#define LPSS_RESETS_RESET_APB		BIT(1)
- #define LPSS_GENERAL			0x08
- #define LPSS_GENERAL_LTR_MODE_SW	BIT(2)
- #define LPSS_GENERAL_UART_RTS_OVRD	BIT(3)
-@@ -99,6 +102,17 @@ static void lpss_uart_setup(struct lpss_private_data *pdata)
- 	writel(reg | LPSS_GENERAL_UART_RTS_OVRD, pdata->mmio_base + offset);
- }
- 
-+static void lpss_i2c_setup(struct lpss_private_data *pdata)
-+{
-+	unsigned int offset;
-+	u32 val;
-+
-+	offset = pdata->dev_desc->prv_offset + LPSS_RESETS;
-+	val = readl(pdata->mmio_base + offset);
-+	val |= LPSS_RESETS_RESET_APB | LPSS_RESETS_RESET_FUNC;
-+	writel(val, pdata->mmio_base + offset);
-+}
-+
- static struct lpss_device_desc lpt_dev_desc = {
- 	.clk_required = true,
- 	.prv_offset = 0x800,
-@@ -171,6 +185,7 @@ static struct lpss_device_desc byt_i2c_dev_desc = {
- 	.prv_offset = 0x800,
- 	.save_ctx = true,
- 	.shared_clock = &i2c_clock,
-+	.setup = lpss_i2c_setup,
- };
- 
- #else
+check here?  That would be more robust, wouldn't it?
+
+> +	    battery->full_charge_capacity != ACPI_BATTERY_VALUE_UNKNOWN)
+> +		battery->capacity_now = battery->full_charge_capacity;
+> +
+> +
+>  	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags)
+>  	    && battery->capacity_now >= 0 && battery->capacity_now <= 100)
+>  		battery->capacity_now = (battery->capacity_now *
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 -- 
-2.0.0
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
