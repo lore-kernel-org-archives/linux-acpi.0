@@ -1,99 +1,75 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [RFC Patch V2 03/16] ACPI, x86/PCI: Move resource_to_addr() to
- acpi generic
-Date: Tue, 17 Jun 2014 10:05:33 -0600
-Message-ID: <CAErSpo4y9HQB-OcX8XwpXHW=xCvDQOJZgokG5iMqg705XZnevg@mail.gmail.com>
-References: <1402982995-13747-1-git-send-email-jiang.liu@linux.intel.com> <1402982995-13747-4-git-send-email-jiang.liu@linux.intel.com>
+Subject: Re: [RFC Patch V2 08/16] PCI: kill wrong warning message in pcieport driver
+Date: Tue, 17 Jun 2014 10:11:44 -0600
+Message-ID: <CAErSpo7pAv=v7JQp2UoNxYN8Pdj788NPP8OsLkM3p8NuwL_6Wg@mail.gmail.com>
+References: <1402982995-13747-1-git-send-email-jiang.liu@linux.intel.com> <1402982995-13747-9-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:60898 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933600AbaFQQFy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2014 12:05:54 -0400
-Received: by mail-ie0-f171.google.com with SMTP id x19so6562824ier.30
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Jun 2014 09:05:53 -0700 (PDT)
-In-Reply-To: <1402982995-13747-4-git-send-email-jiang.liu@linux.intel.com>
+Received: from mail-ie0-f173.google.com ([209.85.223.173]:45998 "EHLO
+	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756389AbaFQQMF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2014 12:12:05 -0400
+Received: by mail-ie0-f173.google.com with SMTP id y20so6481829ier.4
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Jun 2014 09:12:04 -0700 (PDT)
+In-Reply-To: <1402982995-13747-9-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, "x86@kernel.org" <x86@kernel.org>, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+
+Please pay attention to the existing convention of changelog summaries
+(email subject lines), including spacing and capitalization.  "git log
+--oneline drivers/pci/pcie" is a good way to see the pattern.  In this
+case, you could use something like this:
+
+  PCI/portdrv: Remove warning about invalid IRQ
 
 On Mon, Jun 16, 2014 at 11:29 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> From: Yinghai Lu <yinghai@kernel.org>
+> For hot-added PCIe ports, it always generates a warning message on x86
+> platforms when binding to pcieport driver as:
+>         "device [8086:0e0b] has invalid IRQ; check vendor BIOS".
 >
-> Rui Wang reported ioapic hot-add does not work on his machine
-> that _CRS have MEMORY_FIXED.
-> He also proposed to expose resource_to_addr() and use it for ioapic.
+> It's due to that we check pci_dev->irq before actually allocating IRQ
+> number for the PCI device:
+>         if (!dev->irq && dev->pin) {
+>                 dev_warn(&dev->dev, "device [%04x:%04x] has invalid IRQ; "
+>                          "check vendor BIOS\n", dev->vendor, dev->device);
+>         }
+>         status = pcie_port_device_register(dev);
+>                 -->pci_enable_device(dev);
+>                         -->pci_enable_device_flags()
+>                                 -->do_pci_enable_device()
+>                                         -->pcibios_enable_device()
+>                                                 -->pcibios_enable_irq()
 >
-> We should move it to acpi generic, as ioapi.c current is in
-
-s/ioapi.c/ioapic.c/
-
-> drivers/pci/.
+> This warning message isn't generated for PCIe ports present at boot time
+> because x86 arch code has called acpi_pci_irq_enable() in pci_acpi_init()
+> for each PCI device for safety.
 >
-> Or should move it to acpica?
->
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 > Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 0bdacc5e26a3..e91deebf0930 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -424,6 +424,52 @@ void acpi_dev_free_resource_list(struct list_head *list)
->  }
->  EXPORT_SYMBOL_GPL(acpi_dev_free_resource_list);
+> ---
+>  drivers/pci/pcie/portdrv_pci.c |    4 ----
+>  1 file changed, 4 deletions(-)
 >
-> +acpi_status acpi_mem_addr_resource_to_address64(struct acpi_resource *resource,
-> +                       struct acpi_resource_address64 *addr)
-> +{
-> +       acpi_status status;
-> +       struct acpi_resource_memory24 *memory24;
-> +       struct acpi_resource_memory32 *memory32;
-> +       struct acpi_resource_fixed_memory32 *fixed_memory32;
-> +
-> +       memset(addr, 0, sizeof(*addr));
-> +       switch (resource->type) {
-> +       case ACPI_RESOURCE_TYPE_MEMORY24:
-> +               memory24 = &resource->data.memory24;
-> +               addr->resource_type = ACPI_MEMORY_RANGE;
-> +               addr->minimum = memory24->minimum;
-> +               addr->address_length = memory24->address_length;
-> +               addr->maximum = addr->minimum + addr->address_length - 1;
-> +               return AE_OK;
-> +       case ACPI_RESOURCE_TYPE_MEMORY32:
-> +               memory32 = &resource->data.memory32;
-> +               addr->resource_type = ACPI_MEMORY_RANGE;
-> +               addr->minimum = memory32->minimum;
-> +               addr->address_length = memory32->address_length;
-> +               addr->maximum = addr->minimum + addr->address_length - 1;
-> +               return AE_OK;
-> +       case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
-> +               fixed_memory32 = &resource->data.fixed_memory32;
-> +               addr->resource_type = ACPI_MEMORY_RANGE;
-> +               addr->minimum = fixed_memory32->address;
-> +               addr->address_length = fixed_memory32->address_length;
-> +               addr->maximum = addr->minimum + addr->address_length - 1;
-> +               return AE_OK;
-> +       case ACPI_RESOURCE_TYPE_ADDRESS16:
-> +       case ACPI_RESOURCE_TYPE_ADDRESS32:
-> +       case ACPI_RESOURCE_TYPE_ADDRESS64:
-> +               status = acpi_resource_to_address64(resource, addr);
-> +               if (ACPI_SUCCESS(status) &&
-> +                   (addr->resource_type == ACPI_MEMORY_RANGE ||
-> +                   addr->resource_type == ACPI_IO_RANGE) &&
-> +                   addr->address_length > 0) {
-> +                       return AE_OK;
-> +               }
-> +               break;
-> +       }
-> +       return AE_ERROR;
-> +}
+> diff --git a/drivers/pci/pcie/portdrv_pci.c b/drivers/pci/pcie/portdrv_pci.c
+> index 0d8fdc48e642..0e35f9670066 100644
+> --- a/drivers/pci/pcie/portdrv_pci.c
+> +++ b/drivers/pci/pcie/portdrv_pci.c
+> @@ -203,10 +203,6 @@ static int pcie_portdrv_probe(struct pci_dev *dev,
+>              (pci_pcie_type(dev) != PCI_EXP_TYPE_DOWNSTREAM)))
+>                 return -ENODEV;
+>
+> -       if (!dev->irq && dev->pin) {
+> -               dev_warn(&dev->dev, "device [%04x:%04x] has invalid IRQ; "
+> -                        "check vendor BIOS\n", dev->vendor, dev->device);
+> -       }
 
-There's already very similar-looking code in acpi/resource.c, e.g.,
-acpi_dev_resource_address_space() and acpi_dev_resource_memory().  Can
-you use that existing code instead of adding new code that's mostly a
-duplication?
+This needs to be rebased to v3.16-rc1.
 
-Bjorn
+>         status = pcie_port_device_register(dev);
+>         if (status)
+>                 return status;
+> --
+> 1.7.10.4
+>
