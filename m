@@ -1,65 +1,126 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi/battery: fix wrong value of capacity_now reported by few battery types when fully charged (resend)
-Date: Tue, 17 Jun 2014 14:09:22 +0200
-Message-ID: <3564280.IKKn41NV0x@vostro.rjw.lan>
-References: <20140612145813.GB14085@dashie>
+Subject: Re: [PATCH 1/4] ACPI: Support _OSI("Darwin") correctly
+Date: Tue, 17 Jun 2014 14:11:36 +0200
+Message-ID: <7712179.sDPAd6Ubry@vostro.rjw.lan>
+References: <1401640436-1947-1-git-send-email-matthew.garrett@nebula.com> <1401640436-1947-2-git-send-email-matthew.garrett@nebula.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62152 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:54795 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753608AbaFQLvu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2014 07:51:50 -0400
-In-Reply-To: <20140612145813.GB14085@dashie>
+	with SMTP id S1753608AbaFQLyE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jun 2014 07:54:04 -0400
+In-Reply-To: <1401640436-1947-2-git-send-email-matthew.garrett@nebula.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Josef Gajdusek <atx@atx.name>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com
 
-On Thursday, June 12, 2014 04:58:13 PM Josef Gajdusek wrote:
-> It seems that some batteries (noticed on DELL JYPJ136) assume 
-> capacity_now = design_capacity when fully charged. This causes 
-> reported capacity to suddenly jump to >full_charge_capacity (and that 
-> means capacity reported to userspace is >100% and incorrect) 
-> values after 99%. This patch attempts to detect this bug and trims 
-> capacity_now properly.
+On Sunday, June 01, 2014 12:33:53 PM Matthew Garrett wrote:
+> Apple hardware queries _OSI("Darwin") in order to determine whether the
+> system is running OS X, and changes firmware behaviour based on the answer.
+> The most obvious difference in behaviour is that Thunderbolt hardware is
+> forcibly powered down unless the system is running OS X. The obvious solution
+> would be to simply add Darwin to the list of supported _OSI strings, but this
+> causes problems.
 > 
-> Signed-off-by: Josef Gajdusek <atx@atx.name>
+> Recent Apple hardware includes two separate methods for checking _OSI
+> strings. The first will check whether Darwin is supported, and if so will
+> exit. The second will check whether Darwin is supported, but will then
+> continue to check for further operating systems. If a further operating
+> system is found then later firmware code will assume that the OS is not OS X.
+> This results in the unfortunate situation where the Thunderbolt controller is
+> available at boot time but remains powered down after suspend.
+> 
+> The easiest way to handle this is to special-case it in the Linux-specific
+> OSI handling code. If we see Darwin, we should answer true and then disable
+> all other _OSI vendor strings.
+> 
+> Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
+
+Does applying this patch without the rest of the series makes things worse
+or better on the machines in question (or perhaps it doesn't matter at all
+alone)?
+
+Rafael
+
+
 > ---
-> Oops, I forgot to sign the previous one.
+>  drivers/acpi/acpica/utosi.c |  1 +
+>  drivers/acpi/osl.c          | 10 ++++++++++
+>  include/acpi/actypes.h      | 25 +++++++++++++------------
+>  3 files changed, 24 insertions(+), 12 deletions(-)
 > 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index e48fc98..3338dd5 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -532,6 +532,14 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
->  			" invalid.\n");
+> diff --git a/drivers/acpi/acpica/utosi.c b/drivers/acpi/acpica/utosi.c
+> index 685766f..63b0a3b 100644
+> --- a/drivers/acpi/acpica/utosi.c
+> +++ b/drivers/acpi/acpica/utosi.c
+> @@ -87,6 +87,7 @@ ACPI_MODULE_NAME("utosi")
+>  static struct acpi_interface_info acpi_default_supported_interfaces[] = {
+>  	/* Operating System Vendor Strings */
+>  
+> +	{"Darwin", NULL, 0, ACPI_OSI_DARWIN},	/* OS X */
+>  	{"Windows 2000", NULL, 0, ACPI_OSI_WIN_2000},	/* Windows 2000 */
+>  	{"Windows 2001", NULL, 0, ACPI_OSI_WIN_XP},	/* Windows XP */
+>  	{"Windows 2001 SP1", NULL, 0, ACPI_OSI_WIN_XP_SP1},	/* Windows XP SP1 */
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 6776c59..312ab5c 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -152,6 +152,16 @@ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
+>  			osi_linux.dmi ? " via DMI" : "");
 >  	}
 >  
-> +	/* When fully charged, some batteries wrongly report
-> +	 * capacity_now = design_capacity instead of = full_charge_capacity
-> +	 */
-> +	if (battery->capacity_now == battery->design_capacity &&
-
-Why don't you use the
-
-	battery->capacity_now > battery->full_charge_capacity
-
-check here?  That would be more robust, wouldn't it?
-
-> +	    battery->full_charge_capacity != ACPI_BATTERY_VALUE_UNKNOWN)
-> +		battery->capacity_now = battery->full_charge_capacity;
+> +	if (!strcmp("Darwin", interface)) {
+> +		/*
+> +		 * Apple firmware will behave poorly if it receives positive
+> +		 * answers to "Darwin" and any other OS. Respond positively
+> +		 * to Darwin and then disable all other vendor strings.
+> +		 */
+> +		acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
+> +		supported = ACPI_UINT32_MAX;
+> +	}
 > +
-> +
->  	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags)
->  	    && battery->capacity_now >= 0 && battery->capacity_now <= 100)
->  		battery->capacity_now = (battery->capacity_now *
+>  	return supported;
+>  }
+>  
+> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+> index e763565..1c2ef56 100644
+> --- a/include/acpi/actypes.h
+> +++ b/include/acpi/actypes.h
+> @@ -1210,17 +1210,18 @@ struct acpi_memory_list {
+>  #define ACPI_ENABLE_ALL_FEATURE_STRINGS     (ACPI_ENABLE_INTERFACES | ACPI_FEATURE_STRINGS)
+>  #define ACPI_ENABLE_ALL_STRINGS             (ACPI_ENABLE_INTERFACES | ACPI_VENDOR_STRINGS | ACPI_FEATURE_STRINGS)
+>  
+> -#define ACPI_OSI_WIN_2000               0x01
+> -#define ACPI_OSI_WIN_XP                 0x02
+> -#define ACPI_OSI_WIN_XP_SP1             0x03
+> -#define ACPI_OSI_WINSRV_2003            0x04
+> -#define ACPI_OSI_WIN_XP_SP2             0x05
+> -#define ACPI_OSI_WINSRV_2003_SP1        0x06
+> -#define ACPI_OSI_WIN_VISTA              0x07
+> -#define ACPI_OSI_WINSRV_2008            0x08
+> -#define ACPI_OSI_WIN_VISTA_SP1          0x09
+> -#define ACPI_OSI_WIN_VISTA_SP2          0x0A
+> -#define ACPI_OSI_WIN_7                  0x0B
+> -#define ACPI_OSI_WIN_8                  0x0C
+> +#define ACPI_OSI_DARWIN                 0x01
+> +#define ACPI_OSI_WIN_2000               0x02
+> +#define ACPI_OSI_WIN_XP                 0x03
+> +#define ACPI_OSI_WIN_XP_SP1             0x04
+> +#define ACPI_OSI_WINSRV_2003            0x05
+> +#define ACPI_OSI_WIN_XP_SP2             0x06
+> +#define ACPI_OSI_WINSRV_2003_SP1        0x07
+> +#define ACPI_OSI_WIN_VISTA              0x08
+> +#define ACPI_OSI_WINSRV_2008            0x09
+> +#define ACPI_OSI_WIN_VISTA_SP1          0x0A
+> +#define ACPI_OSI_WIN_VISTA_SP2          0x0B
+> +#define ACPI_OSI_WIN_7                  0x0C
+> +#define ACPI_OSI_WIN_8                  0x0D
+>  
+>  #endif				/* __ACTYPES_H__ */
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 I speak only for myself.
