@@ -1,42 +1,81 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH 5/7 REVISION] trace, RAS: Add eMCA trace event interface
-Date: Mon, 16 Jun 2014 23:37:49 -0400
-Message-ID: <20140616233749.472272c0@gandalf.local.home>
-References: <1402475691-30045-1-git-send-email-gong.chen@linux.intel.com>
-	<1402553517-30208-1-git-send-email-gong.chen@linux.intel.com>
-	<20140612092808.5f7bec5e@gandalf.local.home>
-	<20140613021956.GA17509@gchen.bj.intel.com>
-	<20140612230117.46758e3c@gandalf.local.home>
-	<20140612230833.3c0f41b2@gandalf.local.home>
-	<20140613070928.GA29351@gchen.bj.intel.com>
-	<20140617020937.GA14404@gchen.bj.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [RFC Patch V2 00/16] Enable support of IOAPIC hotplug on x86 platforms
+Date: Tue, 17 Jun 2014 13:29:39 +0800
+Message-ID: <1402982995-13747-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.232]:29048 "EHLO
-	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755087AbaFQDh6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Jun 2014 23:37:58 -0400
-In-Reply-To: <20140617020937.GA14404@gchen.bj.intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:25172 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754472AbaFQF0r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jun 2014 01:26:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Gong" <gong.chen@linux.intel.com>
-Cc: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, linux-acpi@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, 16 Jun 2014 22:09:37 -0400
-"Chen, Gong" <gong.chen@linux.intel.com> wrote:
+This patch set enhances IOAPIC core and ACPI drivers to support IOAPIC
+hotplug on x86 platforms. It's based on another patch set "use irqdomain
+to dynamically allocate IRQ for IOAPIC" at
+https://lkml.org/lkml/2014/6/9/44
 
-> 
-> Any update, Steven?
+You may pull it from 
+https://github.com/jiangliu/linux.git ioapic/hotplug_v2
 
-Sorry I missed this. Claws-mail has an annoying tendency when I have
-something selected and I get new mail, it turns all my mail to read
-except the mail that just came in. I need to figure out that bug and
-fix it :-(
+We have pick up several patches from Yinghai's original IOAPIC hotplug
+patch set and reimplemented IOAPIC driver as an ACPI driver instead of
+a PCI driver.
 
-Anyway, I know what your issue is. It's the check for signed type. It
-doesn't work for structures. I'm working on a way to fix that.
+It has been tested on a 4-socket Intel SDV with socket hot-addition
+capability. Any suggestions are welcomed!
 
--- Steve
+Jiang Liu (10):
+  x86, irq, ACPI: protect acpi_pci_irq_enable() from reentrance
+  PCI: kill wrong warning message in pcieport driver
+  x86, irq: remove __init marker for functions will be used by IOAPIC
+    hotplug
+  x86, irq: refine mp_register_ioapic() to prepare for IOAPIC hotplug
+  x86, irq, ACPI: introduce a rwsem to protect IOAPIC operations from
+    hotplug
+  x86, irq, ACPI: implement interface to support ACPI based IOAPIC
+    hot-addition
+  x86, irq, ACPI: implement interface to support ACPI based IOAPIC
+    hot-removal
+  x86, irq: introduce helper to check whether an IOAPIC has been
+    registered
+  pci, ioapic: kill ioapic PCI driver
+  x86, irq, ACPI: implement ACPI driver to support IOAPIC hotplug
+
+Yinghai Lu (6):
+  x86, irq: Split out alloc_ioapic_save_registers()
+  x86, ioapic: Find usable ioapic id for 64bit.
+  ACPI, x86/PCI: Move resource_to_addr() to acpi generic
+  ACPI: Make map_mat_entry handle x2apic entry
+  ACPI: Move acpi_get_cpuid() to separated file
+  ACPI, ioapic: Add acpi_get_ioapic_id()
+
+ arch/x86/include/asm/io_apic.h |    6 +-
+ arch/x86/kernel/acpi/boot.c    |   74 +++++++++-
+ arch/x86/kernel/apic/io_apic.c |  235 +++++++++++++++++++++++++-------
+ arch/x86/pci/acpi.c            |   50 +------
+ drivers/acpi/Kconfig           |    6 +
+ drivers/acpi/Makefile          |    2 +
+ drivers/acpi/apic_id.c         |  295 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/internal.h        |    7 +
+ drivers/acpi/ioapic.c          |  231 +++++++++++++++++++++++++++++++
+ drivers/acpi/pci_irq.c         |    7 +-
+ drivers/acpi/pci_root.c        |    3 +
+ drivers/acpi/processor_core.c  |  191 --------------------------
+ drivers/acpi/resource.c        |   46 +++++++
+ drivers/pci/Kconfig            |    7 -
+ drivers/pci/Makefile           |    2 -
+ drivers/pci/ioapic.c           |  121 ----------------
+ drivers/pci/pcie/portdrv_pci.c |    4 -
+ include/acpi/processor.h       |    3 -
+ include/linux/acpi.h           |   11 ++
+ 19 files changed, 868 insertions(+), 433 deletions(-)
+ create mode 100644 drivers/acpi/apic_id.c
+ create mode 100644 drivers/acpi/ioapic.c
+ delete mode 100644 drivers/pci/ioapic.c
+
+-- 
+1.7.10.4
+
