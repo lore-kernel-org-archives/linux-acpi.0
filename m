@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 6/9] ACPI/EC: Introduce STARTED/STOPPED flags to replace BLOCKED flag.
-Date: Wed, 18 Jun 2014 11:17:57 +0800
-Message-ID: <754e8ad1ca548b66ccb76c3bd40a4a089aeaaeef.1403060601.git.lv.zheng@intel.com>
+Subject: [PATCH 4/9] ACPICA: Events: Remove acpi_ev_enable_gpe().
+Date: Wed, 18 Jun 2014 11:17:42 +0800
+Message-ID: <37a853c70454f8767c3e9ae6dee1596d517d3ee4.1403060601.git.lv.zheng@intel.com>
 References: <cover.1403060601.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1403060601.git.lv.zheng@intel.com>
@@ -10,170 +10,84 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-By using the 2 flags, we can indicate an inter-mediate state where the
-current transactions should be completed while the new transactions should
-be blocked.
+The stale GPE indication is not a problem. Drivers should always check the
+underlying hardware status and be ready to handle invalid status.
+
+The GPE clearing implemented in acpi_ev_enable_gpe() on the contrary
+introduces issues for acpi_enable_gpe() logic. When the usage count of GPE is
+increased by suspend/resume code, GPE status shouldn't be cleared, or a GPE
+loss could happen when the driver relies on the interrupt mode.
+
+With previous cleanup, all acpi_ev_enable_gpe() usages are removed, this patch
+also removes this internal API. Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/ec.c |   56 +++++++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 42 insertions(+), 14 deletions(-)
+ drivers/acpi/acpica/evgpe.c |   45 +++----------------------------------------
+ 1 file changed, 3 insertions(+), 42 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index c3299f6..6891370 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -79,7 +79,8 @@ enum {
- 	EC_FLAGS_GPE_STORM,		/* GPE storm detected */
- 	EC_FLAGS_HANDLERS_INSTALLED,	/* Handlers for GPE and
- 					 * OpReg are installed */
--	EC_FLAGS_BLOCKED,		/* Transactions are blocked */
-+	EC_FLAGS_STARTED,		/* Driver is started */
-+	EC_FLAGS_STOPPED,		/* Driver is stopped */
- };
+diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+index 3ab56d7..64f6d41 100644
+--- a/drivers/acpi/acpica/evgpe.c
++++ b/drivers/acpi/acpica/evgpe.c
+@@ -98,47 +98,6 @@ acpi_ev_update_gpe_enable_mask(struct acpi_gpe_event_info *gpe_event_info)
  
- #define ACPI_EC_COMMAND_POLL		0x01 /* Available for command byte */
-@@ -285,15 +286,25 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
- 		udelay(ACPI_EC_MSI_UDELAY);
- 	/* start transaction */
- 	spin_lock_irqsave(&ec->lock, tmp);
-+	if (!test_bit(EC_FLAGS_STARTED, &ec->flags) ||
-+	    test_bit(EC_FLAGS_STOPPED, &ec->flags)) {
-+		ret = -EINVAL;
-+		goto unlock;
-+	}
- 	/* following two actions should be kept atomic */
- 	ec->curr = t;
-+	pr_debug("***** transaction started (cmd=0x%02x, addr=0x%02x) *****\n",
-+		 t->command, t->wdata ? t->wdata[0] : 0);
- 	start_transaction(ec);
- 	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
- 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
- 	spin_unlock_irqrestore(&ec->lock, tmp);
- 	ret = ec_poll(ec);
- 	spin_lock_irqsave(&ec->lock, tmp);
-+	pr_debug("***** transaction stopped (cmd=0x%02x, addr=0x%02x) *****\n",
-+		 t->command, t->wdata ? t->wdata[0] : 0);
- 	ec->curr = NULL;
-+unlock:
- 	spin_unlock_irqrestore(&ec->lock, tmp);
- 	return ret;
- }
-@@ -307,10 +318,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 	if (t->rdata)
- 		memset(t->rdata, 0, t->rlen);
- 	mutex_lock(&ec->mutex);
--	if (test_bit(EC_FLAGS_BLOCKED, &ec->flags)) {
--		status = -EINVAL;
--		goto unlock;
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_ev_enable_gpe
+- *
+- * PARAMETERS:  gpe_event_info  - GPE to enable
+- *
+- * RETURN:      Status
+- *
+- * DESCRIPTION: Clear a GPE of stale events and enable it.
+- *
+- ******************************************************************************/
+-acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
+-{
+-	acpi_status status;
+-
+-	ACPI_FUNCTION_TRACE(ev_enable_gpe);
+-
+-	/*
+-	 * We will only allow a GPE to be enabled if it has either an associated
+-	 * method (_Lxx/_Exx) or a handler, or is using the implicit notify
+-	 * feature. Otherwise, the GPE will be immediately disabled by
+-	 * acpi_ev_gpe_dispatch the first time it fires.
+-	 */
+-	if ((gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) ==
+-	    ACPI_GPE_DISPATCH_NONE) {
+-		return_ACPI_STATUS(AE_NO_HANDLER);
 -	}
- 	if (ec->global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
- 		if (ACPI_FAILURE(status)) {
-@@ -318,8 +325,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 			goto unlock;
+-
+-	/* Clear the GPE (of stale events) */
+-	status = acpi_hw_clear_gpe(gpe_event_info);
+-	if (ACPI_FAILURE(status)) {
+-		return_ACPI_STATUS(status);
+-	}
+-
+-	/* Enable the requested GPE */
+-
+-	status = acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_ENABLE);
+-	return_ACPI_STATUS(status);
+-}
+-
+-
+-/*******************************************************************************
+- *
+  * FUNCTION:    acpi_ev_add_gpe_reference
+  *
+  * PARAMETERS:  gpe_event_info          - Add a reference to this GPE
+@@ -168,7 +127,9 @@ acpi_ev_add_gpe_reference(struct acpi_gpe_event_info *gpe_event_info)
+ 
+ 		status = acpi_ev_update_gpe_enable_mask(gpe_event_info);
+ 		if (ACPI_SUCCESS(status)) {
+-			status = acpi_ev_enable_gpe(gpe_event_info);
++			status =
++			    acpi_hw_low_set_gpe(gpe_event_info,
++						ACPI_GPE_ENABLE);
  		}
- 	}
--	pr_debug("transaction start (cmd=0x%02x, addr=0x%02x)\n",
--			t->command, t->wdata ? t->wdata[0] : 0);
- 	/* disable GPE during transaction if storm is detected */
- 	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
- 		/* It has to be disabled, so that it doesn't trigger. */
-@@ -340,7 +345,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 			t->irq_count);
- 		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
- 	}
--	pr_debug("transaction end\n");
- 	if (ec->global_lock)
- 		acpi_release_global_lock(glk);
- unlock:
-@@ -470,6 +474,30 @@ static void acpi_ec_clear(struct acpi_ec *ec)
- 		pr_info("%d stale EC events cleared\n", i);
- }
  
-+static void acpi_ec_start(struct acpi_ec *ec)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ec->lock, flags);
-+	if (!test_and_set_bit(EC_FLAGS_STARTED, &ec->flags))
-+		acpi_enable_gpe(NULL, ec->gpe);
-+	spin_unlock_irqrestore(&ec->lock, flags);
-+}
-+
-+static void acpi_ec_stop(struct acpi_ec *ec)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ec->lock, flags);
-+	if (test_bit(EC_FLAGS_STARTED, &ec->flags) &&
-+	    !test_and_set_bit(EC_FLAGS_STOPPED, &ec->flags)) {
-+		acpi_disable_gpe(NULL, ec->gpe);
-+		clear_bit(EC_FLAGS_STARTED, &ec->flags);
-+		clear_bit(EC_FLAGS_STOPPED, &ec->flags);
-+	}
-+	spin_unlock_irqrestore(&ec->lock, flags);
-+}
-+
- void acpi_ec_block_transactions(void)
- {
- 	struct acpi_ec *ec = first_ec;
-@@ -479,7 +507,7 @@ void acpi_ec_block_transactions(void)
- 
- 	mutex_lock(&ec->mutex);
- 	/* Prevent transactions from being carried out */
--	set_bit(EC_FLAGS_BLOCKED, &ec->flags);
-+	acpi_ec_stop(ec);
- 	mutex_unlock(&ec->mutex);
- }
- 
-@@ -492,7 +520,7 @@ void acpi_ec_unblock_transactions(void)
- 
- 	mutex_lock(&ec->mutex);
- 	/* Allow transactions to be carried out again */
--	clear_bit(EC_FLAGS_BLOCKED, &ec->flags);
-+	acpi_ec_start(ec);
- 
- 	if (EC_FLAGS_CLEAR_ON_RESUME)
- 		acpi_ec_clear(ec);
-@@ -507,7 +535,7 @@ void acpi_ec_unblock_transactions_early(void)
- 	 * atomic context during wakeup, so we don't need to acquire the mutex).
- 	 */
- 	if (first_ec)
--		clear_bit(EC_FLAGS_BLOCKED, &first_ec->flags);
-+		acpi_ec_start(first_ec);
- }
- 
- static int acpi_ec_query_unlocked(struct acpi_ec *ec, u8 * data)
-@@ -774,7 +802,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	acpi_enable_gpe(NULL, ec->gpe);
-+	acpi_ec_start(ec);
- 	status = acpi_install_address_space_handler(ec->handle,
- 						    ACPI_ADR_SPACE_EC,
- 						    &acpi_ec_space_handler,
-@@ -789,7 +817,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
- 			pr_err("Fail in evaluating the _REG object"
- 				" of EC device. Broken bios is suspected.\n");
- 		} else {
--			acpi_disable_gpe(NULL, ec->gpe);
-+			acpi_ec_stop(ec);
- 			acpi_remove_gpe_handler(NULL, ec->gpe,
- 				&acpi_ec_gpe_handler);
- 			return -ENODEV;
-@@ -802,10 +830,10 @@ static int ec_install_handlers(struct acpi_ec *ec)
- 
- static void ec_remove_handlers(struct acpi_ec *ec)
- {
--	acpi_disable_gpe(NULL, ec->gpe);
- 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
- 				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
- 		pr_err("failed to remove space handler\n");
-+	acpi_ec_stop(ec);
- 	if (ACPI_FAILURE(acpi_remove_gpe_handler(NULL, ec->gpe,
- 				&acpi_ec_gpe_handler)))
- 		pr_err("failed to remove gpe handler\n");
+ 		if (ACPI_FAILURE(status)) {
 -- 
 1.7.10
