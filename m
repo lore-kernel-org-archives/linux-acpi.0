@@ -1,35 +1,65 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/4] ACPI: Support _OSI("Darwin") correctly
-Date: Wed, 18 Jun 2014 06:26:15 +0100
-Message-ID: <20140618052615.GA26873@srcf.ucam.org>
-References: <1401640436-1947-1-git-send-email-matthew.garrett@nebula.com>
- <1401640436-1947-2-git-send-email-matthew.garrett@nebula.com>
- <7712179.sDPAd6Ubry@vostro.rjw.lan>
- <20140617144614.GA16934@srcf.ucam.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Simone Gotti <simone.gotti@gmail.com>
+Subject: [PATCH 0/1] ACPI / PCI:  Fix "Operation not permitted" error reading sysfs acpi_index and label files.
+Date: Wed, 18 Jun 2014 16:51:16 +0200
+Message-ID: <1403103077-17589-1-git-send-email-simone.gotti@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:38681 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751752AbaFRF0X (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jun 2014 01:26:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20140617144614.GA16934@srcf.ucam.org>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:51962 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750823AbaFROvZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jun 2014 10:51:25 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com
+To: linux-pci@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Narendra_K@Dell.com
 
-On Tue, Jun 17, 2014 at 03:46:15PM +0100, Matthew Garrett wrote:
-> On Tue, Jun 17, 2014 at 02:11:36PM +0200, Rafael J. Wysocki wrote:
-> > Does applying this patch without the rest of the series makes things worse
-> > or better on the machines in question (or perhaps it doesn't matter at all
-> > alone)?
-> 
-> On its own, I think this will do nothing.
+Hi everyone,
 
-Ugh, no, sorry - on its own, this will break PCIe hotplug events and 
-battery reporting. It should only be merged with the others.
+starting from kernel 3.14 I noticed that the on board interfaces names on a Dell
+PowerEdge E420 where renamed (by udev net_id internal) from eno1/eno2 to
+enp2s0f0/enp2s0f1.
+
+The root cause is that reading from the exported sysfs informations (acpi_index
+and label) from drivers/pci/pci-label.c returns an "Operation not permitted"
+error.
+
+This machine supports PCI firmware specification 3.1 so the acpi methods are
+preferred over the smbios one.
+
+Debugging the problem I noticed that the call to the _DSM method returned the
+second element with ACPI_TYPE_BUFFER type instead of ACPI_TYPE_STRING as
+expected. The commit that forced this check is:
+
+commit 1d0fcef732832432aee47cb75bf4a2cb3107be64 Author: Jiang Liu
+<jiang.liu@linux.intel.com> Date:   Thu Dec 19 20:38:13 2013 +0800
+
+    ACPI / PCI: replace open-coded _DSM code with helper functions
+
+Previously the elements' types weren't checked and an ACPI_TYPE_BUFFER for the
+second element was accepted.
+
+The disassembled _DSM acpi method uses the ASL Unicode() macro that returns an
+unicode string contained in a buffer.
+
+Additionaly I noticed that an ascii string (as it should be the one of type
+ACPI_TYPE_STRING) will be wrongly converted to utf8 from
+dsm_label_utf16s_to_utf8s as it expects an utf16 string (I reproduced this
+problem with a modified DSDT that returned an acpi string as label).
+
+I don't have the PCI firmware specification so I don't know if an Unicode string
+is correct or the bios is not compliant but I'm assuming this is possible. If
+so, the following patch tries to fix this.
+
+
+Thanks a lot.
+
+
+Simone Gotti (1):
+  Fix "Operation not permitted" error reading sysfs acpi_index and label
+    files.
+
+ drivers/pci/pci-label.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+2.0.0
+
