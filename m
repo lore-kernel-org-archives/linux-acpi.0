@@ -1,61 +1,37 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: New ACPI warnings with v3.16.0-rc1
-Date: Thu, 19 Jun 2014 07:07:24 +0800
-Message-ID: <1403132844.30783.33.camel@rzhang1-toshiba>
-References: <20140618235004.25295650@saldaea>
-	 <8028563.JQMq23p6sJ@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/4] ACPI: Support _OSI("Darwin") correctly
+Date: Thu, 19 Jun 2014 01:42:56 +0200
+Message-ID: <3186737.5xBXzTniGn@vostro.rjw.lan>
+References: <1401640436-1947-1-git-send-email-matthew.garrett@nebula.com> <20140617144614.GA16934@srcf.ucam.org> <20140618052615.GA26873@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:21783 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752157AbaFRXH3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jun 2014 19:07:29 -0400
-In-Reply-To: <8028563.JQMq23p6sJ@vostro.rjw.lan>
+Received: from v094114.home.net.pl ([79.96.170.134]:64513 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754167AbaFRXZV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jun 2014 19:25:21 -0400
+In-Reply-To: <20140618052615.GA26873@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Julian Wollrath <julian.wollrath@stud.uni-goettingen.de>, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, bhelgaas@google.com
 
-On Thu, 2014-06-19 at 01:09 +0200, Rafael J. Wysocki wrote:
-> On Wednesday, June 18, 2014 11:50:04 PM Julian Wollrath wrote:
-> > Hi,
-> 
-> Hi,
-> 
-> > with v3.16.0-rc1 I get the following warnings, which I did not occur
-> > with v3.15.1:
-> > [   14.558365] ACPI Warning: SystemIO range 0x0000000000000428-0x000000000000042f conflicts with OpRegion 0x0000000000000400-0x000000000000047f (\_SB_.PCI0.LPC_.PMIO) (20140424/utaddress-258)
-> > [   14.558377] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver 
-> > [   14.558386] ACPI Warning: SystemIO range 0x0000000000000540-0x000000000000054f conflicts with OpRegion 0x0000000000000500-0x000000000000057f (\_SB_.PCI0.LPC_.LPIO) (20140424/utaddress-258)
-> > [   14.558392] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver 
-> > [   14.558395] ACPI Warning: SystemIO range 0x0000000000000530-0x000000000000053f conflicts with OpRegion 0x0000000000000500-0x000000000000057f (\_SB_.PCI0.LPC_.LPIO) (20140424/utaddress-258)
-> > [   14.558401] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver 
-> > [   14.558403] ACPI Warning: SystemIO range 0x0000000000000500-0x000000000000052f conflicts with OpRegion 0x0000000000000500-0x000000000000057f (\_SB_.PCI0.LPC_.LPIO) (20140424/utaddress-258)
-> > [   14.558409] ACPI: If an ACPI driver is available for this device,
-> > you should use it instead of the native driver
+On Wednesday, June 18, 2014 06:26:15 AM Matthew Garrett wrote:
+> On Tue, Jun 17, 2014 at 03:46:15PM +0100, Matthew Garrett wrote:
+> > On Tue, Jun 17, 2014 at 02:11:36PM +0200, Rafael J. Wysocki wrote:
+> > > Does applying this patch without the rest of the series makes things worse
+> > > or better on the machines in question (or perhaps it doesn't matter at all
+> > > alone)?
 > > 
-> > How can one find out, what the native driver is, and if there is an
-> > ACPI driver?
+> > On its own, I think this will do nothing.
 > 
-BTW, there is indeed one new driver that invokes
-acpi_check_resource_conflict() between 3.15 and 3.16-rc1.
-could you please check if CONFIG_SENSORS_NCT6683 is set in your config?
-If yes, does the warning messages go away if CONFIG_SENSORS_NCT6683=n?
+> Ugh, no, sorry - on its own, this will break PCIe hotplug events and 
+> battery reporting. It should only be merged with the others.
 
-thanks,
-rui
+Well, in that case it is not useful to split that material into
+multiple patches.  And it will need to be Linux-specific, as adding
+patch [1/4] to upstream ACPICA might break some other OSes using it.
 
-> These are resource conflicts and I'm not sure why there were not there before.
-> Perhaps we introduced a new driver trying to reserve system I/O ranges
-> claimed by the ACPI core already.
-> 
-> I agree that the second part of the message is not very useful, though.
-> 
-> Rui and Lv (CCed) should be able to help you diagnose this problem further.
-> 
-> Rafael
-> 
-
+Rafael
 
