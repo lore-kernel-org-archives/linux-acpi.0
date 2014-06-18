@@ -1,69 +1,21 @@
-From: Josef Gajdusek <atx@atx.name>
-Subject: Re: [PATCH] acpi/battery: fix wrong value of capacity_now reported
- by few battery types when fully charged (resend)
-Date: Tue, 17 Jun 2014 23:15:49 +0200
-Message-ID: <20140617211549.GB6988@dashie>
-References: <20140612145813.GB14085@dashie>
- <4697863.VH2Gj7n1J0@vostro.rjw.lan>
- <20140617201359.GA6988@dashie>
- <2828453.ZgdXeiReHi@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2828453.ZgdXeiReHi@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: eMCA trace interface update
+Date: Tue, 17 Jun 2014 22:33:06 -0400
+Message-ID: <1403058787-15449-1-git-send-email-gong.chen@linux.intel.com>
+References: <20140617020937.GA14404@gchen.bj.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:4505 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751058AbaFRDCA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jun 2014 23:02:00 -0400
+In-Reply-To: <20140617020937.GA14404@gchen.bj.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rostedt@goodmis.org
+Cc: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, linux-acpi@vger.kernel.org
 
-It seems that some batteries (noticed on DELL JYPJ136) assume 
-capacity_now = design_capacity when fully charged. This causes 
-reported capacity to suddenly jump to >full_charge_capacity (and that 
-means capacity reported to userspace is >100% and incorrect) 
-values after 99%. This patch detects capacity_now > full_charge_capacity, 
-notifies userspace (unless it is the known bug where capacity_now == 
-design_capacity) and trims the value to full_charge_capacity.
+[PATCH 5/7 REVISION v2] trace, RAS: Add eMCA trace event interface
 
-Signed-off-by: Josef Gajdusek <atx@atx.name>
----
-> Thinking more about the printk_once().  Perhaps it only needs to be printed
-> when battery->capacity_now != battery->design_capacity (it's a known issue
-> otherwise).
-Changed. That was actually what I wanted to do originally, but I was unsure 
-about the kernel policy on this sort of messages.
+Hi, Steven
 
->> +      printk_once(KERN_WARNING FW_BUG
->> +         "battery: reported current charge level (%d) "
->> +         "is higher than reported maximum charge level (%d)."
->> +         "This is normal on some systems.\n",
->
-> Also I think that the line above doesn't add any real value. :-)
-Removed, now it really is not needed as there is not any known system for which 
-capacity_now > full_charge_capacity && capacity_now != design_capacity would be 
-considered "normal"
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index e48fc98..9cacabd 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -532,6 +532,19 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
- 			" invalid.\n");
- 	}
- 
-+	/* When fully charged, some batteries wrongly report
-+	 * capacity_now = design_capacity instead of = full_charge_capacity
-+	 */
-+	if (battery->capacity_now > battery->full_charge_capacity &&
-+		battery->full_charge_capacity != ACPI_BATTERY_VALUE_UNKNOWN) {
-+		battery->capacity_now = battery->full_charge_capacity;
-+		if (battery->capacity_now != battery->design_capacity)
-+			printk_once(KERN_WARNING FW_BUG
-+				"battery: reported current charge level (%d) "
-+				"is higher than reported maximum charge level (%d).\n",
-+				battery->capacity_now, battery->full_charge_capacity);
-+	}
-+
- 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags)
- 	    && battery->capacity_now >= 0 && battery->capacity_now <= 100)
- 		battery->capacity_now = (battery->capacity_now *
+Your patch works well. Here is the updated patch based on your patch.
