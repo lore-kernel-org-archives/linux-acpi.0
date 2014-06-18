@@ -1,202 +1,77 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch V2] x86/PCI/ACPI: kill private function resource_to_addr()
-Date: Thu, 19 Jun 2014 00:30:59 +0800
-Message-ID: <1403109059-9775-1-git-send-email-jiang.liu@linux.intel.com>
-References: <CAErSpo4y9HQB-OcX8XwpXHW=xCvDQOJZgokG5iMqg705XZnevg@mail.gmail.com>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH V2] ACPI/Battery: Retry to get Battery information if
+ failed during probing
+Date: Wed, 18 Jun 2014 15:15:47 -0700 (PDT)
+Message-ID: <alpine.DEB.2.02.1406181515160.21927@chino.kir.corp.google.com>
+References: <1402988994-27067-1-git-send-email-tianyu.lan@intel.com> <1474004.fDjayHqHT9@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:40393 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752520AbaFRQ1u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jun 2014 12:27:50 -0400
-In-Reply-To: <CAErSpo4y9HQB-OcX8XwpXHW=xCvDQOJZgokG5iMqg705XZnevg@mail.gmail.com>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:42152 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751106AbaFRWPu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jun 2014 18:15:50 -0400
+Received: by mail-ie0-f172.google.com with SMTP id lx4so1312087iec.3
+        for <linux-acpi@vger.kernel.org>; Wed, 18 Jun 2014 15:15:49 -0700 (PDT)
+In-Reply-To: <1474004.fDjayHqHT9@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, naszar@ya.ru, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Replace private function resource_to_addr() to parse ACPI resources for
-PCI host bridge with public ACPI resource interfaces.
+On Tue, 17 Jun 2014, Rafael J. Wysocki wrote:
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
-Hi Bjorn,
-	Thanks for your suggestion. Then how about this version?
-Regards!
-Gerry
----
- arch/x86/pci/acpi.c |  142 ++++++++++++++++++---------------------------------
- 1 file changed, 51 insertions(+), 91 deletions(-)
+> > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> > index e48fc98..8ed93a3 100644
+> > --- a/drivers/acpi/battery.c
+> > +++ b/drivers/acpi/battery.c
+> > @@ -34,6 +34,7 @@
+> >  #include <linux/dmi.h>
+> >  #include <linux/slab.h>
+> >  #include <linux/suspend.h>
+> > +#include <linux/delay.h>
+> >  #include <asm/unaligned.h>
+> >  
+> >  #ifdef CONFIG_ACPI_PROCFS_POWER
+> > @@ -1119,7 +1120,7 @@ static struct dmi_system_id bat_dmi_table[] = {
+> >  
+> >  static int acpi_battery_add(struct acpi_device *device)
+> >  {
+> > -	int result = 0;
+> > +	int result = 0, retry = 5;
+> >  	struct acpi_battery *battery = NULL;
+> >  
+> >  	if (!device)
+> > @@ -1135,9 +1136,20 @@ static int acpi_battery_add(struct acpi_device *device)
+> >  	mutex_init(&battery->sysfs_lock);
+> >  	if (acpi_has_method(battery->device->handle, "_BIX"))
+> >  		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
+> > -	result = acpi_battery_update(battery, false);
+> > +
+> > +	/*
+> > +	 * Some machines'(E,G Lenovo Z480) ECs are not stable
+> > +	 * during boot up and this causes battery driver fails to be
+> > +	 * probed due to failure of getting battery information
+> > +	 * from EC sometimes. After several retries, the operation
+> > +	 * may work. So add retry code here and 20ms sleep between
+> > +	 * every retries.
+> > +	 */
+> > +	while ((result = acpi_battery_update(battery, false)) && retry--)
+> > +		msleep(20);
+> >  	if (result)
+> >  		goto fail;
+> 
+> Why not to write this as
+> 
+> 	for (;;) {
+> 		result = acpi_battery_update(battery, false);
+> 		if (!result)
+> 			break;
+> 		else if (!--retry)
+> 			goto fail;
+> 
+> 		msleep(20);
+> 	}
+> 
 
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index 91bef49df228..cc0975ef86d1 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -218,114 +218,74 @@ static void teardown_mcfg_map(struct pci_root_info *info)
- }
- #endif
- 
--static acpi_status resource_to_addr(struct acpi_resource *resource,
--				    struct acpi_resource_address64 *addr)
--{
--	acpi_status status;
--	struct acpi_resource_memory24 *memory24;
--	struct acpi_resource_memory32 *memory32;
--	struct acpi_resource_fixed_memory32 *fixed_memory32;
--
--	memset(addr, 0, sizeof(*addr));
--	switch (resource->type) {
--	case ACPI_RESOURCE_TYPE_MEMORY24:
--		memory24 = &resource->data.memory24;
--		addr->resource_type = ACPI_MEMORY_RANGE;
--		addr->minimum = memory24->minimum;
--		addr->address_length = memory24->address_length;
--		addr->maximum = addr->minimum + addr->address_length - 1;
--		return AE_OK;
--	case ACPI_RESOURCE_TYPE_MEMORY32:
--		memory32 = &resource->data.memory32;
--		addr->resource_type = ACPI_MEMORY_RANGE;
--		addr->minimum = memory32->minimum;
--		addr->address_length = memory32->address_length;
--		addr->maximum = addr->minimum + addr->address_length - 1;
--		return AE_OK;
--	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
--		fixed_memory32 = &resource->data.fixed_memory32;
--		addr->resource_type = ACPI_MEMORY_RANGE;
--		addr->minimum = fixed_memory32->address;
--		addr->address_length = fixed_memory32->address_length;
--		addr->maximum = addr->minimum + addr->address_length - 1;
--		return AE_OK;
--	case ACPI_RESOURCE_TYPE_ADDRESS16:
--	case ACPI_RESOURCE_TYPE_ADDRESS32:
--	case ACPI_RESOURCE_TYPE_ADDRESS64:
--		status = acpi_resource_to_address64(resource, addr);
--		if (ACPI_SUCCESS(status) &&
--		    (addr->resource_type == ACPI_MEMORY_RANGE ||
--		    addr->resource_type == ACPI_IO_RANGE) &&
--		    addr->address_length > 0) {
--			return AE_OK;
--		}
--		break;
--	}
--	return AE_ERROR;
--}
--
- static acpi_status count_resource(struct acpi_resource *acpi_res, void *data)
- {
- 	struct pci_root_info *info = data;
--	struct acpi_resource_address64 addr;
--	acpi_status status;
-+	struct resource r = {
-+		.flags = 0
-+	};
- 
--	status = resource_to_addr(acpi_res, &addr);
--	if (ACPI_SUCCESS(status))
-+	if (!acpi_dev_resource_memory(acpi_res, &r) &&
-+	    !acpi_dev_resource_address_space(acpi_res, &r))
-+		return AE_OK;
-+
-+	if ((r.flags & (IORESOURCE_IO | IORESOURCE_MEM)) && resource_size(&r))
- 		info->res_num++;
-+
- 	return AE_OK;
- }
- 
- static acpi_status setup_resource(struct acpi_resource *acpi_res, void *data)
- {
- 	struct pci_root_info *info = data;
--	struct resource *res;
--	struct acpi_resource_address64 addr;
--	acpi_status status;
--	unsigned long flags;
--	u64 start, orig_end, end;
-+	struct resource *res = &info->res[info->res_num];
-+	u64 translation_offset = 0;
-+
-+	memset(res, 0, sizeof(*res));
-+	if (acpi_dev_resource_memory(acpi_res, res)) {
-+		res->flags &= IORESOURCE_MEM | IORESOURCE_IO;
-+	} else if (acpi_dev_resource_address_space(acpi_res, res)) {
-+		u64 orig_end;
-+		struct acpi_resource_address64 addr;
-+
-+		res->flags &= IORESOURCE_MEM | IORESOURCE_IO;
-+		if (res->flags == 0)
-+			return AE_OK;
- 
--	status = resource_to_addr(acpi_res, &addr);
--	if (!ACPI_SUCCESS(status))
--		return AE_OK;
-+		if (ACPI_FAILURE(acpi_resource_to_address64(acpi_res, &addr)))
-+			return AE_OK;
- 
--	if (addr.resource_type == ACPI_MEMORY_RANGE) {
--		flags = IORESOURCE_MEM;
--		if (addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
--			flags |= IORESOURCE_PREFETCH;
--	} else if (addr.resource_type == ACPI_IO_RANGE) {
--		flags = IORESOURCE_IO;
--	} else
--		return AE_OK;
-+		if (addr.resource_type == ACPI_MEMORY_RANGE &&
-+		    addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
-+			res->flags |= IORESOURCE_PREFETCH;
- 
--	start = addr.minimum + addr.translation_offset;
--	orig_end = end = addr.maximum + addr.translation_offset;
-+		translation_offset = addr.translation_offset;
-+		orig_end = res->end;
-+		res->start += translation_offset;
-+		res->end += translation_offset;
- 
--	/* Exclude non-addressable range or non-addressable portion of range */
--	end = min(end, (u64)iomem_resource.end);
--	if (end <= start) {
--		dev_info(&info->bridge->dev,
--			"host bridge window [%#llx-%#llx] "
--			"(ignored, not CPU addressable)\n", start, orig_end);
--		return AE_OK;
--	} else if (orig_end != end) {
--		dev_info(&info->bridge->dev,
--			"host bridge window [%#llx-%#llx] "
--			"([%#llx-%#llx] ignored, not CPU addressable)\n", 
--			start, orig_end, end + 1, orig_end);
-+		/* Exclude non-addressable range or non-addressable portion of range */
-+		res->end = min(res->end, (u64)iomem_resource.end);
-+		if (res->end <= res->start) {
-+			dev_info(&info->bridge->dev,
-+				"host bridge window [%#llx-%#llx] (ignored, not CPU addressable)\n",
-+				 res->start, orig_end);
-+			return AE_OK;
-+		} else if (orig_end != res->end) {
-+			dev_info(&info->bridge->dev,
-+				"host bridge window [%#llx-%#llx] ([%#llx-%#llx] ignored, not CPU addressable)\n",
-+				res->start, orig_end, res->end + 1, orig_end);
-+		}
- 	}
- 
--	res = &info->res[info->res_num];
--	res->name = info->name;
--	res->flags = flags;
--	res->start = start;
--	res->end = end;
--	info->res_offset[info->res_num] = addr.translation_offset;
--	info->res_num++;
--
--	if (!pci_use_crs)
--		dev_printk(KERN_DEBUG, &info->bridge->dev,
--			   "host bridge window %pR (ignored)\n", res);
-+	if (res->flags && resource_size(res)) {
-+		res->name = info->name;
-+		info->res_offset[info->res_num] = translation_offset;
-+		info->res_num++;
-+		if (!pci_use_crs)
-+			dev_printk(KERN_DEBUG, &info->bridge->dev,
-+				   "host bridge window %pR (ignored)\n", res);
-+	}
- 
- 	return AE_OK;
- }
--- 
-1.7.10.4
-
+I suggested a similar for loop earlier, I think it's cleaner.
