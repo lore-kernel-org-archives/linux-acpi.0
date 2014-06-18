@@ -1,80 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / LPSS: Take I2C host controllers out of reset
-Date: Thu, 19 Jun 2014 01:49:17 +0200
-Message-ID: <3055901.MX8kzq0LJr@vostro.rjw.lan>
-References: <1403004819-8906-1-git-send-email-mika.westerberg@linux.intel.com>
+From: Julian Wollrath <jwollrath@web.de>
+Subject: Re: New ACPI warnings with v3.16.0-rc1
+Date: Thu, 19 Jun 2014 01:38:30 +0200
+Message-ID: <20140619013830.265e74cd@saldaea>
+References: <20140618235004.25295650@saldaea>
+	<8028563.JQMq23p6sJ@vostro.rjw.lan>
+	<1403132844.30783.33.camel@rzhang1-toshiba>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49233 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753396AbaFRXbl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jun 2014 19:31:41 -0400
-In-Reply-To: <1403004819-8906-1-git-send-email-mika.westerberg@linux.intel.com>
+Received: from mout.web.de ([212.227.17.11]:60484 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752276AbaFRXij (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Jun 2014 19:38:39 -0400
+In-Reply-To: <1403132844.30783.33.camel@rzhang1-toshiba>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Li Aubrey <aubrey.li@linux.intel.com>, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
-On Tuesday, June 17, 2014 02:33:39 PM Mika Westerberg wrote:
-> On Intel Baytrail, some I2C host controllers are held in reset when the OS
-> gets control. This causes the driver to fail to detect the hardware
-> properly.
-> 
-> Fix this so that we make sure that the I2C host controller is not in reset
-> when the driver gets probe'd.
-> 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Hi,
 
-Applied, thanks!
+> BTW, there is indeed one new driver that invokes
+> acpi_check_resource_conflict() between 3.15 and 3.16-rc1.
+> could you please check if CONFIG_SENSORS_NCT6683 is set in your
+> config? If yes, does the warning messages go away if
+> CONFIG_SENSORS_NCT6683=n?
+CONFIG_SENSORS_NCT6683 is not set.
 
-> ---
->  drivers/acpi/acpi_lpss.c | 15 +++++++++++++++
->  1 file changed, 15 insertions(+)
-> 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 63407d264885..9cb65b0e7597 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -34,6 +34,9 @@ ACPI_MODULE_NAME("acpi_lpss");
->  
->  /* Offsets relative to LPSS_PRIVATE_OFFSET */
->  #define LPSS_CLK_DIVIDER_DEF_MASK	(BIT(1) | BIT(16))
-> +#define LPSS_RESETS			0x04
-> +#define LPSS_RESETS_RESET_FUNC		BIT(0)
-> +#define LPSS_RESETS_RESET_APB		BIT(1)
->  #define LPSS_GENERAL			0x08
->  #define LPSS_GENERAL_LTR_MODE_SW	BIT(2)
->  #define LPSS_GENERAL_UART_RTS_OVRD	BIT(3)
-> @@ -99,6 +102,17 @@ static void lpss_uart_setup(struct lpss_private_data *pdata)
->  	writel(reg | LPSS_GENERAL_UART_RTS_OVRD, pdata->mmio_base + offset);
->  }
->  
-> +static void lpss_i2c_setup(struct lpss_private_data *pdata)
-> +{
-> +	unsigned int offset;
-> +	u32 val;
-> +
-> +	offset = pdata->dev_desc->prv_offset + LPSS_RESETS;
-> +	val = readl(pdata->mmio_base + offset);
-> +	val |= LPSS_RESETS_RESET_APB | LPSS_RESETS_RESET_FUNC;
-> +	writel(val, pdata->mmio_base + offset);
-> +}
-> +
->  static struct lpss_device_desc lpt_dev_desc = {
->  	.clk_required = true,
->  	.prv_offset = 0x800,
-> @@ -171,6 +185,7 @@ static struct lpss_device_desc byt_i2c_dev_desc = {
->  	.prv_offset = 0x800,
->  	.save_ctx = true,
->  	.shared_clock = &i2c_clock,
-> +	.setup = lpss_i2c_setup,
->  };
->  
->  #else
-> 
+I just look into the dmesg output again and saw the following:
+[   14.560580] lpc_ich: Resource conflict(s) found affecting gpio_ich
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Then I checked the git log and stumbled upon commit 62cf2cdb99c7e (mfd:
+lpc_ich: Enable GPIO for Panther Point). Since I have a Panther Point
+chipset, that commit is possibly to blame, since now that driver can
+also handle Panther Point. The only problem is, that CONFIG_LPC_ICH
+gets auto-enabled by having CONFIG_ITCO_WDT (Intel Watchdog support)
+enabled and it can not be disabled without disabling the watchdog
+support.
+
+> please attach the acpidump output.
+Done.
+
+
+Cheers,
+Julian
