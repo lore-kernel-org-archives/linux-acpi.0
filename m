@@ -1,41 +1,92 @@
-From: Julian Wollrath <julian.wollrath@stud.uni-goettingen.de>
-Subject: New ACPI warnings with v3.16.0-rc1
-Date: Wed, 18 Jun 2014 23:50:04 +0200
-Message-ID: <20140618235004.25295650@saldaea>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V2] ACPI/Battery: Retry to get Battery information if failed during probing
+Date: Thu, 19 Jun 2014 01:00:44 +0200
+Message-ID: <2223803.V8Foed99uq@vostro.rjw.lan>
+References: <1402988994-27067-1-git-send-email-tianyu.lan@intel.com> <1474004.fDjayHqHT9@vostro.rjw.lan> <alpine.DEB.2.02.1406181515160.21927@chino.kir.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xmailer.gwdg.de ([134.76.10.29]:56970 "EHLO xmailer.gwdg.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752605AbaFRWXI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jun 2014 18:23:08 -0400
-Received: from [134.76.11.225] (helo=email.stud.uni-goettingen.de)
-	by mailer.gwdg.de with esmtp (Exim 4.80)
-	(envelope-from <julian.wollrath@stud.uni-goettingen.de>)
-	id 1WxNk6-0007MF-A4
-	for linux-acpi@vger.kernel.org; Wed, 18 Jun 2014 23:50:06 +0200
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1406181515160.21927@chino.kir.corp.google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Rientjes <rientjes@google.com>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, naszar@ya.ru, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi,
+On Wednesday, June 18, 2014 03:15:47 PM David Rientjes wrote:
+> On Tue, 17 Jun 2014, Rafael J. Wysocki wrote:
+> 
+> > > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> > > index e48fc98..8ed93a3 100644
+> > > --- a/drivers/acpi/battery.c
+> > > +++ b/drivers/acpi/battery.c
+> > > @@ -34,6 +34,7 @@
+> > >  #include <linux/dmi.h>
+> > >  #include <linux/slab.h>
+> > >  #include <linux/suspend.h>
+> > > +#include <linux/delay.h>
+> > >  #include <asm/unaligned.h>
+> > >  
+> > >  #ifdef CONFIG_ACPI_PROCFS_POWER
+> > > @@ -1119,7 +1120,7 @@ static struct dmi_system_id bat_dmi_table[] = {
+> > >  
+> > >  static int acpi_battery_add(struct acpi_device *device)
+> > >  {
+> > > -	int result = 0;
+> > > +	int result = 0, retry = 5;
+> > >  	struct acpi_battery *battery = NULL;
+> > >  
+> > >  	if (!device)
+> > > @@ -1135,9 +1136,20 @@ static int acpi_battery_add(struct acpi_device *device)
+> > >  	mutex_init(&battery->sysfs_lock);
+> > >  	if (acpi_has_method(battery->device->handle, "_BIX"))
+> > >  		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
+> > > -	result = acpi_battery_update(battery, false);
+> > > +
+> > > +	/*
+> > > +	 * Some machines'(E,G Lenovo Z480) ECs are not stable
+> > > +	 * during boot up and this causes battery driver fails to be
+> > > +	 * probed due to failure of getting battery information
+> > > +	 * from EC sometimes. After several retries, the operation
+> > > +	 * may work. So add retry code here and 20ms sleep between
+> > > +	 * every retries.
+> > > +	 */
+> > > +	while ((result = acpi_battery_update(battery, false)) && retry--)
+> > > +		msleep(20);
+> > >  	if (result)
+> > >  		goto fail;
+> > 
+> > Why not to write this as
+> > 
+> > 	for (;;) {
+> > 		result = acpi_battery_update(battery, false);
+> > 		if (!result)
+> > 			break;
+> > 		else if (!--retry)
+> > 			goto fail;
+> > 
+> > 		msleep(20);
+> > 	}
+> > 
+> 
+> I suggested a similar for loop earlier, I think it's cleaner.
 
-with v3.16.0-rc1 I get the following warnings, which I did not occur
-with v3.15.1:
-[   14.558365] ACPI Warning: SystemIO range 0x0000000000000428-0x000000000000042f conflicts with OpRegion 0x0000000000000400-0x000000000000047f (\_SB_.PCI0.LPC_.PMIO) (20140424/utaddress-258)
-[   14.558377] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver 
-[   14.558386] ACPI Warning: SystemIO range 0x0000000000000540-0x000000000000054f conflicts with OpRegion 0x0000000000000500-0x000000000000057f (\_SB_.PCI0.LPC_.LPIO) (20140424/utaddress-258)
-[   14.558392] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver 
-[   14.558395] ACPI Warning: SystemIO range 0x0000000000000530-0x000000000000053f conflicts with OpRegion 0x0000000000000500-0x000000000000057f (\_SB_.PCI0.LPC_.LPIO) (20140424/utaddress-258)
-[   14.558401] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver 
-[   14.558403] ACPI Warning: SystemIO range 0x0000000000000500-0x000000000000052f conflicts with OpRegion 0x0000000000000500-0x000000000000057f (\_SB_.PCI0.LPC_.LPIO) (20140424/utaddress-258)
-[   14.558409] ACPI: If an ACPI driver is available for this device,
-you should use it instead of the native driver
+Precisely.  And it would be even more clean to introduce
 
-How can one find out, what the native driver is, and if there is an
-ACPI driver?
+static bool acpi_battery_update_retry(struct acpi_battery *battery)
+{
+	int retry, ret;
 
+	for (retry = 5; retry; retry--) {
+		ret = acpi_battery_update(battery, false);
+		if (!ret)
+			break;
 
-Thank you for your time, with best regards,
-Julian Wollrath
+		msleep(20);
+	}
+	return ret;
+}
+
+and use that instead of the open-coded loop.
+
+Rafael
