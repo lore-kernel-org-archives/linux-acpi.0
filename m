@@ -1,131 +1,73 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI and power management updates for v3.16-rc2
-Date: Thu, 19 Jun 2014 15:46:56 +0200
-Message-ID: <CAJZ5v0hH13nA1Qq5BYA+N5D0OBGozvNgiEGi4u8_-5i=vdjkPg@mail.gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 1/5] apei, mce: Factor out APEI architecture specific
+ MCE calls.
+Date: Thu, 19 Jun 2014 16:17:58 +0200
+Message-ID: <20140619141758.GD22025@pd.tnic>
+References: <1402657380-18539-1-git-send-email-tomasz.nowicki@linaro.org>
+ <1402657380-18539-2-git-send-email-tomasz.nowicki@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:60437 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757073AbaFSOSF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Jun 2014 10:18:05 -0400
+Content-Disposition: inline
+In-Reply-To: <1402657380-18539-2-git-send-email-tomasz.nowicki@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, rric@kernel.org
 
-Hi Linus,
+On Fri, Jun 13, 2014 at 01:02:56PM +0200, Tomasz Nowicki wrote:
+> This commit abstracts MCE calls and provides weak corresponding default
+> implementation for those architectures which do not need arch specific
+> actions. Each platform willing to do additional architectural actions
+> should provides desired function definition. It allows us to avoid wrap
+> code into #ifdef in generic code and prevent new platform from introducing
+> dummy stub function too.
+> 
+> Initially, there are two APEI arch-specific calls:
+> - apei_arch_enable_cmcff()
+> - apei_arch_report_mem_error()
+> Both interact with MCE driver for X86 architecture.
+> 
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-Please pull from
+...
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-3.16-rc2
+> diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
+> new file mode 100644
+> index 0000000..dca2852
+> --- /dev/null
+> +++ b/arch/x86/kernel/acpi/apei.c
+> @@ -0,0 +1,56 @@
+> +/*
+> + * Arch-specific APEI-related functions.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <acpi/apei.h>
+> +
+> +#include <asm/mce.h>
+> +
+> +int apei_arch_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data)
 
-to receive ACPI and power management updates for v3.16-rc2
-with top-most commit 2ba87ea132a7364dbeb71126f3d7b8ec8e59d0e9
+Arch-specific function names usually use the "arch_" prefix. Otherwise
+it looks ok.
 
- Merge branches 'pm-cpufreq' and 'pm-cpuidle'
+-- 
+Regards/Gruss,
+    Boris.
 
-on top of commit 7171511eaec5bf23fb06078f59784a3a0626b38f
-
- Linux 3.16-rc1
-
-These are fixes mostly (ia64 regression related to the ACPI
-enumeration of devices, cpufreq regressions, fix for I2C
-controllers included in Intel SoCs, mvebu cpuidle driver fix
-related to sysfs) plus additional kernel command line arguments
-from Kees to make it possible to build kernel images with hibernation
-and the kernel address space randomization included simultaneously,
-a new ACPI battery driver quirk for a system with a broken BIOS and
-a couple of ACPI core cleanups.
-
-Specifics:
-
- - Fix for an ia64 regression introduced during the 3.11 cycle by a
-   commit that modified the hardware initialization ordering and made
-   device discovery fail on some systems.
-
- - Fix for a build problem on systems where the cpufreq-cpu0 driver
-   is built-in and the cpu-thermal driver is modular from Arnd Bergmann.
-
- - Fix for a recently introduced computational mistake in the
-   intel_pstate driver that leads to excessive rounding errors from
-   Doug Smythies.
-
- - Fix for a failure code path in cpufreq_update_policy() that fails
-   to unlock the locks acquired previously from Aaron Plattner.
-
- - Fix for the cpuidle mvebu driver to use shorter state names which
-   will prevent the sysfs interface from returning mangled strings.
-   From Gregory Clement.
-
- - ACPI LPSS driver fix to make sure that the I2C controllers
-   included in BayTrail SoCs are not held in the reset state while
-   they are being probed from Mika Westerberg.
-
- - New kernel command line arguments making it possible to build
-   kernel images with hibernation and kASLR included at the same
-   time and to select which of them will be used via the command
-   line (they are still functionally mutually exclusive, though).
-   From Kees Cook.
-
- - ACPI battery driver quirk for Acer Aspire V5-573G that fails
-   to send battery status change notifications timely from
-   Alexander Mezin.
-
- - Two ACPI core cleanups from Christoph Jaeger and Fabian Frederick.
-
-Thanks!
-
-
-
----------------
-
-Aaron Plattner (1):
-      cpufreq: unlock when failing cpufreq_update_policy()
-
-Alexander Mezin (2):
-      ACPI / battery: use callback for setting up quirks
-      ACPI / battery: add quirk for Acer Aspire V5-573G
-
-Arnd Bergmann (1):
-      cpufreq: cpufreq-cpu0: fix CPU_THERMAL dependency
-
-Christoph Jaeger (1):
-      ACPI: use kstrto*() instead of simple_strto*()
-
-Doug Smythies (1):
-      intel_pstate: Correct rounding in busy calculation
-
-Fabian Frederick (1):
-      ACPI / processor replace __attribute__((packed)) by __packed
-
-Gregory CLEMENT (1):
-      cpuidle: mvebu: Fix the name of the states
-
-Kees Cook (2):
-      PM / hibernate: introduce "nohibernate" boot parameter
-      x86, kaslr: boot-time selectable with hibernation
-
-Mika Westerberg (1):
-      ACPI / LPSS: Take I2C host controllers out of reset
-
-Rafael J. Wysocki (1):
-      ACPI / ia64 / sba_iommu: Restore the working initialization ordering
-
----------------
-
- Documentation/kernel-parameters.txt     | 14 +++++---
- arch/ia64/hp/common/sba_iommu.c         | 64 +++++++++++++++++++--------------
- arch/x86/Kconfig                        |  1 -
- arch/x86/boot/compressed/aslr.c         |  9 ++++-
- drivers/acpi/acpi_lpss.c                | 15 ++++++++
- drivers/acpi/battery.c                  | 39 ++++++++++++++++++--
- drivers/acpi/osl.c                      |  3 +-
- drivers/acpi/tables.c                   |  3 +-
- drivers/cpufreq/Kconfig                 |  2 ++
- drivers/cpufreq/cpufreq.c               | 10 +++---
- drivers/cpufreq/intel_pstate.c          |  5 +--
- drivers/cpuidle/cpuidle-armada-370-xp.c |  4 +--
- include/acpi/processor.h                | 10 +++---
- include/linux/suspend.h                 |  2 ++
- kernel/power/hibernate.c                | 37 ++++++++++++++++++-
- kernel/power/main.c                     |  6 ++--
- kernel/power/user.c                     |  3 ++
- 17 files changed, 167 insertions(+), 60 deletions(-)
+Sent from a fat crate under my desk. Formatting is fine.
+--
