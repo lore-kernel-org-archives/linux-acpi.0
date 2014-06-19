@@ -1,86 +1,65 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/1] include/acpi/processor.h: replace __attribute__((packed)) by __packed
-Date: Thu, 19 Jun 2014 02:06:11 +0200
-Message-ID: <1825061.Gkc4YambJC@vostro.rjw.lan>
-References: <1401642977-3745-1-git-send-email-fabf@skynet.be>
+Subject: Re: [PATCH 1/2] ACPI / battery: use callback for setting up quirks
+Date: Thu, 19 Jun 2014 02:08:02 +0200
+Message-ID: <2264449.8aAuNZj5kJ@vostro.rjw.lan>
+References: <1401822083-4866-1-git-send-email-mezin.alexander@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50151 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:61448 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756218AbaFRXsf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jun 2014 19:48:35 -0400
-In-Reply-To: <1401642977-3745-1-git-send-email-fabf@skynet.be>
+	with SMTP id S1756536AbaFRXu0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jun 2014 19:50:26 -0400
+In-Reply-To: <1401822083-4866-1-git-send-email-mezin.alexander@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Fabian Frederick <fabf@skynet.be>
-Cc: linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: Alexander Mezin <mezin.alexander@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>
 
-On Sunday, June 01, 2014 07:16:17 PM Fabian Frederick wrote:
-> This patch fixes checkpatch warnings:
+On Wednesday, June 04, 2014 02:01:22 AM Alexander Mezin wrote:
+> Use callback for setting up quirk instead of checking return code
+> of dmi_check_system(). This change will allow using bat_dmi_table
+> for other quirks.
 > 
-> "WARNING: __packed is preferred over __attribute__((packed))"
-> 
-> Cc: Robert Moore <robert.moore@intel.com>
-> Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> Signed-off-by: Alexander Mezin <mezin.alexander@gmail.com>
 
-Applied, thanks!
+Both [1-2/2] applied, thanks!
 
 > ---
->  include/acpi/processor.h | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
+>  drivers/acpi/battery.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
 > 
-> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-> index 6eb1d3c..9b9b6f2 100644
-> --- a/include/acpi/processor.h
-> +++ b/include/acpi/processor.h
-> @@ -53,7 +53,7 @@ struct acpi_power_register {
->  	u8 bit_offset;
->  	u8 access_size;
->  	u64 address;
-> -} __attribute__ ((packed));
-> +} __packed;
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 6e7b2a1..f17bc7e 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -1058,8 +1058,15 @@ static int battery_notify(struct notifier_block *nb,
+>  	return 0;
+>  }
 >  
->  struct acpi_processor_cx {
->  	u8 valid;
-> @@ -83,7 +83,7 @@ struct acpi_psd_package {
->  	u64 domain;
->  	u64 coord_type;
->  	u64 num_processors;
-> -} __attribute__ ((packed));
-> +} __packed;
+> +static int battery_bix_broken_package_quirk(const struct dmi_system_id *d)
+> +{
+> +	battery_bix_broken_package = 1;
+> +	return 0;
+> +}
+> +
+>  static struct dmi_system_id bat_dmi_table[] = {
+>  	{
+> +		.callback = battery_bix_broken_package_quirk,
+>  		.ident = "NEC LZ750/LS",
+>  		.matches = {
+>  			DMI_MATCH(DMI_SYS_VENDOR, "NEC"),
+> @@ -1176,8 +1183,7 @@ static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
+>  	if (acpi_disabled)
+>  		return;
 >  
->  struct acpi_pct_register {
->  	u8 descriptor;
-> @@ -93,7 +93,7 @@ struct acpi_pct_register {
->  	u8 bit_offset;
->  	u8 reserved;
->  	u64 address;
-> -} __attribute__ ((packed));
-> +} __packed;
->  
->  struct acpi_processor_px {
->  	u64 core_frequency;	/* megahertz */
-> @@ -124,7 +124,7 @@ struct acpi_tsd_package {
->  	u64 domain;
->  	u64 coord_type;
->  	u64 num_processors;
-> -} __attribute__ ((packed));
-> +} __packed;
->  
->  struct acpi_ptc_register {
->  	u8 descriptor;
-> @@ -134,7 +134,7 @@ struct acpi_ptc_register {
->  	u8 bit_offset;
->  	u8 reserved;
->  	u64 address;
-> -} __attribute__ ((packed));
-> +} __packed;
->  
->  struct acpi_processor_tx_tss {
->  	u64 freqpercentage;	/* */
+> -	if (dmi_check_system(bat_dmi_table))
+> -		battery_bix_broken_package = 1;
+> +	dmi_check_system(bat_dmi_table);
+>  	
+>  #ifdef CONFIG_ACPI_PROCFS_POWER
+>  	acpi_battery_dir = acpi_lock_battery_dir();
 > 
 
 -- 
