@@ -1,67 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/2] ACPI / battery: use callback for setting up quirks
-Date: Thu, 19 Jun 2014 02:08:02 +0200
-Message-ID: <2264449.8aAuNZj5kJ@vostro.rjw.lan>
-References: <1401822083-4866-1-git-send-email-mezin.alexander@gmail.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: drivers/acpi/ac.c, re-enabling CONFIG_ACPI_PROCFS_POWER?
+Date: Thu, 19 Jun 2014 14:32:40 +0800
+Message-ID: <53A28408.8040001@intel.com>
+References: <53A1F65C.9090907@gmail.com> <1891948.UFv8RnVsZc@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61448 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756536AbaFRXu0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jun 2014 19:50:26 -0400
-In-Reply-To: <1401822083-4866-1-git-send-email-mezin.alexander@gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:55117 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752683AbaFSGdl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Jun 2014 02:33:41 -0400
+In-Reply-To: <1891948.UFv8RnVsZc@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexander Mezin <mezin.alexander@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sorin Manolache <sorinm@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wednesday, June 04, 2014 02:01:22 AM Alexander Mezin wrote:
-> Use callback for setting up quirk instead of checking return code
-> of dmi_check_system(). This change will allow using bat_dmi_table
-> for other quirks.
-> 
-> Signed-off-by: Alexander Mezin <mezin.alexander@gmail.com>
+On 2014=E5=B9=B406=E6=9C=8819=E6=97=A5 07:17, Rafael J. Wysocki wrote:
+> On Wednesday, June 18, 2014 10:28:12 PM Sorin Manolache wrote:
+>> Hello,
+>>
+>> Would it be worth considering re-enabling the old procfs interface f=
+or=20
+>> ac.c? There are old tools still around (kpowersave from kde 3.5.10) =
+that=20
+>> expect /proc/acpi/ac_adapter.
+>=20
+> Can you please CC ACPI-related messages to linux-acpi@vger.kernel.org=
+?
+>=20
+> I'm not sure how much effort that would require at this point.  Rui, =
+Tianyu?
 
-Both [1-2/2] applied, thanks!
+I think we need to revert commit ab0fd67.
 
-> ---
->  drivers/acpi/battery.c | 10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 6e7b2a1..f17bc7e 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -1058,8 +1058,15 @@ static int battery_notify(struct notifier_block *nb,
->  	return 0;
->  }
->  
-> +static int battery_bix_broken_package_quirk(const struct dmi_system_id *d)
-> +{
-> +	battery_bix_broken_package = 1;
-> +	return 0;
-> +}
-> +
->  static struct dmi_system_id bat_dmi_table[] = {
->  	{
-> +		.callback = battery_bix_broken_package_quirk,
->  		.ident = "NEC LZ750/LS",
->  		.matches = {
->  			DMI_MATCH(DMI_SYS_VENDOR, "NEC"),
-> @@ -1176,8 +1183,7 @@ static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
->  	if (acpi_disabled)
->  		return;
->  
-> -	if (dmi_check_system(bat_dmi_table))
-> -		battery_bix_broken_package = 1;
-> +	dmi_check_system(bat_dmi_table);
->  	
->  #ifdef CONFIG_ACPI_PROCFS_POWER
->  	acpi_battery_dir = acpi_lock_battery_dir();
-> 
+commit ab0fd674d6cef0904baa511f22613ef6474f8169
+Author: Lan Tianyu <tianyu.lan@intel.com>
+Date:   Sat Oct 12 21:04:48 2013 +0800
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+    ACPI / AC: Remove AC's proc directory.
+
+    AC's proc directory is not used and so remove it. Prepare for remov=
+ing
+    /proc/acpi directory.
+
+    Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+    Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+
+>=20
+> Rafael
+>=20
+
+
+--=20
+Best regards
+Tianyu Lan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
