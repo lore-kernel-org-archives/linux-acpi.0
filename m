@@ -1,121 +1,131 @@
-From: Andy Whitcroft <apw@canonical.com>
-Subject: ACPI resource change triggers loss of serial ports
-Date: Thu, 19 Jun 2014 11:41:30 +0100
-Message-ID: <20140619104130.GA11561@dm>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI and power management updates for v3.16-rc2
+Date: Thu, 19 Jun 2014 15:46:56 +0200
+Message-ID: <CAJZ5v0hH13nA1Qq5BYA+N5D0OBGozvNgiEGi4u8_-5i=vdjkPg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:63087 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756093AbaFSKle (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jun 2014 06:41:34 -0400
-Received: by mail-wi0-f179.google.com with SMTP id cc10so2598246wib.12
-        for <linux-acpi@vger.kernel.org>; Thu, 19 Jun 2014 03:41:32 -0700 (PDT)
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The recently merged change (in v3.14-rc6) to ACPI resource detection
-(below) causes all zero length ACPI resources to be elided from the table:
+Hi Linus,
 
-  commit b355cee88e3b1a193f0e9a81db810f6f83ad728b
-  Author: Zhang Rui <rui.zhang@intel.com>
-  Date:   Thu Feb 27 11:37:15 2014 +0800
+Please pull from
 
-    ACPI / resources: ignore invalid ACPI device resources
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-3.16-rc2
 
-This change has caused a regression in (at least) serial port detection
-for a number of machines (see LP#1313981 [1]).  These seem to represent
-their IO regions (presumably incorrectly) as a zero length region.
-Reverting the above commit restores these serial devices.
+to receive ACPI and power management updates for v3.16-rc2
+with top-most commit 2ba87ea132a7364dbeb71126f3d7b8ec8e59d0e9
 
-For Zhang's case I wonder if this check could be tightened up to cover
-only the zero base, something like the (untested) patch below.
+ Merge branches 'pm-cpufreq' and 'pm-cpuidle'
 
--apw
+on top of commit 7171511eaec5bf23fb06078f59784a3a0626b38f
 
-[1] https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1313981
+ Linux 3.16-rc1
+
+These are fixes mostly (ia64 regression related to the ACPI
+enumeration of devices, cpufreq regressions, fix for I2C
+controllers included in Intel SoCs, mvebu cpuidle driver fix
+related to sysfs) plus additional kernel command line arguments
+from Kees to make it possible to build kernel images with hibernation
+and the kernel address space randomization included simultaneously,
+a new ACPI battery driver quirk for a system with a broken BIOS and
+a couple of ACPI core cleanups.
+
+Specifics:
+
+ - Fix for an ia64 regression introduced during the 3.11 cycle by a
+   commit that modified the hardware initialization ordering and made
+   device discovery fail on some systems.
+
+ - Fix for a build problem on systems where the cpufreq-cpu0 driver
+   is built-in and the cpu-thermal driver is modular from Arnd Bergmann.
+
+ - Fix for a recently introduced computational mistake in the
+   intel_pstate driver that leads to excessive rounding errors from
+   Doug Smythies.
+
+ - Fix for a failure code path in cpufreq_update_policy() that fails
+   to unlock the locks acquired previously from Aaron Plattner.
+
+ - Fix for the cpuidle mvebu driver to use shorter state names which
+   will prevent the sysfs interface from returning mangled strings.
+   From Gregory Clement.
+
+ - ACPI LPSS driver fix to make sure that the I2C controllers
+   included in BayTrail SoCs are not held in the reset state while
+   they are being probed from Mika Westerberg.
+
+ - New kernel command line arguments making it possible to build
+   kernel images with hibernation and kASLR included at the same
+   time and to select which of them will be used via the command
+   line (they are still functionally mutually exclusive, though).
+   From Kees Cook.
+
+ - ACPI battery driver quirk for Acer Aspire V5-573G that fails
+   to send battery status change notifications timely from
+   Alexander Mezin.
+
+ - Two ACPI core cleanups from Christoph Jaeger and Fabian Frederick.
+
+Thanks!
 
 
->From e5211c68278387ef65e483bcfedd5581a79ec783 Mon Sep 17 00:00:00 2001
-From: Andy Whitcroft <apw@canonical.com>
-Date: Thu, 19 Jun 2014 11:19:16 +0100
-Subject: [PATCH] ACPI / Resources: only reject zero length resources based at
- address zero
 
-The recently merged change (in v3.14-rc6) to ACPI resource detection
-(below) causes all zero length ACPI resources to be elided from the
-table:
+---------------
 
-  commit b355cee88e3b1a193f0e9a81db810f6f83ad728b
-  Author: Zhang Rui <rui.zhang@intel.com>
-  Date:   Thu Feb 27 11:37:15 2014 +0800
+Aaron Plattner (1):
+      cpufreq: unlock when failing cpufreq_update_policy()
 
-    ACPI / resources: ignore invalid ACPI device resources
+Alexander Mezin (2):
+      ACPI / battery: use callback for setting up quirks
+      ACPI / battery: add quirk for Acer Aspire V5-573G
 
-This change has caused a regression in (at least) serial port detection
-for a number of machines (see LP#1313981 [1]).  These seem to represent
-their IO regions (presumably incorrectly) as a zero length region.
-Reverting the above commit restores these serial devices.
+Arnd Bergmann (1):
+      cpufreq: cpufreq-cpu0: fix CPU_THERMAL dependency
 
-Only elide zero length resources which lie at address 0.
+Christoph Jaeger (1):
+      ACPI: use kstrto*() instead of simple_strto*()
 
-Signed-off-by: Andy Whitcroft <apw@canonical.com>
----
- drivers/acpi/resource.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Doug Smythies (1):
+      intel_pstate: Correct rounding in busy calculation
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 0bdacc5..2ba8f02 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -77,7 +77,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
- 	switch (ares->type) {
- 	case ACPI_RESOURCE_TYPE_MEMORY24:
- 		memory24 = &ares->data.memory24;
--		if (!memory24->address_length)
-+		if (!memory24->minimum && !memory24->address_length)
- 			return false;
- 		acpi_dev_get_memresource(res, memory24->minimum,
- 					 memory24->address_length,
-@@ -85,7 +85,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
- 		break;
- 	case ACPI_RESOURCE_TYPE_MEMORY32:
- 		memory32 = &ares->data.memory32;
--		if (!memory32->address_length)
-+		if (!memory32->minimum && !memory32->address_length)
- 			return false;
- 		acpi_dev_get_memresource(res, memory32->minimum,
- 					 memory32->address_length,
-@@ -93,7 +93,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
- 		break;
- 	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
- 		fixed_memory32 = &ares->data.fixed_memory32;
--		if (!fixed_memory32->address_length)
-+		if (!fixed_memory32->address && !fixed_memory32->address_length)
- 			return false;
- 		acpi_dev_get_memresource(res, fixed_memory32->address,
- 					 fixed_memory32->address_length,
-@@ -150,7 +150,7 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
- 	switch (ares->type) {
- 	case ACPI_RESOURCE_TYPE_IO:
- 		io = &ares->data.io;
--		if (!io->address_length)
-+		if (!io->minimum && !io->address_length)
- 			return false;
- 		acpi_dev_get_ioresource(res, io->minimum,
- 					io->address_length,
-@@ -158,7 +158,7 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
- 		break;
- 	case ACPI_RESOURCE_TYPE_FIXED_IO:
- 		fixed_io = &ares->data.fixed_io;
--		if (!fixed_io->address_length)
-+		if (!fixed_io->address && !fixed_io->address_length)
- 			return false;
- 		acpi_dev_get_ioresource(res, fixed_io->address,
- 					fixed_io->address_length,
--- 
-1.9.1
+Fabian Frederick (1):
+      ACPI / processor replace __attribute__((packed)) by __packed
 
+Gregory CLEMENT (1):
+      cpuidle: mvebu: Fix the name of the states
+
+Kees Cook (2):
+      PM / hibernate: introduce "nohibernate" boot parameter
+      x86, kaslr: boot-time selectable with hibernation
+
+Mika Westerberg (1):
+      ACPI / LPSS: Take I2C host controllers out of reset
+
+Rafael J. Wysocki (1):
+      ACPI / ia64 / sba_iommu: Restore the working initialization ordering
+
+---------------
+
+ Documentation/kernel-parameters.txt     | 14 +++++---
+ arch/ia64/hp/common/sba_iommu.c         | 64 +++++++++++++++++++--------------
+ arch/x86/Kconfig                        |  1 -
+ arch/x86/boot/compressed/aslr.c         |  9 ++++-
+ drivers/acpi/acpi_lpss.c                | 15 ++++++++
+ drivers/acpi/battery.c                  | 39 ++++++++++++++++++--
+ drivers/acpi/osl.c                      |  3 +-
+ drivers/acpi/tables.c                   |  3 +-
+ drivers/cpufreq/Kconfig                 |  2 ++
+ drivers/cpufreq/cpufreq.c               | 10 +++---
+ drivers/cpufreq/intel_pstate.c          |  5 +--
+ drivers/cpuidle/cpuidle-armada-370-xp.c |  4 +--
+ include/acpi/processor.h                | 10 +++---
+ include/linux/suspend.h                 |  2 ++
+ kernel/power/hibernate.c                | 37 ++++++++++++++++++-
+ kernel/power/main.c                     |  6 ++--
+ kernel/power/user.c                     |  3 ++
+ 17 files changed, 167 insertions(+), 60 deletions(-)
