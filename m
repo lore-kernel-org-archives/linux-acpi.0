@@ -1,78 +1,265 @@
-From: Arnd Bergmann <arnd@arndb.de>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 Subject: Re: [Linaro-acpi] [RFC v2 1/3] Mailbox: Add support for ACPI
-Date: Fri, 20 Jun 2014 22:49:11 +0200
-Message-ID: <4600246.SKVsl5kA9F@wuerfel>
-References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org> <5207109.Ir8j6FZuiX@wuerfel> <CAJ5Y-eYd_dyhzOdnxsi96mGN6dqihN_5rw83FsFwauZzUVz9YA@mail.gmail.com>
+Date: Fri, 20 Jun 2014 17:43:05 -0400
+Message-ID: <CAJ5Y-eYN6NfFdKAkv5yrHTdeRNWJfvgPVL61EjZdgN0DYP8zpA@mail.gmail.com>
+References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org>
+	<5207109.Ir8j6FZuiX@wuerfel>
+	<CAJ5Y-eYd_dyhzOdnxsi96mGN6dqihN_5rw83FsFwauZzUVz9YA@mail.gmail.com>
+	<4600246.SKVsl5kA9F@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/mixed; boundary=047d7bd91a14e8a8cc04fc4b6015
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:57192 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752101AbaFTUts (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2014 16:49:48 -0400
-In-Reply-To: <CAJ5Y-eYd_dyhzOdnxsi96mGN6dqihN_5rw83FsFwauZzUVz9YA@mail.gmail.com>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:45549 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932361AbaFTVnH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2014 17:43:07 -0400
+Received: by mail-wi0-f174.google.com with SMTP id bs8so1450859wib.13
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Jun 2014 14:43:05 -0700 (PDT)
+In-Reply-To: <4600246.SKVsl5kA9F@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, Patch Tracking <patches@linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Patch Tracking <patches@linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>
 
-On Friday 20 June 2014 15:29:18 Ashwin Chaugule wrote:
-> 
-> On 20 June 2014 15:08, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Friday 20 June 2014 14:55:16 Ashwin Chaugule wrote:
-> >> So, in order to get an mbox->dev for ACPI platforms, we'd need an
-> >> entry in the DSDT table. That seems rather pointless, since the DSDT
-> >> is reserved for devices and is supposed to be OS agnostic. Since the
-> >> mailbox controller itself is not really a "device" with a resource
-> >> descriptor, I dont see the point in adding a dummy DSDT entry for the
-> >> sake of getting this `struct device`. Also, I'm told adding new
-> >> entries to this table requires registering a unique 4 character
-> >> identifier and approval from some committees. If there are other ways
-> >> to get this structure I'd like to hear about it.
-> >>
-> >> The other alternative would be to piggy back on the ACPI CPU detection
-> >> code, which looks for the ACPI0007 device node in the DSDT and use
-> >> that as the mbox controller device. This node is already registered
-> >> and is an established method to detect CPUs. But I'm not sure what
-> >> happens when CPUs are hotplugged off, we surely dont want mailbox
-> >> clients such as PCC to break.
-> >
-> > The main question here is whether you expect having to support multiple
-> > mailbox devices in an ACPI system. If you think there is never more than
-> > one, you wouldn't need a DSDT entry, but if you can end up in a situation
-> > where another device needs to specify which mailbox it is using, then
-> > you need that entry anyway.
-> 
-> At this point, I dont see the need for multiple mailbox devices. But
-> I'm not seeing why we'd need a DSDT entry only if there are more than
-> one mailbox devices? I'd obviously prefer not having a DSDT entry for
-> this, and the patch I posted is the only way I could see to keep DT
-> and ACPI mbox supported at runtime without DSDT involved. Please let
-> me know if there are better ways.
+--047d7bd91a14e8a8cc04fc4b6015
+Content-Type: text/plain; charset=UTF-8
 
-It's mostly a matter of consistency: We can have multiple interrupt
-controllers, pin controllers, clock controllers, dma engines, etc,
-and in the DT case we use references to the nodes wherever we have
-other devices referring to a mailbox name.
+Hello,
 
-I believe Intel's embedded chips are moving in the same direction
-with their ACPI support. If the ACPI spec gains support for mailbox
-devices, locking them into having only a single device may be
-a problem later for them.
+On 20 June 2014 16:49, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Friday 20 June 2014 15:29:18 Ashwin Chaugule wrote:
+>>
+>> On 20 June 2014 15:08, Arnd Bergmann <arnd@arndb.de> wrote:
+>> > On Friday 20 June 2014 14:55:16 Ashwin Chaugule wrote:
+>> >> So, in order to get an mbox->dev for ACPI platforms, we'd need an
+>> >> entry in the DSDT table. That seems rather pointless, since the DSDT
+>> >> is reserved for devices and is supposed to be OS agnostic. Since the
+>> >> mailbox controller itself is not really a "device" with a resource
+>> >> descriptor, I dont see the point in adding a dummy DSDT entry for the
+>> >> sake of getting this `struct device`. Also, I'm told adding new
+>> >> entries to this table requires registering a unique 4 character
+>> >> identifier and approval from some committees. If there are other ways
+>> >> to get this structure I'd like to hear about it.
+>> >>
+>> >> The other alternative would be to piggy back on the ACPI CPU detection
+>> >> code, which looks for the ACPI0007 device node in the DSDT and use
+>> >> that as the mbox controller device. This node is already registered
+>> >> and is an established method to detect CPUs. But I'm not sure what
+>> >> happens when CPUs are hotplugged off, we surely dont want mailbox
+>> >> clients such as PCC to break.
+>> >
+>> > The main question here is whether you expect having to support multiple
+>> > mailbox devices in an ACPI system. If you think there is never more than
+>> > one, you wouldn't need a DSDT entry, but if you can end up in a situation
+>> > where another device needs to specify which mailbox it is using, then
+>> > you need that entry anyway.
+>>
+>> At this point, I dont see the need for multiple mailbox devices. But
+>> I'm not seeing why we'd need a DSDT entry only if there are more than
+>> one mailbox devices? I'd obviously prefer not having a DSDT entry for
+>> this, and the patch I posted is the only way I could see to keep DT
+>> and ACPI mbox supported at runtime without DSDT involved. Please let
+>> me know if there are better ways.
+>
+> It's mostly a matter of consistency: We can have multiple interrupt
+> controllers, pin controllers, clock controllers, dma engines, etc,
+> and in the DT case we use references to the nodes wherever we have
+> other devices referring to a mailbox name.
+>
+> I believe Intel's embedded chips are moving in the same direction
+> with their ACPI support. If the ACPI spec gains support for mailbox
+> devices, locking them into having only a single device may be
+> a problem later for them.
+>
+> Note that "device" here doesn't have to mean a platform device that
+> is instantiated from DSDT, it can be any mailbox provider that is
+> registered in an arbitrary way, as long as you have a method to map
+> back from the (consumer-device, name-string) tuple back to the
+> (provider, channel) tuple. I have read your patch again now and noticed
+> that you actually tried to do this, but unfortunately you got it
+> wrong by requiring the consumer to fill out the name of the provider
+> in the request. You can't do that, because it's not generic enough
+> to support devices that can be reused, and it means that drivers
+> using the API are never portable between DT and ACPI. You have to
+> get rid of the "ctrl_name" field in the mbox_client structure and
+> change the lookup to be based only on cd->dev and cl->chan_name,
+> using whatever tables you have available in ACPI.
 
-Note that "device" here doesn't have to mean a platform device that
-is instantiated from DSDT, it can be any mailbox provider that is
-registered in an arbitrary way, as long as you have a method to map
-back from the (consumer-device, name-string) tuple back to the
-(provider, channel) tuple. I have read your patch again now and noticed
-that you actually tried to do this, but unfortunately you got it
-wrong by requiring the consumer to fill out the name of the provider
-in the request. You can't do that, because it's not generic enough
-to support devices that can be reused, and it means that drivers
-using the API are never portable between DT and ACPI. You have to
-get rid of the "ctrl_name" field in the mbox_client structure and
-change the lookup to be based only on cd->dev and cl->chan_name,
-using whatever tables you have available in ACPI.
+I think you looked at the previous version of the patch. I'm attaching
+the latest version here again FWIW. In this version, I removed the
+"ctrl_name" field and rely on the cl->chan_name to provide the info as
+described in Jassi' original patch.
 
-	Arnd
+
+linux/mailbox_client.h
+
+ 18  * struct mbox_client - User of a mailbox
+ 19  * @dev:        The client device
+ 20  * @chan_name:      The "controller:channel" this client wants
+
+Instead of dev, I added a name string to the mbox controller
+structure. So now the client gets its channel by requesting
+"controller:channel" where controller should match with mbox->name and
+channel becomes an index into mbox->chans[].
+
+
+Cheers,
+Ashwin
+
+--047d7bd91a14e8a8cc04fc4b6015
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-Mailbox-Add-support-for-ACPI.patch"
+Content-Disposition: attachment;
+	filename="0001-Mailbox-Add-support-for-ACPI.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hwo0qwnu0
+
+RnJvbSA2ZmU2ZTU4M2YwYjIzYjA4NjQzYTRhODU1NDVhOWE1MzM4YjliMWEwIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBc2h3aW4gQ2hhdWd1bGUgPGFzaHdpbi5jaGF1Z3VsZUBsaW5h
+cm8ub3JnPgpEYXRlOiBXZWQsIDExIEp1biAyMDE0IDE2OjA5OjM1IC0wNDAwClN1YmplY3Q6IFtQ
+QVRDSF0gTWFpbGJveDogQWRkIHN1cHBvcnQgZm9yIEFDUEkKClRoZSBjdXJyZW50IG1haWxib3gg
+ZnJhbWV3b3JrIG9ubHkgc3VwcG9ydHMgRFQgYmFzZWQgYmluZGluZ3MuCkFkZCBhbm90aGVyIG1l
+Y2hhbmlzbSBmb3IgbWFpbGJveCBjbGllbnRzIHRvIHJlZ2lzdGVyIHdpdGggbWFpbGJveApjb250
+cm9sbGVycyBhbmQgcmVxdWVzdCBmb3Igc3BlY2lmaWMgbWFpbGJveCBjaGFubmVscy4gVGhpcyBl
+bmFibGVzCnVzYWdlIG9mIHRoZSBtYWlsYm94IGZyYW1ld29yayBvbiBrZXJuZWxzIHdpdGggQUNQ
+SSBzdXBwb3J0LgoKU2lnbmVkLW9mZi1ieTogQXNod2luIENoYXVndWxlIDxhc2h3aW4uY2hhdWd1
+bGVAbGluYXJvLm9yZz4KLS0tCiBkcml2ZXJzL21haWxib3gvbWFpbGJveC5jICAgICAgICAgIHwg
+MTc3ICsrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0KIGluY2x1ZGUvbGludXgv
+bWFpbGJveF9jbGllbnQuaCAgICAgfCAgIDIgKy0KIGluY2x1ZGUvbGludXgvbWFpbGJveF9jb250
+cm9sbGVyLmggfCAgIDEgKwogMyBmaWxlcyBjaGFuZ2VkLCAxMjkgaW5zZXJ0aW9ucygrKSwgNTEg
+ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tYWlsYm94L21haWxib3guYyBiL2Ry
+aXZlcnMvbWFpbGJveC9tYWlsYm94LmMKaW5kZXggZDgzZDEyYy4uZTI3MDRmNSAxMDA2NDQKLS0t
+IGEvZHJpdmVycy9tYWlsYm94L21haWxib3guYworKysgYi9kcml2ZXJzL21haWxib3gvbWFpbGJv
+eC5jCkBAIC0xNyw2ICsxNyw3IEBACiAjaW5jbHVkZSA8bGludXgvZXJyLmg+CiAjaW5jbHVkZSA8
+bGludXgvbW9kdWxlLmg+CiAjaW5jbHVkZSA8bGludXgvZGV2aWNlLmg+CisjaW5jbHVkZSA8bGlu
+dXgvYWNwaS5oPgogI2luY2x1ZGUgPGxpbnV4L21haWxib3hfY2xpZW50Lmg+CiAjaW5jbHVkZSA8
+bGludXgvbWFpbGJveF9jb250cm9sbGVyLmg+CiAKQEAgLTI3MywxMDAgKzI3NCwxNjYgQEAgaW50
+IG1ib3hfc2VuZF9tZXNzYWdlKHN0cnVjdCBtYm94X2NoYW4gKmNoYW4sIHZvaWQgKm1zc2cpCiB9
+CiBFWFBPUlRfU1lNQk9MX0dQTChtYm94X3NlbmRfbWVzc2FnZSk7CiAKLS8qKgotICogbWJveF9y
+ZXF1ZXN0X2NoYW5uZWwgLSBSZXF1ZXN0IGEgbWFpbGJveCBjaGFubmVsLgotICogQGNsOiBJZGVu
+dGl0eSBvZiB0aGUgY2xpZW50IHJlcXVlc3RpbmcgdGhlIGNoYW5uZWwuCi0gKgotICogVGhlIENs
+aWVudCBzcGVjaWZpZXMgaXRzIHJlcXVpcmVtZW50cyBhbmQgY2FwYWJpbGl0aWVzIHdoaWxlIGFz
+a2luZyBmb3IKLSAqIGEgbWFpbGJveCBjaGFubmVsIGJ5IG5hbWUuIEl0IGNhbid0IGJlIGNhbGxl
+ZCBmcm9tIGF0b21pYyBjb250ZXh0LgotICogVGhlIGNoYW5uZWwgaXMgZXhjbHVzaXZlbHkgYWxs
+b2NhdGVkIGFuZCBjYW4ndCBiZSB1c2VkIGJ5IGFub3RoZXIKLSAqIGNsaWVudCBiZWZvcmUgdGhl
+IG93bmVyIGNhbGxzIG1ib3hfZnJlZV9jaGFubmVsLgotICogQWZ0ZXIgYXNzaWdubWVudCwgYW55
+IHBhY2tldCByZWNlaXZlZCBvbiB0aGlzIGNoYW5uZWwgd2lsbCBiZQotICogaGFuZGVkIG92ZXIg
+dG8gdGhlIGNsaWVudCB2aWEgdGhlICdyeF9jYWxsYmFjaycuCi0gKgotICogUmV0dXJuOiBQb2lu
+dGVyIHRvIHRoZSBjaGFubmVsIGFzc2lnbmVkIHRvIHRoZSBjbGllbnQgaWYgc3VjY2Vzc2Z1bC4K
+LSAqCQlFUlJfUFRSIGZvciByZXF1ZXN0IGZhaWx1cmUuCi0gKi8KLXN0cnVjdCBtYm94X2NoYW4g
+Km1ib3hfcmVxdWVzdF9jaGFubmVsKHN0cnVjdCBtYm94X2NsaWVudCAqY2wpCitzdGF0aWMgaW50
+IGluaXRfY2hhbm5lbChzdHJ1Y3QgbWJveF9jaGFuICpjaGFuLAorCQlzdHJ1Y3QgbWJveF9jbGll
+bnQgKmNsKQoreworCXVuc2lnbmVkIGxvbmcgZmxhZ3M7CisJaW50IHJldDsKKworCWlmICghY2hh
+bikgeworCQlwcl9lcnIoIk5vIG1haWxib3ggY2hhbm5lbCBzcGVjaWZpZWRcbiIpOworCQlyZXR1
+cm4gLUVJTlZBTDsKKwl9CisKKwlzcGluX2xvY2tfaXJxc2F2ZSgmY2hhbi0+bG9jaywgZmxhZ3Mp
+OworCWNoYW4tPm1zZ19mcmVlID0gMDsKKwljaGFuLT5tc2dfY291bnQgPSAwOworCWNoYW4tPmFj
+dGl2ZV9yZXEgPSBOVUxMOworCWNoYW4tPmNsID0gY2w7CisKKwlpZiAoIWNsLT50eF90b3V0KSAv
+KiB3YWl0IGZvciBldmVyICovCisJCWNsLT50eF90b3V0ID0gbXNlY3NfdG9famlmZmllcygzNjAw
+MDAwKTsKKwllbHNlCisJCWNsLT50eF90b3V0ID0gbXNlY3NfdG9famlmZmllcyhjbC0+dHhfdG91
+dCk7CisJaWYgKGNoYW4tPnR4ZG9uZV9tZXRob2QJPT0gVFhET05FX0JZX1BPTEwKKwkJCSYmIGNs
+LT5rbm93c190eGRvbmUpCisJCWNoYW4tPnR4ZG9uZV9tZXRob2QgfD0gVFhET05FX0JZX0FDSzsK
+KwlzcGluX3VubG9ja19pcnFyZXN0b3JlKCZjaGFuLT5sb2NrLCBmbGFncyk7CisKKwlyZXQgPSBj
+aGFuLT5tYm94LT5vcHMtPnN0YXJ0dXAoY2hhbik7CisJaWYgKHJldCkgeworCQlwcl9lcnIoIlVu
+YWJsZSB0byBzdGFydHVwIHRoZSBjaGFuXG4iKTsKKwkJbWJveF9mcmVlX2NoYW5uZWwoY2hhbik7
+CisJCWNoYW4gPSBFUlJfUFRSKHJldCk7CisJfQorCisJcmV0dXJuIHJldDsKK30KKworc3RhdGlj
+IGludCBnZXRfYWNwaV9tYm94X2NoYW4oc3RydWN0IG1ib3hfY2xpZW50ICpjbCwKKwkJc3RydWN0
+IG1ib3hfY2hhbiAqKmNoYW4pCit7CisJc3RydWN0IG1ib3hfY29udHJvbGxlciAqbWJveDsKKwlp
+bnQgY2hhbl9pZCwgcmV0LCBsZW47CisJY2hhciAqY2hhbl9wdHI7CisKKwlpZiAoIWNsLT5jaGFu
+X25hbWUpCisJCXJldHVybiAtRU5PREVWOworCisJbGlzdF9mb3JfZWFjaF9lbnRyeShtYm94LCAm
+bWJveF9jb25zLCBub2RlKSB7CisJCWlmIChtYm94LT5uYW1lKSB7CisJCQkvKgorCQkJICogVGhl
+IGNsLT5jaGFuX25hbWUgaGFzIHRoZSBmb3JtYXQgPT4gY29udHJvbGxlcjpjaGFubmVsCisJCQkg
+KiBhcyBkZXNjcmliZWQgaW4gbWFpbGJveF9jbGllbnQuaAorCQkJICovCisKKwkJCWxlbiA9IHN0
+cmxlbihtYm94LT5uYW1lKTsKKwkJCWNoYW5fcHRyID0gY2wtPmNoYW5fbmFtZSArIGxlbiArIDE7
+CisKKwkJCXJldCA9IGtzdHJ0b3UzMihjbC0+Y2hhbl9uYW1lLCAwLCAmY2hhbl9pZCk7CisKKwkJ
+CWlmIChyZXQgPCAwKSB7CisJCQkJcHJfZXJyKCJFcnIgd2hpbGUgcGFyc2luZyBtYWlsYm94OiVz
+IGNoYW5uZWwgaWR4XG4iLAorCQkJCQkJbWJveC0+bmFtZSk7CisJCQkJY29udGludWU7CisJCQl9
+CisKKwkJCWlmICghc3RybmNtcChjbC0+Y2hhbl9uYW1lLCBtYm94LT5uYW1lLCBsZW4pKSB7CisJ
+CQkJKmNoYW4gPSAmbWJveC0+Y2hhbnNbY2hhbl9pZF07CisJCQkJcmV0dXJuIGluaXRfY2hhbm5l
+bCgqY2hhbiwgY2wpOworCQkJfQorCQl9CisJfQorCisJcmV0dXJuIC1FTk9ERVY7Cit9CisKK3N0
+YXRpYyBpbnQgZ2V0X29mX21ib3hfY2hhbihzdHJ1Y3QgbWJveF9jbGllbnQgKmNsLAorCQlzdHJ1
+Y3QgbWJveF9jaGFuICoqY2hhbikKIHsKIAlzdHJ1Y3QgZGV2aWNlICpkZXYgPSBjbC0+ZGV2Owog
+CXN0cnVjdCBtYm94X2NvbnRyb2xsZXIgKm1ib3g7CiAJc3RydWN0IG9mX3BoYW5kbGVfYXJncyBz
+cGVjOwotCXN0cnVjdCBtYm94X2NoYW4gKmNoYW47Ci0JdW5zaWduZWQgbG9uZyBmbGFnczsKIAlp
+bnQgY291bnQsIGksIHJldDsKIAogCWlmICghZGV2IHx8ICFkZXYtPm9mX25vZGUpIHsKIAkJcHJf
+ZXJyKCIlczogTm8gb3duZXIgZGV2aWNlIG5vZGVcbiIsIF9fZnVuY19fKTsKLQkJcmV0dXJuIEVS
+Ul9QVFIoLUVOT0RFVik7CisJCXJldHVybiAtRU5PREVWOwogCX0KIAogCWNvdW50ID0gb2ZfcHJv
+cGVydHlfY291bnRfc3RyaW5ncyhkZXYtPm9mX25vZGUsICJtYm94LW5hbWVzIik7CiAJaWYgKGNv
+dW50IDwgMCkgewogCQlwcl9lcnIoIiVzOiBtYm94LW5hbWVzIHByb3BlcnR5IG9mIG5vZGUgJyVz
+JyBtaXNzaW5nXG4iLAogCQkJX19mdW5jX18sIGRldi0+b2Zfbm9kZS0+ZnVsbF9uYW1lKTsKLQkJ
+cmV0dXJuIEVSUl9QVFIoLUVOT0RFVik7CisJCXJldHVybiAtRU5PREVWOwogCX0KLQotCW11dGV4
+X2xvY2soJmNvbl9tdXRleCk7Ci0KLQlyZXQgPSAtRU5PREVWOwogCWZvciAoaSA9IDA7IGkgPCBj
+b3VudDsgaSsrKSB7CiAJCWNvbnN0IGNoYXIgKnM7CiAKIAkJaWYgKG9mX3Byb3BlcnR5X3JlYWRf
+c3RyaW5nX2luZGV4KGRldi0+b2Zfbm9kZSwKLQkJCQkJCSJtYm94LW5hbWVzIiwgaSwgJnMpKQor
+CQkJCQkibWJveC1uYW1lcyIsIGksICZzKSkKIAkJCWNvbnRpbnVlOwogCiAJCWlmIChzdHJjbXAo
+Y2wtPmNoYW5fbmFtZSwgcykpCiAJCQljb250aW51ZTsKIAogCQlpZiAob2ZfcGFyc2VfcGhhbmRs
+ZV93aXRoX2FyZ3MoZGV2LT5vZl9ub2RlLAotCQkJCQkgIm1ib3giLCAiI21ib3gtY2VsbHMiLAlp
+LCAmc3BlYykpCisJCQkJCSJtYm94IiwgIiNtYm94LWNlbGxzIiwJaSwgJnNwZWMpKQogCQkJY29u
+dGludWU7CiAKLQkJY2hhbiA9IE5VTEw7CiAJCWxpc3RfZm9yX2VhY2hfZW50cnkobWJveCwgJm1i
+b3hfY29ucywgbm9kZSkKIAkJCWlmIChtYm94LT5kZXYtPm9mX25vZGUgPT0gc3BlYy5ucCkgewot
+CQkJCWNoYW4gPSBtYm94LT5vZl94bGF0ZShtYm94LCAmc3BlYyk7CisJCQkJKmNoYW4gPSBtYm94
+LT5vZl94bGF0ZShtYm94LCAmc3BlYyk7CiAJCQkJYnJlYWs7CiAJCQl9CiAKIAkJb2Zfbm9kZV9w
+dXQoc3BlYy5ucCk7CiAKLQkJaWYgKCFjaGFuKQorCQlpZiAoISgqY2hhbikpCiAJCQljb250aW51
+ZTsKIAogCQlyZXQgPSAtRUJVU1k7Ci0JCWlmICghY2hhbi0+Y2wgJiYgdHJ5X21vZHVsZV9nZXQo
+bWJveC0+ZGV2LT5kcml2ZXItPm93bmVyKSkKKwkJaWYgKCEoKmNoYW4pLT5jbCAmJiBhY3BpX2Rp
+c2FibGVkICYmCisJCQkJdHJ5X21vZHVsZV9nZXQobWJveC0+ZGV2LT5kcml2ZXItPm93bmVyKSkK
+IAkJCWJyZWFrOwogCX0KIAogCWlmIChpID09IGNvdW50KSB7CiAJCW11dGV4X3VubG9jaygmY29u
+X211dGV4KTsKLQkJcmV0dXJuIEVSUl9QVFIocmV0KTsKKwkJcmV0dXJuIHJldDsKIAl9CiAKLQlz
+cGluX2xvY2tfaXJxc2F2ZSgmY2hhbi0+bG9jaywgZmxhZ3MpOwotCWNoYW4tPm1zZ19mcmVlID0g
+MDsKLQljaGFuLT5tc2dfY291bnQgPSAwOwotCWNoYW4tPmFjdGl2ZV9yZXEgPSBOVUxMOwotCWNo
+YW4tPmNsID0gY2w7Ci0JaWYgKCFjbC0+dHhfdG91dCkgLyogd2FpdCBmb3IgZXZlciAqLwotCQlj
+bC0+dHhfdG91dCA9IG1zZWNzX3RvX2ppZmZpZXMoMzYwMDAwMCk7CisJcmV0dXJuIGluaXRfY2hh
+bm5lbCgqY2hhbiwgY2wpOworfQorCisvKioKKyAqIG1ib3hfcmVxdWVzdF9jaGFubmVsIC0gUmVx
+dWVzdCBhIG1haWxib3ggY2hhbm5lbC4KKyAqIEBjbDogSWRlbnRpdHkgb2YgdGhlIGNsaWVudCBy
+ZXF1ZXN0aW5nIHRoZSBjaGFubmVsLgorICoKKyAqIFRoZSBDbGllbnQgc3BlY2lmaWVzIGl0cyBy
+ZXF1aXJlbWVudHMgYW5kIGNhcGFiaWxpdGllcyB3aGlsZSBhc2tpbmcgZm9yCisgKiBhIG1haWxi
+b3ggY2hhbm5lbCBieSBuYW1lLiBJdCBjYW4ndCBiZSBjYWxsZWQgZnJvbSBhdG9taWMgY29udGV4
+dC4KKyAqIFRoZSBjaGFubmVsIGlzIGV4Y2x1c2l2ZWx5IGFsbG9jYXRlZCBhbmQgY2FuJ3QgYmUg
+dXNlZCBieSBhbm90aGVyCisgKiBjbGllbnQgYmVmb3JlIHRoZSBvd25lciBjYWxscyBtYm94X2Zy
+ZWVfY2hhbm5lbC4KKyAqIEFmdGVyIGFzc2lnbm1lbnQsIGFueSBwYWNrZXQgcmVjZWl2ZWQgb24g
+dGhpcyBjaGFubmVsIHdpbGwgYmUKKyAqIGhhbmRlZCBvdmVyIHRvIHRoZSBjbGllbnQgdmlhIHRo
+ZSAncnhfY2FsbGJhY2snLgorICoKKyAqIFJldHVybjogUG9pbnRlciB0byB0aGUgY2hhbm5lbCBh
+c3NpZ25lZCB0byB0aGUgY2xpZW50IGlmIHN1Y2Nlc3NmdWwuCisgKgkJRVJSX1BUUiBmb3IgcmVx
+dWVzdCBmYWlsdXJlLgorICovCitzdHJ1Y3QgbWJveF9jaGFuICptYm94X3JlcXVlc3RfY2hhbm5l
+bChzdHJ1Y3QgbWJveF9jbGllbnQgKmNsKQoreworCXN0cnVjdCBtYm94X2NoYW4gKmNoYW4gPSBO
+VUxMOworCWludCByZXQ7CisKKwltdXRleF9sb2NrKCZjb25fbXV0ZXgpOworCisJaWYgKGFjcGlf
+ZGlzYWJsZWQpCisJCXJldCA9IGdldF9vZl9tYm94X2NoYW4oY2wsICZjaGFuKTsKIAllbHNlCi0J
+CWNsLT50eF90b3V0ID0gbXNlY3NfdG9famlmZmllcyhjbC0+dHhfdG91dCk7Ci0JaWYgKGNoYW4t
+PnR4ZG9uZV9tZXRob2QJPT0gVFhET05FX0JZX1BPTEwKLQkJCSYmIGNsLT5rbm93c190eGRvbmUp
+Ci0JCWNoYW4tPnR4ZG9uZV9tZXRob2QgfD0gVFhET05FX0JZX0FDSzsKLQlzcGluX3VubG9ja19p
+cnFyZXN0b3JlKCZjaGFuLT5sb2NrLCBmbGFncyk7CisJCXJldCA9IGdldF9hY3BpX21ib3hfY2hh
+bihjbCwgJmNoYW4pOwogCi0JcmV0ID0gY2hhbi0+bWJveC0+b3BzLT5zdGFydHVwKGNoYW4pOwot
+CWlmIChyZXQpIHsKLQkJcHJfZXJyKCJVbmFibGUgdG8gc3RhcnR1cCB0aGUgY2hhblxuIik7Ci0J
+CW1ib3hfZnJlZV9jaGFubmVsKGNoYW4pOwotCQljaGFuID0gRVJSX1BUUihyZXQpOwotCX0KKwlp
+ZiAocmV0KQorCQlwcl9lcnIoIk5vIG1haWxib3ggY2hhbm5lbHMgZm91bmRcbiIpOwogCiAJbXV0
+ZXhfdW5sb2NrKCZjb25fbXV0ZXgpOwogCXJldHVybiBjaGFuOwpAQCAtMzk0LDcgKzQ2MSw5IEBA
+IHZvaWQgbWJveF9mcmVlX2NoYW5uZWwoc3RydWN0IG1ib3hfY2hhbiAqY2hhbikKIAlpZiAoY2hh
+bi0+dHhkb25lX21ldGhvZCA9PSAoVFhET05FX0JZX1BPTEwgfCBUWERPTkVfQllfQUNLKSkKIAkJ
+Y2hhbi0+dHhkb25lX21ldGhvZCA9IFRYRE9ORV9CWV9QT0xMOwogCi0JbW9kdWxlX3B1dChjaGFu
+LT5tYm94LT5kZXYtPmRyaXZlci0+b3duZXIpOworCWlmIChjaGFuLT5tYm94LT5kZXYpCisJCW1v
+ZHVsZV9wdXQoY2hhbi0+bWJveC0+ZGV2LT5kcml2ZXItPm93bmVyKTsKKwogCXNwaW5fdW5sb2Nr
+X2lycXJlc3RvcmUoJmNoYW4tPmxvY2ssIGZsYWdzKTsKIH0KIEVYUE9SVF9TWU1CT0xfR1BMKG1i
+b3hfZnJlZV9jaGFubmVsKTsKQEAgLTQyMiw3ICs0OTEsMTUgQEAgaW50IG1ib3hfY29udHJvbGxl
+cl9yZWdpc3RlcihzdHJ1Y3QgbWJveF9jb250cm9sbGVyICptYm94KQogCWludCBpLCB0eGRvbmU7
+CiAKIAkvKiBTYW5pdHkgY2hlY2sgKi8KLQlpZiAoIW1ib3ggfHwgIW1ib3gtPmRldiB8fCAhbWJv
+eC0+b3BzIHx8ICFtYm94LT5udW1fY2hhbnMpCisJaWYgKCFtYm94IHx8ICFtYm94LT5vcHMgfHwg
+IW1ib3gtPm51bV9jaGFucykKKwkJcmV0dXJuIC1FSU5WQUw7CisKKwkvKgorCSAqIEZvciBBQ1BJ
+IHBsYXRmb3JtcywgdG8gZ2V0IG1ib3gtPmRldiwgd2UnZCBuZWVkIHRvIAorCSAqIGhhdmUgYSBm
+YWtlIG1lYW5pbmdsZXNzIGVudHJ5IGluIHRoZSBEU0RUIGZvciB0aGUKKwkgKiBtYWlsYm94IGNv
+bnRyb2xsZXIuCisJICovCisJaWYgKGFjcGlfZGlzYWJsZWQgJiYgIW1ib3gtPmRldikKIAkJcmV0
+dXJuIC1FSU5WQUw7CiAKIAlpZiAobWJveC0+dHhkb25lX2lycSkKZGlmZiAtLWdpdCBhL2luY2x1
+ZGUvbGludXgvbWFpbGJveF9jbGllbnQuaCBiL2luY2x1ZGUvbGludXgvbWFpbGJveF9jbGllbnQu
+aAppbmRleCBiYmFjMmQyLi43MTZmYmFlIDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L21haWxi
+b3hfY2xpZW50LmgKKysrIGIvaW5jbHVkZS9saW51eC9tYWlsYm94X2NsaWVudC5oCkBAIC0yOSw3
+ICsyOSw3IEBAIHN0cnVjdCBtYm94X2NoYW47CiAgKi8KIHN0cnVjdCBtYm94X2NsaWVudCB7CiAJ
+c3RydWN0IGRldmljZSAqZGV2OwotCWNvbnN0IGNoYXIgKmNoYW5fbmFtZTsKKwljaGFyICpjaGFu
+X25hbWU7CiAJdm9pZCAoKnJ4X2NhbGxiYWNrKShzdHJ1Y3QgbWJveF9jbGllbnQgKmNsLCB2b2lk
+ICptc3NnKTsKIAl2b2lkICgqdHhfZG9uZSkoc3RydWN0IG1ib3hfY2xpZW50ICpjbCwgdm9pZCAq
+bXNzZywgZW51bSBtYm94X3Jlc3VsdCByKTsKIAlib29sIHR4X2Jsb2NrOwpkaWZmIC0tZ2l0IGEv
+aW5jbHVkZS9saW51eC9tYWlsYm94X2NvbnRyb2xsZXIuaCBiL2luY2x1ZGUvbGludXgvbWFpbGJv
+eF9jb250cm9sbGVyLmgKaW5kZXggY2Y4MWU4MC4uMDY0NzZlZiAxMDA2NDQKLS0tIGEvaW5jbHVk
+ZS9saW51eC9tYWlsYm94X2NvbnRyb2xsZXIuaAorKysgYi9pbmNsdWRlL2xpbnV4L21haWxib3hf
+Y29udHJvbGxlci5oCkBAIC03OCw2ICs3OCw3IEBAIHN0cnVjdCBtYm94X2NvbnRyb2xsZXIgewog
+CXVuc2lnbmVkIHBlcmlvZDsKIAkvKiBIb29rIHRvIGFkZCB0byB0aGUgZ2xvYmFsIGNvbnRyb2xs
+ZXIgbGlzdCAqLwogCXN0cnVjdCBsaXN0X2hlYWQgbm9kZTsKKwljaGFyICpuYW1lOwogfSBfX2Fs
+aWduZWQoMzIpOwogCiAvKgotLSAKMS44LjMuMgoK
+--047d7bd91a14e8a8cc04fc4b6015--
