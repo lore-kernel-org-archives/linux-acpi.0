@@ -1,69 +1,52 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [PATCH 5/7 REVISION v2] trace, RAS: Add eMCA trace event
- interface
-Date: Thu, 19 Jun 2014 22:06:18 -0400
-Message-ID: <20140620020618.GA10793@gchen.bj.intel.com>
-References: <20140617020937.GA14404@gchen.bj.intel.com>
- <1403058787-15449-1-git-send-email-gong.chen@linux.intel.com>
- <1403058787-15449-2-git-send-email-gong.chen@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HcAYCG3uE/tztfnV"
+From: Edward Lin <yidi.lin@canonical.com>
+Subject: [PATCH] ACPI / video: Add Dell Inspiron 5737 to the blacklist
+Date: Fri, 20 Jun 2014 16:13:42 +0800
+Message-ID: <1403252022-17461-1-git-send-email-yidi.lin@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:16172 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754250AbaFTCfO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Jun 2014 22:35:14 -0400
-Content-Disposition: inline
-In-Reply-To: <1403058787-15449-2-git-send-email-gong.chen@linux.intel.com>
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:34842 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751217AbaFTINr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2014 04:13:47 -0400
+Received: by mail-pd0-f173.google.com with SMTP id r10so2718239pdi.18
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Jun 2014 01:13:46 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rostedt@goodmis.org
-Cc: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
+Cc: yidi.lin@canonical.com
 
+With win8 capabiltiy, the ACPI backlight control is broken.
+The system also loses backlight setting when resuming from S3.
 
---HcAYCG3uE/tztfnV
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Add this model to the the ACPI video detect blacklist to make backlight
+functionality work.
 
-On Tue, Jun 17, 2014 at 10:33:07PM -0400, Chen, Gong wrote:
-> Date: Tue, 17 Jun 2014 22:33:07 -0400
-> From: "Chen, Gong" <gong.chen@linux.intel.com>
-> To: rostedt@goodmis.org
-> Cc: tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com,
->  linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
-> Subject: [PATCH 5/7 REVISION v2] trace, RAS: Add eMCA trace event interfa=
-ce
-> X-Mailer: git-send-email 2.0.0.rc2
->=20
-> Add trace interface to elaborate all H/W error related information.
->=20
-So, Steven & Tony
+Although backlight functionality works via video.use_native_backlight=1,
+this approach may be safer.
 
-How to solve the dependency between different git tree? (One for trace, One
-for RAS)
+Signed-off-by: Edward Lin <yidi.lin@canonical.com>
+---
+ drivers/acpi/video_detect.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---HcAYCG3uE/tztfnV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 33e3db5..c42feb2 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -166,6 +166,14 @@ static struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
+ 		},
+ 	},
++	{
++	.callback = video_detect_force_vendor,
++	.ident = "Dell Inspiron 5737",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 5737"),
++		},
++	},
+ 	{ },
+ };
+ 
+-- 
+1.7.9.5
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTo5caAAoJEI01n1+kOSLHlmUP/itTy5bLiikwg1WJhP3P9Ddv
-Sykfy5BEt5Ekpsigob5HCRtJrWTvAyawKvWJSSsnPXZeUPiHBuqQ6RyQp7A+EkJw
-nyo17/gF5LSXN2BGO2JW4rcRtey5irvDMhZslAg98uUpte7zIqqTQGkF/c664A/J
-PypvQsopuSqcWol9wRxk5mv+CcLBYCkT6cefJRlOYb1DlBBUS6pWBABt4/Ad1U3/
-G8Py3Il0tr2gWY6WqQru4ssfjfnuhv0A2GL6623rzVpREHkv9FGG9qYzdhA7dSFr
-nIWnfrJ0IQFK0071q5Il2O1SAVL8D/q/4I3KRr8K2DjtSPeu4p4mlUZMEJpgMG6F
-ynL92G76yBuF7HYYe0CysqXsSgfmmYBB8z/JlEKBnIRDHV9xnKLwMHVUI11Mt8C8
-T8Nlv4M4bg9KJ3eeLYlCSMABJScoSRXDqAWXmYxOap1TOnbacTdvAu/+Khuk+p7n
-P2X8Y/uLVGTFcrtMVjMKf8nOr9p/UgZkiDNNPuMBoJUl1NqakHMzUsBZErMP7KX/
-ti7kxyuVTVeORrcTe7dP7/LOSdA3ujBim5OoYqNg10mttr8OKZRkWZcChOSD8B5Y
-uW7iiQu5A/r1zyidPYdTkCMSQrmUIHeyiFo6M6Dg8jEo/lfSUX30riwnn3L+ZUIB
-TdpiPdC9EzFrRp90Pmvw
-=euOF
------END PGP SIGNATURE-----
-
---HcAYCG3uE/tztfnV--
