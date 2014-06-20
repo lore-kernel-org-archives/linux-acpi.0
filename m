@@ -1,123 +1,78 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
 Subject: Re: [RFC Patch V2 15/16] pci, ioapic: kill ioapic PCI driver
-Date: Fri, 20 Jun 2014 16:47:00 +0800
-Message-ID: <53A3F504.4010804@linux.intel.com>
+Date: Fri, 20 Jun 2014 16:58:06 +0800
+Message-ID: <53A3F79E.8050100@linux.intel.com>
 References: <1402982995-13747-1-git-send-email-jiang.liu@linux.intel.com> <1402982995-13747-16-git-send-email-jiang.liu@linux.intel.com> <CAErSpo4hmav+JTepA2cGC2Nwi1PHxBWpy+GG2t_dRfw1nbKqLA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <CAErSpo4hmav+JTepA2cGC2Nwi1PHxBWpy+GG2t_dRfw1nbKqLA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bjorn,
-	I should pay more attention to commit messages:)
-Then how about this description?
-----------------------------------------------------------------------
-PCI: Remove PCI ioapic driver
 
-To support IOAPIC hotplug on x86 and IA64 platforms, OS needs to figure
-out global interrupt source number(GSI) and IOAPIC enumeration ID
-through ACPI interfaces. So BIOS must implement an ACPI IOAPIC device
-with _GSB/_UID or _MAT method to support IOAPIC hotplug. OS also needs
-to figure out base physical address to access IOAPIC registers. OS may
-get the base physical address through PCI BARs if IOAPIC device is
-visible in PCI domain, otherwise OS may get the address by ACPI _CRS
-method if IOAPIC device is hidden from PCI domain by BIOS.
 
-When adding a PCI subtree, we need to add IOAPIC devices before enablin=
-g
-all other PCI devices because other PCI devices may use the IOAPIC to
-allocate PCI interrupts.
-
-So we plan to reimplement IOAPIC driver as an ACPI instead of PCI drive=
-r
-due to:
-1) hot-pluggable IOAPIC devices are always visible in ACPI domain,
-   but may or may not be visible in PCI domain.
-2) we could explicitly control the order between IOAPIC and other PCI
-   devices.
-
-We also have another choice to use a PCI driver to manage IOAPIC device
-if it's visible in PCI domain and use an ACPI driver if it's only
-visible in ACPI domain. But this solution is a little complex.
-
-It shouldn't cause serious backward compatibility issues because:
-1) IOAPIC hotplug is never supported on x86 yet because it hasn't
-   implemented the required acpi_register_ioapic() and
-   acpi_unregister_ioapic().
-2) Currently only ACPI based IOAPIC hotplug is possible on x86 and
-   IA64, we don't know other specifications and interfaces to support
-   IOAPIC hotplug yet.
-3) We will reimplement an ACPI IOAPIC=EF=BD=94driver support IOAPIC hot=
-plug.
-
-This change also helps to get rid of the false alarm on all current
-Linux distributions:
-[    6.952497] ioapic: probe of 0000:00:05.4 failed with error -22
-[    6.959542] ioapic: probe of 0000:80:05.4 failed with error -22
------------------------------------------------------------------------=
-----
 On 2014/6/18 0:49, Bjorn Helgaas wrote:
-> Your subject lines aren't even consistent in the same patch series.  =
-I suggest:
->=20
+> Your subject lines aren't even consistent in the same patch series.  I suggest:
+> 
 >   PCI: Remove PCI ioapic driver
->=20
-> On Mon, Jun 16, 2014 at 11:29 PM, Jiang Liu <jiang.liu@linux.intel.co=
-m> wrote:
->> Originally the ioapic PCI driver is designed to support IOAPIC hotpl=
-ug,
+> 
+> On Mon, Jun 16, 2014 at 11:29 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+>> Originally the ioapic PCI driver is designed to support IOAPIC hotplug,
 >> but it never works because no architecture has implemented required
 >> interface to support it.
->=20
+> 
 > Please be specific about what these "required interfaces" are that no
 > architecture has implemented.  Otherwise it's hard for me to be
 > convinced that it's safe to remove this.
->=20
+> 
 >> We plan to reimplement it as an ACPI driver
 >> instead of PCI driver due to:
 >> 1) To support IOAPIC hotplug, an IOAPIC unit must have an companion
 >>    ACPI device, but it may or may not be presented in PCI domain.
->=20
+> 
 > Please include the reason why there must be a companion ACPI device.
->=20
+> 
 > What about hotplugging IOAPICs on non-ACPI systems?  How would that
 > work?  Will that require totally separate IOAPIC drivers?  I guess
 > pci/ioapic.c isn't very big and contains mostly ACPI stuff, so maybe
 > there's nothing worth sharing.
->=20
-> If there must be a companion ACPI device, I guess that implies that w=
-e
+> 
+> If there must be a companion ACPI device, I guess that implies that we
 > can't support an IOAPIC on a plug-in card, because there won't be
-> anything in the ACPI namespace about the card.  Is it possible to hav=
-e
+> anything in the ACPI namespace about the card.  Is it possible to have
 > an IOAPIC on a plug-in card?  I guess I don't know what we could do
-> with it, since I don't know how we would learn about what is connecte=
-d
-> to the IOAPIC input pins.  There's no standard for describing that fo=
-r
+> with it, since I don't know how we would learn about what is connected
+> to the IOAPIC input pins.  There's no standard for describing that for
 > plug-in IOAPICs, is there?
->=20
->> 2) All other PCI devices have dependency on IOAPIC, so we must hot-a=
-dd
+Hi Bjorn,
+	As I know, ACPI is the only specification defining interfaces
+to support IOAPIC hotplug on x86 and IA64, and seems IOAPIC is only used
+on x86 and IA64 too.
+	I suspect that there's a real product with IOAPIC on plug-in
+card. Correct me if I'm wrong. If there are products with IOAPIC on
+plug-in card, it could only be  supported by ACPIPHP because SHPC and
+PCIe native hotplug have no  chance to update ACPI data structures.
+
+Thanks!
+Gerry
+
+> 
+>> 2) All other PCI devices have dependency on IOAPIC, so we must hot-add
 >>    it before all other PCI devices and hot-remove it after all other
->>    PCI devices. So we need to explicitly control the order to add/re=
-move
+>>    PCI devices. So we need to explicitly control the order to add/remove
 >>    IOAPIC devices.
 >>
->> So kill the ioapic PCI driver and will reimplement it as an ACPI dri=
-ver.
+>> So kill the ioapic PCI driver and will reimplement it as an ACPI driver.
 >>
 >> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 >> ---
 >>  drivers/pci/Kconfig  |    7 ---
 >>  drivers/pci/Makefile |    2 -
->>  drivers/pci/ioapic.c |  121 ---------------------------------------=
------------
+>>  drivers/pci/ioapic.c |  121 --------------------------------------------------
 >>  3 files changed, 130 deletions(-)
 >>  delete mode 100644 drivers/pci/ioapic.c
 >>
@@ -143,14 +98,14 @@ ver.
 >> index e04fe2d9df3b..73e4af400a5a 100644
 >> --- a/drivers/pci/Makefile
 >> +++ b/drivers/pci/Makefile
->> @@ -13,8 +13,6 @@ obj-$(CONFIG_PCI_QUIRKS) +=3D quirks.o
+>> @@ -13,8 +13,6 @@ obj-$(CONFIG_PCI_QUIRKS) += quirks.o
 >>  # Build PCI Express stuff if needed
->>  obj-$(CONFIG_PCIEPORTBUS) +=3D pcie/
+>>  obj-$(CONFIG_PCIEPORTBUS) += pcie/
 >>
->> -obj-$(CONFIG_PCI_IOAPIC) +=3D ioapic.o
+>> -obj-$(CONFIG_PCI_IOAPIC) += ioapic.o
 >> -
 >>  # Build the PCI Hotplug drivers if we were asked to
->>  obj-$(CONFIG_HOTPLUG_PCI) +=3D hotplug/
+>>  obj-$(CONFIG_HOTPLUG_PCI) += hotplug/
 >>  ifdef CONFIG_HOTPLUG_PCI
 >> diff --git a/drivers/pci/ioapic.c b/drivers/pci/ioapic.c
 >> deleted file mode 100644
@@ -164,20 +119,15 @@ ver.
 >> - * Copyright (C) 2009 Fujitsu Limited.
 >> - * (c) Copyright 2009 Hewlett-Packard Development Company, L.P.
 >> - *
->> - * This program is free software; you can redistribute it and/or mo=
-dify
->> - * it under the terms of the GNU General Public License version 2 a=
-s
+>> - * This program is free software; you can redistribute it and/or modify
+>> - * it under the terms of the GNU General Public License version 2 as
 >> - * published by the Free Software Foundation.
 >> - */
 >> -
 >> -/*
->> - * This driver manages PCI I/O APICs added by hotplug after boot.  =
-We try to
->> - * claim all I/O APIC PCI devices, but those present at boot were r=
-egistered
->> - * when we parsed the ACPI MADT, so we'll fail when we try to re-re=
-gister
+>> - * This driver manages PCI I/O APICs added by hotplug after boot.  We try to
+>> - * claim all I/O APIC PCI devices, but those present at boot were registered
+>> - * when we parsed the ACPI MADT, so we'll fail when we try to re-register
 >> - * them.
 >> - */
 >> -
@@ -191,8 +141,7 @@ gister
 >> -       u32             gsi_base;
 >> -};
 >> -
->> -static int ioapic_probe(struct pci_dev *dev, const struct pci_devic=
-e_id *ent)
+>> -static int ioapic_probe(struct pci_dev *dev, const struct pci_device_id *ent)
 >> -{
 >> -       acpi_handle handle;
 >> -       acpi_status status;
@@ -202,35 +151,32 @@ e_id *ent)
 >> -       char *type;
 >> -       struct resource *res;
 >> -
->> -       handle =3D ACPI_HANDLE(&dev->dev);
+>> -       handle = ACPI_HANDLE(&dev->dev);
 >> -       if (!handle)
 >> -               return -EINVAL;
 >> -
->> -       status =3D acpi_evaluate_integer(handle, "_GSB", NULL, &gsb)=
-;
+>> -       status = acpi_evaluate_integer(handle, "_GSB", NULL, &gsb);
 >> -       if (ACPI_FAILURE(status))
 >> -               return -EINVAL;
 >> -
 >> -       /*
->> -        * The previous code in acpiphp evaluated _MAT if _GSB faile=
-d, but
->> -        * ACPI spec 4.0 sec 6.2.2 requires _GSB for hot-pluggable I=
-/O APICs.
+>> -        * The previous code in acpiphp evaluated _MAT if _GSB failed, but
+>> -        * ACPI spec 4.0 sec 6.2.2 requires _GSB for hot-pluggable I/O APICs.
 >> -        */
 >> -
->> -       ioapic =3D kzalloc(sizeof(*ioapic), GFP_KERNEL);
+>> -       ioapic = kzalloc(sizeof(*ioapic), GFP_KERNEL);
 >> -       if (!ioapic)
 >> -               return -ENOMEM;
 >> -
->> -       ioapic->handle =3D handle;
->> -       ioapic->gsi_base =3D (u32) gsb;
+>> -       ioapic->handle = handle;
+>> -       ioapic->gsi_base = (u32) gsb;
 >> -
->> -       if (dev->class =3D=3D PCI_CLASS_SYSTEM_PIC_IOAPIC)
->> -               type =3D "IOAPIC";
+>> -       if (dev->class == PCI_CLASS_SYSTEM_PIC_IOAPIC)
+>> -               type = "IOAPIC";
 >> -       else
->> -               type =3D "IOxAPIC";
+>> -               type = "IOxAPIC";
 >> -
->> -       ret =3D pci_enable_device(dev);
+>> -       ret = pci_enable_device(dev);
 >> -       if (ret < 0)
 >> -               goto exit_free;
 >> -
@@ -239,14 +185,12 @@ d, but
 >> -       if (pci_request_region(dev, 0, type))
 >> -               goto exit_disable;
 >> -
->> -       res =3D &dev->resource[0];
->> -       if (acpi_register_ioapic(ioapic->handle, res->start, ioapic-=
->gsi_base))
+>> -       res = &dev->resource[0];
+>> -       if (acpi_register_ioapic(ioapic->handle, res->start, ioapic->gsi_base))
 >> -               goto exit_release;
 >> -
 >> -       pci_set_drvdata(dev, ioapic);
->> -       dev_info(&dev->dev, "%s at %pR, GSI %u\n", type, res, ioapic=
-->gsi_base);
+>> -       dev_info(&dev->dev, "%s at %pR, GSI %u\n", type, res, ioapic->gsi_base);
 >> -       return 0;
 >> -
 >> -exit_release:
@@ -260,7 +204,7 @@ d, but
 >> -
 >> -static void ioapic_remove(struct pci_dev *dev)
 >> -{
->> -       struct ioapic *ioapic =3D pci_get_drvdata(dev);
+>> -       struct ioapic *ioapic = pci_get_drvdata(dev);
 >> -
 >> -       acpi_unregister_ioapic(ioapic->handle, ioapic->gsi_base);
 >> -       pci_release_region(dev, 0);
@@ -269,18 +213,18 @@ d, but
 >> -}
 >> -
 >> -
->> -static DEFINE_PCI_DEVICE_TABLE(ioapic_devices) =3D {
+>> -static DEFINE_PCI_DEVICE_TABLE(ioapic_devices) = {
 >> -       { PCI_DEVICE_CLASS(PCI_CLASS_SYSTEM_PIC_IOAPIC, ~0) },
 >> -       { PCI_DEVICE_CLASS(PCI_CLASS_SYSTEM_PIC_IOXAPIC, ~0) },
 >> -       { }
 >> -};
 >> -MODULE_DEVICE_TABLE(pci, ioapic_devices);
 >> -
->> -static struct pci_driver ioapic_driver =3D {
->> -       .name           =3D "ioapic",
->> -       .id_table       =3D ioapic_devices,
->> -       .probe          =3D ioapic_probe,
->> -       .remove         =3D ioapic_remove,
+>> -static struct pci_driver ioapic_driver = {
+>> -       .name           = "ioapic",
+>> -       .id_table       = ioapic_devices,
+>> -       .probe          = ioapic_probe,
+>> -       .remove         = ioapic_remove,
 >> -};
 >> -
 >> -static int __init ioapic_init(void)
