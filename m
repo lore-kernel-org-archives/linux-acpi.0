@@ -1,59 +1,78 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [Linaro-acpi] [RFC v2 1/3] Mailbox: Add support for ACPI
-Date: Fri, 20 Jun 2014 15:29:18 -0400
-Message-ID: <CAJ5Y-eYd_dyhzOdnxsi96mGN6dqihN_5rw83FsFwauZzUVz9YA@mail.gmail.com>
-References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org>
-	<CAJ5Y-eZ0z-SPSn9oxced2GOAw+OA5rC+uq4pCSXh5H2JujPm1g@mail.gmail.com>
-	<CAJ5Y-ebp1rrRwDWCWSqkSpFg0jr4JktzKpBhWQv9jrwxhqndQQ@mail.gmail.com>
-	<5207109.Ir8j6FZuiX@wuerfel>
+Date: Fri, 20 Jun 2014 22:49:11 +0200
+Message-ID: <4600246.SKVsl5kA9F@wuerfel>
+References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org> <5207109.Ir8j6FZuiX@wuerfel> <CAJ5Y-eYd_dyhzOdnxsi96mGN6dqihN_5rw83FsFwauZzUVz9YA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:33311 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751224AbaFTT3U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2014 15:29:20 -0400
-Received: by mail-we0-f180.google.com with SMTP id x48so4291058wes.11
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Jun 2014 12:29:19 -0700 (PDT)
-In-Reply-To: <5207109.Ir8j6FZuiX@wuerfel>
+Received: from mout.kundenserver.de ([212.227.126.187]:57192 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752101AbaFTUts (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jun 2014 16:49:48 -0400
+In-Reply-To: <CAJ5Y-eYd_dyhzOdnxsi96mGN6dqihN_5rw83FsFwauZzUVz9YA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Patch Tracking <patches@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, Patch Tracking <patches@linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>
 
-Hi Arnd,
+On Friday 20 June 2014 15:29:18 Ashwin Chaugule wrote:
+> 
+> On 20 June 2014 15:08, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Friday 20 June 2014 14:55:16 Ashwin Chaugule wrote:
+> >> So, in order to get an mbox->dev for ACPI platforms, we'd need an
+> >> entry in the DSDT table. That seems rather pointless, since the DSDT
+> >> is reserved for devices and is supposed to be OS agnostic. Since the
+> >> mailbox controller itself is not really a "device" with a resource
+> >> descriptor, I dont see the point in adding a dummy DSDT entry for the
+> >> sake of getting this `struct device`. Also, I'm told adding new
+> >> entries to this table requires registering a unique 4 character
+> >> identifier and approval from some committees. If there are other ways
+> >> to get this structure I'd like to hear about it.
+> >>
+> >> The other alternative would be to piggy back on the ACPI CPU detection
+> >> code, which looks for the ACPI0007 device node in the DSDT and use
+> >> that as the mbox controller device. This node is already registered
+> >> and is an established method to detect CPUs. But I'm not sure what
+> >> happens when CPUs are hotplugged off, we surely dont want mailbox
+> >> clients such as PCC to break.
+> >
+> > The main question here is whether you expect having to support multiple
+> > mailbox devices in an ACPI system. If you think there is never more than
+> > one, you wouldn't need a DSDT entry, but if you can end up in a situation
+> > where another device needs to specify which mailbox it is using, then
+> > you need that entry anyway.
+> 
+> At this point, I dont see the need for multiple mailbox devices. But
+> I'm not seeing why we'd need a DSDT entry only if there are more than
+> one mailbox devices? I'd obviously prefer not having a DSDT entry for
+> this, and the patch I posted is the only way I could see to keep DT
+> and ACPI mbox supported at runtime without DSDT involved. Please let
+> me know if there are better ways.
 
-On 20 June 2014 15:08, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Friday 20 June 2014 14:55:16 Ashwin Chaugule wrote:
->> So, in order to get an mbox->dev for ACPI platforms, we'd need an
->> entry in the DSDT table. That seems rather pointless, since the DSDT
->> is reserved for devices and is supposed to be OS agnostic. Since the
->> mailbox controller itself is not really a "device" with a resource
->> descriptor, I dont see the point in adding a dummy DSDT entry for the
->> sake of getting this `struct device`. Also, I'm told adding new
->> entries to this table requires registering a unique 4 character
->> identifier and approval from some committees. If there are other ways
->> to get this structure I'd like to hear about it.
->>
->> The other alternative would be to piggy back on the ACPI CPU detection
->> code, which looks for the ACPI0007 device node in the DSDT and use
->> that as the mbox controller device. This node is already registered
->> and is an established method to detect CPUs. But I'm not sure what
->> happens when CPUs are hotplugged off, we surely dont want mailbox
->> clients such as PCC to break.
->
-> The main question here is whether you expect having to support multiple
-> mailbox devices in an ACPI system. If you think there is never more than
-> one, you wouldn't need a DSDT entry, but if you can end up in a situation
-> where another device needs to specify which mailbox it is using, then
-> you need that entry anyway.
+It's mostly a matter of consistency: We can have multiple interrupt
+controllers, pin controllers, clock controllers, dma engines, etc,
+and in the DT case we use references to the nodes wherever we have
+other devices referring to a mailbox name.
 
-At this point, I dont see the need for multiple mailbox devices. But
-I'm not seeing why we'd need a DSDT entry only if there are more than
-one mailbox devices? I'd obviously prefer not having a DSDT entry for
-this, and the patch I posted is the only way I could see to keep DT
-and ACPI mbox supported at runtime without DSDT involved. Please let
-me know if there are better ways.
+I believe Intel's embedded chips are moving in the same direction
+with their ACPI support. If the ACPI spec gains support for mailbox
+devices, locking them into having only a single device may be
+a problem later for them.
 
-Cheers,
-Ashwin
+Note that "device" here doesn't have to mean a platform device that
+is instantiated from DSDT, it can be any mailbox provider that is
+registered in an arbitrary way, as long as you have a method to map
+back from the (consumer-device, name-string) tuple back to the
+(provider, channel) tuple. I have read your patch again now and noticed
+that you actually tried to do this, but unfortunately you got it
+wrong by requiring the consumer to fill out the name of the provider
+in the request. You can't do that, because it's not generic enough
+to support devices that can be reused, and it means that drivers
+using the API are never portable between DT and ACPI. You have to
+get rid of the "ctrl_name" field in the mbox_client structure and
+change the lookup to be based only on cd->dev and cl->chan_name,
+using whatever tables you have available in ACPI.
+
+	Arnd
