@@ -1,36 +1,45 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: ACPI Support for HP Pavillion laptops
-Date: Sat, 21 Jun 2014 15:03:25 +0000
-Message-ID: <744357E9AAD1214791ACBA4B0B90926301379517@SHSMSX101.ccr.corp.intel.com>
-References: <CADHx-_Fw2zqmn0+9TqaeE20OJ+hhmpzyJiW3Cd7NYKPnFK6BEw@mail.gmail.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [Patch V4 00/42] use irqdomain to dynamically allocate IRQ for
+ IOAPIC
+Date: Sat, 21 Jun 2014 23:08:12 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1406212306540.5170@nanos>
+References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:61841 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752613AbaFUPDl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 21 Jun 2014 11:03:41 -0400
-In-Reply-To: <CADHx-_Fw2zqmn0+9TqaeE20OJ+hhmpzyJiW3Cd7NYKPnFK6BEw@mail.gmail.com>
-Content-Language: en-US
+Received: from www.linutronix.de ([62.245.132.108]:37043 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754357AbaFUVIo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Jun 2014 17:08:44 -0400
+In-Reply-To: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chetal Patil <chetal.patil@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtYWNwaS1vd25l
-ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPiBvd25lckB2Z2VyLmtlcm5l
-bC5vcmddIE9uIEJlaGFsZiBPZiBDaGV0YWwgUGF0aWwNCj4gU2VudDogU2F0dXJkYXksIEp1bmUg
-MjEsIDIwMTQgNDo1MSBQTQ0KPiBUbzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3Vi
-amVjdDogQUNQSSBTdXBwb3J0IGZvciBIUCBQYXZpbGxpb24gbGFwdG9wcw0KPiANCj4gSGksDQo+
-IA0KPiBJIHJlY2VudGx5IGpvaW5lZCB0aGUgTGludXggRHJpdmVyIERldmVsb3BtZW50IG1haWxp
-bmcgbGlzdCBhbmQgd291bGQNCj4gbGlrZSB0byBjb250cmlidXRlIHRvIHRoZSBMaW51eCBEcml2
-ZXIgUHJvamVjdC4gU3BlY2lmaWNhbGx5LCBJIHdvdWxkDQo+IGxpa2UgdG8gY29udHJpYnV0ZSBi
-eSB3b3JraW5nIG9uIEFDUEkgU3VwcG9ydCBmb3IgSFAgUGF2aWxsaW9uIGxhcHRvcHMuDQo+IFJl
-Z2FyZGluZyB0aGlzLCBJIGh1bWJseSBzZWVrIGFuc3dlciB0byB0aGUgZm9sbG93aW5nIHF1ZXN0
-aW9ucy4NCj4gDQo+IDEpLiBJcyBhbnlvbmUgY3VycmVudGx5IHdvcmtpbmcgb24gdGhpcyBwcm9q
-ZWN0Pw0KPiAyKS4gSWYgYW55IGtpbmQgb2YgY29udHJpYnV0aW9uIGlzIHN0aWxsIG5lZWRlZCwg
-Y2FuIGFueW9uZSBwbGVhc2UNCj4gcHJvdmlkZSBtZSBkZXRhaWxzPw0KPiANCj4gSWYgdGhpcyBp
-c24ndCBhcHByb3ByaWF0ZSBtYWlsaW5nIGxpc3QsIHBsZWFzZSBkaXJlY3QgbWUgdG8gYXBwcm9w
-cmlhdGUNCj4gbWFpbGluZyBsaXN0Lg0KPiANCkkgYmVsaWV2ZSBodHRwOi8vdmdlci5rZXJuZWwu
-b3JnL3ZnZXItbGlzdHMuaHRtbCNwbGF0Zm9ybS1kcml2ZXIteDg2IGlzIHRoZSBiZXR0ZXIgcGxh
-Y2UgZm9yIHlvdXIgcXVlc3Rpb25zLg0KDQpUaGFua3MsDQpydWkgDQo=
+Jiang,
+
+On Mon, 9 Jun 2014, Jiang Liu wrote:
+
+> On x86 platforms, IRQ number are statically allocated to IOAPIC pins at boot.
+> There are two issues with this design. First it causes trouble to IOAPIC
+> hotplug because we need to allocate a block of IRQ numbers for each IOAPIC.
+> Second it may waste IRQ nubmers even if some IOAPIC pins are not used because
+> IRQ numbers are statically assigned.
+> 
+> This patchset tries to enable dynamic IRQ number allocation for IOAPIC
+> by adopting the irqdomain framework, it solves the two issues mentioned
+> above. It also simplifies the IOAPIC driver by consolidating ways to
+> program IOAPIC pins with the irqdomain map interface.
+> 
+> We will enhance the IOAPIC driver core to support ACPI based IOAPIC hotplug
+> once the IOAPIC driver has been converted to irqdomain.
+
+I merged the whole lot. Thanks for doing this and reacting on all the
+review comments. Very nice cleanup work!
+
+Thanks,
+
+	tglx
+
+
