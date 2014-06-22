@@ -1,45 +1,27 @@
-From: Thomas Gleixner <tglx@linutronix.de>
+From: Ingo Molnar <mingo@kernel.org>
 Subject: Re: [Patch V4 00/42] use irqdomain to dynamically allocate IRQ for
  IOAPIC
-Date: Sat, 21 Jun 2014 23:08:12 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1406212306540.5170@nanos>
+Date: Sun, 22 Jun 2014 10:42:27 +0200
+Message-ID: <20140622084227.GA13974@gmail.com>
 References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:37043 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754357AbaFUVIo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Jun 2014 17:08:44 -0400
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Jiang,
 
-On Mon, 9 Jun 2014, Jiang Liu wrote:
+JFYI, with these patches applied x86 allyes32config fails with:
 
-> On x86 platforms, IRQ number are statically allocated to IOAPIC pins at boot.
-> There are two issues with this design. First it causes trouble to IOAPIC
-> hotplug because we need to allocate a block of IRQ numbers for each IOAPIC.
-> Second it may waste IRQ nubmers even if some IOAPIC pins are not used because
-> IRQ numbers are statically assigned.
-> 
-> This patchset tries to enable dynamic IRQ number allocation for IOAPIC
-> by adopting the irqdomain framework, it solves the two issues mentioned
-> above. It also simplifies the IOAPIC driver by consolidating ways to
-> program IOAPIC pins with the irqdomain map interface.
-> 
-> We will enhance the IOAPIC driver core to support ACPI based IOAPIC hotplug
-> once the IOAPIC driver has been converted to irqdomain.
-
-I merged the whole lot. Thanks for doing this and reacting on all the
-review comments. Very nice cleanup work!
+  arch/x86/platform/intel-mid/device_libs/platform_wdt.c:45:3: error: i=
+mplicit declaration of function =E2=80=98io_apic_set_pci_routing=E2=80=99=
+=20
 
 Thanks,
 
-	tglx
-
-
+	Ingo
