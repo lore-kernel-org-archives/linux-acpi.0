@@ -1,27 +1,37 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [Patch V4 00/42] use irqdomain to dynamically allocate IRQ for
- IOAPIC
-Date: Sun, 22 Jun 2014 10:42:27 +0200
-Message-ID: <20140622084227.GA13974@gmail.com>
-References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com>
+From: Martin Kepplinger <martink@posteo.de>
+Subject: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black instead
+ of native resolution
+Date: Sun, 22 Jun 2014 16:24:42 +0200
+Message-ID: <53A6E72A.9090000@posteo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx02.posteo.de ([89.146.194.165]:55152 "EHLO posteo.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750993AbaFVOZO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Jun 2014 10:25:14 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rui.zhang@intel.com
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Since 3.16-rc1 my laptop's just goes black while booting, instead of
+switching to native screen resolution and showing me the starting
+system there. It's an Acer TravelMate B113 with i915 driver and
+acer_wmi. It stays black and is unusable.
 
-JFYI, with these patches applied x86 allyes32config fails with:
+Do you have other people complain about that? Bisecting didn't lead to a
+good result. I could be wrong but I somehow suspect the mistake to be
+somewhere in commit 99678ed73a50d2df8b5f3c801e29e9b7a3e5aa85
 
-  arch/x86/platform/intel-mid/device_libs/platform_wdt.c:45:3: error: i=
-mplicit declaration of function =E2=80=98io_apic_set_pci_routing=E2=80=99=
-=20
+There is nothing unusual in the kernel log.
 
-Thanks,
+This is quite unusual for an -rc2. Hence my question. I'm happy to test
+changes.
 
-	Ingo
+                                     martin
+-- 
+Martin Kepplinger
+e-mail        martink AT posteo DOT at
+chat (XMPP)   martink AT jabber DOT at
