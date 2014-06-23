@@ -1,117 +1,123 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [Linaro-acpi] [RFC v2 1/3] Mailbox: Add support for ACPI
-Date: Mon, 23 Jun 2014 14:25:26 -0400
-Message-ID: <CAJ5Y-eZTmwiJViABy4MkioFYrXCoc2ho1AQ2RPThqDaUomvZ4Q@mail.gmail.com>
-References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org>
-	<4600246.SKVsl5kA9F@wuerfel>
-	<CAJ5Y-eYN6NfFdKAkv5yrHTdeRNWJfvgPVL61EjZdgN0DYP8zpA@mail.gmail.com>
-	<4678828.UygJelrJo5@wuerfel>
+Date: Mon, 23 Jun 2014 21:10:41 +0200
+Message-ID: <5338610.xCINKmsENX@wuerfel>
+References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org> <4678828.UygJelrJo5@wuerfel> <CAJ5Y-eZTmwiJViABy4MkioFYrXCoc2ho1AQ2RPThqDaUomvZ4Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:37627 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752341AbaFWSZ2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2014 14:25:28 -0400
-Received: by mail-we0-f173.google.com with SMTP id t60so7511116wes.32
-        for <linux-acpi@vger.kernel.org>; Mon, 23 Jun 2014 11:25:26 -0700 (PDT)
-In-Reply-To: <4678828.UygJelrJo5@wuerfel>
+Received: from mout.kundenserver.de ([212.227.126.131]:63379 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753099AbaFWTLK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2014 15:11:10 -0400
+In-Reply-To: <CAJ5Y-eZTmwiJViABy4MkioFYrXCoc2ho1AQ2RPThqDaUomvZ4Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Patch Tracking <patches@linaro.org>
+To: linaro-acpi@lists.linaro.org
+Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Patch Tracking <patches@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Arnd,
+On Monday 23 June 2014 14:25:26 Ashwin Chaugule wrote:
+> Hi Arnd,
+> 
+> On 21 June 2014 05:34, Arnd Bergmann <arnd@arndb.de> wrote:
+> >>
+> >> linux/mailbox_client.h
+> >>
+> >>  18  * struct mbox_client - User of a mailbox
+> >>  19  * @dev:        The client device
+> >>  20  * @chan_name:      The "controller:channel" this client wants
+> 
+> Please correct me if I'm mistaken, but I think this comment in the
+> header is confusing.
 
-On 21 June 2014 05:34, Arnd Bergmann <arnd@arndb.de> wrote:
->>
->> linux/mailbox_client.h
->>
->>  18  * struct mbox_client - User of a mailbox
->>  19  * @dev:        The client device
->>  20  * @chan_name:      The "controller:channel" this client wants
+Yes, definitely. Thanks for pointing that out.
 
-Please correct me if I'm mistaken, but I think this comment in the
-header is confusing. It gives the impression that the user is expected
-to fill in this field as "controller name: channel id". But, looking
-at an example of a DT based mbox client [1] , that doesnt seem to be
-the case. And "chan_name" is compared with "mbox-names", which seems
-to contain a list of Channel names. The mailbox is then identified by
-a separate DT binding : "mbox", which has the mailbox name and the
-channel id. So shouldnt this comment not say anything about the
-"controller" and the DT binding should be changed to "channel-names",
-instead of "mbox-names" to keep things consistent?
+> It gives the impression that the user is expected
+> to fill in this field as "controller name: channel id". But, looking
+> at an example of a DT based mbox client [1] , that doesnt seem to be
+> the case. And "chan_name" is compared with "mbox-names", which seems
+> to contain a list of Channel names. The mailbox is then identified by
+> a separate DT binding : "mbox", which has the mailbox name and the
+> channel id. So shouldnt this comment not say anything about the
+> "controller" and the DT binding should be changed to "channel-names",
+> instead of "mbox-names" to keep things consistent?
 
+The comment should be changed, but the property name is good the
+way it is. We follow the exact same pattern we have for registers,
+interrupts, dma-channels, etc.
 
->>
->> Instead of dev, I added a name string to the mbox controller
->> structure. So now the client gets its channel by requesting
->> "controller:channel" where controller should match with mbox->name and
->> channel becomes an index into mbox->chans[].
->>
->
-> Right, I looked at the wrong version, sorry about that.
+> > However, it seems you still make the same mistake here: The name that
+> > gets passed as chan_name in the mailbox API is a local identifier
+> > that is supposed to be interpreted for the client device and used
+> > to look up a pointer to the mailbox device and channel. If you require
+> > drivers to put global data (e.g. the mbox->name, or the channel
+> > number) in there, it's impossible to write a driver that works on
+> > both DT and ACPI. If you want to use the mbox_request_channel()
+> > interface from a driver, you need some form of lookup table in
+> > the ACPI data to do the conversion.
+> 
+> Fair point. The more I think about this, it seems that if we want to
+> use the mailbox framework for ACPI kernels, we should have a PCC
+> specific bypass, something like the one you suggested below. The ACPI
+> spec defines PCC as the only "mailbox" like mechanism. There are 3 PCC
+> clients defined as well; CPPC, MPST and RASF. Each of these have their
+> own ACPI tables and so they dont require special DSDT entries.
 
-No problem. Many thanks for the review.
+Ok, I see. Can you describe what data is in these tables?
 
->
-> However, it seems you still make the same mistake here: The name that
-> gets passed as chan_name in the mailbox API is a local identifier
-> that is supposed to be interpreted for the client device and used
-> to look up a pointer to the mailbox device and channel. If you require
-> drivers to put global data (e.g. the mbox->name, or the channel
-> number) in there, it's impossible to write a driver that works on
-> both DT and ACPI. If you want to use the mbox_request_channel()
-> interface from a driver, you need some form of lookup table in
-> the ACPI data to do the conversion.
+> Moreover, these PCC client drivers will be very ACPI specific anyway.
+> So, trying to emulate DT like mbox controller-client matching in ACPI
+> at this point is rather pointless. It will require creating dummy DSDT
+> entries for the PCC mailbox controller and PCC mailbox clients which
+> have their own well defined ACPI tables (and so dont belong in the OS
+> agnostic DSDT) and then coming up with customized Device Specific
+> Methods (DSMs) for mbox clients to refer to mbox controllers.
 
-Fair point. The more I think about this, it seems that if we want to
-use the mailbox framework for ACPI kernels, we should have a PCC
-specific bypass, something like the one you suggested below. The ACPI
-spec defines PCC as the only "mailbox" like mechanism. There are 3 PCC
-clients defined as well; CPPC, MPST and RASF. Each of these have their
-own ACPI tables and so they dont require special DSDT entries.
-Moreover, these PCC client drivers will be very ACPI specific anyway.
-So, trying to emulate DT like mbox controller-client matching in ACPI
-at this point is rather pointless. It will require creating dummy DSDT
-entries for the PCC mailbox controller and PCC mailbox clients which
-have their own well defined ACPI tables (and so dont belong in the OS
-agnostic DSDT) and then coming up with customized Device Specific
-Methods (DSMs) for mbox clients to refer to mbox controllers.
+Actually you wouldn't necessarily need DSDT entries, the ACPI core could
+just call platform_device_create() to instantiate the devices based on
+the PCC tables.
 
-The other alternative is to skip the mailbox framework altogether. One
-thing to note is that the PCC driver and its clients should work on
-X86, ARMv8 and any other platform that has ACPI support. Currently the
-Mailbox framework looks platform agnostic but is tied to DT, so it may
-not work well for everyone. But like I mentioned early on, the
-framework provides for async notification and queuing which is useful
-for PCC, so I'd prefer the PCC specific bypass option.
+> The other alternative is to skip the mailbox framework altogether. One
+> thing to note is that the PCC driver and its clients should work on
+> X86, ARMv8 and any other platform that has ACPI support. Currently the
+> Mailbox framework looks platform agnostic but is tied to DT, so it may
+> not work well for everyone. But like I mentioned early on, the
+> framework provides for async notification and queuing which is useful
+> for PCC, so I'd prefer the PCC specific bypass option.
 
->
-> The alternative would be not to use mbox_request_channel() at all
-> for now, but to add a new interface that can only be used PCC and
-> that matches by ID but is independent of the use of ACPI or DT,
-> something like:
->
-> struct mbox_chan *pcc_mbox_get_channel(struct mbox_client *cl,
->                         char *name, unsigned chan_id,
->                         struct mbox_chan **chan)
-> {
->         struct mbox_controller *mbox;
->         mbox = mbox_find_pcc_controller(name, ...);
->
->         *chan = &mbox->chans[chan_id];
->         return init_channel(*chan, cl);
-> }
->
-> This would mean that we'd have to special-case "pcc" users, which is
-> not very nice, but at least it would work on both DT and ACPI,
-> and a future ACPI version could still add support for the mailbox
-> API later.
+The mailbox API should still work fine without DT, it would be easy
+enough to add a lookup mechanism for architectures that create their
+own platform devices from hardcoded kernel structures, or from ACPI
+tables that are meant to emulate the DT bindings on embedded x86.
 
-I'll play around with this idea a bit and see how it looks.
+But treating PCC special probably does make most sense here, at
+least the lookup path.
 
-Cheers,
-Ashwin
+> > The alternative would be not to use mbox_request_channel() at all
+> > for now, but to add a new interface that can only be used PCC and
+> > that matches by ID but is independent of the use of ACPI or DT,
+> > something like:
+> >
+> > struct mbox_chan *pcc_mbox_get_channel(struct mbox_client *cl,
+> >                         char *name, unsigned chan_id,
+> >                         struct mbox_chan **chan)
+> > {
+> >         struct mbox_controller *mbox;
+> >         mbox = mbox_find_pcc_controller(name, ...);
+> >
+> >         *chan = &mbox->chans[chan_id];
+> >         return init_channel(*chan, cl);
+> > }
+> >
+> > This would mean that we'd have to special-case "pcc" users, which is
+> > not very nice, but at least it would work on both DT and ACPI,
+> > and a future ACPI version could still add support for the mailbox
+> > API later.
+> 
+> I'll play around with this idea a bit and see how it looks.
+> 
 
-[1] - https://github.com/hackerspace/rpi-linux/commit/cd0b9584cbedf46812cfd220ba47d80e86b8b7ea
+Ok, thanks for looking into this.
+
+	Arnd
