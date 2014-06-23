@@ -1,52 +1,80 @@
-From: Martin Kepplinger <martink@posteo.de>
-Subject: [PATCH] Fix backlight control for Acer TravelMate B113
-Date: Mon, 23 Jun 2014 22:30:46 +0200
-Message-ID: <1403555446-16863-1-git-send-email-martink@posteo.de>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [Linaro-acpi] [RFC v2 1/3] Mailbox: Add support for ACPI
+Date: Mon, 23 Jun 2014 17:27:21 -0400
+Message-ID: <CAJ5Y-ebS0axNd24VCW-ZJy=4WLYWJ_VAptdw6c7zNCTeJhut7Q@mail.gmail.com>
+References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org>
+	<5338610.xCINKmsENX@wuerfel>
+	<CAJ5Y-eaA6vPvhbfMjys8PeSC7B+=ZLLBYh4Wi79Nh9=pwB3+sg@mail.gmail.com>
+	<14353430.fIAk0MDUYn@wuerfel>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:39671 "EHLO posteo.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756507AbaFWUb3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Jun 2014 16:31:29 -0400
+Received: from mail-we0-f169.google.com ([74.125.82.169]:57090 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751392AbaFWV1X (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jun 2014 17:27:23 -0400
+Received: by mail-we0-f169.google.com with SMTP id t60so7733348wes.28
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Jun 2014 14:27:22 -0700 (PDT)
+In-Reply-To: <14353430.fIAk0MDUYn@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rui.zhang@intel.com
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Martin Kepplinger <martink@posteo.de>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Fix backlight control for Acer TravelMate B113 Laptop by adding
-it to the video_dmi_table.
+On 23 June 2014 16:21, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Monday 23 June 2014 15:46:08 Ashwin Chaugule wrote:
+>> Hello,
+>>
+>> On 23 June 2014 15:10, Arnd Bergmann <arnd@arndb.de> wrote:
+>> >> Fair point. The more I think about this, it seems that if we want to
+>> >> use the mailbox framework for ACPI kernels, we should have a PCC
+>> >> specific bypass, something like the one you suggested below. The ACPI
+>> >> spec defines PCC as the only "mailbox" like mechanism. There are 3 PCC
+>> >> clients defined as well; CPPC, MPST and RASF. Each of these have their
+>> >> own ACPI tables and so they dont require special DSDT entries.
+>> >
+>> > Ok, I see. Can you describe what data is in these tables?
+>>
+>> For CPPC, its a field for version number, number of entries and then
+>> followed by a bunch of PCC entries that have the following structure:
+>>
+>>  51 struct pcc_register_resource {
+>>  52     u8 descriptor;
+>>  53     u16 length;
+>>  54     u8 space_id;
+>>  55     u8 bit_width;
+>>  56     u8 bit_offset;
+>>  57     u8 access_size;
+>>  58     u64 address;
+>>  59 } __attribute__ ((packed));
+>>
+>> These essentially describe the PCC register space to be used by the
+>> respective protocol. e.g. CPPC uses these to exchange CPU performance
+>> metrics between the OS and the firmware.
+>> I believe MPST and RASF also follow the same format.
+>
+> Interesting. So I guess it's one entry per client of the PCC? How
+> exactly does the client know which index to use in this table?
 
-A workaround before that was to use acpi_osi=Linux or
-acpi_backlight=vendor on boot but even then, only the function-
-keys worked.
+Nah. Just when you'd think - surely there cant be any more 4 letter
+ACPI acronyms. ;)
 
-With this change there is no need for boot parameters and DE's
-controls work as well.
+CPPC is one PCC client by itself.
 
-Signed-off-by: Martin Kepplinger <martink@posteo.de>
-Tested-by: Martin Kepplinger <martink@posteo.de>
----
- drivers/acpi/video.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+There is a table called PCCT, which describes a list of all PCC
+subspaces. Each subspace is like a shared mem region dedicated to a
+PCC client. e.g. a platform may choose subspace id 1 for CPPC. The
+CPPC has its own table(s) (in case of CPPC, it is a table per CPU),
+which lists the PCC registers using the structure above. These
+registers reside in the dedicated PCC subspace.
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index f8bc5a7..acb0670 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -528,6 +528,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		},
- 	},
- 	{
-+	 .callback = video_set_use_native_backlight,
-+	 .ident = "Acer TravelMate B113",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate B113"),
-+		},
-+	},
-+	{
- 	.callback = video_set_use_native_backlight,
- 	.ident = "HP ProBook 4340s",
- 	.matches = {
--- 
-1.7.10.4
+The PCC client drivers will probe their own tables and parse the PCC
+register entries from within. e.g. the CPPC driver will look for the
+CPC table (per CPU) and parse its PCC registers. Each PCC register
+entry reuses the "access_size" field to indicate a PCC subspace index.
+This is the index into the PCCT list of subspaces. From here the
+client can get the base address of its shared mem region and the
+doorbell semantics for communication.
 
+Cheers,
+Ashwin
