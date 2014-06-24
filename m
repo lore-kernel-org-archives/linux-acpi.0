@@ -1,38 +1,80 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [Patch V3 0/5] I2C ACPI operation region handler
-Date: Tue, 24 Jun 2014 15:02:04 +0800
-Message-ID: <53A9226C.9020205@intel.com>
-References: <1400590764-11108-1-git-send-email-tianyu.lan@intel.com> <53881E87.9070706@intel.com> <10091506.iBigojlNVE@vostro.rjw.lan> <20140530121046.GB2742@katana>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH v3 2/5] acpi, apei, ghes: Introduce ARCH_HAS_ACPI_APEI_NMI
+ to make NMI error notification a GHES feature.
+Date: Tue, 24 Jun 2014 11:00:52 +0200
+Message-ID: <53A93E44.8040303@linaro.org>
+References: <1402657380-18539-1-git-send-email-tomasz.nowicki@linaro.org> <1402657380-18539-3-git-send-email-tomasz.nowicki@linaro.org> <20140619142734.GE22025@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:5511 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751407AbaFXHDP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Jun 2014 03:03:15 -0400
-In-Reply-To: <20140530121046.GB2742@katana>
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:39598 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752014AbaFXJAm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jun 2014 05:00:42 -0400
+Received: by mail-wg0-f48.google.com with SMTP id n12so7693441wgh.7
+        for <linux-acpi@vger.kernel.org>; Tue, 24 Jun 2014 02:00:41 -0700 (PDT)
+In-Reply-To: <20140619142734.GE22025@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, mika.westerberg@linux.intel.com, awilliam@redhat.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, rric@kernel.org
 
-On 2014=E5=B9=B405=E6=9C=8830=E6=97=A5 20:10, Wolfram Sang wrote:
->>> Hi Wolfram:
->>> 	Since this version resolved all comments, it's ok for you?
->=20
-> Sorry, I misunderstood. I thought a V4 was needed, but it isn't. I'll
-> try to have a look this weekend.
->=20
 
-Hi Wolfram:
-	Sorry to bother you. Could you have a look at patch 4 and patch 5?
 
---=20
-Best regards
-Tianyu Lan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 19.06.2014 16:27, Borislav Petkov wrote:
+> On Fri, Jun 13, 2014 at 01:02:57PM +0200, Tomasz Nowicki wrote:
+>> Currently APEI depends on x86 architecture. It is because of NMI hardware
+>> error notification of GHES which is currently supported by x86 only.
+>> However, many other APEI features can be still used perfectly by other
+>> architectures.
+>>
+>> This commit adds ARCH_HAS_ACPI_APEI_NMI which will be used in next patches
+>> for NMI related code isolation in ghes.c file. Only NMI error notification
+>> feature depends on x86 so let it be hard selected for x86 arch.
+>>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> ---
+>>   arch/x86/Kconfig          |    1 +
+>>   drivers/acpi/apei/Kconfig |    8 +++++++-
+>>   2 files changed, 8 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+>> index 3fc9b12..e1dc819 100644
+>> --- a/arch/x86/Kconfig
+>> +++ b/arch/x86/Kconfig
+>> @@ -24,6 +24,7 @@ config X86
+>>   	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
+>>   	select ARCH_MIGHT_HAVE_PC_PARPORT
+>>   	select ARCH_MIGHT_HAVE_PC_SERIO
+>> +	select ARCH_HAS_ACPI_APEI_NMI
+>>   	select HAVE_AOUT if X86_32
+>>   	select HAVE_UNSTABLE_SCHED_CLOCK
+>>   	select ARCH_SUPPORTS_NUMA_BALANCING if X86_64
+>> diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
+>> index c4dac71..9f6c3ec 100644
+>> --- a/drivers/acpi/apei/Kconfig
+>> +++ b/drivers/acpi/apei/Kconfig
+>> @@ -3,7 +3,6 @@ config ACPI_APEI
+>>   	select MISC_FILESYSTEMS
+>>   	select PSTORE
+>>   	select UEFI_CPER
+>> -	depends on X86
+>
+> Now this can practically be enabled on any architecture, AFAICT. Which
+> is wrong.
+>
+> I think a better solution would be to have another HAVE_ symbol which
+> each arch which sports APEI selects. Like in the diff below ontop of
+> this patch, also incorporating Robert's comments.
+>
+> You'll have to do select HAVE_ACPI_APEI on arm too.
+>
+> Hmm?
+>
+
+Now that it turns out we have to provide at least tlb_flush_... arch 
+function, APEI can not be selected by any architecture. So you are right 
+I will introduce HAVE_ACPI_APEI in next version of patches. Thanks.
+
+Tomasz
