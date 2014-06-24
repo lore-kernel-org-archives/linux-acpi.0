@@ -1,67 +1,94 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: [PATCH v4 0/3] APEI: Make APEI architecture independent.
-Date: Tue, 24 Jun 2014 13:41:32 +0200
-Message-ID: <1403610095-5354-1-git-send-email-tomasz.nowicki@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de
-Cc: linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, rric@kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [RFC v2 1/3] Mailbox: Add support for ACPI
+Date: Tue, 24 Jun 2014 16:18:27 +0200
+Message-ID: <17846485.GZEaSd7XIs@wuerfel>
+References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org> <14353430.fIAk0MDUYn@wuerfel> <CAJ5Y-ebS0axNd24VCW-ZJy=4WLYWJ_VAptdw6c7zNCTeJhut7Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.17.24]:63953 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752337AbaFXOTG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jun 2014 10:19:06 -0400
+In-Reply-To: <CAJ5Y-ebS0axNd24VCW-ZJy=4WLYWJ_VAptdw6c7zNCTeJhut7Q@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-APEI is currently implemented so that it depends on x86 hardware.
-The primary dependency is that GHES uses the x86 NMI for hardware
-error notification and MCE for memory error handling. These patches
-remove that dependency.
+On Monday 23 June 2014 17:27:21 Ashwin Chaugule wrote:
+> On 23 June 2014 16:21, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Monday 23 June 2014 15:46:08 Ashwin Chaugule wrote:
+> >> Hello,
+> >>
+> >> On 23 June 2014 15:10, Arnd Bergmann <arnd@arndb.de> wrote:
+> >> >> Fair point. The more I think about this, it seems that if we want to
+> >> >> use the mailbox framework for ACPI kernels, we should have a PCC
+> >> >> specific bypass, something like the one you suggested below. The ACPI
+> >> >> spec defines PCC as the only "mailbox" like mechanism. There are 3 PCC
+> >> >> clients defined as well; CPPC, MPST and RASF. Each of these have their
+> >> >> own ACPI tables and so they dont require special DSDT entries.
+> >> >
+> >> > Ok, I see. Can you describe what data is in these tables?
+> >>
+> >> For CPPC, its a field for version number, number of entries and then
+> >> followed by a bunch of PCC entries that have the following structure:
+> >>
+> >>  51 struct pcc_register_resource {
+> >>  52     u8 descriptor;
+> >>  53     u16 length;
+> >>  54     u8 space_id;
+> >>  55     u8 bit_width;
+> >>  56     u8 bit_offset;
+> >>  57     u8 access_size;
+> >>  58     u64 address;
+> >>  59 } __attribute__ ((packed));
+> >>
+> >> These essentially describe the PCC register space to be used by the
+> >> respective protocol. e.g. CPPC uses these to exchange CPU performance
+> >> metrics between the OS and the firmware.
+> >> I believe MPST and RASF also follow the same format.
+> >
+> > Interesting. So I guess it's one entry per client of the PCC? How
+> > exactly does the client know which index to use in this table?
+> 
+> Nah. Just when you'd think - surely there cant be any more 4 letter
+> ACPI acronyms. ;)
+> 
+> CPPC is one PCC client by itself.
 
-Other APEI features such as error reporting via external IRQ, error
-serialization, or error injection, do not require changes to use them
-on non-x86 architectures.
+Ok, I see.
 
-The following patch set eliminates the APEI Kconfig x86 dependency
-by making these changes:
-- treat NMI notification as GHES architecture - HAVE_ACPI_APEI_NMI
-- group and wrap around #ifdef CONFIG_HAVE_ACPI_APEI_NMI code which
-  is used only for NMI path
-- identify architectural boxes and abstract it accordingly (tlb flush and MCE)
-- rework ioremap for both IRQ and NMI context
+> There is a table called PCCT, which describes a list of all PCC
+> subspaces. Each subspace is like a shared mem region dedicated to a
+> PCC client. e.g. a platform may choose subspace id 1 for CPPC. The
+> CPPC has its own table(s) (in case of CPPC, it is a table per CPU),
+> which lists the PCC registers using the structure above. These
+> registers reside in the dedicated PCC subspace.
+>
+> The PCC client drivers will probe their own tables and parse the PCC
+> register entries from within. e.g. the CPPC driver will look for the
+> CPC table (per CPU) and parse its PCC registers. Each PCC register
+> entry reuses the "access_size" field to indicate a PCC subspace index.
+> This is the index into the PCCT list of subspaces. From here the
+> client can get the base address of its shared mem region and the
+> doorbell semantics for communication.
 
-NMI code is kept in ghes.c file since NMI and IRQ context are tightly coupled.
+I think a model that's closer to the mailbox subsystem would imply
+that the common mailbox code (or the pcc driver itself) parses the
+PCCT table, while the slave driver only passes an index.
+Or even better, the slave driver would only pass a device pointer,
+from which the pcc driver can find the pcc_register_resource in
+the corresponding ACPI table. The name of that table can be the
+string you pass down to the mailbox API. I suspect there is some
+issue that makes this all break down though, but that would be
+a portable way to do this for both DT and ACPI:
 
-Note, these patches introduce no functional changes for x86. The NMI notification
-feature is hard selected for x86. Architectures that want to use this
-feature should also provide NMI code infrastructure.
+If we wanted to use DT with the same driver, we would put the
+name of the table containing pcc_register_resource into the
+mbox-names property, and that could get used to look up a
+reference to the pcc device, and to the other data that you
+have in pcc_register_resource and PCCT.
 
-V1->V2
-- address Borislav's comment
-- abstract arch-specific calls instead of wrapping into the #ifdef
-
-V2->V3
-- address Robert's comment
-- disable ACPI_APEI_NMI selection so that it is hard selected by arch Kconfig
-- rename ACPI_APEI_NMI to ARCH_HAS_ACPI_APEI_NMI
-
-V3->V4
-- do not abstract NMI calls for archs which do not support it
-- merge some of patches to make review process easier
-
-Tomasz Nowicki (3):
-  apei, mce: Factor out APEI architecture specific MCE calls.
-  acpi, apei, ghes: Make NMI error notification to be GHES architecture
-    extension.
-  acpi, apei, ghes: Factor out ioremap virtual memory for IRQ and NMI
-    context.
-
- arch/x86/Kconfig              |    2 +
- arch/x86/kernel/acpi/Makefile |    1 +
- arch/x86/kernel/acpi/apei.c   |   62 +++++++++++++++
- drivers/acpi/apei/Kconfig     |    8 +-
- drivers/acpi/apei/apei-base.c |   13 ++++
- drivers/acpi/apei/ghes.c      |  173 ++++++++++++++++++++++++++---------------
- drivers/acpi/apei/hest.c      |   29 +------
- include/acpi/apei.h           |    4 +
- include/linux/nmi.h           |    4 +
- 9 files changed, 204 insertions(+), 92 deletions(-)
- create mode 100644 arch/x86/kernel/acpi/apei.c
-
--- 
-1.7.9.5
+	Arnd
