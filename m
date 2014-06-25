@@ -1,121 +1,40 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [RFC v2 1/3] Mailbox: Add support for ACPI
-Date: Wed, 25 Jun 2014 17:08:06 +0200
-Message-ID: <6663855.4TI1cqqRkF@wuerfel>
-References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org>
- <17846485.GZEaSd7XIs@wuerfel> <53A9BB9E.7050707@linaro.org>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: PCIe current resource settings
+Date: Wed, 25 Jun 2014 11:03:21 -0600
+Message-ID: <CAErSpo5DXHH-jBmqxGfahbJKXdya01OqgMn3H+iiVFM1w12izg@mail.gmail.com>
+References: <CAD6G_RSCQ+CzifpofiXg9yFB3HpEqynF-3giEowRgR9E-qvX1Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <53A9BB9E.7050707@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Mark Brown <broonie@kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Patch Tracking <patches@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAD6G_RSCQ+CzifpofiXg9yFB3HpEqynF-3giEowRgR9E-qvX1Q@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jagan Teki <jagannadh.teki@gmail.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 24 June 2014 13:55:42 Ashwin Chaugule wrote:
-> 
-> Hi Arnd,
-> 
-> On 06/24/2014 10:18 AM, Arnd Bergmann wrote:
-> 
-> >
-> > I think a model that's closer to the mailbox subsystem would imply
-> > that the common mailbox code (or the pcc driver itself) parses the
-> > PCCT table, while the slave driver only passes an index.
-> 
-> This is pretty close to what I have here:
-> 
-> The PCC mailbox version:
-> 
-> https://git.linaro.org/people/ashwin.chaugule/leg-kernel.git/shortlog/refs/heads/mbox-pcc-review
-> 
-> 
-> Here the pcc driver in /drivers/acpi/pcc.c is the PCC mailbox controller 
-> which parses the PCCT and /drivers/acpi/pcc-test.c is a sample PCC 
-> client that sends dummy PCC reads/writes.
-> 
-> 
-> The PCC + CPPC non-mailbox version:
-> 
-> https://git.linaro.org/people/ashwin.chaugule/leg-kernel.git/shortlog/refs/heads/pcc-cppc-dev
-> 
-> Here, the CPPC is the PCC client driver which parses the CPC tables. The 
-> mailbox conversion for this stuff is a WIP. But it should give an idea 
-> of how PCC and PCC clients would work.
+[+cc linux-acpi]
 
-Ok, but unfortunately it seems that there is no way for the CPPC to tell
-the PCC driver to pull the index out of the CPPC tables as far as I can
-tell.
+On Wed, Jun 25, 2014 at 4:23 AM, Jagan Teki <jagannadh.teki@gmail.com> wrote:
+> Hi,
+>
+> I think CRS feature is all ready available in Linux [1]
 
-> > Or even better, the slave driver would only pass a device pointer,
-> > from which the pcc driver can find the pcc_register_resource in
-> > the corresponding ACPI table. The name of that table can be the
-> > string you pass down to the mailbox API. I suspect there is some
-> > issue that makes this all break down though, but that would be
-> > a portable way to do this for both DT and ACPI:
-> >
-> > If we wanted to use DT with the same driver, we would put the
-> > name of the table containing pcc_register_resource into the
-> > mbox-names property, and that could get used to look up a
-> > reference to the pcc device, and to the other data that you
-> > have in pcc_register_resource and PCCT.
-> 
-> So I dont think we should worry about the PCC clients being used in the 
-> DT case, since the PCC and its client specification is very ACPI centric 
-> and platforms that want to use these drivers will need an ACPI based 
-> firmware anyway. Which is why I think having a separate PCC specific 
-> mbox API makes sense.
+Yes, but _CRS is an ACPI feature, and the actual connection of _CRS
+information to the PCI core is currently done by arch-specific code
+for x86 and ia64.  There is no corresponding support for ARM.
 
-I think we should be prepared to add any feature that exists in ACPI
-also for DT if the need arises, even if we don't expect it to be
-necessary.
+The x86 and ia64 support is in arch-specific functions called
+probe_pci_root_info().  These are actually generic in principle, and I
+would love it if this functionality could be moved into
+acpi_pci_root_add() somehow.
 
-There are a number of reasons why you might want to use the drivers
-with DT, e.g. board bringup (before firmware is available), or to use
-some features of a SoC that cannot be represented in ACPI but that
-may be useful for a special-purpose appliance.
-
-> Something like what you suggested should work well for ACPI based platforms.
-> 
-> struct mbox_controller *
-> mbox_find_pcc_controller(char *name)
-> {
-> 	list_for_each_entry(mbox, &mbox_cons, node) {
-> 		if (mbox->name)
-> 			if (!strncmp(mbox->name, name))
-> 				return mbox;
-> 	}
-> 
-> 	return -ENODEV;
-> }
-> 
-> int pcc_mbox_get_channel(struct mbox_client *cl,
-> 		char *name, unsigned chan_id,
-> 		struct mbox_chan **chan)
-> {
-> 	struct mbox_controller *mbox;
-> 	mbox = mbox_find_pcc_controller(name);
-> 
-> 	if (!mbox) {
-> 		pr_err("PCC mbox %s not found.\n", name);
-> 		return -ENODEV;
-> 	}
-> 
-> 	*chan = &mbox->chans[chan_id];
-> 	return init_channel(*chan, cl);
-> }
-
-Yes, that seems fine, and it will just work with DT as well
-if we need that.
-
-	Arnd
+> I'm guessing the respective root complex driver need to enable and use
+> this feature.
+> I'm using PCIe bridge which is operating in ARM, how can I enable or
+> is there RC driver which uses this feature already?
+>
+> [1] http://lwn.net/Articles/373551/
+>
+> thanks!
+> --
+> Jagan.
