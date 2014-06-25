@@ -1,40 +1,41 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch V3 03/16] ACPI: Correct return value of acpi_dev_resource_address_space()
-Date: Wed, 25 Jun 2014 16:40:34 +0800
-Message-ID: <1403685648-10103-4-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch V3 02/16] ACPI: Make map_mat_entry handle x2apic entry
+Date: Wed, 25 Jun 2014 16:40:33 +0800
+Message-ID: <1403685648-10103-3-git-send-email-jiang.liu@linux.intel.com>
 References: <1403685648-10103-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:31245 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754046AbaFYIiv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Jun 2014 04:38:51 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1403685648-10103-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Change acpi_dev_resource_address_space() to return failure if the
-acpi_resource structure can't be converted to an ACPI address64 structure.
+From: Yinghai Lu <yinghai@kernel.org>
 
+Now we have map_madt_entry/MADT to handle x2apic, but does not do
+that with map_mat_entry _MAT.
+
+For hotplug on system with x2apic only support, we need to add
+support for x2apic map in _MAT.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_core.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 0bdacc5e26a3..33bb71cbe72a 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -200,7 +200,7 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
- 
- 	status = acpi_resource_to_address64(ares, &addr);
- 	if (ACPI_FAILURE(status))
--		return true;
-+		return false;
- 
- 	res->start = addr.minimum;
- 	res->end = addr.maximum;
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 71e2065639a6..c8a991e9d257 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -133,6 +133,8 @@ static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
+ 	header = (struct acpi_subtable_header *)obj->buffer.pointer;
+ 	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
+ 		map_lapic_id(header, acpi_id, &apic_id);
++	} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
++		map_x2apic_id(header, type, acpi_id, &apic_id);
+ 	} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
+ 		map_lsapic_id(header, type, acpi_id, &apic_id);
+ 	}
 -- 
 1.7.10.4
-
