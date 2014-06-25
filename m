@@ -1,117 +1,100 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch V3 12/16] x86, irq, ACPI: Implement interface to support ACPI based IOAPIC hot-addition
-Date: Wed, 25 Jun 2014 16:40:43 +0800
-Message-ID: <1403685648-10103-13-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch V3 07/16] x86, ioapic: Find usable ioapic id for 64bit.
+Date: Wed, 25 Jun 2014 16:40:38 +0800
+Message-ID: <1403685648-10103-8-git-send-email-jiang.liu@linux.intel.com>
 References: <1403685648-10103-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1403685648-10103-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Prarit Bhargava <prarit@redhat.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Prarit Bhargava <prarit@redhat.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Implement acpi_register_ioapic() and enhance mp_register_ioapic()
-to support ACPI based IOAPIC hot-addition.
+From: Yinghai Lu <yinghai@kernel.org>
 
+Checking the id in register, if that is duplicated, will pick one and
+update id register.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/kernel/acpi/boot.c    |   31 +++++++++++++++++++++++++++++--
- arch/x86/kernel/apic/io_apic.c |   27 ++++++++++++++++++++++++---
- 2 files changed, 53 insertions(+), 5 deletions(-)
+ arch/x86/kernel/apic/io_apic.c |   38 +++++++++++++++++++++++++++++++++-----
+ 1 file changed, 33 insertions(+), 5 deletions(-)
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 120b573f1e96..c5a0abd0be82 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -768,8 +768,35 @@ EXPORT_SYMBOL(acpi_unmap_lsapic);
- 
- int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
- {
--	/* TBD */
--	return -EINVAL;
-+	int ret = -ENOSYS;
-+#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
-+	int ioapic_id;
-+	u64 addr;
-+	struct ioapic_domain_cfg cfg = {
-+		.type = IOAPIC_DOMAIN_DYNAMIC,
-+		.ops = &acpi_irqdomain_ops,
-+	};
-+
-+	ioapic_id = acpi_get_ioapic_id(handle, gsi_base, &addr);
-+	if (ioapic_id < 0) {
-+		unsigned long long uid;
-+		acpi_status status;
-+
-+		status = acpi_evaluate_integer(handle, METHOD_NAME__UID,
-+					       NULL, &uid);
-+		if (ACPI_FAILURE(status)) {
-+			acpi_handle_warn(handle, "failed to get IOAPIC ID.\n");
-+			return -EINVAL;
-+		}
-+		ioapic_id = (int)uid;
-+	}
-+
-+	down_write(&acpi_ioapic_rwsem);
-+	ret  = mp_register_ioapic(ioapic_id, phys_addr, gsi_base, &cfg);
-+	up_write(&acpi_ioapic_rwsem);
-+#endif
-+
-+	return ret;
- }
- 
- EXPORT_SYMBOL(acpi_register_ioapic);
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 18b5ce0c2bc9..1b6a64ed2472 100644
+index b7296d4ca0a1..a068bf558657 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3846,7 +3846,13 @@ static int bad_ioapic_register(int idx)
- 
- static int find_free_ioapic_entry(void)
- {
--	return nr_ioapics;
-+	int idx;
-+
-+	for (idx = 0; idx < MAX_IO_APICS; idx++)
-+		if (ioapics[idx].nr_registers == 0)
-+			return idx;
-+
-+	return MAX_IO_APICS;
+@@ -3570,26 +3570,54 @@ static int __init io_apic_get_unique_id(int ioapic, int apic_id)
+ 	return apic_id;
  }
  
- int mp_register_ioapic(int id, u32 address, u32 gsi_base,
-@@ -3862,8 +3868,15 @@ int mp_register_ioapic(int id, u32 address, u32 gsi_base,
- 	}
- 	for_each_ioapic(ioapic)
- 		if (ioapics[ioapic].mp_config.apicaddr == address) {
--			pr_warn("address 0x%x conflicts with IOAPIC%d\n",
--				address, ioapic);
-+			/*
-+			 * IOAPIC unit may also be visible in PCI scope.
-+			 * When ioapic PCI driver's probe() is called,
-+			 * the IOAPIC unit may have already been initialized
-+			 * at boot time.
-+			 */
-+			if (!ioapic_initialized)
-+				pr_warn("address 0x%x conflicts with IOAPIC%d\n",
-+					address, ioapic);
- 			return -EEXIST;
- 		}
+-static u8 __init io_apic_unique_id(u8 id)
++static u8 io_apic_unique_id(int idx, u8 id)
+ {
+ 	if ((boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) &&
+ 	    !APIC_XAPIC(apic_version[boot_cpu_physical_apicid]))
+-		return io_apic_get_unique_id(nr_ioapics, id);
++		return io_apic_get_unique_id(idx, id);
+ 	else
+ 		return id;
+ }
+ #else
+-static u8 __init io_apic_unique_id(u8 id)
++static u8 io_apic_unique_id(int idx, u8 id)
+ {
+ 	int i;
++	u8 new_id;
++	unsigned long flags;
+ 	DECLARE_BITMAP(used, 256);
++	union IO_APIC_reg_00 reg_00;
  
-@@ -3913,6 +3926,14 @@ int mp_register_ioapic(int id, u32 address, u32 gsi_base,
- 	ioapics[idx].irqdomain = NULL;
- 	ioapics[idx].irqdomain_cfg = *cfg;
- 
-+	if (ioapic_initialized) {
-+		if (mp_irqdomain_create(idx)) {
-+			clear_fixmap(FIX_IO_APIC_BASE_0 + idx);
-+			return -ENOMEM;
-+		}
-+		alloc_ioapic_saved_registers(idx);
+ 	bitmap_zero(used, 256);
+ 	for_each_ioapic(i)
+ 		__set_bit(mpc_ioapic_id(i), used);
+ 	if (!test_bit(id, used))
+ 		return id;
+-	return find_first_zero_bit(used, 256);
++
++	/* check register at first */
++	raw_spin_lock_irqsave(&ioapic_lock, flags);
++	reg_00.raw = io_apic_read(idx, 0);
++	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
++	new_id = reg_00.bits.ID;
++	if (!test_bit(new_id, used)) {
++		apic_printk(APIC_VERBOSE, KERN_INFO
++			"IOAPIC[%d]: Using reg apic_id %d instead of %d\n",
++			 idx, new_id, id);
++		return new_id;
 +	}
 +
- 	if (gsi_cfg->gsi_end >= gsi_top)
- 		gsi_top = gsi_cfg->gsi_end + 1;
- 	if (nr_ioapics <= idx)
++	new_id = find_first_zero_bit(used, 256);
++	reg_00.bits.ID = new_id;
++	raw_spin_lock_irqsave(&ioapic_lock, flags);
++	io_apic_write(idx, 0, reg_00.raw);
++	reg_00.raw = io_apic_read(idx, 0);
++	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
++
++	/* Sanity check */
++	if (reg_00.bits.ID != new_id)
++		pr_warn("IOAPIC[%d]: Unable to change apic_id to %d!\n",
++			idx, new_id);
++
++	return new_id;
+ }
+ #endif
+ 
+@@ -3855,7 +3883,7 @@ void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
+ 		return;
+ 	}
+ 
+-	ioapics[idx].mp_config.apicid = io_apic_unique_id(id);
++	ioapics[idx].mp_config.apicid = io_apic_unique_id(idx, id);
+ 	ioapics[idx].mp_config.apicver = io_apic_get_version(idx);
+ 
+ 	/*
 -- 
 1.7.10.4
