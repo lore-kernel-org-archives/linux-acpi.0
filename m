@@ -1,59 +1,40 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch V3 01/16] x86, irq, ACPI: Protect acpi_pci_irq_enable() from reentrance
-Date: Wed, 25 Jun 2014 16:40:32 +0800
-Message-ID: <1403685648-10103-2-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch V3 03/16] ACPI: Correct return value of acpi_dev_resource_address_space()
+Date: Wed, 25 Jun 2014 16:40:34 +0800
+Message-ID: <1403685648-10103-4-git-send-email-jiang.liu@linux.intel.com>
 References: <1403685648-10103-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:23405 "EHLO mga14.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:31245 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755312AbaFYIin (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Jun 2014 04:38:43 -0400
+	id S1754046AbaFYIiv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Jun 2014 04:38:51 -0400
 In-Reply-To: <1403685648-10103-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Function acpi_pci_irq_enable() may be called twice for each PCI device
-present at boot time as below:
-1) pci_acpi_init()
-	--> acpi_pci_irq_enable()
-2) pci_enable_device()
-	--> pcibios_enable_device()
-		--> acpi_pci_irq_enable()
-
-So protect acpi_pci_irq_enable() from reentrance to correctly manage
-IOAPIC pin reference count.
+Change acpi_dev_resource_address_space() to return failure if the
+acpi_resource structure can't be converted to an ACPI address64 structure.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/pci_irq.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/acpi/resource.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index 6ba463ceccc6..9d2ebd5fd9aa 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -413,6 +413,9 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 		return 0;
- 	}
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 0bdacc5e26a3..33bb71cbe72a 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -200,7 +200,7 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
  
-+	if (dev->irq > 0)
-+		return 0;
-+
- 	entry = acpi_pci_irq_lookup(dev, pin);
- 	if (!entry) {
- 		/*
-@@ -498,6 +501,8 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
- 	 */
+ 	status = acpi_resource_to_address64(ares, &addr);
+ 	if (ACPI_FAILURE(status))
+-		return true;
++		return false;
  
- 	dev_dbg(&dev->dev, "PCI INT %c disabled\n", pin_name(pin));
--	if (gsi >= 0 && dev->irq > 0)
-+	if (gsi >= 0 && dev->irq > 0) {
- 		acpi_unregister_gsi(gsi);
-+		dev->irq = 0;
-+	}
- }
+ 	res->start = addr.minimum;
+ 	res->end = addr.maximum;
 -- 
 1.7.10.4
 
