@@ -1,103 +1,86 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [Linaro-acpi] [RFC v2 1/3] Mailbox: Add support for ACPI
-Date: Tue, 24 Jun 2014 13:55:42 -0400
-Message-ID: <53A9BB9E.7050707@linaro.org>
-References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org> <14353430.fIAk0MDUYn@wuerfel> <CAJ5Y-ebS0axNd24VCW-ZJy=4WLYWJ_VAptdw6c7zNCTeJhut7Q@mail.gmail.com> <17846485.GZEaSd7XIs@wuerfel>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch V3 00/16] Enable support of IOAPIC hotplug on x86 platforms
+Date: Wed, 25 Jun 2014 16:40:31 +0800
+Message-ID: <1403685648-10103-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:39577 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753372AbaFXRzs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jun 2014 13:55:48 -0400
-Received: by mail-pd0-f171.google.com with SMTP id fp1so520248pdb.30
-        for <linux-acpi@vger.kernel.org>; Tue, 24 Jun 2014 10:55:47 -0700 (PDT)
-In-Reply-To: <17846485.GZEaSd7XIs@wuerfel>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+This patch set enhances IOAPIC core and ACPI drivers to support IOAPIC
+hotplug on x86 platforms. It's based on tip/x86/apic.
 
-Hi Arnd,
+You may pull it from 
+https://github.com/jiangliu/linux.git ioapic/hotplug_v3
 
-On 06/24/2014 10:18 AM, Arnd Bergmann wrote:
+We have pick up several patches from Yinghai's original IOAPIC hotplug
+patch set and reimplemented IOAPIC driver as an ACPI driver instead of
+a PCI driver.
 
->
-> I think a model that's closer to the mailbox subsystem would imply
-> that the common mailbox code (or the pcc driver itself) parses the
-> PCCT table, while the slave driver only passes an index.
+It has been tested on a 4-socket Intel SDV with socket hot-addition
+capability. Any suggestions are welcomed!
 
-This is pretty close to what I have here:
+Patch 1-5 are minor bugfixes and code improvements
+Patch 6-14 enhances ACPI and IOAPIC core to support IOAPIC hotplug
+Patch 15 killes PCI IOAPIC driver
+Patch 16 reimplements ACPI IOAPIC driver and enables IOAPIC hotplug
 
-The PCC mailbox version:
+V2->V3:
+1) Refine ACPI resource walk functions for PCI root bus and IOAPIC
+2) Improve commit messages
+3) Reorder patch order for better maintenence
 
-https://git.linaro.org/people/ashwin.chaugule/leg-kernel.git/shortlog/refs/heads/mbox-pcc-review
+Jiang Liu (11):
+  x86, irq, ACPI: Protect acpi_pci_irq_enable() from reentrance
+  ACPI: Correct return value of acpi_dev_resource_address_space()
+  x86, PCI, ACPI: Kill private function resource_to_addr()
+  x86, irq: Remove __init marker for functions will be used by IOAPIC
+    hotplug
+  x86, irq: Refine mp_register_ioapic() to prepare for IOAPIC hotplug
+  x86, irq, ACPI: Introduce a rwsem to protect IOAPIC operations from
+    hotplug
+  x86, irq, ACPI: Implement interface to support ACPI based IOAPIC
+    hot-addition
+  x86, irq, ACPI: Implement interface to support ACPI based IOAPIC
+    hot-removal
+  x86, irq: Introduce helper to check whether an IOAPIC has been
+    registered
+  PCI: Remove PCI ioapic driver
+  x86, irq, ACPI: Implement ACPI driver to support IOAPIC hotplug
 
+Yinghai Lu (5):
+  ACPI: Make map_mat_entry handle x2apic entry
+  ACPI: Move acpi_get_cpuid() to separated file
+  x86, irq: Split out alloc_ioapic_save_registers()
+  x86, ioapic: Find usable ioapic id for 64bit.
+  ACPI, ioapic: Add acpi_get_ioapic_id()
 
-Here the pcc driver in /drivers/acpi/pcc.c is the PCC mailbox controller 
-which parses the PCCT and /drivers/acpi/pcc-test.c is a sample PCC 
-client that sends dummy PCC reads/writes.
+ arch/x86/include/asm/io_apic.h |    6 +-
+ arch/x86/kernel/acpi/boot.c    |   68 ++++++++-
+ arch/x86/kernel/apic/io_apic.c |  235 +++++++++++++++++++++++++-------
+ arch/x86/pci/acpi.c            |  142 +++++++------------
+ drivers/acpi/Kconfig           |    6 +
+ drivers/acpi/Makefile          |    2 +
+ drivers/acpi/apic_id.c         |  295 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/internal.h        |    7 +
+ drivers/acpi/ioapic.c          |  236 ++++++++++++++++++++++++++++++++
+ drivers/acpi/pci_irq.c         |    7 +-
+ drivers/acpi/pci_root.c        |    3 +
+ drivers/acpi/processor_core.c  |  191 --------------------------
+ drivers/acpi/resource.c        |    2 +-
+ drivers/pci/Kconfig            |    7 -
+ drivers/pci/Makefile           |    2 -
+ drivers/pci/ioapic.c           |  121 ----------------
+ include/acpi/processor.h       |    3 -
+ include/linux/acpi.h           |    8 ++
+ 18 files changed, 868 insertions(+), 473 deletions(-)
+ create mode 100644 drivers/acpi/apic_id.c
+ create mode 100644 drivers/acpi/ioapic.c
+ delete mode 100644 drivers/pci/ioapic.c
 
-
-The PCC + CPPC non-mailbox version:
-
-https://git.linaro.org/people/ashwin.chaugule/leg-kernel.git/shortlog/refs/heads/pcc-cppc-dev
-
-Here, the CPPC is the PCC client driver which parses the CPC tables. The 
-mailbox conversion for this stuff is a WIP. But it should give an idea 
-of how PCC and PCC clients would work.
-
-> Or even better, the slave driver would only pass a device pointer,
-> from which the pcc driver can find the pcc_register_resource in
-> the corresponding ACPI table. The name of that table can be the
-> string you pass down to the mailbox API. I suspect there is some
-> issue that makes this all break down though, but that would be
-> a portable way to do this for both DT and ACPI:
->
-> If we wanted to use DT with the same driver, we would put the
-> name of the table containing pcc_register_resource into the
-> mbox-names property, and that could get used to look up a
-> reference to the pcc device, and to the other data that you
-> have in pcc_register_resource and PCCT.
-
-So I dont think we should worry about the PCC clients being used in the 
-DT case, since the PCC and its client specification is very ACPI centric 
-and platforms that want to use these drivers will need an ACPI based 
-firmware anyway. Which is why I think having a separate PCC specific 
-mbox API makes sense.
-
-Something like what you suggested should work well for ACPI based platforms.
-
-struct mbox_controller *
-mbox_find_pcc_controller(char *name)
-{
-	list_for_each_entry(mbox, &mbox_cons, node) {
-		if (mbox->name)
-			if (!strncmp(mbox->name, name))
-				return mbox;
-	}
-
-	return -ENODEV;
-}
-
-int pcc_mbox_get_channel(struct mbox_client *cl,
-		char *name, unsigned chan_id,
-		struct mbox_chan **chan)
-{
-	struct mbox_controller *mbox;
-	mbox = mbox_find_pcc_controller(name);
-
-	if (!mbox) {
-		pr_err("PCC mbox %s not found.\n", name);
-		return -ENODEV;
-	}
-
-	*chan = &mbox->chans[chan_id];
-	return init_channel(*chan, cl);
-}
-
-
-Cheers,
-Ashwin
+-- 
+1.7.10.4
