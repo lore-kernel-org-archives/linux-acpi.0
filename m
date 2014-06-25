@@ -1,103 +1,120 @@
-From: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [Patch Part3 V3 21/21] pci, ACPI,
-	iommu: enhance pci_root to support DMAR device hotplug
-Date: Wed, 25 Jun 2014 17:02:47 +0800
-Message-ID: <1403686967-10887-22-git-send-email-jiang.liu@linux.intel.com>
-References: <1403686967-10887-1-git-send-email-jiang.liu@linux.intel.com>
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: [PATCH] drm/i915/opregion: ignore firmware requests
+	for backlight change
+Date: Wed, 25 Jun 2014 14:08:26 +0300
+Message-ID: <87tx796yc5.fsf@intel.com>
+References: <53A8E400.5060709@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1403686967-10887-1-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J . Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-hotplug-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <53A8E400.5060709@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Aaron Lu <aaron.lu@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Anton Gubarkov <anton.gubarkov@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Finally enhance pci_root driver to support DMAR device hotplug when
-hot-plugging PCI host bridges.
+On Tue, 24 Jun 2014, Aaron Lu <aaron.lu@intel.com> wrote:
+> Some Thinkpad laptops' firmware will initiate a backlight level change
+> request through operation region on the events of AC plug/unplug, but
+> since we are not using firmware's interface to do the backlight setting
+> on these affected laptops, we do not want the firmware to use some
+> arbitrary value from its ASL variable to set the backlight level on
+> AC plug/unplug either.
 
-Signed-off-by: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
----
- drivers/acpi/pci_root.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+I'm curious whether this happens with EFI boot, or only with legacy.
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index d388f13d48b4..99c2b9761c12 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -33,6 +33,7 @@
- #include <linux/pci.h>
- #include <linux/pci-acpi.h>
- #include <linux/pci-aspm.h>
-+#include <linux/dmar.h>
- #include <linux/acpi.h>
- #include <linux/slab.h>
- #include <acpi/apei.h>	/* for acpi_hest_init() */
-@@ -511,6 +512,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	struct acpi_pci_root *root;
- 	acpi_handle handle = device->handle;
- 	int no_aspm = 0, clear_aspm = 0;
-+	bool hotadd = system_state != SYSTEM_BOOTING;
- 
- 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
- 	if (!root)
-@@ -557,6 +559,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
- 	device->driver_data = root;
- 
-+	if (hotadd && dmar_device_add(handle)) {
-+		result = -ENXIO;
-+		goto end;
-+	}
-+
- 	pr_info(PREFIX "%s [%s] (domain %04x %pR)\n",
- 	       acpi_device_name(device), acpi_device_bid(device),
- 	       root->segment, &root->secondary);
-@@ -583,7 +590,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 			root->segment, (unsigned int)root->secondary.start);
- 		device->driver_data = NULL;
- 		result = -ENODEV;
--		goto end;
-+		goto remove_dmar;
- 	}
- 
- 	if (clear_aspm) {
-@@ -597,7 +604,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	if (device->wakeup.flags.run_wake)
- 		device_set_run_wake(root->bus->bridge, true);
- 
--	if (system_state != SYSTEM_BOOTING) {
-+	if (hotadd) {
- 		pcibios_resource_survey_bus(root->bus);
- 		pci_assign_unassigned_root_bus_resources(root->bus);
- 	}
-@@ -607,6 +614,9 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	pci_unlock_rescan_remove();
- 	return 1;
- 
-+remove_dmar:
-+	if (hotadd)
-+		dmar_device_remove(handle);
- end:
- 	kfree(root);
- 	return result;
-@@ -625,6 +635,8 @@ static void acpi_pci_root_remove(struct acpi_device *device)
- 
- 	pci_remove_root_bus(root->bus);
- 
-+	dmar_device_remove(device->handle);
-+
- 	pci_unlock_rescan_remove();
- 
- 	kfree(root);
+One comment inline, otherwise
+
+Acked-by: Jani Nikula <jani.nikula@intel.com>
+
+for merging through the ACPI tree, as the change is more likely to
+conflict there.
+
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=76491
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=77091
+> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+> Reported-and-tested-by: Anton Gubarkov <anton.gubarkov@gmail.com>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> ---
+>  drivers/acpi/video.c                  | 3 ++-
+>  drivers/gpu/drm/i915/intel_opregion.c | 7 +++++++
+>  include/acpi/video.h                  | 2 ++
+>  3 files changed, 11 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index fb9ffe9adc64..cf99d6d2d491 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -241,13 +241,14 @@ static bool acpi_video_use_native_backlight(void)
+>  		return use_native_backlight_dmi;
+>  }
+>  
+> -static bool acpi_video_verify_backlight_support(void)
+> +bool acpi_video_verify_backlight_support(void)
+>  {
+>  	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
+>  	    backlight_device_registered(BACKLIGHT_RAW))
+>  		return false;
+>  	return acpi_video_backlight_support();
+>  }
+> +EXPORT_SYMBOL(acpi_video_verify_backlight_support);
+>  
+>  /* backlight device sysfs support */
+>  static int acpi_video_get_brightness(struct backlight_device *bd)
+> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+> index 2e2c71fcc9ed..02943d93e88e 100644
+> --- a/drivers/gpu/drm/i915/intel_opregion.c
+> +++ b/drivers/gpu/drm/i915/intel_opregion.c
+> @@ -403,6 +403,13 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
+>  
+>  	DRM_DEBUG_DRIVER("bclp = 0x%08x\n", bclp);
+>  
+> +	/*
+> +	 * If the acpi_video interface is not supposed to be used, don't
+> +	 * bother processing backlight level change requests from firmware.
+> +	 */
+> +	if (!acpi_video_verify_backlight_support())
+> +		return 0;
+
+I'd appreciate a DRM_DEBUG_KMS here about what happened. We're bound to
+wonder about that staring at some dmesg later on!
+
+> +
+>  	if (!(bclp & ASLE_BCLP_VALID))
+>  		return ASLC_BACKLIGHT_FAILED;
+>  
+> diff --git a/include/acpi/video.h b/include/acpi/video.h
+> index ea4c7bbded4d..92f8c4bffefb 100644
+> --- a/include/acpi/video.h
+> +++ b/include/acpi/video.h
+> @@ -22,6 +22,7 @@ extern void acpi_video_unregister(void);
+>  extern void acpi_video_unregister_backlight(void);
+>  extern int acpi_video_get_edid(struct acpi_device *device, int type,
+>  			       int device_id, void **edid);
+> +extern bool acpi_video_verify_backlight_support(void);
+>  #else
+>  static inline int acpi_video_register(void) { return 0; }
+>  static inline void acpi_video_unregister(void) { return; }
+> @@ -31,6 +32,7 @@ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+>  {
+>  	return -ENODEV;
+>  }
+> +static bool acpi_video_verify_backlight_support() { return false; }
+>  #endif
+>  
+>  #endif
+> -- 
+> 1.9.3
+>
+
 -- 
-1.7.10.4
+Jani Nikula, Intel Open Source Technology Center
