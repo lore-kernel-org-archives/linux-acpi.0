@@ -1,120 +1,121 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: [PATCH] drm/i915/opregion: ignore firmware requests
-	for backlight change
-Date: Wed, 25 Jun 2014 14:08:26 +0300
-Message-ID: <87tx796yc5.fsf@intel.com>
-References: <53A8E400.5060709@intel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [RFC v2 1/3] Mailbox: Add support for ACPI
+Date: Wed, 25 Jun 2014 17:08:06 +0200
+Message-ID: <6663855.4TI1cqqRkF@wuerfel>
+References: <1402591692-7736-1-git-send-email-ashwin.chaugule@linaro.org>
+ <17846485.GZEaSd7XIs@wuerfel> <53A9BB9E.7050707@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <53A8E400.5060709@intel.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Aaron Lu <aaron.lu@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Anton Gubarkov <anton.gubarkov@gmail.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <53A9BB9E.7050707@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Mark Brown <broonie@kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Patch Tracking <patches@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 24 Jun 2014, Aaron Lu <aaron.lu@intel.com> wrote:
-> Some Thinkpad laptops' firmware will initiate a backlight level change
-> request through operation region on the events of AC plug/unplug, but
-> since we are not using firmware's interface to do the backlight setting
-> on these affected laptops, we do not want the firmware to use some
-> arbitrary value from its ASL variable to set the backlight level on
-> AC plug/unplug either.
+On Tuesday 24 June 2014 13:55:42 Ashwin Chaugule wrote:
+> 
+> Hi Arnd,
+> 
+> On 06/24/2014 10:18 AM, Arnd Bergmann wrote:
+> 
+> >
+> > I think a model that's closer to the mailbox subsystem would imply
+> > that the common mailbox code (or the pcc driver itself) parses the
+> > PCCT table, while the slave driver only passes an index.
+> 
+> This is pretty close to what I have here:
+> 
+> The PCC mailbox version:
+> 
+> https://git.linaro.org/people/ashwin.chaugule/leg-kernel.git/shortlog/refs/heads/mbox-pcc-review
+> 
+> 
+> Here the pcc driver in /drivers/acpi/pcc.c is the PCC mailbox controller 
+> which parses the PCCT and /drivers/acpi/pcc-test.c is a sample PCC 
+> client that sends dummy PCC reads/writes.
+> 
+> 
+> The PCC + CPPC non-mailbox version:
+> 
+> https://git.linaro.org/people/ashwin.chaugule/leg-kernel.git/shortlog/refs/heads/pcc-cppc-dev
+> 
+> Here, the CPPC is the PCC client driver which parses the CPC tables. The 
+> mailbox conversion for this stuff is a WIP. But it should give an idea 
+> of how PCC and PCC clients would work.
 
-I'm curious whether this happens with EFI boot, or only with legacy.
+Ok, but unfortunately it seems that there is no way for the CPPC to tell
+the PCC driver to pull the index out of the CPPC tables as far as I can
+tell.
 
-One comment inline, otherwise
+> > Or even better, the slave driver would only pass a device pointer,
+> > from which the pcc driver can find the pcc_register_resource in
+> > the corresponding ACPI table. The name of that table can be the
+> > string you pass down to the mailbox API. I suspect there is some
+> > issue that makes this all break down though, but that would be
+> > a portable way to do this for both DT and ACPI:
+> >
+> > If we wanted to use DT with the same driver, we would put the
+> > name of the table containing pcc_register_resource into the
+> > mbox-names property, and that could get used to look up a
+> > reference to the pcc device, and to the other data that you
+> > have in pcc_register_resource and PCCT.
+> 
+> So I dont think we should worry about the PCC clients being used in the 
+> DT case, since the PCC and its client specification is very ACPI centric 
+> and platforms that want to use these drivers will need an ACPI based 
+> firmware anyway. Which is why I think having a separate PCC specific 
+> mbox API makes sense.
 
-Acked-by: Jani Nikula <jani.nikula@intel.com>
+I think we should be prepared to add any feature that exists in ACPI
+also for DT if the need arises, even if we don't expect it to be
+necessary.
 
-for merging through the ACPI tree, as the change is more likely to
-conflict there.
+There are a number of reasons why you might want to use the drivers
+with DT, e.g. board bringup (before firmware is available), or to use
+some features of a SoC that cannot be represented in ACPI but that
+may be useful for a special-purpose appliance.
 
-> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=76491
-> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=77091
-> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-> Reported-and-tested-by: Anton Gubarkov <anton.gubarkov@gmail.com>
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> ---
->  drivers/acpi/video.c                  | 3 ++-
->  drivers/gpu/drm/i915/intel_opregion.c | 7 +++++++
->  include/acpi/video.h                  | 2 ++
->  3 files changed, 11 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index fb9ffe9adc64..cf99d6d2d491 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -241,13 +241,14 @@ static bool acpi_video_use_native_backlight(void)
->  		return use_native_backlight_dmi;
->  }
->  
-> -static bool acpi_video_verify_backlight_support(void)
-> +bool acpi_video_verify_backlight_support(void)
->  {
->  	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
->  	    backlight_device_registered(BACKLIGHT_RAW))
->  		return false;
->  	return acpi_video_backlight_support();
->  }
-> +EXPORT_SYMBOL(acpi_video_verify_backlight_support);
->  
->  /* backlight device sysfs support */
->  static int acpi_video_get_brightness(struct backlight_device *bd)
-> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
-> index 2e2c71fcc9ed..02943d93e88e 100644
-> --- a/drivers/gpu/drm/i915/intel_opregion.c
-> +++ b/drivers/gpu/drm/i915/intel_opregion.c
-> @@ -403,6 +403,13 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
->  
->  	DRM_DEBUG_DRIVER("bclp = 0x%08x\n", bclp);
->  
-> +	/*
-> +	 * If the acpi_video interface is not supposed to be used, don't
-> +	 * bother processing backlight level change requests from firmware.
-> +	 */
-> +	if (!acpi_video_verify_backlight_support())
-> +		return 0;
+> Something like what you suggested should work well for ACPI based platforms.
+> 
+> struct mbox_controller *
+> mbox_find_pcc_controller(char *name)
+> {
+> 	list_for_each_entry(mbox, &mbox_cons, node) {
+> 		if (mbox->name)
+> 			if (!strncmp(mbox->name, name))
+> 				return mbox;
+> 	}
+> 
+> 	return -ENODEV;
+> }
+> 
+> int pcc_mbox_get_channel(struct mbox_client *cl,
+> 		char *name, unsigned chan_id,
+> 		struct mbox_chan **chan)
+> {
+> 	struct mbox_controller *mbox;
+> 	mbox = mbox_find_pcc_controller(name);
+> 
+> 	if (!mbox) {
+> 		pr_err("PCC mbox %s not found.\n", name);
+> 		return -ENODEV;
+> 	}
+> 
+> 	*chan = &mbox->chans[chan_id];
+> 	return init_channel(*chan, cl);
+> }
 
-I'd appreciate a DRM_DEBUG_KMS here about what happened. We're bound to
-wonder about that staring at some dmesg later on!
+Yes, that seems fine, and it will just work with DT as well
+if we need that.
 
-> +
->  	if (!(bclp & ASLE_BCLP_VALID))
->  		return ASLC_BACKLIGHT_FAILED;
->  
-> diff --git a/include/acpi/video.h b/include/acpi/video.h
-> index ea4c7bbded4d..92f8c4bffefb 100644
-> --- a/include/acpi/video.h
-> +++ b/include/acpi/video.h
-> @@ -22,6 +22,7 @@ extern void acpi_video_unregister(void);
->  extern void acpi_video_unregister_backlight(void);
->  extern int acpi_video_get_edid(struct acpi_device *device, int type,
->  			       int device_id, void **edid);
-> +extern bool acpi_video_verify_backlight_support(void);
->  #else
->  static inline int acpi_video_register(void) { return 0; }
->  static inline void acpi_video_unregister(void) { return; }
-> @@ -31,6 +32,7 @@ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
->  {
->  	return -ENODEV;
->  }
-> +static bool acpi_video_verify_backlight_support() { return false; }
->  #endif
->  
->  #endif
-> -- 
-> 1.9.3
->
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+	Arnd
