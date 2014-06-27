@@ -1,94 +1,50 @@
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: Re: [PATCH v3 4/9] ACPI, x86: Extended error log driver for x86 platform
-Date: Fri, 27 Jun 2014 13:34:45 +0800
-Message-ID: <53AD0275.7020003@huawei.com>
-References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com> <1382084624-10857-5-git-send-email-gong.chen@linux.intel.com> <52612BA4.2060906@linux.vnet.ibm.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v4 06/13] ARM64 / ACPI: Introduce early_param for "acpi"
+Date: Fri, 27 Jun 2014 11:07:48 +0200
+Message-ID: <23398804.v8nA0xfjOe@wuerfel>
+References: <1403840976-7456-1-git-send-email-hanjun.guo@linaro.org> <1403840976-7456-7-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:64322 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750729AbaF0FfF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jun 2014 01:35:05 -0400
-In-Reply-To: <52612BA4.2060906@linux.vnet.ibm.com>
+Received: from mout.kundenserver.de ([212.227.17.13]:58017 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752998AbaF0JIJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jun 2014 05:08:09 -0400
+In-Reply-To: <1403840976-7456-7-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Cc: "Chen, Gong" <gong.chen@linux.intel.com>, tony.luck@intel.com, bp@alien8.de, joe@perches.com, m.chehab@samsung.com, arozansk@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Li Bin <huawei.libin@huawei.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, lorenzo.pieralisi@arm.com, rric@kernel.org, Al Stone <al.stone@linaro.org>, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Graeme Gregory <graeme.gregory@linaro.org>, Charles.Garcia-Tobin@arm.com
 
-On 2013/10/18 20:37, Naveen N. Rao wrote:
-> On 10/18/2013 01:53 PM, Chen, Gong wrote:
->> This H/W error log driver (a.k.a eMCA driver) is implemented based on
->> http://www.intel.com/content/www/us/en/architecture-and-technology/enhanced-mca-logging-xeon-paper.html
->>
->> After errors are captured, more valuable information can be
->> got via this new enhanced H/W error log driver.
->>
->> v3 -> v2: fix a MACRO definition error and some cleanup
->> v2 -> v1: eliminate spin_lock & minor fixes suggested by Boris
->>
->> Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
->> ---
->>   arch/x86/include/asm/mce.h       |   5 +
->>   arch/x86/kernel/cpu/mcheck/mce.c |  20 +++
->>   drivers/acpi/Kconfig             |  20 +++
->>   drivers/acpi/Makefile            |   2 +
+On Friday 27 June 2014 11:49:29 Hanjun Guo wrote:
+> +
+> +static int __init parse_acpi(char *arg)
+> +{
+> +       if (!arg)
+> +               return -EINVAL;
+> +
+> +       /* "acpi=off" disables both ACPI table parsing and interpreter */
+> +       if (strcmp(arg, "off") == 0) {
+> +               disable_acpi();
+> +       }
+> +       /* acpi=strict disables out-of-spec workarounds */
+> +       else if (strcmp(arg, "strict") == 0) {
+> +               acpi_strict = 1;
+> +       } else {
+> +               /* Core will printk when we return error */
+> +               return -EINVAL;
+> +       }
+> +
+> +       return 0;
+> +}
+> +early_param("acpi", parse_acpi);
 
-[...]
+Can you explain in the changelog what happens for the acpi=off case? Does this
+mean we fall back to using data from the dtb instead, or will it just not work?
 
->> +}
->> +EXPORT_SYMBOL_GPL(unregister_elog_handler);
->> +
->>   /*
->>    * Poll for corrected events or events that happened before reset.
->>    * Those are just logged through /dev/mcelog.
->> @@ -624,6 +641,9 @@ void machine_check_poll(enum mcp_flags flags, mce_banks_t *b)
->>               (m.status & (mca_cfg.ser ? MCI_STATUS_S : MCI_STATUS_UC)))
->>               continue;
->>
->> +        if (mce_ext_err_print)
->> +            mce_ext_err_print(NULL, m.extcpu, i);
->> +
-> 
-> Can we use the notifier chain we already have: mce_register_decode_chain()? EDAC uses this and I'm wondering if it is a good fit here. As an added bonus, it seems to honor dont_log_ce option as well.
+If I understand correctly, this option makes sense on PC systems that will
+still be able to boot using the legacy BIOS services and implicit assumptions
+about the hardware, but that never works on arm64.
 
-Hi everyone,
-
-I have a question here, is it safe when we use printk in MCE context?
-
-The call graph is like this,
-do_machine_check
- -> mce_log
-  -> atomic_notifier_call_chain(&x86_mce_decoder_chain ...)
-   -> ...
-    -> extlog_print
-     -> print_extlog_rcd
-      -> __print_extlog_rcd
-       -> printk
-
-There's a logbuf_lock in printk. If logbuf_lock is held by other cpu,
-it'll lead to an infinity spin here. Isn't it?
-
---
-Thanks,
-	XiuQi
-
-> 
->>           mce_read_aux(&m, i);
->>
->>           if (!(flags & MCP_TIMESTAMP))
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index 22327e6..c67ec61 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -372,4 +372,24 @@ config ACPI_BGRT
->>
->>   source "drivers/acpi/apei/Kconfig"
->>
->> +config ACPI_EXTLOG
->> +    tristate "Extended Error Log support"
->> +    depends on X86_MCE
-...
-
-
+	Arnd
