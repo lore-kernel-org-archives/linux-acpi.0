@@ -1,42 +1,133 @@
-From: Lan Tianyu <lantianyu1986@gmail.com>
-Subject: Re: Interrupt in ACPI driver?
-Date: Fri, 27 Jun 2014 11:20:29 +0800
-Message-ID: <CAOLK0pzspBOf_nPx8kqi0VCeCV18VNOrrzR5FOSHoOiYvgV63Q@mail.gmail.com>
-References: <AA3DED1F9B922246BC60FBFF3BE7EA20F7DDF2@CRSMSX102.amr.corp.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] drm/i915/opregion: ignore firmware requests
+ for backlight change
+Date: Fri, 27 Jun 2014 11:20:15 +0800
+Message-ID: <53ACE2EF.8020808@intel.com>
+References: <53A8E400.5060709@intel.com> <87tx796yc5.fsf@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:33825 "EHLO
-	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752461AbaF0DUa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jun 2014 23:20:30 -0400
-Received: by mail-qa0-f49.google.com with SMTP id w8so3545517qac.8
-        for <linux-acpi@vger.kernel.org>; Thu, 26 Jun 2014 20:20:29 -0700 (PDT)
-In-Reply-To: <AA3DED1F9B922246BC60FBFF3BE7EA20F7DDF2@CRSMSX102.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <87tx796yc5.fsf@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Jani Nikula <jani.nikula@linux.intel.com>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Anton Gubarkov <anton.gubarkov@gmail.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Cazeao, Haroldo R" <haroldo.r.cazeao@intel.com>
-Cc: Julian Wollrath <jwollrath@web.de>, "Zhang, Rui" <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>
 
-2014-06-27 7:12 GMT+08:00 Cazeao, Haroldo R <haroldo.r.cazeao@intel.com>:
-> All,
-> For a given platform, the CPU and the PCH are being enumerated along the ACPI bus. We have been using polling for temperature thresholds trip points. Now, we are looking to use interrupts instead. I haven't seen too many examples of of acpi drivers with interrupts enabled. Any suggestions on where to start? Any templates I can use?
->
+On 06/25/2014 07:08 PM, Jani Nikula wrote:
+> On Tue, 24 Jun 2014, Aaron Lu <aaron.lu@intel.com> wrote:
+>> Some Thinkpad laptops' firmware will initiate a backlight level change
+>> request through operation region on the events of AC plug/unplug, but
+>> since we are not using firmware's interface to do the backlight setting
+>> on these affected laptops, we do not want the firmware to use some
+>> arbitrary value from its ASL variable to set the backlight level on
+>> AC plug/unplug either.
+> 
+> I'm curious whether this happens with EFI boot, or only with legacy.
 
-I think you can have a look at EC driver which uses GPE as its interrupt.
+Igor, Anton,
 
-> Thanks and regards,
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Are you using legacy boot or UEFI boot?
+Possible to test the other case?
 
+> 
+> One comment inline, otherwise
 
+Will add that in next revision.
 
--- 
-Best regards
-Tianyu Lan
+> 
+> Acked-by: Jani Nikula <jani.nikula@intel.com>
+
+Thanks for the review!
+
+-Aaron
+
+> 
+> for merging through the ACPI tree, as the change is more likely to
+> conflict there.
+> 
+>> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=76491
+>> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=77091
+>> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+>> Reported-and-tested-by: Anton Gubarkov <anton.gubarkov@gmail.com>
+>> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+>> ---
+>>  drivers/acpi/video.c                  | 3 ++-
+>>  drivers/gpu/drm/i915/intel_opregion.c | 7 +++++++
+>>  include/acpi/video.h                  | 2 ++
+>>  3 files changed, 11 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>> index fb9ffe9adc64..cf99d6d2d491 100644
+>> --- a/drivers/acpi/video.c
+>> +++ b/drivers/acpi/video.c
+>> @@ -241,13 +241,14 @@ static bool acpi_video_use_native_backlight(void)
+>>  		return use_native_backlight_dmi;
+>>  }
+>>  
+>> -static bool acpi_video_verify_backlight_support(void)
+>> +bool acpi_video_verify_backlight_support(void)
+>>  {
+>>  	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
+>>  	    backlight_device_registered(BACKLIGHT_RAW))
+>>  		return false;
+>>  	return acpi_video_backlight_support();
+>>  }
+>> +EXPORT_SYMBOL(acpi_video_verify_backlight_support);
+>>  
+>>  /* backlight device sysfs support */
+>>  static int acpi_video_get_brightness(struct backlight_device *bd)
+>> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+>> index 2e2c71fcc9ed..02943d93e88e 100644
+>> --- a/drivers/gpu/drm/i915/intel_opregion.c
+>> +++ b/drivers/gpu/drm/i915/intel_opregion.c
+>> @@ -403,6 +403,13 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
+>>  
+>>  	DRM_DEBUG_DRIVER("bclp = 0x%08x\n", bclp);
+>>  
+>> +	/*
+>> +	 * If the acpi_video interface is not supposed to be used, don't
+>> +	 * bother processing backlight level change requests from firmware.
+>> +	 */
+>> +	if (!acpi_video_verify_backlight_support())
+>> +		return 0;
+> 
+> I'd appreciate a DRM_DEBUG_KMS here about what happened. We're bound to
+> wonder about that staring at some dmesg later on!
+> 
+>> +
+>>  	if (!(bclp & ASLE_BCLP_VALID))
+>>  		return ASLC_BACKLIGHT_FAILED;
+>>  
+>> diff --git a/include/acpi/video.h b/include/acpi/video.h
+>> index ea4c7bbded4d..92f8c4bffefb 100644
+>> --- a/include/acpi/video.h
+>> +++ b/include/acpi/video.h
+>> @@ -22,6 +22,7 @@ extern void acpi_video_unregister(void);
+>>  extern void acpi_video_unregister_backlight(void);
+>>  extern int acpi_video_get_edid(struct acpi_device *device, int type,
+>>  			       int device_id, void **edid);
+>> +extern bool acpi_video_verify_backlight_support(void);
+>>  #else
+>>  static inline int acpi_video_register(void) { return 0; }
+>>  static inline void acpi_video_unregister(void) { return; }
+>> @@ -31,6 +32,7 @@ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+>>  {
+>>  	return -ENODEV;
+>>  }
+>> +static bool acpi_video_verify_backlight_support() { return false; }
+>>  #endif
+>>  
+>>  #endif
+>> -- 
+>> 1.9.3
+>>
+> 
