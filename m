@@ -1,130 +1,34 @@
-From: Martin Kepplinger <martink@posteo.de>
-Subject: Re: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black instead
- of native resolution
-Date: Fri, 27 Jun 2014 21:51:00 +0200
-Message-ID: <53ADCB24.9030206@posteo.de>
-References: <53A6E72A.9090000@posteo.de>		 <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>		 <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>	 <53A83DC7.1010606@posteo.de> <1403882067.16305.124.camel@rzhang1-toshiba> <53ADB359.4010401@posteo.de>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH v3 4/9] ACPI, x86: Extended error log driver for x86
+ platform
+Date: Fri, 27 Jun 2014 20:43:14 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F3284BBB1@ORSMSX114.amr.corp.intel.com>
+References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com>
+ <1382084624-10857-5-git-send-email-gong.chen@linux.intel.com>
+ <52612BA4.2060906@linux.vnet.ibm.com> <53AD0275.7020003@huawei.com>
+ <20140627092227.GA23153@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:42537 "EHLO posteo.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750980AbaF0Tvk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Jun 2014 15:51:40 -0400
-In-Reply-To: <53ADB359.4010401@posteo.de>
+Received: from mga03.intel.com ([143.182.124.21]:63693 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751550AbaF0UnQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Jun 2014 16:43:16 -0400
+In-Reply-To: <20140627092227.GA23153@pd.tnic>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>, Xie XiuQi <xiexiuqi@huawei.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "joe@perches.com" <joe@perches.com>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "arozansk@redhat.com" <arozansk@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Li Bin <huawei.libin@huawei.com>
 
-Am 2014-06-27 20:09, schrieb Martin Kepplinger:
-> Am 2014-06-27 17:14, schrieb Zhang Rui:
->> On Mon, 2014-06-23 at 16:46 +0200, Martin Kepplinger wrote:
->>> Am 2014-06-23 15:14, schrieb Zhang Rui:
->>>> On Mon, 2014-06-23 at 14:22 +0200, Martin Kepplinger wrote:
->>>>> Am 2014-06-23 03:10, schrieb Zhang, Rui:
->>>>>>
->>>>>>
->>>>>>> -----Original Message-----
->>>>>>> From: Martin Kepplinger [mailto:martink@posteo.de]
->>>>>>> Sent: Sunday, June 22, 2014 10:25 PM
->>>>>>> To: Zhang, Rui
->>>>>>> Cc: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org;
->>>>>>> linux-kernel@vger.kernel.org
->>>>>>> Subject: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
->>>>>>> instead of native resolution
->>>>>>> Importance: High
->>>>>>>
->>>>>>> Since 3.16-rc1 my laptop's just goes black while booting, instead of
->>>>>>> switching to native screen resolution and showing me the starting
->>>>>>> system there. It's an Acer TravelMate B113 with i915 driver and
->>>>>>> acer_wmi. It stays black and is unusable.
->>>>>>>
->>>> This looks like a duplicate of
->>>> https://bugzilla.kernel.org/show_bug.cgi?id=78601
->>>>
->>>> thanks,
->>>> rui
->>> I'm not sure about that. I have no problem with v3.15 and the screen
->>> goes black way before a display manager is started. It's right after the
->>> kernel loaded and usually the screen is set to native resolution.
->>>
->>> Bisect told me aaeb2554337217dfa4eac2fcc90da7be540b9a73 as the first bad
->>> one. Although, checking that out and running it, works good. not sure if
->>> that makes sense.
->>>
->> could you please check if the comment in
->> https://bugzilla.kernel.org/show_bug.cgi?id=78601#c5 solves your problem
->> or not?
->>
->> thanks,
->> rui
-> 
-> thanks for checking. This does not change anything though. I tested the
-> following on top of v3.16-rc2 and linus's tree as of today, almost -rc3.
-> 
-> ---
->  drivers/gpu/drm/i915/intel_fbdev.c |    1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/gpu/drm/i915/intel_fbdev.c
-> b/drivers/gpu/drm/i915/intel_fbdev.c
-> index 088fe93..1e2f9ae 100644
-> --- a/drivers/gpu/drm/i915/intel_fbdev.c
-> +++ b/drivers/gpu/drm/i915/intel_fbdev.c
-> @@ -453,7 +453,6 @@ out:
->  }
-> 
->  static struct drm_fb_helper_funcs intel_fb_helper_funcs = {
-> -       .initial_config = intel_fb_initial_config,
->         .gamma_set = intel_crtc_fb_gamma_set,
->         .gamma_get = intel_crtc_fb_gamma_get,
->         .fb_probe = intelfb_create,
-> 
-
-I also tested the following patch from
-http://lists.freedesktop.org/archives/intel-gfx/2014-June/047981.html
-now, with no results. No change in my case :(
-
-diff --git a/drivers/gpu/drm/i915/intel_display.c
-b/drivers/gpu/drm/i915/intel_display.c
-index efd3cf5..5aee08e 100644
---- a/drivers/gpu/drm/i915/intel_display.c
-+++ b/drivers/gpu/drm/i915/intel_display.c
-@@ -11087,6 +11087,22 @@ const char *intel_output_name(int output)
-        return names[output];
- }
-
-+static bool intel_crt_present(struct drm_device *dev)
-+{
-+       struct drm_i915_private *dev_priv = dev->dev_private;
-+
-+       if (IS_ULT(dev))
-+               return false;
-+
-+       if (IS_CHERRYVIEW(dev))
-+               return false;
-+
-+       if (IS_VALLEYVIEW(dev) && !dev_priv->vbt.int_crt_support)
-+               return false;
-+
-+       return true;
-+}
-+
- static void intel_setup_outputs(struct drm_device *dev)
- {
-        struct drm_i915_private *dev_priv = dev->dev_private;
-@@ -11095,7 +11111,7 @@ static void intel_setup_outputs(struct
-drm_device *dev)
-
-        intel_lvds_init(dev);
-
--       if (!IS_ULT(dev) && !IS_CHERRYVIEW(dev) &&
-dev_priv->vbt.int_crt_support)
-+       if (intel_crt_present(dev))
-                intel_crt_init(dev);
-
-        if (HAS_DDI(dev)) {
--- 
-1.7.10.4
+Pj4gVGhlcmUncyBhIGxvZ2J1Zl9sb2NrIGluIHByaW50ay4gSWYgbG9nYnVmX2xvY2sgaXMgaGVs
+ZCBieSBvdGhlciBjcHUsDQo+PiBpdCdsbCBsZWFkIHRvIGFuIGluZmluaXR5IHNwaW4gaGVyZS4g
+SXNuJ3QgaXQ/DQo+DQo+IFllcywgYnV0IHdlIHdhbnQgdG8gdGFrZSB0aGUgcmlzayBhbmQgcHJp
+bnQgc29tZXRoaW5nIG91dCBiZWZvcmUgdGhlDQo+IG1hY2hpbmUgZGllcyBpbnN0ZWFkIG9mIHdh
+aXRpbmcgdG8gZ2V0IGludG8gcHJpbnRrLXNhZmUgY29udGV4dCBmaXJzdA0KPiBhbmQgbWF5YmUg
+Y29ycnVwdCBzdGF0ZS4NCg0KTm90IGFsbCBtYWNoaW5lIGNoZWNrcyBhcmUgZmF0YWwgLSBpdCB3
+b3VsZCBiZSBiYWQgZm9yIHVzIHRvIGdvIGludG8gYW4NCmluZmluaXRlIHNwaW4gaW5zdGVhZCBv
+ZiBleGVjdXRpbmcgdGhlIHJlY292ZXJ5IGNvZGUuDQoNCj4gQmVzaWRlcywgdGhlcmUncyB3b3Jr
+IGN1cnJlbnRseSBnb2luZyBvbiB0byBtYWtlIHByaW50ayBzYWZlIGluIGF0b21pYw0KPiBjb250
+ZXh0IHNvLi4uDQoNCkdvb2QgLSB3ZSBuZWVkIHRoaXMuDQoNCi1Ub255DQo=
