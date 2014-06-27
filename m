@@ -1,101 +1,96 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch V3 00/16] Enable support of IOAPIC hotplug on x86 platforms
-Date: Fri, 27 Jun 2014 22:43:24 +0800
-Message-ID: <53AD830C.9050907@linux.intel.com>
-References: <1403685648-10103-1-git-send-email-jiang.liu@linux.intel.com> <20140625144442.GA3775@laptop.dumpdata.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
+ instead of native resolution
+Date: Fri, 27 Jun 2014 23:14:27 +0800
+Message-ID: <1403882067.16305.124.camel@rzhang1-toshiba>
+References: <53A6E72A.9090000@posteo.de>
+		 <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>
+		 <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>
+	 <53A83DC7.1010606@posteo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140625144442.GA3775@laptop.dumpdata.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:20025 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752740AbaF0POq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Jun 2014 11:14:46 -0400
+In-Reply-To: <53A83DC7.1010606@posteo.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Martin Kepplinger <martink@posteo.de>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org
 
-On 2014/6/25 22:44, Konrad Rzeszutek Wilk wrote:
-> On Wed, Jun 25, 2014 at 04:40:31PM +0800, Jiang Liu wrote:
->> This patch set enhances IOAPIC core and ACPI drivers to support IOAPIC
->> hotplug on x86 platforms. It's based on tip/x86/apic.
->>
->> You may pull it from 
->> https://github.com/jiangliu/linux.git ioapic/hotplug_v3
+On Mon, 2014-06-23 at 16:46 +0200, Martin Kepplinger wrote:
+> Am 2014-06-23 15:14, schrieb Zhang Rui:
+> > On Mon, 2014-06-23 at 14:22 +0200, Martin Kepplinger wrote:
+> >> Am 2014-06-23 03:10, schrieb Zhang, Rui:
+> >>>
+> >>>
+> >>>> -----Original Message-----
+> >>>> From: Martin Kepplinger [mailto:martink@posteo.de]
+> >>>> Sent: Sunday, June 22, 2014 10:25 PM
+> >>>> To: Zhang, Rui
+> >>>> Cc: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org;
+> >>>> linux-kernel@vger.kernel.org
+> >>>> Subject: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
+> >>>> instead of native resolution
+> >>>> Importance: High
+> >>>>
+> >>>> Since 3.16-rc1 my laptop's just goes black while booting, instead of
+> >>>> switching to native screen resolution and showing me the starting
+> >>>> system there. It's an Acer TravelMate B113 with i915 driver and
+> >>>> acer_wmi. It stays black and is unusable.
+> >>>>
+> > This looks like a duplicate of
+> > https://bugzilla.kernel.org/show_bug.cgi?id=78601
+> > 
+> > thanks,
+> > rui
+> I'm not sure about that. I have no problem with v3.15 and the screen
+> goes black way before a display manager is started. It's right after the
+> kernel loaded and usually the screen is set to native resolution.
 > 
-> fatal: Couldn't find remote ref ioapic/hotplug_v3
-> Unexpected end of command stream
+> Bisect told me aaeb2554337217dfa4eac2fcc90da7be540b9a73 as the first bad
+> one. Although, checking that out and running it, works good. not sure if
+> that makes sense.
 > 
-> I see ioapic/hotplug_v2?
-Hi Konrad,
-	Sorry for that, should be ok now.
-Regards!
-Gerry
+could you please check if the comment in
+https://bugzilla.kernel.org/show_bug.cgi?id=78601#c5 solves your problem
+or not?
 
->>
->> We have pick up several patches from Yinghai's original IOAPIC hotplug
->> patch set and reimplemented IOAPIC driver as an ACPI driver instead of
->> a PCI driver.
->>
->> It has been tested on a 4-socket Intel SDV with socket hot-addition
->> capability. Any suggestions are welcomed!
->>
->> Patch 1-5 are minor bugfixes and code improvements
->> Patch 6-14 enhances ACPI and IOAPIC core to support IOAPIC hotplug
->> Patch 15 killes PCI IOAPIC driver
->> Patch 16 reimplements ACPI IOAPIC driver and enables IOAPIC hotplug
->>
->> V2->V3:
->> 1) Refine ACPI resource walk functions for PCI root bus and IOAPIC
->> 2) Improve commit messages
->> 3) Reorder patch order for better maintenence
->>
->> Jiang Liu (11):
->>   x86, irq, ACPI: Protect acpi_pci_irq_enable() from reentrance
->>   ACPI: Correct return value of acpi_dev_resource_address_space()
->>   x86, PCI, ACPI: Kill private function resource_to_addr()
->>   x86, irq: Remove __init marker for functions will be used by IOAPIC
->>     hotplug
->>   x86, irq: Refine mp_register_ioapic() to prepare for IOAPIC hotplug
->>   x86, irq, ACPI: Introduce a rwsem to protect IOAPIC operations from
->>     hotplug
->>   x86, irq, ACPI: Implement interface to support ACPI based IOAPIC
->>     hot-addition
->>   x86, irq, ACPI: Implement interface to support ACPI based IOAPIC
->>     hot-removal
->>   x86, irq: Introduce helper to check whether an IOAPIC has been
->>     registered
->>   PCI: Remove PCI ioapic driver
->>   x86, irq, ACPI: Implement ACPI driver to support IOAPIC hotplug
->>
->> Yinghai Lu (5):
->>   ACPI: Make map_mat_entry handle x2apic entry
->>   ACPI: Move acpi_get_cpuid() to separated file
->>   x86, irq: Split out alloc_ioapic_save_registers()
->>   x86, ioapic: Find usable ioapic id for 64bit.
->>   ACPI, ioapic: Add acpi_get_ioapic_id()
->>
->>  arch/x86/include/asm/io_apic.h |    6 +-
->>  arch/x86/kernel/acpi/boot.c    |   68 ++++++++-
->>  arch/x86/kernel/apic/io_apic.c |  235 +++++++++++++++++++++++++-------
->>  arch/x86/pci/acpi.c            |  142 +++++++------------
->>  drivers/acpi/Kconfig           |    6 +
->>  drivers/acpi/Makefile          |    2 +
->>  drivers/acpi/apic_id.c         |  295 ++++++++++++++++++++++++++++++++++++++++
->>  drivers/acpi/internal.h        |    7 +
->>  drivers/acpi/ioapic.c          |  236 ++++++++++++++++++++++++++++++++
->>  drivers/acpi/pci_irq.c         |    7 +-
->>  drivers/acpi/pci_root.c        |    3 +
->>  drivers/acpi/processor_core.c  |  191 --------------------------
->>  drivers/acpi/resource.c        |    2 +-
->>  drivers/pci/Kconfig            |    7 -
->>  drivers/pci/Makefile           |    2 -
->>  drivers/pci/ioapic.c           |  121 ----------------
->>  include/acpi/processor.h       |    3 -
->>  include/linux/acpi.h           |    8 ++
->>  18 files changed, 868 insertions(+), 473 deletions(-)
->>  create mode 100644 drivers/acpi/apic_id.c
->>  create mode 100644 drivers/acpi/ioapic.c
->>  delete mode 100644 drivers/pci/ioapic.c
->>
->> -- 
->> 1.7.10.4
->>
+thanks,
+rui
+> >>>> Do you have other people complain about that? Bisecting didn't lead to
+> >>>> a good result. I could be wrong but I somehow suspect the mistake to be
+> >>>> somewhere in commit 99678ed73a50d2df8b5f3c801e29e9b7a3e5aa85
+> >>>>
+> >>> In order to confirm if the problem is introduced by the above commit,
+> >>> why not checkout the kernel just before and after this commit and see if the problem exists?
+> >>>
+> >>> Thanks,
+> >>> rui
+> >>>
+> >> So maybe I was wrong. d27050641e9bc056446deb0814e7ba1aa7911f5a is still
+> >> good and aaeb2554337217dfa4eac2fcc90da7be540b9a73 is the fist bad one.
+> >> This is a big v4l merge. I added the linux-media list in cc now.
+> >>
+> >> What could be the problem here?
+> >>
+> >>>
+> >>>> There is nothing unusual in the kernel log.
+> >>>>
+> >>>> This is quite unusual for an -rc2. Hence my question. I'm happy to test
+> >>>> changes.
+> >>>>
+> >>>>                                      martin
+> >>>> --
+> >>>> Martin Kepplinger
+> >>>> e-mail        martink AT posteo DOT at
+> >>>> chat (XMPP)   martink AT jabber DOT at
+> >>
+> > 
+> > 
+> 
+
+
