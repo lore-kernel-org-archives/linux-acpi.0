@@ -1,51 +1,54 @@
-From: Lan Tianyu <lantianyu1986@gmail.com>
-Subject: Re: power off problem in Dell 15-7537
-Date: Mon, 30 Jun 2014 11:06:33 +0800
-Message-ID: <CAOLK0pzpFVrsyTKi258vvWVaZ1LwWy-dDheQv6dyF8Yf=Lu6HA@mail.gmail.com>
-References: <53AD6DB2.2040301@soulik.info>
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: Re: [PATCH v3 4/9] ACPI, x86: Extended error log driver for x86 platform
+Date: Mon, 30 Jun 2014 14:35:52 +0800
+Message-ID: <53B10548.8040702@huawei.com>
+References: <1382084624-10857-1-git-send-email-gong.chen@linux.intel.com> <1382084624-10857-5-git-send-email-gong.chen@linux.intel.com> <52612BA4.2060906@linux.vnet.ibm.com> <53AD0275.7020003@huawei.com> <20140627092227.GA23153@pd.tnic> <3908561D78D1C84285E8C5FCA982C28F3284BBB1@ORSMSX114.amr.corp.intel.com> <20140627211441.GA20305@nazgul.tnic> <3908561D78D1C84285E8C5FCA982C28F3284C082@ORSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f169.google.com ([209.85.216.169]:39390 "EHLO
-	mail-qc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753451AbaF3DGe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jun 2014 23:06:34 -0400
-Received: by mail-qc0-f169.google.com with SMTP id c9so6543619qcz.14
-        for <linux-acpi@vger.kernel.org>; Sun, 29 Jun 2014 20:06:33 -0700 (PDT)
-In-Reply-To: <53AD6DB2.2040301@soulik.info>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:46826 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751910AbaF3GgY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jun 2014 02:36:24 -0400
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F3284C082@ORSMSX114.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ayaka <ayaka@soulik.info>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>, "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>, "Chen, Gong" <gong.chen@linux.intel.com>, "joe@perches.com" <joe@perches.com>, "m.chehab@samsung.com" <m.chehab@samsung.com>, "arozansk@redhat.com" <arozansk@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Li Bin <huawei.libin@huawei.com>
 
-2014-06-27 21:12 GMT+08:00 ayaka <ayaka@soulik.info>:
-> I have a Dell 15-7537 laptop install fedora 20 with kernel 3.14.8. But I
-> can't power off my laptop using systemctl poweroff, I have tried openrc
-> in gentoo, it couldn't either. Once I let systemctl power off my laptop,
-> it will, but it actually do the reboot, I have to press power button on
-> laptop or type halt in grub2, but it will cause the other reboot, after
-> the second reboot, I could power off my laptop this time. But in the
-> Windows 8.1, I don't need to do that, just click power off it would
-> power off my laptop properly.
+On 2014/6/28 6:10, Luck, Tony wrote:
+>>> Not all machine checks are fatal - it would be bad for us to go into
+>>> an infinite spin instead of executing the recovery code.
+>>
+>> Then for the time being extlog shouldn't hook into the decoder chain
+>> but into mce_process_work, i.e. the last should call it. Or maybe add
+>> another notifier which is not atomic...
+> 
+> I spoke too quickly.  The only MCE for which we have recovery code are
+> those that hit in application code.  So the processor that is trying to do
+> the printk() can't possibly be holding the locks.  Other processors might
+> have held the lock at the time of the MCE - but they have all returned 
+> from the handler at the time we try the printk - so they will make progess
+> and release the lock so that we can acquire it.
 
-Hi:
-        Could you apply a bug on the kernel bugzilla under product
-"ACPI" and component "power-off"?
+Thank you for your reply.
 
-https://bugzilla.kernel.org
+When we got a MCE which hit in application code, it will be broadcast to
+other processors immediately. Other processors who might have held the lock
+at the time of MCE, have no chance to release the lock and return from the
+printk. Isn't it?
+
+I know this rarely happens in production environments, but I think it's still
+a risk here. So it's very good if we have a printk safe in atomic context in
+the future.
+
+--
+Thanks,
+	XiuQi
+
+> 
+> -Tony
+> 
 
 
-
-
->
-> Thanks
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
--- 
-Best regards
-Tianyu Lan
