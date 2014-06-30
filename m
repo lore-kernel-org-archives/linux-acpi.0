@@ -1,38 +1,51 @@
-From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Patch V3 5/5] I2C/ACPI: Clean up I2C ACPI code and Add CONFIG_I2C_ACPI
- config
-Date: Mon, 30 Jun 2014 09:32:39 +0800
-Message-ID: <53B0BE37.7010103@intel.com>
-References: <1400590764-11108-1-git-send-email-tianyu.lan@intel.com> <1400590764-11108-6-git-send-email-tianyu.lan@intel.com> <20140627110341.GD2641@katana>
+From: Lan Tianyu <lantianyu1986@gmail.com>
+Subject: Re: power off problem in Dell 15-7537
+Date: Mon, 30 Jun 2014 11:06:33 +0800
+Message-ID: <CAOLK0pzpFVrsyTKi258vvWVaZ1LwWy-dDheQv6dyF8Yf=Lu6HA@mail.gmail.com>
+References: <53AD6DB2.2040301@soulik.info>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140627110341.GD2641@katana>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qc0-f169.google.com ([209.85.216.169]:39390 "EHLO
+	mail-qc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753451AbaF3DGe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jun 2014 23:06:34 -0400
+Received: by mail-qc0-f169.google.com with SMTP id c9so6543619qcz.14
+        for <linux-acpi@vger.kernel.org>; Sun, 29 Jun 2014 20:06:33 -0700 (PDT)
+In-Reply-To: <53AD6DB2.2040301@soulik.info>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ayaka <ayaka@soulik.info>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On 2014=E5=B9=B406=E6=9C=8827=E6=97=A5 19:03, Wolfram Sang wrote:
-> On Tue, May 20, 2014 at 08:59:24PM +0800, Lan Tianyu wrote:
->> Clean up ACPI related code in the i2c core and add CONFIG_I2C_ACPI
->> to enable I2C ACPI code.
->>
->> Current there is a race between removing I2C ACPI operation region
->> and ACPI AML code accessing. So make i2c core built-in if CONFIG_I2C=
-_ACPI
->> is set.
->>
->> Reviewed-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
->> Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->=20
-> Applied to for-next, thanks!
->=20
+2014-06-27 21:12 GMT+08:00 ayaka <ayaka@soulik.info>:
+> I have a Dell 15-7537 laptop install fedora 20 with kernel 3.14.8. But I
+> can't power off my laptop using systemctl poweroff, I have tried openrc
+> in gentoo, it couldn't either. Once I let systemctl power off my laptop,
+> it will, but it actually do the reboot, I have to press power button on
+> laptop or type halt in grub2, but it will cause the other reboot, after
+> the second reboot, I could power off my laptop this time. But in the
+> Windows 8.1, I don't need to do that, just click power off it would
+> power off my laptop properly.
 
-Great. Thanks :)
+Hi:
+        Could you apply a bug on the kernel bugzilla under product
+"ACPI" and component "power-off"?
+
+https://bugzilla.kernel.org
 
 
---=20
+
+
+>
+> Thanks
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+-- 
 Best regards
 Tianyu Lan
