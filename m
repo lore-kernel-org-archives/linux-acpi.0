@@ -1,43 +1,50 @@
-From: Jeremie Tamburini <jeremie.tamburini@gmail.com>
-Subject: Re: BUG REPORT backlight acpi: Brightness shortcuts don't work on
- Fujitsu
-Date: Tue, 01 Jul 2014 15:04:30 +0200
-Message-ID: <53B2B1DE.8090709@gmail.com>
-References: <538D7845.9010305@gmail.com> <538D80C4.5080901@intel.com> <538D91B4.7050209@gmail.com> <538E85C7.5030809@intel.com> <53AC499A.1000506@gmail.com> <53B0BE4E.2070500@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH 0/4] Clean up ACPI core to prepare for running ACPI on ARM64
+Date: Wed,  2 Jul 2014 16:47:22 +0800
+Message-ID: <1404290847-7671-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:44662 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225AbaGANEn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Jul 2014 09:04:43 -0400
-Received: by mail-wi0-f173.google.com with SMTP id cc10so7782757wib.12
-        for <linux-acpi@vger.kernel.org>; Tue, 01 Jul 2014 06:04:39 -0700 (PDT)
-In-Reply-To: <53B0BE4E.2070500@intel.com>
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:53698 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752059AbaGBIsM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jul 2014 04:48:12 -0400
+Received: by mail-pd0-f170.google.com with SMTP id z10so11582867pdj.15
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Jul 2014 01:48:11 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Tony Luck <tony.luck@intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 30/06/2014 03:33 AM, Aaron Lu wrote:
-> On 06/27/2014 12:26 AM, Jeremie Tamburini wrote:
->> will these changes also be made to the previous kernels like 3.13?
->
-> No chance for v3.13 as it lacks other supporting bits, sorry.
+This patch set have no function change for x86 and ia64 and
+just do some clean up to prepare for running ACPI on ARM64.
 
-Sorry to bother you again, a very last question!
+This patch set is splited out from the patch set [1]
+"[PATCH v4 00/13] Enable ACPI on ARM64 in Kconfig" and hope it
+can be merged first before ARM64 ACPI core patches.
 
-The Ubuntu Kernel Team will try to fix the downstream 3.13 kernel, 
-therefore I've been asked to perform the reverse bisect in order to 
-discover which patch has made the change in the 3.16rc1 kernel.
+[1]: https://lkml.org/lkml/2014/6/26/627
 
-But.. in this case the patch should be already known. Please, could you 
-show which patch (or group of patches) has fixed the problem?
+Graeme Gregory (2):
+  ACPI: ARM64 does not have a BIOS add config for BIOS table scan.
+  ACPI: Don't use acpi_lapic in ACPI core code
 
-If not possible.. don't worry! I will go through the reverse bisect.
-It's just to speed up the whole process or at least get infos good to 
-know in advance.
+Hanjun Guo (2):
+  ACPI / processor: Introduce ARCH_HAS_ACPI_PDC
+  ACPI: Make EC debugfs depend on X86 || IA64 in Kconfig
 
+ arch/ia64/Kconfig             |    2 +
+ arch/ia64/include/asm/acpi.h  |    5 +
+ arch/x86/Kconfig              |    2 +
+ arch/x86/include/asm/acpi.h   |    5 +
+ drivers/acpi/Kconfig          |   14 +++
+ drivers/acpi/Makefile         |    1 +
+ drivers/acpi/acpi_processor.c |    2 +-
+ drivers/acpi/internal.h       |    5 +
+ drivers/acpi/osl.c            |    4 +-
+ drivers/acpi/processor_core.c |  198 ---------------------------------------
+ drivers/acpi/processor_pdc.c  |  206 +++++++++++++++++++++++++++++++++++++++++
+ 11 files changed, 244 insertions(+), 200 deletions(-)
+ create mode 100644 drivers/acpi/processor_pdc.c
 
-Thanks again
-Jeremie
+-- 
+1.7.9.5
+
