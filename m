@@ -1,80 +1,73 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH 2/4] ACPI: Don't use acpi_lapic in ACPI core code
-Date: Wed,  2 Jul 2014 16:47:24 +0800
-Message-ID: <1404290847-7671-3-git-send-email-hanjun.guo@linaro.org>
-References: <1404290847-7671-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1404290847-7671-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Tony Luck <tony.luck@intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: BUG REPORT backlight acpi: Brightness shortcuts don't work on
+ Fujitsu
+Date: Wed, 02 Jul 2014 16:50:48 +0800
+Message-ID: <53B3C7E8.1060001@intel.com>
+References: <538D7845.9010305@gmail.com> <538D80C4.5080901@intel.com> <538D91B4.7050209@gmail.com> <538E85C7.5030809@intel.com> <53AC499A.1000506@gmail.com> <53B0BE4E.2070500@intel.com> <53B2B1DE.8090709@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:46511 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752818AbaGBIuy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Jul 2014 04:50:54 -0400
+In-Reply-To: <53B2B1DE.8090709@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeremie Tamburini <jeremie.tamburini@gmail.com>, linux-acpi@vger.kernel.org
 
-From: Graeme Gregory <graeme.gregory@linaro.org>
+On 07/01/2014 09:04 PM, Jeremie Tamburini wrote:
+> On 30/06/2014 03:33 AM, Aaron Lu wrote:
+>> On 06/27/2014 12:26 AM, Jeremie Tamburini wrote:
+>>> will these changes also be made to the previous kernels like 3.13?
+>>
+>> No chance for v3.13 as it lacks other supporting bits, sorry.
+> 
+> Sorry to bother you again, a very last question!
 
-Now ARM64 support is being added to ACPI so architecture specific
-values can not be used in core ACPI code.
+Never mind.
 
-Following on the patch "ACPI / processor: Check if LAPIC is present
-during initialization" which uses acpi_lapic in acpi_processor.c,
-on ARM64 platform, GIC is used instead of local APIC, so acpi_lapic
-is not a suitable value for ARM64.
+> 
+> The Ubuntu Kernel Team will try to fix the downstream 3.13 kernel, 
+> therefore I've been asked to perform the reverse bisect in order to 
+> discover which patch has made the change in the 3.16rc1 kernel.
+> 
+> But.. in this case the patch should be already known. Please, could you 
+> show which patch (or group of patches) has fixed the problem?
 
-What is actually important at this point is the SMPness of the system,
-so introduce acpi_arch_is_smp() to be arch specific and generic.
+I think you will need at least:
 
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- arch/ia64/include/asm/acpi.h  |    5 +++++
- arch/x86/include/asm/acpi.h   |    5 +++++
- drivers/acpi/acpi_processor.c |    2 +-
- 3 files changed, 11 insertions(+), 1 deletion(-)
+commit fbc9fe1b4f222a7c575e3bd8e9defe59c6190a04
+Author: Aaron Lu <aaron.lu@intel.com>
+Date:   Fri Oct 11 21:27:45 2013 +0800
 
-diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
-index 75dc59a..2fc0757 100644
---- a/arch/ia64/include/asm/acpi.h
-+++ b/arch/ia64/include/asm/acpi.h
-@@ -40,6 +40,11 @@ extern int acpi_lapic;
- #define acpi_noirq 0	/* ACPI always enabled on IA64 */
- #define acpi_pci_disabled 0 /* ACPI PCI always enabled on IA64 */
- #define acpi_strict 1	/* no ACPI spec workarounds on IA64 */
-+
-+static inline bool acpi_arch_is_smp(void)
-+{
-+	return acpi_lapic;
-+}
- #endif
- #define acpi_processor_cstate_check(x) (x) /* no idle limits on IA64 :) */
- static inline void disable_acpi(void) { }
-diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-index e06225e..939d377 100644
---- a/arch/x86/include/asm/acpi.h
-+++ b/arch/x86/include/asm/acpi.h
-@@ -121,6 +121,11 @@ static inline void arch_acpi_set_pdc_bits(u32 *buf)
- 		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
- }
- 
-+static inline bool acpi_arch_is_smp(void)
-+{
-+	return acpi_lapic;
-+}
-+
- #else /* !CONFIG_ACPI */
- 
- #define acpi_lapic 0
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 1c08574..8622a0e 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -268,7 +268,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 	pr->apic_id = apic_id;
- 
- 	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
--	if (!cpu0_initialized && !acpi_lapic) {
-+	if (!cpu0_initialized && !acpi_arch_is_smp()) {
- 		cpu0_initialized = 1;
- 		/* Handle UP system running SMP kernel, with no LAPIC in MADT */
- 		if ((cpu_index == -1) && (num_online_cpus() == 1))
--- 
-1.7.9.5
+    ACPI / video: Do not register backlight if win8 and native interface exists
+
+commit 0e9f81d3b7cd0649a3bc437391b6a0650f98f844
+Author: Aaron Lu <aaron.lu@intel.com>
+Date:   Tue Feb 18 13:54:20 2014 +0800
+
+    ACPI / video: Add systems that should favour native backlight interface
+
+commit 751109aad5834375ca9ed0dcfcd85a00cbf872b5
+Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Date:   Thu Jun 5 22:47:35 2014 +0200
+
+    ACPI / video: Change the default for video.use_native_backlight to 1
+
+Maybe others, you will need to figure them out.
+
+Thanks,
+Aaron
+
+> 
+> If not possible.. don't worry! I will go through the reverse bisect.
+> It's just to speed up the whole process or at least get infos good to 
+> know in advance.
+> 
+> 
+> Thanks again
+> Jeremie
+> 
+
