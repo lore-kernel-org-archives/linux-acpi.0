@@ -1,337 +1,43 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] ACPICA: amlresrc.h: Neaten AML_<FOO> definitions and
- uses
-Date: Fri, 04 Jul 2014 03:31:20 -0700
-Message-ID: <1404469880.6384.11.camel@joe-AO725>
-References: <1399677947.2912.41.camel@joe-AO725>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v4 2/3] acpi, apei, ghes: Make NMI error notification to
+ be GHES architecture extension.
+Date: Fri, 4 Jul 2014 12:37:31 +0200
+Message-ID: <20140704103731.GA9246@pd.tnic>
+References: <1403610095-5354-1-git-send-email-tomasz.nowicki@linaro.org>
+ <1403610095-5354-3-git-send-email-tomasz.nowicki@linaro.org>
+ <20140702121645.GF1318@pd.tnic>
+ <53B64F3C.6080502@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1399677947.2912.41.camel@joe-AO725>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robert Moore <robert.moore@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:42664 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757696AbaGDKhn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Jul 2014 06:37:43 -0400
+Content-Disposition: inline
+In-Reply-To: <53B64F3C.6080502@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>, rjw@rjwysocki.net
+Cc: lenb@kernel.org, tony.luck@intel.com, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, rric@kernel.org
 
-ping?
+On Fri, Jul 04, 2014 at 08:52:44AM +0200, Tomasz Nowicki wrote:
+> Right, I will fix that and thanks for all you acks.
+> 
+> BTW, who else should I asked for review to move upstream process one step
+> further?
 
-On Fri, 2014-05-09 at 16:25 -0700, Joe Perches wrote:
-> Use a more normal style for these slightly odd #defines.
-> 
-> Remove trailing semicolons from #defines
-> Add semicolon to uses.
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
-> 
-> I think these are unnecessarily obfuscating and the #defines
-> should be expanded in-place instead.
-> 
->  drivers/acpi/acpica/amlresrc.h | 137 +++++++++++++++++++++++++----------------
->  1 file changed, 84 insertions(+), 53 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/amlresrc.h b/drivers/acpi/acpica/amlresrc.h
-> index f3f8344..fb1a1b5 100644
-> --- a/drivers/acpi/acpica/amlresrc.h
-> +++ b/drivers/acpi/acpica/amlresrc.h
-> @@ -133,38 +133,46 @@ struct asl_resource_node {
->  /*
->   * SMALL descriptors
->   */
-> -#define AML_RESOURCE_SMALL_HEADER_COMMON \
-> -	u8                              descriptor_type;
-> +#define AML_RESOURCE_SMALL_HEADER_COMMON	\
-> +	u8 descriptor_type
->  
->  struct aml_resource_small_header {
-> -AML_RESOURCE_SMALL_HEADER_COMMON};
-> +	AML_RESOURCE_SMALL_HEADER_COMMON;
-> +};
->  
->  struct aml_resource_irq {
-> -	AML_RESOURCE_SMALL_HEADER_COMMON u16 irq_mask;
-> +	AML_RESOURCE_SMALL_HEADER_COMMON;
-> +	u16 irq_mask;
->  	u8 flags;
->  };
->  
->  struct aml_resource_irq_noflags {
-> -	AML_RESOURCE_SMALL_HEADER_COMMON u16 irq_mask;
-> +	AML_RESOURCE_SMALL_HEADER_COMMON;
-> +	u16 irq_mask;
->  };
->  
->  struct aml_resource_dma {
-> -	AML_RESOURCE_SMALL_HEADER_COMMON u8 dma_channel_mask;
-> +	AML_RESOURCE_SMALL_HEADER_COMMON;
-> +	u8 dma_channel_mask;
->  	u8 flags;
->  };
->  
->  struct aml_resource_start_dependent {
-> -	AML_RESOURCE_SMALL_HEADER_COMMON u8 flags;
-> +	AML_RESOURCE_SMALL_HEADER_COMMON;
-> +	u8 flags;
->  };
->  
->  struct aml_resource_start_dependent_noprio {
-> -AML_RESOURCE_SMALL_HEADER_COMMON};
-> +	AML_RESOURCE_SMALL_HEADER_COMMON;
-> +};
->  
->  struct aml_resource_end_dependent {
-> -AML_RESOURCE_SMALL_HEADER_COMMON};
-> +	AML_RESOURCE_SMALL_HEADER_COMMON;
-> +};
->  
->  struct aml_resource_io {
-> -	AML_RESOURCE_SMALL_HEADER_COMMON u8 flags;
-> +	AML_RESOURCE_SMALL_HEADER_COMMON;
-> +	u8 flags;
->  	u16 minimum;
->  	u16 maximum;
->  	u8 alignment;
-> @@ -172,19 +180,23 @@ struct aml_resource_io {
->  };
->  
->  struct aml_resource_fixed_io {
-> -	AML_RESOURCE_SMALL_HEADER_COMMON u16 address;
-> +	AML_RESOURCE_SMALL_HEADER_COMMON;
-> +	u16 address;
->  	u8 address_length;
->  };
->  
->  struct aml_resource_vendor_small {
-> -AML_RESOURCE_SMALL_HEADER_COMMON};
-> +	AML_RESOURCE_SMALL_HEADER_COMMON;
-> +};
->  
->  struct aml_resource_end_tag {
-> -	AML_RESOURCE_SMALL_HEADER_COMMON u8 checksum;
-> +	AML_RESOURCE_SMALL_HEADER_COMMON;
-> +	u8 checksum;
->  };
->  
->  struct aml_resource_fixed_dma {
-> -	AML_RESOURCE_SMALL_HEADER_COMMON u16 request_lines;
-> +	AML_RESOURCE_SMALL_HEADER_COMMON;
-> +	u16 request_lines;
->  	u16 channels;
->  	u8 width;
->  };
-> @@ -192,12 +204,13 @@ struct aml_resource_fixed_dma {
->  /*
->   * LARGE descriptors
->   */
-> -#define AML_RESOURCE_LARGE_HEADER_COMMON \
-> -	u8                              descriptor_type;\
-> -	u16                             resource_length;
-> +#define AML_RESOURCE_LARGE_HEADER_COMMON			\
-> +	u8 descriptor_type;					\
-> +	u16 resource_length
->  
->  struct aml_resource_large_header {
-> -AML_RESOURCE_LARGE_HEADER_COMMON};
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +};
->  
->  /* General Flags for address space resource descriptors */
->  
-> @@ -206,7 +219,8 @@ AML_RESOURCE_LARGE_HEADER_COMMON};
->  #define ACPI_RESOURCE_FLAG_MAF      8
->  
->  struct aml_resource_memory24 {
-> -	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	u8 flags;
->  	u16 minimum;
->  	u16 maximum;
->  	u16 alignment;
-> @@ -214,10 +228,12 @@ struct aml_resource_memory24 {
->  };
->  
->  struct aml_resource_vendor_large {
-> -AML_RESOURCE_LARGE_HEADER_COMMON};
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +};
->  
->  struct aml_resource_memory32 {
-> -	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	u8 flags;
->  	u32 minimum;
->  	u32 maximum;
->  	u32 alignment;
-> @@ -225,22 +241,26 @@ struct aml_resource_memory32 {
->  };
->  
->  struct aml_resource_fixed_memory32 {
-> -	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	u8 flags;
->  	u32 address;
->  	u32 address_length;
->  };
->  
-> -#define AML_RESOURCE_ADDRESS_COMMON \
-> -	u8                              resource_type; \
-> -	u8                              flags; \
-> -	u8                              specific_flags;
-> +#define AML_RESOURCE_ADDRESS_COMMON			\
-> +	u8 resource_type;				\
-> +	u8 flags;					\
-> +	u8 specific_flags
->  
->  struct aml_resource_address {
-> -AML_RESOURCE_LARGE_HEADER_COMMON AML_RESOURCE_ADDRESS_COMMON};
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	AML_RESOURCE_ADDRESS_COMMON;
-> +};
->  
->  struct aml_resource_extended_address64 {
-> -	AML_RESOURCE_LARGE_HEADER_COMMON
-> -	    AML_RESOURCE_ADDRESS_COMMON u8 revision_ID;
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	AML_RESOURCE_ADDRESS_COMMON;
-> +	u8 revision_ID;
->  	u8 reserved;
->  	u64 granularity;
->  	u64 minimum;
-> @@ -253,8 +273,9 @@ struct aml_resource_extended_address64 {
->  #define AML_RESOURCE_EXTENDED_ADDRESS_REVISION          1	/* ACPI 3.0 */
->  
->  struct aml_resource_address64 {
-> -	AML_RESOURCE_LARGE_HEADER_COMMON
-> -	    AML_RESOURCE_ADDRESS_COMMON u64 granularity;
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	AML_RESOURCE_ADDRESS_COMMON;
-> +	u64 granularity;
->  	u64 minimum;
->  	u64 maximum;
->  	u64 translation_offset;
-> @@ -262,8 +283,9 @@ struct aml_resource_address64 {
->  };
->  
->  struct aml_resource_address32 {
-> -	AML_RESOURCE_LARGE_HEADER_COMMON
-> -	    AML_RESOURCE_ADDRESS_COMMON u32 granularity;
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	AML_RESOURCE_ADDRESS_COMMON;
-> +	u32 granularity;
->  	u32 minimum;
->  	u32 maximum;
->  	u32 translation_offset;
-> @@ -271,8 +293,9 @@ struct aml_resource_address32 {
->  };
->  
->  struct aml_resource_address16 {
-> -	AML_RESOURCE_LARGE_HEADER_COMMON
-> -	    AML_RESOURCE_ADDRESS_COMMON u16 granularity;
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	AML_RESOURCE_ADDRESS_COMMON;
-> +	u16 granularity;
->  	u16 minimum;
->  	u16 maximum;
->  	u16 translation_offset;
-> @@ -280,14 +303,16 @@ struct aml_resource_address16 {
->  };
->  
->  struct aml_resource_extended_irq {
-> -	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	u8 flags;
->  	u8 interrupt_count;
->  	u32 interrupts[1];
->  	/* res_source_index, res_source optional fields follow */
->  };
->  
->  struct aml_resource_generic_register {
-> -	AML_RESOURCE_LARGE_HEADER_COMMON u8 address_space_id;
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	u8 address_space_id;
->  	u8 bit_width;
->  	u8 bit_offset;
->  	u8 access_size;		/* ACPI 3.0, was previously Reserved */
-> @@ -297,7 +322,8 @@ struct aml_resource_generic_register {
->  /* Common descriptor for gpio_int and gpio_io (ACPI 5.0) */
->  
->  struct aml_resource_gpio {
-> -	AML_RESOURCE_LARGE_HEADER_COMMON u8 revision_id;
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	u8 revision_id;
->  	u8 connection_type;
->  	u16 flags;
->  	u16 int_flags;
-> @@ -327,14 +353,14 @@ struct aml_resource_gpio {
->  
->  /* Common preamble for all serial descriptors (ACPI 5.0) */
->  
-> -#define AML_RESOURCE_SERIAL_COMMON \
-> -	u8                              revision_id; \
-> -	u8                              res_source_index; \
-> -	u8                              type; \
-> -	u8                              flags; \
-> -	u16                             type_specific_flags; \
-> -	u8                              type_revision_id; \
-> -	u16                             type_data_length; \
-> +#define AML_RESOURCE_SERIAL_COMMON				\
-> +	u8 revision_id;						\
-> +	u8 res_source_index;					\
-> +	u8 type;						\
-> +	u8 flags;						\
-> +	u16 type_specific_flags;				\
-> +	u8 type_revision_id;					\
-> +	u16 type_data_length
->  
->  /* Values for the type field above */
->  
-> @@ -345,11 +371,14 @@ struct aml_resource_gpio {
->  #define AML_RESOURCE_VENDOR_SERIALBUSTYPE       192	/* Vendor defined is 0xC0-0xFF (NOT SUPPORTED) */
->  
->  struct aml_resource_common_serialbus {
-> -AML_RESOURCE_LARGE_HEADER_COMMON AML_RESOURCE_SERIAL_COMMON};
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	AML_RESOURCE_SERIAL_COMMON;
-> +};
->  
->  struct aml_resource_i2c_serialbus {
-> -	AML_RESOURCE_LARGE_HEADER_COMMON
-> -	    AML_RESOURCE_SERIAL_COMMON u32 connection_speed;
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	AML_RESOURCE_SERIAL_COMMON;
-> +	u32 connection_speed;
->  	u16 slave_address;
->  	/*
->  	 * Optional fields follow immediately:
-> @@ -363,8 +392,9 @@ struct aml_resource_i2c_serialbus {
->  #define AML_RESOURCE_I2C_MIN_DATA_LEN           6
->  
->  struct aml_resource_spi_serialbus {
-> -	AML_RESOURCE_LARGE_HEADER_COMMON
-> -	    AML_RESOURCE_SERIAL_COMMON u32 connection_speed;
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	AML_RESOURCE_SERIAL_COMMON;
-> +	u32 connection_speed;
->  	u8 data_bit_length;
->  	u8 clock_phase;
->  	u8 clock_polarity;
-> @@ -381,8 +411,9 @@ struct aml_resource_spi_serialbus {
->  #define AML_RESOURCE_SPI_MIN_DATA_LEN           9
->  
->  struct aml_resource_uart_serialbus {
-> -	AML_RESOURCE_LARGE_HEADER_COMMON
-> -	    AML_RESOURCE_SERIAL_COMMON u32 default_baud_rate;
-> +	AML_RESOURCE_LARGE_HEADER_COMMON;
-> +	AML_RESOURCE_SERIAL_COMMON;
-> +	u32 default_baud_rate;
->  	u16 rx_fifo_size;
->  	u16 tx_fifo_size;
->  	u8 parity;
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+I think you have enough people on CC and if they would find cycles to
+review them, they're welcome to do so.
+
+But the patches have gotten pretty neat and clean in the meantime so I
+think Rafael could go over them quickly and maybe even pick them up...
+
+:-)
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
