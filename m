@@ -1,142 +1,337 @@
-From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Subject: Re: [PATCH] drm/i915/opregion: ignore firmware requests
-	for backlight change
-Date: Fri, 4 Jul 2014 12:32:30 +0400
-Message-ID: <CAFMg4WBN5MZtBr3+ShxkrHE1vTbhY4qd14AYXhX-zutdHUkZ=g@mail.gmail.com>
-References: <53A8E400.5060709@intel.com> <87tx796yc5.fsf@intel.com>
- <53ACE2EF.8020808@intel.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH] ACPICA: amlresrc.h: Neaten AML_<FOO> definitions and
+ uses
+Date: Fri, 04 Jul 2014 03:31:20 -0700
+Message-ID: <1404469880.6384.11.camel@joe-AO725>
+References: <1399677947.2912.41.camel@joe-AO725>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <53ACE2EF.8020808@intel.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Anton Gubarkov <anton.gubarkov@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1399677947.2912.41.camel@joe-AO725>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Robert Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I've tested legacy boot. I have this bug.
-On Fri, Jun 27, 2014 at 7:20 AM, Aaron Lu <aaron.lu@intel.com> wrote:
-> On 06/25/2014 07:08 PM, Jani Nikula wrote:
->> On Tue, 24 Jun 2014, Aaron Lu <aaron.lu@intel.com> wrote:
->>> Some Thinkpad laptops' firmware will initiate a backlight level change
->>> request through operation region on the events of AC plug/unplug, but
->>> since we are not using firmware's interface to do the backlight setting
->>> on these affected laptops, we do not want the firmware to use some
->>> arbitrary value from its ASL variable to set the backlight level on
->>> AC plug/unplug either.
->>
->> I'm curious whether this happens with EFI boot, or only with legacy.
->
-> Igor, Anton,
->
-> Are you using legacy boot or UEFI boot?
-> Possible to test the other case?
->
->>
->> One comment inline, otherwise
->
-> Will add that in next revision.
->
->>
->> Acked-by: Jani Nikula <jani.nikula@intel.com>
->
-> Thanks for the review!
->
-> -Aaron
->
->>
->> for merging through the ACPI tree, as the change is more likely to
->> conflict there.
->>
->>> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=76491
->>> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=77091
->>> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
->>> Reported-and-tested-by: Anton Gubarkov <anton.gubarkov@gmail.com>
->>> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
->>> ---
->>>  drivers/acpi/video.c                  | 3 ++-
->>>  drivers/gpu/drm/i915/intel_opregion.c | 7 +++++++
->>>  include/acpi/video.h                  | 2 ++
->>>  3 files changed, 11 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
->>> index fb9ffe9adc64..cf99d6d2d491 100644
->>> --- a/drivers/acpi/video.c
->>> +++ b/drivers/acpi/video.c
->>> @@ -241,13 +241,14 @@ static bool acpi_video_use_native_backlight(void)
->>>              return use_native_backlight_dmi;
->>>  }
->>>
->>> -static bool acpi_video_verify_backlight_support(void)
->>> +bool acpi_video_verify_backlight_support(void)
->>>  {
->>>      if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
->>>          backlight_device_registered(BACKLIGHT_RAW))
->>>              return false;
->>>      return acpi_video_backlight_support();
->>>  }
->>> +EXPORT_SYMBOL(acpi_video_verify_backlight_support);
->>>
->>>  /* backlight device sysfs support */
->>>  static int acpi_video_get_brightness(struct backlight_device *bd)
->>> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
->>> index 2e2c71fcc9ed..02943d93e88e 100644
->>> --- a/drivers/gpu/drm/i915/intel_opregion.c
->>> +++ b/drivers/gpu/drm/i915/intel_opregion.c
->>> @@ -403,6 +403,13 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
->>>
->>>      DRM_DEBUG_DRIVER("bclp = 0x%08x\n", bclp);
->>>
->>> +    /*
->>> +     * If the acpi_video interface is not supposed to be used, don't
->>> +     * bother processing backlight level change requests from firmware.
->>> +     */
->>> +    if (!acpi_video_verify_backlight_support())
->>> +            return 0;
->>
->> I'd appreciate a DRM_DEBUG_KMS here about what happened. We're bound to
->> wonder about that staring at some dmesg later on!
->>
->>> +
->>>      if (!(bclp & ASLE_BCLP_VALID))
->>>              return ASLC_BACKLIGHT_FAILED;
->>>
->>> diff --git a/include/acpi/video.h b/include/acpi/video.h
->>> index ea4c7bbded4d..92f8c4bffefb 100644
->>> --- a/include/acpi/video.h
->>> +++ b/include/acpi/video.h
->>> @@ -22,6 +22,7 @@ extern void acpi_video_unregister(void);
->>>  extern void acpi_video_unregister_backlight(void);
->>>  extern int acpi_video_get_edid(struct acpi_device *device, int type,
->>>                             int device_id, void **edid);
->>> +extern bool acpi_video_verify_backlight_support(void);
->>>  #else
->>>  static inline int acpi_video_register(void) { return 0; }
->>>  static inline void acpi_video_unregister(void) { return; }
->>> @@ -31,6 +32,7 @@ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
->>>  {
->>>      return -ENODEV;
->>>  }
->>> +static bool acpi_video_verify_backlight_support() { return false; }
->>>  #endif
->>>
->>>  #endif
->>> --
->>> 1.9.3
->>>
->>
->
+ping?
 
-
-
--- 
--Igor Gnatenko
+On Fri, 2014-05-09 at 16:25 -0700, Joe Perches wrote:
+> Use a more normal style for these slightly odd #defines.
+> 
+> Remove trailing semicolons from #defines
+> Add semicolon to uses.
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+> 
+> I think these are unnecessarily obfuscating and the #defines
+> should be expanded in-place instead.
+> 
+>  drivers/acpi/acpica/amlresrc.h | 137 +++++++++++++++++++++++++----------------
+>  1 file changed, 84 insertions(+), 53 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/amlresrc.h b/drivers/acpi/acpica/amlresrc.h
+> index f3f8344..fb1a1b5 100644
+> --- a/drivers/acpi/acpica/amlresrc.h
+> +++ b/drivers/acpi/acpica/amlresrc.h
+> @@ -133,38 +133,46 @@ struct asl_resource_node {
+>  /*
+>   * SMALL descriptors
+>   */
+> -#define AML_RESOURCE_SMALL_HEADER_COMMON \
+> -	u8                              descriptor_type;
+> +#define AML_RESOURCE_SMALL_HEADER_COMMON	\
+> +	u8 descriptor_type
+>  
+>  struct aml_resource_small_header {
+> -AML_RESOURCE_SMALL_HEADER_COMMON};
+> +	AML_RESOURCE_SMALL_HEADER_COMMON;
+> +};
+>  
+>  struct aml_resource_irq {
+> -	AML_RESOURCE_SMALL_HEADER_COMMON u16 irq_mask;
+> +	AML_RESOURCE_SMALL_HEADER_COMMON;
+> +	u16 irq_mask;
+>  	u8 flags;
+>  };
+>  
+>  struct aml_resource_irq_noflags {
+> -	AML_RESOURCE_SMALL_HEADER_COMMON u16 irq_mask;
+> +	AML_RESOURCE_SMALL_HEADER_COMMON;
+> +	u16 irq_mask;
+>  };
+>  
+>  struct aml_resource_dma {
+> -	AML_RESOURCE_SMALL_HEADER_COMMON u8 dma_channel_mask;
+> +	AML_RESOURCE_SMALL_HEADER_COMMON;
+> +	u8 dma_channel_mask;
+>  	u8 flags;
+>  };
+>  
+>  struct aml_resource_start_dependent {
+> -	AML_RESOURCE_SMALL_HEADER_COMMON u8 flags;
+> +	AML_RESOURCE_SMALL_HEADER_COMMON;
+> +	u8 flags;
+>  };
+>  
+>  struct aml_resource_start_dependent_noprio {
+> -AML_RESOURCE_SMALL_HEADER_COMMON};
+> +	AML_RESOURCE_SMALL_HEADER_COMMON;
+> +};
+>  
+>  struct aml_resource_end_dependent {
+> -AML_RESOURCE_SMALL_HEADER_COMMON};
+> +	AML_RESOURCE_SMALL_HEADER_COMMON;
+> +};
+>  
+>  struct aml_resource_io {
+> -	AML_RESOURCE_SMALL_HEADER_COMMON u8 flags;
+> +	AML_RESOURCE_SMALL_HEADER_COMMON;
+> +	u8 flags;
+>  	u16 minimum;
+>  	u16 maximum;
+>  	u8 alignment;
+> @@ -172,19 +180,23 @@ struct aml_resource_io {
+>  };
+>  
+>  struct aml_resource_fixed_io {
+> -	AML_RESOURCE_SMALL_HEADER_COMMON u16 address;
+> +	AML_RESOURCE_SMALL_HEADER_COMMON;
+> +	u16 address;
+>  	u8 address_length;
+>  };
+>  
+>  struct aml_resource_vendor_small {
+> -AML_RESOURCE_SMALL_HEADER_COMMON};
+> +	AML_RESOURCE_SMALL_HEADER_COMMON;
+> +};
+>  
+>  struct aml_resource_end_tag {
+> -	AML_RESOURCE_SMALL_HEADER_COMMON u8 checksum;
+> +	AML_RESOURCE_SMALL_HEADER_COMMON;
+> +	u8 checksum;
+>  };
+>  
+>  struct aml_resource_fixed_dma {
+> -	AML_RESOURCE_SMALL_HEADER_COMMON u16 request_lines;
+> +	AML_RESOURCE_SMALL_HEADER_COMMON;
+> +	u16 request_lines;
+>  	u16 channels;
+>  	u8 width;
+>  };
+> @@ -192,12 +204,13 @@ struct aml_resource_fixed_dma {
+>  /*
+>   * LARGE descriptors
+>   */
+> -#define AML_RESOURCE_LARGE_HEADER_COMMON \
+> -	u8                              descriptor_type;\
+> -	u16                             resource_length;
+> +#define AML_RESOURCE_LARGE_HEADER_COMMON			\
+> +	u8 descriptor_type;					\
+> +	u16 resource_length
+>  
+>  struct aml_resource_large_header {
+> -AML_RESOURCE_LARGE_HEADER_COMMON};
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +};
+>  
+>  /* General Flags for address space resource descriptors */
+>  
+> @@ -206,7 +219,8 @@ AML_RESOURCE_LARGE_HEADER_COMMON};
+>  #define ACPI_RESOURCE_FLAG_MAF      8
+>  
+>  struct aml_resource_memory24 {
+> -	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	u8 flags;
+>  	u16 minimum;
+>  	u16 maximum;
+>  	u16 alignment;
+> @@ -214,10 +228,12 @@ struct aml_resource_memory24 {
+>  };
+>  
+>  struct aml_resource_vendor_large {
+> -AML_RESOURCE_LARGE_HEADER_COMMON};
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +};
+>  
+>  struct aml_resource_memory32 {
+> -	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	u8 flags;
+>  	u32 minimum;
+>  	u32 maximum;
+>  	u32 alignment;
+> @@ -225,22 +241,26 @@ struct aml_resource_memory32 {
+>  };
+>  
+>  struct aml_resource_fixed_memory32 {
+> -	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	u8 flags;
+>  	u32 address;
+>  	u32 address_length;
+>  };
+>  
+> -#define AML_RESOURCE_ADDRESS_COMMON \
+> -	u8                              resource_type; \
+> -	u8                              flags; \
+> -	u8                              specific_flags;
+> +#define AML_RESOURCE_ADDRESS_COMMON			\
+> +	u8 resource_type;				\
+> +	u8 flags;					\
+> +	u8 specific_flags
+>  
+>  struct aml_resource_address {
+> -AML_RESOURCE_LARGE_HEADER_COMMON AML_RESOURCE_ADDRESS_COMMON};
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	AML_RESOURCE_ADDRESS_COMMON;
+> +};
+>  
+>  struct aml_resource_extended_address64 {
+> -	AML_RESOURCE_LARGE_HEADER_COMMON
+> -	    AML_RESOURCE_ADDRESS_COMMON u8 revision_ID;
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	AML_RESOURCE_ADDRESS_COMMON;
+> +	u8 revision_ID;
+>  	u8 reserved;
+>  	u64 granularity;
+>  	u64 minimum;
+> @@ -253,8 +273,9 @@ struct aml_resource_extended_address64 {
+>  #define AML_RESOURCE_EXTENDED_ADDRESS_REVISION          1	/* ACPI 3.0 */
+>  
+>  struct aml_resource_address64 {
+> -	AML_RESOURCE_LARGE_HEADER_COMMON
+> -	    AML_RESOURCE_ADDRESS_COMMON u64 granularity;
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	AML_RESOURCE_ADDRESS_COMMON;
+> +	u64 granularity;
+>  	u64 minimum;
+>  	u64 maximum;
+>  	u64 translation_offset;
+> @@ -262,8 +283,9 @@ struct aml_resource_address64 {
+>  };
+>  
+>  struct aml_resource_address32 {
+> -	AML_RESOURCE_LARGE_HEADER_COMMON
+> -	    AML_RESOURCE_ADDRESS_COMMON u32 granularity;
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	AML_RESOURCE_ADDRESS_COMMON;
+> +	u32 granularity;
+>  	u32 minimum;
+>  	u32 maximum;
+>  	u32 translation_offset;
+> @@ -271,8 +293,9 @@ struct aml_resource_address32 {
+>  };
+>  
+>  struct aml_resource_address16 {
+> -	AML_RESOURCE_LARGE_HEADER_COMMON
+> -	    AML_RESOURCE_ADDRESS_COMMON u16 granularity;
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	AML_RESOURCE_ADDRESS_COMMON;
+> +	u16 granularity;
+>  	u16 minimum;
+>  	u16 maximum;
+>  	u16 translation_offset;
+> @@ -280,14 +303,16 @@ struct aml_resource_address16 {
+>  };
+>  
+>  struct aml_resource_extended_irq {
+> -	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	u8 flags;
+>  	u8 interrupt_count;
+>  	u32 interrupts[1];
+>  	/* res_source_index, res_source optional fields follow */
+>  };
+>  
+>  struct aml_resource_generic_register {
+> -	AML_RESOURCE_LARGE_HEADER_COMMON u8 address_space_id;
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	u8 address_space_id;
+>  	u8 bit_width;
+>  	u8 bit_offset;
+>  	u8 access_size;		/* ACPI 3.0, was previously Reserved */
+> @@ -297,7 +322,8 @@ struct aml_resource_generic_register {
+>  /* Common descriptor for gpio_int and gpio_io (ACPI 5.0) */
+>  
+>  struct aml_resource_gpio {
+> -	AML_RESOURCE_LARGE_HEADER_COMMON u8 revision_id;
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	u8 revision_id;
+>  	u8 connection_type;
+>  	u16 flags;
+>  	u16 int_flags;
+> @@ -327,14 +353,14 @@ struct aml_resource_gpio {
+>  
+>  /* Common preamble for all serial descriptors (ACPI 5.0) */
+>  
+> -#define AML_RESOURCE_SERIAL_COMMON \
+> -	u8                              revision_id; \
+> -	u8                              res_source_index; \
+> -	u8                              type; \
+> -	u8                              flags; \
+> -	u16                             type_specific_flags; \
+> -	u8                              type_revision_id; \
+> -	u16                             type_data_length; \
+> +#define AML_RESOURCE_SERIAL_COMMON				\
+> +	u8 revision_id;						\
+> +	u8 res_source_index;					\
+> +	u8 type;						\
+> +	u8 flags;						\
+> +	u16 type_specific_flags;				\
+> +	u8 type_revision_id;					\
+> +	u16 type_data_length
+>  
+>  /* Values for the type field above */
+>  
+> @@ -345,11 +371,14 @@ struct aml_resource_gpio {
+>  #define AML_RESOURCE_VENDOR_SERIALBUSTYPE       192	/* Vendor defined is 0xC0-0xFF (NOT SUPPORTED) */
+>  
+>  struct aml_resource_common_serialbus {
+> -AML_RESOURCE_LARGE_HEADER_COMMON AML_RESOURCE_SERIAL_COMMON};
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	AML_RESOURCE_SERIAL_COMMON;
+> +};
+>  
+>  struct aml_resource_i2c_serialbus {
+> -	AML_RESOURCE_LARGE_HEADER_COMMON
+> -	    AML_RESOURCE_SERIAL_COMMON u32 connection_speed;
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	AML_RESOURCE_SERIAL_COMMON;
+> +	u32 connection_speed;
+>  	u16 slave_address;
+>  	/*
+>  	 * Optional fields follow immediately:
+> @@ -363,8 +392,9 @@ struct aml_resource_i2c_serialbus {
+>  #define AML_RESOURCE_I2C_MIN_DATA_LEN           6
+>  
+>  struct aml_resource_spi_serialbus {
+> -	AML_RESOURCE_LARGE_HEADER_COMMON
+> -	    AML_RESOURCE_SERIAL_COMMON u32 connection_speed;
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	AML_RESOURCE_SERIAL_COMMON;
+> +	u32 connection_speed;
+>  	u8 data_bit_length;
+>  	u8 clock_phase;
+>  	u8 clock_polarity;
+> @@ -381,8 +411,9 @@ struct aml_resource_spi_serialbus {
+>  #define AML_RESOURCE_SPI_MIN_DATA_LEN           9
+>  
+>  struct aml_resource_uart_serialbus {
+> -	AML_RESOURCE_LARGE_HEADER_COMMON
+> -	    AML_RESOURCE_SERIAL_COMMON u32 default_baud_rate;
+> +	AML_RESOURCE_LARGE_HEADER_COMMON;
+> +	AML_RESOURCE_SERIAL_COMMON;
+> +	u32 default_baud_rate;
+>  	u16 rx_fifo_size;
+>  	u16 tx_fifo_size;
+>  	u8 parity;
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
