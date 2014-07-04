@@ -1,72 +1,129 @@
-From: Lan Tianyu <lantianyu1986@gmail.com>
-Subject: Re: [PATCH] ACPI / EC: Free saved_ec on error exit path
-Date: Fri, 4 Jul 2014 10:15:52 +0800
-Message-ID: <CAOLK0pxQ=iBXLDLQ8hGkeF0oLHHSs+qTa93ixqWhUh2COq-MqQ@mail.gmail.com>
-References: <1404344109-30805-1-git-send-email-colin.king@canonical.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH v4 2/3] acpi, apei, ghes: Make NMI error notification
+ to be GHES architecture extension.
+Date: Fri, 04 Jul 2014 08:52:44 +0200
+Message-ID: <53B64F3C.6080502@linaro.org>
+References: <1403610095-5354-1-git-send-email-tomasz.nowicki@linaro.org> <1403610095-5354-3-git-send-email-tomasz.nowicki@linaro.org> <20140702121645.GF1318@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1404344109-30805-1-git-send-email-colin.king@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:60890 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750772AbaGDGwr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Jul 2014 02:52:47 -0400
+Received: by mail-wi0-f182.google.com with SMTP id bs8so3300254wib.3
+        for <linux-acpi@vger.kernel.org>; Thu, 03 Jul 2014 23:52:46 -0700 (PDT)
+In-Reply-To: <20140702121645.GF1318@pd.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, m.chehab@samsung.com, bp@suse.de, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, rric@kernel.org
 
-2014-07-03 7:35 GMT+08:00 Colin King <colin.king@canonical.com>:
-> From: Colin Ian King <colin.king@canonical.com>
+On 02.07.2014 14:16, Borislav Petkov wrote:
+> On Tue, Jun 24, 2014 at 01:41:34PM +0200, Tomasz Nowicki wrote:
+>> Currently APEI depends on x86 architecture. It is because of NMI hardware
+>> error notification of GHES which is currently supported by x86 only.
+>> However, many other APEI features can be still used perfectly by other
+>> architectures.
+>>
+>> This commit adds two symbols:
+>> 1. HAVE_ACPI_APEI for those archs which support APEI.
+>> 2. HAVE_ACPI_APEI_NMI which is used for NMI code isolation in ghes.c
+>>     file. NMI related data and functions are grouped so they can be wrapped
+>>     inside one #ifdef section. Appropriate function stubs are provided for
+>>     !NMI case.
+>>
+>> Note there is no functional changes for x86 due to hard selected
+>> HAVE_ACPI_APEI and HAVE_ACPI_APEI_NMI symbols.
+>>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> ---
+>>   arch/x86/Kconfig          |    2 +
+>>   drivers/acpi/apei/Kconfig |    8 ++-
+>>   drivers/acpi/apei/ghes.c  |  149 +++++++++++++++++++++++++++++----------------
+>>   include/linux/nmi.h       |    4 ++
+>>   4 files changed, 110 insertions(+), 53 deletions(-)
+>>
 >
-> Smatch detected two memory leaks on saved_ec:
+> ...
 >
-> drivers/acpi/ec.c:1070 acpi_ec_ecdt_probe() warn: possible
->   memory leak of 'saved_ec'
-> drivers/acpi/ec.c:1109 acpi_ec_ecdt_probe() warn: possible
->   memory leak of 'saved_ec'
+>> @@ -894,11 +892,71 @@ static unsigned long ghes_esource_prealloc_size(
+>>   	return prealloc_size;
+>>   }
+>>
+>> +static void ghes_estatus_pool_shrink(unsigned long len)
+>> +{
+>> +	ghes_estatus_pool_size_request -= PAGE_ALIGN(len);
+>> +}
+>> +
+>> +static void ghes_nmi_add(struct ghes *ghes)
+>> +{
+>> +	unsigned long len;
+>> +
+>> +	len = ghes_esource_prealloc_size(ghes->generic);
+>> +	ghes_estatus_pool_expand(len);
+>> +	mutex_lock(&ghes_list_mutex);
+>> +	if (list_empty(&ghes_nmi))
+>> +		register_nmi_handler(NMI_LOCAL, ghes_notify_nmi, 0, "ghes");
+>> +	list_add_rcu(&ghes->list, &ghes_nmi);
+>> +	mutex_unlock(&ghes_list_mutex);
+>> +}
+>> +
+>> +static void ghes_nmi_remove(struct ghes *ghes)
+>> +{
+>> +	unsigned long len;
+>> +
+>> +	mutex_lock(&ghes_list_mutex);
+>> +	list_del_rcu(&ghes->list);
+>> +	if (list_empty(&ghes_nmi))
+>> +		unregister_nmi_handler(NMI_LOCAL, "ghes");
+>> +	mutex_unlock(&ghes_list_mutex);
+>> +	/*
+>> +	 * To synchronize with NMI handler, ghes can only be
+>> +	 * freed after NMI handler finishes.
+>> +	 */
+>> +	synchronize_rcu();
+>> +	len = ghes_esource_prealloc_size(ghes->generic);
+>> +	ghes_estatus_pool_shrink(len);
+>> +}
+>> +
+>> +static void ghes_nmi_init_cxt(void)
+>> +{
+>> +	init_irq_work(&ghes_proc_irq_work, ghes_proc_in_irq);
+>> +}
+>> +#else
 >
-> Free saved_ec on these two error exit paths to stop the memory
-> leak.  Note that saved_ec maybe null, but kfree on null is allowed.
+> Markers please to know to which CONFIG_ symbol this #else refers to:
+>
+> #else /* CONFIG_HAVE_ACPI_APEI_NMI */
+>
+>> +static inline void ghes_nmi_add(struct ghes *ghes)
+>> +{
+>> +	pr_err(GHES_PFX "ID: %d, trying to add NMI notification which is not supported!\n",
+>> +	       ghes->generic->header.source_id);
+>> +	BUG();
+>> +}
+>> +
+>> +static inline void ghes_nmi_remove(struct ghes *ghes)
+>> +{
+>> +	pr_err(GHES_PFX "ID: %d, trying to remove NMI notification which is not supported!\n",
+>> +	       ghes->generic->header.source_id);
+>> +	BUG();
+>> +}
+>> +
+>> +static inline void ghes_nmi_init_cxt(void)
+>> +{
+>> +}
+>> +#endif
+>
+> Ditto.
 >
 
-Acked-by: Lan Tianyu <tianyu.lan@intel.com>
+Right, I will fix that and thanks for all you acks.
 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/acpi/ec.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index ad11ba4..9800f50 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -1066,8 +1066,10 @@ int __init acpi_ec_ecdt_probe(void)
->         /* fall through */
->         }
->
-> -       if (EC_FLAGS_SKIP_DSDT_SCAN)
-> +       if (EC_FLAGS_SKIP_DSDT_SCAN) {
-> +               kfree(saved_ec);
->                 return -ENODEV;
-> +       }
->
->         /* This workaround is needed only on some broken machines,
->          * which require early EC, but fail to provide ECDT */
-> @@ -1105,6 +1107,7 @@ install:
->         }
->  error:
->         kfree(boot_ec);
-> +       kfree(saved_ec);
->         boot_ec = NULL;
->         return -ENODEV;
->  }
-> --
-> 2.0.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+BTW, who else should I asked for review to move upstream process one 
+step further?
 
-
-
--- 
-Best regards
-Tianyu Lan
+Regards,
+Tomasz
