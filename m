@@ -1,190 +1,120 @@
-From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-Subject: Re: [PATCH] drm/i915/opregion: ignore firmware requests
- for backlight change
-Date: Fri, 04 Jul 2014 12:06:23 +0400
-Message-ID: <1404461183.19977.35.camel@X1Carbon.localdomain>
-References: <53A8E400.5060709@intel.com> <87tx796yc5.fsf@intel.com>
- <53ACE2EF.8020808@intel.com>
+From: "Vadim A. Misbakh-Soloviov" <mva@mva.name>
+Subject: [RFC] [HELP] [WMI] Media keys on MSI GE60 (patching msi_wmi for it)
+Date: Fri, 04 Jul 2014 15:05:48 +0700
+Message-ID: <1578502.VNsf8Sat2f@note>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1993307471=="
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <53ACE2EF.8020808@intel.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "Rafael
- J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Anton Gubarkov <anton.gubarkov@gmail.com>
+Content-Type: multipart/mixed; boundary="===============5817870168037435648=="
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: driverdev-devel-bounces@linuxdriverproject.org
+To: linux-acpi@vger.kernel.org, driverdev-devel@linuxdriverproject.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---===============1993307471==
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-wsNpBeT4aHO9fG9S5rkT"
+--===============5817870168037435648==
+Content-Type: multipart/signed; boundary="nextPart1912611.6QqbcFGFUF"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 
 
---=-wsNpBeT4aHO9fG9S5rkT
-Content-Type: text/plain; charset="UTF-8"
+--nextPart1912611.6QqbcFGFUF
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
 
-On Fri, 2014-06-27 at 11:20 +0800, Aaron Lu wrote:=20
-> On 06/25/2014 07:08 PM, Jani Nikula wrote:
-> > On Tue, 24 Jun 2014, Aaron Lu <aaron.lu@intel.com> wrote:
-> >> Some Thinkpad laptops' firmware will initiate a backlight level change
-> >> request through operation region on the events of AC plug/unplug, but
-> >> since we are not using firmware's interface to do the backlight settin=
-g
-> >> on these affected laptops, we do not want the firmware to use some
-> >> arbitrary value from its ASL variable to set the backlight level on
-> >> AC plug/unplug either.
-> >=20
-> > I'm curious whether this happens with EFI boot, or only with legacy.
->=20
-> Igor, Anton,
-Hi,
-> Are you using legacy boot or UEFI boot?
-I'm using UEFI.=20
-> Possible to test the other case?
-yes, I'll test it with legacy in 10 mins.=20
->=20
-> >=20
-> > One comment inline, otherwise
->=20
-> Will add that in next revision.
->=20
-> >=20
-> > Acked-by: Jani Nikula <jani.nikula@intel.com>
->=20
-> Thanks for the review!
->=20
-> -Aaron
->=20
-> >=20
-> > for merging through the ACPI tree, as the change is more likely to
-> > conflict there.
-> >=20
-> >> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=3D76491
-> >> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=3D77091
-> >> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-> >> Reported-and-tested-by: Anton Gubarkov <anton.gubarkov@gmail.com>
-> >> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> >> ---
-> >>  drivers/acpi/video.c                  | 3 ++-
-> >>  drivers/gpu/drm/i915/intel_opregion.c | 7 +++++++
-> >>  include/acpi/video.h                  | 2 ++
-> >>  3 files changed, 11 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> >> index fb9ffe9adc64..cf99d6d2d491 100644
-> >> --- a/drivers/acpi/video.c
-> >> +++ b/drivers/acpi/video.c
-> >> @@ -241,13 +241,14 @@ static bool acpi_video_use_native_backlight(void=
-)
-> >>  		return use_native_backlight_dmi;
-> >>  }
-> >> =20
-> >> -static bool acpi_video_verify_backlight_support(void)
-> >> +bool acpi_video_verify_backlight_support(void)
-> >>  {
-> >>  	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
-> >>  	    backlight_device_registered(BACKLIGHT_RAW))
-> >>  		return false;
-> >>  	return acpi_video_backlight_support();
-> >>  }
-> >> +EXPORT_SYMBOL(acpi_video_verify_backlight_support);
-> >> =20
-> >>  /* backlight device sysfs support */
-> >>  static int acpi_video_get_brightness(struct backlight_device *bd)
-> >> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i=
-915/intel_opregion.c
-> >> index 2e2c71fcc9ed..02943d93e88e 100644
-> >> --- a/drivers/gpu/drm/i915/intel_opregion.c
-> >> +++ b/drivers/gpu/drm/i915/intel_opregion.c
-> >> @@ -403,6 +403,13 @@ static u32 asle_set_backlight(struct drm_device *=
-dev, u32 bclp)
-> >> =20
-> >>  	DRM_DEBUG_DRIVER("bclp =3D 0x%08x\n", bclp);
-> >> =20
-> >> +	/*
-> >> +	 * If the acpi_video interface is not supposed to be used, don't
-> >> +	 * bother processing backlight level change requests from firmware.
-> >> +	 */
-> >> +	if (!acpi_video_verify_backlight_support())
-> >> +		return 0;
-> >=20
-> > I'd appreciate a DRM_DEBUG_KMS here about what happened. We're bound to
-> > wonder about that staring at some dmesg later on!
-> >=20
-> >> +
-> >>  	if (!(bclp & ASLE_BCLP_VALID))
-> >>  		return ASLC_BACKLIGHT_FAILED;
-> >> =20
-> >> diff --git a/include/acpi/video.h b/include/acpi/video.h
-> >> index ea4c7bbded4d..92f8c4bffefb 100644
-> >> --- a/include/acpi/video.h
-> >> +++ b/include/acpi/video.h
-> >> @@ -22,6 +22,7 @@ extern void acpi_video_unregister(void);
-> >>  extern void acpi_video_unregister_backlight(void);
-> >>  extern int acpi_video_get_edid(struct acpi_device *device, int type,
-> >>  			       int device_id, void **edid);
-> >> +extern bool acpi_video_verify_backlight_support(void);
-> >>  #else
-> >>  static inline int acpi_video_register(void) { return 0; }
-> >>  static inline void acpi_video_unregister(void) { return; }
-> >> @@ -31,6 +32,7 @@ static inline int acpi_video_get_edid(struct acpi_de=
-vice *device, int type,
-> >>  {
-> >>  	return -ENODEV;
-> >>  }
-> >> +static bool acpi_video_verify_backlight_support() { return false; }
-> >>  #endif
-> >> =20
-> >>  #endif
-> >> --=20
-> >> 1.9.3
-> >>
-> >=20
->=20
+Hi there!
 
+I'm trying to modify msi_wmi driver to get it work with mediakeys on my=
+ MSI=20
+GE60 laptop.
 
---=20
--Igor Gnatenko
+By default, I get "Unknown event received" message.
 
---=-wsNpBeT4aHO9fG9S5rkT
+For now, I diagnosed that event, that every key press produces has 0x03=
+ (
+ACPI_TYPE_BUFFER?) type, instead of 0x01 (ACPI_TYPE_INTEGER) which in-k=
+ernel=20
+msi_wmi module wants.
+
+Further diagnostic with that code:
+
+232 =E2=80=BA   } else if (obj && obj->type =3D=3D ACPI_TYPE_BUFFER) {
+233 =E2=80=BA   =E2=80=BA   int eventcode =3D obj->integer.value;
+234 =E2=80=BA   =E2=80=BA   pr_info("Eventcode: 0x%x\n", eventcode);
+235 =E2=80=BA   =E2=80=BA   key =3D sparse_keymap_entry_from_scancode(m=
+si_wmi_input_dev,
+236 =E2=80=BA   =E2=80=BA   =E2=80=BA   =E2=80=BA   eventcode);
+237 =E2=80=BA   =E2=80=BA   if (!key) {
+238 =E2=80=BA   =E2=80=BA   =E2=80=BA   pr_info("Unknown key pressed - =
+%x\n", eventcode);
+239 =E2=80=BA   =E2=80=BA   =E2=80=BA   goto msi_wmi_notify_exit;
+240 =E2=80=BA   =E2=80=BA   }
+241
+242 =E2=80=BA   =E2=80=BA   pr_info("%d\n",key->type);
+243 =E2=80=BA   } else
+244 =E2=80=BA   =E2=80=BA   pr_info("Unknown event received\n");
+
+(only patched part)
+Gives me following info:
+Wen I press on any of media-keys =E2=80=94 I get the same eventcode (an=
+d every time I=20
+get if(!key) error. Moreover, evencode value changes in time (something=
+ about=20
+4 seconds), so, if I'll press some key many times, eventcode value will=
+ be=20
+changed after 4s, but it will not change if I press another mediakeys.
+
+Can anybody advice me, why can I experience such behaviour?
+
+And is it a way to get mediakeys working  without patching DSDT (last t=
+ime I=20
+did that I brake my bluetooth module in that way, that even rfkill was =
+unable=20
+to enable it :P)?
+
+=2D-=20
+Best regsrds,
+mva
+
+--nextPart1912611.6QqbcFGFUF
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAABAgAGBQJTtmB/AAoJEAmtnLFRuIbqcHwIAMYlbMJ80EoP6n1v640LO95B
-Cuh6w5JTdOEGBB/zgYfZK6E5UXUlUylAsIp51tsPTUjvzevVdgg0lsecWQdvipy2
-Y8tEVYxLNEzZJSOUwM7ZOeV5iPYOMKmyUnZi83bim5dw34FP36mtOafwhw+oJ862
-18FgQIh/k0HbGCZVVcT00T26m0TUyEPRuRALexkv8S3+c+AVDRMXb4ocF6MBSAP5
-T4HGERmFc5kPXrYHto04XwhJD76frcZ8+rSyHfYS2Ww6JX4lFA7JWgiQzdUuJR/w
-5JxKOLE1hUrjMZBmyxmmxhI5Y0zTOcMkGWaj5yY0/0a8IBO3mKCtOdMhfRoKHig=
-=bm/r
+iQIcBAABAgAGBQJTtmBcAAoJECZQPTSbOzNL5ysP/1TOj7MdQ27++7joMwKTDz+G
+UjAIOTu/FnPtbae/sHBYxoefqg+HBMQ99TtvItcxYagko8nadQarWMp1nRXgcUsh
+yZOikE/tjqwXCfH7QKv0zfUcNFSU9D0KEEiycVT+RH3Y4KUcedKSw3rN58kZHUqQ
+oi5dSmKm7SQZtCn5/Bev7NKPqb2MeKgKG5JsUKxYtw31n6QulDyOh75BF/DIlyP1
+sLihGcwnSpMsq2eI7NTIuH/GpAyu7apG7k+ZMNPnt9USTquvWgcg4gBSrhkiZmab
+U99Rp+l2YZNzTaEiwdJ/4Oy8vfhu+FkSsDBByJiRKe1UpPEFF/dRBMVDDTyW0Ms5
+LAIowgoOcEim11K65Cy2m4qjfdMBojLOP7UWE4j6A7oxdFSFjBxRRKiavaFX7BtI
+22Rgn74qaD/sVl7Nuari5cf7WA61svwYXrqnEcdp9WihJtEm3Kh8QGCn+cs+/b0Y
+09hQq5Npnfbwmno7SEqYnjdAtiMtWmkO6tpm+GYd8E4WbTcP4jBTIKqcnC9bA4uK
+wE7m0bcKrD9voVwVDOqxjAs+P1LN9+5GUtheWaRRBaOuNDzFxJArIWnqUFSU61H/
+lMmu6cCz7oJjlHTyrENmFlHe3pA+8v1inWcLrQgMieWFhbpFh0px/kJtLSl4HMY0
+LV1iU3ZiWh/tZIOJ0Koz
+=o+yc
 -----END PGP SIGNATURE-----
 
---=-wsNpBeT4aHO9fG9S5rkT--
+--nextPart1912611.6QqbcFGFUF--
 
 
---===============1993307471==
+--===============5817870168037435648==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 _______________________________________________
-Intel-gfx mailing list
-Intel-gfx@lists.freedesktop.org
-http://lists.freedesktop.org/mailman/listinfo/intel-gfx
+devel mailing list
+devel@linuxdriverproject.org
+http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
 
---===============1993307471==--
+--===============5817870168037435648==--
