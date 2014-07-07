@@ -1,113 +1,152 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] drm/i915/opregion: ignore firmware requests for backlight change
-Date: Mon, 07 Jul 2014 14:51:18 +0200
-Message-ID: <200703196.0AouFjfuqr@vostro.rjw.lan>
-References: <53A8E400.5060709@intel.com> <87tx796yc5.fsf@intel.com> <53BA4FB7.5050701@intel.com>
+Subject: Re: [PATCH] PNPACPI: do ACPI binding directly
+Date: Mon, 07 Jul 2014 14:53:39 +0200
+Message-ID: <1492737.4hRQRGaxEv@vostro.rjw.lan>
+References: <1404305689.8366.90.camel@rzhang1-toshiba>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51010 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:57967 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752928AbaGGMdP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2014 08:33:15 -0400
-In-Reply-To: <53BA4FB7.5050701@intel.com>
+	with SMTP id S1753189AbaGGMfg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2014 08:35:36 -0400
+In-Reply-To: <1404305689.8366.90.camel@rzhang1-toshiba>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Anton Gubarkov <anton.gubarkov@gmail.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Prigent, Christophe" <christophe.prigent@intel.com>
 
-On Monday, July 07, 2014 03:43:51 PM Aaron Lu wrote:
-> Some Thinkpad laptops' firmware will initiate a backlight level change
-> request through operation region on the events of AC plug/unplug, but
-> since we are not using firmware's interface to do the backlight setting
-> on these affected laptops, we do not want the firmware to use some
-> arbitrary value from its ASL variable to set the backlight level on
-> AC plug/unplug either.
+On Wednesday, July 02, 2014 08:54:49 PM Zhang Rui wrote:
+> From 7daac7fc7cd7b605ccd84f10fc206cedf6170e89 Mon Sep 17 00:00:00 2001
+> From: Zhang Rui <rui.zhang@intel.com>
+> Date: Fri, 20 Jun 2014 10:14:07 +0800
+> Subject: [PATCH] PNPACPI: do ACPI binding directly
 > 
-> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=76491
-> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=77091
-> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-> Reported-and-tested-by: Anton Gubarkov <anton.gubarkov@gmail.com>
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Acked-by: Jani Nikula <jani.nikula@intel.com>
+> PNPACPI uses acpi_bus_type to do ACPI binding for the PNPACPI devices.
+> 
+> This is overkill because PNPACPI code already knows which ACPI
+> device object to bind during PNPACPI device enumeration.
+> 
+> This patch removes acpi_pnp_bus and does the binding by invoking
+> acpi_bind_one() directly after device enumerated.
+> 
+> This also fixes a bug in the previous code that some PNPACPI devices failed
+> to be bound because
+> 1. the ACPI device _HID is not pnpid, e.g. "MSFT0001", but its _CID is,
+>    e.g. "PNP0303", thus ACPI _CID is used as the pnp device device id.
+> 2. device is bound only if the pnp device id matches the ACPI device _HID.
+> 
+> Tested-by: Prigent Christophe <christophe.prigent@intel.com>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
-I think we need this in 3.16, right?
-
-Is it also necessary in any -stable and if so, which one?
+Does this fix a regression?  If so, do we need it in 3.16?
 
 Rafael
 
 
 > ---
-> v2: add a debug message when ignoring opregion request as suggested by
->     Jani Nikula.
+>  drivers/acpi/internal.h    |  2 --
+>  drivers/pnp/pnpacpi/core.c | 41 +++--------------------------------------
+>  include/acpi/acpi_bus.h    |  2 ++
+>  3 files changed, 5 insertions(+), 40 deletions(-)
 > 
->  drivers/acpi/video.c                  | 3 ++-
->  drivers/gpu/drm/i915/intel_opregion.c | 9 +++++++++
->  include/acpi/video.h                  | 2 ++
->  3 files changed, 13 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index fb9ffe9adc64..cf99d6d2d491 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -241,13 +241,14 @@ static bool acpi_video_use_native_backlight(void)
->  		return use_native_backlight_dmi;
->  }
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 7de5b60..151f3e7 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -84,8 +84,6 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+>  			     int type, unsigned long long sta);
+>  void acpi_device_add_finalize(struct acpi_device *device);
+>  void acpi_free_pnp_ids(struct acpi_device_pnp *pnp);
+> -int acpi_bind_one(struct device *dev, struct acpi_device *adev);
+> -int acpi_unbind_one(struct device *dev);
+>  bool acpi_device_is_present(struct acpi_device *adev);
+>  bool acpi_device_is_battery(struct acpi_device *adev);
 >  
-> -static bool acpi_video_verify_backlight_support(void)
-> +bool acpi_video_verify_backlight_support(void)
->  {
->  	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
->  	    backlight_device_registered(BACKLIGHT_RAW))
->  		return false;
->  	return acpi_video_backlight_support();
->  }
-> +EXPORT_SYMBOL(acpi_video_verify_backlight_support);
+> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+> index b81448b..3bebeda 100644
+> --- a/drivers/pnp/pnpacpi/core.c
+> +++ b/drivers/pnp/pnpacpi/core.c
+> @@ -295,9 +295,11 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
+>  		return error;
+>  	}
 >  
->  /* backlight device sysfs support */
->  static int acpi_video_get_brightness(struct backlight_device *bd)
-> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
-> index 2e2c71fcc9ed..4f6b53998d79 100644
-> --- a/drivers/gpu/drm/i915/intel_opregion.c
-> +++ b/drivers/gpu/drm/i915/intel_opregion.c
-> @@ -403,6 +403,15 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
->  
->  	DRM_DEBUG_DRIVER("bclp = 0x%08x\n", bclp);
->  
-> +	/*
-> +	 * If the acpi_video interface is not supposed to be used, don't
-> +	 * bother processing backlight level change requests from firmware.
-> +	 */
-> +	if (!acpi_video_verify_backlight_support()) {
-> +		DRM_DEBUG_KMS("opregion backlight request ignored\n");
-> +		return 0;
-> +	}
+> +	error = acpi_bind_one(&dev->dev, device);
 > +
->  	if (!(bclp & ASLE_BCLP_VALID))
->  		return ASLC_BACKLIGHT_FAILED;
+>  	num++;
 >  
-> diff --git a/include/acpi/video.h b/include/acpi/video.h
-> index ea4c7bbded4d..92f8c4bffefb 100644
-> --- a/include/acpi/video.h
-> +++ b/include/acpi/video.h
-> @@ -22,6 +22,7 @@ extern void acpi_video_unregister(void);
->  extern void acpi_video_unregister_backlight(void);
->  extern int acpi_video_get_edid(struct acpi_device *device, int type,
->  			       int device_id, void **edid);
-> +extern bool acpi_video_verify_backlight_support(void);
->  #else
->  static inline int acpi_video_register(void) { return 0; }
->  static inline void acpi_video_unregister(void) { return; }
-> @@ -31,6 +32,7 @@ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
->  {
->  	return -ENODEV;
+> -	return 0;
+> +	return error;
 >  }
-> +static bool acpi_video_verify_backlight_support() { return false; }
->  #endif
 >  
->  #endif
+>  static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
+> @@ -313,41 +315,6 @@ static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
+>  	return AE_OK;
+>  }
+>  
+> -static int __init acpi_pnp_match(struct device *dev, void *_pnp)
+> -{
+> -	struct acpi_device *acpi = to_acpi_device(dev);
+> -	struct pnp_dev *pnp = _pnp;
+> -
+> -	/* true means it matched */
+> -	return !acpi->physical_node_count
+> -	    && compare_pnp_id(pnp->id, acpi_device_hid(acpi));
+> -}
+> -
+> -static struct acpi_device * __init acpi_pnp_find_companion(struct device *dev)
+> -{
+> -	dev = bus_find_device(&acpi_bus_type, NULL, to_pnp_dev(dev),
+> -			      acpi_pnp_match);
+> -	if (!dev)
+> -		return NULL;
+> -
+> -	put_device(dev);
+> -	return to_acpi_device(dev);
+> -}
+> -
+> -/* complete initialization of a PNPACPI device includes having
+> - * pnpdev->dev.archdata.acpi_handle point to its ACPI sibling.
+> - */
+> -static bool acpi_pnp_bus_match(struct device *dev)
+> -{
+> -	return dev->bus == &pnp_bus_type;
+> -}
+> -
+> -static struct acpi_bus_type __initdata acpi_pnp_bus = {
+> -	.name	     = "PNP",
+> -	.match	     = acpi_pnp_bus_match,
+> -	.find_companion = acpi_pnp_find_companion,
+> -};
+> -
+>  int pnpacpi_disabled __initdata;
+>  static int __init pnpacpi_init(void)
+>  {
+> @@ -357,10 +324,8 @@ static int __init pnpacpi_init(void)
+>  	}
+>  	printk(KERN_INFO "pnp: PnP ACPI init\n");
+>  	pnp_register_protocol(&pnpacpi_protocol);
+> -	register_acpi_bus_type(&acpi_pnp_bus);
+>  	acpi_get_devices(NULL, pnpacpi_add_device_handler, NULL, NULL);
+>  	printk(KERN_INFO "pnp: PnP ACPI: found %d devices\n", num);
+> -	unregister_acpi_bus_type(&acpi_pnp_bus);
+>  	pnp_platform_devices = 1;
+>  	return 0;
+>  }
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index b571458..4bcbb94 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -487,6 +487,8 @@ struct acpi_bus_type {
+>  };
+>  int register_acpi_bus_type(struct acpi_bus_type *);
+>  int unregister_acpi_bus_type(struct acpi_bus_type *);
+> +int acpi_bind_one(struct device *dev, struct acpi_device *adev);
+> +int acpi_unbind_one(struct device *dev);
+>  
+>  struct acpi_pci_root {
+>  	struct acpi_device * device;
 > 
 
 -- 
