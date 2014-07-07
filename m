@@ -1,163 +1,136 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] PNPACPI: do ACPI binding directly
-Date: Mon, 07 Jul 2014 22:27:26 +0800
-Message-ID: <1404743246.2291.55.camel@rzhang1-toshiba>
-References: <1404305689.8366.90.camel@rzhang1-toshiba>
-	 <1492737.4hRQRGaxEv@vostro.rjw.lan>
+Subject: Re: ACPI resource change triggers loss of serial ports
+Date: Mon, 07 Jul 2014 22:43:02 +0800
+Message-ID: <1404744182.2291.56.camel@rzhang1-toshiba>
+References: <20140619104130.GA11561@dm> <3285666.Y2zL3buWBl@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:51473 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:44155 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751661AbaGGO1c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2014 10:27:32 -0400
-In-Reply-To: <1492737.4hRQRGaxEv@vostro.rjw.lan>
+	id S1751243AbaGGOnR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2014 10:43:17 -0400
+In-Reply-To: <3285666.Y2zL3buWBl@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Prigent, Christophe" <christophe.prigent@intel.com>
+Cc: Andy Whitcroft <apw@canonical.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, 2014-07-07 at 14:53 +0200, Rafael J. Wysocki wrote:
-> On Wednesday, July 02, 2014 08:54:49 PM Zhang Rui wrote:
-> > From 7daac7fc7cd7b605ccd84f10fc206cedf6170e89 Mon Sep 17 00:00:00 2001
-> > From: Zhang Rui <rui.zhang@intel.com>
-> > Date: Fri, 20 Jun 2014 10:14:07 +0800
-> > Subject: [PATCH] PNPACPI: do ACPI binding directly
+On Mon, 2014-07-07 at 14:57 +0200, Rafael J. Wysocki wrote:
+> On Thursday, June 19, 2014 11:41:30 AM Andy Whitcroft wrote:
+> > The recently merged change (in v3.14-rc6) to ACPI resource detection
+> > (below) causes all zero length ACPI resources to be elided from the table:
 > > 
-> > PNPACPI uses acpi_bus_type to do ACPI binding for the PNPACPI devices.
+> >   commit b355cee88e3b1a193f0e9a81db810f6f83ad728b
+> >   Author: Zhang Rui <rui.zhang@intel.com>
+> >   Date:   Thu Feb 27 11:37:15 2014 +0800
 > > 
-> > This is overkill because PNPACPI code already knows which ACPI
-> > device object to bind during PNPACPI device enumeration.
+> >     ACPI / resources: ignore invalid ACPI device resources
 > > 
-> > This patch removes acpi_pnp_bus and does the binding by invoking
-> > acpi_bind_one() directly after device enumerated.
+> > This change has caused a regression in (at least) serial port detection
+> > for a number of machines (see LP#1313981 [1]).  These seem to represent
+> > their IO regions (presumably incorrectly) as a zero length region.
+> > Reverting the above commit restores these serial devices.
 > > 
-> > This also fixes a bug in the previous code that some PNPACPI devices failed
-> > to be bound because
-> > 1. the ACPI device _HID is not pnpid, e.g. "MSFT0001", but its _CID is,
-> >    e.g. "PNP0303", thus ACPI _CID is used as the pnp device device id.
-> > 2. device is bound only if the pnp device id matches the ACPI device _HID.
+> > For Zhang's case I wonder if this check could be tightened up to cover
+> > only the zero base, something like the (untested) patch below.
 > > 
-> > Tested-by: Prigent Christophe <christophe.prigent@intel.com>
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > -apw
+> > 
+> > [1] https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1313981
 > 
-> Does this fix a regression?
-
-Hmmm, no, the problem exists in all previous kernel versions IMO.
-
->   If so, do we need it in 3.16?
+> I'm going to queue up the patch below for 3.16.
 > 
-Not necessarily, but as this is a bug fix, so I think it is reasonable
-to be shipped in 3.16, right?
-
-thanks,
-rui
+> Rui, can you please have a look at this and let me know if there's
+> anything wrong with it?
+> 
 > Rafael
 > 
 > 
-> > ---
-> >  drivers/acpi/internal.h    |  2 --
-> >  drivers/pnp/pnpacpi/core.c | 41 +++--------------------------------------
-> >  include/acpi/acpi_bus.h    |  2 ++
-> >  3 files changed, 5 insertions(+), 40 deletions(-)
+> > From e5211c68278387ef65e483bcfedd5581a79ec783 Mon Sep 17 00:00:00 2001
+> > From: Andy Whitcroft <apw@canonical.com>
+> > Date: Thu, 19 Jun 2014 11:19:16 +0100
+> > Subject: [PATCH] ACPI / Resources: only reject zero length resources based at
+> >  address zero
 > > 
-> > diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> > index 7de5b60..151f3e7 100644
-> > --- a/drivers/acpi/internal.h
-> > +++ b/drivers/acpi/internal.h
-> > @@ -84,8 +84,6 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
-> >  			     int type, unsigned long long sta);
-> >  void acpi_device_add_finalize(struct acpi_device *device);
-> >  void acpi_free_pnp_ids(struct acpi_device_pnp *pnp);
-> > -int acpi_bind_one(struct device *dev, struct acpi_device *adev);
-> > -int acpi_unbind_one(struct device *dev);
-> >  bool acpi_device_is_present(struct acpi_device *adev);
-> >  bool acpi_device_is_battery(struct acpi_device *adev);
-> >  
-> > diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-> > index b81448b..3bebeda 100644
-> > --- a/drivers/pnp/pnpacpi/core.c
-> > +++ b/drivers/pnp/pnpacpi/core.c
-> > @@ -295,9 +295,11 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
-> >  		return error;
-> >  	}
-> >  
-> > +	error = acpi_bind_one(&dev->dev, device);
-> > +
-> >  	num++;
-> >  
-> > -	return 0;
-> > +	return error;
-> >  }
-> >  
-> >  static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
-> > @@ -313,41 +315,6 @@ static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
-> >  	return AE_OK;
-> >  }
-> >  
-> > -static int __init acpi_pnp_match(struct device *dev, void *_pnp)
-> > -{
-> > -	struct acpi_device *acpi = to_acpi_device(dev);
-> > -	struct pnp_dev *pnp = _pnp;
-> > -
-> > -	/* true means it matched */
-> > -	return !acpi->physical_node_count
-> > -	    && compare_pnp_id(pnp->id, acpi_device_hid(acpi));
-> > -}
-> > -
-> > -static struct acpi_device * __init acpi_pnp_find_companion(struct device *dev)
-> > -{
-> > -	dev = bus_find_device(&acpi_bus_type, NULL, to_pnp_dev(dev),
-> > -			      acpi_pnp_match);
-> > -	if (!dev)
-> > -		return NULL;
-> > -
-> > -	put_device(dev);
-> > -	return to_acpi_device(dev);
-> > -}
-> > -
-> > -/* complete initialization of a PNPACPI device includes having
-> > - * pnpdev->dev.archdata.acpi_handle point to its ACPI sibling.
-> > - */
-> > -static bool acpi_pnp_bus_match(struct device *dev)
-> > -{
-> > -	return dev->bus == &pnp_bus_type;
-> > -}
-> > -
-> > -static struct acpi_bus_type __initdata acpi_pnp_bus = {
-> > -	.name	     = "PNP",
-> > -	.match	     = acpi_pnp_bus_match,
-> > -	.find_companion = acpi_pnp_find_companion,
-> > -};
-> > -
-> >  int pnpacpi_disabled __initdata;
-> >  static int __init pnpacpi_init(void)
-> >  {
-> > @@ -357,10 +324,8 @@ static int __init pnpacpi_init(void)
-> >  	}
-> >  	printk(KERN_INFO "pnp: PnP ACPI init\n");
-> >  	pnp_register_protocol(&pnpacpi_protocol);
-> > -	register_acpi_bus_type(&acpi_pnp_bus);
-> >  	acpi_get_devices(NULL, pnpacpi_add_device_handler, NULL, NULL);
-> >  	printk(KERN_INFO "pnp: PnP ACPI: found %d devices\n", num);
-> > -	unregister_acpi_bus_type(&acpi_pnp_bus);
-> >  	pnp_platform_devices = 1;
-> >  	return 0;
-> >  }
-> > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> > index b571458..4bcbb94 100644
-> > --- a/include/acpi/acpi_bus.h
-> > +++ b/include/acpi/acpi_bus.h
-> > @@ -487,6 +487,8 @@ struct acpi_bus_type {
-> >  };
-> >  int register_acpi_bus_type(struct acpi_bus_type *);
-> >  int unregister_acpi_bus_type(struct acpi_bus_type *);
-> > +int acpi_bind_one(struct device *dev, struct acpi_device *adev);
-> > +int acpi_unbind_one(struct device *dev);
-> >  
-> >  struct acpi_pci_root {
-> >  	struct acpi_device * device;
+> > The recently merged change (in v3.14-rc6) to ACPI resource detection
+> > (below) causes all zero length ACPI resources to be elided from the
+> > table:
+> > 
+> >   commit b355cee88e3b1a193f0e9a81db810f6f83ad728b
+> >   Author: Zhang Rui <rui.zhang@intel.com>
+> >   Date:   Thu Feb 27 11:37:15 2014 +0800
+> > 
+> >     ACPI / resources: ignore invalid ACPI device resources
+> > 
+> > This change has caused a regression in (at least) serial port detection
+> > for a number of machines (see LP#1313981 [1]).  These seem to represent
+> > their IO regions (presumably incorrectly) as a zero length region.
+> > Reverting the above commit restores these serial devices.
+> > 
+> > Only elide zero length resources which lie at address 0.
+> > 
+> > Signed-off-by: Andy Whitcroft <apw@canonical.com>
+The patch looks okay to me.
+
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+
+thanks,
+rui
+> > ---
+> >  drivers/acpi/resource.c | 10 +++++-----
+> >  1 file changed, 5 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> > index 0bdacc5..2ba8f02 100644
+> > --- a/drivers/acpi/resource.c
+> > +++ b/drivers/acpi/resource.c
+> > @@ -77,7 +77,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+> >  	switch (ares->type) {
+> >  	case ACPI_RESOURCE_TYPE_MEMORY24:
+> >  		memory24 = &ares->data.memory24;
+> > -		if (!memory24->address_length)
+> > +		if (!memory24->minimum && !memory24->address_length)
+> >  			return false;
+> >  		acpi_dev_get_memresource(res, memory24->minimum,
+> >  					 memory24->address_length,
+> > @@ -85,7 +85,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+> >  		break;
+> >  	case ACPI_RESOURCE_TYPE_MEMORY32:
+> >  		memory32 = &ares->data.memory32;
+> > -		if (!memory32->address_length)
+> > +		if (!memory32->minimum && !memory32->address_length)
+> >  			return false;
+> >  		acpi_dev_get_memresource(res, memory32->minimum,
+> >  					 memory32->address_length,
+> > @@ -93,7 +93,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+> >  		break;
+> >  	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+> >  		fixed_memory32 = &ares->data.fixed_memory32;
+> > -		if (!fixed_memory32->address_length)
+> > +		if (!fixed_memory32->address && !fixed_memory32->address_length)
+> >  			return false;
+> >  		acpi_dev_get_memresource(res, fixed_memory32->address,
+> >  					 fixed_memory32->address_length,
+> > @@ -150,7 +150,7 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
+> >  	switch (ares->type) {
+> >  	case ACPI_RESOURCE_TYPE_IO:
+> >  		io = &ares->data.io;
+> > -		if (!io->address_length)
+> > +		if (!io->minimum && !io->address_length)
+> >  			return false;
+> >  		acpi_dev_get_ioresource(res, io->minimum,
+> >  					io->address_length,
+> > @@ -158,7 +158,7 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
+> >  		break;
+> >  	case ACPI_RESOURCE_TYPE_FIXED_IO:
+> >  		fixed_io = &ares->data.fixed_io;
+> > -		if (!fixed_io->address_length)
+> > +		if (!fixed_io->address && !fixed_io->address_length)
+> >  			return false;
+> >  		acpi_dev_get_ioresource(res, fixed_io->address,
+> >  					fixed_io->address_length,
 > > 
 > 
 
