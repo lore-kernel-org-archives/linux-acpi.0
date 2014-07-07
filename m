@@ -1,131 +1,116 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI resource change triggers loss of serial ports
-Date: Mon, 07 Jul 2014 14:57:20 +0200
-Message-ID: <3285666.Y2zL3buWBl@vostro.rjw.lan>
-References: <20140619104130.GA11561@dm>
+Subject: Re: [PATCH v2] drm/i915/opregion: ignore firmware
+	requests for backlight change
+Date: Mon, 07 Jul 2014 15:01:37 +0200
+Message-ID: <1750019.dMIypA0cmY@vostro.rjw.lan>
+References: <53A8E400.5060709@intel.com> <87tx796yc5.fsf@intel.com>
+ <53BA4FB7.5050701@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55703 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753201AbaGGMjQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2014 08:39:16 -0400
-In-Reply-To: <20140619104130.GA11561@dm>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <53BA4FB7.5050701@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Anton Gubarkov <anton.gubarkov@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Whitcroft <apw@canonical.com>, Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, June 19, 2014 11:41:30 AM Andy Whitcroft wrote:
-> The recently merged change (in v3.14-rc6) to ACPI resource detection
-> (below) causes all zero length ACPI resources to be elided from the table:
+On Monday, July 07, 2014 03:43:51 PM Aaron Lu wrote:
+> Some Thinkpad laptops' firmware will initiate a backlight level change
+> request through operation region on the events of AC plug/unplug, but
+> since we are not using firmware's interface to do the backlight setting
+> on these affected laptops, we do not want the firmware to use some
+> arbitrary value from its ASL variable to set the backlight level on
+> AC plug/unplug either.
 > 
->   commit b355cee88e3b1a193f0e9a81db810f6f83ad728b
->   Author: Zhang Rui <rui.zhang@intel.com>
->   Date:   Thu Feb 27 11:37:15 2014 +0800
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=76491
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=77091
+> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+> Reported-and-tested-by: Anton Gubarkov <anton.gubarkov@gmail.com>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> Acked-by: Jani Nikula <jani.nikula@intel.com>
+> ---
+> v2: add a debug message when ignoring opregion request as suggested by
+>     Jani Nikula.
 > 
->     ACPI / resources: ignore invalid ACPI device resources
+>  drivers/acpi/video.c                  | 3 ++-
+>  drivers/gpu/drm/i915/intel_opregion.c | 9 +++++++++
+>  include/acpi/video.h                  | 2 ++
+>  3 files changed, 13 insertions(+), 1 deletion(-)
 > 
-> This change has caused a regression in (at least) serial port detection
-> for a number of machines (see LP#1313981 [1]).  These seem to represent
-> their IO regions (presumably incorrectly) as a zero length region.
-> Reverting the above commit restores these serial devices.
-> 
-> For Zhang's case I wonder if this check could be tightened up to cover
-> only the zero base, something like the (untested) patch below.
-> 
-> -apw
-> 
-> [1] https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1313981
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index fb9ffe9adc64..cf99d6d2d491 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -241,13 +241,14 @@ static bool acpi_video_use_native_backlight(void)
+>  		return use_native_backlight_dmi;
+>  }
+>  
+> -static bool acpi_video_verify_backlight_support(void)
+> +bool acpi_video_verify_backlight_support(void)
+>  {
+>  	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
+>  	    backlight_device_registered(BACKLIGHT_RAW))
+>  		return false;
+>  	return acpi_video_backlight_support();
+>  }
+> +EXPORT_SYMBOL(acpi_video_verify_backlight_support);
 
-I'm going to queue up the patch below for 3.16.
+Is there any reason for this not to be EXPORT_SYMBOL_GPL()?
 
-Rui, can you please have a look at this and let me know if there's
-anything wrong with it?
+>  /* backlight device sysfs support */
+>  static int acpi_video_get_brightness(struct backlight_device *bd)
+> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+> index 2e2c71fcc9ed..4f6b53998d79 100644
+> --- a/drivers/gpu/drm/i915/intel_opregion.c
+> +++ b/drivers/gpu/drm/i915/intel_opregion.c
+> @@ -403,6 +403,15 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
+>  
+>  	DRM_DEBUG_DRIVER("bclp = 0x%08x\n", bclp);
+>  
+> +	/*
+> +	 * If the acpi_video interface is not supposed to be used, don't
+> +	 * bother processing backlight level change requests from firmware.
+> +	 */
+> +	if (!acpi_video_verify_backlight_support()) {
+> +		DRM_DEBUG_KMS("opregion backlight request ignored\n");
+> +		return 0;
+> +	}
+> +
+>  	if (!(bclp & ASLE_BCLP_VALID))
+>  		return ASLC_BACKLIGHT_FAILED;
+>  
+> diff --git a/include/acpi/video.h b/include/acpi/video.h
+> index ea4c7bbded4d..92f8c4bffefb 100644
+> --- a/include/acpi/video.h
+> +++ b/include/acpi/video.h
+> @@ -22,6 +22,7 @@ extern void acpi_video_unregister(void);
+>  extern void acpi_video_unregister_backlight(void);
+>  extern int acpi_video_get_edid(struct acpi_device *device, int type,
+>  			       int device_id, void **edid);
+> +extern bool acpi_video_verify_backlight_support(void);
+>  #else
+>  static inline int acpi_video_register(void) { return 0; }
+>  static inline void acpi_video_unregister(void) { return; }
+> @@ -31,6 +32,7 @@ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+>  {
+>  	return -ENODEV;
+>  }
+> +static bool acpi_video_verify_backlight_support() { return false; }
+
+And for this not to be static inline?
+
+>  #endif
+>  
+>  #endif
+> 
 
 Rafael
-
-
-> From e5211c68278387ef65e483bcfedd5581a79ec783 Mon Sep 17 00:00:00 2001
-> From: Andy Whitcroft <apw@canonical.com>
-> Date: Thu, 19 Jun 2014 11:19:16 +0100
-> Subject: [PATCH] ACPI / Resources: only reject zero length resources based at
->  address zero
-> 
-> The recently merged change (in v3.14-rc6) to ACPI resource detection
-> (below) causes all zero length ACPI resources to be elided from the
-> table:
-> 
->   commit b355cee88e3b1a193f0e9a81db810f6f83ad728b
->   Author: Zhang Rui <rui.zhang@intel.com>
->   Date:   Thu Feb 27 11:37:15 2014 +0800
-> 
->     ACPI / resources: ignore invalid ACPI device resources
-> 
-> This change has caused a regression in (at least) serial port detection
-> for a number of machines (see LP#1313981 [1]).  These seem to represent
-> their IO regions (presumably incorrectly) as a zero length region.
-> Reverting the above commit restores these serial devices.
-> 
-> Only elide zero length resources which lie at address 0.
-> 
-> Signed-off-by: Andy Whitcroft <apw@canonical.com>
-> ---
->  drivers/acpi/resource.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 0bdacc5..2ba8f02 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -77,7 +77,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
->  	switch (ares->type) {
->  	case ACPI_RESOURCE_TYPE_MEMORY24:
->  		memory24 = &ares->data.memory24;
-> -		if (!memory24->address_length)
-> +		if (!memory24->minimum && !memory24->address_length)
->  			return false;
->  		acpi_dev_get_memresource(res, memory24->minimum,
->  					 memory24->address_length,
-> @@ -85,7 +85,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
->  		break;
->  	case ACPI_RESOURCE_TYPE_MEMORY32:
->  		memory32 = &ares->data.memory32;
-> -		if (!memory32->address_length)
-> +		if (!memory32->minimum && !memory32->address_length)
->  			return false;
->  		acpi_dev_get_memresource(res, memory32->minimum,
->  					 memory32->address_length,
-> @@ -93,7 +93,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
->  		break;
->  	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
->  		fixed_memory32 = &ares->data.fixed_memory32;
-> -		if (!fixed_memory32->address_length)
-> +		if (!fixed_memory32->address && !fixed_memory32->address_length)
->  			return false;
->  		acpi_dev_get_memresource(res, fixed_memory32->address,
->  					 fixed_memory32->address_length,
-> @@ -150,7 +150,7 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
->  	switch (ares->type) {
->  	case ACPI_RESOURCE_TYPE_IO:
->  		io = &ares->data.io;
-> -		if (!io->address_length)
-> +		if (!io->minimum && !io->address_length)
->  			return false;
->  		acpi_dev_get_ioresource(res, io->minimum,
->  					io->address_length,
-> @@ -158,7 +158,7 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
->  		break;
->  	case ACPI_RESOURCE_TYPE_FIXED_IO:
->  		fixed_io = &ares->data.fixed_io;
-> -		if (!fixed_io->address_length)
-> +		if (!fixed_io->address && !fixed_io->address_length)
->  			return false;
->  		acpi_dev_get_ioresource(res, fixed_io->address,
->  					fixed_io->address_length,
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
