@@ -1,91 +1,35 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH V3] ACPI/Battery: Retry to get Battery information if failed during probing
-Date: Mon,  7 Jul 2014 15:47:12 +0800
-Message-ID: <1404719232-17911-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:41804 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750855AbaGGHtP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2014 03:49:15 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [UPDATE PATCH v2 0/6] ACPI/EC: Critical race fixes.
+Date: Mon, 07 Jul 2014 13:18:04 +0200
+Message-ID: <39044838.0k25m70bcR@vostro.rjw.lan>
+References: <cover.1402792240.git.lv.zheng@intel.com> <cover.1404700569.git.lv.zheng@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1404700569.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, rientjes@google.com, naszar@ya.ru
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 
-Some machines'(E,G Lenovo Z480) ECs are not stable during boot up
-and causes battery driver fails to be loaded due to failure of getting
-battery information from EC sometimes. After several retries, the
-operation will work. This patch is to retry to get battery information 5
-times if the first try fails.
+On Monday, July 07, 2014 11:09:49 AM Lv Zheng wrote:
+> History:
+> v1:
+>  The collection of bug-fixes from kernel bugzilla bug 70891.
+> v2:
+>  1. Improves the patch descriptions to make the root cause of the 70891 bug
+>     more correct.
+>  2. Improves a race fix to make it more robust.
+> v2 UPDATE:
+>  Added "Reported-by" and "Tested-by" from kernel bugzilla bug 59911/63931
+>  as a result of EC bug triage. Only patch descriptions are updated.
 
-Reported-and-tested-by: naszar <naszar@ya.ru>
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=75581
-Cc: stable@vger.kernel.org
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
-Change since V1:
-	Change code style and add a comment.
+OK, I've updated the commits in my tree in accordance with this.
 
-Change since V2:
-	Change code style.
+>  Removed the GPE fix, it is included by another GPE API fix series.
 
- drivers/acpi/battery.c | 27 ++++++++++++++++++++++++++-
- 1 file changed, 26 insertions(+), 1 deletion(-)
+I've applied it separately already, so please don't resend it.
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index e48fc98..cee5ee8 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -34,6 +34,7 @@
- #include <linux/dmi.h>
- #include <linux/slab.h>
- #include <linux/suspend.h>
-+#include <linux/delay.h>
- #include <asm/unaligned.h>
- 
- #ifdef CONFIG_ACPI_PROCFS_POWER
-@@ -1117,6 +1118,28 @@ static struct dmi_system_id bat_dmi_table[] = {
- 	{},
- };
- 
-+/*
-+ * Some machines'(E,G Lenovo Z480) ECs are not stable
-+ * during boot up and this causes battery driver fails to be
-+ * probed due to failure of getting battery information
-+ * from EC sometimes. After several retries, the operation
-+ * may work. So add retry code here and 20ms sleep between
-+ * every retries.
-+ */
-+static int acpi_battery_update_retry(struct acpi_battery *battery)
-+{
-+	int retry, ret;
-+
-+	for (retry = 5; retry; retry--) {
-+		ret = acpi_battery_update(battery, false);
-+		if (!ret)
-+			break;
-+
-+		msleep(20);
-+	}
-+	return ret;
-+}
-+
- static int acpi_battery_add(struct acpi_device *device)
- {
- 	int result = 0;
-@@ -1135,9 +1158,11 @@ static int acpi_battery_add(struct acpi_device *device)
- 	mutex_init(&battery->sysfs_lock);
- 	if (acpi_has_method(battery->device->handle, "_BIX"))
- 		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
--	result = acpi_battery_update(battery, false);
-+
-+	result = acpi_battery_update_retry(battery);
- 	if (result)
- 		goto fail;
-+
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	result = acpi_battery_add_fs(device);
- #endif
--- 
-1.8.4.rc0.1.g8f6a3e5.dirty
-
+Thanks,
+Rafael
