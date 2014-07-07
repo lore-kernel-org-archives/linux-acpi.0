@@ -1,50 +1,56 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 6/7] ACPI: Cleanup useless ACPI inclusion.
-Date: Mon, 07 Jul 2014 23:24:11 +0200
-Message-ID: <2868763.c5IhTlySqm@vostro.rjw.lan>
-References: <cover.1387336613.git.lv.zheng@intel.com> <cover.1404706298.git.lv.zheng@intel.com> <cf869ff5e75e0973b065c3d3fe2fa453abcd5c97.1404706299.git.lv.zheng@intel.com>
+Subject: Re: [PATCH v2 5/7] ACPI/SFI: Fix wrong <acpi/acpi.h> inclusion in SFI/ACPI wrapper - table definitions.
+Date: Mon, 07 Jul 2014 23:25:20 +0200
+Message-ID: <6888009.veyX2bKRlF@vostro.rjw.lan>
+References: <cover.1387336613.git.lv.zheng@intel.com> <cover.1404706298.git.lv.zheng@intel.com> <aebcb30aa6db54f92fcdf55f94462da15121886d.1404706299.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50290 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:59289 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750929AbaGGVGH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2014 17:06:07 -0400
-In-Reply-To: <cf869ff5e75e0973b065c3d3fe2fa453abcd5c97.1404706299.git.lv.zheng@intel.com>
+	with SMTP id S1751345AbaGGVHQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2014 17:07:16 -0400
+In-Reply-To: <aebcb30aa6db54f92fcdf55f94462da15121886d.1404706299.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, sfi-devel@simplefirmware.org
 
-On Monday, July 07, 2014 12:17:40 PM Lv Zheng wrote:
-> The sst-haswell-dsp.c is an ACPI independent file, this patch removes
-> ACPI header files for it.
+On Monday, July 07, 2014 12:17:28 PM Lv Zheng wrote:
+> This patch removes <acpi/acpi.h> inclusions from <linux/sfi_acpi.h> as
+> <linux/acpi.h> has already included it for CONFIG_ACPI=n builds.
 
-This appears to be independent of the rest of the series.  Is that correct?
+So are patches [1-4/5] only needed to fix this particular issue?
 
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: sfi-devel@simplefirmware.org
 > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Cc: Liam Girdwood <lgirdwood@gmail.com>
-> Cc: Mark Brown <broonie@kernel.org>
-> Cc: alsa-devel@alsa-project.org
 > ---
->  sound/soc/intel/sst-haswell-dsp.c |    3 ---
+>  include/linux/sfi_acpi.h |    3 ---
 >  1 file changed, 3 deletions(-)
 > 
-> diff --git a/sound/soc/intel/sst-haswell-dsp.c b/sound/soc/intel/sst-haswell-dsp.c
-> index 535f517..ecc5057 100644
-> --- a/sound/soc/intel/sst-haswell-dsp.c
-> +++ b/sound/soc/intel/sst-haswell-dsp.c
-> @@ -28,9 +28,6 @@
->  #include <linux/firmware.h>
->  #include <linux/pm_runtime.h>
+> diff --git a/include/linux/sfi_acpi.h b/include/linux/sfi_acpi.h
+> index 4723bbf..a6e555c 100644
+> --- a/include/linux/sfi_acpi.h
+> +++ b/include/linux/sfi_acpi.h
+> @@ -63,8 +63,6 @@
+>  #include <linux/sfi.h>
 >  
-> -#include <linux/acpi.h>
-> -#include <acpi/acpi_bus.h>
+>  #ifdef CONFIG_SFI
+> -#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
 > -
->  #include "sst-dsp.h"
->  #include "sst-dsp-priv.h"
->  #include "sst-haswell-ipc.h"
+>  extern int sfi_acpi_table_parse(char *signature, char *oem_id,
+>  				char *oem_table_id,
+>  				int (*handler)(struct acpi_table_header *));
+> @@ -78,7 +76,6 @@ static inline int __init acpi_sfi_table_parse(char *signature,
+>  	return sfi_acpi_table_parse(signature, NULL, NULL, handler);
+>  }
+>  #else /* !CONFIG_SFI */
+> -
+>  static inline int sfi_acpi_table_parse(char *signature, char *oem_id,
+>  				char *oem_table_id,
+>  				int (*handler)(struct acpi_table_header *))
 > 
 
 -- 
