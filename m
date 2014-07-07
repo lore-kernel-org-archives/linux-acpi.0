@@ -1,50 +1,50 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 4/4] ACPI: Make EC debugfs depend on X86 || IA64 in Kconfig
-Date: Mon, 07 Jul 2014 23:16:11 +0200
-Message-ID: <200683000.sgUJl2AyWR@vostro.rjw.lan>
-References: <1404290847-7671-1-git-send-email-hanjun.guo@linaro.org> <1404290847-7671-5-git-send-email-hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2 6/7] ACPI: Cleanup useless ACPI inclusion.
+Date: Mon, 07 Jul 2014 23:24:11 +0200
+Message-ID: <2868763.c5IhTlySqm@vostro.rjw.lan>
+References: <cover.1387336613.git.lv.zheng@intel.com> <cover.1404706298.git.lv.zheng@intel.com> <cf869ff5e75e0973b065c3d3fe2fa453abcd5c97.1404706299.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62209 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:50290 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750809AbaGGU6H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2014 16:58:07 -0400
-In-Reply-To: <1404290847-7671-5-git-send-email-hanjun.guo@linaro.org>
+	with SMTP id S1750929AbaGGVGH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2014 17:06:07 -0400
+In-Reply-To: <cf869ff5e75e0973b065c3d3fe2fa453abcd5c97.1404706299.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Tony Luck <tony.luck@intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org
 
-On Wednesday, July 02, 2014 04:47:26 PM Hanjun Guo wrote:
-> Since EC (Embedded controller) needs SCI for the interupt which
-> is not available on ARM64, make the EC debugfs depend on X86 || IA64
-> only in the Kconfig file.
-> 
-> Reviewed-by: Grant Likely <grant.likely@linaro.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+On Monday, July 07, 2014 12:17:40 PM Lv Zheng wrote:
+> The sst-haswell-dsp.c is an ACPI independent file, this patch removes
+> ACPI header files for it.
+
+This appears to be independent of the rest of the series.  Is that correct?
+
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Cc: Liam Girdwood <lgirdwood@gmail.com>
+> Cc: Mark Brown <broonie@kernel.org>
+> Cc: alsa-devel@alsa-project.org
 > ---
->  drivers/acpi/Kconfig |    1 +
->  1 file changed, 1 insertion(+)
+>  sound/soc/intel/sst-haswell-dsp.c |    3 ---
+>  1 file changed, 3 deletions(-)
 > 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 0e6f72d..7de5e3f 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -69,6 +69,7 @@ config ACPI_PROCFS_POWER
+> diff --git a/sound/soc/intel/sst-haswell-dsp.c b/sound/soc/intel/sst-haswell-dsp.c
+> index 535f517..ecc5057 100644
+> --- a/sound/soc/intel/sst-haswell-dsp.c
+> +++ b/sound/soc/intel/sst-haswell-dsp.c
+> @@ -28,9 +28,6 @@
+>  #include <linux/firmware.h>
+>  #include <linux/pm_runtime.h>
 >  
->  config ACPI_EC_DEBUGFS
->  	tristate "EC read/write access through /sys/kernel/debug/ec"
-> +	depends on X86 || IA64
-
-This is totally inconsistent with the other patches in the series where you
-define per-arch symbols for similar things.  In addition to that, do we need
-to build ec.c on ARM at all?
-
->  	default n
->  	help
->  	  Say N to disable Embedded Controller /sys/kernel/debug interface
+> -#include <linux/acpi.h>
+> -#include <acpi/acpi_bus.h>
+> -
+>  #include "sst-dsp.h"
+>  #include "sst-dsp-priv.h"
+>  #include "sst-haswell-ipc.h"
 > 
 
 -- 
