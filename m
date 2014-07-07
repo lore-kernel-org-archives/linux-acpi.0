@@ -1,53 +1,80 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi/osl: clear high bits in acpi_os_read_memory value
-Date: Mon, 07 Jul 2014 22:15:16 +0200
-Message-ID: <1837641.CC4MadLaAx@vostro.rjw.lan>
-References: <1404761933-27300-1-git-send-email-paul.gortmaker@windriver.com>
+Subject: Re: [PATCH] ACPI / EC: Free saved_ec on error exit path
+Date: Mon, 07 Jul 2014 23:00:29 +0200
+Message-ID: <1409471.TCjFK6RGzy@vostro.rjw.lan>
+References: <1404344109-30805-1-git-send-email-colin.king@canonical.com> <CAOLK0pxQ=iBXLDLQ8hGkeF0oLHHSs+qTa93ixqWhUh2COq-MqQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58239 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:53960 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751307AbaGGT5L (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2014 15:57:11 -0400
-In-Reply-To: <1404761933-27300-1-git-send-email-paul.gortmaker@windriver.com>
+	with SMTP id S1751247AbaGGUmZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2014 16:42:25 -0400
+In-Reply-To: <CAOLK0pxQ=iBXLDLQ8hGkeF0oLHHSs+qTa93ixqWhUh2COq-MqQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
+To: Lan Tianyu <lantianyu1986@gmail.com>
+Cc: Colin King <colin.king@canonical.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>
 
-On Monday, July 07, 2014 03:38:53 PM Paul Gortmaker wrote:
-> If one looks at acpi_os_read_port() it is very similar to the
-> acpi_os_read_memory() aside from the underlying I/O method.
-> However we zero out the u32 in the former and not in the latter,
-> when it seems prudent to do so in both.
+On Friday, July 04, 2014 10:15:52 AM Lan Tianyu wrote:
+> 2014-07-03 7:35 GMT+08:00 Colin King <colin.king@canonical.com>:
+> > From: Colin Ian King <colin.king@canonical.com>
+> >
+> > Smatch detected two memory leaks on saved_ec:
+> >
+> > drivers/acpi/ec.c:1070 acpi_ec_ecdt_probe() warn: possible
+> >   memory leak of 'saved_ec'
+> > drivers/acpi/ec.c:1109 acpi_ec_ecdt_probe() warn: possible
+> >   memory leak of 'saved_ec'
+> >
+> > Free saved_ec on these two error exit paths to stop the memory
+> > leak.  Note that saved_ec maybe null, but kfree on null is allowed.
+> >
 > 
-> This was found by quasi-random code inspection, and as such there
-> is no known symptom or bug to associate with possibly having stale
-> data in the high bits of "value".
+> Acked-by: Lan Tianyu <tianyu.lan@intel.com>
 
-I'm actually afraid that this may lead to regressions, because the caller's
-intention may be to leave the higher bits untouched.  So I'd think some audit
-of the existing callers would be necessary before making this change.
+Queued up for 3.16, thanks!
 
-> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-> ---
->  drivers/acpi/osl.c | 1 +
->  1 file changed, 1 insertion(+)
+> > Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> > ---
+> >  drivers/acpi/ec.c | 5 ++++-
+> >  1 file changed, 4 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> > index ad11ba4..9800f50 100644
+> > --- a/drivers/acpi/ec.c
+> > +++ b/drivers/acpi/ec.c
+> > @@ -1066,8 +1066,10 @@ int __init acpi_ec_ecdt_probe(void)
+> >         /* fall through */
+> >         }
+> >
+> > -       if (EC_FLAGS_SKIP_DSDT_SCAN)
+> > +       if (EC_FLAGS_SKIP_DSDT_SCAN) {
+> > +               kfree(saved_ec);
+> >                 return -ENODEV;
+> > +       }
+> >
+> >         /* This workaround is needed only on some broken machines,
+> >          * which require early EC, but fail to provide ECDT */
+> > @@ -1105,6 +1107,7 @@ install:
+> >         }
+> >  error:
+> >         kfree(boot_ec);
+> > +       kfree(saved_ec);
+> >         boot_ec = NULL;
+> >         return -ENODEV;
+> >  }
+> > --
+> > 2.0.1
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index bad25b070fe0..a7373f1f31c8 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -953,6 +953,7 @@ acpi_os_read_memory(acpi_physical_address phys_addr, u64 *value, u32 width)
->  	if (!value)
->  		value = &dummy;
->  
-> +	*value = 0;
->  	switch (width) {
->  	case 8:
->  		*(u8 *) value = readb(virt_addr);
+> 
+> 
 > 
 
 -- 
