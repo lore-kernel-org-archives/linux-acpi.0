@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 2/7] ACPICA: Linux: Add stub implementation of ACPICA 64-bit mathematics.
-Date: Mon,  7 Jul 2014 12:17:08 +0800
-Message-ID: <2c589d7e1cfcb1abfdca27ba2e183f86548d9287.1404706299.git.lv.zheng@intel.com>
+Subject: [PATCH v2 1/7] ACPICA: Linux: Add stub support for Linux specific variables and functions.
+Date: Mon,  7 Jul 2014 12:17:02 +0800
+Message-ID: <7e45b9fcad00a32dfa7c9ef66d7e53097c96158e.1404706298.git.lv.zheng@intel.com>
 References: <cover.1387336613.git.lv.zheng@intel.com> <cover.1404706298.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1404706298.git.lv.zheng@intel.com>
@@ -10,57 +10,78 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds default 64-bit mathematics in aclinux.h using do_div(). As
-do_div() can be used for all Linux architectures, this can also be used as
-stub macros for ACPICA 64-bit mathematics.
-
-But this is not a performance friendly way, as ACPICA's architecture
-specific division OSL only requires a dividing 64-bit number with a 32-bit
-number implementation, while Linux __div64_32() is not available for all
-build environments. So currently, if an architecture really wants to
-support ACPICA, it must implement its own division OSL.
-
-This is required by the ACPICA header stub support. ACPICA header stubs are
-useful to protect CONFIG_ACPI=n Linux kernel builds where ACPICA headers
-are included. Lv Zheng.
+There are global variables and functions not upstreamed to the ACPICA code
+base.  Such symbols still can be referenced by external users as they are
+listed in the acpixf.h.  This patch uses ACPI_GLOBAL and
+ACPI_EXTERNAL_RETURN_STATUS mechanism to add stub support for such symbols.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/platform/aclinuxex.h |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/acpi/bus.c    |    3 ---
+ include/acpi/acpixf.h |   28 +++++++++++++++++-----------
+ 2 files changed, 17 insertions(+), 14 deletions(-)
 
-diff --git a/include/acpi/platform/aclinuxex.h b/include/acpi/platform/aclinuxex.h
-index 191e741..568d4b8 100644
---- a/include/acpi/platform/aclinuxex.h
-+++ b/include/acpi/platform/aclinuxex.h
-@@ -46,6 +46,28 @@
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index c5bc8cf..8581f5b 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -477,9 +477,6 @@ static int __init acpi_bus_init_irq(void)
+ 	return 0;
+ }
  
- #ifdef __KERNEL__
+-u8 acpi_gbl_permanent_mmap;
+-
+-
+ void __init acpi_early_init(void)
+ {
+ 	acpi_status status;
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 35b525c..bdbb145 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -53,8 +53,6 @@
+ #include <acpi/actbl.h>
+ #include <acpi/acbuffer.h>
  
-+#ifndef ACPI_USE_NATIVE_DIVIDE
-+
-+#ifndef ACPI_DIV_64_BY_32
-+#define ACPI_DIV_64_BY_32(n_hi, n_lo, d32, q32, r32) \
-+	do { \
-+		u64 (__n) = ((u64) n_hi) << 32 | (n_lo); \
-+		(r32) = do_div ((__n), (d32)); \
-+		(q32) = (u32) (__n); \
-+	} while (0)
-+#endif
-+
-+#ifndef ACPI_SHIFT_RIGHT_64
-+#define ACPI_SHIFT_RIGHT_64(n_hi, n_lo) \
-+	do { \
-+		(n_lo) >>= 1; \
-+		(n_lo) |= (((n_hi) & 1) << 31); \
-+		(n_hi) >>= 1; \
-+	} while (0)
-+#endif
-+
-+#endif
-+
+-extern u8 acpi_gbl_permanent_mmap;
+-
+ /*****************************************************************************
+  *
+  * Macros used for ACPICA globals and configuration
+@@ -865,17 +863,25 @@ ACPI_DBG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(6)
  /*
-  * Overrides for in-kernel ACPICA
+  * Divergences
   */
+-acpi_status acpi_get_id(acpi_handle object, acpi_owner_id * out_type);
++ACPI_GLOBAL(u8, acpi_gbl_permanent_mmap);
++
++ACPI_EXTERNAL_RETURN_STATUS(acpi_status
++			    acpi_get_id(acpi_handle object,
++					acpi_owner_id * out_type))
+ 
+-acpi_status acpi_unload_table_id(acpi_owner_id id);
++ACPI_EXTERNAL_RETURN_STATUS(acpi_status acpi_unload_table_id(acpi_owner_id id))
+ 
+-acpi_status
+-acpi_get_table_with_size(acpi_string signature,
+-	       u32 instance, struct acpi_table_header **out_table,
+-	       acpi_size *tbl_size);
++ACPI_EXTERNAL_RETURN_STATUS(acpi_status
++			    acpi_get_table_with_size(acpi_string signature,
++						     u32 instance,
++						     struct acpi_table_header
++						     **out_table,
++						     acpi_size *tbl_size))
+ 
+-acpi_status
+-acpi_get_data_full(acpi_handle object, acpi_object_handler handler, void **data,
+-		   void (*callback)(void *));
++ACPI_EXTERNAL_RETURN_STATUS(acpi_status
++			    acpi_get_data_full(acpi_handle object,
++					       acpi_object_handler handler,
++					       void **data,
++					       void (*callback)(void *)))
+ 
+ #endif				/* __ACXFACE_H__ */
 -- 
 1.7.10
