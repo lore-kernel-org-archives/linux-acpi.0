@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [UPDATE PATCH v2 6/6] ACPI/EC: Add detailed fields debugging support of EC_SC(R).
-Date: Mon,  7 Jul 2014 11:10:35 +0800
-Message-ID: <905b534e43bc72c2f15a699fd93d8e64144680ab.1404700569.git.lv.zheng@intel.com>
+Subject: [UPDATE PATCH v2 3/6] ACPI/EC: Remove duplicated ec_wait_ibf0() waiter.
+Date: Mon,  7 Jul 2014 11:10:14 +0800
+Message-ID: <990b245309ac9a4465c67d68e081c3881b577212.1404700569.git.lv.zheng@intel.com>
 References: <cover.1402792240.git.lv.zheng@intel.com> <cover.1404700569.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1404700569.git.lv.zheng@intel.com>
@@ -10,67 +10,91 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Developers really don't need to translate EC_SC(R) in mind as long as the
-field details are decoded in the debugging message.
+After we've added the first command byte write into advance_transaction(),
+the IBF=0 waiter is duplicated with the command completion waiter
+implemented in the ec_poll() because:
+   If IBF=1 blocked the first command byte write invoked in the task
+   context ec_poll(), it would be kicked off upon IBF=0 interrupt or timed
+   out and retried again in the task context.
+This patch removes this seperate and duplicate IBF=0 waiter, by doing so,
+we can reduce the overall number of times to access the EC_SC(R) status
+register.
 
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=70891
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=63931
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=59911
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Tested-by: Gareth Williams <gareth@garethwilliams.me.uk>
-Tested-by: Hans de Goede <jwrdegoede@fedoraproject.org>
-Tested-by: Steffen Weber <steffen.weber@gmail.com>
+Reported-and-tested-by: Gareth Williams <gareth@garethwilliams.me.uk>
+Reported-and-tested-by: Hans de Goede <jwrdegoede@fedoraproject.org>
+Reported-by: Barton Xu <tank.xuhan@gmail.com>
 Tested-by: Arthur Chen <axchen@nvidia.com>
+Tested-by: Steffen Weber <steffen.weber@gmail.com>
+[zetalog: first affected by:]
+Cc: <stable@vger.kernel.org> # 2.6.11: 7c6db4e0: ACPI: EC: do transaction from interrupt context
+[zetalog: cleanly applying to:]
+Cc: <stable@vger.kernel.org> # 3.14.x: 42b946bb: ACPI / EC: disable GPE before removing GPE handler
 ---
- drivers/acpi/ec.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/acpi/ec.c |   27 +--------------------------
+ 1 file changed, 1 insertion(+), 26 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 051ac47..c3299f6 100644
+index f09386e..d016ea3 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -55,6 +55,7 @@
- /* EC status register */
- #define ACPI_EC_FLAG_OBF	0x01	/* Output buffer full */
- #define ACPI_EC_FLAG_IBF	0x02	/* Input buffer full */
-+#define ACPI_EC_FLAG_CMD	0x08	/* Input buffer contains a command */
- #define ACPI_EC_FLAG_BURST	0x10	/* burst mode */
- #define ACPI_EC_FLAG_SCI	0x20	/* EC-SCI occurred */
- 
-@@ -133,26 +134,33 @@ static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on boot/resume */
- static inline u8 acpi_ec_read_status(struct acpi_ec *ec)
- {
- 	u8 x = inb(ec->command_addr);
--	pr_debug("---> status = 0x%2.2x\n", x);
-+	pr_debug("EC_SC(R) = 0x%2.2x "
-+		 "SCI_EVT=%d BURST=%d CMD=%d IBF=%d OBF=%d\n",
-+		 x,
-+		 !!(x & ACPI_EC_FLAG_SCI),
-+		 !!(x & ACPI_EC_FLAG_BURST),
-+		 !!(x & ACPI_EC_FLAG_CMD),
-+		 !!(x & ACPI_EC_FLAG_IBF),
-+		 !!(x & ACPI_EC_FLAG_OBF));
- 	return x;
+@@ -281,23 +281,6 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+ 	return ret;
  }
  
- static inline u8 acpi_ec_read_data(struct acpi_ec *ec)
+-static int ec_check_ibf0(struct acpi_ec *ec)
+-{
+-	u8 status = acpi_ec_read_status(ec);
+-	return (status & ACPI_EC_FLAG_IBF) == 0;
+-}
+-
+-static int ec_wait_ibf0(struct acpi_ec *ec)
+-{
+-	unsigned long delay = jiffies + msecs_to_jiffies(ec_delay);
+-	/* interrupt wait manually if GPE mode is not active */
+-	while (time_before(jiffies, delay))
+-		if (wait_event_timeout(ec->wait, ec_check_ibf0(ec),
+-					msecs_to_jiffies(1)))
+-			return 0;
+-	return -ETIME;
+-}
+-
+ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
  {
- 	u8 x = inb(ec->data_addr);
--	pr_debug("---> data = 0x%2.2x\n", x);
-+	pr_debug("EC_DATA(R) = 0x%2.2x\n", x);
- 	return x;
- }
- 
- static inline void acpi_ec_write_cmd(struct acpi_ec *ec, u8 command)
- {
--	pr_debug("<--- command = 0x%2.2x\n", command);
-+	pr_debug("EC_SC(W) = 0x%2.2x\n", command);
- 	outb(command, ec->command_addr);
- }
- 
- static inline void acpi_ec_write_data(struct acpi_ec *ec, u8 data)
- {
--	pr_debug("<--- data = 0x%2.2x\n", data);
-+	pr_debug("EC_DATA(W) = 0x%2.2x\n", data);
- 	outb(data, ec->data_addr);
- }
- 
+ 	int status;
+@@ -318,12 +301,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
+ 			goto unlock;
+ 		}
+ 	}
+-	if (ec_wait_ibf0(ec)) {
+-		pr_err("input buffer is not empty, "
+-				"aborting transaction\n");
+-		status = -ETIME;
+-		goto end;
+-	}
+ 	pr_debug("transaction start (cmd=0x%02x, addr=0x%02x)\n",
+ 			t->command, t->wdata ? t->wdata[0] : 0);
+ 	/* disable GPE during transaction if storm is detected */
+@@ -347,7 +324,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
+ 		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
+ 	}
+ 	pr_debug("transaction end\n");
+-end:
+ 	if (ec->global_lock)
+ 		acpi_release_global_lock(glk);
+ unlock:
+@@ -653,8 +629,7 @@ static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
+ 	spin_lock_irqsave(&ec->lock, flags);
+ 	advance_transaction(ec);
+ 	spin_unlock_irqrestore(&ec->lock, flags);
+-	if (ec_transaction_completed(ec) &&
+-	    (acpi_ec_read_status(ec) & ACPI_EC_FLAG_IBF) == 0) {
++	if (ec_transaction_completed(ec)) {
+ 		wake_up(&ec->wait);
+ 		ec_check_sci(ec, acpi_ec_read_status(ec));
+ 	}
 -- 
 1.7.10
