@@ -1,77 +1,131 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] Fix backlight control for Acer TravelMate B113
-Date: Mon, 07 Jul 2014 14:55:31 +0200
-Message-ID: <1459819.oe49iEh54h@vostro.rjw.lan>
-References: <1403555446-16863-1-git-send-email-martink@posteo.de> <53AFD16D.10209@posteo.de> <53B0BD92.8090209@intel.com>
+Subject: Re: ACPI resource change triggers loss of serial ports
+Date: Mon, 07 Jul 2014 14:57:20 +0200
+Message-ID: <3285666.Y2zL3buWBl@vostro.rjw.lan>
+References: <20140619104130.GA11561@dm>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51684 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:55703 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752724AbaGGMh2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2014 08:37:28 -0400
-In-Reply-To: <53B0BD92.8090209@intel.com>
+	with SMTP id S1753201AbaGGMjQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2014 08:39:16 -0400
+In-Reply-To: <20140619104130.GA11561@dm>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Martin Kepplinger <martink@posteo.de>, rui.zhang@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andy Whitcroft <apw@canonical.com>, Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday, June 30, 2014 09:29:54 AM Aaron Lu wrote:
-> On 06/29/2014 04:42 PM, Martin Kepplinger wrote:
-> > Am 2014-06-23 22:30, schrieb Martin Kepplinger:
-> >> Fix backlight control for Acer TravelMate B113 Laptop by adding
-> >> it to the video_dmi_table.
-> >>
-> >> A workaround before that was to use acpi_osi=Linux or
-> >> acpi_backlight=vendor on boot but even then, only the function-
-> >> keys worked.
-> >>
-> >> With this change there is no need for boot parameters and DE's
-> >> controls work as well.
-> >>
-> >> Signed-off-by: Martin Kepplinger <martink@posteo.de>
-> >> Tested-by: Martin Kepplinger <martink@posteo.de>
-> >> ---
-> >>  drivers/acpi/video.c |    8 ++++++++
-> >>  1 file changed, 8 insertions(+)
-> >>
-> >> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> >> index f8bc5a7..acb0670 100644
-> >> --- a/drivers/acpi/video.c
-> >> +++ b/drivers/acpi/video.c
-> >> @@ -528,6 +528,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
-> >>  		},
-> >>  	},
-> >>  	{
-> >> +	 .callback = video_set_use_native_backlight,
-> >> +	 .ident = "Acer TravelMate B113",
-> >> +	 .matches = {
-> >> +		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-> >> +		DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate B113"),
-> >> +		},
-> >> +	},
-> >> +	{
-> >>  	.callback = video_set_use_native_backlight,
-> >>  	.ident = "HP ProBook 4340s",
-> >>  	.matches = {
-> >>
-> > 
-> > are there objections or advice on this? this would be really good to
-> > have, even if for 3.17.
+On Thursday, June 19, 2014 11:41:30 AM Andy Whitcroft wrote:
+> The recently merged change (in v3.14-rc6) to ACPI resource detection
+> (below) causes all zero length ACPI resources to be elided from the table:
 > 
-> For v3.16, we already have this commit to make use_native_backlight
-> equal to 1 by default:
+>   commit b355cee88e3b1a193f0e9a81db810f6f83ad728b
+>   Author: Zhang Rui <rui.zhang@intel.com>
+>   Date:   Thu Feb 27 11:37:15 2014 +0800
 > 
-> commit 751109aad5834375ca9ed0dcfcd85a00cbf872b5
-> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Date:   Thu Jun 5 22:47:35 2014 +0200
+>     ACPI / resources: ignore invalid ACPI device resources
 > 
->     ACPI / video: Change the default for video.use_native_backlight to 1
+> This change has caused a regression in (at least) serial port detection
+> for a number of machines (see LP#1313981 [1]).  These seem to represent
+> their IO regions (presumably incorrectly) as a zero length region.
+> Reverting the above commit restores these serial devices.
+> 
+> For Zhang's case I wonder if this check could be tightened up to cover
+> only the zero base, something like the (untested) patch below.
+> 
+> -apw
+> 
+> [1] https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1313981
 
-Nevertheless, we may need the blacklist entries in case we need to revert the
-above commit and also in case we want them to be backported to -stable (or LTSI
-etc.).
+I'm going to queue up the patch below for 3.16.
+
+Rui, can you please have a look at this and let me know if there's
+anything wrong with it?
 
 Rafael
 
+
+> From e5211c68278387ef65e483bcfedd5581a79ec783 Mon Sep 17 00:00:00 2001
+> From: Andy Whitcroft <apw@canonical.com>
+> Date: Thu, 19 Jun 2014 11:19:16 +0100
+> Subject: [PATCH] ACPI / Resources: only reject zero length resources based at
+>  address zero
+> 
+> The recently merged change (in v3.14-rc6) to ACPI resource detection
+> (below) causes all zero length ACPI resources to be elided from the
+> table:
+> 
+>   commit b355cee88e3b1a193f0e9a81db810f6f83ad728b
+>   Author: Zhang Rui <rui.zhang@intel.com>
+>   Date:   Thu Feb 27 11:37:15 2014 +0800
+> 
+>     ACPI / resources: ignore invalid ACPI device resources
+> 
+> This change has caused a regression in (at least) serial port detection
+> for a number of machines (see LP#1313981 [1]).  These seem to represent
+> their IO regions (presumably incorrectly) as a zero length region.
+> Reverting the above commit restores these serial devices.
+> 
+> Only elide zero length resources which lie at address 0.
+> 
+> Signed-off-by: Andy Whitcroft <apw@canonical.com>
+> ---
+>  drivers/acpi/resource.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 0bdacc5..2ba8f02 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -77,7 +77,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+>  	switch (ares->type) {
+>  	case ACPI_RESOURCE_TYPE_MEMORY24:
+>  		memory24 = &ares->data.memory24;
+> -		if (!memory24->address_length)
+> +		if (!memory24->minimum && !memory24->address_length)
+>  			return false;
+>  		acpi_dev_get_memresource(res, memory24->minimum,
+>  					 memory24->address_length,
+> @@ -85,7 +85,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+>  		break;
+>  	case ACPI_RESOURCE_TYPE_MEMORY32:
+>  		memory32 = &ares->data.memory32;
+> -		if (!memory32->address_length)
+> +		if (!memory32->minimum && !memory32->address_length)
+>  			return false;
+>  		acpi_dev_get_memresource(res, memory32->minimum,
+>  					 memory32->address_length,
+> @@ -93,7 +93,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+>  		break;
+>  	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+>  		fixed_memory32 = &ares->data.fixed_memory32;
+> -		if (!fixed_memory32->address_length)
+> +		if (!fixed_memory32->address && !fixed_memory32->address_length)
+>  			return false;
+>  		acpi_dev_get_memresource(res, fixed_memory32->address,
+>  					 fixed_memory32->address_length,
+> @@ -150,7 +150,7 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
+>  	switch (ares->type) {
+>  	case ACPI_RESOURCE_TYPE_IO:
+>  		io = &ares->data.io;
+> -		if (!io->address_length)
+> +		if (!io->minimum && !io->address_length)
+>  			return false;
+>  		acpi_dev_get_ioresource(res, io->minimum,
+>  					io->address_length,
+> @@ -158,7 +158,7 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
+>  		break;
+>  	case ACPI_RESOURCE_TYPE_FIXED_IO:
+>  		fixed_io = &ares->data.fixed_io;
+> -		if (!fixed_io->address_length)
+> +		if (!fixed_io->address && !fixed_io->address_length)
+>  			return false;
+>  		acpi_dev_get_ioresource(res, fixed_io->address,
+>  					fixed_io->address_length,
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
