@@ -1,88 +1,105 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 3/7] ACPICA: Linux: Add configuration item to indicate the architecture specific support.
-Date: Mon,  7 Jul 2014 12:17:14 +0800
-Message-ID: <fc44916b042694f2c2841444395e15731f5c70c5.1404706299.git.lv.zheng@intel.com>
-References: <cover.1387336613.git.lv.zheng@intel.com> <cover.1404706298.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1404706298.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH v2] drm/i915/opregion: ignore firmware requests for backlight
+ change
+Date: Mon, 07 Jul 2014 15:43:51 +0800
+Message-ID: <53BA4FB7.5050701@intel.com>
+References: <53A8E400.5060709@intel.com> <87tx796yc5.fsf@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:17955 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750855AbaGGHny (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2014 03:43:54 -0400
+In-Reply-To: <87tx796yc5.fsf@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jani Nikula <jani.nikula@linux.intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Anton Gubarkov <anton.gubarkov@gmail.com>
 
-This patch adds a kernel configuration item to indicate the presense of
-the architecture specific support for ACPICA, so that <asm/acenv.h>
-inclusion can be configured out.
+Some Thinkpad laptops' firmware will initiate a backlight level change
+request through operation region on the events of AC plug/unplug, but
+since we are not using firmware's interface to do the backlight setting
+on these affected laptops, we do not want the firmware to use some
+arbitrary value from its ASL variable to set the backlight level on
+AC plug/unplug either.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: x86@kernel.org
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: linux-ia64@vger.kernel.org
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=76491
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=77091
+Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Reported-and-tested-by: Anton Gubarkov <anton.gubarkov@gmail.com>
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Acked-by: Jani Nikula <jani.nikula@intel.com>
 ---
- arch/ia64/Kconfig               |    1 +
- arch/x86/Kconfig                |    1 +
- drivers/acpi/Kconfig            |    4 ++++
- include/acpi/platform/aclinux.h |    2 ++
- 4 files changed, 8 insertions(+)
+v2: add a debug message when ignoring opregion request as suggested by
+    Jani Nikula.
 
-diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
-index 2f3abcf..a822dd1 100644
---- a/arch/ia64/Kconfig
-+++ b/arch/ia64/Kconfig
-@@ -47,6 +47,7 @@ config IA64
- 	select MODULES_USE_ELF_RELA
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select HAVE_ARCH_AUDITSYSCALL
-+	select HAVE_ARCH_ACPICA
- 	default y
- 	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index a8f749e..16f3197 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -131,6 +131,7 @@ config X86
- 	select HAVE_CC_STACKPROTECTOR
- 	select GENERIC_CPU_AUTOPROBE
- 	select HAVE_ARCH_AUDITSYSCALL
-+	select HAVE_ARCH_ACPICA
+ drivers/acpi/video.c                  | 3 ++-
+ drivers/gpu/drm/i915/intel_opregion.c | 9 +++++++++
+ include/acpi/video.h                  | 2 ++
+ 3 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index fb9ffe9adc64..cf99d6d2d491 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -241,13 +241,14 @@ static bool acpi_video_use_native_backlight(void)
+ 		return use_native_backlight_dmi;
+ }
  
- config INSTRUCTION_DECODER
- 	def_bool y
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index a34a228..0cd63af4 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -2,8 +2,12 @@
- # ACPI Configuration
- #
+-static bool acpi_video_verify_backlight_support(void)
++bool acpi_video_verify_backlight_support(void)
+ {
+ 	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
+ 	    backlight_device_registered(BACKLIGHT_RAW))
+ 		return false;
+ 	return acpi_video_backlight_support();
+ }
++EXPORT_SYMBOL(acpi_video_verify_backlight_support);
  
-+config HAVE_ARCH_ACPICA
-+	bool
+ /* backlight device sysfs support */
+ static int acpi_video_get_brightness(struct backlight_device *bd)
+diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+index 2e2c71fcc9ed..4f6b53998d79 100644
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
+@@ -403,6 +403,15 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
+ 
+ 	DRM_DEBUG_DRIVER("bclp = 0x%08x\n", bclp);
+ 
++	/*
++	 * If the acpi_video interface is not supposed to be used, don't
++	 * bother processing backlight level change requests from firmware.
++	 */
++	if (!acpi_video_verify_backlight_support()) {
++		DRM_DEBUG_KMS("opregion backlight request ignored\n");
++		return 0;
++	}
 +
- menuconfig ACPI
- 	bool "ACPI (Advanced Configuration and Power Interface) Support"
-+	depends on HAVE_ARCH_ACPICA
- 	depends on !IA64_HP_SIM
- 	depends on IA64 || X86
- 	depends on PCI
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index cd1f052..d63a54b4 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -70,7 +70,9 @@
- #ifdef EXPORT_ACPI_INTERFACES
- #include <linux/export.h>
+ 	if (!(bclp & ASLE_BCLP_VALID))
+ 		return ASLC_BACKLIGHT_FAILED;
+ 
+diff --git a/include/acpi/video.h b/include/acpi/video.h
+index ea4c7bbded4d..92f8c4bffefb 100644
+--- a/include/acpi/video.h
++++ b/include/acpi/video.h
+@@ -22,6 +22,7 @@ extern void acpi_video_unregister(void);
+ extern void acpi_video_unregister_backlight(void);
+ extern int acpi_video_get_edid(struct acpi_device *device, int type,
+ 			       int device_id, void **edid);
++extern bool acpi_video_verify_backlight_support(void);
+ #else
+ static inline int acpi_video_register(void) { return 0; }
+ static inline void acpi_video_unregister(void) { return; }
+@@ -31,6 +32,7 @@ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+ {
+ 	return -ENODEV;
+ }
++static bool acpi_video_verify_backlight_support() { return false; }
  #endif
-+#ifdef CONFIG_HAVE_ARCH_ACPICA
- #include <asm/acenv.h>
-+#endif
  
- #ifndef CONFIG_ACPI
- 
+ #endif
 -- 
-1.7.10
+1.9.3
+
