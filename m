@@ -1,87 +1,34 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: linux-next: Tree for Jun 19 (drm/i915)
-Date: Tue, 08 Jul 2014 01:58:07 +0200
-Message-ID: <2553544.RXMPzUjLnB@vostro.rjw.lan>
-References: <20140619161632.58b442e4@canb.auug.org.au> <20140707200659.GL5821@phenom.ffwll.local> <3679297.SZvlmAxc8S@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [UPDATE PATCH v2 0/6] ACPI/EC: Critical race fixes.
+Date: Tue, 8 Jul 2014 00:00:52 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880263342B@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1402792240.git.lv.zheng@intel.com>
+ <cover.1404700569.git.lv.zheng@intel.com>
+ <39044838.0k25m70bcR@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55030 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751842AbaGGXkF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Jul 2014 19:40:05 -0400
-In-Reply-To: <3679297.SZvlmAxc8S@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <39044838.0k25m70bcR@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>, Randy Dunlap <rdunlap@infradead.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx <intel-gfx@lists.freedesktop.org>, dri-devel <dri-devel@lists.freedesktop.org>, Imre Deak <imre.deak@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Monday, July 07, 2014 11:49:22 PM Rafael J. Wysocki wrote:
-> On Monday, July 07, 2014 10:06:59 PM Daniel Vetter wrote:
-> > On Mon, Jul 07, 2014 at 10:01:27PM +0200, Rafael J. Wysocki wrote:
-> > > On Monday, July 07, 2014 04:54:23 PM Daniel Vetter wrote:
-> > > > On Wed, Jun 25, 2014 at 01:01:36AM +0200, Rafael J. Wysocki wrote:
-> > > > > On Tuesday, June 24, 2014 02:43:02 PM Jani Nikula wrote:
-> > > > > > On Thu, 19 Jun 2014, Randy Dunlap <rdunlap@infradead.org> wrote:
-> > > > > > > On 06/18/14 23:16, Stephen Rothwell wrote:
-> > > > > > >> Hi all,
-> > > > > > >> 
-> > > > > > >> The powerpc allyesconfig is again broken more than usual.
-> > > > > > >> 
-> > > > > > >> Changes since 20140618:
-> > > > > > >> 
-> > > > > > >
-> > > > > > > on i386:
-> > > > > > >
-> > > > > > > CONFIG_ACPI is not enabled.
-> > > > > > >
-> > > > > > >   CC      drivers/gpu/drm/i915/i915_drv.o
-> > > > > > > ../drivers/gpu/drm/i915/i915_drv.c: In function 'i915_drm_freeze':
-> > > > > > > ../drivers/gpu/drm/i915/i915_drv.c:547:2: error: implicit declaration of function 'acpi_target_system_state' [-Werror=implicit-function-declaration]
-> > > > > > > ../drivers/gpu/drm/i915/i915_drv.c:547:36: error: 'ACPI_STATE_S3' undeclared (first use in this function)
-> > > > > > > ../drivers/gpu/drm/i915/i915_drv.c:547:36: note: each undeclared identifier is reported only once for each function it appears in
-> > > > > > >   CC      net/dccp/qpolicy.o
-> > > > > > > cc1: some warnings being treated as errors
-> > > > > > > make[5]: *** [drivers/gpu/drm/i915/i915_drv.o] Error 1
-> > > > > > 
-> > > > > > Thanks for the report, we'll fix it.
-> > > > > > 
-> > > > > > Can anyone explain why include/linux/acpi_bus.h has #ifdef
-> > > > > > CONFIG_ACPI_SLEEP and conditional build for a dummy inline version of
-> > > > > > acpi_target_system_state(), *but* that does not get included or used if
-> > > > > > CONFIG_ACPI=n? Additionally, the combination of CONFIG_ACPI=y and
-> > > > > > CONFIG_ACPI_SLEEP=n does not seem to work at all.
-> > > > > 
-> > > > > These two things look like bugs to me.  Most likely not tested thoruoughly
-> > > > > enough.
-> > > > > 
-> > > > > > So we'll really have to sprinkle #ifdef CONFIG_ACPI all over, instead of
-> > > > > > neatly using the dummy versions that someone has gone through the
-> > > > > > trouble of adding?
-> > > > > 
-> > > > > No, we don't have to.
-> > > > 
-> > > > Back from my vacation and I didn't see a conclusion to this issue here.
-> > > > Rafael, have you fixed this in your acpi tree or do I need to do something
-> > > > in drm-intel?
-> > > 
-> > > I was on vacation too. :-)
-> > > 
-> > > Please have a look if i915 includes acpi/acpi_bus.h directly anywhere.  If so,
-> > > it should include linux/acpi.h instead.  I'll fix up the rest in the ACPI tree.
-> > 
-> > We seem to only use linux/acpi.h and acpi/(video|button).h, at least
-> > according to a grep include.*acpi. So I think we're good in i915 land.
-> > Thanks for taking care of this.
-> 
-> The patch below should fix this if I'm not mistaken.
-
-So I was mistaken, as it turns out.
-
-The problem is that ACPI sleep states are not defined for CONFIG_ACPI
-unset, quite obviously, so using acpi_target_system_state() in that
-case doesn't make sense at all.
-
-Rafael
-
+SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
+dF0NCj4gU2VudDogTW9uZGF5LCBKdWx5IDA3LCAyMDE0IDc6MTggUE0NCj4gDQo+IE9uIE1vbmRh
+eSwgSnVseSAwNywgMjAxNCAxMTowOTo0OSBBTSBMdiBaaGVuZyB3cm90ZToNCj4gPiBIaXN0b3J5
+Og0KPiA+IHYxOg0KPiA+ICBUaGUgY29sbGVjdGlvbiBvZiBidWctZml4ZXMgZnJvbSBrZXJuZWwg
+YnVnemlsbGEgYnVnIDcwODkxLg0KPiA+IHYyOg0KPiA+ICAxLiBJbXByb3ZlcyB0aGUgcGF0Y2gg
+ZGVzY3JpcHRpb25zIHRvIG1ha2UgdGhlIHJvb3QgY2F1c2Ugb2YgdGhlIDcwODkxIGJ1Zw0KPiA+
+ICAgICBtb3JlIGNvcnJlY3QuDQo+ID4gIDIuIEltcHJvdmVzIGEgcmFjZSBmaXggdG8gbWFrZSBp
+dCBtb3JlIHJvYnVzdC4NCj4gPiB2MiBVUERBVEU6DQo+ID4gIEFkZGVkICJSZXBvcnRlZC1ieSIg
+YW5kICJUZXN0ZWQtYnkiIGZyb20ga2VybmVsIGJ1Z3ppbGxhIGJ1ZyA1OTkxMS82MzkzMQ0KPiA+
+ICBhcyBhIHJlc3VsdCBvZiBFQyBidWcgdHJpYWdlLiBPbmx5IHBhdGNoIGRlc2NyaXB0aW9ucyBh
+cmUgdXBkYXRlZC4NCj4gDQo+IE9LLCBJJ3ZlIHVwZGF0ZWQgdGhlIGNvbW1pdHMgaW4gbXkgdHJl
+ZSBpbiBhY2NvcmRhbmNlIHdpdGggdGhpcy4NCj4gDQo+ID4gIFJlbW92ZWQgdGhlIEdQRSBmaXgs
+IGl0IGlzIGluY2x1ZGVkIGJ5IGFub3RoZXIgR1BFIEFQSSBmaXggc2VyaWVzLg0KPiANCj4gSSd2
+ZSBhcHBsaWVkIGl0IHNlcGFyYXRlbHkgYWxyZWFkeSwgc28gcGxlYXNlIGRvbid0IHJlc2VuZCBp
+dC4NCg0KT0suDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gVGhhbmtz
+LA0KPiBSYWZhZWwNCg0K
