@@ -1,51 +1,74 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 5/7] ACPI/SFI: Fix wrong <acpi/acpi.h> inclusion in
- SFI/ACPI wrapper - table definitions.
-Date: Tue, 8 Jul 2014 00:08:05 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880263346A@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1387336613.git.lv.zheng@intel.com>
- <cover.1404706298.git.lv.zheng@intel.com>
- <aebcb30aa6db54f92fcdf55f94462da15121886d.1404706299.git.lv.zheng@intel.com>
- <6888009.veyX2bKRlF@vostro.rjw.lan>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] PNPACPI: do ACPI binding directly
+Date: Tue, 08 Jul 2014 09:17:09 +0800
+Message-ID: <1404782229.2291.78.camel@rzhang1-toshiba>
+References: <1404305689.8366.90.camel@rzhang1-toshiba>
+	 <1492737.4hRQRGaxEv@vostro.rjw.lan>
+	 <1404743246.2291.55.camel@rzhang1-toshiba>
+	 <1537876.HDIZBZ0Om4@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6888009.veyX2bKRlF@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "sfi-devel@simplefirmware.org" <sfi-devel@simplefirmware.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:43306 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754857AbaGHBRN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2014 21:17:13 -0400
+In-Reply-To: <1537876.HDIZBZ0Om4@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Prigent, Christophe" <christophe.prigent@intel.com>
 
-SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
-dF0NCj4gU2VudDogVHVlc2RheSwgSnVseSAwOCwgMjAxNCA1OjI1IEFNDQo+IA0KPiBPbiBNb25k
-YXksIEp1bHkgMDcsIDIwMTQgMTI6MTc6MjggUE0gTHYgWmhlbmcgd3JvdGU6DQo+ID4gVGhpcyBw
-YXRjaCByZW1vdmVzIDxhY3BpL2FjcGkuaD4gaW5jbHVzaW9ucyBmcm9tIDxsaW51eC9zZmlfYWNw
-aS5oPiBhcw0KPiA+IDxsaW51eC9hY3BpLmg+IGhhcyBhbHJlYWR5IGluY2x1ZGVkIGl0IGZvciBD
-T05GSUdfQUNQST1uIGJ1aWxkcy4NCj4gDQo+IFNvIGFyZSBwYXRjaGVzIFsxLTQvNV0gb25seSBu
-ZWVkZWQgdG8gZml4IHRoaXMgcGFydGljdWxhciBpc3N1ZT8NCg0KVG8gZml4IHRoaXMgaXNzdWUs
-IHdlIG9ubHkgbmVlZCBwYXRjaCAxLTUuDQpBZnRlciBhcHBseWluZyB0aGVzZSBwYXRjaGVzLCBh
-bGwgQUNQSUNBIHN0cnVjdHVyZXMgYXJlIHZpc2libGUgdG8gdGhlIGVudGlyZSBsaW51eCBrZXJu
-ZWwuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gPiBDYzogTGVuIEJy
-b3duIDxsZW5iQGtlcm5lbC5vcmc+DQo+ID4gQ2M6IHNmaS1kZXZlbEBzaW1wbGVmaXJtd2FyZS5v
-cmcNCj4gPiBTaWduZWQtb2ZmLWJ5OiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPg0KPiA+
-IC0tLQ0KPiA+ICBpbmNsdWRlL2xpbnV4L3NmaV9hY3BpLmggfCAgICAzIC0tLQ0KPiA+ICAxIGZp
-bGUgY2hhbmdlZCwgMyBkZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRl
-L2xpbnV4L3NmaV9hY3BpLmggYi9pbmNsdWRlL2xpbnV4L3NmaV9hY3BpLmgNCj4gPiBpbmRleCA0
-NzIzYmJmLi5hNmU1NTVjIDEwMDY0NA0KPiA+IC0tLSBhL2luY2x1ZGUvbGludXgvc2ZpX2FjcGku
-aA0KPiA+ICsrKyBiL2luY2x1ZGUvbGludXgvc2ZpX2FjcGkuaA0KPiA+IEBAIC02Myw4ICs2Myw2
-IEBADQo+ID4gICNpbmNsdWRlIDxsaW51eC9zZmkuaD4NCj4gPg0KPiA+ICAjaWZkZWYgQ09ORklH
-X1NGSQ0KPiA+IC0jaW5jbHVkZSA8YWNwaS9hY3BpLmg+CS8qIEZJWE1FOiBpbmNsdXNpb24gc2hv
-dWxkIGJlIHJlbW92ZWQgKi8NCj4gPiAtDQo+ID4gIGV4dGVybiBpbnQgc2ZpX2FjcGlfdGFibGVf
-cGFyc2UoY2hhciAqc2lnbmF0dXJlLCBjaGFyICpvZW1faWQsDQo+ID4gIAkJCQljaGFyICpvZW1f
-dGFibGVfaWQsDQo+ID4gIAkJCQlpbnQgKCpoYW5kbGVyKShzdHJ1Y3QgYWNwaV90YWJsZV9oZWFk
-ZXIgKikpOw0KPiA+IEBAIC03OCw3ICs3Niw2IEBAIHN0YXRpYyBpbmxpbmUgaW50IF9faW5pdCBh
-Y3BpX3NmaV90YWJsZV9wYXJzZShjaGFyICpzaWduYXR1cmUsDQo+ID4gIAlyZXR1cm4gc2ZpX2Fj
-cGlfdGFibGVfcGFyc2Uoc2lnbmF0dXJlLCBOVUxMLCBOVUxMLCBoYW5kbGVyKTsNCj4gPiAgfQ0K
-PiA+ICAjZWxzZSAvKiAhQ09ORklHX1NGSSAqLw0KPiA+IC0NCj4gPiAgc3RhdGljIGlubGluZSBp
-bnQgc2ZpX2FjcGlfdGFibGVfcGFyc2UoY2hhciAqc2lnbmF0dXJlLCBjaGFyICpvZW1faWQsDQo+
-ID4gIAkJCQljaGFyICpvZW1fdGFibGVfaWQsDQo+ID4gIAkJCQlpbnQgKCpoYW5kbGVyKShzdHJ1
-Y3QgYWNwaV90YWJsZV9oZWFkZXIgKikpDQo+ID4NCj4gDQo+IC0tDQo+IEkgc3BlYWsgb25seSBm
-b3IgbXlzZWxmLg0KPiBSYWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5v
-bG9neSBDZW50ZXIuDQo=
+On Mon, 2014-07-07 at 22:03 +0200, Rafael J. Wysocki wrote:
+> On Monday, July 07, 2014 10:27:26 PM Zhang Rui wrote:
+> > On Mon, 2014-07-07 at 14:53 +0200, Rafael J. Wysocki wrote:
+> > > On Wednesday, July 02, 2014 08:54:49 PM Zhang Rui wrote:
+> > > > From 7daac7fc7cd7b605ccd84f10fc206cedf6170e89 Mon Sep 17 00:00:00 2001
+> > > > From: Zhang Rui <rui.zhang@intel.com>
+> > > > Date: Fri, 20 Jun 2014 10:14:07 +0800
+> > > > Subject: [PATCH] PNPACPI: do ACPI binding directly
+> > > > 
+> > > > PNPACPI uses acpi_bus_type to do ACPI binding for the PNPACPI devices.
+> > > > 
+> > > > This is overkill because PNPACPI code already knows which ACPI
+> > > > device object to bind during PNPACPI device enumeration.
+> > > > 
+> > > > This patch removes acpi_pnp_bus and does the binding by invoking
+> > > > acpi_bind_one() directly after device enumerated.
+> > > > 
+> > > > This also fixes a bug in the previous code that some PNPACPI devices failed
+> > > > to be bound because
+> > > > 1. the ACPI device _HID is not pnpid, e.g. "MSFT0001", but its _CID is,
+> > > >    e.g. "PNP0303", thus ACPI _CID is used as the pnp device device id.
+> > > > 2. device is bound only if the pnp device id matches the ACPI device _HID.
+> > > > 
+> > > > Tested-by: Prigent Christophe <christophe.prigent@intel.com>
+> > > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > > 
+> > > Does this fix a regression?
+> > 
+> > Hmmm, no, the problem exists in all previous kernel versions IMO.
+> 
+> OK, so it is applicable to -stable too?  Or would it need to be backported?
+> 
+I don't think we need it in stable kernel, because this is not a
+critical issue.
+I've seen only two devices with this problem, and all of them don't have
+ACPI _PSx/_PRx method. This means that, although pnpacpi_resume() fails
+because of this bug, nothing really bad happens because pnpacpi_resume()
+is actually a no-op for such devices.
+
+thanks,
+rui 
+> > >   If so, do we need it in 3.16?
+> > > 
+> > Not necessarily, but as this is a bug fix, so I think it is reasonable
+> > to be shipped in 3.16, right?
+> 
+> Basically, yes.
+> 
+> Rafael
+> 
+
+
