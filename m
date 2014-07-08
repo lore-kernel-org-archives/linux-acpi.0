@@ -1,56 +1,75 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: re: ACPI / hotplug / PCI: Rework the handling of eject requests
-Date: Tue, 8 Jul 2014 16:37:45 +0300
-Message-ID: <20140708133745.GA20496@mwanda>
+From: Yidi Lin <yidi.lin@canonical.com>
+Subject: Re: [PATCH] ACPI / video: Add Dell Inspiron 5737 to the blacklist
+Date: Tue, 8 Jul 2014 23:04:32 +0800
+Message-ID: <CAFquV7VTaHZa8G4R28Wd9RoAt85je8AWB_EZVEvPA6njYm3oxQ@mail.gmail.com>
+References: <CAFquV7W-aDs=1R=aYOFzWw8rYiqiVNpQ-8T_wWHwvdh-u_wHWA@mail.gmail.com>
+	<2906150.1kKPlLELmj@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:46610 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753861AbaGHNhw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2014 09:37:52 -0400
-Content-Disposition: inline
+Received: from mail-ve0-f171.google.com ([209.85.128.171]:48806 "EHLO
+	mail-ve0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751357AbaGHPEd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2014 11:04:33 -0400
+Received: by mail-ve0-f171.google.com with SMTP id db12so1139123veb.16
+        for <linux-acpi@vger.kernel.org>; Tue, 08 Jul 2014 08:04:33 -0700 (PDT)
+In-Reply-To: <2906150.1kKPlLELmj@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rafael.j.wysocki@intel.com
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Hello Rafael J. Wysocki,
+Hi,
+This patch is for win8 backlight issue on Dell Inspiron 5737.
+Do you mix up with the patch [1] which is for Dell Inspiron 7737 ?
 
-The patch dd2151be28b9: "ACPI / hotplug / PCI: Rework the handling of
-eject requests" from Feb 4, 2014, leads to the following static
-checker warning:
+[1] http://marc.info/?l=linux-acpi&m=139950526523173&w=2
 
-	drivers/acpi/scan.c:479 acpi_generic_hotplug_event()
-	error: we previously assumed 'adev->handler' could be null (see line 473)
-
-drivers/acpi/scan.c
-   464  static int acpi_generic_hotplug_event(struct acpi_device *adev, u32 type)
-   465  {
-   466          switch (type) {
-   467          case ACPI_NOTIFY_BUS_CHECK:
-   468                  return acpi_scan_bus_check(adev);
-   469          case ACPI_NOTIFY_DEVICE_CHECK:
-   470                  return acpi_scan_device_check(adev);
-   471          case ACPI_NOTIFY_EJECT_REQUEST:
-   472          case ACPI_OST_EC_OSPM_EJECT:
-   473                  if (adev->handler && !adev->handler->hotplug.enabled) {
-                            ^^^^^^^^^^^^^
-Patch adds new check.
-
-   474                          dev_info(&adev->dev, "Eject disabled\n");
-   475                          return -EPERM;
-   476                  }
-   477                  acpi_evaluate_ost(adev->handle, ACPI_NOTIFY_EJECT_REQUEST,
-   478                                    ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
-   479                  return acpi_scan_hot_remove(adev);
-
-"adev->handler" is dereferenced without checking inside the call to
-acpi_scan_hot_remove().
-
-   480          }
-   481          return -EINVAL;
-   482  }
-
-regards,
-dan carpenter
+On Tue, Jul 8, 2014 at 9:31 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, July 08, 2014 10:14:59 AM Yidi Lin wrote:
+>> With win8 capability, the ACPI backlight control is broken on this model.
+>> The system also loses backlight setting when resuming from S3.
+>>
+>> Add this model to the the ACPI video detect blacklist to make backlight
+>> functionality work.
+>>
+>> Although backlight functionality works via video.use_native_backlight=1,
+>> this approach may be safer.
+>>
+>> Signed-off-by: Edward Lin <yidi.lin@canonical.com>
+>
+> I've applied this patch already it seems, haven't I?
+>
+>> ---
+>>  drivers/acpi/video_detect.c |    8 ++++++++
+>>  1 file changed, 8 insertions(+)
+>>
+>> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+>> index 33e3db5..c42feb2 100644
+>> --- a/drivers/acpi/video_detect.c
+>> +++ b/drivers/acpi/video_detect.c
+>> @@ -166,6 +166,14 @@ static struct dmi_system_id video_detect_dmi_table[] = {
+>>                 DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
+>>                 },
+>>         },
+>> +       {
+>> +       .callback = video_detect_force_vendor,
+>> +       .ident = "Dell Inspiron 5737",
+>> +       .matches = {
+>> +               DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+>> +               DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 5737"),
+>> +               },
+>> +       },
+>>         { },
+>>  };
+>>
+>> --
+>> 1.7.9.5
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
