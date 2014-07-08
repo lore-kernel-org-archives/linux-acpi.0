@@ -1,124 +1,147 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 15/25] ACPICA: Common: Enhance acpi_getopt() to improve portability.
-Date: Tue,  8 Jul 2014 10:07:26 +0800
-Message-ID: <12d60ddeeb83f59fb27ca977eb0c99e6fa01b4c6.1404277202.git.lv.zheng@intel.com>
+Subject: [PATCH 16/25] ACPICA: acpidump: Add memory/string OSL usage to improve portability.
+Date: Tue,  8 Jul 2014 10:07:33 +0800
+Message-ID: <19f0ed5cda5a0b5ebcf31cb7af5a76f08548443b.1404277202.git.lv.zheng@intel.com>
 References: <cover.1404277202.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:50528 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:10871 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752721AbaGHCHb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2014 22:07:31 -0400
+	id S1752721AbaGHCHi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2014 22:07:38 -0400
 In-Reply-To: <cover.1404277202.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-This patch enhances acpi_getopt() by converting the standard C library
-invocations into portable ACPI string APIs and acpi_log_error() to improve
-portability. Lv Zheng.
+This patch adds code to use generic OSL for acpidump to improve the
+portability of this tool. Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acutils.h            |    2 ++
- include/acpi/actypes.h                   |    4 ++++
- tools/power/acpi/common/getopt.c         |   14 ++++++--------
- tools/power/acpi/tools/acpidump/apmain.c |    3 ++-
- 4 files changed, 14 insertions(+), 9 deletions(-)
+ include/acpi/platform/acenv.h             |    1 +
+ tools/power/acpi/tools/acpidump/apdump.c  |   16 ++++++++--------
+ tools/power/acpi/tools/acpidump/apfiles.c |   11 ++++++-----
+ 3 files changed, 15 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-index 85871c6..035dc29 100644
---- a/drivers/acpi/acpica/acutils.h
-+++ b/drivers/acpi/acpica/acutils.h
-@@ -210,6 +210,8 @@ void acpi_ut_subsystem_shutdown(void);
+diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
+index 4390ebd..5f8cc1f 100644
+--- a/include/acpi/platform/acenv.h
++++ b/include/acpi/platform/acenv.h
+@@ -126,6 +126,7 @@
  
- acpi_size acpi_ut_strlen(const char *string);
+ #ifdef ACPI_DUMP_APP
+ #define ACPI_USE_NATIVE_MEMORY_MAPPING
++#define USE_NATIVE_ALLOCATE_ZEROED
+ #endif
  
-+char *acpi_ut_strchr(const char *string, int ch);
-+
- char *acpi_ut_strcpy(char *dst_string, const char *src_string);
- 
- char *acpi_ut_strncpy(char *dst_string,
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 165abca..608a040 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -1254,4 +1254,8 @@ struct acpi_memory_list {
- #define ACPI_FILE_BEGIN                 0x01
- #define ACPI_FILE_END                   0x02
- 
-+/* Definitions of getopt */
-+
-+#define ACPI_OPT_END                    -1
-+
- #endif				/* __ACTYPES_H__ */
-diff --git a/tools/power/acpi/common/getopt.c b/tools/power/acpi/common/getopt.c
-index a302f52..2f0f34a 100644
---- a/tools/power/acpi/common/getopt.c
-+++ b/tools/power/acpi/common/getopt.c
-@@ -51,14 +51,12 @@
-  *    "f|"      - Option has required single-char sub-options
-  */
- 
--#include <stdio.h>
--#include <string.h>
- #include <acpi/acpi.h>
- #include "accommon.h"
- #include "acapps.h"
- 
- #define ACPI_OPTION_ERROR(msg, badchar) \
--	if (acpi_gbl_opterr) {fprintf (stderr, "%s%c\n", msg, badchar);}
-+	if (acpi_gbl_opterr) {acpi_log_error ("%s%c\n", msg, badchar);}
- 
- int acpi_gbl_opterr = 1;
- int acpi_gbl_optind = 1;
-@@ -113,7 +111,7 @@ int acpi_getopt_argument(int argc, char **argv)
-  * PARAMETERS:  argc, argv          - from main
-  *              opts                - options info list
-  *
-- * RETURN:      Option character or EOF
-+ * RETURN:      Option character or ACPI_OPT_END
-  *
-  * DESCRIPTION: Get the next option
-  *
-@@ -128,10 +126,10 @@ int acpi_getopt(int argc, char **argv, char *opts)
- 		if (acpi_gbl_optind >= argc ||
- 		    argv[acpi_gbl_optind][0] != '-' ||
- 		    argv[acpi_gbl_optind][1] == '\0') {
--			return (EOF);
--		} else if (strcmp(argv[acpi_gbl_optind], "--") == 0) {
-+			return (ACPI_OPT_END);
-+		} else if (ACPI_STRCMP(argv[acpi_gbl_optind], "--") == 0) {
- 			acpi_gbl_optind++;
--			return (EOF);
-+			return (ACPI_OPT_END);
+ /* acpi_names/Example configuration. Hardware disabled */
+diff --git a/tools/power/acpi/tools/acpidump/apdump.c b/tools/power/acpi/tools/acpidump/apdump.c
+index e8729aa..ccb6262 100644
+--- a/tools/power/acpi/tools/acpidump/apdump.c
++++ b/tools/power/acpi/tools/acpidump/apdump.c
+@@ -252,7 +252,7 @@ int ap_dump_all_tables(void)
  		}
+ 
+ 		table_status = ap_dump_table_buffer(table, instance, address);
+-		free(table);
++		ACPI_FREE(table);
+ 
+ 		if (table_status) {
+ 			break;
+@@ -303,7 +303,7 @@ int ap_dump_table_by_address(char *ascii_address)
  	}
  
-@@ -142,7 +140,7 @@ int acpi_getopt(int argc, char **argv, char *opts)
- 	/* Make sure that the option is legal */
+ 	table_status = ap_dump_table_buffer(table, 0, address);
+-	free(table);
++	ACPI_FREE(table);
+ 	return (table_status);
+ }
  
- 	if (current_char == ':' ||
--	    (opts_ptr = strchr(opts, current_char)) == NULL) {
-+	    (opts_ptr = ACPI_STRCHR(opts, current_char)) == NULL) {
- 		ACPI_OPTION_ERROR("Illegal option: -", current_char);
+@@ -329,7 +329,7 @@ int ap_dump_table_by_name(char *signature)
+ 	acpi_status status;
+ 	int table_status;
  
- 		if (argv[acpi_gbl_optind][++current_char_ptr] == '\0') {
-diff --git a/tools/power/acpi/tools/acpidump/apmain.c b/tools/power/acpi/tools/acpidump/apmain.c
-index 2a06a86..9c3b259 100644
---- a/tools/power/acpi/tools/acpidump/apmain.c
-+++ b/tools/power/acpi/tools/acpidump/apmain.c
-@@ -166,7 +166,8 @@ static int ap_do_options(int argc, char **argv)
+-	if (strlen(signature) != ACPI_NAME_SIZE) {
++	if (ACPI_STRLEN(signature) != ACPI_NAME_SIZE) {
+ 		fprintf(stderr,
+ 			"Invalid table signature [%s]: must be exactly 4 characters\n",
+ 			signature);
+@@ -338,15 +338,15 @@ int ap_dump_table_by_name(char *signature)
  
- 	/* Command line options */
+ 	/* Table signatures are expected to be uppercase */
  
--	while ((j = acpi_getopt(argc, argv, AP_SUPPORTED_OPTIONS)) != EOF)
-+	while ((j =
-+		acpi_getopt(argc, argv, AP_SUPPORTED_OPTIONS)) != ACPI_OPT_END)
- 		switch (j) {
- 			/*
- 			 * Global options
+-	strcpy(local_signature, signature);
++	ACPI_STRCPY(local_signature, signature);
+ 	acpi_ut_strupr(local_signature);
+ 
+ 	/* To be friendly, handle tables whose signatures do not match the name */
+ 
+ 	if (ACPI_COMPARE_NAME(local_signature, "FADT")) {
+-		strcpy(local_signature, ACPI_SIG_FADT);
++		ACPI_STRCPY(local_signature, ACPI_SIG_FADT);
+ 	} else if (ACPI_COMPARE_NAME(local_signature, "MADT")) {
+-		strcpy(local_signature, ACPI_SIG_MADT);
++		ACPI_STRCPY(local_signature, ACPI_SIG_MADT);
+ 	}
+ 
+ 	/* Dump all instances of this signature (to handle multiple SSDTs) */
+@@ -369,7 +369,7 @@ int ap_dump_table_by_name(char *signature)
+ 		}
+ 
+ 		table_status = ap_dump_table_buffer(table, instance, address);
+-		free(table);
++		ACPI_FREE(table);
+ 
+ 		if (table_status) {
+ 			break;
+@@ -424,6 +424,6 @@ int ap_dump_table_from_file(char *pathname)
+ 	table_status = ap_dump_table_buffer(table, 0, 0);
+ 
+ exit:
+-	free(table);
++	ACPI_FREE(table);
+ 	return (table_status);
+ }
+diff --git a/tools/power/acpi/tools/acpidump/apfiles.c b/tools/power/acpi/tools/acpidump/apfiles.c
+index 4488acc..1d12b9d 100644
+--- a/tools/power/acpi/tools/acpidump/apfiles.c
++++ b/tools/power/acpi/tools/acpidump/apfiles.c
+@@ -130,11 +130,12 @@ int ap_write_to_binary_file(struct acpi_table_header *table, u32 instance)
+ 	/* Handle multiple SSDts - create different filenames for each */
+ 
+ 	if (instance > 0) {
+-		sprintf(instance_str, "%u", instance);
+-		strcat(filename, instance_str);
++		acpi_ut_snprintf(instance_str, sizeof(instance_str), "%u",
++				 instance);
++		ACPI_STRCAT(filename, instance_str);
+ 	}
+ 
+-	strcat(filename, ACPI_TABLE_FILE_SUFFIX);
++	ACPI_STRCAT(filename, ACPI_TABLE_FILE_SUFFIX);
+ 
+ 	if (gbl_verbose_mode) {
+ 		fprintf(stderr,
+@@ -202,7 +203,7 @@ struct acpi_table_header *ap_get_table_from_file(char *pathname,
+ 
+ 	/* Allocate a buffer for the entire file */
+ 
+-	buffer = calloc(1, file_size);
++	buffer = ACPI_ALLOCATE_ZEROED(file_size);
+ 	if (!buffer) {
+ 		fprintf(stderr,
+ 			"Could not allocate file buffer of size: %u\n",
+@@ -215,7 +216,7 @@ struct acpi_table_header *ap_get_table_from_file(char *pathname,
+ 	actual = fread(buffer, 1, file_size, file);
+ 	if (actual != file_size) {
+ 		fprintf(stderr, "Could not read input file: %s\n", pathname);
+-		free(buffer);
++		ACPI_FREE(buffer);
+ 		buffer = NULL;
+ 		goto cleanup;
+ 	}
 -- 
 1.7.10
 
