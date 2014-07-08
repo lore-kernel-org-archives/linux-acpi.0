@@ -1,24 +1,29 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v2] drm/i915/opregion: ignore firmware requests for backlight
- change
-Date: Tue, 08 Jul 2014 09:21:39 +0800
-Message-ID: <53BB47A3.5050409@intel.com>
-References: <53A8E400.5060709@intel.com> <87tx796yc5.fsf@intel.com> <53BA4FB7.5050701@intel.com> <1750019.dMIypA0cmY@vostro.rjw.lan>
+Subject: Re: [PATCH v2] drm/i915/opregion: ignore firmware
+ requests for backlight change
+Date: Tue, 08 Jul 2014 09:30:37 +0800
+Message-ID: <53BB49BD.5000903@intel.com>
+References: <53A8E400.5060709@intel.com> <87tx796yc5.fsf@intel.com>
+ <53BA4FB7.5050701@intel.com> <200703196.0AouFjfuqr@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:58134 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752336AbaGHBV7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2014 21:21:59 -0400
-In-Reply-To: <1750019.dMIypA0cmY@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <200703196.0AouFjfuqr@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Anton Gubarkov <anton.gubarkov@gmail.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Anton Gubarkov <anton.gubarkov@gmail.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On 07/07/2014 09:01 PM, Rafael J. Wysocki wrote:
+On 07/07/2014 08:51 PM, Rafael J. Wysocki wrote:
 > On Monday, July 07, 2014 03:43:51 PM Aaron Lu wrote:
 >> Some Thinkpad laptops' firmware will initiate a backlight level change
 >> request through operation region on the events of AC plug/unplug, but
@@ -33,6 +38,27 @@ On 07/07/2014 09:01 PM, Rafael J. Wysocki wrote:
 >> Reported-and-tested-by: Anton Gubarkov <anton.gubarkov@gmail.com>
 >> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 >> Acked-by: Jani Nikula <jani.nikula@intel.com>
+> 
+> I think we need this in 3.16, right?
+
+Yes, this patch is for v3.16.
+
+> 
+> Is it also necessary in any -stable and if so, which one?
+
+For one of the affected system 'ThinkPad X1 Carbon', it makes sense to
+back port the patch to v3.14 and v3.15 since it is in video module's
+use_native_backlight DMI table. For the other one, since it is not in
+the DMI table, it doesn't make a difference. I'll leave this to you to
+decide.
+
+Thanks,
+Aaron
+
+> 
+> Rafael
+> 
+> 
 >> ---
 >> v2: add a debug message when ignoring opregion request as suggested by
 >>     Jani Nikula.
@@ -59,13 +85,7 @@ On 07/07/2014 09:01 PM, Rafael J. Wysocki wrote:
 >>  	return acpi_video_backlight_support();
 >>  }
 >> +EXPORT_SYMBOL(acpi_video_verify_backlight_support);
-> 
-> Is there any reason for this not to be EXPORT_SYMBOL_GPL()?
-
-No particular reason, just follow what is used for other exported
-functions in this file. Will change this to EXPORT_SYMBOL_GPL.
-
-> 
+>>  
 >>  /* backlight device sysfs support */
 >>  static int acpi_video_get_brightness(struct backlight_device *bd)
 >> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
@@ -105,21 +125,8 @@ functions in this file. Will change this to EXPORT_SYMBOL_GPL.
 >>  	return -ENODEV;
 >>  }
 >> +static bool acpi_video_verify_backlight_support() { return false; }
-> 
-> And for this not to be static inline?
-
-Will add inline.
-
-Thanks for the review.
-
--Aaron
-
-> 
 >>  #endif
 >>  
 >>  #endif
 >>
 > 
-> Rafael
-> 
-
