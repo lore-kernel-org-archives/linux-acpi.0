@@ -1,131 +1,89 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 12/25] ACPICA: Utilities: Introduce acpi_log_error() to improve portability.
-Date: Tue,  8 Jul 2014 10:07:06 +0800
-Message-ID: <724db9120f50b0c99caa8df074b6092aa6071b54.1404277202.git.lv.zheng@intel.com>
+Subject: [PATCH 13/25] ACPICA: Application: Enhance ACPI_USAGE_xxx/ACPI_OPTION with acpi_os_printf() to improve portability.
+Date: Tue,  8 Jul 2014 10:07:13 +0800
+Message-ID: <c010a2a4f5afffd4e74c1743129afc45dbcea5f8.1404277202.git.lv.zheng@intel.com>
 References: <cover.1404277202.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:62405 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:20021 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752670AbaGHCHM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2014 22:07:12 -0400
+	id S1752721AbaGHCHR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2014 22:07:17 -0400
 In-Reply-To: <cover.1404277202.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-This patch is only useful for ACPICA applications, most of which are not
-shipped in the Linux kernel.
-Note that follow-up commits will update acpidump to use this new API to
-improve portability.
+This patch enhances ACPI_USAGE_xxx/ACPI_OPTION macros to use portable
+acpi_os_printf() so that usage functions for applications no longer rely on
+the printf() API.
 
-Invocations like fprintf(stderr) and perror() are not portable, this patch
-introduces acpi_log_error() as a replacement, it is implemented using new
-portable API - acpi_ut_file_vprintf().
-
-Note that though acpi_os_initialize() need to be invoked prior than using
-this new API, since no users are introduced in this patch, such invocations
-are not added for applications that link utprint.c in this patch. Futher
-patches that introduce users of acpi_log_error() should take care of this.
-Lv Zheng.
+To use acpi_os_printf() exported by osunixxf.c as a replacement of
+printf(), applications need to initialize acpi_gbl_output_file to stdout
+and initialize acpi_gbl_db_output_flags to ACPI_DB_CONSOLE_OUTPUT. The
+latter is automatically done by ACPI_INIT_GLOBAL(), applications need to
+link utglobal.o to utilize this mechanism. For GCC, assigning stdout to
+acpi_gbl_output_file using ACPI_INIT_GLOBAL() is not possible as stdout is
+not a constant in GCC environment. As an alternative solution, stdout
+assignment has been put into acpi_os_initialize(). Thus
+acpi_os_initialize() need to be invoked very early by the applications to
+initialize the default output of acpi_os_printf() to keep behavior
+consistency.
+acpidump has already invoked acpi_os_initialize() in this way. Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/utdebug.c |   26 ++++++++++++++++++++++++++
- include/acpi/acpixf.h         |   20 ++++++++++++++++++++
- include/acpi/platform/acenv.h |    4 ++++
- 3 files changed, 50 insertions(+)
+ drivers/acpi/acpica/acapps.h             |    7 +++++--
+ tools/power/acpi/tools/acpidump/apmain.c |    8 ++++----
+ 2 files changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
-index 21a20ac..e516254 100644
---- a/drivers/acpi/acpica/utdebug.c
-+++ b/drivers/acpi/acpica/utdebug.c
-@@ -561,3 +561,29 @@ acpi_ut_ptr_exit(u32 line_number,
+diff --git a/drivers/acpi/acpica/acapps.h b/drivers/acpi/acpica/acapps.h
+index 8698ffb..5bf41f8 100644
+--- a/drivers/acpi/acpica/acapps.h
++++ b/drivers/acpi/acpica/acapps.h
+@@ -79,10 +79,13 @@
+ /* Macros for usage messages */
+ 
+ #define ACPI_USAGE_HEADER(usage) \
+-	printf ("Usage: %s\nOptions:\n", usage);
++	acpi_os_printf ("Usage: %s\nOptions:\n", usage);
++
++#define ACPI_USAGE_TEXT(description) \
++	acpi_os_printf (description);
+ 
+ #define ACPI_OPTION(name, description) \
+-	printf ("  %-18s%s\n", name, description);
++	acpi_os_printf (" %-18s%s\n", name, description);
+ 
+ #define FILE_SUFFIX_DISASSEMBLY     "dsl"
+ #define ACPI_TABLE_FILE_SUFFIX      ".dat"
+diff --git a/tools/power/acpi/tools/acpidump/apmain.c b/tools/power/acpi/tools/acpidump/apmain.c
+index c03e473..2a06a86 100644
+--- a/tools/power/acpi/tools/acpidump/apmain.c
++++ b/tools/power/acpi/tools/acpidump/apmain.c
+@@ -104,7 +104,7 @@ static void ap_display_usage(void)
+ 	ACPI_OPTION("-v", "Display version information");
+ 	ACPI_OPTION("-z", "Verbose mode");
+ 
+-	printf("\nTable Options:\n");
++	ACPI_USAGE_TEXT("\nTable Options:\n");
+ 
+ 	ACPI_OPTION("-a <Address>", "Get table via a physical address");
+ 	ACPI_OPTION("-f <BinaryFile>", "Get table via a binary file");
+@@ -112,9 +112,9 @@ static void ap_display_usage(void)
+ 	ACPI_OPTION("-x", "Do not use but dump XSDT");
+ 	ACPI_OPTION("-x -x", "Do not use or dump XSDT");
+ 
+-	printf("\n"
+-	       "Invocation without parameters dumps all available tables\n"
+-	       "Multiple mixed instances of -a, -f, and -n are supported\n\n");
++	ACPI_USAGE_TEXT("\n"
++			"Invocation without parameters dumps all available tables\n"
++			"Multiple mixed instances of -a, -f, and -n are supported\n\n");
  }
  
- #endif
-+
-+#ifdef ACPI_APPLICATION
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_log_error
-+ *
-+ * PARAMETERS:  format              - Printf format field
-+ *              ...                 - Optional printf arguments
-+ *
-+ * RETURN:      None
-+ *
-+ * DESCRIPTION: Print error message to the console, used by applications.
-+ *
-+ ******************************************************************************/
-+
-+void ACPI_INTERNAL_VAR_XFACE acpi_log_error(const char *format, ...)
-+{
-+	va_list args;
-+
-+	va_start(args, format);
-+	(void)acpi_ut_file_vprintf(ACPI_FILE_ERR, format, args);
-+	va_end(args);
-+}
-+
-+ACPI_EXPORT_SYMBOL(acpi_log_error)
-+#endif
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 35b525c..9858551 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -335,6 +335,23 @@ ACPI_GLOBAL(u8, acpi_gbl_system_awake_and_running);
- 
- #endif				/* ACPI_DEBUG_OUTPUT */
- 
-+/*
-+ * Application prototypes
-+ *
-+ * All interfaces used by application will be configured
-+ * out of the ACPICA build unless the ACPI_APPLICATION
-+ * flag is defined.
-+ */
-+#ifdef ACPI_APPLICATION
-+#define ACPI_APP_DEPENDENT_RETURN_VOID(prototype) \
-+	prototype;
-+
-+#else
-+#define ACPI_APP_DEPENDENT_RETURN_VOID(prototype) \
-+	static ACPI_INLINE prototype {return;}
-+
-+#endif				/* ACPI_APPLICATION */
-+
- /*****************************************************************************
-  *
-  * ACPICA public interface prototypes
-@@ -861,6 +878,9 @@ ACPI_DBG_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(6)
- 						     const char *module_name,
- 						     u32 component_id,
- 						     const char *format, ...))
-+ACPI_APP_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(1)
-+				void ACPI_INTERNAL_VAR_XFACE
-+				acpi_log_error(const char *format, ...))
- 
- /*
-  * Divergences
-diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
-index b6429e4..4390ebd 100644
---- a/include/acpi/platform/acenv.h
-+++ b/include/acpi/platform/acenv.h
-@@ -423,8 +423,12 @@ typedef char *va_list;
- #ifdef ACPI_APPLICATION
- #include <stdio.h>
- #define ACPI_FILE              FILE *
-+#define ACPI_FILE_OUT          stdout
-+#define ACPI_FILE_ERR          stderr
- #else
- #define ACPI_FILE              void *
-+#define ACPI_FILE_OUT          NULL
-+#define ACPI_FILE_ERR          NULL
- #endif				/* ACPI_APPLICATION */
- #endif				/* ACPI_FILE */
- 
+ /******************************************************************************
 -- 
 1.7.10
 
