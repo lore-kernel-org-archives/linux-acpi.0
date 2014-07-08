@@ -1,74 +1,125 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] PNPACPI: do ACPI binding directly
-Date: Tue, 08 Jul 2014 09:17:09 +0800
-Message-ID: <1404782229.2291.78.camel@rzhang1-toshiba>
-References: <1404305689.8366.90.camel@rzhang1-toshiba>
-	 <1492737.4hRQRGaxEv@vostro.rjw.lan>
-	 <1404743246.2291.55.camel@rzhang1-toshiba>
-	 <1537876.HDIZBZ0Om4@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v2] drm/i915/opregion: ignore firmware requests for backlight
+ change
+Date: Tue, 08 Jul 2014 09:21:39 +0800
+Message-ID: <53BB47A3.5050409@intel.com>
+References: <53A8E400.5060709@intel.com> <87tx796yc5.fsf@intel.com> <53BA4FB7.5050701@intel.com> <1750019.dMIypA0cmY@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:43306 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:58134 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754857AbaGHBRN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2014 21:17:13 -0400
-In-Reply-To: <1537876.HDIZBZ0Om4@vostro.rjw.lan>
+	id S1752336AbaGHBV7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2014 21:21:59 -0400
+In-Reply-To: <1750019.dMIypA0cmY@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Prigent, Christophe" <christophe.prigent@intel.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Anton Gubarkov <anton.gubarkov@gmail.com>
 
-On Mon, 2014-07-07 at 22:03 +0200, Rafael J. Wysocki wrote:
-> On Monday, July 07, 2014 10:27:26 PM Zhang Rui wrote:
-> > On Mon, 2014-07-07 at 14:53 +0200, Rafael J. Wysocki wrote:
-> > > On Wednesday, July 02, 2014 08:54:49 PM Zhang Rui wrote:
-> > > > From 7daac7fc7cd7b605ccd84f10fc206cedf6170e89 Mon Sep 17 00:00:00 2001
-> > > > From: Zhang Rui <rui.zhang@intel.com>
-> > > > Date: Fri, 20 Jun 2014 10:14:07 +0800
-> > > > Subject: [PATCH] PNPACPI: do ACPI binding directly
-> > > > 
-> > > > PNPACPI uses acpi_bus_type to do ACPI binding for the PNPACPI devices.
-> > > > 
-> > > > This is overkill because PNPACPI code already knows which ACPI
-> > > > device object to bind during PNPACPI device enumeration.
-> > > > 
-> > > > This patch removes acpi_pnp_bus and does the binding by invoking
-> > > > acpi_bind_one() directly after device enumerated.
-> > > > 
-> > > > This also fixes a bug in the previous code that some PNPACPI devices failed
-> > > > to be bound because
-> > > > 1. the ACPI device _HID is not pnpid, e.g. "MSFT0001", but its _CID is,
-> > > >    e.g. "PNP0303", thus ACPI _CID is used as the pnp device device id.
-> > > > 2. device is bound only if the pnp device id matches the ACPI device _HID.
-> > > > 
-> > > > Tested-by: Prigent Christophe <christophe.prigent@intel.com>
-> > > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > > 
-> > > Does this fix a regression?
-> > 
-> > Hmmm, no, the problem exists in all previous kernel versions IMO.
+On 07/07/2014 09:01 PM, Rafael J. Wysocki wrote:
+> On Monday, July 07, 2014 03:43:51 PM Aaron Lu wrote:
+>> Some Thinkpad laptops' firmware will initiate a backlight level change
+>> request through operation region on the events of AC plug/unplug, but
+>> since we are not using firmware's interface to do the backlight setting
+>> on these affected laptops, we do not want the firmware to use some
+>> arbitrary value from its ASL variable to set the backlight level on
+>> AC plug/unplug either.
+>>
+>> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=76491
+>> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=77091
+>> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+>> Reported-and-tested-by: Anton Gubarkov <anton.gubarkov@gmail.com>
+>> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+>> Acked-by: Jani Nikula <jani.nikula@intel.com>
+>> ---
+>> v2: add a debug message when ignoring opregion request as suggested by
+>>     Jani Nikula.
+>>
+>>  drivers/acpi/video.c                  | 3 ++-
+>>  drivers/gpu/drm/i915/intel_opregion.c | 9 +++++++++
+>>  include/acpi/video.h                  | 2 ++
+>>  3 files changed, 13 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>> index fb9ffe9adc64..cf99d6d2d491 100644
+>> --- a/drivers/acpi/video.c
+>> +++ b/drivers/acpi/video.c
+>> @@ -241,13 +241,14 @@ static bool acpi_video_use_native_backlight(void)
+>>  		return use_native_backlight_dmi;
+>>  }
+>>  
+>> -static bool acpi_video_verify_backlight_support(void)
+>> +bool acpi_video_verify_backlight_support(void)
+>>  {
+>>  	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
+>>  	    backlight_device_registered(BACKLIGHT_RAW))
+>>  		return false;
+>>  	return acpi_video_backlight_support();
+>>  }
+>> +EXPORT_SYMBOL(acpi_video_verify_backlight_support);
 > 
-> OK, so it is applicable to -stable too?  Or would it need to be backported?
-> 
-I don't think we need it in stable kernel, because this is not a
-critical issue.
-I've seen only two devices with this problem, and all of them don't have
-ACPI _PSx/_PRx method. This means that, although pnpacpi_resume() fails
-because of this bug, nothing really bad happens because pnpacpi_resume()
-is actually a no-op for such devices.
+> Is there any reason for this not to be EXPORT_SYMBOL_GPL()?
 
-thanks,
-rui 
-> > >   If so, do we need it in 3.16?
-> > > 
-> > Not necessarily, but as this is a bug fix, so I think it is reasonable
-> > to be shipped in 3.16, right?
+No particular reason, just follow what is used for other exported
+functions in this file. Will change this to EXPORT_SYMBOL_GPL.
+
 > 
-> Basically, yes.
+>>  /* backlight device sysfs support */
+>>  static int acpi_video_get_brightness(struct backlight_device *bd)
+>> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+>> index 2e2c71fcc9ed..4f6b53998d79 100644
+>> --- a/drivers/gpu/drm/i915/intel_opregion.c
+>> +++ b/drivers/gpu/drm/i915/intel_opregion.c
+>> @@ -403,6 +403,15 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
+>>  
+>>  	DRM_DEBUG_DRIVER("bclp = 0x%08x\n", bclp);
+>>  
+>> +	/*
+>> +	 * If the acpi_video interface is not supposed to be used, don't
+>> +	 * bother processing backlight level change requests from firmware.
+>> +	 */
+>> +	if (!acpi_video_verify_backlight_support()) {
+>> +		DRM_DEBUG_KMS("opregion backlight request ignored\n");
+>> +		return 0;
+>> +	}
+>> +
+>>  	if (!(bclp & ASLE_BCLP_VALID))
+>>  		return ASLC_BACKLIGHT_FAILED;
+>>  
+>> diff --git a/include/acpi/video.h b/include/acpi/video.h
+>> index ea4c7bbded4d..92f8c4bffefb 100644
+>> --- a/include/acpi/video.h
+>> +++ b/include/acpi/video.h
+>> @@ -22,6 +22,7 @@ extern void acpi_video_unregister(void);
+>>  extern void acpi_video_unregister_backlight(void);
+>>  extern int acpi_video_get_edid(struct acpi_device *device, int type,
+>>  			       int device_id, void **edid);
+>> +extern bool acpi_video_verify_backlight_support(void);
+>>  #else
+>>  static inline int acpi_video_register(void) { return 0; }
+>>  static inline void acpi_video_unregister(void) { return; }
+>> @@ -31,6 +32,7 @@ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+>>  {
+>>  	return -ENODEV;
+>>  }
+>> +static bool acpi_video_verify_backlight_support() { return false; }
+> 
+> And for this not to be static inline?
+
+Will add inline.
+
+Thanks for the review.
+
+-Aaron
+
+> 
+>>  #endif
+>>  
+>>  #endif
+>>
 > 
 > Rafael
 > 
-
 
