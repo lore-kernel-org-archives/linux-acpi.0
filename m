@@ -1,77 +1,108 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 04/25] ACPICA: Utilities: Add support to read table from files.
-Date: Tue,  8 Jul 2014 10:06:12 +0800
-Message-ID: <b74e3bd3e4177da23887c161758dc90c8f76f836.1404277202.git.lv.zheng@intel.com>
+Subject: [PATCH 10/25] ACPICA: OSL: Add portable file IO to improve portability.
+Date: Tue,  8 Jul 2014 10:06:53 +0800
+Message-ID: <77a84c00ab68d39da6f3b32ba55d934c17464834.1404277202.git.lv.zheng@intel.com>
 References: <cover.1404277202.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:64788 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:10820 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752670AbaGHCHG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2014 22:07:06 -0400
+	id S1752670AbaGHCHH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2014 22:07:07 -0400
 In-Reply-To: <cover.1404277202.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-This patch is only useful for ACPICA applications, most of which are not
-shipped in the Linux kernel.
-After the new table reading utility functions are well tested, acpidump can
-also switch to use the generic acpi_ut_read_table_xxx() APIs. Currently
-this patch is no-op as acpidump does not link to the new APIs.
+This patch adds portable file IO to generic OSL to improve the portability
+of the applications.
+
+A portable application may use different file IO interfaces than the
+standard C library ones. This patch thus introduces an abstract file IO
+layer into the generic OSL.
+
+Note that this patch does not introduce users of such interfaces, further
+patches should introduce users one by one carefully with build tests
+performed. Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acdebug.h  |    3 -
- drivers/acpi/acpica/acutils.h  |    8 +
- drivers/acpi/acpica/utfileio.c |  337 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 345 insertions(+), 3 deletions(-)
- create mode 100644 drivers/acpi/acpica/utfileio.c
+ include/acpi/acpiosxf.h                            |   31 +++
+ include/acpi/actypes.h                             |    9 +
+ .../acpi/os_specific/service_layers/oslibcfs.c     |  214 ++++++++++++++++++++
+ 3 files changed, 254 insertions(+)
+ create mode 100644 tools/power/acpi/os_specific/service_layers/oslibcfs.c
 
-Index: linux-acpica/drivers/acpi/acpica/acdebug.h
-===================================================================
---- linux-acpica.orig/drivers/acpi/acpica/acdebug.h
-+++ linux-acpica/drivers/acpi/acpica/acdebug.h
-@@ -233,9 +233,6 @@ acpi_status acpi_db_load_acpi_table(char
- acpi_status
- acpi_db_get_table_from_file(char *filename, struct acpi_table_header **table);
+diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+index f6f5f8a..03b3e6d 100644
+--- a/include/acpi/acpiosxf.h
++++ b/include/acpi/acpiosxf.h
+@@ -399,4 +399,35 @@ char *acpi_os_get_next_filename(void *dir_handle);
+ void acpi_os_close_directory(void *dir_handle);
+ #endif
  
--acpi_status
--acpi_db_read_table_from_file(char *filename, struct acpi_table_header **table);
--
- /*
-  * dbhistry - debugger HISTORY command
-  */
-Index: linux-acpica/drivers/acpi/acpica/acutils.h
-===================================================================
---- linux-acpica.orig/drivers/acpi/acpica/acutils.h
-+++ linux-acpica/drivers/acpi/acpica/acutils.h
-@@ -394,6 +394,14 @@ acpi_ut_execute_power_methods(struct acp
- 			      u8 method_count, u8 *out_values);
- 
- /*
-+ * utfileio - file operations
++/*
++ * File I/O and related support
 + */
-+#ifdef ACPI_APPLICATION
-+acpi_status
-+acpi_ut_read_table_from_file(char *filename, struct acpi_table_header **table);
++#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_open_file
++ACPI_FILE acpi_os_open_file(const char *path, u8 modes);
 +#endif
 +
-+/*
-  * utids - device ID support
-  */
- acpi_status
-Index: linux-acpica/drivers/acpi/acpica/utfileio.c
-===================================================================
++#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_close_file
++void acpi_os_close_file(ACPI_FILE file);
++#endif
++
++#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_read_file
++int
++acpi_os_read_file(ACPI_FILE file,
++		  void *buffer, acpi_size size, acpi_size count);
++#endif
++
++#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_write_file
++int
++acpi_os_write_file(ACPI_FILE file,
++		   void *buffer, acpi_size size, acpi_size count);
++#endif
++
++#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_file_offset
++long acpi_os_get_file_offset(ACPI_FILE file);
++#endif
++
++#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_set_file_offset
++acpi_status acpi_os_set_file_offset(ACPI_FILE file, long offset, u8 from);
++#endif
++
+ #endif				/* __ACPIOSXF_H__ */
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 19b26bb..5480209 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -1244,4 +1244,13 @@ struct acpi_memory_list {
+ #define ACPI_OSI_WIN_7                  0x0B
+ #define ACPI_OSI_WIN_8                  0x0C
+ 
++/* Definitions of file IO */
++
++#define ACPI_FILE_READING               0x01
++#define ACPI_FILE_WRITING               0x02
++#define ACPI_FILE_BINARY                0x04
++
++#define ACPI_FILE_BEGIN                 0x01
++#define ACPI_FILE_END                   0x02
++
+ #endif				/* __ACTYPES_H__ */
+diff --git a/tools/power/acpi/os_specific/service_layers/oslibcfs.c b/tools/power/acpi/os_specific/service_layers/oslibcfs.c
+new file mode 100644
+index 0000000..2da0ce8
 --- /dev/null
-+++ linux-acpica/drivers/acpi/acpica/utfileio.c
-@@ -0,0 +1,337 @@
-+/*******************************************************************************
++++ b/tools/power/acpi/os_specific/service_layers/oslibcfs.c
+@@ -0,0 +1,214 @@
++/******************************************************************************
 + *
-+ * Module Name: utfileio - simple file I/O routines
++ * Module Name: oslibcfs - C library OSL for file IO
 + *
-+ ******************************************************************************/
++ *****************************************************************************/
 +
 +/*
 + * Copyright (C) 2000 - 2014, Intel Corp.
@@ -111,307 +142,176 @@ Index: linux-acpica/drivers/acpi/acpica/utfileio.c
 + */
 +
 +#include <acpi/acpi.h>
-+#include "accommon.h"
-+#include "actables.h"
-+#include "acapps.h"
++#include <stdio.h>
++#include <stdarg.h>
 +
-+#ifdef ACPI_ASL_COMPILER
-+#include "aslcompiler.h"
-+#endif
-+
-+#define _COMPONENT          ACPI_CA_DEBUGGER
-+ACPI_MODULE_NAME("utfileio")
-+
-+#ifdef ACPI_APPLICATION
-+/* Local prototypes */
-+static acpi_status
-+acpi_ut_check_text_mode_corruption(u8 *table,
-+				   u32 table_length, u32 file_length);
-+
-+static acpi_status
-+acpi_ut_read_table(FILE * fp,
-+		   struct acpi_table_header **table, u32 *table_length);
++#define _COMPONENT          ACPI_OS_SERVICES
++ACPI_MODULE_NAME("oslibcfs")
 +
 +/*******************************************************************************
 + *
-+ * FUNCTION:    acpi_ut_check_text_mode_corruption
++ * FUNCTION:    acpi_os_open_file
 + *
-+ * PARAMETERS:  table           - Table buffer
-+ *              table_length    - Length of table from the table header
-+ *              file_length     - Length of the file that contains the table
++ * PARAMETERS:  path                - File path
++ *              modes               - File operation type
 + *
-+ * RETURN:      Status
++ * RETURN:      File descriptor.
 + *
-+ * DESCRIPTION: Check table for text mode file corruption where all linefeed
-+ *              characters (LF) have been replaced by carriage return linefeed
-+ *              pairs (CR/LF).
++ * DESCRIPTION: Open a file for reading (ACPI_FILE_READING) or/and writing
++ *              (ACPI_FILE_WRITING).
 + *
 + ******************************************************************************/
-+
-+static acpi_status
-+acpi_ut_check_text_mode_corruption(u8 *table, u32 table_length, u32 file_length)
++ACPI_FILE acpi_os_open_file(const char *path, u8 modes)
 +{
-+	u32 i;
-+	u32 pairs = 0;
++	ACPI_FILE file;
++	char modes_str[4];
++	u32 i = 0;
 +
-+	if (table_length != file_length) {
-+		ACPI_WARNING((AE_INFO,
-+			      "File length (0x%X) is not the same as the table length (0x%X)",
-+			      file_length, table_length));
++	if (modes & ACPI_FILE_READING) {
++		modes_str[i++] = 'r';
 +	}
-+
-+	/* Scan entire table to determine if each LF has been prefixed with a CR */
-+
-+	for (i = 1; i < file_length; i++) {
-+		if (table[i] == 0x0A) {
-+			if (table[i - 1] != 0x0D) {
-+
-+				/* The LF does not have a preceding CR, table not corrupted */
-+
-+				return (AE_OK);
-+			} else {
-+				/* Found a CR/LF pair */
-+
-+				pairs++;
-+			}
-+			i++;
-+		}
++	if (modes & ACPI_FILE_WRITING) {
++		modes_str[i++] = 'w';
 +	}
-+
-+	if (!pairs) {
-+		return (AE_OK);
++	if (modes & ACPI_FILE_BINARY) {
++		modes_str[i++] = 'b';
 +	}
++	modes_str[i++] = '\0';
 +
-+	/*
-+	 * Entire table scanned, each CR is part of a CR/LF pair --
-+	 * meaning that the table was treated as a text file somewhere.
-+	 *
-+	 * NOTE: We can't "fix" the table, because any existing CR/LF pairs in the
-+	 * original table are left untouched by the text conversion process --
-+	 * meaning that we cannot simply replace CR/LF pairs with LFs.
-+	 */
-+	acpi_os_printf("Table has been corrupted by text mode conversion\n");
-+	acpi_os_printf("All LFs (%u) were changed to CR/LF pairs\n", pairs);
-+	acpi_os_printf("Table cannot be repaired!\n");
-+	return (AE_BAD_VALUE);
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_read_table
-+ *
-+ * PARAMETERS:  fp              - File that contains table
-+ *              table           - Return value, buffer with table
-+ *              table_length    - Return value, length of table
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Load the DSDT from the file pointer
-+ *
-+ ******************************************************************************/
-+
-+static acpi_status
-+acpi_ut_read_table(FILE * fp,
-+		   struct acpi_table_header **table, u32 *table_length)
-+{
-+	struct acpi_table_header table_header;
-+	u32 actual;
-+	acpi_status status;
-+	u32 file_size;
-+	u8 standard_header = TRUE;
-+
-+	/* Get the file size */
-+
-+	file_size = cm_get_file_size(fp);
-+	if (file_size == ACPI_UINT32_MAX) {
-+		return (AE_ERROR);
-+	}
-+
-+	if (file_size < 4) {
-+		return (AE_BAD_HEADER);
-+	}
-+
-+	/* Read the signature */
-+
-+	if (fread(&table_header, 1, 4, fp) != 4) {
-+		acpi_os_printf("Could not read the table signature\n");
-+		return (AE_BAD_HEADER);
-+	}
-+
-+	fseek(fp, 0, SEEK_SET);
-+
-+	/* The RSDP table does not have standard ACPI header */
-+
-+	if (ACPI_COMPARE_NAME(table_header.signature, "RSD ")) {
-+		*table_length = file_size;
-+		standard_header = FALSE;
-+	} else {
-+		/* Read the table header */
-+
-+		if (fread
-+		    (&table_header, 1, sizeof(struct acpi_table_header),
-+		     fp) != sizeof(struct acpi_table_header)) {
-+			acpi_os_printf("Could not read the table header\n");
-+			return (AE_BAD_HEADER);
-+		}
-+#if 0
-+		/* Validate the table header/length */
-+
-+		status = acpi_tb_validate_table_header(&table_header);
-+		if (ACPI_FAILURE(status)) {
-+			acpi_os_printf("Table header is invalid!\n");
-+			return (status);
-+		}
-+#endif
-+
-+		/* File size must be at least as long as the Header-specified length */
-+
-+		if (table_header.length > file_size) {
-+			acpi_os_printf
-+			    ("TableHeader length [0x%X] greater than the input file size [0x%X]\n",
-+			     table_header.length, file_size);
-+
-+#ifdef ACPI_ASL_COMPILER
-+			status = fl_check_for_ascii(fp, NULL, FALSE);
-+			if (ACPI_SUCCESS(status)) {
-+				acpi_os_printf
-+				    ("File appears to be ASCII only, must be binary\n",
-+				     table_header.length, file_size);
-+			}
-+#endif
-+			return (AE_BAD_HEADER);
-+		}
-+#ifdef ACPI_OBSOLETE_CODE
-+		/* We only support a limited number of table types */
-+
-+		if (!ACPI_COMPARE_NAME
-+		    ((char *)table_header.signature, ACPI_SIG_DSDT)
-+		    && !ACPI_COMPARE_NAME((char *)table_header.signature,
-+					  ACPI_SIG_PSDT)
-+		    && !ACPI_COMPARE_NAME((char *)table_header.signature,
-+					  ACPI_SIG_SSDT)) {
-+			acpi_os_printf
-+			    ("Table signature [%4.4s] is invalid or not supported\n",
-+			     (char *)table_header.signature);
-+			ACPI_DUMP_BUFFER(&table_header,
-+					 sizeof(struct acpi_table_header));
-+			return (AE_ERROR);
-+		}
-+#endif
-+
-+		*table_length = table_header.length;
-+	}
-+
-+	/* Allocate a buffer for the table */
-+
-+	*table = acpi_os_allocate((size_t) file_size);
-+	if (!*table) {
-+		acpi_os_printf
-+		    ("Could not allocate memory for ACPI table %4.4s (size=0x%X)\n",
-+		     table_header.signature, *table_length);
-+		return (AE_NO_MEMORY);
-+	}
-+
-+	/* Get the rest of the table */
-+
-+	fseek(fp, 0, SEEK_SET);
-+	actual = fread(*table, 1, (size_t) file_size, fp);
-+	if (actual == file_size) {
-+		if (standard_header) {
-+
-+			/* Now validate the checksum */
-+
-+			status = acpi_tb_verify_checksum((void *)*table,
-+							 ACPI_CAST_PTR(struct
-+								       acpi_table_header,
-+								       *table)->
-+							 length);
-+
-+			if (status == AE_BAD_CHECKSUM) {
-+				status =
-+				    acpi_ut_check_text_mode_corruption((u8 *)
-+								       *table,
-+								       file_size,
-+								       (*table)->
-+								       length);
-+				return (status);
-+			}
-+		}
-+		return (AE_OK);
-+	}
-+
-+	if (actual > 0) {
-+		acpi_os_printf("Warning - reading table, asked for %X got %X\n",
-+			       file_size, actual);
-+		return (AE_OK);
-+	}
-+
-+	acpi_os_printf("Error - could not read the table file\n");
-+	acpi_os_free(*table);
-+	*table = NULL;
-+	*table_length = 0;
-+	return (AE_ERROR);
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_read_table_from_file
-+ *
-+ * PARAMETERS:  filename         - File where table is located
-+ *              table            - Where a pointer to the table is returned
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Get an ACPI table from a file
-+ *
-+ ******************************************************************************/
-+
-+acpi_status
-+acpi_ut_read_table_from_file(char *filename, struct acpi_table_header ** table)
-+{
-+	FILE *file;
-+	u32 file_size;
-+	u32 table_length;
-+	acpi_status status = AE_ERROR;
-+
-+	/* Open the file, get current size */
-+
-+	file = fopen(filename, "rb");
++	file = fopen(path, modes_str);
 +	if (!file) {
-+		perror("Could not open input file");
-+		return (status);
++		perror("Could not open file");
 +	}
 +
-+	file_size = cm_get_file_size(file);
-+	if (file_size == ACPI_UINT32_MAX) {
-+		goto exit;
-+	}
-+
-+	/* Get the entire file */
-+
-+	fprintf(stderr,
-+		"Loading Acpi table from file %10s - Length %.8u (%06X)\n",
-+		filename, file_size, file_size);
-+
-+	status = acpi_ut_read_table(file, table, &table_length);
-+	if (ACPI_FAILURE(status)) {
-+		acpi_os_printf("Could not get table from the file\n");
-+	}
-+
-+exit:
-+	fclose(file);
-+	return (status);
++	return (file);
 +}
 +
-+#endif
-Index: linux-acpica/drivers/acpi/acpica/Makefile
-===================================================================
---- linux-acpica.orig/drivers/acpi/acpica/Makefile
-+++ linux-acpica/drivers/acpi/acpica/Makefile
-@@ -175,5 +175,5 @@ acpi-y +=		\
- 	utxferror.o	\
- 	utxfmutex.o
- 
--acpi-$(ACPI_FUTURE_USAGE) += uttrack.o utcache.o
-+acpi-$(ACPI_FUTURE_USAGE) += utfileio.o uttrack.o utcache.o
- 
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_os_close_file
++ *
++ * PARAMETERS:  file                - File descriptor
++ *
++ * RETURN:      None.
++ *
++ * DESCRIPTION: Close a file.
++ *
++ ******************************************************************************/
++
++void acpi_os_close_file(ACPI_FILE file)
++{
++	fclose(file);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_os_read_file
++ *
++ * PARAMETERS:  file                - File descriptor
++ *              buffer              - Data buffer
++ *              size                - Data block size
++ *              count               - Number of data blocks
++ *
++ * RETURN:      Size of successfully read buffer.
++ *
++ * DESCRIPTION: Read a file.
++ *
++ ******************************************************************************/
++
++int
++acpi_os_read_file(ACPI_FILE file, void *buffer, acpi_size size, acpi_size count)
++{
++	int length;
++
++	length = fread(buffer, size, count, file);
++	if (length < 0) {
++		perror("Error reading file");
++	}
++
++	return (length);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_os_write_file
++ *
++ * PARAMETERS:  file                - File descriptor
++ *              buffer              - Data buffer
++ *              size                - Data block size
++ *              count               - Number of data blocks
++ *
++ * RETURN:      Size of successfully written buffer.
++ *
++ * DESCRIPTION: Write a file.
++ *
++ ******************************************************************************/
++
++int
++acpi_os_write_file(ACPI_FILE file,
++		   void *buffer, acpi_size size, acpi_size count)
++{
++	int length;
++
++	length = fwrite(buffer, size, count, file);
++	if (length < 0) {
++		perror("Error writing file");
++	}
++
++	return (length);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_os_get_file_offset
++ *
++ * PARAMETERS:  file                - File descriptor
++ *
++ * RETURN:      Size of current position.
++ *
++ * DESCRIPTION: Get current file offset.
++ *
++ ******************************************************************************/
++
++long acpi_os_get_file_offset(ACPI_FILE file)
++{
++	long offset;
++
++	offset = ftell(file);
++
++	return (offset);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_os_set_file_offset
++ *
++ * PARAMETERS:  file                - File descriptor
++ *              offset              - File offset
++ *              from                - From begin/end of file
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Set current file offset.
++ *
++ ******************************************************************************/
++
++acpi_status acpi_os_set_file_offset(ACPI_FILE file, long offset, u8 from)
++{
++	int ret = 0;
++
++	if (from == ACPI_FILE_BEGIN) {
++		ret = fseek(file, offset, SEEK_SET);
++	}
++	if (from == ACPI_FILE_END) {
++		ret = fseek(file, offset, SEEK_END);
++	}
++
++	if (ret < 0) {
++		return (AE_ERROR);
++	} else {
++		return (AE_OK);
++	}
++}
+-- 
+1.7.10
+
