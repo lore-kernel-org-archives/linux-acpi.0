@@ -1,89 +1,130 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 13/25] ACPICA: Application: Enhance ACPI_USAGE_xxx/ACPI_OPTION with acpi_os_printf() to improve portability.
-Date: Tue,  8 Jul 2014 10:07:13 +0800
-Message-ID: <c010a2a4f5afffd4e74c1743129afc45dbcea5f8.1404277202.git.lv.zheng@intel.com>
+Subject: [PATCH 14/25] ACPICA: Common: Enhance cm_get_file_size() to improve portability.
+Date: Tue,  8 Jul 2014 10:07:19 +0800
+Message-ID: <fe7fba54a6d27178700b48bd4f652d4db15b26a4.1404277202.git.lv.zheng@intel.com>
 References: <cover.1404277202.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:20021 "EHLO mga14.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:50515 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752721AbaGHCHR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2014 22:07:17 -0400
+	id S1752721AbaGHCHX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2014 22:07:23 -0400
 In-Reply-To: <cover.1404277202.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-This patch enhances ACPI_USAGE_xxx/ACPI_OPTION macros to use portable
-acpi_os_printf() so that usage functions for applications no longer rely on
-the printf() API.
+This patch uses abstract file IO and acpi_log_error() APIs to enhance
+cm_get_file_size() so that applications that invoke this API could have
+portability improved.
 
-To use acpi_os_printf() exported by osunixxf.c as a replacement of
-printf(), applications need to initialize acpi_gbl_output_file to stdout
-and initialize acpi_gbl_db_output_flags to ACPI_DB_CONSOLE_OUTPUT. The
-latter is automatically done by ACPI_INIT_GLOBAL(), applications need to
-link utglobal.o to utilize this mechanism. For GCC, assigning stdout to
-acpi_gbl_output_file using ACPI_INIT_GLOBAL() is not possible as stdout is
-not a constant in GCC environment. As an alternative solution, stdout
-assignment has been put into acpi_os_initialize(). Thus
-acpi_os_initialize() need to be invoked very early by the applications to
-initialize the default output of acpi_os_printf() to keep behavior
-consistency.
-acpidump has already invoked acpi_os_initialize() in this way. Lv Zheng.
+With actual references added to abstract file IO and acpi_log_error(), the
+applications need to link oslibcfs.o, utdebug.o, utexcep.o, utmath.o,
+utprint.o and utxferror.o.
+It is also required to add acpi_os_initialize() invocations if an
+application starts to use acpi_log_error().
+acpidump has already invoked acpi_os_initialize() in this way.  Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acapps.h             |    7 +++++--
- tools/power/acpi/tools/acpidump/apmain.c |    8 ++++----
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/acpi/acpica/acapps.h      |    2 +-
+ tools/power/acpi/Makefile         |    3 +++
+ tools/power/acpi/common/cmfsize.c |   20 +++++++++++---------
+ 3 files changed, 15 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/acpi/acpica/acapps.h b/drivers/acpi/acpica/acapps.h
-index 8698ffb..5bf41f8 100644
+index 5bf41f8..3d2c882 100644
 --- a/drivers/acpi/acpica/acapps.h
 +++ b/drivers/acpi/acpica/acapps.h
-@@ -79,10 +79,13 @@
- /* Macros for usage messages */
+@@ -105,7 +105,7 @@ extern char *acpi_gbl_optarg;
+ /*
+  * cmfsize - Common get file size function
+  */
+-u32 cm_get_file_size(FILE * file);
++u32 cm_get_file_size(ACPI_FILE file);
  
- #define ACPI_USAGE_HEADER(usage) \
--	printf ("Usage: %s\nOptions:\n", usage);
-+	acpi_os_printf ("Usage: %s\nOptions:\n", usage);
-+
-+#define ACPI_USAGE_TEXT(description) \
-+	acpi_os_printf (description);
+ #ifndef ACPI_DUMP_APP
+ /*
+diff --git a/tools/power/acpi/Makefile b/tools/power/acpi/Makefile
+index f88a251..3d1537b 100644
+--- a/tools/power/acpi/Makefile
++++ b/tools/power/acpi/Makefile
+@@ -112,11 +112,14 @@ DUMP_OBJS = \
+ 	tbprint.o\
+ 	tbxfroot.o\
+ 	utbuffer.o\
++	utdebug.o\
+ 	utexcep.o\
+ 	utglobal.o\
+ 	utmath.o\
++	utprint.o\
+ 	utstring.o\
+ 	utxferror.o\
++	oslibcfs.o\
+ 	oslinuxtbl.o\
+ 	cmfsize.o\
+ 	getopt.o
+diff --git a/tools/power/acpi/common/cmfsize.c b/tools/power/acpi/common/cmfsize.c
+index 5140e5e..f4b9533 100644
+--- a/tools/power/acpi/common/cmfsize.c
++++ b/tools/power/acpi/common/cmfsize.c
+@@ -58,44 +58,46 @@ ACPI_MODULE_NAME("cmfsize")
+  * RETURN:      File Size. On error, -1 (ACPI_UINT32_MAX)
+  *
+  * DESCRIPTION: Get the size of a file. Uses seek-to-EOF. File must be open.
+- *              Does not disturb the current file pointer. Uses perror for
+- *              error messages.
++ *              Does not disturb the current file pointer.
+  *
+  ******************************************************************************/
+-u32 cm_get_file_size(FILE * file)
++u32 cm_get_file_size(ACPI_FILE file)
+ {
+ 	long file_size;
+ 	long current_offset;
++	acpi_status status;
  
- #define ACPI_OPTION(name, description) \
--	printf ("  %-18s%s\n", name, description);
-+	acpi_os_printf (" %-18s%s\n", name, description);
+ 	/* Save the current file pointer, seek to EOF to obtain file size */
  
- #define FILE_SUFFIX_DISASSEMBLY     "dsl"
- #define ACPI_TABLE_FILE_SUFFIX      ".dat"
-diff --git a/tools/power/acpi/tools/acpidump/apmain.c b/tools/power/acpi/tools/acpidump/apmain.c
-index c03e473..2a06a86 100644
---- a/tools/power/acpi/tools/acpidump/apmain.c
-+++ b/tools/power/acpi/tools/acpidump/apmain.c
-@@ -104,7 +104,7 @@ static void ap_display_usage(void)
- 	ACPI_OPTION("-v", "Display version information");
- 	ACPI_OPTION("-z", "Verbose mode");
+-	current_offset = ftell(file);
++	current_offset = acpi_os_get_file_offset(file);
+ 	if (current_offset < 0) {
+ 		goto offset_error;
+ 	}
  
--	printf("\nTable Options:\n");
-+	ACPI_USAGE_TEXT("\nTable Options:\n");
+-	if (fseek(file, 0, SEEK_END)) {
++	status = acpi_os_set_file_offset(file, 0, ACPI_FILE_END);
++	if (ACPI_FAILURE(status)) {
+ 		goto seek_error;
+ 	}
  
- 	ACPI_OPTION("-a <Address>", "Get table via a physical address");
- 	ACPI_OPTION("-f <BinaryFile>", "Get table via a binary file");
-@@ -112,9 +112,9 @@ static void ap_display_usage(void)
- 	ACPI_OPTION("-x", "Do not use but dump XSDT");
- 	ACPI_OPTION("-x -x", "Do not use or dump XSDT");
+-	file_size = ftell(file);
++	file_size = acpi_os_get_file_offset(file);
+ 	if (file_size < 0) {
+ 		goto offset_error;
+ 	}
  
--	printf("\n"
--	       "Invocation without parameters dumps all available tables\n"
--	       "Multiple mixed instances of -a, -f, and -n are supported\n\n");
-+	ACPI_USAGE_TEXT("\n"
-+			"Invocation without parameters dumps all available tables\n"
-+			"Multiple mixed instances of -a, -f, and -n are supported\n\n");
+ 	/* Restore original file pointer */
+ 
+-	if (fseek(file, current_offset, SEEK_SET)) {
++	status = acpi_os_set_file_offset(file, current_offset, ACPI_FILE_BEGIN);
++	if (ACPI_FAILURE(status)) {
+ 		goto seek_error;
+ 	}
+ 
+ 	return ((u32)file_size);
+ 
+ offset_error:
+-	perror("Could not get file offset");
++	acpi_log_error("Could not get file offset");
+ 	return (ACPI_UINT32_MAX);
+ 
+ seek_error:
+-	perror("Could not seek file");
++	acpi_log_error("Could not set file offset");
+ 	return (ACPI_UINT32_MAX);
  }
- 
- /******************************************************************************
 -- 
 1.7.10
 
