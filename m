@@ -1,93 +1,62 @@
 From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [RFC PATCH 1/2] ACPICA: Add acpi_check_gpe_method() to check GPE method
-Date: Tue,  8 Jul 2014 14:57:57 +0800
-Message-ID: <1404802679-24019-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [RFC PATCH 2/2] ACPI/Wakup: Enable button wakeup GPEs if these GPEs have associated GPE methods.
+Date: Tue,  8 Jul 2014 14:57:58 +0800
+Message-ID: <1404802679-24019-2-git-send-email-tianyu.lan@intel.com>
+References: <1404802679-24019-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:24851 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753189AbaGHHAB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Jul 2014 03:00:01 -0400
+In-Reply-To: <1404802679-24019-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This patch is to expose acpi_check_gpe_method() to check whether there
-is a GPE method for the given gpe. Enabling ACPI button devices' gpes
-will depend on the new function's result.
+The button wakeup GPEs are enabled unconditionally in the current world by
+commit 2a5d24(ACPI / Wakeup: Enable button GPEs unconditionally during
+initialization). Because button's GPE methods needs to be run to clear
+GPE status on some machines when there is GPE interrupt. If not, it will
+cause machines resume immediately after being suspended since GPE status
+isn't cleared correctly.
 
+But if there is no GPE method for button wakeup GPE, these GPEs should not
+be enabled since nothing needs to be done when they are triggered and this
+also causes LID GPE storm on Lenovo Ideapad y560p.
+
+This patch is to check Button GPE method and enable it if there is associated
+GPE method.
+
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=61051
+Reported-by: James Tocknell<aragilar@gmail.com>
 Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 ---
- drivers/acpi/acpica/evxface.c | 39 ++++++++++++++++++++++++++++++++++++++-
- include/acpi/acpixf.h         |  3 +++
- 2 files changed, 41 insertions(+), 1 deletion(-)
+ drivers/acpi/wakeup.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
-index 11e5803..0fcb248 100644
---- a/drivers/acpi/acpica/evxface.c
-+++ b/drivers/acpi/acpica/evxface.c
-@@ -717,6 +717,44 @@ ACPI_EXPORT_SYMBOL(acpi_remove_fixed_event_handler)
- 
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_check_gpe_method
-+ *
-+ * PARAMETERS:  gpe_device      - Namespace node for the GPE (NULL for FADT
-+ *                                defined GPEs)
-+ *              gpe_number      - The event to remove a handler
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Check whether the given GPE has associated event method.
-+ *
-+ ******************************************************************************/
-+acpi_status
-+acpi_check_gpe_method(acpi_handle gpe_device, u32 gpe_number)
-+{
-+	struct acpi_gpe_event_info *gpe_event_info;
-+	acpi_status status = AE_NOT_EXIST;
-+	acpi_cpu_flags flags;
-+
-+	ACPI_FUNCTION_TRACE(acpi_check_gpe_method);
-+
-+	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
-+	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
-+	if (!gpe_event_info) {
-+		status = AE_ERROR;
-+		goto unlock_and_exit;
-+	}
-+
-+	if (gpe_event_info->flags & ACPI_GPE_DISPATCH_METHOD)
-+		status = AE_OK;
-+
-+unlock_and_exit:
-+	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
-+	return status;
-+}
-+ACPI_EXPORT_SYMBOL(acpi_check_gpe_method)
-+
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_install_gpe_handler
-  *
-  * PARAMETERS:  gpe_device      - Namespace node for the GPE (NULL for FADT
-@@ -821,7 +859,6 @@ free_and_exit:
- 	ACPI_FREE(handler);
- 	goto unlock_and_exit;
- }
--
- ACPI_EXPORT_SYMBOL(acpi_install_gpe_handler)
- 
- /*******************************************************************************
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 35b525c..5b475c6 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -554,6 +554,9 @@ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
- 							  address,
- 							  void *context))
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
-+				acpi_check_gpe_method(acpi_handle gpe_device,
-+							u32 gpe_number))
-+ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
- 				 acpi_remove_gpe_handler(acpi_handle gpe_device,
- 							 u32 gpe_number,
- 							 acpi_gpe_handler
+diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
+index 1638401..5b20ae4 100644
+--- a/drivers/acpi/wakeup.c
++++ b/drivers/acpi/wakeup.c
+@@ -86,9 +86,14 @@ int __init acpi_wakeup_device_init(void)
+ 						       struct acpi_device,
+ 						       wakeup_list);
+ 		if (device_can_wakeup(&dev->dev)) {
+-			/* Button GPEs are supposed to be always enabled. */
+-			acpi_enable_gpe(dev->wakeup.gpe_device,
+-					dev->wakeup.gpe_number);
++			/*
++			 * Button GPEs are supposed to be always enabled if
++			 * they have associated GPE methods.
++			 */
++			if (ACPI_SUCCESS(acpi_check_gpe_method(
++			    dev->wakeup.gpe_device, dev->wakeup.gpe_number)))
++				acpi_enable_gpe(dev->wakeup.gpe_device,
++						dev->wakeup.gpe_number);
+ 			device_set_wakeup_enable(&dev->dev, true);
+ 		}
+ 	}
 -- 
 1.8.4.rc0.1.g8f6a3e5.dirty
+
