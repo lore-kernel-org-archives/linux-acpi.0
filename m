@@ -1,112 +1,105 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3] drm/i915/opregion: ignore firmware requests for backlight change
-Date: Tue, 08 Jul 2014 14:48:53 +0200
-Message-ID: <3611713.jVJeiZUPhg@vostro.rjw.lan>
-References: <53A8E400.5060709@intel.com> <53BA4FB7.5050701@intel.com> <53BBA735.2080700@intel.com>
+Subject: Re: [RFC PATCH 1/2] ACPICA: Add acpi_check_gpe_method() to check GPE method
+Date: Tue, 08 Jul 2014 15:19:40 +0200
+Message-ID: <10899721.ERDUBaimNr@vostro.rjw.lan>
+References: <1404802679-24019-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61743 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754589AbaGHMas (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2014 08:30:48 -0400
-In-Reply-To: <53BBA735.2080700@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1404802679-24019-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Anton Gubarkov <anton.gubarkov@gmail.com>
 
-On Tuesday, July 08, 2014 04:09:25 PM Aaron Lu wrote:
-> Some Thinkpad laptops' firmware will initiate a backlight level change
-> request through operation region on the events of AC plug/unplug, but
-> since we are not using firmware's interface to do the backlight setting
-> on these affected laptops, we do not want the firmware to use some
-> arbitrary value from its ASL variable to set the backlight level on
-> AC plug/unplug either.
+On Tuesday, July 08, 2014 02:57:57 PM Lan Tianyu wrote:
+> This patch is to expose acpi_check_gpe_method() to check whether there
+> is a GPE method for the given gpe. Enabling ACPI button devices' gpes
+> will depend on the new function's result.
 > 
-> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=76491
-> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=77091
-> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
-> Reported-and-tested-by: Anton Gubarkov <anton.gubarkov@gmail.com>
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Acked-by: Jani Nikula <jani.nikula@intel.com>
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 > ---
-> v3:
->   - use EXPORT_SYMBOL_GPL instead of EXPORT_SYMBOL;
->   - add inline to stub
->   as suggested by Rafael.
-
-I've made these two changes already in the commit in my tree.
-
->  drivers/acpi/video.c                  | 3 ++-
->  drivers/gpu/drm/i915/intel_opregion.c | 9 +++++++++
->  include/acpi/video.h                  | 2 ++
->  3 files changed, 13 insertions(+), 1 deletion(-)
+>  drivers/acpi/acpica/evxface.c | 39 ++++++++++++++++++++++++++++++++++++++-
+>  include/acpi/acpixf.h         |  3 +++
+>  2 files changed, 41 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index fb9ffe9adc64..5bb1278e9324 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -241,13 +241,14 @@ static bool acpi_video_use_native_backlight(void)
->  		return use_native_backlight_dmi;
->  }
+> diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
+> index 11e5803..0fcb248 100644
+> --- a/drivers/acpi/acpica/evxface.c
+> +++ b/drivers/acpi/acpica/evxface.c
+> @@ -717,6 +717,44 @@ ACPI_EXPORT_SYMBOL(acpi_remove_fixed_event_handler)
 >  
-> -static bool acpi_video_verify_backlight_support(void)
-> +bool acpi_video_verify_backlight_support(void)
->  {
->  	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
->  	    backlight_device_registered(BACKLIGHT_RAW))
->  		return false;
->  	return acpi_video_backlight_support();
->  }
-> +EXPORT_SYMBOL_GPL(acpi_video_verify_backlight_support);
->  
->  /* backlight device sysfs support */
->  static int acpi_video_get_brightness(struct backlight_device *bd)
-> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
-> index 2e2c71fcc9ed..4f6b53998d79 100644
-> --- a/drivers/gpu/drm/i915/intel_opregion.c
-> +++ b/drivers/gpu/drm/i915/intel_opregion.c
-> @@ -403,6 +403,15 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
->  
->  	DRM_DEBUG_DRIVER("bclp = 0x%08x\n", bclp);
->  
-> +	/*
-> +	 * If the acpi_video interface is not supposed to be used, don't
-> +	 * bother processing backlight level change requests from firmware.
-> +	 */
-> +	if (!acpi_video_verify_backlight_support()) {
-> +		DRM_DEBUG_KMS("opregion backlight request ignored\n");
-> +		return 0;
+>  /*******************************************************************************
+>   *
+> + * FUNCTION:    acpi_check_gpe_method
+> + *
+> + * PARAMETERS:  gpe_device      - Namespace node for the GPE (NULL for FADT
+> + *                                defined GPEs)
+> + *              gpe_number      - The event to remove a handler
+> + *
+> + * RETURN:      Status
+> + *
+> + * DESCRIPTION: Check whether the given GPE has associated event method.
+> + *
+> + ******************************************************************************/
+> +acpi_status
+> +acpi_check_gpe_method(acpi_handle gpe_device, u32 gpe_number)
+
+This should be a boolean routine (ie. returning 0 or 1) called something like
+acpi_gpe_has_method() that will return 1 if there's a method for the given GPE
+and 0 otherwise.
+
+> +{
+> +	struct acpi_gpe_event_info *gpe_event_info;
+> +	acpi_status status = AE_NOT_EXIST;
+> +	acpi_cpu_flags flags;
+> +
+> +	ACPI_FUNCTION_TRACE(acpi_check_gpe_method);
+> +
+> +	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
+> +	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
+> +	if (!gpe_event_info) {
+> +		status = AE_ERROR;
+> +		goto unlock_and_exit;
 > +	}
 > +
->  	if (!(bclp & ASLE_BCLP_VALID))
->  		return ASLC_BACKLIGHT_FAILED;
->  
-> diff --git a/include/acpi/video.h b/include/acpi/video.h
-> index ea4c7bbded4d..3d0bf9cd88c9 100644
-> --- a/include/acpi/video.h
-> +++ b/include/acpi/video.h
-> @@ -22,6 +22,7 @@ extern void acpi_video_unregister(void);
->  extern void acpi_video_unregister_backlight(void);
->  extern int acpi_video_get_edid(struct acpi_device *device, int type,
->  			       int device_id, void **edid);
-> +extern bool acpi_video_verify_backlight_support(void);
->  #else
->  static inline int acpi_video_register(void) { return 0; }
->  static inline void acpi_video_unregister(void) { return; }
-> @@ -31,6 +32,7 @@ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
->  {
->  	return -ENODEV;
+> +	if (gpe_event_info->flags & ACPI_GPE_DISPATCH_METHOD)
+> +		status = AE_OK;
+> +
+> +unlock_and_exit:
+> +	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
+> +	return status;
+> +}
+> +ACPI_EXPORT_SYMBOL(acpi_check_gpe_method)
+> +
+> +/*******************************************************************************
+> + *
+>   * FUNCTION:    acpi_install_gpe_handler
+>   *
+>   * PARAMETERS:  gpe_device      - Namespace node for the GPE (NULL for FADT
+> @@ -821,7 +859,6 @@ free_and_exit:
+>  	ACPI_FREE(handler);
+>  	goto unlock_and_exit;
 >  }
-> +static inline bool acpi_video_verify_backlight_support() { return false; }
-
-And here you need acpi_video_verify_backlight_support(void) (fixed up too).
-
->  #endif
+> -
+>  ACPI_EXPORT_SYMBOL(acpi_install_gpe_handler)
 >  
->  #endif
+>  /*******************************************************************************
+> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+> index 35b525c..5b475c6 100644
+> --- a/include/acpi/acpixf.h
+> +++ b/include/acpi/acpixf.h
+> @@ -554,6 +554,9 @@ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+>  							  address,
+>  							  void *context))
+>  ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+> +				acpi_check_gpe_method(acpi_handle gpe_device,
+> +							u32 gpe_number))
+> +ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+>  				 acpi_remove_gpe_handler(acpi_handle gpe_device,
+>  							 u32 gpe_number,
+>  							 acpi_gpe_handler
 > 
 
 -- 
