@@ -1,108 +1,77 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 11/25] ACPICA: Utilities: Add formatted printing APIs.
-Date: Tue,  8 Jul 2014 10:07:00 +0800
-Message-ID: <969f46bb9a5753c5efc5002a1a60f5d286457cb8.1404277202.git.lv.zheng@intel.com>
+Subject: [PATCH 04/25] ACPICA: Utilities: Add support to read table from files.
+Date: Tue,  8 Jul 2014 10:06:12 +0800
+Message-ID: <b74e3bd3e4177da23887c161758dc90c8f76f836.1404277202.git.lv.zheng@intel.com>
 References: <cover.1404277202.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:50462 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:64788 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752630AbaGHCHE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Jul 2014 22:07:04 -0400
+	id S1752670AbaGHCHG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Jul 2014 22:07:06 -0400
 In-Reply-To: <cover.1404277202.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-This patch introduces formatted printing APIs to handle ACPICA specific
-formatted print requirements. Currently only specific OSPMs will use this
-customized printing support, Linux kernel doesn't use these APIs at this
-time. It will be enabled for Linux kernel resident ACPICA after being well
-tested. So currently this patch is a no-op.
-
-The specific formatted printing APIs are useful to ACPICA as:
-1. Some portable applications do not link standard C library, so they
-   cannot use standard formatted print APIs directly.
-2. Platform specific printing format may differ and thus not portable, for
-   example, u64 is %ull for Linux kernel and is %uI64 for some MSVC
-   versions.
-3. Platform specific printing format may conflict with ACPICA's usages
-   while it is not possible for ACPICA developers to test their code for
-   all platforms. For example, developers may generate %pRxxx while Linux
-   kernel treats %pR as structured resource printing and decodes variable
-   argument as a "struct resource" pointer.
-This patch solves above issues by introducing the new APIs.
-
-Note that users of such APIs are not introduced in this patch. Users of
-acpi_os_file_vprintf()/acpi_ut_file_printf() need to invoke acpi_os_initialize(),
-this should be taken care by the further patches where such users are
-introduced. Lv Zheng.
+This patch is only useful for ACPICA applications, most of which are not
+shipped in the Linux kernel.
+After the new table reading utility functions are well tested, acpidump can
+also switch to use the generic acpi_ut_read_table_xxx() APIs. Currently
+this patch is no-op as acpidump does not link to the new APIs.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h                     |    5 +
- drivers/acpi/acpica/acutils.h                      |   19 +
- drivers/acpi/acpica/utprint.c                      |  649 ++++++++++++++++++++
- include/acpi/actypes.h                             |    1 +
- .../acpi/os_specific/service_layers/osunixxf.c     |    7 +
- 5 files changed, 681 insertions(+)
- create mode 100644 drivers/acpi/acpica/utprint.c
+ drivers/acpi/acpica/acdebug.h  |    3 -
+ drivers/acpi/acpica/acutils.h  |    8 +
+ drivers/acpi/acpica/utfileio.c |  337 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 345 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/acpi/acpica/utfileio.c
 
-Index: linux-acpica/drivers/acpi/acpica/acglobal.h
+Index: linux-acpica/drivers/acpi/acpica/acdebug.h
 ===================================================================
---- linux-acpica.orig/drivers/acpi/acpica/acglobal.h
-+++ linux-acpica/drivers/acpi/acpica/acglobal.h
-@@ -364,6 +364,11 @@ ACPI_GLOBAL(u32, acpi_gbl_num_objects);
- ACPI_INIT_GLOBAL(ACPI_FILE, acpi_gbl_debug_file, NULL);
- ACPI_INIT_GLOBAL(ACPI_FILE, acpi_gbl_output_file, NULL);
+--- linux-acpica.orig/drivers/acpi/acpica/acdebug.h
++++ linux-acpica/drivers/acpi/acpica/acdebug.h
+@@ -233,9 +233,6 @@ acpi_status acpi_db_load_acpi_table(char
+ acpi_status
+ acpi_db_get_table_from_file(char *filename, struct acpi_table_header **table);
  
-+/* Print buffer */
-+
-+ACPI_GLOBAL(acpi_spinlock, acpi_gbl_print_lock);	/* For print buffer */
-+ACPI_GLOBAL(char, acpi_gbl_print_buffer[1024]);
-+
- #endif				/* ACPI_APPLICATION */
- 
- /*****************************************************************************
+-acpi_status
+-acpi_db_read_table_from_file(char *filename, struct acpi_table_header **table);
+-
+ /*
+  * dbhistry - debugger HISTORY command
+  */
 Index: linux-acpica/drivers/acpi/acpica/acutils.h
 ===================================================================
 --- linux-acpica.orig/drivers/acpi/acpica/acutils.h
 +++ linux-acpica/drivers/acpi/acpica/acutils.h
-@@ -750,4 +750,23 @@ const struct ah_predefined_name *acpi_ah
+@@ -394,6 +394,14 @@ acpi_ut_execute_power_methods(struct acp
+ 			      u8 method_count, u8 *out_values);
  
- const struct ah_device_id *acpi_ah_match_hardware_id(char *hid);
- 
-+/*
-+ * utprint - printf/vprintf output functions
+ /*
++ * utfileio - file operations
 + */
-+const char *acpi_ut_scan_number(const char *string, u64 *number_ptr);
-+
-+const char *acpi_ut_print_number(char *string, u64 number);
-+
-+int
-+acpi_ut_vsnprintf(char *string,
-+		  acpi_size size, const char *format, va_list args);
-+
-+int acpi_ut_snprintf(char *string, acpi_size size, const char *format, ...);
-+
 +#ifdef ACPI_APPLICATION
-+int acpi_ut_file_vprintf(ACPI_FILE file, const char *format, va_list args);
-+
-+int acpi_ut_file_printf(ACPI_FILE file, const char *format, ...);
++acpi_status
++acpi_ut_read_table_from_file(char *filename, struct acpi_table_header **table);
 +#endif
 +
- #endif				/* _ACUTILS_H */
-Index: linux-acpica/drivers/acpi/acpica/utprint.c
++/*
+  * utids - device ID support
+  */
+ acpi_status
+Index: linux-acpica/drivers/acpi/acpica/utfileio.c
 ===================================================================
 --- /dev/null
-+++ linux-acpica/drivers/acpi/acpica/utprint.c
-@@ -0,0 +1,649 @@
-+/******************************************************************************
++++ linux-acpica/drivers/acpi/acpica/utfileio.c
+@@ -0,0 +1,337 @@
++/*******************************************************************************
 + *
-+ * Module Name: utprint - Formatted printing routines
++ * Module Name: utfileio - simple file I/O routines
 + *
-+ *****************************************************************************/
++ ******************************************************************************/
 +
 +/*
 + * Copyright (C) 2000 - 2014, Intel Corp.
@@ -143,644 +112,298 @@ Index: linux-acpica/drivers/acpi/acpica/utprint.c
 +
 +#include <acpi/acpi.h>
 +#include "accommon.h"
-+
-+#define _COMPONENT          ACPI_UTILITIES
-+ACPI_MODULE_NAME("utprint")
-+
-+#define ACPI_FORMAT_SIGN            0x01
-+#define ACPI_FORMAT_SIGN_PLUS       0x02
-+#define ACPI_FORMAT_SIGN_PLUS_SPACE 0x04
-+#define ACPI_FORMAT_ZERO            0x08
-+#define ACPI_FORMAT_LEFT            0x10
-+#define ACPI_FORMAT_UPPER           0x20
-+#define ACPI_FORMAT_PREFIX          0x40
-+/* Local prototypes */
-+static acpi_size
-+acpi_ut_bound_string_length(const char *string, acpi_size count);
-+
-+static char *acpi_ut_bound_string_output(char *string, const char *end, char c);
-+
-+static char *acpi_ut_format_number(char *string,
-+				   char *end,
-+				   u64 number,
-+				   u8 base, s32 width, s32 precision, u8 type);
-+
-+static char *acpi_ut_put_number(char *string, u64 number, u8 base, u8 upper);
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_bound_string_length
-+ *
-+ * PARAMETERS:  string              - String with boundary
-+ *              count               - Boundary of the string
-+ *
-+ * RETURN:      Length of the string.
-+ *
-+ * DESCRIPTION: Calculate the length of a string with boundary.
-+ *
-+ ******************************************************************************/
-+
-+static acpi_size
-+acpi_ut_bound_string_length(const char *string, acpi_size count)
-+{
-+	u32 length = 0;
-+
-+	while (*string && count) {
-+		length++;
-+		string++;
-+		count--;
-+	}
-+
-+	return (length);
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_bound_string_output
-+ *
-+ * PARAMETERS:  string              - String with boundary
-+ *              end                 - Boundary of the string
-+ *              c                   - Character to be output to the string
-+ *
-+ * RETURN:      Updated position for next valid character
-+ *
-+ * DESCRIPTION: Output a character into a string with boundary check.
-+ *
-+ ******************************************************************************/
-+
-+static char *acpi_ut_bound_string_output(char *string, const char *end, char c)
-+{
-+
-+	if (string < end) {
-+		*string = c;
-+	}
-+	++string;
-+
-+	return (string);
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_put_number
-+ *
-+ * PARAMETERS:  string              - Buffer to hold reverse-ordered string
-+ *              number              - Integer to be converted
-+ *              base                - Base of the integer
-+ *              upper               - Whether or not using upper cased digits
-+ *
-+ * RETURN:      Updated position for next valid character
-+ *
-+ * DESCRIPTION: Convert an integer into a string, note that, the string holds a
-+ *              reversed ordered number without the trailing zero.
-+ *
-+ ******************************************************************************/
-+
-+static char *acpi_ut_put_number(char *string, u64 number, u8 base, u8 upper)
-+{
-+	const char lower_digits[] = "0123456789abcdef";
-+	const char upper_digits[] = "0123456789ABCDEF";
-+	const char *digits;
-+	u64 digit_index;
-+	char *pos;
-+
-+	pos = string;
-+	digits = upper ? upper_digits : lower_digits;
-+
-+	if (number == 0) {
-+		*(pos++) = '0';
-+	} else {
-+		while (number) {
-+			(void)acpi_ut_divide(number, base, &number,
-+					     &digit_index);
-+			*(pos++) = digits[digit_index];
-+		}
-+	}
-+	/* *(Pos++) = '0'; */
-+
-+	return (pos);
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_scan_number
-+ *
-+ * PARAMETERS:  string              - String buffer
-+ *              number_ptr          - Where the number is returned
-+ *
-+ * RETURN:      Updated position for next valid character
-+ *
-+ * DESCRIPTION: Scan a string for a decimal integer.
-+ *
-+ ******************************************************************************/
-+
-+const char *acpi_ut_scan_number(const char *string, u64 *number_ptr)
-+{
-+	u64 number = 0;
-+
-+	while (ACPI_IS_DIGIT(*string)) {
-+		number *= 10;
-+		number += *(string++) - '0';
-+	}
-+	*number_ptr = number;
-+
-+	return (string);
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_print_number
-+ *
-+ * PARAMETERS:  string              - String buffer
-+ *              number              - The number to be converted
-+ *
-+ * RETURN:      Updated position for next valid character
-+ *
-+ * DESCRIPTION: Print a decimal integer into a string.
-+ *
-+ ******************************************************************************/
-+
-+const char *acpi_ut_print_number(char *string, u64 number)
-+{
-+	char ascii_string[20];
-+	const char *pos1;
-+	char *pos2;
-+
-+	pos1 = acpi_ut_put_number(ascii_string, number, 10, FALSE);
-+	pos2 = string;
-+
-+	while (pos1 != ascii_string) {
-+		*(pos2++) = *(--pos1);
-+	}
-+	*pos2 = 0;
-+
-+	return (string);
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_format_number
-+ *
-+ * PARAMETERS:  string              - String buffer with boundary
-+ *              end                 - Boundary of the string
-+ *              number              - The number to be converted
-+ *              base                - Base of the integer
-+ *              width               - Field width
-+ *              precision           - Precision of the integer
-+ *              type                - Special printing flags
-+ *
-+ * RETURN:      Updated position for next valid character
-+ *
-+ * DESCRIPTION: Print an integer into a string with any base and any precision.
-+ *
-+ ******************************************************************************/
-+
-+static char *acpi_ut_format_number(char *string,
-+				   char *end,
-+				   u64 number,
-+				   u8 base, s32 width, s32 precision, u8 type)
-+{
-+	char sign;
-+	char zero;
-+	u8 need_prefix;
-+	u8 upper;
-+	s32 i;
-+	char reversed_string[66];
-+
-+	/* Perform sanity checks */
-+
-+	if (base < 2 || base > 16) {
-+		return NULL;
-+	}
-+	if (type & ACPI_FORMAT_LEFT) {
-+		type &= ~ACPI_FORMAT_ZERO;
-+	}
-+
-+	need_prefix = ((type & ACPI_FORMAT_PREFIX)
-+		       && base != 10) ? TRUE : FALSE;
-+	upper = (type & ACPI_FORMAT_UPPER) ? TRUE : FALSE;
-+	zero = (type & ACPI_FORMAT_ZERO) ? '0' : ' ';
-+
-+	/* Calculate size according to sign and prefix */
-+
-+	sign = '\0';
-+	if (type & ACPI_FORMAT_SIGN) {
-+		if ((s64) number < 0) {
-+			sign = '-';
-+			number = -(s64) number;
-+			width--;
-+		} else if (type & ACPI_FORMAT_SIGN_PLUS) {
-+			sign = '+';
-+			width--;
-+		} else if (type & ACPI_FORMAT_SIGN_PLUS_SPACE) {
-+			sign = ' ';
-+			width--;
-+		}
-+	}
-+	if (need_prefix) {
-+		width--;
-+		if (base == 16) {
-+			width--;
-+		}
-+	}
-+
-+	/* Generate full string in reverse order */
-+
-+	i = ACPI_PTR_DIFF(acpi_ut_put_number
-+			  (reversed_string, number, base, upper),
-+			  reversed_string);
-+
-+	/* Printing 100 using %2d gives "100", not "00" */
-+
-+	if (i > precision) {
-+		precision = i;
-+	}
-+	width -= precision;
-+
-+	/* Output the string */
-+
-+	if (!(type & (ACPI_FORMAT_ZERO | ACPI_FORMAT_LEFT))) {
-+		while (--width >= 0) {
-+			string = acpi_ut_bound_string_output(string, end, ' ');
-+		}
-+	}
-+	if (sign) {
-+		string = acpi_ut_bound_string_output(string, end, sign);
-+	}
-+	if (need_prefix) {
-+		string = acpi_ut_bound_string_output(string, end, '0');
-+		if (base == 16) {
-+			string = acpi_ut_bound_string_output(string, end,
-+							     upper ? 'X' : 'x');
-+		}
-+	}
-+	if (!(type & ACPI_FORMAT_LEFT)) {
-+		while (--width >= 0) {
-+			string = acpi_ut_bound_string_output(string, end, zero);
-+		}
-+	}
-+	while (i <= --precision) {
-+		string = acpi_ut_bound_string_output(string, end, '0');
-+	}
-+	while (--i >= 0) {
-+		string = acpi_ut_bound_string_output(string, end,
-+						     reversed_string[i]);
-+	}
-+	while (--width >= 0) {
-+		string = acpi_ut_bound_string_output(string, end, ' ');
-+	}
-+
-+	return (string);
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_vsnprintf
-+ *
-+ * PARAMETERS:  string              - String with boundary
-+ *              size                - Boundary of the string
-+ *              format              - Standard printf format
-+ *              args                - Argument list
-+ *
-+ * RETURN:      Size of successfully output bytes
-+ *
-+ * DESCRIPTION: Formatted output to a string using argument list pointer.
-+ *
-+ ******************************************************************************/
-+
-+int
-+acpi_ut_vsnprintf(char *string,
-+		  acpi_size size, const char *format, va_list args)
-+{
-+	u8 base = 10;
-+	u8 type = 0;
-+	s32 width = -1;
-+	s32 precision = -1;
-+	char qualifier = 0;
-+	u64 number;
-+	char *pos;
-+	char *end;
-+	char c;
-+	const char *s;
-+	const void *p;
-+	s32 length;
-+	int i;
-+
-+	pos = string;
-+	end = string + size;
-+
-+	for (; *format; ++format) {
-+		if (*format != '%') {
-+			pos = acpi_ut_bound_string_output(pos, end, *format);
-+			continue;
-+		}
-+
-+		/* Process sign */
-+
-+		do {
-+			++format;
-+			if (*format == '#') {
-+				type |= ACPI_FORMAT_PREFIX;
-+			} else if (*format == '0') {
-+				type |= ACPI_FORMAT_ZERO;
-+			} else if (*format == '+') {
-+				type |= ACPI_FORMAT_SIGN_PLUS;
-+			} else if (*format == ' ') {
-+				type |= ACPI_FORMAT_SIGN_PLUS_SPACE;
-+			} else if (*format == '-') {
-+				type |= ACPI_FORMAT_LEFT;
-+			} else {
-+				break;
-+			}
-+		} while (1);
-+
-+		/* Process width */
-+
-+		if (ACPI_IS_DIGIT(*format)) {
-+			format = acpi_ut_scan_number(format, &number);
-+			width = (s32) number;
-+		} else if (*format == '*') {
-+			++format;
-+			width = va_arg(args, int);
-+			if (width < 0) {
-+				width = -width;
-+				type |= ACPI_FORMAT_LEFT;
-+			}
-+		}
-+
-+		/* Process precision */
-+
-+		if (*format == '.') {
-+			++format;
-+			if (ACPI_IS_DIGIT(*format)) {
-+				format = acpi_ut_scan_number(format, &number);
-+				precision = (s32) number;
-+			} else if (*format == '*') {
-+				++format;
-+				precision = va_arg(args, int);
-+			}
-+			if (precision < 0) {
-+				precision = 0;
-+			}
-+		}
-+
-+		/* Process qualifier */
-+
-+		if (*format == 'h' || *format == 'l' || *format == 'L') {
-+			qualifier = *format;
-+			++format;
-+			if (qualifier == 'l' && *format == 'l') {
-+				qualifier = 'L';
-+				++format;
-+			}
-+		}
-+
-+		switch (*format) {
-+		case '%':
-+
-+			pos = acpi_ut_bound_string_output(pos, end, '%');
-+			continue;
-+
-+		case 'c':
-+
-+			if (!(type & ACPI_FORMAT_LEFT)) {
-+				while (--width > 0) {
-+					pos =
-+					    acpi_ut_bound_string_output(pos,
-+									end,
-+									' ');
-+				}
-+			}
-+			c = (char)va_arg(args, int);
-+			pos = acpi_ut_bound_string_output(pos, end, c);
-+			while (--width > 0) {
-+				pos =
-+				    acpi_ut_bound_string_output(pos, end, ' ');
-+			}
-+			continue;
-+
-+		case 's':
-+
-+			s = va_arg(args, char *);
-+			if (!s) {
-+				s = "<NULL>";
-+			}
-+			length = acpi_ut_bound_string_length(s, precision);
-+			if (!(type & ACPI_FORMAT_LEFT)) {
-+				while (length < width--) {
-+					pos =
-+					    acpi_ut_bound_string_output(pos,
-+									end,
-+									' ');
-+				}
-+			}
-+			for (i = 0; i < length; ++i) {
-+				pos = acpi_ut_bound_string_output(pos, end, *s);
-+				++s;
-+			}
-+			while (length < width--) {
-+				pos =
-+				    acpi_ut_bound_string_output(pos, end, ' ');
-+			}
-+			continue;
-+
-+		case 'o':
-+
-+			base = 8;
-+			break;
-+
-+		case 'X':
-+
-+			type |= ACPI_FORMAT_UPPER;
-+
-+		case 'x':
-+
-+			base = 16;
-+			break;
-+
-+		case 'd':
-+		case 'i':
-+
-+			type |= ACPI_FORMAT_SIGN;
-+
-+		case 'u':
-+
-+			break;
-+
-+		case 'p':
-+
-+			if (width == -1) {
-+				width = 2 * sizeof(void *);
-+				type |= ACPI_FORMAT_ZERO;
-+			}
-+			p = va_arg(args, void *);
-+			pos = acpi_ut_format_number(pos, end,
-+						    ACPI_TO_INTEGER(p),
-+						    16, width, precision, type);
-+			continue;
-+
-+		default:
-+
-+			pos = acpi_ut_bound_string_output(pos, end, '%');
-+			if (*format) {
-+				pos =
-+				    acpi_ut_bound_string_output(pos, end,
-+								*format);
-+			} else {
-+				--format;
-+			}
-+			continue;
-+		}
-+
-+		if (qualifier == 'L') {
-+			number = va_arg(args, u64);
-+			if (type & ACPI_FORMAT_SIGN) {
-+				number = (s64) number;
-+			}
-+		} else if (qualifier == 'l') {
-+			number = va_arg(args, unsigned long);
-+			if (type & ACPI_FORMAT_SIGN) {
-+				number = (s32) number;
-+			}
-+		} else if (qualifier == 'h') {
-+			number = (u16)va_arg(args, int);
-+			if (type & ACPI_FORMAT_SIGN) {
-+				number = (s16) number;
-+			}
-+		} else {
-+			number = va_arg(args, unsigned int);
-+			if (type & ACPI_FORMAT_SIGN) {
-+				number = (signed int)number;
-+			}
-+		}
-+		pos = acpi_ut_format_number(pos, end, number, base,
-+					    width, precision, type);
-+	}
-+
-+	if (size > 0) {
-+		if (pos < end) {
-+			*pos = '\0';
-+		} else {
-+			end[-1] = '\0';
-+		}
-+	}
-+
-+	return (ACPI_PTR_DIFF(pos, string));
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_snprintf
-+ *
-+ * PARAMETERS:  string              - String with boundary
-+ *              size                - Boundary of the string
-+ *              Format, ...         - Standard printf format
-+ *
-+ * RETURN:      Size of successfully output bytes
-+ *
-+ * DESCRIPTION: Formatted output to a string.
-+ *
-+ ******************************************************************************/
-+
-+int acpi_ut_snprintf(char *string, acpi_size size, const char *format, ...)
-+{
-+	va_list args;
-+	int length;
-+
-+	va_start(args, format);
-+	length = acpi_ut_vsnprintf(string, size, format, args);
-+	va_end(args);
-+
-+	return (length);
-+}
++#include "actables.h"
++#include "acapps.h"
++
++#ifdef ACPI_ASL_COMPILER
++#include "aslcompiler.h"
++#endif
++
++#define _COMPONENT          ACPI_CA_DEBUGGER
++ACPI_MODULE_NAME("utfileio")
 +
 +#ifdef ACPI_APPLICATION
++/* Local prototypes */
++static acpi_status
++acpi_ut_check_text_mode_corruption(u8 *table,
++				   u32 table_length, u32 file_length);
++
++static acpi_status
++acpi_ut_read_table(FILE * fp,
++		   struct acpi_table_header **table, u32 *table_length);
++
 +/*******************************************************************************
 + *
-+ * FUNCTION:    acpi_ut_file_vprintf
++ * FUNCTION:    acpi_ut_check_text_mode_corruption
 + *
-+ * PARAMETERS:  file                - File descriptor
-+ *              format              - Standard printf format
-+ *              args                - Argument list
++ * PARAMETERS:  table           - Table buffer
++ *              table_length    - Length of table from the table header
++ *              file_length     - Length of the file that contains the table
 + *
-+ * RETURN:      Size of successfully output bytes
++ * RETURN:      Status
 + *
-+ * DESCRIPTION: Formatted output to a file using argument list pointer.
++ * DESCRIPTION: Check table for text mode file corruption where all linefeed
++ *              characters (LF) have been replaced by carriage return linefeed
++ *              pairs (CR/LF).
 + *
 + ******************************************************************************/
 +
-+int acpi_ut_file_vprintf(ACPI_FILE file, const char *format, va_list args)
++static acpi_status
++acpi_ut_check_text_mode_corruption(u8 *table, u32 table_length, u32 file_length)
 +{
-+	acpi_cpu_flags flags;
-+	int length;
++	u32 i;
++	u32 pairs = 0;
 +
-+	flags = acpi_os_acquire_lock(acpi_gbl_print_lock);
-+	length = acpi_ut_vsnprintf(acpi_gbl_print_buffer,
-+				   sizeof(acpi_gbl_print_buffer), format, args);
-+	(void)acpi_os_write_file(file, acpi_gbl_print_buffer, length, 1);
-+	acpi_os_release_lock(acpi_gbl_print_lock, flags);
++	if (table_length != file_length) {
++		ACPI_WARNING((AE_INFO,
++			      "File length (0x%X) is not the same as the table length (0x%X)",
++			      file_length, table_length));
++	}
 +
-+	return (length);
++	/* Scan entire table to determine if each LF has been prefixed with a CR */
++
++	for (i = 1; i < file_length; i++) {
++		if (table[i] == 0x0A) {
++			if (table[i - 1] != 0x0D) {
++
++				/* The LF does not have a preceding CR, table not corrupted */
++
++				return (AE_OK);
++			} else {
++				/* Found a CR/LF pair */
++
++				pairs++;
++			}
++			i++;
++		}
++	}
++
++	if (!pairs) {
++		return (AE_OK);
++	}
++
++	/*
++	 * Entire table scanned, each CR is part of a CR/LF pair --
++	 * meaning that the table was treated as a text file somewhere.
++	 *
++	 * NOTE: We can't "fix" the table, because any existing CR/LF pairs in the
++	 * original table are left untouched by the text conversion process --
++	 * meaning that we cannot simply replace CR/LF pairs with LFs.
++	 */
++	acpi_os_printf("Table has been corrupted by text mode conversion\n");
++	acpi_os_printf("All LFs (%u) were changed to CR/LF pairs\n", pairs);
++	acpi_os_printf("Table cannot be repaired!\n");
++	return (AE_BAD_VALUE);
 +}
 +
 +/*******************************************************************************
 + *
-+ * FUNCTION:    acpi_ut_file_printf
++ * FUNCTION:    acpi_ut_read_table
 + *
-+ * PARAMETERS:  file                - File descriptor
-+ *              Format, ...         - Standard printf format
++ * PARAMETERS:  fp              - File that contains table
++ *              table           - Return value, buffer with table
++ *              table_length    - Return value, length of table
 + *
-+ * RETURN:      Size of successfully output bytes
++ * RETURN:      Status
 + *
-+ * DESCRIPTION: Formatted output to a file.
++ * DESCRIPTION: Load the DSDT from the file pointer
 + *
 + ******************************************************************************/
 +
-+int acpi_ut_file_printf(ACPI_FILE file, const char *format, ...)
++static acpi_status
++acpi_ut_read_table(FILE * fp,
++		   struct acpi_table_header **table, u32 *table_length)
 +{
-+	va_list args;
-+	int length;
-+
-+	va_start(args, format);
-+	length = acpi_ut_file_vprintf(file, format, args);
-+	va_end(args);
-+
-+	return (length);
-+}
-+#endif
-Index: linux-acpica/include/acpi/actypes.h
-===================================================================
---- linux-acpica.orig/include/acpi/actypes.h
-+++ linux-acpica/include/acpi/actypes.h
-@@ -126,6 +126,7 @@
- typedef unsigned char u8;
- typedef unsigned char u8;
- typedef unsigned short u16;
-+typedef short s16;
- typedef COMPILER_DEPENDENT_UINT64 u64;
- typedef COMPILER_DEPENDENT_INT64 s64;
- 
-Index: linux-acpica/tools/power/acpi/os_specific/service_layers/osunixxf.c
-===================================================================
---- linux-acpica.orig/tools/power/acpi/os_specific/service_layers/osunixxf.c
-+++ linux-acpica/tools/power/acpi/os_specific/service_layers/osunixxf.c
-@@ -182,10 +182,17 @@ static void os_exit_line_edit_mode(void)
- 
- acpi_status acpi_os_initialize(void)
- {
++	struct acpi_table_header table_header;
++	u32 actual;
 +	acpi_status status;
- 
- 	acpi_gbl_output_file = stdout;
- 
- 	os_enter_line_edit_mode();
++	u32 file_size;
++	u8 standard_header = TRUE;
 +
-+	status = acpi_os_create_lock(&acpi_gbl_print_lock);
-+	if (ACPI_FAILURE(status)) {
++	/* Get the file size */
++
++	file_size = cm_get_file_size(fp);
++	if (file_size == ACPI_UINT32_MAX) {
++		return (AE_ERROR);
++	}
++
++	if (file_size < 4) {
++		return (AE_BAD_HEADER);
++	}
++
++	/* Read the signature */
++
++	if (fread(&table_header, 1, 4, fp) != 4) {
++		acpi_os_printf("Could not read the table signature\n");
++		return (AE_BAD_HEADER);
++	}
++
++	fseek(fp, 0, SEEK_SET);
++
++	/* The RSDP table does not have standard ACPI header */
++
++	if (ACPI_COMPARE_NAME(table_header.signature, "RSD ")) {
++		*table_length = file_size;
++		standard_header = FALSE;
++	} else {
++		/* Read the table header */
++
++		if (fread
++		    (&table_header, 1, sizeof(struct acpi_table_header),
++		     fp) != sizeof(struct acpi_table_header)) {
++			acpi_os_printf("Could not read the table header\n");
++			return (AE_BAD_HEADER);
++		}
++#if 0
++		/* Validate the table header/length */
++
++		status = acpi_tb_validate_table_header(&table_header);
++		if (ACPI_FAILURE(status)) {
++			acpi_os_printf("Table header is invalid!\n");
++			return (status);
++		}
++#endif
++
++		/* File size must be at least as long as the Header-specified length */
++
++		if (table_header.length > file_size) {
++			acpi_os_printf
++			    ("TableHeader length [0x%X] greater than the input file size [0x%X]\n",
++			     table_header.length, file_size);
++
++#ifdef ACPI_ASL_COMPILER
++			status = fl_check_for_ascii(fp, NULL, FALSE);
++			if (ACPI_SUCCESS(status)) {
++				acpi_os_printf
++				    ("File appears to be ASCII only, must be binary\n",
++				     table_header.length, file_size);
++			}
++#endif
++			return (AE_BAD_HEADER);
++		}
++#ifdef ACPI_OBSOLETE_CODE
++		/* We only support a limited number of table types */
++
++		if (!ACPI_COMPARE_NAME
++		    ((char *)table_header.signature, ACPI_SIG_DSDT)
++		    && !ACPI_COMPARE_NAME((char *)table_header.signature,
++					  ACPI_SIG_PSDT)
++		    && !ACPI_COMPARE_NAME((char *)table_header.signature,
++					  ACPI_SIG_SSDT)) {
++			acpi_os_printf
++			    ("Table signature [%4.4s] is invalid or not supported\n",
++			     (char *)table_header.signature);
++			ACPI_DUMP_BUFFER(&table_header,
++					 sizeof(struct acpi_table_header));
++			return (AE_ERROR);
++		}
++#endif
++
++		*table_length = table_header.length;
++	}
++
++	/* Allocate a buffer for the table */
++
++	*table = acpi_os_allocate((size_t) file_size);
++	if (!*table) {
++		acpi_os_printf
++		    ("Could not allocate memory for ACPI table %4.4s (size=0x%X)\n",
++		     table_header.signature, *table_length);
++		return (AE_NO_MEMORY);
++	}
++
++	/* Get the rest of the table */
++
++	fseek(fp, 0, SEEK_SET);
++	actual = fread(*table, 1, (size_t) file_size, fp);
++	if (actual == file_size) {
++		if (standard_header) {
++
++			/* Now validate the checksum */
++
++			status = acpi_tb_verify_checksum((void *)*table,
++							 ACPI_CAST_PTR(struct
++								       acpi_table_header,
++								       *table)->
++							 length);
++
++			if (status == AE_BAD_CHECKSUM) {
++				status =
++				    acpi_ut_check_text_mode_corruption((u8 *)
++								       *table,
++								       file_size,
++								       (*table)->
++								       length);
++				return (status);
++			}
++		}
++		return (AE_OK);
++	}
++
++	if (actual > 0) {
++		acpi_os_printf("Warning - reading table, asked for %X got %X\n",
++			       file_size, actual);
++		return (AE_OK);
++	}
++
++	acpi_os_printf("Error - could not read the table file\n");
++	acpi_os_free(*table);
++	*table = NULL;
++	*table_length = 0;
++	return (AE_ERROR);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ut_read_table_from_file
++ *
++ * PARAMETERS:  filename         - File where table is located
++ *              table            - Where a pointer to the table is returned
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Get an ACPI table from a file
++ *
++ ******************************************************************************/
++
++acpi_status
++acpi_ut_read_table_from_file(char *filename, struct acpi_table_header ** table)
++{
++	FILE *file;
++	u32 file_size;
++	u32 table_length;
++	acpi_status status = AE_ERROR;
++
++	/* Open the file, get current size */
++
++	file = fopen(filename, "rb");
++	if (!file) {
++		perror("Could not open input file");
 +		return (status);
 +	}
 +
- 	return (AE_OK);
- }
- 
++	file_size = cm_get_file_size(file);
++	if (file_size == ACPI_UINT32_MAX) {
++		goto exit;
++	}
++
++	/* Get the entire file */
++
++	fprintf(stderr,
++		"Loading Acpi table from file %10s - Length %.8u (%06X)\n",
++		filename, file_size, file_size);
++
++	status = acpi_ut_read_table(file, table, &table_length);
++	if (ACPI_FAILURE(status)) {
++		acpi_os_printf("Could not get table from the file\n");
++	}
++
++exit:
++	fclose(file);
++	return (status);
++}
++
++#endif
 Index: linux-acpica/drivers/acpi/acpica/Makefile
 ===================================================================
 --- linux-acpica.orig/drivers/acpi/acpica/Makefile
@@ -789,6 +412,6 @@ Index: linux-acpica/drivers/acpi/acpica/Makefile
  	utxferror.o	\
  	utxfmutex.o
  
--acpi-$(ACPI_FUTURE_USAGE) += utfileio.o uttrack.o utcache.o
-+acpi-$(ACPI_FUTURE_USAGE) += utfileio.o utprint.o uttrack.o utcache.o
+-acpi-$(ACPI_FUTURE_USAGE) += uttrack.o utcache.o
++acpi-$(ACPI_FUTURE_USAGE) += utfileio.o uttrack.o utcache.o
  
