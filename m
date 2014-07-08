@@ -1,70 +1,65 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH 2/2] ACPI/Wakup: Enable button wakeup GPEs if these GPEs have associated GPE methods.
-Date: Tue, 08 Jul 2014 15:26:45 +0200
-Message-ID: <3011365.oYtXFx0LHa@vostro.rjw.lan>
-References: <1404802679-24019-1-git-send-email-tianyu.lan@intel.com> <1404802679-24019-2-git-send-email-tianyu.lan@intel.com>
+Subject: Re: [PATCH] ACPI / video: Add Dell Inspiron 5737 to the blacklist
+Date: Tue, 08 Jul 2014 15:31:50 +0200
+Message-ID: <2906150.1kKPlLELmj@vostro.rjw.lan>
+References: <CAFquV7W-aDs=1R=aYOFzWw8rYiqiVNpQ-8T_wWHwvdh-u_wHWA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1404802679-24019-2-git-send-email-tianyu.lan@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:59291 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754254AbaGHNNp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2014 09:13:45 -0400
+In-Reply-To: <CAFquV7W-aDs=1R=aYOFzWw8rYiqiVNpQ-8T_wWHwvdh-u_wHWA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yidi Lin <yidi.lin@canonical.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Tuesday, July 08, 2014 02:57:58 PM Lan Tianyu wrote:
-> The button wakeup GPEs are enabled unconditionally in the current world by
-> commit 2a5d24(ACPI / Wakeup: Enable button GPEs unconditionally during
-> initialization). Because button's GPE methods needs to be run to clear
-> GPE status on some machines when there is GPE interrupt. If not, it will
-> cause machines resume immediately after being suspended since GPE status
-> isn't cleared correctly.
+On Tuesday, July 08, 2014 10:14:59 AM Yidi Lin wrote:
+> With win8 capability, the ACPI backlight control is broken on this model.
+> The system also loses backlight setting when resuming from S3.
 > 
-> But if there is no GPE method for button wakeup GPE, these GPEs should not
-> be enabled since nothing needs to be done when they are triggered and this
-> also causes LID GPE storm on Lenovo Ideapad y560p.
+> Add this model to the the ACPI video detect blacklist to make backlight
+> functionality work.
 > 
-> This patch is to check Button GPE method and enable it if there is associated
-> GPE method.
+> Although backlight functionality works via video.use_native_backlight=1,
+> this approach may be safer.
+> 
+> Signed-off-by: Edward Lin <yidi.lin@canonical.com>
 
-Part of the problem is that we call acpi_setup_gpe_for_wake() for buttons too
-and it sets ACPI_GPE_DISPATCH_NOTIFY unconditionally.  While we could address
-this the way you're proposing, it seems a bit less than straightforward so to
-speak.
+I've applied this patch already it seems, haven't I?
 
-Let me think more about how to address that.
-
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=61051
-> Reported-by: James Tocknell<aragilar@gmail.com>
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 > ---
->  drivers/acpi/wakeup.c | 11 ++++++++---
->  1 file changed, 8 insertions(+), 3 deletions(-)
+>  drivers/acpi/video_detect.c |    8 ++++++++
+>  1 file changed, 8 insertions(+)
 > 
-> diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
-> index 1638401..5b20ae4 100644
-> --- a/drivers/acpi/wakeup.c
-> +++ b/drivers/acpi/wakeup.c
-> @@ -86,9 +86,14 @@ int __init acpi_wakeup_device_init(void)
->  						       struct acpi_device,
->  						       wakeup_list);
->  		if (device_can_wakeup(&dev->dev)) {
-> -			/* Button GPEs are supposed to be always enabled. */
-> -			acpi_enable_gpe(dev->wakeup.gpe_device,
-> -					dev->wakeup.gpe_number);
-> +			/*
-> +			 * Button GPEs are supposed to be always enabled if
-> +			 * they have associated GPE methods.
-> +			 */
-> +			if (ACPI_SUCCESS(acpi_check_gpe_method(
-> +			    dev->wakeup.gpe_device, dev->wakeup.gpe_number)))
-> +				acpi_enable_gpe(dev->wakeup.gpe_device,
-> +						dev->wakeup.gpe_number);
->  			device_set_wakeup_enable(&dev->dev, true);
->  		}
->  	}
+> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+> index 33e3db5..c42feb2 100644
+> --- a/drivers/acpi/video_detect.c
+> +++ b/drivers/acpi/video_detect.c
+> @@ -166,6 +166,14 @@ static struct dmi_system_id video_detect_dmi_table[] = {
+>                 DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
+>                 },
+>         },
+> +       {
+> +       .callback = video_detect_force_vendor,
+> +       .ident = "Dell Inspiron 5737",
+> +       .matches = {
+> +               DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +               DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 5737"),
+> +               },
+> +       },
+>         { },
+>  };
 > 
+> --
+> 1.7.9.5
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 I speak only for myself.
