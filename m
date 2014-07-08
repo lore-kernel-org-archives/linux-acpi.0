@@ -1,82 +1,114 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 2/4] ACPI: Don't use acpi_lapic in ACPI core code
-Date: Tue, 08 Jul 2014 18:07:53 +0800
-Message-ID: <53BBC2F9.4070808@linaro.org>
-References: <1404290847-7671-1-git-send-email-hanjun.guo@linaro.org> <1404290847-7671-3-git-send-email-hanjun.guo@linaro.org> <2058650.s5vKv1ibCp@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3] drm/i915/opregion: ignore firmware requests for backlight change
+Date: Tue, 08 Jul 2014 14:48:53 +0200
+Message-ID: <3611713.jVJeiZUPhg@vostro.rjw.lan>
+References: <53A8E400.5060709@intel.com> <53BA4FB7.5050701@intel.com> <53BBA735.2080700@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:46634 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753041AbaGHKH5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2014 06:07:57 -0400
-Received: by mail-wi0-f171.google.com with SMTP id f8so172995wiw.10
-        for <linux-acpi@vger.kernel.org>; Tue, 08 Jul 2014 03:07:56 -0700 (PDT)
-In-Reply-To: <2058650.s5vKv1ibCp@vostro.rjw.lan>
+Received: from v094114.home.net.pl ([79.96.170.134]:61743 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754589AbaGHMas (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Jul 2014 08:30:48 -0400
+In-Reply-To: <53BBA735.2080700@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Tony Luck <tony.luck@intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Igor Gnatenko <i.gnatenko.brain@gmail.com>, Anton Gubarkov <anton.gubarkov@gmail.com>
 
-On 2014=E5=B9=B407=E6=9C=8808=E6=97=A5 05:08, Rafael J. Wysocki wrote:
-> On Wednesday, July 02, 2014 04:47:24 PM Hanjun Guo wrote:
->> From: Graeme Gregory <graeme.gregory@linaro.org>
->>
->> Now ARM64 support is being added to ACPI so architecture specific
->> values can not be used in core ACPI code.
->>
->> Following on the patch "ACPI / processor: Check if LAPIC is present
->> during initialization" which uses acpi_lapic in acpi_processor.c,
->> on ARM64 platform, GIC is used instead of local APIC, so acpi_lapic
->> is not a suitable value for ARM64.
->>
->> What is actually important at this point is the SMPness of the syste=
-m,
->> so introduce acpi_arch_is_smp() to be arch specific and generic.
->>
->> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>  arch/ia64/include/asm/acpi.h  |    5 +++++
->>  arch/x86/include/asm/acpi.h   |    5 +++++
->>  drivers/acpi/acpi_processor.c |    2 +-
->>  3 files changed, 11 insertions(+), 1 deletion(-)
->>
->> diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/ac=
-pi.h
->> index 75dc59a..2fc0757 100644
->> --- a/arch/ia64/include/asm/acpi.h
->> +++ b/arch/ia64/include/asm/acpi.h
->> @@ -40,6 +40,11 @@ extern int acpi_lapic;
->>  #define acpi_noirq 0	/* ACPI always enabled on IA64 */
->>  #define acpi_pci_disabled 0 /* ACPI PCI always enabled on IA64 */
->>  #define acpi_strict 1	/* no ACPI spec workarounds on IA64 */
->> +
->> +static inline bool acpi_arch_is_smp(void)
-> Why this name?  In particular, local APIC being present doesn't imply=
- SMP.
+On Tuesday, July 08, 2014 04:09:25 PM Aaron Lu wrote:
+> Some Thinkpad laptops' firmware will initiate a backlight level change
+> request through operation region on the events of AC plug/unplug, but
+> since we are not using firmware's interface to do the backlight setting
+> on these affected laptops, we do not want the firmware to use some
+> arbitrary value from its ASL variable to set the backlight level on
+> AC plug/unplug either.
+> 
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=76491
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=77091
+> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+> Reported-and-tested-by: Anton Gubarkov <anton.gubarkov@gmail.com>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> Acked-by: Jani Nikula <jani.nikula@intel.com>
+> ---
+> v3:
+>   - use EXPORT_SYMBOL_GPL instead of EXPORT_SYMBOL;
+>   - add inline to stub
+>   as suggested by Rafael.
 
-Hmm, agreed. How about acpi_has_cpu_in_madt()? As we know,
-Local APIC/SAPIC in MADT stands for CPU in the system, how about
-the function name above?
+I've made these two changes already in the commit in my tree.
 
->
->> +{
->> +	return acpi_lapic;
-> Also
->
-> 	return !!acpi_lapic;
->
-> would be cleaner IMO.
->
+>  drivers/acpi/video.c                  | 3 ++-
+>  drivers/gpu/drm/i915/intel_opregion.c | 9 +++++++++
+>  include/acpi/video.h                  | 2 ++
+>  3 files changed, 13 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index fb9ffe9adc64..5bb1278e9324 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -241,13 +241,14 @@ static bool acpi_video_use_native_backlight(void)
+>  		return use_native_backlight_dmi;
+>  }
+>  
+> -static bool acpi_video_verify_backlight_support(void)
+> +bool acpi_video_verify_backlight_support(void)
+>  {
+>  	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
+>  	    backlight_device_registered(BACKLIGHT_RAW))
+>  		return false;
+>  	return acpi_video_backlight_support();
+>  }
+> +EXPORT_SYMBOL_GPL(acpi_video_verify_backlight_support);
+>  
+>  /* backlight device sysfs support */
+>  static int acpi_video_get_brightness(struct backlight_device *bd)
+> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+> index 2e2c71fcc9ed..4f6b53998d79 100644
+> --- a/drivers/gpu/drm/i915/intel_opregion.c
+> +++ b/drivers/gpu/drm/i915/intel_opregion.c
+> @@ -403,6 +403,15 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
+>  
+>  	DRM_DEBUG_DRIVER("bclp = 0x%08x\n", bclp);
+>  
+> +	/*
+> +	 * If the acpi_video interface is not supposed to be used, don't
+> +	 * bother processing backlight level change requests from firmware.
+> +	 */
+> +	if (!acpi_video_verify_backlight_support()) {
+> +		DRM_DEBUG_KMS("opregion backlight request ignored\n");
+> +		return 0;
+> +	}
+> +
+>  	if (!(bclp & ASLE_BCLP_VALID))
+>  		return ASLC_BACKLIGHT_FAILED;
+>  
+> diff --git a/include/acpi/video.h b/include/acpi/video.h
+> index ea4c7bbded4d..3d0bf9cd88c9 100644
+> --- a/include/acpi/video.h
+> +++ b/include/acpi/video.h
+> @@ -22,6 +22,7 @@ extern void acpi_video_unregister(void);
+>  extern void acpi_video_unregister_backlight(void);
+>  extern int acpi_video_get_edid(struct acpi_device *device, int type,
+>  			       int device_id, void **edid);
+> +extern bool acpi_video_verify_backlight_support(void);
+>  #else
+>  static inline int acpi_video_register(void) { return 0; }
+>  static inline void acpi_video_unregister(void) { return; }
+> @@ -31,6 +32,7 @@ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+>  {
+>  	return -ENODEV;
+>  }
+> +static inline bool acpi_video_verify_backlight_support() { return false; }
 
-I will update it as you suggested.
+And here you need acpi_video_verify_backlight_support(void) (fixed up too).
 
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  #endif
+>  
+>  #endif
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
