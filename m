@@ -1,123 +1,106 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v3] drm/i915/opregion: ignore firmware
- requests for backlight change
-Date: Wed, 09 Jul 2014 09:20:22 +0800
-Message-ID: <53BC98D6.6020705@intel.com>
-References: <53A8E400.5060709@intel.com> <53BA4FB7.5050701@intel.com>
- <53BBA735.2080700@intel.com> <3611713.jVJeiZUPhg@vostro.rjw.lan>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [RFC PATCH 2/2] ACPI/Wakup: Enable button wakeup GPEs if these
+ GPEs have associated GPE methods.
+Date: Wed, 09 Jul 2014 11:08:42 +0800
+Message-ID: <53BCB23A.1070304@intel.com>
+References: <1404802679-24019-1-git-send-email-tianyu.lan@intel.com> <1404802679-24019-2-git-send-email-tianyu.lan@intel.com> <3011365.oYtXFx0LHa@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <3611713.jVJeiZUPhg@vostro.rjw.lan>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Anton Gubarkov <anton.gubarkov@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:58441 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751969AbaGIDKQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Jul 2014 23:10:16 -0400
+In-Reply-To: <3011365.oYtXFx0LHa@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 07/08/2014 08:48 PM, Rafael J. Wysocki wrote:
-> On Tuesday, July 08, 2014 04:09:25 PM Aaron Lu wrote:
->> Some Thinkpad laptops' firmware will initiate a backlight level change
->> request through operation region on the events of AC plug/unplug, but
->> since we are not using firmware's interface to do the backlight setting
->> on these affected laptops, we do not want the firmware to use some
->> arbitrary value from its ASL variable to set the backlight level on
->> AC plug/unplug either.
+On 2014=E5=B9=B407=E6=9C=8808=E6=97=A5 21:26, Rafael J. Wysocki wrote:
+> On Tuesday, July 08, 2014 02:57:58 PM Lan Tianyu wrote:
+>> The button wakeup GPEs are enabled unconditionally in the current wo=
+rld by
+>> commit 2a5d24(ACPI / Wakeup: Enable button GPEs unconditionally duri=
+ng
+>> initialization). Because button's GPE methods needs to be run to cle=
+ar
+>> GPE status on some machines when there is GPE interrupt. If not, it =
+will
+>> cause machines resume immediately after being suspended since GPE st=
+atus
+>> isn't cleared correctly.
 >>
->> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=76491
->> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=77091
->> Reported-and-tested-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
->> Reported-and-tested-by: Anton Gubarkov <anton.gubarkov@gmail.com>
->> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
->> Acked-by: Jani Nikula <jani.nikula@intel.com>
+>> But if there is no GPE method for button wakeup GPE, these GPEs shou=
+ld not
+>> be enabled since nothing needs to be done when they are triggered an=
+d this
+>> also causes LID GPE storm on Lenovo Ideapad y560p.
+>>
+>> This patch is to check Button GPE method and enable it if there is a=
+ssociated
+>> GPE method.
+>=20
+> Part of the problem is that we call acpi_setup_gpe_for_wake() for but=
+tons too
+> and it sets ACPI_GPE_DISPATCH_NOTIFY unconditionally.
+
+Yes, this is why the GPE wasn't disabled by CA. From my opinion,
+original reason of enabling button wakeup GPE in the runtime is that it
+may have associated GPE method and the method will notify button driver
+and clear some hardware status. But if it didn't have GPE method, I
+don't why we need to enable the GPE. I check some machines and they use
+EC Query event to notify button driver.
+
+>  While we could address
+> this the way you're proposing, it seems a bit less than straightforwa=
+rd so to
+> speak.
+>=20
+> Let me think more about how to address that.
+
+Ok. I get it.
+
+>=20
+>> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=3D61051
+>> Reported-by: James Tocknell<aragilar@gmail.com>
+>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 >> ---
->> v3:
->>   - use EXPORT_SYMBOL_GPL instead of EXPORT_SYMBOL;
->>   - add inline to stub
->>   as suggested by Rafael.
-> 
-> I've made these two changes already in the commit in my tree.
-
-Good, thanks!
-
--Aaron
-
-> 
->>  drivers/acpi/video.c                  | 3 ++-
->>  drivers/gpu/drm/i915/intel_opregion.c | 9 +++++++++
->>  include/acpi/video.h                  | 2 ++
->>  3 files changed, 13 insertions(+), 1 deletion(-)
+>>  drivers/acpi/wakeup.c | 11 ++++++++---
+>>  1 file changed, 8 insertions(+), 3 deletions(-)
 >>
->> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
->> index fb9ffe9adc64..5bb1278e9324 100644
->> --- a/drivers/acpi/video.c
->> +++ b/drivers/acpi/video.c
->> @@ -241,13 +241,14 @@ static bool acpi_video_use_native_backlight(void)
->>  		return use_native_backlight_dmi;
->>  }
->>  
->> -static bool acpi_video_verify_backlight_support(void)
->> +bool acpi_video_verify_backlight_support(void)
->>  {
->>  	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
->>  	    backlight_device_registered(BACKLIGHT_RAW))
->>  		return false;
->>  	return acpi_video_backlight_support();
->>  }
->> +EXPORT_SYMBOL_GPL(acpi_video_verify_backlight_support);
->>  
->>  /* backlight device sysfs support */
->>  static int acpi_video_get_brightness(struct backlight_device *bd)
->> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
->> index 2e2c71fcc9ed..4f6b53998d79 100644
->> --- a/drivers/gpu/drm/i915/intel_opregion.c
->> +++ b/drivers/gpu/drm/i915/intel_opregion.c
->> @@ -403,6 +403,15 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
->>  
->>  	DRM_DEBUG_DRIVER("bclp = 0x%08x\n", bclp);
->>  
->> +	/*
->> +	 * If the acpi_video interface is not supposed to be used, don't
->> +	 * bother processing backlight level change requests from firmware.
->> +	 */
->> +	if (!acpi_video_verify_backlight_support()) {
->> +		DRM_DEBUG_KMS("opregion backlight request ignored\n");
->> +		return 0;
->> +	}
->> +
->>  	if (!(bclp & ASLE_BCLP_VALID))
->>  		return ASLC_BACKLIGHT_FAILED;
->>  
->> diff --git a/include/acpi/video.h b/include/acpi/video.h
->> index ea4c7bbded4d..3d0bf9cd88c9 100644
->> --- a/include/acpi/video.h
->> +++ b/include/acpi/video.h
->> @@ -22,6 +22,7 @@ extern void acpi_video_unregister(void);
->>  extern void acpi_video_unregister_backlight(void);
->>  extern int acpi_video_get_edid(struct acpi_device *device, int type,
->>  			       int device_id, void **edid);
->> +extern bool acpi_video_verify_backlight_support(void);
->>  #else
->>  static inline int acpi_video_register(void) { return 0; }
->>  static inline void acpi_video_unregister(void) { return; }
->> @@ -31,6 +32,7 @@ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
->>  {
->>  	return -ENODEV;
->>  }
->> +static inline bool acpi_video_verify_backlight_support() { return false; }
-> 
-> And here you need acpi_video_verify_backlight_support(void) (fixed up too).
-> 
->>  #endif
->>  
->>  #endif
+>> diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
+>> index 1638401..5b20ae4 100644
+>> --- a/drivers/acpi/wakeup.c
+>> +++ b/drivers/acpi/wakeup.c
+>> @@ -86,9 +86,14 @@ int __init acpi_wakeup_device_init(void)
+>>  						       struct acpi_device,
+>>  						       wakeup_list);
+>>  		if (device_can_wakeup(&dev->dev)) {
+>> -			/* Button GPEs are supposed to be always enabled. */
+>> -			acpi_enable_gpe(dev->wakeup.gpe_device,
+>> -					dev->wakeup.gpe_number);
+>> +			/*
+>> +			 * Button GPEs are supposed to be always enabled if
+>> +			 * they have associated GPE methods.
+>> +			 */
+>> +			if (ACPI_SUCCESS(acpi_check_gpe_method(
+>> +			    dev->wakeup.gpe_device, dev->wakeup.gpe_number)))
+>> +				acpi_enable_gpe(dev->wakeup.gpe_device,
+>> +						dev->wakeup.gpe_number);
+>>  			device_set_wakeup_enable(&dev->dev, true);
+>>  		}
+>>  	}
 >>
-> 
+>=20
+
+
+--=20
+Best regards
+Tianyu Lan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
