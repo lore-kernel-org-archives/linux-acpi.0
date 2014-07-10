@@ -1,305 +1,126 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v2] acpi: mv models with win8 brightness problems from
- win8 blacklist to use_native_backlight
-Date: Thu, 10 Jul 2014 17:12:02 +0200
-Message-ID: <53BEAD42.70802@redhat.com>
-References: <1402912525-9067-1-git-send-email-hdegoede@redhat.com> <CAFquV7W4Uw=CBqbosVDbvkKKtd=A9Cv3YRgAwPvQrMXYKQnwkA@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [RFC PATCH 1/2] ACPICA: Add acpi_check_gpe_method() to check
+ GPE method
+Date: Thu, 10 Jul 2014 19:32:42 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D1BFA16@ORSMSX112.amr.corp.intel.com>
+References: <1404802679-24019-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38014 "EHLO mx1.redhat.com"
+Received: from mga11.intel.com ([192.55.52.93]:16606 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753860AbaGJPMR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Jul 2014 11:12:17 -0400
-In-Reply-To: <CAFquV7W4Uw=CBqbosVDbvkKKtd=A9Cv3YRgAwPvQrMXYKQnwkA@mail.gmail.com>
+	id S1751271AbaGJTdN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Jul 2014 15:33:13 -0400
+In-Reply-To: <1404802679-24019-1-git-send-email-tianyu.lan@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yidi Lin <yidi.lin@canonical.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: "Lan, Tianyu" <tianyu.lan@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi,
+Since what is returned by this interface is essentially a piece of information about the particular GPE, I think that it might be better to generalize this interface to a "GetInfo" type of interface that returns a few pieces of information about the GPE.
 
-On 07/10/2014 03:40 PM, Yidi Lin wrote:
-> Hi,
+
+
+> -----Original Message-----
+> From: Lan, Tianyu
+> Sent: Monday, July 07, 2014 11:58 PM
+> To: Moore, Robert; Zheng, Lv; Wysocki, Rafael J; lenb@kernel.org
+> Cc: Lan, Tianyu; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: [RFC PATCH 1/2] ACPICA: Add acpi_check_gpe_method() to check GPE
+> method
 > 
-> The quirk of Dell Inspiron 7737 is not for win8 backlight issue.
+> This patch is to expose acpi_check_gpe_method() to check whether there is
+> a GPE method for the given gpe. Enabling ACPI button devices' gpes will
+> depend on the new function's result.
 > 
-> Dell Inspiron 7737 will power on immediately after shutdown with win8
-> capability.
-> Disable win8 capability to workaround the issue.
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> ---
+>  drivers/acpi/acpica/evxface.c | 39
+> ++++++++++++++++++++++++++++++++++++++-
+>  include/acpi/acpixf.h         |  3 +++
+>  2 files changed, 41 insertions(+), 1 deletion(-)
 > 
-> It seems that I add the quirk to the improper segment.
-
-Yeah a comment that this one was not for a backlight issue would
-have been nice. Still, you managed to catch it in time, which is
-good, thanks for the heads up.
-
-> Sorry for misleading you.
-
-NP.
-
-Rafael, do you want me to do a follow up patch to move the
-Dell Inspiron 7737 entry back, or do you want me to do a V3
-of the patch ?
-
-Regards,
-
-Hans
-
-
-
-
+> diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
+> index 11e5803..0fcb248 100644
+> --- a/drivers/acpi/acpica/evxface.c
+> +++ b/drivers/acpi/acpica/evxface.c
+> @@ -717,6 +717,44 @@ ACPI_EXPORT_SYMBOL(acpi_remove_fixed_event_handler)
 > 
-> On Mon, Jun 16, 2014 at 5:55 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->> When the windows8 related backlight problems became evident, 2 approaches
->> were follow in parallel, one was to stop claiming to be windows 8 / 2012,
->> the other was to tell acpi_video to stop registering a backlight driver.
->>
->> I've read all the threads and it seems that which approach ended up being
->> applied to which model laptop was never really a concious decision (AFAIK):
->>
->> https://bugzilla.kernel.org/show_bug.cgi?id=51231
->> https://bugzilla.kernel.org/show_bug.cgi?id=60682
->>
->> So lets move all the models which are only on the win8 blacklist because of
->> brightness issues to the use_native_backlight list, which is the smaller
->> hammer to use to solve the backlight issues.
->>
->> Making this change is esp. attractive now that 3.16 has
->> video.use_native_brightness=1 by default. If that new default does not get
->> reverted because of regressions, then we can drop all the models
->> with a use_native_backlight quirk, greatly reducing the number of models we've
->> a quirk for.
->>
->> Note: this is not tested on any of the affected models, this just seems like
->> the sensible thing to do.
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->>
->> --
->>
->> Changes in v2: Rebased on top of v3.16-rc1
->> ---
->>  drivers/acpi/blacklist.c | 83 ------------------------------------------------
->>  drivers/acpi/video.c     | 76 ++++++++++++++++++++++++++++++++++++++++++--
->>  2 files changed, 74 insertions(+), 85 deletions(-)
->>
->> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
->> index 3d8413d..b08e65a 100644
->> --- a/drivers/acpi/blacklist.c
->> +++ b/drivers/acpi/blacklist.c
->> @@ -156,12 +156,6 @@ static int __init dmi_disable_osi_win7(const struct dmi_system_id *d)
->>         acpi_osi_setup("!Windows 2009");
->>         return 0;
->>  }
->> -static int __init dmi_disable_osi_win8(const struct dmi_system_id *d)
->> -{
->> -       printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
->> -       acpi_osi_setup("!Windows 2012");
->> -       return 0;
->> -}
->>
->>  static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
->>         {
->> @@ -247,83 +241,6 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
->>         },
->>
->>         /*
->> -        * The following machines have broken backlight support when reporting
->> -        * the Windows 2012 OSI, so disable it until their support is fixed.
->> -        */
->> -       {
->> -       .callback = dmi_disable_osi_win8,
->> -       .ident = "ASUS Zenbook Prime UX31A",
->> -       .matches = {
->> -                    DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
->> -                    DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
->> -               },
->> -       },
->> -       {
->> -       .callback = dmi_disable_osi_win8,
->> -       .ident = "ThinkPad Edge E530",
->> -       .matches = {
->> -                    DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
->> -                    DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
->> -               },
->> -       },
->> -       {
->> -       .callback = dmi_disable_osi_win8,
->> -       .ident = "ThinkPad Edge E530",
->> -       .matches = {
->> -                    DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
->> -                    DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
->> -               },
->> -       },
->> -       {
->> -       .callback = dmi_disable_osi_win8,
->> -       .ident = "ThinkPad Edge E530",
->> -       .matches = {
->> -                    DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
->> -                    DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
->> -               },
->> -       },
->> -       {
->> -       .callback = dmi_disable_osi_win8,
->> -       .ident = "Acer Aspire V5-573G",
->> -       .matches = {
->> -                    DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
->> -                    DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
->> -               },
->> -       },
->> -       {
->> -       .callback = dmi_disable_osi_win8,
->> -       .ident = "Acer Aspire V5-572G",
->> -       .matches = {
->> -                    DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
->> -                    DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
->> -               },
->> -       },
->> -       {
->> -       .callback = dmi_disable_osi_win8,
->> -       .ident = "ThinkPad T431s",
->> -       .matches = {
->> -                    DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
->> -                    DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
->> -               },
->> -       },
->> -       {
->> -       .callback = dmi_disable_osi_win8,
->> -       .ident = "ThinkPad T430",
->> -       .matches = {
->> -                    DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
->> -                    DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
->> -               },
->> -       },
->> -       {
->> -       .callback = dmi_disable_osi_win8,
->> -       .ident = "Dell Inspiron 7737",
->> -       .matches = {
->> -                   DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
->> -                   DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7737"),
->> -               },
->> -       },
->> -
->> -       /*
->>          * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
->>          * Linux ignores it, except for the machines enumerated below.
->>          */
->> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
->> index fb9ffe9..deb1b1f 100644
->> --- a/drivers/acpi/video.c
->> +++ b/drivers/acpi/video.c
->> @@ -460,6 +460,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->>         },
->>         {
->>          .callback = video_set_use_native_backlight,
->> +        .ident = "ThinkPad X230",
->> +        .matches = {
->> +               DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
->> +               DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
->> +               },
->> +       },
->> +       {
->> +        .callback = video_set_use_native_backlight,
->>          .ident = "ThinkPad T430 and T430s",
->>          .matches = {
->>                 DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
->> @@ -468,10 +476,42 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->>         },
->>         {
->>          .callback = video_set_use_native_backlight,
->> -        .ident = "ThinkPad X230",
->> +        .ident = "ThinkPad T430",
->>          .matches = {
->>                 DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
->> -               DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
->> +               DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
->> +               },
->> +       },
->> +       {
->> +        .callback = video_set_use_native_backlight,
->> +        .ident = "ThinkPad T431s",
->> +        .matches = {
->> +               DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
->> +               DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
->> +               },
->> +       },
->> +       {
->> +        .callback = video_set_use_native_backlight,
->> +        .ident = "ThinkPad Edge E530",
->> +        .matches = {
->> +               DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
->> +               DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
->> +               },
->> +       },
->> +       {
->> +        .callback = video_set_use_native_backlight,
->> +        .ident = "ThinkPad Edge E530",
->> +        .matches = {
->> +               DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
->> +               DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
->> +               },
->> +       },
->> +       {
->> +        .callback = video_set_use_native_backlight,
->> +        .ident = "ThinkPad Edge E530",
->> +        .matches = {
->> +               DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
->> +               DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
->>                 },
->>         },
->>         {
->> @@ -524,6 +564,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->>         },
->>         {
->>          .callback = video_set_use_native_backlight,
->> +        .ident = "Dell Inspiron 7737",
->> +        .matches = {
->> +               DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
->> +               DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7737"),
->> +               },
->> +       },
->> +       {
->> +        .callback = video_set_use_native_backlight,
->>          .ident = "Acer Aspire 5733Z",
->>          .matches = {
->>                 DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
->> @@ -563,6 +611,30 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->>                 },
->>         },
->>         {
->> +        .callback = video_set_use_native_backlight,
->> +        .ident = "Acer Aspire V5-572G",
->> +        .matches = {
->> +               DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
->> +               DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
->> +               },
->> +       },
->> +       {
->> +        .callback = video_set_use_native_backlight,
->> +        .ident = "Acer Aspire V5-573G",
->> +        .matches = {
->> +               DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
->> +               DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
->> +               },
->> +       },
->> +       {
->> +        .callback = video_set_use_native_backlight,
->> +        .ident = "ASUS Zenbook Prime UX31A",
->> +        .matches = {
->> +               DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
->> +               DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
->> +               },
->> +       },
->> +       {
->>         .callback = video_set_use_native_backlight,
->>         .ident = "HP ProBook 4340s",
->>         .matches = {
->> --
->> 2.0.0
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> /*************************************************************************
+> ******
+>   *
+> + * FUNCTION:    acpi_check_gpe_method
+> + *
+> + * PARAMETERS:  gpe_device      - Namespace node for the GPE (NULL for
+> FADT
+> + *                                defined GPEs)
+> + *              gpe_number      - The event to remove a handler
+> + *
+> + * RETURN:      Status
+> + *
+> + * DESCRIPTION: Check whether the given GPE has associated event method.
+> + *
+> +
+> +***********************************************************************
+> +*******/
+> +acpi_status
+> +acpi_check_gpe_method(acpi_handle gpe_device, u32 gpe_number) {
+> +	struct acpi_gpe_event_info *gpe_event_info;
+> +	acpi_status status = AE_NOT_EXIST;
+> +	acpi_cpu_flags flags;
+> +
+> +	ACPI_FUNCTION_TRACE(acpi_check_gpe_method);
+> +
+> +	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
+> +	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
+> +	if (!gpe_event_info) {
+> +		status = AE_ERROR;
+> +		goto unlock_and_exit;
+> +	}
+> +
+> +	if (gpe_event_info->flags & ACPI_GPE_DISPATCH_METHOD)
+> +		status = AE_OK;
+> +
+> +unlock_and_exit:
+> +	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
+> +	return status;
+> +}
+> +ACPI_EXPORT_SYMBOL(acpi_check_gpe_method)
+> +
+> +/**********************************************************************
+> +*********
+> + *
+>   * FUNCTION:    acpi_install_gpe_handler
+>   *
+>   * PARAMETERS:  gpe_device      - Namespace node for the GPE (NULL for
+> FADT
+> @@ -821,7 +859,6 @@ free_and_exit:
+>  	ACPI_FREE(handler);
+>  	goto unlock_and_exit;
+>  }
+> -
+>  ACPI_EXPORT_SYMBOL(acpi_install_gpe_handler)
+> 
+> 
+> /*************************************************************************
+> ******
+> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h index
+> 35b525c..5b475c6 100644
+> --- a/include/acpi/acpixf.h
+> +++ b/include/acpi/acpixf.h
+> @@ -554,6 +554,9 @@ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+>  							  address,
+>  							  void *context))
+>  ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+> +				acpi_check_gpe_method(acpi_handle gpe_device,
+> +							u32 gpe_number))
+> +ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+>  				 acpi_remove_gpe_handler(acpi_handle gpe_device,
+>  							 u32 gpe_number,
+>  							 acpi_gpe_handler
+> --
+> 1.8.4.rc0.1.g8f6a3e5.dirty
+
