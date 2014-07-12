@@ -1,65 +1,31 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] Documentation: Remove reference to acpi_platform_device_ids from acpi/enumeration
-Date: Sat, 12 Jul 2014 00:28:28 +0200
-Message-ID: <18045079.o48H7sblXe@vostro.rjw.lan>
-References: <96c9e6efdd200bb194bc99845a18015f8d19881d.1405076619.git.dvhart@linux.intel.com>
+From: Julian Wollrath <jwollrath@web.de>
+Subject: [Regression]: Changing brightness does not work with v3.16-rc4
+Date: Sat, 12 Jul 2014 18:06:36 +0200
+Message-ID: <20140712180636.698e2e4c@saldaea>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51300 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751029AbaGKWKU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Jul 2014 18:10:20 -0400
-In-Reply-To: <96c9e6efdd200bb194bc99845a18015f8d19881d.1405076619.git.dvhart@linux.intel.com>
+Received: from mout.web.de ([212.227.15.3]:64571 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751435AbaGLQGk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 Jul 2014 12:06:40 -0400
+Received: from saldaea ([84.134.38.250]) by smtp.web.de (mrweb003) with
+ ESMTPSA (Nemesis) id 0M4ZVE-1WMwFN22SS-00yfxg for
+ <linux-acpi@vger.kernel.org>; Sat, 12 Jul 2014 18:06:37 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Hart <dvhart@linux.intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
+To: linux-acpi@vger.kernel.org
 
-On Friday, July 11, 2014 11:03:39 AM Darren Hart wrote:
-> As of:
-> 
->     4845934 ACPI / scan: use platform bus type by default for _HID enumeration
-> 
-> ACPI uses the platform bus by default, changing the opt-in to an opt-out
-> policy, eliminating the acpi_platform_device_ids table and replacing it
-> with forbidden_id_list[].
-> 
-> Remove the qualifying paragraph from the acpi/enumeration documentation
-> as it no longer applies.
+Hi,
 
-Sure thing.  I was about to do that myself, but you beat me to it. :-)
+changing the brightness on my Thinkpad X230 with Intel HD4000 graphics,
+stopped working after commit 886129a8eebe (ACPI / video: change
+acpi-video brightness_switch_enabled default to 0). Changing it back to
+1, fixes the problem, if "acpi_osi=!Windows 2012" is also set. Before
+that commit just setting "acpi_osi=!Windows 2012" was enough to get
+changing the brightness working.
 
-Applied, thanks!
 
-> Reported-by: Max Eliaser <max@meliaserlow.dyndns.tv>
-> Signed-off-by: Darren Hart <dvhart@linux.intel.com>
-> Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  Documentation/acpi/enumeration.txt | 6 ------
->  1 file changed, 6 deletions(-)
-> 
-> diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
-> index fd786ea..e182be5 100644
-> --- a/Documentation/acpi/enumeration.txt
-> +++ b/Documentation/acpi/enumeration.txt
-> @@ -60,12 +60,6 @@ If the driver needs to perform more complex initialization like getting and
->  configuring GPIOs it can get its ACPI handle and extract this information
->  from ACPI tables.
->  
-> -Currently the kernel is not able to automatically determine from which ACPI
-> -device it should make the corresponding platform device so we need to add
-> -the ACPI device explicitly to acpi_platform_device_ids list defined in
-> -drivers/acpi/acpi_platform.c. This limitation is only for the platform
-> -devices, SPI and I2C devices are created automatically as described below.
-> -
->  DMA support
->  ~~~~~~~~~~~
->  DMA controllers enumerated via ACPI should be registered in the system to
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+With best regards,
+Julian Wollrath
