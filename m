@@ -1,61 +1,42 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [BISECTED 3.16-rc REGREGRESSION] backlight control stopped working
-Date: Mon, 14 Jul 2014 20:01:14 +0200
-Message-ID: <3905689.dLVXZ99cEJ@vostro.rjw.lan>
-References: <87pph8kse7.fsf@nemi.mork.no> <53C3D7C3.7090505@redhat.com> <CA+55aFxYYKApOC+1TQkoxSzi-zTSB8OmkU=ypvNb_Gc2+K6Hmw@mail.gmail.com>
+Subject: Re: [Regression]: Changing brightness does not work with v3.16-rc4
+Date: Mon, 14 Jul 2014 20:21:19 +0200
+Message-ID: <100384914.3msa0DXJgJ@vostro.rjw.lan>
+References: <20140712180636.698e2e4c@saldaea> <20140712182452.19ef6a91@saldaea>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57034 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:64736 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752174AbaGNRnD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jul 2014 13:43:03 -0400
-In-Reply-To: <CA+55aFxYYKApOC+1TQkoxSzi-zTSB8OmkU=ypvNb_Gc2+K6Hmw@mail.gmail.com>
+	with SMTP id S1751602AbaGNSDF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jul 2014 14:03:05 -0400
+In-Reply-To: <20140712182452.19ef6a91@saldaea>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: Julian Wollrath <jwollrath@web.de>
+Cc: linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
 
-On Monday, July 14, 2014 09:24:16 AM Linus Torvalds wrote:
-> On Mon, Jul 14, 2014 at 6:14 AM, Hans de Goede <hdegoede@redhat.com> =
-wrote:
-> >
-> > This *not* a regression, it is an intended behavior change [..]
->=20
-> That counts as a regression.
->=20
-> If things used to work, and they don't work, it's a regression. If
-> it's intentional, that just makes it worse.
->=20
-> > Yes this may break existing configurations for some users, most lik=
-ely
-> > users running some custom setup, who thus should be able to fix thi=
-ngs
-> > by adding one more customization to there setup.
->=20
-> .. and apparently this whole paragraph is completely bogus. It *does*
-> break things, and for normal people. That's what the bug report is al=
-l
-> about. So don't waffle about it.
->=20
-> Bj=C3=B8rn, what's your setup? Is this perhaps solvable some other wa=
-y?
->=20
-> > TL;DR: This change really is for the better and is here to stay.
->=20
-> Wrong. We don't break existing setups, and your attitude needs fixing=
-=2E
->=20
-> Rafael, please get it reverted, or I will have to revert it.
+On Saturday, July 12, 2014 06:24:52 PM Julian Wollrath wrote:
+> Hi,
+> 
+> > changing the brightness on my Thinkpad X230 with Intel HD4000
+> > graphics, stopped working after commit 886129a8eebe (ACPI / video:
+> > change acpi-video brightness_switch_enabled default to 0). Changing
+> > it back to 1, fixes the problem, if "acpi_osi=!Windows 2012" is also
+> > set. Before that commit just setting "acpi_osi=!Windows 2012" was
+> > enough to get changing the brightness working.
+>
+> small correction: It setting "acpi_osi=!Windows 2012" does only help
+> when using a kernel with commit 886129a8eebe as HEAD, with v3.16-rc4
+> setting video.brightness_switch_enabled=1 and acpi_osi=!Windows 2012 or
+> just one of them, does not make changing the brightness work again.
 
-I've queued up a revert already.  I'll include it into my next pull
-request later this week.
+And reverting commit 751109aad583 (ACPI / video: Change the default for
+video.use_native_backlight to 1) make that last problem go away, right?
+
+We are going to rever commit 886129a8eebe for other reasons, so can you
+please revert it from 3.16-rc5 on your system and report back?
 
 Rafael
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
