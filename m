@@ -1,50 +1,40 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [Regression]: Changing brightness does not work with v3.16-rc4
-Date: Mon, 14 Jul 2014 10:06:21 +0800
-Message-ID: <53C33B1D.4070500@intel.com>
-References: <20140712180636.698e2e4c@saldaea>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v3 1/3] xhci: Log ep-index and comp-code on TRB DMA ptr not part of current TD
+Date: Mon, 14 Jul 2014 14:35:49 +0200
+Message-ID: <1405341351-32679-1-git-send-email-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:57261 "EHLO mga11.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:50362 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752194AbaGNCGe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 13 Jul 2014 22:06:34 -0400
-In-Reply-To: <20140712180636.698e2e4c@saldaea>
+	id S1754439AbaGNMf7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jul 2014 08:35:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Julian Wollrath <jwollrath@web.de>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 
-On 07/13/2014 12:06 AM, Julian Wollrath wrote:
-> Hi,
-> 
-> changing the brightness on my Thinkpad X230 with Intel HD4000 graphics,
-> stopped working after commit 886129a8eebe (ACPI / video: change
-> acpi-video brightness_switch_enabled default to 0). Changing it back to
-> 1, fixes the problem, if "acpi_osi=!Windows 2012" is also set. Before
-> that commit just setting "acpi_osi=!Windows 2012" was enough to get
-> changing the brightness working.
+These errors should never happen, so lets add some extra info when they happen
+to make figuring out what is going on easier.
 
-Does your system have /sys/class/backlight/intel_backlight? Does it work
-if you manually change the brightness file like this:
-# cd /sys/class/backlight/intel_backlight
-# cat max_brightness
-xxxxx
-# echo xxx > brightness
-# echo xxx > brightness
-...
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/usb/host/xhci-ring.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Thanks,
-Aaron
-
-> 
-> 
-> With best regards,
-> Julian Wollrath
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
+index 749fc68..5542dfe 100644
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -2504,7 +2504,9 @@ static int handle_tx_event(struct xhci_hcd *xhci,
+ 				/* HC is busted, give up! */
+ 				xhci_err(xhci,
+ 					"ERROR Transfer event TRB DMA ptr not "
+-					"part of current TD\n");
++					"part of current TD ep_index %d "
++					"comp_code %u\n", ep_index,
++					trb_comp_code);
+ 				return -ESHUTDOWN;
+ 			}
+ 
+-- 
+2.0.0
 
