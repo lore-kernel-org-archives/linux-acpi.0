@@ -1,27 +1,74 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 0/3] ACPI: Fix problem with GPE storm from buttons
-Date: Mon, 14 Jul 2014 22:39:32 +0200
-Message-ID: <7323172.bFe2jdDKx7@vostro.rjw.lan>
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: [BISECTED 3.16-rc REGREGRESSION] backlight control stopped working
+Date: Mon, 14 Jul 2014 22:45:07 +0200
+Message-ID: <877g3fsm98.fsf@nemi.mork.no>
+References: <87pph8kse7.fsf@nemi.mork.no> <53C3D7C3.7090505@redhat.com>
+	<CA+55aFxYYKApOC+1TQkoxSzi-zTSB8OmkU=ypvNb_Gc2+K6Hmw@mail.gmail.com>
+	<CA+55aFzHo4BEO8W0yza7g0YMgg-b=hPbk20-vpR3s==ydpmAOg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52009 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756932AbaGNUXe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jul 2014 16:23:34 -0400
+Received: from canardo.mork.no ([148.122.252.1]:53485 "EHLO canardo.mork.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755638AbaGNUpa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Jul 2014 16:45:30 -0400
+In-Reply-To: <CA+55aFzHo4BEO8W0yza7g0YMgg-b=hPbk20-vpR3s==ydpmAOg@mail.gmail.com>
+	(Linus Torvalds's message of "Mon, 14 Jul 2014 09:59:51 -0700")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Lan Tianyu <tianyu.lan@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Hi All,
+Linus Torvalds <torvalds@linux-foundation.org> writes:
+> On Mon, Jul 14, 2014 at 9:24 AM, Linus Torvalds
+> <torvalds@linux-foundation.org> wrote:
+>>
+>> Bj=C3=B8rn, what's your setup? Is this perhaps solvable some other w=
+ay?
 
-This patch series attempts to fix a problem with GPE storms from
-buttons described in the changelog of patch [3/3].
+Just to answer that: I don't use any particular desktop environment.  I
+have acpid running to take care of the most basic power management
+stuff.  My X session is simply WindowMaker (sic) running directly from
+lightdm.  No session management or fancy policy daemons. So I don't hav=
+e
+any daemon which would react on the brightness key codes.
 
-Patches [1/3] and [2/3] are ACPICA material, patch [3/3] is for Linux/ACPI.
+Now, it's not that I would mind adding a daemon to handle stuff like
+brightness control. I reported this as a bug because I was a bit
+surprised by the existing behaviour breaking like that, and I thought
+that other users might be as surprised as me.  Some maybe even without
+the ability to track down the change and the setting that would restore
+the old behaviour.
 
-Thanks,
-Rafael
+> For example, I wonder if we could fix the "dual brightness change"
+> problem automatically by making a new option for
+> 'brightness_switch_enabled'.
+>
+> Currently, there are two cases:
+>
+>  - enabled: do the actual brightness change _and_ send the input
+> report keycode for a brightness change
+>
+>  - disabled: just send the keycode, excpecting the desktop software t=
+o
+> handle it.
+>
+> and maybe we could have a new case (and make *that* the default):
+>
+>  - delayed: send the keycode, and set up a delayed timer (say, one
+> tenth of a second) to do the actual brightness change. And if a
+> brightness change from user mode comes in during that delay, we cance=
+l
+> the kernel-induced pending change.
 
+That sounds like a good solution to me FWIW.
+
+
+
+Bj=C3=B8rn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
