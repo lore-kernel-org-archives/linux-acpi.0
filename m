@@ -1,97 +1,60 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 8/9] ACPICA: Events: Add a flag to disable internal auto GPE clearing.
-Date: Tue, 15 Jul 2014 11:08:04 +0800
-Message-ID: <934969ef53f0a0ed06fec048cca0c01b0199eb9f.1405306438.git.lv.zheng@intel.com>
+Subject: [PATCH v2 7/9] ACPICA: Events: Fix an issue that originally_enabled check is not paired.
+Date: Tue, 15 Jul 2014 11:07:57 +0800
+Message-ID: <1fb6f5c0e8aa7f9222c3f62127ac0ebbabd91b6c.1405306438.git.lv.zheng@intel.com>
 References: <cover.1403060601.git.lv.zheng@intel.com> <cover.1405306438.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:45690 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757797AbaGODIM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Jul 2014 23:08:12 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1405306438.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Clearing the status bit means OSPM acknowledges the GPE and the hardware
-then can bring follow-up events up. Acklowdging it too early causes OSPM
-seeing level triggered GPE storms or missing edge-triggered GPEs if the
-OSPM driver responds slowly. Some drivers may choose to implement GPE
-condition clearing code in a position that is different from where it
-should be disabled or re-enabled, in which case, the internal auto GPE
-clearing operations should be abandoned.
-
-This flag facilitates such driver designs and implementations.
-
-Note that drivers will need to invoke acpi_clear_gpe() manually in a proper
-position where the causes and conditions of the GPE have been solved and
-the GPE status can be safely cleared. Lv Zheng.
+The originally_enabled check is not paired between acpi_install_gpe_handler()
+and acpi_remove_gpe_handler(). Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/evgpe.c |    6 ++++--
- include/acpi/actypes.h      |   16 +++++++++-------
- 2 files changed, 13 insertions(+), 9 deletions(-)
+ drivers/acpi/acpica/evxface.c |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index 64f6d41..7589956 100644
---- a/drivers/acpi/acpica/evgpe.c
-+++ b/drivers/acpi/acpica/evgpe.c
-@@ -633,7 +633,8 @@ acpi_status acpi_ev_finish_gpe(struct acpi_gpe_event_info * gpe_event_info)
- {
- 	acpi_status status;
- 
--	if ((gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
-+	if (!(gpe_event_info->flags & ACPI_GPE_NO_AUTO_CLEAR) &&
-+	    (gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
- 	    ACPI_GPE_LEVEL_TRIGGERED) {
- 		/*
- 		 * GPE is level-triggered, we clear the GPE status bit after
-@@ -719,7 +720,8 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
- 	 * If edge-triggered, clear the GPE status bit now. Note that
- 	 * level-triggered events are cleared after the GPE is serviced.
+diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
+index fc075a5..e090dd1 100644
+--- a/drivers/acpi/acpica/evxface.c
++++ b/drivers/acpi/acpica/evxface.c
+@@ -794,11 +794,19 @@ acpi_install_gpe_handler(acpi_handle gpe_device,
+ 	 * automatically during initialization, in which case it has to be
+ 	 * disabled now to avoid spurious execution of the handler.
  	 */
--	if ((gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
-+	if (!(gpe_event_info->flags & ACPI_GPE_NO_AUTO_CLEAR) &&
-+	    (gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
- 	    ACPI_GPE_EDGE_TRIGGERED) {
- 		status = acpi_hw_clear_gpe(gpe_event_info);
- 		if (ACPI_FAILURE(status)) {
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 608a040..18f341f 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -738,13 +738,14 @@ typedef u32 acpi_event_status;
+-
+-	if ((handler->original_flags & ACPI_GPE_DISPATCH_METHOD)
+-	    && gpe_event_info->runtime_count) {
+-		handler->originally_enabled = 1;
++	if (((handler->original_flags & ACPI_GPE_DISPATCH_METHOD) ||
++	     (handler->original_flags & ACPI_GPE_DISPATCH_NOTIFY)) &&
++	    gpe_event_info->runtime_count) {
++		handler->originally_enabled = TRUE;
+ 		(void)acpi_ev_remove_gpe_reference(gpe_event_info);
++
++		/* Sanity check of original type against new type */
++
++		if (type !=
++		    (u32)(gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK)) {
++			ACPI_WARNING((AE_INFO,
++				      "GPE type mismatch (level/edge)"));
++		}
+ 	}
  
- /*
-  * GPE info flags - Per GPE
-- * +-------+-+-+---+
-- * |  7:4  |3|2|1:0|
-- * +-------+-+-+---+
-- *     |    | |  |
-- *     |    | |  +-- Type of dispatch:to method, handler, notify, or none
-- *     |    | +----- Interrupt type: edge or level triggered
-- *     |    +------- Is a Wake GPE
-+ * +-------+-+-+-+---+
-+ * |  7:5  |4|3|2|1:0|
-+ * +-------+-+-+-+---+
-+ *     |    | | |  |
-+ *     |    | | |  +-- Type of dispatch:to method, handler, notify, or none
-+ *     |    | | +----- Interrupt type: edge or level triggered
-+ *     |    | +------- Is a Wake GPE
-+ *     |    +--------- Do not clear GPE automatically
-  *     +------------ <Reserved>
-  */
- #define ACPI_GPE_DISPATCH_NONE          (u8) 0x00
-@@ -758,6 +759,7 @@ typedef u32 acpi_event_status;
- #define ACPI_GPE_XRUPT_TYPE_MASK        (u8) 0x04
- 
- #define ACPI_GPE_CAN_WAKE               (u8) 0x08
-+#define ACPI_GPE_NO_AUTO_CLEAR          (u8) 0x10
- 
- /*
-  * Flags for GPE and Lock interfaces
+ 	/* Install the handler */
+@@ -903,7 +911,8 @@ acpi_remove_gpe_handler(acpi_handle gpe_device,
+ 	 * enabled, it should be enabled at this point to restore the
+ 	 * post-initialization configuration.
+ 	 */
+-	if ((handler->original_flags & ACPI_GPE_DISPATCH_METHOD) &&
++	if (((handler->original_flags & ACPI_GPE_DISPATCH_METHOD) ||
++	     (handler->original_flags & ACPI_GPE_DISPATCH_NOTIFY)) &&
+ 	    handler->originally_enabled) {
+ 		(void)acpi_ev_add_gpe_reference(gpe_event_info);
+ 	}
 -- 
 1.7.10
-
