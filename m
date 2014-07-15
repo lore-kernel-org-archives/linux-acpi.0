@@ -1,99 +1,79 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 6/9] ACPICA: Events: Fix an issue that status of GPEs are unexpectedly cleared.
-Date: Tue, 15 Jul 2014 11:07:50 +0800
-Message-ID: <879158e9aa39144c118003f469d1fda29e5126b4.1405306438.git.lv.zheng@intel.com>
-References: <cover.1403060601.git.lv.zheng@intel.com> <cover.1405306438.git.lv.zheng@intel.com>
+Subject: [PATCH v2 00/10] ACPI/EC: Add event storm prevention and cleanup command storm prevention.
+Date: Tue, 15 Jul 2014 11:14:23 +0800
+Message-ID: <cover.1405391678.git.lv.zheng@intel.com>
+References: <cover.1403060601.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:37020 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:42816 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757751AbaGODHz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Jul 2014 23:07:55 -0400
-In-Reply-To: <cover.1405306438.git.lv.zheng@intel.com>
+	id S1757125AbaGODO1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jul 2014 23:14:27 -0400
+In-Reply-To: <cover.1403060601.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-The stale GPE indication is not a problem. Drivers should always check the
-underlying hardware status and be ready to handle invalid status.
+This patchset is based on the previous ACPI/EC bug fixes series and the GPE
+API enhancement series.
 
-The GPE clearing implemented in acpi_ev_enable_gpe() on the contrary
-introduces issues for acpi_enable_gpe() logic. When the usage count of GPE is
-increased by suspend/resume code, GPE status shouldn't be cleared, or a GPE
-loss could happen when the driver relies on the interrupt mode.
+During the bug fix, there is a dmesg showing Linux EC driver doesn't
+support EC event storm prevention.
+  https://bugzilla.kernel.org/show_bug.cgi?id=70891
+The comment 55 contains the dmesg log that shows a 0x0D event storm, for
+which there is no _Q0D method provided by the ACPI table to handle. This
+becomes a GPE storm and slows down the machine a lot, it tooks longer time
+for Linux to boot (see comment 80).
 
-With previous cleanup, all acpi_ev_enable_gpe() usages are removed, this patch
-also removes this internal API. Lv Zheng.
+This patchset implements event storm prevention, turning EC driver into
+polling mode when the storm happens so that other tasks can be processed
+by the CPU without being affected by this GPE storm.
+In current EC driver, we only have command storm prevention implemented,
+this patch also refines the command storm prevention support.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/evgpe.c |   46 +++----------------------------------------
- 1 file changed, 3 insertions(+), 43 deletions(-)
+All of the above storm prevention support are implemented using the ideal
+GPE handling model provided by the previous GPE API enhancement series.
+The ideal GPE handling model should be able to handle the following cases:
 
-diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index d629a21..64f6d41 100644
---- a/drivers/acpi/acpica/evgpe.c
-+++ b/drivers/acpi/acpica/evgpe.c
-@@ -98,48 +98,6 @@ acpi_ev_update_gpe_enable_mask(struct acpi_gpe_event_info *gpe_event_info)
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_ev_enable_gpe
-- *
-- * PARAMETERS:  gpe_event_info          - GPE to enable
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Clear a GPE of stale events and enable it.
-- *
-- ******************************************************************************/
--
--acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
--{
--	acpi_status status;
--
--	ACPI_FUNCTION_TRACE(ev_enable_gpe);
--
--	/*
--	 * We will only allow a GPE to be enabled if it has either an associated
--	 * method (_Lxx/_Exx) or a handler, or is using the implicit notify
--	 * feature. Otherwise, the GPE will be immediately disabled by
--	 * acpi_ev_gpe_dispatch the first time it fires.
--	 */
--	if ((gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) ==
--	    ACPI_GPE_DISPATCH_NONE) {
--		return_ACPI_STATUS(AE_NO_HANDLER);
--	}
--
--	/* Clear the GPE (of stale events) */
--
--	status = acpi_hw_clear_gpe(gpe_event_info);
--	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
--	}
--
--	/* Enable the requested GPE */
--
--	status = acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_ENABLE);
--	return_ACPI_STATUS(status);
--}
--
--/*******************************************************************************
-- *
-  * FUNCTION:    acpi_ev_add_gpe_reference
-  *
-  * PARAMETERS:  gpe_event_info          - Add a reference to this GPE
-@@ -169,7 +127,9 @@ acpi_ev_add_gpe_reference(struct acpi_gpe_event_info *gpe_event_info)
- 
- 		status = acpi_ev_update_gpe_enable_mask(gpe_event_info);
- 		if (ACPI_SUCCESS(status)) {
--			status = acpi_ev_enable_gpe(gpe_event_info);
-+			status =
-+			    acpi_hw_low_set_gpe(gpe_event_info,
-+						ACPI_GPE_ENABLE);
- 		}
- 
- 		if (ACPI_FAILURE(status)) {
+This patchset also contains an EC commands flushing support. This is
+required to implement event storm prevention. By utilizing the GPE APIs, we
+need to invoke acpi_set_gpe() before invoking acpi_disable_gpe() to prevent
+storms. Without implementing flushing, there is no such a point invoking
+acpi_disable_gpe() before all commands have been completed.
+By implementing EC commands flushing, we now achieve an additional benefit:
+Some EC driven ACPI devices may require all submitted EC commands to be
+completed before they can be safely suspended or unplugged. Otherwise the
+state of such devices will be broken.
+When implementing IO flushing, there always need to be 2 flags to indicate
+an intermediate state - old IO submissions observe the (STARTED) flag to
+continue; new IO submissions observe the (STOPPED) flag to be discarded.
+After introducing the 2 flags, a "stop waiter" is implemented for the
+suspending/removing operations of the EC driver.
+
+The refined patches are also passed the runtime/suspend tests carried out
+on the following platforms:
+  "Dell Inspiron Mini 1010" - i386 kernel
+  "Dell Latitude 6430u" - x86_64 kernel
+
+This patchset also includes a unit test facility, I used it to test the
+hotplug support code in the driver. It's useful for future EC development.
+
+Lv Zheng (10):
+  ACPI/EC: Introduce STARTED/STOPPED flags to replace BLOCKED flag.
+  ACPI/EC: Add detailed command/query debugging information.
+  ACPI/EC: Deploy the new GPE handling model.
+  ACPI/EC: Refine command storm prevention support.
+  ACPI/EC: Add reference counting for query handlers.
+  ACPI/EC: Add a warning message to indicate event storms.
+  ACPI/EC: Refine event/query debugging messages.
+  ACPI/EC: Add command flushing support.
+  ACPI/EC: Add event storm prevention support.
+  ACPI/EC: Add unit test support for EC driver hotplug.
+
+ drivers/acpi/ec.c       |  293 ++++++++++++++++++++++++++++++++++++++---------
+ drivers/acpi/internal.h |    1 +
+ 2 files changed, 239 insertions(+), 55 deletions(-)
+
 -- 
 1.7.10
 
