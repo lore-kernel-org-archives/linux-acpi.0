@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 10/10] ACPI/EC: Add unit test support for EC driver hotplug.
-Date: Tue, 15 Jul 2014 11:15:27 +0800
-Message-ID: <6d730506322f4d9e3b2840db907b092d56bf95de.1405391679.git.lv.zheng@intel.com>
+Subject: [PATCH v2 04/10] ACPI/EC: Refine command storm prevention support.
+Date: Tue, 15 Jul 2014 11:14:47 +0800
+Message-ID: <8f414917277bc491ddc0f3862f9c10ba848f63d9.1405391679.git.lv.zheng@intel.com>
 References: <cover.1403060601.git.lv.zheng@intel.com> <cover.1405391678.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1405391678.git.lv.zheng@intel.com>
@@ -10,59 +10,69 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds facility to test future EC modification.
-All EC commits should enable TEST_HOTPLUG, and try a build/boot test.
-Since EC is currently a built-in module, this is the only mean for us to
-test the hotplug code.
+This patch refines EC command storm prevention support.
+
+Ideally, we should only enable storm prevention for the current command so
+that the next command can try the efficient interrupt mode again.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/ec.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/acpi/ec.c |   21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index b98474f..d3b1bd7 100644
+index 5049981..d4c07b9 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -31,6 +31,7 @@
+@@ -76,7 +76,6 @@ enum ec_command {
  
- /* Uncomment next line to get verbose printout */
- /* #define DEBUG */
-+/* #define TEST_HOTPLUG */
- #define pr_fmt(fmt) "ACPI : EC: " fmt
- 
- #include <linux/kernel.h>
-@@ -128,6 +129,9 @@ static struct acpi_ec_query_handler *
- acpi_ec_get_query_handler(struct acpi_ec_query_handler *handler);
- static void acpi_ec_put_query_handler(struct acpi_ec_query_handler *handler);
- 
-+static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
-+			       u32 gpe_number, void *data);
-+
- struct acpi_ec *boot_ec, *first_ec;
- EXPORT_SYMBOL(first_ec);
- 
-@@ -787,6 +791,21 @@ static void acpi_ec_gpe_query(void *ec_cxt)
- 	mutex_lock(&ec->mutex);
- 	acpi_ec_sync_query(ec, NULL);
- 	mutex_unlock(&ec->mutex);
-+
-+#ifdef TEST_HOTPLUG
-+
-+	/* Unit testing for driver hotplugging */
-+
-+	pr_info("Removing EC handlers...\n");
-+	acpi_ec_stop(ec);
-+	acpi_remove_gpe_handler(NULL, ec->gpe,
-+				&acpi_ec_gpe_handler);
-+	pr_info("Installing EC handlers...\n");
-+	acpi_install_gpe_handler(NULL, ec->gpe,
-+				  ACPI_GPE_EDGE_TRIGGERED,
-+				  &acpi_ec_gpe_handler, ec);
-+	acpi_ec_start(ec);
-+#endif
+ enum {
+ 	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
+-	EC_FLAGS_GPE_STORM,		/* GPE storm detected */
+ 	EC_FLAGS_HANDLERS_INSTALLED,	/* Handlers for GPE and
+ 					 * OpReg are installed */
+ 	EC_FLAGS_STARTED,		/* Driver is started */
+@@ -243,8 +242,14 @@ err:
+ 	 * otherwise will take a not handled IRQ as a false one.
+ 	 */
+ 	if (!(status & ACPI_EC_FLAG_SCI)) {
+-		if (in_interrupt() && t)
+-			++t->irq_count;
++		if (in_interrupt() && t) {
++			if (t->irq_count < ec_storm_threshold)
++				++t->irq_count;
++			if (t->irq_count == ec_storm_threshold) {
++				pr_debug("+++++ Polling enabled +++++\n");
++				acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_DISABLE);
++			}
++		}
+ 	}
+ 	return wakeup;
  }
- 
- static int ec_check_sci(struct acpi_ec *ec, u8 state)
+@@ -318,23 +323,15 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+ 	acpi_enable_gpe(NULL, ec->gpe);
+ 	pr_debug("***** Command(%s) started *****\n",
+ 		 acpi_ec_cmd_string(t->command));
+-	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
+-		pr_debug("+++++ Polling enabled +++++\n");
+-		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_DISABLE);
+-	}
+ 	start_transaction(ec);
+ 	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
+ 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+ 	spin_unlock_irqrestore(&ec->lock, tmp);
+ 	ret = ec_poll(ec);
+ 	spin_lock_irqsave(&ec->lock, tmp);
+-	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
++	if (t->irq_count == ec_storm_threshold) {
+ 		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_ENABLE);
+ 		pr_debug("+++++ Polling disabled +++++\n");
+-	} else if (t->irq_count > ec_storm_threshold) {
+-		pr_debug("+++++ Polling scheduled (%d GPE) +++++\n",
+-			 t->irq_count);
+-		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
+ 	}
+ 	pr_debug("***** Command(%s) stopped *****\n",
+ 		 acpi_ec_cmd_string(t->command));
 -- 
 1.7.10
