@@ -1,75 +1,97 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 5/9] ACPICA: Events: Fix an issue that acpi_set_gpe() cannot unconditionally enable GPEs.
-Date: Tue, 15 Jul 2014 11:07:44 +0800
-Message-ID: <da0798d9e4f2c963ff9337655b58d0daa4b25ef1.1405306438.git.lv.zheng@intel.com>
+Subject: [PATCH v2 8/9] ACPICA: Events: Add a flag to disable internal auto GPE clearing.
+Date: Tue, 15 Jul 2014 11:08:04 +0800
+Message-ID: <934969ef53f0a0ed06fec048cca0c01b0199eb9f.1405306438.git.lv.zheng@intel.com>
 References: <cover.1403060601.git.lv.zheng@intel.com> <cover.1405306438.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:45690 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757797AbaGODIM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jul 2014 23:08:12 -0400
 In-Reply-To: <cover.1405306438.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-This patch adds unconditional GPE enabling support into acpi_set_gpe().
+Clearing the status bit means OSPM acknowledges the GPE and the hardware
+then can bring follow-up events up. Acklowdging it too early causes OSPM
+seeing level triggered GPE storms or missing edge-triggered GPEs if the
+OSPM driver responds slowly. Some drivers may choose to implement GPE
+condition clearing code in a position that is different from where it
+should be disabled or re-enabled, in which case, the internal auto GPE
+clearing operations should be abandoned.
 
-Originally this function checks if the GPE has been enabled with handlers
-and performs acknowledging before enabling it.
+This flag facilitates such driver designs and implementations.
 
-First, IRQ enabling/disabling has 2 use cases:
-1. When upper layers (the users of the driver) submit requests to the
-   drivers, it means they care about the underlying hardware. For this
-   case, acpi_enable_gpe() should be invoked. When the reference count is
-   increased from 0 to 1, driver enables the hardware IRQ. And
-   acpi_disable_gpe() is used as the reversal when the users have completed
-   the submitted requests.
-2. Driver may temporarily disables the IRQ and wants to re-enable it later,
-   this case is normally used in order to prevent IRQ storm. When a driver
-   cannot fully solve the condition that triggered the IRQ in the IRQ
-   context, in order not to trigger IRQ storm, driver has to disable IRQ
-   and re-enables it in the defered execution environment - which should be
-   in a task context. This API should be used exactly for this purpose.
-
-Second, since the acpi_set_gpe() should be invoked from an IRQ handler, the
-handler check is useless for this API.
-
-Third, given the fact that drivers should complete all outstanding requests
-before putting themselves into the sleep states, as this API is executed for
-outstanding requests, it should also have nothing to do with the
-"RUN"/"WAKE" distinguishing. That's why the acpi_set_gpe(ACPI_GPE_ENABLE)
-should not be implemented by acpi_hw_low_set_gpe(ACPI_GPE_CONDITIONAL_ENABLE).
-
-Fourth, GPE clearing is used to acknowledge the GPE. The combination of
-acknowledging and enabling may not be expected by the hardware drivers. For
-GPE clearing, we have a seperate API acpi_clear_gpe(). There are cases
-drivers do want the 2 operations to be split. For example, a high IO
-throughput IRQ requires the IRQ to be cleared in the IRQ context. In order
-to avoid GPE storm, same driver need to invoke IRQ re-enabling in the task
-context. So splitting these 2 operations could facilitates drivers the
-maximum possibilities to achieve success. For a combined one, we already
-have acpi_finish_gpe() ready to be invoked.
-
-This patch converts acpi_set_gpe(ACPI_GPE_ENABLE) into
-acpi_hw_low_set_gpe(ACPI_GPE_ENABLE) to achieve a seperate GPE enabling API.
-Drivers are encouraged to use this API when they need to handle the above
-mentioned cases. Lv Zheng.
+Note that drivers will need to invoke acpi_clear_gpe() manually in a proper
+position where the causes and conditions of the GPE have been solved and
+the GPE status can be safely cleared. Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/evxfgpe.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/evgpe.c |    6 ++++--
+ include/acpi/actypes.h      |   16 +++++++++-------
+ 2 files changed, 13 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/acpi/acpica/evxfgpe.c b/drivers/acpi/acpica/evxfgpe.c
-index d66d50b..6c53633 100644
---- a/drivers/acpi/acpica/evxfgpe.c
-+++ b/drivers/acpi/acpica/evxfgpe.c
-@@ -218,7 +218,7 @@ acpi_status acpi_set_gpe(acpi_handle gpe_device, u32 gpe_number, u8 action)
- 	switch (action) {
- 	case ACPI_GPE_ENABLE:
+diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+index 64f6d41..7589956 100644
+--- a/drivers/acpi/acpica/evgpe.c
++++ b/drivers/acpi/acpica/evgpe.c
+@@ -633,7 +633,8 @@ acpi_status acpi_ev_finish_gpe(struct acpi_gpe_event_info * gpe_event_info)
+ {
+ 	acpi_status status;
  
--		status = acpi_ev_enable_gpe(gpe_event_info);
-+		status = acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_ENABLE);
- 		break;
+-	if ((gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
++	if (!(gpe_event_info->flags & ACPI_GPE_NO_AUTO_CLEAR) &&
++	    (gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
+ 	    ACPI_GPE_LEVEL_TRIGGERED) {
+ 		/*
+ 		 * GPE is level-triggered, we clear the GPE status bit after
+@@ -719,7 +720,8 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
+ 	 * If edge-triggered, clear the GPE status bit now. Note that
+ 	 * level-triggered events are cleared after the GPE is serviced.
+ 	 */
+-	if ((gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
++	if (!(gpe_event_info->flags & ACPI_GPE_NO_AUTO_CLEAR) &&
++	    (gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
+ 	    ACPI_GPE_EDGE_TRIGGERED) {
+ 		status = acpi_hw_clear_gpe(gpe_event_info);
+ 		if (ACPI_FAILURE(status)) {
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 608a040..18f341f 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -738,13 +738,14 @@ typedef u32 acpi_event_status;
  
- 	case ACPI_GPE_DISABLE:
+ /*
+  * GPE info flags - Per GPE
+- * +-------+-+-+---+
+- * |  7:4  |3|2|1:0|
+- * +-------+-+-+---+
+- *     |    | |  |
+- *     |    | |  +-- Type of dispatch:to method, handler, notify, or none
+- *     |    | +----- Interrupt type: edge or level triggered
+- *     |    +------- Is a Wake GPE
++ * +-------+-+-+-+---+
++ * |  7:5  |4|3|2|1:0|
++ * +-------+-+-+-+---+
++ *     |    | | |  |
++ *     |    | | |  +-- Type of dispatch:to method, handler, notify, or none
++ *     |    | | +----- Interrupt type: edge or level triggered
++ *     |    | +------- Is a Wake GPE
++ *     |    +--------- Do not clear GPE automatically
+  *     +------------ <Reserved>
+  */
+ #define ACPI_GPE_DISPATCH_NONE          (u8) 0x00
+@@ -758,6 +759,7 @@ typedef u32 acpi_event_status;
+ #define ACPI_GPE_XRUPT_TYPE_MASK        (u8) 0x04
+ 
+ #define ACPI_GPE_CAN_WAKE               (u8) 0x08
++#define ACPI_GPE_NO_AUTO_CLEAR          (u8) 0x10
+ 
+ /*
+  * Flags for GPE and Lock interfaces
 -- 
 1.7.10
+
