@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 01/10] ACPI/EC: Introduce STARTED/STOPPED flags to replace BLOCKED flag.
-Date: Tue, 15 Jul 2014 11:14:28 +0800
-Message-ID: <025ed8a54ea074779fe6028fd9de9814e857de00.1405391678.git.lv.zheng@intel.com>
+Subject: [PATCH v2 03/10] ACPI/EC: Deploy the new GPE handling model.
+Date: Tue, 15 Jul 2014 11:14:41 +0800
+Message-ID: <a2ae05ad80e58d21a557328dc8bd5a49bfcdafd3.1405391678.git.lv.zheng@intel.com>
 References: <cover.1403060601.git.lv.zheng@intel.com> <cover.1405391678.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1405391678.git.lv.zheng@intel.com>
@@ -10,170 +10,140 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-By using the 2 flags, we can indicate an inter-mediate state where the
-current transactions should be completed while the new transactions should
-be blocked.
+This patch deploys the following GPE handling model:
+1. acpi_enable_gpe()/acpi_disable_gpe():
+   This set of APIs are used for EC usage reference counting.
+2. acpi_set_gpe(ACPI_GPE_ENABLE)/acpi_set_gpe(ACPI_GPE_DISABLE):
+   This set of APIs are used for preventing GPE storm.
+Note that this patch only converts current storm prevention implementations
+using new APIs without correcting them.
+
+For the EC driver, GPE is enabled for the following users:
+1. Event monitoring (HW exception):
+   If we want to query events in interrupt mode, acpi_enable_gpe() is
+   invoked to allow EVT_SCI IRQs.
+2. Command processing (IO request):
+   When we receive an upper layer command submission, acpi_enable_gpe() is
+   invoked to allow IBF=0,OBF=1 IRQs.
+Comments are updated to reflect this model.
+
+For the EC driver, GPE is disabled for the following storms:
+1. Command errors:
+   If there are too many IRQs coming during a command processing period and
+   such IRQs are not related to the event (EVT_SCI),
+   acpi_set_gpe(ACPI_GPE_DISABLE) is invoked to prevent further storms
+   during the same command transaction. This is not implemented in a good
+   style. Ideally, we should only enable storm prevention for the current
+   command so that the next command can try the efficient interrupt mode
+   again. This patch doesn't change this logic, it will be done by further
+   patches. Such correction will be implemented by further patches.
+2. Event errors:
+   There are cases that BIOS doesn't provide _Qxx handler for the returned
+   query value, in this case, acpi_set_gpe(ACPI_GPE_DISABLE) need to be
+   invoked to prevent event IRQ storms. This patch doesn't implement this
+   logic, it will be done by further patches. Such gap will be implemented
+   by further patches.
+
+The acpi_set_gpe() should be invoked for an outstanding command,
+which means it should be invoked inside of a pair of acpi_enable_gpe()/
+acpi_disable_gpe() invocation. This patch thus also moves the storm
+prevention logic into acpi_ec_transaction_unlocked().
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/ec.c |   56 +++++++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 42 insertions(+), 14 deletions(-)
+ drivers/acpi/ec.c |   40 ++++++++++++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index a66ab65..1a94ba9 100644
+index 323a178..5049981 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -79,7 +79,8 @@ enum {
- 	EC_FLAGS_GPE_STORM,		/* GPE storm detected */
- 	EC_FLAGS_HANDLERS_INSTALLED,	/* Handlers for GPE and
- 					 * OpReg are installed */
--	EC_FLAGS_BLOCKED,		/* Transactions are blocked */
-+	EC_FLAGS_STARTED,		/* Driver is started */
-+	EC_FLAGS_STOPPED,		/* Driver is stopped */
- };
- 
- #define ACPI_EC_COMMAND_POLL		0x01 /* Available for command byte */
-@@ -285,15 +286,25 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
- 		udelay(ACPI_EC_MSI_UDELAY);
- 	/* start transaction */
- 	spin_lock_irqsave(&ec->lock, tmp);
-+	if (!test_bit(EC_FLAGS_STARTED, &ec->flags) ||
-+	    test_bit(EC_FLAGS_STOPPED, &ec->flags)) {
-+		ret = -EINVAL;
-+		goto unlock;
-+	}
+@@ -314,16 +314,32 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+ 	}
  	/* following two actions should be kept atomic */
  	ec->curr = t;
-+	pr_debug("***** transaction started (cmd=0x%02x, addr=0x%02x) *****\n",
-+		 t->command, t->wdata ? t->wdata[0] : 0);
++	/* Enable GPE for command processing (IBF=0/OBF=1) */
++	acpi_enable_gpe(NULL, ec->gpe);
+ 	pr_debug("***** Command(%s) started *****\n",
+ 		 acpi_ec_cmd_string(t->command));
++	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
++		pr_debug("+++++ Polling enabled +++++\n");
++		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_DISABLE);
++	}
  	start_transaction(ec);
  	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
  		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
  	spin_unlock_irqrestore(&ec->lock, tmp);
  	ret = ec_poll(ec);
  	spin_lock_irqsave(&ec->lock, tmp);
-+	pr_debug("***** transaction stopped (cmd=0x%02x, addr=0x%02x) *****\n",
-+		 t->command, t->wdata ? t->wdata[0] : 0);
++	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
++		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_ENABLE);
++		pr_debug("+++++ Polling disabled +++++\n");
++	} else if (t->irq_count > ec_storm_threshold) {
++		pr_debug("+++++ Polling scheduled (%d GPE) +++++\n",
++			 t->irq_count);
++		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
++	}
+ 	pr_debug("***** Command(%s) stopped *****\n",
+ 		 acpi_ec_cmd_string(t->command));
++	/* Disable GPE for command processing (IBF=0/OBF=1) */
++	acpi_disable_gpe(NULL, ec->gpe);
  	ec->curr = NULL;
-+unlock:
+ unlock:
  	spin_unlock_irqrestore(&ec->lock, tmp);
- 	return ret;
- }
-@@ -307,10 +318,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 	if (t->rdata)
- 		memset(t->rdata, 0, t->rlen);
- 	mutex_lock(&ec->mutex);
--	if (test_bit(EC_FLAGS_BLOCKED, &ec->flags)) {
--		status = -EINVAL;
--		goto unlock;
--	}
- 	if (ec->global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
- 		if (ACPI_FAILURE(status)) {
-@@ -318,8 +325,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
+@@ -346,26 +362,11 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
  			goto unlock;
  		}
  	}
--	pr_debug("transaction start (cmd=0x%02x, addr=0x%02x)\n",
--			t->command, t->wdata ? t->wdata[0] : 0);
- 	/* disable GPE during transaction if storm is detected */
- 	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
- 		/* It has to be disabled, so that it doesn't trigger. */
-@@ -340,7 +345,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 			t->irq_count);
- 		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
- 	}
--	pr_debug("transaction end\n");
+-	/* disable GPE during transaction if storm is detected */
+-	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
+-		/* It has to be disabled, so that it doesn't trigger. */
+-		acpi_disable_gpe(NULL, ec->gpe);
+-	}
+ 
+ 	status = acpi_ec_transaction_unlocked(ec, t);
+ 
+ 	/* check if we received SCI during transaction */
+ 	ec_check_sci_sync(ec, acpi_ec_read_status(ec));
+-	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
+-		msleep(1);
+-		/* It is safe to enable the GPE outside of the transaction. */
+-		acpi_enable_gpe(NULL, ec->gpe);
+-	} else if (t->irq_count > ec_storm_threshold) {
+-		pr_info("GPE storm detected(%d GPEs), "
+-			"transactions will use polling mode\n",
+-			t->irq_count);
+-		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
+-	}
  	if (ec->global_lock)
  		acpi_release_global_lock(glk);
  unlock:
-@@ -470,6 +474,30 @@ static void acpi_ec_clear(struct acpi_ec *ec)
- 		pr_info("%d stale EC events cleared\n", i);
- }
+@@ -500,8 +501,12 @@ static void acpi_ec_start(struct acpi_ec *ec)
+ 	unsigned long flags;
  
-+static void acpi_ec_start(struct acpi_ec *ec)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ec->lock, flags);
-+	if (!test_and_set_bit(EC_FLAGS_STARTED, &ec->flags))
-+		acpi_enable_gpe(NULL, ec->gpe);
-+	spin_unlock_irqrestore(&ec->lock, flags);
-+}
-+
-+static void acpi_ec_stop(struct acpi_ec *ec)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ec->lock, flags);
-+	if (test_bit(EC_FLAGS_STARTED, &ec->flags) &&
-+	    !test_and_set_bit(EC_FLAGS_STOPPED, &ec->flags)) {
-+		acpi_disable_gpe(NULL, ec->gpe);
-+		clear_bit(EC_FLAGS_STARTED, &ec->flags);
-+		clear_bit(EC_FLAGS_STOPPED, &ec->flags);
+ 	spin_lock_irqsave(&ec->lock, flags);
+-	if (!test_and_set_bit(EC_FLAGS_STARTED, &ec->flags))
++	if (!test_and_set_bit(EC_FLAGS_STARTED, &ec->flags)) {
++		pr_debug("+++++ Starting EC +++++\n");
++		/* Enable GPE for event processing (EVT_SCI=1) */
+ 		acpi_enable_gpe(NULL, ec->gpe);
++		pr_info("+++++ EC started +++++\n");
 +	}
-+	spin_unlock_irqrestore(&ec->lock, flags);
-+}
-+
- void acpi_ec_block_transactions(void)
- {
- 	struct acpi_ec *ec = first_ec;
-@@ -479,7 +507,7 @@ void acpi_ec_block_transactions(void)
- 
- 	mutex_lock(&ec->mutex);
- 	/* Prevent transactions from being carried out */
--	set_bit(EC_FLAGS_BLOCKED, &ec->flags);
-+	acpi_ec_stop(ec);
- 	mutex_unlock(&ec->mutex);
+ 	spin_unlock_irqrestore(&ec->lock, flags);
  }
  
-@@ -492,7 +520,7 @@ void acpi_ec_unblock_transactions(void)
- 
- 	mutex_lock(&ec->mutex);
- 	/* Allow transactions to be carried out again */
--	clear_bit(EC_FLAGS_BLOCKED, &ec->flags);
-+	acpi_ec_start(ec);
- 
- 	if (EC_FLAGS_CLEAR_ON_RESUME)
- 		acpi_ec_clear(ec);
-@@ -507,7 +535,7 @@ void acpi_ec_unblock_transactions_early(void)
- 	 * atomic context during wakeup, so we don't need to acquire the mutex).
- 	 */
- 	if (first_ec)
--		clear_bit(EC_FLAGS_BLOCKED, &first_ec->flags);
-+		acpi_ec_start(first_ec);
+@@ -512,9 +517,12 @@ static void acpi_ec_stop(struct acpi_ec *ec)
+ 	spin_lock_irqsave(&ec->lock, flags);
+ 	if (test_bit(EC_FLAGS_STARTED, &ec->flags) &&
+ 	    !test_and_set_bit(EC_FLAGS_STOPPED, &ec->flags)) {
++		pr_debug("+++++ Stopping EC +++++\n");
++		/* Disable GPE for event processing (EVT_SCI=1) */
+ 		acpi_disable_gpe(NULL, ec->gpe);
+ 		clear_bit(EC_FLAGS_STARTED, &ec->flags);
+ 		clear_bit(EC_FLAGS_STOPPED, &ec->flags);
++		pr_info("+++++ EC stopped +++++\n");
+ 	}
+ 	spin_unlock_irqrestore(&ec->lock, flags);
  }
- 
- static int acpi_ec_query_unlocked(struct acpi_ec *ec, u8 * data)
-@@ -774,7 +802,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	acpi_enable_gpe(NULL, ec->gpe);
-+	acpi_ec_start(ec);
- 	status = acpi_install_address_space_handler(ec->handle,
- 						    ACPI_ADR_SPACE_EC,
- 						    &acpi_ec_space_handler,
-@@ -789,7 +817,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
- 			pr_err("Fail in evaluating the _REG object"
- 				" of EC device. Broken bios is suspected.\n");
- 		} else {
--			acpi_disable_gpe(NULL, ec->gpe);
-+			acpi_ec_stop(ec);
- 			acpi_remove_gpe_handler(NULL, ec->gpe,
- 				&acpi_ec_gpe_handler);
- 			return -ENODEV;
-@@ -802,10 +830,10 @@ static int ec_install_handlers(struct acpi_ec *ec)
- 
- static void ec_remove_handlers(struct acpi_ec *ec)
- {
--	acpi_disable_gpe(NULL, ec->gpe);
- 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
- 				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
- 		pr_err("failed to remove space handler\n");
-+	acpi_ec_stop(ec);
- 	if (ACPI_FAILURE(acpi_remove_gpe_handler(NULL, ec->gpe,
- 				&acpi_ec_gpe_handler)))
- 		pr_err("failed to remove gpe handler\n");
 -- 
 1.7.10
