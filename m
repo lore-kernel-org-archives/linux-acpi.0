@@ -1,96 +1,98 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] ACPI / hotplug: Simplify acpi_set_hp_context()
-Date: Tue, 15 Jul 2014 14:56:29 -0600
-Message-ID: <CAErSpo5BYyC-A3qXE2OsgkkGJg8Lvr2B+ASMJ63N-S9xm8wUow@mail.gmail.com>
-References: <5388095.MjHqc07ajT@vostro.rjw.lan>
+From: Julian Wollrath <jwollrath@web.de>
+Subject: Re: [Regression]: Changing brightness does not work with v3.16-rc4
+Date: Tue, 15 Jul 2014 23:38:24 +0200
+Message-ID: <20140715233824.75142860@saldaea>
+References: <20140712180636.698e2e4c@saldaea>
+	<2446022.T09QX68ONu@vostro.rjw.lan>
+	<20140714205629.130abac8@saldaea>
+	<1634156.TNvHdb5NuS@vostro.rjw.lan>
+	<53C4C4DD.7070103@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5388095.MjHqc07ajT@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.web.de ([212.227.17.11]:55775 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759650AbaGOVi2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jul 2014 17:38:28 -0400
+In-Reply-To: <53C4C4DD.7070103@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
-On Mon, Jul 14, 2014 at 2:36 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Since all of the acpi_set_hp_context() callers pass at least one NULL
-> function pointer and one caller passes NULL function pointers only
-> to it, drop function pointer arguments from acpi_set_hp_context()
-> and make the callers initialize the function pointers in struct
-> acpi_hotplug_context by themselves before passing it to
-> acpi_set_hp_context().
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Am Tue, 15 Jul 2014 14:06:21 +0800
+schrieb Aaron Lu <aaron.lu@intel.com>:
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> On 07/15/2014 03:17 AM, Rafael J. Wysocki wrote:
+> > On Monday, July 14, 2014 08:56:29 PM Julian Wollrath wrote:
+> >> Am Mon, 14 Jul 2014 21:10:47 +0200
+> >> schrieb "Rafael J. Wysocki" <rjw@rjwysocki.net>:
+> >>
+> >>> On Monday, July 14, 2014 09:02:34 PM Rafael J. Wysocki wrote:
+> >>>> On Monday, July 14, 2014 08:34:22 PM Julian Wollrath wrote:
+> >>>>> Am Mon, 14 Jul 2014 20:21:19 +0200
+> >>>>> schrieb "Rafael J. Wysocki" <rjw@rjwysocki.net>:
+> >>>>>
+> >>>>>> On Saturday, July 12, 2014 06:24:52 PM Julian Wollrath wrote:
+> >>>>>>> Hi,
+> >>>>>>>
+> >>>>>>>> changing the brightness on my Thinkpad X230 with Intel
+> >>>>>>>> HD4000 graphics, stopped working after commit 886129a8eebe
+> >>>>>>>> (ACPI / video: change acpi-video brightness_switch_enabled
+> >>>>>>>> default to 0). Changing it back to 1, fixes the problem, if
+> >>>>>>>> "acpi_osi=!Windows 2012" is also set. Before that commit
+> >>>>>>>> just setting "acpi_osi=!Windows 2012" was enough to get
+> >>>>>>>> changing the brightness working.
+> >>>>>>>
+> >>>>>>> small correction: It setting "acpi_osi=!Windows 2012" does
+> >>>>>>> only help when using a kernel with commit 886129a8eebe as
+> >>>>>>> HEAD, with v3.16-rc4 setting
+> >>>>>>> video.brightness_switch_enabled=1 and acpi_osi=!Windows 2012
+> >>>>>>> or just one of them, does not make changing the brightness
+> >>>>>>> work again.
+> >>>>>>
+> >>>>>> And reverting commit 751109aad583 (ACPI / video: Change the
+> >>>>>> default for video.use_native_backlight to 1) make that last
+> >>>>>> problem go away, right?
+> >>>>>>
+> >>>>>> We are going to rever commit 886129a8eebe for other reasons, so
+> >>>>>> can you please revert it from 3.16-rc5 on your system and
+> >>>>>> report back?
+> >>>>> Yes, with both 751109aad583 and 886129a8eebe reverted, changing
+> >>>>> the brightness works again.
+> >>>>
+> >>>> What if you revert 886129a8eebe alone?
+> >>>
+> >>> I mean, what exactly do you need to pass to the kernel command
+> >>> line in that case to make brightness switching work?
+> >> I need to pass
+> >>   acpi_osi="!Windows 2012" video.brightness_switch_enabled=1
+> >> video.use_native_backlight=-1
+> >>
+> >> If I leave one of these parameters out, the brightness switch stops
+> >> working.
+> > 
+> > With 886129a8eebe reverted you should not need
+> > video.brightness_switch_enabled=1.
+> > 
+> > Aaron, what do you think?
+> 
+> I agree.
+> 
+> I suppose Julian is not using an standard GUI so he needs the in
+> kernel processing of the backlight event.
+If you consider just using a window manager and not a full blown DE not
+using a standard GUI, than your hunch is right.
 
-> ---
->  drivers/acpi/scan.c                |    4 +++-
->  drivers/pci/hotplug/acpiphp_glue.c |    7 ++++---
->  include/acpi/acpi_bus.h            |    8 +-------
->  3 files changed, 8 insertions(+), 11 deletions(-)
->
-> Index: linux-pm/include/acpi/acpi_bus.h
-> ===================================================================
-> --- linux-pm.orig/include/acpi/acpi_bus.h
-> +++ linux-pm/include/acpi/acpi_bus.h
-> @@ -372,15 +372,9 @@ static inline void acpi_set_device_statu
->  }
->
->  static inline void acpi_set_hp_context(struct acpi_device *adev,
-> -                                      struct acpi_hotplug_context *hp,
-> -                                      int (*notify)(struct acpi_device *, u32),
-> -                                      void (*uevent)(struct acpi_device *, u32),
-> -                                      void (*fixup)(struct acpi_device *))
-> +                                      struct acpi_hotplug_context *hp)
->  {
->         hp->self = adev;
-> -       hp->notify = notify;
-> -       hp->uevent = uevent;
-> -       hp->fixup = fixup;
->         adev->hp = hp;
->  }
->
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -77,7 +77,9 @@ void acpi_initialize_hp_context(struct a
->                                 void (*uevent)(struct acpi_device *, u32))
->  {
->         acpi_lock_hp_context();
-> -       acpi_set_hp_context(adev, hp, notify, uevent, NULL);
-> +       hp->notify = notify;
-> +       hp->uevent = uevent;
-> +       acpi_set_hp_context(adev, hp);
->         acpi_unlock_hp_context();
->  }
->  EXPORT_SYMBOL_GPL(acpi_initialize_hp_context);
-> Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
-> +++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
-> @@ -80,8 +80,9 @@ static struct acpiphp_context *acpiphp_i
->                 return NULL;
->
->         context->refcount = 1;
-> -       acpi_set_hp_context(adev, &context->hp, acpiphp_hotplug_notify, NULL,
-> -                           acpiphp_post_dock_fixup);
-> +       context->hp.notify = acpiphp_hotplug_notify;
-> +       context->hp.fixup = acpiphp_post_dock_fixup;
-> +       acpi_set_hp_context(adev, &context->hp);
->         return context;
->  }
->
-> @@ -876,7 +877,7 @@ void acpiphp_enumerate_slots(struct pci_
->                         goto err;
->
->                 root_context->root_bridge = bridge;
-> -               acpi_set_hp_context(adev, &root_context->hp, NULL, NULL, NULL);
-> +               acpi_set_hp_context(adev, &root_context->hp);
->         } else {
->                 struct acpiphp_context *context;
->
->
+> And his laptop has a broken
+> ACPI interface in Win8 mode, so he also needs the "!Windows 2012"
+> option.
+> 
+> With a standard GUI environment, his system would have only one
+> interface left: the GPU one and everything should work. But of course,
+> that may not be his config.
+> 
+> Thanks,
+> Aaron
+
