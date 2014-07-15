@@ -1,23 +1,25 @@
-From: Aaron Lu <aaron.lu@intel.com>
+From: Hans de Goede <hdegoede@redhat.com>
 Subject: Re: [Regression]: Changing brightness does not work with v3.16-rc4
-Date: Tue, 15 Jul 2014 22:00:08 +0800
-Message-ID: <53C533E8.8010705@intel.com>
+Date: Tue, 15 Jul 2014 16:05:55 +0200
+Message-ID: <53C53543.1050207@redhat.com>
 References: <20140712180636.698e2e4c@saldaea> <1634156.TNvHdb5NuS@vostro.rjw.lan> <53C4C4DD.7070103@intel.com> <4090076.AXaL3PRfF0@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:43800 "EHLO mga11.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:41564 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750722AbaGOOAQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Jul 2014 10:00:16 -0400
+	id S1752402AbaGOOGC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jul 2014 10:06:02 -0400
 In-Reply-To: <4090076.AXaL3PRfF0@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Julian Wollrath <jwollrath@web.de>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>
+Cc: Julian Wollrath <jwollrath@web.de>, linux-acpi@vger.kernel.org
 
-On 07/15/2014 08:27 PM, Rafael J. Wysocki wrote:
+Hi,
+
+On 07/15/2014 02:27 PM, Rafael J. Wysocki wrote:
 > On Tuesday, July 15, 2014 02:06:21 PM Aaron Lu wrote:
 >> On 07/15/2014 03:17 AM, Rafael J. Wysocki wrote:
 >>> On Monday, July 14, 2014 08:56:29 PM Julian Wollrath wrote:
@@ -62,7 +64,7 @@ On 07/15/2014 08:27 PM, Rafael J. Wysocki wrote:
 >>>>> I mean, what exactly do you need to pass to the kernel command line
 >>>>> in that case to make brightness switching work?
 >>>> I need to pass
->>>>   acpi_osi="!Windows 2012" video.brightness_switch_enabled=1 video.use_native_backlight=-1
+>>>>    acpi_osi="!Windows 2012" video.brightness_switch_enabled=1 video.use_native_backlight=-1
 >>>>
 >>>> If I leave one of these parameters out, the brightness switch stops
 >>>> working.
@@ -80,16 +82,34 @@ On 07/15/2014 08:27 PM, Rafael J. Wysocki wrote:
 >> With a standard GUI environment, his system would have only one
 >> interface left: the GPU one and everything should work. But of course,
 >> that may not be his config.
-> 
+>
 > Well, do we need to revert 751109aad583 too, then?
-> 
-> It seems that it may break other systems without a desktop environment, may it not?
 
-If we have to consider the following config:
-1 ACPI backlight interface works(or can work with some cmdline option);
-2 Not using a normal GUI(depends on ACPI video module to do the in
-  kernel backlight level change on hotkey press).
-Then we will need to revert 751109aad583.
+No, just no, clearly using the acpi video interface for backlight control
+is the wrong thing to do on win8 generation laptops, if we don't flip
+the default we're going to end up with a never ending list of quirks
+for models where the acpi-video interface is broken.
 
-Thanks,
-Aaron
+On 07/15/2014 04:00 PM, Aaron Lu wrote:
+
+ > If we have to consider the following config:
+ > 1 ACPI backlight interface works(or can work with some cmdline option);
+
+And the BIOS advertises native win8 support.
+
+ > 2 Not using a normal GUI(depends on ACPI video module to do the in
+ >    kernel backlight level change on hotkey press).
+ > Then we will need to revert 751109aad583.
+
+I think the combination of 1 and 2 makes the subset of users
+potentially affected by this so small, that we really should
+continue with video.use_native_backlight=1 as default, the
+other route adding more and more and more and more quirks
+is sheer madness.
+
+Regards,
+
+Hans
+
+
+
