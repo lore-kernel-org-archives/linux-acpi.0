@@ -1,48 +1,82 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [BISECTED 3.16-rc REGREGRESSION] backlight control stopped working
-Date: Mon, 14 Jul 2014 15:19:22 -0700
-Message-ID: <CA+55aFzNWehvLk2izhnXg--ghOgG7SfMzpzFJcbVZg9duGdWPQ@mail.gmail.com>
-References: <87pph8kse7.fsf@nemi.mork.no>
-	<53C3D7C3.7090505@redhat.com>
-	<CA+55aFxYYKApOC+1TQkoxSzi-zTSB8OmkU=ypvNb_Gc2+K6Hmw@mail.gmail.com>
-	<CA+55aFzHo4BEO8W0yza7g0YMgg-b=hPbk20-vpR3s==ydpmAOg@mail.gmail.com>
-	<877g3fsm98.fsf@nemi.mork.no>
-	<CA+55aFztNg4aFUnmqxoR-Hwva87D1TMOZ2Gyy8CVmEov9ToDQg@mail.gmail.com>
-	<8761iztxzl.fsf@nemi.mork.no>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8761iztxzl.fsf@nemi.mork.no>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Cc: Hans de Goede <hdegoede@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 0/9] ACPICA: Improve GPE handling model.
+Date: Tue, 15 Jul 2014 11:07:10 +0800
+Message-ID: <cover.1405306438.git.lv.zheng@intel.com>
+References: <cover.1403060601.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:42180 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757258AbaGODHZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Jul 2014 23:07:25 -0400
+In-Reply-To: <cover.1403060601.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Jul 14, 2014 at 2:46 PM, Bj=C3=B8rn Mork <bjorn@mork.no> wrote:
->
-> Yes, the patch works as advertised for me.  Thanks.
+This patchset enables the ideal GPE handling model. The ideal GPE handling
+model should be able to handle the following cases:
 
-Ok, so it should probably be tested by people who see the "move by
-two" problem too.
+   1. When upper layers (the users of the driver) submit requests to the
+      drivers, it means they care about the underlying hardware. For this
+      case, acpi_enable_gpe() should be invoked. When the reference count
+      is increased from 0 to 1, driver enables the hardware IRQ. And
+      acpi_disable_gpe() is used as the reversal when the users have
+      completed the submitted requests.
+   2. Driver may temporarily disables the IRQ and wants to re-enable it
+      later, this case is normally used in order to prevent IRQ storm.
+      When a driver cannot fully solve the condition that triggered the IRQ
+      in the IRQ context, in order not to trigger IRQ storm, driver has to
+      disable IRQ and re-enables it in the deferred execution environment
+      - which should be in a task context. The acpi_set_gpe() API should be
+      used exactly for this purpose.
 
-> But this will break existing configs:
->
-> Any setup using e.g "options video brightness_switch_enabled=3DY" wil=
-l
-> barf on this, won't they?
+The reason why this model hasn't been enabled for the current Linux ACPI
+drivers is:
+  In ACPICA, the same GPE lock is held while invoking the GPE handler
+  callback, it's thus impossible to invoke GPE APIs in the GPE handler
+  because the APIs require to hold the GPE lock. The recursive locking
+  leads to dead locks. This is a simple design defect, callbacks should
+  always be invoked in a lockless environment, normally in Linux, this is
+  achieved by RCU locking, and in ACPICA, we achieve this using reference
+  counting.
 
-Hmm. Probably. That said, that kind of breakage I think we might want
-to live with, especially if it actually ends up causing them to test
-the new default (which might just work for them).
+After fixing the above bug and doing necessary cleanups in the ACPICA GPE
+handling code, we now can enable this ideal GPE handling model for the EC
+driver to implement "commands flushing" and "storm prevention" (the EC
+driver enabling is not included in this patchset).
 
-But regardless, let's make sure that patch (or something _like_ it)
-works for people who saw the reverse problem for you. Then the exact
-syntax of whatever module parameter (if any) can be a separate
-discussion.
+The refined patches are passed the runtime/suspend tests carried out on the
+following platforms with EC driver enhanced:
+  "Dell Inspiron Mini 1010" - i386 kernel
+  "Dell Latitude 6430u" - x86_64 kernel
 
-Anyway, for 3.16 I think we should just do what we used to do (ie the
-revert that Rafael apparently already has queued up), so this isn't
-necessarily critical.
+Lv Zheng (9):
+  ACPICA: Events: Reduce indent divergences of events files.
+  ACPICA: Events: Fix an issue that GPE APIs cannot be invoked in
+    atomic context.
+  ACPICA: Events: Fix an issue that GPE APIs cannot be invoked in
+    deferred handlers.
+  ACPICA: Events: Introduce acpi_set_gpe()/acpi_finish_gpe() to reduce
+    divergences.
+  ACPICA: Events: Fix an issue that acpi_set_gpe() cannot
+    unconditionally enable GPEs.
+  ACPICA: Events: Fix an issue that status of GPEs are unexpectedly
+    cleared.
+  ACPICA: Events: Fix an issue that originally_enabled check is not
+    paired.
+  ACPICA: Events: Add a flag to disable internal auto GPE clearing.
+  ACPI: Update interrupt handler to honor new ACPI_REENABLE_GPE bit.
 
-            Linus
+ drivers/acpi/acpica/acevents.h |    1 +
+ drivers/acpi/acpica/aclocal.h  |    5 +-
+ drivers/acpi/acpica/evgpe.c    |  136 +++++++++++++++++++++-------------------
+ drivers/acpi/acpica/evxface.c  |   41 ++++++++----
+ drivers/acpi/acpica/evxfgpe.c  |  105 +++++++++++++++++++++++++++++++
+ drivers/acpi/osl.c             |    2 +-
+ include/acpi/actypes.h         |   16 ++---
+ 7 files changed, 219 insertions(+), 87 deletions(-)
+
+-- 
+1.7.10
+
