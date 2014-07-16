@@ -1,45 +1,96 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Regression]: Changing brightness does not work with v3.16-rc4
-Date: Wed, 16 Jul 2014 02:43:42 +0200
-Message-ID: <2231725.PEI454q0UP@vostro.rjw.lan>
-References: <20140712180636.698e2e4c@saldaea> <53C53543.1050207@redhat.com> <53C53E89.2020505@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2 0/9] ACPICA: Improve GPE handling model.
+Date: Wed, 16 Jul 2014 00:36:38 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026409FF@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1403060601.git.lv.zheng@intel.com>
+ <cover.1405306438.git.lv.zheng@intel.com> <1659923.7L0Vy69Ets@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57198 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932943AbaGPAZ2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Jul 2014 20:25:28 -0400
-In-Reply-To: <53C53E89.2020505@intel.com>
+Received: from mga14.intel.com ([192.55.52.115]:32801 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754962AbaGPAhS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jul 2014 20:37:18 -0400
+In-Reply-To: <1659923.7L0Vy69Ets@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, Julian Wollrath <jwollrath@web.de>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tuesday, July 15, 2014 10:45:29 PM Aaron Lu wrote:
-> On 07/15/2014 10:05 PM, Hans de Goede wrote:
-
-[cut]
-
-> > On 07/15/2014 04:00 PM, Aaron Lu wrote:
-> > 
-> >  > If we have to consider the following config:
-> >  > 1 ACPI backlight interface works(or can work with some cmdline option);
-> > 
-> > And the BIOS advertises native win8 support.
-> 
-> Right.
-> So this condition should be:
-> 1 ACPI backlight interface works in Win8 mode;
-> 
-> This means, for Julian's system, the commit 751109aad583 doesn't need to
-> be reverted as the ACPI backlight interface on his system only works
-> when the acpi_osi="!Windows 2012" is added. In that case, the
-> video.use_native_backlight=X doesn't make any difference anymore.
-
-But Julian reports that he needs to revert that commit to make things work
-as before for him.  What gives?
-
-Rafael
-
+SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
+dF0NCj4gU2VudDogVHVlc2RheSwgSnVseSAxNSwgMjAxNCA4OjI2IFBNDQo+IA0KPiBPbiBUdWVz
+ZGF5LCBKdWx5IDE1LCAyMDE0IDExOjA3OjEwIEFNIEx2IFpoZW5nIHdyb3RlOg0KPiA+IFRoaXMg
+cGF0Y2hzZXQgZW5hYmxlcyB0aGUgaWRlYWwgR1BFIGhhbmRsaW5nIG1vZGVsLiBUaGUgaWRlYWwg
+R1BFIGhhbmRsaW5nDQo+ID4gbW9kZWwgc2hvdWxkIGJlIGFibGUgdG8gaGFuZGxlIHRoZSBmb2xs
+b3dpbmcgY2FzZXM6DQo+ID4NCj4gPiAgICAxLiBXaGVuIHVwcGVyIGxheWVycyAodGhlIHVzZXJz
+IG9mIHRoZSBkcml2ZXIpIHN1Ym1pdCByZXF1ZXN0cyB0byB0aGUNCj4gPiAgICAgICBkcml2ZXJz
+LCBpdCBtZWFucyB0aGV5IGNhcmUgYWJvdXQgdGhlIHVuZGVybHlpbmcgaGFyZHdhcmUuIEZvciB0
+aGlzDQo+ID4gICAgICAgY2FzZSwgYWNwaV9lbmFibGVfZ3BlKCkgc2hvdWxkIGJlIGludm9rZWQu
+IFdoZW4gdGhlIHJlZmVyZW5jZSBjb3VudA0KPiA+ICAgICAgIGlzIGluY3JlYXNlZCBmcm9tIDAg
+dG8gMSwgZHJpdmVyIGVuYWJsZXMgdGhlIGhhcmR3YXJlIElSUS4gQW5kDQo+ID4gICAgICAgYWNw
+aV9kaXNhYmxlX2dwZSgpIGlzIHVzZWQgYXMgdGhlIHJldmVyc2FsIHdoZW4gdGhlIHVzZXJzIGhh
+dmUNCj4gPiAgICAgICBjb21wbGV0ZWQgdGhlIHN1Ym1pdHRlZCByZXF1ZXN0cy4NCj4gPiAgICAy
+LiBEcml2ZXIgbWF5IHRlbXBvcmFyaWx5IGRpc2FibGVzIHRoZSBJUlEgYW5kIHdhbnRzIHRvIHJl
+LWVuYWJsZSBpdA0KPiA+ICAgICAgIGxhdGVyLCB0aGlzIGNhc2UgaXMgbm9ybWFsbHkgdXNlZCBp
+biBvcmRlciB0byBwcmV2ZW50IElSUSBzdG9ybS4NCj4gPiAgICAgICBXaGVuIGEgZHJpdmVyIGNh
+bm5vdCBmdWxseSBzb2x2ZSB0aGUgY29uZGl0aW9uIHRoYXQgdHJpZ2dlcmVkIHRoZSBJUlENCj4g
+PiAgICAgICBpbiB0aGUgSVJRIGNvbnRleHQsIGluIG9yZGVyIG5vdCB0byB0cmlnZ2VyIElSUSBz
+dG9ybSwgZHJpdmVyIGhhcyB0bw0KPiA+ICAgICAgIGRpc2FibGUgSVJRIGFuZCByZS1lbmFibGVz
+IGl0IGluIHRoZSBkZWZlcnJlZCBleGVjdXRpb24gZW52aXJvbm1lbnQNCj4gPiAgICAgICAtIHdo
+aWNoIHNob3VsZCBiZSBpbiBhIHRhc2sgY29udGV4dC4gVGhlIGFjcGlfc2V0X2dwZSgpIEFQSSBz
+aG91bGQgYmUNCj4gPiAgICAgICB1c2VkIGV4YWN0bHkgZm9yIHRoaXMgcHVycG9zZS4NCj4gPg0K
+PiA+IFRoZSByZWFzb24gd2h5IHRoaXMgbW9kZWwgaGFzbid0IGJlZW4gZW5hYmxlZCBmb3IgdGhl
+IGN1cnJlbnQgTGludXggQUNQSQ0KPiA+IGRyaXZlcnMgaXM6DQo+ID4gICBJbiBBQ1BJQ0EsIHRo
+ZSBzYW1lIEdQRSBsb2NrIGlzIGhlbGQgd2hpbGUgaW52b2tpbmcgdGhlIEdQRSBoYW5kbGVyDQo+
+ID4gICBjYWxsYmFjaywgaXQncyB0aHVzIGltcG9zc2libGUgdG8gaW52b2tlIEdQRSBBUElzIGlu
+IHRoZSBHUEUgaGFuZGxlcg0KPiA+ICAgYmVjYXVzZSB0aGUgQVBJcyByZXF1aXJlIHRvIGhvbGQg
+dGhlIEdQRSBsb2NrLiBUaGUgcmVjdXJzaXZlIGxvY2tpbmcNCj4gPiAgIGxlYWRzIHRvIGRlYWQg
+bG9ja3MuIFRoaXMgaXMgYSBzaW1wbGUgZGVzaWduIGRlZmVjdCwgY2FsbGJhY2tzIHNob3VsZA0K
+PiA+ICAgYWx3YXlzIGJlIGludm9rZWQgaW4gYSBsb2NrbGVzcyBlbnZpcm9ubWVudCwgbm9ybWFs
+bHkgaW4gTGludXgsIHRoaXMgaXMNCj4gPiAgIGFjaGlldmVkIGJ5IFJDVSBsb2NraW5nLCBhbmQg
+aW4gQUNQSUNBLCB3ZSBhY2hpZXZlIHRoaXMgdXNpbmcgcmVmZXJlbmNlDQo+ID4gICBjb3VudGlu
+Zy4NCj4gPg0KPiA+IEFmdGVyIGZpeGluZyB0aGUgYWJvdmUgYnVnIGFuZCBkb2luZyBuZWNlc3Nh
+cnkgY2xlYW51cHMgaW4gdGhlIEFDUElDQSBHUEUNCj4gPiBoYW5kbGluZyBjb2RlLCB3ZSBub3cg
+Y2FuIGVuYWJsZSB0aGlzIGlkZWFsIEdQRSBoYW5kbGluZyBtb2RlbCBmb3IgdGhlIEVDDQo+ID4g
+ZHJpdmVyIHRvIGltcGxlbWVudCAiY29tbWFuZHMgZmx1c2hpbmciIGFuZCAic3Rvcm0gcHJldmVu
+dGlvbiIgKHRoZSBFQw0KPiA+IGRyaXZlciBlbmFibGluZyBpcyBub3QgaW5jbHVkZWQgaW4gdGhp
+cyBwYXRjaHNldCkuDQo+IA0KPiBIb3cgdGhpcyBwYXRjaCBzZXJpZXMgaXMgcmVsYXRlZCB0byB1
+cHN0cmVhbSBBQ1BJQ0E/ICBJcyB0aGUgZGVzaWduIGZpeGVkDQo+IGFscmVhZHkgdXBzdHJlYW0/
+DQoNCkl0IGhhc24ndCBiZWVuIHVwc3RyZWFtZWQgdG8gdGhlIEFDUElDQSByZXBvLg0KDQpUaGlz
+IHNlcmllcyBoYXMgYmVlbiBzZW50IHRvIEFDUElDQSB1cHN0cmVhbSBhcyBhIGdpdGh1YiBwdWxs
+IHJlcXVlc3QsIHJldmlld2VkIGJ5IERhdmlkIEJveC4NCldlIGFyZSB3YWl0aW5nIGZvciBpdCB0
+byBiZSBtZXJnZWQuDQoNClRoaXMgc2VyaWVzIGlzIHJlcXVpcmVkIGJ5IHRoZSBFQyBzdG9ybSBm
+aXggc2VyaWVzLg0KSSBzZW50IGJvdGggdGhlIHN0b3JtIGZpeCBzZXJpZXMgYW5kIHRoZSBsaW51
+eGl6ZWQgR1BFIHNlcmllcyBoZXJlLCBzbyB0aGF0IHdlIGNhbiBleGFtaW5lIGEgcmVhbCBPU1BN
+IGV4YW1wbGUgdG8gc2VlIHRoZSBlZmZlY3Qgb2YgdGhlIG5ldyBBUElzLg0KDQpUaGFua3MgYW5k
+IGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gDQo+ID4gVGhlIHJlZmluZWQgcGF0Y2hlcyBhcmUgcGFz
+c2VkIHRoZSBydW50aW1lL3N1c3BlbmQgdGVzdHMgY2FycmllZCBvdXQgb24gdGhlDQo+ID4gZm9s
+bG93aW5nIHBsYXRmb3JtcyB3aXRoIEVDIGRyaXZlciBlbmhhbmNlZDoNCj4gPiAgICJEZWxsIElu
+c3Bpcm9uIE1pbmkgMTAxMCIgLSBpMzg2IGtlcm5lbA0KPiA+ICAgIkRlbGwgTGF0aXR1ZGUgNjQz
+MHUiIC0geDg2XzY0IGtlcm5lbA0KPiA+DQo+ID4gTHYgWmhlbmcgKDkpOg0KPiA+ICAgQUNQSUNB
+OiBFdmVudHM6IFJlZHVjZSBpbmRlbnQgZGl2ZXJnZW5jZXMgb2YgZXZlbnRzIGZpbGVzLg0KPiA+
+ICAgQUNQSUNBOiBFdmVudHM6IEZpeCBhbiBpc3N1ZSB0aGF0IEdQRSBBUElzIGNhbm5vdCBiZSBp
+bnZva2VkIGluDQo+ID4gICAgIGF0b21pYyBjb250ZXh0Lg0KPiA+ICAgQUNQSUNBOiBFdmVudHM6
+IEZpeCBhbiBpc3N1ZSB0aGF0IEdQRSBBUElzIGNhbm5vdCBiZSBpbnZva2VkIGluDQo+ID4gICAg
+IGRlZmVycmVkIGhhbmRsZXJzLg0KPiA+ICAgQUNQSUNBOiBFdmVudHM6IEludHJvZHVjZSBhY3Bp
+X3NldF9ncGUoKS9hY3BpX2ZpbmlzaF9ncGUoKSB0byByZWR1Y2UNCj4gPiAgICAgZGl2ZXJnZW5j
+ZXMuDQo+ID4gICBBQ1BJQ0E6IEV2ZW50czogRml4IGFuIGlzc3VlIHRoYXQgYWNwaV9zZXRfZ3Bl
+KCkgY2Fubm90DQo+ID4gICAgIHVuY29uZGl0aW9uYWxseSBlbmFibGUgR1BFcy4NCj4gPiAgIEFD
+UElDQTogRXZlbnRzOiBGaXggYW4gaXNzdWUgdGhhdCBzdGF0dXMgb2YgR1BFcyBhcmUgdW5leHBl
+Y3RlZGx5DQo+ID4gICAgIGNsZWFyZWQuDQo+ID4gICBBQ1BJQ0E6IEV2ZW50czogRml4IGFuIGlz
+c3VlIHRoYXQgb3JpZ2luYWxseV9lbmFibGVkIGNoZWNrIGlzIG5vdA0KPiA+ICAgICBwYWlyZWQu
+DQo+ID4gICBBQ1BJQ0E6IEV2ZW50czogQWRkIGEgZmxhZyB0byBkaXNhYmxlIGludGVybmFsIGF1
+dG8gR1BFIGNsZWFyaW5nLg0KPiA+ICAgQUNQSTogVXBkYXRlIGludGVycnVwdCBoYW5kbGVyIHRv
+IGhvbm9yIG5ldyBBQ1BJX1JFRU5BQkxFX0dQRSBiaXQuDQo+ID4NCj4gPiAgZHJpdmVycy9hY3Bp
+L2FjcGljYS9hY2V2ZW50cy5oIHwgICAgMSArDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvYWNs
+b2NhbC5oICB8ICAgIDUgKy0NCj4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS9ldmdwZS5jICAgIHwg
+IDEzNiArKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0tDQo+ID4gIGRyaXZl
+cnMvYWNwaS9hY3BpY2EvZXZ4ZmFjZS5jICB8ICAgNDEgKysrKysrKystLS0tDQo+ID4gIGRyaXZl
+cnMvYWNwaS9hY3BpY2EvZXZ4ZmdwZS5jICB8ICAxMDUgKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKw0KPiA+ICBkcml2ZXJzL2FjcGkvb3NsLmMgICAgICAgICAgICAgfCAgICAyICstDQo+
+ID4gIGluY2x1ZGUvYWNwaS9hY3R5cGVzLmggICAgICAgICB8ICAgMTYgKystLS0NCj4gPiAgNyBm
+aWxlcyBjaGFuZ2VkLCAyMTkgaW5zZXJ0aW9ucygrKSwgODcgZGVsZXRpb25zKC0pDQo+ID4NCj4g
+Pg0KPiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNv
+Y2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCg==
