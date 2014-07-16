@@ -1,54 +1,56 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 7/7] ACPI: Cleanup useless ACPI inclusion.
-Date: Wed, 16 Jul 2014 13:07:50 +0100
-Message-ID: <20140716120750.GM17528@sirena.org.uk>
-References: <cover.1387336613.git.lv.zheng@intel.com>
- <cover.1405500886.git.lv.zheng@intel.com>
- <7ac00c9c5a32f7a3ec98f061080ba1573ae57d0d.1405500886.git.lv.zheng@intel.com>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [Patch V3 00/16] Enable support of IOAPIC hotplug on x86
+ platforms
+Date: Wed, 16 Jul 2014 09:33:05 -0400
+Message-ID: <20140716133305.GG19585@laptop.dumpdata.com>
+References: <1403685648-10103-1-git-send-email-jiang.liu@linux.intel.com>
+ <20140714172642.GA12920@laptop.dumpdata.com>
+ <20140714194133.GA22857@laptop.dumpdata.com>
+ <53C54876.5090606@linux.intel.com>
+ <20140715161035.GA8097@laptop.dumpdata.com>
+ <53C5EB19.7060104@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5me2qT3T17SWzdxI"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <7ac00c9c5a32f7a3ec98f061080ba1573ae57d0d.1405500886.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, alsa-devel@alsa-project.org
-List-Id: linux-acpi@vger.kernel.org
-
-
---5me2qT3T17SWzdxI
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:32191 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758996AbaGPNjB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2014 09:39:01 -0400
 Content-Disposition: inline
+In-Reply-To: <53C5EB19.7060104@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Jul 16, 2014 at 04:59:02PM +0800, Lv Zheng wrote:
-> The sst-haswell-dsp.c is an ACPI independent file, this patch removes
-> ACPI header files for it.
+On Wed, Jul 16, 2014 at 11:01:45AM +0800, Jiang Liu wrote:
+> Hi Konrad,
 
-Applied, thanks.  Please use subject lines matching the style for the
-subsystem and send at least the cover letter for the series to everyone
-so that they know what's going on with dependencies and so on.
+Hey Jiang,
+> 	We have found the root cause with your great support. If BIOS
+> assigns an IRQ number for a PCI device, acpi_pci_irq_enable() fails to
 
---5me2qT3T17SWzdxI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I would think that is a common scenario?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+> assign IOAPIC IRQ then due to the check:
+>         if (dev->irq > 0)
+>                 return 0;
 
-iQIcBAEBAgAGBQJTxmsTAAoJELSic+t+oim9wDgQAIGj1IsQmCiC9wzzx0I14JOl
-d70+ZlvbDYeXiL0fVaF7QdArfjt99hRdvn0KUSd/QcykHl0nSwYAT6MrAmkla44K
-3QXJmODQpC4TIXUDIlIVH1hMd/3uZvn2pzz6+QtqcrJk4BeMzYKGnbz90nUayx6p
-cAb1XEBTQJwVR8zdrSE2oXzYr9JbSMt+YTmgLlyz9te/FYQ8GwaFcj3bpF+1Ykbv
-plLSnY8pkG8YjgpLeuA//0XsCPLGYOn8oM77uRDkmJSYcE9EOWSAJBNuZicsIhOu
-kvkWONtvfIDBzT/2tcZJ37jpuRC/f9SLeMj/tk8ZgqaR7WxPMNuTRK/4eSPYqocr
-eP/xZOeul04gJa8tEg/gECwdPU61NCvgrr1g1/l19D76ItNlyOF1Tz/2hXrDadMh
-8ypSdoW/NBrWoq+rF3sZYpemD11AHO+wJ5T6H7WZyTDf+jA51uZGBK+Tijq98edL
-r6kZpyNNg8enhQNaN8qN6zG4x1kBcP9Ohfo8+L1e21D7PpEpWIcIAATFxvWETR+t
-4L0occpODtwYqY4XRs2YhXV2lJ3ljx42iLqRSsuELZuAVGCwrQArirMrIy6gRM0i
-S1icS3VbPXBvJHmqPTAI0cV0oHeF1M0gPSd4g1+h1hG9irbRRb4+rJxnFBaE3HFm
-yT1t5g6go3gfewKLMUpy
-=A3iP
------END PGP SIGNATURE-----
+I should really look in the code to figure this out - but I think your
+patch will have a detail analysis that will make tglrx happy, so
+will just wait till then :-)
 
---5me2qT3T17SWzdxI--
+> 	For a quick workaround, just comment out above check. But we
+> need some time to figure out a clean fixup for it. We will send out new
+> version once it gets resolved.
+
+Excellent. Once you do, please do give me the git tree so I can slurp
+it in my testing
+
+> 	Thanks for your great help again.
+
+Of course! Thank you for your quick turn-around.
+> Regards!
+> Gerry
+> On 2014/7/16 0:10, Konrad Rzeszutek Wilk wrote:
+> > already assigned IRQ
