@@ -1,33 +1,25 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch V3 00/16] Enable support of IOAPIC hotplug on x86 platforms
-Date: Wed, 16 Jul 2014 11:01:45 +0800
-Message-ID: <53C5EB19.7060104@linux.intel.com>
-References: <1403685648-10103-1-git-send-email-jiang.liu@linux.intel.com> <20140714172642.GA12920@laptop.dumpdata.com> <20140714194133.GA22857@laptop.dumpdata.com> <53C54876.5090606@linux.intel.com> <20140715161035.GA8097@laptop.dumpdata.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Some RAS bug fix patches
+Date: Tue, 15 Jul 2014 22:34:39 -0400
+Message-ID: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:20823 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:17481 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760557AbaGPDBz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Jul 2014 23:01:55 -0400
-In-Reply-To: <20140715161035.GA8097@laptop.dumpdata.com>
+	id S1760645AbaGPDFK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Jul 2014 23:05:10 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: tony.luck@intel.com, bp@alien8.de
+Cc: linux-acpi@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
 
-Hi Konrad,
-	We have found the root cause with your great support. If BIOS
-assigns an IRQ number for a PCI device, acpi_pci_irq_enable() fails to
-assign IOAPIC IRQ then due to the check:
-        if (dev->irq > 0)
-                return 0;
-	For a quick workaround, just comment out above check. But we
-need some time to figure out a clean fixup for it. We will send out new
-version once it gets resolved.
-	Thanks for your great help again.
-Regards!
-Gerry
-On 2014/7/16 0:10, Konrad Rzeszutek Wilk wrote:
-> already assigned IRQ
+[PATCH 1/3] APEI, GHES: Cleanup unnecessary function for lock-less
+[RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE context
+[PATCH 3/3] RAS, HWPOISON: Fix wrong error recovery status
+
+The patch 1/3 & 3/3 are minor fixes which are irrelevant with patch
+2/3. I send them together just to avoid fragments.
+
+The patch 2/3 is a RFC patch depending on the following thread:
+https://lkml.org/lkml/2014/6/27/26
+
+Comments and suggestions are welcome.
