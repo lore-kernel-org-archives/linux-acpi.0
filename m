@@ -1,98 +1,37 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi-video: Fix backlight taking 2 steps on a brightness key press
-Date: Wed, 16 Jul 2014 23:26:43 +0200
-Message-ID: <6201032.E9BVBlN9Aj@vostro.rjw.lan>
-References: <1405509908-12620-1-git-send-email-hdegoede@redhat.com> <87wqbdecid.fsf@nemi.mork.no> <53C68D04.2030307@redhat.com>
+Subject: Re: [PATCH v3 7/7] ACPI: Cleanup useless ACPI inclusion.
+Date: Wed, 16 Jul 2014 23:46:14 +0200
+Message-ID: <4307509.CpjlMkz69H@vostro.rjw.lan>
+References: <cover.1387336613.git.lv.zheng@intel.com> <7ac00c9c5a32f7a3ec98f061080ba1573ae57d0d.1405500886.git.lv.zheng@intel.com> <20140716120750.GM17528@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49208 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:49490 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753000AbaGPVI2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2014 17:08:28 -0400
-In-Reply-To: <53C68D04.2030307@redhat.com>
+	with SMTP id S1752804AbaGPV17 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2014 17:27:59 -0400
+In-Reply-To: <20140716120750.GM17528@sirena.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>, Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, alsa-devel@alsa-project.org
 
-On Wednesday, July 16, 2014 04:32:36 PM Hans de Goede wrote:
-> Hi,
->=20
-> On 07/16/2014 02:03 PM, Bj=C3=B8rn Mork wrote:
-> > Hans de Goede <hdegoede@redhat.com> writes:
-> >=20
-> >> Hi All,
-> >>
-> >> Here is my cleaned-up version of Linus' patch to fix the 2 steps o=
-n a
-> >> brightness key press problem.
-> >>
-> >> Changes compared to Linus' version:
-> >> -Move the global variables to inside struct acpi_video_device
-> >> -Rebase on top of Rafael's linux-pm linux-next branch (so on top o=
-f the
-> >>  revert of changing the brightness_switch_enabled default)
-> >>
-> >> I've tested this on a laptop affected by the 2 steps problem and I=
- can confirm
-> >> that it fixes the 2 steps issue under normal usage. I managed to t=
-rigger the
-> >> race by generating a heavy io-load, as exptected hitting the race =
-has no
-> >> unwanted side-effects other then taking 2 steps instead of one.
-> >>
-> >> Bj=C3=B8rn can you test this patch on your system and confirm that=
- it does not
-> >> break things for you please ? Note that in order to apply it you f=
-irst need
-> >> to do: "git revert 886129a8eebebec", as the revert has not yet rea=
-ched
-> >> Linus' tree AFAIK.
-> >=20
-> > Tested and verified that it still works fine for me, so feel free t=
-o add
-> >=20
-> > Tested-by: Bj=C3=B8rn Mork <bjorn@mork.no>
-> > if you like.
-> >
->=20
-> Thanks, if there is a need for a v2 I'll add your tested-by.
->=20
-> Rafael, if there is not going to be a v2, could you pick up this test=
-ed-by
-> then?
->=20
-> > But as noted earlier, I believe this poses another risk if anyone h=
-as a
-> > config using bool input values:
-> >=20
-> > -static bool brightness_switch_enabled =3D 1;
-> > -module_param(brightness_switch_enabled, bool, 0644);
-> > +static int brightness_switch_enabled =3D -1;
-> > +module_param(brightness_switch_enabled, int, 0644);
-> >=20
->=20
-> The only way I can see that being a problem is if someone is using
-> video.brightness_switch_enabled=3DN for reasons other then the 2 step
-> problem this patch fixes. That is not unthinkable though.
->=20
-> > I wonder if it wouldn't be better to just redefine the behaviour of
-> > "brightness_switch_enabled =3D 1" to the new delayed response schem=
-e and
-> > avoid changing the type of this parameter?
->=20
-> I think that is a good idea, that would also allow to simplify the pa=
-tch
-> somewhat more. Rafael, what is your take on this ?
+On Wednesday, July 16, 2014 01:07:50 PM Mark Brown wrote:
+> 
+> --5me2qT3T17SWzdxI
+> Content-Type: text/plain; charset=us-ascii
+> Content-Disposition: inline
+> 
+> On Wed, Jul 16, 2014 at 04:59:02PM +0800, Lv Zheng wrote:
+> > The sst-haswell-dsp.c is an ACPI independent file, this patch removes
+> > ACPI header files for it.
+> 
+> Applied, thanks.  Please use subject lines matching the style for the
+> subsystem and send at least the cover letter for the series to everyone
+> so that they know what's going on with dependencies and so on.
 
-I prefer simpler, so why don't you do that?
+Lv thought that this would go through the ACPI tree I suppose.
 
 Rafael
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
