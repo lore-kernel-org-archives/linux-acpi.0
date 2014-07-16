@@ -1,92 +1,45 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 1/7] ACPICA: Linux: Add stub support for Linux specific variables and functions.
-Date: Wed, 16 Jul 2014 16:57:52 +0800
-Message-ID: <8332b64e502e4bcd78ad7fc57db579cbfd9435c9.1405500886.git.lv.zheng@intel.com>
+Subject: [PATCH v3 5/7] ACPI/SFI: Fix wrong <acpi/acpi.h> inclusion in SFI/ACPI wrapper - table definitions.
+Date: Wed, 16 Jul 2014 16:58:40 +0800
+Message-ID: <3cba11f5cee50786c79422691ac8eceb4dfb9df1.1405500886.git.lv.zheng@intel.com>
 References: <cover.1387336613.git.lv.zheng@intel.com> <cover.1405500886.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:40170 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759939AbaGPI6e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jul 2014 04:58:34 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1405500886.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, sfi-devel@simplefirmware.org
+List-Id: linux-acpi@vger.kernel.org
 
-There are global variables and functions not upstreamed to the ACPICA code
-base.  Such symbols still can be referenced by external users as they are
-listed in the acpixf.h.  This patch uses ACPI_GLOBAL and
-ACPI_EXTERNAL_RETURN_STATUS mechanism to add stub support for such symbols.
+This patch removes <acpi/acpi.h> inclusions from <linux/sfi_acpi.h> as
+<linux/acpi.h> has already included it for CONFIG_ACPI=n builds.
 
+Cc: Len Brown <lenb@kernel.org>
+Cc: sfi-devel@simplefirmware.org
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/bus.c    |    3 ---
- include/acpi/acpixf.h |   28 +++++++++++++++++-----------
- 2 files changed, 17 insertions(+), 14 deletions(-)
+ include/linux/sfi_acpi.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index c5bc8cf..8581f5b 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -477,9 +477,6 @@ static int __init acpi_bus_init_irq(void)
- 	return 0;
+diff --git a/include/linux/sfi_acpi.h b/include/linux/sfi_acpi.h
+index 4723bbf..a6e555c 100644
+--- a/include/linux/sfi_acpi.h
++++ b/include/linux/sfi_acpi.h
+@@ -63,8 +63,6 @@
+ #include <linux/sfi.h>
+ 
+ #ifdef CONFIG_SFI
+-#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
+-
+ extern int sfi_acpi_table_parse(char *signature, char *oem_id,
+ 				char *oem_table_id,
+ 				int (*handler)(struct acpi_table_header *));
+@@ -78,7 +76,6 @@ static inline int __init acpi_sfi_table_parse(char *signature,
+ 	return sfi_acpi_table_parse(signature, NULL, NULL, handler);
  }
- 
--u8 acpi_gbl_permanent_mmap;
+ #else /* !CONFIG_SFI */
 -
--
- void __init acpi_early_init(void)
- {
- 	acpi_status status;
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 3f6e14f..854dd01 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -53,8 +53,6 @@
- #include <acpi/actbl.h>
- #include <acpi/acbuffer.h>
- 
--extern u8 acpi_gbl_permanent_mmap;
--
- /*****************************************************************************
-  *
-  * Macros used for ACPICA globals and configuration
-@@ -885,17 +883,25 @@ ACPI_APP_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(1)
- /*
-  * Divergences
-  */
--acpi_status acpi_get_id(acpi_handle object, acpi_owner_id * out_type);
-+ACPI_GLOBAL(u8, acpi_gbl_permanent_mmap);
-+
-+ACPI_EXTERNAL_RETURN_STATUS(acpi_status
-+			    acpi_get_id(acpi_handle object,
-+					acpi_owner_id * out_type))
- 
--acpi_status acpi_unload_table_id(acpi_owner_id id);
-+ACPI_EXTERNAL_RETURN_STATUS(acpi_status acpi_unload_table_id(acpi_owner_id id))
- 
--acpi_status
--acpi_get_table_with_size(acpi_string signature,
--	       u32 instance, struct acpi_table_header **out_table,
--	       acpi_size *tbl_size);
-+ACPI_EXTERNAL_RETURN_STATUS(acpi_status
-+			    acpi_get_table_with_size(acpi_string signature,
-+						     u32 instance,
-+						     struct acpi_table_header
-+						     **out_table,
-+						     acpi_size *tbl_size))
- 
--acpi_status
--acpi_get_data_full(acpi_handle object, acpi_object_handler handler, void **data,
--		   void (*callback)(void *));
-+ACPI_EXTERNAL_RETURN_STATUS(acpi_status
-+			    acpi_get_data_full(acpi_handle object,
-+					       acpi_object_handler handler,
-+					       void **data,
-+					       void (*callback)(void *)))
- 
- #endif				/* __ACXFACE_H__ */
+ static inline int sfi_acpi_table_parse(char *signature, char *oem_id,
+ 				char *oem_table_id,
+ 				int (*handler)(struct acpi_table_header *))
 -- 
 1.7.10
-
