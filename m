@@ -1,25 +1,71 @@
 From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Some RAS bug fix patches
-Date: Tue, 15 Jul 2014 22:34:39 -0400
-Message-ID: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:17481 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760645AbaGPDFK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Jul 2014 23:05:10 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 1/3] APEI, GHES: Cleanup unnecessary function for lock-less list
+Date: Tue, 15 Jul 2014 22:34:40 -0400
+Message-ID: <1405478082-30757-2-git-send-email-gong.chen@linux.intel.com>
+References: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
 To: tony.luck@intel.com, bp@alien8.de
-Cc: linux-acpi@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-[PATCH 1/3] APEI, GHES: Cleanup unnecessary function for lock-less
-[RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE context
-[PATCH 3/3] RAS, HWPOISON: Fix wrong error recovery status
+We have provided a reverse function for lock-less list so delete
+uncessary codes.
 
-The patch 1/3 & 3/3 are minor fixes which are irrelevant with patch
-2/3. I send them together just to avoid fragments.
+Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+---
+ drivers/acpi/apei/ghes.c | 18 ++----------------
+ 1 file changed, 2 insertions(+), 16 deletions(-)
 
-The patch 2/3 is a RFC patch depending on the following thread:
-https://lkml.org/lkml/2014/6/27/26
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index dab7cb7..1f9fba9 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -734,20 +734,6 @@ static int ghes_notify_sci(struct notifier_block *this,
+ 	return ret;
+ }
+ 
+-static struct llist_node *llist_nodes_reverse(struct llist_node *llnode)
+-{
+-	struct llist_node *next, *tail = NULL;
+-
+-	while (llnode) {
+-		next = llnode->next;
+-		llnode->next = tail;
+-		tail = llnode;
+-		llnode = next;
+-	}
+-
+-	return tail;
+-}
+-
+ static void ghes_proc_in_irq(struct irq_work *irq_work)
+ {
+ 	struct llist_node *llnode, *next;
+@@ -761,7 +747,7 @@ static void ghes_proc_in_irq(struct irq_work *irq_work)
+ 	 * Because the time order of estatus in list is reversed,
+ 	 * revert it back to proper order.
+ 	 */
+-	llnode = llist_nodes_reverse(llnode);
++	llnode = llist_reverse_order(llnode);
+ 	while (llnode) {
+ 		next = llnode->next;
+ 		estatus_node = llist_entry(llnode, struct ghes_estatus_node,
+@@ -794,7 +780,7 @@ static void ghes_print_queued_estatus(void)
+ 	 * Because the time order of estatus in list is reversed,
+ 	 * revert it back to proper order.
+ 	 */
+-	llnode = llist_nodes_reverse(llnode);
++	llnode = llist_reverse_order(llnode);
+ 	while (llnode) {
+ 		estatus_node = llist_entry(llnode, struct ghes_estatus_node,
+ 					   llnode);
+-- 
+2.0.0.rc2
 
-Comments and suggestions are welcome.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
