@@ -1,78 +1,54 @@
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: Re: [PATCH] acpi-video: Fix backlight taking 2 steps on a brightness key press
-Date: Wed, 16 Jul 2014 14:03:54 +0200
-Message-ID: <87wqbdecid.fsf@nemi.mork.no>
-References: <1405509908-12620-1-git-send-email-hdegoede@redhat.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 7/7] ACPI: Cleanup useless ACPI inclusion.
+Date: Wed, 16 Jul 2014 13:07:50 +0100
+Message-ID: <20140716120750.GM17528@sirena.org.uk>
+References: <cover.1387336613.git.lv.zheng@intel.com>
+ <cover.1405500886.git.lv.zheng@intel.com>
+ <7ac00c9c5a32f7a3ec98f061080ba1573ae57d0d.1405500886.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from canardo.mork.no ([148.122.252.1]:59115 "EHLO canardo.mork.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932824AbaGPMFS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2014 08:05:18 -0400
-In-Reply-To: <1405509908-12620-1-git-send-email-hdegoede@redhat.com> (Hans de
-	Goede's message of "Wed, 16 Jul 2014 13:25:07 +0200")
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="5me2qT3T17SWzdxI"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <7ac00c9c5a32f7a3ec98f061080ba1573ae57d0d.1405500886.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, alsa-devel@alsa-project.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org
-
-Hans de Goede <hdegoede@redhat.com> writes:
-
-> Hi All,
->
-> Here is my cleaned-up version of Linus' patch to fix the 2 steps on a
-> brightness key press problem.
->
-> Changes compared to Linus' version:
-> -Move the global variables to inside struct acpi_video_device
-> -Rebase on top of Rafael's linux-pm linux-next branch (so on top of t=
-he
->  revert of changing the brightness_switch_enabled default)
->
-> I've tested this on a laptop affected by the 2 steps problem and I ca=
-n confirm
-> that it fixes the 2 steps issue under normal usage. I managed to trig=
-ger the
-> race by generating a heavy io-load, as exptected hitting the race has=
- no
-> unwanted side-effects other then taking 2 steps instead of one.
->
-> Bj=C3=B8rn can you test this patch on your system and confirm that it=
- does not
-> break things for you please ? Note that in order to apply it you firs=
-t need
-> to do: "git revert 886129a8eebebec", as the revert has not yet reache=
-d
-> Linus' tree AFAIK.
-
-Tested and verified that it still works fine for me, so feel free to ad=
-d
-
-Tested-by: Bj=C3=B8rn Mork <bjorn@mork.no>
-
-if you like.
-
-But as noted earlier, I believe this poses another risk if anyone has a
-config using bool input values:
-
--static bool brightness_switch_enabled =3D 1;
--module_param(brightness_switch_enabled, bool, 0644);
-+static int brightness_switch_enabled =3D -1;
-+module_param(brightness_switch_enabled, int, 0644);
 
 
-I wonder if it wouldn't be better to just redefine the behaviour of
-"brightness_switch_enabled =3D 1" to the new delayed response scheme an=
-d
-avoid changing the type of this parameter?
+--5me2qT3T17SWzdxI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Wed, Jul 16, 2014 at 04:59:02PM +0800, Lv Zheng wrote:
+> The sst-haswell-dsp.c is an ACPI independent file, this patch removes
+> ACPI header files for it.
 
+Applied, thanks.  Please use subject lines matching the style for the
+subsystem and send at least the cover letter for the series to everyone
+so that they know what's going on with dependencies and so on.
 
-Bj=C3=B8rn
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--5me2qT3T17SWzdxI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJTxmsTAAoJELSic+t+oim9wDgQAIGj1IsQmCiC9wzzx0I14JOl
+d70+ZlvbDYeXiL0fVaF7QdArfjt99hRdvn0KUSd/QcykHl0nSwYAT6MrAmkla44K
+3QXJmODQpC4TIXUDIlIVH1hMd/3uZvn2pzz6+QtqcrJk4BeMzYKGnbz90nUayx6p
+cAb1XEBTQJwVR8zdrSE2oXzYr9JbSMt+YTmgLlyz9te/FYQ8GwaFcj3bpF+1Ykbv
+plLSnY8pkG8YjgpLeuA//0XsCPLGYOn8oM77uRDkmJSYcE9EOWSAJBNuZicsIhOu
+kvkWONtvfIDBzT/2tcZJ37jpuRC/f9SLeMj/tk8ZgqaR7WxPMNuTRK/4eSPYqocr
+eP/xZOeul04gJa8tEg/gECwdPU61NCvgrr1g1/l19D76ItNlyOF1Tz/2hXrDadMh
+8ypSdoW/NBrWoq+rF3sZYpemD11AHO+wJ5T6H7WZyTDf+jA51uZGBK+Tijq98edL
+r6kZpyNNg8enhQNaN8qN6zG4x1kBcP9Ohfo8+L1e21D7PpEpWIcIAATFxvWETR+t
+4L0occpODtwYqY4XRs2YhXV2lJ3ljx42iLqRSsuELZuAVGCwrQArirMrIy6gRM0i
+S1icS3VbPXBvJHmqPTAI0cV0oHeF1M0gPSd4g1+h1hG9irbRRb4+rJxnFBaE3HFm
+yT1t5g6go3gfewKLMUpy
+=A3iP
+-----END PGP SIGNATURE-----
+
+--5me2qT3T17SWzdxI--
