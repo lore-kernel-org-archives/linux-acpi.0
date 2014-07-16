@@ -1,84 +1,66 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 3/7] ACPICA: Linux: Add support to exclude <asm/acenv.h> inclusion.
-Date: Wed, 16 Jul 2014 16:58:08 +0800
-Message-ID: <c36d318533eebf48ae114dc74a2478f6b9d9ccd1.1405500886.git.lv.zheng@intel.com>
+Subject: [PATCH v3 2/7] ACPICA: Linux: Add stub implementation of ACPICA 64-bit mathematics.
+Date: Wed, 16 Jul 2014 16:58:00 +0800
+Message-ID: <01bab2394df93a3064f09d961f4011b62895eef2.1405500886.git.lv.zheng@intel.com>
 References: <cover.1387336613.git.lv.zheng@intel.com> <cover.1405500886.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:40174 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761194AbaGPI6f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jul 2014 04:58:35 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1405500886.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-The forthcoming patch will make <acpi/acpi.h> to be visible to all kernel
-source code. Thus for the architectures that do not support ACPI and
-haven't implemented <asm/acenv.h>, we need to make it excluded.
+This patch adds default 64-bit mathematics in aclinux.h using do_div(). As
+do_div() can be used for all Linux architectures, this can also be used as
+stub macros for ACPICA 64-bit mathematics.
+
+But this is not a performance friendly way, as ACPICA's architecture
+specific division OSL only requires a dividing 64-bit number with a 32-bit
+number implementation, while Linux __div64_32() is not available for all
+build environments. So currently, if an architecture really wants to
+support ACPICA, it must implement its own division OSL.
+
+This is required by the ACPICA header stub support. ACPICA header stubs are
+useful to protect CONFIG_ACPI=n Linux kernel builds where ACPICA headers
+are included. Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- arch/ia64/include/asm/acenv.h   |    4 ----
- arch/x86/include/asm/acenv.h    |    4 ----
- include/acpi/platform/aclinux.h |    2 ++
- 3 files changed, 2 insertions(+), 8 deletions(-)
+ include/acpi/platform/aclinuxex.h |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/arch/ia64/include/asm/acenv.h b/arch/ia64/include/asm/acenv.h
-index 3f9eaee..35ff13a 100644
---- a/arch/ia64/include/asm/acenv.h
-+++ b/arch/ia64/include/asm/acenv.h
-@@ -19,8 +19,6 @@
+diff --git a/include/acpi/platform/aclinuxex.h b/include/acpi/platform/aclinuxex.h
+index 191e741..568d4b8 100644
+--- a/include/acpi/platform/aclinuxex.h
++++ b/include/acpi/platform/aclinuxex.h
+@@ -46,6 +46,28 @@
  
- /* Asm macros */
+ #ifdef __KERNEL__
  
--#ifdef CONFIG_ACPI
--
- static inline int
- ia64_acpi_acquire_global_lock(unsigned int *lock)
- {
-@@ -51,6 +49,4 @@ ia64_acpi_release_global_lock(unsigned int *lock)
- #define ACPI_RELEASE_GLOBAL_LOCK(facs, Acq)				\
- 	((Acq) = ia64_acpi_release_global_lock(&facs->global_lock))
- 
--#endif
--
- #endif /* _ASM_IA64_ACENV_H */
-diff --git a/arch/x86/include/asm/acenv.h b/arch/x86/include/asm/acenv.h
-index 6687329..1b010a8 100644
---- a/arch/x86/include/asm/acenv.h
-+++ b/arch/x86/include/asm/acenv.h
-@@ -18,8 +18,6 @@
- 
- #define ACPI_FLUSH_CPU_CACHE()	wbinvd()
- 
--#ifdef CONFIG_ACPI
--
- int __acpi_acquire_global_lock(unsigned int *lock);
- int __acpi_release_global_lock(unsigned int *lock);
- 
-@@ -44,6 +42,4 @@ int __acpi_release_global_lock(unsigned int *lock);
- 	    : "=r"(n_hi), "=r"(n_lo)	\
- 	    : "0"(n_hi), "1"(n_lo))
- 
--#endif
--
- #endif /* _ASM_X86_ACENV_H */
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index cd1f052..dfba354 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -70,7 +70,9 @@
- #ifdef EXPORT_ACPI_INTERFACES
- #include <linux/export.h>
- #endif
-+#ifdef CONFIG_ACPI
- #include <asm/acenv.h>
++#ifndef ACPI_USE_NATIVE_DIVIDE
++
++#ifndef ACPI_DIV_64_BY_32
++#define ACPI_DIV_64_BY_32(n_hi, n_lo, d32, q32, r32) \
++	do { \
++		u64 (__n) = ((u64) n_hi) << 32 | (n_lo); \
++		(r32) = do_div ((__n), (d32)); \
++		(q32) = (u32) (__n); \
++	} while (0)
 +#endif
- 
- #ifndef CONFIG_ACPI
- 
++
++#ifndef ACPI_SHIFT_RIGHT_64
++#define ACPI_SHIFT_RIGHT_64(n_hi, n_lo) \
++	do { \
++		(n_lo) >>= 1; \
++		(n_lo) |= (((n_hi) & 1) << 31); \
++		(n_hi) >>= 1; \
++	} while (0)
++#endif
++
++#endif
++
+ /*
+  * Overrides for in-kernel ACPICA
+  */
 -- 
 1.7.10
-
