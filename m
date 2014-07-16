@@ -1,97 +1,108 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] acpi-video: Fix backlight taking 2 steps on a brightness
- key press
-Date: Wed, 16 Jul 2014 16:32:36 +0200
-Message-ID: <53C68D04.2030307@redhat.com>
-References: <1405509908-12620-1-git-send-email-hdegoede@redhat.com> <87wqbdecid.fsf@nemi.mork.no>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Patch Part3 V4 21/21] pci, ACPI, iommu: Enhance pci_root to
+ support DMAR device hotplug
+Date: Wed, 16 Jul 2014 12:48:33 -0600
+Message-ID: <CAErSpo5MU2tck3iQxf0K0rMzNuHdFMLDF+frqQ-5f-KPGcobqg@mail.gmail.com>
+References: <1405059585-10620-1-git-send-email-jiang.liu@linux.intel.com> <1405059585-10620-22-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19257 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965109AbaGPOc4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jul 2014 10:32:56 -0400
-In-Reply-To: <87wqbdecid.fsf@nemi.mork.no>
+Received: from mail-ie0-f182.google.com ([209.85.223.182]:41681 "EHLO
+	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965263AbaGPSsy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2014 14:48:54 -0400
+Received: by mail-ie0-f182.google.com with SMTP id y20so1237520ier.13
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Jul 2014 11:48:53 -0700 (PDT)
+In-Reply-To: <1405059585-10620-22-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Ashok Raj <ashok.raj@intel.com>, Yijing Wang <wangyijing@huawei.com>, Tony Luck <tony.luck@intel.com>, "open list:INTEL IOMMU (VT-d)" <iommu@lists.linux-foundation.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux hotplug mailing <linux-hotplug@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
-
-On 07/16/2014 02:03 PM, Bj=C3=B8rn Mork wrote:
-> Hans de Goede <hdegoede@redhat.com> writes:
->=20
->> Hi All,
->>
->> Here is my cleaned-up version of Linus' patch to fix the 2 steps on =
-a
->> brightness key press problem.
->>
->> Changes compared to Linus' version:
->> -Move the global variables to inside struct acpi_video_device
->> -Rebase on top of Rafael's linux-pm linux-next branch (so on top of =
-the
->>  revert of changing the brightness_switch_enabled default)
->>
->> I've tested this on a laptop affected by the 2 steps problem and I c=
-an confirm
->> that it fixes the 2 steps issue under normal usage. I managed to tri=
-gger the
->> race by generating a heavy io-load, as exptected hitting the race ha=
-s no
->> unwanted side-effects other then taking 2 steps instead of one.
->>
->> Bj=C3=B8rn can you test this patch on your system and confirm that i=
-t does not
->> break things for you please ? Note that in order to apply it you fir=
-st need
->> to do: "git revert 886129a8eebebec", as the revert has not yet reach=
-ed
->> Linus' tree AFAIK.
->=20
-> Tested and verified that it still works fine for me, so feel free to =
-add
->=20
-> Tested-by: Bj=C3=B8rn Mork <bjorn@mork.no>
-> if you like.
+On Fri, Jul 11, 2014 at 12:19 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> Finally enhance pci_root driver to support DMAR device hotplug when
+> hot-plugging PCI host bridges.
 >
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 
-Thanks, if there is a need for a v2 I'll add your tested-by.
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Rafael, if there is not going to be a v2, could you pick up this tested=
--by
-then?
+I assume you'll merge this along with the rest of the series via some
+non-PCI tree.
 
-> But as noted earlier, I believe this poses another risk if anyone has=
- a
-> config using bool input values:
->=20
-> -static bool brightness_switch_enabled =3D 1;
-> -module_param(brightness_switch_enabled, bool, 0644);
-> +static int brightness_switch_enabled =3D -1;
-> +module_param(brightness_switch_enabled, int, 0644);
->=20
-
-The only way I can see that being a problem is if someone is using
-video.brightness_switch_enabled=3DN for reasons other then the 2 step
-problem this patch fixes. That is not unthinkable though.
-
-> I wonder if it wouldn't be better to just redefine the behaviour of
-> "brightness_switch_enabled =3D 1" to the new delayed response scheme =
-and
-> avoid changing the type of this parameter?
-
-I think that is a good idea, that would also allow to simplify the patc=
-h
-somewhat more. Rafael, what is your take on this ?
-
-Regards,
-
-Hans
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/acpi/pci_root.c |   16 ++++++++++++++--
+>  1 file changed, 14 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index d388f13d48b4..99c2b9761c12 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -33,6 +33,7 @@
+>  #include <linux/pci.h>
+>  #include <linux/pci-acpi.h>
+>  #include <linux/pci-aspm.h>
+> +#include <linux/dmar.h>
+>  #include <linux/acpi.h>
+>  #include <linux/slab.h>
+>  #include <acpi/apei.h> /* for acpi_hest_init() */
+> @@ -511,6 +512,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>         struct acpi_pci_root *root;
+>         acpi_handle handle = device->handle;
+>         int no_aspm = 0, clear_aspm = 0;
+> +       bool hotadd = system_state != SYSTEM_BOOTING;
+>
+>         root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
+>         if (!root)
+> @@ -557,6 +559,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>         strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
+>         device->driver_data = root;
+>
+> +       if (hotadd && dmar_device_add(handle)) {
+> +               result = -ENXIO;
+> +               goto end;
+> +       }
+> +
+>         pr_info(PREFIX "%s [%s] (domain %04x %pR)\n",
+>                acpi_device_name(device), acpi_device_bid(device),
+>                root->segment, &root->secondary);
+> @@ -583,7 +590,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>                         root->segment, (unsigned int)root->secondary.start);
+>                 device->driver_data = NULL;
+>                 result = -ENODEV;
+> -               goto end;
+> +               goto remove_dmar;
+>         }
+>
+>         if (clear_aspm) {
+> @@ -597,7 +604,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>         if (device->wakeup.flags.run_wake)
+>                 device_set_run_wake(root->bus->bridge, true);
+>
+> -       if (system_state != SYSTEM_BOOTING) {
+> +       if (hotadd) {
+>                 pcibios_resource_survey_bus(root->bus);
+>                 pci_assign_unassigned_root_bus_resources(root->bus);
+>         }
+> @@ -607,6 +614,9 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>         pci_unlock_rescan_remove();
+>         return 1;
+>
+> +remove_dmar:
+> +       if (hotadd)
+> +               dmar_device_remove(handle);
+>  end:
+>         kfree(root);
+>         return result;
+> @@ -625,6 +635,8 @@ static void acpi_pci_root_remove(struct acpi_device *device)
+>
+>         pci_remove_root_bus(root->bus);
+>
+> +       dmar_device_remove(device->handle);
+> +
+>         pci_unlock_rescan_remove();
+>
+>         kfree(root);
+> --
+> 1.7.10.4
+>
