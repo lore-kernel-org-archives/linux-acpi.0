@@ -1,82 +1,78 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [Regression]: Changing brightness does not work with v3.16-rc4
-Date: Wed, 16 Jul 2014 13:52:47 +0200
-Message-ID: <53C6678F.90905@redhat.com>
-References: <20140712180636.698e2e4c@saldaea>	<53C53543.1050207@redhat.com>	<53C53E89.2020505@intel.com>	<2231725.PEI454q0UP@vostro.rjw.lan>	<53C61BD5.8080501@redhat.com>	<53C6276A.6020206@intel.com>	<53C63431.7020205@redhat.com>	<53C63955.2090905@redhat.com> <20140716135035.21106dfe@saldaea>
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: [PATCH] acpi-video: Fix backlight taking 2 steps on a brightness key press
+Date: Wed, 16 Jul 2014 14:03:54 +0200
+Message-ID: <87wqbdecid.fsf@nemi.mork.no>
+References: <1405509908-12620-1-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63521 "EHLO mx1.redhat.com"
+Received: from canardo.mork.no ([148.122.252.1]:59115 "EHLO canardo.mork.no"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932684AbaGPLwy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jul 2014 07:52:54 -0400
-In-Reply-To: <20140716135035.21106dfe@saldaea>
+	id S932824AbaGPMFS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2014 08:05:18 -0400
+In-Reply-To: <1405509908-12620-1-git-send-email-hdegoede@redhat.com> (Hans de
+	Goede's message of "Wed, 16 Jul 2014 13:25:07 +0200")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Julian Wollrath <jwollrath@web.de>
-Cc: Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org
 
-Hi,
+Hans de Goede <hdegoede@redhat.com> writes:
 
-On 07/16/2014 01:50 PM, Julian Wollrath wrote:
-> Am Wed, 16 Jul 2014 10:35:33 +0200
-> schrieb Hans de Goede <hdegoede@redhat.com>:
-> 
->> Hi,
->>
->> On 07/16/2014 10:13 AM, Hans de Goede wrote:
->>
->> <snip>
->>
->>> I realize that this does not fix Julian's problem. As I see it
->>> there are 2 separate problems here:
->>>
->>> 1) backlight control issues on Windows 8 laptops, this is what we
->>> are trying to solve with video.use_native_backlight=1 (and without
->>> using any acpi_osi override)
->>>
->>> 2) Some component in the stack needs to responds to backlight
->>> key-presses and actually use the backlight control to change the
->>> backlight setting, normally this is done by gnome / kde / unity /
->>> xfce, but what about users not running those? For some of those
->>> users brightness_switch_enabled=1 has been making things work for
->>> them, but that only works if acpi-video controls the backlight,
->>> which it does not do everywhere, and which we want to get away from
->>> for Windows 8 laptops since it is just too broken there.
->>>
->>> Note that 2. is not limited to Windows 8 laptops / acpi-video in any
->>> way, we've 23 non acpi-video backlight drivers under
->>> drivers/platform/x86/ alone + the native gpu backlight drivers. So
->>> what we really need is a solution for any laptop not using
->>> acpi-video for backlight control and not running one of the big 4
->>> desktop environments.
->>>
->>> Note that we pretty much have the same problem for any acpi event,
->>> power button pressed, lid closed, etc. are all "key press" type
->>> events typically handles by the desktop enviroment (e.g. we don't
->>> automatically suspend on lid-close, we just tell userspace). And we
->>> already have a solution for these type of events when running a
->>> desktop environment which handles them, these get handled by acpid.
->>> So to me it seems that
->>
->> s/handles/does not handle/  small but important typo.
->>
->>> the obvious (and one and only right) way to fix this is to teach
->>> acpid to deal with brightness key-presses.
->>>
->>> I'm willing to write a patch for acpid to implement this, and then
->>> Julian's setup should just work without needing any special kernel
->>> commandline options.
->>>
->>> Julian would that be an acceptable solution for you, and would you
->>> be willing to test such a patch ?
-> Yes, of course that would be an acceptable solution for me and yes, I
-> would be willing to test such a patch.
+> Hi All,
+>
+> Here is my cleaned-up version of Linus' patch to fix the 2 steps on a
+> brightness key press problem.
+>
+> Changes compared to Linus' version:
+> -Move the global variables to inside struct acpi_video_device
+> -Rebase on top of Rafael's linux-pm linux-next branch (so on top of t=
+he
+>  revert of changing the brightness_switch_enabled default)
+>
+> I've tested this on a laptop affected by the 2 steps problem and I ca=
+n confirm
+> that it fixes the 2 steps issue under normal usage. I managed to trig=
+ger the
+> race by generating a heavy io-load, as exptected hitting the race has=
+ no
+> unwanted side-effects other then taking 2 steps instead of one.
+>
+> Bj=C3=B8rn can you test this patch on your system and confirm that it=
+ does not
+> break things for you please ? Note that in order to apply it you firs=
+t need
+> to do: "git revert 886129a8eebebec", as the revert has not yet reache=
+d
+> Linus' tree AFAIK.
 
-Ok, great. I've putten this (pretty high) on my todo list, I'll let you
-know when I've something ready to test.
+Tested and verified that it still works fine for me, so feel free to ad=
+d
 
-Regards,
+Tested-by: Bj=C3=B8rn Mork <bjorn@mork.no>
 
-Hans
+if you like.
+
+But as noted earlier, I believe this poses another risk if anyone has a
+config using bool input values:
+
+-static bool brightness_switch_enabled =3D 1;
+-module_param(brightness_switch_enabled, bool, 0644);
++static int brightness_switch_enabled =3D -1;
++module_param(brightness_switch_enabled, int, 0644);
+
+
+I wonder if it wouldn't be better to just redefine the behaviour of
+"brightness_switch_enabled =3D 1" to the new delayed response scheme an=
+d
+avoid changing the type of this parameter?
+
+
+
+Bj=C3=B8rn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
