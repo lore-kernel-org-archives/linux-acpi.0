@@ -1,108 +1,73 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Patch Part3 V4 21/21] pci, ACPI, iommu: Enhance pci_root to
- support DMAR device hotplug
-Date: Wed, 16 Jul 2014 12:48:33 -0600
-Message-ID: <CAErSpo5MU2tck3iQxf0K0rMzNuHdFMLDF+frqQ-5f-KPGcobqg@mail.gmail.com>
-References: <1405059585-10620-1-git-send-email-jiang.liu@linux.intel.com> <1405059585-10620-22-git-send-email-jiang.liu@linux.intel.com>
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: Re: [PATCH 3/3] RAS, HWPOISON: Fix wrong error recovery status
+Date: Wed, 16 Jul 2014 15:57:45 -0400
+Message-ID: <20140716195745.GC8524@nhori.redhat.com>
+References: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
+ <1405478082-30757-4-git-send-email-gong.chen@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:41681 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965263AbaGPSsy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2014 14:48:54 -0400
-Received: by mail-ie0-f182.google.com with SMTP id y20so1237520ier.13
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Jul 2014 11:48:53 -0700 (PDT)
-In-Reply-To: <1405059585-10620-22-git-send-email-jiang.liu@linux.intel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45545 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751122AbaGPT6Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Jul 2014 15:58:16 -0400
+Content-Disposition: inline
+In-Reply-To: <1405478082-30757-4-git-send-email-gong.chen@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Ashok Raj <ashok.raj@intel.com>, Yijing Wang <wangyijing@huawei.com>, Tony Luck <tony.luck@intel.com>, "open list:INTEL IOMMU (VT-d)" <iommu@lists.linux-foundation.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux hotplug mailing <linux-hotplug@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Chen, Gong" <gong.chen@linux.intel.com>
+Cc: tony.luck@intel.com, bp@alien8.de, linux-acpi@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
 
-On Fri, Jul 11, 2014 at 12:19 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> Finally enhance pci_root driver to support DMAR device hotplug when
-> hot-plugging PCI host bridges.
->
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+On Tue, Jul 15, 2014 at 10:34:42PM -0400, Chen, Gong wrote:
+> When Uncorrected error happens, if the poisoned page is referenced
+> by more than one user after error recovery, the recovery is not
+> successful. But currently the display result is wrong.
+> Before this patch:
+> 
+> MCE 0x44e336: dirty mlocked LRU page recovery: Recovered
+> MCE 0x44e336: dirty mlocked LRU page still referenced by 1 users
+> mce: Memory error not recovered
+> 
+> After this patch:
+> 
+> MCE 0x44e336: dirty mlocked LRU page recovery: Failed
+> MCE 0x44e336: dirty mlocked LRU page still referenced by 1 users
+> mce: Memory error not recovered
+> 
+> Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-
-I assume you'll merge this along with the rest of the series via some
-non-PCI tree.
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 
 > ---
->  drivers/acpi/pci_root.c |   16 ++++++++++++++--
->  1 file changed, 14 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index d388f13d48b4..99c2b9761c12 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -33,6 +33,7 @@
->  #include <linux/pci.h>
->  #include <linux/pci-acpi.h>
->  #include <linux/pci-aspm.h>
-> +#include <linux/dmar.h>
->  #include <linux/acpi.h>
->  #include <linux/slab.h>
->  #include <acpi/apei.h> /* for acpi_hest_init() */
-> @@ -511,6 +512,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
->         struct acpi_pci_root *root;
->         acpi_handle handle = device->handle;
->         int no_aspm = 0, clear_aspm = 0;
-> +       bool hotadd = system_state != SYSTEM_BOOTING;
->
->         root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
->         if (!root)
-> @@ -557,6 +559,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
->         strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
->         device->driver_data = root;
->
-> +       if (hotadd && dmar_device_add(handle)) {
-> +               result = -ENXIO;
-> +               goto end;
-> +       }
-> +
->         pr_info(PREFIX "%s [%s] (domain %04x %pR)\n",
->                acpi_device_name(device), acpi_device_bid(device),
->                root->segment, &root->secondary);
-> @@ -583,7 +590,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
->                         root->segment, (unsigned int)root->secondary.start);
->                 device->driver_data = NULL;
->                 result = -ENODEV;
-> -               goto end;
-> +               goto remove_dmar;
->         }
->
->         if (clear_aspm) {
-> @@ -597,7 +604,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
->         if (device->wakeup.flags.run_wake)
->                 device_set_run_wake(root->bus->bridge, true);
->
-> -       if (system_state != SYSTEM_BOOTING) {
-> +       if (hotadd) {
->                 pcibios_resource_survey_bus(root->bus);
->                 pci_assign_unassigned_root_bus_resources(root->bus);
->         }
-> @@ -607,6 +614,9 @@ static int acpi_pci_root_add(struct acpi_device *device,
->         pci_unlock_rescan_remove();
->         return 1;
->
-> +remove_dmar:
-> +       if (hotadd)
-> +               dmar_device_remove(handle);
->  end:
->         kfree(root);
->         return result;
-> @@ -625,6 +635,8 @@ static void acpi_pci_root_remove(struct acpi_device *device)
->
->         pci_remove_root_bus(root->bus);
->
-> +       dmar_device_remove(device->handle);
-> +
->         pci_unlock_rescan_remove();
->
->         kfree(root);
+>  mm/memory-failure.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+> index c6399e3..2985861 100644
+> --- a/mm/memory-failure.c
+> +++ b/mm/memory-failure.c
+> @@ -860,7 +860,6 @@ static int page_action(struct page_state *ps, struct page *p,
+>  	int count;
+>  
+>  	result = ps->action(p, pfn);
+> -	action_result(pfn, ps->msg, result);
+>  
+>  	count = page_count(p) - 1;
+>  	if (ps->action == me_swapcache_dirty && result == DELAYED)
+> @@ -871,6 +870,7 @@ static int page_action(struct page_state *ps, struct page *p,
+>  		       pfn, ps->msg, count);
+>  		result = FAILED;
+>  	}
+> +	action_result(pfn, ps->msg, result);
+>  
+>  	/* Could do more checks here if page looks ok */
+>  	/*
+> -- 
+> 2.0.0.rc2
+> 
 > --
-> 1.7.10.4
->
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> 
