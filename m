@@ -1,51 +1,61 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 0/3] Clean up ACPI core to prepare for running ACPI on ARM64
-Date: Thu, 17 Jul 2014 01:32:21 +0200
-Message-ID: <2351210.nfpIXXiZXh@vostro.rjw.lan>
-References: <1404898746-6685-1-git-send-email-hanjun.guo@linaro.org>
+Subject: [Update][PATCH 2/3] ACPICA: Refuse to enable GPEs with no handling
+Date: Thu, 17 Jul 2014 01:45:38 +0200
+Message-ID: <3115590.393nAKLrUK@vostro.rjw.lan>
+References: <7323172.bFe2jdDKx7@vostro.rjw.lan> <7518885.g0HdNb24nN@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51875 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:56820 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754734AbaGPXOG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2014 19:14:06 -0400
-In-Reply-To: <1404898746-6685-1-git-send-email-hanjun.guo@linaro.org>
+	with SMTP id S1752603AbaGPX1W (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2014 19:27:22 -0400
+In-Reply-To: <7518885.g0HdNb24nN@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Luck <tony.luck@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, 'Ingo Molnar' <mingo@kernel.org>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, x86@kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Robert Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lan Tianyu <tianyu.lan@intel.com>
 
-On Wednesday, July 09, 2014 05:39:03 PM Hanjun Guo wrote:
-> This patch set have no function change for x86 and ia64 and
-> just do some clean up to prepare for running ACPI on ARM64.
-> 
-> This patch set is splited out from the patch set [1]
-> "[PATCH v4 00/13] Enable ACPI on ARM64 in Kconfig" and hope it
-> can be merged first before ARM64 ACPI core patches.
-> 
-> [1]: https://lkml.org/lkml/2014/6/26/627
-> 
-> update from v1:
-> 1. Drop "Make EC debugfs depend on X86 || IA64 in Kconfig";
-> 2. Rename ACPI_SCAN_BIOS_NOT_EFI to ACPI_LEGACY_TABLES_LOOKUP
->    suggested by Rafael;
-> 3. Rename ARCH_HAS_ACPI_PDC to ARCH_MIGHT_HAVE_ACPI_PDC suggested by Rafael;
-> 4. Remove the help for ARCH_MIGHT_HAVE_ACPI_PDC because it can't be selected;
-> 5. Rename acpi_arch_is_smp() to acpi_has_cpu_in_madt() to be more
->    explicit and easy understanding.
-> 
-> Graeme Gregory (2):
->   ACPI: ARM64 does not have a BIOS add config for BIOS table scan.
->   ACPI: Don't use acpi_lapic in ACPI core code
-> 
-> Hanjun Guo (1):
->   ACPI / processor: Introduce ARCH_HAS_ACPI_PDC
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Are there any objections against this series from the x86 and ia64 maintainers?
+Make acpi_enable_gpe() refuse to enable a given GPE if there is no
+way to handle it and return an error instead.
 
-If not, I'll take it for 3.17.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-Rafael
+Updated as requested by Bob.
+
+---
+ drivers/acpi/acpica/evxfgpe.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+Index: linux-pm/drivers/acpi/acpica/evxfgpe.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpica/evxfgpe.c
++++ linux-pm/drivers/acpi/acpica/evxfgpe.c
+@@ -118,7 +118,7 @@ ACPI_EXPORT_SYMBOL(acpi_update_all_gpes)
+ 
+ acpi_status acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number)
+ {
+-	acpi_status status = AE_BAD_PARAMETER;
++	acpi_status status;
+ 	struct acpi_gpe_event_info *gpe_event_info;
+ 	acpi_cpu_flags flags;
+ 
+@@ -129,7 +129,12 @@ acpi_status acpi_enable_gpe(acpi_handle
+ 	/* Ensure that we have a valid GPE number */
+ 
+ 	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
+-	if (gpe_event_info) {
++	if (!gpe_event_info) {
++		status = AE_BAD_PARAMETER;
++	} else if ((gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) ==
++					ACPI_GPE_DISPATCH_NONE) {
++		status = AE_NO_HANDLER;
++	} else {
+ 		status = acpi_ev_add_gpe_reference(gpe_event_info);
+ 	}
+ 
 
