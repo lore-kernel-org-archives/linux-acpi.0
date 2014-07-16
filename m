@@ -1,45 +1,49 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 5/7] ACPI/SFI: Fix wrong <acpi/acpi.h> inclusion in SFI/ACPI wrapper - table definitions.
-Date: Wed, 16 Jul 2014 16:58:40 +0800
-Message-ID: <3cba11f5cee50786c79422691ac8eceb4dfb9df1.1405500886.git.lv.zheng@intel.com>
+Subject: [PATCH v3 4/7] ACPICA: Linux: Allow ACPICA inclusion for CONFIG_ACPI=n builds.
+Date: Wed, 16 Jul 2014 16:58:30 +0800
+Message-ID: <ca797ec6949a1798e1d21428a0182e815161729d.1405500886.git.lv.zheng@intel.com>
 References: <cover.1387336613.git.lv.zheng@intel.com> <cover.1405500886.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1405500886.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, sfi-devel@simplefirmware.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch removes <acpi/acpi.h> inclusions from <linux/sfi_acpi.h> as
-<linux/acpi.h> has already included it for CONFIG_ACPI=n builds.
+This patch moves <acpi/acpi.h> out of CONFIG_ACPI condition so that all
+ACPICA prototypes can be seen by the CONFIG_ACPI=n Linux kernel builds.
+Note that we can do this because ACPICA has implemented stubs for all
+ACPICA prototypes that are currently referenced by the Linux kernel.
 
-Cc: Len Brown <lenb@kernel.org>
-Cc: sfi-devel@simplefirmware.org
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/linux/sfi_acpi.h |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/acpi.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/sfi_acpi.h b/include/linux/sfi_acpi.h
-index 4723bbf..a6e555c 100644
---- a/include/linux/sfi_acpi.h
-+++ b/include/linux/sfi_acpi.h
-@@ -63,8 +63,6 @@
- #include <linux/sfi.h>
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 358c01b..5320153 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -29,17 +29,17 @@
+ #include <linux/ioport.h>	/* for struct resource */
+ #include <linux/device.h>
  
- #ifdef CONFIG_SFI
--#include <acpi/acpi.h>	/* FIXME: inclusion should be removed */
+-#ifdef	CONFIG_ACPI
 -
- extern int sfi_acpi_table_parse(char *signature, char *oem_id,
- 				char *oem_table_id,
- 				int (*handler)(struct acpi_table_header *));
-@@ -78,7 +76,6 @@ static inline int __init acpi_sfi_table_parse(char *signature,
- 	return sfi_acpi_table_parse(signature, NULL, NULL, handler);
- }
- #else /* !CONFIG_SFI */
--
- static inline int sfi_acpi_table_parse(char *signature, char *oem_id,
- 				char *oem_table_id,
- 				int (*handler)(struct acpi_table_header *))
+ #ifndef _LINUX
+ #define _LINUX
+ #endif
++#include <acpi/acpi.h>
++
++#ifdef	CONFIG_ACPI
+ 
+ #include <linux/list.h>
+ #include <linux/mod_devicetable.h>
+ #include <linux/dynamic_debug.h>
+ 
+-#include <acpi/acpi.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acpi_numa.h>
 -- 
 1.7.10
