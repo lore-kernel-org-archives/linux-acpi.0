@@ -1,38 +1,45 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH v2 1/3] ACPI: ARM64 does not have a BIOS add config for
- BIOS table scan.
-Date: Wed, 16 Jul 2014 16:49:12 -0700
-Message-ID: <53C70F78.40206@zytor.com>
-References: <1404898746-6685-1-git-send-email-hanjun.guo@linaro.org> <1404898746-6685-2-git-send-email-hanjun.guo@linaro.org> <53C70CCC.2080109@zytor.com> <3908561D78D1C84285E8C5FCA982C28F3285FB3C@ORSMSX114.amr.corp.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v3 7/7] ACPI: Cleanup useless ACPI inclusion.
+Date: Thu, 17 Jul 2014 01:29:04 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802643042@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1387336613.git.lv.zheng@intel.com>
+ <7ac00c9c5a32f7a3ec98f061080ba1573ae57d0d.1405500886.git.lv.zheng@intel.com>
+ <20140716120750.GM17528@sirena.org.uk> <4307509.CpjlMkz69H@vostro.rjw.lan>
+ <20140716213433.GD17528@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:47143 "EHLO mail.zytor.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754073AbaGPXtw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Jul 2014 19:49:52 -0400
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F3285FB3C@ORSMSX114.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140716213433.GD17528@sirena.org.uk>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On 07/16/2014 04:46 PM, Luck, Tony wrote:
->> +	select ACPI_LEGACY_TABLES_LOOKUP if ACPI
+Hi,
+
+> From: Mark Brown [mailto:broonie@kernel.org]
+> Sent: Thursday, July 17, 2014 5:35 AM
 > 
->> This shouldn't actually be set on IA64, should it?  IA64 doesn't have
->> BIOS, either, it has EFI/UEFI, like ARM64...
+> On Wed, Jul 16, 2014 at 11:46:14PM +0200, Rafael J. Wysocki wrote:
+> > On Wednesday, July 16, 2014 01:07:50 PM Mark Brown wrote:
+> > > On Wed, Jul 16, 2014 at 04:59:02PM +0800, Lv Zheng wrote:
 > 
-> Which ACPI tables are in the "LEGACY" category affected by this option?
+> > > > The sst-haswell-dsp.c is an ACPI independent file, this patch removes
+> > > > ACPI header files for it.
 > 
+> > > Applied, thanks.  Please use subject lines matching the style for the
+> > > subsystem and send at least the cover letter for the series to everyone
+> > > so that they know what's going on with dependencies and so on.
+> 
+> > Lv thought that this would go through the ACPI tree I suppose.
+> 
+> Even so the subject line should still line up (it's part of how some of
+> us pick out which mail to read).
 
-That's not what this is about... it is about how you find the root pointer.
+I just didn't notice this. :-)
+I'll take care next time.
 
-On a BIOS system it is found by scanning low memory.  On an EFI system
-it is found by querying EFI for a specific UUID.
-
-	-hpa
-
-
-
+Thanks and best regards
+-Lv
