@@ -1,48 +1,25 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 1/3] ACPI: ARM64 does not have a BIOS add config for
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH v2 1/3] ACPI: ARM64 does not have a BIOS add config for
  BIOS table scan.
-Date: Thu, 17 Jul 2014 11:18:06 +0800
-Message-ID: <53C7406E.40902@linaro.org>
-References: <1404898746-6685-1-git-send-email-hanjun.guo@linaro.org> <1404898746-6685-2-git-send-email-hanjun.guo@linaro.org> <53C70CCC.2080109@zytor.com> <3908561D78D1C84285E8C5FCA982C28F3285FB3C@ORSMSX114.amr.corp.intel.com> <53C70F78.40206@zytor.com>
+Date: Thu, 17 Jul 2014 16:58:18 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F32866139@ORSMSX113.amr.corp.intel.com>
+References: <1404898746-6685-1-git-send-email-hanjun.guo@linaro.org>
+ <1404898746-6685-2-git-send-email-hanjun.guo@linaro.org>
+ <53C70CCC.2080109@zytor.com>
+ <3908561D78D1C84285E8C5FCA982C28F3285FB3C@ORSMSX114.amr.corp.intel.com>
+ <53C70F78.40206@zytor.com> <53C7406E.40902@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:58667 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751811AbaGQDTJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Jul 2014 23:19:09 -0400
-Received: by mail-pd0-f170.google.com with SMTP id g10so2332268pdj.29
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Jul 2014 20:19:09 -0700 (PDT)
-In-Reply-To: <53C70F78.40206@zytor.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>, "Luck, Tony" <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53C7406E.40902@linaro.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On 2014-7-17 7:49, H. Peter Anvin wrote:
-> On 07/16/2014 04:46 PM, Luck, Tony wrote:
->>> +	select ACPI_LEGACY_TABLES_LOOKUP if ACPI
->>
->>> This shouldn't actually be set on IA64, should it?  IA64 doesn't have
->>> BIOS, either, it has EFI/UEFI, like ARM64...
-
-Yes, I agree with you, thanks for pointing this out. if I remember
-correctly, the EFI standard was introduced when IA64 came out.
-
->>
->> Which ACPI tables are in the "LEGACY" category affected by this option?
->>
-> 
-> That's not what this is about... it is about how you find the root pointer.
-> 
-> On a BIOS system it is found by scanning low memory.  On an EFI system
-> it is found by querying EFI for a specific UUID.
-
-Thanks for the explanation.
-
-Tony, if it is ok with you, I will modify the patch and will not select
-ACPI_LEGACY_TABLES_LOOKUP on IA64, I'm waiting for your final confirmation.
-
-Thanks
-Hanjun
+PiBUb255LCBpZiBpdCBpcyBvayB3aXRoIHlvdSwgSSB3aWxsIG1vZGlmeSB0aGUgcGF0Y2ggYW5k
+IHdpbGwgbm90IHNlbGVjdA0KPiBBQ1BJX0xFR0FDWV9UQUJMRVNfTE9PS1VQIG9uIElBNjQsIEkn
+bSB3YWl0aW5nIGZvciB5b3VyIGZpbmFsIGNvbmZpcm1hdGlvbi4NCg0KQ29uZmlybWVkLiAgVGhh
+bmtzIFBldGVyIGZvciBjYXRjaGluZyB0aGlzLg0KDQotVG9ueQ0K
