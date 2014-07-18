@@ -1,48 +1,72 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH] ACPI/NVS: Not save NVS region for new machines to accelerate S3
-Date: Fri, 18 Jul 2014 13:55:22 +0800
-Message-ID: <1405662922-23606-1-git-send-email-tianyu.lan@intel.com>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [PATCH] ACPI/NVS: Not save NVS region for new machines to
+ accelerate S3
+Date: Fri, 18 Jul 2014 04:00:56 -0400
+Message-ID: <20140718080056.GA2037@gchen.bj.intel.com>
+References: <1405662922-23606-1-git-send-email-tianyu.lan@intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LZvS9be/3tNcYl/X"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:38818 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:14836 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755674AbaGRF5O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Jul 2014 01:57:14 -0400
+	id S1760339AbaGRIb3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Jul 2014 04:31:29 -0400
+Content-Disposition: inline
+In-Reply-To: <1405662922-23606-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-NVS region is saved and restored unconditionally for machines without
-nvs_nosave quirk during S3. Tested some new machines and the operation
-is not necessary. Saving NVS region also affects S2RAM speed. The time of
-NVS saving and restoring depends on the size of NVS region and it consumes
-7~10ms normally.
 
-This patch is to make machines produced from 2012 to now not saving NVS region
-to accelerate S3.
+--LZvS9be/3tNcYl/X
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- drivers/acpi/sleep.c | 5 +++++
- 1 file changed, 5 insertions(+)
+On Fri, Jul 18, 2014 at 01:55:22PM +0800, Lan Tianyu wrote:
+> Date:	Fri, 18 Jul 2014 13:55:22 +0800
+> From: Lan Tianyu <tianyu.lan@intel.com>
+> To: rjw@rjwysocki.net, lenb@kernel.org
+> Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org,
+>  linux-kernel@vger.kernel.org
+> Subject: [PATCH] ACPI/NVS: Not save NVS region for new machines to
+>  accelerate S3
+> X-Mailer: git-send-email 1.7.9.5
+>=20
+> NVS region is saved and restored unconditionally for machines without
+> nvs_nosave quirk during S3. Tested some new machines and the operation
+> is not necessary. Saving NVS region also affects S2RAM speed. The time of
+> NVS saving and restoring depends on the size of NVS region and it consumes
+> 7~10ms normally.
+>=20
+> This patch is to make machines produced from 2012 to now not saving NVS r=
+egion
+> to accelerate S3.
+>=20
+The year 2012 is a mandatory value in the spec?
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index b3e3cc7..896d8be 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -322,7 +322,12 @@ static struct dmi_system_id acpisleep_dmi_table[] __initdata = {
- 
- static void acpi_sleep_dmi_check(void)
- {
-+	int year;
-+
- 	dmi_check_system(acpisleep_dmi_table);
-+
-+	if (dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL) && year >= 2012)
-+		acpi_nvs_nosave_s3();
- }
- 
- /**
--- 
-1.8.4.rc0.1.g8f6a3e5.dirty
+--LZvS9be/3tNcYl/X
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTyNQ4AAoJEI01n1+kOSLHHa4P/0T6DZAB+eAZr71j+Sg3Dl2G
+NYpjLyD1Tfwksj5U0s5Kl4XVcxvb61xpbnDzkeSc4MzE6KOs3+TK0MTUm/GOJUnp
+x9K/W1YFmkQacgNzdNGDCSsz+o7uqgOMFdFgn8xP/NfHlR+r9jbBbFh8vlsB+3Bx
+VWrHsMmjgnikpjFrpvWRtjdrQhFHKReB7c+mK0Z74+3+GODn0nQZ/XQHa2Rhj0MP
+9l1GeCiGtFtPM5Am/cUQcu0AAIshNTGBaw7Yv7d3VAMUkZOCx2NJJzUyjekGkdGO
+N674Ce2qTvpg8vOZzIxKQHlb9KcntM9o2tcyVtQhMdsO4Xx87fb999V2USv4H6VP
+2HnjJJoc9xXRJ/EsUf1NeAgzmBJsmAYKgcmCmwSte11UzQXIrJG5s7VJjj32zbZV
+AuSNTMDNQpoP14iX6klKC4cqYdYRjLIs1MJTvMX+CaPWC3JWPyXMyxHNK2d7zfzY
+9s60a2X1e+1IzosCPJtT/q04hFPSy5ZHxeXYgvCVvbRFWhmNEHb56oopCzG/u4nQ
+MZeLdWcH9jRRMRQZRUSFNUr1JpF3xtOTPC0LyWBEgUU/GfvWByqiPodvZ7hIFok4
+w4Tn+zcBaYgYvvtZDizFJrBx4sWiFHtITNQ6Ty9Badx1K/MDQt4nSKi4k+hQK1gd
+/iDFIIiAf+0Vhb7MIUI2
+=mJBV
+-----END PGP SIGNATURE-----
+
+--LZvS9be/3tNcYl/X--
