@@ -1,25 +1,48 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH v2 1/3] ACPI: ARM64 does not have a BIOS add config for
- BIOS table scan.
-Date: Thu, 17 Jul 2014 16:58:18 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F32866139@ORSMSX113.amr.corp.intel.com>
-References: <1404898746-6685-1-git-send-email-hanjun.guo@linaro.org>
- <1404898746-6685-2-git-send-email-hanjun.guo@linaro.org>
- <53C70CCC.2080109@zytor.com>
- <3908561D78D1C84285E8C5FCA982C28F3285FB3C@ORSMSX114.amr.corp.intel.com>
- <53C70F78.40206@zytor.com> <53C7406E.40902@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53C7406E.40902@linaro.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH] ACPI/NVS: Not save NVS region for new machines to accelerate S3
+Date: Fri, 18 Jul 2014 13:55:22 +0800
+Message-ID: <1405662922-23606-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:38818 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755674AbaGRF5O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Jul 2014 01:57:14 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-PiBUb255LCBpZiBpdCBpcyBvayB3aXRoIHlvdSwgSSB3aWxsIG1vZGlmeSB0aGUgcGF0Y2ggYW5k
-IHdpbGwgbm90IHNlbGVjdA0KPiBBQ1BJX0xFR0FDWV9UQUJMRVNfTE9PS1VQIG9uIElBNjQsIEkn
-bSB3YWl0aW5nIGZvciB5b3VyIGZpbmFsIGNvbmZpcm1hdGlvbi4NCg0KQ29uZmlybWVkLiAgVGhh
-bmtzIFBldGVyIGZvciBjYXRjaGluZyB0aGlzLg0KDQotVG9ueQ0K
+NVS region is saved and restored unconditionally for machines without
+nvs_nosave quirk during S3. Tested some new machines and the operation
+is not necessary. Saving NVS region also affects S2RAM speed. The time of
+NVS saving and restoring depends on the size of NVS region and it consumes
+7~10ms normally.
+
+This patch is to make machines produced from 2012 to now not saving NVS region
+to accelerate S3.
+
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/acpi/sleep.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index b3e3cc7..896d8be 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -322,7 +322,12 @@ static struct dmi_system_id acpisleep_dmi_table[] __initdata = {
+ 
+ static void acpi_sleep_dmi_check(void)
+ {
++	int year;
++
+ 	dmi_check_system(acpisleep_dmi_table);
++
++	if (dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL) && year >= 2012)
++		acpi_nvs_nosave_s3();
+ }
+ 
+ /**
+-- 
+1.8.4.rc0.1.g8f6a3e5.dirty
+
