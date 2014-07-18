@@ -1,72 +1,33 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [PATCH] ACPI/NVS: Not save NVS region for new machines to
- accelerate S3
-Date: Fri, 18 Jul 2014 04:00:56 -0400
-Message-ID: <20140718080056.GA2037@gchen.bj.intel.com>
-References: <1405662922-23606-1-git-send-email-tianyu.lan@intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2 1/3] ACPI: ARM64 does not have a BIOS add config for
+ BIOS table scan.
+Date: Fri, 18 Jul 2014 17:22:27 +0800
+Message-ID: <53C8E753.4070509@linaro.org>
+References: <1404898746-6685-1-git-send-email-hanjun.guo@linaro.org> <1404898746-6685-2-git-send-email-hanjun.guo@linaro.org> <53C70CCC.2080109@zytor.com> <3908561D78D1C84285E8C5FCA982C28F3285FB3C@ORSMSX114.amr.corp.intel.com> <53C70F78.40206@zytor.com> <53C7406E.40902@linaro.org> <3908561D78D1C84285E8C5FCA982C28F32866139@ORSMSX113.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LZvS9be/3tNcYl/X"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:14836 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760339AbaGRIb3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Jul 2014 04:31:29 -0400
-Content-Disposition: inline
-In-Reply-To: <1405662922-23606-1-git-send-email-tianyu.lan@intel.com>
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:63592 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755451AbaGRJXa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jul 2014 05:23:30 -0400
+Received: by mail-pd0-f176.google.com with SMTP id y10so4673109pdj.7
+        for <linux-acpi@vger.kernel.org>; Fri, 18 Jul 2014 02:23:30 -0700 (PDT)
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F32866139@ORSMSX113.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
+On 2014-7-18 0:58, Luck, Tony wrote:
+>> Tony, if it is ok with you, I will modify the patch and will not select
+>> ACPI_LEGACY_TABLES_LOOKUP on IA64, I'm waiting for your final confirmation.
+> 
+> Confirmed.  Thanks Peter for catching this.
 
---LZvS9be/3tNcYl/X
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Great, I will update the patch and send out soon.
 
-On Fri, Jul 18, 2014 at 01:55:22PM +0800, Lan Tianyu wrote:
-> Date:	Fri, 18 Jul 2014 13:55:22 +0800
-> From: Lan Tianyu <tianyu.lan@intel.com>
-> To: rjw@rjwysocki.net, lenb@kernel.org
-> Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org,
->  linux-kernel@vger.kernel.org
-> Subject: [PATCH] ACPI/NVS: Not save NVS region for new machines to
->  accelerate S3
-> X-Mailer: git-send-email 1.7.9.5
->=20
-> NVS region is saved and restored unconditionally for machines without
-> nvs_nosave quirk during S3. Tested some new machines and the operation
-> is not necessary. Saving NVS region also affects S2RAM speed. The time of
-> NVS saving and restoring depends on the size of NVS region and it consumes
-> 7~10ms normally.
->=20
-> This patch is to make machines produced from 2012 to now not saving NVS r=
-egion
-> to accelerate S3.
->=20
-The year 2012 is a mandatory value in the spec?
+Thanks
+Hanjun
 
---LZvS9be/3tNcYl/X
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTyNQ4AAoJEI01n1+kOSLHHa4P/0T6DZAB+eAZr71j+Sg3Dl2G
-NYpjLyD1Tfwksj5U0s5Kl4XVcxvb61xpbnDzkeSc4MzE6KOs3+TK0MTUm/GOJUnp
-x9K/W1YFmkQacgNzdNGDCSsz+o7uqgOMFdFgn8xP/NfHlR+r9jbBbFh8vlsB+3Bx
-VWrHsMmjgnikpjFrpvWRtjdrQhFHKReB7c+mK0Z74+3+GODn0nQZ/XQHa2Rhj0MP
-9l1GeCiGtFtPM5Am/cUQcu0AAIshNTGBaw7Yv7d3VAMUkZOCx2NJJzUyjekGkdGO
-N674Ce2qTvpg8vOZzIxKQHlb9KcntM9o2tcyVtQhMdsO4Xx87fb999V2USv4H6VP
-2HnjJJoc9xXRJ/EsUf1NeAgzmBJsmAYKgcmCmwSte11UzQXIrJG5s7VJjj32zbZV
-AuSNTMDNQpoP14iX6klKC4cqYdYRjLIs1MJTvMX+CaPWC3JWPyXMyxHNK2d7zfzY
-9s60a2X1e+1IzosCPJtT/q04hFPSy5ZHxeXYgvCVvbRFWhmNEHb56oopCzG/u4nQ
-MZeLdWcH9jRRMRQZRUSFNUr1JpF3xtOTPC0LyWBEgUU/GfvWByqiPodvZ7hIFok4
-w4Tn+zcBaYgYvvtZDizFJrBx4sWiFHtITNQ6Ty9Badx1K/MDQt4nSKi4k+hQK1gd
-/iDFIIiAf+0Vhb7MIUI2
-=mJBV
------END PGP SIGNATURE-----
-
---LZvS9be/3tNcYl/X--
