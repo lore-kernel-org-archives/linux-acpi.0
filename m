@@ -1,62 +1,81 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v3 0/3] Clean up ACPI core to prepare for running ACPI on ARM64
-Date: Fri, 18 Jul 2014 18:02:51 +0800
-Message-ID: <1405677774-16787-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:58404 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934347AbaGRKDQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Jul 2014 06:03:16 -0400
-Received: by mail-pd0-f173.google.com with SMTP id w10so4792983pde.32
-        for <linux-acpi@vger.kernel.org>; Fri, 18 Jul 2014 03:03:16 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v3 2/3] ACPI: Don't use acpi_lapic in ACPI core code
+Date: Fri, 18 Jul 2014 18:02:53 +0800
+Message-ID: <1405677774-16787-3-git-send-email-hanjun.guo@linaro.org>
+References: <1405677774-16787-1-git-send-email-hanjun.guo@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1405677774-16787-1-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+List-Id: linux-acpi@vger.kernel.org
 
-This patch set have no function change for x86 and ia64 and
-just do some clean up to prepare for running ACPI on ARM64.
+From: Graeme Gregory <graeme.gregory@linaro.org>
 
-This patch set is splited out from the patch set [1]
-"[PATCH v4 00/13] Enable ACPI on ARM64 in Kconfig" and hope it
-can be merged first before ARM64 ACPI core patches.
+Now ARM64 support is being added to ACPI so architecture specific
+values can not be used in core ACPI code.
 
-[1]: https://lkml.org/lkml/2014/6/26/627
+Following on the patch "ACPI / processor: Check if LAPIC is present
+during initialization" which uses acpi_lapic in acpi_processor.c,
+on ARM64 platform, GIC is used instead of local APIC, so acpi_lapic
+is not a suitable value for ARM64.
 
-update from v2:
-Don not select ACPI_LEGACY_TABLES_LOOKUP on IA64 which
-is catched by Peter.
+What is actually important at this point is if there is/are CPU
+entry/entries (Local APIC/SAPIC, GICC) in MADT, so introduce
+acpi_has_cpu_in_madt() to be arch specific and generic.
 
-update from v1:
-1. Drop "Make EC debugfs depend on X86 || IA64 in Kconfig";
-2. Rename ACPI_SCAN_BIOS_NOT_EFI to ACPI_LEGACY_TABLES_LOOKUP
-   suggested by Rafael;
-3. Rename ARCH_HAS_ACPI_PDC to ARCH_MIGHT_HAVE_ACPI_PDC suggested by Rafael;
-4. Remove the help for ARCH_MIGHT_HAVE_ACPI_PDC because it can't be selected;
-5. Rename acpi_arch_is_smp() to acpi_has_cpu_in_madt() to be more
-   explicit and easy understanding.
-
-Graeme Gregory (2):
-  ACPI: ARM64 does not have a BIOS add config for BIOS table scan.
-  ACPI: Don't use acpi_lapic in ACPI core code
-
-Hanjun Guo (1):
-  ACPI / processor: Introduce ARCH_HAS_ACPI_PDC
-
- arch/ia64/Kconfig             |    1 +
- arch/ia64/include/asm/acpi.h  |    5 +
- arch/x86/Kconfig              |    2 +
- arch/x86/include/asm/acpi.h   |    5 +
- drivers/acpi/Kconfig          |    6 ++
- drivers/acpi/Makefile         |    1 +
+Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ arch/ia64/include/asm/acpi.h  |    5 +++++
+ arch/x86/include/asm/acpi.h   |    5 +++++
  drivers/acpi/acpi_processor.c |    2 +-
- drivers/acpi/internal.h       |    5 +
- drivers/acpi/osl.c            |    4 +-
- drivers/acpi/processor_core.c |  198 ---------------------------------------
- drivers/acpi/processor_pdc.c  |  206 +++++++++++++++++++++++++++++++++++++++++
- 11 files changed, 235 insertions(+), 200 deletions(-)
- create mode 100644 drivers/acpi/processor_pdc.c
+ 3 files changed, 11 insertions(+), 1 deletion(-)
 
+diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
+index 75dc59a..a1d91ab 100644
+--- a/arch/ia64/include/asm/acpi.h
++++ b/arch/ia64/include/asm/acpi.h
+@@ -40,6 +40,11 @@ extern int acpi_lapic;
+ #define acpi_noirq 0	/* ACPI always enabled on IA64 */
+ #define acpi_pci_disabled 0 /* ACPI PCI always enabled on IA64 */
+ #define acpi_strict 1	/* no ACPI spec workarounds on IA64 */
++
++static inline bool acpi_has_cpu_in_madt(void)
++{
++	return !!acpi_lapic;
++}
+ #endif
+ #define acpi_processor_cstate_check(x) (x) /* no idle limits on IA64 :) */
+ static inline void disable_acpi(void) { }
+diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+index e06225e..0ab4f9f 100644
+--- a/arch/x86/include/asm/acpi.h
++++ b/arch/x86/include/asm/acpi.h
+@@ -121,6 +121,11 @@ static inline void arch_acpi_set_pdc_bits(u32 *buf)
+ 		buf[2] &= ~(ACPI_PDC_C_C2C3_FFH);
+ }
+ 
++static inline bool acpi_has_cpu_in_madt(void)
++{
++	return !!acpi_lapic;
++}
++
+ #else /* !CONFIG_ACPI */
+ 
+ #define acpi_lapic 0
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index 1c08574..1fdf5e0 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -268,7 +268,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 	pr->apic_id = apic_id;
+ 
+ 	cpu_index = acpi_map_cpuid(pr->apic_id, pr->acpi_id);
+-	if (!cpu0_initialized && !acpi_lapic) {
++	if (!cpu0_initialized && !acpi_has_cpu_in_madt()) {
+ 		cpu0_initialized = 1;
+ 		/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+ 		if ((cpu_index == -1) && (num_online_cpus() == 1))
 -- 
 1.7.9.5
-
