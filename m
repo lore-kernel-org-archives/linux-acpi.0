@@ -1,100 +1,75 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / button: Do not propagate wakeup-from-suspend events
-Date: Sat, 19 Jul 2014 00:43:42 +0200
-Message-ID: <4168275.1UDt9lgQxY@vostro.rjw.lan>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: Some RAS bug fix patches
+Date: Sat, 19 Jul 2014 04:05:34 -0400
+Message-ID: <20140719080534.GA32421@gchen.bj.intel.com>
+References: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>, Peter Ziljstra <peterz@infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: tony.luck@intel.com, bp@alien8.de
+Cc: linux-acpi@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-During system suspend mark ACPI buttons (other than the lid) as
-"suspended" and if in that state, report wakeup events on button
-events, but do not propagate those events up the stack.
+--OXfL5xGRrasGEqWY
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This prevents systems from being turned off after a button-triggered
-wakeup from the "freeze" sleep state.
+On Tue, Jul 15, 2014 at 10:34:39PM -0400, Chen, Gong wrote:
+> Date: Tue, 15 Jul 2014 22:34:39 -0400
+> From: "Chen, Gong" <gong.chen@linux.intel.com>
+> To: tony.luck@intel.com, bp@alien8.de
+> Cc: linux-acpi@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
+> Subject: Some RAS bug fix patches
+> X-Mailer: git-send-email 2.0.0.rc2
+>=20
+> [PATCH 1/3] APEI, GHES: Cleanup unnecessary function for lock-less
+> [RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE context
+> [PATCH 3/3] RAS, HWPOISON: Fix wrong error recovery status
+>=20
+> The patch 1/3 & 3/3 are minor fixes which are irrelevant with patch
+> 2/3. I send them together just to avoid fragments.
+>=20
+> The patch 2/3 is a RFC patch depending on the following thread:
+> https://lkml.org/lkml/2014/6/27/26
+>=20
+> Comments and suggestions are welcome.
+>=20
+Hi, Boris
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=77611
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/button.c |   25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
+Any comments?
 
-Index: linux-pm/drivers/acpi/button.c
-===================================================================
---- linux-pm.orig/drivers/acpi/button.c
-+++ linux-pm/drivers/acpi/button.c
-@@ -79,11 +79,13 @@ static int acpi_button_remove(struct acp
- static void acpi_button_notify(struct acpi_device *device, u32 event);
- 
- #ifdef CONFIG_PM_SLEEP
-+static int acpi_button_suspend(struct device *dev);
- static int acpi_button_resume(struct device *dev);
- #else
-+#define acpi_button_suspend NULL
- #define acpi_button_resume NULL
- #endif
--static SIMPLE_DEV_PM_OPS(acpi_button_pm, NULL, acpi_button_resume);
-+static SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acpi_button_resume);
- 
- static struct acpi_driver acpi_button_driver = {
- 	.name = "button",
-@@ -102,6 +104,7 @@ struct acpi_button {
- 	struct input_dev *input;
- 	char phys[32];			/* for input device */
- 	unsigned long pushed;
-+	bool suspended;
- };
- 
- static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
-@@ -293,15 +296,19 @@ static void acpi_button_notify(struct ac
- 		if (button->type == ACPI_BUTTON_TYPE_LID) {
- 			acpi_lid_send_state(device);
- 		} else {
--			int keycode = test_bit(KEY_SLEEP, input->keybit) ?
--						KEY_SLEEP : KEY_POWER;
-+			int keycode;
-+
-+			pm_wakeup_event(&device->dev, 0);
-+			if (button->suspended)
-+				break;
- 
-+			keycode = test_bit(KEY_SLEEP, input->keybit) ?
-+						KEY_SLEEP : KEY_POWER;
- 			input_report_key(input, keycode, 1);
- 			input_sync(input);
- 			input_report_key(input, keycode, 0);
- 			input_sync(input);
- 
--			pm_wakeup_event(&device->dev, 0);
- 			acpi_bus_generate_netlink_event(
- 					device->pnp.device_class,
- 					dev_name(&device->dev),
-@@ -316,11 +323,21 @@ static void acpi_button_notify(struct ac
- }
- 
- #ifdef CONFIG_PM_SLEEP
-+static int acpi_button_suspend(struct device *dev)
-+{
-+	struct acpi_device *device = to_acpi_device(dev);
-+	struct acpi_button *button = acpi_driver_data(device);
-+
-+	button->suspended = true;
-+	return 0;
-+}
-+
- static int acpi_button_resume(struct device *dev)
- {
- 	struct acpi_device *device = to_acpi_device(dev);
- 	struct acpi_button *button = acpi_driver_data(device);
- 
-+	button->suspended = false;
- 	if (button->type == ACPI_BUTTON_TYPE_LID)
- 		return acpi_lid_send_state(device);
- 	return 0;
+--OXfL5xGRrasGEqWY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTyibNAAoJEI01n1+kOSLHrVgP/i4+Wd+DhgRSVSfxMIBTSKAE
+ZHOhdEf9YziB24RJBSAdxpr8RgztP27YH7hO2I4qOVezYpx7iTMYoHpOgjty62T2
+uov2vUAleFG4eZdHAkss1rVtGhdw6KxznFQEq8PR5bworlmGzEM9L/+Nwy+XD+Nw
+jyTgubkOE25Q1gArQipDlAZIuMxX/+yXXBns/zsA99lKADyiPGPdzYBF7crkKCdc
+YyMTh9m8vz2XE9bgGfImYSAxcd+Slo+Nu6KYpjLxtpQKkFQ27khwInJ4WzUs6+zc
+DsyI4aRv+ZfZsfgffJP8y+M58FNWhBQ/fCUyzuFR8RtRq09czTh9l368r9CfegPr
+tJtWbhGcuMLEOW/BK7lYp6TjPlbLAbcKqvziQFiiQxEXpVB3X5oyOfPi1NQ4pG+9
+nZBjEj4vpkFjyTsTndwd7wwEfdpFWXuzz4gZUHg/Nm9r6q41IGbUceru96P9i4gP
+JojF213Pc0Yv/qHwhpwUbj1+Jx+U+EzFk5lJr3SdyY1hu8YAvFibXrWfuTBjYAYl
+JID4sgcQfnXM5oWCuE13FNuJQ/zMixw20WhbM2pYyS4Vj4hAKrcHfb1e/3vYTgS7
+dQJGOJ5BTrKpKOK/rKAOkWd2F284zonI1qzJ2iu8USuBsiZT/9xsQ6TjvRkL2Rnu
+8jL6DjWK9t84YYoR2yGH
+=9DCN
+-----END PGP SIGNATURE-----
+
+--OXfL5xGRrasGEqWY--
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
