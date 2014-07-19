@@ -1,75 +1,75 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: Some RAS bug fix patches
-Date: Sat, 19 Jul 2014 04:05:34 -0400
-Message-ID: <20140719080534.GA32421@gchen.bj.intel.com>
-References: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 2/2] ACPI / PM: Rename acpi_wakeup_device() to acpi_device_pm_event()
+Date: Sat, 19 Jul 2014 22:38:12 +0200
+Message-ID: <11454851.tGNHnoC7c5@vostro.rjw.lan>
+References: <1907495.agrCMfRsQN@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: tony.luck@intel.com, bp@alien8.de
-Cc: linux-acpi@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1907495.agrCMfRsQN@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Peter Zijlstra <peterz@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
---OXfL5xGRrasGEqWY
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+To avoid confusion with acpi_device_wakeup(), rename the default
+ACPI device PM notify handler from acpi_wakeup_device() to
+acpi_device_pm_event().
 
-On Tue, Jul 15, 2014 at 10:34:39PM -0400, Chen, Gong wrote:
-> Date: Tue, 15 Jul 2014 22:34:39 -0400
-> From: "Chen, Gong" <gong.chen@linux.intel.com>
-> To: tony.luck@intel.com, bp@alien8.de
-> Cc: linux-acpi@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
-> Subject: Some RAS bug fix patches
-> X-Mailer: git-send-email 2.0.0.rc2
->=20
-> [PATCH 1/3] APEI, GHES: Cleanup unnecessary function for lock-less
-> [RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE context
-> [PATCH 3/3] RAS, HWPOISON: Fix wrong error recovery status
->=20
-> The patch 1/3 & 3/3 are minor fixes which are irrelevant with patch
-> 2/3. I send them together just to avoid fragments.
->=20
-> The patch 2/3 is a RFC patch depending on the following thread:
-> https://lkml.org/lkml/2014/6/27/26
->=20
-> Comments and suggestions are welcome.
->=20
-Hi, Boris
+No functional changes.
 
-Any comments?
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/device_pm.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---OXfL5xGRrasGEqWY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -640,12 +640,12 @@ static int acpi_device_wakeup(struct acp
+ 
+ #ifdef CONFIG_PM_RUNTIME
+ /**
+- * acpi_wakeup_device - Wakeup notification handler for ACPI devices.
++ * acpi_device_pm_event - Wakeup notification handler for ACPI devices.
+  * @handle: ACPI handle of the device the notification is for.
+  * @event: Type of the signaled event.
+  * @context: Device corresponding to @handle.
+  */
+-static void acpi_wakeup_device(acpi_handle handle, u32 event, void *context)
++static void acpi_device_pm_event(acpi_handle handle, u32 event, void *context)
+ {
+ 	struct device *dev = context;
+ 
+@@ -680,7 +680,7 @@ int acpi_pm_device_run_wake(struct devic
+ }
+ EXPORT_SYMBOL(acpi_pm_device_run_wake);
+ #else
+-static inline void acpi_wakeup_device(acpi_handle handle, u32 event,
++static inline void acpi_device_pm_event(acpi_handle handle, u32 event,
+ 				      void *context) {}
+ #endif /* CONFIG_PM_RUNTIME */
+ 
+@@ -1036,7 +1036,7 @@ int acpi_dev_pm_attach(struct device *de
+ 	if (dev->pm_domain)
+ 		return -EEXIST;
+ 
+-	acpi_add_pm_notifier(adev, acpi_wakeup_device, dev);
++	acpi_add_pm_notifier(adev, acpi_device_pm_event, dev);
+ 	dev->pm_domain = &acpi_general_pm_domain;
+ 	if (power_on) {
+ 		acpi_dev_pm_full_power(adev);
+@@ -1064,7 +1064,7 @@ void acpi_dev_pm_detach(struct device *d
+ 
+ 	if (adev && dev->pm_domain == &acpi_general_pm_domain) {
+ 		dev->pm_domain = NULL;
+-		acpi_remove_pm_notifier(adev, acpi_wakeup_device);
++		acpi_remove_pm_notifier(adev, acpi_device_pm_event);
+ 		if (power_off) {
+ 			/*
+ 			 * If the device's PM QoS resume latency limit or flags
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTyibNAAoJEI01n1+kOSLHrVgP/i4+Wd+DhgRSVSfxMIBTSKAE
-ZHOhdEf9YziB24RJBSAdxpr8RgztP27YH7hO2I4qOVezYpx7iTMYoHpOgjty62T2
-uov2vUAleFG4eZdHAkss1rVtGhdw6KxznFQEq8PR5bworlmGzEM9L/+Nwy+XD+Nw
-jyTgubkOE25Q1gArQipDlAZIuMxX/+yXXBns/zsA99lKADyiPGPdzYBF7crkKCdc
-YyMTh9m8vz2XE9bgGfImYSAxcd+Slo+Nu6KYpjLxtpQKkFQ27khwInJ4WzUs6+zc
-DsyI4aRv+ZfZsfgffJP8y+M58FNWhBQ/fCUyzuFR8RtRq09czTh9l368r9CfegPr
-tJtWbhGcuMLEOW/BK7lYp6TjPlbLAbcKqvziQFiiQxEXpVB3X5oyOfPi1NQ4pG+9
-nZBjEj4vpkFjyTsTndwd7wwEfdpFWXuzz4gZUHg/Nm9r6q41IGbUceru96P9i4gP
-JojF213Pc0Yv/qHwhpwUbj1+Jx+U+EzFk5lJr3SdyY1hu8YAvFibXrWfuTBjYAYl
-JID4sgcQfnXM5oWCuE13FNuJQ/zMixw20WhbM2pYyS4Vj4hAKrcHfb1e/3vYTgS7
-dQJGOJ5BTrKpKOK/rKAOkWd2F284zonI1qzJ2iu8USuBsiZT/9xsQ6TjvRkL2Rnu
-8jL6DjWK9t84YYoR2yGH
-=9DCN
------END PGP SIGNATURE-----
-
---OXfL5xGRrasGEqWY--
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
