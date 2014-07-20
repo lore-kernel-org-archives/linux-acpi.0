@@ -1,35 +1,53 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 1/3] APEI, GHES: Cleanup unnecessary function for
- lock-less list
-Date: Sun, 20 Jul 2014 10:01:13 +0200
-Message-ID: <20140720080113.GA8849@pd.tnic>
-References: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
- <1405478082-30757-2-git-send-email-gong.chen@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH -next] ACPI / hotplug / PCI: Fix sparse non static symbol warning
+Date: Mon, 21 Jul 2014 01:46:53 +0200
+Message-ID: <4215141.Y6mWN4rKBn@vostro.rjw.lan>
+References: <1405834483-7832-1-git-send-email-weiyj_lk@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:55225 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751116AbaGTIBR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Jul 2014 04:01:17 -0400
-Content-Disposition: inline
-In-Reply-To: <1405478082-30757-2-git-send-email-gong.chen@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1405834483-7832-1-git-send-email-weiyj_lk@163.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: weiyj_lk@163.com
+Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Wei Yongjun <yongjun_wei@trendmicro.com.cn>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Gong" <gong.chen@linux.intel.com>
-Cc: tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
 
-On Tue, Jul 15, 2014 at 10:34:40PM -0400, Chen, Gong wrote:
-> We have provided a reverse function for lock-less list so delete
-> uncessary codes.
+On Sunday, July 20, 2014 01:34:43 PM weiyj_lk@163.com wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 > 
-> Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+> Fixes the following sparse warning:
+> 
+> drivers/pci/hotplug/acpiphp_glue.c:923:6: warning:
+>  symbol 'acpiphp_drop_bridge' was not declared. Should it be static?
+> 
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Acked-by: Borislav Petkov <bp@suse.de>
+Queued up for 3.17, thanks!
+
+> ---
+>  drivers/pci/hotplug/acpiphp_glue.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+> index 24a43d4..70741c8 100644
+> --- a/drivers/pci/hotplug/acpiphp_glue.c
+> +++ b/drivers/pci/hotplug/acpiphp_glue.c
+> @@ -920,7 +920,7 @@ void acpiphp_enumerate_slots(struct pci_bus *bus)
+>  	kfree(bridge);
+>  }
+>  
+> -void acpiphp_drop_bridge(struct acpiphp_bridge *bridge)
+> +static void acpiphp_drop_bridge(struct acpiphp_bridge *bridge)
+>  {
+>  	if (pci_is_root_bus(bridge->pci_bus)) {
+>  		struct acpiphp_root_context *root_context;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
