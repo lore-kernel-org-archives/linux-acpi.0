@@ -1,79 +1,124 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH v3 08/14] ACPI/EC: Refine event/query debugging messages.
-Date: Mon, 21 Jul 2014 14:05:56 +0800
-Message-ID: <38117596fb81f2a6be04fdaba0d22deb6bfee8b8.1405922585.git.lv.zheng@intel.com>
-References: <cover.1403060601.git.lv.zheng@intel.com> <cover.1405922585.git.lv.zheng@intel.com>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [PATCH] ACPI/NVS: Not save NVS region for new machines to
+ accelerate S3
+Date: Mon, 21 Jul 2014 02:25:56 -0400
+Message-ID: <20140721062556.GA23297@gchen.bj.intel.com>
+References: <1405662922-23606-1-git-send-email-tianyu.lan@intel.com>
+ <20140718080056.GA2037@gchen.bj.intel.com>
+ <53CC7787.2070302@intel.com>
+ <20140721050105.GA21503@gchen.bj.intel.com>
+ <53CCAB30.405@intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:30036 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:34329 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753231AbaGUGGH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jul 2014 02:06:07 -0400
-In-Reply-To: <cover.1405922585.git.lv.zheng@intel.com>
+	id S1751816AbaGUG4j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jul 2014 02:56:39 -0400
+Content-Disposition: inline
+In-Reply-To: <53CCAB30.405@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This patch refines event/query debugging messages to use a unified format
-as commands. Developers can clearly find different processes by checking
-different log seperators. No functional changes.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/ec.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+--cNdxnHkX5QqsyA0e
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 81f4b17..a729f31 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -405,8 +405,10 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
- 	pr_debug("***** Command(%s) started *****\n",
- 		 acpi_ec_cmd_string(t->command));
- 	start_transaction(ec);
--	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
-+	if (ec->curr->command == ACPI_EC_COMMAND_QUERY) {
- 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
-+		pr_debug("***** Event stopped *****\n");
-+	}
- 	spin_unlock_irqrestore(&ec->lock, tmp);
- 	ret = ec_poll(ec);
- 	spin_lock_irqsave(&ec->lock, tmp);
-@@ -748,12 +750,12 @@ static void acpi_ec_run(void *cxt)
- 	struct acpi_ec_query_handler *handler = cxt;
- 	if (!handler)
- 		return;
--	pr_debug("start query execution\n");
-+	pr_debug("##### Query(0x%02x) started #####\n", handler->query_bit);
- 	if (handler->func)
- 		handler->func(handler->data);
- 	else if (handler->handle)
- 		acpi_evaluate_object(handler->handle, NULL, NULL, NULL);
--	pr_debug("stop query execution\n");
-+	pr_debug("##### Query(0x%02x) stopped #####\n", handler->query_bit);
- 	acpi_ec_put_query_handler(handler);
- }
- 
-@@ -765,8 +767,8 @@ static int acpi_ec_notify_query_handlers(struct acpi_ec *ec, u8 query_bit)
- 		if (query_bit == handler->query_bit) {
- 			/* have custom handler for this bit */
- 			handler = acpi_ec_get_query_handler(handler);
--			pr_debug("push query execution (0x%2x) on queue\n",
--				 query_bit);
-+			pr_debug("##### Query(0x%02x) scheduled #####\n",
-+				 handler->query_bit);
- 			return acpi_os_execute((handler->func) ?
- 				OSL_NOTIFY_HANDLER : OSL_GPE_HANDLER,
- 				acpi_ec_run, handler);
-@@ -804,7 +806,7 @@ static int ec_check_sci(struct acpi_ec *ec, u8 state)
- {
- 	if (state & ACPI_EC_FLAG_SCI) {
- 		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
--			pr_debug("push gpe query to the queue\n");
-+			pr_debug("***** Event started *****\n");
- 			return acpi_os_execute(OSL_NOTIFY_HANDLER,
- 				acpi_ec_gpe_query, ec);
- 		}
--- 
-1.7.10
+On Mon, Jul 21, 2014 at 01:54:56PM +0800, Lan Tianyu wrote:
+> Date: Mon, 21 Jul 2014 13:54:56 +0800
+> From: Lan Tianyu <tianyu.lan@intel.com>
+> To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org,
+>  linux-kernel@vger.kernel.org, gong.chen@linux.intel.com
+> Subject: Re: [PATCH] ACPI/NVS: Not save NVS region for new machines to
+>  accelerate S3
+> User-Agent: Mozilla/5.0 (X11; Linux i686 on x86_64; rv:14.0) Gecko/201207=
+14
+>  Thunderbird/14.0
+>=20
+> On 2014=E5=B9=B407=E6=9C=8821=E6=97=A5 13:01, Chen, Gong wrote:
+> > On Mon, Jul 21, 2014 at 10:14:31AM +0800, Lan Tianyu wrote:
+> >> Date: Mon, 21 Jul 2014 10:14:31 +0800
+> >> From: Lan Tianyu <tianyu.lan@intel.com>
+> >> To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org,
+> >>  linux-kernel@vger.kernel.org, gong.chen@linux.intel.com
+> >> Subject: Re: [PATCH] ACPI/NVS: Not save NVS region for new machines to
+> >>  accelerate S3
+> >> User-Agent: Mozilla/5.0 (X11; Linux i686 on x86_64; rv:14.0) Gecko/201=
+20714
+> >>  Thunderbird/14.0
+> >>
+> >> On 2014=E5=B9=B407=E6=9C=8818=E6=97=A5 16:00, Chen, Gong wrote:
+> >>> On Fri, Jul 18, 2014 at 01:55:22PM +0800, Lan Tianyu wrote:
+> >>>> Date:	Fri, 18 Jul 2014 13:55:22 +0800
+> >>>> From: Lan Tianyu <tianyu.lan@intel.com>
+> >>>> To: rjw@rjwysocki.net, lenb@kernel.org
+> >>>> Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org,
+> >>>>  linux-kernel@vger.kernel.org
+> >>>> Subject: [PATCH] ACPI/NVS: Not save NVS region for new machines to
+> >>>>  accelerate S3
+> >>>> X-Mailer: git-send-email 1.7.9.5
+> >>>>
+> >>>> NVS region is saved and restored unconditionally for machines without
+> >>>> nvs_nosave quirk during S3. Tested some new machines and the operati=
+on
+> >>>> is not necessary. Saving NVS region also affects S2RAM speed. The ti=
+me of
+> >>>> NVS saving and restoring depends on the size of NVS region and it co=
+nsumes
+> >>>> 7~10ms normally.
+> >>>>
+> >>>> This patch is to make machines produced from 2012 to now not saving =
+NVS region
+> >>>> to accelerate S3.
+> >>>>
+> >>> The year 2012 is a mandatory value in the spec?
+> >>>
+> >>
+> >> No, spec indicates that this is only required for S4 and commit 2a6b697
+> >> added this behavior because this can fix S3 bug on some machines. But
+> >> this isn't necessary for all machines and waster time for S3. So this
+> >> patch is to add time base quirk to change default behavior for new mac=
+hines.
+> >>
+> > If so, I don't think a hard-coded valud in the kernel is a good idea.
+> > Why not providing a quirk via a command line parameter or module parame=
+ter.
+> >=20
+>=20
+> There is already a kernel command "acpi_sleep=3Dnonvs_s3" to do that. But
+> this needs to be set by user. Otherwise, saving/restoring NVS region
+> also breaks system suspend on some machines and we have added 14
+> nonvs quirks in the acpisleep_dmi_table.
+>=20
+14 quriks! What a terrible BIOS, isn't it? It's time to cleanup so
+many hacks. I'm not ACPI expert, but such yet another hack is not
+acceptable from my point of view.
 
+--cNdxnHkX5QqsyA0e
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTzLJ0AAoJEI01n1+kOSLHyl0P/3aplafVh2wBfk6EXS9bNeWz
+9fJwLo58olMhT9RZquwefAuFXqXoHHV8Dw7pmx40ASJNHSgGnOQkooSBvWYQv/l/
+rVFVjw8E6imVYs9P9iEAa6IlJhrLigAu9W8TXdXG2ehl7UQbvoGKmSa2RTk5L2wk
+MICfR8KdMMZ3PgL7SKeGVoLhMqHh83GTIa+phhxSSHApAmJW4ExQVxyWGSESrKcZ
+GP4D3qj8xV7OpgqoQ/5RYyQ/e+v/4YkAU/Sxtsb8nqmJ1r1SOqAQH0yQeeWPZPPX
+TVsbLvR9PVMFyRwlWu5nGFrmXuh0KmZutvzHHlsds3e8s5tSaOO03v2Z8d/+XiAC
+duZcnai3Qr3CUmo7adppomTf00icIAK0n45/W00gD8D4XVO4Qnqq1r0Ul4rkRJGI
+HKbH91BITreCRSr+C2Y+cE5KHG0lWtufBpBgRjEM0s113HUjW6bw/l2nzjRvgUtB
+tgtvpTbSwiA2Sl0am1e6pmtwauGqWtfCrDXm7CPdQySPECVJjfKejT86fihSjklC
+JgRBFT3rxWHc6Zpf+UuVPQ24jtAVquGHKz3/J7iDQCcIB1r/Qy3qeG7NlX6nYiKW
+GlI1UJ68dY/1X9xPROp1YkUJ24Mp+O+uCKuhpUEaBUl3XM2E36605cg0g55bsKdf
+DvpPpPU9wzMipWp6NbEq
+=xGEn
+-----END PGP SIGNATURE-----
+
+--cNdxnHkX5QqsyA0e--
