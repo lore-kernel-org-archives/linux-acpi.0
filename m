@@ -1,83 +1,105 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / PCI: Use ACPI_COMPANION() instead of ACPI_HANDLE()
-Date: Mon, 21 Jul 2014 02:52:53 +0200
-Message-ID: <2972136.muxEZR9mUT@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v3 2/7] ACPICA: Linux: Add stub implementation of ACPICA
+ 64-bit mathematics.
+Date: Mon, 21 Jul 2014 01:26:10 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802643932@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1387336613.git.lv.zheng@intel.com>
+ <cover.1405500886.git.lv.zheng@intel.com>
+ <01bab2394df93a3064f09d961f4011b62895eef2.1405500886.git.lv.zheng@intel.com>
+ <3777197.HSR7Q9huIS@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:27228 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751598AbaGUB0V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Jul 2014 21:26:21 -0400
+In-Reply-To: <3777197.HSR7Q9huIS@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-The ACPI_HANDLE() macro evaluates ACPI_COMPANION() internally to
-return the handle of the device's ACPI companion, so it is much
-more straightforward and efficient to use ACPI_COMPANION()
-directly to obtain the device's ACPI companion object instead of
-using ACPI_HANDLE() and acpi_bus_get_device() on the returned
-handle for the same thing.
-
-Use ACPI_COMPANION() instead of ACPI_HANDLE() in the PCI ACPI support
-code.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/pci/pci-acpi.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
-
-Index: linux-pm/drivers/pci/pci-acpi.c
-===================================================================
---- linux-pm.orig/drivers/pci/pci-acpi.c
-+++ linux-pm/drivers/pci/pci-acpi.c
-@@ -175,14 +175,13 @@ static pci_power_t acpi_pci_choose_state
- 
- static bool acpi_pci_power_manageable(struct pci_dev *dev)
- {
--	acpi_handle handle = ACPI_HANDLE(&dev->dev);
--
--	return handle ? acpi_bus_power_manageable(handle) : false;
-+	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
-+	return adev ? acpi_device_power_manageable(adev) : false;
- }
- 
- static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
- {
--	acpi_handle handle = ACPI_HANDLE(&dev->dev);
-+	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
- 	static const u8 state_conv[] = {
- 		[PCI_D0] = ACPI_STATE_D0,
- 		[PCI_D1] = ACPI_STATE_D1,
-@@ -193,7 +192,7 @@ static int acpi_pci_set_power_state(stru
- 	int error = -EINVAL;
- 
- 	/* If the ACPI device has _EJ0, ignore the device */
--	if (!handle || acpi_has_method(handle, "_EJ0"))
-+	if (!adev || acpi_has_method(adev->handle, "_EJ0"))
- 		return -ENODEV;
- 
- 	switch (state) {
-@@ -207,7 +206,7 @@ static int acpi_pci_set_power_state(stru
- 	case PCI_D1:
- 	case PCI_D2:
- 	case PCI_D3hot:
--		error = acpi_bus_set_power(handle, state_conv[state]);
-+		error = acpi_device_set_power(adev, state_conv[state]);
- 	}
- 
- 	if (!error)
-@@ -219,9 +218,8 @@ static int acpi_pci_set_power_state(stru
- 
- static bool acpi_pci_can_wakeup(struct pci_dev *dev)
- {
--	acpi_handle handle = ACPI_HANDLE(&dev->dev);
--
--	return handle ? acpi_bus_can_wakeup(handle) : false;
-+	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
-+	return adev ? acpi_device_can_wakeup(adev) : false;
- }
- 
- static void acpi_pci_propagate_wakeup_enable(struct pci_bus *bus, bool enable)
-
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFNlbnQ6IFN1bmRheSwgSnVseSAyMCwgMjAxNCA3OjQ2IEFNDQo+IFRvOiBa
+aGVuZywgTHYNCj4gDQo+IE9uIFdlZG5lc2RheSwgSnVseSAxNiwgMjAxNCAwNDo1ODowMCBQTSBM
+diBaaGVuZyB3cm90ZToNCj4gPiBUaGlzIHBhdGNoIGFkZHMgZGVmYXVsdCA2NC1iaXQgbWF0aGVt
+YXRpY3MgaW4gYWNsaW51eC5oIHVzaW5nIGRvX2RpdigpLiBBcw0KPiA+IGRvX2RpdigpIGNhbiBi
+ZSB1c2VkIGZvciBhbGwgTGludXggYXJjaGl0ZWN0dXJlcywgdGhpcyBjYW4gYWxzbyBiZSB1c2Vk
+IGFzDQo+ID4gc3R1YiBtYWNyb3MgZm9yIEFDUElDQSA2NC1iaXQgbWF0aGVtYXRpY3MuDQo+ID4N
+Cj4gPiBCdXQgdGhpcyBpcyBub3QgYSBwZXJmb3JtYW5jZSBmcmllbmRseSB3YXksIGFzIEFDUElD
+QSdzIGFyY2hpdGVjdHVyZQ0KPiA+IHNwZWNpZmljIGRpdmlzaW9uIE9TTCBvbmx5IHJlcXVpcmVz
+IGEgZGl2aWRpbmcgNjQtYml0IG51bWJlciB3aXRoIGEgMzItYml0DQo+ID4gbnVtYmVyIGltcGxl
+bWVudGF0aW9uLCB3aGlsZSBMaW51eCBfX2RpdjY0XzMyKCkgaXMgbm90IGF2YWlsYWJsZSBmb3Ig
+YWxsDQo+ID4gYnVpbGQgZW52aXJvbm1lbnRzLiBTbyBjdXJyZW50bHksIGlmIGFuIGFyY2hpdGVj
+dHVyZSByZWFsbHkgd2FudHMgdG8NCj4gPiBzdXBwb3J0IEFDUElDQSwgaXQgbXVzdCBpbXBsZW1l
+bnQgaXRzIG93biBkaXZpc2lvbiBPU0wuDQo+IA0KPiBXaGF0IGRvZXMgdGhpcyBtZWFuIGZvciBp
+Mzg2LCBpbiBwYXJ0aWN1bGFyPw0KDQpBbGwgQUNQSUNBIGVudmlyb25tZW50IG1hY3JvcyBoYXZl
+IGRlZmF1bHRzIGluIGFjdHlwZXMuaCBvciBhY2Vudi5oLCB0aGVzZSBtYWNyb3MgYXJlIHRoZSBv
+bmx5IG9uZXMgZG8gbm90IGhhdmUgZGVmYXVsdHMuDQpCZWNhdXNlIHRoZWlyIGRlZmF1bHRzIHNo
+b3VsZCBiZSBwcm92aWRlZCBieSBPU1BNcy4NClRoaXMgcGF0Y2gganVzdCBhZGRzIHRoZWlyIGRl
+ZmF1bHQgaW1wbGVtZW50YXRpb24gZm9yIF9fS0VSTkVMX18gc3Vycm91bmRlZCBjb2RlIGZvciBM
+aW51eCBrZXJuZWwuDQpJdCBvbmx5IHByb3ZpZGVzIGJ1aWxkIHByb3RlY3Rpb24gYW5kIGRlbW9u
+c3RyYXRpb25zIG9mIHRoZSBmdW5jdGlvbmFsaXR5LCBubyBvbmUgYWN0dWFsbHkgdXNlcyBpdCBu
+b3cuDQoNCkxldCBtZSBmaWd1cmUgb3V0IHRoZSBwb3NzaWJsZSB1c2VycyBiZWxvdzoNCg0KVGhl
+c2UgbWFjcm9zIGFyZSByZXF1aXJlZCBieSBkcml2ZXJzL2FjcGkvdXRtYXRoLmMgd2hlbiBBQ1BJ
+X1VTRV9OQVRJVkVfRElWSURFIGlzIG5vdCBkZWZpbmVkLg0KSXQgaXMgdXNlZCBieSBBQ1BJQ0Es
+IHNvIGN1cnJlbnRseSB0aGlzIGlzIG9ubHkgbWVhbmluZ2Z1bCB0byBDT05GSUdfQUNQSSBidWls
+ZHMuDQpTbyBrZXJuZWwgd2lsbCBub3QgdXNlIHRoZXNlIG1hY3JvcyB1bmxlc3MgQ09ORklHX0FD
+UEkgaXMgZGVmaW5lZCBhbmQgQUNQSV9VU0VfRElWSURFIGlzIG5vdCBkZWZpbmVkLg0KDQpGb3Ig
+NjQtYml0IGtlcm5lbHM6IA0KSW4gaW5jbHVkZS9hY3BpL2FjdHlwZXMuaCwgZm9yIEFDUElfTUFD
+SElORV9XSURUSD02NCwgQUNQSV9VU0VfTkFUSVZFX0RJVklERSB3aWxsIGJlIGRlZmluZWQsIHRo
+dXMgdGhlc2UgbWFjcm9zIGFyZSBub3QgdXNlZC4NCkluIGluY2x1ZGUvYWNwaS9wbGF0Zm9ybS9h
+Y2xpbnV4LmgsIGZvciBfX0tFUk5FTF9fIHN1cnJvdW5kZWQgY29kZSwgQUNQSV9NQUNISU5FX1dJ
+RFRIIGlzIGRlZmluZWQgdG8gYmUgQklUU19QRVJfTE9ORy4NClNvIGFsbCA2NC1iaXQga2VybmVs
+cyBkbyBub3QgdXNlIHRoZXNlIG1hY3Jvcy4NCg0KRm9yIDMyLWJpdCBrZXJuZWxzOg0KQXMgbWVu
+dGlvbmVkIGFib3ZlLCB0aGVzZSBtYWNyb3Mgd2lsbCBiZSB1c2VkIHdoZW4gQklUU19QRVJfTE9O
+RyBpcyAzMi4NClRodXMgY3VycmVudGx5IHRoZSBpMzI4IGtlcm5lbHMgYXJlIHRoZSBvbmx5IHVz
+ZXJzIGZvciB0aGVzZSBtYWNyb3MuDQpCdXQgdGhleSB3b24ndCB1c2UgdGhpcyBkZWZhdWx0IGlt
+cGxlbWVudGF0aW9uIHByb3ZpZGVkIGJ5IHRoaXMgcGF0Y2ggYmVjYXVzZToNCkluIGFyY2gveDg2
+L2luY2x1ZGUvYXNtL2FjZW52LmgsIHRoZXJlIGFyZSBhbHJlYWR5IG92ZXJyaWRlcyBpbXBsZW1l
+bnRlZC4NClNvIHRoZXNlIGRlZmF1bHQgbWFjcm9zIGFyZSBub3QgdXNlZCBieSAzMi1iaXQgeDg2
+IChpMzg2KSBrZXJuZWxzLg0KDQpUaGVzZSBtYWNyb3Mgd2lsbCBvbmx5IGJlIHVzZWQgYnkgZnV0
+dXJlIG5vbiB4ODYgMzItYml0IGFyY2hpdGVjdHVyZXMgdGhhdCB0cnkgdG8gc3VwcG9ydCBBQ1BJ
+IGluIExpbnV4IGtlcm5lbC4NCkR1cmluZyB0aGUgcGVyaW9kIHRoZXkgZG8gbm90IGhhdmUgYXJj
+aCBzcGVjaWZpYyBpbXBsZW1lbnRhdGlvbnMgb2Ygc3VjaCBtYWNyb3MsIHdlIGNhbiBhdm9pZCBi
+dWlsZCBlcnJvcnMgZm9yIHRoZW0uDQpBbmQgc2luY2UgdGhleSBjYW4gc2VlIEFDUElDQSBmdW5j
+dGlvbmluZyB3aXRob3V0IGltcGxlbWVudGluZyBhbnkgYXJjaCBzcGVjaWZpYyBlbnZpcm9ubWVu
+dCB0dW5pbmdzLCB3ZSAgY2FuIGFsc28gYXZvaWQgZnVuY3Rpb24gZXJyb3JzIGZvciB0aGVtLg0K
+QXMgdGhpcyBpbXBsZW1lbnRhdGlvbiBpcyBub3QgcGVyZm9ybWFuY2UgZnJpZW5kbHksIHRob3Nl
+IGFyY2hpdGVjdHVyZXMgc3RpbGwgbmVlZCB0byBpbXBsZW1lbnQgcmVhbCBzdXBwb3J0IGluIHRo
+ZSBlbmQuDQoNCkFzIGEgY29uY2x1c2lvbiwgSU1POg0KMS4gVGhpcyBkZWZhdWx0IGltcGxlbWVu
+dGF0aW9uIGp1c3QgZmlsbCBhbiBBQ1BJQ0EgZGVmYXVsdCBlbnZpcm9ubWVudCBnYXAuDQoxLiBU
+aGVyZSBhcmUgbm8gdXNlcnMgYW5kIHdpbGwgYmUgbm8gdXNlcnMgb2YgdGhpcyBkZWZhdWx0IGlt
+cGxlbWVudGF0aW9uIGluIHRoZSBrZXJuZWwuDQozLiBUaG91Z2ggdGhpcyBkZWZhdWx0IGltcGxl
+bWVudGF0aW9uIGlzIG5vdCBwZXJmb3JtYW5jZSBmcmllbmRseSwgaXQgZnVuY3Rpb25zIGNvcnJl
+Y3RseSwgc28gaXQgY2FuIGJlIGEgZGVtbyBmb3IgZnV0dXJlIDMyLWJpdCBhcmNoaXRlY3R1cmVz
+IHRoYXQgdHJ5IHRvIHN1cHBvcnQgQUNQSS4NCjQuIFdlIGNhbiB1c2UgdGhpcyBkZWZhdWx0IGlt
+cGxlbWVudGF0aW9uIHRvIGF2b2lkIGJ1aWxkIHRyb3VibGVzLg0KDQpUaGFua3MgYW5kIGJlc3Qg
+cmVnYXJkcw0KLUx2DQoNCj4gDQo+ID4gVGhpcyBpcyByZXF1aXJlZCBieSB0aGUgQUNQSUNBIGhl
+YWRlciBzdHViIHN1cHBvcnQuIEFDUElDQSBoZWFkZXIgc3R1YnMgYXJlDQo+ID4gdXNlZnVsIHRv
+IHByb3RlY3QgQ09ORklHX0FDUEk9biBMaW51eCBrZXJuZWwgYnVpbGRzIHdoZXJlIEFDUElDQSBo
+ZWFkZXJzDQo+ID4gYXJlIGluY2x1ZGVkLiBMdiBaaGVuZy4NCj4gPg0KPiA+IFNpZ25lZC1vZmYt
+Ynk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4gLS0tDQo+ID4gIGluY2x1ZGUv
+YWNwaS9wbGF0Zm9ybS9hY2xpbnV4ZXguaCB8ICAgMjIgKysrKysrKysrKysrKysrKysrKysrKw0K
+PiA+ICAxIGZpbGUgY2hhbmdlZCwgMjIgaW5zZXJ0aW9ucygrKQ0KPiA+DQo+ID4gZGlmZiAtLWdp
+dCBhL2luY2x1ZGUvYWNwaS9wbGF0Zm9ybS9hY2xpbnV4ZXguaCBiL2luY2x1ZGUvYWNwaS9wbGF0
+Zm9ybS9hY2xpbnV4ZXguaA0KPiA+IGluZGV4IDE5MWU3NDEuLjU2OGQ0YjggMTAwNjQ0DQo+ID4g
+LS0tIGEvaW5jbHVkZS9hY3BpL3BsYXRmb3JtL2FjbGludXhleC5oDQo+ID4gKysrIGIvaW5jbHVk
+ZS9hY3BpL3BsYXRmb3JtL2FjbGludXhleC5oDQo+ID4gQEAgLTQ2LDYgKzQ2LDI4IEBADQo+ID4N
+Cj4gPiAgI2lmZGVmIF9fS0VSTkVMX18NCj4gPg0KPiA+ICsjaWZuZGVmIEFDUElfVVNFX05BVElW
+RV9ESVZJREUNCj4gPiArDQo+ID4gKyNpZm5kZWYgQUNQSV9ESVZfNjRfQllfMzINCj4gPiArI2Rl
+ZmluZSBBQ1BJX0RJVl82NF9CWV8zMihuX2hpLCBuX2xvLCBkMzIsIHEzMiwgcjMyKSBcDQo+ID4g
+KwlkbyB7IFwNCj4gPiArCQl1NjQgKF9fbikgPSAoKHU2NCkgbl9oaSkgPDwgMzIgfCAobl9sbyk7
+IFwNCj4gPiArCQkocjMyKSA9IGRvX2RpdiAoKF9fbiksIChkMzIpKTsgXA0KPiA+ICsJCShxMzIp
+ID0gKHUzMikgKF9fbik7IFwNCj4gPiArCX0gd2hpbGUgKDApDQo+ID4gKyNlbmRpZg0KPiA+ICsN
+Cj4gPiArI2lmbmRlZiBBQ1BJX1NISUZUX1JJR0hUXzY0DQo+ID4gKyNkZWZpbmUgQUNQSV9TSElG
+VF9SSUdIVF82NChuX2hpLCBuX2xvKSBcDQo+ID4gKwlkbyB7IFwNCj4gPiArCQkobl9sbykgPj49
+IDE7IFwNCj4gPiArCQkobl9sbykgfD0gKCgobl9oaSkgJiAxKSA8PCAzMSk7IFwNCj4gPiArCQko
+bl9oaSkgPj49IDE7IFwNCj4gPiArCX0gd2hpbGUgKDApDQo+ID4gKyNlbmRpZg0KPiA+ICsNCj4g
+PiArI2VuZGlmDQo+ID4gKw0KPiA+ICAvKg0KPiA+ICAgKiBPdmVycmlkZXMgZm9yIGluLWtlcm5l
+bCBBQ1BJQ0ENCj4gPiAgICovDQo+ID4NCj4gDQo+IC0tDQo+IEkgc3BlYWsgb25seSBmb3IgbXlz
+ZWxmLg0KPiBSYWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBD
+ZW50ZXIuDQo=
