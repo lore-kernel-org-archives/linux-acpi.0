@@ -1,50 +1,66 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE
- context
-Date: Mon, 21 Jul 2014 17:14:06 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F32870C55@ORSMSX114.amr.corp.intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE context
+Date: Mon, 21 Jul 2014 23:41:16 +0200
+Message-ID: <20140721214116.GC11555@pd.tnic>
 References: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
  <1405478082-30757-3-git-send-email-gong.chen@linux.intel.com>
  <20140721084737.GA10016@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F32870C55@ORSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:63836 "EHLO mga02.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:53643 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932679AbaGURO2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Jul 2014 13:14:28 -0400
-In-Reply-To: <20140721084737.GA10016@pd.tnic>
-Content-Language: en-US
+	id S1753057AbaGUVlV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jul 2014 17:41:21 -0400
+Content-Disposition: inline
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F32870C55@ORSMSX114.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, "Chen, Gong" <gong.chen@linux.intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "x86@kernel.org" <x86@kernel.org>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Chen, Gong" <gong.chen@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "x86@kernel.org" <x86@kernel.org>
 
-PiBUaGlzIHBhdGNoIGlzIG92ZXJlbmdpbmVlcmVkIGV2ZW4gdGhvdWdoIHdlIGFscmVhZHkgaGF2
-ZSBib3RoIHByb2Nlc3MNCj4gY29udGV4dCB3b3JrIGFuZCBpcnEgd29yayBmYWNpbGl0aWVzIGlu
-IHBsYWNlLg0KPg0KPiBXZSBhbHNvIGFscmVhZHkgaGF2ZSBtY2VfcmluZyB3aGVyZSB3ZSBhZGQg
-TUNFIHNpZ25hdHVyZXMgaW4gI01DDQo+IGNvbnRleHQuIFdlbGwsIG9ubHkgZm9yIEFPIGVycm9y
-cyB3aXRoIHVzYWJsZSBhZGRyZXNzZXMgZm9yIG5vdywgYXQNCj4gbGVhc3QuDQoNCldlJ3ZlIGV2
-b2x2ZWQgYSBidW5jaCBvZiBtZWNoYW5pc21zOg0KDQoxKSBtY2VfcmluZzogdG8gcGFzcyBwZm4g
-Zm9yIEFPIGVycm9ycyBmcm9tIE1DRSBjb250ZXh0IHRvIGEgd29yayB0aHJlYWQNCjIpIG1jZV9p
-bmZvOiB0byBwYXNzIHBmbiBmb3IgQVIgZXJyb3JzIGZyb20gTUNFIGNvbnRleHQgdG8gc2FtZSBw
-cm9jZXNzIHJ1bm5pbmcgaW4gcHJvY2VzcyBjb250ZXh0DQozKSBtY2VfbG9nOiB0byBwYXNzIGVu
-dGlyZSAibWNlIiBzdHJ1Y3R1cmVzIGZyb20gYW55IGNvbnRleHQgKE1DRSwgQ01DSSwgb3IgaW5p
-dC10aW1lKSB0byAvZGV2L21jZWxvZw0KDQpzb21ldGhpbmcgc2ltcGxlciBtaWdodCBiZSBuaWNl
-IC0gYnV0IGEgZ2VuZXJpYyB0aGluZyB0aGF0IGlzIG92ZXJraWxsIGZvciBlYWNoIG9mIHRoZQ0K
-c3BlY2lhbGl6ZWQgdXNlcyBtaWdodCBub3QgbmVjZXNzYXJpbHkgYmUgYW4gaW1wcm92ZW1lbnQu
-DQoNCkUuZy4gIzMgYWJvdmUgaGFzIGEgZml4ZWQgY2FwYWNpdHkgKE1DRV9MT0dfTEVOKSBhbmQg
-anVzdCBkcm9wcyBhbnkgZXh0cmFzIGlmIGl0IHNob3VsZCBmaWxsDQp1cCAoZGVsaWJlcmF0ZWx5
-LCBiZWNhdXNlIHdlIGFsbW9zdCBhbHdheXMgcHJlZmVyIHRvIHNlZSB0aGUgZmlyc3QgYnVuY2gg
-b2YgZXJyb3JzIHJhdGhlcg0KdGhhbiB0aGUgbmV3ZXN0KS4NCg0KPiBJIHRoaW5rIGl0IHdvdWxk
-IGJlIGEgKmxvdCogc2ltcGxlciBpZiB5b3UgbW9kaWZ5IHRoZSBsb2dpYyB0byBwdXQgYWxsDQo+
-IGVycm9ycyBpbnRvIHRoZSByaW5nIGFuZCByZW1vdmUgdGhlIGNhbGwgY2hhaW4gY2FsbCBmcm9t
-IG1jZV9sb2coKS4NCg0KSSB3YXMgYWN0dWFsbHkgd29uZGVyaW5nIGFib3V0IGdvaW5nIGluIHRo
-ZSBvdGhlciBkaXJlY3Rpb24uIE1ha2UgdGhlDQovZGV2L21jZWxvZyBjb2RlIHJlZ2lzdGVyIGEg
-bm90aWZpZXIgb24geDg2X21jZV9kZWNvZGVyX2NoYWluIChhbmQNCnBlcmhhcHMgbW92ZSBhbGwg
-dGhlIC9kZXYvbWNlbG9nIGZ1bmN0aW9ucyBvdXQgb2YgbWNlLmMgaW50byBhbiBhY3R1YWwNCmRy
-aXZlciBmaWxlKS4gIFRoZW4gdXNlIENoZW4gR29uZydzIE5NSSBzYWZlIGNvZGUgdG8ganVzdCB1
-bmNvbmRpdGlvbmFsbHkNCm1ha2Ugc2FmZSBjb3BpZXMgb2YgYW55dGhpbmcgdGhhdCBnZXRzIHBh
-c3NlZCB0byBtY2VfbG9nKCkgYW5kIHJ1biBhbGwNCnRoZSBub3RpZmllcnMgZnJvbSBoaXMgZG9f
-bWNlX2lycXdvcmsoKS4NCg0KLVRvbnkNCg==
+On Mon, Jul 21, 2014 at 05:14:06PM +0000, Luck, Tony wrote:
+> We've evolved a bunch of mechanisms:
+> 
+> 1) mce_ring: to pass pfn for AO errors from MCE context to a work thread
+> 2) mce_info: to pass pfn for AR errors from MCE context to same process running in process context
+> 3) mce_log: to pass entire "mce" structures from any context (MCE, CMCI, or init-time) to /dev/mcelog
+> 
+> something simpler might be nice - but a generic thing that is overkill for each of the
+> specialized uses might not necessarily be an improvement.
+> 
+> E.g. #3 above has a fixed capacity (MCE_LOG_LEN) and just drops any extras if it should fill
+
+Gong's too. Famous last words:
+
+	/* two pages should be enough */
+	pages = 2;
+
+> up (deliberately, because we almost always prefer to see the first bunch of errors rather
+> than the newest).
+> 
+> > I think it would be a *lot* simpler if you modify the logic to put all
+> > errors into the ring and remove the call chain call from mce_log().
+> 
+> I was actually wondering about going in the other direction. Make the
+> /dev/mcelog code register a notifier on x86_mce_decoder_chain (and
+> perhaps move all the /dev/mcelog functions out of mce.c into an actual
+> driver file).
+
+For easier deletion later. :-P
+
+> Then use Chen Gong's NMI safe code to just unconditionally make safe
+> copies of anything that gets passed to mce_log() and run all the
+> notifiers from his do_mce_irqwork().
+
+And drop all the homegrown other stuff like mce_ring and all? If this
+gets designed right and it is well thought out - not hastily coded out -
+it will probably be better, yes.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
