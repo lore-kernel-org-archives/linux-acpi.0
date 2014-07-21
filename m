@@ -1,42 +1,140 @@
-From: "Luck, Tony" <tony.luck@intel.com>
+From: Tony Luck <tony.luck@intel.com>
 Subject: RE: [RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE
- context
-Date: Mon, 21 Jul 2014 22:03:04 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F32871435@ORSMSX114.amr.corp.intel.com>
-References: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
- <1405478082-30757-3-git-send-email-gong.chen@linux.intel.com>
- <20140721084737.GA10016@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F32870C55@ORSMSX114.amr.corp.intel.com>
- <20140721214116.GC11555@pd.tnic>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Date: Mon, 21 Jul 2014 15:44:06 -0700
+Message-ID: <f6ee27db104e769822437234b3fee199d51b5177.1405982894.git.tony.luck@intel.com>
+References: <3908561D78D1C84285E8C5FCA982C28F32871435@ORSMSX114.amr.corp.intel.com>
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20140721214116.GC11555@pd.tnic>
-Content-Language: en-US
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F32871435@ORSMSX114.amr.corp.intel.com>
 Sender: owner-linux-mm@kvack.org
 To: Borislav Petkov <bp@alien8.de>
-Cc: "Chen, Gong" <gong.chen@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "x86@kernel.org" <x86@kernel.org>
+Cc: "Chen, Gong" <gong.chen@linux.jf.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "x86@kernel.org" <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-PiBBbmQgZHJvcCBhbGwgdGhlIGhvbWVncm93biBvdGhlciBzdHVmZiBsaWtlIG1jZV9yaW5nIGFu
-ZCBhbGw/DQoNCm1jZV9yaW5nIHNob3VsZCBiZSBlYXN5IC4uLiB0aGUgIm1jZSIgc3RydWN0dXJl
-IGhhcyB0aGUgYWRkcmVzcw0KZnJvbSB3aGljaCB3ZSBjYW4gZWFzaWx5IGdldCB0aGUgcGZuIHRv
-IHBhc3MgaW50byB0aGUgYWN0aW9uLW9wdGlvbmFsDQpyZWNvdmVyeSBwYXRoLiAgT25seSB0aGlu
-ZyBtaXNzaW5nIGlzIGEgZGlyZWN0IGluZGljYXRpb24gdGhhdCB0aGlzIG1jZQ0KZG9lcyBjb250
-YWluIGFuIEFPIGVycm9yIHRoYXQgbmVlZHMgdG8gYmUgcHJvY2Vzc2VkLiBXZSBjb3VsZA0KcmUt
-aW52b2tlIG1jZV9zZXZlcml0eSgpIHRvIGZpZ3VyZSBpdCBvdXQgYWdhaW4gLSBvciBqdXN0IGFk
-ZCBhIGZsYWcNCnNvbWV3aGVyZS4NCg0KTm90IHNvIHN1cmUgYWJvdXQgbWNlX2luZm8uIFRoaXMg
-b25lIHBhc3NlcyBmcm9tIHRoZQ0KTUNFIGNvbnRleHQgdG8gdGhlIHNhbWUgdGFzayB3aGVuIHdl
-IGNhdGNoIGl0IGluIHByb2Nlc3MNCmNvbnRleHQgKHNldF90aHJlYWRfZmxhZyhNQ0VfTk9USUZZ
-KSkuICBCYWNrIHdoZW4gSSB3YXMgcHVzaGluZw0KdGhpcyBjb2RlIGl0LCBJIHJlYWxseSB3YW50
-ZWQgdG8ganVzdCBhZGQgYSBmaWVsZCB0byB0aGUgdGhyZWFkX2luZm8NCnN0cnVjdHVyZSB0byBo
-b2xkIHRoZSBhZGRyZXNzIC4uLiBiZWNhdXNlIHRoaXMgcmVhbGx5IGlzIHNvbWUNCmluZm9ybWF0
-aW9uIHRoYXQgYmVsb25ncyB0byB0aGUgdGhyZWFkLiBCdXQgSSB3YXMgdW5hYmxlIHRvDQpjb252
-aW5jZSBwZW9wbGUgYmFjayB0aGVuLiAgV2UgbXVzdCBiZSBhYmxlIHRvIGZpbmQgdGhlDQpwYWdl
-IGZyYW1lIHdoZW4gd2UgYXJyaXZlIGluIG1jZV9ub3RpZnlfcHJvY2VzcygpLiBTbyB3ZQ0KY2Fu
-J3Qgc3Rhc2ggaXQgaW4gc29tZSBsaW1pdGVkIHNpemUgcG9vbCBvZiAibWNlIiBzdHJ1Y3R1cmVz
-IHRoYXQNCm1pZ2h0IGRlY2lkZSB0byBqdXN0IGRyb3AgdGhpcyBvbmUuDQoNCi1Ub255DQoNCg==
+
+This is how much cleaner things could be with a couple of task_struct
+fields instead of the mce_info silliness ... untested.
+
+---
+ arch/x86/kernel/cpu/mcheck/mce.c | 58 ++++------------------------------------
+ include/linux/sched.h            |  4 +++
+ 2 files changed, 9 insertions(+), 53 deletions(-)
+
+diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/mcheck/mce.c
+index bb92f38153b2..b08398e69b5c 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce.c
++++ b/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -956,51 +956,6 @@ static void mce_clear_state(unsigned long *toclear)
+ }
+ 
+ /*
+- * Need to save faulting physical address associated with a process
+- * in the machine check handler some place where we can grab it back
+- * later in mce_notify_process()
+- */
+-#define	MCE_INFO_MAX	16
+-
+-struct mce_info {
+-	atomic_t		inuse;
+-	struct task_struct	*t;
+-	__u64			paddr;
+-	int			restartable;
+-} mce_info[MCE_INFO_MAX];
+-
+-static void mce_save_info(__u64 addr, int c)
+-{
+-	struct mce_info *mi;
+-
+-	for (mi = mce_info; mi < &mce_info[MCE_INFO_MAX]; mi++) {
+-		if (atomic_cmpxchg(&mi->inuse, 0, 1) == 0) {
+-			mi->t = current;
+-			mi->paddr = addr;
+-			mi->restartable = c;
+-			return;
+-		}
+-	}
+-
+-	mce_panic("Too many concurrent recoverable errors", NULL, NULL);
+-}
+-
+-static struct mce_info *mce_find_info(void)
+-{
+-	struct mce_info *mi;
+-
+-	for (mi = mce_info; mi < &mce_info[MCE_INFO_MAX]; mi++)
+-		if (atomic_read(&mi->inuse) && mi->t == current)
+-			return mi;
+-	return NULL;
+-}
+-
+-static void mce_clear_info(struct mce_info *mi)
+-{
+-	atomic_set(&mi->inuse, 0);
+-}
+-
+-/*
+  * The actual machine check handler. This only handles real
+  * exceptions when something got corrupted coming in through int 18.
+  *
+@@ -1156,7 +1111,8 @@ void do_machine_check(struct pt_regs *regs, long error_code)
+ 			mce_panic("Fatal machine check on current CPU", &m, msg);
+ 		if (worst == MCE_AR_SEVERITY) {
+ 			/* schedule action before return to userland */
+-			mce_save_info(m.addr, m.mcgstatus & MCG_STATUS_RIPV);
++			current->paddr = m.addr;
++			current->restartable = m.mcgstatus & MCG_STATUS_RIPV;
+ 			set_thread_flag(TIF_MCE_NOTIFY);
+ 		} else if (kill_it) {
+ 			force_sig(SIGBUS, current);
+@@ -1195,29 +1151,25 @@ int memory_failure(unsigned long pfn, int vector, int flags)
+ void mce_notify_process(void)
+ {
+ 	unsigned long pfn;
+-	struct mce_info *mi = mce_find_info();
+ 	int flags = MF_ACTION_REQUIRED;
+ 
+-	if (!mi)
+-		mce_panic("Lost physical address for unconsumed uncorrectable error", NULL, NULL);
+-	pfn = mi->paddr >> PAGE_SHIFT;
++	pfn = current->paddr >> PAGE_SHIFT;
+ 
+ 	clear_thread_flag(TIF_MCE_NOTIFY);
+ 
+ 	pr_err("Uncorrected hardware memory error in user-access at %llx",
+-		 mi->paddr);
++		 current->paddr);
+ 	/*
+ 	 * We must call memory_failure() here even if the current process is
+ 	 * doomed. We still need to mark the page as poisoned and alert any
+ 	 * other users of the page.
+ 	 */
+-	if (!mi->restartable)
++	if (!current->restartable)
+ 		flags |= MF_MUST_KILL;
+ 	if (memory_failure(pfn, MCE_VECTOR, flags) < 0) {
+ 		pr_err("Memory error not recovered");
+ 		force_sig(SIGBUS, current);
+ 	}
+-	mce_clear_info(mi);
+ }
+ 
+ /*
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 0376b054a0d0..91db69a4acd7 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1655,6 +1655,10 @@ struct task_struct {
+ 	unsigned int	sequential_io;
+ 	unsigned int	sequential_io_avg;
+ #endif
++#ifdef CONFIG_MEMORY_FAILURE
++	__u64	paddr;
++	int	restartable;
++#endif
+ };
+ 
+ /* Future-safe accessor for struct task_struct's cpus_allowed. */
+-- 
+1.8.4.1
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
