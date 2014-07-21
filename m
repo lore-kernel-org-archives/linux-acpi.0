@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH v3 14/14] ACPI/EC: Cleanup coding style.
-Date: Mon, 21 Jul 2014 14:06:43 +0800
-Message-ID: <a7f39b5c9c6bd0ce461084cea634f86e60d9a2c0.1405922585.git.lv.zheng@intel.com>
+Subject: [RFC PATCH v3 13/14] ACPI/EC: Add unit test support for EC driver hotplug.
+Date: Mon, 21 Jul 2014 14:06:37 +0800
+Message-ID: <4980f02202570dbd5e63b9b2ee55418bc56265af.1405922585.git.lv.zheng@intel.com>
 References: <cover.1403060601.git.lv.zheng@intel.com> <cover.1405922585.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1405922585.git.lv.zheng@intel.com>
@@ -10,144 +10,123 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch cleans up the following coding style issues that are detected by
-scripts/checkpatch.pl:
- ERROR: code indent should use tabs where possible
- WARNING: Missing a blank line after declarations
-No functional changes.
+This patch adds facility to test future EC modification.
+All EC commits should enable TEST_HOTPLUG, and try a build/boot test.
+Since EC is currently a built-in module, this is the only mean for us to
+test the hotplug code.
+The following is the result of the flushing tests:
+  ACPI : EC: ===== IRQ (0) =====
+  ACPI : EC: EC_SC(R) = 0x20 SCI_EVT=1 BURST=0 CMD=0 IBF=0 OBF=0
+# ACPI : EC: 2: Increase poller(set)
+  ACPI : EC: ***** Event pending *****
+  ACPI : EC: ***** Event poller started *****
+* ACPI : EC: 3: Increase command
+  ACPI : EC: ***** Command(QR_EC) started *****
+  ACPI : EC: ===== TASK (0) =====
+  ACPI : EC: EC_SC(R) = 0x20 SCI_EVT=1 BURST=0 CMD=0 IBF=0 OBF=0
+  ACPI : EC: EC_SC(W) = 0x84
+# ACPI : EC: 2: Decrease poller
+  ACPI : EC: ***** Event running *****
+  ACPI : EC: ===== IRQ (2) =====
+  ACPI : EC: EC_SC(R) = 0x01 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=1
+  ACPI : EC: EC_DATA(R) = 0x66
+  ACPI : EC: ***** Command(QR_EC) stopped *****
+* ACPI : EC: 1: Decrease command
+  ACPI : EC: ##### Query(0x66) scheduled #####
+  ACPI : EC: ***** Event poller stopped *****
+  ACPI : EC: ##### Query(0x66) started #####
+$ ACPI : EC: 2: Increase command
+  ACPI : EC: ***** Command(RD_EC) started *****
+  ACPI : EC: ===== TASK (0) =====
+  ACPI : EC: EC_SC(R) = 0x00 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=0
+  ACPI : EC: EC_SC(W) = 0x80
+  ACPI : EC: ===== IRQ (0) =====
+  ACPI : EC: EC_SC(R) = 0x00 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=0
+  ACPI : EC: EC_DATA(W) = 0x07
+  ACPI : EC: ===== TASK (0) =====
+  ACPI : EC: EC_SC(R) = 0x02 SCI_EVT=0 BURST=0 CMD=0 IBF=1 OBF=0
+  ACPI : EC: ===== IRQ (2) =====
+  ACPI : EC: EC_SC(R) = 0x01 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=1
+  ACPI : EC: EC_DATA(R) = 0x00
+  ACPI : EC: ***** Command(RD_EC) stopped *****
+$ ACPI : EC: 1: Decrease command
+  ACPI : EC: Removing EC handlers...
+  ACPI : EC: +++++ Stopping EC +++++
+  ACPI : EC: 0: Decrease event
+@ ACPI : EC: +++++ EC stopped +++++
+  ACPI : EC: Installing EC handlers...
+  ACPI : EC: +++++ Starting EC +++++
+  ACPI : EC: 1: Increase event
+  ACPI : EC: +++++ EC started +++++
+  ... (other RD_EC commands for _Q66 evaluation)
+  ACPI : EC: ##### Query(0x66) stopped #####
+We can see the hot plugging succeeded (@) after a command transaction
+issued by the EC address space handleri ($). We can also see the reference
+count triggered by the EVT_SCI event is correctly flushed (#) across a
+QR_EC command issued in the event poller thread (*).
+
+And the tests to trigger EVT_SCI on the fly with system powering on/off,
+system suspending/resuming also have passed.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/ec.c |   33 ++++++++++++++++++++-------------
- 1 file changed, 20 insertions(+), 13 deletions(-)
+ drivers/acpi/ec.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index ea8d3c3..0e7472b 100644
+index c2e276f..ea8d3c3 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -155,8 +155,8 @@ static int EC_FLAGS_SKIP_DSDT_SCAN; /* Not all BIOS survive early DSDT scan */
- static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on boot/resume */
+@@ -32,6 +32,7 @@
+ /* Uncomment next line to get verbose printout */
+ /* #define DEBUG */
+ #define DEBUG_REF 0
++/* #define TEST_HOTPLUG */
+ #define pr_fmt(fmt) "ACPI : EC: " fmt
  
- /* --------------------------------------------------------------------------
--                             Device Flags
--   -------------------------------------------------------------------------- */
-+ *                           Device Flags
-+ * -------------------------------------------------------------------------- */
+ #include <linux/kernel.h>
+@@ -139,6 +140,11 @@ static struct acpi_ec_query_handler *
+ acpi_ec_get_query_handler(struct acpi_ec_query_handler *handler);
+ static void acpi_ec_put_query_handler(struct acpi_ec_query_handler *handler);
+ static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data);
++#ifdef TEST_HOTPLUG
++static void acpi_ec_test(struct acpi_ec *ec);
++#else
++static inline void acpi_ec_test(struct acpi_ec *ec) {}
++#endif
  
- static bool acpi_ec_started(struct acpi_ec *ec)
- {
-@@ -177,8 +177,8 @@ static bool acpi_ec_has_pending_event(struct acpi_ec *ec)
+ struct acpi_ec *boot_ec, *first_ec;
+ EXPORT_SYMBOL(first_ec);
+@@ -551,6 +557,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
+ 		acpi_release_global_lock(glk);
+ unlock:
+ 	mutex_unlock(&ec->mutex);
++	acpi_ec_test(ec);
+ 	return status;
  }
  
- /* --------------------------------------------------------------------------
--                             GPE Enhancement
--   -------------------------------------------------------------------------- */
-+ *                           GPE Enhancement
-+ * -------------------------------------------------------------------------- */
- 
- static void acpi_ec_set_storm(struct acpi_ec *ec, u8 flag)
- {
-@@ -325,8 +325,8 @@ int acpi_ec_wait_for_event(struct acpi_ec *ec)
+@@ -1248,6 +1255,22 @@ int __init acpi_boot_ec_enable(void)
+ 	return -EFAULT;
  }
  
- /* --------------------------------------------------------------------------
--                             Transaction Management
--   -------------------------------------------------------------------------- */
-+ *                           Transaction Management
-+ * -------------------------------------------------------------------------- */
- 
- static inline u8 acpi_ec_read_status(struct acpi_ec *ec)
- {
-@@ -386,6 +386,7 @@ static int ec_transaction_completed(struct acpi_ec *ec)
- {
- 	unsigned long flags;
- 	int ret = 0;
++#ifdef TEST_HOTPLUG
++static void acpi_ec_test(struct acpi_ec *ec)
++{
++	/* Unit testing for driver hotplugging */
++	pr_info("Removing EC handlers...\n");
++	acpi_ec_stop(ec);
++	acpi_remove_gpe_handler(NULL, ec->gpe,
++				&acpi_ec_gpe_handler);
++	pr_info("Installing EC handlers...\n");
++	acpi_install_gpe_handler(NULL, ec->gpe,
++				  ACPI_GPE_EDGE_TRIGGERED,
++				  &acpi_ec_gpe_handler, ec);
++	acpi_ec_start(ec);
++}
++#endif
 +
- 	spin_lock_irqsave(&ec->lock, flags);
- 	if (ec->curr && (ec->curr->flags & ACPI_EC_COMMAND_COMPLETE))
- 		ret = 1;
-@@ -469,6 +470,7 @@ static int ec_poll(struct acpi_ec *ec)
- {
- 	unsigned long flags;
- 	int repeat = 5; /* number of command restarts */
-+
- 	while (repeat--) {
- 		unsigned long delay = jiffies +
- 			msecs_to_jiffies(ec_delay);
-@@ -779,6 +781,7 @@ static int acpi_ec_query_unlocked(struct acpi_ec *ec, u8 * data)
- 	struct transaction t = {.command = ACPI_EC_COMMAND_QUERY,
- 				.wdata = NULL, .rdata = &d,
- 				.wlen = 0, .rlen = 1};
-+
- 	if (!ec || !data)
- 		return -EINVAL;
- 	/*
-@@ -796,8 +799,9 @@ static int acpi_ec_query_unlocked(struct acpi_ec *ec, u8 * data)
- }
- 
- /* --------------------------------------------------------------------------
--                                Event Management
--   -------------------------------------------------------------------------- */
-+ *                              Event Management
-+ * -------------------------------------------------------------------------- */
-+
- static struct acpi_ec_query_handler *
- acpi_ec_get_query_handler(struct acpi_ec_query_handler *handler)
- {
-@@ -824,6 +828,7 @@ int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
- {
- 	struct acpi_ec_query_handler *handler =
- 	    kzalloc(sizeof(struct acpi_ec_query_handler), GFP_KERNEL);
-+
- 	if (!handler)
- 		return -ENOMEM;
- 
-@@ -844,6 +849,7 @@ void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
- {
- 	struct acpi_ec_query_handler *handler, *tmp;
- 	LIST_HEAD(free_list);
-+
- 	mutex_lock(&ec->mutex);
- 	list_for_each_entry_safe(handler, tmp, &ec->list, node) {
- 		if (query_bit == handler->query_bit) {
-@@ -861,6 +867,7 @@ EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
- static void acpi_ec_run(void *cxt)
- {
- 	struct acpi_ec_query_handler *handler = cxt;
-+
- 	if (!handler)
- 		return;
- 	pr_debug("##### Query(0x%02x) started #####\n", handler->query_bit);
-@@ -973,8 +980,8 @@ static void ec_delete_event_poller(struct acpi_ec *ec)
- }
- 
- /* --------------------------------------------------------------------------
--                             Address Space Management
--   -------------------------------------------------------------------------- */
-+ *                           Address Space Management
-+ * -------------------------------------------------------------------------- */
- 
- static acpi_status
- acpi_ec_space_handler(u32 function, acpi_physical_address address,
-@@ -1018,8 +1025,9 @@ acpi_ec_space_handler(u32 function, acpi_physical_address address,
- }
- 
- /* --------------------------------------------------------------------------
--                               Driver Interface
--   -------------------------------------------------------------------------- */
-+ *                             Driver Interface
-+ * -------------------------------------------------------------------------- */
-+
- static acpi_status
- ec_parse_io_ports(struct acpi_resource *resource, void *context);
- 
-@@ -1058,7 +1066,6 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
- {
- 	acpi_status status;
- 	unsigned long long tmp = 0;
--
- 	struct acpi_ec *ec = context;
- 
- 	/* clear addr values, ec_parse_io_ports depend on it */
+ static const struct acpi_device_id ec_device_ids[] = {
+ 	{"PNP0C09", 0},
+ 	{"", 0},
 -- 
 1.7.10
