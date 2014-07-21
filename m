@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH v3 11/14] ACPI/EC: Add event storm prevention support.
-Date: Mon, 21 Jul 2014 14:06:19 +0800
-Message-ID: <9269feb4d4a08b00657ed80e5225aba17b6f5c40.1405922585.git.lv.zheng@intel.com>
+Subject: [RFC PATCH v3 04/14] ACPI/EC: Refine command storm prevention support.
+Date: Mon, 21 Jul 2014 14:05:25 +0800
+Message-ID: <421106eb2b195bbecd01137aed9659b33d93c0a1.1405922585.git.lv.zheng@intel.com>
 References: <cover.1403060601.git.lv.zheng@intel.com> <cover.1405922585.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1405922585.git.lv.zheng@intel.com>
@@ -10,200 +10,172 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-There are cases that BIOS doesn't provide a _Qxx method for the returned
-xx query value, in this case, acpi_set_gpe(ACPI_GPE_DISABLE) need to be
-invoked to prevent event IRQ storms. See comment 55 and 80 in the bug link
-below.
+This patch refines EC command storm prevention support.
 
-This patch implements such storm prevention using new GPE APIs.
+After applying the race fixes series, we almost cannot see any
+in-transaction false irqs. The out-transaction false irqs are normal, they
+are triggered by EC firmware for various reasons and will become silent
+sooner or later. So the out-transaction false irqs are not accounted in the
+original EC driver.
 
-By always enabling EC event storm prevention, we can perform a unit test,
-the test shows that:
-1. When EC_FLAGS_EVENT_STORM is indicated, all transactions are handled in
-   the task context:
-   # ACPI : EC: ===== TASK =====
-     ACPI : EC: EC_SC(R) = 0x01 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=1
-     ACPI : EC: EC_DATA(R) = 0x66
-     ACPI : EC: ***** Command(QR_EC) stopped *****
-     ACPI : EC: ##### Query(0x66) scheduled #####
-     ACPI : EC: ##### Query(0x66) started #####
-     ACPI : EC: ***** Command(RD_EC) started *****
-   * ACPI : EC: ===== TASK =====
-     ACPI : EC: EC_SC(R) = 0x00 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=0
-     ACPI : EC: EC_SC(W) = 0x80
-     ACPI : EC: ===== TASK =====
-   * ACPI : EC: EC_SC(R) = 0x00 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=0
-     ACPI : EC: EC_DATA(W) = 0x07
-   * ACPI : EC: ===== TASK =====
-     ACPI : EC: EC_SC(R) = 0x01 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=1
-     ACPI : EC: EC_DATA(R) = 0x88
-     ACPI : EC: ***** Command(RD_EC) stopped *****
-   When the event storm prevention is enabled, EVT_SCI is polled in the
-   task context (#), and the further commands are also handled using the
-   polling mode (*) before the storming has been recovered.
-2. The event poller thread will poll EVT_SCI every 5 minutes:
-   [   35.233628] ACPI : EC: ***** Event poller started *****
-   [   40.241432] ACPI : EC: ***** Event poller started *****
-   [   45.249182] ACPI : EC: ***** Event poller started *****
-   [   50.257009] ACPI : EC: ***** Event poller started *****
-   [   55.264782] ACPI : EC: ***** Event poller started *****
-   So the timeout facility is functioning correctly.
-3. System suspend/resume test is also passed.
+The EC commands are handled by different firmware processes, storming
+happening to one command doesn't mean anything to another process. So
+ideally, we should only enable storm prevention for the current command so
+that the next command can try the efficient interrupt mode again.
 
-Note that this storm is *VERY RARE*, and we even:
-1. add a threshold to prevent the event storm prevention from being false
-   triggered,
-2. allow recovery from first non-false query value.
-So this patch doesn't affect the normal EC driver behaviors, all EC
-transactions are still handled in the IRQ mode and the storming situation
-can be easily recovered if the firmware doesn't maliciously trigger such
-storms.
+This patch improves the command storm prevention by disabling GPE right
+after the detection and re-enabling it right before completing the command
+transaction using the GPE storming prevention APIs.
 
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=78091
-Reported-by: Steffen Weber <steffen.weber@gmail.com>
+Though now we can hardly see false irqs, unit tests can be carried out by
+changing the storm threshold to 0 and deleting the 2 "return wakeup"
+statements from the advance_transaction(). The test result is as follows:
+  ACPI : EC: ***** Command(RD_EC) started *****
+  ACPI : EC: ===== TASK =====
+  ACPI : EC: EC_SC(R) = 0x00 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=0
+  ACPI : EC: EC_SC(W) = 0x80
+  ACPI : EC: ===== IRQ =====
+  ACPI : EC: EC_SC(R) = 0x00 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=0
+  ACPI : EC: EC_DATA(W) = 0x23
+  ACPI : EC: +++++ Polling enabled +++++
+  ACPI : EC: EC_SC(R) = 0x02 SCI_EVT=0 BURST=0 CMD=0 IBF=1 OBF=0
+# ACPI : EC: ===== TASK =====
+  ACPI : EC: EC_SC(R) = 0x01 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=1
+  ACPI : EC: EC_DATA(R) = 0x2b
+  ACPI : EC: +++++ Polling disabled +++++
+  ACPI : EC: ***** Command(RD_EC) stopped *****
+  ACPI : EC: ===== IRQ =====
+  ACPI : EC: EC_SC(R) = 0x00 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=0
+  ACPI : EC: EC_SC(R) = 0x00 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=0
+  ACPI : EC: EC_SC(R) = 0x00 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=0
+  ACPI : EC: ***** Command(WR_EC) started *****
+  ACPI : EC: ===== TASK =====
+  ACPI : EC: EC_SC(R) = 0x00 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=0
+  ACPI : EC: EC_SC(W) = 0x81
+* ACPI : EC: ===== IRQ =====
+  ACPI : EC: EC_SC(R) = 0x00 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=0
+  ACPI : EC: EC_DATA(W) = 0x04
+  ACPI : EC: +++++ Polling enabled +++++
+  ACPI : EC: EC_SC(R) = 0x02 SCI_EVT=0 BURST=0 CMD=0 IBF=1 OBF=0
+  ACPI : EC: ===== TASK =====
+  ACPI : EC: EC_SC(R) = 0x00 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=0
+  ACPI : EC: EC_DATA(W) = 0x01
+  ACPI : EC: ===== TASK =====
+  ACPI : EC: EC_SC(R) = 0x00 SCI_EVT=0 BURST=0 CMD=0 IBF=0 OBF=0
+  ACPI : EC: +++++ Polling disabled +++++
+  ACPI : EC: ***** Command(WR_EC) stopped *****
+We can see the command is advanced in the task context after enabling the
+polling mode (#) and the next command can still be started from the high
+performance IRQ mode (*).
+
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/ec.c       |   45 ++++++++++++++++++++++++++++++++++++++-------
- drivers/acpi/internal.h |    1 +
- 2 files changed, 39 insertions(+), 7 deletions(-)
+ drivers/acpi/ec.c |   55 +++++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 39 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index f9531ee..2a1eb2a 100644
+index 4c7a81b..1c3704c 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -74,6 +74,7 @@ enum ec_command {
- #define ACPI_EC_MSI_UDELAY	550	/* Wait 550us for MSI EC */
- #define ACPI_EC_CLEAR_MAX	100	/* Maximum number of events to query
- 					 * when trying to clear the EC */
-+#define ACPI_EC_POLL_TIMEOUT	5000	/* Polling event every 5000ms */
+@@ -76,11 +76,12 @@ enum ec_command {
  
  enum {
- 	EC_FLAGS_EVENT_ENABLED,		/* Event is enabled */
-@@ -84,6 +85,8 @@ enum {
+ 	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
+-	EC_FLAGS_GPE_STORM,		/* GPE storm detected */
+ 	EC_FLAGS_HANDLERS_INSTALLED,	/* Handlers for GPE and
+ 					 * OpReg are installed */
+ 	EC_FLAGS_STARTED,		/* Driver is started */
  	EC_FLAGS_STOPPED,		/* Driver is stopped */
- 	EC_FLAGS_COMMAND_STORM,		/* GPE storms occurred to the
- 					 * current command processing */
-+	EC_FLAGS_EVENT_STORM,		/* GPE storms occurred to the
-+					 * current event processing */
++	EC_FLAGS_COMMAND_STORM,		/* GPE storms occurred to the
++					 * current command processing */
  };
  
  #define ACPI_EC_COMMAND_POLL		0x01 /* Available for command byte */
-@@ -149,7 +152,8 @@ static bool acpi_ec_started(struct acpi_ec *ec)
- 
- static bool acpi_ec_has_gpe_storm(struct acpi_ec *ec)
- {
--	return test_bit(EC_FLAGS_COMMAND_STORM, &ec->flags);
-+	return test_bit(EC_FLAGS_COMMAND_STORM, &ec->flags) ||
-+	       test_bit(EC_FLAGS_EVENT_STORM, &ec->flags);
+@@ -138,6 +139,33 @@ static bool acpi_ec_started(struct acpi_ec *ec)
+ 	       !test_bit(EC_FLAGS_STOPPED, &ec->flags);
  }
  
- static bool acpi_ec_has_pending_event(struct acpi_ec *ec)
-@@ -165,8 +169,10 @@ static bool acpi_ec_has_pending_event(struct acpi_ec *ec)
- static void acpi_ec_set_storm(struct acpi_ec *ec, u8 flag)
- {
- 	if (!test_bit(flag, &ec->flags)) {
--		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_DISABLE);
--		pr_debug("+++++ Polling enabled +++++\n");
-+		if (!acpi_ec_has_gpe_storm(ec)) {
-+			acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_DISABLE);
-+			pr_debug("+++++ Polling enabled +++++\n");
++static bool acpi_ec_has_gpe_storm(struct acpi_ec *ec)
++{
++	return test_bit(EC_FLAGS_COMMAND_STORM, &ec->flags);
++}
++
++/* --------------------------------------------------------------------------
++                             GPE Enhancement
++   -------------------------------------------------------------------------- */
++
++static void acpi_ec_set_storm(struct acpi_ec *ec, u8 flag)
++{
++	if (!test_bit(flag, &ec->flags)) {
++		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_DISABLE);
++		pr_debug("+++++ Polling enabled +++++\n");
++		set_bit(flag, &ec->flags);
++	}
++}
++
++static void acpi_ec_clear_storm(struct acpi_ec *ec, u8 flag)
++{
++	if (test_bit(flag, &ec->flags)) {
++		clear_bit(flag, &ec->flags);
++		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_ENABLE);
++		pr_debug("+++++ Polling disabled +++++\n");
++	}
++}
++
+ /* --------------------------------------------------------------------------
+                              Transaction Management
+    -------------------------------------------------------------------------- */
+@@ -253,8 +281,13 @@ err:
+ 	 * otherwise will take a not handled IRQ as a false one.
+ 	 */
+ 	if (!(status & ACPI_EC_FLAG_SCI)) {
+-		if (in_interrupt() && t)
+-			++t->irq_count;
++		if (in_interrupt() && t) {
++			if (t->irq_count < ec_storm_threshold)
++				++t->irq_count;
++			/* Allow triggering on 0 threshold */
++			if (t->irq_count == ec_storm_threshold)
++				acpi_ec_set_storm(ec, EC_FLAGS_COMMAND_STORM);
 +		}
- 		set_bit(flag, &ec->flags);
  	}
+ 	return wakeup;
  }
-@@ -175,8 +181,10 @@ static void acpi_ec_clear_storm(struct acpi_ec *ec, u8 flag)
- {
- 	if (test_bit(flag, &ec->flags)) {
- 		clear_bit(flag, &ec->flags);
+@@ -327,24 +360,14 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+ 	ec->curr = t;
+ 	pr_debug("***** Command(%s) started *****\n",
+ 		 acpi_ec_cmd_string(t->command));
+-	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
+-		pr_debug("+++++ Polling enabled +++++\n");
+-		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_DISABLE);
+-	}
+ 	start_transaction(ec);
+ 	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
+ 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+ 	spin_unlock_irqrestore(&ec->lock, tmp);
+ 	ret = ec_poll(ec);
+ 	spin_lock_irqsave(&ec->lock, tmp);
+-	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
 -		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_ENABLE);
 -		pr_debug("+++++ Polling disabled +++++\n");
-+		if (!acpi_ec_has_gpe_storm(ec)) {
-+			acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_ENABLE);
-+			pr_debug("+++++ Polling disabled +++++\n");
-+		}
- 	}
- }
- 
-@@ -272,18 +280,25 @@ static void __acpi_ec_complete_event(struct acpi_ec *ec)
- int acpi_ec_wait_for_event(struct acpi_ec *ec)
- {
- 	unsigned long flags;
-+	signed long timeout;
-+	int storming;
- 
- 	set_current_state(TASK_INTERRUPTIBLE);
-+	timeout = msecs_to_jiffies(ACPI_EC_POLL_TIMEOUT);
- 	while (!kthread_should_stop()) {
- 		spin_lock_irqsave(&ec->lock, flags);
--		if (acpi_ec_has_pending_event(ec)) {
-+		storming = test_bit(EC_FLAGS_EVENT_STORM, &ec->flags);
-+		if (acpi_ec_has_pending_event(ec) ||
-+		    (storming && !timeout)) {
- 			spin_unlock_irqrestore(&ec->lock, flags);
- 			__set_current_state(TASK_RUNNING);
- 			return 0;
- 		}
- 		spin_unlock_irqrestore(&ec->lock, flags);
--		schedule();
-+		timeout = schedule_timeout(timeout);
- 		set_current_state(TASK_INTERRUPTIBLE);
-+		if (!storming)
-+			timeout = msecs_to_jiffies(ACPI_EC_POLL_TIMEOUT);
- 	}
- 	__set_current_state(TASK_RUNNING);
- 
-@@ -682,6 +697,8 @@ static void acpi_ec_stop(struct acpi_ec *ec)
- 		spin_unlock_irqrestore(&ec->lock, flags);
- 		wait_event(ec->wait, acpi_ec_stopped(ec));
- 		spin_lock_irqsave(&ec->lock, flags);
-+		/* Event storm may still be indicated */
-+		acpi_ec_clear_storm(ec, EC_FLAGS_EVENT_STORM);
- 		/* Disable GPE for event processing (EVT_SCI=1) */
- 		acpi_ec_disable_gpe(ec);
- 		clear_bit(EC_FLAGS_STARTED, &ec->flags);
-@@ -833,10 +850,17 @@ static void acpi_ec_run(void *cxt)
- 
- static int acpi_ec_notify_query_handlers(struct acpi_ec *ec, u8 query_bit)
- {
-+	unsigned long flags;
- 	struct acpi_ec_query_handler *handler;
- 
- 	list_for_each_entry(handler, &ec->list, node) {
- 		if (query_bit == handler->query_bit) {
-+			spin_lock_irqsave(&ec->lock, flags);
-+			if (ec->event_count == ec_storm_threshold) {
-+				acpi_ec_clear_storm(ec, EC_FLAGS_EVENT_STORM);
-+				ec->event_count = 0;
-+			}
-+			spin_unlock_irqrestore(&ec->lock, flags);
- 			/* have custom handler for this bit */
- 			handler = acpi_ec_get_query_handler(handler);
- 			pr_debug("##### Query(0x%02x) scheduled #####\n",
-@@ -847,6 +871,13 @@ static int acpi_ec_notify_query_handlers(struct acpi_ec *ec, u8 query_bit)
- 		}
- 	}
- 	pr_warn_once("BIOS bug: no handler for query (0x%02x)\n", query_bit);
-+	spin_lock_irqsave(&ec->lock, flags);
-+	if (ec->event_count < ec_storm_threshold)
-+		++ec->event_count;
-+	/* Allow triggering on 0 threshold */
-+	if (ec->event_count == ec_storm_threshold)
-+		acpi_ec_set_storm(ec, EC_FLAGS_EVENT_STORM);
-+	spin_unlock_irqrestore(&ec->lock, flags);
- 	return 0;
- }
- 
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index b2eef49..e72ae6a 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -125,6 +125,7 @@ struct acpi_ec {
- 	struct transaction *curr;
- 	spinlock_t lock;
- 	struct task_struct *thread;
-+	unsigned long event_count;
- };
- 
- extern struct acpi_ec *first_ec;
+-	} else if (t->irq_count > ec_storm_threshold) {
+-		pr_debug("+++++ Polling scheduled (%d GPE) +++++\n",
+-			 t->irq_count);
+-		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
+-	}
++	if (t->irq_count == ec_storm_threshold)
++		acpi_ec_clear_storm(ec, EC_FLAGS_COMMAND_STORM);
+ 	pr_debug("***** Command(%s) stopped *****\n",
+ 		 acpi_ec_cmd_string(t->command));
+ 	ec->curr = NULL;
+@@ -712,7 +735,7 @@ static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
+ 	spin_lock_irqsave(&ec->lock, flags);
+ 	if (advance_transaction(ec))
+ 		wake_up(&ec->wait);
+-	if (!test_bit(EC_FLAGS_GPE_STORM, &ec->flags))
++	if (!acpi_ec_has_gpe_storm(ec))
+ 		enable = ACPI_REENABLE_GPE;
+ 	spin_unlock_irqrestore(&ec->lock, flags);
+ 	ec_check_sci(ec, acpi_ec_read_status(ec));
 -- 
 1.7.10
