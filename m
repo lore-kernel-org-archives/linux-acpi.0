@@ -1,57 +1,52 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [Update 2x][PATCH 1/2] ACPI / PM: Always enable wakeup GPEs when
- enabling device wakeup
-Date: Mon, 21 Jul 2014 10:17:34 +0200
-Message-ID: <20140721081734.GL3935@laptop>
-References: <1907495.agrCMfRsQN@vostro.rjw.lan>
- <1617640.X0G82q0eFI@vostro.rjw.lan>
- <7670400.0LUVFHKPfm@vostro.rjw.lan>
- <5962983.s3jy9r09Hm@vostro.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE context
+Date: Mon, 21 Jul 2014 10:47:37 +0200
+Message-ID: <20140721084737.GA10016@pd.tnic>
+References: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
+ <1405478082-30757-3-git-send-email-gong.chen@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:54740 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753144AbaGUIrl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jul 2014 04:47:41 -0400
 Content-Disposition: inline
-In-Reply-To: <5962983.s3jy9r09Hm@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
+In-Reply-To: <1405478082-30757-3-git-send-email-gong.chen@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Chen, Gong" <gong.chen@linux.intel.com>
+Cc: tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-mm@kvack.org, x86@kernel.org
 
-On Mon, Jul 21, 2014 at 01:51:46AM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI / PM: Always enable wakeup GPEs when enabling device wakeup
+On Tue, Jul 15, 2014 at 10:34:41PM -0400, Chen, Gong wrote:
+> When Uncorrected error happens, an MCE will be raised. Some
+> notification callbacks will be called in MCE context. If
+> some notification call printk it will cause potential
+> deadlock because MCE can preempt normal interrupts like NMI does.
 > 
-> Wakeup GPEs are currently only enabled when setting up devices for
-> remote wakeup at run time.  During system-wide transitions they are
-> enabled by ACPICA at the very last stage of suspend (before asking
-> the BIOS to take over).  Of course, that only works for system
-> sleep states supported by ACPI, so in particular it doesn't work
-> for the "freeze" sleep state.
-> 
-> For this reason, modify the ACPI core device PM code to enable wakeup
-> GPEs for devices when setting them up for wakeup regardless of whether
-> that is remote wakeup at runtime or system wakeup.  That allows the
-> same device wakeup setup routine to be used for both runtime PM and
-> system-wide PM and makes it possible to reduce code size quite a bit.
-> 
-> That should make things like ACPI-based PCI Wake-on-LAN work with
-> the "freeze" sleep state among other things.
-> 
-> Tested-on: Toshiba Portege R500
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
-> 
-> The PCI ACPI device PM notify handler has to be updated to avoid running
-> runtime resume callbacks during system suspend too.
+> Since printk is not safe in MCE context. So a lock-less memory
+> allocator (genpool) is used to save information which are
+> organized via a lock-less list. Print will be delayed into IRQ
+> context via irq_work. This idea is inspired by APEI/GHES driver.
 
-So I tested the first version, with that my WSM-EP didn't resume on WoL
-and pressing the power button after the WoL had it crash and burn in the
-igb driver.
+This patch is overengineered even though we already have both process
+context work and irq work facilities in place.
 
-Today I tested this latest version and WoL still didn't trigger a
-resume, but the power button did make it go again, no crashes and I
-suppose I can confirm the earlier patch that stopped making it go halt
-works.
+We also already have mce_ring where we add MCE signatures in #MC
+context. Well, only for AO errors with usable addresses for now, at
+least.
 
-When I 'halt' I can wake the machine back up using a WoL so that all
-_should_ work afaik.
+And we empty that ring in mce_process_work().
+
+I think it would be a *lot* simpler if you modify the logic to put all
+errors into the ring and remove the call chain call from mce_log(). I'm
+looking at mce_report_event() which even does the irq_work stuff if
+we need to raise an IPI *during* the MCE so that stuff gets processed
+*before* we return to userspace.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
