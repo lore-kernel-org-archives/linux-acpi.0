@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH v3 02/14] ACPI/EC: Add detailed command/query debugging information.
-Date: Mon, 21 Jul 2014 14:05:12 +0800
-Message-ID: <f9cb0b5cce39f663082e25133261f7b9b4836622.1405922585.git.lv.zheng@intel.com>
+Subject: [RFC PATCH v3 12/14] ACPI/EC: Add GPE reference counting debugging messages.
+Date: Mon, 21 Jul 2014 14:06:29 +0800
+Message-ID: <cac788d713494aeb27c628eeda47b4c66d49e133.1405922585.git.lv.zheng@intel.com>
 References: <cover.1403060601.git.lv.zheng@intel.com> <cover.1405922585.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1405922585.git.lv.zheng@intel.com>
@@ -10,68 +10,111 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Developers really don't need to translate EC commands in mind. This patch
-adds detailed debugging information for the EC commands.
-The address can be found in the follow-up sequential EC_DATA(W) accesses,
-thus this patch also removes some of the redundant address information.
+This patch enhances debugging with the GPE reference count messages added.
+No functional changes.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/ec.c |   29 +++++++++++++++++++++++++----
- 1 file changed, 25 insertions(+), 4 deletions(-)
+ drivers/acpi/ec.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 28ce2cd..54bebbb 100644
+index 2a1eb2a..c2e276f 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -175,6 +175,27 @@ static inline void acpi_ec_write_data(struct acpi_ec *ec, u8 data)
- 	outb(data, ec->data_addr);
+@@ -31,6 +31,7 @@
+ 
+ /* Uncomment next line to get verbose printout */
+ /* #define DEBUG */
++#define DEBUG_REF 0
+ #define pr_fmt(fmt) "ACPI : EC: " fmt
+ 
+ #include <linux/kernel.h>
+@@ -92,6 +93,13 @@ enum {
+ #define ACPI_EC_COMMAND_POLL		0x01 /* Available for command byte */
+ #define ACPI_EC_COMMAND_COMPLETE	0x02 /* Completed last byte */
+ 
++#define ec_debug_ref(ec, fmt, ...)					\
++	do {								\
++		if (DEBUG_REF)						\
++			pr_debug("%lu: " fmt, ec->reference_count,	\
++				 ## __VA_ARGS__);			\
++	} while (0)
++
+ /* ec.c is compiled in acpi namespace so this shows up as acpi.ec_delay param */
+ static unsigned int ec_delay __read_mostly = ACPI_EC_DELAY;
+ module_param(ec_delay, uint, 0644);
+@@ -242,6 +250,7 @@ static void acpi_ec_enable_event(struct acpi_ec *ec)
+ 		spin_unlock_irqrestore(&ec->lock, flags);
+ 		return;
+ 	}
++	ec_debug_ref(ec, "Increase poller(enable)\n");
+ 	set_bit(EC_FLAGS_EVENT_ENABLED, &ec->flags);
+ 	if (test_bit(EC_FLAGS_EVENT_PENDING, &ec->flags)) {
+ 		pr_debug("***** Event pending *****\n");
+@@ -250,6 +259,7 @@ static void acpi_ec_enable_event(struct acpi_ec *ec)
+ 		return;
+ 	}
+ 	acpi_ec_disable_gpe(ec);
++	ec_debug_ref(ec, "Decrease poller(enable)\n");
+ 	spin_unlock_irqrestore(&ec->lock, flags);
  }
  
-+#ifdef DEBUG
-+static const char *acpi_ec_cmd_string(u8 cmd)
-+{
-+	switch (cmd) {
-+	case 0x80:
-+		return "RD_EC";
-+	case 0x81:
-+		return "WR_EC";
-+	case 0x82:
-+		return "BE_EC";
-+	case 0x83:
-+		return "BD_EC";
-+	case 0x84:
-+		return "QR_EC";
-+	}
-+	return "UNKNOWN";
-+}
-+#else
-+#define acpi_ec_cmd_string(cmd)		"UNDEF"
-+#endif
-+
- static int ec_transaction_completed(struct acpi_ec *ec)
- {
- 	unsigned long flags;
-@@ -302,16 +323,16 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+@@ -258,6 +268,7 @@ static void __acpi_ec_set_event(struct acpi_ec *ec)
+ 	/* Hold GPE reference for pending event */
+ 	if (!acpi_ec_enable_gpe_flushable(ec, false))
+ 		return;
++	ec_debug_ref(ec, "Increase poller(set)\n");
+ 	if (!test_and_set_bit(EC_FLAGS_EVENT_PENDING, &ec->flags)) {
+ 		pr_debug("***** Event pending *****\n");
+ 		if (test_bit(EC_FLAGS_EVENT_ENABLED, &ec->flags)) {
+@@ -266,6 +277,7 @@ static void __acpi_ec_set_event(struct acpi_ec *ec)
+ 		}
  	}
+ 	acpi_ec_disable_gpe(ec);
++	ec_debug_ref(ec, "Decrease poller(set)\n");
+ }
+ 
+ static void __acpi_ec_complete_event(struct acpi_ec *ec)
+@@ -273,6 +285,7 @@ static void __acpi_ec_complete_event(struct acpi_ec *ec)
+ 	if (test_and_clear_bit(EC_FLAGS_EVENT_PENDING, &ec->flags)) {
+ 		/* Unhold GPE reference for pending event */
+ 		acpi_ec_disable_gpe(ec);
++		ec_debug_ref(ec, "Decrease poller\n");
+ 		pr_debug("***** Event running *****\n");
+ 	}
+ }
+@@ -493,6 +506,7 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+ 		ret = -EINVAL;
+ 		goto unlock;
+ 	}
++	ec_debug_ref(ec, "Increase command\n");
  	/* following two actions should be kept atomic */
  	ec->curr = t;
--	pr_debug("***** transaction started (cmd=0x%02x, addr=0x%02x) *****\n",
--		 t->command, t->wdata ? t->wdata[0] : 0);
-+	pr_debug("***** Command(%s) started *****\n",
-+		 acpi_ec_cmd_string(t->command));
- 	start_transaction(ec);
- 	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
- 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
- 	spin_unlock_irqrestore(&ec->lock, tmp);
- 	ret = ec_poll(ec);
- 	spin_lock_irqsave(&ec->lock, tmp);
--	pr_debug("***** transaction stopped (cmd=0x%02x, addr=0x%02x) *****\n",
--		 t->command, t->wdata ? t->wdata[0] : 0);
-+	pr_debug("***** Command(%s) stopped *****\n",
-+		 acpi_ec_cmd_string(t->command));
+ 	pr_debug("***** Command(%s) started *****\n",
+@@ -508,6 +522,7 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
  	ec->curr = NULL;
+ 	/* Disable GPE for command processing (IBF=0/OBF=1) */
+ 	acpi_ec_disable_gpe(ec);
++	ec_debug_ref(ec, "Decrease command\n");
  unlock:
  	spin_unlock_irqrestore(&ec->lock, tmp);
+ 	return ret;
+@@ -670,6 +685,7 @@ static void acpi_ec_start(struct acpi_ec *ec)
+ 		pr_debug("+++++ Starting EC +++++\n");
+ 		/* Enable GPE for event processing (EVT_SCI=1) */
+ 		acpi_ec_enable_gpe(ec);
++		ec_debug_ref(ec, "Increase event\n");
+ 		pr_info("+++++ EC started +++++\n");
+ 	}
+ 	spin_unlock_irqrestore(&ec->lock, flags);
+@@ -701,6 +717,7 @@ static void acpi_ec_stop(struct acpi_ec *ec)
+ 		acpi_ec_clear_storm(ec, EC_FLAGS_EVENT_STORM);
+ 		/* Disable GPE for event processing (EVT_SCI=1) */
+ 		acpi_ec_disable_gpe(ec);
++		ec_debug_ref(ec, "Decrease event\n");
+ 		clear_bit(EC_FLAGS_STARTED, &ec->flags);
+ 		clear_bit(EC_FLAGS_STOPPED, &ec->flags);
+ 		pr_info("+++++ EC stopped +++++\n");
 -- 
 1.7.10
