@@ -1,45 +1,49 @@
-From: Arjun Sreedharan <arjun024@gmail.com>
-Subject: [PATCH] PNPACPI: check return value of pnpacpi_parse_allocated_resource() and pnpacpi_parse_resource_option_data()
-Date: Wed, 23 Jul 2014 00:43:39 +0530
-Message-ID: <1406056419-3047-1-git-send-email-arjun024@gmail.com>
+From: Tony Luck <tony.luck@gmail.com>
+Subject: Re: [PATCH v5 0/3] APEI: Make APEI architecture independent.
+Date: Tue, 22 Jul 2014 14:08:58 -0700
+Message-ID: <CA+8MBb+KuKaeXr5p97xWZKJB7T-NAooi-kXQTaPx0QnO53-oCQ@mail.gmail.com>
+References: <1406020813-9176-1-git-send-email-tomasz.nowicki@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:44695 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752625AbaGVTVY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jul 2014 15:21:24 -0400
+Received: from mail-vc0-f180.google.com ([209.85.220.180]:62276 "EHLO
+	mail-vc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756780AbaGVVI7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jul 2014 17:08:59 -0400
+In-Reply-To: <1406020813-9176-1-git-send-email-tomasz.nowicki@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@alien8.de>, "m.chehab@samsung.com" <m.chehab@samsung.com>, Borislav Petkov <bp@suse.de>, rric@kernel.org, Linux Edac Mailing List <linux-edac@vger.kernel.org>, X86-ML <x86@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.org
 
-Handle error condition since pnpacpi_parse_allocated_resource() and pnpacpi_parse_resource_option_data() could return -EPERM.
+On Tue, Jul 22, 2014 at 2:20 AM, Tomasz Nowicki
+<tomasz.nowicki@linaro.org> wrote:
+> APEI is currently implemented so that it depends on x86 hardware.
+> The primary dependency is that GHES uses the x86 NMI for hardware
+> error notification and MCE for memory error handling. These patches
+> remove that dependency.
+>
+> Other APEI features such as error reporting via external IRQ, error
+> serialization, or error injection, do not require changes to use them
+> on non-x86 architectures.
+>
+> The following patch set eliminates the APEI Kconfig x86 dependency
+> by making these changes:
+> - treat NMI notification as GHES architecture - HAVE_ACPI_APEI_NMI
+> - group and wrap around #ifdef CONFIG_HAVE_ACPI_APEI_NMI code which
+>   is used only for NMI path
+> - identify architectural boxes and abstract it accordingly (tlb flush and MCE)
+> - rework ioremap for both IRQ and NMI context
+>
+> NMI code is kept in ghes.c file since NMI and IRQ context are tightly coupled.
+>
+> Note, these patches introduce no functional changes for x86. The NMI notification
+> feature is hard selected for x86. Architectures that want to use this
+> feature should also provide NMI code infrastructure.
 
-Signed-off-by: Arjun Sreedharan <arjun024@gmail.com>
----
- drivers/pnp/pnpacpi/core.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+Looks OK to me. I've thrown this series into a topic branch of the ras
+git tree named "apei".  When I push it to kernel.org in a few minutes
+the build test robots will pounce and try all sorts of randconfig builds.
+They'll send you (and me) e-mails if they find any corner cases.
 
-diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index b81448b..c3214e9 100644
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -272,10 +272,14 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
- 		strncpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
- 
- 	if (dev->active)
--		pnpacpi_parse_allocated_resource(dev);
-+		error = pnpacpi_parse_allocated_resource(dev);
-+		if (error)
-+			return error;
- 
- 	if (dev->capabilities & PNP_CONFIGURABLE)
--		pnpacpi_parse_resource_option_data(dev);
-+		error = pnpacpi_parse_resource_option_data(dev);
-+		if (error)
-+			return error;
- 
- 	list_for_each_entry(id, &device->pnp.ids, list) {
- 		if (!strcmp(id->id, pnpid))
--- 
-1.7.11.7
-
+-Tony
