@@ -1,40 +1,58 @@
-From: Tony Luck <tony.luck@gmail.com>
-Subject: Re: [RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE context
-Date: Tue, 22 Jul 2014 14:24:06 -0700
-Message-ID: <CA+8MBbJ3BLXwquF6kktmUOWdXRt_=yQha2GL5R8zFVzLo4O-gg@mail.gmail.com>
-References: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
-	<1405478082-30757-3-git-send-email-gong.chen@linux.intel.com>
-	<20140721084737.GA10016@pd.tnic>
-	<3908561D78D1C84285E8C5FCA982C28F32870C55@ORSMSX114.amr.corp.intel.com>
-	<20140721214116.GC11555@pd.tnic>
-	<3908561D78D1C84285E8C5FCA982C28F32871435@ORSMSX114.amr.corp.intel.com>
-	<20140722172609.GI6462@pd.tnic>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] PNPACPI: check return value of pnpacpi_parse_allocated_resource() and pnpacpi_parse_resource_option_data()
+Date: Wed, 23 Jul 2014 00:12:03 +0200
+Message-ID: <6018343.yi13pxNXUP@vostro.rjw.lan>
+References: <1406056419-3047-1-git-send-email-arjun024@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20140722172609.GI6462@pd.tnic>
-Sender: owner-linux-mm@kvack.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Chen, Gong" <gong.chen@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "x86@kernel.org" <x86@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:51057 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932102AbaGVVxj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jul 2014 17:53:39 -0400
+In-Reply-To: <1406056419-3047-1-git-send-email-arjun024@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arjun Sreedharan <arjun024@gmail.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Jul 22, 2014 at 10:26 AM, Borislav Petkov <bp@alien8.de> wrote:
-> Once they've been eaten by something, we simply remove them from that
-> buffer and that's it.
+On Wednesday, July 23, 2014 12:43:39 AM Arjun Sreedharan wrote:
+> Handle error condition since pnpacpi_parse_allocated_resource() and pnpacpi_parse_resource_option_data() could return -EPERM.
+> 
+> Signed-off-by: Arjun Sreedharan <arjun024@gmail.com>
 
-swap that for
+I wonder if this fixes any functional issue you've seen or someone has
+reported to you or it's just an "Oh, we probably should handle the return
+values here" kind of thing?
 
-Once everyone who registered a notifier as had a chance to see each
-logged entry, we simply remove ...
+> ---
+>  drivers/pnp/pnpacpi/core.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+> index b81448b..c3214e9 100644
+> --- a/drivers/pnp/pnpacpi/core.c
+> +++ b/drivers/pnp/pnpacpi/core.c
+> @@ -272,10 +272,14 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
+>  		strncpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
+>  
+>  	if (dev->active)
+> -		pnpacpi_parse_allocated_resource(dev);
+> +		error = pnpacpi_parse_allocated_resource(dev);
+> +		if (error)
+> +			return error;
+>  
+>  	if (dev->capabilities & PNP_CONFIGURABLE)
+> -		pnpacpi_parse_resource_option_data(dev);
+> +		error = pnpacpi_parse_resource_option_data(dev);
+> +		if (error)
+> +			return error;
+>  
+>  	list_for_each_entry(id, &device->pnp.ids, list) {
+>  		if (!strcmp(id->id, pnpid))
+> 
 
-I'm not a fan of the current NOTIFY_STOP behavior where one registrant
-can say they are so important that nobody else should be allowed to see
-what was logged.
-
--Tony
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
