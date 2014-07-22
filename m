@@ -1,39 +1,77 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 0/3] ACPI / PM: Make ACPI-based PCI wakeup work for the
- "freeze" sleep state
-Date: Tue, 22 Jul 2014 10:55:38 +0200
-Message-ID: <20140722085538.GA3935@laptop>
-References: <1907495.agrCMfRsQN@vostro.rjw.lan>
- <9631666.En3K0jlGsY@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: [PATCH v5 0/3] APEI: Make APEI architecture independent.
+Date: Tue, 22 Jul 2014 11:20:10 +0200
+Message-ID: <1406020813-9176-1-git-send-email-tomasz.nowicki@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:59219 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752100AbaGVIzn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jul 2014 04:55:43 -0400
-Content-Disposition: inline
-In-Reply-To: <9631666.En3K0jlGsY@vostro.rjw.lan>
+Received: from mail-we0-f170.google.com ([74.125.82.170]:52702 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752667AbaGVJUi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jul 2014 05:20:38 -0400
+Received: by mail-we0-f170.google.com with SMTP id w62so8848590wes.15
+        for <linux-acpi@vger.kernel.org>; Tue, 22 Jul 2014 02:20:36 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
+To: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, m.chehab@samsung.com, bp@suse.de, rric@kernel.org
+Cc: linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-On Tue, Jul 22, 2014 at 03:23:29AM +0200, Rafael J. Wysocki wrote:
+APEI is currently implemented so that it depends on x86 hardware.
+The primary dependency is that GHES uses the x86 NMI for hardware
+error notification and MCE for memory error handling. These patches
+remove that dependency.
 
-> That turned out to be more challenging than I had thought initially.
-> 
-> The last version I sent was almost OK, but it had some issues (like it could
-> walk the PCI hierarchy before resuming any PCI devices during system resume),
-> so a new version follows.  I did my best to avoid introducing any new problems
-> with it, but I obviously might overlook something.
-> 
-> It works for me and doesn't seem to break anything as far as I can say.
-> 
-> [1/3] Make PM workqueue available for CONFIG_PM_RUNTIME unset.
-> [2/3] Rework the handling of ACPI device wakeup notifications.
-> [3/3] Enable wakeup GPEs while setting up devices for wakeup during system
->       suspend too.
+Other APEI features such as error reporting via external IRQ, error
+serialization, or error injection, do not require changes to use them
+on non-x86 architectures.
 
-Doesn't break, doesn't 'work' either. Is there anything I can provide
-you with to make this easier? lspci output or anything like that?
+The following patch set eliminates the APEI Kconfig x86 dependency
+by making these changes:
+- treat NMI notification as GHES architecture - HAVE_ACPI_APEI_NMI
+- group and wrap around #ifdef CONFIG_HAVE_ACPI_APEI_NMI code which
+  is used only for NMI path
+- identify architectural boxes and abstract it accordingly (tlb flush and MCE)
+- rework ioremap for both IRQ and NMI context
+
+NMI code is kept in ghes.c file since NMI and IRQ context are tightly coupled.
+
+Note, these patches introduce no functional changes for x86. The NMI notification
+feature is hard selected for x86. Architectures that want to use this
+feature should also provide NMI code infrastructure.
+
+V1->V2
+- address Borislav's comment
+- abstract arch-specific calls instead of wrapping into the #ifdef
+
+V2->V3
+- address Robert's comment
+- disable ACPI_APEI_NMI selection so that it is hard selected by arch Kconfig
+- rename ACPI_APEI_NMI to ARCH_HAS_ACPI_APEI_NMI
+
+V3->V4
+- do not abstract NMI calls for archs which do not support it
+- merge some of patches to make review process easier
+
+V4->V5
+- markers for preprocessor statements (#else, #endif) around long code block
+
+Tomasz Nowicki (3):
+  apei, mce: Factor out APEI architecture specific MCE calls.
+  acpi, apei, ghes: Make NMI error notification to be GHES architecture
+    extension.
+  acpi, apei, ghes: Factor out ioremap virtual memory for IRQ and NMI
+    context.
+
+ arch/x86/Kconfig              |   2 +
+ arch/x86/kernel/acpi/Makefile |   1 +
+ arch/x86/kernel/acpi/apei.c   |  62 +++++++++++++++
+ drivers/acpi/apei/Kconfig     |   8 +-
+ drivers/acpi/apei/apei-base.c |  13 ++++
+ drivers/acpi/apei/ghes.c      | 173 +++++++++++++++++++++++++++---------------
+ drivers/acpi/apei/hest.c      |  29 +------
+ include/acpi/apei.h           |   4 +
+ include/linux/nmi.h           |   4 +
+ 9 files changed, 204 insertions(+), 92 deletions(-)
+ create mode 100644 arch/x86/kernel/acpi/apei.c
+
+-- 
+1.9.1
+
