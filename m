@@ -1,143 +1,68 @@
-From: Tony Luck <tony.luck@intel.com>
-Subject: RE: [RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE
-Date: Mon, 21 Jul 2014 15:44:06 -0700
-Message-ID: <f6ee27db104e769822437234b3fee199d51b5177.1405982894.git.tony.luck@intel.com>
-References: <3908561D78D1C84285E8C5FCA982C28F32871435@ORSMSX114.amr.corp.intel.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F32871435@ORSMSX114.amr.corp.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Chen, Gong" <gong.chen@linux.jf.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "x86@kernel.org" <x86@kernel.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Update 2x][PATCH 1/2] ACPI / PM: Always enable wakeup GPEs when enabling device wakeup
+Date: Tue, 22 Jul 2014 03:02:29 +0200
+Message-ID: <30566603.pYsRuTlO6S@vostro.rjw.lan>
+References: <1907495.agrCMfRsQN@vostro.rjw.lan> <5962983.s3jy9r09Hm@vostro.rjw.lan> <20140721081734.GL3935@laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:53295 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751024AbaGVAoJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Jul 2014 20:44:09 -0400
+In-Reply-To: <20140721081734.GL3935@laptop>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
+On Monday, July 21, 2014 10:17:34 AM Peter Zijlstra wrote:
+> On Mon, Jul 21, 2014 at 01:51:46AM +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Subject: ACPI / PM: Always enable wakeup GPEs when enabling device wakeup
+> > 
+> > Wakeup GPEs are currently only enabled when setting up devices for
+> > remote wakeup at run time.  During system-wide transitions they are
+> > enabled by ACPICA at the very last stage of suspend (before asking
+> > the BIOS to take over).  Of course, that only works for system
+> > sleep states supported by ACPI, so in particular it doesn't work
+> > for the "freeze" sleep state.
+> > 
+> > For this reason, modify the ACPI core device PM code to enable wakeup
+> > GPEs for devices when setting them up for wakeup regardless of whether
+> > that is remote wakeup at runtime or system wakeup.  That allows the
+> > same device wakeup setup routine to be used for both runtime PM and
+> > system-wide PM and makes it possible to reduce code size quite a bit.
+> > 
+> > That should make things like ACPI-based PCI Wake-on-LAN work with
+> > the "freeze" sleep state among other things.
+> > 
+> > Tested-on: Toshiba Portege R500
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> > 
+> > The PCI ACPI device PM notify handler has to be updated to avoid running
+> > runtime resume callbacks during system suspend too.
+> 
+> So I tested the first version, with that my WSM-EP didn't resume on WoL
+> and pressing the power button after the WoL had it crash and burn in the
+> igb driver.
+> 
+> Today I tested this latest version and WoL still didn't trigger a
+> resume, but the power button did make it go again, no crashes and I
+> suppose I can confirm the earlier patch that stopped making it go halt
+> works.
 
-This is how much cleaner things could be with a couple of task_struct
-fields instead of the mce_info silliness ... untested.
+OK, thanks!
 
----
- arch/x86/kernel/cpu/mcheck/mce.c | 58 ++++------------------------------------
- include/linux/sched.h            |  4 +++
- 2 files changed, 9 insertions(+), 53 deletions(-)
+> When I 'halt' I can wake the machine back up using a WoL so that all
+> _should_ work afaik.
 
-diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/mcheck/mce.c
-index bb92f38153b2..b08398e69b5c 100644
---- a/arch/x86/kernel/cpu/mcheck/mce.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -956,51 +956,6 @@ static void mce_clear_state(unsigned long *toclear)
- }
- 
- /*
-- * Need to save faulting physical address associated with a process
-- * in the machine check handler some place where we can grab it back
-- * later in mce_notify_process()
-- */
--#define	MCE_INFO_MAX	16
--
--struct mce_info {
--	atomic_t		inuse;
--	struct task_struct	*t;
--	__u64			paddr;
--	int			restartable;
--} mce_info[MCE_INFO_MAX];
--
--static void mce_save_info(__u64 addr, int c)
--{
--	struct mce_info *mi;
--
--	for (mi = mce_info; mi < &mce_info[MCE_INFO_MAX]; mi++) {
--		if (atomic_cmpxchg(&mi->inuse, 0, 1) == 0) {
--			mi->t = current;
--			mi->paddr = addr;
--			mi->restartable = c;
--			return;
--		}
--	}
--
--	mce_panic("Too many concurrent recoverable errors", NULL, NULL);
--}
--
--static struct mce_info *mce_find_info(void)
--{
--	struct mce_info *mi;
--
--	for (mi = mce_info; mi < &mce_info[MCE_INFO_MAX]; mi++)
--		if (atomic_read(&mi->inuse) && mi->t == current)
--			return mi;
--	return NULL;
--}
--
--static void mce_clear_info(struct mce_info *mi)
--{
--	atomic_set(&mi->inuse, 0);
--}
--
--/*
-  * The actual machine check handler. This only handles real
-  * exceptions when something got corrupted coming in through int 18.
-  *
-@@ -1156,7 +1111,8 @@ void do_machine_check(struct pt_regs *regs, long error_code)
- 			mce_panic("Fatal machine check on current CPU", &m, msg);
- 		if (worst == MCE_AR_SEVERITY) {
- 			/* schedule action before return to userland */
--			mce_save_info(m.addr, m.mcgstatus & MCG_STATUS_RIPV);
-+			current->paddr = m.addr;
-+			current->restartable = m.mcgstatus & MCG_STATUS_RIPV;
- 			set_thread_flag(TIF_MCE_NOTIFY);
- 		} else if (kill_it) {
- 			force_sig(SIGBUS, current);
-@@ -1195,29 +1151,25 @@ int memory_failure(unsigned long pfn, int vector, int flags)
- void mce_notify_process(void)
- {
- 	unsigned long pfn;
--	struct mce_info *mi = mce_find_info();
- 	int flags = MF_ACTION_REQUIRED;
- 
--	if (!mi)
--		mce_panic("Lost physical address for unconsumed uncorrectable error", NULL, NULL);
--	pfn = mi->paddr >> PAGE_SHIFT;
-+	pfn = current->paddr >> PAGE_SHIFT;
- 
- 	clear_thread_flag(TIF_MCE_NOTIFY);
- 
- 	pr_err("Uncorrected hardware memory error in user-access at %llx",
--		 mi->paddr);
-+		 current->paddr);
- 	/*
- 	 * We must call memory_failure() here even if the current process is
- 	 * doomed. We still need to mark the page as poisoned and alert any
- 	 * other users of the page.
- 	 */
--	if (!mi->restartable)
-+	if (!current->restartable)
- 		flags |= MF_MUST_KILL;
- 	if (memory_failure(pfn, MCE_VECTOR, flags) < 0) {
- 		pr_err("Memory error not recovered");
- 		force_sig(SIGBUS, current);
- 	}
--	mce_clear_info(mi);
- }
- 
- /*
-diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 0376b054a0d0..91db69a4acd7 100644
---- a/include/linux/sched.h
-+++ b/include/linux/sched.h
-@@ -1655,6 +1655,10 @@ struct task_struct {
- 	unsigned int	sequential_io;
- 	unsigned int	sequential_io_avg;
- #endif
-+#ifdef CONFIG_MEMORY_FAILURE
-+	__u64	paddr;
-+	int	restartable;
-+#endif
- };
- 
- /* Future-safe accessor for struct task_struct's cpus_allowed. */
--- 
-1.8.4.1
+Yes, it should.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+I'll send an updated patchset shortly, so please test that one.  If it
+doesn't help, we'll need to dig deeper still.
+
+Rafael
+
