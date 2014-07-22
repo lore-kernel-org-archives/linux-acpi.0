@@ -1,53 +1,45 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE context
-Date: Tue, 22 Jul 2014 19:26:09 +0200
-Message-ID: <20140722172609.GI6462@pd.tnic>
-References: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
- <1405478082-30757-3-git-send-email-gong.chen@linux.intel.com>
- <20140721084737.GA10016@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F32870C55@ORSMSX114.amr.corp.intel.com>
- <20140721214116.GC11555@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F32871435@ORSMSX114.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Arjun Sreedharan <arjun024@gmail.com>
+Subject: [PATCH] PNPACPI: check return value of pnpacpi_parse_allocated_resource() and pnpacpi_parse_resource_option_data()
+Date: Wed, 23 Jul 2014 00:43:39 +0530
+Message-ID: <1406056419-3047-1-git-send-email-arjun024@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:54021 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756159AbaGVR0M (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Jul 2014 13:26:12 -0400
-Content-Disposition: inline
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F32871435@ORSMSX114.amr.corp.intel.com>
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:44695 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752625AbaGVTVY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jul 2014 15:21:24 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "Chen, Gong" <gong.chen@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "x86@kernel.org" <x86@kernel.org>
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Jul 21, 2014 at 10:03:04PM +0000, Luck, Tony wrote:
-> > And drop all the homegrown other stuff like mce_ring and all?
-> 
-> mce_ring should be easy ... the "mce" structure has the address
-> from which we can easily get the pfn to pass into the action-optional
-> recovery path.  Only thing missing is a direct indication that this mce
-> does contain an AO error that needs to be processed. We could
-> re-invoke mce_severity() to figure it out again - or just add a flag
-> somewhere.
+Handle error condition since pnpacpi_parse_allocated_resource() and pnpacpi_parse_resource_option_data() could return -EPERM.
 
-Right, so if we're going to clean up this mess, I think we should strive
-for having a single ring buffer which contains all the MCEs and which we
-can iterate over at leisure, either in IRQ context if some of them have
-been reported through real exceptions or in process context if they're
-simple CEs.
+Signed-off-by: Arjun Sreedharan <arjun024@gmail.com>
+---
+ drivers/pnp/pnpacpi/core.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-Once they've been eaten by something, we simply remove them from that
-buffer and that's it. But sure, one lockless buffer which works in all
-contexts would be much better than growing stuff here and there with
-different semantics and context usage.
-
-Thanks.
-
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index b81448b..c3214e9 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -272,10 +272,14 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
+ 		strncpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
+ 
+ 	if (dev->active)
+-		pnpacpi_parse_allocated_resource(dev);
++		error = pnpacpi_parse_allocated_resource(dev);
++		if (error)
++			return error;
+ 
+ 	if (dev->capabilities & PNP_CONFIGURABLE)
+-		pnpacpi_parse_resource_option_data(dev);
++		error = pnpacpi_parse_resource_option_data(dev);
++		if (error)
++			return error;
+ 
+ 	list_for_each_entry(id, &device->pnp.ids, list) {
+ 		if (!strcmp(id->id, pnpid))
 -- 
-Regards/Gruss,
-    Boris.
+1.7.11.7
 
-Sent from a fat crate under my desk. Formatting is fine.
---
