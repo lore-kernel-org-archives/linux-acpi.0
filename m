@@ -1,43 +1,52 @@
 From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v5 2/3] acpi, apei, ghes: Make NMI error notification to
- be GHES architecture extension.
-Date: Tue, 22 Jul 2014 18:57:39 +0200
-Message-ID: <20140722165739.GG6462@pd.tnic>
-References: <1406020813-9176-1-git-send-email-tomasz.nowicki@linaro.org>
- <1406020813-9176-3-git-send-email-tomasz.nowicki@linaro.org>
+Subject: Re: [RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE
+Date: Tue, 22 Jul 2014 19:20:44 +0200
+Message-ID: <20140722172044.GH6462@pd.tnic>
+References: <3908561D78D1C84285E8C5FCA982C28F32871435@ORSMSX114.amr.corp.intel.com>
+ <f6ee27db104e769822437234b3fee199d51b5177.1405982894.git.tony.luck@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:53744 "EHLO mail.skyhub.de"
+Received: from mail.skyhub.de ([78.46.96.112]:37708 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756001AbaGVQ5n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Jul 2014 12:57:43 -0400
+	id S1755221AbaGVRUr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Jul 2014 13:20:47 -0400
 Content-Disposition: inline
-In-Reply-To: <1406020813-9176-3-git-send-email-tomasz.nowicki@linaro.org>
+In-Reply-To: <f6ee27db104e769822437234b3fee199d51b5177.1405982894.git.tony.luck@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, m.chehab@samsung.com, bp@suse.de, rric@kernel.org, linux-edac@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Tony Luck <tony.luck@intel.com>
+Cc: "Chen, Gong" <gong.chen@linux.jf.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "x86@kernel.org" <x86@kernel.org>
 
-On Tue, Jul 22, 2014 at 11:20:12AM +0200, Tomasz Nowicki wrote:
-> Currently APEI depends on x86 architecture. It is because of NMI hardware
-> error notification of GHES which is currently supported by x86 only.
-> However, many other APEI features can be still used perfectly by other
-> architectures.
+On Mon, Jul 21, 2014 at 03:44:06PM -0700, Tony Luck wrote:
 > 
-> This commit adds two symbols:
-> 1. HAVE_ACPI_APEI for those archs which support APEI.
-> 2. HAVE_ACPI_APEI_NMI which is used for NMI code isolation in ghes.c
->    file. NMI related data and functions are grouped so they can be wrapped
->    inside one #ifdef section. Appropriate function stubs are provided for
->    !NMI case.
-> 
-> Note there is no functional changes for x86 due to hard selected
-> HAVE_ACPI_APEI and HAVE_ACPI_APEI_NMI symbols.
-> 
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> This is how much cleaner things could be with a couple of task_struct
+> fields instead of the mce_info silliness ... untested.
 
-Acked-by: Borislav Petkov <bp@suse.de>
+...
+
+> diff --git a/include/linux/sched.h b/include/linux/sched.h
+> index 0376b054a0d0..91db69a4acd7 100644
+> --- a/include/linux/sched.h
+> +++ b/include/linux/sched.h
+> @@ -1655,6 +1655,10 @@ struct task_struct {
+>  	unsigned int	sequential_io;
+>  	unsigned int	sequential_io_avg;
+>  #endif
+> +#ifdef CONFIG_MEMORY_FAILURE
+> +	__u64	paddr;
+> +	int	restartable;
+> +#endif
+
+Right, I don't see anything wrong with this approach especially as
+task_struct is full of CONFIG_* ifdeffery for members used with
+different features.
+
+Adding 12 more bytes for CONFIG_MEMORY_FAILURE shouldn't hurt anyone. If
+we really want to save space, we can use the highest significant byte of
+paddr for a bit to say "restartable" or not.
+
+So I think we should make it into a patch and push it upstream.
 
 -- 
 Regards/Gruss,
