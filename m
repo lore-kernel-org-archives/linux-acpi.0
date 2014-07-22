@@ -1,22 +1,19 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 0/3] ACPI / PM: Make ACPI-based PCI wakeup work for the
- "freeze" sleep state
-Date: Tue, 22 Jul 2014 11:42:31 +0200
-Message-ID: <20140722094231.GI12054@laptop.lan>
-References: <1907495.agrCMfRsQN@vostro.rjw.lan>
- <9631666.En3K0jlGsY@vostro.rjw.lan>
- <20140722085538.GA3935@laptop>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/3] ACPI / PM: Make ACPI-based PCI wakeup work for the "freeze" sleep state
+Date: Tue, 22 Jul 2014 14:23:03 +0200
+Message-ID: <2866134.Da8PQoU0sW@vostro.rjw.lan>
+References: <1907495.agrCMfRsQN@vostro.rjw.lan> <9631666.En3K0jlGsY@vostro.rjw.lan> <20140722085538.GA3935@laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
 In-Reply-To: <20140722085538.GA3935@laptop>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Sender: linux-pm-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 22, 2014 at 10:55:38AM +0200, Peter Zijlstra wrote:
+On Tuesday, July 22, 2014 10:55:38 AM Peter Zijlstra wrote:
 > On Tue, Jul 22, 2014 at 03:23:29AM +0200, Rafael J. Wysocki wrote:
 > 
 > > That turned out to be more challenging than I had thought initially.
@@ -33,12 +30,17 @@ On Tue, Jul 22, 2014 at 10:55:38AM +0200, Peter Zijlstra wrote:
 > > [3/3] Enable wakeup GPEs while setting up devices for wakeup during system
 > >       suspend too.
 > 
-> Doesn't break, doesn't 'work' either. Is there anything I can provide
-> you with to make this easier? lspci output or anything like that?
+> Doesn't break, doesn't 'work' either.
 
-Also, I'm more than willing to get you early_printk() or ftrace logs for
-this. Except of course that early_printk() seems to not work throughout
-the freeze cycle as I've already reported.
+This probably means that WoL on that machine is not ACPI-based.
 
-But given that I can wake the machine with the power button, I can get
-you trace logs.
+> Is there anything I can provide you with to make this easier? lspci output
+> or anything like that?
+
+Yes, /proc/interrupts from the machine in question would help to start with.
+
+Also /sys/kernel/debug/wakeup_sources (if /sys/kernel/debug/ is where your debugfs
+lives) before and after a "freeze" with an attempt to use WoL to wake it up.
+
+Rafael
+
