@@ -1,80 +1,238 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 2/7] ACPICA: Linux: Add stub implementation of ACPICA 64-bit mathematics.
-Date: Wed, 23 Jul 2014 01:42:18 +0200
-Message-ID: <1733924.BlDCbaVj8l@vostro.rjw.lan>
-References: <cover.1387336613.git.lv.zheng@intel.com> <3777197.HSR7Q9huIS@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E8802643932@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [PATCH v3] acpi: mv models with win8 brightness problems from win8 blacklist to use_native_backlight
+Date: Wed, 23 Jul 2014 01:43:49 +0200
+Message-ID: <32710159.juuz1vSYti@vostro.rjw.lan>
+References: <1405341429-549-1-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62075 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:60690 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932171AbaGVXXy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jul 2014 19:23:54 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802643932@SHSMSX101.ccr.corp.intel.com>
+	with SMTP id S1752067AbaGVXZZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jul 2014 19:25:25 -0400
+In-Reply-To: <1405341429-549-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Monday, July 21, 2014 01:26:10 AM Zheng, Lv wrote:
-> Hi, Rafael
+On Monday, July 14, 2014 02:37:09 PM Hans de Goede wrote:
+> When the windows8 related backlight problems became evident, 2 approaches
+> were follow in parallel, one was to stop claiming to be windows 8 / 2012,
+> the other was to tell acpi_video to stop registering a backlight driver.
 > 
-> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > Sent: Sunday, July 20, 2014 7:46 AM
-> > To: Zheng, Lv
-> > 
-> > On Wednesday, July 16, 2014 04:58:00 PM Lv Zheng wrote:
-> > > This patch adds default 64-bit mathematics in aclinux.h using do_div(). As
-> > > do_div() can be used for all Linux architectures, this can also be used as
-> > > stub macros for ACPICA 64-bit mathematics.
-> > >
-> > > But this is not a performance friendly way, as ACPICA's architecture
-> > > specific division OSL only requires a dividing 64-bit number with a 32-bit
-> > > number implementation, while Linux __div64_32() is not available for all
-> > > build environments. So currently, if an architecture really wants to
-> > > support ACPICA, it must implement its own division OSL.
-> > 
-> > What does this mean for i386, in particular?
+> I've read all the threads and it seems that which approach ended up being
+> applied to which model laptop was never really a concious decision (AFAIK):
 > 
-> All ACPICA environment macros have defaults in actypes.h or acenv.h, these macros are the only ones do not have defaults.
-> Because their defaults should be provided by OSPMs.
-> This patch just adds their default implementation for __KERNEL__ surrounded code for Linux kernel.
-> It only provides build protection and demonstrations of the functionality, no one actually uses it now.
+> https://bugzilla.kernel.org/show_bug.cgi?id=51231
+> https://bugzilla.kernel.org/show_bug.cgi?id=60682
 > 
-> Let me figure out the possible users below:
+> So lets move all the models which are only on the win8 blacklist because of
+> brightness issues to the use_native_backlight list, which is the smaller
+> hammer to use to solve the backlight issues.
 > 
-> These macros are required by drivers/acpi/utmath.c when ACPI_USE_NATIVE_DIVIDE is not defined.
-> It is used by ACPICA, so currently this is only meaningful to CONFIG_ACPI builds.
-> So kernel will not use these macros unless CONFIG_ACPI is defined and ACPI_USE_DIVIDE is not defined.
+> Making this change is esp. attractive now that 3.16 has
+> video.use_native_brightness=1 by default. If that new default does not get
+> reverted because of regressions, then we can drop all the models
+> with a use_native_backlight quirk, greatly reducing the number of models we've
+> a quirk for.
 > 
-> For 64-bit kernels: 
-> In include/acpi/actypes.h, for ACPI_MACHINE_WIDTH=64, ACPI_USE_NATIVE_DIVIDE will be defined, thus these macros are not used.
-> In include/acpi/platform/aclinux.h, for __KERNEL__ surrounded code, ACPI_MACHINE_WIDTH is defined to be BITS_PER_LONG.
-> So all 64-bit kernels do not use these macros.
+> Note: this is not tested on any of the affected models, this just seems like
+> the sensible thing to do.
 > 
-> For 32-bit kernels:
-> As mentioned above, these macros will be used when BITS_PER_LONG is 32.
-> Thus currently the i328 kernels are the only users for these macros.
-> But they won't use this default implementation provided by this patch because:
-> In arch/x86/include/asm/acenv.h, there are already overrides implemented.
-> So these default macros are not used by 32-bit x86 (i386) kernels.
-> 
-> These macros will only be used by future non x86 32-bit architectures that try to support ACPI in Linux kernel.
-> During the period they do not have arch specific implementations of such macros, we can avoid build errors for them.
-> And since they can see ACPICA functioning without implementing any arch specific environment tunings, we  can also avoid function errors for them.
-> As this implementation is not performance friendly, those architectures still need to implement real support in the end.
-> 
-> As a conclusion, IMO:
-> 1. This default implementation just fill an ACPICA default environment gap.
-> 1. There are no users and will be no users of this default implementation in the kernel.
-> 3. Though this default implementation is not performance friendly, it functions correctly, so it can be a demo for future 32-bit architectures that try to support ACPI.
-> 4. We can use this default implementation to avoid build troubles.
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-Good analysis, thanks!
+Queued up for 3.17, thanks!
 
-I copied the most useful part of it to the changelog of this patch and queued
-up the whole series for 3.17.
+> --
+> 
+> Changes in v2: Rebased on top of v3.16-rc1
+> Changes in v3: The Dell Inspiron 7737 does not have a dmi_disable_osi_win8
+> quirk because of backlight reasons, but for other reasons, keep the quirk.
+> ---
+>  drivers/acpi/blacklist.c | 68 ++----------------------------------------------
+>  drivers/acpi/video.c     | 68 ++++++++++++++++++++++++++++++++++++++++++++++--
+>  2 files changed, 68 insertions(+), 68 deletions(-)
+> 
+> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+> index 3d8413d..36eb42e 100644
+> --- a/drivers/acpi/blacklist.c
+> +++ b/drivers/acpi/blacklist.c
+> @@ -247,75 +247,11 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+>  	},
+>  
+>  	/*
+> -	 * The following machines have broken backlight support when reporting
+> -	 * the Windows 2012 OSI, so disable it until their support is fixed.
+> +	 * These machines will power on immediately after shutdown when
+> +	 * reporting the Windows 2012 OSI.
+>  	 */
+>  	{
+>  	.callback = dmi_disable_osi_win8,
+> -	.ident = "ASUS Zenbook Prime UX31A",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+> -		     DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "ThinkPad Edge E530",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "ThinkPad Edge E530",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "ThinkPad Edge E530",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "Acer Aspire V5-573G",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "Acer Aspire V5-572G",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "ThinkPad T431s",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+> -	.ident = "ThinkPad T430",
+> -	.matches = {
+> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
+> -		},
+> -	},
+> -	{
+> -	.callback = dmi_disable_osi_win8,
+>  	.ident = "Dell Inspiron 7737",
+>  	.matches = {
+>  		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index e38c3b3..6194054 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -460,6 +460,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  	},
+>  	{
+>  	 .callback = video_set_use_native_backlight,
+> +	 .ident = "ThinkPad X230",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_set_use_native_backlight,
+>  	 .ident = "ThinkPad T430 and T430s",
+>  	 .matches = {
+>  		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> @@ -468,10 +476,42 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  	},
+>  	{
+>  	 .callback = video_set_use_native_backlight,
+> -	 .ident = "ThinkPad X230",
+> +	 .ident = "ThinkPad T430",
+>  	 .matches = {
+>  		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> -		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_set_use_native_backlight,
+> +	 .ident = "ThinkPad T431s",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_set_use_native_backlight,
+> +	 .ident = "ThinkPad Edge E530",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_set_use_native_backlight,
+> +	 .ident = "ThinkPad Edge E530",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_set_use_native_backlight,
+> +	 .ident = "ThinkPad Edge E530",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
+>  		},
+>  	},
+>  	{
+> @@ -563,6 +603,30 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  		},
+>  	},
+>  	{
+> +	 .callback = video_set_use_native_backlight,
+> +	 .ident = "Acer Aspire V5-572G",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_set_use_native_backlight,
+> +	 .ident = "Acer Aspire V5-573G",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_set_use_native_backlight,
+> +	 .ident = "ASUS Zenbook Prime UX31A",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
+> +		},
+> +	},
+> +	{
+>  	.callback = video_set_use_native_backlight,
+>  	.ident = "HP ProBook 4340s",
+>  	.matches = {
+> 
 
 -- 
 I speak only for myself.
