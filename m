@@ -1,233 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 3/3] ACPI / PM: Always enable wakeup GPEs when enabling device wakeup
-Date: Tue, 22 Jul 2014 03:26:01 +0200
-Message-ID: <2036304.rpZzsWCEyN@vostro.rjw.lan>
-References: <1907495.agrCMfRsQN@vostro.rjw.lan> <9631666.En3K0jlGsY@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH v3 00/14] ACPI/EC: Add event storm prevention and
+ cleanup command storm prevention.
+Date: Tue, 22 Jul 2014 01:25:00 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802643E0D@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1403060601.git.lv.zheng@intel.com>
+ <cover.1405922585.git.lv.zheng@intel.com> <9698076.0kdZ11M3j2@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9631666.En3K0jlGsY@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Peter Zijlstra <peterz@infradead.org>
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:27226 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751143AbaGVBZG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Jul 2014 21:25:06 -0400
+In-Reply-To: <9698076.0kdZ11M3j2@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-Wakeup GPEs are currently only enabled when setting up devices for
-remote wakeup at run time.  During system-wide transitions they are
-enabled by ACPICA at the very last stage of suspend (before asking
-the BIOS to take over).  Of course, that only works for system
-sleep states supported by ACPI, so in particular it doesn't work
-for the "freeze" sleep state.
-
-For this reason, modify the ACPI core device PM code to enable wakeup
-GPEs for devices when setting them up for wakeup regardless of whether
-that is remote wakeup at runtime or system wakeup.  That allows the
-same device wakeup setup routine to be used for both runtime PM and
-system-wide PM and makes it possible to reduce code size quite a bit.
-
-This make ACPI-based PCI Wake-on-LAN work with the "freeze" sleep
-state on my venerable Toshiba Portege R500 and should help other
-systems too.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/device_pm.c |   49 ++++++++++++++++-------------------------------
- include/acpi/acpi_bus.h  |   11 ----------
- 2 files changed, 17 insertions(+), 43 deletions(-)
-
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -632,7 +632,6 @@ int acpi_pm_device_sleep_state(struct de
- }
- EXPORT_SYMBOL(acpi_pm_device_sleep_state);
- 
--#ifdef CONFIG_PM_RUNTIME
- /**
-  * acpi_pm_notify_work_func - ACPI devices wakeup notification work function.
-  * @work: Work item to handle.
-@@ -649,8 +648,9 @@ static void acpi_pm_notify_work_func(str
- }
- 
- /**
-- * __acpi_device_run_wake - Enable/disable runtime remote wakeup for device.
-- * @adev: ACPI device to enable/disable the remote wakeup for.
-+ * acpi_device_wakeup - Enable/disable wakeup functionality for device.
-+ * @adev: ACPI device to enable/disable wakeup functionality for.
-+ * @target_state: State the system is transitioning into.
-  * @enable: Whether to enable or disable the wakeup functionality.
-  *
-  * Enable/disable the GPE associated with @adev so that it can generate
-@@ -660,7 +660,8 @@ static void acpi_pm_notify_work_func(str
-  * Callers must ensure that @adev is a valid ACPI device node before executing
-  * this function.
-  */
--int __acpi_device_run_wake(struct acpi_device *adev, bool enable)
-+static int acpi_device_wakeup(struct acpi_device *adev, u32 target_state,
-+			      bool enable)
- {
- 	struct acpi_device_wakeup *wakeup = &adev->wakeup;
- 
-@@ -668,7 +669,7 @@ int __acpi_device_run_wake(struct acpi_d
- 		acpi_status res;
- 		int error;
- 
--		error = acpi_enable_wakeup_device_power(adev, ACPI_STATE_S0);
-+		error = acpi_enable_wakeup_device_power(adev, target_state);
- 		if (error)
- 			return error;
- 
-@@ -684,6 +685,7 @@ int __acpi_device_run_wake(struct acpi_d
- 	return 0;
- }
- 
-+#ifdef CONFIG_PM_RUNTIME
- /**
-  * acpi_pm_device_run_wake - Enable/disable remote wakeup for given device.
-  * @dev: Device to enable/disable the platform to wake up.
-@@ -704,29 +706,13 @@ int acpi_pm_device_run_wake(struct devic
- 		return -ENODEV;
- 	}
- 
--	return __acpi_device_run_wake(adev, enable);
-+	return acpi_device_wakeup(adev, enable, ACPI_STATE_S0);
- }
- EXPORT_SYMBOL(acpi_pm_device_run_wake);
--#else
--static inline void acpi_pm_notify_work_func(struct work_struct *work) {}
- #endif /* CONFIG_PM_RUNTIME */
- 
- #ifdef CONFIG_PM_SLEEP
- /**
-- * __acpi_device_sleep_wake - Enable or disable device to wake up the system.
-- * @dev: Device to enable/desible to wake up the system.
-- * @target_state: System state the device is supposed to wake up from.
-- * @enable: Whether to enable or disable @dev to wake up the system.
-- */
--int __acpi_device_sleep_wake(struct acpi_device *adev, u32 target_state,
--			     bool enable)
--{
--	return enable ?
--		acpi_enable_wakeup_device_power(adev, target_state) :
--		acpi_disable_wakeup_device_power(adev);
--}
--
--/**
-  * acpi_pm_device_sleep_wake - Enable or disable device to wake up the system.
-  * @dev: Device to enable/desible to wake up the system from sleep states.
-  * @enable: Whether to enable or disable @dev to wake up the system.
-@@ -746,8 +732,7 @@ int acpi_pm_device_sleep_wake(struct dev
- 		return -ENODEV;
- 	}
- 
--	error = __acpi_device_sleep_wake(adev, acpi_target_system_state(),
--					 enable);
-+	error = acpi_device_wakeup(adev, acpi_target_system_state(), enable);
- 	if (!error)
- 		dev_info(dev, "System wakeup %s by ACPI\n",
- 				enable ? "enabled" : "disabled");
-@@ -805,13 +790,13 @@ int acpi_dev_runtime_suspend(struct devi
- 
- 	remote_wakeup = dev_pm_qos_flags(dev, PM_QOS_FLAG_REMOTE_WAKEUP) >
- 				PM_QOS_FLAGS_NONE;
--	error = __acpi_device_run_wake(adev, remote_wakeup);
-+	error = acpi_device_wakeup(adev, ACPI_STATE_S0, remote_wakeup);
- 	if (remote_wakeup && error)
- 		return -EAGAIN;
- 
- 	error = acpi_dev_pm_low_power(dev, adev, ACPI_STATE_S0);
- 	if (error)
--		__acpi_device_run_wake(adev, false);
-+		acpi_device_wakeup(adev, ACPI_STATE_S0, false);
- 
- 	return error;
- }
-@@ -834,7 +819,7 @@ int acpi_dev_runtime_resume(struct devic
- 		return 0;
- 
- 	error = acpi_dev_pm_full_power(adev);
--	__acpi_device_run_wake(adev, false);
-+	acpi_device_wakeup(adev, ACPI_STATE_S0, false);
- 	return error;
- }
- EXPORT_SYMBOL_GPL(acpi_dev_runtime_resume);
-@@ -890,13 +875,13 @@ int acpi_dev_suspend_late(struct device
- 
- 	target_state = acpi_target_system_state();
- 	wakeup = device_may_wakeup(dev);
--	error = __acpi_device_sleep_wake(adev, target_state, wakeup);
-+	error = acpi_device_wakeup(adev, target_state, wakeup);
- 	if (wakeup && error)
- 		return error;
- 
- 	error = acpi_dev_pm_low_power(dev, adev, target_state);
- 	if (error)
--		__acpi_device_sleep_wake(adev, ACPI_STATE_UNKNOWN, false);
-+		acpi_device_wakeup(adev, ACPI_STATE_UNKNOWN, false);
- 
- 	return error;
- }
-@@ -919,7 +904,7 @@ int acpi_dev_resume_early(struct device
- 		return 0;
- 
- 	error = acpi_dev_pm_full_power(adev);
--	__acpi_device_sleep_wake(adev, ACPI_STATE_UNKNOWN, false);
-+	acpi_device_wakeup(adev, ACPI_STATE_UNKNOWN, false);
- 	return error;
- }
- EXPORT_SYMBOL_GPL(acpi_dev_resume_early);
-@@ -1082,7 +1067,7 @@ int acpi_dev_pm_attach(struct device *de
- 	dev->pm_domain = &acpi_general_pm_domain;
- 	if (power_on) {
- 		acpi_dev_pm_full_power(adev);
--		__acpi_device_run_wake(adev, false);
-+		acpi_device_wakeup(adev, ACPI_STATE_S0, false);
- 	}
- 	return 0;
- }
-@@ -1116,7 +1101,7 @@ void acpi_dev_pm_detach(struct device *d
- 			 */
- 			dev_pm_qos_hide_latency_limit(dev);
- 			dev_pm_qos_hide_flags(dev);
--			__acpi_device_run_wake(adev, false);
-+			acpi_device_wakeup(adev, ACPI_STATE_S0, false);
- 			acpi_dev_pm_low_power(dev, adev, ACPI_STATE_S0);
- 		}
- 	}
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -537,13 +537,8 @@ static inline int acpi_pm_device_sleep_s
- #endif
- 
- #ifdef CONFIG_PM_RUNTIME
--int __acpi_device_run_wake(struct acpi_device *, bool);
- int acpi_pm_device_run_wake(struct device *, bool);
- #else
--static inline int __acpi_device_run_wake(struct acpi_device *adev, bool en)
--{
--	return -ENODEV;
--}
- static inline int acpi_pm_device_run_wake(struct device *dev, bool enable)
- {
- 	return -ENODEV;
-@@ -551,14 +546,8 @@ static inline int acpi_pm_device_run_wak
- #endif
- 
- #ifdef CONFIG_PM_SLEEP
--int __acpi_device_sleep_wake(struct acpi_device *, u32, bool);
- int acpi_pm_device_sleep_wake(struct device *, bool);
- #else
--static inline int __acpi_device_sleep_wake(struct acpi_device *adev,
--					   u32 target_state, bool enable)
--{
--	return -ENODEV;
--}
- static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
- {
- 	return -ENODEV;
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFNlbnQ6IFR1ZXNkYXksIEp1bHkgMjIsIDIwMTQgOToxMiBBTQ0KPiANCj4g
+T24gTW9uZGF5LCBKdWx5IDIxLCAyMDE0IDAyOjA0OjUxIFBNIEx2IFpoZW5nIHdyb3RlOg0KPiA+
+IE5vdGUgdGhhdCB0aGlzIHBhdGNoc2V0IGlzIHZlcnkgc3RhYmxlIG5vdywgaXQgaXMgc2VudCBh
+cyBSRkMgYmVjYXVzZSBpdA0KPiA+IGRlcGVuZHMgb24gYW4gQUNQSUNBIEdQRSBlbmhhbmNlbWVu
+dCBzZXJpZXMgd2hpY2ggbWlnaHQgYmUgbWVyZ2VkIGZyb20NCj4gPiBBQ1BJQ0EgdXBzdHJlYW0u
+DQo+IA0KPiBEbyBJIHJlbWVtYmVyIGNvcnJlY3RseSB0aGF0IHRoaXMgaXMgdGhlIHBsYW4/DQo+
+IA0KPiBTbyBJJ20gZXhwZWN0aW5nIHRvIHJlY2VpdmUgdGhlIExpbnV4IHZlcnNpb25zIG9mIHRo
+ZSByZWxldmFudCBBQ1BJQ0EgY2hhbmdlcw0KPiBmcm9tIHlvdSBhbmQgdGhlbiBJJ2xsIGFwcGx5
+IHRoaXMgbWF0ZXJpYWwgb24gdG9wIG9mIHRoZW0uDQo+IA0KPiBXZSBkb24ndCBuZWVkIHRvIHdh
+aXQgZm9yIHRoZSBuZXh0IEFDUElDQSByZWxlYXNlIHdpdGggdGhpcyBJIHRoaW5rLCBidXQNCj4g
+SSdkIGxpa2UgdGhlIEdQRSBjaGFuZ2VzIHRvIGJlIGFwcGxpZWQgdG8gdXBzdHJlYW0gQUNQSUNB
+IGF0IGxlYXN0IGJlZm9yZQ0KPiBJIGdldCB0aGVtLg0KDQpZZXMsIEknbSB0cnlpbmcuDQpJJ2xs
+IHJlLXNlbmQgdGhpcyBzZXJpZXMgYWZ0ZXIgYW4gQUNQSUNBIHJlbGVhc2UgY3ljbGUgdGhhdCBj
+b250YWlucyB0aGUgZGVwZW5kZW50IEdQRSBzZXJpZXMuDQoNCkxldCBtZSBoaWdobGlnaHQgdGhl
+IHJlYWwgdmFsdWUgb2YgdGhpcyBFQyBzZXJpZXM6DQpUaGlzIGlzIGEgZ29vZCBJTyBkcml2ZXIg
+bWF0ZXJpYWwgdG8gZGVtb25zdHJhdGU6DQoxLiBydW50aW1lIGlkbGU6IHRoaXMgaXMgbm90IGlt
+cGxlbWVudGVkIHlldCBiZWNhdXNlIG9mIEFDUElDQSBpc3N1ZXMgdGhhdCBhcmUgbm90IHJvb3Qg
+Y2F1c2VkLCBsZXQgbWUgc2hvdyB0aGlzIHBvc3NpYmlsaXR5IHRoaXMgYmVsb3cuDQoyLiBzdG9y
+bWluZyBzYWZlOiBjYW4gYWxzbyBkZWFsIHdpdGggYWxsIGtpbmRzIG9mIHNpbGljb24gd2l0aG91
+dCB3b3JyeWluZyBhYm91dCBJUlEgc3Rvcm1pbmcuDQoNCk9uIHRvcCBvZiB0aGlzLCBhZnRlcg0K
+MS4gbWFraW5nIHN1cmUgdGhhdCBhY3BpX2V2YWx1YXRlX29iamVjdChfUXh4KSB3b24ndCBiZSBh
+IGJsb2NraW5nIHBvaW50LCBhbmQgZXh0ZW5kaW5nIHRoZSByZWZlcmVuY2VkIHBlcmlvZCB0byB0
+aGUgZW5kIG9mIHRoZSBldmFsdWF0aW9uLA0KMi4gYWRkaW5nIDEgbW9yZSBwYXRjaCB0byB0aGUg
+QUNQSUNBIHNlcmllcywgdXNpbmcgYSBmbGFnIHRvIGJ5cGFzcyB0aGUgYXV0b21hdGljIEdQRSBk
+aXNhYmxpbmcvZW5hYmxpbmcsDQozLiBhZGRpbmcgMSBtb3JlIHBhdGNoIHRvIG1ha2UgRUMgZXZl
+bnQgcG9sbGVyICB0byBkaXNhYmxlIEdQRSB3aGVuIHNsZWVwaW5nLA0KTGludXggRUMgZHJpdmVy
+IGNhbiBydW4gd2l0aG91dCBHUEUgZW5hYmxlZCB3aGVuIGlkbGUuDQpXaGljaCBtZWFucyBHUEUg
+aXMgZW5hYmxlZCBvbmx5IHdoZW46DQoxLiB0aGVyZSBpcyBhbiBFQyBjb21tYW5kIGlzc3VlZCBm
+cm9tIHRoZSBFQyBzcGFjZSBoYW5kbGVyIG9yDQoyLiB0aGUgZXZlbnQgcG9sbGVyIHRocmVhZCBp
+cyB0aW1lZCBvdXQgb3Igd29rZW4gdXAgYnkgdGhlIEVWVF9TQ0kuDQoNClNvIEkgaG9wZSB0aGlz
+IElPIGRyaXZlciBlbmhhbmNlbWVudCBjYW4gYmUgYSBnb29kIG1hdGVyaWFsIHRvIHNob3cgc3Vj
+aCBwb3NzaWJpbGl0eS4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+IA0KPiBS
+YWZhZWwNCg0K
