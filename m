@@ -1,53 +1,34 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH V2] ACPI/NVS: Not save NVS region for new machine to accelerate S3
-Date: Wed, 23 Jul 2014 14:42:33 +0800
-Message-ID: <1406097753-7398-1-git-send-email-tianyu.lan@intel.com>
-References: <1405662922-23606-1-git-send-email-tianyu.lan@intel.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 0/3] ACPI / PM: Make ACPI-based PCI wakeup work for the
+ "freeze" sleep state
+Date: Wed, 23 Jul 2014 09:28:50 +0200
+Message-ID: <20140723072850.GO3935@laptop>
+References: <1907495.agrCMfRsQN@vostro.rjw.lan>
+ <2866134.Da8PQoU0sW@vostro.rjw.lan>
+ <20140722121345.GC3935@laptop>
+ <3271848.fNJ1rk2xTa@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:4871 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755146AbaGWGoh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Jul 2014 02:44:37 -0400
-In-Reply-To: <1405662922-23606-1-git-send-email-tianyu.lan@intel.com>
+Received: from casper.infradead.org ([85.118.1.10]:35674 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751301AbaGWH2y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Jul 2014 03:28:54 -0400
+Content-Disposition: inline
+In-Reply-To: <3271848.fNJ1rk2xTa@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-NVS region is saved and restored unconditionally for machines without
-nvs_nosave quirk during S3. Tested some new machines and the operation
-is not necessary. Saving NVS region also affects S2RAM speed. The time of
-NVS saving and restoring depends on the size of NVS region and it consumes
-7~10ms normally.
+On Wed, Jul 23, 2014 at 12:26:20AM +0200, Rafael J. Wysocki wrote:
+> All of that indicates that the machine in question has WoL based on native PCIe
+> PME signaling.  In that case it doesn't wake up from the "freeze" state, because
+> some code is missing.
 
-This patch is to make machines produced from 2012 to now not saving NVS region
-to accelerate S3.
+Didn't wake, but it did show:
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
-Change since V1:
-	Change the order between checking acpisleep quirk table and setting
-the flag of nosaving nvs for S3.
+0000:00:01.0:pcie01     1               1               0               0               0               0               0               99207           0
+LNXPWRBN:00             1               1               0               0               0               0               0               99191           0
 
- drivers/acpi/sleep.c | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index b3e3cc7..54da4a3 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -322,6 +322,11 @@ static struct dmi_system_id acpisleep_dmi_table[] __initdata = {
- 
- static void acpi_sleep_dmi_check(void)
- {
-+	int year;
-+
-+	if (dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL) && year >= 2012)
-+		acpi_nvs_nosave_s3();
-+
- 	dmi_check_system(acpisleep_dmi_table);
- }
- 
--- 
-1.8.4.rc0.1.g8f6a3e5.dirty
-
+So at least something's moving, although its not quite working yet.
