@@ -1,65 +1,71 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 1/2] ACPICA: GPEs: Do not allow enable for GPEs that have no handler(s).
-Date: Wed, 23 Jul 2014 13:11:59 +0800
-Message-ID: <59c10d99d34a9d5f8e62715869763622c8e62fbc.1406092278.git.lv.zheng@intel.com>
-References: <7323172.bFe2jdDKx7@vostro.rjw.lan>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:40043 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932348AbaGWFMO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Jul 2014 01:12:14 -0400
-In-Reply-To: <7323172.bFe2jdDKx7@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH] ACPI/NVS: Not save NVS region for new machines to accelerate
+ S3
+Date: Wed, 23 Jul 2014 13:35:25 +0800
+Message-ID: <53CF499D.7020304@intel.com>
+References: <1405662922-23606-1-git-send-email-tianyu.lan@intel.com> <1466357.PZLf9xnT2g@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1466357.PZLf9xnT2g@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On 2014=E5=B9=B407=E6=9C=8823=E6=97=A5 07:40, Rafael J. Wysocki wrote:
+> On Friday, July 18, 2014 01:55:22 PM Lan Tianyu wrote:
+>> NVS region is saved and restored unconditionally for machines withou=
+t
+>> nvs_nosave quirk during S3. Tested some new machines and the operati=
+on
+>> is not necessary. Saving NVS region also affects S2RAM speed. The ti=
+me of
+>> NVS saving and restoring depends on the size of NVS region and it co=
+nsumes
+>> 7~10ms normally.
+>>
+>> This patch is to make machines produced from 2012 to now not saving =
+NVS region
+>> to accelerate S3.
+>>
+>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+>> ---
+>>  drivers/acpi/sleep.c | 5 +++++
+>>  1 file changed, 5 insertions(+)
+>>
+>> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+>> index b3e3cc7..896d8be 100644
+>> --- a/drivers/acpi/sleep.c
+>> +++ b/drivers/acpi/sleep.c
+>> @@ -322,7 +322,12 @@ static struct dmi_system_id acpisleep_dmi_table=
+[] __initdata =3D {
+>> =20
+>>  static void acpi_sleep_dmi_check(void)
+>>  {
+>> +	int year;
+>> +
+>>  	dmi_check_system(acpisleep_dmi_table);
+>> +
+>> +	if (dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL) && year >=3D 20=
+12)
+>> +		acpi_nvs_nosave_s3();
+>=20
+> I'd prefer the ordering here to be different so that individual quirk=
+s
+> could be used to change the date-based wholesale behavior.
 
-ACPICA release patch.
+Ok. I will update soon.
 
-------------------
+>=20
+>>  }
+>> =20
+>>  /**
+>>
+>=20
 
-commit 23b5a8542283af28c3a3a4e3f81096d6e2569faa upstream
 
-There is no point in enabling a GPE that has no handler or
-GPE method. At worst, it can cause GPE floods.
-Rafael Wysocki.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/evxfgpe.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/acpica/evxfgpe.c b/drivers/acpi/acpica/evxfgpe.c
-index cb534fa..82e5c14 100644
---- a/drivers/acpi/acpica/evxfgpe.c
-+++ b/drivers/acpi/acpica/evxfgpe.c
-@@ -126,11 +126,19 @@ acpi_status acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number)
- 
- 	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
- 
--	/* Ensure that we have a valid GPE number */
--
-+	/*
-+	 * Ensure that we have a valid GPE number and that there is some way
-+	 * of handling the GPE (handler or a GPE method). In other words, we
-+	 * won't allow a valid GPE to be enabled if there is no way to handle it.
-+	 */
- 	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
- 	if (gpe_event_info) {
--		status = acpi_ev_add_gpe_reference(gpe_event_info);
-+		if ((gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) !=
-+		    ACPI_GPE_DISPATCH_NONE) {
-+			status = acpi_ev_add_gpe_reference(gpe_event_info);
-+		} else {
-+			status = AE_NO_HANDLER;
-+		}
- 	}
- 
- 	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
--- 
-1.7.10
-
+--=20
+Best regards
+Tianyu Lan
