@@ -1,69 +1,40 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] PNPACPI: check return value of pnpacpi_parse_allocated_resource() and pnpacpi_parse_resource_option_data()
-Date: Wed, 23 Jul 2014 13:36:31 +0200
-Message-ID: <4234415.npFyMyvrKf@vostro.rjw.lan>
-References: <1406056419-3047-1-git-send-email-arjun024@gmail.com> <6018343.yi13pxNXUP@vostro.rjw.lan> <CAJFMrCH1yeZfEo=z6Vj-qaK=Qpiu9KoqJOLsUo-p1yYcxr+L-g@mail.gmail.com>
+Subject: Re: [PATCH 0/3] ACPI / PM: Make ACPI-based PCI wakeup work for the "freeze" sleep state
+Date: Wed, 23 Jul 2014 13:43:59 +0200
+Message-ID: <1938033.aGLPbNTjeQ@vostro.rjw.lan>
+References: <1907495.agrCMfRsQN@vostro.rjw.lan> <3271848.fNJ1rk2xTa@vostro.rjw.lan> <20140723072850.GO3935@laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56470 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754537AbaGWLSI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Jul 2014 07:18:08 -0400
-In-Reply-To: <CAJFMrCH1yeZfEo=z6Vj-qaK=Qpiu9KoqJOLsUo-p1yYcxr+L-g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20140723072850.GO3935@laptop>
+Sender: linux-pm-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Arjun <arjun024@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, July 23, 2014 01:56:36 PM Arjun wrote:
-> ACPI 5.0 resource types like FixedDMA will fail pnpacpi_allocated_resource().
-> pnpacpi_add_device() has to return error in that case.
+On Wednesday, July 23, 2014 09:28:50 AM Peter Zijlstra wrote:
+> On Wed, Jul 23, 2014 at 12:26:20AM +0200, Rafael J. Wysocki wrote:
+> > All of that indicates that the machine in question has WoL based on native PCIe
+> > PME signaling.  In that case it doesn't wake up from the "freeze" state, because
+> > some code is missing.
+> 
+> Didn't wake, but it did show:
+> 
+> 0000:00:01.0:pcie01     1               1               0               0               0               0               0               99207           0
+> LNXPWRBN:00             1               1               0               0               0               0               0               99191           0
+> 
+> So at least something's moving, although its not quite working yet.
 
-Why?
+That may be because I forgot about one piece, sorry about that.
+This patch:
 
-> On 23 July 2014 03:42, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Wednesday, July 23, 2014 12:43:39 AM Arjun Sreedharan wrote:
-> >> Handle error condition since pnpacpi_parse_allocated_resource() and pnpacpi_parse_resource_option_data() could return -EPERM.
-> >>
-> >> Signed-off-by: Arjun Sreedharan <arjun024@gmail.com>
-> >
-> > I wonder if this fixes any functional issue you've seen or someone has
-> > reported to you or it's just an "Oh, we probably should handle the return
-> > values here" kind of thing?
-> >
-> >> ---
-> >>  drivers/pnp/pnpacpi/core.c | 8 ++++++--
-> >>  1 file changed, 6 insertions(+), 2 deletions(-)
-> >>
-> >> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-> >> index b81448b..c3214e9 100644
-> >> --- a/drivers/pnp/pnpacpi/core.c
-> >> +++ b/drivers/pnp/pnpacpi/core.c
-> >> @@ -272,10 +272,14 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
-> >>               strncpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
-> >>
-> >>       if (dev->active)
-> >> -             pnpacpi_parse_allocated_resource(dev);
-> >> +             error = pnpacpi_parse_allocated_resource(dev);
-> >> +             if (error)
-> >> +                     return error;
-> >>
-> >>       if (dev->capabilities & PNP_CONFIGURABLE)
-> >> -             pnpacpi_parse_resource_option_data(dev);
-> >> +             error = pnpacpi_parse_resource_option_data(dev);
-> >> +             if (error)
-> >> +                     return error;
-> >>
-> >>       list_for_each_entry(id, &device->pnp.ids, list) {
-> >>               if (!strcmp(id->id, pnpid))
-> >>
-> >
-> > --
-> > I speak only for myself.
-> > Rafael J. Wysocki, Intel Open Source Technology Center.
+https://patchwork.kernel.org/patch/4526561/
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+(which I think is in tip already) is needed to make enable_irq_wake()
+work with the "freeze" state.
+
+Can you please apply this in addition and retest?
+
+Rafael
+
