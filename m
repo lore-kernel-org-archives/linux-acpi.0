@@ -1,78 +1,58 @@
-From: "Chen, Gong" <gong.chen@linux.intel.com>
-Subject: Re: [RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE context
-Date: Wed, 23 Jul 2014 03:48:55 -0400
-Message-ID: <20140723074855.GA3925@gchen.bj.intel.com>
-References: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
- <1405478082-30757-3-git-send-email-gong.chen@linux.intel.com>
- <20140721084737.GA10016@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F32870C55@ORSMSX114.amr.corp.intel.com>
+From: Arjun <arjun024@gmail.com>
+Subject: Re: [PATCH] PNPACPI: check return value of pnpacpi_parse_allocated_resource()
+ and pnpacpi_parse_resource_option_data()
+Date: Wed, 23 Jul 2014 13:56:36 +0530
+Message-ID: <CAJFMrCH1yeZfEo=z6Vj-qaK=Qpiu9KoqJOLsUo-p1yYcxr+L-g@mail.gmail.com>
+References: <1406056419-3047-1-git-send-email-arjun024@gmail.com> <6018343.yi13pxNXUP@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:38395 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755604AbaGWITo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Jul 2014 04:19:44 -0400
-Content-Disposition: inline
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F32870C55@ORSMSX114.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6018343.yi13pxNXUP@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@alien8.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "x86@kernel.org" <x86@kernel.org>
 
+ACPI 5.0 resource types like FixedDMA will fail pnpacpi_allocated_resource().
+pnpacpi_add_device() has to return error in that case.
 
---cNdxnHkX5QqsyA0e
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Jul 21, 2014 at 05:14:06PM +0000, Luck, Tony wrote:
-> We've evolved a bunch of mechanisms:
->=20
-> 1) mce_ring: to pass pfn for AO errors from MCE context to a work thread
-> 2) mce_info: to pass pfn for AR errors from MCE context to same process r=
-unning in process context
-> 3) mce_log: to pass entire "mce" structures from any context (MCE, CMCI, =
-or init-time) to /dev/mcelog
->=20
-> I was actually wondering about going in the other direction. Make the
-> /dev/mcelog code register a notifier on x86_mce_decoder_chain (and
-> perhaps move all the /dev/mcelog functions out of mce.c into an actual
-> driver file).  Then use Chen Gong's NMI safe code to just unconditionally
-> make safe copies of anything that gets passed to mce_log() and run all
-> the notifiers from his do_mce_irqwork().
->=20
-> -Tony
-
-OK, I can cook some patches based on Tony's suggestion:
-patch 1: add a generic lock-less memory pool to save error records
-patch 2: remove mce_info (Tony has done a draft)
-patch 3: remove mce_ring
-patch 4: remove mce log buffer
-patch 5: move all mce log related logic into a separate file lke mcelog.c
-         under the same directory with mce.c
-
---cNdxnHkX5QqsyA0e
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTz2jnAAoJEI01n1+kOSLHE5IQAJ35fzfqY2s5brre9TG2jg7+
-1H38RiNCsqPFRgC3LygGugN4C1FndHSuUC5HpE4tr9gmlUV+vswX8VSB5uACGGUG
-/CKog/xs3cdRgKpjdENaO6v/LsvT/Yfh1u/4YoQ1qyEFEFLy4a+EZ3yLZfUTN/8+
-tLFTH0N/rYQLxVn1vKhZXmfFVmXXfBGdlPXitLpwnnYpJLki2mzKgLMM/BzUja1B
-A1ryBCw+0UeFMJ7CVENb9kRPHUk5TCVf9O3WDmy6UFHiUjjlUHdUAVvihbkATllY
-JI4x4oQEvyeA/WQahwQMwEgsJ4HOKipl2BxoIHSOIUsHG9yVYS3qBHb2/8HJqN+d
-mvJqDGLyhPW1sNwXo0ludLj1HBxIeyziGy0yFaz6nmWI4RhW5482NloOXZAtBHiL
-6qOzIdr+RhsbVSbnHuC11WcCKIEBpm6fHRn02j1OPMT6jaZaPruOKD55h5gVpU4j
-/cdPw/IiujZmaZF67n2HncqFLgwW//c0gDzEH55go3HLQru7P/K6Qk31q5QiMqm3
-WGRi+i/xxlyKFPzEL9BewDO3qbERXmHRJvaG/rODU1wf3BbjaUXqwf+gaqIXFPjm
-/EuEIqXgMdDjhHqZydykGLqYkzzV9/DdN5pHhi/65QRPPn4RpNEBNoia8ymSR+N3
-5lXijpc0IFXLDWN1WHY7
-=tXI6
------END PGP SIGNATURE-----
-
---cNdxnHkX5QqsyA0e--
+On 23 July 2014 03:42, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Wednesday, July 23, 2014 12:43:39 AM Arjun Sreedharan wrote:
+>> Handle error condition since pnpacpi_parse_allocated_resource() and pnpacpi_parse_resource_option_data() could return -EPERM.
+>>
+>> Signed-off-by: Arjun Sreedharan <arjun024@gmail.com>
+>
+> I wonder if this fixes any functional issue you've seen or someone has
+> reported to you or it's just an "Oh, we probably should handle the return
+> values here" kind of thing?
+>
+>> ---
+>>  drivers/pnp/pnpacpi/core.c | 8 ++++++--
+>>  1 file changed, 6 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+>> index b81448b..c3214e9 100644
+>> --- a/drivers/pnp/pnpacpi/core.c
+>> +++ b/drivers/pnp/pnpacpi/core.c
+>> @@ -272,10 +272,14 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
+>>               strncpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
+>>
+>>       if (dev->active)
+>> -             pnpacpi_parse_allocated_resource(dev);
+>> +             error = pnpacpi_parse_allocated_resource(dev);
+>> +             if (error)
+>> +                     return error;
+>>
+>>       if (dev->capabilities & PNP_CONFIGURABLE)
+>> -             pnpacpi_parse_resource_option_data(dev);
+>> +             error = pnpacpi_parse_resource_option_data(dev);
+>> +             if (error)
+>> +                     return error;
+>>
+>>       list_for_each_entry(id, &device->pnp.ids, list) {
+>>               if (!strcmp(id->id, pnpid))
+>>
+>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
