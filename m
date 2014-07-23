@@ -1,53 +1,78 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH v5 0/3] APEI: Make APEI architecture independent.
-Date: Wed, 23 Jul 2014 09:40:44 +0200
-Message-ID: <53CF66FC.1040604@linaro.org>
-References: <1406020813-9176-1-git-send-email-tomasz.nowicki@linaro.org> <CA+8MBb+KuKaeXr5p97xWZKJB7T-NAooi-kXQTaPx0QnO53-oCQ@mail.gmail.com>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [RFC PATCH 2/3] x86, MCE: Avoid potential deadlock in MCE context
+Date: Wed, 23 Jul 2014 03:48:55 -0400
+Message-ID: <20140723074855.GA3925@gchen.bj.intel.com>
+References: <1405478082-30757-1-git-send-email-gong.chen@linux.intel.com>
+ <1405478082-30757-3-git-send-email-gong.chen@linux.intel.com>
+ <20140721084737.GA10016@pd.tnic>
+ <3908561D78D1C84285E8C5FCA982C28F32870C55@ORSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+8MBb+KuKaeXr5p97xWZKJB7T-NAooi-kXQTaPx0QnO53-oCQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Luck <tony.luck@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@alien8.de>, "m.chehab@samsung.com" <m.chehab@samsung.com>, Borislav Petkov <bp@suse.de>, rric@kernel.org, Linux Edac Mailing List <linux-edac@vger.kernel.org>, X86-ML <x86@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:38395 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755604AbaGWITo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Jul 2014 04:19:44 -0400
+Content-Disposition: inline
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F32870C55@ORSMSX114.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "x86@kernel.org" <x86@kernel.org>
 
-Many thanks Tony! And thanks goes to Borislav and Robert too.
 
-Regards,
-Tomasz
+--cNdxnHkX5QqsyA0e
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 22.07.2014 23:08, Tony Luck wrote:
-> On Tue, Jul 22, 2014 at 2:20 AM, Tomasz Nowicki
-> <tomasz.nowicki@linaro.org> wrote:
->> APEI is currently implemented so that it depends on x86 hardware.
->> The primary dependency is that GHES uses the x86 NMI for hardware
->> error notification and MCE for memory error handling. These patches
->> remove that dependency.
->>
->> Other APEI features such as error reporting via external IRQ, error
->> serialization, or error injection, do not require changes to use them
->> on non-x86 architectures.
->>
->> The following patch set eliminates the APEI Kconfig x86 dependency
->> by making these changes:
->> - treat NMI notification as GHES architecture - HAVE_ACPI_APEI_NMI
->> - group and wrap around #ifdef CONFIG_HAVE_ACPI_APEI_NMI code which
->>    is used only for NMI path
->> - identify architectural boxes and abstract it accordingly (tlb flush and MCE)
->> - rework ioremap for both IRQ and NMI context
->>
->> NMI code is kept in ghes.c file since NMI and IRQ context are tightly coupled.
->>
->> Note, these patches introduce no functional changes for x86. The NMI notification
->> feature is hard selected for x86. Architectures that want to use this
->> feature should also provide NMI code infrastructure.
->
-> Looks OK to me. I've thrown this series into a topic branch of the ras
-> git tree named "apei".  When I push it to kernel.org in a few minutes
-> the build test robots will pounce and try all sorts of randconfig builds.
-> They'll send you (and me) e-mails if they find any corner cases.
->
+On Mon, Jul 21, 2014 at 05:14:06PM +0000, Luck, Tony wrote:
+> We've evolved a bunch of mechanisms:
+>=20
+> 1) mce_ring: to pass pfn for AO errors from MCE context to a work thread
+> 2) mce_info: to pass pfn for AR errors from MCE context to same process r=
+unning in process context
+> 3) mce_log: to pass entire "mce" structures from any context (MCE, CMCI, =
+or init-time) to /dev/mcelog
+>=20
+> I was actually wondering about going in the other direction. Make the
+> /dev/mcelog code register a notifier on x86_mce_decoder_chain (and
+> perhaps move all the /dev/mcelog functions out of mce.c into an actual
+> driver file).  Then use Chen Gong's NMI safe code to just unconditionally
+> make safe copies of anything that gets passed to mce_log() and run all
+> the notifiers from his do_mce_irqwork().
+>=20
 > -Tony
->
+
+OK, I can cook some patches based on Tony's suggestion:
+patch 1: add a generic lock-less memory pool to save error records
+patch 2: remove mce_info (Tony has done a draft)
+patch 3: remove mce_ring
+patch 4: remove mce log buffer
+patch 5: move all mce log related logic into a separate file lke mcelog.c
+         under the same directory with mce.c
+
+--cNdxnHkX5QqsyA0e
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTz2jnAAoJEI01n1+kOSLHE5IQAJ35fzfqY2s5brre9TG2jg7+
+1H38RiNCsqPFRgC3LygGugN4C1FndHSuUC5HpE4tr9gmlUV+vswX8VSB5uACGGUG
+/CKog/xs3cdRgKpjdENaO6v/LsvT/Yfh1u/4YoQ1qyEFEFLy4a+EZ3yLZfUTN/8+
+tLFTH0N/rYQLxVn1vKhZXmfFVmXXfBGdlPXitLpwnnYpJLki2mzKgLMM/BzUja1B
+A1ryBCw+0UeFMJ7CVENb9kRPHUk5TCVf9O3WDmy6UFHiUjjlUHdUAVvihbkATllY
+JI4x4oQEvyeA/WQahwQMwEgsJ4HOKipl2BxoIHSOIUsHG9yVYS3qBHb2/8HJqN+d
+mvJqDGLyhPW1sNwXo0ludLj1HBxIeyziGy0yFaz6nmWI4RhW5482NloOXZAtBHiL
+6qOzIdr+RhsbVSbnHuC11WcCKIEBpm6fHRn02j1OPMT6jaZaPruOKD55h5gVpU4j
+/cdPw/IiujZmaZF67n2HncqFLgwW//c0gDzEH55go3HLQru7P/K6Qk31q5QiMqm3
+WGRi+i/xxlyKFPzEL9BewDO3qbERXmHRJvaG/rODU1wf3BbjaUXqwf+gaqIXFPjm
+/EuEIqXgMdDjhHqZydykGLqYkzzV9/DdN5pHhi/65QRPPn4RpNEBNoia8ymSR+N3
+5lXijpc0IFXLDWN1WHY7
+=tXI6
+-----END PGP SIGNATURE-----
+
+--cNdxnHkX5QqsyA0e--
