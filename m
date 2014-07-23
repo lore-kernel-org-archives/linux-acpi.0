@@ -1,239 +1,66 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3] acpi: mv models with win8 brightness problems from win8 blacklist to use_native_backlight
-Date: Wed, 23 Jul 2014 01:43:49 +0200
-Message-ID: <32710159.juuz1vSYti@vostro.rjw.lan>
-References: <1405341429-549-1-git-send-email-hdegoede@redhat.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH v3 00/14] ACPI/EC: Add event storm prevention and
+ cleanup command storm prevention.
+Date: Wed, 23 Jul 2014 01:31:39 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880264430C@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1403060601.git.lv.zheng@intel.com>
+ <9698076.0kdZ11M3j2@vostro.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E8802643E0D@SHSMSX101.ccr.corp.intel.com>
+ <1600083.bSeASC3AGv@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60690 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752067AbaGVXZZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Jul 2014 19:25:25 -0400
-In-Reply-To: <1405341429-549-1-git-send-email-hdegoede@redhat.com>
+Received: from mga11.intel.com ([192.55.52.93]:33242 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755209AbaGWBbo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Jul 2014 21:31:44 -0400
+In-Reply-To: <1600083.bSeASC3AGv@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Monday, July 14, 2014 02:37:09 PM Hans de Goede wrote:
-> When the windows8 related backlight problems became evident, 2 approaches
-> were follow in parallel, one was to stop claiming to be windows 8 / 2012,
-> the other was to tell acpi_video to stop registering a backlight driver.
-> 
-> I've read all the threads and it seems that which approach ended up being
-> applied to which model laptop was never really a concious decision (AFAIK):
-> 
-> https://bugzilla.kernel.org/show_bug.cgi?id=51231
-> https://bugzilla.kernel.org/show_bug.cgi?id=60682
-> 
-> So lets move all the models which are only on the win8 blacklist because of
-> brightness issues to the use_native_backlight list, which is the smaller
-> hammer to use to solve the backlight issues.
-> 
-> Making this change is esp. attractive now that 3.16 has
-> video.use_native_brightness=1 by default. If that new default does not get
-> reverted because of regressions, then we can drop all the models
-> with a use_native_backlight quirk, greatly reducing the number of models we've
-> a quirk for.
-> 
-> Note: this is not tested on any of the affected models, this just seems like
-> the sensible thing to do.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-
-Queued up for 3.17, thanks!
-
-> --
-> 
-> Changes in v2: Rebased on top of v3.16-rc1
-> Changes in v3: The Dell Inspiron 7737 does not have a dmi_disable_osi_win8
-> quirk because of backlight reasons, but for other reasons, keep the quirk.
-> ---
->  drivers/acpi/blacklist.c | 68 ++----------------------------------------------
->  drivers/acpi/video.c     | 68 ++++++++++++++++++++++++++++++++++++++++++++++--
->  2 files changed, 68 insertions(+), 68 deletions(-)
-> 
-> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-> index 3d8413d..36eb42e 100644
-> --- a/drivers/acpi/blacklist.c
-> +++ b/drivers/acpi/blacklist.c
-> @@ -247,75 +247,11 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
->  	},
->  
->  	/*
-> -	 * The following machines have broken backlight support when reporting
-> -	 * the Windows 2012 OSI, so disable it until their support is fixed.
-> +	 * These machines will power on immediately after shutdown when
-> +	 * reporting the Windows 2012 OSI.
->  	 */
->  	{
->  	.callback = dmi_disable_osi_win8,
-> -	.ident = "ASUS Zenbook Prime UX31A",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-> -		     DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "ThinkPad Edge E530",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "ThinkPad Edge E530",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "ThinkPad Edge E530",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "Acer Aspire V5-573G",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "Acer Aspire V5-572G",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "ThinkPad T431s",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
-> -	.ident = "ThinkPad T430",
-> -	.matches = {
-> -		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		     DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
-> -		},
-> -	},
-> -	{
-> -	.callback = dmi_disable_osi_win8,
->  	.ident = "Dell Inspiron 7737",
->  	.matches = {
->  		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index e38c3b3..6194054 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -460,6 +460,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  	},
->  	{
->  	 .callback = video_set_use_native_backlight,
-> +	 .ident = "ThinkPad X230",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
->  	 .ident = "ThinkPad T430 and T430s",
->  	 .matches = {
->  		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> @@ -468,10 +476,42 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  	},
->  	{
->  	 .callback = video_set_use_native_backlight,
-> -	 .ident = "ThinkPad X230",
-> +	 .ident = "ThinkPad T430",
->  	 .matches = {
->  		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> -		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X230"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "2349D15"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "ThinkPad T431s",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "20AACTO1WW"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "ThinkPad Edge E530",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "3259A2G"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "ThinkPad Edge E530",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "3259CTO"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "ThinkPad Edge E530",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "3259HJG"),
->  		},
->  	},
->  	{
-> @@ -563,6 +603,30 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  		},
->  	},
->  	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "Acer Aspire V5-572G",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "V5-572G/Dazzle_CX"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "Acer Aspire V5-573G",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "Acer Aspire"),
-> +		DMI_MATCH(DMI_PRODUCT_VERSION, "V5-573G/Dazzle_HW"),
-> +		},
-> +	},
-> +	{
-> +	 .callback = video_set_use_native_backlight,
-> +	 .ident = "ASUS Zenbook Prime UX31A",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "UX31A"),
-> +		},
-> +	},
-> +	{
->  	.callback = video_set_use_native_backlight,
->  	.ident = "HP ProBook 4340s",
->  	.matches = {
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
+dF0NCj4gU2VudDogV2VkbmVzZGF5LCBKdWx5IDIzLCAyMDE0IDY6MTUgQU0NCj4gDQo+IE9uIFR1
+ZXNkYXksIEp1bHkgMjIsIDIwMTQgMDE6MjU6MDAgQU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+IEhp
+LCBSYWZhZWwNCj4gPg0KPiA+ID4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandA
+cmp3eXNvY2tpLm5ldF0NCj4gPiA+IFNlbnQ6IFR1ZXNkYXksIEp1bHkgMjIsIDIwMTQgOToxMiBB
+TQ0KPiA+ID4NCj4gPiA+IE9uIE1vbmRheSwgSnVseSAyMSwgMjAxNCAwMjowNDo1MSBQTSBMdiBa
+aGVuZyB3cm90ZToNCj4gPiA+ID4gTm90ZSB0aGF0IHRoaXMgcGF0Y2hzZXQgaXMgdmVyeSBzdGFi
+bGUgbm93LCBpdCBpcyBzZW50IGFzIFJGQyBiZWNhdXNlIGl0DQo+ID4gPiA+IGRlcGVuZHMgb24g
+YW4gQUNQSUNBIEdQRSBlbmhhbmNlbWVudCBzZXJpZXMgd2hpY2ggbWlnaHQgYmUgbWVyZ2VkIGZy
+b20NCj4gPiA+ID4gQUNQSUNBIHVwc3RyZWFtLg0KPiA+ID4NCj4gPiA+IERvIEkgcmVtZW1iZXIg
+Y29ycmVjdGx5IHRoYXQgdGhpcyBpcyB0aGUgcGxhbj8NCj4gPiA+DQo+ID4gPiBTbyBJJ20gZXhw
+ZWN0aW5nIHRvIHJlY2VpdmUgdGhlIExpbnV4IHZlcnNpb25zIG9mIHRoZSByZWxldmFudCBBQ1BJ
+Q0EgY2hhbmdlcw0KPiA+ID4gZnJvbSB5b3UgYW5kIHRoZW4gSSdsbCBhcHBseSB0aGlzIG1hdGVy
+aWFsIG9uIHRvcCBvZiB0aGVtLg0KPiA+ID4NCj4gPiA+IFdlIGRvbid0IG5lZWQgdG8gd2FpdCBm
+b3IgdGhlIG5leHQgQUNQSUNBIHJlbGVhc2Ugd2l0aCB0aGlzIEkgdGhpbmssIGJ1dA0KPiA+ID4g
+SSdkIGxpa2UgdGhlIEdQRSBjaGFuZ2VzIHRvIGJlIGFwcGxpZWQgdG8gdXBzdHJlYW0gQUNQSUNB
+IGF0IGxlYXN0IGJlZm9yZQ0KPiA+ID4gSSBnZXQgdGhlbS4NCj4gPg0KPiA+IFllcywgSSdtIHRy
+eWluZy4NCj4gPiBJJ2xsIHJlLXNlbmQgdGhpcyBzZXJpZXMgYWZ0ZXIgYW4gQUNQSUNBIHJlbGVh
+c2UgY3ljbGUgdGhhdCBjb250YWlucyB0aGUgZGVwZW5kZW50IEdQRSBzZXJpZXMuDQo+ID4NCj4g
+PiBMZXQgbWUgaGlnaGxpZ2h0IHRoZSByZWFsIHZhbHVlIG9mIHRoaXMgRUMgc2VyaWVzOg0KPiA+
+IFRoaXMgaXMgYSBnb29kIElPIGRyaXZlciBtYXRlcmlhbCB0byBkZW1vbnN0cmF0ZToNCj4gPiAx
+LiBydW50aW1lIGlkbGU6IHRoaXMgaXMgbm90IGltcGxlbWVudGVkIHlldCBiZWNhdXNlIG9mIEFD
+UElDQSBpc3N1ZXMgdGhhdCBhcmUgbm90IHJvb3QgY2F1c2VkLCBsZXQgbWUgc2hvdyB0aGlzIHBv
+c3NpYmlsaXR5IHRoaXMNCj4gYmVsb3cuDQo+ID4gMi4gc3Rvcm1pbmcgc2FmZTogY2FuIGFsc28g
+ZGVhbCB3aXRoIGFsbCBraW5kcyBvZiBzaWxpY29uIHdpdGhvdXQgd29ycnlpbmcgYWJvdXQgSVJR
+IHN0b3JtaW5nLg0KPiA+DQo+ID4gT24gdG9wIG9mIHRoaXMsIGFmdGVyDQo+ID4gMS4gbWFraW5n
+IHN1cmUgdGhhdCBhY3BpX2V2YWx1YXRlX29iamVjdChfUXh4KSB3b24ndCBiZSBhIGJsb2NraW5n
+IHBvaW50LCBhbmQgZXh0ZW5kaW5nIHRoZSByZWZlcmVuY2VkIHBlcmlvZCB0byB0aGUgZW5kIG9m
+IHRoZQ0KPiBldmFsdWF0aW9uLA0KPiA+IDIuIGFkZGluZyAxIG1vcmUgcGF0Y2ggdG8gdGhlIEFD
+UElDQSBzZXJpZXMsIHVzaW5nIGEgZmxhZyB0byBieXBhc3MgdGhlIGF1dG9tYXRpYyBHUEUgZGlz
+YWJsaW5nL2VuYWJsaW5nLA0KPiA+IDMuIGFkZGluZyAxIG1vcmUgcGF0Y2ggdG8gbWFrZSBFQyBl
+dmVudCBwb2xsZXIgIHRvIGRpc2FibGUgR1BFIHdoZW4gc2xlZXBpbmcsDQo+ID4gTGludXggRUMg
+ZHJpdmVyIGNhbiBydW4gd2l0aG91dCBHUEUgZW5hYmxlZCB3aGVuIGlkbGUuDQo+ID4gV2hpY2gg
+bWVhbnMgR1BFIGlzIGVuYWJsZWQgb25seSB3aGVuOg0KPiA+IDEuIHRoZXJlIGlzIGFuIEVDIGNv
+bW1hbmQgaXNzdWVkIGZyb20gdGhlIEVDIHNwYWNlIGhhbmRsZXIgb3INCj4gPiAyLiB0aGUgZXZl
+bnQgcG9sbGVyIHRocmVhZCBpcyB0aW1lZCBvdXQgb3Igd29rZW4gdXAgYnkgdGhlIEVWVF9TQ0ku
+DQo+ID4NCj4gPiBTbyBJIGhvcGUgdGhpcyBJTyBkcml2ZXIgZW5oYW5jZW1lbnQgY2FuIGJlIGEg
+Z29vZCBtYXRlcmlhbCB0byBzaG93IHN1Y2ggcG9zc2liaWxpdHkuDQo+IA0KPiBZZXMsIGl0IGlz
+IGEgZ29vZCBwYXRjaHNldCwgYnV0IEknZCBsaWtlIHRvIG1lcmdlIGl0IGluIGFuIG9yZGVyZWQg
+d2F5Lg0KPiBUaGF0IGlzLCBBQ1BJQ0EgdXBzdHJlYW0gZmlyc3QsIHBhdGNoZXMgZm9yIExpbnV4
+IGZyb20gdGhhdCwgdGhlIEVDIHNlcmllcyBvbg0KPiB0b3Agb2YgdGhpcy4gIE9LPw0KDQpTdXJl
+Lg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gDQo+IFJhZmFlbA0KDQo=
