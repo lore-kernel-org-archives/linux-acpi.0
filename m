@@ -1,76 +1,34 @@
-From: Arjun Sreedharan <arjun024@gmail.com>
-Subject: Re: [PATCH] PNPACPI: check return value of pnpacpi_parse_allocated_resource()
- and pnpacpi_parse_resource_option_data()
-Date: Thu, 24 Jul 2014 01:19:12 +0530
-Message-ID: <CAJFMrCEBmHbWznsfwtmk89zdrHiUveOZqL8Da=FvyN3GWQUraA@mail.gmail.com>
-References: <1406056419-3047-1-git-send-email-arjun024@gmail.com>
- <6018343.yi13pxNXUP@vostro.rjw.lan> <CAJFMrCH1yeZfEo=z6Vj-qaK=Qpiu9KoqJOLsUo-p1yYcxr+L-g@mail.gmail.com>
- <4234415.npFyMyvrKf@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:56266 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932665AbaGWTtf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Jul 2014 15:49:35 -0400
-In-Reply-To: <4234415.npFyMyvrKf@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH 0/3] ACPICA updates for ACPI 5.1 MADT, FADT, GTDT (Just for patch review)
+Date: Thu, 24 Jul 2014 20:59:14 +0800
+Message-ID: <1406206757-15512-1-git-send-email-hanjun.guo@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi-private@linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 23 July 2014 17:06, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Wednesday, July 23, 2014 01:56:36 PM Arjun wrote:
->> ACPI 5.0 resource types like FixedDMA will fail pnpacpi_allocated_resource().
->> pnpacpi_add_device() has to return error in that case.
->
-> Why?
->
+This is the patch set to update ACPICA for MADT, FADT, GTDT in
+ACPI 5.1. These patches are only for review purpose, ACPICA
+patches will have there own special upstream process, it will be
+handled by Bob and Lv.
 
-OK. I presume that for unsupported types like ACPI_RESOURCE_TYPE_FIXED_DMA
-pnpacpi_set_resources() will fail.
+Bob, Lv, please ignore this patch set since you are working on
+them now, it just for people to undstand the later ARM64 ACPI
+core patches better and for temporary test purpose. I will rebase
+my patch set once new version of ACPICA is released, thanks.
 
->> On 23 July 2014 03:42, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> > On Wednesday, July 23, 2014 12:43:39 AM Arjun Sreedharan wrote:
->> >> Handle error condition since pnpacpi_parse_allocated_resource() and pnpacpi_parse_resource_option_data() could return -EPERM.
->> >>
->> >> Signed-off-by: Arjun Sreedharan <arjun024@gmail.com>
->> >
->> > I wonder if this fixes any functional issue you've seen or someone has
->> > reported to you or it's just an "Oh, we probably should handle the return
->> > values here" kind of thing?
->> >
->> >> ---
->> >>  drivers/pnp/pnpacpi/core.c | 8 ++++++--
->> >>  1 file changed, 6 insertions(+), 2 deletions(-)
->> >>
->> >> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
->> >> index b81448b..c3214e9 100644
->> >> --- a/drivers/pnp/pnpacpi/core.c
->> >> +++ b/drivers/pnp/pnpacpi/core.c
->> >> @@ -272,10 +272,14 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
->> >>               strncpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
->> >>
->> >>       if (dev->active)
->> >> -             pnpacpi_parse_allocated_resource(dev);
->> >> +             error = pnpacpi_parse_allocated_resource(dev);
->> >> +             if (error)
->> >> +                     return error;
->> >>
->> >>       if (dev->capabilities & PNP_CONFIGURABLE)
->> >> -             pnpacpi_parse_resource_option_data(dev);
->> >> +             error = pnpacpi_parse_resource_option_data(dev);
->> >> +             if (error)
->> >> +                     return error;
->> >>
->> >>       list_for_each_entry(id, &device->pnp.ids, list) {
->> >>               if (!strcmp(id->id, pnpid))
->> >>
->> >
->> > --
->> > I speak only for myself.
->> > Rafael J. Wysocki, Intel Open Source Technology Center.
->
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+Hanjun Guo (2):
+  ACPI / ACPICA: Introduce ARM Boot Architecture Flags in FADT
+  ACPI / ACPICA: Add GTDT support updated by ACPI 5.1
+
+Tomasz Nowicki (1):
+  ACPI / ACPICA: Add new features for MADT which introduced by ACPI 5.1
+
+ include/acpi/actbl.h  |   12 ++++--
+ include/acpi/actbl1.h |   40 +++++++++++++++++---
+ include/acpi/actbl3.h |   99 ++++++++++++++++++++++++++++++++++++++++++-------
+ 3 files changed, 129 insertions(+), 22 deletions(-)
+
+-- 
+1.7.9.5
