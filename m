@@ -1,72 +1,71 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH 04/19] ARM64 / ACPI: Introduce arch_fix_phys_package_id() for cpu topology
-Date: Thu, 24 Jul 2014 21:00:10 +0800
-Message-ID: <1406206825-15590-5-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH 03/19] ARM64 / ACPI: Introduce lowlevel suspend function
+Date: Thu, 24 Jul 2014 21:00:09 +0800
+Message-ID: <1406206825-15590-4-git-send-email-hanjun.guo@linaro.org>
 References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:56256 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759055AbaGXNBa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jul 2014 09:01:30 -0400
-Received: by mail-pa0-f50.google.com with SMTP id et14so3922459pad.9
-        for <linux-acpi@vger.kernel.org>; Thu, 24 Jul 2014 06:01:30 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>
 Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi-private@linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+List-Id: linux-acpi@vger.kernel.org
 
-arch_fix_phys_package_id() will be called in ACPI core to use
-the slot number provided by ACPI to update the physical package
-id, then we can get the right value in the "physical id" field
-of /proc/cpuinfo.
+From: Graeme Gregory <graeme.gregory@linaro.org>
 
+acpi_wakeup_address is used on x86 as the address bios jumps into
+when machine wakes up from suspend. As arm64 does not have such a
+bios this mechanism will be provided by other means. But the define
+is still required inside the acpi core.
+
+Introduce a null stub for acpi_suspend_lowlevel as this is also
+required by core. This will be filled in when standards are
+defined for arm64 ACPI global power states.
+
+Reviewed-by: Grant Likely <grant.likely@linaro.org>
+Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/topology.h |    2 ++
- arch/arm64/kernel/topology.c      |   14 ++++++++++++++
- 2 files changed, 16 insertions(+)
+ arch/arm64/include/asm/acpi.h |   12 ++++++++++++
+ arch/arm64/kernel/acpi.c      |    7 +++++++
+ 2 files changed, 19 insertions(+)
 
-diff --git a/arch/arm64/include/asm/topology.h b/arch/arm64/include/asm/topology.h
-index 7ebcd31..2b216d4 100644
---- a/arch/arm64/include/asm/topology.h
-+++ b/arch/arm64/include/asm/topology.h
-@@ -23,11 +23,13 @@ extern struct cpu_topology cpu_topology[NR_CPUS];
- void init_cpu_topology(void);
- void store_cpu_topology(unsigned int cpuid);
- const struct cpumask *cpu_coregroup_mask(int cpu);
-+void arch_fix_phys_package_id(int num, u32 slot);
- 
- #else
- 
- static inline void init_cpu_topology(void) { }
- static inline void store_cpu_topology(unsigned int cpuid) { }
-+static inline void arch_fix_phys_package_id(int num, u32 slot) { }
- 
- #endif
- 
-diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
-index 43514f9..c547885 100644
---- a/arch/arm64/kernel/topology.c
-+++ b/arch/arm64/kernel/topology.c
-@@ -281,3 +281,17 @@ void __init init_cpu_topology(void)
- 	if (parse_dt_topology())
- 		reset_cpu_topology();
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index e8581ea..44b617f 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -36,6 +36,18 @@ static inline bool acpi_has_cpu_in_madt(void)
+ 	return 1;
  }
+ 
++/* Low-level suspend routine.
++ *
++ * ACPI S-states for ARM64 have to be defined
++ * and approved before doing anything else, maybe
++ * we need update the ACPI spec, here we
++ * just introduce function and macro needed by
++ * ACPI core as IA64 did, and revisit them when
++ * the spec is ready.
++ */
++extern int (*acpi_suspend_lowlevel)(void);
++#define acpi_wakeup_address 0
++
+ #endif /* CONFIG_ACPI */
+ 
+ #endif /*_ASM_ACPI_H*/
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index ac78e4e..f5a10b5 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -95,3 +95,10 @@ static int __init parse_acpi(char *arg)
+ 	return 0;
+ }
+ early_param("acpi", parse_acpi);
 +
 +/*
-+ * Use the CPU slot number provided by ACPI to update the physical
-+ * package id when cpuid_topo->cluster_id is not available, then we
-+ * can get the right value in the "physical id" field of /proc/cpuinfo.
++ * acpi_suspend_lowlevel() - save kernel state and suspend.
++ *
++ * TBD when ARM/ARM64 starts to support suspend...
 + */
-+void arch_fix_phys_package_id(int num, u32 slot)
-+{
-+	struct cpu_topology *cpuid_topo = &cpu_topology[num];
-+
-+	if (cpuid_topo->cluster_id == -1)
-+		cpuid_topo->cluster_id = slot;
-+}
-+EXPORT_SYMBOL_GPL(arch_fix_phys_package_id);
++int (*acpi_suspend_lowlevel)(void);
 -- 
 1.7.9.5
-
