@@ -1,74 +1,72 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH 18/19] ARM64 / ACPI: Enable ARM64 in Kconfig
-Date: Thu, 24 Jul 2014 21:00:24 +0800
-Message-ID: <1406206825-15590-19-git-send-email-hanjun.guo@linaro.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 04/19] ARM64 / ACPI: Introduce arch_fix_phys_package_id()
+ for cpu topology
+Date: Thu, 24 Jul 2014 15:43:27 +0100
+Message-ID: <20140724144327.GJ17528@sirena.org.uk>
 References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi-private@linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+ <1406206825-15590-5-git-send-email-hanjun.guo@linaro.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="u1ypDpa0Zap8goqZ"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:53061 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759007AbaGXOo3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jul 2014 10:44:29 -0400
+Content-Disposition: inline
+In-Reply-To: <1406206825-15590-5-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi-private@linaro.org
 
-From: Graeme Gregory <graeme.gregory@linaro.org>
 
-Add Kconfigs to build ACPI on ARM64, and make ACPI available on ARM64.
+--u1ypDpa0Zap8goqZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-acpi_idle driver is x86/IA64 dependent now, so make CONFIG_ACPI_PROCESSOR
-depend on X86 || IA64, and implement it on ARM64 in the future.
+On Thu, Jul 24, 2014 at 09:00:10PM +0800, Hanjun Guo wrote:
 
-Reviewed-by: Grant Likely <grant.likely@linaro.org>
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-Signed-off-by: Al Stone <al.stone@linaro.org>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- arch/arm64/Kconfig   |    2 ++
- drivers/acpi/Kconfig |    6 +++---
- 2 files changed, 5 insertions(+), 3 deletions(-)
+> +/*
+> + * Use the CPU slot number provided by ACPI to update the physical
+> + * package id when cpuid_topo->cluster_id is not available, then we
+> + * can get the right value in the "physical id" field of /proc/cpuinfo.
+> + */
+> +void arch_fix_phys_package_id(int num, u32 slot)
+> +{
+> +	struct cpu_topology *cpuid_topo = &cpu_topology[num];
+> +
+> +	if (cpuid_topo->cluster_id == -1)
+> +		cpuid_topo->cluster_id = slot;
+> +}
+> +EXPORT_SYMBOL_GPL(arch_fix_phys_package_id);
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 95835bc..1e0ca19 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -362,6 +362,8 @@ source "drivers/Kconfig"
- 
- source "drivers/firmware/Kconfig"
- 
-+source "drivers/acpi/Kconfig"
-+
- source "fs/Kconfig"
- 
- source "arch/arm64/kvm/Kconfig"
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 3f5f745..f6b6791 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -5,8 +5,7 @@
- menuconfig ACPI
- 	bool "ACPI (Advanced Configuration and Power Interface) Support"
- 	depends on !IA64_HP_SIM
--	depends on IA64 || X86
--	depends on PCI
-+	depends on ((IA64 || X86) && PCI) || ARM64
- 	select PNP
- 	default y
- 	help
-@@ -163,6 +162,7 @@ config ACPI_PROCESSOR
- 	tristate "Processor"
- 	select THERMAL
- 	select CPU_IDLE
-+	depends on X86 || IA64
- 	default y
- 	help
- 	  This driver installs ACPI as the idle handler for Linux and uses
-@@ -263,7 +263,7 @@ config ACPI_DEBUG
- 
- config ACPI_PCI_SLOT
- 	bool "PCI slot detection driver"
--	depends on SYSFS
-+	depends on SYSFS && PCI
- 	default n
- 	help
- 	  This driver creates entries in /sys/bus/pci/slots/ for all PCI
--- 
-1.7.9.5
+As I said on the previous version of this patch are you sure this runs
+at a point between the cluster ID getting initialized to -1 and the slot
+being initialized (bear in mind that we now use MPIDR information if
+availabe).  I don't understand why we don't just unconditionally use the
+value given.
+
+--u1ypDpa0Zap8goqZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJT0RuMAAoJELSic+t+oim9h5cP+QHa9hzHL1neoprYDXds2eZ4
+9SWWzVO9PMGx1KqYRcssebSjmWvUyGDHdzycgK1QV9QNwkpt2G+JAkdKYZSv8bh9
+k4mLOdTDz415a5bLX5bO6tzwc9NJmlDcl+wuNTlfssqdmUNhOYd2oVQbPPbR9P0n
+/HLHStFBIs5/5YGvmjz5pqYe0WuGhrjNl/k4MXWjnrmELD9sTUBrvPEMff9NXz4B
+w6Z7ku3bF8YtfSRo7S38VhyV03Vp9v7jvrHSPbIajIG9+2svMi6y6/kHl+GgcQCK
+qDq/ydde5srTRohmWUtmVMj6+f1ofJWBcdEw9CByM6rYHtSE1fHDYneveDOXecF/
+JEmd79kaRSgYbYDSGd0KVuIshthniLOTq52sB8HDrIUqTMz53JBfeYDypgiwss0X
+ch2ukITAv7P0YsngYpOLsOkSQvWi0agxDEE8kc6EbGxnT9bWDB9ZNRbVmEM0A7eF
+8dCY1XClXW4O29whMkoNBmY2E/RXe8XaMgGvRpAKV4iT2aUkde25btcuLGhP9A5f
+m+xoRcOqrKLWn5+SnaoqWuuWLrAT19rDxZxxrG4QHhIETua2LgdKkWB2LILsNzLQ
+FEbmvAgc941lSiZ05O1i7l/CI8lZBEdH8+ygIyiUqDqNCrFBCkV9TJjgwYhk/uxP
+no1e52bzQkhoTzupg50a
+=bPHV
+-----END PGP SIGNATURE-----
+
+--u1ypDpa0Zap8goqZ--
