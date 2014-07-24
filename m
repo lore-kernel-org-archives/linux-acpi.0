@@ -1,167 +1,44 @@
-From: Naresh Bhat <naresh.bhat@linaro.org>
-Subject: Re: [PATCH 05/19] ARM64 / ACPI: Make PCI optional for ACPI on ARM64
-Date: Fri, 25 Jul 2014 03:27:21 +0530
-Message-ID: <CAFoFrHZQ6zsM-jVpUzuFfL3_1i=HU6g+ogJY2Zoy7wx82E03RA@mail.gmail.com>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <1406206825-15590-6-git-send-email-hanjun.guo@linaro.org>
+From: Woody Suwalski <terraluna977@gmail.com>
+Subject: Re: [BUG] rc1 rc2 rc3 not bootable - black screen after kernel loading
+Date: Thu, 24 Jul 2014 18:26:44 -0400
+Message-ID: <53D18824.9000907@gmail.com>
+References: <53A6E72A.9090000@posteo.de>	 <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>	 <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>	 <53A83DC7.1010606@posteo.de> <1403882067.16305.124.camel@rzhang1-toshiba>	 <53ADB359.4010401@posteo.de> <53ADCB24.9030206@posteo.de>	 <53ADECDA.60600@posteo.de> <53B11749.3020902@posteo.de>	 <1404116299.8366.0.camel@rzhang1-toshiba> <1404116444.8366.1.camel@rzhang1-toshiba> <53B12723.4080902@posteo.de> <53B13E4B.2080603@posteo.de> <53D131E7.2090304@posteo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1406206825-15590-6-git-send-email-hanjun.guo@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, linaro-acpi-private@linaro.org, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Sudeep Holla <Sudee>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ig0-f173.google.com ([209.85.213.173]:38730 "EHLO
+	mail-ig0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751164AbaGXWZ1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jul 2014 18:25:27 -0400
+In-Reply-To: <53D131E7.2090304@posteo.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Martin Kepplinger <martink@posteo.de>, Zhang Rui <rui.zhang@intel.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org
 
-On 24 July 2014 18:30, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+Martin Kepplinger wrote:
+> Am 2014-06-30 12:39, schrieb Martin Kepplinger:
+>> back to aaeb2554337217dfa4eac2fcc90da7be540b9a73 as the first bad
+>> commit. why is this not revertable exactly? how can I show a complete
+>> list of commits this merge introduces?
+>>
+> It seems that _nobody_ is running a simple 32 bit i915 (acer) laptop.
+> rc6 is still unusable. Black screen directly after kernel-loading. no
+> change since rc1.
 >
-> As PCI for ARM64 is not ready, so introduce some stub functions
-> to make PCI optional for ACPI, and make ACPI core run without
-> CONFIG_PCI on ARM64.
+> Seems like I won't be able to use 3.16. I'm happy to test patches and am
+> happy for any advice what to do, when time permits.
 >
-> Since ACPI on X86 and IA64 depends on PCI and this patch only makes
-> PCI optinal for ARM64, it will not break anything on X86 and IA64.
+>                               martin
+>
+Martin, I am running happily a 32-bit kernel 3.16-rc*all on i915 (Asus 
+EeePC)
+However: from your postings I still have no idea what Intel video 
+chipset is in your Acer.
+Try to add "nomodeset=y" to your kernel's cmdline to verify that it can 
+boot. You have many kobject messages which are hiding what is 
+happening... And please submit at least full dmesg output and "lspci 
+-nn" ;-)
 
-
-optional
-
->
->
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/arm64/include/asm/pci.h |   11 +++++++++++
->  drivers/acpi/Makefile        |    2 +-
->  drivers/acpi/internal.h      |    5 +++++
->  include/linux/pci.h          |   37 +++++++++++++++++++++++++++----------
->  4 files changed, 44 insertions(+), 11 deletions(-)
->  create mode 100644 arch/arm64/include/asm/pci.h
->
-> diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
-> new file mode 100644
-> index 0000000..250cd24
-> --- /dev/null
-> +++ b/arch/arm64/include/asm/pci.h
-> @@ -0,0 +1,11 @@
-> +#ifndef __ASM_PCI_H
-> +#define __ASM_PCI_H
-> +#ifdef __KERNEL__
-> +
-> +/*
-> + * PCI address space differs from physical memory address space
-> + */
-> +#define PCI_DMA_BUS_IS_PHYS    (0)
-> +
-> +#endif  /* __KERNEL__ */
-> +#endif  /* __ASM_PCI_H */
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 505d4d7..8e9bbe6 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -39,7 +39,7 @@ acpi-y                                += processor_core.o
->  acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
->  acpi-y                         += ec.o
->  acpi-$(CONFIG_ACPI_DOCK)       += dock.o
-> -acpi-y                         += pci_root.o pci_link.o pci_irq.o
-> +acpi-$(CONFIG_PCI)             += pci_root.o pci_link.o pci_irq.o
->  acpi-y                         += acpi_lpss.o
->  acpi-y                         += acpi_platform.o
->  acpi-y                         += acpi_pnp.o
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 4c5cf77..e1e6487 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -26,8 +26,13 @@
->  acpi_status acpi_os_initialize1(void);
->  int init_acpi_device_notify(void);
->  int acpi_scan_init(void);
-> +#ifdef CONFIG_PCI
->  void acpi_pci_root_init(void);
->  void acpi_pci_link_init(void);
-> +#else
-> +static inline void acpi_pci_root_init(void) {}
-> +static inline void acpi_pci_link_init(void) {}
-> +#endif
->  void acpi_processor_init(void);
->  void acpi_platform_init(void);
->  void acpi_pnp_init(void);
-> diff --git a/include/linux/pci.h b/include/linux/pci.h
-> index 466bcd1..27d7354 100644
-> --- a/include/linux/pci.h
-> +++ b/include/linux/pci.h
-> @@ -558,15 +558,6 @@ struct pci_ops {
->         int (*write)(struct pci_bus *bus, unsigned int devfn, int where, int size, u32 val);
->  };
->
-> -/*
-> - * ACPI needs to be able to access PCI config space before we've done a
-> - * PCI bus scan and created pci_bus structures.
-> - */
-> -int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
-> -                int reg, int len, u32 *val);
-> -int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
-> -                 int reg, int len, u32 val);
-> -
->  struct pci_bus_region {
->         dma_addr_t start;
->         dma_addr_t end;
-> @@ -1293,6 +1284,16 @@ typedef int (*arch_set_vga_state_t)(struct pci_dev *pdev, bool decode,
->                       unsigned int command_bits, u32 flags);
->  void pci_register_set_vga_state(arch_set_vga_state_t func);
->
-> +/*
-> + * ACPI needs to be able to access PCI config space before we've done a
-> + * PCI bus scan and created pci_bus structures.
-> + */
-> +int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
-> +                int reg, int len, u32 *val);
-> +int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
-> +                 int reg, int len, u32 val);
-> +void pcibios_penalize_isa_irq(int irq, int active);
-> +
->  #else /* CONFIG_PCI is not enabled */
->
->  /*
-> @@ -1394,6 +1395,23 @@ static inline struct pci_dev *pci_get_bus_and_slot(unsigned int bus,
->                                                 unsigned int devfn)
->  { return NULL; }
->
-> +static inline struct pci_bus *pci_find_bus(int domain, int busnr)
-> +{ return NULL; }
-> +
-> +static inline int pci_bus_write_config_byte(struct pci_bus *bus,
-> +                               unsigned int devfn, int where, u8 val)
-> +{ return -ENODEV; }
-> +
-> +static inline int raw_pci_read(unsigned int domain, unsigned int bus,
-> +                       unsigned int devfn, int reg, int len, u32 *val)
-> +{ return -EINVAL; }
-> +
-> +static inline int raw_pci_write(unsigned int domain, unsigned int bus,
-> +                       unsigned int devfn, int reg, int len, u32 val)
-> +{ return -EINVAL; }
-> +
-> +static inline void pcibios_penalize_isa_irq(int irq, int active) { }
-> +
->  static inline int pci_domain_nr(struct pci_bus *bus) { return 0; }
->  static inline struct pci_dev *pci_dev_get(struct pci_dev *dev) { return NULL; }
->
-> @@ -1597,7 +1615,6 @@ int pcibios_set_pcie_reset_state(struct pci_dev *dev,
->                                  enum pcie_reset_state state);
->  int pcibios_add_device(struct pci_dev *dev);
->  void pcibios_release_device(struct pci_dev *dev);
-> -void pcibios_penalize_isa_irq(int irq, int active);
->
->  #ifdef CONFIG_HIBERNATE_CALLBACKS
->  extern struct dev_pm_ops pcibios_pm_ops;
-> --
-> 1.7.9.5
->
+Woody
