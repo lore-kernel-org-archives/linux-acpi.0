@@ -1,255 +1,86 @@
-From: Naresh Bhat <naresh.bhat@linaro.org>
-Subject: Re: [PATCH 07/19] ARM64 / ACPI: Parse MADT to map logical cpu to
- MPIDR and get cpu_possible/present_map
-Date: Fri, 25 Jul 2014 04:36:59 +0530
-Message-ID: <CAFoFrHYSYhv3cM_zSFA5Xg+Xfr8BszzRVFhd0GODFpduRPBrbQ@mail.gmail.com>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
-	<1406206825-15590-8-git-send-email-hanjun.guo@linaro.org>
+From: Hugh Dickins <hughd@google.com>
+Subject: Re: [BUG] rc1 rc2 rc3 not bootable - black screen after kernel
+ loading
+Date: Thu, 24 Jul 2014 16:20:25 -0700 (PDT)
+Message-ID: <alpine.LSU.2.11.1407241610320.3733@eggly.anvils>
+References: <53A6E72A.9090000@posteo.de>  <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>  <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>  <53A83DC7.1010606@posteo.de> <1403882067.16305.124.camel@rzhang1-toshiba>
+  <53ADB359.4010401@posteo.de> <53ADCB24.9030206@posteo.de>  <53ADECDA.60600@posteo.de> <53B11749.3020902@posteo.de>  <1404116299.8366.0.camel@rzhang1-toshiba> <1404116444.8366.1.camel@rzhang1-toshiba> <53B12723.4080902@posteo.de> <53B13E4B.2080603@posteo.de>
+ <53D131E7.2090304@posteo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f53.google.com ([209.85.219.53]:50009 "EHLO
-	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759702AbaGXXHA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jul 2014 19:07:00 -0400
-Received: by mail-oa0-f53.google.com with SMTP id j17so4479058oag.26
-        for <linux-acpi@vger.kernel.org>; Thu, 24 Jul 2014 16:07:00 -0700 (PDT)
-In-Reply-To: <1406206825-15590-8-git-send-email-hanjun.guo@linaro.org>
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:64021 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934839AbaGXXWO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Jul 2014 19:22:14 -0400
+Received: by mail-pd0-f182.google.com with SMTP id fp1so4573180pdb.27
+        for <linux-acpi@vger.kernel.org>; Thu, 24 Jul 2014 16:22:14 -0700 (PDT)
+In-Reply-To: <53D131E7.2090304@posteo.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.orglinaro
+To: Martin Kepplinger <martink@posteo.de>
+Cc: Daniel Vetter <ffwll.ch@google.com>, Zhang Rui <rui.zhang@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org
 
-On 24 July 2014 18:30, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> MADT contains the information for MPIDR which is essential for
-> SMP initialization, parse the GIC cpu interface structures to
-> get the MPIDR value and map it to cpu_logical_map(), and add
-> enabled cpu with valid MPIDR into cpu_possible_map and
-> cpu_present_map.
->
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> ---
->  arch/arm64/include/asm/acpi.h |    2 +
->  arch/arm64/kernel/acpi.c      |  127 +++++++++++++++++++++++++++++++++++++++++
->  arch/arm64/kernel/smp.c       |   10 +++-
->  3 files changed, 138 insertions(+), 1 deletion(-)
->
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 67dac90..5ce85f8 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -50,6 +50,8 @@ static inline bool acpi_has_cpu_in_madt(void)
->  extern int (*acpi_suspend_lowlevel)(void);
->  #define acpi_wakeup_address 0
->
-> +#define MAX_GIC_CPU_INTERFACE 65535
-> +
->  #endif /* CONFIG_ACPI */
->
->  #endif /*_ASM_ACPI_H*/
-> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> index 374926f..801e268 100644
-> --- a/arch/arm64/kernel/acpi.c
-> +++ b/arch/arm64/kernel/acpi.c
-> @@ -22,6 +22,9 @@
->  #include <linux/bootmem.h>
->  #include <linux/smp.h>
->
-> +#include <asm/smp_plat.h>
-> +#include <asm/cputype.h>
-> +
->  /*
->   * We never plan to use RSDT on arm/arm64 as its deprecated in spec but this
->   * variable is still required by the ACPI core
-> @@ -42,6 +45,9 @@ int acpi_psci_present;
->  /* 1 to indicate HVC must be used instead of SMC as the PSCI conduit */
->  int acpi_psci_use_hvc;
->
-> +/* Processors (GICC) with enabled flag in MADT */
-> +static int enabled_cpus;
-> +
->  /*
->   * __acpi_map_table() will be called before page_init(), so early_ioremap()
->   * or early_memremap() should be called here to for ACPI table mapping.
-> @@ -62,6 +68,122 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
->         early_iounmap(map, size);
->  }
->
-> +/**
-> + * acpi_register_gic_cpu_interface - register a gic cpu interface and
-> + * generates a logic cpu number
+On Thu, 24 Jul 2014, Martin Kepplinger wrote:
+> Am 2014-06-30 12:39, schrieb Martin Kepplinger:
+> > back to aaeb2554337217dfa4eac2fcc90da7be540b9a73 as the first bad
+> > commit. why is this not revertable exactly? how can I show a complete
+> > list of commits this merge introduces?
+> > 
+> 
+> It seems that _nobody_ is running a simple 32 bit i915 (acer) laptop.
+> rc6 is still unusable. Black screen directly after kernel-loading. no
+> change since rc1.
+> 
+> Seems like I won't be able to use 3.16. I'm happy to test patches and am
+> happy for any advice what to do, when time permits.
 
-logic - logical
+Martin, I know nothing about aaeb25543372 and why it should be relevant,
+but if you're having rc1..rc6 32-bit i915 black screens, please try this
+patch that Daniel Vetter put in his fixes queue on Monday, which I'm
+hoping will reach Linus for -rc7.
 
-> + * @mpidr: CPU's hardware id to register, MPIDR represented in MADT
-> + * @enabled: this cpu is enabled or not
-> + *
-> + * Returns the logic cpu number which maps to the gic cpu interface
+Hugh
 
-logic - logical
+[PATCH] drm/i915: fix freeze with blank screen booting highmem
 
-> + */
-> +static int acpi_register_gic_cpu_interface(u64 mpidr, u8 enabled)
-> +{
-> +       int cpu;
-> +
-> +       if (mpidr == INVALID_HWID) {
-> +               pr_info("Skip invalid cpu hardware ID\n");
-> +               return -EINVAL;
-> +       }
-> +
-> +       total_cpus++;
-> +       if (!enabled)
-> +               return -EINVAL;
-> +
-> +       if (enabled_cpus >=  NR_CPUS) {
-> +               pr_warn("NR_CPUS limit of %d reached, Processor %d/0x%llx ignored.\n",
-> +                       NR_CPUS, total_cpus, mpidr);
-> +               return -EINVAL;
-> +       }
-> +
-> +       /* If it is the first CPU, no need to check duplicate MPIDRs */
-> +       if (!enabled_cpus)
-> +               goto skip_mpidr_check;
-> +
-> +       /*
-> +        * Duplicate MPIDRs are a recipe for disaster. Scan
-> +        * all initialized entries and check for
-> +        * duplicates. If any is found just ignore the CPU.
-> +        */
-> +       for_each_present_cpu(cpu) {
-> +               if (cpu_logical_map(cpu) == mpidr) {
-> +                       pr_err("Firmware bug, duplicate CPU MPIDR: 0x%llx in MADT\n",
-> +                              mpidr);
-> +                       return -EINVAL;
-> +               }
-> +       }
-> +
-> +skip_mpidr_check:
-> +       enabled_cpus++;
-> +
-> +       /* allocate a logic cpu id for the new comer */
+x86_64 boots and displays fine, but booting x86_32 with CONFIG_HIGHMEM
+has frozen with a blank screen throughout 3.16-rc on this ThinkPad T420s,
+with i915 generation 6 graphics.
 
-logic - logical
+Fix 9d0a6fa6c5e6 ("drm/i915: add render state initialization"): kunmap()
+takes struct page * argument, not virtual address.  Which the compiler
+kindly points out, if you use the appropriate u32 *batch, instead of
+silencing it with a void *.
 
-> +       if (cpu_logical_map(0) == mpidr) {
-> +               /*
-> +                * boot_cpu_init() already hold bit 0 in cpu_present_mask
-> +                * for BSP, no need to allocte again.
+Why did bisection lead decisively to nearby 229b0489aa75 ("drm/i915:
+add null render states for gen6, gen7 and gen8")?  Because the u32
+deposited at that virtual address by the previous stub failed the
+PageHighMem test, and so caused no harm.
 
-allocte - allocate
+Signed-off-by: Hugh Dickins <hughd@google.com>
+---
 
-> +                */
-> +               cpu = 0;
-> +       } else {
-> +               cpu = cpumask_next_zero(-1, cpu_present_mask);
-> +       }
-> +
-> +       /* map the logic cpu id to cpu MPIDR */
+ drivers/gpu/drm/i915/i915_gem_render_state.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-logic - logical
-
-> +       cpu_logical_map(cpu) = mpidr;
-> +
-> +       set_cpu_possible(cpu, true);
-> +       set_cpu_present(cpu, true);
-> +
-> +       return cpu;
-> +}
-> +
-> +static int __init
-> +acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
-> +                               const unsigned long end)
-> +{
-> +       struct acpi_madt_generic_interrupt *processor;
-> +
-> +       processor = (struct acpi_madt_generic_interrupt *)header;
-> +
-> +       if (BAD_MADT_ENTRY(processor, end))
-> +               return -EINVAL;
-> +
-> +       acpi_table_print_madt_entry(header);
-> +
-> +       acpi_register_gic_cpu_interface(processor->mpidr,
-> +               processor->flags & ACPI_MADT_ENABLED);
-> +
-> +       return 0;
-> +}
-> +
-> +/*
-> + * Parse GIC cpu interface related entries in MADT
-> + * returns 0 on success, < 0 on error
-> + */
-> +static int __init acpi_parse_madt_gic_cpu_interface_entries(void)
-> +{
-> +       int count;
-> +
-> +       /*
-> +        * do a partial walk of MADT to determine how many CPUs
-> +        * we have including disabled CPUs, and get information
-> +        * we need for SMP init
-> +        */
-> +       count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
-> +                       acpi_parse_gic_cpu_interface, MAX_GIC_CPU_INTERFACE);
-> +
-> +       if (!count) {
-> +               pr_err("No GIC CPU interface entries present\n");
-> +               return -ENODEV;
-> +       } else if (count < 0) {
-> +               pr_err("Error parsing GIC CPU interface entry\n");
-> +               return count;
-> +       }
-> +
-> +       /* Make boot-up look pretty */
-> +       pr_info("%d CPUs enabled, %d CPUs total\n", enabled_cpus, total_cpus);
-> +
-> +       return 0;
-> +}
-> +
->  static int __init acpi_parse_fadt(struct acpi_table_header *table)
->  {
->         struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
-> @@ -122,6 +244,11 @@ int __init acpi_boot_init(void)
->         if (err)
->                 pr_err("Can't find FADT\n");
->
-> +       /* Get the boot CPU's MPIDR before MADT parsing */
-> +       cpu_logical_map(0) = read_cpuid_mpidr() & MPIDR_HWID_BITMASK;
-> +
-> +       err = acpi_parse_madt_gic_cpu_interface_entries();
-> +
->         return err;
->  }
->
-> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-> index 40f38f4..8f1d37c 100644
-> --- a/arch/arm64/kernel/smp.c
-> +++ b/arch/arm64/kernel/smp.c
-> @@ -36,6 +36,7 @@
->  #include <linux/completion.h>
->  #include <linux/of.h>
->  #include <linux/irq_work.h>
-> +#include <linux/acpi.h>
->
->  #include <asm/atomic.h>
->  #include <asm/cacheflush.h>
-> @@ -458,7 +459,14 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
->                 if (err)
->                         continue;
->
-> -               set_cpu_present(cpu, true);
-> +               /*
-> +                * In ACPI mode, cpu_present_map was initialised when
-> +                * MADT table was parsed which before this function
-> +                * is called.
-> +                */
-> +               if (acpi_disabled)
-> +                       set_cpu_present(cpu, true);
-> +
->                 max_cpus--;
->         }
->  }
-> --
-> 1.7.9.5
->
+--- 3.16-rc/drivers/gpu/drm/i915/i915_gem_render_state.c	2014-06-16 00:28:52.384076465 -0700
++++ linux/drivers/gpu/drm/i915/i915_gem_render_state.c	2014-07-21 20:10:03.824481521 -0700
+@@ -31,7 +31,7 @@
+ struct i915_render_state {
+ 	struct drm_i915_gem_object *obj;
+ 	unsigned long ggtt_offset;
+-	void *batch;
++	u32 *batch;
+ 	u32 size;
+ 	u32 len;
+ };
+@@ -80,7 +80,7 @@ free:
+ 
+ static void render_state_free(struct i915_render_state *so)
+ {
+-	kunmap(so->batch);
++	kunmap(kmap_to_page(so->batch));
+ 	i915_gem_object_ggtt_unpin(so->obj);
+ 	drm_gem_object_unreference(&so->obj->base);
+ 	kfree(so);
