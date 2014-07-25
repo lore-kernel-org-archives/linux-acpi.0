@@ -1,41 +1,188 @@
 From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 09/19] ARM64 / ACPI: Move the initialization of
- cpu_logical_map(0) before acpi_boot_init()
-Date: Fri, 25 Jul 2014 13:18:39 +0100
-Message-ID: <20140725121839.GC19632@leverpostej>
+Subject: Re: [PATCH 10/19] ARM64 / ACPI: Get the enable method for SMP
+ initialization in ACPI way
+Date: Fri, 25 Jul 2014 13:24:24 +0100
+Message-ID: <20140725122424.GD19632@leverpostej>
 References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <1406206825-15590-10-git-send-email-hanjun.guo@linaro.org>
- <20140724152103.GB26190@leverpostej>
- <53D233CC.1070006@linaro.org>
+ <1406206825-15590-11-git-send-email-hanjun.guo@linaro.org>
+ <20140724154745.GD26190@leverpostej> <53D236B9.7000302@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:39484 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751287AbaGYMSy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Jul 2014 08:18:54 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <53D233CC.1070006@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <53D236B9.7000302@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-ker>
+Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, Rafael J. Wysoc
+List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 25, 2014 at 11:39:08AM +0100, Hanjun Guo wrote:
-> On 2014-7-24 23:21, Mark Rutland wrote:
-> > On Thu, Jul 24, 2014 at 02:00:15PM +0100, Hanjun Guo wrote:
-> >> Move the initialization of cpu_logical_map(0) before acpi_boot_init()
-> >> to remove the duplicated initialization of cpu_logical_map(0).
+On Fri, Jul 25, 2014 at 11:51:37AM +0100, Hanjun Guo wrote:
+> On 2014-7-24 23:47, Mark Rutland wrote:
+> > On Thu, Jul 24, 2014 at 02:00:16PM +0100, Hanjun Guo wrote:
+> >> ACPI 5.1 only has two explicit methods to boot up SMP,
+> >> PSCI and Parking protocol, but the Parking protocol is
+> >> only suitable for ARMv7 now, so make PSCI as the only way
+> >> for the SMP boot protocol before some updates for the
+> >> ACPI spec or the Parking protocol spec.
+> >>
+> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> >> ---
+> >>  arch/arm64/include/asm/acpi.h    |   21 +++++++++++++++
+> >>  arch/arm64/include/asm/cpu_ops.h |    9 ++++++-
+> >>  arch/arm64/include/asm/smp.h     |    2 +-
+> >>  arch/arm64/kernel/acpi.c         |    9 +++++++
+> >>  arch/arm64/kernel/cpu_ops.c      |   52 ++++++++++++++++++++++++++++++++++----
+> >>  arch/arm64/kernel/smp.c          |   29 +++++++++++++++++++--
+> >>  6 files changed, 113 insertions(+), 9 deletions(-)
+> [...]
+> >>  /*
+> >> - * Setup the set of possible CPUs (via set_cpu_possible)
+> >> + * Platform specific SMP operations
+> >>   */
+> >>  extern void smp_init_cpus(void);
 > > 
-> > It always make sense to initialise CPU0's logical map entry from the
-> > hardware values, so you could do this earlier in the series, before you
-> > introduce any ACPI code. Then you don't have the churn in acpi.c
+> > While the originial comment is out of date, the new form is plain wrong.
+> > 
+> > Something like "Discover the set of possible CPUs and determine their
+> > SMP operations" would be a better description of what's going on here.
 > 
-> ok, I will prepare a separate patch to do this before ACPI code, does it
-> make sense to you?
+> Agreed.
 
-Yes. Just put that at the start of the series.
+Ok.
 
-Thanks,
+> > 
+> >>
+> >> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> >> index ff0f6a0..2af6662 100644
+> >> --- a/arch/arm64/kernel/acpi.c
+> >> +++ b/arch/arm64/kernel/acpi.c
+> >> @@ -184,6 +184,15 @@ static int __init acpi_parse_madt_gic_cpu_interface_entries(void)
+> >>         return 0;
+> >>  }
+> >>
+> >> +/* Protocol to bring up secondary CPUs */
+> >> +enum acpi_smp_boot_protocol smp_boot_protocol(void)
+> >> +{
+> >> +       if (acpi_psci_present)
+> >> +               return ACPI_SMP_BOOT_PSCI;
+> >> +       else
+> >> +               return ACPI_SMP_BOOT_PARKING_PROTOCOL;
+> >> +}
+> >> +
+> >>  static int __init acpi_parse_fadt(struct acpi_table_header *table)
+> >>  {
+> >>         struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
+> >> diff --git a/arch/arm64/kernel/cpu_ops.c b/arch/arm64/kernel/cpu_ops.c
+> >> index d62d12f..4d9b3cf 100644
+> >> --- a/arch/arm64/kernel/cpu_ops.c
+> >> +++ b/arch/arm64/kernel/cpu_ops.c
+> >> @@ -16,11 +16,13 @@
+> >>   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+> >>   */
+> >>
+> >> -#include <asm/cpu_ops.h>
+> >> -#include <asm/smp_plat.h>
+> >>  #include <linux/errno.h>
+> >>  #include <linux/of.h>
+> >>  #include <linux/string.h>
+> >> +#include <linux/acpi.h>
+> >> +
+> >> +#include <asm/cpu_ops.h>
+> >> +#include <asm/smp_plat.h>
+> > 
+> > Was the header move just for consistency with other files, or is there
+> > some ordering requirement here?
+> 
+> Ordering requirement, it will meet compile error for "return -ENODEV;"
+> in the head file which I introduced, I know I can include the right
+> head file in asm/cpu_ops.h, but I think move the asm/xx.h after the
+> include of linux/xx.h would be fine.
+
+If a file uses something defined in a header, it should include that
+header. So if you need ENODEV in cpu_ops.h, make cpu_ops.h include
+<linux/errno.h>. It is not fine to deliberately rely on implicit
+includes.
+
+Moving the headers around is a separate issue. I have no problem with
+doing that for consistency with other files.
+
+> 
+> > 
+> >>
+> >>  extern const struct cpu_operations smp_spin_table_ops;
+> >>  extern const struct cpu_operations cpu_psci_ops;
+> >> @@ -52,7 +54,7 @@ static const struct cpu_operations * __init cpu_get_ops(const char *name)
+> >>  /*
+> >>   * Read a cpu's enable method from the device tree and record it in cpu_ops.
+> >>   */
+> >> -int __init cpu_read_ops(struct device_node *dn, int cpu)
+> >> +int __init cpu_of_read_ops(struct device_node *dn, int cpu)
+> >>  {
+> >>         const char *enable_method = of_get_property(dn, "enable-method", NULL);
+> >>         if (!enable_method) {
+> >> @@ -76,12 +78,52 @@ int __init cpu_read_ops(struct device_node *dn, int cpu)
+> >>         return 0;
+> >>  }
+> >>
+> >> +#ifdef CONFIG_ACPI
+> >> +/*
+> >> + * Read a cpu's enable method in the ACPI way and record it in cpu_ops.
+> >> + */
+> >> +int __init cpu_acpi_read_ops(int cpu)
+> >> +{
+> >> +       /*
+> >> +        * For ACPI 5.1, only two kind of methods are provided,
+> >> +        * Parking protocol and PSCI, but Parking protocol is
+> >> +        * used on ARMv7 only, so make PSCI as the only method
+> >> +        * for SMP initialization before the ACPI spec or Parking
+> >> +        * protocol spec is updated.
+> >> +        */
+> > 
+> > That comment is a little misleading. The parking protocol is _specified_
+> > for ARMv7 only.
+> 
+> Agreed. But I'm just wondering if the Parking protocol is modified and
+> then support ARMv8, how to describe it in the comments?
+
+We update the comments if and when that happens.
+
+> > 
+> >> +       switch (smp_boot_protocol()) {
+> >> +       case ACPI_SMP_BOOT_PSCI:
+> >> +               cpu_ops[cpu] = cpu_get_ops("psci");
+> >> +               break;
+> >> +       case ACPI_SMP_BOOT_PARKING_PROTOCOL:
+> >> +       default:
+> >> +               cpu_ops[cpu] = NULL;
+> >> +               break;
+> >> +       }
+> >> +
+> >> +       if (!cpu_ops[cpu]) {
+> >> +               pr_warn("CPU %d: unsupported enable-method, only PSCI is supported\n",
+> >> +                       cpu);
+> >> +               return -EOPNOTSUPP;
+> >> +       }
+> > 
+> > That's going to require changes as things get updated, and
+> > "enable-method" is a term from DT rather than ACPI.
+> > 
+> > How about:
+> > 
+> > 	"CPU%d: boot protocol unsupported or unknown\n".
+> 
+> Pretty fine to me :)
+
+Ok.
+
+Cheers,
 Mark.
