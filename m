@@ -1,51 +1,76 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 04/19] ARM64 / ACPI: Introduce arch_fix_phys_package_id()
- for cpu topology
-Date: Fri, 25 Jul 2014 18:32:14 +0800
-Message-ID: <53D2322E.9010802@linaro.org>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org> <1406206825-15590-5-git-send-email-hanjun.guo@linaro.org> <20140724144327.GJ17528@sirena.org.uk>
+Subject: Re: [PATCH 09/19] ARM64 / ACPI: Move the initialization of cpu_logical_map(0)
+ before acpi_boot_init()
+Date: Fri, 25 Jul 2014 18:39:08 +0800
+Message-ID: <53D233CC.1070006@linaro.org>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org> <1406206825-15590-10-git-send-email-hanjun.guo@linaro.org> <20140724152103.GB26190@leverpostej>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:38592 "EHLO
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:43272 "EHLO
 	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760168AbaGYKd1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jul 2014 06:33:27 -0400
-Received: by mail-pd0-f177.google.com with SMTP id p10so5401338pdj.8
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Jul 2014 03:33:26 -0700 (PDT)
-In-Reply-To: <20140724144327.GJ17528@sirena.org.uk>
+	with ESMTP id S1751773AbaGYKkV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Jul 2014 06:40:21 -0400
+Received: by mail-pd0-f177.google.com with SMTP id p10so5410862pdj.8
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Jul 2014 03:40:20 -0700 (PDT)
+In-Reply-To: <20140724152103.GB26190@leverpostej>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi-private@linaro.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-ker>
 
-On 2014-7-24 22:43, Mark Brown wrote:
-> On Thu, Jul 24, 2014 at 09:00:10PM +0800, Hanjun Guo wrote:
+On 2014-7-24 23:21, Mark Rutland wrote:
+> On Thu, Jul 24, 2014 at 02:00:15PM +0100, Hanjun Guo wrote:
+>> Move the initialization of cpu_logical_map(0) before acpi_boot_init()
+>> to remove the duplicated initialization of cpu_logical_map(0).
 > 
->> +/*
->> + * Use the CPU slot number provided by ACPI to update the physical
->> + * package id when cpuid_topo->cluster_id is not available, then we
->> + * can get the right value in the "physical id" field of /proc/cpuinfo.
->> + */
->> +void arch_fix_phys_package_id(int num, u32 slot)
->> +{
->> +	struct cpu_topology *cpuid_topo = &cpu_topology[num];
->> +
->> +	if (cpuid_topo->cluster_id == -1)
->> +		cpuid_topo->cluster_id = slot;
->> +}
->> +EXPORT_SYMBOL_GPL(arch_fix_phys_package_id);
-> 
-> As I said on the previous version of this patch are you sure this runs
-> at a point between the cluster ID getting initialized to -1 and the slot
-> being initialized (bear in mind that we now use MPIDR information if
-> availabe).  I don't understand why we don't just unconditionally use the
-> value given.
+> It always make sense to initialise CPU0's logical map entry from the
+> hardware values, so you could do this earlier in the series, before you
+> introduce any ACPI code. Then you don't have the churn in acpi.c
 
-Ah, sorry, it should be unconditionally used as you said, and I remember
-the comments in last version, but the patch shows not, must be something
-wrong, will update it in next version.
+ok, I will prepare a separate patch to do this before ACPI code, does it
+make sense to you?
+
+> 
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>  arch/arm64/kernel/acpi.c  |    3 ---
+>>  arch/arm64/kernel/setup.c |    3 ++-
+>>  2 files changed, 2 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+>> index 801e268..ff0f6a0 100644
+>> --- a/arch/arm64/kernel/acpi.c
+>> +++ b/arch/arm64/kernel/acpi.c
+>> @@ -244,9 +244,6 @@ int __init acpi_boot_init(void)
+>>  	if (err)
+>>  		pr_err("Can't find FADT\n");
+>>  
+>> -	/* Get the boot CPU's MPIDR before MADT parsing */
+>> -	cpu_logical_map(0) = read_cpuid_mpidr() & MPIDR_HWID_BITMASK;
+>> -
+>>  	err = acpi_parse_madt_gic_cpu_interface_entries();
+>>  
+>>  	return err;
+>> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+>> index e00d40c..17ab98e 100644
+>> --- a/arch/arm64/kernel/setup.c
+>> +++ b/arch/arm64/kernel/setup.c
+>> @@ -394,13 +394,14 @@ void __init setup_arch(char **cmdline_p)
+>>  
+>>  	efi_idmap_init();
+>>  
+>> +	/* Get the boot CPU's MPIDR before cpu logical map is built */
+> 
+> That comment's a bit useless; I think it can just be dropped.
+> 
+> All you need to do is move the initialisation of cpu_logical_map(0)
+> before unflatten_device_tree(). When you introduce acpi_boot_init(),
+> place it after the initialisation.
+
+ok, I agree with you, will update it.
 
 Thanks
 Hanjun
