@@ -1,35 +1,369 @@
-From: Hugh Dickins <hughd@google.com>
-Subject: Re: [BUG] rc1 rc2 rc3 not bootable - black screen after kernel
- loading
-Date: Sat, 26 Jul 2014 16:19:01 -0700 (PDT)
-Message-ID: <alpine.LSU.2.11.1407261615550.14577@eggly.anvils>
-References: <53A6E72A.9090000@posteo.de>  <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>  <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>  <53A83DC7.1010606@posteo.de> <1403882067.16305.124.camel@rzhang1-toshiba>
-  <53ADB359.4010401@posteo.de> <53ADCB24.9030206@posteo.de>  <53ADECDA.60600@posteo.de> <53B11749.3020902@posteo.de>  <1404116299.8366.0.camel@rzhang1-toshiba> <1404116444.8366.1.camel@rzhang1-toshiba> <53B12723.4080902@posteo.de> <53B13E4B.2080603@posteo.de>
- <53D131E7.2090304@posteo.de> <alpine.LSU.2.11.1407241610320.3733@eggly.anvils> <53D22E4D.2060600@posteo.de>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
+Date: Sat, 26 Jul 2014 19:34:48 -0700
+Message-ID: <CAOesGMhKHGkVK3dOLXXx9GQBMxDmjBu1WDBgHmwdGe1UK3jfcg@mail.gmail.com>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
+ <1406206825-15590-20-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:41029 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750803AbaGZXUl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Jul 2014 19:20:41 -0400
-Received: by mail-pd0-f174.google.com with SMTP id fp1so7604375pdb.5
-        for <linux-acpi@vger.kernel.org>; Sat, 26 Jul 2014 16:20:40 -0700 (PDT)
-In-Reply-To: <53D22E4D.2060600@posteo.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1406206825-15590-20-git-send-email-hanjun.guo@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, linaro-acpi-private@linaro.org, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, Rafael J. Wysock
 List-Id: linux-acpi@vger.kernel.org
-To: Martin Kepplinger <martink@posteo.de>
-Cc: Hugh Dickins <hughd@google.com>, daniel.vetter@ffwll.ch, Zhang Rui <rui.zhang@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Fri, 25 Jul 2014, Martin Kepplinger wrote:
-> Am 2014-07-25 01:20, schrieb Hugh Dickins:
-> > 
-> > [PATCH] drm/i915: fix freeze with blank screen booting highmem
-> 
-> yes! thanks Hugh. On top of linus' current tree, that finally fixes my
-> problem! I hope it'll be included soon!
+On Thu, Jul 24, 2014 at 6:00 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> From: Graeme Gregory <graeme.gregory@linaro.org>
+>
+> Add documentation for the guidelines of how to use ACPI
+> on ARM64.
 
-I'm glad to hear it, Martin, thanks for letting us know.  It is now
-commit 88b98287356762cc16c9ff6cd48116160a5d4dba in Linus's tree for rc7.
+As the most vocal participant against ACPI being adopted, I would have
+appreciated a cc on this patch set -- it's not like you were going for
+a minimal set of cc recipients already. It makes it seem like you're
+trying to sneak it past me for comments. Not cool. I know that's
+probably not your intent, but still.
 
-Hugh
+Some comments below. Overall the doc looks pretty good, but the
+details about _DSD and clocks are somewhat worrisome.
+
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  Documentation/arm64/arm-acpi.txt |  240 ++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 240 insertions(+)
+>  create mode 100644 Documentation/arm64/arm-acpi.txt
+>
+> diff --git a/Documentation/arm64/arm-acpi.txt b/Documentation/arm64/arm-acpi.txt
+> new file mode 100644
+> index 0000000..12cd550
+> --- /dev/null
+> +++ b/Documentation/arm64/arm-acpi.txt
+> @@ -0,0 +1,240 @@
+> +ACPI on ARMv8 Servers
+> +---------------------
+> +
+> +ACPI will be used for ARMv8 general purpose servers designed to follow
+
+"ACPI might be used"    or     "can be used"
+
+> +the SBSA specification (currently available to people with an ARM login at
+> +http://silver.arm.com)
+> +
+> +The implemented ACPI version is 5.1 + errata as released by the UEFI Forum,
+> +which is available at <http://www.uefi.org/acpi/specs>.
+
+The implemented version where? The kernel implements that version?
+Worth clarifying.
+
+> +If the machine does not meet these requirements then it is likely that Device
+> +Tree (DT) is more suitable for the hardware.
+
+This is should be a very clear statement that is currently vague
+w.r.t. which requirements are met or not, especially based on the
+sentence above.
+
+> +Relationship with Device Tree
+> +-----------------------------
+> +
+> +ACPI support in drivers and subsystems for ARMv8 should never be mutually
+> +exclusive with DT support at compile time.
+> +
+> +At boot time the kernel will only use one description method depending on
+> +parameters passed from the bootloader.
+
+Possibly overriden by kernel bootargs. And as debated for quite a
+while earlier this year, acpi should still default to off -- if a DT
+and ACPI are both passed in, DT should at this time be given priority.
+
+(Where can I learn more about how the boot loaders currently handle
+this? Do some of them pass in both DT and ACPI on some platforms, for
+example?)
+
+
+> +Regardless of whether DT or ACPI is used, the kernel must always be capable
+> +of booting with either scheme.
+
+It should always be possible to compile out ACPI. There will be plenty
+of platforms that will not implement it, so disabling CONFIG_ACPI
+needs to be possible.
+
+> +When booting using ACPI tables the /chosen node in DT will still be parsed
+> +to extract the kernel command line and initrd path. No other section of
+> +the DT will be used.
+> +
+> +Booting using ACPI tables
+> +-------------------------
+> +
+> +Currently, the only defined method to pass ACPI tables to the kernel on ARMv8
+> +is via the UEFI system configuration table.
+> +
+> +The UEFI implementation MUST set the ACPI_20_TABLE_GUID to point to the
+> +RSDP table (the table with the ACPI signature "RSD PTR ").
+> +
+> +The pointer to the RSDP table will be retrieved from EFI by the ACPI core.
+> +
+> +Processing of ACPI tables may be disabled by passing acpi=off on the kernel
+> +command line.
+> +
+> +DO use an XSDT, RSDTs are deprecated and should not be used on arm64. They
+> +only allow for 32bit addresses.
+> +
+> +DO NOT use the 32-bit address fields in the FADT, they are deprecated, the
+> +64-bit alternatives MUST be used.
+> +
+> +The minimum set of tables MUST include RSDP, XSDT, FACS, FADT, DSDT, MADT
+> +and GTDT. If PCI is used the MCFG table MUST also be present.
+> +
+> +ACPI Detection
+> +--------------
+> +
+> +Drivers should determine their probe() type by checking for ACPI_HANDLE,
+> +or .of_node, or other information in the device structure. This is
+> +detailed further in the "Driver Recomendations" section.
+> +
+> +If the presence of ACPI needs to be detected at runtime, then check the value
+> +of acpi_disabled. If CONFIG_ACPI not being set acpi_disabled will always be 1.
+
+Just to make sure, if acpi_disabled is 0, then there will be no acpi
+handle associated with the device, right? I.e. there should be no need
+to have every single driver check for whether ACPI is disabled, the
+handle check should just fail instead.
+
+> +Device Enumeration
+> +------------------
+> +
+> +Device descriptions in ACPI should use standard recognised ACPI interfaces.
+> +These are far simpler than the information provided via Device Tree. Drivers
+> +should take into account this simplicity and work with sensible defaults.
+> +
+> +On no account should a Device Tree attempt to be replicated in ASL using such
+> +constructs as Name(KEY0, "Value1") type constructs. Additional driver specific
+> +data should be passed in the appropriate _DSM (ACPI Section 9.14.1) method or
+> +_DSD (ACPI Section 6.2.5). This data should be rare and not OS specific.
+
+I see these two sentences as contradictory, given that the _DSD doc
+linked below contains examples that mirror over several properties,
+such as "linux,default-trigger" and other LED-specific properties.
+(section 2.4.2 in the below doc). "default-state" seems to come from
+DT too?
+
+Care to elaborate and explain what the intention here is? This could
+worst case turn into quite a mess.
+
+Given that ACPI can present completely different data based on what OS
+is running, it's quite common to indeed have OS specific data in
+there. How does that relate to this document and these practices?
+
+> +Common _DSD bindings should be submitted to ASWG to be included in the
+> +document :-
+> +
+> +http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel.htm
+
+So, for these that are a mirror of the device tree bindings, there
+needs to be a wording here around reviewing the DT binding first so we
+don't get diverging bindings.
+
+> +TODO: Clarification and examples from Juno implementation.
+> +
+> +Programmable Power Control Resources
+> +------------------------------------
+> +
+> +Programmable power control resources include such resources as voltage/current
+> +providers (regulators) and clock sources.
+> +
+> +For power control of these resources they should be represented with Power
+> +Resource Objects (ACPI Section 7.1). The ACPI core will then handle correctly
+> +enabling/disabling of resources as they are needed.
+> +
+> +There exists in the ACPI 5.1 specification no standard binding for these objects
+> +to enable programmable levels or rates so this should be avoid if possible and
+> +the resources set to appropriate level by the firmware. If this is not possible
+> +then any manipulation should be abstracted in ASL.
+> +
+> +Each device in ACPI has D-states and these can be controlled through
+> +the optional methods _PS0..._PS3 where _PS0 is full on and _PS3 is full off.
+> +
+> +If either _PS0 or _PS3 is implemented, then the other method must also be
+> +implemented.
+> +
+> +If a device requires usage or setup of a power resource when on, the ASL
+> +should organise that it is allocated/enabled using the _PS0 method.
+> +
+> +Resources allocated/enabled in the _PS0 method should be disabled/de-allocated
+> +in the _PS3 method.
+> +
+> +Such code in _PS? methods will of course be very platform specific but
+> +should allow the driver to operate the device without special non standard
+> +values being read from ASL. Further, abstracting the use of these resources
+> +allows hardware revisions without requiring updates to the kernel.
+> +
+> +TODO: Clarification and examples from Juno implementation.
+> +
+> +Clocks
+> +------
+> +
+> +Like clocks that are part of the power resources there is no standard way
+> +to represent a clock tree in ACPI 5.1 in a similar manner to how it is
+> +described in DT.
+> +
+> +Devices affected by this include things like UARTs, SoC driven LCD displays,
+> +etc.
+> +
+> +The firmware for example UEFI should initialise these clocks to fixed working
+
+Odd wording.  Maube "The firmware (for example UEFI) should..."
+
+> +values before the kernel is executed. If a driver requires to know rates of
+> +clocks set by firmware then they can be passed to kernel using _DSD.
+> +
+> +example :-
+> +
+> +Device (CLK0) {
+> +       ...
+> +
+> +       Name (_DSD, Package() {
+> +               ToUUID("XXXXX"),
+> +               Package() {
+> +                       Package(2) {"#clock-cells", 0},
+
+Clock-cells? What do they mean here? Is this specified in the ACPI
+standards? I had to register to get access to it, and didn't feel like
+doing that right now. I guess it's not _all_ that open a spec. :(
+
+> +                       Package(2) {"clock-frequency", "10000"}
+> +               }
+> +       })
+> +
+> +       ...
+> +}
+> +
+> +Device (USR1) {
+> +       ...
+> +
+> +       Name (_DSD, Package() {
+> +               ToUUID("XXXXX"),
+> +               Package() {
+> +                       Package(2) {"clocks", Package() {1, ^CLK0}}},
+
+A clock is a device in the ACPI model? Why not just provide the rate
+as data into the device here? You said you're not trying to model the
+clock tree, so why reference an external node for it?
+
+> +               }
+> +       })
+> +
+> +       ...
+> +}
+> +
+> +Driver Recommendations
+> +----------------------
+> +
+> +DO NOT remove any FDT handling when adding ACPI support for a driver, different
+> +systems may use the same device.
+> +
+> +DO try and keep complex sections of ACPI and DT functionality seperate. This
+> +may mean a patch to break out some complex DT to another function before
+> +the patch to add ACPI. This may happen in other functions but is most likely
+> +in probe function. This gives a clearer flow of data for reviewing driver
+> +source.
+> +
+> +probe() :-
+> +
+> +TODO: replace this with a specific real example from Juno?
+> +
+> +static int device_probe_dt(struct platform_device *pdev)
+> +{
+> +       /* DT specific functionality */
+> +       ...
+> +}
+> +
+> +static int device_probe_acpi(struct platform_device *pdev)
+> +{
+> +       /* ACPI specific functionality */
+> +       ...
+> +}
+> +
+> +static int device_probe(stuct platform_device *pdev)
+> +{
+> +       ...
+> +       acpi_handle handle = ACPI_HANDLE(&pdev->dev);
+> +       struct device_node node = pdev->dev.of_node;
+> +       ...
+> +
+> +       if (node)
+> +               ret = device_probe_dt(pdev);
+> +       else if (handle)
+> +               ret = device_probe_acpi(pdev);
+> +       else
+> +               /* other initialisation */
+> +               ...
+> +       /* Continue with any generic probe operations */
+> +       ...
+> +}
+
+This looks good to me, and it's also my preferred way of ACPI-enabling
+drivers. I guess we might discuss this at KS since it was a proposed
+topic there, and others will object. :)
+
+> +
+> +DO keep the MODULE_DEVICE_TABLE entries together in the driver to make it clear
+> +the different names the driver is probed for, both from DT and from ACPI.
+> +
+> +module device tables :-
+> +
+> +static struct of_device_id virtio_mmio_match[] = {
+> +        { .compatible = "virtio,mmio", },
+> +        {},
+> +};
+> +MODULE_DEVICE_TABLE(of, virtio_mmio_match);
+> +
+> +static const struct acpi_device_id virtio_mmio_acpi_match[] = {
+> +        { "LNRO0005", },
+> +        { }
+
+No comma here, but a comma on DT. Probably make them equivalent for
+consistency (including space between the braces).
+
+> +};
+> +MODULE_DEVICE_TABLE(acpi, virtio_mmio_acpi_match);
+> +
+> +TODO: Add any other helpful rules that develop from Juno ACPI work.
+
+Looks like this should be fixed before the patch is merged, or this
+TODO removed.
+
+> +
+> +ASWG
+> +----
+> +
+> +The following areas are not yet well defined for ARM in the current ACPI
+> +specification and are expected to be worked through in the UEFI ACPI
+> +Specification Working Group (ASWG) <http://www.uefi.org/workinggroups>.
+> +Participation in this group is open to all UEFI members.
+> +
+> +       - ACPI based CPU topology
+> +       - ACPI based Power management
+> +       - CPU idle control based on PSCI
+> +       - CPU performance control (CPPC)
+> +
+> +No code shall be accepted into the kernel unless it complies with the released
+> +standards from UEFI ASWG. If there are features missing from ACPI to make it
+> +function on a platform ECRs should be submitted to ASWG and go through the
+> +approval process.
+
+Thanks for listing the things that are not in place yet. Please keep
+this doc up to date as new areas are discovered.
+
+
+-Olof
