@@ -1,84 +1,254 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH 04/19] ARM64 / ACPI: Introduce arch_fix_phys_package_id()
- for cpu topology
-Date: Mon, 28 Jul 2014 19:51:31 +0100
-Message-ID: <53D69BB3.8040106@arm.com>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org> <1406206825-15590-5-git-send-email-hanjun.guo@linaro.org>
+From: Vinson Lee <vlee@twopensource.com>
+Subject: Re: WARNING: CPU: 0 PID: 2623 at drivers/pnp/pnpacpi/core.c:96 pnpacpi_set_resource
+Date: Mon, 28 Jul 2014 12:11:50 -0700
+Message-ID: <CAHTgTXXB2rfYyLwBM9BF7pw6kTVnixXhKWweKKZtsH64drAhQw@mail.gmail.com>
+References: <5386F2C7.8080400@redhat.com>
+	<1524296.Cxrf5UDWlv@vostro.rjw.lan>
+	<CAHTgTXXUcDNvPD0g82q1HFCy+EZZdF8hwyAzRu8cijs5dy9mBQ@mail.gmail.com>
+	<CAHTgTXV8RtMwO0bKrc7LmfVcAQzkBra=RWQ6AGo7H8NsaxQx9A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1406206825-15590-5-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.or>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qg0-f42.google.com ([209.85.192.42]:64267 "EHLO
+	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750998AbaG1TLz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jul 2014 15:11:55 -0400
+Received: by mail-qg0-f42.google.com with SMTP id j5so8926674qga.15
+        for <linux-acpi@vger.kernel.org>; Mon, 28 Jul 2014 12:11:50 -0700 (PDT)
+In-Reply-To: <CAHTgTXV8RtMwO0bKrc7LmfVcAQzkBra=RWQ6AGo7H8NsaxQx9A@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Zdenek Kabelac <zkabelac@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-
-
-On 24/07/14 14:00, Hanjun Guo wrote:
-> arch_fix_phys_package_id() will be called in ACPI core to use
-> the slot number provided by ACPI to update the physical package
-> id, then we can get the right value in the "physical id" field
-> of /proc/cpuinfo.
+On Sun, Jul 27, 2014 at 2:01 AM, Vinson Lee <vlee@twopensource.com> wro=
+te:
+> On Fri, Jul 25, 2014 at 4:15 PM, Vinson Lee <vlee@twopensource.com> w=
+rote:
+>> On Thu, May 29, 2014 at 4:14 AM, Rafael J. Wysocki <rjw@rjwysocki.ne=
+t> wrote:
+>>> On Thursday, May 29, 2014 10:41:43 AM Zdenek Kabelac wrote:
+>>>> Hi
+>>>>
+>>>>
+>>>> I've noticed this message in my dmesg:
+>>>> (Possibly related to this commit?:
+>>>> a8d22396302b7e4e5f0a594c1c1594388c29edaf)
+>>>
+>>> Well, does reverting that commit make the warning go away?
+>>>
+>>> Rafael
+>>>
+>>>
+>>>> (My vanilla git commit number for my kernel:
+>>>> cd79bde29f00a346eec3fe17c1c5073c37ed95e7)
+>>>>
+>>>> Zdenek
+>>>>
+>>>>
+>>>> [ 2174.058615] ata5: port disabled--ignoring
+>>>> [ 2174.059460] sd 0:0:0:0: [sda] Starting disk
+>>>> [ 2174.076342] ------------[ cut here ]------------
+>>>> [ 2174.076350] WARNING: CPU: 0 PID: 2623 at drivers/pnp/pnpacpi/co=
+re.c:96
+>>>> pnpacpi_set_resources+0x14f/0x160()
+>>>> [ 2174.076412] Modules linked in: dm_raid raid456 async_raid6_reco=
+v
+>>>> async_memcpy async_pq async_xor async_tx raid1 raid10 dm_mod md_mo=
+d xor
+>>>> raid6_pq i915 i2c_algo_bit drm_kms_helper drm xt_CHECKSUM iptable_=
+mangle
+>>>> ipt_MASQUERADE iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf=
+_defrag_ipv4
+>>>> xt_conntrack nf_conntrack ipt_REJECT xt_tcpudp iptable_filter ip_t=
+ables
+>>>> x_tables tun bridge stp llc ipv6 hid_generic usbhid hid snd_hda_co=
+dec_analog
+>>>> snd_hda_codec_generic iTCO_wdt iTCO_vendor_support coretemp kvm_in=
+tel kvm
+>>>> microcode psmouse serio_raw i2c_i801 i2c_core arc4 lpc_ich mfd_cor=
+e r852
+>>>> iwl3945 sm_common nand r592 nand_ecc nand_ids iwlegacy mtd memstic=
+k mac80211
+>>>> sdhci_pci pcmcia sdhci snd_hda_intel mmc_core snd_hda_controller s=
+nd_hda_codec
+>>>> snd_hwdep snd_seq snd_seq_device snd_pcm cfg80211 e1000e ptp snd_t=
+imer
+>>>> [ 2174.076433]  pps_core wmi thinkpad_acpi nvram snd soundcore evd=
+ev nfsd
+>>>> auth_rpcgss oid_registry nfs_acl lockd binfmt_misc loop sunrpc uhc=
+i_hcd sr_mod
+>>>> cdrom yenta_socket ehci_pci ehci_hcd usbcore usb_common video back=
+light autofs4
+>>>> [ 2174.076436] CPU: 0 PID: 2623 Comm: systemd-sleep Not tainted
+>>>> 3.15.0-rc7-00044-g887210a #209
+>>>> [ 2174.076437] Hardware name: LENOVO 6464CTO/6464CTO, BIOS 7LETC9W=
+W (2.29 )
+>>>> 03/18/2011
+>>>> [ 2174.076440]  0000000000000009 ffff880095d55c40 ffffffff815db694
+>>>> 0000000000000000
+>>>> [ 2174.076444]  ffff880095d55c78 ffffffff8104e78d 0000000000000000
+>>>> ffff880136c3cd98
+>>>> [ 2174.076447]  ffff8800bac2b000 ffffffff8180cb5a 0000000000000000
+>>>> ffff880095d55c88
+>>>> [ 2174.076448] Call Trace:
+>>>> [ 2174.076453]  [<ffffffff815db694>] dump_stack+0x4e/0x7a
+>>>> [ 2174.076643]  [<ffffffff8104e78d>] warn_slowpath_common+0x7d/0xa=
+0
+>>>> [ 2174.076646]  [<ffffffff8104e86a>] warn_slowpath_null+0x1a/0x20
+>>>> [ 2174.076648]  [<ffffffff814046cf>] pnpacpi_set_resources+0x14f/0=
+x160
+>>>> [ 2174.076651]  [<ffffffff81401db2>] pnp_start_dev+0x42/0x80
+>>>> [ 2174.076655]  [<ffffffff81400858>] pnp_bus_resume+0x88/0xa0
+>>>> [ 2174.076658]  [<ffffffff814007d0>] ? pnp_bus_suspend+0x20/0x20
+>>>> [ 2174.076662]  [<ffffffff8145e919>] dpm_run_callback+0x49/0xa0
+>>>> [ 2174.076664]  [<ffffffff8145ec18>] device_resume+0xc8/0x1f0
+>>>> [ 2174.076667]  [<ffffffff81460639>] dpm_resume+0x119/0x250
+>>>> [ 2174.076670]  [<ffffffff814609b1>] dpm_resume_end+0x11/0x20
+>>>> [ 2174.076673]  [<ffffffff810b4b0f>] suspend_devices_and_enter+0xf=
+f/0x680
+>>>> [ 2174.076676]  [<ffffffff810b5277>] pm_suspend+0x1e7/0x2a0
+>>>> [ 2174.076678]  [<ffffffff810b3c2c>] state_store+0x7c/0xf0
+>>>> [ 2174.076683]  [<ffffffff81359f2f>] kobj_attr_store+0xf/0x20
+>>>> [ 2174.076686]  [<ffffffff8124b1b5>] sysfs_kf_write+0x45/0x60
+>>>> [ 2174.076690]  [<ffffffff8124a4d9>] kernfs_fop_write+0xf9/0x180
+>>>> [ 2174.076694]  [<ffffffff811c66bd>] vfs_write+0xbd/0x1e0
+>>>> [ 2174.076696]  [<ffffffff811c7249>] SyS_write+0x49/0xb0
+>>>> [ 2174.076700]  [<ffffffff815ecbd6>] system_call_fastpath+0x1a/0x1=
+f
+>>>> [ 2174.081587] ---[ end trace 32ffe1e61f685f01 ]---
+>>>> [ 2174.082221] serial 00:09: activated
+>>>> [ 2174.233290] thinkpad_acpi: ACPI backlight control delay disable=
+d
+>>>> [ 2174.323685] ata4.00: ACPI cmd ef/03:42:00:00:00:a0 (SET FEATURE=
+S) filtered out
+>>>> [ 2174.323688] ata4.00: ACPI cmd ef/03:0c:00:00:00:a0 (SET FEATURE=
+S) filtered out
+>>>> [ 2174.324671] ata4.00: ACPI cmd e3/00:79:00:00:00:a0 (IDLE) succe=
+eded
+>>>> [ 2174.325651] ata4.00: ACPI cmd e3/00:01:00:00:00:a0 (IDLE) succe=
+eded
+>>>> [ 2174.345266] ata4.00: configured for UDMA/33
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-ke=
+rnel" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>> Please read the FAQ at  http://www.tux.org/lkml/
+>>>
+>>> --
+>>> I speak only for myself.
+>>> Rafael J. Wysocki, Intel Open Source Technology Center.
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-ker=
+nel" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> Please read the FAQ at  http://www.tux.org/lkml/
+>>
+>>
+>> Hi.
+>>
+>> I hit a similar stack trace with 3.14.8.
+>>
+>> ------------[ cut here ]------------
+>>  WARNING: CPU: 23 PID: 1 at drivers/pnp/pnpacpi/core.c:96
+>> pnpacpi_set_resources+0x9a/0x134()
+>>  Modules linked in:
+>>  CPU: 23 PID: 1 Comm: swapper/0 Not tainted 3.14.8 #1
+>>   0000000000000000 ffff881fd29f5c78 ffffffff814e27e5 000000000000000=
+0
+>>   ffff881fd29f5cb0 ffffffff8105c4b1 ffffffff812f32f3 000000000000000=
+0
+>>   ffff883fd1f0a800 ffff881fff047348 0000000000000000 ffff881fd29f5cc=
+0
+>>  Call Trace:
+>>   [<ffffffff814e27e5>] dump_stack+0x45/0x56
+>>   [<ffffffff8105c4b1>] warn_slowpath_common+0x7f/0x98
+>>   [<ffffffff812f32f3>] ? pnpacpi_set_resources+0x9a/0x134
+>>   [<ffffffff8105c578>] warn_slowpath_null+0x1a/0x1c
+>>   [<ffffffff812f32f3>] pnpacpi_set_resources+0x9a/0x134
+>>   [<ffffffff812f1264>] pnp_start_dev+0x3d/0x76
+>>   [<ffffffff812f189d>] pnp_activate_dev+0x29/0x44
+>>   [<ffffffff812f0406>] pnp_device_probe+0x47/0xa6
+>>   [<ffffffff81333e20>] driver_probe_device+0x120/0x2f2
+>>   [<ffffffff8133408c>] __driver_attach+0x5d/0x7f
+>>   [<ffffffff8133402f>] ? __device_attach+0x3d/0x3d
+>>   [<ffffffff81332248>] bus_for_each_dev+0x7b/0x85
+>>   [<ffffffff81333852>] driver_attach+0x1e/0x20
+>>   [<ffffffff813334a6>] bus_add_driver+0x12f/0x1f9
+>>   [<ffffffff81334614>] driver_register+0x8e/0xca
+>>   [<ffffffff812f0299>] pnp_register_driver+0x21/0x23
+>>   [<ffffffff813169b6>] serial8250_pnp_init+0x15/0x17
+>>   [<ffffffff81b39d3c>] serial8250_init+0x60/0x143
+>>   [<ffffffff81b39cdc>] ? serial8250_console_init+0x19/0x19
+>>   [<ffffffff810002d2>] do_one_initcall+0xa4/0x12a
+>>   [<ffffffff810758b1>] ? parse_args+0x258/0x331
+>>   [<ffffffff81afcea2>] kernel_init_freeable+0x16f/0x1f4
+>>   [<ffffffff81afc719>] ? do_early_param+0x88/0x88
+>>   [<ffffffff814d47b5>] ? rest_init+0x79/0x79
+>>   [<ffffffff814d47c3>] kernel_init+0xe/0xdf
+>>   [<ffffffff814ee0ec>] ret_from_fork+0x7c/0xb0
+>>   [<ffffffff814d47b5>] ? rest_init+0x79/0x79
+>>  ---[ end trace 9cf08771a70bd5a1 ]=E2=80=94
+>>
+>>
+>> Cheers,
+>> Vinson
 >
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->   arch/arm64/include/asm/topology.h |    2 ++
->   arch/arm64/kernel/topology.c      |   14 ++++++++++++++
->   2 files changed, 16 insertions(+)
+> Hi.
 >
-> diff --git a/arch/arm64/include/asm/topology.h b/arch/arm64/include/asm/topology.h
-> index 7ebcd31..2b216d4 100644
-> --- a/arch/arm64/include/asm/topology.h
-> +++ b/arch/arm64/include/asm/topology.h
-> @@ -23,11 +23,13 @@ extern struct cpu_topology cpu_topology[NR_CPUS];
->   void init_cpu_topology(void);
->   void store_cpu_topology(unsigned int cpuid);
->   const struct cpumask *cpu_coregroup_mask(int cpu);
-> +void arch_fix_phys_package_id(int num, u32 slot);
+> Reverting "PNP / ACPI: Do not return errors if _DIS or _SRS are not
+> present" does not make the warning go away.
 >
->   #else
+> The warning also occurs with kernel 3.16-rc6.
 >
->   static inline void init_cpu_topology(void) { }
->   static inline void store_cpu_topology(unsigned int cpuid) { }
-> +static inline void arch_fix_phys_package_id(int num, u32 slot) { }
+> ------------[ cut here ]------------
+>  WARNING: CPU: 23 PID: 1 at drivers/pnp/pnpacpi/core.c:76
+> pnpacpi_set_resources+0x9a/0x134()
+>  Modules linked in:
+>  CPU: 23 PID: 1 Comm: swapper/0 Not tainted 3.16.0-rc6 #1
+>   0000000000000000 ffff8808541efc78 ffffffff814facfd 0000000000000000
+>   ffff8808541efcb0 ffffffff8105f229 ffffffff81302487 0000000000000000
+>   ffff8810530e8000 ffff88085f450e60 0000000000000000 ffff8808541efcc0
+>  Call Trace:
+>   [<ffffffff814facfd>] dump_stack+0x45/0x56
+>   [<ffffffff8105f229>] warn_slowpath_common+0x7f/0x98
+>   [<ffffffff81302487>] ? pnpacpi_set_resources+0x9a/0x134
+>   [<ffffffff8105f2f0>] warn_slowpath_null+0x1a/0x1c
+>   [<ffffffff81302487>] pnpacpi_set_resources+0x9a/0x134
+>   [<ffffffff8130029c>] pnp_start_dev+0x3d/0x76
+>   [<ffffffff813008d5>] pnp_activate_dev+0x29/0x44
+>   [<ffffffff812ff43e>] pnp_device_probe+0x47/0xa6
+>   [<ffffffff81342e1f>] driver_probe_device+0x120/0x2f3
+>   [<ffffffff8134308c>] __driver_attach+0x5d/0x7f
+>   [<ffffffff8134302f>] ? __device_attach+0x3d/0x3d
+>   [<ffffffff813412a0>] bus_for_each_dev+0x7b/0x85
+>   [<ffffffff81342886>] driver_attach+0x1e/0x20
+>   [<ffffffff813424fe>] bus_add_driver+0x12f/0x1f9
+>   [<ffffffff81343694>] driver_register+0x8e/0xca
+>   [<ffffffff812ff2d1>] pnp_register_driver+0x21/0x23
+>   [<ffffffff81325c2d>] serial8250_pnp_init+0x15/0x17
+>   [<ffffffff81b456a1>] serial8250_init+0x60/0x143
+>   [<ffffffff81b45641>] ? serial8250_console_init+0x19/0x19
+>   [<ffffffff8100032d>] do_one_initcall+0xff/0x186
+>   [<ffffffff81077ee1>] ? parse_args+0x280/0x373
+>   [<ffffffff81b07fb0>] kernel_init_freeable+0x16f/0x1f4
+>   [<ffffffff81b07719>] ? do_early_param+0x88/0x88
+>   [<ffffffff814efa15>] ? rest_init+0x79/0x79
+>   [<ffffffff814efa23>] kernel_init+0xe/0xdf
+>   [<ffffffff815002ec>] ret_from_fork+0x7c/0xb0
+>   [<ffffffff814efa15>] ? rest_init+0x79/0x79
+>  ---[ end trace 68542c0606786a42 ]---
 >
->   #endif
->
-> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
-> index 43514f9..c547885 100644
-> --- a/arch/arm64/kernel/topology.c
-> +++ b/arch/arm64/kernel/topology.c
-> @@ -281,3 +281,17 @@ void __init init_cpu_topology(void)
->   	if (parse_dt_topology())
->   		reset_cpu_topology();
->   }
-> +
-> +/*
-> + * Use the CPU slot number provided by ACPI to update the physical
-> + * package id when cpuid_topo->cluster_id is not available, then we
-> + * can get the right value in the "physical id" field of /proc/cpuinfo.
-> + */
+> Vinson
 
-We don't have "physical id" field in /proc/cpuinfo on ARM64.
 
-> +void arch_fix_phys_package_id(int num, u32 slot)
-> +{
-> +	struct cpu_topology *cpuid_topo = &cpu_topology[num];
-> +
-> +	if (cpuid_topo->cluster_id == -1)
-> +		cpuid_topo->cluster_id = slot;
-> +}
-> +EXPORT_SYMBOL_GPL(arch_fix_phys_package_id);
->
-
-The ACPI core uses this function to set the package id as read from
-_SUN from the device. As per spec, _SUN is used by OSPM UI to identify
-slots for the user. Do we know how will this be used on ARM64 ?
-
-If not clear at this time, better to define it or keep it empty. I see
-even x86 does nothing in that function.
-
-Regards,
-Sudeep
+The warning first happens with 3.14-rc1. The warning does not occur wit=
+h 3.13.0.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
