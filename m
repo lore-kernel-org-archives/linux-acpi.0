@@ -1,220 +1,246 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Mon, 28 Jul 2014 11:27:52 -0700
-Message-ID: <CAOesGMjs1dM37ZoFA-xs7tYYaXP-XC3NjJsj291bCNoDwAXwiw@mail.gmail.com>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <1406206825-15590-20-git-send-email-hanjun.guo@linaro.org>
- <CAOesGMhKHGkVK3dOLXXx9GQBMxDmjBu1WDBgHmwdGe1UK3jfcg@mail.gmail.com>
- <5014834.k6eecMddPC@wuerfel>
- <20140728162750.GB32359@quad.lixom.net>
- <20140728170041.GB2576@leverpostej>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH 01/19] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+Date: Mon, 28 Jul 2014 19:29:12 +0100
+Message-ID: <53D69678.20002@arm.com>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org> <1406206825-15590-2-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140728170041.GB2576@leverpostej>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linaro-acpi-private@linaro.org" <linaro-acpi-private@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradea>
+Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from service87.mimecast.com ([91.220.42.44]:38341 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751576AbaG1S2p convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jul 2014 14:28:45 -0400
+In-Reply-To: <1406206825-15590-2-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.or>
 
-On Mon, Jul 28, 2014 at 10:00 AM, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Mon, Jul 28, 2014 at 05:27:50PM +0100, Olof Johansson wrote:
->> On Mon, Jul 28, 2014 at 11:07:50AM +0200, Arnd Bergmann wrote:
->> > On Saturday 26 July 2014 19:34:48 Olof Johansson wrote:
->> > > On Thu, Jul 24, 2014 at 6:00 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
->> > > > +Relationship with Device Tree
->> > > > +-----------------------------
->> > > > +
->> > > > +ACPI support in drivers and subsystems for ARMv8 should never be mutually
->> > > > +exclusive with DT support at compile time.
->> > > > +
->> > > > +At boot time the kernel will only use one description method depending on
->> > > > +parameters passed from the bootloader.
->> > >
->> > > Possibly overriden by kernel bootargs. And as debated for quite a
->> > > while earlier this year, acpi should still default to off -- if a DT
->> > > and ACPI are both passed in, DT should at this time be given priority.
->> >
->> > I think this would be harder to do with the way that ACPI is passed in
->> > to the kernel. IIRC, you always have a minimal DT information based on
->> > the ARM64 boot protocol, but in the case of ACPI, this contains pointers
->> > to the ACPI tables, which are then used for populating the Linux platform
->> > devices (unless acpi=disabled is set), while the other contents of the
->> > DTB may be present but we skip the of_platform_populate state.
->>
->> How can it be harder to do? If you support acpi=off, then you should support
->> acpi=on.
->>
->> Another alternative would be to have an early fixup that stubs out
->> the acpi properties from the DTB unless there's an 'acpi' or 'acpi=on'
->> argument on the cmdline. Not quite as tidy a solution, though.
+
+
+On 24/07/14 14:00, Hanjun Guo wrote:
+> From: Al Stone <al.stone@linaro.org>
 >
-> I don't follow:
+> As we want to get ACPI tables to parse and then use the information
+> for system initialization, we should get the RSDP (Root System
+> Description Pointer) first, it then locates Extended Root Description
+> Table (XSDT) which contains all the 64-bit physical address that
+> pointer to other boot-time tables.
 >
-> If you want to disable ACPI, you can pass acpi=off. This is your
-> workaround for broken ACPI (and only if you happen to have wrirten your
-> own DTB, because many/most ACPI systems WILL NOT have a DTB to begin
-> with).
-
-All ACPI should be assumed broken at this time, so acpi=off _must_ be
-the default.
-
-> If you have ACPI, for what technical reason would you not attempt to use
-> it by default?
-
-Because it will be broken, or the company you bought the machine from
-implemented it wrong because they're still learning how to do this
-too. The original doc even mentioned that there are parts of the
-binding that aren't even sorted out. The _DSD stuff, too. Overall,
-it's not yet ready to be the default boot method.
-
-> There will be systems which _DO NOT_ have any sort of DTB to begin with.
-
-Listen, we've been really clear about this: DT is the default that
-everybody has to use for mainline kernel for the near term. If you
-have an ACPI-only system, then you either have to write a DT for it,
-or you won't be booting mainline on it.
-
-If people have not been listening to the advice we've been giving, and
-that sucks for them. Even worse, I suspect there are players out there
-who have taken bad advice from certain players. At the end of the day,
-it is not our problem. We were quite clear, and Grant even wrote a
-long and good blog post about this.
-
-If they really want to, they can boot with acpi=on instead. It's not
-like it's hard to add.
-
-> For VMs, both may be provided. By the necessity of a DTB being present
-> for bootargs, ACPI _MUST_ take precedence. If you don't want it, you
-> pass acpi=off, or configure your VM software to not pass an ACPI
-> configuration table.
+> Introduce acpi.c and its related head file in this patch to provide
+> fundamental needs of extern variables and functions for ACPI core,
+> and then get boot-time tables as needed.
+>    - asm/cpu.h need for ACPI core and will be updated in the future to
+>      add definitions for arch_(un)register_cpu which are required for
+>      ACPI based physical CPU hotplug;
+>    - asm/acenv.h for arch specific ACPICA environments and
+>      implementation;
+>    - asm/acpi.h for arch specific variables and functions needed by
+>      ACPI driver core;
+>    - acpi.c for ARM64 related ACPI implementation for ACPI driver
+>      core;
 >
-> Why avoid ACPI by default? So that we can later enable it and discover
-> it's completely broken? Then we need short-sighted hacks to work around
-> short-sighted decisions.
-
-We have answered this multiple times in the past already. Please go
-read the archives.
-
-It is highly unlikely that we will retroactively enable it in the
-future for the first-generation devices either. Chances are there'll
-be a rev or two more of ACPI before then, so we can do something such
-as "only automatically accept ACPI 5.4 or higher" or whatever. That
-can all be sorted when the time comes.
-
-> The best thing to do is to try and use things, be as strict as possible,
-> stress the implementation, and blow up early and loudly so that said
-> systems must be fixed.
-
-"Try", sure. Make it the default and blow up and make a system
-unbootable when it's wrong? No, absolutely not. Not while bindings are
-still being hashed out and vendors are still figuring things out.
-
-> People are using Linux for bringup; it is the closest thing to a
-> validation suite. Being lazy and hacking around things for now will only
-> make things worse in the long run.
-
-Who's hacking around what?
-
-And holy shit, there is no validation suite? Then ACPI is doomed.
-Literally. Linux can't be a validation suite for it. It means that
-potentially every single code change to anything related to ACPI
-(drivers or core) on Linux means that it's now using completely
-untested pieces of firmware. Fodder for nightmares.
-
-> We _CANNOT_ place our fingers in our ears and blind ourselves with the
-> DT banner. ACPI is ugly, sure, but so is DT. Neither is fundamentally
-> better than the other. The best thing we can do is make it as easy as
-> possible to highlight bugs in ACPI implementations and barf such that
-> people are forced to fix their ACPI implementations.
-
-It's not about what's better than the other. They both suck. But one
-is already here and we've learned by now most of the ways in which it
-sucks and we have a good idea of how to avoid the worst of it. On the
-other, we have all of that in front of us still. Guess which one it
-makes sense to stick to?
-
-> No other OS supports ACPI on 64-bit arm systems. Being strict should
-> force implementors to try harder.
-
-Thanks for _finally_ stating what we've all known for a very long time
-but everybody's been pretending isn't the case.
-
->> > If this is correct, then replacing the firmware-generated dtb with a
->> > user-provided on would implicitly remove the ACPI tables from visibility,
->> > which is exactly what we want.
->>
->> I was of the impression that firmware patches in the ACPI entries into either
->> device-tree before launching the kernel. Is that not the case?
+> acpi_boot_table_init() is introduced to get RSDP and boot-time tables,
+> it will be called in setup_arch() before paging_init(), so we should
+> use eary_memremap() mechanism here to get the RSDP and all the table
+> pointers.
 >
-> 1) The ACPI tables will be registered as UEFI configuration tables,
->    within platform-specific UEFI code. Nothing outside of UEFI is
->    involved.
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>   arch/arm64/include/asm/acenv.h |   18 ++++++++++
+>   arch/arm64/include/asm/acpi.h  |   41 ++++++++++++++++++++++
+>   arch/arm64/include/asm/cpu.h   |   11 ++++++
+>   arch/arm64/kernel/Makefile     |    1 +
+>   arch/arm64/kernel/acpi.c       |   76 ++++++++++++++++++++++++++++++++++++++++
+>   arch/arm64/kernel/setup.c      |    4 +++
+>   6 files changed, 151 insertions(+)
+>   create mode 100644 arch/arm64/include/asm/acenv.h
+>   create mode 100644 arch/arm64/include/asm/acpi.h
+>   create mode 100644 arch/arm64/include/asm/cpu.h
+>   create mode 100644 arch/arm64/kernel/acpi.c
 >
-> 1a) A loader (e.g. GRUB, the EFI stub) COULD override the loaded tables.
->    This is a workaround, and should never be the standard way of doing
->    things. It defeats the point, much like appended DTB.
+> diff --git a/arch/arm64/include/asm/acenv.h b/arch/arm64/include/asm/acenv.h
+> new file mode 100644
+> index 0000000..3899ee6
+> --- /dev/null
+> +++ b/arch/arm64/include/asm/acenv.h
+> @@ -0,0 +1,18 @@
+> +/*
+> + * ARM64 specific ACPICA environments and implementation
+> + *
+> + * Copyright (C) 2014, Linaro Ltd.
+> + *   Author: Hanjun Guo <hanjun.guo@linaro.org>
+> + *   Author: Graeme Gregory <graeme.gregory@linaro.org>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef _ASM_ACENV_H
+> +#define _ASM_ACENV_H
+> +
+> +#define ACPI_FLUSH_CPU_CACHE() WARN_ONCE(1, "Not currently supported on ARM64")
+> +
+> +#endif /* _ASM_ACENV_H */
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> new file mode 100644
+> index 0000000..e8581ea
+> --- /dev/null
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -0,0 +1,41 @@
+> +/*
+> + *  Copyright (C) 2013-2014, Linaro Ltd.
+> + *     Author: Al Stone <al.stone@linaro.org>
+> + *     Author: Graeme Gregory <graeme.gregory@linaro.org>
+> + *     Author: Hanjun Guo <hanjun.guo@linaro.org>
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License version 2 as
+> + *  published by the Free Software Foundation;
+> + */
+> +
+> +#ifndef _ASM_ACPI_H
+> +#define _ASM_ACPI_H
+> +
+> +/* Basic configuration for ACPI */
+> +#ifdef CONFIG_ACPI
+> +extern int acpi_disabled;
+> +extern int acpi_noirq;
+> +extern int acpi_pci_disabled;
+> +extern int acpi_strict;
+
+Until we need to enable workarounds, we should have acpi_strict
+as macro rather than variable similar to IA64.
+
+> +
+> +static inline void disable_acpi(void)
+> +{
+> +       acpi_disabled = 1;
+> +       acpi_pci_disabled = 1;
+> +       acpi_noirq = 1;
+> +}
+> +
+> +/*
+> + * MADT must provide at least one GICC structure
+> + * for GIC initialization, so CPU will be
+> + * always available in MADT on ARM64
+> + */
+> +static inline bool acpi_has_cpu_in_madt(void)
+> +{
+> +       return 1;
+> +}
+> +
+
+I don't see the user of this function in the series, it's better to
+remove. Moreover the comment is so misleading. We will have CPU UID
+not the CPU itself in MADT.
+
+> +#endif /* CONFIG_ACPI */
+> +
+> +#endif /*_ASM_ACPI_H*/
+> diff --git a/arch/arm64/include/asm/cpu.h b/arch/arm64/include/asm/cpu.h
+> new file mode 100644
+> index 0000000..cee7d3f
+> --- /dev/null
+> +++ b/arch/arm64/include/asm/cpu.h
+> @@ -0,0 +1,11 @@
+> +/*
+> + *  Copyright (C) 2013-2014 ARM Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +#ifndef __ASM_CPU_H
+> +#define __ASM_CPU_H
+> +
+> +#endif
+> diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
+> index cdaedad..b568c26 100644
+> --- a/arch/arm64/kernel/Makefile
+> +++ b/arch/arm64/kernel/Makefile
+> @@ -29,6 +29,7 @@ arm64-obj-$(CONFIG_ARM64_CPU_SUSPEND) += sleep.o suspend.o
+>   arm64-obj-$(CONFIG_JUMP_LABEL)         += jump_label.o
+>   arm64-obj-$(CONFIG_KGDB)               += kgdb.o
+>   arm64-obj-$(CONFIG_EFI)                        += efi.o efi-stub.o efi-entry.o
+> +arm64-obj-$(CONFIG_ACPI)               += acpi.o
 >
-> 2) The EFI stub will patch UEFI memory map properties into the DTB. The
->    firmware is not involved.
->
-> 3) The kernel will detect whether EFI is present by the presence of the
->    memory map, and try to use it if so. The memory map comes from UEFI,
->    and memory nodes (and memreserves) are ignored. Only select
->    properties under /chosen (e.g. bootargs) will be used.
->
-> 4) If booted via EFI, the kernel will look for known UEFI configuration
->    tables by (G|U)UID, and set up some pointers.
->
-> 5) The ACPI code will go and look to see if the ACPI table pointers have
->    been initialised. If so, the kernel will attempt to use the ACPI
->    tables unlesss instructed otherwise. If using ACPI, the DTB will be
->    ignored outside of /chosen.
->
-> The ACPI tables or pointers to them are not directly patched into the
-> DTB at any stage. The choice of using ACPI is left with the kernel.
+>   obj-y                                  += $(arm64-obj-y) vdso/
+>   obj-m                                  += $(arm64-obj-m)
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> new file mode 100644
+> index 0000000..c62fce6
+> --- /dev/null
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -0,0 +1,76 @@
+> +/*
+> + *  ARM64 Specific Low-Level ACPI Boot Support
+> + *
+> + *  Copyright (C) 2013-2014, Linaro Ltd.
+> + *     Author: Al Stone <al.stone@linaro.org>
+> + *     Author: Graeme Gregory <graeme.gregory@linaro.org>
+> + *     Author: Hanjun Guo <hanjun.guo@linaro.org>
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License version 2 as
+> + *  published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/init.h>
+> +#include <linux/acpi.h>
+> +#include <linux/cpumask.h>
+> +#include <linux/memblock.h>
+> +#include <linux/irq.h>
+> +#include <linux/irqdomain.h>
+> +#include <linux/bootmem.h>
+> +#include <linux/smp.h>
+> +
+> +/*
+> + * We never plan to use RSDT on arm/arm64 as its deprecated in spec but this
+> + * variable is still required by the ACPI core
+> + */
+> +u32 acpi_rsdt_forced;
 
-Thanks, excellent summary.
+This looks like yet another stray variable not used anywhere including
+core ACPI
 
->> And what if some bootloader chooses to do it that way in the future?
->> It's better to not assume that they get it right.
->
-> For the firmware/loader to do so it would have to work around the kernel
-> version parameter the stub places in the DTB and the kernel verifies. If
-> it does so, I would argue said firmware is actively malicious.
+> +
+> +int acpi_noirq;                        /* skip ACPI IRQ initialization */
+> +int acpi_strict;
+> +int acpi_disabled;
+> +EXPORT_SYMBOL(acpi_disabled);
+> +
+> +int acpi_pci_disabled;         /* skip ACPI PCI scan and IRQ initialization */
+> +EXPORT_SYMBOL(acpi_pci_disabled);
+> +
+> +/*
+> + * __acpi_map_table() will be called before page_init(), so early_ioremap()
+> + * or early_memremap() should be called here to for ACPI table mapping.
+> + */
+> +char *__init __acpi_map_table(unsigned long phys, unsigned long size)
+> +{
+> +       if (!phys || !size)
+> +               return NULL;
+> +
+> +       return early_memremap(phys, size);
+> +}
+> +
+> +void __init __acpi_unmap_table(char *map, unsigned long size)
+> +{
+> +       if (!map || !size)
+> +               return;
+> +
+> +       early_iounmap(map, size);
 
-Ok.
+Why not early_memunmap for consistency ?
+Also now there's generic implementation of early mappings does it make
+sense to move this also to acpi core ?
 
->> > It's possible that I'm misremembering it though, and it should be
->> > documented better.
->>
->> Yes, definitely needs to be documented to not leave room for random
->> interpretation later on.
->
-> We should definitely make the documentation as strict as possible on
-> what's allowed, and have the kernel barf early on if requirements are
-> not met.
+Regards,
+Sudeep
 
-It should definitely complain when it finds bad entries, but making
-the kernel unusable for end-users because someone is still under
-development is the wrong answer. While the ACPI bindings are sorted
-out, we'll ship platforms using DT support in the kernel. This must
-not change just because some piece of the ACPI work is starting to
-land in-tree while other pieces are still being worked out.
-
-And again: The kernel is not a compliance suite for ACPI, and if the
-vendors doing bringup is treating it that way then I'm quite scared of
-the whole endeavor.
-
-
-
--Olof
