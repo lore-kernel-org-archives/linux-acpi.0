@@ -1,16 +1,16 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
 Subject: Re: [PATCH 01/19] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
-Date: Mon, 28 Jul 2014 19:29:12 +0100
-Message-ID: <53D69678.20002@arm.com>
+Date: Mon, 28 Jul 2014 19:30:00 +0100
+Message-ID: <53D696A8.6050505@arm.com>
 References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org> <1406206825-15590-2-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:38341 "EHLO
+Received: from service87.mimecast.com ([91.220.42.44]:38968 "EHLO
 	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576AbaG1S2p convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jul 2014 14:28:45 -0400
+	with ESMTP id S1751704AbaG1S3d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jul 2014 14:29:33 -0400
 In-Reply-To: <1406206825-15590-2-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
