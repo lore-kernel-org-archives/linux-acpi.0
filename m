@@ -1,18 +1,18 @@
-From: Olof Johansson <olof@lixom.net>
+From: Mark Rutland <mark.rutland@arm.com>
 Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Mon, 28 Jul 2014 11:34:47 -0700
-Message-ID: <CAOesGMgfSXxYwQR9JdF_FQ83GMux9mwV02ZJ+KxoqSW=1J44Gg@mail.gmail.com>
+Date: Mon, 28 Jul 2014 19:37:29 +0100
+Message-ID: <20140728183729.GG2576@leverpostej>
 References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
  <1406206825-15590-20-git-send-email-hanjun.guo@linaro.org>
  <CAOesGMhKHGkVK3dOLXXx9GQBMxDmjBu1WDBgHmwdGe1UK3jfcg@mail.gmail.com>
- <20140728100654.GC24078@leverpostej>
- <20140728164459.GD32359@quad.lixom.net>
- <20140728173625.GC2576@leverpostej>
+ <5014834.k6eecMddPC@wuerfel> <20140728101229.GD24078@leverpostej>
+ <20140728163313.GC32359@quad.lixom.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140728173625.GC2576@leverpostej>
+Content-Disposition: inline
+In-Reply-To: <20140728163313.GC32359@quad.lixom.net>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,339 +22,73 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "rob.herring@linaro.org" <rob.herring@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linaro-acpi-private@linaro.org" <linaro-acpi-private@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.>
+To: Olof Johansson <olof@lixom.net>
+Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Leif Lindholm <Leif.Lindholm@arm.com>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linaro-acpi-private@linaro.org" <linaro-acpi-private@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@lina>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jul 28, 2014 at 10:36 AM, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Mon, Jul 28, 2014 at 05:44:59PM +0100, Olof Johansson wrote:
->> On Mon, Jul 28, 2014 at 11:06:54AM +0100, Mark Rutland wrote:
->> > Hi Olof,
->> >
->> > On Sun, Jul 27, 2014 at 03:34:48AM +0100, Olof Johansson wrote:
->> > > On Thu, Jul 24, 2014 at 6:00 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
->> > > > From: Graeme Gregory <graeme.gregory@linaro.org>
->> > > >
->> > > > Add documentation for the guidelines of how to use ACPI
->> > > > on ARM64.
->> > >
->> > > As the most vocal participant against ACPI being adopted, I would have
->> > > appreciated a cc on this patch set -- it's not like you were going for
->> > > a minimal set of cc recipients already. It makes it seem like you're
->> > > trying to sneak it past me for comments. Not cool. I know that's
->> > > probably not your intent, but still.
->> > >
->> > > Some comments below. Overall the doc looks pretty good, but the
->> > > details about _DSD and clocks are somewhat worrisome.
->> > >
->> > > > Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
->> > > > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> > > > ---
->> > > >  Documentation/arm64/arm-acpi.txt |  240 ++++++++++++++++++++++++++++++++++++++
->> > > >  1 file changed, 240 insertions(+)
->> > > >  create mode 100644 Documentation/arm64/arm-acpi.txt
->> > > >
->> > > > diff --git a/Documentation/arm64/arm-acpi.txt b/Documentation/arm64/arm-acpi.txt
->> > > > new file mode 100644
->> > > > index 0000000..12cd550
->> > > > --- /dev/null
->> > > > +++ b/Documentation/arm64/arm-acpi.txt
->> > > > @@ -0,0 +1,240 @@
->> > > > +ACPI on ARMv8 Servers
->> > > > +---------------------
->> > > > +
->> > > > +ACPI will be used for ARMv8 general purpose servers designed to follow
->> > >
->> > > "ACPI might be used"    or     "can be used"
->> > >
->> > > > +the SBSA specification (currently available to people with an ARM login at
->> > > > +http://silver.arm.com)
->> > > > +
->> > > > +The implemented ACPI version is 5.1 + errata as released by the UEFI Forum,
->> > > > +which is available at <http://www.uefi.org/acpi/specs>.
->> > >
->> > > The implemented version where? The kernel implements that version?
->> > > Worth clarifying.
->> > >
->> > > > +If the machine does not meet these requirements then it is likely that Device
->> > > > +Tree (DT) is more suitable for the hardware.
->> > >
->> > > This is should be a very clear statement that is currently vague
->> > > w.r.t. which requirements are met or not, especially based on the
->> > > sentence above.
->> > >
->> > > > +Relationship with Device Tree
->> > > > +-----------------------------
->> > > > +
->> > > > +ACPI support in drivers and subsystems for ARMv8 should never be mutually
->> > > > +exclusive with DT support at compile time.
->> > > > +
->> > > > +At boot time the kernel will only use one description method depending on
->> > > > +parameters passed from the bootloader.
->> > >
->> > > Possibly overriden by kernel bootargs. And as debated for quite a
->> > > while earlier this year, acpi should still default to off -- if a DT
->> > > and ACPI are both passed in, DT should at this time be given priority.
->> >
->> > Why? I really don't see the logic in doing that.
->>
->> Seems like I am replying to your emails in reverse order.
->
-> Oh well; it makes the discussion more fun to read :)
->
->> > Currently the kernel can only boot using DT, so DT will be used even if
->> > ACPI is present. In the presence of ACPI support in the kernel, ACPI
->> > would be used on said systems.
->>
->> For all the reasons we hashed out earlier this year: We can't trust that
->> vendors will know how to do ACPI from day one, so instead of loading up the
->> kernel with lots of quirks and workarounds, we'll default to not using it until
->> we're at a point where things look mature enough.
->
-> I am not arguing for quirks and workarounds.
->
-> What I would like to see is for the kernel barf horrifically right now
-> on even slightly dodgy ACPI implementations before they are out in the
-> wild. Otherwise the later switching on of ACPI support is what will
-> necessitate workarounds for said systems.
+On Mon, Jul 28, 2014 at 05:33:13PM +0100, Olof Johansson wrote:
+> On Mon, Jul 28, 2014 at 11:12:29AM +0100, Mark Rutland wrote:
+> > On Mon, Jul 28, 2014 at 10:07:50AM +0100, Arnd Bergmann wrote:
+> > > On Saturday 26 July 2014 19:34:48 Olof Johansson wrote:
+> > > > On Thu, Jul 24, 2014 at 6:00 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> > > > > +Relationship with Device Tree
+> > > > > +-----------------------------
+> > > > > +
+> > > > > +ACPI support in drivers and subsystems for ARMv8 should never be mutually
+> > > > > +exclusive with DT support at compile time.
+> > > > > +
+> > > > > +At boot time the kernel will only use one description method depending on
+> > > > > +parameters passed from the bootloader.
+> > > > 
+> > > > Possibly overriden by kernel bootargs. And as debated for quite a
+> > > > while earlier this year, acpi should still default to off -- if a DT
+> > > > and ACPI are both passed in, DT should at this time be given priority.
+> > > 
+> > > I think this would be harder to do with the way that ACPI is passed in
+> > > to the kernel. IIRC, you always have a minimal DT information based on
+> > > the ARM64 boot protocol, but in the case of ACPI, this contains pointers
+> > > to the ACPI tables, which are then used for populating the Linux platform
+> > > devices (unless acpi=disabled is set), while the other contents of the
+> > > DTB may be present but we skip the of_platform_populate state.
+> > > 
+> > > If this is correct, then replacing the firmware-generated dtb with a
+> > > user-provided on would implicitly remove the ACPI tables from visibility,
+> > > which is exactly what we want.
+> > 
+> > That's not quite true.
+> > 
+> > There might not be any DTB, or the user might have provided a DTB with
+> > only /chosen/bootargs. Trying to distinguish the many cases of possible
+> > DTB is broken as a concept.
+> > 
+> > The EFI stub will attempt to get a DTB from somewhere (provided by
+> > filename or as a system table with a magic UUID), and if it can't find
+> > one will generate an empty stub DTB.
+> > 
+> > Then it will go and perform some EFI memory setup, placing some
+> > properties in the DTB (which might be a stub) describing the EFI memory
+> > map.
+> > 
+> > Then we boot the kernel proper, which sees the EFI pointers and looks
+> > for an ACPI table. If they are found, ACPI is used. Otherwise we attempt
+> > to use the DTB (which might be a stub).
+> > 
+> > Unless ACPI is explcitly disabled, ACPI will be used if present.
+> 
+> Ah, I saw this after I replied to Arnd's email.
+> 
+> The above sounds more like how I envisioned things working, so based on that,
+> the default just needs to be flipped and we should be fine (i.e. ACPI needs to
+> be explicitly enabled).
 
-That's the job of a compliance test suite, not of the Linux kernel.
-We're here to make systems usable and ship a computing environment
-that people can use to get work done. We're not a bringup tool and a
-test suite.
+Sorry, but I don't follow your reasoning. What is the rationale for
+disabling ACPI by default?
 
-Turning it on by option means that those who want to test it can do
-so. I'd be happy to do both acpi and non-acpi boots of my boot farm,
-for example, if anyone ever sends me 64-bit hardware for it.
+That's not going to work for ACPI-only systems which may not have any HW
+described in a DTB. I fear it will result in more pain on any systems
+which try to ship both ACPI and DT, where ACPI will not get the testing
+it requires, leading to a greater possibility of quirks/workarounds
+being required later.
 
->> The alternative is to keep this patch set out of the kernel. We can do that
->> too, but I don't think that really helps anyone.
->
-> That's just another way of disabling it by default. IMO that's worse
-> because only a subset of people will discover how broken their ACPI
-> implementation is.
-
-Yes, I think that's worse too. I don't want to do that, but if people
-aren't listening to reason on why it can be merged as long as it's
-disabled by default, then not merging it is the answer.
-
->> > From the discussions at the last Linaro Connect, this was seen as
->> > important for virtual machines which want to provide ACPI services to
->> > guests while still being able to boot DT-only kernels. I'll leave it to
->> > Grant, Rob, and Christoffer to cover that.
->>
->> Ok, waiting to see what they have to say then.
->>
->> > > (Where can I learn more about how the boot loaders currently handle
->> > > this? Do some of them pass in both DT and ACPI on some platforms, for
->> > > example?)
->> >
->> > All will pass in some form of DT. If booted through UEFI, the DT will be
->> > augmented with data about the UEFI memory map (and if no DT is provided,
->> > a /chosen only DT will eb created by the EFI stub).
->>
->> The in-kernel EFI stub?
->
-> Yes. If a kernel with the stub is booted as an EFI application, the stub
-> code will be executed and augment / create a DTB with handles for the
-> UEFI memory map.
->
-> There is a tight coupling between the stub and the kernel. Only the stub
-> is able to do this currently.
-
-Ok, just making clear in case the common bootloaders had their own
-functionality for the same.
-
->> > A kernel with ACPI support will query EFI for ACPI tables, and if found
->> > use them.
->> >
->> > > > +Regardless of whether DT or ACPI is used, the kernel must always be capable
->> > > > +of booting with either scheme.
->> > >
->> > > It should always be possible to compile out ACPI. There will be plenty
->> > > of platforms that will not implement it, so disabling CONFIG_ACPI
->> > > needs to be possible.
->> >
->> > A better description would be that the two must never be mutually
->> > exclusive. It must always be possible to have a kernel which supports
->> > both, and code must never assume the absence of the other.
->>
->> No. "Not mutually exclusive" and "possible to turn off one of them" is not the
->> same thing.
->
-> I think we're talking cross purposes. Those sentences are indeed not
-> equivalent. We want two things:
->
-> 1) A single kernel image must be able to support both ACPI and DT.
->
-> 2) It must be possible to build a kernel supporting only DT.
->
-> Of the two (1) is the most important, or single image is dead. That does
-> not mean that (2) is not important, but it is an optimisation to remove
-> unused code and save on size.
->
-> Any wording we have here must express both these points.
-
-Yes, agreed (1) is clearly stated elsewhere, it's the (2) portion that
-needs to be reflected in the docs, which was what my initial comment
-was as well. Then you took it for a drive around the block with your
-"not mutually exclusive" comment. Now we're back where we started.
-
->> > At run time, the kernel will decide to use one for system description
->> > and use that.
->> >
->> > [...]
->> >
->> > > > +Device Enumeration
->> > > > +------------------
->> > > > +
->> > > > +Device descriptions in ACPI should use standard recognised ACPI interfaces.
->> > > > +These are far simpler than the information provided via Device Tree. Drivers
->> > > > +should take into account this simplicity and work with sensible defaults.
->> > > > +
->> > > > +On no account should a Device Tree attempt to be replicated in ASL using such
->> > > > +constructs as Name(KEY0, "Value1") type constructs. Additional driver specific
->> > > > +data should be passed in the appropriate _DSM (ACPI Section 9.14.1) method or
->> > > > +_DSD (ACPI Section 6.2.5). This data should be rare and not OS specific.
->> > >
->> > > I see these two sentences as contradictory, given that the _DSD doc
->> > > linked below contains examples that mirror over several properties,
->> > > such as "linux,default-trigger" and other LED-specific properties.
->> > > (section 2.4.2 in the below doc). "default-state" seems to come from
->> > > DT too?
->> >
->> > Urrgh. Those should never been placed in the ACPI spec. It's bad enough
->> > in DT.
->>
->> +1
->>
->> > > Care to elaborate and explain what the intention here is? This could
->> > > worst case turn into quite a mess.
->> > >
->> > > Given that ACPI can present completely different data based on what OS
->> > > is running, it's quite common to indeed have OS specific data in
->> > > there. How does that relate to this document and these practices?
->> > >
->> > > > +Common _DSD bindings should be submitted to ASWG to be included in the
->> > > > +document :-
->> > > > +
->> > > > +http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel.htm
->> > >
->> > > So, for these that are a mirror of the device tree bindings, there
->> > > needs to be a wording here around reviewing the DT binding first so we
->> > > don't get diverging bindings.
->> >
->> > We shouldn't work on the assumption that the two should be identical.
->> > ACPI already has standard mechanisms for describing certain linkages
->> > that are divergent from DT.
->>
->> I can't tell what is worse, identical mirroring over into DT of FDT (and the
->> lack of being able to fix it up in case of description bugs) or _DSD doing
->> things subtly different and now the kernel needs to handle both variants.
->
-> ACPI and DT are already doing different things. It's fine to do the same
-> thing where it makes sense to, but we shouldn't go for a false
-> equivalence here.
->
->> > This really needs higher-level thought, and I'd hoped that things
->> > wouldn't blindly be copied one way or the other.
->>
->> Agreed. Besides, the whole idea of ACPI is to not have to model clocks. Sigh.
->
-> Well, maybe not the _whole_ idea. I hear ACPI actually tries to model
-> other devices...
-
-One of the most significant reasons for ACPI is to abstract away the
-hardware such that the kernel doesn't have to bother about knowing
-intimate details about it, such as clock trees. We can discuss this
-some more if you want, but I've got other work to do.
-
->> > [...]
->> >
->> > > > +values before the kernel is executed. If a driver requires to know rates of
->> > > > +clocks set by firmware then they can be passed to kernel using _DSD.
->> > > > +
->> > > > +example :-
->> > > > +
->> > > > +Device (CLK0) {
->> > > > +       ...
->> > > > +
->> > > > +       Name (_DSD, Package() {
->> > > > +               ToUUID("XXXXX"),
->> > > > +               Package() {
->> > > > +                       Package(2) {"#clock-cells", 0},
->> > >
->> > > Clock-cells? What do they mean here? Is this specified in the ACPI
->> > > standards? I had to register to get access to it, and didn't feel like
->> > > doing that right now. I guess it's not _all_ that open a spec. :(
->> >
->> > Yeah, this is complete nonsense.
->> >
->> > If people are going to blindly copy elements from DT into ACPI without
->> > actually understanding them, then ACPI is clearly no better than DT.
->> >
->> > [...]
->> >
->> > > > +static int device_probe(stuct platform_device *pdev)
->> > > > +{
->> > > > +       ...
->> > > > +       acpi_handle handle = ACPI_HANDLE(&pdev->dev);
->> > > > +       struct device_node node = pdev->dev.of_node;
->> > > > +       ...
->> > > > +
->> > > > +       if (node)
->> > > > +               ret = device_probe_dt(pdev);
->> > > > +       else if (handle)
->> > > > +               ret = device_probe_acpi(pdev);
->> > > > +       else
->> > > > +               /* other initialisation */
->> > > > +               ...
->> > > > +       /* Continue with any generic probe operations */
->> > > > +       ...
->> > > > +}
->> > >
->> > > This looks good to me, and it's also my preferred way of ACPI-enabling
->> > > drivers. I guess we might discuss this at KS since it was a proposed
->> > > topic there, and others will object. :)
->> >
->> > This is almost precisely the form of probe I want to see (it would be
->> > nicer IMO to have separate entry points for ACPI / DT / platform data
->> > that can all call a common probe core, but this isn't too far off).
->>
->> I disagree, but it's also not something we're looking to change at this time.
->> We'll take that debate when you post the patches changing how device probing
->> works. :-)
->
-> Sure :)
->
-> Cheers,
-> Mark.
->
->> > > > +
->> > > > +DO keep the MODULE_DEVICE_TABLE entries together in the driver to make it clear
->> > > > +the different names the driver is probed for, both from DT and from ACPI.
->> > > > +
->> > > > +module device tables :-
->> > > > +
->> > > > +static struct of_device_id virtio_mmio_match[] = {
->> > > > +        { .compatible = "virtio,mmio", },
->> > > > +        {},
->> > > > +};
->> > > > +MODULE_DEVICE_TABLE(of, virtio_mmio_match);
->> > > > +
->> > > > +static const struct acpi_device_id virtio_mmio_acpi_match[] = {
->> > > > +        { "LNRO0005", },
->> > > > +        { }
->> > >
->> > > No comma here, but a comma on DT. Probably make them equivalent for
->> > > consistency (including space between the braces).
->> >
->> > The comma on the DT form should probably be dropped. The NULL sentinel's
->> > only job is to delimit the list, so it never makes sense to place
->> > something after it.
->>
->> Yep.
->>
->>
->> -Olof
->>
+Thanks,
+Mark.
