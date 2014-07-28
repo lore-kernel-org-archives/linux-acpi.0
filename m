@@ -1,76 +1,51 @@
-From: Mark Rutland <mark.rutland@arm.com>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Mon, 28 Jul 2014 11:12:29 +0100
-Message-ID: <20140728101229.GD24078@leverpostej>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <1406206825-15590-20-git-send-email-hanjun.guo@linaro.org>
- <CAOesGMhKHGkVK3dOLXXx9GQBMxDmjBu1WDBgHmwdGe1UK3jfcg@mail.gmail.com>
- <5014834.k6eecMddPC@wuerfel>
+Date: Mon, 28 Jul 2014 12:46:17 +0200
+Message-ID: <5959830.lpqeqL7HbK@wuerfel>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org> <5014834.k6eecMddPC@wuerfel> <53D616AD.2090501@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <5014834.k6eecMddPC@wuerfel>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, leif.lindholm@arm.com, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linaro-acpi-private@linaro.org" <linaro-acpi-private@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.126.187]:60668 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750778AbaG1KrE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Jul 2014 06:47:04 -0400
+In-Reply-To: <53D616AD.2090501@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Graeme Gregory <graeme.gregory@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, Olof Johansson <olof@lixom.net>, Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vge>
 
-On Mon, Jul 28, 2014 at 10:07:50AM +0100, Arnd Bergmann wrote:
-> On Saturday 26 July 2014 19:34:48 Olof Johansson wrote:
-> > On Thu, Jul 24, 2014 at 6:00 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> > > +Relationship with Device Tree
-> > > +-----------------------------
-> > > +
-> > > +ACPI support in drivers and subsystems for ARMv8 should never be mutually
-> > > +exclusive with DT support at compile time.
-> > > +
-> > > +At boot time the kernel will only use one description method depending on
-> > > +parameters passed from the bootloader.
-> > 
-> > Possibly overriden by kernel bootargs. And as debated for quite a
-> > while earlier this year, acpi should still default to off -- if a DT
-> > and ACPI are both passed in, DT should at this time be given priority.
-> 
-> I think this would be harder to do with the way that ACPI is passed in
-> to the kernel. IIRC, you always have a minimal DT information based on
-> the ARM64 boot protocol, but in the case of ACPI, this contains pointers
-> to the ACPI tables, which are then used for populating the Linux platform
-> devices (unless acpi=disabled is set), while the other contents of the
-> DTB may be present but we skip the of_platform_populate state.
-> 
-> If this is correct, then replacing the firmware-generated dtb with a
-> user-provided on would implicitly remove the ACPI tables from visibility,
-> which is exactly what we want.
+On Monday 28 July 2014 10:23:57 Graeme Gregory wrote:
+> The PL011 UART is the use-case I keep hitting, that IP block has a 
+> variable input clock on pretty much everything I have seen in the wild. 
 
-That's not quite true.
+Ok, I see. What does ACPI-5.1 say about pl011?
 
-There might not be any DTB, or the user might have provided a DTB with
-only /chosen/bootargs. Trying to distinguish the many cases of possible
-DTB is broken as a concept.
+Interestingly, the subset of pl011 that is specified by SBSA does not
+contain the IBRD/FBRD registers, effectively making it a fixed-rated
+UART (I guess that would be a ART, without the U then), and you
+consequently don't even need to know the clock rate.
 
-The EFI stub will attempt to get a DTB from somewhere (provided by
-filename or as a system table with a magic UUID), and if it can't find
-one will generate an empty stub DTB.
+However, my guess is that most hardware in the real world contains
+an actual pl011 and it does make a lot of sense to allow setting
+the baud rate on it, which then requires knowing the input clock.
 
-Then it will go and perform some EFI memory setup, placing some
-properties in the DTB (which might be a stub) describing the EFI memory
-map.
+If there is any hardware that implements just the SBSA-mandated subset
+rather than the full pl011, we should probably implement both
+in the kernel: a dumb driver that can only send and receive, and the
+more complex one that can set the bit rates and flow-control but that
+requires a standardized ACPI table with the input clock rate.
 
-Then we boot the kernel proper, which sees the EFI pointers and looks
-for an ACPI table. If they are found, ACPI is used. Otherwise we attempt
-to use the DTB (which might be a stub).
+Whether the two would belong into one file or two separate driver
+modules is something I can't tell, it would be up to the serial
+maintainers to decide.
 
-Unless ACPI is explcitly disabled, ACPI will be used if present.
+> I really hope that this use does not spread beyond a few essential 
+> devices like the UART. IMO all real hardware should be the other side of 
+> a PCIe bridge.
 
-Thanks,
-Mark.
+I would definitely agree with that.
+
+	Arnd
