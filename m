@@ -1,18 +1,16 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Tue, 29 Jul 2014 15:04:12 +0100
-Message-ID: <20140729140412.GR2576@leverpostej>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 01/19] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+Date: Tue, 29 Jul 2014 22:07:40 +0800
+Message-ID: <53D7AAAC.6070606@linaro.org>
 References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <20140729112824.GM2576@leverpostej>
- <CAMJs5B_Ye1eXsvJAKWnHRxC4jnpcXMcqHE+GgOGO7MHtPcsSQA@mail.gmail.com>
- <351673188.FxXsM7MvdA@wuerfel> <20140729130823.GP2576@leverpostej>
- <CAMJs5B8uk7GDfEOEuY8RWDxzhzTRBGszRDN+JRKwG-D_rgzFrw@mail.gmail.com>
+ <1406206825-15590-2-git-send-email-hanjun.guo@linaro.org>
+ <53D69678.20002@arm.com> <53D79CD8.9050709@linaro.org>
+ <53D7A6A2.9020005@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAMJs5B8uk7GDfEOEuY8RWDxzhzTRBGszRDN+JRKwG-D_rgzFrw@mail.gmail.com>
+In-Reply-To: <53D7A6A2.9020005@arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,46 +20,27 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Christoffer Dall <christoffer.dall@linaro.org>
-Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "rob.herring@linaro.org" <rob.herring@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, Rafael J
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 29, 2014 at 02:31:16PM +0100, Christoffer Dall wrote:
-> On 29 July 2014 15:08, Mark Rutland <mark.rutland@arm.com> wrote:
-> > On Tue, Jul 29, 2014 at 01:52:40PM +0100, Arnd Bergmann wrote:
-> >> On Tuesday 29 July 2014 14:37:38 Christoffer Dall wrote:
-> >> >
-> >> > For reference, Red Hat's current arguing point for ACPI in VMs is
-> >> > hotplug of things like CPUs and memory for very large VMs, but I
-> >> > haven't thought too carefully about this just yet, as I don't have a
-> >> > 100+ core ARM 64-bit hardware lying around...
-> >>
-> >> I thought you could run guests with more virtual CPUs that you have
-> >> physical CPUs on the host.
-> >>
-> >> Regarding CPU and memory hotplug, don't we already have PSCI and
-> >> xen-balloon/virtio-balloon for that?
-> >
-> > PSCI (0.1) was there for guests from the start, and ACPI doesn't do
-> > anything different w.r.t. PSCI other than requiring PSCI 0.2 (which can
-> > be used by guests supporting only PSCI 0.1). So there's no magic for
-> > CPU hotplug provided by ACPI.
-> 
-> With PSCI you can only provide your VM a bunch of CPUs and say that
-> they're all turned off, and then turn some of them on later.  I
-> honestly don't know if you can do proper CPU hotplug with ACPI, but
-> the RH guys seem to argue that you can.  Again, I didn't think too
-> carefully about this.
-
-Ah, I see. That would make some sense.
-
-> >
-> > Do either of the balloon drivers allow for memory to be hot-added to a
-> > system initially provisioned with less?
-> >
-> No, it's just about reclaiming memory.  Same argument as above.
-
-Ok. Thanks for the clarifications.
-
-Cheers,
-Mark.
+T24gMjAxNOW5tDA35pyIMjnml6UgMjE6NTAsIFN1ZGVlcCBIb2xsYSB3cm90ZToKPgo+IE9uIDI5
+LzA3LzE0IDE0OjA4LCBIYW5qdW4gR3VvIHdyb3RlOgo+PiBPbiAyMDE0LTctMjkgMjoyOSwgU3Vk
+ZWVwIEhvbGxhIHdyb3RlOgo+PiBbLi4uXQo+Pj4+ICsKPj4+PiArLyoKPj4+PiArICogV2UgbmV2
+ZXIgcGxhbiB0byB1c2UgUlNEVCBvbiBhcm0vYXJtNjQgYXMgaXRzIGRlcHJlY2F0ZWQgaW4gc3Bl
+YyBidXQgdGhpcwo+Pj4+ICsgKiB2YXJpYWJsZSBpcyBzdGlsbCByZXF1aXJlZCBieSB0aGUgQUNQ
+SSBjb3JlCj4+Pj4gKyAqLwo+Pj4+ICt1MzIgYWNwaV9yc2R0X2ZvcmNlZDsKPj4+Cj4+PiBUaGlz
+IGxvb2tzIGxpa2UgeWV0IGFub3RoZXIgc3RyYXkgdmFyaWFibGUgbm90IHVzZWQgYW55d2hlcmUg
+aW5jbHVkaW5nCj4+PiBjb3JlIEFDUEkKPj4KPj4gSXQgd2lsbCBiZSB1c2VkIGJ5IEFDUElDQSB0
+byBnZXQgdGhlIFJTRFAgaW4gYWNwaV90Yl9wYXJzZV9yb290X3RhYmxlKCkKPj4gaW4gdGJ1dGls
+cy5jLgo+Pgo+Cj4gTm8gSSBjb3VsZG4ndCBmaW5kIGl0IGluIG1haW5saW5lL2FjcGljYS9saW51
+eC1uZXh0KHBtIHRyZWUpLgo+Cj4gT24gZnVydGhlciBkaWdnaW5nIGZvdW5kIHRoYXQgY29tbWl0
+IGZhYjQ2MTA1ODM4NSgiQUNQSUNBOiBDbGVhbnVwIHRoZQo+IG9wdGlvbiBvZiBmb3JjaW5nIHRo
+ZSB1c2Ugb2YgdGhlIFJTRFQiKSBoYXMgcmVuYW1lZCBpdCB0bwo+IGFjcGlfZ2JsX2RvX25vdF91
+c2VfeHNkdCBhbmQgbW92ZWQgaXQgaW50byBhY3BpY2Egd2l0aCBkZWZhdWx0IGZhbHNlLgo+IFNv
+IHlvdSBjYW4gcmVtb3ZlIHRoaXMuCgpBaCwgbXkgYmFkLiBJIGdyZXBwZWQgaXQgaW4gYW5vdGhl
+ciB2ZXJzaW9uIG9mIGtlcm5lbCBhbmQgZm91bmQgdGhlIG91dGRhdGVkCnJlc3VsdCwgSSB3aWxs
+IHVwZGF0ZSB0aGlzIHBhdGNoLgoKVGhhbmtzCkhhbmp1bgoKCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0
+CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFk
+ZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
