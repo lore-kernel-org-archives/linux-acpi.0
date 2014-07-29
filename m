@@ -1,13 +1,18 @@
-From: Arnd Bergmann <arnd@arndb.de>
+From: Mark Rutland <mark.rutland@arm.com>
 Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Tue, 29 Jul 2014 12:41:51 +0200
-Message-ID: <3160422.qOzPuCmCVY@wuerfel>
+Date: Tue, 29 Jul 2014 11:55:43 +0100
+Message-ID: <20140729105543.GL2576@leverpostej>
 References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <20140728164459.GD32359@quad.lixom.net> <20140729102940.GB18250@cbox>
+ <1406206825-15590-20-git-send-email-hanjun.guo@linaro.org>
+ <CAOesGMhKHGkVK3dOLXXx9GQBMxDmjBu1WDBgHmwdGe1UK3jfcg@mail.gmail.com>
+ <20140728100654.GC24078@leverpostej>
+ <20140728164459.GD32359@quad.lixom.net>
+ <20140729102940.GB18250@cbox>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
 In-Reply-To: <20140729102940.GB18250@cbox>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -19,12 +24,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Christoffer Dall <christoffer.dall@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, rob.herring@linaro.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linaro-acpi-private@linaro.org" <linaro-acpi-private@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>
+Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "rob.herring@linaro.org" <rob.herring@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linaro-acpi-private@linaro.org" <linaro-acpi-private@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 29 July 2014 12:29:40 Christoffer Dall wrote:
+On Tue, Jul 29, 2014 at 11:29:40AM +0100, Christoffer Dall wrote:
 > On Mon, Jul 28, 2014 at 09:44:59AM -0700, Olof Johansson wrote:
 > > On Mon, Jul 28, 2014 at 11:06:54AM +0100, Mark Rutland wrote:
+> 
+> [...]
+> 
+> > > >
+> > > > > +Relationship with Device Tree
+> > > > > +-----------------------------
+> > > > > +
+> > > > > +ACPI support in drivers and subsystems for ARMv8 should never be mutually
+> > > > > +exclusive with DT support at compile time.
+> > > > > +
+> > > > > +At boot time the kernel will only use one description method depending on
+> > > > > +parameters passed from the bootloader.
+> > > >
+> > > > Possibly overriden by kernel bootargs. And as debated for quite a
+> > > > while earlier this year, acpi should still default to off -- if a DT
+> > > > and ACPI are both passed in, DT should at this time be given priority.
+> > > 
+> > > Why? I really don't see the logic in doing that.
+> > 
+> > Seems like I am replying to your emails in reverse order.
+> > 
+> > > Currently the kernel can only boot using DT, so DT will be used even if
+> > > ACPI is present. In the presence of ACPI support in the kernel, ACPI
+> > > would be used on said systems.
+> > 
+> > For all the reasons we hashed out earlier this year: We can't trust that
+> > vendors will know how to do ACPI from day one, so instead of loading up the
+> > kernel with lots of quirks and workarounds, we'll default to not using it until
+> > we're at a point where things look mature enough.
+> > 
+> > The alternative is to keep this patch set out of the kernel. We can do that
+> > too, but I don't think that really helps anyone.
 > > 
 > > > From the discussions at the last Linaro Connect, this was seen as
 > > > important for virtual machines which want to provide ACPI services to
@@ -41,9 +78,7 @@ On Tuesday 29 July 2014 12:29:40 Christoffer Dall wrote:
 > cases such systems will only access a few limited emulated devices
 > (UART, GIC, RTC, flash controller) and VirtIO devices, which should just
 > work using DT only.
-
-Right
-
+> 
 > People are talking about adding ACPI for VM guests as well for various
 > reasons (device passthrough for example) in which case I would always
 > expect people to run UEFI inside their guests too (perhaps this is not
@@ -52,13 +87,16 @@ Right
 > 
 > Does this clarify anything or add futher to the confusion?
 
-I think the only reason that was given for ACPI in a virtual machine
-was Red Hat's insistence on intentionally breaking DT support in their
-enterprise distro.
+I was under the impression that there was a case where we'd have a DT
+with HW description in a VM which also had ACPI tables, to enable a
+kernel without ACPI support to boot in said VM (albeit with reduced
+functionality).
 
-I believe both the cases of device pass-through and running something
-other than UEFI are outside of the scope of the standard virtual machine
-model, for different reasons. Outside of that model, anybody is of course
-free to run whatever they like in their guests.
+I may have got confused since the VM standards discussion at LCA-14.
 
-	Arnd
+If we we expect a hypervisor to provide DT only by default (for
+compatibility), and ACPI only when the user has explicitly enabled it
+for an ACPI-specific feature, then that sounds OK.
+
+Thanks,
+Mark.
