@@ -1,77 +1,64 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [Intel-gfx] PROBLEM: Native backlight regressed from logarithmic
- to linear scale
-Date: Tue, 29 Jul 2014 12:38:22 +0200
-Message-ID: <20140729103822.GO4747@phenom.ffwll.local>
-References: <alpine.DEB.2.02.1407212333200.44274@all-night-tool.MIT.EDU>
- <53D76D65.6030704@redhat.com>
- <alpine.DEB.2.02.1407290554280.44274@all-night-tool.MIT.EDU>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
+Date: Tue, 29 Jul 2014 12:41:51 +0200
+Message-ID: <3160422.qOzPuCmCVY@wuerfel>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
+ <20140728164459.GD32359@quad.lixom.net> <20140729102940.GB18250@cbox>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:35525 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752859AbaG2KiQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jul 2014 06:38:16 -0400
-Received: by mail-wi0-f170.google.com with SMTP id f8so5644730wiw.1
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Jul 2014 03:38:14 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1407290554280.44274@all-night-tool.MIT.EDU>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140729102940.GB18250@cbox>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Christoffer Dall <christoffer.dall@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, rob.herring@linaro.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linaro-acpi-private@linaro.org" <linaro-acpi-private@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Anders Kaseorg <andersk@MIT.EDU>
-Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org
 
-On Tue, Jul 29, 2014 at 06:14:16AM -0400, Anders Kaseorg wrote:
-> On Tue, 29 Jul 2014, Hans de Goede wrote:
-> > I've been thinking a bit about this, and I believe that the right a=
-nswer=20
-> > here is to do the linear to logarithmic mapping in user-space. The =
-intel=20
-> > backlight interface has a type of raw, clearly signalling to usersp=
-ace=20
-> > that it is a raw "untranslated" interface, as such any fanciness su=
-ch as=20
-> > creating a logarithmic scale should be done in userspace IMHO.
->=20
-> I was going to respond that the kernel does its own brightness steppi=
-ng=20
-> when userspace isn=E2=80=99t paying attention.  But apparently only a=
-cpi_video=20
-> does that, and intel_backlight does not; my brightness keys now have =
-no=20
-> effect outside of the X server.  Is that the expected behavior?
+On Tuesday 29 July 2014 12:29:40 Christoffer Dall wrote:
+> On Mon, Jul 28, 2014 at 09:44:59AM -0700, Olof Johansson wrote:
+> > On Mon, Jul 28, 2014 at 11:06:54AM +0100, Mark Rutland wrote:
+> > 
+> > > From the discussions at the last Linaro Connect, this was seen as
+> > > important for virtual machines which want to provide ACPI services to
+> > > guests while still being able to boot DT-only kernels. I'll leave it to
+> > > Grant, Rob, and Christoffer to cover that.
+> > 
+> > Ok, waiting to see what they have to say then.
+> > 
+> 
+> Hmm, a virtual machine implementaion may provide either a DT or ACPI (or
+> both).  I think the point at Linaro Connect was that for a first cut,
+> there is no obvious need to provide ACPI to VMs and to be spec
+> compliant, server kernels must be able to boot with DT-only.  In most
+> cases such systems will only access a few limited emulated devices
+> (UART, GIC, RTC, flash controller) and VirtIO devices, which should just
+> work using DT only.
 
-Userspace on linux is supposed to catch brightness keys and update the
-backlight. Some acpi drivers do funny stuff behind everyone's back, but
-generally that's the expected behavior. You'd need a deamon for the
-backlight to work on the console.
+Right
 
-> In any case, if you think punting part of the problem to userspace is=
- the=20
-> right answer, then to flesh out the details: do you think it=E2=80=99=
-s right for=20
-> userspace to assume that any backlight with type =E2=80=98raw=E2=80=99=
- is a linear scale=20
-> that needs to be converted, and one with type =E2=80=98firmware=E2=80=
-=99 or =E2=80=98platform=E2=80=99 has=20
-> already been converted appropriately?
+> People are talking about adding ACPI for VM guests as well for various
+> reasons (device passthrough for example) in which case I would always
+> expect people to run UEFI inside their guests too (perhaps this is not
+> 100% true in the case of Xen fast-boot scenarios though) and I would
+> expect Linux to only see the little stub DT and ACPI.
+> 
+> Does this clarify anything or add futher to the confusion?
 
-I don't think you can generally assume anything - what we do is send th=
-e
-pwm signal, how linearly that translates into brightness is totally pan=
-el
-and driver dependent. So no matter what you pick someone will complain =
-I
-think.
--Daniel
---=20
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think the only reason that was given for ACPI in a virtual machine
+was Red Hat's insistence on intentionally breaking DT support in their
+enterprise distro.
+
+I believe both the cases of device pass-through and running something
+other than UEFI are outside of the scope of the standard virtual machine
+model, for different reasons. Outside of that model, anybody is of course
+free to run whatever they like in their guests.
+
+	Arnd
