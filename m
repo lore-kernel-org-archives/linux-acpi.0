@@ -1,80 +1,124 @@
-From: Vinson Lee <vlee@twopensource.com>
-Subject: Re: WARNING: CPU: 0 PID: 2623 at drivers/pnp/pnpacpi/core.c:96 pnpacpi_set_resource
-Date: Tue, 29 Jul 2014 11:13:55 -0700
-Message-ID: <CAHTgTXV_kJ=bUOEQjbxM8+tZ+Df--xrZxH5bwkGFqffLd5h9LA@mail.gmail.com>
-References: <5386F2C7.8080400@redhat.com>
-	<1524296.Cxrf5UDWlv@vostro.rjw.lan>
-	<CAHTgTXXUcDNvPD0g82q1HFCy+EZZdF8hwyAzRu8cijs5dy9mBQ@mail.gmail.com>
-	<CAHTgTXV8RtMwO0bKrc7LmfVcAQzkBra=RWQ6AGo7H8NsaxQx9A@mail.gmail.com>
-	<CAHTgTXXB2rfYyLwBM9BF7pw6kTVnixXhKWweKKZtsH64drAhQw@mail.gmail.com>
-	<CAJ75kXYJL4jD=81NYPYpji9grJQkzMKdgLhRMA=YFstHzzZ0=A@mail.gmail.com>
+From: John Marsden <john.d.marsden@gmail.com>
+Subject: Re: PROBLEM: [Toshiba Portege Z835] Brightness control lost after suspend
+Date: Tue, 29 Jul 2014 19:20:59 +0100
+Message-ID: <CACiopZCQpGeBw6V7qFpcV6u22stOQC8X9Aiwya3wE_cBZzL+PQ@mail.gmail.com>
+References: <CACiopZBtRcixrXhHLB-6fc_Fvg5rhv+rqJjeSxkxDYBf0uu+kw@mail.gmail.com>
+	<53D7AF8F.7060401@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJ75kXYJL4jD=81NYPYpji9grJQkzMKdgLhRMA=YFstHzzZ0=A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: William Dauchy <wdauchy@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zdenek Kabelac <zkabelac@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:45453 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750980AbaG2SVB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jul 2014 14:21:01 -0400
+Received: by mail-lb0-f171.google.com with SMTP id l4so38980lbv.2
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Jul 2014 11:20:59 -0700 (PDT)
+In-Reply-To: <53D7AF8F.7060401@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, Jul 29, 2014 at 2:53 AM, William Dauchy <wdauchy@gmail.com> wrote:
-> Hi Vinson,
->
-> On Mon, Jul 28, 2014 at 9:11 PM, Vinson Lee <vlee@twopensource.com> wrote:
->> The warning first happens with 3.14-rc1. The warning does not occur with 3.13.0.
->
-> Hitting the same issue here with a similar trace on 3.14.x. Did you
-> start bisecting?
->
-> Regards,
-> --
-> William
+On 29 July 2014 15:28, Aaron Lu <aaron.lu@intel.com> wrote:
+> Please attach acpidump to the Ubuntu bug page.
+
+I installed acpidump from the Ubuntu Software Centre and tried running
+it with the following result:
+    sudo acpidump -z
+
+   Intel ACPI Component Architecture
+   ACPI Binary Table Dump Utility version 20140214-64 [Mar 29 2014]
+   Copyright (c) 2000 - 2014 Intel Corporation
+
+   Cannot map /dev/mem
+   Could not map table at 0x00000000000F0030 length FEDA0000
+   Could not get ACPI tables, AE_ACCESS
+
+I'm out of my depth with this.  However, with Google's help I found
+https://www.kernel.org/doc/Documentation/acpi/initrd_table_override.txt
+at the end of which it says:
+"Alternatively, used ACPI tables can be retrieved via sysfs in latest
+kernels: /sys/firmware/acpi/tables"
+Using this hint I've saved the binary files from sysfs and then used
+"acpidump -f filename" to create the file I've uploaded to the Ubuntu
+bug.  Please advise if I need to follow some other procedure to get
+what you want.
+
+> BTW, do you always have this problem or it starts to occur
+> from some kernel version?
+
+While triaging the bug on Ubuntu we've gone as far back as Ubuntu
+12.04.0 (Precise) which is what I first installed on the computer in
+question.  It's been present in all versions we tested.
+
+> Please also list your /sys/class/backlight with v3.16-rc kernel.
+I trust this is what you require:
+
+ ls -l /sys/class/backlight
+total 0
+lrwxrwxrwx 1 root root 0 Jul 29 17:06 acpi_video0 ->
+../../devices/pci0000:00/0000:00:02.0/backlight/acpi_video0
+lrwxrwxrwx 1 root root 0 Jul 29 17:06 intel_backlight ->
+../../devices/pci0000:00/0000:00:02.0/drm/card0/card0-LVDS-1/intel_backlight
+lrwxrwxrwx 1 root root 0 Jul 29 17:06 toshiba ->
+../../devices/LNXSYSTM:00/LNXSYBUS:00/TOS6208:00/backlight/toshiba
+
+/sys/class/backlight/acpi_video0/* {cat or ls -l}
+  actual_brightness: 7
+  bl_power: 0
+  brightness: 7
+  device -> ../../../0000:00:02.0
+  max_brightness: 7
+  power/async:  disabled
+  power/autosuspend_delay_ms - Input/output error
+  power/control:  auto
+  power/runtime_active_kids:  0
+  power/runtime_active_time:  0
+  power/runtime_enabled:  disabled
+  power/runtime_status:  unsupported
+  power/runtime_suspended_time:  0
+  power/runtime_usage:  0
+  subsystem -> ../../../../../class/backlight
+  type: firmware
+  uevent:
+
+/sys/class/backlight/intel_backlight/* {cat or ls -l}
+  actual_brightness: 249
+  bl_power: 0
+  brightness: 249
+  device -> ../../card0-LVDS-1
+  max_brightness: 4539
+  power/async:  disabled
+  power/autosuspend_delay_ms - Input/output error
+  power/control:  auto
+  power/runtime_active_kids:  0
+  power/runtime_active_time:  0
+  power/runtime_enabled:  disabled
+  power/runtime_status:  unsupported
+  power/runtime_suspended_time:  0
+  power/runtime_usage:  0
+  subsystem -> ../../../../../../../class/backlight
+  type: raw
+  uevent:
+
+/sys/class/backlight/toshiba/* {cat or ls -l}
+  actual_brightness: 7
+  bl_power: 0
+  brightness: 7
+  device -> ../../../TOS6208:00
+  max_brightness: 7
+  power/async:  disabled
+  power/autosuspend_delay_ms - Input/output error
+  power/control:  auto
+  power/runtime_active_kids:  0
+  power/runtime_active_time:  0
+  power/runtime_enabled:  disabled
+  power/runtime_status:  unsupported
+  power/runtime_suspended_time:  0
+  power/runtime_usage:  0
+  subsystem -> ../../../../../../class/backlight
+  type: platform
+  uevent:
 
 
-I bisected the warning that I'm seeing to this commit.
-
-commit 202317a573b20d77a9abb7c16a3fd5b40cef3d9d
-Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Date:   Fri Nov 22 21:54:37 2013 +0100
-
-    ACPI / scan: Add acpi_device objects for all device nodes in the namespace
-
-    Modify the ACPI namespace scanning code to register a struct
-    acpi_device object for every namespace node representing a device,
-    processor and so on, even if the device represented by that namespace
-    node is reported to be not present and not functional by _STA.
-
-    There are multiple reasons to do that.  First of all, it avoids
-    quite a lot of overhead when struct acpi_device objects are
-    deleted every time acpi_bus_trim() is run and then added again
-    by a subsequent acpi_bus_scan() for the same scope, although the
-    namespace objects they correspond to stay in memory all the time
-    (which always is the case on a vast majority of systems).
-
-    Second, it will allow user space to see that there are namespace
-    nodes representing devices that are not present at the moment and may
-    be added to the system.  It will also allow user space to evaluate
-    _SUN for those nodes to check what physical slots the "missing"
-    devices may be put into and it will make sense to add a sysfs
-    attribute for _STA evaluation after this change (that will be
-    useful for thermal management on some systems).
-
-    Next, it will help to consolidate the ACPI hotplug handling among
-    subsystems by making it possible to store hotplug-related information
-    in struct acpi_device objects in a standard common way.
-
-    Finally, it will help to avoid a race condition related to the
-    deletion of ACPI namespace nodes.  Namely, namespace nodes may be
-    deleted as a result of a table unload triggered by _EJ0 or _DCK.
-    If a hotplug notification for one of those nodes is triggered
-    right before the deletion and it executes a hotplug callback
-    via acpi_hotplug_execute(), the ACPI handle passed to that
-    callback may be stale when the callback actually runs.  One way
-    to work around that is to always pass struct acpi_device pointers
-    to hotplug callbacks after doing a get_device() on the objects in
-    question which eliminates the use-after-free possibility (the ACPI
-    handles in those objects are invalidated by acpi_scan_drop_device(),
-    so they will trigger ACPICA errors on attempts to use them).
-
-    Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-    Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Thank you for your help.  John
