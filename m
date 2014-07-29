@@ -1,106 +1,22 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Tue, 29 Jul 2014 12:28:24 +0100
-Message-ID: <20140729112824.GM2576@leverpostej>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <1406206825-15590-20-git-send-email-hanjun.guo@linaro.org>
- <CAOesGMhKHGkVK3dOLXXx9GQBMxDmjBu1WDBgHmwdGe1UK3jfcg@mail.gmail.com>
- <20140728100654.GC24078@leverpostej>
- <20140728164459.GD32359@quad.lixom.net>
- <20140729102940.GB18250@cbox> <20140729105543.GL2576@leverpostej>
+From: "Noemi Alvarez" <nimvarez@gmail.com>
+Subject: Hello
+Date: Tue, 29 Jul 2014 10:23:08 +0200
+Message-ID: <12ff18cc1664079c349558e43e9b6748.squirrel__41568.9843510792$1406635922$gmane$org@acemedia.mk>
+Reply-To: nimvarez@live.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20140729105543.GL2576@leverpostej>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Christoffer Dall <christoffer.dall@linaro.org>
-Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "rob.herring@linaro.org" <rob.herring@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, Rafael J
+Content-Type: text/plain;charset=UTF8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from inelhost.com ([37.26.96.2]:34051 "EHLO inelhost.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750825AbaG2MLu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Jul 2014 08:11:50 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVHVlLCBKdWwgMjksIDIwMTQgYXQgMTE6NTU6NDNBTSArMDEwMCwgTWFyayBSdXRsYW5kIHdy
-b3RlOgo+IE9uIFR1ZSwgSnVsIDI5LCAyMDE0IGF0IDExOjI5OjQwQU0gKzAxMDAsIENocmlzdG9m
-ZmVyIERhbGwgd3JvdGU6Cj4gPiBPbiBNb24sIEp1bCAyOCwgMjAxNCBhdCAwOTo0NDo1OUFNIC0w
-NzAwLCBPbG9mIEpvaGFuc3NvbiB3cm90ZToKPiA+ID4gT24gTW9uLCBKdWwgMjgsIDIwMTQgYXQg
-MTE6MDY6NTRBTSArMDEwMCwgTWFyayBSdXRsYW5kIHdyb3RlOgo+ID4gCj4gPiBbLi4uXQo+ID4g
-Cj4gPiA+ID4gPgo+ID4gPiA+ID4gPiArUmVsYXRpb25zaGlwIHdpdGggRGV2aWNlIFRyZWUKPiA+
-ID4gPiA+ID4gKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gPiA+ID4gPiA+ICsKPiA+
-ID4gPiA+ID4gK0FDUEkgc3VwcG9ydCBpbiBkcml2ZXJzIGFuZCBzdWJzeXN0ZW1zIGZvciBBUk12
-OCBzaG91bGQgbmV2ZXIgYmUgbXV0dWFsbHkKPiA+ID4gPiA+ID4gK2V4Y2x1c2l2ZSB3aXRoIERU
-IHN1cHBvcnQgYXQgY29tcGlsZSB0aW1lLgo+ID4gPiA+ID4gPiArCj4gPiA+ID4gPiA+ICtBdCBi
-b290IHRpbWUgdGhlIGtlcm5lbCB3aWxsIG9ubHkgdXNlIG9uZSBkZXNjcmlwdGlvbiBtZXRob2Qg
-ZGVwZW5kaW5nIG9uCj4gPiA+ID4gPiA+ICtwYXJhbWV0ZXJzIHBhc3NlZCBmcm9tIHRoZSBib290
-bG9hZGVyLgo+ID4gPiA+ID4KPiA+ID4gPiA+IFBvc3NpYmx5IG92ZXJyaWRlbiBieSBrZXJuZWwg
-Ym9vdGFyZ3MuIEFuZCBhcyBkZWJhdGVkIGZvciBxdWl0ZSBhCj4gPiA+ID4gPiB3aGlsZSBlYXJs
-aWVyIHRoaXMgeWVhciwgYWNwaSBzaG91bGQgc3RpbGwgZGVmYXVsdCB0byBvZmYgLS0gaWYgYSBE
-VAo+ID4gPiA+ID4gYW5kIEFDUEkgYXJlIGJvdGggcGFzc2VkIGluLCBEVCBzaG91bGQgYXQgdGhp
-cyB0aW1lIGJlIGdpdmVuIHByaW9yaXR5Lgo+ID4gPiA+IAo+ID4gPiA+IFdoeT8gSSByZWFsbHkg
-ZG9uJ3Qgc2VlIHRoZSBsb2dpYyBpbiBkb2luZyB0aGF0Lgo+ID4gPiAKPiA+ID4gU2VlbXMgbGlr
-ZSBJIGFtIHJlcGx5aW5nIHRvIHlvdXIgZW1haWxzIGluIHJldmVyc2Ugb3JkZXIuCj4gPiA+IAo+
-ID4gPiA+IEN1cnJlbnRseSB0aGUga2VybmVsIGNhbiBvbmx5IGJvb3QgdXNpbmcgRFQsIHNvIERU
-IHdpbGwgYmUgdXNlZCBldmVuIGlmCj4gPiA+ID4gQUNQSSBpcyBwcmVzZW50LiBJbiB0aGUgcHJl
-c2VuY2Ugb2YgQUNQSSBzdXBwb3J0IGluIHRoZSBrZXJuZWwsIEFDUEkKPiA+ID4gPiB3b3VsZCBi
-ZSB1c2VkIG9uIHNhaWQgc3lzdGVtcy4KPiA+ID4gCj4gPiA+IEZvciBhbGwgdGhlIHJlYXNvbnMg
-d2UgaGFzaGVkIG91dCBlYXJsaWVyIHRoaXMgeWVhcjogV2UgY2FuJ3QgdHJ1c3QgdGhhdAo+ID4g
-PiB2ZW5kb3JzIHdpbGwga25vdyBob3cgdG8gZG8gQUNQSSBmcm9tIGRheSBvbmUsIHNvIGluc3Rl
-YWQgb2YgbG9hZGluZyB1cCB0aGUKPiA+ID4ga2VybmVsIHdpdGggbG90cyBvZiBxdWlya3MgYW5k
-IHdvcmthcm91bmRzLCB3ZSdsbCBkZWZhdWx0IHRvIG5vdCB1c2luZyBpdCB1bnRpbAo+ID4gPiB3
-ZSdyZSBhdCBhIHBvaW50IHdoZXJlIHRoaW5ncyBsb29rIG1hdHVyZSBlbm91Z2guCj4gPiA+IAo+
-ID4gPiBUaGUgYWx0ZXJuYXRpdmUgaXMgdG8ga2VlcCB0aGlzIHBhdGNoIHNldCBvdXQgb2YgdGhl
-IGtlcm5lbC4gV2UgY2FuIGRvIHRoYXQKPiA+ID4gdG9vLCBidXQgSSBkb24ndCB0aGluayB0aGF0
-IHJlYWxseSBoZWxwcyBhbnlvbmUuCj4gPiA+IAo+ID4gPiA+IEZyb20gdGhlIGRpc2N1c3Npb25z
-IGF0IHRoZSBsYXN0IExpbmFybyBDb25uZWN0LCB0aGlzIHdhcyBzZWVuIGFzCj4gPiA+ID4gaW1w
-b3J0YW50IGZvciB2aXJ0dWFsIG1hY2hpbmVzIHdoaWNoIHdhbnQgdG8gcHJvdmlkZSBBQ1BJIHNl
-cnZpY2VzIHRvCj4gPiA+ID4gZ3Vlc3RzIHdoaWxlIHN0aWxsIGJlaW5nIGFibGUgdG8gYm9vdCBE
-VC1vbmx5IGtlcm5lbHMuIEknbGwgbGVhdmUgaXQgdG8KPiA+ID4gPiBHcmFudCwgUm9iLCBhbmQg
-Q2hyaXN0b2ZmZXIgdG8gY292ZXIgdGhhdC4KPiA+ID4gCj4gPiA+IE9rLCB3YWl0aW5nIHRvIHNl
-ZSB3aGF0IHRoZXkgaGF2ZSB0byBzYXkgdGhlbi4KPiA+ID4gCj4gPiAKPiA+IEhtbSwgYSB2aXJ0
-dWFsIG1hY2hpbmUgaW1wbGVtZW50YWlvbiBtYXkgcHJvdmlkZSBlaXRoZXIgYSBEVCBvciBBQ1BJ
-IChvcgo+ID4gYm90aCkuICBJIHRoaW5rIHRoZSBwb2ludCBhdCBMaW5hcm8gQ29ubmVjdCB3YXMg
-dGhhdCBmb3IgYSBmaXJzdCBjdXQsCj4gPiB0aGVyZSBpcyBubyBvYnZpb3VzIG5lZWQgdG8gcHJv
-dmlkZSBBQ1BJIHRvIFZNcyBhbmQgdG8gYmUgc3BlYwo+ID4gY29tcGxpYW50LCBzZXJ2ZXIga2Vy
-bmVscyBtdXN0IGJlIGFibGUgdG8gYm9vdCB3aXRoIERULW9ubHkuICBJbiBtb3N0Cj4gPiBjYXNl
-cyBzdWNoIHN5c3RlbXMgd2lsbCBvbmx5IGFjY2VzcyBhIGZldyBsaW1pdGVkIGVtdWxhdGVkIGRl
-dmljZXMKPiA+IChVQVJULCBHSUMsIFJUQywgZmxhc2ggY29udHJvbGxlcikgYW5kIFZpcnRJTyBk
-ZXZpY2VzLCB3aGljaCBzaG91bGQganVzdAo+ID4gd29yayB1c2luZyBEVCBvbmx5Lgo+ID4gCj4g
-PiBQZW9wbGUgYXJlIHRhbGtpbmcgYWJvdXQgYWRkaW5nIEFDUEkgZm9yIFZNIGd1ZXN0cyBhcyB3
-ZWxsIGZvciB2YXJpb3VzCj4gPiByZWFzb25zIChkZXZpY2UgcGFzc3Rocm91Z2ggZm9yIGV4YW1w
-bGUpIGluIHdoaWNoIGNhc2UgSSB3b3VsZCBhbHdheXMKPiA+IGV4cGVjdCBwZW9wbGUgdG8gcnVu
-IFVFRkkgaW5zaWRlIHRoZWlyIGd1ZXN0cyB0b28gKHBlcmhhcHMgdGhpcyBpcyBub3QKPiA+IDEw
-MCUgdHJ1ZSBpbiB0aGUgY2FzZSBvZiBYZW4gZmFzdC1ib290IHNjZW5hcmlvcyB0aG91Z2gpIGFu
-ZCBJIHdvdWxkCj4gPiBleHBlY3QgTGludXggdG8gb25seSBzZWUgdGhlIGxpdHRsZSBzdHViIERU
-IGFuZCBBQ1BJLgo+ID4gCj4gPiBEb2VzIHRoaXMgY2xhcmlmeSBhbnl0aGluZyBvciBhZGQgZnV0
-aGVyIHRvIHRoZSBjb25mdXNpb24/Cj4gCj4gSSB3YXMgdW5kZXIgdGhlIGltcHJlc3Npb24gdGhh
-dCB0aGVyZSB3YXMgYSBjYXNlIHdoZXJlIHdlJ2QgaGF2ZSBhIERUCj4gd2l0aCBIVyBkZXNjcmlw
-dGlvbiBpbiBhIFZNIHdoaWNoIGFsc28gaGFkIEFDUEkgdGFibGVzLCB0byBlbmFibGUgYQo+IGtl
-cm5lbCB3aXRob3V0IEFDUEkgc3VwcG9ydCB0byBib290IGluIHNhaWQgVk0gKGFsYmVpdCB3aXRo
-IHJlZHVjZWQKPiBmdW5jdGlvbmFsaXR5KS4KPiAKPiBJIG1heSBoYXZlIGdvdCBjb25mdXNlZCBz
-aW5jZSB0aGUgVk0gc3RhbmRhcmRzIGRpc2N1c3Npb24gYXQgTENBLTE0LgoKSSB0b29rIGEgbG9v
-ayBhdCB0aGUgdmlkZW8gWzEsMl0gb2Ygc2FpZCBzZXNzaW9uIFszXSwgYW5kIGl0IGxvb2tzIGxp
-a2UKSSB3YXMgdGhlIG9uZSBhcmd1aW5nIGZvciB0aGUgY2FzZSBvZiBmdWxsIGRlc2NyaXB0aW9u
-IGluIGJvdGggRFQgYW5kCkFDUEksIHNvIGVpdGhlciBJIHdhcyBjb25mdXNlZCBvciBJJ3ZlIGZv
-cmdvdHRlbiBzb21lIGhhbGx3YXkKZGlzY3Vzc2lvbi4KCkkgdGhpbmsgbXkgcmVhc29uaW5nIHdh
-cyBzb21ld2hhdCBmbGF3ZWQ7IGlmIHRoZSBoeXBlcnZpc29yIGRlZmF1bHRzIHRvCnByb3ZpZGlu
-ZyBEVCwgd2l0aCBhbiBvcHRpb24gdG8gdXNlIEFDUEkgaW4gY2VydGFpbiBjYXNlcyAod2hlcmUg
-bm90IGFsbApndWVzdHMgd291bGQgYmUgZXhwZWN0ZWQgdG8gd29yayksIHRoZW4gdGhhdCB3b3Vs
-ZCBjb3ZlciB0aGUgImdyYWIgYW4KaXNvLCBpdCBqdXN0IHdvcmtz4oSiIiB1c2UgY2FzZSBmb3Ig
-TGludXggaW1hZ2VzIHdoaWxlIGFsbG93aW5nIGZvcgp0aGUgY2FzZXMgd2hlcmUgcGVvcGxlIHdh
-bnQgQUNQSSBpbiB0aGUgVk0uCgpUaGUgb25seSBpc3N1ZSB3aXRoIHRoYXQgd291bGQgYmUgY2F0
-ZXJpbmcgZm9yIE9TcyB3aGljaCBzdXBwb3J0IEFDUEkKYnV0IG5vdCBEVCBvciB3aG9zZSBEVCBz
-dXBwb3J0IGlzIG5vdCBMaW51eC1jb21wYXRpYmxlLgoKVGhhbmtzLApNYXJrLgoKWzFdIGh0dHA6
-Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1RaDNTWDNwM0I3NApbMl0gaHR0cDovL3Blb3BsZS5s
-aW5hcm8ub3JnL2xpbmFyby1jb25uZWN0L2xjYTE0L3ZpZGVvcy8wMy0wMy1Nb25kYXkvTENBMTQt
-MTAxLSUyMEFSTSUyMFZNJTIwU3RhbmRhcmRzLm1wNApbM10gaHR0cDovL2xjYS0xNC56ZXJpc3Rh
-LmNvbS9ldmVudC9tZW1iZXIvMTAyMzk1CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
-a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
-bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+
+I want to keep up with you with hope for friendship if you are interested.
+If you don't mind i will like you to write me back. I am waiting to read
+from you, because i have something important and urgent to discuss with
+you. I will also send some of my beautiful photos to you.
+
