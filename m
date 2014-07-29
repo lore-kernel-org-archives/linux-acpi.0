@@ -1,56 +1,88 @@
-From: Anders Kaseorg <andersk@MIT.EDU>
-Subject: Re: [Intel-gfx] PROBLEM: Native backlight regressed from logarithmic
- to linear scale
-Date: Tue, 29 Jul 2014 06:14:16 -0400 (EDT)
-Message-ID: <alpine.DEB.2.02.1407290554280.44274@all-night-tool.MIT.EDU>
-References: <alpine.DEB.2.02.1407212333200.44274@all-night-tool.MIT.EDU> <53D76D65.6030704@redhat.com>
+From: Christoffer Dall <christoffer.dall@linaro.org>
+Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
+Date: Tue, 29 Jul 2014 12:29:40 +0200
+Message-ID: <20140729102940.GB18250@cbox>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
+ <1406206825-15590-20-git-send-email-hanjun.guo@linaro.org>
+ <CAOesGMhKHGkVK3dOLXXx9GQBMxDmjBu1WDBgHmwdGe1UK3jfcg@mail.gmail.com>
+ <20140728100654.GC24078@leverpostej>
+ <20140728164459.GD32359@quad.lixom.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dmz-mailsec-scanner-4.mit.edu ([18.9.25.15]:61110 "EHLO
-	dmz-mailsec-scanner-4.mit.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752168AbaG2KOY convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Jul 2014 06:14:24 -0400
-In-Reply-To: <53D76D65.6030704@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20140728164459.GD32359@quad.lixom.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, rob.herring@linaro.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linaro-acpi-private@linaro.org" <linaro-acpi-private@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, graeme.gregory@linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org
 
-On Tue, 29 Jul 2014, Hans de Goede wrote:
-> I've been thinking a bit about this, and I believe that the right ans=
-wer=20
-> here is to do the linear to logarithmic mapping in user-space. The in=
-tel=20
-> backlight interface has a type of raw, clearly signalling to userspac=
-e=20
-> that it is a raw "untranslated" interface, as such any fanciness such=
- as=20
-> creating a logarithmic scale should be done in userspace IMHO.
+On Mon, Jul 28, 2014 at 09:44:59AM -0700, Olof Johansson wrote:
+> On Mon, Jul 28, 2014 at 11:06:54AM +0100, Mark Rutland wrote:
 
-I was going to respond that the kernel does its own brightness stepping=
-=20
-when userspace isn=E2=80=99t paying attention.  But apparently only acp=
-i_video=20
-does that, and intel_backlight does not; my brightness keys now have no=
-=20
-effect outside of the X server.  Is that the expected behavior?
+[...]
 
-In any case, if you think punting part of the problem to userspace is t=
-he=20
-right answer, then to flesh out the details: do you think it=E2=80=99s =
-right for=20
-userspace to assume that any backlight with type =E2=80=98raw=E2=80=99 =
-is a linear scale=20
-that needs to be converted, and one with type =E2=80=98firmware=E2=80=99=
- or =E2=80=98platform=E2=80=99 has=20
-already been converted appropriately?
+> > >
+> > > > +Relationship with Device Tree
+> > > > +-----------------------------
+> > > > +
+> > > > +ACPI support in drivers and subsystems for ARMv8 should never be mutually
+> > > > +exclusive with DT support at compile time.
+> > > > +
+> > > > +At boot time the kernel will only use one description method depending on
+> > > > +parameters passed from the bootloader.
+> > >
+> > > Possibly overriden by kernel bootargs. And as debated for quite a
+> > > while earlier this year, acpi should still default to off -- if a DT
+> > > and ACPI are both passed in, DT should at this time be given priority.
+> > 
+> > Why? I really don't see the logic in doing that.
+> 
+> Seems like I am replying to your emails in reverse order.
+> 
+> > Currently the kernel can only boot using DT, so DT will be used even if
+> > ACPI is present. In the presence of ACPI support in the kernel, ACPI
+> > would be used on said systems.
+> 
+> For all the reasons we hashed out earlier this year: We can't trust that
+> vendors will know how to do ACPI from day one, so instead of loading up the
+> kernel with lots of quirks and workarounds, we'll default to not using it until
+> we're at a point where things look mature enough.
+> 
+> The alternative is to keep this patch set out of the kernel. We can do that
+> too, but I don't think that really helps anyone.
+> 
+> > From the discussions at the last Linaro Connect, this was seen as
+> > important for virtual machines which want to provide ACPI services to
+> > guests while still being able to boot DT-only kernels. I'll leave it to
+> > Grant, Rob, and Christoffer to cover that.
+> 
+> Ok, waiting to see what they have to say then.
+> 
 
-Anders
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hmm, a virtual machine implementaion may provide either a DT or ACPI (or
+both).  I think the point at Linaro Connect was that for a first cut,
+there is no obvious need to provide ACPI to VMs and to be spec
+compliant, server kernels must be able to boot with DT-only.  In most
+cases such systems will only access a few limited emulated devices
+(UART, GIC, RTC, flash controller) and VirtIO devices, which should just
+work using DT only.
+
+People are talking about adding ACPI for VM guests as well for various
+reasons (device passthrough for example) in which case I would always
+expect people to run UEFI inside their guests too (perhaps this is not
+100% true in the case of Xen fast-boot scenarios though) and I would
+expect Linux to only see the little stub DT and ACPI.
+
+Does this clarify anything or add futher to the confusion?
+
+-Christoffer
