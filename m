@@ -1,34 +1,23 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: Re: ACPI / dock: ThinkPad X220: \_SB_.PCI0.LPC_.EC__.BAT1: Unable
- to dock!
-Date: Wed, 30 Jul 2014 00:02:53 +0200
-Message-ID: <1406671373.2406.30.camel@x220>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: ACPI / dock: ThinkPad X220: \_SB_.PCI0.LPC_.EC__.BAT1: Unable to dock!
+Date: Wed, 30 Jul 2014 00:23:30 +0200
+Message-ID: <1589104.UMXrnXY9GI@vostro.rjw.lan>
 References: <1406670374.2406.27.camel@x220>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cpsmtpb-ews07.kpnxchange.com ([213.75.39.10]:59017 "EHLO
-	cpsmtpb-ews07.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751300AbaG2WC4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Jul 2014 18:02:56 -0400
+Received: from v094114.home.net.pl ([79.96.170.134]:62049 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754419AbaG2WE7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jul 2014 18:04:59 -0400
 In-Reply-To: <1406670374.2406.27.camel@x220>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shli@kernel.org>, Shaohua Li <shli@fusionio.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rubin Abdi <rubin@starset.net>, linux-acpi@vger.kernel.org, linux-thinkpad@linux-thinkpad.org
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Len Brown <lenb@kernel.org>, Rubin Abdi <rubin@starset.net>, linux-acpi@vger.kernel.org, linux-thinkpad@linux-thinkpad.org
 
-Shaohua,
-
-Could you please update your email address in MAINTAINERS?
-
-Thanks,
-
-
-Paul Bolle
-
-On Tue, 2014-07-29 at 23:46 +0200, Paul Bolle wrote:
+On Tuesday, July 29, 2014 11:46:14 PM Paul Bolle wrote:
 > 0) A ThinkPad X220 I use prints this error at the _first_ resume from
 > suspend (to ram):
 >     ACPI: \_SB_.PCI0.LPC_.EC__.BAT1: Unable to dock!
@@ -113,8 +102,10 @@ On Tue, 2014-07-29 at 23:46 +0200, Paul Bolle wrote:
 > method.
 > 
 > 6) Any suggestions?
-> 
-> 
-> Paul Bolle
 
+Let me take a look at that, but I'll need some time.
+
+Can you send me the output of acpidump from the machine in question, please?
+
+Rafael
 
