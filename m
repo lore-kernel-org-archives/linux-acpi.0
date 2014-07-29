@@ -1,19 +1,15 @@
-From: Christoffer Dall <christoffer.dall@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Tue, 29 Jul 2014 14:37:38 +0200
-Message-ID: <CAMJs5B_Ye1eXsvJAKWnHRxC4jnpcXMcqHE+GgOGO7MHtPcsSQA@mail.gmail.com>
+Date: Tue, 29 Jul 2014 14:52:40 +0200
+Message-ID: <351673188.FxXsM7MvdA@wuerfel>
 References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <1406206825-15590-20-git-send-email-hanjun.guo@linaro.org>
- <CAOesGMhKHGkVK3dOLXXx9GQBMxDmjBu1WDBgHmwdGe1UK3jfcg@mail.gmail.com>
- <20140728100654.GC24078@leverpostej>
- <20140728164459.GD32359@quad.lixom.net>
- <20140729102940.GB18250@cbox> <20140729105543.GL2576@leverpostej>
  <20140729112824.GM2576@leverpostej>
+ <CAMJs5B_Ye1eXsvJAKWnHRxC4jnpcXMcqHE+GgOGO7MHtPcsSQA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140729112824.GM2576@leverpostej>
+In-Reply-To: <CAMJs5B_Ye1eXsvJAKWnHRxC4jnpcXMcqHE+GgOGO7MHtPcsSQA@mail.gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,94 +19,21 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "rob.herring@linaro.org" <rob.herring@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, Rafael J
+To: Christoffer Dall <christoffer.dall@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "rob.herring@linaro.org" <rob.herring@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>R
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMjkgSnVseSAyMDE0IDEzOjI4LCBNYXJrIFJ1dGxhbmQgPG1hcmsucnV0bGFuZEBhcm0uY29t
-PiB3cm90ZToKPiBPbiBUdWUsIEp1bCAyOSwgMjAxNCBhdCAxMTo1NTo0M0FNICswMTAwLCBNYXJr
-IFJ1dGxhbmQgd3JvdGU6Cj4+IE9uIFR1ZSwgSnVsIDI5LCAyMDE0IGF0IDExOjI5OjQwQU0gKzAx
-MDAsIENocmlzdG9mZmVyIERhbGwgd3JvdGU6Cj4+ID4gT24gTW9uLCBKdWwgMjgsIDIwMTQgYXQg
-MDk6NDQ6NTlBTSAtMDcwMCwgT2xvZiBKb2hhbnNzb24gd3JvdGU6Cj4+ID4gPiBPbiBNb24sIEp1
-bCAyOCwgMjAxNCBhdCAxMTowNjo1NEFNICswMTAwLCBNYXJrIFJ1dGxhbmQgd3JvdGU6Cj4+ID4K
-Pj4gPiBbLi4uXQo+PiA+Cj4+ID4gPiA+ID4KPj4gPiA+ID4gPiA+ICtSZWxhdGlvbnNoaXAgd2l0
-aCBEZXZpY2UgVHJlZQo+PiA+ID4gPiA+ID4gKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-Cj4+ID4gPiA+ID4gPiArCj4+ID4gPiA+ID4gPiArQUNQSSBzdXBwb3J0IGluIGRyaXZlcnMgYW5k
-IHN1YnN5c3RlbXMgZm9yIEFSTXY4IHNob3VsZCBuZXZlciBiZSBtdXR1YWxseQo+PiA+ID4gPiA+
-ID4gK2V4Y2x1c2l2ZSB3aXRoIERUIHN1cHBvcnQgYXQgY29tcGlsZSB0aW1lLgo+PiA+ID4gPiA+
-ID4gKwo+PiA+ID4gPiA+ID4gK0F0IGJvb3QgdGltZSB0aGUga2VybmVsIHdpbGwgb25seSB1c2Ug
-b25lIGRlc2NyaXB0aW9uIG1ldGhvZCBkZXBlbmRpbmcgb24KPj4gPiA+ID4gPiA+ICtwYXJhbWV0
-ZXJzIHBhc3NlZCBmcm9tIHRoZSBib290bG9hZGVyLgo+PiA+ID4gPiA+Cj4+ID4gPiA+ID4gUG9z
-c2libHkgb3ZlcnJpZGVuIGJ5IGtlcm5lbCBib290YXJncy4gQW5kIGFzIGRlYmF0ZWQgZm9yIHF1
-aXRlIGEKPj4gPiA+ID4gPiB3aGlsZSBlYXJsaWVyIHRoaXMgeWVhciwgYWNwaSBzaG91bGQgc3Rp
-bGwgZGVmYXVsdCB0byBvZmYgLS0gaWYgYSBEVAo+PiA+ID4gPiA+IGFuZCBBQ1BJIGFyZSBib3Ro
-IHBhc3NlZCBpbiwgRFQgc2hvdWxkIGF0IHRoaXMgdGltZSBiZSBnaXZlbiBwcmlvcml0eS4KPj4g
-PiA+ID4KPj4gPiA+ID4gV2h5PyBJIHJlYWxseSBkb24ndCBzZWUgdGhlIGxvZ2ljIGluIGRvaW5n
-IHRoYXQuCj4+ID4gPgo+PiA+ID4gU2VlbXMgbGlrZSBJIGFtIHJlcGx5aW5nIHRvIHlvdXIgZW1h
-aWxzIGluIHJldmVyc2Ugb3JkZXIuCj4+ID4gPgo+PiA+ID4gPiBDdXJyZW50bHkgdGhlIGtlcm5l
-bCBjYW4gb25seSBib290IHVzaW5nIERULCBzbyBEVCB3aWxsIGJlIHVzZWQgZXZlbiBpZgo+PiA+
-ID4gPiBBQ1BJIGlzIHByZXNlbnQuIEluIHRoZSBwcmVzZW5jZSBvZiBBQ1BJIHN1cHBvcnQgaW4g
-dGhlIGtlcm5lbCwgQUNQSQo+PiA+ID4gPiB3b3VsZCBiZSB1c2VkIG9uIHNhaWQgc3lzdGVtcy4K
-Pj4gPiA+Cj4+ID4gPiBGb3IgYWxsIHRoZSByZWFzb25zIHdlIGhhc2hlZCBvdXQgZWFybGllciB0
-aGlzIHllYXI6IFdlIGNhbid0IHRydXN0IHRoYXQKPj4gPiA+IHZlbmRvcnMgd2lsbCBrbm93IGhv
-dyB0byBkbyBBQ1BJIGZyb20gZGF5IG9uZSwgc28gaW5zdGVhZCBvZiBsb2FkaW5nIHVwIHRoZQo+
-PiA+ID4ga2VybmVsIHdpdGggbG90cyBvZiBxdWlya3MgYW5kIHdvcmthcm91bmRzLCB3ZSdsbCBk
-ZWZhdWx0IHRvIG5vdCB1c2luZyBpdCB1bnRpbAo+PiA+ID4gd2UncmUgYXQgYSBwb2ludCB3aGVy
-ZSB0aGluZ3MgbG9vayBtYXR1cmUgZW5vdWdoLgo+PiA+ID4KPj4gPiA+IFRoZSBhbHRlcm5hdGl2
-ZSBpcyB0byBrZWVwIHRoaXMgcGF0Y2ggc2V0IG91dCBvZiB0aGUga2VybmVsLiBXZSBjYW4gZG8g
-dGhhdAo+PiA+ID4gdG9vLCBidXQgSSBkb24ndCB0aGluayB0aGF0IHJlYWxseSBoZWxwcyBhbnlv
-bmUuCj4+ID4gPgo+PiA+ID4gPiBGcm9tIHRoZSBkaXNjdXNzaW9ucyBhdCB0aGUgbGFzdCBMaW5h
-cm8gQ29ubmVjdCwgdGhpcyB3YXMgc2VlbiBhcwo+PiA+ID4gPiBpbXBvcnRhbnQgZm9yIHZpcnR1
-YWwgbWFjaGluZXMgd2hpY2ggd2FudCB0byBwcm92aWRlIEFDUEkgc2VydmljZXMgdG8KPj4gPiA+
-ID4gZ3Vlc3RzIHdoaWxlIHN0aWxsIGJlaW5nIGFibGUgdG8gYm9vdCBEVC1vbmx5IGtlcm5lbHMu
-IEknbGwgbGVhdmUgaXQgdG8KPj4gPiA+ID4gR3JhbnQsIFJvYiwgYW5kIENocmlzdG9mZmVyIHRv
-IGNvdmVyIHRoYXQuCj4+ID4gPgo+PiA+ID4gT2ssIHdhaXRpbmcgdG8gc2VlIHdoYXQgdGhleSBo
-YXZlIHRvIHNheSB0aGVuLgo+PiA+ID4KPj4gPgo+PiA+IEhtbSwgYSB2aXJ0dWFsIG1hY2hpbmUg
-aW1wbGVtZW50YWlvbiBtYXkgcHJvdmlkZSBlaXRoZXIgYSBEVCBvciBBQ1BJIChvcgo+PiA+IGJv
-dGgpLiAgSSB0aGluayB0aGUgcG9pbnQgYXQgTGluYXJvIENvbm5lY3Qgd2FzIHRoYXQgZm9yIGEg
-Zmlyc3QgY3V0LAo+PiA+IHRoZXJlIGlzIG5vIG9idmlvdXMgbmVlZCB0byBwcm92aWRlIEFDUEkg
-dG8gVk1zIGFuZCB0byBiZSBzcGVjCj4+ID4gY29tcGxpYW50LCBzZXJ2ZXIga2VybmVscyBtdXN0
-IGJlIGFibGUgdG8gYm9vdCB3aXRoIERULW9ubHkuICBJbiBtb3N0Cj4+ID4gY2FzZXMgc3VjaCBz
-eXN0ZW1zIHdpbGwgb25seSBhY2Nlc3MgYSBmZXcgbGltaXRlZCBlbXVsYXRlZCBkZXZpY2VzCj4+
-ID4gKFVBUlQsIEdJQywgUlRDLCBmbGFzaCBjb250cm9sbGVyKSBhbmQgVmlydElPIGRldmljZXMs
-IHdoaWNoIHNob3VsZCBqdXN0Cj4+ID4gd29yayB1c2luZyBEVCBvbmx5Lgo+PiA+Cj4+ID4gUGVv
-cGxlIGFyZSB0YWxraW5nIGFib3V0IGFkZGluZyBBQ1BJIGZvciBWTSBndWVzdHMgYXMgd2VsbCBm
-b3IgdmFyaW91cwo+PiA+IHJlYXNvbnMgKGRldmljZSBwYXNzdGhyb3VnaCBmb3IgZXhhbXBsZSkg
-aW4gd2hpY2ggY2FzZSBJIHdvdWxkIGFsd2F5cwo+PiA+IGV4cGVjdCBwZW9wbGUgdG8gcnVuIFVF
-RkkgaW5zaWRlIHRoZWlyIGd1ZXN0cyB0b28gKHBlcmhhcHMgdGhpcyBpcyBub3QKPj4gPiAxMDAl
-IHRydWUgaW4gdGhlIGNhc2Ugb2YgWGVuIGZhc3QtYm9vdCBzY2VuYXJpb3MgdGhvdWdoKSBhbmQg
-SSB3b3VsZAo+PiA+IGV4cGVjdCBMaW51eCB0byBvbmx5IHNlZSB0aGUgbGl0dGxlIHN0dWIgRFQg
-YW5kIEFDUEkuCj4+ID4KPj4gPiBEb2VzIHRoaXMgY2xhcmlmeSBhbnl0aGluZyBvciBhZGQgZnV0
-aGVyIHRvIHRoZSBjb25mdXNpb24/Cj4+Cj4+IEkgd2FzIHVuZGVyIHRoZSBpbXByZXNzaW9uIHRo
-YXQgdGhlcmUgd2FzIGEgY2FzZSB3aGVyZSB3ZSdkIGhhdmUgYSBEVAo+PiB3aXRoIEhXIGRlc2Ny
-aXB0aW9uIGluIGEgVk0gd2hpY2ggYWxzbyBoYWQgQUNQSSB0YWJsZXMsIHRvIGVuYWJsZSBhCj4+
-IGtlcm5lbCB3aXRob3V0IEFDUEkgc3VwcG9ydCB0byBib290IGluIHNhaWQgVk0gKGFsYmVpdCB3
-aXRoIHJlZHVjZWQKPj4gZnVuY3Rpb25hbGl0eSkuCj4+Cj4+IEkgbWF5IGhhdmUgZ290IGNvbmZ1
-c2VkIHNpbmNlIHRoZSBWTSBzdGFuZGFyZHMgZGlzY3Vzc2lvbiBhdCBMQ0EtMTQuCj4KPiBJIHRv
-b2sgYSBsb29rIGF0IHRoZSB2aWRlbyBbMSwyXSBvZiBzYWlkIHNlc3Npb24gWzNdLCBhbmQgaXQg
-bG9va3MgbGlrZQo+IEkgd2FzIHRoZSBvbmUgYXJndWluZyBmb3IgdGhlIGNhc2Ugb2YgZnVsbCBk
-ZXNjcmlwdGlvbiBpbiBib3RoIERUIGFuZAo+IEFDUEksIHNvIGVpdGhlciBJIHdhcyBjb25mdXNl
-ZCBvciBJJ3ZlIGZvcmdvdHRlbiBzb21lIGhhbGx3YXkKPiBkaXNjdXNzaW9uLgo+Cj4gSSB0aGlu
-ayBteSByZWFzb25pbmcgd2FzIHNvbWV3aGF0IGZsYXdlZDsgaWYgdGhlIGh5cGVydmlzb3IgZGVm
-YXVsdHMgdG8KPiBwcm92aWRpbmcgRFQsIHdpdGggYW4gb3B0aW9uIHRvIHVzZSBBQ1BJIGluIGNl
-cnRhaW4gY2FzZXMgKHdoZXJlIG5vdCBhbGwKPiBndWVzdHMgd291bGQgYmUgZXhwZWN0ZWQgdG8g
-d29yayksIHRoZW4gdGhhdCB3b3VsZCBjb3ZlciB0aGUgImdyYWIgYW4KPiBpc28sIGl0IGp1c3Qg
-d29ya3PihKIiIHVzZSBjYXNlIGZvciBMaW51eCBpbWFnZXMgd2hpbGUgYWxsb3dpbmcgZm9yCj4g
-dGhlIGNhc2VzIHdoZXJlIHBlb3BsZSB3YW50IEFDUEkgaW4gdGhlIFZNLgo+Cj4gVGhlIG9ubHkg
-aXNzdWUgd2l0aCB0aGF0IHdvdWxkIGJlIGNhdGVyaW5nIGZvciBPU3Mgd2hpY2ggc3VwcG9ydCBB
-Q1BJCj4gYnV0IG5vdCBEVCBvciB3aG9zZSBEVCBzdXBwb3J0IGlzIG5vdCBMaW51eC1jb21wYXRp
-YmxlLgo+ClNvIEkgdGhpbmsgdGhpcyBpcyB3aGVyZSB0aGUgc3BlYyBpcyByZWFsbHkgdXNlZnVs
-LiAgRWl0aGVyIHlvdSdyZQpzcGVjIGNvbXBsaWFudCBvciB5b3UncmUgbm90LiAgRGlzdHJvIGlt
-YWdlcyB3aWxsIG5lZWQgdG8gc3VwcG9ydCBEVAppZiB0aGV5J3JlIHNwZWMgY29tcGxpYW50IHRv
-IHYxIG9mIHRoZSBzcGVjICh5ZXMsIGl0J3Mgb24gbXkgdG9kbyBsaXN0CnRvIHB1Ymxpc2ggdGhp
-cyBwcm9wZXJseSwgYnV0IHRoZSBob2xkIHVwIGlzIG5vdCBhbGwgbXkgZmF1bHQpLgoKQSB2MiBv
-ZiB0aGUgc3BlYyBtYXkgbWVudGlvbiBBQ1BJLCBhbmQgaXQgbWF5IG5vdCwgYW5kIHdlIGNhbiBk
-ZWFsCndpdGggdGhhdCBwcm9ibGVtIHRoZW4uCgpGb3IgcmVmZXJlbmNlLCBSZWQgSGF0J3MgY3Vy
-cmVudCBhcmd1aW5nIHBvaW50IGZvciBBQ1BJIGluIFZNcyBpcwpob3RwbHVnIG9mIHRoaW5ncyBs
-aWtlIENQVXMgYW5kIG1lbW9yeSBmb3IgdmVyeSBsYXJnZSBWTXMsIGJ1dCBJCmhhdmVuJ3QgdGhv
-dWdodCB0b28gY2FyZWZ1bGx5IGFib3V0IHRoaXMganVzdCB5ZXQsIGFzIEkgZG9uJ3QgaGF2ZSBh
-CjEwMCsgY29yZSBBUk0gNjQtYml0IGhhcmR3YXJlIGx5aW5nIGFyb3VuZC4uLgoKLUNocmlzdG9m
-ZmVyCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
-eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVh
-ZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1h
-cm0ta2VybmVsCg==
+On Tuesday 29 July 2014 14:37:38 Christoffer Dall wrote:
+> 
+> For reference, Red Hat's current arguing point for ACPI in VMs is
+> hotplug of things like CPUs and memory for very large VMs, but I
+> haven't thought too carefully about this just yet, as I don't have a
+> 100+ core ARM 64-bit hardware lying around...
+
+I thought you could run guests with more virtual CPUs that you have
+physical CPUs on the host.
+
+Regarding CPU and memory hotplug, don't we already have PSCI and
+xen-balloon/virtio-balloon for that?
+
+	Arnd
