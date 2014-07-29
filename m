@@ -1,19 +1,19 @@
 From: Mark Rutland <mark.rutland@arm.com>
 Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Tue, 29 Jul 2014 11:55:43 +0100
-Message-ID: <20140729105543.GL2576@leverpostej>
+Date: Tue, 29 Jul 2014 12:28:24 +0100
+Message-ID: <20140729112824.GM2576@leverpostej>
 References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
  <1406206825-15590-20-git-send-email-hanjun.guo@linaro.org>
  <CAOesGMhKHGkVK3dOLXXx9GQBMxDmjBu1WDBgHmwdGe1UK3jfcg@mail.gmail.com>
  <20140728100654.GC24078@leverpostej>
  <20140728164459.GD32359@quad.lixom.net>
- <20140729102940.GB18250@cbox>
+ <20140729102940.GB18250@cbox> <20140729105543.GL2576@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20140729102940.GB18250@cbox>
+In-Reply-To: <20140729105543.GL2576@leverpostej>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,79 +24,83 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Christoffer Dall <christoffer.dall@linaro.org>
-Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "rob.herring@linaro.org" <rob.herring@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linaro-acpi-private@linaro.org" <linaro-acpi-private@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.>
+Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "rob.herring@linaro.org" <rob.herring@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, Rafael J
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 29, 2014 at 11:29:40AM +0100, Christoffer Dall wrote:
-> On Mon, Jul 28, 2014 at 09:44:59AM -0700, Olof Johansson wrote:
-> > On Mon, Jul 28, 2014 at 11:06:54AM +0100, Mark Rutland wrote:
-> 
-> [...]
-> 
-> > > >
-> > > > > +Relationship with Device Tree
-> > > > > +-----------------------------
-> > > > > +
-> > > > > +ACPI support in drivers and subsystems for ARMv8 should never be mutually
-> > > > > +exclusive with DT support at compile time.
-> > > > > +
-> > > > > +At boot time the kernel will only use one description method depending on
-> > > > > +parameters passed from the bootloader.
-> > > >
-> > > > Possibly overriden by kernel bootargs. And as debated for quite a
-> > > > while earlier this year, acpi should still default to off -- if a DT
-> > > > and ACPI are both passed in, DT should at this time be given priority.
-> > > 
-> > > Why? I really don't see the logic in doing that.
-> > 
-> > Seems like I am replying to your emails in reverse order.
-> > 
-> > > Currently the kernel can only boot using DT, so DT will be used even if
-> > > ACPI is present. In the presence of ACPI support in the kernel, ACPI
-> > > would be used on said systems.
-> > 
-> > For all the reasons we hashed out earlier this year: We can't trust that
-> > vendors will know how to do ACPI from day one, so instead of loading up the
-> > kernel with lots of quirks and workarounds, we'll default to not using it until
-> > we're at a point where things look mature enough.
-> > 
-> > The alternative is to keep this patch set out of the kernel. We can do that
-> > too, but I don't think that really helps anyone.
-> > 
-> > > From the discussions at the last Linaro Connect, this was seen as
-> > > important for virtual machines which want to provide ACPI services to
-> > > guests while still being able to boot DT-only kernels. I'll leave it to
-> > > Grant, Rob, and Christoffer to cover that.
-> > 
-> > Ok, waiting to see what they have to say then.
-> > 
-> 
-> Hmm, a virtual machine implementaion may provide either a DT or ACPI (or
-> both).  I think the point at Linaro Connect was that for a first cut,
-> there is no obvious need to provide ACPI to VMs and to be spec
-> compliant, server kernels must be able to boot with DT-only.  In most
-> cases such systems will only access a few limited emulated devices
-> (UART, GIC, RTC, flash controller) and VirtIO devices, which should just
-> work using DT only.
-> 
-> People are talking about adding ACPI for VM guests as well for various
-> reasons (device passthrough for example) in which case I would always
-> expect people to run UEFI inside their guests too (perhaps this is not
-> 100% true in the case of Xen fast-boot scenarios though) and I would
-> expect Linux to only see the little stub DT and ACPI.
-> 
-> Does this clarify anything or add futher to the confusion?
-
-I was under the impression that there was a case where we'd have a DT
-with HW description in a VM which also had ACPI tables, to enable a
-kernel without ACPI support to boot in said VM (albeit with reduced
-functionality).
-
-I may have got confused since the VM standards discussion at LCA-14.
-
-If we we expect a hypervisor to provide DT only by default (for
-compatibility), and ACPI only when the user has explicitly enabled it
-for an ACPI-specific feature, then that sounds OK.
-
-Thanks,
-Mark.
+T24gVHVlLCBKdWwgMjksIDIwMTQgYXQgMTE6NTU6NDNBTSArMDEwMCwgTWFyayBSdXRsYW5kIHdy
+b3RlOgo+IE9uIFR1ZSwgSnVsIDI5LCAyMDE0IGF0IDExOjI5OjQwQU0gKzAxMDAsIENocmlzdG9m
+ZmVyIERhbGwgd3JvdGU6Cj4gPiBPbiBNb24sIEp1bCAyOCwgMjAxNCBhdCAwOTo0NDo1OUFNIC0w
+NzAwLCBPbG9mIEpvaGFuc3NvbiB3cm90ZToKPiA+ID4gT24gTW9uLCBKdWwgMjgsIDIwMTQgYXQg
+MTE6MDY6NTRBTSArMDEwMCwgTWFyayBSdXRsYW5kIHdyb3RlOgo+ID4gCj4gPiBbLi4uXQo+ID4g
+Cj4gPiA+ID4gPgo+ID4gPiA+ID4gPiArUmVsYXRpb25zaGlwIHdpdGggRGV2aWNlIFRyZWUKPiA+
+ID4gPiA+ID4gKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gPiA+ID4gPiA+ICsKPiA+
+ID4gPiA+ID4gK0FDUEkgc3VwcG9ydCBpbiBkcml2ZXJzIGFuZCBzdWJzeXN0ZW1zIGZvciBBUk12
+OCBzaG91bGQgbmV2ZXIgYmUgbXV0dWFsbHkKPiA+ID4gPiA+ID4gK2V4Y2x1c2l2ZSB3aXRoIERU
+IHN1cHBvcnQgYXQgY29tcGlsZSB0aW1lLgo+ID4gPiA+ID4gPiArCj4gPiA+ID4gPiA+ICtBdCBi
+b290IHRpbWUgdGhlIGtlcm5lbCB3aWxsIG9ubHkgdXNlIG9uZSBkZXNjcmlwdGlvbiBtZXRob2Qg
+ZGVwZW5kaW5nIG9uCj4gPiA+ID4gPiA+ICtwYXJhbWV0ZXJzIHBhc3NlZCBmcm9tIHRoZSBib290
+bG9hZGVyLgo+ID4gPiA+ID4KPiA+ID4gPiA+IFBvc3NpYmx5IG92ZXJyaWRlbiBieSBrZXJuZWwg
+Ym9vdGFyZ3MuIEFuZCBhcyBkZWJhdGVkIGZvciBxdWl0ZSBhCj4gPiA+ID4gPiB3aGlsZSBlYXJs
+aWVyIHRoaXMgeWVhciwgYWNwaSBzaG91bGQgc3RpbGwgZGVmYXVsdCB0byBvZmYgLS0gaWYgYSBE
+VAo+ID4gPiA+ID4gYW5kIEFDUEkgYXJlIGJvdGggcGFzc2VkIGluLCBEVCBzaG91bGQgYXQgdGhp
+cyB0aW1lIGJlIGdpdmVuIHByaW9yaXR5Lgo+ID4gPiA+IAo+ID4gPiA+IFdoeT8gSSByZWFsbHkg
+ZG9uJ3Qgc2VlIHRoZSBsb2dpYyBpbiBkb2luZyB0aGF0Lgo+ID4gPiAKPiA+ID4gU2VlbXMgbGlr
+ZSBJIGFtIHJlcGx5aW5nIHRvIHlvdXIgZW1haWxzIGluIHJldmVyc2Ugb3JkZXIuCj4gPiA+IAo+
+ID4gPiA+IEN1cnJlbnRseSB0aGUga2VybmVsIGNhbiBvbmx5IGJvb3QgdXNpbmcgRFQsIHNvIERU
+IHdpbGwgYmUgdXNlZCBldmVuIGlmCj4gPiA+ID4gQUNQSSBpcyBwcmVzZW50LiBJbiB0aGUgcHJl
+c2VuY2Ugb2YgQUNQSSBzdXBwb3J0IGluIHRoZSBrZXJuZWwsIEFDUEkKPiA+ID4gPiB3b3VsZCBi
+ZSB1c2VkIG9uIHNhaWQgc3lzdGVtcy4KPiA+ID4gCj4gPiA+IEZvciBhbGwgdGhlIHJlYXNvbnMg
+d2UgaGFzaGVkIG91dCBlYXJsaWVyIHRoaXMgeWVhcjogV2UgY2FuJ3QgdHJ1c3QgdGhhdAo+ID4g
+PiB2ZW5kb3JzIHdpbGwga25vdyBob3cgdG8gZG8gQUNQSSBmcm9tIGRheSBvbmUsIHNvIGluc3Rl
+YWQgb2YgbG9hZGluZyB1cCB0aGUKPiA+ID4ga2VybmVsIHdpdGggbG90cyBvZiBxdWlya3MgYW5k
+IHdvcmthcm91bmRzLCB3ZSdsbCBkZWZhdWx0IHRvIG5vdCB1c2luZyBpdCB1bnRpbAo+ID4gPiB3
+ZSdyZSBhdCBhIHBvaW50IHdoZXJlIHRoaW5ncyBsb29rIG1hdHVyZSBlbm91Z2guCj4gPiA+IAo+
+ID4gPiBUaGUgYWx0ZXJuYXRpdmUgaXMgdG8ga2VlcCB0aGlzIHBhdGNoIHNldCBvdXQgb2YgdGhl
+IGtlcm5lbC4gV2UgY2FuIGRvIHRoYXQKPiA+ID4gdG9vLCBidXQgSSBkb24ndCB0aGluayB0aGF0
+IHJlYWxseSBoZWxwcyBhbnlvbmUuCj4gPiA+IAo+ID4gPiA+IEZyb20gdGhlIGRpc2N1c3Npb25z
+IGF0IHRoZSBsYXN0IExpbmFybyBDb25uZWN0LCB0aGlzIHdhcyBzZWVuIGFzCj4gPiA+ID4gaW1w
+b3J0YW50IGZvciB2aXJ0dWFsIG1hY2hpbmVzIHdoaWNoIHdhbnQgdG8gcHJvdmlkZSBBQ1BJIHNl
+cnZpY2VzIHRvCj4gPiA+ID4gZ3Vlc3RzIHdoaWxlIHN0aWxsIGJlaW5nIGFibGUgdG8gYm9vdCBE
+VC1vbmx5IGtlcm5lbHMuIEknbGwgbGVhdmUgaXQgdG8KPiA+ID4gPiBHcmFudCwgUm9iLCBhbmQg
+Q2hyaXN0b2ZmZXIgdG8gY292ZXIgdGhhdC4KPiA+ID4gCj4gPiA+IE9rLCB3YWl0aW5nIHRvIHNl
+ZSB3aGF0IHRoZXkgaGF2ZSB0byBzYXkgdGhlbi4KPiA+ID4gCj4gPiAKPiA+IEhtbSwgYSB2aXJ0
+dWFsIG1hY2hpbmUgaW1wbGVtZW50YWlvbiBtYXkgcHJvdmlkZSBlaXRoZXIgYSBEVCBvciBBQ1BJ
+IChvcgo+ID4gYm90aCkuICBJIHRoaW5rIHRoZSBwb2ludCBhdCBMaW5hcm8gQ29ubmVjdCB3YXMg
+dGhhdCBmb3IgYSBmaXJzdCBjdXQsCj4gPiB0aGVyZSBpcyBubyBvYnZpb3VzIG5lZWQgdG8gcHJv
+dmlkZSBBQ1BJIHRvIFZNcyBhbmQgdG8gYmUgc3BlYwo+ID4gY29tcGxpYW50LCBzZXJ2ZXIga2Vy
+bmVscyBtdXN0IGJlIGFibGUgdG8gYm9vdCB3aXRoIERULW9ubHkuICBJbiBtb3N0Cj4gPiBjYXNl
+cyBzdWNoIHN5c3RlbXMgd2lsbCBvbmx5IGFjY2VzcyBhIGZldyBsaW1pdGVkIGVtdWxhdGVkIGRl
+dmljZXMKPiA+IChVQVJULCBHSUMsIFJUQywgZmxhc2ggY29udHJvbGxlcikgYW5kIFZpcnRJTyBk
+ZXZpY2VzLCB3aGljaCBzaG91bGQganVzdAo+ID4gd29yayB1c2luZyBEVCBvbmx5Lgo+ID4gCj4g
+PiBQZW9wbGUgYXJlIHRhbGtpbmcgYWJvdXQgYWRkaW5nIEFDUEkgZm9yIFZNIGd1ZXN0cyBhcyB3
+ZWxsIGZvciB2YXJpb3VzCj4gPiByZWFzb25zIChkZXZpY2UgcGFzc3Rocm91Z2ggZm9yIGV4YW1w
+bGUpIGluIHdoaWNoIGNhc2UgSSB3b3VsZCBhbHdheXMKPiA+IGV4cGVjdCBwZW9wbGUgdG8gcnVu
+IFVFRkkgaW5zaWRlIHRoZWlyIGd1ZXN0cyB0b28gKHBlcmhhcHMgdGhpcyBpcyBub3QKPiA+IDEw
+MCUgdHJ1ZSBpbiB0aGUgY2FzZSBvZiBYZW4gZmFzdC1ib290IHNjZW5hcmlvcyB0aG91Z2gpIGFu
+ZCBJIHdvdWxkCj4gPiBleHBlY3QgTGludXggdG8gb25seSBzZWUgdGhlIGxpdHRsZSBzdHViIERU
+IGFuZCBBQ1BJLgo+ID4gCj4gPiBEb2VzIHRoaXMgY2xhcmlmeSBhbnl0aGluZyBvciBhZGQgZnV0
+aGVyIHRvIHRoZSBjb25mdXNpb24/Cj4gCj4gSSB3YXMgdW5kZXIgdGhlIGltcHJlc3Npb24gdGhh
+dCB0aGVyZSB3YXMgYSBjYXNlIHdoZXJlIHdlJ2QgaGF2ZSBhIERUCj4gd2l0aCBIVyBkZXNjcmlw
+dGlvbiBpbiBhIFZNIHdoaWNoIGFsc28gaGFkIEFDUEkgdGFibGVzLCB0byBlbmFibGUgYQo+IGtl
+cm5lbCB3aXRob3V0IEFDUEkgc3VwcG9ydCB0byBib290IGluIHNhaWQgVk0gKGFsYmVpdCB3aXRo
+IHJlZHVjZWQKPiBmdW5jdGlvbmFsaXR5KS4KPiAKPiBJIG1heSBoYXZlIGdvdCBjb25mdXNlZCBz
+aW5jZSB0aGUgVk0gc3RhbmRhcmRzIGRpc2N1c3Npb24gYXQgTENBLTE0LgoKSSB0b29rIGEgbG9v
+ayBhdCB0aGUgdmlkZW8gWzEsMl0gb2Ygc2FpZCBzZXNzaW9uIFszXSwgYW5kIGl0IGxvb2tzIGxp
+a2UKSSB3YXMgdGhlIG9uZSBhcmd1aW5nIGZvciB0aGUgY2FzZSBvZiBmdWxsIGRlc2NyaXB0aW9u
+IGluIGJvdGggRFQgYW5kCkFDUEksIHNvIGVpdGhlciBJIHdhcyBjb25mdXNlZCBvciBJJ3ZlIGZv
+cmdvdHRlbiBzb21lIGhhbGx3YXkKZGlzY3Vzc2lvbi4KCkkgdGhpbmsgbXkgcmVhc29uaW5nIHdh
+cyBzb21ld2hhdCBmbGF3ZWQ7IGlmIHRoZSBoeXBlcnZpc29yIGRlZmF1bHRzIHRvCnByb3ZpZGlu
+ZyBEVCwgd2l0aCBhbiBvcHRpb24gdG8gdXNlIEFDUEkgaW4gY2VydGFpbiBjYXNlcyAod2hlcmUg
+bm90IGFsbApndWVzdHMgd291bGQgYmUgZXhwZWN0ZWQgdG8gd29yayksIHRoZW4gdGhhdCB3b3Vs
+ZCBjb3ZlciB0aGUgImdyYWIgYW4KaXNvLCBpdCBqdXN0IHdvcmtz4oSiIiB1c2UgY2FzZSBmb3Ig
+TGludXggaW1hZ2VzIHdoaWxlIGFsbG93aW5nIGZvcgp0aGUgY2FzZXMgd2hlcmUgcGVvcGxlIHdh
+bnQgQUNQSSBpbiB0aGUgVk0uCgpUaGUgb25seSBpc3N1ZSB3aXRoIHRoYXQgd291bGQgYmUgY2F0
+ZXJpbmcgZm9yIE9TcyB3aGljaCBzdXBwb3J0IEFDUEkKYnV0IG5vdCBEVCBvciB3aG9zZSBEVCBz
+dXBwb3J0IGlzIG5vdCBMaW51eC1jb21wYXRpYmxlLgoKVGhhbmtzLApNYXJrLgoKWzFdIGh0dHA6
+Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1RaDNTWDNwM0I3NApbMl0gaHR0cDovL3Blb3BsZS5s
+aW5hcm8ub3JnL2xpbmFyby1jb25uZWN0L2xjYTE0L3ZpZGVvcy8wMy0wMy1Nb25kYXkvTENBMTQt
+MTAxLSUyMEFSTSUyMFZNJTIwU3RhbmRhcmRzLm1wNApbM10gaHR0cDovL2xjYS0xNC56ZXJpc3Rh
+LmNvbS9ldmVudC9tZW1iZXIvMTAyMzk1CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
+a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
