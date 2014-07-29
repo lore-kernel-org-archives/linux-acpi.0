@@ -1,48 +1,67 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH 01/19] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
-Date: Tue, 29 Jul 2014 14:50:26 +0100
-Message-ID: <53D7A6A2.9020005@arm.com>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org> <1406206825-15590-2-git-send-email-hanjun.guo@linaro.org> <53D69678.20002@arm.com> <53D79CD8.9050709@linaro.org>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
+Date: Tue, 29 Jul 2014 15:04:12 +0100
+Message-ID: <20140729140412.GR2576@leverpostej>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
+ <20140729112824.GM2576@leverpostej>
+ <CAMJs5B_Ye1eXsvJAKWnHRxC4jnpcXMcqHE+GgOGO7MHtPcsSQA@mail.gmail.com>
+ <351673188.FxXsM7MvdA@wuerfel> <20140729130823.GP2576@leverpostej>
+ <CAMJs5B8uk7GDfEOEuY8RWDxzhzTRBGszRDN+JRKwG-D_rgzFrw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:57482 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750960AbaG2Nt7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jul 2014 09:49:59 -0400
-In-Reply-To: <53D79CD8.9050709@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <CAMJs5B8uk7GDfEOEuY8RWDxzhzTRBGszRDN+JRKwG-D_rgzFrw@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Christoffer Dall <christoffer.dall@linaro.org>
+Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "rob.herring@linaro.org" <rob.herring@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, Rafael J
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.or>
 
+On Tue, Jul 29, 2014 at 02:31:16PM +0100, Christoffer Dall wrote:
+> On 29 July 2014 15:08, Mark Rutland <mark.rutland@arm.com> wrote:
+> > On Tue, Jul 29, 2014 at 01:52:40PM +0100, Arnd Bergmann wrote:
+> >> On Tuesday 29 July 2014 14:37:38 Christoffer Dall wrote:
+> >> >
+> >> > For reference, Red Hat's current arguing point for ACPI in VMs is
+> >> > hotplug of things like CPUs and memory for very large VMs, but I
+> >> > haven't thought too carefully about this just yet, as I don't have a
+> >> > 100+ core ARM 64-bit hardware lying around...
+> >>
+> >> I thought you could run guests with more virtual CPUs that you have
+> >> physical CPUs on the host.
+> >>
+> >> Regarding CPU and memory hotplug, don't we already have PSCI and
+> >> xen-balloon/virtio-balloon for that?
+> >
+> > PSCI (0.1) was there for guests from the start, and ACPI doesn't do
+> > anything different w.r.t. PSCI other than requiring PSCI 0.2 (which can
+> > be used by guests supporting only PSCI 0.1). So there's no magic for
+> > CPU hotplug provided by ACPI.
+> 
+> With PSCI you can only provide your VM a bunch of CPUs and say that
+> they're all turned off, and then turn some of them on later.  I
+> honestly don't know if you can do proper CPU hotplug with ACPI, but
+> the RH guys seem to argue that you can.  Again, I didn't think too
+> carefully about this.
 
+Ah, I see. That would make some sense.
 
-On 29/07/14 14:08, Hanjun Guo wrote:
-> On 2014-7-29 2:29, Sudeep Holla wrote:
-> [...]
->>> +
->>> +/*
->>> + * We never plan to use RSDT on arm/arm64 as its deprecated in spec but this
->>> + * variable is still required by the ACPI core
->>> + */
->>> +u32 acpi_rsdt_forced;
->>
->> This looks like yet another stray variable not used anywhere including
->> core ACPI
->
-> It will be used by ACPICA to get the RSDP in acpi_tb_parse_root_table()
-> in tbutils.c.
->
+> >
+> > Do either of the balloon drivers allow for memory to be hot-added to a
+> > system initially provisioned with less?
+> >
+> No, it's just about reclaiming memory.  Same argument as above.
 
-No I couldn't find it in mainline/acpica/linux-next(pm tree).
+Ok. Thanks for the clarifications.
 
-On further digging found that commit fab461058385("ACPICA: Cleanup the
-option of forcing the use of the RSDT") has renamed it to
-acpi_gbl_do_not_use_xsdt and moved it into acpica with default false.
-So you can remove this.
-
-Regards,
-Sudeep
-
+Cheers,
+Mark.
