@@ -1,61 +1,27 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: PROBLEM: Native backlight regressed from
- logarithmic to linear scale
-Date: Tue, 29 Jul 2014 11:46:13 +0200
-Message-ID: <53D76D65.6030704@redhat.com>
-References: <alpine.DEB.2.02.1407212333200.44274@all-night-tool.MIT.EDU>
+From: William Dauchy <wdauchy@gmail.com>
+Subject: Re: WARNING: CPU: 0 PID: 2623 at drivers/pnp/pnpacpi/core.c:96 pnpacpi_set_resource
+Date: Tue, 29 Jul 2014 11:53:26 +0200
+Message-ID: <CAJ75kXYJL4jD=81NYPYpji9grJQkzMKdgLhRMA=YFstHzzZ0=A@mail.gmail.com>
+References: <5386F2C7.8080400@redhat.com> <1524296.Cxrf5UDWlv@vostro.rjw.lan>
+ <CAHTgTXXUcDNvPD0g82q1HFCy+EZZdF8hwyAzRu8cijs5dy9mBQ@mail.gmail.com>
+ <CAHTgTXV8RtMwO0bKrc7LmfVcAQzkBra=RWQ6AGo7H8NsaxQx9A@mail.gmail.com> <CAHTgTXXB2rfYyLwBM9BF7pw6kTVnixXhKWweKKZtsH64drAhQw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <alpine.DEB.2.02.1407212333200.44274@all-night-tool.MIT.EDU>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Anders Kaseorg <andersk@MIT.EDU>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHTgTXXB2rfYyLwBM9BF7pw6kTVnixXhKWweKKZtsH64drAhQw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vinson Lee <vlee@twopensource.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zdenek Kabelac <zkabelac@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-SGksCgpPbiAwNy8yMi8yMDE0IDA2OjMyIEFNLCBBbmRlcnMgS2FzZW9yZyB3cm90ZToKPiBbMS5d
-IE9uZSBsaW5lIHN1bW1hcnkgb2YgdGhlIHByb2JsZW06ICAgIAo+IAo+IE5hdGl2ZSBiYWNrbGln
-aHQgcmVncmVzc2VkIGZyb20gbG9nYXJpdGhtaWMgdG8gbGluZWFyIHNjYWxlCj4gCj4gWzIuXSBG
-dWxsIGRlc2NyaXB0aW9uIG9mIHRoZSBwcm9ibGVtL3JlcG9ydDoKPiAKPiBXaXRoIHRoZSBuZXcg
-ZGVmYXVsdCBvZiB2aWRlby51c2VfbmF0aXZlX2JhY2tsaWdodD0wIChjb21taXQgCj4gdjMuMTYt
-cmMxfjMwXjJ+Ml4zKSwgbXkgVGhpbmtwYWQgVDUxMCBiYWNrbGlnaHQgaGFzIGJlY29tZSB2ZXJ5
-IGRpZmZpY3VsdCAKPiB0byBjb250cm9sIG5lYXIgdGhlIGxvdyBlbmQgb2YgdGhlIHNjYWxlLiAg
-VGhlIGxvd2VzdCBzZXR0aW5nIG5vdyB0dXJucyAKPiB0aGUgYmFja2xpZ2h0IGNvbXBsZXRlbHkg
-b2ZmLCBidXQgdGhlIHNlY29uZC1sb3dlc3Qgc2V0dGluZyBpcyB0b28gYnJpZ2h0LiAgCj4gTWVh
-bndoaWxlLCB0aGUgZGlmZmVyZW5jZSBiZXR3ZWVuIHRoZSBoaWdoZXN0IHNldmVyYWwgc2V0dGlu
-Z3MgaXMgbmVhcmx5IAo+IGltcGVyY2VwdGlibGUuCj4gCj4gVGhpcyBoYXBwZW5lZCBiZWNhdXNl
-IC9zeXMvY2xhc3MvYmFja2xpZ2h0L2FjcGlfdmlkZW8wL2JyaWdodG5lc3MgKHdoaWNoIAo+IGhh
-cyBub3cgZGlzYXBwZWFyZWQpIHVzZWQgYSBkaWZmZXJlbnQgc2NhbGUgdGhhbiAKPiAvc3lzL2Ns
-YXNzL2ludGVsX2JhY2tsaWdodC9icmlnaHRuZXNzOyB0aGUgcmVsYXRpb25zaGlwIGJldHdlZW4g
-Cj4gYWNwaV92aWRlbzAgYW5kIGludGVsX2JhY2tsaWdodCB3YXMgbm90IGxpbmVhci4gIEkgbWVh
-c3VyZWQgdGhlIGV4YWN0IAo+IHJlbGF0aW9uc2hpcCBhcyBmb2xsb3dzOgo+IAo+IGFjcGkgICAg
-aW50ZWwKPiAwICAgICAgIDUyCj4gMSAgICAgICA4Nwo+IDIgICAgICAgMTM5Cj4gMyAgICAgICAx
-NzQKPiA0ICAgICAgIDIyNgo+IDUgICAgICAgMjYxCj4gNiAgICAgICAzMTMKPiA3ICAgICAgIDQz
-NQo+IDggICAgICAgNTkxCj4gOSAgICAgICA4MDAKPiAxMCAgICAgIDEwNzgKPiAxMSAgICAgIDE0
-NjEKPiAxMiAgICAgIDE5MTQKPiAxMyAgICAgIDI1NTcKPiAxNCAgICAgIDMzNTgKPiAxNSAgICAg
-IDQ0MzcKPiAKPiBUaGUgcmVsYXRpb25zaGlwIGlzIGNsb3NlIHRvIGxvZ2FyaXRobWljOyBhIGdv
-b2QgZml0IGlzIGludGVsID0gCj4gNjAqKDQvMyleYWNwaSwgb3IgYWNwaSA9IGxvZ197NC8zfSAo
-aW50ZWwvNjApLiAgSXTigJlzIHdlbGwga25vd24gdGhhdCAKPiBwZXJjZWl2ZWQgYnJpZ2h0bmVz
-cyB2YXJpZXMgbG9nYXJpdGhtaWNhbGx5IHdpdGggcGh5c2ljYWwgbHVtaW5hbmNlIAo+IChGZWNo
-bmVy4oCZcyBsYXcpLCBzbyBpdOKAmXMgbm8gc3VycHJpc2UgdGhhdCB0aGUgYWNwaV92aWRlbzAg
-c2NhbGUgd2FzIG1vcmUgCj4gdXNlZnVsLgo+IAo+IFNpbmNlIHRoZSBrZXJuZWwgbm8gbG9uZ2Vy
-IHVzZXMgQUNQSSB0byBkbyB0aGlzIHRyYW5zbGF0aW9uLCBpdCBzaG91bGQgZG8gCj4gdGhlIHRy
-YW5zbGF0aW9uIGl0c2VsZi4KCkkndmUgYmVlbiB0aGlua2luZyBhIGJpdCBhYm91dCB0aGlzLCBh
-bmQgSSBiZWxpZXZlIHRoYXQgdGhlIHJpZ2h0IGFuc3dlcgpoZXJlIGlzIHRvIGRvIHRoZSBsaW5l
-YXIgdG8gbG9nYXJpdGhtaWMgbWFwcGluZyBpbiB1c2VyLXNwYWNlLiBUaGUgaW50ZWwKYmFja2xp
-Z2h0IGludGVyZmFjZSBoYXMgYSB0eXBlIG9mIHJhdywgY2xlYXJseSBzaWduYWxsaW5nIHRvIHVz
-ZXJzcGFjZSB0aGF0Cml0IGlzIGEgcmF3ICJ1bnRyYW5zbGF0ZWQiIGludGVyZmFjZSwgYXMgc3Vj
-aCBhbnkgZmFuY2luZXNzIHN1Y2ggYXMKY3JlYXRpbmcgYSBsb2dhcml0aG1pYyBzY2FsZSBzaG91
-bGQgYmUgZG9uZSBpbiB1c2Vyc3BhY2UgSU1ITy4KClJlZ2FyZHMsCgpIYW5zCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxp
-c3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0
-b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+Hi Vinson,
+
+On Mon, Jul 28, 2014 at 9:11 PM, Vinson Lee <vlee@twopensource.com> wrote:
+> The warning first happens with 3.14-rc1. The warning does not occur with 3.13.0.
+
+Hitting the same issue here with a similar trace on 3.14.x. Did you
+start bisecting?
+
+Regards,
+-- 
+William
