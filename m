@@ -1,97 +1,60 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH 01/19] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
-Date: Tue, 29 Jul 2014 09:49:10 +0100
-Message-ID: <53D76006.4040105@arm.com>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org> <1406206825-15590-2-git-send-email-hanjun.guo@linaro.org> <53D69678.20002@arm.com> <53D6D391.8090907@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
+Date: Tue, 29 Jul 2014 17:01:01 +0800
+Message-ID: <53D762CD.7070006@linaro.org>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org> <1406206825-15590-20-git-send-email-hanjun.guo@linaro.org> <CAOesGMhKHGkVK3dOLXXx9GQBMxDmjBu1WDBgHmwdGe1UK3jfcg@mail.gmail.com> <5014834.k6eecMddPC@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53D6D391.8090907@linaro.org>
+In-Reply-To: <5014834.k6eecMddPC@wuerfel>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Graeme Gregory <graeme.gregory@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tomas>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sudeep
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-On 28/07/14 23:49, Graeme Gregory wrote:
->
-> On 28/07/2014 19:29, Sudeep Holla wrote:
->>
->>
->> On 24/07/14 14:00, Hanjun Guo wrote:
->>> From: Al Stone <al.stone@linaro.org>
->>>
->>> As we want to get ACPI tables to parse and then use the information
->>> for system initialization, we should get the RSDP (Root System
->>> Description Pointer) first, it then locates Extended Root Description
->>> Table (XSDT) which contains all the 64-bit physical address that
->>> pointer to other boot-time tables.
->>>
->>> Introduce acpi.c and its related head file in this patch to provide
->>> fundamental needs of extern variables and functions for ACPI core,
->>> and then get boot-time tables as needed.
->>>     - asm/cpu.h need for ACPI core and will be updated in the future to
->>>       add definitions for arch_(un)register_cpu which are required for
->>>       ACPI based physical CPU hotplug;
->>>     - asm/acenv.h for arch specific ACPICA environments and
->>>       implementation;
->>>     - asm/acpi.h for arch specific variables and functions needed by
->>>       ACPI driver core;
->>>     - acpi.c for ARM64 related ACPI implementation for ACPI driver
->>>       core;
->>>
->>> acpi_boot_table_init() is introduced to get RSDP and boot-time tables,
->>> it will be called in setup_arch() before paging_init(), so we should
->>> use eary_memremap() mechanism here to get the RSDP and all the table
->>> pointers.
->>>
->>> Signed-off-by: Al Stone <al.stone@linaro.org>
->>> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
->>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>> ---
->>>    arch/arm64/include/asm/acenv.h |   18 ++++++++++
->>>    arch/arm64/include/asm/acpi.h  |   41 ++++++++++++++++++++++
->>>    arch/arm64/include/asm/cpu.h   |   11 ++++++
->>>    arch/arm64/kernel/Makefile     |    1 +
->>>    arch/arm64/kernel/acpi.c       |   76
->>> ++++++++++++++++++++++++++++++++++++++++
->>>    arch/arm64/kernel/setup.c      |    4 +++
->>>    6 files changed, 151 insertions(+)
->>>    create mode 100644 arch/arm64/include/asm/acenv.h
->>>    create mode 100644 arch/arm64/include/asm/acpi.h
->>>    create mode 100644 arch/arm64/include/asm/cpu.h
->>>    create mode 100644 arch/arm64/kernel/acpi.c
->>>
-
-[...]
-
+On 2014-7-28 17:07, Arnd Bergmann wrote:
+> On Saturday 26 July 2014 19:34:48 Olof Johansson wrote:
+>> On Thu, Jul 24, 2014 at 6:00 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+>>> +Relationship with Device Tree
+>>> +-----------------------------
 >>> +
->>> +/*
->>> + * MADT must provide at least one GICC structure
->>> + * for GIC initialization, so CPU will be
->>> + * always available in MADT on ARM64
->>> + */
->>> +static inline bool acpi_has_cpu_in_madt(void)
->>> +{
->>> +       return 1;
->>> +}
+>>> +ACPI support in drivers and subsystems for ARMv8 should never be mutually
+>>> +exclusive with DT support at compile time.
 >>> +
+>>> +At boot time the kernel will only use one description method depending on
+>>> +parameters passed from the bootloader.
 >>
->> I don't see the user of this function in the series, it's better to
->> remove. Moreover the comment is so misleading. We will have CPU UID
->> not the CPU itself in MADT.
+>> Possibly overriden by kernel bootargs. And as debated for quite a
+>> while earlier this year, acpi should still default to off -- if a DT
+>> and ACPI are both passed in, DT should at this time be given priority.
+> 
+> I think this would be harder to do with the way that ACPI is passed in
+> to the kernel. IIRC, you always have a minimal DT information based on
+> the ARM64 boot protocol, but in the case of ACPI, this contains pointers
+> to the ACPI tables, which are then used for populating the Linux platform
+> devices (unless acpi=disabled is set), while the other contents of the
+> DTB may be present but we skip the of_platform_populate state.
+> 
+> If this is correct, then replacing the firmware-generated dtb with a
+> user-provided on would implicitly remove the ACPI tables from visibility,
+> which is exactly what we want.
+> 
+> It's possible that I'm misremembering it though, and it should be
+> documented better.
+> 
+>>> +Regardless of whether DT or ACPI is used, the kernel must always be capable
+>>> +of booting with either scheme.
 >>
-> This is actually required for a patch that is now upstreamed. Comment
-> should actually say that its checking for the posibility that the CPU
-> can be initialised from the MADT. Its used from core in crash kernel
-> case where boot CPU is not necessarily CPU0 like spec demands.
->
+>> It should always be possible to compile out ACPI. There will be plenty
+>> of platforms that will not implement it, so disabling CONFIG_ACPI
+>> needs to be possible.
+> 
+> Right.
 
-Ah OK, I now see that in Rafael's linux-pm/linux-next. Sorry I might have
-missed to notice that and I assumed this series is based on mainline.
+Actually, if platforms don't implement ACPI, acpi_disabled will always be set to
+1 at early boot stage which before the device tree is unflattened, so device
+tree will work as expected even if CONFIG_ACPI=y on such platforms.
 
-Regards,
-Sudeep
+Thanks
+Hanjun
