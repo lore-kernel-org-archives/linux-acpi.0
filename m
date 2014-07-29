@@ -1,111 +1,35 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI / dock: ThinkPad X220: \_SB_.PCI0.LPC_.EC__.BAT1: Unable to dock!
-Date: Wed, 30 Jul 2014 00:23:30 +0200
-Message-ID: <1589104.UMXrnXY9GI@vostro.rjw.lan>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: Re: ACPI / dock: ThinkPad X220: \_SB_.PCI0.LPC_.EC__.BAT1: Unable
+ to dock!
+Date: Wed, 30 Jul 2014 00:09:29 +0200
+Message-ID: <1406671769.2406.34.camel@x220>
 References: <1406670374.2406.27.camel@x220>
+	 <1589104.UMXrnXY9GI@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62049 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754419AbaG2WE7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jul 2014 18:04:59 -0400
-In-Reply-To: <1406670374.2406.27.camel@x220>
+Received: from cpsmtpb-ews06.kpnxchange.com ([213.75.39.9]:60402 "EHLO
+	cpsmtpb-ews06.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750921AbaG2WJb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Jul 2014 18:09:31 -0400
+In-Reply-To: <1589104.UMXrnXY9GI@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Len Brown <lenb@kernel.org>, Rubin Abdi <rubin@starset.net>, linux-acpi@vger.kernel.org, linux-thinkpad@linux-thinkpad.org
 
-On Tuesday, July 29, 2014 11:46:14 PM Paul Bolle wrote:
-> 0) A ThinkPad X220 I use prints this error at the _first_ resume from
-> suspend (to ram):
->     ACPI: \_SB_.PCI0.LPC_.EC__.BAT1: Unable to dock!
-> 
-> 1) BAT1 is apparently a "battery bay". Rubin suggested that it is a
-> "slice" battery. I do not use a "slice" battery. (There are two other
-> possible docks according to the ACPI printks is get. An "ata bay" and a
-> "dock station". I don't use those either, but the kernel at least prints
-> no errors about them.)
-> 
-> 2) I've peeked a bit at the DSDT of this machine. Its _WAK method
-> contains this line:
->     \_SB.PCI0.LPC.EC.BATW (Arg0)
-> 
-> That BATW method is about 12 lines long. (Can I quote that in full?) It
-> ends with this snippet:
->     If (XOr (Local0, Local1))
->     {
->         Store (Local1, [...])
->         Notify (\_SB.PCI0.LPC.EC.BAT1, 0x01) // Device Check
->     }
-> 
-> 3) That ACPI_NOTIFY_DEVICE_CHECK for BAT1 apparently triggers this call
-> chain:
->     acpi_bus_notify()
->         acpi_hotplug_schedule()
->             acpi_hotplug_work_fn()
->                 acpi_device_hotplug()
->                     dock_notify()
-> 
-> 4) Perhaps Lenovo needs to update the ACPI part of this laptop's
-> firmware. (I'm running the latest firmware.) Does Lenovo listen to
-> suggestions to update its firmware?
-> 
-> 5) A workaround in the kernel _might_ be something utterly untested like
-> this:
-> 
-> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-> index d9339b442a4e..9e5856a6adfb 100644
-> --- a/drivers/acpi/dock.c
-> +++ b/drivers/acpi/dock.c
-> @@ -333,7 +333,7 @@ static void dock_event(struct dock_station *ds, u32 event, int num)
->   *
->   * Execute the _DCK method in response to an acpi event
->   */
-> -static void handle_dock(struct dock_station *ds, int dock)
-> +static acpi_status handle_dock(struct dock_station *ds, int dock)
->  {
->  	acpi_status status;
->  	struct acpi_object_list arg_list;
-> @@ -351,11 +351,12 @@ static void handle_dock(struct dock_station *ds, int dock)
->  	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
->  		acpi_handle_err(ds->handle, "Failed to execute _DCK (0x%x)\n",
->  				status);
-> +	return status;
->  }
->  
-> -static inline void dock(struct dock_station *ds)
-> +static inline acpi_status dock(struct dock_station *ds)
->  {
-> -	handle_dock(ds, 1);
-> +	return handle_dock(ds, 1);
->  }
->  
->  static inline void undock(struct dock_station *ds)
-> @@ -471,8 +472,12 @@ int dock_notify(struct acpi_device *adev, u32 event)
->  	case ACPI_NOTIFY_BUS_CHECK:
->  	case ACPI_NOTIFY_DEVICE_CHECK:
->  		if (!dock_in_progress(ds) && !acpi_device_enumerated(adev)) {
-> +			acpi_status status;
-> +
->  			begin_dock(ds);
-> -			dock(ds);
-> +			status = dock(ds);
-> +			if (status == AE_NOT_FOUND)
-> +				break;
->  			if (!dock_present(ds)) {
->  				acpi_handle_err(handle, "Unable to dock!\n");
->  				complete_dock(ds);
-> 
-> Please note that BAT1 does have a _EJ0 method but doesn't have a _DCK
-> method.
-> 
-> 6) Any suggestions?
+On Wed, 2014-07-30 at 00:23 +0200, Rafael J. Wysocki wrote:
+> Let me take a look at that, but I'll need some time.
 
-Let me take a look at that, but I'll need some time.
+Do take your time. It's mostly a cosmetic issue (ie, an unneeded error)
+that I've tolerated ever since I use this machine (which is ten months).
 
-Can you send me the output of acpidump from the machine in question, please?
+> Can you send me the output of acpidump from the machine in question, please?
 
-Rafael
+Off list, I guess? And in what format?
+
+
+Paul Bolle
 
