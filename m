@@ -1,35 +1,101 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI / dock: ThinkPad X220: \_SB_.PCI0.LPC_.EC__.BAT1: Unable to dock!
-Date: Wed, 30 Jul 2014 00:36:03 +0200
-Message-ID: <2110266.xCpgtbcy5s@vostro.rjw.lan>
-References: <1406670374.2406.27.camel@x220> <1589104.UMXrnXY9GI@vostro.rjw.lan> <1406671769.2406.34.camel@x220>
+Subject: Re: WARNING: CPU: 0 PID: 2623 at drivers/pnp/pnpacpi/core.c:96 pnpacpi_set_resource
+Date: Wed, 30 Jul 2014 00:39:35 +0200
+Message-ID: <8487820.GRUnuPqyXT@vostro.rjw.lan>
+References: <5386F2C7.8080400@redhat.com> <2026468.U7VDB8Dm9m@vostro.rjw.lan> <CAHTgTXXejANtoEeeUB59DTy1kU3ROYoOsNi-fLu==PAr6Kh+-Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53205 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751776AbaG2WRb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Jul 2014 18:17:31 -0400
-In-Reply-To: <1406671769.2406.34.camel@x220>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHTgTXXejANtoEeeUB59DTy1kU3ROYoOsNi-fLu==PAr6Kh+-Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vinson Lee <vlee@twopensource.com>
+Cc: William Dauchy <wdauchy@gmail.com>, Zdenek Kabelac <zkabelac@redhat.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Len Brown <lenb@kernel.org>, Rubin Abdi <rubin@starset.net>, linux-acpi@vger.kernel.org, linux-thinkpad@linux-thinkpad.org
 
-On Wednesday, July 30, 2014 12:09:29 AM Paul Bolle wrote:
-> On Wed, 2014-07-30 at 00:23 +0200, Rafael J. Wysocki wrote:
-> > Let me take a look at that, but I'll need some time.
-> 
-> Do take your time. It's mostly a cosmetic issue (ie, an unneeded error)
-> that I've tolerated ever since I use this machine (which is ten months).
-> 
-> > Can you send me the output of acpidump from the machine in question, please?
-> 
-> Off list, I guess? And in what format?
+On Tuesday, July 29, 2014 02:52:32 PM Vinson Lee wrote:
+> On Tue, Jul 29, 2014 at 2:10 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Tuesday, July 29, 2014 11:13:55 AM Vinson Lee wrote:
+> >> On Tue, Jul 29, 2014 at 2:53 AM, William Dauchy <wdauchy@gmail.com> wrote:
+> >> > Hi Vinson,
+> >> >
+> >> > On Mon, Jul 28, 2014 at 9:11 PM, Vinson Lee <vlee@twopensource.com> wrote:
+> >> >> The warning first happens with 3.14-rc1. The warning does not occur with 3.13.0.
+> >> >
+> >> > Hitting the same issue here with a similar trace on 3.14.x. Did you
+> >> > start bisecting?
+> >> >
+> >> > Regards,
+> >> > --
+> >> > William
+> >>
+> >>
+> >> I bisected the warning that I'm seeing to this commit.
+> >>
+> >> commit 202317a573b20d77a9abb7c16a3fd5b40cef3d9d
+> >> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >> Date:   Fri Nov 22 21:54:37 2013 +0100
+> >>
+> >>     ACPI / scan: Add acpi_device objects for all device nodes in the namespace
+> >
+> > Interesting.
+> >
+> > Does the appended patch make any difference?
+> >
+> > Rafael
+> >
 
-It's not useful to send it to the list I think and please keep the original
-format.
+[cut]
+
+> 
+> 
+> Yes, with the patch on top of 3.16-rc7 I do not see the warning.
+
+Great, thanks for testing!
+
+The patch goes again below with a proper changelog.
+
+William, it would be good if you could test it too as I'd like to
+push it for 3.16.
 
 Rafael
 
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / PNP: Fix acpi_pnp_match()
+
+The acpi_pnp_match() function is used for finding the ACPI device
+object that should be associated with the given PNP device.
+Unfortunately, the check used by that function is not strict enough
+and may cause success to be returned for a wrong ACPI device object.
+
+To fix that, use the observation that the pointer to the ACPI
+device object in question is already stored in the data field
+in struct pnp_dev, so acpi_pnp_match() can simply use that
+field to do its job.
+
+This problem was uncovered in 3.14 by commit 202317a573b2 (ACPI / scan:
+Add acpi_device objects for all device nodes in the namespace).
+
+Fixes: 202317a573b2 (ACPI / scan: Add acpi_device objects for all device nodes in the namespace)
+Reported-and-tested-by: Vinson Lee <vlee@twopensource.com>
+Cc: 3.14+ <stable@vger.kernel.org> # 3.14+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/pnp/pnpacpi/core.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+Index: linux-pm/drivers/pnp/pnpacpi/core.c
+===================================================================
+--- linux-pm.orig/drivers/pnp/pnpacpi/core.c
++++ linux-pm/drivers/pnp/pnpacpi/core.c
+@@ -319,8 +319,7 @@ static int __init acpi_pnp_match(struct
+ 	struct pnp_dev *pnp = _pnp;
+ 
+ 	/* true means it matched */
+-	return !acpi->physical_node_count
+-	    && compare_pnp_id(pnp->id, acpi_device_hid(acpi));
++	return pnp->data == acpi;
+ }
+ 
+ static struct acpi_device * __init acpi_pnp_find_companion(struct device *dev)
