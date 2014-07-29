@@ -1,111 +1,97 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 10/19] ARM64 / ACPI: Get the enable method for SMP
- initialization in ACPI way
-Date: Tue, 29 Jul 2014 16:12:19 +0800
-Message-ID: <53D75763.1090601@linaro.org>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <1406206825-15590-11-git-send-email-hanjun.guo@linaro.org>
- <20140724154745.GD26190@leverpostej> <53D236B9.7000302@linaro.org>
- <20140725122424.GD19632@leverpostej>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH 01/19] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+Date: Tue, 29 Jul 2014 09:49:10 +0100
+Message-ID: <53D76006.4040105@arm.com>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org> <1406206825-15590-2-git-send-email-hanjun.guo@linaro.org> <53D69678.20002@arm.com> <53D6D391.8090907@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140725122424.GD19632@leverpostej>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, Rafael J. Wysoc
+Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53D6D391.8090907@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Graeme Gregory <graeme.gregory@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tomas>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2014-7-25 20:24, Mark Rutland wrote:
-> On Fri, Jul 25, 2014 at 11:51:37AM +0100, Hanjun Guo wrote:
->> On 2014-7-24 23:47, Mark Rutland wrote:
->>> On Thu, Jul 24, 2014 at 02:00:16PM +0100, Hanjun Guo wrote:
->>>> ACPI 5.1 only has two explicit methods to boot up SMP,
->>>> PSCI and Parking protocol, but the Parking protocol is
->>>> only suitable for ARMv7 now, so make PSCI as the only way
->>>> for the SMP boot protocol before some updates for the
->>>> ACPI spec or the Parking protocol spec.
->>>>
+
+
+On 28/07/14 23:49, Graeme Gregory wrote:
+>
+> On 28/07/2014 19:29, Sudeep Holla wrote:
+>>
+>>
+>> On 24/07/14 14:00, Hanjun Guo wrote:
+>>> From: Al Stone <al.stone@linaro.org>
+>>>
+>>> As we want to get ACPI tables to parse and then use the information
+>>> for system initialization, we should get the RSDP (Root System
+>>> Description Pointer) first, it then locates Extended Root Description
+>>> Table (XSDT) which contains all the 64-bit physical address that
+>>> pointer to other boot-time tables.
+>>>
+>>> Introduce acpi.c and its related head file in this patch to provide
+>>> fundamental needs of extern variables and functions for ACPI core,
+>>> and then get boot-time tables as needed.
+>>>     - asm/cpu.h need for ACPI core and will be updated in the future to
+>>>       add definitions for arch_(un)register_cpu which are required for
+>>>       ACPI based physical CPU hotplug;
+>>>     - asm/acenv.h for arch specific ACPICA environments and
+>>>       implementation;
+>>>     - asm/acpi.h for arch specific variables and functions needed by
+>>>       ACPI driver core;
+>>>     - acpi.c for ARM64 related ACPI implementation for ACPI driver
+>>>       core;
+>>>
+>>> acpi_boot_table_init() is introduced to get RSDP and boot-time tables,
+>>> it will be called in setup_arch() before paging_init(), so we should
+>>> use eary_memremap() mechanism here to get the RSDP and all the table
+>>> pointers.
+>>>
+>>> Signed-off-by: Al Stone <al.stone@linaro.org>
+>>> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+>>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>> ---
+>>>    arch/arm64/include/asm/acenv.h |   18 ++++++++++
+>>>    arch/arm64/include/asm/acpi.h  |   41 ++++++++++++++++++++++
+>>>    arch/arm64/include/asm/cpu.h   |   11 ++++++
+>>>    arch/arm64/kernel/Makefile     |    1 +
+>>>    arch/arm64/kernel/acpi.c       |   76
+>>> ++++++++++++++++++++++++++++++++++++++++
+>>>    arch/arm64/kernel/setup.c      |    4 +++
+>>>    6 files changed, 151 insertions(+)
+>>>    create mode 100644 arch/arm64/include/asm/acenv.h
+>>>    create mode 100644 arch/arm64/include/asm/acpi.h
+>>>    create mode 100644 arch/arm64/include/asm/cpu.h
+>>>    create mode 100644 arch/arm64/kernel/acpi.c
+>>>
+
 [...]
->>>> -#include <asm/cpu_ops.h>
->>>> -#include <asm/smp_plat.h>
->>>>  #include <linux/errno.h>
->>>>  #include <linux/of.h>
->>>>  #include <linux/string.h>
->>>> +#include <linux/acpi.h>
->>>> +
->>>> +#include <asm/cpu_ops.h>
->>>> +#include <asm/smp_plat.h>
->>>
->>> Was the header move just for consistency with other files, or is there
->>> some ordering requirement here?
+
+>>> +
+>>> +/*
+>>> + * MADT must provide at least one GICC structure
+>>> + * for GIC initialization, so CPU will be
+>>> + * always available in MADT on ARM64
+>>> + */
+>>> +static inline bool acpi_has_cpu_in_madt(void)
+>>> +{
+>>> +       return 1;
+>>> +}
+>>> +
 >>
->> Ordering requirement, it will meet compile error for "return -ENODEV;"
->> in the head file which I introduced, I know I can include the right
->> head file in asm/cpu_ops.h, but I think move the asm/xx.h after the
->> include of linux/xx.h would be fine.
-> 
-> If a file uses something defined in a header, it should include that
-> header. So if you need ENODEV in cpu_ops.h, make cpu_ops.h include
-> <linux/errno.h>. It is not fine to deliberately rely on implicit
-> includes.
-
-ok, will fix that in next version.
-
-> 
-> Moving the headers around is a separate issue. I have no problem with
-> doing that for consistency with other files.
-> 
+>> I don't see the user of this function in the series, it's better to
+>> remove. Moreover the comment is so misleading. We will have CPU UID
+>> not the CPU itself in MADT.
 >>
->>>
->>>>
->>>>  extern const struct cpu_operations smp_spin_table_ops;
->>>>  extern const struct cpu_operations cpu_psci_ops;
->>>> @@ -52,7 +54,7 @@ static const struct cpu_operations * __init cpu_get_ops(const char *name)
->>>>  /*
->>>>   * Read a cpu's enable method from the device tree and record it in cpu_ops.
->>>>   */
->>>> -int __init cpu_read_ops(struct device_node *dn, int cpu)
->>>> +int __init cpu_of_read_ops(struct device_node *dn, int cpu)
->>>>  {
->>>>         const char *enable_method = of_get_property(dn, "enable-method", NULL);
->>>>         if (!enable_method) {
->>>> @@ -76,12 +78,52 @@ int __init cpu_read_ops(struct device_node *dn, int cpu)
->>>>         return 0;
->>>>  }
->>>>
->>>> +#ifdef CONFIG_ACPI
->>>> +/*
->>>> + * Read a cpu's enable method in the ACPI way and record it in cpu_ops.
->>>> + */
->>>> +int __init cpu_acpi_read_ops(int cpu)
->>>> +{
->>>> +       /*
->>>> +        * For ACPI 5.1, only two kind of methods are provided,
->>>> +        * Parking protocol and PSCI, but Parking protocol is
->>>> +        * used on ARMv7 only, so make PSCI as the only method
->>>> +        * for SMP initialization before the ACPI spec or Parking
->>>> +        * protocol spec is updated.
->>>> +        */
->>>
->>> That comment is a little misleading. The parking protocol is _specified_
->>> for ARMv7 only.
->>
->> Agreed. But I'm just wondering if the Parking protocol is modified and
->> then support ARMv8, how to describe it in the comments?
-> 
-> We update the comments if and when that happens.
+> This is actually required for a patch that is now upstreamed. Comment
+> should actually say that its checking for the posibility that the CPU
+> can be initialised from the MADT. Its used from core in crash kernel
+> case where boot CPU is not necessarily CPU0 like spec demands.
+>
 
-Ok.
+Ah OK, I now see that in Rafael's linux-pm/linux-next. Sorry I might have
+missed to notice that and I assumed this series is based on mainline.
 
-Thanks
-Hanjun
+Regards,
+Sudeep
