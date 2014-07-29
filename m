@@ -1,61 +1,56 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Tue, 29 Jul 2014 12:07:05 +0200
-Message-ID: <5204108.U2T4GFhQeP@wuerfel>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <53D67703.7090306@arm.com> <53D766A2.1070004@linaro.org>
+From: Anders Kaseorg <andersk@MIT.EDU>
+Subject: Re: [Intel-gfx] PROBLEM: Native backlight regressed from logarithmic
+ to linear scale
+Date: Tue, 29 Jul 2014 06:14:16 -0400 (EDT)
+Message-ID: <alpine.DEB.2.02.1407290554280.44274@all-night-tool.MIT.EDU>
+References: <alpine.DEB.2.02.1407212333200.44274@all-night-tool.MIT.EDU> <53D76D65.6030704@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <53D766A2.1070004@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Mark Rutland <Mark.Rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Andre Przywara <andre.przywara@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from dmz-mailsec-scanner-4.mit.edu ([18.9.25.15]:61110 "EHLO
+	dmz-mailsec-scanner-4.mit.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752168AbaG2KOY convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Jul 2014 06:14:24 -0400
+In-Reply-To: <53D76D65.6030704@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org
 
-On Tuesday 29 July 2014 10:17:22 Graeme Gregory wrote:
-> On 28/07/2014 17:14, Andre Przywara wrote:
-> >
-> > On 28/07/14 16:23, Arnd Bergmann wrote:
-> >> On Monday 28 July 2014 15:20:06 Andre Przywara wrote:
-> >>> On 28/07/14 11:46, Arnd Bergmann wrote:
-> >>>> On Monday 28 July 2014 10:23:57 Graeme Gregory wrote:
-> >>>>> The PL011 UART is the use-case I keep hitting, that IP block has a
-> >>>>> variable input clock on pretty much everything I have seen in the wild.
-> >>>> Ok, I see. What does ACPI-5.1 say about pl011?
-> >>>>
-> >>>> Interestingly, the subset of pl011 that is specified by SBSA does not
-> >>>> contain the IBRD/FBRD registers, effectively making it a fixed-rated
-> >>>> UART (I guess that would be a ART, without the U then), and you
-> >>>> consequently don't even need to know the clock rate.
-> >>> The idea of this was probably to let the baudrate set by some firmware
-> >>> code to the "right" value and the spec just didn't want to expose the
-> >>> details for the generic UART:
-> >>> "This specification does not cover registers needed to configure the
-> >>> UART as these are considered hardware-specific and will be set up by
-> >>> hardware-specific software."
-> >>> To me that reads like the SBSA UART is just for debugging, and you are
-> >>> expected just to access the data register.
-> >> Right, makes sense. It also avoids the case where Linux for some reason
-> >> ends up using a different line rate than the firmware, which can
-> >> cause a lot of unnecessary pain.
-> I must be suffering snow blindness reading specs, I totally missed that 
-> the pl011 subset does not allow baud setting. This means that my current 
-> test hardware "Juno" does not actually need any clocks defined in DSDT 
-> at this stage (given that this new driver is created).
-> 
-> I may then return to my original opinion of not defining clocks in the 
-> DSDT at all.
+On Tue, 29 Jul 2014, Hans de Goede wrote:
+> I've been thinking a bit about this, and I believe that the right ans=
+wer=20
+> here is to do the linear to logarithmic mapping in user-space. The in=
+tel=20
+> backlight interface has a type of raw, clearly signalling to userspac=
+e=20
+> that it is a raw "untranslated" interface, as such any fanciness such=
+ as=20
+> creating a logarithmic scale should be done in userspace IMHO.
 
-Ok, that certainly simplifies it a lot, thanks!
+I was going to respond that the kernel does its own brightness stepping=
+=20
+when userspace isn=E2=80=99t paying attention.  But apparently only acp=
+i_video=20
+does that, and intel_backlight does not; my brightness keys now have no=
+=20
+effect outside of the X server.  Is that the expected behavior?
 
-	Arnd
+In any case, if you think punting part of the problem to userspace is t=
+he=20
+right answer, then to flesh out the details: do you think it=E2=80=99s =
+right for=20
+userspace to assume that any backlight with type =E2=80=98raw=E2=80=99 =
+is a linear scale=20
+that needs to be converted, and one with type =E2=80=98firmware=E2=80=99=
+ or =E2=80=98platform=E2=80=99 has=20
+already been converted appropriately?
+
+Anders
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
