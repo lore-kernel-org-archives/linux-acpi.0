@@ -1,157 +1,79 @@
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: ACPI/cpu hotplug: possible lockdep
-Date: Wed, 30 Jul 2014 14:10:35 +0800
-Message-ID: <53D88C5B.4060302@cn.fujitsu.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
+Date: Wed, 30 Jul 2014 14:47:12 +0800
+Message-ID: <53D894F0.1060102@linaro.org>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>	<20140729112824.GM2576@leverpostej>	<CAMJs5B_Ye1eXsvJAKWnHRxC4jnpcXMcqHE+GgOGO7MHtPcsSQA@mail.gmail.com>	<351673188.FxXsM7MvdA@wuerfel>	<20140729130823.GP2576@leverpostej>
+ <CAMJs5B8uk7GDfEOEuY8RWDxzhzTRBGszRDN+JRKwG-D_rgzFrw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:22897 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751020AbaG3GXG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jul 2014 02:23:06 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAMJs5B8uk7GDfEOEuY8RWDxzhzTRBGszRDN+JRKwG-D_rgzFrw@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Christoffer Dall <christoffer.dall@linaro.org>, Mark Rutland <mark.rutland@arm.com>
+Cc: Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "rob.herring@linaro.org" <rob.herring@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, Rafael J
 List-Id: linux-acpi@vger.kernel.org
-To: rafael.j.wysocki@intel.com
-Cc: Tejun Heo <tj@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Hi Rafael,
-A lockdep warning occurs when hot removing a cpu via sysfs:
-echo 1 > /sys/bus/acpi/devices/LNXCPU\:02/eject
-The kernel is latest upstream, and the test box is a kvm vm,
-detail info as following.
+On 2014-7-29 21:31, Christoffer Dall wrote:
+> On 29 July 2014 15:08, Mark Rutland <mark.rutland@arm.com> wrote:
+>> On Tue, Jul 29, 2014 at 01:52:40PM +0100, Arnd Bergmann wrote:
+>>> On Tuesday 29 July 2014 14:37:38 Christoffer Dall wrote:
+>>>>
+>>>> For reference, Red Hat's current arguing point for ACPI in VMs is
+>>>> hotplug of things like CPUs and memory for very large VMs, but I
+>>>> haven't thought too carefully about this just yet, as I don't have a
+>>>> 100+ core ARM 64-bit hardware lying around...
+>>>
+>>> I thought you could run guests with more virtual CPUs that you have
+>>> physical CPUs on the host.
+>>>
+>>> Regarding CPU and memory hotplug, don't we already have PSCI and
+>>> xen-balloon/virtio-balloon for that?
+>>
+>> PSCI (0.1) was there for guests from the start, and ACPI doesn't do
+>> anything different w.r.t. PSCI other than requiring PSCI 0.2 (which can
+>> be used by guests supporting only PSCI 0.1). So there's no magic for
+>> CPU hotplug provided by ACPI.
+> 
+> With PSCI you can only provide your VM a bunch of CPUs and say that
+> they're all turned off, and then turn some of them on later.  
 
-[  221.755113] ======================================================
-[  221.756189] [ INFO: possible circular locking dependency detected ]
-[  221.756189] 3.16.0-rc7+ #118 Not tainted
-[  221.756189] -------------------------------------------------------
-[  221.756189] kworker/u8:3/62 is trying to acquire lock:
-[  221.756189]  (s_active#50){++++.+}, at: [<ffffffff811d4ad8>] kernfs_remove_by_name_ns+0x70/0x8c
-[  221.756189] 
-[  221.756189] but task is already holding lock:
-[  221.756189]  (cpu_hotplug.lock#2){+.+.+.}, at: [<ffffffff810628f9>] cpu_hotplug_begin+0x4f/0x79
-[  221.756189] 
-[  221.756189] which lock already depends on the new lock.
-[  221.756189] 
-[  221.756189] 
-[  221.756189] the existing dependency chain (in reverse order) is:
-[  221.756189] 
--> #3 (cpu_hotplug.lock#2){+.+.+.}:
-[  221.756189]        [<ffffffff810a1081>] lock_acquire+0xdb/0x101
-[  221.756189]        [<ffffffff81596187>] mutex_lock_nested+0x6d/0x37a
-[  221.756189]        [<ffffffff810628f9>] cpu_hotplug_begin+0x4f/0x79
-[  221.756189]        [<ffffffff81062992>] _cpu_up+0x35/0x126
-[  221.756189]        [<ffffffff81062af2>] cpu_up+0x6f/0x81
-[  221.756189]        [<ffffffff81d11804>] smp_init+0x4e/0x89
-[  221.756189]        [<ffffffff81cf5fe2>] kernel_init_freeable+0x13d/0x24b
-[  221.756189]        [<ffffffff8158557a>] kernel_init+0xe/0xdf
-[  221.756189]        [<ffffffff8159952c>] ret_from_fork+0x7c/0xb0
-[  221.756189] 
--> #2 (cpu_hotplug.lock){++++++}:
-[  221.756189]        [<ffffffff810a1081>] lock_acquire+0xdb/0x101
-[  221.756189]        [<ffffffff810628eb>] cpu_hotplug_begin+0x41/0x79
-[  221.756189]        [<ffffffff81062992>] _cpu_up+0x35/0x126
-[  221.756189]        [<ffffffff81062af2>] cpu_up+0x6f/0x81
-[  221.756189]        [<ffffffff81d11804>] smp_init+0x4e/0x89
-[  221.756189]        [<ffffffff81cf5fe2>] kernel_init_freeable+0x13d/0x24b
-[  221.819219]        [<ffffffff8158557a>] kernel_init+0xe/0xdf
-[  221.819219]        [<ffffffff8159952c>] ret_from_fork+0x7c/0xb0
-[  221.819219] 
-[  221.819219] -> #1 (cpu_add_remove_lock){+.+.+.}:
-[  221.819219]        [<ffffffff810a1081>] lock_acquire+0xdb/0x101
-[  221.819219]        [<ffffffff815988ab>] _raw_spin_lock_irqsave+0x4d/0x87
-[  221.819219]        [<ffffffff81171959>] __delete_object+0x8e/0xab
-[  221.819219]        [<ffffffff81171998>] delete_object_full+0x22/0x2e
-[  221.819219]        [<ffffffff81587f84>] kmemleak_free+0x56/0x77
-[  221.819219]        [<ffffffff81164dee>] slab_free_hook+0x1e/0x5b
-[  221.819219]        [<ffffffff81166e21>] kfree+0xac/0x111
-[  221.819219]        [<ffffffff812f0768>] acpi_hotplug_work_fn+0x28/0x2d
-[  221.819219]        [<ffffffff81078ff5>] process_one_work+0x207/0x375
-[  221.819219]        [<ffffffff8107944f>] worker_thread+0x2bd/0x329
-[  221.819219]        [<ffffffff8107ef6e>] kthread+0xba/0xc2
-[  221.819219]        [<ffffffff8159952c>] ret_from_fork+0x7c/0xb0
-[  221.819219] 
-[  221.819219] -> #0 (s_active#50){++++.+}:
-[  221.819219]        [<ffffffff810a088a>] __lock_acquire+0xb3b/0xe41
-[  221.819219]        [<ffffffff810a1081>] lock_acquire+0xdb/0x101
-[  221.819219]        [<ffffffff811d3f97>] __kernfs_remove+0x169/0x2be
-[  221.819219]        [<ffffffff811d4ad8>] kernfs_remove_by_name_ns+0x70/0x8c
-[  221.819219]        [<ffffffff811d604c>] sysfs_remove_file_ns+0x15/0x17
-[  221.819219]        [<ffffffff8138143e>] device_remove_file+0x19/0x1b
-[  221.819219]        [<ffffffff813814f6>] device_remove_attrs+0x2e/0x68
-[  221.819219]        [<ffffffff81381658>] device_del+0x128/0x187
-[  221.819219]        [<ffffffff813816ff>] device_unregister+0x48/0x54
-[  221.819219]        [<ffffffff81387366>] unregister_cpu+0x39/0x55
-[  221.819219]        [<ffffffff81008c03>] arch_unregister_cpu+0x23/0x28
-[  221.819219]        [<ffffffff812f7a75>] acpi_processor_remove+0x91/0xca
-[  221.819219]        [<ffffffff812f51d1>] acpi_bus_trim+0x5a/0x8d
-[  221.819219]        [<ffffffff812f71c6>] acpi_device_hotplug+0x301/0x3ff
-[  221.819219]        [<ffffffff812f0760>] acpi_hotplug_work_fn+0x20/0x2d
-[  221.819219]        [<ffffffff81078ff5>] process_one_work+0x207/0x375
-[  221.819219]        [<ffffffff8107944f>] worker_thread+0x2bd/0x329
-[  221.819219]        [<ffffffff8107ef6e>] kthread+0xba/0xc2
-[  221.819219]        [<ffffffff8159952c>] ret_from_fork+0x7c/0xb0
-[  221.819219] 
-[  221.819219] other info that might help us debug this:
-[  221.819219] 
-[  221.819219] Chain exists of:
-[  221.819219]   s_active#50 --> cpu_hotplug.lock --> cpu_hotplug.lock#2
-[  221.819219] 
-[  221.819219]  Possible unsafe locking scenario:
-[  221.819219] 
-[  221.819219]        CPU0                    CPU1
-[  221.819219]        ----                    ----
-[  221.819219]   lock(cpu_hotplug.lock#2);
-[  221.819219]                                lock(cpu_hotplug.lock);
-[  221.819219]                                lock(cpu_hotplug.lock#2);
-[  221.819219]   lock(s_active#50);
-[  221.819219] 
-[  221.819219]  *** DEADLOCK ***
-[  221.819219] 
-[  221.819219] 7 locks held by kworker/u8:3/62:
-[  221.819219]  #0:  ("kacpi_hotplug"){.+.+.+}, at: [<ffffffff81078f4d>] process_one_work+0x15f/0x375
-[  221.819219]  #1:  ((&hpw->work)){+.+.+.}, at: [<ffffffff81078f4d>] process_one_work+0x15f/0x375
-[  221.819219]  #2:  (device_hotplug_lock){+.+.+.}, at: [<ffffffff81381f7a>] lock_device_hotplug+0x17/0x19
-[  221.819219]  #3:  (acpi_scan_lock){+.+.+.}, at: [<ffffffff812f6ef2>] acpi_device_hotplug+0x2d/0x3ff
-[  221.819219]  #4:  (cpu_add_remove_lock){+.+.+.}, at: [<ffffffff81062722>] cpu_maps_update_begin+0x17/0x19
-[  221.819219]  #5:  (cpu_hotplug.lock){++++++}, at: [<ffffffff810628af>] cpu_hotplug_begin+0x5/0x79
-[  221.819219]  #6:  (cpu_hotplug.lock#2){+.+.+.}, at: [<ffffffff810628f9>] cpu_hotplug_begin+0x4f/0x79
-[  221.819219] 
-[  221.819219] stack backtrace:
-[  221.819219] CPU: 1 PID: 62 Comm: kworker/u8:3 Not tainted 3.16.0-rc7+ #118
-[  221.819219] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.7.5-0-ge51488c-20140602_164612-nilsson.home.kraxel.org 04/01/2014
-[  221.819219] Workqueue: kacpi_hotplug acpi_hotplug_work_fn
-[  221.819219]  ffffffff8209cc80 ffff8800372eb968 ffffffff8159266c 00000000000011cf
-[  221.819219]  ffffffff820f2840 ffff8800372eb9b8 ffffffff8158e0ce ffff8800372eb9a8
-[  221.819219]  ffffffff82485ff0 ffff8800372e2490 ffff8800372e2e68 ffff8800372e2490
-[  221.819219] Call Trace:
-[  221.819219]  [<ffffffff8159266c>] dump_stack+0x4e/0x68
-[  221.819219]  [<ffffffff8158e0ce>] print_circular_bug+0x1f8/0x209
-[  221.819219]  [<ffffffff810a088a>] __lock_acquire+0xb3b/0xe41
-[  221.819219]  [<ffffffff811d4ad8>] ? kernfs_remove_by_name_ns+0x70/0x8c
-[  221.819219]  [<ffffffff810a1081>] lock_acquire+0xdb/0x101
-[  221.819219]  [<ffffffff811d4ad8>] ? kernfs_remove_by_name_ns+0x70/0x8c
-[  221.819219]  [<ffffffff811d3f97>] __kernfs_remove+0x169/0x2be
-[  221.819219]  [<ffffffff811d4ad8>] ? kernfs_remove_by_name_ns+0x70/0x8c
-[  221.819219]  [<ffffffff811d3412>] ? kernfs_find_ns+0xdc/0x104
-[  221.819219]  [<ffffffff811d4ad8>] kernfs_remove_by_name_ns+0x70/0x8c
-[  221.819219]  [<ffffffff811d604c>] sysfs_remove_file_ns+0x15/0x17
-[  221.819219]  [<ffffffff8138143e>] device_remove_file+0x19/0x1b
-[  221.819219]  [<ffffffff813814f6>] device_remove_attrs+0x2e/0x68
-[  221.819219]  [<ffffffff81381658>] device_del+0x128/0x187
-[  221.819219]  [<ffffffff813816ff>] device_unregister+0x48/0x54
-[  221.819219]  [<ffffffff81387366>] unregister_cpu+0x39/0x55
-[  221.819219]  [<ffffffff81008c03>] arch_unregister_cpu+0x23/0x28
-[  221.819219]  [<ffffffff812f7a75>] acpi_processor_remove+0x91/0xca
-[  221.819219]  [<ffffffff812f51d1>] acpi_bus_trim+0x5a/0x8d
-[  221.819219]  [<ffffffff812f71c6>] acpi_device_hotplug+0x301/0x3ff
-[  221.819219]  [<ffffffff812f0760>] acpi_hotplug_work_fn+0x20/0x2d
-[  221.819219]  [<ffffffff81078ff5>] process_one_work+0x207/0x375
-[  221.819219]  [<ffffffff81078f4d>] ? process_one_work+0x15f/0x375
-[  221.819219]  [<ffffffff8107944f>] worker_thread+0x2bd/0x329
-[  221.819219]  [<ffffffff81079192>] ? process_scheduled_works+0x2f/0x2f
-[  221.819219]  [<ffffffff8107ef6e>] kthread+0xba/0xc2
-[  221.819219]  [<ffffffff810a1511>] ? trace_hardirqs_on+0xd/0xf
-[  221.819219]  [<ffffffff8107eeb4>] ? __init_kthread_worker+0x59/0x59
-[  221.819219]  [<ffffffff8159952c>] ret_from_fork+0x7c/0xb0
-[  221.819219]  [<ffffffff8107eeb4>] ? __init_kthread_worker+0x59/0x59
+Yes, agreed.
+
+> I honestly don't know if you can do proper CPU hotplug with ACPI, but
+> the RH guys seem to argue that you can.  Again, I didn't think too
+> carefully about this.
+
+Yes, we can do proper CPU hotplug with ACPI based physical hotplug (named
+dynamic device configuration in ACPI spec), you can refer to section 6.3
+"Device Insertion, Removal, and Status Objects" in ACPI 5.1.
+
+There are mechanisms for handling dynamic insertion and removal of devices
+and for determining device and notification processing status. When removing
+a processor,
+
+a) we will call PSCI or similar interface to offline a CPU from OS, then
+   OS will not use it any more;
+
+b) call ACPI API to trim the resources that allocated during device
+   enumeration;
+
+c) Call ACPI method _EJ0 and then will notify firmware or hypervisor device
+   will be removed, jump to firmware or hypervisor to remove the device
+   from that level;
+
+CPU hotplug with ACPI is pretty mature on x86 and it works on VM too. I prepared
+some patches to support CPU hotplug on ARM64 and simulated the hot add/remove
+notify to test those patches, it worked as expected, I will send them out
+when this patchset is ready for mainline.
+
+Thanks
+Hanjun
