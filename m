@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 03/17] ACPICA: Disassembler: Add support for the ToUUID opererator (macro).
-Date: Wed, 30 Jul 2014 12:20:39 +0800
-Message-ID: <e6e433b1966af86832e4814072661f34d70810bf.1406689494.git.lv.zheng@intel.com>
+Subject: [PATCH 09/17] ACPICA: Debug object: Add current value of Timer() to debug line prefix.
+Date: Wed, 30 Jul 2014 12:21:19 +0800
+Message-ID: <0370f9c08e7e1853ca121e0b7e7b621a9a617e1b.1406689494.git.lv.zheng@intel.com>
 References: <cover.1406689493.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1406689493.git.lv.zheng@intel.com>
@@ -12,73 +12,48 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-This change adds support to disassemble a UUID back to the original
-ToUUID operator. It will detect a UUID within a standard AML Buffer.
-Also, a description of the UUID is emitted for "known" UUIDs, defined
-as UUIDs that are defined in the ACPI specification.
+Simplifies timing of things like control method execution.
 
-Since this is a change for disassembler which is not shipped in the
-Linux kernel, the Linux kernel is not affected.
+[zetalog: fixing 64-bit division link error]
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h |   13 +++++++------
- include/acpi/acconfig.h       |   18 ++++++++++++++++++
- 2 files changed, 25 insertions(+), 6 deletions(-)
+ drivers/acpi/acpica/exdebug.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 91f801a..4c9fd7c 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -730,12 +730,13 @@ union acpi_parse_value {
- #define ACPI_DASM_STRING                0x02	/* Buffer is a ASCII string */
- #define ACPI_DASM_UNICODE               0x03	/* Buffer is a Unicode string */
- #define ACPI_DASM_PLD_METHOD            0x04	/* Buffer is a _PLD method bit-packed buffer */
--#define ACPI_DASM_EISAID                0x05	/* Integer is an EISAID */
--#define ACPI_DASM_MATCHOP               0x06	/* Parent opcode is a Match() operator */
--#define ACPI_DASM_LNOT_PREFIX           0x07	/* Start of a Lnot_equal (etc.) pair of opcodes */
--#define ACPI_DASM_LNOT_SUFFIX           0x08	/* End  of a Lnot_equal (etc.) pair of opcodes */
--#define ACPI_DASM_HID_STRING            0x09	/* String is a _HID or _CID */
--#define ACPI_DASM_IGNORE                0x0A	/* Not used at this time */
-+#define ACPI_DASM_UUID                  0x05	/* Buffer is a UUID/GUID */
-+#define ACPI_DASM_EISAID                0x06	/* Integer is an EISAID */
-+#define ACPI_DASM_MATCHOP               0x07	/* Parent opcode is a Match() operator */
-+#define ACPI_DASM_LNOT_PREFIX           0x08	/* Start of a Lnot_equal (etc.) pair of opcodes */
-+#define ACPI_DASM_LNOT_SUFFIX           0x09	/* End  of a Lnot_equal (etc.) pair of opcodes */
-+#define ACPI_DASM_HID_STRING            0x0A	/* String is a _HID or _CID */
-+#define ACPI_DASM_IGNORE                0x0B	/* Not used at this time */
+diff --git a/drivers/acpi/acpica/exdebug.c b/drivers/acpi/acpica/exdebug.c
+index 4cfc3d3..6fbfad4 100644
+--- a/drivers/acpi/acpica/exdebug.c
++++ b/drivers/acpi/acpica/exdebug.c
+@@ -75,6 +75,7 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 			u32 level, u32 index)
+ {
+ 	u32 i;
++	u32 timer;
  
- /*
-  * Generic operation (for example:  If, While, Store)
-diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
-index 932a60d..5a0a3e5 100644
---- a/include/acpi/acconfig.h
-+++ b/include/acpi/acconfig.h
-@@ -219,6 +219,24 @@
+ 	ACPI_FUNCTION_TRACE_PTR(ex_do_debug_object, source_desc);
  
- /******************************************************************************
-  *
-+ * Miscellaneous constants
-+ *
-+ *****************************************************************************/
+@@ -86,11 +87,19 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 	}
+ 
+ 	/*
++	 * We will emit the current timer value (in microseconds) with each
++	 * debug output. Only need the lower 26 bits. This allows for 67
++	 * million microseconds or 67 seconds before rollover.
++	 */
++	timer = ((u32)acpi_os_get_timer() / 10);	/* (100 nanoseconds to microseconds) */
++	timer &= 0x03FFFFFF;
 +
-+/* UUID constants */
-+
-+#define UUID_BUFFER_LENGTH          16	/* Length of UUID in memory */
-+#define UUID_STRING_LENGTH          36	/* Total length of a UUID string */
-+
-+/* Positions for required hyphens (dashes) in UUID strings */
-+
-+#define UUID_HYPHEN1_OFFSET         8
-+#define UUID_HYPHEN2_OFFSET         13
-+#define UUID_HYPHEN3_OFFSET         18
-+#define UUID_HYPHEN4_OFFSET         23
-+
-+/******************************************************************************
-+ *
-  * ACPI AML Debugger
-  *
-  *****************************************************************************/
++	/*
+ 	 * Print line header as long as we are not in the middle of an
+ 	 * object display
+ 	 */
+ 	if (!((level > 0) && index == 0)) {
+-		acpi_os_printf("[ACPI Debug] %*s", level, " ");
++		acpi_os_printf("[ACPI Debug %.8u] %*s", timer, level, " ");
+ 	}
+ 
+ 	/* Display the index for package output only */
 -- 
 1.7.10
