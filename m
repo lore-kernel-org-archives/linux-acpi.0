@@ -1,60 +1,134 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI/cpu hotplug: possible lockdep
-Date: Wed, 30 Jul 2014 15:12:49 +0200
-Message-ID: <1956231.f1vFNp0Nyx@vostro.rjw.lan>
-References: <53D88C5B.4060302@cn.fujitsu.com>
+From: John Marsden <john.d.marsden@gmail.com>
+Subject: Re: PROBLEM: [Toshiba Portege Z835] Brightness control lost after suspend
+Date: Wed, 30 Jul 2014 18:11:02 +0100
+Message-ID: <CACiopZA=5wHsjjzOKrC7aqCp13g8vLwnegcdFrySoS-_kD60Aw@mail.gmail.com>
+References: <CACiopZBtRcixrXhHLB-6fc_Fvg5rhv+rqJjeSxkxDYBf0uu+kw@mail.gmail.com>
+	<53D7AF8F.7060401@intel.com>
+	<CACiopZCQpGeBw6V7qFpcV6u22stOQC8X9Aiwya3wE_cBZzL+PQ@mail.gmail.com>
+	<20140730083248.GA31763@aaronlu.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54370 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753286AbaG3MyR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jul 2014 08:54:17 -0400
-In-Reply-To: <53D88C5B.4060302@cn.fujitsu.com>
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:61334 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755458AbaG3RLE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jul 2014 13:11:04 -0400
+Received: by mail-lb0-f178.google.com with SMTP id c11so1147753lbj.9
+        for <linux-acpi@vger.kernel.org>; Wed, 30 Jul 2014 10:11:02 -0700 (PDT)
+In-Reply-To: <20140730083248.GA31763@aaronlu.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: rafael.j.wysocki@intel.com, Tejun Heo <tj@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Wednesday, July 30, 2014 02:10:35 PM Gu Zheng wrote:
-> Hi Rafael,
+On 30 July 2014 09:32, Aaron Lu <aaron.lu@intel.com> wrote:
+> Does the other interface work after resume? I mean the intel_backlight
+> and the toshiba one?
 
-Hi,
+The intel-backlight interface works but the toshiba one does not work.
 
-> A lockdep warning occurs when hot removing a cpu via sysfs:
-> echo 1 > /sys/bus/acpi/devices/LNXCPU\:02/eject
-> The kernel is latest upstream, and the test box is a kvm vm,
-> detail info as following.
+Below is my detailed test actions and results:
 
-Well, I have a theory.
+Fresh boot in v3.16-rc
+======================
 
-Is the splat still reproducible with the patch below applied?
+sudo su
+cat /sys/class/backlight/intel_backlight/brightness
+4539
+cat /sys/class/backlight/toshiba/brightness
+7
+cat /sys/class/backlight/acpi_video0/brightness
+7
 
-Rafael
+Operate brightness control downwards via system settings.  Screen dims:
 
----
- kernel/smp.c |    2 ++
- 1 file changed, 2 insertions(+)
+cat /sys/class/backlight/intel_backlight/brightness
+3844
 
-Index: linux-pm/kernel/smp.c
-===================================================================
---- linux-pm.orig/kernel/smp.c
-+++ linux-pm/kernel/smp.c
-@@ -542,6 +542,7 @@ void __init smp_init(void)
- 
- 	idle_threads_init();
- 
-+	lock_device_hotplug();
- 	/* FIXME: This should be done in userspace --RR */
- 	for_each_present_cpu(cpu) {
- 		if (num_online_cpus() >= setup_max_cpus)
-@@ -549,6 +550,7 @@ void __init smp_init(void)
- 		if (!cpu_online(cpu))
- 			cpu_up(cpu);
- 	}
-+	unlock_device_hotplug();
- 
- 	/* Any cleanup work */
- 	smp_announce();
+Restored brightness control to full via system settings. Screen brightens:
 
+cat /sys/class/backlight/intel_backlight/brightness
+4539
+
+Suspend and resume
+==================
+
+cat /sys/class/backlight/intel_backlight/brightness
+4539
+cat /sys/class/backlight/toshiba/brightness
+7
+cat /sys/class/backlight/acpi_video0/brightness
+7
+
+TEST operating brightness controls via user interface:
+
+Operate brightness control downwards via system settings. No change to
+screen brightness:
+
+cat /sys/class/backlight/intel_backlight/brightness
+4539
+
+Restored brightness control to full via system settings. No change to
+screen brightness:
+
+cat /sys/class/backlight/intel_backlight/brightness
+4539
+
+TEST setting directly via sysfs:
+
+echo 3844 > /sys/class/backlight/intel_backlight/brightness
+
+screen goes dimmer.
+
+cat /sys/class/backlight/intel_backlight/brightness
+3844
+echo 4539 > /sys/class/backlight/intel_backlight/brightness
+
+Screen goes brighter.
+
+cat /sys/class/backlight/intel_backlight/brightness
+4539
+
+BUT:
+echo 2 > /sys/class/backlight/toshiba/brightness
+
+no change to screen brightness.
+
+cat /sys/class/backlight/intel_backlight/brightness
+4539
+cat /sys/class/backlight/toshiba/brightness
+2
+echo 7 > /sys/class/backlight/toshiba/brightness
+cat /sys/class/backlight/toshiba/brightness
+7
+
+AND:
+echo 2 > /sys/class/backlight/acpi_video0/brightness
+
+no change to screen brightness.
+
+cat /sys/class/backlight/acpi_video0/brightness
+2
+cat /sys/class/backlight/intel_backlight/brightness
+4539
+echo 7 > /sys/class/backlight/acpi_video0/brightness
+cat /sys/class/backlight/acpi_video0/brightness
+7
+
+NOTE ALSO:
+==========
+On previous test after suspend and resume screen comes up dim:
+
+cat /sys/class/backlight/intel_backlight/brightness
+249
+cat /sys/class/backlight/toshiba/brightness
+7
+cat /sys/class/backlight/acpi_video0/brightness
+7
+
+I'm not sure what it is that determines whether screen comes up dimmed
+after suspend and resume.  Seems to be related to whether power is
+plugged in and/or screen has dimmed automatically because of computer
+auto-suspending after in-activity.
+
+Thanks for your help.  John
