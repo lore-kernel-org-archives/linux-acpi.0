@@ -1,84 +1,32 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Wed, 30 Jul 2014 17:36:34 +0800
-Message-ID: <53D8BCA2.5020007@linaro.org>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>	<20140729112824.GM2576@leverpostej>	<CAMJs5B_Ye1eXsvJAKWnHRxC4jnpcXMcqHE+GgOGO7MHtPcsSQA@mail.gmail.com>	<351673188.FxXsM7MvdA@wuerfel>	<20140729130823.GP2576@leverpostej>	<CAMJs5B8uk7GDfEOEuY8RWDxzhzTRBGszRDN+JRKwG-D_rgzFrw@mail.gmail.com>	<53D894F0.1060102@linaro.org>
- <CAMJs5B8L8GBsYOUMvu36fNQDv+fEXrBYQYDhkAtJkFzS3VsdPQ@mail.gmail.com>
+From: William Dauchy <wdauchy@gmail.com>
+Subject: Re: WARNING: CPU: 0 PID: 2623 at drivers/pnp/pnpacpi/core.c:96 pnpacpi_set_resource
+Date: Wed, 30 Jul 2014 13:49:55 +0200
+Message-ID: <CAJ75kXa_h=A9yLjG=BtY4Fk_GY+37fb+u1x1wVy2n9X8S-P9KQ@mail.gmail.com>
+References: <5386F2C7.8080400@redhat.com> <2026468.U7VDB8Dm9m@vostro.rjw.lan>
+ <CAHTgTXXejANtoEeeUB59DTy1kU3ROYoOsNi-fLu==PAr6Kh+-Q@mail.gmail.com> <8487820.GRUnuPqyXT@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAMJs5B8L8GBsYOUMvu36fNQDv+fEXrBYQYDhkAtJkFzS3VsdPQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Christoffer Dall <christoffer.dall@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "rob.herring@linaro.org" <rob.herring@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vc0-f177.google.com ([209.85.220.177]:46158 "EHLO
+	mail-vc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752307AbaG3LuR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jul 2014 07:50:17 -0400
+In-Reply-To: <8487820.GRUnuPqyXT@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Vinson Lee <vlee@twopensource.com>, Zdenek Kabelac <zkabelac@redhat.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On 2014-7-30 15:14, Christoffer Dall wrote:
-> On 30 July 2014 08:47, Hanjun Guo <hanjun.guo@linaro.org> wrote:
->> On 2014-7-29 21:31, Christoffer Dall wrote:
->>> On 29 July 2014 15:08, Mark Rutland <mark.rutland@arm.com> wrote:
->>>> On Tue, Jul 29, 2014 at 01:52:40PM +0100, Arnd Bergmann wrote:
->>>>> On Tuesday 29 July 2014 14:37:38 Christoffer Dall wrote:
->>>>>>
->>>>>> For reference, Red Hat's current arguing point for ACPI in VMs is
->>>>>> hotplug of things like CPUs and memory for very large VMs, but I
->>>>>> haven't thought too carefully about this just yet, as I don't have a
->>>>>> 100+ core ARM 64-bit hardware lying around...
->>>>>
->>>>> I thought you could run guests with more virtual CPUs that you have
->>>>> physical CPUs on the host.
->>>>>
->>>>> Regarding CPU and memory hotplug, don't we already have PSCI and
->>>>> xen-balloon/virtio-balloon for that?
->>>>
->>>> PSCI (0.1) was there for guests from the start, and ACPI doesn't do
->>>> anything different w.r.t. PSCI other than requiring PSCI 0.2 (which can
->>>> be used by guests supporting only PSCI 0.1). So there's no magic for
->>>> CPU hotplug provided by ACPI.
->>>
->>> With PSCI you can only provide your VM a bunch of CPUs and say that
->>> they're all turned off, and then turn some of them on later.
->>
->> Yes, agreed.
->>
->>> I honestly don't know if you can do proper CPU hotplug with ACPI, but
->>> the RH guys seem to argue that you can.  Again, I didn't think too
->>> carefully about this.
->>
->> Yes, we can do proper CPU hotplug with ACPI based physical hotplug (named
->> dynamic device configuration in ACPI spec), you can refer to section 6.3
->> "Device Insertion, Removal, and Status Objects" in ACPI 5.1.
->>
->> There are mechanisms for handling dynamic insertion and removal of devices
->> and for determining device and notification processing status. When removing
->> a processor,
->>
->> a) we will call PSCI or similar interface to offline a CPU from OS, then
->>    OS will not use it any more;
->>
->> b) call ACPI API to trim the resources that allocated during device
->>    enumeration;
->>
->> c) Call ACPI method _EJ0 and then will notify firmware or hypervisor device
->>    will be removed, jump to firmware or hypervisor to remove the device
->>    from that level;
-> 
-> When you say notify hypervisor, would we really need a
-> hypervisor-specific interface if you're running UEFI as your firmware?
->  Can you not just call whatever UEFI service to remove a CPU and let
-> that UEFI implementation deal with the hypervisor/hardware interface?
+Hi Rafael,
 
-Yes, it should work as you said, OS will notfy UEFI and then UEFI deal with
-hypervisor interface, sorry, I didn't describe it clearly.
+On Wed, Jul 30, 2014 at 12:39 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> William, it would be good if you could test it too as I'd like to
+> push it for 3.16.
 
-Thanks
-Hanjun
+It also fixes the issue in 3.14.x
+
+Tested-by: William Dauchy <william@gandi.net>
+
+Thanks,
+-- 
+William
