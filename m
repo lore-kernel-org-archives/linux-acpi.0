@@ -1,56 +1,37 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 01/17] ACPICA: Work around an ancient GCC bug.
-Date: Wed, 30 Jul 2014 12:20:26 +0800
-Message-ID: <241406a9c052e09c383b26eded49497a3749ae52.1406689494.git.lv.zheng@intel.com>
+Subject: [PATCH 02/17] ACPICA: Remove a redundant cast to acpi_size for ACPI_OFFSET() macro.
+Date: Wed, 30 Jul 2014 12:20:33 +0800
+Message-ID: <8c0eb1a4a91a54436da56083a65aaf9f72683b92.1406689494.git.lv.zheng@intel.com>
 References: <cover.1406689493.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:53224 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750712AbaG3EUj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Jul 2014 00:20:39 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1406689493.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-warning: cast from function call of type 'char *' to non-matching type 'long unsigned int'
-
-Since acpi_ut_format_number() hasn't been enabled for the Linux kernel,
-this patch doesn't affect the Linux kernel.
+It is already casted to acpi_size by ACPI_PTR_DIFF() macro.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/utprint.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/acpi/actypes.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/utprint.c b/drivers/acpi/acpica/utprint.c
-index 1031164..080e22a 100644
---- a/drivers/acpi/acpica/utprint.c
-+++ b/drivers/acpi/acpica/utprint.c
-@@ -242,6 +242,7 @@ static char *acpi_ut_format_number(char *string,
- 				   u64 number,
- 				   u8 base, s32 width, s32 precision, u8 type)
- {
-+	char *pos;
- 	char sign;
- 	char zero;
- 	u8 need_prefix;
-@@ -289,9 +290,8 @@ static char *acpi_ut_format_number(char *string,
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 608a040..4d9b29c 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -517,7 +517,7 @@ typedef u64 acpi_integer;
  
- 	/* Generate full string in reverse order */
- 
--	i = ACPI_PTR_DIFF(acpi_ut_put_number
--			  (reversed_string, number, base, upper),
--			  reversed_string);
-+	pos = acpi_ut_put_number(reversed_string, number, base, upper);
-+	i = ACPI_PTR_DIFF(pos, reversed_string);
- 
- 	/* Printing 100 using %2d gives "100", not "00" */
+ #define ACPI_TO_POINTER(i)              ACPI_ADD_PTR (void, (void *) NULL,(acpi_size) i)
+ #define ACPI_TO_INTEGER(p)              ACPI_PTR_DIFF (p, (void *) NULL)
+-#define ACPI_OFFSET(d, f)               (acpi_size) ACPI_PTR_DIFF (&(((d *)0)->f), (void *) NULL)
++#define ACPI_OFFSET(d, f)               ACPI_PTR_DIFF (&(((d *) 0)->f), (void *) NULL)
+ #define ACPI_PHYSADDR_TO_PTR(i)         ACPI_TO_POINTER(i)
+ #define ACPI_PTR_TO_PHYSADDR(i)         ACPI_TO_INTEGER(i)
  
 -- 
 1.7.10
-
