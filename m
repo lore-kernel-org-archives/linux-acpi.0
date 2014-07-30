@@ -1,83 +1,146 @@
-From: Christoffer Dall <christoffer.dall@linaro.org>
-Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Wed, 30 Jul 2014 09:14:39 +0200
-Message-ID: <CAMJs5B8L8GBsYOUMvu36fNQDv+fEXrBYQYDhkAtJkFzS3VsdPQ@mail.gmail.com>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <20140729112824.GM2576@leverpostej>
- <CAMJs5B_Ye1eXsvJAKWnHRxC4jnpcXMcqHE+GgOGO7MHtPcsSQA@mail.gmail.com>
- <351673188.FxXsM7MvdA@wuerfel> <20140729130823.GP2576@leverpostej>
- <CAMJs5B8uk7GDfEOEuY8RWDxzhzTRBGszRDN+JRKwG-D_rgzFrw@mail.gmail.com>
- <53D894F0.1060102@linaro.org>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: PROBLEM: [Toshiba Portege Z835] Brightness control lost after
+ suspend
+Date: Wed, 30 Jul 2014 16:32:48 +0800
+Message-ID: <20140730083248.GA31763@aaronlu.sh.intel.com>
+References: <CACiopZBtRcixrXhHLB-6fc_Fvg5rhv+rqJjeSxkxDYBf0uu+kw@mail.gmail.com>
+ <53D7AF8F.7060401@intel.com>
+ <CACiopZCQpGeBw6V7qFpcV6u22stOQC8X9Aiwya3wE_cBZzL+PQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <53D894F0.1060102@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "rob.herring@linaro.org" <rob.herring@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:26392 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751496AbaG3Ic6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Jul 2014 04:32:58 -0400
+Content-Disposition: inline
+In-Reply-To: <CACiopZCQpGeBw6V7qFpcV6u22stOQC8X9Aiwya3wE_cBZzL+PQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: John Marsden <john.d.marsden@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On 30 July 2014 08:47, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> On 2014-7-29 21:31, Christoffer Dall wrote:
->> On 29 July 2014 15:08, Mark Rutland <mark.rutland@arm.com> wrote:
->>> On Tue, Jul 29, 2014 at 01:52:40PM +0100, Arnd Bergmann wrote:
->>>> On Tuesday 29 July 2014 14:37:38 Christoffer Dall wrote:
->>>>>
->>>>> For reference, Red Hat's current arguing point for ACPI in VMs is
->>>>> hotplug of things like CPUs and memory for very large VMs, but I
->>>>> haven't thought too carefully about this just yet, as I don't have a
->>>>> 100+ core ARM 64-bit hardware lying around...
->>>>
->>>> I thought you could run guests with more virtual CPUs that you have
->>>> physical CPUs on the host.
->>>>
->>>> Regarding CPU and memory hotplug, don't we already have PSCI and
->>>> xen-balloon/virtio-balloon for that?
->>>
->>> PSCI (0.1) was there for guests from the start, and ACPI doesn't do
->>> anything different w.r.t. PSCI other than requiring PSCI 0.2 (which can
->>> be used by guests supporting only PSCI 0.1). So there's no magic for
->>> CPU hotplug provided by ACPI.
->>
->> With PSCI you can only provide your VM a bunch of CPUs and say that
->> they're all turned off, and then turn some of them on later.
->
-> Yes, agreed.
->
->> I honestly don't know if you can do proper CPU hotplug with ACPI, but
->> the RH guys seem to argue that you can.  Again, I didn't think too
->> carefully about this.
->
-> Yes, we can do proper CPU hotplug with ACPI based physical hotplug (named
-> dynamic device configuration in ACPI spec), you can refer to section 6.3
-> "Device Insertion, Removal, and Status Objects" in ACPI 5.1.
->
-> There are mechanisms for handling dynamic insertion and removal of devices
-> and for determining device and notification processing status. When removing
-> a processor,
->
-> a) we will call PSCI or similar interface to offline a CPU from OS, then
->    OS will not use it any more;
->
-> b) call ACPI API to trim the resources that allocated during device
->    enumeration;
->
-> c) Call ACPI method _EJ0 and then will notify firmware or hypervisor device
->    will be removed, jump to firmware or hypervisor to remove the device
->    from that level;
+On Tue, Jul 29, 2014 at 07:20:59PM +0100, John Marsden wrote:
+> On 29 July 2014 15:28, Aaron Lu <aaron.lu@intel.com> wrote:
+> > Please attach acpidump to the Ubuntu bug page.
+> 
+> I installed acpidump from the Ubuntu Software Centre and tried running
+> it with the following result:
+>     sudo acpidump -z
+> 
+>    Intel ACPI Component Architecture
+>    ACPI Binary Table Dump Utility version 20140214-64 [Mar 29 2014]
+>    Copyright (c) 2000 - 2014 Intel Corporation
+> 
+>    Cannot map /dev/mem
+>    Could not map table at 0x00000000000F0030 length FEDA0000
+>    Could not get ACPI tables, AE_ACCESS
 
-When you say notify hypervisor, would we really need a
-hypervisor-specific interface if you're running UEFI as your firmware?
- Can you not just call whatever UEFI service to remove a CPU and let
-that UEFI implementation deal with the hypervisor/hardware interface?
+Hmm, no idea why this occured.
+The acpidump utility is available in the kernel tree:
+linux/tools/power/acpi
 
--Christoffer
+> 
+> I'm out of my depth with this.  However, with Google's help I found
+> https://www.kernel.org/doc/Documentation/acpi/initrd_table_override.txt
+> at the end of which it says:
+> "Alternatively, used ACPI tables can be retrieved via sysfs in latest
+> kernels: /sys/firmware/acpi/tables"
+> Using this hint I've saved the binary files from sysfs and then used
+> "acpidump -f filename" to create the file I've uploaded to the Ubuntu
+> bug.  Please advise if I need to follow some other procedure to get
+> what you want.
+
+It works, thanks.
+
+> 
+> > BTW, do you always have this problem or it starts to occur
+> > from some kernel version?
+> 
+> While triaging the bug on Ubuntu we've gone as far back as Ubuntu
+> 12.04.0 (Precise) which is what I first installed on the computer in
+> question.  It's been present in all versions we tested.
+> 
+> > Please also list your /sys/class/backlight with v3.16-rc kernel.
+> I trust this is what you require:
+> 
+>  ls -l /sys/class/backlight
+> total 0
+> lrwxrwxrwx 1 root root 0 Jul 29 17:06 acpi_video0 ->
+> ../../devices/pci0000:00/0000:00:02.0/backlight/acpi_video0
+> lrwxrwxrwx 1 root root 0 Jul 29 17:06 intel_backlight ->
+> ../../devices/pci0000:00/0000:00:02.0/drm/card0/card0-LVDS-1/intel_backlight
+> lrwxrwxrwx 1 root root 0 Jul 29 17:06 toshiba ->
+> ../../devices/LNXSYSTM:00/LNXSYBUS:00/TOS6208:00/backlight/toshiba
+> 
+> /sys/class/backlight/acpi_video0/* {cat or ls -l}
+>   actual_brightness: 7
+>   bl_power: 0
+>   brightness: 7
+>   device -> ../../../0000:00:02.0
+>   max_brightness: 7
+>   power/async:  disabled
+>   power/autosuspend_delay_ms - Input/output error
+>   power/control:  auto
+>   power/runtime_active_kids:  0
+>   power/runtime_active_time:  0
+>   power/runtime_enabled:  disabled
+>   power/runtime_status:  unsupported
+>   power/runtime_suspended_time:  0
+>   power/runtime_usage:  0
+>   subsystem -> ../../../../../class/backlight
+>   type: firmware
+>   uevent:
+> 
+> /sys/class/backlight/intel_backlight/* {cat or ls -l}
+>   actual_brightness: 249
+>   bl_power: 0
+>   brightness: 249
+>   device -> ../../card0-LVDS-1
+>   max_brightness: 4539
+>   power/async:  disabled
+>   power/autosuspend_delay_ms - Input/output error
+>   power/control:  auto
+>   power/runtime_active_kids:  0
+>   power/runtime_active_time:  0
+>   power/runtime_enabled:  disabled
+>   power/runtime_status:  unsupported
+>   power/runtime_suspended_time:  0
+>   power/runtime_usage:  0
+>   subsystem -> ../../../../../../../class/backlight
+>   type: raw
+>   uevent:
+> 
+> /sys/class/backlight/toshiba/* {cat or ls -l}
+>   actual_brightness: 7
+>   bl_power: 0
+>   brightness: 7
+>   device -> ../../../TOS6208:00
+>   max_brightness: 7
+>   power/async:  disabled
+>   power/autosuspend_delay_ms - Input/output error
+>   power/control:  auto
+>   power/runtime_active_kids:  0
+>   power/runtime_active_time:  0
+>   power/runtime_enabled:  disabled
+>   power/runtime_status:  unsupported
+>   power/runtime_suspended_time:  0
+>   power/runtime_usage:  0
+>   subsystem -> ../../../../../../class/backlight
+>   type: platform
+>   uevent:
+> 
+> 
+> Thank you for your help.  John
+
+You are welcome.
+
+I checked the dsdt table, the ACPI backlight interface makes use of SMI
+to do the backlight control(because of the 0xb2 io port write). It's
+beyond our control so I don't know how to fix the problem.
+
+Does the other interface work after resume? I mean the intel_backlight
+and the toshiba one?
+
+Thanks,
+Aaron
