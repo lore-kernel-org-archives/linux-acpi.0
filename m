@@ -1,38 +1,102 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: ACPI / dock: ThinkPad X220: \_SB_.PCI0.LPC_.EC__.BAT1: Unable to
- dock!
-Date: Tue, 29 Jul 2014 20:39:34 -0300
-Message-ID: <20140729233933.GA8539@khazad-dum.debian.net>
-References: <1406670374.2406.27.camel@x220>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 00/17] ACPICA: 20140724 Release
+Date: Wed, 30 Jul 2014 12:20:20 +0800
+Message-ID: <cover.1406689493.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2-smtp.messagingengine.com ([66.111.4.26]:36573 "EHLO
-	out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754433AbaG2Xjq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Jul 2014 19:39:46 -0400
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-	by gateway1.nyi.internal (Postfix) with ESMTP id 576EA23C5D
-	for <linux-acpi@vger.kernel.org>; Tue, 29 Jul 2014 19:39:46 -0400 (EDT)
-Content-Disposition: inline
-In-Reply-To: <1406670374.2406.27.camel@x220>
+Received: from mga14.intel.com ([192.55.52.115]:3961 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750712AbaG3EUd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Jul 2014 00:20:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Shaohua Li <shaohua.li@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rubin Abdi <rubin@starset.net>, linux-acpi@vger.kernel.org, linux-thinkpad@linux-thinkpad.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, 29 Jul 2014, Paul Bolle wrote:
-> 4) Perhaps Lenovo needs to update the ACPI part of this laptop's
-> firmware. (I'm running the latest firmware.) Does Lenovo listen to
-> suggestions to update its firmware?
+The 20140724 ACPICA kernel-resident subsystem updates are linuxized based
+on the pm/linux-next branch to form this patchset.
 
-Yes, they do.  Post a detailed report about this to the Linux-ThinkPad ML,
-with a suitable subject line.  If you're lucky, one of the lurkers @lenovo
-that read that list will do something about it.
+The patchset has passed the following build/boot tests.
+Build tests are performed as follows:
+1. i386 + default + COFNIG_ACPI=y
+2. i386 + allyes + CONFIG_ACPI=y
+3. i386 + default + COFNIG_ACPI=n
+4. i386 + allyes + CONFIG_ACPI=n
+5. x86_64 + default + COFNIG_ACPI=y
+6. x86_64 + allyes + CONFIG_ACPI=y
+7. x86_64 + default + COFNIG_ACPI=n
+8. x86_64 + allyes + CONFIG_ACPI=n
+Boot tests are performed as follows:
+1. i386 + default + COFNIG_ACPI=y
+2. x86_64 + default + COFNIG_ACPI=y
+Where:
+1. i386: machine named as "Dell Inspiron Mini 1010"
+2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
+3. default: kernel configuration with following items enabled:
+   All hardware drivers related to the machines of i386/x86_64
+   All drivers/acpi configurations
+   All platform drivers
+
+The divergences checking result:
+Before applying:
+  861 lines
+After applying:
+  848 lines
+
+Bob Moore (11):
+  ACPICA: Work around an ancient GCC bug.
+  ACPICA: Remove a redundant cast to acpi_size for ACPI_OFFSET() macro.
+  ACPICA: Disassembler: Add support for the ToUUID opererator (macro).
+  ACPICA: Update for comments/formatting. No functional changes.
+  ACPICA: Tables: Update for DMAR table changes.
+  ACPICA: acpihelp: Add UUID support, restructure some existing files.
+  ACPICA: Debug object: Add current value of Timer() to debug line
+    prefix.
+  ACPICA: ACPI 5.1: New notify value for System Affinity Update.
+  ACPICA: ACPI 5.1: Support for the _CCA predifined name.
+  ACPICA: ACPI 5.1: Update for PCCT table changes.
+  ACPICA: Update version to 20140724.
+
+David E. Box (1):
+  ACPICA: ACPI 5.1: Support for the _DSD predefined name.
+
+Graeme Gregory (1):
+  ACPICA/ARM: ACPI 5.1: Update for FADT changes.
+
+Lv Zheng (1):
+  ACPICA: Utilities: Fix local printf issue.
+
+Sascha Wildner (1):
+  ACPICA: Remove some extraneous printf arguments.
+
+Tomasz Nowicki (2):
+  ACPICA/ARM: ACPI 5.1: Update for MADT changes.
+  ACPICA/ARM: ACPI 5.1: Update for GTDT table changes.
+
+ drivers/acpi/acpica/Makefile   |    8 ++-
+ drivers/acpi/acpica/aclocal.h  |   18 ++++--
+ drivers/acpi/acpica/acpredef.h |   16 +++++-
+ drivers/acpi/acpica/acutils.h  |    9 +++
+ drivers/acpi/acpica/exdebug.c  |   11 +++-
+ drivers/acpi/acpica/exdump.c   |    6 +-
+ drivers/acpi/acpica/exfield.c  |   22 ++++----
+ drivers/acpi/acpica/utdecode.c |   32 +----------
+ drivers/acpi/acpica/utfileio.c |    3 +-
+ drivers/acpi/acpica/uthex.c    |  100 ++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/utprint.c  |    9 ++-
+ drivers/acpi/acpica/utuuid.c   |   96 ++++++++++++++++++++++++++++++++
+ drivers/iommu/dmar.c           |   28 +++++-----
+ include/acpi/acconfig.h        |   18 ++++++
+ include/acpi/acnames.h         |    1 +
+ include/acpi/acpixf.h          |    2 +-
+ include/acpi/actbl.h           |   12 +++-
+ include/acpi/actbl1.h          |   44 ++++++++++++++-
+ include/acpi/actbl2.h          |   14 ++---
+ include/acpi/actbl3.h          |  118 ++++++++++++++++++++++++++++++++++------
+ include/acpi/actypes.h         |    5 +-
+ 21 files changed, 468 insertions(+), 104 deletions(-)
+ create mode 100644 drivers/acpi/acpica/uthex.c
+ create mode 100644 drivers/acpi/acpica/utuuid.c
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.7.10
+
