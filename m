@@ -1,31 +1,60 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: WARNING: CPU: 0 PID: 2623 at drivers/pnp/pnpacpi/core.c:96 pnpacpi_set_resource
-Date: Wed, 30 Jul 2014 14:50:22 +0200
-Message-ID: <2051431.ekkUkyD6yC@vostro.rjw.lan>
-References: <5386F2C7.8080400@redhat.com> <8487820.GRUnuPqyXT@vostro.rjw.lan> <CAJ75kXa_h=A9yLjG=BtY4Fk_GY+37fb+u1x1wVy2n9X8S-P9KQ@mail.gmail.com>
+Subject: Re: ACPI/cpu hotplug: possible lockdep
+Date: Wed, 30 Jul 2014 15:12:49 +0200
+Message-ID: <1956231.f1vFNp0Nyx@vostro.rjw.lan>
+References: <53D88C5B.4060302@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJ75kXa_h=A9yLjG=BtY4Fk_GY+37fb+u1x1wVy2n9X8S-P9KQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: William Dauchy <wdauchy@gmail.com>
-Cc: Vinson Lee <vlee@twopensource.com>, Zdenek Kabelac <zkabelac@redhat.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:54370 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753286AbaG3MyR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Jul 2014 08:54:17 -0400
+In-Reply-To: <53D88C5B.4060302@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Cc: rafael.j.wysocki@intel.com, Tejun Heo <tj@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Wednesday, July 30, 2014 01:49:55 PM William Dauchy wrote:
+On Wednesday, July 30, 2014 02:10:35 PM Gu Zheng wrote:
 > Hi Rafael,
-> 
-> On Wed, Jul 30, 2014 at 12:39 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > William, it would be good if you could test it too as I'd like to
-> > push it for 3.16.
-> 
-> It also fixes the issue in 3.14.x
-> 
-> Tested-by: William Dauchy <william@gandi.net>
 
-Great, thanks for testing!
+Hi,
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> A lockdep warning occurs when hot removing a cpu via sysfs:
+> echo 1 > /sys/bus/acpi/devices/LNXCPU\:02/eject
+> The kernel is latest upstream, and the test box is a kvm vm,
+> detail info as following.
+
+Well, I have a theory.
+
+Is the splat still reproducible with the patch below applied?
+
+Rafael
+
+---
+ kernel/smp.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+Index: linux-pm/kernel/smp.c
+===================================================================
+--- linux-pm.orig/kernel/smp.c
++++ linux-pm/kernel/smp.c
+@@ -542,6 +542,7 @@ void __init smp_init(void)
+ 
+ 	idle_threads_init();
+ 
++	lock_device_hotplug();
+ 	/* FIXME: This should be done in userspace --RR */
+ 	for_each_present_cpu(cpu) {
+ 		if (num_online_cpus() >= setup_max_cpus)
+@@ -549,6 +550,7 @@ void __init smp_init(void)
+ 		if (!cpu_online(cpu))
+ 			cpu_up(cpu);
+ 	}
++	unlock_device_hotplug();
+ 
+ 	/* Any cleanup work */
+ 	smp_announce();
+
