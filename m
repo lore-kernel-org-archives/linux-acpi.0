@@ -1,102 +1,56 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 00/17] ACPICA: 20140724 Release
-Date: Wed, 30 Jul 2014 12:20:20 +0800
-Message-ID: <cover.1406689493.git.lv.zheng@intel.com>
+Subject: [PATCH 01/17] ACPICA: Work around an ancient GCC bug.
+Date: Wed, 30 Jul 2014 12:20:26 +0800
+Message-ID: <241406a9c052e09c383b26eded49497a3749ae52.1406689494.git.lv.zheng@intel.com>
+References: <cover.1406689493.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:3961 "EHLO mga14.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:53224 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750712AbaG3EUd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Jul 2014 00:20:33 -0400
+	id S1750712AbaG3EUj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Jul 2014 00:20:39 -0400
+In-Reply-To: <cover.1406689493.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-The 20140724 ACPICA kernel-resident subsystem updates are linuxized based
-on the pm/linux-next branch to form this patchset.
+From: Bob Moore <robert.moore@intel.com>
 
-The patchset has passed the following build/boot tests.
-Build tests are performed as follows:
-1. i386 + default + COFNIG_ACPI=y
-2. i386 + allyes + CONFIG_ACPI=y
-3. i386 + default + COFNIG_ACPI=n
-4. i386 + allyes + CONFIG_ACPI=n
-5. x86_64 + default + COFNIG_ACPI=y
-6. x86_64 + allyes + CONFIG_ACPI=y
-7. x86_64 + default + COFNIG_ACPI=n
-8. x86_64 + allyes + CONFIG_ACPI=n
-Boot tests are performed as follows:
-1. i386 + default + COFNIG_ACPI=y
-2. x86_64 + default + COFNIG_ACPI=y
-Where:
-1. i386: machine named as "Dell Inspiron Mini 1010"
-2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
-3. default: kernel configuration with following items enabled:
-   All hardware drivers related to the machines of i386/x86_64
-   All drivers/acpi configurations
-   All platform drivers
+warning: cast from function call of type 'char *' to non-matching type 'long unsigned int'
 
-The divergences checking result:
-Before applying:
-  861 lines
-After applying:
-  848 lines
+Since acpi_ut_format_number() hasn't been enabled for the Linux kernel,
+this patch doesn't affect the Linux kernel.
 
-Bob Moore (11):
-  ACPICA: Work around an ancient GCC bug.
-  ACPICA: Remove a redundant cast to acpi_size for ACPI_OFFSET() macro.
-  ACPICA: Disassembler: Add support for the ToUUID opererator (macro).
-  ACPICA: Update for comments/formatting. No functional changes.
-  ACPICA: Tables: Update for DMAR table changes.
-  ACPICA: acpihelp: Add UUID support, restructure some existing files.
-  ACPICA: Debug object: Add current value of Timer() to debug line
-    prefix.
-  ACPICA: ACPI 5.1: New notify value for System Affinity Update.
-  ACPICA: ACPI 5.1: Support for the _CCA predifined name.
-  ACPICA: ACPI 5.1: Update for PCCT table changes.
-  ACPICA: Update version to 20140724.
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/utprint.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-David E. Box (1):
-  ACPICA: ACPI 5.1: Support for the _DSD predefined name.
-
-Graeme Gregory (1):
-  ACPICA/ARM: ACPI 5.1: Update for FADT changes.
-
-Lv Zheng (1):
-  ACPICA: Utilities: Fix local printf issue.
-
-Sascha Wildner (1):
-  ACPICA: Remove some extraneous printf arguments.
-
-Tomasz Nowicki (2):
-  ACPICA/ARM: ACPI 5.1: Update for MADT changes.
-  ACPICA/ARM: ACPI 5.1: Update for GTDT table changes.
-
- drivers/acpi/acpica/Makefile   |    8 ++-
- drivers/acpi/acpica/aclocal.h  |   18 ++++--
- drivers/acpi/acpica/acpredef.h |   16 +++++-
- drivers/acpi/acpica/acutils.h  |    9 +++
- drivers/acpi/acpica/exdebug.c  |   11 +++-
- drivers/acpi/acpica/exdump.c   |    6 +-
- drivers/acpi/acpica/exfield.c  |   22 ++++----
- drivers/acpi/acpica/utdecode.c |   32 +----------
- drivers/acpi/acpica/utfileio.c |    3 +-
- drivers/acpi/acpica/uthex.c    |  100 ++++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/utprint.c  |    9 ++-
- drivers/acpi/acpica/utuuid.c   |   96 ++++++++++++++++++++++++++++++++
- drivers/iommu/dmar.c           |   28 +++++-----
- include/acpi/acconfig.h        |   18 ++++++
- include/acpi/acnames.h         |    1 +
- include/acpi/acpixf.h          |    2 +-
- include/acpi/actbl.h           |   12 +++-
- include/acpi/actbl1.h          |   44 ++++++++++++++-
- include/acpi/actbl2.h          |   14 ++---
- include/acpi/actbl3.h          |  118 ++++++++++++++++++++++++++++++++++------
- include/acpi/actypes.h         |    5 +-
- 21 files changed, 468 insertions(+), 104 deletions(-)
- create mode 100644 drivers/acpi/acpica/uthex.c
- create mode 100644 drivers/acpi/acpica/utuuid.c
-
+diff --git a/drivers/acpi/acpica/utprint.c b/drivers/acpi/acpica/utprint.c
+index 1031164..080e22a 100644
+--- a/drivers/acpi/acpica/utprint.c
++++ b/drivers/acpi/acpica/utprint.c
+@@ -242,6 +242,7 @@ static char *acpi_ut_format_number(char *string,
+ 				   u64 number,
+ 				   u8 base, s32 width, s32 precision, u8 type)
+ {
++	char *pos;
+ 	char sign;
+ 	char zero;
+ 	u8 need_prefix;
+@@ -289,9 +290,8 @@ static char *acpi_ut_format_number(char *string,
+ 
+ 	/* Generate full string in reverse order */
+ 
+-	i = ACPI_PTR_DIFF(acpi_ut_put_number
+-			  (reversed_string, number, base, upper),
+-			  reversed_string);
++	pos = acpi_ut_put_number(reversed_string, number, base, upper);
++	i = ACPI_PTR_DIFF(pos, reversed_string);
+ 
+ 	/* Printing 100 using %2d gives "100", not "00" */
+ 
 -- 
 1.7.10
 
