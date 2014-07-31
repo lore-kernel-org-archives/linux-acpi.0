@@ -1,37 +1,71 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH V2] ACPI/Processor: Make acpi_cpu_soft_notify() process CPU FROZEN events
-Date: Thu, 31 Jul 2014 22:28:50 +0800
-Message-ID: <1406816930-22138-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [PATCH] Replace faulty is_hex_digit() by isxdigit()
+Date: Thu, 31 Jul 2014 09:31:37 -0700
+Message-ID: <53DA6F69.5050500@infradead.org>
+References: <53D9895A.1030902@infradead.org> <1406797489-4296-1-git-send-email-arjun024@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from casper.infradead.org ([85.118.1.10]:48991 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751316AbaGaQbm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jul 2014 12:31:42 -0400
+In-Reply-To: <1406797489-4296-1-git-send-email-arjun024@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arjun Sreedharan <arjun024@gmail.com>, rjw@rjwysocki.net
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, joe@perches.com
 
-CPU hotplug happens during S2RAM and CPU notify event will be CPU_XXX_FROZEN.
-acpi_cpu_soft_notify() ignores to check these events. This also may make
-acpi_cpu_soft_notify() fall into sleep during CPU_DYING/STARTING_FROZEN
-events which don't allow callbacks to sleep. This patch is to fix it.
+On 07/31/14 02:04, Arjun Sreedharan wrote:
+> 0 is ascii for NULL. Hex digit matching should be from '0'.
+> Faulty version returns true for #,$,%,& etc.
+> 
+> Signed-off-by: Arjun Sreedharan <arjun024@gmail.com>
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
-Change since v1:
-	unmark CPU_TASKS_FROZEN for all cpu events.
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 
- drivers/acpi/processor_driver.c | 1 +
- 1 file changed, 1 insertion(+)
+Thanks.
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 4fcbd67..d9f7158 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -120,6 +120,7 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
- 	unsigned int cpu = (unsigned long)hcpu;
- 	struct acpi_processor *pr = per_cpu(processors, cpu);
- 	struct acpi_device *device;
-+	action &= ~CPU_TASKS_FROZEN;
- 
- 	/*
- 	 * CPU_STARTING and CPU_DYING must not sleep. Return here since
+> ---
+>  drivers/acpi/acpi_pnp.c | 8 ++------
+>  1 file changed, 2 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
+> index 4ddb0dc..996fa19 100644
+> --- a/drivers/acpi/acpi_pnp.c
+> +++ b/drivers/acpi/acpi_pnp.c
+> @@ -12,6 +12,7 @@
+>  
+>  #include <linux/acpi.h>
+>  #include <linux/module.h>
+> +#include <linux/ctype.h>
+>  
+>  static const struct acpi_device_id acpi_pnp_device_ids[] = {
+>  	/* soc_button_array */
+> @@ -320,11 +321,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[] = {
+>  	{""},
+>  };
+>  
+> -static bool is_hex_digit(char c)
+> -{
+> -	return (c >= 0 && c <= '9') || (c >= 'A' && c <= 'F');
+> -}
+> -
+>  static bool matching_id(char *idstr, char *list_id)
+>  {
+>  	int i;
+> @@ -335,7 +331,7 @@ static bool matching_id(char *idstr, char *list_id)
+>  	for (i = 3; i < 7; i++) {
+>  		char c = toupper(idstr[i]);
+>  
+> -		if (!is_hex_digit(c)
+> +		if (!isxdigit(c)
+>  		    || (list_id[i] != 'X' && c != toupper(list_id[i])))
+>  			return false;
+>  	}
+> 
+
+
 -- 
-1.8.4.rc0.1.g8f6a3e5.dirty
+~Randy
