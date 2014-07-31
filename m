@@ -1,51 +1,77 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI PNP fix for v3.16-rc6
-Date: Thu, 31 Jul 2014 23:31:39 +0200
-Message-ID: <CAJZ5v0jNqU12myfkpkODPnOTKpfRPcJYbS6GyKr+Rbq-fU_67g@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] Replace faulty is_hex_digit() by isxdigit()
+Date: Fri, 01 Aug 2014 00:31:43 +0200
+Message-ID: <5145034.POXy6gNNQG@vostro.rjw.lan>
+References: <53D9895A.1030902@infradead.org> <1406797489-4296-1-git-send-email-arjun024@gmail.com> <53DA6F69.5050500@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f50.google.com ([209.85.219.50]:39823 "EHLO
-	mail-oa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751712AbaGaVbk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jul 2014 17:31:40 -0400
+Received: from v094114.home.net.pl ([79.96.170.134]:60578 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750952AbaGaWNJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jul 2014 18:13:09 -0400
+In-Reply-To: <53DA6F69.5050500@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: Arjun Sreedharan <arjun024@gmail.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, joe@perches.com
 
-Hi Linus,
+On Thursday, July 31, 2014 09:31:37 AM Randy Dunlap wrote:
+> On 07/31/14 02:04, Arjun Sreedharan wrote:
+> > 0 is ascii for NULL. Hex digit matching should be from '0'.
+> > Faulty version returns true for #,$,%,& etc.
+> > 
+> > Signed-off-by: Arjun Sreedharan <arjun024@gmail.com>
+> 
+> Acked-by: Randy Dunlap <rdunlap@infradead.org>
 
-Please pull from
+Applied, thanks!
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-3.16-rc8
+> Thanks.
+> 
+> > ---
+> >  drivers/acpi/acpi_pnp.c | 8 ++------
+> >  1 file changed, 2 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
+> > index 4ddb0dc..996fa19 100644
+> > --- a/drivers/acpi/acpi_pnp.c
+> > +++ b/drivers/acpi/acpi_pnp.c
+> > @@ -12,6 +12,7 @@
+> >  
+> >  #include <linux/acpi.h>
+> >  #include <linux/module.h>
+> > +#include <linux/ctype.h>
+> >  
+> >  static const struct acpi_device_id acpi_pnp_device_ids[] = {
+> >  	/* soc_button_array */
+> > @@ -320,11 +321,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[] = {
+> >  	{""},
+> >  };
+> >  
+> > -static bool is_hex_digit(char c)
+> > -{
+> > -	return (c >= 0 && c <= '9') || (c >= 'A' && c <= 'F');
+> > -}
+> > -
+> >  static bool matching_id(char *idstr, char *list_id)
+> >  {
+> >  	int i;
+> > @@ -335,7 +331,7 @@ static bool matching_id(char *idstr, char *list_id)
+> >  	for (i = 3; i < 7; i++) {
+> >  		char c = toupper(idstr[i]);
+> >  
+> > -		if (!is_hex_digit(c)
+> > +		if (!isxdigit(c)
+> >  		    || (list_id[i] != 'X' && c != toupper(list_id[i])))
+> >  			return false;
+> >  	}
+> > 
+> 
+> 
+> 
 
-to receive an ACPI PNP fix for v3.16-rc8 (if there is -rc8
-or for the final v3.16 otherwise) with top-most commit
-b6328a07bd6b3d31b64f85864fe74f3b08c010ca
-
- ACPI / PNP: Fix acpi_pnp_match()
-
-on top of commit 64aa90f26c06e1cb2aacfb98a7d0eccfbd6c1a91
-
- Linux 3.16-rc7
-
-That's just one commit that fixes a problem causing PNP devices
-to be associated with wrong ACPI device objects sometimes during
-device enumeration due to an incorrect check in a matching function.
-That problem was uncovered by the ACPI device enumeration rework
-in 3.14.
-
-Thanks!
-
-
----------------
-
-Rafael J. Wysocki (1):
-      ACPI / PNP: Fix acpi_pnp_match()
-
----------------
-
- drivers/pnp/pnpacpi/core.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
