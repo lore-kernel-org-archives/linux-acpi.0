@@ -1,54 +1,37 @@
-From: Jie Yang <yang.jie@intel.com>
-Subject: [PATCH] ACPI / LPSS: add lpss device for wpt
-Date: Thu, 31 Jul 2014 21:39:08 +0800
-Message-ID: <1406813948-10417-1-git-send-email-yang.jie@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:64241 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750911AbaGaNiM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 Jul 2014 09:38:12 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH V2] ACPI/Processor: Make acpi_cpu_soft_notify() process CPU FROZEN events
+Date: Thu, 31 Jul 2014 22:28:50 +0800
+Message-ID: <1406816930-22138-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-kernel@vger.kernel.org, andriy.shevchenko@linux.intel.com, liam.r.girdwood@intel.com, vinod.koul@intel.com, yang.jie@intel.com, mengdong.lin@intel.com
 
-Add lpss device "INT3438" for wpt, which also require
-clock before the dma engine who is built in ADSP
-probing. Otherwise, the probing may faild.
+CPU hotplug happens during S2RAM and CPU notify event will be CPU_XXX_FROZEN.
+acpi_cpu_soft_notify() ignores to check these events. This also may make
+acpi_cpu_soft_notify() fall into sleep during CPU_DYING/STARTING_FROZEN
+events which don't allow callbacks to sleep. This patch is to fix it.
 
-Signed-off-by: Jie Yang <yang.jie@intel.com>
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 ---
- drivers/acpi/acpi_lpss.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Change since v1:
+	unmark CPU_TASKS_FROZEN for all cpu events.
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 9cb65b0..ce06149 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -113,6 +113,14 @@ static void lpss_i2c_setup(struct lpss_private_data *pdata)
- 	writel(val, pdata->mmio_base + offset);
- }
+ drivers/acpi/processor_driver.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 4fcbd67..d9f7158 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -120,6 +120,7 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
+ 	unsigned int cpu = (unsigned long)hcpu;
+ 	struct acpi_processor *pr = per_cpu(processors, cpu);
+ 	struct acpi_device *device;
++	action &= ~CPU_TASKS_FROZEN;
  
-+static struct lpss_device_desc wpt_dev_desc = {
-+	.clk_required = true,
-+	.prv_offset = 0x800,
-+	.ltr_required = true,
-+	.clk_divider = true,
-+	.clk_gate = true,
-+};
-+
- static struct lpss_device_desc lpt_dev_desc = {
- 	.clk_required = true,
- 	.prv_offset = 0x800,
-@@ -226,6 +234,8 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
- 	{ "INT3436", LPSS_ADDR(lpt_sdio_dev_desc) },
- 	{ "INT3437", },
- 
-+	{ "INT3438", LPSS_ADDR(wpt_dev_desc) },
-+
- 	{ }
- };
- 
+ 	/*
+ 	 * CPU_STARTING and CPU_DYING must not sleep. Return here since
 -- 
-1.8.3.2
-
+1.8.4.rc0.1.g8f6a3e5.dirty
