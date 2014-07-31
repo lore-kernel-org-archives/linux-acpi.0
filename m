@@ -1,52 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI/Processor: Add CPU_STARTING_FROZEN check in the acpi_cpu_soft_notify()
-Date: Thu, 31 Jul 2014 23:20:04 +0200
-Message-ID: <1560513.OlLhy0HTTU@vostro.rjw.lan>
-References: <1406798426-16483-1-git-send-email-tianyu.lan@intel.com>
+From: John Marsden <john.d.marsden@gmail.com>
+Subject: Re: PROBLEM: [Toshiba Portege Z835] Brightness control lost after suspend
+Date: Thu, 31 Jul 2014 22:05:14 +0100
+Message-ID: <CACiopZCrfyqxgqS8NoF5Hi-K-0zM+8YHsyXqfhWKgjU65n4-Pg@mail.gmail.com>
+References: <CACiopZBtRcixrXhHLB-6fc_Fvg5rhv+rqJjeSxkxDYBf0uu+kw@mail.gmail.com>
+	<53D7AF8F.7060401@intel.com>
+	<CACiopZCQpGeBw6V7qFpcV6u22stOQC8X9Aiwya3wE_cBZzL+PQ@mail.gmail.com>
+	<20140730083248.GA31763@aaronlu.sh.intel.com>
+	<CACiopZA=5wHsjjzOKrC7aqCp13g8vLwnegcdFrySoS-_kD60Aw@mail.gmail.com>
+	<20140731080947.GD20462@aaronlu.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1406798426-16483-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:54132 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751336AbaGaVFQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jul 2014 17:05:16 -0400
+Received: by mail-la0-f50.google.com with SMTP id gf5so2508134lab.37
+        for <linux-acpi@vger.kernel.org>; Thu, 31 Jul 2014 14:05:14 -0700 (PDT)
+In-Reply-To: <20140731080947.GD20462@aaronlu.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Thursday, July 31, 2014 05:20:26 PM Lan Tianyu wrote:
-> The callback of CPU_STARTING event can't sleep and so acpi_cpu_soft_notify()
-> return directly when CPU_STARTING event is triggered. But cpu hotplug also
-> happens during S2RAM. The action will become CPU_STARTING_FROZEN. This
-> patch is to fix missing check the frozen event.
-> 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+On 31 July 2014 09:09, Aaron Lu <aaron.lu@intel.com> wrote:
+> Please add acpi_backlight=vendor to kernel cmdline and see if that makes
+> the backlight work. What it does is to tell ACPI video module not to
+> create the acpi_videoX sysfs interface and let's see if X server will
+> pick up the intel_backlight one.
 
-There is work to restructure the handling of CPU_TASKS_FROZEN under way
-and Chen Gong is driving it.  That's likely to conflict with the last
-two patches from you.  Can you pleaes coordinate with Gong?
+Adding acpi_backlight=vendor to the kernel cmdline results in the
+brightness controls not working from first boot, not just after a
+suspend.
 
-Rafael
+Detailed test results:
 
+After fresh boot into 3.16-rc with acpi_backlight=vendor added to the
+kernel cmdline
+ls -l /sys/class/backlight
+total 0
+lrwxrwxrwx 1 root root 0 Jul 31 21:38 intel_backlight ->
+../../devices/pci0000:00/0000:00:02.0/drm/card0/card0-LVDS-1/intel_backlight
+lrwxrwxrwx 1 root root 0 Jul 31 21:38 toshiba ->
+../../devices/LNXSYSTM:00/LNXSYBUS:00/TOS6208:00/backlight/toshiba
 
-> ---
->  drivers/acpi/processor_driver.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> index 4fcbd67..66e2249 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -125,7 +125,7 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
->  	 * CPU_STARTING and CPU_DYING must not sleep. Return here since
->  	 * acpi_bus_get_device() may sleep.
->  	 */
-> -	if (action == CPU_STARTING || action == CPU_DYING)
-> +	if ((action & ~CPU_TASKS_FROZEN) == CPU_STARTING || action == CPU_DYING)
->  		return NOTIFY_DONE;
->  
->  	if (!pr || acpi_bus_get_device(pr->handle, &device))
-> 
+Attempts to adjust brightness via user interfaces (system settings and
+function keys) fail to change brightness.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+It remains possible to adjust brightness by directly writing to
+/sys/class/backlight/intel_backlight/brightness but, as before, not by
+writing to  /sys/class/backlight/toshiba/brightness.
+
+After suspend and resume same test results.
+
+Regards,  John
