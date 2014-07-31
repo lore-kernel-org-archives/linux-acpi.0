@@ -1,55 +1,50 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / processor: Make it possible to get local x2apic id via _MAT
-Date: Fri, 01 Aug 2014 00:33:58 +0200
-Message-ID: <2739917.F5vOHu97Pp@vostro.rjw.lan>
-References: <1406604470-4800-1-git-send-email-hanjun.guo@linaro.org>
+Subject: Re: [PATCH] acpi-video: Add video.use_native_backlight=1 for HP EliteBook 2014 models
+Date: Fri, 01 Aug 2014 00:34:48 +0200
+Message-ID: <2960160.qfql3hv0oU@vostro.rjw.lan>
+References: <1406561853-30723-1-git-send-email-hdegoede@redhat.com> <1406561853-30723-2-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51788 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751829AbaGaWPY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jul 2014 18:15:24 -0400
-In-Reply-To: <1406604470-4800-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1406561853-30723-2-git-send-email-hdegoede@redhat.com>
+Sender: stable-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, July 29, 2014 11:27:50 AM Hanjun Guo wrote:
-> Logical processors with APIC ID values of 255 and greater are
-> required to have a Processor Device object and must convey the
-> processor's APIC information to OSPM using the Processor Local
-> X2APIC structure, but not until ACPI 5.1, X2APIC structure was
-> not supported in _MAT method.
+On Monday, July 28, 2014 05:37:33 PM Hans de Goede wrote:
+> https://bugzilla.redhat.com/show_bug.cgi?id=1123565
 > 
-> _MAT is needed for CPU hotplug and system with more than 255
-> CPUs will definitely need X2APIC structure, so add its support
-> in map_mat_entry() to make it possible to get local x2apic id
-> via _MAT based on ACPI 5.1.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
 Applied, thanks!
 
 > ---
->  drivers/acpi/processor_core.c |    2 ++
->  1 file changed, 2 insertions(+)
+>  drivers/acpi/video.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
 > 
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index 00f48d1..e32321c 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -129,6 +129,8 @@ static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
->  		map_lapic_id(header, acpi_id, &apic_id);
->  	} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
->  		map_lsapic_id(header, type, acpi_id, &apic_id);
-> +	} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
-> +		map_x2apic_id(header, type, acpi_id, &apic_id);
->  	}
->  
->  exit:
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 18c0e69..8268843 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -673,6 +673,15 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  	},
+>  	{
+>  	.callback = video_set_use_native_backlight,
+> +	.ident = "HP EliteBook 2014 models",
+> +	.matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook "),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, " G2"),
+> +		},
+> +	},
+> +	{
+> +	.callback = video_set_use_native_backlight,
+>  	.ident = "HP ZBook 14",
+>  	.matches = {
+>  		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
 > 
 
 -- 
