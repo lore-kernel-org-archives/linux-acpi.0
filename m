@@ -1,96 +1,55 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 08/19] ACPI / table: Print GIC information when MADT is
- parsed
-Date: Thu, 31 Jul 2014 16:15:26 +0800
-Message-ID: <53D9FB1E.5080007@linaro.org>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org> <1406206825-15590-9-git-send-email-hanjun.guo@linaro.org> <53D937B5.5040404@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:46478 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756098AbaGaIQo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jul 2014 04:16:44 -0400
-Received: by mail-pd0-f177.google.com with SMTP id p10so3031147pdj.36
-        for <linux-acpi@vger.kernel.org>; Thu, 31 Jul 2014 01:16:44 -0700 (PDT)
-In-Reply-To: <53D937B5.5040404@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Arjun Sreedharan <arjun024@gmail.com>
+Subject: [PATCH] Replace faulty is_hex_digit() by isxdigit()
+Date: Thu, 31 Jul 2014 14:34:49 +0530
+Message-ID: <1406797489-4296-1-git-send-email-arjun024@gmail.com>
+References: <53D9895A.1030902@infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53D9895A.1030902@infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, rdunlap@infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>
-Cc: "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@li>
 
-On 2014-7-31 2:21, Sudeep Holla wrote:
-> On 24/07/14 14:00, Hanjun Guo wrote:
->> When MADT is parsed, print GIC information to make the boot
->> log look pretty.
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->> ---
->>   drivers/acpi/tables.c |   39 ++++++++++++++++++++++++++++++++++++++-
->>   1 file changed, 38 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
->> index 6d5a6cd..8bb8159 100644
->> --- a/drivers/acpi/tables.c
->> +++ b/drivers/acpi/tables.c
->> @@ -183,6 +183,44 @@ void acpi_table_print_madt_entry(struct
->> acpi_subtable_header *header)
->>           }
->>           break;
->>
->> +    case ACPI_MADT_TYPE_GENERIC_INTERRUPT:
->> +        {
->> +            struct acpi_madt_generic_interrupt *p =
->> +                (struct acpi_madt_generic_interrupt *)header;
->> +            pr_info("GICC (acpi_id[0x%04x] cpu_address[0x%08llx]
->> MPDIR[0x%llx] %s)\n",
-> 
-> What exactly does cpu_address mean ? Better s/cpu_address/address
+0 is ascii for NULL. Hex digit matching should be from '0'.
+Faulty version returns true for #,$,%,& etc.
 
-Agreed.
+Signed-off-by: Arjun Sreedharan <arjun024@gmail.com>
+---
+ drivers/acpi/acpi_pnp.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-> 
->> +                p->uid, p->base_address, p->mpidr,
->> +                (p->flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
->> +
->> +        }
->> +        break;
->> +
->> +    case ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR:
->> +        {
->> +            struct acpi_madt_generic_distributor *p =
->> +                (struct acpi_madt_generic_distributor *)header;
->> +            pr_info("GIC Distributor (id[0x%04x] address[0x%08llx]
->> gsi_base[%d])\n",
->> +                p->gic_id, p->base_address, p->global_irq_base);
->> +        }
->> +        break;
->> +
->> +    case ACPI_MADT_TYPE_GIC_MSI_FRAME:
->> +        {
->> +            struct acpi_madt_gic_msi_frame *p =
->> +                (struct acpi_madt_gic_msi_frame *)header;
->> +            pr_info("GIC MSI Frame (address[0x%08llx] msi_fame_id[%d])\n",
->> +                p->base_address, p->gic_msi_frame_id);
->> +        }
->> +        break;
->> +
->> +    case ACPI_MADT_TYPE_GIC_REDISTRIBUTOR:
->> +        {
->> +            struct acpi_madt_gic_redistributor *p =
->> +                (struct acpi_madt_gic_redistributor *)header;
->> +            pr_info("GIC Redistributor (address[0x%08llx] region_size[0x%x])\n",
->> +                p->base_address, p->region_size);
->> +        }
->> +        break;
->> +
-> 
-> You may need to rework on the variable names when you rebase on ACPICA 20140724
-
-Yes, I'm working on it :)
-
-Thanks
-Hanjun
-
+diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
+index 4ddb0dc..996fa19 100644
+--- a/drivers/acpi/acpi_pnp.c
++++ b/drivers/acpi/acpi_pnp.c
+@@ -12,6 +12,7 @@
+ 
+ #include <linux/acpi.h>
+ #include <linux/module.h>
++#include <linux/ctype.h>
+ 
+ static const struct acpi_device_id acpi_pnp_device_ids[] = {
+ 	/* soc_button_array */
+@@ -320,11 +321,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[] = {
+ 	{""},
+ };
+ 
+-static bool is_hex_digit(char c)
+-{
+-	return (c >= 0 && c <= '9') || (c >= 'A' && c <= 'F');
+-}
+-
+ static bool matching_id(char *idstr, char *list_id)
+ {
+ 	int i;
+@@ -335,7 +331,7 @@ static bool matching_id(char *idstr, char *list_id)
+ 	for (i = 3; i < 7; i++) {
+ 		char c = toupper(idstr[i]);
+ 
+-		if (!is_hex_digit(c)
++		if (!isxdigit(c)
+ 		    || (list_id[i] != 'X' && c != toupper(list_id[i])))
+ 			return false;
+ 	}
+-- 
+1.7.11.7
