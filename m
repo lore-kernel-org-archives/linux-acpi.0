@@ -1,51 +1,52 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi-video: Add video.use_native_backlight=1 for HP EliteBook 2014 models
-Date: Fri, 01 Aug 2014 00:34:48 +0200
-Message-ID: <2960160.qfql3hv0oU@vostro.rjw.lan>
-References: <1406561853-30723-1-git-send-email-hdegoede@redhat.com> <1406561853-30723-2-git-send-email-hdegoede@redhat.com>
+Subject: Re: [PATCH -next] ACPI / battery: remove duplicated include from battery.c
+Date: Fri, 01 Aug 2014 00:35:19 +0200
+Message-ID: <2629685.sZftHArbHt@vostro.rjw.lan>
+References: <1406553775-30104-1-git-send-email-weiyj_lk@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1406561853-30723-2-git-send-email-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-acpi@vger.kernel.org, stable@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:55361 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750789AbaGaWQp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Jul 2014 18:16:45 -0400
+In-Reply-To: <1406553775-30104-1-git-send-email-weiyj_lk@163.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: weiyj_lk@163.com
+Cc: Len Brown <lenb@kernel.org>, Wei Yongjun <yongjun_wei@trendmicro.com.cn>, linux-acpi@vger.kernel.org
 
-On Monday, July 28, 2014 05:37:33 PM Hans de Goede wrote:
-> https://bugzilla.redhat.com/show_bug.cgi?id=1123565
+On Monday, July 28, 2014 09:22:55 PM weiyj_lk@163.com wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 > 
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> Remove duplicated include.
+> 
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
 Applied, thanks!
 
 > ---
->  drivers/acpi/video.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
+>  drivers/acpi/battery.c | 1 -
+>  1 file changed, 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 18c0e69..8268843 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -673,6 +673,15 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  	},
->  	{
->  	.callback = video_set_use_native_backlight,
-> +	.ident = "HP EliteBook 2014 models",
-> +	.matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "HP EliteBook "),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, " G2"),
-> +		},
-> +	},
-> +	{
-> +	.callback = video_set_use_native_backlight,
->  	.ident = "HP ZBook 14",
->  	.matches = {
->  		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 130f513..48bcf38 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -35,7 +35,6 @@
+>  #include <linux/delay.h>
+>  #include <linux/slab.h>
+>  #include <linux/suspend.h>
+> -#include <linux/delay.h>
+>  #include <asm/unaligned.h>
+>  
+>  #ifdef CONFIG_ACPI_PROCFS_POWER
 > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 I speak only for myself.
