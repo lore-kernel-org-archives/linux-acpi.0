@@ -1,55 +1,40 @@
-From: Arjun Sreedharan <arjun024@gmail.com>
-Subject: [PATCH] Replace faulty is_hex_digit() by isxdigit()
-Date: Thu, 31 Jul 2014 14:34:49 +0530
-Message-ID: <1406797489-4296-1-git-send-email-arjun024@gmail.com>
-References: <53D9895A.1030902@infradead.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53D9895A.1030902@infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, rdunlap@infradead.org
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH] ACPI/Processor: Add CPU_STARTING_FROZEN check in the acpi_cpu_soft_notify()
+Date: Thu, 31 Jul 2014 17:20:26 +0800
+Message-ID: <1406798426-16483-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:29248 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932262AbaGaJWl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 Jul 2014 05:22:41 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-0 is ascii for NULL. Hex digit matching should be from '0'.
-Faulty version returns true for #,$,%,& etc.
+The callback of CPU_STARTING event can't sleep and so acpi_cpu_soft_notify()
+return directly when CPU_STARTING event is triggered. But cpu hotplug also
+happens during S2RAM. The action will become CPU_STARTING_FROZEN. This
+patch is to fix missing check the frozen event.
 
-Signed-off-by: Arjun Sreedharan <arjun024@gmail.com>
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 ---
- drivers/acpi/acpi_pnp.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/acpi/processor_driver.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
-index 4ddb0dc..996fa19 100644
---- a/drivers/acpi/acpi_pnp.c
-+++ b/drivers/acpi/acpi_pnp.c
-@@ -12,6 +12,7 @@
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 4fcbd67..66e2249 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -125,7 +125,7 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
+ 	 * CPU_STARTING and CPU_DYING must not sleep. Return here since
+ 	 * acpi_bus_get_device() may sleep.
+ 	 */
+-	if (action == CPU_STARTING || action == CPU_DYING)
++	if ((action & ~CPU_TASKS_FROZEN) == CPU_STARTING || action == CPU_DYING)
+ 		return NOTIFY_DONE;
  
- #include <linux/acpi.h>
- #include <linux/module.h>
-+#include <linux/ctype.h>
- 
- static const struct acpi_device_id acpi_pnp_device_ids[] = {
- 	/* soc_button_array */
-@@ -320,11 +321,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[] = {
- 	{""},
- };
- 
--static bool is_hex_digit(char c)
--{
--	return (c >= 0 && c <= '9') || (c >= 'A' && c <= 'F');
--}
--
- static bool matching_id(char *idstr, char *list_id)
- {
- 	int i;
-@@ -335,7 +331,7 @@ static bool matching_id(char *idstr, char *list_id)
- 	for (i = 3; i < 7; i++) {
- 		char c = toupper(idstr[i]);
- 
--		if (!is_hex_digit(c)
-+		if (!isxdigit(c)
- 		    || (list_id[i] != 'X' && c != toupper(list_id[i])))
- 			return false;
- 	}
+ 	if (!pr || acpi_bus_get_device(pr->handle, &device))
 -- 
-1.7.11.7
+1.8.4.rc0.1.g8f6a3e5.dirty
+
