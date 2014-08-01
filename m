@@ -1,33 +1,36 @@
-From: Fabian Morision <fmorision4@gmail.com>
-Subject: -- Re: Very Urgent............
-Date: Fri, 1 Aug 2014 12:28:39 +0200
-Message-ID: <CAPnz-TbxDErDjS5YvDqiqkEoJu5kHkj1ATHnf72Z5v73N6e7nQ__47652.2615798332$1406890419$gmane$org@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/2 V2] USB: Use ACPI device information
+Date: Fri, 1 Aug 2014 10:22:00 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1408011021120.1185-100000@iolanthe.rowland.org>
+References: <140713857.5QYWLe1hHM@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qg0-f68.google.com ([209.85.192.68]:41831 "EHLO
-	mail-qg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753497AbaHAKxX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2014 06:53:23 -0400
-Received: by mail-qg0-f68.google.com with SMTP id q107so1657897qgd.11
-        for <linux-acpi@vger.kernel.org>; Fri, 01 Aug 2014 03:53:23 -0700 (PDT)
+Received: from iolanthe.rowland.org ([192.131.102.54]:57825 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750947AbaHAOWB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2014 10:22:01 -0400
+In-Reply-To: <140713857.5QYWLe1hHM@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Tenoutit, Faouaz" <faouaz.tenoutit@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-.
-Greetings from gulf region
+On Fri, 1 Aug 2014, Rafael J. Wysocki wrote:
 
-Thanks for the e-mail. I am very interested on funding lucrative
-business partnership with you acting as the manager and sole
-controller of the investment while i remain a silent investor for a
-period of ten yrs , though I am only looking at investment
-opportunities within the range you specified for a start. You can
-reply me here (fmorision@yahoo.com)
+> On Wednesday, July 09, 2014 04:42:38 PM Tenoutit, Faouaz wrote:
+> > From: Faouaz TENOUTIT <faouaz.tenoutit@intel.com>
+> > 
+> > Use ACPI device pld information instead of calling
+> > acpi_get_physical_device_location.
+> > 
+> > Signed-off-by: Faouaz TENOUTIT <faouaz.tenoutit@intel.com>
+> > Acked-by: Samuel Ortiz <samuel.ortiz@intel.com>
+> 
+> Greg, Alan, any objections agains this?
 
-Let me know your thought asap
+No objection from me, aside from the fact that the posted patch was 
+whitespace-damaged.
 
-Regards
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
 
-Financial Consultant
-
-Mr.Fabian Morision
