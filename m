@@ -1,85 +1,33 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH 04/19] ARM64 / ACPI: Introduce arch_fix_phys_package_id()
- for cpu topology
-Date: Fri, 01 Aug 2014 11:48:23 +0100
-Message-ID: <53DB7077.7080804@arm.com>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org> <1406206825-15590-5-git-send-email-hanjun.guo@linaro.org> <53D69BB3.8040106@arm.com> <53DB352D.10507@linaro.org>
+From: Fabian Morision <fmorision4@gmail.com>
+Subject: -- Re: Very Urgent............
+Date: Fri, 1 Aug 2014 12:28:39 +0200
+Message-ID: <CAPnz-TbxDErDjS5YvDqiqkEoJu5kHkj1ATHnf72Z5v73N6e7nQ__47652.2615798332$1406890419$gmane$org@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53DB352D.10507@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.or>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qg0-f68.google.com ([209.85.192.68]:41831 "EHLO
+	mail-qg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753497AbaHAKxX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2014 06:53:23 -0400
+Received: by mail-qg0-f68.google.com with SMTP id q107so1657897qgd.11
+        for <linux-acpi@vger.kernel.org>; Fri, 01 Aug 2014 03:53:23 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+.
+Greetings from gulf region
 
+Thanks for the e-mail. I am very interested on funding lucrative
+business partnership with you acting as the manager and sole
+controller of the investment while i remain a silent investor for a
+period of ten yrs , though I am only looking at investment
+opportunities within the range you specified for a start. You can
+reply me here (fmorision@yahoo.com)
 
-On 01/08/14 07:35, Hanjun Guo wrote:
-> On 2014-7-29 2:51, Sudeep Holla wrote:
->> On 24/07/14 14:00, Hanjun Guo wrote:
->>> arch_fix_phys_package_id() will be called in ACPI core to use
->>> the slot number provided by ACPI to update the physical package
->>> id, then we can get the right value in the "physical id" field
->>> of /proc/cpuinfo.
->>>
->>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>> ---
->>>    arch/arm64/include/asm/topology.h |    2 ++
->>>    arch/arm64/kernel/topology.c      |   14 ++++++++++++++
->>>    2 files changed, 16 insertions(+)
->>>
->>> diff --git a/arch/arm64/include/asm/topology.h
->>> b/arch/arm64/include/asm/topology.h
->>> index 7ebcd31..2b216d4 100644
->>> --- a/arch/arm64/include/asm/topology.h
->>> +++ b/arch/arm64/include/asm/topology.h
->>> @@ -23,11 +23,13 @@ extern struct cpu_topology cpu_topology[NR_CPUS];
->>>    void init_cpu_topology(void);
->>>    void store_cpu_topology(unsigned int cpuid);
->>>    const struct cpumask *cpu_coregroup_mask(int cpu);
->>> +void arch_fix_phys_package_id(int num, u32 slot);
->>>
->>>    #else
->>>
->>>    static inline void init_cpu_topology(void) { }
->>>    static inline void store_cpu_topology(unsigned int cpuid) { }
->>> +static inline void arch_fix_phys_package_id(int num, u32 slot) { }
->>>
->>>    #endif
->>>
->>> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
->>> index 43514f9..c547885 100644
->>> --- a/arch/arm64/kernel/topology.c
->>> +++ b/arch/arm64/kernel/topology.c
->>> @@ -281,3 +281,17 @@ void __init init_cpu_topology(void)
->>>        if (parse_dt_topology())
->>>            reset_cpu_topology();
->>>    }
->>> +
->>> +/*
->>> + * Use the CPU slot number provided by ACPI to update the physical
->>> + * package id when cpuid_topo->cluster_id is not available, then we
->>> + * can get the right value in the "physical id" field of /proc/cpuinfo.
->>> + */
->>
->> We don't have "physical id" field in /proc/cpuinfo on ARM64.
->
-> I'm just curious, if there are two or more CPU (SoC) chips and connected
-> into one system, how to tell one SoC from another?
->
+Let me know your thought asap
 
-There was some discussion on ARM64 /proc/cpuinfo recently[1]. Even ARM
-doesn't have this. IMO we might want to present complete MPIDR in future
-if really needed.
+Regards
 
-Not sure, why we need this "physical id" field as these cpuid topology
-is already visible via sysfs explicitly(we really don't need that again
-elsewhere ?)
+Financial Consultant
 
-Regards,
-Sudeep
-
-[1] 
-http://lists.infradead.org/pipermail/linux-arm-kernel/2014-June/264390.html
+Mr.Fabian Morision
