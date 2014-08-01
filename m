@@ -1,85 +1,98 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH] ACPI/Processor: Add CPU_STARTING_FROZEN check in the
- acpi_cpu_soft_notify()
-Date: Fri, 01 Aug 2014 10:51:46 +0800
-Message-ID: <53DB00C2.2040500@intel.com>
-References: <1406798426-16483-1-git-send-email-tianyu.lan@intel.com> <1560513.OlLhy0HTTU@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 04/19] ARM64 / ACPI: Introduce arch_fix_phys_package_id()
+ for cpu topology
+Date: Fri, 01 Aug 2014 14:35:25 +0800
+Message-ID: <53DB352D.10507@linaro.org>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org> <1406206825-15590-5-git-send-email-hanjun.guo@linaro.org> <53D69BB3.8040106@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1560513.OlLhy0HTTU@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:62706 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752542AbaHAGgn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2014 02:36:43 -0400
+Received: by mail-pd0-f175.google.com with SMTP id r10so4945780pdi.6
+        for <linux-acpi@vger.kernel.org>; Thu, 31 Jul 2014 23:36:43 -0700 (PDT)
+In-Reply-To: <53D69BB3.8040106@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>
+Cc: "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 2014=E5=B9=B408=E6=9C=8801=E6=97=A5 05:20, Rafael J. Wysocki wrote:
-> On Thursday, July 31, 2014 05:20:26 PM Lan Tianyu wrote:
->> The callback of CPU_STARTING event can't sleep and so acpi_cpu_soft_=
-notify()
->> return directly when CPU_STARTING event is triggered. But cpu hotplu=
-g also
->> happens during S2RAM. The action will become CPU_STARTING_FROZEN. Th=
-is
->> patch is to fix missing check the frozen event.
+On 2014-7-29 2:51, Sudeep Holla wrote:
+> On 24/07/14 14:00, Hanjun Guo wrote:
+>> arch_fix_phys_package_id() will be called in ACPI core to use
+>> the slot number provided by ACPI to update the physical package
+>> id, then we can get the right value in the "physical id" field
+>> of /proc/cpuinfo.
 >>
->> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->=20
-> There is work to restructure the handling of CPU_TASKS_FROZEN under w=
-ay
-> and Chen Gong is driving it.  That's likely to conflict with the last
-> two patches from you.  Can you please coordinate with Gong?
-
-Hi Rafael:
-
-Thanks for reminder. I just checked Chen Gong's patchset "Gloabl CPU
-Hot-plug flag _FROZEN Clean up". There is no conflict between our
-patches. Gong's patch is to remove the following macro.
-
-CPU_ONLINE_FROZEN
-CPU_UP_PREPARE_FROZEN
-CPU_UP_CANCELED_FROZEN
-CPU_DOWN_PREPARE_FROZEN
-CPU_DOWN_FAILED_FROZEN
-CPU_DEAD_FROZEN
-CPU_DYING_FROZEN
-CPU_STARTING_FROZEN
-
-CPU_TASKS_FROZEN is still available and the CPU events during S2RAM
-are still (CPU_xxx | CPU_TASKS_FROZEN).
-
-BTW, this is a bug fix from my opinion and it should be backported to
-stable tree.
-
->=20
-> Rafael
->=20
->=20
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 >> ---
->>  drivers/acpi/processor_driver.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>   arch/arm64/include/asm/topology.h |    2 ++
+>>   arch/arm64/kernel/topology.c      |   14 ++++++++++++++
+>>   2 files changed, 16 insertions(+)
 >>
->> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processo=
-r_driver.c
->> index 4fcbd67..66e2249 100644
->> --- a/drivers/acpi/processor_driver.c
->> +++ b/drivers/acpi/processor_driver.c
->> @@ -125,7 +125,7 @@ static int acpi_cpu_soft_notify(struct notifier_=
-block *nfb,
->>  	 * CPU_STARTING and CPU_DYING must not sleep. Return here since
->>  	 * acpi_bus_get_device() may sleep.
->>  	 */
->> -	if (action =3D=3D CPU_STARTING || action =3D=3D CPU_DYING)
->> +	if ((action & ~CPU_TASKS_FROZEN) =3D=3D CPU_STARTING || action =3D=
-=3D CPU_DYING)
->>  		return NOTIFY_DONE;
->> =20
->>  	if (!pr || acpi_bus_get_device(pr->handle, &device))
+>> diff --git a/arch/arm64/include/asm/topology.h
+>> b/arch/arm64/include/asm/topology.h
+>> index 7ebcd31..2b216d4 100644
+>> --- a/arch/arm64/include/asm/topology.h
+>> +++ b/arch/arm64/include/asm/topology.h
+>> @@ -23,11 +23,13 @@ extern struct cpu_topology cpu_topology[NR_CPUS];
+>>   void init_cpu_topology(void);
+>>   void store_cpu_topology(unsigned int cpuid);
+>>   const struct cpumask *cpu_coregroup_mask(int cpu);
+>> +void arch_fix_phys_package_id(int num, u32 slot);
 >>
->=20
+>>   #else
+>>
+>>   static inline void init_cpu_topology(void) { }
+>>   static inline void store_cpu_topology(unsigned int cpuid) { }
+>> +static inline void arch_fix_phys_package_id(int num, u32 slot) { }
+>>
+>>   #endif
+>>
+>> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+>> index 43514f9..c547885 100644
+>> --- a/arch/arm64/kernel/topology.c
+>> +++ b/arch/arm64/kernel/topology.c
+>> @@ -281,3 +281,17 @@ void __init init_cpu_topology(void)
+>>       if (parse_dt_topology())
+>>           reset_cpu_topology();
+>>   }
+>> +
+>> +/*
+>> + * Use the CPU slot number provided by ACPI to update the physical
+>> + * package id when cpuid_topo->cluster_id is not available, then we
+>> + * can get the right value in the "physical id" field of /proc/cpuinfo.
+>> + */
+> 
+> We don't have "physical id" field in /proc/cpuinfo on ARM64.
+
+I'm just curious, if there are two or more CPU (SoC) chips and connected
+into one system, how to tell one SoC from another?
+
+> 
+>> +void arch_fix_phys_package_id(int num, u32 slot)
+>> +{
+>> +    struct cpu_topology *cpuid_topo = &cpu_topology[num];
+>> +
+>> +    if (cpuid_topo->cluster_id == -1)
+>> +        cpuid_topo->cluster_id = slot;
+>> +}
+>> +EXPORT_SYMBOL_GPL(arch_fix_phys_package_id);
+>>
+> 
+> The ACPI core uses this function to set the package id as read from
+> _SUN from the device. As per spec, _SUN is used by OSPM UI to identify
+> slots for the user. Do we know how will this be used on ARM64 ?
+> 
+> If not clear at this time, better to define it or keep it empty. I see
+> even x86 does nothing in that function.
+
+I'm ok with it, will introduce a stub function for it and remove this patch.
+
+Thanks
+Hanjun
 
 
---=20
-Best regards
-Tianyu Lan
