@@ -1,78 +1,85 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: PROBLEM: [Toshiba Portege Z835] Brightness control lost after
- suspend
-Date: Fri, 1 Aug 2014 10:42:55 +0800
-Message-ID: <20140801024255.GF30211@aaronlu.sh.intel.com>
-References: <CACiopZBtRcixrXhHLB-6fc_Fvg5rhv+rqJjeSxkxDYBf0uu+kw@mail.gmail.com>
- <53D7AF8F.7060401@intel.com>
- <CACiopZCQpGeBw6V7qFpcV6u22stOQC8X9Aiwya3wE_cBZzL+PQ@mail.gmail.com>
- <20140730083248.GA31763@aaronlu.sh.intel.com>
- <CACiopZA=5wHsjjzOKrC7aqCp13g8vLwnegcdFrySoS-_kD60Aw@mail.gmail.com>
- <20140731080947.GD20462@aaronlu.sh.intel.com>
- <CACiopZCrfyqxgqS8NoF5Hi-K-0zM+8YHsyXqfhWKgjU65n4-Pg@mail.gmail.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH] ACPI/Processor: Add CPU_STARTING_FROZEN check in the
+ acpi_cpu_soft_notify()
+Date: Fri, 01 Aug 2014 10:51:46 +0800
+Message-ID: <53DB00C2.2040500@intel.com>
+References: <1406798426-16483-1-git-send-email-tianyu.lan@intel.com> <1560513.OlLhy0HTTU@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACiopZCrfyqxgqS8NoF5Hi-K-0zM+8YHsyXqfhWKgjU65n4-Pg@mail.gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: John Marsden <john.d.marsden@gmail.com>
-Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1560513.OlLhy0HTTU@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jul 31, 2014 at 10:05:14PM +0100, John Marsden wrote:
-> On 31 July 2014 09:09, Aaron Lu <aaron.lu@intel.com> wrote:
-> > Please add acpi_backlight=vendor to kernel cmdline and see if that makes
-> > the backlight work. What it does is to tell ACPI video module not to
-> > create the acpi_videoX sysfs interface and let's see if X server will
-> > pick up the intel_backlight one.
-> 
-> Adding acpi_backlight=vendor to the kernel cmdline results in the
-> brightness controls not working from first boot, not just after a
-> suspend.
+On 2014=E5=B9=B408=E6=9C=8801=E6=97=A5 05:20, Rafael J. Wysocki wrote:
+> On Thursday, July 31, 2014 05:20:26 PM Lan Tianyu wrote:
+>> The callback of CPU_STARTING event can't sleep and so acpi_cpu_soft_=
+notify()
+>> return directly when CPU_STARTING event is triggered. But cpu hotplu=
+g also
+>> happens during S2RAM. The action will become CPU_STARTING_FROZEN. Th=
+is
+>> patch is to fix missing check the frozen event.
+>>
+>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+>=20
+> There is work to restructure the handling of CPU_TASKS_FROZEN under w=
+ay
+> and Chen Gong is driving it.  That's likely to conflict with the last
+> two patches from you.  Can you please coordinate with Gong?
 
-That probably because X server now picks the toshiba_acpi interface
-instead of the intel_backlight one.
+Hi Rafael:
 
-A workaround from user space is to specify the backlight interface you
-want to use in xorg.conf, an example is here:
-https://bugs.debian.org/cgi-bin/bugreport.cgi?msg=78;att=0;bug=651741
+Thanks for reminder. I just checked Chen Gong's patchset "Gloabl CPU
+Hot-plug flag _FROZEN Clean up". There is no conflict between our
+patches. Gong's patch is to remove the following macro.
 
-Section "Device"
-Identifier  "Intel Graphics"
-Driver      "intel"
-Option      "AccelMethod"     "sna"
-Option      "Backlight" "intel_backlight"
-Driver      "intel"
-BusID       "PCI:0:2:0"
-EndSection
+CPU_ONLINE_FROZEN
+CPU_UP_PREPARE_FROZEN
+CPU_UP_CANCELED_FROZEN
+CPU_DOWN_PREPARE_FROZEN
+CPU_DOWN_FAILED_FROZEN
+CPU_DEAD_FROZEN
+CPU_DYING_FROZEN
+CPU_STARTING_FROZEN
 
-Alternatively, we can disable the acpi_video and toshiba_acpi interfaces
-in the kernel so that only intel_backlight is available. I'm not sure
-how to do this nicely, I've cc-ed platform x86 mailing list.
+CPU_TASKS_FROZEN is still available and the CPU events during S2RAM
+are still (CPU_xxx | CPU_TASKS_FROZEN).
 
-Regards,
-Aaron
+BTW, this is a bug fix from my opinion and it should be backported to
+stable tree.
 
-> 
-> Detailed test results:
-> 
-> After fresh boot into 3.16-rc with acpi_backlight=vendor added to the
-> kernel cmdline
-> ls -l /sys/class/backlight
-> total 0
-> lrwxrwxrwx 1 root root 0 Jul 31 21:38 intel_backlight ->
-> ../../devices/pci0000:00/0000:00:02.0/drm/card0/card0-LVDS-1/intel_backlight
-> lrwxrwxrwx 1 root root 0 Jul 31 21:38 toshiba ->
-> ../../devices/LNXSYSTM:00/LNXSYBUS:00/TOS6208:00/backlight/toshiba
-> 
-> Attempts to adjust brightness via user interfaces (system settings and
-> function keys) fail to change brightness.
-> 
-> It remains possible to adjust brightness by directly writing to
-> /sys/class/backlight/intel_backlight/brightness but, as before, not by
-> writing to  /sys/class/backlight/toshiba/brightness.
-> 
-> After suspend and resume same test results.
-> 
-> Regards,  John
+>=20
+> Rafael
+>=20
+>=20
+>> ---
+>>  drivers/acpi/processor_driver.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processo=
+r_driver.c
+>> index 4fcbd67..66e2249 100644
+>> --- a/drivers/acpi/processor_driver.c
+>> +++ b/drivers/acpi/processor_driver.c
+>> @@ -125,7 +125,7 @@ static int acpi_cpu_soft_notify(struct notifier_=
+block *nfb,
+>>  	 * CPU_STARTING and CPU_DYING must not sleep. Return here since
+>>  	 * acpi_bus_get_device() may sleep.
+>>  	 */
+>> -	if (action =3D=3D CPU_STARTING || action =3D=3D CPU_DYING)
+>> +	if ((action & ~CPU_TASKS_FROZEN) =3D=3D CPU_STARTING || action =3D=
+=3D CPU_DYING)
+>>  		return NOTIFY_DONE;
+>> =20
+>>  	if (!pr || acpi_bus_get_device(pr->handle, &device))
+>>
+>=20
+
+
+--=20
+Best regards
+Tianyu Lan
