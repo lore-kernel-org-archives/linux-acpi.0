@@ -1,38 +1,48 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v2 14/18] ARM64 / ACPI: Select ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on ARM64
-Date: Mon,  4 Aug 2014 23:28:21 +0800
-Message-ID: <1407166105-17675-15-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v2 16/18] ARM64 / ACPI: If we chose to boot from acpi then disable FDT
+Date: Mon,  4 Aug 2014 23:28:23 +0800
+Message-ID: <1407166105-17675-17-git-send-email-hanjun.guo@linaro.org>
 References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:39926 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751065AbaHDPbq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Aug 2014 11:31:46 -0400
+Received: by mail-pd0-f175.google.com with SMTP id r10so9806281pdi.20
+        for <linux-acpi@vger.kernel.org>; Mon, 04 Aug 2014 08:31:45 -0700 (PDT)
 In-Reply-To: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@lin>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-From: Al Stone <al.stone@linaro.org>
+From: Graeme Gregory <graeme.gregory@linaro.org>
 
-ACPI reduced hardware mode is disabled by default, but ARM64
-can only run properly in ACPI hardware reduced mode, so select
-ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on ARM64.
+If the early boot methods of acpi are happy that we have valid ACPI
+tables and acpi=on has been passed. Then do not unflat devicetree
+effectively disabling further hardware probing from DT.
 
-Reviewed-by: Grant Likely <grant.likely@linaro.org>
-Signed-off-by: Al Stone <al.stone@linaro.org>
+Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm64/kernel/setup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 839f48c..95835bc 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -1,5 +1,6 @@
- config ARM64
- 	def_bool y
-+	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_OPP
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index 056e2e1..0742e8c 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -399,8 +399,8 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	cpu_logical_map(0) = read_cpuid_mpidr() & MPIDR_HWID_BITMASK;
+ 	acpi_boot_init();
+-
+-	unflatten_device_tree();
++	if (acpi_disabled)
++		unflatten_device_tree();
+ 
+ 	psci_init();
+ 
 -- 
 1.7.9.5
+
