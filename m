@@ -1,63 +1,56 @@
-From: Quentin Lambert <lambert.quentin@gmail.com>
-Subject: [PATCH 3/3] PCI hotplug: remove assignement from if conditions
-Date: Mon, 4 Aug 2014 21:01:53 +0200
-Message-ID: <20140804190153.GA4257@greed>
+From: John Marsden <john.d.marsden@gmail.com>
+Subject: Re: PROBLEM: [Toshiba Portege Z835] Brightness control lost after suspend
+Date: Mon, 4 Aug 2014 21:32:40 +0100
+Message-ID: <CACiopZBgyr0+81nz8fW_OvZtUg71r9tHutFLynHtHhDLxK5agQ@mail.gmail.com>
+References: <CACiopZBtRcixrXhHLB-6fc_Fvg5rhv+rqJjeSxkxDYBf0uu+kw@mail.gmail.com>
+	<53D7AF8F.7060401@intel.com>
+	<CACiopZCQpGeBw6V7qFpcV6u22stOQC8X9Aiwya3wE_cBZzL+PQ@mail.gmail.com>
+	<20140730083248.GA31763@aaronlu.sh.intel.com>
+	<CACiopZA=5wHsjjzOKrC7aqCp13g8vLwnegcdFrySoS-_kD60Aw@mail.gmail.com>
+	<20140731080947.GD20462@aaronlu.sh.intel.com>
+	<CACiopZCrfyqxgqS8NoF5Hi-K-0zM+8YHsyXqfhWKgjU65n4-Pg@mail.gmail.com>
+	<20140801024255.GF30211@aaronlu.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Scott Murray <scott@spiteful.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f47.google.com ([209.85.215.47]:59784 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751108AbaHDUcl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Aug 2014 16:32:41 -0400
+In-Reply-To: <20140801024255.GF30211@aaronlu.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>
 
-The following Coccinelle semantic patch was used to
-find and correct cases of assignements in if conditions:
+On 1 August 2014 03:42, Aaron Lu <aaron.lu@intel.com> wrote:
+> A workaround from user space is to specify the backlight interface you
+> want to use in xorg.conf, an example is here:
+> https://bugs.debian.org/cgi-bin/bugreport.cgi?msg=78;att=0;bug=651741
+>
+> Section "Device"
+> Identifier  "Intel Graphics"
+> Driver      "intel"
+> Option      "AccelMethod"     "sna"
+> Option      "Backlight" "intel_backlight"
+> Driver      "intel"
+> BusID       "PCI:0:2:0"
+> EndSection
 
-@ifassign@
-expression var, expr;
-statement S;
-@@
+Thank you.  This works both in v3.16-rc and in the current Ubuntu
+14.04 latest update.  Now user-interface brightness controls work
+before AND after a suspend.  The only difference in the user
+experience is that now minimum brightness on the brightness sliders
+gives a completely dark screen rather than just a very dimly lit
+screen.  I can live with this.
 
-- if(!(var = expr)) S
-+ var = expr;
-+ if(!var) S
+I'm guessing this should be regarded as a work-round rather than a
+final solution that might eventually form part of the kernel.  Should
+I report it as such back in the downstream Ubuntu/Launchpad bug?
 
-Signed-off-by: Quentin Lambert <lambert.quentin@gmail.com>
----
- drivers/pci/hotplug/acpi_pcihp.c    | 3 ++-
- drivers/pci/hotplug/cpcihp_zt5550.c | 5 +++--
- 2 files changed, 5 insertions(+), 3 deletions(-)
+If in future, when this is addressed in the kernel, further testing is
+required please let me know.  I'd be happy to assist.
 
-diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
-index a94d850..2cac548 100644
---- a/drivers/pci/hotplug/acpi_pcihp.c
-+++ b/drivers/pci/hotplug/acpi_pcihp.c
-@@ -433,7 +433,8 @@ int acpi_pci_check_ejectable(struct pci_bus *pbus, acpi_handle handle)
- {
- 	acpi_handle bridge_handle, parent_handle;
- 
--	if (!(bridge_handle = acpi_pci_get_bridge_handle(pbus)))
-+	bridge_handle = acpi_pci_get_bridge_handle(pbus);
-+	if (!bridge_handle)
- 		return 0;
- 	if ((ACPI_FAILURE(acpi_get_parent(handle, &parent_handle))))
- 		return 0;
-diff --git a/drivers/pci/hotplug/cpcihp_zt5550.c b/drivers/pci/hotplug/cpcihp_zt5550.c
-index 2b222fc..4d0cf3f 100644
---- a/drivers/pci/hotplug/cpcihp_zt5550.c
-+++ b/drivers/pci/hotplug/cpcihp_zt5550.c
-@@ -237,8 +237,9 @@ static int zt5550_hc_init_one (struct pci_dev *pdev, const struct pci_device_id
- 	dbg("registered controller");
- 
- 	/* Look for first device matching cPCI bus's bridge vendor and device IDs */
--	if (!(bus0_dev = pci_get_device(PCI_VENDOR_ID_DEC,
--					 PCI_DEVICE_ID_DEC_21154, NULL))) {
-+	bus0_dev = pci_get_device(PCI_VENDOR_ID_DEC,
-+				  PCI_DEVICE_ID_DEC_21154, NULL);
-+	if (!bus0_dev) {
- 		status = -ENODEV;
- 		goto init_register_error;
- 	}
--- 
-1.9.1
+Thank you for your help,
+
+John Marsden
