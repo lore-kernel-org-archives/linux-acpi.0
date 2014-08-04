@@ -1,36 +1,22 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 1/2 V2] USB: Use ACPI device information
-Date: Fri, 1 Aug 2014 10:22:00 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1408011021120.1185-100000@iolanthe.rowland.org>
-References: <140713857.5QYWLe1hHM@vostro.rjw.lan>
+From: Coca-Cola SPAIN <spaincoke@coke2.onmicrosoft.com>
+Subject: YOUR EMAIL HAS WON
+Date: Mon, 4 Aug 2014 07:28:27 +0200
+Message-ID: <244ea073-3488-4fac-9623-ac439cc62059@HKXPR01MB262.apcprd01.prod.exchangelabs.com>
+Reply-To: <coca.cola.spain@europe.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:57825 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750947AbaHAOWB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Aug 2014 10:22:01 -0400
-In-Reply-To: <140713857.5QYWLe1hHM@vostro.rjw.lan>
+Received: from mail-hk1hn0248.outbound.protection.outlook.com ([134.170.140.248]:40031
+	"EHLO APAC01-HK1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751163AbaHDF60 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Aug 2014 01:58:26 -0400
+Content-Description: Mail message body
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Tenoutit, Faouaz" <faouaz.tenoutit@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Recipients <spaincoke@coke2.onmicrosoft.com>
 
-On Fri, 1 Aug 2014, Rafael J. Wysocki wrote:
 
-> On Wednesday, July 09, 2014 04:42:38 PM Tenoutit, Faouaz wrote:
-> > From: Faouaz TENOUTIT <faouaz.tenoutit@intel.com>
-> > 
-> > Use ACPI device pld information instead of calling
-> > acpi_get_physical_device_location.
-> > 
-> > Signed-off-by: Faouaz TENOUTIT <faouaz.tenoutit@intel.com>
-> > Acked-by: Samuel Ortiz <samuel.ortiz@intel.com>
-> 
-> Greg, Alan, any objections agains this?
-
-No objection from me, aside from the fact that the posted patch was 
-whitespace-damaged.
-
-Acked-by: Alan Stern <stern@rowland.harvard.edu>
-
+OPEN THIS LINK  http://bit.ly/1od6ALQ
+READ AND REPLY
