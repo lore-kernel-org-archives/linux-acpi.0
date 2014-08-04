@@ -1,163 +1,222 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v2 11/18] ACPI / table: Add new function to get table entries
-Date: Mon,  4 Aug 2014 23:28:18 +0800
-Message-ID: <1407166105-17675-12-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v2 13/18] ARM64 / ACPI: Parse GTDT to initialize arch timer
+Date: Mon,  4 Aug 2014 23:28:20 +0800
+Message-ID: <1407166105-17675-14-git-send-email-hanjun.guo@linaro.org>
 References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Hanjun
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Using the information presented by GTDT to initialize the arch
+timer (not memory-mapped).
 
-The acpi_table_parse() function has a callback that
-passes a pointer to a table_header. Add a new function
-which takes this pointer and parses its entries. This
-eliminates the need to re-traverse all the tables for
-each call. e.g. as in acpi_table_parse_madt() which is
-normally called after acpi_table_parse().
-
-Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Originally-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/acpi/tables.c |   70 +++++++++++++++++++++++++++++++++++--------------
- include/linux/acpi.h  |    4 +++
- 2 files changed, 54 insertions(+), 20 deletions(-)
+ arch/arm64/kernel/time.c             |    7 ++
+ drivers/clocksource/arm_arch_timer.c |  117 ++++++++++++++++++++++++++++------
+ include/linux/clocksource.h          |    6 ++
+ 3 files changed, 111 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 77f8bb1..a58fce4 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -229,17 +229,14 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
+index 1a7125c..42f9195 100644
+--- a/arch/arm64/kernel/time.c
++++ b/arch/arm64/kernel/time.c
+@@ -35,6 +35,7 @@
+ #include <linux/delay.h>
+ #include <linux/clocksource.h>
+ #include <linux/clk-provider.h>
++#include <linux/acpi.h>
+ 
+ #include <clocksource/arm_arch_timer.h>
+ 
+@@ -72,6 +73,12 @@ void __init time_init(void)
+ 
+ 	tick_setup_hrtimer_broadcast();
+ 
++	/*
++	 * Since ACPI or FDT will only one be available in the system,
++	 * we can use acpi_generic_timer_init() here safely
++	 */
++	acpi_generic_timer_init();
++
+ 	arch_timer_rate = arch_timer_get_rate();
+ 	if (!arch_timer_rate)
+ 		panic("Unable to initialise architected timer.\n");
+diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+index 5163ec1..397783f 100644
+--- a/drivers/clocksource/arm_arch_timer.c
++++ b/drivers/clocksource/arm_arch_timer.c
+@@ -21,6 +21,7 @@
+ #include <linux/io.h>
+ #include <linux/slab.h>
+ #include <linux/sched_clock.h>
++#include <linux/acpi.h>
+ 
+ #include <asm/arch_timer.h>
+ #include <asm/virt.h>
+@@ -338,8 +339,12 @@ arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
+ 	if (arch_timer_rate)
+ 		return;
+ 
+-	/* Try to determine the frequency from the device tree or CNTFRQ */
+-	if (of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
++	/*
++	 * Try to determine the frequency from the device tree or CNTFRQ,
++	 * if ACPI is enabled, get the frequency from CNTFRQ ONLY.
++	 */
++	if (!acpi_disabled ||
++	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
+ 		if (cntbase)
+ 			arch_timer_rate = readl_relaxed(cntbase + CNTFRQ);
+ 		else
+@@ -635,20 +640,8 @@ static void __init arch_timer_common_init(void)
+ 	arch_timer_arch_init();
  }
  
- int __init
--acpi_table_parse_entries(char *id,
--			     unsigned long table_size,
--			     int entry_id,
--			     acpi_tbl_entry_handler handler,
--			     unsigned int max_entries)
-+acpi_parse_entries(unsigned long table_size,
-+		acpi_tbl_entry_handler handler,
-+		struct acpi_table_header *table_header,
-+		int entry_id, unsigned int max_entries)
+-static void __init arch_timer_init(struct device_node *np)
++static void __init arch_timer_init(void)
  {
--	struct acpi_table_header *table_header = NULL;
- 	struct acpi_subtable_header *entry;
--	unsigned int count = 0;
-+	int count = 0;
- 	unsigned long table_end;
--	acpi_size tbl_size;
- 
- 	if (acpi_disabled)
- 		return -ENODEV;
-@@ -247,13 +244,11 @@ acpi_table_parse_entries(char *id,
- 	if (!handler)
- 		return -EINVAL;
- 
--	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
--		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
--	else
--		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
-+	if (!table_size)
-+		return -EINVAL;
- 
- 	if (!table_header) {
--		pr_warn("%4.4s not present\n", id);
-+		pr_warn("Table header not present\n");
- 		return -ENODEV;
- 	}
- 
-@@ -268,31 +263,66 @@ acpi_table_parse_entries(char *id,
- 	       table_end) {
- 		if (entry->type == entry_id
- 		    && (!max_entries || count++ < max_entries))
--			if (handler(entry, table_end))
-+			if (handler(entry, table_end)) {
-+				count = -EINVAL;
- 				goto err;
-+		}
- 
- 		/*
- 		 * If entry->length is 0, break from this loop to avoid
- 		 * infinite loop.
- 		 */
- 		if (entry->length == 0) {
--			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
-+			pr_err("[0x%02x] Invalid zero length\n", entry_id);
-+			count = -EINVAL;
- 			goto err;
+-	int i;
+-
+-	if (arch_timers_present & ARCH_CP15_TIMER) {
+-		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
+-		return;
+-	}
+-
+-	arch_timers_present |= ARCH_CP15_TIMER;
+-	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
+-		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
+-	arch_timer_detect_rate(NULL, np);
+-
+ 	/*
+ 	 * If HYP mode is available, we know that the physical timer
+ 	 * has been configured to be accessible from PL1. Use it, so
+@@ -667,13 +660,31 @@ static void __init arch_timer_init(struct device_node *np)
  		}
- 
- 		entry = (struct acpi_subtable_header *)
- 		    ((unsigned long)entry + entry->length);
- 	}
-+
- 	if (max_entries && count > max_entries) {
--		pr_warn("[%4.4s:0x%02x] ignored %i entries of %i found\n",
--			id, entry_id, count - max_entries, count);
-+		pr_warn("[0x%02x] ignored %i entries of %i found\n",
-+			entry_id, count - max_entries, count);
  	}
  
--	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
--	return count;
- err:
-+	return count;
-+}
+-	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
+-
+ 	arch_timer_register();
+ 	arch_timer_common_init();
+ }
+-CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_init);
+-CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_init);
 +
-+int __init
-+acpi_table_parse_entries(char *id,
-+			 unsigned long table_size,
-+			 int entry_id,
-+			 acpi_tbl_entry_handler handler,
-+			 unsigned int max_entries)
++static void __init arch_timer_of_init(struct device_node *np)
 +{
-+	struct acpi_table_header *table_header = NULL;
-+	acpi_size tbl_size;
-+	int count;
++	int i;
 +
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	if (!handler)
-+		return -EINVAL;
-+
-+	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
-+		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
-+	else
-+		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
-+
-+	if (!table_header) {
-+		pr_warn("%4.4s not present\n", id);
-+		return -ENODEV;
++	if (arch_timers_present & ARCH_CP15_TIMER) {
++		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
++		return;
 +	}
 +
-+	count = acpi_parse_entries(table_size, handler, table_header,
-+			entry_id, max_entries);
++	arch_timers_present |= ARCH_CP15_TIMER;
++	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
++		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
 +
- 	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
--	return -EINVAL;
-+	return count;
++	arch_timer_detect_rate(NULL, np);
++
++	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
++
++	arch_timer_init();
++}
++CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
++CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_of_init);
+ 
+ static void __init arch_timer_mem_init(struct device_node *np)
+ {
+@@ -740,3 +751,71 @@ static void __init arch_timer_mem_init(struct device_node *np)
  }
+ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
+ 		       arch_timer_mem_init);
++
++#ifdef CONFIG_ACPI
++static int __init
++map_generic_timer_interrupt(u32 interrupt, u32 flags)
++{
++	int trigger, polarity;
++
++	if (!interrupt)
++		return 0;
++
++	trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
++			: ACPI_LEVEL_SENSITIVE;
++
++	polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
++			: ACPI_ACTIVE_HIGH;
++
++	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
++}
++
++/* Initialize per-processor generic timer */
++static int __init arch_timer_acpi_init(struct acpi_table_header *table)
++{
++	struct acpi_table_gtdt *gtdt;
++
++	if (arch_timers_present & ARCH_CP15_TIMER) {
++		pr_warn("arch_timer: already initialized, skipping\n");
++		return -EINVAL;
++	}
++
++	gtdt = container_of(table, struct acpi_table_gtdt, header);
++
++	arch_timers_present |= ARCH_CP15_TIMER;
++
++	arch_timer_ppi[PHYS_SECURE_PPI] =
++		map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
++		gtdt->secure_el1_flags);
++
++	arch_timer_ppi[PHYS_NONSECURE_PPI] =
++		map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
++		gtdt->non_secure_el1_flags);
++
++	arch_timer_ppi[VIRT_PPI] =
++		map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
++		gtdt->virtual_timer_flags);
++
++	arch_timer_ppi[HYP_PPI] =
++		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
++		gtdt->non_secure_el2_flags);
++
++	/* Get the frequency from CNTFRQ */
++	arch_timer_detect_rate(NULL, NULL);
++
++	/* Always-on capability */
++	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
++
++	arch_timer_init();
++	return 0;
++}
++
++/* Initialize all the generic timers presented in GTDT */
++void __init acpi_generic_timer_init(void)
++{
++	if (acpi_disabled)
++		return;
++
++	acpi_table_parse(ACPI_SIG_GTDT, arch_timer_acpi_init);
++}
++#endif
+diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
+index a16b497..544e298 100644
+--- a/include/linux/clocksource.h
++++ b/include/linux/clocksource.h
+@@ -348,4 +348,10 @@ extern void clocksource_of_init(void);
+ static inline void clocksource_of_init(void) {}
+ #endif
  
- int __init
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index e4b6e9a..18ed9f4 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -124,6 +124,10 @@ int acpi_numa_init (void);
- 
- int acpi_table_init (void);
- int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
-+int __init acpi_parse_entries(unsigned long table_size,
-+		acpi_tbl_entry_handler handler,
-+		struct acpi_table_header *table_header,
-+		int entry_id, unsigned int max_entries);
- int __init acpi_table_parse_entries(char *id, unsigned long table_size,
- 				    int entry_id,
- 				    acpi_tbl_entry_handler handler,
++#ifdef CONFIG_ACPI
++void acpi_generic_timer_init(void);
++#else
++static inline void acpi_generic_timer_init(void) {}
++#endif
++
+ #endif /* _LINUX_CLOCKSOURCE_H */
 -- 
 1.7.9.5
