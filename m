@@ -1,56 +1,65 @@
-From: John Marsden <john.d.marsden@gmail.com>
-Subject: Re: PROBLEM: [Toshiba Portege Z835] Brightness control lost after suspend
-Date: Mon, 4 Aug 2014 21:32:40 +0100
-Message-ID: <CACiopZBgyr0+81nz8fW_OvZtUg71r9tHutFLynHtHhDLxK5agQ@mail.gmail.com>
-References: <CACiopZBtRcixrXhHLB-6fc_Fvg5rhv+rqJjeSxkxDYBf0uu+kw@mail.gmail.com>
-	<53D7AF8F.7060401@intel.com>
-	<CACiopZCQpGeBw6V7qFpcV6u22stOQC8X9Aiwya3wE_cBZzL+PQ@mail.gmail.com>
-	<20140730083248.GA31763@aaronlu.sh.intel.com>
-	<CACiopZA=5wHsjjzOKrC7aqCp13g8vLwnegcdFrySoS-_kD60Aw@mail.gmail.com>
-	<20140731080947.GD20462@aaronlu.sh.intel.com>
-	<CACiopZCrfyqxgqS8NoF5Hi-K-0zM+8YHsyXqfhWKgjU65n4-Pg@mail.gmail.com>
-	<20140801024255.GF30211@aaronlu.sh.intel.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [PATCH v2 18/18] Documentation: ACPI for ARM64
+Date: Mon, 04 Aug 2014 13:48:11 -0700
+Message-ID: <53DFF18B.5080509@infradead.org>
+References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org> <1407166105-17675-19-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:59784 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751108AbaHDUcl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Aug 2014 16:32:41 -0400
-In-Reply-To: <20140801024255.GF30211@aaronlu.sh.intel.com>
+Received: from casper.infradead.org ([85.118.1.10]:35174 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752104AbaHDUsY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Aug 2014 16:48:24 -0400
+In-Reply-To: <1407166105-17675-19-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 1 August 2014 03:42, Aaron Lu <aaron.lu@intel.com> wrote:
-> A workaround from user space is to specify the backlight interface you
-> want to use in xorg.conf, an example is here:
-> https://bugs.debian.org/cgi-bin/bugreport.cgi?msg=78;att=0;bug=651741
->
-> Section "Device"
-> Identifier  "Intel Graphics"
-> Driver      "intel"
-> Option      "AccelMethod"     "sna"
-> Option      "Backlight" "intel_backlight"
-> Driver      "intel"
-> BusID       "PCI:0:2:0"
-> EndSection
+On 08/04/14 08:28, Hanjun Guo wrote:
+> From: Graeme Gregory <graeme.gregory@linaro.org>
+> 
+> Add documentation for the guidelines of how to use ACPI
+> on ARM64.
+> 
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  Documentation/arm64/arm-acpi.txt |  215 ++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 215 insertions(+)
+>  create mode 100644 Documentation/arm64/arm-acpi.txt
+> 
+> diff --git a/Documentation/arm64/arm-acpi.txt b/Documentation/arm64/arm-acpi.txt
+> new file mode 100644
+> index 0000000..a6e14a2
+> --- /dev/null
+> +++ b/Documentation/arm64/arm-acpi.txt
+> @@ -0,0 +1,215 @@
+> +ACPI on ARMv8 Servers
+> +---------------------
+> +
 
-Thank you.  This works both in v3.16-rc and in the current Ubuntu
-14.04 latest update.  Now user-interface brightness controls work
-before AND after a suspend.  The only difference in the user
-experience is that now minimum brightness on the brightness sliders
-gives a completely dark screen rather than just a very dimly lit
-screen.  I can live with this.
+...
 
-I'm guessing this should be regarded as a work-round rather than a
-final solution that might eventually form part of the kernel.  Should
-I report it as such back in the downstream Ubuntu/Launchpad bug?
+> +
+> +ACPI Detection
+> +--------------
+> +
+> +Drivers should determine their probe() type by checking for ACPI_HANDLE,
+> +or .of_node, or other information in the device structure. This is
+> +detailed further in the "Driver Recommendations" section.
+> +
+> +In non-driver code If the presence of ACPI needs to be detected at runtime,
+> +then check the value of acpi_disabled. If CONFIG_ACPI not being set,
 
-If in future, when this is addressed in the kernel, further testing is
-required please let me know.  I'd be happy to assist.
+                                          If CONFIG_ACPI is not set,
 
-Thank you for your help,
+> +acpi_disabled will always be 1.
+> +
+> +Device Enumeration
+> +------------------
 
-John Marsden
+
+-- 
+~Randy
