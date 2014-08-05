@@ -1,86 +1,62 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [Bugfix 0/2] Fix bugs caused by "use irqdomain to dynamically
- allocate IRQ for IOAPIC"
-Date: Tue, 5 Aug 2014 13:58:02 -0400
-Message-ID: <20140805175802.GE27240@laptop.dumpdata.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [Bugfix 1/2] x86, irq, PCI: Keep IRQ assignment for PCI devices
+ during suspend/hibernation
+Date: Tue, 5 Aug 2014 20:37:29 +0200
+Message-ID: <20140805183729.GA23068@pd.tnic>
 References: <1407209178-18644-1-git-send-email-jiang.liu@linux.intel.com>
- <20140805130448.GA13057@laptop.dumpdata.com>
- <53E10136.9000505@linux.intel.com>
+ <1407209178-18644-2-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:57841 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754566AbaHEShg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Aug 2014 14:37:36 -0400
 Content-Disposition: inline
-In-Reply-To: <53E10136.9000505@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: xen-devel@lists.xenproject.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+In-Reply-To: <1407209178-18644-2-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Aug 06, 2014 at 12:07:18AM +0800, Jiang Liu wrote:
+On Tue, Aug 05, 2014 at 11:26:17AM +0800, Jiang Liu wrote:
+> Now IOAPIC driver dynamically allocates IRQ numbers for IOAPIC pins.
+> We need to keep IRQ assignment for PCI devices during suspend/hibernation,
+> otherwise it may cause failure of suspend/hibernation due to:
+> 1) Device driver calls pci_enable_device() to allocate an IRQ number
+>    and register interrupt handler on the returned IRQ.
+> 2) Device driver's suspend callback calls pci_disable_device() and
+>    release assigned IRQ in turn.
+> 3) Device driver's resume callback calls pci_enable_device() to
+>    allocate IRQ number again. A different IRQ number may be assigned
+>    by IOAPIC driver this time.
+> 4) Now the hardware delivers interrupt to the new IRQ but interrupt
+>    handler is still registered against the old IRQ, so it breaks
+>    suspend/hibernation.
 > 
+> To fix this issue, we keep IRQ assignment during suspend/hibernation.
+> Flag pci_dev.dev.power.is_prepared is used to detect that
+> pci_disable_device() is called during suspend/hibernation.
 > 
-> On 2014/8/5 21:04, Konrad Rzeszutek Wilk wrote:
-> > On Tue, Aug 05, 2014 at 11:26:16AM +0800, Jiang Liu wrote:
-> >> Two issues have been reported against patch set "use irqdomain to
-> >> dynamically allocate IRQ for IOAPIC" at https://lkml.org/lkml/2014/6/9/44.
-> >>
-> >> This first one causes failure of suspend/hibernation, please refer to
-> >> https://lkml.org/lkml/2014/7/28/822 for more information. And we have
-> >> worked out a patch to fix it (https://lkml.org/lkml/2014/7/30/725) and
-> >> Borislav has tested it. But with more testing and analysis, I found the
-> >> provided patch still has some issues:
-> >> 1) It may cause regression to Xen
-> > 
-> > Could you elaborate please?
-> > 
-> > Is there a git tree with all of these patches to test it?
-> Hi Konrad,
-> 	The patch at https://lkml.org/lkml/2014/7/30/725 skips invoking
-> xen_pcifront_enable_irq() on resume from suspend or restore from
-> hibernation. I'm not sure whether that will affect suspend/hibernation
-> with Xen. This patch series won't affect Xen anymore.
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+> Hi Borislav,
+> 	Could you please help to review the patch again since I have
+> made changes against the previous version?
 
-Ah, it looks like:
+I think you're asking me to test that patch, correct?
 
-415         pcibios_enable_irq = xen_pcifront_enable_irq;                           
-416         pcibios_disable_irq = NULL;                                             
+If so, what is the exact tree I need to apply? tip/x86/apic + those two
+patches here? What else? What about the USB chunk which removes the proc
+splat, is that somewhere too? Maybe Linus did pull it already?
 
-Is the culprit right? If there was an pcibios_disable_irq set, then said
-patch would not been needed?
+Please specify what exactly I should test.
 
+Thanks.
 
-> 	I have prepared a tree for you at
-> https://github.com/jiangliu/linux.git suspend
+-- 
+Regards/Gruss,
+    Boris.
 
-Thank you. Will give it a spin tomorrow.
-> 
-> Thanks for help!
-> Gerry
-> 
-> >> 2) Flag dev->dev.power.is_prepared has already been cleared when
-> >>    pcibios_enable_device() gets called, so it will cause IOAPIC pin
-> >>    reference count leak.
-> >>
-> >> So I reworked the patch to fix above issues. The first patch fixes issue
-> >> 1 by moving check of dev->dev.power.is_prepared pcibios_enable_irq, so
-> >> it won't affect Xen. The second patch fixes the IOAPIC pin reference
-> >> count leakage issue. It also solves the issue we have discussed at
-> >> http://www.spinics.net/lists/linux-pci/msg32902.html
-> >>
-> >> Regards!
-> >> Gerry
-> >>
-> >> Jiang Liu (2):
-> >>   x86, irq, PCI: Keep IRQ assignment for PCI devices during
-> >>     suspend/hibernation
-> >>   x86, irq: Keep balance of IOAPIC pin reference count
-> >>
-> >>  arch/x86/pci/intel_mid_pci.c |    9 ++++++++-
-> >>  arch/x86/pci/irq.c           |    8 +++++++-
-> >>  drivers/acpi/pci_irq.c       |   15 +++++++++++++--
-> >>  include/linux/pci.h          |    1 +
-> >>  4 files changed, 29 insertions(+), 4 deletions(-)
-> >>
-> >> -- 
-> >> 1.7.10.4
-> >>
+Sent from a fat crate under my desk. Formatting is fine.
+--
