@@ -1,43 +1,57 @@
-From: Humboldt University of Berlin <73you@cardinalmail.cua.edu>
-Subject: Achtung Benutzer
-Date: Tue, 05 Aug 2014 16:08:43 +0530
-Message-ID: <53e0b45a.aa86460a.354b.468a@mx.google.com>
-Reply-To: account_cc@noreply.com
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [Bugfix 0/2] Fix bugs caused by "use irqdomain to dynamically
+ allocate IRQ for IOAPIC"
+Date: Tue, 5 Aug 2014 09:04:48 -0400
+Message-ID: <20140805130448.GA13057@laptop.dumpdata.com>
+References: <1407209178-18644-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:50438 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753212AbaHEKjc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Aug 2014 06:39:32 -0400
-Received: by mail-pd0-f174.google.com with SMTP id fp1so1127499pdb.5
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Aug 2014 03:39:32 -0700 (PDT)
-Content-Description: Mail message body
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1407209178-18644-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, xen-devel@lists.xenproject.org
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients <info@admin.com>
 
-Achtung Benutzer=20
+On Tue, Aug 05, 2014 at 11:26:16AM +0800, Jiang Liu wrote:
+> Two issues have been reported against patch set "use irqdomain to
+> dynamically allocate IRQ for IOAPIC" at https://lkml.org/lkml/2014/6/9/44.
+> 
+> This first one causes failure of suspend/hibernation, please refer to
+> https://lkml.org/lkml/2014/7/28/822 for more information. And we have
+> worked out a patch to fix it (https://lkml.org/lkml/2014/7/30/725) and
+> Borislav has tested it. But with more testing and analysis, I found the
+> provided patch still has some issues:
+> 1) It may cause regression to Xen
 
-Dies ist ein Hinweis, dass H=F6flichkeit Sie n=E4hern sich der Grenze v=
-on 2 GB Datentarif. Ihre E-Mail-Konto senden und empfangen E-Mails, wen=
-n Ihr E-Mail Konto nicht innerhalb von 24 Stunden =FCberpr=FCft blockie=
-rt werden w=FCrde.=20
+Could you elaborate please?
 
-Sie werden nicht in der Lage zu senden oder zu empfangen neue E-Mail, b=
-is Sie Ihre E-Mail-Kontingent zu aktualisieren.=20
-Sie k=F6nnen auf den entsprechenden Link klicken Sie unten auf Ihr Kont=
-o zu reaktivieren=20
-
-http://humboldt-1universittzuberlin.yolasite.com/
-
-* Wichtiger Hinweis:=20
-In der Regel innerhalb von 24 Stunden wird Ihr Konto aktiviert werden.=20
-
-Service Provider International. =A9 2014
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Is there a git tree with all of these patches to test it?
+> 2) Flag dev->dev.power.is_prepared has already been cleared when
+>    pcibios_enable_device() gets called, so it will cause IOAPIC pin
+>    reference count leak.
+> 
+> So I reworked the patch to fix above issues. The first patch fixes issue
+> 1 by moving check of dev->dev.power.is_prepared pcibios_enable_irq, so
+> it won't affect Xen. The second patch fixes the IOAPIC pin reference
+> count leakage issue. It also solves the issue we have discussed at
+> http://www.spinics.net/lists/linux-pci/msg32902.html
+> 
+> Regards!
+> Gerry
+> 
+> Jiang Liu (2):
+>   x86, irq, PCI: Keep IRQ assignment for PCI devices during
+>     suspend/hibernation
+>   x86, irq: Keep balance of IOAPIC pin reference count
+> 
+>  arch/x86/pci/intel_mid_pci.c |    9 ++++++++-
+>  arch/x86/pci/irq.c           |    8 +++++++-
+>  drivers/acpi/pci_irq.c       |   15 +++++++++++++--
+>  include/linux/pci.h          |    1 +
+>  4 files changed, 29 insertions(+), 4 deletions(-)
+> 
+> -- 
+> 1.7.10.4
+> 
