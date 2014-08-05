@@ -1,15 +1,15 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [Linaro-acpi] [PATCH v2 00/18] Introduce ACPI for ARM64 based
- on ACPI 5.1
-Date: Tue, 05 Aug 2014 11:34:10 +0800
-Message-ID: <53E050B2.2080609@linaro.org>
+Subject: Re: [PATCH v2 18/18] Documentation: ACPI for ARM64
+Date: Tue, 05 Aug 2014 11:36:05 +0800
+Message-ID: <53E05125.1030007@linaro.org>
 References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
- <CAJRNFK+UfJhGR65tOecy=X+YdHQHiNPZ4p_p8LUxhRL3GW5gFw@mail.gmail.com>
+ <1407166105-17675-19-git-send-email-hanjun.guo@linaro.org>
+ <53DFF18B.5080509@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAJRNFK+UfJhGR65tOecy=X+YdHQHiNPZ4p_p8LUxhRL3GW5gFw@mail.gmail.com>
+In-Reply-To: <53DFF18B.5080509@infradead.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,41 +19,50 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Alexander Spyridakis <a.spyridakis@virtualopensystems.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, linaro-acpi@lists.linaro.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Robert Moore <robert.moore@intel.com>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Olof Johansson <olof@lixom.net>
+To: Randy Dunlap <rdunlap@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>
+Cc: linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, linux-kernel@vger.kernel.org, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2014-8-5 1:30, Alexander Spyridakis wrote:
-> On 4 August 2014 17:28, Hanjun Guo <hanjun.guo@linaro.org
-> <mailto:hanjun.guo@linaro.org>> wrote:
+On 2014-8-5 4:48, Randy Dunlap wrote:
+> On 08/04/14 08:28, Hanjun Guo wrote:
+>> From: Graeme Gregory <graeme.gregory@linaro.org>
 >>
->> ACPI 5.1 has been released and now be freely available for
->> download [1]. It fixed some major gaps to run ACPI on ARM,
->> this patch just follow the ACPI 5.1 spec and prepare the
->> code to run ACPI on ARM64.
+>> Add documentation for the guidelines of how to use ACPI
+>> on ARM64.
+>>
+>> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>  Documentation/arm64/arm-acpi.txt |  215 ++++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 215 insertions(+)
+>>  create mode 100644 Documentation/arm64/arm-acpi.txt
+>>
+>> diff --git a/Documentation/arm64/arm-acpi.txt b/Documentation/arm64/arm-acpi.txt
+>> new file mode 100644
+>> index 0000000..a6e14a2
+>> --- /dev/null
+>> +++ b/Documentation/arm64/arm-acpi.txt
+>> @@ -0,0 +1,215 @@
+>> +ACPI on ARMv8 Servers
+>> +---------------------
+>> +
 > 
-> Hello,
-
-Hi,
-
+> ...
 > 
-> Is this work still reproducible on Foundation and/or ARMv8 FVP models, as
-> described in the following wiki page?
-> https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI
-
-Yes, I think so. If you meet any problem , please let us know, and we will
-update the wiki.
-
+>> +
+>> +ACPI Detection
+>> +--------------
+>> +
+>> +Drivers should determine their probe() type by checking for ACPI_HANDLE,
+>> +or .of_node, or other information in the device structure. This is
+>> +detailed further in the "Driver Recommendations" section.
+>> +
+>> +In non-driver code If the presence of ACPI needs to be detected at runtime,
+>> +then check the value of acpi_disabled. If CONFIG_ACPI not being set,
 > 
-> Should I assume that UEFI is mandatory (alternative being the aarch64
-> bootwrapper), as described in Documentation/arm64/arm-acpi.txt?
+>                                           If CONFIG_ACPI is not set,
 
-Yes, UEFI is mandatory if you want to use ACPI.
-
-> 
-> Thanks in advance.
-
-You are welcome :)
+Good catch, We will update it.
 
 Thanks
 Hanjun
