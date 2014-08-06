@@ -1,103 +1,39 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [Bugfix 0/2] Fix bugs caused by "use irqdomain to dynamically
- allocate IRQ for IOAPIC"
-Date: Wed, 6 Aug 2014 10:28:23 -0400
-Message-ID: <20140806142823.GB13079@laptop.dumpdata.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [Bugfix 1/2] x86, irq, PCI: Keep IRQ assignment for PCI devices
+ during suspend/hibernation
+Date: Wed, 6 Aug 2014 19:09:37 +0200
+Message-ID: <20140806170937.GA4895@pd.tnic>
 References: <1407209178-18644-1-git-send-email-jiang.liu@linux.intel.com>
- <20140805130448.GA13057@laptop.dumpdata.com>
- <53E10136.9000505@linux.intel.com>
- <20140805175802.GE27240@laptop.dumpdata.com>
- <53E20325.9020303@linux.intel.com>
+ <1407209178-18644-2-git-send-email-jiang.liu@linux.intel.com>
+ <20140805183729.GA23068@pd.tnic>
+ <53E201FC.6010102@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <53E20325.9020303@linux.intel.com>
+In-Reply-To: <53E201FC.6010102@linux.intel.com>
 Sender: linux-pci-owner@vger.kernel.org
 To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: xen-devel@lists.xenproject.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 06, 2014 at 06:27:49PM +0800, Jiang Liu wrote:
+On Wed, Aug 06, 2014 at 06:22:52PM +0800, Jiang Liu wrote:
+> 	I have prepared a tree for you at
+> https://github.com/jiangliu/linux.git suspend2
 > 
+> It's based on tip/master and includes:
+> 1) the patch to fix warning caused  by USB controller
+> 2) these two patches to fix failure of suspend/hibernation
 > 
-> On 2014/8/6 1:58, Konrad Rzeszutek Wilk wrote:
-> > On Wed, Aug 06, 2014 at 12:07:18AM +0800, Jiang Liu wrote:
-> >>
-> >>
-> >> On 2014/8/5 21:04, Konrad Rzeszutek Wilk wrote:
-> >>> On Tue, Aug 05, 2014 at 11:26:16AM +0800, Jiang Liu wrote:
-> >>>> Two issues have been reported against patch set "use irqdomain to
-> >>>> dynamically allocate IRQ for IOAPIC" at https://lkml.org/lkml/2014/6/9/44.
-> >>>>
-> >>>> This first one causes failure of suspend/hibernation, please refer to
-> >>>> https://lkml.org/lkml/2014/7/28/822 for more information. And we have
-> >>>> worked out a patch to fix it (https://lkml.org/lkml/2014/7/30/725) and
-> >>>> Borislav has tested it. But with more testing and analysis, I found the
-> >>>> provided patch still has some issues:
-> >>>> 1) It may cause regression to Xen
-> >>>
-> >>> Could you elaborate please?
-> >>>
-> >>> Is there a git tree with all of these patches to test it?
-> >> Hi Konrad,
-> >> 	The patch at https://lkml.org/lkml/2014/7/30/725 skips invoking
-> >> xen_pcifront_enable_irq() on resume from suspend or restore from
-> >> hibernation. I'm not sure whether that will affect suspend/hibernation
-> >> with Xen. This patch series won't affect Xen anymore.
-> > 
-> > Ah, it looks like:
-> > 
-> > 415         pcibios_enable_irq = xen_pcifront_enable_irq;                           
-> > 416         pcibios_disable_irq = NULL;                                             
-> > 
-> > Is the culprit right? If there was an pcibios_disable_irq set, then said
-> > patch would not been needed?
-> > 
-> > 
-> >> 	I have prepared a tree for you at
-> >> https://github.com/jiangliu/linux.git suspend
-> > 
-> > Thank you. Will give it a spin tomorrow.
-> Hi Konrad,
-> 	Thanks for review.
-> 	I think no need to test it anymore. We are trying to fix an
-> issue caused by IOAPIC related work. The previous version of patch
-> is too coarse grain and may affect Xen. And now we have reworked it,
-> so it shouldn't affect Xen anymore.
+> Could you please help to check whether suspend/hibernation works as
+> expect on your platforms?
 
-OK. Thanks for the heads up!
-> Regards!
-> Gerry
-> 
-> >>
-> >> Thanks for help!
-> >> Gerry
-> >>
-> >>>> 2) Flag dev->dev.power.is_prepared has already been cleared when
-> >>>>    pcibios_enable_device() gets called, so it will cause IOAPIC pin
-> >>>>    reference count leak.
-> >>>>
-> >>>> So I reworked the patch to fix above issues. The first patch fixes issue
-> >>>> 1 by moving check of dev->dev.power.is_prepared pcibios_enable_irq, so
-> >>>> it won't affect Xen. The second patch fixes the IOAPIC pin reference
-> >>>> count leakage issue. It also solves the issue we have discussed at
-> >>>> http://www.spinics.net/lists/linux-pci/msg32902.html
-> >>>>
-> >>>> Regards!
-> >>>> Gerry
-> >>>>
-> >>>> Jiang Liu (2):
-> >>>>   x86, irq, PCI: Keep IRQ assignment for PCI devices during
-> >>>>     suspend/hibernation
-> >>>>   x86, irq: Keep balance of IOAPIC pin reference count
-> >>>>
-> >>>>  arch/x86/pci/intel_mid_pci.c |    9 ++++++++-
-> >>>>  arch/x86/pci/irq.c           |    8 +++++++-
-> >>>>  drivers/acpi/pci_irq.c       |   15 +++++++++++++--
-> >>>>  include/linux/pci.h          |    1 +
-> >>>>  4 files changed, 29 insertions(+), 4 deletions(-)
-> >>>>
-> >>>> -- 
-> >>>> 1.7.10.4
-> >>>>
+Seems to work - just did 10-ish successful s/r cycles. The IO page
+faults are still there though.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
