@@ -1,123 +1,71 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH] ACPI/Processor: Add CPU_STARTING_FROZEN check in the
- acpi_cpu_soft_notify()
-Date: Wed, 06 Aug 2014 11:02:05 +0800
-Message-ID: <53E19AAD.4070308@intel.com>
-References: <1406798426-16483-1-git-send-email-tianyu.lan@intel.com> <1560513.OlLhy0HTTU@vostro.rjw.lan> <53DB00C2.2040500@intel.com> <2440957.I2MrVyXYIg@vostro.rjw.lan>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Bugfix 1/2] x86, irq, PCI: Keep IRQ assignment for PCI devices
+ during suspend/hibernation
+Date: Wed, 06 Aug 2014 18:22:52 +0800
+Message-ID: <53E201FC.6010102@linux.intel.com>
+References: <1407209178-18644-1-git-send-email-jiang.liu@linux.intel.com> <1407209178-18644-2-git-send-email-jiang.liu@linux.intel.com> <20140805183729.GA23068@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:61183 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:3711 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750922AbaHFDE3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Aug 2014 23:04:29 -0400
-In-Reply-To: <2440957.I2MrVyXYIg@vostro.rjw.lan>
+	id S1753286AbaHFKW5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Aug 2014 06:22:57 -0400
+In-Reply-To: <20140805183729.GA23068@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
-
-On 2014=E5=B9=B408=E6=9C=8806=E6=97=A5 09:30, Rafael J. Wysocki wrote:
-> On Friday, August 01, 2014 10:51:46 AM Lan Tianyu wrote:
->> On 2014=E5=B9=B408=E6=9C=8801=E6=97=A5 05:20, Rafael J. Wysocki wrot=
-e:
->>> On Thursday, July 31, 2014 05:20:26 PM Lan Tianyu wrote:
->>>> The callback of CPU_STARTING event can't sleep and so acpi_cpu_sof=
-t_notify()
->>>> return directly when CPU_STARTING event is triggered. But cpu hotp=
-lug also
->>>> happens during S2RAM. The action will become CPU_STARTING_FROZEN. =
-This
->>>> patch is to fix missing check the frozen event.
->=20
-> OK
->=20
-> What's the impact of the bug you're fixing?  Do we sleep when we shou=
-ldn't?
->=20
-> In particular, are there any bugs reported that are related to it?
-
-So far, there is such bug report. I found the issue when test my patch
-of parallel non-boot cpu up with resuming device for S2RAM. Because
-original code will wait all cpu up and then do other resume task, the
-semaphore of ACPICA can always be get in the cpu notify callback and it
-will not fall in the sleep. It's different situation for paralleling
-non-boot cpu. The lock will be held by other threads and fall into
-sleep. Further thinking, this may not cause bug in the old kernel and i=
-t
-isn't needed by stable tree but the code should consider cpu frozen eve=
-nt.
-
->=20
->>>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->>>
->>> There is work to restructure the handling of CPU_TASKS_FROZEN under=
- way
->>> and Chen Gong is driving it.  That's likely to conflict with the la=
-st
->>> two patches from you.  Can you please coordinate with Gong?
->>
->> Hi Rafael:
->>
->> Thanks for reminder. I just checked Chen Gong's patchset "Gloabl CPU
->> Hot-plug flag _FROZEN Clean up". There is no conflict between our
->> patches. Gong's patch is to remove the following macro.
->>
->> CPU_ONLINE_FROZEN
->> CPU_UP_PREPARE_FROZEN
->> CPU_UP_CANCELED_FROZEN
->> CPU_DOWN_PREPARE_FROZEN
->> CPU_DOWN_FAILED_FROZEN
->> CPU_DEAD_FROZEN
->> CPU_DYING_FROZEN
->> CPU_STARTING_FROZEN
->>
->> CPU_TASKS_FROZEN is still available and the CPU events during S2RAM
->> are still (CPU_xxx | CPU_TASKS_FROZEN).
->=20
-> OK
->=20
->> BTW, this is a bug fix from my opinion and it should be backported t=
-o
->> stable tree.
->=20
-> We'll see.
->=20
->=20
->>>> ---
->>>>  drivers/acpi/processor_driver.c | 2 +-
->>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>
->>>> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/proces=
-sor_driver.c
->>>> index 4fcbd67..66e2249 100644
->>>> --- a/drivers/acpi/processor_driver.c
->>>> +++ b/drivers/acpi/processor_driver.c
->>>> @@ -125,7 +125,7 @@ static int acpi_cpu_soft_notify(struct notifie=
-r_block *nfb,
->>>>  	 * CPU_STARTING and CPU_DYING must not sleep. Return here since
->>>>  	 * acpi_bus_get_device() may sleep.
->>>>  	 */
->>>> -	if (action =3D=3D CPU_STARTING || action =3D=3D CPU_DYING)
->>>> +	if ((action & ~CPU_TASKS_FROZEN) =3D=3D CPU_STARTING || action =3D=
-=3D CPU_DYING)
->>>>  		return NOTIFY_DONE;
->>>> =20
->>>>  	if (!pr || acpi_bus_get_device(pr->handle, &device))
->>>>
->>>
->>
->>
->>
->=20
+To: Borislav Petkov <bp@alien8.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
 
---=20
-Best regards
-Tianyu Lan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+On 2014/8/6 2:37, Borislav Petkov wrote:
+> On Tue, Aug 05, 2014 at 11:26:17AM +0800, Jiang Liu wrote:
+>> Now IOAPIC driver dynamically allocates IRQ numbers for IOAPIC pins.
+>> We need to keep IRQ assignment for PCI devices during suspend/hibernation,
+>> otherwise it may cause failure of suspend/hibernation due to:
+>> 1) Device driver calls pci_enable_device() to allocate an IRQ number
+>>    and register interrupt handler on the returned IRQ.
+>> 2) Device driver's suspend callback calls pci_disable_device() and
+>>    release assigned IRQ in turn.
+>> 3) Device driver's resume callback calls pci_enable_device() to
+>>    allocate IRQ number again. A different IRQ number may be assigned
+>>    by IOAPIC driver this time.
+>> 4) Now the hardware delivers interrupt to the new IRQ but interrupt
+>>    handler is still registered against the old IRQ, so it breaks
+>>    suspend/hibernation.
+>>
+>> To fix this issue, we keep IRQ assignment during suspend/hibernation.
+>> Flag pci_dev.dev.power.is_prepared is used to detect that
+>> pci_disable_device() is called during suspend/hibernation.
+>>
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>> ---
+>> Hi Borislav,
+>> 	Could you please help to review the patch again since I have
+>> made changes against the previous version?
+> 
+> I think you're asking me to test that patch, correct?
+> 
+> If so, what is the exact tree I need to apply? tip/x86/apic + those two
+> patches here? What else? What about the USB chunk which removes the proc
+> splat, is that somewhere too? Maybe Linus did pull it already?
+> 
+> Please specify what exactly I should test.
+Hi Borislav,
+	I have prepared a tree for you at
+https://github.com/jiangliu/linux.git suspend2
+
+It's based on tip/master and includes:
+1) the patch to fix warning caused  by USB controller
+2) these two patches to fix failure of suspend/hibernation
+
+Could you please help to check whether suspend/hibernation works as
+expect on your platforms?
+Thanks!
+Gerry
+
+> 
+> Thanks.
+> 
