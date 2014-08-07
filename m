@@ -1,132 +1,69 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 07/18] ACPI / table: Print GIC information when MADT
- is parsed
-Date: Thu, 07 Aug 2014 18:28:31 +0800
-Message-ID: <53E354CF.1070800@linaro.org>
-References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
- <1407166105-17675-8-git-send-email-hanjun.guo@linaro.org>
- <1AE640813FDE7649BE1B193DEA596E8802650766@SHSMSX101.ccr.corp.intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: tip/x86/apic (was: Re: [Bugfix 1/2] x86, irq, PCI: Keep IRQ
+ assignment for PCI devices during suspend/hibernation)
+Date: Thu, 7 Aug 2014 13:03:32 +0200
+Message-ID: <20140807110332.GB10043@pd.tnic>
+References: <1407209178-18644-1-git-send-email-jiang.liu@linux.intel.com>
+ <1407209178-18644-2-git-send-email-jiang.liu@linux.intel.com>
+ <20140805183729.GA23068@pd.tnic>
+ <53E201FC.6010102@linux.intel.com>
+ <20140806170937.GA4895@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802650766@SHSMSX101.ccr.corp.intel.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Moore,
- Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, "Charles.Garcia-Tobin@arm.com" <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, linux-k
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:60777 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932077AbaHGLDh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Aug 2014 07:03:37 -0400
+Content-Disposition: inline
+In-Reply-To: <20140806170937.GA4895@pd.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 2014-8-7 9:41, Zheng, Lv wrote:
-> Hi,
+On Wed, Aug 06, 2014 at 07:09:37PM +0200, Borislav Petkov wrote:
+> On Wed, Aug 06, 2014 at 06:22:52PM +0800, Jiang Liu wrote:
+> > 	I have prepared a tree for you at
+> > https://github.com/jiangliu/linux.git suspend2
+> >=20
+> > It's based on tip/master and includes:
+> > 1) the patch to fix warning caused  by USB controller
+> > 2) these two patches to fix failure of suspend/hibernation
+> >=20
+> > Could you please help to check whether suspend/hibernation works as
+> > expect on your platforms?
+>=20
+> Seems to work - just did 10-ish successful s/r cycles. The IO page
+> faults are still there though.
 
-Hi Lv,
+Ok, tip guys, so J=C3=B6rg and I talked about the IOPFs a bit and we fe=
+el
+that while they still need to be taken care of, they're harmless and
+there's no need to hold off tip/x86/apic anymore unless there are other
+problems with it.
 
-> 
->> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
->> Sent: Monday, August 04, 2014 11:28 PM
->> To: Catalin Marinas; Rafael J. Wysocki; Mark Rutland
->>
->> When MADT is parsed, print GIC information to make the boot
->> log look pretty.
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->> ---
->>  drivers/acpi/tables.c |   39 ++++++++++++++++++++++++++++++++++++++-
->>  1 file changed, 38 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
->> index 6d5a6cd..77f8bb1 100644
->> --- a/drivers/acpi/tables.c
->> +++ b/drivers/acpi/tables.c
->> @@ -183,6 +183,44 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
->>  		}
->>  		break;
->>
->> +	case ACPI_MADT_TYPE_GENERIC_INTERRUPT:
->> +		{
->> +			struct acpi_madt_generic_interrupt *p =
->> +				(struct acpi_madt_generic_interrupt *)header;
->> +			pr_info("GICC (acpi_id[0x%04x] address[0x%08llx] MPDIR[0x%llx] %s)\n",
->> +				p->uid, p->base_address, p->arm_mpidr,
-> 
-> Just reminders.
-> The acpi_id looks vague, is it a UID for the processor?
+So, from my POV, it can go in so that it doesn't miss this merge window
+and we'd deal with the IOPFs later.
 
-Yes, it is the UID of processor object in DSDT, How about use
-acpi_uid instead?
+I'm guessing Jiang needs to give you some updated versions of patches
+from this thread for the branch to be complete. Jiang, please add my
 
-> Should 0x%08llx for base_address be %p?
+Tested-by: Borislav Petkov <bp@suse.de>
 
-Yes, %p should be better, I will update the code and all the
-address field you pointed out below.
+for those.
 
-> 
->> +				(p->flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
->> +
->> +		}
->> +		break;
->> +
->> +	case ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR:
->> +		{
->> +			struct acpi_madt_generic_distributor *p =
->> +				(struct acpi_madt_generic_distributor *)header;
->> +			pr_info("GIC Distributor (gic_id[0x%04x] address[0x%08llx] gsi_base[%d])\n",
->> +				p->gic_id, p->base_address, p->global_irq_base);
->> +		}
->> +		break;
-> 
-> Same question for base_address.
-> 
->> +
->> +	case ACPI_MADT_TYPE_GENERIC_MSI_FRAME:
->> +		{
->> +			struct acpi_madt_generic_msi_frame *p =
->> +				(struct acpi_madt_generic_msi_frame *)header;
->> +			pr_info("GIC MSI Frame (msi_fame_id[%d] address[0x%08llx])\n",
->> +				p->msi_frame_id, p->base_address);
-> 
-> Ditto.
-> 
->> +		}
->> +		break;
->> +
->> +	case ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR:
->> +		{
->> +			struct acpi_madt_generic_redistributor *p =
->> +				(struct acpi_madt_generic_redistributor *)header;
->> +			pr_info("GIC Redistributor (address[0x%08llx] region_size[0x%x])\n",
->> +				p->base_address, p->length);
-> 
-> Ditto.
-> 
->> +		}
->> +		break;
->> +
->>  	default:
->>  		pr_warn("Found unsupported MADT entry (type = 0x%x)\n",
->>  			header->type);
->> @@ -190,7 +228,6 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
->>  	}
->>  }
->>
->> -
->>  int __init
->>  acpi_table_parse_entries(char *id,
->>  			     unsigned long table_size,
-> 
-> This block shouldn't be a part of this patch.
+Thanks to everyone involved.
 
-Ok, I will remove that from this patch.
+--=20
+Regards/Gruss,
+    Boris.
 
-Thanks
-Hanjun
+Sent from a fat crate under my desk. Formatting is fine.
+--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
