@@ -1,82 +1,187 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 1/1] ACPI: Check if acpi_device->handler is NULL when ACPI_HOTPLUG_MEMORY is not configured.
-Date: Fri, 8 Aug 2014 10:30:45 +0800
-Message-ID: <1407465045-4726-1-git-send-email-tangchen@cn.fujitsu.com>
+From: Yidi Lin <yidi.lin@canonical.com>
+Subject: Re: [PATCH] PNPACPI: do ACPI binding directly
+Date: Thu, 7 Aug 2014 16:29:50 +0800
+Message-ID: <CAFquV7Vb63n-EtXOLve00Hu3uyMuhHV+hmycdPJ7M5kaWC=4ew@mail.gmail.com>
+References: <1404305689.8366.90.camel@rzhang1-toshiba>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:51456 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754423AbaHGCbt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Aug 2014 22:31:49 -0400
+Received: from mail-yh0-f54.google.com ([209.85.213.54]:60364 "EHLO
+	mail-yh0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756196AbaHGI3v (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Aug 2014 04:29:51 -0400
+Received: by mail-yh0-f54.google.com with SMTP id v1so2700251yhn.27
+        for <linux-acpi@vger.kernel.org>; Thu, 07 Aug 2014 01:29:50 -0700 (PDT)
+In-Reply-To: <1404305689.8366.90.camel@rzhang1-toshiba>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Prigent, Christophe" <christophe.prigent@intel.com>, YK <yk@canonical.com>
 
-When ACPI_HOTPLUG_MEMORY is not configured, memory_device_handler.attach is not set.
-And in acpi_scan_attach_handler(), the acpi_device->handler will not be initialized.
+Hi,
 
-In acpi_scan_hot_remove(), it doesn't check if acpi_device->handler is NULL.
-If we do memory hot-remove without ACPI_HOTPLUG_MEMORY configured, the kernel
-will panic.
+I meet same bug in 3.13.x. And 3.16 fixes the bug.
+After bisecting, the bug is fixed by this commit.
 
-[  250.304538] BUG: unable to handle kernel NULL pointer dereference at 0000000000000088
-[  250.304960] IP: [<ffffffff813e318f>] acpi_device_hotplug+0x1d7/0x4c4
-[  250.305120] PGD 0
-[  250.305120] Oops: 0000 [#1] SMP
-[  250.305120] Modules linked in: sd_mod(E) sr_mod(E) cdrom(E) crc_t10dif(E) crct10dif_common(E) ata_piix(E) libata(E)
-[  250.305120] CPU: 0 PID: 41 Comm: kworker/u2:1 Tainted: G            E 3.16.0-rc7--3.16-rc7-tangchen+ #20
-[  250.305120] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.7.5-0-ge51488c-20140602_164612-nilsson.home.kraxel.org 04/01/2014
-[  250.305120] Workqueue: kacpi_hotplug acpi_hotplug_work_fn
-[  250.305120] task: ffff8800182436c0 ti: ffff880018254000 task.ti: ffff880018254000
-[  250.305120] RIP: 0010:[<ffffffff813e318f>]  [<ffffffff813e318f>] acpi_device_hotplug+0x1d7/0x4c4
-[  250.305120] RSP: 0000:ffff880018257da8  EFLAGS: 00000246
-[  250.305120] RAX: 0000000000000000 RBX: ffff88001cd8d800 RCX: 0000000000000000
-[  250.305120] RDX: 0000000000000000 RSI: ffff88001e40e6f8 RDI: 0000000000000246
-[  250.305120] RBP: ffff880018257df0 R08: 0000000000000096 R09: 00000000000011a0
-[  250.305120] R10: 63735f6970636120 R11: 725f746f685f6e61 R12: 0000000000000003
-[  250.305120] R13: ffff88001cc1c400 R14: ffff88001e062028 R15: 0000000000000040
-[  250.305120] FS:  0000000000000000(0000) GS:ffff88001e400000(0000) knlGS:0000000000000000
-[  250.305120] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[  250.305120] CR2: 0000000000000088 CR3: 000000001a9a2000 CR4: 00000000000006f0
-[  250.305120] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[  250.305120] DR3: 0000000000000000 DR6: 0000000000000000 DR7: 0000000000000000
-[  250.305120] Stack:
-[  250.305120]  00000000523cab58 ffff88001cd8d9f8 ffff88001852d480 00000000523cab58
-[  250.305120]  ffff88001852d480 ffff880018221e40 ffff88001cc1c400 ffff88001cce2d00
-[  250.305120]  0000000000000040 ffff880018257e08 ffffffff813dc31d ffff88001852d480
-[  250.305120] Call Trace:
-[  250.305120]  [<ffffffff813dc31d>] acpi_hotplug_work_fn+0x1e/0x29
-[  250.305120]  [<ffffffff8108eefb>] process_one_work+0x17b/0x460
-[  250.305120]  [<ffffffff8108f69d>] worker_thread+0x11d/0x5b0
-[  250.305120]  [<ffffffff8108f580>] ? rescuer_thread+0x3a0/0x3a0
-[  250.305120]  [<ffffffff81096811>] kthread+0xe1/0x100
-[  250.305120]  [<ffffffff81096730>] ? kthread_create_on_node+0x1a0/0x1a0
-[  250.305120]  [<ffffffff816cc6bc>] ret_from_fork+0x7c/0xb0
-[  250.305120]  [<ffffffff81096730>] ? kthread_create_on_node+0x1a0/0x1a0
+commit b6328a07bd6b3d31b64f85864fe74f3b08c010ca
+Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Date:   Wed Jul 30 00:23:09 2014 +0200
 
-This patch fixes this problem by checking if acpi_device->handler is NULL in acpi_scan_hot_remove().
+    ACPI / PNP: Fix acpi_pnp_match()
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
----
- drivers/acpi/scan.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+    The acpi_pnp_match() function is used for finding the ACPI device
+    object that should be associated with the given PNP device.
+    Unfortunately, the check used by that function is not strict enough
+    and may cause success to be returned for a wrong ACPI device object.
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index f775fa0..aae0ce0 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -351,7 +351,8 @@ static int acpi_scan_hot_remove(struct acpi_device *device)
- 	unsigned long long sta;
- 	acpi_status status;
- 
--	if (device->handler->hotplug.demand_offline && !acpi_force_hot_remove) {
-+	if (device->handler && device->handler->hotplug.demand_offline
-+	    && !acpi_force_hot_remove) {
- 		if (!acpi_scan_is_offline(device, true))
- 			return -EBUSY;
- 	} else {
--- 
-1.8.4.2
+    To fix that, use the observation that the pointer to the ACPI
+    device object in question is already stored in the data field
+    in struct pnp_dev, so acpi_pnp_match() can simply use that
+    field to do its job.
 
+    This problem was uncovered in 3.14 by commit 202317a573b2 (ACPI / scan:
+    Add acpi_device objects for all device nodes in the namespace).
+
+    Fixes: 202317a573b2 (ACPI / scan: Add acpi_device objects for all
+device nodes in the namespace)
+    Reported-and-tested-by: Vinson Lee <vlee@twopensource.com>
+    Cc: 3.14+ <stable@vger.kernel.org> # 3.14+
+    Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Is it suggested to apply the patch as mentioned above to 3.13.x?
+Thanks.
+
+
+On Wed, Jul 2, 2014 at 8:54 PM, Zhang Rui <rui.zhang@intel.com> wrote:
+> From 7daac7fc7cd7b605ccd84f10fc206cedf6170e89 Mon Sep 17 00:00:00 2001
+> From: Zhang Rui <rui.zhang@intel.com>
+> Date: Fri, 20 Jun 2014 10:14:07 +0800
+> Subject: [PATCH] PNPACPI: do ACPI binding directly
+>
+> PNPACPI uses acpi_bus_type to do ACPI binding for the PNPACPI devices.
+>
+> This is overkill because PNPACPI code already knows which ACPI
+> device object to bind during PNPACPI device enumeration.
+>
+> This patch removes acpi_pnp_bus and does the binding by invoking
+> acpi_bind_one() directly after device enumerated.
+>
+> This also fixes a bug in the previous code that some PNPACPI devices failed
+> to be bound because
+> 1. the ACPI device _HID is not pnpid, e.g. "MSFT0001", but its _CID is,
+>    e.g. "PNP0303", thus ACPI _CID is used as the pnp device device id.
+> 2. device is bound only if the pnp device id matches the ACPI device _HID.
+>
+> Tested-by: Prigent Christophe <christophe.prigent@intel.com>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/acpi/internal.h    |  2 --
+>  drivers/pnp/pnpacpi/core.c | 41 +++--------------------------------------
+>  include/acpi/acpi_bus.h    |  2 ++
+>  3 files changed, 5 insertions(+), 40 deletions(-)
+>
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 7de5b60..151f3e7 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -84,8 +84,6 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+>                              int type, unsigned long long sta);
+>  void acpi_device_add_finalize(struct acpi_device *device);
+>  void acpi_free_pnp_ids(struct acpi_device_pnp *pnp);
+> -int acpi_bind_one(struct device *dev, struct acpi_device *adev);
+> -int acpi_unbind_one(struct device *dev);
+>  bool acpi_device_is_present(struct acpi_device *adev);
+>  bool acpi_device_is_battery(struct acpi_device *adev);
+>
+> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+> index b81448b..3bebeda 100644
+> --- a/drivers/pnp/pnpacpi/core.c
+> +++ b/drivers/pnp/pnpacpi/core.c
+> @@ -295,9 +295,11 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
+>                 return error;
+>         }
+>
+> +       error = acpi_bind_one(&dev->dev, device);
+> +
+>         num++;
+>
+> -       return 0;
+> +       return error;
+>  }
+>
+>  static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
+> @@ -313,41 +315,6 @@ static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
+>         return AE_OK;
+>  }
+>
+> -static int __init acpi_pnp_match(struct device *dev, void *_pnp)
+> -{
+> -       struct acpi_device *acpi = to_acpi_device(dev);
+> -       struct pnp_dev *pnp = _pnp;
+> -
+> -       /* true means it matched */
+> -       return !acpi->physical_node_count
+> -           && compare_pnp_id(pnp->id, acpi_device_hid(acpi));
+> -}
+> -
+> -static struct acpi_device * __init acpi_pnp_find_companion(struct device *dev)
+> -{
+> -       dev = bus_find_device(&acpi_bus_type, NULL, to_pnp_dev(dev),
+> -                             acpi_pnp_match);
+> -       if (!dev)
+> -               return NULL;
+> -
+> -       put_device(dev);
+> -       return to_acpi_device(dev);
+> -}
+> -
+> -/* complete initialization of a PNPACPI device includes having
+> - * pnpdev->dev.archdata.acpi_handle point to its ACPI sibling.
+> - */
+> -static bool acpi_pnp_bus_match(struct device *dev)
+> -{
+> -       return dev->bus == &pnp_bus_type;
+> -}
+> -
+> -static struct acpi_bus_type __initdata acpi_pnp_bus = {
+> -       .name        = "PNP",
+> -       .match       = acpi_pnp_bus_match,
+> -       .find_companion = acpi_pnp_find_companion,
+> -};
+> -
+>  int pnpacpi_disabled __initdata;
+>  static int __init pnpacpi_init(void)
+>  {
+> @@ -357,10 +324,8 @@ static int __init pnpacpi_init(void)
+>         }
+>         printk(KERN_INFO "pnp: PnP ACPI init\n");
+>         pnp_register_protocol(&pnpacpi_protocol);
+> -       register_acpi_bus_type(&acpi_pnp_bus);
+>         acpi_get_devices(NULL, pnpacpi_add_device_handler, NULL, NULL);
+>         printk(KERN_INFO "pnp: PnP ACPI: found %d devices\n", num);
+> -       unregister_acpi_bus_type(&acpi_pnp_bus);
+>         pnp_platform_devices = 1;
+>         return 0;
+>  }
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index b571458..4bcbb94 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -487,6 +487,8 @@ struct acpi_bus_type {
+>  };
+>  int register_acpi_bus_type(struct acpi_bus_type *);
+>  int unregister_acpi_bus_type(struct acpi_bus_type *);
+> +int acpi_bind_one(struct device *dev, struct acpi_device *adev);
+> +int acpi_unbind_one(struct device *dev);
+>
+>  struct acpi_pci_root {
+>         struct acpi_device * device;
+> --
+> 1.8.3.2
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
