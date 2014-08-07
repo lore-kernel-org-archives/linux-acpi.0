@@ -1,120 +1,122 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/2 V2] USB: Use ACPI device information
-Date: Wed, 06 Aug 2014 22:30:53 +0200
-Message-ID: <3651033.4ACFakzb6s@vostro.rjw.lan>
-References: <56D4B9BFEADA5948B14547D2A81CE2C0284660F3@HASMSX106.ger.corp.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2 07/18] ACPI / table: Print GIC information when MADT
+ is parsed
+Date: Thu, 7 Aug 2014 01:41:52 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802650766@SHSMSX101.ccr.corp.intel.com>
+References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
+ <1407166105-17675-8-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57094 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753145AbaHFUMN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Aug 2014 16:12:13 -0400
-In-Reply-To: <56D4B9BFEADA5948B14547D2A81CE2C0284660F3@HASMSX106.ger.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1407166105-17675-8-git-send-email-hanjun.guo@linaro.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark
+ Rutland <mark.rutland@arm.com>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Moore,
+ Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, "Charles.Garcia-Tobin@arm.com" <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, linux-k
 List-Id: linux-acpi@vger.kernel.org
-To: "Tenoutit, Faouaz" <faouaz.tenoutit@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Samuel Ortiz <samuel.ortiz@intel.com>
 
-On Wednesday, July 09, 2014 04:42:38 PM Tenoutit, Faouaz wrote:
-> From: Faouaz TENOUTIT <faouaz.tenoutit@intel.com>
+Hi,
+
+> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
+> Sent: Monday, August 04, 2014 11:28 PM
+> To: Catalin Marinas; Rafael J. Wysocki; Mark Rutland
 > 
-> Use ACPI device pld information instead of calling
-> acpi_get_physical_device_location.
+> When MADT is parsed, print GIC information to make the boot
+> log look pretty.
 > 
-> Signed-off-by: Faouaz TENOUTIT <faouaz.tenoutit@intel.com>
-> Acked-by: Samuel Ortiz <samuel.ortiz@intel.com>
-
-Can you please fix the whitespace in this patch?
-
-Rafael
-
-
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 > ---
->  drivers/acpi/scan.c         | 13 +++++++++++++
->  drivers/usb/core/usb-acpi.c | 14 +++++---------
->  include/acpi/acpi_bus.h     |  1 +
->  3 files changed, 19 insertions(+), 9 deletions(-)
+>  drivers/acpi/tables.c |   39 ++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 38 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index f775fa0..7ad6beb 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -764,6 +764,13 @@ static int acpi_device_setup_files(struct acpi_device *dev)
->                              &dev_attr_real_power_state);
->      }
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index 6d5a6cd..77f8bb1 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -183,6 +183,44 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>  		}
+>  		break;
 > 
-> +    /*
-> +     * If device has _PLD, initialize the 'pld' struct
-> +     */
-> +    if (acpi_has_method(dev->handle, "_PLD"))
-> +        acpi_get_physical_device_location(dev->handle,
-> +                    &dev->pld);
-> +
->  end:
->      return result;
->  }
-> @@ -803,6 +810,12 @@ static void acpi_device_remove_files(struct acpi_device *dev)
->          device_remove_file(&dev->dev, &dev_attr_status);
->      if (dev->handle)
->          device_remove_file(&dev->dev, &dev_attr_path);
-> +
-> +    /*
-> +     * If device has _PLD, free 'pld' struct
-> +     */
-> +    if (dev->pld)
-> +        ACPI_FREE(dev->pld);
->  }
->  /* --------------------------------------------------------------------------
->              ACPI Bus operations
-> diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
-> index 2776cfe..a8cbb72 100644
-> --- a/drivers/usb/core/usb-acpi.c
-> +++ b/drivers/usb/core/usb-acpi.c
-> @@ -157,9 +157,6 @@ static struct acpi_device *usb_acpi_find_companion(struct device *dev)
->      } else if (is_usb_port(dev)) {
->          struct usb_port *port_dev = to_usb_port(dev);
->          int port1 = port_dev->portnum;
-> -        struct acpi_pld_info *pld;
-> -        acpi_handle *handle;
-> -        acpi_status status;
-> 
->          /* Get the struct usb_device point of port's hub */
->          udev = to_usb_device(dev->parent->parent);
-> @@ -190,15 +187,14 @@ static struct acpi_device *usb_acpi_find_companion(struct device *dev)
->              if (!adev)
->                  return NULL;
->          }
-> -        handle = adev->handle;
-> -        status = acpi_get_physical_device_location(handle, &pld);
-> -        if (ACPI_FAILURE(status) || !pld)
-> +        if (!adev->pld)
->              return adev;
-> 
->          port_dev->location = USB_ACPI_LOCATION_VALID
-> -            | pld->group_token << 8 | pld->group_position;
-> -        port_dev->connect_type = usb_acpi_get_connect_type(handle, pld);
-> -        ACPI_FREE(pld);
-> +            | adev->pld->group_token << 8
-> +            | adev->pld->group_position;
-> +        port_dev->connect_type = usb_acpi_get_connect_type(adev->handle,
-> +                adev->pld);
-> 
->          return adev;
->      }
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index b571458..1b05d07 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -350,6 +350,7 @@ struct acpi_device {
->      struct acpi_scan_handler *handler;
->      struct acpi_hotplug_context *hp;
->      struct acpi_driver *driver;
-> +    struct acpi_pld_info *pld;
->      void *driver_data;
->      struct device dev;
->      unsigned int physical_node_count;
-> --
-> 2.0.0
+> +	case ACPI_MADT_TYPE_GENERIC_INTERRUPT:
+> +		{
+> +			struct acpi_madt_generic_interrupt *p =
+> +				(struct acpi_madt_generic_interrupt *)header;
+> +			pr_info("GICC (acpi_id[0x%04x] address[0x%08llx] MPDIR[0x%llx] %s)\n",
+> +				p->uid, p->base_address, p->arm_mpidr,
 
+Just reminders.
+The acpi_id looks vague, is it a UID for the processor?
+Should 0x%08llx for base_address be %p?
+
+> +				(p->flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
+> +
+> +		}
+> +		break;
+> +
+> +	case ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR:
+> +		{
+> +			struct acpi_madt_generic_distributor *p =
+> +				(struct acpi_madt_generic_distributor *)header;
+> +			pr_info("GIC Distributor (gic_id[0x%04x] address[0x%08llx] gsi_base[%d])\n",
+> +				p->gic_id, p->base_address, p->global_irq_base);
+> +		}
+> +		break;
+
+Same question for base_address.
+
+> +
+> +	case ACPI_MADT_TYPE_GENERIC_MSI_FRAME:
+> +		{
+> +			struct acpi_madt_generic_msi_frame *p =
+> +				(struct acpi_madt_generic_msi_frame *)header;
+> +			pr_info("GIC MSI Frame (msi_fame_id[%d] address[0x%08llx])\n",
+> +				p->msi_frame_id, p->base_address);
+
+Ditto.
+
+> +		}
+> +		break;
+> +
+> +	case ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR:
+> +		{
+> +			struct acpi_madt_generic_redistributor *p =
+> +				(struct acpi_madt_generic_redistributor *)header;
+> +			pr_info("GIC Redistributor (address[0x%08llx] region_size[0x%x])\n",
+> +				p->base_address, p->length);
+
+Ditto.
+
+> +		}
+> +		break;
+> +
+>  	default:
+>  		pr_warn("Found unsupported MADT entry (type = 0x%x)\n",
+>  			header->type);
+> @@ -190,7 +228,6 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>  	}
+>  }
+> 
+> -
+>  int __init
+>  acpi_table_parse_entries(char *id,
+>  			     unsigned long table_size,
+
+This block shouldn't be a part of this patch.
+
+Thanks and best regards
+-Lv
+
+> --
+> 1.7.9.5
