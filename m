@@ -1,52 +1,39 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC] ACPI: Add GPIO-signaled event simulator.
-Date: Fri, 8 Aug 2014 14:36:02 +0200
-Message-ID: <CACRpkdZmKJmaTRBpDrzd7+EhPuFeScr6jEHC8+0z6-4knjFqkA@mail.gmail.com>
-References: <1406217076-17150-1-git-send-email-tomasz.nowicki@linaro.org>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [GIT PULL] x86/apic changes for v3.17
+Date: Fri, 8 Aug 2014 15:21:44 -0700 (PDT)
+Message-ID: <alpine.DEB.2.02.1408081519240.7430@chino.kir.corp.google.com>
+References: <1407209178-18644-1-git-send-email-jiang.liu@linux.intel.com> <1407209178-18644-2-git-send-email-jiang.liu@linux.intel.com> <20140805183729.GA23068@pd.tnic> <53E201FC.6010102@linux.intel.com> <20140806170937.GA4895@pd.tnic> <20140807110332.GB10043@pd.tnic>
+ <20140807113346.GA24225@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f52.google.com ([209.85.219.52]:41119 "EHLO
-	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752863AbaHHMgD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Aug 2014 08:36:03 -0400
-Received: by mail-oa0-f52.google.com with SMTP id o6so4011292oag.11
-        for <linux-acpi@vger.kernel.org>; Fri, 08 Aug 2014 05:36:02 -0700 (PDT)
-In-Reply-To: <1406217076-17150-1-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140807113346.GA24225@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Thu, Jul 24, 2014 at 5:51 PM, Tomasz Nowicki
-<tomasz.nowicki@linaro.org> wrote:
+On Thu, 7 Aug 2014, Ingo Molnar wrote:
 
-> GPIO signaled events is quite new thing in Linux kernel.
-> AFAIK, there are not many board which can take advantage of it.
-> However, GPIO events are very useful feature during work on ACPI
-> subsystems.
+> Linus, please pull the latest x86-apic-for-linus git tree from:
+> 
+>    git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git x86-apic-for-linus
+> 
+>    # HEAD: 5e3bf215f4f2efc0af89e6dbc5da789744aeb5d7 x86/apic/vsmp: Make is_vsmp_box() static
+> 
+> 
+> The main changes in this cycle are:
+> 
+>     * Remove obsolete APIC driver abstractions. (David Rientjes)
+> 
 
-Overall this seems like a pretty nice debug feature.
+These changes are unrelated from the other issues and can still be pulled 
+from
 
-> This commit emulates GPIO h/w behaviour and consists on read/write
-> operation to debugfs file. GPIO device instance is still required in DSDT
-> table along with _AEI resources and event methods.
->
-> Reading from file provides pin to GPIO device map e.g. :
-> $ cat /sys/kernel/debug/acpi/gpio_event
-> GPIO device name: /__SB.GPI0
-> Available GPIO pin map:
-> /__SB.GPI0 <-> pin 0x100
->
-> Based on that, user can trigger method corresponding to device pin number:
-> $ echo "/__SB.GPI0 0x100" > /sys/kernel/debug/acpi/gpio_event
+	git://git.kernel.org/pub/scm/linux/kernel/git/rientjes/linux.git x86/apic 
 
-I need input from Rafael and Mika as to whether this is a
-good interface.
+if we want the cleanups for 3.17.  The x86 pull request was originally at 
+http://marc.info/?l=linux-kernel&m=140678961924050.
 
-It seems a bit confusing for me: why do you have to extract
-a number from one file and then insert the same magic number
-somewhere else?
-
-Yours,
-Linus Walleij
+It would be a shame to miss out on that because the changes share the same 
+tip branch.
