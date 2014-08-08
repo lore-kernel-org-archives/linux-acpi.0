@@ -1,75 +1,52 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: PROBLEM: Native backlight regressed from
-	logarithmic to linear scale
-Date: Fri, 08 Aug 2014 12:38:13 +0300
-Message-ID: <87k36jmid6.fsf@intel.com>
-References: <alpine.DEB.2.02.1407212333200.44274@all-night-tool.MIT.EDU>
- <53D76D65.6030704@redhat.com>
- <alpine.DEB.2.02.1407290554280.44274@all-night-tool.MIT.EDU>
- <20140729103822.GO4747@phenom.ffwll.local>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC] ACPI: Add GPIO-signaled event simulator.
+Date: Fri, 8 Aug 2014 14:36:02 +0200
+Message-ID: <CACRpkdZmKJmaTRBpDrzd7+EhPuFeScr6jEHC8+0z6-4knjFqkA@mail.gmail.com>
+References: <1406217076-17150-1-git-send-email-tomasz.nowicki@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20140729103822.GO4747@phenom.ffwll.local>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Daniel Vetter <daniel@ffwll.ch>, Anders Kaseorg <andersk@MIT.EDU>
-Cc: intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f52.google.com ([209.85.219.52]:41119 "EHLO
+	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752863AbaHHMgD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Aug 2014 08:36:03 -0400
+Received: by mail-oa0-f52.google.com with SMTP id o6so4011292oag.11
+        for <linux-acpi@vger.kernel.org>; Fri, 08 Aug 2014 05:36:02 -0700 (PDT)
+In-Reply-To: <1406217076-17150-1-git-send-email-tomasz.nowicki@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-T24gVHVlLCAyOSBKdWwgMjAxNCwgRGFuaWVsIFZldHRlciA8ZGFuaWVsQGZmd2xsLmNoPiB3cm90
-ZToKPiBPbiBUdWUsIEp1bCAyOSwgMjAxNCBhdCAwNjoxNDoxNkFNIC0wNDAwLCBBbmRlcnMgS2Fz
-ZW9yZyB3cm90ZToKPj4gT24gVHVlLCAyOSBKdWwgMjAxNCwgSGFucyBkZSBHb2VkZSB3cm90ZToK
-Pj4gPiBJJ3ZlIGJlZW4gdGhpbmtpbmcgYSBiaXQgYWJvdXQgdGhpcywgYW5kIEkgYmVsaWV2ZSB0
-aGF0IHRoZSByaWdodCBhbnN3ZXIgCj4+ID4gaGVyZSBpcyB0byBkbyB0aGUgbGluZWFyIHRvIGxv
-Z2FyaXRobWljIG1hcHBpbmcgaW4gdXNlci1zcGFjZS4gVGhlIGludGVsIAo+PiA+IGJhY2tsaWdo
-dCBpbnRlcmZhY2UgaGFzIGEgdHlwZSBvZiByYXcsIGNsZWFybHkgc2lnbmFsbGluZyB0byB1c2Vy
-c3BhY2UgCj4+ID4gdGhhdCBpdCBpcyBhIHJhdyAidW50cmFuc2xhdGVkIiBpbnRlcmZhY2UsIGFz
-IHN1Y2ggYW55IGZhbmNpbmVzcyBzdWNoIGFzIAo+PiA+IGNyZWF0aW5nIGEgbG9nYXJpdGhtaWMg
-c2NhbGUgc2hvdWxkIGJlIGRvbmUgaW4gdXNlcnNwYWNlIElNSE8uCj4+IAo+PiBJIHdhcyBnb2lu
-ZyB0byByZXNwb25kIHRoYXQgdGhlIGtlcm5lbCBkb2VzIGl0cyBvd24gYnJpZ2h0bmVzcyBzdGVw
-cGluZyAKPj4gd2hlbiB1c2Vyc3BhY2UgaXNu4oCZdCBwYXlpbmcgYXR0ZW50aW9uLiAgQnV0IGFw
-cGFyZW50bHkgb25seSBhY3BpX3ZpZGVvIAo+PiBkb2VzIHRoYXQsIGFuZCBpbnRlbF9iYWNrbGln
-aHQgZG9lcyBub3Q7IG15IGJyaWdodG5lc3Mga2V5cyBub3cgaGF2ZSBubyAKPj4gZWZmZWN0IG91
-dHNpZGUgb2YgdGhlIFggc2VydmVyLiAgSXMgdGhhdCB0aGUgZXhwZWN0ZWQgYmVoYXZpb3I/Cj4K
-PiBVc2Vyc3BhY2Ugb24gbGludXggaXMgc3VwcG9zZWQgdG8gY2F0Y2ggYnJpZ2h0bmVzcyBrZXlz
-IGFuZCB1cGRhdGUgdGhlCj4gYmFja2xpZ2h0LiBTb21lIGFjcGkgZHJpdmVycyBkbyBmdW5ueSBz
-dHVmZiBiZWhpbmQgZXZlcnlvbmUncyBiYWNrLCBidXQKPiBnZW5lcmFsbHkgdGhhdCdzIHRoZSBl
-eHBlY3RlZCBiZWhhdmlvci4gWW91J2QgbmVlZCBhIGRlYW1vbiBmb3IgdGhlCj4gYmFja2xpZ2h0
-IHRvIHdvcmsgb24gdGhlIGNvbnNvbGUuCj4KPj4gSW4gYW55IGNhc2UsIGlmIHlvdSB0aGluayBw
-dW50aW5nIHBhcnQgb2YgdGhlIHByb2JsZW0gdG8gdXNlcnNwYWNlIGlzIHRoZSAKPj4gcmlnaHQg
-YW5zd2VyLCB0aGVuIHRvIGZsZXNoIG91dCB0aGUgZGV0YWlsczogZG8geW91IHRoaW5rIGl04oCZ
-cyByaWdodCBmb3IgCj4+IHVzZXJzcGFjZSB0byBhc3N1bWUgdGhhdCBhbnkgYmFja2xpZ2h0IHdp
-dGggdHlwZSDigJhyYXfigJkgaXMgYSBsaW5lYXIgc2NhbGUgCj4+IHRoYXQgbmVlZHMgdG8gYmUg
-Y29udmVydGVkLCBhbmQgb25lIHdpdGggdHlwZSDigJhmaXJtd2FyZeKAmSBvciDigJhwbGF0Zm9y
-beKAmSBoYXMgCj4+IGFscmVhZHkgYmVlbiBjb252ZXJ0ZWQgYXBwcm9wcmlhdGVseT8KPgo+IEkg
-ZG9uJ3QgdGhpbmsgeW91IGNhbiBnZW5lcmFsbHkgYXNzdW1lIGFueXRoaW5nIC0gd2hhdCB3ZSBk
-byBpcyBzZW5kIHRoZQo+IHB3bSBzaWduYWwsIGhvdyBsaW5lYXJseSB0aGF0IHRyYW5zbGF0ZXMg
-aW50byBicmlnaHRuZXNzIGlzIHRvdGFsbHkgcGFuZWwKPiBhbmQgZHJpdmVyIGRlcGVuZGVudC4g
-U28gbm8gbWF0dGVyIHdoYXQgeW91IHBpY2sgc29tZW9uZSB3aWxsIGNvbXBsYWluIEkKPiB0aGlu
-ay4KCkJlY2F1c2UgdGhlIG1hcHBpbmcgZnJvbSBQV00gZHV0eSBjeWNsZSB0byBsdW1pbmFuY2Ug
-aXMgcGFuZWwgZGVwZW5kZW50LAp0aGUgQUNQSSBvcHJlZ2lvbiBjb250YWlucyBzdWNoIG1hcHBp
-bmcuIExpa2VseSB0aGUgQUNQSSBiYWNrbGlnaHQgdXNlcwpqdXN0IHRoYXQuIFdlIChpOTE1KSBj
-dXJyZW50bHkgZG9uJ3QuIEkgZG9uJ3QgdGhpbmsgdGhlIHVzZXJzcGFjZSBoYXMgYQpzZW5zaWJs
-ZSBpbnRlcmZhY2UgdG8gdGhhdCBpbmZvcm1hdGlvbi4gSSdtIG5vdCBzdXJlIGl0IHNob3VsZCBl
-aXRoZXIuCgpJIGhhdmVuJ3QgbWFkZSB1cCBteSBtaW5kIG9uIHRoaXMsIGJ1dCBJIG1pZ2h0IGdv
-IGZvciBkb2luZyB0aGUgbWFwcGluZwppbiBpOTE1LiBBZGRpdGlvbmFsbHkgSSB0aGluayB3ZSBz
-aG91bGQgcHJvYmFibHkgdXNlIGEgZml4ZWQgcmFuZ2Ugb2YsCnNheSwgMC0xMDAgdGhhdCBnZXRz
-IGV4cG9zZWQgdG8gdGhlIHVzZXJzcGFjZTsgdGhlcmUncyBubyBwb2ludCBpbgpleHBvc2luZyBl
-LmcuIDEwMDAwMCBsZXZlbHMgd2hlbiB0aGUgaGFyZHdhcmUgY2FuIG5vdCBwaHlzaWNhbGx5IHBy
-b2R1Y2UKbm9yIGNhbiB0aGUgdXNlciBkaXN0aW5ndWlzaCB0aGF0IG1hbnkgZGlzdGluY3QgbGV2
-ZWxzLgoKSSdkIGdvIGZvciBtYWtpbmcgdGhpcyBhcyBzaW1wbGUgYXMgcG9zc2libGUgdG8gdXNl
-IGFuZCBpbXBsZW1lbnQKcmlnaHQuIEFueXRoaW5nIGZhbmN5IGlzIGdvaW5nIHRvIGJsb3cgdXAg
-aW4gZmFudGFzdGljIHdheXMuCgpCUiwKSmFuaS4KCgotLSAKSmFuaSBOaWt1bGEsIEludGVsIE9w
-ZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3Rz
-LmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlz
-dGluZm8vaW50ZWwtZ2Z4Cg==
+On Thu, Jul 24, 2014 at 5:51 PM, Tomasz Nowicki
+<tomasz.nowicki@linaro.org> wrote:
+
+> GPIO signaled events is quite new thing in Linux kernel.
+> AFAIK, there are not many board which can take advantage of it.
+> However, GPIO events are very useful feature during work on ACPI
+> subsystems.
+
+Overall this seems like a pretty nice debug feature.
+
+> This commit emulates GPIO h/w behaviour and consists on read/write
+> operation to debugfs file. GPIO device instance is still required in DSDT
+> table along with _AEI resources and event methods.
+>
+> Reading from file provides pin to GPIO device map e.g. :
+> $ cat /sys/kernel/debug/acpi/gpio_event
+> GPIO device name: /__SB.GPI0
+> Available GPIO pin map:
+> /__SB.GPI0 <-> pin 0x100
+>
+> Based on that, user can trigger method corresponding to device pin number:
+> $ echo "/__SB.GPI0 0x100" > /sys/kernel/debug/acpi/gpio_event
+
+I need input from Rafael and Mika as to whether this is a
+good interface.
+
+It seems a bit confusing for me: why do you have to extract
+a number from one file and then insert the same magic number
+somewhere else?
+
+Yours,
+Linus Walleij
