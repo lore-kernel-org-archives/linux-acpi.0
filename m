@@ -1,41 +1,94 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] x86/apic changes for v3.17
-Date: Thu, 7 Aug 2014 06:08:31 -1000
-Message-ID: <CA+55aFzWZSc4vK5qK9jrjE1hfRSxdcWxmPHe7mfYWQtjY7WiSQ@mail.gmail.com>
-References: <1407209178-18644-1-git-send-email-jiang.liu@linux.intel.com>
-	<1407209178-18644-2-git-send-email-jiang.liu@linux.intel.com>
-	<20140805183729.GA23068@pd.tnic>
-	<53E201FC.6010102@linux.intel.com>
-	<20140806170937.GA4895@pd.tnic>
-	<20140807110332.GB10043@pd.tnic>
-	<20140807113346.GA24225@gmail.com>
-	<20140807133148.GC10043@pd.tnic>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Bugfix] x86, irq, PCI: Keep IRQ assignment for PCI devices during suspend/hibernation
+Date: Fri,  8 Aug 2014 14:07:51 +0800
+Message-ID: <1407478071-29399-1-git-send-email-jiang.liu@linux.intel.com>
+References: <20140807113346.GA24225@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:65061 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932082AbaHGQId (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Aug 2014 12:08:33 -0400
-In-Reply-To: <20140807133148.GC10043@pd.tnic>
+Received: from mga01.intel.com ([192.55.52.88]:62673 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752547AbaHHGFE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Aug 2014 02:05:04 -0400
+In-Reply-To: <20140807113346.GA24225@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, the arch/x86 maintainers <x86@kernel.org>, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Peter Zijlstra <a.p.zijls>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Len Brown <lenb@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Aug 7, 2014 at 3:31 AM, Borislav Petkov <bp@alien8.de> wrote:
->
-> This tree still needs the suspend/resume fixes on this thread AFAICT.
-> Like keeping IRQ numbers of PCI devices stable across a s/r cycle, for
-> example.
->
-> I'm guessing you'll send Linus a follow-up pull request with those
-> later, right?
+Now IOAPIC driver dynamically allocates IRQ numbers for IOAPIC pins.
+We need to keep IRQ assignment for PCI devices during suspend/hibernation,
+otherwise it may cause failure of suspend/hibernation due to:
+1) Device driver calls pci_enable_device() to allocate an IRQ number
+   and register interrupt handler on the returned IRQ.
+2) Device driver's suspend callback calls pci_disable_device() and
+   release assigned IRQ in turn.
+3) Device driver's resume callback calls pci_enable_device() to
+   allocate IRQ number again. A different IRQ number may be assigned
+   by IOAPIC driver this time.
+4) Now the hardware delivers interrupt to the new IRQ but interrupt
+   handler is still registered against the old IRQ, so it breaks
+   suspend/hibernation.
 
-If there are known issues with suspend/resume, I'm not willing to pull
-this yet. The code for the merge window is supposed to be complete and
-ready.
+To fix this issue, we keep IRQ assignment during suspend/hibernation.
+Flag pci_dev.dev.power.is_prepared is used to detect that
+pci_disable_device() is called during suspend/hibernation.
 
-Ingo?
+Reported-and-Tested-by: Borislav Petkov <bp@suse.de>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+Hi Ingo,
+	Could you please help to apply this patch onto 
+git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git x86-apic-for-linus?
+	It fixes the suspend/hibernation failure reported by Borislav.
+Thanks!
+Gerry
+---
+ arch/x86/pci/intel_mid_pci.c |    2 +-
+ arch/x86/pci/irq.c           |    3 ++-
+ drivers/acpi/pci_irq.c       |    4 ++++
+ 3 files changed, 7 insertions(+), 2 deletions(-)
 
-            Linus
+diff --git a/arch/x86/pci/intel_mid_pci.c b/arch/x86/pci/intel_mid_pci.c
+index 09fece368592..3865116c51fb 100644
+--- a/arch/x86/pci/intel_mid_pci.c
++++ b/arch/x86/pci/intel_mid_pci.c
+@@ -229,7 +229,7 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
+ 
+ static void intel_mid_pci_irq_disable(struct pci_dev *dev)
+ {
+-	if (dev->irq > 0)
++	if (!dev->dev.power.is_prepared && dev->irq > 0)
+ 		mp_unmap_irq(dev->irq);
+ }
+ 
+diff --git a/arch/x86/pci/irq.c b/arch/x86/pci/irq.c
+index 748cfe8ab322..bc1a2c341891 100644
+--- a/arch/x86/pci/irq.c
++++ b/arch/x86/pci/irq.c
+@@ -1256,7 +1256,8 @@ static int pirq_enable_irq(struct pci_dev *dev)
+ 
+ static void pirq_disable_irq(struct pci_dev *dev)
+ {
+-	if (io_apic_assign_pci_irqs && dev->irq) {
++	if (io_apic_assign_pci_irqs && !dev->dev.power.is_prepared &&
++	    dev->irq) {
+ 		mp_unmap_irq(dev->irq);
+ 		dev->irq = 0;
+ 	}
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 6ba463ceccc6..c96887d5289e 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -481,6 +481,10 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
+ 	if (!pin)
+ 		return;
+ 
++	/* Keep IOAPIC pin configuration when suspending */
++	if (dev->dev.power.is_prepared)
++		return;
++
+ 	entry = acpi_pci_irq_lookup(dev, pin);
+ 	if (!entry)
+ 		return;
+-- 
+1.7.10.4
+
