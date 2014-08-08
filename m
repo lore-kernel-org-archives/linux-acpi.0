@@ -1,52 +1,75 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [GIT PULL] x86/apic changes for v3.17
-Date: Fri, 8 Aug 2014 10:09:18 +0200
-Message-ID: <20140808080918.GB8502@gmail.com>
-References: <1407209178-18644-1-git-send-email-jiang.liu@linux.intel.com>
- <1407209178-18644-2-git-send-email-jiang.liu@linux.intel.com>
- <20140805183729.GA23068@pd.tnic>
- <53E201FC.6010102@linux.intel.com>
- <20140806170937.GA4895@pd.tnic>
- <20140807110332.GB10043@pd.tnic>
- <20140807113346.GA24225@gmail.com>
- <20140807133148.GC10043@pd.tnic>
- <CA+55aFzWZSc4vK5qK9jrjE1hfRSxdcWxmPHe7mfYWQtjY7WiSQ@mail.gmail.com>
+From: Jani Nikula <jani.nikula@linux.intel.com>
+Subject: Re: PROBLEM: Native backlight regressed from
+	logarithmic to linear scale
+Date: Fri, 08 Aug 2014 12:38:13 +0300
+Message-ID: <87k36jmid6.fsf@intel.com>
+References: <alpine.DEB.2.02.1407212333200.44274@all-night-tool.MIT.EDU>
+ <53D76D65.6030704@redhat.com>
+ <alpine.DEB.2.02.1407290554280.44274@all-night-tool.MIT.EDU>
+ <20140729103822.GO4747@phenom.ffwll.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:37061 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752258AbaHHIJY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Aug 2014 04:09:24 -0400
-Content-Disposition: inline
-In-Reply-To: <CA+55aFzWZSc4vK5qK9jrjE1hfRSxdcWxmPHe7mfYWQtjY7WiSQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20140729103822.GO4747@phenom.ffwll.local>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Daniel Vetter <daniel@ffwll.ch>, Anders Kaseorg <andersk@MIT.EDU>
+Cc: intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, the arch/x86 maintainers <x86@kernel.org>, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Peter Zijlstra <a.p.zijlstr>
 
-
-* Linus Torvalds <torvalds@linux-foundation.org> wrote:
-
-> On Thu, Aug 7, 2014 at 3:31 AM, Borislav Petkov <bp@alien8.de> wrote:
-> >
-> > This tree still needs the suspend/resume fixes on this thread AFAICT.
-> > Like keeping IRQ numbers of PCI devices stable across a s/r cycle, for
-> > example.
-> >
-> > I'm guessing you'll send Linus a follow-up pull request with those
-> > later, right?
-> 
-> If there are known issues with suspend/resume, I'm not willing to 
-> pull this yet. The code for the merge window is supposed to be 
-> complete and ready.
-> 
-> Ingo?
-
-Yeah, I think it might be better to delay this for v3.18 after all and 
-let it cook - I should not have tried to hurry and force it, my bad, 
-sorry about that!
-
-Thanks,
-
-	Ingo
+T24gVHVlLCAyOSBKdWwgMjAxNCwgRGFuaWVsIFZldHRlciA8ZGFuaWVsQGZmd2xsLmNoPiB3cm90
+ZToKPiBPbiBUdWUsIEp1bCAyOSwgMjAxNCBhdCAwNjoxNDoxNkFNIC0wNDAwLCBBbmRlcnMgS2Fz
+ZW9yZyB3cm90ZToKPj4gT24gVHVlLCAyOSBKdWwgMjAxNCwgSGFucyBkZSBHb2VkZSB3cm90ZToK
+Pj4gPiBJJ3ZlIGJlZW4gdGhpbmtpbmcgYSBiaXQgYWJvdXQgdGhpcywgYW5kIEkgYmVsaWV2ZSB0
+aGF0IHRoZSByaWdodCBhbnN3ZXIgCj4+ID4gaGVyZSBpcyB0byBkbyB0aGUgbGluZWFyIHRvIGxv
+Z2FyaXRobWljIG1hcHBpbmcgaW4gdXNlci1zcGFjZS4gVGhlIGludGVsIAo+PiA+IGJhY2tsaWdo
+dCBpbnRlcmZhY2UgaGFzIGEgdHlwZSBvZiByYXcsIGNsZWFybHkgc2lnbmFsbGluZyB0byB1c2Vy
+c3BhY2UgCj4+ID4gdGhhdCBpdCBpcyBhIHJhdyAidW50cmFuc2xhdGVkIiBpbnRlcmZhY2UsIGFz
+IHN1Y2ggYW55IGZhbmNpbmVzcyBzdWNoIGFzIAo+PiA+IGNyZWF0aW5nIGEgbG9nYXJpdGhtaWMg
+c2NhbGUgc2hvdWxkIGJlIGRvbmUgaW4gdXNlcnNwYWNlIElNSE8uCj4+IAo+PiBJIHdhcyBnb2lu
+ZyB0byByZXNwb25kIHRoYXQgdGhlIGtlcm5lbCBkb2VzIGl0cyBvd24gYnJpZ2h0bmVzcyBzdGVw
+cGluZyAKPj4gd2hlbiB1c2Vyc3BhY2UgaXNu4oCZdCBwYXlpbmcgYXR0ZW50aW9uLiAgQnV0IGFw
+cGFyZW50bHkgb25seSBhY3BpX3ZpZGVvIAo+PiBkb2VzIHRoYXQsIGFuZCBpbnRlbF9iYWNrbGln
+aHQgZG9lcyBub3Q7IG15IGJyaWdodG5lc3Mga2V5cyBub3cgaGF2ZSBubyAKPj4gZWZmZWN0IG91
+dHNpZGUgb2YgdGhlIFggc2VydmVyLiAgSXMgdGhhdCB0aGUgZXhwZWN0ZWQgYmVoYXZpb3I/Cj4K
+PiBVc2Vyc3BhY2Ugb24gbGludXggaXMgc3VwcG9zZWQgdG8gY2F0Y2ggYnJpZ2h0bmVzcyBrZXlz
+IGFuZCB1cGRhdGUgdGhlCj4gYmFja2xpZ2h0LiBTb21lIGFjcGkgZHJpdmVycyBkbyBmdW5ueSBz
+dHVmZiBiZWhpbmQgZXZlcnlvbmUncyBiYWNrLCBidXQKPiBnZW5lcmFsbHkgdGhhdCdzIHRoZSBl
+eHBlY3RlZCBiZWhhdmlvci4gWW91J2QgbmVlZCBhIGRlYW1vbiBmb3IgdGhlCj4gYmFja2xpZ2h0
+IHRvIHdvcmsgb24gdGhlIGNvbnNvbGUuCj4KPj4gSW4gYW55IGNhc2UsIGlmIHlvdSB0aGluayBw
+dW50aW5nIHBhcnQgb2YgdGhlIHByb2JsZW0gdG8gdXNlcnNwYWNlIGlzIHRoZSAKPj4gcmlnaHQg
+YW5zd2VyLCB0aGVuIHRvIGZsZXNoIG91dCB0aGUgZGV0YWlsczogZG8geW91IHRoaW5rIGl04oCZ
+cyByaWdodCBmb3IgCj4+IHVzZXJzcGFjZSB0byBhc3N1bWUgdGhhdCBhbnkgYmFja2xpZ2h0IHdp
+dGggdHlwZSDigJhyYXfigJkgaXMgYSBsaW5lYXIgc2NhbGUgCj4+IHRoYXQgbmVlZHMgdG8gYmUg
+Y29udmVydGVkLCBhbmQgb25lIHdpdGggdHlwZSDigJhmaXJtd2FyZeKAmSBvciDigJhwbGF0Zm9y
+beKAmSBoYXMgCj4+IGFscmVhZHkgYmVlbiBjb252ZXJ0ZWQgYXBwcm9wcmlhdGVseT8KPgo+IEkg
+ZG9uJ3QgdGhpbmsgeW91IGNhbiBnZW5lcmFsbHkgYXNzdW1lIGFueXRoaW5nIC0gd2hhdCB3ZSBk
+byBpcyBzZW5kIHRoZQo+IHB3bSBzaWduYWwsIGhvdyBsaW5lYXJseSB0aGF0IHRyYW5zbGF0ZXMg
+aW50byBicmlnaHRuZXNzIGlzIHRvdGFsbHkgcGFuZWwKPiBhbmQgZHJpdmVyIGRlcGVuZGVudC4g
+U28gbm8gbWF0dGVyIHdoYXQgeW91IHBpY2sgc29tZW9uZSB3aWxsIGNvbXBsYWluIEkKPiB0aGlu
+ay4KCkJlY2F1c2UgdGhlIG1hcHBpbmcgZnJvbSBQV00gZHV0eSBjeWNsZSB0byBsdW1pbmFuY2Ug
+aXMgcGFuZWwgZGVwZW5kZW50LAp0aGUgQUNQSSBvcHJlZ2lvbiBjb250YWlucyBzdWNoIG1hcHBp
+bmcuIExpa2VseSB0aGUgQUNQSSBiYWNrbGlnaHQgdXNlcwpqdXN0IHRoYXQuIFdlIChpOTE1KSBj
+dXJyZW50bHkgZG9uJ3QuIEkgZG9uJ3QgdGhpbmsgdGhlIHVzZXJzcGFjZSBoYXMgYQpzZW5zaWJs
+ZSBpbnRlcmZhY2UgdG8gdGhhdCBpbmZvcm1hdGlvbi4gSSdtIG5vdCBzdXJlIGl0IHNob3VsZCBl
+aXRoZXIuCgpJIGhhdmVuJ3QgbWFkZSB1cCBteSBtaW5kIG9uIHRoaXMsIGJ1dCBJIG1pZ2h0IGdv
+IGZvciBkb2luZyB0aGUgbWFwcGluZwppbiBpOTE1LiBBZGRpdGlvbmFsbHkgSSB0aGluayB3ZSBz
+aG91bGQgcHJvYmFibHkgdXNlIGEgZml4ZWQgcmFuZ2Ugb2YsCnNheSwgMC0xMDAgdGhhdCBnZXRz
+IGV4cG9zZWQgdG8gdGhlIHVzZXJzcGFjZTsgdGhlcmUncyBubyBwb2ludCBpbgpleHBvc2luZyBl
+LmcuIDEwMDAwMCBsZXZlbHMgd2hlbiB0aGUgaGFyZHdhcmUgY2FuIG5vdCBwaHlzaWNhbGx5IHBy
+b2R1Y2UKbm9yIGNhbiB0aGUgdXNlciBkaXN0aW5ndWlzaCB0aGF0IG1hbnkgZGlzdGluY3QgbGV2
+ZWxzLgoKSSdkIGdvIGZvciBtYWtpbmcgdGhpcyBhcyBzaW1wbGUgYXMgcG9zc2libGUgdG8gdXNl
+IGFuZCBpbXBsZW1lbnQKcmlnaHQuIEFueXRoaW5nIGZhbmN5IGlzIGdvaW5nIHRvIGJsb3cgdXAg
+aW4gZmFudGFzdGljIHdheXMuCgpCUiwKSmFuaS4KCgotLSAKSmFuaSBOaWt1bGEsIEludGVsIE9w
+ZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3Rz
+LmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlz
+dGluZm8vaW50ZWwtZ2Z4Cg==
