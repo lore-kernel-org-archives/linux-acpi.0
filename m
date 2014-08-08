@@ -1,122 +1,82 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 07/18] ACPI / table: Print GIC information when MADT
- is parsed
-Date: Thu, 7 Aug 2014 01:41:52 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802650766@SHSMSX101.ccr.corp.intel.com>
-References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
- <1407166105-17675-8-git-send-email-hanjun.guo@linaro.org>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: [PATCH 1/1] ACPI: Check if acpi_device->handler is NULL when ACPI_HOTPLUG_MEMORY is not configured.
+Date: Fri, 8 Aug 2014 10:30:45 +0800
+Message-ID: <1407465045-4726-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1407166105-17675-8-git-send-email-hanjun.guo@linaro.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark
- Rutland <mark.rutland@arm.com>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Moore,
- Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, "Charles.Garcia-Tobin@arm.com" <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, linux-k
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:51456 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754423AbaHGCbt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Aug 2014 22:31:49 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi,
+When ACPI_HOTPLUG_MEMORY is not configured, memory_device_handler.attach is not set.
+And in acpi_scan_attach_handler(), the acpi_device->handler will not be initialized.
 
-> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
-> Sent: Monday, August 04, 2014 11:28 PM
-> To: Catalin Marinas; Rafael J. Wysocki; Mark Rutland
-> 
-> When MADT is parsed, print GIC information to make the boot
-> log look pretty.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> ---
->  drivers/acpi/tables.c |   39 ++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 38 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 6d5a6cd..77f8bb1 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -183,6 +183,44 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
->  		}
->  		break;
-> 
-> +	case ACPI_MADT_TYPE_GENERIC_INTERRUPT:
-> +		{
-> +			struct acpi_madt_generic_interrupt *p =
-> +				(struct acpi_madt_generic_interrupt *)header;
-> +			pr_info("GICC (acpi_id[0x%04x] address[0x%08llx] MPDIR[0x%llx] %s)\n",
-> +				p->uid, p->base_address, p->arm_mpidr,
+In acpi_scan_hot_remove(), it doesn't check if acpi_device->handler is NULL.
+If we do memory hot-remove without ACPI_HOTPLUG_MEMORY configured, the kernel
+will panic.
 
-Just reminders.
-The acpi_id looks vague, is it a UID for the processor?
-Should 0x%08llx for base_address be %p?
+[  250.304538] BUG: unable to handle kernel NULL pointer dereference at 0000000000000088
+[  250.304960] IP: [<ffffffff813e318f>] acpi_device_hotplug+0x1d7/0x4c4
+[  250.305120] PGD 0
+[  250.305120] Oops: 0000 [#1] SMP
+[  250.305120] Modules linked in: sd_mod(E) sr_mod(E) cdrom(E) crc_t10dif(E) crct10dif_common(E) ata_piix(E) libata(E)
+[  250.305120] CPU: 0 PID: 41 Comm: kworker/u2:1 Tainted: G            E 3.16.0-rc7--3.16-rc7-tangchen+ #20
+[  250.305120] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.7.5-0-ge51488c-20140602_164612-nilsson.home.kraxel.org 04/01/2014
+[  250.305120] Workqueue: kacpi_hotplug acpi_hotplug_work_fn
+[  250.305120] task: ffff8800182436c0 ti: ffff880018254000 task.ti: ffff880018254000
+[  250.305120] RIP: 0010:[<ffffffff813e318f>]  [<ffffffff813e318f>] acpi_device_hotplug+0x1d7/0x4c4
+[  250.305120] RSP: 0000:ffff880018257da8  EFLAGS: 00000246
+[  250.305120] RAX: 0000000000000000 RBX: ffff88001cd8d800 RCX: 0000000000000000
+[  250.305120] RDX: 0000000000000000 RSI: ffff88001e40e6f8 RDI: 0000000000000246
+[  250.305120] RBP: ffff880018257df0 R08: 0000000000000096 R09: 00000000000011a0
+[  250.305120] R10: 63735f6970636120 R11: 725f746f685f6e61 R12: 0000000000000003
+[  250.305120] R13: ffff88001cc1c400 R14: ffff88001e062028 R15: 0000000000000040
+[  250.305120] FS:  0000000000000000(0000) GS:ffff88001e400000(0000) knlGS:0000000000000000
+[  250.305120] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  250.305120] CR2: 0000000000000088 CR3: 000000001a9a2000 CR4: 00000000000006f0
+[  250.305120] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[  250.305120] DR3: 0000000000000000 DR6: 0000000000000000 DR7: 0000000000000000
+[  250.305120] Stack:
+[  250.305120]  00000000523cab58 ffff88001cd8d9f8 ffff88001852d480 00000000523cab58
+[  250.305120]  ffff88001852d480 ffff880018221e40 ffff88001cc1c400 ffff88001cce2d00
+[  250.305120]  0000000000000040 ffff880018257e08 ffffffff813dc31d ffff88001852d480
+[  250.305120] Call Trace:
+[  250.305120]  [<ffffffff813dc31d>] acpi_hotplug_work_fn+0x1e/0x29
+[  250.305120]  [<ffffffff8108eefb>] process_one_work+0x17b/0x460
+[  250.305120]  [<ffffffff8108f69d>] worker_thread+0x11d/0x5b0
+[  250.305120]  [<ffffffff8108f580>] ? rescuer_thread+0x3a0/0x3a0
+[  250.305120]  [<ffffffff81096811>] kthread+0xe1/0x100
+[  250.305120]  [<ffffffff81096730>] ? kthread_create_on_node+0x1a0/0x1a0
+[  250.305120]  [<ffffffff816cc6bc>] ret_from_fork+0x7c/0xb0
+[  250.305120]  [<ffffffff81096730>] ? kthread_create_on_node+0x1a0/0x1a0
 
-> +				(p->flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
-> +
-> +		}
-> +		break;
-> +
-> +	case ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR:
-> +		{
-> +			struct acpi_madt_generic_distributor *p =
-> +				(struct acpi_madt_generic_distributor *)header;
-> +			pr_info("GIC Distributor (gic_id[0x%04x] address[0x%08llx] gsi_base[%d])\n",
-> +				p->gic_id, p->base_address, p->global_irq_base);
-> +		}
-> +		break;
+This patch fixes this problem by checking if acpi_device->handler is NULL in acpi_scan_hot_remove().
 
-Same question for base_address.
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+---
+ drivers/acpi/scan.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-> +
-> +	case ACPI_MADT_TYPE_GENERIC_MSI_FRAME:
-> +		{
-> +			struct acpi_madt_generic_msi_frame *p =
-> +				(struct acpi_madt_generic_msi_frame *)header;
-> +			pr_info("GIC MSI Frame (msi_fame_id[%d] address[0x%08llx])\n",
-> +				p->msi_frame_id, p->base_address);
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index f775fa0..aae0ce0 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -351,7 +351,8 @@ static int acpi_scan_hot_remove(struct acpi_device *device)
+ 	unsigned long long sta;
+ 	acpi_status status;
+ 
+-	if (device->handler->hotplug.demand_offline && !acpi_force_hot_remove) {
++	if (device->handler && device->handler->hotplug.demand_offline
++	    && !acpi_force_hot_remove) {
+ 		if (!acpi_scan_is_offline(device, true))
+ 			return -EBUSY;
+ 	} else {
+-- 
+1.8.4.2
 
-Ditto.
-
-> +		}
-> +		break;
-> +
-> +	case ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR:
-> +		{
-> +			struct acpi_madt_generic_redistributor *p =
-> +				(struct acpi_madt_generic_redistributor *)header;
-> +			pr_info("GIC Redistributor (address[0x%08llx] region_size[0x%x])\n",
-> +				p->base_address, p->length);
-
-Ditto.
-
-> +		}
-> +		break;
-> +
->  	default:
->  		pr_warn("Found unsupported MADT entry (type = 0x%x)\n",
->  			header->type);
-> @@ -190,7 +228,6 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
->  	}
->  }
-> 
-> -
->  int __init
->  acpi_table_parse_entries(char *id,
->  			     unsigned long table_size,
-
-This block shouldn't be a part of this patch.
-
-Thanks and best regards
--Lv
-
-> --
-> 1.7.9.5
