@@ -1,65 +1,88 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [GIT PULL] x86/apic changes for v3.17
-Date: Mon, 11 Aug 2014 13:27:28 +0800
-Message-ID: <53E85440.5070408@linux.intel.com>
-References: <1407209178-18644-1-git-send-email-jiang.liu@linux.intel.com> <1407209178-18644-2-git-send-email-jiang.liu@linux.intel.com> <20140805183729.GA23068@pd.tnic> <53E201FC.6010102@linux.intel.com> <20140806170937.GA4895@pd.tnic> <20140807110332.GB10043@pd.tnic> <20140807113346.GA24225@gmail.com> <alpine.DEB.2.02.1408081519240.7430@chino.kir.corp.google.com> <20140809170643.GC4209@pd.tnic>
+From: "xavier.gnata@gmail.com" <xavier.gnata@gmail.com>
+Subject: Re: [PATCH 3/3] ACPI: Don't re-select SBS battery if it's already
+ selected
+Date: Mon, 11 Aug 2014 13:14:44 +0200
+Message-ID: <53E8A5A4.5000405@gmail.com>
+References: <1394576402-2910-1-git-send-email-matthew.garrett@nebula.com>	<1394576402-2910-4-git-send-email-matthew.garrett@nebula.com> <CAOLK0pwEzWNHT+yyqKiFMc05iVjTYk4wjLDOb=g=kOm7zttT=A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20140809170643.GC4209@pd.tnic>
-Sender: linux-pci-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, David Rientjes <rientjes@google.com>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:59614 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750800AbaHKLOy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Aug 2014 07:14:54 -0400
+In-Reply-To: <CAOLK0pwEzWNHT+yyqKiFMc05iVjTYk4wjLDOb=g=kOm7zttT=A@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <lantianyu1986@gmail.com>, Matthew Garrett <matthew.garrett@nebula.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+
+On 14/03/2014 06:39, Lan Tianyu wrote:
+> 2014-03-12 6:20 GMT+08:00 Matthew Garrett <matthew.garrett@nebula.com>:
+>> The existing SBS code explicitly sets the selected battery in the SBS
+>> manager regardless of whether the battery in question is already selected.
+>> This causes bus timeouts on Apple hardware. Check for this case and avoid
+>> it.
+>>
+> Hi Matthew:
+>             This patch is to avoid a redundant battery select operation when
+> the battery is selected. But the symptom "bus timeouts" is a bus transaction
+> issue, right?  Will this happen during other SBS write/read operations? Do we
+> need to increase the wait time of SMBUS transaction?
+
+Well, the patch does the job and is needed on a macbook air.
+What should we test to make it potentially better?
 
 
+>
+>> Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
+>> ---
+>>   drivers/acpi/sbs.c | 18 +++++++++++++-----
+>>   1 file changed, 13 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+>> index dbd4849..c386505 100644
+>> --- a/drivers/acpi/sbs.c
+>> +++ b/drivers/acpi/sbs.c
+>> @@ -470,17 +470,25 @@ static struct device_attribute alarm_attr = {
+>>   static int acpi_battery_read(struct acpi_battery *battery)
+>>   {
+>>          int result = 0, saved_present = battery->present;
+>> -       u16 state;
+>> +       u16 state, selected, desired;
+>>
+>>          if (battery->sbs->manager_present) {
+>>                  result = acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
+>>                                  ACPI_SBS_MANAGER, 0x01, (u8 *)&state);
+>>                  if (!result)
+>>                          battery->present = state & (1 << battery->id);
+>> -               state &= 0x0fff;
+>> -               state |= 1 << (battery->id + 12);
+>> -               acpi_smbus_write(battery->sbs->hc, SMBUS_WRITE_WORD,
+>> -                                 ACPI_SBS_MANAGER, 0x01, (u8 *)&state, 2);
+>> +               /*
+>> +                * Don't switch battery if the correct one is already selected
+>> +                */
+>> +               selected = state & 0xf000;
+>> +               desired = 1 << (battery->id + 12);
+>> +               if (selected != desired) {
+>> +                       state &= 0x0fff;
+>> +                       state |= desired;
+>> +                       acpi_smbus_write(battery->sbs->hc, SMBUS_WRITE_WORD,
+>> +                                        ACPI_SBS_MANAGER, 0x01,
+>> +                                        (u8 *)&state, 2);
+>> +               }
+>>          } else if (battery->id == 0)
+>>                  battery->present = 1;
+>>          if (result || !battery->present)
+>> --
+>> 1.8.5.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
 
-On 2014/8/10 1:06, Borislav Petkov wrote:
-> On Fri, Aug 08, 2014 at 03:21:44PM -0700, David Rientjes wrote:
->> On Thu, 7 Aug 2014, Ingo Molnar wrote:
->>
->>> Linus, please pull the latest x86-apic-for-linus git tree from:
->>>
->>>    git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git x86-apic-for-linus
->>>
->>>    # HEAD: 5e3bf215f4f2efc0af89e6dbc5da789744aeb5d7 x86/apic/vsmp: Make is_vsmp_box() static
->>>
->>>
->>> The main changes in this cycle are:
->>>
->>>     * Remove obsolete APIC driver abstractions. (David Rientjes)
->>>
->>
->> These changes are unrelated from the other issues and can still be pulled 
->> from
->>
->> 	git://git.kernel.org/pub/scm/linux/kernel/git/rientjes/linux.git x86/apic 
->>
->> if we want the cleanups for 3.17.  The x86 pull request was originally at 
->> http://marc.info/?l=linux-kernel&m=140678961924050.
->>
->> It would be a shame to miss out on that because the changes share the same 
->> tip branch.
-> 
-> Actually, that whole branch could go in now, especially since Thomas
-> picked up the stable IRQ numbers assignment during s/r fix:
-> 
-> https://lkml.kernel.org/r/tip-3eec595235c17a74094daa1e02d1b0af2e9a7125@git.kernel.org
-> 
-> @tglx: I don't know about IOAPIC reference count:
-> 
-> https://lkml.kernel.org/r/1407209178-18644-3-git-send-email-jiang.liu@linux.intel.com
-> 
-> This looks like a bugfix too.
-Hi Borislav,
-	The reference count fix only affects IOAPIC hotplug, so it
-may be grouped into coming IOAPIC hotplug patch set.
-Thanks!
-Gerry
-
-> 
-> With those two applied, tip/x86/apic is good to go IMHO. The only thing
-> that remains are the IOMMU IOPFs which we'll deal accordingly later -
-> they need shutting up only anyway.
-> 
