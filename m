@@ -1,55 +1,87 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC] ACPI: Add GPIO-signaled event simulator.
-Date: Tue, 12 Aug 2014 13:01:11 +0300
-Message-ID: <20140812100111.GV1657@lahna.fi.intel.com>
-References: <1406217076-17150-1-git-send-email-tomasz.nowicki@linaro.org>
- <CACRpkdZmKJmaTRBpDrzd7+EhPuFeScr6jEHC8+0z6-4knjFqkA@mail.gmail.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: bug: acpi ata_bay dock reminds undocked
+Date: Tue, 12 Aug 2014 13:53:43 +0200
+Message-ID: <201408121353.43389@pali>
+References: <201404292216.41256@pali> <2639498.hrETOnLRn5@vostro.rjw.lan> <201405120748.16464@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdZmKJmaTRBpDrzd7+EhPuFeScr6jEHC8+0z6-4knjFqkA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+Content-Type: multipart/signed;
+  boundary="nextPart1776382.hHxIun7pFE";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:47718 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751113AbaHLLxt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Aug 2014 07:53:49 -0400
+In-Reply-To: <201405120748.16464@pali>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Aug 08, 2014 at 02:36:02PM +0200, Linus Walleij wrote:
-> On Thu, Jul 24, 2014 at 5:51 PM, Tomasz Nowicki
-> <tomasz.nowicki@linaro.org> wrote:
-> 
-> > GPIO signaled events is quite new thing in Linux kernel.
-> > AFAIK, there are not many board which can take advantage of it.
-> > However, GPIO events are very useful feature during work on ACPI
-> > subsystems.
-> 
-> Overall this seems like a pretty nice debug feature.
-> 
-> > This commit emulates GPIO h/w behaviour and consists on read/write
-> > operation to debugfs file. GPIO device instance is still required in DSDT
-> > table along with _AEI resources and event methods.
-> >
-> > Reading from file provides pin to GPIO device map e.g. :
-> > $ cat /sys/kernel/debug/acpi/gpio_event
-> > GPIO device name: /__SB.GPI0
-> > Available GPIO pin map:
-> > /__SB.GPI0 <-> pin 0x100
-> >
-> > Based on that, user can trigger method corresponding to device pin number:
-> > $ echo "/__SB.GPI0 0x100" > /sys/kernel/debug/acpi/gpio_event
-> 
-> I need input from Rafael and Mika as to whether this is a
-> good interface.
+--nextPart1776382.hHxIun7pFE
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Maybe it would make sense to move this into drivers/gpio/gpiolib-acpi.c
-and hide it behind some Kconfig entry?
+On Monday 12 May 2014 07:48:16 Pali Roh=C3=A1r wrote:
+> On Monday 12 May 2014 02:00:29 Rafael J. Wysocki wrote:
+> > On Sunday, May 11, 2014 05:49:17 PM Pali Roh=C3=A1r wrote:
+> > > --nextPart2204083.pLeiedbUui
+> > > Content-Type: Text/Plain;
+> > >=20
+> > >   charset=3D"utf-8"
+> > >=20
+> > > Content-Transfer-Encoding: quoted-printable
+> > >=20
+> > > On Wednesday 30 April 2014 11:24:50 Pali Roh=3DC3=3DA1r wrote:
+> > > > On Tuesday 29 April 2014 23:35:42 Rafael J. Wysocki=20
+wrote:
+> > > > > On Tuesday, April 29, 2014 11:00:01 PM Pali Roh=3DC3=3DA1r
+>=20
+> wrote:
+> > > > > > On Tuesday 29 April 2014 22:55:07 Rafael J. Wysocki
+>=20
+> wrote:
+> > > > > > > Which kernel version(s) have you tried?
+> > > > > >
+> > > > > >=3D20
+> > > > > >
+> > > > > > 3.15-rc3
+> > > > >
+> > > > >=3D20
+> > > > >
+> > > > > Does it work with 3.14(.x) by chance?
+> > > >
+> > > >=3D20
+> > > >
+> > > > Tested with 3.14 and 3.8. Same problem, not working.
+> > >=20
+> > > BUMP!
+> > >=20
+> > > Rafael, do you need some other information?
+> >=20
+> > I'll take care of this when I have the time, OK?
+>=20
+> Ok, I will wait.
 
-Since you already need to have DSDT/SSDT table for this to provide the
-GPIO device, _AEI and the event methods, I would rather make it so that
-acpi_gpiochip_request_interrupt() will add debugfs entry for each GPIO
-it finds in _AEI, like:
+Rafael, ping. Can you look at it?
 
-/sys/kernel/debug/acpi/events/<GPIO DEVICE>/n
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-And you could trigger it by writing '1' or something like that to that
-file.
+--nextPart1776382.hHxIun7pFE
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlPqAEcACgkQi/DJPQPkQ1Lp4gCfRBBSoepm5QiTSud5agU9PJ1h
+u2kAoKSmteNU/urM+2gCgG0VaNCnZuEh
+=fy3v
+-----END PGP SIGNATURE-----
+
+--nextPart1776382.hHxIun7pFE--
