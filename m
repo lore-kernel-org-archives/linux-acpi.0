@@ -1,150 +1,127 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Tue, 12 Aug 2014 19:23:47 +0100
-Message-ID: <20140812182347.GA4100@arm.com>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <1406206825-15590-20-git-send-email-hanjun.guo@linaro.org>
- <CAOesGMhKHGkVK3dOLXXx9GQBMxDmjBu1WDBgHmwdGe1UK3jfcg@mail.gmail.com>
- <5014834.k6eecMddPC@wuerfel>
- <20140728162750.GB32359@quad.lixom.net>
- <20140728170041.GB2576@leverpostej>
- <CAOesGMjs1dM37ZoFA-xs7tYYaXP-XC3NjJsj291bCNoDwAXwiw@mail.gmail.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: Re: ACPI / dock: ThinkPad X220: \_SB_.PCI0.LPC_.EC__.BAT1: Unable
+ to dock!
+Date: Wed, 13 Aug 2014 11:48:55 +0200
+Message-ID: <1407923335.2121.27.camel@x220>
+References: <1406670374.2406.27.camel@x220>
+	 <1589104.UMXrnXY9GI@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAOesGMjs1dM37ZoFA-xs7tYYaXP-XC3NjJsj291bCNoDwAXwiw@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, Mark Brown <broonie@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, "linaro-acpi-private@linaro.org" <linaro-acpi-private@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cpsmtpb-ews07.kpnxchange.com ([213.75.39.10]:57152 "EHLO
+	cpsmtpb-ews07.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750815AbaHMJs6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Aug 2014 05:48:58 -0400
+In-Reply-To: <1589104.UMXrnXY9GI@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, Rubin Abdi <rubin@starset.net>, linux-acpi@vger.kernel.org, linux-thinkpad@linux-thinkpad.org
 
-On Mon, Jul 28, 2014 at 07:27:52PM +0100, Olof Johansson wrote:
-> On Mon, Jul 28, 2014 at 10:00 AM, Mark Rutland <mark.rutland@arm.com> wrote:
-> > On Mon, Jul 28, 2014 at 05:27:50PM +0100, Olof Johansson wrote:
-> >> On Mon, Jul 28, 2014 at 11:07:50AM +0200, Arnd Bergmann wrote:
-> >> > On Saturday 26 July 2014 19:34:48 Olof Johansson wrote:
-> >> > > On Thu, Jul 24, 2014 at 6:00 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> >> > > > +Relationship with Device Tree
-> >> > > > +-----------------------------
-> >> > > > +
-> >> > > > +ACPI support in drivers and subsystems for ARMv8 should never be mutually
-> >> > > > +exclusive with DT support at compile time.
-> >> > > > +
-> >> > > > +At boot time the kernel will only use one description method depending on
-> >> > > > +parameters passed from the bootloader.
-> >> > >
-> >> > > Possibly overriden by kernel bootargs. And as debated for quite a
-> >> > > while earlier this year, acpi should still default to off -- if a DT
-> >> > > and ACPI are both passed in, DT should at this time be given priority.
-> >> >
-> >> > I think this would be harder to do with the way that ACPI is passed in
-> >> > to the kernel. IIRC, you always have a minimal DT information based on
-> >> > the ARM64 boot protocol, but in the case of ACPI, this contains pointers
-> >> > to the ACPI tables, which are then used for populating the Linux platform
-> >> > devices (unless acpi=disabled is set), while the other contents of the
-> >> > DTB may be present but we skip the of_platform_populate state.
-> >>
-> >> How can it be harder to do? If you support acpi=off, then you should support
-> >> acpi=on.
-> >>
-> >> Another alternative would be to have an early fixup that stubs out
-> >> the acpi properties from the DTB unless there's an 'acpi' or 'acpi=on'
-> >> argument on the cmdline. Not quite as tidy a solution, though.
-> >
-> > I don't follow:
-> >
-> > If you want to disable ACPI, you can pass acpi=off. This is your
-> > workaround for broken ACPI (and only if you happen to have wrirten your
-> > own DTB, because many/most ACPI systems WILL NOT have a DTB to begin
-> > with).
-> 
-> All ACPI should be assumed broken at this time, so acpi=off _must_ be
-> the default.
+On Wed, 2014-07-30 at 00:23 +0200, Rafael J. Wysocki wrote:
+> Can you send me the output of acpidump from the machine in question, please?
 
-(catching up with emails after holiday and I may have missed some of
-your arguments)
+0) That I've done some time ago. In the mean time I've decompiled the
+dsdt.dat that acpidump generates. Here are my (rather verbose) notes,
+that I mostly post to archive them somewhere public.
 
-If we consider ACPI unusable on ARM but we still want to start merging
-patches, we should rather make the config option depend on BROKEN
-(though if it is that unusable that no real platform can use it, I would
-rather not merge it at all at this stage).
+1) The interesting parts of dsdt.dsl are:
+DefinitionBlock ("dsdt.aml", "DSDT", 1, "LENOVO", "TP-8D   ", 0x00001390)
+{
+    [...]
+    Scope (\_SB)
+    {
+        Method (_INI, 0, NotSerialized)  // _INI: Initialize
+        {
+            [...]
+            If (LGreaterEqual (\_REV, 0x02))
+            {
+                Store (0x01, \H8DR)
+            }
+            [...]
+        }
+        [...]
+        Device (PCI0)
+        {
+            [...]
+            Device (LPC)
+            {
+                [...]
+                Device (EC)
+                {
+                    [...]
+                    Field (ECOR, ByteAcc, NoLock, Preserve)
+                    {
+                        [...]
+                        HB1A,   1, 
+                        [...]
+                    }
+                    [...]
+                    Method (BATW, 1, NotSerialized)
+                    {
+                        Store (\_SB.PCI0.LPC.EC.BAT1.XB1S, Local0)
+                        If (\H8DR)
+                        {
+                            Store (HB1A, Local1)
+                        }
+                        Else
+                        {
+                            [...]
+                        }
 
-I don't really see what requiring acpi=on explicitly would buy us as
-vendors firmware providing only ACPI tables would simply always set this
-command line option. Defaulting to off is not really a way for mandating
-valid DT to be provided by firmware (rather a statement we try to make
-that ACPI is not a first class citizen yet).
+                        If (XOr (Local0, Local1))
+                        {
+                            Store (Local1, \_SB.PCI0.LPC.EC.BAT1.XB1S)
+                            Notify (\_SB.PCI0.LPC.EC.BAT1, 0x01) // Device Check
+                        }
+                    }
+                    [...]
+                    Device (BAT1)
+                    {
+                        [...]
+                        Name (XB1S, 0x01)
+                        [...]
+                        Method (_EJ0, 1, NotSerialized)  // _EJx: Eject Device
+                        {
+                            If (Arg0)
+                            {
+                                [...]
+                                Store (0x00, XB1S) /* \_SB_.PCI0.LPC_.EC__.BAT1.XB1S */
+                            }
+                        }
+                    }
+                    [...]
+                }
+            }
+            [...]
+        }
+        [...]
+    }
+    [...]
+    Method (\_WAK, 1, NotSerialized)  // _WAK: Wake
+    {
+        [...]
+        \_SB.PCI0.LPC.EC.BATW (Arg0)
+        [...]
+    }
+    [...]
+    Name (H8DR, 0x00)
+    [...]
+}
 
-I would also expect platforms to be ACPI only and handle for example
-D-states via AML. If they work fine, do we really need to bother adding
-DT support for them, potentially with additional drivers? IOW, do we
-want to mandate all ARM(v8) platforms to work with "acpi=off" out of
-firmware?
+2) Some guesswork:
+- HB1A is always 1;
+- H8DR will be 0x01 (because Linux currently sets _REV at 5);
+- XB1S is apparently 0x00 at first resume (I don't know how that
+  happens);
+- so "XOr ([HB1A], [XB1S])" evaluates to 1 at the first "Wake" and XB1S
+  will then be set to 1 and a "Device Check" event is fired;
+- it's this "Device Check" event that triggers the error I reported;
+- because HB1A and XB1S are equal after the BATW method has run at first
+  resume we will not get a "Device Check" event at subsequent resumes.
 
-> > If you have ACPI, for what technical reason would you not attempt to use
-> > it by default?
-> 
-> Because it will be broken, or the company you bought the machine from
-> implemented it wrong because they're still learning how to do this
-> too. The original doc even mentioned that there are parts of the
-> binding that aren't even sorted out. The _DSD stuff, too.
 
-I assume with the current patches, a (sane) platform could still boot
-and run without the missing features listed in the document, though it
-may not be optimal. We should definitely be strict and not accept quirks
-in the kernel to work around missing features until the UEFI forum
-accepted the specification.
+Paul Bolle
 
-> Overall, it's not yet ready to be the default boot method.
-
-Then make CONFIG_ACPI default off and depend on EXPERT as a better
-statement (but as with acpi=on, it's still just a statement we try to
-make). Once the concerns are addressed, we make it an equal citizen.
-
-> > There will be systems which _DO NOT_ have any sort of DTB to begin with.
-> 
-> Listen, we've been really clear about this: DT is the default that
-> everybody has to use for mainline kernel for the near term. If you
-> have an ACPI-only system, then you either have to write a DT for it,
-> or you won't be booting mainline on it.
-
-OK, this answers one of my questions above (I may have forgotten the old
-threads but at the time we were primarily talking about ACPI 5.0 which
-wasn't of much use on ARM).
-
-So you want to mandate DT for all platforms, even if some choose
-ACPI only longer term. I'm not arguing against this (especially for the
-first generation of devices), but how would default acpi=off enforce it?
-The firmware would simply pass acpi=on by default and run mainline just
-fine (as well as it can based on the implemented features).
-
-We should also not accepted any ACPI features in drivers without a DT
-counterpart.
-
-> If they really want to, they can boot with acpi=on instead. It's not
-> like it's hard to add.
-
-And this would be the default argument passed by their firmware.
-
-As I said, it's rather just a statement the kernel people want to make,
-nothing more. If you want to make the DT requirement stricter, what
-about adding code for checking the validity of the DT passed even though
-it's booting with ACPI? IMO, it's not worth it, we should rather be
-very strict with what ACPI code we accept in the kernel (primarily
-drivers, avoid random clock descriptors etc). If a platform cannot work
-(optimally) with the strict ACPI set, the vendor either provides DT or
-shouldn't bother us with upstreaming at all.
-
--- 
-Catalin
