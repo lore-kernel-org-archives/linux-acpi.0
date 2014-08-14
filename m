@@ -1,48 +1,138 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 1/2] USB: Use ACPI device information
-Date: Fri, 15 Aug 2014 02:03 +0200
-Message-ID: <2900724.9cEGLmq8Xk@vostro.rjw.lan>
-References: <1407950132-15863-1-git-send-email-sameo@linux.intel.com> <2225297.jp5n9UkMJt@vostro.rjw.lan> <20140814004532.GA26547@kroah.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] More ACPI and power management updates for 3.17-rc1
+Date: Fri, 15 Aug 2014 01:52:00 +0200
+Message-ID: <CAJZ5v0h10BCKbytCh1qtdj-h8M0EY_nH4ANGYROcwwec0vq6dg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60980 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754446AbaHNXoI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Aug 2014 19:44:08 -0400
-In-Reply-To: <20140814004532.GA26547@kroah.com>
+Received: from mail-oa0-f53.google.com ([209.85.219.53]:53691 "EHLO
+	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754446AbaHNXwB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Aug 2014 19:52:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-acpi@vger.kernel.org, Faouaz TENOUTIT <faouaz.tenoutit@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thursday, August 14, 2014 08:45:32 AM Greg Kroah-Hartman wrote:
-> On Thu, Aug 14, 2014 at 02:17:59AM +0200, Rafael J. Wysocki wrote:
-> > On Thursday, August 14, 2014 06:03:09 AM Greg Kroah-Hartman wrote:
-> > > On Wed, Aug 13, 2014 at 07:15:31PM +0200, Samuel Ortiz wrote:
-> > > > From: Faouaz TENOUTIT <faouaz.tenoutit@intel.com>
-> > > > 
-> > > > Use ACPI device pld information instead of calling
-> > > > acpi_get_physical_device_location.
-> > > 
-> > > Why?  What does this do "better" than the existing code?
-> > 
-> > Well, you've acked this patch before. :-)
-> 
-> I can't remember what I ate for Lunch yesterday, let alone previous
-> patches I've acked :)
-> 
-> > It just doesn't execute AML from within the USB core.  I thought that would
-> > be a sufficient reason, wouldn't it?
-> 
-> Yes, that's fine, but a little more description of "why" would have been
-> helpful here...
+Hi Linus,
 
-Since we are going to export _PLD output via sysfs ([PATCH 2/2]) and it's
-guaranteed to return the same data every time it is evaluated, it simply
-makes more sense to evaluate it once and cache the data for when it's
-needed.  This particular one makes USB use the cached data.
+Please pull from
 
-Rafael
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-3.17-rc1-2
 
+to receive more ACPI and power management updates for v3.17-rc1 with
+top-most commit af5b7e84d022fdea373038d831bb4ca2c0e82108
+
+ Merge branch 'pm-tools'
+
+on top of commit 7725131982477bffff8ffdea143434dcc69f5d90
+
+ Merge tag 'pm+acpi-3.17-rc1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/
+linux-pm
+
+These are a couple of regression fixes, cpuidle menu governor
+optimizations, fixes for ACPI proccessor and battery drivers,
+hibernation fix to avoid problems related to the e820 memory map,
+fixes for a few cpufreq drivers and a new version of the suspend
+profiling tool analyze_suspend.py.
+
+Specifics:
+
+ - Fix for an ACPI-based device hotplug regression introduced in 3.14
+   that causes a kernel panic to trigger when memory hot-remove is
+   attempted with CONFIG_ACPI_HOTPLUG_MEMORY unset from Tang Chen.
+
+ - Fix for a cpufreq regression introduced in 3.16 that triggers a
+   "sleeping function called from invalid context" bug in
+   dev_pm_opp_init_cpufreq_table() from Stephen Boyd.
+
+ - ACPI battery driver fix for a warning message added in 3.16 that
+   prints silly stuff sometimes from Mariusz Ceier.
+
+ - Hibernation fix for safer handling of mismatches in the 820 memory
+   map between the configurations during image creation and during
+   the subsequent restore from Chun-Yi Lee.
+
+ - ACPI processor driver fix to handle CPU hotplug notifications
+   correctly during system suspend/resume from Lan Tianyu.
+
+ - Series of four cpuidle menu governor cleanups that also should
+   speed it up a bit from Mel Gorman.
+
+ - Fixes for the speedstep-smi, integrator, cpu0 and arm_big_little
+   cpufreq drivers from Hans Wennborg, Himangi Saraogi, Markus Pargmann
+   and Uwe Kleine-K=C3=B6nig.
+
+ - Version 3.0 of the analyze_suspend.py suspend profiling tool
+   from Todd E Brandt.
+
+Thanks!
+
+
+---------------
+
+Hans Wennborg (1):
+      cpufreq: speedstep-smi: fix decimal printf specifiers
+
+Himangi Saraogi (1):
+      cpufreq: integrator: Use set_cpus_allowed_ptr
+
+Lan Tianyu (1):
+      ACPI / processor: Make acpi_cpu_soft_notify() process CPU FROZEN =
+events
+
+Lee, Chun-Yi (1):
+      PM / hibernate: avoid unsafe pages in e820 reserved regions
+
+Mariusz Ceier (1):
+      ACPI / battery: Fix warning message in acpi_battery_get_state()
+
+Markus Pargmann (1):
+      cpufreq: cpu0: Do not print error message when deferring
+
+Mel Gorman (4):
+      cpuidle: menu: Use shifts when calculating averages where possibl=
+e
+      cpuidle: menu: Use ktime_to_us instead of reinventing the wheel
+      cpuidle: menu: Call nr_iowait_cpu less times
+      cpuidle: menu: Lookup CPU runqueues less
+
+Stephen Boyd (1):
+      cpufreq: OPP: Avoid sleeping while atomic
+
+Tang Chen (1):
+      ACPI / hotplug: Check scan handlers in acpi_scan_hot_remove()
+
+Todd E Brandt (1):
+      PM / tools: analyze_suspend.py: update to v3.0
+
+Uwe Kleine-K=C3=B6nig (1):
+      cpufreq: arm_big_little: fix module license spec
+
+---------------
+
+ drivers/acpi/battery.c               |    2 +-
+ drivers/acpi/processor_driver.c      |    1 +
+ drivers/acpi/scan.c                  |    3 +-
+ drivers/cpufreq/arm_big_little.c     |    5 +
+ drivers/cpufreq/arm_big_little_dt.c  |    2 +-
+ drivers/cpufreq/cpufreq-cpu0.c       |    2 +-
+ drivers/cpufreq/cpufreq_opp.c        |    2 +-
+ drivers/cpufreq/integrator-cpufreq.c |   10 +-
+ drivers/cpufreq/speedstep-smi.c      |    4 +-
+ drivers/cpuidle/governors/menu.c     |   43 +-
+ include/linux/sched.h                |    3 +-
+ kernel/power/snapshot.c              |   21 +-
+ kernel/sched/core.c                  |    7 +
+ kernel/sched/proc.c                  |    7 -
+ scripts/analyze_suspend.py           | 3817 ++++++++++++++++++++++++++=
+--------
+ 15 files changed, 3051 insertions(+), 878 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
