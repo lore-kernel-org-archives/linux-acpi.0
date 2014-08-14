@@ -1,84 +1,168 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Thu, 14 Aug 2014 01:41:46 +0200
-Message-ID: <2152407.NpXOMHAEH6@vostro.rjw.lan>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <CAOesGMjs1dM37ZoFA-xs7tYYaXP-XC3NjJsj291bCNoDwAXwiw@mail.gmail.com>
- <20140812182347.GA4100@arm.com>
+Subject: Re: [PATCH V2] ACPI/OSL: Replace synchronize_rcu() with call_rcu() in the acpi_os_map_cleanup() to avoid dead lock with cpu hot plug
+Date: Thu, 14 Aug 2014 02:04 +0200
+Message-ID: <2736411.QepqFQ1Oc9@vostro.rjw.lan>
+References: <5565710.HfsfjXfcL3@vostro.rjw.lan> <1407812351-13129-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140812182347.GA4100@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, Mark Brown <broonie@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, "linaro-acpi-private@linaro.org" <linaro-acpi-private@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:57416 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750772AbaHMXpK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Aug 2014 19:45:10 -0400
+In-Reply-To: <1407812351-13129-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, August 12, 2014 07:23:47 PM Catalin Marinas wrote:
-> On Mon, Jul 28, 2014 at 07:27:52PM +0100, Olof Johansson wrote:
-> > On Mon, Jul 28, 2014 at 10:00 AM, Mark Rutland <mark.rutland@arm.com> wrote:
-> > > On Mon, Jul 28, 2014 at 05:27:50PM +0100, Olof Johansson wrote:
-> > >> On Mon, Jul 28, 2014 at 11:07:50AM +0200, Arnd Bergmann wrote:
-> > >> > On Saturday 26 July 2014 19:34:48 Olof Johansson wrote:
-> > >> > > On Thu, Jul 24, 2014 at 6:00 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> > >> > > > +Relationship with Device Tree
-> > >> > > > +-----------------------------
-> > >> > > > +
-> > >> > > > +ACPI support in drivers and subsystems for ARMv8 should never be mutually
-> > >> > > > +exclusive with DT support at compile time.
-> > >> > > > +
-> > >> > > > +At boot time the kernel will only use one description method depending on
-> > >> > > > +parameters passed from the bootloader.
-> > >> > >
-> > >> > > Possibly overriden by kernel bootargs. And as debated for quite a
-> > >> > > while earlier this year, acpi should still default to off -- if a DT
-> > >> > > and ACPI are both passed in, DT should at this time be given priority.
-> > >> >
-> > >> > I think this would be harder to do with the way that ACPI is passed in
-> > >> > to the kernel. IIRC, you always have a minimal DT information based on
-> > >> > the ARM64 boot protocol, but in the case of ACPI, this contains pointers
-> > >> > to the ACPI tables, which are then used for populating the Linux platform
-> > >> > devices (unless acpi=disabled is set), while the other contents of the
-> > >> > DTB may be present but we skip the of_platform_populate state.
-> > >>
-> > >> How can it be harder to do? If you support acpi=off, then you should support
-> > >> acpi=on.
-> > >>
-> > >> Another alternative would be to have an early fixup that stubs out
-> > >> the acpi properties from the DTB unless there's an 'acpi' or 'acpi=on'
-> > >> argument on the cmdline. Not quite as tidy a solution, though.
-> > >
-> > > I don't follow:
-> > >
-> > > If you want to disable ACPI, you can pass acpi=off. This is your
-> > > workaround for broken ACPI (and only if you happen to have wrirten your
-> > > own DTB, because many/most ACPI systems WILL NOT have a DTB to begin
-> > > with).
-> > 
-> > All ACPI should be assumed broken at this time, so acpi=off _must_ be
-> > the default.
+On Tuesday, August 12, 2014 10:59:11 AM Lan Tianyu wrote:
+> When cpu hotplug and evaluating ACPI method happen at the same time,
+> there is a dead lock between ACPICA namespace lock and cpu hotplug lock.
 > 
-> (catching up with emails after holiday and I may have missed some of
-> your arguments)
+> During cpu hotplug, cpu core will call acpi_cpu_soft_notify() to notify
+> Linux ACPI under cpu hotplug lock. acpi_cpu_soft_notify() calls
+> acpi_bus_get_device() to convert ACPI handle to struct acpi_struct.
+> ACPICA namespace lock will be held in the acpi_bus_get_device().
 > 
-> If we consider ACPI unusable on ARM but we still want to start merging
-> patches, we should rather make the config option depend on BROKEN
-> (though if it is that unusable that no real platform can use it, I would
-> rather not merge it at all at this stage).
+> Evaluating ACPI method may involve in accessing system mem operation
+> region and the associated address space will be unmapped under
+> ACPICA namespace lock after accessing. Currently, osl.c uses RCU to
+> protect io mem pages used by ACPICA. During unmapping, synchronize_rcu()
+> will be called in the acpi_os_map_cleanup(). Synchronize_rcu() blocks
+> cpu hotplug via getting cpu hotplug lock. This causes dead lock with
+> cpu hotplug. Cpu hotplug thread holds cpu hotplug lock first and
+> then get ACPICA namespace lock. The thread of evaluating ACPI method
+> does the converse thing. This patch is to replace synchronize_rcu()
+> with call_rcu() to avoid dead lock. call_rcu() can help to umap address
+> space asynchronously via provided callback.
+> 
+> Here is dead lock log.
+> [   97.149005] INFO: task bash:741 blocked for more than 30 seconds.
+> [   97.155914]       Not tainted 3.16.0-rc5+ #671
+> [   97.160969] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+> [   97.169850] bash            D ffff88014e214140     0   741    716 0x00000080
+> [   97.177885]  ffff88009b9f3a10 0000000000000086 ffff88009dcfb840 ffff88009b9f3fd8
+> [   97.186316]  0000000000014140 0000000000014140 ffffffff81c18460 ffffffff81c40fc8
+> [   97.194746]  ffffffff81c40fcc ffff88009dcfb840 00000000ffffffff ffffffff81c40fd0
+> [   97.203175] Call Trace:
+> [   97.205946]  [<ffffffff817a1b29>] schedule_preempt_disabled+0x29/0x70
+> [   97.213246]  [<ffffffff817a34fa>] __mutex_lock_slowpath+0xca/0x1c0
+> [   97.220258]  [<ffffffff817a360f>] mutex_lock+0x1f/0x2f
+> [   97.226085]  [<ffffffff810bc8cc>] get_online_cpus+0x2c/0x50
+> [   97.232408]  [<ffffffff8111bbd4>] synchronize_sched_expedited+0x64/0x1c0
+> [   97.240011]  [<ffffffff8111bb65>] synchronize_sched+0x45/0x50
+> [   97.246522]  [<ffffffff81431498>] acpi_os_map_cleanup.part.7+0x14/0x3e
+> [   97.253928]  [<ffffffff81795c54>] acpi_os_unmap_iomem+0xe2/0xea
+> [   97.260636]  [<ffffffff81795c6a>] acpi_os_unmap_memory+0xe/0x14
+> [   97.267355]  [<ffffffff814459bc>] acpi_ev_system_memory_region_setup+0x2d/0x97
+> [   97.275550]  [<ffffffff81459504>] acpi_ut_update_ref_count+0x24d/0x2de
+> [   97.282958]  [<ffffffff814596af>] acpi_ut_update_object_reference+0x11a/0x18b
+> [   97.291055]  [<ffffffff81459282>] acpi_ut_remove_reference+0x2e/0x31
+> [   97.298265]  [<ffffffff8144ffdf>] acpi_ns_detach_object+0x7b/0x80
+> [   97.305180]  [<ffffffff8144ef11>] acpi_ns_delete_namespace_subtree+0x47/0x81
+> [   97.313179]  [<ffffffff81440488>] acpi_ds_terminate_control_method+0x85/0x11b
+> [   97.321276]  [<ffffffff81454625>] acpi_ps_parse_aml+0x164/0x289
+> [   97.327988]  [<ffffffff81454da6>] acpi_ps_execute_method+0x1c1/0x26c
+> [   97.335195]  [<ffffffff8144f764>] acpi_ns_evaluate+0x1c1/0x258
+> [   97.341814]  [<ffffffff81451f86>] acpi_evaluate_object+0x126/0x22f
+> [   97.348826]  [<ffffffff8144d1ac>] acpi_hw_execute_sleep_method+0x3d/0x68
+> [   97.356427]  [<ffffffff8144d5cf>] ? acpi_hw_enable_all_runtime_gpes+0x17/0x19
+> [   97.364523]  [<ffffffff8144deb0>] acpi_hw_legacy_wake+0x4d/0x9d
+> [   97.371239]  [<ffffffff8144e599>] acpi_hw_sleep_dispatch+0x2a/0x2c
+> [   97.378243]  [<ffffffff8144e5cb>] acpi_leave_sleep_state+0x17/0x19
+> [   97.385252]  [<ffffffff8143335c>] acpi_pm_finish+0x3f/0x99
+> [   97.391471]  [<ffffffff81108c49>] suspend_devices_and_enter+0x139/0x560
+> [   97.398972]  [<ffffffff81109162>] pm_suspend+0xf2/0x370
+> [   97.404900]  [<ffffffff81107e69>] state_store+0x79/0xf0
+> [   97.410824]  [<ffffffff813bc4af>] kobj_attr_store+0xf/0x20
+> [   97.417038]  [<ffffffff81284f3d>] sysfs_kf_write+0x3d/0x50
+> [   97.423260]  [<ffffffff81284580>] kernfs_fop_write+0xe0/0x160
+> [   97.429776]  [<ffffffff81210f47>] vfs_write+0xb7/0x1f0
+> [   97.435602]  [<ffffffff81211ae6>] SyS_write+0x46/0xb0
+> [   97.441334]  [<ffffffff8114d986>] ? __audit_syscall_exit+0x1f6/0x2a0
+> [   97.448544]  [<ffffffff817a4ea9>] system_call_fastpath+0x16/0x1b
+> [   97.455361] INFO: task async-enable-no:749 blocked for more than 30 seconds.
+> [   97.463353]       Not tainted 3.16.0-rc5+ #671
+> [   97.468391] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+> [   97.477271] async-enable-no D ffff88014e254140     0   749      2 0x00000080
+> [   97.485286]  ffff88009de83bf0 0000000000000046 ffff88009b850000 ffff88009de83fd8
+> [   97.493714]  0000000000014140 0000000000014140 ffff880148305dc0 ffff880149804160
+> [   97.502142]  7fffffffffffffff 0000000000000002 0000000000000000 ffff88009b850000
+> [   97.510573] Call Trace:
+> [   97.513344]  [<ffffffff817a1689>] schedule+0x29/0x70
+> [   97.518974]  [<ffffffff817a0b49>] schedule_timeout+0x1f9/0x270
+> [   97.525588]  [<ffffffff81284bfe>] ? __kernfs_create_file+0x7e/0xa0
+> [   97.532599]  [<ffffffff8128546b>] ? sysfs_add_file_mode_ns+0x9b/0x160
+> [   97.539903]  [<ffffffff817a36b2>] __down_common+0x93/0xd8
+> [   97.546027]  [<ffffffff817a376a>] __down_timeout+0x16/0x18
+> [   97.552252]  [<ffffffff8110546c>] down_timeout+0x4c/0x60
+> [   97.558274]  [<ffffffff81431f97>] acpi_os_wait_semaphore+0x43/0x57
+> [   97.565285]  [<ffffffff8145a8f4>] acpi_ut_acquire_mutex+0x48/0x88
+> [   97.572200]  [<ffffffff81435d1b>] ? acpi_match_device+0x4f/0x4f
+> [   97.578918]  [<ffffffff8145250f>] acpi_get_data_full+0x3a/0x8e
+> [   97.585537]  [<ffffffff81435b30>] acpi_bus_get_device+0x23/0x40
+> [   97.592253]  [<ffffffff8145d839>] acpi_cpu_soft_notify+0x50/0xe6
+> [   97.599064]  [<ffffffff810e1ddc>] notifier_call_chain+0x4c/0x70
+> [   97.605776]  [<ffffffff810e1eee>] __raw_notifier_call_chain+0xe/0x10
+> [   97.612983]  [<ffffffff810bc993>] cpu_notify+0x23/0x50
+> [   97.618815]  [<ffffffff810bcb98>] _cpu_up+0x168/0x180
+> [   97.624542]  [<ffffffff810bcc5c>] _cpu_up_with_trace+0x2c/0xe0
+> [   97.631153]  [<ffffffff810bd050>] ? disable_nonboot_cpus+0x1c0/0x1c0
+> [   97.638360]  [<ffffffff810bd06f>] async_enable_nonboot_cpus+0x1f/0x70
+> [   97.645670]  [<ffffffff810dda02>] kthread+0xd2/0xf0
+> [   97.651201]  [<ffffffff810dd930>] ? insert_kthread_work+0x40/0x40
+> [   97.658117]  [<ffffffff817a4dfc>] ret_from_fork+0x7c/0xb0
+> 
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 
-I agree here.
+This looks good.
 
-I would recommend creating a separate branch for that living outside of the
-mainline kernel and merging it when there are real users.
+I'll put it into my fixes queue, but I want it to spend a few days in linux-next
+before pushing it, so it's going to be a post-merge window fix.
+
+> ---
+>  drivers/acpi/osl.c | 16 +++++++++++-----
+>  1 file changed, 11 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index bad25b0..d8674ab 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -94,6 +94,7 @@ struct acpi_ioremap {
+>  	acpi_physical_address phys;
+>  	acpi_size size;
+>  	unsigned long refcount;
+> +	struct rcu_head rcu;
+>  };
+>  
+>  static LIST_HEAD(acpi_ioremaps);
+> @@ -421,13 +422,18 @@ static void acpi_os_drop_map_ref(struct acpi_ioremap *map)
+>  		list_del_rcu(&map->list);
+>  }
+>  
+> +static void acpi_os_map_reclaim(struct rcu_head *rcu)
+> +{
+> +	struct acpi_ioremap *map = container_of(rcu, struct acpi_ioremap, rcu);
+> +
+> +	acpi_unmap(map->phys, map->virt);
+> +	kfree(map);
+> +}
+> +
+>  static void acpi_os_map_cleanup(struct acpi_ioremap *map)
+>  {
+> -	if (!map->refcount) {
+> -		synchronize_rcu();
+> -		acpi_unmap(map->phys, map->virt);
+> -		kfree(map);
+> -	}
+> +	if (!map->refcount)
+> +		call_rcu(&map->rcu, acpi_os_map_reclaim);
+>  }
+>  
+>  void __ref acpi_os_unmap_iomem(void __iomem *virt, acpi_size size)
+> 
 
 -- 
 I speak only for myself.
