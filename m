@@ -1,86 +1,80 @@
 From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 Subject: Re: [RFC 0/3] Experimental patchset for CPPC
-Date: Fri, 15 Aug 2014 10:24:32 -0400
-Message-ID: <CAJ5Y-eZiRyGroems7J2oH05ybbbivM-okm3gFz7Mkuu8ceeCDQ@mail.gmail.com>
+Date: Fri, 15 Aug 2014 10:37:32 -0400
+Message-ID: <CAJ5Y-eZhAX47v4SjsW4T6PUaiMqC9wHcMDS8p+sL4_cReZpbyw@mail.gmail.com>
 References: <1408046230-16439-1-git-send-email-ashwin.chaugule@linaro.org>
 	<20140814205143.GY6758@twins.programming.kicks-ass.net>
 	<CAJ5Y-ebgJi8Ngxg1X+h7KMundGZPFhYC0hr0Sog6htj=czszgQ@mail.gmail.com>
 	<20140815061917.GX19379@twins.programming.kicks-ass.net>
 	<CAJ5Y-eaLxCG7dDao00pozXBL2dxPS7tf=xGfaz3O_xfRHtQZnA@mail.gmail.com>
-	<53EE0E5B.3050004@linux.intel.com>
-	<53EE10CB.7040001@linux.intel.com>
+	<20140815140741.GI19379@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f178.google.com ([74.125.82.178]:48861 "EHLO
-	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032AbaHOOYd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Aug 2014 10:24:33 -0400
-Received: by mail-we0-f178.google.com with SMTP id w61so2361715wes.23
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Aug 2014 07:24:32 -0700 (PDT)
-In-Reply-To: <53EE10CB.7040001@linux.intel.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:43223 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751208AbaHOOhd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Aug 2014 10:37:33 -0400
+Received: by mail-wg0-f44.google.com with SMTP id m15so2373665wgh.3
+        for <linux-acpi@vger.kernel.org>; Fri, 15 Aug 2014 07:37:32 -0700 (PDT)
+In-Reply-To: <20140815140741.GI19379@twins.programming.kicks-ass.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, lkml <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Mike Turquette <mike.turquette@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, mingo@kernel.org, len.brown@intel.com, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Patch Tracking <patches@linaro.org>, Dirk Brandewie <dirk.brandewie@gmail.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: lkml <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Mike Turquette <mike.turquette@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Arjan van de Ven <arjan@linux.intel.com>, mingo@kernel.org, len.brown@intel.com, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Patch Tracking <patches@linaro.org>, Dirk Brandewie <dirk.brandewie@gmail.com>
 
-Hi Arjan,
+Hi Peter,
 
-On 15 August 2014 09:53, Arjan van de Ven <arjan@linux.intel.com> wrote:
-> On 8/15/2014 6:42 AM, Arjan van de Ven wrote:
->> On 8/15/2014 6:08 AM, Ashwin Chaugule wrote:
->>> (b) we come up with ways to provide the bounds around a Desired value
->>> using the information from the platform. (long term)
->>>
->>> I briefly looked at the x86 HWP (Hardware Performance States) in the
->>> s/w manual again. Its essentially an implementation of CPPC. It seems
->>> like X86 has implemented most if not all these registers as MSRs. I'm
->>> really interested in knowing if anyone there is/has been working on
->>> using them and what they found.
->>
->>
->> we've found that so far that there are two reasonable options
->> 1) Let the OS device (old style)
->> 2) Let the hardware decide (new style)
->>
->> 2) is there in practice today in the turbo range (which is increasingly
->> the whole thing)
->> and the hardware can make decisions about power budgetting on a timescale
->> the OS
->> can never even dream of, so once you give control the the hardware (with
->> CPPC or native)
->> it's normally better to just get out of the way as OS.
->>
+On 15 August 2014 10:07, Peter Zijlstra <peterz@infradead.org> wrote:
+> On Fri, Aug 15, 2014 at 09:08:50AM -0400, Ashwin Chaugule wrote:
+>> If the OS only looks at Highest, Lowest, Delivered registers and only
+>> writes to Desired, then we're not really any different than how we do
+>> things today in the CPUFreq layer.
 >
+> The thing is; we're already struggling to make 'sense' of x86 as it
+> stands today. And it looks like this CPPC stuff makes the behaviour even
+> less certain.
 
-Interesting. This sounds like X86 plans to use the Autonomous bits
-that got added to the CPPC spec. (v5.1)? I agree that the platform can
-make decisions on a much finer timescale. But even in the
-non-Autonomous mode, by providing the bounds around a Desired Value,
-the OS can get out of the way knowing that the platform would deliver
-something in the range it requested. If the OS can provide bounds, it
-seems to me that the platform can make more optimum decisions, rather
-than trying to guess whats running (or not).
-
-> I should clarify this; with increasing number of cores, you end up with much
-> more dynamic maximums
-> (e.g. turbo in Intel speak) and the hardware already controls this (yes the
-> OS gives hints, but
-> that's mostly a lot of OS work for little value)
->
-
-Going completely Autonomous (i.e. letting the platform decide whats
-best w/o OS hints) may be possible only for some platforms. There will
-be several ones which dont have that kind of logic built into the
-hardware. In such cases getting OS hints would be the only option.
+I think its still better than the "p-state" thing we have going today,
+where the algorithms are making their decisions based on the incorrect
+assumption that the CPU got what it requested for. (among other things
+listed earlier.) CPPC at least gives you a guarantee that the
+delivered performance will be within a range you requested. It can
+even force the platform to deliver a specific performance value if you
+choose over a specific time window.
 
 >
-> in a single or even dual core situation you may have a different ballgame
-> with a small turbo range, but even in phones
-> octocores seem to be the norm nowadays ;-)
-> (just finished reading the Samsung announcement)
+>> Or even in the case of
+>> intel_pstate, if you map Desired to PERF_CTL and get value of
+>> Delivered by using aperf/mperf ratios (as my experimental driver
+>> does), then we can still maintain the existing system performance. It
+>> seems like if an OS can make use of the additional information then it
+>> should be net win for overall power savings and performance
+>> enhancement. Also, using the CPPC descriptors, we should be able to
+>> have one driver across X86 and ARM64. (possibly others too.)
+>
+> Yikes, so aaargh64 will go do creative power management too?
 
-Yea, its getting crazy out there.
+Nice use or aargh. ;) Strangely hadn't seen that before.
+
+>
+> And worse; it will go do ACPI? Welcome to the world of guaranteed BIOS
+> fail :-(
+
+ACPI or not, I think leads to a rather different kind of debate. :) If
+all ARM implementations could include the CP15 equivalents of the CPPC
+MSRs that Intel has, then we wouldn't need this CPPC table. But
+that'll remain a pipe dream. So I'd prefer to think of CPPC as a
+simple wrapper of registers descriptions which allows implementations
+to choose how and where to get their CPPC information. However they
+choose to implement the registers, I think theres a lot of potential
+power savings and performance optimization on the table which can be
+acquired through CPPC. Given the platforms some amount of freedom to
+optimize things in a platform specific way helps them differentiate
+themselves (a key thing with ARM esp.) and keeping the idea of CPU
+performance abstract rather than tied to Frequency should help to keep
+things unified in the OS, so we avoid the driver bloat that ARM
+historically has had.
 
 Cheers,
 Ashwin
