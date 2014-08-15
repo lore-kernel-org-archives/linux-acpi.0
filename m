@@ -1,136 +1,82 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [RFC 0/3] Experimental patchset for CPPC
-Date: Fri, 15 Aug 2014 12:41:00 -0400
-Message-ID: <CAJ5Y-eZZz=SrkONt029eZ0AsEZ6xFhW4cmcaEVZ8=8Ls9r5+zA@mail.gmail.com>
-References: <1408046230-16439-1-git-send-email-ashwin.chaugule@linaro.org>
-	<20140814205143.GY6758@twins.programming.kicks-ass.net>
-	<CAJ5Y-ebgJi8Ngxg1X+h7KMundGZPFhYC0hr0Sog6htj=czszgQ@mail.gmail.com>
-	<20140815061917.GX19379@twins.programming.kicks-ass.net>
-	<CAJ5Y-eaLxCG7dDao00pozXBL2dxPS7tf=xGfaz3O_xfRHtQZnA@mail.gmail.com>
-	<53EE0E5B.3050004@linux.intel.com>
-	<53EE10CB.7040001@linux.intel.com>
-	<CAJ5Y-eZiRyGroems7J2oH05ybbbivM-okm3gFz7Mkuu8ceeCDQ@mail.gmail.com>
-	<53EE2BAA.1020603@linux.intel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
+Date: Fri, 15 Aug 2014 21:49:44 +0200
+Message-ID: <201408152149.44283.arnd@arndb.de>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
+ <8599266.1aeEWcB8r7@wuerfel>
+ <CAOesGMiOzRYmmYcBV=eFr8U-e_BJAUg9gpnT0DPwJuyxBz9-1g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:59825 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751537AbaHOQlC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Aug 2014 12:41:02 -0400
-Received: by mail-wi0-f177.google.com with SMTP id ho1so1055828wib.10
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Aug 2014 09:41:00 -0700 (PDT)
-In-Reply-To: <53EE2BAA.1020603@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAOesGMiOzRYmmYcBV=eFr8U-e_BJAUg9gpnT0DPwJuyxBz9-1g@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel
 List-Id: linux-acpi@vger.kernel.org
-To: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, lkml <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Mike Turquette <mike.turquette@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, mingo@kernel.org, len.brown@intel.com, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Patch Tracking <patches@linaro.org>, Dirk Brandewie <dirk.brandewie@gmail.com>
 
-Hello,
+On Friday 15 August 2014, Olof Johansson wrote:
+> On Thu, Aug 14, 2014 at 1:53 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Thursday 14 August 2014 11:27:23 Catalin Marinas wrote:
+> >
+> > I would expect that Juno is a superset of what servers need. If this
+> > ACPI patch set is sufficient to support every device present on Juno
+> > with an ACPI firmware, what would be a strong indication that server
+> > platforms work as well.
+> >
+> > OTOH, if ACPI on Juno only supports half the features that the hardware
+> > has, that doesn't tell us much about the suitability of ACPI for any
+> > real-world system, server or not.
+> 
+> Juno is lacking in several components compared to a server platform,
+> it doesn't have PCIe, SATA, or real ethernet. So it's in many ways
+> just a few cores with RAM and a few slow interfaces.
 
-On 15 August 2014 11:47, Arjan van de Ven <arjan@linux.intel.com> wrote:
-> On 8/15/2014 7:24 AM, Ashwin Chaugule wrote:
->>>> we've found that so far that there are two reasonable options
->>>> 1) Let the OS device (old style)
->>>> 2) Let the hardware decide (new style)
->>>>
->>>> 2) is there in practice today in the turbo range (which is increasingly
->>>> the whole thing)
->>>> and the hardware can make decisions about power budgetting on a
->>>> timescale
->>>> the OS
->>>> can never even dream of, so once you give control the the hardware (with
->>>> CPPC or native)
->>>> it's normally better to just get out of the way as OS.
->>>>
->>>
->>
->> Interesting. This sounds like X86 plans to use the Autonomous bits
->> that got added to the CPPC spec. (v5.1)?
->
->
-> if and when x86/Intel implement that, we will certainly evaluate it to see
-> how it behaves... but based on todays use of the hw control of the actual
-> p-state... I would expect that evaluation to pass.
->
->
-> note that on todays multi-core x96 systems, in practice you operate mostly
-> in the turbo range (I am ignoring mostly-idle workloads since there the
-> p-state isn't nearly as relevant anyway); all it takes for one of the cores
-> to request
-> a turbo-range state, and the whole chip operates in turbo mode.. and in
-> turbo mode
-> the hardware already picks the frequency/voltage.
+I see. I wouldn't really expect SATA in a server, but the lack of
+PCIe of course also implies that there is no SAS/NVMe/FCoE storage
+either.
 
-x96 - Wonder what that has! ;)
+Some of the slow interfaces may actually be more interesting,
+since PCI and anything attached to it should (at least in theory)
+be fully discoverable and not need much ACPI support at all.
 
-So, this I think brings back my point of Freq domain awareness (or
-lack of) in todays governors. On X86, it seems as though, the h/w can
-take care of "Freq voting rights" among CPUs and it knows to ignore a
-request after the requestor goes to sleep. That way the other CPUs in
-the domain dont unnecessarily operate under a higher freq/voltage and
-their vote can become current. Also on X86, all CPUs are assumed to
-have the same min, max operating points?
+The parts that I'm particularly interested in are the interaction
+with the BMC and embedded controller, and how the power management
+for nondiscoverable devices is implemented through AML.
 
-This may not be true on ARM (or others). So if the h/w isnt capable of
-automatically updating freq/voltage for a domain, then the OS needs to
-provide that. And I think we can achieve that through the knowledge of
-system topology and having a centralized CPU policy governor for each
-domain. If each CPU in the domain is capable of making decisions on
-behalf of everyone in that domain, then we can at least get past the
-problem of "stale CPU freq votes". (replace freq with performance in
-CPPC terms).
+> The scary parts from the ACPI 5.1 docs (the peripheral ones in
+> particular) are around the modelling of clocks and other things that
+> we thought ACPI was going to stay away from. Until we see how steep
+> that slope is, we're better off taking it easy with merging the
+> support. It could get quite messy very quickly, and we'd be stuck
+> supporting whatever solutions are tried in the first ACPI generations
+> forever if we do enable them now. That's the main reason for holding
+> off and being conservative (and seeing several real platforms and how
+> they end up modelling these things).
 
-e.g. to make my point clear, assume there are 3 cpus in the system.
+Agreed. I think we had already concluded previously when discussing this
+patch that the clock management in APCI-5.1 should not be used on ARM64,
+but I think there is a problem one level deeper: The 5.0 and 5.1 versions
+apparently add a lot of new features that are meant for either ARM64
+servers or embedded x86 machines. These two typically have conflicting
+requirements, and it would be better for the specification itself to
+provide clearer statements to which parts apply in what use case rather
+than us (the Linux people) making claims about what parts of the spec
+are acceptable or not.
 
-C0, C1 are in one domain and C2 is in another.
+There are already two specified classes of systems, the legacy x86
+and itanium machines, and the "reduced hardware" profile, which
+apparently covers both of the new types of machines mentioned above.
 
-If C0 asks for 3Ghz and C1 asks for 1Ghz, the h/w delivers 3Ghz. But
-now C0 goes to sleep. With todays governors, we dont reevaluate and
-so, C1 continues to get 3Ghz even though it doesnt need it. Maybe X86
-can figure out that C0 is asleep and so it should now deliver 1Ghz,
-but ARM does not have that AFAIK. So we need the governor to
-reevaluate between C0 and C1 (preferably through aperf/mperf like
-ratios, rather than the broken p-state assumptions) and send a new
-request to ask for 1Ghz.
+What would be the process to get a clarification into the next version
+of ACPI that makes them more distinct?
 
->
-> with the current (and more so, past) Linux behavior, even at moderate loads
-> you end up
-> there; the more cores you have the more true that becomes.
->
->> I agree that the platform can
->> make decisions on a much finer timescale. But even in the
->> non-Autonomous mode, by providing the bounds around a Desired Value,
->> the OS can get out of the way knowing that the platform would deliver
->> something in the range it requested. If the OS can provide bounds, it
->> seems to me that the platform can make more optimum decisions, rather
->> than trying to guess whats running (or not).
->
->
-> I highly question that the OS can provide intelligent bounds.
->
-
-Agreed. This is a challenging problem. Hence the wider discussion.
-
-> When are you going to request an upper bound that is lower than maximum?
-> (don't say thermals, there are other mechanisms for controlling thermals
-> that work much better than direct P state control). Are you still going to
-> do that
-> even if sometimes lower frequencies end up costing more battery?
-> (race-to-halt and all that)
-
-Maybe the answer is that in the short term, we always request for MAX
-in the (Max, Min, Desired) tuple. Although I suspect some platforms
-will still use P state controls for thermal mitigation.
-
->
->
-> I can see cases where you bump the minimum for QoS reasons, but even there I
-> would
-> dare to say that at best the OS will be doing wild-ass guesses.
-
-Right. I see Min being used for QoS too.
-
-Cheers,
-Ashwin
+	Arnd
