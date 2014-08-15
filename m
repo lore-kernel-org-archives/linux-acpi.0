@@ -1,74 +1,86 @@
-From: Peter Zijlstra <peterz@infradead.org>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 Subject: Re: [RFC 0/3] Experimental patchset for CPPC
-Date: Fri, 15 Aug 2014 16:07:41 +0200
-Message-ID: <20140815140741.GI19379@twins.programming.kicks-ass.net>
+Date: Fri, 15 Aug 2014 10:24:32 -0400
+Message-ID: <CAJ5Y-eZiRyGroems7J2oH05ybbbivM-okm3gFz7Mkuu8ceeCDQ@mail.gmail.com>
 References: <1408046230-16439-1-git-send-email-ashwin.chaugule@linaro.org>
- <20140814205143.GY6758@twins.programming.kicks-ass.net>
- <CAJ5Y-ebgJi8Ngxg1X+h7KMundGZPFhYC0hr0Sog6htj=czszgQ@mail.gmail.com>
- <20140815061917.GX19379@twins.programming.kicks-ass.net>
- <CAJ5Y-eaLxCG7dDao00pozXBL2dxPS7tf=xGfaz3O_xfRHtQZnA@mail.gmail.com>
+	<20140814205143.GY6758@twins.programming.kicks-ass.net>
+	<CAJ5Y-ebgJi8Ngxg1X+h7KMundGZPFhYC0hr0Sog6htj=czszgQ@mail.gmail.com>
+	<20140815061917.GX19379@twins.programming.kicks-ass.net>
+	<CAJ5Y-eaLxCG7dDao00pozXBL2dxPS7tf=xGfaz3O_xfRHtQZnA@mail.gmail.com>
+	<53EE0E5B.3050004@linux.intel.com>
+	<53EE10CB.7040001@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="iDeshIghY55r3+AG"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:54419 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101AbaHOOH7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Aug 2014 10:07:59 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJ5Y-eaLxCG7dDao00pozXBL2dxPS7tf=xGfaz3O_xfRHtQZnA@mail.gmail.com>
+Received: from mail-we0-f178.google.com ([74.125.82.178]:48861 "EHLO
+	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751032AbaHOOYd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Aug 2014 10:24:33 -0400
+Received: by mail-we0-f178.google.com with SMTP id w61so2361715wes.23
+        for <linux-acpi@vger.kernel.org>; Fri, 15 Aug 2014 07:24:32 -0700 (PDT)
+In-Reply-To: <53EE10CB.7040001@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: lkml <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Mike Turquette <mike.turquette@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Arjan van de Ven <arjan@linux.intel.com>, mingo@kernel.org, len.brown@intel.com, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Patch Tracking <patches@linaro.org>, Dirk Brandewie <dirk.brandewie@gmail.com>
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, lkml <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Mike Turquette <mike.turquette@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, mingo@kernel.org, len.brown@intel.com, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Patch Tracking <patches@linaro.org>, Dirk Brandewie <dirk.brandewie@gmail.com>
 
+Hi Arjan,
 
---iDeshIghY55r3+AG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 15 August 2014 09:53, Arjan van de Ven <arjan@linux.intel.com> wrote:
+> On 8/15/2014 6:42 AM, Arjan van de Ven wrote:
+>> On 8/15/2014 6:08 AM, Ashwin Chaugule wrote:
+>>> (b) we come up with ways to provide the bounds around a Desired value
+>>> using the information from the platform. (long term)
+>>>
+>>> I briefly looked at the x86 HWP (Hardware Performance States) in the
+>>> s/w manual again. Its essentially an implementation of CPPC. It seems
+>>> like X86 has implemented most if not all these registers as MSRs. I'm
+>>> really interested in knowing if anyone there is/has been working on
+>>> using them and what they found.
+>>
+>>
+>> we've found that so far that there are two reasonable options
+>> 1) Let the OS device (old style)
+>> 2) Let the hardware decide (new style)
+>>
+>> 2) is there in practice today in the turbo range (which is increasingly
+>> the whole thing)
+>> and the hardware can make decisions about power budgetting on a timescale
+>> the OS
+>> can never even dream of, so once you give control the the hardware (with
+>> CPPC or native)
+>> it's normally better to just get out of the way as OS.
+>>
+>
 
-On Fri, Aug 15, 2014 at 09:08:50AM -0400, Ashwin Chaugule wrote:
-> If the OS only looks at Highest, Lowest, Delivered registers and only
-> writes to Desired, then we're not really any different than how we do
-> things today in the CPUFreq layer.
+Interesting. This sounds like X86 plans to use the Autonomous bits
+that got added to the CPPC spec. (v5.1)? I agree that the platform can
+make decisions on a much finer timescale. But even in the
+non-Autonomous mode, by providing the bounds around a Desired Value,
+the OS can get out of the way knowing that the platform would deliver
+something in the range it requested. If the OS can provide bounds, it
+seems to me that the platform can make more optimum decisions, rather
+than trying to guess whats running (or not).
 
-The thing is; we're already struggling to make 'sense' of x86 as it
-stands today. And it looks like this CPPC stuff makes the behaviour even
-less certain.
+> I should clarify this; with increasing number of cores, you end up with much
+> more dynamic maximums
+> (e.g. turbo in Intel speak) and the hardware already controls this (yes the
+> OS gives hints, but
+> that's mostly a lot of OS work for little value)
+>
 
-> Or even in the case of
-> intel_pstate, if you map Desired to PERF_CTL and get value of
-> Delivered by using aperf/mperf ratios (as my experimental driver
-> does), then we can still maintain the existing system performance. It
-> seems like if an OS can make use of the additional information then it
-> should be net win for overall power savings and performance
-> enhancement. Also, using the CPPC descriptors, we should be able to
-> have one driver across X86 and ARM64. (possibly others too.)
+Going completely Autonomous (i.e. letting the platform decide whats
+best w/o OS hints) may be possible only for some platforms. There will
+be several ones which dont have that kind of logic built into the
+hardware. In such cases getting OS hints would be the only option.
 
-Yikes, so aaargh64 will go do creative power management too?
+>
+> in a single or even dual core situation you may have a different ballgame
+> with a small turbo range, but even in phones
+> octocores seem to be the norm nowadays ;-)
+> (just finished reading the Samsung announcement)
 
-And worse; it will go do ACPI? Welcome to the world of guaranteed BIOS
-fail :-(
+Yea, its getting crazy out there.
 
---iDeshIghY55r3+AG
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJT7hQtAAoJEHZH4aRLwOS6/DIP/AmupGzWkhlSymd3IklcJwAz
-/gsXPBhhpiM/2NlUzpHjx3yYXoGodNf0Agi0hTxKgEYhdOYnW1Dcq1mNmaFGZQtC
-ygootTjLffyxYypXW4JxsteqY+5S6Nb6l7sjHkO+VA5ZMSsH4elaehcruOoPfvk5
-mF40F8gNdTHhNq1ev0PEa5LDws4KnqNk7gZDZzFeFdSaDkZNnZ4RuVWof8vHIBh8
-CNqVv13a5MzJXr8iDBwNuXdHRetFr2zih+/bw6wXAaTal3D2R4dz+zdPCW5JgKqx
-TLZpFIAeGt35sg6gdmL9wifKSnZ9sif+Ic1D4tfTSnbA3ufrUW1vqqDD0vIrQ9bd
-yaK17HG7TZLjGXIqNT6SotccmQdqTFnHAQZi24QrGWnJCJZUz8offICAXs37lN5M
-wBlruD3wM7mlIjBXzi0OhKoPMrlcY3c15InqZPbGYzrv8CNDlZfkMHVtfR8JxBbv
-UxIYL7+DnOU18wxP+bGcTo3jqu35fGf6iVifskBwHhciTmj1LDk59HhsM4Oilw7X
-IWzBH1/ARwhr6KFQd56GJCn9JaoaGtKe7GIbabtp054jSIqfK2NTICxK0vQyatjN
-+RwM8i6runTP7A+CyAKeIBIT3RdMa527U4BTEUZ55rWcG5d5CFGxCMPMsvNwaSjl
-ZGBYTbwl4wVw7cuhB2nh
-=7wyo
------END PGP SIGNATURE-----
-
---iDeshIghY55r3+AG--
+Cheers,
+Ashwin
