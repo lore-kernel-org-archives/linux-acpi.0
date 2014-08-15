@@ -1,138 +1,124 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] More ACPI and power management updates for 3.17-rc1
-Date: Fri, 15 Aug 2014 01:52:00 +0200
-Message-ID: <CAJZ5v0h10BCKbytCh1qtdj-h8M0EY_nH4ANGYROcwwec0vq6dg@mail.gmail.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
+Date: Thu, 14 Aug 2014 18:02:33 -0700
+Message-ID: <CAOesGMiOzRYmmYcBV=eFr8U-e_BJAUg9gpnT0DPwJuyxBz9-1g@mail.gmail.com>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
+ <53EC2B35.5010302@linaro.org> <20140814102723.GB9039@arm.com>
+ <8599266.1aeEWcB8r7@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f53.google.com ([209.85.219.53]:53691 "EHLO
-	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754446AbaHNXwB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Aug 2014 19:52:01 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <8599266.1aeEWcB8r7@wuerfel>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+On Thu, Aug 14, 2014 at 1:53 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Thursday 14 August 2014 11:27:23 Catalin Marinas wrote:
+>> On Thu, Aug 14, 2014 at 04:21:25AM +0100, Hanjun Guo wrote:
+>> > On 2014-8-14 7:41, Rafael J. Wysocki wrote:
+>> > > On Tuesday, August 12, 2014 07:23:47 PM Catalin Marinas wrote:
+>> > >> If we consider ACPI unusable on ARM but we still want to start merging
+>> > >> patches, we should rather make the config option depend on BROKEN
+>> > >> (though if it is that unusable that no real platform can use it, I would
+>> > >> rather not merge it at all at this stage).
+>> > >
+>> > > I agree here.
+>> > >
+>> > > I would recommend creating a separate branch for that living outside of the
+>> > > mainline kernel and merging it when there are real users.
+>> >
+>> > Real users will coming soon, we already tested this patch set on real hardware
+>> > (ARM64 Juno platform),
+>>
+>> I don't consider Juno a server platform  (but it's good enough for
+>> development).
+>
+> I would expect that Juno is a superset of what servers need. If this
+> ACPI patch set is sufficient to support every device present on Juno
+> with an ACPI firmware, what would be a strong indication that server
+> platforms work as well.
+>
+> OTOH, if ACPI on Juno only supports half the features that the hardware
+> has, that doesn't tell us much about the suitability of ACPI for any
+> real-world system, server or not.
 
-Please pull from
+Juno is lacking in several components compared to a server platform,
+it doesn't have PCIe, SATA, or real ethernet. So it's in many ways
+just a few cores with RAM and a few slow interfaces.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-3.17-rc1-2
+The scary parts from the ACPI 5.1 docs (the peripheral ones in
+particular) are around the modelling of clocks and other things that
+we thought ACPI was going to stay away from. Until we see how steep
+that slope is, we're better off taking it easy with merging the
+support. It could get quite messy very quickly, and we'd be stuck
+supporting whatever solutions are tried in the first ACPI generations
+forever if we do enable them now. That's the main reason for holding
+off and being conservative (and seeing several real platforms and how
+they end up modelling these things).
 
-to receive more ACPI and power management updates for v3.17-rc1 with
-top-most commit af5b7e84d022fdea373038d831bb4ca2c0e82108
+As I've also commented on some of the documents, I am not excited
+about how the ACPI platform code is integrated: Add some ACPI
+functions in an acpi-only file that exports some variables. Then, in a
+shared file, create a completely separate code path that uses said
+variables to do whatever it needs. I'm not crazy at all at the split
+of code paths between the platforms, and I want to see it more data
+driven (filling in shared structures and sharing code paths). There
+are some challenges to make that happen but I also don't think there's
+been a whole lot of effort to make it happen -- the ACPI developers
+don't seem to like touching the DT code paths to make them fit better.
+:-)
 
- Merge branch 'pm-tools'
+>> > and I think ARM64 server chips and platforms will show up before 3.18
+>> > is released.
+>>
+>> That's what I've heard/seen. The questions I have are (a) whether
+>> current ACPI patchset is enough to successfully run Linux on such
+>> _hardware_ platform (maybe not fully optimised, for example just WFI
+>> cpuidle) and (b) whether we still want to mandate a DT in the kernel for
+>> such platforms.
+>>
+>> Given the answer to (a) and what other features are needed, we may or
+>> may not mandate (b). We were pretty clear few months ago that (b) is
+>> still required but at the time we were only openly talking about ACPI
+>> 5.0 which was lacking many features. I think we need to revisit that
+>> position based on how usable ACPI 5.1 for ARM (and current kernel
+>> implementation) is. Would you mind elaborating what an ACPI-only
+>> platform miss?
+>>
+>> I would expect a new server platform designed with ACPI in mind to
+>> require minimal SoC specific code, so we may only see a few patches
+>> under drivers/ for such platforms adding ACPI-specific probing (possibly
+>> new drivers as well if it's a new component).
+>
+> That is at least the hope, but I have no way of knowing whether it
+> works that way or not, other than seeing the actual patches.
+>
+> It is rather annoying that we first have to wait for hardware
+> to become available to actually see that code, but I guess that
+> means that those hardware vendors no longer see ACPI as something
+> on their critical path, so we definitely shouldn't hurry things
+> until we understand the reason for the endless delay of platform
+> support patches.
 
-on top of commit 7725131982477bffff8ffdea143434dcc69f5d90
+I've tried reaching out to several vendors but I've heard nothing back
+from any of them. Very disappointing.
 
- Merge tag 'pm+acpi-3.17-rc1' of
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/
-linux-pm
-
-These are a couple of regression fixes, cpuidle menu governor
-optimizations, fixes for ACPI proccessor and battery drivers,
-hibernation fix to avoid problems related to the e820 memory map,
-fixes for a few cpufreq drivers and a new version of the suspend
-profiling tool analyze_suspend.py.
-
-Specifics:
-
- - Fix for an ACPI-based device hotplug regression introduced in 3.14
-   that causes a kernel panic to trigger when memory hot-remove is
-   attempted with CONFIG_ACPI_HOTPLUG_MEMORY unset from Tang Chen.
-
- - Fix for a cpufreq regression introduced in 3.16 that triggers a
-   "sleeping function called from invalid context" bug in
-   dev_pm_opp_init_cpufreq_table() from Stephen Boyd.
-
- - ACPI battery driver fix for a warning message added in 3.16 that
-   prints silly stuff sometimes from Mariusz Ceier.
-
- - Hibernation fix for safer handling of mismatches in the 820 memory
-   map between the configurations during image creation and during
-   the subsequent restore from Chun-Yi Lee.
-
- - ACPI processor driver fix to handle CPU hotplug notifications
-   correctly during system suspend/resume from Lan Tianyu.
-
- - Series of four cpuidle menu governor cleanups that also should
-   speed it up a bit from Mel Gorman.
-
- - Fixes for the speedstep-smi, integrator, cpu0 and arm_big_little
-   cpufreq drivers from Hans Wennborg, Himangi Saraogi, Markus Pargmann
-   and Uwe Kleine-K=C3=B6nig.
-
- - Version 3.0 of the analyze_suspend.py suspend profiling tool
-   from Todd E Brandt.
-
-Thanks!
+It is quite concerning that they are not willing to talk to the
+community, but it also makes it easy to decide what kind of priority
+we should put on reviewing and merging their patches when they do get
+posted -- their lack of planning does not constitute an emergency on
+our behalf.
 
 
----------------
-
-Hans Wennborg (1):
-      cpufreq: speedstep-smi: fix decimal printf specifiers
-
-Himangi Saraogi (1):
-      cpufreq: integrator: Use set_cpus_allowed_ptr
-
-Lan Tianyu (1):
-      ACPI / processor: Make acpi_cpu_soft_notify() process CPU FROZEN =
-events
-
-Lee, Chun-Yi (1):
-      PM / hibernate: avoid unsafe pages in e820 reserved regions
-
-Mariusz Ceier (1):
-      ACPI / battery: Fix warning message in acpi_battery_get_state()
-
-Markus Pargmann (1):
-      cpufreq: cpu0: Do not print error message when deferring
-
-Mel Gorman (4):
-      cpuidle: menu: Use shifts when calculating averages where possibl=
-e
-      cpuidle: menu: Use ktime_to_us instead of reinventing the wheel
-      cpuidle: menu: Call nr_iowait_cpu less times
-      cpuidle: menu: Lookup CPU runqueues less
-
-Stephen Boyd (1):
-      cpufreq: OPP: Avoid sleeping while atomic
-
-Tang Chen (1):
-      ACPI / hotplug: Check scan handlers in acpi_scan_hot_remove()
-
-Todd E Brandt (1):
-      PM / tools: analyze_suspend.py: update to v3.0
-
-Uwe Kleine-K=C3=B6nig (1):
-      cpufreq: arm_big_little: fix module license spec
-
----------------
-
- drivers/acpi/battery.c               |    2 +-
- drivers/acpi/processor_driver.c      |    1 +
- drivers/acpi/scan.c                  |    3 +-
- drivers/cpufreq/arm_big_little.c     |    5 +
- drivers/cpufreq/arm_big_little_dt.c  |    2 +-
- drivers/cpufreq/cpufreq-cpu0.c       |    2 +-
- drivers/cpufreq/cpufreq_opp.c        |    2 +-
- drivers/cpufreq/integrator-cpufreq.c |   10 +-
- drivers/cpufreq/speedstep-smi.c      |    4 +-
- drivers/cpuidle/governors/menu.c     |   43 +-
- include/linux/sched.h                |    3 +-
- kernel/power/snapshot.c              |   21 +-
- kernel/sched/core.c                  |    7 +
- kernel/sched/proc.c                  |    7 -
- scripts/analyze_suspend.py           | 3817 ++++++++++++++++++++++++++=
---------
- 15 files changed, 3051 insertions(+), 878 deletions(-)
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Olof
