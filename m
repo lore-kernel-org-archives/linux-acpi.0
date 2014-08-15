@@ -1,124 +1,103 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Thu, 14 Aug 2014 18:02:33 -0700
-Message-ID: <CAOesGMiOzRYmmYcBV=eFr8U-e_BJAUg9gpnT0DPwJuyxBz9-1g@mail.gmail.com>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <53EC2B35.5010302@linaro.org> <20140814102723.GB9039@arm.com>
- <8599266.1aeEWcB8r7@wuerfel>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [RFC 0/3] Experimental patchset for CPPC
+Date: Fri, 15 Aug 2014 08:19:17 +0200
+Message-ID: <20140815061917.GX19379@twins.programming.kicks-ass.net>
+References: <1408046230-16439-1-git-send-email-ashwin.chaugule@linaro.org>
+ <20140814205143.GY6758@twins.programming.kicks-ass.net>
+ <CAJ5Y-ebgJi8Ngxg1X+h7KMundGZPFhYC0hr0Sog6htj=czszgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <8599266.1aeEWcB8r7@wuerfel>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, Mark Brown <broonie@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="G4St3GbU430LdqTT"
+Return-path: <cpufreq-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ5Y-ebgJi8Ngxg1X+h7KMundGZPFhYC0hr0Sog6htj=czszgQ@mail.gmail.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: lkml <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Mike Turquette <mike.turquette@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, arjan@linux.intel.com, mingo@kernel.org, len.brown@intel.com, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Patch Tracking <patches@linaro.org>, dirk.brandewie@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 14, 2014 at 1:53 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Thursday 14 August 2014 11:27:23 Catalin Marinas wrote:
->> On Thu, Aug 14, 2014 at 04:21:25AM +0100, Hanjun Guo wrote:
->> > On 2014-8-14 7:41, Rafael J. Wysocki wrote:
->> > > On Tuesday, August 12, 2014 07:23:47 PM Catalin Marinas wrote:
->> > >> If we consider ACPI unusable on ARM but we still want to start merging
->> > >> patches, we should rather make the config option depend on BROKEN
->> > >> (though if it is that unusable that no real platform can use it, I would
->> > >> rather not merge it at all at this stage).
->> > >
->> > > I agree here.
->> > >
->> > > I would recommend creating a separate branch for that living outside of the
->> > > mainline kernel and merging it when there are real users.
->> >
->> > Real users will coming soon, we already tested this patch set on real hardware
->> > (ARM64 Juno platform),
->>
->> I don't consider Juno a server platform  (but it's good enough for
->> development).
->
-> I would expect that Juno is a superset of what servers need. If this
-> ACPI patch set is sufficient to support every device present on Juno
-> with an ACPI firmware, what would be a strong indication that server
-> platforms work as well.
->
-> OTOH, if ACPI on Juno only supports half the features that the hardware
-> has, that doesn't tell us much about the suitability of ACPI for any
-> real-world system, server or not.
 
-Juno is lacking in several components compared to a server platform,
-it doesn't have PCIe, SATA, or real ethernet. So it's in many ways
-just a few cores with RAM and a few slow interfaces.
+--G4St3GbU430LdqTT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The scary parts from the ACPI 5.1 docs (the peripheral ones in
-particular) are around the modelling of clocks and other things that
-we thought ACPI was going to stay away from. Until we see how steep
-that slope is, we're better off taking it easy with merging the
-support. It could get quite messy very quickly, and we'd be stuck
-supporting whatever solutions are tried in the first ACPI generations
-forever if we do enable them now. That's the main reason for holding
-off and being conservative (and seeing several real platforms and how
-they end up modelling these things).
+On Thu, Aug 14, 2014 at 05:56:10PM -0400, Ashwin Chaugule wrote:
+> Hi Peter,
+>=20
+> On 14 August 2014 16:51, Peter Zijlstra <peterz@infradead.org> wrote:
+> > On Thu, Aug 14, 2014 at 03:57:07PM -0400, Ashwin Chaugule wrote:
+> >>
+> >>
+> >> What is CPPC:
+> >> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> >>
+> >> CPPC is the new interface for CPU performance control between the OS a=
+nd the
+> >> platform defined in ACPI 5.0+. The interface is built on an abstract
+> >> representation of CPU performance rather than raw frequency.  Basic op=
+eration
+> >> consists of:
+> >
+> > Why do we want this? Typically we've ignored ACPI and gone straight to
+> > MSR access, intel_pstate and intel_idle were created especially to avoid
+> > ACPI, so why return to it.
+> >
+> > Also, the whole interface sounds like trainwreck (one would not expect
+> > anything else from ACPI).
+> >
+> > So _why_?
+>=20
+> The overall idea is that tying the notion of CPU performance to CPU
+> frequency is no longer true these days.[1]. So, using some direction
+> from an OS , the platforms want to be able to decide how to adjust CPU
+> performance by using knowledge that may be very platform specific.
+> e.g. through the use of performance counters, thermal budgets and
+> other system specific constraints. So, CPPC describes a way for the OS
+> to request performance within certain bounds and then letting the
+> platform optimize it within those constraints. Expressing CPU
+> performance in an abstract way, should also help keep things uniform
+> across various architecture implementations.
 
-As I've also commented on some of the documents, I am not excited
-about how the ACPI platform code is integrated: Add some ACPI
-functions in an acpi-only file that exports some variables. Then, in a
-shared file, create a completely separate code path that uses said
-variables to do whatever it needs. I'm not crazy at all at the split
-of code paths between the platforms, and I want to see it more data
-driven (filling in shared structures and sharing code paths). There
-are some challenges to make that happen but I also don't think there's
-been a whole lot of effort to make it happen -- the ACPI developers
-don't seem to like touching the DT code paths to make them fit better.
-:-)
+> [1]- https://plus.google.com/+ArjanvandeVen/posts/dLn9T4ehywL
+> [2] - http://git.linaro.org/people/ashwin.chaugule/leg-kernel.git/blob/23=
+6d901d31fb06fda798880c9ca09d65123c5dd9:/drivers/cpufreq/cppc_x86.c
 
->> > and I think ARM64 server chips and platforms will show up before 3.18
->> > is released.
->>
->> That's what I've heard/seen. The questions I have are (a) whether
->> current ACPI patchset is enough to successfully run Linux on such
->> _hardware_ platform (maybe not fully optimised, for example just WFI
->> cpuidle) and (b) whether we still want to mandate a DT in the kernel for
->> such platforms.
->>
->> Given the answer to (a) and what other features are needed, we may or
->> may not mandate (b). We were pretty clear few months ago that (b) is
->> still required but at the time we were only openly talking about ACPI
->> 5.0 which was lacking many features. I think we need to revisit that
->> position based on how usable ACPI 5.1 for ARM (and current kernel
->> implementation) is. Would you mind elaborating what an ACPI-only
->> platform miss?
->>
->> I would expect a new server platform designed with ACPI in mind to
->> require minimal SoC specific code, so we may only see a few patches
->> under drivers/ for such platforms adding ACPI-specific probing (possibly
->> new drivers as well if it's a new component).
->
-> That is at least the hope, but I have no way of knowing whether it
-> works that way or not, other than seeing the actual patches.
->
-> It is rather annoying that we first have to wait for hardware
-> to become available to actually see that code, but I guess that
-> means that those hardware vendors no longer see ACPI as something
-> on their critical path, so we definitely shouldn't hurry things
-> until we understand the reason for the endless delay of platform
-> support patches.
+Yeah, I'm so not clicking in that; if you want to make an argument make
+it here.
 
-I've tried reaching out to several vendors but I've heard nothing back
-from any of them. Very disappointing.
+In any case; that's all nice and shiny that the 'hardware' works like
+that. But have these people considered how we're supposed to use it?
 
-It is quite concerning that they are not willing to talk to the
-community, but it also makes it easy to decide what kind of priority
-we should put on reviewing and merging their patches when they do get
-posted -- their lack of planning does not constitute an emergency on
-our behalf.
+How should we know what to do with a new task? Do we stack it on a busy
+CPU, do we wake an idle cpu and how are we going to tell which is the
+'best' option.
 
+How are we going to do DVFS like accounting if we don't know wtf the
+hardware can or will do.
 
--Olof
+And how can you design these interfaces and hardware without at least
+partially knowing the answer to these questions.
+
+--G4St3GbU430LdqTT
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJT7aZfAAoJEHZH4aRLwOS68dQP/AvYGHK+LWcJyfXt96UAiNTX
+cyR2JK/KFivHf4dii+B/ghxdZW2TTthby+TaKUfn3EhudXB6i5nljc1aSD/6JUTB
+vr0B2RTtqJUh7Z5l26ewL9lMfSSYMjM4EbziTMbDNjo2LsaT1oCoP0t5CrH9/glM
+IiJUuDl/b77YpP2O5ouIRoot9GvtoSkt4F3Qfundp3wJ+Wqh6uEBIuIzK+xZ3egv
+ahXWJ3Q5ljS2AL6C7YtNzzdEwKEICCxEg95Peewklp++pq0ck2GwxI7o9zPg2/Nb
+NcPosid1dEfIzEO4n8XeIQu2CzJ9XxRwBu7Zu8jJ2gcU8kjbitM+HboE0LTHxjll
+gRGpeup5O4iZOONsG4lMDZaZOduUix21bu7fNt/SY1aGRrp7rWUvw5QIBAsOLHmn
+w4Gkq/5cqX8QbdQCZWHnxxHzpr7HfVGxNy5WySy92531+l3AgkupvvVTGrq4wr8m
+xvl0oh+JbUED8UhJ6y1nDLvzVBL+ivHKCwM2VrKhZKUP99654ab+hDOtZbZSavJj
+hk+qJXae7TiHjkDdHlpcNkX8xn6RzZROU7QtLHOmzHM2ZMJUirXp7C9AVytiQF4b
+bTdE9sJsLyQBjfClY0uNIXDvw0mDRJ8GoGcmxsx1F4Ug7ck+1wqp5BYjbnSs88wb
+f0znhuY0VfeH482EDd/Q
+=CLmc
+-----END PGP SIGNATURE-----
+
+--G4St3GbU430LdqTT--
