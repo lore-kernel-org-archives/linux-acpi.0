@@ -1,80 +1,74 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [RFC 0/3] Experimental patchset for CPPC
-Date: Fri, 15 Aug 2014 10:37:32 -0400
-Message-ID: <CAJ5Y-eZhAX47v4SjsW4T6PUaiMqC9wHcMDS8p+sL4_cReZpbyw@mail.gmail.com>
+Date: Fri, 15 Aug 2014 16:41:24 +0200
+Message-ID: <20140815144124.GK19379@twins.programming.kicks-ass.net>
 References: <1408046230-16439-1-git-send-email-ashwin.chaugule@linaro.org>
-	<20140814205143.GY6758@twins.programming.kicks-ass.net>
-	<CAJ5Y-ebgJi8Ngxg1X+h7KMundGZPFhYC0hr0Sog6htj=czszgQ@mail.gmail.com>
-	<20140815061917.GX19379@twins.programming.kicks-ass.net>
-	<CAJ5Y-eaLxCG7dDao00pozXBL2dxPS7tf=xGfaz3O_xfRHtQZnA@mail.gmail.com>
-	<20140815140741.GI19379@twins.programming.kicks-ass.net>
+ <20140814205143.GY6758@twins.programming.kicks-ass.net>
+ <CAJ5Y-ebgJi8Ngxg1X+h7KMundGZPFhYC0hr0Sog6htj=czszgQ@mail.gmail.com>
+ <20140815061917.GX19379@twins.programming.kicks-ass.net>
+ <CAJ5Y-eaLxCG7dDao00pozXBL2dxPS7tf=xGfaz3O_xfRHtQZnA@mail.gmail.com>
+ <20140815140741.GI19379@twins.programming.kicks-ass.net>
+ <CAJ5Y-eZhAX47v4SjsW4T6PUaiMqC9wHcMDS8p+sL4_cReZpbyw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:43223 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751208AbaHOOhd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Aug 2014 10:37:33 -0400
-Received: by mail-wg0-f44.google.com with SMTP id m15so2373665wgh.3
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Aug 2014 07:37:32 -0700 (PDT)
-In-Reply-To: <20140815140741.GI19379@twins.programming.kicks-ass.net>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="smqHdNbl2cgnTjEa"
+Return-path: <cpufreq-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ5Y-eZhAX47v4SjsW4T6PUaiMqC9wHcMDS8p+sL4_cReZpbyw@mail.gmail.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 Cc: lkml <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Mike Turquette <mike.turquette@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Arjan van de Ven <arjan@linux.intel.com>, mingo@kernel.org, len.brown@intel.com, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Patch Tracking <patches@linaro.org>, Dirk Brandewie <dirk.brandewie@gmail.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Hi Peter,
 
-On 15 August 2014 10:07, Peter Zijlstra <peterz@infradead.org> wrote:
-> On Fri, Aug 15, 2014 at 09:08:50AM -0400, Ashwin Chaugule wrote:
->> If the OS only looks at Highest, Lowest, Delivered registers and only
->> writes to Desired, then we're not really any different than how we do
->> things today in the CPUFreq layer.
->
-> The thing is; we're already struggling to make 'sense' of x86 as it
-> stands today. And it looks like this CPPC stuff makes the behaviour even
-> less certain.
+--smqHdNbl2cgnTjEa
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I think its still better than the "p-state" thing we have going today,
-where the algorithms are making their decisions based on the incorrect
-assumption that the CPU got what it requested for. (among other things
-listed earlier.) CPPC at least gives you a guarantee that the
-delivered performance will be within a range you requested. It can
-even force the platform to deliver a specific performance value if you
-choose over a specific time window.
+On Fri, Aug 15, 2014 at 10:37:32AM -0400, Ashwin Chaugule wrote:
+> Hi Peter,
+>=20
+> On 15 August 2014 10:07, Peter Zijlstra <peterz@infradead.org> wrote:
+> > On Fri, Aug 15, 2014 at 09:08:50AM -0400, Ashwin Chaugule wrote:
+> >> If the OS only looks at Highest, Lowest, Delivered registers and only
+> >> writes to Desired, then we're not really any different than how we do
+> >> things today in the CPUFreq layer.
+> >
+> > The thing is; we're already struggling to make 'sense' of x86 as it
+> > stands today. And it looks like this CPPC stuff makes the behaviour even
+> > less certain.
+>=20
+> I think its still better than the "p-state" thing we have going today,
+> where the algorithms are making their decisions based on the incorrect
+> assumption that the CPU got what it requested for. (among other things
+> listed earlier.) CPPC at least gives you a guarantee that the
+> delivered performance will be within a range you requested. It can
+> even force the platform to deliver a specific performance value if you
+> choose over a specific time window.
 
->
->> Or even in the case of
->> intel_pstate, if you map Desired to PERF_CTL and get value of
->> Delivered by using aperf/mperf ratios (as my experimental driver
->> does), then we can still maintain the existing system performance. It
->> seems like if an OS can make use of the additional information then it
->> should be net win for overall power savings and performance
->> enhancement. Also, using the CPPC descriptors, we should be able to
->> have one driver across X86 and ARM64. (possibly others too.)
->
-> Yikes, so aaargh64 will go do creative power management too?
+Maybe; the guarantee and interrupt on change might be useful indeed. But
+which ever way we need aperf/mperf ratios somewhere.
 
-Nice use or aargh. ;) Strangely hadn't seen that before.
+--smqHdNbl2cgnTjEa
+Content-Type: application/pgp-signature
 
->
-> And worse; it will go do ACPI? Welcome to the world of guaranteed BIOS
-> fail :-(
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-ACPI or not, I think leads to a rather different kind of debate. :) If
-all ARM implementations could include the CP15 equivalents of the CPPC
-MSRs that Intel has, then we wouldn't need this CPPC table. But
-that'll remain a pipe dream. So I'd prefer to think of CPPC as a
-simple wrapper of registers descriptions which allows implementations
-to choose how and where to get their CPPC information. However they
-choose to implement the registers, I think theres a lot of potential
-power savings and performance optimization on the table which can be
-acquired through CPPC. Given the platforms some amount of freedom to
-optimize things in a platform specific way helps them differentiate
-themselves (a key thing with ARM esp.) and keeping the idea of CPU
-performance abstract rather than tied to Frequency should help to keep
-things unified in the OS, so we avoid the driver bloat that ARM
-historically has had.
+iQIcBAEBAgAGBQJT7hwTAAoJEHZH4aRLwOS60ukP/1IDVKebfOGuHoOA86PFOW2i
+37Mb2DkoKjMUZs1das9yySsJJlKtAHfZlIy8Meq32JHT1b0yR6kH1YWhV9lKfnGX
+pCov/3HCQj9fCeLisrUcseeNBhw5GScPXtcGxRn7i9BCCVo8w1/QYA14vISqFE29
+wQhxhjKmPeHvgcKygmRvRWIIpxQtjoZRUTNa3BHBfwKglgY3lHTatk5WUDwNAoAc
+kXvcN0ZFAlP00zwoPTqG2DOqR53F9DJ0ovpFcnh5qJ+vMQts2g8ZDHuur7fXJj/p
+DnzoYO97t+dzWsKz3ZGFlprD4fB/BWS4PbJkR5wtNPY7+jfULf+Uu1e0L9nr44Gm
+QMd64kS/F/S+O5HTnUOzS3MPYfHg7LMAFG3x+SpzS7/MUitC7xPS6gV6eHVtzAM9
+vEITv6GfvJSiLHbdGShx6rRFTAB/Hr4+IOcC+nckBBeAgClmLY2Rqk2bMQWjf+r+
+GGTnnAsNZnysh1/77VhraOMMt/D2K6rR+nC2Jo1r1sWvd8bwFRQpzPGKN5cZLNgn
+2o9qbXNYxT0XqoWySCIRnvdvMyqz8hirqv5FTB2FvcWdqwdxwEsb3tkgdzzekSZC
+iieltKveyfQ3miscpgxcWNrmaza4kKMnpYjSZJ6eii7ZgZwRuVbUDPwcEiFWg2RO
+C3VR6yzvxzplK8jSp02k
+=qt2F
+-----END PGP SIGNATURE-----
 
-Cheers,
-Ashwin
+--smqHdNbl2cgnTjEa--
