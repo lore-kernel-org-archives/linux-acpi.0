@@ -1,74 +1,75 @@
-From: Peter Zijlstra <peterz@infradead.org>
+From: Arjan van de Ven <arjan@linux.intel.com>
 Subject: Re: [RFC 0/3] Experimental patchset for CPPC
-Date: Fri, 15 Aug 2014 16:41:24 +0200
-Message-ID: <20140815144124.GK19379@twins.programming.kicks-ass.net>
-References: <1408046230-16439-1-git-send-email-ashwin.chaugule@linaro.org>
- <20140814205143.GY6758@twins.programming.kicks-ass.net>
- <CAJ5Y-ebgJi8Ngxg1X+h7KMundGZPFhYC0hr0Sog6htj=czszgQ@mail.gmail.com>
- <20140815061917.GX19379@twins.programming.kicks-ass.net>
- <CAJ5Y-eaLxCG7dDao00pozXBL2dxPS7tf=xGfaz3O_xfRHtQZnA@mail.gmail.com>
- <20140815140741.GI19379@twins.programming.kicks-ass.net>
- <CAJ5Y-eZhAX47v4SjsW4T6PUaiMqC9wHcMDS8p+sL4_cReZpbyw@mail.gmail.com>
+Date: Fri, 15 Aug 2014 08:47:54 -0700
+Message-ID: <53EE2BAA.1020603@linux.intel.com>
+References: <1408046230-16439-1-git-send-email-ashwin.chaugule@linaro.org>	<20140814205143.GY6758@twins.programming.kicks-ass.net>	<CAJ5Y-ebgJi8Ngxg1X+h7KMundGZPFhYC0hr0Sog6htj=czszgQ@mail.gmail.com>	<20140815061917.GX19379@twins.programming.kicks-ass.net>	<CAJ5Y-eaLxCG7dDao00pozXBL2dxPS7tf=xGfaz3O_xfRHtQZnA@mail.gmail.com>	<53EE0E5B.3050004@linux.intel.com>	<53EE10CB.7040001@linux.intel.com> <CAJ5Y-eZiRyGroems7J2oH05ybbbivM-okm3gFz7Mkuu8ceeCDQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="smqHdNbl2cgnTjEa"
-Return-path: <cpufreq-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ5Y-eZhAX47v4SjsW4T6PUaiMqC9wHcMDS8p+sL4_cReZpbyw@mail.gmail.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: lkml <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Mike Turquette <mike.turquette@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Arjan van de Ven <arjan@linux.intel.com>, mingo@kernel.org, len.brown@intel.com, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Patch Tracking <patches@linaro.org>, Dirk Brandewie <dirk.brandewie@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:40291 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750846AbaHOPs1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Aug 2014 11:48:27 -0400
+In-Reply-To: <CAJ5Y-eZiRyGroems7J2oH05ybbbivM-okm3gFz7Mkuu8ceeCDQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, lkml <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Mike Turquette <mike.turquette@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, mingo@kernel.org, len.brown@intel.com, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Patch Tracking <patches@linaro.org>, Dirk Brandewie <dirk.brandewie@gmail.com>
+
+On 8/15/2014 7:24 AM, Ashwin Chaugule wrote:
+>>>
+>>> we've found that so far that there are two reasonable options
+>>> 1) Let the OS device (old style)
+>>> 2) Let the hardware decide (new style)
+>>>
+>>> 2) is there in practice today in the turbo range (which is increasingly
+>>> the whole thing)
+>>> and the hardware can make decisions about power budgetting on a timescale
+>>> the OS
+>>> can never even dream of, so once you give control the the hardware (with
+>>> CPPC or native)
+>>> it's normally better to just get out of the way as OS.
+>>>
+>>
+>
+> Interesting. This sounds like X86 plans to use the Autonomous bits
+> that got added to the CPPC spec. (v5.1)?
+
+if and when x86/Intel implement that, we will certainly evaluate it to see
+how it behaves... but based on todays use of the hw control of the actual
+p-state... I would expect that evaluation to pass.
 
 
---smqHdNbl2cgnTjEa
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+note that on todays multi-core x96 systems, in practice you operate mostly
+in the turbo range (I am ignoring mostly-idle workloads since there the
+p-state isn't nearly as relevant anyway); all it takes for one of the cores to request
+a turbo-range state, and the whole chip operates in turbo mode.. and in turbo mode
+the hardware already picks the frequency/voltage.
 
-On Fri, Aug 15, 2014 at 10:37:32AM -0400, Ashwin Chaugule wrote:
-> Hi Peter,
->=20
-> On 15 August 2014 10:07, Peter Zijlstra <peterz@infradead.org> wrote:
-> > On Fri, Aug 15, 2014 at 09:08:50AM -0400, Ashwin Chaugule wrote:
-> >> If the OS only looks at Highest, Lowest, Delivered registers and only
-> >> writes to Desired, then we're not really any different than how we do
-> >> things today in the CPUFreq layer.
-> >
-> > The thing is; we're already struggling to make 'sense' of x86 as it
-> > stands today. And it looks like this CPPC stuff makes the behaviour even
-> > less certain.
->=20
-> I think its still better than the "p-state" thing we have going today,
-> where the algorithms are making their decisions based on the incorrect
-> assumption that the CPU got what it requested for. (among other things
-> listed earlier.) CPPC at least gives you a guarantee that the
-> delivered performance will be within a range you requested. It can
-> even force the platform to deliver a specific performance value if you
-> choose over a specific time window.
+with the current (and more so, past) Linux behavior, even at moderate loads you end up
+there; the more cores you have the more true that becomes.
 
-Maybe; the guarantee and interrupt on change might be useful indeed. But
-which ever way we need aperf/mperf ratios somewhere.
 
---smqHdNbl2cgnTjEa
-Content-Type: application/pgp-signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+> I agree that the platform can
+> make decisions on a much finer timescale. But even in the
+> non-Autonomous mode, by providing the bounds around a Desired Value,
+> the OS can get out of the way knowing that the platform would deliver
+> something in the range it requested. If the OS can provide bounds, it
+> seems to me that the platform can make more optimum decisions, rather
+> than trying to guess whats running (or not).
 
-iQIcBAEBAgAGBQJT7hwTAAoJEHZH4aRLwOS60ukP/1IDVKebfOGuHoOA86PFOW2i
-37Mb2DkoKjMUZs1das9yySsJJlKtAHfZlIy8Meq32JHT1b0yR6kH1YWhV9lKfnGX
-pCov/3HCQj9fCeLisrUcseeNBhw5GScPXtcGxRn7i9BCCVo8w1/QYA14vISqFE29
-wQhxhjKmPeHvgcKygmRvRWIIpxQtjoZRUTNa3BHBfwKglgY3lHTatk5WUDwNAoAc
-kXvcN0ZFAlP00zwoPTqG2DOqR53F9DJ0ovpFcnh5qJ+vMQts2g8ZDHuur7fXJj/p
-DnzoYO97t+dzWsKz3ZGFlprD4fB/BWS4PbJkR5wtNPY7+jfULf+Uu1e0L9nr44Gm
-QMd64kS/F/S+O5HTnUOzS3MPYfHg7LMAFG3x+SpzS7/MUitC7xPS6gV6eHVtzAM9
-vEITv6GfvJSiLHbdGShx6rRFTAB/Hr4+IOcC+nckBBeAgClmLY2Rqk2bMQWjf+r+
-GGTnnAsNZnysh1/77VhraOMMt/D2K6rR+nC2Jo1r1sWvd8bwFRQpzPGKN5cZLNgn
-2o9qbXNYxT0XqoWySCIRnvdvMyqz8hirqv5FTB2FvcWdqwdxwEsb3tkgdzzekSZC
-iieltKveyfQ3miscpgxcWNrmaza4kKMnpYjSZJ6eii7ZgZwRuVbUDPwcEiFWg2RO
-C3VR6yzvxzplK8jSp02k
-=qt2F
------END PGP SIGNATURE-----
+I highly question that the OS can provide intelligent bounds.
 
---smqHdNbl2cgnTjEa--
+When are you going to request an upper bound that is lower than maximum?
+(don't say thermals, there are other mechanisms for controlling thermals
+that work much better than direct P state control). Are you still going to do that
+even if sometimes lower frequencies end up costing more battery?
+(race-to-halt and all that)
+
+
+I can see cases where you bump the minimum for QoS reasons, but even there I would
+dare to say that at best the OS will be doing wild-ass guesses.
+
+
