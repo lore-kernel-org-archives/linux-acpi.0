@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [RFC PATCH 9/9] leds: leds-gpio: Make use of device property API
-Date: Sun, 17 Aug 2014 09:04:19 +0300
-Message-ID: <1408255459-17625-10-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [RFC PATCH 3/9] Driver core: Unified device properties interface for platform firmware
+Date: Sun, 17 Aug 2014 09:04:13 +0300
+Message-ID: <1408255459-17625-4-git-send-email-mika.westerberg@linux.intel.com>
 References: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com>
@@ -10,208 +10,465 @@ To: Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org
 Cc: Aaron Lu <aaron.lu@intel.com>, Max Eliaser <max.eliaser@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Max Eliaser <max.eliaser@intel.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Make use of device property API in this driver so that both OF and ACPI
-based system can use the same driver.
+Add a uniform interface by which device drivers can request device
+properties from the platform firmware by providing a property name
+and the corresponding data type.
 
-Signed-off-by: Max Eliaser <max@meliaserlow.dyndns.tv>
+Three general helper functions, device_property_get(),
+device_property_read() and device_property_read_array() are provided.
+The first one allows the raw value of a given device property to be
+accessed by the driver.  The remaining two allow the value of a numeric
+or string property and multiple numeric or string values of one array
+property to be acquired, respectively.
+
+The interface is supposed to cover both ACPI and Device Trees,
+although the ACPI part is only implemented at this time.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 Reviewed-by: Darren Hart <dvhart@linux.intel.com>
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/leds/leds-gpio.c | 130 +++++++++++++++++++++++++++++------------------
- 1 file changed, 80 insertions(+), 50 deletions(-)
+ drivers/acpi/glue.c      |   4 +-
+ drivers/acpi/property.c  | 179 ++++++++++++++++++++++++++++++++++++++++++++++-
+ drivers/acpi/scan.c      |  12 +++-
+ drivers/base/Makefile    |   2 +-
+ drivers/base/property.c  |  48 +++++++++++++
+ include/acpi/acpi_bus.h  |   1 +
+ include/linux/device.h   |   3 +
+ include/linux/property.h |  50 +++++++++++++
+ 8 files changed, 293 insertions(+), 6 deletions(-)
+ create mode 100644 drivers/base/property.c
+ create mode 100644 include/linux/property.h
 
-diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
-index 57ff20fecf57..d7334b8a21ae 100644
---- a/drivers/leds/leds-gpio.c
-+++ b/drivers/leds/leds-gpio.c
-@@ -21,6 +21,7 @@
- #include <linux/workqueue.h>
- #include <linux/module.h>
- #include <linux/err.h>
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index f774c65ecb8b..1df5223bb98d 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -9,7 +9,7 @@
+ #include <linux/export.h>
+ #include <linux/init.h>
+ #include <linux/list.h>
+-#include <linux/device.h>
 +#include <linux/property.h>
+ #include <linux/slab.h>
+ #include <linux/rwsem.h>
+ #include <linux/acpi.h>
+@@ -220,6 +220,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+ 	list_add(&physical_node->node, physnode_list);
+ 	acpi_dev->physical_node_count++;
  
- struct gpio_led_data {
- 	struct led_classdev cdev;
-@@ -161,75 +162,102 @@ static inline int sizeof_gpio_leds_priv(int num_leds)
- 		(sizeof(struct gpio_led_data) * num_leds);
++	dev->property_ops = &acpi_property_ops;
+ 	if (!ACPI_COMPANION(dev))
+ 		ACPI_COMPANION_SET(dev, acpi_dev);
+ 
+@@ -271,6 +272,7 @@ int acpi_unbind_one(struct device *dev)
+ 			acpi_physnode_link_name(physnode_name, entry->node_id);
+ 			sysfs_remove_link(&acpi_dev->dev.kobj, physnode_name);
+ 			sysfs_remove_link(&dev->kobj, "firmware_node");
++			dev->property_ops = NULL;
+ 			ACPI_COMPANION_SET(dev, NULL);
+ 			/* Drop references taken by acpi_bind_one(). */
+ 			put_device(dev);
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 093e834c35db..bdba5f85c919 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -13,8 +13,8 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#include <linux/property.h>
+ #include <linux/acpi.h>
+-#include <linux/device.h>
+ #include <linux/export.h>
+ 
+ #include "internal.h"
+@@ -363,3 +363,180 @@ int acpi_dev_get_property_reference(struct acpi_device *adev, const char *name,
+ 	return -EPROTO;
  }
- 
--/* Code to create from OpenFirmware platform devices */
--#ifdef CONFIG_OF_GPIO
--static struct gpio_leds_priv *gpio_leds_create_of(struct platform_device *pdev)
-+#if defined(CONFIG_OF) || defined(CONFIG_ACPI)
+ EXPORT_SYMBOL_GPL(acpi_dev_get_property_reference);
 +
-+static int gpio_leds_get_led(struct device *dev, void *data)
++static int acpi_dev_prop_get(struct device *dev, const char *propname,
++			     void **valptr)
 +{
-+	struct gpio_led led = {};
-+	struct gpio_leds_priv *priv = data;
-+	const char *state = NULL;
-+	struct gpio_desc *desc;
-+	enum gpio_lookup_flags flags;
-+	void *val;
-+
-+	if (device_property_get(dev, "gpios", NULL)) {
-+		dev_warn(dev, "Found LED without gpios\n");
-+		return 0;
-+	}
-+
-+	desc = dev_get_gpiod_flags(dev, 0, &flags);
-+	if (IS_ERR(desc)) {
-+		int error = PTR_ERR(desc);
-+
-+		if (error != -EPROBE_DEFER)
-+			dev_err(dev, "Failed to get gpio flags for LED, error: %d\n",
-+				error);
-+		return error;
-+	}
-+
-+	led.gpio = desc_to_gpio(desc);
-+	led.active_low = flags & GPIO_ACTIVE_LOW;
-+
-+	if (!device_property_read(dev, "label", DEV_PROP_STRING, &val))
-+		led.name = val;
-+
-+	if (!device_property_read(dev, "linux,default-trigger",
-+				  DEV_PROP_STRING, &val))
-+		led.default_trigger = val;
-+
-+	if (!device_property_read(dev, "linux,default-state", DEV_PROP_STRING,
-+				  &val))
-+		state = val;
-+	if (state) {
-+		if (!strcmp(state, "keep"))
-+			led.default_state = LEDS_GPIO_DEFSTATE_KEEP;
-+		else if (!strcmp(state, "on"))
-+			led.default_state = LEDS_GPIO_DEFSTATE_ON;
-+		else
-+			led.default_state = LEDS_GPIO_DEFSTATE_OFF;
-+	}
-+
-+	if (!device_property_get(dev, "linux,retain-state-suspended", NULL))
-+		led.retain_state_suspended = 1;
-+
-+	return create_gpio_led(&led, &priv->leds[priv->num_leds++], dev, NULL);
++	return acpi_dev_get_property(ACPI_COMPANION(dev), propname,
++				     ACPI_TYPE_ANY,
++				     (const union acpi_object **)valptr);
 +}
 +
-+static struct gpio_leds_priv *gpio_leds_create(struct device *dev)
++static int acpi_dev_prop_read(struct device *dev, const char *propname,
++			      enum dev_prop_type proptype, void *val)
++{
++	const union acpi_object *obj;
++	int ret = -EINVAL;
++
++	if (!val)
++		return -EINVAL;
++
++	if (proptype >= DEV_PROP_U8 && proptype <= DEV_PROP_U64) {
++		ret = acpi_dev_get_property(ACPI_COMPANION(dev), propname,
++					    ACPI_TYPE_INTEGER, &obj);
++		if (ret)
++			return ret;
++
++		switch (proptype) {
++		case DEV_PROP_U8:
++			*(u8 *)val = obj->integer.value;
++			break;
++		case DEV_PROP_U16:
++			*(u16 *)val = obj->integer.value;
++			break;
++		case DEV_PROP_U32:
++			*(u32 *)val = obj->integer.value;
++			break;
++		default:
++			*(u64 *)val = obj->integer.value;
++			break;
++		}
++	} else if (proptype == DEV_PROP_STRING) {
++		ret = acpi_dev_get_property(ACPI_COMPANION(dev), propname,
++					    ACPI_TYPE_STRING, &obj);
++		if (ret)
++			return ret;
++
++		*(char **)val = obj->string.pointer;
++	}
++	return ret;
++}
++
++static int acpi_copy_property_array_u8(const union acpi_object *items, u8 *val,
++				       size_t nval)
++{
++	int i;
++
++	for (i = 0; i < nval; i++) {
++		if (items[i].type != ACPI_TYPE_INTEGER)
++			return -EPROTO;
++
++		val[i] = items[i].integer.value;
++	}
++	return 0;
++}
++
++static int acpi_copy_property_array_u16(const union acpi_object *items,
++					u16 *val, size_t nval)
++{
++	int i;
++
++	for (i = 0; i < nval; i++) {
++		if (items[i].type != ACPI_TYPE_INTEGER)
++			return -EPROTO;
++
++		val[i] = items[i].integer.value;
++	}
++	return 0;
++}
++
++static int acpi_copy_property_array_u32(const union acpi_object *items,
++					u32 *val, size_t nval)
++{
++	int i;
++
++	for (i = 0; i < nval; i++) {
++		if (items[i].type != ACPI_TYPE_INTEGER)
++			return -EPROTO;
++
++		val[i] = items[i].integer.value;
++	}
++	return 0;
++}
++
++static int acpi_copy_property_array_u64(const union acpi_object *items,
++					u64 *val, size_t nval)
++{
++	int i;
++
++	for (i = 0; i < nval; i++) {
++		if (items[i].type != ACPI_TYPE_INTEGER)
++			return -EPROTO;
++
++		val[i] = items[i].integer.value;
++	}
++	return 0;
++}
++
++static int acpi_copy_property_array_string(const union acpi_object *items,
++					   char **val, size_t nval)
++{
++	int i;
++
++	for (i = 0; i < nval; i++) {
++		if (items[i].type != ACPI_TYPE_STRING)
++			return -EPROTO;
++
++		val[i] = items[i].string.pointer;
++	}
++	return 0;
++}
++
++static int acpi_dev_prop_read_array(struct device *dev, const char *propname,
++				    enum dev_prop_type proptype, void *val,
++				    size_t nval)
++{
++	const union acpi_object *obj;
++	const union acpi_object *items;
++	int ret;
++
++	ret = acpi_dev_get_property_array(ACPI_COMPANION(dev), propname,
++					  ACPI_TYPE_ANY, &obj);
++	if (ret)
++		return ret;
++
++	if (!val)
++		return obj->package.count;
++
++	if (nval > obj->package.count)
++		nval = obj->package.count;
++
++	items = obj->package.elements;
++	switch (proptype) {
++	case DEV_PROP_U8:
++		ret = acpi_copy_property_array_u8(items, (u8 *)val, nval);
++		break;
++	case DEV_PROP_U16:
++		ret = acpi_copy_property_array_u16(items, (u16 *)val, nval);
++		break;
++	case DEV_PROP_U32:
++		ret = acpi_copy_property_array_u32(items, (u32 *)val, nval);
++		break;
++	case DEV_PROP_U64:
++		ret = acpi_copy_property_array_u64(items, (u64 *)val, nval);
++		break;
++	case DEV_PROP_STRING:
++		ret = acpi_copy_property_array_string(items, (char **)val, nval);
++		break;
++	default:
++		ret = -EINVAL;
++		break;
++	}
++	return ret;
++}
++
++static int acpi_dev_get_child_count(struct device *dev)
++{
++	struct acpi_device *adev = ACPI_COMPANION(dev);
++
++	if (!adev)
++		return -EINVAL;
++	return adev->child_count;
++}
++
++struct dev_prop_ops acpi_property_ops = {
++	.get = acpi_dev_prop_get,
++	.read = acpi_dev_prop_read,
++	.read_array = acpi_dev_prop_read_array,
++	.child_count = acpi_dev_get_child_count,
++};
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index fc97e6123864..75b1b91e5ab0 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1035,8 +1035,10 @@ struct bus_type acpi_bus_type = {
+ static void acpi_device_del(struct acpi_device *device)
  {
--	struct device_node *np = pdev->dev.of_node, *child;
- 	struct gpio_leds_priv *priv;
--	int count, ret;
-+	int count, error;
+ 	mutex_lock(&acpi_device_lock);
+-	if (device->parent)
++	if (device->parent) {
+ 		list_del(&device->node);
++		device->parent->child_count--;
++	}
  
- 	/* count LEDs in this device, so we know how much to allocate */
--	count = of_get_available_child_count(np);
--	if (!count)
-+	count = device_property_child_count(dev);
-+	if (count <= 0)
- 		return ERR_PTR(-ENODEV);
+ 	list_del(&device->wakeup_list);
+ 	mutex_unlock(&acpi_device_lock);
+@@ -1222,8 +1224,10 @@ int acpi_device_add(struct acpi_device *device,
+ 	}
+ 	dev_set_name(&device->dev, "%s:%02x", acpi_device_bus_id->bus_id, acpi_device_bus_id->instance_no);
  
--	for_each_available_child_of_node(np, child)
--		if (of_get_gpio(child, 0) == -EPROBE_DEFER)
--			return ERR_PTR(-EPROBE_DEFER);
--
--	priv = devm_kzalloc(&pdev->dev, sizeof_gpio_leds_priv(count),
-+	priv = devm_kzalloc(dev, sizeof_gpio_leds_priv(count),
- 			GFP_KERNEL);
- 	if (!priv)
- 		return ERR_PTR(-ENOMEM);
+-	if (device->parent)
++	if (device->parent) {
+ 		list_add_tail(&device->node, &device->parent->children);
++		device->parent->child_count++;
++	}
  
--	for_each_available_child_of_node(np, child) {
--		struct gpio_led led = {};
--		enum of_gpio_flags flags;
--		const char *state;
--
--		led.gpio = of_get_gpio_flags(child, 0, &flags);
--		led.active_low = flags & OF_GPIO_ACTIVE_LOW;
--		led.name = of_get_property(child, "label", NULL) ? : child->name;
--		led.default_trigger =
--			of_get_property(child, "linux,default-trigger", NULL);
--		state = of_get_property(child, "default-state", NULL);
--		if (state) {
--			if (!strcmp(state, "keep"))
--				led.default_state = LEDS_GPIO_DEFSTATE_KEEP;
--			else if (!strcmp(state, "on"))
--				led.default_state = LEDS_GPIO_DEFSTATE_ON;
--			else
--				led.default_state = LEDS_GPIO_DEFSTATE_OFF;
--		}
--
--		if (of_get_property(child, "retain-state-suspended", NULL))
--			led.retain_state_suspended = 1;
--
--		ret = create_gpio_led(&led, &priv->leds[priv->num_leds++],
--				      &pdev->dev, NULL);
--		if (ret < 0) {
--			of_node_put(child);
--			goto err;
--		}
--	}
--
--	return priv;
-+	error = device_for_each_child(dev, priv, gpio_leds_get_led);
-+	if (!error)
-+		return priv;
+ 	if (device->wakeup.flags.valid)
+ 		list_add_tail(&device->wakeup_list, &acpi_wakeup_device_list);
+@@ -1248,8 +1252,10 @@ int acpi_device_add(struct acpi_device *device,
  
--err:
- 	for (count = priv->num_leds - 2; count >= 0; count--)
- 		delete_gpio_led(&priv->leds[count]);
- 	return ERR_PTR(-ENODEV);
- }
+  err:
+ 	mutex_lock(&acpi_device_lock);
+-	if (device->parent)
++	if (device->parent) {
+ 		list_del(&device->node);
++		device->parent->child_count--;
++	}
+ 	list_del(&device->wakeup_list);
+ 	mutex_unlock(&acpi_device_lock);
  
-+#ifdef CONFIG_OF
- static const struct of_device_id of_gpio_leds_match[] = {
- 	{ .compatible = "gpio-leds", },
- 	{},
- };
--
- MODULE_DEVICE_TABLE(of, of_gpio_leds_match);
--#else /* CONFIG_OF_GPIO */
--static struct gpio_leds_priv *gpio_leds_create_of(struct platform_device *pdev)
-+#endif
+diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+index 04b314e0fa51..1acd294b6514 100644
+--- a/drivers/base/Makefile
++++ b/drivers/base/Makefile
+@@ -4,7 +4,7 @@ obj-y			:= component.o core.o bus.o dd.o syscore.o \
+ 			   driver.o class.o platform.o \
+ 			   cpu.o firmware.o init.o map.o devres.o \
+ 			   attribute_container.o transport_class.o \
+-			   topology.o container.o
++			   topology.o container.o property.o
+ obj-$(CONFIG_DEVTMPFS)	+= devtmpfs.o
+ obj-$(CONFIG_DMA_CMA) += dma-contiguous.o
+ obj-y			+= power/
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+new file mode 100644
+index 000000000000..d770b6edc91a
+--- /dev/null
++++ b/drivers/base/property.c
+@@ -0,0 +1,48 @@
++/*
++ * property.c - Unified device property interface.
++ *
++ * Copyright (C) 2014, Intel Corporation
++ * All rights reserved.
++ *
++ * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/property.h>
++#include <linux/export.h>
++
++int device_property_get(struct device *dev, const char *propname, void **valptr)
++{
++	return dev->property_ops && dev->property_ops->get ?
++		dev->property_ops->get(dev, propname, valptr) : -ENODATA;
++}
++EXPORT_SYMBOL_GPL(device_property_get);
++
++int device_property_read(struct device *dev, const char *propname,
++			 enum dev_prop_type proptype, void *val)
++{
++	return dev->property_ops && dev->property_ops->read ?
++		dev->property_ops->read(dev, propname, proptype, val) :
++		-ENODATA;
++}
++EXPORT_SYMBOL_GPL(device_property_read);
++
++int device_property_read_array(struct device *dev, const char *propname,
++			       enum dev_prop_type proptype, void *val,
++			       size_t nval)
++{
++	return dev->property_ops && dev->property_ops->read_array ?
++		dev->property_ops->read_array(dev, propname, proptype, val, nval) :
++		-ENODATA;
++}
++EXPORT_SYMBOL_GPL(device_property_read_array);
++
++int device_property_child_count(struct device *dev)
++{
++	return dev->property_ops && dev->property_ops->child_count ?
++		dev->property_ops->child_count(dev) : -ENODATA;
++}
++EXPORT_SYMBOL_GPL(device_property_child_count);
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 348bd260a6b4..312813f60a22 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -340,6 +340,7 @@ struct acpi_device_data {
+ /* Device */
+ struct acpi_device {
+ 	int device_type;
++	int child_count;
+ 	acpi_handle handle;		/* no handle for fixed hardware */
+ 	struct acpi_device *parent;
+ 	struct list_head children;
+diff --git a/include/linux/device.h b/include/linux/device.h
+index af424acd393d..ea4cf31f8b9e 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -38,6 +38,7 @@ struct class;
+ struct subsys_private;
+ struct bus_type;
+ struct device_node;
++struct dev_prop_ops;
+ struct iommu_ops;
+ struct iommu_group;
+ 
+@@ -701,6 +702,7 @@ struct acpi_dev_node {
+  * @archdata:	For arch-specific additions.
+  * @of_node:	Associated device tree node.
+  * @acpi_node:	Associated ACPI device node.
++ * @property_ops: Firmware interface for device properties
+  * @devt:	For creating the sysfs "dev".
+  * @id:		device instance
+  * @devres_lock: Spinlock to protect the resource of the device.
+@@ -777,6 +779,7 @@ struct device {
+ 
+ 	struct device_node	*of_node; /* associated device tree node */
+ 	struct acpi_dev_node	acpi_node; /* associated ACPI device node */
++	struct dev_prop_ops	*property_ops;
+ 
+ 	dev_t			devt;	/* dev_t, creates the sysfs "dev" */
+ 	u32			id;	/* device instance */
+diff --git a/include/linux/property.h b/include/linux/property.h
+new file mode 100644
+index 000000000000..52ea7fe7fe09
+--- /dev/null
++++ b/include/linux/property.h
+@@ -0,0 +1,50 @@
++/*
++ * property.h - Unified device property interface.
++ *
++ * Copyright (C) 2014, Intel Corporation
++ * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _LINUX_PROPERTY_H_
++#define _LINUX_PROPERTY_H_
++
++#include <linux/device.h>
++#include <linux/acpi.h>
++#include <linux/of.h>
++
++enum dev_prop_type {
++	DEV_PROP_U8,
++	DEV_PROP_U16,
++	DEV_PROP_U32,
++	DEV_PROP_U64,
++	DEV_PROP_STRING,
++	DEV_PROP_MAX,
++};
++
++struct dev_prop_ops {
++	int (*get)(struct device *dev, const char *propname, void **valptr);
++	int (*read)(struct device *dev, const char *propname,
++		    enum dev_prop_type proptype, void *val);
++	int (*read_array)(struct device *dev, const char *propname,
++			  enum dev_prop_type proptype, void *val, size_t nval);
++	int (*child_count)(struct device *dev);
++};
 +
 +#ifdef CONFIG_ACPI
-+static struct acpi_device_id acpi_gpio_leds_match[] = {
-+	{ "MNW0001" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(acpi, acpi_gpio_leds_match);
++extern struct dev_prop_ops acpi_property_ops;
 +#endif
 +
-+#else /* CONFIG_OF || CONFIG_ACPI */
-+static struct gpio_leds_priv *gpio_leds_create(struct device *dev)
- {
- 	return ERR_PTR(-ENODEV);
- }
-@@ -238,7 +266,8 @@ static struct gpio_leds_priv *gpio_leds_create_of(struct platform_device *pdev)
- 
- static int gpio_led_probe(struct platform_device *pdev)
- {
--	struct gpio_led_platform_data *pdata = dev_get_platdata(&pdev->dev);
-+	struct device *dev = &pdev->dev;
-+	const struct gpio_led_platform_data *pdata = dev_get_platdata(dev);
- 	struct gpio_leds_priv *priv;
- 	int i, ret = 0;
- 
-@@ -263,7 +292,7 @@ static int gpio_led_probe(struct platform_device *pdev)
- 			}
- 		}
- 	} else {
--		priv = gpio_leds_create_of(pdev);
-+		priv = gpio_leds_create(dev);
- 		if (IS_ERR(priv))
- 			return PTR_ERR(priv);
- 	}
-@@ -291,6 +320,7 @@ static struct platform_driver gpio_led_driver = {
- 		.name	= "leds-gpio",
- 		.owner	= THIS_MODULE,
- 		.of_match_table = of_match_ptr(of_gpio_leds_match),
-+		.acpi_match_table = ACPI_PTR(acpi_gpio_leds_match),
- 	},
- };
- 
++int device_property_get(struct device *dev, const char *propname,
++			void **valptr);
++int device_property_read(struct device *dev, const char *propname,
++			 enum dev_prop_type proptype, void *val);
++int device_property_read_array(struct device *dev, const char *propname,
++			       enum dev_prop_type proptype, void *val,
++			       size_t nval);
++int device_property_child_count(struct device *dev);
++
++#endif /* _LINUX_PROPERTY_H_ */
 -- 
 2.1.0.rc1
