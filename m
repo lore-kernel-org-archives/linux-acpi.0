@@ -1,235 +1,241 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [RFC PATCH 8/9] Input: gpio_keys_polled - Make use of device property API
-Date: Sun, 17 Aug 2014 09:04:18 +0300
-Message-ID: <1408255459-17625-9-git-send-email-mika.westerberg@linux.intel.com>
-References: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [RFC PATCH 0/9] Add ACPI _DSD and unified device properties support
+Date: Sun, 17 Aug 2014 09:04:10 +0300
+Message-ID: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Aaron Lu <aaron.lu@intel.com>, Max Eliaser <max.eliaser@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Aaron Lu <aaron.lu@intel.com>
+[ Resending with fewer people in CC list. For some reason the series never
+  reached attented mailing lists. ]
 
-Make use of device property API in this driver so that both OF based
-system and ACPI based system can use this driver.
+The recent publication of the ACPI 5.1 specification [1] adds a reserved name
+for Device Specific Data (_DSD, Section 6.2.5). This mechanism allows for
+passing arbitrary hardware description data to the OS. The exact format of the
+_DSD data is specific to the UUID paired with it [2].   
 
-The driver isn't converted to descriptor based gpio API due to there are
-a lot of existing users of struct gpio_keys_button that expects the gpio
-integer field. Though this can be solved by adding a new field of type
-struct gpio_desc but then there is another problem: the devm_gpiod_get
-needs to operate on the button device instead of its parent device that
-has the driver binded, so when the driver is unloaded, the resources for
-the gpio will not get freed automatically. Alternatively, we can
-introduce a new API, something like gpiod_find_index that does almost
-the same thing as gpiod_get_index but doesn't do the gpiod_request call
-and use it during finding button resources in gpio_keys_polled_get_button
-function. But then this may seem too complicated and not desirable. So
-in the end, a simple dev_get_gpiod_flags which is introduced in the last
-patch gets used and the gpio field of the struct gpio_keys_button can be
-got from the desc_to_gpio.
+An ACPI Device Properties UUID has been defined [3] to provide a format
+compatible with existing device tree schemas. The purpose for this was to allow
+for the reuse of the existing schemas and encourage the development of firmware
+agnostic device drivers.
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-Signed-off-by: Max Eliaser <max@meliaserlow.dyndns.tv>
-Reviewed-by: Darren Hart <dvhart@linux.intel.com>
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/input/keyboard/gpio_keys_polled.c | 139 ++++++++++++++++++------------
- 1 file changed, 84 insertions(+), 55 deletions(-)
+This series accomplishes the following (as well as some other dependencies):
 
-diff --git a/drivers/input/keyboard/gpio_keys_polled.c b/drivers/input/keyboard/gpio_keys_polled.c
-index 432d36395f35..49895d75aaff 100644
---- a/drivers/input/keyboard/gpio_keys_polled.c
-+++ b/drivers/input/keyboard/gpio_keys_polled.c
-@@ -27,6 +27,7 @@
- #include <linux/of.h>
- #include <linux/of_platform.h>
- #include <linux/of_gpio.h>
-+#include <linux/property.h>
- 
- #define DRV_NAME	"gpio-keys-polled"
- 
-@@ -102,78 +103,95 @@ static void gpio_keys_polled_close(struct input_polled_dev *dev)
- 		pdata->disable(bdev->dev);
- }
- 
--#ifdef CONFIG_OF
--static struct gpio_keys_platform_data *gpio_keys_polled_get_devtree_pdata(struct device *dev)
--{
--	struct device_node *node, *pp;
-+#if defined(CONFIG_OF) || defined(CONFIG_ACPI)
-+
-+struct button_proc_context {
- 	struct gpio_keys_platform_data *pdata;
--	struct gpio_keys_button *button;
--	int error;
--	int nbuttons;
- 	int i;
-+};
- 
--	node = dev->of_node;
--	if (!node)
--		return NULL;
-+static int gpio_keys_polled_get_button(struct device *dev, void *data)
-+{
-+	struct button_proc_context *c = data;
-+	struct gpio_keys_platform_data *pdata = c->pdata;
-+	struct gpio_keys_button *button = &pdata->buttons[c->i];
-+	struct gpio_desc *desc;
-+	enum gpio_lookup_flags flags;
-+	void *val;
-+
-+	if (device_property_get(dev, "gpios", NULL)) {
-+		pdata->nbuttons--;
-+		dev_warn(dev, "Found button without gpios\n");
-+		return 0;
-+	}
- 
--	nbuttons = of_get_child_count(node);
--	if (nbuttons == 0)
--		return NULL;
-+	desc = dev_get_gpiod_flags(dev, 0, &flags);
-+	if (IS_ERR(desc)) {
-+		int error = PTR_ERR(desc);
- 
--	pdata = devm_kzalloc(dev, sizeof(*pdata) + nbuttons * sizeof(*button),
--			     GFP_KERNEL);
--	if (!pdata)
--		return ERR_PTR(-ENOMEM);
-+		if (error != -EPROBE_DEFER)
-+			dev_err(dev, "Failed to get gpio flags, error: %d\n",
-+				error);
-+		return error;
-+	}
- 
--	pdata->buttons = (struct gpio_keys_button *)(pdata + 1);
--	pdata->nbuttons = nbuttons;
-+	button->gpio = desc_to_gpio(desc);
-+	button->active_low = flags & GPIO_ACTIVE_LOW;
- 
--	pdata->rep = !!of_get_property(node, "autorepeat", NULL);
--	of_property_read_u32(node, "poll-interval", &pdata->poll_interval);
-+	if (device_property_read(dev, "linux,code", DEV_PROP_U32,
-+				 &button->code)) {
-+		dev_err(dev, "Button without keycode: 0x%x\n",
-+				button->gpio);
-+		return -EINVAL;
-+	}
- 
--	i = 0;
--	for_each_child_of_node(node, pp) {
--		int gpio;
--		enum of_gpio_flags flags;
-+	if (!device_property_get(dev, "label", &val))
-+		button->desc = val;
- 
--		if (!of_find_property(pp, "gpios", NULL)) {
--			pdata->nbuttons--;
--			dev_warn(dev, "Found button without gpios\n");
--			continue;
--		}
-+	if (device_property_read(dev, "linux,input-type", DEV_PROP_U32,
-+				 &button->type))
-+		button->type = EV_KEY;
- 
--		gpio = of_get_gpio_flags(pp, 0, &flags);
--		if (gpio < 0) {
--			error = gpio;
--			if (error != -EPROBE_DEFER)
--				dev_err(dev,
--					"Failed to get gpio flags, error: %d\n",
--					error);
--			return ERR_PTR(error);
--		}
-+	button->wakeup = !device_property_get(dev, "gpio-key,wakeup", NULL);
- 
--		button = &pdata->buttons[i++];
-+	if (device_property_read(dev, "debounce-interval", DEV_PROP_U32,
-+				 &button->debounce_interval))
-+		button->debounce_interval = 5;
- 
--		button->gpio = gpio;
--		button->active_low = flags & OF_GPIO_ACTIVE_LOW;
-+	c->i++;
-+	return 0;
-+}
- 
--		if (of_property_read_u32(pp, "linux,code", &button->code)) {
--			dev_err(dev, "Button without keycode: 0x%x\n",
--				button->gpio);
--			return ERR_PTR(-EINVAL);
--		}
-+static struct gpio_keys_platform_data *
-+gpio_keys_polled_get_devtree_pdata(struct device *dev)
-+{
-+	struct gpio_keys_platform_data *pdata;
-+	int size;
-+	struct button_proc_context c;
-+	int error;
-+	int nbuttons;
- 
--		button->desc = of_get_property(pp, "label", NULL);
-+	nbuttons = device_property_child_count(dev);
-+	if (nbuttons <= 0)
-+		return NULL;
- 
--		if (of_property_read_u32(pp, "linux,input-type", &button->type))
--			button->type = EV_KEY;
-+	size = sizeof(*pdata) + nbuttons * sizeof(struct gpio_keys_button);
-+	pdata = devm_kzalloc(dev, size, GFP_KERNEL);
-+	if (!pdata)
-+		return ERR_PTR(-ENOMEM);
- 
--		button->wakeup = !!of_get_property(pp, "gpio-key,wakeup", NULL);
-+	pdata->buttons = (struct gpio_keys_button *)(pdata + 1);
-+	pdata->nbuttons = nbuttons;
- 
--		if (of_property_read_u32(pp, "debounce-interval",
--					 &button->debounce_interval))
--			button->debounce_interval = 5;
--	}
-+	pdata->rep = !device_property_get(dev, "autorepeat", NULL);
-+	device_property_read(dev, "poll-interval", DEV_PROP_U32,
-+			     &pdata->poll_interval);
-+
-+	c.pdata = pdata;
-+	c.i = 0;
-+	error = device_for_each_child(dev, &c, gpio_keys_polled_get_button);
-+	if (error)
-+		return ERR_PTR(error);
- 
- 	if (pdata->nbuttons == 0)
- 		return ERR_PTR(-EINVAL);
-@@ -181,11 +199,21 @@ static struct gpio_keys_platform_data *gpio_keys_polled_get_devtree_pdata(struct
- 	return pdata;
- }
- 
-+#ifdef CONFIG_OF
- static const struct of_device_id gpio_keys_polled_of_match[] = {
- 	{ .compatible = "gpio-keys-polled", },
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, gpio_keys_polled_of_match);
-+#endif
-+
-+#ifdef CONFIG_ACPI
-+static struct acpi_device_id gpio_keys_polled_acpi_match[] = {
-+	{ "MNW0002" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(acpi, gpio_keys_polled_acpi_match);
-+#endif
- 
- #else
- 
-@@ -309,6 +337,7 @@ static struct platform_driver gpio_keys_polled_driver = {
- 		.name	= DRV_NAME,
- 		.owner	= THIS_MODULE,
- 		.of_match_table = of_match_ptr(gpio_keys_polled_of_match),
-+		.acpi_match_table = ACPI_PTR(gpio_keys_polled_acpi_match),
- 	},
- };
- module_platform_driver(gpio_keys_polled_driver);
+ * Add _DSD support to the ACPI core
+   This simply reads the UUID and the accompanying Package
+
+ * Add ACPI Device Properties _DSD format support
+   This understands the hierarchical key:value pair structure
+   defined by the Device Properties UUID
+
+ * Add a unified device properties API with ACPI and OF backends
+   This provides for the firmware agnostic device properties
+   Interface to be used by drivers
+
+ * Provides 2 example drivers that were previously Device Tree aware that
+   can now be used with either Device Tree or ACPI Device Properties. The
+   both drivers use an arbitrary _HID.
+
+This has been tested on Minnowboard with relevant parts of the modified
+DSDT at the end of this email.
+
+This series does not provide for a means to append to a system DSDT. That
+will ultimately be required to make the most effective use of the _DSD
+mechanism. Work is underway on that as a separate effort.
+
+[1] http://www.uefi.org/sites/default/files/resources/ACPI_5_1release.pdf
+[2] http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel.htm
+[3] http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
+
+Aaron Lu (3):
+  of: Add property_ops callback for devices with of_node
+  gpiolib: add API to get gpio desc and flags
+  Input: gpio_keys_polled - Make use of device property API
+
+Max Eliaser (1):
+  leds: leds-gpio: Make use of device property API
+
+Mika Westerberg (4):
+  ACPI: Add support for device specific properties
+  ACPI: Document ACPI device specific properties
+  mfd: Add ACPI support
+  gpio: sch: Consolidate core and resume banks
+
+Rafael J. Wysocki (1):
+  Driver core: Unified device properties interface for platform firmware
+
+ Documentation/acpi/enumeration.txt        |  27 ++
+ Documentation/acpi/properties.txt         | 359 ++++++++++++++++++++
+ drivers/acpi/Makefile                     |   1 +
+ drivers/acpi/glue.c                       |   4 +-
+ drivers/acpi/internal.h                   |   6 +
+ drivers/acpi/property.c                   | 542 ++++++++++++++++++++++++++++++
+ drivers/acpi/scan.c                       |  14 +-
+ drivers/base/Makefile                     |   2 +-
+ drivers/base/property.c                   |  48 +++
+ drivers/gpio/gpio-sch.c                   | 303 ++++++-----------
+ drivers/gpio/gpiolib-acpi.c               |  81 +++--
+ drivers/gpio/gpiolib.c                    |  18 +
+ drivers/gpio/gpiolib.h                    |   8 +
+ drivers/input/keyboard/gpio_keys_polled.c | 139 +++++---
+ drivers/leds/leds-gpio.c                  | 130 ++++---
+ drivers/mfd/mfd-core.c                    |  41 +++
+ drivers/of/base.c                         | 194 ++++++++++-
+ drivers/of/platform.c                     |   4 +-
+ include/acpi/acpi_bus.h                   |   8 +
+ include/linux/acpi.h                      |  40 +++
+ include/linux/device.h                    |   3 +
+ include/linux/gpio/consumer.h             |  11 +
+ include/linux/mfd/core.h                  |   3 +
+ include/linux/property.h                  |  54 +++
+ 24 files changed, 1716 insertions(+), 324 deletions(-)
+ create mode 100644 Documentation/acpi/properties.txt
+ create mode 100644 drivers/acpi/property.c
+ create mode 100644 drivers/base/property.c
+ create mode 100644 include/linux/property.h
+
+------ DSDT For Minnowboard ------
+
+    Scope (\_SB.PCI0.LPC)
+    {
+        Device (LEDS)
+        {
+            Name (_HID, "MNW0001")
+
+            Name (_CRS, ResourceTemplate ()
+            {
+                GpioIo (Exclusive, PullDown, 0, 0, IoRestrictionOutputOnly,
+                        "\\_SB.PCI0.LPC", 0, ResourceConsumer) {10}
+                GpioIo (Exclusive, PullDown, 0, 0, IoRestrictionOutputOnly,
+                        "\\_SB.PCI0.LPC", 0, ResourceConsumer) {11}
+            })
+
+            Device (LEDH)
+            {
+                Name (_HID, "PRP0000")
+                Name (_DSD, Package ()
+                {
+                    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                    Package ()
+                    {
+                        Package () {"label", "Heartbeat"},
+                        Package () {"gpios", Package () {^^LEDS, 0, 0, 0}},
+                        Package () {"linux,default-trigger", "heartbeat"},
+                        Package () {"linux,default-state", "off"},
+                        Package () {"linux,retain-state-suspended", 1},
+                    }
+                })
+            }
+
+            Device (LEDM)
+            {
+                Name (_HID, "PRP0000")
+                Name (_DSD, Package ()
+                {
+                    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                    Package ()
+                    {
+                        Package () {"label", "MMC0 Activity"},
+                        Package () {"gpios", Package () {^^LEDS, 1, 0, 0}},
+                        Package () {"linux,default-trigger", "mmc0"},
+                        Package () {"linux,default-state", "on"},
+                        Package () {"linux,retain-state-suspended", 1},
+                    }
+                })
+            }
+        }
+        
+        Device (BTNS)
+        {
+            Name (_HID, "MNW0002")
+
+            Name (_CRS, ResourceTemplate ()
+            {
+                GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+                        "\\_SB.PCI0.LPC", 0, ResourceConsumer) {0}
+                GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+                        "\\_SB.PCI0.LPC", 0, ResourceConsumer) {1}
+                GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+                        "\\_SB.PCI0.LPC", 0, ResourceConsumer) {2}
+                GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+                        "\\_SB.PCI0.LPC", 0, ResourceConsumer) {3}
+            })
+
+            Name (_DSD, Package ()
+            {
+                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                Package ()
+                {
+                    Package () {"poll-interval", 100},
+                    Package () {"autorepeat", 1}
+                }
+            })
+
+            Device (BTN0)
+            {
+                Name (_HID, "PRP0000")
+                Name (_DSD, Package ()
+                {
+                    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                    Package ()
+                    {
+                        Package () {"linux,code", 105},
+                        Package () {"linux,input-type", 1},
+                        Package () {"gpios", Package () {^^BTNS, 0, 0, 1}},
+                    }
+                })
+            }
+
+            Device (BTN1)
+            {
+                Name (_HID, "PRP0000")
+                Name (_DSD, Package ()
+                {
+                    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                    Package ()
+                    {
+                        Package () {"linux,code", 108},
+                        Package () {"linux,input-type", 1},
+                        Package () {"gpios", Package (4) {^^BTNS, 1, 0, 1}},
+                    }
+                })
+            }
+            
+            Device (BTN2)
+            {
+                Name (_HID, "PRP0000")
+                Name (_DSD, Package ()
+                {
+                    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                    Package ()
+                    {
+                        Package () {"linux,code", 103},
+                        Package () {"linux,input-type", 1},
+                        Package () {"gpios", Package () {^^BTNS, 2, 0, 1}},
+                    }
+                })
+            }
+            
+            Device (BTN3)
+            {
+                Name (_HID, "PRP0000")
+                Name (_DSD, Package ()
+                {
+                    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                    Package ()
+                    {
+                        Package () {"linux,code", 106},
+                        Package () {"linux,input-type", 1},
+                        Package () {"gpios", Package (4) {^^BTNS, 3, 0, 1}},
+                    }
+                })
+            }
+
+        }
+
+    }
+
 -- 
 2.1.0.rc1
