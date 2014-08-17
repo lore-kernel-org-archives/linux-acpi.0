@@ -1,254 +1,319 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC PATCH 6/9] gpiolib: add API to get gpio desc and flags
-Date: Sun, 17 Aug 2014 14:00:04 +0100
-Message-ID: <20140817130004.4B9FDC4137F@trevor.secretlab.ca>
+Subject: Re: [RFC PATCH 4/9] of: Add property_ops callback for devices with
+ of_node
+Date: Sun, 17 Aug 2014 13:54:16 +0100
+Message-ID: <20140817125416.348C0C41368@trevor.secretlab.ca>
 References: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com>
-	<1408255459-17625-7-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1408255459-17625-7-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+	<1408255459-17625-5-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:55462 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751494AbaHQNxC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Aug 2014 09:53:02 -0400
+Received: by mail-wi0-f172.google.com with SMTP id n3so2587514wiv.11
+        for <linux-acpi@vger.kernel.org>; Sun, 17 Aug 2014 06:53:01 -0700 (PDT)
+In-Reply-To: <1408255459-17625-5-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Aaron Lu <aaron.lu@intel.com>, Max Eliaser <max.eliaser@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 17 Aug 2014 09:04:16 +0300, Mika Westerberg <mika.westerberg@linux.intel.com> wrote:
+On Sun, 17 Aug 2014 09:04:14 +0300, Mika Westerberg <mika.westerberg@linux.intel.com> wrote:
 > From: Aaron Lu <aaron.lu@intel.com>
 > 
-> Add a new API to get the GPIO's description pointer and its flags for
-> both OF based system and ACPI based system. This is useful in drivers
-> that do not need to care about the underlying firmware interface.
+> With the unified device properties interface in place, add device tree support.
+> By adding the dev_prop_ops for of_node devices, drivers can access properties
+> from ACPI or Device Tree in a generic way.
+> 
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> Reviewed-by: Darren Hart <dvhart@linux.intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
 Hi Mika,
 
-I've only looked at this one briefly, and noticed one problem below...
+As commented on patch 3, the new API currently throws away type
+information so the compiler won't warn on an error. That needs to be
+fixed and this patch reworked accordingly.
 
 g.
 
+---
+>  drivers/of/base.c        | 194 ++++++++++++++++++++++++++++++++++++++++++++++-
+>  drivers/of/platform.c    |   4 +-
+>  include/linux/property.h |   4 +
+>  3 files changed, 200 insertions(+), 2 deletions(-)
 > 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Signed-off-by: Max Eliaser <max.eliaser@intel.com>
-> Signed-off-by: Darren Hart <dvhart@linux.intel.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
->  drivers/gpio/gpiolib-acpi.c   | 81 ++++++++++++++++++++++++++++++++-----------
->  drivers/gpio/gpiolib.c        | 18 ++++++++++
->  drivers/gpio/gpiolib.h        |  8 +++++
->  include/linux/gpio/consumer.h | 11 ++++++
->  4 files changed, 97 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> index 4a987917c186..f35e88d29a47 100644
-> --- a/drivers/gpio/gpiolib-acpi.c
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> @@ -293,11 +293,38 @@ static int acpi_find_gpio(struct acpi_resource *ares, void *data)
->  			agpio->connection_type == ACPI_RESOURCE_GPIO_TYPE_INT;
->  		lookup->info.active_low =
->  			agpio->polarity == ACPI_ACTIVE_LOW;
-> +		lookup->info.pin_config = agpio->pin_config;
+> diff --git a/drivers/of/base.c b/drivers/of/base.c
+> index b9864806e9b8..527004d01423 100644
+> --- a/drivers/of/base.c
+> +++ b/drivers/of/base.c
+> @@ -20,7 +20,7 @@
+>  #include <linux/ctype.h>
+>  #include <linux/cpu.h>
+>  #include <linux/module.h>
+> -#include <linux/of.h>
+> +#include <linux/property.h>
+>  #include <linux/of_graph.h>
+>  #include <linux/spinlock.h>
+>  #include <linux/slab.h>
+> @@ -1343,6 +1343,39 @@ int of_property_read_u64(const struct device_node *np, const char *propname,
+>  EXPORT_SYMBOL_GPL(of_property_read_u64);
+>  
+>  /**
+> + * of_property_read_u64_array - Find and read an array of 64 bit integers
+> + * from a property.
+> + *
+> + * @np:		device node from which the property value is to be read.
+> + * @propname:	name of the property to be searched.
+> + * @out_values:	pointer to return value, modified only if return value is 0.
+> + * @sz:		number of array elements to read
+> + *
+> + * Search for a property in a device node and read 64-bit value(s) from
+> + * it. Returns 0 on success, -EINVAL if the property does not exist,
+> + * -ENODATA if property does not have a value, and -EOVERFLOW if the
+> + * property data isn't large enough.
+> + *
+> + * The out_values is modified only if a valid u64 value can be decoded.
+> + */
+> +int of_property_read_u64_array(const struct device_node *np,
+> +			       const char *propname, u64 *out_values,
+> +			       size_t sz)
+> +{
+> +	const __be32 *val = of_find_property_value_of_size(np, propname,
+> +						(sz * sizeof(*out_values)));
+> +
+> +	if (IS_ERR(val))
+> +		return PTR_ERR(val);
+> +
+> +	while (sz--) {
+> +		*out_values++ = of_read_number(val, 2);
+> +		val += 2;
+> +	};
+> +	return 0;
+> +}
+
+Considering we don't even have a user of u64 arrays in all of the DT
+drivers, do we even need this type hook in the generic API?
+
+> +
+> +/**
+>   * of_property_read_string - Find and read a string from a property
+>   * @np:		device node from which the property value is to be read.
+>   * @propname:	name of the property to be searched.
+> @@ -1490,6 +1523,47 @@ int of_property_count_strings(struct device_node *np, const char *propname)
+>  }
+>  EXPORT_SYMBOL_GPL(of_property_count_strings);
+>  
+> +/**
+> + * of_property_read_string_array - Find and read an array of strings
+> + * from a multiple strings property.
+> + * @np:		device node from which the property value is to be read.
+> + * @propname:	name of the property to be searched.
+> + * @out_string:	pointer to null terminated return string, modified only if
+> + *		return value is 0.
+> + * @sz:		number of array elements to read
+> + *
+> + * Search for a property in a device tree node and retrieve a list of
+> + * terminated string value (pointer to data, not a copy) in that property.
+> + * Returns 0 on success, -EINVAL if the property does not exist, -ENODATA if
+> + * property does not have a value, and -EILSEQ if the string is not
+> + * null-terminated within the length of the property data.
+> + *
+> + * The out_string pointer is modified only if a valid string can be decoded.
+> + */
+> +int of_property_read_string_array(struct device_node *np, const char *propname,
+> +				  char **output, size_t sz)
+> +{
+> +	struct property *prop = of_find_property(np, propname, NULL);
+> +	int i = 0;
+> +	size_t l = 0, total = 0;
+> +	char *p;
+> +
+> +	if (!prop)
+> +		return -EINVAL;
+> +	if (!prop->value)
+> +		return -ENODATA;
+> +	if (strnlen(prop->value, prop->length) >= prop->length)
+> +		return -EILSEQ;
+> +
+> +	p = prop->value;
+> +
+> +	for (i = 0; total < prop->length; total += l, p += l) {
+> +		output[i++] = p;
+> +		l = strlen(p) + 1;
+> +	}
+> +	return 0;
+> +}
+> +
+>  void of_print_phandle_args(const char *msg, const struct of_phandle_args *args)
+>  {
+>  	int i;
+> @@ -2376,3 +2450,121 @@ struct device_node *of_graph_get_remote_port(const struct device_node *node)
+>  	return of_get_next_parent(np);
+>  }
+>  EXPORT_SYMBOL(of_graph_get_remote_port);
+> +
+> +static int of_dev_prop_get(struct device *dev, const char *propname,
+> +			   void **valptr)
+> +{
+> +	struct property *pp = of_find_property(dev->of_node, propname, NULL);
+> +
+> +	if (!pp)
+> +		return -ENODATA;
+> +
+> +	if (valptr)
+> +		*valptr = pp->value;
+> +	return 0;
+> +}
+> +
+> +static int of_dev_prop_read(struct device *dev, const char *propname,
+> +			    enum dev_prop_type proptype, void *val)
+> +{
+> +	void *value;
+> +	int ret = of_dev_prop_get(dev, propname, &value);
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (proptype >= DEV_PROP_U8 && proptype <= DEV_PROP_U64) {
+> +		switch (proptype) {
+> +		case DEV_PROP_U8:
+> +			*(u8 *)val = *(u8 *)value;
+> +			break;
+> +		case DEV_PROP_U16:
+> +			*(u16 *)val = *(u16 *)value;
+> +			break;
+> +		case DEV_PROP_U32:
+> +			*(u32 *)val = *(u32 *)value;
+> +			break;
+> +		default:
+> +			*(u64 *)val = *(u64 *)value;
+> +			break;
+> +		}
+> +	} else if (proptype == DEV_PROP_STRING) {
+> +		*(char **)val = value;
+> +	}
+> +	return ret;
+> +
+> +}
+> +
+> +static int of_dev_prop_read_array(struct device *dev, const char *propname,
+> +				  enum dev_prop_type proptype, void *val,
+> +				  size_t nval)
+> +{
+> +	int ret, elem_size;
+> +
+> +	if (!val) {
+> +		switch (proptype) {
+> +		case DEV_PROP_U8:
+> +			elem_size = sizeof(u8);
+> +			break;
+> +		case DEV_PROP_U16:
+> +			elem_size = sizeof(u16);
+> +			break;
+> +		case DEV_PROP_U32:
+> +			elem_size = sizeof(u32);
+> +			break;
+> +		case DEV_PROP_U64:
+> +			elem_size = sizeof(u64);
+> +			break;
+> +		case DEV_PROP_STRING:
+> +			return of_property_count_strings(dev->of_node,
+> +							 propname);
+> +		default:
+> +			return -EINVAL;
+> +		}
+> +		return of_property_count_elems_of_size(dev->of_node, propname,
+> +						       elem_size);
+> +	}
+> +
+> +	switch (proptype) {
+> +	case DEV_PROP_U8:
+> +		ret = of_property_read_u8_array(dev->of_node, propname,
+> +						(u8 *)val, nval);
+> +		break;
+> +	case DEV_PROP_U16:
+> +		ret = of_property_read_u16_array(dev->of_node, propname,
+> +						 (u16 *)val, nval);
+> +		break;
+> +	case DEV_PROP_U32:
+> +		ret = of_property_read_u32_array(dev->of_node, propname,
+> +						 (u32 *)val, nval);
+> +		break;
+> +	case DEV_PROP_U64:
+> +		ret = of_property_read_u64_array(dev->of_node, propname,
+> +						 (u64 *)val, nval);
+> +		break;
+> +	case DEV_PROP_STRING:
+> +		ret = of_property_read_string_array(dev->of_node, propname,
+> +						    (char **)val, nval);
+> +		break;
+> +	default:
+> +		ret = -EINVAL;
+> +		break;
+> +	}
+> +	return ret;
+> +}
+> +
+> +static int of_dev_get_child_count(struct device *dev)
+> +{
+> +	struct device_node *node = dev->of_node;
+> +
+> +	if (!node)
+> +		return -EINVAL;
+> +	return of_get_child_count(node);
+> +}
+> +
+> +struct dev_prop_ops of_property_ops = {
+> +	.get = of_dev_prop_get,
+> +	.read = of_dev_prop_read,
+> +	.read_array = of_dev_prop_read_array,
+> +	.child_count = of_dev_get_child_count,
+> +};
+> diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+> index 500436f9be7f..3113d3704eff 100644
+> --- a/drivers/of/platform.c
+> +++ b/drivers/of/platform.c
+> @@ -14,7 +14,7 @@
+>  #include <linux/errno.h>
+>  #include <linux/module.h>
+>  #include <linux/amba/bus.h>
+> -#include <linux/device.h>
+> +#include <linux/property.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/slab.h>
+>  #include <linux/of_address.h>
+> @@ -138,6 +138,7 @@ struct platform_device *of_device_alloc(struct device_node *np,
 >  	}
 >  
->  	return 1;
->  }
+>  	dev->dev.of_node = of_node_get(np);
+> +	dev->dev.property_ops = &of_property_ops;
+>  	dev->dev.parent = parent;
 >  
-> +static struct gpio_desc *
-> +__acpi_get_gpiod_by_index(struct acpi_device *adev, int index,
-> +			  struct acpi_gpio_info *info)
-> +{
-> +	struct acpi_gpio_lookup lookup;
-> +	struct list_head resource_list;
-> +	int ret;
-> +
-> +	memset(&lookup, 0, sizeof(lookup));
-> +	lookup.index = index;
-> +
-> +	INIT_LIST_HEAD(&resource_list);
-> +	ret = acpi_dev_get_resources(adev, &resource_list, acpi_find_gpio,
-> +				     &lookup);
-> +	if (ret < 0)
-> +		return ERR_PTR(ret);
-> +
-> +	acpi_dev_free_resource_list(&resource_list);
-> +
-> +	if (lookup.desc && info)
-> +		*info = lookup.info;
-> +
-> +	return lookup.desc ? lookup.desc : ERR_PTR(-ENOENT);
-> +}
-> +
-> +
->  /**
->   * acpi_get_gpiod_by_index() - get a GPIO descriptor from device resources
->   * @dev: pointer to a device to get GPIO from
-> @@ -318,34 +345,46 @@ static int acpi_find_gpio(struct acpi_resource *ares, void *data)
->  struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
->  					  struct acpi_gpio_info *info)
->  {
-> -	struct acpi_gpio_lookup lookup;
-> -	struct list_head resource_list;
-> -	struct acpi_device *adev;
-> -	acpi_handle handle;
-> -	int ret;
-> -
-> -	if (!dev)
-> +	if (!dev || !ACPI_COMPANION(dev))
->  		return ERR_PTR(-EINVAL);
-> +	return __acpi_get_gpiod_by_index(ACPI_COMPANION(dev), index, info);
-> +}
->  
-> -	handle = ACPI_HANDLE(dev);
-> -	if (!handle || acpi_bus_get_device(handle, &adev))
-> -		return ERR_PTR(-ENODEV);
-> -
-> -	memset(&lookup, 0, sizeof(lookup));
-> -	lookup.index = index;
-> +struct gpio_desc *acpi_get_gpiod_flags(struct device *dev, int idx,
-> +				       enum gpio_lookup_flags *flags)
-> +{
-> +	struct acpi_device *adev = ACPI_COMPANION(dev);
-> +	struct acpi_reference_args args;
-> +	struct acpi_gpio_info info;
-> +	struct gpio_desc *desc;
-> +	bool active_low;
-> +	int ret;
->  
-> -	INIT_LIST_HEAD(&resource_list);
-> -	ret = acpi_dev_get_resources(adev, &resource_list, acpi_find_gpio,
-> -				     &lookup);
-> -	if (ret < 0)
-> +	ret = acpi_dev_get_property_reference(adev, "gpios", NULL, idx, &args);
-> +	if (ret)
->  		return ERR_PTR(ret);
->  
-> -	acpi_dev_free_resource_list(&resource_list);
-> +	desc = __acpi_get_gpiod_by_index(args.adev, args.args[0], &info);
-> +	if (IS_ERR(desc))
-> +		return desc;
->  
-> -	if (lookup.desc && info)
-> -		*info = lookup.info;
-> +	/*
-> +	 * The 3rd argument optionally specifies the pin polarity. We
-> +	 * use that if it exists, otherwise we resort to the pin config.
-> +	 * (Note that the first element of the "gpios" package goes into
-> +	 * arg.adev, not args.args.)
-> +	 */
-> +	if (args.nargs >= 3)
-> +		active_low = !!args.args[2];
-> +	else if (info.gpioint)
-> +		active_low = !!info.active_low;
-> +	else
-> +		active_low = !!(info.pin_config & ACPI_PIN_CONFIG_PULLUP);
->  
-> -	return lookup.desc ? lookup.desc : ERR_PTR(-ENOENT);
-> +	if (active_low)
-> +		*flags |= GPIO_ACTIVE_LOW;
-> +
-> +	return desc;
->  }
->  
->  static acpi_status
-> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-> index 2ebc9071e354..e6c2413a6fbf 100644
-> --- a/drivers/gpio/gpiolib.c
-> +++ b/drivers/gpio/gpiolib.c
-> @@ -2644,6 +2644,24 @@ static struct gpio_desc *acpi_find_gpio(struct device *dev, const char *con_id,
->  	return desc;
->  }
->  
-> +struct gpio_desc *dev_get_gpiod_flags(struct device *dev, unsigned int idx,
-> +				      enum gpio_lookup_flags *flags)
-> +{
-> +	struct gpio_desc *desc = ERR_PTR(-ENOENT);
-> +
-> +	if (!dev || !flags)
-> +		return ERR_PTR(-EINVAL);
-> +
-> +	/* Using device tree? */
-> +	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
-> +		desc = of_find_gpio(dev, NULL, idx, flags);
-
-of_find_gpio() doesn't exist.
-
-> +	else if (IS_ENABLED(CONFIG_ACPI) && ACPI_COMPANION(dev))
-> +		desc = acpi_get_gpiod_flags(dev, idx, flags);
-> +
-> +	return desc;
-> +}
-> +EXPORT_SYMBOL(dev_get_gpiod_flags);
-> +
->  static struct gpiod_lookup_table *gpiod_find_lookup_table(struct device *dev)
->  {
->  	const char *dev_id = dev ? dev_name(dev) : NULL;
-> diff --git a/drivers/gpio/gpiolib.h b/drivers/gpio/gpiolib.h
-> index 1a4103dd38df..a759db968e51 100644
-> --- a/drivers/gpio/gpiolib.h
-> +++ b/drivers/gpio/gpiolib.h
-> @@ -25,6 +25,7 @@ enum of_gpio_flags;
->  struct acpi_gpio_info {
->  	bool gpioint;
->  	bool active_low;
-> +	u8 pin_config;
->  };
->  
->  #ifdef CONFIG_ACPI
-> @@ -33,6 +34,8 @@ void acpi_gpiochip_remove(struct gpio_chip *chip);
->  
->  struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
->  					  struct acpi_gpio_info *info);
-> +struct gpio_desc *acpi_get_gpiod_flags(struct device *dev, int index,
-> +				       enum gpio_lookup_flags *flags);
->  #else
->  static inline void acpi_gpiochip_add(struct gpio_chip *chip) { }
->  static inline void acpi_gpiochip_remove(struct gpio_chip *chip) { }
-> @@ -43,6 +46,11 @@ acpi_get_gpiod_by_index(struct device *dev, int index,
->  {
->  	return ERR_PTR(-ENOSYS);
->  }
-> +static struct gpio_desc *acpi_get_gpiod_flags(struct device *dev, int index,
-> +					      enum gpio_lookup_flags *flags)
-> +{
-> +	return ERR_PTR(-ENOSYS);
-> +}
+>  	if (bus_id)
+> @@ -293,6 +294,7 @@ static struct amba_device *of_amba_device_create(struct device_node *node,
+>  	/* setup generic device info */
+>  	dev->dev.coherent_dma_mask = ~0;
+>  	dev->dev.of_node = of_node_get(node);
+> +	dev->dev.property_ops = &of_property_ops;
+>  	dev->dev.parent = parent;
+>  	dev->dev.platform_data = platform_data;
+>  	if (bus_id)
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index 52ea7fe7fe09..a840c1784c82 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -38,6 +38,10 @@ struct dev_prop_ops {
+>  extern struct dev_prop_ops acpi_property_ops;
 >  #endif
 >  
->  int gpiochip_request_own_desc(struct gpio_desc *desc, const char *label);
-> diff --git a/include/linux/gpio/consumer.h b/include/linux/gpio/consumer.h
-> index 05e53ccb708b..53f422e4f0c9 100644
-> --- a/include/linux/gpio/consumer.h
-> +++ b/include/linux/gpio/consumer.h
-> @@ -7,6 +7,8 @@
->  
->  struct device;
->  
-> +enum gpio_lookup_flags;
+> +#ifdef CONFIG_OF
+> +extern struct dev_prop_ops of_property_ops;
+> +#endif
 > +
->  /**
->   * Opaque descriptor for a GPIO. These are obtained using gpiod_get() and are
->   * preferable to the old integer-based handles.
-> @@ -73,6 +75,9 @@ int gpiod_to_irq(const struct gpio_desc *desc);
->  struct gpio_desc *gpio_to_desc(unsigned gpio);
->  int desc_to_gpio(const struct gpio_desc *desc);
->  
-> +struct gpio_desc *dev_get_gpiod_flags(struct device *dev, unsigned int idx,
-> +				      enum gpio_lookup_flags *flags);
-> +
->  #else /* CONFIG_GPIOLIB */
->  
->  static inline struct gpio_desc *__must_check gpiod_get(struct device *dev,
-> @@ -254,6 +259,12 @@ static inline int desc_to_gpio(const struct gpio_desc *desc)
->  	return -EINVAL;
->  }
->  
-> +static inline struct gpio_desc *dev_get_gpiod_flags(struct device *dev,
-> +			unsigned int idx, enum gpio_lookup_flags *flags)
-> +{
-> +	return ERR_PTR(-ENOSYS);
-> +}
-> +
->  
->  #endif /* CONFIG_GPIOLIB */
->  
+>  int device_property_get(struct device *dev, const char *propname,
+>  			void **valptr);
+>  int device_property_read(struct device *dev, const char *propname,
 > -- 
 > 2.1.0.rc1
 > 
@@ -257,3 +322,4 @@ of_find_gpio() doesn't exist.
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > Please read the FAQ at  http://www.tux.org/lkml/
+
