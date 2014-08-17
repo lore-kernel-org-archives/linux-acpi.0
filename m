@@ -1,75 +1,208 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [RFC PATCH 0/9] Add ACPI _DSD and unified device properties
- support
-Date: Sun, 17 Aug 2014 07:11:06 -0700
-Message-ID: <20140817141106.GA20345@core.coreip.homeip.net>
-References: <1408172039-32513-1-git-send-email-mika.westerberg@linux.intel.com>
- <D014CE66.A19F5%dvhart@linux.intel.com>
+From: Darren Hart <dvhart@linux.intel.com>
+Subject: Re: [RFC PATCH 3/9] Driver core: Unified device properties interface
+ for platform firmware
+Date: Sun, 17 Aug 2014 12:31:27 -0500
+Message-ID: <D016480B.A1AC8%dvhart@linux.intel.com>
+References: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1408255459-17625-4-git-send-email-mika.westerberg@linux.intel.com>
+ <20140817124913.A597FC40F4B@trevor.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <D014CE66.A19F5%dvhart@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Darren Hart <dvhart@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Al Stone <al.stone@linaro.org>, Olof Johansson <olof@lixom.net>, Matthew Garrett <matthew.garrett@nebula.com>, Matt Fleming <matt.fleming@intel.com>, David Woodhouse <dwmw2@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Josh Triplett <josh@joshtriplett.org>, Aaron Lu <aaron.lu@intel.com>, Max Eliaser <max.eliaser@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mark Brown <broonie@linaro.org>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:45906 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751512AbaHQXNF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 17 Aug 2014 19:13:05 -0400
+In-Reply-To: <20140817124913.A597FC40F4B@trevor.secretlab.ca>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Aaron Lu <aaron.lu@intel.com>, Max Eliaser <max.eliaser@intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Aug 16, 2014 at 09:06:05AM -0700, Darren Hart wrote:
-> On 8/15/14, 23:53, "Mika Westerberg" <mika.westerberg@linux.intel.com>
-> wrote:
-> 
-> >The recent publication of the ACPI 5.1 specification [1] adds a reserved
-> >name
-> >for Device Specific Data (_DSD, Section 6.2.5). This mechanism allows for
-> >passing arbitrary hardware description data to the OS. The exact format
-> >of the
-> >_DSD data is specific to the UUID paired with it [2].
-> >
-> >An ACPI Device Properties UUID has been defined [3] to provide a format
-> >compatible with existing device tree schemas. The purpose for this was to
-> >allow
-> >for the reuse of the existing schemas and encourage the development of
-> >firmware
-> >agnostic device drivers.
-> >
-> >This series accomplishes the following (as well as some other
-> >dependencies):
-> >
-> > * Add _DSD support to the ACPI core
-> >   This simply reads the UUID and the accompanying Package
-> >
-> > * Add ACPI Device Properties _DSD format support
-> >   This understands the hierarchical key:value pair structure
-> >   defined by the Device Properties UUID
-> >
-> > * Add a unified device properties API with ACPI and OF backends
-> >   This provides for the firmware agnostic device properties
-> >   Interface to be used by drivers
-> >
-> > * Provides 2 example drivers that were previously Device Tree aware that
-> >   can now be used with either Device Tree or ACPI Device Properties. The
-> >   both drivers use an arbitrary _HID.
-> >
-> >This has been tested on Minnowboard with relevant parts of the modified
-> >DSDT at the end of this email.
-> 
-> 
-> This eliminates the need for the board files that were the subject of my
-> "How not to write x86 platform drivers" talk at ELC-E last year. With
-> These ACPI core changes and the small changes to the two example drivers,
-> the Minnowboard can now use the GPIO buttons and LEDs through these
-> drivers by adding the ASL fragment below to the DSDT.
+On 8/17/14, 5:49, "Grant Likely" <grant.likely@secretlab.ca> wrote:
 
->From the drivers perspective I am less than impressed with the need to
-reshuffle all the drivers to support ACPI with the new API. I thought the plan
-was to try and keep OF API and try to translate as much as possible to it?
+>
+>Hi Mika and Rafael,
+>
+>Comments below...
+>
+>On Sun, 17 Aug 2014 09:04:13 +0300, Mika Westerberg
+><mika.westerberg@linux.intel.com> wrote:
+>> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+>> 
+>> Add a uniform interface by which device drivers can request device
+>> properties from the platform firmware by providing a property name
+>> and the corresponding data type.
+>> 
+>> Three general helper functions, device_property_get(),
+>> device_property_read() and device_property_read_array() are provided.
+>> The first one allows the raw value of a given device property to be
+>> accessed by the driver.  The remaining two allow the value of a numeric
+>> or string property and multiple numeric or string values of one array
+>> property to be acquired, respectively.
+>> 
+>> The interface is supposed to cover both ACPI and Device Trees,
+>> although the ACPI part is only implemented at this time.
+>
+>Nit:
+>s/at this time/in this change. The DT component is implemented in a
+>subsequent patch./
+>
+>I almost complained that the DT portion must be implemented before this
+>series can even be considered, but then I found it in patch 4/9.  :-)
+>
+>> 
+>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+>> Reviewed-by: Darren Hart <dvhart@linux.intel.com>
+>> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>> ---
+>>  drivers/acpi/glue.c      |   4 +-
+>>  drivers/acpi/property.c  | 179
+>>++++++++++++++++++++++++++++++++++++++++++++++-
+>>  drivers/acpi/scan.c      |  12 +++-
+>>  drivers/base/Makefile    |   2 +-
+>>  drivers/base/property.c  |  48 +++++++++++++
+>>  include/acpi/acpi_bus.h  |   1 +
+>>  include/linux/device.h   |   3 +
+>>  include/linux/property.h |  50 +++++++++++++
+>>  8 files changed, 293 insertions(+), 6 deletions(-)
+>>  create mode 100644 drivers/base/property.c
+>>  create mode 100644 include/linux/property.h
+>> 
 
-The same goes for bringing arbitrary HIDs into the drivers. Can we have HID->OF
-naming hidden in ACPI (define a new property like "dt-name",  "of_compat" or
-whatever) and have ACPI core map one to another.
+...
 
-Thanks.
+>>
+>>  static void acpi_device_del(struct acpi_device *device)
+>>  {
+>>  	mutex_lock(&acpi_device_lock);
+>> -	if (device->parent)
+>> +	if (device->parent) {
+>>  		list_del(&device->node);
+>> +		device->parent->child_count--;
+>
+>I worry about housekeeping like this. It is easy for bugs to slip in.
+>Unless returning the child count is in a critical path (which it
+>shouldn't be), I would drop the child_count member and simply count the
+>number of items in the list when required.
+>
+>This of course is not my subsystem, so I won't ACK or NACK the patch over
+>this.
+
+
+This would be consistent with of_get_child_count() and is unlikely to be
+called much more than once per device. The maintenance however is limited
+to the add/del functions, so it doesn't seem difficult to maintain. I have
+no objections to just walking the list though if that is preferable.
+
+...
+
+>> @@ -701,6 +702,7 @@ struct acpi_dev_node {
+>>   * @archdata:	For arch-specific additions.
+>>   * @of_node:	Associated device tree node.
+>>   * @acpi_node:	Associated ACPI device node.
+>> + * @property_ops: Firmware interface for device properties
+>>   * @devt:	For creating the sysfs "dev".
+>>   * @id:		device instance
+>>   * @devres_lock: Spinlock to protect the resource of the device.
+>> @@ -777,6 +779,7 @@ struct device {
+>>  
+>>  	struct device_node	*of_node; /* associated device tree node */
+>>  	struct acpi_dev_node	acpi_node; /* associated ACPI device node */
+>> +	struct dev_prop_ops	*property_ops;
+>
+>There are only 2 users of this interface. I don't think adding an ops
+>pointer to each and every struct device is warrented when the wrapper
+>function can check if of_node or acpi_node is set and call the
+>appropriate helper. It is unlikely anything else will use this hook. It
+>will result in smaller memory footprint. Also smaller code when only one
+>of
+>CONFIG_OF and CONFIG_ACPI are selected, which is almost always. :-)
+>
+>It can be refactored later if that ever changes.
+
+
+Our intent was to eliminate the #ifdefery in every one of the accessors.
+It was my understanding the ops structures were preferable in such
+situations. For a 64-bit machine with 1000 devices (all of which use
+device properties) with one or the other of ACPI/OF enabled, the
+additional memory requirement here is what... Something like (8*1000 + 4)
+~= 8KB ? That seems worth the arguably more maintainable code to me. Is
+there more to it than this, am I missing some more significant impact?
+
+  
+>>  	dev_t			devt;	/* dev_t, creates the sysfs "dev" */
+>>  	u32			id;	/* device instance */
+>> diff --git a/include/linux/property.h b/include/linux/property.h
+>> new file mode 100644
+>> index 000000000000..52ea7fe7fe09
+>> --- /dev/null
+>> +++ b/include/linux/property.h
+>> @@ -0,0 +1,50 @@
+>> +/*
+>> + * property.h - Unified device property interface.
+>> + *
+>> + * Copyright (C) 2014, Intel Corporation
+>> + * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +
+>> +#ifndef _LINUX_PROPERTY_H_
+>> +#define _LINUX_PROPERTY_H_
+>> +
+>> +#include <linux/device.h>
+>> +#include <linux/acpi.h>
+>> +#include <linux/of.h>
+>> +
+>> +enum dev_prop_type {
+>> +	DEV_PROP_U8,
+>> +	DEV_PROP_U16,
+>> +	DEV_PROP_U32,
+>> +	DEV_PROP_U64,
+>> +	DEV_PROP_STRING,
+>> +	DEV_PROP_MAX,
+>> +};
+>> +
+>> +struct dev_prop_ops {
+>> +	int (*get)(struct device *dev, const char *propname, void **valptr);
+>> +	int (*read)(struct device *dev, const char *propname,
+>> +		    enum dev_prop_type proptype, void *val);
+>> +	int (*read_array)(struct device *dev, const char *propname,
+>> +			  enum dev_prop_type proptype, void *val, size_t nval);
+>
+>The associated DT functions that implement property reads
+>(of_property_read_*) were created in part to provide some type safety
+>when reading properties. This proposed API throws that away by accepting
+>a void* for the data field, which I don't want to do. This API either
+>needs to have a separate accessor for each data type, or it needs some
+>other mechanism (accessor macros?) to ensure the right type is passed
+>in.
+
+
+OK, this would increase the memory impact by 6-fold for 8,16,32,and 64
+byte integers, strings, and device references if additional typed function
+pointers were added to the dev_prop_ops. The macros could mitigate this I
+suppose.
+
+Type checking and validation was something we had discussed as being
+important to this mechanism. I believe there was some interest in seeing
+this done at the ASL/FDT + Schema level - but that's not justification for
+maintaining it in the kernel interface as well.
+
+Could this be addressed by adding an enum dev_prop_type to the get/read
+calls similar to that of the read_array call? That would keep the call
+count down, maintain the smaller memory footprint, and still allow for
+type verification within the device properties API.
 
 -- 
-Dmitry
+Darren Hart					Open Source Technology Center
+darren.hart@intel.com				            Intel Corporation
+
+
+
