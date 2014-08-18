@@ -1,146 +1,123 @@
-From: Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [RFC PATCH 4/9] of: Add property_ops callback for devices with
- of_node
-Date: Mon, 18 Aug 2014 07:44:45 -0500
-Message-ID: <D0175E0D.A1C9E%dvhart@linux.intel.com>
-References: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com>
- <1408255459-17625-5-git-send-email-mika.westerberg@linux.intel.com>
- <20140817125416.348C0C41368@trevor.secretlab.ca>
- <20140818092937.GT2462@lahna.fi.intel.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
+Date: Mon, 18 Aug 2014 13:49:52 +0100
+Message-ID: <20140818124952.GI14559@leverpostej>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
+ <CAOesGMjs1dM37ZoFA-xs7tYYaXP-XC3NjJsj291bCNoDwAXwiw@mail.gmail.com>
+ <20140812182347.GA4100@arm.com>
+ <2152407.NpXOMHAEH6@vostro.rjw.lan>
+ <53EC2B35.5010302@linaro.org>
+ <20140814102723.GB9039@arm.com>
+ <53EDCE56.6020702@linaro.org>
+ <20140815100113.GA18863@arm.com>
+ <53F1C776.4080501@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140818092937.GT2462-3PARRvDOhMZrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Max Eliaser <max.eliaser-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:46758 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751451AbaHRMuA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Aug 2014 08:50:00 -0400
+Content-Disposition: inline
+In-Reply-To: <53F1C776.4080501@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rd>
 
-On 8/18/14, 4:29, "Mika Westerberg" <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-wrote:
+On Mon, Aug 18, 2014 at 10:29:26AM +0100, Hanjun Guo wrote:
+> On 2014-8-15 18:01, Catalin Marinas wrote:
+> > Hanjun,
+> 
+> Hi Catalin,
+> 
+> > 
+> > On Fri, Aug 15, 2014 at 10:09:42AM +0100, Hanjun Guo wrote:
+> >> On 2014-8-14 18:27, Catalin Marinas wrote:
+> >>> On Thu, Aug 14, 2014 at 04:21:25AM +0100, Hanjun Guo wrote:
+> >>>> On 2014-8-14 7:41, Rafael J. Wysocki wrote:
+> >>>>> On Tuesday, August 12, 2014 07:23:47 PM Catalin Marinas wrote:
+> >>>>>> If we consider ACPI unusable on ARM but we still want to start merging
+> >>>>>> patches, we should rather make the config option depend on BROKEN
+> >>>>>> (though if it is that unusable that no real platform can use it, I would
+> >>>>>> rather not merge it at all at this stage).
+> >>>>>
+> >>>>> I agree here.
+> >>>>>
+> >>>>> I would recommend creating a separate branch for that living outside of the
+> >>>>> mainline kernel and merging it when there are real users.
+> >>>>
+> >>>> Real users will coming soon, we already tested this patch set on real hardware
+> >>>> (ARM64 Juno platform),
+> >>>
+> >>> I don't consider Juno a server platform ;) (but it's good enough for
+> >>> development).
+> >>>
+> >>>> and I think ARM64 server chips and platforms will show up before 3.18
+> >>>> is released.
+> >>>
+> >>> That's what I've heard/seen. The questions I have are (a) whether
+> >>> current ACPI patchset is enough to successfully run Linux on such
+> >>> _hardware_ platform (maybe not fully optimised, for example just WFI
+> >>> cpuidle) and (b) whether we still want to mandate a DT in the kernel for
+> >>> such platforms.
+> >>
+> >> For (a), this patch set is only for ARM64 core, not including platform
+> >> specific device drivers, it will be covered by the binding of _DSD or
+> >> explicit definition of PNP ID/ACPI ID(s).
+> > 
+> > So we go back to the discussions we had few months ago in Macau. I'm not
+> > concerned about the core ARM and architected peripherals covered by ACPI
+> > 5.1 (as long as the current patches get positive technical review). But
+> > I'm concerned about the additional bits needed for a real SoC like _DSD
+> > definitions, how they get reviewed/accepted (or is it just the vendor's
+> > problem?).
+> 
+> As the _DSD patch set sent out by Intel folks, _DSD definitions are just
+> DT definitions. To use _DSD or not, I think it depends on OEM use cases,
+> we can bring up Juno without _DSD (Graeme is working on that, still need
+> some time to clean up the code).
 
->On Sun, Aug 17, 2014 at 01:54:16PM +0100, Grant Likely wrote:
->> On Sun, 17 Aug 2014 09:04:14 +0300, Mika Westerberg
->><mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
->> > From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> > 
->> > With the unified device properties interface in place, add device
->>tree support.
->> > By adding the dev_prop_ops for of_node devices, drivers can access
->>properties
->> > from ACPI or Device Tree in a generic way.
->> > 
->> > Signed-off-by: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> > Reviewed-by: Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
->> > Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
->> 
->> Hi Mika,
->> 
->> As commented on patch 3, the new API currently throws away type
->> information so the compiler won't warn on an error. That needs to be
->> fixed and this patch reworked accordingly.
->
->The compiler should warn when we add static inline property accessor
->functions for each type.
->
->> 
->> g.
->> 
->> ---
->> >  drivers/of/base.c        | 194
->>++++++++++++++++++++++++++++++++++++++++++++++-
->> >  drivers/of/platform.c    |   4 +-
->> >  include/linux/property.h |   4 +
->> >  3 files changed, 200 insertions(+), 2 deletions(-)
->> > 
->> > diff --git a/drivers/of/base.c b/drivers/of/base.c
->> > index b9864806e9b8..527004d01423 100644
->> > --- a/drivers/of/base.c
->> > +++ b/drivers/of/base.c
->> > @@ -20,7 +20,7 @@
->> >  #include <linux/ctype.h>
->> >  #include <linux/cpu.h>
->> >  #include <linux/module.h>
->> > -#include <linux/of.h>
->> > +#include <linux/property.h>
->> >  #include <linux/of_graph.h>
->> >  #include <linux/spinlock.h>
->> >  #include <linux/slab.h>
->> > @@ -1343,6 +1343,39 @@ int of_property_read_u64(const struct
->>device_node *np, const char *propname,
->> >  EXPORT_SYMBOL_GPL(of_property_read_u64);
->> >  
->> >  /**
->> > + * of_property_read_u64_array - Find and read an array of 64 bit
->>integers
->> > + * from a property.
->> > + *
->> > + * @np:		device node from which the property value is to be read.
->> > + * @propname:	name of the property to be searched.
->> > + * @out_values:	pointer to return value, modified only if return
->>value is 0.
->> > + * @sz:		number of array elements to read
->> > + *
->> > + * Search for a property in a device node and read 64-bit value(s)
->>from
->> > + * it. Returns 0 on success, -EINVAL if the property does not exist,
->> > + * -ENODATA if property does not have a value, and -EOVERFLOW if the
->> > + * property data isn't large enough.
->> > + *
->> > + * The out_values is modified only if a valid u64 value can be
->>decoded.
->> > + */
->> > +int of_property_read_u64_array(const struct device_node *np,
->> > +			       const char *propname, u64 *out_values,
->> > +			       size_t sz)
->> > +{
->> > +	const __be32 *val = of_find_property_value_of_size(np, propname,
->> > +						(sz * sizeof(*out_values)));
->> > +
->> > +	if (IS_ERR(val))
->> > +		return PTR_ERR(val);
->> > +
->> > +	while (sz--) {
->> > +		*out_values++ = of_read_number(val, 2);
->> > +		val += 2;
->> > +	};
->> > +	return 0;
->> > +}
->> 
->> Considering we don't even have a user of u64 arrays in all of the DT
->> drivers, do we even need this type hook in the generic API?
->
->Indeed, I think we can remove it for now.
->
+Let's not confuse matters by saying that _DSD is DT. DSD allows for
+key-value pairs, and has a reference mechanism roughly equivalent to
+phandles. That does not make them the same thing.
 
-Keep in mind that existing DT drivers are not the only user of this
-interface.
+Not having any guidelines for vendors is an extremely bad idea. The DT
+bindings we get a chance to review often have major issues. I do not
+believe that vendors will do things sanely without good guidance and
+strong incentives.
 
-This series enables ACPI systems to make use of such drivers (or lays the
-groundwork, each driver does need an update to the new API), but there are
-also new drivers being developed today that are ACPI first. While the
-DT-space may not need this interface now, I don't see the value in
-preventing it from being used in the future by removing it from the
-generic interface.
+[...]
 
-Adding it later, if needed, isn't as trivial as it sounds as we first have
-to put developers through the pain of finding the interface doesn't exist
-for a valid type, many of whom will decide to work around the limitation
-rather than take the discussion to the infamous LKML - resulting in
-suboptimal firmware descriptions.
+> >> For ACPI 5.1, it fixes many problems for ARM:
+> >> - weak definition for GIC, so we introduce visualization, v2m and
+> >>   part of GICv3/4 (redistributors) support.
+> >> - No support for PSCI. Fix it to support PSCI 0.2+;
+> >> - Not support for Always-on timer and SBSA-L1 watchdog.
+> > 
+> > These are all good, that's why we shouldn't even talk about ACPI 5.0 in
+> > the ARM context.
+> > 
+> >> - How to describe device properties, so _DSD is introduced for
+> >>   device probe.
+> > 
+> > For the last bullet, is there any review process (at least like what we
+> > have for DT bindings)? On top of such process, do we have guidelines and
+> > example code on how the Linux support should be implemented. As Olof
+> > mentioned, should we see how the DT and ACPI probing paths work
+> > together? I really think we should be very clear here and not let
+> > vendors invent their own independent methods.
+> 
+> As said above, Intel folks provided some good examples for that, and
+> clarified a lot of things:
+> 
+> https://lkml.org/lkml/2014/8/17/10
 
-I'd much rather see us enable them to help themselves and then get out of
-their way by supporting all the valid types initially.
+Quite frankly, the examples provided in the _DSD series are atrocious.
+They constitute a trivial mapping of some existing DT bindings to ACPI
+which do not appear to have gone through any sort of review w.r.t.
+remaining idiomatic.
 
--- 
-Darren Hart					Open Source Technology Center
-darren.hart-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org				            Intel Corporation
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Mark.
