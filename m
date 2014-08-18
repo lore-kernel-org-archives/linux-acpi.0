@@ -1,51 +1,209 @@
-From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH 6/9] gpiolib: add API to get gpio desc and flags
-Date: Mon, 18 Aug 2014 15:16:01 +0800
-Message-ID: <53F1A831.4090309@intel.com>
-References: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com> <20140817130004.4B9FDC4137F@trevor.secretlab.ca> <D016516D.A1AFA%dvhart@linux.intel.com> <1927766.GeLld99ozq@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC PATCH 1/9] ACPI: Add support for device specific properties
+Date: Mon, 18 Aug 2014 16:13:29 +0800
+Message-ID: <53F1B5A9.8060307@linaro.org>
+References: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com> <1408255459-17625-2-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1927766.GeLld99ozq-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Max Eliaser <max.eliaser-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:58289 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750765AbaHRIO6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Aug 2014 04:14:58 -0400
+Received: by mail-pd0-f169.google.com with SMTP id y10so7156916pdj.28
+        for <linux-acpi@vger.kernel.org>; Mon, 18 Aug 2014 01:14:58 -0700 (PDT)
+In-Reply-To: <1408255459-17625-2-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Aaron Lu <aaron.lu@intel.com>, Max Eliaser <max.eliaser@intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 08/18/2014 12:57 PM, Rafael J. Wysocki wrote:
-> On Sunday, August 17, 2014 12:43:38 PM Darren Hart wrote:
->> On 8/17/14, 6:00, "Grant Likely" <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> wrote:
->>
->>>>
->>>> +	/* Using device tree? */
->>>> +	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
->>>> +		desc = of_find_gpio(dev, NULL, idx, flags);
->>>
->>> of_find_gpio() doesn't exist.
->>
->> Hrm... As of 3.16.0 (e64df3ebe8262c8203d1fe4f541e0241c3112c01)
->>
->> $ git blame -L1455,1456 drivers/gpio/gpiolib.c
->> bae48da2 (Alexandre Courbot 2013-10-17 10:21:38 -0700 1455) static struct
->> gpio_desc *of_find_gpio(struct device *dev, const char *con_id,
->>
->> Have we removed this in -next or something? (on the plane, will verify
->> upon landing)
+Hi,
+
+Some minor comments below.
+
+On 2014-8-17 14:04, Mika Westerberg wrote:
+> Device Tree is used in many embedded systems to describe the system
+> configuration to the OS. It supports attaching properties or name-value
+> pairs to the devices it describe. With these properties one can pass
+> additional information to the drivers that would not be available
+> otherwise.
 > 
-> In 3.17-rc1:
+> ACPI is another configuration mechanism (among other things) typically
+> seen, but not limited to, x86 machines. ACPI allows passing arbitrary
+> data from methods but there has not been mechanism equivalent to Device
+> Tree until the introduction of _DSD in the recent publication of the
+> ACPI 5.1 specification.
 > 
-> rafael@vostro:~/src/linux-pm> grep -r of_find_gpio *
-> drivers/gpio/gpiolib.c:static struct gpio_desc *of_find_gpio(struct device *dev, const char *con_id,
-> drivers/gpio/gpiolib.c:         desc = of_find_gpio(dev, con_id, idx, &lookupflags);
+> In order to facilitate ACPI usage in systems where Device Tree is
+> typically used, it would be beneficial to standardize a way to retrieve
+> Device Tree style properties from ACPI devices, which is what we do in
+> this patch.
+> 
+> If a given device described in ACPI namespace wants to export properties it
+> must implement _DSD method (Device Specific Data, introduced with ACPI 5.1)
+> that returns the properties in a package of packages. For example:
+> 
+> 	Name (_DSD, Package () {
+> 		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> 		Package () {
+> 			Package () {"name1", <VALUE1>},
+> 			Package () {"name2", <VALUE2>},
+> 			...
+> 		}
+> 	})
+> 
+> The UUID reserved for properties is daffd814-6eba-4d8c-8a91-bc9bbf4aa301
+> and is documented in the ACPI 5.1 companion document called "_DSD
+> Implementation Guide" [1], [2].
+> 
+> We add several helper functions that can be used to extract these
+> properties and convert them to different Linux data types.
+> 
+> The ultimate goal is that we only have one device property API that
+> retrieves the requested properties from Device Tree or from ACPI
+> transparent to the caller.
+> 
+> [1] http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel.htm
+> [2] http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
+> 
+> Signed-off-by: Darren Hart <dvhart@linux.intel.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+>  drivers/acpi/Makefile   |   1 +
+>  drivers/acpi/internal.h |   6 +
+>  drivers/acpi/property.c | 365 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/scan.c     |   2 +
+>  include/acpi/acpi_bus.h |   7 +
+>  include/linux/acpi.h    |  40 ++++++
+>  6 files changed, 421 insertions(+)
+>  create mode 100644 drivers/acpi/property.c
+> 
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index ea55e0179f81..6e8269a111db 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -45,6 +45,7 @@ acpi-y				+= acpi_pnp.o
+>  acpi-y				+= power.o
+>  acpi-y				+= event.o
+>  acpi-y				+= sysfs.o
+> +acpi-y				+= property.o
+>  acpi-$(CONFIG_X86)		+= acpi_cmos_rtc.o
+>  acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
+>  acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 7de5b603f272..35001e2a8769 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -178,4 +178,10 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev);
+>  bool acpi_osi_is_win8(void);
+>  #endif
+>  
+> +/*--------------------------------------------------------------------------
+> +				Device properties
+> +  -------------------------------------------------------------------------- */
+> +void acpi_init_properties(struct acpi_device *adev);
+> +void acpi_free_properties(struct acpi_device *adev);
+> +
+>  #endif /* _ACPI_INTERNAL_H_ */
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> new file mode 100644
+> index 000000000000..093e834c35db
+> --- /dev/null
+> +++ b/drivers/acpi/property.c
+> @@ -0,0 +1,365 @@
+> +/*
+> + * ACPI device specific properties support.
+> + *
+> + * Copyright (C) 2014, Intel Corporation
+> + * All rights reserved.
+> + *
+> + * Authors: Mika Westerberg <mika.westerberg@linux.intel.com>
+> + *          Darren Hart <dvhart@linux.intel.com>
+> + *          Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/device.h>
+> +#include <linux/export.h>
+> +
+> +#include "internal.h"
+> +
+> +/* ACPI _DSD device properties UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301 */
+> +static const u8 prp_uuid[16] = {
 
-I also verified the following branch:
-git://git.secretlab.ca/git/linux devicetree/next
-And of_find_gpio is there.
+s/prp_uuid/dsd_uuid ?
 
-Regards,
-Aaron
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	0x14, 0xd8, 0xff, 0xda, 0xba, 0x6e, 0x8c, 0x4d,
+> +	0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01
+> +};
+> +
+> +static bool acpi_property_value_ok(const union acpi_object *value)
+> +{
+> +	int j;
+> +
+> +	/*
+> +	 * The value must be an integer, a string, a reference, or a package
+> +	 * whose every element must be an integer, a string, or a reference.
+> +	 */
+> +	switch (value->type) {
+> +	case ACPI_TYPE_INTEGER:
+> +	case ACPI_TYPE_STRING:
+> +	case ACPI_TYPE_LOCAL_REFERENCE:
+> +		return true;
+> +
+> +	case ACPI_TYPE_PACKAGE:
+> +		for (j = 0; j < value->package.count; j++)
+> +			switch (value->package.elements[j].type) {
+> +			case ACPI_TYPE_INTEGER:
+> +			case ACPI_TYPE_STRING:
+> +			case ACPI_TYPE_LOCAL_REFERENCE:
+> +				continue;
+> +
+> +			default:
+> +				return false;
+> +			}
+> +
+> +		return true;
+> +	}
+> +	return false;
+> +}
+> +
+> +static bool acpi_properties_format_valid(const union acpi_object *properties)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < properties->package.count; i++) {
+> +		const union acpi_object *property;
+> +
+> +		property = &properties->package.elements[i];
+> +		/*
+> +		 * Only two elements allowed, the first one must be a string and
+> +		 * the second one has to satisfy certain conditions.
+> +		 */
+> +		if (property->package.count != 2
+> +		    || property->package.elements[0].type != ACPI_TYPE_STRING
+> +		    || !acpi_property_value_ok(&property->package.elements[1]))
+> +			return false;
+> +	}
+> +	return true;
+> +}
+> +
+> +void acpi_init_properties(struct acpi_device *adev)
+> +{
+> +
+
+I think the above line is not needed.
+
+With that fixed,
+
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Thanks
+Hanjun
