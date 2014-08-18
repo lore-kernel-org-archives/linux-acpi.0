@@ -1,70 +1,46 @@
 From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 Subject: Re: [RFC 0/3] Experimental patchset for CPPC
-Date: Mon, 18 Aug 2014 10:54:01 -0400
-Message-ID: <CAJ5Y-eYS45mPZUsQvvacG3revVedaYHoo9YaFcM5fb4+QrH43A@mail.gmail.com>
+Date: Mon, 18 Aug 2014 11:04:53 -0400
+Message-ID: <CAJ5Y-ebhE4-9WpB9Z+PO80qZJ2G4+UeK9Q3gk00XL=oO89esbA@mail.gmail.com>
 References: <1408046230-16439-1-git-send-email-ashwin.chaugule@linaro.org>
 	<20140814205143.GY6758@twins.programming.kicks-ass.net>
 	<CAJ5Y-ebgJi8Ngxg1X+h7KMundGZPFhYC0hr0Sog6htj=czszgQ@mail.gmail.com>
 	<20140815061917.GX19379@twins.programming.kicks-ass.net>
 	<CAJ5Y-eaLxCG7dDao00pozXBL2dxPS7tf=xGfaz3O_xfRHtQZnA@mail.gmail.com>
-	<20140815140741.GI19379@twins.programming.kicks-ass.net>
-	<CAJ5Y-eZhAX47v4SjsW4T6PUaiMqC9wHcMDS8p+sL4_cReZpbyw@mail.gmail.com>
-	<20140815144124.GK19379@twins.programming.kicks-ass.net>
+	<53EE0E5B.3050004@linux.intel.com>
+	<53EE10CB.7040001@linux.intel.com>
+	<CAJ5Y-eZiRyGroems7J2oH05ybbbivM-okm3gFz7Mkuu8ceeCDQ@mail.gmail.com>
+	<53EE2BAA.1020603@linux.intel.com>
+	<CAJ5Y-eZZz=SrkONt029eZ0AsEZ6xFhW4cmcaEVZ8=8Ls9r5+zA@mail.gmail.com>
+	<CAJvTdKn-NsubOqK9_BOvvmnF9C6cK5tUF22VbWXEaPyXzb0huQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:56663 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751260AbaHROyD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Aug 2014 10:54:03 -0400
-Received: by mail-wg0-f41.google.com with SMTP id z12so5009339wgg.0
-        for <linux-acpi@vger.kernel.org>; Mon, 18 Aug 2014 07:54:01 -0700 (PDT)
-In-Reply-To: <20140815144124.GK19379@twins.programming.kicks-ass.net>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:55971 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751569AbaHRPEz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Aug 2014 11:04:55 -0400
+Received: by mail-wi0-f176.google.com with SMTP id bs8so3877812wib.9
+        for <linux-acpi@vger.kernel.org>; Mon, 18 Aug 2014 08:04:53 -0700 (PDT)
+In-Reply-To: <CAJvTdKn-NsubOqK9_BOvvmnF9C6cK5tUF22VbWXEaPyXzb0huQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: lkml <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Mike Turquette <mike.turquette@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Arjan van de Ven <arjan@linux.intel.com>, mingo@kernel.org, len.brown@intel.com, rjw@rjwysocki.net, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Patch Tracking <patches@linaro.org>, Dirk Brandewie <dirk.brandewie@gmail.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Arjan van de Ven <arjan@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, lkml <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Mike Turquette <mike.turquette@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Ingo Molnar <mingo@kernel.org>, "Brown, Len" <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Arnd Bergmann <arnd@arndb.de>, linux acpi <linux-acpi@vger.kernel.org>, cpufreq@vger.kernel.org, Patch Tracking <patches@linaro.org>, Dirk Brandewie <dirk.brandewie@gmail.com>
 
-Hello,
+Hi Len,
 
-On 15 August 2014 10:41, Peter Zijlstra <peterz@infradead.org> wrote:
-> On Fri, Aug 15, 2014 at 10:37:32AM -0400, Ashwin Chaugule wrote:
->> On 15 August 2014 10:07, Peter Zijlstra <peterz@infradead.org> wrote:
->> > On Fri, Aug 15, 2014 at 09:08:50AM -0400, Ashwin Chaugule wrote:
->> >> If the OS only looks at Highest, Lowest, Delivered registers and only
->> >> writes to Desired, then we're not really any different than how we do
->> >> things today in the CPUFreq layer.
->> >
->> > The thing is; we're already struggling to make 'sense' of x86 as it
->> > stands today. And it looks like this CPPC stuff makes the behaviour even
->> > less certain.
->>
->> I think its still better than the "p-state" thing we have going today,
->> where the algorithms are making their decisions based on the incorrect
->> assumption that the CPU got what it requested for. (among other things
->> listed earlier.) CPPC at least gives you a guarantee that the
->> delivered performance will be within a range you requested. It can
->> even force the platform to deliver a specific performance value if you
->> choose over a specific time window.
+On 15 August 2014 18:11, Len Brown <lenb@kernel.org> wrote:
+> The Linux team at Intel did not implement ACPI CPPC support
+> because we see no benefit to it over the native hardware interface on x86.
 >
-> Maybe; the guarantee and interrupt on change might be useful indeed. But
-> which ever way we need aperf/mperf ratios somewhere.
 
-Right. Regarding aperf/mperf; some ARMs will re-use existing
-performance counters, while others may have dedicated registers to
-count the equivalent. So I'm suggesting the use of the CPPC
-descriptors to unify the various implementations. In CPPC terms, aperf
-maps to the Delivered ctr and mperf maps to the Nominal ctr. Until we
-have rest of the plumbing in the scheduler to make use of the other
-CPPC specified regs, we can at least start off with having a common
-lower level driver as suggested in this patchset and reusing the PID
-controller as the "governor". Thats the only one that actually makes
-use of aperf/mperf today AFAIK. The driver can then be modified to
-include the Freq domain awareness as well, so that it works well on
-non-X86 platforms. Unless anyone strongly thinks that we should fix
-the shortcomings in the CPUfreq layer(broken pstate and freq domain
-assumptions) rather than enhancing PID? Thoughts?
-
+Thanks for sharing Intels observations. I had looked at the SDM [1]
+and found all the CPPC MSRs. I suppose X86 will not use a majority of
+it.
 
 Cheers,
 Ashwin
+
+[1] - HWP section 14.4
+http://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-3b-part-2-manual.pdf
