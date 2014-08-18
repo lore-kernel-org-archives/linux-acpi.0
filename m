@@ -1,154 +1,57 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC PATCH 1/9] ACPI: Add support for device specific properties
-Date: Mon, 18 Aug 2014 16:57:38 +0800
-Message-ID: <53F1C002.3050503@linaro.org>
-References: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com> <1408255459-17625-2-git-send-email-mika.westerberg@linux.intel.com> <53F1B5A9.8060307@linaro.org> <20140818082656.GR2462@lahna.fi.intel.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [RFC] ACPI: Add GPIO-signaled event simulator.
+Date: Mon, 18 Aug 2014 11:06:46 +0200
+Message-ID: <53F1C226.5090107@linaro.org>
+References: <1406217076-17150-1-git-send-email-tomasz.nowicki@linaro.org> <CACRpkdZmKJmaTRBpDrzd7+EhPuFeScr6jEHC8+0z6-4knjFqkA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:36276 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750807AbaHRI7F (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Aug 2014 04:59:05 -0400
-Received: by mail-pa0-f44.google.com with SMTP id eu11so7417669pac.17
-        for <linux-acpi@vger.kernel.org>; Mon, 18 Aug 2014 01:59:05 -0700 (PDT)
-In-Reply-To: <20140818082656.GR2462@lahna.fi.intel.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:58388 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750951AbaHRJGt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Aug 2014 05:06:49 -0400
+Received: by mail-we0-f174.google.com with SMTP id x48so4722290wes.19
+        for <linux-acpi@vger.kernel.org>; Mon, 18 Aug 2014 02:06:48 -0700 (PDT)
+In-Reply-To: <CACRpkdZmKJmaTRBpDrzd7+EhPuFeScr6jEHC8+0z6-4knjFqkA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Aaron Lu <aaron.lu@intel.com>, Max Eliaser <max.eliaser@intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On 2014-8-18 16:27, Mika Westerberg wrote:
-> On Mon, Aug 18, 2014 at 04:13:29PM +0800, Hanjun Guo wrote:
->> Hi,
+On 08.08.2014 14:36, Linus Walleij wrote:
+> On Thu, Jul 24, 2014 at 5:51 PM, Tomasz Nowicki
+> <tomasz.nowicki@linaro.org> wrote:
+>
+>> GPIO signaled events is quite new thing in Linux kernel.
+>> AFAIK, there are not many board which can take advantage of it.
+>> However, GPIO events are very useful feature during work on ACPI
+>> subsystems.
+>
+> Overall this seems like a pretty nice debug feature.
+>
+>> This commit emulates GPIO h/w behaviour and consists on read/write
+>> operation to debugfs file. GPIO device instance is still required in DSDT
+>> table along with _AEI resources and event methods.
 >>
->> Some minor comments below.
+>> Reading from file provides pin to GPIO device map e.g. :
+>> $ cat /sys/kernel/debug/acpi/gpio_event
+>> GPIO device name: /__SB.GPI0
+>> Available GPIO pin map:
+>> /__SB.GPI0 <-> pin 0x100
 >>
->> On 2014-8-17 14:04, Mika Westerberg wrote:
->>> Device Tree is used in many embedded systems to describe the system
->>> configuration to the OS. It supports attaching properties or name-value
->>> pairs to the devices it describe. With these properties one can pass
->>> additional information to the drivers that would not be available
->>> otherwise.
->>>
->>> ACPI is another configuration mechanism (among other things) typically
->>> seen, but not limited to, x86 machines. ACPI allows passing arbitrary
->>> data from methods but there has not been mechanism equivalent to Device
->>> Tree until the introduction of _DSD in the recent publication of the
->>> ACPI 5.1 specification.
->>>
->>> In order to facilitate ACPI usage in systems where Device Tree is
->>> typically used, it would be beneficial to standardize a way to retrieve
->>> Device Tree style properties from ACPI devices, which is what we do in
->>> this patch.
->>>
->>> If a given device described in ACPI namespace wants to export properties it
->>> must implement _DSD method (Device Specific Data, introduced with ACPI 5.1)
->>> that returns the properties in a package of packages. For example:
->>>
->>> 	Name (_DSD, Package () {
->>> 		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->>> 		Package () {
->>> 			Package () {"name1", <VALUE1>},
->>> 			Package () {"name2", <VALUE2>},
->>> 			...
->>> 		}
->>> 	})
->>>
->>> The UUID reserved for properties is daffd814-6eba-4d8c-8a91-bc9bbf4aa301
->>> and is documented in the ACPI 5.1 companion document called "_DSD
->>> Implementation Guide" [1], [2].
->>>
->>> We add several helper functions that can be used to extract these
->>> properties and convert them to different Linux data types.
->>>
->>> The ultimate goal is that we only have one device property API that
->>> retrieves the requested properties from Device Tree or from ACPI
->>> transparent to the caller.
->>>
->>> [1] http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel.htm
->>> [2] http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
->>>
->>> Signed-off-by: Darren Hart <dvhart@linux.intel.com>
->>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->>> ---
->>>  drivers/acpi/Makefile   |   1 +
->>>  drivers/acpi/internal.h |   6 +
->>>  drivers/acpi/property.c | 365 ++++++++++++++++++++++++++++++++++++++++++++++++
->>>  drivers/acpi/scan.c     |   2 +
->>>  include/acpi/acpi_bus.h |   7 +
->>>  include/linux/acpi.h    |  40 ++++++
->>>  6 files changed, 421 insertions(+)
->>>  create mode 100644 drivers/acpi/property.c
->>>
->>> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
->>> index ea55e0179f81..6e8269a111db 100644
->>> --- a/drivers/acpi/Makefile
->>> +++ b/drivers/acpi/Makefile
->>> @@ -45,6 +45,7 @@ acpi-y				+= acpi_pnp.o
->>>  acpi-y				+= power.o
->>>  acpi-y				+= event.o
->>>  acpi-y				+= sysfs.o
->>> +acpi-y				+= property.o
->>>  acpi-$(CONFIG_X86)		+= acpi_cmos_rtc.o
->>>  acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
->>>  acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
->>> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
->>> index 7de5b603f272..35001e2a8769 100644
->>> --- a/drivers/acpi/internal.h
->>> +++ b/drivers/acpi/internal.h
->>> @@ -178,4 +178,10 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev);
->>>  bool acpi_osi_is_win8(void);
->>>  #endif
->>>  
->>> +/*--------------------------------------------------------------------------
->>> +				Device properties
->>> +  -------------------------------------------------------------------------- */
->>> +void acpi_init_properties(struct acpi_device *adev);
->>> +void acpi_free_properties(struct acpi_device *adev);
->>> +
->>>  #endif /* _ACPI_INTERNAL_H_ */
->>> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
->>> new file mode 100644
->>> index 000000000000..093e834c35db
->>> --- /dev/null
->>> +++ b/drivers/acpi/property.c
->>> @@ -0,0 +1,365 @@
->>> +/*
->>> + * ACPI device specific properties support.
->>> + *
->>> + * Copyright (C) 2014, Intel Corporation
->>> + * All rights reserved.
->>> + *
->>> + * Authors: Mika Westerberg <mika.westerberg@linux.intel.com>
->>> + *          Darren Hart <dvhart@linux.intel.com>
->>> + *          Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 as
->>> + * published by the Free Software Foundation.
->>> + */
->>> +
->>> +#include <linux/acpi.h>
->>> +#include <linux/device.h>
->>> +#include <linux/export.h>
->>> +
->>> +#include "internal.h"
->>> +
->>> +/* ACPI _DSD device properties UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301 */
->>> +static const u8 prp_uuid[16] = {
->>
->> s/prp_uuid/dsd_uuid ?
-> 
-> Well, it is actually the _DSD UUID that implements ACPI device
-> properties (hence the prp_) but I have no problems in changing that to
-> dsd_uuid instead.
+>> Based on that, user can trigger method corresponding to device pin number:
+>> $ echo "/__SB.GPI0 0x100" > /sys/kernel/debug/acpi/gpio_event
+>
+> I need input from Rafael and Mika as to whether this is a
+> good interface.
+>
+> It seems a bit confusing for me: why do you have to extract
+> a number from one file and then insert the same magic number
+> somewhere else?
 
-Oh, I missed that part, since this UUID is only for ACPI device
-properties, I agree with you that prp_ is better here.
+Good point! Available GPIO event pins should be listed as debugfs node, 
+then user would write e.g. 1 to one particular. Sounds simpler.
 
-Thanks
-Hanjun
-
+Regards,
+Tomasz Nowicki
