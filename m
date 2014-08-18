@@ -1,123 +1,140 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
-Date: Mon, 18 Aug 2014 13:49:52 +0100
-Message-ID: <20140818124952.GI14559@leverpostej>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <CAOesGMjs1dM37ZoFA-xs7tYYaXP-XC3NjJsj291bCNoDwAXwiw@mail.gmail.com>
- <20140812182347.GA4100@arm.com>
- <2152407.NpXOMHAEH6@vostro.rjw.lan>
- <53EC2B35.5010302@linaro.org>
- <20140814102723.GB9039@arm.com>
- <53EDCE56.6020702@linaro.org>
- <20140815100113.GA18863@arm.com>
- <53F1C776.4080501@linaro.org>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v2 06/18] ARM64 / ACPI: Parse MADT to map logical cpu to
+ MPIDR and get cpu_possible/present_map
+Date: Mon, 18 Aug 2014 15:27:28 +0100
+Message-ID: <20140818142728.GS20043@localhost>
+References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
+ <1407166105-17675-7-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:46758 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751451AbaHRMuA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Aug 2014 08:50:00 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <53F1C776.4080501@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <1407166105-17675-7-git-send-email-hanjun.guo@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rd>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, graeme.gregory@linaro.
+List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Aug 18, 2014 at 10:29:26AM +0100, Hanjun Guo wrote:
-> On 2014-8-15 18:01, Catalin Marinas wrote:
-> > Hanjun,
-> 
-> Hi Catalin,
-> 
-> > 
-> > On Fri, Aug 15, 2014 at 10:09:42AM +0100, Hanjun Guo wrote:
-> >> On 2014-8-14 18:27, Catalin Marinas wrote:
-> >>> On Thu, Aug 14, 2014 at 04:21:25AM +0100, Hanjun Guo wrote:
-> >>>> On 2014-8-14 7:41, Rafael J. Wysocki wrote:
-> >>>>> On Tuesday, August 12, 2014 07:23:47 PM Catalin Marinas wrote:
-> >>>>>> If we consider ACPI unusable on ARM but we still want to start merging
-> >>>>>> patches, we should rather make the config option depend on BROKEN
-> >>>>>> (though if it is that unusable that no real platform can use it, I would
-> >>>>>> rather not merge it at all at this stage).
-> >>>>>
-> >>>>> I agree here.
-> >>>>>
-> >>>>> I would recommend creating a separate branch for that living outside of the
-> >>>>> mainline kernel and merging it when there are real users.
-> >>>>
-> >>>> Real users will coming soon, we already tested this patch set on real hardware
-> >>>> (ARM64 Juno platform),
-> >>>
-> >>> I don't consider Juno a server platform ;) (but it's good enough for
-> >>> development).
-> >>>
-> >>>> and I think ARM64 server chips and platforms will show up before 3.18
-> >>>> is released.
-> >>>
-> >>> That's what I've heard/seen. The questions I have are (a) whether
-> >>> current ACPI patchset is enough to successfully run Linux on such
-> >>> _hardware_ platform (maybe not fully optimised, for example just WFI
-> >>> cpuidle) and (b) whether we still want to mandate a DT in the kernel for
-> >>> such platforms.
-> >>
-> >> For (a), this patch set is only for ARM64 core, not including platform
-> >> specific device drivers, it will be covered by the binding of _DSD or
-> >> explicit definition of PNP ID/ACPI ID(s).
-> > 
-> > So we go back to the discussions we had few months ago in Macau. I'm not
-> > concerned about the core ARM and architected peripherals covered by ACPI
-> > 5.1 (as long as the current patches get positive technical review). But
-> > I'm concerned about the additional bits needed for a real SoC like _DSD
-> > definitions, how they get reviewed/accepted (or is it just the vendor's
-> > problem?).
-> 
-> As the _DSD patch set sent out by Intel folks, _DSD definitions are just
-> DT definitions. To use _DSD or not, I think it depends on OEM use cases,
-> we can bring up Juno without _DSD (Graeme is working on that, still need
-> some time to clean up the code).
+On Mon, Aug 04, 2014 at 04:28:13PM +0100, Hanjun Guo wrote:
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index 6e04868..e877967 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -64,6 +64,8 @@ static inline void arch_fix_phys_package_id(int num, u32 slot) { }
+>  extern int (*acpi_suspend_lowlevel)(void);
+>  #define acpi_wakeup_address 0
+>  
+> +#define MAX_GIC_CPU_INTERFACE 65535
 
-Let's not confuse matters by saying that _DSD is DT. DSD allows for
-key-value pairs, and has a reference mechanism roughly equivalent to
-phandles. That does not make them the same thing.
+Does this need to be more than NR_CPUS?
 
-Not having any guidelines for vendors is an extremely bad idea. The DT
-bindings we get a chance to review often have major issues. I do not
-believe that vendors will do things sanely without good guidance and
-strong incentives.
+> +/**
+> + * acpi_register_gic_cpu_interface - register a gic cpu interface and
+> + * generates a logical cpu number
+> + * @mpidr: CPU's hardware id to register, MPIDR represented in MADT
+> + * @enabled: this cpu is enabled or not
+> + *
+> + * Returns the logical cpu number which maps to the gic cpu interface
+> + */
+> +static int acpi_register_gic_cpu_interface(u64 mpidr, u8 enabled)
+> +{
+> +	int cpu;
+> +
+> +	if (mpidr == INVALID_HWID) {
+> +		pr_info("Skip invalid cpu hardware ID\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	total_cpus++;
+> +	if (!enabled)
+> +		return -EINVAL;
+> +
+> +	if (enabled_cpus >=  NR_CPUS) {
+> +		pr_warn("NR_CPUS limit of %d reached, Processor %d/0x%llx ignored.\n",
+> +			NR_CPUS, total_cpus, mpidr);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* If it is the first CPU, no need to check duplicate MPIDRs */
+> +	if (!enabled_cpus)
+> +		goto skip_mpidr_check;
+> +
+> +	/*
+> +	 * Duplicate MPIDRs are a recipe for disaster. Scan
+> +	 * all initialized entries and check for
+> +	 * duplicates. If any is found just ignore the CPU.
+> +	 */
+> +	for_each_present_cpu(cpu) {
+> +		if (cpu_logical_map(cpu) == mpidr) {
+> +			pr_err("Firmware bug, duplicate CPU MPIDR: 0x%llx in MADT\n",
+> +			       mpidr);
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+> +skip_mpidr_check:
+> +	enabled_cpus++;
+> +
+> +	/* allocate a logical cpu id for the new comer */
+> +	if (cpu_logical_map(0) == mpidr) {
+> +		/*
+> +		 * boot_cpu_init() already hold bit 0 in cpu_present_mask
+> +		 * for BSP, no need to allocate again.
+> +		 */
+> +		cpu = 0;
+> +	} else {
+> +		cpu = cpumask_next_zero(-1, cpu_present_mask);
+> +	}
+> +
+> +	/* map the logical cpu id to cpu MPIDR */
+> +	cpu_logical_map(cpu) = mpidr;
+> +
+> +	set_cpu_possible(cpu, true);
+> +	set_cpu_present(cpu, true);
+> +
+> +	return cpu;
+> +}
 
-[...]
+Why not only set the cpu possible here (with the additional mpidr
+validity checks changed to for_each_possible_cpu)...
 
-> >> For ACPI 5.1, it fixes many problems for ARM:
-> >> - weak definition for GIC, so we introduce visualization, v2m and
-> >>   part of GICv3/4 (redistributors) support.
-> >> - No support for PSCI. Fix it to support PSCI 0.2+;
-> >> - Not support for Always-on timer and SBSA-L1 watchdog.
-> > 
-> > These are all good, that's why we shouldn't even talk about ACPI 5.0 in
-> > the ARM context.
-> > 
-> >> - How to describe device properties, so _DSD is introduced for
-> >>   device probe.
-> > 
-> > For the last bullet, is there any review process (at least like what we
-> > have for DT bindings)? On top of such process, do we have guidelines and
-> > example code on how the Linux support should be implemented. As Olof
-> > mentioned, should we see how the DT and ACPI probing paths work
-> > together? I really think we should be very clear here and not let
-> > vendors invent their own independent methods.
-> 
-> As said above, Intel folks provided some good examples for that, and
-> clarified a lot of things:
-> 
-> https://lkml.org/lkml/2014/8/17/10
+> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+> index 40f38f4..8f1d37c 100644
+> --- a/arch/arm64/kernel/smp.c
+> +++ b/arch/arm64/kernel/smp.c
+> @@ -36,6 +36,7 @@
+>  #include <linux/completion.h>
+>  #include <linux/of.h>
+>  #include <linux/irq_work.h>
+> +#include <linux/acpi.h>
+>  
+>  #include <asm/atomic.h>
+>  #include <asm/cacheflush.h>
+> @@ -458,7 +459,14 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
+>  		if (err)
+>  			continue;
+>  
+> -		set_cpu_present(cpu, true);
+> +		/*
+> +		 * In ACPI mode, cpu_present_map was initialised when
+> +		 * MADT table was parsed which before this function
+> +		 * is called.
+> +		 */
+> +		if (acpi_disabled)
+> +			set_cpu_present(cpu, true);
+> +
+>  		max_cpus--;
 
-Quite frankly, the examples provided in the _DSD series are atrocious.
-They constitute a trivial mapping of some existing DT bindings to ACPI
-which do not appear to have gone through any sort of review w.r.t.
-remaining idiomatic.
+... and don't touch this at all.
 
-Thanks,
-Mark.
+-- 
+Catalin
