@@ -1,113 +1,47 @@
-From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: [RFC PATCH 6/9] gpiolib: add API to get gpio desc and flags
-Date: Tue, 19 Aug 2014 10:16:27 -0700
-Message-ID: <CAAVeFuLMpq+-5Zt6rmy3QhQg7zSgESKLVj6zFyfpr_FiC5ZFvA@mail.gmail.com>
-References: <1408172039-32513-1-git-send-email-mika.westerberg@linux.intel.com>
- <1408172039-32513-7-git-send-email-mika.westerberg@linux.intel.com>
- <CAAVeFu+LRxcJkPRpQMYhyz-TTY1HB7qCEv44a8vTU=g1iKCsfA@mail.gmail.com> <20140819085631.GG1660@lahna.fi.intel.com>
+From: Geoff Levand <geoff@infradead.org>
+Subject: Re: [PATCH v2 08/18] ARM64 / ACPI: Get the enable method for SMP
+ initialization in ACPI way
+Date: Tue, 19 Aug 2014 12:25:26 -0700
+Message-ID: <1408476326.22761.134.camel@smoke>
+References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
+		 <1407166105-17675-9-git-send-email-hanjun.guo@linaro.org>
+	 <1408388212.22761.100.camel@smoke> <53F33EDC.3090203@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f174.google.com ([209.85.213.174]:61635 "EHLO
-	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753148AbaHSRQs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2014 13:16:48 -0400
-In-Reply-To: <20140819085631.GG1660@lahna.fi.intel.com>
+Received: from casper.infradead.org ([85.118.1.10]:41796 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752307AbaHSTZi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2014 15:25:38 -0400
+In-Reply-To: <53F33EDC.3090203@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Al Stone <al.stone@linaro.org>, Olof Johansson <olof@lixom.net>, Matthew Garrett <matthew.garrett@nebula.com>, Matt Fleming <matt.fleming@intel.com>, David Woodhouse <dwmw2@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Josh Triplett <josh@joshtriplett.org>, Aaron Lu <aaron.lu@intel.com>, Max Eliaser <max.eliaser@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>Rob
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead>
 
-On Tue, Aug 19, 2014 at 1:56 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Mon, Aug 18, 2014 at 09:24:48AM -0700, Alexandre Courbot wrote:
->> On Fri, Aug 15, 2014 at 11:53 PM, Mika Westerberg
->> <mika.westerberg@linux.intel.com> wrote:
->> > diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
->> > index 2ebc9071e354..e6c2413a6fbf 100644
->> > --- a/drivers/gpio/gpiolib.c
->> > +++ b/drivers/gpio/gpiolib.c
->> > @@ -2644,6 +2644,24 @@ static struct gpio_desc *acpi_find_gpio(struct device *dev, const char *con_id,
->> >         return desc;
->> >  }
->> >
->> > +struct gpio_desc *dev_get_gpiod_flags(struct device *dev, unsigned int idx,
->> > +                                     enum gpio_lookup_flags *flags)
->> > +{
->> > +       struct gpio_desc *desc = ERR_PTR(-ENOENT);
->> > +
->> > +       if (!dev || !flags)
->> > +               return ERR_PTR(-EINVAL);
->> > +
->> > +       /* Using device tree? */
->> > +       if (IS_ENABLED(CONFIG_OF) && dev->of_node)
->> > +               desc = of_find_gpio(dev, NULL, idx, flags);
->> > +       else if (IS_ENABLED(CONFIG_ACPI) && ACPI_COMPANION(dev))
->> > +               desc = acpi_get_gpiod_flags(dev, idx, flags);
->> > +
->> > +       return desc;
->> > +}
->> > +EXPORT_SYMBOL(dev_get_gpiod_flags);
->>
->> Putting aside the fact that this function is clearly ACPI-centric (no
->> con_id parameter and no handling of the platform interface), I have
->> two big problems with it and it ending up in the consumer interface:
->>
->> 1) The returned descriptor is not requested by gpiolib, which means no
->> check is made about whether the GPIO has already been requested by
->> someone else, and another driver can very well request the same GPIO
->> later and obtain it. Any descriptor returned by a function in
->> consumer.h *must* be properly requested. Furthermore the 1:1 mapping
->> between GPIO descriptors and GPIO numbers is not something we can take
->> for granted (since it will likely change soon), so this practice is
->> definitely to ban.
->
-> My bad, somehow I missed the part that it never requested the GPIO.
-> Thanks for pointing it out.
->
->> 2) It exposes the GPIO flags, while they are supposed to be opaque to consumers.
->
-> And this, of course we should be using gpiod_is_active_low() and similar
-> functions that work with descriptors.
+Hi Hanjun,
 
-Yes, although if you convert the driver to use descriptors you should
-not even have to worry about active_low status.
+On Tue, 2014-08-19 at 20:11 +0800, Hanjun Guo wrote:
+> On 2014-8-19 2:56, Geoff Levand wrote:
 
-For drivers that still need to handle GPIO numbers for compatibility
-reasons, it might be nice if gpiolib provided a gpio_to_desc() variant
-that accepts an ACTIVE_LOW flag, so you don't have to worry about the
-active low status once you have converted your GPIO number to a
-descriptor. Actually for these cases we may be better with a function
-that does what gpio_to_desc() does, but also requests the GPIO and
-allows some flags to be specified so the integer-handling part of
-drivers can be completely dropped afterwards. That's another problem
-though. :)
+> > 	message = acpi_disabled ? dn->full_name : "";
+> > 
+> > 	...
+> > 	
+> > 	pr_warn("CPU %d: %s unsupported enable-method property: %s\n",
+> > 				cpu, message, enable_method)
+> 
+> In ACPI, there is no enable-method property, it is a term from, so I think the
+> message printed can be separated.
 
->
->> These two points would somehow be acceptable if this function was
->> gpiolib-private, but here it is clearly not the case and this allows
->> pretty nasty thing to happen. Basically you are using it to take
->> advantage of the gpiod lookup mechanism and then quickly fall back to
->> the legacy integer interface. That's really not something to encourage
->> - these drivers should be converted to use gpiod internally (while
->> preserving integer-based lookup for compatiblity, if needed).
->>
->> In patch 8 you say:
->>
->> "this can be solved by adding a new field of type
->> struct gpio_desc but then there is another problem: the devm_gpiod_get
->> needs to operate on the button device instead of its parent device that
->> has the driver binded, so when the driver is unloaded, the resources for
->> the gpio will not get freed automatically."
->>
->> I'd very much prefer that you use the non-devm variant of gpiod_get()
->> and free the resources manually when the driver is unloaded than this
->> workaround that introduces an loophole in the gpiod consumer lookup
->> functions.
->
-> I agree and we are going to rework this and the consumer patches to do
-> exactly what you say.
+I think it better to have a single message that can cover all
+than to have separate messages.  Wouldn't the enable method be
+"acpi-parking" or "acpi-psci"?  Then something like this would
+work:
 
-Great, thanks to you and Aaron for your understanding!
+	pr_warn("CPU %d: %s Unsupported enable method: %s\n", cpu, message, enable_method);
 
-Alex.
+-Geoff
+
+
