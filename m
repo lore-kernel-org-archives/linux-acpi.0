@@ -1,37 +1,95 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 17/18] ARM64 / ACPI: Enable ARM64 in Kconfig
-Date: Tue, 19 Aug 2014 16:38:26 +0800
-Message-ID: <53F30D02.1040306@linaro.org>
-References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org> <1407166105-17675-18-git-send-email-hanjun.guo@linaro.org> <20140818142745.GV20043@localhost>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [RFC PATCH 6/9] gpiolib: add API to get gpio desc and flags
+Date: Tue, 19 Aug 2014 11:56:31 +0300
+Message-ID: <20140819085631.GG1660@lahna.fi.intel.com>
+References: <1408172039-32513-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1408172039-32513-7-git-send-email-mika.westerberg@linux.intel.com>
+ <CAAVeFu+LRxcJkPRpQMYhyz-TTY1HB7qCEv44a8vTU=g1iKCsfA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140818142745.GV20043@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:29921 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751258AbaHSI4n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Aug 2014 04:56:43 -0400
+Content-Disposition: inline
+In-Reply-To: <CAAVeFu+LRxcJkPRpQMYhyz-TTY1HB7qCEv44a8vTU=g1iKCsfA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexandre Courbot <gnurou@gmail.com>
+Cc: Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Al Stone <al.stone@linaro.org>, Olof Johansson <olof@lixom.net>, Matthew Garrett <matthew.garrett@nebula.com>, Matt Fleming <matt.fleming@intel.com>, David Woodhouse <dwmw2@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Josh Triplett <josh@joshtriplett.org>, Aaron Lu <aaron.lu@intel.com>, Max Eliaser <max.eliaser@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>Rob
 
-On 2014-8-18 22:27, Catalin Marinas wrote:
-> On Mon, Aug 04, 2014 at 04:28:24PM +0100, Hanjun Guo wrote:
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index 3f5f745..f6b6791 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -5,8 +5,7 @@
->>  menuconfig ACPI
->>  	bool "ACPI (Advanced Configuration and Power Interface) Support"
->>  	depends on !IA64_HP_SIM
->> -	depends on IA64 || X86
->> -	depends on PCI
->> +	depends on ((IA64 || X86) && PCI) || ARM64
+On Mon, Aug 18, 2014 at 09:24:48AM -0700, Alexandre Courbot wrote:
+> On Fri, Aug 15, 2014 at 11:53 PM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+> > diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+> > index 2ebc9071e354..e6c2413a6fbf 100644
+> > --- a/drivers/gpio/gpiolib.c
+> > +++ b/drivers/gpio/gpiolib.c
+> > @@ -2644,6 +2644,24 @@ static struct gpio_desc *acpi_find_gpio(struct device *dev, const char *con_id,
+> >         return desc;
+> >  }
+> >
+> > +struct gpio_desc *dev_get_gpiod_flags(struct device *dev, unsigned int idx,
+> > +                                     enum gpio_lookup_flags *flags)
+> > +{
+> > +       struct gpio_desc *desc = ERR_PTR(-ENOENT);
+> > +
+> > +       if (!dev || !flags)
+> > +               return ERR_PTR(-EINVAL);
+> > +
+> > +       /* Using device tree? */
+> > +       if (IS_ENABLED(CONFIG_OF) && dev->of_node)
+> > +               desc = of_find_gpio(dev, NULL, idx, flags);
+> > +       else if (IS_ENABLED(CONFIG_ACPI) && ACPI_COMPANION(dev))
+> > +               desc = acpi_get_gpiod_flags(dev, idx, flags);
+> > +
+> > +       return desc;
+> > +}
+> > +EXPORT_SYMBOL(dev_get_gpiod_flags);
 > 
-> depends on (ARM64 && EXPERT)? (together with default on if CONFIG_ACPI
-> is enabled).
+> Putting aside the fact that this function is clearly ACPI-centric (no
+> con_id parameter and no handling of the platform interface), I have
+> two big problems with it and it ending up in the consumer interface:
+> 
+> 1) The returned descriptor is not requested by gpiolib, which means no
+> check is made about whether the GPIO has already been requested by
+> someone else, and another driver can very well request the same GPIO
+> later and obtain it. Any descriptor returned by a function in
+> consumer.h *must* be properly requested. Furthermore the 1:1 mapping
+> between GPIO descriptors and GPIO numbers is not something we can take
+> for granted (since it will likely change soon), so this practice is
+> definitely to ban.
 
-I will update that in next version.
+My bad, somehow I missed the part that it never requested the GPIO.
+Thanks for pointing it out.
 
-Thanks for all your comments!
+> 2) It exposes the GPIO flags, while they are supposed to be opaque to consumers.
 
-Hanjun
+And this, of course we should be using gpiod_is_active_low() and similar
+functions that work with descriptors.
+
+> These two points would somehow be acceptable if this function was
+> gpiolib-private, but here it is clearly not the case and this allows
+> pretty nasty thing to happen. Basically you are using it to take
+> advantage of the gpiod lookup mechanism and then quickly fall back to
+> the legacy integer interface. That's really not something to encourage
+> - these drivers should be converted to use gpiod internally (while
+> preserving integer-based lookup for compatiblity, if needed).
+> 
+> In patch 8 you say:
+> 
+> "this can be solved by adding a new field of type
+> struct gpio_desc but then there is another problem: the devm_gpiod_get
+> needs to operate on the button device instead of its parent device that
+> has the driver binded, so when the driver is unloaded, the resources for
+> the gpio will not get freed automatically."
+> 
+> I'd very much prefer that you use the non-devm variant of gpiod_get()
+> and free the resources manually when the driver is unloaded than this
+> workaround that introduces an loophole in the gpiod consumer lookup
+> functions.
+
+I agree and we are going to rework this and the consumer patches to do
+exactly what you say.
+
