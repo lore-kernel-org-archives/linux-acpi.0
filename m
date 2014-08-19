@@ -1,134 +1,186 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 10/18] ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and
- register device's gsi
-Date: Tue, 19 Aug 2014 19:36:11 +0800
-Message-ID: <53F336AB.80401@linaro.org>
-References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org> <1407166105-17675-11-git-send-email-hanjun.guo@linaro.org> <53F2474F.70601@arm.com>
+Subject: Re: [PATCH v2 08/18] ARM64 / ACPI: Get the enable method for SMP
+ initialization in ACPI way
+Date: Tue, 19 Aug 2014 20:11:08 +0800
+Message-ID: <53F33EDC.3090203@linaro.org>
+References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>	 <1407166105-17675-9-git-send-email-hanjun.guo@linaro.org> <1408388212.22761.100.camel@smoke>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:35842 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750779AbaHSLhr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2014 07:37:47 -0400
-Received: by mail-pa0-f54.google.com with SMTP id fa1so9881303pad.13
-        for <linux-acpi@vger.kernel.org>; Tue, 19 Aug 2014 04:37:45 -0700 (PDT)
-In-Reply-To: <53F2474F.70601@arm.com>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:33990 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750721AbaHSMMr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2014 08:12:47 -0400
+Received: by mail-pa0-f52.google.com with SMTP id bj1so9723668pad.39
+        for <linux-acpi@vger.kernel.org>; Tue, 19 Aug 2014 05:12:44 -0700 (PDT)
+In-Reply-To: <1408388212.22761.100.camel@smoke>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>
-Cc: "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>"linux-kernel@vger.kernel.org" <l>
+To: Geoff Levand <geoff@infradead.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead>
 
-On 2014-8-19 2:34, Sudeep Holla wrote:
-> 
-> 
-> On 04/08/14 16:28, Hanjun Guo wrote:
->> Introduce ACPI_IRQ_MODEL_GIC which is needed for ARM64 as GIC is
->> used, and then register device's gsi with the core IRQ subsystem.
->>
->> acpi_register_gsi() is similar to DT based irq_of_parse_and_map(),
->> since gsi is unique in the system, so use hwirq number directly
->> for the mapping.
->>
->> Originally-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>   arch/arm64/kernel/acpi.c |   73 ++++++++++++++++++++++++++++++++++++++++++++++
->>   drivers/acpi/bus.c       |    3 ++
->>   include/linux/acpi.h     |    1 +
->>   3 files changed, 77 insertions(+)
->>
->> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
->> index ac7ab34..621ced8 100644
->> --- a/arch/arm64/kernel/acpi.c
->> +++ b/arch/arm64/kernel/acpi.c
->> @@ -34,6 +34,12 @@ EXPORT_SYMBOL(acpi_pci_disabled);
->>   static int enabled_cpus;    /* Processors (GICC) with enabled flag in MADT */
->>
->>   /*
->> + * Since we're on ARM, the default interrupt routing model
->> + * clearly has to be GIC.
->> + */
->> +enum acpi_irq_model_id acpi_irq_model = ACPI_IRQ_MODEL_GIC;
->> +
->> +/*
->>    * __acpi_map_table() will be called before page_init(), so early_ioremap()
->>    * or early_memremap() should be called here to for ACPI table mapping.
->>    */
->> @@ -169,6 +175,73 @@ static int __init
->> acpi_parse_madt_gic_cpu_interface_entries(void)
->>       return 0;
->>   }
->>
->> +int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
->> +{
->> +    *irq = irq_find_mapping(NULL, gsi);
->> +
->> +    return 0;
->> +}
->> +EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
->> +
->> +/*
->> + * success: return IRQ number (>0)
->> + * failure: return =< 0
->> + */
->> +int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
->> +{
->> +    unsigned int irq;
->> +    unsigned int irq_type;
->> +
->> +    /*
->> +     * ACPI have no bindings to indicate SPI or PPI, so we
->> +     * use different mappings from DT in ACPI.
->> +     *
->> +     * For FDT
->> +     * PPI interrupt: in the range [0, 15];
->> +     * SPI interrupt: in the range [0, 987];
->> +     *
->> +     * For ACPI, GSI should be unique so using
->> +     * the hwirq directly for the mapping:
->> +     * PPI interrupt: in the range [16, 31];
->> +     * SPI interrupt: in the range [32, 1019];
->> +     */
->> +
->> +    if (trigger == ACPI_EDGE_SENSITIVE &&
->> +                polarity == ACPI_ACTIVE_LOW)
->> +        irq_type = IRQ_TYPE_EDGE_FALLING;
->> +    else if (trigger == ACPI_EDGE_SENSITIVE &&
->> +                polarity == ACPI_ACTIVE_HIGH)
->> +        irq_type = IRQ_TYPE_EDGE_RISING;
->> +    else if (trigger == ACPI_LEVEL_SENSITIVE &&
->> +                polarity == ACPI_ACTIVE_LOW)
->> +        irq_type = IRQ_TYPE_LEVEL_LOW;
->> +    else if (trigger == ACPI_LEVEL_SENSITIVE &&
->> +                polarity == ACPI_ACTIVE_HIGH)
->> +        irq_type = IRQ_TYPE_LEVEL_HIGH;
->> +    else
->> +        irq_type = IRQ_TYPE_NONE;
->> +
->> +    /*
->> +     * Since only one GIC is supported in ACPI 5.0, we can
->> +     * create mapping refer to the default domain
->> +     */
->> +    irq = irq_create_mapping(NULL, gsi);
->> +    if (!irq)
->> +        return irq;
->> +
->> +    /* Set irq type if specified and different than the current one */
->> +    if (irq_type != IRQ_TYPE_NONE &&
->> +        irq_type != irq_get_trigger_type(irq))
->> +        irq_set_irq_type(irq, irq_type);
->> +    return irq;
->> +}
->> +EXPORT_SYMBOL_GPL(acpi_register_gsi);
->> +
-> 
-> Not sure if acpi_gsi_to_irq and acpi_{,un}register_gsi belong here.
-> These are GIC specific and should belong to GIC driver IMO.
+On 2014-8-19 2:56, Geoff Levand wrote:
+> Hi Hanjun,
 
-I think we can keep them here as GSI is ACPI specific and they are
-not GIC init related.
+Hi Geoff,
+
+> 
+> On Mon, 2014-08-04 at 23:28 +0800, Hanjun Guo wrote:
+>> --- a/arch/arm64/include/asm/acpi.h
+>> +++ b/arch/arm64/include/asm/acpi.h
+>> @@ -14,6 +14,27 @@
+>>  
+>>  /* Basic configuration for ACPI */
+>>  #ifdef	CONFIG_ACPI
+> 
+> By having this preprocessor conditional in the header leads
+> to a proliferation of preprocessor conditionals since any
+> code that includes this header will also need to have
+> preprocessor conditionals.  Another down side of having
+> this is that this code will not get a build test for
+> builds with CONFIG_ACPI=n.
+
+I will move some definitions out of preprocessor conditional and
+introduce some stub function when CONFIG_ACPI is disabled, then
+I think I can remove all the preprocessor conditionals in .c file.
+
+> 
+>> +/*
+>> + * ACPI 5.1 only has two explicit methods to
+>> + * boot up SMP, PSCI and Parking protocol,
+>> + * but the Parking protocol is only defined
+>> + * for ARMv7 now, so make PSCI as the only
+>> + * way for the SMP boot protocol before some
+>> + * updates for the ACPI spec or the Parking
+>> + * protocol spec.
+>> + *
+>> + * This enum is intend to make the boot method
+>> + * scalable when above updates are happended,
+>> + * which NOT means to support all of them.
+>> + */
+>> +enum acpi_smp_boot_protocol {
+>> +	ACPI_SMP_BOOT_PSCI,
+>> +	ACPI_SMP_BOOT_PARKING_PROTOCOL,
+>> +	ACPI_SMP_BOOT_PROTOCOL_MAX
+>> +};
+>> +
+>> +enum acpi_smp_boot_protocol smp_boot_protocol(void);
+> 
+> The name smp_boot_protocol() seems like it would be a generic
+> routine, but it is acpi specific.  Maybe:
+> 
+> enum acpi_boot_protocol_type {...};
+> 
+> enum acpi_boot_protocol_type acpi_boot_protocol(void);
+
+Agreed.
+
+> 
+>> --- a/arch/arm64/kernel/cpu_ops.c
+>> +++ b/arch/arm64/kernel/cpu_ops.c
+>> @@ -49,12 +51,44 @@ static const struct cpu_operations * __init cpu_get_ops(const char *name)
+>>  	return NULL;
+>>  }
+>>  
+>> +#ifdef CONFIG_ACPI
+>> +/*
+>> + * Get a cpu's boot method in the ACPI way.
+>> + */
+>> +static char * __init acpi_get_cpu_boot_method(void)
+>> +{
+>> +	/*
+>> +	 * For ACPI 5.1, only two kind of methods are provided,
+>> +	 * Parking protocol and PSCI, but Parking protocol is
+>> +	 * specified for ARMv7 only, so make PSCI as the only method
+>> +	 * for SMP initialization before the ACPI spec or Parking
+>> +	 * protocol spec is updated.
+>> +	 */
+>> +	switch (smp_boot_protocol()) {
+>> +	case ACPI_SMP_BOOT_PSCI:
+>> +		return "psci";
+>> +	case ACPI_SMP_BOOT_PARKING_PROTOCOL:
+>> +	default:
+>> +		return NULL;
+>> +	}
+>> +}
+>> +#else
+>> +static inline char * __init acpi_get_cpu_boot_method(void) { return NULL; }
+>> +#endif
+> 
+> Since this is inside a C source file, the inline keyword
+> isn't needed since the optimizer will inline regardless.
+> 
+> With that said, I think it would be cleaner to have this
+> as:
+> 
+> static char * __init acpi_get_cpu_boot_method(void)
+> {
+> #ifdef CONFIG_ACPI
+> 	return NULL;
+> #else
+>  ...
+> #endif
+> }
+> 
+> Or better to make smp_boot_protocol() callable regardless
+> of CONFIG_ACPI and then no preprocessor conditionals at all
+> would be needed.
+> 
+>> +
+>>  /*
+>> - * Read a cpu's enable method from the device tree and record it in cpu_ops.
+>> + * Read a cpu's enable method and record it in cpu_ops.
+>>   */
+>>  int __init cpu_read_ops(struct device_node *dn, int cpu)
+>>  {
+>> -	const char *enable_method = of_get_property(dn, "enable-method", NULL);
+>> +	const char *enable_method;
+>> +
+>> +	if (!acpi_disabled) {
+>> +		enable_method = acpi_get_cpu_boot_method();
+>> +		goto get_ops;
+>> +	}
+>> +
+>> +	enable_method = of_get_property(dn, "enable-method", NULL);
+>>  	if (!enable_method) {
+>>  		/*
+>>  		 * The boot CPU may not have an enable method (e.g. when
+>> @@ -66,10 +100,17 @@ int __init cpu_read_ops(struct device_node *dn, int cpu)
+>>  		return -ENOENT;
+>>  	}
+>>  
+>> +get_ops:
+>>  	cpu_ops[cpu] = cpu_get_ops(enable_method);
+>>  	if (!cpu_ops[cpu]) {
+>> -		pr_warn("%s: unsupported enable-method property: %s\n",
+>> -			dn->full_name, enable_method);
+>> +		if (acpi_disabled) {
+>> +			pr_warn("%s: unsupported enable-method property: %s\n",
+>> +				dn->full_name, enable_method);
+>> +		} else {
+>> +			pr_warn("CPU %d: boot protocol unsupported or unknown\n",
+>> +				cpu);
+>> +		}
+>> +
+> 
+> Can't we have this more integrated, maybe something like this?
+> 
+> 	enable_method = acpi_disabled ? of_get_property(dn, "enable-method", NULL)
+> 		: acpi_get_cpu_boot_method();
+
+I like this :)
+
+> 	message = acpi_disabled ? dn->full_name : "";
+> 
+> 	...
+> 	
+> 	pr_warn("CPU %d: %s unsupported enable-method property: %s\n",
+> 				cpu, message, enable_method)
+
+In ACPI, there is no enable-method property, it is a term from, so I think the
+message printed can be separated.
 
 Thanks
 Hanjun
+
