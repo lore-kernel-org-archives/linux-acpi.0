@@ -1,47 +1,88 @@
-From: Geoff Levand <geoff@infradead.org>
-Subject: Re: [PATCH v2 08/18] ARM64 / ACPI: Get the enable method for SMP
- initialization in ACPI way
-Date: Tue, 19 Aug 2014 12:25:26 -0700
-Message-ID: <1408476326.22761.134.camel@smoke>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v2 05/18] ARM64 / ACPI: Parse FADT table to get PSCI
+ flags for PSCI init
+Date: Tue, 19 Aug 2014 22:55:59 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D1E7D1B@ORSMSX112.amr.corp.intel.com>
 References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
-		 <1407166105-17675-9-git-send-email-hanjun.guo@linaro.org>
-	 <1408388212.22761.100.camel@smoke> <53F33EDC.3090203@linaro.org>
+ <1407166105-17675-6-git-send-email-hanjun.guo@linaro.org>
+ <20140818142721.GR20043@localhost> <53F2C983.8000800@linaro.org>
+ <20140819111000.GG3302@leverpostej> <53F33F7A.7030307@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:41796 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752307AbaHSTZi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2014 15:25:38 -0400
-In-Reply-To: <53F33EDC.3090203@linaro.org>
+Received: from mga01.intel.com ([192.55.52.88]:8523 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751186AbaHSW4T convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2014 18:56:19 -0400
+In-Reply-To: <53F33F7A.7030307@linaro.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead>
+To: Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <mark.rutland@arm.com>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm-kernel@lists.infr
 
-Hi Hanjun,
+I should warn you that FADT version numbers are notoriously unreliable; In fact, in ACPICA we were eventually forced to abandon them entirely. We use the actual size of the FADT instead.
 
-On Tue, 2014-08-19 at 20:11 +0800, Hanjun Guo wrote:
-> On 2014-8-19 2:56, Geoff Levand wrote:
+Bob
 
-> > 	message = acpi_disabled ? dn->full_name : "";
-> > 
-> > 	...
-> > 	
-> > 	pr_warn("CPU %d: %s unsupported enable-method property: %s\n",
-> > 				cpu, message, enable_method)
+
+
+> -----Original Message-----
+> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
+> Sent: Tuesday, August 19, 2014 5:14 AM
+> To: Mark Rutland
+> Cc: Catalin Marinas; Rafael J. Wysocki; graeme.gregory@linaro.org; Arnd
+> Bergmann; Olof Johansson; grant.likely@linaro.org; Sudeep Holla; Will
+> Deacon; Jason Cooper; Marc Zyngier; Bjorn Helgaas; Daniel Lezcano; Mark
+> Brown; Rob Herring; Robert Richter; Zheng, Lv; Moore, Robert; Lorenzo
+> Pieralisi; Liviu Dudau; Randy Dunlap; Charles Garcia-Tobin; linux-
+> acpi@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+> kernel@vger.kernel.org; linaro-acpi@lists.linaro.org
+> Subject: Re: [PATCH v2 05/18] ARM64 / ACPI: Parse FADT table to get PSCI
+> flags for PSCI init
 > 
-> In ACPI, there is no enable-method property, it is a term from, so I think the
-> message printed can be separated.
-
-I think it better to have a single message that can cover all
-than to have separate messages.  Wouldn't the enable method be
-"acpi-parking" or "acpi-psci"?  Then something like this would
-work:
-
-	pr_warn("CPU %d: %s Unsupported enable method: %s\n", cpu, message, enable_method);
-
--Geoff
-
+> On 2014-8-19 19:10, Mark Rutland wrote:
+> >>>> @@ -47,6 +49,26 @@ void __init __acpi_unmap_table(char *map, unsigned
+> long size)
+> >>>>  	early_memunmap(map, size);
+> >>>>  }
+> >>>>
+> >>>> +static int __init acpi_parse_fadt(struct acpi_table_header *table)
+> >>>> +{
+> >>>> +	struct acpi_table_fadt *fadt = (struct acpi_table_fadt
+> *)table;
+> >>>> +
+> >>>> +	/*
+> >>>> +	 * Revision in table header is the FADT Major version,
+> >>>> +	 * and there is a minor version of FADT which was introduced
+> >>>> +	 * by ACPI 5.1, we only deal with ACPI 5.1 or higher version
+> >>>> +	 * to get arm boot flags, or we will disable ACPI.
+> >>>> +	 */
+> >>>> +	if (table->revision < 5 || fadt->minor_revision < 1) {
+> >>>
+> >>> If we ever get revision 6.0, this would trigger.
+> >>
+> >> Yes, good catch, actually I already fixed that in my local git repo,
+> >>
+> >> +       if (table->revision > 5 ||
+> >> +           (table->revision == 5 && fadt->minor_revision >= 1)) {
+> >> +               return 0;
+> >> +       } else {
+> >> +               pr_info("FADT revision is %d.%d, no PSCI support,
+> >> + should be 5.1
+> >> or higher\n",
+> >> +                       table->revision, fadt->minor_revision);
+> >> +               disable_acpi();
+> >> +               return -EINVAL;
+> >> +       }
+> >
+> > Given you return in the first path, you don't need the remaining code
+> > to live in an else block.
+> 
+> Agreed, I will update it, and move disable_acpi() outside this function
+> and keep it in one place as Sudeep suggested.
+> 
+> Thanks
+> Hanjun
 
