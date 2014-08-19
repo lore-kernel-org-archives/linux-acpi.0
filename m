@@ -1,49 +1,35 @@
-From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Subject: Re: [RFC PATCH 6/9] gpiolib: add API to get gpio desc and flags
-Date: Tue, 19 Aug 2014 10:58:27 -0500
-Message-ID: <20140819155827.51AA2C40B51@trevor.secretlab.ca>
-References: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com>
-	<20140817130004.4B9FDC4137F@trevor.secretlab.ca>
-	<D016516D.A1AFA%dvhart@linux.intel.com>
-	<1927766.GeLld99ozq@vostro.rjw.lan>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1927766.GeLld99ozq-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Max Eliaser <max.eliaser-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Zi Shen Lim <zlim.lnx@gmail.com>
+Subject: Re: [Linaro-acpi] [PATCH v2 06/18] ARM64 / ACPI: Parse MADT to map
+ logical cpu to MPIDR and get cpu_possible/present_map
+Date: Tue, 19 Aug 2014 11:46:21 -0500
+Message-ID: <CAMDttNf5d6XZ66mbiZivLmZQvcFv1mN1KKkN6TUQe_Z5VCu-1g@mail.gmail.com>
+References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
+	<1407166105-17675-7-git-send-email-hanjun.guo@linaro.org>
+	<53F24705.7080809@arm.com>
+	<53F32E3C.1070102@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:50902 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952AbaHSQqW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2014 12:46:22 -0400
+In-Reply-To: <53F32E3C.1070102@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kern>
 
-On Mon, 18 Aug 2014 06:57:41 +0200, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> wrote:
-> On Sunday, August 17, 2014 12:43:38 PM Darren Hart wrote:
-> > On 8/17/14, 6:00, "Grant Likely" <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> wrote:
-> > 
-> > >>
-> > >>+	/* Using device tree? */
-> > >>+	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
-> > >>+		desc = of_find_gpio(dev, NULL, idx, flags);
-> > >
-> > >of_find_gpio() doesn't exist.
-> > 
-> > Hrm... As of 3.16.0 (e64df3ebe8262c8203d1fe4f541e0241c3112c01)
-> > 
-> > $ git blame -L1455,1456 drivers/gpio/gpiolib.c
-> > bae48da2 (Alexandre Courbot 2013-10-17 10:21:38 -0700 1455) static struct
-> > gpio_desc *of_find_gpio(struct device *dev, const char *con_id,
-> > 
-> > Have we removed this in -next or something? (on the plane, will verify
-> > upon landing)
-> 
-> In 3.17-rc1:
-> 
-> rafael@vostro:~/src/linux-pm> grep -r of_find_gpio *
-> drivers/gpio/gpiolib.c:static struct gpio_desc *of_find_gpio(struct device *dev, const char *con_id,
-> drivers/gpio/gpiolib.c:         desc = of_find_gpio(dev, con_id, idx, &lookupflags);
+Hanjun,
 
-Weird, I don't know why I couldn't find it. I must have been on a
-different branch. Sorry for the noise.
+On Tue, Aug 19, 2014 at 6:00 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> Will INTERRUPT_CONTROLLER confuse people? There is only one GIC redistributor
+> (some people regard it as interrupt controller) in ARM system, if we use
+> INTERRUPT_CONTROLLER people will regard it as multi-redistributors in the
+> system, I think GIC_CPU_INTERFACE would be better, what do you think?
 
-g.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think you meant to say "one GIC _distributor_" (GICD) instead of
+redistributor (GICR).
+ACPI5.1 only describes one GICD per system, but we can most certainly
+describe multiple GICRs.
+For multi-cpu systems, you'll definitely see multiple GIC redistributors.
