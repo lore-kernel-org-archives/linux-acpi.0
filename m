@@ -1,63 +1,63 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 05/18] ARM64 / ACPI: Parse FADT table to get PSCI flags
- for PSCI init
-Date: Tue, 19 Aug 2014 20:13:46 +0800
-Message-ID: <53F33F7A.7030307@linaro.org>
-References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org> <1407166105-17675-6-git-send-email-hanjun.guo@linaro.org> <20140818142721.GR20043@localhost> <53F2C983.8000800@linaro.org> <20140819111000.GG3302@leverpostej>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH] ACPI / LPSS: Add ACPI IDs for Intel Braswell
+Date: Tue, 19 Aug 2014 15:55:22 +0300
+Message-ID: <1408452922-15399-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:36455 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751569AbaHSMPT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2014 08:15:19 -0400
-Received: by mail-pa0-f53.google.com with SMTP id rd3so9991888pab.40
-        for <linux-acpi@vger.kernel.org>; Tue, 19 Aug 2014 05:15:18 -0700 (PDT)
-In-Reply-To: <20140819111000.GG3302@leverpostej>
+Received: from mga09.intel.com ([134.134.136.24]:62841 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751867AbaHSMz0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Aug 2014 08:55:26 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kerne>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, Alan Cox <alan@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2014-8-19 19:10, Mark Rutland wrote:
->>>> @@ -47,6 +49,26 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
->>>>  	early_memunmap(map, size);
->>>>  }
->>>>  
->>>> +static int __init acpi_parse_fadt(struct acpi_table_header *table)
->>>> +{
->>>> +	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
->>>> +
->>>> +	/*
->>>> +	 * Revision in table header is the FADT Major version,
->>>> +	 * and there is a minor version of FADT which was introduced
->>>> +	 * by ACPI 5.1, we only deal with ACPI 5.1 or higher version
->>>> +	 * to get arm boot flags, or we will disable ACPI.
->>>> +	 */
->>>> +	if (table->revision < 5 || fadt->minor_revision < 1) {
->>>
->>> If we ever get revision 6.0, this would trigger.
->>
->> Yes, good catch, actually I already fixed that in my local git repo,
->>
->> +       if (table->revision > 5 ||
->> +           (table->revision == 5 && fadt->minor_revision >= 1)) {
->> +               return 0;
->> +       } else {
->> +               pr_info("FADT revision is %d.%d, no PSCI support, should be 5.1
->> or higher\n",
->> +                       table->revision, fadt->minor_revision);
->> +               disable_acpi();
->> +               return -EINVAL;
->> +       }
-> 
-> Given you return in the first path, you don't need the remaining code to
-> live in an else block.
+From: Alan Cox <alan@linux.intel.com>
 
-Agreed, I will update it, and move disable_acpi() outside this function and keep
-it in one place as Sudeep suggested.
+Enable more identifiers for the existing devices for Intel Braswell and
+Cherryview.
 
-Thanks
-Hanjun
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/acpi/acpi_lpss.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index ce06149088c5..9dfec48dd4e5 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -196,6 +196,17 @@ static struct lpss_device_desc byt_i2c_dev_desc = {
+ 	.setup = lpss_i2c_setup,
+ };
+ 
++static struct lpss_shared_clock bsw_pwm_clock = {
++	.name = "pwm_clk",
++	.rate = 19200000,
++};
++
++static struct lpss_device_desc bsw_pwm_dev_desc = {
++	.clk_required = true,
++	.save_ctx = true,
++	.shared_clock = &bsw_pwm_clock,
++};
++
+ #else
+ 
+ #define LPSS_ADDR(desc) (0UL)
+@@ -225,6 +236,12 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+ 	{ "INT33B2", },
+ 	{ "INT33FC", },
+ 
++	/* Braswell LPSS devices */
++	{ "80862288", LPSS_ADDR(bsw_pwm_dev_desc) },
++	{ "8086228A", LPSS_ADDR(byt_uart_dev_desc) },
++	{ "8086228E", LPSS_ADDR(byt_spi_dev_desc) },
++	{ "808622C1", LPSS_ADDR(byt_i2c_dev_desc) },
++
+ 	{ "INT3430", LPSS_ADDR(lpt_dev_desc) },
+ 	{ "INT3431", LPSS_ADDR(lpt_dev_desc) },
+ 	{ "INT3432", LPSS_ADDR(lpt_i2c_dev_desc) },
+-- 
+2.1.0
 
