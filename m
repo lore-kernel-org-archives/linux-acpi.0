@@ -1,58 +1,49 @@
-From: Darren Hart <dvhart@linux.intel.com>
-Subject: Re: [RFC PATCH 8/9] Input: gpio_keys_polled - Make use of device
- property API
-Date: Tue, 19 Aug 2014 10:21:34 -0500
-Message-ID: <D018D57F.A1FED%dvhart@linux.intel.com>
-References: <1408172039-32513-1-git-send-email-mika.westerberg@linux.intel.com>
- <1408172039-32513-9-git-send-email-mika.westerberg@linux.intel.com>
- <20140818105512.7889980b@ultegra>
- <20140819092753.GI1660@lahna.fi.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:61316 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751676AbaHSPWH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Aug 2014 11:22:07 -0400
-In-Reply-To: <20140819092753.GI1660@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Subject: Re: [RFC PATCH 6/9] gpiolib: add API to get gpio desc and flags
+Date: Tue, 19 Aug 2014 10:58:27 -0500
+Message-ID: <20140819155827.51AA2C40B51@trevor.secretlab.ca>
+References: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com>
+	<20140817130004.4B9FDC4137F@trevor.secretlab.ca>
+	<D016516D.A1AFA%dvhart@linux.intel.com>
+	<1927766.GeLld99ozq@vostro.rjw.lan>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1927766.GeLld99ozq-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Max Eliaser <max.eliaser-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Al Stone <al.stone@linaro.org>, Olof Johansson <olof@lixom.net>, Matthew Garrett <matthew.garrett@nebula.com>, Matt Fleming <matt.fleming@intel.com>, David Woodhouse <dwmw2@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, Josh Triplett <josh@joshtriplett.org>, Aaron Lu <aaron.lu@intel.com>, Max Eliaser <max.eliaser@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mark Brown <broonie@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, linux-acpi@vge
 
-On 8/19/14, 4:27, "Mika Westerberg" <mika.westerberg@linux.intel.com>
-wrote:
+On Mon, 18 Aug 2014 06:57:41 +0200, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> wrote:
+> On Sunday, August 17, 2014 12:43:38 PM Darren Hart wrote:
+> > On 8/17/14, 6:00, "Grant Likely" <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> wrote:
+> > 
+> > >>
+> > >>+	/* Using device tree? */
+> > >>+	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
+> > >>+		desc = of_find_gpio(dev, NULL, idx, flags);
+> > >
+> > >of_find_gpio() doesn't exist.
+> > 
+> > Hrm... As of 3.16.0 (e64df3ebe8262c8203d1fe4f541e0241c3112c01)
+> > 
+> > $ git blame -L1455,1456 drivers/gpio/gpiolib.c
+> > bae48da2 (Alexandre Courbot 2013-10-17 10:21:38 -0700 1455) static struct
+> > gpio_desc *of_find_gpio(struct device *dev, const char *con_id,
+> > 
+> > Have we removed this in -next or something? (on the plane, will verify
+> > upon landing)
+> 
+> In 3.17-rc1:
+> 
+> rafael@vostro:~/src/linux-pm> grep -r of_find_gpio *
+> drivers/gpio/gpiolib.c:static struct gpio_desc *of_find_gpio(struct device *dev, const char *con_id,
+> drivers/gpio/gpiolib.c:         desc = of_find_gpio(dev, con_id, idx, &lookupflags);
 
->On Mon, Aug 18, 2014 at 10:55:12AM -0700, Jacob Pan wrote:
->> On Sat, 16 Aug 2014 09:53:58 +0300
->> Mika Westerberg <mika.westerberg@linux.intel.com> wrote:
->> 
->> > From: Aaron Lu <aaron.lu@intel.com>
->> > 
->> > Make use of device property API in this driver so that both OF based
->> > system and ACPI based system can use this driver.
->> > 
->> Do we always assume OF and ACPI _DSD will have the same property name
->> strings? i.e. in this patch "gpios"
->> > +	if (device_property_get(dev, "gpios", NULL)) {
->> > -		if (!of_find_property(pp, "gpios", NULL)) {
->> 
->> Maybe i missed something, but I don't think we can make that assumption
->> in BIOS. If not, what is the point of having unified interface?
->
->We recommend that when it makes sense, the property names in _DSD follow
->the corresponding DT names.
->
+Weird, I don't know why I couldn't find it. I must have been on a
+different branch. Sorry for the noise.
 
-This is especially try for platform drivers such as this.
-
-We will be creating subsystem types, "gpios", and defining them in the
-_DSD Implementors Guide (per our discussion this morning at Kernel Summit).
--- 
-Darren Hart					Open Source Technology Center
-darren.hart@intel.com				            Intel Corporation
-
-
-
+g.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
