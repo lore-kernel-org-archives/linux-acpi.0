@@ -1,70 +1,42 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v2 05/18] ARM64 / ACPI: Parse FADT table to get PSCI flags
- for PSCI init
-Date: Tue, 19 Aug 2014 12:07:45 +0100
-Message-ID: <53F33001.5000207@arm.com>
-References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org> <1407166105-17675-6-git-send-email-hanjun.guo@linaro.org> <53F246D4.7040807@arm.com> <53F3297A.1040309@linaro.org>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v2 05/18] ARM64 / ACPI: Parse FADT table to get PSCI
+ flags for PSCI init
+Date: Tue, 19 Aug 2014 12:10:00 +0100
+Message-ID: <20140819111000.GG3302@leverpostej>
+References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
+ <1407166105-17675-6-git-send-email-hanjun.guo@linaro.org>
+ <20140818142721.GR20043@localhost>
+ <53F2C983.8000800@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:40676 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751423AbaHSLHv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2014 07:07:51 -0400
-In-Reply-To: <53F3297A.1040309@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <53F2C983.8000800@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kerne>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.or>
 
-
-
-On 19/08/14 11:39, Hanjun Guo wrote:
-> On 2014-8-19 2:32, Sudeep Holla wrote:
->> On 04/08/14 16:28, Hanjun Guo wrote:
->>> There are two flags: PSCI_COMPLIANT and PSCI_USE_HVC. When set,
->>> the former signals to the OS that the hardware is PSCI compliant.
->>> The latter selects the appropriate conduit for PSCI calls by
->>> toggling between Hypervisor Calls (HVC) and Secure Monitor Calls
->>> (SMC).
->>>
->>> FADT table contains such information, parse FADT to get the flags
->>> for PSCI init. Since ACPI 5.1 doesn't support self defined PSCI
->>> function IDs, which means that only PSCI 0.2+ is supported in ACPI.
->>>
->>> At the same time, only ACPI 5.1 or higher verison supports PSCI,
->>> and FADT Major.Minor version was introduced in ACPI 5.1, so we
->>> will check the version and only parse FADT table with version >= 5.1.
->>>
->>> If firmware provides ACPI tables with ACPI version less than 5.1,
->>> OS will be messed up with those information and have no way to
->>> bring up secondery CPUs, so disable ACPI if we get an FADT table
->>> with version less that 5.1.
->>>
-> [...]
->>>
->>> +static int __init acpi_parse_fadt(struct acpi_table_header *table)
->>> +{
->>> +    struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
->>> +
->>> +    /*
->>> +     * Revision in table header is the FADT Major version,
->>> +     * and there is a minor version of FADT which was introduced
->>> +     * by ACPI 5.1, we only deal with ACPI 5.1 or higher version
->>> +     * to get arm boot flags, or we will disable ACPI.
->>> +     */
->>> +    if (table->revision < 5 || fadt->minor_revision < 1) {
->>
->>                  &&
->
-> Catalin also pointed out this bug :), but && is not enough, for example,
-> this would not trigger of revision 4.1, although 4.1 is not exist, but
-> the code will still confusing people, so I updated the code as:
->
-
-Right I missed it :), the below code looks fine.
-
+> >> @@ -47,6 +49,26 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
+> >>  	early_memunmap(map, size);
+> >>  }
+> >>  
+> >> +static int __init acpi_parse_fadt(struct acpi_table_header *table)
+> >> +{
+> >> +	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
+> >> +
+> >> +	/*
+> >> +	 * Revision in table header is the FADT Major version,
+> >> +	 * and there is a minor version of FADT which was introduced
+> >> +	 * by ACPI 5.1, we only deal with ACPI 5.1 or higher version
+> >> +	 * to get arm boot flags, or we will disable ACPI.
+> >> +	 */
+> >> +	if (table->revision < 5 || fadt->minor_revision < 1) {
+> > 
+> > If we ever get revision 6.0, this would trigger.
+> 
+> Yes, good catch, actually I already fixed that in my local git repo,
+> 
 > +       if (table->revision > 5 ||
 > +           (table->revision == 5 && fadt->minor_revision >= 1)) {
 > +               return 0;
@@ -73,10 +45,10 @@ Right I missed it :), the below code looks fine.
 > or higher\n",
 > +                       table->revision, fadt->minor_revision);
 > +               disable_acpi();
+> +               return -EINVAL;
+> +       }
 
-As suggested elsewhere try to eliminate this and have it once if
-acpi_boot_init failed for any reasons.
+Given you return in the first path, you don't need the remaining code to
+live in an else block.
 
-Regards,
-Sudeep
-
+Mark.
