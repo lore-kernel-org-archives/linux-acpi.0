@@ -1,60 +1,71 @@
 From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH 07/19] ARM64 / ACPI: Parse MADT to map logical cpu to
- MPIDR and get cpu_possible/present_map
-Date: Wed, 20 Aug 2014 10:14:37 -0500
-Message-ID: <20140820151437.91964C41290@trevor.secretlab.ca>
+Subject: Re: [PATCH 19/19] Documentation: ACPI for ARM64
+Date: Wed, 20 Aug 2014 11:42:27 -0500
+Message-ID: <20140820164227.E0F4BC41204@trevor.secretlab.ca>
 References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
-	<1406206825-15590-8-git-send-email-hanjun.guo@linaro.org>
+	<1406206825-15590-20-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f179.google.com ([209.85.216.179]:61673 "EHLO
-	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751506AbaHTQQY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Aug 2014 12:16:24 -0400
-Received: by mail-qc0-f179.google.com with SMTP id m20so7797785qcx.24
-        for <linux-acpi@vger.kernel.org>; Wed, 20 Aug 2014 09:16:19 -0700 (PDT)
-In-Reply-To: <1406206825-15590-8-git-send-email-hanjun.guo@linaro.org>
+Received: from mail-qa0-f50.google.com ([209.85.216.50]:47782 "EHLO
+	mail-qa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751506AbaHTQmi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Aug 2014 12:42:38 -0400
+Received: by mail-qa0-f50.google.com with SMTP id s7so7308760qap.9
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Aug 2014 09:42:37 -0700 (PDT)
+In-Reply-To: <1406206825-15590-20-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi-private@linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi-private@linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-On Thu, 24 Jul 2014 21:00:13 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> MADT contains the information for MPIDR which is essential for
-> SMP initialization, parse the GIC cpu interface structures to
-> get the MPIDR value and map it to cpu_logical_map(), and add
-> enabled cpu with valid MPIDR into cpu_possible_map and
-> cpu_present_map.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> ---
-> +	/* If it is the first CPU, no need to check duplicate MPIDRs */
-> +	if (!enabled_cpus)
-> +		goto skip_mpidr_check;
+On Thu, 24 Jul 2014 21:00:25 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> +Clocks
+> +------
 > +
-> +	/*
-> +	 * Duplicate MPIDRs are a recipe for disaster. Scan
-> +	 * all initialized entries and check for
-> +	 * duplicates. If any is found just ignore the CPU.
-> +	 */
-> +	for_each_present_cpu(cpu) {
-> +		if (cpu_logical_map(cpu) == mpidr) {
-> +			pr_err("Firmware bug, duplicate CPU MPIDR: 0x%llx in MADT\n",
-> +			       mpidr);
-> +			return -EINVAL;
+> +Like clocks that are part of the power resources there is no standard way
+> +to represent a clock tree in ACPI 5.1 in a similar manner to how it is
+> +described in DT.
+> +
+> +Devices affected by this include things like UARTs, SoC driven LCD displays,
+> +etc.
+> +
+> +The firmware for example UEFI should initialise these clocks to fixed working
+> +values before the kernel is executed. If a driver requires to know rates of
+> +clocks set by firmware then they can be passed to kernel using _DSD.
+> +
+> +example :-
+> +
+> +Device (CLK0) {
+> +	...
+> +
+> +	Name (_DSD, Package() {
+> +		ToUUID("XXXXX"),
+> +		Package() {
+> +			Package(2) {"#clock-cells", 0},
+> +			Package(2) {"clock-frequency", "10000"}
 > +		}
-> +	}
+> +	})
 > +
-> +skip_mpidr_check:
-> +	enabled_cpus++;
+> +	...
+> +}
+> +
+> +Device (USR1) {
+> +	...
+> +
+> +	Name (_DSD, Package() {
+> +		ToUUID("XXXXX"),
+> +		Package() {
+> +			Package(2) {"clocks", Package() {1, ^CLK0}}},
+> +		}
+> +	})
+> +
+> +	...
+> +}
 
-So, this hunk is embarrasing. The goto is completely unnecessary and the
-whole for_each_present_cpu() block can be inside an
-"if (enabled_cpus) { ... }" block. A goto is just nasty.
-
-That said, is the if even necessary? Will for_each_present_cpu() iterate
-over anything if it is processing the first cpu? (I don't actually know
-the answer here, I did a quick look but not enough to get an
-authoritative answer).
+Really? This looks wrong. The above example goes right back to
+conceptually putting the clock tree into ACPI. I would expect the ACPI
+way to expose current clock rate to an individual device driver is to
+expose a clock rate method that internally knows how to return the
+currently set rate.
 
 g.
+
