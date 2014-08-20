@@ -1,63 +1,71 @@
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v2 08/18] ARM64 / ACPI: Get the enable method for SMP
- initialization in ACPI way
-Date: Wed, 20 Aug 2014 15:52:19 +0100
-Message-ID: <20140820145219.GO24600@localhost>
+Subject: Re: [PATCH v2 09/18] ACPI / processor: Make it possible to get CPU
+ hardware ID via GICC
+Date: Wed, 20 Aug 2014 15:56:54 +0100
+Message-ID: <20140820145654.GP24600@localhost>
 References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
- <1407166105-17675-9-git-send-email-hanjun.guo@linaro.org>
- <20140818142733.GT20043@localhost>
- <53F30B99.4000704@linaro.org>
+ <1407166105-17675-10-git-send-email-hanjun.guo@linaro.org>
+ <20140818142740.GU20043@localhost>
+ <53F30CCE.9040705@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fw-tnat.austin.arm.com ([217.140.110.23]:51223 "EHLO
+	collaborate-mta1.arm.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751213AbaHTO5H (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Aug 2014 10:57:07 -0400
 Content-Disposition: inline
-In-Reply-To: <53F30B99.4000704@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <53F30CCE.9040705@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 19, 2014 at 09:32:25AM +0100, Hanjun Guo wrote:
+On Tue, Aug 19, 2014 at 09:37:34AM +0100, Hanjun Guo wrote:
 > On 2014-8-18 22:27, Catalin Marinas wrote:
-> > On Mon, Aug 04, 2014 at 04:28:15PM +0100, Hanjun Guo wrote:
-> >> +#ifdef CONFIG_ACPI
+> > On Mon, Aug 04, 2014 at 04:28:16PM +0100, Hanjun Guo wrote:
+> >> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> >> index e32321c..4007313 100644
+> >> --- a/drivers/acpi/processor_core.c
+> >> +++ b/drivers/acpi/processor_core.c
+> >> @@ -64,6 +64,38 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+> >>  	return 0;
+> >>  }
+> >>  
 > >> +/*
-> >> + * Get a cpu's boot method in the ACPI way.
+> >> + * On ARM platform, MPIDR value is the hardware ID as apic ID
+> >> + * on Intel platforms
 > >> + */
-> >> +static char * __init acpi_get_cpu_boot_method(void)
+> >> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
+> >> +		int device_declaration, u32 acpi_id, int *mpidr)
 > >> +{
-> >> +	/*
-> >> +	 * For ACPI 5.1, only two kind of methods are provided,
-> >> +	 * Parking protocol and PSCI, but Parking protocol is
-> >> +	 * specified for ARMv7 only, so make PSCI as the only method
-> >> +	 * for SMP initialization before the ACPI spec or Parking
-> >> +	 * protocol spec is updated.
+> >> +	struct acpi_madt_generic_interrupt *gicc =
+> >> +	    container_of(entry, struct acpi_madt_generic_interrupt, header);
+> >> +
+> >> +	if (!(gicc->flags & ACPI_MADT_ENABLED))
+> >> +		return -ENODEV;
+> >> +
+> >> +	/* In the GIC interrupt model, logical processors are
+> >> +	 * required to have a Processor Device object in the DSDT,
+> >> +	 * so we should check device_declaration here
 > >> +	 */
-> >> +	switch (smp_boot_protocol()) {
-> >> +	case ACPI_SMP_BOOT_PSCI:
-> >> +		return "psci";
-> >> +	case ACPI_SMP_BOOT_PARKING_PROTOCOL:
-> >> +	default:
-> >> +		return NULL;
-> >> +	}
-> >> +}
+> >> +	if (device_declaration && (gicc->uid == acpi_id)) {
+> >> +		/*
+> >> +		 * Only bits [0:7] Aff0, bits [8:15] Aff1, bits [16:23] Aff2
+> >> +		 * and bits [32:39] Aff3 are meaningful, so pack the Affx
+> >> +		 * fields into a single 32 bit identifier to accommodate the
+> >> +		 * acpi processor drivers.
+> >> +		 */
+> >> +		*mpidr = ((gicc->arm_mpidr & 0xff00000000) >> 8)
+> >> +			 | gicc->arm_mpidr;
 > > 
-> > Actually, do we even need to define smp_boot_protocol()? Is it used
-> > anywhere else apart from this patch (I still haven't gone through all
-> > patches)?
+> > You can use pack_mpidr_into_32_bits().
 > 
-> It is just used in this patch. I think we can make the ACPI boot protocol
-> scalable in this way, if we support another boot protocol in ACPI in the
-> future, we can easily update the function to support it, does it make sense?
+> processor_core.c will be used by x86 and ia64 too, it will cause
+> compile error on !ARM64 platforms.
 
-Not really. You just add additional code, enums, functions when all you
-do is check for acpi_psci_present() (or whatever new protocol you would
-get). If the enum is never going to be used outside this file, don't
-bother with additional functions.
-
-BTW, it would be nicer if the acpi related functions are contained in as
-fewer files as possible. So here you could keep
-acpi_get_cpu_boot_method() in the acpi.c file. It only returns a string.
+Oh. So we do we have an ARM-specific function in core ACPI code?
 
 -- 
 Catalin
