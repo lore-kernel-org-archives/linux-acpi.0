@@ -1,273 +1,295 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: [PATCH] ACPI: Add GPIO-signaled event emulator.
-Date: Wed, 20 Aug 2014 16:58:20 +0200
-Message-ID: <1408546700-19309-1-git-send-email-tomasz.nowicki@linaro.org>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH 06/19] ARM64 / ACPI: Parse FADT table to get PSCI flags
+ for PSCI init
+Date: Wed, 20 Aug 2014 10:00:28 -0500
+Message-ID: <20140820150029.0BB3FC41205@trevor.secretlab.ca>
+References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
+	<1406206825-15590-7-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:35949 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983AbaHTO6M (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Aug 2014 10:58:12 -0400
-Received: by mail-wi0-f170.google.com with SMTP id f8so6780857wiw.5
-        for <linux-acpi@vger.kernel.org>; Wed, 20 Aug 2014 07:58:11 -0700 (PDT)
+Received: from mail-qg0-f50.google.com ([209.85.192.50]:40571 "EHLO
+	mail-qg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751444AbaHTPA7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Aug 2014 11:00:59 -0400
+Received: by mail-qg0-f50.google.com with SMTP id z107so4073653qgd.9
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Aug 2014 08:00:58 -0700 (PDT)
+In-Reply-To: <1406206825-15590-7-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, linus.walleij@linaro.org, gnurou@gmail.com, mika.westerberg@linux.intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi-private@linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-GPIO-signaled events is quite new thing in Linux kernel.
-There are not many board which can take advantage of it.
-However, GPIO events are very useful feature during work on ACPI
-subsystems.
+On Thu, 24 Jul 2014 21:00:12 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> There are two flags: PSCI_COMPLIANT and PSCI_USE_HVC. When set,
+> the former signals to the OS that the hardware is PSCI compliant.
+> The latter selects the appropriate conduit for PSCI calls by
+> toggling between Hypervisor Calls (HVC) and Secure Monitor Calls
+> (SMC).
+> 
+> FADT table contains such information, parse FADT to get the flags
+> for PSCI init. Since ACPI 5.1 doesn't support self defined PSCI
+> function IDs, which means that only PSCI 0.2+ is supported in ACPI.
+> 
+> At the same time, only ACPI 5.1 or higher verison supports PSCI,
+> and FADT Major.Minor version was introduced in ACPI 5.1, so we
+> will check the version and only parse FADT table with version >= 5.1.
+> 
+> If firmware provides ACPI tables with ACPI version less than 5.1,
+> OS will be messed up with those information and have no way to
+> bring up secondery CPUs, so disable ACPI if we get an FADT table
+> with version less that 5.1.
+> 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> ---
+>  arch/arm64/include/asm/acpi.h |    2 +
+>  arch/arm64/kernel/acpi.c      |   50 ++++++++++++++++++++++
+>  arch/arm64/kernel/psci.c      |   95 +++++++++++++++++++++++++++++------------
+>  arch/arm64/kernel/setup.c     |    2 +
+>  4 files changed, 121 insertions(+), 28 deletions(-)
+> 
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index 44b617f..67dac90 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -18,6 +18,8 @@ extern int acpi_disabled;
+>  extern int acpi_noirq;
+>  extern int acpi_pci_disabled;
+>  extern int acpi_strict;
+> +extern int acpi_psci_present;
+> +extern int acpi_psci_use_hvc;
+>  
+>  static inline void disable_acpi(void)
+>  {
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index f5a10b5..374926f 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -11,6 +11,8 @@
+>   *  published by the Free Software Foundation.
+>   */
+>  
+> +#define pr_fmt(fmt) "ACPI: " fmt
+> +
+>  #include <linux/init.h>
+>  #include <linux/acpi.h>
+>  #include <linux/cpumask.h>
+> @@ -34,6 +36,12 @@ EXPORT_SYMBOL(acpi_disabled);
+>  int acpi_pci_disabled;		/* skip ACPI PCI scan and IRQ initialization */
+>  EXPORT_SYMBOL(acpi_pci_disabled);
+>  
+> +/* 1 to indicate PSCI is implemented */
+> +int acpi_psci_present;
+> +
+> +/* 1 to indicate HVC must be used instead of SMC as the PSCI conduit */
+> +int acpi_psci_use_hvc;
+> +
+>  /*
+>   * __acpi_map_table() will be called before page_init(), so early_ioremap()
+>   * or early_memremap() should be called here to for ACPI table mapping.
+> @@ -54,6 +62,33 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
+>  	early_iounmap(map, size);
+>  }
+>  
+> +static int __init acpi_parse_fadt(struct acpi_table_header *table)
+> +{
+> +	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
+> +
+> +	/*
+> +	 * Revision in table header is the FADT Major version,
+> +	 * and there is a minor version of FADT which was introduced
+> +	 * by ACPI 5.1, we only deal with ACPI 5.1 or higher version
+> +	 * to get arm boot flags, or we will disable ACPI.
+> +	 */
+> +	if (table->revision < 5 || fadt->minor_version < 1) {
+> +		pr_info("FADT version is %d.%d, no PSCI support, should be 5.1 or higher\n",
+> +			table->revision, fadt->minor_version);
+> +		acpi_psci_present = 0;
+> +		disable_acpi();
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (acpi_gbl_FADT.arm_boot_flags & ACPI_FADT_PSCI_COMPLIANT)
+> +		acpi_psci_present = 1;
+> +
+> +	if (acpi_gbl_FADT.arm_boot_flags & ACPI_FADT_PSCI_USE_HVC)
+> +		acpi_psci_use_hvc = 1;
+> +
+> +	return 0;
+> +}
+> +
+>  /*
+>   * acpi_boot_table_init() called from setup_arch(), always.
+>   *	1. find RSDP and get its address, and then find XSDT
+> @@ -75,6 +110,21 @@ void __init acpi_boot_table_init(void)
+>  	}
+>  }
+>  
+> +int __init acpi_boot_init(void)
+> +{
+> +	int err = 0;
+> +
+> +	/* If acpi_disabled, bail out */
+> +	if (acpi_disabled)
+> +		return -ENODEV;
+> +
+> +	err = acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt);
+> +	if (err)
+> +		pr_err("Can't find FADT\n");
+> +
+> +	return err;
+> +}
+> +
+>  static int __init parse_acpi(char *arg)
+>  {
+>  	if (!arg)
+> diff --git a/arch/arm64/kernel/psci.c b/arch/arm64/kernel/psci.c
+> index 9e9798f..adb25f3 100644
+> --- a/arch/arm64/kernel/psci.c
+> +++ b/arch/arm64/kernel/psci.c
+> @@ -15,6 +15,7 @@
+>  
+>  #define pr_fmt(fmt) "psci: " fmt
+>  
+> +#include <linux/acpi.h>
+>  #include <linux/init.h>
+>  #include <linux/of.h>
+>  #include <linux/smp.h>
+> @@ -231,6 +232,33 @@ static void psci_sys_poweroff(void)
+>  	invoke_psci_fn(PSCI_0_2_FN_SYSTEM_OFF, 0, 0, 0);
+>  }
+>  
+> +static void psci_0_2_set_functions(void)
+> +{
+> +	pr_info("Using standard PSCI v0.2 function IDs\n");
+> +	psci_function_id[PSCI_FN_CPU_SUSPEND] = PSCI_0_2_FN64_CPU_SUSPEND;
+> +	psci_ops.cpu_suspend = psci_cpu_suspend;
+> +
+> +	psci_function_id[PSCI_FN_CPU_OFF] = PSCI_0_2_FN_CPU_OFF;
+> +	psci_ops.cpu_off = psci_cpu_off;
+> +
+> +	psci_function_id[PSCI_FN_CPU_ON] = PSCI_0_2_FN64_CPU_ON;
+> +	psci_ops.cpu_on = psci_cpu_on;
+> +
+> +	psci_function_id[PSCI_FN_MIGRATE] = PSCI_0_2_FN64_MIGRATE;
+> +	psci_ops.migrate = psci_migrate;
+> +
+> +	psci_function_id[PSCI_FN_AFFINITY_INFO] = PSCI_0_2_FN64_AFFINITY_INFO;
+> +	psci_ops.affinity_info = psci_affinity_info;
+> +
+> +	psci_function_id[PSCI_FN_MIGRATE_INFO_TYPE] =
+> +		PSCI_0_2_FN_MIGRATE_INFO_TYPE;
+> +	psci_ops.migrate_info_type = psci_migrate_info_type;
+> +
+> +	arm_pm_restart = psci_sys_reset;
+> +
+> +	pm_power_off = psci_sys_poweroff;
+> +}
+> +
+>  /*
+>   * PSCI Function IDs for v0.2+ are well defined so use
+>   * standard values.
+> @@ -264,29 +292,7 @@ static int psci_0_2_init(struct device_node *np)
+>  		}
+>  	}
+>  
+> -	pr_info("Using standard PSCI v0.2 function IDs\n");
+> -	psci_function_id[PSCI_FN_CPU_SUSPEND] = PSCI_0_2_FN64_CPU_SUSPEND;
+> -	psci_ops.cpu_suspend = psci_cpu_suspend;
+> -
+> -	psci_function_id[PSCI_FN_CPU_OFF] = PSCI_0_2_FN_CPU_OFF;
+> -	psci_ops.cpu_off = psci_cpu_off;
+> -
+> -	psci_function_id[PSCI_FN_CPU_ON] = PSCI_0_2_FN64_CPU_ON;
+> -	psci_ops.cpu_on = psci_cpu_on;
+> -
+> -	psci_function_id[PSCI_FN_MIGRATE] = PSCI_0_2_FN64_MIGRATE;
+> -	psci_ops.migrate = psci_migrate;
+> -
+> -	psci_function_id[PSCI_FN_AFFINITY_INFO] = PSCI_0_2_FN64_AFFINITY_INFO;
+> -	psci_ops.affinity_info = psci_affinity_info;
+> -
+> -	psci_function_id[PSCI_FN_MIGRATE_INFO_TYPE] =
+> -		PSCI_0_2_FN_MIGRATE_INFO_TYPE;
+> -	psci_ops.migrate_info_type = psci_migrate_info_type;
+> -
+> -	arm_pm_restart = psci_sys_reset;
+> -
+> -	pm_power_off = psci_sys_poweroff;
+> +	psci_0_2_set_functions();
+>  
+>  out_put_node:
+>  	of_node_put(np);
+> @@ -333,6 +339,33 @@ out_put_node:
+>  	return err;
+>  }
+>  
+> +#ifdef CONFIG_ACPI
+> +static int get_set_conduit_method_acpi(void)
+> +{
+> +	if (acpi_psci_use_hvc)
+> +		invoke_psci_fn = __invoke_psci_fn_hvc;
+> +	else
+> +		invoke_psci_fn = __invoke_psci_fn_smc;
+> +
+> +	return 0;
+> +}
+> +
+> +/* We use PSCI 0.2+ when ACPI is deployed */
+> +static int psci_0_2_init_acpi(void)
+> +{
+> +	get_set_conduit_method_acpi();
+> +
+> +	psci_0_2_set_functions();
+> +
+> +	return 0;
+> +}
+> +#else
+> +static inline int psci_0_2_init_acpi(void)
+> +{
+> +	return -ENODEV;
+> +}
+> +#endif
+> +
+>  static const struct of_device_id psci_of_match[] __initconst = {
+>  	{ .compatible = "arm,psci",	.data = psci_0_1_init},
+>  	{ .compatible = "arm,psci-0.2",	.data = psci_0_2_init},
+> @@ -345,13 +378,19 @@ int __init psci_init(void)
+>  	const struct of_device_id *matched_np;
+>  	psci_initcall_t init_fn;
+>  
+> -	np = of_find_matching_node_and_match(NULL, psci_of_match, &matched_np);
+> +	if (acpi_disabled) {
+> +		np = of_find_matching_node_and_match(NULL,
+> +				psci_of_match, &matched_np);
+>  
+> -	if (!np)
+> -		return -ENODEV;
+> +		if (!np)
+> +			return -ENODEV;
+> +
+> +		init_fn = (psci_initcall_t)matched_np->data;
+> +
+> +		return init_fn(np);
+> +	}
+>  
+> -	init_fn = (psci_initcall_t)matched_np->data;
+> -	return init_fn(np);
+> +	return psci_0_2_init_acpi();
+>  }
 
-This commit emulates GPIO h/w behaviour and consists on write
-operation to debugfs file. GPIO device instance is still required in DSDT
-table along with _AEI resources and event methods.
+So, while the functionality is sound, this is kind of a stinky diff. The
+ACPI path should not push the OF code into a sub branch. Make it look
+like this instead (with the advantage that the diff will be simpler):
 
-Please, see Kconfig help and driver head section for more details
-regarding tool usage.
++	if (IS_ENABLED(CONFIG_ACPI) && !acpi_disabled)
++		return psci_0_2_init_acpi();
 
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
----
- drivers/acpi/Kconfig             |  10 ++
- drivers/acpi/Makefile            |   1 +
- drivers/acpi/gpio-acpi-evt-emu.c | 195 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 206 insertions(+)
- create mode 100644 drivers/acpi/gpio-acpi-evt-emu.c
-
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index fd54a74..8b9b74d 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -122,6 +122,16 @@ config ACPI_BUTTON
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called button.
+ 	np = of_find_matching_node_and_match(NULL, psci_of_match, &matched_np);
  
-+config ACPI_GPIO_EVT_EMULATE
-+        bool "ACPI GPIO-signaled Events Emulation Support"
-+        depends on DEBUG_FS
-+	default n
-+	help
-+	  This will enable your system to emulate GPIO-signaled event through
-+	  proc file system. User needs to trigger event method by
-+	  echo 1 >  /sys/kernel/debug/acpi/events/<GPIO DEVICE>/<PIN>
-+	  (where, GPIO DEVICE is a GPIO device name and PIN is a pin number).
-+
- config ACPI_VIDEO
- 	tristate "Video"
- 	depends on X86 && BACKLIGHT_CLASS_DEVICE
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 9fa20ff..24f9d8f 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -55,6 +55,7 @@ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
- ifdef CONFIG_ACPI_VIDEO
- acpi-y				+= video_detect.o
- endif
-+acpi-$(CONFIG_ACPI_GPIO_EVT_EMULATE)	+= gpio-acpi-evt-emu.o
+ 	if (!np)
+ 		return -ENODEV;
  
- # These are (potentially) separate modules
- 
-diff --git a/drivers/acpi/gpio-acpi-evt-emu.c b/drivers/acpi/gpio-acpi-evt-emu.c
-new file mode 100644
-index 0000000..c39f501
---- /dev/null
-+++ b/drivers/acpi/gpio-acpi-evt-emu.c
-@@ -0,0 +1,195 @@
-+/*
-+ * Code to emulate GPIO-signaled events.
-+ *
-+ * The sole purpose of this module is to help with GPIO event triggering.
-+ * Usage:
-+ * 1. See the list of available GPIO devices and associated pins under:
-+ *    /sys/kernel/debug/acpi/events/<GPIO DEVICE>/<PIN>. Only pins which are to
-+ *    be used as GPIO-signaled events will be listed (_AEI resources).
-+ *
-+ * 2. Trigger method corresponding to device pin number:
-+ *    $ echo 1 > /sys/kernel/debug/acpi/events/<GPIO DEVICE>/<PIN>
-+ */
-+
-+/*
-+ * Copyright (C) 2014, Linaro Ltd.
-+ * Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/uaccess.h>
-+#include <linux/debugfs.h>
-+#include <linux/acpi.h>
-+
-+#include "acpica/accommon.h"
-+#include "acpica/acnamesp.h"
-+
-+#include "internal.h"
-+
-+#define _COMPONENT		ACPI_SYSTEM_COMPONENT
-+ACPI_MODULE_NAME("gpio_acpi_evt_emu");
-+
-+struct gpio_pin_parent_data {
-+	acpi_handle handle;
-+	struct dentry *debugfs_dir;
-+	char *name;
-+	unsigned int evt_count;
-+};
-+
-+struct gpio_pin_data {
-+	struct list_head list;
-+	acpi_handle handle;
-+	unsigned int pin;
-+};
-+
-+static struct dentry *acpi_evt_debugfs_dir;
-+static LIST_HEAD(pin_data_list);
-+
-+static int gpio_evt_trigger(void *data, u64 val)
-+{
-+	struct gpio_pin_data *pin_data = (struct gpio_pin_data *)data;
-+	int pin = pin_data->pin;
-+
-+	if (ACPI_FAILURE(acpi_execute_simple_method(pin_data->handle, NULL,
-+						    pin <= 255 ? 0 : pin)))
-+		pr_err(PREFIX "evaluating event method failed\n");
-+
-+	return 0;
-+}
-+
-+DEFINE_SIMPLE_ATTRIBUTE(gpio_evt_emu_fops, NULL, gpio_evt_trigger, "%llu\n");
-+
-+static acpi_status gpio_list_resource(struct acpi_resource *ares, void *context)
-+{
-+	struct acpi_resource_gpio *agpio = &ares->data.gpio;
-+	struct gpio_pin_parent_data *parent_data = context;
-+	struct dentry *pin_debugfs_dir;
-+	struct gpio_pin_data *pin_data;
-+	acpi_handle evt_handle;
-+	acpi_status status;
-+	char str_pin[5];
-+	char ev_name[5];
-+	int pin;
-+
-+	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
-+		return AE_OK;
-+
-+	if (agpio->connection_type != ACPI_RESOURCE_GPIO_TYPE_INT)
-+		return AE_OK;
-+
-+	pin_data = kmalloc(sizeof(*pin_data), GFP_KERNEL);
-+	if (!pin_data)
-+		return AE_NO_MEMORY;
-+
-+	pin = agpio->pin_table[0];
-+	snprintf(str_pin, 5, "%d", pin);
-+	pin_debugfs_dir = debugfs_create_file(str_pin, S_IWUSR,
-+					      parent_data->debugfs_dir,
-+					      pin_data,
-+					      &gpio_evt_emu_fops);
-+	if (!pin_debugfs_dir) {
-+		status = AE_NULL_ENTRY;
-+		goto fail;
-+	}
-+
-+	if (pin <= 255)
-+		sprintf(ev_name, "_%c%02X",
-+			agpio->triggering == ACPI_EDGE_SENSITIVE ? 'E' : 'L',
-+			pin);
-+	else
-+		sprintf(ev_name, "_EVT");
-+
-+	status = acpi_get_handle(parent_data->handle, ev_name, &evt_handle);
-+	if (ACPI_FAILURE(status)) {
-+		pr_err(PREFIX "getting handle to <%s> of <%s> failed, there is no method related to 0x%02X pin\n",
-+		       ev_name, parent_data->name, pin);
-+		goto fail;
-+	}
-+
-+	pin_data->handle = evt_handle;
-+	pin_data->pin = pin;
-+        list_add_tail(&pin_data->list, &pin_data_list);
-+
-+	parent_data->evt_count++;
-+
-+	return AE_OK;
-+fail:
-+	kfree(pin_data);
-+	return status;
-+}
-+
-+static acpi_status gpio_find_resource(acpi_handle handle, u32 lvl,
-+					  void *context, void **rv)
-+{
-+	struct acpi_namespace_node *node;
-+	struct dentry *gpio_debugfs_dir;
-+	struct gpio_pin_parent_data parent_data;
-+	char gpio_name[5];
-+
-+	node = acpi_ns_validate_handle(handle);
-+	if (!node) {
-+		pr_err(PREFIX "Mapping GPIO handle to node failed\n");
-+		return AE_BAD_PARAMETER;
-+	}
-+
-+	snprintf(gpio_name, 5, "%s", node->name.ascii);
-+	gpio_debugfs_dir = debugfs_create_dir(gpio_name, acpi_evt_debugfs_dir);
-+	if (gpio_debugfs_dir == NULL)
-+		return AE_OK;
-+
-+	parent_data.debugfs_dir = gpio_debugfs_dir;
-+	parent_data.handle = handle;
-+	parent_data.name = gpio_name;
-+	parent_data.evt_count = 0;
-+
-+	acpi_walk_resources(handle, METHOD_NAME__AEI, gpio_list_resource,
-+			    &parent_data);
-+
-+	if (!parent_data.evt_count)
-+		debugfs_remove(gpio_debugfs_dir);
-+
-+	return AE_OK;
-+}
-+
-+static int __init gpio_evt_emu_init(void)
-+{
-+	if (acpi_debugfs_dir == NULL)
-+		return -ENOENT;
-+
-+	acpi_evt_debugfs_dir = debugfs_create_dir("events", acpi_debugfs_dir);
-+	if (acpi_evt_debugfs_dir == NULL)
-+		return -ENOENT;
-+
-+	acpi_get_devices(NULL, gpio_find_resource, NULL, NULL);
-+
-+	return 0;
-+}
-+
-+static void __exit gpio_evt_emu_deinit(void)
-+{
-+	struct gpio_pin_data *pin_data, *temp;
-+
-+	list_for_each_entry_safe(pin_data, temp, &pin_data_list, list)
-+		kfree(pin_data);
-+
-+	debugfs_remove_recursive(acpi_evt_debugfs_dir);
-+}
-+
-+module_init(gpio_evt_emu_init);
-+module_exit(gpio_evt_emu_deinit);
-+
-+MODULE_DESCRIPTION("GPIO-signaled events emulator");
-+MODULE_LICENSE("GPL");
--- 
-1.9.1
+ 	init_fn = (psci_initcall_t)matched_np->data;
+ 	return init_fn(np);
 
+g.
