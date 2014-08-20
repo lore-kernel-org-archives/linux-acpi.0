@@ -1,71 +1,273 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v2 09/18] ACPI / processor: Make it possible to get CPU
- hardware ID via GICC
-Date: Wed, 20 Aug 2014 15:56:54 +0100
-Message-ID: <20140820145654.GP24600@localhost>
-References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
- <1407166105-17675-10-git-send-email-hanjun.guo@linaro.org>
- <20140818142740.GU20043@localhost>
- <53F30CCE.9040705@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: [PATCH] ACPI: Add GPIO-signaled event emulator.
+Date: Wed, 20 Aug 2014 16:58:20 +0200
+Message-ID: <1408546700-19309-1-git-send-email-tomasz.nowicki@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fw-tnat.austin.arm.com ([217.140.110.23]:51223 "EHLO
-	collaborate-mta1.arm.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751213AbaHTO5H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Aug 2014 10:57:07 -0400
-Content-Disposition: inline
-In-Reply-To: <53F30CCE.9040705@linaro.org>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:35949 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983AbaHTO6M (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Aug 2014 10:58:12 -0400
+Received: by mail-wi0-f170.google.com with SMTP id f8so6780857wiw.5
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Aug 2014 07:58:11 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: rjw@rjwysocki.net, linus.walleij@linaro.org, gnurou@gmail.com, mika.westerberg@linux.intel.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-On Tue, Aug 19, 2014 at 09:37:34AM +0100, Hanjun Guo wrote:
-> On 2014-8-18 22:27, Catalin Marinas wrote:
-> > On Mon, Aug 04, 2014 at 04:28:16PM +0100, Hanjun Guo wrote:
-> >> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> >> index e32321c..4007313 100644
-> >> --- a/drivers/acpi/processor_core.c
-> >> +++ b/drivers/acpi/processor_core.c
-> >> @@ -64,6 +64,38 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
-> >>  	return 0;
-> >>  }
-> >>  
-> >> +/*
-> >> + * On ARM platform, MPIDR value is the hardware ID as apic ID
-> >> + * on Intel platforms
-> >> + */
-> >> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
-> >> +		int device_declaration, u32 acpi_id, int *mpidr)
-> >> +{
-> >> +	struct acpi_madt_generic_interrupt *gicc =
-> >> +	    container_of(entry, struct acpi_madt_generic_interrupt, header);
-> >> +
-> >> +	if (!(gicc->flags & ACPI_MADT_ENABLED))
-> >> +		return -ENODEV;
-> >> +
-> >> +	/* In the GIC interrupt model, logical processors are
-> >> +	 * required to have a Processor Device object in the DSDT,
-> >> +	 * so we should check device_declaration here
-> >> +	 */
-> >> +	if (device_declaration && (gicc->uid == acpi_id)) {
-> >> +		/*
-> >> +		 * Only bits [0:7] Aff0, bits [8:15] Aff1, bits [16:23] Aff2
-> >> +		 * and bits [32:39] Aff3 are meaningful, so pack the Affx
-> >> +		 * fields into a single 32 bit identifier to accommodate the
-> >> +		 * acpi processor drivers.
-> >> +		 */
-> >> +		*mpidr = ((gicc->arm_mpidr & 0xff00000000) >> 8)
-> >> +			 | gicc->arm_mpidr;
-> > 
-> > You can use pack_mpidr_into_32_bits().
-> 
-> processor_core.c will be used by x86 and ia64 too, it will cause
-> compile error on !ARM64 platforms.
+GPIO-signaled events is quite new thing in Linux kernel.
+There are not many board which can take advantage of it.
+However, GPIO events are very useful feature during work on ACPI
+subsystems.
 
-Oh. So we do we have an ARM-specific function in core ACPI code?
+This commit emulates GPIO h/w behaviour and consists on write
+operation to debugfs file. GPIO device instance is still required in DSDT
+table along with _AEI resources and event methods.
 
+Please, see Kconfig help and driver head section for more details
+regarding tool usage.
+
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+---
+ drivers/acpi/Kconfig             |  10 ++
+ drivers/acpi/Makefile            |   1 +
+ drivers/acpi/gpio-acpi-evt-emu.c | 195 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 206 insertions(+)
+ create mode 100644 drivers/acpi/gpio-acpi-evt-emu.c
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index fd54a74..8b9b74d 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -122,6 +122,16 @@ config ACPI_BUTTON
+ 	  To compile this driver as a module, choose M here:
+ 	  the module will be called button.
+ 
++config ACPI_GPIO_EVT_EMULATE
++        bool "ACPI GPIO-signaled Events Emulation Support"
++        depends on DEBUG_FS
++	default n
++	help
++	  This will enable your system to emulate GPIO-signaled event through
++	  proc file system. User needs to trigger event method by
++	  echo 1 >  /sys/kernel/debug/acpi/events/<GPIO DEVICE>/<PIN>
++	  (where, GPIO DEVICE is a GPIO device name and PIN is a pin number).
++
+ config ACPI_VIDEO
+ 	tristate "Video"
+ 	depends on X86 && BACKLIGHT_CLASS_DEVICE
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 9fa20ff..24f9d8f 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -55,6 +55,7 @@ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+ ifdef CONFIG_ACPI_VIDEO
+ acpi-y				+= video_detect.o
+ endif
++acpi-$(CONFIG_ACPI_GPIO_EVT_EMULATE)	+= gpio-acpi-evt-emu.o
+ 
+ # These are (potentially) separate modules
+ 
+diff --git a/drivers/acpi/gpio-acpi-evt-emu.c b/drivers/acpi/gpio-acpi-evt-emu.c
+new file mode 100644
+index 0000000..c39f501
+--- /dev/null
++++ b/drivers/acpi/gpio-acpi-evt-emu.c
+@@ -0,0 +1,195 @@
++/*
++ * Code to emulate GPIO-signaled events.
++ *
++ * The sole purpose of this module is to help with GPIO event triggering.
++ * Usage:
++ * 1. See the list of available GPIO devices and associated pins under:
++ *    /sys/kernel/debug/acpi/events/<GPIO DEVICE>/<PIN>. Only pins which are to
++ *    be used as GPIO-signaled events will be listed (_AEI resources).
++ *
++ * 2. Trigger method corresponding to device pin number:
++ *    $ echo 1 > /sys/kernel/debug/acpi/events/<GPIO DEVICE>/<PIN>
++ */
++
++/*
++ * Copyright (C) 2014, Linaro Ltd.
++ * Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ */
++
++#include <linux/module.h>
++#include <linux/uaccess.h>
++#include <linux/debugfs.h>
++#include <linux/acpi.h>
++
++#include "acpica/accommon.h"
++#include "acpica/acnamesp.h"
++
++#include "internal.h"
++
++#define _COMPONENT		ACPI_SYSTEM_COMPONENT
++ACPI_MODULE_NAME("gpio_acpi_evt_emu");
++
++struct gpio_pin_parent_data {
++	acpi_handle handle;
++	struct dentry *debugfs_dir;
++	char *name;
++	unsigned int evt_count;
++};
++
++struct gpio_pin_data {
++	struct list_head list;
++	acpi_handle handle;
++	unsigned int pin;
++};
++
++static struct dentry *acpi_evt_debugfs_dir;
++static LIST_HEAD(pin_data_list);
++
++static int gpio_evt_trigger(void *data, u64 val)
++{
++	struct gpio_pin_data *pin_data = (struct gpio_pin_data *)data;
++	int pin = pin_data->pin;
++
++	if (ACPI_FAILURE(acpi_execute_simple_method(pin_data->handle, NULL,
++						    pin <= 255 ? 0 : pin)))
++		pr_err(PREFIX "evaluating event method failed\n");
++
++	return 0;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(gpio_evt_emu_fops, NULL, gpio_evt_trigger, "%llu\n");
++
++static acpi_status gpio_list_resource(struct acpi_resource *ares, void *context)
++{
++	struct acpi_resource_gpio *agpio = &ares->data.gpio;
++	struct gpio_pin_parent_data *parent_data = context;
++	struct dentry *pin_debugfs_dir;
++	struct gpio_pin_data *pin_data;
++	acpi_handle evt_handle;
++	acpi_status status;
++	char str_pin[5];
++	char ev_name[5];
++	int pin;
++
++	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
++		return AE_OK;
++
++	if (agpio->connection_type != ACPI_RESOURCE_GPIO_TYPE_INT)
++		return AE_OK;
++
++	pin_data = kmalloc(sizeof(*pin_data), GFP_KERNEL);
++	if (!pin_data)
++		return AE_NO_MEMORY;
++
++	pin = agpio->pin_table[0];
++	snprintf(str_pin, 5, "%d", pin);
++	pin_debugfs_dir = debugfs_create_file(str_pin, S_IWUSR,
++					      parent_data->debugfs_dir,
++					      pin_data,
++					      &gpio_evt_emu_fops);
++	if (!pin_debugfs_dir) {
++		status = AE_NULL_ENTRY;
++		goto fail;
++	}
++
++	if (pin <= 255)
++		sprintf(ev_name, "_%c%02X",
++			agpio->triggering == ACPI_EDGE_SENSITIVE ? 'E' : 'L',
++			pin);
++	else
++		sprintf(ev_name, "_EVT");
++
++	status = acpi_get_handle(parent_data->handle, ev_name, &evt_handle);
++	if (ACPI_FAILURE(status)) {
++		pr_err(PREFIX "getting handle to <%s> of <%s> failed, there is no method related to 0x%02X pin\n",
++		       ev_name, parent_data->name, pin);
++		goto fail;
++	}
++
++	pin_data->handle = evt_handle;
++	pin_data->pin = pin;
++        list_add_tail(&pin_data->list, &pin_data_list);
++
++	parent_data->evt_count++;
++
++	return AE_OK;
++fail:
++	kfree(pin_data);
++	return status;
++}
++
++static acpi_status gpio_find_resource(acpi_handle handle, u32 lvl,
++					  void *context, void **rv)
++{
++	struct acpi_namespace_node *node;
++	struct dentry *gpio_debugfs_dir;
++	struct gpio_pin_parent_data parent_data;
++	char gpio_name[5];
++
++	node = acpi_ns_validate_handle(handle);
++	if (!node) {
++		pr_err(PREFIX "Mapping GPIO handle to node failed\n");
++		return AE_BAD_PARAMETER;
++	}
++
++	snprintf(gpio_name, 5, "%s", node->name.ascii);
++	gpio_debugfs_dir = debugfs_create_dir(gpio_name, acpi_evt_debugfs_dir);
++	if (gpio_debugfs_dir == NULL)
++		return AE_OK;
++
++	parent_data.debugfs_dir = gpio_debugfs_dir;
++	parent_data.handle = handle;
++	parent_data.name = gpio_name;
++	parent_data.evt_count = 0;
++
++	acpi_walk_resources(handle, METHOD_NAME__AEI, gpio_list_resource,
++			    &parent_data);
++
++	if (!parent_data.evt_count)
++		debugfs_remove(gpio_debugfs_dir);
++
++	return AE_OK;
++}
++
++static int __init gpio_evt_emu_init(void)
++{
++	if (acpi_debugfs_dir == NULL)
++		return -ENOENT;
++
++	acpi_evt_debugfs_dir = debugfs_create_dir("events", acpi_debugfs_dir);
++	if (acpi_evt_debugfs_dir == NULL)
++		return -ENOENT;
++
++	acpi_get_devices(NULL, gpio_find_resource, NULL, NULL);
++
++	return 0;
++}
++
++static void __exit gpio_evt_emu_deinit(void)
++{
++	struct gpio_pin_data *pin_data, *temp;
++
++	list_for_each_entry_safe(pin_data, temp, &pin_data_list, list)
++		kfree(pin_data);
++
++	debugfs_remove_recursive(acpi_evt_debugfs_dir);
++}
++
++module_init(gpio_evt_emu_init);
++module_exit(gpio_evt_emu_deinit);
++
++MODULE_DESCRIPTION("GPIO-signaled events emulator");
++MODULE_LICENSE("GPL");
 -- 
-Catalin
+1.9.1
+
