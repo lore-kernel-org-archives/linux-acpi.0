@@ -1,67 +1,185 @@
-From: "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>
-Subject: Re: [PATCH 06/19] ARM64 / ACPI: Parse FADT table to get PSCI flags
- for PSCI init
-Date: Wed, 20 Aug 2014 16:43:58 +0100
-Message-ID: <20140820154358.GA27927@xora-yoga-deb.xora.org.uk>
-References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
- <1406206825-15590-7-git-send-email-hanjun.guo@linaro.org>
- <20140820150029.0BB3FC41205@trevor.secretlab.ca>
- <20140820152944.GR24600@localhost>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [RFC PATCH 5/9] mfd: Add ACPI support
+Date: Wed, 20 Aug 2014 16:54:59 +0100
+Message-ID: <20140820155459.GM4266@lee--X1>
+References: <1408172039-32513-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1408172039-32513-6-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:50575 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438AbaHTPoD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Aug 2014 11:44:03 -0400
-Received: by mail-wg0-f51.google.com with SMTP id b13so7993120wgh.22
-        for <linux-acpi@vger.kernel.org>; Wed, 20 Aug 2014 08:44:01 -0700 (PDT)
+Received: from mail-qa0-f44.google.com ([209.85.216.44]:59505 "EHLO
+	mail-qa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751846AbaHTPzN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Aug 2014 11:55:13 -0400
+Received: by mail-qa0-f44.google.com with SMTP id f12so7035904qad.17
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Aug 2014 08:55:10 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20140820152944.GR24600@localhost>
+In-Reply-To: <1408172039-32513-6-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Grant Likely <grant.likely@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Al Stone <al.stone@linaro.org>, Olof Johansson <olof@lixom.net>, Matthew Garrett <matthew.garrett@nebula.com>, Matt Fleming <matt.fleming@intel.com>, David Woodhouse <dwmw2@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Josh Triplett <josh@joshtriplett.org>, Aaron Lu <aaron.lu@intel.com>, Max Eliaser <max.eliaser@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mark Brown <broonie@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Samuel Ortiz <sameo@linux.intel.com>, Grant Likely <grant.likely@linaro.org>R
 
-On Wed, Aug 20, 2014 at 04:29:44PM +0100, Catalin Marinas wrote:
-> On Wed, Aug 20, 2014 at 04:00:28PM +0100, Grant Likely wrote:
-> > On Thu, 24 Jul 2014 21:00:12 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> > > @@ -345,13 +378,19 @@ int __init psci_init(void)
-> > >  	const struct of_device_id *matched_np;
-> > >  	psci_initcall_t init_fn;
-> > >  
-> > > -	np = of_find_matching_node_and_match(NULL, psci_of_match, &matched_np);
-> > > +	if (acpi_disabled) {
-> > > +		np = of_find_matching_node_and_match(NULL,
-> > > +				psci_of_match, &matched_np);
-> > >  
-> > > -	if (!np)
-> > > -		return -ENODEV;
-> > > +		if (!np)
-> > > +			return -ENODEV;
-> > > +
-> > > +		init_fn = (psci_initcall_t)matched_np->data;
-> > > +
-> > > +		return init_fn(np);
-> > > +	}
-> > >  
-> > > -	init_fn = (psci_initcall_t)matched_np->data;
-> > > -	return init_fn(np);
-> > > +	return psci_0_2_init_acpi();
-> > >  }
-> > 
-> > So, while the functionality is sound, this is kind of a stinky diff. The
-> > ACPI path should not push the OF code into a sub branch. Make it look
-> > like this instead (with the advantage that the diff will be simpler):
-> > 
-> > +	if (IS_ENABLED(CONFIG_ACPI) && !acpi_disabled)
-> > +		return psci_0_2_init_acpi();
-> 
-> Minor point: we should define acpi_disabled to 1 when !CONFIG_ACPI and
-> avoid additional IS_ENABLED(CONFIG_ACPI) checks (unless already don this
-> way).
-> 
-This is the default behaviour already.
+On Sat, 16 Aug 2014, Mika Westerberg wrote:
+> If an MFD device is backed by ACPI namespace, we should allow subdevi=
+ce
+> drivers to access their corresponding ACPI companion devices through =
+normal
+> means (e.g using ACPI_COMPANION()).
+>=20
+> This patch adds such support to the MFD core. If the MFD parent devic=
+e
+> doesn't specify any ACPI _HID/_CID for the child device, the child de=
+vice
+> will share the parent ACPI companion device. Otherwise the child devi=
+ce
+> will be assigned with the corresponding ACPI companion, if found in t=
+he
+> namespace below the parent.
+>=20
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Reviewed-by: Darren Hart <dvhart@linux.intel.com>
+> ---
+>  Documentation/acpi/enumeration.txt | 27 +++++++++++++++++++++++++
+>  drivers/mfd/mfd-core.c             | 41 ++++++++++++++++++++++++++++=
+++++++++++
+>  include/linux/mfd/core.h           |  3 +++
+>  3 files changed, 71 insertions(+)
+>=20
+> diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/=
+enumeration.txt
+> index e182be5e3c83..74e35c54febf 100644
+> --- a/Documentation/acpi/enumeration.txt
+> +++ b/Documentation/acpi/enumeration.txt
+> @@ -312,3 +312,30 @@ a code like this:
+> =20
+>  There are also devm_* versions of these functions which release the
+>  descriptors once the device is released.
+> +
+> +MFD devices
+> +~~~~~~~~~~~
+> +The MFD devices create platform devices from their children. For the
 
-Graeme
+What does this mean?  MFD drivers register their children _as_
+platform devices.
 
+> +child devices there needs to be an ACPI handle that they can use to
+> +reference parts of the ACPI namespace that relate to them. In the Li=
+nux
+> +MFD subsystem we provide two ways:
+> +
+> +	o The children share the parent ACPI handle.
+> +	o The MFD cell can specify the ACPI id of the device.
+> +
+> +For the first case, the MFD drivers do not need to do anything. The
+> +resulting child platform device will have its ACPI_COMPANION() set t=
+o point
+> +to the parent device.
+> +
+> +If the ACPI namespace has a device that we can match using an ACPI i=
+d,
+> +the id should be set like:
+> +
+> +	static struct mfd_cell my_subdevice_cell =3D {
+> +		.name =3D "my_subdevice",
+> +		/* set the resources relative to the parent */
+> +		.acpi_pnpid =3D "XYZ0001",
+> +	};
+> +
+> +The ACPI id "XYZ0001" is then used to lookup an ACPI device directly=
+ under
+> +the MFD device and if found, that ACPI companion device is bound to =
+the
+> +resulting child platform device.
+> diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
+> index 892d343193ad..bb466b28b3b6 100644
+> --- a/drivers/mfd/mfd-core.c
+> +++ b/drivers/mfd/mfd-core.c
+> @@ -78,6 +78,45 @@ static int mfd_platform_add_cell(struct platform_d=
+evice *pdev,
+>  	return 0;
+>  }
+> =20
+> +#if IS_ENABLED(CONFIG_ACPI)
+> +static void mfd_acpi_add_device(const struct mfd_cell *cell,
+> +				struct platform_device *pdev)
+> +{
+> +	struct acpi_device *parent_adev;
+> +	struct acpi_device *adev =3D NULL;
+> +
+> +	parent_adev =3D ACPI_COMPANION(pdev->dev.parent);
+> +	if (!parent_adev)
+> +		return;
+> +
+> +	/*
+> +	 * MFD child device gets its ACPI handle either from the ACPI
+> +	 * device directly under the parent that matches the acpi_pnpid or
+> +	 * it will use the parent handle if is no acpi_pnpid is given.
+> +	 */
+> +	if (cell->acpi_pnpid) {
+> +		struct acpi_device_id ids[2] =3D {};
+> +		struct acpi_device *child_adev;
+> +
+> +		strlcpy(ids[0].id, cell->acpi_pnpid, sizeof(ids[0].id));
+> +		list_for_each_entry(child_adev, &parent_adev->children, node)
+> +			if (acpi_match_device_ids(child_adev, ids)) {
+> +				adev =3D child_adev;
+> +				break;
+> +			}
+> +	} else {
+> +		adev =3D parent_adev;
+> +	}
+> +
+> +	ACPI_COMPANION_SET(&pdev->dev, adev);
+> +}
+> +#else
+> +static inline void mfd_acpi_add_device(const struct mfd_cell *cell,
+> +				       struct platform_device *pdev)
+> +{
+> +}
+> +#endif
+> +
+
+I'm not keen on polluting the MFD core driver with #differy.  Can't you
+think of another way to do it?
+
+>  static int mfd_add_device(struct device *parent, int id,
+>  			  const struct mfd_cell *cell, atomic_t *usage_count,
+>  			  struct resource *mem_base,
+> @@ -118,6 +157,8 @@ static int mfd_add_device(struct device *parent, =
+int id,
+>  		}
+>  	}
+> =20
+> +	mfd_acpi_add_device(cell, pdev);
+> +
+>  	if (cell->pdata_size) {
+>  		ret =3D platform_device_add_data(pdev,
+>  					cell->platform_data, cell->pdata_size);
+> diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
+> index f543de91ce19..73e1709d4c09 100644
+> --- a/include/linux/mfd/core.h
+> +++ b/include/linux/mfd/core.h
+> @@ -44,6 +44,9 @@ struct mfd_cell {
+>  	 */
+>  	const char		*of_compatible;
+> =20
+> +	/* Matches ACPI PNP id, either _HID or _CID */
+> +	const char		*acpi_pnpid;
+> +
+>  	/*
+>  	 * These resources can be specified relative to the parent device.
+>  	 * For accessing hardware you should use resources from the platfor=
+m dev
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
