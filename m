@@ -1,88 +1,38 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH v2 05/18] ARM64 / ACPI: Parse FADT table to get PSCI
- flags for PSCI init
-Date: Tue, 19 Aug 2014 22:55:59 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D1E7D1B@ORSMSX112.amr.corp.intel.com>
-References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
- <1407166105-17675-6-git-send-email-hanjun.guo@linaro.org>
- <20140818142721.GR20043@localhost> <53F2C983.8000800@linaro.org>
- <20140819111000.GG3302@leverpostej> <53F33F7A.7030307@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH v2 06/18] ARM64 / ACPI: Parse MADT to map
+ logical cpu to MPIDR and get cpu_possible/present_map
+Date: Wed, 20 Aug 2014 11:24:40 +0800
+Message-ID: <53F414F8.2030405@linaro.org>
+References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>	<1407166105-17675-7-git-send-email-hanjun.guo@linaro.org>	<53F24705.7080809@arm.com>	<53F32E3C.1070102@linaro.org> <CAMDttNf5d6XZ66mbiZivLmZQvcFv1mN1KKkN6TUQe_Z5VCu-1g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:8523 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751186AbaHSW4T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Aug 2014 18:56:19 -0400
-In-Reply-To: <53F33F7A.7030307@linaro.org>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAMDttNf5d6XZ66mbiZivLmZQvcFv1mN1KKkN6TUQe_Z5VCu-1g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zi Shen Lim <zlim.lnx@gmail.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kern>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <mark.rutland@arm.com>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm-kernel@lists.infr
 
-I should warn you that FADT version numbers are notoriously unreliable; In fact, in ACPICA we were eventually forced to abandon them entirely. We use the actual size of the FADT instead.
+On 2014-8-20 0:46, Zi Shen Lim wrote:
+> Hanjun,
 
-Bob
+Hi Lim,
 
-
-
-> -----Original Message-----
-> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
-> Sent: Tuesday, August 19, 2014 5:14 AM
-> To: Mark Rutland
-> Cc: Catalin Marinas; Rafael J. Wysocki; graeme.gregory@linaro.org; Arnd
-> Bergmann; Olof Johansson; grant.likely@linaro.org; Sudeep Holla; Will
-> Deacon; Jason Cooper; Marc Zyngier; Bjorn Helgaas; Daniel Lezcano; Mark
-> Brown; Rob Herring; Robert Richter; Zheng, Lv; Moore, Robert; Lorenzo
-> Pieralisi; Liviu Dudau; Randy Dunlap; Charles Garcia-Tobin; linux-
-> acpi@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
-> kernel@vger.kernel.org; linaro-acpi@lists.linaro.org
-> Subject: Re: [PATCH v2 05/18] ARM64 / ACPI: Parse FADT table to get PSCI
-> flags for PSCI init
 > 
-> On 2014-8-19 19:10, Mark Rutland wrote:
-> >>>> @@ -47,6 +49,26 @@ void __init __acpi_unmap_table(char *map, unsigned
-> long size)
-> >>>>  	early_memunmap(map, size);
-> >>>>  }
-> >>>>
-> >>>> +static int __init acpi_parse_fadt(struct acpi_table_header *table)
-> >>>> +{
-> >>>> +	struct acpi_table_fadt *fadt = (struct acpi_table_fadt
-> *)table;
-> >>>> +
-> >>>> +	/*
-> >>>> +	 * Revision in table header is the FADT Major version,
-> >>>> +	 * and there is a minor version of FADT which was introduced
-> >>>> +	 * by ACPI 5.1, we only deal with ACPI 5.1 or higher version
-> >>>> +	 * to get arm boot flags, or we will disable ACPI.
-> >>>> +	 */
-> >>>> +	if (table->revision < 5 || fadt->minor_revision < 1) {
-> >>>
-> >>> If we ever get revision 6.0, this would trigger.
-> >>
-> >> Yes, good catch, actually I already fixed that in my local git repo,
-> >>
-> >> +       if (table->revision > 5 ||
-> >> +           (table->revision == 5 && fadt->minor_revision >= 1)) {
-> >> +               return 0;
-> >> +       } else {
-> >> +               pr_info("FADT revision is %d.%d, no PSCI support,
-> >> + should be 5.1
-> >> or higher\n",
-> >> +                       table->revision, fadt->minor_revision);
-> >> +               disable_acpi();
-> >> +               return -EINVAL;
-> >> +       }
-> >
-> > Given you return in the first path, you don't need the remaining code
-> > to live in an else block.
+> On Tue, Aug 19, 2014 at 6:00 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+>> Will INTERRUPT_CONTROLLER confuse people? There is only one GIC redistributor
+>> (some people regard it as interrupt controller) in ARM system, if we use
+>> INTERRUPT_CONTROLLER people will regard it as multi-redistributors in the
+>> system, I think GIC_CPU_INTERFACE would be better, what do you think?
 > 
-> Agreed, I will update it, and move disable_acpi() outside this function
-> and keep it in one place as Sudeep suggested.
-> 
-> Thanks
-> Hanjun
+> I think you meant to say "one GIC _distributor_" (GICD) instead of
+> redistributor (GICR).
+> ACPI5.1 only describes one GICD per system, but we can most certainly
+> describe multiple GICRs.
+> For multi-cpu systems, you'll definitely see multiple GIC redistributors.
 
+Yes, you are right, thanks for pointing it out, I think I need more coffee :)
+
+Thanks
+Hanjun
