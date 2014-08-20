@@ -1,133 +1,62 @@
-From: Grant Likely <grant.likely@linaro.org>
+From: Catalin Marinas <catalin.marinas@arm.com>
 Subject: Re: [PATCH 06/19] ARM64 / ACPI: Parse FADT table to get PSCI flags
  for PSCI init
-Date: Wed, 20 Aug 2014 10:02:54 -0500
-Message-ID: <20140820150254.E115EC41205@trevor.secretlab.ca>
+Date: Wed, 20 Aug 2014 16:29:44 +0100
+Message-ID: <20140820152944.GR24600@localhost>
 References: <1406206825-15590-1-git-send-email-hanjun.guo@linaro.org>
-	<1406206825-15590-7-git-send-email-hanjun.guo@linaro.org>
-	<CAOesGMjzFyd_=+ToFmjyn958F86KsDJDht+9ZmniAERz16K_VQ@mail.gmail.com>
-	<53DA1916.1030907@linaro.org>
+ <1406206825-15590-7-git-send-email-hanjun.guo@linaro.org>
+ <20140820150029.0BB3FC41205@trevor.secretlab.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f179.google.com ([209.85.216.179]:59356 "EHLO
-	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751149AbaHTPRA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Aug 2014 11:17:00 -0400
-Received: by mail-qc0-f179.google.com with SMTP id m20so7994482qcx.10
-        for <linux-acpi@vger.kernel.org>; Wed, 20 Aug 2014 08:16:59 -0700 (PDT)
-In-Reply-To: <53DA1916.1030907@linaro.org>
+Received: from fw-tnat.austin.arm.com ([217.140.110.23]:11109 "EHLO
+	collaborate-mta1.arm.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750916AbaHTPaI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Aug 2014 11:30:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20140820150029.0BB3FC41205@trevor.secretlab.ca>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Olof Johansson <olof@lixom.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>l
+To: Grant Likely <grant.likely@linaro.org>
+Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@linaro.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.>
 
-On Thu, 31 Jul 2014 18:23:18 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> On 2014-7-31 12:22, Olof Johansson wrote:
-> > Hi,
+On Wed, Aug 20, 2014 at 04:00:28PM +0100, Grant Likely wrote:
+> On Thu, 24 Jul 2014 21:00:12 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> > @@ -345,13 +378,19 @@ int __init psci_init(void)
+> >  	const struct of_device_id *matched_np;
+> >  	psci_initcall_t init_fn;
+> >  
+> > -	np = of_find_matching_node_and_match(NULL, psci_of_match, &matched_np);
+> > +	if (acpi_disabled) {
+> > +		np = of_find_matching_node_and_match(NULL,
+> > +				psci_of_match, &matched_np);
+> >  
+> > -	if (!np)
+> > -		return -ENODEV;
+> > +		if (!np)
+> > +			return -ENODEV;
+> > +
+> > +		init_fn = (psci_initcall_t)matched_np->data;
+> > +
+> > +		return init_fn(np);
+> > +	}
+> >  
+> > -	init_fn = (psci_initcall_t)matched_np->data;
+> > -	return init_fn(np);
+> > +	return psci_0_2_init_acpi();
+> >  }
 > 
-> Hi Olof,
+> So, while the functionality is sound, this is kind of a stinky diff. The
+> ACPI path should not push the OF code into a sub branch. Make it look
+> like this instead (with the advantage that the diff will be simpler):
 > 
-> > 
-> > On Thu, Jul 24, 2014 at 6:00 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> >> There are two flags: PSCI_COMPLIANT and PSCI_USE_HVC. When set,
-> >> the former signals to the OS that the hardware is PSCI compliant.
-> >> The latter selects the appropriate conduit for PSCI calls by
-> >> toggling between Hypervisor Calls (HVC) and Secure Monitor Calls
-> >> (SMC).
-> >>
-> >> FADT table contains such information, parse FADT to get the flags
-> >> for PSCI init. Since ACPI 5.1 doesn't support self defined PSCI
-> >> function IDs, which means that only PSCI 0.2+ is supported in ACPI.
-> >>
-> >> At the same time, only ACPI 5.1 or higher verison supports PSCI,
-> >> and FADT Major.Minor version was introduced in ACPI 5.1, so we
-> >> will check the version and only parse FADT table with version >= 5.1.
-> >>
-> >> If firmware provides ACPI tables with ACPI version less than 5.1,
-> >> OS will be messed up with those information and have no way to
-> >> bring up secondery CPUs, so disable ACPI if we get an FADT table
-> >> with version less that 5.1.
-> >>
-> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> >> ---
-> >>  arch/arm64/include/asm/acpi.h |    2 +
-> >>  arch/arm64/kernel/acpi.c      |   50 ++++++++++++++++++++++
-> >>  arch/arm64/kernel/psci.c      |   95 +++++++++++++++++++++++++++++------------
-> >>  arch/arm64/kernel/setup.c     |    2 +
-> >>  4 files changed, 121 insertions(+), 28 deletions(-)
-> >>
-> >> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> >> index 44b617f..67dac90 100644
-> >> --- a/arch/arm64/include/asm/acpi.h
-> >> +++ b/arch/arm64/include/asm/acpi.h
-> >> @@ -18,6 +18,8 @@ extern int acpi_disabled;
-> >>  extern int acpi_noirq;
-> >>  extern int acpi_pci_disabled;
-> >>  extern int acpi_strict;
-> >> +extern int acpi_psci_present;
-> >> +extern int acpi_psci_use_hvc;
-> >>
-> >>  static inline void disable_acpi(void)
-> >>  {
-> >> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> >> index f5a10b5..374926f 100644
-> >> --- a/arch/arm64/kernel/acpi.c
-> >> +++ b/arch/arm64/kernel/acpi.c
-> >> @@ -11,6 +11,8 @@
-> >>   *  published by the Free Software Foundation.
-> >>   */
-> >>
-> >> +#define pr_fmt(fmt) "ACPI: " fmt
-> >> +
-> >>  #include <linux/init.h>
-> >>  #include <linux/acpi.h>
-> >>  #include <linux/cpumask.h>
-> >> @@ -34,6 +36,12 @@ EXPORT_SYMBOL(acpi_disabled);
-> >>  int acpi_pci_disabled;         /* skip ACPI PCI scan and IRQ initialization */
-> >>  EXPORT_SYMBOL(acpi_pci_disabled);
-> >>
-> >> +/* 1 to indicate PSCI is implemented */
-> >> +int acpi_psci_present;
-> >> +
-> >> +/* 1 to indicate HVC must be used instead of SMC as the PSCI conduit */
-> >> +int acpi_psci_use_hvc;
-> > 
-> > Here's a prime example of where it would just make more sense to
-> > populate DT based on what's in the ACPI info.
-> > 
-> > Have a acpi_parse_fadt() that, if needed, creates a /psci node in the
-> > system-wide DT and populates it with the few properties needed.
-> > 
-> > That way, the rest of the code path in the kernel setup is identical,
-> > instead of dealing with separate functions for setup, two exported
-> > variables just to communicate the state, and so on. It's just extra
-> > complexity for no good reason. The ACPi side code isn't even adding
-> > significant complexity compared to this. We'll need to add an
-> > of_add_node() property though.
-> 
-> Yes, this will make the code path in the kernel setup is identical, but
-> I think mixture of ACPI and DT (converting ACPI into DT at run-time) is
-> not a good solution, and this had been discussed last year:
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2013-November/211662.html
+> +	if (IS_ENABLED(CONFIG_ACPI) && !acpi_disabled)
+> +		return psci_0_2_init_acpi();
 
-Agreed. I don't want to get into populating DT structures with ACPI
-data. I think doing so ends up increasing the conceptual complexity.
+Minor point: we should define acpi_disabled to 1 when !CONFIG_ACPI and
+avoid additional IS_ENABLED(CONFIG_ACPI) checks (unless already don this
+way).
 
-> >> -       np = of_find_matching_node_and_match(NULL, psci_of_match, &matched_np);
-> >> +       if (acpi_disabled) {
-> >> +               np = of_find_matching_node_and_match(NULL,
-> >> +                               psci_of_match, &matched_np);
-> > 
-> > Ideally this code should go away by changing the rest of it, but for
-> > future cases: It'd be a lot cleaner to do this as:
-> > 
-> >         if (!acpi_disabled)
-> >                 return psci_0_2_init_acpi();
-> > 
-> > ... then fall through to the current implementation instead.
-> 
-> I prefer this one :)
-
-Good! :-)
-
-g.
+-- 
+Catalin
