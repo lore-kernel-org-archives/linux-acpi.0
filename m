@@ -1,107 +1,33 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 05/18] ARM64 / ACPI: Parse FADT table to get PSCI flags
- for PSCI init
-Date: Wed, 20 Aug 2014 12:12:36 +0800
-Message-ID: <53F42034.1080308@linaro.org>
-References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org> <1407166105-17675-6-git-send-email-hanjun.guo@linaro.org> <20140818142721.GR20043@localhost> <53F2C983.8000800@linaro.org> <20140819111000.GG3302@leverpostej> <53F33F7A.7030307@linaro.org> <94F2FBAB4432B54E8AACC7DFDE6C92E37D1E7D1B@ORSMSX112.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: [PATCH 0/4] usb: dwc3: ACPI support
+Date: Wed, 20 Aug 2014 14:55:24 +0300
+Message-ID: <1408535728-10518-1-git-send-email-heikki.krogerus@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:43663 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750703AbaHTEOM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Aug 2014 00:14:12 -0400
-Received: by mail-pa0-f43.google.com with SMTP id lf10so11539935pab.30
-        for <linux-acpi@vger.kernel.org>; Tue, 19 Aug 2014 21:14:11 -0700 (PDT)
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D1E7D1B@ORSMSX112.amr.corp.intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:1224 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752286AbaHTLzd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Aug 2014 07:55:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, Mark Rutland <mark.rutland@arm.com>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm-kernel@lists.infr
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Alan Cox <alan@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Bob,
+And Intel Braswell PCI ID
 
-On 2014-8-20 6:55, Moore, Robert wrote:
-> I should warn you that FADT version numbers are notoriously unreliable;
-> In fact, in ACPICA we were eventually forced to abandon them entirely. 
-> We use the actual size of the FADT instead.
 
-Yes, I heard that story, thanks for the reminding. But I also see that the
-revision number is used on x86 and ia64 now in parsing FADT, it is a firmware
-bug not to comply with the spec, and on ARM, only ACPI 5.1 or higher can be
-used in Linux, Major.Minor revision was introduced in ACPI 5.1 and it was a
-major change for it, so I think firmware should comply with that, if firmware
-just copy some code from somewhere else and leave the revision number
-unchanged, we will not boot (disable ACPI).
+Alan Cox (1):
+  usb: dwc3: pci: Add PCI ID for Intel Braswell
 
-The size of FADT for 5.0 and 5.1 is no difference, it is pretty hard to use
-that to identify the version of FADT, did I  miss something?
+Heikki Krogerus (3):
+  ACPI / platform: provide default DMA mask
+  usb: dwc3: core: only setting the dma_mask when needed
+  usb: dwc3: add ACPI support
 
-Thanks
-Hanjun
+ drivers/acpi/acpi_platform.c |  2 ++
+ drivers/usb/dwc3/core.c      | 18 +++++++++++++++---
+ drivers/usb/dwc3/dwc3-pci.c  |  2 ++
+ 3 files changed, 19 insertions(+), 3 deletions(-)
 
-> 
-> Bob
-> 
-> 
-> 
->> -----Original Message-----
->> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
->> Sent: Tuesday, August 19, 2014 5:14 AM
->> To: Mark Rutland
->> Cc: Catalin Marinas; Rafael J. Wysocki; graeme.gregory@linaro.org; Arnd
->> Bergmann; Olof Johansson; grant.likely@linaro.org; Sudeep Holla; Will
->> Deacon; Jason Cooper; Marc Zyngier; Bjorn Helgaas; Daniel Lezcano; Mark
->> Brown; Rob Herring; Robert Richter; Zheng, Lv; Moore, Robert; Lorenzo
->> Pieralisi; Liviu Dudau; Randy Dunlap; Charles Garcia-Tobin; linux-
->> acpi@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
->> kernel@vger.kernel.org; linaro-acpi@lists.linaro.org
->> Subject: Re: [PATCH v2 05/18] ARM64 / ACPI: Parse FADT table to get PSCI
->> flags for PSCI init
->>
->> On 2014-8-19 19:10, Mark Rutland wrote:
->>>>>> @@ -47,6 +49,26 @@ void __init __acpi_unmap_table(char *map, unsigned
->> long size)
->>>>>>  	early_memunmap(map, size);
->>>>>>  }
->>>>>>
->>>>>> +static int __init acpi_parse_fadt(struct acpi_table_header *table)
->>>>>> +{
->>>>>> +	struct acpi_table_fadt *fadt = (struct acpi_table_fadt
->> *)table;
->>>>>> +
->>>>>> +	/*
->>>>>> +	 * Revision in table header is the FADT Major version,
->>>>>> +	 * and there is a minor version of FADT which was introduced
->>>>>> +	 * by ACPI 5.1, we only deal with ACPI 5.1 or higher version
->>>>>> +	 * to get arm boot flags, or we will disable ACPI.
->>>>>> +	 */
->>>>>> +	if (table->revision < 5 || fadt->minor_revision < 1) {
->>>>>
->>>>> If we ever get revision 6.0, this would trigger.
->>>>
->>>> Yes, good catch, actually I already fixed that in my local git repo,
->>>>
->>>> +       if (table->revision > 5 ||
->>>> +           (table->revision == 5 && fadt->minor_revision >= 1)) {
->>>> +               return 0;
->>>> +       } else {
->>>> +               pr_info("FADT revision is %d.%d, no PSCI support,
->>>> + should be 5.1
->>>> or higher\n",
->>>> +                       table->revision, fadt->minor_revision);
->>>> +               disable_acpi();
->>>> +               return -EINVAL;
->>>> +       }
->>>
->>> Given you return in the first path, you don't need the remaining code
->>> to live in an else block.
->>
->> Agreed, I will update it, and move disable_acpi() outside this function
->> and keep it in one place as Sudeep suggested.
->>
->> Thanks
->> Hanjun
-> 
+-- 
+2.1.0
 
