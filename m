@@ -1,50 +1,63 @@
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v2 06/18] ARM64 / ACPI: Parse MADT to map logical cpu to
- MPIDR and get cpu_possible/present_map
-Date: Wed, 20 Aug 2014 15:38:17 +0100
-Message-ID: <20140820143817.GN24600@localhost>
+Subject: Re: [PATCH v2 08/18] ARM64 / ACPI: Get the enable method for SMP
+ initialization in ACPI way
+Date: Wed, 20 Aug 2014 15:52:19 +0100
+Message-ID: <20140820145219.GO24600@localhost>
 References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org>
- <1407166105-17675-7-git-send-email-hanjun.guo@linaro.org>
- <20140818142728.GS20043@localhost>
- <53F2FE8E.60307@linaro.org>
+ <1407166105-17675-9-git-send-email-hanjun.guo@linaro.org>
+ <20140818142733.GT20043@localhost>
+ <53F30B99.4000704@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fw-tnat.austin.arm.com ([217.140.110.23]:50923 "EHLO
-	collaborate-mta1.arm.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750942AbaHTOlM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Aug 2014 10:41:12 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <53F2FE8E.60307@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <53F30B99.4000704@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 19, 2014 at 08:36:46AM +0100, Hanjun Guo wrote:
+On Tue, Aug 19, 2014 at 09:32:25AM +0100, Hanjun Guo wrote:
 > On 2014-8-18 22:27, Catalin Marinas wrote:
-> > On Mon, Aug 04, 2014 at 04:28:13PM +0100, Hanjun Guo wrote:
-> >> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> >> index 6e04868..e877967 100644
-> >> --- a/arch/arm64/include/asm/acpi.h
-> >> +++ b/arch/arm64/include/asm/acpi.h
-> >> @@ -64,6 +64,8 @@ static inline void arch_fix_phys_package_id(int num, u32 slot) { }
-> >>  extern int (*acpi_suspend_lowlevel)(void);
-> >>  #define acpi_wakeup_address 0
-> >>  
-> >> +#define MAX_GIC_CPU_INTERFACE 65535
+> > On Mon, Aug 04, 2014 at 04:28:15PM +0100, Hanjun Guo wrote:
+> >> +#ifdef CONFIG_ACPI
+> >> +/*
+> >> + * Get a cpu's boot method in the ACPI way.
+> >> + */
+> >> +static char * __init acpi_get_cpu_boot_method(void)
+> >> +{
+> >> +	/*
+> >> +	 * For ACPI 5.1, only two kind of methods are provided,
+> >> +	 * Parking protocol and PSCI, but Parking protocol is
+> >> +	 * specified for ARMv7 only, so make PSCI as the only method
+> >> +	 * for SMP initialization before the ACPI spec or Parking
+> >> +	 * protocol spec is updated.
+> >> +	 */
+> >> +	switch (smp_boot_protocol()) {
+> >> +	case ACPI_SMP_BOOT_PSCI:
+> >> +		return "psci";
+> >> +	case ACPI_SMP_BOOT_PARKING_PROTOCOL:
+> >> +	default:
+> >> +		return NULL;
+> >> +	}
+> >> +}
 > > 
-> > Does this need to be more than NR_CPUS?
+> > Actually, do we even need to define smp_boot_protocol()? Is it used
+> > anywhere else apart from this patch (I still haven't gone through all
+> > patches)?
 > 
-> Sometimes yes, CPU structure entries in MADT just like CPU nodes in
-> device tree, the number of them may more than NR_CPUS.
+> It is just used in this patch. I think we can make the ACPI boot protocol
+> scalable in this way, if we support another boot protocol in ACPI in the
+> future, we can easily update the function to support it, does it make sense?
 
-I have a more general question here. In ACPI, is MADT the only way to
-build a CPU topology? It looks weird that we use GIC properties to
-create the cpu_logical_map(). A side-effect is that the GIC-related
-functions are now scattered all over the kernel rather than being
-contained in the GIC driver itself.
+Not really. You just add additional code, enums, functions when all you
+do is check for acpi_psci_present() (or whatever new protocol you would
+get). If the enum is never going to be used outside this file, don't
+bother with additional functions.
+
+BTW, it would be nicer if the acpi related functions are contained in as
+fewer files as possible. So here you could keep
+acpi_get_cpu_boot_method() in the acpi.c file. It only returns a string.
 
 -- 
 Catalin
