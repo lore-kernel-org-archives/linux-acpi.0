@@ -1,52 +1,64 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH] ACPI: Add GPIO-signaled event emulator.
-Date: Thu, 21 Aug 2014 17:04:50 +0200
-Message-ID: <53F60A92.4040702@linaro.org>
-References: <1408546700-19309-1-git-send-email-tomasz.nowicki@linaro.org> <20140821104533.GM1660@lahna.fi.intel.com> <53F604B2.6020004@linaro.org> <20140821145405.GU1660@lahna.fi.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / scan: Allow ACPI drivers to bind to PNP device objects
+Date: Thu, 21 Aug 2014 18:36:26 +0200
+Message-ID: <2344364.bO1d4HtJcY@vostro.rjw.lan>
+References: <5487060.QsgluucUH4@vostro.rjw.lan> <1408622934.3315.8.camel@rzhang1-toshiba>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140821145405.GU1660@lahna.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: rjw@rjwysocki.net, linus.walleij@linaro.org, gnurou@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:64573 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750858AbaHUQR3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Aug 2014 12:17:29 -0400
+In-Reply-To: <1408622934.3315.8.camel@rzhang1-toshiba>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, Dirk Griesbach <spamthis@freenet.de>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On 21.08.2014 16:54, Mika Westerberg wrote:
-> On Thu, Aug 21, 2014 at 04:39:46PM +0200, Tomasz Nowicki wrote:
->>>> +{
->>>> +	struct gpio_pin_data *pin_data, *temp;
->>>> +
->>>> +	list_for_each_entry_safe(pin_data, temp, &pin_data_list, list)
->>>> +		kfree(pin_data);
->>>
->>> I suppose you want to first remove the directory entries and then the
->>> pin data. Otherwise if you get pre-empted at this point and someone
->>> tries to use your debugfs files, bad things might happen.
->> Good catch!
->>
->>>
->>>> +
->>>> +	debugfs_remove_recursive(acpi_evt_debugfs_dir);
->>>
->>> Since this already removes everything below this dentry, why do you need
->>> to store the pointer in gpio_pin_parent_data?
->> Not sure I got the question.
->>
->> GPIO device instance (debugfs dir) is parent for all its pins (debugfs
->> nodes). I am using gpio_pin_parent_data as container to pass info for all
->> children so I can create debugfs node inside of parent related debugfs dir.
->>
->> pin_data_list, however, is used to keep pointers to allocated memory (one
->> for each pins). debugfs_remove_recursive won't free it.
->
-> Yes but it removes the debugfs entries below so you don't need to store
-> the children debugfs dentries.
->
-I don't, gpio_pin_parent_data (local variable) keeps pointer to *parent 
-debugfs dentries* only. gpio_pin_parent_data name might be misleading, I 
-will rename it to gpio_parent_data in next version.
+On Thursday, August 21, 2014 08:08:54 PM Zhang Rui wrote:
+> Hi, Rafael,
+> 
+> On Thu, 2014-08-21 at 06:04 +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > We generally don't allow ACPI drivers to bind to ACPI device objects
+> > that companion "physical" device objects are created for to avoid
+> > situations in which two different drivers may attempt to handle one
+> > device at the same time.
+> 
+> Yes, and I think we should not break this rule.
 
-Regards,
-Tomasz
+No, we broke the way the code worked previously.  We need to restore it first
+and *then* try to fix it up, not the other way around.
+
+> >   Recent ACPI device enumeration rework
+> > extended that approach to ACPI PNP devices by starting to use a scan
+> > handler for enumerating them.  However, we previously allowed ACPI
+> > drivers to bind to ACPI device objects with existing PNP device
+> > companions and changing that led to functional regressions on some
+> > systems.
+> > 
+> Question: except the PNP0C01/PNP0C02 case, if we have an device have two
+> ids that matches two different drivers, should we allow both drivers
+> probe successfully?
+
+No, we shouldn't, but in the cases in question we have only one driver (an
+ACPI one).
+
+> I think the answer is no.
+> In the PNP0C01/PNP0C02 case, I think we can fix the issue by the
+> following patch instead.
+
+The right answer to me is to get rid of ACPI drviers entirely.
+
+The thing below adds complexity to the resources management which I'm not
+sure is necessary.
+
+In any case, please let's do that on top of the $subject patch not
+instead of it, because there are more cases we need to cover.  And we
+need a fix for -stable.
+
+Rafael
+
