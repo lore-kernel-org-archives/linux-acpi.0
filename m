@@ -1,74 +1,83 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 09/18] ACPI / processor: Make it possible to get CPU
- hardware ID via GICC
-Date: Thu, 21 Aug 2014 11:25:41 +0800
-Message-ID: <53F566B5.4060302@linaro.org>
-References: <1407166105-17675-1-git-send-email-hanjun.guo@linaro.org> <1407166105-17675-10-git-send-email-hanjun.guo@linaro.org> <20140818142740.GU20043@localhost> <53F30CCE.9040705@linaro.org> <20140820145654.GP24600@localhost>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / scan: Allow ACPI drivers to bind to PNP device objects
+Date: Thu, 21 Aug 2014 06:04:51 +0200
+Message-ID: <5487060.QsgluucUH4@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:59311 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751036AbaHUD1Q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Aug 2014 23:27:16 -0400
-Received: by mail-pd0-f175.google.com with SMTP id r10so13178032pdi.34
-        for <linux-acpi@vger.kernel.org>; Wed, 20 Aug 2014 20:27:15 -0700 (PDT)
-In-Reply-To: <20140820145654.GP24600@localhost>
+Received: from v094114.home.net.pl ([79.96.170.134]:52873 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750809AbaHUDpw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Aug 2014 23:45:52 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, Dirk Griesbach <spamthis@freenet.de>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On 2014-8-20 22:56, Catalin Marinas wrote:
-> On Tue, Aug 19, 2014 at 09:37:34AM +0100, Hanjun Guo wrote:
->> On 2014-8-18 22:27, Catalin Marinas wrote:
->>> On Mon, Aug 04, 2014 at 04:28:16PM +0100, Hanjun Guo wrote:
->>>> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
->>>> index e32321c..4007313 100644
->>>> --- a/drivers/acpi/processor_core.c
->>>> +++ b/drivers/acpi/processor_core.c
->>>> @@ -64,6 +64,38 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
->>>>  	return 0;
->>>>  }
->>>>  
->>>> +/*
->>>> + * On ARM platform, MPIDR value is the hardware ID as apic ID
->>>> + * on Intel platforms
->>>> + */
->>>> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
->>>> +		int device_declaration, u32 acpi_id, int *mpidr)
->>>> +{
->>>> +	struct acpi_madt_generic_interrupt *gicc =
->>>> +	    container_of(entry, struct acpi_madt_generic_interrupt, header);
->>>> +
->>>> +	if (!(gicc->flags & ACPI_MADT_ENABLED))
->>>> +		return -ENODEV;
->>>> +
->>>> +	/* In the GIC interrupt model, logical processors are
->>>> +	 * required to have a Processor Device object in the DSDT,
->>>> +	 * so we should check device_declaration here
->>>> +	 */
->>>> +	if (device_declaration && (gicc->uid == acpi_id)) {
->>>> +		/*
->>>> +		 * Only bits [0:7] Aff0, bits [8:15] Aff1, bits [16:23] Aff2
->>>> +		 * and bits [32:39] Aff3 are meaningful, so pack the Affx
->>>> +		 * fields into a single 32 bit identifier to accommodate the
->>>> +		 * acpi processor drivers.
->>>> +		 */
->>>> +		*mpidr = ((gicc->arm_mpidr & 0xff00000000) >> 8)
->>>> +			 | gicc->arm_mpidr;
->>>
->>> You can use pack_mpidr_into_32_bits().
->>
->> processor_core.c will be used by x86 and ia64 too, it will cause
->> compile error on !ARM64 platforms.
-> 
-> Oh. So we do we have an ARM-specific function in core ACPI code?
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Yes, GICC is ARM-specific, but all the mapping functions (get apic_id/mpidr
-via acpi_id in MADT) including x86/ia64 are all there, so it's better to put it
-here to keep consistency.
+We generally don't allow ACPI drivers to bind to ACPI device objects
+that companion "physical" device objects are created for to avoid
+situations in which two different drivers may attempt to handle one
+device at the same time.  Recent ACPI device enumeration rework
+extended that approach to ACPI PNP devices by starting to use a scan
+handler for enumerating them.  However, we previously allowed ACPI
+drivers to bind to ACPI device objects with existing PNP device
+companions and changing that led to functional regressions on some
+systems.
 
-Thanks
-Hanjun
+For this reason, add a special check for PNP devices in
+acpi_device_probe() so that ACPI drivers can bind to ACPI device
+objects having existing PNP device companions as before.
+
+Fixes: eec15edbb0e1 (ACPI / PNP: use device ID list for PNPACPI device enumeration)
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=81511
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=81971
+Reported-and-tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
+Reported-and-tested-by: Dirk Griesbach <spamthis@freenet.de>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_pnp.c |    5 +++++
+ drivers/acpi/internal.h |    1 +
+ drivers/acpi/scan.c     |    2 +-
+ 3 files changed, 7 insertions(+), 1 deletion(-)
+
+Index: linux-pm/drivers/acpi/acpi_pnp.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpi_pnp.c
++++ linux-pm/drivers/acpi/acpi_pnp.c
+@@ -396,3 +396,8 @@ void __init acpi_pnp_init(void)
+ {
+ 	acpi_scan_add_handler(&acpi_pnp_handler);
+ }
++
++bool is_acpi_pnp_device(struct acpi_device *adev)
++{
++	return adev->handler == &acpi_pnp_handler;
++}
+Index: linux-pm/drivers/acpi/internal.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/internal.h
++++ linux-pm/drivers/acpi/internal.h
+@@ -86,6 +86,7 @@ void acpi_device_add_finalize(struct acp
+ void acpi_free_pnp_ids(struct acpi_device_pnp *pnp);
+ bool acpi_device_is_present(struct acpi_device *adev);
+ bool acpi_device_is_battery(struct acpi_device *adev);
++bool is_acpi_pnp_device(struct acpi_device *adev);
+ 
+ /* --------------------------------------------------------------------------
+                                   Power Resource
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -975,7 +975,7 @@ static int acpi_device_probe(struct devi
+ 	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
+ 	int ret;
+ 
+-	if (acpi_dev->handler)
++	if (acpi_dev->handler && !is_acpi_pnp_device(acpi_dev))
+ 		return -EINVAL;
+ 
+ 	if (!acpi_drv->ops.add)
