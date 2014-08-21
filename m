@@ -1,332 +1,379 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI: Add GPIO-signaled event emulator.
-Date: Thu, 21 Aug 2014 13:45:33 +0300
-Message-ID: <20140821104533.GM1660@lahna.fi.intel.com>
-References: <1408546700-19309-1-git-send-email-tomasz.nowicki@linaro.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] ACPI / scan: Allow ACPI drivers to bind to PNP device
+ objects
+Date: Thu, 21 Aug 2014 20:08:54 +0800
+Message-ID: <1408622934.3315.8.camel@rzhang1-toshiba>
+References: <5487060.QsgluucUH4@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:10603 "EHLO mga11.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:46453 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752257AbaHUKpr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Aug 2014 06:45:47 -0400
-Content-Disposition: inline
-In-Reply-To: <1408546700-19309-1-git-send-email-tomasz.nowicki@linaro.org>
+	id S1754196AbaHUMI7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Aug 2014 08:08:59 -0400
+In-Reply-To: <5487060.QsgluucUH4@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: rjw@rjwysocki.net, linus.walleij@linaro.org, gnurou@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, Dirk Griesbach <spamthis@freenet.de>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Wed, Aug 20, 2014 at 04:58:20PM +0200, Tomasz Nowicki wrote:
-> GPIO-signaled events is quite new thing in Linux kernel.
-> There are not many board which can take advantage of it.
-> However, GPIO events are very useful feature during work on ACPI
-> subsystems.
+Hi, Rafael,
+
+On Thu, 2014-08-21 at 06:04 +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> This commit emulates GPIO h/w behaviour and consists on write
-> operation to debugfs file. GPIO device instance is still required in DSDT
-> table along with _AEI resources and event methods.
+> We generally don't allow ACPI drivers to bind to ACPI device objects
+> that companion "physical" device objects are created for to avoid
+> situations in which two different drivers may attempt to handle one
+> device at the same time.
+
+Yes, and I think we should not break this rule.
+
+>   Recent ACPI device enumeration rework
+> extended that approach to ACPI PNP devices by starting to use a scan
+> handler for enumerating them.  However, we previously allowed ACPI
+> drivers to bind to ACPI device objects with existing PNP device
+> companions and changing that led to functional regressions on some
+> systems.
 > 
-> Please, see Kconfig help and driver head section for more details
-> regarding tool usage.
-> 
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> ---
->  drivers/acpi/Kconfig             |  10 ++
->  drivers/acpi/Makefile            |   1 +
->  drivers/acpi/gpio-acpi-evt-emu.c | 195 +++++++++++++++++++++++++++++++++++++++
->  3 files changed, 206 insertions(+)
->  create mode 100644 drivers/acpi/gpio-acpi-evt-emu.c
-> 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index fd54a74..8b9b74d 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -122,6 +122,16 @@ config ACPI_BUTTON
->  	  To compile this driver as a module, choose M here:
->  	  the module will be called button.
->  
-> +config ACPI_GPIO_EVT_EMULATE
-> +        bool "ACPI GPIO-signaled Events Emulation Support"
+Question: except the PNP0C01/PNP0C02 case, if we have an device have two
+ids that matches two different drivers, should we allow both drivers
+probe successfully?
+I think the answer is no.
+In the PNP0C01/PNP0C02 case, I think we can fix the issue by the
+following patch instead.
 
-Is there anything preventing building this as a module?
+Note that I've just tested on my machine and it works well.
+I still need the bug reporter to check if the patch fixes bug 81511 or not.
 
-> +        depends on DEBUG_FS
+>From c6c388728d08a6368f21dab61d6f0a940e0ea13a Mon Sep 17 00:00:00 2001
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Thu, 21 Aug 2014 13:39:47 +0800
+Subject: [RFC PATCH] ACPI: introduce motherboard resource management
 
-Spaces -> Tab
+ACPI Devices with _HID/_CID PNP0C01/PNP0C02 represents that
+they have some motherboard resources that needs to be reserved.
 
-> +	default n
+We used to enumerated those devices to PNP bus and rely on
+PNP system driver to do resource reservation.
+But this mechanism does not work well nowadays as many devices
+not only represent motherboard resources, but also represent
+physical devices that need native drivers other than PNP system
+driver for the device to work. For example,
+1) https://bugzilla.kernel.org/show_bug.cgi?id=46741,
+    Device (NIPM)
+    {
+        Name (_HID, EisaId ("IPI0001"))  // _HID: Hardware ID
+        Name (_CID, EisaId ("PNP0C01"))  // _CID: Compatible ID
+   the NIPM device has _CID PNP0C01 but it is an IPMI device.
+   PNP system driver blocks the PNP IPMI driver to probe.
+2) https://bugzilla.kernel.org/show_bug.cgi?id=81511
+        Device (IFFS)
+        {
+            Name (_HID, EisaId ("INT3392"))  // _HID: Hardware ID
+            Name (_CID, EisaId ("PNP0C02"))  // _CID: Compatible ID
+   the IFFS device has _CID PNP0C02, but it is an intel rapid start
+   device, which already has an ACPI driver at
+   drivers/platform/x86/intel-rst.c
+3) a couple of machines, including the on in
+   https://bugzilla.kernel.org/show_bug.cgi?id=81511, has the AML code
+   like following
+        Device (PTID)
+        {
+            Name (_HID, EisaId ("INT340E"))  // _HID: Hardware ID
+            Name (_CID, EisaId ("PNP0C02"))  // _CID: Compatible ID
+   the PTID device has _CID PNP0C02, but it is also represents an
+   INT340E device, there is a platform bus driver for this device
+   which will be introduced by myself soon.
 
-n is the default already, no need to specify it here.
+In any of the above cases, the current code for managing PNP0C01/PNP0C02
+resources in Linux kernel is broken, because it either blocks the physical
+device driver on the same bus, or results in multiple drivers loaded for
+the same ACPI device node, which may also has some potential risks.
 
-> +	help
-> +	  This will enable your system to emulate GPIO-signaled event through
-> +	  proc file system. User needs to trigger event method by
-> +	  echo 1 >  /sys/kernel/debug/acpi/events/<GPIO DEVICE>/<PIN>
-> +	  (where, GPIO DEVICE is a GPIO device name and PIN is a pin number).
+Thus, IMO, we need a clean way to handle those motherboard resources.
+Given that PNP0C01/PNP0C02 is more like an indicator for reserving the
+resources, this patch
+1. does the resource reservation in ACPI code directly, with the same logic
+   and time point in drivers/pnp/quirks.c and drivers/pnp/system.c.
+2. makes PNP0C01/PNP0C02 PNP id transparent to Linux devices and drivers,
+   thus PNP system driver becomes a no-op for ACPI enumerated devices.
 
-We should probably mention that this is dangerous and should be used for
-debugging purposes only.
+This is just a draft patch, and I'd like to see if this is
+the right direction to go. Any comments are welcome.
 
-> +
->  config ACPI_VIDEO
->  	tristate "Video"
->  	depends on X86 && BACKLIGHT_CLASS_DEVICE
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 9fa20ff..24f9d8f 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -55,6 +55,7 @@ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
->  ifdef CONFIG_ACPI_VIDEO
->  acpi-y				+= video_detect.o
->  endif
-> +acpi-$(CONFIG_ACPI_GPIO_EVT_EMULATE)	+= gpio-acpi-evt-emu.o
->  
->  # These are (potentially) separate modules
->  
-> diff --git a/drivers/acpi/gpio-acpi-evt-emu.c b/drivers/acpi/gpio-acpi-evt-emu.c
-> new file mode 100644
-> index 0000000..c39f501
-> --- /dev/null
-> +++ b/drivers/acpi/gpio-acpi-evt-emu.c
-> @@ -0,0 +1,195 @@
-> +/*
-> + * Code to emulate GPIO-signaled events.
-> + *
-> + * The sole purpose of this module is to help with GPIO event triggering.
-> + * Usage:
-> + * 1. See the list of available GPIO devices and associated pins under:
-> + *    /sys/kernel/debug/acpi/events/<GPIO DEVICE>/<PIN>. Only pins which are to
-> + *    be used as GPIO-signaled events will be listed (_AEI resources).
-> + *
-> + * 2. Trigger method corresponding to device pin number:
-> + *    $ echo 1 > /sys/kernel/debug/acpi/events/<GPIO DEVICE>/<PIN>
-> + */
-> +
-> +/*
-> + * Copyright (C) 2014, Linaro Ltd.
-> + * Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/acpi_pnp.c |   3 -
+ drivers/acpi/scan.c     | 208 +++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 204 insertions(+), 7 deletions(-)
 
-You don't need to specify the FSF address here.
+diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
+index 1f8b204..a7deae5 100644
+--- a/drivers/acpi/acpi_pnp.c
++++ b/drivers/acpi/acpi_pnp.c
+@@ -134,9 +134,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[] = {
+ 	{"FUJ02bf"},
+ 	{"FUJ02B1"},
+ 	{"FUJ02E3"},
+-	/* system */
+-	{"PNP0c02"},		/* General ID for reserving resources */
+-	{"PNP0c01"},		/* memory controller */
+ 	/* rtc_cmos */
+ 	{"PNP0b00"},
+ 	{"PNP0b01"},
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 0a817ad..674518b 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -11,6 +11,7 @@
+ #include <linux/kthread.h>
+ #include <linux/dmi.h>
+ #include <linux/nls.h>
++#include <linux/pci.h>
+ 
+ #include <asm/pgtable.h>
+ 
+@@ -1781,12 +1782,201 @@ static bool acpi_object_is_system_bus(acpi_handle handle)
+ 	return false;
+ }
+ 
++static bool acpi_is_motherboard_resource(char *id)
++{
++	return !(strncmp(id, "PNP0C01", sizeof("PNP0C01")) &&
++		 strncmp(id, "PNP0C02", sizeof("PNP0C02")));
++}
++
++static LIST_HEAD(acpi_motherboard_resource_list);
++
++struct acpi_motherboard_resource {
++	acpi_handle handle;
++	struct list_head node;
++};
++
++static void acpi_record_motherboard_resource(acpi_handle handle)
++{
++	struct acpi_motherboard_resource *res;
++
++	res = kzalloc(sizeof(struct acpi_motherboard_resource), GFP_KERNEL);
++	if (!res)
++		return;
++	res->handle = handle;
++	list_add(&res->node, &acpi_motherboard_resource_list);
++}
++
++static void reserve_range(struct acpi_device *device, struct resource *r, int port)
++{
++	char *regionid;
++	resource_size_t start = r->start, end = r->end;
++	struct resource *res;
++	int result;
++
++	regionid = kmalloc(20, GFP_KERNEL);
++	if (!regionid)
++		return;
++
++	snprintf(regionid, 20, "ACPI %s", dev_name(&device->dev));
++		
++	if (port)
++		res = request_region(start, end - start + 1, regionid);
++	else
++		res = request_mem_region(start, end - start + 1, regionid);
++	if (res)
++		res->flags &= ~IORESOURCE_BUSY;
++	else
++		kfree(regionid);
++
++	dev_info(&device->dev, "%pR %s reserved\n", r,
++			res ? "has been" : "could not be");
++}
++
++static int is_pci_reserved(struct resource *res)
++{
++	struct pci_dev *pdev = NULL;
++	resource_size_t acpi_start, acpi_end, pci_start, pci_end;
++	int i;
++
++	/*
++	 * Some BIOSes have motherboard devices with resources that
++	 * partially overlap PCI BARs.
++	 * Those resources should not be reserved, or else, it will
++	 * prevent the normal PCI driver from requesting them later.
++	 */
++	for_each_pci_dev(pdev) {
++		for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
++			unsigned long type;
++
++			type = pci_resource_flags(pdev, i) & res->flags
++			       & (IORESOURCE_IO | IORESOURCE_MEM);
++			if (!type || pci_resource_len(pdev, i) == 0)
++				continue;
++
++			pci_start = pci_resource_start(pdev, i);
++			pci_end = pci_resource_end(pdev, i);
++
++			if (res->start == 0 && res->end == 0)
++				continue;
++
++			acpi_start = res->start;
++			acpi_end = res->end;
++
++			/*
++			 * If the ACPI region doesn't overlap the PCI
++			 * region at all, there's no problem.
++			 */
++			if (acpi_end < pci_start || acpi_start > pci_end)
++				continue;
++
++			/*
++			 * If the PNP region completely encloses (or is
++			 * at least as large as) the PCI region, that's
++			 * also OK.  For example, this happens when the
++			 * PNP device describes a bridge with PCI
++			 * behind it.
++			 */
++			if (acpi_start <= pci_start && acpi_end >= pci_end)
++				continue;
++
++			/*
++			 * Otherwise, the ACPI region overlaps *part* of
++			 * the PCI region, and that might prevent a PCI
++			 * driver from requesting its resources.
++			 */
++			return true;
++		}
++	}
++	return false;
++}
++
++static acpi_status __init __acpi_reserve_motherboard_resource(struct acpi_resource *res,
++							void *data)
++{
++	struct resource r = {0};
++	acpi_handle handle = data;
++	struct acpi_device *device;
++	int result;
++
++	result = acpi_bus_get_device(handle, &device);
++	if (result)
++		return AE_OK;
++
++	if (!device->status.present)
++		return AE_OK;
++
++	switch (res->type) {
++	case ACPI_RESOURCE_TYPE_MEMORY24:
++	case ACPI_RESOURCE_TYPE_MEMORY32:
++	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
++		if (!acpi_dev_resource_memory(res, &r))
++			return AE_OK;
++		break;
++	case ACPI_RESOURCE_TYPE_IO:
++	case ACPI_RESOURCE_TYPE_FIXED_IO:
++		if (!acpi_dev_resource_io(res, &r))
++			return AE_OK;
++		break;
++	case ACPI_RESOURCE_TYPE_ADDRESS16:
++	case ACPI_RESOURCE_TYPE_ADDRESS32:
++	case ACPI_RESOURCE_TYPE_ADDRESS64:
++		if (!acpi_dev_resource_address_space(res, &r))
++			return AE_OK;
++		break;
++	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
++		if (!acpi_dev_resource_ext_address_space(res, &r))
++			return AE_OK;
++		break;
++	default:
++		return AE_OK;
++	}
++
++	if (r.flags & IORESOURCE_DISABLED)
++		return AE_OK;
++
++	if (is_pci_reserved(&r))
++		return AE_OK;
++
++	if (r.flags & IORESOURCE_IO) {
++		if (r.start < 0x100)
++		/*
++		 * Below 0x100 is only standard PC hardware
++		 * (pics, kbd, timer, dma, ...)
++		 * We should not get resource conflicts there,
++		 * and the kernel reserves these anyway
++		 * (see arch/i386/kernel/setup.c).
++		 * So, do nothing
++		 */
++			return AE_OK;
++		if (r.end < r.start)
++			return AE_OK;       /* invalid */
++                reserve_range(device, &r, 1);
++        } else if (r.flags & IORESOURCE_MEM) {
++                reserve_range(device, &r, 0);
++        }
++
++	return AE_OK;
++}
++
++static int __init acpi_reserve_motherboard_resource(void)
++{
++	struct acpi_motherboard_resource *res;
++
++	list_for_each_entry(res, &acpi_motherboard_resource_list, node)
++		acpi_walk_resources(res->handle, METHOD_NAME__CRS,
++			__acpi_reserve_motherboard_resource, res->handle);
++
++	return 0;
++}
++fs_initcall(acpi_reserve_motherboard_resource);
++
+ static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
+ 				int device_type)
+ {
+ 	acpi_status status;
+ 	struct acpi_device_info *info;
+ 	struct acpi_pnp_device_id_list *cid_list;
++	int is_mb_resource = 0;
+ 	int i;
+ 
+ 	switch (device_type) {
+@@ -1804,13 +1994,20 @@ static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
+ 		}
+ 
+ 		if (info->valid & ACPI_VALID_HID) {
+-			acpi_add_id(pnp, info->hardware_id.string);
+-			pnp->type.platform_id = 1;
++			if (!acpi_is_motherboard_resource(info->hardware_id.string)) {
++				acpi_add_id(pnp, info->hardware_id.string);
++				pnp->type.platform_id = 1;
++			} else
++				is_mb_resource = 1;
+ 		}
+ 		if (info->valid & ACPI_VALID_CID) {
+ 			cid_list = &info->compatible_id_list;
+-			for (i = 0; i < cid_list->count; i++)
+-				acpi_add_id(pnp, cid_list->ids[i].string);
++			for (i = 0; i < cid_list->count; i++) {
++				if (!acpi_is_motherboard_resource(cid_list->ids[i].string))
++					acpi_add_id(pnp, cid_list->ids[i].string);
++				else
++					is_mb_resource = 1;
++			}
+ 		}
+ 		if (info->valid & ACPI_VALID_ADR) {
+ 			pnp->bus_address = info->address;
+@@ -1822,6 +2019,9 @@ static void acpi_set_pnp_ids(acpi_handle handle, struct acpi_device_pnp *pnp,
+ 
+ 		kfree(info);
+ 
++		if (is_mb_resource)
++			acpi_record_motherboard_resource(handle);
++
+ 		/*
+ 		 * Some devices don't reliably have _HIDs & _CIDs, so add
+ 		 * synthetic HIDs to make sure drivers can find them.
+-- 
+1.8.3.2
 
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/uaccess.h>
-> +#include <linux/debugfs.h>
-> +#include <linux/acpi.h>
-> +
-> +#include "acpica/accommon.h"
-> +#include "acpica/acnamesp.h"
 
-Are these actually needed?
 
-> +
-> +#include "internal.h"
-> +
-> +#define _COMPONENT		ACPI_SYSTEM_COMPONENT
-> +ACPI_MODULE_NAME("gpio_acpi_evt_emu");
-> +
-> +struct gpio_pin_parent_data {
-> +	acpi_handle handle;
-> +	struct dentry *debugfs_dir;
-> +	char *name;
-> +	unsigned int evt_count;
-> +};
-> +
-> +struct gpio_pin_data {
-> +	struct list_head list;
-> +	acpi_handle handle;
-> +	unsigned int pin;
-> +};
-> +
-> +static struct dentry *acpi_evt_debugfs_dir;
-> +static LIST_HEAD(pin_data_list);
-> +
-> +static int gpio_evt_trigger(void *data, u64 val)
-> +{
-> +	struct gpio_pin_data *pin_data = (struct gpio_pin_data *)data;
-> +	int pin = pin_data->pin;
-> +
-> +	if (ACPI_FAILURE(acpi_execute_simple_method(pin_data->handle, NULL,
-> +						    pin <= 255 ? 0 : pin)))
-> +		pr_err(PREFIX "evaluating event method failed\n");
-
-acpi_execute_simple_method() passes one argument to the method. You
-can't use it with _Lxx or _Exx which don't expect any arguments.
-Otherwise you get this:
-
-[  122.258191] ACPI: \_SB_.GPO2._E12: Excess arguments - Caller passed 1, method requires 0 (20140724/nsarguments-263)
-
-Also where does "PREFIX" come from?
-
-> +
-> +	return 0;
-> +}
-> +
-> +DEFINE_SIMPLE_ATTRIBUTE(gpio_evt_emu_fops, NULL, gpio_evt_trigger, "%llu\n");
-> +
-> +static acpi_status gpio_list_resource(struct acpi_resource *ares, void *context)
-> +{
-> +	struct acpi_resource_gpio *agpio = &ares->data.gpio;
-> +	struct gpio_pin_parent_data *parent_data = context;
-> +	struct dentry *pin_debugfs_dir;
-> +	struct gpio_pin_data *pin_data;
-> +	acpi_handle evt_handle;
-> +	acpi_status status;
-> +	char str_pin[5];
-> +	char ev_name[5];
-> +	int pin;
-> +
-> +	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
-> +		return AE_OK;
-> +
-> +	if (agpio->connection_type != ACPI_RESOURCE_GPIO_TYPE_INT)
-> +		return AE_OK;
-> +
-> +	pin_data = kmalloc(sizeof(*pin_data), GFP_KERNEL);
-> +	if (!pin_data)
-> +		return AE_NO_MEMORY;
-> +
-> +	pin = agpio->pin_table[0];
-> +	snprintf(str_pin, 5, "%d", pin);
-> +	pin_debugfs_dir = debugfs_create_file(str_pin, S_IWUSR,
-> +					      parent_data->debugfs_dir,
-> +					      pin_data,
-> +					      &gpio_evt_emu_fops);
-> +	if (!pin_debugfs_dir) {
-> +		status = AE_NULL_ENTRY;
-> +		goto fail;
-> +	}
-> +
-> +	if (pin <= 255)
-> +		sprintf(ev_name, "_%c%02X",
-> +			agpio->triggering == ACPI_EDGE_SENSITIVE ? 'E' : 'L',
-> +			pin);
-> +	else
-> +		sprintf(ev_name, "_EVT");
-> +
-> +	status = acpi_get_handle(parent_data->handle, ev_name, &evt_handle);
-> +	if (ACPI_FAILURE(status)) {
-> +		pr_err(PREFIX "getting handle to <%s> of <%s> failed, there is no method related to 0x%02X pin\n",
-> +		       ev_name, parent_data->name, pin);
-> +		goto fail;
-> +	}
-> +
-> +	pin_data->handle = evt_handle;
-> +	pin_data->pin = pin;
-> +        list_add_tail(&pin_data->list, &pin_data_list);
-
-Spaces -> tab
-
-> +
-> +	parent_data->evt_count++;
-> +
-> +	return AE_OK;
-> +fail:
-> +	kfree(pin_data);
-> +	return status;
-> +}
-> +
-> +static acpi_status gpio_find_resource(acpi_handle handle, u32 lvl,
-> +					  void *context, void **rv)
-> +{
-> +	struct acpi_namespace_node *node;
-> +	struct dentry *gpio_debugfs_dir;
-> +	struct gpio_pin_parent_data parent_data;
-> +	char gpio_name[5];
-> +
-> +	node = acpi_ns_validate_handle(handle);
-
-Hmm, why is this needed? Is uppose acpi_get_devices() or already makes
-sure you have a valid handle, no?
-
-> +	if (!node) {
-> +		pr_err(PREFIX "Mapping GPIO handle to node failed\n");
-> +		return AE_BAD_PARAMETER;
-> +	}
-> +
-> +	snprintf(gpio_name, 5, "%s", node->name.ascii);
-> +	gpio_debugfs_dir = debugfs_create_dir(gpio_name, acpi_evt_debugfs_dir);
-> +	if (gpio_debugfs_dir == NULL)
-> +		return AE_OK;
-> +
-> +	parent_data.debugfs_dir = gpio_debugfs_dir;
-> +	parent_data.handle = handle;
-> +	parent_data.name = gpio_name;
-> +	parent_data.evt_count = 0;
-> +
-> +	acpi_walk_resources(handle, METHOD_NAME__AEI, gpio_list_resource,
-> +			    &parent_data);
-> +
-> +	if (!parent_data.evt_count)
-> +		debugfs_remove(gpio_debugfs_dir);
-> +
-> +	return AE_OK;
-> +}
-> +
-> +static int __init gpio_evt_emu_init(void)
-> +{
-> +	if (acpi_debugfs_dir == NULL)
-> +		return -ENOENT;
-> +
-> +	acpi_evt_debugfs_dir = debugfs_create_dir("events", acpi_debugfs_dir);
-> +	if (acpi_evt_debugfs_dir == NULL)
-> +		return -ENOENT;
-> +
-> +	acpi_get_devices(NULL, gpio_find_resource, NULL, NULL);
-> +
-> +	return 0;
-> +}
-> +
-> +static void __exit gpio_evt_emu_deinit(void)
-
-call it gpio_evt_emu_exit() instead.
-
-> +{
-> +	struct gpio_pin_data *pin_data, *temp;
-> +
-> +	list_for_each_entry_safe(pin_data, temp, &pin_data_list, list)
-> +		kfree(pin_data);
-
-I suppose you want to first remove the directory entries and then the
-pin data. Otherwise if you get pre-empted at this point and someone
-tries to use your debugfs files, bad things might happen.
-
-> +
-> +	debugfs_remove_recursive(acpi_evt_debugfs_dir);
-
-Since this already removes everything below this dentry, why do you need
-to store the pointer in gpio_pin_parent_data?
-
-> +}
-> +
-> +module_init(gpio_evt_emu_init);
-> +module_exit(gpio_evt_emu_deinit);
-
-These should follow their respective functions. E.g
-
-static int __init gpio_evt_emu_init(void)
-{
-	...
-}
-module_init(gpio_evt_emu_init);
-
-> +
-> +MODULE_DESCRIPTION("GPIO-signaled events emulator");
-> +MODULE_LICENSE("GPL");
-
-GPL v2
