@@ -1,199 +1,332 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC PATCH 5/9] mfd: Add ACPI support
-Date: Thu, 21 Aug 2014 12:05:31 +0300
-Message-ID: <20140821090508.GK1660@lahna.fi.intel.com>
-References: <1408172039-32513-1-git-send-email-mika.westerberg@linux.intel.com>
- <1408172039-32513-6-git-send-email-mika.westerberg@linux.intel.com>
- <20140820155459.GM4266@lee--X1>
+Subject: Re: [PATCH] ACPI: Add GPIO-signaled event emulator.
+Date: Thu, 21 Aug 2014 13:45:33 +0300
+Message-ID: <20140821104533.GM1660@lahna.fi.intel.com>
+References: <1408546700-19309-1-git-send-email-tomasz.nowicki@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:61570 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:10603 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750791AbaHUJG2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Aug 2014 05:06:28 -0400
+	id S1752257AbaHUKpr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Aug 2014 06:45:47 -0400
 Content-Disposition: inline
-In-Reply-To: <20140820155459.GM4266@lee--X1>
+In-Reply-To: <1408546700-19309-1-git-send-email-tomasz.nowicki@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Al Stone <al.stone@linaro.org>, Olof Johansson <olof@lixom.net>, Matthew Garrett <matthew.garrett@nebula.com>, Matt Fleming <matt.fleming@intel.com>, David Woodhouse <dwmw2@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Josh Triplett <josh@joshtriplett.org>, Aaron Lu <aaron.lu@intel.com>, Max Eliaser <max.eliaser@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mark Brown <broonie@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Samuel Ortiz <sameo@linux.intel.com>, Grant Likely <grant.likely@linaro.org>R
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: rjw@rjwysocki.net, linus.walleij@linaro.org, gnurou@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Wed, Aug 20, 2014 at 04:54:59PM +0100, Lee Jones wrote:
-> On Sat, 16 Aug 2014, Mika Westerberg wrote:
-> > If an MFD device is backed by ACPI namespace, we should allow subde=
-vice
-> > drivers to access their corresponding ACPI companion devices throug=
-h normal
-> > means (e.g using ACPI_COMPANION()).
-> >=20
-> > This patch adds such support to the MFD core. If the MFD parent dev=
-ice
-> > doesn't specify any ACPI _HID/_CID for the child device, the child =
-device
-> > will share the parent ACPI companion device. Otherwise the child de=
-vice
-> > will be assigned with the corresponding ACPI companion, if found in=
- the
-> > namespace below the parent.
-> >=20
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Reviewed-by: Darren Hart <dvhart@linux.intel.com>
-> > ---
-> >  Documentation/acpi/enumeration.txt | 27 +++++++++++++++++++++++++
-> >  drivers/mfd/mfd-core.c             | 41 ++++++++++++++++++++++++++=
-++++++++++++
-> >  include/linux/mfd/core.h           |  3 +++
-> >  3 files changed, 71 insertions(+)
-> >=20
-> > diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acp=
-i/enumeration.txt
-> > index e182be5e3c83..74e35c54febf 100644
-> > --- a/Documentation/acpi/enumeration.txt
-> > +++ b/Documentation/acpi/enumeration.txt
-> > @@ -312,3 +312,30 @@ a code like this:
-> > =20
-> >  There are also devm_* versions of these functions which release th=
-e
-> >  descriptors once the device is released.
-> > +
-> > +MFD devices
-> > +~~~~~~~~~~~
-> > +The MFD devices create platform devices from their children. For t=
-he
->=20
-> What does this mean?  MFD drivers register their children _as_
-> platform devices.
+On Wed, Aug 20, 2014 at 04:58:20PM +0200, Tomasz Nowicki wrote:
+> GPIO-signaled events is quite new thing in Linux kernel.
+> There are not many board which can take advantage of it.
+> However, GPIO events are very useful feature during work on ACPI
+> subsystems.
+> 
+> This commit emulates GPIO h/w behaviour and consists on write
+> operation to debugfs file. GPIO device instance is still required in DSDT
+> table along with _AEI resources and event methods.
+> 
+> Please, see Kconfig help and driver head section for more details
+> regarding tool usage.
+> 
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> ---
+>  drivers/acpi/Kconfig             |  10 ++
+>  drivers/acpi/Makefile            |   1 +
+>  drivers/acpi/gpio-acpi-evt-emu.c | 195 +++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 206 insertions(+)
+>  create mode 100644 drivers/acpi/gpio-acpi-evt-emu.c
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index fd54a74..8b9b74d 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -122,6 +122,16 @@ config ACPI_BUTTON
+>  	  To compile this driver as a module, choose M here:
+>  	  the module will be called button.
+>  
+> +config ACPI_GPIO_EVT_EMULATE
+> +        bool "ACPI GPIO-signaled Events Emulation Support"
 
-Right, will fix.
+Is there anything preventing building this as a module?
 
-> > +child devices there needs to be an ACPI handle that they can use t=
-o
-> > +reference parts of the ACPI namespace that relate to them. In the =
-Linux
-> > +MFD subsystem we provide two ways:
-> > +
-> > +	o The children share the parent ACPI handle.
-> > +	o The MFD cell can specify the ACPI id of the device.
-> > +
-> > +For the first case, the MFD drivers do not need to do anything. Th=
-e
-> > +resulting child platform device will have its ACPI_COMPANION() set=
- to point
-> > +to the parent device.
-> > +
-> > +If the ACPI namespace has a device that we can match using an ACPI=
- id,
-> > +the id should be set like:
-> > +
-> > +	static struct mfd_cell my_subdevice_cell =3D {
-> > +		.name =3D "my_subdevice",
-> > +		/* set the resources relative to the parent */
-> > +		.acpi_pnpid =3D "XYZ0001",
-> > +	};
-> > +
-> > +The ACPI id "XYZ0001" is then used to lookup an ACPI device direct=
-ly under
-> > +the MFD device and if found, that ACPI companion device is bound t=
-o the
-> > +resulting child platform device.
-> > diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
-> > index 892d343193ad..bb466b28b3b6 100644
-> > --- a/drivers/mfd/mfd-core.c
-> > +++ b/drivers/mfd/mfd-core.c
-> > @@ -78,6 +78,45 @@ static int mfd_platform_add_cell(struct platform=
-_device *pdev,
-> >  	return 0;
-> >  }
-> > =20
-> > +#if IS_ENABLED(CONFIG_ACPI)
-> > +static void mfd_acpi_add_device(const struct mfd_cell *cell,
-> > +				struct platform_device *pdev)
-> > +{
-> > +	struct acpi_device *parent_adev;
-> > +	struct acpi_device *adev =3D NULL;
-> > +
-> > +	parent_adev =3D ACPI_COMPANION(pdev->dev.parent);
-> > +	if (!parent_adev)
-> > +		return;
-> > +
-> > +	/*
-> > +	 * MFD child device gets its ACPI handle either from the ACPI
-> > +	 * device directly under the parent that matches the acpi_pnpid o=
-r
-> > +	 * it will use the parent handle if is no acpi_pnpid is given.
-> > +	 */
-> > +	if (cell->acpi_pnpid) {
-> > +		struct acpi_device_id ids[2] =3D {};
-> > +		struct acpi_device *child_adev;
-> > +
-> > +		strlcpy(ids[0].id, cell->acpi_pnpid, sizeof(ids[0].id));
-> > +		list_for_each_entry(child_adev, &parent_adev->children, node)
-> > +			if (acpi_match_device_ids(child_adev, ids)) {
-> > +				adev =3D child_adev;
-> > +				break;
-> > +			}
-> > +	} else {
-> > +		adev =3D parent_adev;
-> > +	}
-> > +
-> > +	ACPI_COMPANION_SET(&pdev->dev, adev);
-> > +}
-> > +#else
-> > +static inline void mfd_acpi_add_device(const struct mfd_cell *cell=
-,
-> > +				       struct platform_device *pdev)
-> > +{
-> > +}
-> > +#endif
-> > +
->=20
-> I'm not keen on polluting the MFD core driver with #differy.  Can't y=
-ou
-> think of another way to do it?
+> +        depends on DEBUG_FS
 
-It may be possible to do that since we only use few ACPI functions that
-have dummy stubs already.
+Spaces -> Tab
 
->=20
-> >  static int mfd_add_device(struct device *parent, int id,
-> >  			  const struct mfd_cell *cell, atomic_t *usage_count,
-> >  			  struct resource *mem_base,
-> > @@ -118,6 +157,8 @@ static int mfd_add_device(struct device *parent=
-, int id,
-> >  		}
-> >  	}
-> > =20
-> > +	mfd_acpi_add_device(cell, pdev);
-> > +
-> >  	if (cell->pdata_size) {
-> >  		ret =3D platform_device_add_data(pdev,
-> >  					cell->platform_data, cell->pdata_size);
-> > diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
-> > index f543de91ce19..73e1709d4c09 100644
-> > --- a/include/linux/mfd/core.h
-> > +++ b/include/linux/mfd/core.h
-> > @@ -44,6 +44,9 @@ struct mfd_cell {
-> >  	 */
-> >  	const char		*of_compatible;
-> > =20
-> > +	/* Matches ACPI PNP id, either _HID or _CID */
-> > +	const char		*acpi_pnpid;
-> > +
-> >  	/*
-> >  	 * These resources can be specified relative to the parent device=
-=2E
-> >  	 * For accessing hardware you should use resources from the platf=
-orm dev
->=20
-> --=20
-> Lee Jones
-> Linaro STMicroelectronics Landing Team Lead
-> Linaro.org =E2=94=82 Open source software for ARM SoCs
-> Follow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	default n
+
+n is the default already, no need to specify it here.
+
+> +	help
+> +	  This will enable your system to emulate GPIO-signaled event through
+> +	  proc file system. User needs to trigger event method by
+> +	  echo 1 >  /sys/kernel/debug/acpi/events/<GPIO DEVICE>/<PIN>
+> +	  (where, GPIO DEVICE is a GPIO device name and PIN is a pin number).
+
+We should probably mention that this is dangerous and should be used for
+debugging purposes only.
+
+> +
+>  config ACPI_VIDEO
+>  	tristate "Video"
+>  	depends on X86 && BACKLIGHT_CLASS_DEVICE
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 9fa20ff..24f9d8f 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -55,6 +55,7 @@ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+>  ifdef CONFIG_ACPI_VIDEO
+>  acpi-y				+= video_detect.o
+>  endif
+> +acpi-$(CONFIG_ACPI_GPIO_EVT_EMULATE)	+= gpio-acpi-evt-emu.o
+>  
+>  # These are (potentially) separate modules
+>  
+> diff --git a/drivers/acpi/gpio-acpi-evt-emu.c b/drivers/acpi/gpio-acpi-evt-emu.c
+> new file mode 100644
+> index 0000000..c39f501
+> --- /dev/null
+> +++ b/drivers/acpi/gpio-acpi-evt-emu.c
+> @@ -0,0 +1,195 @@
+> +/*
+> + * Code to emulate GPIO-signaled events.
+> + *
+> + * The sole purpose of this module is to help with GPIO event triggering.
+> + * Usage:
+> + * 1. See the list of available GPIO devices and associated pins under:
+> + *    /sys/kernel/debug/acpi/events/<GPIO DEVICE>/<PIN>. Only pins which are to
+> + *    be used as GPIO-signaled events will be listed (_AEI resources).
+> + *
+> + * 2. Trigger method corresponding to device pin number:
+> + *    $ echo 1 > /sys/kernel/debug/acpi/events/<GPIO DEVICE>/<PIN>
+> + */
+> +
+> +/*
+> + * Copyright (C) 2014, Linaro Ltd.
+> + * Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+You don't need to specify the FSF address here.
+
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/uaccess.h>
+> +#include <linux/debugfs.h>
+> +#include <linux/acpi.h>
+> +
+> +#include "acpica/accommon.h"
+> +#include "acpica/acnamesp.h"
+
+Are these actually needed?
+
+> +
+> +#include "internal.h"
+> +
+> +#define _COMPONENT		ACPI_SYSTEM_COMPONENT
+> +ACPI_MODULE_NAME("gpio_acpi_evt_emu");
+> +
+> +struct gpio_pin_parent_data {
+> +	acpi_handle handle;
+> +	struct dentry *debugfs_dir;
+> +	char *name;
+> +	unsigned int evt_count;
+> +};
+> +
+> +struct gpio_pin_data {
+> +	struct list_head list;
+> +	acpi_handle handle;
+> +	unsigned int pin;
+> +};
+> +
+> +static struct dentry *acpi_evt_debugfs_dir;
+> +static LIST_HEAD(pin_data_list);
+> +
+> +static int gpio_evt_trigger(void *data, u64 val)
+> +{
+> +	struct gpio_pin_data *pin_data = (struct gpio_pin_data *)data;
+> +	int pin = pin_data->pin;
+> +
+> +	if (ACPI_FAILURE(acpi_execute_simple_method(pin_data->handle, NULL,
+> +						    pin <= 255 ? 0 : pin)))
+> +		pr_err(PREFIX "evaluating event method failed\n");
+
+acpi_execute_simple_method() passes one argument to the method. You
+can't use it with _Lxx or _Exx which don't expect any arguments.
+Otherwise you get this:
+
+[  122.258191] ACPI: \_SB_.GPO2._E12: Excess arguments - Caller passed 1, method requires 0 (20140724/nsarguments-263)
+
+Also where does "PREFIX" come from?
+
+> +
+> +	return 0;
+> +}
+> +
+> +DEFINE_SIMPLE_ATTRIBUTE(gpio_evt_emu_fops, NULL, gpio_evt_trigger, "%llu\n");
+> +
+> +static acpi_status gpio_list_resource(struct acpi_resource *ares, void *context)
+> +{
+> +	struct acpi_resource_gpio *agpio = &ares->data.gpio;
+> +	struct gpio_pin_parent_data *parent_data = context;
+> +	struct dentry *pin_debugfs_dir;
+> +	struct gpio_pin_data *pin_data;
+> +	acpi_handle evt_handle;
+> +	acpi_status status;
+> +	char str_pin[5];
+> +	char ev_name[5];
+> +	int pin;
+> +
+> +	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
+> +		return AE_OK;
+> +
+> +	if (agpio->connection_type != ACPI_RESOURCE_GPIO_TYPE_INT)
+> +		return AE_OK;
+> +
+> +	pin_data = kmalloc(sizeof(*pin_data), GFP_KERNEL);
+> +	if (!pin_data)
+> +		return AE_NO_MEMORY;
+> +
+> +	pin = agpio->pin_table[0];
+> +	snprintf(str_pin, 5, "%d", pin);
+> +	pin_debugfs_dir = debugfs_create_file(str_pin, S_IWUSR,
+> +					      parent_data->debugfs_dir,
+> +					      pin_data,
+> +					      &gpio_evt_emu_fops);
+> +	if (!pin_debugfs_dir) {
+> +		status = AE_NULL_ENTRY;
+> +		goto fail;
+> +	}
+> +
+> +	if (pin <= 255)
+> +		sprintf(ev_name, "_%c%02X",
+> +			agpio->triggering == ACPI_EDGE_SENSITIVE ? 'E' : 'L',
+> +			pin);
+> +	else
+> +		sprintf(ev_name, "_EVT");
+> +
+> +	status = acpi_get_handle(parent_data->handle, ev_name, &evt_handle);
+> +	if (ACPI_FAILURE(status)) {
+> +		pr_err(PREFIX "getting handle to <%s> of <%s> failed, there is no method related to 0x%02X pin\n",
+> +		       ev_name, parent_data->name, pin);
+> +		goto fail;
+> +	}
+> +
+> +	pin_data->handle = evt_handle;
+> +	pin_data->pin = pin;
+> +        list_add_tail(&pin_data->list, &pin_data_list);
+
+Spaces -> tab
+
+> +
+> +	parent_data->evt_count++;
+> +
+> +	return AE_OK;
+> +fail:
+> +	kfree(pin_data);
+> +	return status;
+> +}
+> +
+> +static acpi_status gpio_find_resource(acpi_handle handle, u32 lvl,
+> +					  void *context, void **rv)
+> +{
+> +	struct acpi_namespace_node *node;
+> +	struct dentry *gpio_debugfs_dir;
+> +	struct gpio_pin_parent_data parent_data;
+> +	char gpio_name[5];
+> +
+> +	node = acpi_ns_validate_handle(handle);
+
+Hmm, why is this needed? Is uppose acpi_get_devices() or already makes
+sure you have a valid handle, no?
+
+> +	if (!node) {
+> +		pr_err(PREFIX "Mapping GPIO handle to node failed\n");
+> +		return AE_BAD_PARAMETER;
+> +	}
+> +
+> +	snprintf(gpio_name, 5, "%s", node->name.ascii);
+> +	gpio_debugfs_dir = debugfs_create_dir(gpio_name, acpi_evt_debugfs_dir);
+> +	if (gpio_debugfs_dir == NULL)
+> +		return AE_OK;
+> +
+> +	parent_data.debugfs_dir = gpio_debugfs_dir;
+> +	parent_data.handle = handle;
+> +	parent_data.name = gpio_name;
+> +	parent_data.evt_count = 0;
+> +
+> +	acpi_walk_resources(handle, METHOD_NAME__AEI, gpio_list_resource,
+> +			    &parent_data);
+> +
+> +	if (!parent_data.evt_count)
+> +		debugfs_remove(gpio_debugfs_dir);
+> +
+> +	return AE_OK;
+> +}
+> +
+> +static int __init gpio_evt_emu_init(void)
+> +{
+> +	if (acpi_debugfs_dir == NULL)
+> +		return -ENOENT;
+> +
+> +	acpi_evt_debugfs_dir = debugfs_create_dir("events", acpi_debugfs_dir);
+> +	if (acpi_evt_debugfs_dir == NULL)
+> +		return -ENOENT;
+> +
+> +	acpi_get_devices(NULL, gpio_find_resource, NULL, NULL);
+> +
+> +	return 0;
+> +}
+> +
+> +static void __exit gpio_evt_emu_deinit(void)
+
+call it gpio_evt_emu_exit() instead.
+
+> +{
+> +	struct gpio_pin_data *pin_data, *temp;
+> +
+> +	list_for_each_entry_safe(pin_data, temp, &pin_data_list, list)
+> +		kfree(pin_data);
+
+I suppose you want to first remove the directory entries and then the
+pin data. Otherwise if you get pre-empted at this point and someone
+tries to use your debugfs files, bad things might happen.
+
+> +
+> +	debugfs_remove_recursive(acpi_evt_debugfs_dir);
+
+Since this already removes everything below this dentry, why do you need
+to store the pointer in gpio_pin_parent_data?
+
+> +}
+> +
+> +module_init(gpio_evt_emu_init);
+> +module_exit(gpio_evt_emu_deinit);
+
+These should follow their respective functions. E.g
+
+static int __init gpio_evt_emu_init(void)
+{
+	...
+}
+module_init(gpio_evt_emu_init);
+
+> +
+> +MODULE_DESCRIPTION("GPIO-signaled events emulator");
+> +MODULE_LICENSE("GPL");
+
+GPL v2
