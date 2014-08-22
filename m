@@ -1,52 +1,66 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [Patch V4 29/42] x86, irq: introduce two helper functions to
- support irqdomain map operation
-Date: Fri, 22 Aug 2014 15:41:45 +0300
-Message-ID: <20140822124145.GF1660@lahna.fi.intel.com>
-References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com>
- <1402302011-23642-30-git-send-email-jiang.liu@linux.intel.com>
- <20140821141729.GT1660@lahna.fi.intel.com>
- <20140821165728.GV1660@lahna.fi.intel.com>
- <53F641E0.8040401@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: Run fixed button devices' notify callback in the process context
+Date: Fri, 22 Aug 2014 19:33:55 +0200
+Message-ID: <3313221.quKCYo2xmm@vostro.rjw.lan>
+References: <1408693091-16268-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:61628 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756166AbaHVMl6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Aug 2014 08:41:58 -0400
-Content-Disposition: inline
-In-Reply-To: <53F641E0.8040401@linux.intel.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:57596 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932696AbaHVROx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Aug 2014 13:14:53 -0400
+In-Reply-To: <1408693091-16268-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: lenb@kernel.org, bebl@mageta.org, davem@davemloft.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Aug 22, 2014 at 03:00:48AM +0800, Jiang Liu wrote:
-> Hi Mika,
-> 	I'm out of office until next Tuesday. Will handle this
-> when back to work. Could you please help to take a look at
-> mp_set_gsi_attr() to check whether it could be used to resolve
-> this issue.
+On Friday, August 22, 2014 03:37:55 PM Lan Tianyu wrote:
+> Currently fixed button devices' notify callbacks are running in the
+> interrupt context. It's not necessary and prevent calling functions
+> with mutex lock(E,G evaluating ACPI method). Otherwise, it's different
+> with non-fixed button device whose notify callback is running in the process
+> context. This patch is to make fixed button device's notify
+> callback in the process context and this also can avoid dead lock
+> when using netlink to report button event to user space.
 
-The problem seems to be that when we allocate the legacy 16 IRQ range,
-they will be set to edge-triggered and then info->set is set to 1
-preventing any further configuration (if I understand that part right).
+I guess this is the main reason for the patch?
 
-I tried simply following and it seems to work. Not sure how correct it
-is, though.
+Is there a bug report regarding this?
 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 29290f554e79..29c5d4fa9e86 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -1531,8 +1531,7 @@ static void __init setup_IO_APIC_irqs(void)
- 				    KERN_DEBUG " apic %d pin %d not connected\n",
- 				    mpc_ioapic_id(ioapic), pin);
- 		else
--			pin_2_irq(idx, ioapic, pin,
--				  ioapic ? 0 : IOAPIC_MAP_ALLOC);
-+			pin_2_irq(idx, ioapic, pin, 0);
- 	}
- }
- 
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> ---
+>  drivers/acpi/scan.c | 9 +++++++--
+>  1 file changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 0a817ad..bfb7fc5 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -922,12 +922,17 @@ static void acpi_device_notify(acpi_handle handle, u32 event, void *data)
+>  	device->driver->ops.notify(device, event);
+>  }
+>  
+> -static acpi_status acpi_device_notify_fixed(void *data)
+> +static void acpi_device_notify_fixed_run(void *data)
+>  {
+>  	struct acpi_device *device = data;
+>  
+> -	/* Fixed hardware devices have no handles */
+>  	acpi_device_notify(NULL, ACPI_FIXED_HARDWARE_EVENT, device);
+> +}
+> +
+> +static acpi_status acpi_device_notify_fixed(void *data)
+> +{
+> +	/* Fixed hardware devices have no handles */
+> +	acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_device_notify_fixed_run, data);
+>  	return AE_OK;
+>  }
+>  
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
