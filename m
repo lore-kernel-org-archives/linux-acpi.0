@@ -1,87 +1,52 @@
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: [PATCH] acpi: fan.c: printk replacement
-Date: Fri, 22 Aug 2014 17:33:21 +0530
-Message-ID: <1408709001-3272-1-git-send-email-sudipm.mukherjee@gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [Patch V4 29/42] x86, irq: introduce two helper functions to
+ support irqdomain map operation
+Date: Fri, 22 Aug 2014 15:41:45 +0300
+Message-ID: <20140822124145.GF1660@lahna.fi.intel.com>
+References: <1402302011-23642-1-git-send-email-jiang.liu@linux.intel.com>
+ <1402302011-23642-30-git-send-email-jiang.liu@linux.intel.com>
+ <20140821141729.GT1660@lahna.fi.intel.com>
+ <20140821165728.GV1660@lahna.fi.intel.com>
+ <53F641E0.8040401@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:60224 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751947AbaHVMDf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Aug 2014 08:03:35 -0400
+Received: from mga02.intel.com ([134.134.136.20]:61628 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756166AbaHVMl6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Aug 2014 08:41:58 -0400
+Content-Disposition: inline
+In-Reply-To: <53F641E0.8040401@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 
-printk replaced with corresponding dev_err and dev_info
-fixed one broken user-visible string
-multiine comment edited for correct commenting style
-asm/uaccess.h replaced with linux/uaccess.h
+On Fri, Aug 22, 2014 at 03:00:48AM +0800, Jiang Liu wrote:
+> Hi Mika,
+> 	I'm out of office until next Tuesday. Will handle this
+> when back to work. Could you please help to take a look at
+> mp_set_gsi_attr() to check whether it could be used to resolve
+> this issue.
 
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
----
- drivers/acpi/fan.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+The problem seems to be that when we allocate the legacy 16 IRQ range,
+they will be set to edge-triggered and then info->set is set to 1
+preventing any further configuration (if I understand that part right).
 
-diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index 8acf53e..7900d55 100644
---- a/drivers/acpi/fan.c
-+++ b/drivers/acpi/fan.c
-@@ -27,7 +27,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/types.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #include <linux/thermal.h>
- #include <linux/acpi.h>
- 
-@@ -127,8 +127,9 @@ static const struct thermal_cooling_device_ops fan_cooling_ops = {
- };
- 
- /* --------------------------------------------------------------------------
--                                 Driver Interface
--   -------------------------------------------------------------------------- */
-+ *                               Driver Interface
-+ * --------------------------------------------------------------------------
-+*/
- 
- static int acpi_fan_add(struct acpi_device *device)
- {
-@@ -143,7 +144,7 @@ static int acpi_fan_add(struct acpi_device *device)
- 
- 	result = acpi_bus_update_power(device->handle, NULL);
- 	if (result) {
--		printk(KERN_ERR PREFIX "Setting initial power state\n");
-+		dev_err(&device->dev, PREFIX "Setting initial power state\n");
- 		goto end;
+I tried simply following and it seems to work. Not sure how correct it
+is, though.
+
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 29290f554e79..29c5d4fa9e86 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -1531,8 +1531,7 @@ static void __init setup_IO_APIC_irqs(void)
+ 				    KERN_DEBUG " apic %d pin %d not connected\n",
+ 				    mpc_ioapic_id(ioapic), pin);
+ 		else
+-			pin_2_irq(idx, ioapic, pin,
+-				  ioapic ? 0 : IOAPIC_MAP_ALLOC);
++			pin_2_irq(idx, ioapic, pin, 0);
  	}
- 
-@@ -168,10 +169,10 @@ static int acpi_fan_add(struct acpi_device *device)
- 				   &device->dev.kobj,
- 				   "device");
- 	if (result)
--		dev_err(&device->dev, "Failed to create sysfs link "
--			"'device'\n");
-+		dev_err(&device->dev,
-+			"Failed to create sysfs link 'device'\n");
- 
--	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
-+	dev_info(&device->dev, PREFIX "%s [%s] (%s)\n",
- 	       acpi_device_name(device), acpi_device_bid(device),
- 	       !device->power.state ? "on" : "off");
- 
-@@ -214,10 +215,9 @@ static int acpi_fan_resume(struct device *dev)
- 
- 	if (!dev)
- 		return -EINVAL;
--
- 	result = acpi_bus_update_power(to_acpi_device(dev)->handle, NULL);
- 	if (result)
--		printk(KERN_ERR PREFIX "Error updating fan power state\n");
-+		dev_err(dev, PREFIX "Error updating fan power state\n");
- 
- 	return result;
  }
--- 
-1.8.1.2
-
+ 
