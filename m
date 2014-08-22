@@ -1,40 +1,91 @@
-From: Matt Fleming <matt@console-pimps.org>
-Subject: Re: kernel boot fail with efi earlyprintk (bisected)
-Date: Thu, 21 Aug 2014 21:52:24 +0100
-Message-ID: <20140821205224.GJ29733@console-pimps.org>
-References: <20140819081658.GA1795@darkstar.nay.redhat.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 2/2] ACPI/EC: Add support to disallow QR_EC to be issued
+ before completing the previous QR_EC.
+Date: Fri, 22 Aug 2014 01:06:29 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880265EEBB@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1408601898.git.lv.zheng@intel.com>,<54a1dc3591438f6fc5765dbabc17bdaa50df0dd4.1408601898.git.lv.zheng@intel.com>
+ <8f2s2dygqwh6mr6ccsao7k5m.1408650984840@email.android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140819081658.GA1795@darkstar.nay.redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Young <dyoung@redhat.com>
-Cc: lv.zheng@intel.com, matt.fleming@intel.com, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, lenb@kernel.org, rafael.j.wysocki@intel.com, robert.moore@intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:44406 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752063AbaHVBGe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Aug 2014 21:06:34 -0400
+In-Reply-To: <8f2s2dygqwh6mr6ccsao7k5m.1408650984840@email.android.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, 19 Aug, at 04:16:58PM, Dave Young wrote:
-> Hi,
-> 
-> 3.16 kernel boot fail with earlyprintk=efi on my laptop.
-> It keeps scrolling at the bottom line of screen.
-> 
-> Bisected, the first bad commit is below:
-> commit 86dfc6f339886559d80ee0d4bd20fe5ee90450f0
-> Author: Lv Zheng <lv.zheng@intel.com>
-> Date:   Fri Apr 4 12:38:57 2014 +0800
-> 
->     ACPICA: Tables: Fix table checksums verification before installation.
-> 
-> 
-> I did some debugging by enabling both serial and efi earlyprintk, below is
-> some debug dmesg, seems early_ioremap fails in scroll up function due to
-> no free slot, but I'm still not sure if the debug info is right or not.
-
-Thanks Dave, your callstack seems to make sense.
-
-Can you also enable early_ioremap_debug so that we can figure out where
-all the FIXMAP slots are going?
-
--- 
-Matt Fleming, Intel Open Source Technology Center
+SGksIFJhZmFlbA0KDQpJIHRoaW5rIFBBVENIIDEgaXMgcmVxdWlyZWQgZm9yIG5vdyBhbmQgdGhp
+cyBQQVRDSCBpcyBub3QgdGhhdCB1c2VmdWwgaWYgeW91IGFyZSBwbGFubmluZyB0byBtZXJnZSBt
+eSBzdG9ybWluZyBmaXgsIHRoZSBsb2dpYyBoYXMgYWxyZWFkeSBiZWVuIGNsZWFuZWQgdGhlcmUu
+DQoNClRoaXMgZmxhZyBvcmlnaW5hbGx5IGlzIHVzZWQgdG8gbWFyayB0aGUgcGVyaW9kIGFmdGVy
+IFNDSV9FVlQgaXMgaW5kaWNhdGVkIGFuZCBiZWZvcmUgdGhlIFFSX0VDIGlzIHBvbGxlZC4NClRo
+aXMgZmxhZyBpcyB1c2VmdWwgYmVjYXVzZSBkdXJpbmcgdGhpcyBwZXJpb2Qgc29tZSBtYWxmdW5j
+dGlvbmluZyBmaXJtd2FyZSBtYXkgdHJpZ2dlciBHUEUgc3Rvcm0gYXMgd2UgaGF2ZW4ndCBoYW5k
+bGVkIFNDSV9FVlQgcmlnaHQgaW4gdGhlIElSUSBjb250ZXh0Lg0KQnV0IHNvIGZhciB3ZSBoYXZl
+buKAmXQgQUNQSUNBIEdQRSBBUElzIHJlYWR5IHRvIGFjaGlldmUgc3VjaCBzdG9ybSBwcmV2ZW50
+aW9uLCB0aGUgb3JpZ2luYWwgdXNlIGNhc2UgaXMgbm90IHRoYXQgb2J2aW91cyBub3figKYuDQpB
+Y3R1YWxseSB0aGlzIGZsYWcgaXMgY3VycmVudGx5IG9ubHkgdXNlZCB0byBtYXNraW5nIHF1ZXJ5
+IGlzc3VpbmcuLi4NCg0KVGhpcyBwYXRjaCBjaGFuZ2UgdGhlIGZsYWcgdG8gYmUgdXNlZCBmb3Ig
+dGhpcyBjYXNlIOKAkyBtYXJraW5nIHRoZSBwZXJpb2QgYWZ0ZXIgU0NJX0VWVCBpcyBpbmRpY2F0
+ZWQgYW5kIGJlZm9yZSB0aGUgUVJfRUMgaXMgY29tcGxldGVkLg0KU2luY2UgdGhlIG9yaWdpbmFs
+IHVzYWdlIGlzIGFjdHVhbGx5IG5vdCBpbXBsZW1lbnRlZCwgd2UgY2FuIGRvIHRoaXMgY2hhbmdl
+Lg0KDQpCdXQgeW91IGFsc28gY2FuIGlnbm9yZSB0aGlzIHBhdGNoIGFzIHRoZSBjbGVhbnVwIGlu
+IHRoZSBzdG9ybWluZyBzZXJpZXMgaXMgY2xlYW5lciB0aGFuIHRoaXMuDQpJbiB0aGF0IHNlcmll
+cywgdGhlIGJvdGggY2FzZXMgYXJlIG1hcmtlZCBhbmQgdGh1cyBjYW4gYmUgcHJvdGVjdGVkIGJ5
+IGZ1cnRoZXIgY29kZS4NCg0KU28gaXTigJlzIHVwIHRvIHlvdSB3aGV0aGVyIHlvdSBuZWVkIFBB
+VENIIDIgb3Igbm90LiDimLoNCklmIHlvdSB0b29rIGl0LCBJIHdvdWxkIHJlLWJhc2UgdGhlIHN0
+b3JtaW5nIHNlcmllcyB0byByZWZsZWN0IHRoaXMgY2hhbmdlLg0KDQpUaGFua3MgYW5kIGJlc3Qg
+cmVnYXJkcw0KLUx2DQoNCg0KRnJvbTogV3lzb2NraSwgUmFmYWVsIEogDQpTZW50OiBGcmlkYXks
+IEF1Z3VzdCAyMiwgMjAxNCAzOjU1IEFNDQpUbzogWmhlbmcsIEx2OyBCcm93biwgTGVuDQpDYzog
+THYgWmhlbmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFjcGlAdmdlci5r
+ZXJuZWwub3JnDQpTdWJqZWN0OiBSRTogW1BBVENIIDIvMl0gQUNQSS9FQzogQWRkIHN1cHBvcnQg
+dG8gZGlzYWxsb3cgUVJfRUMgdG8gYmUgaXNzdWVkIGJlZm9yZSBjb21wbGV0aW5nIHRoZSBwcmV2
+aW91cyBRUl9FQy4NCg0KTG9va3MgT0sgdG8gbWUuDQoNClJhZmFlbA0KDQoNCg0KLS0tLS0tLS0g
+T3JpZ2luYWwgbWVzc2FnZSAtLS0tLS0tLQ0KRnJvbSAiWmhlbmcsIEx2IiA8bHYuemhlbmdAaW50
+ZWwuY29tPiANCkRhdGU6IDIxLzA4LzIwMTQgMDg6NDEgKEdNVCswMTowMCkgDQpUbyAiV3lzb2Nr
+aSwgUmFmYWVsIEoiIDxyYWZhZWwuai53eXNvY2tpQGludGVsLmNvbT4sIkJyb3duLCBMZW4iIDxs
+ZW4uYnJvd25AaW50ZWwuY29tPiANCkNjICJaaGVuZywgTHYiIDxsdi56aGVuZ0BpbnRlbC5jb20+
+LEx2IFpoZW5nIDx6ZXRhbG9nQGdtYWlsLmNvbT4sbGludXgta2VybmVsQHZnZXIua2VybmVsLm9y
+ZyxsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZyANClN1YmplY3QgW1BBVENIIDIvMl0gQUNQSS9F
+QzogQWRkIHN1cHBvcnQgdG8gZGlzYWxsb3cgUVJfRUMgdG8gYmUgaXNzdWVkIGJlZm9yZSBjb21w
+bGV0aW5nIHRoZSBwcmV2aW91cyBRUl9FQy4gDQoNClRoZXJlIGlzIHBsYXRmb3JtIHJlZnVzaW5n
+IHRvIHJlc3BvbmQgUVJfRUMgd2hlbiBTQ0lfRVZUIGlzbid0IHNldC4NCkEga25vd24gc3VjaCBw
+bGF0Zm9ybSBpcyBBY2VyIEFzcGlyZSBWNS01NzNHLg0KDQpCeSBkaXNhbGxvd2luZyBRUl9FQyBp
+c3N1aW5nIHdpdGhvdXQgY29tcGxldGluZyB0aGUgcHJldmlvdXMgb25lLCB3ZSBhcmUNCmFibGUg
+dG8gcmVkdWNlIHRoZSBwb3NzaWJpbGl0aWVzIHRvIHRyaWdnZXIgaXNzdWVzIG9uIHN1Y2ggcGxh
+dGZvcm1zLg0KDQpOb3RlIHRoYXQgdGhpcyBmaXggY2FuIG9ubHkgcmVkdWNlIHRoZSBvY2N1cnJl
+bmNlIHJhdGUgb2YgdGhpcyBpc3N1ZSwgYnV0DQp0aGlzIGlzc3VlIG1heSBzdGlsbCBvY2N1ciB3
+aGVuIHN1Y2ggYSBwbGF0Zm9ybSBkb2Vzbid0IGNsZWFyIFNDSV9FVlQNCmJlZm9yZSBvciBpbW1l
+ZGlhdGVseSBhZnRlciBjb21wbGV0aW5nIHRoZSBwcmV2aW91cyBRUl9FQyB0cmFuc2FjdGlvbi4g
+VGhpcw0KcGF0Y2ggY2Fubm90IGZpeCBDTEVBUl9PTl9SRVNVTUUgcXVpcmsgd2hpY2ggYWxzbyBy
+ZWxpZXMgb24gdGhlIGFzc3VtcHRpb24NCnRoYXQgdGhlIHBsYXRmb3JtcyBhcmUgYWJsZSB0byBy
+ZXNwb25kIGV2ZW4gd2hlbiBTQ0lfRVZUIGlzbid0IHNldC4NCg0KQnV0IHRoaXMgcGF0Y2ggaXMg
+c3RpbGwgdXNlZnVsIGFzIGl0IGNhbiBoZWxwIHRvIHJlZHVjZSB0aGUgbnVtYmVyIG9mDQpzY2hl
+ZHVsZWQgUVJfRUMgd29yayBpdGVtcy4NCg0KTGluazogaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwu
+b3JnL3Nob3dfYnVnLmNnaT9pZD04MjYxMQ0KUmVwb3J0ZWQtYW5kLXRlc3RlZC1ieTogQWxleGFu
+ZGVyIE1lemluIDxtZXppbi5hbGV4YW5kZXJAZ21haWwuY29tPg0KU2lnbmVkLW9mZi1ieTogTHYg
+WmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCi0tLQ0KwqBkcml2ZXJzL2FjcGkvZWMuYyB8wqDC
+oMKgIDQgKystLQ0KwqAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9u
+cygtKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2VjLmMgYi9kcml2ZXJzL2FjcGkvZWMu
+Yw0KaW5kZXggNWUxZWQzMS4uOTkyMmNjNCAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvYWNwaS9lYy5j
+DQorKysgYi9kcml2ZXJzL2FjcGkvZWMuYw0KQEAgLTMwMywxMSArMzAzLDExIEBAIHN0YXRpYyBp
+bnQgYWNwaV9lY190cmFuc2FjdGlvbl91bmxvY2tlZChzdHJ1Y3QgYWNwaV9lYyAqZWMsDQrCoMKg
+wqDCoMKgwqDCoMKgIC8qIGZvbGxvd2luZyB0d28gYWN0aW9ucyBzaG91bGQgYmUga2VwdCBhdG9t
+aWMgKi8NCsKgwqDCoMKgwqDCoMKgwqAgZWMtPmN1cnIgPSB0Ow0KwqDCoMKgwqDCoMKgwqDCoCBz
+dGFydF90cmFuc2FjdGlvbihlYyk7DQotwqDCoMKgwqDCoMKgIGlmIChlYy0+Y3Vyci0+Y29tbWFu
+ZCA9PSBBQ1BJX0VDX0NPTU1BTkRfUVVFUlkpDQotwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oCBjbGVhcl9iaXQoRUNfRkxBR1NfUVVFUllfUEVORElORywgJmVjLT5mbGFncyk7DQrCoMKgwqDC
+oMKgwqDCoMKgIHNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJmVjLT5sb2NrLCB0bXApOw0KwqDCoMKg
+wqDCoMKgwqDCoCByZXQgPSBlY19wb2xsKGVjKTsNCsKgwqDCoMKgwqDCoMKgwqAgc3Bpbl9sb2Nr
+X2lycXNhdmUoJmVjLT5sb2NrLCB0bXApOw0KK8KgwqDCoMKgwqDCoCBpZiAoZWMtPmN1cnItPmNv
+bW1hbmQgPT0gQUNQSV9FQ19DT01NQU5EX1FVRVJZKQ0KK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqAgY2xlYXJfYml0KEVDX0ZMQUdTX1FVRVJZX1BFTkRJTkcsICZlYy0+ZmxhZ3MpOw0KwqDC
+oMKgwqDCoMKgwqDCoCBlYy0+Y3VyciA9IE5VTEw7DQrCoMKgwqDCoMKgwqDCoMKgIHNwaW5fdW5s
+b2NrX2lycXJlc3RvcmUoJmVjLT5sb2NrLCB0bXApOw0KwqDCoMKgwqDCoMKgwqDCoCByZXR1cm4g
+cmV0Ow0KLS0gDQoxLjcuMTANCg==
