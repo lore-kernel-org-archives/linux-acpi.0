@@ -1,194 +1,92 @@
 From: Zhang Rui <rui.zhang@intel.com>
 Subject: Re: [PATCH] ACPI / scan: Allow ACPI drivers to bind to PNP device
  objects
-Date: Sat, 23 Aug 2014 23:21:17 +0800
-Message-ID: <1408807277.3315.43.camel@rzhang1-toshiba>
+Date: Sun, 24 Aug 2014 15:06:50 +0800
+Message-ID: <1408864010.3315.47.camel@rzhang1-toshiba>
 References: <5487060.QsgluucUH4@vostro.rjw.lan>
-	 <2188871.Tr0Kbz91aK@vostro.rjw.lan>
-	 <1408672831.3315.35.camel@rzhang1-toshiba>
-	 <3770704.uNPCcL4EDK@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3770704.uNPCcL4EDK@vostro.rjw.lan>
+In-Reply-To: <5487060.QsgluucUH4@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, Dirk Griesbach <spamthis@freenet.de>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2014-08-22 at 19:53 +0200, Rafael J. Wysocki wrote:
-> On Friday, August 22, 2014 10:00:31 AM Zhang Rui wrote:
-> > On Thu, 2014-08-21 at 19:10 +0200, Rafael J. Wysocki wrote:
-> > > On Thursday, August 21, 2014 08:08:54 PM Zhang Rui wrote:
-> > > > Hi, Rafael,
-> > > > 
-> > > > On Thu, 2014-08-21 at 06:04 +0200, Rafael J. Wysocki wrote:
-> > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > 
-> > > [cut]
-> > > 
-> > > > Note that I've just tested on my machine and it works well.
-> > > > I still need the bug reporter to check if the patch fixes bug 81511 or not.
-> > > 
-> > > The FUJ02B1 and FUJ02E3 devices in bug 81971 have the same problem and
-> > > they aren't motherboard devices.
-> > 
-> > Right, but IMO, the rootcause of that bug is that
-> > 1. the PNP id table in fujitsu-laptop driver was introduced for some
-> > reason, probably it is used as an indicator for module auto-loading, and
-> > nowadays, this is redundant because fujitsu-laptop driver probes ACPI
-> > device only, and the driver will be loaded if the ACPI device objects
-> > for FUJ02B1 and FUJ02E3 is created.
+On Thu, 2014-08-21 at 06:04 +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> We may be able to drop the Fujitsu devices from the ACPI PNP list and all may
-> work.  Still, does that fix all of the potential problems?
+> We generally don't allow ACPI drivers to bind to ACPI device objects
+> that companion "physical" device objects are created for to avoid
+> situations in which two different drivers may attempt to handle one
+> device at the same time.  Recent ACPI device enumeration rework
+> extended that approach to ACPI PNP devices by starting to use a scan
+> handler for enumerating them.  However, we previously allowed ACPI
+> drivers to bind to ACPI device objects with existing PNP device
+> companions and changing that led to functional regressions on some
+> systems.
 > 
-> > 2. This "redundant" PNP id table results in that those IDs are added to
-> > PNP ID list unnecessarily, and results in PNP device nodes for those
-> > devices are created unnecessarily.
+> For this reason, add a special check for PNP devices in
+> acpi_device_probe() so that ACPI drivers can bind to ACPI device
+> objects having existing PNP device companions as before.
 > 
-> Yes, that may be the case, but the way to deal with that is not to break
-> thing and then see what's broken and fix it, but to get rid of ACPI drivers
-> one by one in which case we can control what's been changed and why.
+> Fixes: eec15edbb0e1 (ACPI / PNP: use device ID list for PNPACPI device enumeration)
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=81511
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=81971
+> Reported-and-tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
+> Reported-and-tested-by: Dirk Griesbach <spamthis@freenet.de>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/acpi_pnp.c |    5 +++++
+>  drivers/acpi/internal.h |    1 +
+>  drivers/acpi/scan.c     |    2 +-
+>  3 files changed, 7 insertions(+), 1 deletion(-)
 > 
-> > >   Yes, we need to convert that driver
-> > > to use a PNP driver structure or a platform device, but (1) we need a
-> > > -stable fix *first*
-> > 
-> > I agree.
-> > 
-> > >  and (2) the cases we already know about may not be
-> > > the only broken ones.
-> > 
-> > Agree.
-> > But the issue addressed in your patch is that PNP scan handler blocks
-> > ACPI driver from being probed, right?
-> 
-> Yes.
-> 
-> > So my question would be,
-> > 1. If the id in PNP scan handler does not have a PNP driver, like the
-> >    FUJ02B1/FUJ02E3 issue, what do we need the id in PNP scan handler?
-> >    In fact, I think this is a good chance for us to cleanup the ACPI PNP
-> >    id list, as long as we can fix them in time.
-> 
-> No.
-> 
-> We need -stable to work and there's no way I will mark the motherboard
-> resource changes for -stable.
+> Index: linux-pm/drivers/acpi/acpi_pnp.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/acpi_pnp.c
+> +++ linux-pm/drivers/acpi/acpi_pnp.c
+> @@ -396,3 +396,8 @@ void __init acpi_pnp_init(void)
+>  {
+>  	acpi_scan_add_handler(&acpi_pnp_handler);
+>  }
+> +
+> +bool is_acpi_pnp_device(struct acpi_device *adev)
+> +{
+> +	return adev->handler == &acpi_pnp_handler;
+> +}
 
-I agree. And I would rather consider my patch as the start point of a
-long term solution.
+can we reuse acpi_is_pnp_device()?
+The only difference is that acpi_is_pnp_device() returns true for
+RTC_CMOS devices, which is not a problem IMO because RTC CMOS devices
+have PNP driver only.
 
->   Second, if we deal with it as I said (that is,
-> get rid of ACPI drivers gradually), we will clean up that list in the process
-> without breaking things for people in random ways.
+thanks,
+rui
 
-Agree.
-> 
-> > 2. If the id in PNP scan handler has a PNP driver, should we allow both
-> >    PNP driver and ACPI driver loaded? I think PNP system driver is the
-> >    only case that makes us have to say yes, and what I'm trying to do
-> >    is to fix this in the following patch.
-> > 
-> > Plus, IMO, your patch only fixes the PNP bus vs. ACPI bus issue. We
-> > still may get bug report complaining some *PLATFORM* driver stops to
-> > functional if the ACPI node has _CID PNP0C01/PNP0C02, sooner or later.
-> > right?
-> 
-> No.
-> 
-> We never allowed ACPI drivers to bind to ACPI device objects having platform
-> device companions,
-
-No, I mean, a platform device is used to be created as the ACPI device
-object _HID was in the previous acpi_platform scan handler list, but if
-this device has _CID PNP0C01/PNP0C02, the platform device will not be
-created any more after the ACPI enumeration re-work patches.
-
->  wherease we *did* allow that for ACPI device objects having
-> PNP device companions.  We simply need to go back to what we were doing and fix
-> things *on* *top* of that.
-> 
-> Any other approach pretty much guarantees leaving breakage in random places.
-> 
-> So I'm fine with cleaning up the PNP list *if* you convert the drivers in
-> question from ACPI drivers to something else (platform drivers preferably)
-> at the same time.
-> 
-yes, I see.
-
-So I guess the following patch can be upstream candidate, right?
-
->From e32c2de37750d622dae6ef9d2f5c448a528a7edb Mon Sep 17 00:00:00 2001
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Fri, 22 Aug 2014 09:06:10 +0800
-Subject: [PATCH] ACPI: remove Fujitsu backlight and hotkey device ID from ACPI
- PNP id list
-
-Fujitsu backlight and hotkey devices have ACPI drivers.
-The PNP MODULE_DEVICE_TABLE in fujitsu-laptop driver is just used as an
-indicator for module autoloading. But this is wrong because what we need is
-ACPI module device table instead because the driver is probing ACPI devices.
-
-Thus remove those ids from ACPI PNP scan handler list as we don't
-have PNP driver for them, and convert the fujitsu-laptop PNP
-MODULE_DEVICE_TABLE to ACPI MODULE_DEVICE_TABLE.
-
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=81971
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Tested-by: Dirk Griesbach <spamthis@freenet.de>
----
- drivers/acpi/acpi_pnp.c               |  4 ----
- drivers/platform/x86/fujitsu-laptop.c | 16 +++++++---------
- 2 files changed, 7 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
-index 1f8b204..b193f84 100644
---- a/drivers/acpi/acpi_pnp.c
-+++ b/drivers/acpi/acpi_pnp.c
-@@ -130,10 +130,6 @@ static const struct acpi_device_id acpi_pnp_device_ids[] = {
- 	{"PNP0401"},		/* ECP Printer Port */
- 	/* apple-gmux */
- 	{"APP000B"},
--	/* fujitsu-laptop.c */
--	{"FUJ02bf"},
--	{"FUJ02B1"},
--	{"FUJ02E3"},
- 	/* system */
- 	{"PNP0c02"},		/* General ID for reserving resources */
- 	{"PNP0c01"},		/* memory controller */
-diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-index 87aa28c..2655d4a 100644
---- a/drivers/platform/x86/fujitsu-laptop.c
-+++ b/drivers/platform/x86/fujitsu-laptop.c
-@@ -1050,6 +1050,13 @@ static struct acpi_driver acpi_fujitsu_hotkey_driver = {
- 		},
- };
- 
-+static const struct acpi_device_id fujitsu_ids[] __used = {
-+	{ACPI_FUJITSU_HID, 0},
-+	{ACPI_FUJITSU_HOTKEY_HID, 0},
-+	{"", 0}
-+};
-+MODULE_DEVICE_TABLE(acpi, fujitsu_ids);
-+
- static int __init fujitsu_init(void)
- {
- 	int ret, result, max_brightness;
-@@ -1208,12 +1215,3 @@ MODULE_LICENSE("GPL");
- MODULE_ALIAS("dmi:*:svnFUJITSUSIEMENS:*:pvr:rvnFUJITSU:rnFJNB1D3:*:cvrS6410:*");
- MODULE_ALIAS("dmi:*:svnFUJITSUSIEMENS:*:pvr:rvnFUJITSU:rnFJNB1E6:*:cvrS6420:*");
- MODULE_ALIAS("dmi:*:svnFUJITSU:*:pvr:rvnFUJITSU:rnFJNB19C:*:cvrS7020:*");
--
--static struct pnp_device_id pnp_ids[] __used = {
--	{.id = "FUJ02bf"},
--	{.id = "FUJ02B1"},
--	{.id = "FUJ02E3"},
--	{.id = ""}
--};
--
--MODULE_DEVICE_TABLE(pnp, pnp_ids);
--- 
-1.8.3.2
+> Index: linux-pm/drivers/acpi/internal.h
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/internal.h
+> +++ linux-pm/drivers/acpi/internal.h
+> @@ -86,6 +86,7 @@ void acpi_device_add_finalize(struct acp
+>  void acpi_free_pnp_ids(struct acpi_device_pnp *pnp);
+>  bool acpi_device_is_present(struct acpi_device *adev);
+>  bool acpi_device_is_battery(struct acpi_device *adev);
+> +bool is_acpi_pnp_device(struct acpi_device *adev);
+>  
+>  /* --------------------------------------------------------------------------
+>                                    Power Resource
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -975,7 +975,7 @@ static int acpi_device_probe(struct devi
+>  	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
+>  	int ret;
+>  
+> -	if (acpi_dev->handler)
+> +	if (acpi_dev->handler && !is_acpi_pnp_device(acpi_dev))
+>  		return -EINVAL;
+>  
+>  	if (!acpi_drv->ops.add)
