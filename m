@@ -1,90 +1,54 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / scan: Allow ACPI drivers to bind to PNP device objects
-Date: Tue, 26 Aug 2014 00:25:09 +0200
-Message-ID: <1493252.guStSdlKdN@vostro.rjw.lan>
-References: <5487060.QsgluucUH4@vostro.rjw.lan> <1408864010.3315.47.camel@rzhang1-toshiba>
+Subject: Re: [PATCH] ACPI: Add GPIO-signaled event emulator.
+Date: Tue, 26 Aug 2014 00:39:59 +0200
+Message-ID: <1828087.V5efjsXTdI@vostro.rjw.lan>
+References: <1408546700-19309-1-git-send-email-tomasz.nowicki@linaro.org> <20140821104533.GM1660@lahna.fi.intel.com> <53F604B2.6020004@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1408864010.3315.47.camel@rzhang1-toshiba>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, Dirk Griesbach <spamthis@freenet.de>, Matthew Garrett <mjg59@srcf.ucam.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:56845 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751780AbaHYWUx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Aug 2014 18:20:53 -0400
+In-Reply-To: <53F604B2.6020004@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linus.walleij@linaro.org, gnurou@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Sunday, August 24, 2014 03:06:50 PM Zhang Rui wrote:
-> On Thu, 2014-08-21 at 06:04 +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Thursday, August 21, 2014 04:39:46 PM Tomasz Nowicki wrote:
+> Hi Mika,
+> 
+> On 21.08.2014 12:45, Mika Westerberg wrote:
+> > On Wed, Aug 20, 2014 at 04:58:20PM +0200, Tomasz Nowicki wrote:
 
 [cut]
 
-> >  3 files changed, 7 insertions(+), 1 deletion(-)
-> > 
-> > Index: linux-pm/drivers/acpi/acpi_pnp.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/acpi_pnp.c
-> > +++ linux-pm/drivers/acpi/acpi_pnp.c
-> > @@ -396,3 +396,8 @@ void __init acpi_pnp_init(void)
-> >  {
-> >  	acpi_scan_add_handler(&acpi_pnp_handler);
-> >  }
-> > +
-> > +bool is_acpi_pnp_device(struct acpi_device *adev)
-> > +{
-> > +	return adev->handler == &acpi_pnp_handler;
-> > +}
-> 
-> can we reuse acpi_is_pnp_device()?
-> The only difference is that acpi_is_pnp_device() returns true for
-> RTC_CMOS devices, which is not a problem IMO because RTC CMOS devices
-> have PNP driver only.
+> >> +
+> >> +static int gpio_evt_trigger(void *data, u64 val)
+> >> +{
+> >> +	struct gpio_pin_data *pin_data = (struct gpio_pin_data *)data;
+> >> +	int pin = pin_data->pin;
+> >> +
+> >> +	if (ACPI_FAILURE(acpi_execute_simple_method(pin_data->handle, NULL,
+> >> +						    pin <= 255 ? 0 : pin)))
+> >> +		pr_err(PREFIX "evaluating event method failed\n");
+> >
+> > acpi_execute_simple_method() passes one argument to the method. You
+> > can't use it with _Lxx or _Exx which don't expect any arguments.
+> > Otherwise you get this:
+> >
+> > [  122.258191] ACPI: \_SB_.GPO2._E12: Excess arguments - Caller passed 1, method requires 0 (20140724/nsarguments-263)
+> Right, I will fix it.
 
-Yes, we can.  Overlooked that.
+OK, so here's my concern.
 
-Updated patch is appended.
+If AML does any kind of tracking of state in _Exx/_Lxx, you'll likely totally
+confuse it by calling those things at random.
+
+I'm not sure I'm seeing a compelling reason to put this thing into the tree
+for this reason.
 
 Rafael
 
-
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: [PATCH] ACPI / scan: Allow ACPI drivers to bind to PNP device objects
-
-We generally don't allow ACPI drivers to bind to ACPI device objects
-that companion "physical" device objects are created for to avoid
-situations in which two different drivers may attempt to handle one
-device at the same time.  Recent ACPI device enumeration rework
-extended that approach to ACPI PNP devices by starting to use a scan
-handler for enumerating them.  However, we previously allowed ACPI
-drivers to bind to ACPI device objects with existing PNP device
-companions and changing that led to functional regressions on some
-systems.
-
-For this reason, add a special check for PNP devices in
-acpi_device_probe() so that ACPI drivers can bind to ACPI device
-objects having existing PNP device companions as before.
-
-Fixes: eec15edbb0e1 (ACPI / PNP: use device ID list for PNPACPI device enumeration)
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=81511
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=81971
-Reported-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
-Reported-by: Dirk Griesbach <spamthis@freenet.de>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/scan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -975,7 +975,7 @@ static int acpi_device_probe(struct devi
- 	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
- 	int ret;
- 
--	if (acpi_dev->handler)
-+	if (acpi_dev->handler && !acpi_is_pnp_device(acpi_dev))
- 		return -EINVAL;
- 
- 	if (!acpi_drv->ops.add)
