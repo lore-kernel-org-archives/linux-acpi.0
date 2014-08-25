@@ -1,58 +1,90 @@
-From: Matt Fleming <matt@console-pimps.org>
-Subject: Re: kernel boot fail with efi earlyprintk (bisected)
-Date: Mon, 25 Aug 2014 12:16:53 +0100
-Message-ID: <20140825111653.GR29733@console-pimps.org>
-References: <20140819081658.GA1795@darkstar.nay.redhat.com>
- <20140821205224.GJ29733@console-pimps.org>
- <20140822100258.GA1877@darkstar.nay.redhat.com>
- <20140825060713.GA4011@darkstar.nay.redhat.com>
- <1AE640813FDE7649BE1B193DEA596E880265F57B@SHSMSX101.ccr.corp.intel.com>
- <20140825090619.GA3202@darkstar.nay.redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / scan: Allow ACPI drivers to bind to PNP device objects
+Date: Tue, 26 Aug 2014 00:25:09 +0200
+Message-ID: <1493252.guStSdlKdN@vostro.rjw.lan>
+References: <5487060.QsgluucUH4@vostro.rjw.lan> <1408864010.3315.47.camel@rzhang1-toshiba>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:45657 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753795AbaHYLQ5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Aug 2014 07:16:57 -0400
-Received: by mail-we0-f174.google.com with SMTP id x48so13067241wes.5
-        for <linux-acpi@vger.kernel.org>; Mon, 25 Aug 2014 04:16:56 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140825090619.GA3202@darkstar.nay.redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1408864010.3315.47.camel@rzhang1-toshiba>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, Dirk Griesbach <spamthis@freenet.de>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Young <dyoung@redhat.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Fleming, Matt" <matt.fleming@intel.com>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "lenb@kernel.org" <lenb@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>
 
-On Mon, 25 Aug, at 05:06:19PM, Dave Young wrote:
-> 
-> Problem is I do not understand the implementation detail yet.
-> 
-> I did below changes:
-> 
-> Original values:
-> #define NR_FIX_BTMAPS           64
-> #define FIX_BTMAPS_SLOTS        4
-> 
-> -> new values tested:
-> #define NR_FIX_BTMAPS           32
-> #define FIX_BTMAPS_SLOTS        8
-> 
-> 
-> There's below comments
->         /*
->          * 256 temporary boot-time mappings, used by early_ioremap(),
->          * before ioremap() is functional.
->          *
->          * If necessary we round it up to the next 256 pages boundary so
->          * that we can have a single pgd entry and a single pte table:
->          */
-> 
-> So seems increase it to 64 * 8 = 512 should be ok. If it's fine I can test again
-> and post a patch.
+On Sunday, August 24, 2014 03:06:50 PM Zhang Rui wrote:
+> On Thu, 2014-08-21 at 06:04 +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Make sure you include the x86 maintainers on Cc if you change these
-values.
+[cut]
 
--- 
-Matt Fleming, Intel Open Source Technology Center
+> >  3 files changed, 7 insertions(+), 1 deletion(-)
+> > 
+> > Index: linux-pm/drivers/acpi/acpi_pnp.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/acpi_pnp.c
+> > +++ linux-pm/drivers/acpi/acpi_pnp.c
+> > @@ -396,3 +396,8 @@ void __init acpi_pnp_init(void)
+> >  {
+> >  	acpi_scan_add_handler(&acpi_pnp_handler);
+> >  }
+> > +
+> > +bool is_acpi_pnp_device(struct acpi_device *adev)
+> > +{
+> > +	return adev->handler == &acpi_pnp_handler;
+> > +}
+> 
+> can we reuse acpi_is_pnp_device()?
+> The only difference is that acpi_is_pnp_device() returns true for
+> RTC_CMOS devices, which is not a problem IMO because RTC CMOS devices
+> have PNP driver only.
+
+Yes, we can.  Overlooked that.
+
+Updated patch is appended.
+
+Rafael
+
+
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: [PATCH] ACPI / scan: Allow ACPI drivers to bind to PNP device objects
+
+We generally don't allow ACPI drivers to bind to ACPI device objects
+that companion "physical" device objects are created for to avoid
+situations in which two different drivers may attempt to handle one
+device at the same time.  Recent ACPI device enumeration rework
+extended that approach to ACPI PNP devices by starting to use a scan
+handler for enumerating them.  However, we previously allowed ACPI
+drivers to bind to ACPI device objects with existing PNP device
+companions and changing that led to functional regressions on some
+systems.
+
+For this reason, add a special check for PNP devices in
+acpi_device_probe() so that ACPI drivers can bind to ACPI device
+objects having existing PNP device companions as before.
+
+Fixes: eec15edbb0e1 (ACPI / PNP: use device ID list for PNPACPI device enumeration)
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=81511
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=81971
+Reported-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
+Reported-by: Dirk Griesbach <spamthis@freenet.de>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -975,7 +975,7 @@ static int acpi_device_probe(struct devi
+ 	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
+ 	int ret;
+ 
+-	if (acpi_dev->handler)
++	if (acpi_dev->handler && !acpi_is_pnp_device(acpi_dev))
+ 		return -EINVAL;
+ 
+ 	if (!acpi_drv->ops.add)
