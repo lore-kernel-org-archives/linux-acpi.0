@@ -1,92 +1,54 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] ACPI / scan: Allow ACPI drivers to bind to PNP device
- objects
-Date: Sun, 24 Aug 2014 15:06:50 +0800
-Message-ID: <1408864010.3315.47.camel@rzhang1-toshiba>
-References: <5487060.QsgluucUH4@vostro.rjw.lan>
+From: Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: kernel boot fail with efi earlyprintk (bisected)
+Date: Mon, 25 Aug 2014 14:07:13 +0800
+Message-ID: <20140825060713.GA4011@darkstar.nay.redhat.com>
+References: <20140819081658.GA1795@darkstar.nay.redhat.com>
+ <20140821205224.GJ29733@console-pimps.org>
+ <20140822100258.GA1877@darkstar.nay.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5487060.QsgluucUH4@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Gabriele Mazzotta <gabriele.mzt@gmail.com>, Dirk Griesbach <spamthis@freenet.de>, Matthew Garrett <mjg59@srcf.ucam.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20140822100258.GA1877-4/PLUo9XfK+sDdueE5tM26fLeoKvNuZc@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matt Fleming <matt-HNK1S37rvNbeXh+fF434Mdi2O/JbrIOy@public.gmane.org>
+Cc: lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2014-08-21 at 06:04 +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 08/22/14 at 06:02pm, Dave Young wrote:
+> On 08/21/14 at 09:52pm, Matt Fleming wrote:
+> > On Tue, 19 Aug, at 04:16:58PM, Dave Young wrote:
+> > > Hi,
+> > > 
+> > > 3.16 kernel boot fail with earlyprintk=efi on my laptop.
+> > > It keeps scrolling at the bottom line of screen.
+> > > 
+> > > Bisected, the first bad commit is below:
+> > > commit 86dfc6f339886559d80ee0d4bd20fe5ee90450f0
+> > > Author: Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Date:   Fri Apr 4 12:38:57 2014 +0800
+> > > 
+> > >     ACPICA: Tables: Fix table checksums verification before installation.
+> > > 
+> > > 
+> > > I did some debugging by enabling both serial and efi earlyprintk, below is
+> > > some debug dmesg, seems early_ioremap fails in scroll up function due to
+> > > no free slot, but I'm still not sure if the debug info is right or not.
+> > 
+> > Thanks Dave, your callstack seems to make sense.
+> > 
+> > Can you also enable early_ioremap_debug so that we can figure out where
+> > all the FIXMAP slots are going?
 > 
-> We generally don't allow ACPI drivers to bind to ACPI device objects
-> that companion "physical" device objects are created for to avoid
-> situations in which two different drivers may attempt to handle one
-> device at the same time.  Recent ACPI device enumeration rework
-> extended that approach to ACPI PNP devices by starting to use a scan
-> handler for enumerating them.  However, we previously allowed ACPI
-> drivers to bind to ACPI device objects with existing PNP device
-> companions and changing that led to functional regressions on some
-> systems.
+> With early_ioremap_debug enabled, there will be a lot of "dropped printk", so
+> I can not get any useful information.
 > 
-> For this reason, add a special check for PNP devices in
-> acpi_device_probe() so that ACPI drivers can bind to ACPI device
-> objects having existing PNP device companions as before.
-> 
-> Fixes: eec15edbb0e1 (ACPI / PNP: use device ID list for PNPACPI device enumeration)
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=81511
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=81971
-> Reported-and-tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
-> Reported-and-tested-by: Dirk Griesbach <spamthis@freenet.de>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/acpi_pnp.c |    5 +++++
->  drivers/acpi/internal.h |    1 +
->  drivers/acpi/scan.c     |    2 +-
->  3 files changed, 7 insertions(+), 1 deletion(-)
-> 
-> Index: linux-pm/drivers/acpi/acpi_pnp.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/acpi_pnp.c
-> +++ linux-pm/drivers/acpi/acpi_pnp.c
-> @@ -396,3 +396,8 @@ void __init acpi_pnp_init(void)
->  {
->  	acpi_scan_add_handler(&acpi_pnp_handler);
->  }
-> +
-> +bool is_acpi_pnp_device(struct acpi_device *adev)
-> +{
-> +	return adev->handler == &acpi_pnp_handler;
-> +}
+> Will try to do more debug.
 
-can we reuse acpi_is_pnp_device()?
-The only difference is that acpi_is_pnp_device() returns true for
-RTC_CMOS devices, which is not a problem IMO because RTC CMOS devices
-have PNP driver only.
+early_ioremap_debug does not work because we are debugging early_printk but
+early_ioremap_debug itself will print warning message at the same time.
 
-thanks,
-rui
+Tried what Lv mentioned, increasing the early ioremap slots does help.
 
-> Index: linux-pm/drivers/acpi/internal.h
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/internal.h
-> +++ linux-pm/drivers/acpi/internal.h
-> @@ -86,6 +86,7 @@ void acpi_device_add_finalize(struct acp
->  void acpi_free_pnp_ids(struct acpi_device_pnp *pnp);
->  bool acpi_device_is_present(struct acpi_device *adev);
->  bool acpi_device_is_battery(struct acpi_device *adev);
-> +bool is_acpi_pnp_device(struct acpi_device *adev);
->  
->  /* --------------------------------------------------------------------------
->                                    Power Resource
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -975,7 +975,7 @@ static int acpi_device_probe(struct devi
->  	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
->  	int ret;
->  
-> -	if (acpi_dev->handler)
-> +	if (acpi_dev->handler && !is_acpi_pnp_device(acpi_dev))
->  		return -EINVAL;
->  
->  	if (!acpi_drv->ops.add)
+Thanks
+Dave
