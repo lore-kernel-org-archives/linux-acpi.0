@@ -1,64 +1,44 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH 8/9] amba: Add support for attach/detach of power domains
-Date: Tue, 26 Aug 2014 14:07:16 +0200
-Message-ID: <1409054837-5667-9-git-send-email-ulf.hansson@linaro.org>
+From: Philipp Zabel <p.zabel@pengutronix.de>
+Subject: Re: [PATCH 2/9] PM / Domains: Add generic OF-based power domain
+ look-up
+Date: Tue, 26 Aug 2014 15:15:18 +0200
+Message-ID: <1409058918.2911.55.camel@paszta.hi.pengutronix.de>
 References: <1409054837-5667-1-git-send-email-ulf.hansson@linaro.org>
+	 <1409054837-5667-3-git-send-email-ulf.hansson@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1409054837-5667-1-git-send-email-ulf.hansson@linaro.org>
+In-Reply-To: <1409054837-5667-3-git-send-email-ulf.hansson@linaro.org>
 Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>, Ulf Hansson <ulf.hansson@linaro.org>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, Russell King <linux@arm.linux.org.uk>, Philipp Zabel <philipp.zabel@gmail.com>, Geert Uytterhoeven <geert+renesas@glider.be>, Wolfram Sang <wsa@the-dreams.de>, Stephen Boyd <sboyd@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Tomasz Figa <tomasz.figa@gmail.com>, Chris Ball <chris@printf.net>, linux-acpi@vger.kernel.org, Simon Horman <horms@verge.net.au>, Alan Stern <stern@rowland.harvard.edu>, Mark Brown <broonie@kernel.org>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Tomasz Figa <t.figa@samsung.com>linux-a
 List-Id: linux-acpi@vger.kernel.org
 
-AMBA devices may on some SoCs resides in power domains. To be able to
-manage these devices from there, let's try to attach devices to their
-corresponding power domain during the probe phase.
+Hi Ulf,
 
-To reverse these actions at the remove phase, we try to detach the
-device from it's power domain.
+Am Dienstag, den 26.08.2014, 14:07 +0200 schrieb Ulf Hansson:
+> From: Tomasz Figa <t.figa@samsung.com>
+> 
+> This patch introduces generic code to perform power domain look-up using
+> device tree and automatically bind devices to their power domains.
+> Generic device tree binding is introduced to specify power domains of
+> devices in their device tree nodes.
+> 
+> Backwards compatibility with legacy Samsung-specific power domain
+> bindings is provided, but for now the new code is not compiled when
+> CONFIG_ARCH_EXYNOS is selected to avoid collision with legacy code. This
+> will change as soon as Exynos power domain code gets converted to use
+> the generic framework in further patch.
+> 
+> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
 
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
----
- drivers/amba/bus.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+Thank you for updating this series. I've tested patches 1-4
+using the PU power domain on i.MX6.
 
-diff --git a/drivers/amba/bus.c b/drivers/amba/bus.c
-index 3cf61a1..8f52393 100644
---- a/drivers/amba/bus.c
-+++ b/drivers/amba/bus.c
-@@ -182,9 +182,15 @@ static int amba_probe(struct device *dev)
- 	int ret;
- 
- 	do {
-+		ret = dev_pm_domain_attach(dev, true);
-+		if (ret == -EPROBE_DEFER)
-+			break;
-+
- 		ret = amba_get_enable_pclk(pcdev);
--		if (ret)
-+		if (ret) {
-+			dev_pm_domain_detach(dev, true);
- 			break;
-+		}
- 
- 		pm_runtime_get_noresume(dev);
- 		pm_runtime_set_active(dev);
-@@ -199,6 +205,7 @@ static int amba_probe(struct device *dev)
- 		pm_runtime_put_noidle(dev);
- 
- 		amba_put_disable_pclk(pcdev);
-+		dev_pm_domain_detach(dev, true);
- 	} while (0);
- 
- 	return ret;
-@@ -220,6 +227,7 @@ static int amba_remove(struct device *dev)
- 	pm_runtime_put_noidle(dev);
- 
- 	amba_put_disable_pclk(pcdev);
-+	dev_pm_domain_detach(dev, true);
- 
- 	return ret;
- }
--- 
-1.9.1
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+regards
+Philipp
 
