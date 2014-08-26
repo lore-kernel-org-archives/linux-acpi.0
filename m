@@ -1,38 +1,60 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: [Bugfix] x86, irq: Fix bug in setting IOAPIC pin attributes
-Date: Tue, 26 Aug 2014 11:55:18 -0700
-Message-ID: <53FCD816.6070108@infradead.org>
-References: <20140822124145.GF1660@lahna.fi.intel.com> <1409042706-11958-1-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: [PATCH v3 0/3] PCC: Platform Communication Channel
+Date: Tue, 26 Aug 2014 15:35:35 -0400
+Message-ID: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44272 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753317AbaHZSz6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Aug 2014 14:55:58 -0400
-In-Reply-To: <1409042706-11958-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from mail-qa0-f54.google.com ([209.85.216.54]:36690 "EHLO
+	mail-qa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752339AbaHZTgb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Aug 2014 15:36:31 -0400
+Received: by mail-qa0-f54.google.com with SMTP id k15so14347032qaq.13
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Aug 2014 12:36:30 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Prarit Bhargava <prarit@redhat.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
+To: arnd@arndb.de
+Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net, broonie@kernel.org
 
-On 08/26/14 01:45, Jiang Liu wrote:
-> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-> index 29290f554e79..66c2700c9f83 100644
-> --- a/arch/x86/kernel/apic/io_apic.c
-> +++ b/arch/x86/kernel/apic/io_apic.c
-> @@ -3896,7 +3896,15 @@ int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
-> +		/*
-> +		 * setup_IO_APIC_irqs() programs all legacy IRQs with default
-> +		 * trigger and polarity attirbutes. Don't set the flag for that
+This patchset adds support for the PCC (Platform Communication Channel)
+interface as described in the current ACPI 5.0 spec. See Section 14 of the
+ACPI spec - http://acpi.info/DOWNLOADS/ACPI_5_Errata%20A.pdf for more details
+on how PCC works.
 
-		                        attributes.
+In brief PCC is a generic means for PCC clients, to talk to the firmware. The
+PCC register space is typically memory mapped IO and uses a doorbell mechanism
+to communicate synchronously from the OS to the firmware. The PCC driver is
+completely agnostic to the protocol implemented by the PCC clients. It only
+implements the enumeration of PCC channels and the low level transport mechanism
+and leaves the rest to the PCC clients.
 
-> +		 * case so the first legacy IRQ user could reprogram the pin
-> +		 * with real trigger and polarity attributes.
-> +		 */
+The PCC is meant to be useable in the future by clients such as CPPC
+(Collaborative Processor Performance Control), RAS (Reliability,
+Availability and Serviceability) and MPST (Memory Power State Tables) and possibly others.
 
-thanks,
+
+Changes since V2:
+- Rebased on top of git://git.linaro.org/landing-teams/working/fujitsu/integration.git 
+	branch mailbox-for-3.17
+- Added PCC API to mailbox framework as per Arnd's suggestion to allow usage without ACPI.
+
+Changes since V1:
+-Integration with Mailbox framework - https://lkml.org/lkml/2014/5/15/49
+
+Ashwin Chaugule (3):
+  Mailbox: Add support for PCC mailbox and channels
+  Add support for Platform Communication Channel
+  PCC-test: Test driver to trigger PCC commands
+
+ drivers/mailbox/Kconfig            |  12 ++
+ drivers/mailbox/Makefile           |   2 +
+ drivers/mailbox/mailbox.c          | 118 +++++++++++++++++--
+ drivers/mailbox/pcc-test.c         | 208 +++++++++++++++++++++++++++++++++
+ drivers/mailbox/pcc.c              | 228 +++++++++++++++++++++++++++++++++++++
+ include/linux/mailbox_client.h     |   6 +
+ include/linux/mailbox_controller.h |   1 +
+ 7 files changed, 568 insertions(+), 7 deletions(-)
+ create mode 100644 drivers/mailbox/pcc-test.c
+ create mode 100644 drivers/mailbox/pcc.c
+
 -- 
-~Randy
+1.9.1
+
