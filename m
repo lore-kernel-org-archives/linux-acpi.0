@@ -1,261 +1,86 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: [PATCH v3 3/3] PCC-test: Test driver to trigger PCC commands
-Date: Tue, 26 Aug 2014 15:35:38 -0400
-Message-ID: <1409081738-5602-4-git-send-email-ashwin.chaugule@linaro.org>
-References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi: fan.c: printk replacement
+Date: Tue, 26 Aug 2014 23:02:27 +0200
+Message-ID: <8052272.VnRivAuOcQ@vostro.rjw.lan>
+References: <1408709001-3272-1-git-send-email-sudipm.mukherjee@gmail.com> <6969509.uGLFfCOQBb@vostro.rjw.lan> <20140826153039.GA2684@sudip-PC>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f176.google.com ([209.85.216.176]:42587 "EHLO
-	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752339AbaHZTgf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Aug 2014 15:36:35 -0400
-Received: by mail-qc0-f176.google.com with SMTP id m20so15808754qcx.7
-        for <linux-acpi@vger.kernel.org>; Tue, 26 Aug 2014 12:36:34 -0700 (PDT)
-In-Reply-To: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:56179 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752696AbaHZUnU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Aug 2014 16:43:20 -0400
+In-Reply-To: <20140826153039.GA2684@sudip-PC>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: arnd@arndb.de
-Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net, broonie@kernel.org
+To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-echo 2 > /proc/pcc_test [ to get channel base address ]
+On Tuesday, August 26, 2014 09:00:39 PM Sudip Mukherjee wrote:
+> On Tue, Aug 26, 2014 at 12:45:20AM +0200, Rafael J. Wysocki wrote:
+> > On Friday, August 22, 2014 05:33:21 PM Sudip Mukherjee wrote:
+> > > printk replaced with corresponding dev_err and dev_info
+> > > fixed one broken user-visible string
+> > > multiine comment edited for correct commenting style
+> > > asm/uaccess.h replaced with linux/uaccess.h
+> > > 
+> > > Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+> > > ---
+> > >  drivers/acpi/fan.c | 18 +++++++++---------
+> > >  1 file changed, 9 insertions(+), 9 deletions(-)
+> > > 
+> > > diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+> > > index 8acf53e..7900d55 100644
+> > > --- a/drivers/acpi/fan.c
+> > > +++ b/drivers/acpi/fan.c
+> > > @@ -27,7 +27,7 @@
+> > >  #include <linux/module.h>
+> > >  #include <linux/init.h>
+> > >  #include <linux/types.h>
+> > > -#include <asm/uaccess.h>
+> > > +#include <linux/uaccess.h>
+> > >  #include <linux/thermal.h>
+> > >  #include <linux/acpi.h>
+> > >  
+> > > @@ -127,8 +127,9 @@ static const struct thermal_cooling_device_ops fan_cooling_ops = {
+> > >  };
+> > >  
+> > >  /* --------------------------------------------------------------------------
+> > > -                                 Driver Interface
+> > > -   -------------------------------------------------------------------------- */
+> > > + *                               Driver Interface
+> > > + * --------------------------------------------------------------------------
+> > > +*/
+> > >  
+> > >  static int acpi_fan_add(struct acpi_device *device)
+> > >  {
+> > > @@ -143,7 +144,7 @@ static int acpi_fan_add(struct acpi_device *device)
+> > >  
+> > >  	result = acpi_bus_update_power(device->handle, NULL);
+> > >  	if (result) {
+> > > -		printk(KERN_ERR PREFIX "Setting initial power state\n");
+> > > +		dev_err(&device->dev, PREFIX "Setting initial power state\n");
+> > 
+> > While at it, please define a proper pr_fmt() for this file and get rid of PREFIX
+> > too.
+> > 
+> > Otherwise I don't see a compelling reason to apply this.
+> > 
+> 
+> Hi,
+> Since in the patch I am not using any pr_* , so I am unable to understand why
+> you are asking for a proper pr_fmt().
 
-echo 1 > /proc/pcc_test [ to trigger a PCC write ]
+Never mind, I was confused somehow, not exactly sure why.  Sorry about that.
 
-echo 0 > /proc/pcc_test [ to trigger a PCC read ]
+> I can get rid of the PREFIX . Then should I use pr_* in the patch instead of dev_* ? 
+> My understanding was dev_* is more preffered than pr_*.
+> waiting for your suggestion on this.
 
-The pcc-test driver is implemented as an example of a PCC
-Mailbox client.
+Well, that really depends on the particular case.  It really is better to use
+dev_err() here, but then PREFIX with it is not really useful, so please just
+drop PREFIX from the new messages.
 
-Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
----
- drivers/mailbox/Makefile   |   2 +-
- drivers/mailbox/pcc-test.c | 208 +++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 209 insertions(+), 1 deletion(-)
- create mode 100644 drivers/mailbox/pcc-test.c
-
-diff --git a/drivers/mailbox/Makefile b/drivers/mailbox/Makefile
-index 3f57ee9..695d6ab 100644
---- a/drivers/mailbox/Makefile
-+++ b/drivers/mailbox/Makefile
-@@ -10,4 +10,4 @@ mailbox_omap1-objs		:= mailbox-omap1.o
- obj-$(CONFIG_OMAP2PLUS_MBOX)	+= mailbox_omap2.o
- mailbox_omap2-objs		:= mailbox-omap2.o
- 
--obj-$(CONFIG_PCC)	+= pcc.o
-+obj-$(CONFIG_PCC)	+= pcc.o pcc-test.o
-diff --git a/drivers/mailbox/pcc-test.c b/drivers/mailbox/pcc-test.c
-new file mode 100644
-index 0000000..737a036
---- /dev/null
-+++ b/drivers/mailbox/pcc-test.c
-@@ -0,0 +1,208 @@
-+/*
-+ *	Copyright (C) 2014 Linaro Ltd.
-+ *	Author:	Ashwin Chaugule <ashwin.chaugule@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
-+#include <linux/init.h>
-+#include <linux/cpufreq.h>
-+#include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
-+#include <linux/mailbox_client.h>
-+#include <linux/mailbox_controller.h>
-+
-+#include <asm/uaccess.h>
-+
-+#include <acpi/actbl.h>
-+
-+static void __iomem *comm_base_addr; 	/* For use after ioremap */
-+
-+extern int mbox_controller_register(struct mbox_controller *mbox);
-+extern struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *, char *, unsigned int);
-+extern int mbox_send_message(struct mbox_chan *chan, void *mssg);
-+
-+
-+/* XXX: The PCC Subspace id is hard coded here only for test purposes.
-+ * In reality it should be parsed from the PCC package as described
-+ * in the PCC client table. e.g. CPC for CPPC 
-+ */
-+#define PCC_SUBSPACE_IDX 0
-+#define CMD_COMPLETE    1
-+
-+struct mbox_chan *pcc_test_chan;
-+enum ppc_cmds {
-+	CMD_READ,
-+	CMD_WRITE,
-+	RESERVED,
-+};
-+
-+static u64 reg1, reg2;
-+
-+static void run_pcc_test_read(void)
-+{
-+	u64 reg1_addr = (u64)comm_base_addr + 0x100;
-+	u64 reg2_addr = (u64)comm_base_addr + 0x110;
-+	char mssg[2];
-+	int ret;
-+
-+	/* READ part of the test */
-+	pr_info("Sending PCC read req from Channel base addr: %llx\n", (u64)comm_base_addr);
-+
-+	snprintf(mssg, sizeof(short), "%d", CMD_READ);
-+	ret = mbox_send_message(pcc_test_chan, &mssg);
-+	if (ret >= 0) {
-+		pr_info("Read updated values from Platform.\n");
-+		reg1 = readq((void*)reg1_addr);
-+		reg2 = readq((void*)reg2_addr);
-+		pr_info("updated value of reg1:%llx\n", reg1);
-+		pr_info("updated value of reg2:%llx\n", reg2);
-+	} else
-+		pr_err("Failed to read PCC parameters: ret=%d\n", ret);
-+}
-+
-+static void run_pcc_test_write(void)
-+{
-+	u64 reg1_addr = (u64)comm_base_addr + 0x100;
-+	u64 reg2_addr = (u64)comm_base_addr + 0x110;
-+	char mssg[2];
-+	int ret;
-+
-+	/* WRITE part of the test */
-+	reg1++;
-+	reg2++;
-+
-+	writeq(reg1, (void *)reg1_addr);
-+	writeq(reg2, (void *)reg2_addr);
-+
-+	pr_info("Sending PCC write req from Channel base addr: %llx\n", (u64)comm_base_addr);
-+	snprintf(mssg, sizeof(short), "%d", CMD_WRITE);
-+
-+	ret = mbox_send_message(pcc_test_chan, &mssg);
-+
-+	if (ret >= 0)
-+		pr_info("OSPM successfully sent PCC write cmd to platform\n");
-+	else
-+		pr_err("Failed to write PCC parameters. ret= %d\n", ret);
-+}
-+
-+static void pcc_chan_tx_done(struct mbox_client *cl, void *mssg, int ret)
-+{
-+	if (!ret)
-+		pr_info("PCC channel TX successfully completed. CMD sent = %s\n", (char*)mssg);
-+	else
-+		pr_warn("PCC channel TX did not complete: CMD sent = %s\n", (char*)mssg);
-+}
-+
-+struct mbox_client pcc_mbox_cl = {
-+	.tx_done	=	pcc_chan_tx_done,
-+};
-+
-+void get_pcc_comm(void)
-+{
-+	u64 base_addr;
-+	u32 len;
-+	struct acpi_pcct_subspace *pcc_ss;
-+
-+	pcc_test_chan = pcc_mbox_request_channel(&pcc_mbox_cl, "PCCT", PCC_SUBSPACE_IDX);
-+
-+	if (!pcc_test_chan) {
-+		pr_err("PCC Channel not found!\n");
-+		return;
-+	}
-+
-+	pcc_ss = pcc_test_chan->con_priv;
-+
-+	base_addr = pcc_ss->base_address;
-+	len = pcc_ss->length;
-+
-+	pr_info("ioremapping: %llx, len: %x\n", base_addr, len);
-+
-+//	comm_base_addr = ioremap_nocache(base_addr, len);
-+	/* HACK to test PCC commands */
-+	comm_base_addr = kzalloc(PAGE_SIZE, GFP_KERNEL);
-+
-+	if (!comm_base_addr) {
-+		pr_err("Could not ioremap channel\n");
-+		return;
-+	}
-+
-+	pcc_ss->base_address = (u64)comm_base_addr;
-+
-+	pr_info("Comm_base_addr: %llx\n", (u64)comm_base_addr);
-+}
-+
-+static ssize_t pcc_test_write(struct file *file, const char __user *buf,
-+		size_t count, loff_t *offs)
-+{
-+	char ctl[2];
-+
-+	if (count != 2 || *offs)
-+		return -EINVAL;
-+
-+	if (copy_from_user(ctl, buf, count))
-+		return -EFAULT;
-+
-+	switch (ctl[0]) {
-+		case '0':
-+			/* PCC read */
-+			run_pcc_test_read();
-+			break;
-+		case '1':
-+			/* PCC write */
-+			run_pcc_test_write();
-+			break;
-+		case '2':
-+			/* Get PCC channel */
-+			get_pcc_comm();
-+			break;
-+		default:
-+			pr_err("Unknown val\n");
-+			break;
-+	}
-+
-+	return count;
-+}
-+
-+static int pcc_test_open(struct inode *inode, struct file *filp)
-+{
-+	return 0;
-+}
-+
-+static int pcc_test_release(struct inode *inode, struct file *filp)
-+{
-+	return 0;
-+}
-+
-+static const struct file_operations pcc_test_fops = {
-+	.open		= pcc_test_open,
-+//	.read		= seq_read,
-+	.write		= pcc_test_write,
-+	.release	= pcc_test_release,
-+};
-+
-+static int __init pcc_test(void)
-+{
-+	struct proc_dir_entry *pe;
-+
-+	pe = proc_create("pcc_test", 0644, NULL, &pcc_test_fops);
-+
-+	if (!pe)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+late_initcall(pcc_test);
--- 
-1.9.1
+Rafael
 
