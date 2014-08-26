@@ -1,302 +1,216 @@
 From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: [PATCH v3 2/3] Add support for Platform Communication Channel
-Date: Tue, 26 Aug 2014 15:35:37 -0400
-Message-ID: <1409081738-5602-3-git-send-email-ashwin.chaugule@linaro.org>
+Subject: [PATCH v3 1/3] Mailbox: Add support for PCC mailbox and channels
+Date: Tue, 26 Aug 2014 15:35:36 -0400
+Message-ID: <1409081738-5602-2-git-send-email-ashwin.chaugule@linaro.org>
 References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:39774 "EHLO
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:40224 "EHLO
 	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752339AbaHZTge (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Aug 2014 15:36:34 -0400
-Received: by mail-qa0-f49.google.com with SMTP id dc16so13874664qab.8
-        for <linux-acpi@vger.kernel.org>; Tue, 26 Aug 2014 12:36:33 -0700 (PDT)
+	with ESMTP id S1752339AbaHZTgc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Aug 2014 15:36:32 -0400
+Received: by mail-qa0-f49.google.com with SMTP id dc16so14206502qab.36
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Aug 2014 12:36:32 -0700 (PDT)
 In-Reply-To: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: arnd@arndb.de
 Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net, broonie@kernel.org
 
-ACPI 5.0+ spec defines a generic mode of communication
-between the OS and a platform such as the BMC. This medium
-(PCC) is typically used by CPPC (ACPI CPU Performance management),
-RAS (ACPI reliability protocol) and MPST (ACPI Memory power
-states).
-
-This patch adds PCC support as a Mailbox Controller.
+The PCC (Platform Communication Channel) is a generic
+mailbox to be used by PCC clients such as CPPC, RAS
+and MPST as defined in the ACPI 5.0+ spec. This patch
+modifies the Mailbox framework to lookup PCC mailbox
+controllers and channels such that PCC drivers can work
+with or without ACPI support in the kernel.
 
 Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 ---
- drivers/mailbox/Kconfig  |  12 +++
- drivers/mailbox/Makefile |   2 +
- drivers/mailbox/pcc.c    | 228 +++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 242 insertions(+)
- create mode 100644 drivers/mailbox/pcc.c
+ drivers/mailbox/mailbox.c          | 118 ++++++++++++++++++++++++++++++++++---
+ include/linux/mailbox_client.h     |   6 ++
+ include/linux/mailbox_controller.h |   1 +
+ 3 files changed, 118 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
-index c8b5c13..af4a153 100644
---- a/drivers/mailbox/Kconfig
-+++ b/drivers/mailbox/Kconfig
-@@ -50,4 +50,16 @@ config OMAP_MBOX_KFIFO_SIZE
- 	  Specify the default size of mailbox's kfifo buffers (bytes).
- 	  This can also be changed at runtime (via the mbox_kfifo_size
- 	  module parameter).
+diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
+index 63ecc17..09ad488 100644
+--- a/drivers/mailbox/mailbox.c
++++ b/drivers/mailbox/mailbox.c
+@@ -356,6 +356,14 @@ struct mbox_chan *mbox_request_channel(struct mbox_client *cl, int index)
+ }
+ EXPORT_SYMBOL_GPL(mbox_request_channel);
+ 
++static void inline free_channel(struct mbox_chan *chan)
++{
++	chan->cl = NULL;
++	chan->active_req = NULL;
++	if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
++		chan->txdone_method = TXDONE_BY_POLL;
++}
 +
-+config PCC
-+	bool "Platform Communication Channel"
-+	depends on ACPI
-+	help
-+		ACPI 5.0+ spec defines a generic mode of communication
-+		between the OS and a platform such as the BMC. This medium
-+		(PCC) is typically used by CPPC (ACPI CPU Performance management),
-+		RAS (ACPI reliability protocol) and MPST (ACPI Memory power
-+		states). Select this driver if your platform implements the
-+		PCC clients mentioned above.
-+
- endif
-diff --git a/drivers/mailbox/Makefile b/drivers/mailbox/Makefile
-index 2fa343a..3f57ee9 100644
---- a/drivers/mailbox/Makefile
-+++ b/drivers/mailbox/Makefile
-@@ -9,3 +9,5 @@ obj-$(CONFIG_OMAP1_MBOX)	+= mailbox_omap1.o
- mailbox_omap1-objs		:= mailbox-omap1.o
- obj-$(CONFIG_OMAP2PLUS_MBOX)	+= mailbox_omap2.o
- mailbox_omap2-objs		:= mailbox-omap2.o
-+
-+obj-$(CONFIG_PCC)	+= pcc.o
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-new file mode 100644
-index 0000000..e925f65
---- /dev/null
-+++ b/drivers/mailbox/pcc.c
-@@ -0,0 +1,228 @@
+ /**
+  * mbox_free_channel - The client relinquishes control of a mailbox
+  *			channel by this call.
+@@ -369,14 +377,9 @@ void mbox_free_channel(struct mbox_chan *chan)
+ 		return;
+ 
+ 	chan->mbox->ops->shutdown(chan);
+-
+ 	/* The queued TX requests are simply aborted, no callbacks are made */
+ 	spin_lock_irqsave(&chan->lock, flags);
+-	chan->cl = NULL;
+-	chan->active_req = NULL;
+-	if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
+-		chan->txdone_method = TXDONE_BY_POLL;
+-
++	free_channel(chan);
+ 	module_put(chan->mbox->dev->driver->owner);
+ 	spin_unlock_irqrestore(&chan->lock, flags);
+ }
+@@ -394,6 +397,97 @@ of_mbox_index_xlate(struct mbox_controller *mbox,
+ 	return &mbox->chans[ind];
+ }
+ 
++#ifdef CONFIG_PCC
 +/*
-+ *	Copyright (C) 2014 Linaro Ltd.
-+ *	Author:	Ashwin Chaugule <ashwin.chaugule@linaro.org>
++ * The PCC (Platform Communication Channel) is
++ * defined in the ACPI 5.0+ spec. It is a generic
++ * mailbox interface between an OS and a Platform
++ * such as a BMC. The PCCT (Mailbox controller) has
++ * its own ACPI specific way to describe PCC clients
++ * and their subspace ids (Mailbox channels/clients).
 + *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
++ * The following API is added such that PCC
++ * drivers continue to work with this Mailbox
++ * framework with or without ACPI.
 + */
 +
-+#include <linux/acpi.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
-+#include <linux/init.h>
-+#include <linux/cpufreq.h>
-+#include <linux/delay.h>
-+#include <linux/ioctl.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mailbox_controller.h>
-+
-+#include <acpi/actbl.h>
-+
-+#define MAX_PCC_SUBSPACES	256
-+#define PCCS_SS_SIG_MAGIC	0x50434300
-+#define PCC_CMD_COMPLETE	0x1
-+#define PCC_VERSION			"0.1"
-+
-+static struct mbox_chan pcc_mbox_chan[MAX_PCC_SUBSPACES];
-+static struct mbox_controller pcc_mbox_ctrl = {};
-+
-+static bool pcc_tx_done(struct mbox_chan *chan)
++static struct mbox_controller *
++mbox_find_pcc_controller(char *name)
 +{
-+	struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
-+	struct acpi_pcct_shared_memory *generic_comm_base =
-+		(struct acpi_pcct_shared_memory *) pcct_ss->base_address;
-+	u16 cmd_delay = pcct_ss->min_turnaround_time;
-+
-+	/* Wait for Platform to consume. */
-+	while (!(ioread16(&generic_comm_base->status) & PCC_CMD_COMPLETE))
-+		udelay(cmd_delay);
-+
-+	return true;
-+}
-+
-+static int get_subspace_id(struct mbox_chan *chan)
-+{
-+	unsigned int i;
-+	int ret = -ENOENT;
-+
-+	for (i = 0; i < pcc_mbox_ctrl.num_chans; i++) {
-+		if (chan == &pcc_mbox_chan[i])
-+			return i;
++	struct mbox_controller *mbox;
++	list_for_each_entry(mbox, &mbox_cons, node) {
++		if (mbox->name)
++			if (!strcmp(mbox->name, name))
++				return mbox;
 +	}
 +
-+	return ret;
++	return NULL;
 +}
 +
-+/* Channel lock is already held by mbox controller code. */
-+static int pcc_send_data(struct mbox_chan *chan, void *data)
++struct mbox_chan *
++pcc_mbox_request_channel(struct mbox_client *cl,
++		char *name, unsigned chan_id)
 +{
-+	struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
-+	struct acpi_pcct_shared_memory *generic_comm_base =
-+		(struct acpi_pcct_shared_memory *) pcct_ss->base_address;
-+	struct acpi_generic_address doorbell;
-+	u64 doorbell_preserve;
-+	u64 doorbell_val;
-+	u64 doorbell_write;
-+	u16 cmd = 0;
-+	u16 ss_idx = -1;
-+	int ret = 0;
++	struct mbox_controller *mbox;
++	struct mbox_chan *pcc_chan;
++	unsigned long flags;
++	int ret;
++
++	mutex_lock(&con_mutex);
++	mbox = mbox_find_pcc_controller(name);
++
++	if (!mbox) {
++		pr_err("PCC mbox %s not found.\n", name);
++		mutex_unlock(&con_mutex);
++		return ERR_PTR(-ENODEV);
++	}
++
++	pcc_chan = &mbox->chans[chan_id];
++
++	spin_lock_irqsave(&pcc_chan->lock, flags);
++	pcc_chan->msg_free = 0;
++	pcc_chan->msg_count = 0;
++	pcc_chan->active_req = NULL;
++	pcc_chan->cl = cl;
++	init_completion(&pcc_chan->tx_complete);
++
++	if (pcc_chan->txdone_method	== TXDONE_BY_POLL && cl->knows_txdone)
++		pcc_chan->txdone_method |= TXDONE_BY_ACK;
++
++	spin_unlock_irqrestore(&pcc_chan->lock, flags);
++
++	ret = pcc_chan->mbox->ops->startup(pcc_chan);
++	if (ret) {
++		pr_err("Unable to startup the PCC channel (%d)\n", ret);
++		mbox_free_channel(pcc_chan);
++		mutex_unlock(&con_mutex);
++		return ERR_PTR(-ENODEV);
++	}
++
++	mutex_unlock(&con_mutex);
++
++	return pcc_chan;
++}
++
++EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
++
++void pcc_mbox_free_channel(struct mbox_chan *chan)
++{
++	unsigned long flags;
++
++	if (!chan || !chan->cl)
++		return;
++
++	chan->mbox->ops->shutdown(chan);
++
++	spin_lock_irqsave(&chan->lock, flags);
++	free_channel(chan);
++	spin_unlock_irqrestore(&chan->lock, flags);
++}
++EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
++
++#endif
++
+ /**
+  * mbox_controller_register - Register the mailbox controller
+  * @mbox:	Pointer to the mailbox controller.
+@@ -405,7 +499,17 @@ int mbox_controller_register(struct mbox_controller *mbox)
+ 	int i, txdone;
+ 
+ 	/* Sanity check */
+-	if (!mbox || !mbox->dev || !mbox->ops || !mbox->num_chans)
 +
 +	/*
-+	 * Min time in usec that OS is expected to wait
-+	 * before sending the next PCC cmd.
++	 * PCC clients and controllers are currently not backed by
++	 * platform device structures.
 +	 */
-+	u16 cmd_delay = pcct_ss->min_turnaround_time;
-+
-+	/* Get PCC CMD */
-+	ret = kstrtou16((char*)data, 0, &cmd);
-+	if (ret < 0) {
-+		pr_err("Err while converting PCC CMD to u16: %d\n", ret);
-+		goto out_err;
-+	}
-+
-+	ss_idx = get_subspace_id(chan);
-+
-+	if (ss_idx < 0) {
-+		pr_err("Invalid Subspace ID from PCC client\n");
-+		ret = ss_idx;
-+		goto out_err;
-+	}
-+
-+	doorbell = pcct_ss->doorbell_register;
-+	doorbell_preserve = pcct_ss->preserve_mask;
-+	doorbell_write = pcct_ss->write_mask;
-+
-+	/* Write to the shared comm region. */
-+	iowrite16(cmd, &generic_comm_base->command);
-+
-+	/* Write Subspace MAGIC value so platform can identify destination. */
-+	iowrite32((PCCS_SS_SIG_MAGIC | ss_idx), &generic_comm_base->signature);
-+
-+	/* Flip CMD COMPLETE bit */
-+	iowrite16(0, &generic_comm_base->status);
-+
-+	/* Sync notification from OSPM to Platform. */
-+	acpi_read(&doorbell_val, &doorbell);
-+	acpi_write((doorbell_val & doorbell_preserve) | doorbell_write,
-+			&doorbell);
-+
-+out_err:
-+	return ret;
-+}
-+
-+static int pcc_chan_startup(struct mbox_chan *chan)
-+{
-+	return 0;
-+}
-+
-+static void pcc_chan_shutdown(struct mbox_chan *chan)
-+{
-+	return;
-+}
-+
-+static struct mbox_chan_ops pcc_chan_ops = {
-+	.send_data	=	pcc_send_data,
-+	.startup	=	pcc_chan_startup,
-+	.shutdown	=	pcc_chan_shutdown,
-+	.last_tx_done	=	pcc_tx_done,
-+};
-+
-+static int parse_pcc_subspace(struct acpi_subtable_header *header,
-+		const unsigned long end)
-+{
-+	struct acpi_pcct_subspace *pcct_ss;
-+
-+	if (pcc_mbox_ctrl.num_chans <= MAX_PCC_SUBSPACES) {
-+		pcct_ss = (struct acpi_pcct_subspace *) header;
-+
-+		if (pcct_ss->header.type != ACPI_PCCT_TYPE_GENERIC_SUBSPACE) {
-+			pr_err("Incorrect PCC Subspace type detected\n");
-+			return -EINVAL;
-+		}
-+
-+		/* New mbox channel entry for each PCC subspace detected. */
-+		pcc_mbox_chan[pcc_mbox_ctrl.num_chans].con_priv = pcct_ss;
-+
-+		pcc_mbox_ctrl.num_chans++;
-+
-+	} else {
-+		pr_err("No more space for PCC subspaces.\n");
-+		return -ENOSPC;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init pcc_probe(void)
-+{
-+	acpi_status status = AE_OK;
-+	acpi_size pcct_tbl_header_size;
-+	struct acpi_table_pcct *pcct_tbl;
-+	int ret;
-+
-+	/* Search for PCCT */
-+	status = acpi_get_table_with_size(ACPI_SIG_PCCT, 0,
-+			(struct acpi_table_header **)&pcct_tbl,
-+			&pcct_tbl_header_size);
-+
-+	if (ACPI_SUCCESS(status) && !pcct_tbl) {
-+		pr_warn("PCCT header not found.\n");
-+		status = AE_NOT_FOUND;
-+		goto out_err;
-+	}
-+
-+	status = acpi_table_parse_entries(ACPI_SIG_PCCT,
-+			sizeof(struct acpi_table_pcct),
-+			ACPI_PCCT_TYPE_GENERIC_SUBSPACE,
-+			parse_pcc_subspace, MAX_PCC_SUBSPACES);
-+
-+	if (ACPI_SUCCESS(status))
-+		pr_err("Error parsing PCC subspaces from PCCT\n");
-+
-+	pr_info("Detected %d PCC Subspaces\n", pcc_mbox_ctrl.num_chans);
-+
-+	pcc_mbox_ctrl.chans = pcc_mbox_chan;
-+	pcc_mbox_ctrl.ops = &pcc_chan_ops;
-+	pcc_mbox_ctrl.name = "PCCT";
-+	pcc_mbox_ctrl.txdone_poll = true;
-+	pcc_mbox_ctrl.txpoll_period = 1;
-+
-+	pr_info("Registering PCC driver as Mailbox controller\n");
-+	ret = mbox_controller_register(&pcc_mbox_ctrl);
-+
-+	if (ret) {
-+		pr_err("Err registering PCC as Mailbox controller\n");
-+		return -ENODEV;
-+	}
-+
-+out_err:
-+	return ACPI_SUCCESS(status) ? 1 : 0;
-+}
-+
-+static int __init pcc_init(void)
-+{
-+	int ret;
-+
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	/* Check if PCC support is available. */
-+	ret = pcc_probe();
-+
-+	if (ret) {
-+		pr_debug("PCC probe failed.\n");
++#ifndef CONFIG_PCC
++	if (!mbox->dev)
 +		return -EINVAL;
-+	}
++#endif
 +
-+	return ret;
-+}
++	if (!mbox || !mbox->ops || !mbox->num_chans)
+ 		return -EINVAL;
+ 
+ 	if (mbox->txdone_irq)
+diff --git a/include/linux/mailbox_client.h b/include/linux/mailbox_client.h
+index 307d9ca..6a78df0 100644
+--- a/include/linux/mailbox_client.h
++++ b/include/linux/mailbox_client.h
+@@ -37,6 +37,12 @@ struct mbox_client {
+ 	void (*tx_done)(struct mbox_client *cl, void *mssg, int r);
+ };
+ 
++#ifdef CONFIG_PCC
++struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *c,
++		char *name, unsigned int chan_id);
++void pcc_mbox_free_channel(struct mbox_chan *chan); /* may sleep */
++#endif
 +
-+device_initcall(pcc_init);
+ struct mbox_chan *mbox_request_channel(struct mbox_client *cl, int index);
+ int mbox_send_message(struct mbox_chan *chan, void *mssg);
+ void mbox_client_txdone(struct mbox_chan *chan, int r); /* atomic */
+diff --git a/include/linux/mailbox_controller.h b/include/linux/mailbox_controller.h
+index 9ee195b..9f0ae42 100644
+--- a/include/linux/mailbox_controller.h
++++ b/include/linux/mailbox_controller.h
+@@ -81,6 +81,7 @@ struct mbox_controller {
+ 	unsigned txpoll_period;
+ 	struct mbox_chan *(*of_xlate)(struct mbox_controller *mbox,
+ 				      const struct of_phandle_args *sp);
++	char *name;
+ 	/* Internal to API */
+ 	struct timer_list poll;
+ 	unsigned period;
 -- 
 1.9.1
 
