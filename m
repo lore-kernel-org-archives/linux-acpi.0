@@ -1,85 +1,38 @@
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: Re: [PATCH] acpi: fan.c: printk replacement
-Date: Tue, 26 Aug 2014 21:00:39 +0530
-Message-ID: <20140826153039.GA2684@sudip-PC>
-References: <1408709001-3272-1-git-send-email-sudipm.mukherjee@gmail.com>
- <6969509.uGLFfCOQBb@vostro.rjw.lan>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [Bugfix] x86, irq: Fix bug in setting IOAPIC pin attributes
+Date: Tue, 26 Aug 2014 11:55:18 -0700
+Message-ID: <53FCD816.6070108@infradead.org>
+References: <20140822124145.GF1660@lahna.fi.intel.com> <1409042706-11958-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:40724 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755879AbaHZPax (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Aug 2014 11:30:53 -0400
-Content-Disposition: inline
-In-Reply-To: <6969509.uGLFfCOQBb@vostro.rjw.lan>
+Received: from bombadil.infradead.org ([198.137.202.9]:44272 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753317AbaHZSz6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Aug 2014 14:55:58 -0400
+In-Reply-To: <1409042706-11958-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Prarit Bhargava <prarit@redhat.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 
-On Tue, Aug 26, 2014 at 12:45:20AM +0200, Rafael J. Wysocki wrote:
-> On Friday, August 22, 2014 05:33:21 PM Sudip Mukherjee wrote:
-> > printk replaced with corresponding dev_err and dev_info
-> > fixed one broken user-visible string
-> > multiine comment edited for correct commenting style
-> > asm/uaccess.h replaced with linux/uaccess.h
-> > 
-> > Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
-> > ---
-> >  drivers/acpi/fan.c | 18 +++++++++---------
-> >  1 file changed, 9 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-> > index 8acf53e..7900d55 100644
-> > --- a/drivers/acpi/fan.c
-> > +++ b/drivers/acpi/fan.c
-> > @@ -27,7 +27,7 @@
-> >  #include <linux/module.h>
-> >  #include <linux/init.h>
-> >  #include <linux/types.h>
-> > -#include <asm/uaccess.h>
-> > +#include <linux/uaccess.h>
-> >  #include <linux/thermal.h>
-> >  #include <linux/acpi.h>
-> >  
-> > @@ -127,8 +127,9 @@ static const struct thermal_cooling_device_ops fan_cooling_ops = {
-> >  };
-> >  
-> >  /* --------------------------------------------------------------------------
-> > -                                 Driver Interface
-> > -   -------------------------------------------------------------------------- */
-> > + *                               Driver Interface
-> > + * --------------------------------------------------------------------------
-> > +*/
-> >  
-> >  static int acpi_fan_add(struct acpi_device *device)
-> >  {
-> > @@ -143,7 +144,7 @@ static int acpi_fan_add(struct acpi_device *device)
-> >  
-> >  	result = acpi_bus_update_power(device->handle, NULL);
-> >  	if (result) {
-> > -		printk(KERN_ERR PREFIX "Setting initial power state\n");
-> > +		dev_err(&device->dev, PREFIX "Setting initial power state\n");
-> 
-> While at it, please define a proper pr_fmt() for this file and get rid of PREFIX
-> too.
-> 
-> Otherwise I don't see a compelling reason to apply this.
-> 
+On 08/26/14 01:45, Jiang Liu wrote:
+> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+> index 29290f554e79..66c2700c9f83 100644
+> --- a/arch/x86/kernel/apic/io_apic.c
+> +++ b/arch/x86/kernel/apic/io_apic.c
+> @@ -3896,7 +3896,15 @@ int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
+> +		/*
+> +		 * setup_IO_APIC_irqs() programs all legacy IRQs with default
+> +		 * trigger and polarity attirbutes. Don't set the flag for that
 
-Hi,
-Since in the patch I am not using any pr_* , so I am unable to understand why you are asking for a proper pr_fmt().
-I can get rid of the PREFIX . Then should I use pr_* in the patch instead of dev_* ? 
-My understanding was dev_* is more preffered than pr_*.
-waiting for your suggestion on this.
+		                        attributes.
 
-thanks
-sudip
+> +		 * case so the first legacy IRQ user could reprogram the pin
+> +		 * with real trigger and polarity attributes.
+> +		 */
 
-
-> > 
-> 
-> -- 
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+thanks,
+-- 
+~Randy
