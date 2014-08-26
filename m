@@ -1,44 +1,85 @@
-From: Philipp Zabel <p.zabel@pengutronix.de>
-Subject: Re: [PATCH 2/9] PM / Domains: Add generic OF-based power domain
- look-up
-Date: Tue, 26 Aug 2014 15:15:18 +0200
-Message-ID: <1409058918.2911.55.camel@paszta.hi.pengutronix.de>
-References: <1409054837-5667-1-git-send-email-ulf.hansson@linaro.org>
-	 <1409054837-5667-3-git-send-email-ulf.hansson@linaro.org>
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: Re: [PATCH] acpi: fan.c: printk replacement
+Date: Tue, 26 Aug 2014 21:00:39 +0530
+Message-ID: <20140826153039.GA2684@sudip-PC>
+References: <1408709001-3272-1-git-send-email-sudipm.mukherjee@gmail.com>
+ <6969509.uGLFfCOQBb@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1409054837-5667-3-git-send-email-ulf.hansson@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, Russell King <linux@arm.linux.org.uk>, Philipp Zabel <philipp.zabel@gmail.com>, Geert Uytterhoeven <geert+renesas@glider.be>, Wolfram Sang <wsa@the-dreams.de>, Stephen Boyd <sboyd@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Tomasz Figa <tomasz.figa@gmail.com>, Chris Ball <chris@printf.net>, linux-acpi@vger.kernel.org, Simon Horman <horms@verge.net.au>, Alan Stern <stern@rowland.harvard.edu>, Mark Brown <broonie@kernel.org>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Tomasz Figa <t.figa@samsung.com>linux-a
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:40724 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755879AbaHZPax (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Aug 2014 11:30:53 -0400
+Content-Disposition: inline
+In-Reply-To: <6969509.uGLFfCOQBb@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Ulf,
-
-Am Dienstag, den 26.08.2014, 14:07 +0200 schrieb Ulf Hansson:
-> From: Tomasz Figa <t.figa@samsung.com>
+On Tue, Aug 26, 2014 at 12:45:20AM +0200, Rafael J. Wysocki wrote:
+> On Friday, August 22, 2014 05:33:21 PM Sudip Mukherjee wrote:
+> > printk replaced with corresponding dev_err and dev_info
+> > fixed one broken user-visible string
+> > multiine comment edited for correct commenting style
+> > asm/uaccess.h replaced with linux/uaccess.h
+> > 
+> > Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+> > ---
+> >  drivers/acpi/fan.c | 18 +++++++++---------
+> >  1 file changed, 9 insertions(+), 9 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+> > index 8acf53e..7900d55 100644
+> > --- a/drivers/acpi/fan.c
+> > +++ b/drivers/acpi/fan.c
+> > @@ -27,7 +27,7 @@
+> >  #include <linux/module.h>
+> >  #include <linux/init.h>
+> >  #include <linux/types.h>
+> > -#include <asm/uaccess.h>
+> > +#include <linux/uaccess.h>
+> >  #include <linux/thermal.h>
+> >  #include <linux/acpi.h>
+> >  
+> > @@ -127,8 +127,9 @@ static const struct thermal_cooling_device_ops fan_cooling_ops = {
+> >  };
+> >  
+> >  /* --------------------------------------------------------------------------
+> > -                                 Driver Interface
+> > -   -------------------------------------------------------------------------- */
+> > + *                               Driver Interface
+> > + * --------------------------------------------------------------------------
+> > +*/
+> >  
+> >  static int acpi_fan_add(struct acpi_device *device)
+> >  {
+> > @@ -143,7 +144,7 @@ static int acpi_fan_add(struct acpi_device *device)
+> >  
+> >  	result = acpi_bus_update_power(device->handle, NULL);
+> >  	if (result) {
+> > -		printk(KERN_ERR PREFIX "Setting initial power state\n");
+> > +		dev_err(&device->dev, PREFIX "Setting initial power state\n");
 > 
-> This patch introduces generic code to perform power domain look-up using
-> device tree and automatically bind devices to their power domains.
-> Generic device tree binding is introduced to specify power domains of
-> devices in their device tree nodes.
+> While at it, please define a proper pr_fmt() for this file and get rid of PREFIX
+> too.
 > 
-> Backwards compatibility with legacy Samsung-specific power domain
-> bindings is provided, but for now the new code is not compiled when
-> CONFIG_ARCH_EXYNOS is selected to avoid collision with legacy code. This
-> will change as soon as Exynos power domain code gets converted to use
-> the generic framework in further patch.
+> Otherwise I don't see a compelling reason to apply this.
 > 
-> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
 
-Thank you for updating this series. I've tested patches 1-4
-using the PU power domain on i.MX6.
+Hi,
+Since in the patch I am not using any pr_* , so I am unable to understand why you are asking for a proper pr_fmt().
+I can get rid of the PREFIX . Then should I use pr_* in the patch instead of dev_* ? 
+My understanding was dev_* is more preffered than pr_*.
+waiting for your suggestion on this.
 
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+thanks
+sudip
 
-regards
-Philipp
 
+> > 
+> 
+> -- 
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
