@@ -1,58 +1,90 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [Bugfix] x86, irq: Fix bug in setting IOAPIC pin attributes
-Date: Tue, 26 Aug 2014 12:52:21 +0300
-Message-ID: <20140826095221.GO1660@lahna.fi.intel.com>
-References: <20140822124145.GF1660@lahna.fi.intel.com>
- <1409042706-11958-1-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH 0/9] PM / Domains: Generic OF-based support
+Date: Tue, 26 Aug 2014 14:07:08 +0200
+Message-ID: <1409054837-5667-1-git-send-email-ulf.hansson@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:63136 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754161AbaHZJw6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Aug 2014 05:52:58 -0400
-Content-Disposition: inline
-In-Reply-To: <1409042706-11958-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:46869 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757542AbaHZMHq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Aug 2014 08:07:46 -0400
+Received: by mail-lb0-f171.google.com with SMTP id w7so1240036lbi.30
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Aug 2014 05:07:45 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Prarit Bhargava <prarit@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>, Ulf Hansson <ulf.hansson@linaro.org>
 
-On Tue, Aug 26, 2014 at 04:45:01PM +0800, Jiang Liu wrote:
-> On startup, IOAPIC driver preallocates IRQ descriptors and programs
-> IOAPIC pins with default level and polarity attributes for all legacy
-> IRQs. Later legacy IRQ users may fail to set IOAPIC pin attributes
-> if the requested attributes conflicts with the default IOAPIC pin
-> attributes. So change mp_irqdomain_map() to allow the first legacy IRQ
-> user to reprogram IOAPIC pin with different attributes.
-> 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+This patchset has a bit of a history and some parts of it has been posted
+earlier.
 
-I tried this and now we get further in setting up the IOAPIC but it
-still doesn't work :-(
+http://lists.infradead.org/pipermail/linux-arm-kernel/2014-June/262725.html
 
-I noticed that mp_set_gsi_attr() never programs the IOAPIC in case
-info->set is 0 so I added following on top of your patch. With the below
-patch, the system seems to work as expected.
+I intentially didn't increase version number of the patches, since I think it
+will cause more confusion than clarity.
 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 66c2700c9f83..777762a0ad09 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3942,10 +3942,16 @@ int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node)
- 
- 	mutex_lock(&ioapic_mutex);
- 	if (!info->set) {
-+		struct io_apic_irq_attr attr;
-+
- 		info->trigger = trigger;
- 		info->polarity = polarity;
- 		info->node = node;
- 		info->set = 1;
-+
-+		/* Now program the IOAPIC with the new attributes */
-+		set_io_apic_irq_attr(&attr, ioapic, pin, trigger, polarity);
-+		ret = io_apic_setup_irq_pin(gsi, node, &attr);
- 	} else if (info->trigger != trigger || info->polarity != polarity) {
- 		ret = -EBUSY;
- 	}
+A summary of changes since the last patchset (link above):
+	- Instead of letting driver core handling the device to power domain
+	binding/unbinding, follow the behavior of how the ACPI power domain
+	is handled.
+
+
+This is a summary of what these patches are intended to do:
+
+1)
+Add generic power domain OF-based support which also includes APIs to handle
+attach/detach of generic power domains to devices.
+
+2)
+Adding a common API to attach/detach power domains and include support for the
+ACPI and the generic power domain in there.
+
+3)
+>From subsystem level code, at probe/remove, convert from invoking the ACPI
+specific power domain attach/detach functions to the new common attach/detach
+APIs.
+
+4)
+Add support for the AMBA bus to attach/detach power domains, using the new
+common APIs.
+
+5)
+Convert Exynos to use the new generic power domain OF support.
+
+Obviously, there are dependencies througout this patchset, which means if they
+get accepted the all need to go together.
+
+
+Tomasz Figa (2):
+  PM / Domains: Add generic OF-based power domain look-up
+  ARM: exynos: Move to generic power domain bindings
+
+Ulf Hansson (7):
+  ACPI / PM: Let acpi_dev_pm_detach() return an error code
+  PM / Domains: Add APIs to attach/detach a power domain for a device
+  drivercore / platform: Convert to dev_pm_domain_attach|detach()
+  i2c: core: Convert to dev_pm_domain_attach|detach()
+  mmc: sdio: Convert to dev_pm_domain_attach|detach()
+  spi: core: Convert to dev_pm_domain_attach|detach()
+  amba: Add support for attach/detach of power domains
+
+ .../bindings/arm/exynos/power_domain.txt           |  13 +-
+ .../devicetree/bindings/power/power_domain.txt     |  51 ++++
+ arch/arm/mach-exynos/pm_domains.c                  |  78 +-----
+ drivers/acpi/device_pm.c                           |   4 +
+ drivers/amba/bus.c                                 |  10 +-
+ drivers/base/platform.c                            |  15 +-
+ drivers/base/power/common.c                        |  58 ++++
+ drivers/base/power/domain.c                        | 291 +++++++++++++++++++++
+ drivers/i2c/i2c-core.c                             |  13 +-
+ drivers/mmc/core/sdio_bus.c                        |   4 +-
+ drivers/spi/spi.c                                  |  12 +-
+ include/linux/acpi.h                               |   7 +-
+ include/linux/pm.h                                 |  14 +
+ include/linux/pm_domain.h                          |  46 ++++
+ kernel/power/Kconfig                               |   4 +
+ 15 files changed, 514 insertions(+), 106 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/power/power_domain.txt
+
+-- 
+1.9.1
+
