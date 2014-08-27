@@ -1,103 +1,78 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 1/3] Mailbox: Add support for PCC mailbox and channels
-Date: Wed, 27 Aug 2014 11:27:08 +0100
-Message-ID: <20140827102708.GW17528@sirena.org.uk>
+Subject: Re: [PATCH v3 2/3] Add support for Platform Communication Channel
+Date: Wed, 27 Aug 2014 11:29:37 +0100
+Message-ID: <20140827102937.GX17528@sirena.org.uk>
 References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
- <1409081738-5602-2-git-send-email-ashwin.chaugule@linaro.org>
+ <1409081738-5602-3-git-send-email-ashwin.chaugule@linaro.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YK6JF6g3MGrlNqAP"
+	protocol="application/pgp-signature"; boundary="iYLmq5he1S0iJCyn"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:35773 "EHLO
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:35779 "EHLO
 	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933323AbaH0K1W (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2014 06:27:22 -0400
+	with ESMTP id S1756002AbaH0K3p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2014 06:29:45 -0400
 Content-Disposition: inline
-In-Reply-To: <1409081738-5602-2-git-send-email-ashwin.chaugule@linaro.org>
+In-Reply-To: <1409081738-5602-3-git-send-email-ashwin.chaugule@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 Cc: arnd@arndb.de, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net
 
 
---YK6JF6g3MGrlNqAP
+--iYLmq5he1S0iJCyn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 26, 2014 at 03:35:36PM -0400, Ashwin Chaugule wrote:
+On Tue, Aug 26, 2014 at 03:35:37PM -0400, Ashwin Chaugule wrote:
 
-> The PCC (Platform Communication Channel) is a generic
-> mailbox to be used by PCC clients such as CPPC, RAS
-> and MPST as defined in the ACPI 5.0+ spec. This patch
-> modifies the Mailbox framework to lookup PCC mailbox
-> controllers and channels such that PCC drivers can work
-> with or without ACPI support in the kernel.
->=20
-> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> ---
->  drivers/mailbox/mailbox.c          | 118 +++++++++++++++++++++++++++++++=
-+++---
->  include/linux/mailbox_client.h     |   6 ++
->  include/linux/mailbox_controller.h |   1 +
->  3 files changed, 118 insertions(+), 7 deletions(-)
-
-Based on the patch description (adding support for a particular kind of
-mailbox) I'd expect to see a new driver or helper library being added to
-drivers/mailbox rather than changes in the mailbox core.  If changes in
-the core are needed to support this I'd expect to see them broken out as
-separate patches.
-
-> +static struct mbox_controller *
-> +mbox_find_pcc_controller(char *name)
+> +static int pcc_chan_startup(struct mbox_chan *chan)
 > +{
-> +	struct mbox_controller *mbox;
-> +	list_for_each_entry(mbox, &mbox_cons, node) {
-> +		if (mbox->name)
-> +			if (!strcmp(mbox->name, name))
-> +				return mbox;
-> +	}
+> +	return 0;
+> +}
 > +
-> +	return NULL;
+> +static void pcc_chan_shutdown(struct mbox_chan *chan)
+> +{
+> +	return;
 > +}
 
-This doesn't look particularly PCC specific?
+If these functions can be empty it seems better to have the mailbox
+framework accept empty functions than require drivers to provide
+dummies.
 
->  	/* Sanity check */
-> -	if (!mbox || !mbox->dev || !mbox->ops || !mbox->num_chans)
+> +	/* Search for PCCT */
+> +	status = acpi_get_table_with_size(ACPI_SIG_PCCT, 0,
+> +			(struct acpi_table_header **)&pcct_tbl,
+> +			&pcct_tbl_header_size);
 > +
-> +	/*
-> +	 * PCC clients and controllers are currently not backed by
-> +	 * platform device structures.
-> +	 */
-> +#ifndef CONFIG_PCC
-> +	if (!mbox->dev)
-> +		return -EINVAL;
-> +#endif
+> +	if (ACPI_SUCCESS(status) && !pcct_tbl) {
+> +		pr_warn("PCCT header not found.\n");
+> +		status = AE_NOT_FOUND;
+> +		goto out_err;
+> +	}
 
-It seems better to make this consistent - either enforce it all the time
-or don't enforce it.
+Is PCC mandatory?  If not I'd not expect to see this as a warning.
 
---YK6JF6g3MGrlNqAP
+--iYLmq5he1S0iJCyn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBAgAGBQJT/bJ5AAoJELSic+t+oim97QgP/2Kk6bUVuiKenqZvUTegtvPi
-Fwmzkx+MiMSoBxFZOOZ4N00zsSsAlAJMj5CLY8LzteVQPQeDtpOv7D+WRtjNLCb+
-/cCKEedCKnznEt5ikPeAneo3Fb8RXt7plU2W9iL3O7CX53zS2nzbP3BabQDcjBBF
-AHMOSgCfuVyp25Uem1b5jyCDXNbKi7jLrcREBZVarm4/lltvzk8xgn1YV8dm8/2/
-P1hqZyQI67Z5BJUOj4nr7fRDm6CY/H5x0emiRBnLvF3jkZunzkVRRD55RQ86+p9z
-T7vBfU5t8tyAqZQf0sqpEk37nb9RlNZXOcSFT7PRrak0kQMlF8JVYXD5FPmkonJC
-THfzKRUd7JCu6lw3qcKrtJSSCPWXw77mWzOx0eGT7vZaUdob6ol8KyLLvmyV50Vs
-l37pJks78A3M1Rlq5oawEzT5sp9JEtovcW1fmE7doa2h1y7NJZqf3CSsZ/TNKQjR
-JzwN5PlgmeJR1CV1SmqQDacnY7n0MkC2J43HuL/ezHdFg9gFeiNkybfMd87gQip/
-nAe+MEoJ37QwT+2HHyMdI1/643up5ZMaCpnuftfiiIWKlKGzfLiwOTewIhZztwd0
-LG6drhmUgN5W1utp2LrAB62gj5GicCwKSFnc8gCdPC8FKhOfMF+ElOyTU7/tB2Y3
-CgKC/ayBXXCUw1pjJJfI
-=2oAb
+iQIcBAEBAgAGBQJT/bMOAAoJELSic+t+oim9KfcP/jmduXJkqhZb8YgHXt9bjWnC
+B2liOFrrzmaIRIWyyLFovlbUmXjrP8DpK87Rbf3Oyp9DkQdOmh602sW/PekmSPTC
+Sqdj296La9Q7TbESlVQhsbmMzk59Wrk4eSUzoeSppNAdIpKW8gam0eRBgeQZG6SU
+tIwsig1xKPF+0b8nhaHB/sU61GUUm7DLk39jSFshnI0DbgiPFZ52Dqq+Cj0PYInk
+yius+1yUYVG/9thclOIoFrrEjoJEhHlj644Bpks5UxBPRXcAQ8YsQgUX3T5kFAIv
+gbqoWbQ1tOvz/Z3vg9w90RJ8yQ+PEtcCqU3G1Gz65PwY8VVO6Kubf/tezZZdVYdb
+DUNq9JnQ1c668/LZ3auM8v4vo3wh2IRTzBIBCwabC5+mXZKygkNhhLCP3abzjmZ6
+fkzUYemY90Moq4dJbJxHjmv7tenJMMk66W99mm417X/dg8xAy/9w/3lkzqF7fy7/
+fcvka9mvyXx9nJNGdtIDIgQI2s8dh2CxoTcg3GGij/tmMz57G7FGWGS71i1GqTiq
+f7ctojRoyUm1jngQu8hVjRstnA2KKS8GQyJRhK2q40zeL6S7zJvnCKEKKbsuIHWl
+dI1nFI5n21pQpX02K79118bZv6sP7mUuu0BwbWrmhMSy7x7bkST7Xx3Gq+OoesGz
+h+tYmkja5/u+evnQIlAV
+=Ulf5
 -----END PGP SIGNATURE-----
 
---YK6JF6g3MGrlNqAP--
+--iYLmq5he1S0iJCyn--
