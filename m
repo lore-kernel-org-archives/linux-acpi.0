@@ -1,61 +1,92 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Bugfix] x86, irq: Fix bug in setting IOAPIC pin attributes
-Date: Tue, 26 Aug 2014 23:20:41 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1408262319500.3323@nanos>
-References: <20140822124145.GF1660@lahna.fi.intel.com> <1409042706-11958-1-git-send-email-jiang.liu@linux.intel.com> <20140826095221.GO1660@lahna.fi.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/9] ACPI / PM: Let acpi_dev_pm_detach() return an error code
+Date: Wed, 27 Aug 2014 02:16:02 +0200
+Message-ID: <1959719.tXfePhObS9@vostro.rjw.lan>
+References: <1409054837-5667-1-git-send-email-ulf.hansson@linaro.org> <1409054837-5667-2-git-send-email-ulf.hansson@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20140826095221.GO1660@lahna.fi.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Prarit Bhargava <prarit@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:60075 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755695AbaHZX4y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Aug 2014 19:56:54 -0400
+In-Reply-To: <1409054837-5667-2-git-send-email-ulf.hansson@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>
 
-On Tue, 26 Aug 2014, Mika Westerberg wrote:
+On Tuesday, August 26, 2014 02:07:09 PM Ulf Hansson wrote:
+> To give callers the option of acting on a errors while removing the
+> pm_domain ops for the device in the ACPI power domain, let
+> acpi_dev_pm_detach() return an int to provide the error code.
+> 
+> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+> ---
+>  drivers/acpi/device_pm.c | 4 ++++
+>  include/linux/acpi.h     | 7 +++++--
+>  2 files changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+> index 67075f8..fa78abb 100644
+> --- a/drivers/acpi/device_pm.c
+> +++ b/drivers/acpi/device_pm.c
+> @@ -1087,6 +1087,8 @@ EXPORT_SYMBOL_GPL(acpi_dev_pm_attach);
+>   *
+>   * Callers must ensure proper synchronization of this function with power
+>   * management callbacks.
+> + *
+> + * Returns 0 on successfully detached power domain or negative error code.
 
-> On Tue, Aug 26, 2014 at 04:45:01PM +0800, Jiang Liu wrote:
-> > On startup, IOAPIC driver preallocates IRQ descriptors and programs
-> > IOAPIC pins with default level and polarity attributes for all legacy
-> > IRQs. Later legacy IRQ users may fail to set IOAPIC pin attributes
-> > if the requested attributes conflicts with the default IOAPIC pin
-> > attributes. So change mp_irqdomain_map() to allow the first legacy IRQ
-> > user to reprogram IOAPIC pin with different attributes.
-> > 
-> > Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> 
-> I tried this and now we get further in setting up the IOAPIC but it
-> still doesn't work :-(
-> 
-> I noticed that mp_set_gsi_attr() never programs the IOAPIC in case
-> info->set is 0 so I added following on top of your patch. With the below
-> patch, the system seems to work as expected.
-> 
-> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-> index 66c2700c9f83..777762a0ad09 100644
-> --- a/arch/x86/kernel/apic/io_apic.c
-> +++ b/arch/x86/kernel/apic/io_apic.c
-> @@ -3942,10 +3942,16 @@ int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node)
->  
->  	mutex_lock(&ioapic_mutex);
->  	if (!info->set) {
-> +		struct io_apic_irq_attr attr;
-> +
->  		info->trigger = trigger;
->  		info->polarity = polarity;
->  		info->node = node;
->  		info->set = 1;
-> +
-> +		/* Now program the IOAPIC with the new attributes */
-> +		set_io_apic_irq_attr(&attr, ioapic, pin, trigger, polarity);
-> +		ret = io_apic_setup_irq_pin(gsi, node, &attr);
->  	} else if (info->trigger != trigger || info->polarity != polarity) {
->  		ret = -EBUSY;
+"PM domain" here, please, not "power domain".
+
+>   */
+>  void acpi_dev_pm_detach(struct device *dev, bool power_off)
+
+It looks like you've never compiled this, have you?
+
+>  {
+> @@ -1107,7 +1109,9 @@ void acpi_dev_pm_detach(struct device *dev, bool power_off)
+>  			acpi_device_wakeup(adev, ACPI_STATE_S0, false);
+>  			acpi_dev_pm_low_power(dev, adev, ACPI_STATE_S0);
+>  		}
+> +		return 0;
 >  	}
+> +	return -ENODEV;
 
-Can someone please combine this into a single patch with a proper
-changelog?
+-EINVAL perhaps?
 
-Thanks,
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_dev_pm_detach);
+>  #endif /* CONFIG_PM */
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 5320153..a7bfdf6 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -576,7 +576,7 @@ static inline int acpi_subsys_freeze(struct device *dev) { return 0; }
+>  #if defined(CONFIG_ACPI) && defined(CONFIG_PM)
+>  struct acpi_device *acpi_dev_pm_get_node(struct device *dev);
+>  int acpi_dev_pm_attach(struct device *dev, bool power_on);
+> -void acpi_dev_pm_detach(struct device *dev, bool power_off);
+> +int acpi_dev_pm_detach(struct device *dev, bool power_off);
+>  #else
+>  static inline struct acpi_device *acpi_dev_pm_get_node(struct device *dev)
+>  {
+> @@ -586,7 +586,10 @@ static inline int acpi_dev_pm_attach(struct device *dev, bool power_on)
+>  {
+>  	return -ENODEV;
+>  }
+> -static inline void acpi_dev_pm_detach(struct device *dev, bool power_off) {}
+> +static inline int acpi_dev_pm_detach(struct device *dev, bool power_off)
+> +{
+> +	return -ENODEV;
+> +}
+>  #endif
+>  
+>  #ifdef CONFIG_ACPI
+> 
 
-	tglx
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
