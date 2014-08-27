@@ -1,43 +1,129 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [Bugfix] x86, irq: Fix bug in setting IOAPIC pin attributes
-Date: Wed, 27 Aug 2014 11:04:42 +0300
-Message-ID: <20140827080238.GH1785@lahna.fi.intel.com>
-References: <20140826095221.GO1660@lahna.fi.intel.com>
- <1409118795-17046-1-git-send-email-jiang.liu@linux.intel.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC Patch] irqdomain: Introduce new interfaces to support
+ hierarchy irqdomains
+Date: Wed, 27 Aug 2014 10:57:33 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1408271009200.3323@nanos>
+References: <1406880493-18859-1-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1408261053450.3323@nanos> <53FD8F64.20300@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:52734 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751524AbaH0IFG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Aug 2014 04:05:06 -0400
-Content-Disposition: inline
-In-Reply-To: <1409118795-17046-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from www.linutronix.de ([62.245.132.108]:59704 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753395AbaH0I63 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2014 04:58:29 -0400
+In-Reply-To: <53FD8F64.20300@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Prarit Bhargava <prarit@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Borislav Petkov <bp@suse.de>
 
-On Wed, Aug 27, 2014 at 01:53:11PM +0800, Jiang Liu wrote:
-> Commit 15a3c7cc9154321fc3 "x86, irq: Introduce two helper functions
-> to support irqdomain map operation" breaks LPSS ACPI enumerated
-> devices.
+Jiang,
+
+On Wed, 27 Aug 2014, Jiang Liu wrote:
+> >> Third, a special value IRQDOMAIN_AUTO_ASSIGN_HWIRQ is defined out of
+> >> irq_hw_number_t, which indicates that irqdomain callbacks should
+> >> automatically hardware interrupt number for clients. This will be used
+> >> to support CPU vector allocation and interrupt remapping controller
+> >> on x86 platforms.
+> > 
+> > I can't see the point of this. If we have a hierarchy then this is a
+> > property of the hierarchy itself not of an indiviual call.
+> When invoking irqdomain interfaces, we need to pass in an hwirq. For
+> IOAPIC, it's the pin number. But for remap and vector domains, caller
+> can't provide hwirq, it's assigned by remap and vector domains
+> themselves. So introduced IRQDOMAIN_AUTO_ASSIGN_HWIRQ to indicate
+> that irqdomain will assign hwirq for callers.
+
+I don't think it's an issue. You don't have to worry about the
+existing irqdomain semantics and functionality. By introducing
+hierarchy some of the existing rules are going to change no matter
+what. So we should not try to make the interfaces which are required
+for the hierarchical domains follow the semantics of the existing
+plain interfaces.
+
+If we decide to have the allocation scheme which I outlined, then this
+becomes completely moot, simply because the allocation will take care
+of this.
+
+Lets look at the MSI example again. MSI does not have a hwirq number,
+the MSI domain manages the MSI msg and that is composed from the
+information which is created/managed by the remap and vector domains.
+ 
+> >> Fourth, the flag IRQDOMAIN_FLAG_HIERARCHY is used to indicate weather
+> >> irqdomain operations are hierarchy request. The irqdomain core uses
+> > 
+> > Why do we need that flag? If a domain has a parent domain, we already
+> > know that this domain is part of a hierarchy.
+> This flag is passed into hierarchy irqdomain interfaces for two
+> purposes:
+> 1) to protect irq_data->hwirq and irq_data->domain
+
+Again, you try to bolt the hierarchy into the existing design rather
+than doing a hierarchy design for irq domains and either map the
+existing flat domain functionality into it or just leave it alone.
+
+> > But your data representation is not hierarchical because only the
+> > outmost domain map is stored in irq_data. For the parent domains you
+> > offload the storage to the domain implementation itself.
 > 
-> On startup, IOAPIC driver preallocates IRQ descriptors and programs
-> IOAPIC pins with default level and polarity attributes for all legacy
-> IRQs. Later legacy IRQ users may fail to set IOAPIC pin attributes
-> if the requested attributes conflicts with the default IOAPIC pin
-> attributes. So change mp_irqdomain_map() to allow the first legacy IRQ
-> user to reprogram IOAPIC pin with different attributes.
-> 
-> Reported-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
-> Hi Mika,
-> 	We have a plan to kill function mp_set_gsi_attr() later, so
-> I have slightly modified your changes. Could you please help to test
-> it again?
+> One of my design rules is only to change x86 arch specific code when
+> possible, so used above solution.
 
-Works fine here, thanks!
+This design rule is wrong to begin with. You need to touch core code
+anyway to support the hierarchy mechanisms. So you better have a
+proper support for all of this in the core than having half baken
+infrastructure plus ugly workarounds in the architecture code.
 
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> If we could make changes to public data structures, we may find
+> better solution as you have suggested:)
+
+Of course we can do that and we should do it.
+
+> > and avoid magic conditionals in the chip callbacks.
+> That's a good suggestion. Should we reuse irq_data directly or
+> group some fields from irq_data into a new data structure?
+
+If we keep irq_data, then all nested chip callbacks and other things
+just work. So creating a new sub structure is probably
+counterproductive.
+
+> > Now you might ask the question how #2 makes use of #1
+> > (cfg->vector/cfg->domain) and #3 makes use of #2 (msi msg). That's
+> > rather simple.
+>
+> Currently we solve this issue by packing all data into irq_cfg,
+> we remap and ioapic level could access apic id and vector in
+> vector domain.
+
+Well, that's how it was hacked into the code in the first place, but
+that's not something we want to keep. Clear separation of storage is
+definitely a goal of doing the whole hierarchy change.
+ 
+> I plan to build one irqdomain to support MSI/MSIx, but system may have
+> multiple interrupt remapping units. It's a little tricky to maintain
+> hierarchy relationship between MSI irqdomain and remapping irqdomain.
+> It's hard to maintain N:N relationship for MSI and remapping irqdomains.
+> So should we maintain 1:N or 1:1 relationships? In other words, should
+> we build one irqdomain for each remapping unit or only build one
+> irqdomain for all remapping units?
+
+If you have several remapping domains, then you might consider to have
+several corresponding MSI[X] domains as well. That's how the hardware
+is structured.
+ 
+> On the other hand, it's a good news that we almost have the same goals,
+> and just have different ways to achieve our goals. I tried to change
+> x86 arch code only, and you suggest to touch the irq public code.
+> To be honest, I have no enough confidence to touch irq public code
+> at the first step:(
+
+Don't worry about touching generic code. It's not different from x86
+code and having a proper core infrastructure makes the architecture
+side clean and simple rather than stuffed with obscure workarounds.
+
+I'm happy to guide you through if there are questions or design
+decisions to make.
+ 
+Thanks,
+
+	tglx
