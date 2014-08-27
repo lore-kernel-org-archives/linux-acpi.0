@@ -1,129 +1,103 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFC Patch] irqdomain: Introduce new interfaces to support
- hierarchy irqdomains
-Date: Wed, 27 Aug 2014 10:57:33 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1408271009200.3323@nanos>
-References: <1406880493-18859-1-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1408261053450.3323@nanos> <53FD8F64.20300@linux.intel.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 1/3] Mailbox: Add support for PCC mailbox and channels
+Date: Wed, 27 Aug 2014 11:27:08 +0100
+Message-ID: <20140827102708.GW17528@sirena.org.uk>
+References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
+ <1409081738-5602-2-git-send-email-ashwin.chaugule@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YK6JF6g3MGrlNqAP"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:59704 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753395AbaH0I63 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2014 04:58:29 -0400
-In-Reply-To: <53FD8F64.20300@linux.intel.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:35773 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933323AbaH0K1W (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2014 06:27:22 -0400
+Content-Disposition: inline
+In-Reply-To: <1409081738-5602-2-git-send-email-ashwin.chaugule@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Borislav Petkov <bp@suse.de>
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: arnd@arndb.de, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net
 
-Jiang,
 
-On Wed, 27 Aug 2014, Jiang Liu wrote:
-> >> Third, a special value IRQDOMAIN_AUTO_ASSIGN_HWIRQ is defined out of
-> >> irq_hw_number_t, which indicates that irqdomain callbacks should
-> >> automatically hardware interrupt number for clients. This will be used
-> >> to support CPU vector allocation and interrupt remapping controller
-> >> on x86 platforms.
-> > 
-> > I can't see the point of this. If we have a hierarchy then this is a
-> > property of the hierarchy itself not of an indiviual call.
-> When invoking irqdomain interfaces, we need to pass in an hwirq. For
-> IOAPIC, it's the pin number. But for remap and vector domains, caller
-> can't provide hwirq, it's assigned by remap and vector domains
-> themselves. So introduced IRQDOMAIN_AUTO_ASSIGN_HWIRQ to indicate
-> that irqdomain will assign hwirq for callers.
+--YK6JF6g3MGrlNqAP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I don't think it's an issue. You don't have to worry about the
-existing irqdomain semantics and functionality. By introducing
-hierarchy some of the existing rules are going to change no matter
-what. So we should not try to make the interfaces which are required
-for the hierarchical domains follow the semantics of the existing
-plain interfaces.
+On Tue, Aug 26, 2014 at 03:35:36PM -0400, Ashwin Chaugule wrote:
 
-If we decide to have the allocation scheme which I outlined, then this
-becomes completely moot, simply because the allocation will take care
-of this.
+> The PCC (Platform Communication Channel) is a generic
+> mailbox to be used by PCC clients such as CPPC, RAS
+> and MPST as defined in the ACPI 5.0+ spec. This patch
+> modifies the Mailbox framework to lookup PCC mailbox
+> controllers and channels such that PCC drivers can work
+> with or without ACPI support in the kernel.
+>=20
+> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+> ---
+>  drivers/mailbox/mailbox.c          | 118 +++++++++++++++++++++++++++++++=
++++---
+>  include/linux/mailbox_client.h     |   6 ++
+>  include/linux/mailbox_controller.h |   1 +
+>  3 files changed, 118 insertions(+), 7 deletions(-)
 
-Lets look at the MSI example again. MSI does not have a hwirq number,
-the MSI domain manages the MSI msg and that is composed from the
-information which is created/managed by the remap and vector domains.
- 
-> >> Fourth, the flag IRQDOMAIN_FLAG_HIERARCHY is used to indicate weather
-> >> irqdomain operations are hierarchy request. The irqdomain core uses
-> > 
-> > Why do we need that flag? If a domain has a parent domain, we already
-> > know that this domain is part of a hierarchy.
-> This flag is passed into hierarchy irqdomain interfaces for two
-> purposes:
-> 1) to protect irq_data->hwirq and irq_data->domain
+Based on the patch description (adding support for a particular kind of
+mailbox) I'd expect to see a new driver or helper library being added to
+drivers/mailbox rather than changes in the mailbox core.  If changes in
+the core are needed to support this I'd expect to see them broken out as
+separate patches.
 
-Again, you try to bolt the hierarchy into the existing design rather
-than doing a hierarchy design for irq domains and either map the
-existing flat domain functionality into it or just leave it alone.
+> +static struct mbox_controller *
+> +mbox_find_pcc_controller(char *name)
+> +{
+> +	struct mbox_controller *mbox;
+> +	list_for_each_entry(mbox, &mbox_cons, node) {
+> +		if (mbox->name)
+> +			if (!strcmp(mbox->name, name))
+> +				return mbox;
+> +	}
+> +
+> +	return NULL;
+> +}
 
-> > But your data representation is not hierarchical because only the
-> > outmost domain map is stored in irq_data. For the parent domains you
-> > offload the storage to the domain implementation itself.
-> 
-> One of my design rules is only to change x86 arch specific code when
-> possible, so used above solution.
+This doesn't look particularly PCC specific?
 
-This design rule is wrong to begin with. You need to touch core code
-anyway to support the hierarchy mechanisms. So you better have a
-proper support for all of this in the core than having half baken
-infrastructure plus ugly workarounds in the architecture code.
+>  	/* Sanity check */
+> -	if (!mbox || !mbox->dev || !mbox->ops || !mbox->num_chans)
+> +
+> +	/*
+> +	 * PCC clients and controllers are currently not backed by
+> +	 * platform device structures.
+> +	 */
+> +#ifndef CONFIG_PCC
+> +	if (!mbox->dev)
+> +		return -EINVAL;
+> +#endif
 
-> If we could make changes to public data structures, we may find
-> better solution as you have suggested:)
+It seems better to make this consistent - either enforce it all the time
+or don't enforce it.
 
-Of course we can do that and we should do it.
+--YK6JF6g3MGrlNqAP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> > and avoid magic conditionals in the chip callbacks.
-> That's a good suggestion. Should we reuse irq_data directly or
-> group some fields from irq_data into a new data structure?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-If we keep irq_data, then all nested chip callbacks and other things
-just work. So creating a new sub structure is probably
-counterproductive.
+iQIcBAEBAgAGBQJT/bJ5AAoJELSic+t+oim97QgP/2Kk6bUVuiKenqZvUTegtvPi
+Fwmzkx+MiMSoBxFZOOZ4N00zsSsAlAJMj5CLY8LzteVQPQeDtpOv7D+WRtjNLCb+
+/cCKEedCKnznEt5ikPeAneo3Fb8RXt7plU2W9iL3O7CX53zS2nzbP3BabQDcjBBF
+AHMOSgCfuVyp25Uem1b5jyCDXNbKi7jLrcREBZVarm4/lltvzk8xgn1YV8dm8/2/
+P1hqZyQI67Z5BJUOj4nr7fRDm6CY/H5x0emiRBnLvF3jkZunzkVRRD55RQ86+p9z
+T7vBfU5t8tyAqZQf0sqpEk37nb9RlNZXOcSFT7PRrak0kQMlF8JVYXD5FPmkonJC
+THfzKRUd7JCu6lw3qcKrtJSSCPWXw77mWzOx0eGT7vZaUdob6ol8KyLLvmyV50Vs
+l37pJks78A3M1Rlq5oawEzT5sp9JEtovcW1fmE7doa2h1y7NJZqf3CSsZ/TNKQjR
+JzwN5PlgmeJR1CV1SmqQDacnY7n0MkC2J43HuL/ezHdFg9gFeiNkybfMd87gQip/
+nAe+MEoJ37QwT+2HHyMdI1/643up5ZMaCpnuftfiiIWKlKGzfLiwOTewIhZztwd0
+LG6drhmUgN5W1utp2LrAB62gj5GicCwKSFnc8gCdPC8FKhOfMF+ElOyTU7/tB2Y3
+CgKC/ayBXXCUw1pjJJfI
+=2oAb
+-----END PGP SIGNATURE-----
 
-> > Now you might ask the question how #2 makes use of #1
-> > (cfg->vector/cfg->domain) and #3 makes use of #2 (msi msg). That's
-> > rather simple.
->
-> Currently we solve this issue by packing all data into irq_cfg,
-> we remap and ioapic level could access apic id and vector in
-> vector domain.
-
-Well, that's how it was hacked into the code in the first place, but
-that's not something we want to keep. Clear separation of storage is
-definitely a goal of doing the whole hierarchy change.
- 
-> I plan to build one irqdomain to support MSI/MSIx, but system may have
-> multiple interrupt remapping units. It's a little tricky to maintain
-> hierarchy relationship between MSI irqdomain and remapping irqdomain.
-> It's hard to maintain N:N relationship for MSI and remapping irqdomains.
-> So should we maintain 1:N or 1:1 relationships? In other words, should
-> we build one irqdomain for each remapping unit or only build one
-> irqdomain for all remapping units?
-
-If you have several remapping domains, then you might consider to have
-several corresponding MSI[X] domains as well. That's how the hardware
-is structured.
- 
-> On the other hand, it's a good news that we almost have the same goals,
-> and just have different ways to achieve our goals. I tried to change
-> x86 arch code only, and you suggest to touch the irq public code.
-> To be honest, I have no enough confidence to touch irq public code
-> at the first step:(
-
-Don't worry about touching generic code. It's not different from x86
-code and having a proper core infrastructure makes the architecture
-side clean and simple rather than stuffed with obscure workarounds.
-
-I'm happy to guide you through if there are questions or design
-decisions to make.
- 
-Thanks,
-
-	tglx
+--YK6JF6g3MGrlNqAP--
