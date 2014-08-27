@@ -1,78 +1,61 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 2/3] Add support for Platform Communication Channel
-Date: Wed, 27 Aug 2014 11:29:37 +0100
-Message-ID: <20140827102937.GX17528@sirena.org.uk>
+Subject: Re: [PATCH v3 3/3] PCC-test: Test driver to trigger PCC commands
+Date: Wed, 27 Aug 2014 11:30:15 +0100
+Message-ID: <20140827103015.GY17528@sirena.org.uk>
 References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
- <1409081738-5602-3-git-send-email-ashwin.chaugule@linaro.org>
+ <1409081738-5602-4-git-send-email-ashwin.chaugule@linaro.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="iYLmq5he1S0iJCyn"
+	protocol="application/pgp-signature"; boundary="Pn6edh7DhurTm1ia"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:35779 "EHLO
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:35785 "EHLO
 	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756002AbaH0K3p (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2014 06:29:45 -0400
+	with ESMTP id S1756002AbaH0Ka3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Aug 2014 06:30:29 -0400
 Content-Disposition: inline
-In-Reply-To: <1409081738-5602-3-git-send-email-ashwin.chaugule@linaro.org>
+In-Reply-To: <1409081738-5602-4-git-send-email-ashwin.chaugule@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 Cc: arnd@arndb.de, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net
 
 
---iYLmq5he1S0iJCyn
+--Pn6edh7DhurTm1ia
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 26, 2014 at 03:35:37PM -0400, Ashwin Chaugule wrote:
+On Tue, Aug 26, 2014 at 03:35:38PM -0400, Ashwin Chaugule wrote:
 
-> +static int pcc_chan_startup(struct mbox_chan *chan)
-> +{
-> +	return 0;
-> +}
-> +
-> +static void pcc_chan_shutdown(struct mbox_chan *chan)
-> +{
-> +	return;
-> +}
+> echo 2 > /proc/pcc_test [ to get channel base address ]
+>=20
+> echo 1 > /proc/pcc_test [ to trigger a PCC write ]
+>=20
+> echo 0 > /proc/pcc_test [ to trigger a PCC read ]
 
-If these functions can be empty it seems better to have the mailbox
-framework accept empty functions than require drivers to provide
-dummies.
+You shouldn't be adding new files to /proc - debugfs is a better home
+for something like this.
 
-> +	/* Search for PCCT */
-> +	status = acpi_get_table_with_size(ACPI_SIG_PCCT, 0,
-> +			(struct acpi_table_header **)&pcct_tbl,
-> +			&pcct_tbl_header_size);
-> +
-> +	if (ACPI_SUCCESS(status) && !pcct_tbl) {
-> +		pr_warn("PCCT header not found.\n");
-> +		status = AE_NOT_FOUND;
-> +		goto out_err;
-> +	}
-
-Is PCC mandatory?  If not I'd not expect to see this as a warning.
-
---iYLmq5he1S0iJCyn
+--Pn6edh7DhurTm1ia
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBAgAGBQJT/bMOAAoJELSic+t+oim9KfcP/jmduXJkqhZb8YgHXt9bjWnC
-B2liOFrrzmaIRIWyyLFovlbUmXjrP8DpK87Rbf3Oyp9DkQdOmh602sW/PekmSPTC
-Sqdj296La9Q7TbESlVQhsbmMzk59Wrk4eSUzoeSppNAdIpKW8gam0eRBgeQZG6SU
-tIwsig1xKPF+0b8nhaHB/sU61GUUm7DLk39jSFshnI0DbgiPFZ52Dqq+Cj0PYInk
-yius+1yUYVG/9thclOIoFrrEjoJEhHlj644Bpks5UxBPRXcAQ8YsQgUX3T5kFAIv
-gbqoWbQ1tOvz/Z3vg9w90RJ8yQ+PEtcCqU3G1Gz65PwY8VVO6Kubf/tezZZdVYdb
-DUNq9JnQ1c668/LZ3auM8v4vo3wh2IRTzBIBCwabC5+mXZKygkNhhLCP3abzjmZ6
-fkzUYemY90Moq4dJbJxHjmv7tenJMMk66W99mm417X/dg8xAy/9w/3lkzqF7fy7/
-fcvka9mvyXx9nJNGdtIDIgQI2s8dh2CxoTcg3GGij/tmMz57G7FGWGS71i1GqTiq
-f7ctojRoyUm1jngQu8hVjRstnA2KKS8GQyJRhK2q40zeL6S7zJvnCKEKKbsuIHWl
-dI1nFI5n21pQpX02K79118bZv6sP7mUuu0BwbWrmhMSy7x7bkST7Xx3Gq+OoesGz
-h+tYmkja5/u+evnQIlAV
-=Ulf5
+iQIcBAEBAgAGBQJT/bM0AAoJELSic+t+oim90V8P+wXCajmRwAxCUn0lV5MFTmfi
+iZ9C9awGnUzJzt0KzBEqY3+hfaAOj8eTSjZkiJWi2QlOh4NHmyYd3TFlzcGzvjSb
+gx104TfNcwyz1k0K5/TddVrhDgwXk3jaj+dY8SkCU0kExO+KDmP48uidx7wcnW+5
+CUHKYHpj+ScsIJCl9tqXyX6NayoavkIg9iJPKDeVS7lPCAIjSLGDXNhC5CmJrMOK
+MRN9m6kucpmAqum12xr3YWX5/fbRqW12OgBTTQi/vqW96NKch+xowWFau8l6JUeY
+UvV6/83kmaOUIy0dBXwkeVZ+JyImJOlppF3nRvyvz9e2vK0pMcgp++rPoVYW0djC
+V9gnGX6AxSv0gt9ZyWZBO7u/9ovsrRE55Gy/dC5LhxyYGYEuLllzxssa4c1bk4nZ
+i3a7elNz7jVp5S0VC9m+1VQcF1HUbJA3AtdXm/nI+r4l/BUdlcFftTzbhwqTkhUi
+27wz8Zun79o/yi0GXfnF3ujC/wuNjDUAJ6FrdMlhep7Y5CKR4poXGUpuB9zBJ0GD
+yg70gqkmu0NsYYAQKmKedjsuuhuPOvnz8KoQXae1zGviEHyJikz2kf3BFvftMeCm
+yE8A/ALLrsV4CWg7osK0U4z5zMSAgaUlyDq7gxfyD70FYBgL670QkZREyjTsydlV
+IfSCVjuGvBWMsKvwIC8o
+=a5JJ
 -----END PGP SIGNATURE-----
 
---iYLmq5he1S0iJCyn--
+--Pn6edh7DhurTm1ia--
