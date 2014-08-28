@@ -1,55 +1,112 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH v2 6/9] mmc: sdio: Convert to dev_pm_domain_attach|detach()
-Date: Thu, 28 Aug 2014 10:38:59 +0200
-Message-ID: <1409215142-8218-7-git-send-email-ulf.hansson@linaro.org>
-References: <1409215142-8218-1-git-send-email-ulf.hansson@linaro.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 1/3] Mailbox: Add support for PCC mailbox and channels
+Date: Thu, 28 Aug 2014 11:10:25 +0100
+Message-ID: <20140828101025.GL17528@sirena.org.uk>
+References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
+ <1409081738-5602-2-git-send-email-ashwin.chaugule@linaro.org>
+ <20140827102708.GW17528@sirena.org.uk>
+ <CAJ5Y-eak9A14z3im_5sgvnqMQDRf5rNgcQNGwDV2aYh_POkLOA@mail.gmail.com>
+ <20140827190902.GR17528@sirena.org.uk>
+ <CAJ5Y-eYk1zq+NvPRbZanO5yXVLqZ6_81rQMd+7iRtLu6HBQ5OA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="pR/aR/1Pn8Pa3beE"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:55592 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936421AbaH1Ij0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Aug 2014 04:39:26 -0400
-Received: by mail-lb0-f171.google.com with SMTP id n15so498360lbi.30
-        for <linux-acpi@vger.kernel.org>; Thu, 28 Aug 2014 01:39:24 -0700 (PDT)
-In-Reply-To: <1409215142-8218-1-git-send-email-ulf.hansson@linaro.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:37553 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932445AbaH1KKh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Aug 2014 06:10:37 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJ5Y-eYk1zq+NvPRbZanO5yXVLqZ6_81rQMd+7iRtLu6HBQ5OA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux acpi <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Previously only the ACPI power domain was supported by the sdio bus.
 
-Let's convert to the common attach/detach functions for power domains,
-which currently means we are extending the support to include the
-generic power domain as well.
+--pR/aR/1Pn8Pa3beE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Cc: linux-mmc@vger.kernel.org
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
----
- drivers/mmc/core/sdio_bus.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On Wed, Aug 27, 2014 at 05:49:53PM -0400, Ashwin Chaugule wrote:
+> On 27 August 2014 15:09, Mark Brown <broonie@kernel.org> wrote:
+> > On Wed, Aug 27, 2014 at 09:07:15AM -0400, Ashwin Chaugule wrote:
 
-diff --git a/drivers/mmc/core/sdio_bus.c b/drivers/mmc/core/sdio_bus.c
-index 4fa8fef9..1df0fc6 100644
---- a/drivers/mmc/core/sdio_bus.c
-+++ b/drivers/mmc/core/sdio_bus.c
-@@ -315,7 +315,7 @@ int sdio_add_func(struct sdio_func *func)
- 	ret = device_add(&func->dev);
- 	if (ret == 0) {
- 		sdio_func_set_present(func);
--		acpi_dev_pm_attach(&func->dev, false);
-+		dev_pm_domain_attach(&func->dev, false);
- 	}
- 
- 	return ret;
-@@ -332,7 +332,7 @@ void sdio_remove_func(struct sdio_func *func)
- 	if (!sdio_func_present(func))
- 		return;
- 
--	acpi_dev_pm_detach(&func->dev, false);
-+	dev_pm_domain_detach(&func->dev, false);
- 	device_del(&func->dev);
- 	put_device(&func->dev);
- }
--- 
-1.9.1
+> > The messiness is orthogonal to my comment here - either it's legal to
+> > request a mailbox without a device or it isn't, it shouldn't depend on a
+> > random kernel configuration option for a particular mailbox driver which
+> > it is.
 
+> Fair enough. This was just to show that PCC is unfortunately not a
+> good candidate as a generic mailbox controller.
+
+That seems to be a very big leap...
+
+> >> "device" out of something that isn't. The PCCT, which is used as a
+> >> mailbox controller here, is a table and not a peripheral device. To
+> >> treat this as a device (without faking it by manually putting together
+> >> a struct device), would require adding a DSDT entry which is really a
+> >> wrong place for it. Are there examples today where drivers manually
+> >> create a struct driver and struct device and match them internally?
+> >> (i.e. w/o using the generic driver subsystem)
+
+> > Arguably that's what things like cpufreq end up doing, though people
+> > tend to just shove a device into DT.  Are you sure there isn't any
+> > device at all in ACPI that you could hang this off, looking at my
+> > desktop I see rather a lot of apparently synthetic ACPI devices with
+> > names starting LNX including for example LNXSYSTM:00?
+
+> Those are special HIDs defined in the ACPI spec and none of those can
+> be used to back a device for the PCCT itself, since they're unrelated
+> to the PCC protocol. The PCCT is defined in the spec as a separate
+> table and if supported, should be visible in your system in the
+> PCCT.dsl file. Just for the sake of the Mailbox framework, trying to
+> represent the PCCT (which is a table) as a mailbox controller device,
+> would require registering a special HID. That in turn would make an
+> otherwise OS agnostic thing very Linux specific.
+
+OK, but then there's always the option of just having some code that
+runs on init and instantiates a device if it sees the appropriate thing
+in the ACPI tables in a similar manner to how HIDs are handled.  It's a
+small amount of work but it will generally make life easier if there is
+a struct device.
+
+> > If PCC is described by ACPI tables how would non-ACPI users be able to
+> > use it?
+
+> Whoever wants to do that, would need to come up with DT bindings that
+> describe something similar to the PCCT contents. They could possibly
+> ignore the ACPI specific bits like signature, asl compiler details
+> etc. (which are only used by ACPI table parsers) and provide the rest
+> of it. Its essentially an array of structures that point to various
+> shared memory regions, each of which is owned by a PCC client and
+> shared with the firmware. The intercommunication between client and
+> firmware is via a doorbell, which is also described in these entries
+> and can be implemented as an SGI or similar.
+
+Of course most likely such a binding would involve creating a device
+that owns the mailboxes so this'd be fairly straightforward...
+
+--pR/aR/1Pn8Pa3beE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJT/wAOAAoJELSic+t+oim9hKUQAJbc9rKk1gCAylbhwFtW7TME
+leMu73RxaVuXRb3G/6QHD3bLq41lO2+2l3Wa1T40y8FCyL00LqOmfmbVONdHCRKK
+Yq50+bj1GDsFRdIps2AORLEy0NIcVFxSpAjEuWLDsc2jXwEzn0LDuZcgIOXmu78W
+I7LbjNO9dvnRnO1qgCdgL1mjOGYLF+P12Kt80QEtSw3a7RJrmbdleXXOVbQGF7MI
+E2e4EC/kxRrvsg9Ls9vdMg2XQG0MCSTzgqaAWOlO8MqdegytN3RG+Ou2Tsc6DU6I
+BG39zia8Jjme+UezDPgu/FNBmAvFaJ/IbuyePrnezS9xVIqPX/M3rCVD6ZJ5dGA/
+Uz5EgovytnrDObCuceF4NmjmGeffCq1mLCwc0olzcvjd90WjlHskS6i572G+N65z
+93fy5IsrKHj9AhMEgsQiuss+SqcagrzBv8A0wxZES7/a0n64KfeSMydNhLhO297O
+Q/il/lrocpUnnto3/ZzkKyhwieWuzoSkfiizmARGjOFoAXcalWsRlhSxAfKHkOcD
+BX+atE8Yn7vFaJ8bUPccIgdjoXl3+DwRvxDUGeutBAcZm/SUNjhyIqpKw1CjJXJq
+WJFbDW0i5BWnG+Wkf1EA24jAQKm4Y/0AW4738DQU7e2tTyzt+ITbgHx23NGh4uaY
+Yqxh6gE4CKLH1AFwC9X/
+=oFsI
+-----END PGP SIGNATURE-----
+
+--pR/aR/1Pn8Pa3beE--
