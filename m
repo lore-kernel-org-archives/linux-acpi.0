@@ -1,182 +1,99 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH V3] ACPI / OSL: Make acpi_os_map_cleanup() use call_rcu()
- to avoid deadlocks
-Date: Thu, 28 Aug 2014 16:27:42 +0800
-Message-ID: <53FEE7FE.9080007@intel.com>
-References: <20140827022709.GA22064@localhost> <1409123489-11786-1-git-send-email-tianyu.lan@intel.com> <8105997.7zQ9mSfecG@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <8105997.7zQ9mSfecG@vostro.rjw.lan>
-Sender: stable-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, fengguang.wu@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, All applicable <stable@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH v2 0/9] PM / Domains: Generic OF-based support
+Date: Thu, 28 Aug 2014 10:38:53 +0200
+Message-ID: <1409215142-8218-1-git-send-email-ulf.hansson@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f53.google.com ([209.85.215.53]:58964 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935780AbaH1IjN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Aug 2014 04:39:13 -0400
+Received: by mail-la0-f53.google.com with SMTP id s18so508790lam.26
+        for <linux-acpi@vger.kernel.org>; Thu, 28 Aug 2014 01:39:10 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>, Ulf Hansson <ulf.hansson@linaro.org>
 
-On 2014=E5=B9=B408=E6=9C=8828=E6=97=A5 07:37, Rafael J. Wysocki wrote:
-> On Wednesday, August 27, 2014 03:11:29 PM Lan Tianyu wrote:
->> Deadlock is possible when CPU hotplug and evaluating ACPI method hap=
-pen
->> at the same time.
->>
->> During CPU hotplug, acpi_cpu_soft_notify() is called under the CPU h=
-otplug
->> lock.  Then, acpi_cpu_soft_notify() calls acpi_bus_get_device() to o=
-btain
->> the struct acpi_device attached to the given ACPI handle.  The ACPIC=
-A's
->> namespace lock will be acquired by acpi_bus_get_device() in the proc=
-ess.
->> Thus it is possible to hold the ACPICA's namespace lock under the CP=
-U
->> hotplug lock.
->>
->> Evaluating an ACPI method may involve accessing an operation region =
-in
->> system memory and the associated address space will be unmapped unde=
-r
->> the ACPICA's namespace lock after completing the access. Currently, =
-osl.c
->> uses RCU to protect memory ranges used by AML.  When unmapping them =
-it
->> calls synchronize_rcu() in acpi_os_map_cleanup(), but that blocks
->> CPU hotplug by acquiring the CPU hotplug lock.  Thus it is possible =
-to
->> hold the CPU hotplug lock under the ACPICA's namespace lock.
->>
->> This leads to deadlocks like the following one if AML accessing oper=
-ation
->> regions in memory is executed in parallel with CPU hotplug.
->=20
-> [cut]
->=20
->> To avoid such deadlocks, modify acpi_os_map_cleanup() to use call_rc=
-u()
->> to schedule acpi_os_async_umap() asynchronously to umap memory regio=
-ns
->> that aren't used any more. The umap operation can't be done in the
->> call_rcu()'s callback directly because the callback will be called i=
-n the
->> soft irq context and acpi_unmap() holds mutex lock inside.
->>
->> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->> [rjw: Subject and changelog.]
->> Cc: All applicable <stable@vger.kernel.org>
->> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
->> ---
->>  drivers/acpi/osl.c | 24 +++++++++++++++++++-----
->>  1 file changed, 19 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
->> index 3abe9b2..9baef71 100644
->> --- a/drivers/acpi/osl.c
->> +++ b/drivers/acpi/osl.c
->> @@ -40,6 +40,7 @@
->>  #include <linux/nmi.h>
->>  #include <linux/acpi.h>
->>  #include <linux/efi.h>
->> +#include <linux/async.h>
->>  #include <linux/ioport.h>
->>  #include <linux/list.h>
->>  #include <linux/jiffies.h>
->> @@ -94,6 +95,7 @@ struct acpi_ioremap {
->>  	acpi_physical_address phys;
->>  	acpi_size size;
->>  	unsigned long refcount;
->> +	struct rcu_head rcu;
->>  };
->> =20
->>  static LIST_HEAD(acpi_ioremaps);
->> @@ -423,13 +425,25 @@ static void acpi_os_drop_map_ref(struct acpi_i=
-oremap *map)
->>  		list_del_rcu(&map->list);
->>  }
->> =20
->> +static void acpi_os_async_umap(void *data, async_cookie_t cookie)
->> +{
->> +	struct acpi_ioremap *map =3D data;
->> +
->> +	acpi_unmap(map->phys, map->virt);
->> +	kfree(map);
->> +}
->> +
->> +static void acpi_os_map_reclaim(struct rcu_head *rcu)
->> +{
->> +	struct acpi_ioremap *map =3D container_of(rcu, struct acpi_ioremap=
-, rcu);
->> +
->> +	async_schedule(acpi_os_async_umap, map);
->> +}
->> +
->>  static void acpi_os_map_cleanup(struct acpi_ioremap *map)
->>  {
->> -	if (!map->refcount) {
->> -		synchronize_rcu();
->> -		acpi_unmap(map->phys, map->virt);
->> -		kfree(map);
->> -	}
->> +	if (!map->refcount)
->> +		call_rcu(&map->rcu, acpi_os_map_reclaim);
->>  }
->> =20
->>  void __ref acpi_os_unmap_iomem(void __iomem *virt, acpi_size size)
->>
->=20
-> This goes a bit too far.  First, if you need to start an async thread=
-,
-> you can simply do synchronize_rcu() from there. =20
-
-Yes, that will be simple.
-
-> Second, though, perhaps
-> we can address the whole deadlock in a different way.
->=20
-> For example, if we do something like the patch below (which I haven't
-> tested, but it should work if I'm not missing something horribly), we
-> won't be taking the ACPI namespace lock under the CPU hotplug lock
-> in acpi_cpu_soft_notify() any more.
-
-I considered this before. But the notify callback still will evaluate
-ACPI method and may hold ACPICA's namespace lock. E.G "_CST".
-
-Calltrace:
-	acpi_cpu_soft_notify()
-	acpi_processor_hotplug()
-	acpi_processor_get_power_info()=09
-	acpi_processor_get_power_info_cst()
-
->=20
-> Rafael
->=20
-> ---
->  drivers/acpi/processor_driver.c |    6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
->=20
-> Index: linux-pm/drivers/acpi/processor_driver.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-pm.orig/drivers/acpi/processor_driver.c
-> +++ linux-pm/drivers/acpi/processor_driver.c
-> @@ -129,7 +129,11 @@ static int acpi_cpu_soft_notify(struct n
->  	if (action =3D=3D CPU_STARTING || action =3D=3D CPU_DYING)
->  		return NOTIFY_DONE;
-> =20
-> -	if (!pr || acpi_bus_get_device(pr->handle, &device))
-> +	if (!pr || !pr->dev)
-> +		return NOTIFY_DONE;
-> +
-> +	device =3D ACPI_COMPANION(pr->dev);
-> +	if (!device)
->  		return NOTIFY_DONE;
-> =20
->  	if (action =3D=3D CPU_ONLINE) {
->=20
+Changes in v2:
+	- Fix the ACPI patch, it didn't even compile for CONFIG_ACPI.
+	- Updated some comments in code and in commit messages.
+	- Fixed the dev_pm_domain_attach API to handle EPROBE_DEFER properly.
+	- Rebased the ARM Exynos patch.
+	- Added some Tested-by tags.
 
 
---=20
-Best regards
-Tianyu Lan
+This patchset has a bit of a history and some parts of it has been posted
+earlier.
+
+http://lists.infradead.org/pipermail/linux-arm-kernel/2014-June/262725.html
+
+In the first revision I intentially didn't increase version number of the
+patches, since I think it would have cause more confusion than clarity.
+
+A summary of changes in V1 and since the last patchset, from the link above:
+	- Instead of letting driver core handling the device to power domain
+	binding/unbinding, follow the behavior of how the ACPI power domain
+	is handled.
+
+
+This is a summary of what these patches are intended to do:
+
+1)
+Add generic power domain OF-based support which also includes APIs to handle
+attach/detach of generic power domains to devices.
+
+2)
+Adding a common API to attach/detach power domains and include support for the
+ACPI and the generic power domain in there.
+
+3)
+>From subsystem level code, at probe/remove, convert from invoking the ACPI
+specific power domain attach/detach functions to the new common attach/detach
+APIs.
+
+4)
+Add support for the AMBA bus to attach/detach power domains, using the new
+common APIs.
+
+5)
+Convert Exynos to use the new generic power domain OF support.
+
+Obviously, there are dependencies througout this patchset, which means if they
+get accepted the all need to go together. It might also be convenient to share
+them through an immutable branch.
+
+
+Tomasz Figa (2):
+  PM / Domains: Add generic OF-based power domain look-up
+  ARM: exynos: Move to generic power domain bindings
+
+Ulf Hansson (7):
+  ACPI / PM: Let acpi_dev_pm_detach() return an error code
+  PM / Domains: Add APIs to attach/detach a PM domain for a device
+  drivercore / platform: Convert to dev_pm_domain_attach|detach()
+  i2c: core: Convert to dev_pm_domain_attach|detach()
+  mmc: sdio: Convert to dev_pm_domain_attach|detach()
+  spi: core: Convert to dev_pm_domain_attach|detach()
+  amba: Add support for attach/detach of power domains
+
+ .../bindings/arm/exynos/power_domain.txt           |  13 +-
+ .../devicetree/bindings/power/power_domain.txt     |  51 ++++
+ arch/arm/mach-exynos/pm_domains.c                  |  78 +-----
+ drivers/acpi/device_pm.c                           |   8 +-
+ drivers/amba/bus.c                                 |  10 +-
+ drivers/base/platform.c                            |  15 +-
+ drivers/base/power/common.c                        |  56 ++++
+ drivers/base/power/domain.c                        | 291 +++++++++++++++++++++
+ drivers/i2c/i2c-core.c                             |  13 +-
+ drivers/mmc/core/sdio_bus.c                        |   4 +-
+ drivers/spi/spi.c                                  |  12 +-
+ include/linux/acpi.h                               |   7 +-
+ include/linux/pm.h                                 |  14 +
+ include/linux/pm_domain.h                          |  46 ++++
+ kernel/power/Kconfig                               |   4 +
+ 15 files changed, 515 insertions(+), 107 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/power/power_domain.txt
+
+-- 
+1.9.1
+
