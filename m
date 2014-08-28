@@ -1,140 +1,96 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V3] ACPI / OSL: Make acpi_os_map_cleanup() use call_rcu() to avoid deadlocks
-Date: Thu, 28 Aug 2014 01:37:57 +0200
-Message-ID: <8105997.7zQ9mSfecG@vostro.rjw.lan>
-References: <20140827022709.GA22064@localhost> <1409123489-11786-1-git-send-email-tianyu.lan@intel.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v4 00/16] Enable support of IOAPIC hotplug on x86 platforms
+Date: Thu, 28 Aug 2014 10:22:25 +0800
+Message-ID: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1409123489-11786-1-git-send-email-tianyu.lan@intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, fengguang.wu@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, All applicable <stable@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, August 27, 2014 03:11:29 PM Lan Tianyu wrote:
-> Deadlock is possible when CPU hotplug and evaluating ACPI method happen
-> at the same time.
-> 
-> During CPU hotplug, acpi_cpu_soft_notify() is called under the CPU hotplug
-> lock.  Then, acpi_cpu_soft_notify() calls acpi_bus_get_device() to obtain
-> the struct acpi_device attached to the given ACPI handle.  The ACPICA's
-> namespace lock will be acquired by acpi_bus_get_device() in the process.
-> Thus it is possible to hold the ACPICA's namespace lock under the CPU
-> hotplug lock.
-> 
-> Evaluating an ACPI method may involve accessing an operation region in
-> system memory and the associated address space will be unmapped under
-> the ACPICA's namespace lock after completing the access. Currently, osl.c
-> uses RCU to protect memory ranges used by AML.  When unmapping them it
-> calls synchronize_rcu() in acpi_os_map_cleanup(), but that blocks
-> CPU hotplug by acquiring the CPU hotplug lock.  Thus it is possible to
-> hold the CPU hotplug lock under the ACPICA's namespace lock.
-> 
-> This leads to deadlocks like the following one if AML accessing operation
-> regions in memory is executed in parallel with CPU hotplug.
+This patch set enhances IOAPIC core and ACPI drivers to support IOAPIC
+hotplug on x86 platforms. It's based on latest mainstream kernel at
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
 
-[cut]
+You may pull it from 
+https://github.com/jiangliu/linux.git ioapic/hotplug_v4
 
-> To avoid such deadlocks, modify acpi_os_map_cleanup() to use call_rcu()
-> to schedule acpi_os_async_umap() asynchronously to umap memory regions
-> that aren't used any more. The umap operation can't be done in the
-> call_rcu()'s callback directly because the callback will be called in the
-> soft irq context and acpi_unmap() holds mutex lock inside.
-> 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> [rjw: Subject and changelog.]
-> Cc: All applicable <stable@vger.kernel.org>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> ---
->  drivers/acpi/osl.c | 24 +++++++++++++++++++-----
->  1 file changed, 19 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 3abe9b2..9baef71 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -40,6 +40,7 @@
->  #include <linux/nmi.h>
->  #include <linux/acpi.h>
->  #include <linux/efi.h>
-> +#include <linux/async.h>
->  #include <linux/ioport.h>
->  #include <linux/list.h>
->  #include <linux/jiffies.h>
-> @@ -94,6 +95,7 @@ struct acpi_ioremap {
->  	acpi_physical_address phys;
->  	acpi_size size;
->  	unsigned long refcount;
-> +	struct rcu_head rcu;
->  };
->  
->  static LIST_HEAD(acpi_ioremaps);
-> @@ -423,13 +425,25 @@ static void acpi_os_drop_map_ref(struct acpi_ioremap *map)
->  		list_del_rcu(&map->list);
->  }
->  
-> +static void acpi_os_async_umap(void *data, async_cookie_t cookie)
-> +{
-> +	struct acpi_ioremap *map = data;
-> +
-> +	acpi_unmap(map->phys, map->virt);
-> +	kfree(map);
-> +}
-> +
-> +static void acpi_os_map_reclaim(struct rcu_head *rcu)
-> +{
-> +	struct acpi_ioremap *map = container_of(rcu, struct acpi_ioremap, rcu);
-> +
-> +	async_schedule(acpi_os_async_umap, map);
-> +}
-> +
->  static void acpi_os_map_cleanup(struct acpi_ioremap *map)
->  {
-> -	if (!map->refcount) {
-> -		synchronize_rcu();
-> -		acpi_unmap(map->phys, map->virt);
-> -		kfree(map);
-> -	}
-> +	if (!map->refcount)
-> +		call_rcu(&map->rcu, acpi_os_map_reclaim);
->  }
->  
->  void __ref acpi_os_unmap_iomem(void __iomem *virt, acpi_size size)
-> 
+We have pick up several patches from Yinghai's original IOAPIC hotplug
+patch set and reimplemented IOAPIC driver as an ACPI driver instead of
+a PCI driver.
 
-This goes a bit too far.  First, if you need to start an async thread,
-you can simply do synchronize_rcu() from there.  Second, though, perhaps
-we can address the whole deadlock in a different way.
+It has been tested on a 4-socket Intel SDV with socket hot-addition
+capability. Any suggestions are welcomed!
 
-For example, if we do something like the patch below (which I haven't
-tested, but it should work if I'm not missing something horribly), we
-won't be taking the ACPI namespace lock under the CPU hotplug lock
-in acpi_cpu_soft_notify() any more.
+Patch 1-5 are bugfixes and enhancements to ACPI subsystem
+Patch 6-14 enhances IOAPIC core to support IOAPIC hotplug
+Patch 15 killes PCI IOAPIC driver
+Patch 16 reimplements ACPI IOAPIC driver and enables IOAPIC hotplug
 
-Rafael
+V3->V4:
+1) Fix a bug in manage IOAPIC reference count
+2) Rebase to v3.17-rc2
+3) Refine commit messages
+V2->V3:
+1) Refine ACPI resource walk functions for PCI root bus and IOAPIC
+2) Improve commit messages
+3) Reorder patch order for better maintenence
 
----
- drivers/acpi/processor_driver.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+Jiang Liu (13):
+  x86, PCI, ACPI: Kill private function resource_to_addr() in
+    arch/x86/pci/acpi.c
+  ACPI: Correct return value of acpi_dev_resource_address_space()
+  ACPI: Fix minor syntax issues in processor_core.c
+  ACPI: Rename processor_core.c as apic_id.c
+  x86, irq: Remove __init marker for functions will be used by IOAPIC
+    hotplug
+  x86, irq: Keep balance of IOAPIC pin reference count
+  x86, irq: Refine mp_register_ioapic() to prepare for IOAPIC hotplug
+  x86, irq, ACPI: Introduce a rwsem to protect IOAPIC operations from
+    hotplug
+  x86, irq, ACPI: Implement interface to support ACPI based IOAPIC
+    hot-addition
+  x86, irq, ACPI: Implement interfaces to support ACPI based IOAPIC
+    hot-removal
+  x86, irq: Introduce helper to check whether an IOAPIC has been
+    registered
+  PCI: Remove PCI ioapic driver
+  x86, irq, ACPI: Implement ACPI driver to support IOAPIC hotplug
 
-Index: linux-pm/drivers/acpi/processor_driver.c
-===================================================================
---- linux-pm.orig/drivers/acpi/processor_driver.c
-+++ linux-pm/drivers/acpi/processor_driver.c
-@@ -129,7 +129,11 @@ static int acpi_cpu_soft_notify(struct n
- 	if (action == CPU_STARTING || action == CPU_DYING)
- 		return NOTIFY_DONE;
- 
--	if (!pr || acpi_bus_get_device(pr->handle, &device))
-+	if (!pr || !pr->dev)
-+		return NOTIFY_DONE;
-+
-+	device = ACPI_COMPANION(pr->dev);
-+	if (!device)
- 		return NOTIFY_DONE;
- 
- 	if (action == CPU_ONLINE) {
+Yinghai Lu (3):
+  ACPI: Add interfaces to parse IOAPIC ID for IOAPIC hotplug
+  x86, irq: Split out alloc_ioapic_save_registers()
+  x86, irq: Prefer assigned ID in APIC ID register for x86_64
+
+ arch/x86/include/asm/io_apic.h |    6 +-
+ arch/x86/kernel/acpi/boot.c    |   68 +++++++++-
+ arch/x86/kernel/apic/io_apic.c |  235 +++++++++++++++++++++++++-------
+ arch/x86/pci/acpi.c            |  142 +++++++------------
+ arch/x86/pci/intel_mid_pci.c   |    9 +-
+ arch/x86/pci/irq.c             |    7 +-
+ drivers/acpi/Kconfig           |    6 +
+ drivers/acpi/Makefile          |    3 +-
+ drivers/acpi/apic_id.c         |  294 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/internal.h        |    7 +
+ drivers/acpi/ioapic.c          |  236 ++++++++++++++++++++++++++++++++
+ drivers/acpi/pci_irq.c         |   11 +-
+ drivers/acpi/pci_root.c        |    3 +
+ drivers/acpi/processor_core.c  |  206 ----------------------------
+ drivers/acpi/resource.c        |    2 +-
+ drivers/pci/Kconfig            |    7 -
+ drivers/pci/Makefile           |    2 -
+ drivers/pci/ioapic.c           |  121 -----------------
+ include/acpi/processor.h       |    3 -
+ include/linux/acpi.h           |    8 ++
+ include/linux/pci.h            |    1 +
+ 21 files changed, 885 insertions(+), 492 deletions(-)
+ create mode 100644 drivers/acpi/apic_id.c
+ create mode 100644 drivers/acpi/ioapic.c
+ delete mode 100644 drivers/acpi/processor_core.c
+ delete mode 100644 drivers/pci/ioapic.c
+
+-- 
+1.7.10.4
