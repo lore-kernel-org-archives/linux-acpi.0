@@ -1,72 +1,129 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH v3 1/3] Mailbox: Add support for PCC mailbox and channels
-Date: Thu, 28 Aug 2014 08:21:52 -0400
-Message-ID: <CAJ5Y-ea0Sg4E=Jv3Z--32RbHqUwHAp7yxxfA7EgmGxwvNLM48A@mail.gmail.com>
-References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
-	<CAJ5Y-eak9A14z3im_5sgvnqMQDRf5rNgcQNGwDV2aYh_POkLOA@mail.gmail.com>
-	<20140827190902.GR17528@sirena.org.uk>
-	<2961329.Rr1sZlGzgn@wuerfel>
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: Re: [PATCH] acpi: fan.c: printk replacement
+Date: Thu, 28 Aug 2014 17:59:16 +0530
+Message-ID: <20140828122916.GA3081@sudip-PC>
+References: <1408709001-3272-1-git-send-email-sudipm.mukherjee@gmail.com>
+ <4713016.Cq5xvW8zIj@vostro.rjw.lan>
+ <20140827045747.GA3309@sudip-PC>
+ <2510233.V8A8GLG6Qe@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:62358 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904AbaH1MVy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Aug 2014 08:21:54 -0400
-Received: by mail-wi0-f175.google.com with SMTP id ho1so7345151wib.2
-        for <linux-acpi@vger.kernel.org>; Thu, 28 Aug 2014 05:21:52 -0700 (PDT)
-In-Reply-To: <2961329.Rr1sZlGzgn@wuerfel>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:59167 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750741AbaH1MaB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Aug 2014 08:30:01 -0400
+Content-Disposition: inline
+In-Reply-To: <2510233.V8A8GLG6Qe@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mark Brown <broonie@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Joe Perches <joe@perches.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Arnd,
+On Thu, Aug 28, 2014 at 01:26:58AM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, August 27, 2014 10:27:47 AM Sudip Mukherjee wrote:
+> > On Tue, Aug 26, 2014 at 11:22:12PM +0200, Rafael J. Wysocki wrote:
+> > > On Tuesday, August 26, 2014 01:59:02 PM Joe Perches wrote:
+> > > > On Tue, 2014-08-26 at 23:02 +0200, Rafael J. Wysocki wrote:
+> > > > > On Tuesday, August 26, 2014 09:00:39 PM Sudip Mukherjee wrote:
+> > > > > > On Tue, Aug 26, 2014 at 12:45:20AM +0200, Rafael J. Wysocki wrote:
+> > > > > > > On Friday, August 22, 2014 05:33:21 PM Sudip Mukherjee wrote:
+> > > > > > > > printk replaced with corresponding dev_err and dev_info
+> > > > > > > > fixed one broken user-visible string
+> > > > > > > > multiine comment edited for correct commenting style
+> > > > > > > > asm/uaccess.h replaced with linux/uaccess.h
+> > > > > > > > 
+> > > > > > > > Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+> > > > > > > > ---
+> > > > > > > >  drivers/acpi/fan.c | 18 +++++++++---------
+> > > > > > > >  1 file changed, 9 insertions(+), 9 deletions(-)
+> > > > > > > > 
+> > > > > > > > diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+> > > > > > > > index 8acf53e..7900d55 100644
+> > > > > > > > --- a/drivers/acpi/fan.c
+> > > > > > > > +++ b/drivers/acpi/fan.c
+> > > > > > > > @@ -27,7 +27,7 @@
+> > > > > > > >  #include <linux/module.h>
+> > > > > > > >  #include <linux/init.h>
+> > > > > > > >  #include <linux/types.h>
+> > > > > > > > -#include <asm/uaccess.h>
+> > > > > > > > +#include <linux/uaccess.h>
+> > > > > > > >  #include <linux/thermal.h>
+> > > > > > > >  #include <linux/acpi.h>
+> > > > > > > >  
+> > > > > > > > @@ -127,8 +127,9 @@ static const struct thermal_cooling_device_ops fan_cooling_ops = {
+> > > > > > > >  };
+> > > > > > > >  
+> > > > > > > >  /* --------------------------------------------------------------------------
+> > > > > > > > -                                 Driver Interface
+> > > > > > > > -   -------------------------------------------------------------------------- */
+> > > > > > > > + *                               Driver Interface
+> > > > > > > > + * --------------------------------------------------------------------------
+> > > > > > > > +*/
+> > > > > > > >  
+> > > > > > > >  static int acpi_fan_add(struct acpi_device *device)
+> > > > > > > >  {
+> > > > > > > > @@ -143,7 +144,7 @@ static int acpi_fan_add(struct acpi_device *device)
+> > > > > > > >  
+> > > > > > > >  	result = acpi_bus_update_power(device->handle, NULL);
+> > > > > > > >  	if (result) {
+> > > > > > > > -		printk(KERN_ERR PREFIX "Setting initial power state\n");
+> > > > > > > > +		dev_err(&device->dev, PREFIX "Setting initial power state\n");
+> > > > > > > 
+> > > > > > > While at it, please define a proper pr_fmt() for this file and get rid of PREFIX
+> > > > > > > too.
+> > > > > > > 
+> > > > > > > Otherwise I don't see a compelling reason to apply this.
+> > > > > > > 
+> > > > > > 
+> > > > > > Hi,
+> > > > > > Since in the patch I am not using any pr_* , so I am unable to understand why
+> > > > > > you are asking for a proper pr_fmt().
+> > > > > 
+> > > > > Never mind, I was confused somehow, not exactly sure why.  Sorry about that.
+> > > > > 
+> > > > > > I can get rid of the PREFIX . Then should I use pr_* in the patch instead of dev_* ? 
+> > > > > > My understanding was dev_* is more preffered than pr_*.
+> > > > > > waiting for your suggestion on this.
+> > > > > 
+> > > > > Well, that really depends on the particular case.  It really is better to use
+> > > > > dev_err() here, but then PREFIX with it is not really useful, so please just
+> > > > > drop PREFIX from the new messages.
+> > > > 
+> > > > PREFIX is "ACPI: " so I think the idea is
+> > > > to be able to grep for that.
+> > > 
+> > > I'm not sure how useful that is in this particular case.  You can grep for "power
+> > > state" istead just fine ...
+> > > 
+> > > Rafael
+> > > 
+> > 
+> > Then there is one more printk which prints fan state is on or off :
+> > 
+> > >dev_info(&device->dev, PREFIX "%s [%s] (%s)\n",
+> > >	  acpi_device_name(device), acpi_device_bid(device),
+> > >              !device->power.state ? "on" : "off");
+> > 
+> > So if we drop the PREFIX and if some one wants to grep for this fan on/off , then how to do that ..
+> > after removing PREFIX , in dmesg I am getting it as :
+> > [    2.056204] fan PNP0C0B:00: Fan [FAN0] (off)
+> > [    2.056225] fan PNP0C0B:01: Fan [FAN1] (off)
+> > [    2.056245] fan PNP0C0B:02: Fan [FAN2] (off)
+> > [    2.056263] fan PNP0C0B:03: Fan [FAN3] (off)
+> > [    2.056283] fan PNP0C0B:04: Fan [FAN4] (off)
+> 
+> $ dmesg | grep fan
+> 
+> ?
+> 
+> You can simply say "ACPI fan [%s] (%s)\n", acpi_device_bid(device) " in that
+> dev_info too.
+> 
+> Rafael
+> 
+I was under the impression that grep means using git grep and searching in the kernel code.
+Anyways, I have sent a modified patch , can you please review it ..
 
-On 28 August 2014 04:39, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Wednesday 27 August 2014 20:09:02 Mark Brown wrote:
->> On Wed, Aug 27, 2014 at 09:07:15AM -0400, Ashwin Chaugule wrote:
->> > On 27 August 2014 06:27, Mark Brown <broonie@kernel.org> wrote:
->> > > On Tue, Aug 26, 2014 at 03:35:36PM -0400, Ashwin Chaugule wrote:
->>
->> > >> +static struct mbox_controller *
->> > >> +mbox_find_pcc_controller(char *name)
->> > >> +{
->> > >> +     struct mbox_controller *mbox;
->> > >> +     list_for_each_entry(mbox, &mbox_cons, node) {
->> > >> +             if (mbox->name)
->> > >> +                     if (!strcmp(mbox->name, name))
->> > >> +                             return mbox;
->> > >> +     }
->> > >> +
->> > >> +     return NULL;
->> > >> +}
->>
->> > > This doesn't look particularly PCC specific?
->>
->> > Call this mbox_find_controller_by_name() instead?
->>
->> That certainly looks like what it's doing.  Probably also make the name
->> that gets passed in const while you're at it.
->
-> The mailbox API intentionally does not have an interface for
-> that: you are supposed to get a reference to an mbox controller
-> from a phandle or similar, not by knowing the name of the controller.
-
-This snippet is based off of your suggestions. [1] [2] :)
-
->
-> Unfortunately, the three patches that Ashwin posted don't have a
-> caller for this function,
-
-mbox_find_pcc_controller() is called from pcc_mbox_request_channel()
-which is in this patch.
-
-> so I don't know what it's actually used for.
-> Why do we need this function for pcc, and what are the names that
-> can be passed here?
->
->         Arnd
-
-[1] - http://lists.infradead.org/pipermail/linux-arm-kernel/2014-June/265395.html
-[2] - http://lists.infradead.org/pipermail/linux-arm-kernel/2014-June/266528.html
+thanks
+sudip
