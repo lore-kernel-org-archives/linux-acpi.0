@@ -1,74 +1,77 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Dealing with desktops with an acpi-video interface claiming backlight
- control
-Date: Thu, 28 Aug 2014 16:47:13 +0200
-Message-ID: <53FF40F1.2020501@redhat.com>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v3 1/3] Mailbox: Add support for PCC mailbox and channels
+Date: Thu, 28 Aug 2014 16:34:46 -0400
+Message-ID: <CAJ5Y-eZVQL-2k1XgfFW1_QZb9G_S2d9YLo3PAH1VytvOhDnd-Q@mail.gmail.com>
+References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
+	<CAJ5Y-eak9A14z3im_5sgvnqMQDRf5rNgcQNGwDV2aYh_POkLOA@mail.gmail.com>
+	<20140827190902.GR17528@sirena.org.uk>
+	<2961329.Rr1sZlGzgn@wuerfel>
+	<20140828101500.GM17528@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15153 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751502AbaH1OrQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Aug 2014 10:47:16 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id s7SElFYr025910
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL)
-	for <linux-acpi@vger.kernel.org>; Thu, 28 Aug 2014 10:47:15 -0400
-Received: from shalem.localdomain (vpn1-5-244.ams2.redhat.com [10.36.5.244])
-	by int-mx11.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id s7SElDQb012039
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Thu, 28 Aug 2014 10:47:15 -0400
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:34795 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752352AbaH1Uer (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Aug 2014 16:34:47 -0400
+Received: by mail-wi0-f177.google.com with SMTP id cc10so1537139wib.16
+        for <linux-acpi@vger.kernel.org>; Thu, 28 Aug 2014 13:34:46 -0700 (PDT)
+In-Reply-To: <20140828101500.GM17528@sirena.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
+To: Mark Brown <broonie@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux acpi <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Hi All,
+On 28 August 2014 06:15, Mark Brown <broonie@kernel.org> wrote:
+> On Thu, Aug 28, 2014 at 10:39:01AM +0200, Arnd Bergmann wrote:
+>> On Wednesday 27 August 2014 20:09:02 Mark Brown wrote:
+>
+>> > That certainly looks like what it's doing.  Probably also make the name
+>> > that gets passed in const while you're at it.
+>
+>> The mailbox API intentionally does not have an interface for
+>> that: you are supposed to get a reference to an mbox controller
+>> from a phandle or similar, not by knowing the name of the controller.
+>
+> Right, and what he's trying to work around here is that ACPI has chosen
+> to provide a generic binding for some mailboxes which isn't associated
+> with anything we represent as a device and he doesn't want to provide
+> that device as a Linux virtual thing.
 
-I've been on the receiving and of several bug reports
-complaining about Linux showing a backlight control
-(and the desktop environment a brightness slider) on
-non laptop machines:
+Just the idea of a table as a device, when it doesn't do any power
+management, hotplug or anything like a device seemed strange. But I'm
+open to ideas if we find a good solution. Its highly possible that I'm
+not seeing it the way you are because the driver subsystem internals
+are fairly new to me. :)
 
-https://bugzilla.redhat.com/show_bug.cgi?id=1097436
-https://bugzilla.redhat.com/show_bug.cgi?id=1133327
-https://bugzilla.redhat.com/show_bug.cgi?id=1133329
-https://bugzilla.redhat.com/show_bug.cgi?id=1133646
+Suppose we create a platform_device for the PCCT (mailbox controller)
+and another one for the PCC client (mailbox client). How should the
+PCC client(s) identify the mailbox controller without passing a name?
+In DT, the "mboxes" field in the client DT entry is all strings with
+mailbox controller names. The "index" in mbox_request_channel() picks
+up one set of strings. How should this work with PCC? Should we use
+the PCC client platform_device->dev->platform_data to store mailbox
+controller strings?
 
-Note the first one is already fixed in asus-wmi.c, as
-that seemed best at the time. But the problem seems
-to be wider then just Asus motherboards, and so far
-all the machines with this issue seem to have this
-issue due to acpi-video registering a backlight
-interface.
+>
+>> Unfortunately, the three patches that Ashwin posted don't have a
+>> caller for this function, so I don't know what it's actually used for.
+>> Why do we need this function for pcc, and what are the names that
+>> can be passed here?
+>
+> AFAICT the names he's interested in will be defined by the ACPI specs.
+> It does seem like we should be providing a device for the controller and
+> then either using references in ACPI to look it up if they exist or a
+> lookup function for this particular namespace that goes and fetches the
+> device we created and looks up in its context.
 
-For the asus-wmi.c driver the following solution was
-chosen:
+What is the comparison in this lookup function? A string or a struct
+device pointer? If it is the latter, how does the client get the
+reference to the controller struct device? One way would be to
+register the PCCT as a platform_device and the PCC client as its
+platform_driver. But I think that will restrict the number of PCC
+clients to who ever matches first. I suspect this is not what you're
+implying, so I'd appreciate some more help.
 
-        /* Some Asus desktop boards export an acpi-video backlight interface,
-           stop this from showing up */
-        chassis_type = dmi_get_system_info(DMI_CHASSIS_TYPE);
-        if (chassis_type && !strcmp(chassis_type, "3"))
-                acpi_video_dmi_promote_vendor();
-
-That will work for 2 of the 3 new models too, the 3th
-model has a value of "6", aka "Mini Tower", so we could
-move these check to acpi-video, but then we would need
-to extend it to at least also check for "6", and in the
-future possibly others values.
-
-I'm not 100% certain simply moving the check is a good idea,
-I'm afraid that the check may end up triggering on some
-laptops, causing problems / regressions.
-
-So although I dislike quirk lists as much as the next person,
-as they need constant maintenance, I think that it probably
-is best to solve this with dmi based quirks for the boards
-in question, so as to avoid any chance of this causing
-regressions for other machines.
-
-Your input on this is greatly appreciated.
-
-Thanks & Regards,
-
-Hans
+Thanks,
+Ashwin
