@@ -1,129 +1,90 @@
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: Re: [PATCH] acpi: fan.c: printk replacement
-Date: Thu, 28 Aug 2014 17:59:16 +0530
-Message-ID: <20140828122916.GA3081@sudip-PC>
-References: <1408709001-3272-1-git-send-email-sudipm.mukherjee@gmail.com>
- <4713016.Cq5xvW8zIj@vostro.rjw.lan>
- <20140827045747.GA3309@sudip-PC>
- <2510233.V8A8GLG6Qe@vostro.rjw.lan>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v3 1/3] Mailbox: Add support for PCC mailbox and channels
+Date: Thu, 28 Aug 2014 08:31:02 -0400
+Message-ID: <CAJ5Y-eZbCe8hMDpUMiAAy92ibeuFNtCVGyUfBoMa91C7cE2hwA@mail.gmail.com>
+References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
+	<1409081738-5602-2-git-send-email-ashwin.chaugule@linaro.org>
+	<20140827102708.GW17528@sirena.org.uk>
+	<CAJ5Y-eak9A14z3im_5sgvnqMQDRf5rNgcQNGwDV2aYh_POkLOA@mail.gmail.com>
+	<20140827190902.GR17528@sirena.org.uk>
+	<CAJ5Y-eYk1zq+NvPRbZanO5yXVLqZ6_81rQMd+7iRtLu6HBQ5OA@mail.gmail.com>
+	<20140828101025.GL17528@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:59167 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750741AbaH1MaB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Aug 2014 08:30:01 -0400
-Content-Disposition: inline
-In-Reply-To: <2510233.V8A8GLG6Qe@vostro.rjw.lan>
+Received: from mail-we0-f169.google.com ([74.125.82.169]:57623 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750820AbaH1MbG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Aug 2014 08:31:06 -0400
+Received: by mail-we0-f169.google.com with SMTP id k48so684714wev.14
+        for <linux-acpi@vger.kernel.org>; Thu, 28 Aug 2014 05:31:02 -0700 (PDT)
+In-Reply-To: <20140828101025.GL17528@sirena.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Joe Perches <joe@perches.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux acpi <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Thu, Aug 28, 2014 at 01:26:58AM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, August 27, 2014 10:27:47 AM Sudip Mukherjee wrote:
-> > On Tue, Aug 26, 2014 at 11:22:12PM +0200, Rafael J. Wysocki wrote:
-> > > On Tuesday, August 26, 2014 01:59:02 PM Joe Perches wrote:
-> > > > On Tue, 2014-08-26 at 23:02 +0200, Rafael J. Wysocki wrote:
-> > > > > On Tuesday, August 26, 2014 09:00:39 PM Sudip Mukherjee wrote:
-> > > > > > On Tue, Aug 26, 2014 at 12:45:20AM +0200, Rafael J. Wysocki wrote:
-> > > > > > > On Friday, August 22, 2014 05:33:21 PM Sudip Mukherjee wrote:
-> > > > > > > > printk replaced with corresponding dev_err and dev_info
-> > > > > > > > fixed one broken user-visible string
-> > > > > > > > multiine comment edited for correct commenting style
-> > > > > > > > asm/uaccess.h replaced with linux/uaccess.h
-> > > > > > > > 
-> > > > > > > > Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
-> > > > > > > > ---
-> > > > > > > >  drivers/acpi/fan.c | 18 +++++++++---------
-> > > > > > > >  1 file changed, 9 insertions(+), 9 deletions(-)
-> > > > > > > > 
-> > > > > > > > diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-> > > > > > > > index 8acf53e..7900d55 100644
-> > > > > > > > --- a/drivers/acpi/fan.c
-> > > > > > > > +++ b/drivers/acpi/fan.c
-> > > > > > > > @@ -27,7 +27,7 @@
-> > > > > > > >  #include <linux/module.h>
-> > > > > > > >  #include <linux/init.h>
-> > > > > > > >  #include <linux/types.h>
-> > > > > > > > -#include <asm/uaccess.h>
-> > > > > > > > +#include <linux/uaccess.h>
-> > > > > > > >  #include <linux/thermal.h>
-> > > > > > > >  #include <linux/acpi.h>
-> > > > > > > >  
-> > > > > > > > @@ -127,8 +127,9 @@ static const struct thermal_cooling_device_ops fan_cooling_ops = {
-> > > > > > > >  };
-> > > > > > > >  
-> > > > > > > >  /* --------------------------------------------------------------------------
-> > > > > > > > -                                 Driver Interface
-> > > > > > > > -   -------------------------------------------------------------------------- */
-> > > > > > > > + *                               Driver Interface
-> > > > > > > > + * --------------------------------------------------------------------------
-> > > > > > > > +*/
-> > > > > > > >  
-> > > > > > > >  static int acpi_fan_add(struct acpi_device *device)
-> > > > > > > >  {
-> > > > > > > > @@ -143,7 +144,7 @@ static int acpi_fan_add(struct acpi_device *device)
-> > > > > > > >  
-> > > > > > > >  	result = acpi_bus_update_power(device->handle, NULL);
-> > > > > > > >  	if (result) {
-> > > > > > > > -		printk(KERN_ERR PREFIX "Setting initial power state\n");
-> > > > > > > > +		dev_err(&device->dev, PREFIX "Setting initial power state\n");
-> > > > > > > 
-> > > > > > > While at it, please define a proper pr_fmt() for this file and get rid of PREFIX
-> > > > > > > too.
-> > > > > > > 
-> > > > > > > Otherwise I don't see a compelling reason to apply this.
-> > > > > > > 
-> > > > > > 
-> > > > > > Hi,
-> > > > > > Since in the patch I am not using any pr_* , so I am unable to understand why
-> > > > > > you are asking for a proper pr_fmt().
-> > > > > 
-> > > > > Never mind, I was confused somehow, not exactly sure why.  Sorry about that.
-> > > > > 
-> > > > > > I can get rid of the PREFIX . Then should I use pr_* in the patch instead of dev_* ? 
-> > > > > > My understanding was dev_* is more preffered than pr_*.
-> > > > > > waiting for your suggestion on this.
-> > > > > 
-> > > > > Well, that really depends on the particular case.  It really is better to use
-> > > > > dev_err() here, but then PREFIX with it is not really useful, so please just
-> > > > > drop PREFIX from the new messages.
-> > > > 
-> > > > PREFIX is "ACPI: " so I think the idea is
-> > > > to be able to grep for that.
-> > > 
-> > > I'm not sure how useful that is in this particular case.  You can grep for "power
-> > > state" istead just fine ...
-> > > 
-> > > Rafael
-> > > 
-> > 
-> > Then there is one more printk which prints fan state is on or off :
-> > 
-> > >dev_info(&device->dev, PREFIX "%s [%s] (%s)\n",
-> > >	  acpi_device_name(device), acpi_device_bid(device),
-> > >              !device->power.state ? "on" : "off");
-> > 
-> > So if we drop the PREFIX and if some one wants to grep for this fan on/off , then how to do that ..
-> > after removing PREFIX , in dmesg I am getting it as :
-> > [    2.056204] fan PNP0C0B:00: Fan [FAN0] (off)
-> > [    2.056225] fan PNP0C0B:01: Fan [FAN1] (off)
-> > [    2.056245] fan PNP0C0B:02: Fan [FAN2] (off)
-> > [    2.056263] fan PNP0C0B:03: Fan [FAN3] (off)
-> > [    2.056283] fan PNP0C0B:04: Fan [FAN4] (off)
-> 
-> $ dmesg | grep fan
-> 
-> ?
-> 
-> You can simply say "ACPI fan [%s] (%s)\n", acpi_device_bid(device) " in that
-> dev_info too.
-> 
-> Rafael
-> 
-I was under the impression that grep means using git grep and searching in the kernel code.
-Anyways, I have sent a modified patch , can you please review it ..
+Hi Mark,
 
-thanks
-sudip
+On 28 August 2014 06:10, Mark Brown <broonie@kernel.org> wrote:
+> On Wed, Aug 27, 2014 at 05:49:53PM -0400, Ashwin Chaugule wrote:
+>> On 27 August 2014 15:09, Mark Brown <broonie@kernel.org> wrote:
+>> > On Wed, Aug 27, 2014 at 09:07:15AM -0400, Ashwin Chaugule wrote:
+>> >> "device" out of something that isn't. The PCCT, which is used as a
+>> >> mailbox controller here, is a table and not a peripheral device. To
+>> >> treat this as a device (without faking it by manually putting together
+>> >> a struct device), would require adding a DSDT entry which is really a
+>> >> wrong place for it. Are there examples today where drivers manually
+>> >> create a struct driver and struct device and match them internally?
+>> >> (i.e. w/o using the generic driver subsystem)
+>
+>> > Arguably that's what things like cpufreq end up doing, though people
+>> > tend to just shove a device into DT.  Are you sure there isn't any
+>> > device at all in ACPI that you could hang this off, looking at my
+>> > desktop I see rather a lot of apparently synthetic ACPI devices with
+>> > names starting LNX including for example LNXSYSTM:00?
+>
+>> Those are special HIDs defined in the ACPI spec and none of those can
+>> be used to back a device for the PCCT itself, since they're unrelated
+>> to the PCC protocol. The PCCT is defined in the spec as a separate
+>> table and if supported, should be visible in your system in the
+>> PCCT.dsl file. Just for the sake of the Mailbox framework, trying to
+>> represent the PCCT (which is a table) as a mailbox controller device,
+>> would require registering a special HID. That in turn would make an
+>> otherwise OS agnostic thing very Linux specific.
+>
+> OK, but then there's always the option of just having some code that
+> runs on init and instantiates a device if it sees the appropriate thing
+> in the ACPI tables in a similar manner to how HIDs are handled.  It's a
+> small amount of work but it will generally make life easier if there is
+> a struct device.
+
+I need to give this a try. AFAICS, the HIDs get their device created
+by the driver subsystem. This would require manually creating one and
+I didn't see existing examples. Thinking of a table as a device
+(virtual/real) seemed weird to me, especially since we're seemingly
+only using it for ref counts here. But it sounds like this is an
+acceptable thing.
+
+>
+>> > If PCC is described by ACPI tables how would non-ACPI users be able to
+>> > use it?
+>
+>> Whoever wants to do that, would need to come up with DT bindings that
+>> describe something similar to the PCCT contents. They could possibly
+>> ignore the ACPI specific bits like signature, asl compiler details
+>> etc. (which are only used by ACPI table parsers) and provide the rest
+>> of it. Its essentially an array of structures that point to various
+>> shared memory regions, each of which is owned by a PCC client and
+>> shared with the firmware. The intercommunication between client and
+>> firmware is via a doorbell, which is also described in these entries
+>> and can be implemented as an SGI or similar.
+>
+> Of course most likely such a binding would involve creating a device
+> that owns the mailboxes so this'd be fairly straightforward...
+
+With DT, yes, it seems to be a bit more straightforward.
+
+
+Thanks,
+Ashwin
