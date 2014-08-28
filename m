@@ -1,488 +1,100 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v4 04/16] ACPI: Rename processor_core.c as apic_id.c
-Date: Thu, 28 Aug 2014 10:22:29 +0800
-Message-ID: <1409192561-19744-5-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v4 07/16] x86, irq: Prefer assigned ID in APIC ID register for x86_64
+Date: Thu, 28 Aug 2014 10:22:32 +0800
+Message-ID: <1409192561-19744-8-git-send-email-jiang.liu@linux.intel.com>
 References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Prarit Bhargava <prarit@redhat.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Now all code in processor_core.c is APIC ID related, so rename it as
-apic_id.c. Later IOAPIC ID related code will be added into apic_id.c.
+From: Yinghai Lu <yinghai@kernel.org>
 
+Perfer the assigned ID in APIC ID register for x86_64 if it's still
+available.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/Makefile         |    2 +-
- drivers/acpi/apic_id.c        |  202 ++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/processor_core.c |  205 -----------------------------------------
- include/acpi/processor.h      |    3 -
- include/linux/acpi.h          |    3 +
- 5 files changed, 206 insertions(+), 209 deletions(-)
- create mode 100644 drivers/acpi/apic_id.c
- delete mode 100644 drivers/acpi/processor_core.c
+ arch/x86/kernel/apic/io_apic.c |   38 +++++++++++++++++++++++++++++++++-----
+ 1 file changed, 33 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 505d4d79fe3e..03ddd03f2bcd 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -35,7 +35,7 @@ acpi-y				+= bus.o glue.o
- acpi-y				+= scan.o
- acpi-y				+= resource.o
- acpi-y				+= acpi_processor.o
--acpi-y				+= processor_core.o
-+acpi-y				+= apic_id.o
- acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
- acpi-y				+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
-diff --git a/drivers/acpi/apic_id.c b/drivers/acpi/apic_id.c
-new file mode 100644
-index 000000000000..ada5fd48bad4
---- /dev/null
-+++ b/drivers/acpi/apic_id.c
-@@ -0,0 +1,202 @@
-+/*
-+ * Copyright (C) 2005 Intel Corporation
-+ * Copyright (C) 2009 Hewlett-Packard Development Company, L.P.
-+ *
-+ *	Alex Chiang <achiang@hp.com>
-+ *	- Unified x86/ia64 implementations
-+ */
-+#include <linux/export.h>
-+#include <linux/acpi.h>
-+#include "internal.h"
-+
-+static int map_lapic_id(struct acpi_subtable_header *entry,
-+		 u32 acpi_id, int *apic_id)
-+{
-+	struct acpi_madt_local_apic *lapic =
-+		(struct acpi_madt_local_apic *)entry;
-+
-+	if (!(lapic->lapic_flags & ACPI_MADT_ENABLED))
-+		return -ENODEV;
-+
-+	if (lapic->processor_id != acpi_id)
-+		return -EINVAL;
-+
-+	*apic_id = lapic->id;
-+	return 0;
-+}
-+
-+static int map_x2apic_id(struct acpi_subtable_header *entry,
-+			 int device_declaration, u32 acpi_id, int *apic_id)
-+{
-+	struct acpi_madt_local_x2apic *apic =
-+		(struct acpi_madt_local_x2apic *)entry;
-+
-+	if (!(apic->lapic_flags & ACPI_MADT_ENABLED))
-+		return -ENODEV;
-+
-+	if (device_declaration && (apic->uid == acpi_id)) {
-+		*apic_id = apic->local_apic_id;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int map_lsapic_id(struct acpi_subtable_header *entry,
-+		int device_declaration, u32 acpi_id, int *apic_id)
-+{
-+	struct acpi_madt_local_sapic *lsapic =
-+		(struct acpi_madt_local_sapic *)entry;
-+
-+	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
-+		return -ENODEV;
-+
-+	if (device_declaration) {
-+		if ((entry->length < 16) || (lsapic->uid != acpi_id))
-+			return -EINVAL;
-+	} else if (lsapic->processor_id != acpi_id)
-+		return -EINVAL;
-+
-+	*apic_id = (lsapic->id << 8) | lsapic->eid;
-+	return 0;
-+}
-+
-+static int map_madt_entry(int type, u32 acpi_id)
-+{
-+	unsigned long madt_end, entry;
-+	static struct acpi_table_madt *madt;
-+	static int read_madt;
-+	int apic_id = -1;
-+
-+	if (!read_madt) {
-+		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
-+					(struct acpi_table_header **)&madt)))
-+			madt = NULL;
-+		read_madt++;
-+	}
-+
-+	if (!madt)
-+		return apic_id;
-+
-+	entry = (unsigned long)madt;
-+	madt_end = entry + madt->header.length;
-+
-+	/* Parse all entries looking for a match. */
-+
-+	entry += sizeof(struct acpi_table_madt);
-+	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
-+		struct acpi_subtable_header *header =
-+			(struct acpi_subtable_header *)entry;
-+		if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
-+			if (!map_lapic_id(header, acpi_id, &apic_id))
-+				break;
-+		} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
-+			if (!map_x2apic_id(header, type, acpi_id, &apic_id))
-+				break;
-+		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
-+			if (!map_lsapic_id(header, type, acpi_id, &apic_id))
-+				break;
-+		}
-+		entry += header->length;
-+	}
-+	return apic_id;
-+}
-+
-+static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
-+{
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_object *obj;
-+	struct acpi_subtable_header *header;
-+	int apic_id = -1;
-+
-+	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
-+		goto exit;
-+
-+	if (!buffer.length || !buffer.pointer)
-+		goto exit;
-+
-+	obj = buffer.pointer;
-+	if (obj->type != ACPI_TYPE_BUFFER ||
-+	    obj->buffer.length < sizeof(struct acpi_subtable_header)) {
-+		goto exit;
-+	}
-+
-+	header = (struct acpi_subtable_header *)obj->buffer.pointer;
-+	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC)
-+		map_lapic_id(header, acpi_id, &apic_id);
-+	else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC)
-+		map_lsapic_id(header, type, acpi_id, &apic_id);
-+	else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC)
-+		map_x2apic_id(header, type, acpi_id, &apic_id);
-+
-+exit:
-+	kfree(buffer.pointer);
-+	return apic_id;
-+}
-+
-+int acpi_get_apicid(acpi_handle handle, int type, u32 acpi_id)
-+{
-+	int apic_id;
-+
-+	apic_id = map_mat_entry(handle, type, acpi_id);
-+	if (apic_id == -1)
-+		apic_id = map_madt_entry(type, acpi_id);
-+
-+	return apic_id;
-+}
-+
-+int acpi_map_cpuid(int apic_id, u32 acpi_id)
-+{
-+#ifdef CONFIG_SMP
-+	int i;
-+#endif
-+
-+	if (apic_id == -1) {
-+		/*
-+		 * On UP processor, there is no _MAT or MADT table.
-+		 * So above apic_id is always set to -1.
-+		 *
-+		 * BIOS may define multiple CPU handles even for UP processor.
-+		 * For example,
-+		 *
-+		 * Scope (_PR)
-+		 * {
-+		 *     Processor (CPU0, 0x00, 0x00000410, 0x06) {}
-+		 *     Processor (CPU1, 0x01, 0x00000410, 0x06) {}
-+		 *     Processor (CPU2, 0x02, 0x00000410, 0x06) {}
-+		 *     Processor (CPU3, 0x03, 0x00000410, 0x06) {}
-+		 * }
-+		 *
-+		 * Ignores apic_id and always returns 0 for the processor
-+		 * handle with acpi id 0 if nr_cpu_ids is 1.
-+		 * This should be the case if SMP tables are not found.
-+		 * Return -1 for other CPU's handle.
-+		 */
-+		if (nr_cpu_ids <= 1 && acpi_id == 0)
-+			return acpi_id;
-+		else
-+			return apic_id;
-+	}
-+
-+#ifdef CONFIG_SMP
-+	for_each_possible_cpu(i) {
-+		if (cpu_physical_id(i) == apic_id)
-+			return i;
-+	}
-+#else
-+	/* In UP kernel, only processor 0 is valid */
-+	if (apic_id == 0)
-+		return apic_id;
-+#endif
-+	return -1;
-+}
-+
-+int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
-+{
-+	int apic_id;
-+
-+	apic_id = acpi_get_apicid(handle, type, acpi_id);
-+
-+	return acpi_map_cpuid(apic_id, acpi_id);
-+}
-+EXPORT_SYMBOL_GPL(acpi_get_cpuid);
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-deleted file mode 100644
-index b048f3752c2b..000000000000
---- a/drivers/acpi/processor_core.c
-+++ /dev/null
-@@ -1,205 +0,0 @@
--/*
-- * Copyright (C) 2005 Intel Corporation
-- * Copyright (C) 2009 Hewlett-Packard Development Company, L.P.
-- *
-- *	Alex Chiang <achiang@hp.com>
-- *	- Unified x86/ia64 implementations
-- */
--#include <linux/export.h>
--#include <linux/acpi.h>
--#include <acpi/processor.h>
--
--#define _COMPONENT		ACPI_PROCESSOR_COMPONENT
--ACPI_MODULE_NAME("processor_core");
--
--static int map_lapic_id(struct acpi_subtable_header *entry,
--		 u32 acpi_id, int *apic_id)
--{
--	struct acpi_madt_local_apic *lapic =
--		(struct acpi_madt_local_apic *)entry;
--
--	if (!(lapic->lapic_flags & ACPI_MADT_ENABLED))
--		return -ENODEV;
--
--	if (lapic->processor_id != acpi_id)
--		return -EINVAL;
--
--	*apic_id = lapic->id;
--	return 0;
--}
--
--static int map_x2apic_id(struct acpi_subtable_header *entry,
--			 int device_declaration, u32 acpi_id, int *apic_id)
--{
--	struct acpi_madt_local_x2apic *apic =
--		(struct acpi_madt_local_x2apic *)entry;
--
--	if (!(apic->lapic_flags & ACPI_MADT_ENABLED))
--		return -ENODEV;
--
--	if (device_declaration && (apic->uid == acpi_id)) {
--		*apic_id = apic->local_apic_id;
--		return 0;
--	}
--
--	return -EINVAL;
--}
--
--static int map_lsapic_id(struct acpi_subtable_header *entry,
--		int device_declaration, u32 acpi_id, int *apic_id)
--{
--	struct acpi_madt_local_sapic *lsapic =
--		(struct acpi_madt_local_sapic *)entry;
--
--	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
--		return -ENODEV;
--
--	if (device_declaration) {
--		if ((entry->length < 16) || (lsapic->uid != acpi_id))
--			return -EINVAL;
--	} else if (lsapic->processor_id != acpi_id)
--		return -EINVAL;
--
--	*apic_id = (lsapic->id << 8) | lsapic->eid;
--	return 0;
--}
--
--static int map_madt_entry(int type, u32 acpi_id)
--{
--	unsigned long madt_end, entry;
--	static struct acpi_table_madt *madt;
--	static int read_madt;
--	int apic_id = -1;
--
--	if (!read_madt) {
--		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
--					(struct acpi_table_header **)&madt)))
--			madt = NULL;
--		read_madt++;
--	}
--
--	if (!madt)
--		return apic_id;
--
--	entry = (unsigned long)madt;
--	madt_end = entry + madt->header.length;
--
--	/* Parse all entries looking for a match. */
--
--	entry += sizeof(struct acpi_table_madt);
--	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
--		struct acpi_subtable_header *header =
--			(struct acpi_subtable_header *)entry;
--		if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
--			if (!map_lapic_id(header, acpi_id, &apic_id))
--				break;
--		} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
--			if (!map_x2apic_id(header, type, acpi_id, &apic_id))
--				break;
--		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
--			if (!map_lsapic_id(header, type, acpi_id, &apic_id))
--				break;
--		}
--		entry += header->length;
--	}
--	return apic_id;
--}
--
--static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
--{
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--	union acpi_object *obj;
--	struct acpi_subtable_header *header;
--	int apic_id = -1;
--
--	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
--		goto exit;
--
--	if (!buffer.length || !buffer.pointer)
--		goto exit;
--
--	obj = buffer.pointer;
--	if (obj->type != ACPI_TYPE_BUFFER ||
--	    obj->buffer.length < sizeof(struct acpi_subtable_header)) {
--		goto exit;
--	}
--
--	header = (struct acpi_subtable_header *)obj->buffer.pointer;
--	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC)
--		map_lapic_id(header, acpi_id, &apic_id);
--	else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC)
--		map_lsapic_id(header, type, acpi_id, &apic_id);
--	else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC)
--		map_x2apic_id(header, type, acpi_id, &apic_id);
--
--exit:
--	kfree(buffer.pointer);
--	return apic_id;
--}
--
--int acpi_get_apicid(acpi_handle handle, int type, u32 acpi_id)
--{
--	int apic_id;
--
--	apic_id = map_mat_entry(handle, type, acpi_id);
--	if (apic_id == -1)
--		apic_id = map_madt_entry(type, acpi_id);
--
--	return apic_id;
--}
--
--int acpi_map_cpuid(int apic_id, u32 acpi_id)
--{
--#ifdef CONFIG_SMP
--	int i;
--#endif
--
--	if (apic_id == -1) {
--		/*
--		 * On UP processor, there is no _MAT or MADT table.
--		 * So above apic_id is always set to -1.
--		 *
--		 * BIOS may define multiple CPU handles even for UP processor.
--		 * For example,
--		 *
--		 * Scope (_PR)
--		 * {
--		 *     Processor (CPU0, 0x00, 0x00000410, 0x06) {}
--		 *     Processor (CPU1, 0x01, 0x00000410, 0x06) {}
--		 *     Processor (CPU2, 0x02, 0x00000410, 0x06) {}
--		 *     Processor (CPU3, 0x03, 0x00000410, 0x06) {}
--		 * }
--		 *
--		 * Ignores apic_id and always returns 0 for the processor
--		 * handle with acpi id 0 if nr_cpu_ids is 1.
--		 * This should be the case if SMP tables are not found.
--		 * Return -1 for other CPU's handle.
--		 */
--		if (nr_cpu_ids <= 1 && acpi_id == 0)
--			return acpi_id;
--		else
--			return apic_id;
--	}
--
--#ifdef CONFIG_SMP
--	for_each_possible_cpu(i) {
--		if (cpu_physical_id(i) == apic_id)
--			return i;
--	}
--#else
--	/* In UP kernel, only processor 0 is valid */
--	if (apic_id == 0)
--		return apic_id;
--#endif
--	return -1;
--}
--
--int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
--{
--	int apic_id;
--
--	apic_id = acpi_get_apicid(handle, type, acpi_id);
--
--	return acpi_map_cpuid(apic_id, acpi_id);
--}
--EXPORT_SYMBOL_GPL(acpi_get_cpuid);
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 9b9b6f29bbf3..99fc22c9e61f 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -314,9 +314,6 @@ static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 3faf9599ff29..196d9c15fdec 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -3575,26 +3575,54 @@ static int __init io_apic_get_unique_id(int ioapic, int apic_id)
+ 	return apic_id;
+ }
  
- /* in processor_core.c */
- void acpi_processor_set_pdc(acpi_handle handle);
--int acpi_get_apicid(acpi_handle, int type, u32 acpi_id);
--int acpi_map_cpuid(int apic_id, u32 acpi_id);
--int acpi_get_cpuid(acpi_handle, int type, u32 acpi_id);
+-static u8 __init io_apic_unique_id(u8 id)
++static u8 io_apic_unique_id(int idx, u8 id)
+ {
+ 	if ((boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) &&
+ 	    !APIC_XAPIC(apic_version[boot_cpu_physical_apicid]))
+-		return io_apic_get_unique_id(nr_ioapics, id);
++		return io_apic_get_unique_id(idx, id);
+ 	else
+ 		return id;
+ }
+ #else
+-static u8 __init io_apic_unique_id(u8 id)
++static u8 io_apic_unique_id(int idx, u8 id)
+ {
+ 	int i;
++	u8 new_id;
++	unsigned long flags;
+ 	DECLARE_BITMAP(used, 256);
++	union IO_APIC_reg_00 reg_00;
  
- /* in processor_throttling.c */
- int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 807cbc46d73e..05ed6886f1f8 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -140,6 +140,9 @@ void acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa);
- int acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
- void acpi_numa_arch_fixup(void);
+ 	bitmap_zero(used, 256);
+ 	for_each_ioapic(i)
+ 		__set_bit(mpc_ioapic_id(i), used);
+ 	if (!test_bit(id, used))
+ 		return id;
+-	return find_first_zero_bit(used, 256);
++
++	/* check register at first */
++	raw_spin_lock_irqsave(&ioapic_lock, flags);
++	reg_00.raw = io_apic_read(idx, 0);
++	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
++	new_id = reg_00.bits.ID;
++	if (!test_bit(new_id, used)) {
++		apic_printk(APIC_VERBOSE, KERN_INFO
++			"IOAPIC[%d]: Using reg apic_id %d instead of %d\n",
++			 idx, new_id, id);
++		return new_id;
++	}
++
++	new_id = find_first_zero_bit(used, 256);
++	reg_00.bits.ID = new_id;
++	raw_spin_lock_irqsave(&ioapic_lock, flags);
++	io_apic_write(idx, 0, reg_00.raw);
++	reg_00.raw = io_apic_read(idx, 0);
++	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
++
++	/* Sanity check */
++	if (reg_00.bits.ID != new_id)
++		pr_warn("IOAPIC[%d]: Unable to change apic_id to %d!\n",
++			idx, new_id);
++
++	return new_id;
+ }
+ #endif
  
-+int acpi_get_apicid(acpi_handle, int type, u32 acpi_id);
-+int acpi_map_cpuid(int apic_id, u32 acpi_id);
-+int acpi_get_cpuid(acpi_handle, int type, u32 acpi_id);
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- /* Arch dependent functions for cpu hotplug support */
- int acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu);
+@@ -3860,7 +3888,7 @@ void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
+ 		return;
+ 	}
+ 
+-	ioapics[idx].mp_config.apicid = io_apic_unique_id(id);
++	ioapics[idx].mp_config.apicid = io_apic_unique_id(idx, id);
+ 	ioapics[idx].mp_config.apicver = io_apic_get_version(idx);
+ 
+ 	/*
 -- 
 1.7.10.4
