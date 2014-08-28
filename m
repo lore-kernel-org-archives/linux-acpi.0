@@ -1,98 +1,70 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v4 08/16] x86, irq: Remove __init marker for functions will be used by IOAPIC hotplug
-Date: Thu, 28 Aug 2014 10:22:33 +0800
-Message-ID: <1409192561-19744-9-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v4 06/16] x86, irq: Split out alloc_ioapic_save_registers()
+Date: Thu, 28 Aug 2014 10:22:31 +0800
+Message-ID: <1409192561-19744-7-git-send-email-jiang.liu@linux.intel.com>
 References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Prarit Bhargava <prarit@redhat.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Remove __init marker for functions which will be used by IOAPIC hotplug
-at runtime.
+From: Yinghai Lu <yinghai@kernel.org>
 
+Split alloc_ioapic_save_registers() from early_irq_init(),
+so it will be used per ioapic.
+
+Will call that later for hot-added ioapic controller.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 ---
- arch/x86/include/asm/io_apic.h |    4 ++--
- arch/x86/kernel/apic/io_apic.c |   14 +++++++-------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ arch/x86/kernel/apic/io_apic.c |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
-diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-index 0aeed5ca356e..0b31aebd9405 100644
---- a/arch/x86/include/asm/io_apic.h
-+++ b/arch/x86/include/asm/io_apic.h
-@@ -188,8 +188,8 @@ extern int mp_find_ioapic_pin(int ioapic, u32 gsi);
- extern u32 mp_pin_to_gsi(int ioapic, int pin);
- extern int mp_map_gsi_to_irq(u32 gsi, unsigned int flags);
- extern void mp_unmap_irq(int irq);
--extern void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
--				      struct ioapic_domain_cfg *cfg);
-+extern void mp_register_ioapic(int id, u32 address, u32 gsi_base,
-+			       struct ioapic_domain_cfg *cfg);
- extern int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
- 			    irq_hw_number_t hwirq);
- extern void mp_irqdomain_unmap(struct irq_domain *domain, unsigned int virq);
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 196d9c15fdec..1ac868128a61 100644
+index 40a4aa3f4061..3faf9599ff29 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3454,7 +3454,7 @@ io_apic_setup_irq_pin(unsigned int irq, int node, struct io_apic_irq_attr *attr)
- 	return ret;
+@@ -237,6 +237,19 @@ static struct irq_pin_list *alloc_irq_pin_list(int node)
+ 	return kzalloc_node(sizeof(struct irq_pin_list), GFP_KERNEL, node);
  }
  
--static int __init io_apic_get_redir_entries(int ioapic)
-+static int io_apic_get_redir_entries(int ioapic)
++static void alloc_ioapic_saved_registers(int idx)
++{
++	size_t size;
++
++	if (ioapics[idx].saved_registers)
++		return;
++
++	size = sizeof(struct IO_APIC_route_entry) * ioapics[idx].nr_registers;
++	ioapics[idx].saved_registers = kzalloc(size, GFP_KERNEL);
++	if (!ioapics[idx].saved_registers)
++		pr_err("IOAPIC %d: suspend/resume impossible!\n", idx);
++}
++
+ int __init arch_early_irq_init(void)
  {
- 	union IO_APIC_reg_01	reg_01;
- 	unsigned long flags;
-@@ -3500,7 +3500,7 @@ int __init arch_probe_nr_irqs(void)
- }
+ 	struct irq_cfg *cfg;
+@@ -245,13 +258,8 @@ int __init arch_early_irq_init(void)
+ 	if (!nr_legacy_irqs())
+ 		io_apic_irqs = ~0UL;
  
- #ifdef CONFIG_X86_32
--static int __init io_apic_get_unique_id(int ioapic, int apic_id)
-+static int io_apic_get_unique_id(int ioapic, int apic_id)
- {
- 	union IO_APIC_reg_00 reg_00;
- 	static physid_mask_t apic_id_map = PHYSID_MASK_NONE;
-@@ -3626,7 +3626,7 @@ static u8 io_apic_unique_id(int idx, u8 id)
- }
- #endif
+-	for_each_ioapic(i) {
+-		ioapics[i].saved_registers =
+-			kzalloc(sizeof(struct IO_APIC_route_entry) *
+-				ioapics[i].nr_registers, GFP_KERNEL);
+-		if (!ioapics[i].saved_registers)
+-			pr_err("IOAPIC %d: suspend/resume impossible!\n", i);
+-	}
++	for_each_ioapic(i)
++		alloc_ioapic_saved_registers(i);
  
--static int __init io_apic_get_version(int ioapic)
-+static int io_apic_get_version(int ioapic)
- {
- 	union IO_APIC_reg_01	reg_01;
- 	unsigned long flags;
-@@ -3830,7 +3830,7 @@ int mp_find_ioapic_pin(int ioapic, u32 gsi)
- 	return gsi - gsi_cfg->gsi_base;
- }
- 
--static __init int bad_ioapic(unsigned long address)
-+static int bad_ioapic(unsigned long address)
- {
- 	if (nr_ioapics >= MAX_IO_APICS) {
- 		pr_warn("WARNING: Max # of I/O APICs (%d) exceeded (found %d), skipping\n",
-@@ -3844,7 +3844,7 @@ static __init int bad_ioapic(unsigned long address)
- 	return 0;
- }
- 
--static __init int bad_ioapic_register(int idx)
-+static int bad_ioapic_register(int idx)
- {
- 	union IO_APIC_reg_00 reg_00;
- 	union IO_APIC_reg_01 reg_01;
-@@ -3863,8 +3863,8 @@ static __init int bad_ioapic_register(int idx)
- 	return 0;
- }
- 
--void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
--			       struct ioapic_domain_cfg *cfg)
-+void mp_register_ioapic(int id, u32 address, u32 gsi_base,
-+			struct ioapic_domain_cfg *cfg)
- {
- 	int idx = 0;
- 	int entries;
+ 	/*
+ 	 * For legacy IRQ's, start with assigning irq0 to irq15 to
 -- 
 1.7.10.4
