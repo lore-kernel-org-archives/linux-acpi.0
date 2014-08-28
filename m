@@ -1,346 +1,187 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v4 16/16] x86, irq, ACPI: Implement ACPI driver to support IOAPIC hotplug
-Date: Thu, 28 Aug 2014 10:22:41 +0800
-Message-ID: <1409192561-19744-17-git-send-email-jiang.liu@linux.intel.com>
-References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:7893 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965297AbaH1CWk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Aug 2014 22:22:40 -0400
-In-Reply-To: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH RFC] x86 early_ioremap: increase FIX_BTMAPS_SLOTS to 8
+Date: Thu, 28 Aug 2014 06:40:10 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026602C6@SHSMSX101.ccr.corp.intel.com>
+References: <20140826090641.GA16550@darkstar.nay.redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140826090641.GA16550-4/PLUo9XfK+sDdueE5tM26fLeoKvNuZc@public.gmane.org>
+Content-Language: en-US
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, "x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "Fleming, Matt" <matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org" <devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Wysocki, Rafael J" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Enable support of IOAPIC hotplug by:
-1) reintroducing ACPI based IOAPIC driver
-2) enhance pci_root driver to hook hotplug events
+Hi,
 
-The ACPI IOAPIC driver is always enabled if all of ACPI, PCI and IOAPIC
-are enabled.
+> From: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Dave Young
+> Sent: Tuesday, August 26, 2014 5:07 PM
+> 
+> 3.16 kernel boot fail with earlyprintk=efi, it keeps scrolling at the
+> bottom line of screen.
+> 
+> Bisected, the first bad commit is below:
+> commit 86dfc6f339886559d80ee0d4bd20fe5ee90450f0
+> Author: Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Date:   Fri Apr 4 12:38:57 2014 +0800
+> 
+>     ACPICA: Tables: Fix table checksums verification before installation.
+> 
+> 
+> I did some debugging by enabling both serial and efi earlyprintk, below is
+> some debug dmesg, seems early_ioremap fails in scroll up function due to
+> no free slot, see below dmesg output:
+> 
+> [snip]
+> [    0.000000] RAMDISK: [mem 0x3e1b0000-0x3e982fff]
+> [    0.000000] ACPI: Early table checksum verification disabled
+> [    0.000000] ACPI: RSDP 0x00000000DB752000 000024 (v02 HPQOEM)
+> [    0.000000] ACPI: XSDT 0x00000000DB752088 00008C (v01 HPQOEM SLIC-WKS 01072009 AMI  00010013)
+> [    0.000000] ACPI: FACP 0x00000000DB759590 00010C (v05 HPQOEM SLIC-WKS 01072009 AMI  00010013)
+> [    0.000000] ------------[ cut here ]------------
+> [    0.000000] WARNING: CPU: 0 PID: 0 at mm/early_ioremap.c:116 __early_ioremap+0x90/0x1c4()
+> [    0.000000] __early_ioremap(ed00c800, 00000c80) not found slot
+> [    0.000000] Modules linked in:
+> [    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 3.17.0-rc1+ #204
+> [    0.000000] Hardware name: Hewlett-Packard HP Z420 Workstation/1589, BIOS J61 v03.15 05/09/2013
+> [    0.000000]  0000000000000000 ffffffff8173b970 ffffffff814bb919 ffffffff8173b9b8
+> [    0.000000]  ffffffff8173b9a8 ffffffff810638c9 ffffffff8184ee81 ffffffffff538000
+> [    0.000000]  0000000000000c80 0000000000000003 0000000000000c80 ffffffff8173ba08
+> [    0.000000] Call Trace:
+> [    0.000000]  [<ffffffff814bb919>] dump_stack+0x4e/0x7a
+> [    0.000000]  [<ffffffff810638c9>] warn_slowpath_common+0x75/0x8e
+> [    0.000000]  [<ffffffff8184ee81>] ? __early_ioremap+0x90/0x1c4
+> [    0.000000]  [<ffffffff81063929>] warn_slowpath_fmt+0x47/0x49
+> [    0.000000]  [<ffffffff8184ee81>] __early_ioremap+0x90/0x1c4
+> [    0.000000]  [<ffffffff8124cf4d>] ? sprintf+0x46/0x48
+> [    0.000000]  [<ffffffff8184f169>] early_ioremap+0x13/0x15
+> [    0.000000]  [<ffffffff814ae4f0>] early_efi_map+0x24/0x26
+> [    0.000000]  [<ffffffff81060985>] early_efi_scroll_up+0x6d/0xc0
+> [    0.000000]  [<ffffffff81060b88>] early_efi_write+0x1b0/0x214
+> [    0.000000]  [<ffffffff8109ec3a>] call_console_drivers.constprop.21+0x73/0x7e
+> [    0.000000]  [<ffffffff8109fab4>] console_unlock+0x151/0x3b2
+> [    0.000000]  [<ffffffff810a01b4>] ? vprintk_emit+0x49f/0x532
+> [    0.000000]  [<ffffffff810a0236>] vprintk_emit+0x521/0x532
+> [    0.000000]  [<ffffffff8109fce6>] ? console_unlock+0x383/0x3b2
+> [    0.000000]  [<ffffffff814b6f01>] printk+0x4f/0x51
+> [    0.000000]  [<ffffffff81292f9c>] acpi_os_vprintf+0x2b/0x2d
+> [    0.000000]  [<ffffffff81292fe1>] acpi_os_printf+0x43/0x45
+> [    0.000000]  [<ffffffff812bc44c>] acpi_info+0x5c/0x63
+> [    0.000000]  [<ffffffff8183cdfa>] ? __acpi_map_table+0x13/0x18
+> [    0.000000]  [<ffffffff814afc88>] ? acpi_os_map_iomem+0x21/0x147
+> [    0.000000]  [<ffffffff812b7e59>] acpi_tb_print_table_header+0x177/0x186
+> [    0.000000]  [<ffffffff812b79da>] acpi_tb_install_table_with_override+0x4b/0x62
+> [    0.000000]  [<ffffffff812b7b80>] acpi_tb_install_standard_table+0xd9/0x215
+> [    0.000000]  [<ffffffff8184f169>] ? early_ioremap+0x13/0x15
+> [    0.000000]  [<ffffffff8183cdfa>] ? __acpi_map_table+0x13/0x18
+> [    0.000000]  [<ffffffff81857545>] acpi_tb_parse_root_table+0x16e/0x1b4
+> [    0.000000]  [<ffffffff818575e2>] acpi_initialize_tables+0x57/0x59
+> [    0.000000]  [<ffffffff8185591d>] acpi_table_init+0x50/0xce
+> [    0.000000]  [<ffffffff8183cea2>] acpi_boot_table_init+0x1e/0x85
+> [    0.000000]  [<ffffffff81834638>] setup_arch+0x9b7/0xcc4
+> [    0.000000]  [<ffffffff81830b3e>] start_kernel+0x94/0x42d
+> [    0.000000]  [<ffffffff81830120>] ? early_idt_handlers+0x120/0x120
+> [    0.000000]  [<ffffffff818304a2>] x86_64_start_reservations+0x2a/0x2c
+> [    0.000000]  [<ffffffff81830597>] x86_64_start_kernel+0xf3/0x100
+> [    0.000000] ---[ end trace 48732c7db414b8fe ]---
+> [    0.000000] ------------[ cut here ]------------
+> [    0.000000] WARNING: CPU: 0 PID: 0 at mm/early_ioremap.c:116 __early_ioremap+0x90/0x1c4()
+> [    0.000000] __early_ioremap(ed00c800, 00000c80) not found slot
+> [    0.000000] Modules linked in:
+> [    0.000000] CPU: 0 PID: 0 Comm: swapper Tainted: G        W      3.17.0-rc1+ #204
+> [    0.000000] Hardware name: Hewlett-Packard HP Z420 Workstation/1589, BIOS J61 v03.15 05/09/2013
+> [    0.000000]  0000000000000000 ffffffff8173b970 ffffffff814bb919 ffffffff8173b9b8
+> [    0.000000]  ffffffff8173b9a8 ffffffff810638c9 ffffffff8184ee81 ffffffffff538000
+> [    0.000000]  0000000000000c80 0000000000000003 0000000000000c80 ffffffff8173ba08
+> [    0.000000] Call Trace:
+> [    0.000000]  [<ffffffff814bb919>] dump_stack+0x4e/0x7a
+> [    0.000000]  [<ffffffff810638c9>] warn_slowpath_common+0x75/0x8e
+> [    0.000000]  [<ffffffff8184ee81>] ? __early_ioremap+0x90/0x1c4
+> [    0.000000]  [<ffffffff81063929>] warn_slowpath_fmt+0x47/0x49
+> [    0.000000]  [<ffffffff8184ee81>] __early_ioremap+0x90/0x1c4
+> [    0.000000]  [<ffffffff8184f169>] early_ioremap+0x13/0x15
+> [    0.000000]  [<ffffffff814ae4f0>] early_efi_map+0x24/0x26
+> [    0.000000]  [<ffffffff81060985>] early_efi_scroll_up+0x6d/0xc0
+> [    0.000000]  [<ffffffff81060b88>] early_efi_write+0x1b0/0x214
+> [    0.000000]  [<ffffffff8109ec3a>] call_console_drivers.constprop.21+0x73/0x7e
+> [    0.000000]  [<ffffffff8109fb5d>] console_unlock+0x1fa/0x3b2
+> [    0.000000]  [<ffffffff810a0236>] vprintk_emit+0x521/0x532
+> [    0.000000]  [<ffffffff8109fce6>] ? console_unlock+0x383/0x3b2
+> [    0.000000]  [<ffffffff814b6f01>] printk+0x4f/0x51
+> [    0.000000]  [<ffffffff81292f9c>] acpi_os_vprintf+0x2b/0x2d
+> [    0.000000]  [<ffffffff81292fe1>] acpi_os_printf+0x43/0x45
+> [    0.000000]  [<ffffffff812bc44c>] acpi_info+0x5c/0x63
+> [    0.000000]  [<ffffffff8183cdfa>] ? __acpi_map_table+0x13/0x18
+> [    0.000000]  [<ffffffff814afc88>] ? acpi_os_map_iomem+0x21/0x147
+> [    0.000000]  [<ffffffff812b7e59>] acpi_tb_print_table_header+0x177/0x186
+> [    0.000000]  [<ffffffff812b79da>] acpi_tb_install_table_with_override+0x4b/0x62
+> [    0.000000]  [<ffffffff812b7b80>] acpi_tb_install_standard_table+0xd9/0x215
+> [    0.000000]  [<ffffffff8184f169>] ? early_ioremap+0x13/0x15
+> [    0.000000]  [<ffffffff8183cdfa>] ? __acpi_map_table+0x13/0x18
+> [    0.000000]  [<ffffffff81857545>] acpi_tb_parse_root_table+0x16e/0x1b4
+> [    0.000000]  [<ffffffff818575e2>] acpi_initialize_tables+0x57/0x59
+> [    0.000000]  [<ffffffff8185591d>] acpi_table_init+0x50/0xce
+> [    0.000000]  [<ffffffff8183cea2>] acpi_boot_table_init+0x1e/0x85
+> [    0.000000]  [<ffffffff81834638>] setup_arch+0x9b7/0xcc4
+> [    0.000000]  [<ffffffff81830b3e>] start_kernel+0x94/0x42d
+> [    0.000000]  [<ffffffff81830120>] ? early_idt_handlers+0x120/0x120
+> [    0.000000]  [<ffffffff818304a2>] x86_64_start_reservations+0x2a/0x2c
+> 
+> 
+> Quote reply from Lv.zheng about the early ioremap slot usage in this case:
+> 
+> """
+> In early_efi_scroll_up(), 2 mapping entries will be used for the src/dst screen buffer.
+> In drivers/acpi/acpica/tbutils.c, we've improved the early table loading code in acpi_tb_parse_root_table().
+> We now need 2 mapping entries:
+> 1. One mapping entry is used for RSDT table mapping. Each RSDT entry contains an address for another ACPI table.
+> 2. For each entry in RSDP, we need another mapping entry to map the table to perform necessary check/override before installing it.
+> 
+> When acpi_tb_parse_root_table() prints something through EFI earlyprintk console, we'll have 4 mapping entries used.
+> The current 4 slots setting of early_ioremap() seems to be too small for such a use case.
+> """
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- drivers/acpi/Kconfig    |    6 ++
- drivers/acpi/Makefile   |    1 +
- drivers/acpi/internal.h |    7 ++
- drivers/acpi/ioapic.c   |  236 +++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/pci_root.c |    3 +
- 5 files changed, 253 insertions(+)
- create mode 100644 drivers/acpi/ioapic.c
+In my reply, I only talked about 4 mapping entries which doesn't exceed the current number of early ioremap slot.
+Was it better to offer early_ioremap_debug log to prove that we really need to increase it?
+And to prove that all of the mappings are done by the code already upstreamed?
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index d0f3265fb85d..b7b87a1a2252 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -315,6 +315,12 @@ config ACPI_HOTPLUG_MEMORY
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called acpi_memhotplug.
- 
-+config ACPI_HOTPLUG_IOAPIC
-+	bool
-+	depends on PCI
-+	depends on X86_IO_APIC
-+	default y
-+
- config ACPI_SBS
- 	tristate "Smart Battery System"
- 	depends on X86
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 03ddd03f2bcd..4189023fb777 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -68,6 +68,7 @@ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-y				+= container.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
- obj-y				+= acpi_memhotplug.o
-+obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) += ioapic.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
- obj-$(CONFIG_ACPI_SBS)		+= sbs.o
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 4c5cf77e7576..817ab2d5975c 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -34,6 +34,13 @@ void acpi_pnp_init(void);
- int acpi_sysfs_init(void);
- void acpi_container_init(void);
- void acpi_memory_hotplug_init(void);
-+#ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
-+int acpi_ioapic_add(struct acpi_pci_root *root);
-+int acpi_ioapic_remove(struct acpi_pci_root *root);
-+#else
-+static inline int acpi_ioapic_add(struct acpi_pci_root *root) { return 0; }
-+static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
-+#endif
- #ifdef CONFIG_ACPI_DOCK
- void register_dock_dependent_device(struct acpi_device *adev,
- 				    acpi_handle dshandle);
-diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
-new file mode 100644
-index 000000000000..66d87a61ee5c
---- /dev/null
-+++ b/drivers/acpi/ioapic.c
-@@ -0,0 +1,236 @@
-+/*
-+ * IOAPIC/IOxAPIC/IOSAPIC driver
-+ *
-+ * Copyright (C) 2009 Fujitsu Limited.
-+ * (c) Copyright 2009 Hewlett-Packard Development Company, L.P.
-+ *
-+ * Copyright (C) 2014 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Based on original drivers/pci/ioapic.c
-+ *	Yinghai Lu <yinghai@kernel.org>
-+ *	Jiang Liu <jiang.liu@intel.com>
-+ */
-+
-+/*
-+ * This driver manages I/O APICs added by hotplug after boot.
-+ * We try to claim all I/O APIC devices, but those present at boot were
-+ * registered when we parsed the ACPI MADT, so we'll fail when we try to
-+ * re-register them.
-+ */
-+
-+#define pr_fmt(fmt) "ACPI : IOAPIC: " fmt
-+
-+#include <linux/slab.h>
-+#include <linux/acpi.h>
-+#include <linux/pci.h>
-+#include <acpi/acpi.h>
-+
-+struct acpi_pci_ioapic {
-+	acpi_handle	root_handle;
-+	acpi_handle	handle;
-+	u32		gsi_base;
-+	struct resource	res;
-+	struct pci_dev	*pdev;
-+	struct list_head list;
-+};
-+
-+static LIST_HEAD(ioapic_list);
-+static DEFINE_MUTEX(ioapic_list_lock);
-+
-+static acpi_status setup_res(struct acpi_resource *acpi_res, void *data)
-+{
-+	struct resource *res = data;
-+
-+	memset(res, 0, sizeof(*res));
-+	if (acpi_dev_resource_memory(acpi_res, res)) {
-+		res->flags &= IORESOURCE_MEM;
-+		if (res->flags)
-+			return AE_OK;
-+	} else if (acpi_dev_resource_address_space(acpi_res, res)) {
-+		struct acpi_resource_address64 addr;
-+
-+		res->flags &= IORESOURCE_MEM;
-+		if (res->flags &&
-+		    ACPI_SUCCESS(acpi_resource_to_address64(acpi_res, &addr)) &&
-+		    addr.info.mem.caching != ACPI_PREFETCHABLE_MEMORY) {
-+			res->start += addr.translation_offset;
-+			res->end += addr.translation_offset;
-+			return AE_OK;
-+		}
-+	}
-+	res->flags = 0;
-+
-+	return AE_OK;
-+}
-+
-+static bool acpi_is_ioapic(acpi_handle handle, char **type)
-+{
-+	acpi_status status;
-+	struct acpi_device_info *info;
-+	char *hid = NULL;
-+	bool match = false;
-+
-+	if (!acpi_has_method(handle, "_GSB"))
-+		return false;
-+
-+	status = acpi_get_object_info(handle, &info);
-+	if (ACPI_SUCCESS(status)) {
-+		if (info->valid & ACPI_VALID_HID)
-+			hid = info->hardware_id.string;
-+		if (hid) {
-+			if (strcmp(hid, "ACPI0009") == 0) {
-+				*type = "IOxAPIC";
-+				match = true;
-+			} else if (strcmp(hid, "ACPI000A") == 0) {
-+				*type = "IOAPIC";
-+				match = true;
-+			}
-+		}
-+		kfree(info);
-+	}
-+
-+	return match;
-+}
-+
-+static acpi_status handle_ioapic_add(acpi_handle handle, u32 lvl,
-+				     void *context, void **rv)
-+{
-+	acpi_status status;
-+	unsigned long long gsi_base;
-+	struct acpi_pci_ioapic *ioapic;
-+	struct pci_dev *dev = NULL;
-+	struct resource *res = NULL;
-+	char *type = NULL;
-+
-+	if (!acpi_is_ioapic(handle, &type))
-+		return AE_OK;
-+
-+	mutex_lock(&ioapic_list_lock);
-+	list_for_each_entry(ioapic, &ioapic_list, list)
-+		if (ioapic->handle == handle) {
-+			mutex_unlock(&ioapic_list_lock);
-+			return AE_OK;
-+		}
-+
-+	status = acpi_evaluate_integer(handle, "_GSB", NULL, &gsi_base);
-+	if (ACPI_FAILURE(status)) {
-+		acpi_handle_warn(handle, "failed to evaluate _GSB method\n");
-+		goto exit;
-+	}
-+
-+	ioapic = kzalloc(sizeof(*ioapic), GFP_KERNEL);
-+	if (!ioapic) {
-+		pr_err("cannot allocate memory for new IOAPIC\n");
-+		goto exit;
-+	} else {
-+		ioapic->root_handle = (acpi_handle)context;
-+		ioapic->handle = handle;
-+		ioapic->gsi_base = (u32)gsi_base;
-+		ioapic->res.flags = IORESOURCE_UNSET;
-+	}
-+
-+	if (acpi_ioapic_registered(handle, (u32)gsi_base))
-+		goto done;
-+
-+	dev = acpi_get_pci_dev(handle);
-+	if (dev && pci_resource_len(dev, 0)) {
-+		if (pci_enable_device(dev) < 0)
-+			goto exit_put;
-+		pci_set_master(dev);
-+		if (pci_request_region(dev, 0, type))
-+			goto exit_disable;
-+		res = &dev->resource[0];
-+		ioapic->pdev = dev;
-+	} else {
-+		pci_dev_put(dev);
-+		dev = NULL;
-+
-+		res = &ioapic->res;
-+		acpi_walk_resources(handle, METHOD_NAME__CRS, setup_res, res);
-+		if (res->flags == IORESOURCE_UNSET) {
-+			acpi_handle_warn(handle, "failed to get resource\n");
-+			goto exit_free;
-+		} else if (request_resource(&iomem_resource, res)) {
-+			acpi_handle_warn(handle, "failed to insert resource\n");
-+			goto exit_free;
-+		}
-+	}
-+
-+	if (acpi_register_ioapic(handle, res->start, (u32)gsi_base)) {
-+		acpi_handle_warn(handle, "failed to register IOAPIC\n");
-+		goto exit_release;
-+	}
-+done:
-+	list_add(&ioapic->list, &ioapic_list);
-+	mutex_unlock(&ioapic_list_lock);
-+
-+	if (dev)
-+		dev_info(&dev->dev, "%s at %pR, GSI %u\n",
-+			 type, res, (u32)gsi_base);
-+	else
-+		acpi_handle_info(handle, "%s at %pR, GSI %u\n",
-+				 type, res, (u32)gsi_base);
-+
-+	return AE_OK;
-+
-+exit_release:
-+	if (dev)
-+		pci_release_region(dev, 0);
-+	else
-+		release_resource(res);
-+exit_disable:
-+	if (dev)
-+		pci_disable_device(dev);
-+exit_put:
-+	if (dev)
-+		pci_dev_put(dev);
-+exit_free:
-+	kfree(ioapic);
-+exit:
-+	mutex_unlock(&ioapic_list_lock);
-+	*(acpi_status *)rv = AE_ERROR;
-+	return AE_OK;
-+}
-+
-+int acpi_ioapic_add(struct acpi_pci_root *root)
-+{
-+	acpi_status status, retval = AE_OK;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device->handle,
-+				     UINT_MAX, handle_ioapic_add, NULL,
-+				     root->device->handle, (void **)&retval);
-+
-+	return ACPI_SUCCESS(status) && ACPI_SUCCESS(retval) ? 0 : -ENODEV;
-+}
-+
-+int acpi_ioapic_remove(struct acpi_pci_root *root)
-+{
-+	int retval = 0;
-+	struct acpi_pci_ioapic *ioapic, *tmp;
-+
-+	mutex_lock(&ioapic_list_lock);
-+	list_for_each_entry_safe(ioapic, tmp, &ioapic_list, list) {
-+		if (root->device->handle != ioapic->root_handle)
-+			continue;
-+
-+		if (acpi_unregister_ioapic(ioapic->handle, ioapic->gsi_base))
-+			retval = -EBUSY;
-+
-+		if (ioapic->pdev) {
-+			pci_release_region(ioapic->pdev, 0);
-+			pci_disable_device(ioapic->pdev);
-+			pci_dev_put(ioapic->pdev);
-+		} else if (ioapic->res.flags != IORESOURCE_UNSET) {
-+			release_resource(&ioapic->res);
-+		}
-+		list_del(&ioapic->list);
-+		kfree(ioapic);
-+	}
-+	mutex_unlock(&ioapic_list_lock);
-+
-+	return retval;
-+}
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index e6ae603ed1a1..d83980b18f49 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -600,6 +600,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	if (system_state != SYSTEM_BOOTING) {
- 		pcibios_resource_survey_bus(root->bus);
- 		pci_assign_unassigned_root_bus_resources(root->bus);
-+		acpi_ioapic_add(root);
- 	}
- 
- 	pci_lock_rescan_remove();
-@@ -620,6 +621,8 @@ static void acpi_pci_root_remove(struct acpi_device *device)
- 
- 	pci_stop_root_bus(root->bus);
- 
-+	WARN_ON(acpi_ioapic_remove(root));
-+
- 	device_set_run_wake(root->bus->bridge, false);
- 	pci_acpi_remove_bus_pm_notifier(device);
- 
--- 
-1.7.10.4
+Thanks and best regards
+-Lv
 
+> 
+> Thus increase the slot to 8 in this patch to fix this issue.
+> boot-time mappings become 512 page with this patch.
+> 
+> Signed-off-by: Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> ---
+> I'm not sure if this is ok in 32bit, review and comments are appreciated.
+>  arch/x86/include/asm/fixmap.h |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> Index: linux/arch/x86/include/asm/fixmap.h
+> ===================================================================
+> --- linux.orig/arch/x86/include/asm/fixmap.h
+> +++ linux/arch/x86/include/asm/fixmap.h
+> @@ -106,14 +106,14 @@ enum fixed_addresses {
+>  	__end_of_permanent_fixed_addresses,
+> 
+>  	/*
+> -	 * 256 temporary boot-time mappings, used by early_ioremap(),
+> +	 * 512 temporary boot-time mappings, used by early_ioremap(),
+>  	 * before ioremap() is functional.
+>  	 *
+> -	 * If necessary we round it up to the next 256 pages boundary so
+> +	 * If necessary we round it up to the next 512 pages boundary so
+>  	 * that we can have a single pgd entry and a single pte table:
+>  	 */
+>  #define NR_FIX_BTMAPS		64
+> -#define FIX_BTMAPS_SLOTS	4
+> +#define FIX_BTMAPS_SLOTS	8
+>  #define TOTAL_FIX_BTMAPS	(NR_FIX_BTMAPS * FIX_BTMAPS_SLOTS)
+>  	FIX_BTMAP_END =
+>  	 (__end_of_permanent_fixed_addresses ^
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
