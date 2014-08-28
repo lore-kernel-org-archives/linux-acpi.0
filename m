@@ -1,66 +1,185 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH] ACPI: Add GPIO-signaled event emulator.
-Date: Thu, 28 Aug 2014 13:19:48 +0200
-Message-ID: <53FF1054.508@linaro.org>
-References: <1408546700-19309-1-git-send-email-tomasz.nowicki@linaro.org> <20140821104533.GM1660@lahna.fi.intel.com> <53F604B2.6020004@linaro.org> <1828087.V5efjsXTdI@vostro.rjw.lan>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [RFC PATCH 5/9] mfd: Add ACPI support
+Date: Thu, 28 Aug 2014 12:29:00 +0100
+Message-ID: <20140828112900.GM24579@lee--X1>
+References: <1408255459-17625-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1408255459-17625-6-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:35400 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965685AbaH1LTr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Aug 2014 07:19:47 -0400
-Received: by mail-wg0-f49.google.com with SMTP id y10so594185wgg.8
-        for <linux-acpi@vger.kernel.org>; Thu, 28 Aug 2014 04:19:45 -0700 (PDT)
-In-Reply-To: <1828087.V5efjsXTdI@vostro.rjw.lan>
+Received: from mail-ie0-f179.google.com ([209.85.223.179]:45288 "EHLO
+	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754359AbaH1L3L (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Aug 2014 07:29:11 -0400
+Received: by mail-ie0-f179.google.com with SMTP id tr6so733148ieb.24
+        for <linux-acpi@vger.kernel.org>; Thu, 28 Aug 2014 04:29:10 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1408255459-17625-6-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linus.walleij@linaro.org, gnurou@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Aaron Lu <aaron.lu@intel.com>, Max Eliaser <max.eliaser@intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 26.08.2014 00:39, Rafael J. Wysocki wrote:
-> On Thursday, August 21, 2014 04:39:46 PM Tomasz Nowicki wrote:
->> Hi Mika,
->>
->> On 21.08.2014 12:45, Mika Westerberg wrote:
->>> On Wed, Aug 20, 2014 at 04:58:20PM +0200, Tomasz Nowicki wrote:
->
-> [cut]
->
->>>> +
->>>> +static int gpio_evt_trigger(void *data, u64 val)
->>>> +{
->>>> +	struct gpio_pin_data *pin_data = (struct gpio_pin_data *)data;
->>>> +	int pin = pin_data->pin;
->>>> +
->>>> +	if (ACPI_FAILURE(acpi_execute_simple_method(pin_data->handle, NULL,
->>>> +						    pin <= 255 ? 0 : pin)))
->>>> +		pr_err(PREFIX "evaluating event method failed\n");
->>>
->>> acpi_execute_simple_method() passes one argument to the method. You
->>> can't use it with _Lxx or _Exx which don't expect any arguments.
->>> Otherwise you get this:
->>>
->>> [  122.258191] ACPI: \_SB_.GPO2._E12: Excess arguments - Caller passed 1, method requires 0 (20140724/nsarguments-263)
->> Right, I will fix it.
->
-> OK, so here's my concern.
->
-> If AML does any kind of tracking of state in _Exx/_Lxx, you'll likely totally
-> confuse it by calling those things at random.
->
-> I'm not sure I'm seeing a compelling reason to put this thing into the tree
-> for this reason.
+On Sun, 17 Aug 2014, Mika Westerberg wrote:
 
-Yes you are right, but this emulator is only for debugging/development 
-purposes and goes with clear statement "DANGER to use on production 
-kernel", like APEI error injection feature.
+> If an MFD device is backed by ACPI namespace, we should allow subdevi=
+ce
+> drivers to access their corresponding ACPI companion devices through =
+normal
+> means (e.g using ACPI_COMPANION()).
+>=20
+> This patch adds such support to the MFD core. If the MFD parent devic=
+e
+> doesn't specify any ACPI _HID/_CID for the child device, the child de=
+vice
+> will share the parent ACPI companion device. Otherwise the child devi=
+ce
+> will be assigned with the corresponding ACPI companion, if found in t=
+he
+> namespace below the parent.
+>=20
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Reviewed-by: Darren Hart <dvhart@linux.intel.com>
+> ---
+>  Documentation/acpi/enumeration.txt | 27 +++++++++++++++++++++++++
+>  drivers/mfd/mfd-core.c             | 41 ++++++++++++++++++++++++++++=
+++++++++++
+>  include/linux/mfd/core.h           |  3 +++
+>  3 files changed, 71 insertions(+)
+>=20
+> diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/=
+enumeration.txt
+> index e182be5e3c83..74e35c54febf 100644
+> --- a/Documentation/acpi/enumeration.txt
+> +++ b/Documentation/acpi/enumeration.txt
+> @@ -312,3 +312,30 @@ a code like this:
+> =20
+>  There are also devm_* versions of these functions which release the
+>  descriptors once the device is released.
+> +
+> +MFD devices
+> +~~~~~~~~~~~
+> +The MFD devices create platform devices from their children. For the
+> +child devices there needs to be an ACPI handle that they can use to
+> +reference parts of the ACPI namespace that relate to them. In the Li=
+nux
+> +MFD subsystem we provide two ways:
+> +
+> +	o The children share the parent ACPI handle.
+> +	o The MFD cell can specify the ACPI id of the device.
+> +
+> +For the first case, the MFD drivers do not need to do anything. The
+> +resulting child platform device will have its ACPI_COMPANION() set t=
+o point
+> +to the parent device.
+> +
+> +If the ACPI namespace has a device that we can match using an ACPI i=
+d,
+> +the id should be set like:
+> +
+> +	static struct mfd_cell my_subdevice_cell =3D {
+> +		.name =3D "my_subdevice",
+> +		/* set the resources relative to the parent */
+> +		.acpi_pnpid =3D "XYZ0001",
+> +	};
+> +
+> +The ACPI id "XYZ0001" is then used to lookup an ACPI device directly=
+ under
+> +the MFD device and if found, that ACPI companion device is bound to =
+the
+> +resulting child platform device.
+> diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
+> index 892d343193ad..bb466b28b3b6 100644
+> --- a/drivers/mfd/mfd-core.c
+> +++ b/drivers/mfd/mfd-core.c
+> @@ -78,6 +78,45 @@ static int mfd_platform_add_cell(struct platform_d=
+evice *pdev,
+>  	return 0;
+>  }
+> =20
+> +#if IS_ENABLED(CONFIG_ACPI)
+> +static void mfd_acpi_add_device(const struct mfd_cell *cell,
+> +				struct platform_device *pdev)
+> +{
+> +	struct acpi_device *parent_adev;
+> +	struct acpi_device *adev =3D NULL;
+> +
+> +	parent_adev =3D ACPI_COMPANION(pdev->dev.parent);
+> +	if (!parent_adev)
+> +		return;
+> +
+> +	/*
+> +	 * MFD child device gets its ACPI handle either from the ACPI
+> +	 * device directly under the parent that matches the acpi_pnpid or
+> +	 * it will use the parent handle if is no acpi_pnpid is given.
+> +	 */
+> +	if (cell->acpi_pnpid) {
+> +		struct acpi_device_id ids[2] =3D {};
+> +		struct acpi_device *child_adev;
+> +
+> +		strlcpy(ids[0].id, cell->acpi_pnpid, sizeof(ids[0].id));
+> +		list_for_each_entry(child_adev, &parent_adev->children, node)
+> +			if (acpi_match_device_ids(child_adev, ids)) {
+> +				adev =3D child_adev;
+> +				break;
+> +			}
 
-IMO, this emulator would help with:
-1. testing and developing AML methods
-2. working on ACPI subsystems that need GPIO-signaled events without 
-GPIO h/w
+What happens if cell->acpi_pnpid is provided, but not matched?
 
-Regards,
-Tomasz
+Surely adev will them be NULL?
+
+In these cases shouldn't you then "adev =3D parent_adev"?
+
+> +	} else {
+> +		adev =3D parent_adev;
+> +	}
+> +
+> +	ACPI_COMPANION_SET(&pdev->dev, adev);
+> +}
+> +#else
+> +static inline void mfd_acpi_add_device(const struct mfd_cell *cell,
+> +				       struct platform_device *pdev)
+> +{
+> +}
+> +#endif
+> +
+>  static int mfd_add_device(struct device *parent, int id,
+>  			  const struct mfd_cell *cell, atomic_t *usage_count,
+>  			  struct resource *mem_base,
+> @@ -118,6 +157,8 @@ static int mfd_add_device(struct device *parent, =
+int id,
+>  		}
+>  	}
+> =20
+> +	mfd_acpi_add_device(cell, pdev);
+> +
+>  	if (cell->pdata_size) {
+>  		ret =3D platform_device_add_data(pdev,
+>  					cell->platform_data, cell->pdata_size);
+> diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
+> index f543de91ce19..73e1709d4c09 100644
+> --- a/include/linux/mfd/core.h
+> +++ b/include/linux/mfd/core.h
+> @@ -44,6 +44,9 @@ struct mfd_cell {
+>  	 */
+>  	const char		*of_compatible;
+> =20
+> +	/* Matches ACPI PNP id, either _HID or _CID */
+> +	const char		*acpi_pnpid;
+> +
+>  	/*
+>  	 * These resources can be specified relative to the parent device.
+>  	 * For accessing hardware you should use resources from the platfor=
+m dev
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
