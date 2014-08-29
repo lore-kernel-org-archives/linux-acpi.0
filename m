@@ -1,65 +1,75 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: Add GPIO-signaled event emulator.
-Date: Sat, 30 Aug 2014 00:37:11 +0200
-Message-ID: <4311575.xGvmD61lSo@vostro.rjw.lan>
-References: <1408546700-19309-1-git-send-email-tomasz.nowicki@linaro.org> <1828087.V5efjsXTdI@vostro.rjw.lan> <53FF1054.508@linaro.org>
+Subject: Re: [Patch v4] x86, irq, PCI: Keep IRQ assignment for runtime power management
+Date: Sat, 30 Aug 2014 01:24:53 +0200
+Message-ID: <8823237.zCdVqYrZ5W@vostro.rjw.lan>
+References: <1409304383-18806-1-git-send-email-jiang.liu@linux.intel.com> <CAJZ5v0ikimRs4XJihULUdS-ZtU=xBMJECbKmzpUf1ZnzXijihQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53FF1054.508@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linus.walleij@linaro.org, gnurou@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0ikimRs4XJihULUdS-ZtU=xBMJECbKmzpUf1ZnzXijihQ@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, EmanueL Czirai <amanual@openmailbox.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, August 28, 2014 01:19:48 PM Tomasz Nowicki wrote:
-> On 26.08.2014 00:39, Rafael J. Wysocki wrote:
-> > On Thursday, August 21, 2014 04:39:46 PM Tomasz Nowicki wrote:
-> >> Hi Mika,
-> >>
-> >> On 21.08.2014 12:45, Mika Westerberg wrote:
-> >>> On Wed, Aug 20, 2014 at 04:58:20PM +0200, Tomasz Nowicki wrote:
+On Friday, August 29, 2014 04:42:34 PM Rafael J. Wysocki wrote:
+> On Fri, Aug 29, 2014 at 11:26 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> > Now IOAPIC driver dynamically allocates IRQ numbers for IOAPIC pins.
+> > We need to keep IRQ assignment for PCI devices during runtime power
+> > management, otherwise it may cause failure of device wakeups.
 > >
-> > [cut]
+> > Commit 3eec595235c17a7 "x86, irq, PCI: Keep IRQ assignment for PCI
+> > devices during suspend/hibernation" has fixed the issue for suspend/
+> > hibernation, we also need the same fix for runtime device sleep too.
 > >
-> >>>> +
-> >>>> +static int gpio_evt_trigger(void *data, u64 val)
-> >>>> +{
-> >>>> +	struct gpio_pin_data *pin_data = (struct gpio_pin_data *)data;
-> >>>> +	int pin = pin_data->pin;
-> >>>> +
-> >>>> +	if (ACPI_FAILURE(acpi_execute_simple_method(pin_data->handle, NULL,
-> >>>> +						    pin <= 255 ? 0 : pin)))
-> >>>> +		pr_err(PREFIX "evaluating event method failed\n");
-> >>>
-> >>> acpi_execute_simple_method() passes one argument to the method. You
-> >>> can't use it with _Lxx or _Exx which don't expect any arguments.
-> >>> Otherwise you get this:
-> >>>
-> >>> [  122.258191] ACPI: \_SB_.GPO2._E12: Excess arguments - Caller passed 1, method requires 0 (20140724/nsarguments-263)
-> >> Right, I will fix it.
+> > Fix: https://bugzilla.kernel.org/show_bug.cgi?id=83271
+> > Reported-and-Tested-by: EmanueL Czirai <amanual@openmailbox.org>
+> > Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> > ---
+> >  arch/x86/include/asm/io_apic.h |    2 ++
+> >  arch/x86/kernel/apic/io_apic.c |   12 ++++++++++++
+> >  arch/x86/pci/intel_mid_pci.c   |    2 +-
+> >  arch/x86/pci/irq.c             |    2 +-
+> >  drivers/acpi/pci_irq.c         |    4 ++++
+> >  5 files changed, 20 insertions(+), 2 deletions(-)
 > >
-> > OK, so here's my concern.
+> > diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
+> > index 0aeed5ca356e..478c490f3654 100644
+> > --- a/arch/x86/include/asm/io_apic.h
+> > +++ b/arch/x86/include/asm/io_apic.h
+> > @@ -227,6 +227,8 @@ static inline void io_apic_modify(unsigned int apic, unsigned int reg, unsigned
 > >
-> > If AML does any kind of tracking of state in _Exx/_Lxx, you'll likely totally
-> > confuse it by calling those things at random.
+> >  extern void io_apic_eoi(unsigned int apic, unsigned int vector);
 > >
-> > I'm not sure I'm seeing a compelling reason to put this thing into the tree
-> > for this reason.
+> > +extern bool mp_should_keep_irq(struct device *dev);
+> > +
+> >  #else  /* !CONFIG_X86_IO_APIC */
+> >
+> >  #define io_apic_assign_pci_irqs 0
+> > diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+> > index 29290f554e79..1e9a921d9701 100644
+> > --- a/arch/x86/kernel/apic/io_apic.c
+> > +++ b/arch/x86/kernel/apic/io_apic.c
+> > @@ -3946,6 +3946,18 @@ int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node)
+> >         return ret;
+> >  }
+> >
+> > +bool mp_should_keep_irq(struct device *dev)
+> > +{
+> > +       if (dev->power.is_prepared)
+> > +               return true;
+> > +#ifdef CONFIG_PM_RUNTIME
+> > +       if (dev->power.runtime_status == RPM_SUSPENDING)
+> > +               return true;
+> > +#endif
 > 
-> Yes you are right, but this emulator is only for debugging/development 
-> purposes and goes with clear statement "DANGER to use on production 
-> kernel", like APEI error injection feature.
-> 
-> IMO, this emulator would help with:
-> 1. testing and developing AML methods
-> 2. working on ACPI subsystems that need GPIO-signaled events without 
-> GPIO h/w
+> No, you can't do that.  It is racy and incorrect.
 
-OK
+Well, maybe not.
 
-And why does that belong to the kernel source tree and not to an ACPI/UEFI
-test suite?
+> Please give me some time for looking into this.
+
+So I guess the intended check is "Am I running in a suspend callback"?
 
 Rafael
