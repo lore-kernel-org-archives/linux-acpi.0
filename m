@@ -1,73 +1,100 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [Patch v4] x86, irq, PCI: Keep IRQ assignment for runtime power management
-Date: Fri, 29 Aug 2014 16:42:34 +0200
-Message-ID: <CAJZ5v0ikimRs4XJihULUdS-ZtU=xBMJECbKmzpUf1ZnzXijihQ@mail.gmail.com>
-References: <1409304383-18806-1-git-send-email-jiang.liu@linux.intel.com>
+Subject: [GIT PULL] ACPI and power management fixes for 3.17-rc3
+Date: Fri, 29 Aug 2014 23:14:58 +0200
+Message-ID: <CAJZ5v0g9XMKUQSfrm7so=PFQF0j3xSnBYpKuk8nY_52t7=Cung@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:47233 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752528AbaH2Omf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Aug 2014 10:42:35 -0400
-In-Reply-To: <1409304383-18806-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from mail-oa0-f41.google.com ([209.85.219.41]:53338 "EHLO
+	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750788AbaH2VO7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Aug 2014 17:14:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: EmanueL Czirai <amanual@openmailbox.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, Aug 29, 2014 at 11:26 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> Now IOAPIC driver dynamically allocates IRQ numbers for IOAPIC pins.
-> We need to keep IRQ assignment for PCI devices during runtime power
-> management, otherwise it may cause failure of device wakeups.
->
-> Commit 3eec595235c17a7 "x86, irq, PCI: Keep IRQ assignment for PCI
-> devices during suspend/hibernation" has fixed the issue for suspend/
-> hibernation, we also need the same fix for runtime device sleep too.
->
-> Fix: https://bugzilla.kernel.org/show_bug.cgi?id=83271
-> Reported-and-Tested-by: EmanueL Czirai <amanual@openmailbox.org>
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
->  arch/x86/include/asm/io_apic.h |    2 ++
->  arch/x86/kernel/apic/io_apic.c |   12 ++++++++++++
->  arch/x86/pci/intel_mid_pci.c   |    2 +-
->  arch/x86/pci/irq.c             |    2 +-
->  drivers/acpi/pci_irq.c         |    4 ++++
->  5 files changed, 20 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-> index 0aeed5ca356e..478c490f3654 100644
-> --- a/arch/x86/include/asm/io_apic.h
-> +++ b/arch/x86/include/asm/io_apic.h
-> @@ -227,6 +227,8 @@ static inline void io_apic_modify(unsigned int apic, unsigned int reg, unsigned
->
->  extern void io_apic_eoi(unsigned int apic, unsigned int vector);
->
-> +extern bool mp_should_keep_irq(struct device *dev);
-> +
->  #else  /* !CONFIG_X86_IO_APIC */
->
->  #define io_apic_assign_pci_irqs 0
-> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-> index 29290f554e79..1e9a921d9701 100644
-> --- a/arch/x86/kernel/apic/io_apic.c
-> +++ b/arch/x86/kernel/apic/io_apic.c
-> @@ -3946,6 +3946,18 @@ int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node)
->         return ret;
->  }
->
-> +bool mp_should_keep_irq(struct device *dev)
-> +{
-> +       if (dev->power.is_prepared)
-> +               return true;
-> +#ifdef CONFIG_PM_RUNTIME
-> +       if (dev->power.runtime_status == RPM_SUSPENDING)
-> +               return true;
-> +#endif
+Hi Linus,
 
-No, you can't do that.  It is racy and incorrect.
+Please pull from
 
-Please give me some time for looking into this.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-3.17-rc3
 
-Rafael
+to receive more ACPI and power management fixes for v3.17-rc3 with
+top-most commit 0b4f58b7cebd74ede19d13b81fb43a7eaeba10a3
+
+ Merge branch 'pm-cpufreq'
+
+on top of commit 52addcf9d6669fa439387610bc65c92fa0980cef
+
+ Linux 3.17-rc2
+
+These are ACPI regression fixes (fixed events handling, EC driver
+and PNP enumeration), intel_pstate fix for excessive messages on
+boot, spurious __init removal from the s5pv210 cpufreq driver and
+new IDs for Intel Braswell.
+
+Specifics:
+
+ - Fix for an ACPI regression related to the handling of fixed events
+   that caused netlink routines to be (incorrectly) run in interrupt
+   context from Lan Tianyu.
+
+ - Fix for an ACPI EC driver regression on Acer Aspire V5-573G that
+   caused AC/battery plug/unplug and video brightness change
+   notifications to be delayed on that machine from Lv Zheng.
+
+ - Fix for an ACPI device enumeration regression that caused ACPI
+   driver probe to fail for some devices where it succeeded before
+   (Rafael J Wysocki).
+
+ - intel_pstate driver fix to prevent it from printing an information
+   message for every CPU in the system on every boot from Andi Kleen.
+
+ - s5pv210 cpufreq driver fix to remove an __init annotation from
+   a routine that in fact can be called at any time after init too
+   from Mark Brown.
+
+ - New Intel Braswell device IDs for the ACPI LPSS (Low-Power Subsystem)
+   driver from Alan Cox.
+
+ - New Intel Braswell CPU ID for intel_pstate from Mika Westerberg.
+
+Thanks!
+
+
+---------------
+
+Alan Cox (1):
+      ACPI / LPSS: Add ACPI IDs for Intel Braswell
+
+Andi Kleen (1):
+      intel_pstate: Turn per cpu printk into pr_debug
+
+Lan Tianyu (1):
+      ACPI: Run fixed event device notifications in process context
+
+Lv Zheng (2):
+      ACPI / EC: Add support to disallow QR_EC to be issued when
+SCI_EVT isn't set
+      ACPI / EC: Add support to disallow QR_EC to be issued before
+completing previous QR_EC
+
+Mark Brown (1):
+      cpufreq: s5pv210: Remove spurious __init annotation
+
+Mika Westerberg (1):
+      cpufreq: intel_pstate: Add CPU ID for Braswell processor
+
+Rafael J. Wysocki (1):
+      ACPI / scan: Allow ACPI drivers to bind to PNP device objects
+
+---------------
+
+ drivers/acpi/acpi_lpss.c          | 17 +++++++++++++++++
+ drivers/acpi/ec.c                 | 21 ++++++++++++++++++---
+ drivers/acpi/scan.c               | 17 +++++++++++------
+ drivers/cpufreq/intel_pstate.c    |  3 ++-
+ drivers/cpufreq/s5pv210-cpufreq.c |  2 +-
+ 5 files changed, 49 insertions(+), 11 deletions(-)
