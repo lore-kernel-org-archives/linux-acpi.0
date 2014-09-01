@@ -1,43 +1,84 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [RFC PATCH for Juno 1/2] net: smsc911x add support for probing from ACPI
-Date: Mon, 01 Sep 2014 17:17:51 +0200
-Message-ID: <2861461.8zNpLC3I2n@wuerfel>
-References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org> <1409583961-7466-2-git-send-email-hanjun.guo@linaro.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC PATCH for Juno 2/2] tty: SBSA compatible UART
+Date: Mon, 1 Sep 2014 16:26:44 +0100
+Message-ID: <20140901152644.GC29327@sirena.org.uk>
+References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org>
+ <1409583961-7466-3-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oMfk58fZ06Sy4zVm"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:53551 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665AbaIAPTN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Sep 2014 11:19:13 -0400
-In-Reply-To: <1409583961-7466-2-git-send-email-hanjun.guo@linaro.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:44952 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753882AbaIAP2E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Sep 2014 11:28:04 -0400
+Content-Disposition: inline
+In-Reply-To: <1409583961-7466-3-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linaro-acpi@lists.linaro.org
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Will Deacon <will.deacon@arm.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Lv Zheng <lv.zheng@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Monday 01 September 2014 23:06:00 Hanjun Guo wrote:
-> +#ifdef CONFIG_ACPI
-> +/* Configure some sensible defaults for ACPI mode */
-> +static int smsc911x_probe_config_acpi(struct smsc911x_platform_config *config,
-> +                                   acpi_handle *ahandle)
-> +{
-> +       if (!ahandle)
-> +               return -ENOSYS;
+
+--oMfk58fZ06Sy4zVm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Sep 01, 2014 at 11:06:01PM +0800, Hanjun Guo wrote:
+> From: Graeme Gregory <graeme.gregory@linaro.org>
+>=20
+> This is a subset of pl011 UART which does not supprt DMA or baud rate
+> changing.
+>=20
+> It is specified in the Server Base System Architecture document from
+> ARM.
+
+Is there any reason not to consider submitting this as a TTY driver now
+- are there known problems other than the issues with ACPI in general
+(I've not reviewed the code at all)?  The ACPI binding in this case
+seems particularly safe since it's a purposely basic and unconfigurable
+IP.
+
+I guess we may want to consider handoff to the full pl011 driver at some
+point but there's a bunch of stuff with clocks to worry about before
+then.
+
+>=20
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> ---
+
+Missing signoff here.
+
+> +config SBSAUART_TTY
+> +	tristate "SBSA UART TTY Driver"
+> +	help
+> +	  Console and system TTY driver for the SBSA UART which is defined
+> +	  in the Server Base System Architecure document for ARM64 servers.
 > +
-> +       config->phy_interface = PHY_INTERFACE_MODE_MII;
-> 
 
-Please remove the #ifdef and use 
+depends on ARM || ARM64 || COMPILE_TEST?
 
-	if (!IS_ENABLED(CONFIG_ACPI) || !ahandle)
+--oMfk58fZ06Sy4zVm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-to check for ACPI support. This should result in the same object code
-in all cases, but give better compile-time coverage when ACPI is
-disabled.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-Also, -ENOSYS is probably the wrong return value. I think you mean
--ENXIO.
+iQIcBAEBAgAGBQJUBJAwAAoJELSic+t+oim961AP/j48GTfkt8fwiI+T72GjowcL
+45pp4TZVwQ8YlNnKZ0Pkjb7nSQZvj/xkTBopbGRS0TmgGLIN0G89mcWOQ8X1560A
+FuhJAqvgSaUKemEawWhproN+6t8AeLmWalHFRCrT3gLJs76VK62MGOB+jTdljQo8
+qv4maN1mPYhjBaDguKpnStn5S9mymGjz6/NtexWIW5MnnNJSFLtO8E2RyS+e5faN
+MJsYwJk0yUS2ypUbu8zNitCK0q8Q1jDKOnsB6sxBP3nyD1i1a86mT9aKa5N8TFyX
+gOzLz+c93BehTmFGmwdKW2PMO1Mssgslz6j62vOrE/1HBhoLb8yhbKX/Z4CSiMkt
+brdGZK3qchOnx70ae2wLL6rrdPDqzD+ma009k91DuxLgBZ7tyxqaPnHfUGoZU6ij
+dR7JHTeerBkGETxdd4HHRP5OFEh47bVUBR47X46VAE+jH8IuuMJbKF1hwZu/Ehn5
+X3N2u1fsvf3oVrIPpZraxAkeYvb2nWHmcWk4KrXHKpUvVtX0LWsxP6HXBNlZwqa9
+cvtKsAZPmogd41XSc4ZEhaY6m1JTLl9Fo0EmMGzQjf88igKyprqoPOu8LmLhQD/p
+2mAy6GeGSavWm8qyva0UTU2iI5eEw2HF7+D5D28XwJLUErRgOFLKAdowRXq986NR
+t3SAHRQ0kdlEjbEWeUPM
+=6/9U
+-----END PGP SIGNATURE-----
 
-	Arnd
+--oMfk58fZ06Sy4zVm--
