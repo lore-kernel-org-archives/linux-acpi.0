@@ -1,120 +1,131 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Patch v4] x86, irq, PCI: Keep IRQ assignment for runtime power management
-Date: Mon, 01 Sep 2014 15:52:06 +0200
-Message-ID: <4543591.GHid1Qx4Vl@vostro.rjw.lan>
-References: <1409304383-18806-1-git-send-email-jiang.liu@linux.intel.com> <8823237.zCdVqYrZ5W@vostro.rjw.lan> <54013AA8.8050200@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH v3 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Mon,  1 Sep 2014 22:57:38 +0800
+Message-ID: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59143 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752817AbaIANcw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Sep 2014 09:32:52 -0400
-In-Reply-To: <54013AA8.8050200@linux.intel.com>
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:58766 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753783AbaIAO62 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Sep 2014 10:58:28 -0400
+Received: by mail-pd0-f170.google.com with SMTP id r10so6377547pdi.1
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Sep 2014 07:58:25 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: EmanueL Czirai <amanual@openmailbox.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-On Saturday, August 30, 2014 10:44:56 AM Jiang Liu wrote:
-> 
-> On 2014/8/30 7:24, Rafael J. Wysocki wrote:
-> > On Friday, August 29, 2014 04:42:34 PM Rafael J. Wysocki wrote:
-> >> On Fri, Aug 29, 2014 at 11:26 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> >>> Now IOAPIC driver dynamically allocates IRQ numbers for IOAPIC pins.
-> >>> We need to keep IRQ assignment for PCI devices during runtime power
-> >>> management, otherwise it may cause failure of device wakeups.
-> >>>
-> >>> Commit 3eec595235c17a7 "x86, irq, PCI: Keep IRQ assignment for PCI
-> >>> devices during suspend/hibernation" has fixed the issue for suspend/
-> >>> hibernation, we also need the same fix for runtime device sleep too.
-> >>>
-> >>> Fix: https://bugzilla.kernel.org/show_bug.cgi?id=83271
-> >>> Reported-and-Tested-by: EmanueL Czirai <amanual@openmailbox.org>
-> >>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> >>> ---
-> >>>  arch/x86/include/asm/io_apic.h |    2 ++
-> >>>  arch/x86/kernel/apic/io_apic.c |   12 ++++++++++++
-> >>>  arch/x86/pci/intel_mid_pci.c   |    2 +-
-> >>>  arch/x86/pci/irq.c             |    2 +-
-> >>>  drivers/acpi/pci_irq.c         |    4 ++++
-> >>>  5 files changed, 20 insertions(+), 2 deletions(-)
-> >>>
-> >>> diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-> >>> index 0aeed5ca356e..478c490f3654 100644
-> >>> --- a/arch/x86/include/asm/io_apic.h
-> >>> +++ b/arch/x86/include/asm/io_apic.h
-> >>> @@ -227,6 +227,8 @@ static inline void io_apic_modify(unsigned int apic, unsigned int reg, unsigned
-> >>>
-> >>>  extern void io_apic_eoi(unsigned int apic, unsigned int vector);
-> >>>
-> >>> +extern bool mp_should_keep_irq(struct device *dev);
-> >>> +
-> >>>  #else  /* !CONFIG_X86_IO_APIC */
-> >>>
-> >>>  #define io_apic_assign_pci_irqs 0
-> >>> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-> >>> index 29290f554e79..1e9a921d9701 100644
-> >>> --- a/arch/x86/kernel/apic/io_apic.c
-> >>> +++ b/arch/x86/kernel/apic/io_apic.c
-> >>> @@ -3946,6 +3946,18 @@ int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node)
-> >>>         return ret;
-> >>>  }
-> >>>
-> >>> +bool mp_should_keep_irq(struct device *dev)
-> >>> +{
-> >>> +       if (dev->power.is_prepared)
-> >>> +               return true;
-> >>> +#ifdef CONFIG_PM_RUNTIME
-> >>> +       if (dev->power.runtime_status == RPM_SUSPENDING)
-> >>> +               return true;
-> >>> +#endif
-> >>
-> >> No, you can't do that.  It is racy and incorrect.
-> > 
-> > Well, maybe not.
-> > 
-> >> Please give me some time for looking into this.
-> > 
-> > So I guess the intended check is "Am I running in a suspend callback"?
+ACPI 5.1 has been released and now be freely available for
+download [1]. It fixed some major gaps to run ACPI on ARM,
+this patch just follow the ACPI 5.1 spec and prepare the
+code to run ACPI on ARM64.
 
-> Hi Rafael,
-> 	Yes, we are trying to check whether it's called for suspend.
-> Function pci_disable_device() may be called when:
-> 1) unbinding PCI driver
-> 2) destroying PCI device
-> 3) suspending for runtime power management or sleep
-> For case 1 and 2, we should release IRQ assigned. But we need to
-> keep assigned IRQ for case 3.
+ACPI 5.1 has some major changes for the following tables and
+method which are essential for ARM platforms:
+1) MADT table updates.
+2) FADT updates for PSCI
+3) GTDT
 
-Why don't we add an extra arg to that funtion, then, instead of trying to
-play with the PM core's internals in generally unreliable ways?
+This patch set is the ARM64 ACPI core patches covered MADT, FADT
+and GTDT, platform board specific drivers are not covered by this
+patch set, but we provide drivers for Juno to boot with ACPI only
+in the follwing patch set for review purpose.
 
-> So is it safe to check runtime_status and is_prepared flags to detect
-> case 3? Any better ways?
+We first introduce acpi.c and its related head file which are needed
+by ACPI core, and then get RSDP to extract all the ACPI boot-time tables.
+When all the boot-time tables (FADT, MADT, GTDT) are ready, then
+parse them to init the sytem when booted. Specifically, 
+a) we use FADT to init PSCI and use PSCI to boot SMP;
+b) Use MADT for GIC init and SMP init;
+c) GTDT for arch timer init.
 
-Above?
+This patch set is based on 3.17-rc2 and was tested by Graeme on Juno
+and FVP base model boot with ACPI only OK, if you want to test them,
+you can pull from acpi-5.1-v3 branch in leg/acpi repo:
+git://git.linaro.org/leg/acpi/acpi.git
 
-Both runtime_status and is_prepared are internal to the PM core.  In fact,
-there's no guarantee that is_prepared will be needed in the future even, so
-you've made quite a bit of a mess by using it outside of the PM core.
+Updates since v2:
+ - Refactor the code to make SMP/PSCI init with less sperated init
+   path by Tomasz
+ - make ACPI depend on EXPERT
+ - Address lots of comments from Catalin, Sudeep, Geoff
+ - Add Juno device ACPI driver patches for review
 
-Moreover, what you've done is obviously racy, but question is whether or
-not the race really matters.  Like, for example, what happens if PCI device
-removal is triggered from user space via sysfs in parallel with a runtime
-suspend?
+Updates since v1:
+ - Set ACPI default off on ARM64 suggested by Olof;
+ - Rebase the patch set on top of linux-next branch/linux-pm tree which
+   includes the ACPICA for full ACPI 5.1 support.
+ - Update the document as suggested;
+ - Adress lots of comments from Mark, Sudeep, Randy, Naresh, Olof, Geoff
+   and more...
 
-Plus the $subject patch introduced mp_should_keep_irq() and then duplicated
-the exact same code in acpi_pci_irq_disable(), so it doesn't look like it
-actually received enough consideration which is worrisome.
+[1]: http://www.uefi.org/sites/default/files/resources/ACPI_5_1release.pdf
 
-Moreover, the original patchset this is "fixing" apparently disregarded power
-management entirely which is even more concerning.
+Al Stone (3):
+  ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+  ARM64 / ACPI: Introduce early_param for "acpi"
+  ARM64 / ACPI: Select ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on
+    ARM64
 
-KR,
-Rafael
+Ashwin Chaugule (1):
+  ACPI / table: Add new function to get table entries
+
+Graeme Gregory (4):
+  ARM64 / ACPI: Introduce lowlevel suspend function
+  ARM64 / ACPI: If we chose to boot from acpi then disable FDT
+  ARM64 / ACPI: Enable ARM64 in Kconfig
+  Documentation: ACPI for ARM64
+
+Hanjun Guo (8):
+  ARM64: Move the init of cpu_logical_map(0) before
+    unflatten_device_tree()
+  ARM64 / ACPI: Make PCI optional for ACPI on ARM64
+  ARM64 / ACPI: Parse FADT table to get PSCI flags for PSCI init
+  ACPI / table: Print GIC information when MADT is parsed
+  ARM64 / ACPI: Parse MADT for SMP initialization
+  ACPI / processor: Make it possible to get CPU hardware ID via GICC
+  ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and register device's gsi
+  ARM64 / ACPI: Parse GTDT to initialize arch timer
+
+Tomasz Nowicki (1):
+  ARM64 / ACPI: Add GICv2 specific ACPI boot support
+
+ Documentation/arm64/arm-acpi.txt     |  218 +++++++++++++++++++++
+ Documentation/kernel-parameters.txt  |    3 +-
+ arch/arm64/Kconfig                   |    3 +
+ arch/arm64/include/asm/acenv.h       |   18 ++
+ arch/arm64/include/asm/acpi.h        |  108 ++++++++++
+ arch/arm64/include/asm/cpu_ops.h     |    1 +
+ arch/arm64/include/asm/pci.h         |   11 ++
+ arch/arm64/include/asm/psci.h        |    3 +-
+ arch/arm64/include/asm/smp.h         |    5 +-
+ arch/arm64/kernel/Makefile           |    1 +
+ arch/arm64/kernel/acpi.c             |  359 ++++++++++++++++++++++++++++++++++
+ arch/arm64/kernel/cpu_ops.c          |    4 +-
+ arch/arm64/kernel/irq.c              |    5 +
+ arch/arm64/kernel/psci.c             |   78 +++++---
+ arch/arm64/kernel/setup.c            |   23 ++-
+ arch/arm64/kernel/smp.c              |    2 +-
+ arch/arm64/kernel/time.c             |    7 +
+ drivers/acpi/Kconfig                 |    6 +-
+ drivers/acpi/Makefile                |    2 +-
+ drivers/acpi/bus.c                   |    3 +
+ drivers/acpi/internal.h              |    5 +
+ drivers/acpi/processor_core.c        |   37 ++++
+ drivers/acpi/tables.c                |  113 +++++++++--
+ drivers/clocksource/arm_arch_timer.c |  117 +++++++++--
+ drivers/irqchip/irq-gic.c            |  114 +++++++++++
+ include/linux/acpi.h                 |    5 +
+ include/linux/clocksource.h          |    6 +
+ include/linux/irqchip/arm-gic-acpi.h |   33 ++++
+ include/linux/pci.h                  |   37 +++-
+ 29 files changed, 1237 insertions(+), 90 deletions(-)
+ create mode 100644 Documentation/arm64/arm-acpi.txt
+ create mode 100644 arch/arm64/include/asm/acenv.h
+ create mode 100644 arch/arm64/include/asm/acpi.h
+ create mode 100644 arch/arm64/include/asm/pci.h
+ create mode 100644 arch/arm64/kernel/acpi.c
+ create mode 100644 include/linux/irqchip/arm-gic-acpi.h
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.7.9.5
+
