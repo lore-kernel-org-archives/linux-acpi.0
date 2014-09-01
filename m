@@ -1,77 +1,78 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v3 03/17] ARM64 / ACPI: Introduce lowlevel suspend function
-Date: Mon,  1 Sep 2014 22:57:41 +0800
-Message-ID: <1409583475-6978-4-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v3 04/17] ARM64 / ACPI: Introduce early_param for "acpi"
+Date: Mon,  1 Sep 2014 22:57:42 +0800
+Message-ID: <1409583475-6978-5-git-send-email-hanjun.guo@linaro.org>
 References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:46937 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754405AbaIAO7Z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Sep 2014 10:59:25 -0400
-Received: by mail-pd0-f173.google.com with SMTP id p10so6363944pdj.32
-        for <linux-acpi@vger.kernel.org>; Mon, 01 Sep 2014 07:59:24 -0700 (PDT)
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:58163 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754434AbaIAO7s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Sep 2014 10:59:48 -0400
+Received: by mail-pa0-f48.google.com with SMTP id ey11so12429924pad.7
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Sep 2014 07:59:46 -0700 (PDT)
 In-Reply-To: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
 
-From: Graeme Gregory <graeme.gregory@linaro.org>
+From: Al Stone <al.stone@linaro.org>
 
-acpi_wakeup_address is used on x86 as the address bios jumps into
-when machine wakes up from suspend. As arm64 does not have such a
-bios this mechanism will be provided by other means. But the define
-is still required inside the acpi core.
+Introduce one early parameters "off" for "acpi" to disable ACPI on
+ARM64.
 
-Introduce a null stub for acpi_suspend_lowlevel as this is also
-required by core. This will be filled in when standards are
-defined for arm64 ACPI global power states.
-
+Signed-off-by: Al Stone <al.stone@linaro.org>
 Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/acpi.h |   12 ++++++++++++
- arch/arm64/kernel/acpi.c      |    7 +++++++
- 2 files changed, 19 insertions(+)
+ Documentation/kernel-parameters.txt |    3 ++-
+ arch/arm64/kernel/acpi.c            |   15 +++++++++++++++
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 8b837ab..02bbb0b 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -40,6 +40,18 @@ static inline bool acpi_has_cpu_in_madt(void)
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 5ae8608..9dfb1d8 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -165,7 +165,7 @@ multipliers 'Kilo', 'Mega', and 'Giga', equalling 2^10, 2^20, and 2^30
+ bytes respectively. Such letter suffixes can also be entirely omitted.
  
- static inline void arch_fix_phys_package_id(int num, u32 slot) { }
  
-+/* Low-level suspend routine.
-+ *
-+ * ACPI S-states for ARM64 have to be defined
-+ * and approved before doing anything else, maybe
-+ * we need update the ACPI spec, here we
-+ * just introduce function and macro needed by
-+ * ACPI core as IA64 did, and revisit them when
-+ * the spec is ready.
-+ */
-+extern int (*acpi_suspend_lowlevel)(void);
-+#define acpi_wakeup_address 0
-+
- #endif /* CONFIG_ACPI */
+-	acpi=		[HW,ACPI,X86]
++	acpi=		[HW,ACPI,X86,ARM]
+ 			Advanced Configuration and Power Interface
+ 			Format: { force | off | strict | noirq | rsdt }
+ 			force -- enable ACPI if default was off
+@@ -175,6 +175,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 				strictly ACPI specification compliant.
+ 			rsdt -- prefer RSDT over (default) XSDT
+ 			copy_dsdt -- copy DSDT to memory
++			For ARM64, ONLY "acpi=off" is available.
  
- #endif /*_ASM_ACPI_H*/
+ 			See also Documentation/power/runtime_pm.txt, pci=noacpi
+ 
 diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 9252f72..b6940a0 100644
+index b6940a0..9547275 100644
 --- a/arch/arm64/kernel/acpi.c
 +++ b/arch/arm64/kernel/acpi.c
-@@ -67,3 +67,10 @@ void __init acpi_boot_table_init(void)
- 	if (acpi_table_init())
- 		disable_acpi();
- }
+@@ -74,3 +74,18 @@ void __init acpi_boot_table_init(void)
+  * TBD when ARM/ARM64 starts to support suspend...
+  */
+ int (*acpi_suspend_lowlevel)(void) = NULL;
 +
-+/*
-+ * acpi_suspend_lowlevel() - save kernel state and suspend.
-+ *
-+ * TBD when ARM/ARM64 starts to support suspend...
-+ */
-+int (*acpi_suspend_lowlevel)(void) = NULL;
++static int __init parse_acpi(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
++
++	/* "acpi=off" disables both ACPI table parsing and interpreter */
++	if (strcmp(arg, "off") == 0)
++		disable_acpi();
++	else
++		return -EINVAL;	/* Core will print when we return error */
++
++	return 0;
++}
++early_param("acpi", parse_acpi);
 -- 
 1.7.9.5
 
