@@ -1,285 +1,45 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v3 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot support
-Date: Mon,  1 Sep 2014 22:57:51 +0800
-Message-ID: <1409583475-6978-14-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v3 15/17] ARM64 / ACPI: Select ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on ARM64
+Date: Mon,  1 Sep 2014 22:57:53 +0800
+Message-ID: <1409583475-6978-16-git-send-email-hanjun.guo@linaro.org>
 References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:60126 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754228AbaIAPDQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Sep 2014 11:03:16 -0400
+Received: by mail-pa0-f46.google.com with SMTP id eu11so12488113pac.19
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Sep 2014 08:03:15 -0700 (PDT)
 In-Reply-To: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
 
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+From: Al Stone <al.stone@linaro.org>
 
-ACPI kernel uses MADT table for proper GIC initialization. It needs to
-parse GIC related subtables, collect CPU interface and distributor
-addresses and call driver initialization function (which is hardware
-abstraction agnostic). In a similar way, FDT initialize GICv1/2.
+ACPI reduced hardware mode is disabled by default, but ARM64
+can only run properly in ACPI hardware reduced mode, so select
+ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on ARM64.
 
-NOTE: This commit allow to initialize GICv1/2 only.
-
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Reviewed-by: Grant Likely <grant.likely@linaro.org>
+Signed-off-by: Al Stone <al.stone@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/acpi.h        |    2 -
- arch/arm64/kernel/acpi.c             |   23 +++++++
- arch/arm64/kernel/irq.c              |    5 ++
- drivers/irqchip/irq-gic.c            |  114 ++++++++++++++++++++++++++++++++++
- include/linux/irqchip/arm-gic-acpi.h |   33 ++++++++++
- 5 files changed, 175 insertions(+), 2 deletions(-)
- create mode 100644 include/linux/irqchip/arm-gic-acpi.h
+ arch/arm64/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index a867467..5d2ab63 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -97,8 +97,6 @@ void __init acpi_smp_init_cpus(void);
- extern int (*acpi_suspend_lowlevel)(void);
- #define acpi_wakeup_address 0
- 
--#define ACPI_MAX_GIC_CPU_INTERFACE_ENTRIES 65535
--
- #else
- 
- static inline bool acpi_psci_present(void) { return false; }
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 354b912..b3b82b0 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -23,6 +23,7 @@
- #include <linux/irqdomain.h>
- #include <linux/bootmem.h>
- #include <linux/smp.h>
-+#include <linux/irqchip/arm-gic-acpi.h>
- 
- #include <asm/cputype.h>
- #include <asm/cpu_ops.h>
-@@ -313,6 +314,28 @@ void __init acpi_boot_table_init(void)
- 		pr_err("Can't find FADT or error happened during parsing FADT\n");
- }
- 
-+void __init acpi_gic_init(void)
-+{
-+	struct acpi_table_header *table;
-+	acpi_status status;
-+	acpi_size tbl_size;
-+	int err;
-+
-+	status = acpi_get_table_with_size(ACPI_SIG_MADT, 0, &table, &tbl_size);
-+	if (ACPI_FAILURE(status)) {
-+		const char *msg = acpi_format_exception(status);
-+
-+		pr_err("Failed to get MADT table, %s\n", msg);
-+		return;
-+	}
-+
-+	err = gic_v2_acpi_init(table);
-+	if (err)
-+		pr_err("Failed to initialize GIC IRQ controller");
-+
-+	early_acpi_os_unmap_memory((char *)table, tbl_size);
-+}
-+
- /*
-  * acpi_suspend_lowlevel() - save kernel state and suspend.
-  *
-diff --git a/arch/arm64/kernel/irq.c b/arch/arm64/kernel/irq.c
-index 0f08dfd..c074d60 100644
---- a/arch/arm64/kernel/irq.c
-+++ b/arch/arm64/kernel/irq.c
-@@ -28,6 +28,7 @@
- #include <linux/irqchip.h>
- #include <linux/seq_file.h>
- #include <linux/ratelimit.h>
-+#include <linux/irqchip/arm-gic-acpi.h>
- 
- unsigned long irq_err_count;
- 
-@@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(struct pt_regs *))
- void __init init_IRQ(void)
- {
- 	irqchip_init();
-+
-+	if (!handle_arch_irq)
-+		acpi_gic_init();
-+
- 	if (!handle_arch_irq)
- 		panic("No interrupt controller found.");
- }
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index 4b959e6..85cbf43 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -33,12 +33,14 @@
- #include <linux/of.h>
- #include <linux/of_address.h>
- #include <linux/of_irq.h>
-+#include <linux/acpi.h>
- #include <linux/irqdomain.h>
- #include <linux/interrupt.h>
- #include <linux/percpu.h>
- #include <linux/slab.h>
- #include <linux/irqchip/chained_irq.h>
- #include <linux/irqchip/arm-gic.h>
-+#include <linux/irqchip/arm-gic-acpi.h>
- 
- #include <asm/cputype.h>
- #include <asm/irq.h>
-@@ -1029,3 +1031,115 @@ IRQCHIP_DECLARE(msm_8660_qgic, "qcom,msm-8660-qgic", gic_of_init);
- IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
- 
- #endif
-+
-+#ifdef CONFIG_ACPI
-+static u64 dist_phy_base, cpu_phy_base = ULONG_MAX;
-+
-+static int __init
-+gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
-+			const unsigned long end)
-+{
-+	struct acpi_madt_generic_interrupt *processor;
-+	u64 gic_cpu_base;
-+
-+	processor = (struct acpi_madt_generic_interrupt *)header;
-+
-+	if (BAD_MADT_ENTRY(processor, end))
-+		return -EINVAL;
-+
-+	gic_cpu_base = processor->base_address;
-+	if (!gic_cpu_base)
-+		return -EFAULT;
-+
-+	/*
-+	 * There is no support for non-banked GICv1/2 register in ACPI spec.
-+	 * All CPU interface addresses have to be the same.
-+	 */
-+	if (cpu_phy_base != ULONG_MAX && gic_cpu_base != cpu_phy_base)
-+		return -EFAULT;
-+
-+	cpu_phy_base = gic_cpu_base;
-+	return 0;
-+}
-+
-+static int __init
-+gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
-+				const unsigned long end)
-+{
-+	struct acpi_madt_generic_distributor *dist;
-+
-+	dist = (struct acpi_madt_generic_distributor *)header;
-+
-+	if (BAD_MADT_ENTRY(dist, end))
-+		return -EINVAL;
-+
-+	dist_phy_base = dist->base_address;
-+	if (!dist_phy_base)
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+int __init
-+gic_v2_acpi_init(struct acpi_table_header *table)
-+{
-+	void __iomem *cpu_base, *dist_base;
-+	int count;
-+
-+	/* Collect CPU base addresses */
-+	count = acpi_parse_entries(sizeof(struct acpi_table_madt),
-+				   gic_acpi_parse_madt_cpu, table,
-+				   ACPI_MADT_TYPE_GENERIC_INTERRUPT,
-+				   ACPI_MAX_GIC_CPU_INTERFACE_ENTRIES);
-+	if (count < 0) {
-+		pr_err("Error during GICC entries parsing\n");
-+		return -EFAULT;
-+	} else if (!count) {
-+		/* No GICC entries provided, use address from MADT header */
-+		struct acpi_table_madt *madt = (struct acpi_table_madt *)table;
-+
-+		if (!madt->address)
-+			return -EFAULT;
-+
-+		cpu_phy_base = (u64)madt->address;
-+	}
-+
-+	/*
-+	 * Find distributor base address. We expect one distributor entry since
-+	 * ACPI 5.1 spec neither support multi-GIC instances nor GIC cascade.
-+	 */
-+	count = acpi_parse_entries(sizeof(struct acpi_table_madt),
-+				   gic_acpi_parse_madt_distributor, table,
-+				   ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
-+				   ACPI_MAX_GIC_DISTRIBUTOR_ENTRIES);
-+	if (count <= 0) {
-+		pr_err("Error during GICD entries parsing\n");
-+		return -EFAULT;
-+	} else if (count > 1) {
-+		pr_err("More than one GICD entry detected\n");
-+		return -EINVAL;
-+	}
-+
-+	cpu_base = ioremap(cpu_phy_base, ACPI_GIC_CPU_IF_MEM_SIZE);
-+	if (!cpu_base) {
-+		pr_err("Unable to map GICC registers\n");
-+		return -ENOMEM;
-+	}
-+
-+	dist_base = ioremap(dist_phy_base, ACPI_GIC_DIST_MEM_SIZE);
-+	if (!dist_base) {
-+		pr_err("Unable to map GICD registers\n");
-+		iounmap(cpu_base);
-+		return -ENOMEM;
-+	}
-+
-+	/*
-+	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
-+	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
-+	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
-+	 */
-+	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
-+	irq_set_default_host(gic_data[0].domain);
-+	return 0;
-+}
-+#endif
-diff --git a/include/linux/irqchip/arm-gic-acpi.h b/include/linux/irqchip/arm-gic-acpi.h
-new file mode 100644
-index 0000000..ce2ae1a8
---- /dev/null
-+++ b/include/linux/irqchip/arm-gic-acpi.h
-@@ -0,0 +1,33 @@
-+/*
-+ * Copyright (C) 2014, Linaro Ltd.
-+ *	Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef ARM_GIC_ACPI_H_
-+#define ARM_GIC_ACPI_H_
-+
-+#include <linux/acpi.h>
-+
-+#ifdef CONFIG_ACPI
-+#define ACPI_MAX_GIC_CPU_INTERFACE_ENTRIES	65535
-+#define ACPI_MAX_GIC_DISTRIBUTOR_ENTRIES	1
-+
-+/*
-+ * Hard code here, we can not get memory size from MADT (but FDT does),
-+ * Actually no need to do that, because this size can be inferred
-+ * from GIC spec.
-+ */
-+#define ACPI_GIC_DIST_MEM_SIZE		(SZ_64K)
-+#define ACPI_GIC_CPU_IF_MEM_SIZE	(SZ_8K)
-+
-+void acpi_gic_init(void);
-+int gic_v2_acpi_init(struct acpi_table_header *table);
-+#else
-+static inline void acpi_gic_init(void) { }
-+#endif
-+
-+#endif /* ARM_GIC_ACPI_H_ */
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index fd4e81a..065438c 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -1,5 +1,6 @@
+ config ARM64
+ 	def_bool y
++	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_SG_CHAIN
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
 -- 
 1.7.9.5
+
