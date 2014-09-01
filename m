@@ -1,8 +1,7 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v3 10/17] ACPI / processor: Make it possible to get CPU
- hardware ID via GICC
-Date: Mon,  1 Sep 2014 22:57:48 +0800
-Message-ID: <1409583475-6978-11-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v3 12/17] ACPI / table: Add new function to get table entries
+Date: Mon,  1 Sep 2014 22:57:50 +0800
+Message-ID: <1409583475-6978-13-git-send-email-hanjun.guo@linaro.org>
 References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,145 +18,157 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>
+Cc: linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Introduce a new function map_gicc_mpidr() to allow MPIDRs to be obtained
-from the GICC Structure introduced by ACPI 5.1.
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-MPIDR is the CPU hardware ID as local APIC ID on x86 platform, so we use
-MPIDR not the GIC CPU interface ID to identify CPUs.
+The acpi_table_parse() function has a callback that
+passes a pointer to a table_header. Add a new function
+which takes this pointer and parses its entries. This
+eliminates the need to re-traverse all the tables for
+each call. e.g. as in acpi_table_parse_madt() which is
+normally called after acpi_table_parse().
 
+Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/acpi.h |   32 ++++++++++++++++++++++++++++++++
- arch/arm64/kernel/acpi.c      |    1 -
- drivers/acpi/processor_core.c |   37 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 69 insertions(+), 1 deletion(-)
+ drivers/acpi/tables.c |   70 +++++++++++++++++++++++++++++++++++--------------
+ include/linux/acpi.h  |    4 +++
+ 2 files changed, 54 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index e013dbb..a867467 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -12,6 +12,8 @@
- #ifndef _ASM_ACPI_H
- #define _ASM_ACPI_H
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index a97d2aa..4ab7566 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -235,17 +235,14 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
  
-+#include <asm/smp_plat.h>
+ 
+ int __init
+-acpi_table_parse_entries(char *id,
+-			     unsigned long table_size,
+-			     int entry_id,
+-			     acpi_tbl_entry_handler handler,
+-			     unsigned int max_entries)
++acpi_parse_entries(unsigned long table_size,
++		acpi_tbl_entry_handler handler,
++		struct acpi_table_header *table_header,
++		int entry_id, unsigned int max_entries)
+ {
+-	struct acpi_table_header *table_header = NULL;
+ 	struct acpi_subtable_header *entry;
+-	unsigned int count = 0;
++	int count = 0;
+ 	unsigned long table_end;
+-	acpi_size tbl_size;
+ 
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+@@ -253,13 +250,11 @@ acpi_table_parse_entries(char *id,
+ 	if (!handler)
+ 		return -EINVAL;
+ 
+-	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
+-		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
+-	else
+-		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
++	if (!table_size)
++		return -EINVAL;
+ 
+ 	if (!table_header) {
+-		pr_warn("%4.4s not present\n", id);
++		pr_warn("Table header not present\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -274,31 +269,66 @@ acpi_table_parse_entries(char *id,
+ 	       table_end) {
+ 		if (entry->type == entry_id
+ 		    && (!max_entries || count++ < max_entries))
+-			if (handler(entry, table_end))
++			if (handler(entry, table_end)) {
++				count = -EINVAL;
+ 				goto err;
++		}
+ 
+ 		/*
+ 		 * If entry->length is 0, break from this loop to avoid
+ 		 * infinite loop.
+ 		 */
+ 		if (entry->length == 0) {
+-			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
++			pr_err("[0x%02x] Invalid zero length\n", entry_id);
++			count = -EINVAL;
+ 			goto err;
+ 		}
+ 
+ 		entry = (struct acpi_subtable_header *)
+ 		    ((unsigned long)entry + entry->length);
+ 	}
 +
- /* Basic configuration for ACPI */
- #ifdef	CONFIG_ACPI
- #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
-@@ -38,6 +40,36 @@ static inline void disable_acpi(void)
- 	acpi_noirq = 1;
- }
+ 	if (max_entries && count > max_entries) {
+-		pr_warn("[%4.4s:0x%02x] ignored %i entries of %i found\n",
+-			id, entry_id, count - max_entries, count);
++		pr_warn("[0x%02x] ignored %i entries of %i found\n",
++			entry_id, count - max_entries, count);
+ 	}
  
-+/* MPIDR value provided in GICC structure is 64 bits, but
-+ * the acpi processor driver use the 32 bits cpu hardware
-+ * ID (apic_id on intel platform) everywhere, it is pretty
-+ * hard to modify the acpi processor driver to accept the
-+ * 64 bits MPIDR value, at the same time, only 32 bits of
-+ * the MPIDR is used in the 64 bits MPIDR, just pack the
-+ * Affx fields into a single 32 bit identifier to accommodate
-+ * the acpi processor drivers.
-+ */
-+static inline u32 pack_mpidr_into_32_bits(u64 mpidr)
-+{
-+	/*
-+	 * Bits [0:7] Aff0;
-+	 * Bits [8:15] Aff1;
-+	 * Bits [16:23] Aff2;
-+	 * Bits [32:39] Aff3;
-+	 */
-+	return (u32) ((mpidr & 0xff00000000) >> 8) | mpidr;
+-	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
+-	return count;
+ err:
++	return count;
 +}
 +
-+/*
-+ * The ACPI processor driver for ACPI core code needs this macro
-+ * to find out this cpu was already mapped (mapping from CPU hardware
-+ * ID to CPU logical ID) or not.
-+ *
-+ * cpu_logical_map(cpu) is the mapping of MPIDR and the logical cpu,
-+ * and MPIDR is the cpu hardware ID we needed to pack.
-+ */
-+#define cpu_physical_id(cpu) pack_mpidr_into_32_bits(cpu_logical_map(cpu))
-+
- /*
-  * It's used from ACPI core in kdump to boot UP system with SMP kernel,
-  * with this check the ACPI core will not override the CPU index
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index fbaaf01..35dff11 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -24,7 +24,6 @@
- #include <linux/bootmem.h>
- #include <linux/smp.h>
- 
--#include <asm/smp_plat.h>
- #include <asm/cputype.h>
- #include <asm/cpu_ops.h>
- 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index e32321c..4007313 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -64,6 +64,38 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
- 	return 0;
- }
- 
-+/*
-+ * On ARM platform, MPIDR value is the hardware ID as apic ID
-+ * on Intel platforms
-+ */
-+static int map_gicc_mpidr(struct acpi_subtable_header *entry,
-+		int device_declaration, u32 acpi_id, int *mpidr)
++int __init
++acpi_table_parse_entries(char *id,
++			 unsigned long table_size,
++			 int entry_id,
++			 acpi_tbl_entry_handler handler,
++			 unsigned int max_entries)
 +{
-+	struct acpi_madt_generic_interrupt *gicc =
-+	    container_of(entry, struct acpi_madt_generic_interrupt, header);
++	struct acpi_table_header *table_header = NULL;
++	acpi_size tbl_size;
++	int count;
 +
-+	if (!(gicc->flags & ACPI_MADT_ENABLED))
++	if (acpi_disabled)
 +		return -ENODEV;
 +
-+	/* In the GIC interrupt model, logical processors are
-+	 * required to have a Processor Device object in the DSDT,
-+	 * so we should check device_declaration here
-+	 */
-+	if (device_declaration && (gicc->uid == acpi_id)) {
-+		/*
-+		 * Only bits [0:7] Aff0, bits [8:15] Aff1, bits [16:23] Aff2
-+		 * and bits [32:39] Aff3 are meaningful, so pack the Affx
-+		 * fields into a single 32 bit identifier to accommodate the
-+		 * acpi processor drivers.
-+		 */
-+		*mpidr = ((gicc->arm_mpidr & 0xff00000000) >> 8)
-+			 | gicc->arm_mpidr;
-+		return 0;
++	if (!handler)
++		return -EINVAL;
++
++	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
++		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
++	else
++		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
++
++	if (!table_header) {
++		pr_warn("%4.4s not present\n", id);
++		return -ENODEV;
 +	}
 +
-+	return -EINVAL;
-+}
++	count = acpi_parse_entries(table_size, handler, table_header,
++			entry_id, max_entries);
 +
- static int map_madt_entry(int type, u32 acpi_id)
- {
- 	unsigned long madt_end, entry;
-@@ -99,6 +131,9 @@ static int map_madt_entry(int type, u32 acpi_id)
- 		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
- 			if (!map_lsapic_id(header, type, acpi_id, &apic_id))
- 				break;
-+		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-+			if (!map_gicc_mpidr(header, type, acpi_id, &apic_id))
-+				break;
- 		}
- 		entry += header->length;
- 	}
-@@ -131,6 +166,8 @@ static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
- 		map_lsapic_id(header, type, acpi_id, &apic_id);
- 	} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
- 		map_x2apic_id(header, type, acpi_id, &apic_id);
-+	} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-+		map_gicc_mpidr(header, type, acpi_id, &apic_id);
- 	}
+ 	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
+-	return -EINVAL;
++	return count;
+ }
  
- exit:
+ int __init
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index ed1c2d1..a9d79c2 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -124,6 +124,10 @@ int acpi_numa_init (void);
+ 
+ int acpi_table_init (void);
+ int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
++int __init acpi_parse_entries(unsigned long table_size,
++		acpi_tbl_entry_handler handler,
++		struct acpi_table_header *table_header,
++		int entry_id, unsigned int max_entries);
+ int __init acpi_table_parse_entries(char *id, unsigned long table_size,
+ 				    int entry_id,
+ 				    acpi_tbl_entry_handler handler,
 -- 
 1.7.9.5
