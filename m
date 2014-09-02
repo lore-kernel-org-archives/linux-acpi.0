@@ -1,45 +1,88 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v3 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot
- support
-Date: Tue, 2 Sep 2014 17:34:14 +0100
-Message-ID: <20140902163414.GJ27056@arm.com>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
- <1409583475-6978-14-git-send-email-hanjun.guo@linaro.org>
- <5404AE56.80801@arm.com>
- <5405AE95.1020201@linaro.org>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v3 1/3] Mailbox: Add support for PCC mailbox and channels
+Date: Tue, 2 Sep 2014 14:16:42 -0400
+Message-ID: <CAJ5Y-eb4e9bC99zF0FCA4MF6F3iAoQWfKqbRznckNsTFEoN_5w@mail.gmail.com>
+References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
+	<CAJ5Y-eak9A14z3im_5sgvnqMQDRf5rNgcQNGwDV2aYh_POkLOA@mail.gmail.com>
+	<20140827190902.GR17528@sirena.org.uk>
+	<2961329.Rr1sZlGzgn@wuerfel>
+	<20140828101500.GM17528@sirena.org.uk>
+	<CAJ5Y-eZVQL-2k1XgfFW1_QZb9G_S2d9YLo3PAH1VytvOhDnd-Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fw-tnat.austin.arm.com ([217.140.110.23]:11531 "EHLO
-	collaborate-mta1.arm.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754468AbaIBQe2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 12:34:28 -0400
-Content-Disposition: inline
-In-Reply-To: <5405AE95.1020201@linaro.org>
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:41194 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754710AbaIBSQn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 14:16:43 -0400
+Received: by mail-wi0-f171.google.com with SMTP id hi2so14831457wib.16
+        for <linux-acpi@vger.kernel.org>; Tue, 02 Sep 2014 11:16:42 -0700 (PDT)
+In-Reply-To: <CAJ5Y-eZVQL-2k1XgfFW1_QZb9G_S2d9YLo3PAH1VytvOhDnd-Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: Marc Zyngier <Marc.Zyngier@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linux
+To: Mark Brown <broonie@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux acpi <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Tue, Sep 02, 2014 at 12:48:37PM +0100, Tomasz Nowicki wrote:
-> On 01.09.2014 19:35, Marc Zyngier wrote:
-> > On 01/09/14 15:57, Hanjun Guo wrote:
-> >> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> >>
-> >> ACPI kernel uses MADT table for proper GIC initialization. It needs to
-> >> parse GIC related subtables, collect CPU interface and distributor
-> >> addresses and call driver initialization function (which is hardware
-> >> abstraction agnostic). In a similar way, FDT initialize GICv1/2.
-> >>
-> >> NOTE: This commit allow to initialize GICv1/2 only.
-> >
-> > I cannot help but notice that there is no support for KVM here. It'd be
-> > good to add a note to that effect, so that people do not expect
-> > virtualization support to be working when booting with ACPI.
-> 
-> yes, it is worth mentioning!
+Hi Mark, Arnd,
 
-It's also worth mentioning if there are any plans to fix this ;).
+On 28 August 2014 16:34, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+> On 28 August 2014 06:15, Mark Brown <broonie@kernel.org> wrote:
+>> On Thu, Aug 28, 2014 at 10:39:01AM +0200, Arnd Bergmann wrote:
+>>> On Wednesday 27 August 2014 20:09:02 Mark Brown wrote:
+>>
+>>> > That certainly looks like what it's doing.  Probably also make the name
+>>> > that gets passed in const while you're at it.
+>>
+>>> The mailbox API intentionally does not have an interface for
+>>> that: you are supposed to get a reference to an mbox controller
+>>> from a phandle or similar, not by knowing the name of the controller.
+>>
+>> Right, and what he's trying to work around here is that ACPI has chosen
+>> to provide a generic binding for some mailboxes which isn't associated
+>> with anything we represent as a device and he doesn't want to provide
+>> that device as a Linux virtual thing.
+>
+> Just the idea of a table as a device, when it doesn't do any power
+> management, hotplug or anything like a device seemed strange. But I'm
+> open to ideas if we find a good solution. Its highly possible that I'm
+> not seeing it the way you are because the driver subsystem internals
+> are fairly new to me. :)
+>
+> Suppose we create a platform_device for the PCCT (mailbox controller)
+> and another one for the PCC client (mailbox client). How should the
+> PCC client(s) identify the mailbox controller without passing a name?
+> In DT, the "mboxes" field in the client DT entry is all strings with
+> mailbox controller names. The "index" in mbox_request_channel() picks
+> up one set of strings. How should this work with PCC? Should we use
+> the PCC client platform_device->dev->platform_data to store mailbox
+> controller strings?
+>
+>>
+>>> Unfortunately, the three patches that Ashwin posted don't have a
+>>> caller for this function, so I don't know what it's actually used for.
+>>> Why do we need this function for pcc, and what are the names that
+>>> can be passed here?
+>>
+>> AFAICT the names he's interested in will be defined by the ACPI specs.
+>> It does seem like we should be providing a device for the controller and
+>> then either using references in ACPI to look it up if they exist or a
+>> lookup function for this particular namespace that goes and fetches the
+>> device we created and looks up in its context.
+>
+> What is the comparison in this lookup function? A string or a struct
+> device pointer? If it is the latter, how does the client get the
+> reference to the controller struct device? One way would be to
+> register the PCCT as a platform_device and the PCC client as its
+> platform_driver. But I think that will restrict the number of PCC
+> clients to who ever matches first. I suspect this is not what you're
+> implying, so I'd appreciate some more help.
 
--- 
-Catalin
+
+I dont see a way to create a lookup table for PCC without storing the
+name of the controller somewhere. The suggestion of creating a
+platform device for the controller and client led to restricting only
+one client to the controller. Can you please suggest how to move this
+forward?
+
+Thanks,
+Ashwin
