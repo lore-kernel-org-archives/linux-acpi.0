@@ -1,397 +1,77 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v3 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot support
-Date: Tue, 02 Sep 2014 17:11:50 +0100
-Message-ID: <5405EC46.5000202@arm.com>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-14-git-send-email-hanjun.guo@linaro.org> <5404AE56.80801@arm.com> <5405AE95.1020201@linaro.org> <5405BFE7.5060005@arm.com> <5405E626.4090306@linaro.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [Linaro-acpi] [RFC PATCH for Juno 1/2] net: smsc911x add support
+ for probing from ACPI
+Date: Tue, 2 Sep 2014 17:26:06 +0100
+Message-ID: <20140902162606.GX29327@sirena.org.uk>
+References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org>
+ <20140901173245.GM2953@xora-haswell.xora.org.uk>
+ <20140902132651.GF27056@arm.com>
+ <4816592.tj3on6vUaC@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="s3puAW9DMBtS2ARW"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:57864 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753889AbaIBQLH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 12:11:07 -0400
-In-Reply-To: <5405E626.4090306@linaro.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:46753 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751666AbaIBQ1N (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 12:27:13 -0400
+Content-Disposition: inline
+In-Reply-To: <4816592.tj3on6vUaC@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linu
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linaro-acpi@lists.linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <gg@slimlogic.co.uk>, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Olof Johansson <olof@lixom.net>
 
 
+--s3puAW9DMBtS2ARW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 02/09/14 16:45, Hanjun Guo wrote:
-> On 2014=E5=B9=B409=E6=9C=8802=E6=97=A5 21:02, Marc Zyngier wrote:
->> On 02/09/14 12:48, Tomasz Nowicki wrote:
->>> On 01.09.2014 19:35, Marc Zyngier wrote:
->>>> On 01/09/14 15:57, Hanjun Guo wrote:
->>>>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>>>>
->>>>> ACPI kernel uses MADT table for proper GIC initialization. It nee=
-ds to
->>>>> parse GIC related subtables, collect CPU interface and distributo=
-r
->>>>> addresses and call driver initialization function (which is hardw=
-are
->>>>> abstraction agnostic). In a similar way, FDT initialize GICv1/2.
->>>>>
->>>>> NOTE: This commit allow to initialize GICv1/2 only.
->>>> I cannot help but notice that there is no support for KVM here. It=
-'d be
->>>> good to add a note to that effect, so that people do not expect
->>>> virtualization support to be working when booting with ACPI.
->>> yes, it is worth mentioning!
->>>
->>>>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>>> ---
->>>>>    arch/arm64/include/asm/acpi.h        |    2 -
->>>>>    arch/arm64/kernel/acpi.c             |   23 +++++++
->>>>>    arch/arm64/kernel/irq.c              |    5 ++
->>>>>    drivers/irqchip/irq-gic.c            |  114 ++++++++++++++++++=
-++++++++++++++++
->>>>>    include/linux/irqchip/arm-gic-acpi.h |   33 ++++++++++
->>>>>    5 files changed, 175 insertions(+), 2 deletions(-)
->>>>>    create mode 100644 include/linux/irqchip/arm-gic-acpi.h
->>>>>
->>>>> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/a=
-sm/acpi.h
->>>>> index a867467..5d2ab63 100644
->>>>> --- a/arch/arm64/include/asm/acpi.h
->>>>> +++ b/arch/arm64/include/asm/acpi.h
->>>>> @@ -97,8 +97,6 @@ void __init acpi_smp_init_cpus(void);
->>>>>    extern int (*acpi_suspend_lowlevel)(void);
->>>>>    #define acpi_wakeup_address 0
->>>>>
->>>>> -#define ACPI_MAX_GIC_CPU_INTERFACE_ENTRIES 65535
->>>>> -
->>>>>    #else
->>>>>
->>>>>    static inline bool acpi_psci_present(void) { return false; }
->>>>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
->>>>> index 354b912..b3b82b0 100644
->>>>> --- a/arch/arm64/kernel/acpi.c
->>>>> +++ b/arch/arm64/kernel/acpi.c
->>>>> @@ -23,6 +23,7 @@
->>>>>    #include <linux/irqdomain.h>
->>>>>    #include <linux/bootmem.h>
->>>>>    #include <linux/smp.h>
->>>>> +#include <linux/irqchip/arm-gic-acpi.h>
->>>>>
->>>>>    #include <asm/cputype.h>
->>>>>    #include <asm/cpu_ops.h>
->>>>> @@ -313,6 +314,28 @@ void __init acpi_boot_table_init(void)
->>>>>               pr_err("Can't find FADT or error happened during pa=
-rsing FADT\n");
->>>>>    }
->>>>>
->>>>> +void __init acpi_gic_init(void)
->>>>> +{
->>>>> +    struct acpi_table_header *table;
->>>>> +    acpi_status status;
->>>>> +    acpi_size tbl_size;
->>>>> +    int err;
->>>>> +
->>>>> +    status =3D acpi_get_table_with_size(ACPI_SIG_MADT, 0, &table=
-, &tbl_size);
->>>>> +    if (ACPI_FAILURE(status)) {
->>>>> +            const char *msg =3D acpi_format_exception(status);
->>>>> +
->>>>> +            pr_err("Failed to get MADT table, %s\n", msg);
->>>>> +            return;
->>>>> +    }
->>>>> +
->>>>> +    err =3D gic_v2_acpi_init(table);
->>>>> +    if (err)
->>>>> +            pr_err("Failed to initialize GIC IRQ controller");
->>>> What will happen when you get to implement GICv3 support? Another =
-entry
->>>> like this? Why isn't this entirely contained in the GIC driver? Do=
- I
->>>> sound like a stuck record?
->>> There will be another call to GICv3 init:
->>> [...]
->>>          err =3D gic_v3_acpi_init(table);
->>>          if (err)
->>>                  err =3D gic_v2_acpi_init(table);
->>>          if (err)
->>>                  pr_err("Failed to initialize GIC IRQ controller");
->>> [...]
->>> This is the main reason I put common code here.
->>>
->>>>> +
->>>>> +    early_acpi_os_unmap_memory((char *)table, tbl_size);
->>>>> +}
->>>>> +
->>>>>    /*
->>>>>     * acpi_suspend_lowlevel() - save kernel state and suspend.
->>>>>     *
->>>>> diff --git a/arch/arm64/kernel/irq.c b/arch/arm64/kernel/irq.c
->>>>> index 0f08dfd..c074d60 100644
->>>>> --- a/arch/arm64/kernel/irq.c
->>>>> +++ b/arch/arm64/kernel/irq.c
->>>>> @@ -28,6 +28,7 @@
->>>>>    #include <linux/irqchip.h>
->>>>>    #include <linux/seq_file.h>
->>>>>    #include <linux/ratelimit.h>
->>>>> +#include <linux/irqchip/arm-gic-acpi.h>
->>>>>
->>>>>    unsigned long irq_err_count;
->>>>>
->>>>> @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(=
-struct pt_regs *))
->>>>>    void __init init_IRQ(void)
->>>>>    {
->>>>>       irqchip_init();
->>>>> +
->>>>> +    if (!handle_arch_irq)
->>>>> +            acpi_gic_init();
->>>>> +
->>>> Why isn't this called from irqchip_init? It would seem like the lo=
-gical
->>>> spot to probe an interrupt controller.
->>> irqchip.c is OF dependent, I want to decouple these from the very
->>> beginning.
->> No. irqchip.c is not OF dependent, it is just that DT is the only th=
-ing
->> we support so far. I don't think duplicating the kernel infrastructu=
-re
->> "because we're different" is the right way.
->>
->> There is no reason for your probing structure to be artificially
->> different (you're parsing the same information, at the same time). J=
-ust
->> put in place a similar probing mechanism, and this will look a lot b=
-etter.
->>
->>>>>       if (!handle_arch_irq)
->>>>>               panic("No interrupt controller found.");
->>>>>    }
->>>>> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.=
-c
->>>>> index 4b959e6..85cbf43 100644
->>>>> --- a/drivers/irqchip/irq-gic.c
->>>>> +++ b/drivers/irqchip/irq-gic.c
->>>>> @@ -33,12 +33,14 @@
->>>>>    #include <linux/of.h>
->>>>>    #include <linux/of_address.h>
->>>>>    #include <linux/of_irq.h>
->>>>> +#include <linux/acpi.h>
->>>>>    #include <linux/irqdomain.h>
->>>>>    #include <linux/interrupt.h>
->>>>>    #include <linux/percpu.h>
->>>>>    #include <linux/slab.h>
->>>>>    #include <linux/irqchip/chained_irq.h>
->>>>>    #include <linux/irqchip/arm-gic.h>
->>>>> +#include <linux/irqchip/arm-gic-acpi.h>
->>>>>
->>>>>    #include <asm/cputype.h>
->>>>>    #include <asm/irq.h>
->>>>> @@ -1029,3 +1031,115 @@ IRQCHIP_DECLARE(msm_8660_qgic, "qcom,msm-=
-8660-qgic", gic_of_init);
->>>>>    IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
->>>>>
->>>>>    #endif
->>>>> +
->>>>> +#ifdef CONFIG_ACPI
->>>>> +static u64 dist_phy_base, cpu_phy_base =3D ULONG_MAX;
->>>> Please use phys_addr_t for physical addresses. The use of ULONG_MA=
-X
->>>> looks dodgy. Please have a proper symbol to flag the fact that it =
-hasn't
->>>> been assigned yet.
->>> Sure, will do.
->>>
->>>>> +
->>>>> +static int __init
->>>>> +gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
->>>>> +                    const unsigned long end)
->>>>> +{
->>>>> +    struct acpi_madt_generic_interrupt *processor;
->>>>> +    u64 gic_cpu_base;
->>>> phys_addr_t
->>>>
->>>>> +    processor =3D (struct acpi_madt_generic_interrupt *)header;
->>>>> +
->>>>> +    if (BAD_MADT_ENTRY(processor, end))
->>>>> +            return -EINVAL;
->>>>> +
->>>>> +    gic_cpu_base =3D processor->base_address;
->>>>> +    if (!gic_cpu_base)
->>>>> +            return -EFAULT;
->>>> Is zero an invalid address?
->>> Yeah, good point.
->>>>> +
->>>>> +    /*
->>>>> +     * There is no support for non-banked GICv1/2 register in AC=
-PI spec.
->>>>> +     * All CPU interface addresses have to be the same.
->>>>> +     */
->>>>> +    if (cpu_phy_base !=3D ULONG_MAX && gic_cpu_base !=3D cpu_phy=
-_base)
->>>>> +            return -EFAULT;
->>>>> +
->>>>> +    cpu_phy_base =3D gic_cpu_base;
->>>>> +    return 0;
->>>>> +}
->>>>> +
->>>>> +static int __init
->>>>> +gic_acpi_parse_madt_distributor(struct acpi_subtable_header *hea=
-der,
->>>>> +                            const unsigned long end)
->>>>> +{
->>>>> +    struct acpi_madt_generic_distributor *dist;
->>>>> +
->>>>> +    dist =3D (struct acpi_madt_generic_distributor *)header;
->>>>> +
->>>>> +    if (BAD_MADT_ENTRY(dist, end))
->>>>> +            return -EINVAL;
->>>>> +
->>>>> +    dist_phy_base =3D dist->base_address;
->>>>> +    if (!dist_phy_base)
->>>>> +            return -EFAULT;
->>>> Same question about zero.
->>>>
->>>>> +
->>>>> +    return 0;
->>>>> +}
->>>>> +
->>>>> +int __init
->>>>> +gic_v2_acpi_init(struct acpi_table_header *table)
->>>>> +{
->>>>> +    void __iomem *cpu_base, *dist_base;
->>>>> +    int count;
->>>>> +
->>>>> +    /* Collect CPU base addresses */
->>>>> +    count =3D acpi_parse_entries(sizeof(struct acpi_table_madt),
->>>>> +                               gic_acpi_parse_madt_cpu, table,
->>>>> +                               ACPI_MADT_TYPE_GENERIC_INTERRUPT,
->>>>> +                               ACPI_MAX_GIC_CPU_INTERFACE_ENTRIE=
-S);
->>>>> +    if (count < 0) {
->>>>> +            pr_err("Error during GICC entries parsing\n");
->>>>> +            return -EFAULT;
->>>>> +    } else if (!count) {
->>>>> +            /* No GICC entries provided, use address from MADT h=
-eader */
->>>>> +            struct acpi_table_madt *madt =3D (struct acpi_table_=
-madt *)table;
->>>>> +
->>>>> +            if (!madt->address)
->>>>> +                    return -EFAULT;
->>>>> +
->>>>> +            cpu_phy_base =3D (u64)madt->address;
->>>>> +    }
->>>>> +
->>>>> +    /*
->>>>> +     * Find distributor base address. We expect one distributor =
-entry since
->>>>> +     * ACPI 5.1 spec neither support multi-GIC instances nor GIC=
- cascade.
->>>>> +     */
->>>>> +    count =3D acpi_parse_entries(sizeof(struct acpi_table_madt),
->>>>> +                               gic_acpi_parse_madt_distributor, =
-table,
->>>>> +                               ACPI_MADT_TYPE_GENERIC_DISTRIBUTO=
-R,
->>>>> +                               ACPI_MAX_GIC_DISTRIBUTOR_ENTRIES)=
-;
->>>>> +    if (count <=3D 0) {
->>>>> +            pr_err("Error during GICD entries parsing\n");
->>>>> +            return -EFAULT;
->>>>> +    } else if (count > 1) {
->>>>> +            pr_err("More than one GICD entry detected\n");
->>>>> +            return -EINVAL;
->>>>> +    }
->>>>> +
->>>>> +    cpu_base =3D ioremap(cpu_phy_base, ACPI_GIC_CPU_IF_MEM_SIZE)=
-;
->>>>> +    if (!cpu_base) {
->>>>> +            pr_err("Unable to map GICC registers\n");
->>>>> +            return -ENOMEM;
->>>>> +    }
->>>>> +
->>>>> +    dist_base =3D ioremap(dist_phy_base, ACPI_GIC_DIST_MEM_SIZE)=
-;
->>>>> +    if (!dist_base) {
->>>>> +            pr_err("Unable to map GICD registers\n");
->>>>> +            iounmap(cpu_base);
->>>>> +            return -ENOMEM;
->>>>> +    }
->>>>> +
->>>>> +    /*
->>>>> +     * Initialize zero GIC instance (no multi-GIC support). Also=
-, set GIC
->>>>> +     * as default IRQ domain to allow for GSI registration and G=
-SI to IRQ
->>>>> +     * number translation (see acpi_register_gsi() and acpi_gsi_=
-to_irq()).
->>>>> +     */
->>>>> +    gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
->>>>> +    irq_set_default_host(gic_data[0].domain);
->>>>> +    return 0;
->>>>> +}
->>>>> +#endif
->>>>> diff --git a/include/linux/irqchip/arm-gic-acpi.h b/include/linux=
-/irqchip/arm-gic-acpi.h
->>>>> new file mode 100644
->>>>> index 0000000..ce2ae1a8
->>>>> --- /dev/null
->>>>> +++ b/include/linux/irqchip/arm-gic-acpi.h
->>>>> @@ -0,0 +1,33 @@
->>>>> +/*
->>>>> + * Copyright (C) 2014, Linaro Ltd.
->>>>> + *  Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>>>> + *
->>>>> + * This program is free software; you can redistribute it and/or=
- modify
->>>>> + * it under the terms of the GNU General Public License version =
-2 as
->>>>> + * published by the Free Software Foundation.
->>>>> + */
->>>>> +
->>>>> +#ifndef ARM_GIC_ACPI_H_
->>>>> +#define ARM_GIC_ACPI_H_
->>>>> +
->>>>> +#include <linux/acpi.h>
->>>> Do we need linux/acpi.h here? You could have a separate forward
->>>> declaration of struct acpi_table_header, specially in the light of=
- my
->>>> last remark below.
->>> Indeed, we can do forward declaration instead of #include
->>> <linux/acpi.h>. Thanks!
->>>
->>>>> +
->>>>> +#ifdef CONFIG_ACPI
->>>>> +#define ACPI_MAX_GIC_CPU_INTERFACE_ENTRIES  65535
->>>> With GICv2? I doubt it.
->>> I will create macro for each GIC driver:
->>> #define ACPI_MAX_GICV2_CPU_INTERFACE_ENTRIES    8
->>> #define ACPI_MAX_GICV3_CPU_INTERFACE_ENTRIES    65535
->> Where do you get this value (ACPI_MAX_GICV3_CPU_INTERFACE_ENTRIES) f=
-rom?
->
-> This value is for max processors entries in MADT, and we will use it =
-to scan MADT
-> for SMP/GIC Init, I just make it big enough for GICv3/4. since ACPI c=
-ore will stop
-> scan MADT if the real numbers of processors entries are reached no ma=
-tter
-> how big ACPI_MAX_GICV3_CPU_INTERFACE_ENTRIES is, I think we can just
-> define a number big enough then it will work (x86 and ia64 did the sa=
-me thing).
->
+On Tue, Sep 02, 2014 at 03:42:53PM +0200, Arnd Bergmann wrote:
 
-This is the exact reason I kept mentioning *not to link it with GIC
-architecture* in my previous reviews. It's just *max possible entries i=
-n
-MADT*.
+> The way I recall the discussion, most people were on one extreme
+> side of the discussion or the other:
 
-Regards,
-Sudeep
+> a) We should use _DSD for ARM64 servers to maximize code reuse with
+> DT-enabled drivers, work around the slow UEFI standardization process,
+> remain in control of the actual bindings, and avoid the need for
+> endless per-ID platform-data definitions in drivers.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> b) We should never use _DSD at all, since doing that would have no
+> advantage over using DT directly, and we should force every device
+> manufacturer to specify their bindings in an official ACPI document
+> to prevent random incompatible bindings from being established.
+> Any device that shows up in servers should not need arbitrary detailed
+> properties anyway, as the details are supposed to be hidden in AML.
+
+> I can understand the reasons for both approaches, and I find it hard
+> to say either one is invalid. However, the worst possible outcome in
+> my opinion would be having to support a mix of the two.
+
+Right, and the x86 embedded folks are going full steam ahead with _DSD
+regardless so it seems there will be some systems out there using it
+even if they're not ARM servers.
+
+--s3puAW9DMBtS2ARW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUBe+bAAoJELSic+t+oim9sR8P/3DUB6yHWvKAo+9FV3srXLHz
+Dw5T5OmqTXZY3YBeKsGypAXmJRnI4vAjWGEYK+Z8KKSQLwJW9DVwqpaLjxAfNqg8
+GBtXem6nWghp9bFVvyQNCFMKAFvPCV/zSIABQCGp/959tdKJXK088oOGIl0qfGjD
+NlPCD9P5mXY4h7T1+0lJLz6+xha7lB9cxd1N3jAYTMWpSqXkWYxCuNYo/80ZJorl
+JqNZ1u0FokaUS+TjRk6UDPH9Pe3jdS+T0aNOLykPO7oe0r+DCrS9jeLoQ62UxNcy
+JH/jYpSix1hmximYlIvIhTTzBw0uFXFkjS5sg2WzpQEYqv1vDCuhcO1sfar7EtIB
+0XczMj6Wl/uj/zCp+gglbYlwAoAS7ZXMOrzn7KntKqkvfY6cOhlXzYfk2S8bIPzM
+8vLobNsGrcN4tJu3+N0ZsVIxjq2XrE2AZCarGV90fWRxMQ/H9BWYoOzu3Nez0CFA
+HHLE5o3Oqgr6cZ2etnhTcrLF9PxgyRrG+ZRcayD84zUUIZwtxdELGpnwIIdlQoEs
+glQY+S3/qInLM42nnKaoPA4axdnfzcXRkzbFNMYNM2YJgcYxDKTftX+wNuo4yH28
+GHA/SXUmCxupPq3eaI9QRyp211nI3GJBw4pim1EiMxEjGVXgeEWpXi9aUEQeBf/D
+jKjzSpzSbNBpEVG+GNYB
+=+au5
+-----END PGP SIGNATURE-----
+
+--s3puAW9DMBtS2ARW--
