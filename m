@@ -1,72 +1,78 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [Linaro-acpi] [PATCH v3 1/3] Mailbox: Add support for PCC mailbox
- and channels
-Date: Tue, 2 Sep 2014 16:15:05 -0400
-Message-ID: <CAJ5Y-eakQDGsC8Y=oDsbrm2QAPWZPpAe3P8fMFK+5vH1+hR5xw@mail.gmail.com>
-References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
-	<CAJ5Y-eZVQL-2k1XgfFW1_QZb9G_S2d9YLo3PAH1VytvOhDnd-Q@mail.gmail.com>
-	<CAJ5Y-eb4e9bC99zF0FCA4MF6F3iAoQWfKqbRznckNsTFEoN_5w@mail.gmail.com>
-	<2819816.9eneSBSqnQ@wuerfel>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: Question of " 202317a : ACPI / scan: Add acpi_device objects for all device nodes in the namespace" commit
+Date: Tue, 02 Sep 2014 23:29:45 +0200
+Message-ID: <1936799.NYvsvtc9DH@vostro.rjw.lan>
+References: <54052305.9060308@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:45301 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755200AbaIBUPG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 16:15:06 -0400
-Received: by mail-wg0-f50.google.com with SMTP id x12so7341367wgg.21
-        for <linux-acpi@vger.kernel.org>; Tue, 02 Sep 2014 13:15:05 -0700 (PDT)
-In-Reply-To: <2819816.9eneSBSqnQ@wuerfel>
+Received: from v094114.home.net.pl ([79.96.170.134]:54444 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755193AbaIBVK1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 17:10:27 -0400
+In-Reply-To: <54052305.9060308@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Mark Brown <broonie@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, rafael@kernel.org, linux-acpi@vger.kernel.org
 
-Hi Arnd,
+On Tuesday, September 02, 2014 10:53:09 AM Yasuaki Ishimatsu wrote:
+> Hi Rafael,
 
-On 2 September 2014 15:22, Arnd Bergmann <arnd@arndb.de> wrote:
->> > Suppose we create a platform_device for the PCCT (mailbox controller)
->> > and another one for the PCC client (mailbox client). How should the
->> > PCC client(s) identify the mailbox controller without passing a name?
->> > In DT, the "mboxes" field in the client DT entry is all strings with
->> > mailbox controller names.
->
-> No, it's not a string at all, it's a phandle, which is more like a
-> pointer. We intentionally never match by a global string at all,
-> because those might not be unique.
+Hi,
 
-Ok. With PCC, I dont see a way to do this sort of pointer matching.
+> Why is _SUN method decoded and the sun sysfs created even if _STA reports
+> that the device is not present and not functional?
 
->
->> > The "index" in mbox_request_channel() picks
->> > up one set of strings. How should this work with PCC? Should we use
->> > the PCC client platform_device->dev->platform_data to store mailbox
->> > controller strings?
->
-> I didn't think there was more than one PCC provider, why do you even
-> need a string?
->
-> For the general case in ACPI, there should be a similar way of looking
-> up mailbox providers to what we have in DT, but if I understand you
-> correctly, the PCC specification does not allow that.
+sun sysfs is created for stuff that has _SUN.  It should be empty for devices
+that aren't present, though, apparently.
 
-Right. At least not in a way DT does. PCC clients know if something
-needs to be written/read via PCC mailbox and can identify a PCC
-subspace. (i.e. Mailbox channel). The PCC mailbox is uniquely
-identified/defined in the spec.
+> By this commit, "202317a : ACPI / scan: Add acpi_device objects for all
+> device nodes in the namespace", all device nodes in the namespace are
+> shown under /sys/bus/acpi/devices direcotry even if the devices are not
+> present and not functional.
+> 
+> But ACPI specification says against return value information of _STA:
+> A device can only decode its hardware resources if both bits 0 and 1 are set.
+> If the device is not present (bit 0 cleared) or not enabled (bit 1 cleared),
+> then the device must not decode its resources.
 
-#define ACPI_ADR_SPACE_PLATFORM_COMM    (acpi_adr_space_type) 10
+But _SUN is not about hardware resources, is it?
 
-So we could use this ID instead of a string and use that to look up
-the PCC controller for a PCC client.
+> In my understanding, when the device is not present and not functional,
+> _SUN of the device must not be decoded. Is my understanding worng?
 
->
-> Using platform_data would no be helpful, because there is no platform
-> code to fill that out on ACPI based systems.
+If my understanding of the _INI section of the spec is correct, you have a
+point, but the dependency is rather indirect as far as I can say.  If the
+device is not present, we are not supposed to execute _INI for it and _SUN
+can only be executed after _INI.
 
-Right. So the question is how do we work around the "mbox->dev" and
-"client->dev" expectations in the Mailbox framework for PCC, given
-that these tables aren't backed by "struct devices" ?
+> In our box, when the device is not present and not functional, _SUN method
+> of the device returns wrong value. And the values is cached to
+> acpi_device->pnp.sun. So when hot adding the device and changing _SUN value,
+> the information is not reflected to acpi_device->pnp.sun.
 
-Thanks,
-Ashwin
+I see.
+
+> I think the issue is solved by not caching sun value. But at first, I want
+> to know whether current implementation is correct or not.
+
+No, it isn't, but there are two ways to fix it.
+
+A short term fix would be to evaluate _STA and print an empty string in
+acpi_device_sun_show() if we don't like the return value.  If we do like it,
+evaluate _SUN and print the result.
+
+A long term fix would require us to track the execution of _INI and decide
+what to print on this basis (and probably avoid to execute some other methods
+too if _INI has not been executed).  I'll try to do something along these lines,
+but I can't promise any particular time frame, sorry about that.
+
+KR,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
