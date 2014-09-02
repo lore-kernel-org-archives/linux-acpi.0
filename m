@@ -1,65 +1,59 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/4] acpi-video: Fix use_native_backlight selection logic
-Date: Tue, 02 Sep 2014 23:53:23 +0200
-Message-ID: <1721646.BP8PghqHXN@vostro.rjw.lan>
-References: <1409214048-7331-1-git-send-email-hdegoede@redhat.com>
+Subject: Re: [Linaro-acpi] [RFC PATCH for Juno 1/2] net: smsc911x add support for probing from ACPI
+Date: Wed, 03 Sep 2014 01:00:23 +0200
+Message-ID: <2913007.3xRNb2X4ts@vostro.rjw.lan>
+References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org> <4816592.tj3on6vUaC@wuerfel> <20140902162606.GX29327@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56262 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:61844 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751502AbaIBVeF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 17:34:05 -0400
-In-Reply-To: <1409214048-7331-1-git-send-email-hdegoede@redhat.com>
+	with SMTP id S1755274AbaIBWlG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 18:41:06 -0400
+In-Reply-To: <20140902162606.GX29327@sirena.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Andre =?ISO-8859-1?Q?M=FCller?= <andre.muller@web.de>, Hohahiu <rakothedin@gmail.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org.#.3.16
+To: Mark Brown <broonie@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linaro-acpi@lists.linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <gg@slimlogic.co.uk>, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Darren Hart <dvhart@linux.intel.com>
 
-On Thursday, August 28, 2014 10:20:45 AM Hans de Goede wrote:
-> Commit 751109aad583 ("ACPI / video: Change the default for
-> video.use_native_backlight to 1") has changed the default for
-> use_native_backlight from 0 to 1, but instead of changing
-> use_native_backlight_dmi to true, and leaving use_native_backlight_param at -1,
-> it has changed use_native_backlight_param to 1.
+On Tuesday, September 02, 2014 05:26:06 PM Mark Brown wrote:
 > 
-> This causes acpi_video_use_native_backlight() to always think that a value was
-> specified through the param, making it impossible to add a dmi based quirk
-> to force 0 now that the default is 1.
+> --s3puAW9DMBtS2ARW
+> Content-Type: text/plain; charset=us-ascii
+> Content-Disposition: inline
 > 
-> This fixes this by restoring the use_native_backlight_param default to -1, and
-> instead setting the use_native_backlight_dmi default to true.
+> On Tue, Sep 02, 2014 at 03:42:53PM +0200, Arnd Bergmann wrote:
 > 
-> Cc: stable@vger.kernel.org # 3.16
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> > The way I recall the discussion, most people were on one extreme
+> > side of the discussion or the other:
+> 
+> > a) We should use _DSD for ARM64 servers to maximize code reuse with
+> > DT-enabled drivers, work around the slow UEFI standardization process,
+> > remain in control of the actual bindings, and avoid the need for
+> > endless per-ID platform-data definitions in drivers.
+> 
+> > b) We should never use _DSD at all, since doing that would have no
+> > advantage over using DT directly, and we should force every device
+> > manufacturer to specify their bindings in an official ACPI document
+> > to prevent random incompatible bindings from being established.
+> > Any device that shows up in servers should not need arbitrary detailed
+> > properties anyway, as the details are supposed to be hidden in AML.
+> 
+> > I can understand the reasons for both approaches, and I find it hard
+> > to say either one is invalid. However, the worst possible outcome in
+> > my opinion would be having to support a mix of the two.
+> 
+> Right, and the x86 embedded folks are going full steam ahead with _DSD
+> regardless so it seems there will be some systems out there using it
+> even if they're not ARM servers.
 
-Patches [1-3/4] queued up for 3.17-rc4.  I'll queue up the last one for 3.18
-later.
+Our intention is specifically not to use "random incompatible bindings"
+in that.  We'd rather have a common venue and process for establishing
+new bindings for both DT and _DSD in a compatible way.
 
-Thanks!
+Rafael
 
-> ---
->  drivers/acpi/video.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 8268843..58bcf7a 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -82,9 +82,9 @@ module_param(allow_duplicates, bool, 0644);
->   * For Windows 8 systems: used to decide if video module
->   * should skip registering backlight interface of its own.
->   */
-> -static int use_native_backlight_param = 1;
-> +static int use_native_backlight_param = -1;
->  module_param_named(use_native_backlight, use_native_backlight_param, int, 0444);
-> -static bool use_native_backlight_dmi = false;
-> +static bool use_native_backlight_dmi = true;
->  
->  static int register_count;
->  static struct mutex video_list_lock;
-> 
 
 -- 
 I speak only for myself.
