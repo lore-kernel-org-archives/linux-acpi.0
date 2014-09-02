@@ -1,21 +1,24 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
 Subject: Re: [PATCH v3 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot support
-Date: Tue, 02 Sep 2014 16:59:59 +0100
-Message-ID: <5405E97F.3080207@arm.com>
+Date: Tue, 02 Sep 2014 17:11:50 +0100
+Message-ID: <5405EC46.5000202@arm.com>
 References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-14-git-send-email-hanjun.guo@linaro.org> <5404AE56.80801@arm.com> <5405AE95.1020201@linaro.org> <5405BFE7.5060005@arm.com> <5405E626.4090306@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fw-tnat.austin.arm.com ([217.140.110.23]:39956 "EHLO
-	collaborate-mta1.arm.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754624AbaIBQAI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 12:00:08 -0400
+Received: from service87.mimecast.com ([91.220.42.44]:57864 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753889AbaIBQLH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 12:11:07 -0400
 In-Reply-To: <5405E626.4090306@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linu
+To: Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linu
+
+
 
 On 02/09/14 16:45, Hanjun Guo wrote:
 > On 2014=E5=B9=B409=E6=9C=8802=E6=97=A5 21:02, Marc Zyngier wrote:
@@ -42,14 +45,14 @@ are
 >>>>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 >>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 >>>>> ---
->>>>>   arch/arm64/include/asm/acpi.h        |    2 -
->>>>>   arch/arm64/kernel/acpi.c             |   23 +++++++
->>>>>   arch/arm64/kernel/irq.c              |    5 ++
->>>>>   drivers/irqchip/irq-gic.c            |  114 +++++++++++++++++++=
-+++++++++++++++
->>>>>   include/linux/irqchip/arm-gic-acpi.h |   33 ++++++++++
->>>>>   5 files changed, 175 insertions(+), 2 deletions(-)
->>>>>   create mode 100644 include/linux/irqchip/arm-gic-acpi.h
+>>>>>    arch/arm64/include/asm/acpi.h        |    2 -
+>>>>>    arch/arm64/kernel/acpi.c             |   23 +++++++
+>>>>>    arch/arm64/kernel/irq.c              |    5 ++
+>>>>>    drivers/irqchip/irq-gic.c            |  114 ++++++++++++++++++=
+++++++++++++++++
+>>>>>    include/linux/irqchip/arm-gic-acpi.h |   33 ++++++++++
+>>>>>    5 files changed, 175 insertions(+), 2 deletions(-)
+>>>>>    create mode 100644 include/linux/irqchip/arm-gic-acpi.h
 >>>>>
 >>>>> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/a=
 sm/acpi.h
@@ -57,30 +60,30 @@ sm/acpi.h
 >>>>> --- a/arch/arm64/include/asm/acpi.h
 >>>>> +++ b/arch/arm64/include/asm/acpi.h
 >>>>> @@ -97,8 +97,6 @@ void __init acpi_smp_init_cpus(void);
->>>>>   extern int (*acpi_suspend_lowlevel)(void);
->>>>>   #define acpi_wakeup_address 0
+>>>>>    extern int (*acpi_suspend_lowlevel)(void);
+>>>>>    #define acpi_wakeup_address 0
 >>>>>
 >>>>> -#define ACPI_MAX_GIC_CPU_INTERFACE_ENTRIES 65535
 >>>>> -
->>>>>   #else
+>>>>>    #else
 >>>>>
->>>>>   static inline bool acpi_psci_present(void) { return false; }
+>>>>>    static inline bool acpi_psci_present(void) { return false; }
 >>>>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
 >>>>> index 354b912..b3b82b0 100644
 >>>>> --- a/arch/arm64/kernel/acpi.c
 >>>>> +++ b/arch/arm64/kernel/acpi.c
 >>>>> @@ -23,6 +23,7 @@
->>>>>   #include <linux/irqdomain.h>
->>>>>   #include <linux/bootmem.h>
->>>>>   #include <linux/smp.h>
+>>>>>    #include <linux/irqdomain.h>
+>>>>>    #include <linux/bootmem.h>
+>>>>>    #include <linux/smp.h>
 >>>>> +#include <linux/irqchip/arm-gic-acpi.h>
 >>>>>
->>>>>   #include <asm/cputype.h>
->>>>>   #include <asm/cpu_ops.h>
+>>>>>    #include <asm/cputype.h>
+>>>>>    #include <asm/cpu_ops.h>
 >>>>> @@ -313,6 +314,28 @@ void __init acpi_boot_table_init(void)
->>>>>              pr_err("Can't find FADT or error happened during par=
-sing FADT\n");
->>>>>   }
+>>>>>               pr_err("Can't find FADT or error happened during pa=
+rsing FADT\n");
+>>>>>    }
 >>>>>
 >>>>> +void __init acpi_gic_init(void)
 >>>>> +{
@@ -108,11 +111,11 @@ entry
 >>>> sound like a stuck record?
 >>> There will be another call to GICv3 init:
 >>> [...]
->>>         err =3D gic_v3_acpi_init(table);
->>>         if (err)
->>>                 err =3D gic_v2_acpi_init(table);
->>>         if (err)
->>>                 pr_err("Failed to initialize GIC IRQ controller");
+>>>          err =3D gic_v3_acpi_init(table);
+>>>          if (err)
+>>>                  err =3D gic_v2_acpi_init(table);
+>>>          if (err)
+>>>                  pr_err("Failed to initialize GIC IRQ controller");
 >>> [...]
 >>> This is the main reason I put common code here.
 >>>
@@ -120,26 +123,26 @@ entry
 >>>>> +    early_acpi_os_unmap_memory((char *)table, tbl_size);
 >>>>> +}
 >>>>> +
->>>>>   /*
->>>>>    * acpi_suspend_lowlevel() - save kernel state and suspend.
->>>>>    *
+>>>>>    /*
+>>>>>     * acpi_suspend_lowlevel() - save kernel state and suspend.
+>>>>>     *
 >>>>> diff --git a/arch/arm64/kernel/irq.c b/arch/arm64/kernel/irq.c
 >>>>> index 0f08dfd..c074d60 100644
 >>>>> --- a/arch/arm64/kernel/irq.c
 >>>>> +++ b/arch/arm64/kernel/irq.c
 >>>>> @@ -28,6 +28,7 @@
->>>>>   #include <linux/irqchip.h>
->>>>>   #include <linux/seq_file.h>
->>>>>   #include <linux/ratelimit.h>
+>>>>>    #include <linux/irqchip.h>
+>>>>>    #include <linux/seq_file.h>
+>>>>>    #include <linux/ratelimit.h>
 >>>>> +#include <linux/irqchip/arm-gic-acpi.h>
 >>>>>
->>>>>   unsigned long irq_err_count;
+>>>>>    unsigned long irq_err_count;
 >>>>>
 >>>>> @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(=
 struct pt_regs *))
->>>>>   void __init init_IRQ(void)
->>>>>   {
->>>>>      irqchip_init();
+>>>>>    void __init init_IRQ(void)
+>>>>>    {
+>>>>>       irqchip_init();
 >>>>> +
 >>>>> +    if (!handle_arch_irq)
 >>>>> +            acpi_gic_init();
@@ -161,34 +164,34 @@ ust
 >> put in place a similar probing mechanism, and this will look a lot b=
 etter.
 >>
->>>>>      if (!handle_arch_irq)
->>>>>              panic("No interrupt controller found.");
->>>>>   }
+>>>>>       if (!handle_arch_irq)
+>>>>>               panic("No interrupt controller found.");
+>>>>>    }
 >>>>> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.=
 c
 >>>>> index 4b959e6..85cbf43 100644
 >>>>> --- a/drivers/irqchip/irq-gic.c
 >>>>> +++ b/drivers/irqchip/irq-gic.c
 >>>>> @@ -33,12 +33,14 @@
->>>>>   #include <linux/of.h>
->>>>>   #include <linux/of_address.h>
->>>>>   #include <linux/of_irq.h>
+>>>>>    #include <linux/of.h>
+>>>>>    #include <linux/of_address.h>
+>>>>>    #include <linux/of_irq.h>
 >>>>> +#include <linux/acpi.h>
->>>>>   #include <linux/irqdomain.h>
->>>>>   #include <linux/interrupt.h>
->>>>>   #include <linux/percpu.h>
->>>>>   #include <linux/slab.h>
->>>>>   #include <linux/irqchip/chained_irq.h>
->>>>>   #include <linux/irqchip/arm-gic.h>
+>>>>>    #include <linux/irqdomain.h>
+>>>>>    #include <linux/interrupt.h>
+>>>>>    #include <linux/percpu.h>
+>>>>>    #include <linux/slab.h>
+>>>>>    #include <linux/irqchip/chained_irq.h>
+>>>>>    #include <linux/irqchip/arm-gic.h>
 >>>>> +#include <linux/irqchip/arm-gic-acpi.h>
 >>>>>
->>>>>   #include <asm/cputype.h>
->>>>>   #include <asm/irq.h>
+>>>>>    #include <asm/cputype.h>
+>>>>>    #include <asm/irq.h>
 >>>>> @@ -1029,3 +1031,115 @@ IRQCHIP_DECLARE(msm_8660_qgic, "qcom,msm-=
 8660-qgic", gic_of_init);
->>>>>   IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
+>>>>>    IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
 >>>>>
->>>>>   #endif
+>>>>>    #endif
 >>>>> +
 >>>>> +#ifdef CONFIG_ACPI
 >>>>> +static u64 dist_phy_base, cpu_phy_base =3D ULONG_MAX;
@@ -367,7 +370,7 @@ to_irq()).
 >>> #define ACPI_MAX_GICV3_CPU_INTERFACE_ENTRIES    65535
 >> Where do you get this value (ACPI_MAX_GICV3_CPU_INTERFACE_ENTRIES) f=
 rom?
->=20
+>
 > This value is for max processors entries in MADT, and we will use it =
 to scan MADT
 > for SMP/GIC Init, I just make it big enough for GICv3/4. since ACPI c=
@@ -377,15 +380,16 @@ tter
 > how big ACPI_MAX_GICV3_CPU_INTERFACE_ENTRIES is, I think we can just
 > define a number big enough then it will work (x86 and ia64 did the sa=
 me thing).
+>
 
-Then it is worth mentioning that this is an arbitrary limit, unrelated
-to what the architecture describes.
+This is the exact reason I kept mentioning *not to link it with GIC
+architecture* in my previous reviews. It's just *max possible entries i=
+n
+MADT*.
 
-Thanks,
+Regards,
+Sudeep
 
-	M.
---=20
-Jazz is not dead. It just smells funny...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
