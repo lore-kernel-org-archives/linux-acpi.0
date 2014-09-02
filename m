@@ -1,47 +1,79 @@
-From: Alexander Spyridakis <a.spyridakis@virtualopensystems.com>
-Subject: Re: [Linaro-acpi] [PATCH v3 13/17] ARM64 / ACPI: Add GICv2 specific
- ACPI boot support
-Date: Tue, 2 Sep 2014 10:28:00 +0200
-Message-ID: <CAJRNFKKziDydj_HFPam6e+FSZr6D3XPUQ+-iuH0a1Bbh3+Kz3A@mail.gmail.com>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
-	<1409583475-6978-14-git-send-email-hanjun.guo@linaro.org>
-	<5404AE56.80801@arm.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 2/4] ACPI / LPSS: drop clkdev_name member from
+ lpss_device_desc
+Date: Tue, 02 Sep 2014 11:43:16 +0300
+Message-ID: <1409647396.30155.69.camel@linux.intel.com>
+References: <1409644510-26397-1-git-send-email-heikki.krogerus@linux.intel.com>
+	 <1409644510-26397-3-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f48.google.com ([209.85.216.48]:34352 "EHLO
-	mail-qa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751503AbaIBI2E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 04:28:04 -0400
-Received: by mail-qa0-f48.google.com with SMTP id m5so6004553qaj.35
-        for <linux-acpi@vger.kernel.org>; Tue, 02 Sep 2014 01:28:02 -0700 (PDT)
-In-Reply-To: <5404AE56.80801@arm.com>
+Received: from mga14.intel.com ([192.55.52.115]:30200 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751503AbaIBInT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Sep 2014 04:43:19 -0400
+In-Reply-To: <1409644510-26397-3-git-send-email-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Liviu Dudau <Liviu.Dudau@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Olof Johansson <olof@lixom.net>
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
 
-On 1 September 2014 19:35, Marc Zyngier <marc.zyngier@arm.com> wrote:
->
-> On 01/09/14 15:57, Hanjun Guo wrote:
-> > From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> >
-> > ACPI kernel uses MADT table for proper GIC initialization. It needs to
-> > parse GIC related subtables, collect CPU interface and distributor
-> > addresses and call driver initialization function (which is hardware
-> > abstraction agnostic). In a similar way, FDT initialize GICv1/2.
-> >
-> > NOTE: This commit allow to initialize GICv1/2 only.
->
-> I cannot help but notice that there is no support for KVM here. It'd be
-> good to add a note to that effect, so that people do not expect
-> virtualization support to be working when booting with ACPI.
+On Tue, 2014-09-02 at 10:55 +0300, Heikki Krogerus wrote:
+> It was used to provide the correct con_id for the dma
+> driver, but it's not needed. Even if the driver requests a
+> clock with the con_id, it still gets the correct clock. The
 
-Just a heads up for this, I run up to this problem too while testing
-and by forcing some values for vgic and arch_timers I could boot a
-QEMU guest without problems.
+Maybe with -> without?
 
-I'll try and see if it will be easy to handle this more properly
-instead of hardcoded values.
+> device name is enough to match a single clock.
 
-Regards.
+Since it affects DW DMA driver
+Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+> 
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> ---
+>  drivers/acpi/acpi_lpss.c | 9 +--------
+>  1 file changed, 1 insertion(+), 8 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index 4723a0e..db3498b 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -70,7 +70,6 @@ struct lpss_shared_clock {
+>  struct lpss_private_data;
+>  
+>  struct lpss_device_desc {
+> -	const char *clkdev_name;
+>  	unsigned int flags;
+>  	unsigned int prv_offset;
+>  	size_t prv_size_override;
+> @@ -79,7 +78,6 @@ struct lpss_device_desc {
+>  };
+>  
+>  static struct lpss_device_desc lpss_dma_desc = {
+> -	.clkdev_name = "hclk",
+>  	.flags = LPSS_CLK,
+>  };
+>  
+> @@ -268,12 +266,7 @@ static int register_device_clock(struct acpi_device *adev,
+>  	clk_data = platform_get_drvdata(lpss_clk_dev);
+>  	if (!clk_data)
+>  		return -ENODEV;
+> -
+> -	if (dev_desc->clkdev_name) {
+> -		clk_register_clkdev(clk_data->clk, dev_desc->clkdev_name,
+> -				    devname);
+> -		return 0;
+> -	}
+> +	clk = clk_data->clk;
+>  
+>  	if (!pdata->mmio_base
+>  	    || pdata->mmio_size < dev_desc->prv_offset + LPSS_CLK_SIZE)
+
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
+
