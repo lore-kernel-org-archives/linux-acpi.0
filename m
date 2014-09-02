@@ -1,77 +1,54 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Question of " 202317a : ACPI / scan: Add acpi_device objects for all device nodes in the namespace" commit
-Date: Tue, 02 Sep 2014 23:29:45 +0200
-Message-ID: <1936799.NYvsvtc9DH@vostro.rjw.lan>
-References: <54052305.9060308@jp.fujitsu.com>
+Subject: Re: [PATCH] ACPI/EC: Add msi quirk for Clevo W350etq
+Date: Tue, 02 Sep 2014 23:52:10 +0200
+Message-ID: <1789359.lgutrb7SVa@vostro.rjw.lan>
+References: <1409280608-19714-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54444 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:61517 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755193AbaIBVK1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 17:10:27 -0400
-In-Reply-To: <54052305.9060308@jp.fujitsu.com>
+	with SMTP id S1755153AbaIBVcw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 17:32:52 -0400
+In-Reply-To: <1409280608-19714-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, rafael@kernel.org, linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: lenb@kernel.org, qbanin@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, September 02, 2014 10:53:09 AM Yasuaki Ishimatsu wrote:
-> Hi Rafael,
-
-Hi,
-
-> Why is _SUN method decoded and the sun sysfs created even if _STA reports
-> that the device is not present and not functional?
-
-sun sysfs is created for stuff that has _SUN.  It should be empty for devices
-that aren't present, though, apparently.
-
-> By this commit, "202317a : ACPI / scan: Add acpi_device objects for all
-> device nodes in the namespace", all device nodes in the namespace are
-> shown under /sys/bus/acpi/devices direcotry even if the devices are not
-> present and not functional.
+On Friday, August 29, 2014 10:50:08 AM Lan Tianyu wrote:
+> Clevo W350etq's EC will not produce GPE interrupt some time after
+> booting. The ACPI notify event won't trigger when the issue takes
+> place. After debugging, adding msi quirk for the machine can fix
+> the issue. This patch is to add msi quirk for the machine.
 > 
-> But ACPI specification says against return value information of _STA:
-> A device can only decode its hardware resources if both bits 0 and 1 are set.
-> If the device is not present (bit 0 cleared) or not enabled (bit 1 cleared),
-> then the device must not decode its resources.
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=77431
+> Reported-and-tested-by: qbanin@gmail.com
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 
-But _SUN is not about hardware resources, is it?
+Queued up for 3.17-rc4, thanks!
 
-> In my understanding, when the device is not present and not functional,
-> _SUN of the device must not be decoded. Is my understanding worng?
-
-If my understanding of the _INI section of the spec is correct, you have a
-point, but the dependency is rather indirect as far as I can say.  If the
-device is not present, we are not supposed to execute _INI for it and _SUN
-can only be executed after _INI.
-
-> In our box, when the device is not present and not functional, _SUN method
-> of the device returns wrong value. And the values is cached to
-> acpi_device->pnp.sun. So when hot adding the device and changing _SUN value,
-> the information is not reflected to acpi_device->pnp.sun.
-
-I see.
-
-> I think the issue is solved by not caching sun value. But at first, I want
-> to know whether current implementation is correct or not.
-
-No, it isn't, but there are two ways to fix it.
-
-A short term fix would be to evaluate _STA and print an empty string in
-acpi_device_sun_show() if we don't like the return value.  If we do like it,
-evaluate _SUN and print the result.
-
-A long term fix would require us to track the execution of _INI and decide
-what to print on this basis (and probably avoid to execute some other methods
-too if _INI has not been executed).  I'll try to do something along these lines,
-but I can't promise any particular time frame, sorry about that.
-
-KR,
-Rafael
-
+> ---
+>  drivers/acpi/ec.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index a66ab65..d8535b3 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -1015,6 +1015,10 @@ static struct dmi_system_id ec_dmi_table[] __initdata = {
+>  	DMI_MATCH(DMI_SYS_VENDOR, "Quanta"),
+>  	DMI_MATCH(DMI_PRODUCT_NAME, "TW9/SW9"),}, NULL},
+>  	{
+> +	ec_flag_msi, "Clevo W350etq", {
+> +	DMI_MATCH(DMI_SYS_VENDOR, "CLEVO CO."),
+> +	DMI_MATCH(DMI_PRODUCT_NAME, "W35_37ET"),}, NULL},
+> +	{
+>  	ec_validate_ecdt, "ASUS hardware", {
+>  	DMI_MATCH(DMI_BIOS_VENDOR, "ASUS") }, NULL},
+>  	{
+> 
 
 -- 
 I speak only for myself.
