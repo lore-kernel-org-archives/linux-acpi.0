@@ -1,39 +1,82 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 1/6] ACPICA: Add _PSx names to the METHOD_NAME list.
-Date: Tue,  2 Sep 2014 08:27:05 +0800
-Message-ID: <26e5b831a8416d5b1f5de35f8e8ea32892ed6d04.1409617516.git.lv.zheng@intel.com>
+Subject: [PATCH 5/6] ACPICA: ACPI 5.1: Add support for runtime validation of _DSD package.
+Date: Tue,  2 Sep 2014 08:27:33 +0800
+Message-ID: <b4aeef74be48f34e44ff898c542436f55c77d717.1409617516.git.lv.zheng@intel.com>
 References: <cover.1409617516.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:61283 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752920AbaIBA1j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Sep 2014 20:27:39 -0400
 In-Reply-To: <cover.1409617516.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Bob Moore <robert.moore@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Will be used by iASL.
+Adds ACPICA kernel runtime support to validate contents/format
+of the _DSD package, similar to the iASL support. Ported by
+Mika Westerberg.
 
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/acnames.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/acpica/nsprepkg.c |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/include/acpi/acnames.h b/include/acpi/acnames.h
-index c728113..f97804b 100644
---- a/include/acpi/acnames.h
-+++ b/include/acpi/acnames.h
-@@ -59,6 +59,10 @@
- #define METHOD_NAME__PRS        "_PRS"
- #define METHOD_NAME__PRT        "_PRT"
- #define METHOD_NAME__PRW        "_PRW"
-+#define METHOD_NAME__PS0        "_PS0"
-+#define METHOD_NAME__PS1        "_PS1"
-+#define METHOD_NAME__PS2        "_PS2"
-+#define METHOD_NAME__PS3        "_PS3"
- #define METHOD_NAME__REG        "_REG"
- #define METHOD_NAME__SB_        "_SB_"
- #define METHOD_NAME__SEG        "_SEG"
+diff --git a/drivers/acpi/acpica/nsprepkg.c b/drivers/acpi/acpica/nsprepkg.c
+index 68f7258..1b13b92 100644
+--- a/drivers/acpi/acpica/nsprepkg.c
++++ b/drivers/acpi/acpica/nsprepkg.c
+@@ -316,6 +316,45 @@ acpi_ns_check_package(struct acpi_evaluate_info *info,
+ 		    acpi_ns_check_package_list(info, package, elements, count);
+ 		break;
+ 
++	case ACPI_PTYPE2_UUID_PAIR:
++
++		/* The package must contain pairs of (UUID + type) */
++
++		if (count & 1) {
++			expected_count = count + 1;
++			goto package_too_small;
++		}
++
++		while (count > 0) {
++			status = acpi_ns_check_object_type(info, elements,
++							   package->ret_info.
++							   object_type1, 0);
++			if (ACPI_FAILURE(status)) {
++				return (status);
++			}
++
++			/* Validate length of the UUID buffer */
++
++			if ((*elements)->buffer.length != 16) {
++				ACPI_WARN_PREDEFINED((AE_INFO,
++						      info->full_pathname,
++						      info->node_flags,
++						      "Invalid length for UUID Buffer"));
++				return (AE_AML_OPERAND_VALUE);
++			}
++
++			status = acpi_ns_check_object_type(info, elements + 1,
++							   package->ret_info.
++							   object_type2, 0);
++			if (ACPI_FAILURE(status)) {
++				return (status);
++			}
++
++			elements += 2;
++			count -= 2;
++		}
++		break;
++
+ 	default:
+ 
+ 		/* Should not get here if predefined info table is correct */
 -- 
 1.7.10
+
