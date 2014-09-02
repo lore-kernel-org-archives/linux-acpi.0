@@ -1,77 +1,45 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [Linaro-acpi] [RFC PATCH for Juno 1/2] net: smsc911x add support
- for probing from ACPI
-Date: Tue, 2 Sep 2014 17:26:06 +0100
-Message-ID: <20140902162606.GX29327@sirena.org.uk>
-References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org>
- <20140901173245.GM2953@xora-haswell.xora.org.uk>
- <20140902132651.GF27056@arm.com>
- <4816592.tj3on6vUaC@wuerfel>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v3 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot
+ support
+Date: Tue, 2 Sep 2014 17:34:14 +0100
+Message-ID: <20140902163414.GJ27056@arm.com>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
+ <1409583475-6978-14-git-send-email-hanjun.guo@linaro.org>
+ <5404AE56.80801@arm.com>
+ <5405AE95.1020201@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="s3puAW9DMBtS2ARW"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:46753 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751666AbaIBQ1N (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 12:27:13 -0400
+Received: from fw-tnat.austin.arm.com ([217.140.110.23]:11531 "EHLO
+	collaborate-mta1.arm.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754468AbaIBQe2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 12:34:28 -0400
 Content-Disposition: inline
-In-Reply-To: <4816592.tj3on6vUaC@wuerfel>
+In-Reply-To: <5405AE95.1020201@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linaro-acpi@lists.linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <gg@slimlogic.co.uk>, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Olof Johansson <olof@lixom.net>
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: Marc Zyngier <Marc.Zyngier@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linux
 
+On Tue, Sep 02, 2014 at 12:48:37PM +0100, Tomasz Nowicki wrote:
+> On 01.09.2014 19:35, Marc Zyngier wrote:
+> > On 01/09/14 15:57, Hanjun Guo wrote:
+> >> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> >>
+> >> ACPI kernel uses MADT table for proper GIC initialization. It needs to
+> >> parse GIC related subtables, collect CPU interface and distributor
+> >> addresses and call driver initialization function (which is hardware
+> >> abstraction agnostic). In a similar way, FDT initialize GICv1/2.
+> >>
+> >> NOTE: This commit allow to initialize GICv1/2 only.
+> >
+> > I cannot help but notice that there is no support for KVM here. It'd be
+> > good to add a note to that effect, so that people do not expect
+> > virtualization support to be working when booting with ACPI.
+> 
+> yes, it is worth mentioning!
 
---s3puAW9DMBtS2ARW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+It's also worth mentioning if there are any plans to fix this ;).
 
-On Tue, Sep 02, 2014 at 03:42:53PM +0200, Arnd Bergmann wrote:
-
-> The way I recall the discussion, most people were on one extreme
-> side of the discussion or the other:
-
-> a) We should use _DSD for ARM64 servers to maximize code reuse with
-> DT-enabled drivers, work around the slow UEFI standardization process,
-> remain in control of the actual bindings, and avoid the need for
-> endless per-ID platform-data definitions in drivers.
-
-> b) We should never use _DSD at all, since doing that would have no
-> advantage over using DT directly, and we should force every device
-> manufacturer to specify their bindings in an official ACPI document
-> to prevent random incompatible bindings from being established.
-> Any device that shows up in servers should not need arbitrary detailed
-> properties anyway, as the details are supposed to be hidden in AML.
-
-> I can understand the reasons for both approaches, and I find it hard
-> to say either one is invalid. However, the worst possible outcome in
-> my opinion would be having to support a mix of the two.
-
-Right, and the x86 embedded folks are going full steam ahead with _DSD
-regardless so it seems there will be some systems out there using it
-even if they're not ARM servers.
-
---s3puAW9DMBtS2ARW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJUBe+bAAoJELSic+t+oim9sR8P/3DUB6yHWvKAo+9FV3srXLHz
-Dw5T5OmqTXZY3YBeKsGypAXmJRnI4vAjWGEYK+Z8KKSQLwJW9DVwqpaLjxAfNqg8
-GBtXem6nWghp9bFVvyQNCFMKAFvPCV/zSIABQCGp/959tdKJXK088oOGIl0qfGjD
-NlPCD9P5mXY4h7T1+0lJLz6+xha7lB9cxd1N3jAYTMWpSqXkWYxCuNYo/80ZJorl
-JqNZ1u0FokaUS+TjRk6UDPH9Pe3jdS+T0aNOLykPO7oe0r+DCrS9jeLoQ62UxNcy
-JH/jYpSix1hmximYlIvIhTTzBw0uFXFkjS5sg2WzpQEYqv1vDCuhcO1sfar7EtIB
-0XczMj6Wl/uj/zCp+gglbYlwAoAS7ZXMOrzn7KntKqkvfY6cOhlXzYfk2S8bIPzM
-8vLobNsGrcN4tJu3+N0ZsVIxjq2XrE2AZCarGV90fWRxMQ/H9BWYoOzu3Nez0CFA
-HHLE5o3Oqgr6cZ2etnhTcrLF9PxgyRrG+ZRcayD84zUUIZwtxdELGpnwIIdlQoEs
-glQY+S3/qInLM42nnKaoPA4axdnfzcXRkzbFNMYNM2YJgcYxDKTftX+wNuo4yH28
-GHA/SXUmCxupPq3eaI9QRyp211nI3GJBw4pim1EiMxEjGVXgeEWpXi9aUEQeBf/D
-jKjzSpzSbNBpEVG+GNYB
-=+au5
------END PGP SIGNATURE-----
-
---s3puAW9DMBtS2ARW--
+-- 
+Catalin
