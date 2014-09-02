@@ -1,60 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Linaro-acpi] [RFC PATCH for Juno 1/2] net: smsc911x add support for probing from ACPI
-Date: Wed, 03 Sep 2014 01:00:23 +0200
-Message-ID: <2913007.3xRNb2X4ts@vostro.rjw.lan>
-References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org> <4816592.tj3on6vUaC@wuerfel> <20140902162606.GX29327@sirena.org.uk>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [Linaro-acpi] [PATCH v3 1/3] Mailbox: Add support for PCC
+ mailbox and channels
+Date: Wed, 3 Sep 2014 00:03:31 +0100
+Message-ID: <20140902230331.GF29327@sirena.org.uk>
+References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
+ <CAJ5Y-eZVQL-2k1XgfFW1_QZb9G_S2d9YLo3PAH1VytvOhDnd-Q@mail.gmail.com>
+ <CAJ5Y-eb4e9bC99zF0FCA4MF6F3iAoQWfKqbRznckNsTFEoN_5w@mail.gmail.com>
+ <2819816.9eneSBSqnQ@wuerfel>
+ <CAJ5Y-eakQDGsC8Y=oDsbrm2QAPWZPpAe3P8fMFK+5vH1+hR5xw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ou2/pFdZC1wHLsdF"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61844 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755274AbaIBWlG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 18:41:06 -0400
-In-Reply-To: <20140902162606.GX29327@sirena.org.uk>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:47133 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752046AbaIBXDq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 19:03:46 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJ5Y-eakQDGsC8Y=oDsbrm2QAPWZPpAe3P8fMFK+5vH1+hR5xw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linaro-acpi@lists.linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Graeme Gregory <gg@slimlogic.co.uk>, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Darren Hart <dvhart@linux.intel.com>
-
-On Tuesday, September 02, 2014 05:26:06 PM Mark Brown wrote:
-> 
-> --s3puAW9DMBtS2ARW
-> Content-Type: text/plain; charset=us-ascii
-> Content-Disposition: inline
-> 
-> On Tue, Sep 02, 2014 at 03:42:53PM +0200, Arnd Bergmann wrote:
-> 
-> > The way I recall the discussion, most people were on one extreme
-> > side of the discussion or the other:
-> 
-> > a) We should use _DSD for ARM64 servers to maximize code reuse with
-> > DT-enabled drivers, work around the slow UEFI standardization process,
-> > remain in control of the actual bindings, and avoid the need for
-> > endless per-ID platform-data definitions in drivers.
-> 
-> > b) We should never use _DSD at all, since doing that would have no
-> > advantage over using DT directly, and we should force every device
-> > manufacturer to specify their bindings in an official ACPI document
-> > to prevent random incompatible bindings from being established.
-> > Any device that shows up in servers should not need arbitrary detailed
-> > properties anyway, as the details are supposed to be hidden in AML.
-> 
-> > I can understand the reasons for both approaches, and I find it hard
-> > to say either one is invalid. However, the worst possible outcome in
-> > my opinion would be having to support a mix of the two.
-> 
-> Right, and the x86 embedded folks are going full steam ahead with _DSD
-> regardless so it seems there will be some systems out there using it
-> even if they're not ARM servers.
-
-Our intention is specifically not to use "random incompatible bindings"
-in that.  We'd rather have a common venue and process for establishing
-new bindings for both DT and _DSD in a compatible way.
-
-Rafael
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--ou2/pFdZC1wHLsdF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Sep 02, 2014 at 04:15:05PM -0400, Ashwin Chaugule wrote:
+
+> > Using platform_data would no be helpful, because there is no platform
+> > code to fill that out on ACPI based systems.
+
+> Right. So the question is how do we work around the "mbox->dev" and
+> "client->dev" expectations in the Mailbox framework for PCC, given
+> that these tables aren't backed by "struct devices" ?
+
+As previously suggested just looking things up in the context of a
+device created to represent the PCC controller seems fine; clients know
+they're using PCC so can just call a PCC specific API which hides the
+mechanics from them (for example, using a global variable to store the
+device).
+
+--ou2/pFdZC1wHLsdF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUBkzAAAoJELSic+t+oim97F0P/iUhd01NfTKqhM8LWUBTzWdB
+FztL2a1Kk+KAOtHtlpHPHyhB2jauDod392RFoo+BFOmJ9lnNKt21TKyWTeI49GuN
+RjRgCjxIi3QELheQb3+E7/e0k1NHXEBdHXu7nkBvcm+oP3P+E3umQRlhq7AhgjRe
+helHB84+5cV6DUQvbwPS4FlCL/v9mUpyKZP3tD1L3ICC/n/70zk6f876EnSAWLVn
+zY3jpWIXlb7BZ1Kvdaeajgri9l1js4NomgTDR6rqi+rTA2e4pcljyVsfQSR4l71B
+fN28mwmuK3ks1IGRgjPJkXYN/POjsKXCSiGYodTV7W56TeV4RTSA4/udE8vjne8J
+iY48Qi2XrGhua6/AxWUr/bSxwqsuOA2AqEujRIVEds7jHOpmGvYL1M/8yLu7SrRx
+3KC6HZctbf5Rtie3VYr2Tq8W5M7C85dcBEcxjF/3b4XU2sSZKPhrMrDQ7ex/9uEH
+h1E++abMQARix2DXYTWkMzVetKFQ/EdBwKXjG+0Ej5kBbW4+WAUelNrv6ytr6usw
+Ai6AudOsKI4AyPqBLdW5yllqNaLqaljCppZpYu4Fu6qcIIwqBH8+rP2AK4TAAgOO
+9uoWiVn9VeWMc2pkFJ1KLmtGYWjE9JEYMyVuH5v9GVHB59InnQQMc6alpRv+9wMu
+0UnIZJN0bN+Mg0V6/uAV
+=m5Oq
+-----END PGP SIGNATURE-----
+
+--ou2/pFdZC1wHLsdF--
