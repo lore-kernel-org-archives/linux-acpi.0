@@ -1,88 +1,295 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH v3 1/3] Mailbox: Add support for PCC mailbox and channels
-Date: Tue, 2 Sep 2014 14:16:42 -0400
-Message-ID: <CAJ5Y-eb4e9bC99zF0FCA4MF6F3iAoQWfKqbRznckNsTFEoN_5w@mail.gmail.com>
-References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
-	<CAJ5Y-eak9A14z3im_5sgvnqMQDRf5rNgcQNGwDV2aYh_POkLOA@mail.gmail.com>
-	<20140827190902.GR17528@sirena.org.uk>
-	<2961329.Rr1sZlGzgn@wuerfel>
-	<20140828101500.GM17528@sirena.org.uk>
-	<CAJ5Y-eZVQL-2k1XgfFW1_QZb9G_S2d9YLo3PAH1VytvOhDnd-Q@mail.gmail.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH v2 2/9] PM / Domains: Add generic OF-based power domain look-up
+Date: Tue, 2 Sep 2014 20:28:08 +0200
+Message-ID: <CAMuHMdWJ3kPE8=OAc=YV5iD=zDUaGMn6GH60g3dZzKLYLiJnww@mail.gmail.com>
+References: <1409215142-8218-1-git-send-email-ulf.hansson@linaro.org>
+	<1409215142-8218-3-git-send-email-ulf.hansson@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:41194 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754710AbaIBSQn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 14:16:43 -0400
-Received: by mail-wi0-f171.google.com with SMTP id hi2so14831457wib.16
-        for <linux-acpi@vger.kernel.org>; Tue, 02 Sep 2014 11:16:42 -0700 (PDT)
-In-Reply-To: <CAJ5Y-eZVQL-2k1XgfFW1_QZb9G_S2d9YLo3PAH1VytvOhDnd-Q@mail.gmail.com>
+Received: from mail-la0-f42.google.com ([209.85.215.42]:35937 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750954AbaIBS2L (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Sep 2014 14:28:11 -0400
+In-Reply-To: <1409215142-8218-3-git-send-email-ulf.hansson@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux acpi <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Ulf Hansson <ulf.hansson@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PM list <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>
 
-Hi Mark, Arnd,
+Hi Ulf, Tomasz,
 
-On 28 August 2014 16:34, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
-> On 28 August 2014 06:15, Mark Brown <broonie@kernel.org> wrote:
->> On Thu, Aug 28, 2014 at 10:39:01AM +0200, Arnd Bergmann wrote:
->>> On Wednesday 27 August 2014 20:09:02 Mark Brown wrote:
->>
->>> > That certainly looks like what it's doing.  Probably also make the name
->>> > that gets passed in const while you're at it.
->>
->>> The mailbox API intentionally does not have an interface for
->>> that: you are supposed to get a reference to an mbox controller
->>> from a phandle or similar, not by knowing the name of the controller.
->>
->> Right, and what he's trying to work around here is that ACPI has chosen
->> to provide a generic binding for some mailboxes which isn't associated
->> with anything we represent as a device and he doesn't want to provide
->> that device as a Linux virtual thing.
+On Thu, Aug 28, 2014 at 10:38 AM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+> From: Tomasz Figa <t.figa@samsung.com>
 >
-> Just the idea of a table as a device, when it doesn't do any power
-> management, hotplug or anything like a device seemed strange. But I'm
-> open to ideas if we find a good solution. Its highly possible that I'm
-> not seeing it the way you are because the driver subsystem internals
-> are fairly new to me. :)
->
-> Suppose we create a platform_device for the PCCT (mailbox controller)
-> and another one for the PCC client (mailbox client). How should the
-> PCC client(s) identify the mailbox controller without passing a name?
-> In DT, the "mboxes" field in the client DT entry is all strings with
-> mailbox controller names. The "index" in mbox_request_channel() picks
-> up one set of strings. How should this work with PCC? Should we use
-> the PCC client platform_device->dev->platform_data to store mailbox
-> controller strings?
->
->>
->>> Unfortunately, the three patches that Ashwin posted don't have a
->>> caller for this function, so I don't know what it's actually used for.
->>> Why do we need this function for pcc, and what are the names that
->>> can be passed here?
->>
->> AFAICT the names he's interested in will be defined by the ACPI specs.
->> It does seem like we should be providing a device for the controller and
->> then either using references in ACPI to look it up if they exist or a
->> lookup function for this particular namespace that goes and fetches the
->> device we created and looks up in its context.
->
-> What is the comparison in this lookup function? A string or a struct
-> device pointer? If it is the latter, how does the client get the
-> reference to the controller struct device? One way would be to
-> register the PCCT as a platform_device and the PCC client as its
-> platform_driver. But I think that will restrict the number of PCC
-> clients to who ever matches first. I suspect this is not what you're
-> implying, so I'd appreciate some more help.
+> This patch introduces generic code to perform power domain look-up using
 
+Should "power domain" be replaced by "PM domain" here (and everywhere else
+in this patch), too, cfr. Rafael's earlier comment?
 
-I dont see a way to create a lookup table for PCC without storing the
-name of the controller somewhere. The suggestion of creating a
-platform device for the controller and client led to restricting only
-one client to the controller. Can you please suggest how to move this
-forward?
+> +++ b/Documentation/devicetree/bindings/power/power_domain.txt
+> @@ -0,0 +1,51 @@
+> +* Generic power domains
+> +
+> +System on chip designs are often divided into multiple power domains that
+> +can be used for power gating of selected IP blocks for power saving by
+> +reduced leakage current.
+> +
+> +This device tree binding can be used to bind power domain consumer devices
+> +with their power domains provided by power domain providers. A power domain
+> +provider can be represented by any node in the device tree and can provide
+> +one or more power domains. A consumer node can refer to the provider by
+> +a phandle and a set of phandle arguments (so called power domain specifier)
 
-Thanks,
-Ashwin
+specifiers
+
+> +of length specified by #power-domain-cells property in the power domain
+
+the #power-domain-cells property
+
+> +provider node.
+> +
+> +==Power domain providers==
+> +
+> +Required properties:
+> + - #power-domain-cells : Number of cells in a power domain specifier;
+> +   Typically 0 for nodes representing a single power domain and 1 for nodes
+> +   providing multiple power domains (e.g. power controllers), but can be
+> +   any value as specified by device tree binding documentation of particular
+> +   provider.
+> +
+> +Example:
+> +
+> +       power: power-controller@12340000 {
+> +               compatible = "foo,power-controller";
+> +               reg = <0x12340000 0x1000>;
+> +               #power-domain-cells = <1>;
+> +       };
+> +
+> +The node above defines a power controller that is a power domain provider
+> +and expects one cell as its phandle argument.
+> +
+> +==Power domain consumers==
+> +
+> +Required properties:
+> + - power-domains : A phandle and power domain specifier as defined by bindings
+> +                   of power controller specified by phandle.
+
+the power controller
+
+> +
+> +Example:
+> +
+> +       leaky-device@12350000 {
+> +               compatible = "foo,i-leak-current";
+> +               reg = <0x12350000 0x1000>;
+> +               power-domains = <&power 0>;
+> +       };
+> +
+> +The node above defines a typical power domain consumer device, which is located
+> +inside power domain with index 0 of power controller represented by node with
+
+the power domain ... the power controller ... the node
+
+> +label "power".
+
+> --- a/drivers/base/power/domain.c
+> +++ b/drivers/base/power/domain.c
+
+> +#ifdef CONFIG_PM_GENERIC_DOMAINS_OF
+> +/*
+> + * Device Tree based power domain providers.
+> + *
+> + * The code below implements generic device tree based power domain providers
+> + * that bind device tree nodes with generic power domains registered in the
+> + * system.
+> + *
+> + * Any driver that registers generic power domains and need to support binding
+
+needs
+
+> + * of devices to these domains is supposed to register a power domain provider,
+> + * which maps a power domain specifier retrieved from device tree to a power
+
+the device tree
+
+> +/**
+> + * of_genpd_xlate_onecell() - Xlate function for providers using single index.
+
+a single index
+
+> + * @genpdspec: OF phandle args to map into a power domain
+> + * @data: xlate function private data - pointer to struct genpd_onecell_data
+> + *
+> + * This is a generic xlate function that can be used to model simple power
+> + * domain controllers that have one device tree node and provide multiple
+> + * power domains. A single cell is used as an index to an array of power
+
+an index into
+
+> + * domains specified in genpd_onecell_data struct when registering the
+
+the genpd_onecell_data struct
+
+> + * provider.
+> + */
+> +struct generic_pm_domain *of_genpd_xlate_onecell(
+> +                                       struct of_phandle_args *genpdspec,
+> +                                       void *data)
+> +{
+> +       struct genpd_onecell_data *genpd_data = data;
+> +       unsigned int idx = genpdspec->args[0];
+> +
+> +       if (genpdspec->args_count != 1)
+> +               return ERR_PTR(-EINVAL);
+> +
+> +       if (idx >= genpd_data->domain_num) {
+> +               pr_err("%s: invalid domain index %d\n", __func__, idx);
+
+%u for unsigned int idx
+
+> +               return ERR_PTR(-EINVAL);
+> +       }
+> +
+> +       return genpd_data->domains[idx];
+
+This assumes ->domains[] is a contiguous array.
+
+I'd add a NULL check here, to translate NULL to ERR_PTR(-Esomething),
+so it can support sparse power domain spaces.
+E.g. indexed by the "bit_shift" value of struct rmobile_pm_domain, which
+is the actual bit number to use to power up/down an R-Mobile domain.
+Different members of the R-Mobile family have different numbers of
+domains, and use more or less bits in the same power up/down registers.
+This would be similar to the sparse clock-indices handling in
+renesas,cpg-mstp-clocks.
+
+> +}
+> +EXPORT_SYMBOL_GPL(of_genpd_xlate_onecell);
+> +
+> +/**
+> + * of_genpd_add_provider() - Register a domain provider for a node
+> + * @np: Device node pointer associated with domain provider.
+
+the domain provider
+
+> +/**
+> + * of_genpd_del_provider() - Remove a previously registered domain provider
+> + * @np: Device node pointer associated with domain provider
+
+the domain provider
+
+> +/**
+> + * of_genpd_get_from_provider() - Look-up power domain
+> + * @genpdspec: OF phandle args to use for look-up
+> + *
+> + * Looks for domain provider under node specified by @genpdspec and if found
+
+a domain provider ... under the node
+
+> + * uses xlate function of the provider to map phandle args to a power domain.
+
+> +/**
+> + * genpd_dev_pm_attach - Attach a device to it's power domain using DT.
+
+its
+
+> + * @dev: Device to attach.
+
+> +/**
+> + * genpd_dev_pm_detach - Detach a device from it's power domain.
+
+its
+
+> + * @dev: Device to attach.
+> + *
+> + * Try to locate a corresponding generic power domain, which the device
+> + * then previously were attached to. If found the device is detached from
+
+"was attached to previously"?
+
+> + * the power domain.
+
+> diff --git a/include/linux/pm_domain.h b/include/linux/pm_domain.h
+> index 7c1d252..5989758 100644
+> --- a/include/linux/pm_domain.h
+> +++ b/include/linux/pm_domain.h
+> @@ -310,4 +310,50 @@ static inline void pm_genpd_syscore_poweron(struct device *dev)
+>         pm_genpd_syscore_switch(dev, false);
+>  }
+>
+> +/* OF power domain providers */
+> +struct of_device_id;
+> +
+> +struct genpd_onecell_data {
+> +       struct generic_pm_domain **domains;
+> +       unsigned int domain_num;
+
+This is the number of domains: "num_domains"?
+
+> +};
+> +
+> +typedef struct generic_pm_domain *(*genpd_xlate_t)(struct of_phandle_args *args,
+> +                                                  void *data);
+> +
+> +#ifdef CONFIG_PM_GENERIC_DOMAINS_OF
+> +int of_genpd_add_provider(struct device_node *np, genpd_xlate_t xlate,
+> +                         void *data);
+> +void of_genpd_del_provider(struct device_node *np);
+> +
+> +struct generic_pm_domain *of_genpd_xlate_simple(
+> +                                       struct of_phandle_args *genpdspec,
+> +                                       void *data);
+> +struct generic_pm_domain *of_genpd_xlate_onecell(
+> +                                       struct of_phandle_args *genpdspec,
+> +                                       void *data);
+> +
+> +int genpd_dev_pm_attach(struct device *dev);
+> +int genpd_dev_pm_detach(struct device *dev);
+> +#else /* !CONFIG_PM_GENERIC_DOMAINS_OF */
+> +static inline int of_genpd_add_provider(struct device_node *np,
+> +                                       genpd_xlate_t xlate, void *data)
+> +{
+> +       return 0;
+> +}
+> +static inline void of_genpd_del_provider(struct device_node *np) {}
+> +
+> +#define of_genpd_xlate_simple          NULL
+> +#define of_genpd_xlate_onecell         NULL
+> +
+> +static inline int genpd_dev_pm_attach(struct device *dev)
+> +{
+> +       return -ENODEV;
+> +}
+> +static inline int genpd_dev_pm_detach(struct device *dev)
+> +{
+> +       return -ENODEV;
+> +}
+> +#endif /* CONFIG_PM_GENERIC_DOMAINS_OF */
+
+As of_genpd_add_provider() provides no compile-time type-checking for
+"void *data", I propose to prepend a double underscore to
+of_genpd_add_provider(), and to the xlate helpers of_genpd_xlate_simple()
+and of_genpd_xlate_onecell(), and provide type-checking wrappers:
+
+static inline int of_genpd_add_provider_simple(struct device_node *np,
+                                               struct generic_pm_domain *genpd)
+{
+        return __of_genpd_add_provider(np, __of_genpd_xlate_simple, genpd);
+}
+static inline int of_genpd_add_provider_onecell(struct device_node *np,
+                                                struct genpd_onecell_data *data)
+{
+        return __of_genpd_add_provider(np, __of_genpd_xlate_onecell, data);
+}
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
