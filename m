@@ -1,70 +1,39 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC PATCH for Juno 1/2] net: smsc911x add support for probing
- from ACPI
-Date: Mon, 1 Sep 2014 19:11:52 +0100
-Message-ID: <20140901181152.GL29327@sirena.org.uk>
-References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org>
- <1409583961-7466-2-git-send-email-hanjun.guo@linaro.org>
- <20140901170447.GF608@arm.com>
- <21764799.KDNDm9XRax@wuerfel>
- <20140901173245.GM2953@xora-haswell.xora.org.uk>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RVLHdg3qhy1T2deX"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:45178 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751954AbaIASM6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Sep 2014 14:12:58 -0400
-Content-Disposition: inline
-In-Reply-To: <20140901173245.GM2953@xora-haswell.xora.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 1/6] ACPICA: Add _PSx names to the METHOD_NAME list.
+Date: Tue,  2 Sep 2014 08:27:05 +0800
+Message-ID: <26e5b831a8416d5b1f5de35f8e8ea32892ed6d04.1409617516.git.lv.zheng@intel.com>
+References: <cover.1409617516.git.lv.zheng@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1409617516.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>
 
+From: Bob Moore <robert.moore@intel.com>
 
---RVLHdg3qhy1T2deX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Will be used by iASL.
 
-On Mon, Sep 01, 2014 at 06:32:45PM +0100, Graeme Gregory wrote:
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ include/acpi/acnames.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-> This will of course most likely be replaced by _DSD values. I just
-> hardcoded for now as _DSD is not yet in the kernel and issues around
-> maintenance of bindings are not solved (unless this happened at KS where
-> I was not present).
-
-Not really.  AIUI the official thing is still some combination of
-getting a DT binding defined and then use that verbatim (as the x86
-embedded people want to though I'm still not clear that the Windows
-people are on board with this) and the UEFI processes.  It's possible I
-misunderstood though.
-
-Realistically if something is usable on x86 embedded it's going to be
-supported on ARMv8 servers too unless we jump through hoops, and even
-there real implementations in the wild will probably win out.
-
---RVLHdg3qhy1T2deX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJUBLblAAoJELSic+t+oim9hKMQAITYUj30XtkLsl/9LaN77WvK
-VnHLoAAIv3NSZbFkT4wUCyM7j4YtXWaEPqoiPybEfgYbM7GwdJw2RBlnByFT/3/Q
-cpuBu+CJCrXTlh1RhIKchug8y03V3+MZOCQ/TST3VNOdRvEi62f6fMRl62g5m+IW
-0FtzGJ+6jsqZjUeYucvyZVjik8P5qN5Yg5g/TSVTxy7IRH9pG8cAVlR95ItFuRFr
-WHbRNYqKm7JAxbgm/App4iCwf9SH/6ksZr/xKaP6lZ5hA2Ys6SC29aikUDCYJJB3
-Z8YdMKl9SlirT3JBnSGWZZPSAOsNT0RBIPfRXcvhWThbYImXAsHZov7qJMhF36Ni
-kh0qgZjF2hLpmVi6GFbuZ7zLD7bWGwuttKyq/gR0B6VekHqLFjc3P+8M+5wp4uXo
-5+LupT11dzcimrJ2inYDqaPDaYPcej5cFDkR91N4oGe3WDxmNQi6MsenqVn5sYTv
-EiSHm1Rx2vn959OXiKhxdrZIrhb9OOlzk+a/slvea0hFNLSj42mc374QJn4vIPMY
-m1R8XkJ26ASEglZlXx8R6TscKUq7TczAZRBb7TO83c3Y1wpDC6VOI9QjN3A+qmnh
-6LMzNwkZLvJvtak5Cyvj+8GReSMTNsgInMQ8zmUWxMiDfKaLI+4mvzWIxoxXYhrn
-HktXligdz5WB0/o2z2uB
-=iLQb
------END PGP SIGNATURE-----
-
---RVLHdg3qhy1T2deX--
+diff --git a/include/acpi/acnames.h b/include/acpi/acnames.h
+index c728113..f97804b 100644
+--- a/include/acpi/acnames.h
++++ b/include/acpi/acnames.h
+@@ -59,6 +59,10 @@
+ #define METHOD_NAME__PRS        "_PRS"
+ #define METHOD_NAME__PRT        "_PRT"
+ #define METHOD_NAME__PRW        "_PRW"
++#define METHOD_NAME__PS0        "_PS0"
++#define METHOD_NAME__PS1        "_PS1"
++#define METHOD_NAME__PS2        "_PS2"
++#define METHOD_NAME__PS3        "_PS3"
+ #define METHOD_NAME__REG        "_REG"
+ #define METHOD_NAME__SB_        "_SB_"
+ #define METHOD_NAME__SEG        "_SEG"
+-- 
+1.7.10
