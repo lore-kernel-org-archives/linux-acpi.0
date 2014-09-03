@@ -1,211 +1,369 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v3 10/17] ACPI / processor: Make it possible to get CPU
- hardware ID via GICC
-Date: Wed, 3 Sep 2014 17:27:39 +0100
-Message-ID: <20140903162739.GF1824@e102568-lin.cambridge.arm.com>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
- <1409583475-6978-11-git-send-email-hanjun.guo@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:39370 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756569AbaICQ1p convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Sep 2014 12:27:45 -0400
-In-Reply-To: <1409583475-6978-11-git-send-email-hanjun.guo@linaro.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: [PATCH v4 01/11] cpumask: factor out show_cpumap into separate helper function
+Date: Wed,  3 Sep 2014 18:00:07 +0100
+Message-ID: <1409763617-17074-2-git-send-email-sudeep.holla@arm.com>
+References: <1409763617-17074-1-git-send-email-sudeep.holla@arm.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1409763617-17074-1-git-send-email-sudeep.holla@arm.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Hanjun,
+From: Sudeep Holla <sudeep.holla@arm.com>
 
-On Mon, Sep 01, 2014 at 03:57:48PM +0100, Hanjun Guo wrote:
-> Introduce a new function map_gicc_mpidr() to allow MPIDRs to be obtained
-> from the GICC Structure introduced by ACPI 5.1.
-> 
-> MPIDR is the CPU hardware ID as local APIC ID on x86 platform, so we use
-> MPIDR not the GIC CPU interface ID to identify CPUs.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/arm64/include/asm/acpi.h |   32 ++++++++++++++++++++++++++++++++
->  arch/arm64/kernel/acpi.c      |    1 -
->  drivers/acpi/processor_core.c |   37 +++++++++++++++++++++++++++++++++++++
->  3 files changed, 69 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index e013dbb..a867467 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -12,6 +12,8 @@
->  #ifndef _ASM_ACPI_H
->  #define _ASM_ACPI_H
->  
-> +#include <asm/smp_plat.h>
-> +
->  /* Basic configuration for ACPI */
->  #ifdef	CONFIG_ACPI
->  #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
-> @@ -38,6 +40,36 @@ static inline void disable_acpi(void)
->  	acpi_noirq = 1;
->  }
->  
-> +/* MPIDR value provided in GICC structure is 64 bits, but
-> + * the acpi processor driver use the 32 bits cpu hardware
-> + * ID (apic_id on intel platform) everywhere, it is pretty
-> + * hard to modify the acpi processor driver to accept the
-> + * 64 bits MPIDR value, at the same time, only 32 bits of
-> + * the MPIDR is used in the 64 bits MPIDR, just pack the
-> + * Affx fields into a single 32 bit identifier to accommodate
-> + * the acpi processor drivers.
-> + */
+Many sysfs *_show function use cpu{list,mask}_scnprintf to copy cpumap
+to the buffer aligned to PAGE_SIZE, append '\n' and '\0' to return null
+terminated buffer with newline.
 
-I have comments on the code in this patch, but they are not the most
-important point. What I am really worried about, it is that as ARM,
-I do not want to know what an apic_id is. This code is *supposed* to be
-generic and yet it is chock-full of x86 specific stuff and you are
-trying to make ARM HW concepts fit with x86 ones, and I am not happy
-with that.
+This patch creates a new helper function cpumap_copy_to_buf in
+cpumask.h and consolidates most of them using this new helper.
 
-To be clearer, why does not this look-up of:
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+Suggested-by: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: x86@kernel.org
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-pci@vger.kernel.org
+---
+ arch/x86/kernel/cpu/perf_event_amd_iommu.c    |  5 +---
+ arch/x86/kernel/cpu/perf_event_amd_uncore.c   |  6 +----
+ arch/x86/kernel/cpu/perf_event_intel_rapl.c   |  6 +----
+ arch/x86/kernel/cpu/perf_event_intel_uncore.c |  6 +----
+ drivers/acpi/acpi_pad.c                       |  6 +----
+ drivers/base/cpu.c                            |  5 +---
+ drivers/base/node.c                           | 14 +++-------
+ drivers/base/topology.c                       | 22 ++-------------
+ drivers/pci/pci-sysfs.c                       | 39 +++++++--------------------
+ include/linux/cpumask.h                       | 27 +++++++++++++++++++
+ 10 files changed, 49 insertions(+), 87 deletions(-)
 
-logical-cpu-index -> physical-cpu-index
-
-is not carried out using the acpi_id ? Every architecture will have to
-add arch specific code to carry out the reverse look-up:
-
-acpi_id -> apic_id (x86)
-acpi_id -> mpidr_el1 (arm64)
-
-and the code would end up being split in a nice way. On top of that, I wonder
-why ACPI structures like eg struct acpi_processor contain x86 specific
-data (ie apic_id). I know it is a HW identifier as the MPIDR_EL1 is on
-arm64, but I do not want to deal with that in generic ACPI code because
-that's not generic at ALL.
-
-What if another architecture wants to use ACPI ? Are we going to map its
-HW CPU identifier to an apic_id only because that's what x86 requires ?
-
-I am sorry I do not like that. I understand it is easier to map ARM code
-to existing ACPI structures but I feel we will run into issues very soon
-because of that.
-
-Is it that complex to remove the apic_id dependency in *generic* ACPI
-code and replace it with functions that hook into arch specific code to
-carry out the logical to physical cpu mappings ?
-
-I understand this is harder to do, but it will make your life easier
-in the long run. I am thinking of other pieces of code like the
-supposedly generic ACPI CPUidle driver, where we *still* depend on the apic
-to detect idle states, this is not going to fly, I am sorry, we need to
-have code that has a chance to be generic from the beginning not as an
-afterthought.
-
-Lorenzo
-
-> +static inline u32 pack_mpidr_into_32_bits(u64 mpidr)
-> +{
-> +	/*
-> +	 * Bits [0:7] Aff0;
-> +	 * Bits [8:15] Aff1;
-> +	 * Bits [16:23] Aff2;
-> +	 * Bits [32:39] Aff3;
-> +	 */
-> +	return (u32) ((mpidr & 0xff00000000) >> 8) | mpidr;
-> +}
-> +
-> +/*
-> + * The ACPI processor driver for ACPI core code needs this macro
-> + * to find out this cpu was already mapped (mapping from CPU hardware
-> + * ID to CPU logical ID) or not.
-> + *
-> + * cpu_logical_map(cpu) is the mapping of MPIDR and the logical cpu,
-> + * and MPIDR is the cpu hardware ID we needed to pack.
-> + */
-> +#define cpu_physical_id(cpu) pack_mpidr_into_32_bits(cpu_logical_map(cpu))
-> +
->  /*
->   * It's used from ACPI core in kdump to boot UP system with SMP kernel,
->   * with this check the ACPI core will not override the CPU index
-> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> index fbaaf01..35dff11 100644
-> --- a/arch/arm64/kernel/acpi.c
-> +++ b/arch/arm64/kernel/acpi.c
-> @@ -24,7 +24,6 @@
->  #include <linux/bootmem.h>
->  #include <linux/smp.h>
->  
-> -#include <asm/smp_plat.h>
->  #include <asm/cputype.h>
->  #include <asm/cpu_ops.h>
->  
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index e32321c..4007313 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -64,6 +64,38 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
->  	return 0;
->  }
->  
-> +/*
-> + * On ARM platform, MPIDR value is the hardware ID as apic ID
-> + * on Intel platforms
-> + */
-> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
-> +		int device_declaration, u32 acpi_id, int *mpidr)
-> +{
-> +	struct acpi_madt_generic_interrupt *gicc =
-> +	    container_of(entry, struct acpi_madt_generic_interrupt, header);
-> +
-> +	if (!(gicc->flags & ACPI_MADT_ENABLED))
-> +		return -ENODEV;
-> +
-> +	/* In the GIC interrupt model, logical processors are
-> +	 * required to have a Processor Device object in the DSDT,
-> +	 * so we should check device_declaration here
-> +	 */
-> +	if (device_declaration && (gicc->uid == acpi_id)) {
-> +		/*
-> +		 * Only bits [0:7] Aff0, bits [8:15] Aff1, bits [16:23] Aff2
-> +		 * and bits [32:39] Aff3 are meaningful, so pack the Affx
-> +		 * fields into a single 32 bit identifier to accommodate the
-> +		 * acpi processor drivers.
-> +		 */
-> +		*mpidr = ((gicc->arm_mpidr & 0xff00000000) >> 8)
-> +			 | gicc->arm_mpidr;
-> +		return 0;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
->  static int map_madt_entry(int type, u32 acpi_id)
->  {
->  	unsigned long madt_end, entry;
-> @@ -99,6 +131,9 @@ static int map_madt_entry(int type, u32 acpi_id)
->  		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
->  			if (!map_lsapic_id(header, type, acpi_id, &apic_id))
->  				break;
-> +		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-> +			if (!map_gicc_mpidr(header, type, acpi_id, &apic_id))
-> +				break;
->  		}
->  		entry += header->length;
->  	}
-> @@ -131,6 +166,8 @@ static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
->  		map_lsapic_id(header, type, acpi_id, &apic_id);
->  	} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
->  		map_x2apic_id(header, type, acpi_id, &apic_id);
-> +	} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-> +		map_gicc_mpidr(header, type, acpi_id, &apic_id);
->  	}
->  
->  exit:
-> -- 
-> 1.7.9.5
-> 
-> 
-
+diff --git a/arch/x86/kernel/cpu/perf_event_amd_iommu.c b/arch/x86/kernel/cpu/perf_event_amd_iommu.c
+index 639d1289b1ba..61a670de0ef2 100644
+--- a/arch/x86/kernel/cpu/perf_event_amd_iommu.c
++++ b/arch/x86/kernel/cpu/perf_event_amd_iommu.c
+@@ -130,10 +130,7 @@ static ssize_t _iommu_cpumask_show(struct device *dev,
+ 				   struct device_attribute *attr,
+ 				   char *buf)
+ {
+-	int n = cpulist_scnprintf(buf, PAGE_SIZE - 2, &iommu_cpumask);
+-	buf[n++] = '\n';
+-	buf[n] = '\0';
+-	return n;
++	return cpumap_copy_to_buf(true, &iommu_cpumask, buf);
+ }
+ static DEVICE_ATTR(cpumask, S_IRUGO, _iommu_cpumask_show, NULL);
+ 
+diff --git a/arch/x86/kernel/cpu/perf_event_amd_uncore.c b/arch/x86/kernel/cpu/perf_event_amd_uncore.c
+index 30790d798e6b..d96a37ed8570 100644
+--- a/arch/x86/kernel/cpu/perf_event_amd_uncore.c
++++ b/arch/x86/kernel/cpu/perf_event_amd_uncore.c
+@@ -219,7 +219,6 @@ static ssize_t amd_uncore_attr_show_cpumask(struct device *dev,
+ 					    struct device_attribute *attr,
+ 					    char *buf)
+ {
+-	int n;
+ 	cpumask_t *active_mask;
+ 	struct pmu *pmu = dev_get_drvdata(dev);
+ 
+@@ -230,10 +229,7 @@ static ssize_t amd_uncore_attr_show_cpumask(struct device *dev,
+ 	else
+ 		return 0;
+ 
+-	n = cpulist_scnprintf(buf, PAGE_SIZE - 2, active_mask);
+-	buf[n++] = '\n';
+-	buf[n] = '\0';
+-	return n;
++	return cpumap_copy_to_buf(true, active_mask, buf);
+ }
+ static DEVICE_ATTR(cpumask, S_IRUGO, amd_uncore_attr_show_cpumask, NULL);
+ 
+diff --git a/arch/x86/kernel/cpu/perf_event_intel_rapl.c b/arch/x86/kernel/cpu/perf_event_intel_rapl.c
+index 619f7699487a..8a673e138e2e 100644
+--- a/arch/x86/kernel/cpu/perf_event_intel_rapl.c
++++ b/arch/x86/kernel/cpu/perf_event_intel_rapl.c
+@@ -365,11 +365,7 @@ static void rapl_pmu_event_read(struct perf_event *event)
+ static ssize_t rapl_get_attr_cpumask(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+-	int n = cpulist_scnprintf(buf, PAGE_SIZE - 2, &rapl_cpu_mask);
+-
+-	buf[n++] = '\n';
+-	buf[n] = '\0';
+-	return n;
++	return cpumap_copy_to_buf(true, &rapl_cpu_mask, buf);
+ }
+ 
+ static DEVICE_ATTR(cpumask, S_IRUGO, rapl_get_attr_cpumask, NULL);
+diff --git a/arch/x86/kernel/cpu/perf_event_intel_uncore.c b/arch/x86/kernel/cpu/perf_event_intel_uncore.c
+index 0939f86f543d..a0b810951743 100644
+--- a/arch/x86/kernel/cpu/perf_event_intel_uncore.c
++++ b/arch/x86/kernel/cpu/perf_event_intel_uncore.c
+@@ -3617,11 +3617,7 @@ static int uncore_pmu_event_init(struct perf_event *event)
+ static ssize_t uncore_get_attr_cpumask(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+-	int n = cpulist_scnprintf(buf, PAGE_SIZE - 2, &uncore_cpu_mask);
+-
+-	buf[n++] = '\n';
+-	buf[n] = '\0';
+-	return n;
++	return cpumap_copy_to_buf(true, &uncore_cpu_mask, buf);
+ }
+ 
+ static DEVICE_ATTR(cpumask, S_IRUGO, uncore_get_attr_cpumask, NULL);
+diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+index f148a0580e04..0dbe52ed6a0d 100644
+--- a/drivers/acpi/acpi_pad.c
++++ b/drivers/acpi/acpi_pad.c
+@@ -350,11 +350,7 @@ static ssize_t acpi_pad_idlecpus_store(struct device *dev,
+ static ssize_t acpi_pad_idlecpus_show(struct device *dev,
+ 	struct device_attribute *attr, char *buf)
+ {
+-	int n = 0;
+-	n = cpumask_scnprintf(buf, PAGE_SIZE-2, to_cpumask(pad_busy_cpus_bits));
+-	buf[n++] = '\n';
+-	buf[n] = '\0';
+-	return n;
++	return cpumap_copy_to_buf(false, to_cpumask(pad_busy_cpus_bits), buf);
+ }
+ static DEVICE_ATTR(idlecpus, S_IRUGO|S_IWUSR,
+ 	acpi_pad_idlecpus_show,
+diff --git a/drivers/base/cpu.c b/drivers/base/cpu.c
+index 006b1bc5297d..277a9cfa9040 100644
+--- a/drivers/base/cpu.c
++++ b/drivers/base/cpu.c
+@@ -207,11 +207,8 @@ static ssize_t show_cpus_attr(struct device *dev,
+ 			      char *buf)
+ {
+ 	struct cpu_attr *ca = container_of(attr, struct cpu_attr, attr);
+-	int n = cpulist_scnprintf(buf, PAGE_SIZE-2, *(ca->map));
+ 
+-	buf[n++] = '\n';
+-	buf[n] = '\0';
+-	return n;
++	return cpumap_copy_to_buf(true, *ca->map, buf);
+ }
+ 
+ #define _CPU_ATTR(name, map) \
+diff --git a/drivers/base/node.c b/drivers/base/node.c
+index c6d3ae05f1ca..6e58ad566c13 100644
+--- a/drivers/base/node.c
++++ b/drivers/base/node.c
+@@ -25,32 +25,26 @@ static struct bus_type node_subsys = {
+ };
+ 
+ 
+-static ssize_t node_read_cpumap(struct device *dev, int type, char *buf)
++static ssize_t node_read_cpumap(struct device *dev, bool list, char *buf)
+ {
+ 	struct node *node_dev = to_node(dev);
+ 	const struct cpumask *mask = cpumask_of_node(node_dev->dev.id);
+-	int len;
+ 
+ 	/* 2008/04/07: buf currently PAGE_SIZE, need 9 chars per 32 bits. */
+ 	BUILD_BUG_ON((NR_CPUS/32 * 9) > (PAGE_SIZE-1));
+ 
+-	len = type?
+-		cpulist_scnprintf(buf, PAGE_SIZE-2, mask) :
+-		cpumask_scnprintf(buf, PAGE_SIZE-2, mask);
+- 	buf[len++] = '\n';
+- 	buf[len] = '\0';
+-	return len;
++	return cpumap_copy_to_buf(list, mask, buf);
+ }
+ 
+ static inline ssize_t node_read_cpumask(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+-	return node_read_cpumap(dev, 0, buf);
++	return node_read_cpumap(dev, false, buf);
+ }
+ static inline ssize_t node_read_cpulist(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+-	return node_read_cpumap(dev, 1, buf);
++	return node_read_cpumap(dev, true, buf);
+ }
+ 
+ static DEVICE_ATTR(cpumap,  S_IRUGO, node_read_cpumask, NULL);
+diff --git a/drivers/base/topology.c b/drivers/base/topology.c
+index be7c1fb7c0c9..39b294bd769b 100644
+--- a/drivers/base/topology.c
++++ b/drivers/base/topology.c
+@@ -42,29 +42,11 @@ static ssize_t show_##name(struct device *dev,			\
+ 	return sprintf(buf, "%d\n", topology_##name(dev->id));	\
+ }
+ 
+-#if defined(topology_thread_cpumask) || defined(topology_core_cpumask) || \
+-    defined(topology_book_cpumask)
+-static ssize_t show_cpumap(int type, const struct cpumask *mask, char *buf)
+-{
+-	ptrdiff_t len = PTR_ALIGN(buf + PAGE_SIZE - 1, PAGE_SIZE) - buf;
+-	int n = 0;
+-
+-	if (len > 1) {
+-		n = type?
+-			cpulist_scnprintf(buf, len-2, mask) :
+-			cpumask_scnprintf(buf, len-2, mask);
+-		buf[n++] = '\n';
+-		buf[n] = '\0';
+-	}
+-	return n;
+-}
+-#endif
+-
+ #define define_siblings_show_map(name)					\
+ static ssize_t show_##name(struct device *dev,				\
+ 			   struct device_attribute *attr, char *buf)	\
+ {									\
+-	return show_cpumap(0, topology_##name(dev->id), buf);		\
++	return cpumap_copy_to_buf(false, topology_##name(dev->id), buf);\
+ }
+ 
+ #define define_siblings_show_list(name)					\
+@@ -72,7 +54,7 @@ static ssize_t show_##name##_list(struct device *dev,			\
+ 				  struct device_attribute *attr,	\
+ 				  char *buf)				\
+ {									\
+-	return show_cpumap(1, topology_##name(dev->id), buf);		\
++	return cpumap_copy_to_buf(true, topology_##name(dev->id), buf);	\
+ }
+ 
+ #define define_siblings_show_func(name)		\
+diff --git a/drivers/pci/pci-sysfs.c b/drivers/pci/pci-sysfs.c
+index 9ff0a901ecf7..aa0f1359ef30 100644
+--- a/drivers/pci/pci-sysfs.c
++++ b/drivers/pci/pci-sysfs.c
+@@ -77,11 +77,10 @@ static ssize_t broken_parity_status_store(struct device *dev,
+ }
+ static DEVICE_ATTR_RW(broken_parity_status);
+ 
+-static ssize_t pci_dev_show_local_cpu(struct device *dev, int type,
++static ssize_t pci_dev_show_local_cpu(struct device *dev, bool list,
+ 				      struct device_attribute *attr, char *buf)
+ {
+ 	const struct cpumask *mask;
+-	int len;
+ 
+ #ifdef CONFIG_NUMA
+ 	mask = (dev_to_node(dev) == -1) ? cpu_online_mask :
+@@ -89,59 +88,41 @@ static ssize_t pci_dev_show_local_cpu(struct device *dev, int type,
+ #else
+ 	mask = cpumask_of_pcibus(to_pci_dev(dev)->bus);
+ #endif
+-	len = type ?
+-		cpumask_scnprintf(buf, PAGE_SIZE-2, mask) :
+-		cpulist_scnprintf(buf, PAGE_SIZE-2, mask);
+-
+-	buf[len++] = '\n';
+-	buf[len] = '\0';
+-	return len;
++	return cpumap_copy_to_buf(list, mask, buf);
+ }
+ 
+ static ssize_t local_cpus_show(struct device *dev,
+ 			       struct device_attribute *attr, char *buf)
+ {
+-	return pci_dev_show_local_cpu(dev, 1, attr, buf);
++	return pci_dev_show_local_cpu(dev, false, attr, buf);
+ }
+ static DEVICE_ATTR_RO(local_cpus);
+ 
+ static ssize_t local_cpulist_show(struct device *dev,
+ 				  struct device_attribute *attr, char *buf)
+ {
+-	return pci_dev_show_local_cpu(dev, 0, attr, buf);
++	return pci_dev_show_local_cpu(dev, true, attr, buf);
+ }
+ static DEVICE_ATTR_RO(local_cpulist);
+ 
+ /*
+  * PCI Bus Class Devices
+  */
+-static ssize_t pci_bus_show_cpuaffinity(struct device *dev, int type,
+-					struct device_attribute *attr,
+-					char *buf)
+-{
+-	int ret;
+-	const struct cpumask *cpumask;
+-
+-	cpumask = cpumask_of_pcibus(to_pci_bus(dev));
+-	ret = type ?
+-		cpulist_scnprintf(buf, PAGE_SIZE-2, cpumask) :
+-		cpumask_scnprintf(buf, PAGE_SIZE-2, cpumask);
+-	buf[ret++] = '\n';
+-	buf[ret] = '\0';
+-	return ret;
+-}
+-
+ static ssize_t cpuaffinity_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+-	return pci_bus_show_cpuaffinity(dev, 0, attr, buf);
++	const struct cpumask *cpumask = cpumask_of_pcibus(to_pci_bus(dev));
++
++	return cpumap_copy_to_buf(false, cpumask, buf);
+ }
+ static DEVICE_ATTR_RO(cpuaffinity);
+ 
+ static ssize_t cpulistaffinity_show(struct device *dev,
+ 				    struct device_attribute *attr, char *buf)
+ {
+-	return pci_bus_show_cpuaffinity(dev, 1, attr, buf);
++	const struct cpumask *cpumask = cpumask_of_pcibus(to_pci_bus(dev));
++
++	return cpumap_copy_to_buf(true, cpumask, buf);
+ }
+ static DEVICE_ATTR_RO(cpulistaffinity);
+ 
+diff --git a/include/linux/cpumask.h b/include/linux/cpumask.h
+index 2997af6d2ccd..26d8348292dd 100644
+--- a/include/linux/cpumask.h
++++ b/include/linux/cpumask.h
+@@ -11,6 +11,8 @@
+ #include <linux/bitmap.h>
+ #include <linux/bug.h>
+ 
++#include <asm/page.h>
++
+ typedef struct cpumask { DECLARE_BITMAP(bits, NR_CPUS); } cpumask_t;
+ 
+ /**
+@@ -792,6 +794,31 @@ static inline const struct cpumask *get_cpu_mask(unsigned int cpu)
+ }
+ #endif /* NR_CPUS > BITS_PER_LONG */
+ 
++/**
++ * cpumap_copy_to_buf  - copies the cpumask into the buffer either
++ *	as comma-separated list of cpus or hex values of cpumask
++ * @list: indicates whether the cpumap must be list
++ * @mask: the cpumask to copy
++ * @buf: the buffer to copy into
++ *
++ * Returns the length of the (null-terminated) @buf string, zero if
++ * nothing is copied.
++ */
++static inline ssize_t
++cpumap_copy_to_buf(bool list, const struct cpumask *mask, char *buf)
++{
++	ptrdiff_t len = PTR_ALIGN(buf + PAGE_SIZE - 1, PAGE_SIZE) - buf - 2;
++	int n = 0;
++
++	if (len > 1) {
++		n = list ? cpulist_scnprintf(buf, len, mask) :
++			   cpumask_scnprintf(buf, len, mask);
++		buf[n++] = '\n';
++		buf[n] = '\0';
++	}
++	return n;
++}
++
+ /*
+  *
+  * From here down, all obsolete.  Use cpumask_ variants!
+-- 
+1.8.3.2
