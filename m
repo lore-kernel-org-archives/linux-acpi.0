@@ -1,42 +1,47 @@
-From: Husam Al Sayed <oscar55@post.sk>
-Subject: FROM: Husam Al Sayed.
-Date: Wed, 3 Sep 2014 20:28:29 +0200 (CEST)
-Message-ID: <827969437.347127.1409768909165.JavaMail.root__43381.0102557347$1409769303$gmane$org@mbox05>
-Reply-To: "alsayedhusa@hotmail.com" <alsayedhusa@hotmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v3 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot support
+Date: Wed, 03 Sep 2014 20:42:44 +0200
+Message-ID: <2893693.4bZJXXENof@wuerfel>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-14-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp02.post.sk ([195.146.144.202]:38634 "EHLO smtp02.post.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750992AbaICSem convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Sep 2014 14:34:42 -0400
+Received: from mout.kundenserver.de ([212.227.17.13]:49764 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752643AbaICSnU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Sep 2014 14:43:20 -0400
+In-Reply-To: <1409583475-6978-14-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: dm@chelsio.com, swise@chelsio.com, leedom@chelsio.com, peppe.cavallaro@st.com, fery@cypress.com, garloff@suse.de, aliakc@web.de, lenehan@twibble.org, dc395x@twibble.org, gerrit@erg.abdn.ac.uk, dccp@vger.kernel.org, linux-decnet-user@lists.sourceforge.net, Douglas_Warzecha@dell.com, mjg59@srcf.ucam.org, paulz@synopsys.com, device@lanana.org, agk@redhat.com, snitzer@redhat.com, dm-devel@redhat.com, lidza.louina@gmail.com, driverdev-devel@linuxdriverproject.org, aeb@cwi.nl, bernie@plugable.com, ccaulfie@redhat.com, teigland@redhat.com, sumit.semwal@linaro.org, linaro-mm-sig@lists.linaro.org, shaohua.li@intel.com, linux-acpi@vger.kernel.org, rob@landley.net
+To: linux-arm-kernel@lists.infradead.org
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradea>
 
-FROM: Husam Al Sayed.
+On Monday 01 September 2014 22:57:51 Hanjun Guo wrote:
+> +       /* Collect CPU base addresses */
+> +       count = acpi_parse_entries(sizeof(struct acpi_table_madt),
+> +                                  gic_acpi_parse_madt_cpu, table,
+> +                                  ACPI_MADT_TYPE_GENERIC_INTERRUPT,
+> +                                  ACPI_MAX_GIC_CPU_INTERFACE_ENTRIES);
+> +       if (count < 0) {
+> +               pr_err("Error during GICC entries parsing\n");
+> +               return -EFAULT;
+> +       } else if (!count) {
+> +               /* No GICC entries provided, use address from MADT header */
+> +               struct acpi_table_madt *madt = (struct acpi_table_madt *)table;
+> +
+> +               if (!madt->address)
+> +                       return -EFAULT;
+> +
+> +               cpu_phy_base = (u64)madt->address;
+> +       }
 
-EMAIL:alsayedhusa@hotmail.com
- 
-Hello,
- 
-I decided to write you this proposal in good faith, believing that you will
-not betray me. I am Mr. Husam Al Sayed, a Bank officer here in U.A.E.
- 
-One Mr. Peter Adams, a citizen of your country and Crude Oil dealer made a fixed deposit with my bank in 2005 for 108 calendar months, valued at US$30,000,000.00 (Thirty Million United State Dollars) the due date for this deposit contract was last 22nd of January 2014. Sadly Peter was among the death victims in the May 27 2006 Earthquake disaster in Java, Indonesia that killed over 5,000 people. He was in Indonesia on a business trip and that was how he met his untimely end. My bank management is yet to know about his death, I knew about it because he was my friend and I am his Account Officer. Peter did not mention any Next of Kin/ Heir when the account was opened, he was not married and no children. Last week my Bank Management requested that Peter should give instructions on what to do 
- about his funds, if to renew the contract.
- 
-I know this will happen and that is why I have been looking for a means to handle the situation, because if my Bank Directors happens to know that Peter is dead and do not have any Heir, they will take the funds for their personal use, so I don't want such to happen. That is why I am seeking your co-operation to present you as the Next of Kin/ Heir to the account, since you are a foreigner and my bank head quarters will release the account to you. There is no risk involved; the transaction will be executed under a legitimate arrangement that will protect us from any breach of law. It is better that we claim the money, than allowing the Bank Directors to take it, they are rich already. I am not a greedy person, so I am suggesting we share the funds in this ratio, 50/50%, equal sharing. Let 
- me know your mind on this and please do treat this information highly confidential. We shall go over the details once I receive your urgent response. Please Urgently get back to me through this email address as soon as possible:
- 
- 
- 
-Have a nice day and God bless. Anticipating your communication.
- 
-Regards,
-FROM: Husam Al Sayed.
-EMAIL: alsayedhusa@hotmail.com
-_____________________________________________________________________
+After I read through ACPI-5.1 section 5.2.12.14, I wonder if this is the
+best way to treat a missing ACPI_MADT_TYPE_GENERIC_INTERRUPT table.
 
-Vsetko o autach, vsetko pre motoristov - http://www.autosme.sk
+Do we expect to see those in practice? It seems like using the x86 local
+APIC address as a fallback for the GIC address is not something we
+should do unless we absolutely have to support a system that doesn't
+have the GIC table.
+
+	Arnd
