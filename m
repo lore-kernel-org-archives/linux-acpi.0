@@ -1,18 +1,18 @@
 From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 Subject: [PATCH v4 0/4] PCC: Platform Communication Channel
-Date: Wed,  3 Sep 2014 15:34:15 -0400
-Message-ID: <1409772859-10260-1-git-send-email-ashwin.chaugule@linaro.org>
+Date: Wed,  3 Sep 2014 15:38:55 -0400
+Message-ID: <1409773139-10356-1-git-send-email-ashwin.chaugule@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yh0-f43.google.com ([209.85.213.43]:60867 "EHLO
-	mail-yh0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755266AbaICTfR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Sep 2014 15:35:17 -0400
-Received: by mail-yh0-f43.google.com with SMTP id f73so5660944yha.2
-        for <linux-acpi@vger.kernel.org>; Wed, 03 Sep 2014 12:35:16 -0700 (PDT)
+Received: from mail-yh0-f48.google.com ([209.85.213.48]:33875 "EHLO
+	mail-yh0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755751AbaICTjJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Sep 2014 15:39:09 -0400
+Received: by mail-yh0-f48.google.com with SMTP id b6so5595470yha.35
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Sep 2014 12:39:08 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: arnd@arndb.de
-Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net, broonie@kernel.org
+Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net, broonie@kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
 Changes since V3:
 - Added PCC helper functions to work around "struct device" limitations.
