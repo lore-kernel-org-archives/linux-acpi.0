@@ -1,47 +1,67 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v3 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot support
-Date: Wed, 03 Sep 2014 20:42:44 +0200
-Message-ID: <2893693.4bZJXXENof@wuerfel>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-14-git-send-email-hanjun.guo@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: [PATCH v4 0/4] PCC: Platform Communication Channel
+Date: Wed,  3 Sep 2014 15:34:15 -0400
+Message-ID: <1409772859-10260-1-git-send-email-ashwin.chaugule@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:49764 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752643AbaICSnU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Sep 2014 14:43:20 -0400
-In-Reply-To: <1409583475-6978-14-git-send-email-hanjun.guo@linaro.org>
+Received: from mail-yh0-f43.google.com ([209.85.213.43]:60867 "EHLO
+	mail-yh0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755266AbaICTfR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Sep 2014 15:35:17 -0400
+Received: by mail-yh0-f43.google.com with SMTP id f73so5660944yha.2
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Sep 2014 12:35:16 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradea>
+To: arnd@arndb.de
+Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net, broonie@kernel.org
 
-On Monday 01 September 2014 22:57:51 Hanjun Guo wrote:
-> +       /* Collect CPU base addresses */
-> +       count = acpi_parse_entries(sizeof(struct acpi_table_madt),
-> +                                  gic_acpi_parse_madt_cpu, table,
-> +                                  ACPI_MADT_TYPE_GENERIC_INTERRUPT,
-> +                                  ACPI_MAX_GIC_CPU_INTERFACE_ENTRIES);
-> +       if (count < 0) {
-> +               pr_err("Error during GICC entries parsing\n");
-> +               return -EFAULT;
-> +       } else if (!count) {
-> +               /* No GICC entries provided, use address from MADT header */
-> +               struct acpi_table_madt *madt = (struct acpi_table_madt *)table;
-> +
-> +               if (!madt->address)
-> +                       return -EFAULT;
-> +
-> +               cpu_phy_base = (u64)madt->address;
-> +       }
+Changes since V3:
+- Added PCC helper functions to work around "struct device" limitations.
+- PCC driver changes to work with PCC specific Mailbox helpers.
 
-After I read through ACPI-5.1 section 5.2.12.14, I wonder if this is the
-best way to treat a missing ACPI_MADT_TYPE_GENERIC_INTERRUPT table.
+Changes since V2:
+- Rebased on top of git://git.linaro.org/landing-teams/working/fujitsu/integration.git 
+	branch mailbox-for-3.17
+- Added PCC API to mailbox framework as per Arnd's suggestion to allow usage without ACPI.
 
-Do we expect to see those in practice? It seems like using the x86 local
-APIC address as a fallback for the GIC address is not something we
-should do unless we absolutely have to support a system that doesn't
-have the GIC table.
+Changes since V1:
+- Integration with Mailbox framework - https://lkml.org/lkml/2014/5/15/49
 
-	Arnd
+
+This patchset adds support for the PCC (Platform Communication Channel)
+interface as described in the current ACPI 5.0 spec. See Section 14 of the
+ACPI spec - http://acpi.info/DOWNLOADS/ACPI_5_Errata%20A.pdf for more details
+on how PCC works.
+
+In brief PCC is a generic means for PCC clients, to talk to the firmware. The
+PCC register space is typically memory mapped IO and uses a doorbell mechanism
+to communicate synchronously from the OS to the firmware. The PCC driver is
+completely agnostic to the protocol implemented by the PCC clients. It only
+implements the enumeration of PCC channels and the low level transport mechanism
+and leaves the rest to the PCC clients.
+
+The PCC is meant to be useable in the future by clients such as CPPC
+(Collaborative Processor Performance Control), RAS (Reliability,
+Availability and Serviceability) and MPST (Memory Power State Tables) and possibly others.
+
+
+Ashwin Chaugule (4):
+  Mailbox: Prepare to add PCC Mailbox support
+  Mailbox: Add PCC Mailbox Helper functions
+  Mailbox: Add support for Platform Communication Channel
+  PCC test
+
+ drivers/mailbox/Kconfig            |  19 +++
+ drivers/mailbox/Makefile           |   4 +
+ drivers/mailbox/mailbox.c          |  10 +-
+ drivers/mailbox/pcc-test.c         | 208 +++++++++++++++++++++++++++++++
+ drivers/mailbox/pcc.c              | 245 +++++++++++++++++++++++++++++++++++++
+ drivers/mailbox/pcc_mailbox.c      | 136 ++++++++++++++++++++
+ include/linux/mailbox_controller.h |   4 +
+ 7 files changed, 619 insertions(+), 7 deletions(-)
+ create mode 100644 drivers/mailbox/pcc-test.c
+ create mode 100644 drivers/mailbox/pcc.c
+ create mode 100644 drivers/mailbox/pcc_mailbox.c
+
+-- 
+1.9.1
+
