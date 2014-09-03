@@ -1,67 +1,211 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [Linaro-acpi] [PATCH v3 1/3] Mailbox: Add support for PCC
- mailbox and channels
-Date: Wed, 3 Sep 2014 16:51:05 +0100
-Message-ID: <20140903155105.GX29327@sirena.org.uk>
-References: <1409081738-5602-1-git-send-email-ashwin.chaugule@linaro.org>
- <CAJ5Y-eYNDeFDKj=4BUr4PdLDuZQjsbOisdwbtbxGQC9TsJpsgA@mail.gmail.com>
- <20140903153601.GW29327@sirena.org.uk>
- <3358546.EZHqfM2Zs3@wuerfel>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v3 10/17] ACPI / processor: Make it possible to get CPU
+ hardware ID via GICC
+Date: Wed, 3 Sep 2014 17:27:39 +0100
+Message-ID: <20140903162739.GF1824@e102568-lin.cambridge.arm.com>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
+ <1409583475-6978-11-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hjRTvux2945W8dyK"
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:48392 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932678AbaICPv1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Sep 2014 11:51:27 -0400
+Received: from service87.mimecast.com ([91.220.42.44]:39370 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756569AbaICQ1p convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Sep 2014 12:27:45 -0400
+In-Reply-To: <1409583475-6978-11-git-send-email-hanjun.guo@linaro.org>
 Content-Disposition: inline
-In-Reply-To: <3358546.EZHqfM2Zs3@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linaro-acpi@lists.linaro.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
+Hi Hanjun,
 
---hjRTvux2945W8dyK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Mon, Sep 01, 2014 at 03:57:48PM +0100, Hanjun Guo wrote:
+> Introduce a new function map_gicc_mpidr() to allow MPIDRs to be obtained
+> from the GICC Structure introduced by ACPI 5.1.
+> 
+> MPIDR is the CPU hardware ID as local APIC ID on x86 platform, so we use
+> MPIDR not the GIC CPU interface ID to identify CPUs.
+> 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  arch/arm64/include/asm/acpi.h |   32 ++++++++++++++++++++++++++++++++
+>  arch/arm64/kernel/acpi.c      |    1 -
+>  drivers/acpi/processor_core.c |   37 +++++++++++++++++++++++++++++++++++++
+>  3 files changed, 69 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index e013dbb..a867467 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -12,6 +12,8 @@
+>  #ifndef _ASM_ACPI_H
+>  #define _ASM_ACPI_H
+>  
+> +#include <asm/smp_plat.h>
+> +
+>  /* Basic configuration for ACPI */
+>  #ifdef	CONFIG_ACPI
+>  #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
+> @@ -38,6 +40,36 @@ static inline void disable_acpi(void)
+>  	acpi_noirq = 1;
+>  }
+>  
+> +/* MPIDR value provided in GICC structure is 64 bits, but
+> + * the acpi processor driver use the 32 bits cpu hardware
+> + * ID (apic_id on intel platform) everywhere, it is pretty
+> + * hard to modify the acpi processor driver to accept the
+> + * 64 bits MPIDR value, at the same time, only 32 bits of
+> + * the MPIDR is used in the 64 bits MPIDR, just pack the
+> + * Affx fields into a single 32 bit identifier to accommodate
+> + * the acpi processor drivers.
+> + */
 
-On Wed, Sep 03, 2014 at 05:41:20PM +0200, Arnd Bergmann wrote:
-> On Wednesday 03 September 2014 16:36:01 Mark Brown wrote:
-> > On Wed, Sep 03, 2014 at 11:23:21AM -0400, Ashwin Chaugule wrote:
+I have comments on the code in this patch, but they are not the most
+important point. What I am really worried about, it is that as ARM,
+I do not want to know what an apic_id is. This code is *supposed* to be
+generic and yet it is chock-full of x86 specific stuff and you are
+trying to make ARM HW concepts fit with x86 ones, and I am not happy
+with that.
 
-> > > IIUC, this means, either modifying the existing
-> > > mbox_controller_register() to know when a PCC mbox is being added, or
-> > > have another PCC specific API for registering as a mailbox? Then, in
+To be clearer, why does not this look-up of:
 
-> > Why would you have to do that - can't the PCC specific API manage to
-> > hide this?
+logical-cpu-index -> physical-cpu-index
 
-> I think that's what Ashwin meant as the 'or' part of the sentence above.
+is not carried out using the acpi_id ? Every architecture will have to
+add arch specific code to carry out the reverse look-up:
 
-So it is.
+acpi_id -> apic_id (x86)
+acpi_id -> mpidr_el1 (arm64)
 
---hjRTvux2945W8dyK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+and the code would end up being split in a nice way. On top of that, I wonder
+why ACPI structures like eg struct acpi_processor contain x86 specific
+data (ie apic_id). I know it is a HW identifier as the MPIDR_EL1 is on
+arm64, but I do not want to deal with that in generic ACPI code because
+that's not generic at ALL.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+What if another architecture wants to use ACPI ? Are we going to map its
+HW CPU identifier to an apic_id only because that's what x86 requires ?
 
-iQIcBAEBAgAGBQJUBzjlAAoJELSic+t+oim9l3oP/jp6pLOrUlys4tIXCC+Zn3cf
-trmbZBISh6wxi1rsG6OJxAo2amt6MkxYWu9qVvPjMO6rMmOOaLWNDdCU9u6vrH0s
-lqyFh7z17w7vJTTjlwAOHhBivmZsLGywQWA66Vd4FC9rXhUWamaf5Cw95lqqef7b
-W774B590qwGRmAtOMxbSm1M1Ycd3f8PqXqZIxMMkMSBVpMmQXZPh+SQP6sLQ/M94
-hm4d2SFWbnBb3YFtCR/HBztOp1qaWfv5P1MmjWHNt7/B2lgJZzXKUjwzvBDlmn9m
-mc6eIHrQjUvxbr/pLc/B5Jkc8YnRdETpFFb1pd1KdcRn2c4iKnqMKXyrZSAg30+S
-q+JwH9ah2v8p9mLXIwtbeZsBgqU6Dm5JPlENSPQjkKQX5/jFu02ujO+5co4vzfTj
-+LORE46Mj+/qOJcgKWnT8+hFf8HgPhus/sOmdgIXbYsj92tovd/9iHTNAgkORI9q
-Jaa2pMngTPK4Jx5kS02YaVKfqoGIMS5dluKv5mnDQ/Db5nhgvAkXpnUqZWQ/fzF1
-Bc8czqJt1Xg8vCrXGaU1/jsLNSzqoCx8ZlgpKP+C9sXTwUx4/v2tlyxTeaswO+lO
-5XsDssgonAqjEXtE2pGl5zs/Zz0mQKK+lNxNEbjIwb8+PEluncQ2hvVAscd5NVJK
-53LR5EyM7GR+2fxyLhyI
-=xY26
------END PGP SIGNATURE-----
+I am sorry I do not like that. I understand it is easier to map ARM code
+to existing ACPI structures but I feel we will run into issues very soon
+because of that.
 
---hjRTvux2945W8dyK--
+Is it that complex to remove the apic_id dependency in *generic* ACPI
+code and replace it with functions that hook into arch specific code to
+carry out the logical to physical cpu mappings ?
+
+I understand this is harder to do, but it will make your life easier
+in the long run. I am thinking of other pieces of code like the
+supposedly generic ACPI CPUidle driver, where we *still* depend on the apic
+to detect idle states, this is not going to fly, I am sorry, we need to
+have code that has a chance to be generic from the beginning not as an
+afterthought.
+
+Lorenzo
+
+> +static inline u32 pack_mpidr_into_32_bits(u64 mpidr)
+> +{
+> +	/*
+> +	 * Bits [0:7] Aff0;
+> +	 * Bits [8:15] Aff1;
+> +	 * Bits [16:23] Aff2;
+> +	 * Bits [32:39] Aff3;
+> +	 */
+> +	return (u32) ((mpidr & 0xff00000000) >> 8) | mpidr;
+> +}
+> +
+> +/*
+> + * The ACPI processor driver for ACPI core code needs this macro
+> + * to find out this cpu was already mapped (mapping from CPU hardware
+> + * ID to CPU logical ID) or not.
+> + *
+> + * cpu_logical_map(cpu) is the mapping of MPIDR and the logical cpu,
+> + * and MPIDR is the cpu hardware ID we needed to pack.
+> + */
+> +#define cpu_physical_id(cpu) pack_mpidr_into_32_bits(cpu_logical_map(cpu))
+> +
+>  /*
+>   * It's used from ACPI core in kdump to boot UP system with SMP kernel,
+>   * with this check the ACPI core will not override the CPU index
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index fbaaf01..35dff11 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -24,7 +24,6 @@
+>  #include <linux/bootmem.h>
+>  #include <linux/smp.h>
+>  
+> -#include <asm/smp_plat.h>
+>  #include <asm/cputype.h>
+>  #include <asm/cpu_ops.h>
+>  
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> index e32321c..4007313 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -64,6 +64,38 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+>  	return 0;
+>  }
+>  
+> +/*
+> + * On ARM platform, MPIDR value is the hardware ID as apic ID
+> + * on Intel platforms
+> + */
+> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
+> +		int device_declaration, u32 acpi_id, int *mpidr)
+> +{
+> +	struct acpi_madt_generic_interrupt *gicc =
+> +	    container_of(entry, struct acpi_madt_generic_interrupt, header);
+> +
+> +	if (!(gicc->flags & ACPI_MADT_ENABLED))
+> +		return -ENODEV;
+> +
+> +	/* In the GIC interrupt model, logical processors are
+> +	 * required to have a Processor Device object in the DSDT,
+> +	 * so we should check device_declaration here
+> +	 */
+> +	if (device_declaration && (gicc->uid == acpi_id)) {
+> +		/*
+> +		 * Only bits [0:7] Aff0, bits [8:15] Aff1, bits [16:23] Aff2
+> +		 * and bits [32:39] Aff3 are meaningful, so pack the Affx
+> +		 * fields into a single 32 bit identifier to accommodate the
+> +		 * acpi processor drivers.
+> +		 */
+> +		*mpidr = ((gicc->arm_mpidr & 0xff00000000) >> 8)
+> +			 | gicc->arm_mpidr;
+> +		return 0;
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+>  static int map_madt_entry(int type, u32 acpi_id)
+>  {
+>  	unsigned long madt_end, entry;
+> @@ -99,6 +131,9 @@ static int map_madt_entry(int type, u32 acpi_id)
+>  		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
+>  			if (!map_lsapic_id(header, type, acpi_id, &apic_id))
+>  				break;
+> +		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
+> +			if (!map_gicc_mpidr(header, type, acpi_id, &apic_id))
+> +				break;
+>  		}
+>  		entry += header->length;
+>  	}
+> @@ -131,6 +166,8 @@ static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
+>  		map_lsapic_id(header, type, acpi_id, &apic_id);
+>  	} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
+>  		map_x2apic_id(header, type, acpi_id, &apic_id);
+> +	} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
+> +		map_gicc_mpidr(header, type, acpi_id, &apic_id);
+>  	}
+>  
+>  exit:
+> -- 
+> 1.7.9.5
+> 
+> 
+
