@@ -1,77 +1,101 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/6] ACPICA: 20140828 Release
-Date: Wed, 03 Sep 2014 23:50:42 +0200
-Message-ID: <1966694.0lc65JeaWh@vostro.rjw.lan>
-References: <cover.1409617516.git.lv.zheng@intel.com>
+Subject: Re: [PATCH v2] acpi: fan.c: printk replacement
+Date: Wed, 03 Sep 2014 23:51:12 +0200
+Message-ID: <13181466.m5lsFWfZvz@vostro.rjw.lan>
+References: <1409233639-9165-1-git-send-email-sudipm.mukherjee@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51317 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:58510 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756519AbaICVbW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Sep 2014 17:31:22 -0400
-In-Reply-To: <cover.1409617516.git.lv.zheng@intel.com>
+	with SMTP id S932327AbaICVbw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Sep 2014 17:31:52 -0400
+In-Reply-To: <1409233639-9165-1-git-send-email-sudipm.mukherjee@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, September 02, 2014 08:26:59 AM Lv Zheng wrote:
-> The 20140828 ACPICA kernel-resident subsystem updates are linuxized based
-> on the pm/linux-next branch to form this patchset.
+On Thursday, August 28, 2014 07:17:19 PM Sudip Mukherjee wrote:
+> printk replaced with corresponding dev_err and dev_info 
+> fixed one broken user-visible string 
+> multiine comment edited for correct commenting style 
+> asm/uaccess.h replaced with linux/uaccess.h
+> PREFIX removed
 > 
-> The patchset has passed the following build/boot tests.
-> Build tests are performed as follows:
-> 1. i386 + default + COFNIG_ACPI=y
-> 2. i386 + allyes + CONFIG_ACPI=y
-> 3. i386 + default + COFNIG_ACPI=n
-> 4. i386 + allyes + CONFIG_ACPI=n
-> 5. x86_64 + default + COFNIG_ACPI=y
-> 6. x86_64 + allyes + CONFIG_ACPI=y
-> 7. x86_64 + default + COFNIG_ACPI=n
-> 8. x86_64 + allyes + CONFIG_ACPI=n
-> Boot tests are performed as follows:
-> 1. i386 + default + COFNIG_ACPI=y
-> 2. x86_64 + default + COFNIG_ACPI=y
-> Where:
-> 1. i386: machine named as "Dell Inspiron Mini 1010"
-> 2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
-> 3. default: kernel configuration with following items enabled:
->    All hardware drivers related to the machines of i386/x86_64
->    All drivers/acpi configurations
->    All platform drivers
+> Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+> ---
 > 
-> The divergences checking result:
-> Before applying (20140724 Release):
->   848 lines
-> After applying (20140828 Release):
->   710 lines
-> 
-> Bob Moore (3):
->   ACPICA: Add _PSx names to the METHOD_NAME list.
->   ACPICA: Disassembler: Fix for gpio_int interrupt polarity flags.
->   ACPICA: Update version to 20140828.
-> 
-> Hanjun Guo (2):
->   ACPICA: ACPI 5.1/Disassembler: Add GICC affinity subtable to SRAT
->     table.
->   ACPICA: Headers: Add GTDT flag definitions for the timer subtable.
-> 
-> Mika Westerberg (1):
->   ACPICA: ACPI 5.1: Add support for runtime validation of _DSD package.
-> 
->  drivers/acpi/acpica/nsprepkg.c |   39 +++++++++++++++++++++++++++++++++++++++
->  drivers/acpi/acpica/utresrc.c  |    4 +++-
->  include/acpi/acnames.h         |    4 ++++
->  include/acpi/acpixf.h          |    2 +-
->  include/acpi/actbl1.h          |   19 +++++++++++++++++--
->  include/acpi/actbl3.h          |    9 +++++++--
->  6 files changed, 71 insertions(+), 6 deletions(-)
+> modified with reference to the discussion at https://lkml.org/lkml/2014/8/22/176 
 
-Patch series queued up for 3.18 except for [5/6] that has already been queued
-up for 3.17-rc4.  Thanks!
+Queued up for 3.18, thanks!
 
+>  drivers/acpi/fan.c | 18 ++++++++----------
+>  1 file changed, 8 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+> index 8acf53e..5328b10 100644
+> --- a/drivers/acpi/fan.c
+> +++ b/drivers/acpi/fan.c
+> @@ -27,12 +27,10 @@
+>  #include <linux/module.h>
+>  #include <linux/init.h>
+>  #include <linux/types.h>
+> -#include <asm/uaccess.h>
+> +#include <linux/uaccess.h>
+>  #include <linux/thermal.h>
+>  #include <linux/acpi.h>
+>  
+> -#define PREFIX "ACPI: "
+> -
+>  #define ACPI_FAN_CLASS			"fan"
+>  #define ACPI_FAN_FILE_STATE		"state"
+>  
+> @@ -127,8 +125,9 @@ static const struct thermal_cooling_device_ops fan_cooling_ops = {
+>  };
+>  
+>  /* --------------------------------------------------------------------------
+> -                                 Driver Interface
+> -   -------------------------------------------------------------------------- */
+> + *                               Driver Interface
+> + * --------------------------------------------------------------------------
+> +*/
+>  
+>  static int acpi_fan_add(struct acpi_device *device)
+>  {
+> @@ -143,7 +142,7 @@ static int acpi_fan_add(struct acpi_device *device)
+>  
+>  	result = acpi_bus_update_power(device->handle, NULL);
+>  	if (result) {
+> -		printk(KERN_ERR PREFIX "Setting initial power state\n");
+> +		dev_err(&device->dev, "Setting initial power state\n");
+>  		goto end;
+>  	}
+>  
+> @@ -168,10 +167,9 @@ static int acpi_fan_add(struct acpi_device *device)
+>  				   &device->dev.kobj,
+>  				   "device");
+>  	if (result)
+> -		dev_err(&device->dev, "Failed to create sysfs link "
+> -			"'device'\n");
+> +		dev_err(&device->dev, "Failed to create sysfs link 'device'\n");
+>  
+> -	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
+> +	dev_info(&device->dev, "ACPI: %s [%s] (%s)\n",
+>  	       acpi_device_name(device), acpi_device_bid(device),
+>  	       !device->power.state ? "on" : "off");
+>  
+> @@ -217,7 +215,7 @@ static int acpi_fan_resume(struct device *dev)
+>  
+>  	result = acpi_bus_update_power(to_acpi_device(dev)->handle, NULL);
+>  	if (result)
+> -		printk(KERN_ERR PREFIX "Error updating fan power state\n");
+> +		dev_err(dev, "Error updating fan power state\n");
+>  
+>  	return result;
+>  }
+> 
 
 -- 
 I speak only for myself.
