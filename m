@@ -1,52 +1,55 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [Linaro-acpi] [PATCH v5 1/2] Mailbox: Add support for Platform
- Communication Channel
-Date: Thu, 4 Sep 2014 15:07:51 -0400
-Message-ID: <CAJ5Y-eYg4aKT2adN8NaxFUtC_RnxhL8XWwcFi+=b=tkYojPhoQ@mail.gmail.com>
-References: <1409782760-3958-1-git-send-email-ashwin.chaugule@linaro.org>
-	<5470309.KpxVtJyk9p@wuerfel>
-	<CAJ5Y-eYj4vv3rmyaEiO5e9fmbeHX0eM1S9OuNn5R=9dPza_39Q@mail.gmail.com>
-	<4354903.8scPjxmpFT@wuerfel>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: Fix CMOS RTC Operation Region handler accesses to wrong address of value
+Date: Thu, 04 Sep 2014 21:46:30 +0200
+Message-ID: <38112801.VIxC3kPKfk@vostro.rjw.lan>
+References: <1409814819-30594-1-git-send-email-jlee@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:55093 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754991AbaIDTHx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Sep 2014 15:07:53 -0400
-Received: by mail-wg0-f50.google.com with SMTP id x12so10452262wgg.21
-        for <linux-acpi@vger.kernel.org>; Thu, 04 Sep 2014 12:07:52 -0700 (PDT)
-In-Reply-To: <4354903.8scPjxmpFT@wuerfel>
+Received: from v094114.home.net.pl ([79.96.170.134]:64469 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754470AbaIDT1J (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Sep 2014 15:27:09 -0400
+In-Reply-To: <1409814819-30594-1-git-send-email-jlee@suse.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>, "Lee, Chun-Yi" <jlee@suse.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-On 4 September 2014 15:00, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Thursday 04 September 2014 13:24:25 Ashwin Chaugule wrote:
->> On 4 September 2014 04:56, Arnd Bergmann <arnd@arndb.de> wrote:
->>
->> >> +     /* Write to the shared comm region. */
->> >> +     iowrite16(cmd, &generic_comm_base->command);
->> >> +
->> >> +     /* Write Subspace MAGIC value so platform can identify destination. */
->> >> +     iowrite32((PCCS_SS_SIG_MAGIC | ss_idx), &generic_comm_base->signature);
->> >> +
->> >> +     /* Flip CMD COMPLETE bit */
->> >> +     iowrite16(0, &generic_comm_base->status);
->> >
->> > using writel_relaxed/writew_relaxed should be more efficient here.
->> >
->>
->> x86 doesn't seem to have the write*_relaxed variants? They seem to
->> have read*_relaxed though.
->
-> That sounds highly inconsistent and should probably be fixed.
->
-> You could also use writew here, which would be the same as iowrite16
-> on ARM, but more efficient on x86.
+On Thursday, September 04, 2014 03:13:39 PM Lee, Chun-Yi wrote:
+> The value64 parameter is an u64 point that used to transfer the value
+> for write to CMOS, or used to return the value that's read from CMOS.
+> 
+> The value64 is an u64 point, so don't need get address again. It causes
+> acpi_cmos_rtc_space_handler always return 0 to reader and didn't write
+> expected value to CMOS.
 
-Used writel/writew in v6 of the patch.
+Do we need this fix to go to -stable?
 
-Thanks,
-Ashwin
+> Cc: Lan Tianyu <tianyu.lan@intel.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+> ---
+>  drivers/acpi/acpi_cmos_rtc.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/acpi_cmos_rtc.c b/drivers/acpi/acpi_cmos_rtc.c
+> index 2da8660..81dc750 100644
+> --- a/drivers/acpi/acpi_cmos_rtc.c
+> +++ b/drivers/acpi/acpi_cmos_rtc.c
+> @@ -33,7 +33,7 @@ acpi_cmos_rtc_space_handler(u32 function, acpi_physical_address address,
+>  		      void *handler_context, void *region_context)
+>  {
+>  	int i;
+> -	u8 *value = (u8 *)&value64;
+> +	u8 *value = (u8 *)value64;
+>  
+>  	if (address > 0xff || !value64)
+>  		return AE_BAD_PARAMETER;
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
