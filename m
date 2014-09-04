@@ -1,42 +1,262 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v5 1/2] Mailbox: Add support for Platform Communication Channel
-Date: Thu, 04 Sep 2014 16:55:38 +0200
-Message-ID: <2751441.DbtaX4JgI6@wuerfel>
-References: <1409782760-3958-1-git-send-email-ashwin.chaugule@linaro.org> <5470309.KpxVtJyk9p@wuerfel> <CAJ5Y-eaBMX_YGxL69AwKdq3y5n+XFsbD2J7AfHq197ST6AgCjQ@mail.gmail.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v3 09/17] ARM64 / ACPI: Parse MADT for SMP initialization
+Date: Thu, 04 Sep 2014 23:29:15 +0800
+Message-ID: <5408854B.9010703@linaro.org>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-10-git-send-email-hanjun.guo@linaro.org> <20140903172138.GG1824@e102568-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:58721 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751004AbaIDOzy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Sep 2014 10:55:54 -0400
-In-Reply-To: <CAJ5Y-eaBMX_YGxL69AwKdq3y5n+XFsbD2J7AfHq197ST6AgCjQ@mail.gmail.com>
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:37547 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750980AbaIDP3a (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Sep 2014 11:29:30 -0400
+Received: by mail-pa0-f47.google.com with SMTP id hz1so20313368pad.34
+        for <linux-acpi@vger.kernel.org>; Thu, 04 Sep 2014 08:29:30 -0700 (PDT)
+In-Reply-To: <20140903172138.GG1824@e102568-lin.cambridge.arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Brown <broonie@kernel.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thursday 04 September 2014 10:48:00 Ashwin Chaugule wrote:
-> 
-> >> + * Create a virtual device to back the PCCT, so
-> >> + * that the generic Mailbox framework can do its
-> >> + * ref counting.
-> >> + */
-> >> +struct platform_device pcc_pdev = {
-> >> +     .name = "PCCT",
-> >> +};
-> >
-> > Don't declare platform devices statically in C code, just
-> > use platform_create_bundle() here to create the device dynamically
-> > and bind it to the driver. That will also simplify the driver
-> > initalization.
-> >
-> 
-> Nice. Didn't know about this.
+Hi Lorenzo,
 
-It's almost always inappropriate, but I guess here it makes sense.
-Normally we want drivers to be loadable when the device shows up,
-but you can't do that here anyway.
+On 2014=E5=B9=B409=E6=9C=8804=E6=97=A5 01:21, Lorenzo Pieralisi wrote:
+> On Mon, Sep 01, 2014 at 03:57:47PM +0100, Hanjun Guo wrote:
+>> MADT contains the information for MPIDR which is essential for
+>> SMP initialization, parse the GIC cpu interface structures to
+>> get the MPIDR value and map it to cpu_logical_map(), and add
+>> enabled cpu with valid MPIDR into cpu_possible_map.
+>>
+>> ACPI 5.1 only has two explicit methods to boot up SMP, PSCI and
+>> Parking protocol, but the Parking protocol is only specified for
+>> ARMv7 now, so make PSCI as the only way for the SMP boot protocol
+>> before some updates for the ACPI spec or the Parking protocol spec.
+[...]
+>>  int acpi_noirq;			/* skip ACPI IRQ initialization */
+>>  int acpi_disabled;
+>>  EXPORT_SYMBOL(acpi_disabled);
+>> @@ -31,6 +35,8 @@ EXPORT_SYMBOL(acpi_disabled);
+>>  int acpi_pci_disabled;		/* skip ACPI PCI scan and IRQ initializatio=
+n */
+>>  EXPORT_SYMBOL(acpi_pci_disabled);
+>> =20
+>> +static int enabled_cpus;	/* Processors (GICC) with enabled flag in =
+MADT */
+> Will this be ever different from (num_possible_cpus() - 1) ?
 
-	Arnd
+Yes, num_possible_cpus() will much more than enabled cpus
+in MADT, when ACPI based CPU hot plug is introduced, you can refer
+to the code in x86.
+
+>
+>> +
+>>  /*
+>>   * __acpi_map_table() will be called before page_init(), so early_i=
+oremap()
+>>   * or early_memremap() should be called here to for ACPI table mapp=
+ing.
+>> @@ -51,6 +57,144 @@ void __init __acpi_unmap_table(char *map, unsign=
+ed long size)
+>>  	early_memunmap(map, size);
+>>  }
+>> =20
+>> +/**
+>> + * acpi_map_gic_cpu_interface - generates a logical cpu number
+>> + * and map to MPIDR represented by GICC structure
+>> + * @mpidr: CPU's hardware id to register, MPIDR represented in MADT
+>> + * @enabled: this cpu is enabled or not
+>> + *
+>> + * Returns the logical cpu number which maps to MPIDR
+>> + */
+>> +static int acpi_map_gic_cpu_interface(u64 mpidr, u8 enabled)
+>> +{
+>> +	int cpu;
+>> +
+>> +	if (mpidr =3D=3D INVALID_HWID) {
+>> +		pr_info("Skip invalid cpu hardware ID\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	total_cpus++;
+> What's this used for ?
+
+It is for all the CPU entries in MADT table, it is used to let
+people know how many CPUs in MADT (enabled and disabled).
+
+>
+>> +	if (!enabled)
+>> +		return -EINVAL;
+>> +
+>> +	if (enabled_cpus >=3D  NR_CPUS) {
+>> +		pr_warn("NR_CPUS limit of %d reached, Processor %d/0x%llx ignored=
+=2E\n",
+>> +			NR_CPUS, total_cpus, mpidr);
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	/* No need to check duplicate MPIDRs for the first CPU */
+>> +	if (enabled_cpus) {
+>> +		/*
+>> +		 * Duplicate MPIDRs are a recipe for disaster. Scan
+>> +		 * all initialized entries and check for
+>> +		 * duplicates. If any is found just ignore the CPU.
+>> +		 */
+>> +		for_each_possible_cpu(cpu) {
+>> +			if (cpu_logical_map(cpu) =3D=3D mpidr) {
+>> +				pr_err("Firmware bug, duplicate CPU MPIDR: 0x%llx in MADT\n",
+>> +				mpidr);
+>> +				return -EINVAL;
+>> +			}
+>> +		}
+>> +	} else {
+>> +		/* Fist GICC entry must be BSP as ACPI spec said */
+> s/Fist/First/
+>
+>> +		if  (cpu_logical_map(0) !=3D mpidr) {
+>> +			pr_err("First GICC entry is not BSP for MPIDR 0x%llx\n",
+>> +			       mpidr);
+>> +			return -EINVAL;
+>> +		}
+> Interesting, this means that if I want to change the boot CPU I have =
+to
+> recompile the ACPI tables. Is that really true ?
+
+No, you needn't. there is a logic problem here, we just need to print
+some message here and continue, OS will still ok with that.
+
+>
+>> +	}
+>> +
+>> +	/* allocate a logical cpu id for the new comer */
+>> +	if (cpu_logical_map(0) =3D=3D mpidr) {
+>> +		/*
+>> +		 * boot_cpu_init() already hold bit 0 in cpu_present_mask
+>> +		 * for BSP, no need to allocate again.
+>> +		 */
+>> +		cpu =3D 0;
+>> +	} else {
+>> +		cpu =3D cpumask_next_zero(-1, cpu_possible_mask);
+>> +	}
+> You may use a ternary operator, more compact and clearer.
+>
+> BTW you seem to be contradicting yourself. On one hand you keep a
+> counter for enabled_cpus, and then use cpu_possible_mask to allocate
+> a logical cpu id. Make a decision, either you use a counter or you
+> use cpu_possible_mask and its bitweight.
+
+ok.
+
+>
+>> +	/*
+>> +	 * ACPI 5.1 only has two explicit methods to boot up SMP,
+>> +	 * PSCI and Parking protocol, but the Parking protocol is
+>> +	 * only specified for ARMv7 now, so make PSCI as the only
+>> +	 * way for the SMP boot protocol before some updates for
+>> +	 * the ACPI spec or the Parking protocol spec.
+>> +	 */
+>> +	if (!acpi_psci_present()) {
+>> +		pr_warn("CPU %d has no PSCI support, will not boot\n", cpu);
+>> +		return -EOPNOTSUPP;
+>> +	}
+> This check really does not belong here. You do not even start parsing=
+ the gic
+> cpu interfaces if psci is missing or I am missing something myself. A=
+nyway,
+> this check must not be in this function.
+
+I agree with you, i will update the patch.
+
+>
+>> +
+>> +	/* Get cpu_ops include the boot CPU */
+>> +	cpu_ops[cpu] =3D cpu_get_ops("psci");
+>> +	if (!cpu_ops[cpu])
+>> +		return -EINVAL;
+>> +
+>> +	/* CPU 0 was already initialized */
+>> +	if (cpu) {
+>> +		if (cpu_ops[cpu]->cpu_init(NULL, cpu))
+>> +			return -EOPNOTSUPP;
+>> +
+>> +		/* map the logical cpu id to cpu MPIDR */
+>> +		cpu_logical_map(cpu) =3D mpidr;
+>> +
+>> +		set_cpu_possible(cpu, true);
+>> +	}
+>> +
+>> +	enabled_cpus++;
+> See above to me enabled_cpus and (num_possible_cpus() - 1)  are ident=
+ical.
+
+I think I need to remove all the CPU hotplug related code and make this=
+ function
+as simple as possible and introduce them when needed.
+
+>
+>> +	return cpu;
+>> +}
+>> +
+>> +static int __init
+>> +acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
+>> +				const unsigned long end)
+>> +{
+>> +	struct acpi_madt_generic_interrupt *processor;
+>> +
+>> +	processor =3D (struct acpi_madt_generic_interrupt *)header;
+>> +
+>> +	if (BAD_MADT_ENTRY(processor, end))
+>> +		return -EINVAL;
+>> +
+>> +	acpi_table_print_madt_entry(header);
+>> +
+>> +	acpi_map_gic_cpu_interface(processor->arm_mpidr,
+>> +		processor->flags & ACPI_MADT_ENABLED);
+> Ehm. You must check the return value here right (and return an error =
+if
+> that's an error, otherwise the count value below can be botched ?!).
+>
+> Or you do not consider a parsing error as an error and want to keep
+> parsing remaining GIC CPU IF entries ?
+
+yes, this is my intension. we can skip the error ones and boot
+other CPUs which have no errors.
+
+>
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +/* Parse GIC cpu interface entries in MADT for SMP init */
+>> +void __init acpi_smp_init_cpus(void)
+>> +{
+>> +	int count;
+>> +
+>> +	/*
+>> +	 * do a partial walk of MADT to determine how many CPUs
+>> +	 * we have including disabled CPUs, and get information
+>> +	 * we need for SMP init
+>> +	 */
+>> +	count =3D acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
+>> +			acpi_parse_gic_cpu_interface,
+>> +			ACPI_MAX_GIC_CPU_INTERFACE_ENTRIES);
+>> +
+>> +	if (!count) {
+>> +		pr_err("No GIC CPU interface entries present\n");
+>> +		return;
+>> +	} else if (count < 0) {
+>> +		pr_err("Error parsing GIC CPU interface entry\n");
+>> +		return;
+>> +	}
+> What would you consider an error ? A single GIC CPU IF entry error ?
+
+could you please explain it in detail? I can't catch up with you, my ap=
+ologizes.
+
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
