@@ -1,49 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI: Invalid active2 threshold
-Date: Thu, 04 Sep 2014 21:21:10 +0200
-Message-ID: <2013965.03uY2hDTmQ@vostro.rjw.lan>
-References: <201409041840.04182.a.miskiewicz@gmail.com>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH v5 1/2] Mailbox: Add support for Platform
+ Communication Channel
+Date: Thu, 4 Sep 2014 15:07:51 -0400
+Message-ID: <CAJ5Y-eYg4aKT2adN8NaxFUtC_RnxhL8XWwcFi+=b=tkYojPhoQ@mail.gmail.com>
+References: <1409782760-3958-1-git-send-email-ashwin.chaugule@linaro.org>
+	<5470309.KpxVtJyk9p@wuerfel>
+	<CAJ5Y-eYj4vv3rmyaEiO5e9fmbeHX0eM1S9OuNn5R=9dPza_39Q@mail.gmail.com>
+	<4354903.8scPjxmpFT@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53216 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754672AbaIDTBv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Sep 2014 15:01:51 -0400
-In-Reply-To: <201409041840.04182.a.miskiewicz@gmail.com>
+Received: from mail-wg0-f50.google.com ([74.125.82.50]:55093 "EHLO
+	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754991AbaIDTHx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Sep 2014 15:07:53 -0400
+Received: by mail-wg0-f50.google.com with SMTP id x12so10452262wgg.21
+        for <linux-acpi@vger.kernel.org>; Thu, 04 Sep 2014 12:07:52 -0700 (PDT)
+In-Reply-To: <4354903.8scPjxmpFT@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>, rui.zhang@intel.com
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Thursday, September 04, 2014 06:40:04 PM Arkadiusz Miskiewicz wrote:
-> 
-> Hi.
-> 
-> I'm using 3.17.0-rc3-00002-g7505cea kernel on Dell XPS 15 machine:
-> DMI: Dell Inc. XPS 15 9530/XPS 15 9530, BIOS A06 07/16/2014
-> (this is latest bios)
-> 
-> After loading thermal acpi driver I get:
-> 
-> [54136.633643] ACPI: Invalid active2 threshold
-> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> [54136.633761] thermal LNXTHERM:00: registered as thermal_zone6
-> [54136.633763] ACPI: Thermal Zone [TZ00] (28 C)
-> [54136.634009] thermal LNXTHERM:01: registered as thermal_zone7
-> [54136.634011] ACPI: Thermal Zone [TZ01] (-266 C)
-> 
-> 
-> I assume bios is buggy (right?)
+On 4 September 2014 15:00, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Thursday 04 September 2014 13:24:25 Ashwin Chaugule wrote:
+>> On 4 September 2014 04:56, Arnd Bergmann <arnd@arndb.de> wrote:
+>>
+>> >> +     /* Write to the shared comm region. */
+>> >> +     iowrite16(cmd, &generic_comm_base->command);
+>> >> +
+>> >> +     /* Write Subspace MAGIC value so platform can identify destination. */
+>> >> +     iowrite32((PCCS_SS_SIG_MAGIC | ss_idx), &generic_comm_base->signature);
+>> >> +
+>> >> +     /* Flip CMD COMPLETE bit */
+>> >> +     iowrite16(0, &generic_comm_base->status);
+>> >
+>> > using writel_relaxed/writew_relaxed should be more efficient here.
+>> >
+>>
+>> x86 doesn't seem to have the write*_relaxed variants? They seem to
+>> have read*_relaxed though.
+>
+> That sounds highly inconsistent and should probably be fixed.
+>
+> You could also use writew here, which would be the same as iowrite16
+> on ARM, but more efficient on x86.
 
-Well, we don't seem to like the value for some reason.  Also the -266 C for TZ01
-looks suspicious.
+Used writel/writew in v6 of the patch.
 
-> What problems can happen to this machine due to this problem? It is quite hot 
-> frequently, so I wonder if there is some thermal management problem with it.
-
-I'm leaving this question to Rui.
-
-Rafael
-
+Thanks,
+Ashwin
