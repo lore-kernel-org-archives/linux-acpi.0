@@ -1,69 +1,57 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [Linaro-acpi] [PATCH v5 1/2] Mailbox: Add support for Platform
- Communication Channel
-Date: Thu, 4 Sep 2014 23:20:19 +0100
-Message-ID: <20140904222019.GR29327@sirena.org.uk>
-References: <1409782760-3958-1-git-send-email-ashwin.chaugule@linaro.org>
- <5470309.KpxVtJyk9p@wuerfel>
- <CAJ5Y-eYj4vv3rmyaEiO5e9fmbeHX0eM1S9OuNn5R=9dPza_39Q@mail.gmail.com>
- <4354903.8scPjxmpFT@wuerfel>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI: Invalid active2 threshold
+Date: Fri, 05 Sep 2014 09:34:51 +0800
+Message-ID: <1409880891.8085.147.camel@rzhang1-toshiba>
+References: <201409041840.04182.a.miskiewicz@gmail.com>
+	 <2013965.03uY2hDTmQ@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="M+v2aDNX3KeyWL9I"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:50519 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755433AbaIDWUe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Sep 2014 18:20:34 -0400
-Content-Disposition: inline
-In-Reply-To: <4354903.8scPjxmpFT@wuerfel>
+Received: from mga01.intel.com ([192.55.52.88]:46167 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750966AbaIEBfT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Sep 2014 21:35:19 -0400
+In-Reply-To: <2013965.03uY2hDTmQ@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linaro-acpi@lists.linaro.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
+
+On Thu, 2014-09-04 at 21:21 +0200, Rafael J. Wysocki wrote:
+> On Thursday, September 04, 2014 06:40:04 PM Arkadiusz Miskiewicz wrote:
+> > 
+> > Hi.
+> > 
+> > I'm using 3.17.0-rc3-00002-g7505cea kernel on Dell XPS 15 machine:
+> > DMI: Dell Inc. XPS 15 9530/XPS 15 9530, BIOS A06 07/16/2014
+> > (this is latest bios)
+> > 
+> > After loading thermal acpi driver I get:
+> > 
+> > [54136.633643] ACPI: Invalid active2 threshold
+> > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> > [54136.633761] thermal LNXTHERM:00: registered as thermal_zone6
+> > [54136.633763] ACPI: Thermal Zone [TZ00] (28 C)
+> > [54136.634009] thermal LNXTHERM:01: registered as thermal_zone7
+> > [54136.634011] ACPI: Thermal Zone [TZ01] (-266 C)
+> > 
+> > 
+> > I assume bios is buggy (right?)
+> 
+> Well, we don't seem to like the value for some reason.  Also the -266 C for TZ01
+> looks suspicious.
+> 
+> > What problems can happen to this machine due to this problem? It is quite hot 
+> > frequently, so I wonder if there is some thermal management problem with it.
+> 
+> I'm leaving this question to Rui.
+> 
+
+It looks like ACPI thermal driver fails to parse _AC2 control methods.
+please attach the acpidump output.
+
+thanks,
+rui
 
 
---M+v2aDNX3KeyWL9I
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Sep 04, 2014 at 09:00:11PM +0200, Arnd Bergmann wrote:
-> On Thursday 04 September 2014 13:24:25 Ashwin Chaugule wrote:
-> > On 4 September 2014 04:56, Arnd Bergmann <arnd@arndb.de> wrote:
-
-> > >> +     /* Flip CMD COMPLETE bit */
-> > >> +     iowrite16(0, &generic_comm_base->status);
-
-> > > using writel_relaxed/writew_relaxed should be more efficient here.
-
-> > x86 doesn't seem to have the write*_relaxed variants? They seem to
-> > have read*_relaxed though.
-
-> That sounds highly inconsistent and should probably be fixed.
-
-Will has a series for this but it needed some revisions for consistency
-with DMA.
-
---M+v2aDNX3KeyWL9I
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJUCOWgAAoJELSic+t+oim9Tw0P+waVdw/V/JqUDKkU/kgOWoLe
-vn5HTXiSHhxdEZT1f/ZCxPrvpcWYvj6ok60jslmilMeYPmruhklRFF3trbXcecl0
-rw8E0TsruCtT7TSDJfLpv35zLPObPisv0sxGzXC5aK/hEoSZxht0qF8bKcaeR5d3
-aO0RewPu7BYndB2xsZPZwhKIbGPQ+PK1jsCbCS4tvEh3FxLoRsxkjZcHhPQeBZR8
-b0zuQOwn1uHMd5hx+deiCiNFi0ByvvwcjUE0B1ed9JQSdoImesFkGBP9r1Z4PoXb
-6qjU1GqXUI/N3C7jYbaS7Ggl7e7wActJuF7GSx2y0tIGy1U2EBs3lrk5ICvru1PM
-wF4Ab8U5grZknxQf28ewS1bUBdk7Kz+qhxYFYqCWQlLOuhted/GFy2zNPkLFzjzv
-QwpezIld3PngUXlW9VFbI184G2xUjw6UaMje6Oedtnzeqzu4F6mKtNsha9JGfVvj
-vs6vwpVT/T5woOMpChd741nXQP+iwiaQsnexR85zhMdaS3LzcmTqMbdRdmHKkkLN
-3uVXWlyuAdiooOX5a7yETi3yP8xbKpCRIkAV6GPjf7SbdGZIYCDLbcDGDAqHcorV
-xC48PDdJAKwI9iPg28UHhfpabunT10rn6FizGdQQiuuHsMeHaaMts9sMSvnXi/bc
-HyWc9mmR+2ucC7Hy3+Lt
-=eNYS
------END PGP SIGNATURE-----
-
---M+v2aDNX3KeyWL9I--
