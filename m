@@ -1,67 +1,75 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH] ACPI: Fix CMOS RTC Operation Region handler accesses to
- wrong address of value
-Date: Fri, 5 Sep 2014 10:06:41 +0800
-Message-ID: <20140905020641.GE2225@linux-rxt1.site>
-References: <1409814819-30594-1-git-send-email-jlee@suse.com>
- <38112801.VIxC3kPKfk@vostro.rjw.lan>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v6 1/2] Mailbox: Add support for Platform Communication Channel
+Date: Thu, 4 Sep 2014 22:23:34 -0400
+Message-ID: <CAJ5Y-eZnoLLomcX0K_KL-FmprZEYg=sPDvf0JVOZJc_jNZvF+Q@mail.gmail.com>
+References: <1409856561-3945-1-git-send-email-ashwin.chaugule@linaro.org>
+	<1409856561-3945-2-git-send-email-ashwin.chaugule@linaro.org>
+	<1AE640813FDE7649BE1B193DEA596E880266233D@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:48319 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751226AbaIECG5 (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-	Thu, 4 Sep 2014 22:06:57 -0400
-Content-Disposition: inline
-In-Reply-To: <38112801.VIxC3kPKfk@vostro.rjw.lan>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:51323 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751434AbaIECXf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Sep 2014 22:23:35 -0400
+Received: by mail-we0-f174.google.com with SMTP id u57so11201332wes.33
+        for <linux-acpi@vger.kernel.org>; Thu, 04 Sep 2014 19:23:34 -0700 (PDT)
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880266233D@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "arnd@arndb.de" <arnd@arndb.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "broonie@kernel.org" <broonie@kernel.org>
 
-Hi, 
+Hi Lv,
 
-On Thu, Sep 04, 2014 at 09:46:30PM +0200, Rafael J. Wysocki wrote:
-> On Thursday, September 04, 2014 03:13:39 PM Lee, Chun-Yi wrote:
-> > The value64 parameter is an u64 point that used to transfer the value
-> > for write to CMOS, or used to return the value that's read from CMOS.
-> > 
-> > The value64 is an u64 point, so don't need get address again. It causes
-> > acpi_cmos_rtc_space_handler always return 0 to reader and didn't write
-> > expected value to CMOS.
-> 
-> Do we need this fix to go to -stable?
-> 
+On 4 September 2014 21:56, Zheng, Lv <lv.zheng@intel.com> wrote:
+>> +     spin_lock_irqsave(&chan->lock, flags);
+>> +     chan->msg_free = 0;
+>> +     chan->msg_count = 0;
+>> +     chan->active_req = NULL;
+>> +     chan->cl = cl;
+>> +     init_completion(&chan->tx_complete);
+>> +
+>> +     if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
+>
+> The tab should be a space here?
+>
 
-Yes, this handler was added since v3.11 kernel. So, need go to -stable.
+Not sure where you're seeing the tab.
 
-> > Cc: Lan Tianyu <tianyu.lan@intel.com>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
-> > ---
-> >  drivers/acpi/acpi_cmos_rtc.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/acpi_cmos_rtc.c b/drivers/acpi/acpi_cmos_rtc.c
-> > index 2da8660..81dc750 100644
-> > --- a/drivers/acpi/acpi_cmos_rtc.c
-> > +++ b/drivers/acpi/acpi_cmos_rtc.c
-> > @@ -33,7 +33,7 @@ acpi_cmos_rtc_space_handler(u32 function, acpi_physical_address address,
-> >  		      void *handler_context, void *region_context)
-> >  {
-> >  	int i;
-> > -	u8 *value = (u8 *)&value64;
-> > +	u8 *value = (u8 *)value64;
-> >  
-> >  	if (address > 0xff || !value64)
-> >  		return AE_BAD_PARAMETER;
-> > 
-> 
-> -- 
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+>> +static bool pcc_tx_done(struct mbox_chan *chan)
+>> +{
+>> +     struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
+>> +     struct acpi_pcct_shared_memory *generic_comm_base =
+>> +             (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
+>> +     u16 cmd_delay = pcct_ss->min_turnaround_time;
+>
+> Should these parameters be acquired with chan-lock held?
+> Is that possible to change them during runtime?
+>
 
-Regards
-Joey Lee
+No. These parameters don't change.
+
+>> +/* Channel lock is already held by mbox controller code. */
+>> +static int pcc_send_data(struct mbox_chan *chan, void *data)
+>> +{
+>> +     struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
+>> +     struct acpi_pcct_shared_memory *generic_comm_base =
+>> +             (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
+>
+>
+> Ditto.
+>
+
+Same as above.
+
+>> +out_err:
+>> +     return ACPI_SUCCESS(status) ? 1 : 0;
+>
+> Should the return value of 1 here be -EINVAL?
+>
+
+I dont think it really matters, the caller returns -EINVAL anyway.
+
+Thanks,
+Ashwin
