@@ -1,35 +1,31 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
 Subject: Re: [PATCH v3 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot support
-Date: Fri, 05 Sep 2014 10:52:19 +0200
-Message-ID: <540979C3.9020806@linaro.org>
+Date: Fri, 05 Sep 2014 10:47:30 +0100
+Message-ID: <540986B2.7000901@arm.com>
 References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <5405BFE7.5060005@arm.com> <5406DEB6.1060705@linaro.org> <4895927.Zp4WL2AZAF@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:46836 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756132AbaIEIwF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Sep 2014 04:52:05 -0400
-Received: by mail-wi0-f170.google.com with SMTP id cc10so419637wib.1
-        for <linux-acpi@vger.kernel.org>; Fri, 05 Sep 2014 01:52:04 -0700 (PDT)
+Received: from fw-tnat.austin.arm.com ([217.140.110.23]:21125 "EHLO
+	collaborate-mta1.arm.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756421AbaIEJrk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Sep 2014 05:47:40 -0400
 In-Reply-To: <4895927.Zp4WL2AZAF@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.c>
+Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobi>
 
-
-
-On 03.09.2014 16:57, Arnd Bergmann wrote:
+On 03/09/14 15:57, Arnd Bergmann wrote:
 > On Wednesday 03 September 2014 11:26:14 Tomasz Nowicki wrote:
 >> On 02.09.2014 15:02, Marc Zyngier wrote:
 >>> On 02/09/14 12:48, Tomasz Nowicki wrote:
 >>>> On 01.09.2014 19:35, Marc Zyngier wrote:
 >>>>>> @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(struct pt_regs *))
->>>>>>     void __init init_IRQ(void)
->>>>>>     {
->>>>>>        irqchip_init();
+>>>>>>    void __init init_IRQ(void)
+>>>>>>    {
+>>>>>>       irqchip_init();
 >>>>>> +
 >>>>>> +    if (!handle_arch_irq)
 >>>>>> +            acpi_gic_init();
@@ -48,8 +44,8 @@ On 03.09.2014 16:57, Arnd Bergmann wrote:
 >>> There is no reason for your probing structure to be artificially
 >>> different (you're parsing the same information, at the same time). Just
 >>> put in place a similar probing mechanism, and this will look a lot better.
->
->
+> 
+> 
 >>>> Having only GICv2, it would work. Considering we would do the same for
 >>>> GICv3 (arm-gic-v3.h) there will be register name conflicts for both
 >>>> headers inclusion:
@@ -58,11 +54,11 @@ On 03.09.2014 16:57, Arnd Bergmann wrote:
 >>>> #include <linux/irqchip/arm-gic.h>
 >>>> #include <linux/irqchip/arm-gic-v3.h>
 >>>> [...]
->>>>           err = gic_v3_acpi_init(table);
->>>>           if (err)
->>>>                   err = gic_v2_acpi_init(table);
->>>>           if (err)
->>>>                   pr_err("Failed to initialize GIC IRQ controller");
+>>>>          err = gic_v3_acpi_init(table);
+>>>>          if (err)
+>>>>                  err = gic_v2_acpi_init(table);
+>>>>          if (err)
+>>>>                  pr_err("Failed to initialize GIC IRQ controller");
 >>>> [...]
 >>>> So instead of changing register names prefix, I choose new header will
 >>>> be less painfully.
@@ -82,28 +78,37 @@ On 03.09.2014 16:57, Arnd Bergmann wrote:
 >>>
 >>> In summary: we have the infrastructure already, just use it.
 >>
->> We had that discussion but I see we still don't have consensus here. It
->> would be good to know our direction before we prepare next patch
+>> We had that discussion but I see we still don't have consensus here. It 
+>> would be good to know our direction before we prepare next patch 
 >> version. Arnd any comments on this from you side?
->
+> 
 > I still prefer being explicit here for the same reason I mentioned earlier:
 > I want it to be very clear that we don't support arbitrary irqchips other
 > than the ones in the APCI specification. The infrastructure exists on DT
 > because we have to support a large number of incompatible irqchips.
->
+
+I'm not suggesting that we should support more than the ACPI spec says.
+And that's certainly the whole point of a spec, isn't it? ACPI says what
+we support, and we're not going any further. I'm just saying that we
+shouldn't make the maintenance burden heavier, and the code nothing
+short of disgusting. Using our current infrastructure doesn't mean we're
+going to support GIcv2.37.
+
 > In particular, the ACPI tables describing the irqchip have no way to
 > identify the GIC at all, if I read the spec correctly, you have to
 > parse the tables, ioremap the registers and then read the ID to know
 > if you have GICv1/v2/v2m/v3/v4. There doesn't seem to be any "device"
 > for the GIC that a hypothetical probe function would be based on.
-Yes, it is just one table with bunch of different subtables types. Since 
-GIC identification register is at different offset across GICv1/2 and 
-GICv3, the probe logic seems to be slightly different. IMO, we should 
-look into our MADT and try GICv3 fist and then GICv2, that means 
-presence of redistributor entries suggests GICv3/4. Its absence means we 
-need to look for GICC subtables and then call GICv2 init.
 
->
+This is not the way I read the spec. Table 5-46 (Interrupt Controller
+Structure) tells you if you have a CPU interface (GICv1/v2) or a
+redistributor (GICv3/v4). That's enough to know whether or not you
+should carry on probing a particular controller.
+
+The various GIC versions don't really have a unified memory map anyway
+(well, none that you can rely on), and you really have to rely on ACPI
+to tell you what you have.
+
 > It does seem wrong to parse the tables in the irq-gic.c file though:
 > that part can well be common across the various gic versions and then
 > call into either irq-gic.c or irq-gic-v3.c for the version specific
@@ -111,26 +116,12 @@ need to look for GICC subtables and then call GICv2 init.
 > drivers/irqchip/gic-common.c, drivers/irqchip/irq-acpi-gic.c or
 > drivers/acpi/irq-gic.c I don't care at all.
 
-We already had tried making MADT parser common for all GICs in the 
-separate file (outside GIC driver), it did not end up well. In the light 
-of above comment, the logic will be complex and some GIC local strutures 
-need to be exported:
-1. Check redistributor entries.
-2. If none exist, as fallback, check GICC entries, there are 
-redistributor base address assigned to CPU. Unfortunately it has no 
-register set size so ioremap only two pages (RD + SGI) check if we 
-support VLPI and extend ioremap if true. We cannot operate on GIC 
-register outside GIC driver so that requires another exported GICv3 
-function.
-3. Jump to redistributor part if we are OK so far, if not, then we start 
-playing with GICC enries and look for cpu base addresses.
+I don't think so you can make that common code very easily. The
+information required by both drivers is organized differently.
+If it was, I'd have done that for the DT binding.
 
-Honestly, apart from distributor parsing logic, there is no common code.
+Thanks,
 
-As you can see, current gic_v2_acpi_init() logic is quite easy to 
-follow. And gic_v3_acpi_init() inside of GICv3 driver is easy too. I 
-might not see other solutions but I am open to other suggestions, so 
-please correct me in that case.
-
-Regards,
-Tomasz
+	M.
+-- 
+Jazz is not dead. It just smells funny...
