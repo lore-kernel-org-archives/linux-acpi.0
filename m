@@ -1,160 +1,122 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH] acpi : Add container online uevent to acpi_bus_attach
-Date: Fri, 5 Sep 2014 20:14:13 +0800
-Message-ID: <20140905121413.GG2225@linux-rxt1.site>
-References: <54095EE7.3080302@jp.fujitsu.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI and power management fixes for 3.17-rc4
+Date: Fri, 5 Sep 2014 16:41:19 +0200
+Message-ID: <CAJZ5v0i298zi_tQf2XfQo12dQHR3Kn7jBYfyH6RxiAWz_eE0yQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:45920 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756805AbaIEMOZ (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-	Fri, 5 Sep 2014 08:14:25 -0400
-Content-Disposition: inline
-In-Reply-To: <54095EE7.3080302@jp.fujitsu.com>
+Received: from mail-ob0-f173.google.com ([209.85.214.173]:52855 "EHLO
+	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754172AbaIEOlU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Sep 2014 10:41:20 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linuxfoundation.org>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Yasuaki, 
+Hi Linus,
 
-On Fri, Sep 05, 2014 at 03:57:43PM +0900, Yasuaki Ishimatsu wrote:
-> Container online uevent was deleted by "46394fd01 : ACPI / hotplug:
-> Move container-specific code out of the core" because container-
-> specific uevent is raised to udev by attaching container device.
-> But the container-specific uevent is not useful.
-> 
-> In my box, conainer device has CPU and memory devices. In this case,
-> when hot adding container device, the following uevets are raised to
-> udev.
-> 
->   # udevadm monitor --kernel
->   monitor will print the received events for:
->   KERNEL - the kernel uevent
-> 
->   KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
->   <snip>
->   KERNEL[...] add      /devices/system/memory/memory2048 (memory)
->   KERNEL[...] add      /devices/system/memory/memory2049 (memory)
->   <snip>
->   KERNEL[...] add      /devices/system/memory/memory2063 (memory)
->   <snip>
->   KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
->   <snip>
->   KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
-> 
-> When udev catches the container add uevent in my box, udev executes
-> user land script for onlining all child's devices. But memory and CPU
-> devices have not been attached at this time. So user land script fails.
-> 
-> One of solutions is that user land script waits for all child's devices
-> to attach. But user land script has no way to know all child's devices
-> were attached.
-> 
-> So the patch adds container online uevent to acpi_bus_sttach(). By
-> applying
-> the patch, container online uevent is raised to udev after all child's
-> devices were attached as follows:
-> 
->   # udevadm monitor --kernel
->   monitor will print the received events for:
->   KERNEL - the kernel uevent
-> 
->   KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
->   <snip>
->   KERNEL[...] add      /devices/system/memory/memory2048 (memory)
->   KERNEL[...] add      /devices/system/memory/memory2049 (memory)
->   <snip>
->   KERNEL[...] add      /devices/system/memory/memory2063 (memory)
->   <snip>
->   KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
->   <snip>
->   KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
->   KERNEL[...] online   /devices/system/container/ACPI0004:01 (container)
-> 
-> So if user land script is executed after raising the container online
-> uevent, it guarantees that all child's devices were attached.
-> 
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Please pull from
 
-Your patch works on my side.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-3.17-rc4
 
-Tested-by: Lee, Chun-Yi <jlee@suse.com>
+to receive ACPI and power management fixes for v3.17-rc4 with
+top-most commit 9aa4e2f6ac2e5d0729f5982fd0b070123808381e
 
-Thanks a lot!
-joey Lee
+ Merge branches 'pm-sleep', 'powercap', 'pm-domains' and 'pm-cpufreq'
 
-> ---
->  drivers/acpi/container.c | 15 +++++++++++++++
->  drivers/acpi/internal.h  |  7 +++++++
->  drivers/acpi/scan.c      |  3 +++
->  3 files changed, 25 insertions(+)
-> 
-> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-> index 76f7cff..eba5746 100644
-> --- a/drivers/acpi/container.c
-> +++ b/drivers/acpi/container.c
-> @@ -43,6 +43,21 @@ static const struct acpi_device_id container_device_ids[] = {
-> 
->  #ifdef CONFIG_ACPI_CONTAINER
-> 
-> +void notify_container_device(struct acpi_device *adev)
-> +{
-> +	struct device *dev = acpi_driver_data(adev);
-> +
-> +	kobject_uevent(&dev->kobj, KOBJ_ONLINE);
-> +}
-> +
-> +int is_container_device(struct acpi_device *adev)
-> +{
-> +	if (acpi_match_device_ids(adev, container_device_ids))
-> +		return 0;
-> +
-> +	return 1;
-> +}
-> +
->  static int acpi_container_offline(struct container_dev *cdev)
->  {
->  	struct acpi_device *adev = ACPI_COMPANION(&cdev->dev);
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 4c5cf77..12dd89b 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -45,6 +45,13 @@ static inline void register_dock_dependent_device(struct acpi_device *adev,
->  static inline int dock_notify(struct acpi_device *adev, u32 event) { return -ENODEV; }
->  static inline void acpi_dock_add(struct acpi_device *adev) {}
->  #endif
-> +#if CONFIG_ACPI_CONTAINER
-> +int is_container_device(struct acpi_device *adev);
-> +void notify_container_device(struct acpi_device *adev);
-> +#else
-> +static inline int is_container_device(struct acpi_device *adev) { return 0; }
-> +static inline void notify_container_device(struct acpi_device *adev) {}
-> +#endif
->  #ifdef CONFIG_X86
->  void acpi_cmos_rtc_init(void);
->  #else
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 9a92989..faa3d11 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -2188,6 +2188,9 @@ static void acpi_bus_attach(struct acpi_device *device)
->   ok:
->  	list_for_each_entry(child, &device->children, node)
->  		acpi_bus_attach(child);
-> +
-> +	if (is_container_device(device))
-> +		notify_container_device(device);
->  }
-> 
->  /**
-> -- 
-> 1.8.3.1
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+on top of commit 69e273c0b0a3c337a521d083374c918dc52c666f
+
+ Linux 3.17-rc3
+
+These are regression fixes (ACPI sysfs, ACPI video, suspend test),
+ACPI cpuidle deadlock fix, missing runtime validation of ACPI _DSD
+output, a fix and a new CPU ID for the RAPL driver, new blacklist
+entry for the ACPI EC driver and a couple of trivial cleanups
+(intel_pstate and generic PM domains).
+
+Specifics:
+
+ - Fix for recently broken test_suspend= command line argument
+   (Rafael J Wysocki).
+
+ - Fixes for regressions related to the ACPI video driver caused
+   by switching the default to native backlight handling in 3.16
+   from Hans de Goede.
+
+ - Fix for a sysfs attribute of ACPI device objects that returns
+   stale values sometimes due to the fact that they are cached
+   instead of executing the appropriate method (_SUN) every time
+   (broken in 3.14).  From Yasuaki Ishimatsu.
+
+ - Fix for a deadlock between cpuidle_lock and cpu_hotplug.lock
+   in the ACPI processor driver from Jiri Kosina.
+
+ - Runtime output validation for the ACPI _DSD device configuration
+   object missing from the support for it that has been introduced
+   recently.  From Mika Westerberg.
+
+ - Fix for an unuseful and misleading RAPL (Running Average Power
+   Limit) domain detection message in the RAPL driver from Jacob Pan.
+
+ - New Intel Haswell CPU ID for the RAPL driver from Jason Baron.
+
+ - New Clevo W350etq blacklist entry for the ACPI EC driver
+   from Lan Tianyu.
+
+ - Cleanups for the intel_pstate driver and the core generic PM
+   domains code from Gabriele Mazzotta and Geert Uytterhoeven.
+
+Thanks!
+
+
+---------------
+
+Gabriele Mazzotta (1):
+      cpufreq: intel_pstate: Remove unneeded variable
+
+Geert Uytterhoeven (1):
+      PM / domains: Make generic_pm_domain.name const
+
+Hans de Goede (3):
+      ACPI / video: Fix use_native_backlight selection logic
+      ACPI / video: Add a disable_native_backlight quirk
+      ACPI / video: Disable native_backlight on HP ENVY 15 Notebook PC
+
+Jacob Pan (1):
+      powercap / RAPL: change domain detection message
+
+Jason Baron (1):
+      powercap / RAPL: add support for CPU model 0x3f
+
+Jiri Kosina (1):
+      ACPI / cpuidle: fix deadlock between cpuidle_lock and cpu_hotplug.lock
+
+Lan Tianyu (1):
+      ACPI / EC: Add msi quirk for Clevo W350etq
+
+Mika Westerberg (1):
+      ACPICA: ACPI 5.1: Add support for runtime validation of _DSD package.
+
+Rafael J. Wysocki (1):
+      PM / sleep: Fix test_suspend= command line option
+
+Yasuaki Ishimatsu (1):
+      ACPI / scan: not cache _SUN value in struct acpi_device_pnp
+
+---------------
+
+ drivers/acpi/acpica/nsprepkg.c | 39 ++++++++++++++++++++++++++++++++++++
+ drivers/acpi/ec.c              |  4 ++++
+ drivers/acpi/processor_idle.c  |  4 ++--
+ drivers/acpi/scan.c            | 15 +++++++-------
+ drivers/acpi/video.c           | 45 ++++++++++++++++++++++++++++++++++++++++--
+ drivers/cpufreq/intel_pstate.c |  4 ----
+ drivers/powercap/intel_rapl.c  |  8 ++++----
+ include/acpi/acpi_bus.h        |  1 -
+ include/linux/pm_domain.h      |  2 +-
+ kernel/power/power.h           |  1 +
+ kernel/power/suspend.c         |  2 +-
+ kernel/power/suspend_test.c    | 31 ++++++++++++++++++-----------
+ 12 files changed, 122 insertions(+), 34 deletions(-)
