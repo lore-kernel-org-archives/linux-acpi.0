@@ -1,82 +1,62 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [PATCH v3 0/9] PM / Domains: Generic OF-based support
-Date: Fri, 05 Sep 2014 08:39:07 -0700
-Message-ID: <7h61h2yt44.fsf@paris.lan>
-References: <1409838756-31963-1-git-send-email-ulf.hansson@linaro.org>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v6 1/2] Mailbox: Add support for Platform Communication Channel
+Date: Fri, 5 Sep 2014 12:15:24 -0400
+Message-ID: <CAJ5Y-eYe_VVDbD=4vEGOd3TT03xWeLxk2q2SVmCgn__a2qxgRw@mail.gmail.com>
+References: <1409856561-3945-1-git-send-email-ashwin.chaugule@linaro.org>
+	<1409856561-3945-2-git-send-email-ashwin.chaugule@linaro.org>
+	<1AE640813FDE7649BE1B193DEA596E880266233D@SHSMSX101.ccr.corp.intel.com>
+	<CAJ5Y-eZnoLLomcX0K_KL-FmprZEYg=sPDvf0JVOZJc_jNZvF+Q@mail.gmail.com>
+	<1AE640813FDE7649BE1B193DEA596E88026624F3@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:49233 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750817AbaIEPjL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 5 Sep 2014 11:39:11 -0400
-In-Reply-To: <1409838756-31963-1-git-send-email-ulf.hansson@linaro.org> (Ulf
-	Hansson's message of "Thu, 4 Sep 2014 15:52:27 +0200")
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:51546 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750775AbaIEQP0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Sep 2014 12:15:26 -0400
+Received: by mail-wg0-f48.google.com with SMTP id a1so1207168wgh.19
+        for <linux-acpi@vger.kernel.org>; Fri, 05 Sep 2014 09:15:24 -0700 (PDT)
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026624F3@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "arnd@arndb.de" <arnd@arndb.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "broonie@kernel.org" <broonie@kernel.org>
 
-Ulf Hansson <ulf.hansson@linaro.org> writes:
+Hi Lv,
 
-> Changes in v3:
-> 	- Aligned on terminology, now using "PM domain" in comments and commit
-> 	- messages/headers.
-> 	- Improved English and grammar in comments and commit messages/headers.
-> 	- Adopted proposal from Geert, to have compile-time-check wrapper
-> 	  functions for the API that adds xlate_simple and xlate_onecell
-> 	  providers.
->  	- Renamed "domain_num" to "num_domains", in genpd_onecell_data struct.
-> 	- Handle non-contiguous arrays for onecell PM domain providers.
-> 	- Rebased the Exynos patch to follow the new genpd API changes.
+On 5 September 2014 02:35, Zheng, Lv <lv.zheng@intel.com> wrote:
+>>
+>> On 4 September 2014 21:56, Zheng, Lv <lv.zheng@intel.com> wrote:
+>> >> +     spin_lock_irqsave(&chan->lock, flags);
+>> >> +     chan->msg_free = 0;
+>> >> +     chan->msg_count = 0;
+>> >> +     chan->active_req = NULL;
+>> >> +     chan->cl = cl;
+>> >> +     init_completion(&chan->tx_complete);
+>> >> +
+>> >> +     if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
+>> >
+>> > The tab should be a space here?
+>> >
+>>
+>> Not sure where you're seeing the tab.
 >
+> It is a tab here after " txdone_method".
+>>>
+>> >> +out_err:
+>> >> +     return ACPI_SUCCESS(status) ? 1 : 0;
+>> >
+>> > Should the return value of 1 here be -EINVAL?
+>> >
+>>
+>> I dont think it really matters, the caller returns -EINVAL anyway.
 >
-> Changes in v2:
-> 	- Fix the ACPI patch, it didn't even compile for CONFIG_ACPI.
-> 	- Updated some comments in code and in commit messages.
-> 	- Fixed the dev_pm_domain_attach API to handle EPROBE_DEFER properly.
-> 	- Rebased the ARM Exynos patch.
-> 	- Added some Tested-by tags.
->
->
-> This patchset has a bit of a history and some parts of it has been posted
-> earlier.
->
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2014-June/262725.html
->
-> In the first revision I intentially didn't increase version number of the
-> patches, since I think it would have cause more confusion than clarity.
->
-> A summary of changes in V1 and since the last patchset, from the link above:
-> 	- Instead of letting driver core handling the device to power domain
-> 	binding/unbinding, follow the behavior of how the ACPI power domain
-> 	is handled.
->
->
-> This is a summary of what these patches are intended to do:
->
-> 1)
-> Add generic power domain OF-based support which also includes APIs to handle
-> attach/detach of generic power domains to devices.
->
-> 2)
-> Adding a common API to attach/detach power domains and include support for the
-> ACPI and the generic power domain in there.
->
-> 3)
-> From subsystem level code, at probe/remove, convert from invoking the ACPI
-> specific power domain attach/detach functions to the new common attach/detach
-> APIs.
->
-> 4)
-> Add support for the AMBA bus to attach/detach power domains, using the new
-> common APIs.
->
-> 5)
-> Convert Exynos to use the new generic power domain OF support.
->
-> Obviously, there are dependencies througout this patchset, which means if they
-> get accepted the all need to go together. It might also be convenient to share
-> them through an immutable branch.
+> This is not a "bool" return value or "reversed bool" return value.
+> Why not use errno for all "int" return value across all initialization/finalization functions?
 
-Reviewed-by: Kevin Hilman <khilman@linaro.org>
+Ok, I'll make it consistent with errnos. Since it doesnt change the
+logic of the code, I wont send out a V7 until there is any other
+feedback from others.
+
+Thanks,
+Ashwin
