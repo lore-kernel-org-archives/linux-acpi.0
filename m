@@ -1,122 +1,82 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI and power management fixes for 3.17-rc4
-Date: Fri, 5 Sep 2014 16:41:19 +0200
-Message-ID: <CAJZ5v0i298zi_tQf2XfQo12dQHR3Kn7jBYfyH6RxiAWz_eE0yQ@mail.gmail.com>
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: [PATCH v3 0/9] PM / Domains: Generic OF-based support
+Date: Fri, 05 Sep 2014 08:39:07 -0700
+Message-ID: <7h61h2yt44.fsf@paris.lan>
+References: <1409838756-31963-1-git-send-email-ulf.hansson@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f173.google.com ([209.85.214.173]:52855 "EHLO
-	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754172AbaIEOlU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Sep 2014 10:41:20 -0400
+Received: from mail.kernel.org ([198.145.19.201]:49233 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750817AbaIEPjL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 5 Sep 2014 11:39:11 -0400
+In-Reply-To: <1409838756-31963-1-git-send-email-ulf.hansson@linaro.org> (Ulf
+	Hansson's message of "Thu, 4 Sep 2014 15:52:27 +0200")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linuxfoundation.org>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>
 
-Hi Linus,
+Ulf Hansson <ulf.hansson@linaro.org> writes:
 
-Please pull from
+> Changes in v3:
+> 	- Aligned on terminology, now using "PM domain" in comments and commit
+> 	- messages/headers.
+> 	- Improved English and grammar in comments and commit messages/headers.
+> 	- Adopted proposal from Geert, to have compile-time-check wrapper
+> 	  functions for the API that adds xlate_simple and xlate_onecell
+> 	  providers.
+>  	- Renamed "domain_num" to "num_domains", in genpd_onecell_data struct.
+> 	- Handle non-contiguous arrays for onecell PM domain providers.
+> 	- Rebased the Exynos patch to follow the new genpd API changes.
+>
+>
+> Changes in v2:
+> 	- Fix the ACPI patch, it didn't even compile for CONFIG_ACPI.
+> 	- Updated some comments in code and in commit messages.
+> 	- Fixed the dev_pm_domain_attach API to handle EPROBE_DEFER properly.
+> 	- Rebased the ARM Exynos patch.
+> 	- Added some Tested-by tags.
+>
+>
+> This patchset has a bit of a history and some parts of it has been posted
+> earlier.
+>
+> http://lists.infradead.org/pipermail/linux-arm-kernel/2014-June/262725.html
+>
+> In the first revision I intentially didn't increase version number of the
+> patches, since I think it would have cause more confusion than clarity.
+>
+> A summary of changes in V1 and since the last patchset, from the link above:
+> 	- Instead of letting driver core handling the device to power domain
+> 	binding/unbinding, follow the behavior of how the ACPI power domain
+> 	is handled.
+>
+>
+> This is a summary of what these patches are intended to do:
+>
+> 1)
+> Add generic power domain OF-based support which also includes APIs to handle
+> attach/detach of generic power domains to devices.
+>
+> 2)
+> Adding a common API to attach/detach power domains and include support for the
+> ACPI and the generic power domain in there.
+>
+> 3)
+> From subsystem level code, at probe/remove, convert from invoking the ACPI
+> specific power domain attach/detach functions to the new common attach/detach
+> APIs.
+>
+> 4)
+> Add support for the AMBA bus to attach/detach power domains, using the new
+> common APIs.
+>
+> 5)
+> Convert Exynos to use the new generic power domain OF support.
+>
+> Obviously, there are dependencies througout this patchset, which means if they
+> get accepted the all need to go together. It might also be convenient to share
+> them through an immutable branch.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-3.17-rc4
-
-to receive ACPI and power management fixes for v3.17-rc4 with
-top-most commit 9aa4e2f6ac2e5d0729f5982fd0b070123808381e
-
- Merge branches 'pm-sleep', 'powercap', 'pm-domains' and 'pm-cpufreq'
-
-on top of commit 69e273c0b0a3c337a521d083374c918dc52c666f
-
- Linux 3.17-rc3
-
-These are regression fixes (ACPI sysfs, ACPI video, suspend test),
-ACPI cpuidle deadlock fix, missing runtime validation of ACPI _DSD
-output, a fix and a new CPU ID for the RAPL driver, new blacklist
-entry for the ACPI EC driver and a couple of trivial cleanups
-(intel_pstate and generic PM domains).
-
-Specifics:
-
- - Fix for recently broken test_suspend= command line argument
-   (Rafael J Wysocki).
-
- - Fixes for regressions related to the ACPI video driver caused
-   by switching the default to native backlight handling in 3.16
-   from Hans de Goede.
-
- - Fix for a sysfs attribute of ACPI device objects that returns
-   stale values sometimes due to the fact that they are cached
-   instead of executing the appropriate method (_SUN) every time
-   (broken in 3.14).  From Yasuaki Ishimatsu.
-
- - Fix for a deadlock between cpuidle_lock and cpu_hotplug.lock
-   in the ACPI processor driver from Jiri Kosina.
-
- - Runtime output validation for the ACPI _DSD device configuration
-   object missing from the support for it that has been introduced
-   recently.  From Mika Westerberg.
-
- - Fix for an unuseful and misleading RAPL (Running Average Power
-   Limit) domain detection message in the RAPL driver from Jacob Pan.
-
- - New Intel Haswell CPU ID for the RAPL driver from Jason Baron.
-
- - New Clevo W350etq blacklist entry for the ACPI EC driver
-   from Lan Tianyu.
-
- - Cleanups for the intel_pstate driver and the core generic PM
-   domains code from Gabriele Mazzotta and Geert Uytterhoeven.
-
-Thanks!
-
-
----------------
-
-Gabriele Mazzotta (1):
-      cpufreq: intel_pstate: Remove unneeded variable
-
-Geert Uytterhoeven (1):
-      PM / domains: Make generic_pm_domain.name const
-
-Hans de Goede (3):
-      ACPI / video: Fix use_native_backlight selection logic
-      ACPI / video: Add a disable_native_backlight quirk
-      ACPI / video: Disable native_backlight on HP ENVY 15 Notebook PC
-
-Jacob Pan (1):
-      powercap / RAPL: change domain detection message
-
-Jason Baron (1):
-      powercap / RAPL: add support for CPU model 0x3f
-
-Jiri Kosina (1):
-      ACPI / cpuidle: fix deadlock between cpuidle_lock and cpu_hotplug.lock
-
-Lan Tianyu (1):
-      ACPI / EC: Add msi quirk for Clevo W350etq
-
-Mika Westerberg (1):
-      ACPICA: ACPI 5.1: Add support for runtime validation of _DSD package.
-
-Rafael J. Wysocki (1):
-      PM / sleep: Fix test_suspend= command line option
-
-Yasuaki Ishimatsu (1):
-      ACPI / scan: not cache _SUN value in struct acpi_device_pnp
-
----------------
-
- drivers/acpi/acpica/nsprepkg.c | 39 ++++++++++++++++++++++++++++++++++++
- drivers/acpi/ec.c              |  4 ++++
- drivers/acpi/processor_idle.c  |  4 ++--
- drivers/acpi/scan.c            | 15 +++++++-------
- drivers/acpi/video.c           | 45 ++++++++++++++++++++++++++++++++++++++++--
- drivers/cpufreq/intel_pstate.c |  4 ----
- drivers/powercap/intel_rapl.c  |  8 ++++----
- include/acpi/acpi_bus.h        |  1 -
- include/linux/pm_domain.h      |  2 +-
- kernel/power/power.h           |  1 +
- kernel/power/suspend.c         |  2 +-
- kernel/power/suspend_test.c    | 31 ++++++++++++++++++-----------
- 12 files changed, 122 insertions(+), 34 deletions(-)
+Reviewed-by: Kevin Hilman <khilman@linaro.org>
