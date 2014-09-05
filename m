@@ -1,151 +1,136 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [PATCH] acpi : Add container online uevent to acpi_bus_attach
-Date: Fri, 5 Sep 2014 15:57:43 +0900
-Message-ID: <54095EE7.3080302@jp.fujitsu.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH v3 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot support
+Date: Fri, 05 Sep 2014 10:52:19 +0200
+Message-ID: <540979C3.9020806@linaro.org>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <5405BFE7.5060005@arm.com> <5406DEB6.1060705@linaro.org> <4895927.Zp4WL2AZAF@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:33754 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755939AbaIEG6b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Sep 2014 02:58:31 -0400
-Received: from kw-mxoi1.gw.nic.fujitsu.com (unknown [10.0.237.133])
-	by fgwmail5.fujitsu.co.jp (Postfix) with ESMTP id 1D4D23EE1D5
-	for <linux-acpi@vger.kernel.org>; Fri,  5 Sep 2014 15:58:30 +0900 (JST)
-Received: from s3.gw.fujitsu.co.jp (s3.gw.fujitsu.co.jp [10.0.50.93])
-	by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id 1ECA7AC09B8
-	for <linux-acpi@vger.kernel.org>; Fri,  5 Sep 2014 15:58:29 +0900 (JST)
-Received: from g01jpfmpwkw01.exch.g01.fujitsu.local (g01jpfmpwkw01.exch.g01.fujitsu.local [10.0.193.38])
-	by s3.gw.fujitsu.co.jp (Postfix) with ESMTP id B9C681DB803C
-	for <linux-acpi@vger.kernel.org>; Fri,  5 Sep 2014 15:58:28 +0900 (JST)
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:46836 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756132AbaIEIwF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Sep 2014 04:52:05 -0400
+Received: by mail-wi0-f170.google.com with SMTP id cc10so419637wib.1
+        for <linux-acpi@vger.kernel.org>; Fri, 05 Sep 2014 01:52:04 -0700 (PDT)
+In-Reply-To: <4895927.Zp4WL2AZAF@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rafael.j.wysocki@intel.com
-Cc: mika.westerberg@linux.intel.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
-
-Container online uevent was deleted by "46394fd01 : ACPI / hotplug:
-Move container-specific code out of the core" because container-
-specific uevent is raised to udev by attaching container device.
-But the container-specific uevent is not useful.
-
-In my box, conainer device has CPU and memory devices. In this case,
-when hot adding container device, the following uevets are raised to
-udev.
-
-  # udevadm monitor --kernel
-  monitor will print the received events for:
-  KERNEL - the kernel uevent
-
-  KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
-  <snip>
-  KERNEL[...] add      /devices/system/memory/memory2048 (memory)
-  KERNEL[...] add      /devices/system/memory/memory2049 (memory)
-  <snip>
-  KERNEL[...] add      /devices/system/memory/memory2063 (memory)
-  <snip>
-  KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
-  <snip>
-  KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
-
-When udev catches the container add uevent in my box, udev executes
-user land script for onlining all child's devices. But memory and CPU
-devices have not been attached at this time. So user land script fails.
-
-One of solutions is that user land script waits for all child's devices
-to attach. But user land script has no way to know all child's devices
-were attached.
-
-So the patch adds container online uevent to acpi_bus_sttach(). By
-applying
-the patch, container online uevent is raised to udev after all child's
-devices were attached as follows:
-
-  # udevadm monitor --kernel
-  monitor will print the received events for:
-  KERNEL - the kernel uevent
-
-  KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
-  <snip>
-  KERNEL[...] add      /devices/system/memory/memory2048 (memory)
-  KERNEL[...] add      /devices/system/memory/memory2049 (memory)
-  <snip>
-  KERNEL[...] add      /devices/system/memory/memory2063 (memory)
-  <snip>
-  KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
-  <snip>
-  KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
-  KERNEL[...] online   /devices/system/container/ACPI0004:01 (container)
-
-So if user land script is executed after raising the container online
-uevent, it guarantees that all child's devices were attached.
-
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
----
- drivers/acpi/container.c | 15 +++++++++++++++
- drivers/acpi/internal.h  |  7 +++++++
- drivers/acpi/scan.c      |  3 +++
- 3 files changed, 25 insertions(+)
-
-diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index 76f7cff..eba5746 100644
---- a/drivers/acpi/container.c
-+++ b/drivers/acpi/container.c
-@@ -43,6 +43,21 @@ static const struct acpi_device_id container_device_ids[] = {
-
- #ifdef CONFIG_ACPI_CONTAINER
-
-+void notify_container_device(struct acpi_device *adev)
-+{
-+	struct device *dev = acpi_driver_data(adev);
-+
-+	kobject_uevent(&dev->kobj, KOBJ_ONLINE);
-+}
-+
-+int is_container_device(struct acpi_device *adev)
-+{
-+	if (acpi_match_device_ids(adev, container_device_ids))
-+		return 0;
-+
-+	return 1;
-+}
-+
- static int acpi_container_offline(struct container_dev *cdev)
- {
- 	struct acpi_device *adev = ACPI_COMPANION(&cdev->dev);
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 4c5cf77..12dd89b 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -45,6 +45,13 @@ static inline void register_dock_dependent_device(struct acpi_device *adev,
- static inline int dock_notify(struct acpi_device *adev, u32 event) { return -ENODEV; }
- static inline void acpi_dock_add(struct acpi_device *adev) {}
- #endif
-+#if CONFIG_ACPI_CONTAINER
-+int is_container_device(struct acpi_device *adev);
-+void notify_container_device(struct acpi_device *adev);
-+#else
-+static inline int is_container_device(struct acpi_device *adev) { return 0; }
-+static inline void notify_container_device(struct acpi_device *adev) {}
-+#endif
- #ifdef CONFIG_X86
- void acpi_cmos_rtc_init(void);
- #else
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 9a92989..faa3d11 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -2188,6 +2188,9 @@ static void acpi_bus_attach(struct acpi_device *device)
-  ok:
- 	list_for_each_entry(child, &device->children, node)
- 		acpi_bus_attach(child);
-+
-+	if (is_container_device(device))
-+		notify_container_device(device);
- }
-
- /**
--- 
-1.8.3.1
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.c>
 
 
+
+On 03.09.2014 16:57, Arnd Bergmann wrote:
+> On Wednesday 03 September 2014 11:26:14 Tomasz Nowicki wrote:
+>> On 02.09.2014 15:02, Marc Zyngier wrote:
+>>> On 02/09/14 12:48, Tomasz Nowicki wrote:
+>>>> On 01.09.2014 19:35, Marc Zyngier wrote:
+>>>>>> @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(struct pt_regs *))
+>>>>>>     void __init init_IRQ(void)
+>>>>>>     {
+>>>>>>        irqchip_init();
+>>>>>> +
+>>>>>> +    if (!handle_arch_irq)
+>>>>>> +            acpi_gic_init();
+>>>>>> +
+>>>>>
+>>>>> Why isn't this called from irqchip_init? It would seem like the logical
+>>>>> spot to probe an interrupt controller.
+>>>>
+>>>> irqchip.c is OF dependent, I want to decouple these from the very
+>>>> beginning.
+>>>
+>>> No. irqchip.c is not OF dependent, it is just that DT is the only thing
+>>> we support so far. I don't think duplicating the kernel infrastructure
+>>> "because we're different" is the right way.
+>>>
+>>> There is no reason for your probing structure to be artificially
+>>> different (you're parsing the same information, at the same time). Just
+>>> put in place a similar probing mechanism, and this will look a lot better.
+>
+>
+>>>> Having only GICv2, it would work. Considering we would do the same for
+>>>> GICv3 (arm-gic-v3.h) there will be register name conflicts for both
+>>>> headers inclusion:
+>>>>
+>>>> [...]
+>>>> #include <linux/irqchip/arm-gic.h>
+>>>> #include <linux/irqchip/arm-gic-v3.h>
+>>>> [...]
+>>>>           err = gic_v3_acpi_init(table);
+>>>>           if (err)
+>>>>                   err = gic_v2_acpi_init(table);
+>>>>           if (err)
+>>>>                   pr_err("Failed to initialize GIC IRQ controller");
+>>>> [...]
+>>>> So instead of changing register names prefix, I choose new header will
+>>>> be less painfully.
+>>>
+>>> Yes, and this is exactly why I pushed back on that last time. I'll
+>>> continue saying that interrupt controllers should be self-probing, with
+>>> ACPI as they are with DT.
+>>>
+>>> Even with the restrictions of ACPI and SBSA, we end-up with at least 2
+>>> main families of interrupt controllers (GICv2 and GICv3), both with a
+>>> number of "interesting" variations (GICv2m and GICv4, to only mention
+>>> those I'm directly involved with).
+>>>
+>>> I can safely predict that the above will become a tangled mess within 18
+>>> months, and the idea of littering the arch code with a bunch of
+>>> hardcoded "if (blah())" doesn't fill me with joy and confidence.
+>>>
+>>> In summary: we have the infrastructure already, just use it.
+>>
+>> We had that discussion but I see we still don't have consensus here. It
+>> would be good to know our direction before we prepare next patch
+>> version. Arnd any comments on this from you side?
+>
+> I still prefer being explicit here for the same reason I mentioned earlier:
+> I want it to be very clear that we don't support arbitrary irqchips other
+> than the ones in the APCI specification. The infrastructure exists on DT
+> because we have to support a large number of incompatible irqchips.
+>
+> In particular, the ACPI tables describing the irqchip have no way to
+> identify the GIC at all, if I read the spec correctly, you have to
+> parse the tables, ioremap the registers and then read the ID to know
+> if you have GICv1/v2/v2m/v3/v4. There doesn't seem to be any "device"
+> for the GIC that a hypothetical probe function would be based on.
+Yes, it is just one table with bunch of different subtables types. Since 
+GIC identification register is at different offset across GICv1/2 and 
+GICv3, the probe logic seems to be slightly different. IMO, we should 
+look into our MADT and try GICv3 fist and then GICv2, that means 
+presence of redistributor entries suggests GICv3/4. Its absence means we 
+need to look for GICC subtables and then call GICv2 init.
+
+>
+> It does seem wrong to parse the tables in the irq-gic.c file though:
+> that part can well be common across the various gic versions and then
+> call into either irq-gic.c or irq-gic-v3.c for the version specific
+> parts. Whether we put that common code into drivers/irqchip/irqchip.c,
+> drivers/irqchip/gic-common.c, drivers/irqchip/irq-acpi-gic.c or
+> drivers/acpi/irq-gic.c I don't care at all.
+
+We already had tried making MADT parser common for all GICs in the 
+separate file (outside GIC driver), it did not end up well. In the light 
+of above comment, the logic will be complex and some GIC local strutures 
+need to be exported:
+1. Check redistributor entries.
+2. If none exist, as fallback, check GICC entries, there are 
+redistributor base address assigned to CPU. Unfortunately it has no 
+register set size so ioremap only two pages (RD + SGI) check if we 
+support VLPI and extend ioremap if true. We cannot operate on GIC 
+register outside GIC driver so that requires another exported GICv3 
+function.
+3. Jump to redistributor part if we are OK so far, if not, then we start 
+playing with GICC enries and look for cpu base addresses.
+
+Honestly, apart from distributor parsing logic, there is no common code.
+
+As you can see, current gic_v2_acpi_init() logic is quite easy to 
+follow. And gic_v3_acpi_init() inside of GICv3 driver is easy too. I 
+might not see other solutions but I am open to other suggestions, so 
+please correct me in that case.
+
+Regards,
+Tomasz
