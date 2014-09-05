@@ -1,94 +1,67 @@
-From: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
-Subject: Re: ACPI: Invalid active2 threshold
-Date: Fri, 5 Sep 2014 08:24:18 +0200
-Message-ID: <201409050824.18447.a.miskiewicz@gmail.com>
-References: <201409041840.04182.a.miskiewicz@gmail.com> <201409050703.56802.a.miskiewicz@gmail.com> <1409896948.8085.156.camel@rzhang1-toshiba>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v6 1/2] Mailbox: Add support for Platform Communication
+ Channel
+Date: Fri, 5 Sep 2014 06:35:17 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026624F3@SHSMSX101.ccr.corp.intel.com>
+References: <1409856561-3945-1-git-send-email-ashwin.chaugule@linaro.org>
+	<1409856561-3945-2-git-send-email-ashwin.chaugule@linaro.org>
+	<1AE640813FDE7649BE1B193DEA596E880266233D@SHSMSX101.ccr.corp.intel.com>
+ <CAJ5Y-eZnoLLomcX0K_KL-FmprZEYg=sPDvf0JVOZJc_jNZvF+Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:35566 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751112AbaIEGYX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Sep 2014 02:24:23 -0400
-Received: by mail-la0-f50.google.com with SMTP id mc6so13202840lab.37
-        for <linux-acpi@vger.kernel.org>; Thu, 04 Sep 2014 23:24:21 -0700 (PDT)
-In-Reply-To: <1409896948.8085.156.camel@rzhang1-toshiba>
+Received: from mga02.intel.com ([134.134.136.20]:54314 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752487AbaIEGfW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 5 Sep 2014 02:35:22 -0400
+In-Reply-To: <CAJ5Y-eZnoLLomcX0K_KL-FmprZEYg=sPDvf0JVOZJc_jNZvF+Q@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: "arnd@arndb.de" <arnd@arndb.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "broonie@kernel.org" <broonie@kernel.org>
 
-On Friday 05 of September 2014, Zhang Rui wrote:
-> On Fri, 2014-09-05 at 07:03 +0200, Arkadiusz Miskiewicz wrote:
-> > On Friday 05 of September 2014, Zhang Rui wrote:
-> > > On Thu, 2014-09-04 at 21:21 +0200, Rafael J. Wysocki wrote:
-> > > > On Thursday, September 04, 2014 06:40:04 PM Arkadiusz Miskiewic=
-z=20
-wrote:
-> > > > > Hi.
-> > > > >=20
-> > > > > I'm using 3.17.0-rc3-00002-g7505cea kernel on Dell XPS 15 mac=
-hine:
-> > > > > DMI: Dell Inc. XPS 15 9530/XPS 15 9530, BIOS A06 07/16/2014
-> > > > > (this is latest bios)
-> > > > >=20
-> > > > > After loading thermal acpi driver I get:
-> > > > >=20
-> > > > > [54136.633643] ACPI: Invalid active2 threshold
-> > > > > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
->=20
-> this is a BIOS bug. _AC2 is defined while _AL2 is not, thus this is a=
-n
-> invalid active trip point.
-> But it won't hurt IMO, because there are two ACPI Fan devices, and th=
-ey
-> are both used (for active trip point 0 and 1) in the ACPI thermal
-> management in your laptop.
->=20
-> > > > > [54136.633761] thermal LNXTHERM:00: registered as thermal_zon=
-e6
-> > > > > [54136.633763] ACPI: Thermal Zone [TZ00] (28 C)
-> > > > > [54136.634009] thermal LNXTHERM:01: registered as thermal_zon=
-e7
-> > > > > [54136.634011] ACPI: Thermal Zone [TZ01] (-266 C)
->=20
-> This is more serious to me.
-> can you please file a bug at
-> https://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
-> and attach your acpidump output there.
-
-Done
-https://bugzilla.kernel.org/show_bug.cgi?id=3D83921
-
->=20
-> thanks,
-> rui
->=20
-> > > > > I assume bios is buggy (right?)
-> > > >=20
-> > > > Well, we don't seem to like the value for some reason.  Also th=
-e -266
-> > > > C for TZ01 looks suspicious.
-> > > >=20
-> > > > > What problems can happen to this machine due to this problem?=
- It is
-> > > > > quite hot frequently, so I wonder if there is some thermal
-> > > > > management problem with it.
-> > > >=20
-> > > > I'm leaving this question to Rui.
-> > >=20
-> > > It looks like ACPI thermal driver fails to parse _AC2 control met=
-hods.
-> > > please attach the acpidump output.
-
-
---=20
-Arkadiusz Mi=C5=9Bkiewicz, arekm / maven.pl
-
-Q: vger.kernel.org postmasters - always rude and impolite, hmm?
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
+aW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEFzaHdpbiBDaGF1
+Z3VsZQ0KPiBTZW50OiBGcmlkYXksIFNlcHRlbWJlciAwNSwgMjAxNCAxMDoyNCBBTQ0KPiANCj4g
+SGkgTHYsDQo+IA0KPiBPbiA0IFNlcHRlbWJlciAyMDE0IDIxOjU2LCBaaGVuZywgTHYgPGx2Lnpo
+ZW5nQGludGVsLmNvbT4gd3JvdGU6DQo+ID4+ICsgICAgIHNwaW5fbG9ja19pcnFzYXZlKCZjaGFu
+LT5sb2NrLCBmbGFncyk7DQo+ID4+ICsgICAgIGNoYW4tPm1zZ19mcmVlID0gMDsNCj4gPj4gKyAg
+ICAgY2hhbi0+bXNnX2NvdW50ID0gMDsNCj4gPj4gKyAgICAgY2hhbi0+YWN0aXZlX3JlcSA9IE5V
+TEw7DQo+ID4+ICsgICAgIGNoYW4tPmNsID0gY2w7DQo+ID4+ICsgICAgIGluaXRfY29tcGxldGlv
+bigmY2hhbi0+dHhfY29tcGxldGUpOw0KPiA+PiArDQo+ID4+ICsgICAgIGlmIChjaGFuLT50eGRv
+bmVfbWV0aG9kID09IFRYRE9ORV9CWV9QT0xMICYmIGNsLT5rbm93c190eGRvbmUpDQo+ID4NCj4g
+PiBUaGUgdGFiIHNob3VsZCBiZSBhIHNwYWNlIGhlcmU/DQo+ID4NCj4gDQo+IE5vdCBzdXJlIHdo
+ZXJlIHlvdSdyZSBzZWVpbmcgdGhlIHRhYi4NCg0KSXQgaXMgYSB0YWIgaGVyZSBhZnRlciAiIHR4
+ZG9uZV9tZXRob2QiLg0KDQo+ID4+ICtzdGF0aWMgYm9vbCBwY2NfdHhfZG9uZShzdHJ1Y3QgbWJv
+eF9jaGFuICpjaGFuKQ0KPiA+PiArew0KPiA+PiArICAgICBzdHJ1Y3QgYWNwaV9wY2N0X3N1YnNw
+YWNlICpwY2N0X3NzID0gY2hhbi0+Y29uX3ByaXY7DQo+ID4+ICsgICAgIHN0cnVjdCBhY3BpX3Bj
+Y3Rfc2hhcmVkX21lbW9yeSAqZ2VuZXJpY19jb21tX2Jhc2UgPQ0KPiA+PiArICAgICAgICAgICAg
+IChzdHJ1Y3QgYWNwaV9wY2N0X3NoYXJlZF9tZW1vcnkgKikgcGNjdF9zcy0+YmFzZV9hZGRyZXNz
+Ow0KPiA+PiArICAgICB1MTYgY21kX2RlbGF5ID0gcGNjdF9zcy0+bWluX3R1cm5hcm91bmRfdGlt
+ZTsNCj4gPg0KPiA+IFNob3VsZCB0aGVzZSBwYXJhbWV0ZXJzIGJlIGFjcXVpcmVkIHdpdGggY2hh
+bi1sb2NrIGhlbGQ/DQo+ID4gSXMgdGhhdCBwb3NzaWJsZSB0byBjaGFuZ2UgdGhlbSBkdXJpbmcg
+cnVudGltZT8NCj4gPg0KPiANCj4gTm8uIFRoZXNlIHBhcmFtZXRlcnMgZG9uJ3QgY2hhbmdlLg0K
+DQpPSy4NClRoZW4gdGhhdCdzIHVwIHRvIHlvdS4gOi0pDQoNCj4gDQo+ID4+ICsvKiBDaGFubmVs
+IGxvY2sgaXMgYWxyZWFkeSBoZWxkIGJ5IG1ib3ggY29udHJvbGxlciBjb2RlLiAqLw0KPiA+PiAr
+c3RhdGljIGludCBwY2Nfc2VuZF9kYXRhKHN0cnVjdCBtYm94X2NoYW4gKmNoYW4sIHZvaWQgKmRh
+dGEpDQo+ID4+ICt7DQo+ID4+ICsgICAgIHN0cnVjdCBhY3BpX3BjY3Rfc3Vic3BhY2UgKnBjY3Rf
+c3MgPSBjaGFuLT5jb25fcHJpdjsNCj4gPj4gKyAgICAgc3RydWN0IGFjcGlfcGNjdF9zaGFyZWRf
+bWVtb3J5ICpnZW5lcmljX2NvbW1fYmFzZSA9DQo+ID4+ICsgICAgICAgICAgICAgKHN0cnVjdCBh
+Y3BpX3BjY3Rfc2hhcmVkX21lbW9yeSAqKSBwY2N0X3NzLT5iYXNlX2FkZHJlc3M7DQo+ID4NCj4g
+Pg0KPiA+IERpdHRvLg0KPiA+DQo+IA0KPiBTYW1lIGFzIGFib3ZlLg0KPiANCj4gPj4gK291dF9l
+cnI6DQo+ID4+ICsgICAgIHJldHVybiBBQ1BJX1NVQ0NFU1Moc3RhdHVzKSA/IDEgOiAwOw0KPiA+
+DQo+ID4gU2hvdWxkIHRoZSByZXR1cm4gdmFsdWUgb2YgMSBoZXJlIGJlIC1FSU5WQUw/DQo+ID4N
+Cj4gDQo+IEkgZG9udCB0aGluayBpdCByZWFsbHkgbWF0dGVycywgdGhlIGNhbGxlciByZXR1cm5z
+IC1FSU5WQUwgYW55d2F5Lg0KDQpUaGlzIGlzIG5vdCBhICJib29sIiByZXR1cm4gdmFsdWUgb3Ig
+InJldmVyc2VkIGJvb2wiIHJldHVybiB2YWx1ZS4NCldoeSBub3QgdXNlIGVycm5vIGZvciBhbGwg
+ImludCIgcmV0dXJuIHZhbHVlIGFjcm9zcyBhbGwgaW5pdGlhbGl6YXRpb24vZmluYWxpemF0aW9u
+IGZ1bmN0aW9ucz8NCkFuZCBpbiB0aGUgY2FsbGVyLCB5b3UgY2FuOg0KICsJaWYgKHJldCkgew0K
+ICsJCXByX2RlYnVnKCJBQ1BJIFBDQyBwcm9iZSBmYWlsZWQuXG4iKTsNCiArCQlyZXR1cm4gcmV0
+Ow0KICsJfQ0KQlRXLCB3YXNuJ3QgaXQgYmV0dGVyIHRvIHJldHVybiAtRU5PREVWIGhlcmU/DQoN
+ClRoYW5rcw0KLUx2DQoNCj4gDQo+IFRoYW5rcywNCj4gQXNod2luDQo+IC0tDQo+IFRvIHVuc3Vi
+c2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1h
+Y3BpIiBpbg0KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVs
+Lm9yZw0KPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21h
+am9yZG9tby1pbmZvLmh0bWwNCg==
