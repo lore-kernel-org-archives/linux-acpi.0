@@ -1,491 +1,504 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 2/9] PM / Domains: Add generic OF-based PM domain look-up
-Date: Mon, 08 Sep 2014 00:13:36 +0200
-Message-ID: <3075771.rIWPm62y5x@vostro.rjw.lan>
-References: <1409838756-31963-1-git-send-email-ulf.hansson@linaro.org> <1409838756-31963-3-git-send-email-ulf.hansson@linaro.org>
+Subject: Re: [Patch v4 04/16] ACPI: Rename processor_core.c as apic_id.c
+Date: Mon, 08 Sep 2014 00:37:22 +0200
+Message-ID: <1957879.bE3ICM6HKO@vostro.rjw.lan>
+References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com> <1409192561-19744-5-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1409838756-31963-3-git-send-email-ulf.hansson@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>, Tomasz Figa <t.figa@samsung.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1409192561-19744-5-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, September 04, 2014 03:52:29 PM Ulf Hansson wrote:
-> From: Tomasz Figa <t.figa@samsung.com>
-> 
-> This patch introduces generic code to perform PM domain look-up using
-> device tree and automatically bind devices to their PM domains.
-> 
-> Generic device tree bindings are introduced to specify PM domains of
-> devices in their device tree nodes.
-> 
-> Backwards compatibility with legacy Samsung-specific PM domain bindings
-> is provided, but for now the new code is not compiled when
-> CONFIG_ARCH_EXYNOS is selected to avoid collision with legacy code.
-> This will change as soon as the Exynos PM domain code gets converted to
-> use the generic framework in further patch.
-> 
-> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-> [Ulf:Added attach|detach functions, fixed review comments]
-> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+On Thursday, August 28, 2014 10:22:29 AM Jiang Liu wrote:
+> Now all code in processor_core.c is APIC ID related, so rename it as
+> apic_id.c. Later IOAPIC ID related code will be added into apic_id.c.
 
-However, for this one (and consequently the rest) I need an ACK from the
-people who maintain the bindings.
+Actually, I'm not sure about this one.
 
+Renames like this make it difficult to backport things in general
+and kind of break "git blame", so do we have to do that?
+
+What's wrong with leaving the name as is and adding a comment
+about the contents being related to IOAPIC ID?
+
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 > ---
->  .../devicetree/bindings/power/power_domain.txt     |  49 ++++
->  drivers/base/power/domain.c                        | 291 +++++++++++++++++++++
->  include/linux/pm_domain.h                          |  57 ++++
->  kernel/power/Kconfig                               |   4 +
->  4 files changed, 401 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/power/power_domain.txt
+>  drivers/acpi/Makefile         |    2 +-
+>  drivers/acpi/apic_id.c        |  202 ++++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/processor_core.c |  205 -----------------------------------------
+
+And BTW this doesn't seem to be an exact rename, does it?
+
+>  include/acpi/processor.h      |    3 -
+>  include/linux/acpi.h          |    3 +
+>  5 files changed, 206 insertions(+), 209 deletions(-)
+>  create mode 100644 drivers/acpi/apic_id.c
+>  delete mode 100644 drivers/acpi/processor_core.c
 > 
-> diff --git a/Documentation/devicetree/bindings/power/power_domain.txt b/Documentation/devicetree/bindings/power/power_domain.txt
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 505d4d79fe3e..03ddd03f2bcd 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -35,7 +35,7 @@ acpi-y				+= bus.o glue.o
+>  acpi-y				+= scan.o
+>  acpi-y				+= resource.o
+>  acpi-y				+= acpi_processor.o
+> -acpi-y				+= processor_core.o
+> +acpi-y				+= apic_id.o
+>  acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
+>  acpi-y				+= ec.o
+>  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
+> diff --git a/drivers/acpi/apic_id.c b/drivers/acpi/apic_id.c
 > new file mode 100644
-> index 0000000..98c1667
+> index 000000000000..ada5fd48bad4
 > --- /dev/null
-> +++ b/Documentation/devicetree/bindings/power/power_domain.txt
-> @@ -0,0 +1,49 @@
-> +* Generic PM domains
-> +
-> +System on chip designs are often divided into multiple PM domains that can be
-> +used for power gating of selected IP blocks for power saving by reduced leakage
-> +current.
-> +
-> +This device tree binding can be used to bind PM domain consumer devices with
-> +their PM domains provided by PM domain providers. A PM domain provider can be
-> +represented by any node in the device tree and can provide one or more PM
-> +domains. A consumer node can refer to the provider by a phandle and a set of
-> +phandle arguments (so called PM domain specifiers) of length specified by the
-> +#power-domain-cells property in the PM domain provider node.
-> +
-> +==PM domain providers==
-> +
-> +Required properties:
-> + - #power-domain-cells : Number of cells in a PM domain specifier;
-> +   Typically 0 for nodes representing a single PM domain and 1 for nodes
-> +   providing multiple PM domains (e.g. power controllers), but can be any value
-> +   as specified by device tree binding documentation of particular provider.
-> +
-> +Example:
-> +
-> +	power: power-controller@12340000 {
-> +		compatible = "foo,power-controller";
-> +		reg = <0x12340000 0x1000>;
-> +		#power-domain-cells = <1>;
-> +	};
-> +
-> +The node above defines a power controller that is a PM domain provider and
-> +expects one cell as its phandle argument.
-> +
-> +==PM domain consumers==
-> +
-> +Required properties:
-> + - power-domains : A phandle and PM domain specifier as defined by bindings of
-> +                   the power controller specified by phandle.
-> +
-> +Example:
-> +
-> +	leaky-device@12350000 {
-> +		compatible = "foo,i-leak-current";
-> +		reg = <0x12350000 0x1000>;
-> +		power-domains = <&power 0>;
-> +	};
-> +
-> +The node above defines a typical PM domain consumer device, which is located
-> +inside a PM domain with index 0 of a power controller represented by a node
-> +with the label "power".
-> diff --git a/drivers/base/power/domain.c b/drivers/base/power/domain.c
-> index eee55c1..ed42651 100644
-> --- a/drivers/base/power/domain.c
-> +++ b/drivers/base/power/domain.c
-> @@ -8,6 +8,7 @@
->  
->  #include <linux/kernel.h>
->  #include <linux/io.h>
-> +#include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/pm_domain.h>
->  #include <linux/pm_qos.h>
-> @@ -2189,3 +2190,293 @@ void pm_genpd_init(struct generic_pm_domain *genpd,
->  	list_add(&genpd->gpd_list_node, &gpd_list);
->  	mutex_unlock(&gpd_list_lock);
->  }
-> +
-> +#ifdef CONFIG_PM_GENERIC_DOMAINS_OF
+> +++ b/drivers/acpi/apic_id.c
+> @@ -0,0 +1,202 @@
 > +/*
-> + * Device Tree based PM domain providers.
+> + * Copyright (C) 2005 Intel Corporation
+> + * Copyright (C) 2009 Hewlett-Packard Development Company, L.P.
 > + *
-> + * The code below implements generic device tree based PM domain providers that
-> + * bind device tree nodes with generic PM domains registered in the system.
-> + *
-> + * Any driver that registers generic PM domains and needs to support binding of
-> + * devices to these domains is supposed to register a PM domain provider, which
-> + * maps a PM domain specifier retrieved from the device tree to a PM domain.
-> + *
-> + * Two simple mapping functions have been provided for convenience:
-> + *  - __of_genpd_xlate_simple() for 1:1 device tree node to PM domain mapping.
-> + *  - __of_genpd_xlate_onecell() for mapping of multiple PM domains per node by
-> + *    index.
+> + *	Alex Chiang <achiang@hp.com>
+> + *	- Unified x86/ia64 implementations
 > + */
+> +#include <linux/export.h>
+> +#include <linux/acpi.h>
+> +#include "internal.h"
 > +
-> +/**
-> + * struct of_genpd_provider - PM domain provider registration structure
-> + * @link: Entry in global list of PM domain providers
-> + * @node: Pointer to device tree node of PM domain provider
-> + * @xlate: Provider-specific xlate callback mapping a set of specifier cells
-> + *         into a PM domain.
-> + * @data: context pointer to be passed into @xlate callback
-> + */
-> +struct of_genpd_provider {
-> +	struct list_head link;
-> +	struct device_node *node;
-> +	genpd_xlate_t xlate;
-> +	void *data;
-> +};
-> +
-> +/* List of registered PM domain providers. */
-> +static LIST_HEAD(of_genpd_providers);
-> +/* Mutex to protect the list above. */
-> +static DEFINE_MUTEX(of_genpd_mutex);
-> +
-> +/**
-> + * __of_genpd_xlate_simple() - Xlate function for direct node-domain mapping
-> + * @genpdspec: OF phandle args to map into a PM domain
-> + * @data: xlate function private data - pointer to struct generic_pm_domain
-> + *
-> + * This is a generic xlate function that can be used to model PM domains that
-> + * have their own device tree nodes. The private data of xlate function needs
-> + * to be a valid pointer to struct generic_pm_domain.
-> + */
-> +struct generic_pm_domain *__of_genpd_xlate_simple(
-> +					struct of_phandle_args *genpdspec,
-> +					void *data)
+> +static int map_lapic_id(struct acpi_subtable_header *entry,
+> +		 u32 acpi_id, int *apic_id)
 > +{
-> +	if (genpdspec->args_count != 0)
-> +		return ERR_PTR(-EINVAL);
-> +	return data;
-> +}
-> +EXPORT_SYMBOL_GPL(__of_genpd_xlate_simple);
+> +	struct acpi_madt_local_apic *lapic =
+> +		(struct acpi_madt_local_apic *)entry;
 > +
-> +/**
-> + * __of_genpd_xlate_onecell() - Xlate function using a single index.
-> + * @genpdspec: OF phandle args to map into a PM domain
-> + * @data: xlate function private data - pointer to struct genpd_onecell_data
-> + *
-> + * This is a generic xlate function that can be used to model simple PM domain
-> + * controllers that have one device tree node and provide multiple PM domains.
-> + * A single cell is used as an index into an array of PM domains specified in
-> + * the genpd_onecell_data struct when registering the provider.
-> + */
-> +struct generic_pm_domain *__of_genpd_xlate_onecell(
-> +					struct of_phandle_args *genpdspec,
-> +					void *data)
-> +{
-> +	struct genpd_onecell_data *genpd_data = data;
-> +	unsigned int idx = genpdspec->args[0];
-> +
-> +	if (genpdspec->args_count != 1)
-> +		return ERR_PTR(-EINVAL);
-> +
-> +	if (idx >= genpd_data->num_domains) {
-> +		pr_err("%s: invalid domain index %u\n", __func__, idx);
-> +		return ERR_PTR(-EINVAL);
-> +	}
-> +
-> +	if (!genpd_data->domains[idx])
-> +		return ERR_PTR(-ENOENT);
-> +
-> +	return genpd_data->domains[idx];
-> +}
-> +EXPORT_SYMBOL_GPL(__of_genpd_xlate_onecell);
-> +
-> +/**
-> + * __of_genpd_add_provider() - Register a PM domain provider for a node
-> + * @np: Device node pointer associated with the PM domain provider.
-> + * @xlate: Callback for decoding PM domain from phandle arguments.
-> + * @data: Context pointer for @xlate callback.
-> + */
-> +int __of_genpd_add_provider(struct device_node *np, genpd_xlate_t xlate,
-> +			void *data)
-> +{
-> +	struct of_genpd_provider *cp;
-> +
-> +	cp = kzalloc(sizeof(*cp), GFP_KERNEL);
-> +	if (!cp)
-> +		return -ENOMEM;
-> +
-> +	cp->node = of_node_get(np);
-> +	cp->data = data;
-> +	cp->xlate = xlate;
-> +
-> +	mutex_lock(&of_genpd_mutex);
-> +	list_add(&cp->link, &of_genpd_providers);
-> +	mutex_unlock(&of_genpd_mutex);
-> +	pr_debug("Added domain provider from %s\n", np->full_name);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(__of_genpd_add_provider);
-> +
-> +/**
-> + * of_genpd_del_provider() - Remove a previously registered PM domain provider
-> + * @np: Device node pointer associated with the PM domain provider
-> + */
-> +void of_genpd_del_provider(struct device_node *np)
-> +{
-> +	struct of_genpd_provider *cp;
-> +
-> +	mutex_lock(&of_genpd_mutex);
-> +	list_for_each_entry(cp, &of_genpd_providers, link) {
-> +		if (cp->node == np) {
-> +			list_del(&cp->link);
-> +			of_node_put(cp->node);
-> +			kfree(cp);
-> +			break;
-> +		}
-> +	}
-> +	mutex_unlock(&of_genpd_mutex);
-> +}
-> +EXPORT_SYMBOL_GPL(of_genpd_del_provider);
-> +
-> +/**
-> + * of_genpd_get_from_provider() - Look-up PM domain
-> + * @genpdspec: OF phandle args to use for look-up
-> + *
-> + * Looks for a PM domain provider under the node specified by @genpdspec and if
-> + * found, uses xlate function of the provider to map phandle args to a PM
-> + * domain.
-> + *
-> + * Returns a valid pointer to struct generic_pm_domain on success or ERR_PTR()
-> + * on failure.
-> + */
-> +static struct generic_pm_domain *of_genpd_get_from_provider(
-> +					struct of_phandle_args *genpdspec)
-> +{
-> +	struct generic_pm_domain *genpd = ERR_PTR(-ENOENT);
-> +	struct of_genpd_provider *provider;
-> +
-> +	mutex_lock(&of_genpd_mutex);
-> +
-> +	/* Check if we have such a provider in our array */
-> +	list_for_each_entry(provider, &of_genpd_providers, link) {
-> +		if (provider->node == genpdspec->np)
-> +			genpd = provider->xlate(genpdspec, provider->data);
-> +		if (!IS_ERR(genpd))
-> +			break;
-> +	}
-> +
-> +	mutex_unlock(&of_genpd_mutex);
-> +
-> +	return genpd;
-> +}
-> +
-> +/**
-> + * genpd_dev_pm_attach - Attach a device to its PM domain using DT.
-> + * @dev: Device to attach.
-> + *
-> + * Parse device's OF node to find a PM domain specifier. If such is found,
-> + * attaches the device to retrieved pm_domain ops.
-> + *
-> + * Both generic and legacy Samsung-specific DT bindings are supported to keep
-> + * backwards compatibility with existing DTBs.
-> + *
-> + * Returns 0 on successfully attached PM domain or negative error code.
-> + */
-> +int genpd_dev_pm_attach(struct device *dev)
-> +{
-> +	struct of_phandle_args pd_args;
-> +	struct generic_pm_domain *pd;
-> +	int ret;
-> +
-> +	if (!dev->of_node)
+> +	if (!(lapic->lapic_flags & ACPI_MADT_ENABLED))
 > +		return -ENODEV;
 > +
-> +	if (dev->pm_domain)
-> +		return -EEXIST;
+> +	if (lapic->processor_id != acpi_id)
+> +		return -EINVAL;
 > +
-> +	ret = of_parse_phandle_with_args(dev->of_node, "power-domains",
-> +					"#power-domain-cells", 0, &pd_args);
-> +	if (ret < 0) {
-> +		if (ret != -ENOENT)
-> +			return ret;
-> +
-> +		/*
-> +		 * Try legacy Samsung-specific bindings
-> +		 * (for backwards compatibility of DT ABI)
-> +		 */
-> +		pd_args.args_count = 0;
-> +		pd_args.np = of_parse_phandle(dev->of_node,
-> +						"samsung,power-domain", 0);
-> +		if (!pd_args.np)
-> +			return -ENOENT;
-> +	}
-> +
-> +	pd = of_genpd_get_from_provider(&pd_args);
-> +	if (IS_ERR(pd)) {
-> +		dev_dbg(dev, "%s() failed to find PM domain: %ld\n",
-> +			__func__, PTR_ERR(pd));
-> +		of_node_put(dev->of_node);
-> +		return PTR_ERR(pd);
-> +	}
-> +
-> +	dev_dbg(dev, "adding to PM domain %s\n", pd->name);
-> +
-> +	while (1) {
-> +		ret = pm_genpd_add_device(pd, dev);
-> +		if (ret != -EAGAIN)
-> +			break;
-> +		cond_resched();
-> +	}
-> +
-> +	if (ret < 0) {
-> +		dev_err(dev, "failed to add to PM domain %s: %d",
-> +			pd->name, ret);
-> +		of_node_put(dev->of_node);
-> +		return ret;
-> +	}
-> +
+> +	*apic_id = lapic->id;
 > +	return 0;
 > +}
-> +EXPORT_SYMBOL_GPL(genpd_dev_pm_attach);
 > +
-> +/**
-> + * genpd_dev_pm_detach - Detach a device from its PM domain.
-> + * @dev: Device to attach.
-> + *
-> + * Try to locate a corresponding generic PM domain, which the device was
-> + * attached to previously. If such is found, the device is detached from it.
-> + *
-> + * Returns 0 on successfully detached PM domain or negative error code.
-> + */
-> +int genpd_dev_pm_detach(struct device *dev)
+> +static int map_x2apic_id(struct acpi_subtable_header *entry,
+> +			 int device_declaration, u32 acpi_id, int *apic_id)
 > +{
-> +	struct generic_pm_domain *pd = NULL, *gpd;
-> +	int ret = 0;
+> +	struct acpi_madt_local_x2apic *apic =
+> +		(struct acpi_madt_local_x2apic *)entry;
 > +
-> +	if (!dev->pm_domain)
+> +	if (!(apic->lapic_flags & ACPI_MADT_ENABLED))
 > +		return -ENODEV;
 > +
-> +	mutex_lock(&gpd_list_lock);
-> +	list_for_each_entry(gpd, &gpd_list, gpd_list_node) {
-> +		if (&gpd->domain == dev->pm_domain) {
-> +			pd = gpd;
-> +			break;
-> +		}
-> +	}
-> +	mutex_unlock(&gpd_list_lock);
-> +
-> +	if (!pd)
-> +		return -ENOENT;
-> +
-> +	dev_dbg(dev, "removing from PM domain %s\n", pd->name);
-> +
-> +	while (1) {
-> +		ret = pm_genpd_remove_device(pd, dev);
-> +		if (ret != -EAGAIN)
-> +			break;
-> +		cond_resched();
+> +	if (device_declaration && (apic->uid == acpi_id)) {
+> +		*apic_id = apic->local_apic_id;
+> +		return 0;
 > +	}
 > +
-> +	if (ret < 0) {
-> +		dev_err(dev, "failed to remove from PM domain %s: %d",
-> +			pd->name, ret);
-> +		return ret;
-> +	}
+> +	return -EINVAL;
+> +}
 > +
-> +	/* Check if PM domain can be powered off after removing this device. */
-> +	genpd_queue_power_off_work(pd);
+> +static int map_lsapic_id(struct acpi_subtable_header *entry,
+> +		int device_declaration, u32 acpi_id, int *apic_id)
+> +{
+> +	struct acpi_madt_local_sapic *lsapic =
+> +		(struct acpi_madt_local_sapic *)entry;
 > +
+> +	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
+> +		return -ENODEV;
+> +
+> +	if (device_declaration) {
+> +		if ((entry->length < 16) || (lsapic->uid != acpi_id))
+> +			return -EINVAL;
+> +	} else if (lsapic->processor_id != acpi_id)
+> +		return -EINVAL;
+> +
+> +	*apic_id = (lsapic->id << 8) | lsapic->eid;
 > +	return 0;
 > +}
-> +EXPORT_SYMBOL_GPL(genpd_dev_pm_detach);
+> +
+> +static int map_madt_entry(int type, u32 acpi_id)
+> +{
+> +	unsigned long madt_end, entry;
+> +	static struct acpi_table_madt *madt;
+> +	static int read_madt;
+> +	int apic_id = -1;
+> +
+> +	if (!read_madt) {
+> +		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
+> +					(struct acpi_table_header **)&madt)))
+> +			madt = NULL;
+> +		read_madt++;
+> +	}
+> +
+> +	if (!madt)
+> +		return apic_id;
+> +
+> +	entry = (unsigned long)madt;
+> +	madt_end = entry + madt->header.length;
+> +
+> +	/* Parse all entries looking for a match. */
+> +
+> +	entry += sizeof(struct acpi_table_madt);
+> +	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
+> +		struct acpi_subtable_header *header =
+> +			(struct acpi_subtable_header *)entry;
+> +		if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
+> +			if (!map_lapic_id(header, acpi_id, &apic_id))
+> +				break;
+> +		} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
+> +			if (!map_x2apic_id(header, type, acpi_id, &apic_id))
+> +				break;
+> +		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
+> +			if (!map_lsapic_id(header, type, acpi_id, &apic_id))
+> +				break;
+> +		}
+> +		entry += header->length;
+> +	}
+> +	return apic_id;
+> +}
+> +
+> +static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
+> +{
+> +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+> +	union acpi_object *obj;
+> +	struct acpi_subtable_header *header;
+> +	int apic_id = -1;
+> +
+> +	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
+> +		goto exit;
+> +
+> +	if (!buffer.length || !buffer.pointer)
+> +		goto exit;
+> +
+> +	obj = buffer.pointer;
+> +	if (obj->type != ACPI_TYPE_BUFFER ||
+> +	    obj->buffer.length < sizeof(struct acpi_subtable_header)) {
+> +		goto exit;
+> +	}
+> +
+> +	header = (struct acpi_subtable_header *)obj->buffer.pointer;
+> +	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC)
+> +		map_lapic_id(header, acpi_id, &apic_id);
+> +	else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC)
+> +		map_lsapic_id(header, type, acpi_id, &apic_id);
+> +	else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC)
+> +		map_x2apic_id(header, type, acpi_id, &apic_id);
+> +
+> +exit:
+> +	kfree(buffer.pointer);
+> +	return apic_id;
+> +}
+> +
+> +int acpi_get_apicid(acpi_handle handle, int type, u32 acpi_id)
+> +{
+> +	int apic_id;
+> +
+> +	apic_id = map_mat_entry(handle, type, acpi_id);
+> +	if (apic_id == -1)
+> +		apic_id = map_madt_entry(type, acpi_id);
+> +
+> +	return apic_id;
+> +}
+> +
+> +int acpi_map_cpuid(int apic_id, u32 acpi_id)
+> +{
+> +#ifdef CONFIG_SMP
+> +	int i;
 > +#endif
-> diff --git a/include/linux/pm_domain.h b/include/linux/pm_domain.h
-> index ebc4c76..b09eaa7 100644
-> --- a/include/linux/pm_domain.h
-> +++ b/include/linux/pm_domain.h
-> @@ -310,4 +310,61 @@ static inline void pm_genpd_syscore_poweron(struct device *dev)
->  	pm_genpd_syscore_switch(dev, false);
->  }
+> +
+> +	if (apic_id == -1) {
+> +		/*
+> +		 * On UP processor, there is no _MAT or MADT table.
+> +		 * So above apic_id is always set to -1.
+> +		 *
+> +		 * BIOS may define multiple CPU handles even for UP processor.
+> +		 * For example,
+> +		 *
+> +		 * Scope (_PR)
+> +		 * {
+> +		 *     Processor (CPU0, 0x00, 0x00000410, 0x06) {}
+> +		 *     Processor (CPU1, 0x01, 0x00000410, 0x06) {}
+> +		 *     Processor (CPU2, 0x02, 0x00000410, 0x06) {}
+> +		 *     Processor (CPU3, 0x03, 0x00000410, 0x06) {}
+> +		 * }
+> +		 *
+> +		 * Ignores apic_id and always returns 0 for the processor
+> +		 * handle with acpi id 0 if nr_cpu_ids is 1.
+> +		 * This should be the case if SMP tables are not found.
+> +		 * Return -1 for other CPU's handle.
+> +		 */
+> +		if (nr_cpu_ids <= 1 && acpi_id == 0)
+> +			return acpi_id;
+> +		else
+> +			return apic_id;
+> +	}
+> +
+> +#ifdef CONFIG_SMP
+> +	for_each_possible_cpu(i) {
+> +		if (cpu_physical_id(i) == apic_id)
+> +			return i;
+> +	}
+> +#else
+> +	/* In UP kernel, only processor 0 is valid */
+> +	if (apic_id == 0)
+> +		return apic_id;
+> +#endif
+> +	return -1;
+> +}
+> +
+> +int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+> +{
+> +	int apic_id;
+> +
+> +	apic_id = acpi_get_apicid(handle, type, acpi_id);
+> +
+> +	return acpi_map_cpuid(apic_id, acpi_id);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_get_cpuid);
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> deleted file mode 100644
+> index b048f3752c2b..000000000000
+> --- a/drivers/acpi/processor_core.c
+> +++ /dev/null
+> @@ -1,205 +0,0 @@
+> -/*
+> - * Copyright (C) 2005 Intel Corporation
+> - * Copyright (C) 2009 Hewlett-Packard Development Company, L.P.
+> - *
+> - *	Alex Chiang <achiang@hp.com>
+> - *	- Unified x86/ia64 implementations
+> - */
+> -#include <linux/export.h>
+> -#include <linux/acpi.h>
+> -#include <acpi/processor.h>
+> -
+> -#define _COMPONENT		ACPI_PROCESSOR_COMPONENT
+> -ACPI_MODULE_NAME("processor_core");
+> -
+> -static int map_lapic_id(struct acpi_subtable_header *entry,
+> -		 u32 acpi_id, int *apic_id)
+> -{
+> -	struct acpi_madt_local_apic *lapic =
+> -		(struct acpi_madt_local_apic *)entry;
+> -
+> -	if (!(lapic->lapic_flags & ACPI_MADT_ENABLED))
+> -		return -ENODEV;
+> -
+> -	if (lapic->processor_id != acpi_id)
+> -		return -EINVAL;
+> -
+> -	*apic_id = lapic->id;
+> -	return 0;
+> -}
+> -
+> -static int map_x2apic_id(struct acpi_subtable_header *entry,
+> -			 int device_declaration, u32 acpi_id, int *apic_id)
+> -{
+> -	struct acpi_madt_local_x2apic *apic =
+> -		(struct acpi_madt_local_x2apic *)entry;
+> -
+> -	if (!(apic->lapic_flags & ACPI_MADT_ENABLED))
+> -		return -ENODEV;
+> -
+> -	if (device_declaration && (apic->uid == acpi_id)) {
+> -		*apic_id = apic->local_apic_id;
+> -		return 0;
+> -	}
+> -
+> -	return -EINVAL;
+> -}
+> -
+> -static int map_lsapic_id(struct acpi_subtable_header *entry,
+> -		int device_declaration, u32 acpi_id, int *apic_id)
+> -{
+> -	struct acpi_madt_local_sapic *lsapic =
+> -		(struct acpi_madt_local_sapic *)entry;
+> -
+> -	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
+> -		return -ENODEV;
+> -
+> -	if (device_declaration) {
+> -		if ((entry->length < 16) || (lsapic->uid != acpi_id))
+> -			return -EINVAL;
+> -	} else if (lsapic->processor_id != acpi_id)
+> -		return -EINVAL;
+> -
+> -	*apic_id = (lsapic->id << 8) | lsapic->eid;
+> -	return 0;
+> -}
+> -
+> -static int map_madt_entry(int type, u32 acpi_id)
+> -{
+> -	unsigned long madt_end, entry;
+> -	static struct acpi_table_madt *madt;
+> -	static int read_madt;
+> -	int apic_id = -1;
+> -
+> -	if (!read_madt) {
+> -		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
+> -					(struct acpi_table_header **)&madt)))
+> -			madt = NULL;
+> -		read_madt++;
+> -	}
+> -
+> -	if (!madt)
+> -		return apic_id;
+> -
+> -	entry = (unsigned long)madt;
+> -	madt_end = entry + madt->header.length;
+> -
+> -	/* Parse all entries looking for a match. */
+> -
+> -	entry += sizeof(struct acpi_table_madt);
+> -	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
+> -		struct acpi_subtable_header *header =
+> -			(struct acpi_subtable_header *)entry;
+> -		if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
+> -			if (!map_lapic_id(header, acpi_id, &apic_id))
+> -				break;
+> -		} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
+> -			if (!map_x2apic_id(header, type, acpi_id, &apic_id))
+> -				break;
+> -		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
+> -			if (!map_lsapic_id(header, type, acpi_id, &apic_id))
+> -				break;
+> -		}
+> -		entry += header->length;
+> -	}
+> -	return apic_id;
+> -}
+> -
+> -static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
+> -{
+> -	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+> -	union acpi_object *obj;
+> -	struct acpi_subtable_header *header;
+> -	int apic_id = -1;
+> -
+> -	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
+> -		goto exit;
+> -
+> -	if (!buffer.length || !buffer.pointer)
+> -		goto exit;
+> -
+> -	obj = buffer.pointer;
+> -	if (obj->type != ACPI_TYPE_BUFFER ||
+> -	    obj->buffer.length < sizeof(struct acpi_subtable_header)) {
+> -		goto exit;
+> -	}
+> -
+> -	header = (struct acpi_subtable_header *)obj->buffer.pointer;
+> -	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC)
+> -		map_lapic_id(header, acpi_id, &apic_id);
+> -	else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC)
+> -		map_lsapic_id(header, type, acpi_id, &apic_id);
+> -	else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC)
+> -		map_x2apic_id(header, type, acpi_id, &apic_id);
+> -
+> -exit:
+> -	kfree(buffer.pointer);
+> -	return apic_id;
+> -}
+> -
+> -int acpi_get_apicid(acpi_handle handle, int type, u32 acpi_id)
+> -{
+> -	int apic_id;
+> -
+> -	apic_id = map_mat_entry(handle, type, acpi_id);
+> -	if (apic_id == -1)
+> -		apic_id = map_madt_entry(type, acpi_id);
+> -
+> -	return apic_id;
+> -}
+> -
+> -int acpi_map_cpuid(int apic_id, u32 acpi_id)
+> -{
+> -#ifdef CONFIG_SMP
+> -	int i;
+> -#endif
+> -
+> -	if (apic_id == -1) {
+> -		/*
+> -		 * On UP processor, there is no _MAT or MADT table.
+> -		 * So above apic_id is always set to -1.
+> -		 *
+> -		 * BIOS may define multiple CPU handles even for UP processor.
+> -		 * For example,
+> -		 *
+> -		 * Scope (_PR)
+> -		 * {
+> -		 *     Processor (CPU0, 0x00, 0x00000410, 0x06) {}
+> -		 *     Processor (CPU1, 0x01, 0x00000410, 0x06) {}
+> -		 *     Processor (CPU2, 0x02, 0x00000410, 0x06) {}
+> -		 *     Processor (CPU3, 0x03, 0x00000410, 0x06) {}
+> -		 * }
+> -		 *
+> -		 * Ignores apic_id and always returns 0 for the processor
+> -		 * handle with acpi id 0 if nr_cpu_ids is 1.
+> -		 * This should be the case if SMP tables are not found.
+> -		 * Return -1 for other CPU's handle.
+> -		 */
+> -		if (nr_cpu_ids <= 1 && acpi_id == 0)
+> -			return acpi_id;
+> -		else
+> -			return apic_id;
+> -	}
+> -
+> -#ifdef CONFIG_SMP
+> -	for_each_possible_cpu(i) {
+> -		if (cpu_physical_id(i) == apic_id)
+> -			return i;
+> -	}
+> -#else
+> -	/* In UP kernel, only processor 0 is valid */
+> -	if (apic_id == 0)
+> -		return apic_id;
+> -#endif
+> -	return -1;
+> -}
+> -
+> -int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+> -{
+> -	int apic_id;
+> -
+> -	apic_id = acpi_get_apicid(handle, type, acpi_id);
+> -
+> -	return acpi_map_cpuid(apic_id, acpi_id);
+> -}
+> -EXPORT_SYMBOL_GPL(acpi_get_cpuid);
+> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+> index 9b9b6f29bbf3..99fc22c9e61f 100644
+> --- a/include/acpi/processor.h
+> +++ b/include/acpi/processor.h
+> @@ -314,9 +314,6 @@ static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
 >  
-> +/* OF PM domain providers */
-> +struct of_device_id;
-> +
-> +struct genpd_onecell_data {
-> +	struct generic_pm_domain **domains;
-> +	unsigned int num_domains;
-> +};
-> +
-> +typedef struct generic_pm_domain *(*genpd_xlate_t)(struct of_phandle_args *args,
-> +						void *data);
-> +
-> +#ifdef CONFIG_PM_GENERIC_DOMAINS_OF
-> +int __of_genpd_add_provider(struct device_node *np, genpd_xlate_t xlate,
-> +			void *data);
-> +void of_genpd_del_provider(struct device_node *np);
-> +
-> +struct generic_pm_domain *__of_genpd_xlate_simple(
-> +					struct of_phandle_args *genpdspec,
-> +					void *data);
-> +struct generic_pm_domain *__of_genpd_xlate_onecell(
-> +					struct of_phandle_args *genpdspec,
-> +					void *data);
-> +
-> +int genpd_dev_pm_attach(struct device *dev);
-> +int genpd_dev_pm_detach(struct device *dev);
-> +#else /* !CONFIG_PM_GENERIC_DOMAINS_OF */
-> +static inline int __of_genpd_add_provider(struct device_node *np,
-> +					genpd_xlate_t xlate, void *data)
-> +{
-> +	return 0;
-> +}
-> +static inline void of_genpd_del_provider(struct device_node *np) {}
-> +
-> +#define __of_genpd_xlate_simple		NULL
-> +#define __of_genpd_xlate_onecell	NULL
-> +
-> +static inline int genpd_dev_pm_attach(struct device *dev)
-> +{
-> +	return -ENODEV;
-> +}
-> +static inline int genpd_dev_pm_detach(struct device *dev)
-> +{
-> +	return -ENODEV;
-> +}
-> +#endif /* CONFIG_PM_GENERIC_DOMAINS_OF */
-> +
-> +static inline int of_genpd_add_provider_simple(struct device_node *np,
-> +					struct generic_pm_domain *genpd)
-> +{
-> +	return __of_genpd_add_provider(np, __of_genpd_xlate_simple, genpd);
-> +}
-> +static inline int of_genpd_add_provider_onecell(struct device_node *np,
-> +					struct genpd_onecell_data *data)
-> +{
-> +	return __of_genpd_add_provider(np, __of_genpd_xlate_onecell, data);
-> +}
-> +
->  #endif /* _LINUX_PM_DOMAIN_H */
-> diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
-> index e4e4121..897619b 100644
-> --- a/kernel/power/Kconfig
-> +++ b/kernel/power/Kconfig
-> @@ -302,6 +302,10 @@ config PM_GENERIC_DOMAINS_RUNTIME
->  	def_bool y
->  	depends on PM_RUNTIME && PM_GENERIC_DOMAINS
+>  /* in processor_core.c */
+>  void acpi_processor_set_pdc(acpi_handle handle);
+> -int acpi_get_apicid(acpi_handle, int type, u32 acpi_id);
+> -int acpi_map_cpuid(int apic_id, u32 acpi_id);
+> -int acpi_get_cpuid(acpi_handle, int type, u32 acpi_id);
 >  
-> +config PM_GENERIC_DOMAINS_OF
-> +	def_bool y
-> +	depends on PM_GENERIC_DOMAINS && OF && !ARCH_EXYNOS
-> +
->  config CPU_PM
->  	bool
->  	depends on SUSPEND || CPU_IDLE
+>  /* in processor_throttling.c */
+>  int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 807cbc46d73e..05ed6886f1f8 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -140,6 +140,9 @@ void acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa);
+>  int acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
+>  void acpi_numa_arch_fixup(void);
+>  
+> +int acpi_get_apicid(acpi_handle, int type, u32 acpi_id);
+> +int acpi_map_cpuid(int apic_id, u32 acpi_id);
+> +int acpi_get_cpuid(acpi_handle, int type, u32 acpi_id);
+>  #ifdef CONFIG_ACPI_HOTPLUG_CPU
+>  /* Arch dependent functions for cpu hotplug support */
+>  int acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu);
 > 
 
 -- 
