@@ -1,26 +1,64 @@
-From: "Harley Wang" <hawg113@gmail.com>
-Subject: contact me
-Date: Sat, 6 Sep 2014 04:46:10 -0400
-Message-ID: <CAGRONOMIASDAmwtyL8000125a1@cagronomia.agr.ucv.ve>
-Reply-To: <hctthg-h1@yahoo.com>
+From: Quentin Lambert <lambert.quentin@gmail.com>
+Subject: [PATCH v2 0/4] Extending the first version of the patch to the
+ entire directory
+Date: Sun, 7 Sep 2014 20:00:23 +0200
+Message-ID: <20140907180023.GA1849@greed>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dagonet.rect.ucv.ve ([190.169.255.187]:48525 "EHLO
-	dagonet.rect.ucv.ve" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750826AbaIFMm0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Sep 2014 08:42:26 -0400
+Received: from mail-we0-f181.google.com ([74.125.82.181]:45175 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751423AbaIGSA1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Sep 2014 14:00:27 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Scott Murray <scott@spiteful.org>
+Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-I wait for confirmation to transfer US$21.4M to you 
+Patch 1 and 2 are straight forward extension from the previous version
+of the patch.
+
+Patch 3 introduces checkpatch warning due to lines surpassing 80
+characters. Another warning concerning too many preceding tabs
+is not fixed either.
+
+Patch 4 are less straight forward similar modifications
+the modification made to ibmphp_res.c change the value of len_tmp
+when the first condition in if statement is not met.
+I wasn't quite sure how to solve elegantly the checkpatch error for
+slot.c, I chose to use a label and gotos since it was already used
+and allowed for a slight code factorisation. This being my first patch I
+understand that this may not be the best solution.
 
 
-__________ Information from ESET Mail Security, version of virus signature database 10226 (20140808) __________
 
-The message was checked by ESET Mail Security.
-http://www.eset.com
+Quentin Lambert (4):
+  PCI: fix a missing space coding style issue
+  PCI: fix a simple if coding style issue
+  PCI: remove assignement from if conditions
+  PCI: remove assignement in non straight forward if condition
 
+ drivers/pci/hotplug/acpi_pcihp.c        |  3 ++-
+ drivers/pci/hotplug/acpiphp_ibm.c       |  2 +-
+ drivers/pci/hotplug/cpci_hotplug_core.c | 13 ++++++----
+ drivers/pci/hotplug/cpcihp_generic.c    | 28 ++++++++++-----------
+ drivers/pci/hotplug/cpcihp_zt5550.c     | 44 ++++++++++++++++-----------------
+ drivers/pci/hotplug/cpqphp.h            |  2 +-
+ drivers/pci/hotplug/cpqphp_core.c       |  3 +--
+ drivers/pci/hotplug/cpqphp_ctrl.c       | 19 ++++++--------
+ drivers/pci/hotplug/cpqphp_nvram.c      | 13 ++++------
+ drivers/pci/hotplug/ibmphp_core.c       | 19 ++++++++------
+ drivers/pci/hotplug/ibmphp_ebda.c       |  3 +--
+ drivers/pci/hotplug/ibmphp_hpc.c        |  3 +--
+ drivers/pci/hotplug/ibmphp_pci.c        |  6 +++--
+ drivers/pci/hotplug/ibmphp_res.c        | 43 ++++++++++++++++++++++----------
+ drivers/pci/hotplug/shpchp_ctrl.c       | 12 ++++++---
+ drivers/pci/hotplug/shpchp_hpc.c        |  3 ++-
+ drivers/pci/pci.c                       | 19 +++++++++++---
+ drivers/pci/slot.c                      | 12 +++++++--
+ 18 files changed, 143 insertions(+), 104 deletions(-)
+
+-- 
+1.9.1
 
