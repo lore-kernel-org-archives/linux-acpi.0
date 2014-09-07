@@ -1,111 +1,145 @@
-From: Quentin Lambert <lambert.quentin@gmail.com>
-Subject: [PATCH v2 4/4] PCI: remove assignement in non straight forward if
- condition
-Date: Sun, 7 Sep 2014 20:04:28 +0200
-Message-ID: <20140907180428.GA12424@greed>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi : Add container online uevent to acpi_bus_attach
+Date: Sun, 07 Sep 2014 23:34:27 +0200
+Message-ID: <6346979.uGFiy3j9K2@vostro.rjw.lan>
+References: <54095EE7.3080302@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f182.google.com ([74.125.82.182]:41380 "EHLO
-	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751981AbaIGSEx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Sep 2014 14:04:53 -0400
-Content-Disposition: inline
+Received: from v094114.home.net.pl ([79.96.170.134]:62210 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751911AbaIGVPD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Sep 2014 17:15:03 -0400
+In-Reply-To: <54095EE7.3080302@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Scott Murray <scott@spiteful.org>
-Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org
 
-The modifications effectively change the value of len_tmp
-in the case where the first condition is not met.
+On Friday, September 05, 2014 03:57:43 PM Yasuaki Ishimatsu wrote:
+> Container online uevent was deleted by "46394fd01 : ACPI / hotplug:
+> Move container-specific code out of the core" because container-
+> specific uevent is raised to udev by attaching container device.
+> But the container-specific uevent is not useful.
+> 
+> In my box, conainer device has CPU and memory devices. In this case,
+> when hot adding container device, the following uevets are raised to
+> udev.
+> 
+>   # udevadm monitor --kernel
+>   monitor will print the received events for:
+>   KERNEL - the kernel uevent
+> 
+>   KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
+>   <snip>
+>   KERNEL[...] add      /devices/system/memory/memory2048 (memory)
+>   KERNEL[...] add      /devices/system/memory/memory2049 (memory)
+>   <snip>
+>   KERNEL[...] add      /devices/system/memory/memory2063 (memory)
+>   <snip>
+>   KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
+>   <snip>
+>   KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
+> 
+> When udev catches the container add uevent in my box, udev executes
+> user land script for onlining all child's devices. But memory and CPU
+> devices have not been attached at this time. So user land script fails.
+> 
+> One of solutions is that user land script waits for all child's devices
+> to attach. But user land script has no way to know all child's devices
+> were attached.
+> 
+> So the patch adds container online uevent to acpi_bus_sttach(). By
+> applying
+> the patch, container online uevent is raised to udev after all child's
+> devices were attached as follows:
+> 
+>   # udevadm monitor --kernel
+>   monitor will print the received events for:
+>   KERNEL - the kernel uevent
+> 
+>   KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
+>   <snip>
+>   KERNEL[...] add      /devices/system/memory/memory2048 (memory)
+>   KERNEL[...] add      /devices/system/memory/memory2049 (memory)
+>   <snip>
+>   KERNEL[...] add      /devices/system/memory/memory2063 (memory)
+>   <snip>
+>   KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
+>   <snip>
+>   KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
+>   KERNEL[...] online   /devices/system/container/ACPI0004:01 (container)
+> 
+> So if user land script is executed after raising the container online
+> uevent, it guarantees that all child's devices were attached.
 
-Signed-off-by: Quentin Lambert <lambert.quentin@gmail.com>
+I see the problem, but I don't like the patch.
+
+For example, we don't need to match the container's name again, we can use
+the fact that we've already matched the container scan handler to it.
+
+Does the one below work too?
+
+Rafael
+
+
 ---
- drivers/pci/hotplug/ibmphp_res.c | 13 +++++++++----
- drivers/pci/pci.c                |  6 +++++-
- drivers/pci/slot.c               | 12 ++++++++++--
- 3 files changed, 24 insertions(+), 7 deletions(-)
+ drivers/acpi/container.c |    8 ++++++++
+ drivers/acpi/scan.c      |    3 +++
+ include/acpi/acpi_bus.h  |    1 +
+ 3 files changed, 12 insertions(+)
 
-diff --git a/drivers/pci/hotplug/ibmphp_res.c b/drivers/pci/hotplug/ibmphp_res.c
-index e07f34e..7066c34 100644
---- a/drivers/pci/hotplug/ibmphp_res.c
-+++ b/drivers/pci/hotplug/ibmphp_res.c
-@@ -1044,7 +1044,9 @@ int ibmphp_check_resource (struct resource_node *res, u8 bridge)
- 		/* found our range */
- 		if (!res_prev) {
- 			/* first time in the loop */
--			if ((res_cur->start != range->start) && ((len_tmp = res_cur->start - 1 - range->start) >= res->len)) {
-+			len_tmp = res_cur->start - 1 - range->start;
-+
-+			if ((res_cur->start != range->start) && (len_tmp >= res->len)) {
- 				debug ("len_tmp = %x\n", len_tmp);
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -118,6 +118,7 @@ struct acpi_device;
+ struct acpi_hotplug_profile {
+ 	struct kobject kobj;
+ 	int (*scan_dependent)(struct acpi_device *adev);
++	void (*notify_online)(struct acpi_device *adev);
+ 	bool enabled:1;
+ 	bool demand_offline:1;
+ };
+Index: linux-pm/drivers/acpi/container.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/container.c
++++ linux-pm/drivers/acpi/container.c
+@@ -99,6 +99,13 @@ static void container_device_detach(stru
+ 		device_unregister(dev);
+ }
  
- 				if ((len_tmp < len_cur) || (len_cur == 0)) {
-@@ -1084,7 +1086,9 @@ int ibmphp_check_resource (struct resource_node *res, u8 bridge)
- 		}
- 		if (!res_cur->next) {
- 			/* last device on the range */
--			if ((range->end != res_cur->end) && ((len_tmp = range->end - (res_cur->end + 1)) >= res->len)) {
-+			len_tmp = range->end - (res_cur->end + 1);
++static void container_device_online(struct acpi_device *adev)
++{
++	struct device *dev = acpi_driver_data(adev);
 +
-+			if ((range->end != res_cur->end) && (len_tmp >= res->len)) {
- 				debug ("len_tmp = %x\n", len_tmp);
- 				if ((len_tmp < len_cur) || (len_cur == 0)) {
++	kobject_uevent(&dev->kobj, KOBJ_ONLINE);
++}
++
+ static struct acpi_scan_handler container_handler = {
+ 	.ids = container_device_ids,
+ 	.attach = container_device_attach,
+@@ -106,6 +113,7 @@ static struct acpi_scan_handler containe
+ 	.hotplug = {
+ 		.enabled = true,
+ 		.demand_offline = true,
++		.notify_online = container_device_online,
+ 	},
+ };
  
-@@ -1123,8 +1127,9 @@ int ibmphp_check_resource (struct resource_node *res, u8 bridge)
- 		if (res_prev) {
- 			if (res_prev->rangeno != res_cur->rangeno) {
- 				/* 1st device on this range */
--				if ((res_cur->start != range->start) &&
--					((len_tmp = res_cur->start - 1 - range->start) >= res->len)) {
-+				len_tmp = res_cur->start - 1 - range->start;
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -2190,6 +2190,9 @@ static void acpi_bus_attach(struct acpi_
+  ok:
+ 	list_for_each_entry(child, &device->children, node)
+ 		acpi_bus_attach(child);
 +
-+				if ((res_cur->start != range->start) &&	(len_tmp >= res->len)) {
- 					if ((len_tmp < len_cur) || (len_cur == 0)) {
- 						if ((range->start % tmp_divide) == 0) {
- 							/* just perfect, starting address is divisible by length */
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 8b63a5b..4c3ef21 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -4434,9 +4434,13 @@ static int __init pci_setup(char *str)
- {
- 	while (str) {
- 		char *k = strchr(str, ',');
-+		char tmp = *str;
-+
- 		if (k)
- 			*k++ = 0;
--		if (*str && (str = pcibios_setup(str)) && *str) {
-+
-+		str = pcibios_setup(str);
-+		if (tmp && str && *str) {
- 			if (!strcmp(str, "nomsi")) {
- 				pci_no_msi();
- 			} else if (!strcmp(str, "noaer")) {
-diff --git a/drivers/pci/slot.c b/drivers/pci/slot.c
-index 396c200..22d20db 100644
---- a/drivers/pci/slot.c
-+++ b/drivers/pci/slot.c
-@@ -265,8 +265,16 @@ struct pci_slot *pci_create_slot(struct pci_bus *parent, int slot_nr,
- 	slot = get_slot(parent, slot_nr);
- 	if (slot) {
- 		if (hotplug) {
--			if ((err = slot->hotplug ? -EBUSY : 0)
--			     || (err = rename_slot(slot, name))) {
-+			err = slot->hotplug ? -EBUSY : 0;
-+			if (err)
-+				goto hotplugerror;
-+
-+			err = rename_slot(slot, name);
-+			if (err)
-+				goto hotplugerror;
-+
-+			if (0) {
-+hotplugerror:
- 				kobject_put(&slot->kobj);
- 				slot = NULL;
- 				goto err;
--- 
-1.9.1
++	if (device->handler && device->handler->hotplug.notify_online)
++		device->handler->hotplug.notify_online(device);
+ }
+ 
+ /**
 
