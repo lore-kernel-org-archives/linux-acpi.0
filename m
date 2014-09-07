@@ -1,145 +1,80 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi : Add container online uevent to acpi_bus_attach
-Date: Sun, 07 Sep 2014 23:34:27 +0200
-Message-ID: <6346979.uGFiy3j9K2@vostro.rjw.lan>
-References: <54095EE7.3080302@jp.fujitsu.com>
+Subject: Re: [Patch v4 00/16] Enable support of IOAPIC hotplug on x86 platforms
+Date: Mon, 08 Sep 2014 00:05:42 +0200
+Message-ID: <1786205.ifzMNBRd6l@vostro.rjw.lan>
+References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62210 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:51177 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751911AbaIGVPD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Sep 2014 17:15:03 -0400
-In-Reply-To: <54095EE7.3080302@jp.fujitsu.com>
+	with SMTP id S1752010AbaIGVqR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Sep 2014 17:46:17 -0400
+In-Reply-To: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Friday, September 05, 2014 03:57:43 PM Yasuaki Ishimatsu wrote:
-> Container online uevent was deleted by "46394fd01 : ACPI / hotplug:
-> Move container-specific code out of the core" because container-
-> specific uevent is raised to udev by attaching container device.
-> But the container-specific uevent is not useful.
+On Thursday, August 28, 2014 10:22:25 AM Jiang Liu wrote:
+> This patch set enhances IOAPIC core and ACPI drivers to support IOAPIC
+> hotplug on x86 platforms. It's based on latest mainstream kernel at
+> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
 > 
-> In my box, conainer device has CPU and memory devices. In this case,
-> when hot adding container device, the following uevets are raised to
-> udev.
+> You may pull it from 
+> https://github.com/jiangliu/linux.git ioapic/hotplug_v4
 > 
->   # udevadm monitor --kernel
->   monitor will print the received events for:
->   KERNEL - the kernel uevent
+> We have pick up several patches from Yinghai's original IOAPIC hotplug
+> patch set and reimplemented IOAPIC driver as an ACPI driver instead of
+> a PCI driver.
 > 
->   KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
->   <snip>
->   KERNEL[...] add      /devices/system/memory/memory2048 (memory)
->   KERNEL[...] add      /devices/system/memory/memory2049 (memory)
->   <snip>
->   KERNEL[...] add      /devices/system/memory/memory2063 (memory)
->   <snip>
->   KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
->   <snip>
->   KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
+> It has been tested on a 4-socket Intel SDV with socket hot-addition
+> capability. Any suggestions are welcomed!
 > 
-> When udev catches the container add uevent in my box, udev executes
-> user land script for onlining all child's devices. But memory and CPU
-> devices have not been attached at this time. So user land script fails.
+> Patch 1-5 are bugfixes and enhancements to ACPI subsystem
+> Patch 6-14 enhances IOAPIC core to support IOAPIC hotplug
+> Patch 15 killes PCI IOAPIC driver
+> Patch 16 reimplements ACPI IOAPIC driver and enables IOAPIC hotplug
 > 
-> One of solutions is that user land script waits for all child's devices
-> to attach. But user land script has no way to know all child's devices
-> were attached.
+> V3->V4:
+> 1) Fix a bug in manage IOAPIC reference count
+> 2) Rebase to v3.17-rc2
+> 3) Refine commit messages
+> V2->V3:
+> 1) Refine ACPI resource walk functions for PCI root bus and IOAPIC
+> 2) Improve commit messages
+> 3) Reorder patch order for better maintenence
 > 
-> So the patch adds container online uevent to acpi_bus_sttach(). By
-> applying
-> the patch, container online uevent is raised to udev after all child's
-> devices were attached as follows:
+> Jiang Liu (13):
+>   x86, PCI, ACPI: Kill private function resource_to_addr() in
+>     arch/x86/pci/acpi.c
+>   ACPI: Correct return value of acpi_dev_resource_address_space()
+>   ACPI: Fix minor syntax issues in processor_core.c
+>   ACPI: Rename processor_core.c as apic_id.c
+>   x86, irq: Remove __init marker for functions will be used by IOAPIC
+>     hotplug
+>   x86, irq: Keep balance of IOAPIC pin reference count
+>   x86, irq: Refine mp_register_ioapic() to prepare for IOAPIC hotplug
+>   x86, irq, ACPI: Introduce a rwsem to protect IOAPIC operations from
+>     hotplug
+>   x86, irq, ACPI: Implement interface to support ACPI based IOAPIC
+>     hot-addition
+>   x86, irq, ACPI: Implement interfaces to support ACPI based IOAPIC
+>     hot-removal
+>   x86, irq: Introduce helper to check whether an IOAPIC has been
+>     registered
+>   PCI: Remove PCI ioapic driver
+>   x86, irq, ACPI: Implement ACPI driver to support IOAPIC hotplug
 > 
->   # udevadm monitor --kernel
->   monitor will print the received events for:
->   KERNEL - the kernel uevent
-> 
->   KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
->   <snip>
->   KERNEL[...] add      /devices/system/memory/memory2048 (memory)
->   KERNEL[...] add      /devices/system/memory/memory2049 (memory)
->   <snip>
->   KERNEL[...] add      /devices/system/memory/memory2063 (memory)
->   <snip>
->   KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
->   <snip>
->   KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
->   KERNEL[...] online   /devices/system/container/ACPI0004:01 (container)
-> 
-> So if user land script is executed after raising the container online
-> uevent, it guarantees that all child's devices were attached.
+> Yinghai Lu (3):
+>   ACPI: Add interfaces to parse IOAPIC ID for IOAPIC hotplug
+>   x86, irq: Split out alloc_ioapic_save_registers()
+>   x86, irq: Prefer assigned ID in APIC ID register for x86_64
 
-I see the problem, but I don't like the patch.
+I don't see any major problems in this patchset, but I'd prefer it to
+go through the tip tree if possible.
 
-For example, we don't need to match the container's name again, we can use
-the fact that we've already matched the container scan handler to it.
-
-Does the one below work too?
-
-Rafael
-
-
----
- drivers/acpi/container.c |    8 ++++++++
- drivers/acpi/scan.c      |    3 +++
- include/acpi/acpi_bus.h  |    1 +
- 3 files changed, 12 insertions(+)
-
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -118,6 +118,7 @@ struct acpi_device;
- struct acpi_hotplug_profile {
- 	struct kobject kobj;
- 	int (*scan_dependent)(struct acpi_device *adev);
-+	void (*notify_online)(struct acpi_device *adev);
- 	bool enabled:1;
- 	bool demand_offline:1;
- };
-Index: linux-pm/drivers/acpi/container.c
-===================================================================
---- linux-pm.orig/drivers/acpi/container.c
-+++ linux-pm/drivers/acpi/container.c
-@@ -99,6 +99,13 @@ static void container_device_detach(stru
- 		device_unregister(dev);
- }
- 
-+static void container_device_online(struct acpi_device *adev)
-+{
-+	struct device *dev = acpi_driver_data(adev);
-+
-+	kobject_uevent(&dev->kobj, KOBJ_ONLINE);
-+}
-+
- static struct acpi_scan_handler container_handler = {
- 	.ids = container_device_ids,
- 	.attach = container_device_attach,
-@@ -106,6 +113,7 @@ static struct acpi_scan_handler containe
- 	.hotplug = {
- 		.enabled = true,
- 		.demand_offline = true,
-+		.notify_online = container_device_online,
- 	},
- };
- 
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -2190,6 +2190,9 @@ static void acpi_bus_attach(struct acpi_
-  ok:
- 	list_for_each_entry(child, &device->children, node)
- 		acpi_bus_attach(child);
-+
-+	if (device->handler && device->handler->hotplug.notify_online)
-+		device->handler->hotplug.notify_online(device);
- }
- 
- /**
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
