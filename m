@@ -1,57 +1,157 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v3 2/9] PM / Domains: Add generic OF-based PM domain look-up
-Date: Mon, 08 Sep 2014 23:26:49 +0200
-Message-ID: <8273189.CFBBe805uk@vostro.rjw.lan>
-References: <1409838756-31963-1-git-send-email-ulf.hansson@linaro.org> <3105400.7vSnq2rA6s@vostro.rjw.lan> <CAMuHMdURbp8a0Ps2sZUZn7UHcWXZvRgS-4ubk1r=wGgXZ1PHmA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 3/9] PM / Domains: Add APIs to attach/detach a PM domain for a device
+Date: Tue, 09 Sep 2014 00:11:53 +0200
+Message-ID: <2898464.MGK3rBhRTU@vostro.rjw.lan>
+References: <1409838756-31963-1-git-send-email-ulf.hansson@linaro.org> <1409838756-31963-4-git-send-email-ulf.hansson@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAMuHMdURbp8a0Ps2sZUZn7UHcWXZvRgS-4ubk1r=wGgXZ1PHmA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Philipp Zabel <philipp.zabel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie@kernel>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:52580 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754160AbaIHVw1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Sep 2014 17:52:27 -0400
+In-Reply-To: <1409838756-31963-4-git-send-email-ulf.hansson@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>
 
-On Monday, September 08, 2014 10:53:09 PM Geert Uytterhoeven wrote:
-> Hi Rafael,
+On Thursday, September 04, 2014 03:52:30 PM Ulf Hansson wrote:
+> To maintain scalability let's add common methods to attach and detach
+> a PM domain for a device, dev_pm_domain_attach|detach().
 > 
-> On Mon, Sep 8, 2014 at 11:08 PM, Rafael J. Wysocki <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> wrote:
-> > BTW, I get bounces from t.figa-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, so I won't apply the patch with
-> > that as the "From" field.  And the s-o-b from a bouncing address is worthless
-> > too.
+> Typically dev_pm_domain_attach() shall be invoked from subsystem level
+> code at the probe phase to try to attach a device to its PM domain.
+> The reversed actions may be done a the remove phase and then by invoking
+> dev_pm_domain_detach().
 > 
-> In the mean time, Tomasz has moved:
-> http://www.spinics.net/lists/arm-kernel/msg357102.html
+> The supported PM domains at this point are the ACPI and the generic
+> PM domains.
 > 
-> Still, the From/SoB indicate attribution to Samsung, so I think it should be
-> kept.
+> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/base/power/common.c | 56 +++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/pm.h          | 14 ++++++++++++
+>  2 files changed, 70 insertions(+)
+> 
+> diff --git a/drivers/base/power/common.c b/drivers/base/power/common.c
+> index df2e5ee..9a86b16 100644
+> --- a/drivers/base/power/common.c
+> +++ b/drivers/base/power/common.c
+> @@ -11,6 +11,8 @@
+>  #include <linux/export.h>
+>  #include <linux/slab.h>
+>  #include <linux/pm_clock.h>
+> +#include <linux/acpi.h>
+> +#include <linux/pm_domain.h>
+>  
+>  /**
+>   * dev_pm_get_subsys_data - Create or refcount power.subsys_data for device.
+> @@ -82,3 +84,57 @@ int dev_pm_put_subsys_data(struct device *dev)
+>  	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(dev_pm_put_subsys_data);
+> +
+> +/**
+> + * dev_pm_domain_attach - Attach a device to its PM domain.
+> + * @dev: Device to attach.
+> + * @power_on: Used to indicate whether we should power on the device.
+> + *
+> + * The @dev may only be attached to a single PM domain. By iterating through
+> + * the available alternatives we try to find a valid PM domain for the device.
+> + *
+> + * This function should typically be invoked from subsystem level code during
+> + * the probe phase. Especially for those that holds devices which requires
+> + * power management through PM domains.
+> + *
+> + * Callers must ensure proper synchronization of this function with power
+> + * management callbacks.
+> + *
+> + * Returns 0 on successfully attached PM domain or negative error code.
+> + */
+> +int dev_pm_domain_attach(struct device *dev, bool power_on)
+> +{
+> +	int ret;
+> +
+> +	ret = acpi_dev_pm_attach(dev, power_on);
+> +	if (!ret || ret == -EPROBE_DEFER)
 
-The "From:" field should point to a submitter's address that is actually active,
-so that (s)he can handle problem reports *sent* *to* *that* address.  I'm not
-going to apply anything with a bouncing "From:".
+acpi_dev_pm_attach() doesn't return EPROBE_DEFER and there are no plans for it
+to do that.  IIRC, I pointed that out to you in the previous round (or even
+earlier).  Please remove this check, it is pointless.
 
-The s-o-b is more of a gray area, but again it is supposed to be possible
-to verify which it won't be if it bounces.
+> +		return ret;
+> +
+> +	return genpd_dev_pm_attach(dev);
 
-Also note that this is not Tomasz who is submitting this patch today, but Ulf
-who doesn't even work for Samsung as far as I know.
+And why don't you write this as
 
-So I'd suggest using "Tomasz Figa <tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>" as a "From:", remove
-his s-o-b entirely (and using the Ulf's one only) and add something like that
-to the changelog:
+	ret = acpi_dev_pm_attach(dev, power_on);
+	if (ret)
+		ret = genpd_dev_pm_attach(dev);
 
-"This patch was originally submitted by Tomasz Figa when he was employed
- by Samsung.
+	return ret;
 
- Link: <URL-of-the-original-submission>"
+> +}
+> +EXPORT_SYMBOL_GPL(dev_pm_domain_attach);
+> +
+> +/**
+> + * dev_pm_domain_detach - Detach a device from its PM domain.
+> + * @dev: Device to attach.
+> + * @power_off: Used to indicate whether we should power off the device.
+> + *
+> + * The @dev may be attached to a PM domain. By iterating through the available
+> + * alternatives we detach it from its PM domain.
+> + *
+> + * This functions will reverse the actions from dev_pm_domain_attach() and thus
+> + * detach the @dev from its PM domain. Typically it should be invoked from
+> + * subsystem level code during the remove phase.
+> + *
+> + * Callers must ensure proper synchronization of this function with power
+> + * management callbacks.
+> + *
+> + * Returns 0 on successfully detached PM domain or negative error code.
+> + */
+> +int dev_pm_domain_detach(struct device *dev, bool power_off)
+> +{
+> +	if (acpi_dev_pm_detach(dev, power_off))
+> +		return genpd_dev_pm_detach(dev);
 
-This way Samsung will get the recognition and there won't be bouncing addresses
-in tags etc.
+And analogously here?  Or the other way around?  Just please make them both
+look analogously.
 
-Rafael
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(dev_pm_domain_detach);
+> diff --git a/include/linux/pm.h b/include/linux/pm.h
+> index 72c0fe0..8176b07 100644
+> --- a/include/linux/pm.h
+> +++ b/include/linux/pm.h
+> @@ -621,6 +621,20 @@ struct dev_pm_domain {
+>  	struct dev_pm_ops	ops;
+>  };
+>  
+> +#ifdef CONFIG_PM
+> +extern int dev_pm_domain_attach(struct device *dev, bool power_on);
+> +extern int dev_pm_domain_detach(struct device *dev, bool power_off);
+> +#else
+> +static inline int dev_pm_domain_attach(struct device *dev, bool power_on)
+> +{
+> +	return -ENODEV;
+> +}
+> +static inline int dev_pm_domain_detach(struct device *dev, bool power_off)
+> +{
+> +	return -ENODEV;
+> +}
+> +#endif
+> +
+>  /*
+>   * The PM_EVENT_ messages are also used by drivers implementing the legacy
+>   * suspend framework, based on the ->suspend() and ->resume() callbacks common
+> 
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
