@@ -1,59 +1,44 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS devices
-Date: Tue, 09 Sep 2014 15:17:23 +0200
-Message-ID: <74255682.ogZlaWiZ0J@vostro.rjw.lan>
-References: <540E91F0.2060306@linux.intel.com>
+Subject: Re: [PATCH v3 2/9] PM / Domains: Add generic OF-based PM domain look-up
+Date: Tue, 09 Sep 2014 15:45:20 +0200
+Message-ID: <1916405.TGJZ1EAH2O@vostro.rjw.lan>
+References: <1409838756-31963-1-git-send-email-ulf.hansson@linaro.org> <8273189.CFBBe805uk@vostro.rjw.lan> <20140909114051.GT2601@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57692 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:60498 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751192AbaIIM54 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 08:57:56 -0400
-In-Reply-To: <540E91F0.2060306@linux.intel.com>
+	with SMTP id S1756556AbaIINZz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 09:25:55 -0400
+In-Reply-To: <20140909114051.GT2601@sirena.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Fu, Zhonghui" <zhonghui.fu@linux.intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Mark Brown <broonie@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Ulf Hansson <ulf.hansson@linaro.org>, Pawel Moll <pawel.moll@arm.com>, Rob Herring <robh+dt@kernel.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@co>
 
-On Tuesday, September 09, 2014 01:36:48 PM Fu, Zhonghui wrote:
-> From 6deb00230f5df68da3ca7490402a0c537bf386bb Mon Sep 17 00:00:00 2001
-> From: Fu Zhonghui <zhonghui.fu@linux.intel.com>
-> Date: Tue, 9 Sep 2014 13:02:25 +0800
-> Subject: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS devices
+On Tuesday, September 09, 2014 12:40:51 PM Mark Brown wrote:
 > 
-> LPSS devices must suspend/resume in fixed order. Or some LPSS devices
-> will hang during the transition to ACPI_STATE_D0 state.
+> --FJ0JV+AOCbvjFtNn
+> Content-Type: text/plain; charset=us-ascii
+> Content-Disposition: inline
 > 
-> Signed-off-by: Li Aubrey <aubrey.li@linux.intel.com>
-> Signed-off-by: Fu Zhonghui <zhonghui.fu@linux.intel.com>
-> ---
->  drivers/acpi/acpi_lpss.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+> On Mon, Sep 08, 2014 at 11:26:49PM +0200, Rafael J. Wysocki wrote:
 > 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index fddc1e8..54e5c97 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -419,7 +419,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
->  	adev->driver_data = pdata;
->  	pdev = acpi_create_platform_device(adev);
->  	if (!IS_ERR_OR_NULL(pdev)) {
-> -		device_enable_async_suspend(&pdev->dev);
-> +		device_disable_async_suspend(&pdev->dev);
+> > The s-o-b is more of a gray area, but again it is supposed to be possible
+> > to verify which it won't be if it bounces.
+> 
+> That's always going to be an issue with signoffs - people's addresses
+> can and do go bad at any point.
 
-Removing the "enable" line should be sufficient for that.  Isn't it?
+I know and that's a gray area as I said.
 
->  		return 1;
->  	}
->  
-> -- 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Whether or not it is appropriate to submit a patch with an s-o-b that is known
+to bounce is a good question to me.
+
+It is true, though, that this particular patch was originally submitted when
+the s-o-b address didn't bounce, so I may restore the tag when applying the
+patch.  Need to think about that.
 
 -- 
 I speak only for myself.
