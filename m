@@ -1,83 +1,91 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / LPSS: complete PM entries for LPSS power domain
-Date: Tue, 09 Sep 2014 22:43:54 +0200
-Message-ID: <2533938.9vYvzr8gPz@vostro.rjw.lan>
-References: <540E9145.50403@linux.intel.com>
+From: <suravee.suthikulpanit@amd.com>
+Subject: [PATCH] ata: ahci_platform: Add ACPI support for AMD Seattle SATA controller
+Date: Tue, 9 Sep 2014 15:37:15 -0500
+Message-ID: <1410295035-14471-1-git-send-email-suravee.suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50866 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752287AbaIIUY0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 16:24:26 -0400
-In-Reply-To: <540E9145.50403@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tj@kernel.org, hdegoede@redhat.com
+Cc: linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Fu, Zhonghui" <zhonghui.fu@linux.intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tuesday, September 09, 2014 01:33:57 PM Fu, Zhonghui wrote:
-> From de3dfa34bd7f219586057a1e0679f9e7515fa722 Mon Sep 17 00:00:00 2001
-> From: Fu Zhonghui <zhonghui.fu@linux.intel.com>
-> Date: Tue, 9 Sep 2014 10:54:30 +0800
-> Subject: [PATCH] ACPI / LPSS: complete PM entries for LPSS power domain
-> 
-> PM entries of LPSS power domain were not implemented correctly
-> in the patch "ACPI / LPSS: custom power domain for LPSS"
-> commit ID c78b0830667a7e7c1f0ca65b76b33166a84806b3.
-> This patch fixes and completes these PM entries.
-> 
-> Signed-off-by: Li Aubrey <aubrey.li@linux.intel.com>
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Signed-off-by: Fu Zhonghui <zhonghui.fu@linux.intel.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-Queued up for 3.17-rc5, thanks!
+This patch adds ACPI support for non-PCI SATA contoller in ahci_platform driver.
+It adds ACPI matching table in ahci_platform to support AMD Seattle SATA controller
+with following ASL structure in DSDT:
 
-> ---
->  drivers/acpi/acpi_lpss.c |   10 +++++-----
->  1 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 9dfec48..fddc1e8 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -610,7 +610,7 @@ static int acpi_lpss_suspend_late(struct device *dev)
->  	return acpi_dev_suspend_late(dev);
->  }
->  
-> -static int acpi_lpss_restore_early(struct device *dev)
-> +static int acpi_lpss_resume_early(struct device *dev)
->  {
->  	int ret = acpi_dev_resume_early(dev);
->  
-> @@ -650,15 +650,15 @@ static int acpi_lpss_runtime_resume(struct device *dev)
->  static struct dev_pm_domain acpi_lpss_pm_domain = {
->  	.ops = {
->  #ifdef CONFIG_PM_SLEEP
-> -		.suspend_late = acpi_lpss_suspend_late,
-> -		.restore_early = acpi_lpss_restore_early,
->  		.prepare = acpi_subsys_prepare,
->  		.complete = acpi_subsys_complete,
->  		.suspend = acpi_subsys_suspend,
-> -		.resume_early = acpi_subsys_resume_early,
-> +		.suspend_late = acpi_lpss_suspend_late,
-> +		.resume_early = acpi_lpss_resume_early,
->  		.freeze = acpi_subsys_freeze,
->  		.poweroff = acpi_subsys_suspend,
-> -		.poweroff_late = acpi_subsys_suspend_late,
-> +		.poweroff_late = acpi_lpss_suspend_late,
-> +		.restore_early = acpi_lpss_resume_early,
->  #endif
->  #ifdef CONFIG_PM_RUNTIME
->  		.runtime_suspend = acpi_lpss_runtime_suspend,
-> -- 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    Device (SATA0)
+    {
+      Name(_HID, "AMDI0600")	// Seattle AHSATA
+      Name (_CCA, 1)		// Cache-coherent controller
+      Name (_CRS, ResourceTemplate ()
+      {
+        Memory32Fixed (ReadWrite, 0xE0300000, 0x00010000)
+        Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,,) { 387 }
+      })
+    }
 
+Since ATA driver should not require PCI support for ATA_ACPI,
+this patch also removes dependency in the driver/ata/Kconfig.
+
+Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+---
+ drivers/ata/Kconfig         |  2 +-
+ drivers/ata/ahci_platform.c | 13 +++++++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
+index e1b9278..f2e6c9e 100644
+--- a/drivers/ata/Kconfig
++++ b/drivers/ata/Kconfig
+@@ -48,7 +48,7 @@ config ATA_VERBOSE_ERROR
+ 
+ config ATA_ACPI
+ 	bool "ATA ACPI Support"
+-	depends on ACPI && PCI
++	depends on ACPI
+ 	default y
+ 	help
+ 	  This option adds support for ATA-related ACPI objects.
+diff --git a/drivers/ata/ahci_platform.c b/drivers/ata/ahci_platform.c
+index f61ddb9..3499bab 100644
+--- a/drivers/ata/ahci_platform.c
++++ b/drivers/ata/ahci_platform.c
+@@ -20,6 +20,9 @@
+ #include <linux/platform_device.h>
+ #include <linux/libata.h>
+ #include <linux/ahci_platform.h>
++#ifdef CONFIG_ATA_ACPI
++#include <linux/acpi.h>
++#endif
+ #include "ahci.h"
+ 
+ static const struct ata_port_info ahci_port_info = {
+@@ -87,6 +90,13 @@ static const struct of_device_id ahci_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, ahci_of_match);
+ 
++#ifdef CONFIG_ATA_ACPI
++static const struct acpi_device_id ahci_acpi_match[] = {
++	{ "AMDI0600", 0 }, /* AMD Seattle AHCI */
++	{ },
++};
++#endif
++
+ static struct platform_driver ahci_driver = {
+ 	.probe = ahci_probe,
+ 	.remove = ata_platform_remove_one,
+@@ -94,6 +104,9 @@ static struct platform_driver ahci_driver = {
+ 		.name = "ahci",
+ 		.owner = THIS_MODULE,
+ 		.of_match_table = ahci_of_match,
++#ifdef CONFIG_ATA_ACPI
++		.acpi_match_table = ACPI_PTR(ahci_acpi_match),
++#endif
+ 		.pm = &ahci_pm_ops,
+ 	},
+ };
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.9.3
