@@ -1,52 +1,59 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v4 04/16] ACPI: Rename processor_core.c as apic_id.c
-Date: Tue, 09 Sep 2014 10:33:04 +0800
-Message-ID: <540E66E0.30508@linux.intel.com>
-References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com> <1957879.bE3ICM6HKO@vostro.rjw.lan> <540DA653.2000901@linaro.org> <1537817.rgZoClELVE@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 0/2] Support CrystalCove PMIC ACPI operation region
+Date: Tue, 9 Sep 2014 10:37:40 +0800
+Message-ID: <20140909023658.GA11705@aaronlu.sh.intel.com>
+References: <1410229968-11638-1-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1537817.rgZoClELVE@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:49867 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753802AbaIIChz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Sep 2014 22:37:55 -0400
+Content-Disposition: inline
+In-Reply-To: <1410229968-11638-1-git-send-email-aaron.lu@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-gpio@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, Jacob Pan <jacob.jun.pan@linux.intel.com>, Lejun Zhu <lejun.zhu@intel.com>, Radivoje Jovanovic <radivoje.jovanovic@intel.com>, Daniel =?iso-8859-1?Q?Gl=F6ckner?= <dg@emlix.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Hi Rafael and Hanjun,
-	Thanks for your review. I will keep the original file name
-in next version.
-Regards!
-Gerry
+I forgot to cc linux-acpi in the last series so please reply to this
+thread, sorry for the inconvenience.
 
-On 2014/9/9 5:00, Rafael J. Wysocki wrote:
-> On Monday, September 08, 2014 08:51:31 PM Hanjun Guo wrote:
->> Hi Gerry, Rafael,
->>
->> On 2014=E5=B9=B409=E6=9C=8808=E6=97=A5 06:37, Rafael J. Wysocki wrot=
-e:
->>> On Thursday, August 28, 2014 10:22:29 AM Jiang Liu wrote:
->>>> Now all code in processor_core.c is APIC ID related, so rename it =
-as
->>>> apic_id.c. Later IOAPIC ID related code will be added into apic_id=
-=2Ec.
->>> Actually, I'm not sure about this one.
->>>
->>> Renames like this make it difficult to backport things in general
->>> and kind of break "git blame", so do we have to do that?
->>>
->>> What's wrong with leaving the name as is and adding a comment
->>> about the contents being related to IOAPIC ID?
->>
->> It will be thankful for not renaming the file into apic_id.c, becaus=
-e apic id is x86 specific,
->> and platform like ARM will also add some code to get cpu hardware id=
- via GICC structure
->> in MADT table in that file, apic id is not a generic name for both x=
-86 and ARM, I prefer to
->> keep it as it is :)
->=20
-> Well, that's a good argument too.
->=20
-> Rafael
->=20
+Regards,
+Aaron
+
+On Tue, Sep 09, 2014 at 10:32:46AM +0800, Aaron Lu wrote:
+> The two patches add support for CrystalCove PMIC ACPI operation region.
+> The PMIC chip has two customized operation regions: one for power rail
+> manipulation and one for thermal purpose: sensor temperature reading
+> and trip point value reading/setting.
+> 
+> For an example ASL code on ASUS T100 with CrystalCove PMIC, see here:
+> https://gist.github.com/aaronlu/f5f65771a6c3251fae5d
+> 
+> Aaron Lu (2):
+>   gpio / CrystalCove: support virtual GPIO
+>   PMIC / opregion: support PMIC customized operation region for
+>     CrystalCove
+> 
+>  drivers/gpio/gpio-crystalcove.c           |  19 +-
+>  drivers/mfd/Kconfig                       |  11 +
+>  drivers/mfd/Makefile                      |   1 +
+>  drivers/mfd/intel_soc_pmic_crc.c          |   3 +
+>  drivers/mfd/intel_soc_pmic_crc_opregion.c | 229 +++++++++++++++++++
+>  drivers/mfd/intel_soc_pmic_opregion.c     | 350 ++++++++++++++++++++++++++++++
+>  drivers/mfd/intel_soc_pmic_opregion.h     |  35 +++
+>  include/asm-generic/gpio.h                |   2 +-
+>  8 files changed, 646 insertions(+), 4 deletions(-)
+>  create mode 100644 drivers/mfd/intel_soc_pmic_crc_opregion.c
+>  create mode 100644 drivers/mfd/intel_soc_pmic_opregion.c
+>  create mode 100644 drivers/mfd/intel_soc_pmic_opregion.h
+> 
+> -- 
+> 1.9.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
