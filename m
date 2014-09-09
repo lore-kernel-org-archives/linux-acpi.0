@@ -1,77 +1,83 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v3 02/17] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
-Date: Tue, 9 Sep 2014 18:15:41 +0100
-Message-ID: <20140909171541.GD3896@leverpostej>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
- <1409583475-6978-3-git-send-email-hanjun.guo@linaro.org>
- <20140909162648.GE2910@arm.com>
- <540F2DCF.1010104@redhat.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v3 04/17] ARM64 / ACPI: Introduce early_param for "acpi"
+Date: Tue, 9 Sep 2014 11:17:00 -0600
+Message-ID: <CAErSpo6G89mkPgas8Wk3ofq__dUo5MKvBjob5D_w5_GaBJWH0w@mail.gmail.com>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-5-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:47045 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750980AbaIIRPq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 13:15:46 -0400
-Content-Disposition: inline
-In-Reply-To: <540F2DCF.1010104@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1409583475-6978-5-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>linux-arm <linux>
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>
 
-On Tue, Sep 09, 2014 at 05:41:51PM +0100, Jon Masters wrote:
-> On 09/09/2014 12:26 PM, Catalin Marinas wrote:
-> > On Mon, Sep 01, 2014 at 03:57:40PM +0100, Hanjun Guo wrote:
-> >> diff --git a/arch/arm64/include/asm/acenv.h b/arch/arm64/include/asm/acenv.h
-> >> new file mode 100644
-> >> index 0000000..3899ee6
-> >> --- /dev/null
-> >> +++ b/arch/arm64/include/asm/acenv.h
-> >> @@ -0,0 +1,18 @@
-> >> +/*
-> >> + * ARM64 specific ACPICA environments and implementation
-> >> + *
-> >> + * Copyright (C) 2014, Linaro Ltd.
-> >> + *   Author: Hanjun Guo <hanjun.guo@linaro.org>
-> >> + *   Author: Graeme Gregory <graeme.gregory@linaro.org>
-> >> + *
-> >> + * This program is free software; you can redistribute it and/or modify
-> >> + * it under the terms of the GNU General Public License version 2 as
-> >> + * published by the Free Software Foundation.
-> >> + */
-> >> +
-> >> +#ifndef _ASM_ACENV_H
-> >> +#define _ASM_ACENV_H
-> >> +
-> >> +#define ACPI_FLUSH_CPU_CACHE() WARN_ONCE(1, "Not currently supported on ARM64")
-> > 
-> > Does this mean that it will be supported at some point? Looking at the
-> > places where this function is called, I don't really see how this would
-> > ever work on ARM. Which means that we add such macro just to be able to
-> > compile code that would never be used on arm64. I would rather see the
-> > relevant ACPI files only compiled on x86/IA-64 rather than arm64.
-> 
-> That specific cache behavior is a part of e.g. ACPI C3 state support
-> (e.g. ACPI5.1 8.1.4 Processor Power State C3).
+On Mon, Sep 1, 2014 at 8:57 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> From: Al Stone <al.stone@linaro.org>
+>
+> Introduce one early parameters "off" for "acpi" to disable ACPI on
+> ARM64.
 
-Per table 5-35, if neither WBINVD or WBINVD_FLUSH are set in the FADT,
-we don't get S1, S2, or S3 states either.
+It might be worth mentioning the purpose of this in the changelog (and
+maybe the documentation).  I don't think this parameter is supported
+on ia64, and on x86 it seems like it's mostly used as a "fix" by
+Ubuntu users who consider the problem resolved when they find this
+parameter.  That just means we don't get a chance to fix the real
+underlying problem, so I'm not sure it's a real benefit to have the
+parameter.
 
-> As you note, it's not going to work on 64-bit ARM as it does on x86,
-> but it's optional to implement C3 and early 64-bit ARM systems should
-> not report Wbindv flags in the FADT anyway.
-
-Unless the arm cache architecture changes, I wouldn't expect any 64-bit
-ARM system to set either of the WBINVD flags.
-
-> They can also set FADT.P_LVL3_LAT > 1000, which has the effect of
-> disabling C3 support, while also allowing for use of _CST objects to
-> define more flexible C-States later on.
-
-It sounds like we should be sanity checking these in the arm64 ACPI code
-for the moment. I don't want us to discover that current platforms
-report the wrong thing only when new platforms come out that might
-actually report things correctly.
-
-Mark.
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  Documentation/kernel-parameters.txt |    3 ++-
+>  arch/arm64/kernel/acpi.c            |   15 +++++++++++++++
+>  2 files changed, 17 insertions(+), 1 deletion(-)
+>
+> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+> index 5ae8608..9dfb1d8 100644
+> --- a/Documentation/kernel-parameters.txt
+> +++ b/Documentation/kernel-parameters.txt
+> @@ -165,7 +165,7 @@ multipliers 'Kilo', 'Mega', and 'Giga', equalling 2^10, 2^20, and 2^30
+>  bytes respectively. Such letter suffixes can also be entirely omitted.
+>
+>
+> -       acpi=           [HW,ACPI,X86]
+> +       acpi=           [HW,ACPI,X86,ARM]
+>                         Advanced Configuration and Power Interface
+>                         Format: { force | off | strict | noirq | rsdt }
+>                         force -- enable ACPI if default was off
+> @@ -175,6 +175,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+>                                 strictly ACPI specification compliant.
+>                         rsdt -- prefer RSDT over (default) XSDT
+>                         copy_dsdt -- copy DSDT to memory
+> +                       For ARM64, ONLY "acpi=off" is available.
+>
+>                         See also Documentation/power/runtime_pm.txt, pci=noacpi
+>
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index b6940a0..9547275 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -74,3 +74,18 @@ void __init acpi_boot_table_init(void)
+>   * TBD when ARM/ARM64 starts to support suspend...
+>   */
+>  int (*acpi_suspend_lowlevel)(void) = NULL;
+> +
+> +static int __init parse_acpi(char *arg)
+> +{
+> +       if (!arg)
+> +               return -EINVAL;
+> +
+> +       /* "acpi=off" disables both ACPI table parsing and interpreter */
+> +       if (strcmp(arg, "off") == 0)
+> +               disable_acpi();
+> +       else
+> +               return -EINVAL; /* Core will print when we return error */
+> +
+> +       return 0;
+> +}
+> +early_param("acpi", parse_acpi);
+> --
+> 1.7.9.5
+>
