@@ -1,175 +1,179 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI/Processor: Fix dead lock between cpu hotplug and handler of ACPI processor power notify event
-Date: Tue, 09 Sep 2014 17:13:52 +0200
-Message-ID: <2956933.E3doTrsqJD@vostro.rjw.lan>
+From: "Lan, Tianyu" <tianyu.lan@intel.com>
+Subject: RE: [PATCH] ACPI/Processor: Fix dead lock between cpu hotplug and
+ handler of ACPI processor power notify event
+Date: Tue, 9 Sep 2014 15:18:44 +0000
+Message-ID: <4CFBC02C07DA244CA19D6815A05BE6EE011B6771@SHSMSX103.ccr.corp.intel.com>
 References: <1410273857-13598-1-git-send-email-tianyu.lan@intel.com>
+ <2956933.E3doTrsqJD@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1410273857-13598-1-git-send-email-tianyu.lan@intel.com>
+In-Reply-To: <2956933.E3doTrsqJD@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, September 09, 2014 10:44:17 PM Lan Tianyu wrote:
-> There is a dead lock between between cpu hotplug and handler of ACPI Processor
-> Power notify event. Cpu hotplug lock is held and then hold cpuidle lock during cpu hotplug.
-> During ACPI processor power notify event, acpi_processor_cst_has_chaged() does converse
-> thing and cause dead lock. Just like the following log shows.
-
-Isn't this patch equivalent to commit 6726655dfdd2 (ACPI / cpuidle: fix deadlock
-between cpuidle_lock and cpu_hotplug.lock)?
-
-> [   91.456670] ======================================================
-> [   91.457160] [ INFO: possible circular locking dependency detected ]
-> [   91.457658] 3.17.0-rc3+ #15 Not tainted
-> [   91.457968] -------------------------------------------------------
-> [   91.458463] kworker/0:1/75 is trying to acquire lock:
-> [   91.458866]  (cpu_hotplug.lock){++++++}, at: [<ffffffff810c3334>] get_online_cpus+0x24/0x70
-> [   91.459600]
-> [   91.459600] but task is already holding lock:
-> [   91.460062]  (cpuidle_lock){+.+.+.}, at: [<ffffffff81666147>] cpuidle_pause_and_lock+0x17/0x40
-> [   91.460810]
-> [   91.460810] which lock already depends on the new lock.
-> [   91.460810]
-> [   91.461451]
-> [   91.461451] the existing dependency chain (in reverse order) is:
-> [   91.462038]
-> [   91.462038] -> #2 (cpuidle_lock){+.+.+.}:
-> [   91.462442]        [<ffffffff8110cba4>] lock_acquire+0xa4/0x120
-> [   91.462931]        [<ffffffff817eb4de>] mutex_lock_nested+0x4e/0x3b0
-> [   91.463453]        [<ffffffff81666147>] cpuidle_pause_and_lock+0x17/0x40
-> [   91.464000]        [<ffffffff8148ea5b>] acpi_processor_hotplug+0x49/0x8d
-> [   91.464548]        [<ffffffff8148cc9f>] acpi_cpu_soft_notify+0xaf/0xe4
-> [   91.465081]        [<ffffffff810e20ac>] notifier_call_chain+0x4c/0x70
-> [   91.465609]        [<ffffffff810e217e>] __raw_notifier_call_chain+0xe/0x10
-> [   91.466169]        [<ffffffff810c3443>] cpu_notify+0x23/0x50
-> [   91.466637]        [<ffffffff810c36a0>] _cpu_up+0x150/0x160
-> [   91.467098]        [<ffffffff817dba6f>] enable_nonboot_cpus+0xaf/0x170
-> [   91.467632]        [<ffffffff81113085>] hibernation_snapshot+0x275/0x380
-> [   91.468181]        [<ffffffff81113990>] hibernate+0x160/0x210
-> [   91.468655]        [<ffffffff81111314>] state_store+0xe4/0xf0
-> [   91.469129]        [<ffffffff813eb16f>] kobj_attr_store+0xf/0x20
-> [   91.469624]        [<ffffffff812aba54>] sysfs_kf_write+0x44/0x60
-> [   91.470118]        [<ffffffff812ab357>] kernfs_fop_write+0xe7/0x170
-> [   91.470632]        [<ffffffff81230da7>] vfs_write+0xb7/0x1f0
-> [   91.471100]        [<ffffffff81231959>] SyS_write+0x49/0xb0
-> [   91.471561]        [<ffffffff817ee429>] system_call_fastpath+0x16/0x1b
-> [   91.472096]
-> [   91.472096] -> #1 (cpu_hotplug.lock#2){+.+.+.}:
-> [   91.472556]        [<ffffffff8110cba4>] lock_acquire+0xa4/0x120
-> [   91.473044]        [<ffffffff817eb4de>] mutex_lock_nested+0x4e/0x3b0
-> [   91.473564]        [<ffffffff810c34df>] cpu_hotplug_begin+0x4f/0x80
-> [   91.474078]        [<ffffffff810c3584>] _cpu_up+0x34/0x160
-> [   91.474532]        [<ffffffff810c3709>] cpu_up+0x59/0x80
-> [   91.474973]        [<ffffffff81d8170c>] smp_init+0x86/0x88
-> [   91.475429]        [<ffffffff81d5e203>] kernel_init_freeable+0x16c/0x27b
-> [   91.475976]        [<ffffffff817da77e>] kernel_init+0xe/0xf0
-> [   91.476443]        [<ffffffff817ee37c>] ret_from_fork+0x7c/0xb0
-> [   91.476930]
-> [   91.476930] -> #0 (cpu_hotplug.lock){++++++}:
-> [   91.477359]        [<ffffffff8110c0b0>] __lock_acquire+0x1760/0x1a70
-> [   91.477880]        [<ffffffff8110cba4>] lock_acquire+0xa4/0x120
-> [   91.478367]        [<ffffffff810c335a>] get_online_cpus+0x4a/0x70
-> [   91.478868]        [<ffffffff8148eb12>] acpi_processor_cst_has_changed+0x73/0x17d
-> [   91.479475]        [<ffffffff8148cd5e>] acpi_processor_notify+0x8a/0xe2
-> [   91.480014]        [<ffffffff814743fb>] acpi_ev_notify_dispatch+0x44/0x5c
-> [   91.480569]        [<ffffffff8146019a>] acpi_os_execute_deferred+0x14/0x20
-> [   91.481130]        [<ffffffff810dba1f>] process_one_work+0x1df/0x4d0
-> [   91.481652]        [<ffffffff810dbe2b>] worker_thread+0x11b/0x490
-> [   91.482152]        [<ffffffff810e100d>] kthread+0xed/0x110
-> [   91.482606]        [<ffffffff817ee37c>] ret_from_fork+0x7c/0xb0
-> [   91.483094]
-> [   91.483094] other info that might help us debug this:
-> [   91.483094]
-> [   91.483721] Chain exists of:
-> [   91.483721]   cpu_hotplug.lock --> cpu_hotplug.lock#2 --> cpuidle_lock
-> [   91.483721]
-> [   91.484486]  Possible unsafe locking scenario:
-> [   91.484486]
-> [   91.491113]        CPU0                    CPU1
-> [   91.494496]        ----                    ----
-> [   91.497833]   lock(cpuidle_lock);
-> [   91.501083]                                lock(cpu_hotplug.lock#2);
-> [   91.504572]                                lock(cpuidle_lock);
-> [   91.507944]   lock(cpu_hotplug.lock);
-> [   91.511115]
-> [   91.511115]  *** DEADLOCK ***
-> [   91.511115]
-> [   91.519889] 3 locks held by kworker/0:1/75:
-> [   91.522918]  #0:  ("kacpi_notify"){++++..}, at: [<ffffffff810db9bd>] process_one_work+0x17d/0x4d0
-> [   91.526445]  #1:  ((&dpc->work)){+.+...}, at: [<ffffffff810db9bd>] process_one_work+0x17d/0x4d0
-> [   91.530031]  #2:  (cpuidle_lock){+.+.+.}, at: [<ffffffff81666147>] cpuidle_pause_and_lock+0x17/0x40
-> [   91.533653]
-> [   91.533653] stack backtrace:
-> [   91.539712] CPU: 0 PID: 75 Comm: kworker/0:1 Not tainted 3.17.0-rc3+ #15
-> [   91.543086] Hardware name: Intel Corporation CHERRYVIEW A3 PLATFORM/Braswell CRB, BIOS BRASWEL1.X64.0035.R00.1409041111 09/04/2014
-> [   91.546930] Workqueue: kacpi_notify acpi_os_execute_deferred
-> [   91.550405]  ffffffff82656d40 ffff880078883b68 ffffffff817e44fd ffffffff82656b90
-> [   91.554096]  ffff880078883ba8 ffffffff817dff2a ffff880078883c00 ffff88007884e218
-> [   91.557807]  0000000000000002 0000000000000003 ffff88007884e218 ffff88007884da50
-> [   91.561524] Call Trace:
-> [   91.564833]  [<ffffffff817e44fd>] dump_stack+0x45/0x56
-> [   91.568350]  [<ffffffff817dff2a>] print_circular_bug+0x200/0x20f
-> [   91.571946]  [<ffffffff8110c0b0>] __lock_acquire+0x1760/0x1a70
-> [   91.575529]  [<ffffffff8110a42a>] ? mark_held_locks+0x6a/0x90
-> [   91.579100]  [<ffffffff810856f9>] ? flat_send_IPI_allbutself+0xe9/0x140
-> [   91.582747]  [<ffffffff8110cba4>] lock_acquire+0xa4/0x120
-> [   91.586323]  [<ffffffff810c3334>] ? get_online_cpus+0x24/0x70
-> [   91.589927]  [<ffffffff810c335a>] get_online_cpus+0x4a/0x70
-> [   91.593520]  [<ffffffff810c3334>] ? get_online_cpus+0x24/0x70
-> [   91.597125]  [<ffffffff8148eb12>] acpi_processor_cst_has_changed+0x73/0x17d
-> [   91.600840]  [<ffffffff8148cd5e>] acpi_processor_notify+0x8a/0xe2
-> [   91.604508]  [<ffffffff814743fb>] acpi_ev_notify_dispatch+0x44/0x5c
-> [   91.608188]  [<ffffffff8146019a>] acpi_os_execute_deferred+0x14/0x20
-> [   91.611856]  [<ffffffff810dba1f>] process_one_work+0x1df/0x4d0
-> [   91.615495]  [<ffffffff810db9bd>] ? process_one_work+0x17d/0x4d0
-> [   91.619121]  [<ffffffff810dbe2b>] worker_thread+0x11b/0x490
-> [   91.622713]  [<ffffffff810dbd10>] ? process_one_work+0x4d0/0x4d0
-> [   91.626347]  [<ffffffff810e100d>] kthread+0xed/0x110
-> [   91.629907]  [<ffffffff810e0f20>] ? kthread_create_on_node+0x200/0x200
-> [   91.633606]  [<ffffffff817ee37c>] ret_from_fork+0x7c/0xb0
-> [   91.637238]  [<ffffffff810e0f20>] ? kthread_create_on_node+0x200/0x200
-> 
-> This patch is to change the sequence of holding cpu hotplug
-> and cpu idle lock in the acpi_processor_cst_has_changed() to avoid the
-> dead lock.
-> 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> ---
->  drivers/acpi/processor_idle.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index 3dca36d..385ec5f 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -1071,9 +1071,9 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
->  
->  	if (pr->id == 0 && cpuidle_get_driver() == &acpi_idle_driver) {
->  
-> -		cpuidle_pause_and_lock();
->  		/* Protect against cpu-hotplug */
->  		get_online_cpus();
-> +		cpuidle_pause_and_lock();
->  
->  		/* Disable all cpuidle devices */
->  		for_each_online_cpu(cpu) {
-> @@ -1100,8 +1100,9 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
->  				cpuidle_enable_device(dev);
->  			}
->  		}
-> -		put_online_cpus();
-> +
->  		cpuidle_resume_and_unlock();
-> +		put_online_cpus();
->  	}
->  
->  	return 0;
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+T2guIFNvcnJ5LCBJIGRpZG4ndCBub3RpY2UgdGhhdCBjb21taXQuIFBsZWFzZSBpZ25vcmUgdGhp
+cyBwYXRjaC4NCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IFJhZmFlbCBKLiBX
+eXNvY2tpIFttYWlsdG86cmp3QHJqd3lzb2NraS5uZXRdIA0KU2VudDogVHVlc2RheSwgU2VwdGVt
+YmVyIDA5LCAyMDE0IDExOjE0IFBNDQpUbzogTGFuLCBUaWFueXUNCkNjOiBsZW5iQGtlcm5lbC5v
+cmc7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwu
+b3JnDQpTdWJqZWN0OiBSZTogW1BBVENIXSBBQ1BJL1Byb2Nlc3NvcjogRml4IGRlYWQgbG9jayBi
+ZXR3ZWVuIGNwdSBob3RwbHVnIGFuZCBoYW5kbGVyIG9mIEFDUEkgcHJvY2Vzc29yIHBvd2VyIG5v
+dGlmeSBldmVudA0KDQpPbiBUdWVzZGF5LCBTZXB0ZW1iZXIgMDksIDIwMTQgMTA6NDQ6MTcgUE0g
+TGFuIFRpYW55dSB3cm90ZToNCj4gVGhlcmUgaXMgYSBkZWFkIGxvY2sgYmV0d2VlbiBiZXR3ZWVu
+IGNwdSBob3RwbHVnIGFuZCBoYW5kbGVyIG9mIEFDUEkgDQo+IFByb2Nlc3NvciBQb3dlciBub3Rp
+ZnkgZXZlbnQuIENwdSBob3RwbHVnIGxvY2sgaXMgaGVsZCBhbmQgdGhlbiBob2xkIGNwdWlkbGUg
+bG9jayBkdXJpbmcgY3B1IGhvdHBsdWcuDQo+IER1cmluZyBBQ1BJIHByb2Nlc3NvciBwb3dlciBu
+b3RpZnkgZXZlbnQsIA0KPiBhY3BpX3Byb2Nlc3Nvcl9jc3RfaGFzX2NoYWdlZCgpIGRvZXMgY29u
+dmVyc2UgdGhpbmcgYW5kIGNhdXNlIGRlYWQgbG9jay4gSnVzdCBsaWtlIHRoZSBmb2xsb3dpbmcg
+bG9nIHNob3dzLg0KDQpJc24ndCB0aGlzIHBhdGNoIGVxdWl2YWxlbnQgdG8gY29tbWl0IDY3MjY2
+NTVkZmRkMiAoQUNQSSAvIGNwdWlkbGU6IGZpeCBkZWFkbG9jayBiZXR3ZWVuIGNwdWlkbGVfbG9j
+ayBhbmQgY3B1X2hvdHBsdWcubG9jayk/DQoNCj4gWyAgIDkxLjQ1NjY3MF0gPT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQo+IFsgICA5MS40NTcx
+NjBdIFsgSU5GTzogcG9zc2libGUgY2lyY3VsYXIgbG9ja2luZyBkZXBlbmRlbmN5IGRldGVjdGVk
+IF0NCj4gWyAgIDkxLjQ1NzY1OF0gMy4xNy4wLXJjMysgIzE1IE5vdCB0YWludGVkDQo+IFsgICA5
+MS40NTc5NjhdIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0NCj4gWyAgIDkxLjQ1ODQ2M10ga3dvcmtlci8wOjEvNzUgaXMgdHJ5aW5nIHRvIGFj
+cXVpcmUgbG9jazoNCj4gWyAgIDkxLjQ1ODg2Nl0gIChjcHVfaG90cGx1Zy5sb2NrKXsrKysrKyt9
+LCBhdDogWzxmZmZmZmZmZjgxMGMzMzM0Pl0gZ2V0X29ubGluZV9jcHVzKzB4MjQvMHg3MA0KPiBb
+ICAgOTEuNDU5NjAwXQ0KPiBbICAgOTEuNDU5NjAwXSBidXQgdGFzayBpcyBhbHJlYWR5IGhvbGRp
+bmcgbG9jazoNCj4gWyAgIDkxLjQ2MDA2Ml0gIChjcHVpZGxlX2xvY2speysuKy4rLn0sIGF0OiBb
+PGZmZmZmZmZmODE2NjYxNDc+XSBjcHVpZGxlX3BhdXNlX2FuZF9sb2NrKzB4MTcvMHg0MA0KPiBb
+ICAgOTEuNDYwODEwXQ0KPiBbICAgOTEuNDYwODEwXSB3aGljaCBsb2NrIGFscmVhZHkgZGVwZW5k
+cyBvbiB0aGUgbmV3IGxvY2suDQo+IFsgICA5MS40NjA4MTBdDQo+IFsgICA5MS40NjE0NTFdDQo+
+IFsgICA5MS40NjE0NTFdIHRoZSBleGlzdGluZyBkZXBlbmRlbmN5IGNoYWluIChpbiByZXZlcnNl
+IG9yZGVyKSBpczoNCj4gWyAgIDkxLjQ2MjAzOF0NCj4gWyAgIDkxLjQ2MjAzOF0gLT4gIzIgKGNw
+dWlkbGVfbG9jayl7Ky4rLisufToNCj4gWyAgIDkxLjQ2MjQ0Ml0gICAgICAgIFs8ZmZmZmZmZmY4
+MTEwY2JhND5dIGxvY2tfYWNxdWlyZSsweGE0LzB4MTIwDQo+IFsgICA5MS40NjI5MzFdICAgICAg
+ICBbPGZmZmZmZmZmODE3ZWI0ZGU+XSBtdXRleF9sb2NrX25lc3RlZCsweDRlLzB4M2IwDQo+IFsg
+ICA5MS40NjM0NTNdICAgICAgICBbPGZmZmZmZmZmODE2NjYxNDc+XSBjcHVpZGxlX3BhdXNlX2Fu
+ZF9sb2NrKzB4MTcvMHg0MA0KPiBbICAgOTEuNDY0MDAwXSAgICAgICAgWzxmZmZmZmZmZjgxNDhl
+YTViPl0gYWNwaV9wcm9jZXNzb3JfaG90cGx1ZysweDQ5LzB4OGQNCj4gWyAgIDkxLjQ2NDU0OF0g
+ICAgICAgIFs8ZmZmZmZmZmY4MTQ4Y2M5Zj5dIGFjcGlfY3B1X3NvZnRfbm90aWZ5KzB4YWYvMHhl
+NA0KPiBbICAgOTEuNDY1MDgxXSAgICAgICAgWzxmZmZmZmZmZjgxMGUyMGFjPl0gbm90aWZpZXJf
+Y2FsbF9jaGFpbisweDRjLzB4NzANCj4gWyAgIDkxLjQ2NTYwOV0gICAgICAgIFs8ZmZmZmZmZmY4
+MTBlMjE3ZT5dIF9fcmF3X25vdGlmaWVyX2NhbGxfY2hhaW4rMHhlLzB4MTANCj4gWyAgIDkxLjQ2
+NjE2OV0gICAgICAgIFs8ZmZmZmZmZmY4MTBjMzQ0Mz5dIGNwdV9ub3RpZnkrMHgyMy8weDUwDQo+
+IFsgICA5MS40NjY2MzddICAgICAgICBbPGZmZmZmZmZmODEwYzM2YTA+XSBfY3B1X3VwKzB4MTUw
+LzB4MTYwDQo+IFsgICA5MS40NjcwOThdICAgICAgICBbPGZmZmZmZmZmODE3ZGJhNmY+XSBlbmFi
+bGVfbm9uYm9vdF9jcHVzKzB4YWYvMHgxNzANCj4gWyAgIDkxLjQ2NzYzMl0gICAgICAgIFs8ZmZm
+ZmZmZmY4MTExMzA4NT5dIGhpYmVybmF0aW9uX3NuYXBzaG90KzB4Mjc1LzB4MzgwDQo+IFsgICA5
+MS40NjgxODFdICAgICAgICBbPGZmZmZmZmZmODExMTM5OTA+XSBoaWJlcm5hdGUrMHgxNjAvMHgy
+MTANCj4gWyAgIDkxLjQ2ODY1NV0gICAgICAgIFs8ZmZmZmZmZmY4MTExMTMxND5dIHN0YXRlX3N0
+b3JlKzB4ZTQvMHhmMA0KPiBbICAgOTEuNDY5MTI5XSAgICAgICAgWzxmZmZmZmZmZjgxM2ViMTZm
+Pl0ga29ial9hdHRyX3N0b3JlKzB4Zi8weDIwDQo+IFsgICA5MS40Njk2MjRdICAgICAgICBbPGZm
+ZmZmZmZmODEyYWJhNTQ+XSBzeXNmc19rZl93cml0ZSsweDQ0LzB4NjANCj4gWyAgIDkxLjQ3MDEx
+OF0gICAgICAgIFs8ZmZmZmZmZmY4MTJhYjM1Nz5dIGtlcm5mc19mb3Bfd3JpdGUrMHhlNy8weDE3
+MA0KPiBbICAgOTEuNDcwNjMyXSAgICAgICAgWzxmZmZmZmZmZjgxMjMwZGE3Pl0gdmZzX3dyaXRl
+KzB4YjcvMHgxZjANCj4gWyAgIDkxLjQ3MTEwMF0gICAgICAgIFs8ZmZmZmZmZmY4MTIzMTk1OT5d
+IFN5U193cml0ZSsweDQ5LzB4YjANCj4gWyAgIDkxLjQ3MTU2MV0gICAgICAgIFs8ZmZmZmZmZmY4
+MTdlZTQyOT5dIHN5c3RlbV9jYWxsX2Zhc3RwYXRoKzB4MTYvMHgxYg0KPiBbICAgOTEuNDcyMDk2
+XQ0KPiBbICAgOTEuNDcyMDk2XSAtPiAjMSAoY3B1X2hvdHBsdWcubG9jayMyKXsrLisuKy59Og0K
+PiBbICAgOTEuNDcyNTU2XSAgICAgICAgWzxmZmZmZmZmZjgxMTBjYmE0Pl0gbG9ja19hY3F1aXJl
+KzB4YTQvMHgxMjANCj4gWyAgIDkxLjQ3MzA0NF0gICAgICAgIFs8ZmZmZmZmZmY4MTdlYjRkZT5d
+IG11dGV4X2xvY2tfbmVzdGVkKzB4NGUvMHgzYjANCj4gWyAgIDkxLjQ3MzU2NF0gICAgICAgIFs8
+ZmZmZmZmZmY4MTBjMzRkZj5dIGNwdV9ob3RwbHVnX2JlZ2luKzB4NGYvMHg4MA0KPiBbICAgOTEu
+NDc0MDc4XSAgICAgICAgWzxmZmZmZmZmZjgxMGMzNTg0Pl0gX2NwdV91cCsweDM0LzB4MTYwDQo+
+IFsgICA5MS40NzQ1MzJdICAgICAgICBbPGZmZmZmZmZmODEwYzM3MDk+XSBjcHVfdXArMHg1OS8w
+eDgwDQo+IFsgICA5MS40NzQ5NzNdICAgICAgICBbPGZmZmZmZmZmODFkODE3MGM+XSBzbXBfaW5p
+dCsweDg2LzB4ODgNCj4gWyAgIDkxLjQ3NTQyOV0gICAgICAgIFs8ZmZmZmZmZmY4MWQ1ZTIwMz5d
+IGtlcm5lbF9pbml0X2ZyZWVhYmxlKzB4MTZjLzB4MjdiDQo+IFsgICA5MS40NzU5NzZdICAgICAg
+ICBbPGZmZmZmZmZmODE3ZGE3N2U+XSBrZXJuZWxfaW5pdCsweGUvMHhmMA0KPiBbICAgOTEuNDc2
+NDQzXSAgICAgICAgWzxmZmZmZmZmZjgxN2VlMzdjPl0gcmV0X2Zyb21fZm9yaysweDdjLzB4YjAN
+Cj4gWyAgIDkxLjQ3NjkzMF0NCj4gWyAgIDkxLjQ3NjkzMF0gLT4gIzAgKGNwdV9ob3RwbHVnLmxv
+Y2speysrKysrK306DQo+IFsgICA5MS40NzczNTldICAgICAgICBbPGZmZmZmZmZmODExMGMwYjA+
+XSBfX2xvY2tfYWNxdWlyZSsweDE3NjAvMHgxYTcwDQo+IFsgICA5MS40Nzc4ODBdICAgICAgICBb
+PGZmZmZmZmZmODExMGNiYTQ+XSBsb2NrX2FjcXVpcmUrMHhhNC8weDEyMA0KPiBbICAgOTEuNDc4
+MzY3XSAgICAgICAgWzxmZmZmZmZmZjgxMGMzMzVhPl0gZ2V0X29ubGluZV9jcHVzKzB4NGEvMHg3
+MA0KPiBbICAgOTEuNDc4ODY4XSAgICAgICAgWzxmZmZmZmZmZjgxNDhlYjEyPl0gYWNwaV9wcm9j
+ZXNzb3JfY3N0X2hhc19jaGFuZ2VkKzB4NzMvMHgxN2QNCj4gWyAgIDkxLjQ3OTQ3NV0gICAgICAg
+IFs8ZmZmZmZmZmY4MTQ4Y2Q1ZT5dIGFjcGlfcHJvY2Vzc29yX25vdGlmeSsweDhhLzB4ZTINCj4g
+WyAgIDkxLjQ4MDAxNF0gICAgICAgIFs8ZmZmZmZmZmY4MTQ3NDNmYj5dIGFjcGlfZXZfbm90aWZ5
+X2Rpc3BhdGNoKzB4NDQvMHg1Yw0KPiBbICAgOTEuNDgwNTY5XSAgICAgICAgWzxmZmZmZmZmZjgx
+NDYwMTlhPl0gYWNwaV9vc19leGVjdXRlX2RlZmVycmVkKzB4MTQvMHgyMA0KPiBbICAgOTEuNDgx
+MTMwXSAgICAgICAgWzxmZmZmZmZmZjgxMGRiYTFmPl0gcHJvY2Vzc19vbmVfd29yaysweDFkZi8w
+eDRkMA0KPiBbICAgOTEuNDgxNjUyXSAgICAgICAgWzxmZmZmZmZmZjgxMGRiZTJiPl0gd29ya2Vy
+X3RocmVhZCsweDExYi8weDQ5MA0KPiBbICAgOTEuNDgyMTUyXSAgICAgICAgWzxmZmZmZmZmZjgx
+MGUxMDBkPl0ga3RocmVhZCsweGVkLzB4MTEwDQo+IFsgICA5MS40ODI2MDZdICAgICAgICBbPGZm
+ZmZmZmZmODE3ZWUzN2M+XSByZXRfZnJvbV9mb3JrKzB4N2MvMHhiMA0KPiBbICAgOTEuNDgzMDk0
+XQ0KPiBbICAgOTEuNDgzMDk0XSBvdGhlciBpbmZvIHRoYXQgbWlnaHQgaGVscCB1cyBkZWJ1ZyB0
+aGlzOg0KPiBbICAgOTEuNDgzMDk0XQ0KPiBbICAgOTEuNDgzNzIxXSBDaGFpbiBleGlzdHMgb2Y6
+DQo+IFsgICA5MS40ODM3MjFdICAgY3B1X2hvdHBsdWcubG9jayAtLT4gY3B1X2hvdHBsdWcubG9j
+ayMyIC0tPiBjcHVpZGxlX2xvY2sNCj4gWyAgIDkxLjQ4MzcyMV0NCj4gWyAgIDkxLjQ4NDQ4Nl0g
+IFBvc3NpYmxlIHVuc2FmZSBsb2NraW5nIHNjZW5hcmlvOg0KPiBbICAgOTEuNDg0NDg2XQ0KPiBb
+ICAgOTEuNDkxMTEzXSAgICAgICAgQ1BVMCAgICAgICAgICAgICAgICAgICAgQ1BVMQ0KPiBbICAg
+OTEuNDk0NDk2XSAgICAgICAgLS0tLSAgICAgICAgICAgICAgICAgICAgLS0tLQ0KPiBbICAgOTEu
+NDk3ODMzXSAgIGxvY2soY3B1aWRsZV9sb2NrKTsNCj4gWyAgIDkxLjUwMTA4M10gICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIGxvY2soY3B1X2hvdHBsdWcubG9jayMyKTsNCj4gWyAgIDkx
+LjUwNDU3Ml0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGxvY2soY3B1aWRsZV9sb2Nr
+KTsNCj4gWyAgIDkxLjUwNzk0NF0gICBsb2NrKGNwdV9ob3RwbHVnLmxvY2spOw0KPiBbICAgOTEu
+NTExMTE1XQ0KPiBbICAgOTEuNTExMTE1XSAgKioqIERFQURMT0NLICoqKg0KPiBbICAgOTEuNTEx
+MTE1XQ0KPiBbICAgOTEuNTE5ODg5XSAzIGxvY2tzIGhlbGQgYnkga3dvcmtlci8wOjEvNzU6DQo+
+IFsgICA5MS41MjI5MThdICAjMDogICgia2FjcGlfbm90aWZ5Iil7KysrKy4ufSwgYXQ6IFs8ZmZm
+ZmZmZmY4MTBkYjliZD5dIHByb2Nlc3Nfb25lX3dvcmsrMHgxN2QvMHg0ZDANCj4gWyAgIDkxLjUy
+NjQ0NV0gICMxOiAgKCgmZHBjLT53b3JrKSl7Ky4rLi4ufSwgYXQ6IFs8ZmZmZmZmZmY4MTBkYjli
+ZD5dIHByb2Nlc3Nfb25lX3dvcmsrMHgxN2QvMHg0ZDANCj4gWyAgIDkxLjUzMDAzMV0gICMyOiAg
+KGNwdWlkbGVfbG9jayl7Ky4rLisufSwgYXQ6IFs8ZmZmZmZmZmY4MTY2NjE0Nz5dIGNwdWlkbGVf
+cGF1c2VfYW5kX2xvY2srMHgxNy8weDQwDQo+IFsgICA5MS41MzM2NTNdDQo+IFsgICA5MS41MzM2
+NTNdIHN0YWNrIGJhY2t0cmFjZToNCj4gWyAgIDkxLjUzOTcxMl0gQ1BVOiAwIFBJRDogNzUgQ29t
+bToga3dvcmtlci8wOjEgTm90IHRhaW50ZWQgMy4xNy4wLXJjMysgIzE1DQo+IFsgICA5MS41NDMw
+ODZdIEhhcmR3YXJlIG5hbWU6IEludGVsIENvcnBvcmF0aW9uIENIRVJSWVZJRVcgQTMgUExBVEZP
+Uk0vQnJhc3dlbGwgQ1JCLCBCSU9TIEJSQVNXRUwxLlg2NC4wMDM1LlIwMC4xNDA5MDQxMTExIDA5
+LzA0LzIwMTQNCj4gWyAgIDkxLjU0NjkzMF0gV29ya3F1ZXVlOiBrYWNwaV9ub3RpZnkgYWNwaV9v
+c19leGVjdXRlX2RlZmVycmVkDQo+IFsgICA5MS41NTA0MDVdICBmZmZmZmZmZjgyNjU2ZDQwIGZm
+ZmY4ODAwNzg4ODNiNjggZmZmZmZmZmY4MTdlNDRmZCBmZmZmZmZmZjgyNjU2YjkwDQo+IFsgICA5
+MS41NTQwOTZdICBmZmZmODgwMDc4ODgzYmE4IGZmZmZmZmZmODE3ZGZmMmEgZmZmZjg4MDA3ODg4
+M2MwMCBmZmZmODgwMDc4ODRlMjE4DQo+IFsgICA5MS41NTc4MDddICAwMDAwMDAwMDAwMDAwMDAy
+IDAwMDAwMDAwMDAwMDAwMDMgZmZmZjg4MDA3ODg0ZTIxOCBmZmZmODgwMDc4ODRkYTUwDQo+IFsg
+ICA5MS41NjE1MjRdIENhbGwgVHJhY2U6DQo+IFsgICA5MS41NjQ4MzNdICBbPGZmZmZmZmZmODE3
+ZTQ0ZmQ+XSBkdW1wX3N0YWNrKzB4NDUvMHg1Ng0KPiBbICAgOTEuNTY4MzUwXSAgWzxmZmZmZmZm
+ZjgxN2RmZjJhPl0gcHJpbnRfY2lyY3VsYXJfYnVnKzB4MjAwLzB4MjBmDQo+IFsgICA5MS41NzE5
+NDZdICBbPGZmZmZmZmZmODExMGMwYjA+XSBfX2xvY2tfYWNxdWlyZSsweDE3NjAvMHgxYTcwDQo+
+IFsgICA5MS41NzU1MjldICBbPGZmZmZmZmZmODExMGE0MmE+XSA/IG1hcmtfaGVsZF9sb2Nrcysw
+eDZhLzB4OTANCj4gWyAgIDkxLjU3OTEwMF0gIFs8ZmZmZmZmZmY4MTA4NTZmOT5dID8gZmxhdF9z
+ZW5kX0lQSV9hbGxidXRzZWxmKzB4ZTkvMHgxNDANCj4gWyAgIDkxLjU4Mjc0N10gIFs8ZmZmZmZm
+ZmY4MTEwY2JhND5dIGxvY2tfYWNxdWlyZSsweGE0LzB4MTIwDQo+IFsgICA5MS41ODYzMjNdICBb
+PGZmZmZmZmZmODEwYzMzMzQ+XSA/IGdldF9vbmxpbmVfY3B1cysweDI0LzB4NzANCj4gWyAgIDkx
+LjU4OTkyN10gIFs8ZmZmZmZmZmY4MTBjMzM1YT5dIGdldF9vbmxpbmVfY3B1cysweDRhLzB4NzAN
+Cj4gWyAgIDkxLjU5MzUyMF0gIFs8ZmZmZmZmZmY4MTBjMzMzND5dID8gZ2V0X29ubGluZV9jcHVz
+KzB4MjQvMHg3MA0KPiBbICAgOTEuNTk3MTI1XSAgWzxmZmZmZmZmZjgxNDhlYjEyPl0gYWNwaV9w
+cm9jZXNzb3JfY3N0X2hhc19jaGFuZ2VkKzB4NzMvMHgxN2QNCj4gWyAgIDkxLjYwMDg0MF0gIFs8
+ZmZmZmZmZmY4MTQ4Y2Q1ZT5dIGFjcGlfcHJvY2Vzc29yX25vdGlmeSsweDhhLzB4ZTINCj4gWyAg
+IDkxLjYwNDUwOF0gIFs8ZmZmZmZmZmY4MTQ3NDNmYj5dIGFjcGlfZXZfbm90aWZ5X2Rpc3BhdGNo
+KzB4NDQvMHg1Yw0KPiBbICAgOTEuNjA4MTg4XSAgWzxmZmZmZmZmZjgxNDYwMTlhPl0gYWNwaV9v
+c19leGVjdXRlX2RlZmVycmVkKzB4MTQvMHgyMA0KPiBbICAgOTEuNjExODU2XSAgWzxmZmZmZmZm
+ZjgxMGRiYTFmPl0gcHJvY2Vzc19vbmVfd29yaysweDFkZi8weDRkMA0KPiBbICAgOTEuNjE1NDk1
+XSAgWzxmZmZmZmZmZjgxMGRiOWJkPl0gPyBwcm9jZXNzX29uZV93b3JrKzB4MTdkLzB4NGQwDQo+
+IFsgICA5MS42MTkxMjFdICBbPGZmZmZmZmZmODEwZGJlMmI+XSB3b3JrZXJfdGhyZWFkKzB4MTFi
+LzB4NDkwDQo+IFsgICA5MS42MjI3MTNdICBbPGZmZmZmZmZmODEwZGJkMTA+XSA/IHByb2Nlc3Nf
+b25lX3dvcmsrMHg0ZDAvMHg0ZDANCj4gWyAgIDkxLjYyNjM0N10gIFs8ZmZmZmZmZmY4MTBlMTAw
+ZD5dIGt0aHJlYWQrMHhlZC8weDExMA0KPiBbICAgOTEuNjI5OTA3XSAgWzxmZmZmZmZmZjgxMGUw
+ZjIwPl0gPyBrdGhyZWFkX2NyZWF0ZV9vbl9ub2RlKzB4MjAwLzB4MjAwDQo+IFsgICA5MS42MzM2
+MDZdICBbPGZmZmZmZmZmODE3ZWUzN2M+XSByZXRfZnJvbV9mb3JrKzB4N2MvMHhiMA0KPiBbICAg
+OTEuNjM3MjM4XSAgWzxmZmZmZmZmZjgxMGUwZjIwPl0gPyBrdGhyZWFkX2NyZWF0ZV9vbl9ub2Rl
+KzB4MjAwLzB4MjAwDQo+IA0KPiBUaGlzIHBhdGNoIGlzIHRvIGNoYW5nZSB0aGUgc2VxdWVuY2Ug
+b2YgaG9sZGluZyBjcHUgaG90cGx1ZyBhbmQgY3B1IA0KPiBpZGxlIGxvY2sgaW4gdGhlIGFjcGlf
+cHJvY2Vzc29yX2NzdF9oYXNfY2hhbmdlZCgpIHRvIGF2b2lkIHRoZSBkZWFkIA0KPiBsb2NrLg0K
+PiANCj4gU2lnbmVkLW9mZi1ieTogTGFuIFRpYW55dSA8dGlhbnl1LmxhbkBpbnRlbC5jb20+DQo+
+IC0tLQ0KPiAgZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9pZGxlLmMgfCA1ICsrKy0tDQo+ICAxIGZp
+bGUgY2hhbmdlZCwgMyBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAt
+LWdpdCBhL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfaWRsZS5jIA0KPiBiL2RyaXZlcnMvYWNwaS9w
+cm9jZXNzb3JfaWRsZS5jIGluZGV4IDNkY2EzNmQuLjM4NWVjNWYgMTAwNjQ0DQo+IC0tLSBhL2Ry
+aXZlcnMvYWNwaS9wcm9jZXNzb3JfaWRsZS5jDQo+ICsrKyBiL2RyaXZlcnMvYWNwaS9wcm9jZXNz
+b3JfaWRsZS5jDQo+IEBAIC0xMDcxLDkgKzEwNzEsOSBAQCBpbnQgYWNwaV9wcm9jZXNzb3JfY3N0
+X2hhc19jaGFuZ2VkKHN0cnVjdCANCj4gYWNwaV9wcm9jZXNzb3IgKnByKQ0KPiAgDQo+ICAJaWYg
+KHByLT5pZCA9PSAwICYmIGNwdWlkbGVfZ2V0X2RyaXZlcigpID09ICZhY3BpX2lkbGVfZHJpdmVy
+KSB7DQo+ICANCj4gLQkJY3B1aWRsZV9wYXVzZV9hbmRfbG9jaygpOw0KPiAgCQkvKiBQcm90ZWN0
+IGFnYWluc3QgY3B1LWhvdHBsdWcgKi8NCj4gIAkJZ2V0X29ubGluZV9jcHVzKCk7DQo+ICsJCWNw
+dWlkbGVfcGF1c2VfYW5kX2xvY2soKTsNCj4gIA0KPiAgCQkvKiBEaXNhYmxlIGFsbCBjcHVpZGxl
+IGRldmljZXMgKi8NCj4gIAkJZm9yX2VhY2hfb25saW5lX2NwdShjcHUpIHsNCj4gQEAgLTExMDAs
+OCArMTEwMCw5IEBAIGludCBhY3BpX3Byb2Nlc3Nvcl9jc3RfaGFzX2NoYW5nZWQoc3RydWN0IGFj
+cGlfcHJvY2Vzc29yICpwcikNCj4gIAkJCQljcHVpZGxlX2VuYWJsZV9kZXZpY2UoZGV2KTsNCj4g
+IAkJCX0NCj4gIAkJfQ0KPiAtCQlwdXRfb25saW5lX2NwdXMoKTsNCj4gKw0KPiAgCQljcHVpZGxl
+X3Jlc3VtZV9hbmRfdW5sb2NrKCk7DQo+ICsJCXB1dF9vbmxpbmVfY3B1cygpOw0KPiAgCX0NCj4g
+IA0KPiAgCXJldHVybiAwOw0KPiANCg0KLS0NCkkgc3BlYWsgb25seSBmb3IgbXlzZWxmLg0KUmFm
+YWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLg0K
