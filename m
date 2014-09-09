@@ -1,23 +1,28 @@
 From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH v3 02/17] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
-Date: Tue, 09 Sep 2014 12:41:51 -0400
-Message-ID: <540F2DCF.1010104@redhat.com>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-3-git-send-email-hanjun.guo@linaro.org> <20140909162648.GE2910@arm.com>
+Subject: Re: [PATCH v3 02/17] ARM64 / ACPI: Get RSDP and ACPI boot-time
+ tables
+Date: Tue, 9 Sep 2014 12:44:45 -0400 (EDT)
+Message-ID: <1672724278.9306589.1410281085602.JavaMail.zimbra@zmail15.collab.prod.int.phx2.redhat.com>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-3-git-send-email-hanjun.guo@linaro.org> <20140909162648.GE2910@arm.com> <540F2DCF.1010104@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65085 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753751AbaIIQnB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Sep 2014 12:43:01 -0400
-In-Reply-To: <20140909162648.GE2910@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <540F2DCF.1010104@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: hanjun.guo@linaro.org, Catalin Marinas <catalin.marinas@arm.com>
+Cc: linux-acpi@vger.kernel.org, Randy Dunlap <rdunlap@infradead.org>, Arnd Bergmann <arnd@arndb.de>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, grant.likely@linaro.org, Will Deacon <Will.Deacon@arm.com>, graeme.gregory@linaro.org, Olof Johansson <olof@lixom.net>, Robert Richter <rric@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Rob Herring <robh@kernel.org>, linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-arm-kernel@lists.infradead.org, Mark Rutland <Mark.Rutland@arm.com>, Robert Moore <robert.moore@intel.com>, Jason Cooper <jason@lakedaemon.net>
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.inf
 
-On 09/09/2014 12:26 PM, Catalin Marinas wrote:
+One of the ARM guys pointed out the cache issue before I had meant to send this note then. Sorry.
+
+-- 
+Computer Architect | Sent from my #ARM Powered Mobile device
+
+On Sep 9, 2014 12:41 PM, Jon Masters <jcm@redhat.com> wrote:
+>
+> On 09/09/2014 12:26 PM, Catalin Marinas wrote: 
+> > On Mon, Sep 01, 2014 at 03:On 09/09/2014 12:26 PM, Catalin Marinas wrote:
 > On Mon, Sep 01, 2014 at 03:57:40PM +0100, Hanjun Guo wrote:
 >> diff --git a/arch/arm64/include/asm/acenv.h b/arch/arm64/include/asm/acenv.h
 >> new file mode 100644
@@ -57,4 +62,3 @@ the effect of disabling C3 support, while also allowing for use of _CST
 objects to define more flexible C-States later on.
 
 Jon.
-
