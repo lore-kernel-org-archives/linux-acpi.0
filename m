@@ -1,91 +1,81 @@
-From: <suravee.suthikulpanit@amd.com>
-Subject: [PATCH] ata: ahci_platform: Add ACPI support for AMD Seattle SATA controller
-Date: Tue, 9 Sep 2014 15:37:15 -0500
-Message-ID: <1410295035-14471-1-git-send-email-suravee.suthikulpanit@amd.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tj@kernel.org, hdegoede@redhat.com
-Cc: linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+From: Mark Salter <msalter@redhat.com>
+Subject: [PATCH] acpi: add utility to test for device dma coherency
+Date: Tue,  9 Sep 2014 16:57:58 -0400
+Message-ID: <1410296278-1244-1-git-send-email-msalter@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:11173 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751155AbaIIU6O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Sep 2014 16:58:14 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Mark Salter <msalter@redhat.com>
 
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+ACPI 5.1 adds a _CCA object to indicate memory coherency
+of a bus master device. It is an integer with zero meaning
+non-coherent and one meaning coherent. This attribute may
+be inherited from a parent device. It may also be missing
+entirely, in which case, an architecture-specific default
+is assumed.
 
-This patch adds ACPI support for non-PCI SATA contoller in ahci_platform driver.
-It adds ACPI matching table in ahci_platform to support AMD Seattle SATA controller
-with following ASL structure in DSDT:
+This patch adds a utility function to parse a device handle
+(and its parents) for a _CCA object and return the coherency
+attribute if found.
 
-    Device (SATA0)
-    {
-      Name(_HID, "AMDI0600")	// Seattle AHSATA
-      Name (_CCA, 1)		// Cache-coherent controller
-      Name (_CRS, ResourceTemplate ()
-      {
-        Memory32Fixed (ReadWrite, 0xE0300000, 0x00010000)
-        Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,,) { 387 }
-      })
-    }
-
-Since ATA driver should not require PCI support for ATA_ACPI,
-this patch also removes dependency in the driver/ata/Kconfig.
-
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Signed-off-by: Mark Salter <msalter@redhat.com>
 ---
- drivers/ata/Kconfig         |  2 +-
- drivers/ata/ahci_platform.c | 13 +++++++++++++
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ drivers/acpi/utils.c    | 26 ++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |  2 ++
+ 2 files changed, 28 insertions(+)
 
-diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
-index e1b9278..f2e6c9e 100644
---- a/drivers/ata/Kconfig
-+++ b/drivers/ata/Kconfig
-@@ -48,7 +48,7 @@ config ATA_VERBOSE_ERROR
- 
- config ATA_ACPI
- 	bool "ATA ACPI Support"
--	depends on ACPI && PCI
-+	depends on ACPI
- 	default y
- 	help
- 	  This option adds support for ATA-related ACPI objects.
-diff --git a/drivers/ata/ahci_platform.c b/drivers/ata/ahci_platform.c
-index f61ddb9..3499bab 100644
---- a/drivers/ata/ahci_platform.c
-+++ b/drivers/ata/ahci_platform.c
-@@ -20,6 +20,9 @@
- #include <linux/platform_device.h>
- #include <linux/libata.h>
- #include <linux/ahci_platform.h>
-+#ifdef CONFIG_ATA_ACPI
-+#include <linux/acpi.h>
-+#endif
- #include "ahci.h"
- 
- static const struct ata_port_info ahci_port_info = {
-@@ -87,6 +90,13 @@ static const struct of_device_id ahci_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, ahci_of_match);
- 
-+#ifdef CONFIG_ATA_ACPI
-+static const struct acpi_device_id ahci_acpi_match[] = {
-+	{ "AMDI0600", 0 }, /* AMD Seattle AHCI */
-+	{ },
-+};
-+#endif
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 07c8c5a..aec9656 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -698,3 +698,29 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
+ 	return false;
+ }
+ EXPORT_SYMBOL(acpi_check_dsm);
 +
- static struct platform_driver ahci_driver = {
- 	.probe = ahci_probe,
- 	.remove = ata_platform_remove_one,
-@@ -94,6 +104,9 @@ static struct platform_driver ahci_driver = {
- 		.name = "ahci",
- 		.owner = THIS_MODULE,
- 		.of_match_table = ahci_of_match,
-+#ifdef CONFIG_ATA_ACPI
-+		.acpi_match_table = ACPI_PTR(ahci_acpi_match),
-+#endif
- 		.pm = &ahci_pm_ops,
- 	},
- };
++/**
++ * acpi_check_coherency - check for memory coherency of a device
++ * @handle: ACPI device handle
++ * @val:    Pointer to returned value
++ *
++ * Search a device and its parents for a _CCA method and return
++ * its value.
++ */
++acpi_status acpi_check_coherency(acpi_handle handle, int *val)
++{
++	unsigned long long data;
++	acpi_status status;
++
++	do {
++		status = acpi_evaluate_integer(handle, "_CCA", NULL, &data);
++		if (!ACPI_FAILURE(status)) {
++			*val = data;
++			break;
++		}
++		status = acpi_get_parent(handle, &handle);
++	} while (!ACPI_FAILURE(status));
++
++	return status;
++}
++EXPORT_SYMBOL(acpi_check_coherency);
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index bcfd808..b97f09d 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -68,6 +68,8 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
+ union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
+ 			int rev, int func, union acpi_object *argv4);
+ 
++acpi_status acpi_check_coherency(acpi_handle handle, int *val);
++
+ static inline union acpi_object *
+ acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
+ 			union acpi_object *argv4, acpi_object_type type)
 -- 
-1.9.3
+1.8.3.1
+
