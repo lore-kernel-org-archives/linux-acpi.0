@@ -1,43 +1,150 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH for Juno 0/2] Drivers for Juno to boot from ACPI
-Date: Tue, 09 Sep 2014 12:55:09 +0200
-Message-ID: <3840839.IPB3Ru8Evk@wuerfel>
-References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org> <353732273.2TKdyNJ83M@wuerfel> <540EA446.7010200@redhat.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [Patch v4 05/16] ACPI: Add interfaces to parse IOAPIC ID for
+ IOAPIC hotplug
+Date: Tue, 9 Sep 2014 12:54:55 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1409091248090.11037@nanos>
+References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com> <1409192561-19744-6-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:49830 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932200AbaIIKzd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 06:55:33 -0400
-In-Reply-To: <540EA446.7010200@redhat.com>
+Received: from www.linutronix.de ([62.245.132.108]:51673 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932200AbaIIKzj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 06:55:39 -0400
+In-Reply-To: <1409192561-19744-6-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Jon Masters <jcm@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, linux-kernel@vger.kernel.or, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sudeep Holla <Sudeep.Holla@arm.com>, Olo
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday 09 September 2014 02:55:02 Jon Masters wrote:
-> On 09/01/2014 11:29 AM, Arnd Bergmann wrote:
-> > On Monday 01 September 2014 23:05:59 Hanjun Guo wrote:
-> >> This patch set is example of the sort of driver changes needed to boot
-> >> Juno using ACPI tables, which using the ACPI tables devloped for MS
-> >> Windows and published by ARM [1].
-> > 
-> > What about platform support?
-> 
-> I think Juno is just serving as an example here since it's from ARM and
-> thus various people have access to it already, etc. It's not the best
-> example of a server platform out there, since that wasn't its original
-> design purpose (but it's a wonderful platform nonetheless). There is
-> work currently in flight to offer other reference ACPI examples.
+On Thu, 28 Aug 2014, Jiang Liu wrote:
+>  
+> +static struct acpi_table_madt *madt;
+> +static int read_madt;
 
-Ok, I see. This is a bit disappointing because it's actually the third
-attempt to come up with a reference platform (after Exynos and X-Gene),
-and it always seems to come down to deciding that this particular
-platform doesn't really work with ACPI beyond basic booting.
+Pretty lousy file visible variable names.
 
-Which platform(s) are you talking about? Are you sure it will be better
-suited than the first three?
+So we end up with two copies of the butt ugly 
 
-	Arnd
+   if (!read_madt) {
+      .....
+   }
+
+stuff instead of creating a helper function which hides that and do
+
+      madr = get_madt();
+      if (!madt)
+		return ...;
+
+at the call sites.
+
+>  static int map_lapic_id(struct acpi_subtable_header *entry,
+>  		 u32 acpi_id, int *apic_id)
+>  {
+> @@ -64,8 +71,6 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+>  static int map_madt_entry(int type, u32 acpi_id)
+>  {
+>  	unsigned long madt_end, entry;
+> -	static struct acpi_table_madt *madt;
+> -	static int read_madt;
+>  	int apic_id = -1;
+>  
+>  	if (!read_madt) {
+> @@ -200,3 +205,90 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+>  	return acpi_map_cpuid(apic_id, acpi_id);
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_get_cpuid);
+> +
+> +#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+> +static int map_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
+> +			 u64 *phys_addr, int *ioapic_id)
+> +{
+> +	struct acpi_madt_io_apic *ioapic = (struct acpi_madt_io_apic *)entry;
+> +
+> +	if (ioapic->global_irq_base != gsi_base)
+> +		return 0;
+> +
+> +	*phys_addr = ioapic->address;
+> +	*ioapic_id = ioapic->id;
+> +	return 1;
+> +}
+> +
+> +static int map_madt_ioapic_entry(u32 gsi_base, u64 *phys_addr)
+> +{
+> +	struct acpi_subtable_header *hdr;
+> +	unsigned long madt_end, entry;
+> +	int apic_id = -1;
+> +
+> +	if (!read_madt) {
+> +		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
+> +					(struct acpi_table_header **)&madt)))
+> +			madt = NULL;
+> +		read_madt++;
+> +	}
+> +
+> +	if (!madt)
+> +		return apic_id;
+> +
+> +	entry = (unsigned long)madt;
+> +	madt_end = entry + madt->header.length;
+> +
+> +	/* Parse all entries looking for a match. */
+> +	entry += sizeof(struct acpi_table_madt);
+> +	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
+> +		hdr = (struct acpi_subtable_header *)entry;
+> +		if (hdr->type == ACPI_MADT_TYPE_IO_APIC &&
+> +		    map_ioapic_id(hdr, gsi_base, phys_addr, &apic_id))
+> +			break;
+> +		else
+> +			entry += hdr->length;
+> +	}
+> +
+> +	return apic_id;
+> +}
+> +
+> +static int map_mat_ioapic_entry(acpi_handle handle, u32 gsi_base,
+> +				u64 *phys_addr)
+> +{
+> +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+> +	union acpi_object *obj;
+> +	struct acpi_subtable_header *header;
+> +	int apic_id = -1;
+> +
+> +	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
+> +		goto exit;
+> +
+> +	if (!buffer.length || !buffer.pointer)
+> +		goto exit;
+> +
+> +	obj = buffer.pointer;
+> +	if (obj->type != ACPI_TYPE_BUFFER ||
+> +	    obj->buffer.length < sizeof(struct acpi_subtable_header))
+> +		goto exit;
+> +
+> +	header = (struct acpi_subtable_header *)obj->buffer.pointer;
+> +	if (header->type == ACPI_MADT_TYPE_IO_APIC)
+> +		map_ioapic_id(header, gsi_base, phys_addr, &apic_id);
+> +
+> +exit:
+> +	kfree(buffer.pointer);
+> +	return apic_id;
+> +}
+
+
+This stuff really wants proper documentation. The lack of comments is
+just annoying.
+
+> +int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr)
+> +{
+> +	int apic_id;
+> +
+> +	apic_id = map_mat_ioapic_entry(handle, gsi_base, phys_addr);
+> +	if (apic_id == -1)
+> +		apic_id = map_madt_ioapic_entry(gsi_base, phys_addr);
+> +
+> +	return apic_id;
+> +}
+
+Thanks,
+
+	tglx
