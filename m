@@ -1,179 +1,89 @@
-From: "Lan, Tianyu" <tianyu.lan@intel.com>
-Subject: RE: [PATCH] ACPI/Processor: Fix dead lock between cpu hotplug and
- handler of ACPI processor power notify event
-Date: Tue, 9 Sep 2014 15:18:44 +0000
-Message-ID: <4CFBC02C07DA244CA19D6815A05BE6EE011B6771@SHSMSX103.ccr.corp.intel.com>
-References: <1410273857-13598-1-git-send-email-tianyu.lan@intel.com>
- <2956933.E3doTrsqJD@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v3 09/17] ARM64 / ACPI: Parse MADT for SMP initialization
+Date: Wed, 10 Sep 2014 00:00:34 +0800
+Message-ID: <540F2422.90105@linaro.org>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-10-git-send-email-hanjun.guo@linaro.org> <540E80BD.20801@redhat.com> <540E88A2.1000606@linaro.org> <540E93A0.4040306@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2956933.E3doTrsqJD@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:52932 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757190AbaIIQBN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 12:01:13 -0400
+Received: by mail-pd0-f174.google.com with SMTP id v10so9244173pde.33
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Sep 2014 09:01:13 -0700 (PDT)
+In-Reply-To: <540E93A0.4040306@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jon Masters <jcm@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>
 
-T2guIFNvcnJ5LCBJIGRpZG4ndCBub3RpY2UgdGhhdCBjb21taXQuIFBsZWFzZSBpZ25vcmUgdGhp
-cyBwYXRjaC4NCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IFJhZmFlbCBKLiBX
-eXNvY2tpIFttYWlsdG86cmp3QHJqd3lzb2NraS5uZXRdIA0KU2VudDogVHVlc2RheSwgU2VwdGVt
-YmVyIDA5LCAyMDE0IDExOjE0IFBNDQpUbzogTGFuLCBUaWFueXUNCkNjOiBsZW5iQGtlcm5lbC5v
-cmc7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwu
-b3JnDQpTdWJqZWN0OiBSZTogW1BBVENIXSBBQ1BJL1Byb2Nlc3NvcjogRml4IGRlYWQgbG9jayBi
-ZXR3ZWVuIGNwdSBob3RwbHVnIGFuZCBoYW5kbGVyIG9mIEFDUEkgcHJvY2Vzc29yIHBvd2VyIG5v
-dGlmeSBldmVudA0KDQpPbiBUdWVzZGF5LCBTZXB0ZW1iZXIgMDksIDIwMTQgMTA6NDQ6MTcgUE0g
-TGFuIFRpYW55dSB3cm90ZToNCj4gVGhlcmUgaXMgYSBkZWFkIGxvY2sgYmV0d2VlbiBiZXR3ZWVu
-IGNwdSBob3RwbHVnIGFuZCBoYW5kbGVyIG9mIEFDUEkgDQo+IFByb2Nlc3NvciBQb3dlciBub3Rp
-ZnkgZXZlbnQuIENwdSBob3RwbHVnIGxvY2sgaXMgaGVsZCBhbmQgdGhlbiBob2xkIGNwdWlkbGUg
-bG9jayBkdXJpbmcgY3B1IGhvdHBsdWcuDQo+IER1cmluZyBBQ1BJIHByb2Nlc3NvciBwb3dlciBu
-b3RpZnkgZXZlbnQsIA0KPiBhY3BpX3Byb2Nlc3Nvcl9jc3RfaGFzX2NoYWdlZCgpIGRvZXMgY29u
-dmVyc2UgdGhpbmcgYW5kIGNhdXNlIGRlYWQgbG9jay4gSnVzdCBsaWtlIHRoZSBmb2xsb3dpbmcg
-bG9nIHNob3dzLg0KDQpJc24ndCB0aGlzIHBhdGNoIGVxdWl2YWxlbnQgdG8gY29tbWl0IDY3MjY2
-NTVkZmRkMiAoQUNQSSAvIGNwdWlkbGU6IGZpeCBkZWFkbG9jayBiZXR3ZWVuIGNwdWlkbGVfbG9j
-ayBhbmQgY3B1X2hvdHBsdWcubG9jayk/DQoNCj4gWyAgIDkxLjQ1NjY3MF0gPT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQo+IFsgICA5MS40NTcx
-NjBdIFsgSU5GTzogcG9zc2libGUgY2lyY3VsYXIgbG9ja2luZyBkZXBlbmRlbmN5IGRldGVjdGVk
-IF0NCj4gWyAgIDkxLjQ1NzY1OF0gMy4xNy4wLXJjMysgIzE1IE5vdCB0YWludGVkDQo+IFsgICA5
-MS40NTc5NjhdIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0NCj4gWyAgIDkxLjQ1ODQ2M10ga3dvcmtlci8wOjEvNzUgaXMgdHJ5aW5nIHRvIGFj
-cXVpcmUgbG9jazoNCj4gWyAgIDkxLjQ1ODg2Nl0gIChjcHVfaG90cGx1Zy5sb2NrKXsrKysrKyt9
-LCBhdDogWzxmZmZmZmZmZjgxMGMzMzM0Pl0gZ2V0X29ubGluZV9jcHVzKzB4MjQvMHg3MA0KPiBb
-ICAgOTEuNDU5NjAwXQ0KPiBbICAgOTEuNDU5NjAwXSBidXQgdGFzayBpcyBhbHJlYWR5IGhvbGRp
-bmcgbG9jazoNCj4gWyAgIDkxLjQ2MDA2Ml0gIChjcHVpZGxlX2xvY2speysuKy4rLn0sIGF0OiBb
-PGZmZmZmZmZmODE2NjYxNDc+XSBjcHVpZGxlX3BhdXNlX2FuZF9sb2NrKzB4MTcvMHg0MA0KPiBb
-ICAgOTEuNDYwODEwXQ0KPiBbICAgOTEuNDYwODEwXSB3aGljaCBsb2NrIGFscmVhZHkgZGVwZW5k
-cyBvbiB0aGUgbmV3IGxvY2suDQo+IFsgICA5MS40NjA4MTBdDQo+IFsgICA5MS40NjE0NTFdDQo+
-IFsgICA5MS40NjE0NTFdIHRoZSBleGlzdGluZyBkZXBlbmRlbmN5IGNoYWluIChpbiByZXZlcnNl
-IG9yZGVyKSBpczoNCj4gWyAgIDkxLjQ2MjAzOF0NCj4gWyAgIDkxLjQ2MjAzOF0gLT4gIzIgKGNw
-dWlkbGVfbG9jayl7Ky4rLisufToNCj4gWyAgIDkxLjQ2MjQ0Ml0gICAgICAgIFs8ZmZmZmZmZmY4
-MTEwY2JhND5dIGxvY2tfYWNxdWlyZSsweGE0LzB4MTIwDQo+IFsgICA5MS40NjI5MzFdICAgICAg
-ICBbPGZmZmZmZmZmODE3ZWI0ZGU+XSBtdXRleF9sb2NrX25lc3RlZCsweDRlLzB4M2IwDQo+IFsg
-ICA5MS40NjM0NTNdICAgICAgICBbPGZmZmZmZmZmODE2NjYxNDc+XSBjcHVpZGxlX3BhdXNlX2Fu
-ZF9sb2NrKzB4MTcvMHg0MA0KPiBbICAgOTEuNDY0MDAwXSAgICAgICAgWzxmZmZmZmZmZjgxNDhl
-YTViPl0gYWNwaV9wcm9jZXNzb3JfaG90cGx1ZysweDQ5LzB4OGQNCj4gWyAgIDkxLjQ2NDU0OF0g
-ICAgICAgIFs8ZmZmZmZmZmY4MTQ4Y2M5Zj5dIGFjcGlfY3B1X3NvZnRfbm90aWZ5KzB4YWYvMHhl
-NA0KPiBbICAgOTEuNDY1MDgxXSAgICAgICAgWzxmZmZmZmZmZjgxMGUyMGFjPl0gbm90aWZpZXJf
-Y2FsbF9jaGFpbisweDRjLzB4NzANCj4gWyAgIDkxLjQ2NTYwOV0gICAgICAgIFs8ZmZmZmZmZmY4
-MTBlMjE3ZT5dIF9fcmF3X25vdGlmaWVyX2NhbGxfY2hhaW4rMHhlLzB4MTANCj4gWyAgIDkxLjQ2
-NjE2OV0gICAgICAgIFs8ZmZmZmZmZmY4MTBjMzQ0Mz5dIGNwdV9ub3RpZnkrMHgyMy8weDUwDQo+
-IFsgICA5MS40NjY2MzddICAgICAgICBbPGZmZmZmZmZmODEwYzM2YTA+XSBfY3B1X3VwKzB4MTUw
-LzB4MTYwDQo+IFsgICA5MS40NjcwOThdICAgICAgICBbPGZmZmZmZmZmODE3ZGJhNmY+XSBlbmFi
-bGVfbm9uYm9vdF9jcHVzKzB4YWYvMHgxNzANCj4gWyAgIDkxLjQ2NzYzMl0gICAgICAgIFs8ZmZm
-ZmZmZmY4MTExMzA4NT5dIGhpYmVybmF0aW9uX3NuYXBzaG90KzB4Mjc1LzB4MzgwDQo+IFsgICA5
-MS40NjgxODFdICAgICAgICBbPGZmZmZmZmZmODExMTM5OTA+XSBoaWJlcm5hdGUrMHgxNjAvMHgy
-MTANCj4gWyAgIDkxLjQ2ODY1NV0gICAgICAgIFs8ZmZmZmZmZmY4MTExMTMxND5dIHN0YXRlX3N0
-b3JlKzB4ZTQvMHhmMA0KPiBbICAgOTEuNDY5MTI5XSAgICAgICAgWzxmZmZmZmZmZjgxM2ViMTZm
-Pl0ga29ial9hdHRyX3N0b3JlKzB4Zi8weDIwDQo+IFsgICA5MS40Njk2MjRdICAgICAgICBbPGZm
-ZmZmZmZmODEyYWJhNTQ+XSBzeXNmc19rZl93cml0ZSsweDQ0LzB4NjANCj4gWyAgIDkxLjQ3MDEx
-OF0gICAgICAgIFs8ZmZmZmZmZmY4MTJhYjM1Nz5dIGtlcm5mc19mb3Bfd3JpdGUrMHhlNy8weDE3
-MA0KPiBbICAgOTEuNDcwNjMyXSAgICAgICAgWzxmZmZmZmZmZjgxMjMwZGE3Pl0gdmZzX3dyaXRl
-KzB4YjcvMHgxZjANCj4gWyAgIDkxLjQ3MTEwMF0gICAgICAgIFs8ZmZmZmZmZmY4MTIzMTk1OT5d
-IFN5U193cml0ZSsweDQ5LzB4YjANCj4gWyAgIDkxLjQ3MTU2MV0gICAgICAgIFs8ZmZmZmZmZmY4
-MTdlZTQyOT5dIHN5c3RlbV9jYWxsX2Zhc3RwYXRoKzB4MTYvMHgxYg0KPiBbICAgOTEuNDcyMDk2
-XQ0KPiBbICAgOTEuNDcyMDk2XSAtPiAjMSAoY3B1X2hvdHBsdWcubG9jayMyKXsrLisuKy59Og0K
-PiBbICAgOTEuNDcyNTU2XSAgICAgICAgWzxmZmZmZmZmZjgxMTBjYmE0Pl0gbG9ja19hY3F1aXJl
-KzB4YTQvMHgxMjANCj4gWyAgIDkxLjQ3MzA0NF0gICAgICAgIFs8ZmZmZmZmZmY4MTdlYjRkZT5d
-IG11dGV4X2xvY2tfbmVzdGVkKzB4NGUvMHgzYjANCj4gWyAgIDkxLjQ3MzU2NF0gICAgICAgIFs8
-ZmZmZmZmZmY4MTBjMzRkZj5dIGNwdV9ob3RwbHVnX2JlZ2luKzB4NGYvMHg4MA0KPiBbICAgOTEu
-NDc0MDc4XSAgICAgICAgWzxmZmZmZmZmZjgxMGMzNTg0Pl0gX2NwdV91cCsweDM0LzB4MTYwDQo+
-IFsgICA5MS40NzQ1MzJdICAgICAgICBbPGZmZmZmZmZmODEwYzM3MDk+XSBjcHVfdXArMHg1OS8w
-eDgwDQo+IFsgICA5MS40NzQ5NzNdICAgICAgICBbPGZmZmZmZmZmODFkODE3MGM+XSBzbXBfaW5p
-dCsweDg2LzB4ODgNCj4gWyAgIDkxLjQ3NTQyOV0gICAgICAgIFs8ZmZmZmZmZmY4MWQ1ZTIwMz5d
-IGtlcm5lbF9pbml0X2ZyZWVhYmxlKzB4MTZjLzB4MjdiDQo+IFsgICA5MS40NzU5NzZdICAgICAg
-ICBbPGZmZmZmZmZmODE3ZGE3N2U+XSBrZXJuZWxfaW5pdCsweGUvMHhmMA0KPiBbICAgOTEuNDc2
-NDQzXSAgICAgICAgWzxmZmZmZmZmZjgxN2VlMzdjPl0gcmV0X2Zyb21fZm9yaysweDdjLzB4YjAN
-Cj4gWyAgIDkxLjQ3NjkzMF0NCj4gWyAgIDkxLjQ3NjkzMF0gLT4gIzAgKGNwdV9ob3RwbHVnLmxv
-Y2speysrKysrK306DQo+IFsgICA5MS40NzczNTldICAgICAgICBbPGZmZmZmZmZmODExMGMwYjA+
-XSBfX2xvY2tfYWNxdWlyZSsweDE3NjAvMHgxYTcwDQo+IFsgICA5MS40Nzc4ODBdICAgICAgICBb
-PGZmZmZmZmZmODExMGNiYTQ+XSBsb2NrX2FjcXVpcmUrMHhhNC8weDEyMA0KPiBbICAgOTEuNDc4
-MzY3XSAgICAgICAgWzxmZmZmZmZmZjgxMGMzMzVhPl0gZ2V0X29ubGluZV9jcHVzKzB4NGEvMHg3
-MA0KPiBbICAgOTEuNDc4ODY4XSAgICAgICAgWzxmZmZmZmZmZjgxNDhlYjEyPl0gYWNwaV9wcm9j
-ZXNzb3JfY3N0X2hhc19jaGFuZ2VkKzB4NzMvMHgxN2QNCj4gWyAgIDkxLjQ3OTQ3NV0gICAgICAg
-IFs8ZmZmZmZmZmY4MTQ4Y2Q1ZT5dIGFjcGlfcHJvY2Vzc29yX25vdGlmeSsweDhhLzB4ZTINCj4g
-WyAgIDkxLjQ4MDAxNF0gICAgICAgIFs8ZmZmZmZmZmY4MTQ3NDNmYj5dIGFjcGlfZXZfbm90aWZ5
-X2Rpc3BhdGNoKzB4NDQvMHg1Yw0KPiBbICAgOTEuNDgwNTY5XSAgICAgICAgWzxmZmZmZmZmZjgx
-NDYwMTlhPl0gYWNwaV9vc19leGVjdXRlX2RlZmVycmVkKzB4MTQvMHgyMA0KPiBbICAgOTEuNDgx
-MTMwXSAgICAgICAgWzxmZmZmZmZmZjgxMGRiYTFmPl0gcHJvY2Vzc19vbmVfd29yaysweDFkZi8w
-eDRkMA0KPiBbICAgOTEuNDgxNjUyXSAgICAgICAgWzxmZmZmZmZmZjgxMGRiZTJiPl0gd29ya2Vy
-X3RocmVhZCsweDExYi8weDQ5MA0KPiBbICAgOTEuNDgyMTUyXSAgICAgICAgWzxmZmZmZmZmZjgx
-MGUxMDBkPl0ga3RocmVhZCsweGVkLzB4MTEwDQo+IFsgICA5MS40ODI2MDZdICAgICAgICBbPGZm
-ZmZmZmZmODE3ZWUzN2M+XSByZXRfZnJvbV9mb3JrKzB4N2MvMHhiMA0KPiBbICAgOTEuNDgzMDk0
-XQ0KPiBbICAgOTEuNDgzMDk0XSBvdGhlciBpbmZvIHRoYXQgbWlnaHQgaGVscCB1cyBkZWJ1ZyB0
-aGlzOg0KPiBbICAgOTEuNDgzMDk0XQ0KPiBbICAgOTEuNDgzNzIxXSBDaGFpbiBleGlzdHMgb2Y6
-DQo+IFsgICA5MS40ODM3MjFdICAgY3B1X2hvdHBsdWcubG9jayAtLT4gY3B1X2hvdHBsdWcubG9j
-ayMyIC0tPiBjcHVpZGxlX2xvY2sNCj4gWyAgIDkxLjQ4MzcyMV0NCj4gWyAgIDkxLjQ4NDQ4Nl0g
-IFBvc3NpYmxlIHVuc2FmZSBsb2NraW5nIHNjZW5hcmlvOg0KPiBbICAgOTEuNDg0NDg2XQ0KPiBb
-ICAgOTEuNDkxMTEzXSAgICAgICAgQ1BVMCAgICAgICAgICAgICAgICAgICAgQ1BVMQ0KPiBbICAg
-OTEuNDk0NDk2XSAgICAgICAgLS0tLSAgICAgICAgICAgICAgICAgICAgLS0tLQ0KPiBbICAgOTEu
-NDk3ODMzXSAgIGxvY2soY3B1aWRsZV9sb2NrKTsNCj4gWyAgIDkxLjUwMTA4M10gICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIGxvY2soY3B1X2hvdHBsdWcubG9jayMyKTsNCj4gWyAgIDkx
-LjUwNDU3Ml0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGxvY2soY3B1aWRsZV9sb2Nr
-KTsNCj4gWyAgIDkxLjUwNzk0NF0gICBsb2NrKGNwdV9ob3RwbHVnLmxvY2spOw0KPiBbICAgOTEu
-NTExMTE1XQ0KPiBbICAgOTEuNTExMTE1XSAgKioqIERFQURMT0NLICoqKg0KPiBbICAgOTEuNTEx
-MTE1XQ0KPiBbICAgOTEuNTE5ODg5XSAzIGxvY2tzIGhlbGQgYnkga3dvcmtlci8wOjEvNzU6DQo+
-IFsgICA5MS41MjI5MThdICAjMDogICgia2FjcGlfbm90aWZ5Iil7KysrKy4ufSwgYXQ6IFs8ZmZm
-ZmZmZmY4MTBkYjliZD5dIHByb2Nlc3Nfb25lX3dvcmsrMHgxN2QvMHg0ZDANCj4gWyAgIDkxLjUy
-NjQ0NV0gICMxOiAgKCgmZHBjLT53b3JrKSl7Ky4rLi4ufSwgYXQ6IFs8ZmZmZmZmZmY4MTBkYjli
-ZD5dIHByb2Nlc3Nfb25lX3dvcmsrMHgxN2QvMHg0ZDANCj4gWyAgIDkxLjUzMDAzMV0gICMyOiAg
-KGNwdWlkbGVfbG9jayl7Ky4rLisufSwgYXQ6IFs8ZmZmZmZmZmY4MTY2NjE0Nz5dIGNwdWlkbGVf
-cGF1c2VfYW5kX2xvY2srMHgxNy8weDQwDQo+IFsgICA5MS41MzM2NTNdDQo+IFsgICA5MS41MzM2
-NTNdIHN0YWNrIGJhY2t0cmFjZToNCj4gWyAgIDkxLjUzOTcxMl0gQ1BVOiAwIFBJRDogNzUgQ29t
-bToga3dvcmtlci8wOjEgTm90IHRhaW50ZWQgMy4xNy4wLXJjMysgIzE1DQo+IFsgICA5MS41NDMw
-ODZdIEhhcmR3YXJlIG5hbWU6IEludGVsIENvcnBvcmF0aW9uIENIRVJSWVZJRVcgQTMgUExBVEZP
-Uk0vQnJhc3dlbGwgQ1JCLCBCSU9TIEJSQVNXRUwxLlg2NC4wMDM1LlIwMC4xNDA5MDQxMTExIDA5
-LzA0LzIwMTQNCj4gWyAgIDkxLjU0NjkzMF0gV29ya3F1ZXVlOiBrYWNwaV9ub3RpZnkgYWNwaV9v
-c19leGVjdXRlX2RlZmVycmVkDQo+IFsgICA5MS41NTA0MDVdICBmZmZmZmZmZjgyNjU2ZDQwIGZm
-ZmY4ODAwNzg4ODNiNjggZmZmZmZmZmY4MTdlNDRmZCBmZmZmZmZmZjgyNjU2YjkwDQo+IFsgICA5
-MS41NTQwOTZdICBmZmZmODgwMDc4ODgzYmE4IGZmZmZmZmZmODE3ZGZmMmEgZmZmZjg4MDA3ODg4
-M2MwMCBmZmZmODgwMDc4ODRlMjE4DQo+IFsgICA5MS41NTc4MDddICAwMDAwMDAwMDAwMDAwMDAy
-IDAwMDAwMDAwMDAwMDAwMDMgZmZmZjg4MDA3ODg0ZTIxOCBmZmZmODgwMDc4ODRkYTUwDQo+IFsg
-ICA5MS41NjE1MjRdIENhbGwgVHJhY2U6DQo+IFsgICA5MS41NjQ4MzNdICBbPGZmZmZmZmZmODE3
-ZTQ0ZmQ+XSBkdW1wX3N0YWNrKzB4NDUvMHg1Ng0KPiBbICAgOTEuNTY4MzUwXSAgWzxmZmZmZmZm
-ZjgxN2RmZjJhPl0gcHJpbnRfY2lyY3VsYXJfYnVnKzB4MjAwLzB4MjBmDQo+IFsgICA5MS41NzE5
-NDZdICBbPGZmZmZmZmZmODExMGMwYjA+XSBfX2xvY2tfYWNxdWlyZSsweDE3NjAvMHgxYTcwDQo+
-IFsgICA5MS41NzU1MjldICBbPGZmZmZmZmZmODExMGE0MmE+XSA/IG1hcmtfaGVsZF9sb2Nrcysw
-eDZhLzB4OTANCj4gWyAgIDkxLjU3OTEwMF0gIFs8ZmZmZmZmZmY4MTA4NTZmOT5dID8gZmxhdF9z
-ZW5kX0lQSV9hbGxidXRzZWxmKzB4ZTkvMHgxNDANCj4gWyAgIDkxLjU4Mjc0N10gIFs8ZmZmZmZm
-ZmY4MTEwY2JhND5dIGxvY2tfYWNxdWlyZSsweGE0LzB4MTIwDQo+IFsgICA5MS41ODYzMjNdICBb
-PGZmZmZmZmZmODEwYzMzMzQ+XSA/IGdldF9vbmxpbmVfY3B1cysweDI0LzB4NzANCj4gWyAgIDkx
-LjU4OTkyN10gIFs8ZmZmZmZmZmY4MTBjMzM1YT5dIGdldF9vbmxpbmVfY3B1cysweDRhLzB4NzAN
-Cj4gWyAgIDkxLjU5MzUyMF0gIFs8ZmZmZmZmZmY4MTBjMzMzND5dID8gZ2V0X29ubGluZV9jcHVz
-KzB4MjQvMHg3MA0KPiBbICAgOTEuNTk3MTI1XSAgWzxmZmZmZmZmZjgxNDhlYjEyPl0gYWNwaV9w
-cm9jZXNzb3JfY3N0X2hhc19jaGFuZ2VkKzB4NzMvMHgxN2QNCj4gWyAgIDkxLjYwMDg0MF0gIFs8
-ZmZmZmZmZmY4MTQ4Y2Q1ZT5dIGFjcGlfcHJvY2Vzc29yX25vdGlmeSsweDhhLzB4ZTINCj4gWyAg
-IDkxLjYwNDUwOF0gIFs8ZmZmZmZmZmY4MTQ3NDNmYj5dIGFjcGlfZXZfbm90aWZ5X2Rpc3BhdGNo
-KzB4NDQvMHg1Yw0KPiBbICAgOTEuNjA4MTg4XSAgWzxmZmZmZmZmZjgxNDYwMTlhPl0gYWNwaV9v
-c19leGVjdXRlX2RlZmVycmVkKzB4MTQvMHgyMA0KPiBbICAgOTEuNjExODU2XSAgWzxmZmZmZmZm
-ZjgxMGRiYTFmPl0gcHJvY2Vzc19vbmVfd29yaysweDFkZi8weDRkMA0KPiBbICAgOTEuNjE1NDk1
-XSAgWzxmZmZmZmZmZjgxMGRiOWJkPl0gPyBwcm9jZXNzX29uZV93b3JrKzB4MTdkLzB4NGQwDQo+
-IFsgICA5MS42MTkxMjFdICBbPGZmZmZmZmZmODEwZGJlMmI+XSB3b3JrZXJfdGhyZWFkKzB4MTFi
-LzB4NDkwDQo+IFsgICA5MS42MjI3MTNdICBbPGZmZmZmZmZmODEwZGJkMTA+XSA/IHByb2Nlc3Nf
-b25lX3dvcmsrMHg0ZDAvMHg0ZDANCj4gWyAgIDkxLjYyNjM0N10gIFs8ZmZmZmZmZmY4MTBlMTAw
-ZD5dIGt0aHJlYWQrMHhlZC8weDExMA0KPiBbICAgOTEuNjI5OTA3XSAgWzxmZmZmZmZmZjgxMGUw
-ZjIwPl0gPyBrdGhyZWFkX2NyZWF0ZV9vbl9ub2RlKzB4MjAwLzB4MjAwDQo+IFsgICA5MS42MzM2
-MDZdICBbPGZmZmZmZmZmODE3ZWUzN2M+XSByZXRfZnJvbV9mb3JrKzB4N2MvMHhiMA0KPiBbICAg
-OTEuNjM3MjM4XSAgWzxmZmZmZmZmZjgxMGUwZjIwPl0gPyBrdGhyZWFkX2NyZWF0ZV9vbl9ub2Rl
-KzB4MjAwLzB4MjAwDQo+IA0KPiBUaGlzIHBhdGNoIGlzIHRvIGNoYW5nZSB0aGUgc2VxdWVuY2Ug
-b2YgaG9sZGluZyBjcHUgaG90cGx1ZyBhbmQgY3B1IA0KPiBpZGxlIGxvY2sgaW4gdGhlIGFjcGlf
-cHJvY2Vzc29yX2NzdF9oYXNfY2hhbmdlZCgpIHRvIGF2b2lkIHRoZSBkZWFkIA0KPiBsb2NrLg0K
-PiANCj4gU2lnbmVkLW9mZi1ieTogTGFuIFRpYW55dSA8dGlhbnl1LmxhbkBpbnRlbC5jb20+DQo+
-IC0tLQ0KPiAgZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9pZGxlLmMgfCA1ICsrKy0tDQo+ICAxIGZp
-bGUgY2hhbmdlZCwgMyBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfaWRsZS5jIA0KPiBiL2RyaXZlcnMvYWNwaS9w
-cm9jZXNzb3JfaWRsZS5jIGluZGV4IDNkY2EzNmQuLjM4NWVjNWYgMTAwNjQ0DQo+IC0tLSBhL2Ry
-aXZlcnMvYWNwaS9wcm9jZXNzb3JfaWRsZS5jDQo+ICsrKyBiL2RyaXZlcnMvYWNwaS9wcm9jZXNz
-b3JfaWRsZS5jDQo+IEBAIC0xMDcxLDkgKzEwNzEsOSBAQCBpbnQgYWNwaV9wcm9jZXNzb3JfY3N0
-X2hhc19jaGFuZ2VkKHN0cnVjdCANCj4gYWNwaV9wcm9jZXNzb3IgKnByKQ0KPiAgDQo+ICAJaWYg
-KHByLT5pZCA9PSAwICYmIGNwdWlkbGVfZ2V0X2RyaXZlcigpID09ICZhY3BpX2lkbGVfZHJpdmVy
-KSB7DQo+ICANCj4gLQkJY3B1aWRsZV9wYXVzZV9hbmRfbG9jaygpOw0KPiAgCQkvKiBQcm90ZWN0
-IGFnYWluc3QgY3B1LWhvdHBsdWcgKi8NCj4gIAkJZ2V0X29ubGluZV9jcHVzKCk7DQo+ICsJCWNw
-dWlkbGVfcGF1c2VfYW5kX2xvY2soKTsNCj4gIA0KPiAgCQkvKiBEaXNhYmxlIGFsbCBjcHVpZGxl
-IGRldmljZXMgKi8NCj4gIAkJZm9yX2VhY2hfb25saW5lX2NwdShjcHUpIHsNCj4gQEAgLTExMDAs
-OCArMTEwMCw5IEBAIGludCBhY3BpX3Byb2Nlc3Nvcl9jc3RfaGFzX2NoYW5nZWQoc3RydWN0IGFj
-cGlfcHJvY2Vzc29yICpwcikNCj4gIAkJCQljcHVpZGxlX2VuYWJsZV9kZXZpY2UoZGV2KTsNCj4g
-IAkJCX0NCj4gIAkJfQ0KPiAtCQlwdXRfb25saW5lX2NwdXMoKTsNCj4gKw0KPiAgCQljcHVpZGxl
-X3Jlc3VtZV9hbmRfdW5sb2NrKCk7DQo+ICsJCXB1dF9vbmxpbmVfY3B1cygpOw0KPiAgCX0NCj4g
-IA0KPiAgCXJldHVybiAwOw0KPiANCg0KLS0NCkkgc3BlYWsgb25seSBmb3IgbXlzZWxmLg0KUmFm
-YWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLg0K
+On 2014=E5=B9=B409=E6=9C=8809=E6=97=A5 13:44, Jon Masters wrote:
+> On 09/09/2014 12:57 AM, Hanjun Guo wrote:
+>> Hi Jon,
+>>
+>> On 2014=E5=B9=B409=E6=9C=8809=E6=97=A5 12:23, Jon Masters wrote:
+>>> On 09/01/2014 10:57 AM, Hanjun Guo wrote:
+>>>> MADT contains the information for MPIDR which is essential for
+>>>> SMP initialization, parse the GIC cpu interface structures to
+>>>> get the MPIDR value and map it to cpu_logical_map(), and add
+>>>> enabled cpu with valid MPIDR into cpu_possible_map.
+>>>>
+>>>> ACPI 5.1 only has two explicit methods to boot up SMP, PSCI and
+>>>> Parking protocol, but the Parking protocol is only specified for
+>>>> ARMv7 now, so make PSCI as the only way for the SMP boot protocol
+>>>> before some updates for the ACPI spec or the Parking protocol spec=
+=2E
+>>>> +	/* CPU 0 was already initialized */
+>>>> +	if (cpu) {
+>>>> +		if (cpu_ops[cpu]->cpu_init(NULL, cpu))
+>>>> +			return -EOPNOTSUPP;
+>>>> +
+>>>> +		/* map the logical cpu id to cpu MPIDR */
+>>>> +		cpu_logical_map(cpu) =3D mpidr;
+>>> I'm not sure it's worth noting in a comment or just in the dialogue=
+ that
+>>> none of these MPIDR values is literally the value in the MPIDR. Lin=
+ux
+>>> doesn't store that anyway (even in the cpu_logical_map), since it i=
+s
+>>> pre-filtered against MPIDR_HWID_BITMASK to remove the non-affinity =
+level
+>>> bits. And since the ACPI5.1 specification requires that non-affinit=
+y
+>>> bits be zero everything works. But it relies upon this assumption s=
+o it
+>>> might be worth explicitly masking out the bits when making the call=
+ into:
+>>>
+>>>        acpi_map_gic_cpu_interface(processor->arm_mpidr,
+>>>                processor->flags & ACPI_MADT_ENABLED);
+>>>
+>>> During the parsing of the processor object's MPIDR value.
+>> Yes, I agree with you. When I tested this patch set on our
+>> ARM64 platform, I found this problem too. some firmware
+>> will just present the real MPIDR value to OS which some reserved
+>> bit set to 1, and it will lead to some logic problem in this patch.
+>> (actually firmware didn't obey with ACPI spec)
+>>
+>> I had updated the patch with:
+>>
+>> +	acpi_map_gic_cpu_interface(processor->arm_mpidr & MPIDR_HWID_BITMA=
+SK,
+>> +		processor->flags & ACPI_MADT_ENABLED);
+>>
+>> and then the problem was gone :)
+> Did I miss an updated patch posting then? It is possible...
+
+No, you didn't miss it, I'm still working on the new version, sorry I d=
+idn't
+clarify that in my previous email.
+
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
