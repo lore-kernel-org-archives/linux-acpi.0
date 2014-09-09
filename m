@@ -1,103 +1,113 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v3 09/17] ARM64 / ACPI: Parse MADT for SMP initialization
-Date: Wed, 10 Sep 2014 00:14:29 +0800
-Message-ID: <540F2765.7000705@linaro.org>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-10-git-send-email-hanjun.guo@linaro.org> <540E80BD.20801@redhat.com> <540E88A2.1000606@linaro.org> <540E93A0.4040306@redhat.com> <540F2422.90105@linaro.org> <540F24FF.2060302@redhat.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v3 02/17] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+Date: Tue, 9 Sep 2014 17:26:49 +0100
+Message-ID: <20140909162648.GE2910@arm.com>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
+ <1409583475-6978-3-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:53273 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753111AbaIIQPQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 12:15:16 -0400
-Received: by mail-pd0-f176.google.com with SMTP id y13so5573793pdi.35
-        for <linux-acpi@vger.kernel.org>; Tue, 09 Sep 2014 09:15:16 -0700 (PDT)
-In-Reply-To: <540F24FF.2060302@redhat.com>
+Received: from service87.mimecast.com ([91.220.42.44]:49092 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754112AbaIIQ07 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 12:26:59 -0400
+In-Reply-To: <1409583475-6978-3-git-send-email-hanjun.guo@linaro.org>
+Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>
+To: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 2014=E5=B9=B409=E6=9C=8810=E6=97=A5 00:04, Jon Masters wrote:
-> On 09/09/2014 12:00 PM, Hanjun Guo wrote:
->> On 2014=E5=B9=B409=E6=9C=8809=E6=97=A5 13:44, Jon Masters wrote:
->>> On 09/09/2014 12:57 AM, Hanjun Guo wrote:
->>>> Hi Jon,
->>>>
->>>> On 2014=E5=B9=B409=E6=9C=8809=E6=97=A5 12:23, Jon Masters wrote:
->>>>> On 09/01/2014 10:57 AM, Hanjun Guo wrote:
->>>>>> MADT contains the information for MPIDR which is essential for
->>>>>> SMP initialization, parse the GIC cpu interface structures to
->>>>>> get the MPIDR value and map it to cpu_logical_map(), and add
->>>>>> enabled cpu with valid MPIDR into cpu_possible_map.
->>>>>>
->>>>>> ACPI 5.1 only has two explicit methods to boot up SMP, PSCI and
->>>>>> Parking protocol, but the Parking protocol is only specified for
->>>>>> ARMv7 now, so make PSCI as the only way for the SMP boot protoco=
-l
->>>>>> before some updates for the ACPI spec or the Parking protocol sp=
-ec.
->>>>>> +	/* CPU 0 was already initialized */
->>>>>> +	if (cpu) {
->>>>>> +		if (cpu_ops[cpu]->cpu_init(NULL, cpu))
->>>>>> +			return -EOPNOTSUPP;
->>>>>> +
->>>>>> +		/* map the logical cpu id to cpu MPIDR */
->>>>>> +		cpu_logical_map(cpu) =3D mpidr;
->>>>> I'm not sure it's worth noting in a comment or just in the dialog=
-ue that
->>>>> none of these MPIDR values is literally the value in the MPIDR. L=
-inux
->>>>> doesn't store that anyway (even in the cpu_logical_map), since it=
- is
->>>>> pre-filtered against MPIDR_HWID_BITMASK to remove the non-affinit=
-y level
->>>>> bits. And since the ACPI5.1 specification requires that non-affin=
-ity
->>>>> bits be zero everything works. But it relies upon this assumption=
- so it
->>>>> might be worth explicitly masking out the bits when making the ca=
-ll into:
->>>>>
->>>>>        acpi_map_gic_cpu_interface(processor->arm_mpidr,
->>>>>                processor->flags & ACPI_MADT_ENABLED);
->>>>>
->>>>> During the parsing of the processor object's MPIDR value.
->>>> Yes, I agree with you. When I tested this patch set on our
->>>> ARM64 platform, I found this problem too. some firmware
->>>> will just present the real MPIDR value to OS which some reserved
->>>> bit set to 1, and it will lead to some logic problem in this patch=
-=2E
->>>> (actually firmware didn't obey with ACPI spec)
->>>>
->>>> I had updated the patch with:
->>>>
->>>> +	acpi_map_gic_cpu_interface(processor->arm_mpidr & MPIDR_HWID_BIT=
-MASK,
->>>> +		processor->flags & ACPI_MADT_ENABLED);
->>>>
->>>> and then the problem was gone :)
->>> Did I miss an updated patch posting then? It is possible...
->> No, you didn't miss it, I'm still working on the new version, sorry =
-I didn't
->> clarify that in my previous email.
-> Thanks. If you could copy me on the next posting that would rock.=20
+On Mon, Sep 01, 2014 at 03:57:40PM +0100, Hanjun Guo wrote:
+> diff --git a/arch/arm64/include/asm/acenv.h b/arch/arm64/include/asm/acenv.h
+> new file mode 100644
+> index 0000000..3899ee6
+> --- /dev/null
+> +++ b/arch/arm64/include/asm/acenv.h
+> @@ -0,0 +1,18 @@
+> +/*
+> + * ARM64 specific ACPICA environments and implementation
+> + *
+> + * Copyright (C) 2014, Linaro Ltd.
+> + *   Author: Hanjun Guo <hanjun.guo@linaro.org>
+> + *   Author: Graeme Gregory <graeme.gregory@linaro.org>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef _ASM_ACENV_H
+> +#define _ASM_ACENV_H
+> +
+> +#define ACPI_FLUSH_CPU_CACHE() WARN_ONCE(1, "Not currently supported on ARM64")
 
-Sure I will.
+Does this mean that it will be supported at some point? Looking at the
+places where this function is called, I don't really see how this would
+ever work on ARM. Which means that we add such macro just to be able to
+compile code that would never be used on arm64. I would rather see the
+relevant ACPI files only compiled on x86/IA-64 rather than arm64.
 
-> In a
-> few hours we should have another platform posted as an example. In
-> addition, a couple of lower priority patches (building upon the core
-> ACPI pieces) should be posted as well.
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> new file mode 100644
+> index 0000000..9252f72
+> --- /dev/null
+> +++ b/arch/arm64/kernel/acpi.c
 
-That will be great! :)
+[...]
 
-Thanks
-Hanjun
+> +/*
+> + * acpi_boot_table_init() called from setup_arch(), always.
+> + *	1. find RSDP and get its address, and then find XSDT
+> + *	2. extract all tables and checksums them all
+> + *
+> + * We can parse ACPI boot-time tables such as MADT after
+> + * this function is called.
+> + */
+> +void __init acpi_boot_table_init(void)
+> +{
+> +	/* If acpi_disabled, bail out */
+> +	if (acpi_disabled)
+> +		return;
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So at this point, there wouldn't be anything yet to set acpi_disabled to
+1, unless !CONFIG_ACPI.
+
+> +
+> +	/* Initialize the ACPI boot-time table parser. */
+> +	if (acpi_table_init())
+> +		disable_acpi();
+
+Do you need anything more to add to this function later? Otherwise, just
+call it in setup_arch() directly (maybe dependent on
+IS_ENABLED(CONFIG_ACPI) or just create an equivalent dummy
+acpi_table_init() when not configured).
+
+> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+> index c96172a..fb7cc0e 100644
+> --- a/arch/arm64/kernel/setup.c
+> +++ b/arch/arm64/kernel/setup.c
+> @@ -43,6 +43,7 @@
+>  #include <linux/of_fdt.h>
+>  #include <linux/of_platform.h>
+>  #include <linux/efi.h>
+> +#include <linux/acpi.h>
+>  
+>  #include <asm/fixmap.h>
+>  #include <asm/cpu.h>
+> @@ -385,6 +386,9 @@ void __init setup_arch(char **cmdline_p)
+>  	efi_init();
+>  	arm64_memblock_init();
+>  
+> +	/* Parse the ACPI tables for possible boot-time configuration */
+> +	acpi_boot_table_init();
+
+Is there any dummy acpi_boot_table_init() when !CONFIG_ACPI? I couldn't
+see one in this patch, so I don't see how this would compile when ACPI
+is disabled.
+
+-- 
+Catalin
+
