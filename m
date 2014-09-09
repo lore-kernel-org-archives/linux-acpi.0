@@ -1,35 +1,62 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [RFC PATCH for Juno 0/2] Drivers for Juno to boot from ACPI
-Date: Tue, 09 Sep 2014 02:55:02 -0400
-Message-ID: <540EA446.7010200@redhat.com>
-References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org> <353732273.2TKdyNJ83M@wuerfel>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v3 2/9] PM / Domains: Add generic OF-based PM domain look-up
+Date: Tue, 9 Sep 2014 09:04:57 +0200
+Message-ID: <CAPDyKFok8oE2S0BQg1mwikFjyQ+VH9GevCYXTgG68z+5MW+W6Q@mail.gmail.com>
+References: <1409838756-31963-1-git-send-email-ulf.hansson@linaro.org>
+	<3075771.rIWPm62y5x@vostro.rjw.lan>
+	<CAPDyKFovLmajQORVT1Mf01J5L7O73JNDFz=gr3fXKvF5xZGCdQ@mail.gmail.com>
+	<5191943.peyCs6gZVs@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62768 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752434AbaIIG4X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Sep 2014 02:56:23 -0400
-In-Reply-To: <353732273.2TKdyNJ83M@wuerfel>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <5191943.peyCs6gZVs@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Rob Herring <robh+dt@kernel.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dre>
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.or
 
-On 09/01/2014 11:29 AM, Arnd Bergmann wrote:
-> On Monday 01 September 2014 23:05:59 Hanjun Guo wrote:
->> This patch set is example of the sort of driver changes needed to boot
->> Juno using ACPI tables, which using the ACPI tables devloped for MS
->> Windows and published by ARM [1].
-> 
-> What about platform support?
+On 8 September 2014 23:04, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Monday, September 08, 2014 09:26:20 AM Ulf Hansson wrote:
+>> On 8 September 2014 00:13, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> > On Thursday, September 04, 2014 03:52:29 PM Ulf Hansson wrote:
+>> >> From: Tomasz Figa <t.figa@samsung.com>
+>> >>
+>> >> This patch introduces generic code to perform PM domain look-up using
+>> >> device tree and automatically bind devices to their PM domains.
+>> >>
+>> >> Generic device tree bindings are introduced to specify PM domains of
+>> >> devices in their device tree nodes.
+>> >>
+>> >> Backwards compatibility with legacy Samsung-specific PM domain bindings
+>> >> is provided, but for now the new code is not compiled when
+>> >> CONFIG_ARCH_EXYNOS is selected to avoid collision with legacy code.
+>> >> This will change as soon as the Exynos PM domain code gets converted to
+>> >> use the generic framework in further patch.
+>> >>
+>> >> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+>> >> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+>> >> [Ulf:Added attach|detach functions, fixed review comments]
+>> >> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+>> >
+>> > However, for this one (and consequently the rest) I need an ACK from the
+>> > people who maintain the bindings.
+>>
+>> These DT bindings have been discussed between Tomasz and devicetree
+>> maintainers previously. So I think there are fine.
+>>
+>> Also, when browsing the mail-archives, I found an ack from Rob Herrring:
+>> http://lists.infradead.org/pipermail/linux-arm-kernel/2014-March/237989.html
+>>
+>> I realize that I didn't put the DT maintainers on the to-line when
+>> posting this patch, but just the devicetree list. I have now included
+>> them on this reply, but maybe I should repost instead. What do you
+>> think? Are you happy with the above ack from Rob?
+>
+> That should be sufficient, but I wonder why you didn't add it to the patch
+> to start with?
 
-I think Juno is just serving as an example here since it's from ARM and
-thus various people have access to it already, etc. It's not the best
-example of a server platform out there, since that wasn't its original
-design purpose (but it's a wonderful platform nonetheless). There is
-work currently in flight to offer other reference ACPI examples.
+I didn't remember it being formally acked, until I decided to browsed
+the mail archives in detail. Sorry about that.
 
-Jon.
-
+Kind regards
+Uffe
