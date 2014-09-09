@@ -1,64 +1,43 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [PATCH v3 09/17] ARM64 / ACPI: Parse MADT for SMP initialization
-Date: Tue, 9 Sep 2014 11:46:49 +0100
-Message-ID: <20140909104649.GJ6558@xora-haswell.xora.org.uk>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
- <1409583475-6978-10-git-send-email-hanjun.guo@linaro.org>
- <20140903172138.GG1824@e102568-lin.cambridge.arm.com>
- <5408854B.9010703@linaro.org>
- <540E7A4C.7050401@redhat.com>
- <20140909102256.GB27786@leverpostej>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH for Juno 0/2] Drivers for Juno to boot from ACPI
+Date: Tue, 09 Sep 2014 12:55:09 +0200
+Message-ID: <3840839.IPB3Ru8Evk@wuerfel>
+References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org> <353732273.2TKdyNJ83M@wuerfel> <540EA446.7010200@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.xora.org.uk ([80.68.91.202]:38032 "EHLO
-	xora.vm.bytemark.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752828AbaIIKqy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 06:46:54 -0400
-Content-Disposition: inline
-In-Reply-To: <20140909102256.GB27786@leverpostej>
+Received: from mout.kundenserver.de ([212.227.126.130]:49830 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932200AbaIIKzd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 06:55:33 -0400
+In-Reply-To: <540EA446.7010200@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Jon Masters <jcm@redhat.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>Charles Garcia-Tobin <C>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Jon Masters <jcm@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, linux-kernel@vger.kernel.or, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sudeep Holla <Sudeep.Holla@arm.com>, Olo
 
-On Tue, Sep 09, 2014 at 11:22:56AM +0100, Mark Rutland wrote:
-> On Tue, Sep 09, 2014 at 04:55:56AM +0100, Jon Masters wrote:
-> > Hi Hanjun, Lorenzo,
+On Tuesday 09 September 2014 02:55:02 Jon Masters wrote:
+> On 09/01/2014 11:29 AM, Arnd Bergmann wrote:
+> > On Monday 01 September 2014 23:05:59 Hanjun Guo wrote:
+> >> This patch set is example of the sort of driver changes needed to boot
+> >> Juno using ACPI tables, which using the ACPI tables devloped for MS
+> >> Windows and published by ARM [1].
 > > 
-> > On 09/04/2014 11:29 AM, Hanjun Guo wrote:
-> > 
-> > > Hi Lorenzo,
-> > 
-> > >>> +	} else {
-> > >>> +		/* Fist GICC entry must be BSP as ACPI spec said */
-> > >> s/Fist/First/
-> > >>
-> > >>> +		if  (cpu_logical_map(0) != mpidr) {
-> > >>> +			pr_err("First GICC entry is not BSP for MPIDR 0x%llx\n",
-> > >>> +			       mpidr);
-> > >>> +			return -EINVAL;
-> > >>> +		}
-> > >> Interesting, this means that if I want to change the boot CPU I have to
-> > >> recompile the ACPI tables. Is that really true ?
-> > 
-> > Well, the ACPI5.1 specification does require that the PEs (cores) be
-> > listed in a very specific order, with the boot CPU first, and then a
-> > precisely defined sequence of interleaving of any possible SMT threads
-> > with other cores. So I think you would in practice update your tables.
+> > What about platform support?
 > 
-> That'll be fun if we ever want to do a kexec from a CPU other than the
-> BSP (where logical CPU0 may be arbitrary), but perhaps that's
-> inadvisable for other reasons?
-> 
-> Regardless, we should make a lot of noise if the spec says one thing and
-> the platform does another. Is there any other way of distinguishing the
-> BSP from the APs?
-> 
+> I think Juno is just serving as an example here since it's from ARM and
+> thus various people have access to it already, etc. It's not the best
+> example of a server platform out there, since that wasn't its original
+> design purpose (but it's a wonderful platform nonetheless). There is
+> work currently in flight to offer other reference ACPI examples.
 
-The x86 guys already found this and there is a work around in the
-kernel. One of the patches that was acepted for 3.17 was my fix for the
-workaround to make it not x86 specific.
+Ok, I see. This is a bit disappointing because it's actually the third
+attempt to come up with a reference platform (after Exynos and X-Gene),
+and it always seems to come down to deciding that this particular
+platform doesn't really work with ACPI beyond basic booting.
 
-Graeme
+Which platform(s) are you talking about? Are you sure it will be better
+suited than the first three?
 
+	Arnd
