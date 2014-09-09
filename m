@@ -1,67 +1,77 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v3 02/17] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
-Date: Tue, 9 Sep 2014 17:54:45 +0100
-Message-ID: <20140909165445.GC3896@leverpostej>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
- <1409583475-6978-3-git-send-email-hanjun.guo@linaro.org>
- <20140909162648.GE2910@arm.com>
+From: Jon Masters <jcm@redhat.com>
+Subject: Re: [PATCH v3 09/17] ARM64 / ACPI: Parse MADT for SMP initialization
+Date: Tue, 09 Sep 2014 13:00:51 -0400
+Message-ID: <540F3243.2010302@redhat.com>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-10-git-send-email-hanjun.guo@linaro.org> <20140903172138.GG1824@e102568-lin.cambridge.arm.com> <5408854B.9010703@linaro.org> <20140909165226.GD4948@e102568-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:46806 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753967AbaIIQyt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 12:54:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20140909162648.GE2910@arm.com>
+Received: from mx1.redhat.com ([209.132.183.28]:26536 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754492AbaIIRCJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Sep 2014 13:02:09 -0400
+In-Reply-To: <20140909165226.GD4948@e102568-lin.cambridge.arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <Catalin.Marinas@arm.com>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vge>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Sep 09, 2014 at 05:26:49PM +0100, Catalin Marinas wrote:
-> On Mon, Sep 01, 2014 at 03:57:40PM +0100, Hanjun Guo wrote:
-> > diff --git a/arch/arm64/include/asm/acenv.h b/arch/arm64/include/asm/acenv.h
-> > new file mode 100644
-> > index 0000000..3899ee6
-> > --- /dev/null
-> > +++ b/arch/arm64/include/asm/acenv.h
-> > @@ -0,0 +1,18 @@
-> > +/*
-> > + * ARM64 specific ACPICA environments and implementation
-> > + *
-> > + * Copyright (C) 2014, Linaro Ltd.
-> > + *   Author: Hanjun Guo <hanjun.guo@linaro.org>
-> > + *   Author: Graeme Gregory <graeme.gregory@linaro.org>
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#ifndef _ASM_ACENV_H
-> > +#define _ASM_ACENV_H
-> > +
-> > +#define ACPI_FLUSH_CPU_CACHE() WARN_ONCE(1, "Not currently supported on ARM64")
+On 09/09/2014 12:52 PM, Lorenzo Pieralisi wrote:
+> On Thu, Sep 04, 2014 at 04:29:15PM +0100, Hanjun Guo wrote:
+>> Hi Lorenzo,
+
+>>>> +	if (!enabled)
+>>>> +		return -EINVAL;
+>>>> +
+>>>> +	if (enabled_cpus >=  NR_CPUS) {
+>>>> +		pr_warn("NR_CPUS limit of %d reached, Processor %d/0x%llx ignored.\n",
+>>>> +			NR_CPUS, total_cpus, mpidr);
+>>>> +		return -EINVAL;
+>>>> +	}
+>>>> +
+>>>> +	/* No need to check duplicate MPIDRs for the first CPU */
+>>>> +	if (enabled_cpus) {
+>>>> +		/*
+>>>> +		 * Duplicate MPIDRs are a recipe for disaster. Scan
+>>>> +		 * all initialized entries and check for
+>>>> +		 * duplicates. If any is found just ignore the CPU.
+>>>> +		 */
+>>>> +		for_each_possible_cpu(cpu) {
+>>>> +			if (cpu_logical_map(cpu) == mpidr) {
+>>>> +				pr_err("Firmware bug, duplicate CPU MPIDR: 0x%llx in MADT\n",
+>>>> +				mpidr);
+>>>> +				return -EINVAL;
+>>>> +			}
+>>>> +		}
+>>>> +	} else {
+>>>> +		/* Fist GICC entry must be BSP as ACPI spec said */
+>>> s/Fist/First/
+>>>
+>>>> +		if  (cpu_logical_map(0) != mpidr) {
+>>>> +			pr_err("First GICC entry is not BSP for MPIDR 0x%llx\n",
+>>>> +			       mpidr);
+>>>> +			return -EINVAL;
+>>>> +		}
+>>> Interesting, this means that if I want to change the boot CPU I have to
+>>> recompile the ACPI tables. Is that really true ?
+>>
+>> No, you needn't. there is a logic problem here, we just need to print
+>> some message here and continue, OS will still ok with that.
 > 
-> Does this mean that it will be supported at some point?
+> I need to look at the specs here. I do not like fixed dependencies on
+> the boot CPU, which risk being translated in dependencies on first/last
+> CPU going-to/getting-out-of idle and that is a major concern, among
+> others.
 
->From what I recall it's impossible to support as we have no equivalent
-of WBINVD -- the possibility migration of dirty cache lines renders it
-impossible to guarantee that the caches remain empty (or that data even
-left the local caches in the first place).
+See page 149 of the ACPI5.1 specification document (5.2.12.14 GICC
+Structure):
 
-> Looking at the places where this function is called, I don't really
-> see how this would ever work on ARM. Which means that we add such
-> macro just to be able to compile code that would never be used on
-> arm64. I would rather see the relevant ACPI files only compiled on
-> x86/IA-64 rather than arm64.
+"Note: GICC descriptor structures are listed immediately after the Flags
+field in the MADT, one descriptor for each GICC, followed by one for
+each GICC Distributor. The Local GICC corresponding to the boot
+processor must be the first entry in the Interrupt Controller Structure
+list."
 
-Agreed.
+Jon.
 
-It looks like include/acpi/platform/acenv.h defines an empty
-ACPI_FLUSH_CPU_CACHE() stub, so something else should probably be done
-to turn the use of ACPI_FLUSH_CPU_CACHE() into a build-time bug on
-arm64.
-
-Mark.
