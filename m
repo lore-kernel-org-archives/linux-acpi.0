@@ -1,109 +1,41 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH v3 09/17] ARM64 / ACPI: Parse MADT for SMP initialization
-Date: Tue, 09 Sep 2014 01:34:45 -0400
-Message-ID: <540E9175.1070807@redhat.com>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-10-git-send-email-hanjun.guo@linaro.org> <20140903172138.GG1824@e102568-lin.cambridge.arm.com> <5408854B.9010703@linaro.org> <540E8212.8090304@redhat.com> <540E8C1F.5060802@linaro.org>
+From: "Fu, Zhonghui" <zhonghui.fu@linux.intel.com>
+Subject: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS
+ devices
+Date: Tue, 09 Sep 2014 13:36:48 +0800
+Message-ID: <540E91F0.2060306@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13335 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750827AbaIIFf7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Sep 2014 01:35:59 -0400
-In-Reply-To: <540E8C1F.5060802@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linux-acpi@
 
-On 09/09/2014 01:11 AM, Hanjun Guo wrote:
-> On 2014=E5=B9=B409=E6=9C=8809=E6=97=A5 12:29, Jon Masters wrote:
->> Hi Hanjun, Lorenzo,
->=20
-> Hi Jon,
->=20
->>
->> Resending due to my mail client removing list CCs...sorry about that=
-=2E
->>
->> On 09/04/2014 11:29 AM, Hanjun Guo wrote:
->>
->>>>> +	} else {
->>>>> +		/* Fist GICC entry must be BSP as ACPI spec said */
->>>> s/Fist/First/
->>>>
->>>>> +		if  (cpu_logical_map(0) !=3D mpidr) {
->>>>> +			pr_err("First GICC entry is not BSP for MPIDR 0x%llx\n",
->>>>> +			       mpidr);
->>>>> +			return -EINVAL;
->>>>> +		}
->>>> Interesting, this means that if I want to change the boot CPU I ha=
-ve to
->>>> recompile the ACPI tables. Is that really true ?
->> Well, the ACPI5.1 specification does require that the PEs (cores) be
->> listed in a very specific order, with the boot CPU first, and then a
->> precisely defined sequence of interleaving of any possible SMT threa=
-ds
->> with other cores. So I think you would in practice update your table=
-s.
->=20
-> Thanks for the clarify.
+>From 6deb00230f5df68da3ca7490402a0c537bf386bb Mon Sep 17 00:00:00 2001
+From: Fu Zhonghui <zhonghui.fu@linux.intel.com>
+Date: Tue, 9 Sep 2014 13:02:25 +0800
+Subject: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS devices
 
-No problem :) I'm trying to go through the various threads and ensure
-various things are documented in the record. I'm skipping (for now)
-notes on e.g. CPU cache flush behavior because we're not pushing for C3
-support (or really any runtime power management) in the first round.
+LPSS devices must suspend/resume in fixed order. Or some LPSS devices
+will hang during the transition to ACPI_STATE_D0 state.
 
->>
->>>>> +	/*
->>>>> +	 * ACPI 5.1 only has two explicit methods to boot up SMP,
->>>>> +	 * PSCI and Parking protocol, but the Parking protocol is
->>>>> +	 * only specified for ARMv7 now, so make PSCI as the only
->>>>> +	 * way for the SMP boot protocol before some updates for
->>>>> +	 * the ACPI spec or the Parking protocol spec.
->>>>> +	 */
->> The Parking Protocol may be updated for a (limited) number of platfo=
-rms
->> that may use it in the early days. The preferred option (as describe=
-d in
->> the SBBR) is to use PSCI when at all possible. Some implementations =
-of
->> the architecture may not be able to use PSCI for MP-Boot. Thus while
->> there may be some limited early use of the parking protocol (includi=
-ng
->> while PSCI firmware is being finalized during bringup activities), i=
-t
->> will ultimately be completely replaced by PSCI based boot over time.
->=20
-> Thank you for the clarify again :)
->=20
-> Will Parking Protocol be upstreamed?
+Signed-off-by: Li Aubrey <aubrey.li@linux.intel.com>
+Signed-off-by: Fu Zhonghui <zhonghui.fu@linux.intel.com>
+---
+ drivers/acpi/acpi_lpss.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Yes, a version against v8 will be posted (perhaps in the next few days)=
-,
-but we should not wait for it in this general discussion. The default i=
-n
-v8 will be PSCI other than for early bringup, or for an architecture
-implementation that cannot use PSCI, which is rare.
-
-(When we wrote the SBBR we had many discussions about this. A goal is t=
-o
-be fair to everyone - those rare instances where PSCI is not possible
-must be covered by a specification, but there must be a strong
-preference established for a preferred course over the longer term)
-
-> If yes, I think we can update the
-> comments when Parking Protocol driver upstreamed.
-
-Indeed so. For the moment, the logic you have in your patch to fail
-setup in the case that there is no defined PSCI cpu ops for the
-associated processor is fine IMHO.
-
-Jon.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index fddc1e8..54e5c97 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -419,7 +419,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 	adev->driver_data = pdata;
+ 	pdev = acpi_create_platform_device(adev);
+ 	if (!IS_ERR_OR_NULL(pdev)) {
+-		device_enable_async_suspend(&pdev->dev);
++		device_disable_async_suspend(&pdev->dev);
+ 		return 1;
+ 	}
+ 
+-- 1.7.1
