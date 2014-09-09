@@ -1,42 +1,35 @@
 From: Jon Masters <jcm@redhat.com>
-Subject: Re: [Linaro-acpi] [RFC PATCH for Juno 1/2] net: smsc911x add support
- for probing from ACPI
-Date: Tue, 09 Sep 2014 02:51:42 -0400
-Message-ID: <540EA37E.6040005@redhat.com>
-References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org> <20140902162606.GX29327@sirena.org.uk> <2913007.3xRNb2X4ts@vostro.rjw.lan> <4569324.eR9S3K10NB@wuerfel>
+Subject: Re: [RFC PATCH for Juno 0/2] Drivers for Juno to boot from ACPI
+Date: Tue, 09 Sep 2014 02:55:02 -0400
+Message-ID: <540EA446.7010200@redhat.com>
+References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org> <353732273.2TKdyNJ83M@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:2593 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:62768 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755523AbaIIGxA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Sep 2014 02:53:00 -0400
-In-Reply-To: <4569324.eR9S3K10NB@wuerfel>
+	id S1752434AbaIIG4X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Sep 2014 02:56:23 -0400
+In-Reply-To: <353732273.2TKdyNJ83M@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, linaro-acpi@lists.linaro.org, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Darren Hart <dvhart@linux.intel.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Robert Moore <robert.moore@intel.com>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Olof Johansson <olof@lixom.net>, Graeme Gregory <gg@slimlogic.co.uk>
+To: Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.or
 
-Hi Arnd,
-
-On 09/03/2014 11:09 AM, Arnd Bergmann wrote:
-> On Wednesday 03 September 2014 01:00:23 Rafael J. Wysocki wrote:
-
->> Our intention is specifically not to use "random incompatible bindings"
->> in that.  We'd rather have a common venue and process for establishing
->> new bindings for both DT and _DSD in a compatible way.
+On 09/01/2014 11:29 AM, Arnd Bergmann wrote:
+> On Monday 01 September 2014 23:05:59 Hanjun Guo wrote:
+>> This patch set is example of the sort of driver changes needed to boot
+>> Juno using ACPI tables, which using the ACPI tables devloped for MS
+>> Windows and published by ARM [1].
 > 
-> Right, I think everyone is on the same page for the embedded x86 case,
-> my point was that there is no consensus about that yet among the
-> parties involved in arm64 servers.
+> What about platform support?
 
-However, in the case of MAC devices where you might need to specify just
-a couple of properties using _DSD, a specific set of discussions has
-been instigated. As you mentioned, though, this pertains only to certain
-devices and isn't necessarily true for every Ethernet device.
-Consequently, while a Juno PoC patch might use a kludge today, that
-doesn't mean it's a limitation of ACPI, just of certain devices.
+I think Juno is just serving as an example here since it's from ARM and
+thus various people have access to it already, etc. It's not the best
+example of a server platform out there, since that wasn't its original
+design purpose (but it's a wonderful platform nonetheless). There is
+work currently in flight to offer other reference ACPI examples.
 
 Jon.
 
