@@ -1,46 +1,60 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v4 0/9] PM / Domains: Generic OF-based support
-Date: Tue, 9 Sep 2014 14:45:52 +0200
-Message-ID: <CAPDyKFr8OM3k0iJROvFOPN=UG=XfwJ7HBu1Yms8Yo=0C0fvW0A@mail.gmail.com>
-References: <1409838756-31963-1-git-send-email-ulf.hansson@linaro.org>
-	<1410262570-22785-1-git-send-email-ulf.hansson@linaro.org>
-	<20140909115446.GW2601@sirena.org.uk>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS devices
+Date: Tue, 09 Sep 2014 15:17:23 +0200
+Message-ID: <74255682.ogZlaWiZ0J@vostro.rjw.lan>
+References: <540E91F0.2060306@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f173.google.com ([209.85.216.173]:43203 "EHLO
-	mail-qc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756564AbaIIMpx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 08:45:53 -0400
-Received: by mail-qc0-f173.google.com with SMTP id w7so17131329qcr.18
-        for <linux-acpi@vger.kernel.org>; Tue, 09 Sep 2014 05:45:52 -0700 (PDT)
-In-Reply-To: <20140909115446.GW2601@sirena.org.uk>
+Received: from v094114.home.net.pl ([79.96.170.134]:57692 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751192AbaIIM54 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 08:57:56 -0400
+In-Reply-To: <540E91F0.2060306@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>
+To: "Fu, Zhonghui" <zhonghui.fu@linux.intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 9 September 2014 13:54, Mark Brown <broonie@kernel.org> wrote:
-> On Tue, Sep 09, 2014 at 01:36:01PM +0200, Ulf Hansson wrote:
->> Changes in v4:
->>       - Rebased patch "PM / Domains: Add generic OF-based PM domain look-up" -
->>         and updated the author and the commit message.
->>       - Adopted review comments for "PM / Domains: Add APIs to attach/detach
->>         a PM domain for a device".
->>       - Updated author and commit message for "ARM: exynos: Move to generic
->>         PM domain DT bindings".
->>       - Added some acks and reviewed by tags.
->>       - Started to use the "--in-reply-to" option to git-send-email. It should
->>         provide the option to show a better diffstat per patch.
->
-> Please don't send serieses in reply to earlier versions, it buries
-> things in the middle of old discussions which can mean they don't get
-> noticed, especially when you're sending multiple large patch serieses at
-> the same time.
+On Tuesday, September 09, 2014 01:36:48 PM Fu, Zhonghui wrote:
+> From 6deb00230f5df68da3ca7490402a0c537bf386bb Mon Sep 17 00:00:00 2001
+> From: Fu Zhonghui <zhonghui.fu@linux.intel.com>
+> Date: Tue, 9 Sep 2014 13:02:25 +0800
+> Subject: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS devices
+> 
+> LPSS devices must suspend/resume in fixed order. Or some LPSS devices
+> will hang during the transition to ACPI_STATE_D0 state.
+> 
+> Signed-off-by: Li Aubrey <aubrey.li@linux.intel.com>
+> Signed-off-by: Fu Zhonghui <zhonghui.fu@linux.intel.com>
+> ---
+>  drivers/acpi/acpi_lpss.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index fddc1e8..54e5c97 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -419,7 +419,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+>  	adev->driver_data = pdata;
+>  	pdev = acpi_create_platform_device(adev);
+>  	if (!IS_ERR_OR_NULL(pdev)) {
+> -		device_enable_async_suspend(&pdev->dev);
+> +		device_disable_async_suspend(&pdev->dev);
 
-Sorry, I just thought that it simplified life in this particular case. :-)
+Removing the "enable" line should be sufficient for that.  Isn't it?
 
-If additional versions needs to be posted I will follow your advise. Thanks!
+>  		return 1;
+>  	}
+>  
+> -- 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Kind regards
-Uffe
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
