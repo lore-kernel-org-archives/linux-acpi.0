@@ -1,149 +1,102 @@
 From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch v4 05/16] ACPI: Add interfaces to parse IOAPIC ID for
- IOAPIC hotplug
-Date: Tue, 9 Sep 2014 12:54:55 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1409091248090.11037@nanos>
-References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com> <1409192561-19744-6-git-send-email-jiang.liu@linux.intel.com>
+Subject: Re: [Patch v4 07/16] x86, irq: Prefer assigned ID in APIC ID register
+ for x86_64
+Date: Tue, 9 Sep 2014 13:04:51 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1409091256270.11037@nanos>
+References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com> <1409192561-19744-8-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:51673 "EHLO
+Received: from www.linutronix.de ([62.245.132.108]:51767 "EHLO
 	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932200AbaIIKzj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 06:55:39 -0400
-In-Reply-To: <1409192561-19744-6-git-send-email-jiang.liu@linux.intel.com>
+	with ESMTP id S1752992AbaIILFV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 07:05:21 -0400
+In-Reply-To: <1409192561-19744-8-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Prarit Bhargava <prarit@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Ingo Molnar <mingo@kernel.org>
 
 On Thu, 28 Aug 2014, Jiang Liu wrote:
->  
-> +static struct acpi_table_madt *madt;
-> +static int read_madt;
 
-Pretty lousy file visible variable names.
-
-So we end up with two copies of the butt ugly 
-
-   if (!read_madt) {
-      .....
-   }
-
-stuff instead of creating a helper function which hides that and do
-
-      madr = get_madt();
-      if (!madt)
-		return ...;
-
-at the call sites.
-
->  static int map_lapic_id(struct acpi_subtable_header *entry,
->  		 u32 acpi_id, int *apic_id)
->  {
-> @@ -64,8 +71,6 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
->  static int map_madt_entry(int type, u32 acpi_id)
->  {
->  	unsigned long madt_end, entry;
-> -	static struct acpi_table_madt *madt;
-> -	static int read_madt;
->  	int apic_id = -1;
->  
->  	if (!read_madt) {
-> @@ -200,3 +205,90 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
->  	return acpi_map_cpuid(apic_id, acpi_id);
+> From: Yinghai Lu <yinghai@kernel.org>
+> 
+> Perfer the assigned ID in APIC ID register for x86_64 if it's still
+> available.
+> 
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Cc: Joerg Roedel <joro@8bytes.org>
+> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  arch/x86/kernel/apic/io_apic.c |   38 +++++++++++++++++++++++++++++++++-----
+>  1 file changed, 33 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+> index 3faf9599ff29..196d9c15fdec 100644
+> --- a/arch/x86/kernel/apic/io_apic.c
+> +++ b/arch/x86/kernel/apic/io_apic.c
+> @@ -3575,26 +3575,54 @@ static int __init io_apic_get_unique_id(int ioapic, int apic_id)
+>  	return apic_id;
 >  }
->  EXPORT_SYMBOL_GPL(acpi_get_cpuid);
+>  
+> -static u8 __init io_apic_unique_id(u8 id)
+> +static u8 io_apic_unique_id(int idx, u8 id)
+
+How is that change related to the changelog?
+
+>  {
+>  	if ((boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) &&
+>  	    !APIC_XAPIC(apic_version[boot_cpu_physical_apicid]))
+> -		return io_apic_get_unique_id(nr_ioapics, id);
+> +		return io_apic_get_unique_id(idx, id);
+>  	else
+>  		return id;
+>  }
+>  #else
+> -static u8 __init io_apic_unique_id(u8 id)
+> +static u8 io_apic_unique_id(int idx, u8 id)
+>  {
+>  	int i;
+> +	u8 new_id;
+> +	unsigned long flags;
+>  	DECLARE_BITMAP(used, 256);
+> +	union IO_APIC_reg_00 reg_00;
+>  
+>  	bitmap_zero(used, 256);
+>  	for_each_ioapic(i)
+>  		__set_bit(mpc_ioapic_id(i), used);
+>  	if (!test_bit(id, used))
+>  		return id;
+> -	return find_first_zero_bit(used, 256);
 > +
-> +#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
-> +static int map_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
-> +			 u64 *phys_addr, int *ioapic_id)
-> +{
-> +	struct acpi_madt_io_apic *ioapic = (struct acpi_madt_io_apic *)entry;
-> +
-> +	if (ioapic->global_irq_base != gsi_base)
-> +		return 0;
-> +
-> +	*phys_addr = ioapic->address;
-> +	*ioapic_id = ioapic->id;
-> +	return 1;
-> +}
-> +
-> +static int map_madt_ioapic_entry(u32 gsi_base, u64 *phys_addr)
-> +{
-> +	struct acpi_subtable_header *hdr;
-> +	unsigned long madt_end, entry;
-> +	int apic_id = -1;
-> +
-> +	if (!read_madt) {
-> +		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
-> +					(struct acpi_table_header **)&madt)))
-> +			madt = NULL;
-> +		read_madt++;
+> +	/* check register at first */
+> +	raw_spin_lock_irqsave(&ioapic_lock, flags);
+> +	reg_00.raw = io_apic_read(idx, 0);
+> +	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
+> +	new_id = reg_00.bits.ID;
+> +	if (!test_bit(new_id, used)) {
+> +		apic_printk(APIC_VERBOSE, KERN_INFO
+> +			"IOAPIC[%d]: Using reg apic_id %d instead of %d\n",
+> +			 idx, new_id, id);
+> +		return new_id;
 > +	}
 > +
-> +	if (!madt)
-> +		return apic_id;
+> +	new_id = find_first_zero_bit(used, 256);
+> +	reg_00.bits.ID = new_id;
+> +	raw_spin_lock_irqsave(&ioapic_lock, flags);
+> +	io_apic_write(idx, 0, reg_00.raw);
+> +	reg_00.raw = io_apic_read(idx, 0);
+> +	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
 > +
-> +	entry = (unsigned long)madt;
-> +	madt_end = entry + madt->header.length;
-> +
-> +	/* Parse all entries looking for a match. */
-> +	entry += sizeof(struct acpi_table_madt);
-> +	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
-> +		hdr = (struct acpi_subtable_header *)entry;
-> +		if (hdr->type == ACPI_MADT_TYPE_IO_APIC &&
-> +		    map_ioapic_id(hdr, gsi_base, phys_addr, &apic_id))
-> +			break;
-> +		else
-> +			entry += hdr->length;
-> +	}
-> +
-> +	return apic_id;
-> +}
-> +
-> +static int map_mat_ioapic_entry(acpi_handle handle, u32 gsi_base,
-> +				u64 *phys_addr)
-> +{
-> +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-> +	union acpi_object *obj;
-> +	struct acpi_subtable_header *header;
-> +	int apic_id = -1;
-> +
-> +	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
-> +		goto exit;
-> +
-> +	if (!buffer.length || !buffer.pointer)
-> +		goto exit;
-> +
-> +	obj = buffer.pointer;
-> +	if (obj->type != ACPI_TYPE_BUFFER ||
-> +	    obj->buffer.length < sizeof(struct acpi_subtable_header))
-> +		goto exit;
-> +
-> +	header = (struct acpi_subtable_header *)obj->buffer.pointer;
-> +	if (header->type == ACPI_MADT_TYPE_IO_APIC)
-> +		map_ioapic_id(header, gsi_base, phys_addr, &apic_id);
-> +
-> +exit:
-> +	kfree(buffer.pointer);
-> +	return apic_id;
-> +}
+> +	/* Sanity check */
+> +	if (reg_00.bits.ID != new_id)
+> +		pr_warn("IOAPIC[%d]: Unable to change apic_id to %d!\n",
+> +			idx, new_id);
 
-
-This stuff really wants proper documentation. The lack of comments is
-just annoying.
-
-> +int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr)
-> +{
-> +	int apic_id;
-> +
-> +	apic_id = map_mat_ioapic_entry(handle, gsi_base, phys_addr);
-> +	if (apic_id == -1)
-> +		apic_id = map_madt_ioapic_entry(gsi_base, phys_addr);
-> +
-> +	return apic_id;
-> +}
+So we detect, that the ID could not be changed and we return it
+nevertheless?
 
 Thanks,
 
