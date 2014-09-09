@@ -1,103 +1,118 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch v4 07/16] x86, irq: Prefer assigned ID in APIC ID register
- for x86_64
-Date: Tue, 9 Sep 2014 13:04:51 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1409091256270.11037@nanos>
-References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com> <1409192561-19744-8-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:51767 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752992AbaIILFV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 07:05:21 -0400
-In-Reply-To: <1409192561-19744-8-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH v4 0/9] PM / Domains: Generic OF-based support
+Date: Tue,  9 Sep 2014 13:36:01 +0200
+Message-ID: <1410262570-22785-1-git-send-email-ulf.hansson@linaro.org>
+References: <1409838756-31963-1-git-send-email-ulf.hansson@linaro.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1409838756-31963-1-git-send-email-ulf.hansson@linaro.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>, Ulf Hansson <ulf.hansson@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Prarit Bhargava <prarit@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Ingo Molnar <mingo@kernel.org>
 
-On Thu, 28 Aug 2014, Jiang Liu wrote:
+Changes in v4:
+	- Rebased patch "PM / Domains: Add generic OF-based PM domain look-up" -
+	  and updated the author and the commit message.
+	- Adopted review comments for "PM / Domains: Add APIs to attach/detach
+	  a PM domain for a device".
+	- Updated author and commit message for "ARM: exynos: Move to generic
+	  PM domain DT bindings".
+	- Added some acks and reviewed by tags.
+	- Started to use the "--in-reply-to" option to git-send-email. It should
+	  provide the option to show a better diffstat per patch.
 
-> From: Yinghai Lu <yinghai@kernel.org>
-> 
-> Perfer the assigned ID in APIC ID register for x86_64 if it's still
-> available.
-> 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> Cc: Joerg Roedel <joro@8bytes.org>
-> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
->  arch/x86/kernel/apic/io_apic.c |   38 +++++++++++++++++++++++++++++++++-----
->  1 file changed, 33 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-> index 3faf9599ff29..196d9c15fdec 100644
-> --- a/arch/x86/kernel/apic/io_apic.c
-> +++ b/arch/x86/kernel/apic/io_apic.c
-> @@ -3575,26 +3575,54 @@ static int __init io_apic_get_unique_id(int ioapic, int apic_id)
->  	return apic_id;
->  }
->  
-> -static u8 __init io_apic_unique_id(u8 id)
-> +static u8 io_apic_unique_id(int idx, u8 id)
+Changes in v3:
+	- Aligned on terminology, now using "PM domain" in comments and commit
+	- messages/headers.
+	- Improved English and grammar in comments and commit messages/headers.
+	- Adopted proposal from Geert, to have compile-time-check wrapper
+	  functions for the API that adds xlate_simple and xlate_onecell
+	  providers.
+ 	- Renamed "domain_num" to "num_domains", in genpd_onecell_data struct.
+	- Handle non-contiguous arrays for onecell PM domain providers.
+	- Rebased the Exynos patch to follow the new genpd API changes.
 
-How is that change related to the changelog?
 
->  {
->  	if ((boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) &&
->  	    !APIC_XAPIC(apic_version[boot_cpu_physical_apicid]))
-> -		return io_apic_get_unique_id(nr_ioapics, id);
-> +		return io_apic_get_unique_id(idx, id);
->  	else
->  		return id;
->  }
->  #else
-> -static u8 __init io_apic_unique_id(u8 id)
-> +static u8 io_apic_unique_id(int idx, u8 id)
->  {
->  	int i;
-> +	u8 new_id;
-> +	unsigned long flags;
->  	DECLARE_BITMAP(used, 256);
-> +	union IO_APIC_reg_00 reg_00;
->  
->  	bitmap_zero(used, 256);
->  	for_each_ioapic(i)
->  		__set_bit(mpc_ioapic_id(i), used);
->  	if (!test_bit(id, used))
->  		return id;
-> -	return find_first_zero_bit(used, 256);
-> +
-> +	/* check register at first */
-> +	raw_spin_lock_irqsave(&ioapic_lock, flags);
-> +	reg_00.raw = io_apic_read(idx, 0);
-> +	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
-> +	new_id = reg_00.bits.ID;
-> +	if (!test_bit(new_id, used)) {
-> +		apic_printk(APIC_VERBOSE, KERN_INFO
-> +			"IOAPIC[%d]: Using reg apic_id %d instead of %d\n",
-> +			 idx, new_id, id);
-> +		return new_id;
-> +	}
-> +
-> +	new_id = find_first_zero_bit(used, 256);
-> +	reg_00.bits.ID = new_id;
-> +	raw_spin_lock_irqsave(&ioapic_lock, flags);
-> +	io_apic_write(idx, 0, reg_00.raw);
-> +	reg_00.raw = io_apic_read(idx, 0);
-> +	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
-> +
-> +	/* Sanity check */
-> +	if (reg_00.bits.ID != new_id)
-> +		pr_warn("IOAPIC[%d]: Unable to change apic_id to %d!\n",
-> +			idx, new_id);
+Changes in v2:
+	- Fix the ACPI patch, it didn't even compile for CONFIG_ACPI.
+	- Updated some comments in code and in commit messages.
+	- Fixed the dev_pm_domain_attach API to handle EPROBE_DEFER properly.
+	- Rebased the ARM Exynos patch.
+	- Added some Tested-by tags.
 
-So we detect, that the ID could not be changed and we return it
-nevertheless?
 
-Thanks,
+This patchset has a bit of a history and some parts of it has been posted
+earlier.
 
-	tglx
+http://lists.infradead.org/pipermail/linux-arm-kernel/2014-June/262725.html
+
+In the first revision I intentially didn't increase version number of the
+patches, since I think it would have cause more confusion than clarity.
+
+A summary of changes in V1 and since the last patchset, from the link above:
+	- Instead of letting driver core handling the device to power domain
+	binding/unbinding, follow the behavior of how the ACPI power domain
+	is handled.
+
+
+This is a summary of what these patches are intended to do:
+
+1)
+Add generic power domain OF-based support which also includes APIs to handle
+attach/detach of generic power domains to devices.
+
+2)
+Adding a common API to attach/detach power domains and include support for the
+ACPI and the generic power domain in there.
+
+3)
+>From subsystem level code, at probe/remove, convert from invoking the ACPI
+specific power domain attach/detach functions to the new common attach/detach
+APIs.
+
+4)
+Add support for the AMBA bus to attach/detach power domains, using the new
+common APIs.
+
+5)
+Convert Exynos to use the new generic power domain OF support.
+
+Obviously, there are dependencies througout this patchset, which means if they
+get accepted the all need to go together. It might also be convenient to share
+them through an immutable branch.
+
+
+Tomasz Figa (2):
+  PM / Domains: Add generic OF-based PM domain look-up
+  ARM: exynos: Move to generic PM domain DT bindings
+
+Ulf Hansson (7):
+  ACPI / PM: Let acpi_dev_pm_detach() return an error code
+  PM / Domains: Add APIs to attach/detach a PM domain for a device
+  drivercore / platform: Convert to dev_pm_domain_attach|detach()
+  i2c: core: Convert to dev_pm_domain_attach|detach()
+  mmc: sdio: Convert to dev_pm_domain_attach|detach()
+  spi: core: Convert to dev_pm_domain_attach|detach()
+  amba: Add support for attach/detach of PM domains
+
+ .../bindings/arm/exynos/power_domain.txt           |  13 +-
+ .../devicetree/bindings/power/power_domain.txt     |  49 ++++
+ arch/arm/mach-exynos/pm_domains.c                  |  78 +-----
+ drivers/acpi/device_pm.c                           |   8 +-
+ drivers/amba/bus.c                                 |  10 +-
+ drivers/base/platform.c                            |  15 +-
+ drivers/base/power/common.c                        |  60 +++++
+ drivers/base/power/domain.c                        | 291 +++++++++++++++++++++
+ drivers/i2c/i2c-core.c                             |  13 +-
+ drivers/mmc/core/sdio_bus.c                        |   4 +-
+ drivers/spi/spi.c                                  |  12 +-
+ include/linux/acpi.h                               |   7 +-
+ include/linux/pm.h                                 |  14 +
+ include/linux/pm_domain.h                          |  57 ++++
+ kernel/power/Kconfig                               |   4 +
+ 15 files changed, 528 insertions(+), 107 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/power/power_domain.txt
+
+-- 
+1.9.1
+
