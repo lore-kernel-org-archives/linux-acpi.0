@@ -1,87 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi : Add container online uevent to acpi_bus_attach
-Date: Tue, 09 Sep 2014 15:55:28 +0200
-Message-ID: <2241473.9T8TmxONEN@vostro.rjw.lan>
-References: <54095EE7.3080302@jp.fujitsu.com> <20140905121413.GG2225@linux-rxt1.site>
+From: Jon Masters <jcm@redhat.com>
+Subject: Re: [RFC PATCH for Juno 0/2] Drivers for Juno to boot from ACPI
+Date: Tue, 9 Sep 2014 10:13:01 -0400 (EDT)
+Message-ID: <507704665.9032709.1410271981816.JavaMail.zimbra@zmail15.collab.prod.int.phx2.redhat.com>
+References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org> <353732273.2TKdyNJ83M@wuerfel> <540EA446.7010200@redhat.com> <3840839.IPB3Ru8Evk@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56442 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756551AbaIINgB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 09:36:01 -0400
-In-Reply-To: <20140905121413.GG2225@linux-rxt1.site>
+Received: from mx5-phx2.redhat.com ([209.132.183.37]:46143 "EHLO
+	mx5-phx2.redhat.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751172AbaIIOT3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 10:19:29 -0400
+In-Reply-To: <3840839.IPB3Ru8Evk@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Catalin Marinas <catalin.marinas@arm.com>, Randy Dunlap <rdunlap@infradead.org>, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Rob Herring <robh@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.or, Mark Brown <broonie@kernel.org>, Olof Johansson <olof@lixom.net>, Marc Zyngier <marc.zyngier@arm.com>, Robert Richter <rric@kernel.org>, linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Charles.Garcia-Tobin@arm.com, Daniel Lezcano <daniel.lezcano@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Grant Likely <grant.likely@linaro.org>, Jason Cooper <jason@lakedaemon.net>
 
-On Friday, September 05, 2014 08:14:13 PM joeyli wrote:
-> Hi Yasuaki, 
-> 
-> On Fri, Sep 05, 2014 at 03:57:43PM +0900, Yasuaki Ishimatsu wrote:
-> > Container online uevent was deleted by "46394fd01 : ACPI / hotplug:
-> > Move container-specific code out of the core" because container-
-> > specific uevent is raised to udev by attaching container device.
-> > But the container-specific uevent is not useful.
-> > 
-> > In my box, conainer device has CPU and memory devices. In this case,
-> > when hot adding container device, the following uevets are raised to
-> > udev.
-> > 
-> >   # udevadm monitor --kernel
-> >   monitor will print the received events for:
-> >   KERNEL - the kernel uevent
-> > 
-> >   KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
-> >   <snip>
-> >   KERNEL[...] add      /devices/system/memory/memory2048 (memory)
-> >   KERNEL[...] add      /devices/system/memory/memory2049 (memory)
-> >   <snip>
-> >   KERNEL[...] add      /devices/system/memory/memory2063 (memory)
-> >   <snip>
-> >   KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
-> >   <snip>
-> >   KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
-> > 
-> > When udev catches the container add uevent in my box, udev executes
-> > user land script for onlining all child's devices. But memory and CPU
-> > devices have not been attached at this time. So user land script fails.
-> > 
-> > One of solutions is that user land script waits for all child's devices
-> > to attach. But user land script has no way to know all child's devices
-> > were attached.
-> > 
-> > So the patch adds container online uevent to acpi_bus_sttach(). By
-> > applying
-> > the patch, container online uevent is raised to udev after all child's
-> > devices were attached as follows:
-> > 
-> >   # udevadm monitor --kernel
-> >   monitor will print the received events for:
-> >   KERNEL - the kernel uevent
-> > 
-> >   KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
-> >   <snip>
-> >   KERNEL[...] add      /devices/system/memory/memory2048 (memory)
-> >   KERNEL[...] add      /devices/system/memory/memory2049 (memory)
-> >   <snip>
-> >   KERNEL[...] add      /devices/system/memory/memory2063 (memory)
-> >   <snip>
-> >   KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
-> >   <snip>
-> >   KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
-> >   KERNEL[...] online   /devices/system/container/ACPI0004:01 (container)
-> > 
-> > So if user land script is executed after raising the container online
-> > uevent, it guarantees that all child's devices were attached.
-> > 
-> > Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> 
-> Your patch works on my side.
-> 
-> Tested-by: Lee, Chun-Yi <jlee@suse.com>
+I expect you will see followup email from a vendor in a few hours.
 
-Can you please try this one too: https://patchwork.kernel.org/patch/4859321/
+-- 
+Computer Architect | Sent from my #ARM Powered Mobile device
 
+On Sep 9, 2014 6:56 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+>
+> On Tuesday 09 September 2014 02:55:02 Jon Masters wrote: 
+> > On 09/01/2014 11:On Tuesday 09 September 2014 02:55:02 Jon Masters wrote:
+> On 09/01/2014 11:29 AM, Arnd Bergmann wrote:
+> > On Monday 01 September 2014 23:05:59 Hanjun Guo wrote:
+> >> This patch set is example of the sort of driver changes needed to boot
+> >> Juno using ACPI tables, which using the ACPI tables devloped for MS
+> >> Windows and published by ARM [1].
+> > 
+> > What about platform support?
+> 
+> I think Juno is just serving as an example here since it's from ARM and
+> thus various people have access to it already, etc. It's not the best
+> example of a server platform out there, since that wasn't its original
+> design purpose (but it's a wonderful platform nonetheless). There is
+> work currently in flight to offer other reference ACPI examples.
+
+Ok, I see. This is a bit disappointing because it's actually the third
+attempt to come up with a reference platform (after Exynos and X-Gene),
+and it always seems to come down to deciding that this particular
+platform doesn't really work with ACPI beyond basic booting.
+
+Which platform(s) are you talking about? Are you sure it will be better
+suited than the first three?
+
+	Arnd
