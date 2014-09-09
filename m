@@ -1,124 +1,47 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [PATCH] acpi: add utility to test for device dma coherency
-Date: Tue, 09 Sep 2014 17:41:46 -0400
-Message-ID: <1410298906.27715.62.camel@deneb.redhat.com>
-References: <1410296278-1244-1-git-send-email-msalter@redhat.com>
-	 <2333063.oAgzS6NIuV@vostro.rjw.lan>
+From: Graeme Gregory <gg@slimlogic.co.uk>
+Subject: Re: [PATCH v3 03/17] ARM64 / ACPI: Introduce lowlevel suspend
+ function
+Date: Tue, 9 Sep 2014 23:04:23 +0100
+Message-ID: <20140909220423.GL6558@xora-haswell.xora.org.uk>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
+ <1409583475-6978-4-git-send-email-hanjun.guo@linaro.org>
+ <20140909163529.GA6370@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1131 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751896AbaIIVlw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Sep 2014 17:41:52 -0400
-In-Reply-To: <2333063.oAgzS6NIuV@vostro.rjw.lan>
+Received: from www.xora.org.uk ([80.68.91.202]:38968 "EHLO
+	xora.vm.bytemark.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752006AbaIIWEb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 18:04:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20140909163529.GA6370@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, graeme.gregory@linaro.o
 
-On Tue, 2014-09-09 at 23:49 +0200, Rafael J. Wysocki wrote:
-> On Tuesday, September 09, 2014 04:57:58 PM Mark Salter wrote:
-> > ACPI 5.1 adds a _CCA object to indicate memory coherency
-> > of a bus master device. It is an integer with zero meaning
-> > non-coherent and one meaning coherent. This attribute may
-> > be inherited from a parent device. It may also be missing
-> > entirely, in which case, an architecture-specific default
-> > is assumed.
+On Tue, Sep 09, 2014 at 05:35:29PM +0100, Catalin Marinas wrote:
+> On Mon, Sep 01, 2014 at 03:57:41PM +0100, Hanjun Guo wrote:
+> > From: Graeme Gregory <graeme.gregory@linaro.org>
 > > 
-> > This patch adds a utility function to parse a device handle
-> > (and its parents) for a _CCA object and return the coherency
-> > attribute if found.
+> > acpi_wakeup_address is used on x86 as the address bios jumps into
+> > when machine wakes up from suspend. As arm64 does not have such a
+> > bios this mechanism will be provided by other means. But the define
+> > is still required inside the acpi core.
 > > 
-> > Signed-off-by: Mark Salter <msalter@redhat.com>
-> > ---
-> >  drivers/acpi/utils.c    | 26 ++++++++++++++++++++++++++
-> >  include/acpi/acpi_bus.h |  2 ++
-> >  2 files changed, 28 insertions(+)
-> > 
-> > diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> > index 07c8c5a..aec9656 100644
-> > --- a/drivers/acpi/utils.c
-> > +++ b/drivers/acpi/utils.c
-> > @@ -698,3 +698,29 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
-> >  	return false;
-> >  }
-> >  EXPORT_SYMBOL(acpi_check_dsm);
-> > +
-> > +/**
-> > + * acpi_check_coherency - check for memory coherency of a device
-> > + * @handle: ACPI device handle
-> > + * @val:    Pointer to returned value
-> > + *
-> > + * Search a device and its parents for a _CCA method and return
-> > + * its value.
-> > + */
-> > +acpi_status acpi_check_coherency(acpi_handle handle, int *val)
-> > +{
-> > +	unsigned long long data;
-> > +	acpi_status status;
-> > +
-> > +	do {
-> > +		status = acpi_evaluate_integer(handle, "_CCA", NULL, &data);
-> > +		if (!ACPI_FAILURE(status)) {
+> > Introduce a null stub for acpi_suspend_lowlevel as this is also
+> > required by core. This will be filled in when standards are
+> > defined for arm64 ACPI global power states.
 > 
-> We have an ACPI_SUCCESS() macro for that.
-
-ah, okay
-
+> Do we actually plan to use these on arm64? I'm worried most of these
+> don't make sense on arm64 (the aim is to use PSCI). Is it possible to
+> refactor the core code so that we don't have to define dummy macros or
+> variables just to be able to build the kernel?
 > 
-> > +			*val = data;
-> > +			break;
-> > +		}
-> > +		status = acpi_get_parent(handle, &handle);
-> > +	} while (!ACPI_FAILURE(status));
-> > +
-> 
-> And here.
-> 
-> Anyway, how do you think this routine will be used?  Do you have any
-> particular use cases in mind?
-> 
+Currently ia64 does the same as this for stubbing out the functions.
 
-An arm64 kernel defaults to non-coherent dma ops. There is a platform
-and amba bus notifier in arm64/mm/dma-mapping.c which looks for a
-device-tree dma-coherent property. If found, the device is switched
-to using coherent dma ops. I'm thinking of doing something similar
-for ACPI in that same bus notifier:
+We did investigate removing the code but that ultimately ended with more
+functions and variables stubbed then this.
 
-diff --git a/arch/arm64/mm/dma-mapping.c b/arch/arm64/mm/dma-mapping.c
-index 4164c5a..f26dd78 100644
---- a/arch/arm64/mm/dma-mapping.c
-+++ b/arch/arm64/mm/dma-mapping.c
-@@ -27,6 +27,7 @@
- #include <linux/vmalloc.h>
- #include <linux/swiotlb.h>
- #include <linux/amba/bus.h>
-+#include <linux/acpi.h>
- 
- #include <asm/cacheflush.h>
- 
-@@ -319,6 +320,21 @@ static int dma_bus_notifier(struct notifier_block *nb,
- 	if (of_property_read_bool(dev->of_node, "dma-coherent"))
- 		set_dma_ops(dev, &coherent_swiotlb_dma_ops);
- 
-+#ifdef CONFIG_ACPI
-+	if (ACPI_HANDLE(dev)) {
-+		acpi_status status;
-+		int coherent;
-+
-+		/*
-+		 * Kernel defaults to noncoherent ops but ACPI 5.1 spec says arm64
-+		 * defaults to coherent. Set coherent ops if _CCA not found or _CCA
-+		 * found and non-zero.
-+		 */
-+		status =  acpi_check_coherency(ACPI_HANDLE(dev), &coherent);
-+		if (ACPI_FAILURE(status) || coherent)
-+			set_dma_ops(dev, &coherent_swiotlb_dma_ops);
-+	}
-+#endif
- 	return NOTIFY_OK;
- }
-
+Graeme
 
