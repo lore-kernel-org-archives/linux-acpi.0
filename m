@@ -1,54 +1,162 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH v3 04/17] ARM64 / ACPI: Introduce early_param for "acpi"
-Date: Tue, 09 Sep 2014 18:14:58 -0400
-Message-ID: <540F7BE2.8060403@redhat.com>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-5-git-send-email-hanjun.guo@linaro.org> <CAErSpo6G89mkPgas8Wk3ofq__dUo5MKvBjob5D_w5_GaBJWH0w@mail.gmail.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Patch v4 05/16] ACPI: Add interfaces to parse IOAPIC ID for
+ IOAPIC hotplug
+Date: Wed, 10 Sep 2014 09:58:41 +0800
+Message-ID: <540FB051.3050107@linux.intel.com>
+References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com> <1409192561-19744-6-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1409091248090.11037@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo6G89mkPgas8Wk3ofq__dUo5MKvBjob5D_w5_GaBJWH0w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm-kerne
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:3552 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752021AbaIJB6r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Sep 2014 21:58:47 -0400
+In-Reply-To: <alpine.DEB.2.10.1409091248090.11037@nanos>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 09/09/2014 01:17 PM, Bjorn Helgaas wrote:
-> On Mon, Sep 1, 2014 at 8:57 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
->> From: Al Stone <al.stone@linaro.org>
->>
->> Introduce one early parameters "off" for "acpi" to disable ACPI on
->> ARM64.
+
+
+On 2014/9/9 18:54, Thomas Gleixner wrote:
+> On Thu, 28 Aug 2014, Jiang Liu wrote:
+>>  
+>> +static struct acpi_table_madt *madt;
+>> +static int read_madt;
 > 
-> It might be worth mentioning the purpose of this in the changelog (and
-> maybe the documentation).  I don't think this parameter is supported
-> on ia64, and on x86 it seems like it's mostly used as a "fix" by
-> Ubuntu users who consider the problem resolved when they find this
-> parameter.  That just means we don't get a chance to fix the real
-> underlying problem, so I'm not sure it's a real benefit to have the
-> parameter.
+> Pretty lousy file visible variable names.
+> 
+> So we end up with two copies of the butt ugly 
+> 
+>    if (!read_madt) {
+>       .....
+>    }
+> 
+> stuff instead of creating a helper function which hides that and do
+> 
+>       madr = get_madt();
+>       if (!madt)
+> 		return ...;
+> 
+> at the call sites.
+Thanks for suggestion, will improve in that way.
 
->> -       acpi=           [HW,ACPI,X86]
->> +       acpi=           [HW,ACPI,X86,ARM]
->>                         Advanced Configuration and Power Interface
->>                         Format: { force | off | strict | noirq | rsdt }
->>                         force -- enable ACPI if default was off
->> @@ -175,6 +175,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
->>                                 strictly ACPI specification compliant.
->>                         rsdt -- prefer RSDT over (default) XSDT
->>                         copy_dsdt -- copy DSDT to memory
->> +                       For ARM64, ONLY "acpi=off" is available.
+> 
+>>  static int map_lapic_id(struct acpi_subtable_header *entry,
+>>  		 u32 acpi_id, int *apic_id)
+>>  {
+>> @@ -64,8 +71,6 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+>>  static int map_madt_entry(int type, u32 acpi_id)
+>>  {
+>>  	unsigned long madt_end, entry;
+>> -	static struct acpi_table_madt *madt;
+>> -	static int read_madt;
+>>  	int apic_id = -1;
+>>  
+>>  	if (!read_madt) {
+>> @@ -200,3 +205,90 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+>>  	return acpi_map_cpuid(apic_id, acpi_id);
+>>  }
+>>  EXPORT_SYMBOL_GPL(acpi_get_cpuid);
+>> +
+>> +#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+>> +static int map_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
+>> +			 u64 *phys_addr, int *ioapic_id)
+>> +{
+>> +	struct acpi_madt_io_apic *ioapic = (struct acpi_madt_io_apic *)entry;
+>> +
+>> +	if (ioapic->global_irq_base != gsi_base)
+>> +		return 0;
+>> +
+>> +	*phys_addr = ioapic->address;
+>> +	*ioapic_id = ioapic->id;
+>> +	return 1;
+>> +}
+>> +
+>> +static int map_madt_ioapic_entry(u32 gsi_base, u64 *phys_addr)
+>> +{
+>> +	struct acpi_subtable_header *hdr;
+>> +	unsigned long madt_end, entry;
+>> +	int apic_id = -1;
+>> +
+>> +	if (!read_madt) {
+>> +		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
+>> +					(struct acpi_table_header **)&madt)))
+>> +			madt = NULL;
+>> +		read_madt++;
+>> +	}
+>> +
+>> +	if (!madt)
+>> +		return apic_id;
+>> +
+>> +	entry = (unsigned long)madt;
+>> +	madt_end = entry + madt->header.length;
+>> +
+>> +	/* Parse all entries looking for a match. */
+>> +	entry += sizeof(struct acpi_table_madt);
+>> +	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
+>> +		hdr = (struct acpi_subtable_header *)entry;
+>> +		if (hdr->type == ACPI_MADT_TYPE_IO_APIC &&
+>> +		    map_ioapic_id(hdr, gsi_base, phys_addr, &apic_id))
+>> +			break;
+>> +		else
+>> +			entry += hdr->length;
+>> +	}
+>> +
+>> +	return apic_id;
+>> +}
+>> +
+>> +static int map_mat_ioapic_entry(acpi_handle handle, u32 gsi_base,
+>> +				u64 *phys_addr)
+>> +{
+>> +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+>> +	union acpi_object *obj;
+>> +	struct acpi_subtable_header *header;
+>> +	int apic_id = -1;
+>> +
+>> +	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
+>> +		goto exit;
+>> +
+>> +	if (!buffer.length || !buffer.pointer)
+>> +		goto exit;
+>> +
+>> +	obj = buffer.pointer;
+>> +	if (obj->type != ACPI_TYPE_BUFFER ||
+>> +	    obj->buffer.length < sizeof(struct acpi_subtable_header))
+>> +		goto exit;
+>> +
+>> +	header = (struct acpi_subtable_header *)obj->buffer.pointer;
+>> +	if (header->type == ACPI_MADT_TYPE_IO_APIC)
+>> +		map_ioapic_id(header, gsi_base, phys_addr, &apic_id);
+>> +
+>> +exit:
+>> +	kfree(buffer.pointer);
+>> +	return apic_id;
+>> +}
+> 
+> 
+> This stuff really wants proper documentation. The lack of comments is
+> just annoying.
+Sure, will improve comments in next version.
 
-Something along the lines of:
+Regards!
+Gerry
 
-"The purpose of disabling ACPI on 64-bit ARM server platforms is to
-allow for an orderly adoption of ACPI on early systems that may also
-provide a DeviceTree based boot option initially. The acpi= option
-disables both parsing of any tables passed in through the EFI System
-Table RSDP and also disables the runtime ACPI interpreter on arm64".
-
-On our internal systems, we've both ACPI and DeviceTree working with a
-simple switch (acpi=) to determine the behavior, which is facilitating
-an orderly total migration to ACPI that is in currently in flight.
-
-Jon.
+> 
+>> +int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr)
+>> +{
+>> +	int apic_id;
+>> +
+>> +	apic_id = map_mat_ioapic_entry(handle, gsi_base, phys_addr);
+>> +	if (apic_id == -1)
+>> +		apic_id = map_madt_ioapic_entry(gsi_base, phys_addr);
+>> +
+>> +	return apic_id;
+>> +}
+> 
+> Thanks,
+> 
+> 	tglx
+> 
