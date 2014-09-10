@@ -1,42 +1,79 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v3 04/17] ARM64 / ACPI: Introduce early_param for "acpi"
-Date: Wed, 10 Sep 2014 19:30:03 +0100
-Message-ID: <20140910183003.GN1710@arm.com>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
- <1409583475-6978-5-git-send-email-hanjun.guo@linaro.org>
- <CAErSpo6G89mkPgas8Wk3ofq__dUo5MKvBjob5D_w5_GaBJWH0w@mail.gmail.com>
- <540F7BE2.8060403@redhat.com>
- <20140910130419.GJ28488@arm.com>
- <CAErSpo58eWadcyTrsBPAa-QFNmWn5jO7yQGc=N6F6PgNXnXcJA@mail.gmail.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [Patch v4 12/16] x86, irq, ACPI: Implement interface to support
+ ACPI based IOAPIC hot-addition
+Date: Wed, 10 Sep 2014 22:06:02 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1409102202530.4178@nanos>
+References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com> <1409192561-19744-13-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1409091417120.11037@nanos> <540FC1C2.40100@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:36533 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751044AbaIJSaF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Sep 2014 14:30:05 -0400
-Content-Disposition: inline
-In-Reply-To: <CAErSpo58eWadcyTrsBPAa-QFNmWn5jO7yQGc=N6F6PgNXnXcJA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <540FC1C2.40100@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, x86@kernel.org, Prarit Bhargava <prarit@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "jcm@redhat.com" <jcm@redhat.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>
 
-On Wed, Sep 10, 2014 at 02:21:59PM +0100, Bjorn Helgaas wrote:
-> On Wed, Sep 10, 2014 at 7:04 AM, Will Deacon <will.deacon@arm.com> wrote:
+On Wed, 10 Sep 2014, Jiang Liu wrote:
+> >>  int mp_register_ioapic(int id, u32 address, u32 gsi_base,
+> >> @@ -3867,8 +3873,15 @@ int mp_register_ioapic(int id, u32 address, u32 gsi_base,
+> >>  	}
+> >>  	for_each_ioapic(ioapic)
+> >>  		if (ioapics[ioapic].mp_config.apicaddr == address) {
+> >> -			pr_warn("address 0x%x conflicts with IOAPIC%d\n",
+> >> -				address, ioapic);
+> >> +			/*
+> >> +			 * IOAPIC unit may also be visible in PCI scope.
+> >> +			 * When ioapic PCI driver's probe() is called,
+> >> +			 * the IOAPIC unit may have already been initialized
+> >> +			 * at boot time.
+> >> +			 */
+> >> +			if (!ioapic_initialized)
+> >> +				pr_warn("address 0x%x conflicts with IOAPIC%d\n",
+> >> +					address, ioapic);
+> > 
+> > Hmm. This smells fishy. Why do we allow multiple initializations of
+> > the same IOAPIC in the first place. Either it's done via ACPI or via
+> > PCI, but not both.
+> The ACPI subsystem will register and initialize all IOAPICs when walking
+> ACPI MADT table during boot, before initializing PCI subsystem.
+> Later when binding ioapic PCI driver to IOAPIC PCI device, it will try
+> to register the IOAPIC device again.
 > 
-> > It's blindingly obvious that acpi=off is there to disable ACPI at boot.
-> > We either support that option or we don't -- none of this `oh, well you
-> > can use it in this specific case I suppose' rubbish. I'm not questioning
-> > your use-case, but there's really no need to talk about an `orderly
-> > adoption' when all you need to say is that your ACPI is busted and passing
-> > acpi=off lets you boot with a devicetree.
-> 
-> Maybe we should set a taint bit or give some other indication that
-> we're using a flag to work around breakage.
+> After this patchset is applied, we could remove the !ioapic_initialized
+> check. We check acpi_ioapic_register() before calling
+> acpi_register_ioapic(). So the check becomes redundant.
+> Or we could remove the temporary code from this patch.
 
-That sounds like a good idea. Working around breakage is a fact of life,
-but the taint indicates that it's not the ideal behaviour.
+How about removing the disfunctional ioapic PCI driver first and then
+implementing the whole thing cleanly?
+ 
+> > 
+> >>  			return -EEXIST;
+> >>  		}
+> >>  
+> >> @@ -3918,6 +3931,14 @@ int mp_register_ioapic(int id, u32 address, u32 gsi_base,
+> >>  	ioapics[idx].irqdomain = NULL;
+> >>  	ioapics[idx].irqdomain_cfg = *cfg;
+> >>  
+> >> +	if (ioapic_initialized) {
+> > 
+> > I have a hard time to understand this conditional. Why can't we do
+> > that unconditionally?
+> How about following comments?
+> /*
+>  * If mp_register_ioapic() is called during early boot stage when
+>  * walking ACPI/SFI/DT tables, it's too early to create irqdomain,
+>  * we are still using bootmem allocator. So delay it to setup_IO_APIC().
+>  */
 
-Will
+Fine, but then the "if (ioapic_initialized)" conditional still does
+not make sense. We surely have some global non ioapic specific
+indicator that bootmem is done and the proper memory allocator is
+available, right?
+
+Aside of that is there a point to walk those tables before we actually
+can make any use of their content?
+
+Thanks,
+
+	tglx
