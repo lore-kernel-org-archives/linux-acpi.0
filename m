@@ -1,33 +1,35 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Subject: Re: [PATCH] acpi : Add container online uevent to acpi_bus_attach
-Date: Wed, 10 Sep 2014 12:16:43 +0900
-Message-ID: <540FC29B.7010808@jp.fujitsu.com>
-References: <54095EE7.3080302@jp.fujitsu.com> <6346979.uGFiy3j9K2@vostro.rjw.lan>
+Date: Wed, 10 Sep 2014 12:20:15 +0900
+Message-ID: <540FC36F.2060602@jp.fujitsu.com>
+References: <54095EE7.3080302@jp.fujitsu.com> <20140905121413.GG2225@linux-rxt1.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:56429 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576AbaIJDRS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 23:17:18 -0400
-Received: from kw-mxq.gw.nic.fujitsu.com (unknown [10.0.237.131])
-	by fgwmail6.fujitsu.co.jp (Postfix) with ESMTP id 164A53EE0AE
-	for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2014 12:17:17 +0900 (JST)
-Received: from s1.gw.fujitsu.co.jp (s1.gw.fujitsu.co.jp [10.0.50.91])
-	by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 2309DAC06B3
-	for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2014 12:17:16 +0900 (JST)
-Received: from g01jpfmpwyt01.exch.g01.fujitsu.local (g01jpfmpwyt01.exch.g01.fujitsu.local [10.128.193.38])
-	by s1.gw.fujitsu.co.jp (Postfix) with ESMTP id A74A8E08008
-	for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2014 12:17:15 +0900 (JST)
-In-Reply-To: <6346979.uGFiy3j9K2@vostro.rjw.lan>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:43646 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751576AbaIJDUb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 23:20:31 -0400
+Received: from kw-mxoi2.gw.nic.fujitsu.com (unknown [10.0.237.143])
+	by fgwmail5.fujitsu.co.jp (Postfix) with ESMTP id EB36A3EE0EC
+	for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2014 12:20:29 +0900 (JST)
+Received: from s2.gw.fujitsu.co.jp (s2.gw.fujitsu.co.jp [10.0.50.92])
+	by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 084F2AC01F0
+	for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2014 12:20:29 +0900 (JST)
+Received: from g01jpfmpwyt02.exch.g01.fujitsu.local (g01jpfmpwyt02.exch.g01.fujitsu.local [10.128.193.56])
+	by s2.gw.fujitsu.co.jp (Postfix) with ESMTP id 881421DB803E
+	for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2014 12:20:28 +0900 (JST)
+In-Reply-To: <20140905121413.GG2225@linux-rxt1.site>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org, jlee@suse.com
+To: joeyli <jlee@suse.com>
+Cc: rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
 
-(2014/09/08 6:34), Rafael J. Wysocki wrote:
-> On Friday, September 05, 2014 03:57:43 PM Yasuaki Ishimatsu wrote:
+(2014/09/05 21:14), joeyli wrote:
+> Hi Yasuaki,
+>
+> On Fri, Sep 05, 2014 at 03:57:43PM +0900, Yasuaki Ishimatsu wrote:
 >> Container online uevent was deleted by "46394fd01 : ACPI / hotplug:
 >> Move container-specific code out of the core" because container-
 >> specific uevent is raised to udev by attaching container device.
@@ -83,102 +85,96 @@ Cc: rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, linux-acpi@vger
 >>
 >> So if user land script is executed after raising the container online
 >> uevent, it guarantees that all child's devices were attached.
+>>
+>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 >
-> I see the problem, but I don't like the patch.
+> Your patch works on my side.
 >
-> For example, we don't need to match the container's name again, we can use
-> the fact that we've already matched the container scan handler to it.
->
-> Does the one below work too?
+> Tested-by: Lee, Chun-Yi <jlee@suse.com>
 
-Hi Rafael,
+Hi Lee,
 
-Thank you for posting your patch. I confirmed that your patch fixed my issue
-as folloes:
-
-# udevadm monitor --kernel
-monitor will print the received events for:
-KERNEL - the kernel uevent
-
-KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
-<snip>
-KERNEL[...] add      /devices/system/memory/memory2048 (memory)
-<snip>
-KERNEL[...] add      /devices/system/memory/memory2063 (memory)
-<snip>
-KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
-<snip>
-KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
-KERNEL[...] online   /devices/system/container/ACPI0004:01 (container)
-
-So feel free to  add "Tested-by : Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>"
-to the patch.
+Thank you for your test. But Rafael posted new patch.
+Could you try the patch. In my box, the Rafael's patch works well.
 
 Thanks,
 Yasuaki Ishimatsu
 
 >
-> Rafael
+> Thanks a lot!
+> joey Lee
 >
->
-> ---
->   drivers/acpi/container.c |    8 ++++++++
->   drivers/acpi/scan.c      |    3 +++
->   include/acpi/acpi_bus.h  |    1 +
->   3 files changed, 12 insertions(+)
->
-> Index: linux-pm/include/acpi/acpi_bus.h
-> ===================================================================
-> --- linux-pm.orig/include/acpi/acpi_bus.h
-> +++ linux-pm/include/acpi/acpi_bus.h
-> @@ -118,6 +118,7 @@ struct acpi_device;
->   struct acpi_hotplug_profile {
->   	struct kobject kobj;
->   	int (*scan_dependent)(struct acpi_device *adev);
-> +	void (*notify_online)(struct acpi_device *adev);
->   	bool enabled:1;
->   	bool demand_offline:1;
->   };
-> Index: linux-pm/drivers/acpi/container.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/container.c
-> +++ linux-pm/drivers/acpi/container.c
-> @@ -99,6 +99,13 @@ static void container_device_detach(stru
->   		device_unregister(dev);
->   }
->
-> +static void container_device_online(struct acpi_device *adev)
-> +{
-> +	struct device *dev = acpi_driver_data(adev);
-> +
-> +	kobject_uevent(&dev->kobj, KOBJ_ONLINE);
-> +}
-> +
->   static struct acpi_scan_handler container_handler = {
->   	.ids = container_device_ids,
->   	.attach = container_device_attach,
-> @@ -106,6 +113,7 @@ static struct acpi_scan_handler containe
->   	.hotplug = {
->   		.enabled = true,
->   		.demand_offline = true,
-> +		.notify_online = container_device_online,
->   	},
->   };
->
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -2190,6 +2190,9 @@ static void acpi_bus_attach(struct acpi_
->    ok:
->   	list_for_each_entry(child, &device->children, node)
->   		acpi_bus_attach(child);
-> +
-> +	if (device->handler && device->handler->hotplug.notify_online)
-> +		device->handler->hotplug.notify_online(device);
->   }
->
->   /**
->
+>> ---
+>>   drivers/acpi/container.c | 15 +++++++++++++++
+>>   drivers/acpi/internal.h  |  7 +++++++
+>>   drivers/acpi/scan.c      |  3 +++
+>>   3 files changed, 25 insertions(+)
+>>
+>> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+>> index 76f7cff..eba5746 100644
+>> --- a/drivers/acpi/container.c
+>> +++ b/drivers/acpi/container.c
+>> @@ -43,6 +43,21 @@ static const struct acpi_device_id container_device_ids[] = {
+>>
+>>   #ifdef CONFIG_ACPI_CONTAINER
+>>
+>> +void notify_container_device(struct acpi_device *adev)
+>> +{
+>> +	struct device *dev = acpi_driver_data(adev);
+>> +
+>> +	kobject_uevent(&dev->kobj, KOBJ_ONLINE);
+>> +}
+>> +
+>> +int is_container_device(struct acpi_device *adev)
+>> +{
+>> +	if (acpi_match_device_ids(adev, container_device_ids))
+>> +		return 0;
+>> +
+>> +	return 1;
+>> +}
+>> +
+>>   static int acpi_container_offline(struct container_dev *cdev)
+>>   {
+>>   	struct acpi_device *adev = ACPI_COMPANION(&cdev->dev);
+>> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+>> index 4c5cf77..12dd89b 100644
+>> --- a/drivers/acpi/internal.h
+>> +++ b/drivers/acpi/internal.h
+>> @@ -45,6 +45,13 @@ static inline void register_dock_dependent_device(struct acpi_device *adev,
+>>   static inline int dock_notify(struct acpi_device *adev, u32 event) { return -ENODEV; }
+>>   static inline void acpi_dock_add(struct acpi_device *adev) {}
+>>   #endif
+>> +#if CONFIG_ACPI_CONTAINER
+>> +int is_container_device(struct acpi_device *adev);
+>> +void notify_container_device(struct acpi_device *adev);
+>> +#else
+>> +static inline int is_container_device(struct acpi_device *adev) { return 0; }
+>> +static inline void notify_container_device(struct acpi_device *adev) {}
+>> +#endif
+>>   #ifdef CONFIG_X86
+>>   void acpi_cmos_rtc_init(void);
+>>   #else
+>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+>> index 9a92989..faa3d11 100644
+>> --- a/drivers/acpi/scan.c
+>> +++ b/drivers/acpi/scan.c
+>> @@ -2188,6 +2188,9 @@ static void acpi_bus_attach(struct acpi_device *device)
+>>    ok:
+>>   	list_for_each_entry(child, &device->children, node)
+>>   		acpi_bus_attach(child);
+>> +
+>> +	if (is_container_device(device))
+>> +		notify_container_device(device);
+>>   }
+>>
+>>   /**
+>> --
+>> 1.8.3.1
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
