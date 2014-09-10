@@ -1,180 +1,117 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH] acpi : Add container online uevent to acpi_bus_attach
-Date: Wed, 10 Sep 2014 12:20:15 +0900
-Message-ID: <540FC36F.2060602@jp.fujitsu.com>
-References: <54095EE7.3080302@jp.fujitsu.com> <20140905121413.GG2225@linux-rxt1.site>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v3 02/17] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+Date: Wed, 10 Sep 2014 15:30:19 +0800
+Message-ID: <540FFE0B.7070400@huawei.com>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-3-git-send-email-hanjun.guo@linaro.org> <20140909162648.GE2910@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:43646 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576AbaIJDUb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 23:20:31 -0400
-Received: from kw-mxoi2.gw.nic.fujitsu.com (unknown [10.0.237.143])
-	by fgwmail5.fujitsu.co.jp (Postfix) with ESMTP id EB36A3EE0EC
-	for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2014 12:20:29 +0900 (JST)
-Received: from s2.gw.fujitsu.co.jp (s2.gw.fujitsu.co.jp [10.0.50.92])
-	by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 084F2AC01F0
-	for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2014 12:20:29 +0900 (JST)
-Received: from g01jpfmpwyt02.exch.g01.fujitsu.local (g01jpfmpwyt02.exch.g01.fujitsu.local [10.128.193.56])
-	by s2.gw.fujitsu.co.jp (Postfix) with ESMTP id 881421DB803E
-	for <linux-acpi@vger.kernel.org>; Wed, 10 Sep 2014 12:20:28 +0900 (JST)
-In-Reply-To: <20140905121413.GG2225@linux-rxt1.site>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:37101 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751038AbaIJHb4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Sep 2014 03:31:56 -0400
+In-Reply-To: <20140909162648.GE2910@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.o>
 
-(2014/09/05 21:14), joeyli wrote:
-> Hi Yasuaki,
->
-> On Fri, Sep 05, 2014 at 03:57:43PM +0900, Yasuaki Ishimatsu wrote:
->> Container online uevent was deleted by "46394fd01 : ACPI / hotplug:
->> Move container-specific code out of the core" because container-
->> specific uevent is raised to udev by attaching container device.
->> But the container-specific uevent is not useful.
->>
->> In my box, conainer device has CPU and memory devices. In this case,
->> when hot adding container device, the following uevets are raised to
->> udev.
->>
->>    # udevadm monitor --kernel
->>    monitor will print the received events for:
->>    KERNEL - the kernel uevent
->>
->>    KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
->>    <snip>
->>    KERNEL[...] add      /devices/system/memory/memory2048 (memory)
->>    KERNEL[...] add      /devices/system/memory/memory2049 (memory)
->>    <snip>
->>    KERNEL[...] add      /devices/system/memory/memory2063 (memory)
->>    <snip>
->>    KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
->>    <snip>
->>    KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
->>
->> When udev catches the container add uevent in my box, udev executes
->> user land script for onlining all child's devices. But memory and CPU
->> devices have not been attached at this time. So user land script fails.
->>
->> One of solutions is that user land script waits for all child's devices
->> to attach. But user land script has no way to know all child's devices
->> were attached.
->>
->> So the patch adds container online uevent to acpi_bus_sttach(). By
->> applying
->> the patch, container online uevent is raised to udev after all child's
->> devices were attached as follows:
->>
->>    # udevadm monitor --kernel
->>    monitor will print the received events for:
->>    KERNEL - the kernel uevent
->>
->>    KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
->>    <snip>
->>    KERNEL[...] add      /devices/system/memory/memory2048 (memory)
->>    KERNEL[...] add      /devices/system/memory/memory2049 (memory)
->>    <snip>
->>    KERNEL[...] add      /devices/system/memory/memory2063 (memory)
->>    <snip>
->>    KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
->>    <snip>
->>    KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
->>    KERNEL[...] online   /devices/system/container/ACPI0004:01 (container)
->>
->> So if user land script is executed after raising the container online
->> uevent, it guarantees that all child's devices were attached.
->>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->
-> Your patch works on my side.
->
-> Tested-by: Lee, Chun-Yi <jlee@suse.com>
-
-Hi Lee,
-
-Thank you for your test. But Rafael posted new patch.
-Could you try the patch. In my box, the Rafael's patch works well.
-
-Thanks,
-Yasuaki Ishimatsu
-
->
-> Thanks a lot!
-> joey Lee
->
->> ---
->>   drivers/acpi/container.c | 15 +++++++++++++++
->>   drivers/acpi/internal.h  |  7 +++++++
->>   drivers/acpi/scan.c      |  3 +++
->>   3 files changed, 25 insertions(+)
->>
->> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
->> index 76f7cff..eba5746 100644
->> --- a/drivers/acpi/container.c
->> +++ b/drivers/acpi/container.c
->> @@ -43,6 +43,21 @@ static const struct acpi_device_id container_device_ids[] = {
->>
->>   #ifdef CONFIG_ACPI_CONTAINER
->>
->> +void notify_container_device(struct acpi_device *adev)
+On 2014/9/10 0:26, Catalin Marinas wrote:
+> On Mon, Sep 01, 2014 at 03:57:40PM +0100, Hanjun Guo wrote:
+>> diff --git a/arch/arm64/include/asm/acenv.h b/arch/arm64/include/asm/acenv.h
+>> new file mode 100644
+>> index 0000000..3899ee6
+>> --- /dev/null
+>> +++ b/arch/arm64/include/asm/acenv.h
+>> @@ -0,0 +1,18 @@
+>> +/*
+>> + * ARM64 specific ACPICA environments and implementation
+>> + *
+>> + * Copyright (C) 2014, Linaro Ltd.
+>> + *   Author: Hanjun Guo <hanjun.guo@linaro.org>
+>> + *   Author: Graeme Gregory <graeme.gregory@linaro.org>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +
+>> +#ifndef _ASM_ACENV_H
+>> +#define _ASM_ACENV_H
+>> +
+>> +#define ACPI_FLUSH_CPU_CACHE() WARN_ONCE(1, "Not currently supported on ARM64")
+> 
+> Does this mean that it will be supported at some point? Looking at the
+> places where this function is called, I don't really see how this would
+> ever work on ARM. Which means that we add such macro just to be able to
+> compile code that would never be used on arm64. I would rather see the
+> relevant ACPI files only compiled on x86/IA-64 rather than arm64.
+> 
+>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+>> new file mode 100644
+>> index 0000000..9252f72
+>> --- /dev/null
+>> +++ b/arch/arm64/kernel/acpi.c
+> 
+> [...]
+> 
+>> +/*
+>> + * acpi_boot_table_init() called from setup_arch(), always.
+>> + *	1. find RSDP and get its address, and then find XSDT
+>> + *	2. extract all tables and checksums them all
+>> + *
+>> + * We can parse ACPI boot-time tables such as MADT after
+>> + * this function is called.
+>> + */
+>> +void __init acpi_boot_table_init(void)
 >> +{
->> +	struct device *dev = acpi_driver_data(adev);
+>> +	/* If acpi_disabled, bail out */
+>> +	if (acpi_disabled)
+>> +		return;
+> 
+> So at this point, there wouldn't be anything yet to set acpi_disabled to
+> 1, unless !CONFIG_ACPI.
+> 
 >> +
->> +	kobject_uevent(&dev->kobj, KOBJ_ONLINE);
->> +}
->> +
->> +int is_container_device(struct acpi_device *adev)
->> +{
->> +	if (acpi_match_device_ids(adev, container_device_ids))
->> +		return 0;
->> +
->> +	return 1;
->> +}
->> +
->>   static int acpi_container_offline(struct container_dev *cdev)
->>   {
->>   	struct acpi_device *adev = ACPI_COMPANION(&cdev->dev);
->> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
->> index 4c5cf77..12dd89b 100644
->> --- a/drivers/acpi/internal.h
->> +++ b/drivers/acpi/internal.h
->> @@ -45,6 +45,13 @@ static inline void register_dock_dependent_device(struct acpi_device *adev,
->>   static inline int dock_notify(struct acpi_device *adev, u32 event) { return -ENODEV; }
->>   static inline void acpi_dock_add(struct acpi_device *adev) {}
->>   #endif
->> +#if CONFIG_ACPI_CONTAINER
->> +int is_container_device(struct acpi_device *adev);
->> +void notify_container_device(struct acpi_device *adev);
->> +#else
->> +static inline int is_container_device(struct acpi_device *adev) { return 0; }
->> +static inline void notify_container_device(struct acpi_device *adev) {}
->> +#endif
->>   #ifdef CONFIG_X86
->>   void acpi_cmos_rtc_init(void);
->>   #else
->> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
->> index 9a92989..faa3d11 100644
->> --- a/drivers/acpi/scan.c
->> +++ b/drivers/acpi/scan.c
->> @@ -2188,6 +2188,9 @@ static void acpi_bus_attach(struct acpi_device *device)
->>    ok:
->>   	list_for_each_entry(child, &device->children, node)
->>   		acpi_bus_attach(child);
->> +
->> +	if (is_container_device(device))
->> +		notify_container_device(device);
->>   }
->>
->>   /**
->> --
->> 1.8.3.1
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> +	/* Initialize the ACPI boot-time table parser. */
+>> +	if (acpi_table_init())
+>> +		disable_acpi();
+> 
+> Do you need anything more to add to this function later? Otherwise, just
+> call it in setup_arch() directly (maybe dependent on
+> IS_ENABLED(CONFIG_ACPI) or just create an equivalent dummy
+> acpi_table_init() when not configured).
+
+We add FADT parse function to this function later.
+
+> 
+>> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+>> index c96172a..fb7cc0e 100644
+>> --- a/arch/arm64/kernel/setup.c
+>> +++ b/arch/arm64/kernel/setup.c
+>> @@ -43,6 +43,7 @@
+>>  #include <linux/of_fdt.h>
+>>  #include <linux/of_platform.h>
+>>  #include <linux/efi.h>
+>> +#include <linux/acpi.h>
+>>  
+>>  #include <asm/fixmap.h>
+>>  #include <asm/cpu.h>
+>> @@ -385,6 +386,9 @@ void __init setup_arch(char **cmdline_p)
+>>  	efi_init();
+>>  	arm64_memblock_init();
+>>  
+>> +	/* Parse the ACPI tables for possible boot-time configuration */
+>> +	acpi_boot_table_init();
+> 
+> Is there any dummy acpi_boot_table_init() when !CONFIG_ACPI? I couldn't
+> see one in this patch, so I don't see how this would compile when ACPI
+> is disabled.
+
+There is a stub function in linux/acpi.h when ACPI is disabled.
+
+Thanks
+Hanjun
 
 
