@@ -1,149 +1,82 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v3 02/17] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
-Date: Wed, 10 Sep 2014 13:33:52 +0100
-Message-ID: <20140910123352.GA31237@localhost>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v3 04/17] ARM64 / ACPI: Introduce early_param for "acpi"
+Date: Wed, 10 Sep 2014 14:04:19 +0100
+Message-ID: <20140910130419.GJ28488@arm.com>
 References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
- <1409583475-6978-3-git-send-email-hanjun.guo@linaro.org>
- <20140909162648.GE2910@arm.com>
- <540F2DCF.1010104@redhat.com>
- <20140909171541.GD3896@leverpostej>
- <20140909175010.GF4948@e102568-lin.cambridge.arm.com>
- <540F4155.4090200@arm.com>
- <540F4FCF.1090508@redhat.com>
- <5410326F.8080104@huawei.com>
+ <1409583475-6978-5-git-send-email-hanjun.guo@linaro.org>
+ <CAErSpo6G89mkPgas8Wk3ofq__dUo5MKvBjob5D_w5_GaBJWH0w@mail.gmail.com>
+ <540F7BE2.8060403@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5410326F.8080104@huawei.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:64219 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750956AbaIJNEX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Sep 2014 09:04:23 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: "jcm@redhat.com" <jcm@redhat.com>, Sudeep Holla <Sudeep.Holla@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mark Rutland <Mark.Rutland@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Ch>
+In-Reply-To: <540F7BE2.8060403@redhat.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "jcm@redhat.com" <jcm@redhat.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>
 
-On Wed, Sep 10, 2014 at 12:13:51PM +0100, Hanjun Guo wrote:
-> On 2014/9/10 3:06, Jon Masters wrote:
-> > On 09/09/2014 02:05 PM, Sudeep Holla wrote:
-> >> On 09/09/14 18:50, Lorenzo Pieralisi wrote:
-> >>> On Tue, Sep 09, 2014 at 06:15:41PM +0100, Mark Rutland wrote:
-> >>>> On Tue, Sep 09, 2014 at 05:41:51PM +0100, Jon Masters wrote:
-> >>>>> On 09/09/2014 12:26 PM, Catalin Marinas wrote:
-> >>>>>> On Mon, Sep 01, 2014 at 03:57:40PM +0100, Hanjun Guo wrote:
-> >>>>>>> diff --git a/arch/arm64/include/asm/acenv.h b/arch/arm64/include/asm/acenv.h
-> >>>>>>> new file mode 100644
-> >>>>>>> index 0000000..3899ee6
-> >>>>>>> --- /dev/null
-> >>>>>>> +++ b/arch/arm64/include/asm/acenv.h
-> >>>>>>> @@ -0,0 +1,18 @@
-> >>>>>>> +/*
-> >>>>>>> + * ARM64 specific ACPICA environments and implementation
-> >>>>>>> + *
-> >>>>>>> + * Copyright (C) 2014, Linaro Ltd.
-> >>>>>>> + *   Author: Hanjun Guo <hanjun.guo@linaro.org>
-> >>>>>>> + *   Author: Graeme Gregory <graeme.gregory@linaro.org>
-> >>>>>>> + *
-> >>>>>>> + * This program is free software; you can redistribute it and/or modify
-> >>>>>>> + * it under the terms of the GNU General Public License version 2 as
-> >>>>>>> + * published by the Free Software Foundation.
-> >>>>>>> + */
-> >>>>>>> +
-> >>>>>>> +#ifndef _ASM_ACENV_H
-> >>>>>>> +#define _ASM_ACENV_H
-> >>>>>>> +
-> >>>>>>> +#define ACPI_FLUSH_CPU_CACHE() WARN_ONCE(1, "Not currently supported on ARM64")
-> >>>>>>
-> >>>>>> Does this mean that it will be supported at some point? Looking at the
-> >>>>>> places where this function is called, I don't really see how this would
-> >>>>>> ever work on ARM. Which means that we add such macro just to be able to
-> >>>>>> compile code that would never be used on arm64. I would rather see the
-> >>>>>> relevant ACPI files only compiled on x86/IA-64 rather than arm64.
-> >>>>>
-> >>>>> That specific cache behavior is a part of e.g. ACPI C3 state support
-> >>>>> (e.g. ACPI5.1 8.1.4 Processor Power State C3).
-> >>>>
-> >>>> Per table 5-35, if neither WBINVD or WBINVD_FLUSH are set in the FADT,
-> >>>> we don't get S1, S2, or S3 states either.
-> >>>>
-> >>>>> As you note, it's not going to work on 64-bit ARM as it does on x86,
-> >>>>> but it's optional to implement C3 and early 64-bit ARM systems should
-> >>>>> not report Wbindv flags in the FADT anyway.
-> >>>>
-> >>>> Unless the arm cache architecture changes, I wouldn't expect any 64-bit
-> >>>> ARM system to set either of the WBINVD flags.
-> >>>>
-> >>>>> They can also set FADT.P_LVL3_LAT > 1000, which has the effect of
-> >>>>> disabling C3 support, while also allowing for use of _CST objects to
-> >>>>> define more flexible C-States later on.
-> >>>>
-> >>>> It sounds like we should be sanity checking these in the arm64 ACPI code
-> >>>> for the moment. I don't want us to discover that current platforms
-> >>>> report the wrong thing only when new platforms come out that might
-> >>>> actually report things correctly.
-> >>>
-> >>> I think that the kernel must ignore most of the stuff mentioned above
-> >>> in HW_REDUCED_ACPI mode. And to be frank I still think that the problem
-> >>> is not even there. The problem is trying to compile code that basically
-> >>> has no defined behaviour - ie it is unspecified - on ARM64, that's what
-> >>> Catalin pointed out.
-> >>>
-> >>> I understand it is compiled in by default on x86, but that's not a reason
-> >>> why we should add empty hooks all over the place to compile code that
-> >>> does not stand a chance to be doing anything sensible apart from
-> >>> returning an error code, in the best case scenario.
-> >>>
+On Tue, Sep 09, 2014 at 11:14:58PM +0100, Jon Masters wrote:
+> On 09/09/2014 01:17 PM, Bjorn Helgaas wrote:
+> > On Mon, Sep 1, 2014 at 8:57 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> >> From: Al Stone <al.stone@linaro.org>
 > >>
-> >> I had pointed out this earlier, even if we make it compile there's
-> >> every possibility that it can blow up if some vendor adds S- states
-> >> to their ACPI tables. One clear reason why it could blow up is:
-> >>
-> >> "
-> >>       /* This violates the spec but is required for bug compatibility. */
-> >>       acpi_write_bit_register(ACPI_BITREG_SCI_ENABLE, 1);
-> >> "
-> >>
-> >> I don't think this can ever work on ARM platforms. So better to fix it
-> >> properly.
-
-Agree.
-
-> > How do you want to proceed? I'm not sure it should be !HW_REDUCED_MODE
-> > for the cache behavior, because an embedded x86 box would still probably
-> > define those, but removing the hooks on ARM may make sense.
+> >> Introduce one early parameters "off" for "acpi" to disable ACPI on
+> >> ARM64.
+> > 
+> > It might be worth mentioning the purpose of this in the changelog (and
+> > maybe the documentation).  I don't think this parameter is supported
+> > on ia64, and on x86 it seems like it's mostly used as a "fix" by
+> > Ubuntu users who consider the problem resolved when they find this
+> > parameter.  That just means we don't get a chance to fix the real
+> > underlying problem, so I'm not sure it's a real benefit to have the
+> > parameter.
 > 
-> As Graeme said in the reply, for sleep we are doing the same thing as
-> ia64 in stubbing out the functions,
-
-Sorry, that's not really an argument.
-
-> and before that we are trying to remove
-> the hooks on ARM by introducing more stubs and making things more complicated.
-
-I still think you can make things simpler by not compiling the code
-in question because we'll never implement such hooks on arm64, they
-don't make sense from an architecture perspective (whole cache flushing
-with MMU enabled cannot be done).
-
-> I agree that we should rework the ACPI core to make sleep/cache related
-> stuff compatible with ARM, but I think we may not do this in one go, it will
-> need incremental changes over the next couple of years as real hardware
-> starts to appear and we finalise the standards to support this.
+> >> -       acpi=           [HW,ACPI,X86]
+> >> +       acpi=           [HW,ACPI,X86,ARM]
+> >>                         Advanced Configuration and Power Interface
+> >>                         Format: { force | off | strict | noirq | rsdt }
+> >>                         force -- enable ACPI if default was off
+> >> @@ -175,6 +175,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+> >>                                 strictly ACPI specification compliant.
+> >>                         rsdt -- prefer RSDT over (default) XSDT
+> >>                         copy_dsdt -- copy DSDT to memory
+> >> +                       For ARM64, ONLY "acpi=off" is available.
 > 
-> Now, as we list in the arm-acpi.txt doc, power management of sleep states
-> and CPU power/frequency control are not well defined in ACPI spec for ARM,
-> we need some time to finalize the standard and then we know how to implement
-> that in a good shape.
+> Something along the lines of:
 > 
-> ACPI 5.1 already fixed lots missing features for ARM64 and provide the
-> fundamental needs to bring up the basic system for ARM server, power
-> management is not critical at now, so why not fix/implement it later?
+> "The purpose of disabling ACPI on 64-bit ARM server platforms is to
+> allow for an orderly adoption of ACPI on early systems that may also
+> provide a DeviceTree based boot option initially. The acpi= option
+> disables both parsing of any tables passed in through the EFI System
+> Table RSDP and also disables the runtime ACPI interpreter on arm64".
 
-I don't have a problem with implementing (rather than fixing) power
-management later, once the ACPI spec covers it. But the point a few of
-us were trying to make is that even when ACPI spec is updated, the
-current power management code and hooks still won't make sense on ARM.
-The best is to avoid compiling it for ARM now and look at refactoring it
-later to accommodate ARM ACPI.
+Please, let's keep this polarised rhetoric out of the Linux kernel. If ACPI
+support gets merged for arm64, then the community has a commitment to
+support it alongside devicetree. There isn't a migration path because
+nothing is being replaced and we shouldn't dictate to users in which
+circumstances they are allowed to use one firmware interface over another.
 
--- 
-Catalin
+Other entities (server vendors, distributions, firmware guys, ...) can make
+up their own rules, but attempting to peddle their agenda in the upstream
+kernel is completely inappropriate.
+
+It's blindingly obvious that acpi=off is there to disable ACPI at boot.
+We either support that option or we don't -- none of this `oh, well you
+can use it in this specific case I suppose' rubbish. I'm not questioning
+your use-case, but there's really no need to talk about an `orderly
+adoption' when all you need to say is that your ACPI is busted and passing
+acpi=off lets you boot with a devicetree.
+
+Yes, I'm being pedantic, but it's really important not to get the upstream
+messaging wrong about ACPI. Devicetree is absolutely *not* going away and
+people can choose to use whatever they prefer, however they prefer to use
+it.
+
+Will
