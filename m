@@ -1,115 +1,101 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v4 07/16] x86, irq: Prefer assigned ID in APIC ID register
- for x86_64
-Date: Wed, 10 Sep 2014 10:14:02 +0800
-Message-ID: <540FB3EA.5030109@linux.intel.com>
-References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com> <1409192561-19744-8-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1409091256270.11037@nanos>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] acpi: add utility to test for device dma coherency
+Date: Wed, 10 Sep 2014 02:39:17 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880266DC80@SHSMSX101.ccr.corp.intel.com>
+References: <1410296278-1244-1-git-send-email-msalter@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:59675 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:13474 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751156AbaIJCOK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Sep 2014 22:14:10 -0400
-In-Reply-To: <alpine.DEB.2.10.1409091256270.11037@nanos>
+	id S1751526AbaIJCoB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Sep 2014 22:44:01 -0400
+In-Reply-To: <1410296278-1244-1-git-send-email-msalter@redhat.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Prarit Bhargava <prarit@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Ingo Molnar <mingo@kernel.org>
+To: Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
+Hi,
 
+> From: Mark Salter [mailto:msalter@redhat.com]
+> Sent: Wednesday, September 10, 2014 4:58 AM
+> 
+> ACPI 5.1 adds a _CCA object to indicate memory coherency
+> of a bus master device. It is an integer with zero meaning
+> non-coherent and one meaning coherent. This attribute may
+> be inherited from a parent device. It may also be missing
+> entirely, in which case, an architecture-specific default
+> is assumed.
+> 
+> This patch adds a utility function to parse a device handle
+> (and its parents) for a _CCA object and return the coherency
+> attribute if found.
+> 
+> Signed-off-by: Mark Salter <msalter@redhat.com>
+> ---
+>  drivers/acpi/utils.c    | 26 ++++++++++++++++++++++++++
+>  include/acpi/acpi_bus.h |  2 ++
+>  2 files changed, 28 insertions(+)
+> 
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index 07c8c5a..aec9656 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -698,3 +698,29 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
+>  	return false;
+>  }
+>  EXPORT_SYMBOL(acpi_check_dsm);
+> +
+> +/**
+> + * acpi_check_coherency - check for memory coherency of a device
+> + * @handle: ACPI device handle
+> + * @val:    Pointer to returned value
+> + *
+> + * Search a device and its parents for a _CCA method and return
+> + * its value.
+> + */
+> +acpi_status acpi_check_coherency(acpi_handle handle, int *val)
+> +{
+> +	unsigned long long data;
+> +	acpi_status status;
+> +
+> +	do {
+> +		status = acpi_evaluate_integer(handle, "_CCA", NULL, &data);
+> +		if (!ACPI_FAILURE(status)) {
+> +			*val = data;
+> +			break;
+> +		}
+> +		status = acpi_get_parent(handle, &handle);
 
-On 2014/9/9 19:04, Thomas Gleixner wrote:
-> On Thu, 28 Aug 2014, Jiang Liu wrote:
-> 
->> From: Yinghai Lu <yinghai@kernel.org>
->>
->> Perfer the assigned ID in APIC ID register for x86_64 if it's still
->> available.
->>
->> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->> Cc: Joerg Roedel <joro@8bytes.org>
->> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
->> Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
->> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->> ---
->>  arch/x86/kernel/apic/io_apic.c |   38 +++++++++++++++++++++++++++++++++-----
->>  1 file changed, 33 insertions(+), 5 deletions(-)
->>
->> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
->> index 3faf9599ff29..196d9c15fdec 100644
->> --- a/arch/x86/kernel/apic/io_apic.c
->> +++ b/arch/x86/kernel/apic/io_apic.c
->> @@ -3575,26 +3575,54 @@ static int __init io_apic_get_unique_id(int ioapic, int apic_id)
->>  	return apic_id;
->>  }
->>  
->> -static u8 __init io_apic_unique_id(u8 id)
->> +static u8 io_apic_unique_id(int idx, u8 id)
-> 
-> How is that change related to the changelog?
-My bad, removal of __init marker belongs to next patch.
+Why do you need such a loop?
+In ACPI specification 5.3 ACPI Namespace, there is such a statement:
+Quote: "A name is located by finding the matching name in the current namespace, and then in the parent namespace."
+This searching rule should have already been implemented by ACPICA.
 
+Thanks and best regards
+-Lv
+
+> +	} while (!ACPI_FAILURE(status));
+> +
+> +	return status;
+> +}
+> +EXPORT_SYMBOL(acpi_check_coherency);
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index bcfd808..b97f09d 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -68,6 +68,8 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
+>  union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
+>  			int rev, int func, union acpi_object *argv4);
 > 
->>  {
->>  	if ((boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) &&
->>  	    !APIC_XAPIC(apic_version[boot_cpu_physical_apicid]))
->> -		return io_apic_get_unique_id(nr_ioapics, id);
->> +		return io_apic_get_unique_id(idx, id);
->>  	else
->>  		return id;
->>  }
->>  #else
->> -static u8 __init io_apic_unique_id(u8 id)
->> +static u8 io_apic_unique_id(int idx, u8 id)
->>  {
->>  	int i;
->> +	u8 new_id;
->> +	unsigned long flags;
->>  	DECLARE_BITMAP(used, 256);
->> +	union IO_APIC_reg_00 reg_00;
->>  
->>  	bitmap_zero(used, 256);
->>  	for_each_ioapic(i)
->>  		__set_bit(mpc_ioapic_id(i), used);
->>  	if (!test_bit(id, used))
->>  		return id;
->> -	return find_first_zero_bit(used, 256);
->> +
->> +	/* check register at first */
->> +	raw_spin_lock_irqsave(&ioapic_lock, flags);
->> +	reg_00.raw = io_apic_read(idx, 0);
->> +	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
->> +	new_id = reg_00.bits.ID;
->> +	if (!test_bit(new_id, used)) {
->> +		apic_printk(APIC_VERBOSE, KERN_INFO
->> +			"IOAPIC[%d]: Using reg apic_id %d instead of %d\n",
->> +			 idx, new_id, id);
->> +		return new_id;
->> +	}
->> +
->> +	new_id = find_first_zero_bit(used, 256);
->> +	reg_00.bits.ID = new_id;
->> +	raw_spin_lock_irqsave(&ioapic_lock, flags);
->> +	io_apic_write(idx, 0, reg_00.raw);
->> +	reg_00.raw = io_apic_read(idx, 0);
->> +	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
->> +
->> +	/* Sanity check */
->> +	if (reg_00.bits.ID != new_id)
->> +		pr_warn("IOAPIC[%d]: Unable to change apic_id to %d!\n",
->> +			idx, new_id);
-> 
-> So we detect, that the ID could not be changed and we return it
-> nevertheless?
-Seems it deserves a BUG_ON here. We have tried the ID from ACPI table,
-the ID from hardware register, they all fails. And we can't change the
-hardware register too. Seems no way out here.
-Regards!
-Gerry
-> 
-> Thanks,
-> 
-> 	tglx
-> 
+> +acpi_status acpi_check_coherency(acpi_handle handle, int *val);
+> +
+>  static inline union acpi_object *
+>  acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
+>  			union acpi_object *argv4, acpi_object_type type)
+> --
+> 1.8.3.1
+
